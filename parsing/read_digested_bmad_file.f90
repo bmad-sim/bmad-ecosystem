@@ -662,7 +662,7 @@ if (n_gen > 0) then
 
     do j = 1, size(gg_map%gg)
       ggcoef => gg_map%gg(j)
-      read (d_unit, err = 9120, end = 9120) ggcoef%m, ggcoef%sincos, lb2
+      read (d_unit, err = 9120, end = 9120) ggcoef%m, ggcoef%sincos, ggcoef%n_deriv_max, lb2
       allocate (ggcoef%deriv(n0:n1, 0:lb2))
       do k = n0, n1
         read (d_unit, err = 9120, end = 9120) ggcoef%deriv(k,:)

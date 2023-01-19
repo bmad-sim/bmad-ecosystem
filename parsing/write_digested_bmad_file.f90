@@ -465,7 +465,7 @@ do i = 1, n_gen
 
   do j = 1, size(gg_map%gg)
     ggcoef => gg_map%gg(j)
-    write (d_unit) ggcoef%m, ggcoef%sincos, ubound(ggcoef%deriv,2)
+    write (d_unit) ggcoef%m, ggcoef%sincos, ggcoef%n_deriv_max, ubound(ggcoef%deriv,2)
     do k = gg_map%iz0, gg_map%iz1
       write (d_unit) ggcoef%deriv(k,:)
     enddo

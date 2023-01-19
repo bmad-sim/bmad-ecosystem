@@ -525,7 +525,7 @@ if (associated(ele%gen_grad_map)) then
             nl=nl+1; li(nl) = '      ... etc. ...'
             exit
           endif
-          nl=nl+1; write(li(nl), '(i10, f10.6, 99es14.6)') n, n*gg_map%dz, gg%deriv(n,:)
+          nl=nl+1; write(li(nl), '(i10, f10.6, 99es14.6)') n, n*gg_map%dz, gg%deriv(n, 0:gg%n_deriv_max)
         enddo
       enddo
     enddo

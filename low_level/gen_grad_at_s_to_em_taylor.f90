@@ -30,7 +30,7 @@ type (em_taylor_coef_struct) em_coef(3)
 
 real(rp) s_pos, s0, coef, scale, z_rel, s_here
 real(rp), allocatable ::xy_plus(:), xy_zero(:), xy_minus(:)
-real(rp), allocatable :: der(:), spline(:)
+real(rp), allocatable :: der(:)
 
 integer iz0, nd
 integer i, j, k, d, n, m, io, ix, m_max, iord, it, ig
@@ -70,7 +70,7 @@ io = 0
 m_max = 0
 do i = 1, size(gen_grad%gg)
   gg => gen_grad%gg(i)
-  io = max(io, max(1, gg%m-1) + ubound(gg%deriv,2))
+  io = max(io, max(1, gg%m-1) + gg%n_deriv_max)
   m_max = max(m_max, gg%m)
 enddo
 
@@ -83,7 +83,7 @@ em_coef(1)%c = 0; em_coef(2)%c = 0; em_coef(3)%c = 0
 
 do ig = 1, size(gen_grad%gg)
   gg => gen_grad%gg(ig)
-  nd = ubound(gg%deriv,2)
+  nd = gg%n_deriv_max
   m = gg%m
   is_even = .false.
 
@@ -112,11 +112,10 @@ do ig = 1, size(gen_grad%gg)
   enddo
 
   call re_allocate2(der, 0, nd, .false.)
-  call n_spline_create(gg%deriv(iz0,:), gg%deriv(iz0+1,:), gen_grad%dz, spline)
 
   do d = 0, nd
     is_even = (.not. is_even)
-    coef = poly_eval(spline(d:), z_rel, diff_coef=.true.)
+    coef = poly_eval(gg%deriv(iz0, d:), z_rel, diff_coef=.true.)
     if (coef == 0) cycle
 
     if (is_even) then

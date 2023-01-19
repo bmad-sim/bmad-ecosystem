@@ -573,7 +573,7 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
 
   max_order = 0
   do i = 1, size(gg_map%gg)
-    max_order = max(max_order, gg_map%gg(i)%m+ubound(gg_map%gg(i)%deriv,2))
+    max_order = max(max_order, gg_map%gg(i)%m+gg_map%gg(i)%n_deriv_max)
   enddo
 
   ptc_key%magnet = 'PANCAKEBMADZERO'
