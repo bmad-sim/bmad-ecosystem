@@ -8862,15 +8862,18 @@ do
             if (.not. parser_fast_real_read (deriv(0:nder), ele, ',}', delim, 'GEN_GRAD_MAP DERIVS TABLE')) return
           endif
 
-          if (.not. allocated(gg1%deriv)) allocate (gg1%deriv(gg_map%iz0:gg_map%iz0+1000, 0:nder))
-          if (iz > ubound(gg1%deriv,1)) call re_allocate2d(gg1%deriv, ubound(gg1%deriv,1)+1000, nder, lb1 = gg_map%iz0, lb2 = 0)
+          if (.not. allocated(gg1%deriv)) allocate (gg1%deriv(gg_map%iz0:gg_map%iz0+1000, 0:2*nder+1))
+          if (iz > ubound(gg1%deriv,1)) call re_allocate2d(gg1%deriv, ubound(gg1%deriv,1)+1000, 2*nder+1, lb1 = gg_map%iz0, lb2 = 0)
 
-          gg1%deriv(iz,:) = deriv(0:nder)
+          gg1%deriv(iz,0:nder) = deriv(0:nder)
+          gg1%n_deriv_max = nder
+
           if (delim == '}') exit
         enddo
 
         if (gg_map%iz1 == int_garbage$) gg_map%iz1 = iz
-        call re_allocate2d(gg1%deriv, gg_map%iz1, nder, lb1 = gg_map%iz0, lb2 = 0)
+        call re_allocate2d(gg1%deriv, gg_map%iz1, 2*nder+1, lb1 = gg_map%iz0, lb2 = 0)
+        gg1%n_deriv_max = nder
 
         if (iz /= gg_map%iz1) then
           call parser_error ('ENDING IZ-INDEX IN GEN_GRAD_MAP DERIVS TABLE NOT IS DIFFERENT FROM PRIOR DERIVS TABLE', 'FOR ELEMENT: ' // ele%name)
@@ -8900,6 +8903,17 @@ do
   ! Possible "}" is end of mode
   if (delim == '}') exit
 
+enddo
+
+! Extend derivatives to form interpolating spline polynomial
+
+do i = 1, size(gg_map%gg)
+  gg1 => gg_map%gg(i)
+  n = gg1%n_deriv_max
+
+  do iz = gg_map%iz0, gg_map%iz1-1
+    call n_spline_create(gg1%deriv(iz,0:n), gg1%deriv(iz+1,0:n), gg_map%dz, gg1%deriv(iz,:))
+  enddo
 enddo
 
 ! Get final separator after gen_grad_map construct.

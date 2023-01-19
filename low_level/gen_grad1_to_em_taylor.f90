@@ -42,7 +42,7 @@ io = 0
 m_max = 0
 do i = 1, size(gen_grad%gg)
   gg => gen_grad%gg(i)
-  io = max(io, max(1, gg%m-1) + ubound(gg%deriv,2))
+  io = max(io, max(1, gg%m-1) + gg%n_deriv_max)
   m_max = max(m_max, gg%m)
 enddo
 
@@ -82,7 +82,7 @@ do i = 1, size(gen_grad%gg)
   enddo
 
   is_even = .false.
-  do d = 0, ubound(gg%deriv,2)
+  do d = 0, gg%n_deriv_max
     is_even = (.not. is_even)
     coef = gg%deriv(iz,d)
     if (coef == 0) cycle

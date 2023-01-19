@@ -1803,13 +1803,13 @@ do ig = 1, size(gg_map%gg)
   write (iu9, '(4x, a)')        'derivs = {'
 
 
-  n = ubound(gg%deriv,2) + 1
-  write (fmt, '(a, i0, a)') '(f13.5, a, ', n, 'es20.12, a)' 
+  n = gg%n_deriv_max
+  write (fmt, '(a, i0, a)') '(f13.5, a, ', n+1, 'es20.12, a)' 
   print *, fmt
   do iz = gg_map%iz0, gg_map%iz1-1
-    write (iu9, fmt) iz*gg_map%dz, ':', gg%deriv(iz,:), ','
+    write (iu9, fmt) iz*gg_map%dz, ':', gg%deriv(iz,0:n), ','
   enddo
-  write (iu9, fmt) gg_map%iz1*gg_map%dz, ':', gg%deriv(gg_map%iz1,:)
+  write (iu9, fmt) gg_map%iz1*gg_map%dz, ':', gg%deriv(gg_map%iz1,0:n)
 
   write (iu9, '(a)')   '    }'
   if (ig == size(gg_map%gg)) then

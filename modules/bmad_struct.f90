@@ -704,7 +704,9 @@ end type
 type gen_grad1_struct
   integer :: m = 0                      ! Azimuthal index
   integer :: sincos = 0                 ! sin$ or cos$
-  real(rp), allocatable :: deriv(:,:)    ! (ix_z, ix_deriv)
+  integer :: n_deriv_max = -1           ! Max GG derivative
+  ! The derivative matrix is extended to include the interpolating spline polynomial.
+  real(rp), allocatable :: deriv(:,:)   ! Range: (iz0:iz1, 0:2*n_deriv_max+1)
 end type  
 
 type gen_grad_map_struct
@@ -712,8 +714,8 @@ type gen_grad_map_struct
   type (gen_grad1_struct), allocatable :: gg(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
-  integer :: iz0 = int_garbage$      ! gg%deriv(:) lower bound.
-  integer :: iz1 = int_garbage$      ! gg%deriv(:) upper bound.
+  integer :: iz0 = int_garbage$      ! gg%deriv(iz0:iz1, :) lower bound.
+  integer :: iz1 = int_garbage$      ! gg%deriv(iz0:iz1, :) upper bound.
   real(rp) :: dz = 0                 ! Point spacing.
   real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
   real(rp) :: field_scale = 1        ! Factor to scale the fields by

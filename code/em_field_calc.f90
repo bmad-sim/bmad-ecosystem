@@ -1585,7 +1585,7 @@ type (gen_grad1_struct), pointer :: gg
 type (em_field_struct) field
 
 real(rp) r_pos(3), z_rel, theta, rho
-real(rp), allocatable :: d0(:), d1(:), der(:), spline(:)
+real(rp), allocatable :: d0(:), d1(:), der(:)
 integer iz0, j, id, nd
 
 !
@@ -1611,13 +1611,11 @@ rho = norm2(r_pos(1:2))
 
 do j = 1, size(gg_map%gg)
   gg => gg_map%gg(j)
-  nd = ubound(gg%deriv,2)
+  nd = gg%n_deriv_max
 
   call re_allocate2(der, 0, nd, .false.)
-  call n_spline_create(gg%deriv(iz0,:), gg%deriv(iz0+1,:), gg_map%dz, spline)
-
   do id = 0, nd
-    der(id) = poly_eval(spline(id:), z_rel, diff_coef=.true.)
+    der(id) = poly_eval(gg%deriv(iz0, id:), z_rel, diff_coef=.true.)
   enddo
 
   if (gg_map%field_type == magnetic$) then
