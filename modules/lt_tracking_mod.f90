@@ -1277,13 +1277,13 @@ if (.not. r_damp .and. .not. r_fluct) return
 
 rad_mat => ele%rad_map%rm1
 if (r_damp) then
-  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
-  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_mat%damp_vec
+  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
+  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_mat%damp_vec
 endif
 
 if (r_fluct) then
   call ran_gauss (ran6)
-  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_mat%stoc_mat, ran6)
+  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_mat%stoc_mat, ran6)
 endif
 
 end subroutine ltt_track1_radiation_center 
