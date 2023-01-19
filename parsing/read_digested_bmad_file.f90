@@ -301,6 +301,7 @@ if (found_it) then
   if (extra%autoscale_phase_tol_set)              bmad_com%autoscale_phase_tol             = bmad_com_read%autoscale_phase_tol
   if (extra%rf_phase_below_transition_ref_set)    bmad_com%rf_phase_below_transition_ref   = bmad_com_read%rf_phase_below_transition_ref
   if (extra%electric_dipole_moment_set)           bmad_com%electric_dipole_moment          = bmad_com_read%electric_dipole_moment
+  if (extra%synch_rad_scale_set)                  bmad_com%synch_rad_scale                 = bmad_com_read%synch_rad_scale
   if (extra%taylor_order_set)                     bmad_com%taylor_order                    = bmad_com_read%taylor_order
   if (extra%d_orb_set)                            bmad_com%d_orb                           = bmad_com_read%d_orb
   if (extra%default_integ_order_set)              bmad_com%default_integ_order             = bmad_com_read%default_integ_order

@@ -122,6 +122,7 @@ case ('BMAD_COM')
   case ('AUTOSCALE_AMP_REL_TOL');           ptr_array(1)%r => bmad_com%autoscale_amp_rel_tol
   case ('AUTOSCALE_PHASE_TOL');             ptr_array(1)%r => bmad_com%autoscale_phase_tol
   case ('ELECTRIC_DIPOLE_MOMENT');          ptr_array(1)%r => bmad_com%electric_dipole_moment
+  case ('SYNCH_RAD_SCALE');                 ptr_array(1)%r => bmad_com%synch_rad_scale
   case ('SAD_EPS_SCALE');                   ptr_array(1)%r => bmad_com%sad_eps_scale
   case ('SAD_AMP_MAX');                     ptr_array(1)%r => bmad_com%sad_amp_max
 

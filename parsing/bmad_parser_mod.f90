@@ -450,6 +450,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_rel_tol))           bp_com%extra%autoscale_amp_rel_tol_set       = .true.
     if (associated(a_ptrs(1)%r, bmad_com%autoscale_phase_tol))             bp_com%extra%autoscale_phase_tol_set         = .true.
     if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))          bp_com%extra%electric_dipole_moment_set      = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%synch_rad_scale))                 bp_com%extra%synch_rad_scale_set      = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                   bp_com%extra%sad_eps_scale_set               = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                     bp_com%extra%sad_amp_max_set                 = .true.
 

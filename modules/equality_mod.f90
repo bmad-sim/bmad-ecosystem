@@ -28,10 +28,10 @@ interface operator (==)
   module procedure eq_controller_var1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
   module procedure eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
   module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_strong_beam, eq_track_point
-  module procedure eq_track, eq_synch_rad_common, eq_space_charge_common, eq_bmad_common, eq_rad_int1
-  module procedure eq_rad_int_branch, eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor
-  module procedure eq_branch, eq_lat, eq_bunch, eq_bunch_params, eq_beam
-  module procedure eq_aperture_point, eq_aperture_param, eq_aperture_scan
+  module procedure eq_track, eq_space_charge_common, eq_bmad_common, eq_rad_int1, eq_rad_int_branch
+  module procedure eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch
+  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam, eq_aperture_point
+  module procedure eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -1210,6 +1210,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%m == f2%m)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%sincos == f2%sincos)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_deriv_max == f2%n_deriv_max)
 !! f_side.equality_test[real, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%deriv) .eqv. allocated(f2%deriv))
 if (.not. is_eq) return
@@ -2233,32 +2235,6 @@ is_eq = is_eq .and. (f1%n_bad == f2%n_bad)
 is_eq = is_eq .and. (f1%n_ok == f2%n_ok)
 
 end function eq_track
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_synch_rad_common (f1, f2) result (is_eq)
-
-implicit none
-
-type(synch_rad_common_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%scale == f2%scale)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%i2 == f2%i2)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%i3 == f2%i3)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%i5a == f2%i5a)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%i5b == f2%i5b)
-
-end function eq_synch_rad_common
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
