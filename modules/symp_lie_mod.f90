@@ -1419,11 +1419,11 @@ if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuati
 g2 = dpx**2 + dpy**2
 g3 = g2 * sqrt(g2)
 
-! synch_rad_com%scale is normally 1 but can be set by a program for testing purposes.
+! bmad_com%synch_rad_scale is normally 1 but can be set by a program for testing purposes.
 
 rel_p = 1 + end_orb%vec(6)
 call ran_gauss (this_ran)
-dE_p = synch_rad_com%scale * rel_p * (fact_d * g2 + fact_f * sqrt(g3) * this_ran)
+dE_p = bmad_com%synch_rad_scale * rel_p * (fact_d * g2 + fact_f * sqrt(g3) * this_ran)
 
 ! And kick the particle.
 

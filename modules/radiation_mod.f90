@@ -100,13 +100,13 @@ else
 endif
 
 if (bmad_com%radiation_damping_on) then
-  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_map%damp_mat, orbit%vec - rad_map%ref_orb)
-  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + synch_rad_com%scale * rad_map%damp_vec
+  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%damp_mat, orbit%vec - rad_map%ref_orb)
+  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_map%damp_vec
 endif
 
 if (bmad_com%radiation_fluctuations_on) then
   call ran_gauss (ran6)
-  orbit%vec = orbit%vec + synch_rad_com%scale * matmul(rad_map%stoc_mat, ran6)
+  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%stoc_mat, ran6)
 endif
 
 ! Sokolov-Ternov Spin flip

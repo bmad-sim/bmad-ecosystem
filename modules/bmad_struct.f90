@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 288
+integer, parameter :: bmad_inc_version$ = 289
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1983,15 +1983,6 @@ end type
 type (space_charge_common_struct), save, target :: space_charge_com
 
 !------------------------------------------------------------------------------
-! This is for debugging radiation damping and fluctuations.
-
-type synch_rad_common_struct
-  real(rp) :: scale = 1.0               ! used to scale the radiation
-  real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
-  real(rp) :: i5a = 0, i5b = 0
-end type
-
-type (synch_rad_common_struct), save :: synch_rad_com
 
 integer, parameter :: invalid_name$ = 0, is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
 integer, parameter :: is_struct$ = 6, unknown$ = 7
@@ -2026,6 +2017,7 @@ type extra_parsing_info_struct
   logical :: init_ds_adaptive_tracking_set          = .false.
   logical :: min_ds_adaptive_tracking_set           = .false.
   logical :: fatal_ds_adaptive_tracking_set         = .false.
+  logical :: synch_rad_scale_set                    = .false.
   logical :: autoscale_amp_abs_tol_set              = .false.
   logical :: autoscale_amp_rel_tol_set              = .false.
   logical :: autoscale_phase_tol_set                = .false.
@@ -2107,6 +2099,7 @@ type bmad_common_struct
   real(rp) :: autoscale_amp_rel_tol = 1d-6             ! Autoscale relative amplitude tolerance
   real(rp) :: autoscale_phase_tol = 1d-5               ! Autoscale phase tolerance.
   real(rp) :: electric_dipole_moment = 0               ! Particle's EDM. Call set_ptc to transfer value to PTC.
+  real(rp) :: synch_rad_scale = 1.0_rp                 ! Synch radiation kick scale. 1 => normal, 0 => no kicks.
   real(rp) :: sad_eps_scale = 5.0d-3                   ! Used in sad_mult step length calc.
   real(rp) :: sad_amp_max = 5.0d-2                     ! Used in sad_mult step length calc.
   integer :: sad_n_div_max = 1000                      ! Used in sad_mult step length calc.

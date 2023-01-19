@@ -158,8 +158,9 @@ calculated from the eigen values $\lambda_i$ (cf. \Eq{lleit}) of the one-turn ma
   \label{allall}
 \end{equation}
 
-The $\Cal{S}$ matrix is calculated by first noting that, to linear order, the distribution of
-$\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$ is
+The $\Cal{S}$ matrix (\Eq{rmrsx}) is calculated by first noting that, to linear order, the
+distribution of $\delta\bfr_2$ due to stochastic radiation over some length $ds$ as some point $s$
+is
 \begin{equation}
   \delta\bfr_2 = \sqrt{ds} \, \bfM_{2,s} \, \left( \bfF_\mk{f}(s) \, \xi_1 + \bfF_\mk{v} \, \xi_2 \right)
 \end{equation}
@@ -192,17 +193,18 @@ where the $t$ superscript indicates transpose. $\bfsig_{\gamma21}$ is related to
 \end{equation}
 The calculation of $\Cal{S}_{21}$ involves calculating $\bfsig_{\gamma21}$ via \Eq{smvvm} and then
 using \Eq{sxx} to solve for $\Cal{S}_{21}$ using, say, a Cholesky decomposition. Notice that while
-\Eq{sxx} does not have a unique solution, what matters here is that $\Cal{S}_{21} \, \Bf\Xi$ gives
-the correct distribution. The $\Cal{S}_{21}$ matrix may contain columns or rows that are all
-zero. This can happen if there are vectors $\bfz$ where $\bfz^t \bfsig_{\gamma21} \bfz$ is zero. For
-example, in a planer ring where the vertical emittance is zero there will be rows that are zero.
+\Eq{sxx} does not have a unique solution, what matters here is that $\Cal{S}_{21} \, \Bf\Xi$ (see
+\Eq{rmrsx}) gives the correct distribution. The $\Cal{S}_{21}$ matrix may contain columns or rows
+that are all zero. This can happen if there are vectors $\bfz$ where $\bfz^t \bfsig_{\gamma21} \bfz$
+is zero. For example, in a planer ring where the vertical emittance is zero there will be rows that
+are zero.
 
 The covariance matrix $\bfsig_\gamma(s_2)$ at $s_2$ relative to the covariance matrix at $s_1$ is
 \begin{equation}
   \bfsig_\gamma(s_2) = \bfsig_{\gamma21} + \bfM_{21} \, \bfsig_\gamma(s_1) \, \bfM_{21}^t
   \label{ssmsm}
 \end{equation}
-The beam size matrix $\sigma$ is not the same as the covariance matrix since the beam size matrix is
+The beam size matrix $\bfsig$ is not the same as the covariance matrix since the beam size matrix is
 an average over the particles of a beam and not an average over the photon emission
 spectrum. However, in equilibrium, the two are the same. To calculate the equilibrium beam size
 matrix, \Eq{ssmsm} is recast. For any symmetric $6\times6$ matrix $\bfA$, define the 21-vector

@@ -92,6 +92,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     autoscale_amp_rel_tol = 1d-6        ! Autoscale relative amplitude tolerance
     autoscale_phase_tol = 1d-5          ! Autoscale phase tolerance.
     electric_dipole_moment = 0          ! Particle's EDM. 
+    synch_rad_scale = 1.0               ! Synch radiation kick scale. 1 => normal
     ptc_cut_factor = 0.006              ! Cut factor for PTC tracking
     sad_eps_scale = 5.0d-3              ! Used in sad_mult step length calc.
     sad_amp_max = 5.0d-2                ! Used in sad_mult step length calc.
@@ -250,7 +251,7 @@ With \bmad, there is no distinction whether an element's orientation attributes 
 \vn{pitches}, or \vn{tilt} (\sref{s:offset})) is deliberate (part of the ``design'' of the machine)
 or an error (a ``misalignment'').  With PTC this is not true. If the \vn{ptc_use_orientation_patches}
 switch is set to True (the default), when a \bmad element is translated to PTC,
-the element's orientation attributes are stored as patches. That is, ``desgin'' values.
+the element's orientation attributes are stored as patches. That is, ``design'' values.
 If set to False, these parameters are stored as misalignments. This will generally not make any
 difference to a calculation. The exception comes with PTC centric programs that vary machine
 parameters.\footnote
@@ -314,6 +315,12 @@ not} be done if spin tracking is off or both radiation damping and excitation ar
 %
 \item[\vn{spin_tracking_on}] \Newline
 Determines if spin tracking is performed or not.
+%
+\item[\vn{synch_rad_scale}] \Newline
+This parameter is a multiplier for the kick given particles when radiation damping or excitation is
+turned on.  This parameter is useful for artificially speeding up (or slowing down) the effect of
+radiation.  The default value is one. Values greater than one will give larger kicks and will reduce
+the equilibrium settling time.
 %
 \item[\vn{taylor_order}] \Newline
 Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
@@ -390,7 +397,7 @@ The \vn{space_charge_common_struct} structure holds parameters for space charge 
 (\sref{s:csr})) calculations.\footnote
   {
 This structure was formally called the \vn{csr_parameter_struct}. The name was changed to reflect
-the fact that the sturucture has parameters for space charge calculations that do not involve CSR.
+the fact that the structure has parameters for space charge calculations that do not involve CSR.
   }
 The setting of the \vn{csr_method} and \vn{space_charge_method} element parameters
 (\sref{s:csr.sc.meth}) will also affect space charge calculations as well as the setting of the
@@ -497,7 +504,7 @@ compute the sigma. The beam sigmas are needed for the CS calculation but not nee
 calculation.
 %
 \item{diagnostic_output_file} \Newline
-If set nonblank, an output file of this name is created that contains a table of the CSR wake at
+If set non blank, an output file of this name is created that contains a table of the CSR wake at
 each track step (the track step size is set by \vn{ds_track_step}). If tracking is done through
 multiple lattice elements, the wake tables for the elements are appended to the file. This file is
 useful for visualization of the wake.

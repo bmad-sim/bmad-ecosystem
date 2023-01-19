@@ -192,6 +192,7 @@ call write_if_real_param_changed  (bmad_com%autoscale_amp_abs_tol,           bma
 call write_if_real_param_changed  (bmad_com%autoscale_amp_rel_tol,           bmad_com_default%autoscale_amp_rel_tol,            'bmad_com[autoscale_amp_rel_tol]')
 call write_if_real_param_changed  (bmad_com%autoscale_phase_tol,             bmad_com_default%autoscale_phase_tol,              'bmad_com[autoscale_phase_tol]')
 call write_if_real_param_changed  (bmad_com%electric_dipole_moment,          bmad_com_default%electric_dipole_moment,           'bmad_com[electric_dipole_moment]')
+call write_if_real_param_changed  (bmad_com%synch_rad_scale,                 bmad_com_default%synch_rad_scale,                  'bmad_com[synch_rad_scale]')
 call write_if_real_param_changed  (bmad_com%sad_eps_scale,                   bmad_com_default%sad_eps_scale,                    'bmad_com[sad_eps_scale]')
 call write_if_real_param_changed  (bmad_com%sad_amp_max,                     bmad_com_default%sad_amp_max,                      'bmad_com[sad_amp_max]')
 call write_if_int_param_changed   (bmad_com%sad_n_div_max,                   bmad_com_default%sad_n_div_max,                    'bmad_com[sad_n_div_max]')
