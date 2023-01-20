@@ -1162,10 +1162,12 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%ref_orb == f2%ref_orb)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%damp_vec == f2%damp_vec)
 !! f_side.equality_test[real, 2, NOT]
-is_eq = is_eq .and. all(f1%damp_mat == f2%damp_mat)
+is_eq = is_eq .and. all(f1%damp_dmat == f2%damp_dmat)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%xfer_damp_vec == f2%xfer_damp_vec)
+!! f_side.equality_test[real, 2, NOT]
+is_eq = is_eq .and. all(f1%xfer_damp_mat == f2%xfer_damp_mat)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%stoc_mat == f2%stoc_mat)
 
@@ -2327,6 +2329,8 @@ is_eq = is_eq .and. (f1%autoscale_amp_rel_tol == f2%autoscale_amp_rel_tol)
 is_eq = is_eq .and. (f1%autoscale_phase_tol == f2%autoscale_phase_tol)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%electric_dipole_moment == f2%electric_dipole_moment)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%synch_rad_scale == f2%synch_rad_scale)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sad_eps_scale == f2%sad_eps_scale)
 !! f_side.equality_test[real, 0, NOT]

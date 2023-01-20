@@ -69,10 +69,10 @@ call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode
 ! If there is no RF then add a small amount to enable the calculation to proceed.
 ! The RF is modeled as a unit matrix with M(6,5) = 1d-4.
 
-rf_off = (rmap%damp_mat(6,5) == 0)
+rf_off = (rmap%xfer_damp_mat(6,5) == 0)
 if (rf_off) then
   rf65 = 1e-4
-  rmap%damp_mat(6,:) = rmap%damp_mat(6,:) + rf65 * rmap%damp_mat(5,:)
+  rmap%xfer_damp_mat(6,:) = rmap%xfer_damp_mat(6,:) + rf65 * rmap%xfer_damp_mat(5,:)
   rmap%stoc_mat(6,:) = rmap%stoc_mat(6,:) + rf65 * rmap%stoc_mat(5,:)
   rmap%stoc_mat(:,6) = rmap%stoc_mat(:,6) + rmap%stoc_mat(:,5) * rf65
 endif
@@ -86,7 +86,7 @@ do i = 1, 21
 
   do j = 1, 6
   do k = 1, 6
-    mt(i,v(j,k)) = mt(i,v(j,k)) - rmap%damp_mat(w1(i),j) * rmap%damp_mat(w2(i),k)
+    mt(i,v(j,k)) = mt(i,v(j,k)) - rmap%xfer_damp_mat(w1(i),j) * rmap%xfer_damp_mat(w2(i),k)
   enddo
   enddo
 enddo
@@ -141,7 +141,7 @@ endif
 ! E_loss = 0 can happen in toy lattices without bends.
 
 if (mode%e_loss /= 0) then
-  call mat_eigen(rmap%damp_mat, eval, evec, err)
+  call mat_eigen(rmap%xfer_damp_mat, eval, evec, err)
 
   mode%a%alpha_damp = 1.0_rp - abs(eval(1))
   mode%b%alpha_damp = 1.0_rp - abs(eval(3))
@@ -242,8 +242,8 @@ enddo
 
 !
 
-call mat_make_unit(rmap%damp_mat)
-rmap%damp_vec = 0
+call mat_make_unit(rmap%xfer_damp_mat)
+rmap%xfer_damp_vec = 0
 rmap%stoc_mat = 0
 mode%dpz_damp = 0
 mode%pz_average = 0
@@ -255,15 +255,15 @@ do
   if (ie > branch%n_ele_track) ie = 0
   if (ie /= 0) then
     ele3 => branch%ele(ie)
-    mt = rm1(ie)%damp_mat + ele3%mat6
-    rmap%damp_vec = matmul(mt, rmap%damp_vec) + rm1(ie)%damp_vec
-    rmap%damp_mat = matmul(mt, rmap%damp_mat)
+    mt = rm1(ie)%xfer_damp_mat + ele3%mat6
+    rmap%xfer_damp_vec = matmul(mt, rmap%xfer_damp_vec) + rm1(ie)%xfer_damp_vec
+    rmap%xfer_damp_mat = matmul(mt, rmap%xfer_damp_mat)
     rmap%stoc_mat = matmul(matmul(mt, rmap%stoc_mat), transpose(mt)) + rm1(ie)%stoc_mat
 
     mode%pz_average = mode%pz_average + 0.5_rp * ele3%value(l$) * (closed_orb(ie-1)%vec(6) + closed_orb(ie)%vec(6))
     length = length + ele3%value(l$)
     if (ele3%key /= rfcavity$) then
-      mode%dpz_damp = mode%dpz_damp + rm1(ie)%damp_vec(6)
+      mode%dpz_damp = mode%dpz_damp + rm1(ie)%xfer_damp_vec(6)
     endif
   endif
   if (ie == ele2%ix_ele) exit
@@ -306,8 +306,8 @@ use super_recipes_mod, only: super_polint
 
 type qromb_int_struct
   real(rp) :: h = 0
-  real(rp) :: damp_mat(6,6) = 0
-  real(rp) :: damp_vec(6) = 0
+  real(rp) :: xfer_damp_vec(6) = 0
+  real(rp) :: xfer_damp_mat(6,6) = 0
   real(rp) :: stoc_mat(6,6) = 0 
 end type
 
@@ -401,16 +401,16 @@ do j = 1, j_max
   j1 = min(j, 4)
   if (j > 4) qi(0:3) = qi(1:4)
   qi(j1)%h = 0.25_rp * qi(j1-1)%h
-  qi(j1)%damp_mat = 0.5_rp * (qi(j1-1)%damp_mat + del_z * damp_mat_sum)
-  qi(j1)%damp_vec = 0.5_rp * (qi(j1-1)%damp_vec + del_z * damp_vec_sum)
+  qi(j1)%xfer_damp_mat = 0.5_rp * (qi(j1-1)%xfer_damp_mat + del_z * damp_mat_sum)
+  qi(j1)%xfer_damp_vec = 0.5_rp * (qi(j1-1)%xfer_damp_vec + del_z * damp_vec_sum)
   qi(j1)%stoc_mat = 0.5_rp * (qi(j1-1)%stoc_mat + del_z * stoc_var_mat_sum)
 
   if (j < j_min_test) cycle
 
   do i1 = 1, 6
-    call super_polint(qi(1:j1)%h, qi(1:j1)%damp_vec(i1), 0.0_rp, damp_vec1(i1), ddvec(i1))
+    call super_polint(qi(1:j1)%h, qi(1:j1)%xfer_damp_vec(i1), 0.0_rp, damp_vec1(i1), ddvec(i1))
     do i2 = 1, 6
-      call super_polint(qi(1:j1)%h, qi(1:j1)%damp_mat(i1,i2), 0.0_rp, damp_mat1(i1,i2), ddamp(i1,i2))
+      call super_polint(qi(1:j1)%h, qi(1:j1)%xfer_damp_mat(i1,i2), 0.0_rp, damp_mat1(i1,i2), ddamp(i1,i2))
       call super_polint(qi(1:j1)%h, qi(1:j1)%stoc_mat(i1,i2), 0.0_rp, stoc_var_mat1(i1,i2), dstoc(i1,i2))
     enddo
   enddo
@@ -434,8 +434,8 @@ endif
 ! the reference of the output is the downstream end. So need to correct for this.
 
 mat0_inv = mat_symp_conj(mat0)   ! mat0 is transport matrix through the upstream edge
-rad_mat%damp_mat = matmul(matmul(matmul(ele%mat6, mat0_inv), damp_mat1), mat0)
-rad_mat%damp_vec = matmul(matmul(matmul(ele%mat6, mat0_inv), damp_vec1), mat0)
+rad_mat%xfer_damp_mat = matmul(matmul(matmul(ele%mat6, mat0_inv), damp_mat1), mat0)
+rad_mat%xfer_damp_vec = matmul(matmul(matmul(ele%mat6, mat0_inv), damp_vec1), mat0)
 
 rad_mat%stoc_mat = matmul(matmul(mat0_inv, stoc_var_mat1), transpose(mat0_inv))
 rad_mat%stoc_mat = matmul(matmul(ele%mat6, stoc_var_mat1), transpose(ele%mat6))

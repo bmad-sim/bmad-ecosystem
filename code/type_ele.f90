@@ -667,10 +667,10 @@ if (logic_option(.false., type_rad_kick) .and. associated(ele%rad_map)) then
   nl=nl+1; write (li(nl), '(23x, a, 41x, a)') '1st half of element', '2nd half of element'
   nl=nl+1; li(nl) = 'Damping mat:'
   do i = 1, 6
-    nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%damp_mat(i,:), rm1%damp_mat(i,:)
+    nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%xfer_damp_mat(i,:), rm1%xfer_damp_mat(i,:)
   enddo
   nl=nl+1; li(nl) = 'Damping vec:'
-  nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%damp_vec(:), rm1%damp_vec(:)
+  nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%xfer_damp_vec(:), rm1%xfer_damp_vec(:)
   nl=nl+1; li(nl) = 'Damping ref_orb:'
   nl=nl+1; write (li(nl), '(2x, 6es10.2, 5x, 6es10.2)') rm0%ref_orb(:), rm1%ref_orb(:)
   nl=nl+1; li(nl) = 'Stochastic mat:'

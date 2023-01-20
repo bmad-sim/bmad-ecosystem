@@ -53,8 +53,8 @@ call rad1_damp_and_stoc_mats (ele, .true., orb0, orb1, rad_map, &
 select case (ref_edge)
 case (upstream_end$)
   m_inv = mat_symp_conj(ele%mat6)
-  rad_map%damp_mat = matmul(m_inv, rad_map%damp_mat)
-  rad_map%damp_vec = matmul(m_inv, rad_map%damp_vec)
+  rad_map%xfer_damp_mat = matmul(m_inv, rad_map%xfer_damp_mat)
+  rad_map%xfer_damp_vec = matmul(m_inv, rad_map%xfer_damp_vec)
   rad_map%stoc_mat = matmul(matmul(m_inv, rad_map%stoc_mat), transpose(m_inv))
   rad_map%ref_orb = orb0%vec
 case (downstream_end$)

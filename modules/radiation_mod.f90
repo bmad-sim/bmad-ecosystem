@@ -100,8 +100,8 @@ else
 endif
 
 if (bmad_com%radiation_damping_on) then
-  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%damp_mat, orbit%vec - rad_map%ref_orb)
-  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_map%damp_vec
+  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%xfer_damp_mat, orbit%vec - rad_map%ref_orb)
+  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_map%xfer_damp_vec
 endif
 
 if (bmad_com%radiation_fluctuations_on) then
@@ -151,7 +151,6 @@ use rad_6d_mod
 type (ele_struct), target :: ele, runt
 type (coord_struct), optional :: ref_orbit_in
 type (coord_struct) orb1, orb2, ref_orb_in, ref_orb_out
-type (rad_map_struct) rad_map
 type (branch_struct), pointer :: branch
 real(rp) tol, m_inv(6,6)
 integer i, edge, info
