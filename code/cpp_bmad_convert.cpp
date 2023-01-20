@@ -1580,29 +1580,34 @@ extern "C" void rad_map_to_c (const Opaque_rad_map_class*, CPP_rad_map&);
 
 // c_side.to_f2_arg
 extern "C" void rad_map_to_f2 (Opaque_rad_map_class*, c_RealArr, c_RealArr, c_RealArr,
-    c_RealArr);
+    c_RealArr, c_RealArr);
 
 extern "C" void rad_map_to_f (const CPP_rad_map& C, Opaque_rad_map_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
-  Real z_damp_mat[6*6]; matrix_to_vec(C.damp_mat, z_damp_mat);
+  Real z_damp_dmat[6*6]; matrix_to_vec(C.damp_dmat, z_damp_dmat);
+  // c_side.to_f_setup[real, 2, NOT]
+  Real z_xfer_damp_mat[6*6]; matrix_to_vec(C.xfer_damp_mat, z_xfer_damp_mat);
   // c_side.to_f_setup[real, 2, NOT]
   Real z_stoc_mat[6*6]; matrix_to_vec(C.stoc_mat, z_stoc_mat);
 
   // c_side.to_f2_call
-  rad_map_to_f2 (F, &C.ref_orb[0], &C.damp_vec[0], z_damp_mat, z_stoc_mat);
+  rad_map_to_f2 (F, &C.ref_orb[0], z_damp_dmat, &C.xfer_damp_vec[0], z_xfer_damp_mat,
+      z_stoc_mat);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void rad_map_to_c2 (CPP_rad_map& C, c_RealArr z_ref_orb, c_RealArr z_damp_vec,
-    c_RealArr z_damp_mat, c_RealArr z_stoc_mat) {
+extern "C" void rad_map_to_c2 (CPP_rad_map& C, c_RealArr z_ref_orb, c_RealArr z_damp_dmat,
+    c_RealArr z_xfer_damp_vec, c_RealArr z_xfer_damp_mat, c_RealArr z_stoc_mat) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.ref_orb << z_ref_orb;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.damp_vec << z_damp_vec;
   // c_side.to_c2_set[real, 2, NOT]
-  C.damp_mat << z_damp_mat;
+  C.damp_dmat << z_damp_dmat;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.xfer_damp_vec << z_xfer_damp_vec;
+  // c_side.to_c2_set[real, 2, NOT]
+  C.xfer_damp_mat << z_xfer_damp_mat;
   // c_side.to_c2_set[real, 2, NOT]
   C.stoc_mat << z_stoc_mat;
 }
@@ -3162,9 +3167,9 @@ extern "C" void bmad_common_to_c (const Opaque_bmad_common_class*, CPP_bmad_comm
 // c_side.to_f2_arg
 extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3174,13 +3179,14 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.rel_tol_adaptive_tracking, C.abs_tol_adaptive_tracking, C.init_ds_adaptive_tracking,
       C.min_ds_adaptive_tracking, C.fatal_ds_adaptive_tracking, C.autoscale_amp_abs_tol,
       C.autoscale_amp_rel_tol, C.autoscale_phase_tol, C.electric_dipole_moment,
-      C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order, C.runge_kutta_order,
-      C.default_integ_order, C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref,
-      C.sr_wakes_on, C.lr_wakes_on, C.auto_bookkeeper, C.high_energy_space_charge_on,
-      C.csr_and_space_charge_on, C.spin_tracking_on, C.backwards_time_tracking_on,
-      C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_zero_average,
-      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking,
-      C.absolute_time_ref_shift, C.convert_to_kinetic_momentum, C.aperture_limit_on, C.debug);
+      C.synch_rad_scale, C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order,
+      C.runge_kutta_order, C.default_integ_order, C.max_num_runge_kutta_step,
+      C.rf_phase_below_transition_ref, C.sr_wakes_on, C.lr_wakes_on, C.auto_bookkeeper,
+      C.high_energy_space_charge_on, C.csr_and_space_charge_on, C.spin_tracking_on,
+      C.backwards_time_tracking_on, C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on,
+      C.radiation_zero_average, C.radiation_fluctuations_on, C.conserve_taylor_maps,
+      C.absolute_time_tracking, C.absolute_time_ref_shift, C.convert_to_kinetic_momentum,
+      C.aperture_limit_on, C.debug);
 
 }
 
@@ -3191,11 +3197,11 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     c_Real& z_abs_tol_adaptive_tracking, c_Real& z_init_ds_adaptive_tracking, c_Real&
     z_min_ds_adaptive_tracking, c_Real& z_fatal_ds_adaptive_tracking, c_Real&
     z_autoscale_amp_abs_tol, c_Real& z_autoscale_amp_rel_tol, c_Real& z_autoscale_phase_tol,
-    c_Real& z_electric_dipole_moment, c_Real& z_sad_eps_scale, c_Real& z_sad_amp_max, c_Int&
-    z_sad_n_div_max, c_Int& z_taylor_order, c_Int& z_runge_kutta_order, c_Int&
-    z_default_integ_order, c_Int& z_max_num_runge_kutta_step, c_Bool&
-    z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on, c_Bool&
-    z_auto_bookkeeper, c_Bool& z_high_energy_space_charge_on, c_Bool&
+    c_Real& z_electric_dipole_moment, c_Real& z_synch_rad_scale, c_Real& z_sad_eps_scale,
+    c_Real& z_sad_amp_max, c_Int& z_sad_n_div_max, c_Int& z_taylor_order, c_Int&
+    z_runge_kutta_order, c_Int& z_default_integ_order, c_Int& z_max_num_runge_kutta_step,
+    c_Bool& z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on,
+    c_Bool& z_auto_bookkeeper, c_Bool& z_high_energy_space_charge_on, c_Bool&
     z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
     z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_zero_average, c_Bool&
@@ -3233,6 +3239,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.autoscale_phase_tol = z_autoscale_phase_tol;
   // c_side.to_c2_set[real, 0, NOT]
   C.electric_dipole_moment = z_electric_dipole_moment;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.synch_rad_scale = z_synch_rad_scale;
   // c_side.to_c2_set[real, 0, NOT]
   C.sad_eps_scale = z_sad_eps_scale;
   // c_side.to_c2_set[real, 0, NOT]

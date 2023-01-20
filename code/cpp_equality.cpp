@@ -674,8 +674,9 @@ template bool is_all_equal (const CPP_bookkeeping_state_MATRIX&, const CPP_bookk
 bool operator== (const CPP_rad_map& x, const CPP_rad_map& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.ref_orb, y.ref_orb);
-  is_eq = is_eq && is_all_equal(x.damp_vec, y.damp_vec);
-  is_eq = is_eq && is_all_equal(x.damp_mat, y.damp_mat);
+  is_eq = is_eq && is_all_equal(x.damp_dmat, y.damp_dmat);
+  is_eq = is_eq && is_all_equal(x.xfer_damp_vec, y.xfer_damp_vec);
+  is_eq = is_eq && is_all_equal(x.xfer_damp_mat, y.xfer_damp_mat);
   is_eq = is_eq && is_all_equal(x.stoc_mat, y.stoc_mat);
   return is_eq;
 };
@@ -1301,6 +1302,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.autoscale_amp_rel_tol == y.autoscale_amp_rel_tol);
   is_eq = is_eq && (x.autoscale_phase_tol == y.autoscale_phase_tol);
   is_eq = is_eq && (x.electric_dipole_moment == y.electric_dipole_moment);
+  is_eq = is_eq && (x.synch_rad_scale == y.synch_rad_scale);
   is_eq = is_eq && (x.sad_eps_scale == y.sad_eps_scale);
   is_eq = is_eq && (x.sad_amp_max == y.sad_amp_max);
   is_eq = is_eq && (x.sad_n_div_max == y.sad_n_div_max);

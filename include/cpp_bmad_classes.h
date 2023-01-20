@@ -1724,14 +1724,16 @@ class Opaque_rad_map_class {};  // Opaque class for pointers to corresponding fo
 class CPP_rad_map {
 public:
   Real_ARRAY ref_orb;
-  Real_ARRAY damp_vec;
-  Real_MATRIX damp_mat;
+  Real_MATRIX damp_dmat;
+  Real_ARRAY xfer_damp_vec;
+  Real_MATRIX xfer_damp_mat;
   Real_MATRIX stoc_mat;
 
   CPP_rad_map() :
     ref_orb(-1, 6),
-    damp_vec(0.0, 6),
-    damp_mat(Real_ARRAY(0.0, 6), 6),
+    damp_dmat(Real_ARRAY(0.0, 6), 6),
+    xfer_damp_vec(0.0, 6),
+    xfer_damp_mat(Real_ARRAY(0.0, 6), 6),
     stoc_mat(Real_ARRAY(0.0, 6), 6)
     {}
 
@@ -3029,6 +3031,7 @@ public:
   Real autoscale_amp_rel_tol;
   Real autoscale_phase_tol;
   Real electric_dipole_moment;
+  Real synch_rad_scale;
   Real sad_eps_scale;
   Real sad_amp_max;
   Int sad_n_div_max;
@@ -3071,6 +3074,7 @@ public:
     autoscale_amp_rel_tol(1e-6),
     autoscale_phase_tol(1e-5),
     electric_dipole_moment(0.0),
+    synch_rad_scale(0.0),
     sad_eps_scale(5.0e-3),
     sad_amp_max(5.0e-2),
     sad_n_div_max(1000),

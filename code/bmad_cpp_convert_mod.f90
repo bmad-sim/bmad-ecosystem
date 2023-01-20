@@ -4764,11 +4764,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine rad_map_to_c2 (C, z_ref_orb, z_damp_vec, z_damp_mat, z_stoc_mat) bind(c)
+  subroutine rad_map_to_c2 (C, z_ref_orb, z_damp_dmat, z_xfer_damp_vec, z_xfer_damp_mat, &
+      z_stoc_mat) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_ref_orb(*), z_damp_vec(*), z_damp_mat(*), z_stoc_mat(*)
+    real(c_double) :: z_ref_orb(*), z_damp_dmat(*), z_xfer_damp_vec(*), z_xfer_damp_mat(*), z_stoc_mat(*)
   end subroutine
 end interface
 
@@ -4784,8 +4785,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call rad_map_to_c2 (C, fvec2vec(F%ref_orb, 6), fvec2vec(F%damp_vec, 6), mat2vec(F%damp_mat, &
-    6*6), mat2vec(F%stoc_mat, 6*6))
+call rad_map_to_c2 (C, fvec2vec(F%ref_orb, 6), mat2vec(F%damp_dmat, 6*6), &
+    fvec2vec(F%xfer_damp_vec, 6), mat2vec(F%xfer_damp_mat, 6*6), mat2vec(F%stoc_mat, 6*6))
 
 end subroutine rad_map_to_c
 
@@ -4805,7 +4806,8 @@ end subroutine rad_map_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine rad_map_to_f2 (Fp, z_ref_orb, z_damp_vec, z_damp_mat, z_stoc_mat) bind(c)
+subroutine rad_map_to_f2 (Fp, z_ref_orb, z_damp_dmat, z_xfer_damp_vec, z_xfer_damp_mat, &
+    z_stoc_mat) bind(c)
 
 
 implicit none
@@ -4814,16 +4816,18 @@ type(c_ptr), value :: Fp
 type(rad_map_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_ref_orb(*), z_damp_vec(*), z_damp_mat(*), z_stoc_mat(*)
+real(c_double) :: z_ref_orb(*), z_damp_dmat(*), z_xfer_damp_vec(*), z_xfer_damp_mat(*), z_stoc_mat(*)
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[real, 1, NOT]
 F%ref_orb = z_ref_orb(1:6)
-!! f_side.to_f2_trans[real, 1, NOT]
-F%damp_vec = z_damp_vec(1:6)
 !! f_side.to_f2_trans[real, 2, NOT]
-call vec2mat(z_damp_mat, F%damp_mat)
+call vec2mat(z_damp_dmat, F%damp_dmat)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%xfer_damp_vec = z_xfer_damp_vec(1:6)
+!! f_side.to_f2_trans[real, 2, NOT]
+call vec2mat(z_xfer_damp_mat, F%xfer_damp_mat)
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_stoc_mat, F%stoc_mat)
 
@@ -8512,20 +8516,20 @@ interface
       z_rel_tol_adaptive_tracking, z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, &
       z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, &
       z_autoscale_amp_rel_tol, z_autoscale_phase_tol, z_electric_dipole_moment, &
-      z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, &
-      z_default_integ_order, z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, &
-      z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, &
-      z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
-      z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, &
-      z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking, &
-      z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, z_aperture_limit_on, z_debug) &
-      bind(c)
+      z_synch_rad_scale, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
+      z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step, &
+      z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, &
+      z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on, &
+      z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, &
+      z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, &
+      z_absolute_time_tracking, z_absolute_time_ref_shift, z_convert_to_kinetic_momentum, &
+      z_aperture_limit_on, z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
-    real(c_double) :: z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max
+    real(c_double) :: z_electric_dipole_moment, z_synch_rad_scale, z_sad_eps_scale, z_sad_amp_max
     integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
     logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
     logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking
@@ -8549,8 +8553,8 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     F%significant_length, F%rel_tol_tracking, F%abs_tol_tracking, F%rel_tol_adaptive_tracking, &
     F%abs_tol_adaptive_tracking, F%init_ds_adaptive_tracking, F%min_ds_adaptive_tracking, &
     F%fatal_ds_adaptive_tracking, F%autoscale_amp_abs_tol, F%autoscale_amp_rel_tol, &
-    F%autoscale_phase_tol, F%electric_dipole_moment, F%sad_eps_scale, F%sad_amp_max, &
-    F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
+    F%autoscale_phase_tol, F%electric_dipole_moment, F%synch_rad_scale, F%sad_eps_scale, &
+    F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
     F%max_num_runge_kutta_step, c_logic(F%rf_phase_below_transition_ref), &
     c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%auto_bookkeeper), &
     c_logic(F%high_energy_space_charge_on), c_logic(F%csr_and_space_charge_on), &
@@ -8583,8 +8587,8 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking, &
     z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, &
     z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, &
-    z_autoscale_phase_tol, z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max, &
-    z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
+    z_autoscale_phase_tol, z_electric_dipole_moment, z_synch_rad_scale, z_sad_eps_scale, &
+    z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
     z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, &
     z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, &
     z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
@@ -8601,7 +8605,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
-real(c_double) :: z_electric_dipole_moment, z_sad_eps_scale, z_sad_amp_max
+real(c_double) :: z_electric_dipole_moment, z_synch_rad_scale, z_sad_eps_scale, z_sad_amp_max
 integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_max_num_runge_kutta_step
 logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_auto_bookkeeper, z_high_energy_space_charge_on, z_csr_and_space_charge_on, z_spin_tracking_on
 logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_zero_average, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking
@@ -8639,6 +8643,8 @@ F%autoscale_amp_rel_tol = z_autoscale_amp_rel_tol
 F%autoscale_phase_tol = z_autoscale_phase_tol
 !! f_side.to_f2_trans[real, 0, NOT]
 F%electric_dipole_moment = z_electric_dipole_moment
+!! f_side.to_f2_trans[real, 0, NOT]
+F%synch_rad_scale = z_synch_rad_scale
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sad_eps_scale = z_sad_eps_scale
 !! f_side.to_f2_trans[real, 0, NOT]
