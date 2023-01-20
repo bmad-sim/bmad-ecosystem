@@ -305,12 +305,12 @@ do
   call re_allocate_eles(eles2, branch%n_ele_track, .false.)
   n_loc2 = 0
   if (ele_start%ix_ele > ele_end%ix_ele) then
-    do i = ele_end%ix_ele, branch%n_ele_track
+    do i = ele_start%ix_ele, branch%n_ele_track
       if (key > 0 .and. branch%ele(i)%key /= key .and. branch%ele(i)%sub_key /= key) cycle
       n_loc2 = n_loc2 + 1; eles2(n_loc2)%ele => branch%ele(i)
     enddo
 
-    do i = 0, ele_start%ix_ele
+    do i = 0, ele_end%ix_ele
       if (key > 0 .and. branch%ele(i)%key /= key .and. branch%ele(i)%sub_key /= key) cycle
       n_loc2 = n_loc2 + 1; eles2(n_loc2)%ele => branch%ele(i)
     enddo
