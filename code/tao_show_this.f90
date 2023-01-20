@@ -1775,13 +1775,13 @@ case ('emittance')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Ref Orb:  ', ri%rm0%ref_orb, ri%rm1%ref_orb
-    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Damp Vec: ', ri%rm0%damp_vec, ri%rm1%damp_vec
+    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Damp Vec: ', ri%rm0%xfer_damp_vec, ri%rm1%xfer_damp_vec
 
 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Damp Mat: ', ri%rm0%damp_mat(1,:), ri%rm1%damp_mat(1,:)
+    nl=nl+1; write (lines(nl), '(a10, 6es12.4, 4x, 6es12.4)') 'Damp Mat: ', ri%rm0%xfer_damp_mat(1,:), ri%rm1%xfer_damp_mat(1,:)
     do i = 2, 6
-      nl=nl+1; write (lines(nl), '(10x, 6es12.4, 4x, 6es12.4)') ri%rm0%damp_mat(i,:), ri%rm1%damp_mat(i,:)
+      nl=nl+1; write (lines(nl), '(10x, 6es12.4, 4x, 6es12.4)') ri%rm0%xfer_damp_mat(i,:), ri%rm1%xfer_damp_mat(i,:)
     enddo
 
     nl=nl+1; lines(nl) = ''
