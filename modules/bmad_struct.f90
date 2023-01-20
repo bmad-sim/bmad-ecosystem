@@ -909,8 +909,9 @@ end type
 
 type rad_map_struct
   real(rp) :: ref_orb(6) = -1          ! Reference point around which damp_mat is calculated.
-  real(rp) :: damp_vec(6) = 0          ! 0th order damping. 
-  real(rp) :: damp_mat(6,6) = 0        ! Transfer matrix = no_damp_mat + damp_correction.
+  real(rp) :: damp_dmat(6,6) = 0       ! damp_correction = xfer_mat_with_damping - xfer_mat_without_damping.
+  real(rp) :: xfer_damp_vec(6) = 0     ! Transfer map with damping 0th order vector.
+  real(rp) :: xfer_damp_mat(6,6) = 0   ! Map with damping 1st order matrix: xfer_no_damp_mat + xfer_damp_correction.
   real(rp) :: stoc_mat(6,6) = 0        ! Stochastic variance or "kick" (Cholesky decomposed) matrix.
 end type
 
