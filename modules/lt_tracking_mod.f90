@@ -481,8 +481,8 @@ if (lttp%split_bends_for_stochastic_rad) then
       ri%rm1%stoc_mat(1:i-1, i) = 0
     enddo
 
-    ri%rm1%damp_mat = ri%rm0%damp_mat + ri%rm1%damp_mat
-    ri%rm1%damp_vec = ri%rm0%damp_vec + ri%rm1%damp_vec
+    ri%rm1%xfer_damp_mat = ri%rm0%xfer_damp_mat + ri%rm1%xfer_damp_mat
+    ri%rm1%xfer_damp_vec = ri%rm0%xfer_damp_vec + ri%rm1%xfer_damp_vec
   enddo
 endif
 
@@ -1277,8 +1277,8 @@ if (.not. r_damp .and. .not. r_fluct) return
 
 rad_mat => ele%rad_map%rm1
 if (r_damp) then
-  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_mat%damp_mat, orbit%vec - rad_mat%ref_orb)
-  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_mat%damp_vec
+  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_mat%xfer_damp_mat, orbit%vec - rad_mat%ref_orb)
+  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_mat%xfer_damp_vec
 endif
 
 if (r_fluct) then
