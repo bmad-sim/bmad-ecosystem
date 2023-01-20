@@ -2727,16 +2727,16 @@ Examples:
 \subsection{show matrix}
 \label{s:show.matrix}
 
-Syntax:
-\begin{example}
-  show matrix \{-eigen_modes\} \{-ptc\} \{-s\} \{-universe\} \{loc1 \{loc2\}\}
-\end{example}
-
-Shows the transfer matrix (Jacobian) for the \vn{model} lattice. The matrix is calculated with
-respect to the particle orbit, not the zero orbit. This command is equivalent to \vn{show taylor_map
--order 1}. See the \vn{show taylor_map} documentation for more details.
+The \vn{show matrix} command is shorthand for \vn{show taylor_map -order 1}. See the \vn{show
+taylor_map} documentation for more details on optional arguments, etc.
 
 Also see \vn{write matrix}.
+
+Examples:
+\begin{example}
+  show matrix q10w q12e           ! 0th and 1st order maps from q10w to q12e
+  show taylor -order 1 q10w q12e  ! Same as above.
+\end{example} 
 
 %% show merit --------------------------------------------------------------
 
