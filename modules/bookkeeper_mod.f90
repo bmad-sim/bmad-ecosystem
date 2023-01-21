@@ -1281,7 +1281,7 @@ if (has_orientation_attributes(slave)) then
     value(ref_tilt$) = tilt
 
     if (any(off /= 0) .or. xp /= 0 .or. yp /= 0 .or. roll /= 0) then
-      from_pos = floor_position_struct([0,0,0], w_unit$, 0, 0, 0)
+      from_pos = floor_position_struct([0,0,0], mat3_unit$, 0, 0, 0)
       from_pos%r(3) = offset + len_slave/2
       to_pos = coords_body_to_rel_exit (from_pos, lord)
       to_pos = bend_shift (to_pos, lord%value(g$), offset + len_slave/2 - len_lord, ref_tilt = tilt)

@@ -772,11 +772,17 @@ end type
 ! Local reference frame position with respect to the global (floor) coordinates
 
 real(rp), parameter :: r0_vec$(3) = 0
-real(rp), parameter :: w_unit$(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
+real(rp), parameter :: mat3_unit$(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
+real(rp), parameter :: mat6_unit$(6,6) = reshape( [1, 0, 0, 0, 0, 0, &
+                                                   0, 1, 0, 0, 0, 0, &
+                                                   0, 0, 1, 0, 0, 0, &
+                                                   0, 0, 0, 1, 0, 0, &
+                                                   0, 0, 0, 0, 1, 0, &
+                                                   0, 0, 0, 0, 0, 1], [6,6])
 
 type floor_position_struct
   real(rp) :: r(3) = 0                        ! (x, y, z) offset from origin
-  real(rp) :: w(3,3) =  w_unit$               ! W matrix. Columns are unit vectors of the frame axes.
+  real(rp) :: w(3,3) =  mat3_unit$            ! W matrix. Columns are unit vectors of the frame axes.
   real(rp) :: theta = 0, phi = 0, psi = 0     ! angular orientation consistent with W matrix
 end type
 
@@ -908,11 +914,11 @@ end type
 ! Radiation damping and stochastic maps
 
 type rad_map_struct
-  real(rp) :: ref_orb(6) = -1          ! Reference point around which damp_mat is calculated.
-  real(rp) :: damp_dmat(6,6) = 0       ! damp_correction = xfer_mat_with_damping - xfer_mat_without_damping.
-  real(rp) :: xfer_damp_vec(6) = 0     ! Transfer map with damping 0th order vector.
-  real(rp) :: xfer_damp_mat(6,6) = 0   ! Map with damping 1st order matrix: xfer_no_damp_mat + xfer_damp_correction.
-  real(rp) :: stoc_mat(6,6) = 0        ! Stochastic variance or "kick" (Cholesky decomposed) matrix.
+  real(rp) :: ref_orb(6) = -1                 ! Reference point around which damp_mat is calculated.
+  real(rp) :: damp_dmat(6,6) = 0              ! damp_correction = xfer_mat_with_damping - xfer_mat_without_damping.
+  real(rp) :: xfer_damp_vec(6) = 0            ! Transfer map with damping 0th order vector.
+  real(rp) :: xfer_damp_mat(6,6) = mat6_unit$ ! 1st order matrix: xfer_no_damp_mat + xfer_damp_correction.
+  real(rp) :: stoc_mat(6,6) = 0               ! Stochastic variance or "kick" (Cholesky decomposed) matrix.
 end type
 
 type rad_map_ele_struct
@@ -1277,7 +1283,7 @@ type ele_struct
   type (converter_struct), pointer :: converter => null()                ! EG: Positron converter in linac.
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
-  type (floor_position_struct) :: floor = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
+  type (floor_position_struct) :: floor = floor_position_struct(r0_vec$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (mode3_struct), pointer :: mode3 => null()                        ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()

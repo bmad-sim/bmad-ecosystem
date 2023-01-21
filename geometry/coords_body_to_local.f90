@@ -88,7 +88,7 @@ case default
     local_position%r(3) = local_position%r(3) + L2 ! Shift relative to end of element for output
   else
     ! Just shift relative to end
-    S_mis = w_unit$
+    S_mis = mat3_unit$
   endif
   
   ! Add offsets

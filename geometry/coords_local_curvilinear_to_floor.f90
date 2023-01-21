@@ -55,7 +55,7 @@ endif
 
 !
 
-p = floor_position_struct(local_position%r, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
+p = floor_position_struct(local_position%r, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
 rel_to = integer_option(not_set$, relative_to)
 
 ! patch
