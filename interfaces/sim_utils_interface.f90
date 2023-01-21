@@ -100,6 +100,7 @@ end function
 
 subroutine cplx_lubksb(a,indx,b)
   import
+  implicit none
   complex(rp), dimension(:,:), intent(in) :: a
   integer, dimension(:), intent(in) :: indx
   complex(rp), dimension(:), intent(inout) :: b
@@ -107,22 +108,23 @@ end subroutine
 
 subroutine cplx_ludcmp(a,indx,d)
   import
+  implicit none
   complex(rp), dimension(:,:), intent(inout) :: a
   integer, dimension(:), intent(out) :: indx
   real(rp), intent(out) :: d
 end subroutine
 
-subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
+subroutine cplx_mat_inverse(mat, mat_inv, ok, print_err)
   import
-  real(rp) :: mat_r(:,:)
-  real(rp) :: mat_i(:,:)
-  real(rp) :: inv_r(:,:)
-  real(rp) :: inv_i(:,:)
+  implicit none
+  complex(rp) :: mat(:,:)
+  complex(rp) :: mat_inv(:,:)
   logical, optional :: ok, print_err
 end subroutine
 
 subroutine cplx_mat_make_unit (mat)
   import
+  implicit none
   complex(rp) mat(:,:)
 end subroutine
 
