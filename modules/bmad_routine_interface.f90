@@ -542,8 +542,8 @@ end subroutine
 subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body)
   import
   implicit none
-  type (coord_struct), intent(inout), target :: particle
-  type (ele_struct), optional :: ele
+  type (coord_struct), target :: particle
+  type (ele_struct) :: ele
   real(rp), optional :: s_body
 end subroutine
 

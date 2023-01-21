@@ -1301,32 +1301,34 @@ end subroutine init_spin_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err, is_time_coords)
+! subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err, is_time_coords, ele)
 !
 ! Finds all bunch parameters for a slice through the beam distribution.
 !
 ! Input:
-!   bunch           -- Bunch_struct
+!   bunch           -- bunch_struct
 !   plane           -- Integer: plane to slice through (x$, px$, & etc...)
-!   slice_center    -- Real(rp): Center to take slice about
-!   slice_spread    -- Real(rp): hard-wall spread in slice about center
-!   print_err       -- Logical, optional: If present and False then suppress 
+!   slice_center    -- real(rp): Center to take slice about
+!   slice_spread    -- real(rp): hard-wall spread in slice about center
+!   print_err       -- logical, optional: If present and False then suppress 
 !                       "no eigen-system found" messages.
 !   is_time_coords  -- logical, optional: Default is False. If True, input bunch is using time coordinates in which
 !                       case there will be a conversion to s-coords before bunch_params are computed.
+!   ele             -- ele_struct, optional: Element being tracked through. Must be present if is_time_coords = True.
 !
 ! Output     
 !   params -- bunch_params_struct:
 !   err    -- Logical: Set True if there is an error.
 !-
 
-subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err, is_time_coords)
+subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err, is_time_coords, ele)
 
 implicit none
 
 type (bunch_struct), intent(in) :: bunch
 type (bunch_struct) :: sliced_bunch
 type (bunch_params_struct) bunch_params
+type (ele_struct), optional :: ele
 
 real(rp) slice_center, slice_spread
 
@@ -1361,7 +1363,7 @@ do i = 1, size(bunch%particle)
   n_part = n_part + 1
 enddo
 
-call calc_bunch_params (sliced_bunch, bunch_params, err, print_err, is_time_coords = is_time_coords)
+call calc_bunch_params (sliced_bunch, bunch_params, err, print_err, is_time_coords = is_time_coords, ele = ele)
 
 end subroutine calc_bunch_params_slice
 
@@ -1369,7 +1371,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat, is_time_coords)
+! Subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat, is_time_coords, ele)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1382,9 +1384,11 @@ end subroutine calc_bunch_params_slice
 ! set to zero.
 ! 
 ! Input:
-!   bunch        -- Bunch_struct
-!   print_err    -- Logical, optional: If present and False then suppress 
-!                     "no eigen-system found" messages.
+!   bunch           -- Bunch_struct
+!   print_err       -- Logical, optional: If present and False then suppress 
+!                       "no eigen-system found" messages.
+!   is_time_coords  -- logical, optional: Are particle coords using time coords. Default is False.
+!   ele             -- ele_struct, optional: Element being tracked through. Must be present if is_time_coords = True.
 !
 ! Output     
 !   bunch_params -- bunch_params_struct:
@@ -1393,12 +1397,13 @@ end subroutine calc_bunch_params_slice
 !                       from action-angle coords to lab coords (Wolski Eq 51.).
 !-
 
-subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat, is_time_coords)
+subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat, is_time_coords, ele)
 
 implicit none
 
 type (bunch_struct) :: bunch
 type (bunch_params_struct) bunch_params
+type (ele_struct), optional :: ele
 
 real(rp), optional :: n_mat(6,6)
 real(rp) eta, etap
@@ -1480,7 +1485,7 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
 ! Sigma matrix calc
 
-call calc_bunch_sigma_matrix_etc (bunch%particle, charge, bunch_params, is_time_coords)
+call calc_bunch_sigma_matrix_etc (bunch%particle, charge, bunch_params, is_time_coords, ele)
 
 if (species == photon$) return
 
@@ -1798,7 +1803,7 @@ end subroutine calc_spin_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_sigma_matrix_etc (particle, charge, bunch_params, is_time_coords)
+! Subroutine calc_bunch_sigma_matrix_etc (particle, charge, bunch_params, is_time_coords, ele)
 !
 ! Routine to find the sigma matrix elements of a particle distribution.
 ! 
@@ -1816,12 +1821,13 @@ end subroutine calc_spin_params
 !     %rel_min(6)
 !-
 
-subroutine calc_bunch_sigma_matrix_etc (particle, charge, bunch_params, is_time_coords)
+subroutine calc_bunch_sigma_matrix_etc (particle, charge, bunch_params, is_time_coords, ele)
 
 implicit none
 
 type (coord_struct) :: particle(:), p
 type (bunch_params_struct), target :: bunch_params
+type (ele_struct), optional :: ele
 
 real(rp) charge_live, vec(6), p0c_avg
 real(rp) charge(:)
@@ -1853,7 +1859,7 @@ do i = 1, size(particle)
   if (particle(i)%state /= alive$) cycle
   if (logic_option(.false., is_time_coords)) then
     p = particle(i)
-    call convert_particle_coordinates_t_to_s(p)
+    call convert_particle_coordinates_t_to_s(p, ele)
     vec = p%vec
     vec(2) = vec(2) * p%p0c / p0c_avg
     vec(4) = vec(4) * p%p0c / p0c_avg
