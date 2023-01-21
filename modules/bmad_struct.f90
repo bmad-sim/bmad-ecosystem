@@ -771,7 +771,7 @@ end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
 
-real(rp), parameter :: r0_vec$(3) = 0
+real(rp), parameter :: vec3_zero$(3) = 0, vec6_zero$(6) = 0
 real(rp), parameter :: mat3_unit$(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
 real(rp), parameter :: mat6_unit$(6,6) = reshape( [1, 0, 0, 0, 0, 0, &
                                                    0, 1, 0, 0, 0, 0, &
@@ -1283,7 +1283,7 @@ type ele_struct
   type (converter_struct), pointer :: converter => null()                ! EG: Positron converter in linac.
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
-  type (floor_position_struct) :: floor = floor_position_struct(r0_vec$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
+  type (floor_position_struct) :: floor = floor_position_struct(vec3_zero$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (mode3_struct), pointer :: mode3 => null()                        ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()

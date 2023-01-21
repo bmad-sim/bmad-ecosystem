@@ -74,6 +74,6 @@ if (n_pt > n_old) then
   bunch_track%pt(:n_old) = bunch_track2%pt
 end if
 
-call calc_bunch_params (bunch, bunch_track%pt(n_pt), err, is_time_coords = is_time_coords)
+call calc_bunch_params (bunch, bunch_track%pt(n_pt), err, is_time_coords = is_time_coords, ele = ele)
 
 end subroutine save_a_bunch_step

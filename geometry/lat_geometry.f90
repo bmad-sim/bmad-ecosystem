@@ -24,7 +24,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, b_ele, ele0, ele2
 type (branch_struct), pointer :: branch
-type (floor_position_struct) :: floor_dum = floor_position_struct(r0_vec$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
+type (floor_position_struct) :: floor_dum = floor_position_struct(vec3_zero$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
 
 integer i, i2, ix2, ie, ib, ie0
 logical is_stale
@@ -188,7 +188,7 @@ end subroutine propagate_geometry
 recursive subroutine girder_lord_geometry (ele)
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
-type (floor_position_struct) :: floor_dum = floor_position_struct(r0_vec$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
+type (floor_position_struct) :: floor_dum = floor_position_struct(vec3_zero$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
 integer i
 
 !
