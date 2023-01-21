@@ -47,7 +47,7 @@ vec(2) = vec(2)/p0c
 vec(4) = vec(4)/p0c
 vec(5) = -c_light * particle%beta * particle%dt_ref
 vec(6) = pctot/p0c - 1.0_rp
-
+particle%p0c = p0c
 
 end subroutine convert_particle_coordinates_t_to_s
 
