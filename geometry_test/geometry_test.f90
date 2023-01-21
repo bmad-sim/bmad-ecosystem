@@ -38,7 +38,7 @@ open (1, file = 'output.now')
 
 !
 
-local0 = floor_position_struct(lat%particle_start%vec(1:5:2), w_unit$, lat%particle_start%vec(2), &
+local0 = floor_position_struct(lat%particle_start%vec(1:5:2), mat3_unit$, lat%particle_start%vec(2), &
                                                      lat%particle_start%vec(4), lat%particle_start%vec(6))
 call floor_angles_to_w_mat (local0%theta, local0%phi, local0%psi, local0%w)
 
