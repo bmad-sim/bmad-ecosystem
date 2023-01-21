@@ -42,7 +42,7 @@ tol = tollerance / branch%param%total_length
 orb0 = ele%map_ref_orb_in
 orb1 = ele%map_ref_orb_out
 
-rad_map = rad_map_struct()
+rad_map = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
 if (orb0%vec(2) == orb1%vec(2) .and. orb0%vec(4) == orb1%vec(4) .and. ele%key /= sbend$) return
 
 !
@@ -53,7 +53,7 @@ call rad1_damp_and_stoc_mats (ele, .true., orb0, orb1, rad_map, &
 select case (ref_edge)
 case (upstream_end$)
   m_inv = mat_symp_conj(ele%mat6)
-  rad_map%xfer_damp_mat = matmul(m_inv, rad_map%xfer_damp_mat)
+  rad_map%damp_dmat = matmul(m_inv, rad_map%damp_dmat)
   rad_map%xfer_damp_vec = matmul(m_inv, rad_map%xfer_damp_vec)
   rad_map%stoc_mat = matmul(matmul(m_inv, rad_map%stoc_mat), transpose(m_inv))
   rad_map%ref_orb = orb0%vec

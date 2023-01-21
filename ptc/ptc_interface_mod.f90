@@ -2788,7 +2788,7 @@ endif
 
 if (ele%key == patch$) then
   if (ele%orientation == -1) then
-    floor0 = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
+    floor0 = floor_position_struct(r0_vec$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
     call ele_geometry (floor0, ele, floor1)
     dr = floor1%r
     ang = [floor1%phi, floor1%theta, floor1%psi]

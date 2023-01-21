@@ -100,7 +100,7 @@ else
 endif
 
 if (bmad_com%radiation_damping_on) then
-  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%xfer_damp_mat, orbit%vec - rad_map%ref_orb)
+  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%damp_dmat, orbit%vec - rad_map%ref_orb)
   if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_map%xfer_damp_vec
 endif
 
@@ -161,8 +161,8 @@ logical err, rad_damp_on
 if (.not. associated(ele%rad_map)) allocate(ele%rad_map)
 if (.not. ele%rad_map%stale .and. .not. present(ref_orbit_in)) return
 ele%rad_map%stale = .false.
-ele%rad_map%rm0 = rad_map_struct()
-ele%rad_map%rm1 = rad_map_struct()
+ele%rad_map%rm0 = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
+ele%rad_map%rm1 = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
 
 branch => pointer_to_branch(ele)
 
