@@ -36,7 +36,7 @@ use lt_tracking_mod, except_dummy => track1_preprocess
 implicit none
 
 type (coord_struct) :: start_orb
-type (ele_struct) :: ele
+type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
