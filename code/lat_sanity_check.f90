@@ -640,17 +640,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     if (ele%ix_ele /= i_t) then
       call out_io (s_fatal$, r_name, &
-                'ELEMENT: ' // ele%name, &
-                'HAS BAD %IX_ELE INDEX: \i0\  (\i0\)', &
-                'SHOULD BE: \i0\ ', i_array = [ele%ix_ele, ele%ix_branch, i_t] )
+                'ELEMENT: ' // ele_full_name(ele, '@N (!#)'), &
+                'HAS BAD %IX_ELE INDEX. SHOULD BE: ' // int_str(i_t)) 
       err_flag = .true.
     endif
 
     if (ele%ix_branch /= i_b .and. ele%key /= null_ele$) then
       call out_io (s_fatal$, r_name, &
-                'ELEMENT: ' // trim(ele%name) // '   (\i0\)', &
-                'HAS BAD %IX_BRANCH INDEX: \i0\  (\i0\)', &
-                'SHOULD BE: \i0\ ', i_array = [ele%ix_ele, ele%ix_branch, i_b] )
+                'ELEMENT: ' // ele_full_name(ele, '@N (!#)'), &
+                'HAS BAD %IX_BRANCH INDEX. SHOULD BE: ' // int_str(i_b))
       err_flag = .true.
     endif
 
@@ -658,8 +656,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     if (.not. associated(ele%branch, branch)) then
       call out_io (s_fatal$, r_name, &
-                'ELEMENT: ' // trim(ele%name) // '   (\i0\)', &
-                'HAS BAD ELE%BRANCH POINTER.', i_array = [ele%ix_ele])
+                'ELEMENT: ' // ele_full_name(ele, '@N (!#)'), &
+                'HAS BAD ELE%BRANCH POINTER.')
       err_flag = .true.
     endif
 
@@ -669,7 +667,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       ix = nint(ele%value(ix_to_branch$))
       if (ix < 0 .or. ix > ubound(lat%branch, 1) .or. ix == i_b) then
         call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele%name, &
+                  'ELEMENT: ' // ele_full_name(ele, '@N (!#)'), &
                   'WHICH IS A: BRANCH OR PHOTON_BRANCH ELEMENT', &
                   'HAS A IX_TO_BRANCH INDEX OUT OF RANGE: \i0\ ', i_array = [ix] )
         err_flag = .true.
@@ -1056,9 +1054,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (i_t > branch%n_ele_track) then
       if (s_stat == super_slave$) then
         call out_io (s_fatal$, r_name, &
-                  'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                  'IS *NOT* IN THE TRACKING PART OF LATTICE LIST', &
-                  i_array = [i_t] )
+                  'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                  'IS *NOT* IN THE TRACKING PART OF LATTICE LIST')
         err_flag = .true.
       endif                                             
     else                                                         
@@ -1066,9 +1063,9 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
           l_stat == group_lord$ .or. l_stat == girder_lord$ .or. &
           l_stat == multipass_lord$) then
         call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
+                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
-                  'IS IN THE TRACKING PART OF LATTICE LIST', i_array = [i_t] )
+                  'IS IN THE TRACKING PART OF LATTICE LIST')
         err_flag = .true.
       endif
     endif
@@ -1076,64 +1073,64 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (.not. any( [not_a_lord$, girder_lord$, super_lord$, overlay_lord$, group_lord$, &
                       multipass_lord$, ramper_lord$] == l_stat)) then
       call out_io (s_fatal$, r_name, &
-                'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS UNKNOWN LORD_STATUS INDEX: \i0\ ', i_array = [i_t, l_stat] )
+                'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS UNKNOWN LORD_STATUS INDEX: \i0\ ', i_array = [l_stat] )
       err_flag = .true.
     endif
 
     if (.not. any( [minor_slave$, free$, super_slave$, multipass_slave$] == s_stat)) then
       call out_io (s_fatal$, r_name, &
-                'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = [i_t, s_stat] )
+                'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = [s_stat] )
       err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. ele%n_lord == 0) then
       call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ZERO LORDS!', i_array = [i_t] )
+                'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS ZERO LORDS!')
       err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. associated(ele%wall3d)) then
       call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %WALL3D COMPONENT.', i_array = [i_t] )
+                'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS ASSOCIATED %WALL3D COMPONENT.')
       err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. associated(ele%cartesian_map)) then
       call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %CARTESIAN_MAP COMPONENT.', i_array = [i_t] )
+                'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS ASSOCIATED %CARTESIAN_MAP COMPONENT.')
       err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. associated(ele%cylindrical_map)) then
       call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %CYLINDRICAL_MAP COMPONENT.', i_array = [i_t] )
+                'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS ASSOCIATED %CYLINDRICAL_MAP COMPONENT.')
       err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. associated(ele%gen_grad_map)) then
       call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %GEN_GRAD_MAP COMPONENT.', i_array = [i_t] )
+                'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS ASSOCIATED %GEN_GRAD_MAP COMPONENT.')
       err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. associated(ele%grid_field)) then
       call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %GRID_FIELD COMPONENT.', i_array = [i_t] )
+                'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS ASSOCIATED %GRID_FIELD COMPONENT.')
       err_flag = .true.
     endif
 
     if (s_stat == super_slave$ .and. associated(ele%wake)) then
       call out_io (s_fatal$, r_name, &
-                'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %WAKE COMPONENT.', i_array = [i_t] )
+                'SUPER_SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
+                'HAS ASSOCIATED %WAKE COMPONENT.')
       err_flag = .true.
     endif
 
@@ -1186,14 +1183,14 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         if (ix1 == ix2) then
           call out_io (s_fatal$, r_name, &
                     'DUPLICATE SUPER_SLAVES: ', trim(slave_branch%ele(ix1)%name) // '  (\i0\)', &
-                    'FOR SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
+                    'FOR SUPER_LORD: ' // ele_full_name(ele, '@N (&#)'), &
                     i_array = [ix1, i_t] )
           err_flag = .true.
 
         elseif (ix1 < 1 .or. ix1 > slave_branch%n_ele_track .or. ix2 < 1 .or. ix2 > slave_branch%n_ele_track) then
           call out_io (s_fatal$, r_name, &
                     'SUPER LORD INDEX CORRUPTION! \i0\, \i0\ ', &
-                    'FOR SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
+                    'FOR SUPER_LORD: ' // ele_full_name(ele, '@N (&#)'), &
                     i_array = [ix1, ix2, i_t] )
           err_flag = .true.
 
@@ -1207,7 +1204,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
             if (slave_branch%ele(ii)%value(l$) /= 0) then
               call out_io (s_fatal$, r_name, &
                 'CONSECUTIVE SUPER_SLAVES: ' // trim(branch%ele(ix1)%name) // ', ' // branch%ele(ix2)%name, &
-                'OF SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
+                'OF SUPER_LORD: ' // ele_full_name(ele, '@N (&#)'), &
                 'HAS AN ELEMENT IN BETWEEN WITH NON-ZERO LENGTH: ' // trim(slave_branch%ele(ii)%name), &
                 i_array = [i_t] )
               err_flag = .true.
@@ -1235,7 +1232,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       l_lord = ele%value(l$) + ele%value(lord_pad2$) + ele%value(lord_pad1$)
       if (abs(l_lord - ds) > bmad_com%significant_length + ds_small) then
         call out_io (s_fatal$, r_name, &
-                  'SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
+                  'SUPER_LORD: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS LENGTH (+ POSSIBLE PADDING) OF: \f15.10\ ', &
                   'WHICH IS NOT EQUAL TO THE SUM OF THE SLAVE LENGTHS \f15.10\.', &
                    i_array = [i_t], r_array =  [l_lord, ds])
@@ -1258,7 +1255,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                     'SLAVES OF A MULTIPASS_LORD: ' // trim(slave1%name) // '  (\i0\)', &
                     '                          : ' // trim(slave2%name) // '  (\i0\)', &
                     'ARE OUT OF ORDER IN THE LORD LIST', &
-                    'FOR MULTIPASS_LORD: ' // trim(ele%name) // '  (\i0\)', &
+                    'FOR MULTIPASS_LORD: ' // ele_full_name(ele, '@N (&#)'), &
                     i_array = [slave1%ix_ele, slave2%ix_ele, i_t] )
           err_flag = .true.
         endif
@@ -1271,9 +1268,9 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (j < 0 .or. j > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name)  // '  (\i0\)', &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS IX_SLAVE INDEX OUT OF BOUNDS: \3i5\ ', &
-                  i_array = [i_t, ele%ix1_slave, ele%n_slave, ele%n_slave_field] )
+                  i_array = [ele%ix1_slave, ele%n_slave, ele%n_slave_field] )
         err_flag = .true.
       endif
 
@@ -1281,10 +1278,10 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (ctl%lord%ix_ele /= i_t .or. ctl%lord%ix_branch /= i_b) then
         call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name) // '  (\i0\)', &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS A %LORD%IX_ELE POINTER MISMATCH: \i0\ ', &
                   'AT: \i0\ ', &
-                  i_array = [i_t, ctl%lord%ix_ele, j] )
+                  i_array = [ctl%lord%ix_ele, j] )
         err_flag = .true.
       endif
 
@@ -1293,10 +1290,10 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (i_t2 < 0 .or. i_t2 > lat%branch(i_b2)%n_ele_max) then
         call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name) // '  (\i0\)', &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS A SLAVE INDEX OUT OF RANGE: \i0\ ', &
                   'AT: \i0\ ', &
-                  i_array = [i_t, i_t2, j] )
+                  i_array = [i_t2, j] )
         err_flag = .true.
         cycle
       endif
@@ -1306,11 +1303,11 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (j <= ele%ix1_slave+ele%n_slave-1 .and. .not. good_control(l_stat, t2_type) .and. ctl%ix_attrib /= l$) then
         call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'),  &
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
                   'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
                   'WITH SLAVE_STATUS: ' // control_name(t2_type), &
-                  i_array = [i_t, i_t2] )
+                  i_array = [i_t2] )
         err_flag = .true.
       endif
 
@@ -1318,10 +1315,10 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         do ix = slave%ic1_lord, slave%ic1_lord+slave%n_lord+slave%n_lord_field-1
           if (ix < 1 .or. ix > lat%n_ic_max) then
             call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'),  &
                   'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
                   'AND THE SLAVE HAS A BAD IC POINTER. ', &
-                  i_array = [i_t, i_t2] )
+                  i_array = [i_t2] )
             err_flag = .true.
             exit
           endif
@@ -1329,10 +1326,10 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
           k = lat%ic(ix)
           if (k < 1 .or. k > lat%n_control_max) then
             call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'),  &
                   'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
                   'AND THE SLAVE HAS A BAD CONTROL POINTER. ', &
-                  i_array = [i_t, i_t2] )
+                  i_array = [i_t2] )
             err_flag = .true.
             exit
           endif
@@ -1347,10 +1344,10 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         enddo
         if (.not. foundit) then
           call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'),  &
                   'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
                   'AND THE SLAVE HAS NO CONTROL STRUCT POINTING TO THE LORD. ', &
-                  i_array = [i_t, i_t2] )
+                  i_array = [i_t2] )
           err_flag = .true.
         endif
       endif
@@ -1367,9 +1364,9 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         if (ctl1%slave == ctl2%slave) then
           slave => pointer_to_ele(lat, ctl1%slave)
           call out_io (s_fatal$, r_name, &
-                  'LORD: ' // trim(ele%name) // '  (\i0\)',  &
+                  'LORD: ' // ele_full_name(ele, '@N (&#)'),  &
                   'HAS MULTIPLE FIELD OVERLAP POINTERS TO SLAVE: ' // trim(slave%name) // '  (\i0\)', &
-                  i_array = [i_t, ctl1%slave%ix_ele] )
+                  i_array = [ctl1%slave%ix_ele] )
           err_flag = .true.
         endif
       enddo
@@ -1383,9 +1380,9 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (ix < 1 .or. ix > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
-                  'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                  'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS IC_LORD INDEX OUT OF BOUNDS: \3i5\ ', &
-                  i_array = [i_t, ele%ic1_lord, ele%n_lord, ele%n_lord_field] )
+                  i_array = [ele%ic1_lord, ele%n_lord, ele%n_lord_field] )
         err_flag = .true.
       endif
 
@@ -1393,9 +1390,9 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (j < 1 .or. j > lat%n_control_max) then
         call out_io (s_fatal$, r_name, &
-                  'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+                  'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS IC INDEX OUT OF BOUNDS: \2i5\ ', & 
-                  i_array = [i_t, ix, j] )
+                  i_array = [ix, j] )
         err_flag = .true.
       endif
 
@@ -1404,7 +1401,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (i_b2 < 0 .or. i_b2 > ubound(lat%branch, 1) .or. (i_b2 /= 0 .and. ix <= ele%ic1_lord+ele%n_lord-1)) then
         call out_io (s_fatal$, r_name, &
-                  'SLAVE: ' // trim(ele%name) // ' ' // str_ix_ele, &
+                  'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS A LORD BRANCH OUT OF RANGE: \3i7\ ', &
                   i_array = [ix, j, i_b2] )
         err_flag = .true.
@@ -1416,7 +1413,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (ctl%slave%ix_ele /= i_t) then
         call out_io (s_fatal$, r_name, &
-                  'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
+                  'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS A %IX_SLAVE POINTER MISMATCH: \i0\ ', &
                   'AT: \2i7\ ', &
                   i_array = [ctl%slave%ix_ele, ix, j] )
@@ -1425,7 +1422,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (i_t2 < 1 .or. i_t2 > lat%branch(i_b2)%n_ele_max) then
         call out_io (s_fatal$, r_name, &
-                  'SLAVE: ' // trim(ele%name) // ' ' // str_ix_ele, &
+                  'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
                   'HAS A LORD INDEX OUT OF RANGE: \3i7\ ', &
                   i_array = [ix, j, i_t2] )
         err_flag = .true.
@@ -1437,7 +1434,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       if (ix <= ele%ic1_lord+ele%n_lord-1 .and. .not. good_control(t2_type, s_stat)) then
         call out_io (s_fatal$, r_name, &
-                  'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
+                  'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
                   'WITH SLAVE_STATUS: ' // control_name(s_stat), &
                   'HAS A LORD: ' // trim(lord%name) // '  (\i0\)', &
                   'WITH LORD_STATUS: ' // control_name(t2_type), &
@@ -1452,7 +1449,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
           call ele_geometry_hook (floor0, ele, floor, finished, 1.0_rp)
           if (.not. finished) then
             call out_io (s_fatal$, r_name, &
-                    'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
+                    'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &
                     'HAS MORE THAN ONE GIRDER_LORD.', &
                     i_array = [i_t] )
             err_flag = .true.
