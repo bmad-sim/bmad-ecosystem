@@ -83,7 +83,8 @@ radiation_included = (ele%tracking_method == symp_lie_bmad$)
 
 if (start2_orb%state == not_set$) then
   if (time_RK_tracking) then
-    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED! [NEEDS AN INIT_COORD CALL?]')
+    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED FOR TIME_RUNGE_KUTTA!', &
+                                   'PLEASE REPORT THIS!')
     return
   endif
   call init_coord(start2_orb, start2_orb, ele, upstream_end$, particle = default_tracking_species(param)) 
@@ -131,7 +132,8 @@ if (start2_orb%species /= photon$ .and. start2_orb%state == alive$) then
   endif
 
   if (err) then
-    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED! [NEEDS AN INIT_COORD CALL?]')
+    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED! [NEEDS AN INIT_COORD CALL?]', &
+                                   'TRACKING THROUGH ELEMENT: ' // ele_full_name(ele, '@N (&#)'))
     return
   endif
 endif
