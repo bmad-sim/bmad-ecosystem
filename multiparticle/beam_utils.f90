@@ -1428,16 +1428,25 @@ call re_allocate (charge, size(bunch%particle))
 
 species = bunch%particle(1)%species
 
+! Get s-position from first live particle
+
+do i = 1, size(bunch%particle)
+  if (bunch%particle(i)%state /= alive$) cycle
+  bunch_params%ix_ele = bunch%particle(i)%ix_ele
+  bunch_params%location = bunch%particle(i)%location
+  bunch_params%centroid = bunch%particle(i)  ! Note: centroid%vec gets set by calc_bunch_sigma_matrix
+  exit
+enddo
+
 ! n_particle and centroid
 
 bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%state == alive$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%state == alive$))
 bunch_params%charge_tot = sum(bunch%particle%charge)
-bunch%charge_tot = bunch_params%charge_tot
+bunch%charge_tot  = bunch_params%charge_tot
 bunch%charge_live = bunch_params%charge_live
 
-bunch_params%centroid          = bunch%particle(1)  ! Note: centroid%vec gets set by calc_bunch_sigma_matrix
 bunch_params%centroid%field(1) = sum(bunch%particle%field(1), mask = (bunch%particle%state == alive$))
 bunch_params%centroid%field(2) = sum(bunch%particle%field(2), mask = (bunch%particle%state == alive$))
 
@@ -1466,15 +1475,6 @@ if (charge_live == 0) then
   charge = 1
   charge_live = bunch_params%n_particle_live
 endif
-
-! Get s-position from first live particle
-
-do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%state /= alive$) cycle
-  bunch_params%ix_ele = bunch%particle(i)%ix_ele
-  bunch_params%location = bunch%particle(i)%location
-  exit
-enddo
 
 bunch_params%centroid%s = sum(bunch%particle%s * charge, mask = (bunch%particle%state == alive$)) / charge_live
 bunch_params%centroid%t = sum(bunch%particle%t * charge, mask = (bunch%particle%state == alive$)) / charge_live
