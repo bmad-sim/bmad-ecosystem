@@ -1,6 +1,10 @@
 !+
 ! Function ele_loc_name (ele, show_branch0, parens) result (str)
 !
+! #####################################################################
+! THIS ROUTINE IS DEPRECATED. PLEASE USE ELE_FULL_NAME ROUTINE INSTEAD!
+! #####################################################################
+!
 ! Routine to encode an element's location into a string.
 ! Example output:
 !   "34"     ! Input: lat%ele(34) which is equivalent to lat%branch(0)%ele(34)

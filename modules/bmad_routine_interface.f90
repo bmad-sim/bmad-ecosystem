@@ -781,6 +781,14 @@ function ele_loc_name (ele, show_branch0, parens) result (str)
   character(10) str
 end function
 
+function ele_full_name (ele, template) result (str)
+  import
+  implicit none
+  type (ele_struct) ele
+  character(*) template
+  character(:), allocatable :: str
+end function
+
 subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
   import
   implicit none
