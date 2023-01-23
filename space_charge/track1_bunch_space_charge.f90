@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_gun_space_charge (bunch, ele, err, drift_to_same_s, bunch_track)
+! Subroutine track1_gun_space_charge (bunch, ele, err, track_to_same_s, bunch_track)
 !
 ! Subroutine to track a bunch of particles in the presence of space charge.
 ! This routine uses time based tracking and so is usable at low energy near a cathode.
@@ -7,7 +7,7 @@
 ! Input:
 !   bunch           -- bunch_struct: Starting bunch position.
 !   ele             -- ele_struct: Element to track through. Must be part of a lattice.
-!   drift_to_same_s -- logical, optional: Default is True. If True, drift particles to all have the
+!   track_to_same_s -- logical, optional: Default is True. If True, drift particles to all have the
 !                        same s-position.
 !   bunch_track     -- bunch_track_struct, optional: Existing tracks. If bunch_track%n_pt = -1 then
 !                        Overwrite any existing track.
@@ -20,7 +20,7 @@
 !                        trajectory in an element is appended to the existing trajectory. 
 !-
 
-subroutine track1_bunch_space_charge (bunch, ele, err, drift_to_same_s, bunch_track)
+subroutine track1_bunch_space_charge (bunch, ele, err, track_to_same_s, bunch_track)
 
 use space_charge_mod, dummy => track1_bunch_space_charge
 
@@ -34,7 +34,7 @@ type (coord_struct), pointer :: p
 
 integer i, n
 logical err, finished, include_image
-logical, optional :: drift_to_same_s
+logical, optional :: track_to_same_s
 real(rp) :: dt_step, dt_next, t_now, beta, ds
 
 integer, parameter :: fixed_time_step$ = 1, adaptive_step$ = 2 ! Need this in bmad_struct
@@ -55,16 +55,16 @@ if (ele%value(l$) == 0) then
   !  p => bunch%particle(i)
   !  call track1(p, ele, ele%branch%param, p)
   !enddo
-  if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, branch)
+  if (logic_option(.true., track_to_same_s)) call track_to_s(bunch, ele%s, branch)
   err = .false.
   return
 endif
 
 ! Drift bunch to the same time
 if (bunch%t0 == real_garbage$) then
-  bunch%t0 = maxval(bunch%particle%t, bunch%particle%state==alive$) 
+  bunch%t0 = sum(bunch%particle%t, bunch%particle%state==alive$) / count(bunch%particle%state == alive$)
 endif
-call drift_to_t(bunch, bunch%t0, branch)
+call track_to_t(bunch, bunch%t0, branch)
 t_now = minval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$)
 
 ! Convert to t-based coordinates
@@ -122,7 +122,7 @@ do i= 1, size(bunch%particle)
 enddo
 
 ! Drift bunch to the end of element
-if (logic_option(.true., drift_to_same_s)) call drift_to_s(bunch, ele%s, branch)
+if (logic_option(.true., track_to_same_s)) call track_to_s(bunch, ele%s, branch)
 err = .false.
 
 end subroutine track1_bunch_space_charge

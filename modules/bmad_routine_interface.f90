@@ -2607,14 +2607,14 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track1_bunch_space_charge (bunch, ele, err, drift_to_same_s, bunch_track)
+subroutine track1_bunch_space_charge (bunch, ele, err, track_to_same_s, bunch_track)
   import
   implicit none
   type (bunch_struct), target :: bunch
   type (ele_struct), target :: ele
   type (bunch_track_struct), optional :: bunch_track
   logical err
-  logical, optional :: drift_to_same_s
+  logical, optional :: track_to_same_s
 end subroutine
 
 subroutine track1_linear (start_orb, ele, param, end_orb)

@@ -72,8 +72,8 @@ sliced_ele%s = sliced_ele%s_start + sliced_ele%value(l$)
 sliced_ele%map_ref_orb_in  = coord_struct()
 sliced_ele%map_ref_orb_out = coord_struct()
 
-! The sliced element is treated as a super_slave to the original element.
-! Except if the original element is itself a super_slave. Then the sliced element is a super_slave
+! The sliced element is treated as a super_slave to the original element except if
+! the original element is itself a super_slave. In this case the sliced element is a super_slave
 ! of the original elements lords.
 
 if (ele_in%slave_status == slice_slave$) then

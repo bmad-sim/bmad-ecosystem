@@ -52,7 +52,6 @@ implicit none
 type (coord_struct) :: start_orb, start2_orb
 type (coord_struct) :: end_orb
 type (ele_struct)   :: ele
-type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
@@ -267,9 +266,8 @@ if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_ma
 ! Set ix_ele. If the element is a slice_slave then the appropriate ix_ele is given by the lord.
 
 if (ele%slave_status == slice_slave$) then
-  lord => pointer_to_lord (ele, 1)
-  end_orb%ix_ele    = lord%ix_ele
-  end_orb%ix_branch = lord%ix_branch
+  end_orb%ix_ele    = ele%lord%ix_ele
+  end_orb%ix_branch = ele%lord%ix_branch
 else
   end_orb%ix_ele    = ele%ix_ele
   end_orb%ix_branch = ele%ix_branch
