@@ -268,7 +268,7 @@ end subroutine sc_adaptive_step
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine drift_to_s (bunch, s, branch)
+! Subroutine track_to_s (bunch, s, branch)
 !
 ! Drift a bunch of particles to the same s coordinate
 !
@@ -281,7 +281,7 @@ end subroutine sc_adaptive_step
 !   bunch     -- bunch_struct: Output bunch position in s-based coordinate. Particles will be at the same s coordinate
 !-
 
-subroutine drift_to_s (bunch, s, branch)
+subroutine track_to_s (bunch, s, branch)
 
 implicit none
 
@@ -290,32 +290,38 @@ type (coord_struct), pointer :: p
 type (branch_struct) :: branch
 type (coord_struct) :: position
 
-integer i
-real(rp) s, ds
+integer i, dir_save
+real(rp) s, s_end
 
 ! Convert bunch to s-based coordinates
+
+s_end = min(s, branch%ele(branch%n_ele_track)%s)
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
-  ds = s - p%s
-  call track_a_drift(p,ds)
-  if (p%s > branch%ele(branch%n_ele_track)%s) then
-    p%ix_ele = branch%n_ele_track
-    p%location = downstream_end$
+
+  dir_save = p%direction
+  if (s_end-s < 0) then
+    p%direction = -1
   else
-    p%ix_ele = element_at_s(branch, p%s, (ds < 0), position=position)
-    p%location = position%location
+    p%direction = 1
   endif
+
+  call track_from_s_to_s (branch%lat, p%s, s_end, p, p, ix_branch = branch%ix_branch)
+
+  p%ix_ele = element_at_s(branch, p%s, (p%direction < 0), position=position)
+  p%location = position%location
+  p%direction = dir_save
 enddo
 
-end subroutine drift_to_s
+end subroutine track_to_s
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine drift_to_t (bunch, t, branch)
+! Subroutine track_to_t (bunch, t, branch)
 !
 ! Drift a bunch of particles to the same t coordinate
 !
@@ -328,7 +334,7 @@ end subroutine drift_to_s
 !   bunch     -- bunch_struct: Output bunch position in s-based coordinate. Particles will be at the same t coordinate
 !-
 
-subroutine drift_to_t (bunch, t, branch)
+subroutine track_to_t (bunch, t, branch)
 
 implicit none
 
@@ -337,28 +343,27 @@ type (coord_struct), pointer :: p
 type (branch_struct) :: branch
 type (coord_struct) :: position
 
-integer i
-real(rp) t, pz0, E_tot, dt, ds
+integer i, dir_save
+real(rp) t, pz0, E_tot, dt, s_end
 
 ! Convert bunch to s-based coordinates
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
-  pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
+
+  dir_save = p%direction
+  pz0 = sqrt((1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
   E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
   dt = t - p%t
-  ds = dt*(c_light*pz0/E_tot)
-  call track_a_drift(p,ds)
-  if (p%s > branch%ele(branch%n_ele_track)%s) then
-    p%ix_ele = branch%n_ele_track
-    p%location = downstream_end$
-  else
-    p%ix_ele = element_at_s(branch, p%s, (ds < 0), position=position)
-    p%location = position%location
-  endif
+  s_end = min(p%s + dt*(c_light*pz0/E_tot), branch%ele(branch%n_ele_track)%s)
+  call track_from_s_to_s (branch%lat, p%s, s_end, p, p, ix_branch = branch%ix_branch)
+
+  p%ix_ele = element_at_s(branch, p%s, (p%direction < 0), position=position)
+  p%location = position%location
+  p%direction = dir_save
 enddo
 
-end subroutine drift_to_t
+end subroutine track_to_t
   
 end module

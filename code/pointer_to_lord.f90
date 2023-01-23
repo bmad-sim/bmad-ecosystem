@@ -10,6 +10,11 @@
 ! If field_overlap_ptr = True, only the field overlap lords may be accessed and the range for ix_lord is:
 !   1 to slave%n_lord_field  
 !
+! If slave arg is a slice_slave with control chain:
+!   super_lord -> super_slave -> slice_slave
+! Then pointer_to_lord will point to the super_lord and not the super_slave. 
+! Access to the super_slave is via slave%lord.
+!
 ! Also see:
 !   pointer_to_slave
 !   pointer_to_ele

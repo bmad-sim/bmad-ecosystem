@@ -1326,7 +1326,7 @@ type ele_struct
   real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.
   integer :: key = 0                              ! Element class (quadrupole, etc.).
   integer :: sub_key = 0                          ! Records bend input type.
-  integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(0:) array where n = ele%ix_branch.
+  integer :: ix_ele = -1                          ! Index in branch ele(0:) array. Set to ix_slice_slave$ = -2 for slice_slave$ elements.
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array. Note: lat%ele => lat%branch(0).
   integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
   integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
