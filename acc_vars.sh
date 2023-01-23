@@ -355,9 +355,14 @@ add_path ${ACC_BIN}
 
 #--------------------------------------------------------------
 # Append path to guarantee proper cmake executable is used
+# Added backup PATH /nfs/opt/extra/bin as requested in RT#65470
 #--------------------------------------------------------------
-#PATH=$PATH:${PLATFORM_DIR}/extra/bin
-PATH=${PLATFORM_DIR}/extra/bin:$PATH
+
+if [ -d ${PLATFORM_DIR}/extra/bin ]; then
+	PATH=${PLATFORM_DIR}/extra/bin:$PATH
+elif [ -d /nfs/opt/extra/bin ]; then
+	PATH=/nfs/opt/extra/bin:$PATH
+fi
 
 #--------------------------------------------------------------
 # Ensure that there is only one reference to the release's
