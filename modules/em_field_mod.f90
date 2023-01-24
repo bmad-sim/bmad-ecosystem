@@ -206,10 +206,10 @@ real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3, r2_x1
 
-integer i, n, i1, i2, i3, grid_dim, allow_s, lbnd, ubnd, nn
+integer i, n, i1, i2, i3, grid_dim, allow_what, lbnd, ubnd, nn
 integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
 
-logical err_flag
+logical err_flag, allow_out
 logical, optional :: allow_s_out_of_bounds, print_err
 
 character(*), parameter :: r_name = 'grid_field_interpolate'
@@ -219,8 +219,9 @@ character(40) extrapolation
 
 err_flag = .false.
 
-allow_s = allow_some$
-if (logic_option(.false., allow_s_out_of_bounds)) allow_s = allow_all$
+allow_out = logic_option(.false., allow_s_out_of_bounds)
+allow_what = allow_some$
+if (allow_out) allow_what = allow_all$
 
 grid_dim = grid_field_dimension(grid%geometry)
 
@@ -231,11 +232,11 @@ case (2)
 
   lbnd = lbound(grid%ptr%pt, 2); ubnd = ubound(grid%ptr%pt, 2)
 
-  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_s); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_what, .false.); if (err_flag) return
   ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
   if (i2 < lbnd - 1 .or. i2 > ubnd) return 
 
-  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$, (.not. allow_out)); if (err_flag) return
 
   ! BiCubic interpolation
 
@@ -335,12 +336,12 @@ case (3)
 
   lbnd = lbound(grid%ptr%pt, 3); ubnd = ubound(grid%ptr%pt, 3)
 
-  call get_this_index(x3, 3, i3, rel_x3, err_flag, allow_s); if (err_flag) return
+  call get_this_index(x3, 3, i3, rel_x3, err_flag, allow_what, .false.); if (err_flag) return
   ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
   if (i3 < lbnd - 1 .or. i3 > ubnd) return 
 
-  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$); if (err_flag) return
-  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_tiny$); if (err_flag) return
+  call get_this_index(x1, 1, i1, rel_x1, err_flag, allow_tiny$, (.not. allow_out)); if (err_flag) return
+  call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_tiny$, (.not. allow_out)); if (err_flag) return
 
   ! TriCubic interpolation
 
@@ -423,12 +424,13 @@ end select
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag, allow_out_of_bounds)
+subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag, allow_what, lost_if_out_of_bounds)
 
 type (coord_struct) orb2
 real(rp) x, rel_x0, x_norm, x_diff, x_ave
-integer ix_x, i0, ig0, ig1, allow_out_of_bounds
-logical err_flag
+integer ix_x, i0, ig0, ig1, allow_what
+logical err_flag, lost_if_out_of_bounds
+character(40) str
 
 !
 
@@ -445,7 +447,7 @@ if (i0 < ig0 .or. i0 >= ig1) then
   g_field%E = 0
   g_field%B = 0
 
-  select case (allow_out_of_bounds)
+  select case (allow_what)
   case (allow_tiny$)
     ! Here do extrapolation is the point is within one dr/2 of the grid boundary.
     ! Otherwise it is an error.
@@ -471,9 +473,9 @@ if (i0 < ig0 .or. i0 >= ig1) then
     return
   end select
 
-  err_flag = .true.
-
   ! Avoid nedless error messages if the particle is outside the aperture.
+
+  err_flag = .true.
 
   orb2%state = alive$
   if (ele%aperture_at == continuous$) then
@@ -482,12 +484,18 @@ if (i0 < ig0 .or. i0 >= ig1) then
   endif
 
   if (orb2%state == alive$ .and. logic_option(.true., print_err)) then
+    if (lost_if_out_of_bounds) then
+      str = 'PARTICLE WILL BE MARKED AS LOST'
+    else
+      str = 'SETTING FIELD TO ZERO'
+    endif
     call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION INDEX OUT OF BOUNDS: I\i0\ = \i0\ (POSITION = \f12.6\)', &
                                  'FOR ELEMENT: ' // ele%name // '  ' // trim(ele_loc_name(ele, parens = '()')), &
-                                 'PARTICLE POSITION: \3F12.6\ ', &
-                                 'SETTING FIELD TO ZERO', i_array = [grid_dim, ix_x, i0], &
-                                 r_array = [x, orbit%vec(1), orbit%vec(3), orbit%s-ele%s_start])
+                                 'PARTICLE POSITION: \3F12.6\ ', str, &
+                                 i_array = [grid_dim, ix_x, i0], r_array = [x, orbit%vec(1), orbit%vec(3), orbit%s-ele%s_start])
   endif
+
+  if (lost_if_out_of_bounds .and. orbit%state == alive$) orbit%state = lost$
 endif
 
 end subroutine get_this_index 
