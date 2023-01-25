@@ -184,8 +184,8 @@ do n = 1, 3
   enddo
 enddo
 
-write (1, '(a, 6es18.9)') '"LR-P20" REL 1E-8' , bunch%particle(20)%vec - bunch0%particle(20)%vec
-write (1, '(a, 6es18.9)') '"LR-P40" REL 1E-8' , bunch%particle(40)%vec - bunch0%particle(40)%vec
+write (1, '(a, 6es18.9)') '"LR-P20" ABS 1E-19' , bunch%particle(20)%vec - bunch0%particle(20)%vec
+write (1, '(a, 6es18.9)') '"LR-P40" ABS 1E-19' , bunch%particle(40)%vec - bunch0%particle(40)%vec
 
 ! Long range wake with superimposed element.
 
