@@ -132,7 +132,7 @@ end subroutine track1_radiation
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine radiation_map_setup (ele, ref_orbit_in)
+! Subroutine radiation_map_setup (ele, ref_orbit_in, err_flag)
 !
 ! Routine to calculate the radiation kick for a lattice element.
 !
@@ -142,9 +142,10 @@ end subroutine track1_radiation
 !
 ! Output:
 !   ele       -- ele_struct: Element with map calculated.
+!   err_flag  -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine radiation_map_setup (ele, ref_orbit_in)
+subroutine radiation_map_setup (ele, ref_orbit_in, err_flag)
 
 use rad_6d_mod
 
@@ -154,9 +155,14 @@ type (coord_struct) orb1, orb2, ref_orb_in, ref_orb_out
 type (branch_struct), pointer :: branch
 real(rp) tol, m_inv(6,6)
 integer i, edge, info
+logical, optional :: err_flag
 logical err, rad_damp_on
 
+character(*), parameter :: r_name = 'radiation_map_setup'
+
 !
+
+if (present(err_flag)) err_flag = .false.
 
 if (.not. associated(ele%rad_map)) allocate(ele%rad_map)
 if (.not. ele%rad_map%stale .and. .not. present(ref_orbit_in)) return
@@ -171,6 +177,11 @@ branch => pointer_to_branch(ele)
 if (present(ref_orbit_in)) then
   ref_orb_in = ref_orbit_in
   call track1(ref_orb_in, ele, branch%param, ref_orb_out)
+  if (ref_orb_out%state /= alive$) then
+    if (present(err_flag)) err_flag = .true.
+    call out_io (s_error$, r_name, 'Reference particle lost while tracking through: ' // ele_full_name(ele))
+    return
+  endif
 else
   ref_orb_in  = ele%map_ref_orb_in
   ref_orb_out = ele%map_ref_orb_out

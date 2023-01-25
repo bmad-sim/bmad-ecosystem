@@ -769,16 +769,14 @@ end type
 
 ! Gfortran bug: "field(3) = em_taylor_struct()" not accepted.
 
-! Local reference frame position with respect to the global (floor) coordinates
+! Unit and S-Matrices
 
 real(rp), parameter :: vec3_zero$(3) = 0, vec6_zero$(6) = 0
 real(rp), parameter :: mat3_unit$(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
-real(rp), parameter :: mat6_unit$(6,6) = reshape( [1, 0, 0, 0, 0, 0, &
-                                                   0, 1, 0, 0, 0, 0, &
-                                                   0, 0, 1, 0, 0, 0, &
-                                                   0, 0, 0, 1, 0, 0, &
-                                                   0, 0, 0, 0, 1, 0, &
-                                                   0, 0, 0, 0, 0, 1], [6,6])
+real(rp), parameter :: mat6_unit$(6,6) = reshape( [1,0,0,0,0,0, 0,1,0,0,0,0, &
+                             0,0,1,0,0,0, 0,0,0,1,0,0, 0,0,0,0,1,0, 0,0,0,0,0,1], [6,6])
+real(rp), parameter :: s6_unit$(6,6) = reshape( [0,-1,0,0,0,0, 1,0,0,0,0,0, &
+                             0,0,0,-1,0,0, 0,0,1,0,0,0, 0,0,0,0,0,-1, 0,0,0,0,1,0], [6,6])
 
 type floor_position_struct
   real(rp) :: r(3) = 0                        ! (x, y, z) offset from origin

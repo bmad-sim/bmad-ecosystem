@@ -46,10 +46,10 @@ type (branch_struct), pointer :: branch
 type (normal_modes_struct) mode
 type (rad_map_struct) rmap
 
-real(rp) sigma_mat(6,6), rf65, sig_s(6,6), mat6(6,6)
+real(rp) sigma_mat(6,6), rf65, sig_s(6,6), mat6(6,6), xfer_nodamp_mat(6,6)
 real(rp) mt(21,21), v_sig(21,1)
 
-complex(rp) eval(6), evec(6,6)
+complex(rp) eval(6), evec(6,6), cmat(6,6)
 
 integer i, j, k, ipev(21), info
 
@@ -64,7 +64,7 @@ logical include_opening_angle, err, rf_off
 ! Analysis is documented in the Bmad manual.
 
 mode = normal_modes_struct()
-call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode)
+call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat)
 
 ! If there is no RF then add a small amount to enable the calculation to proceed.
 ! The RF is modeled as a unit matrix with M(6,5) = 1d-4.
@@ -138,15 +138,21 @@ else
   mode%sigE_E = sqrt(sigma_mat(6,6))
 endif
 
+! This is Eq (86) from Ohmi, Hirata, & Oide, "From the beam-envelope matrix to synchrotron-radiation integrals".
+
+call mat_eigen (xfer_nodamp_mat, eval, evec, err)
+evec = transpose(evec)
+call cplx_mat_inverse(evec, cmat)
+call mat_inverse(xfer_nodamp_mat, mat6)
+cmat = matmul(matmul(matmul(cmat, rmap%damp_dmat), mat6), evec)
+
+mode%a%alpha_damp = -real(cmat(1,1), 8)
+mode%b%alpha_damp = -real(cmat(3,3), 8)
+mode%z%alpha_damp = -real(cmat(5,5), 8)
+
 ! E_loss = 0 can happen in toy lattices without bends.
 
 if (mode%e_loss /= 0) then
-  call mat_eigen(rmap%xfer_damp_mat, eval, evec, err)
-
-  mode%a%alpha_damp = 1.0_rp - abs(eval(1))
-  mode%b%alpha_damp = 1.0_rp - abs(eval(3))
-  mode%z%alpha_damp = 1.0_rp - abs(eval(5))
-
   mode%a%j_damp = -2 * mode%a%alpha_damp / mode%dpz_damp
   mode%b%j_damp = -2 * mode%b%alpha_damp / mode%dpz_damp
   mode%z%j_damp = -2 * mode%z%alpha_damp / mode%dpz_damp
@@ -162,7 +168,7 @@ end subroutine emit_6d
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode)
+! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat)
 !
 ! Routine to calculate the damping and stochastic variance matrices from exit end of ele1
 ! to the exit end of ele2. Use ele1 = ele2 to get 1-turn matrices.
@@ -185,9 +191,10 @@ end subroutine emit_6d
 !   mode                  -- normal_modes_struct:
 !     %dpz_damp                 -- Change in pz without RF.
 !     %pz_average               -- Average pz due to damping.
+!   xfer_nodamp_mat(6,6)  -- real(rp): Transfer matrix without damping.
 !-
 
-subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode)
+subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat)
 
 type (ele_struct), allocatable :: eles_save(:)
 type (ele_struct), target :: ele1, ele2
@@ -199,7 +206,7 @@ type (bmad_common_struct) bmad_com_save
 type (rad_map_struct), allocatable :: rm1(:)
 type (coord_struct), allocatable :: closed_orb(:)
 
-real(rp) sig_mat(6,6), mt(6,6), tol, length
+real(rp) sig_mat(6,6), mt(6,6), xfer_nodamp_mat(6,6), tol, length
 integer ie
 
 logical include_opening_angle, err_flag
@@ -242,9 +249,8 @@ enddo
 
 !
 
-call mat_make_unit(rmap%xfer_damp_mat)
-rmap%xfer_damp_vec = 0
-rmap%stoc_mat = 0
+rmap = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
+xfer_nodamp_mat = mat6_unit$
 mode%dpz_damp = 0
 mode%pz_average = 0
 length = 0
@@ -256,10 +262,11 @@ do
   if (ie /= 0) then
     ele3 => branch%ele(ie)
     mt = rm1(ie)%damp_dmat + ele3%mat6
+    rmap%damp_dmat = matmul(mt, rmap%damp_dmat) + matmul(rm1(ie)%damp_dmat, rmap%xfer_damp_mat)
     rmap%xfer_damp_vec = matmul(mt, rmap%xfer_damp_vec) + rm1(ie)%xfer_damp_vec
     rmap%xfer_damp_mat = matmul(mt, rmap%xfer_damp_mat)
     rmap%stoc_mat = matmul(matmul(mt, rmap%stoc_mat), transpose(mt)) + rm1(ie)%stoc_mat
-
+    xfer_nodamp_mat = matmul(ele3%mat6, xfer_nodamp_mat)
     mode%pz_average = mode%pz_average + 0.5_rp * ele3%value(l$) * (closed_orb(ie-1)%vec(6) + closed_orb(ie)%vec(6))
     length = length + ele3%value(l$)
     if (ele3%key /= rfcavity$) then
