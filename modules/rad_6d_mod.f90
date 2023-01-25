@@ -211,6 +211,8 @@ integer ie
 
 logical include_opening_angle, err_flag
 
+character(*), parameter :: r_name = 'rad_damp_and_stoc_mats'
+
 !
 
 call find_element_ends(ele1, ele3, ele1_track)
@@ -228,6 +230,10 @@ bmad_com%radiation_fluctuations_on = .false.
 if (rf_is_on(branch)) then
   bmad_com%radiation_damping_on = .true.
   call closed_orbit_calc(branch%lat, closed_orb, 6, +1, branch%ix_branch, err_flag)
+  if (err_flag) then
+    call out_io (s_error$, r_name, 'Closed orbit calculation failing with radiation damping turned on.', &
+                                   'Emittance and other radiation related quantities will not be calculated.')
+  endif
 else
   bmad_com%radiation_damping_on = .false.
   call closed_orbit_calc(branch%lat, closed_orb, 4, +1, branch%ix_branch, err_flag)
