@@ -19,7 +19,7 @@
 !   "{!#}"       "{0>>34}"        ! "!#" will always translate to "ix_ele>>ix_branch"
 ! Input:
 !   ele           -- ele_struct: Element in a lattice
-!   template      -- character(*): Encoding template.
+!   template      -- character(*), optional: Encoding template. Default is "@N (&#)".
 !
 ! Output:
 !   str           -- character(:), allocatable: Name/location string. 
@@ -32,23 +32,33 @@ use bmad_struct
 implicit none
 
 type (ele_struct) ele
-character(*) template
+character(*), optional :: template
 character(:), allocatable :: str
-
 integer ix
 
 !
 
-ix = index(template, '@N')
-if (ix == 0) then
+if (present(template)) then
   str = template
 else
-  str = template(1:ix-1) // trim(ele%name) // template(ix+2:)
+  str = '@N (&#)'
 endif
+
+!
+
+ix = index(str, '@N')
+if (ix == 0) then
+  str = str
+else
+  str = str(1:ix-1) // trim(ele%name) // str(ix+2:)
+endif
+
+!
 
 ix = index(str, '!#')
 if (ix /= 0) str = str(1:ix-1) // int_str(ele%ix_branch) // '>>' // int_str(ele%ix_ele) // str(ix+2:)
 
+!
 
 ix = index(str, '&#')
 if (ix /= 0) then
@@ -58,6 +68,8 @@ if (ix /= 0) then
     str = str(1:ix-1) // int_str(ele%ix_branch) // '>>' // int_str(ele%ix_ele) // str(ix+2:)
   endif
 endif
+
+!
 
 ix = index(str, '%#')
 if (ix /= 0) then

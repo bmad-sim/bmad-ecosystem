@@ -785,7 +785,7 @@ function ele_full_name (ele, template) result (str)
   import
   implicit none
   type (ele_struct) ele
-  character(*) template
+  character(*), optional :: template
   character(:), allocatable :: str
 end function
 

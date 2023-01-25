@@ -177,6 +177,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       track_spin = (ele%spin_tracking_method == tracking$ .and. ele%field_calc == bmad_standard$)
       call apply_element_edge_kick (orb, fringe_info, ele, param, track_spin, rf_time = rf_time)
       call convert_particle_coordinates_s_to_t(orb, s_save, ele%orientation)
+      if (orb%state /= alive$) return
       call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, time_tracking = .true.)
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
@@ -248,7 +249,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   ! Exit when the particle hits an aperture or gets to the end of the element
 
-  if (exit_flag) then
+  if (exit_flag .or. orb%state /= alive$) then
     err_flag = .false. 
     return
   endif

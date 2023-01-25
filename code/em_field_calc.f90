@@ -1324,6 +1324,7 @@ case(fieldmap$)
                     allow_s_out_of_bounds = grid_allow_s_out_of_bounds, print_err = print_err)
         if (err) then
           if (present(err_flag)) err_flag = .true.
+          orbit%state = local_orb%state
           return
         endif
 
@@ -1343,6 +1344,7 @@ case(fieldmap$)
                      allow_s_out_of_bounds = grid_allow_s_out_of_bounds, print_err = print_err)
         if (err) then
           if (present(err_flag)) err_flag = .true.
+          orbit%state = local_orb%state
           return
         endif
 
