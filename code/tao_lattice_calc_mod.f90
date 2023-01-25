@@ -488,7 +488,13 @@ do
     else
       csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
       if (csr_sc_on .or. .not. comb_calc_on) then
-        if (radiation_on) call radiation_map_setup(ele, bunch_params%centroid)
+        if (radiation_on) call radiation_map_setup(ele, bunch_params%centroid, err)
+        if (err) then
+          call out_io (s_error$, r_name, 'RADIATION MAP SETUP WHILE BEAM TRACKING ERROR THROUGH ELEMENT: ' // ele_full_name(ele), &
+                                         'STOPPING BEAM TRACKING.')
+          calc_ok = .false.
+          return
+        endif
         call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit, bunch_tracks = bunch_params_comb)
 
       else

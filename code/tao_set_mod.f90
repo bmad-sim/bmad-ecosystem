@@ -3461,7 +3461,7 @@ type (named_number_struct), allocatable :: sym_temp(:)
 integer i, n
 real(rp), optional :: val
 real(rp), allocatable :: value(:)
-logical err
+logical err, ok
 
 character(*) sym_str
 character(*), optional :: num_str
@@ -3482,7 +3482,14 @@ enddo
 if (present(val)) then
   allocate(value(1))
   value(1) = val
+
 else
+  if (index(num_str, 'chrom') /= 0) then
+    s%com%force_chrom_calc = .true.
+    s%u%calc%lattice = .true.
+    call tao_lattice_calc(ok)
+  endif
+
   call tao_evaluate_expression (num_str, 1, .false., value, err); if (err) return
 endif
 
