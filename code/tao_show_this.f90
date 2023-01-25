@@ -4583,6 +4583,12 @@ case ('string')
 
   nc = 0
 
+  if (index(what2, 'chrom') /= 0) then
+    s%com%force_chrom_calc = .true.
+    s%u%calc%lattice = .true.
+    call tao_lattice_calc(ok)
+  endif
+
   do
     ix = index(what2, '`')
     if (ix == 0) then
@@ -5682,7 +5688,6 @@ case ('value')
       what2 = trim(str) // what2(ix+1:)
     endif
   endif
-
 
   if (index(what2, 'chrom') /= 0) then
     s%com%force_chrom_calc = .true.
