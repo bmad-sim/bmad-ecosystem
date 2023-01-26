@@ -639,7 +639,7 @@ function bool_fscalar2scalar (f_scalar, n) result (c_scalar)
 
 implicit none
 
-integer n, i
+integer n
 logical f_scalar
 logical(c_bool) c_scalar
 
@@ -1010,7 +1010,7 @@ subroutine bool_vec2fvec (c_vec, f_vec)
 
 implicit none
 
-integer i, j, n1, n2
+integer i
 logical(c_bool) c_vec(*)
 logical f_vec(:)
 

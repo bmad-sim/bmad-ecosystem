@@ -246,12 +246,12 @@ SUBROUTINE geodesicLM(func, jacobian, Avv, &
 !
 !*****************************************************************
 
-  IMPLICIT NONE
-  !! Passed parameters
-  EXTERNAL func, jacobian, Avv, callback
+  use ieee_arithmetic
 
-  REAL (KIND=8) x(n), fvec(m), fjac(m,n)
+  IMPLICIT NONE
+
   INTEGER n, m
+  REAL (KIND=8) x(n), fvec(m), fjac(m,n)
   LOGICAL analytic_jac, analytic_Avv, center_diff
   REAL (KIND=8) h1, h2
   REAL (KIND=8) dtd(n,n)
@@ -278,6 +278,8 @@ SUBROUTINE geodesicLM(func, jacobian, Avv, &
  
   LOGICAL jac_uptodate, jac_force_update, valid_result
   
+  EXTERNAL func, jacobian, Avv, callback
+
   !Convergence messages 
   converged_info = '????????'
   converged_info(1) = 'artol reached'
@@ -291,7 +293,7 @@ SUBROUTINE geodesicLM(func, jacobian, Avv, &
   converged_info(-2) = 'maxfev exceeded'
   converged_info(-3) = 'maxjev exceeded'
   converged_info(-4) = 'maxaev exceeded'
-  converged_info(-10) = 'User Termination '
+  converged_info(-10) = 'User Termination'
   converged_info(-11) = 'NaN Produced'
 
   IF(print_level .GE. 1) THEN
@@ -328,7 +330,7 @@ SUBROUTINE geodesicLM(func, jacobian, Avv, &
   valid_result = .TRUE.
   !! Check for nans in fvec
   checkfvec: DO i = 1,m     
-     IF(fvec(i) /= fvec(i)) THEN
+     IF(ieee_is_nan(fvec(i))) THEN
         valid_result = .FALSE.
         EXIT checkfvec
      END IF
@@ -359,7 +361,7 @@ SUBROUTINE geodesicLM(func, jacobian, Avv, &
   valid_result = .TRUE.
   checkfjac_initial: DO i = 1,m     
      DO j = 1,n
-        IF(fjac(i,j) /= fjac(i,j)) THEN
+        IF(ieee_is_nan(fjac(i,j))) THEN
            valid_result = .FALSE.
            EXIT checkfjac_initial
         END IF

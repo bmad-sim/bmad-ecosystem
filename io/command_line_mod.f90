@@ -23,10 +23,8 @@ contains
 function cesr_iargc()
 
 implicit none
-
 integer cesr_iargc
 
-integer iargc
 cesr_iargc = command_argument_count()
 
 end function cesr_iargc
@@ -63,7 +61,7 @@ subroutine cesr_getarg(i_arg, arg)
   integer, intent(in) :: i_arg
   character(*), intent(out) :: arg
   character(200) :: raw
-  integer i, pos
+  integer i
 
 !
 

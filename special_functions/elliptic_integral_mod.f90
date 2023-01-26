@@ -54,7 +54,7 @@ elemental subroutine ellipinc(phi, m, ellipkinc, ellipeinc)
 
 real(dp), intent(in)  :: phi, m
 real(dp), intent(out) :: ellipkinc, ellipeinc
-real(dp) :: m1, phi1, d, b, mc, elb,eld
+real(dp) :: m1, phi1, d, elb,eld
 
 
 ! Negative parameters need a special transformation, 
@@ -104,9 +104,7 @@ subroutine test_xgelbd()
 ! test driver for gelbd
 !
 implicit none
-real(dp) ::  PI,PIHALF
-parameter (PI=3.1415926535897932384626433d0)
-parameter (PIHALF=PI*0.5d0)
+
 real(dp) ::  dmc,mc,m,dphi,phi,b,d
 real(sp) ::  rmc,rphi,rb,rd,rdb,rdd
 integer jend,iend,j,i
@@ -290,7 +288,7 @@ elemental subroutine elbd(phi,phic,mc,b,d)
 !
 real(dp), intent(in) :: phi,phic,mc
 real(dp), intent(out) :: b,d
-real(dp) ::  m,c,x,d2,z,k,bc,ec,dc,sz,v,t2
+real(dp) ::  m,c,x,d2,z,bc,dc,sz,v,t2
 
 if(phi.lt.1.25d0) then
     call elsbd(sin(phi),mc,b,d)
@@ -437,11 +435,9 @@ real(dp), intent(in)  ::  mc
 real(dp), intent(out) ::  elb,eld
 real(dp) ::  m,nome,dkkc,dddc,mx,kkc,logq2,elk,dele,elk1,delb
 
-real(dp) ::  PIQ,PIHALF,PI,PIINV
+real(dp) ::  PIQ,PIHALF
 parameter (PIQ=0.78539816339744830961566084581988d0)
 parameter (PIHALF=1.5707963267948966192313216916398d0)
-parameter (PI=3.1415926535897932384626433832795d0)
-parameter (PIINV=0.31830988618379067153776752674503d0)
 
 real(dp) ::  mcold,elbold,eldold
 ! save mcold,elbold,eldold
@@ -1046,7 +1042,7 @@ end subroutine serbd
 subroutine relbd(phi,phic,mc,b,d)
 
 real(sp) ::  phi,phic,mc,b,d
-real(sp) ::  m,c,x,d2,z,k,bc,ec,dc,sz,v,t2
+real(sp) ::  m,c,x,d2,z,bc,dc,sz,v,t2
 
 if(phi.lt.1.250) then
 ! write(*,*) "relsbd"
@@ -1203,11 +1199,9 @@ subroutine rcelbd(mc,elb,eld)
 real(sp) ::  mc,elb,eld
 real(sp) ::  m,nome,dkkc,dddc,mx,kkc,logq2,elk,dele,elk1,delb
 
-real(sp) ::  PIQ,PIHALF,PI,PIINV
+real(sp) ::  PIQ,PIHALF
 parameter (PIQ=0.78539816)
 parameter (PIHALF=1.57079633)
-parameter (PI=3.14159265)
-parameter (PIINV=0.318309886)
 
 real(sp) ::  mcold,elbold,eldold
 !save mcold,elbold,eldold

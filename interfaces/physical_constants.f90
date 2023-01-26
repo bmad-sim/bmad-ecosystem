@@ -108,6 +108,6 @@ type (named_number_struct) :: old_style_physical_const_list(4) = [ &
 
 ! This is to suppress the ranlib "has no symbols" message
 
-integer, private :: private_dummy
+integer :: physical_constants_dummy
 
 end module

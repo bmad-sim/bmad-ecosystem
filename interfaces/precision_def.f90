@@ -23,6 +23,6 @@ type named_number_struct
 end type
 
 ! This is to suppress the ranlib "has no symbols" message
-integer, private :: private_dummy
+integer :: precision_def_dummy
 
 end module

@@ -54,9 +54,9 @@ real(rp) phase_u1, amp_u1, freq_u1
 real(rp) phase_u2, amp_u2, freq_u2
 real(rp) d
 
-integer i,N, ndata
+integer N, ndata
 
-character(*), parameter :: r_name = 'apfft_corr'
+!
 
 ndata = size(rdata_in)
 N = floor((ndata+1.0)/3)
@@ -182,13 +182,9 @@ character(3) window
 real(rp) phase, amp, freq
 integer, optional :: diag
 
-real(rp) wc(size(rdata))
-
 integer fid
 integer ndata, N, max_ix
-integer i, j, lb, ub
-
-real(rp) alpha, beta, gamma, p
+integer i, lb, ub
 
 complex(rp), allocatable :: c_Xap(:)
 
@@ -198,7 +194,6 @@ integer(fgsl_int) :: status
 real(rp), allocatable :: apwindow(:)
 
 character(4) fid_str
-character(*), parameter :: r_name = 'apfft_ext'
 
 ndata = size(rdata)
 N = floor((ndata+1.0d0)/2.0d0)
@@ -209,9 +204,9 @@ allocate(c_Xap(N))
 
 if(window == 'rec') then
   !rec-rec window
-  c_Xap(1) = cmplx(N*rdata(N),0.0d0)
+  c_Xap(1) = cmplx(N*rdata(N),0.0d0, kind = rp)
   do i=2,N
-    c_Xap(i) = cmplx((N-i+1)*rdata(N+i-1) + (i-1)*rdata(i-1),0.0d0)
+    c_Xap(i) = cmplx((N-i+1)*rdata(N+i-1) + (i-1)*rdata(i-1),0.0d0, kind = rp)
   enddo
   c_Xap = c_Xap / N / N
 elseif( window == 'han') then
@@ -219,9 +214,9 @@ elseif( window == 'han') then
   call hanhan(N,apwindow)
   rdata = apwindow*rdata
   deallocate(apwindow)
-  c_Xap(1) = cmplx(rdata(N),0.0d0)
+  c_Xap(1) = cmplx(rdata(N),0.0d0, kind = rp)
   do i=2,N
-    c_Xap(i) = cmplx(rdata(N+i-1) + rdata(i-1),0.0d0)
+    c_Xap(i) = cmplx(rdata(N+i-1) + rdata(i-1),0.0d0, kind = rp)
   enddo
   c_Xap = c_Xap 
 else

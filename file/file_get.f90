@@ -29,7 +29,7 @@ implicit none
 character(*) file_name, dflt_file_name, string
 character dflt_dir*60, dflt_name*60, dflt_suffix*60
 
-integer nret, istat, ix, iargc
+integer nret, ix, iargc
 
 logical :: try_foreign = .true.
 
