@@ -518,7 +518,13 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
       endif
 
       EPSMCH = DPMPAR(1)
-      GO TO (1001,1002,1003,1004,1005) IPOS  
+      select case (ipos)
+      case (1); goto 1001
+      case (2); goto 1002
+      case (3); goto 1003
+      case (4); goto 1004
+      case (5); goto 1005
+      end select
 !
       INFO = 0
       IFLAG = 0

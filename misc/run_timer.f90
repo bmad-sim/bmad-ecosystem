@@ -84,39 +84,7 @@ integer year, month, day, jday
 jday = Day - 32075 + 1461*(YEAR+4800+(MONTH-14)/12)/4 + &
              367*(MONTH-2-(MONTH-14)/12*12)/12 - 3*((YEAR+4900+(MONTH-14)/12)/100)/4
 
-
 end function
-
-!------------------------------------------------------------------------
-! contains
-
-! Computes the Gregorian calendar date (year, month, day) given the Julian date.
-! Algorithm by Fliegel and van Flandern (1968)
-
-subroutine gregorian (jday, year, month, day) 
-
-implicit none
-
-integer year, month, day, jday
-integer pl, n
-
-!
-
-pl = jday + 68569
-n = 4*pl/146097
-pl = pl - (146097*n+3)/4
-year = 4000*(pl+1)/1461001
-pl = pl - 1461*year/4+31
-month = 80*pl/2447
-day = pl - 2447*month/80
-pl = month/11
-month = month + 2 - 12*pl
-year = 100*(n-49) + year + pl
-
-end subroutine
-
-
-
 
 end subroutine
 

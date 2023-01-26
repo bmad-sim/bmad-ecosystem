@@ -74,7 +74,6 @@ integer loc_array(:)
 
 character(*) string
 character(*), optional :: separator
-character(10) str
 
 logical err
 logical, optional :: err_flag
@@ -173,7 +172,7 @@ logical, optional :: err_flag
 
 character(*) string
 character(*), optional :: names(ix_min:), separator
-character(20) fmt, last_name
+character(20) last_name
 
 ! init
   
