@@ -2,7 +2,7 @@
 ! Subroutine apply_all_rampers (lat, err_flag)
 !
 ! Routine to apply all the rampers in a lattice.
-! Also see: apply_ramper.
+! Also see: apply_rampers_to_slave.
 !
 ! Input:
 !   lat         -- lat_struct: Lattice.
@@ -33,7 +33,7 @@ if (n_ramp == 0) return
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 0, branch%n_ele_max
-    call apply_ramper(branch%ele(ie), rampers(1:n_ramp), err_flag)
+    call apply_rampers_to_slave(branch%ele(ie), rampers(1:n_ramp), err_flag)
     if (err_flag) return
   enddo
 enddo
