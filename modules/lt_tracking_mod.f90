@@ -515,7 +515,7 @@ if (lttp%ramping_on) then
   enddo
 
   do ie = 0, branch%n_ele_max
-    call apply_ramper (branch%ele(ie), ltt_com%ramper(1:ltt_com%n_ramper_loc), err)
+    call apply_rampers_to_slave (branch%ele(ie), ltt_com%ramper(1:ltt_com%n_ramper_loc), err)
   enddo
 endif  
 
