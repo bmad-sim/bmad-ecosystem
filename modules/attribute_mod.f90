@@ -2274,7 +2274,7 @@ case ('GRID^TYPE')      ! This is for the Tao "python" command
 case ('INTERPOLATION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, interpolation_name, lbound(interpolation_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib_val == spline$)
+    is_default = (ix_attrib_val == cubic$)
   endif
 
 case ('KEY')

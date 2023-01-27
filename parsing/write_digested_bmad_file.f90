@@ -342,7 +342,7 @@ if (ix_c == 1) then
   n_var = size(ele%control%var)
   if (allocated(ele%control%x_knot)) nk = size(ele%control%x_knot)
   if (allocated(ele%control%ramp)) nr = size(ele%control%ramp)
-  write (d_unit) ele%control%type, n_var, nk, nr
+  write (d_unit) n_var, nk, nr
   if (nk > -1) write (d_unit) ele%control%x_knot
   do i = 1, n_var
     write (d_unit) ele%control%var(i)

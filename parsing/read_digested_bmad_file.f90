@@ -521,7 +521,7 @@ enddo
 
 if (ix_c /= 0) then
   allocate (ele%control)
-  read (d_unit, err = 9120, end = 9120) ele%control%type, n_var, nk, nr
+  read (d_unit, err = 9120, end = 9120) n_var, nk, nr
 
   if (nk > -1) then
     allocate(ele%control%x_knot(nk))

@@ -85,11 +85,6 @@ do iv = 1, size(lord%control%var)
   call upcase_string(lord%control%var(iv)%name)
 enddo
 
-if (lord%control%type /= expression$ .and. size(lord%control%var) /= 1) then
-  call parser_error ('A SPLINE BASED CONTROLLER MAY ONLY HAVE ONE CONTROL VARIABLE: ' // lord%name)
-  return
-endif  
-
 ! loop over all controlled attributes
 
 do i = 1, n_control

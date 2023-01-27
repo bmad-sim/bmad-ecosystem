@@ -49,11 +49,6 @@ do iv = 1, size(lord%control%var)
   call upcase_string(lord%control%var(iv)%name)
 enddo
 
-if (lord%control%type /= expression$ .and. size(lord%control%var) /= 1) then
-  call parser_error ('A SPLINE BASED CONTROLLER MAY ONLY HAVE ONE CONTROL VARIABLE: ' // lord%name)
-  return
-endif  
-
 ! Mark element as an ramper lord
 
 call check_controller_controls (ramper$, contrl, lord%name, err)

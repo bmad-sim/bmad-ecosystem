@@ -1731,8 +1731,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%var) .eqv. allocated(f2%var))
 if (.not. is_eq) return
