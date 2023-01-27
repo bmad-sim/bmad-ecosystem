@@ -3907,9 +3907,6 @@ void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.type = rhs;
-
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.var.resize(0);
@@ -3932,7 +3929,7 @@ void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
   else {
     C.x_knot.resize(3);
     for (unsigned int i = 0; i < C.x_knot.size(); i++)
-      {int rhs = 101 + i + 6 + offset; C.x_knot[i] = rhs;}  }
+      {int rhs = 101 + i + 5 + offset; C.x_knot[i] = rhs;}  }
 
 
 }

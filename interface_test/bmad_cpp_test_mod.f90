@@ -5871,8 +5871,6 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%type = rhs
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -5900,7 +5898,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%x_knot)) allocate (F%x_knot(-1:1))
   do jd1 = 1, size(F%x_knot,1); lb1 = lbound(F%x_knot,1) - 1
-    rhs = 100 + jd1 + 6 + offset
+    rhs = 100 + jd1 + 5 + offset
     F%x_knot(jd1+lb1) = rhs
   enddo
 endif

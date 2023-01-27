@@ -979,7 +979,6 @@ template bool is_all_equal (const CPP_controller_var1_MATRIX&, const CPP_control
 
 bool operator== (const CPP_controller& x, const CPP_controller& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && is_all_equal(x.var, y.var);
   is_eq = is_eq && is_all_equal(x.ramp, y.ramp);
   is_eq = is_eq && is_all_equal(x.x_knot, y.x_knot);

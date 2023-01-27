@@ -6740,12 +6740,10 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
-      bind(c)
+  subroutine controller_to_c2 (C, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_type
     type(c_ptr) :: z_var(*), z_ramp(*)
     integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
     real(c_double) :: z_x_knot(*)
@@ -6792,8 +6790,8 @@ if (allocated(F%x_knot)) then
 endif
 
 !! f_side.to_c2_call
-call controller_to_c2 (C, F%type, z_var, n1_var, z_ramp, n1_ramp, fvec2vec(F%x_knot, &
-    n1_x_knot), n1_x_knot)
+call controller_to_c2 (C, z_var, n1_var, z_ramp, n1_ramp, fvec2vec(F%x_knot, n1_x_knot), &
+    n1_x_knot)
 
 end subroutine controller_to_c
 
@@ -6813,8 +6811,7 @@ end subroutine controller_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine controller_to_f2 (Fp, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
-    bind(c)
+subroutine controller_to_f2 (Fp, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) bind(c)
 
 
 implicit none
@@ -6823,7 +6820,6 @@ type(c_ptr), value :: Fp
 type(controller_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_type
 type(c_ptr) :: z_var(*), z_ramp(*)
 integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
 type(c_ptr), value :: z_x_knot
@@ -6831,8 +6827,6 @@ real(c_double), pointer :: f_x_knot(:)
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%type = z_type
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_var == 0) then
   if (allocated(F%var)) deallocate(F%var)
