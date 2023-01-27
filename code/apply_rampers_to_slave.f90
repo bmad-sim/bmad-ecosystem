@@ -142,7 +142,7 @@ if (slave%key /= int_garbage$) then
   endif
 endif
 
-if (this_ramp%control%type == expression$) then
+if (allocated(ctl%stack)) then
   ctl%value = expression_stack_value(ctl%stack, err_flag, err_str, this_ramp%control%var, .false.)
   if (err_flag) then
     call out_io (s_error$, r_name, err_str, ' OF RAMPER: ' // this_ramp%name)
@@ -150,7 +150,7 @@ if (this_ramp%control%type == expression$) then
     return
   endif
 
-else
+elseif (allocated(ctl%y_knot)) then
   ctl%value = knot_interpolate(this_ramp%control%x_knot, ctl%y_knot, &
           this_ramp%control%var(1)%value, nint(this_ramp%value(interpolation$)), err_flag)
   if (err_flag) then

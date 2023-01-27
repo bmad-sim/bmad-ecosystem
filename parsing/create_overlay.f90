@@ -69,11 +69,6 @@ do j = 1, n_slave
   endif
 enddo
 
-if (lord%control%type /= expression$ .and. size(lord%control%var) /= 1) then
-  call parser_error ('A SPLINE BASED CONTROLLER MAY ONLY HAVE ONE CONTROL VARIABLE: ' // lord%name)
-  return
-endif  
-
 ! Mark element as an overlay lord
 
 call check_controller_controls (overlay$, contrl, lord%name, err)

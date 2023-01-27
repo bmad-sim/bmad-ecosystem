@@ -1827,6 +1827,10 @@ case ('HIGH_ENERGY_SPACE_CHARGE_ON')
   call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
 
 case ('INTERPOLATION')
+  if (attrib_word == 'spline') then
+    call parser_error ('Setting "interpolation = spline" replaced by "interpolation = cubic".', &
+                       'Please revise the lattice file.', level = s_warn$)
+  endif
   call get_switch (attrib_word, interpolation_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(interpolation$) = ix
 
@@ -4437,14 +4441,7 @@ if (is_control_var_list) then
   allocate(ele%control%var(n_slave))
   ele%control%var%name = name(1:n_slave)
 else
-  if (ele%lord_status /= girder_lord$) then
-    allocate(ele%control)
-    if (allocated(y_knot)) then
-      ele%control%type = spline$
-    else
-      ele%control%type = expression$
-    endif
-  endif
+  if (ele%lord_status /= girder_lord$) allocate(ele%control)
   allocate (pele%control(n_slave))
   pele%control%name = name(1:n_slave)
   pele%control%attrib_name = attrib_name(1:n_slave)
@@ -9900,7 +9897,7 @@ logical err, var_found
 
 con0 = con_in  ! In case con_in and con_out actual arguments are the same.
 
-if (lord%control%type == expression$) then
+if (allocated(con0%stack)) then
   do is = 1, size(con0%stack)
     if (con0%stack(is)%type == end_stack$) exit
   enddo

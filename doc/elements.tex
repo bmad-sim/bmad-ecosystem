@@ -162,7 +162,7 @@ See \sref{s:list.ac.kicker} for a full list of element attributes along with a t
 Attributes specific to a \vn{ac_kicker} element are:
 \begin{example}
   t_offset        = <Real>              ! Time offset of field waveform.
-  interpolation   = <switch>            ! spline (default) or linear.
+  interpolation   = <switch>            ! cubic (default) or linear.
   amp_vs_time = \{(<time1>, <Amp1>), (<time2>, <Amp2>), ...\}  ! Field amp vs Time.
   frequencies = \{(<freq1>, <Amp1>, <phi1>), 
                               (<freq2>, <Amp2>, <phi2>), ...\} ! Freq components.
@@ -196,7 +196,7 @@ order and no two times may be the same. The method used to interpolate between t
 determined by the setting of the \vn{interpolate} parameter which may be one of
 \begin{example}
   linear      ! Linear interpolation.
-  spline      ! Cubic spline interpolation (default).
+  cubic       ! Cubic spline interpolation (default).
 \end{example}
 For times outside of the range specified by \vn{amp_vs_time}, the amplitude will be extrapolated.
 For the cubic spline, extrapolation is only permitted over a distance outside the time range equal
@@ -2461,7 +2461,7 @@ manner as the present values.
 Example of a \vn{knot} based \vn{group} element:
 \begin{example}
   gr2: group = \{beginning[E_tot]]:\{4e6,...\}\}, 
-      var = \{time\}, x_knot = \{...\}, interpolate = spline
+      var = \{time\}, x_knot = \{...\}, interpolate = cubic
 \end{example}
 Here the function used to translate from the \vn{group}'s variables to the slave attribute values is
 a cubic spline interpolation based upon the knot points specified (\sref{s:go.syntax}).
@@ -4059,7 +4059,7 @@ The general syntax for a \vn{knot} based  \vn{ramper} element is
 Examples:
 \begin{example}
   ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
-                var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}, interpolation = spline
+                var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}, interpolation = cubic
 
   amp = 1e9;  omega = 0.167;  t0 = 0.053
   ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(t + t0)),

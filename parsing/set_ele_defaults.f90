@@ -47,7 +47,7 @@ case (ac_kicker$)
     if (associated(ele%ac_kick)) deallocate(ele%ac_kick)
     allocate (ele%ac_kick)
   endif
-  ele%value(interpolation$) = spline$
+  ele%value(interpolation$) = cubic$
 
 case (beambeam$)
   ele%value(charge$) = -1
@@ -320,7 +320,7 @@ case (group$)
   ele%bookkeeping_state%ptc            = ok$
   ele%field_calc            = no_field$
   ele%value(gang$)          = true$
-  ele%value(interpolation$) = spline$
+  ele%value(interpolation$) = cubic$
 
 case (overlay$)
   ele%bookkeeping_state%attributes     = ok$
@@ -329,7 +329,7 @@ case (overlay$)
   ele%bookkeeping_state%ptc            = ok$
   ele%field_calc            = no_field$
   ele%value(gang$)          = true$
-  ele%value(interpolation$) = spline$
+  ele%value(interpolation$) = cubic$
 
 case (ramper$)
   ele%bookkeeping_state%attributes     = ok$
@@ -337,7 +337,7 @@ case (ramper$)
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
   ele%field_calc            = no_field$
-  ele%value(interpolation$) = spline$
+  ele%value(interpolation$) = cubic$
 
 case (girder$)
   ele%bookkeeping_state%attributes     = ok$

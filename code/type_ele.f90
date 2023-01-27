@@ -955,8 +955,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
     else  ! overlay_lord or ramper_lord
       do im = 1, size(ele%control%var)
-        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  im, &
-                      ele%control%var(im)%name, '  =', ele%control%var(im)%value
+        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  im, ele%control%var(im)%name, '  =', ele%control%var(im)%value
       enddo
     endif
 
@@ -1008,6 +1007,10 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     case (ramper_lord$)
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
+      if (allocated(ele%control%x_knot)) then
+        nl=nl+1; write (li(nl), '(a)') 'Interpolation = ' // trim(interpolation_name(nint(ele%value(interpolation$))))
+      endif
+
       nl=nl+1; li(nl) = '   Ele_Name            Attribute         Expression'
       do ix = 1, size(ele%control%ramp)
         ctl => ele%control%ramp(ix)
@@ -1032,6 +1035,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       else ! Group
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Value of the controlled attribute, Expression_Val = Value calculated by this Group element.]'
       endif
+
+      if (allocated(ele%control%x_knot)) then
+        nl=nl+1; write (li(nl), '(a)') 'Interpolation = ' // trim(interpolation_name(ele%value(interpolation$)))
+      endif
+
       nl=nl+1; li(nl) = ' Ele_Loc   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)

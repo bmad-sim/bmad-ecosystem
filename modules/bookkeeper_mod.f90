@@ -242,7 +242,7 @@ endif
 
 ! Evaluate value and old value.
 
-if (lord%control%type == expression$) then
+if (allocated(ctl%stack)) then
   ctl%value = expression_stack_value (ctl%stack, err_flag, err_str, lord%control%var, .false.)
   val_old   = expression_stack_value (ctl%stack, err_flag, err_str, lord%control%var, .true.)
   if (err_flag) then
@@ -252,9 +252,9 @@ if (lord%control%type == expression$) then
 
 else
   val_old = knot_interpolate(lord%control%x_knot, ctl%y_knot, lord%control%var(1)%old_value, &
-                                                            nint(lord%value(interpolation$)), err_flag)
+                                                                  nint(lord%value(interpolation$)), err_flag)
   ctl%value = knot_interpolate(lord%control%x_knot, ctl%y_knot, lord%control%var(1)%value, &
-                                                            nint(lord%value(interpolation$)), err_flag)
+                                                                  nint(lord%value(interpolation$)), err_flag)
   if (err_flag) then
     call out_io (s_error$, r_name, 'EVALUATION PROBLEM FOR GROUP ELEMENT: ' // lord%name, &
                     'WHILE CALCULATING VALUE FOR: ' // trim(ele%name) // '[' // trim(attrib_name) // ']')
@@ -1712,7 +1712,7 @@ character(100) err_str
 
 if (.not. lord%is_on) return
 
-if (lord%control%type == expression$) then
+if (allocated(c%stack)) then
   c%value = expression_stack_value(c%stack, err_flag, err_str, lord%control%var, .false.)
   if (err_flag) then
     call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
@@ -1722,7 +1722,7 @@ if (lord%control%type == expression$) then
 
 else
   c%value = knot_interpolate (lord%control%x_knot, c%y_knot, lord%control%var(1)%value, &
-                  nint(lord%value(interpolation$)), err_flag)
+                                                                      nint(lord%value(interpolation$)), err_flag)
   if (err_flag) then
     call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
     return

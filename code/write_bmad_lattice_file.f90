@@ -1073,6 +1073,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       endif
     enddo
 
+    if (nint(ele%value(interpolation$)) == linear$) line = trim(line) // ', interpolation = linear'
     if (ele%key /= ramper$ .and. is_false(ele%value(gang$))) line = trim(line) // ', gang = False'
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'

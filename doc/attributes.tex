@@ -248,12 +248,12 @@ The method used to interpolate between the knot points is determined by the sett
 \vn{interpolate} parameter which may be one of
 \begin{example}
   linear      ! Linear interpolation.
-  spline      ! Cubic spline interpolation (default).
+  cubic       ! Cubic spline interpolation (default).
 \end{example}
 For variable values outside of the range specified by \vn{x_knot}, the slave parameter value will be
 extrapolated using the interpolation function calculated from the three points nearest the end. That
 is, extrapolation will be linear if \vn{interpolate} is set to \vn{linear} and will be cubic if
-\vn{interpolate} is set to \vn{spline}. For the cubic spline, extrapolation is only permitted over a
+\vn{interpolate} is set to \vn{cubic}. For the cubic spline, extrapolation is only permitted over a
 distance outside the x_knot range equal to the difference between the value of the x_knot end point
 and its neighbor point. Thus in the above example, extrapolation will be allowed in the intervals
 $[-0.7, 0.0]$ and $[1.0, 1.7]$.
