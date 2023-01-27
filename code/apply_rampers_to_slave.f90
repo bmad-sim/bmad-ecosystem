@@ -1,5 +1,5 @@
 !+
-! Subroutine apply_ramper (slave, ramper, err_flag)
+! Subroutine apply_rampers_to_slave (slave, ramper, err_flag)
 !
 ! Routine to apply the ramper elements of a lattice to a particular element.
 ! Also see: apply_all_rampers.
@@ -12,9 +12,9 @@
 !   err_flag    -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine apply_ramper (slave, ramper, err_flag)
+subroutine apply_rampers_to_slave (slave, ramper, err_flag)
 
-use bmad, except_dummy => apply_ramper
+use bmad, except_dummy => apply_rampers_to_slave
 
 implicit none
 
@@ -29,7 +29,7 @@ logical err_flag, ok
 
 character(100) err_str
 character(40) name
-character(*), parameter :: r_name = 'apply_ramper'
+character(*), parameter :: r_name = 'apply_rampers_to_slave'
 
 ! Init
 

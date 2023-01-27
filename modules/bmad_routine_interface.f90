@@ -159,7 +159,7 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine apply_ramper (slave, ramper, err_flag)
+subroutine apply_rampers_to_slave (slave, ramper, err_flag)
   import
   implicit none
   type (ele_struct), target :: slave

@@ -4034,14 +4034,14 @@ General \vn{ramper} attributes are:
 \toffset
 See \sref{s:list.ramper} for a full list of element attributes.
 
-The syntax for \vn{ramper} elements is exactly the same as for \vn{overlay} (\sref{s:overlay}) elements 
+The syntax for \vn{ramper} elements is exactly the same as for \vn{overlay} (\sref{s:go.syntax}) elements 
 except that \vn{ramper} elements do not have a \vn{gang} attribute.
 
 Like \vn{overlay}s, There are two types of \vn{ramper} elements: \vn{Expression} based and
 \vn{knot} based.  The general syntax for a \vn{expression} based \vn{ramper} element is
 \begin{example}
   name: RAMPER = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
-                                                       default_attrib = init_value
+                                  VAR = \{var1\}, default_attrib = init_value
 \end{example}
 where \vn{ele1[attrib1]}, \vn{ele2[attrib2]}, etc. specify the slave attributes and
 \vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
