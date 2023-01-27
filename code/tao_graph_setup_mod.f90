@@ -218,7 +218,7 @@ do i = 1, size(graph%curve)
   do j = 1, n_curve_pts
     var = graph%x%eval_min + (j - 1) * (graph%x%eval_max - graph%x%eval_min) / n_curve_pts
     ele%control%var(1)%value = var
-    if (ele%control%type == expression$) then
+    if (allocated(ctl%stack)) then
       value = expression_stack_value(ctl%stack, err, err_str, ele%control%var, .false.)
     else
       call spline_akima_interpolate (ele%control%x_knot, ctl%y_knot, value, ok, value)
