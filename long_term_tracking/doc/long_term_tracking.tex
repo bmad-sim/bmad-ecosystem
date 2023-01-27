@@ -449,6 +449,9 @@ ramp_rf: ramper = ...  ! Ramper element defined.
 ramp_rf[is_on] = F     ! Ramper element turned off.
 \end{code}
 
+Ramper elements can be used to simulate noise. For example, RF phase noise or ground motion. The way to
+do this is to use the \vn{gauss_ran()} or \vn{ran()} functions withing a slave control expression.
+
 If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
 "\vn{BEAM}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
 
