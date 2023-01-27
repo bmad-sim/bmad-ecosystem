@@ -168,7 +168,7 @@ else
   allocate (table(0:input_var_n_points-1, 0:n_curve))
 
   if (input_var_min == input_var_max) then
-    if (controller%control%type == expression$) then
+    if (.not. allocated(controller%control%x_knot)) then
       print '(a)', 'CANNOT FIND CONTROL BOUNDS SINCE CONTROLLER USES EXPRESSIONS AND NOT A LIST OF KNOT POINTS.'
       print '(a)', 'IN THIS CASE PLEASE SET INPUT_VAR_MIN AND INPUT_VAR_MAX SO THAT THERE IS A FINITE RANGE THAT CAN BE USED.'
       stop
@@ -181,11 +181,11 @@ else
 
   ! Start knot table
 
-  if (controller%control%type == expression$) then
-    draw_knot_points = .false.
-  elseif (draw_knot_points) then
+  if (allocated(controller%control%x_knot)) then
     allocate (knots(size(controller%control%x_knot), 0:n_curve))
     knots(:,0) = controller%control%x_knot
+  else
+    draw_knot_points = .false.
   endif
 
   ! Make table and plot
