@@ -4298,8 +4298,8 @@ type (ele_struct)  ele
 type (parser_ele_struct), target :: pele
 type (lat_struct)  lat
 type (parser_controller_struct), pointer :: pc
-type (var_length_string_struct), allocatable :: expression(:)
-type (my_knot_struct), allocatable :: knot(:)
+type (var_length_string_struct), allocatable :: expression(:), etemp(:)
+type (my_knot_struct), allocatable :: knot(:), ktemp(:)
 
 real(rp) value
 
@@ -4342,15 +4342,21 @@ do
   if (delim == ':' .and. ele%key == girder$) pele%is_range = .true.
 
   n_slave = n_slave + 1
+  n = size(name)
+  if (n_slave > n) then
+    call re_allocate(name, 2*n_slave)
+    call re_allocate(attrib_name, 2*n_slave)
+    call move_alloc(expression, etemp)
+    allocate (expression(2*n_slave))
+    expression(1:n) = etemp
+    call move_alloc(knot, ktemp)
+    allocate(knot(2*n_slave))
+    knot(1:n) = ktemp
+  endif
+
   word = word_in
   allocate(character(1):: expression(n_slave)%str)
   expression(n_slave)%str = ''
-
-  if (n_slave > size(name)) then
-    call re_allocate(name, 2*n_slave)
-    call re_allocate(attrib_name, 2*n_slave)
-    call re_allocate(expression, 2*n_slave)
-  endif
 
   j = index(word, '[')
   if (j > 0) then
