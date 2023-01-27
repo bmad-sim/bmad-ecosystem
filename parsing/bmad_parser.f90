@@ -340,7 +340,7 @@ parsing_loop: do
   ! Superimpose statement
 
   if (word_1(:ix_word) == 'SUPERIMPOSE') then
-    call new_element_init('superimpose-command:' // int_str(n_max+1), '', in_lat, err, null_ele$)
+    call new_element_init('superimpose-command:' // int_str(n_max+1), '', in_lat, plat, err, null_ele$)
     ele => in_lat%ele(n_max)
     call parse_superimpose_command(in_lat, ele, plat%ele(ele%ixx), delim)
     cycle parsing_loop   
@@ -654,7 +654,7 @@ parsing_loop: do
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
-    call new_element_init (word_1, '', in_lat, err)
+    call new_element_init (word_1, '', in_lat, plat, err)
     ele => in_lat%ele(n_max)
 
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
@@ -679,7 +679,7 @@ parsing_loop: do
   !-------------------------------------------------------
   ! If not line or list then must be an element
 
-  call new_element_init (word_1, word_2, in_lat, err)
+  call new_element_init (word_1, word_2, in_lat, plat, err)
   if (err) cycle parsing_loop
 
   ! Check for valid element key name or if element is part of a element key.
@@ -1373,9 +1373,10 @@ end subroutine parser_end_stuff
 !---------------------------------------------------------------------
 ! contains
 
-subroutine new_element_init (word1, class_word, lat0, err, ele_key)
+subroutine new_element_init (word1, class_word, lat0, plat, err, ele_key)
 
 type (lat_struct), target :: lat0
+type (parser_lat_struct), target :: plat
 
 integer, pointer :: n_max
 integer, optional :: ele_key
