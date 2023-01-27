@@ -4340,6 +4340,8 @@ do
 
   n_slave = n_slave + 1
   word = word_in
+  allocate(character(1):: expression(n_slave)%str)
+  expression(n_slave)%str = ''
 
   if (n_slave > size(name)) then
     call re_allocate(name, 2*n_slave)
@@ -4377,7 +4379,6 @@ do
   ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
   ! In this case, there are no expressions
   
-  allocate(character(100):: expression(n_slave)%str)
   expression(n_slave)%str = '1'
   bp_com%parse_line = adjustl(bp_com%parse_line)
 
@@ -4448,7 +4449,8 @@ else
   i_last = 1
   do i = 1, n_slave
     pc => pele%control(i)
-    if (allocated(y_knot)) then
+
+    if (expression(i)%str == '') then
       if (y_knot(i,1) == real_garbage$) then
         pc%y_knot = y_knot(i_last,:)
       else
