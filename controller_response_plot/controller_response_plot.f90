@@ -197,7 +197,7 @@ else
 
     select case (controller%key)
     case (ramper$)
-      call apply_ramper (ramp_slave, rampers, err_flag)
+      call apply_rampers_to_slave (ramp_slave, rampers, err_flag)
     case (overlay$)
     do j = 1, n_curve
       slave => pointer_to_slave(controller, curve_list2(j))
