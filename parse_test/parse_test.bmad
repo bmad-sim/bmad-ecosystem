@@ -31,8 +31,8 @@ bbb[frequencies(1)%amp] = 1.0
 bbb[frequencies(1)%phi] = 0.1
 bbb[frequencies(2)%phi] = 0.2
 
-gang0: group = {aa[tilt], bb[tilt]}, var = {t}, t = 3, old_t = 3
-gang1: group = {aa[tilt], bb[tilt]}, var = {t}, gang = false
+gang0: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, t = 3, old_t = 3
+gang1: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, gang = false
 
 g_cc: group = {cc}, accordion_edge
 
