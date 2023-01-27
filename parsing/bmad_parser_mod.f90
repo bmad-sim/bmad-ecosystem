@@ -4290,14 +4290,18 @@ subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_contr
 
 implicit none
 
+type my_knot_struct
+  real(rp), allocatable :: y(:)
+end type
+
 type (ele_struct)  ele
 type (parser_ele_struct), target :: pele
 type (lat_struct)  lat
 type (parser_controller_struct), pointer :: pc
 type (var_length_string_struct), allocatable :: expression(:)
+type (my_knot_struct), allocatable :: knot(:)
 
 real(rp) value
-real(rp), allocatable :: y_knot(:,:), y_val(:)
 
 integer ix_word, ix, n_slave, i, j, k, n, i_last
                            
@@ -4312,7 +4316,7 @@ logical delim_found, err, end_of_file, ele_names_only
 !
 
 err_flag = .true.
-allocate (name(40), attrib_name(40), expression(40))
+allocate (name(40), attrib_name(40), expression(40), knot(40))
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
 if (delim /= '{' .or. ix_word /= 0) then
@@ -4327,7 +4331,6 @@ ele_names_only = (is_control_var_list .or. ele%key == girder$)
 
 n_slave = 0
 do 
-
   call get_next_word (word_in, ix_word, '{,}/:=', delim, delim_found, .true.)
   if (bp_com%parse_line(1:1) == ':') then   ! Element is something like "rfcavity::*" in which case the break is in the wrong place
     bp_com%parse_line = bp_com%parse_line(2:)
@@ -4378,8 +4381,7 @@ do
 
   ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
   ! In this case, there are no expressions
-  
-  expression(n_slave)%str = '1'
+
   bp_com%parse_line = adjustl(bp_com%parse_line)
 
   if (delim == '/' .or. (delim == ':' .and. ele%key /= girder$)) then
@@ -4392,27 +4394,9 @@ do
 
     ! If a list of knot y-values
     elseif (bp_com%parse_line(1:1) == '{') then   ! y_knot array
-      if (.not. parse_real_list2 (lat, 'ERROR PARSING Y KNOT POINTS FOR: ' // ele%name, y_val, n, delim, delim_found, 10, '{', ',', '}')) return
-
-      if (n_slave > 1 .and. .not. allocated(y_knot)) then
-        call parser_error ('MIXING FUNCTIONS WITH SPLINES NOT ALLOWED.', 'FOR ELEMENT: ' // ele%name)
-        return
-      endif
-
-      if (n_slave == 1) then
-        allocate(y_knot(40, n))
-        y_knot = real_garbage$
-      endif
-
-      if (n /= size(y_knot, 2)) then
-        call parser_error ('NUMBER OF KNOT POINTS FOR SLAVE: ' // word, 'NOT THE SAME AS PREVIOUS KNOT ARRAYS.', 'FOR ELEMENT: ' // ele%name)
-        return
-      endif
-
-      if (n_slave > size(y_knot, 1)) call re_allocate2d(y_knot, 2*n_slave, n, .true., real_garbage$)
-
-      y_knot(n_slave,:) = y_val(1:n)
+      if (.not. parse_real_list2 (lat, 'ERROR PARSING Y KNOT POINTS FOR: ' // ele%name, knot(n_slave)%y, n, delim, delim_found, 10, '{', ',', '}')) return
       if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
+      call re_allocate(knot(n_slave)%y, n)
 
     ! Parse expression
     else
@@ -4441,24 +4425,35 @@ if (is_control_var_list) then
   ! Note: ele%control is already allocated
   allocate(ele%control%var(n_slave))
   ele%control%var%name = name(1:n_slave)
-else
-  if (ele%lord_status /= girder_lord$) allocate(ele%control)
-  allocate (pele%control(n_slave))
-  pele%control%name = name(1:n_slave)
-  pele%control%attrib_name = attrib_name(1:n_slave)
-  i_last = 1
+  err_flag = .false.
+  return
+endif
+
+!
+
+if (ele%lord_status /= girder_lord$) allocate(ele%control)
+allocate (pele%control(n_slave))
+pele%control%name = name(1:n_slave)
+pele%control%attrib_name = attrib_name(1:n_slave)
+i_last = -1
+
+if (ele%lord_status /= girder_lord$) then
   do i = 1, n_slave
     pc => pele%control(i)
 
-    if (expression(i)%str == '') then
-      if (y_knot(i,1) == real_garbage$) then
-        pc%y_knot = y_knot(i_last,:)
+    if (expression(i)%str == '' .and. .not. allocated(knot(i)%y)) then  ! Use default which is derived from last slave.
+      if (i_last == -1) then
+        expression(i)%str = '1'
       else
-        pc%y_knot = y_knot(i,:)
-        i_last = i
+        knot(i)%y = knot(i_last)%y
       endif
-    ! Expression string to stack
-    else
+    endif
+
+    if (allocated(knot(i)%y)) then
+      i_last = i
+      pc%y_knot = knot(i)%y
+    else        ! Expression string to stack
+      i_last = -1
       call expression_string_to_stack (expression(i)%str, pc%stack, pc%n_stk, err, err_str)
       if (err) then
         call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)%str))

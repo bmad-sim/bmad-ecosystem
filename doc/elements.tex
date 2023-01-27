@@ -2488,16 +2488,16 @@ the value of \vn{q[k1]} has been updated, the value of \vn{old_a} is automatical
 present value of \vn{a} so that the value of \vn{q[k1]} will not be further modified.
 
 In general, deltas used to modify slave attributes are computed as the difference between the
-arithmetic expression evaluated with the present variable values and
-the arithmetic expression evaluated with the old variable values.
+arithmetic expression evaluated with the present variable values and the arithmetic expression
+evaluated with the old variable values.
 
 Notice that in a lattice file the value of a slave attribute after the lattice is read in is
 independent of whether the group is defined before or after elements whose attributes are controlled
 by the group. This is true since the effect of a \vn{group} element happens when the lattice is
 expanded, not when parser reads the \vn{group} definition. On the other hand, after the lattice has
-been read in, if a program varies both a group variable and a slave attribute,
-the value of the slave attribute will be dependent upon the
-order of which is modified first. For example, consider a lattice containing:
+been read in, if a program varies both a group variable and a slave attribute, the value of the
+slave attribute will be dependent upon the order of which is modified first. For example, consider a
+lattice containing:
 \begin{example}
   gr: group = \{q[k1]:a^2\}, var = \{a\} 
   q, quad
@@ -2513,27 +2513,23 @@ varied contains both group variables and slave attributes, the actual changes to
 may be different from what the user expects when the program varies its list of parameters.
 
 \index{overlay}\index{girder}
-Different \vn{group} elements may control the same slave attribute and
-a \vn{group} element may control other \vn{group}, \vn{overlay} or
-\vn{girder} element attributes. However, It does not make sense, and
-it is not permitted, for a \vn{group} element to control the same
-attribute as an \vn{overlay} element or for a \vn{group} element to
-control a \vn{dependent} attribute (\sref{s:depend}). To setup a group
-element to control the same slave attribute as an \vn{overlay}, define
-an intermediate \vn{overlay}. For example:
+Different \vn{group} elements may control the same slave attribute and a \vn{group} element may
+control other \vn{group}, \vn{overlay} or \vn{girder} element attributes. However, It does not make
+sense, and it is not permitted, for a \vn{group} element to control the same attribute as an
+\vn{overlay} element or for a \vn{group} element to control a \vn{dependent} attribute
+(\sref{s:depend}). To setup a group element to control the same slave attribute as an \vn{overlay},
+define an intermediate \vn{overlay}. For example:
 \begin{example}
   ov: overlay = \{q{k1}\, q2[k1], ...\}, var = \{a\}
   q, quad                                          
   gr: group = \{ov_q[k1]:a^2\}, var = \{a\}  ! New
   ov_q: overlay = \{q\}, var = \{k1\}        ! New
 \end{example}
-In this example, the overlay \vn{ov} controls the attribute \vn{q[k1]}
-so it is not permitted for \vn{q[k1]} to be a slave of a group
-element.  To have group control of \vn{q[k1]}, two elements are
-introduced: the group \vn{gr} is setup controlling \vn{ov_q[k1]} and
-overlay \vn{ov_q} is an overlay that controls \vn{q[k1]}. Notice that
-trying to control \vn{ov} directly by a group element will not work
-since \vn{ov} controls multiple elements.
+In this example, the overlay \vn{ov} controls the attribute \vn{q[k1]} so it is not permitted for
+\vn{q[k1]} to be a slave of a group element.  To have group control of \vn{q[k1]}, two elements are
+introduced: the group \vn{gr} is setup controlling \vn{ov_q[k1]} and overlay \vn{ov_q} is an overlay
+that controls \vn{q[k1]}. Notice that trying to control \vn{ov} directly by a group element will not
+work since \vn{ov} controls multiple elements.
 
 \index{accordion_edge}\index{start_edge}
 \index{end_edge}\index{symmetric_edge}
@@ -2554,20 +2550,19 @@ is kept invariant.
 As an example, consider \vn{accordion_edge} which varies the edges of an element so that the center
 of the element is fixed but the length varies:
 \begin{example}
-  gr: group = \{Z[accordion_edge]\}, var = \{offset\}
+  gr: group = \{Z[accordion_edge]:1\}, var = \{offset\}
 \end{example}
-A change of, say, 0.1 \vn{gr}'s \vn{offset} variable moves both edges
-of element \vn{Z} by 0.1 meters so that the length of \vn{Z} changes
-by 0.2 meters but the center of \vn{Z} is constant. To keep the total
-lattice length invariant, the lengths of the elements to either side
-are decreased by 0.1 meters to keep the total lattice length constant.
+A change of, say, 0.1 \vn{gr}'s \vn{offset} variable moves both edges of element \vn{Z} by 0.1
+meters so that the length of \vn{Z} changes by 0.2 meters but the center of \vn{Z} is constant. To
+keep the total lattice length invariant, the lengths of the elements to either side are decreased by
+0.1 meters to keep the total lattice length constant.
 \begin{example}
   q10: quad, l = ...
   q11: quad, l = ...
   d1: drift, l = ...
   d2: drift, l = ...
   this_line: line = (... d1, q10, d2, q11, ...)
-  gr2: group = \{q10[start_edge]\}, var = \{a\}, a = 0.1
+  gr2: group = \{q10[start_edge]:1\}, var = \{a\}, a = 0.1
 \end{example}
 The effect of  \vn{gr2[a]} will be to lengthen the length of
 \vn{q10} and shorten the length of \vn{d1}.
