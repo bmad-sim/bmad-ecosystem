@@ -73,7 +73,7 @@ do ir = 1, ltt_com_global%n_ramper_loc
 enddo
 
 n = ltt_com_global%n_ramper_loc
-call apply_ramper (ele, ltt_com_global%ramper(1:n), err_flag)
+call apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err_flag)
 
 ! The beginning element (with index 0) is never tracked through. If there is energy ramping and the user is 
 ! writing out p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
