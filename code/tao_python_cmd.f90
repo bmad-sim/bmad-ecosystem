@@ -440,7 +440,6 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'auto_bookkeeper;LOGIC;T;',                   bmad_com%auto_bookkeeper
   nl=incr(nl); write (li(nl), lmt) 'csr_and_space_charge_on;LOGIC;T;',           bmad_com%csr_and_space_charge_on
   nl=incr(nl); write (li(nl), lmt) 'spin_tracking_on;LOGIC;T;',                  bmad_com%spin_tracking_on
-  nl=incr(nl); write (li(nl), lmt) 'backwards_time_tracking_on;LOGIC;T;',        bmad_com%backwards_time_tracking_on
   nl=incr(nl); write (li(nl), lmt) 'spin_sokolov_ternov_flipping_on;LOGIC;T;',   bmad_com%spin_sokolov_ternov_flipping_on
   nl=incr(nl); write (li(nl), lmt) 'radiation_damping_on;LOGIC;T;',              bmad_com%radiation_damping_on
   nl=incr(nl); write (li(nl), lmt) 'radiation_fluctuations_on;LOGIC;T;',         bmad_com%radiation_fluctuations_on
