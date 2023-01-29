@@ -311,7 +311,6 @@ if (found_it) then
   if (extra%high_energy_space_charge_on_set)      bmad_com%high_energy_space_charge_on     = bmad_com_read%high_energy_space_charge_on
   if (extra%csr_and_space_charge_on_set)          bmad_com%csr_and_space_charge_on         = bmad_com_read%csr_and_space_charge_on
   if (extra%spin_tracking_on_set)                 bmad_com%spin_tracking_on                = bmad_com_read%spin_tracking_on
-  if (extra%backwards_time_tracking_on_set)       bmad_com%backwards_time_tracking_on      = bmad_com_read%backwards_time_tracking_on
   if (extra%spin_sokolov_ternov_flipping_on_set)  bmad_com%spin_sokolov_ternov_flipping_on = bmad_com_read%spin_sokolov_ternov_flipping_on
   if (extra%radiation_damping_on_set)             bmad_com%radiation_damping_on            = bmad_com_read%radiation_damping_on
   if (extra%radiation_zero_average_set)           bmad_com%radiation_zero_average          = bmad_com_read%radiation_zero_average

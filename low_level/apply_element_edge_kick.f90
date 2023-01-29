@@ -70,7 +70,7 @@ if (associated(fringe_info%hard_ele)) then
 
   if (particle_at == first_track_edge$) then
     fringe_info%hard_location = inside$
-  elseif (orb%direction * track_ele%orientation == 1) then
+  elseif (orb%direction * orb%time_dir * track_ele%orientation == 1) then
     fringe_info%hard_location = exit_end$
   else
     fringe_info%hard_location = entrance_end$
@@ -101,7 +101,7 @@ if (finished) return
 ! For other elements, especially quadrupoles, this is problematic due to the soft edge kick not being being exactly the reverse
 ! going from inside to outside and vice versa (it is confusing if a superimposed marker shifts the tracking).
 
-physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
+physical_end = physical_ele_end (particle_at, orb, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
 if (hard_ele%key /= solenoid$ .and. hard_ele%key /= sol_quad$ .and. hard_ele%key /= sad_mult$) then
   if (.not. at_this_ele_end(physical_end, fringe_at)) return
@@ -114,7 +114,7 @@ else
   at_sign = -1
 endif
 
-sign_z_vel = orb%direction * track_ele%orientation
+sign_z_vel = orb%direction * orb%time_dir * track_ele%orientation
 
 if (orb%beta == 0) then
   call out_io(s_error$, r_name, 'FRINGE OF ELEMENT: ' // hard_ele%name, &

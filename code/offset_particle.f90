@@ -10,14 +10,14 @@
 ! set = set$:
 !    Transforms from lab to element coords. 
 !    If s_pos is not present:
-!      If coord%direction = +1 -> Assume the particle is at the upstream (-S) end.
-!      If coord%direction = -1 -> Assume the particle is at the downstream (+S) end.
+!      If coord%direction*coord%time_dir = +1 -> Assume the particle is at the upstream (-S) end.
+!      If coord%direction*coord%time_dir = -1 -> Assume the particle is at the downstream (+S) end.
 !
 ! set = unset$:
 !    Transforms from element body to lab coords.
 !    If s_pos is not present:
-!      If coord%direction = +1 -> Assume the particle is at the downstream (+S) end.
-!      If coord%direction = -1 -> Assume the particle is at the upstream (-S) end.
+!      If coord%direction*coord%time_dir = +1 -> Assume the particle is at the downstream (+S) end.
+!      If coord%direction*coord%time_dir = -1 -> Assume the particle is at the upstream (-S) end.
 !
 ! Note: If ele%orientation = -1 then the upstream end is the exit end of the element and 
 !   the downstream end is the entrance end of the element.
@@ -92,14 +92,14 @@ logical set_hv, set_t, set_hv1, set_hv2, do_drift, set_spn, is_misaligned
 
 length = ele%value(l$)
 L_half = 0.5_rp * length
-sign_z_vel = ele%orientation * orbit%direction
+sign_z_vel = ele%orientation * orbit%direction * orbit%time_dir
 
 ! set:   s_pos is in lab coords
 ! unset: s_pos is in body coords.
 
 if (present(s_pos)) then
   s_pos0 = s_pos
-elseif ((set .and. orbit%direction == 1) .or. (.not. set .and. sign_z_vel == -1)) then
+elseif ((set .and. orbit%direction * orbit%time_dir == 1) .or. (.not. set .and. sign_z_vel == -1)) then
   s_pos0 = 0
 else
   s_pos0 = length
@@ -112,7 +112,7 @@ if (set) then
   s_target = (1 - sign_z_vel) * L_half              ! Position to drift to (body coords).
 else
   ds_center = L_half - s_pos0                       ! Body coords: Body center - s_pos
-  s_target = (1 + orbit%direction) * L_half         ! Position to drift to (lab coords).
+  s_target = (1 + orbit%direction * orbit%time_dir) * L_half         ! Position to drift to (lab coords).
 endif
 
 !

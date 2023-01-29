@@ -54,7 +54,7 @@ rel_pc = 1 + orbit%vec(6)
 n_div = nint(ele%value(num_steps$))
 
 rel_pc = 1 + orbit%vec(6)
-orientation = ele%orientation * orbit%direction
+orientation = ele%orientation * orbit%direction * orbit%time_dir
 charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * orientation
 
 call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
@@ -141,7 +141,7 @@ orbit%t = t_start + length * ele%value(E_tot$) / (c_light * ele%value(p0c$)) - (
 
 !
 
-if (orbit%direction == 1) then
+if (orbit%direction*orbit%time_dir == 1) then
   orbit%s = ele%s
 else
   orbit%s = ele%s_start

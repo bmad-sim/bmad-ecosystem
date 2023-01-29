@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 291
+integer, parameter :: bmad_inc_version$ = 292
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -522,8 +522,9 @@ type coord_struct                 ! Particle coordinates at a single point
   integer :: ix_branch = -1       ! Index of the lattice branch the particle is in.
   integer :: ix_user = -1         ! For general use, not used by Bmad.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, lost_pz_aperture$, etc.
-  integer :: direction = 1        ! Sign of longitudinal direction of motion (ds/dt). = +/- 1.
-                                  !  This is independent of the element orientation. See manual.
+  integer :: direction = 1        ! +1 or -1. Sign of longitudinal direction of motion (ds/dt).
+                                  !  This is independent of the element orientation.
+  integer :: time_dir = 1         ! +1 or -1. Time direction. -1 => Traveling backwards in time.
   integer :: species = not_set$   ! positron$, proton$, etc.  
   integer :: location = upstream_end$  ! upstream_end$, inside$, or downstream_end$
 end type
@@ -1625,7 +1626,7 @@ integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16
 integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
-integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_particle_start$ = 20
+integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, constant_ref_energy$ = 20
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
@@ -1635,9 +1636,9 @@ integer, parameter :: phi0_max$ = 22, beta_b_strong$ = 22, beta_b_out$ = 22, spi
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23
 integer, parameter :: emit_fraction$ = 23
-integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24
+integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24, direction_particle_start$ = 24
 integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24, px_aperture_width2$ = 24
-integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25
+integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25, time_dir_particle_start$ = 20
 integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25, species_strong$ = 25
 integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
@@ -2035,7 +2036,6 @@ type extra_parsing_info_struct
   logical :: high_energy_space_charge_on_set        = .false.
   logical :: csr_and_space_charge_on_set            = .false.
   logical :: spin_tracking_on_set                   = .false.
-  logical :: backwards_time_tracking_on_set         = .false.
   logical :: spin_sokolov_ternov_flipping_on_set    = .false.
   logical :: radiation_damping_on_set               = .false.
   logical :: radiation_zero_average_set             = .false.
@@ -2118,7 +2118,6 @@ type bmad_common_struct
   logical :: high_energy_space_charge_on = .false.     ! High energy space charge effect switch.
   logical :: csr_and_space_charge_on = .false.         ! Space charge switch.
   logical :: spin_tracking_on = .false.                ! spin tracking?
-  logical :: backwards_time_tracking_on = .false.      ! Track backwards in time?
   logical :: spin_sokolov_ternov_flipping_on = .false. ! Spin flipping during synchrotron radiation emission?
   logical :: radiation_damping_on = .false.            ! Radiation damping toggle.
   logical :: radiation_zero_average = .false.          ! Shift damping to be zero on the zero orbit to get rid of sawtooth?

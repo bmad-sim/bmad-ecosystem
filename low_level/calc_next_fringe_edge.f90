@@ -25,7 +25,7 @@
 ! Output:
 !   s_edge_body -- Real(rp): S position of next hard edge in track_ele body frame.
 !                     If there are no more hard edges then s_edge_body will be set to ele%value(l$) if 
-!                     orbit%direction*ele%orientation = 1, and set to 0 otherwise.
+!                     orbit%direction*orbit%time_dir*ele%orientation = 1, and set to 0 otherwise.
 !   fringe_info    -- fringe_field_info_struct: Information on the next fringe to track through.
 !-
 
@@ -76,7 +76,7 @@ endif
 
 ! Initially set s_edge_body to be the "last" edge consistant with with particle's direction and ele orientaiton.
 
-if (orbit%direction * track_ele%orientation == 1) then
+if (orbit%direction*orbit%time_dir * track_ele%orientation == 1) then
   s_edge_body = track_ele%value(l$)
 else
   s_edge_body = 0
@@ -156,7 +156,7 @@ endif
 
 ds_small = bmad_com%significant_length / 100
 
-if (orbit%direction * track_ele%orientation == 1) then
+if (orbit%direction*orbit%time_dir * track_ele%orientation == 1) then
   select case (fringe_info%location(ix_this_ele))
   case (entrance_end$)
     ! e_gun does not have an entrance edge

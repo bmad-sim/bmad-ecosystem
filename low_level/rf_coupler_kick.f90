@@ -36,7 +36,7 @@ logical, optional :: make_matrix
 
 !
 
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+physical_end = physical_ele_end (particle_at, orbit, ele%orientation)
 if (.not. at_this_ele_end (physical_end, nint(ele%value(coupler_at$)))) return
 if (ele%value(coupler_strength$) == 0) return
 

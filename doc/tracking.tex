@@ -29,45 +29,72 @@ The \vn{coord_struct} holds the coordinates of a particle The definition of the 
     integer ix_branch   ! Index of the lattice branch the particle is in.
     integer ix_user     ! Not used by \bmad
     integer state       ! alive\$, lost\$, lost_neg_x_aperture\$, etc.
-    integer direction   ! Longitudinal direction of motion = +/- 1
+    integer direction   ! +1 or -1. Sign of longitudinal direction of motion (ds/dt).
+                        !  This is independent of the element orientation.
+    integer time_dir    ! +1 or -1. Time direction. -1 => Traveling backwards in time.
     integer species     ! Positron\$, proton\$, etc.
     integer location    ! upstream_end\$, inside\$, or downstream_end\$
 end type
 \end{example}
-
+Definitions:
+\begin{description}
+\item{Direction of Travel} \Newline
+The ``\vn{direction of travel}'', also called the ``\vn{direction of motion}'' is the direction
+that the particle is moving in when traveling forward in time.
+%
+\item{Propagation Direction} \Newline
+The ``\vn{propagation direction}'' is the direction that a particle will be propagated in during
+tracking. The propagation direction will be in the same direction as the direction of travel when
+propagating a particle forward in time and will be opposite the the direction of travel when
+propagating a particle backwards in time.
+%
+\item{Reverse Tracking} \Newline
+``\vn{Reverse tracking} refers to tracking a particle with \vn{%direction} set to -1. That is,
+tracking in the reverse direction longitudinally. The opposite to reverse tracking is called
+``\vn{forward direction}'' tracking.
+%
+\item{Backwards Tracking} \Newline
+``\vn{Backwards Tracking} refers to tracking a particle backwards in time. That is, with
+\vn{%time_dir} = -1. The opposite to backwards tracking is called ``\vn{forward time}'' tracking.
+\end{description}
 The components of the \vn{coord_struct}:
 \begin{description}
 \item{\%beta} \Newline
-The normalized velocity $v/c$ is stored in \vn{%beta}.
-
+The normalized velocity $v/c$ is stored in \vn{%beta}. \vn{%beta} is always positive.
+%
 \item{\%direction} \Newline
-Longitudinal direction of travel. A setting of +1 is in the forward (downstream) direction and a
-setting of -1 is in the reverse (upstream) direction (\sref{s:ref.construct}).  Notice that the
-setting of \vn{direction} is independent of the orientation of the lattice element the particle is
-traveling through. That is, for an element with reversed \vn{orientation} (\vn{ele%orientation} =
--1), a particle with \vn{direction} = 1 will be traveling towards the \vn{entrance} end of the
-element and with \vn{direction} = -1 the particle will be traveling towards the \vn{exit} end
-(\sref{s:ref.construct}).
-
+Longitudinal forward time ``direction of travel''. A setting of +1 (the default) is in the forward
++s (downstream) direction and a setting of -1 is in the reverse -s (upstream) direction
+(\sref{s:ref.construct}).  Notice that the setting of \vn{direction} is independent of the
+orientation of the lattice element the particle is traveling through. That is, for an element with
+reversed \vn{orientation} (\vn{ele%orientation} = -1), a particle with \vn{direction} = 1 will be
+traveling towards the \vn{entrance} end of the element (-z direction in body coordinates) and with
+\vn{direction} = -1 the particle will be traveling towards the \vn{exit} (+z direction in body
+coordinates) end (\sref{s:ref.construct}). See \vn{%time_dir}.
+%
+\item{\%time_dir} \Newline
+Time direction that a particle is propagated through. A value of +1 (the default) is forward time
+and a value of -1 is backwards time.
+%
 \item{\%field_x, \%field_y} \Newline
 The \vn{%field_x} and \vn{%field_y} components are for photon tracking and are in units of
 field/sqrt(cross-section-area). That is, the square of these units is an intensity. It is up to
 individual programs to define an overall scaling factor for the intensity if desired.
-
+%
 \item{\%ix_branch} \Newline
 The \vn{%ix_branch} component gives the index of the lattice branch in the \vn{lat%branch(ib)} array
 that the particle is in.
-
+%
 \item{\%ix_ele} \Newline
 The \vn{%ix_ele} component gives the index of the element in the \vn{lat%branch(ib)%ele(:)} array
 that the particle is in. If the element is not associated with a lattice, \vn{%ix_ele} is set to
 -1. When initializing a \vn{coord_struct} (see below), \vn{%ix_ele} will be initialized to
 \vn{not_set\$}.
-
+%
 \item{\%ix_user} \Newline
 The \vn{%ix_user} component is for use by code outside of the \bmad library.  This component will
 not be modified by \bmad.
-
+%
 \item{\%location} \Newline
 The \vn{%location} component indicates where a particle is longitudinally with respect to the
 element being tracked. \vn{%location} will be on of:
@@ -81,27 +108,27 @@ element being tracked. \vn{%location} will be on of:
 indicates that the particle is in between. If the element has edge fields (for example, the \vn{e1}
 and \vn{e2} edge fields of a bend), a particle at the \vn{entrance_end\$} or \vn{exit_end\$} is
 considered to be just outside the element.
-
+%
 \item{\%p0c} \Newline
 For charged-particles, the reference momentum in eV is stored in the \vn{%p0c} component. For
 photons, \vn{%p0c} is the actual (not reference) momentum. For charged-particles, \vn{%p0c} may be
 negative if the particle is traveling backwards longitudinally. For photons, \vn{%vec(6)}
 ($\beta_z$) will be negative if the photon is going backward.
-
+%
 \item{\%r} \Newline
 The \vn{%r} component is for use by code outside of the \bmad library. \bmad will not modify this
 component.
-
+%
 \item{\%s} \Newline
 The \vn{%s} component gives the absolute $s$-position of the particle. When tracking through an
 element (say with Runge-Kutta tracking), and when the particle coordinates is expressed in element
 body coordinates (\sref{s:lab.body.transform}), the $s$-position at any point within the element, by
 definition, is independent of any misalignments the element has as long as the element is not
 reversed. If the element is reversed, the $s$-position is reversed as well.
-
+%
 \item{\%spin(3)} \Newline
 The \vn{%spin(3)} component gives a particle's $(x, y, z)$ spin vector (\sref{s:spin.dyn}).
-
+%
 \item{\%state} \Newline
 The \vn{%state} component will be one of:
 \begin{example}
@@ -125,32 +152,32 @@ tracking algorithms cannot handle particles that reverse direction. The exceptio
 \vn{time_runge_kutta} (\sref{s:tkm}) tracking method can handle particle reversal so in this case,
 particles will not be declared lost if they reverse direction.
 
-The \vn{lost\$} setting is used when neither of the other
-\vn{lost_*_aperture\$} settings are not appropriate. For example,
-\vn{lost\$} is used in Runge-Kutta tracking when the adaptive step
-size becomes too small (this may happen if the fields do not obey
-Maxwell's equations).
+The \vn{lost\$} setting is used when neither of the other \vn{lost_*_aperture\$} settings are not
+appropriate. For example, \vn{lost\$} is used in Runge-Kutta tracking when the adaptive step size
+becomes too small (this may happen if the fields do not obey Maxwell's equations).
 
-To convert the integer value of \vn{%state} to a string that can be 
-printed, use the function \Hyperref{r:coord.state.name}{coord_state_name}
+To convert the integer value of \vn{%state} to a string that can be printed, use the function
+\Hyperref{r:coord.state.name}{coord_state_name}
 \begin{example}
   type (coord_struct) orbit
   print *, "State of the orbit: ", coord_state_name(orbit%state)
 \end{example}
-
+%
 \item{\%t} \Newline
 \vn{%t} gives the absolute time.
-
+%
 \item{\%vec(:)} \Newline
-The \vn{%vec(:)} array defines the phase space coordinants
-(\sref{s:phase.space}). Note that for photons, the definition of the
-phase space coordinates (\sref{s:photon.phase.space}) is different
-from that used for charged particles.
-
+The \vn{%vec(:)} array defines the phase space coordinants (\sref{s:phase.space}). Note that for
+photons, the definition of the phase space coordinates (\sref{s:photon.phase.space}) is different
+from that used for charged particles. The signs of \vn{%vec(2)} and \vn{%vec(4)} are such that, for
+the signs of the change in \vn{%vec(1)} and \vn{%vec(3)} during propagation will be equal to the
+product \vn{%direction * %time_dir * sign_of(%vec(2}} and \vn{%direction * %time_dir *
+sign_of(%vec(2}} respectively.
+%
 \end{description}
 
-To initialize a \vn{coord_struct} so it can be used as the start of
-tracking, the \Hyperref{r:init.coord}{init_coord} routine can be used:
+To initialize a \vn{coord_struct} so it can be used as the start of tracking, the
+\Hyperref{r:init.coord}{init_coord} routine can be used:
 \begin{example}
   type (coord_struct) start_orb
   real(rp) phase_space_start(6)

@@ -126,7 +126,7 @@ endif
 
 !
 
-if (orbit%direction * ele%orientation == 1) then
+if (orbit%direction*orbit%time_dir * ele%orientation == 1) then
   if ((orbit%location == upstream_end$ .and. ele%orientation == 1) .or. &
                                     (orbit%location == downstream_end$ .and. ele%orientation == -1)) then
     fringe_info%location(ix_loc) = entrance_end$
@@ -146,7 +146,7 @@ if (orbit%direction * ele%orientation == 1) then
     return
   endif
 
-else  ! orbit%direction * ele%orientation = -1
+else  ! orbit%direction*orbit%time_dir * ele%orientation = -1
   if ((orbit%location == downstream_end$ .and. ele%orientation == 1) .or. &
                                       (orbit%location == upstream_end$ .and. ele%orientation == -1) ) then
       fringe_info%location(ix_loc) = exit_end$

@@ -32,11 +32,13 @@ type (em_field_struct) field
 
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
 real(rp) voltage, k_rf, phase
-integer key
+integer key, dir
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 
 ! Spin tracking handled by track_a_patch for patch elements.
+
+dir = start_orb%direction * start_orb%time_dir
 
 if (ele%key == patch$) return
 
@@ -56,7 +58,7 @@ if (ele%key == crab_cavity$) then
   field%B(2) = -voltage * sin(phase) / c_light
   field%E(3) = voltage * k_rf * ave_orb%beta * ave_orb%vec(1) * cos(phase)
 
-  omega = spin_omega(field, ave_orb, ave_orb%direction * ele%orientation)
+  omega = spin_omega(field, ave_orb, start_orb%direction * ele%orientation) * start_orb%time_dir
   call rotate_spin(omega, end_orb%spin)
 
   return
@@ -64,7 +66,7 @@ endif
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
-if (start_orb%direction == 1) then
+if (dir == 1) then
   s_end_lab = ele%value(l$)
 else
   s_end_lab = 0
@@ -103,7 +105,7 @@ if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ 
 elseif (temp_start%s /= temp_end%s) then
   call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
-  if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*start_orb%direction*ele%orientation, 0.0_rp]
+  if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir*ele%orientation, 0.0_rp]
   call rotate_spin(omega, temp_end%spin)
 endif
 
@@ -231,7 +233,7 @@ orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * ds + 3 * spline
 orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
 orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot
 
-if (orb%direction == 1) then
+if (dir == 1) then
   s2 = s_eval
 else
   s2 = ele%value(l$) - s_eval
@@ -241,7 +243,7 @@ call em_field_calc (ele, param, s2, orb, .true., field)
 
 ! 1 + g*x term comes from the curved coordinates.
 
-omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
+omega = spin_omega (field, orb, start_orb%direction * ele%orientation) * start_orb%time_dir
 if (ele%key == sbend$) omega = (1 + ele%value(g$) * orb%vec(1)) * omega
 
 end function omega_func

@@ -338,6 +338,8 @@ is_eq = is_eq .and. (f1%state == f2%state)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%direction == f2%direction)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%time_dir == f2%time_dir)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%species == f2%species)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%location == f2%location)
@@ -2357,8 +2359,6 @@ is_eq = is_eq .and. (f1%high_energy_space_charge_on .eqv. f2%high_energy_space_c
 is_eq = is_eq .and. (f1%csr_and_space_charge_on .eqv. f2%csr_and_space_charge_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%spin_tracking_on .eqv. f2%spin_tracking_on)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%backwards_time_tracking_on .eqv. f2%backwards_time_tracking_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%spin_sokolov_ternov_flipping_on .eqv. f2%spin_sokolov_ternov_flipping_on)
 !! f_side.equality_test[logical, 0, NOT]

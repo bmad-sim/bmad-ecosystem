@@ -46,8 +46,8 @@ Table~\ref{t:dependent} are the independent variables they are calculated from.
 \end{table}
 
 For electric and magnetic field strength parameters, the \vn{field_master} parameter
-(\sref{s:field.master}) can be used to determine if the be normalized or unnormalized,
-values are dependent or independent.
+(\sref{s:field.master}) can be used to determine if the be normalized or unnormalized, values are
+dependent or independent.
 
 \index{lattice!expansion}\index{harmon}\index{delta_e}\index{gradient}
 \index{rho}\index{g}\index{angle}\index{rf_frequency}
@@ -2785,8 +2785,9 @@ value of the element's \vn{voltage} parameter and then phi0_autoscale is shifted
 degrees so that with \vn{phi0} equal to zero a particle on the zero orbit will not see any energy
 gain through the cavity.
 
-If no autoscaling is done, the default setting of \vn{field_autoscale} is 1 and the default setting
-of \vn{phi0_autoscale} is 0.
+It is not possible to autoscale if the voltage is very small. \bmad sets a lower limit of 10~Volts
+and if the voltage is set less than this no scaling is done. If no autoscaling is done, the default
+setting of \vn{field_autoscale} is 1 and the default setting of \vn{phi0_autoscale} is 0.
 
 For an \vn{rfcavity}, the autoscaling is normally done around a phase of \vn{phi0} = 0 which is
 appropriate for a ring above transition since \vn{phi0} = 0 is the stable fixed point. Below

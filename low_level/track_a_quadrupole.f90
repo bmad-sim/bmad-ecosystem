@@ -38,18 +38,18 @@ logical drifting
 !
 
 start_orb = orbit
-orientation = ele%orientation * start_orb%direction
+orientation = ele%orientation * start_orb%direction * start_orb%time_dir
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
 charge_dir = rel_tracking_charge * orientation
-length = time_direction() * ele%value(l$)
+length = orbit%time_dir * ele%value(l$)
 
-call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
+call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$, b1)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 n_step = 1
 if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
 
-r_step = time_direction() / n_step
+r_step = real(orbit%time_dir, rp) / n_step
 step_len = ele%value(l$) * r_step
 if (length == 0) n_step = 0
 
@@ -115,7 +115,7 @@ do i = 1, n_step
 
   orbit%vec(5) = orbit%vec(5) + low_energy_z_correction (orbit, ele, step_len, mat6, make_matrix)
 
-  if (orbit%direction == -1) then
+  if (orbit%direction*orbit%time_dir == -1) then
     orbit%vec(5) = orbit%vec(5) - 2.0_rp * c_light * orbit%beta * ele%value(delta_ref_time$)
   endif
 
@@ -139,7 +139,7 @@ endif
 
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-orbit%t = start_orb%t + time_direction() * (orbit%direction*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light))
+orbit%t = start_orb%t + orbit%time_dir * (orbit%direction*orbit%time_dir*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light))
 
 !
 

@@ -206,7 +206,6 @@ call write_if_logic_param_changed (bmad_com%lr_wakes_on,                     bma
 call write_if_logic_param_changed (bmad_com%high_energy_space_charge_on,     bmad_com_default%high_energy_space_charge_on,      'bmad_com[high_energy_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%csr_and_space_charge_on,         bmad_com_default%csr_and_space_charge_on,          'bmad_com[csr_and_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%spin_tracking_on,                bmad_com_default%spin_tracking_on,                 'bmad_com[spin_tracking_on]')
-call write_if_logic_param_changed (bmad_com%backwards_time_tracking_on,      bmad_com_default%backwards_time_tracking_on,       'bmad_com[backwards_time_tracking_on]')
 call write_if_logic_param_changed (bmad_com%spin_sokolov_ternov_flipping_on, bmad_com_default%spin_sokolov_ternov_flipping_on,  'bmad_com[spin_sokolov_ternov_flipping_on]')
 call write_if_logic_param_changed (bmad_com%radiation_damping_on,            bmad_com_default%radiation_damping_on,             'bmad_com[radiation_damping_on]')
 call write_if_logic_param_changed (bmad_com%radiation_zero_average,          bmad_com_default%radiation_zero_average,           'bmad_com[radiation_zero_average]')

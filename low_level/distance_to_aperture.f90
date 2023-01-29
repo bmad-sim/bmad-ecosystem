@@ -45,7 +45,7 @@ if (.not. bmad_com%aperture_limit_on) return
 ! In this case return the most positive number
 
 if (ele%slave_status == super_slave$) then
-  physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+  physical_end = physical_ele_end (particle_at, orbit, ele%orientation)
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
@@ -68,7 +68,7 @@ endif
 
 ! Aperture here?
 
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+physical_end = physical_ele_end (particle_at, orbit, ele%orientation)
 if (.not. at_this_ele_end (physical_end, ele%aperture_at)) return
 
 ! Calc dist

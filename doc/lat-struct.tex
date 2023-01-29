@@ -330,7 +330,9 @@ The value of the \vn{ele%lord_status} component can be one of:
   %
   \item[super_lord\$]\Newline 
 A \vn{super_lord} element is created when elements are superimposed on top of other elements
-(\sref{s:super}).
+(\sref{s:super}). \vn{super_lords} (along with \vn{multipass_lords}), are called \vn{major} lords
+since the attribute values of a \vn{super_slave} are entirely determined by the attribute values of
+the \vn{super_lord}(s) of the slave. 
   %
   \item[girder_lord\$]\Newline 
 A \vn{girder_lord} element is a \vn{girder} element (\sref{s:girder}). That is, the element will
@@ -338,6 +340,10 @@ have \vn{ele%key} = \vn{girder\$}.
   %
   \item[multipass_lord\$]\Newline
 \vn{multipass_lord} elements are created when multipass lines are present (\sref{s:multipass}).
+\vn{multipass_lords} (along with \vn{super_lords}) are called \vn{major} lords since most of the
+attribute values of a \vn{multipass_slave} are entirely determined by the attribute values of the
+\vn{multipass_lord} of the slave. The few exceptions are parameters like \vn{phi0_multipass} which can
+be set for individual slave elements.
   %
   \item[overlay_lord\$]\Newline 
 An \vn{overlay_lord} is an \vn{overlay} element (\sref{s:overlay}). That is, such an element will
@@ -345,7 +351,8 @@ have \vn{ele%key} = \vn{overlay\$}.
   %
   \item[ramper_lord\$]\Newline 
 A \vn{ramper_lord} is a \vn{ramper} element (\sref{s:ramper}). That is, such an element will have
-\vn{ele%key} = \vn{ramper\$}. Note that a \vn{ramper_lord} will not have any associated slaves.
+\vn{ele%key} = \vn{ramper\$}. Note that a \vn{ramper_lord} will not have pointers to its slaves.
+That is, \vn{ele%n_slave} will be zero. 
   %
   \item[group_lord\$]\Newline 
 A \vn{group_lord} is a \vn{group} element (\sref{s:group}). That is, such an element will have
@@ -378,15 +385,14 @@ has one or more \vn{super_lord} lords (\sref{s:super}).
 A \vn{minor_slave} element is an element that is not a \vn{slice_slave} and does not have a
 \vn{major} lord. Major lords are \vn{super_lord}s and \vn{multipass_lord}s. A \vn{minor_slave}
 element will some have attributes that are controlled by \vn{overlay_lords}, \vn{group_lords},
-or \vn{girder_lords}.
+\vn{girder_lords}, or \vn{ramper_lords}.
   \item[free\$]\Newline
-A \vn{free} element is one that has no lords. [But there still might be field overlap from 
-other elements.]
+A \vn{free} element is one that has no lords except for perhaps \vn{ramper_lords}. Additionally,
+there still might be field overlap from other elements.
   \end{description}
 
-\vn{super_slave} elements
-always appear in the tracking part of the branch. The other types can
-be in either the tracking or control parts of the branch.
+\vn{super_slave} elements always appear in the tracking part of the branch. The other types can be
+in either the tracking or control parts of the branch.
 
 \begin{table}[tb]
   \footnotesize

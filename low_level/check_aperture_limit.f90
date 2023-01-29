@@ -64,7 +64,7 @@ if (.not. bmad_com%aperture_limit_on) return
 
 ! Super_slave elements have the aperture info stored in the lord(s).
 
-physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
+physical_end = physical_ele_end (particle_at, orb, ele%orientation)
 
 if (ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord

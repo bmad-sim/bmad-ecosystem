@@ -63,7 +63,6 @@ endif
 
 err_flag = .true.
 
-t_dir = 1
 start_orb_saved = start_orb
 end_orb = start_orb
 rf_time = particle_rf_time (end_orb, ele, .true., end_orb%s - ele%s_start)
@@ -100,7 +99,7 @@ endif
 ! Interior start, reference momentum is at the end.
 if (end_orb%location == inside$) then
   call offset_particle (ele, set$, end_orb, set_hvkicks = .false., s_pos = s_lab, s_out = s_body, set_spin = set_spin)
-  if (ele%value(l$) < 0) t_dir = -1
+  t_dir = sign_of(ele%value(l$)) * end_orb%time_dir
 
 elseif (ele%key == patch$) then
   if (start_orb_saved%location == inside$) then
@@ -108,14 +107,14 @@ elseif (ele%key == patch$) then
     return
   endif
   call track_a_patch (ele, end_orb, .false., s0, ds_ref)
-  end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0 * end_orb%direction * ele%orientation) * end_orb%beta / beta_ref 
-  if (s0*ele%orientation > 0) t_dir = -1
+  end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0 * end_orb%direction*end_orb%time_dir * ele%orientation) * end_orb%beta / beta_ref 
+  t_dir = -sign_of(s0*ele%orientation) * end_orb%time_dir
   s_body = s0
 
 ! Particle is at an end.
 else
   call offset_particle (ele, set$, end_orb, set_hvkicks = .false., s_out = s_body, set_spin = set_spin)
-  if (ele%value(l$) < 0) t_dir = -1
+  t_dir = sign_of(ele%value(l$)) * end_orb%time_dir
 endif
 
 ! Convert orbit coords to time based.
@@ -147,13 +146,13 @@ if (err) return
 if (end_orb%location == upstream_end$) then
   end_orb%p0c = ele%value(p0c_start$)
   call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
-  end_orb%direction = -1  ! In case t_to_s conversion confused by roundoff error.
+  end_orb%direction = -end_orb%time_dir  ! In case t_to_s conversion confused by roundoff error.
   call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
 elseif (end_orb%location == downstream_end$) then
   end_orb%p0c = ele%value(p0c$)
   call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
-  end_orb%direction = 1  ! In case t_to_s conversion confused by roundoff error
+  end_orb%direction = end_orb%time_dir  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
 
 elseif (end_orb%state /= alive$) then
@@ -161,10 +160,10 @@ elseif (end_orb%state /= alive$) then
   ! The reference energy in the interior is equal to the ref energy at the exit end of the element.
   if (end_orb%vec(6) < 0) then
     end_orb%p0c = ele%value(p0c$)
-    end_orb%direction = -1
+    end_orb%direction = -end_orb%time_dir
   else 
     end_orb%p0c = ele%value(p0c$)
-    end_orb%direction = 1
+    end_orb%direction = end_orb%time_dir
   end if
 
   call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)

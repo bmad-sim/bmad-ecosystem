@@ -42,7 +42,7 @@ logical finished
 
 !
 
-physical_end = physical_ele_end (fringe_info%particle_at, orb%direction, track_ele%orientation)
+physical_end = physical_ele_end (fringe_info%particle_at, orb, track_ele%orientation)
 
 finished = .false.   ! Must set this
 
