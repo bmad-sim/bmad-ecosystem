@@ -64,7 +64,7 @@ do ib = 0, 0
     do j = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       select case (j)
-      case (bmad_standard$, runge_kutta$, time_runge_kutta$)
+      case (bmad_standard$, runge_kutta$, time_runge_kutta$, linear$, taylor$)
       case default;   cycle
       end select
       ele%tracking_method = j
@@ -76,12 +76,12 @@ do ib = 0, 0
       end_orb%time_dir = -1
       call track1 (end_orb, ele, lat%param, start2_orb)
 
-      d%vec  = start2_orb%vec  - start_orb%vec
-      d%spin = start2_orb%spin - start_orb%spin
-      d%t    = c_light*(start2_orb%t    - start_orb%t)
-      d%s    = start2_orb%s    - start_orb%s
-      d%p0c  = start2_orb%p0c  - start_orb%p0c
-      d%beta = start2_orb%beta - start_orb%beta
+      d%vec  =  start2_orb%vec  - start_orb%vec
+      d%spin =  start2_orb%spin - start_orb%spin
+      d%t    = (start2_orb%t    - start_orb%t) * c_light
+      d%s    =  start2_orb%s    - start_orb%s
+      d%p0c  =  start2_orb%p0c  - start_orb%p0c
+      d%beta =  start2_orb%beta - start_orb%beta
       loc_equal = (start2_orb%location == start_orb%location)
 
       write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '           ABS 1E-13', end_orb%vec, c_light*end_orb%t
