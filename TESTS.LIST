@@ -2,6 +2,7 @@ abs_time_test
 analysis_test
 aperture_test
 autoscale_test
+!!backwards_time_track_test
 beam_test
 bbu_test   
 bookkeeper_test
@@ -25,7 +26,7 @@ parse_test
 particle_species_test
 patch_test
 photon_test
-ptc_test  1
+ptc_test
 NOTE: SKIPPING REVERSE_TEST!
 ! reverse_test
 radiation_test
