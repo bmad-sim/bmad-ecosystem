@@ -669,10 +669,13 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   rhs = 17 + offset; C.direction = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 18 + offset; C.species = rhs;
+  rhs = 18 + offset; C.time_dir = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 19 + offset; C.location = rhs;
+  rhs = 19 + offset; C.species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 20 + offset; C.location = rhs;
 
 
 }
@@ -5238,37 +5241,34 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 30 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
+  rhs = 31 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
+  rhs = 32 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.radiation_zero_average = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.radiation_zero_average = (rhs % 2 == 0);
+  rhs = 34 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 35 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 36 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  rhs = 37 + offset; C.absolute_time_ref_shift = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.absolute_time_ref_shift = (rhs % 2 == 0);
+  rhs = 38 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 39 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 39 + offset; C.aperture_limit_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 40 + offset; C.aperture_limit_on = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 41 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 40 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

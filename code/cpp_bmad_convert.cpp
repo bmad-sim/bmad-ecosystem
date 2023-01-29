@@ -398,14 +398,14 @@ extern "C" void coord_to_c (const Opaque_coord_class*, CPP_coord&);
 // c_side.to_f2_arg
 extern "C" void coord_to_f2 (Opaque_coord_class*, c_RealArr, c_Real&, c_Real&, c_RealArr,
     c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 
   // c_side.to_f2_call
   coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge,
       C.dt_ref, C.r, C.p0c, C.e_potential, C.beta, C.ix_ele, C.ix_branch, C.ix_user, C.state,
-      C.direction, C.species, C.location);
+      C.direction, C.time_dir, C.species, C.location);
 
 }
 
@@ -413,8 +413,8 @@ extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t, c_RealArr
     z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_dt_ref, c_Real&
     z_r, c_Real& z_p0c, c_Real& z_e_potential, c_Real& z_beta, c_Int& z_ix_ele, c_Int&
-    z_ix_branch, c_Int& z_ix_user, c_Int& z_state, c_Int& z_direction, c_Int& z_species, c_Int&
-    z_location) {
+    z_ix_branch, c_Int& z_ix_user, c_Int& z_state, c_Int& z_direction, c_Int& z_time_dir,
+    c_Int& z_species, c_Int& z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -450,6 +450,8 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.state = z_state;
   // c_side.to_c2_set[integer, 0, NOT]
   C.direction = z_direction;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.time_dir = z_time_dir;
   // c_side.to_c2_set[integer, 0, NOT]
   C.species = z_species;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -3166,7 +3168,7 @@ extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3180,10 +3182,9 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.runge_kutta_order, C.default_integ_order, C.max_num_runge_kutta_step,
       C.rf_phase_below_transition_ref, C.sr_wakes_on, C.lr_wakes_on, C.auto_bookkeeper,
       C.high_energy_space_charge_on, C.csr_and_space_charge_on, C.spin_tracking_on,
-      C.backwards_time_tracking_on, C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on,
-      C.radiation_zero_average, C.radiation_fluctuations_on, C.conserve_taylor_maps,
-      C.absolute_time_tracking, C.absolute_time_ref_shift, C.convert_to_kinetic_momentum,
-      C.aperture_limit_on, C.debug);
+      C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_zero_average,
+      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking,
+      C.absolute_time_ref_shift, C.convert_to_kinetic_momentum, C.aperture_limit_on, C.debug);
 
 }
 
@@ -3200,11 +3201,11 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     c_Bool& z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on,
     c_Bool& z_auto_bookkeeper, c_Bool& z_high_energy_space_charge_on, c_Bool&
     z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
-    z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
-    z_radiation_damping_on, c_Bool& z_radiation_zero_average, c_Bool&
-    z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
-    z_absolute_time_tracking, c_Bool& z_absolute_time_ref_shift, c_Bool&
-    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool& z_debug) {
+    z_spin_sokolov_ternov_flipping_on, c_Bool& z_radiation_damping_on, c_Bool&
+    z_radiation_zero_average, c_Bool& z_radiation_fluctuations_on, c_Bool&
+    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking, c_Bool&
+    z_absolute_time_ref_shift, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
+    z_aperture_limit_on, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -3266,8 +3267,6 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.csr_and_space_charge_on = z_csr_and_space_charge_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.spin_tracking_on = z_spin_tracking_on;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.backwards_time_tracking_on = z_backwards_time_tracking_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.spin_sokolov_ternov_flipping_on = z_spin_sokolov_ternov_flipping_on;
   // c_side.to_c2_set[logical, 0, NOT]

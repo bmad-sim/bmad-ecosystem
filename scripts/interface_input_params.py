@@ -204,6 +204,7 @@ c_custom_constructors = {
     'floor_position%w' : 'w(Real_ARRAY(0.0, 3), 3)',
     'aperture_param%max_angle' : 'max_angle(Bmad::PI)',
     'bmad_common%space_charge_mesh_size' : 'space_charge_mesh_size(32, 3)',
+    'rad_map%xfer_damp_mat' : 'xfer_damp_mat(Real_ARRAY(0.0, 6), 6)',
 }
 
 #-----------------------------------------------

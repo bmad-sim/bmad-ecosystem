@@ -220,6 +220,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && (x.ix_user == y.ix_user);
   is_eq = is_eq && (x.state == y.state);
   is_eq = is_eq && (x.direction == y.direction);
+  is_eq = is_eq && (x.time_dir == y.time_dir);
   is_eq = is_eq && (x.species == y.species);
   is_eq = is_eq && (x.location == y.location);
   return is_eq;
@@ -1316,7 +1317,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.high_energy_space_charge_on == y.high_energy_space_charge_on);
   is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);
-  is_eq = is_eq && (x.backwards_time_tracking_on == y.backwards_time_tracking_on);
   is_eq = is_eq && (x.spin_sokolov_ternov_flipping_on == y.spin_sokolov_ternov_flipping_on);
   is_eq = is_eq && (x.radiation_damping_on == y.radiation_damping_on);
   is_eq = is_eq && (x.radiation_zero_average == y.radiation_zero_average);

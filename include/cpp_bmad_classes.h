@@ -751,6 +751,7 @@ public:
   Int ix_user;
   Int state;
   Int direction;
+  Int time_dir;
   Int species;
   Int location;
 
@@ -772,6 +773,7 @@ public:
     ix_user(-1),
     state(Bmad::NOT_SET),
     direction(1),
+    time_dir(1),
     species(Bmad::NOT_SET),
     location(Bmad::UPSTREAM_END)
     {}
@@ -3044,7 +3046,6 @@ public:
   Bool high_energy_space_charge_on;
   Bool csr_and_space_charge_on;
   Bool spin_tracking_on;
-  Bool backwards_time_tracking_on;
   Bool spin_sokolov_ternov_flipping_on;
   Bool radiation_damping_on;
   Bool radiation_zero_average;
@@ -3087,7 +3088,6 @@ public:
     high_energy_space_charge_on(false),
     csr_and_space_charge_on(false),
     spin_tracking_on(false),
-    backwards_time_tracking_on(false),
     spin_sokolov_ternov_flipping_on(false),
     radiation_damping_on(false),
     radiation_zero_average(false),
