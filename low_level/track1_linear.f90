@@ -33,7 +33,7 @@ character(*), parameter :: r_name = 'track1_linear'
 if (ele%bookkeeping_state%mat6 /= ok$ .and. is_false(ele%value(static_linear_map$))) then
   if (ele%mat6_calc_method == tracking$) then
     call out_io(s_error$, r_name, 'MAT6_CALC_METHOD = TRACKING INCOMPATIBLE WITH TRACKING METHOD = LINEAR.', &
-                                  'FOR ELEMENT: ' // ele%name)
+                                  'FOR ELEMENT: ' // ele_full_name(ele))
   else
     call make_mat6(ele, param)
   endif
@@ -73,6 +73,7 @@ endif
 
 dtime_ref = ele%value(delta_ref_time$)
 if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
+dtime_ref = dtime_ref * start_orb%direction*start_orb%time_dir 
 
 call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
 
@@ -84,7 +85,7 @@ endif
 
 !
 
-if (end_orb%direction == 1) then
+if (end_orb%direction*end_orb%time_dir == 1) then
   end_orb%s = ele%s
 else
   end_orb%s = ele%s_start

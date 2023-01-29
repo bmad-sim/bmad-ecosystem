@@ -104,7 +104,7 @@ if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ 
   call multipole_spin_tracking (ele, param, temp_end)
 elseif (temp_start%s /= temp_end%s) then
   call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
-  omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
+  omega = trapzd_omega (ele, dir, spline_x, spline_y, temp_start, temp_end, param)
   if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir*ele%orientation, 0.0_rp]
   call rotate_spin(omega, temp_end%spin)
 endif
@@ -122,7 +122,7 @@ end_orb%spin = temp_end%spin
 !---------------------------------------------------------------------------------------------
 contains
 
-function trapzd_omega (ele, spline_x, spline_y, start_orb, end_orb, param) result (omega)
+function trapzd_omega (ele, dir, spline_x, spline_y, start_orb, end_orb, param) result (omega)
 
 use super_recipes_mod, only: super_polint
 
@@ -144,26 +144,20 @@ real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), omega(3)
 real(rp) dint, eps, quat(0:3)
 real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
 
+integer dir
 integer j, k, n, n_pts
 
-! Only integrate over where the field is finite.
-! This will be the whole element except for RF cavities.
+!
 
-select case (ele%key)
-case (rfcavity$, lcavity$)
-  s0 = (ele%value(l$) - ele%value(l_active$)) / 2 + bmad_com%significant_length/10
-  s1 = (ele%value(l$) + ele%value(l_active$)) / 2 - bmad_com%significant_length/10
-case default
-  s0 = 0             + bmad_com%significant_length/10
-  s1 = ele%value(l$) - bmad_com%significant_length/10
-end select
+s0 = (0             + bmad_com%significant_length/10)
+s1 = (ele%value(l$) - bmad_com%significant_length/10)
 
 q_array(1)%h = 1
-z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)
-z(1)%omega = omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)
+z(0)%omega = omega_func(s0, dir, spline_x, spline_y, start_orb, end_orb, ele, param)
+z(1)%omega = omega_func(s1, dir, spline_x, spline_y, start_orb, end_orb, ele, param)
 
-del_s = abs(s1 - s0)
-q_array(1)%omega = quat_to_omega(quat_mul(omega_to_quat(z(1)%omega * del_s / 2), omega_to_quat(z(0)%omega * del_s / 2)))
+del_s = s1 - s0
+q_array(1)%omega = quat_to_omega(quat_mul(omega_to_quat(z(1)%omega * abs(del_s) / 2), omega_to_quat(z(0)%omega * abs(del_s) / 2)))
 
 do j = 2, j_max
   ! This is trapzd from NR
@@ -175,7 +169,7 @@ do j = 2, j_max
 
   do n = 1, n_pts
     s = s0 + del_s * (2*n - 1)
-    z(2*n-1)%omega = omega_func(s, spline_x, spline_y, start_orb, end_orb, ele, param)
+    z(2*n-1)%omega = omega_func(s, dir, spline_x, spline_y, start_orb, end_orb, ele, param)
     quat = quat_mul(omega_to_quat(z(2*n-1)%omega * abs(del_s)), quat)
     if (n == n_pts) del_s = del_s / 2
     quat = quat_mul(omega_to_quat(z(2*n)%omega * abs(del_s)), quat)
@@ -203,7 +197,7 @@ end function trapzd_omega
 !-----------------------------------------------------------------------------------
 ! contains
 
-function omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega)
+function omega_func (s_eval, dir, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega)
 
 implicit none
 
@@ -213,7 +207,9 @@ type (em_field_struct) field
 type (lat_param_struct) param
 
 real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
-real(rp) ds, s_tot, s2
+real(rp) ds, dss, s_tot, s2
+
+integer dir
 
 !
 
@@ -225,10 +221,11 @@ orb = end_orb
 orb%vec(5) = start_orb%vec(5) * (s_tot - ds) / s_tot + end_orb%vec(5) * ds / s_tot
 orb%vec(6) = start_orb%vec(6) * (s_tot - ds) / s_tot + end_orb%vec(6) * ds / s_tot
 
-orb%vec(1) =                     spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
-orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + 2 * spline_x(2) * ds + 3 * spline_x(3) * ds**2)
-orb%vec(3) =                     spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
-orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * ds + 3 * spline_y(3) * ds**2)
+dss = ds * start_orb%time_dir
+orb%vec(1) =                     spline_x(0) + spline_x(1) * dss + spline_x(2) * dss**2 + spline_x(3) * dss**3
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + 2 * spline_x(2) * dss + 3 * spline_x(3) * dss**2)
+orb%vec(3) =                     spline_y(0) + spline_y(1) * dss + spline_y(2) * dss**2 + spline_y(3) * dss**3
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * dss + 3 * spline_y(3) * dss**2)
 
 orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
 orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot

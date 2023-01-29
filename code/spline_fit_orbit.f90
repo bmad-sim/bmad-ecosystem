@@ -25,7 +25,7 @@ real(rp) ds, alpha, beta
 
 !
 
-ds = abs(ele%value(l$))
+ds = abs(ele%value(l$)) * start_orb%time_dir
 
 ! X
 
