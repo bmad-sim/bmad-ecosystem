@@ -39,7 +39,7 @@ logical drifting, include_kicks
 !
 
 start_orb = orbit
-orientation = ele%orientation * start_orb%direction
+orientation = ele%orientation * start_orb%direction * start_orb%time_dir
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
 charge_dir = rel_tracking_charge * orientation
 include_kicks = .true.

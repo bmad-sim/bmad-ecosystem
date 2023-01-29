@@ -97,7 +97,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, ac_kicker$, kick
 ! drift
  
 case (drift$) 
-  call track_a_drift (end_orb, ele%value(l$), mat6, make_matrix)
+  call track_a_drift (end_orb, ele%value(l$)*end_orb%time_dir, mat6, make_matrix)
 
 !-----------------------------------------------
 ! elseparator
@@ -258,7 +258,7 @@ end select
 !-----------------------------------------------------------------------------------
 ! Set s-position
 
-if (end_orb%direction == 1) then
+if (end_orb%direction*end_orb%time_dir == 1) then
   end_orb%s = ele%s
 else
   end_orb%s = ele%s_start

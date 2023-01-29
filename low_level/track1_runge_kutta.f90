@@ -70,7 +70,7 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
 if (ele%key == patch$) then
   call track_a_patch (ele, end_orb, .false., s0_body, ds_ref)
   beta_ref = ele%value(p0c$) / ele%value(e_tot$)
-  if (ele%orientation*end_orb%direction == 1) then
+  if (ele%orientation*end_orb%direction*end_orb%time_dir == 1) then
     end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0_body) * end_orb%beta / beta_ref 
     length = patch_length(ele, exit_end$)
     s0_body = length + s0_body
@@ -84,7 +84,7 @@ if (ele%key == patch$) then
 else
   call offset_particle (ele, set$, end_orb, set_hvkicks = .false., &
                                       set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)
-  if (ele%orientation*end_orb%direction == 1) then
+  if (ele%orientation*end_orb%direction*end_orb%time_dir == 1) then
     s0_body = 0; s1_body = ele%value(l$)
   else
     s0_body = ele%value(l$); s1_body = 0

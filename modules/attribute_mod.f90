@@ -969,6 +969,7 @@ call init_attribute_name1 (def_particle_start$, emittance_z$,               'EMI
 call init_attribute_name1 (def_particle_start$, sig_pz$,                    'SIG_PZ')
 call init_attribute_name1 (def_particle_start$, sig_z$,                     'SIG_Z')
 call init_attribute_name1 (def_particle_start$, direction_particle_start$,  'DIRECTION')
+call init_attribute_name1 (def_particle_start$, time_dir_particle_start$,   'TIME_DIR')
 
 call init_attribute_name1 (def_parameter$, ix_branch$,                    'ix_branch', private$)
 call init_attribute_name1 (def_parameter$, e_tot$,                        'E_TOT')

@@ -478,7 +478,7 @@ if (knl == 0) return
 
 t = tilt
 if (integer_option(magnetic$, pole_type) == magnetic$) then
-  charge = coord%direction * ele_orientation * charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
+  charge = coord%direction * coord%time_dir * ele_orientation * charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
 else
   charge = charge_of(coord%species) / (coord%beta * coord%p0c)
   t = pi/(n+1) - t
@@ -597,7 +597,7 @@ else   ! magnetic
     a2 = a
     b2 = b
   else
-    f = coord%direction * ele_orientation * charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
+    f = coord%direction * coord%time_dir * ele_orientation * charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
     a2 = a * f
     b2 = b * f
   endif

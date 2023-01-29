@@ -58,10 +58,10 @@ p_vec = [orbit%vec(2), orbit%vec(4), sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec
 ! elements orientation. For a patch this is not necessarily true which is why a patch element
 ! needs to store the upstream and downstream orientations.
 
-! orbit%direction * ele%orientation = -1 means we are going from the exit end to the entrance end.
+! orbit%direction * orbit%time_dir * ele%orientation = -1 means we are going from the exit end to the entrance end.
 ! In this case, must reverse the order of application of the offsets and pitches.
 
-if (orbit%direction * ele%orientation == 1) then
+if (orbit%direction * orbit%time_dir * ele%orientation == 1) then
   if (ele%orientation == 1) then ! Entering from upstream
     p_vec(3) = p_vec(3) * ele%value(upstream_coord_dir$) * orbit%direction  
   else    ! Entering from downstream
@@ -120,7 +120,7 @@ if (present(ds_ref)) ds_ref = ds0
 
 if (logic_option(.true., drift_to_exit)) then
   ! Set track edge so that energy correction does not ignore an energy shift.
-  if (orbit%direction == 1) then
+  if (orbit%direction * orbit%time_dir == 1) then
     call reference_energy_correction (ele, orbit, first_track_edge$)
   else
     call reference_energy_correction (ele, orbit, second_track_edge$)

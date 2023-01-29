@@ -43,7 +43,7 @@ real(rp) vel(3), rel_pc, force(3)
 
 rel_pc = 1 + orbit%vec(6)
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / rel_pc
-vel(3) = sqrt(1 - vel(1)**2 - vel(2)**2) * orbit%direction
+vel(3) = sqrt(1 - vel(1)**2 - vel(2)**2) * orbit%direction * orbit%time_dir
 
 force = (E + cross_product(vel, B) * orbit%beta * c_light) * charge_of(orbit%species)
 g_bend = -(force - vel * (dot_product(force, vel))) / (orbit%p0c * rel_pc)

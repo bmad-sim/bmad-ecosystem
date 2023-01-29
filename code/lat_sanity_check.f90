@@ -153,6 +153,11 @@ if (lat%particle_start%direction /= -1 .and. lat%particle_start%direction /= 1) 
   err_flag = .true.
 endif
 
+if (lat%particle_start%time_dir /= -1 .and. lat%particle_start%time_dir /= 1) then
+  call out_io (s_fatal$, r_name, 'PARTICLE_START TIME_DIR IS NOT -1 NOR 1. IT IS: \i0\ ', lat%particle_start%time_dir)
+  err_flag = .true.
+endif
+
 ! good_control specifies what elements can control what other elements.
 
 good_control = .false.

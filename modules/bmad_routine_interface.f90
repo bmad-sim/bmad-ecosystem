@@ -1585,10 +1585,11 @@ subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
   real(rp) x_0, xp_0, chi
 end subroutine
 
-function physical_ele_end (track_end, track_direction, ele_orientation, return_stream_end) result (physical_end)
+function physical_ele_end (track_end, orbit, ele_orientation, return_stream_end) result (physical_end)
   import
   implicit none
-  integer track_end, track_direction, ele_orientation, physical_end
+  type (coord_struct) orbit
+  integer track_end, ele_orientation, physical_end
   logical, optional :: return_stream_end
 end function
 
@@ -2344,12 +2345,6 @@ subroutine tilt_mat6 (mat6, tilt)
   implicit none
   real(rp) tilt, mat6(6,6)
 end subroutine
-
-function time_direction() result (time_sign)
-  import
-  implicit none
-  real(rp) time_sign
-end function
 
 subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
   import

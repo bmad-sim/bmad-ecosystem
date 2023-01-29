@@ -599,6 +599,7 @@ end subroutine rk_step1
 !     dP_y/dt = EM_Force_y
 !     g_y = bending in y-plane.
 !
+!   NOTE: dr(5)/ds IS IGNORED WHEN CALCULATING Z. SEE TRANSFER_THIS_ORBIT ABOVE.
 !   dr(5)/ds = dz/ds = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * c_light * [t(ref) - t]
 !                    = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * vec(5) / beta
 !   where:

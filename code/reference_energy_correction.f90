@@ -44,10 +44,10 @@ character(*), parameter :: r_name = 'reference_energy_correction'
 
 if (ele%value(p0c$) == ele%value(p0c_start$)) return
 
-if (orbit%direction == 1 .and. particle_at == first_track_edge$) then
+if (orbit%direction*orbit%time_dir == 1 .and. particle_at == first_track_edge$) then
   p_rel = orbit%p0c / ele%value(p0c$)
   orbit%p0c = ele%value(p0c$)
-elseif (orbit%direction == -1 .and. particle_at == second_track_edge$) then
+elseif (orbit%direction*orbit%time_dir == -1 .and. particle_at == second_track_edge$) then
   p_rel = orbit%p0c / ele%value(p0c_start$)
   orbit%p0c = ele%value(p0c_start$)
 else

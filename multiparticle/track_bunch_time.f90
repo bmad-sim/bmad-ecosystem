@@ -100,7 +100,7 @@ ele_here => branch%ele(orbit%ix_ele)
 
 select case (orbit%location)
 case (upstream_end$)
-  if (orbit%direction /= -1) return
+  if (orbit%direction*orbit%time_dir /= -1) return
 
   if (ele_here%ix_ele == 1) then
     orbit%state = lost_z_aperture$
@@ -113,7 +113,7 @@ case (upstream_end$)
   orbit%vec(5) = ele_here%value(l$)
 
 case (downstream_end$)
-  if (orbit%direction /= 1) return
+  if (orbit%direction*orbit%time_dir /= 1) return
 
   ! If needed, setup a drift to take care of particles past the end of the branch.
   if (ele_here%ix_ele == branch%n_ele_track) then

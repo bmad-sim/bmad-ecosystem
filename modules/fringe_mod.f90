@@ -110,7 +110,7 @@ endif
 if (logic_option(.false., track_spin)) then
   ave_orb%vec = (ave_orb%vec + orb%vec) / 2   ! Use average position
   field%E = 0
-  physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
+  physical_end = physical_ele_end (particle_at, orb, ele%orientation)
   if (physical_end == entrance_end$) then
     e_ang = ele%value(e1$)
   else
@@ -121,8 +121,8 @@ if (logic_option(.false., track_spin)) then
   field%B = (ele%value(b_field$) + ele%value(db_field$)) * [-sin(e_ang)*y, -tan_e_x, cos(e_ang)*y]
   if (ele%value(b1_gradient$) /= 0) field%B = field%B - ele%value(b1_gradient$) * tan_e_x * [x*y, x*x - y*y, 0.0_rp]
   if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
-  if (physical_ele_end(particle_at, orb%direction, ele%orientation) == downstream_end$) field%B(3) = -field%B(3)
-  omega = spin_omega (field, ave_orb, ave_orb%direction * ele%orientation)
+  if (physical_ele_end(particle_at, orb, ele%orientation) == downstream_end$) field%B(3) = -field%B(3)
+  omega = spin_omega (field, ave_orb, ave_orb%direction * ave_orb%time_dir * ele%orientation)
   call rotate_spin (omega, orb%spin)
 endif
 
@@ -172,8 +172,8 @@ character(*), parameter :: r_name = 'linear_bend_edge_kick'
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
 ! Apply only the first order kick. That is, only edge focusing.
 
-c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
-element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction * orb%time_dir
+element_end = physical_ele_end(particle_at, orb, ele%orientation)
 
 if (ele%is_on) then
   g_tot = (ele%value(g$) + ele%value(dg$)) * c_dir
@@ -257,8 +257,8 @@ character(*), parameter :: r_name = 'hwang_bend_edge_kick'
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
 
-c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
-element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction * orb%time_dir
+element_end = physical_ele_end(particle_at, orb, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
 e_factor = 1 / (1 + orb%vec(6))
 
@@ -435,7 +435,7 @@ endif
 !
 
 if (g == 0) return
-c_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction
+c_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction * orbit%time_dir
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then
@@ -529,7 +529,7 @@ fringe_type = nint(ele%value(fringe_type$))
 if (fringe_type /= soft_edge_only$ .and. fringe_type /= full$) return
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
-charge_dir = ele%orientation * orbit%direction
+charge_dir = ele%orientation * orbit%direction * orbit%time_dir
 if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 
 rel_p = 1 + orbit%vec(6)
@@ -674,7 +674,7 @@ end select
 
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
-charge_dir = ele%orientation * orbit%direction
+charge_dir = ele%orientation * orbit%direction * orbit%time_dir
 if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 
 !
@@ -871,7 +871,7 @@ endif
 
 ! 
 
-element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
+element_end = physical_ele_end(particle_at, orb, ele%orientation)
 
 select case (ele%key)
 case (sbend$)
@@ -904,7 +904,7 @@ end select
 !
 
 if (g == 0) return
-c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction * orb%time_dir
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then
@@ -1449,7 +1449,7 @@ end if
 
 ! get edge parameters
  
-if (physical_ele_end(particle_at, orb%direction, ele%orientation) == entrance_end$) then
+if (physical_ele_end(particle_at, orb, ele%orientation) == entrance_end$) then
   edge_angle = ele%value(e1$)
   fint = ele%value(FINT$)
   hgap = ele%value(HGAP$)
@@ -1662,7 +1662,7 @@ logical is_here
 !
 
 fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+physical_end = physical_ele_end (particle_at, orbit, ele%orientation)
 is_here = at_this_ele_end(physical_end, fringe_at)
 
 if (nint(ele%value(fringe_type$)) == none$) is_here = .false.

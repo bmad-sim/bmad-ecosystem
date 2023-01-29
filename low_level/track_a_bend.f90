@@ -45,7 +45,7 @@ call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make
 
 ! Entrance edge kick
 
-rel_charge_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param%particle)
+rel_charge_dir = ele%orientation * orbit%direction * orbit%time_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 c_dir = ele%orientation * orbit%direction * charge_of(orbit%species)
 
 call init_fringe_info (fringe_info, ele)
@@ -327,10 +327,10 @@ endif
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
-if (orbit%direction == -1) orbit%vec(5) = orbit%vec(5) - 2.0_rp * c_light * orbit%beta * ele%value(delta_ref_time$) 
+if (orbit%direction*orbit%time_dir == -1) orbit%vec(5) = orbit%vec(5) - 2.0_rp * c_light * orbit%beta * ele%value(delta_ref_time$) 
 
 
-if (orbit%direction == 1) then
+if (orbit%direction*orbit%time_dir == 1) then
   orbit%s = ele%s
 else
   orbit%s = ele%s_start
@@ -523,7 +523,7 @@ logical, optional :: make_matrix
 
 ! Degenerate case
 
-rel_charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction
+rel_charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction * orbit%time_dir
 
 g = ele%value(g$)
 length = ele%value(l$) / n_step

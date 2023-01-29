@@ -94,7 +94,7 @@ endif
 ! In this case, do not set the location.
 
 if (logic_option(.true., init_to_edge)) then
-  if (start2_orb%direction == 1) then
+  if (start2_orb%direction*start2_orb%time_dir == 1) then
     start2_orb%location = upstream_end$
     start2_orb%s = ele%s_start
   else
@@ -276,7 +276,7 @@ endif
 if (.not. time_RK_tracking) then
   if (end_orb%state /= alive$) then
     end_orb%location = inside$
-  elseif (start2_orb%direction == 1) then
+  elseif (start2_orb%direction*start2_orb%time_dir == 1) then
     end_orb%location = downstream_end$
   else
     end_orb%location = upstream_end$
@@ -313,7 +313,7 @@ type (coord_struct) start_orb, end_orb
 
 !
 
-if (start_orb%direction == 1) then
+if (start_orb%direction*start_orb%time_dir == 1) then
   call save_a_step(track, ele, param, .false., start_orb, 0.0_rp)
   call save_a_step(track, ele, param, .false., end_orb, ele%value(l$))
 else

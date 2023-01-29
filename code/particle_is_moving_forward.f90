@@ -2,6 +2,7 @@
 ! Function particle_is_moving_forward (orbit) result (is_moving_forward)
 !
 ! Routine to determine if a particle is moving in the forward +s direction.
+! Note: By convention, reversing orbit%time_dir reverses the motion.
 ! If not moving forward it is dead or is moving backward.
 !
 ! Remember: +s and +z directions are counteraligned if element being tracked 
@@ -25,6 +26,6 @@ logical is_moving_forward
 
 !
 
-is_moving_forward = (orbit%state == alive$) .and. (orbit%direction == 1)
+is_moving_forward = (orbit%state == alive$) .and. (orbit%direction*orbit%time_dir == 1)
 
 end function particle_is_moving_forward

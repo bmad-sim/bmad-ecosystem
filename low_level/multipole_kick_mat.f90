@@ -37,7 +37,7 @@ integer ref_species, n
 
 mat6(2:4:2, 1:3:2) = 0
 if (orbit%vec(1) == 0 .and. orbit%vec(3) == 0 .and. knl(1) == 0) return
-charge_dir = orbit%direction * ele%orientation * charge_to_mass_of(orbit%species) / charge_to_mass_of(ref_species)
+charge_dir = orbit%direction*orbit%time_dir * ele%orientation * charge_to_mass_of(orbit%species) / charge_to_mass_of(ref_species)
 
 do n = 1, ubound(knl, 1)
   if (knl(n) /= 0) then

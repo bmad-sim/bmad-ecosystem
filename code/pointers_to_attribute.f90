@@ -139,7 +139,6 @@ case ('BMAD_COM')
   case ('HIGH_ENERGY_SPACE_CHARGE_ON');     ptr_array(1)%l => bmad_com%high_energy_space_charge_on
   case ('CSR_AND_SPACE_CHARGE_ON');         ptr_array(1)%l => bmad_com%csr_and_space_charge_on
   case ('SPIN_TRACKING_ON');                ptr_array(1)%l => bmad_com%spin_tracking_on
-  case ('BACKWARDS_TIME_TRACKING_ON');      ptr_array(1)%l => bmad_com%backwards_time_tracking_on
   case ('SPIN_SOKOLOV_TERNOV_FLIPPING_ON'); ptr_array(1)%l => bmad_com%spin_sokolov_ternov_flipping_on
   case ('RADIATION_DAMPING_ON');            ptr_array(1)%l => bmad_com%radiation_damping_on
   case ('RADIATION_ZERO_AVERAGE');          ptr_array(1)%l => bmad_com%radiation_zero_average
@@ -220,54 +219,30 @@ case ('PARTICLE_START')
   endif
   if (present(ix_attrib)) ix_attrib = ix
   select case (ix)
-  case (x$)
-    ptr_array(1)%r => lat%particle_start%vec(1)
-  case (px$)
-    ptr_array(1)%r => lat%particle_start%vec(2)
-  case (y$)
-    ptr_array(1)%r => lat%particle_start%vec(3)
-  case (py$)
-    ptr_array(1)%r => lat%particle_start%vec(4)
-  case (z$)
-    ptr_array(1)%r => lat%particle_start%vec(5)
-  case (pz$)
-    ptr_array(1)%r => lat%particle_start%vec(6)
-  case (field_x$)
-    ptr_array(1)%r => lat%particle_start%field(1)
-  case (field_y$)
-    ptr_array(1)%r => lat%particle_start%field(2)
-  case (phase_x$)
-    ptr_array(1)%r => lat%particle_start%phase(1)
-  case (phase_y$)
-    ptr_array(1)%r => lat%particle_start%phase(2)
-  case (t$)
-    ptr_array(1)%r => lat%particle_start%t
-  case (e_photon$)
-    ptr_array(1)%r => lat%particle_start%p0c
-  case (direction_particle_start$)
-    ptr_array(1)%i => lat%particle_start%direction
-
-  case (spin_x$)
-    ptr_array(1)%r => lat%particle_start%spin(1)
-  case (spin_y$)
-    ptr_array(1)%r => lat%particle_start%spin(2)
-  case (spin_z$)
-    ptr_array(1)%r => lat%particle_start%spin(3)
-
-  case (emittance_a$)
-    ptr_array(1)%r => lat%a%emit
-  case (emittance_b$)
-    ptr_array(1)%r => lat%b%emit
-  case (emittance_z$)
-    ptr_array(1)%r => lat%z%emit
-  case (sig_x$)
-    ptr_array(1)%r => lat%a%sigma
-  case (sig_y$)
-    ptr_array(1)%r => lat%b%sigma
-  case (sig_z$)
-    ptr_array(1)%r => lat%z%sigma
-  case (sig_e$)
-    ptr_array(1)%r => lat%z%sigmap
+  case (x$);                             ptr_array(1)%r => lat%particle_start%vec(1)
+  case (px$);                            ptr_array(1)%r => lat%particle_start%vec(2)
+  case (y$);                             ptr_array(1)%r => lat%particle_start%vec(3)
+  case (py$);                            ptr_array(1)%r => lat%particle_start%vec(4)
+  case (z$);                             ptr_array(1)%r => lat%particle_start%vec(5)
+  case (pz$);                            ptr_array(1)%r => lat%particle_start%vec(6)
+  case (field_x$);                       ptr_array(1)%r => lat%particle_start%field(1)
+  case (field_y$);                       ptr_array(1)%r => lat%particle_start%field(2)
+  case (phase_x$);                       ptr_array(1)%r => lat%particle_start%phase(1)
+  case (phase_y$);                       ptr_array(1)%r => lat%particle_start%phase(2)
+  case (t$);                             ptr_array(1)%r => lat%particle_start%t
+  case (e_photon$);                      ptr_array(1)%r => lat%particle_start%p0c
+  case (direction_particle_start$);      ptr_array(1)%i => lat%particle_start%direction
+  case (time_dir_particle_start$);       ptr_array(1)%i => lat%particle_start%time_dir
+  case (spin_x$);                        ptr_array(1)%r => lat%particle_start%spin(1)
+  case (spin_y$);                        ptr_array(1)%r => lat%particle_start%spin(2)
+  case (spin_z$);                        ptr_array(1)%r => lat%particle_start%spin(3)
+  case (emittance_a$);                   ptr_array(1)%r => lat%a%emit
+  case (emittance_b$);                   ptr_array(1)%r => lat%b%emit
+  case (emittance_z$);                   ptr_array(1)%r => lat%z%emit
+  case (sig_x$);                         ptr_array(1)%r => lat%a%sigma
+  case (sig_y$);                         ptr_array(1)%r => lat%b%sigma
+  case (sig_z$);                         ptr_array(1)%r => lat%z%sigma
+  case (sig_e$);                         ptr_array(1)%r => lat%z%sigmap
 
   case default
     if (do_print) call out_io (s_error$, r_name, &

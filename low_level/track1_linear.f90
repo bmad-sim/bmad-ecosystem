@@ -42,15 +42,21 @@ endif
 ! Note: ele%mat6 holds the matrix for forward tracking (start_orb%direction == 1) independent
 ! of whether the element is reversed (ele%orientation = -1) or not.
 
+if (start_orb%time_dir == -1) then
+  call mat_inverse(ele%mat6, mat6)
+else
+  mat6 = ele%mat6
+endif
+
 start2_orb = start_orb
 end_orb = start_orb
 end_orb%p0c = ele%value(p0c$)
 
 if (start_orb%direction == 1) then
-  end_orb%vec = matmul (ele%mat6, start_orb%vec) + ele%vec0
+  end_orb%vec = matmul (mat6, start_orb%vec) + ele%vec0
 
 else
-  mat6 = mat_symp_conj(ele%mat6)
+  mat6 = mat_symp_conj(mat6)
   end_orb%vec(2) = -end_orb%vec(2)
   end_orb%vec(4) = -end_orb%vec(4)
   end_orb%vec = matmul(mat6, end_orb%vec)

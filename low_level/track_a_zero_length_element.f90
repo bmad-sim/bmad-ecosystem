@@ -65,7 +65,7 @@ call offset_particle (ele, unset$, end_orb, set_hvkicks = .false.)
 
 if (present(track)) call save_a_step (track, ele, param, .false., start_orb, 0.0_rp)
 
-select case (end_orb%direction)
+select case (end_orb%direction*end_orb%time_dir)
 case (1);   end_orb%location = downstream_end$
 case (-1);  end_orb%location = upstream_end$
 end select

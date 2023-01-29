@@ -38,7 +38,7 @@ logical drifting
 ! Notice that ks is independent of the ele orientation
 
 start_orb = orbit
-orientation = ele%orientation * start_orb%direction
+orientation = ele%orientation * start_orb%direction * start_orb%time_dir
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
 charge_dir = rel_tracking_charge * orientation
 mc2 = mass_of(orbit%species)
@@ -100,7 +100,7 @@ if (orbit%state /= alive$) return
 
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-orbit%t = start_orb%t + orbit%direction*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
+orbit%t = start_orb%t + orbit%direction*orbit%time_dir*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
 !
 

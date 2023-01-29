@@ -88,7 +88,7 @@ s_fringe_ptr => s_fringe_edge   ! To get around an intel bug: s_fringe_ptr is us
 
 if (ele%key == patch$) then
   s_stop_fwd = 0  ! By convention.
-elseif (orb%direction*ele%orientation == -1) then
+elseif (orb%direction*orb%time_dir*ele%orientation == -1) then
   s_stop_fwd = 0
 else
   s_stop_fwd = ele%value(l$)
@@ -137,7 +137,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     if (n_step == 1) zbrent_needed = .false.
 
     add_ds_safe = .true.
-    if (orb%direction*ele%orientation == 1 .and. abs(s_fringe_edge - s_stop_fwd) < ds_safe) then
+    if (orb%direction*orb%time_dir*ele%orientation == 1 .and. abs(s_fringe_edge - s_stop_fwd) < ds_safe) then
       if (ele%orientation == 1) then
         orb%location = downstream_end$
       else
@@ -145,7 +145,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       endif
       add_ds_safe = .false.
       exit_flag = .true.
-    elseif (orb%direction*ele%orientation == -1 .and. abs(s_fringe_edge) < ds_safe) then
+    elseif (orb%direction*orb%time_dir*ele%orientation == -1 .and. abs(s_fringe_edge) < ds_safe) then
       if (ele%orientation == 1) then
         orb%location = upstream_end$
       else
@@ -183,7 +183,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       ! So offset s a very tiny amount to avoid this
       if (add_ds_safe) then
         s_body = s_body + sign_of(orb%vec(6)) * ds_safe
-        orb%s = orb%s + orb%direction * ds_safe
+        orb%s = orb%s + orb%direction * orb%time_dir * ds_safe
       endif
     enddo
   endif
@@ -282,7 +282,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   if (err) return
   if (ele%key == patch$) then
     s_stop_fwd = 0  ! By convention.
-  elseif (orb%direction*ele%orientation == -1) then
+  elseif (orb%direction*orb%time_dir*ele%orientation == -1) then
     s_stop_fwd = 0
   else
     s_stop_fwd = ele%value(l$)
@@ -683,11 +683,7 @@ else
   if (s_pos > max(0.0_rp, ele%value(l$)) - s_tiny) s_pos = max(0.0_rp, ele%value(l$)) - s_tiny
 endif
 
-if (ele%key == patch$ .and. orbit%direction*ele%orientation == -1) then
-  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, print_err = print_err)
-else
-  call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, print_err = print_err)
-endif
+call em_field_calc (ele, param, s_pos, orbit, .true., field, .false., err_flag, rf_time = rf_time, print_err = print_err)
 
 if (err_flag) return
 
@@ -1198,11 +1194,11 @@ track_loop: do iteration = 1, max_iteration
   ele_now => ele
   
   ! step to next ele
-  ele => pointer_to_next_ele (ele, end_orb%direction)
+  ele => pointer_to_next_ele (ele, end_orb%direction*end_orb%time_dir)
   if (.not. associated(ele) ) exit
   
   ! Check for wrap around
-  if (end_orb%direction == -1 .and. ele%ix_ele == 0) then
+  if (end_orb%direction*end_orb%time_dir == -1 .and. ele%ix_ele == 0) then
     ! At beginning. Check that the lattice starts with a multipass element
     call multipass_chain (ele_now, ix_pass_now, n_links, chain_ele)
     call multipass_chain (ele, ix_pass, n_links)
@@ -1227,7 +1223,7 @@ track_loop: do iteration = 1, max_iteration
   endif
 
   !Place end_orb%s correctly 
-  if (end_orb%direction == +1) then
+  if (end_orb%direction*end_orb%time_dir == +1) then
     ! particle arrives at the beginning of the element
     end_orb%s        = ele%s_start
     end_orb%location = upstream_end$

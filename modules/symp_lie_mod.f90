@@ -83,7 +83,7 @@ calculate_mat6 = logic_option(.false., make_matrix)
 
 start_orb_saved = start_orb
 end_orb = start_orb
-if (end_orb%direction == 1) then
+if (end_orb%direction*end_orb%time_dir == 1) then
   end_orb%s = ele%s_start
   s = 0   ! longitudianal position
 else
@@ -102,7 +102,7 @@ endif
 
 err = .false.
 
-orient_dir = ele%orientation * end_orb%direction
+orient_dir = ele%orientation * end_orb%direction*end_orb%time_dir
 rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param%particle)
 charge_dir = rel_tracking_charge * orient_dir
 allocated_map = .false.
@@ -207,7 +207,7 @@ Case (wiggler$, undulator$)
 
     ! s half step
 
-    s = s + ds2 * end_orb%direction
+    s = s + ds2 * end_orb%direction*end_orb%time_dir
     call update_wig_s_terms(s, z_offset)
 
     ! Drift_1 = (P_x - Ax)^2 / (2 * (1 + dE))
@@ -263,7 +263,7 @@ Case (wiggler$, undulator$)
 
     ! s half step
 
-    s = s + ds2 * end_orb%direction
+    s = s + ds2 * end_orb%direction*end_orb%time_dir
     call update_wig_s_terms(s, z_offset)
 
     if (present(track)) call save_this_track_pt ()
@@ -288,7 +288,7 @@ case (lcavity$, rfcavity$)
 
     ! s half step
 
-    s = s + ds2 * end_orb%direction
+    s = s + ds2 * end_orb%direction*end_orb%time_dir
 !    call rf_drift1 (calculate_mat6)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_kick (calculate_mat6)
@@ -296,7 +296,7 @@ case (lcavity$, rfcavity$)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_drift1 (calculate_mat6)
 
-    s = s + ds2 * end_orb%direction
+    s = s + ds2 * end_orb%direction*end_orb%time_dir
 
     if (present(track)) call save_this_track_pt ()
 
@@ -334,7 +334,7 @@ case (solenoid$, quadrupole$, sol_quad$)
   ! loop over all steps
 
   do i = 1, n_step
-    s = s + ds2 * end_orb%direction
+    s = s + ds2 * end_orb%direction*end_orb%time_dir
     ks_tot_2 = (ks + dks_ds * s) / 2
 
     call bsq_drift1 (calculate_mat6)
@@ -344,7 +344,7 @@ case (solenoid$, quadrupole$, sol_quad$)
     call bsq_drift2 (calculate_mat6)
     call bsq_drift1 (calculate_mat6)
 
-    s = s + ds2 * end_orb%direction
+    s = s + ds2 * end_orb%direction*end_orb%time_dir
     ks_tot_2 = (ks + dks_ds * s) / 2
 
     if (present(track)) call save_this_track_pt ()
@@ -391,7 +391,7 @@ endif
 
 !
 
-if (end_orb%direction == 1) then
+if (end_orb%direction*end_orb%time_dir == 1) then
   end_orb%s = ele%s
 else
   end_orb%s = ele%s_start
@@ -478,7 +478,7 @@ logical do_mat6
 
 end_orb%vec(1) = end_orb%vec(1) + ds2 * end_orb%vec(2) / rel_E
 end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(2)**2 / (2*rel_E2)
-end_orb%s = end_orb%s + ds2 * end_orb%direction
+end_orb%s = end_orb%s + ds2 * end_orb%direction*end_orb%time_dir
 
 if (do_mat6) then
   mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)               * mat6(2,1:6) - (ds2*end_orb%vec(2)/rel_E2)    * mat6(6,1:6) 
