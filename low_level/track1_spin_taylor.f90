@@ -38,12 +38,19 @@ endif
 
 !
 
-orbit = start_orb
-if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, set$, orbit)
+if (start_orb%time_dir == 1) then
+  orbit = start_orb
+  if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, set$, orbit)
+  quat = track_taylor (orbit%vec, ele%spin_taylor, ele%taylor%ref)
+else
+  orbit = end_orb
+  if (.not. ele%taylor_map_includes_offsets) call offset_particle (ele, set$, orbit)
+  quat = track_taylor (orbit%vec, ele%spin_taylor, ele%taylor%ref)
+  quat = quat_inverse(quat)
+endif
 
 !
 
-quat = track_taylor (orbit%vec, ele%spin_taylor, ele%taylor%ref)
 norm = norm2(quat)
 if (abs(norm - 1) > 0.5) then
   call out_io (s_warn$, r_name, 'Norm of quaternion computed from the spin taylor map of element: ' // ele%name, &

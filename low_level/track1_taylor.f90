@@ -68,7 +68,7 @@ endif
 ! of whether the element is reversed (ele%orientation = -1) or not.
 ! If tracking backwards then need to invert the Taylor map.
 
-if (start_orb%direction /= 1) then
+if (start_orb%direction*start_orb%time_dir == -1) then
   if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
     call out_io (s_fatal$, r_name, 'CANNOT INVERT A TAYLOR MAP FOR BACKWARDS TRACKING IN AN ELEMENT WITH RF FIELDS: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
@@ -116,7 +116,7 @@ endif
 
 ! Time change of particle
 
-dtime_ref = ele%value(delta_ref_time$)
+dtime_ref = ele%value(delta_ref_time$) * end_orb%direction * end_orb%time_dir
 
 if (start2_orb%vec(6) == end_orb%vec(6) .and. ele%value(p0c$) == ele%value(p0c_start$)) then
   end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
@@ -127,7 +127,7 @@ endif
 
 !
 
-if (end_orb%direction == 1) then
+if (end_orb%direction*end_orb%time_dir == 1) then
   end_orb%s = ele%s
 else
   end_orb%s = ele%s_start
