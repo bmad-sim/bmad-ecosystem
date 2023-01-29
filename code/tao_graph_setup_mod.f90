@@ -1847,14 +1847,14 @@ case ('aperture')
       call re_allocate (y_arr, 2*size(y_arr))
     endif    
 
-    if (at_this_ele_end(physical_ele_end(first_track_edge$, 1, ele%orientation), ele%aperture_at)) then
+    if (at_this_ele_end(physical_ele_end(first_track_edge$, coord_struct(), ele%orientation), ele%aperture_at)) then
       ir = ir + 1
       y_arr(ir) = limit
       xx_arr(ir) = i - 1 
       x_arr(ir) = ele%s_start
     endif
 
-    if (at_this_ele_end(physical_ele_end(second_track_edge$, 1, ele%orientation), ele%aperture_at)) then
+    if (at_this_ele_end(physical_ele_end(second_track_edge$, coord_struct(), ele%orientation), ele%aperture_at)) then
       ir = ir + 1
       y_arr(ir) = limit
       xx_arr(ir) = i
