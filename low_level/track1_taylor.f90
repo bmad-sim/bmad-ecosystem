@@ -68,12 +68,13 @@ endif
 ! of whether the element is reversed (ele%orientation = -1) or not.
 ! If tracking backwards then need to invert the Taylor map.
 
+if (start_orb%direction == -1 .and. (ele%key == rfcavity$ .or. ele%key == lcavity$ .or. ele%key == crab_cavity$)) then
+  call out_io (s_fatal$, r_name, 'CANNOT INVERT A TAYLOR MAP FOR BACKWARDS TRACKING IN AN ELEMENT WITH RF FIELDS: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
 if (start_orb%direction*start_orb%time_dir == -1) then
-  if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
-    call out_io (s_fatal$, r_name, 'CANNOT INVERT A TAYLOR MAP FOR BACKWARDS TRACKING IN AN ELEMENT WITH RF FIELDS: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
   call taylor_inverse (taylor_ptr, taylor2)
   taylor_ptr => taylor2
 endif

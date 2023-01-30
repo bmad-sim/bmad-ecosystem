@@ -55,7 +55,7 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, el
 
 !
 
-length = ele%value(l$)
+length = ele%value(l$) * orbit%time_dir
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 n_slice = max(1, nint(length / ele%value(ds_step$))) 
 dt_ref = length / (c_light * beta_ref)
@@ -105,7 +105,7 @@ do i = 0, n_slice
     mat6(5:6, :) = matmul(m2, mat6(5:6, :))
   endif
 
-  dE = voltage * sin(phase) / n_slice
+  dE = orbit%time_dir * voltage * sin(phase) / n_slice
   if (i == 0 .or. i == n_slice) dE = dE / 2
 
   call apply_energy_kick (dE, orbit, [0.0_rp, 0.0_rp])
