@@ -147,10 +147,17 @@ real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
 integer dir
 integer j, k, n, n_pts
 
-!
+! Only integrate over where the field is finite.
+! This will be the whole element except for RF cavities.
 
-s0 = (0             + bmad_com%significant_length/10)
-s1 = (ele%value(l$) - bmad_com%significant_length/10)
+select case (ele%key)
+case (rfcavity$, lcavity$)
+  s0 = (ele%value(l$) - ele%value(l_active$)) / 2 + bmad_com%significant_length/10
+  s1 = (ele%value(l$) + ele%value(l_active$)) / 2 - bmad_com%significant_length/10
+case default
+  s0 = 0             + bmad_com%significant_length/10
+  s1 = ele%value(l$) - bmad_com%significant_length/10
+end select
 
 q_array(1)%h = 1
 z(0)%omega = omega_func(s0, dir, spline_x, spline_y, start_orb, end_orb, ele, param)
