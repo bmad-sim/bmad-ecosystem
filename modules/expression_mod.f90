@@ -4,10 +4,6 @@ use bmad_struct
 
 implicit none
 
-integer, parameter :: expression_eval_level(56) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-              9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
-              9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
-
 private pushit
 
 contains
