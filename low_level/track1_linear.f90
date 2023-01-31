@@ -28,9 +28,10 @@ type (lat_param_struct) :: param
 real(rp) dtime_ref, mat6(6,6), vec(6)
 character(*), parameter :: r_name = 'track1_linear'
 
-! If ele%mat6 is out-of-date must recompute this first
+! If ele%mat6 is out-of-date must recompute this first.
+! Note: A match element does not have a static_linear_map attrib.
 
-if (ele%bookkeeping_state%mat6 /= ok$ .and. is_false(ele%value(static_linear_map$))) then
+if (ele%bookkeeping_state%mat6 /= ok$ .and. (is_false(ele%value(static_linear_map$)) .or. ele%key == match$)) then
   if (ele%mat6_calc_method == tracking$) then
     call out_io(s_error$, r_name, 'MAT6_CALC_METHOD = TRACKING INCOMPATIBLE WITH TRACKING METHOD = LINEAR.', &
                                   'FOR ELEMENT: ' // ele_full_name(ele))

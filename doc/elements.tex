@@ -3154,9 +3154,9 @@ there will be a phase advance through the match element that is set by \vn{dphi_
 for the $a$ and $b$ modes respectively.
 
 If the \vn{phase_trombone} is set True, when running a program, the \bmad bookkeeping code will
-set the values of \vn{beta_a0}, \vn{beta_a1}, \vn{alpha_b0}, etc. appropriately the phase trombone 
-matrix will be calculated. The \bmad bookkeeping code will then set \vn{phase_trombone} to False to
-freeze the transfer matrix against change if the parameters in the lattice are varied.
+appropriately set the values of \vn{beta_a0}, \vn{beta_a1}, \vn{alpha_b0}, etc. to match the desired
+transfer matrix. The \bmad bookkeeping code will then set \vn{phase_trombone} to False to freeze the
+transfer matrix against change if the parameters in the lattice are varied.
 
 When a lattice is read in, the \vn{phase_trombone_input} attribute is set by \bmad to be equal to
 \vn{phase_trombone}. This attribute does not affect any computations and is not settable by the

@@ -189,7 +189,7 @@ if (ele%multipoles_on .and. associated(a_pole)) then
   call convert_this_ab (ele, p_type, a_pole, b_pole, a, b)
 endif
 
-call this_ele_non_multipoles (ele, a_kick, b_kick)
+call this_ele_non_multipoles (ele, can_use_cache, a_kick, b_kick)
 
 ix_pole_max = max_nonzero(0, a, b)
 if (can_use_cache) call load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
@@ -207,12 +207,14 @@ if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
 !---------------------------------------------
 contains
 
-subroutine this_ele_non_multipoles (ele, a_kick, b_kick)
+subroutine this_ele_non_multipoles (ele, can_use_cache, a_kick, b_kick)
 
 type (ele_struct) ele
 
 real(rp) a_kick(0:3), b_kick(0:3)
 real(rp) an, bn, hk, vk, tilt, sin_t, cos_t
+
+logical can_use_cache
 
 ! Express non-multipoles in element body frame.
 
