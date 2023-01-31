@@ -214,6 +214,9 @@ parameter[ptc_exact_model] = .false.
 
 use, ring
 
+! This lattice has a negative momentum compaction factor and strong sextupoles creating two closed orbits.
+! This is problematical for the regression test so to get around this the sextupole strengths are reduced.
 
+sextupole::*[k2] = 0.5 * %[k2]
 
 
