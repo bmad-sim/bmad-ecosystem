@@ -312,7 +312,7 @@ case (bmad_standard$)
 
     ! The crab cavity is modeled as a TM110 traveling wave mode
     if (ele%value(l$) /= 0) then
-      voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(orbit, ele%ref_species)
+      voltage = e_accel_field(ele, voltage$) / ref_charge
       k_rf = twopi * ele%value(rf_frequency$) / c_light
       if (present(rf_time)) then
         time = rf_time

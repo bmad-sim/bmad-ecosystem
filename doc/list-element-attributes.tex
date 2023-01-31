@@ -14,7 +14,7 @@ internal reference number is:
  \label{s:list.!ptc.com}
  
  \begin{tabular}{llll} \toprule
-exact_misalign                   & max_fringe_order                 & vertical_kick [???]              &                                  \\
+exact_misalign                   & max_fringe_order                 & vertical_kick                    &                                  \\
 exact_model                      & old_integrator                   &                                  &                                  \\
  \bottomrule
  \end{tabular}
@@ -98,7 +98,7 @@ charge                           & is_on                            & superimpos
 cmat_11                          & ks [1/m]                         & symplectify                      & y_offset_tot [m]                 \\
 cmat_12                          & l [m]                            & tilt [rad]                       & y_pitch                          \\
 cmat_21                          & mat6_calc_method                 & tilt_tot [rad]                   & y_pitch_tot                      \\
-cmat_22                          & n_particle [???]                 & tracking_method                  & z_crossing [???]                 \\
+cmat_22                          & n_particle                       & tracking_method                  & z_crossing [m]                   \\
 crab_tilt [rad]                  & n_slice                          & type                             & z_offset [m]                     \\
 crab_x1                          & offset [m]                       & wall                             & z_offset_tot [m]                 \\
 crab_x2 [1/m]                    & offset_moves_aperture            & wrap_superimpose                 &                                  \\
@@ -947,10 +947,10 @@ geometry                         & machine                          & photon_typ
  \label{s:list.particle.start}
  
  \begin{tabular}{llll} \toprule
-direction                        & field_y                          & sig_pz                           & x [m]                            \\
-e_photon [eV]                    & phase_x [rad]                    & sig_z [m]                        & y [m]                            \\
-emittance_a [m*rad]              & phase_y [rad]                    & spin_x                           & z [m]                            \\
-emittance_b [m*rad]              & px                               & spin_y                           &                                  \\
+direction                        & field_y                          & sig_pz                           & time_dir                         \\
+e_photon [eV]                    & phase_x [rad]                    & sig_z [m]                        & x [m]                            \\
+emittance_a [m*rad]              & phase_y [rad]                    & spin_x                           & y [m]                            \\
+emittance_b [m*rad]              & px                               & spin_y                           & z [m]                            \\
 emittance_z [m*rad]              & py                               & spin_z                           &                                  \\
 field_x                          & pz                               & t [sec]                          &                                  \\
  \bottomrule

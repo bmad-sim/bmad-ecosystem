@@ -1139,7 +1139,7 @@ end type
 
 type bunch_track_struct
   type (bunch_params_struct), allocatable :: pt(:)     ! Array indexed from 0
-  real(rp) :: ds_save = 1d-2                           ! Min distance between points/
+  real(rp) :: ds_save = 1d-2                           ! Min distance between points.
   real(rp) :: max_ds_save = -1                         ! Max distance between points.
   integer :: n_pt = -1                                 ! Track upper bound
 end type

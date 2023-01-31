@@ -1112,9 +1112,9 @@ The attributes specific to an \vn{crab_cavity} are
 
 The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is\cite{b:crab1}:
 \begin{equation}
-  H_{\text{crab}} = -q_{rel} \, V\, x \, \sin(k \, t + 2 \, \pi \, \phi_0)
+  H_{\text{crab}} = -r_q \, V\, x \, \sin(k \, t + 2 \, \pi \, \phi_0)
 \end{equation}
-where $x$ and $z$ are particle coordinates, $q_{rel}$ is the charge relative to the reference
+where $x$ and $z$ are particle coordinates, $r_q$ is the charge relative to the reference
 particle, $V$ is the ``effective'' cavity voltage, $\phi_0$ is a user settable
 phase, and $k$ is the wave number
 \begin{equation}
@@ -1123,13 +1123,18 @@ phase, and $k$ is the wave number
 Which give kicks of
 \begin{align} 
   \Delta p_x &= -\frac{1}{c \, P_0} \, \frac{\partial H_{\text{crab}}}{\partial x} = 
-    \frac{q_{rel} \, V}{c \, P_0} \, \sin(k \, t + 2 \, \pi \, \phi_0) \CRNO 
+    \frac{r_q \, V}{c \, P_0} \, \sin(k \, t + 2 \, \pi \, \phi_0) \CRNO 
   \Delta E &= -\frac{\partial H_{\text{crab}}}{\partial t} = 
-    q_{rel} \, V \, \, k \, x \, \cos(k \, t + 2 \, \pi \, \phi_0) 
+    r_q \, V \, \, k \, x \, \cos(k \, t + 2 \, \pi \, \phi_0) 
 \end{align} 
 Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not standardized. \bmad
 uses the convention such that a particle with the charge of the reference particle and with $z$ and
 $V$ positive will have a positive $\Delta p_x$.
+
+In the above equations $r_q$ is the relative charge between the reference particle (set by the
+\vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
+cavity. For example, if the reference particle and and the tracked particle are the same, $r_q$ is
+unity independent of the type of particle tracked.
 
 The equations of motion can also be derived from analysis of a TM110 cavity mode for particles near
 the centerline\cite{b:kim}. With this mode, the transverse kick is due to the magnetic field and the
@@ -2770,7 +2775,7 @@ The dependent variable \vn{voltage} attribute can be used in place of \vn{gradie
 
 The energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = q_{rel} * gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_t\) + \(\phi_\REF\)))
+  dE = \(r_q\) * gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_t\) + \(\phi_\REF\)))
 \end{example}
 where \vn{q_rel} is the charge of the particle relative to the charge of the reference particle.
 \index{multipass}
@@ -2785,6 +2790,11 @@ whether \vn{absolute time tracking} or \vn{relative time tracking} is being used
   \(\phi_\REF\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
   \label{lcav.phi}
 \end{example}
+
+In the above equation $r_q$ is the relative charge between the reference particle (set by the
+\vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
+cavity. For example, if the reference particle and and the tracked particle are the same, $r_q$ is
+unity independent of the type of particle tracked.
 
 \vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
 pass. See \sref{s:multipass}.
@@ -2816,8 +2826,9 @@ constant.  The energy kick is then
   dE(with wake) = dE + e_loss * n_part * e_charge 
 \end{example}
 \vn{n_part} is set using the \vn{parameter} statement (\sref{s:param}) and represents the number of
-particles in a bunch. \vn{e_charge} is the charge on an electron (Table~\ref{t:constants}). Notice
-that the \vn{e_loss} term is independent of the sign of the charge of the particle.
+particles in a bunch. \vn{e_charge} is the magnitude of the charge on an electron
+(Table~\ref{t:constants}). Notice that the \vn{e_loss} term is independent of the sign of the charge
+of the particle.
 
 The \vn{cavity_type} is the type of cavity being simulated. Possible
 settings are:
@@ -4130,7 +4141,7 @@ Attributes specific to an \vn{rfcavity} are:
 
 The integrated energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = -e_charge * voltage * sin(\(2\,\pi\) * (\(\phi_\text{t}\) - \(\phi_\REF\)))
+  dE = -e_charge * \(r_q\) * voltage * sin(\(2\,\pi\) * (\(\phi_\text{t}\) - \(\phi_\REF\)))
 \end{example}
 \index{multipass}
 where
@@ -4142,6 +4153,11 @@ and $\phi_t$ is the part of the phase due to when the particle arrives at the ca
 upon whether \vn{absolute time tracking} or \vn{relative time tracking} is being used as discussed
 in \sref{s:rf.time}.
 
+In the above equation $r_q$ is the relative charge between the reference particle (set by the
+\vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
+cavity. For example, if the reference particle and and the tracked particle are the same, $r_q$ is
+unity independent of the type of particle tracked.
+
 The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attribute of
 \mad is
 \begin{example}
@@ -4149,8 +4165,9 @@ The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attrib
 \end{example}
 
 \vn{phi0_multipass} is only to be used to shift the phase with respect to a \vn{multipass} lord. See
-\sref{s:multipass}. \vn{e_charge} is the charge on an electron (Table~\ref{t:constants}). Notice
-that the energy kick is independent of the sign of the charge of the particle
+\sref{s:multipass}. \vn{e_charge} is the magnitude of the charge on an electron
+(Table~\ref{t:constants}). Notice that the energy kick is independent of the sign of the charge of
+the particle
 
 \vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale module. See
 Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
