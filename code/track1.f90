@@ -168,17 +168,17 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
 
 call check_aperture_limit (start2_orb, ele, first_track_edge$, param)
 
-if (start2_orb%state /= alive$) then
-  end_orb = start2_orb
-  if (present(err_flag)) err_flag = .false.
-  return
-endif
-
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
                                            .not. radiation_included .and. ele%is_on .and. do_extra) then
   call track1_radiation (start2_orb, ele, start_edge$) 
+endif
+
+if (start2_orb%state /= alive$) then
+  end_orb = start2_orb
+  if (present(err_flag)) err_flag = .false.
+  return
 endif
 
 ! bmad_standard handles the case when the element is turned off.

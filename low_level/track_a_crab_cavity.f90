@@ -34,6 +34,9 @@ integer i, n_slice, orientation
 integer ix_mag_max, ix_elec_max
 
 logical, optional :: make_matrix
+logical err
+
+character(*), parameter :: r_name = 'track_a_crab_cavity'
 
 !
 
@@ -77,7 +80,12 @@ do i = 1, n_slice
 
   E_old = orbit%p0c * (1.0_rp + orbit%vec(6)) / beta_old
   E_new = E_old + voltage * cos(phase) * k_rf * orbit%vec(1) * orbit%p0c
-  call convert_total_energy_to (E_new, orbit%species, beta = orbit%beta, pc = pc)
+  call convert_total_energy_to (E_new, orbit%species, beta = orbit%beta, pc = pc, err_flag = err, print_err = .false.)
+  if (err) then
+    orbit%state = lost_pz_aperture$
+    return
+  endif
+
   orbit%vec(6) = (pc - orbit%p0c) / orbit%p0c
 
   if (logic_option(.false., make_matrix)) then

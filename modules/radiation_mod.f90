@@ -109,6 +109,13 @@ if (bmad_com%radiation_fluctuations_on) then
   orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%stoc_mat, ran6)
 endif
 
+!
+
+if (orbit%vec(6) < -1.0_rp) then
+  call out_io (s_warn$, r_name, 'Particle is kaput due to radiation loss!')
+  orbit%state = lost_pz_aperture$
+endif
+
 ! Sokolov-Ternov Spin flip
 ! The equation is not correct
 
