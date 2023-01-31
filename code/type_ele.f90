@@ -1037,7 +1037,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       endif
 
       if (allocated(ele%control%x_knot)) then
-        nl=nl+1; write (li(nl), '(a)') 'Interpolation = ' // trim(interpolation_name(ele%value(interpolation$)))
+        nl=nl+1; write (li(nl), '(a)') 'Interpolation = ' // trim(interpolation_name(nint(ele%value(interpolation$))))
       endif
 
       nl=nl+1; li(nl) = ' Ele_Loc   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression'
