@@ -158,7 +158,9 @@ The following intrinsic functions are also recognized (this is the same list as 
   \vn{ceiling(x)}             & Nearest integer greater than x \\
   \vn{average(arr)}           & Average value of an array      \\
   \vn{rms(arr)}               & RMS value of an array          \\
-  \vn{sum(arr)}               & Sum of array values.
+  \vn{sum(arr)}               & Sum of array values.           \\
+  \vn{min(arr)}               & Minimum of array values.       \\
+  \vn{max(arr)}               & Maximum of array values.
 \end{tabular} \newline
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator.  Setting the seed is
 described in Section~\sref{s:globals}.
@@ -174,6 +176,7 @@ When using vectors with binary operators or intrinsic functions, the standard ru
   [a, b, c] - [x, y, z] = [a-x, b-y, c-z]
   tan([a, b, c])        = [tan(a), tan(b), tan(c)]
   sum([a, b, c])        = a+b+c
+  min(a, b, c)          ! Error: Correct is min([a, b, c])
 \end{example}
 Note that \tao does not make a distinction between a scalar and a vector of length one.
 
