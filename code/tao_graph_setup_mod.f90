@@ -1963,8 +1963,12 @@ case ('s')
   ! Smooth curves using expressions...
 
   if (smooth_curve) then
-    ! allocate data space
+    ! Allocate data space. 
+    ! Tracking is problematical if the step size is less than significant_length so adjust if needed.
 
+    n = curve%ix_branch
+    n_curve_pts = nint(min(1.0_rp*n_curve_pts, &
+                        2+0.1_rp*u%model%lat%branch(n)%param%total_length/bmad_com%significant_length))
     call re_allocate (curve%y_line, n_curve_pts) 
     call re_allocate (curve%x_line, n_curve_pts)
     call re_allocate (good, n_curve_pts) 

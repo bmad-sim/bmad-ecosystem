@@ -848,6 +848,7 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     n = int(100 * (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4)))) + &
                       int(ele%value(num_steps$)) + 1
     n = min(n, ubound(dx_orbit, 1))
+    n = nint(min(1.0*n, 1 + 0.1 * ele%value(l$) / bmad_com%significant_length))
     do ic = 0, n
       s_here = ic * ele%value(l$) / n
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
