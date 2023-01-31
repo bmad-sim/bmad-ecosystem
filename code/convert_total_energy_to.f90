@@ -1,5 +1,5 @@
 !+ 
-! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag)
+! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag, print_err)
 !
 ! Routine to calculate the momentum, etc. from a particle's total energy.
 !
