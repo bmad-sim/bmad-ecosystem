@@ -4655,6 +4655,8 @@ parsing_loop: do
       case ('atanh');           call push_op_stack (op, i_op, atanh$)
       case ('acoth');           call push_op_stack (op, i_op, acoth$)
       case ('abs');             call push_op_stack (op, i_op, abs$)
+      case ('min');             call push_op_stack (op, i_op, min$)
+      case ('max');             call push_op_stack (op, i_op, max$)
       case ('rms');             call push_op_stack (op, i_op, rms$)
       case ('average', 'mean'); call push_op_stack (op, i_op, average$)
       case ('sum');             call push_op_stack (op, i_op, sum$)
@@ -5459,7 +5461,9 @@ n_size = max(1, n_size_in)
 do i = 1, size(stack)
   ss => stack(i)
 
-  if (ss%type == average$ .or. ss%type == sum$ .or. ss%type == rms$) n_size = 1
+  select case (ss%type)
+  case (average$, sum$, rms$, min$, max$); n_size = 1
+  end select
 
   if (allocated(ss%value)) then
     if (size(ss%value) > 1 .and. n_size > 1 .and. size(ss%value) /= n_size) then
@@ -5692,8 +5696,12 @@ do i = 1, size(stack)
     info(1)%good = any(info%good)
     call tao_re_allocate_expression_info(info, 1)
 
-  case (sum$)
-    stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good)
+  case (sum$, min$, max$)
+    select case (stack(i)%type)
+    case (sum$); stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good)
+    case (min$); stk2(i2)%value(1) = minval(stk2(i2)%value, mask = info%good)
+    case (max$); stk2(i2)%value(1) = maxval(stk2(i2)%value, mask = info%good)
+    end select
     call re_allocate(stk2(i2)%value, 1)
     info(1)%good = .true.
     call tao_re_allocate_expression_info(info, 1)
