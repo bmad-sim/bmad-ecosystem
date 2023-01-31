@@ -61,17 +61,22 @@ integer which
 !
 
 call bmad_parser(lat_file, lat)
+n = lat%n_ele_track
 
 if (which == 2) then
   call closed_orbit_calc(lat, orb, 6)
   call lat_make_mat6(lat, -1, orb)
   call twiss_at_start(lat)
   write (1, '(3a, i0, a, t35, a, t50, f12.8)') '"', trim(lat_file), '-', which,  '-A Z"', 'ABS 5E-8', orb(0)%vec(5)
+!  print '(3a, i0, a, t35, a, t50, 6f12.8)', '"', trim(lat_file), '-', which,  '-A Vec" ', 'ABS 5E-8', orb(0)%vec
+!  print '(3a, i0, a, t35, a, t50, 6f12.8)', '"', trim(lat_file), '-', which,  '-A dVec"', 'ABS 5E-8', orb(n)%vec - orb(0)%vec
   deallocate(orb)
 endif
 
 call closed_orbit_calc(lat, orb, 6)
 write (1, '(3a, i0, a, t35, a, t50, f12.8)') '"', trim(lat_file), '-', which,  '-B Z"', 'ABS 5E-8', orb(0)%vec(5)
+!print '(3a, i0, a, t35, a, t50, 6f12.8)', '"', trim(lat_file), '-', which,  '-B Vec" ', 'ABS 5E-8', orb(0)%vec
+!print '(3a, i0, a, t35, a, t50, 6f12.8)', '"', trim(lat_file), '-', which,  '-B dVec"', 'ABS 5E-8', orb(n)%vec - orb(0)%vec
 call lat_make_mat6(lat, -1, orb)
 call twiss_at_start(lat)
 call twiss_propagate_all(lat)
