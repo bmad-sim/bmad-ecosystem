@@ -1061,7 +1061,15 @@ The \vn{mass_of}, \vn{charge_of}, and \vn{anomalous_moment_of} functions give th
 The \vn{species} function is needed in the definition of \vn{my_particle} in the above example so
 that \bmad knows that the string ``He++'' represents a type of particle. Inside functions like
 \vn{mass_of}, the use of \vn{species} is optional since, in this case, \bmad can correctly parse the
-argument.
+argument. 
+
+The value returned by the \vn{mass_of} function accounts for the ionization state of a particle in
+that there is a correction for the change in the number of electrons a particle has.  Thus the
+values of \vn{mass_of{\#3He}} will be heavier than \vn{mass_of{\#3He++}} by two electron masses.
+This correction only involves multiples of the electron mass and variations in the particle mass due
+to electron binding energies is not accounted for. These binding energy corrections are generally
+very small. If the isotopic state is not specified for an atom, the average weighted by the natural
+abundance is used.
 
 %-----------------------------------------------------------------------------
 \section{Statement Order}
