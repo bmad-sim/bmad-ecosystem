@@ -2470,6 +2470,7 @@ end function is_attribute
 ! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
+! Note: Ramper lords do not have any associated slaves (slaves are assigned dynamically at run time).
 !
 ! If field_overlap_ptr = False (default), the range for ix_slave is:
 !   1 to lord%n_slave                                 for "regular" slaves.

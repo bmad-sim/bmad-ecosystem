@@ -1120,7 +1120,7 @@ function linear_coef (stack, err_flag) result (coef)
 type (expression_atom_struct) stack(:)
 
 real(rp) coef
-logical, optional :: err_flag
+logical :: err_flag
 
 integer i, i0, i1, n
 
