@@ -378,8 +378,9 @@ class BuildController(threading.Thread):
                 else:
                     repo_address = build_config.repository_addresses[reponame]
                     localdir = os.path.split(dir)[1]
-                    checkout_command = 'svn -r ' + str(revision) + ' co ' + repo_address + \
-                                   dir + ' ' + self.full_release_dir + '/' + localdir
+                    # Added klist commands to timestamp SVN access, as per RT#65510
+                    checkout_command = 'klist -A ; svn -r ' + str(revision) + ' co ' + repo_address + \
+                                   dir + ' ' + self.full_release_dir + '/' + localdir + ' ; klist -A '
 
                 self.log.write('Checkout command: [' + checkout_command + ']\n')
                 
