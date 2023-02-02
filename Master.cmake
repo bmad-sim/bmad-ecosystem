@@ -491,9 +491,11 @@ SET (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
 # that requires that library while leaving the local souce tree and include files intact.
 # This new build will then perform the divergent action of linking against the release library
 # but extracting constants and other header information from the LOCAL source tree.  
+#
+# Moved X11_INCLUDE_DIR to end of include PATH flags, as per RT#65425 and GitHub Issue #315
+# for Bmad - https://github.com/DavidSagan/Bmad/issues/315
 
 SET (MASTER_INC_DIRS
-  ${X11_INCLUDE_DIR}
   ${INC_DIRS}
   ${OUTPUT_BASEDIR}/include
   ${ROOT_INC}
@@ -501,6 +503,7 @@ SET (MASTER_INC_DIRS
   ${RELEASE_OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/include
   ${ACC_INC_DIRS}
+  ${X11_INCLUDE_DIR}
 )
 
 # If not building a distribution, include the include directories which are not part 
