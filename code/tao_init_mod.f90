@@ -372,9 +372,8 @@ bb%beam_init = beam_init
 bb%track_start = track_start
 
 tao_branch => u%model%tao_branch(ele%ix_branch) 
-if (.not. allocated(tao_branch%bunch_params_comb)) allocate(tao_branch%bunch_params_comb(beam_init%n_bunch))
-tao_branch%bunch_params_comb%ds_save = comb_ds_save
-tao_branch%bunch_params_comb%max_ds_save = comb_max_ds_save
+tao_branch%comb_ds_save = comb_ds_save
+!! tao_branch%max_ds_save = comb_max_ds_save  ! Note: Not yet implemented
 
 ! Tracking stop
 
