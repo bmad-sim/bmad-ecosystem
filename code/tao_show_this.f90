@@ -405,7 +405,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt)  'saved_at          = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), amt)  'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt)  'dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: -1 => Use lat_branch_length/plot_page%n_curve_pts'
+    nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: -1 => Use (latice branch length)/plot_page%n_curve_pts'
 !!!!    nl=nl+1; write(lines(nl), rmt) 'comb_max_ds_save  = ', tao_branch%bunch_params_comb(1)%max_ds_save
     nl=nl+1; write(lines(nl), fmt)  'track_start       = ', quote(bb%track_start)
     nl=nl+1; write(lines(nl), fmt)  'track_end         = ', quote(bb%track_end)
