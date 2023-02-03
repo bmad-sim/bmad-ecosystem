@@ -39,7 +39,7 @@ sum_y  = 0.0
 sum_xy = 0.0
 sum_x2 = 0.0
 sum_y2 = 0.0
-
+print *,' linear fit ',n_data,x(1),x(2)
 do n = 1, n_data
   sum_x  = sum_x  + x(n)
   sum_y  = sum_y  + y(n)
