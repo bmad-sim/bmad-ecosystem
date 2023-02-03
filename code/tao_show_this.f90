@@ -163,7 +163,7 @@ character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_show
 character(24) :: var_name, blank_str = '', phase_units_str, val_str
-character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, irmt, iimt
+character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, rmt3, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name, param_name, uni_str
 character(40) replacement_for_blank, component
 character(60) nam, attrib_list(20), attrib
@@ -206,6 +206,7 @@ nl = 0
 
 rmt  = '(a, 9es16.8)'
 rmt2 = '(a, es16.8, t40, es16.8)'
+rmt3 = '(a, es16.8, 10a)'
 f3mt = '(a, 9(f0.3, 2x))'
 irmt = '(a, i0, a, es16.8)'
 imt  = '(a, 9(i0, 2x))'
@@ -400,15 +401,14 @@ case ('beam')
     fmt = '(3a, i0, a)'
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'General beam components (set by "set beam ..."):'
-    nl=nl+1; write(lines(nl), lmt) 'always_reinit     = ', u%beam%always_reinit
-    nl=nl+1; write(lines(nl), amt) 'saved_at          = ', quote(u%beam%saved_at)
-    nl=nl+1; write(lines(nl), amt) 'dump_at           = ', quote(u%beam%dump_at)
-    nl=nl+1; write(lines(nl), amt) 'dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), rmt) 'comb_ds_save      = ', tao_branch%bunch_params_comb(1)%ds_save
-    nl=nl+1; write(lines(nl), rmt) 'comb_max_ds_save  = ', tao_branch%bunch_params_comb(1)%max_ds_save
-    nl=nl+1; write(lines(nl), imt) 'comb index range:   ', 0, tao_branch%bunch_params_comb(1)%n_pt
-    nl=nl+1; write(lines(nl), fmt) 'track_start       = ', quote(bb%track_start)
-    nl=nl+1; write(lines(nl), fmt) 'track_end         = ', quote(bb%track_end)
+    nl=nl+1; write(lines(nl), lmt)  'always_reinit     = ', u%beam%always_reinit
+    nl=nl+1; write(lines(nl), amt)  'saved_at          = ', quote(u%beam%saved_at)
+    nl=nl+1; write(lines(nl), amt)  'dump_at           = ', quote(u%beam%dump_at)
+    nl=nl+1; write(lines(nl), amt)  'dump_file         = ', quote(u%beam%dump_file)
+    nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: -1 => Use lat_branch_length/plot_page%n_curve_pts'
+!!!!    nl=nl+1; write(lines(nl), rmt) 'comb_max_ds_save  = ', tao_branch%bunch_params_comb(1)%max_ds_save
+    nl=nl+1; write(lines(nl), fmt)  'track_start       = ', quote(bb%track_start)
+    nl=nl+1; write(lines(nl), fmt)  'track_end         = ', quote(bb%track_end)
 
     beam => u%model_branch(0)%ele(bb%ix_track_start)%beam
     if (allocated(beam%bunch)) then
@@ -439,9 +439,10 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
       nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
     endif
-    nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
-    nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
-    nl=nl+1; write(lines(nl), rmt) '  %bunch_charge           = ', beam_init%bunch_charge
+    nl=nl+1; write(lines(nl), rmt)  '  %center_jitter          = ', beam_init%center_jitter
+    nl=nl+1; write(lines(nl), imt)  '  %n_particle             = ', beam_init%n_particle
+    nl=nl+1; write(lines(nl), imt2) '  %n_bunch                = ', beam_init%n_bunch, '! Note: 0 => Create one bunch if not reading from a file'
+    nl=nl+1; write(lines(nl), rmt)  '  %bunch_charge           = ', beam_init%bunch_charge
     if (u%model%lat%branch(0)%param%particle == photon$) then
       nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit
       nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit

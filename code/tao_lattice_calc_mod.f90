@@ -436,13 +436,19 @@ tao_branch%bunch_params(:)%n_particle_live = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
 tao_branch%bunch_params(:)%twiss_valid = .false.
 
-bunch_params_comb => tao_branch%bunch_params_comb
-if (bunch_params_comb(1)%ds_save == 0) then
-  call out_io (s_error$, r_name, 'COMB_DS_SAVE MUST BE NON-ZERO. SETTING TO 0.01 METER.')
-  bunch_params_comb(1)%ds_save = 0.01
+if (tao_branch%comb_ds_save == 0) then
+  call out_io (s_error$, r_name, 'COMB_DS_SAVE MUST BE NON-ZERO.')
 endif
-ds_save = minval(bunch_params_comb(:)%ds_save)
+
+if (tao_branch%comb_ds_save > 0) then
+  ds_save = tao_branch%comb_ds_save
+else
+  ds_save = branch%param%total_length / s%plot_page%n_curve_pts
+endif
+
 comb_calc_on = (ds_save >= 0)
+bunch_params_comb => tao_branch%bunch_params_comb
+bunch_params_comb%ds_save = ds_save
 bunch_params_comb%n_pt = -1  ! Reset tracks
 
 

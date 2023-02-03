@@ -775,45 +775,45 @@ end type
 ! Initialization parameters
 
 type tao_init_struct
-  logical :: parse_cmd_args = .true.               ! Used by custom programs to control Tao init
-  logical :: debug_switch = .false.                ! Is the "-debug" switch present?
-  logical :: external_plotting_switch = .false.    ! Is "-external_plotting" switch present?
-  character(16) :: init_name = 'Tao'               ! label for initialization
-  character(200) :: hook_init_file = ''            ! 
-  character(200) :: hook_lat_file = ''             ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_beam_file = ''            ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_data_file = ''            ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_plot_file = ''            ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_startup_file = ''         ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_var_file = ''             ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_building_wall_file = ''   ! To be set by tao_hook_parse_command_args
-  character(200) :: init_file_arg_path = ''        ! Path part of init_tao_file
-  character(200) :: lattice_file_arg = ''          ! -lattice_file        command line argument.
-  character(200) :: hook_init_file_arg = ''        ! -hook_init_file      command line argument
-  character(200) :: init_file_arg = ''             ! -init_file           command line argument.
-  character(200) :: beam_file_arg = ''             ! -beam_file           command line argument.
+  logical :: parse_cmd_args = .true.                 ! Used by custom programs to control Tao init
+  logical :: debug_switch = .false.                  ! Is the "-debug" switch present?
+  logical :: external_plotting_switch = .false.      ! Is "-external_plotting" switch present?
+  character(16) :: init_name = 'Tao'                 ! label for initialization
+  character(200) :: hook_init_file = ''              ! 
+  character(200) :: hook_lat_file = ''               ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_beam_file = ''              ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_data_file = ''              ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_plot_file = ''              ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_startup_file = ''           ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_var_file = ''               ! To be set by tao_hook_parse_command_args
+  character(200) :: hook_building_wall_file = ''     ! To be set by tao_hook_parse_command_args
+  character(200) :: init_file_arg_path = ''          ! Path part of init_tao_file
+  character(200) :: lattice_file_arg = ''            ! -lattice_file        command line argument.
+  character(200) :: hook_init_file_arg = ''          ! -hook_init_file      command line argument
+  character(200) :: init_file_arg = ''               ! -init_file           command line argument.
+  character(200) :: beam_file_arg = ''               ! -beam_file           command line argument.
   character(200) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
-  character(500) :: command_arg = ''               ! -command             command line argument.
-  character(200) :: data_file_arg = ''             ! -data_file           command line argument.
-  character(200) :: plot_file_arg = ''             ! -plot_file           command line argument.
-  character(200) :: startup_file_arg = ''          ! -startup_file        command line argument.
-  character(200) :: var_file_arg = ''              ! -var_file            command line argument.
-  character(200) :: building_wall_file_arg = ''    ! -building_wall_file  command line argument.
-  character(16) :: geometry_arg = ''               ! -geometry            command line argument.
-  character(80) :: slice_lattice_arg = ''          ! -slice_lattice       command line argument.
-  character(40) :: start_branch_at_arg = ''        ! -start_branch_at     command line argument.
-  character(12) :: log_startup_arg = ''            ! -log_startup         command line argument
-  character(12) :: no_stopping_arg = ''            ! -no_stopping         command line argument
-  character(12) :: noplot_arg = ''                 ! -noplot              command line argument
-  character(12) :: no_rad_int_arg = ''             ! -no_rad_int          command line argument
-  character(12) :: debug_arg = ''                  ! -debug               command line argument
+  character(500) :: command_arg = ''                 ! -command             command line argument.
+  character(200) :: data_file_arg = ''               ! -data_file           command line argument.
+  character(200) :: plot_file_arg = ''               ! -plot_file           command line argument.
+  character(200) :: startup_file_arg = ''            ! -startup_file        command line argument.
+  character(200) :: var_file_arg = ''                ! -var_file            command line argument.
+  character(200) :: building_wall_file_arg = ''      ! -building_wall_file  command line argument.
+  character(16) :: geometry_arg = ''                 ! -geometry            command line argument.
+  character(80) :: slice_lattice_arg = ''            ! -slice_lattice       command line argument.
+  character(40) :: start_branch_at_arg = ''          ! -start_branch_at     command line argument.
+  character(12) :: log_startup_arg = ''              ! -log_startup         command line argument
+  character(12) :: no_stopping_arg = ''              ! -no_stopping         command line argument
+  character(12) :: noplot_arg = ''                   ! -noplot              command line argument
+  character(12) :: no_rad_int_arg = ''               ! -no_rad_int          command line argument
+  character(12) :: debug_arg = ''                    ! -debug               command line argument
   character(12) :: disable_smooth_line_calc_arg = '' ! -disable_smooth_line_calc
-  character(12) :: rf_on_arg = ''                  ! -rf_on               command line argument
-  character(12) :: prompt_color_arg = ''           ! -prompt_color        command line argument
-  character(12) :: quiet_arg = ''                  ! -quiet               command line argument
-  character(12) :: noinit_arg = ''                 ! -noinit              command line argument
-  character(12) :: nostartup_arg = ''              ! -nostartup           command line argument
-  character(12) :: symbol_import_arg = ''          ! -symbol_import       command line argument
+  character(12) :: rf_on_arg = ''                    ! -rf_on               command line argument
+  character(12) :: prompt_color_arg = ''             ! -prompt_color        command line argument
+  character(12) :: quiet_arg = ''                    ! -quiet               command line argument
+  character(12) :: noinit_arg = ''                   ! -noinit              command line argument
+  character(12) :: nostartup_arg = ''                ! -nostartup           command line argument
+  character(12) :: symbol_import_arg = ''            ! -symbol_import       command line argument
   character(100) :: unique_name_suffix = ''
 end type
 
@@ -912,6 +912,7 @@ type tao_lattice_branch_struct
   type (ptc_normal_form_struct) ptc_normal_form
   type (bmad_normal_form_struct) bmad_normal_form
   real(rp) :: cache_x_min = 0, cache_x_max = 0
+  real(rp) :: comb_ds_save = -1                               ! Master parameter for %bunch_params_comb(:)%ds_save
   integer track_state
   integer :: cache_n_pts = 0
   integer ix_rad_int_cache                                    ! Radiation integrals cache index.
