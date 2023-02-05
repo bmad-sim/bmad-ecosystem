@@ -34,13 +34,13 @@ integer sign_z_vel
 !
 
 if (present(BL)) then
-  field%B = BL
+  field%B = orbit%time_dir * BL
 else
   field%B = 0
 endif
 
 if (present(EL)) then
-  field%E = EL
+  field%E = orbit%time_dir * EL
 else
   field%E = 0
 endif

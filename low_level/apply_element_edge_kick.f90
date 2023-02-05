@@ -114,7 +114,7 @@ else
   at_sign = -1
 endif
 
-sign_z_vel = orb%direction * orb%time_dir * track_ele%orientation
+sign_z_vel = orb%direction * track_ele%orientation
 
 if (orb%beta == 0) then
   call out_io(s_error$, r_name, 'FRINGE OF ELEMENT: ' // hard_ele%name, &

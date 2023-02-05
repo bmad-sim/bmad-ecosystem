@@ -45,12 +45,17 @@ When tracking photons, only \vn{bmad_standard} and \vn{custom} tracking method a
 
 A note on terminology: Adaptive step size control used with the \vn{Runge_Kutta} integrator means
 that instead of taking fixed step sizes the integrator chooses the proper step size so that the
-error in the tracking is below the maximum allowable error set by \vn{rel_tol} and \vn{abs_tol}
-tolerances. The advantage of step size control is that the integrator uses a smaller step size when
-needed (the fields are rapidly varying), but makes larger steps when it can. The disadvantage is
-that a step is more computationally intensive since the error in a step is estimated by repeating a
-step using two mini steps. If the fields are rather uniform and you know what a good step size is
-you can save time by using a fixed step size.
+error in the tracking is below the maximum allowable error set by \vn{rel_tol_adaptive_tracking} and
+\vn{abs_tol_adaptive_tracking} tolerances. The advantage of step size control is that the integrator
+uses a smaller step size when needed (the fields are rapidly varying), but makes larger steps when
+it can. The disadvantage is that a step is more computationally intensive since the error in a step
+is estimated by repeating a step using two mini steps. Except for testing purposes, it is
+recommended that adaptive stepping be used over fixed step tracking since experience has shown that
+adaptive stepping is almost always faster.  It is also recommended that \vn{runge_kutta} be used
+over \vn{time_runge_kutta} since \vn{runge_kutta} does not have the overhead of switching between
+time-coordinates and z-coordinates. The exceptions are cases where \vn{time_runge_kutta} must be
+used like with an \vn{e_gun} where the particles start with zero momentum and in cases where
+particles may reverse their longitudinal direction (EG: dark current electrons).
 
 \begin{figure}[tb]
   \centering
@@ -69,39 +74,33 @@ electromagnetic fields.  }
 \item[\vn{Bmad_Standard}]
 Uses formulas for tracking. The formulas generally use the paraxial approximation. The emphasis here
 is on speed. It is important to note that field maps (\sref{s:fieldmap}) are {\em ignored} by
-\vn{bmad_standard} tracking.
+\vn{bmad_standard} tracking. The tracking is non-symplectic but the non-symplectic errors tend to
+be small so that \vn{bmad_standard} can be used in the vast majority of cases (\sref{s:non.symp}).
 
 \index{custom!tracking_method}
 \item[\vn{Custom}]
-This method will call a routine \vn{track1_custom} which must be
-supplied by the programmer implementing the custom tracking. The
-default \vn{track1_custom} supplied with the \bmad release will print
-an error message and stop the program if it is called which probably
-indicates a program linking problem. See \vn{s:custom.ele} for more details.
+This method will call a routine \vn{track1_custom} which must be supplied by the programmer
+implementing the custom tracking. The default \vn{track1_custom} supplied with the \bmad release
+will print an error message and stop the program if it is called which probably indicates a program
+linking problem. See \vn{s:custom.ele} for more details.
 
 \index{fixed_step_runge_kutta!tracking_method}
 \item[\vn{fixed_step_runge_kutta}]
 The \vn{fixed_step_runge_kutta} method is similar to \vn{runge_kutta} tracking except that
 \vn{fixed_step_runge_kutta} does not use adaptive step size control but instead takes steps of fixed
-size using the setting of \vn{ds_step} or \vn{num_steps} for the element being tracked through (\sref{s:integ}).
-Generally, using adaptive step control will be much more efficient so it is recommended that
-\vn{fixed_step_runge_kutta} {\em not} be used unless there is a compelling reason not to. For
-example, one reason to use \vn{fixed_step_runge_kutta} would be to test how much adaptive step
-control contributes to non-symplecticity. Note: If \vn{ds_step} is used to set the step size, and if the
-element length is not an integer multiple of \vn{ds_step}, the last step will be shortened appropriately
-to track to the end of the element.
+size using the setting of \vn{ds_step} or \vn{num_steps} for the element being tracked through
+(\sref{s:integ}).  Generally, using adaptive step control will be much more efficient so it is
+recommended that \vn{fixed_step_runge_kutta} {\em not} be used unless there is a compelling reason
+not to. This method is non-symplectic (\sref{s:non.symp}).
 
 \index{fixed_step_time_runge_kutta!tracking_method}
 \item[\vn{fixed_step_time_runge_kutta}]
 The \vn{fixed_step_time_runge_kutta} method is similar to \vn{time_runge_kutta} tracking except that
-\vn{fixed_step_time_runge_kutta} does not use adaptive step size control but instead takes steps of fixed
-size using the setting of \vn{ds_step} or \vn{num_steps} for the element being tracked through (\sref{s:integ}).
-Generally, using adaptive step control will be much more efficient so it is recommended that
-\vn{fixed_step_time_runge_kutta} {\em not} be used unless there is a compelling reason not to. For
-example, one reason to use \vn{fixed_step_time_runge_kutta} would be to test how much adaptive step
-control contributes to non-symplecticity. Note: If \vn{ds_step} is used to set the step size, and if the
-element length is not an integer multiple of \vn{ds_step}, the last step will be shortened appropriately
-to track to the end of the element.
+\vn{fixed_step_time_runge_kutta} does not use adaptive step size control but instead takes steps of
+fixed size using the setting of \vn{ds_step} or \vn{num_steps} for the element being tracked through
+(\sref{s:integ}).  Generally, using adaptive step control will be much more efficient so it is
+recommended that \vn{fixed_step_time_runge_kutta} {\em not} be used unless there is a compelling
+reason not to. This method is non-symplectic (\sref{s:non.symp}).
 
 \index{linear!tracking_method}
 \item[\vn{Linear}]
@@ -127,10 +126,11 @@ permission to use the MAD tracking code within \bmad.
 \index{runge_kutta!tracking_method}
 \item[\vn{runge_kutta}]
 This uses a 4\Th order Runge Kutta integration algorithm with adaptive step size control.  This is
-essentially the Cash-Karp formulation. This may be slow but it should be accurate. This method is
-non-symplectic. \vn{Warning:} When using \vn{custom} fields, if the fields do not obey Maxwell's
-equation, there is the possibility of the \vn{runge_kutta} tracking halting mid way through an
-element. See section~\sref{s:integ} for more details.
+essentially the Cash-Karp formulation. This method will be slow compared to non-Runge-Kutta methods
+so only use this if it is not possible to use something like \vn{bmad_standard}.  This method is
+accurate but non-symplectic (\sref{s:non.symp}). \vn{Warning:} When using \vn{custom} fields, if the
+fields do not obey Maxwell's equation, there is the possibility of the \vn{runge_kutta} tracking
+halting mid-way through an element. See section~\sref{s:integ} for more details.
 
 \index{symp_lie_Bmad!tracking_method}
 \item[\vn{Symp_Lie_Bmad}]
@@ -167,7 +167,7 @@ advantage of this method is that it can handle particles which reverse direction
 One use for this method is ``dark current'' tracking where, as illustrated in \fig{f:dark.current},
 low energy particles generated at the vacuum chamber walls can be found traveling in all
 directions. Notice that \vn{time_runge_kutta} is different from using \vn{absolute time tracking} as
-explained in \sref{s:rf.time}.
+explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp}).
 
 \end{description}
 
@@ -346,17 +346,14 @@ associated electric field and when tracking through a \vn{taylor} element.
 
 \index{taylor!mat6_calc_method}
 \item[\vn{Taylor}]
-This uses a Taylor map generated from \'Etienne's PTC
-package. Generating the map may take time but once you have it it
-should be very fast. One possible problem with using a Taylor map is
-that you have to worry about the accuracy if you do a calculation at
-points that are far from the expansion point about which the map was
-made. This method is non-symplectic away from the expansion
-point. Whether the Taylor map is generated taking into account the
-offset an element has is governed by the \vn{taylor_map_includes_offsets}
-attribute (\sref{s:mapoff}). \vn{bmad_standard} and \vn{taylor}
-tracking methods are identical. Note: Taylor maps for \vn{match}, and
-\vn{patch} elements are limited to first order.
+This uses a Taylor map generated from \'Etienne's PTC package. Generating the map may take time but
+once you have it it should be very fast. One possible problem with using a Taylor map is that you
+have to worry about the accuracy if you do a calculation at points that are far from the expansion
+point about which the map was made. This method is non-symplectic away from the expansion
+point. Whether the Taylor map is generated taking into account the offset an element has is governed
+by the \vn{taylor_map_includes_offsets} attribute (\sref{s:mapoff}). \vn{bmad_standard} and
+\vn{taylor} tracking methods are identical. Note: Taylor maps for \vn{match}, and \vn{patch}
+elements are limited to first order.
 
 The order of a Taylor map is set by the \vn{parameter[taylor_order]}
 parameter (\sref{s:param}).
@@ -576,9 +573,8 @@ maps and those that simply track a particle's position.  The Taylor map methods 
   symp_lie_ptc    ! Uses PTC
   taylor          ! Uses PTC
 \end{example}
-See section \sref{s:taylor.phys} for more information on Taylor maps
-and symplectic integration. The latter two methods involve using the
-PTC library (\sref{s:ptc.intro}).
+See section \sref{s:taylor.phys} for more information on Taylor maps and symplectic integration. The
+latter two methods involve using the PTC library (\sref{s:ptc.intro}).
 
 The methods that do not involve Taylor maps are
 \index{runge_kutta!and Taylor maps}
@@ -691,8 +687,8 @@ strength. One should consider the default as more of a guesstimate.
 \index{ds_step}
 \index{runge_kutta}\index{time_runge_kutta}
 \index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
-The \vn{runge_kutta} and \vn{time_runge_kutta} tracking uses adaptive step
-control independent of \vn{ds_step}. These methods use three \vn{bmad_com} parameters
+The \vn{runge_kutta} and \vn{time_runge_kutta} tracking uses adaptive step control independent of
+the setting of the elements \vn{ds_step} parameter. These methods use three \vn{bmad_com} parameters
 \sref{s:bmad.ptc.com}) namely:
 \begin{example}
   bmad_com[rel_tol_adaptive_tracking]
@@ -817,11 +813,29 @@ component is used for the ``matrix'' tracking between kicks. With the \vn{matrix
 tune of a machine tends to be insensitive to how many integration steps (set by \vn{ds_step} or
 \vn{n_steps}) are used.
 
-PTC does not implement \vn{matrix_kick} tracking for elements with an electric field. In
-this case, the setting of \vn{ptc_integration_type} is ignored and tracking will be
-\vn{drift_kick}. Thus, if an electric field is introduced into an element, more
-integration steps may be required to get the correct tune.
+PTC does not implement \vn{matrix_kick} tracking for elements with an electric field. In this case,
+the setting of \vn{ptc_integration_type} is ignored and tracking will be \vn{drift_kick}. Thus, if
+an electric field is introduced into an element, more integration steps may be required to get the
+correct tune.
 
+%-----------------------------------------------------------------
+\section{Symplectic Versus Non-Symplectic Tracking}
+\label{s:non.symp}
+\index{symplectify}
+
+When selecting tracking methods for lattice elements, there are several factors to consider,
+including symplecticity. Despite its emphasis in accelerator textbooks, symplecity (or the lack
+therof) is typically only relevant for long-term tracking when there is minimal radiation emission
+over many turns. That is, the potential problem with non-symplectic tracking is the buildup of
+errors over many turns. Thus computations, like calculating Twiss functions or tracking through a
+linac, that involve only tracking through the lattice from beginning to end do not benefit from
+symplectic tracking. More important is the speed of the calculation.
+
+The motion of particles that radiate is not symplectic, thus symplectic tracking for the
+non-radiative part of the motion may not be needed if radiation is large enough. For example,
+experience has found that for the Cornell CESR ring with electron and positron beam energies of
+order 1~GeV to 10~GeV and with damping times on the order of 10,000 turns, The \vn{bmad_standard}
+tracking is adequite.
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}
@@ -832,16 +846,13 @@ The \vn{symplectify} attribute
 \begin{example}
   symplectify = <Logical>
 \end{example}
-is used to make the transfer matrix for an element symplectic. The
-linear transport matrix may be non--symplectic for a number of
-reasons.  For example, the linear matrix that comes from expanding a
-Taylor Map around any point that is not the origin of the map is
-generally not symplectic. The transfer matrix for an element can be
-symplectified by setting the \vn{symplectify} attribute to True. See
-section~\sref{s:symp.method} for details on how a matrix is
-symplectified. The default value of \vn{symplectify}, if it is not
-present, is \vn{False}. If it is present without a value then it
-defaults to true. Examples:
+is used to make the transfer matrix for an element symplectic. The linear transport matrix may be
+non--symplectic for a number of reasons.  For example, the linear matrix that comes from expanding a
+Taylor Map around any point that is not the origin of the map is generally not symplectic. The
+transfer matrix for an element can be symplectified by setting the \vn{symplectify} attribute to
+True. See section~\sref{s:symp.method} for details on how a matrix is symplectified. The default
+value of \vn{symplectify}, if it is not present, is \vn{False}. If it is present without a value
+then it defaults to true. Examples:
 \begin{example}
   s1: sextupole, l = 0.34                       ! symplectify = False
   s1: sextupole, symplectify = True, l = 0.34   ! symplectify = True

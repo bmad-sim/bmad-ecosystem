@@ -101,7 +101,7 @@ if (ele%tracking_method == fixed_step_time_runge_kutta$) then
     call out_io (s_error$, r_name, 'FIXED_STEP_TIME_RUNGE_KUTTA TRACKING USED WITHOUT DS_STEP BEING SET!', &
                                    'WILL USE BMAD_COM%INIT_DS_ADAPTIVE_TRACKING AS A FALLBACK FOR ELEMENT: ' // ele%name)
   else
-    dt_next = ele%value(ds_step$) / c_light
+    dt_next = abs(ele%value(ds_step$) / c_light) * t_dir
   endif
 endif
 
@@ -170,7 +170,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     edge_kick_applied = .false. 
     do 
       if (.not. fringe_info%has_fringe .or. .not. associated(fringe_info%hard_ele)) exit
-      if ((s_body-s_fringe_edge)*sign_of(orb%vec(6)) < -ds_safe) exit
+      if ((s_body-s_fringe_edge)*orb%time_dir*sign_of(orb%vec(6)) < -ds_safe) exit
       ! Get radius before first edge kick
       if (.not. edge_kick_applied) edge_kick_applied = .true.
       call convert_particle_coordinates_t_to_s(orb, ele, s_save)
@@ -182,7 +182,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
       ! So offset s a very tiny amount to avoid this
       if (add_ds_safe) then
-        s_body = s_body + sign_of(orb%vec(6)) * ds_safe
+        s_body = s_body + orb%time_dir * sign_of(orb%vec(6)) * ds_safe
         orb%s = orb%s + orb%direction * orb%time_dir * ds_safe
       endif
     enddo
@@ -206,7 +206,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         dt = super_zbrent (wall_intersection_func, 0.0_rp, dt_did, 1e-15_rp, dt_tol, status)
         ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
         ! So step a small amount to make sure that the particle is past the wall.
-        dummy = wall_intersection_func(dt+ds_safe/c_light, status) ! Final call to set orb
+        dummy = wall_intersection_func(dt+t_dir*ds_safe/c_light, status) ! Final call to set orb
       endif
       orb%location = inside$
       orb%state = lost$
@@ -237,7 +237,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       call convert_particle_coordinates_t_to_s (save_orb, ele, s_body)
       call save_a_step (track, ele, param, .true., save_orb, s_body, .true., rf_time = rf_time)
       ! Set next save time 
-      t_save = rf_time + dt_save
+      t_save = rf_time + t_dir*dt_save
     endif
 
     if (dt_did == dt) then
@@ -259,8 +259,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   stop_time_limited = .false.
   dt = dt_next
   if (present(t_end)) then
-    if (present(dt_step) .and. dt + orb%t < t_end) dt_step = dt
-    dt = min(dt, t_end-orb%t)
+    if (present(dt_step) .and. t_dir*(dt + orb%t) < t_dir*t_end) dt_step = dt
+    dt = t_dir * min(t_dir*dt, t_dir*t_end-orb%t)
   endif
 
   if (stop_time /= real_garbage$ .and. t_dir * dt > t_dir * (stop_time - orb%t)) then
@@ -424,7 +424,7 @@ abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
 dt = dt_try
 new_orb = orb
 
-pc_ref = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
+pc_ref = 0.5_rp * (ele%value(p0c_start$) + ele%value(p0c$))
 abs_scale = [1d-2, 1d-6*pc_ref, 1d-2, 1d-6*pc_ref, 1d-2, 1d-2*pc_ref, 1.0_rp, 1.0_rp, 1.0_rp, 1d-4] 
 
 do
@@ -450,7 +450,7 @@ do
   else
     ! r_scal(7:9) is for spin
     ! Note that cp is in eV, so 1.0_rp is 1 eV
-    r_scal(:) = [abs(orb%vec) + abs(new_orb%vec), 1.0_rp, 1.0_rp, 1.0_rp, abs(orb%dt_ref) + abs(new_orb%dt_ref)]
+    r_scal(:) = [0.5_rp*(abs(orb%vec) + abs(new_orb%vec)), 1.0_rp, 1.0_rp, 1.0_rp, 0.5_rp*(abs(orb%dt_ref) + abs(new_orb%dt_ref))]
     r_scal(2:6:2) = r_scal(2:6:2) + 1d-6 * (abs(orb%vec(2))+abs(orb%vec(4))+abs(orb%vec(6)))
     r_scaled_tot = r_scal(:) * rel_tol + abs_scale * abs_tol
     r_scaled_err = abs(r_err(:)/r_scaled_tot(:))
@@ -459,7 +459,7 @@ do
     dt_temp = safety * dt * (err_max**p_shrink)
   endif
 
-  dt = t_dir * sign(max(abs(dt_temp), 0.1_rp*abs(dt)), dt)
+  dt = t_dir * max(abs(dt_temp), 0.1_rp*abs(dt))
   t_new = rf_time + dt
 
   if (t_new == rf_time) then ! Can only happen if dt is very small
