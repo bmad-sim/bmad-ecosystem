@@ -74,7 +74,7 @@ if (kick == 0 .and. ix_mag_max == -1 .and. ix_elec_max == -1) then
 else
   n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 endif
-r_step = 1.0_rp / n_step
+r_step = real(orbit%time_dir, rp) / n_step
 step_len = ele%value(l$) * r_step
 
 ! Entrance edge
@@ -129,7 +129,7 @@ endif
 
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
+orbit%t = start_orb%t + orbit%direction*orbit%time_dir*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
 !---------------------------------------------
 contains

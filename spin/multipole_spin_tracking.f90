@@ -49,7 +49,7 @@ if (ix_pole_max > -1) then
 
   ! Rotate spin
 
-  sign_z_vel = orbit%direction * orbit%time_dir * ele%orientation
+  sign_z_vel = orbit%direction * ele%orientation
 
   if (kick /= 0) then
     call rotate_spin_given_field (orbit, sign_z_vel, &

@@ -587,6 +587,7 @@ if (a == 0 .and. b == 0) return
 
 ! normal case
 ! Note that c_multi can be + or -
+! Note: scale argument takes into account coord%time_dir so coord_time_dir does not appear in the equation for f.
 
 if (integer_option(magnetic$, pole_type) == electric$) then
   f = charge_of(coord%species) / (coord%beta * coord%p0c)
@@ -597,7 +598,7 @@ else   ! magnetic
     a2 = a
     b2 = b
   else
-    f = coord%direction * coord%time_dir * ele_orientation * charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
+    f = coord%direction * ele_orientation * charge_to_mass_of(coord%species) / charge_to_mass_of(ref_species)
     a2 = a * f
     b2 = b * f
   endif

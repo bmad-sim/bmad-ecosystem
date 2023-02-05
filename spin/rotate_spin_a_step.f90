@@ -29,7 +29,7 @@ integer sign_z_vel
 
 !
 
-sign_z_vel = ele%orientation * orbit%direction * orbit%time_dir
+sign_z_vel = ele%orientation * orbit%direction
 
 if (ele%key == sbend$) then
   omega = (1 + ele%value(g$) * orbit%vec(1)) * spin_omega (field, orbit, sign_z_vel) + &
@@ -38,7 +38,7 @@ else
   omega = spin_omega (field, orbit, sign_z_vel)
 endif
 
-call rotate_spin (abs(ds) * omega, orbit%spin)
+call rotate_spin (ds * omega, orbit%spin)
 
 end subroutine rotate_spin_a_step
 

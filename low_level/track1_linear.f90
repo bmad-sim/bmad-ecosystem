@@ -25,7 +25,7 @@ type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
-real(rp) dtime_ref, mat6(6,6), vec(6)
+real(rp) dtime_ref, mat6(6,6), vec(6), v0(6)
 character(*), parameter :: r_name = 'track1_linear'
 
 ! If ele%mat6 is out-of-date must recompute this first.
@@ -45,8 +45,10 @@ endif
 
 if (start_orb%time_dir == -1) then
   call mat_inverse(ele%mat6, mat6)
+  v0 = -matmul(mat6, ele%vec0)
 else
   mat6 = ele%mat6
+  v0 = ele%vec0
 endif
 
 start2_orb = start_orb
@@ -54,7 +56,7 @@ end_orb = start_orb
 end_orb%p0c = ele%value(p0c$)
 
 if (start_orb%direction == 1) then
-  end_orb%vec = matmul (mat6, start_orb%vec) + ele%vec0
+  end_orb%vec = matmul (mat6, start_orb%vec) + v0
 
 else
   mat6 = mat_symp_conj(mat6)
@@ -65,7 +67,7 @@ else
   end_orb%vec(4) = -end_orb%vec(4)
   end_orb%vec(5) = start_orb%vec(5) - (end_orb%vec(5) - start_orb%vec(5))
 
-  vec = matmul(mat6, ele%vec0)
+  vec = matmul(mat6, v0)
   vec = [vec(1), -vec(2), vec(3), -vec(4), vec(5), vec(6)]
   end_orb%vec = end_orb%vec - vec
 endif

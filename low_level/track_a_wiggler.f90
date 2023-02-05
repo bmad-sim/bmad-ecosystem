@@ -53,7 +53,7 @@ z_start = orbit%vec(5)
 t_start = orbit%t
 
 n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-r_step = 1.0_rp / n_step
+r_step = real(orbit%time_dir, rp) / n_step
 step_len = ele%value(l$) * r_step
 
 length = ele%value(l$)

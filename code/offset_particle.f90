@@ -92,14 +92,14 @@ logical set_hv, set_t, set_hv1, set_hv2, do_drift, set_spn, is_misaligned
 
 length = ele%value(l$)
 L_half = 0.5_rp * length
-sign_z_vel = ele%orientation * orbit%direction * orbit%time_dir
+sign_z_vel = ele%orientation * orbit%direction
 
 ! set:   s_pos is in lab coords
 ! unset: s_pos is in body coords.
 
 if (present(s_pos)) then
   s_pos0 = s_pos
-elseif ((set .and. orbit%direction * orbit%time_dir == 1) .or. (.not. set .and. sign_z_vel == -1)) then
+elseif ((set .and. orbit%direction * orbit%time_dir == 1) .or. (.not. set .and. sign_z_vel* orbit%time_dir == -1)) then
   s_pos0 = 0
 else
   s_pos0 = length
@@ -109,7 +109,7 @@ endif
 
 if (set) then
   ds_center = L_half - s_pos0                       ! Lab coords: Nominal center - S_pos
-  s_target = (1 - sign_z_vel) * L_half              ! Position to drift to (body coords).
+  s_target = (1 - sign_z_vel * orbit%time_dir) * L_half              ! Position to drift to (body coords).
 else
   ds_center = L_half - s_pos0                       ! Body coords: Body center - s_pos
   s_target = (1 + orbit%direction * orbit%time_dir) * L_half         ! Position to drift to (lab coords).
@@ -135,7 +135,7 @@ do_drift   = logic_option (.not. present(s_pos), drift_to_edge) .and. has_orient
 set_spn    = (logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on) .or. present(spin_qrot)
 
 rel_tracking_charge = rel_tracking_charge_to_mass (orbit, ele%ref_species)
-charge_dir = rel_tracking_charge * sign_z_vel 
+charge_dir = rel_tracking_charge * sign_z_vel * orbit%time_dir 
 
 if (set_hv) then
   select case (ele%key)

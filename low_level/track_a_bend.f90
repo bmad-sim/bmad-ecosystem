@@ -98,7 +98,7 @@ endif
 
 n_step = 1
 if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-r_step = 1.0_rp / n_step
+r_step = real(orbit%time_dir, rp) / n_step
 step_len = ele%value(l$) * r_step
 angle = g * step_len
 
@@ -326,9 +326,7 @@ endif
 
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-orbit%t = start_orb%t + ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
-if (orbit%direction*orbit%time_dir == -1) orbit%vec(5) = orbit%vec(5) - 2.0_rp * c_light * orbit%beta * ele%value(delta_ref_time$) 
-
+orbit%t = start_orb%t + orbit%direction*orbit%time_dir*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
 if (orbit%direction*orbit%time_dir == 1) then
   orbit%s = ele%s
@@ -523,10 +521,10 @@ logical, optional :: make_matrix
 
 ! Degenerate case
 
-rel_charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction * orbit%time_dir
+rel_charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction
 
 g = ele%value(g$)
-length = ele%value(l$) / n_step
+length = orbit%time_dir * ele%value(l$) / n_step
 k1 = b1 / ele%value(l$)
 
 !
@@ -654,8 +652,8 @@ orbit%vec(1) = c_x * r(1) + s_x * r(2) / rel_p + x_c
 orbit%vec(2) = tau_x * om_x**2 * rel_p * s_x * r(1) + c_x * r(2)
 orbit%vec(3) = c_y * r(3) + s_y * r(4) / rel_p
 orbit%vec(4) = tau_y * om_y**2 * rel_p * s_y * r(3) + c_y * r(4)
-orbit%vec(5) = r(5) + z0 + z1 * r(1) + z2 * r(2) + &
-               z11 * r(1)**2 + z12 * r(1) * r(2) + z22 * r(2)**2 + &
-               z33 * r(3)**2 + z34 * r(3) * r(4) + z44 * r(4)**2 
+orbit%vec(5) = r(5) + orbit%direction * ele%orientation * z0 + &
+               z1 * r(1) + z2 * r(2) + z11 * r(1)**2 + z12 * r(1) * r(2) + z22 * r(2)**2 + &
+                                       z33 * r(3)**2 + z34 * r(3) * r(4) + z44 * r(4)**2 
 
 end subroutine sbend_body_with_k1_map
