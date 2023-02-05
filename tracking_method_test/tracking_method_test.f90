@@ -75,6 +75,7 @@ type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 type (track_struct) track
+real(rp) del
 integer ele_o_sign, orb_dir_sign
 integer ib, i, j, isn
 
@@ -164,10 +165,15 @@ do ib = 0, ubound(lat%branch, 1)
         write (1,fmt) quote(out_str), tolerance(out_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
         if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, c_light * (end_orb%t - start_orb%t)
       else
-        write (1,fmt) quote(out_str), tolerance(out_str), end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
-                c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
-        if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
-                c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
+        if (start_orb%direction == 1) then
+          del = (end_orb%vec(5) - start_orb%vec(5)) - &
+                   c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
+        else
+          del = (end_orb%vec(5) - start_orb%vec(5)) - &
+                   c_light * (end_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - end_orb%t) - start_orb%beta * (ele%ref_time - start_orb%t))
+        endif
+        write (1,fmt) quote(out_str), tolerance(out_str), end_orb%vec, del
+        if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, del
       endif
 
       if (ele%key == wiggler$) then

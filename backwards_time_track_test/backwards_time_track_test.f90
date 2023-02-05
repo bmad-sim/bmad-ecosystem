@@ -14,7 +14,7 @@ type (coord_struct) start_orb, end_orb, start2_orb, d
 character(100) :: lat_file  = 'backwards_time_track_test.bmad'
 character(60) str
 
-real(rp) mat6(6,6), vec0(6), m_unit(6,6)
+real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta
 integer j, ib, ie, nargs
 
 logical debug_mode, loc_equal
@@ -76,29 +76,31 @@ do ib = 0, 0
       end_orb%time_dir = -1
       call track1 (end_orb, ele, lat%param, start2_orb)
 
+      beta = start_orb%beta
       d%vec  =  start2_orb%vec  - start_orb%vec
       d%spin =  start2_orb%spin - start_orb%spin
-      d%t    = (start2_orb%t    - start_orb%t) * c_light
+      d%t    = (start2_orb%t    - start_orb%t) * c_light * beta
       d%s    =  start2_orb%s    - start_orb%s
       d%p0c  =  start2_orb%p0c  - start_orb%p0c
       d%beta =  start2_orb%beta - start_orb%beta
       loc_equal = (start2_orb%location == start_orb%location)
 
-      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '           ABS 1E-13', end_orb%vec, c_light*end_orb%t
-      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-dendSpin'), '      ABS 1E-13', end_orb%spin - start_orb%spin
-      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dOrb'), '          ABS 1E-13', d%vec
-      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dSpin'), '         ABS 1E-13', d%spin
-      write (1, '(2a, 4es18.10)')    quote(trim(str) // '-dt,p0c,s,beta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
-      write (1, '(2a, es18.10, l4)') quote(trim(str) // '-Merit'),  '        ABS 1E-13', &
+      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '              ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
+      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-dendSpin'), '         ABS 1E-13', end_orb%spin - start_orb%spin
+      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dOrb'), '             ABS 1E-13', d%vec
+      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dSpin'), '            ABS 1E-13', d%spin
+      write (1, '(2a, 4es18.10)')    quote(trim(str) // '-dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
+      write (1, '(2a, es18.10, l4)') quote(trim(str) // '-Merit'),  '           ABS 1E-13', &
                               maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)]), loc_equal
 
       if (debug_mode) then
-        print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '           ABS 1E-13', end_orb%vec, c_light*end_orb%t
-        print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '      ABS 1E-13', end_orb%spin - start_orb%spin
-        print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '          ABS 1E-13', d%vec
-        print '(2a, 6es18.10)',    quote(trim(str) // '-dSpin'), '         ABS 1E-13', d%spin
-        print '(2a, 4es18.10)',    quote(trim(str) // '-dt,p0c,s,beta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
-        print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '         ABS 1E-13', &
+        print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '              ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
+        print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '         ABS 1E-13', end_orb%spin - start_orb%spin
+        print '(a)', '------------------------------------------------------------------------------------'
+        print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '             ABS 1E-13', d%vec
+        print '(2a, 6es18.10)',    quote(trim(str) // '-dSpin'), '            ABS 1E-13', d%spin
+        print '(2a, 4es18.10)',    quote(trim(str) // '-dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
+        print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '            ABS 1E-13', &
                             maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)]), loc_equal
         print *
       endif
