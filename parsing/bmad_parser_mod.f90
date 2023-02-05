@@ -6562,10 +6562,8 @@ character(40) attrib_name
 err_flag = .true.
 
 n = n_slave * size(lord%control%var)
-if (allocated(cs)) then
-  if (size(cs) < n) deallocate(cs)
-endif
-if (.not. allocated(cs)) allocate (cs(n))
+if (allocated(cs)) deallocate(cs)
+allocate (cs(n))
 
 ! Slave setup
 
