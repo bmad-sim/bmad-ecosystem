@@ -3428,11 +3428,12 @@ There are two types of \vn{overlay} elements: \vn{Expression} based and \vn{knot
 The general syntax for a \vn{expression} based \vn{overlay} element is
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
-                                                       default_attrib = init_value
+                                                       DEFAULT_ATTRIB = attrib_name
 \end{example}
 where \vn{ele1}[\vn{attrib1}], \vn{ele2}[\vn{attrib2}], etc. specify the slave attributes and
 \vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
-\vn{var2}, etc., and are used to determine a value for the slave attributes.
+\vn{var2}, etc., and are used to determine a value for the slave attributes. The \vn{default_attrib}
+parameter, if present, sets the default attribute of a slave element if the attribute is not given.
 
 The general syntax for a \vn{knot} based \vn{overlay} element is
 \begin{example}
@@ -4047,11 +4048,12 @@ Like \vn{overlay}s, There are two types of \vn{ramper} elements: \vn{Expression}
 \vn{knot} based.  The general syntax for a \vn{expression} based \vn{ramper} element is
 \begin{example}
   name: RAMPER = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
-                                  VAR = \{var1\}, default_attrib = init_value
+                                  VAR = \{var1\}, DEFAULT_ATTRIB = attrib_name
 \end{example}
-where \vn{ele1[attrib1]}, \vn{ele2[attrib2]}, etc. specify the slave attributes and
-\vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
-\vn{var2}, etc., and are used to determine a value for the slave attributes.
+where \vn{ele1[attrib1]}, \vn{ele2[attrib2]}, etc. specify the slave attributes and \vn{exp1},
+\vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1}, \vn{var2}, etc.,
+and are used to determine a value for the slave attributes. The \vn{default_attrib} parameter, if
+present, sets the default attribute of a slave element if the attribute is not given.
 
 The general syntax for a \vn{knot} based  \vn{ramper} element is
 \begin{example}

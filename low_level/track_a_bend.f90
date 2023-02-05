@@ -45,7 +45,7 @@ call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make
 
 ! Entrance edge kick
 
-rel_charge_dir = ele%orientation * orbit%direction * orbit%time_dir * rel_tracking_charge_to_mass(orbit, param%particle)
+rel_charge_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param%particle)
 c_dir = ele%orientation * orbit%direction * charge_of(orbit%species)
 
 call init_fringe_info (fringe_info, ele)
@@ -201,7 +201,7 @@ do n = 1, n_step
       endif
 
       L_u = xi
-      L_v = -step_len * sinc_a - x * sin_a
+      L_v = -orbit%time_dir * (step_len * sinc_a + x * sin_a)
       L_c = sqrt(L_v**2 + L_u**2)
       angle_p = 2 * (angle + phi_1 - atan2(L_u, -L_v))
       L_p = L_c / sinc(angle_p/2)
@@ -390,7 +390,7 @@ else
 endif
 
 r_len = 1
-if (ele%value(l$) /= 0) r_len = step_len / ele%value(l$)
+if (ele%value(l$) /= 0) r_len = orbit%time_dir * step_len / ele%value(l$)
 
 ! Magnetic kick.
 
