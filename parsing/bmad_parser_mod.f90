@@ -8519,6 +8519,14 @@ do
         if (.not. parser_fast_complex_read(array(pt_counter)%field(1:3), ele, delim, 'FIELD_GRID POINT TABLE')) return
       endif
 
+      ! Allow extra comma "...(0 0), }" at end of field point list.
+
+      call string_trim (bp_com%parse_line, bp_com%parse_line, ix)
+      if (delim == ',' .and. bp_com%parse_line(1:1) == '}') then
+        delim = '}'
+        bp_com%parse_line = bp_com%parse_line(2:)
+      endif
+
       if (delim == '}') exit
     enddo
 
@@ -8535,6 +8543,14 @@ do
     return
     
   end select 
+
+
+  ! Allow extra comma
+  call string_trim (bp_com%parse_line, bp_com%parse_line, ix)
+  if (delim == ',' .and. bp_com%parse_line(1:1) == '}') then
+    delim = '}'
+    bp_com%parse_line = bp_com%parse_line(2:)
+  endif
 
   if (delim == '}') exit   
 
