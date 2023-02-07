@@ -272,6 +272,8 @@ character(*) :: instr
     case("RFCAVITY1-Anti_D: Time_Runge_Kutta")         ; tolerance = 'ABS 1E-12'
     case("RFCAVITY1-Anti_O: Time_Runge_Kutta")         ; tolerance = 'ABS 4E-10'
     case("RFCAVITY1-Anti_OD: Time_Runge_Kutta")        ; tolerance = 'ABS 1E-12'
+    case("RFCAVITY2-Anti_D: Runge_Kutta")              ; tolerance = 'ABS 1E-12'
+    case("RFCAVITY2-Anti_OD: Runge_Kutta")             ; tolerance = 'ABS 1E-12'
     case("RFCAVITY2-Anti_D: Time_Runge_Kutta")         ; tolerance = 'ABS 1E-12'
     case("RFCAVITY2-Anti_OD: Time_Runge_Kutta")        ; tolerance = 'ABS 1E-12'
     case("WIGGLER_FLAT1-Anti_OD: Runge_Kutta")         ; tolerance = 'ABS 2E-13'
