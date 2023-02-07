@@ -88,7 +88,6 @@ orbit%vec(4) = orbit%vec(4) - 0.5_rp * sol_center(1) * ks
 ! The multipole hard edge routine takes care of the quadrupole hard edge.
 
 call init_fringe_info (fringe_info, ele)
-fringe_info%particle_at = first_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix, apply_sol_fringe = .false.)
 
 ! Body

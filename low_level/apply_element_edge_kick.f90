@@ -40,7 +40,7 @@ use fringe_mod, except_dummy => apply_element_edge_kick
 
 implicit none
 
-type (ele_struct), target :: ele, track_ele
+type (ele_struct), target :: track_ele
 type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
@@ -64,9 +64,10 @@ character(*), parameter :: r_name = 'apply_element_edge_kick'
 
 particle_at = fringe_info%particle_at
 physical_end = physical_ele_end (particle_at, orb, track_ele%orientation)
+hard_ele => track_ele
 
 if (associated(fringe_info%hard_ele)) then
-  hard_ele => fringe_info%hard_ele
+  if (associated(fringe_info%hard_ele)) hard_ele => fringe_info%hard_ele
   s_edge = fringe_info%s_edge_hard
 
   if (particle_at == first_track_edge$) then
@@ -78,7 +79,6 @@ if (associated(fringe_info%hard_ele)) then
   endif
 
 else
-  hard_ele => track_ele
   if (physical_end == entrance_end$) then
     s_edge = 0
   else
@@ -192,12 +192,12 @@ case (sad_mult$)
     call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     if (orbit_too_large (orb, param)) return
     call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
-    call sad_mult_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_mult_hard_bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     if (orb%state /= alive$) return
-    call sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_soft_bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
   else
-    call sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-    call sad_mult_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_soft_bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
+    call sad_mult_hard_bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     if (orb%state /= alive$) return
     call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
