@@ -63,6 +63,7 @@ character(*), parameter :: r_name = 'apply_element_edge_kick'
 ! The setting of fringe_info%hard_location is used by calc_next_fringe_edge to calculate the next fringe location.
 
 particle_at = fringe_info%particle_at
+physical_end = physical_ele_end (particle_at, orb, track_ele%orientation)
 
 if (associated(fringe_info%hard_ele)) then
   hard_ele => fringe_info%hard_ele
@@ -78,7 +79,7 @@ if (associated(fringe_info%hard_ele)) then
 
 else
   hard_ele => track_ele
-  if (particle_at == first_track_edge$) then
+  if (physical_end == entrance_end$) then
     s_edge = 0
   else
     s_edge = track_ele%value(l$)
@@ -101,7 +102,6 @@ if (finished) return
 ! For other elements, especially quadrupoles, this is problematic due to the soft edge kick not being being exactly the reverse
 ! going from inside to outside and vice versa (it is confusing if a superimposed marker shifts the tracking).
 
-physical_end = physical_ele_end (particle_at, orb, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
 if (hard_ele%key /= solenoid$ .and. hard_ele%key /= sol_quad$ .and. hard_ele%key /= sad_mult$) then
   if (.not. at_this_ele_end(physical_end, fringe_at)) return
@@ -182,8 +182,7 @@ case (sextupole$)
 case (sbend$)
   call bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix, track_spn)
 
-! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity with changing
-! ref energy. So use hard_ele%value(bs_field$).
+! Sad_mult edge fields are 
 
 case (sad_mult$)
   if (hard_ele%value(l$) == 0) return
@@ -191,7 +190,7 @@ case (sad_mult$)
 
   if (particle_at == first_track_edge$) then
     call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
-    if (orb%state /= alive$) return
+    if (orbit_too_large (orb, param)) return
     call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     call sad_mult_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
     if (orb%state /= alive$) return
@@ -204,7 +203,6 @@ case (sad_mult$)
     call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     if (orbit_too_large (orb, param)) return
   endif
-
 
 case (solenoid$, sol_quad$)
   if (logic_option(.true., apply_sol_fringe)) call apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
@@ -221,7 +219,7 @@ case (lcavity$, rfcavity$, e_gun$)
     ds = track_ele%s_start - hard_ele%s_start
     orb%vec(5) = orb%vec(5) - c_light * orb%beta * &
           ((track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$)) - ds / (beta_ref * c_light))
-    if (particle_at == first_track_edge$) then
+    if (physical_end == entrance_end$) then
       s = s + bmad_com%significant_length / 10 ! Make sure inside field region
       call em_field_calc (hard_ele, param, s, orb, .true., field, rf_time = rf_time)
     else
@@ -332,6 +330,8 @@ integer at_sign, sign_z_vel
 logical track_spn
 
 ! To make reverse tracking the same as forward tracking, use a symmetrical orbital-spin-orbital kick scheme.
+! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity with changing
+! ref energy. So use hard_ele%value(bs_field$).
 
 ks4 = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / (4.0_rp * orb%p0c)
 xy_orb = [orb%vec(1), orb%vec(3)]

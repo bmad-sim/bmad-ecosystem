@@ -24,6 +24,7 @@ implicit none
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
+type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) rel_pc, dz4_coef(4,4), mass, e_tot
@@ -86,12 +87,9 @@ orbit%vec(4) = orbit%vec(4) - 0.5_rp * sol_center(1) * ks
 ! Entrance edge kicks
 ! The multipole hard edge routine takes care of the quadrupole hard edge.
 
-call hard_multipole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
-if (orbit_too_large (orbit, param)) return
-call soft_quadrupole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
-call sad_mult_hard_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
-if (orbit%state /= alive$) return
-call sad_soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
+call init_fringe_info (fringe_info, ele)
+fringe_info%particle_at = first_track_edge$
+call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix, apply_sol_fringe = .false.)
 
 ! Body
 
@@ -119,16 +117,10 @@ do nd = 0, n_div
   if (orbit_too_large (orbit)) return
 enddo
 
-
-
 ! Exit edge kicks
 
-call sad_soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
-call sad_mult_hard_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
-if (orbit%state /= alive$) return
-call soft_quadrupole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
-call hard_multipole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
-if (orbit_too_large (orbit, param)) return
+fringe_info%particle_at = second_track_edge$
+call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix, apply_sol_fringe = .false.)
 
 ! End stuff
 
