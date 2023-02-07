@@ -7,15 +7,30 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orbit(:)
-logical exist
+
+integer nargs
+logical exist, debug_mode
+character(100) str
 
 !
 
-inquire (file = '../../util_programs/sad_to_bmad/sad_to_bmad.py', exist = exist)
-if (exist) then
-  call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
-else
-  call system_command ('python $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
+debug_mode = .false.
+nargs = command_argument_count()
+
+if (nargs > 0) then
+  call get_command_argument(1, str)
+  debug_mode = .true.
+endif
+
+!
+
+if (.not. debug_mode) then
+  inquire (file = '../../util_programs/sad_to_bmad/sad_to_bmad.py', exist = exist)
+  if (exist) then
+    call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
+  else
+    call system_command ('python $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
+  endif
 endif
 
 call bmad_parser('sler_1689.bmad', lat)
@@ -30,11 +45,13 @@ write (1, '(a, 2es16.8)') '"Alphas-PTC" ABS 1E-8', ele%a%alpha, ele%b%alpha
 
 !
 
-inquire (file = '../../util_programs/sad_to_bmad/sad_to_bmad.py', exist = exist)
-if (exist) then
-  call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
-else
-  call system_command ('python $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
+if (.not. debug_mode) then
+  inquire (file = '../../util_programs/sad_to_bmad/sad_to_bmad.py', exist = exist)
+  if (exist) then
+    call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
+  else
+    call system_command ('python $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
+  endif
 endif
 
 call bmad_parser('sler_1689.bmad', lat)
