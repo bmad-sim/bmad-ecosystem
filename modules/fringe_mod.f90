@@ -57,6 +57,7 @@ character(*), parameter :: r_name = 'bend_edge_kick'
 !
 
 if (.not. fringe_here(ele, orb, particle_at)) return
+physical_end = physical_ele_end (particle_at, orb, ele%orientation)
 
 ! Higher order fringes. 
 
@@ -110,7 +111,6 @@ endif
 if (logic_option(.false., track_spin)) then
   ave_orb%vec = (ave_orb%vec + orb%vec) / 2   ! Use average position
   field%E = 0
-  physical_end = physical_ele_end (particle_at, orb, ele%orientation)
   if (physical_end == entrance_end$) then
     e_ang = ele%value(e1$)
   else
@@ -249,7 +249,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), k1_tane
 real(rp) gt2, gs2, c_dir, k1, kmat(6,6), e_factor, fg_factor
 real(rp) dx, dpx, dy, dpy, dz
-integer particle_at, element_end, fringe_type
+integer particle_at, element_end, fringe_type, td
 
 logical, optional :: make_matrix
 character(*), parameter :: r_name = 'hwang_bend_edge_kick'
@@ -257,10 +257,11 @@ character(*), parameter :: r_name = 'hwang_bend_edge_kick'
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
 
-c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction * orb%time_dir
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
 e_factor = 1 / (1 + orb%vec(6))
+td = orb%time_dir
 
 if (ele%is_on) then
   g_tot = (ele%value(g$) + ele%value(dg$)) * c_dir
@@ -287,7 +288,7 @@ fg_factor = 2 * fint_gap * gs2 * g_tot * sec_e * (1 + sin_e**2)
 
 v = orb%vec
 
-if (particle_at == first_track_edge$) then
+if (entering_element(orb, particle_at)) then
   dx  = (-gt2 * v(1)**2 + gs2 * v(3)**2) * e_factor / 2
   dpx = (gt * g_tot * (1 + 2 * tan_e**2) * v(3)**2 / 2 + gt2 * (v(1) * v(2) - v(3) * v(4)) + k1_tane * (v(1)**2 - v(3)**2)) * e_factor
   dy  = gt2 * v(1) * v(3) * e_factor
@@ -296,11 +297,11 @@ if (particle_at == first_track_edge$) then
             + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
             + (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 - v(2)*v(3)**2 * gs2)
 
-  orb%vec(1) = v(1) + dx
-  orb%vec(2) = v(2) + dpx + gt * v(1)
-  orb%vec(3) = v(3) + dy
-  orb%vec(4) = v(4) + dpy - gt * v(3)
-  orb%vec(5) = v(5) + dz
+  orb%vec(1) = v(1) + td * dx
+  orb%vec(2) = v(2) + td * (dpx + gt * v(1))
+  orb%vec(3) = v(3) + td * dy
+  orb%vec(4) = v(4) + td * (dpy - gt * v(3))
+  orb%vec(5) = v(5) + td * dz
 
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit (kmat)
@@ -329,11 +330,11 @@ else
             + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
             - (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 + v(2)*v(3)**2 * gs2)
 
-  orb%vec(1) = v(1) + dx
-  orb%vec(2) = v(2) + dpx + gt * v(1)
-  orb%vec(3) = v(3) + dy
-  orb%vec(4) = v(4) + dpy - gt * v(3)
-  orb%vec(5) = v(5) + dz
+  orb%vec(1) = v(1) + td * dx
+  orb%vec(2) = v(2) + td * (dpx + gt * v(1))
+  orb%vec(3) = v(3) + td * dy
+  orb%vec(4) = v(4) + td * (dpy - gt * v(3))
+  orb%vec(5) = v(5) + td * dz
 
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit (kmat)
@@ -366,6 +367,7 @@ if (logic_option(.false., make_matrix)) then
   kmat(5,2) = -kmat(2,6)*kmat(1,2) + kmat(1,6)*kmat(2,2) - kmat(4,6)*kmat(3,2) + kmat(3,6)*kmat(4,2)
   kmat(5,3) = -kmat(2,6)*kmat(1,3) + kmat(1,6)*kmat(2,3) - kmat(4,6)*kmat(3,3) + kmat(3,6)*kmat(4,3)
   kmat(5,4) = -kmat(2,6)*kmat(1,4) + kmat(1,6)*kmat(2,4) - kmat(4,6)*kmat(3,4) + kmat(3,6)*kmat(4,4)
+  if (td == -1) call mat_inverse(kmat, kmat)
   mat6 = matmul (kmat, mat6)
 endif
 

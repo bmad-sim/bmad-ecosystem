@@ -876,6 +876,14 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
   logical, optional :: calc_dfield, calc_potential, err_flag, use_overlap, grid_allow_s_out_of_bounds, print_err
 end subroutine
 
+function entering_element(orbit, particle_at) result (is_entering)
+  import
+  implicit none
+  type (coord_struct) orbit
+  integer particle_at
+  logical is_entering
+end function
+
 function equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)
   import
   implicit none
