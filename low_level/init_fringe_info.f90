@@ -55,6 +55,7 @@ case default
 end select
 
 nullify (fringe_info%hard_ele)
+fringe_info%particle_at = first_track_edge$
 
 ! Full init
 

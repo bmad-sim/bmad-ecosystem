@@ -49,11 +49,8 @@ rel_charge_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass
 c_dir = ele%orientation * orbit%direction * charge_of(orbit%species)
 
 call init_fringe_info (fringe_info, ele)
-if (fringe_info%has_fringe) then
-  fringe_info%particle_at = first_track_edge$
-  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
-  if (orbit_too_large(orbit, param)) return
-endif
+call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+if (orbit_too_large(orbit, param)) return
 
 ! Set some parameters
 
@@ -319,10 +316,8 @@ enddo
 
 if (orbit_too_large(orbit, param)) return
 
-if (fringe_info%has_fringe) then
-  fringe_info%particle_at = second_track_edge$
-  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
-endif
+fringe_info%particle_at = second_track_edge$
+call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
