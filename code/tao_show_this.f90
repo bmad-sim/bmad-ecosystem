@@ -4262,21 +4262,18 @@ case ('spin')
   ele_ref_name = ''
   ele_ref => null()
   flip = .false.
-  logic = .false.
   excite_zero = ''
   veto = ''
 
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
-                            '-g_map', '-flip_n_axis', '-new', '-x_zero', '-y_zero', &
+                            '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
                             '-z_zero', '-ignore_kinetic'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('')
       exit
-    case ('-new')
-      logic = .true.
     case ('-element')
       what_to_show = 'element'
       ele_ref_name = upcase(what2(1:ix))
