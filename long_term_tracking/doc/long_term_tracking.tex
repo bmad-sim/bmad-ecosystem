@@ -76,7 +76,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ December 3, 2022}
+\date{David Sagan \\ February 9, 2023}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -390,13 +390,13 @@ well. How to do this is covered in the Bmad and Tao Cookbook available from the 
 
 ``\vn{Ramping}'' is the situation where lattice parameters are changing as a function of time over
 many turns. Ramping examples include changing magnet and RF strengths to ramp the beam energy or
-changing magnet strengths to squeeze beta at the interaction pont of a colliding beam machine.
+changing magnet strengths to squeeze beta at the interaction ponit of a colliding beam
+machine. Additionally, random variations of machine parameters with time can be implemented with
+ramper elements to simulate such things as ground motion and RF phase noise.
 
-Ramping is accomplished by defining \vn{ramper} elements in the lattice file. These ramper elements
-will be applied to each lattice element in turn before particles are tracked through the
-element. See the Bmad manual for documentation on \vn{ramper} syntax.
-
-Example:
+Ramping is accomplished by defining \vn{ramper} elements in the lattice file and using \vn{time} as
+a variable. When tracking through an element, the particle time will be used to set all \vn{time}
+ramper variables. Example:
 \begin{code}
 ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
               var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
@@ -408,13 +408,23 @@ ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(time + t0)),
 The ``\vn{*[e_tot]}'' construct in the definition of \vn{ramp_e} means that the ramper will be
 applied all elements (since the wild card character ``\vn{*}'' will match to any element name), and
 it is the element's \vn{e_tot} attribute (the element's reference energy) that will be varied.
-
 In the above example, the \vn{ramp_rf} ramper will be applied to all \vn{rfcavity} elements with
 the cavity voltage and phase (\vn{phi0}) being varied.
 
-Important restriction: Only those
-ramper elements that have \vn{time} as the first variable will be used and it will be this variable
-that is varied over time. 
+To simulate noise, use the \vn{ran()} or \vn{ran_gauss()} functions in a slave expression. Example:
+\begin{code}
+  quake: ramper = \{*[y_offset]: 1e-5*ran_gauss()\}, var = \{\}
+\end
+In this case no ramper variable is needed. 
+When a bunch passes through an element, the slave expression \vn{1e-5*ran_gauss()} is evaluated just
+once. That is, it is assumed that the frequency spectrum of the noise falls below 1/\vn{dt_bunch}
+where \vn{dt_bunch} is the bunch passage time through the element.\footnote
+  {
+Currently as implemented the noise spectrum from bunch passage to the next bunch passage is
+uncorrelated (``white noise''). This may not be a good approximation. Implementation of a random
+number generator with non-white power spectrum is currently a long-term project. Please contact a
+Bmad maintainer if interested.
+  }
 
 In the case where the reference energy \vn{e_tot} or reference momentum \vn{p0c} is being varied, the
 effect on an element will depend upon the setting of the element's \vn{field_master} parameter. For
@@ -448,9 +458,6 @@ Before a simulation, individual ramper elements may be toggled on or off by sett
 ramp_rf: ramper = ...  ! Ramper element defined.
 ramp_rf[is_on] = F     ! Ramper element turned off.
 \end{code}
-
-Ramper elements can be used to simulate noise. For example, RF phase noise or ground motion. The way to
-do this is to use the \vn{gauss_ran()} or \vn{ran()} functions withing a slave control expression.
 
 If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
 "\vn{BEAM}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.

@@ -275,11 +275,12 @@ type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
+type (controller_struct), pointer :: cr
 
 real(rp) dummy
-integer ir, i, n, n_loc
+integer ir, i, n, n_loc, iv, it, is
 character(*), parameter :: r_name = 'ltt_init_params'
-logical err
+logical err, found
 
 ! Lattice init
 
@@ -380,9 +381,23 @@ if (ltt%ramping_on) then
 
   do i = 1, ltt_com%n_ramper_loc
     ele => ltt_com%ramper(i)%ele
-    if (ele%control%var(1)%name /= 'TIME') then
-      print *, 'Note! This ramper does not use "time" as the control variable: ' // trim(ele%name)
-      print *, '      This ramper will not be directly varied in the simulation.'
+    cr => ele%control
+    found = .false.
+
+    do iv = 1, size(cr%var)
+      if (cr%var(iv)%name == 'TIME') found = .true.
+    enddo
+
+    do is = 1, size(cr%ramp)
+      if (.not. allocated(cr%ramp(is)%stack)) cycle
+      do it = 1, size(cr%ramp(is)%stack)
+        if (cr%ramp(is)%stack(it)%type == ran$ .or. cr%ramp(is)%stack(it)%type == ran_gauss$) found = .true.
+      enddo
+    enddo
+
+    if (.not. found) then
+      print *, 'Note! This ramper does not use "time" as a control variable and does not use any random functions: ' // trim(ele%name)
+      print *, '      This ramper will not be directly varied in the simulation (but may be indirectly used).'
     endif
   enddo
 endif
@@ -511,6 +526,7 @@ endif
 
 if (lttp%ramping_on) then
   do i = 1, ltt_com%n_ramper_loc
+    if (ltt_com%ramper(i)%ele%control%var(1)%name /= 'TIME') cycle
     ltt_com%ramper(i)%ele%control%var(1)%value = lttp%ramping_start_time
   enddo
 
