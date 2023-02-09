@@ -29,7 +29,7 @@
 subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)
 
 use time_tracker_mod, dummy => track1_time_runge_kutta
-use fringe_mod, dummy2 => track1_time_runge_kutta
+use bmad_interface, dummy2 => track1_time_runge_kutta
 
 implicit none
 

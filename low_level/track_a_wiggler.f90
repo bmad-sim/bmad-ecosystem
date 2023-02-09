@@ -16,7 +16,7 @@
 
 subroutine track_a_wiggler (orbit, ele, param, mat6, make_matrix)
 
-use fringe_mod, except_dummy => track_a_wiggler
+use bmad_interface, except_dummy => track_a_wiggler
 
 implicit none
 

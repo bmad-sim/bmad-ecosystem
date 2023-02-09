@@ -16,7 +16,7 @@
 
 subroutine track_a_crab_cavity (orbit, ele, param, mat6, make_matrix)
 
-use fringe_mod, except_dummy => track_a_crab_cavity
+use bmad_interface, except_dummy => track_a_crab_cavity
 
 implicit none
 

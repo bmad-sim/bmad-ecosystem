@@ -25,7 +25,7 @@
 
 subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
 
-use fringe_mod, except_dummy => track_a_beambeam
+use bmad_interface, except_dummy => track_a_beambeam
 use super_recipes_mod, only: super_zbrent
 implicit none
 

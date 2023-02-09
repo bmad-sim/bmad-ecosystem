@@ -16,7 +16,7 @@
 
 subroutine track_a_rfcavity (orbit, ele, param, mat6, make_matrix)
 
-use fringe_mod, except_dummy => track_a_rfcavity
+use bmad_interface, except_dummy => track_a_rfcavity
 
 implicit none
 

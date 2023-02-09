@@ -933,6 +933,15 @@ subroutine floor_w_mat_to_angles (w_mat, theta, phi, psi, floor0)
   real(rp) theta, phi, psi, w_mat(3,3)
 end subroutine floor_w_mat_to_angles
 
+function fringe_here (ele, orbit, particle_at) result (is_here)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (coord_struct) orbit
+  integer particle_at
+  logical is_here
+end function
+
 subroutine g_bending_strength_from_em_field (ele, param, s_rel, orbit, local_ref_frame, g, dg)
   import
   implicit none

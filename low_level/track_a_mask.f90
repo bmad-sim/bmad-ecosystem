@@ -16,7 +16,7 @@
 
 subroutine track_a_mask (orbit, ele, param, mat6, make_matrix)
 
-use fringe_mod, except_dummy => track_a_mask
+use bmad_interface, except_dummy => track_a_mask
 
 implicit none
 

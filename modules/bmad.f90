@@ -7,12 +7,11 @@
 
 module bmad
 
-use fringe_mod
 use dynamic_aperture_mod
 use bookkeeper_mod
-use radiation_mod
 use symp_lie_mod
 use twiss_and_track_mod
+use taylor_mod
 
 implicit none
 

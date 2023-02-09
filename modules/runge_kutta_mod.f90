@@ -1,6 +1,6 @@
 module runge_kutta_mod
 
-use fringe_mod
+use bmad_interface
 
 type runge_kutta_common_struct
   integer :: num_steps_done = -1              ! Number of integration steps. Not used by Bmad. For external use.
