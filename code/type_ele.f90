@@ -944,9 +944,9 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
   if (associated(ele%control)) then
     nl=nl+1; li(nl) = 'Control Variables:'
-    n_att = maxval(len_trim(ele%control%var%name))
 
     if (ele%lord_status == group_lord$) then
+      n_att = maxval(len_trim(ele%control%var%name))
       do im = 1, size(ele%control%var)
         a_name = ele%control%var(im)%name
         nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 11x, 3a, es15.7)')  im, &
@@ -964,22 +964,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     print_it = .true.
     do is = 1, ele%n_slave
       slave => pointer_to_slave (ele, is, ctl)
-      if (allocated(ctl%stack)) then
-        if (nl + size(ctl%stack) + 100 > size(li)) call re_allocate(li, nl + size(ctl%stack) + 100)
-        do im = 1, size(ctl%stack)
-          if (ctl%stack(im)%type == end_stack$) exit
-          if (ctl%stack(im)%type /= variable$) cycle
-          if (ctl%stack(im)%name == '') cycle
-          if (any(ctl%stack(im)%name == physical_const_list%name)) cycle
-          call find_index(ctl%stack(im)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
-          if (.not. (has_been_added)) cycle  ! Avoid duuplicates
-          if (print_it) then
-            nl=nl+1; li(nl) = 'Named Constants:'
-            print_it = .false.
-          endif
-          nl=nl+1; write (li(nl), '(8x, 2a, es15.7)') trim(ctl%stack(im)%name), ' = ', ctl%stack(im)%value
-        enddo
-      endif
+      if (.not. allocated(ctl%stack)) cycle
+      call print_these_constants(nl, li, ctl, print_it, str_index)
     enddo
   endif
 
@@ -1006,11 +992,14 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
 
     case (ramper_lord$)
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      if (allocated(ele%control%x_knot)) then
-        nl=nl+1; write (li(nl), '(a)') 'Interpolation = ' // trim(interpolation_name(nint(ele%value(interpolation$))))
-      endif
+      print_it = .true.
+      do ix = 1, size(ele%control%ramp)
+        ctl => ele%control%ramp(ix)
+        if (.not. allocated(ctl%stack)) cycle
+        call print_these_constants(nl, li, ctl, print_it, str_index)
+      enddo
 
+      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; li(nl) = '   Ele_Name            Attribute         Expression'
       do ix = 1, size(ele%control%ramp)
         ctl => ele%control%ramp(ix)
@@ -1034,10 +1023,6 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Expression_Val summed over all Overlays controlling the attribute.]'
       else ! Group
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Value of the controlled attribute, Expression_Val = Value calculated by this Group element.]'
-      endif
-
-      if (allocated(ele%control%x_knot)) then
-        nl=nl+1; write (li(nl), '(a)') 'Interpolation = ' // trim(interpolation_name(nint(ele%value(interpolation$))))
       endif
 
       nl=nl+1; li(nl) = ' Ele_Loc   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression'
@@ -1541,5 +1526,37 @@ else
 endif
 
 end function cmplx_re_str
+
+!--------------------------------------------------------------------------
+! contains
+
+subroutine print_these_constants(nl, li, ctl, print_it, str_index)
+
+type (control_struct), pointer :: ctl
+type (str_index_struct) str_index
+
+integer nl
+logical print_it
+character(200), allocatable, target :: li(:)
+
+!
+
+if (nl + size(ctl%stack) + 100 > size(li)) call re_allocate(li, nl + size(ctl%stack) + 100)
+
+do im = 1, size(ctl%stack)
+  if (ctl%stack(im)%type == end_stack$) return
+  if (ctl%stack(im)%type /= variable$) cycle
+  if (ctl%stack(im)%name == '') cycle
+  if (any(ctl%stack(im)%name == physical_const_list%name)) cycle
+  call find_index(ctl%stack(im)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+  if (.not. (has_been_added)) cycle  ! Avoid duuplicates
+  if (print_it) then
+    nl=nl+1; li(nl) = 'Named Constants:'
+    print_it = .false.
+  endif
+  nl=nl+1; write (li(nl), '(8x, 2a, es15.7)') trim(ctl%stack(im)%name), ' = ', ctl%stack(im)%value
+enddo
+
+end subroutine print_these_constants
 
 end subroutine type_ele

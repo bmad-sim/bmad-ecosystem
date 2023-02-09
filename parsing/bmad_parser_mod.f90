@@ -227,7 +227,7 @@ if ((ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) .and. (
       return
     endif
     call get_overlay_group_names(ele, lat, pele, delim, delim_found, .true., err_flag)
-    pele%default_attrib = ele%control%var(1)%name
+    if (size(ele%control%var) > 0) pele%default_attrib = ele%control%var(1)%name
     return
 
   case (x_knot$)
@@ -4339,6 +4339,11 @@ do
   endif
 
   if (delim == ':' .and. ele%key == girder$) pele%is_range = .true.
+
+  ! A variable list may be empty for rampers using expressions with ran() or ran_gauss().
+  ! In this case, create a variable named NULL.
+
+  if (word_in == '' .and. delim == '}' .and. n_slave == 0 .and. is_control_var_list) word_in = 'NULL'
 
   n_slave = n_slave + 1
   n = size(name)
@@ -9906,7 +9911,7 @@ subroutine parser_transfer_control_struct (con_in, con_out, lord, ix_var)
 
 type (control_struct) con_in, con_out, con0
 type (ele_struct) lord
-integer ix_var, is, n, iv
+integer ix_var, is, n, iv, atype
 logical err, var_found
 
 !
@@ -9933,11 +9938,15 @@ if (allocated(con0%stack)) then
     enddo
   enddo
 
-  ! Convert a stack of a single constant "const" to "const * control_var(1)"
+  ! Convert a stack of an expression "expres" to "express * control_var(1)" if "expres" does not use any control vars.
+  ! Exception: Ramper slave with ran() or ran_gauss() in "expres".
+
   var_found = .false.
   do is = 1, size(con_out%stack)
-    if (.not. is_attribute (con_out%stack(is)%type, all_control_var$)) cycle
-    if (con_out%stack(is)%type == end_stack$) exit
+    atype = con_out%stack(is)%type
+    if (atype == ran$ .or. atype == ran_gauss$) var_found = .true. 
+    if (.not. is_attribute (atype, all_control_var$)) cycle
+    if (atype == end_stack$) exit
     var_found = .true.
     exit
   enddo
