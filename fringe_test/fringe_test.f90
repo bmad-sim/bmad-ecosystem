@@ -1,6 +1,7 @@
 program fringe_test
 
 use bmad
+use fringe_mod
 
 implicit none
 
