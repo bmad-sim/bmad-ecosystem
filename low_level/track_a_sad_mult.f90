@@ -17,7 +17,7 @@
 
 subroutine track_a_sad_mult (orbit, ele, param, mat6, make_matrix)
 
-use fringe_mod, dummy1 => track_a_sad_mult
+use bmad_interface, dummy1 => track_a_sad_mult
 
 implicit none
 

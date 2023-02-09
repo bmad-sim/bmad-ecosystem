@@ -26,7 +26,7 @@
 
 subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)
 
-use fringe_mod, except_dummy => track_a_lcavity
+use bmad_interface, except_dummy => track_a_lcavity
 
 implicit none
 

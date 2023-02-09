@@ -63,6 +63,7 @@ subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_or
 use mad_mod, dummy2 => write_lattice_in_foreign_format
 use bmad, dummy => write_lattice_in_foreign_format
 use write_lat_file_mod, dummy3 => write_lattice_in_foreign_format
+use ptc_interface_mod, only: taylor_inverse, concat_taylor
 
 implicit none
 

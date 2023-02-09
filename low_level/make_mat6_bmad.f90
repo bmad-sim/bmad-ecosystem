@@ -18,7 +18,7 @@
 
 subroutine make_mat6_bmad (ele, param, start_orb, end_orb, err)
 
-use fringe_mod, dummy1 => make_mat6_bmad
+use bmad_interface, dummy1 => make_mat6_bmad
 
 implicit none
 

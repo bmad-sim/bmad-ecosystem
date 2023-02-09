@@ -38,7 +38,7 @@ character(*), parameter :: r_name = 'track1_spin_bmad'
 
 ! Spin tracking handled by track_a_patch for patch elements.
 
-dir = start_orb%direction * start_orb%time_dir
+dir = start_orb%direction
 
 if (ele%key == patch$) return
 
@@ -228,7 +228,7 @@ orb = end_orb
 orb%vec(5) = start_orb%vec(5) * (s_tot - ds) / s_tot + end_orb%vec(5) * ds / s_tot
 orb%vec(6) = start_orb%vec(6) * (s_tot - ds) / s_tot + end_orb%vec(6) * ds / s_tot
 
-dss = ds * start_orb%time_dir
+dss = ds
 orb%vec(1) =                     spline_x(0) + spline_x(1) * dss + spline_x(2) * dss**2 + spline_x(3) * dss**3
 orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + 2 * spline_x(2) * dss + 3 * spline_x(3) * dss**2)
 orb%vec(3) =                     spline_y(0) + spline_y(1) * dss + spline_y(2) * dss**2 + spline_y(3) * dss**3

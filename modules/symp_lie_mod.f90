@@ -1,8 +1,7 @@
 module symp_lie_mod
 
 use random_mod
-use fringe_mod
-use multipole_mod
+use bmad_interface
 
 type wiggler_computations_struct
   real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0
@@ -57,6 +56,7 @@ type (cartesian_map_term1_struct), pointer :: wig_term(:), ww(:)
 type (cartesian_map_term1_struct), pointer :: wt
 type (wiggler_computations_struct), allocatable, target :: tm(:)
 type (wiggler_computations_struct), pointer :: tm2(:)
+type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
@@ -328,8 +328,8 @@ case (solenoid$, quadrupole$, sol_quad$)
     ks = ele%value(ks$) * rel_tracking_charge
   end select
 
-  call hard_multipole_edge_kick (ele, param, first_track_edge$, end_orb, mat6, calculate_mat6)
-  call soft_quadrupole_edge_kick (ele, param, first_track_edge$, end_orb, mat6, calculate_mat6)
+  call init_fringe_info (fringe_info, ele)
+  call apply_element_edge_kick (end_orb, fringe_info, ele, param, .false., mat6, calculate_mat6)
 
   ! loop over all steps
 
@@ -350,8 +350,8 @@ case (solenoid$, quadrupole$, sol_quad$)
     if (present(track)) call save_this_track_pt ()
   enddo
 
-  call soft_quadrupole_edge_kick (ele, param, second_track_edge$, end_orb, mat6, calculate_mat6)
-  call hard_multipole_edge_kick (ele, param, second_track_edge$, end_orb, mat6, calculate_mat6)
+  fringe_info%particle_at = second_track_edge$
+  call apply_element_edge_kick (end_orb, fringe_info, ele, param, .false., mat6, calculate_mat6)
 
 !----------------------------------------------------------------------------
 ! unknown element

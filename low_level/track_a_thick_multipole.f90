@@ -17,7 +17,7 @@
 
 subroutine track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
-use fringe_mod, except_dummy => track_a_thick_multipole
+use bmad_interface, except_dummy => track_a_thick_multipole
 
 implicit none
 
