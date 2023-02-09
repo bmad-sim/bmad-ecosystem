@@ -168,6 +168,11 @@
 "calib"                                 ABS 0  7.0000
 "gang0"  ABS 0    1   4
 "gang1"  ABS 0    2   2   2
+"myramp1-var" STR  "ABC"  "PHI0"  "RFCAVITY::R*"
+"myramp1-knot" ABS 1e-15   0.0   2.0   0.0   1.0
+"myramp1-exp" STR  "1e6*(1+ran_gauss())"
+"myramp2-var" STR  "NULL"  "X_OFFSET"  "Q*"
+"myramp2-exp" STR  "ran()/twopi"
 "bmad_com[max_aperture_limit]"          ABS 0     23.50
 "bmad_com[ptc_max_fringe_order]"        ABS 0  -1
 "bmad_com[convert_to_kinetic_momentum]" STR   "T"
@@ -190,4 +195,4 @@
 "CH3@M34.5+2"  STR "CH3@M34.5++"
 "@M3.45---"    STR "@M3.45-3"
 "PHOT-1"    STR "DDD#1"
-"PHOT-N"    STR "8"
+"PHOT-N"    STR "10"

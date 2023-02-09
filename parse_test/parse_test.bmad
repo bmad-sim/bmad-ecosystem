@@ -21,6 +21,9 @@ bmad_com[conserve_taylor_maps] = False
 
 parameter[custom_attribute1] = quadrupole::my_custom
 
+myramp1: ramper = {rfcavity::*[phi0]:{0, 1}, rfcavity::r*[voltage]:1e6*(1+ran_gauss())}, var = {abc}, x_knot = {0, 2}
+myramp2: ramper = {q*[x_offset]:ran()/twopi}, var = {}
+
 aaa: ac_kicker, l = 0.3, hkick = 0.01, amp_vs_time = {(-1e-8, 0.0), (1e-8, 0.7)}
 aaa[amp_vs_time(1)%amp] = 1.0
 aaa[amp_vs_time(2)%time] = 2e-8
