@@ -42,7 +42,7 @@ type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
 real(rp) r, t
-integer ir, n, iu
+integer ir, n, iu, iv
 logical err_flag, finished, radiation_included, is_there
 
 character(*), parameter :: r_name = 'track1_preprocess'
@@ -68,8 +68,10 @@ if (.not. ltt_params_global%ramp_update_each_particle) return
 t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
 
 do ir = 1, ltt_com_global%n_ramper_loc
-  if (ltt_com_global%ramper(ir)%ele%control%var(1)%name /= 'TIME') cycle
-  ltt_com_global%ramper(ir)%ele%control%var(1)%value = t
+  do iv = 1, size(ltt_com_global%ramper(ir)%ele%control%var)
+    if (ltt_com_global%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
+    ltt_com_global%ramper(ir)%ele%control%var(iv)%value = t
+  enddo
 enddo
 
 n = ltt_com_global%n_ramper_loc
