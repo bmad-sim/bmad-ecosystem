@@ -1,4 +1,4 @@
- 2022-02-24 21:59:51 
+ 2023-01-30 18:42:45 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
@@ -6,10 +6,10 @@
    4   Group                 63   !PTC_Com
    5   Sextupole             26   !Parameter
    6   Overlay               39   !Particle_Start
-   7   Custom                22   AB_multipole
-   8   Taylor                58   AC_Kicker
-   9   RFcavity              11   BeamBeam
-  10   ELseparator           60   Beam_Init
+   7   Custom                60   !Space_Charge_Com
+   8   Taylor                22   AB_multipole
+   9   RFcavity              58   AC_Kicker
+  10   ELseparator           11   BeamBeam
   11   BeamBeam              28   Beginning_Ele
   12   Wiggler               45   Capillary
   13   Sol_Quad              38   Converter
@@ -59,7 +59,7 @@
   57   Mask                   5   Sextupole
   58   AC_Kicker             13   Sol_Quad
   59   Lens                  23   Solenoid
-  60   Beam_Init              8   Taylor
+  60   !Space_Charge_Com      8   Taylor
   61   Crab_Cavity           51   Undulator
   62   Ramper                34   Vkicker
   63   !PTC_Com              12   Wiggler
@@ -77,6 +77,7 @@
         30  CMAT_12                                 
         31  CMAT_21                                 
         32  CMAT_22                                 
+        33  MODE_FLIP                               
         43  HIGH_ENERGY_SPACE_CHARGE_ON             
         46  LIVE_BRANCH                             
         47  GEOMETRY                                
@@ -121,6 +122,7 @@
        100  EXACT_MISALIGN                          
        101  OLD_INTEGRATOR                          
        102  EXACT_MODEL                             
+       105  VERTICAL_KICK                           
  
  !---------------------------------
  26  !Parameter          
@@ -161,13 +163,17 @@
         13  PHASE_Y                                 
         16  SIG_Z                                   
         19  SIG_PZ                                  
-        20  DIRECTION                               
+        20  TIME_DIR                                
         21  SPIN_X                                  
         22  SPIN_Y                                  
         23  SPIN_Z                                  
+        24  DIRECTION                               
         39  EMITTANCE_A                             
         40  EMITTANCE_B                             
         41  EMITTANCE_Z                             
+ 
+ !---------------------------------
+ 60  !Space_Charge_Com   
  
  !---------------------------------
  22  AB_multipole        
@@ -225,13 +231,14 @@
  58  AC_Kicker           
          1  L                                       
          2  TILT                                    
-         3  REF_TIME_OFFSET                         
          8  INTERPOLATION                           
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
+        26  PHI0_MULTIPASS                          
         32  T_OFFSET                                
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -306,7 +313,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -319,8 +326,11 @@
  11  BeamBeam            
          1  L                                       
          2  TILT                                    
+         3  REPETITION_FREQUENCY                    
+         5  KS                                      
          7  BBI_CONSTANT                            
          8  CHARGE                                  
+         9  N_PARTICLE                              
         14  SIG_X                                   
         15  SIG_Y                                   
         16  SIG_Z                                   
@@ -329,10 +339,14 @@
         22  BETA_B_STRONG                           
         23  ALPHA_A_STRONG                          
         24  ALPHA_B_STRONG                          
+        25  SPECIES_STRONG                          
+        26  E_TOT_STRONG                            
+        28  rf_clock_harminic                         [private]
         29  CMAT_11                                 
         30  CMAT_12                                 
         31  CMAT_21                                 
         32  CMAT_22                                 
+        33  Z_CROSSING                              
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -342,6 +356,9 @@
         40  CRAB_X2                                 
         41  CRAB_X3                                 
         42  CRAB_TILT                               
+        43  CRAB_X4                                 
+        44  CRAB_X5                                 
+        49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -382,85 +399,6 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
-       133  WRAP_SUPERIMPOSE                        
- 
- !---------------------------------
- 60  Beam_Init           
-         1  L                                       
-         2  TILT                                    
-        10  FRINGE_TYPE                             
-        11  FRINGE_AT                               
-        13  SPIN_FRINGE_ON                          
-        34  X_PITCH                                 
-        35  Y_PITCH                                 
-        36  X_OFFSET                                
-        37  Y_OFFSET                                
-        38  Z_OFFSET                                
-        39  HKICK                                   
-        40  VKICK                                   
-        41  BL_HKICK                                
-        42  BL_VKICK                                
-        50  DELTA_REF_TIME                          
-        51  p0c_start                                 [private]
-        52  e_tot_start                               [private]
-        53  P0C                                     
-        54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
-        65  INTEGRATOR_ORDER                        
-        66  NUM_STEPS                               
-        67  DS_STEP                                 
-        68  CSR_DS_STEP                             
-        69  LORD_PAD1                               
-        70  LORD_PAD2                               
-        71  X1_LIMIT                                
-        72  X2_LIMIT                                
-        73  Y1_LIMIT                                
-        74  Y2_LIMIT                                
-        75  check_sum                                 [private]
-        82  ALIAS                                   
-        83  LR_SELF_WAKE_ON                         
-        84  LR_WAKE_FILE                            
-        85  LR_FREQ_SPREAD                          
-        87  APERTURE_TYPE                           
-        88  TAYLOR_MAP_INCLUDES_OFFSETS             
-        89  CSR_METHOD                              
-        90  SPACE_CHARGE_METHOD                     
-        91  MAT6_CALC_METHOD                        
-        92  TRACKING_METHOD                         
-        93  PTC_INTEGRATION_TYPE                    
-        94  SPIN_TRACKING_METHOD                    
-        95  APERTURE                                
-        96  X_LIMIT                                 
-        97  Y_LIMIT                                 
-        98  OFFSET_MOVES_APERTURE                   
-       100  SR_WAKE_FILE                            
-       103  SYMPLECTIFY                             
-       105  IS_ON                                   
-       106  FIELD_CALC                              
-       107  WALL                                    
-       108  APERTURE_AT                             
-       110  FIELD_OVERLAPS                          
-       112  DESCRIP                                 
-       114  SR_WAKE                                 
-       115  LR_WAKE                                 
-       117  TYPE                                    
-       118  REF_ORIGIN                              
-       119  ELE_ORIGIN                              
-       120  SUPERIMPOSE                             
-       121  OFFSET                                  
-       122  REFERENCE                               
-       127  CREATE_JUMBO_SLAVE                      
-       128  Accordion_Edge                            [private]
-       129  Start_Edge                                [private]
-       130  End_Edge                                  [private]
-       131  S_Position                                [private]
        133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
@@ -471,6 +409,7 @@
         30  CMAT_12                                 
         31  CMAT_21                                 
         32  CMAT_22                                 
+        33  MODE_FLIP                               
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
@@ -615,11 +554,13 @@
          5  RF_WAVELENGTH                           
          6  GRADIENT                                
          8  VOLTAGE                                 
+        17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                       [private]
         19  AUTOSCALE_PHASE                           [private]
         24  PHI0                                    
         26  PHI0_MULTIPASS                          
         27  PHI0_AUTOSCALE                            [private]
+        28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                           [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -690,7 +631,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -788,18 +729,19 @@
          1  L                                       
          2  TILT                                    
          8  DELTA_E_REF                             
-        11  VAL1                                    
-        12  VAL2                                    
-        13  VAL3                                    
-        14  VAL4                                    
-        15  VAL5                                    
-        16  VAL6                                    
-        17  VAL7                                    
-        18  VAL8                                    
-        19  VAL9                                    
-        20  VAL10                                   
-        21  VAL11                                   
-        22  VAL12                                   
+        17  STATIC_LINEAR_MAP                       
+        19  VAL1                                    
+        20  VAL2                                    
+        21  VAL3                                    
+        22  VAL4                                    
+        23  VAL5                                    
+        24  VAL6                                    
+        25  VAL7                                    
+        26  VAL8                                    
+        27  VAL9                                    
+        28  VAL10                                   
+        29  VAL11                                   
+        30  VAL12                                   
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1012,6 +954,7 @@
         10  fringe_type                               [private]
         11  fringe_at                                 [private]
         13  spin_fringe_on                            [private]
+        17  STATIC_LINEAR_MAP                       
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1083,6 +1026,7 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         21  GAP                                     
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -1155,7 +1099,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -1172,12 +1116,14 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
         20  CONSTANT_REF_ENERGY                     
         24  PHI0                                    
         25  PHI0_ERR                                
         27  PHI0_AUTOSCALE                          
+        28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                         
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -1244,7 +1190,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -1257,7 +1203,6 @@
          1  L                                       
          2  TILT                                    
          3  RF_FREQUENCY                            
-         4  L_CATHODE_REGION                        
          6  GRADIENT                                
          7  GRADIENT_ERR                            
          8  VOLTAGE                                 
@@ -1265,6 +1210,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
         22  DT_MAX                                  
@@ -1273,6 +1219,7 @@
         25  PHI0_ERR                                
         26  phi0_multipass                            [private]
         27  PHI0_AUTOSCALE                          
+        28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                         
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -1340,7 +1287,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -1355,6 +1302,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         24  PX_APERTURE_WIDTH2                      
         25  PX_APERTURE_CENTER                      
         26  PY_APERTURE_WIDTH2                      
@@ -1616,6 +1564,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1685,7 +1634,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -1747,6 +1696,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         20  Y_GAIN_CALIB                            
         21  CRUNCH_CALIB                            
         22  X_OFFSET_CALIB                          
@@ -1841,6 +1791,7 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1913,7 +1864,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -1935,6 +1886,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
         20  LONGITUDINAL_MODE                       
@@ -1944,6 +1896,7 @@
         25  PHI0_ERR                                
         26  PHI0_MULTIPASS                          
         27  PHI0_AUTOSCALE                          
+        28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                         
         31  L_ACTIVE                                
         33  N_CELL                                  
@@ -2020,7 +1973,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -2234,29 +2187,31 @@
         21  C12_MAT0                                
         22  C21_MAT0                                
         23  C22_MAT0                                
-        24  C11_MAT1                                
-        25  C12_MAT1                                
-        26  C21_MAT1                                
-        27  C22_MAT1                                
-        28  X0                                      
-        29  PX0                                     
-        30  Y0                                      
-        31  PY0                                     
-        32  Z0                                      
-        33  PZ0                                     
-        34  X1                                      
-        35  PX1                                     
-        36  Y1                                      
-        37  PY1                                     
-        38  Z1                                      
-        39  PZ1                                     
-        40  PHASE_TROMBONE_INPUT                    
-        41  PHASE_TROMBONE                          
-        42  MATCH_END_INPUT                         
-        43  MATCH_END                               
-        44  MATCH_END_ORBIT_INPUT                   
-        45  MATCH_END_ORBIT                         
-        46  DELTA_TIME                              
+        24  MODE_FLIP0                              
+        25  C11_MAT1                                
+        26  C12_MAT1                                
+        27  C21_MAT1                                
+        28  C22_MAT1                                
+        29  MODE_FLIP1                              
+        30  X0                                      
+        31  PX0                                     
+        32  Y0                                      
+        33  PY0                                     
+        34  Z0                                      
+        35  PZ0                                     
+        36  X1                                      
+        37  PX1                                     
+        38  Y1                                      
+        39  PY1                                     
+        40  Z1                                      
+        41  PZ1                                     
+        42  PHASE_TROMBONE_INPUT                    
+        43  PHASE_TROMBONE                          
+        44  MATCH_END_INPUT                         
+        45  MATCH_END                               
+        46  MATCH_END_ORBIT_INPUT                   
+        47  MATCH_END_ORBIT                         
+        48  DELTA_TIME                              
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -2368,6 +2323,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         20  Y_GAIN_CALIB                            
         21  CRUNCH_CALIB                            
         22  X_OFFSET_CALIB                          
@@ -2592,6 +2548,7 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2665,7 +2622,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -2694,6 +2651,7 @@
          2  TILT                                    
          4  REF_COORDS                              
          5  FLEXIBLE                                
+        28  USER_SETS_LENGTH                        
         29  UPSTREAM_ELE_DIR                        
         30  DOWNSTREAM_ELE_DIR                      
         32  T_OFFSET                                
@@ -2702,15 +2660,16 @@
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
-        47  E_TOT_SET                               
-        48  P0C_SET                                 
-        49  E_TOT_OFFSET                            
+        47  E_TOT_OFFSET                            
+        48  E_TOT_SET                               
+        49  P0C_SET                                 
         50  DELTA_REF_TIME                          
         51  P0C_START                               
         52  E_TOT_START                             
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
+        68  CSR_DS_STEP                             
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -2718,6 +2677,8 @@
         75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -2864,6 +2825,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         20  Y_GAIN_CALIB                            
         21  CRUNCH_CALIB                            
         22  X_OFFSET_CALIB                          
@@ -2957,6 +2919,7 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         23  FQ1                                     
         24  FQ2                                     
         34  X_PITCH                                 
@@ -3032,7 +2995,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -3055,15 +3018,17 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
         20  LONGITUDINAL_MODE                       
+        22  phi0_max                                  [private]
         23  CAVITY_TYPE                             
         24  PHI0                                    
         25  phi0_err                                  [private]
         26  PHI0_MULTIPASS                          
         27  PHI0_AUTOSCALE                          
-        28  phi0_max                                  [private]
+        28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                         
         31  L_ACTIVE                                
         33  N_CELL                                  
@@ -3139,7 +3104,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -3172,11 +3137,11 @@
          8  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
-        12  HIGHER_ORDER_FRINGE_TYPE                
         13  SPIN_FRINGE_ON                          
         14  EXACT_MULTIPOLES                        
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         19  E1                                      
         20  E2                                      
         21  FINT                                    
@@ -3185,7 +3150,6 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
-        27  dpz_rad_damp_ave                          [private]
         29  L_SAGITTA                               
         30  L_CHORD                                 
         33  ANGLE                                   
@@ -3268,7 +3232,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -3284,6 +3248,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         24  PX_APERTURE_WIDTH2                      
         25  PX_APERTURE_CENTER                      
         26  PY_APERTURE_WIDTH2                      
@@ -3369,12 +3334,12 @@
          1  L                                       
          2  TILT                                    
          5  KS                                      
-         7  Sad_Flag                                  [private]
          8  RHO                                     
          9  EPS_STEP_SCALE                          
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         19  E1                                      
         20  E2                                      
         21  FB1                                     
@@ -3388,8 +3353,6 @@
         38  Z_OFFSET                                
         39  X_OFFSET_MULT                           
         40  Y_OFFSET_MULT                           
-        41  X_PITCH_MULT                            
-        42  Y_PITCH_MULT                            
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
@@ -3402,9 +3365,14 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
+        65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -3413,6 +3381,8 @@
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -3423,6 +3393,7 @@
         98  OFFSET_MOVES_APERTURE                   
        103  SYMPLECTIFY                             
        105  IS_ON                                   
+       106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
        112  DESCRIP                                 
@@ -3514,11 +3485,11 @@
          8  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
-        12  HIGHER_ORDER_FRINGE_TYPE                
         13  SPIN_FRINGE_ON                          
         14  EXACT_MULTIPOLES                        
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         19  E1                                      
         20  E2                                      
         21  FINT                                    
@@ -3527,7 +3498,6 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
-        27  dpz_rad_damp_ave                          [private]
         29  L_SAGITTA                               
         30  L_CHORD                                 
         33  ANGLE                                   
@@ -3610,7 +3580,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -3629,6 +3599,7 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3702,7 +3673,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -3722,6 +3693,7 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3796,7 +3768,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -3816,6 +3788,7 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         31  L_SOFT_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3890,7 +3863,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -3980,10 +3953,10 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
-        27  dpz_rad_damp_ave                          [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4057,7 +4030,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -4074,6 +4047,7 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4143,7 +4117,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -4167,10 +4141,10 @@
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
-        27  dpz_rad_damp_ave                          [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4244,7 +4218,7 @@
        123  CARTESIAN_MAP                           
        124  CYLINDRICAL_MAP                         
        125  GRID_FIELD                              
-       126  TAYLOR_FIELD                            
+       126  GEN_GRAD_MAP                            
        127  CREATE_JUMBO_SLAVE                      
        128  Accordion_Edge                            [private]
        129  Start_Edge                                [private]
@@ -4256,139 +4230,139 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    55
-     2    53
+     1    54
+     2    52
      3    26
-     4    20
-     5    26
+     4    19
+     5    27
      6    24
-     7    20
+     7    19
      8    28
-     9    10
-    10    29
-    11    32
-    12     6
-    13    30
-    14     7
-    15    17
-    16    18
-    17     3
-    18     8
+     9    11
+    10    28
+    11    30
+    12     3
+    13    28
+    14     6
+    15    16
+    16    17
+    17    29
+    18     7
     19    12
     20    19
     21    19
-    22    18
-    23    20
-    24    20
-    25    16
-    26    22
-    27    21
-    28    12
-    29    24
-    30    19
+    22    19
+    23    21
+    24    22
+    25    18
+    26    25
+    27    18
+    28    19
+    29    25
+    30    20
     31    13
     32     9
-    33     6
-    34    46
-    35    46
-    36    48
-    37    48
-    38    48
-    39    26
-    40    27
-    41    26
-    42    23
-    43     8
-    44     6
+    33     9
+    34    45
+    35    45
+    36    47
+    37    47
+    38    47
+    39    25
+    40    26
+    41    24
+    42    21
+    43     9
+    44     7
     45     8
     46     8
-    47    19
-    48     4
-    49     6
-    50    53
-    51    53
-    52    53
-    53    55
-    54    55
-    55    44
-    56    43
-    57    45
-    58    45
-    59    45
-    60    45
+    47    20
+    48     5
+    49     7
+    50    52
+    51    52
+    52    52
+    53    54
+    54    54
+    55    43
+    56    42
+    57    44
+    58    44
+    59    44
+    60    44
     61     6
     62    27
     63     0
-    64    53
+    64    52
     65    28
-    66    28
-    67    28
-    68    27
+    66    27
+    67    27
+    68    28
     69    28
     70    34
-    71    50
-    72    50
-    73    50
-    74    50
-    75    58
+    71    49
+    72    49
+    73    49
+    74    49
+    75    57
     76     0
     77     0
     78     0
     79     0
     80     0
     81    11
-    82    59
-    83    35
-    84    39
-    85    36
+    82    58
+    83    34
+    84    38
+    85    35
     86    25
-    87    53
-    88    31
-    89    37
-    90    34
-    91    51
-    92    53
-    93    53
-    94    51
-    95    50
-    96    51
-    97    50
-    98    50
+    87    52
+    88    30
+    89    38
+    90    35
+    91    50
+    92    52
+    93    52
+    94    50
+    95    49
+    96    50
+    97    49
+    98    49
     99     2
-   100    32
+   100    31
    101    10
    102     4
-   103    33
+   103    32
    104     3
    105    44
    106    31
-   107    48
-   108    52
+   107    47
+   108    51
    109     6
-   110    28
+   110    27
    111    21
-   112    56
+   112    55
    113    14
-   114    27
-   115    28
+   114    26
+   115    27
    116     5
-   117    56
-   118    52
-   119    52
-   120    52
-   121    52
-   122    52
+   117    55
+   118    51
+   119    51
+   120    51
+   121    51
+   122    51
    123    19
    124    19
    125    19
    126    19
-   127    50
-   128    38
-   129    38
-   130    38
-   131    38
+   127    49
+   128    37
+   129    37
+   130    37
+   131    37
    132     6
-   133    52
+   133    51
    134     0
    135     0
    136     0
@@ -4585,7 +4559,6 @@ Index: 1
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -4641,13 +4614,13 @@ Index: 2
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
 Index: 3
     Sbend               
     RFcavity            
+    BeamBeam            
     Marker              
     Rbend               
     Solenoid            
@@ -4669,7 +4642,6 @@ Index: 3
     E_Gun               
     EM_Field            
     Detector            
-    AC_Kicker           
     Lens                
     Crab_Cavity         
  
@@ -4691,7 +4663,6 @@ Index: 4
     Crystal             
     Pipe                
     Capillary           
-    E_Gun               
     Undulator           
     Detector            
     Crab_Cavity         
@@ -4702,6 +4673,7 @@ Index: 5
     Sbend               
     Sextupole           
     RFcavity            
+    BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
@@ -4773,7 +4745,6 @@ Index: 7
     E_Gun               
     Undulator           
     Detector            
-    Sad_Mult            
  
  !---------------------------------
 Index: 8
@@ -4810,6 +4781,7 @@ Index: 8
 Index: 9
     RFcavity            
     ELseparator         
+    BeamBeam            
     Wiggler             
     Lcavity             
     Match               
@@ -4849,7 +4821,6 @@ Index: 10
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
  
  !---------------------------------
 Index: 11
@@ -4859,7 +4830,6 @@ Index: 11
     Group               
     Sextupole           
     Overlay             
-    Custom              
     RFcavity            
     ELseparator         
     Wiggler             
@@ -4884,13 +4854,9 @@ Index: 11
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
  
  !---------------------------------
 Index: 12
-    Sbend               
-    Custom              
-    Rbend               
     Match               
     !Particle_Start     
     Crystal             
@@ -4901,7 +4867,6 @@ Index: 13
     Sbend               
     Quadrupole          
     Sextupole           
-    Custom              
     RFcavity            
     ELseparator         
     Wiggler             
@@ -4926,12 +4891,10 @@ Index: 13
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
  
  !---------------------------------
 Index: 14
     Sbend               
-    Custom              
     BeamBeam            
     Rbend               
     Match               
@@ -4943,7 +4906,6 @@ Index: 15
     Sbend               
     Quadrupole          
     Sextupole           
-    Custom              
     ELseparator         
     BeamBeam            
     Wiggler             
@@ -4963,7 +4925,6 @@ Index: 16
     Sbend               
     Quadrupole          
     Sextupole           
-    Custom              
     ELseparator         
     BeamBeam            
     Wiggler             
@@ -4981,13 +4942,38 @@ Index: 16
  
  !---------------------------------
 Index: 17
+    Drift               
+    Sbend               
+    Quadrupole          
+    Sextupole           
     Custom              
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
+    Lcavity             
     Match               
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Pipe                
+    E_Gun               
+    EM_Field            
+    Undulator           
     Photon_Init         
+    Sad_Mult            
+    AC_Kicker           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 18
-    Custom              
     RFcavity            
     Lcavity             
     Match               
@@ -5059,6 +5045,7 @@ Index: 21
 Index: 22
     Sbend               
     Custom              
+    RFcavity            
     BeamBeam            
     Wiggler             
     Marker              
@@ -5080,6 +5067,7 @@ Index: 22
 Index: 23
     Sbend               
     Quadrupole          
+    Custom              
     RFcavity            
     BeamBeam            
     Wiggler             
@@ -5103,6 +5091,7 @@ Index: 23
 Index: 24
     Sbend               
     Quadrupole          
+    Custom              
     RFcavity            
     BeamBeam            
     Marker              
@@ -5113,6 +5102,7 @@ Index: 24
     Instrument          
     Rcollimator         
     Ecollimator         
+    !Particle_Start     
     Crystal             
     Pipe                
     E_Gun               
@@ -5125,7 +5115,9 @@ Index: 24
  !---------------------------------
 Index: 25
     Sbend               
+    Custom              
     RFcavity            
+    BeamBeam            
     Marker              
     Rbend               
     Lcavity             
@@ -5144,7 +5136,9 @@ Index: 25
  !---------------------------------
 Index: 26
     Sbend               
+    Custom              
     RFcavity            
+    BeamBeam            
     Marker              
     Rbend               
     Lcavity             
@@ -5164,15 +5158,14 @@ Index: 26
     Sample              
     Detector            
     Mask                
+    AC_Kicker           
     Crab_Cavity         
  
  !---------------------------------
 Index: 27
-    Sbend               
+    Custom              
     RFcavity            
-    Wiggler             
     Marker              
-    Rbend               
     Lcavity             
     Match               
     Monitor             
@@ -5185,15 +5178,18 @@ Index: 27
     E_Gun               
     EM_Field            
     Fiducial            
-    Undulator           
     Photon_Init         
     Detector            
     Crab_Cavity         
  
  !---------------------------------
 Index: 28
+    Custom              
     RFcavity            
+    BeamBeam            
     Marker              
+    Patch               
+    Lcavity             
     Match               
     Monitor             
     Instrument          
@@ -5201,13 +5197,17 @@ Index: 28
     Ecollimator         
     Girder              
     Pipe                
+    E_Gun               
+    EM_Field            
     Fiducial            
     Photon_Init         
     Detector            
+    Crab_Cavity         
  
  !---------------------------------
 Index: 29
     Sbend               
+    Custom              
     RFcavity            
     BeamBeam            
     Marker              
@@ -5235,6 +5235,7 @@ Index: 29
  !---------------------------------
 Index: 30
     Sbend               
+    Custom              
     BeamBeam            
     Marker              
     Rbend               
@@ -5286,8 +5287,11 @@ Index: 32
 Index: 33
     Sbend               
     RFcavity            
+    BeamBeam            
     Rbend               
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Match               
     Multilayer_Mirror   
  
@@ -5337,7 +5341,6 @@ Index: 34
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5386,7 +5389,6 @@ Index: 35
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5437,7 +5439,6 @@ Index: 36
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5488,7 +5489,6 @@ Index: 37
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5539,7 +5539,6 @@ Index: 38
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5568,7 +5567,6 @@ Index: 39
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5598,7 +5596,6 @@ Index: 40
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5625,9 +5622,7 @@ Index: 41
     Pipe                
     E_Gun               
     Undulator           
-    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5651,15 +5646,14 @@ Index: 42
     Ecollimator         
     Pipe                
     Undulator           
-    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
 Index: 43
     Sbend               
     ELseparator         
+    BeamBeam            
     Rbend               
     !Parameter          
     !Line               
@@ -5671,6 +5665,7 @@ Index: 43
 Index: 44
     Sbend               
     RFcavity            
+    BeamBeam            
     Rbend               
     Lcavity             
     !Parameter          
@@ -5715,6 +5710,7 @@ Index: 47
     Lcavity             
     !Parameter          
     !Line               
+    Match               
     Hkicker             
     Vkicker             
     EM_Field            
@@ -5726,10 +5722,12 @@ Index: 48
     Octupole            
     Rbend               
     Patch               
+    Match               
  
  !---------------------------------
 Index: 49
     Sbend               
+    BeamBeam            
     Sol_Quad            
     Rbend               
     Solenoid            
@@ -5789,7 +5787,6 @@ Index: 50
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5845,7 +5842,6 @@ Index: 51
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5901,7 +5897,6 @@ Index: 52
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5959,7 +5954,6 @@ Index: 53
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6017,7 +6011,6 @@ Index: 54
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6064,7 +6057,6 @@ Index: 55
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6110,7 +6102,6 @@ Index: 56
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6158,7 +6149,6 @@ Index: 57
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6206,7 +6196,6 @@ Index: 58
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6254,7 +6243,6 @@ Index: 59
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6302,7 +6290,6 @@ Index: 60
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6340,8 +6327,8 @@ Index: 62
     E_Gun               
     EM_Field            
     Undulator           
+    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6400,7 +6387,6 @@ Index: 64
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6430,8 +6416,8 @@ Index: 65
     E_Gun               
     EM_Field            
     Undulator           
+    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6462,7 +6448,6 @@ Index: 66
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6493,7 +6478,6 @@ Index: 67
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6511,6 +6495,7 @@ Index: 68
     Octupole            
     Rbend               
     Solenoid            
+    Patch               
     Lcavity             
     Monitor             
     Instrument          
@@ -6522,8 +6507,8 @@ Index: 68
     E_Gun               
     EM_Field            
     Undulator           
+    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6553,8 +6538,8 @@ Index: 69
     E_Gun               
     EM_Field            
     Undulator           
+    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6589,9 +6574,9 @@ Index: 70
     Undulator           
     Diffraction_Plate   
     Photon_Init         
+    Sad_Mult            
     Mask                
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6644,7 +6629,6 @@ Index: 71
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6697,7 +6681,6 @@ Index: 72
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6750,7 +6733,6 @@ Index: 73
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6803,7 +6785,6 @@ Index: 74
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -6863,7 +6844,6 @@ Index: 75
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
     Ramper              
  
@@ -6953,7 +6933,6 @@ Index: 82
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
     Ramper              
     !PTC_Com            
@@ -6992,7 +6971,6 @@ Index: 83
     EM_Field            
     Undulator           
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
     Ramper              
  
@@ -7034,7 +7012,6 @@ Index: 84
     Sample              
     Detector            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
     Ramper              
  
@@ -7074,7 +7051,6 @@ Index: 85
     Sample              
     Detector            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7158,7 +7134,6 @@ Index: 87
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7192,7 +7167,6 @@ Index: 88
     Detector            
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7213,6 +7187,7 @@ Index: 89
     Octupole            
     Rbend               
     Solenoid            
+    Patch               
     Lcavity             
     Monitor             
     Instrument          
@@ -7230,8 +7205,8 @@ Index: 89
     Diffraction_Plate   
     Sample              
     Detector            
+    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
     Ramper              
  
@@ -7251,6 +7226,7 @@ Index: 90
     Octupole            
     Rbend               
     Solenoid            
+    Patch               
     Lcavity             
     Monitor             
     Instrument          
@@ -7268,8 +7244,8 @@ Index: 90
     Diffraction_Plate   
     Sample              
     Detector            
+    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7323,7 +7299,6 @@ Index: 91
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7379,7 +7354,6 @@ Index: 92
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7435,7 +7409,6 @@ Index: 93
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7489,7 +7462,6 @@ Index: 94
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7542,7 +7514,6 @@ Index: 95
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7596,7 +7567,6 @@ Index: 96
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7649,7 +7619,6 @@ Index: 97
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7702,7 +7671,6 @@ Index: 98
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7741,7 +7709,6 @@ Index: 100
     Undulator           
     Photon_Init         
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
     !PTC_Com            
  
@@ -7798,7 +7765,6 @@ Index: 103
     Undulator           
     Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7850,9 +7816,9 @@ Index: 105
     Sad_Mult            
     Mask                
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
     Ramper              
+    !PTC_Com            
  
  !---------------------------------
 Index: 106
@@ -7884,8 +7850,8 @@ Index: 106
     E_Gun               
     EM_Field            
     Undulator           
+    Sad_Mult            
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7936,7 +7902,6 @@ Index: 107
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7991,7 +7956,6 @@ Index: 108
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8031,7 +7995,6 @@ Index: 110
     EM_Field            
     Undulator           
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8113,7 +8076,6 @@ Index: 112
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
     Ramper              
  
@@ -8161,7 +8123,6 @@ Index: 114
     EM_Field            
     Undulator           
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8192,7 +8153,6 @@ Index: 115
     EM_Field            
     Undulator           
     AC_Kicker           
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8258,7 +8218,6 @@ Index: 117
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
     Ramper              
  
@@ -8314,7 +8273,6 @@ Index: 118
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8369,7 +8327,6 @@ Index: 119
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8424,7 +8381,6 @@ Index: 120
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8479,7 +8435,6 @@ Index: 121
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8534,7 +8489,6 @@ Index: 122
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8675,7 +8629,6 @@ Index: 127
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8716,7 +8669,6 @@ Index: 128
     Sad_Mult            
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8757,7 +8709,6 @@ Index: 129
     Sad_Mult            
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8798,7 +8749,6 @@ Index: 130
     Sad_Mult            
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8839,7 +8789,6 @@ Index: 131
     Sad_Mult            
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -8903,7 +8852,6 @@ Index: 133
     Mask                
     AC_Kicker           
     Lens                
-    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
