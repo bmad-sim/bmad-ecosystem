@@ -163,7 +163,7 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Group, Overlay and Ramper Element Syntax}
+\section{Group, Overlay, and Ramper Element Syntax}
 \label{s:go.syntax}
 \index{group!syntax}\index{overlay!syntax}
 \index{gang|hyperbf}
@@ -208,6 +208,17 @@ variables and the slave attributes. Example:
 \begin{example}
   gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}
 \end{example}
+
+The function \vn{ran()} and \vn{gauss_ran()} may be used in expressions with \vn{ramper} elements but
+may not be used for other types of controllers. These functions can be useful with long-term tracking
+to simulate such things as ground noise or RF jitter. Example
+\begin{example}
+  rf_noise: ramper = \{rfcavity::*[phi0]: 1e-4*ran_gauss()\}, var = \{ \}
+\end{example}
+Notice that the expression does not depend upon any variables and the variable list is empty. An empty
+variable list is permissible only if all slave expressions involve \vn{ran()} or \vn{ran_gauss()}.
+With an empty variable list, \bmad will define a variable for the \vn{ramper} called \vn{null} to serve
+as a place holder for bookkeeping purposes. 
 
 To define an expression based \vn{controller} element, two lists are needed: One list defines the
 slave attributes along with the arithmetic expressions used for computing the value of the slave
@@ -323,6 +334,12 @@ unity. Example:
 This is equivalent to
 \begin{example}
   gr1: group = \{b1[angle]:angle, b3[angle]:-pi*angle\}, var = \{angle\}
+\end{example}
+The exception is when \vn{ran()} or \vn{gauss_ran()} functions are present in the expression.  In
+this case, the expression will \vn{not} be modified. Example:
+\begin{example}
+  quake: ramper = \{*[y_offset]: 1e-3*ran_gauss()\}, var = \{ \}
+  quake: ramper = \{*[y_offset]: 1e-3*ran_gauss()\}, var = \{time\}  ! Equivalent to above
 \end{example}
 
 Arithmetic expressions may themselves contain element attributes.
