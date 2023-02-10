@@ -1,7 +1,6 @@
 module radiation_mod
 
 use rad_int_common
-use symp_lie_mod
 
 contains
 

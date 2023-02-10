@@ -329,7 +329,7 @@ case (solenoid$, quadrupole$, sol_quad$)
   end select
 
   call init_fringe_info (fringe_info, ele)
-  call apply_element_edge_kick (end_orb, fringe_info, ele, param, .false., mat6, calculate_mat6)
+  call apply_element_edge_kick (end_orb, fringe_info, ele, param, .true., mat6, calculate_mat6, apply_sol_fringe = .false.)
 
   ! loop over all steps
 
@@ -351,7 +351,7 @@ case (solenoid$, quadrupole$, sol_quad$)
   enddo
 
   fringe_info%particle_at = second_track_edge$
-  call apply_element_edge_kick (end_orb, fringe_info, ele, param, .false., mat6, calculate_mat6)
+  call apply_element_edge_kick (end_orb, fringe_info, ele, param, .true., mat6, calculate_mat6, apply_sol_fringe = .false.)
 
 !----------------------------------------------------------------------------
 ! unknown element
