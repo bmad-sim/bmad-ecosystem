@@ -590,8 +590,8 @@ do ib = space_charge_com%n_bin/2, space_charge_com%n_bin
     slice%sig_x = csr%slice(ib-1)%sig_x
     slice%sig_y = csr%slice(ib-1)%sig_y
   else
-    if (slice%sig_x < sig_x_ave * space_charge_com%sigma_cutoff) slice%sig_x = sig_x_ave * space_charge_com%sigma_cutoff
-    if (slice%sig_y < sig_y_ave * space_charge_com%sigma_cutoff) slice%sig_y = sig_y_ave * space_charge_com%sigma_cutoff
+    if (slice%sig_x < sig_x_ave * space_charge_com%lsc_sigma_cutoff) slice%sig_x = sig_x_ave * space_charge_com%lsc_sigma_cutoff
+    if (slice%sig_y < sig_y_ave * space_charge_com%lsc_sigma_cutoff) slice%sig_y = sig_y_ave * space_charge_com%lsc_sigma_cutoff
   endif
 enddo
 
@@ -601,8 +601,8 @@ do ib = space_charge_com%n_bin/2, 1, -1
     slice%sig_x = csr%slice(ib+1)%sig_x
     slice%sig_y = csr%slice(ib+1)%sig_y
   else
-    if (slice%sig_x < sig_x_ave * space_charge_com%sigma_cutoff) slice%sig_x = sig_x_ave * space_charge_com%sigma_cutoff
-    if (slice%sig_y < sig_y_ave * space_charge_com%sigma_cutoff) slice%sig_y = sig_y_ave * space_charge_com%sigma_cutoff
+    if (slice%sig_x < sig_x_ave * space_charge_com%lsc_sigma_cutoff) slice%sig_x = sig_x_ave * space_charge_com%lsc_sigma_cutoff
+    if (slice%sig_y < sig_y_ave * space_charge_com%lsc_sigma_cutoff) slice%sig_y = sig_y_ave * space_charge_com%lsc_sigma_cutoff
   endif
 enddo
 

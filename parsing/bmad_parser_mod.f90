@@ -369,13 +369,15 @@ if (key == rfcavity$ .and. word == 'LAG') word = 'PHI0'   ! For MAD compatibilit
 ! particle_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
-if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
-                            key == def_space_charge_com$ .or. key == def_ptc_com$) then
+if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$ .or. key == def_ptc_com$) then
   name = ele%name
+
   if (word(1:4) == 'PTC_') then    ! For backwards compatibility
     name = 'PTC_COM'
   elseif (ele%name == 'PARAMETER') then
     name = 'BMAD_COM'
+  elseif (word == 'SIGMA_CUTOFF') then
+    word = 'LSC_SIGMA_CUTOFF'
   endif
 
   if (delim == '(') then
@@ -460,7 +462,8 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. &
     if (associated(a_ptrs(1)%r, space_charge_com%rel_tol_tracking))        bp_com%extra%sc_rel_tol_tracking_set         = .true.
     if (associated(a_ptrs(1)%r, space_charge_com%abs_tol_tracking))        bp_com%extra%sc_abs_tol_tracking_set         = .true.
     if (associated(a_ptrs(1)%r, space_charge_com%beam_chamber_height))     bp_com%extra%beam_chamber_height_set         = .true.
-    if (associated(a_ptrs(1)%r, space_charge_com%sigma_cutoff))            bp_com%extra%sigma_cutoff_set                = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%lsc_sigma_cutoff))        bp_com%extra%lsc_sigma_cutoff_set            = .true.
+    if (associated(a_ptrs(1)%r, space_charge_com%particle_sigma_cutoff))   bp_com%extra%particle_sigma_cutoff_set       = .true.
 
     if (associated(a_ptrs(1)%r, ptc_com%vertical_kick))                    bp_com%extra%vertical_kick_set               = .true.
     if (associated(a_ptrs(1)%r, ptc_com%cut_factor))                       bp_com%extra%cut_factor_set                  = .true.

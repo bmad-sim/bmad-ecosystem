@@ -105,7 +105,7 @@ if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ 
 elseif (temp_start%s /= temp_end%s) then
   call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, dir, spline_x, spline_y, temp_start, temp_end, param)
-  if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir*ele%orientation, 0.0_rp]
+  if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir*ele%orientation*start_orb%time_dir, 0.0_rp]
   call rotate_spin(omega, temp_end%spin)
 endif
 

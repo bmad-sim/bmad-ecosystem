@@ -2264,7 +2264,9 @@ is_eq = is_eq .and. (f1%abs_tol_tracking == f2%abs_tol_tracking)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%beam_chamber_height == f2%beam_chamber_height)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%sigma_cutoff == f2%sigma_cutoff)
+is_eq = is_eq .and. (f1%lsc_sigma_cutoff == f2%lsc_sigma_cutoff)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%particle_sigma_cutoff == f2%particle_sigma_cutoff)
 !! f_side.equality_test[integer, 1, NOT]
 is_eq = is_eq .and. all(f1%space_charge_mesh_size == f2%space_charge_mesh_size)
 !! f_side.equality_test[integer, 1, NOT]
