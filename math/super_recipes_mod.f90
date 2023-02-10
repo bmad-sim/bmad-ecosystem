@@ -798,7 +798,7 @@ end function super_dbrent
 !                    integer :: status    ! If non-zero return value, super_zbrent will terminate.
 !                    real(rp) :: value
 !                  end function func
-!   x1, x2   -- real(rp): Bracket values.
+!   x1, x2   -- real(rp): Bracket values. Note: x2 does not have to be larger than x1
 !   rel_tol  -- real(rp): Relative tolerance for x_zero. This is 4d-16 in NR zbrent.
 !   abs_tol  -- real(rp): Absolute tolerance for x_zero. This is tol in NR zbrent.
 !
