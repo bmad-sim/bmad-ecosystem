@@ -678,7 +678,11 @@ end select
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
-write (iu, '(a)') ' local_space_charge_com%' // trim(who) // ' = ' // trim(val)
+if (who == 'sigma_cut') then   ! Old style
+  write (iu, '(a)') ' local_space_charge_com%lsc_sigma_cut = ' // trim(val)
+else
+  write (iu, '(a)') ' local_space_charge_com%' // trim(who) // ' = ' // trim(val)
+endif
 write (iu, '(a)') '/'
 rewind (iu)
 local_space_charge_com = space_charge_com  ! set defaults
