@@ -68,7 +68,7 @@ space_charge_com%n_shield_images = 0
 space_charge_com%ds_track_step = 0.01
 space_charge_com%n_bin = 40
 space_charge_com%particle_bin_span = 2
-space_charge_com%sigma_cutoff = 0.1
+space_charge_com%lsc_sigma_cutoff = 0.1
 
 !
 
