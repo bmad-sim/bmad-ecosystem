@@ -5072,36 +5072,39 @@ void set_CPP_space_charge_common_test_pattern (CPP_space_charge_common& C, int i
   rhs = 6 + offset; C.beam_chamber_height = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.sigma_cutoff = rhs;
+  rhs = 7 + offset; C.lsc_sigma_cutoff = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.particle_sigma_cutoff = rhs;
 
   // c_side.test_pat[integer, 1, NOT]
   for (unsigned int i = 0; i < C.space_charge_mesh_size.size(); i++)
-    {int rhs = 101 + i + 8 + offset; C.space_charge_mesh_size[i] = rhs;}
+    {int rhs = 101 + i + 9 + offset; C.space_charge_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 1, NOT]
   for (unsigned int i = 0; i < C.csr3d_mesh_size.size(); i++)
-    {int rhs = 101 + i + 9 + offset; C.csr3d_mesh_size[i] = rhs;}
+    {int rhs = 101 + i + 10 + offset; C.csr3d_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.n_bin = rhs;
+  rhs = 11 + offset; C.n_bin = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.particle_bin_span = rhs;
+  rhs = 12 + offset; C.particle_bin_span = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.n_shield_images = rhs;
+  rhs = 13 + offset; C.n_shield_images = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.sc_min_in_bin = rhs;
+  rhs = 14 + offset; C.sc_min_in_bin = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 14 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
+  rhs = 15 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 15 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 16 + offset; C.debug = (rhs % 2 == 0);
 
   // c_side.test_pat[character, 0, NOT]
   C.diagnostic_output_file.resize(200);
   for (unsigned int i = 0; i < C.diagnostic_output_file.size(); i++)
-    {int rhs = 101 + i + 16 + offset; C.diagnostic_output_file[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 17 + offset; C.diagnostic_output_file[i] = 'a' + rhs % 26;}
 
 }
 

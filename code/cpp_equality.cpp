@@ -1267,7 +1267,8 @@ bool operator== (const CPP_space_charge_common& x, const CPP_space_charge_common
   is_eq = is_eq && (x.rel_tol_tracking == y.rel_tol_tracking);
   is_eq = is_eq && (x.abs_tol_tracking == y.abs_tol_tracking);
   is_eq = is_eq && (x.beam_chamber_height == y.beam_chamber_height);
-  is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
+  is_eq = is_eq && (x.lsc_sigma_cutoff == y.lsc_sigma_cutoff);
+  is_eq = is_eq && (x.particle_sigma_cutoff == y.particle_sigma_cutoff);
   is_eq = is_eq && is_all_equal(x.space_charge_mesh_size, y.space_charge_mesh_size);
   is_eq = is_eq && is_all_equal(x.csr3d_mesh_size, y.csr3d_mesh_size);
   is_eq = is_eq && (x.n_bin == y.n_bin);

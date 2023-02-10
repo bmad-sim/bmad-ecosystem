@@ -8383,13 +8383,14 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine space_charge_common_to_c2 (C, z_ds_track_step, z_dt_track_step, &
       z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, &
-      z_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, &
-      z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
+      z_lsc_sigma_cutoff, z_particle_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, &
+      z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
       z_lsc_kick_transverse_dependence, z_debug, z_diagnostic_output_file) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_sigma_cutoff
+    real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_lsc_sigma_cutoff
+    real(c_double) :: z_particle_sigma_cutoff
     integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
     logical(c_bool) :: z_lsc_kick_transverse_dependence, z_debug
     character(c_char) :: z_diagnostic_output_file(*)
@@ -8409,9 +8410,9 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call space_charge_common_to_c2 (C, F%ds_track_step, F%dt_track_step, F%cathode_strength_cutoff, &
-    F%rel_tol_tracking, F%abs_tol_tracking, F%beam_chamber_height, F%sigma_cutoff, &
-    fvec2vec(F%space_charge_mesh_size, 3), fvec2vec(F%csr3d_mesh_size, 3), F%n_bin, &
-    F%particle_bin_span, F%n_shield_images, F%sc_min_in_bin, &
+    F%rel_tol_tracking, F%abs_tol_tracking, F%beam_chamber_height, F%lsc_sigma_cutoff, &
+    F%particle_sigma_cutoff, fvec2vec(F%space_charge_mesh_size, 3), fvec2vec(F%csr3d_mesh_size, &
+    3), F%n_bin, F%particle_bin_span, F%n_shield_images, F%sc_min_in_bin, &
     c_logic(F%lsc_kick_transverse_dependence), c_logic(F%debug), trim(F%diagnostic_output_file) &
     // c_null_char)
 
@@ -8435,9 +8436,9 @@ end subroutine space_charge_common_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine space_charge_common_to_f2 (Fp, z_ds_track_step, z_dt_track_step, &
     z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, &
-    z_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, z_particle_bin_span, &
-    z_n_shield_images, z_sc_min_in_bin, z_lsc_kick_transverse_dependence, z_debug, &
-    z_diagnostic_output_file) bind(c)
+    z_lsc_sigma_cutoff, z_particle_sigma_cutoff, z_space_charge_mesh_size, z_csr3d_mesh_size, &
+    z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
+    z_lsc_kick_transverse_dependence, z_debug, z_diagnostic_output_file) bind(c)
 
 
 implicit none
@@ -8446,7 +8447,8 @@ type(c_ptr), value :: Fp
 type(space_charge_common_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_sigma_cutoff
+real(c_double) :: z_ds_track_step, z_dt_track_step, z_cathode_strength_cutoff, z_rel_tol_tracking, z_abs_tol_tracking, z_beam_chamber_height, z_lsc_sigma_cutoff
+real(c_double) :: z_particle_sigma_cutoff
 integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
 logical(c_bool) :: z_lsc_kick_transverse_dependence, z_debug
 character(c_char) :: z_diagnostic_output_file(*)
@@ -8466,7 +8468,9 @@ F%abs_tol_tracking = z_abs_tol_tracking
 !! f_side.to_f2_trans[real, 0, NOT]
 F%beam_chamber_height = z_beam_chamber_height
 !! f_side.to_f2_trans[real, 0, NOT]
-F%sigma_cutoff = z_sigma_cutoff
+F%lsc_sigma_cutoff = z_lsc_sigma_cutoff
+!! f_side.to_f2_trans[real, 0, NOT]
+F%particle_sigma_cutoff = z_particle_sigma_cutoff
 !! f_side.to_f2_trans[integer, 1, NOT]
 F%space_charge_mesh_size = z_space_charge_mesh_size(1:3)
 !! f_side.to_f2_trans[integer, 1, NOT]

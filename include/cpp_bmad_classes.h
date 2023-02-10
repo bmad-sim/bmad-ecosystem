@@ -2968,7 +2968,8 @@ public:
   Real rel_tol_tracking;
   Real abs_tol_tracking;
   Real beam_chamber_height;
-  Real sigma_cutoff;
+  Real lsc_sigma_cutoff;
+  Real particle_sigma_cutoff;
   Int_ARRAY space_charge_mesh_size;
   Int_ARRAY csr3d_mesh_size;
   Int n_bin;
@@ -2986,7 +2987,8 @@ public:
     rel_tol_tracking(1e-8),
     abs_tol_tracking(1e-10),
     beam_chamber_height(0.0),
-    sigma_cutoff(0.1),
+    lsc_sigma_cutoff(0.1),
+    particle_sigma_cutoff(-1),
     space_charge_mesh_size(32, 3),
     csr3d_mesh_size(32, 3),
     n_bin(0),

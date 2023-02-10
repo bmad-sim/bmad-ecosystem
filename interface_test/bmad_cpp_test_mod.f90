@@ -7516,32 +7516,34 @@ rhs = 5 + offset; F%abs_tol_tracking = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 6 + offset; F%beam_chamber_height = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%sigma_cutoff = rhs
+rhs = 7 + offset; F%lsc_sigma_cutoff = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%particle_sigma_cutoff = rhs
 !! f_side.test_pat[integer, 1, NOT]
 do jd1 = 1, size(F%space_charge_mesh_size,1); lb1 = lbound(F%space_charge_mesh_size,1) - 1
-  rhs = 100 + jd1 + 8 + offset
+  rhs = 100 + jd1 + 9 + offset
   F%space_charge_mesh_size(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[integer, 1, NOT]
 do jd1 = 1, size(F%csr3d_mesh_size,1); lb1 = lbound(F%csr3d_mesh_size,1) - 1
-  rhs = 100 + jd1 + 9 + offset
+  rhs = 100 + jd1 + 10 + offset
   F%csr3d_mesh_size(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%n_bin = rhs
+rhs = 11 + offset; F%n_bin = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%particle_bin_span = rhs
+rhs = 12 + offset; F%particle_bin_span = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%n_shield_images = rhs
+rhs = 13 + offset; F%n_shield_images = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%sc_min_in_bin = rhs
+rhs = 14 + offset; F%sc_min_in_bin = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
+rhs = 15 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 15 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 16 + offset; F%debug = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%diagnostic_output_file)
-  F%diagnostic_output_file(jd1:jd1) = char(ichar("a") + modulo(100+16+offset+jd1, 26))
+  F%diagnostic_output_file(jd1:jd1) = char(ichar("a") + modulo(100+17+offset+jd1, 26))
 enddo
 
 end subroutine set_space_charge_common_test_pattern
