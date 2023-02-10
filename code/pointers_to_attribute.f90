@@ -184,7 +184,8 @@ case ('SPACE_CHARGE_COM')
   case ('REL_TOL_TRACKING');                ptr_array(1)%r => space_charge_com%rel_tol_tracking
   case ('ABS_TOL_TRACKING');                ptr_array(1)%r => space_charge_com%abs_tol_tracking
   case ('BEAM_CHAMBER_HEIGHT');             ptr_array(1)%r => space_charge_com%beam_chamber_height
-  case ('SIGMA_CUTOFF');                    ptr_array(1)%r => space_charge_com%sigma_cutoff
+  case ('LSC_SIGMA_CUTOFF');                ptr_array(1)%r => space_charge_com%lsc_sigma_cutoff
+  case ('PARTICLE_SIGMA_CUTOFF');           ptr_array(1)%r => space_charge_com%particle_sigma_cutoff
   case ('N_BIN');                           ptr_array(1)%i => space_charge_com%n_bin
   case ('PARTICLE_BIN_SPAN');               ptr_array(1)%i => space_charge_com%particle_bin_span
   case ('N_SHIELD_IMAGES');                 ptr_array(1)%i => space_charge_com%n_shield_images

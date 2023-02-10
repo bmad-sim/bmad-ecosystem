@@ -422,7 +422,7 @@ and an \vn{instance name} of \vn{space_charge_com}. This structure has component
     cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
     rel_tol_tracking = 1d-8
     abs_tol_tracking = 1d-10            
-    sigma_cutoff = 0.1                  ! Cutoff for the lsc calc. If a bin sigma
+    lsc_sigma_cutoff = 0.1              ! Cutoff for the lsc calc. If a bin sigma
                                         !  is < cutoff * sigma_ave then ignore.
     n_bin = 0                           ! Number of bins used
     particle_bin_span = 2               ! Longitudinal particle length / dz_bin
@@ -460,8 +460,8 @@ When tracking through an element whose \vn{space_charge_method} is set to \vn{ca
 from the cathode the cathode image field is included. If the image field is less than
 \vn{cathode_strength_cutoff} * bunch field, the image field will be ignored.
 %
-\item{sigma_cutoff} \Newline
-\vn{sigma_cutoff} is used in the longitudinal space charge (LSC) calculation and is used to prevent
+\item{lsc_sigma_cutoff} \Newline
+\vn{lsc_sigma_cutoff} is used in the longitudinal space charge (LSC) calculation and is used to prevent
 bins with only a few particles in them to give a large contribution to the kick when the computed
 transverse sigmas are abnormally low.
 %

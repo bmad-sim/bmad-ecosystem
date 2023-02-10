@@ -332,7 +332,8 @@ if (found_it) then
   if (extra%sc_rel_tol_tracking_set)              space_charge_com%rel_tol_tracking                 = space_charge_com_read%rel_tol_tracking
   if (extra%sc_abs_tol_tracking_set)              space_charge_com%abs_tol_tracking                 = space_charge_com_read%abs_tol_tracking
   if (extra%beam_chamber_height_set)              space_charge_com%beam_chamber_height              = space_charge_com_read%beam_chamber_height
-  if (extra%sigma_cutoff_set)                     space_charge_com%sigma_cutoff                     = space_charge_com_read%sigma_cutoff
+  if (extra%lsc_sigma_cutoff_set)                 space_charge_com%lsc_sigma_cutoff                 = space_charge_com_read%lsc_sigma_cutoff
+  if (extra%particle_sigma_cutoff_set)            space_charge_com%particle_sigma_cutoff            = space_charge_com_read%particle_sigma_cutoff
   if (extra%space_charge_mesh_size_set)           space_charge_com%space_charge_mesh_size           = space_charge_com_read%space_charge_mesh_size
   if (extra%csr3d_mesh_size_set)                  space_charge_com%csr3d_mesh_size                  = space_charge_com_read%csr3d_mesh_size
   if (extra%n_bin_set)                            space_charge_com%n_bin                            = space_charge_com_read%n_bin

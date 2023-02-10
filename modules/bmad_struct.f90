@@ -1969,11 +1969,13 @@ type space_charge_common_struct                   ! Common block for space charg
   real(rp) :: ds_track_step = 0                   ! CSR tracking step size
   real(rp) :: dt_track_step = 1d-12               ! Time Runge kutta initial step.
   real(rp) :: cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
-  real(rp) :: rel_tol_tracking = 1d-8
-  real(rp) :: abs_tol_tracking = 1d-10            
+  real(rp) :: rel_tol_tracking = 1d-8             ! Relative tolerance for tracking.
+  real(rp) :: abs_tol_tracking = 1d-10            ! Absolute tolerance for tracking.
   real(rp) :: beam_chamber_height = 0             ! Used in shielding calculation.
-  real(rp) :: sigma_cutoff = 0.1                  ! Cutoff for the lsc calc. If a bin sigma
-                                                  !  is < cutoff * sigma_ave then ignore.
+  real(rp) :: lsc_sigma_cutoff = 0.1              ! Cutoff for the 1-dim longitudinal SC calc.
+                                                  !   If a bin sigma is < cutoff * sigma_ave then ignore.
+  real(rp) :: particle_sigma_cutoff = -1          ! 3D SC calc cutoff for particles with (x,y,z) position far from the center.
+                                                  !  Negative or zero means ignore.
   integer :: space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
   integer :: csr3d_mesh_size(3) = [32, 32, 64]         ! Gird size for CSR.
   integer :: n_bin = 0                            ! Number of bins used
@@ -2057,7 +2059,8 @@ type extra_parsing_info_struct
   logical :: sc_rel_tol_tracking_set                = .false.  ! For: space_charge_com%rel_tol_tracking
   logical :: sc_abs_tol_tracking_set                = .false.  ! For: space_charge_com%abs_tol_tracking
   logical :: beam_chamber_height_set                = .false.
-  logical :: sigma_cutoff_set                       = .false.
+  logical :: lsc_sigma_cutoff_set                   = .false.
+  logical :: particle_sigma_cutoff_set              = .false.
   logical :: space_charge_mesh_size_set             = .false.
   logical :: csr3d_mesh_size_set                    = .false.
   logical :: n_bin_set                              = .false.
