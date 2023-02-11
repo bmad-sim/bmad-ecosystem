@@ -1,6 +1,6 @@
 module multipole_mod
 
-use equal_mod
+use bmad_routine_interface
 
 implicit none
 

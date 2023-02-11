@@ -7,9 +7,7 @@
 
 module bmad
 
-use dynamic_aperture_mod
 use bookkeeper_mod
-use symp_lie_mod
 use twiss_and_track_mod
 use taylor_mod
 

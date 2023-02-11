@@ -123,7 +123,7 @@ endif
 if (.not. associated(pointer_to_girder(ele)) .and. has_orientation_attributes(ele) &
                                                   .and. ele%slave_status /= multipass_slave$) then
   select case (ele%key)
-  case (sbend$)
+  case (sbend$, rf_bend$)
     val(roll_tot$)     = val(roll$)
     val(ref_tilt_tot$) = val(ref_tilt$)
   case (crystal$, mirror$, multilayer_mirror$)
@@ -191,9 +191,11 @@ if (ele%field_master) then
   case (sol_quad$)
     val(ks$) = factor * val(Bs_field$)
     val(k1$) = factor * val(B1_gradient$)
+  case (rf_bend$)
+    val(g$)     = factor * val(B_field$)
   case (sbend$)
     val(g$)     = factor * val(B_field$)
-    val(dg$) = factor * val(dB_field$)
+    val(dg$)    = factor * val(dB_field$)
     val(k1$)    = factor * val(B1_gradient$)
     val(k2$)    = factor * val(B2_gradient$)
   case (hkicker$, vkicker$)
@@ -229,9 +231,11 @@ else
   case (sol_quad$)
     val(Bs_field$)    = factor * val(ks$)
     val(B1_gradient$) = factor * val(k1$)
+  case (rf_bend$)
+    val(B_field$)     = factor * val(g$)
   case (sbend$)
     val(B_field$)     = factor * val(g$)
-    val(dB_field$) = factor * val(dg$)
+    val(dB_field$)    = factor * val(dg$)
     val(B1_gradient$) = factor * val(k1$)
     val(B2_gradient$) = factor * val(k2$)
   case (hkicker$)
@@ -340,7 +344,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
           val(ds_step$) = abs(val(l$)) / val(num_steps$)
         endif
 
-      case (lcavity$, rfcavity$, crab_cavity$)
+      case (lcavity$, rfcavity$, crab_cavity$, rf_bend$)
         if (val(l$) /= 0) then
           val(num_steps$) = 10
           val(ds_step$) = abs(val(l$)) / val(num_steps$)
@@ -545,6 +549,53 @@ case (rfcavity$)
     val(gradient$) = 1d30    ! Something large
   else
     val(gradient$) = val(voltage$) / val(l$)
+  endif
+
+! rf_bend
+
+case (rf_bend$)
+
+  if (associated(branch) .and. val(e_tot$) /= 0) then
+    beta = ele%value(p0c$) / ele%value(e_tot$)
+    time = branch%param%total_length / (c_light * beta)
+    if (time /= 0) then
+      if (ele%value(rf_frequency$) <= 0) then
+        val(rf_frequency$) = val(harmon$) / time
+      else
+        val(harmon$) = val(rf_frequency$) * time
+      endif
+    endif
+  endif
+
+  if (val(rf_frequency$) /= 0) then
+    val(rf_wavelength$) = c_light / val(rf_frequency$)
+  else
+    val(rf_wavelength$) = 0
+  endif
+
+  ! multipass_slaves will inherit from lord
+  if (ele%slave_status /= multipass_slave$) then
+    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+      val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
+    else
+      val(l_active$) = val(l$)
+    endif
+  endif
+
+  val(angle$) = val(l$) * val(g$)
+
+  if (val(g$) == 0) then
+    val(rho$) = 0
+    val(l_chord$) = val(l$)
+    val(l_sagitta$) = 0
+  else
+    val(rho$) = 1 / val(g$)
+    val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
+    val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
+  endif
+
+  if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
+    call set_ele_status_stale (ele, floor_position_group$)
   endif
 
 ! sad_mult
