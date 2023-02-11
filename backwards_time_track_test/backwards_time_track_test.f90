@@ -14,10 +14,10 @@ type (coord_struct) start_orb, end_orb, start2_orb, d
 character(100) :: lat_file  = 'backwards_time_track_test.bmad'
 character(60) str
 
-real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta
+real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta, merit, global_merit
 integer j, ib, ie, nargs
 
-logical debug_mode, loc_equal
+logical debug_mode, loc_equal, global_loc_equal
  
 !
 
@@ -55,6 +55,9 @@ endif
 
 !
 
+global_loc_equal = .true.
+global_merit = 0
+
 do ib = 0, 0
   branch => lat%branch(ib)
 
@@ -64,7 +67,7 @@ do ib = 0, 0
     do j = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       select case (j)
-      case (bmad_standard$, runge_kutta$, time_runge_kutta$, linear$, taylor$)
+      case (bmad_standard$, runge_kutta$, time_runge_kutta$, linear$, taylor$, symp_lie_bmad$)
       case default;   cycle
       end select
       ele%tracking_method = j
@@ -84,28 +87,33 @@ do ib = 0, 0
       d%p0c  =  start2_orb%p0c  - start_orb%p0c
       d%beta =  start2_orb%beta - start_orb%beta
       loc_equal = (start2_orb%location == start_orb%location)
+      merit = maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)])
 
-      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '              ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
-      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-dendSpin'), '         ABS 1E-13', end_orb%spin - start_orb%spin
-      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dOrb'), '             ABS 1E-13', d%vec
-      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dSpin'), '            ABS 1E-13', d%spin
-      write (1, '(2a, 4es18.10)')    quote(trim(str) // '-dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
-      write (1, '(2a, es18.10, l4)') quote(trim(str) // '-Merit'),  '           ABS 1E-13', &
-                              maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)]), loc_equal
+      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '                ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
+      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-dendSpin'), '           ABS 1E-13', end_orb%spin - start_orb%spin
+      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dOrb'), '               ABS 1E-13', d%vec
+      write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dSpin'), '              ABS 1E-13', d%spin
+      write (1, '(2a, 4es18.10)')    quote(trim(str) // '-c*dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
+      write (1, '(2a, es18.10, l4)') quote(trim(str) // '-Merit'),  '             ABS 1E-13', merit, loc_equal
 
       if (debug_mode) then
-        print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '              ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
-        print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '         ABS 1E-13', end_orb%spin - start_orb%spin
+        print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '                ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
+        print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '           ABS 1E-13', end_orb%spin - start_orb%spin
         print '(a)', '------------------------------------------------------------------------------------'
-        print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '             ABS 1E-13', d%vec
-        print '(2a, 6es18.10)',    quote(trim(str) // '-dSpin'), '            ABS 1E-13', d%spin
-        print '(2a, 4es18.10)',    quote(trim(str) // '-dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
-        print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '            ABS 1E-13', &
-                            maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)]), loc_equal
+        print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '               ABS 1E-13', d%vec
+        print '(2a, 6es18.10)',    quote(trim(str) // '-dSpin'), '              ABS 1E-13', d%spin
+        print '(2a, 4es18.10)',    quote(trim(str) // '-c*dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
+        print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '              ABS 1E-13', merit, loc_equal
         print *
+        global_merit = max(global_merit, merit)
+        global_loc_equal = (global_loc_equal .and. loc_equal)
       endif
     enddo
+
   end do
+  if (debug_mode) then
+    print '(a, es18.10, l4)', '"Global-Merit"  ', global_merit, global_loc_equal
+  endif
 enddo
 
 end program
