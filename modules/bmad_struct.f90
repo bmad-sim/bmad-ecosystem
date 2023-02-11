@@ -32,7 +32,7 @@ integer, parameter :: bmad_inc_version$ = 292
 type fringe_field_info_struct
   type (ele_struct), pointer :: hard_ele => null()
   real(rp) :: s_edge_hard = 0
-  real(rp) :: ds_edge = 0                     ! Distance from particle to edge.
+  real(rp) :: ds_edge = 0                     ! Distance from particle to edge in hard_ele frame.
   integer :: particle_at = -1                 ! first_track_edge$, second_track_edge$, or none$
   integer, pointer :: hard_location => null() ! Particle location wrt hard_ele. Points to element in location(:).
   integer, allocatable :: location(:)         ! Particle location in an element. entrance_end$, inside$, or exit_end$

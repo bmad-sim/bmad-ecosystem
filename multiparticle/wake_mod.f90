@@ -579,4 +579,80 @@ bunch%n_live = nm
 
 end subroutine order_particles_in_z
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine track1_sr_wake (bunch, ele)
+!
+! Subroutine to apply the short range wake fields to a bunch. 
+!
+! Input:
+!   bunch -- Bunch_struct: Bunch of particles.
+!   ele   -- Ele_struct: Element with wakefields.
+!
+! Output:
+!   bunch -- Bunch_struct: Bunch with wakefields applied to the particles.
+!-
+
+subroutine track1_sr_wake (bunch, ele)
+
+implicit none
+
+type (bunch_struct), target :: bunch
+type (ele_struct) ele
+type (coord_struct), pointer :: particle
+type (coord_struct), pointer :: p(:)
+
+real(rp) sr02
+integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start, n_live
+
+logical wake_here
+character(16) :: r_name = 'track1_sr_wake'
+
+!-----------------------------------
+
+if (.not. bmad_com%sr_wakes_on) return
+if (.not. associated(ele%wake)) return
+if (size(ele%wake%sr%long) == 0 .and. size(ele%wake%sr%trans) == 0) return
+
+n_live = bunch%n_live
+if (n_live == 0) return    ! No one left alive.
+p => bunch%particle
+
+! error check and zero wake sums and order particles in z
+
+i1 = bunch%ix_z(1)
+i2 = bunch%ix_z(n_live)
+
+if (ele%wake%sr%z_max > 0 .and. p(i1)%vec(5) - p(i2)%vec(5) > ele%wake%sr%z_max) then
+  call out_io (s_abort$, r_name, &
+      'Bunch longer than sr wake can handle for element: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+endif
+
+!
+
+ele%wake%sr%long%b_sin = 0
+ele%wake%sr%long%b_cos = 0
+ele%wake%sr%long%a_sin = 0
+ele%wake%sr%long%a_cos = 0
+ele%wake%sr%z_ref_long = p(i1)%vec(5)
+
+ele%wake%sr%trans%b_sin = 0
+ele%wake%sr%trans%b_cos = 0
+ele%wake%sr%trans%a_sin = 0
+ele%wake%sr%trans%a_cos = 0
+ele%wake%sr%z_ref_trans = p(i1)%vec(5)
+
+! Loop over all particles in the bunch and apply the wake
+
+do j = 1, n_live
+  particle => p(bunch%ix_z(j))  ! Particle to kick
+  call sr_longitudinal_wake_particle (ele, particle)
+  call sr_transverse_wake_particle (ele, particle)
+enddo
+
+end subroutine track1_sr_wake
+
 end module
