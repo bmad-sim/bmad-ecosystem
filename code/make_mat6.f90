@@ -22,7 +22,6 @@
 
 recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
 
-use symp_lie_mod, only: symp_lie_bmad
 use bookkeeper_mod, only: attribute_bookkeeper
 use mad_mod, only: make_mat6_mad
 use high_energy_space_charge_mod, except_dummy => make_mat6

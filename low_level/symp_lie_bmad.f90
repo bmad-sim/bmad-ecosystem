@@ -1,23 +1,3 @@
-module symp_lie_mod
-
-use random_mod
-use bmad_interface
-
-type wiggler_computations_struct
-  real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0
-  real(rp) :: coef_Ax = 0, coef_Ay = 0, coef_Az = 0
-  real(rp) :: sx_over_kx = 0, sy_over_ky = 0, sz_over_kz = 0
-  real(rp) :: integral_sx = 0, integral_sy = 0, integral_cx = 0, integral_cy = 0
-  integer :: trig_x = 0, trig_y = 0
-end type
-
-private wiggler_computations_struct
-
-contains
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
 !+
 ! Subroutine symp_lie_bmad (ele, param, start_orb, end_orb, mat6, make_matrix, track, offset_ele)
 !
@@ -44,7 +24,18 @@ contains
 
 subroutine symp_lie_bmad (ele, param, start_orb, end_orb, track, mat6, make_matrix, offset_ele)
 
+use random_mod
+use bmad_interface
+
 implicit none
+
+type wiggler_computations_struct
+  real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0
+  real(rp) :: coef_Ax = 0, coef_Ay = 0, coef_Az = 0
+  real(rp) :: sx_over_kx = 0, sy_over_ky = 0, sz_over_kz = 0
+  real(rp) :: integral_sx = 0, integral_sy = 0, integral_cx = 0, integral_cy = 0
+  integer :: trig_x = 0, trig_y = 0
+end type
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
@@ -75,7 +66,7 @@ integer num_wig_terms  ! number of wiggler terms
 logical calculate_mat6, err, do_offset, allocated_map
 logical, optional :: make_matrix, offset_ele
 
-character(16) :: r_name = 'symp_lie_bmad'
+character(*), parameter :: r_name = 'symp_lie_bmad'
 
 ! init
 
@@ -102,7 +93,7 @@ endif
 
 err = .false.
 
-orient_dir = ele%orientation * end_orb%direction*end_orb%time_dir
+orient_dir = ele%orientation * end_orb%direction
 rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param%particle)
 charge_dir = rel_tracking_charge * orient_dir
 allocated_map = .false.
@@ -121,7 +112,7 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, el
 ! init
 
 n_step = max(nint(ele%value(num_steps$)), 1)
-ds = ele%value(l$) / n_step
+ds = end_orb%time_dir * ele%value(l$) / n_step
 ds2 = ds / 2
 
 ! radiation damping and fluctuations...
@@ -288,7 +279,7 @@ case (lcavity$, rfcavity$)
 
     ! s half step
 
-    s = s + ds2 * end_orb%direction*end_orb%time_dir
+    s = s + ds2
 !    call rf_drift1 (calculate_mat6)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_kick (calculate_mat6)
@@ -296,7 +287,7 @@ case (lcavity$, rfcavity$)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_drift1 (calculate_mat6)
 
-    s = s + ds2 * end_orb%direction*end_orb%time_dir
+    s = s + ds2
 
     if (present(track)) call save_this_track_pt ()
 
@@ -334,7 +325,7 @@ case (solenoid$, quadrupole$, sol_quad$)
   ! loop over all steps
 
   do i = 1, n_step
-    s = s + ds2 * end_orb%direction*end_orb%time_dir
+    s = s + ds2
     ks_tot_2 = (ks + dks_ds * s) / 2
 
     call bsq_drift1 (calculate_mat6)
@@ -344,7 +335,7 @@ case (solenoid$, quadrupole$, sol_quad$)
     call bsq_drift2 (calculate_mat6)
     call bsq_drift1 (calculate_mat6)
 
-    s = s + ds2 * end_orb%direction*end_orb%time_dir
+    s = s + ds2
     ks_tot_2 = (ks + dks_ds * s) / 2
 
     if (present(track)) call save_this_track_pt ()
@@ -375,7 +366,7 @@ if (do_offset) call offset_particle (ele, unset$, end_orb, mat6 = mat6, make_mat
 
 z_patch = ele%value(delta_ref_time$) * c_light * end_orb%beta - ele%value(l$)
 end_orb%vec(5) = end_orb%vec(5) + z_patch
-end_orb%t = start_orb_saved%t + ele%value(delta_ref_time$) + (start_orb_saved%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
+end_orb%t = start_orb_saved%t + start_orb%direction*start_orb%time_dir*ele%value(delta_ref_time$) + (start_orb_saved%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 
 if (calculate_mat6) then
   mat6(5,6) = mat6(5,6) + ele%value(delta_ref_time$) * c_light * &
@@ -1433,6 +1424,4 @@ end_orb%vec(6) = end_orb%vec(6) - dE_p * rel_p
 
 end subroutine radiation_kick
 
-end subroutine
-
-end module
+end subroutine symp_lie_bmad

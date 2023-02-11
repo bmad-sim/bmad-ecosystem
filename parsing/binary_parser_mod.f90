@@ -1,6 +1,6 @@
 module binary_parser_mod
 
-use attribute_mod
+use attribute_mod    ! Uses attribute_name and attribute_index
 
 contains
 

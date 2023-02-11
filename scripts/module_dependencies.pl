@@ -37,9 +37,12 @@ for ($i = 1; $i <= 20; $i++) {
 
 print "\n!-------------------------------------------\n";
 
+$vsum = 0;
+
 for ($i = 0; $i <= 20; $i++) {
   while (($k, $v) = each %modules) {
     if ($v == $i) {
+      $vsum += $v;
       printf "\nModule: %-22s Level: %i\n", $k, $v;
       foreach $used (keys %{$table{$k}}) {
         print "   $used\n";
@@ -48,8 +51,7 @@ for ($i = 0; $i <= 20; $i++) {
   }
 }
 
-
-
+printf "\nLevel Sum: %i\n", $vsum;
 
 #---------------------------------------------------------
 

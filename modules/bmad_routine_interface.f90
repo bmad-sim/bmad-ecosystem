@@ -2332,6 +2332,17 @@ function strong_beam_strength (ele) result (strength)
   real(rp) strength
 end function
 
+subroutine symp_lie_bmad (ele, param, start_orb, end_orb, track, mat6, make_matrix, offset_ele)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (coord_struct) :: start_orb, end_orb
+  type (lat_param_struct)  param
+  type (track_struct), optional, target :: track
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix, offset_ele
+end subroutine
+
 subroutine taper_mag_strengths (lat, ref_lat, except, err_flag)
   import
   implicit none
