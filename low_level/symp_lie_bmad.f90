@@ -25,7 +25,7 @@
 subroutine symp_lie_bmad (ele, param, start_orb, end_orb, track, mat6, make_matrix, offset_ele)
 
 use random_mod
-use bmad_interface
+use bmad_interface, dummy => symp_lie_bmad
 
 implicit none
 
