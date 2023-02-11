@@ -30,15 +30,13 @@ type (lat_param_struct) :: param
 type (fringe_field_info_struct) fringe_info
 type (em_field_struct) field
 
-real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
+real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track
 real(rp) voltage, k_rf, phase
 integer key, dir
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
 
 ! Spin tracking handled by track_a_patch for patch elements.
-
-dir = start_orb%direction
 
 if (ele%key == patch$) return
 
@@ -66,29 +64,22 @@ endif
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
-if (dir == 1) then
-  s_end_lab = ele%value(l$)
-else
-  s_end_lab = 0
-endif
-
 temp_start = start_orb
 call calc_next_fringe_edge (ele, s_edge_track, fringe_info, temp_start, .true.)
 
 call offset_particle (ele, set$, temp_start, set_hvkicks = .false., set_spin = .true.)
 
 if (fringe_info%has_fringe .and. fringe_info%particle_at == first_track_edge$) then
-  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, fringe_info%ds_edge)
+  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, ele%orientation*fringe_info%ds_edge)
   call apply_element_edge_kick (temp_start, fringe_info, ele, param, .true.)
   call calc_next_fringe_edge (ele, s_edge_track, fringe_info, end_orb, .false.)
 endif
 
 temp_end  = end_orb
-
-call offset_particle (ele, set$, temp_end, set_hvkicks = .false., s_pos = s_end_lab)
+call offset_particle (ele, set$, temp_end, set_hvkicks = .false., s_pos = temp_end%s-ele%s_start)
 
 if (fringe_info%has_fringe .and. fringe_info%particle_at == second_track_edge$) then
-  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, fringe_info%ds_edge)
+  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, ele%orientation*fringe_info%ds_edge)
   temp_end%species = antiparticle(temp_end%species)  ! To reverse element edge kick
   call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
   temp_end%species = end_orb%species
@@ -103,9 +94,10 @@ if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ 
   temp_end%vec = (temp_end%vec + temp_start%vec) / 2
   call multipole_spin_tracking (ele, param, temp_end)
 elseif (temp_start%s /= temp_end%s) then
-  call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
-  omega = trapzd_omega (ele, dir, spline_x, spline_y, temp_start, temp_end, param)
-  if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir*ele%orientation*start_orb%time_dir, 0.0_rp]
+  call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
+  omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
+  dir = start_orb%direction * ele%orientation*start_orb%time_dir
+  if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir, 0.0_rp]
   call rotate_spin(omega, temp_end%spin)
 endif
 
@@ -122,7 +114,7 @@ end_orb%spin = temp_end%spin
 !---------------------------------------------------------------------------------------------
 contains
 
-function trapzd_omega (ele, dir, spline_x, spline_y, start_orb, end_orb, param) result (omega)
+function trapzd_omega (ele, spline_x, spline_y, start_orb, end_orb, param) result (omega)
 
 use super_recipes_mod, only: super_polint
 
@@ -140,28 +132,23 @@ type (ele_struct) ele
 type (coord_struct) start_orb, end_orb, orb
 type (lat_param_struct) param
 
-real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), omega(3)
+real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), omega(3), deps
 real(rp) dint, eps, quat(0:3)
 real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
 
-integer dir
 integer j, k, n, n_pts
 
 ! Only integrate over where the field is finite.
 ! This will be the whole element except for RF cavities.
 
-select case (ele%key)
-case (rfcavity$, lcavity$)
-  s0 = (ele%value(l$) - ele%value(l_active$)) / 2 + bmad_com%significant_length/10
-  s1 = (ele%value(l$) + ele%value(l_active$)) / 2 - bmad_com%significant_length/10
-case default
-  s0 = 0             + bmad_com%significant_length/10
-  s1 = ele%value(l$) - bmad_com%significant_length/10
-end select
+deps = 0.1_rp * sign_of(end_orb%s - start_orb%s) * bmad_com%significant_length
+
+s0 = deps
+s1 = end_orb%s - start_orb%s - deps
 
 q_array(1)%h = 1
-z(0)%omega = omega_func(s0, dir, spline_x, spline_y, start_orb, end_orb, ele, param)
-z(1)%omega = omega_func(s1, dir, spline_x, spline_y, start_orb, end_orb, ele, param)
+z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)
+z(1)%omega = omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)
 
 del_s = s1 - s0
 q_array(1)%omega = quat_to_omega(quat_mul(omega_to_quat(z(1)%omega * abs(del_s) / 2), omega_to_quat(z(0)%omega * abs(del_s) / 2)))
@@ -176,7 +163,7 @@ do j = 2, j_max
 
   do n = 1, n_pts
     s = s0 + del_s * (2*n - 1)
-    z(2*n-1)%omega = omega_func(s, dir, spline_x, spline_y, start_orb, end_orb, ele, param)
+    z(2*n-1)%omega = omega_func(s, spline_x, spline_y, start_orb, end_orb, ele, param)
     quat = quat_mul(omega_to_quat(z(2*n-1)%omega * abs(del_s)), quat)
     if (n == n_pts) del_s = del_s / 2
     quat = quat_mul(omega_to_quat(z(2*n)%omega * abs(del_s)), quat)
@@ -204,7 +191,7 @@ end function trapzd_omega
 !-----------------------------------------------------------------------------------
 ! contains
 
-function omega_func (s_eval, dir, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega)
+function omega_func (ds, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega)
 
 implicit none
 
@@ -213,34 +200,31 @@ type (ele_struct) ele
 type (em_field_struct) field
 type (lat_param_struct) param
 
-real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
-real(rp) ds, dss, s_tot, s2
-
-integer dir
+real(rp) spline_x(0:3), spline_y(0:3), omega(3), B(3)
+real(rp) ds, dss, s_tot, s2, df
 
 !
 
-ds = s_eval
-s_tot = abs(end_orb%s - start_orb%s)
-
+s_tot = end_orb%s - start_orb%s
 orb = end_orb
 
 orb%vec(5) = start_orb%vec(5) * (s_tot - ds) / s_tot + end_orb%vec(5) * ds / s_tot
 orb%vec(6) = start_orb%vec(6) * (s_tot - ds) / s_tot + end_orb%vec(6) * ds / s_tot
 
-dss = ds
-orb%vec(1) =                     spline_x(0) + spline_x(1) * dss + spline_x(2) * dss**2 + spline_x(3) * dss**3
-orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + 2 * spline_x(2) * dss + 3 * spline_x(3) * dss**2)
-orb%vec(3) =                     spline_y(0) + spline_y(1) * dss + spline_y(2) * dss**2 + spline_y(3) * dss**3
-orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * dss + 3 * spline_y(3) * dss**2)
+df = orb%direction * (1 + orb%vec(6)) 
+orb%vec(1) =       spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
+orb%vec(2) = df * (spline_x(1) + 2 * spline_x(2) * ds + 3 * spline_x(3) * ds**2)
+orb%vec(3) =       spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
+orb%vec(4) = df * (spline_y(1) + 2 * spline_y(2) * ds + 3 * spline_y(3) * ds**2)
 
 orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
 orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot
 
-if (dir == 1) then
-  s2 = s_eval
+
+if (ele%orientation == 1) then
+  s2 = ds + start_orb%s - ele%s_start
 else
-  s2 = ele%value(l$) - s_eval
+  s2 = ele%s - (ds + start_orb%s)
 endif
 
 call em_field_calc (ele, param, s2, orb, .true., field)

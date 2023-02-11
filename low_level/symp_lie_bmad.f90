@@ -364,7 +364,7 @@ if (do_offset) call offset_particle (ele, unset$, end_orb, mat6 = mat6, make_mat
 
 ! Correct z-position for wigglers, etc. 
 
-z_patch = ele%value(delta_ref_time$) * c_light * end_orb%beta - ele%value(l$)
+z_patch = end_orb%time_dir * (ele%value(delta_ref_time$) * c_light * end_orb%beta - ele%value(l$))
 end_orb%vec(5) = end_orb%vec(5) + z_patch
 end_orb%t = start_orb_saved%t + start_orb%direction*start_orb%time_dir*ele%value(delta_ref_time$) + (start_orb_saved%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 

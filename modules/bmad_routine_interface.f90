@@ -2283,10 +2283,9 @@ function spinor_to_vec (spinor) result (vec)
   real(rp) vec(3)
 end function
 
-subroutine spline_fit_orbit (ele, start_orb, end_orb, spline_x, spline_y)
+subroutine spline_fit_orbit (start_orb, end_orb, spline_x, spline_y)
   import
   implicit none
-  type (ele_struct) ele
   type (coord_struct) start_orb, end_orb
   real(rp) spline_x(0:3), spline_y(0:3)
 end subroutine

@@ -1,6 +1,9 @@
 module ibs_mod
 
-use bmad_interface
+use mode3_mod
+use ibs_rates_mod
+use twiss_and_track_mod
+use longitudinal_profile_mod
 use fgsl
 use, intrinsic :: iso_c_binding
 
@@ -30,8 +33,8 @@ type ibs_maxratio_struct  ! Parameters for IBS lifetime calculation
   real(rp) r_p
 end type
 
-real(fgsl_double), parameter :: eps7 = 1.0d-7
-integer(fgsl_size_t), parameter :: limit = 1000_fgsl_size_t
+real(fgsl_double), parameter :: eps_7 = 1.0d-7
+integer(fgsl_size_t), parameter :: space_limit = 1000_fgsl_size_t
 
 contains
 
@@ -61,8 +64,6 @@ contains
 !-
 
 subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up,granularity)
-use ibs_rates_mod, only: ibs_struct
-use longitudinal_profile_mod
 
 implicit none
                                                                                                        
@@ -236,8 +237,6 @@ end subroutine ibs_equib_rlx
 !-
 
 subroutine ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
-use ibs_rates_mod, only: ibs_struct
-use longitudinal_profile_mod
 
 ! Iterates to equilibrium beam conditions using derivatives
 
@@ -356,7 +355,7 @@ end subroutine ibs_equib_der
 !-
 
 subroutine ibs_lifetime(lat,ibs_sim_params,maxratio,lifetime,granularity)
-use ibs_rates_mod, only: ibs_struct
+
 implicit none
 
 type(lat_struct) :: lat
@@ -402,8 +401,6 @@ end subroutine ibs_lifetime
 !-
 
 subroutine ibs_delta_calc (lat, ix, ibs_sim_params, sigma_mat, delta_sigma_energy, delta_emit_a, delta_emit_b)
-use mode3_mod, only: get_emit_from_sigma_mat
-use ibs_rates_mod, only: ibs_struct
 
 implicit none
 
@@ -447,7 +444,7 @@ end subroutine ibs_delta_calc
 !-
 
 subroutine ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
-use ibs_rates_mod, only: ibs_struct
+
 implicit none
 
 real(rp) sum_inv_Tz, sum_inv_Ta, sum_inv_Tb
@@ -530,7 +527,7 @@ end subroutine ibs_rates1turn
 !-
 
 subroutine ibs_blowup1turn(lat, ibs_sim_params)
-use ibs_rates_mod, only: ibs_struct
+
 implicit none
 
 type(lat_struct) :: lat
@@ -601,8 +598,6 @@ end subroutine ibs_blowup1turn
 !   rates$inv_Tz              - real(rp): 1/Ta, where Ta is rise time of energy spread
 !-
 subroutine ibs1(lat, ibs_sim_params, rates, i, s)
-use ibs_rates_mod
-use twiss_and_track_mod
 
 implicit none
 
@@ -764,10 +759,10 @@ elseif( ibs_sim_params%clog_to_use == 2 ) then
   !FGSL integration
   ptr = c_loc(args)
   args = (/u,v,w/)
-  integ_wk = fgsl_integration_workspace_alloc(limit)
+  integ_wk = fgsl_integration_workspace_alloc(space_limit)
   integrand_ready = fgsl_function_init(rclog_integrand, ptr)
-  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 40.0d0, eps7, eps7, &
-                                         limit, 3, integ_wk, integration_result, abserr)
+  fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 40.0d0, eps_7, eps_7, &
+                                         space_limit, 3, integ_wk, integration_result, abserr)
 
   call fgsl_function_free(integrand_ready)
   call fgsl_integration_workspace_free(integ_wk)
@@ -840,7 +835,6 @@ end function rclog_integrand
 !   sigma_z       -- real(rp): Bunch length. FWHM/TwoRootTwoLogTwo from bunch profile
 !-
 subroutine bl_via_vlassov(current,alpha,Energy,sigma_p,Vrf,omega,U0,circ,R,L,sigma_z)
-use longitudinal_profile_mod
 
 implicit none
 
@@ -880,8 +874,6 @@ end subroutine bl_via_vlassov
 
 subroutine bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 
-use mode3_mod
-use longitudinal_profile_mod
 use super_recipes_mod, only: super_brent
 
 implicit none

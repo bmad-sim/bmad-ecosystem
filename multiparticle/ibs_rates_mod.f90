@@ -1,6 +1,6 @@
 module ibs_rates_mod
 
-use bmad_interface
+use bmad_routine_interface
 use fgsl
 use, intrinsic :: iso_c_binding
 
