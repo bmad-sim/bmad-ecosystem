@@ -1,7 +1,7 @@
 module ibs_mod
 
 use mode3_mod
-use ibs_rates_mod
+use ibs_rates_mod, only: ibs_struct, bane1, mpxx1, mpzt1, cimp1, bjmt1
 use twiss_and_track_mod
 use longitudinal_profile_mod
 use fgsl
