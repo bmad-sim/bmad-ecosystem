@@ -71,12 +71,12 @@ if (ele%key == patch$) then
   call track_a_patch (ele, end_orb, .false., s0_body, ds_ref)
   beta_ref = ele%value(p0c$) / ele%value(e_tot$)
   if (ele%orientation*end_orb%direction*end_orb%time_dir == 1) then
-    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0_body) * end_orb%beta / beta_ref 
+    end_orb%vec(5) = end_orb%vec(5) + end_orb%time_dir * (ds_ref + s0_body) * end_orb%beta / beta_ref 
     length = patch_length(ele, exit_end$)
     s0_body = length + s0_body
     s1_body = length
   else
-    end_orb%vec(5) = end_orb%vec(5) + (ds_ref - s0_body) * end_orb%beta / beta_ref 
+    end_orb%vec(5) = end_orb%vec(5) + end_orb%time_dir * (ds_ref - s0_body) * end_orb%beta / beta_ref 
     s0_body = s0_body
     s1_body = 0
   endif

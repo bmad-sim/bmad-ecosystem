@@ -423,6 +423,10 @@ parsing_loop: do
 
   if (delim == '[') then
 
+    ! Old style "SBEND" is equiv to "SBEND::*"
+    ix = index(word_1, '::')
+    if (ix == 0 .and. key_name_to_key_index(word_1, .false.) > -1) word_1 = trim(word_1) // '::*'
+
     call get_next_word (word_2, ix_word, '][=', delim, delim_found, .true.)
     if (delim /= ']') then
       call parser_error ('OPENING "[" FOUND WITHOUT MATCHING "]"')
