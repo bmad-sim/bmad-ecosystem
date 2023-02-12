@@ -107,8 +107,8 @@ elseif (ele%key == patch$) then
     return
   endif
   call track_a_patch (ele, end_orb, .false., s0, ds_ref)
-  end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0 * end_orb%direction*end_orb%time_dir * ele%orientation) * end_orb%beta / beta_ref 
-  t_dir = -sign_of(s0*ele%orientation) * end_orb%time_dir
+  end_orb%vec(5) = end_orb%vec(5) + end_orb%time_dir * (ds_ref + s0 * end_orb%direction*end_orb%time_dir * ele%orientation) * end_orb%beta / beta_ref 
+  t_dir = -sign_of(s0*ele%orientation)
   s_body = s0
 
 ! Particle is at an end.
@@ -143,17 +143,22 @@ if (err) return
 ! Convert back to s-based coordinates.
 ! The particle is either dead or is alive and at an element end.
 
+! For patch elements keeping track of the s-position is problematical. So set %s if particle is at the element end.
+! Setting %s is not done for other types of elements since this could potentially cover up code problems.
+
 if (end_orb%location == upstream_end$) then
   end_orb%p0c = ele%value(p0c_start$)
   call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
   end_orb%direction = -end_orb%time_dir  ! In case t_to_s conversion confused by roundoff error.
   call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
+  if (ele%key == patch$) end_orb%s = ele%s_start
 
 elseif (end_orb%location == downstream_end$) then
   end_orb%p0c = ele%value(p0c$)
   call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
   end_orb%direction = end_orb%time_dir  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
+  if (ele%key == patch$) end_orb%s = ele%s
 
 elseif (end_orb%state /= alive$) then
   ! Particle is lost in the interior of the element.

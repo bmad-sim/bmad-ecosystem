@@ -456,6 +456,14 @@ With a list of names, an ampersand ``\vn{\&}'' can be used to form the intersect
   q* \& quad::* b1       ! Equivalent to "quadrupole::q*, b1".
 \end{example}
 
+When lattice expansion occurs during parsing of a lattice (\sref{s:expand.lat}), all \vn{rbend}
+elements are converted to \vn{sbend} elements (\sref{s:bend}) but there is a \vn{sub_key} element
+parameter that is used so \bmad knows which bend elements were defined as \vn{rbend}s in the lattice
+file. After lattice expansion, the string \vn{sbend::*} will match to all bend elements irregardless
+of whether a bend was defined to be a \vn{sbend} or a \vn{rbend}. On the other hand, after lattice
+expansion the string \vn{rbend::*} will match to all bend elements that were defined as \vn{rbend}s
+before expansion.
+
 %---------------------------------------------------------------------------
 \section{Lattice Element Attributes}
 \label{s:lat.attribs}
