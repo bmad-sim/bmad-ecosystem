@@ -4,6 +4,7 @@
 ! Routine to rotate a spin given the integrated magnetic and/or electric field strengths.
 !
 ! Integrated field is the field * length which is independent of particle direction of travel.
+! However, orbit%time_dir is included in the calculation.
 !
 ! Input:
 !   orbit       -- coord_struct: Initial orbit.
@@ -34,18 +35,18 @@ integer sign_z_vel
 !
 
 if (present(BL)) then
-  field%B = orbit%time_dir * BL
+  field%B = BL
 else
   field%B = 0
 endif
 
 if (present(EL)) then
-  field%E = orbit%time_dir * EL
+  field%E = EL
 else
   field%E = 0
 endif
 
-omega = spin_omega (field, orbit, sign_z_vel)
+omega = orbit%time_dir * spin_omega (field, orbit, sign_z_vel)
 call rotate_spin (omega, orbit%spin)
 
 if (present(qrot)) qrot = quat_mul(omega_to_quat(omega), qrot)

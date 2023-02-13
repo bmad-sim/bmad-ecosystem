@@ -123,7 +123,7 @@ if (logic_option(.false., track_spin)) then
   if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
   if (physical_ele_end(particle_at, orb, ele%orientation) == downstream_end$) field%B(3) = -field%B(3)
   omega = spin_omega (field, ave_orb, ave_orb%direction * ele%orientation) * ave_orb%time_dir
-  call rotate_spin (omega, orb%spin)
+  call rotate_spin (orb%time_dir*omega, orb%spin)
 endif
 
 end subroutine bend_edge_kick

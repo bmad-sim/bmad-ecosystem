@@ -60,7 +60,7 @@ if (ix_pole_max > -1) then
 
   if (ele%key == multipole$ .and. (bn(0) /= 0 .or. an(0) /= 0)) then
     kick = bn(0) + i_imag * an(0)
-    call rotate_spin ([-aimag(kick), -real(kick), 0.0_rp], orbit%spin)
+    call rotate_spin (orbit%time_dir*[-aimag(kick), -real(kick), 0.0_rp], orbit%spin)
   endif
 endif
 

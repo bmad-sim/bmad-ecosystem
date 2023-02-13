@@ -27,7 +27,7 @@ type (lat_param_struct) :: param
 type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass
+real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass, length
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) rtc, hk, vk, kick, angle_E, k_E, beta_ref, mc2, ac_amp, s_pos
 
@@ -39,7 +39,8 @@ logical drifting, include_kicks
 !
 
 start_orb = orbit
-orientation = ele%orientation * start_orb%direction * start_orb%time_dir
+length = ele%value(l$) * start_orb%time_dir
+orientation = ele%orientation * start_orb%direction
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
 charge_dir = rel_tracking_charge * orientation
 include_kicks = .true.
@@ -57,7 +58,7 @@ if (ele%key == elseparator$) then
 
   angle_E = atan2(vk, hk)
 
-  if (ele%value(l$) == 0) then
+  if (length == 0) then
     k_E = 1  ! Something non-zero
   else
     k_E = kick / ele%value(l$)
@@ -72,10 +73,10 @@ call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$
 if (kick == 0 .and. ix_mag_max == -1 .and. ix_elec_max == -1) then
   n_step = 1
 else
-  n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+  n_step = max(nint(abs(length / ele%value(ds_step$))), 1)
 endif
 r_step = real(orbit%time_dir, rp) / n_step
-step_len = ele%value(l$) * r_step
+step_len = length / n_step
 
 ! Entrance edge
 
