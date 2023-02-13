@@ -48,7 +48,7 @@ type (fringe_field_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele, lord
 
 real(rp), optional :: mat6(6,6), rf_time
-real(rp) f, fac, l_drift, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
+real(rp) ff, fac, l_drift, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
@@ -124,23 +124,22 @@ if (orb%beta == 0) then
 endif
 
 ! Edge field when %field_calc = fieldmap$.
-! at_sign implicitly has orb%time_dir so field in call to rotate_spin must not use at_sign.
 
 if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) then
   call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, .true.)
-  f = charge_of(orb%species) 
-  fac = at_sign * f * c_light / orb%p0c
+  ff = at_sign * charge_of(orb%species) 
+  fac = ff * c_light / orb%p0c
 
   if (at_sign == 1) then
-    call apply_energy_kick (-at_sign*f * field%phi, orb, at_sign*f * field%E(1:2), mat6, make_matrix)
-    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
+    call apply_energy_kick (-ff * field%phi, orb, ff * field%E(1:2), mat6, make_matrix)
+    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -orb%time_dir*ff * field%phi])
     orb%vec(2) = orb%vec(2) - fac * field%A(1)
     orb%vec(4) = orb%vec(4) - fac * field%A(2)
   else
     orb%vec(2) = orb%vec(2) - fac * field%A(1)
     orb%vec(4) = orb%vec(4) - fac * field%A(2)
-    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
-    call apply_energy_kick (-at_sign*f * field%phi, orb, at_sign*f * field%E(1:2), mat6, make_matrix)
+    if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -orb%time_dir*ff * field%phi])
+    call apply_energy_kick (-ff * field%phi, orb, ff * field%E(1:2), mat6, make_matrix)
   endif
 
   return
@@ -211,10 +210,9 @@ case (solenoid$, sol_quad$)
 case (lcavity$, rfcavity$, e_gun$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
-  f = at_sign * charge_of(orb%species) / (2 * orb%p0c)
-  s = s_edge
 
   if (at_this_ele_end(physical_end, nint(hard_ele%value(fringe_at$))) .and. hard_ele%value(l$) /= 0) then
+    s = s_edge
     z_saved = orb%vec(5)
     beta_ref = hard_ele%value(p0c$) / hard_ele%value(e_tot$)
     ds = track_ele%s_start - hard_ele%s_start
@@ -229,19 +227,20 @@ case (lcavity$, rfcavity$, e_gun$)
     endif
     orb%vec(5) = z_saved
 
-    orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
-    orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
+    ff = at_sign * charge_of(orb%species) / (2 * orb%p0c)
+    orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * ff + c_light * field%b(3) * orb%vec(3) * ff
+    orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * ff - c_light * field%b(3) * orb%vec(1) * ff
 
     if (track_spn) then
     select case (hard_ele%key)
       case (lcavity$, rfcavity$)
-        f = charge_of(orb%species) / 4.0_rp  ! Notice factor of 4 here
-        call rotate_spin_given_field (orb, sign_z_vel, [-orb%vec(3), orb%vec(1), 0.0_rp] * (f * field%e(3) / c_light), &
-                                                       -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
+        ff = orb%time_dir * at_sign * charge_of(orb%species) / 4.0_rp  ! Notice factor of 4 here
+        call rotate_spin_given_field (orb, sign_z_vel, [-orb%vec(3), orb%vec(1), 0.0_rp] * (ff * field%e(3) / c_light), &
+                                                       -[orb%vec(1), orb%vec(3), 0.0_rp] * (ff * field%e(3)))
       case default
-        f = charge_of(orb%species) / 2.0_rp
-        call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
-                                                       -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
+        ff = orb%time_dir * at_sign * charge_of(orb%species) / 2.0_rp
+        call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * (ff * field%b(3)), &
+                                                       -[orb%vec(1), orb%vec(3), 0.0_rp] * (ff * field%e(3)))
       end select
     endif
 
@@ -252,13 +251,12 @@ case (lcavity$, rfcavity$, e_gun$)
 
 case (elseparator$)
   ! Longitudinal fringe field
-  ! at_sign implicitly has orb%time_dir so field in call to rotate_spin must not use at_sign.
   if (hard_ele%value(l$) /= 0) then
-    f = charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
-    phi = f * (hard_ele%value(hkick$) * orb%vec(1) + hard_ele%value(vkick$) * orb%vec(3))
-    call apply_energy_kick (at_sign*phi, orb, [at_sign*f * hard_ele%value(hkick$), at_sign*f * hard_ele%value(vkick$)], mat6, make_matrix)
+    ff = at_sign * charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
+    phi = ff * (hard_ele%value(hkick$) * orb%vec(1) + hard_ele%value(vkick$) * orb%vec(3))
+    call apply_energy_kick (phi, orb, [ff * hard_ele%value(hkick$), ff * hard_ele%value(vkick$)], mat6, make_matrix)
     if (track_spn) then
-      call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
+      call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, orb%time_dir*phi])
     endif
   endif
 end select
@@ -279,7 +277,7 @@ type (em_field_struct) field
 type (cartesian_map_struct), pointer :: ct
 type (cylindrical_map_struct), pointer :: cy
 
-real(rp) a_pole_elec(0:), b_pole_elec(0:), f, E_r(2)
+real(rp) a_pole_elec(0:), b_pole_elec(0:), ff, E_r(2)
 complex(rp) ab_elec, xiy_old
 integer sign_z_vel, at_sign, hard_ele_field_calc
 integer i, ix_elec_max
@@ -291,12 +289,12 @@ if (hard_ele%value(l$) == 0) return  ! Can get divide by zero problems with zero
 
 if (hard_ele_field_calc == bmad_standard$) then
   if (ix_elec_max > -1) then
-    f = at_sign * charge_of(orb%species) 
+    ff = at_sign * charge_of(orb%species) 
 
     if (hard_ele%key == sbend$ .and. nint(hard_ele%value(exact_multipoles$)) /= off$ .and. hard_ele%value(g$) /= 0) then
       call bend_exact_multipole_field (hard_ele, param, orb, .true., field, .false., .true.)
-      call apply_energy_kick (-f * field%phi, orb, [f * field%E(1), f * field%E(2)], mat6, make_matrix)
-      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
+      call apply_energy_kick (-ff * field%phi, orb, [ff * field%E(1), ff * field%E(2)], mat6, make_matrix)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -orb%time_dir * ff * field%phi])
 
     else
       xiy = 1
@@ -311,8 +309,8 @@ if (hard_ele_field_calc == bmad_standard$) then
         phi = phi - real(ab_elec * xiy) / (i + 1)
         E_r = E_r + [real(ab_elec * xiy_old), -imag(ab_elec * xiy_old)]
       enddo
-      call apply_energy_kick (-f * phi, orb, f * E_r, mat6, make_matrix)
-      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * phi])
+      call apply_energy_kick (-ff * phi, orb, ff * E_r, mat6, make_matrix)
+      if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -orb%time_dir * ff * phi])
     endif
   endif
 endif
@@ -327,7 +325,7 @@ subroutine apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
 type (coord_struct) orb
 type (ele_struct) hard_ele
 
-real(rp) ks4, f, xy_orb(2)
+real(rp) ks4, ff, xy_orb(2)
 integer at_sign, sign_z_vel
 logical track_spn
 
@@ -344,8 +342,8 @@ endif
 orb%vec(2) = orb%vec(2) + ks4 * xy_orb(2)
 orb%vec(4) = orb%vec(4) - ks4 * xy_orb(1)
 if (track_spn) then
-  f = at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
-  call rotate_spin_given_field (orb, sign_z_vel, -[xy_orb(1), xy_orb(2), 0.0_rp] * f)
+  ff = orb%time_dir * at_sign * sign_z_vel * hard_ele%value(bs_field$) / 2
+  call rotate_spin_given_field (orb, sign_z_vel, -[xy_orb(1), xy_orb(2), 0.0_rp] * ff)
 endif
 orb%vec(2) = orb%vec(2) + ks4 * xy_orb(2)
 orb%vec(4) = orb%vec(4) - ks4 * xy_orb(1)
