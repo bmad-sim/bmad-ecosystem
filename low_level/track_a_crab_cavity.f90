@@ -50,12 +50,12 @@ call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
 
-length = ele%value(l$)
+length = ele%value(l$) * orbit%time_dir
 !n_slice = max(1, nint(length / ele%value(ds_step$))) 
 n_slice = 1
 dl = length / n_slice
 charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation
-voltage = e_accel_field(ele, voltage$, .true.) * charge_dir / (ele%value(p0c$) * n_slice)
+voltage = orbit%time_dir * e_accel_field(ele, voltage$, .true.) * charge_dir / (ele%value(p0c$) * n_slice)
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 dt_ref = length / (c_light * beta_ref)
 k_rf = twopi * ele%value(rf_frequency$) / c_light

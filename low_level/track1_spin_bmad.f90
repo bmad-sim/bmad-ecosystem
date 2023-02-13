@@ -65,13 +65,13 @@ endif
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 
 temp_start = start_orb
-call calc_next_fringe_edge (ele, s_edge_track, fringe_info, temp_start, .true.)
+call calc_next_fringe_edge(ele, s_edge_track, fringe_info, temp_start, .true.)
 
-call offset_particle (ele, set$, temp_start, set_hvkicks = .false., set_spin = .true.)
+call offset_particle(ele, set$, temp_start, set_hvkicks = .false., set_spin = .true.)
 
 if (fringe_info%has_fringe .and. fringe_info%particle_at == first_track_edge$) then
-  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_start, ele%orientation*fringe_info%ds_edge)
-  call apply_element_edge_kick (temp_start, fringe_info, ele, param, .true.)
+  if (fringe_info%ds_edge /= 0) call track_a_drift(temp_start, ele%orientation*fringe_info%ds_edge)
+  call apply_element_edge_kick(temp_start, fringe_info, ele, param, .true.)
   call calc_next_fringe_edge (ele, s_edge_track, fringe_info, end_orb, .false.)
 endif
 
@@ -96,9 +96,9 @@ if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ 
 elseif (temp_start%s /= temp_end%s) then
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
-  dir = start_orb%direction * ele%orientation*start_orb%time_dir
+  dir = start_orb%direction * ele%orientation * start_orb%time_dir
   if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir, 0.0_rp]
-  call rotate_spin(omega, temp_end%spin)
+  call rotate_spin (omega, temp_end%spin)
 endif
 
 !----------

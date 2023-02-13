@@ -279,7 +279,7 @@ if (set) then
 
   if (set_t .and. ele%key /= sbend$ .and. ele%value(tilt_tot$) /= 0) then
     call tilt_coords (ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
-    if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
+    if (set_spn) call rotate_spin([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
   endif
 
   ! Set: HV kicks for kickers and separators only.

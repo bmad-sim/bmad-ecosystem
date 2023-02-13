@@ -60,7 +60,7 @@ case (ab_multipole$)
 case (ac_kicker$)
   select case (method)
   case (bmad_standard$, runge_kutta$, time_runge_kutta$, linear$, custom$, symp_lie_ptc$, taylor$)
-    is_valid = .true.
+    is_valid = ((method /= symp_lie_ptc$ .and. method /= taylor$) .or. allocated(ele%ac_kick%frequency))
   end select
 
 case (beambeam$)

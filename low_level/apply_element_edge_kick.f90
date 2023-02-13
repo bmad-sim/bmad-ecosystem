@@ -123,15 +123,16 @@ if (orb%beta == 0) then
   orb%state = lost$
 endif
 
-! Edge field when %field_calc = fieldmap$
+! Edge field when %field_calc = fieldmap$.
+! at_sign implicitly has orb%time_dir so field in call to rotate_spin must not use at_sign.
 
 if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) then
   call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, .true.)
-  f = at_sign * charge_of(orb%species) 
-  fac = at_sign * charge_of(orb%species) * c_light / orb%p0c
+  f = charge_of(orb%species) 
+  fac = at_sign * f * c_light / orb%p0c
 
   if (at_sign == 1) then
-    call apply_energy_kick (-f * field%phi, orb, f * field%E(1:2), mat6, make_matrix)
+    call apply_energy_kick (-at_sign*f * field%phi, orb, at_sign*f * field%E(1:2), mat6, make_matrix)
     if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
     orb%vec(2) = orb%vec(2) - fac * field%A(1)
     orb%vec(4) = orb%vec(4) - fac * field%A(2)
@@ -139,7 +140,7 @@ if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad
     orb%vec(2) = orb%vec(2) - fac * field%A(1)
     orb%vec(4) = orb%vec(4) - fac * field%A(2)
     if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * field%phi])
-    call apply_energy_kick (-f * field%phi, orb, f * field%E(1:2), mat6, make_matrix)
+    call apply_energy_kick (-at_sign*f * field%phi, orb, at_sign*f * field%E(1:2), mat6, make_matrix)
   endif
 
   return
@@ -158,7 +159,7 @@ if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun d
 
 call multipole_ele_to_ab (hard_ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$)
 if (particle_at == second_track_edge$) call electric_longitudinal_fringe(orb, hard_ele, &
-                                                  a_pole_elec, b_pole_elec, ix_elec_max, hard_ele_field_calc)
+                                              a_pole_elec, b_pole_elec, ix_elec_max, sign_z_vel, at_sign, hard_ele_field_calc)
 
 ! Static magnetic and electromagnetic fringes
 
@@ -234,11 +235,11 @@ case (lcavity$, rfcavity$, e_gun$)
     if (track_spn) then
     select case (hard_ele%key)
       case (lcavity$, rfcavity$)
-        f = at_sign * charge_of(orb%species) / 4.0_rp  ! Notice factor of 4 here
+        f = charge_of(orb%species) / 4.0_rp  ! Notice factor of 4 here
         call rotate_spin_given_field (orb, sign_z_vel, [-orb%vec(3), orb%vec(1), 0.0_rp] * (f * field%e(3) / c_light), &
                                                        -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
       case default
-        f = at_sign * charge_of(orb%species) / 2.0_rp
+        f = charge_of(orb%species) / 2.0_rp
         call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
                                                        -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
       end select
@@ -251,10 +252,11 @@ case (lcavity$, rfcavity$, e_gun$)
 
 case (elseparator$)
   ! Longitudinal fringe field
+  ! at_sign implicitly has orb%time_dir so field in call to rotate_spin must not use at_sign.
   if (hard_ele%value(l$) /= 0) then
-    f = at_sign * charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
+    f = charge_of(orb%species) * (hard_ele%value(p0c$) / hard_ele%value(l$))
     phi = f * (hard_ele%value(hkick$) * orb%vec(1) + hard_ele%value(vkick$) * orb%vec(3))
-    call apply_energy_kick (phi, orb, [f * hard_ele%value(hkick$), f * hard_ele%value(vkick$)], mat6, make_matrix)
+    call apply_energy_kick (at_sign*phi, orb, [at_sign*f * hard_ele%value(hkick$), at_sign*f * hard_ele%value(vkick$)], mat6, make_matrix)
     if (track_spn) then
       call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, phi])
     endif
@@ -264,12 +266,12 @@ end select
 ! Entrance Static electric longitudinal field
 
 if (particle_at == first_track_edge$) call electric_longitudinal_fringe(orb, hard_ele, &
-                                                       a_pole_elec, b_pole_elec, ix_elec_max, hard_ele_field_calc)
+                                                   a_pole_elec, b_pole_elec, ix_elec_max, sign_z_vel, at_sign, hard_ele_field_calc)
 
 !--------------------------------------------------------------------------------
 contains
 
-subroutine electric_longitudinal_fringe(orb, hard_ele, a_pole_elec, b_pole_elec, ix_elec_max, hard_ele_field_calc)
+subroutine electric_longitudinal_fringe(orb, hard_ele, a_pole_elec, b_pole_elec, ix_elec_max, sign_z_vel, at_sign, hard_ele_field_calc)
 
 type (ele_struct) hard_ele
 type (coord_struct) orb
@@ -279,7 +281,7 @@ type (cylindrical_map_struct), pointer :: cy
 
 real(rp) a_pole_elec(0:), b_pole_elec(0:), f, E_r(2)
 complex(rp) ab_elec, xiy_old
-integer hard_ele_field_calc
+integer sign_z_vel, at_sign, hard_ele_field_calc
 integer i, ix_elec_max
 logical err_flag
 
