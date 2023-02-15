@@ -101,7 +101,7 @@ if (.not. has_orientation_attributes(ele)) then
 	drift_to = no$
 elseif (present(s_pos)) then
 	drift_to = integer_option(no$, drift_to_edge)
-elseif (set == set$) then
+elseif (set) then
 	drift_to = integer_option(upstream_end$, drift_to_edge)
 else
 	drift_to = integer_option(downstream_end$, drift_to_edge)
