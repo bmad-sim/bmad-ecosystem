@@ -36,11 +36,11 @@
 !                       F -> Do not rotate
 !   set_hvkicks       -- Logical, optional: Default is True.
 !                       T -> Apply 1/2 any hkick or vkick.
-!   drift_to_edge     -- Logical, optional: Default is True if s_pos is absent and False if s_pos is present.
-!                       T -> Particle will be propagated from where the particle is to:
-!                            With set = set$: The upsteam body edge.
-!                            With set = unset$: The nominal (lab coords) downstream edge of the element.
-!                       F -> Do not propagate. 
+!   drift_to_edge     -- Integer, optional: 
+!                         no$             -> Do not propagate (drift) particle. no$ is default if s_pos is present.
+!                         upstream_end$   -> Propagate to upsteam edge. This is default if set = set$ and s_pos is not present.
+!                         downstream_end$ -> Propagate to downsteam edge. This is default if set = unset$ and s_pos is not present.
+!                         Note: "edge" is body edge if set = set$ and is laboratory (nominal non-misaligned) edge if set = unset$
 !   s_pos             -- Real(rp), optional: Longitudinal particle position:
 !                         If set = set$: Relative to upstream end (in lab coords).
 !                         If set = unset$: Relative to entrance end (in body coords).
@@ -79,16 +79,40 @@ real(rp) beta_ref, charge_dir, dz, rel_tracking_charge, rtc, Ex, Ey, kx, ky, len
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), ws(3,3), L_mis(3), p_vec0(3), p_vec(3), ref_tilt
 real(rp) L_half, ds
 
-integer particle, sign_z_vel
-integer n, ix_pole_max
+integer, optional :: drift_to_edge
+integer n, ix_pole_max, drift_to, particle, sign_z_vel
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_tilt, set_spin
-logical, optional, intent(in) :: set_hvkicks, drift_to_edge
+logical, optional, intent(in) :: set_hvkicks
 logical, optional :: make_matrix
-logical set_hv, set_t, set_hv1, set_hv2, do_drift, set_spn, is_misaligned
+logical set_hv, set_t, set_hv1, set_hv2, set_spn, is_misaligned
+
+character(*), parameter :: r_name = 'offset_particle'
 
 !
+
+set_hv     = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
+                   (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
+set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
+set_spn    = (logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on) .or. present(spin_qrot)
+
+if (.not. has_orientation_attributes(ele)) then
+	drift_to = no$
+elseif (present(s_pos)) then
+	drift_to = integer_option(no$, drift_to_edge)
+elseif (set == set$) then
+	drift_to = integer_option(upstream_end$, drift_to_edge)
+else
+	drift_to = integer_option(downstream_end$, drift_to_edge)
+endif
+
+if (.not. any(drift_to == [no$, upstream_end$, downstream_end$])) then
+  call out_io (s_fatal$, r_name, 'BAD DRIFT_TO_EDGE ARGUMENT. PLEASE CONTACT BMAD MAINTAINERS WITH DETAILS!')
+  call err_exit
+endif
+
+!---------------------------------------------------------------         
 
 length = ele%value(l$)
 L_half = 0.5_rp * length
@@ -106,12 +130,13 @@ else
 endif
 
 ! ds_center is distance to the center of the element from the particle position
+! Set: Lab coords: Nominal center - S_pos.  Unset: Body coords: Body center - s_pos
 
-if (set) then
-  ds_center = L_half - s_pos0                       ! Lab coords: Nominal center - S_pos
+ds_center = L_half - s_pos0                       
+
+if (drift_to == upstream_end$) then
   s_target = (1 - sign_z_vel * orbit%time_dir) * L_half              ! Position to drift to (body coords).
 else
-  ds_center = L_half - s_pos0                       ! Body coords: Body center - s_pos
   s_target = (1 + orbit%direction * orbit%time_dir) * L_half         ! Position to drift to (lab coords).
 endif
 
@@ -124,15 +149,7 @@ endif
 
 if (present(spin_qrot)) spin_qrot = [1, 0, 0, 0]
 
-!---------------------------------------------------------------         
-
 rel_p = (1 + orbit%vec(6))
-
-set_hv     = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
-                   (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
-set_t      = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
-do_drift   = logic_option (.not. present(s_pos), drift_to_edge) .and. has_orientation_attributes(ele)
-set_spn    = (logic_option (.false., set_spin) .and. bmad_com%spin_tracking_on) .or. present(spin_qrot)
 
 rel_tracking_charge = rel_tracking_charge_to_mass (orbit, ele%ref_species)
 charge_dir = rel_tracking_charge * sign_z_vel * orbit%time_dir 
@@ -198,7 +215,7 @@ if (set) then
         position = bend_shift(position, ele%value(g$), L_half)
       endif        
 
-      if (do_drift) then
+      if (drift_to /= no$) then
         position = bend_shift(position, ele%value(g$), s_target-L_half)
         position%r(3) = position%r(3) + s_target
       else
@@ -249,14 +266,14 @@ if (set) then
   ! When drifting the reference particle does not move! That is, the reference time is the time the 
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
-  if (do_drift .and. orbit%state == alive$) then
+  if (drift_to /= no$ .and. orbit%state == alive$) then
     call track_a_drift (orbit, s_target - s_body, mat6, make_matrix, ele%orientation, include_ref_motion = .false.)
   endif
 
   !
 
   if (present(s_out)) then
-    if (do_drift) then
+    if (drift_to /= no$) then
       s_out = s_target
     else
       s_out = s_body
@@ -392,7 +409,7 @@ else
       ! Coordinates when drifting to the bend ends are the coordinates at the end. 
       ! Coordinates when not drifting are the coordinates at the longitudinal position of the point.
 
-      if (do_drift) then
+      if (drift_to /= no$) then
         position = bend_shift(position, ele%value(g$), sign_z_vel*L_half, ref_tilt = ref_tilt)
         position%r(3) = position%r(3) + (sign_z_vel+1.0_rp)*L_half
       else
@@ -443,14 +460,14 @@ else
   ! When drifting the reference particle does not move! That is, the reference time is the time the 
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
-  if (do_drift .and. orbit%state == alive$) then
+  if (drift_to /= no$ .and. orbit%state == alive$) then
     call track_a_drift (orbit, s_target-s_lab, mat6, make_matrix, +1, include_ref_motion = .false.)
   endif
 
   !
 
   if (present(s_out)) then
-    if (do_drift) then
+    if (drift_to /= no$) then
       s_out = s_target
     else
       s_out = s_lab

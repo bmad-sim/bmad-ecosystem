@@ -24,7 +24,7 @@ type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
-real(rp) xmat(6,6), vec0(6), z0, beta0
+real(rp) xmat(6,6), vec0(6), z0, beta0, dt
 real(rp), optional :: mat6(6,6)
 
 logical, optional :: make_matrix
@@ -54,6 +54,11 @@ if (err) then
   return
 endif
 
+if (is_false(ele%value(phase_trombone_input$)) .and. is_false(ele%value(match_end_input$)) .and. is_false(ele%value(match_end_orbit_input$))) then
+  ele%mat6 = xmat
+  ele%vec0 = vec0
+endif
+
 !
 
 if (logic_option(.false., make_matrix)) then
@@ -67,13 +72,19 @@ endif
 !
 
 if (ele%value(delta_time$) /= 0) then
-  orbit%t = orbit%t + ele%value(delta_time$)
-  orbit%vec(5) = orbit%vec(5) - orbit%beta * c_light * ele%value(delta_time$)
+  dt = orbit%time_dir * ele%value(delta_time$)
+  orbit%t = orbit%t + dt
+  orbit%vec(5) = orbit%vec(5) - orbit%beta * c_light * dt
 endif
 
 beta0 = orbit%beta
 z0 = orbit%vec(5)
-orbit%vec = matmul (xmat, orbit%vec) + vec0
+if (orbit%time_dir == 1) then
+  orbit%vec = matmul (xmat, orbit%vec) + vec0
+else
+  call mat_inverse (xmat, xmat) 
+  orbit%vec = matmul (xmat, orbit%vec - vec0)
+endif
 
 call convert_pc_to ((1+orbit%vec(6))*orbit%p0c, orbit%species, beta = orbit%beta)
 orbit%t = orbit%t + (z0 / beta0 - orbit%vec(5) / orbit%beta) / c_light

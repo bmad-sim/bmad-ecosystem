@@ -2425,7 +2425,7 @@ A \vn{grid_field} is grid of field points specified using the syntax:
     ele_anchor_pt = <Position>      ! BEGINNING, CENTER, or END
     \{ ... \},                      ! Field table. Syntax is \vn{geometry} dependent.
     pt(<Integer>, \dots) = ( \ldots ), ! Field table point. Old style.
-    \ldots \} \} \}
+  \}
 \end{example}
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
 other field map types.
@@ -2445,8 +2445,11 @@ number is:
 \end{example}
 Example:
 \begin{example}
-  0 0 -7: (0.34 -4.3) (2.37 9.34) ...,    ! Complex field
-  0 0 -7: 0.12 -0.33 ...,                 ! Imaginary components are zero
+  \{
+    0 0 -7: (0.34 -4.3) (2.37 9.34) ...,    ! Complex field
+    0 0 -7: 0.12 -0.33 ...,                 ! Imaginary components are zero
+    ...
+  \}
 \end{example}
 
 The actual fields $\bfE$ and $\bfB$ are computed from the complex fields $\bfE_c$ and $\bfB_c$ via
@@ -2484,12 +2487,13 @@ symmetric around the $z$ axis. The format for this type of \vn{grid_field} is
     r0   = (<x0>, <y0>, <z0>),        ! Grid origin 
     dr   = (<dr>, <dz>),              ! Grid spacing
     \{                                ! Field table...
-    <ir> <iz>: <E_r> <E_phi> <E_z>,   ! For field_type = Electric
-    <ir> <iz>: <B_r> <B_phi> <B_z>,   ! For field_type = Magnetic
-    <ir> <iz>: <E_r> <E_phi> <E_z> <B_r> <B_phi> <B_z>,
-                                      ! For field_type = Mixed.
-    \ldots 
+      <ir> <iz>: <E_r> <E_phi> <E_z>,   ! For field_type = Electric
+      <ir> <iz>: <B_r> <B_phi> <B_z>,   ! For field_type = Magnetic
+      <ir> <iz>: <E_r> <E_phi> <E_z> <B_r> <B_phi> <B_z>,
+                                        ! For field_type = Mixed.
+      \ldots 
     \} 
+  \}
 \end{example}
 where \vn{<iz>} can be negative but \vn{<ir>} must be non-negative. Notice that commas are only used
 in the field table to demarcate between field points.
@@ -2511,11 +2515,14 @@ this type of \vn{grid_field} is
     geometry = xyz,
     r0   = (<x0>, <y0>, <z0>),    ! Grid origin 
     dr   = (<dx>, <dy>, <dz>),    ! Grid spacing
-    <ix> <iy> <iz>: <E_x> <E_y> <E_z>,  ! For field_type = Electric
-    <ix> <iy> <iz>: <B_x> <B_y> <B_z>,  ! For field_type = Magnetic
-    <ix> <iy> <iz>: <E_x> <E_y> <E_z> <B_x> <B_y> <B_z>, 
+    \}
+      <ix> <iy> <iz>: <E_x> <E_y> <E_z>,  ! For field_type = Electric
+      <ix> <iy> <iz>: <B_x> <B_y> <B_z>,  ! For field_type = Magnetic
+      <ix> <iy> <iz>: <E_x> <E_y> <E_z> <B_x> <B_y> <B_z>, 
                                                    ! For field_type = Mixed.
-    \ldots \}
+      \ldots 
+    \}
+  \}
 \end{example}
 where \vn{<ix>}, \vn{<iy>}, and \vn{<iz>} can be negative.
 
@@ -2559,9 +2566,11 @@ with the file \vn{apex_gun_grid.bmad} being:
     r0 = (0, 0),
     dr = (0.001, 0.001),
     \{
-    0 0:  (0 0) (0 0) (1 0)     (0 0) (0 0) (0 0),
-    0 1:  (0 0) (0 0) (0.99 0)  (0 0) (0 0) (0 0),
-    ... \}
+      0 0:  (0 0) (0 0) (1 0)     (0 0) (0 0) (0 0),
+      0 1:  (0 0) (0 0) (0.99 0)  (0 0) (0 0) (0 0),
+      ... 
+    \}
+  \}
 \end{example}
 
 The order of the polynomials used to interpolate the field is determined by the setting of

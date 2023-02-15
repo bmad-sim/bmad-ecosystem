@@ -260,10 +260,6 @@ if (orbit_too_large (end_orb, param)) then
   return
 endif
 
-! spin tracking. Must do after regular tracking in the case of spin_tracking_method = bmad_standard
- 
-if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_map1)
-
 ! Set ix_ele. If the element is a slice_slave then the appropriate ix_ele is given by the lord.
 
 if (ele%slave_status == slice_slave$) then
@@ -283,6 +279,15 @@ if (.not. time_RK_tracking) then
     end_orb%location = upstream_end$
   endif
 endif
+
+if (end_orb%state /= alive$) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
+! spin tracking. Must do after regular tracking in the case of spin_tracking_method = bmad_standard
+ 
+if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_map1)
 
 ! Radiation damping and/or fluctuations for the last half of the element
 

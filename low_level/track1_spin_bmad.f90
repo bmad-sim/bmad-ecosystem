@@ -76,7 +76,8 @@ if (fringe_info%has_fringe .and. fringe_info%particle_at == first_track_edge$) t
 endif
 
 temp_end  = end_orb
-call offset_particle (ele, set$, temp_end, set_hvkicks = .false., s_pos = temp_end%s-ele%s_start)
+call offset_particle (ele, set$, temp_end, & ! drift_to_edge = temp_end%location, &
+                                                  set_hvkicks = .false., s_pos = temp_end%s-ele%s_start)
 
 if (fringe_info%has_fringe .and. fringe_info%particle_at == second_track_edge$) then
   if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, ele%orientation*fringe_info%ds_edge)

@@ -81,7 +81,7 @@ if (orbit%direction * orbit%time_dir * ele%orientation == 1) then
     call mat_make_unit (ww)
   endif
   ds0 = ww(3,1) * v(x_offset$) + ww(3,2) * v(y_offset$) + ww(3,3) * v(z_offset$)
-  orbit%vec(5) = orbit%vec(5) + orbit%time_dir * orbit%beta * c_light * v(t_offset$)
+  orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
 else
   if (ele%orientation == 1) then ! Entering from downstream
@@ -104,7 +104,7 @@ else
   endif
   r_vec = r_vec + [v(x_offset$), v(y_offset$), v(z_offset$)]
   ds0 = ww(1,3) * v(x_offset$) + ww(2,3) * v(y_offset$) + ww(3,3) * v(z_offset$)
-  orbit%vec(5) = orbit%vec(5) - orbit%time_dir * orbit%beta * c_light * v(t_offset$)
+  orbit%vec(5) = orbit%vec(5) - orbit%beta * c_light * v(t_offset$)
 endif
 
 !
