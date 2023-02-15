@@ -1,12 +1,8 @@
 module precision_def
 
-integer, parameter :: rdef = selected_real_kind(11)
-integer, parameter :: rdef2 = 2*rdef    ! used for nr.
-integer, parameter :: rp = rdef
-
+integer, parameter :: rp = selected_real_kind(11)
 integer, parameter :: sp = kind(1e0)
 integer, parameter :: dp = selected_real_kind(2*precision(1e0_sp))
-
 integer, parameter :: i4_b = selected_int_kind(9)  ! Equiv to NR I4B
 
 type global_common_struct
@@ -22,7 +18,31 @@ type named_number_struct
   real(rp) :: value = 0
 end type
 
-! This is to suppress the ranlib "has no symbols" message
-integer :: precision_def_dummy
+contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function rp8(int_in) result (re_out)
+!
+! Routine to convert from integer to real of type rp.
+! This routine is used to avoid the implicit integer to single precision that happens when
+! multiplying int*real(rp).
+!
+! Input:
+!   int_in    -- integer: Input integer.
+!
+! Output:
+!   re_out    -- real(rp): Equiv real.
+!-
+
+pure function rp8(int_in) result (re_out)
+implicit none
+integer, intent(in) :: int_in
+real(rp) re_out
+!
+re_out = real(int_in, rp)
+end function rp8
 
 end module
