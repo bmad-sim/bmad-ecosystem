@@ -51,7 +51,7 @@ type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
-real(rp) g_x, g_y, b1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
+real(rp) g_x, g_y, b1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch, length, time_dir
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
 real(rp) dpx, dpy, mc2, z_offset, orient_dir, rel_tracking_charge, charge_dir
@@ -99,6 +99,12 @@ charge_dir = rel_tracking_charge * orient_dir
 allocated_map = .false.
 num_wig_terms = 0
 
+time_dir = rp8(end_orb%time_dir)
+length = time_dir * ele%value(l$) 
+n_step = max(nint(ele%value(num_steps$)), 1)
+ds = length / n_step
+ds2 = 0.5_rp * ds
+
 ! element offset 
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
@@ -106,14 +112,8 @@ call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$
 
 if (do_offset) call offset_particle (ele, set$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
-
-! init
-
-n_step = max(nint(ele%value(num_steps$)), 1)
-ds = end_orb%time_dir * ele%value(l$) / n_step
-ds2 = ds / 2
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, end_orb, magnetic$, 0.5_rp*time_dir, mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, end_orb, electric$, 0.5_rp*length,   mat6, calculate_mat6)
 
 ! radiation damping and fluctuations...
 ! The same kick is applied over the entire wiggler to save time.
@@ -357,8 +357,8 @@ end select
 !----------------------------------------------------------------------------
 ! element offset
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, end_orb, magnetic$, 1.0_rp/2,        mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, end_orb, electric$, 0.5_rp*length,   mat6, calculate_mat6)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, end_orb, magnetic$, 0.5_rp*time_dir, mat6, calculate_mat6)
 
 if (do_offset) call offset_particle (ele, unset$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 

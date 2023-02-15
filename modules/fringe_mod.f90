@@ -172,7 +172,7 @@ character(*), parameter :: r_name = 'linear_bend_edge_kick'
 ! See MAD physics guide for writeup. Note that MAD does not have a dg.
 ! Apply only the first order kick. That is, only edge focusing.
 
-c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction * orb%time_dir
+c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb, ele%orientation)
 
 if (ele%is_on) then
@@ -199,6 +199,8 @@ else
 endif
 
 v0 = orb%vec
+ht_x =  orb%time_dir * ht_x
+ht_y =  orb%time_dir * ht_y
 
 orb%vec(1) = v0(1)
 orb%vec(2) = v0(2) + ht_x * v0(1)
@@ -248,8 +250,8 @@ type (lat_param_struct) param
 real(rp), optional :: mat6(6,6)
 real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), k1_tane
 real(rp) gt2, gs2, c_dir, k1, kmat(6,6), e_factor, fg_factor
-real(rp) dx, dpx, dy, dpy, dz
-integer particle_at, element_end, fringe_type, td
+real(rp) dx, dpx, dy, dpy, dz, td
+integer particle_at, element_end, fringe_type
 
 logical, optional :: make_matrix
 character(*), parameter :: r_name = 'hwang_bend_edge_kick'
@@ -261,7 +263,7 @@ c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb
 element_end = physical_ele_end(particle_at, orb, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
 e_factor = 1 / (1 + orb%vec(6))
-td = orb%time_dir
+td = rp8(orb%time_dir)
 
 if (ele%is_on) then
   g_tot = (ele%value(g$) + ele%value(dg$)) * c_dir
@@ -409,7 +411,7 @@ type (coord_struct) orbit
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, ppx2
+real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, ppx2, td
 
 integer fringe_type, particle_at
 integer i, i_max, element_end
@@ -437,9 +439,9 @@ endif
 !
 
 if (g == 0) return
-c_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction * orbit%time_dir
+td = rp8(orbit%time_dir)
+c_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction
 g = g * c_dir
-
 if (particle_at == second_track_edge$) then
   g = -g
 endif
@@ -460,9 +462,9 @@ endif
 p_zy = sqrt(ppx2)
 yg = y2 * g**2 / 12
 
-orbit%vec(1) = orbit%vec(1) + g * y2 * (1 - yg) * rel_p**2 / (2 * p_zy**3)
-orbit%vec(4) = orbit%vec(4) - g * px * y * (1 - 2 * yg) / p_zy
-orbit%vec(5) = orbit%vec(5) - g * y2 * px * (1 - yg) * rel_p / (2 * p_zy**3)
+orbit%vec(1) = orbit%vec(1) + td * g * y2 * (1 - yg) * rel_p**2 / (2 * p_zy**3)
+orbit%vec(4) = orbit%vec(4) - td * g * px * y * (1 - 2 * yg) / p_zy
+orbit%vec(5) = orbit%vec(5) - td * g * y2 * px * (1 - yg) * rel_p / (2 * p_zy**3)
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit(kmat)
@@ -475,6 +477,7 @@ if (logic_option(.false., make_matrix)) then
   kmat(5,2) = -g * y2 * (1 - yg) * (rel_p**2 + 2 * px**2) * rel_p / (2 * p_zy**5)
   kmat(5,3) = -g * px * (y - 2 * y * yg) * rel_p / p_zy**3
   kmat(5,6) =  g * px * y2 * (1 - 2 * yg) * (2 * rel_p**2 + px**2) / (2 * p_zy**5)
+  if (orbit%time_dir == -1) call mat_inverse(kmat, kmat)
   mat6 = matmul(kmat, mat6)
 endif
 
@@ -518,7 +521,7 @@ type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
 real(rp) k1_rel, x, y, px, py, charge_dir, kmat(6,6)
-real(rp) f1, f2, ef1, vec(4), rel_p, vx, vy, tilt1
+real(rp) f1, f2, ef1, vec(4), rel_p, vx, vy, tilt1, td
 
 integer particle_at
 integer fringe_type
@@ -531,10 +534,11 @@ fringe_type = nint(ele%value(fringe_type$))
 if (fringe_type /= soft_edge_only$ .and. fringe_type /= full$) return
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
-charge_dir = ele%orientation * orbit%direction * orbit%time_dir
+charge_dir = ele%orientation * orbit%direction
 if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 
 rel_p = 1 + orbit%vec(6)
+td = rp8(orbit%time_dir)
 
 !
 

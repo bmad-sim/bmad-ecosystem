@@ -1478,9 +1478,9 @@ subroutine offset_particle (ele, set, coord, set_tilt, set_hvkicks, drift_to_edg
   implicit none
   type (ele_struct) :: ele
   type (coord_struct), intent(inout) :: coord
-  integer particle
+  integer, optional :: drift_to_edge
   logical, intent(in) :: set
-  logical, optional, intent(in) :: set_tilt, set_hvkicks, drift_to_edge, set_spin
+  logical, optional, intent(in) :: set_tilt, set_hvkicks, set_spin
   real(rp), optional :: s_pos, mat6(6,6), s_out, spin_qrot(0:3)
   logical, optional :: make_matrix
 end subroutine

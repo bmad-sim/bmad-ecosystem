@@ -1974,7 +1974,7 @@ real(dp) c8(size(taylor_in)), c_ref(size(taylor_in))
 
 logical, optional :: err
 
-character(16) :: r_name = 'taylor_inverse'
+character(*), parameter :: r_name = 'taylor_inverse'
 
 !
 
