@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
+! Subroutine track1_bmad_photon (orbit, ele, param, err_flag)
 !
 ! Particle tracking through a single element BMAD_standard style.
 ! This routine is NOT meant for long term tracking since it does not get 
@@ -9,16 +9,16 @@
 ! hybrid elements.
 ! 
 ! Input:
-!   start_orb  -- Coord_struct: Starting position
+!   orbit      -- Coord_struct: Starting position
 !   ele        -- Ele_struct: Element
 !   param      -- lat_param_struct:
 !
 ! Output:
-!   end_orb   -- Coord_struct: End position
+!   orbit     -- Coord_struct: End position
 !   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
+subroutine track1_bmad_photon (orbit, ele, param, err_flag)
 
 use capillary_mod, dummy => track1_bmad_photon
 use track1_photon_mod, dummy2 => track1_bmad_photon
@@ -26,8 +26,7 @@ use bmad_interface, dummy4 => track1_bmad_photon
 
 implicit none
 
-type (coord_struct) :: start_orb, start2_orb
-type (coord_struct) :: end_orb, temp_orb
+type (coord_struct) :: orbit, start_orb
 type (ele_struct) :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
@@ -42,18 +41,14 @@ logical err
 
 character(*), parameter :: r_name = 'track1_bmad_photon'
 
-! initially set end_orb = start_orb
-
-if (present(err_flag)) err_flag = .true.
-
-start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
-
-end_orb = start_orb     ! transfer start to end
-end_orb%vec(5) = 0      ! start at beginning of element
-
 !-----------------------------------------------
 ! Select
 ! If element is off looks like a drift. LCavities will still do wakefields.
+
+if (present(err_flag)) err_flag = .true.
+
+start_orb = orbit
+orbit%vec(5) = 0      ! start at beginning of element
 
 key = ele%key
 if (.not. ele%is_on) key = drift$  
@@ -65,64 +60,64 @@ select case (key)
 
 case (capillary$) 
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track_a_capillary (end_orb, ele)
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track_a_capillary (orbit, ele)
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
 !-----------------------------------------------
 ! Crystal
 
 case (crystal$) 
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
   if (is_true(ele%value(is_mosaic$))) then
-    call track1_mosaic_crystal (ele, param, end_orb)
+    call track1_mosaic_crystal (ele, param, orbit)
   else
-    call track1_crystal (ele, param, end_orb)
+    call track1_crystal (ele, param, orbit)
   endif
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
 !-----------------------------------------------
 ! Diffraction_plate
  
 case (diffraction_plate$)
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track1_diffraction_plate_or_mask (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track1_diffraction_plate_or_mask (ele, param, orbit)
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
 !-----------------------------------------------
 ! Drift
  
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
-  if (end_orb%vec(6) * end_orb%direction < 0) then  ! Heading backwards
-    end_orb%state = lost_pz_aperture$
+  if (orbit%vec(6) * orbit%direction < 0) then  ! Heading backwards
+    orbit%state = lost_pz_aperture$
     return
   endif
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track_a_drift_photon (end_orb, ele%value(l$), .true.)
-  if (end_orb%state /= alive$) return
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track_a_drift_photon (orbit, ele%value(l$), .true.)
+  if (orbit%state /= alive$) return
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
-  end_orb%s = ele%s
+  orbit%s = ele%s
 
 !-----------------------------------------------
 ! Lens
 
 case (lens$) 
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track1_lens (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track1_lens (ele, param, orbit)
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
 !-----------------------------------------------
 ! Marker, etc.
 
 case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
 
-  end_orb%vec(5) = 0
+  orbit%vec(5) = 0
 
 !-----------------------------------------------
 ! Match
@@ -130,18 +125,18 @@ case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
 case (match$)
 
   if (is_true(ele%value(match_end_orbit$))) then
-    ele%value(x0$)  = start2_orb%vec(1)
-    ele%value(px0$) = start2_orb%vec(2)
-    ele%value(y0$)  = start2_orb%vec(3)
-    ele%value(py0$) = start2_orb%vec(4)
-    ele%value(z0$)  = start2_orb%vec(5)
-    ele%value(pz0$) = start2_orb%vec(6)
-    end_orb%vec = [ele%value(x1$), ele%value(px1$), &
+    ele%value(x0$)  = start_orb%vec(1)
+    ele%value(px0$) = start_orb%vec(2)
+    ele%value(y0$)  = start_orb%vec(3)
+    ele%value(py0$) = start_orb%vec(4)
+    ele%value(z0$)  = start_orb%vec(5)
+    ele%value(pz0$) = start_orb%vec(6)
+    orbit%vec = [ele%value(x1$), ele%value(px1$), &
                    ele%value(y1$), ele%value(py1$), &
                    ele%value(z1$), ele%value(pz1$)]
 
   else
-    call track1_bmad (start2_orb, ele, param, end_orb, err_flag)
+    call track1_bmad (orbit, ele, param, err_flag)
   endif
 
 !-----------------------------------------------
@@ -149,43 +144,43 @@ case (match$)
 
 case (mirror$)
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track1_mirror (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track1_mirror (ele, param, orbit)
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
 !-----------------------------------------------
 ! Multilayer_Mirror
 
 case (multilayer_mirror$) 
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track1_multilayer_mirror (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track1_multilayer_mirror (ele, param, orbit)
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
 !-----------------------------------------------
 ! Patch
 
 case (patch$)
 
-  call track_a_patch_photon (ele, end_orb)
+  call track_a_patch_photon (ele, orbit)
 
 !-----------------------------------------------
 ! Sample
 
 case (sample$)
 
-  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track1_sample (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track1_sample (ele, param, orbit)
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
 
 !-----------------------------------------------
 ! Taylor
 
 case (taylor$)
 
-  call track1_taylor (start_orb, ele, param, end_orb)
-  end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
-  end_orb%s = ele%s
+  call track1_taylor (orbit, ele, param)
+  orbit%t = start_orb%t + (ele%value(l$) + start_orb%vec(5) - orbit%vec(5)) / (c_light)
+  orbit%s = ele%s
 
 !-----------------------------------------------
 ! Photon_Init
@@ -209,7 +204,7 @@ end select
 
 !---------------------------------------------------------------------------------------------------
 
-end_orb%location = downstream_end$
+orbit%location = downstream_end$
 if (present(err_flag)) err_flag = .false.
 
 end subroutine track1_bmad_photon

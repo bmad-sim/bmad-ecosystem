@@ -48,11 +48,11 @@ type (fringe_field_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele, lord
 
 real(rp), optional :: mat6(6,6), rf_time
-real(rp) ff, fac, l_drift, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds
+real(rp) ff, fac, l_drift, s_edge, s, phi, omega(3), pc, z_saved, beta_ref, ds, at_sign, time_dir
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 complex(rp) xiy, c_vec
 
-integer physical_end, dir, i, fringe_at, at_sign, sign_z_vel, particle_at, ix_elec_max
+integer physical_end, dir, i, fringe_at, sign_z_vel, particle_at, ix_elec_max
 integer hard_ele_field_calc
 
 logical, optional :: make_matrix, apply_sol_fringe
@@ -109,9 +109,9 @@ endif
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
 
 if (particle_at == first_track_edge$) then
-  at_sign = 1
+  at_sign = 1.0_rp
 else
-  at_sign = -1
+  at_sign = -1.0_rp
 endif
 
 sign_z_vel = orb%direction * track_ele%orientation
@@ -277,9 +277,9 @@ type (em_field_struct) field
 type (cartesian_map_struct), pointer :: ct
 type (cylindrical_map_struct), pointer :: cy
 
-real(rp) a_pole_elec(0:), b_pole_elec(0:), ff, E_r(2)
+real(rp) at_sign, a_pole_elec(0:), b_pole_elec(0:), ff, E_r(2)
 complex(rp) ab_elec, xiy_old
-integer sign_z_vel, at_sign, hard_ele_field_calc
+integer sign_z_vel, hard_ele_field_calc
 integer i, ix_elec_max
 logical err_flag
 
@@ -325,8 +325,8 @@ subroutine apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
 type (coord_struct) orb
 type (ele_struct) hard_ele
 
-real(rp) ks4, ff, xy_orb(2)
-integer at_sign, sign_z_vel
+real(rp) at_sign, ks4, ff, xy_orb(2)
+integer sign_z_vel
 logical track_spn
 
 ! To make reverse tracking the same as forward tracking, use a symmetrical orbital-spin-orbital kick scheme.

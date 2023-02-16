@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
+! Subroutine track1_custom (orbit, ele, param, err_flag, finished, track)
 !
 ! Dummy routine for custom tracking. 
 ! This routine needs to be replaced for a custom calculation.
@@ -23,26 +23,25 @@
 ! General rule: Your code may NOT modify any argument that is not listed as an output agument below.
 !
 ! Input:
-!   start_orb  -- coord_struct: Starting position.
+!   orbit      -- coord_struct: Starting position.
 !   ele        -- ele_struct: Lattice element.
 !   param      -- lat_param_struct: Lattice parameters.
 !
 ! Output:
-!   end_orb     -- coord_struct: End position.
+!   orbit       -- coord_struct: End position.
 !   err_flag    -- logical: Set true if there is an error. False otherwise.
 !   finished    -- logical: When set True, track1 will halt processing and return to its calling routine.
 !   track       -- track_struct, optional: Structure holding the track information if the 
 !                    tracking method does tracking step-by-step.
 !-
 
-subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
+subroutine track1_custom (orbit, ele, param, err_flag, finished, track)
 
 use bmad, except_dummy => track1_custom
 
 implicit none
 
-type (coord_struct) :: start_orb
-type (coord_struct) :: end_orb
+type (coord_struct) :: orbit
 type (ele_struct) :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
@@ -58,10 +57,9 @@ call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED B
                                'EITHER CHANGE THE TRACKING_METHOD OR LINK THIS PROGRAM TO AN APPROPRIATELY MODIFED TRACK1_CUSTOM ROUTINE.')
 err_flag = .true.
 
-! Remember to also set end_orb%t
+! Remember to also set orbit%t
 
-end_orb = start_orb
-end_orb%s = ele%s 
+orbit%s = ele%s 
 
 ! If ele represents a section of the entire element and the element has internal structure (not uniform
 ! longitudinally), then it will be important to know the position of ele relative to the entire element.

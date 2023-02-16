@@ -72,7 +72,8 @@ case (custom$)
 
 ! Notice that PTC spin tracking is only done here only when the (orbital) tracking_method is *not* symp_lie_ptc
 case (symp_lie_ptc$)
-  call track1_symp_lie_ptc (start_orb, ele, param, temp_orb)
+  temp_orb = start_orb
+  call track1_symp_lie_ptc (temp_orb, ele, param)
   end_orb%spin = temp_orb%spin
 
 case (taylor$, sprint$)

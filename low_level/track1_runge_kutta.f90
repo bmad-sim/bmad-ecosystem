@@ -1,12 +1,12 @@
 !+
-! Subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
+! Subroutine track1_runge_kutta (orbit, ele, param, err_flag, track, mat6, make_matrix)
 !
 ! Subroutine to do tracking using Runge-Kutta integration. 
 ! The core Runge-Kutta routine used here is odeint_bmad which is a modified version of odeint from Numerical Recipes.
 ! See the "Numerical Recipes in F90" book.
 !
 ! Input:
-!   start_orb   -- Coord_struct: Starting coords.
+!   orbit       -- Coord_struct: Starting coords.
 !   ele         -- Ele_struct
 !   param       -- lat_param_struct: Lattice parameters.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix before the element.
@@ -18,19 +18,19 @@
 !     %max_num_runge_kutta_step  -- Maximum number of steps before particle is considered lost.
 !
 ! Output:
-!   end_orb     -- coord_struct: Ending coords.
+!   orbit       -- coord_struct: Ending coords.
 !   err_flag    -- logical: Set True if there is an error. False otherwise.
 !   track       -- track_struct, optional: Structure holding the track information.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix propagated through the element.
 !- 
 
-subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
+subroutine track1_runge_kutta (orbit, ele, param, err_flag, track, mat6, make_matrix)
 
 use runge_kutta_mod, except_dummy => track1_runge_kutta
 
 implicit none
 
-type (coord_struct) :: start_orb, end_orb
+type (coord_struct) :: orbit
 type (lat_param_struct), target :: param
 type (ele_struct), target :: ele
 type (track_struct), optional :: track
@@ -47,15 +47,13 @@ character(*), parameter :: r_name = 'track1_runge_kutta'
 ! Nor can RK handle particles at rest (EG e_gun). 
 
 if (ele%key /= patch$ .and. ele%value(l$) == 0) then
-  call track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
+  call track_a_zero_length_element (orbit, ele, param, err_flag, track)
   return
 endif
 
-end_orb = start_orb
-
-if (start_orb%vec(6) == -1) then
+if (orbit%vec(6) == -1) then
   call out_io (s_error$, r_name, 'Runge Kutta is not able to handle particles with no energy in: ' // ele%name)
-  end_orb%state = lost$
+  orbit%state = lost$
   return
 endif
 
@@ -68,23 +66,23 @@ endif
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 if (ele%key == patch$) then
-  call track_a_patch (ele, end_orb, .false., s0_body, ds_ref)
+  call track_a_patch (ele, orbit, .false., s0_body, ds_ref)
   beta_ref = ele%value(p0c$) / ele%value(e_tot$)
-  if (ele%orientation*end_orb%direction*end_orb%time_dir == 1) then
-    end_orb%vec(5) = end_orb%vec(5) + end_orb%time_dir * (ds_ref + s0_body) * end_orb%beta / beta_ref 
+  if (ele%orientation*orbit%direction*orbit%time_dir == 1) then
+    orbit%vec(5) = orbit%vec(5) + orbit%time_dir * (ds_ref + s0_body) * orbit%beta / beta_ref 
     length = patch_length(ele, exit_end$)
     s0_body = length + s0_body
     s1_body = length
   else
-    end_orb%vec(5) = end_orb%vec(5) + end_orb%time_dir * (ds_ref - s0_body) * end_orb%beta / beta_ref 
+    orbit%vec(5) = orbit%vec(5) + orbit%time_dir * (ds_ref - s0_body) * orbit%beta / beta_ref 
     s0_body = s0_body
     s1_body = 0
   endif
 
 else
-  call offset_particle (ele, set$, end_orb, set_hvkicks = .false., &
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., &
                                       set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)
-  if (ele%orientation*end_orb%direction*end_orb%time_dir == 1) then
+  if (ele%orientation*orbit%direction*orbit%time_dir == 1) then
     s0_body = 0; s1_body = ele%value(l$)
   else
     s0_body = ele%value(l$); s1_body = 0
@@ -100,13 +98,13 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. &
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad (end_orb, ele, param, s0_body, s1_body, err_flag, track, mat6, make_matrix)
+call odeint_bmad (orbit, ele, param, s0_body, s1_body, err_flag, track, mat6, make_matrix)
 if (err_flag) return
 
 ! convert to lab coords.
 
 if (ele%key /= patch$) then
-  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., &
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., &
                                         set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)
 endif
 

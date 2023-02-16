@@ -1,27 +1,27 @@
 !+
-! Subroutine track1_linear (start_orb, ele, param, end_orb)
+! Subroutine track1_linear (orbit, ele, param)
 !
 ! Particle tracking through a single element assuming linearity.
 ! That is, just using ele%mat6.
 !
 ! Input:
-!   start_orb  -- Coord_struct: Starting position
+!   orbit      -- Coord_struct: Starting position
 !   ele        -- Ele_struct: Element
 !   param      -- lat_param_struct:
 !
 ! Output:
-!   end_orb   -- Coord_struct: End position
+!   orbit     -- Coord_struct: End position
 !   param     -- lat_param_struct:
 !-
 
-subroutine track1_linear (start_orb, ele, param, end_orb)
+subroutine track1_linear (orbit, ele, param)
 
 use bmad_interface, except_dummy => track1_linear
 
 implicit none
 
-type (coord_struct) :: start_orb, start2_orb
-type (coord_struct) :: end_orb
+type (coord_struct) :: start_orb
+type (coord_struct) :: orbit
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
@@ -51,47 +51,46 @@ else
   v0 = ele%vec0
 endif
 
-start2_orb = start_orb
-end_orb = start_orb
-end_orb%p0c = ele%value(p0c$)
+start_orb = orbit
+orbit%p0c = ele%value(p0c$)
 
 if (start_orb%direction == 1) then
-  end_orb%vec = matmul (mat6, start_orb%vec) + v0
+  orbit%vec = matmul (mat6, start_orb%vec) + v0
 
 else
   mat6 = mat_symp_conj(mat6)
-  end_orb%vec(2) = -end_orb%vec(2)
-  end_orb%vec(4) = -end_orb%vec(4)
-  end_orb%vec = matmul(mat6, end_orb%vec)
-  end_orb%vec(2) = -end_orb%vec(2)
-  end_orb%vec(4) = -end_orb%vec(4)
-  end_orb%vec(5) = start_orb%vec(5) - (end_orb%vec(5) - start_orb%vec(5))
+  orbit%vec(2) = -orbit%vec(2)
+  orbit%vec(4) = -orbit%vec(4)
+  orbit%vec = matmul(mat6, orbit%vec)
+  orbit%vec(2) = -orbit%vec(2)
+  orbit%vec(4) = -orbit%vec(4)
+  orbit%vec(5) = start_orb%vec(5) - (orbit%vec(5) - start_orb%vec(5))
 
   vec = matmul(mat6, v0)
   vec = [vec(1), -vec(2), vec(3), -vec(4), vec(5), vec(6)]
-  end_orb%vec = end_orb%vec - vec
+  orbit%vec = orbit%vec - vec
 endif
 
 ! If delta_ref_time has not been set then just assume that the particle has constant velocity.
 
 dtime_ref = ele%value(delta_ref_time$)
-if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
+if (dtime_ref == 0) dtime_ref = ele%value(l$) / (orbit%beta * c_light)
 dtime_ref = dtime_ref * start_orb%direction*start_orb%time_dir 
 
-call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
+call convert_pc_to (ele%value(p0c$) * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
 
 if (ele%value(p0c$) == ele%value(p0c_start$)) then
-  end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
+  orbit%t = start_orb%t + dtime_ref + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 else
-  end_orb%t = start2_orb%t + dtime_ref + start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
+  orbit%t = start_orb%t + dtime_ref + start_orb%vec(5) / (start_orb%beta * c_light) - orbit%vec(5) / (orbit%beta * c_light)
 endif
 
 !
 
-if (end_orb%direction*end_orb%time_dir == 1) then
-  end_orb%s = ele%s
+if (orbit%direction*orbit%time_dir == 1) then
+  orbit%s = ele%s
 else
-  end_orb%s = ele%s_start
+  orbit%s = ele%s_start
 endif
 
 end subroutine

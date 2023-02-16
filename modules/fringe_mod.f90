@@ -784,11 +784,11 @@ ddenom_dx = -d2fx_dxx - d2fy_dxy + d2fx_dxx * dfy_dy + dfx_dx * d2fy_dxy - d2fx_
 ddenom_dy = -d2fx_dxy - d2fy_dyy + d2fx_dxy * dfy_dy + dfx_dx * d2fy_dyy - d2fx_dyy * dfy_dx - dfx_dy * d2fy_dxy 
 ddenom_dpz = (dfx_dx + dfy_dy - 2 * dfx_dx * dfy_dy + 2 * dfx_dy * dfy_dx) / rel_p
 
-orbit%vec(1) = orbit%vec(1) - fx
-orbit%vec(2) = px + (-dfy_dy * px + dfy_dx * py) / denom
-orbit%vec(3) = orbit%vec(3) - fy
-orbit%vec(4) = py + (dfx_dy * px - dfx_dx * py) / denom
-orbit%vec(5) = orbit%vec(5) + (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
+orbit%vec(1) = orbit%vec(1) - orbit%time_dir * fx
+orbit%vec(2) = px + orbit%time_dir * ((1.0_rp - dfy_dy - denom) * px + dfy_dx * py) / denom
+orbit%vec(3) = orbit%vec(3) - orbit%time_dir * fy
+orbit%vec(4) = py + orbit%time_dir * (dfx_dy * px + (1.0_rp - dfx_dx - denom) * py) / denom
+orbit%vec(5) = orbit%vec(5) + orbit%time_dir * (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
 
 if (logic_option(.false., make_matrix)) then
   kmat = 0

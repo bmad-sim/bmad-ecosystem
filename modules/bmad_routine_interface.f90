@@ -2331,11 +2331,11 @@ function strong_beam_strength (ele) result (strength)
   real(rp) strength
 end function
 
-subroutine symp_lie_bmad (ele, param, start_orb, end_orb, track, mat6, make_matrix, offset_ele)
+subroutine symp_lie_bmad (ele, param, orbit, track, mat6, make_matrix, offset_ele)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (coord_struct) :: start_orb, end_orb
+  type (coord_struct) :: orbit
   type (lat_param_struct)  param
   type (track_struct), optional, target :: track
   real(rp), optional :: mat6(6,6)
@@ -2531,11 +2531,10 @@ subroutine track_a_wiggler (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
+subroutine track_a_zero_length_element (orbit, ele, param, err_flag, track)
   import
   implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct), target :: ele
   type (lat_param_struct), target :: param
   logical err_flag
@@ -2605,11 +2604,10 @@ recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, &
   logical, optional :: make_map1
 end subroutine
 
-subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
+subroutine track1_bmad (orbit, ele, param, err_flag, track, mat6, make_matrix)
   import
   implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
   type (track_struct), optional :: track
@@ -2618,11 +2616,10 @@ subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, m
   logical, optional :: make_matrix
 end subroutine
 
-subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
+subroutine track1_bmad_photon (orbit, ele, param, err_flag)
   import
   implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
   logical, optional :: err_flag
@@ -2638,20 +2635,18 @@ subroutine track1_bunch_space_charge (bunch, ele, err, track_to_same_s, bunch_tr
   logical, optional :: track_to_same_s
 end subroutine
 
-subroutine track1_linear (start_orb, ele, param, end_orb)
+subroutine track1_linear (orbit, ele, param)
   import
   implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
 end subroutine
 
-subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
+subroutine track1_runge_kutta (orbit, ele, param, err_flag, track, mat6, make_matrix)
   import
   implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct), target :: ele
   type (lat_param_struct), target :: param
   logical err_flag
@@ -2686,21 +2681,19 @@ subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
   type (lat_param_struct) param
 end subroutine
 
-subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
+subroutine track1_symp_lie_ptc (orbit, ele, param, track)
   import
   implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
   type (track_struct), optional :: track
 end subroutine
 
-subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_matrix)
+subroutine track1_taylor (orbit, ele, param, taylor, mat6, make_matrix)
   import
   implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct), target :: ele
   type (lat_param_struct) :: param
   real(rp), optional :: mat6(6,6)
@@ -2708,12 +2701,11 @@ subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_mat
   type (taylor_struct), optional, target :: taylor(6)
 end subroutine
 
-subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)
+subroutine track1_time_runge_kutta (orbit, ele, param, err_flag, track, t_end, dt_step)
   import
   implicit none
   real(rp), optional :: t_end, dt_step
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
+  type (coord_struct) :: orbit
   type (ele_struct), target :: ele
   type (lat_param_struct), target :: param
   logical err_flag
@@ -3317,7 +3309,7 @@ subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bu
   logical err, finished
 end subroutine
 
-subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
+subroutine track1_custom (start_orb, ele, param, err_flag, finished, track)
   import
   implicit none
   type (coord_struct) :: start_orb
