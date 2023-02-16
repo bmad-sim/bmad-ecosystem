@@ -119,7 +119,7 @@ do ib = 0, ubound(lat%branch, 1)
     dr_ds_track(4) = (orb2%vec(4) - orb%vec(4)) / ds
 
     orb2 = orb
-    call offset_particle (ele, set$, orb2, set_hvkicks = .false., drift_to_edge = .false., s_pos = orb%vec(5))
+    call offset_particle (ele, set$, orb2, set_hvkicks = .false., drift_to_edge = no$, s_pos = orb%vec(5))
     call kick_vector_calc (ele, branch%param, orb%vec(5), orb2, dr_ds_kick, err)
     orb2%vec(2:4:2) = dr_ds_kick(2:4:2)
     call tilt_coords (-ele%value(tilt_tot$), orb2%vec)

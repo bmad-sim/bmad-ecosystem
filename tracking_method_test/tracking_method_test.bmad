@@ -1,5 +1,4 @@
 no_digested
-parameter[e_tot] = 1e12
 parameter[n_part] = 1e10
 parameter[ptc_exact_model] = true
 parameter[geometry] = open

@@ -180,9 +180,9 @@ s_pos = lat%particle_start%vec(5)
 
 if (debug_mode) print *
 call write_orbit(trim(name) // '-Start', orb1, s_pos)
-call offset_particle (ele, set$, orb1, drift_to_edge = .false., s_pos = s_pos, s_out = s_out)
+call offset_particle (ele, set$, orb1, drift_to_edge = no$, s_pos = s_pos, s_out = s_out)
 call write_orbit(trim(name) // '-In   ', orb1, s_out)
-call offset_particle (ele, unset$, orb1, drift_to_edge = .false., s_pos = s_out, s_out = s_out)
+call offset_particle (ele, unset$, orb1, drift_to_edge = no$, s_pos = s_out, s_out = s_out)
 call write_orbit(trim(name) // '-Out  ', orb1, s_out)
 if (debug_mode) print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // '-Diff: ', orb1%vec-orb0%vec, (orb1%t-orb0%t)*c_light, s_out-s_pos
 

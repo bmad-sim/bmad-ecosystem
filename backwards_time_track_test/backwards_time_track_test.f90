@@ -14,10 +14,10 @@ type (coord_struct) start_orb, end_orb, start2_orb, d
 character(100) :: lat_file  = 'backwards_time_track_test.bmad'
 character(60) str
 
-real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta, merit, global_merit
+real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta, merit, global_merit, ele_merit
 integer j, ib, ie, nargs
 
-logical debug_mode, loc_equal, global_loc_equal
+logical debug_mode, loc_equal, global_loc_equal, ele_loc_equal
  
 !
 
@@ -63,6 +63,9 @@ do ib = 0, 0
 
   do ie = 1, branch%n_ele_max - 1
     ele => branch%ele(ie)
+    ele_loc_equal = .true.
+    ele_merit = 0
+
 
     do j = 1, n_methods$
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
@@ -105,14 +108,19 @@ do ib = 0, 0
         print '(2a, 4es18.10)',    quote(trim(str) // '-c*dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
         print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '              ABS 1E-13', merit, loc_equal
         print *
-        global_merit = max(global_merit, merit)
-        global_loc_equal = (global_loc_equal .and. loc_equal)
+        ele_merit = max(ele_merit, merit)
+        ele_loc_equal = (ele_loc_equal .and. loc_equal)
       endif
     enddo
+    if (debug_mode) then
+      print '(a, es18.10, l4)', '*************** "Ele-Merit"  ', ele_merit, ele_loc_equal
+      global_merit = max(ele_merit, global_merit)
+      global_loc_equal = (ele_loc_equal .and. global_loc_equal)
+    endif
 
   end do
-  if (debug_mode) then
-    print '(a, es18.10, l4)', '"Global-Merit"  ', global_merit, global_loc_equal
+  if (debug_mode .and. ie > 1) then
+    print '(a, es18.10, l4)', '**************** "Global-Merit"  ', global_merit, global_loc_equal
   endif
 enddo
 
