@@ -130,7 +130,8 @@ case (symp_lie_ptc$)
   call make_mat6_symp_lie_ptc (ele, param, a_start_orb, a_end_orb)
 
 case (symp_lie_bmad$)
-  call symp_lie_bmad (ele, param, a_start_orb, a_end_orb, mat6 = ele%mat6, make_matrix = .true.)
+  a_end_orb = a_start_orb
+  call symp_lie_bmad (ele, param, a_end_orb, mat6 = ele%mat6, make_matrix = .true.)
 
 case (tracking$)
   call make_mat6_tracking (ele, param, a_start_orb, a_end_orb, err)

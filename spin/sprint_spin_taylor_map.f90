@@ -75,7 +75,8 @@ map_start%vec0 = orb2%vec - matmul(map_start%orb_mat, orb1%vec)
 
 i = ele%value(fringe_at$)
 ele%value(fringe_at$) = no_end$
-call track1_bmad(orb2, ele, branch%param, orb3, err_flag, track, map_ele%orb_mat, .true.)
+orb3 = orb2
+call track1_bmad(orb3, ele, branch%param, err_flag, track, map_ele%orb_mat, .true.)
 ele%value(fringe_at$) = i
 map_ele%vec0 = orb3%vec - matmul(map_ele%orb_mat, orb2%vec)
 

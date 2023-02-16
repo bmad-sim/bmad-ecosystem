@@ -1,10 +1,10 @@
 !+
-! Subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
+! Subroutine track1_bmad (start_orb, ele, param, err_flag, track, mat6, make_matrix)
 !
 ! Particle tracking through a single element BMAD_standard style.
 !
 ! Input:
-!   start_orb   -- coord_struct: Starting position
+!   orbit       -- coord_struct: Starting position
 !   ele         -- ele_struct: Element
 !   param       -- lat_param_struct:
 !     %particle     -- Particle type
@@ -12,21 +12,20 @@
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   end_orb       -- coord_struct: End position.
+!   orbit         -- coord_struct: End position.
 !   err_flag      -- logical, optional: Set true if there is an error. False otherwise.
 !   track         -- track_struct, optional: Structure holding the track information if the 
 !                      lattice element does tracking step-by-step. See track1 for more details.
 !   mat6(6,6)     -- real(rp), optional: Transfer matrix propagated through the element.
 !-
 
-subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, track, mat6, make_matrix)
+subroutine track1_bmad (orbit, ele, param, err_flag, track, mat6, make_matrix)
 
 use bmad_interface, dummy4 => track1_bmad
 
 implicit none
 
-type (coord_struct) :: start_orb
-type (coord_struct) :: end_orb
+type (coord_struct) :: orbit    
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
@@ -43,14 +42,9 @@ logical err
 
 character(*), parameter :: r_name = 'track1_bmad'
 
-! initially set end_orb = start_orb
+! If element is off... 
 
 if (present(err_flag)) err_flag = .false.
-
-end_orb = start_orb     ! transfer start to end
-
-!-----------------------------------------------
-! If element is off... 
 
 key = ele%key
 
@@ -73,43 +67,43 @@ select case (key)
 ! beambeam
                         
 case (beambeam$)
-  call track_a_beambeam (end_orb, ele, param, track, mat6, make_matrix)
+  call track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
 
 !-----------------------------------------------
 ! crab_cavity
                         
 case (converter$)
-  call track_a_converter (end_orb, ele, param, mat6, make_matrix)
+  call track_a_converter (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! crab_cavity
                         
 case (crab_cavity$)
-  call track_a_crab_cavity(end_orb, ele, param, mat6, make_matrix)
+  call track_a_crab_cavity(orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! Thick multipoles
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, ac_kicker$, kicker$, hkicker$, vkicker$) 
-  call track_a_thick_multipole (end_orb, ele, param, mat6, make_matrix)
+  call track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! drift
  
 case (drift$) 
-  call track_a_drift (end_orb, ele%value(l$)*end_orb%time_dir, mat6, make_matrix)
+  call track_a_drift (orbit, ele%value(l$)*orbit%time_dir, mat6, make_matrix)
 
 !-----------------------------------------------
 ! elseparator
 
 case (elseparator$)
-  call track_a_thick_multipole (end_orb, ele, param, mat6, make_matrix)
+  call track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity.
 
 case (lcavity$)
-  call track_a_lcavity (end_orb, ele, param, mat6, make_matrix)
+  call track_a_lcavity (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! marker, etc.
@@ -118,34 +112,34 @@ case (lcavity$)
 
 case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$, beginning_ele$)
 
-  end_orb%t = end_orb%t + ele%value(delta_ref_time$)
+  orbit%t = orbit%t + ele%value(delta_ref_time$)
 
 !-----------------------------------------------
 ! mask
 
 case (mask$)
-  call track_a_mask (end_orb, ele, param, mat6, make_matrix)
+  call track_a_mask (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! match
 
 case (match$)
-  call track_a_match (end_orb, ele, param, err_flag, mat6, make_matrix)
+  call track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
 
 !-----------------------------------------------
 ! multipole, ab_multipole
 
 case (multipole$, ab_multipole$) 
 
-  call offset_particle (ele, set$, end_orb, set_tilt = .false.)
+  call offset_particle (ele, set$, orbit, set_tilt = .false.)
 
   call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilt)
 
   if (ix_pole_max > -1) then
-    call multipole_kicks (knl, tilt, ele, end_orb, ref_orb_offset = (ele%key == multipole$))
+    call multipole_kicks (knl, tilt, ele, orbit, ref_orb_offset = (ele%key == multipole$))
 
     if (logic_option(.false., make_matrix)) then
-      call multipole_kick_mat (knl, tilt, param%particle, ele, end_orb, 1.0_rp, ele%mat6)
+      call multipole_kick_mat (knl, tilt, param%particle, ele, orbit, 1.0_rp, ele%mat6)
 
       ! if knl(0) is non-zero then the reference orbit itself is bent
       ! and we need to account for this.
@@ -159,69 +153,69 @@ case (multipole$, ab_multipole$)
     endif
   endif
 
-  call offset_particle (ele, unset$, end_orb, set_tilt = .false.)
+  call offset_particle (ele, unset$, orbit, set_tilt = .false.)
 
 !-----------------------------------------------
 ! octupole
 ! The octupole is modeled using kick-drift.
 
 case (octupole$)
-  call track_a_thick_multipole (end_orb, ele, param, mat6, make_matrix)
+  call track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! patch
 
 case (patch$)
-  call track_a_patch (ele, end_orb, mat6 = mat6, make_matrix = make_matrix)
+  call track_a_patch (ele, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 !-----------------------------------------------
 ! quadrupole
 
 case (quadrupole$)
-  call track_a_quadrupole (end_orb, ele, param, mat6, make_matrix)
+  call track_a_quadrupole (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! rfcavity
 
 case (rfcavity$)
-  call track_a_rfcavity (end_orb, ele, param, mat6, make_matrix)
+  call track_a_rfcavity (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! sad_multipole
 
 case (sad_mult$)
-  call track_a_sad_mult (end_orb, ele, param, mat6, make_matrix)
+  call track_a_sad_mult (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! sbend
 
 case (sbend$)
-  call track_a_bend (end_orb, ele, param, mat6, make_matrix)
+  call track_a_bend (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! sextupole
 ! The sextupole is modeled using kick-drift.
 
 case (sextupole$)
-  call track_a_thick_multipole (end_orb, ele, param, mat6, make_matrix)
+  call track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! Solenoid
 
 case (sol_quad$, solenoid$)
-  call track_a_sol_quad (end_orb, ele, param, mat6, make_matrix)
+  call track_a_sol_quad (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! Taylor
 
 case (taylor$)
-  call track1_taylor (end_orb, ele, param, end_orb, mat6 = mat6, make_matrix = make_matrix)
+  call track1_taylor (orbit, ele, param, mat6 = mat6, make_matrix = make_matrix)
 
 !-----------------------------------------------
 ! wiggler:
 
 case (wiggler$, undulator$)
-  call track_a_wiggler (end_orb, ele, param, mat6, make_matrix)
+  call track_a_wiggler (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! do nothing case
@@ -258,10 +252,10 @@ end select
 !-----------------------------------------------------------------------------------
 ! Set s-position
 
-if (end_orb%direction*end_orb%time_dir == 1) then
-  end_orb%s = ele%s
+if (orbit%direction*orbit%time_dir == 1) then
+  orbit%s = ele%s
 else
-  end_orb%s = ele%s_start
+  orbit%s = ele%s_start
 endif
 
 end subroutine track1_bmad

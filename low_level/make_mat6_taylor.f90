@@ -37,7 +37,8 @@ if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, start_o
 
 call mat_make_unit (ele%mat6)
 
-call track1_taylor (start_orb, ele, param, end_orb, mat6 = ele%mat6, make_matrix = .true.)
+end_orb = start_orb
+call track1_taylor (end_orb, ele, param, mat6 = ele%mat6, make_matrix = .true.)
 
 ele%vec0 = end_orb%vec - matmul(ele%mat6, start_orb%vec)
 

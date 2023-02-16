@@ -226,6 +226,7 @@ allocate (rm1(branch%n_ele_track))
 
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
+bmad_com%spin_tracking_on = .false.
 
 if (rf_is_on(branch)) then
   bmad_com%radiation_damping_on = .true.

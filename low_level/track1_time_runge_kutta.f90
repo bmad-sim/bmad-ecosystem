@@ -1,12 +1,12 @@
 !+ 
-! Subroutine track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)
+! Subroutine track1_time_runge_kutta(orbit, ele, param, err_flag, track, t_end, dt_step)
 !
 ! Routine to track a particle through an element using 
 ! Runge-Kutta time-based tracking. Converts to and from element
 ! coordinates before and after tracking.
 !
 ! Input:
-!   start_orb   -- coord_struct: starting position, z-based coords
+!   orbit       -- coord_struct: starting position, z-based coords
 !   ele         -- ele_struct: element
 !   param       -- lat_param_struct: lattice parameters
 !   t_end       -- real(rp), optional: If present, maximum time to which the particle will be tracked.
@@ -16,7 +16,7 @@
 !                   This overrides bmad_com%init_ds_adaptive_tracking. Used by track_bunch_time.
 !
 ! Output:
-!   end_orb     -- coord_struct: end position, z-based coords
+!   orbit       -- coord_struct: end position, z-based coords
 !   err_flag    -- Logical: Set True if there is an error. False otherwise
 !   track       -- track_struct (optional): Contains array of the step-by-step particle
 !                    trajectory along with the field at these positions.
@@ -26,14 +26,14 @@
 !                   Used by track_bunch_time.
 !-
 
-subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)
+subroutine track1_time_runge_kutta (orbit, ele, param, err_flag, track, t_end, dt_step)
 
 use time_tracker_mod, dummy => track1_time_runge_kutta
 use bmad_interface, dummy2 => track1_time_runge_kutta
 
 implicit none
 
-type (coord_struct) :: start_orb, end_orb, start_orb_saved
+type (coord_struct) :: orbit
 type (coord_struct) :: ele_origin
 type (lat_param_struct), target :: param
 type (ele_struct), target :: ele
@@ -55,17 +55,19 @@ character(*), parameter :: r_name = 'track1_time_runge_kutta'
 !---------------------------------
 
 if (ele%key /= patch$ .and. ele%value(l$) == 0) then
-  call track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
+  call track_a_zero_length_element (orbit, ele, param, err_flag, track)
   return
+endif
+
+if (present(track)) then
+  call save_a_step (track, ele, param, .false., orbit, s_lab, .true., rf_time = rf_time)
 endif
 
 !
 
 err_flag = .true.
 
-start_orb_saved = start_orb
-end_orb = start_orb
-rf_time = particle_rf_time (end_orb, ele, .true., end_orb%s - ele%s_start)
+rf_time = particle_rf_time (orbit, ele, .true., orbit%s - ele%s_start)
 beta_ref = ele%value(p0c$) / ele%value(E_tot$)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
@@ -74,7 +76,7 @@ set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking
 ! the reference trajectory +s direction.
 ! Adjust to match element edges if close enough.
 
-s_lab =  end_orb%s - ele%s_start
+s_lab =  orbit%s - ele%s_start
 
 if (abs(s_lab) < bmad_com%significant_length) then
   s_lab = 0
@@ -85,10 +87,10 @@ endif
 !------
 ! Check wall
 
-call check_aperture_limit (end_orb, ele, in_between$, param)
-if (end_orb%state /= alive$) then
+call check_aperture_limit (orbit, ele, in_between$, param)
+if (orbit%state /= alive$) then
   call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL: "//trim(ele%name))
-  end_orb%state = lost$
+  orbit%state = lost$
   return
 endif
 
@@ -97,35 +99,29 @@ endif
 ! Kicks and multipoles should be turned off in offset_particle
 
 ! Interior start, reference momentum is at the end.
-if (end_orb%location == inside$) then
-  call offset_particle (ele, set$, end_orb, set_hvkicks = .false., s_pos = s_lab, s_out = s_body, set_spin = set_spin)
-  t_dir = sign_of(ele%value(l$)) * end_orb%time_dir
+if (orbit%location == inside$) then
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., s_pos = s_lab, s_out = s_body, set_spin = set_spin)
+  t_dir = sign_of(ele%value(l$)) * orbit%time_dir
 
 elseif (ele%key == patch$) then
-  if (start_orb_saved%location == inside$) then
+  if (orbit%location == inside$) then
     call out_io (s_error$, r_name, 'TIME-RUNGE-KUTTA TRACKING STARTING WITH A INSIDE A PATCH IS NOT PERMITED: ' // ele%name)
     return
   endif
-  call track_a_patch (ele, end_orb, .false., s0, ds_ref)
-  end_orb%vec(5) = end_orb%vec(5) + end_orb%time_dir * (ds_ref + s0 * end_orb%direction*end_orb%time_dir * ele%orientation) * end_orb%beta / beta_ref 
+  call track_a_patch (ele, orbit, .false., s0, ds_ref)
+  orbit%vec(5) = orbit%vec(5) + orbit%time_dir * (ds_ref + s0 * orbit%direction*orbit%time_dir * ele%orientation) * orbit%beta / beta_ref 
   t_dir = -sign_of(s0*ele%orientation)
   s_body = s0
 
 ! Particle is at an end.
 else
-  call offset_particle (ele, set$, end_orb, set_hvkicks = .false., s_out = s_body, set_spin = set_spin)
-  t_dir = sign_of(ele%value(l$)) * end_orb%time_dir
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., s_out = s_body, set_spin = set_spin)
+  t_dir = sign_of(ele%value(l$)) * orbit%time_dir
 endif
 
 ! Convert orbit coords to time based.
 
-call convert_particle_coordinates_s_to_t (end_orb, s_body, ele%orientation)
-
-!
-
-if (present(track)) then
-  call save_a_step (track, ele, param, .false., start_orb_saved, s_lab, .true., rf_time = rf_time)
-endif
+call convert_particle_coordinates_s_to_t (orbit, s_body, ele%orientation)
 
 ! Track through element
 
@@ -135,7 +131,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. &
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, ele, param, t_dir, rf_time, err, track, t_end, dt_step)
+call odeint_bmad_time(orbit, ele, param, t_dir, rf_time, err, track, t_end, dt_step)
 
 if (err) return
 
@@ -146,38 +142,38 @@ if (err) return
 ! For patch elements keeping track of the s-position is problematical. So set %s if particle is at the element end.
 ! Setting %s is not done for other types of elements since this could potentially cover up code problems.
 
-if (end_orb%location == upstream_end$) then
-  end_orb%p0c = ele%value(p0c_start$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
-  end_orb%direction = -end_orb%time_dir  ! In case t_to_s conversion confused by roundoff error.
-  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
-  if (ele%key == patch$) end_orb%s = ele%s_start
+if (orbit%location == upstream_end$) then
+  orbit%p0c = ele%value(p0c_start$)
+  call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
+  orbit%direction = -orbit%time_dir  ! In case t_to_s conversion confused by roundoff error.
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  if (ele%key == patch$) orbit%s = ele%s_start
 
-elseif (end_orb%location == downstream_end$) then
-  end_orb%p0c = ele%value(p0c$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
-  end_orb%direction = end_orb%time_dir  ! In case t_to_s conversion confused by roundoff error
-  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., set_spin = set_spin)
-  if (ele%key == patch$) end_orb%s = ele%s
+elseif (orbit%location == downstream_end$) then
+  orbit%p0c = ele%value(p0c$)
+  call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
+  orbit%direction = orbit%time_dir  ! In case t_to_s conversion confused by roundoff error
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  if (ele%key == patch$) orbit%s = ele%s
 
-elseif (end_orb%state /= alive$) then
+elseif (orbit%state /= alive$) then
   ! Particle is lost in the interior of the element.
   ! The reference energy in the interior is equal to the ref energy at the exit end of the element.
-  if (end_orb%vec(6) < 0) then
-    end_orb%p0c = ele%value(p0c$)
-    end_orb%direction = -end_orb%time_dir
+  if (orbit%vec(6) < 0) then
+    orbit%p0c = ele%value(p0c$)
+    orbit%direction = -orbit%time_dir
   else 
-    end_orb%p0c = ele%value(p0c$)
-    end_orb%direction = end_orb%time_dir
+    orbit%p0c = ele%value(p0c$)
+    orbit%direction = orbit%time_dir
   end if
 
-  call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
-  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 elseif (present(t_end)) then
-  end_orb%p0c = ele%value(p0c$)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, s_body)
-  call offset_particle (ele, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  orbit%p0c = ele%value(p0c$)
+  call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
@@ -186,7 +182,7 @@ endif
 
 ! Set relativistic beta
 
-call convert_pc_to (end_orb%p0c * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
+call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
 
 err_flag = .false.
 

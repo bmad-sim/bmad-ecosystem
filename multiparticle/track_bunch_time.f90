@@ -150,7 +150,7 @@ if (orbit%location /= inside$) then
   call convert_particle_coordinates_t_to_s(orbit, ele, s_body_calc(orbit, ele))
 
   if (ele%key /= patch$ .and. ele%value(l$) == 0) then
-    call track_a_zero_length_element (orbit, ele, param, orbit, err)
+    call track_a_zero_length_element (orbit, ele, param, err)
     call convert_particle_coordinates_s_to_t(orbit, s_body_calc(orbit, ele), ele%orientation)
     return
   endif
