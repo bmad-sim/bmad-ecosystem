@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
+! Subroutine track1_custom (orbit, ele, param, err_flag, finished, track)
 !
 ! Dummy routine for custom tracking. 
 ! This routine needs to be replaced for a custom calculation.
@@ -23,26 +23,25 @@
 ! General rule: Your code may NOT modify any argument that is not listed as an output agument below.
 !
 ! Input:
-!   start_orb  -- coord_struct: Starting position.
+!   orbit      -- coord_struct: Starting position.
 !   ele        -- ele_struct: Element.
 !   param      -- lat_param_struct: Lattice parameters.
 !
 ! Output:
-!   end_orb     -- coord_struct: End position.
+!   orbit       -- coord_struct: End position.
 !   err_flag    -- logical: Set true if there is an error. False otherwise.
 !   finished    -- logical: When set True, track1 will halt processing and return to its calling routine.
 !   track       -- track_struct, optional: Structure holding the track information if the 
 !                    tracking method does tracking step-by-step.
 !-
 
-subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
+subroutine track1_custom (orbit, ele, param, err_flag, finished, track)
 
 use bmad, except_dummy => track1_custom
 
 implicit none
 
-type (coord_struct) :: start_orb
-type (coord_struct) :: end_orb
+type (coord_struct) :: orbit
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
@@ -81,8 +80,6 @@ n_step = nint(get_this_attribute('N_STEP'))
 err_flag = .false.
 finished = .false.
 
-end_orb = start_orb
-
 dphi_x = Qx * twopi / n_step
 cx = cos(dphi_x); sx = sin(dphi_x)
 mat_x(1,:) = [ cx, sx]
@@ -104,20 +101,20 @@ do i = 1, n_step
 
   ! Rotate orbital coords
 
-  phi_x = -atan2(end_orb%vec(2), end_orb%vec(1)) + dphi_x / 2
-  end_orb%vec(1:2) = matmul(mat_x, end_orb%vec(1:2))
+  phi_x = -atan2(orbit%vec(2), orbit%vec(1)) + dphi_x / 2
+  orbit%vec(1:2) = matmul(mat_x, orbit%vec(1:2))
 
-  phi_y = -atan2(end_orb%vec(4), end_orb%vec(3)) + dphi_y / 2
-  end_orb%vec(3:4) = matmul(mat_y, end_orb%vec(3:4))
+  phi_y = -atan2(orbit%vec(4), orbit%vec(3)) + dphi_y / 2
+  orbit%vec(3:4) = matmul(mat_y, orbit%vec(3:4))
 
-  phi_z = -atan2(end_orb%vec(6), end_orb%vec(5)) + dphi_z / 2
-  end_orb%vec(5:6) = matmul(mat_z, end_orb%vec(5:6))
+  phi_z = -atan2(orbit%vec(6), orbit%vec(5)) + dphi_z / 2
+  orbit%vec(5:6) = matmul(mat_z, orbit%vec(5:6))
 
   ! Spin transformation.
 
-  if (end_orb%vec(1) == 0 .and. end_orb%vec(2) == 0) eps_x = 0
-  if (end_orb%vec(3) == 0 .and. end_orb%vec(4) == 0) eps_y = 0
-  if (end_orb%vec(5) == 0 .and. end_orb%vec(6) == 0) eps_z = 0
+  if (orbit%vec(1) == 0 .and. orbit%vec(2) == 0) eps_x = 0
+  if (orbit%vec(3) == 0 .and. orbit%vec(4) == 0) eps_y = 0
+  if (orbit%vec(5) == 0 .and. orbit%vec(6) == 0) eps_z = 0
 
   om = [eps_x * cos(phi_x + twopi * Qx0) + &
         eps_y * cos(phi_y + twopi * Qy0) + &
@@ -127,7 +124,7 @@ do i = 1, n_step
         eps_z * sin(phi_z + twopi * Qz0), &
         nu_0] * (twopi / n_step)
   angle = norm2(om)
-  end_orb%spin = rotate_vec_given_axis_angle (end_orb%spin, om/angle, angle)
+  orbit%spin = rotate_vec_given_axis_angle (orbit%spin, om/angle, angle)
 
 enddo
 
