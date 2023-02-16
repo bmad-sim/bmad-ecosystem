@@ -170,6 +170,7 @@ character(*), parameter :: r_name = 'radiation_map_setup'
 
 if (present(err_flag)) err_flag = .false.
 
+if (ele%value(l$) == 0 .or. ele%key == taylor$) return   ! Does not produce radiation.
 if (.not. associated(ele%rad_map)) allocate(ele%rad_map)
 if (.not. ele%rad_map%stale .and. .not. present(ref_orbit_in)) return
 ele%rad_map%stale = .false.
