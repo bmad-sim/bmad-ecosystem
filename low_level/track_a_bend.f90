@@ -30,7 +30,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) mat6_i(6,6), rel_charge_dir, c_dir, g, g_tot, dg, b1, r_step, step_len, angle
 real(rp) pz, rel_p, rel_p2, x, px, y, py, z, pt, phi_1, sin_plus, cos_plus, alpha, L_p, L_c, g_p
 real(rp) sinc_a, r, rad, denom, L_v, L_u, dalpha, dx2, dL_c, dL_p, dphi_1, dpt, dg_p, angle_p
-real(rp) cos_a, sin_a, cosc_a, dL_u, dL_v, dangle_p, beta_ref, ll, m56, gam2, xi, dxi
+real(rp) cos_a, sin_a, cosc_a, dL_u, dL_v, dangle_p, beta_ref, ll, m56, gam2, xi, dxi, length
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer n, n_step, ix_mag_max, ix_elec_max
@@ -75,11 +75,12 @@ endif
 
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
+length = orbit%time_dir * ele%value(l$)
 g = ele%value(g$)
-if (ele%value(l$) == 0) then
+if (length == 0) then
   dg = 0
 else
-  dg = bn(0) / ele%value(l$)
+  dg = bn(0) / length
   bn(0) = 0
 endif
 
@@ -94,12 +95,12 @@ endif
 ! multipole kick at the beginning.
 
 n_step = 1
-if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-r_step = real(orbit%time_dir, rp) / n_step
-step_len = ele%value(l$) * r_step
+if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
+r_step = rp8(orbit%time_dir) / n_step
+step_len = length / n_step
 angle = g * step_len
 
-if (ix_mag_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp, step_len, &
+if (ix_mag_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp, step_len, r_step, &
                                                       ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
 
 ! And track with n_step steps
@@ -304,9 +305,9 @@ do n = 1, n_step
 
   if (ix_mag_max > -1 .or. ix_elec_max > -1) then
     if (n == n_step) then
-      call apply_multipole_kicks (0.5_rp, step_len, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
+      call apply_multipole_kicks (0.5_rp, step_len, r_step, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
     else
-      call apply_multipole_kicks (1.0_rp, step_len, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
+      call apply_multipole_kicks (1.0_rp, step_len, r_step, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
     endif
   endif
 enddo
@@ -332,14 +333,14 @@ endif
 !-------------------------------------------------------------------------------------------------------
 contains
 
-subroutine apply_multipole_kicks (coef, step_len, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
+subroutine apply_multipole_kicks (coef, step_len, r_step, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
 
 
 type (em_field_struct) field
 type (coord_struct) orb0
 
 real(rp) coef, step_len
-real(rp) ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0, r_len
+real(rp) ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0, r_step
 real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef, dkm(2,2), f_p0c, Ex, Ey
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -384,19 +385,16 @@ else
   enddo
 endif
 
-r_len = 1
-if (ele%value(l$) /= 0) r_len = orbit%time_dir * step_len / ele%value(l$)
-
 ! Magnetic kick.
 
 if (ix_mag_max > -1) then
   orb0 = orbit
-  f_coef = r_len * coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
+  f_coef = r_step * coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
   orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
   orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
 
   if (logic_option(.false., make_matrix)) then
-    df_coef_dx = r_len * coef * c_dir * ele%value(g$) * c_light / orb0%p0c
+    df_coef_dx = r_step * coef * c_dir * ele%value(g$) * c_light / orb0%p0c
 
     mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
                             (f_coef * field%dB(2,2)) * mat6(3,:)
