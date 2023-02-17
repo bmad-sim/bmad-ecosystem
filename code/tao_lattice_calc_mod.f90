@@ -481,6 +481,7 @@ ie = ie_start
 s_target = s_start
 ele => point_to_this_ele (branch%ele(ie), rad_map_save)
 ix_slice = -1  ! ix_slice will equal -1 if not tracking internally in a sliced element.
+n_slice = max(1, int(1.01_rp*ele%value(l$) / ds_save))
 
 do
   ! track to the element and save for phase space plot
@@ -493,7 +494,7 @@ do
       call save_a_beam_step(ele, beam, bunch_params_comb, ele%value(l$))
     else
       csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
-      if (csr_sc_on .or. .not. comb_calc_on) then
+      if (csr_sc_on .or. .not. comb_calc_on .or. n_slice == 1) then
         if (radiation_on) call radiation_map_setup(ele, bunch_params%centroid, err)
         if (err) then
           call out_io (s_error$, r_name, 'RADIATION MAP SETUP WHILE BEAM TRACKING ERROR THROUGH ELEMENT: ' // ele_full_name(ele), &
@@ -506,7 +507,6 @@ do
       else
         if (ix_slice == -1) then
           ix_slice = 1
-          n_slice = max(1, int(1.01_rp*ele%value(l$) / ds_save))
           call element_slice_iterator(ele, branch%param, ix_slice, n_slice, slice_ele)
         else
           ix_slice = ix_slice + 1
