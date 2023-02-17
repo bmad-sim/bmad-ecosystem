@@ -1,6 +1,6 @@
 !+
 ! Subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, &
-!                                                           s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)
+!                                                  s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot, time)
 !
 ! Routine to transform a particles's coordinates between laboratory and element body coordinates.
 ! Additionally, this routine can:
@@ -48,6 +48,8 @@
 !                         Rotate spin coordinates? Also bmad_com%spin_tracking_on must be T to rotate.
 !   mat6(6,6)         -- Real(rp), optional: Transfer matrix before off setting.
 !   make_matrix       -- logical, optional: Propagate the transfer matrix? Default is false.
+!   time              -- real(rp), optional: Particle time before drifting. Typically this is an RF 
+!                          clock time which may not be equal to orb%t
 !                                               
 ! Output:
 !     orbit           -- coord_struct: Coordinates of particle.
@@ -58,10 +60,11 @@
 !                         If set = unset$: Relative to upstream end (in lab coords).
 !     mat6(6,6)       -- real(rp), optional: Transfer matrix transfer matrix after offsets applied.
 !     spin_qrot(0:3)  -- real(rp), optional: Spin rotation quaternion
+!   time              -- real(rp), optional: Updated time.
 !-
 
 subroutine offset_particle (ele, set, orbit, set_tilt, set_hvkicks, drift_to_edge, &
-                                                            s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)
+                                                            s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot, time)
 
 use bmad_interface, except_dummy => offset_particle
 
@@ -72,7 +75,7 @@ type (coord_struct), intent(inout) :: orbit
 type (em_field_struct) field
 type (floor_position_struct) position
 
-real(rp), optional :: s_pos, s_out, mat6(6,6), spin_qrot(0:3)
+real(rp), optional :: s_pos, s_out, mat6(6,6), spin_qrot(0:3), time
 real(rp) rel_p, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx, f, B_factor, ds_center
 real(rp) angle, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3), pz, s_target, s_lab, s_body
 real(rp) beta_ref, charge_dir, dz, rel_tracking_charge, rtc, Ex, Ey, kx, ky, length, s_pos0
@@ -267,7 +270,7 @@ if (set) then
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
   if (drift_to /= no$ .and. orbit%state == alive$) then
-    call track_a_drift (orbit, s_target - s_body, mat6, make_matrix, ele%orientation, include_ref_motion = .false.)
+    call track_a_drift (orbit, s_target - s_body, mat6, make_matrix, ele%orientation, include_ref_motion = .false., time = time)
   endif
 
   !
@@ -461,7 +464,7 @@ else
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
   if (drift_to /= no$ .and. orbit%state == alive$) then
-    call track_a_drift (orbit, s_target-s_lab, mat6, make_matrix, +1, include_ref_motion = .false.)
+    call track_a_drift (orbit, s_target-s_lab, mat6, make_matrix, +1, include_ref_motion = .false., time = time)
   endif
 
   !

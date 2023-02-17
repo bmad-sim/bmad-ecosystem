@@ -67,10 +67,10 @@ endif
 
 old_orbit = orbit
 
-orbit%vec(2) = orbit%vec(2) + dp_x * cos(ph) / orbit%p0c
-orbit%vec(4) = orbit%vec(4) + dp_y * cos(ph) / orbit%p0c
+orbit%vec(2) = orbit%vec(2) + orbit%time_dir * dp_x * cos(ph) / orbit%p0c
+orbit%vec(4) = orbit%vec(4) + orbit%time_dir * dp_y * cos(ph) / orbit%p0c
 
-f2 = sin(ph) * twopi * ele%value(rf_frequency$) / c_light
+f2 = orbit%time_dir * sin(ph) * twopi * ele%value(rf_frequency$) / c_light
 dE = (dp_x * orbit%vec(1) + dp_y * orbit%vec(3)) * f2
 call apply_energy_kick (dE, orbit, [dp_x, dp_y] * f2)
 
@@ -99,7 +99,7 @@ if (logic_option(.false., make_matrix)) then
   mc(5,5) = orbit%beta/old_orbit%beta + old_orbit%vec(5) * mc2**2 * p0c * mc(6,5) / (old_orbit%beta * E_new**3)
   mc(5,6) = old_orbit%vec(5) * mc2**2 * p0c * (mc(6,6) / (old_orbit%beta * E_new**3) - &
                                                      orbit%beta / (old_orbit%beta**2 * E**3))
-
+  if (orbit%time_dir == -1) call mat_inverse(mc, mc)
   mat6 = matmul(mc, mat6)
 endif
 

@@ -50,7 +50,7 @@ endif
 
 z_start = orbit%vec(5)
 t_start = orbit%t
-length = ele%value(l$)
+length = ele%time_dir * ele%value(l$)
 rel_pc = 1 + orbit%vec(6)
 n_div = nint(ele%value(num_steps$))
 

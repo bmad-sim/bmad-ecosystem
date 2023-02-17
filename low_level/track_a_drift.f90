@@ -1,25 +1,28 @@
 !+
-! Subroutine track_a_drift (orb, length, mat6, make_matrix, ele_orientation, include_ref_motion)
+! Subroutine track_a_drift (orb, length, mat6, make_matrix, ele_orientation, include_ref_motion, time)
 !
 ! Bmad_standard tracking of particle as through a drift. Not to be used with photons.
 !
 ! Input:
 !   orb                 -- coord_struct: Orbit at start of the drift.
-!   length              -- Real(rp): Length to drift through in body coordinates.
+!   length              -- real(rp): Length to drift through in body coordinates.
 !                       --    If orb%direction = 1, positive length is in +z direction and vice versa.
-!   mat6(6,6)           -- Real(rp), optional: Transfer matrix up to the drift.
+!   mat6(6,6)           -- real(rp), optional: Transfer matrix up to the drift.
 !   make_matrix         -- logical, optional: Propagate the transfer matrix? Default is false.
 !   ele_orientation     -- integer, optional: Element orientation. Default is orb%direction.
 !   include_ref_motion  -- logical, optional: Include effect of the motion of the reference particle?
 !                           Default is True. False is basically only used by offset_particle.
 !                           Additionally, if False, orb%s is not changed.
+!   time                -- real(rp), optional: Particle time before drifting. Typically this is an RF
+!                           clock time which may not be equal to orb%t
 !
 ! Output:
-!   orb        -- coord_struct: Orbit at end of the drift.
-!   mat6(6,6)  -- Real(rp), optional: Transfer matrix including the drift.
+!   orb         -- coord_struct: Orbit at end of the drift.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix including the drift.
+!   time        -- real(rp), optional: Updated time.
 !-
 
-subroutine track_a_drift (orb, length, mat6, make_matrix, ele_orientation, include_ref_motion)
+subroutine track_a_drift (orb, length, mat6, make_matrix, ele_orientation, include_ref_motion, time)
 
 use bmad_routine_interface, dummy => track_a_drift
 
@@ -29,7 +32,7 @@ type (coord_struct) orb
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp), optional :: mat6(6,6)
+real(rp), optional :: mat6(6,6), time
 real(rp) matd(6,6), e_tot_ref, e_particle, rel_len, dt
 real(rp) length, rel_pc, dz, px, py, ps, delta, pxy2, mc2, beta_ref
 
@@ -75,6 +78,7 @@ if (orb%beta > 0) then
 
   dt = rel_z_vel * length / (orb%beta * ps * c_light)
   orb%t = orb%t + dt
+  if (present(time)) time = time + dt
 
 else
   if (logic_option(.true., include_ref_motion)) then

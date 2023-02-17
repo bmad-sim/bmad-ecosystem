@@ -26,10 +26,10 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) beta_ref, dt_ref, voltage, phase0, phase, dE, z, charge_dir, length
-real(rp) mc2, p0c, m2(2,2), t0, factor, pc, E, ff, new_beta
+real(rp) mc2, p0c, m2(2,2), t0, factor, pc, E, ff, new_beta, r_step, step_len
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
-integer i, n_slice, orientation
+integer i, n_slice, n_step
 integer ix_mag_max, ix_elec_max
 
 logical, optional :: make_matrix
@@ -45,23 +45,26 @@ if (ele%value(rf_frequency$) == 0 .and. ele%value(voltage$) /= 0) then
   return
 endif
 
+length = ele%value(l$) * orbit%time_dir
+n_step = 1
+r_step = rp8(orbit%time_dir) / n_step
+step_len = length / n_step
+
+beta_ref = ele%value(p0c$) / ele%value(e_tot$)
+n_slice = max(1, nint(abs(length) / ele%value(ds_step$))) 
+dt_ref = length / (c_light * beta_ref)
+charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation
+mc2 = mass_of(orbit%species)
+p0c = orbit%p0c
+
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*step_len, mat6, make_matrix)
 
-!
-
-length = ele%value(l$) * orbit%time_dir
-beta_ref = ele%value(p0c$) / ele%value(e_tot$)
-n_slice = max(1, nint(length / ele%value(ds_step$))) 
-dt_ref = length / (c_light * beta_ref)
-charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation
-mc2 = mass_of(orbit%species)
-p0c = orbit%p0c
 
 ! The cavity field is modeled as a standing wave antisymmetric wrt the center.
 ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
@@ -101,6 +104,7 @@ do i = 0, n_slice
     m2(2,2) = orbit%beta / new_beta - ff * orbit%vec(5) *mc2**2 * p0c / (E * pc**2) 
     m2(1,1) = new_beta / orbit%beta + orbit%vec(5) * (mc2**2 * p0c * m2(2,1) / (E+dE)**3) / orbit%beta
     m2(1,2) = orbit%vec(5) * mc2**2 * p0c * (m2(2,2) / ((E+dE)**3 * orbit%beta) - new_beta / (pc**2 * E))
+    if (orbit%time_dir == -1) call mat_inverse(m2, m2)
 
     mat6(5:6, :) = matmul(m2, mat6(5:6, :))
   endif
@@ -127,8 +131,8 @@ enddo
 
 call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*step_len, mat6, make_matrix)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
 
 call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 

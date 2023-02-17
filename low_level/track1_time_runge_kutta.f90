@@ -59,10 +59,6 @@ if (ele%key /= patch$ .and. ele%value(l$) == 0) then
   return
 endif
 
-if (present(track)) then
-  call save_a_step (track, ele, param, .false., orbit, s_lab, .true., rf_time = rf_time)
-endif
-
 !
 
 err_flag = .true.
@@ -84,6 +80,10 @@ else if (abs(s_lab - ele%value(l$))  < bmad_com%significant_length) then
   s_lab = ele%value(l$)
 endif
 
+if (present(track)) then
+  call save_a_step (track, ele, param, .false., orbit, s_lab, .true., rf_time = rf_time)
+endif
+
 !------
 ! Check wall
 
@@ -100,7 +100,7 @@ endif
 
 ! Interior start, reference momentum is at the end.
 if (orbit%location == inside$) then
-  call offset_particle (ele, set$, orbit, set_hvkicks = .false., s_pos = s_lab, s_out = s_body, set_spin = set_spin)
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., s_pos = s_lab, s_out = s_body, set_spin = set_spin, time = rf_time)
   t_dir = sign_of(ele%value(l$)) * orbit%time_dir
 
 elseif (ele%key == patch$) then
@@ -115,7 +115,7 @@ elseif (ele%key == patch$) then
 
 ! Particle is at an end.
 else
-  call offset_particle (ele, set$, orbit, set_hvkicks = .false., s_out = s_body, set_spin = set_spin)
+  call offset_particle (ele, set$, orbit, set_hvkicks = .false., s_out = s_body, set_spin = set_spin, time = rf_time)
   t_dir = sign_of(ele%value(l$)) * orbit%time_dir
 endif
 
@@ -146,14 +146,14 @@ if (orbit%location == upstream_end$) then
   orbit%p0c = ele%value(p0c_start$)
   call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
   orbit%direction = -orbit%time_dir  ! In case t_to_s conversion confused by roundoff error.
-  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin, time = rf_time)
   if (ele%key == patch$) orbit%s = ele%s_start
 
 elseif (orbit%location == downstream_end$) then
   orbit%p0c = ele%value(p0c$)
   call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
   orbit%direction = orbit%time_dir  ! In case t_to_s conversion confused by roundoff error
-  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin, time = rf_time)
   if (ele%key == patch$) orbit%s = ele%s
 
 elseif (orbit%state /= alive$) then
@@ -168,12 +168,12 @@ elseif (orbit%state /= alive$) then
   end if
 
   call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
-  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin, time = rf_time)
 
 elseif (present(t_end)) then
   orbit%p0c = ele%value(p0c$)
   call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
-  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin, time = rf_time)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
