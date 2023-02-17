@@ -31,11 +31,12 @@ type (ele_struct), target :: ele
 type (bunch_track_struct), optional :: bunch_track
 type (branch_struct), pointer :: branch
 type (coord_struct), pointer :: p
+type (em_field_struct) :: sc_field(size(bunch%particle))
 
 integer i, n
 logical err, finished, include_image
 logical, optional :: track_to_same_s
-real(rp) :: dt_step, dt_next, t_now, beta, ds
+real(rp) :: dt_step, dt_next, t_now, beta, ds, charge
 
 integer, parameter :: fixed_time_step$ = 1, adaptive_step$ = 2 ! Need this in bmad_struct
 
@@ -62,7 +63,8 @@ endif
 
 ! Drift bunch to the same time
 if (bunch%t0 == real_garbage$) then
-  bunch%t0 = sum(bunch%particle%t, bunch%particle%state==alive$) / count(bunch%particle%state == alive$)
+  charge = count(bunch%particle%state == alive$)
+  if (charge /= 0)  bunch%t0 = sum(bunch%particle%t, bunch%particle%state==alive$) / charge
 endif
 call track_to_t(bunch, bunch%t0, branch)
 t_now = minval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$)
@@ -90,9 +92,9 @@ endif
 do
   ! Track a step
   if (ele%tracking_method==fixed_step_time_runge_kutta$) then
-    call sc_step(bunch, ele, include_image, t_now+dt_step)
+    call sc_step(bunch, ele, include_image, t_now+dt_step, sc_field)
   else
-    call sc_adaptive_step(bunch, ele, include_image, t_now, dt_step, dt_next)
+    call sc_adaptive_step(bunch, ele, include_image, t_now, dt_step, dt_next, sc_field)
   end if
 
   t_now = t_now + dt_step

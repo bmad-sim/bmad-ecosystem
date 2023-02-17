@@ -219,6 +219,11 @@ if (.not. allocated(mesh3d%rho)) then
   allocate(mesh3d%bfield(nlo(1):nhi(1),nlo(2):nhi(2), nlo(3):nhi(3), 3))
 endif
 
+
+if (mesh3d%delta(1) == 0) mesh3d%delta(1) = 1d-10
+if (mesh3d%delta(2) == 0) mesh3d%delta(2) = 1d-10
+if (mesh3d%delta(3) == 0) mesh3d%delta(3) = 1d-10
+
 dx = mesh3d%delta(1)
 dy = mesh3d%delta(2)
 dz = mesh3d%delta(3)
