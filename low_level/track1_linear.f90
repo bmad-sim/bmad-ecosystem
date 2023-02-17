@@ -40,10 +40,10 @@ if (ele%bookkeeping_state%mat6 /= ok$ .and. (is_false(ele%value(static_linear_ma
   endif
 endif
 
-! Note: ele%mat6 holds the matrix for forward tracking (start_orb%direction == 1) independent
+! Note: ele%mat6 holds the matrix for forward tracking (orbit%direction == 1) independent
 ! of whether the element is reversed (ele%orientation = -1) or not.
 
-if (start_orb%time_dir == -1) then
+if (orbit%time_dir == -1) then
   call mat_inverse(ele%mat6, mat6)
   v0 = -matmul(mat6, ele%vec0)
 else
@@ -54,8 +54,8 @@ endif
 start_orb = orbit
 orbit%p0c = ele%value(p0c$)
 
-if (start_orb%direction == 1) then
-  orbit%vec = matmul (mat6, start_orb%vec) + v0
+if (orbit%direction == 1) then
+  orbit%vec = matmul (mat6, orbit%vec) + v0
 
 else
   mat6 = mat_symp_conj(mat6)
@@ -75,15 +75,11 @@ endif
 
 dtime_ref = ele%value(delta_ref_time$)
 if (dtime_ref == 0) dtime_ref = ele%value(l$) / (orbit%beta * c_light)
-dtime_ref = dtime_ref * start_orb%direction*start_orb%time_dir 
+dtime_ref = dtime_ref * orbit%direction * orbit%time_dir 
 
 call convert_pc_to (ele%value(p0c$) * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
 
-if (ele%value(p0c$) == ele%value(p0c_start$)) then
-  orbit%t = start_orb%t + dtime_ref + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
-else
-  orbit%t = start_orb%t + dtime_ref + start_orb%vec(5) / (start_orb%beta * c_light) - orbit%vec(5) / (orbit%beta * c_light)
-endif
+orbit%t = orbit%t + dtime_ref + (start_orb%vec(5) / start_orb%beta - orbit%vec(5) / orbit%beta) / c_light
 
 !
 

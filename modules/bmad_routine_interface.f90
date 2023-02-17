@@ -1473,7 +1473,7 @@ integer lord_type, num
 end function
 
 subroutine offset_particle (ele, set, coord, set_tilt, set_hvkicks, drift_to_edge, &
-                                        s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot)
+                                        s_pos, s_out, set_spin, mat6, make_matrix, spin_qrot, time)
   import
   implicit none
   type (ele_struct) :: ele
@@ -1481,7 +1481,7 @@ subroutine offset_particle (ele, set, coord, set_tilt, set_hvkicks, drift_to_edg
   integer, optional :: drift_to_edge
   logical, intent(in) :: set
   logical, optional, intent(in) :: set_tilt, set_hvkicks, set_spin
-  real(rp), optional :: s_pos, mat6(6,6), s_out, spin_qrot(0:3)
+  real(rp), optional :: s_pos, mat6(6,6), s_out, spin_qrot(0:3), time
   logical, optional :: make_matrix
 end subroutine
 
@@ -2414,12 +2414,12 @@ subroutine track_a_crab_cavity (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine track_a_drift (orb, length, mat6, make_matrix, ele_orientation, include_ref_motion)
+subroutine track_a_drift (orb, length, mat6, make_matrix, ele_orientation, include_ref_motion, time)
   import
   implicit none
   type (coord_struct) orb
   real(rp) length
-  real(rp), optional :: mat6(6,6)
+  real(rp), optional :: mat6(6,6), time
   integer, optional :: ele_orientation
   logical, optional :: make_matrix, include_ref_motion
 end subroutine

@@ -40,12 +40,12 @@ real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, rel_p,
 real(rp) E_start_ref, E_end_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2)
 real(rp) phase, cos_phi, sin_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
 real(rp) dE_start, dE_end, dE, beta_start, beta_end, sqrt_beta12, dsqrt_beta12(6), f_ave, pc_start_ref
-real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds
+real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds, r_step, step_len
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
-integer ix_mag_max, ix_elec_max
+integer ix_mag_max, ix_elec_max, n_step
 
 logical, optional :: make_matrix
 
@@ -59,16 +59,20 @@ if (ele%value(rf_frequency$) == 0  .and. (ele%value(voltage$) /= 0 .or. ele%valu
   return
 endif
 
-length = ele%value(l$)
+length = orbit%time_dir * ele%value(l$)
 if (length == 0) return
+n_step = 1
+r_step = rp8(orbit%time_dir) / n_step
+step_len = length / n_step
+
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, length/2, mat6, make_matrix)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*step_len, mat6, make_matrix)
 
 ! The RF phase is defined with respect to the time at the beginning of the element.
 ! So if dealing with a slave element and absolute time tracking then need to correct.
@@ -426,8 +430,8 @@ endif
 
 call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
 
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, length/2, mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*step_len, mat6, make_matrix)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
 
 call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 

@@ -508,7 +508,8 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
   real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y). phase(1) is also used with 
                                   !   RF-time tracking to record the number of RF cycles.
-  real(rp) :: charge = 0          ! Macroparticle weight (in Coulombs).
+  real(rp) :: charge = 0          ! Macroparticle weight (which is different from particle species charge). 
+                                  !   For some space charge calcs the weight is in Coulombs.
   real(rp) :: dt_ref = 0          ! Used in:
                                   !   * time tracking for computing z.
                                   !   * by coherent photons = path_length/c_light.
