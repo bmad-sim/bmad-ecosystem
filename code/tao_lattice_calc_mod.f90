@@ -436,14 +436,10 @@ tao_branch%bunch_params(:)%n_particle_live = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
 tao_branch%bunch_params(:)%twiss_valid = .false.
 
-if (tao_branch%comb_ds_save == 0) then
-  call out_io (s_error$, r_name, 'COMB_DS_SAVE MUST BE NON-ZERO.')
-endif
-
 if (tao_branch%comb_ds_save > 0) then
   ds_save = tao_branch%comb_ds_save
 else
-  ds_save = branch%param%total_length / s%plot_page%n_curve_pts
+  ds_save = max(branch%param%total_length / s%plot_page%n_curve_pts, 10*bmad_com%significant_length)
 endif
 
 comb_calc_on = (ds_save >= 0)
