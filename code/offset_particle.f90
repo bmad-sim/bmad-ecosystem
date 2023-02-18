@@ -220,7 +220,7 @@ if (set) then
 
       if (drift_to /= no$) then
         position = bend_shift(position, ele%value(g$), -sign_z_vel*orbit%time_dir*L_half)
-        position%r(3) = position%r(3) + s_target
+        position%r(3) = position%r(3) + (1 - sign_z_vel * orbit%time_dir) * L_half
       else
         if (ele%value(g$) == 0) then
           ds = -ele%orientation*ds_center
@@ -414,7 +414,7 @@ else
 
       if (drift_to /= no$) then
         position = bend_shift(position, ele%value(g$), sign_z_vel*orbit%time_dir*L_half, ref_tilt = ref_tilt)
-        position%r(3) = position%r(3) + (sign_z_vel+1.0_rp)*L_half
+        position%r(3) = position%r(3) + (1 + sign_z_vel * orbit%time_dir) * L_half
       else
         if (ele%value(g$) == 0) then
           ds = -ds_center
