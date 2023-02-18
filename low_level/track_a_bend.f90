@@ -80,7 +80,7 @@ g = ele%value(g$)
 if (length == 0) then
   dg = 0
 else
-  dg = bn(0) / length
+  dg = bn(0) / ele%value(l$)
   bn(0) = 0
 endif
 

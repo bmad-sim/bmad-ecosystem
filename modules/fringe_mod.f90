@@ -680,7 +680,7 @@ end select
 
 if (.not. fringe_here(ele, orbit, particle_at)) return
 
-charge_dir = ele%orientation * orbit%direction * orbit%time_dir
+charge_dir = ele%orientation * orbit%direction
 if (associated(ele%branch)) charge_dir = charge_dir * rel_tracking_charge_to_mass(orbit, param%particle)
 
 !
@@ -785,9 +785,9 @@ ddenom_dy = -d2fx_dxy - d2fy_dyy + d2fx_dxy * dfy_dy + dfx_dx * d2fy_dyy - d2fx_
 ddenom_dpz = (dfx_dx + dfy_dy - 2 * dfx_dx * dfy_dy + 2 * dfx_dy * dfy_dx) / rel_p
 
 orbit%vec(1) = orbit%vec(1) - orbit%time_dir * fx
-orbit%vec(2) = px + orbit%time_dir * ((1.0_rp - dfy_dy - denom) * px + dfy_dx * py) / denom
+orbit%vec(2) = px           + orbit%time_dir * ((1.0_rp - dfy_dy - denom) * px + dfy_dx * py) / denom
 orbit%vec(3) = orbit%vec(3) - orbit%time_dir * fy
-orbit%vec(4) = py + orbit%time_dir * (dfx_dy * px + (1.0_rp - dfx_dx - denom) * py) / denom
+orbit%vec(4) = py           + orbit%time_dir * (dfx_dy * px + (1.0_rp - dfx_dx - denom) * py) / denom
 orbit%vec(5) = orbit%vec(5) + orbit%time_dir * (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
 
 if (logic_option(.false., make_matrix)) then
@@ -1457,11 +1457,11 @@ end if
 ! get edge parameters
  
 if (physical_ele_end(particle_at, orb, ele%orientation) == entrance_end$) then
-  edge_angle = ele%value(e1$)
+  edge_angle = orb%time_dir * ele%value(e1$)
   fint = ele%value(FINT$)
   hgap = ele%value(HGAP$)
 else
-  edge_angle = ele%value(e2$)
+  edge_angle = orb%time_dir * ele%value(e2$)
   fint = ele%value(FINTX$)
   hgap = ele%value(HGAPX$)
 endif
