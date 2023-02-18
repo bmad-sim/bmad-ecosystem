@@ -219,7 +219,7 @@ if (set) then
       endif        
 
       if (drift_to /= no$) then
-        position = bend_shift(position, ele%value(g$), s_target-L_half)
+        position = bend_shift(position, ele%value(g$), -sign_z_vel*orbit%time_dir*L_half)
         position%r(3) = position%r(3) + s_target
       else
         if (ele%value(g$) == 0) then
@@ -413,7 +413,7 @@ else
       ! Coordinates when not drifting are the coordinates at the longitudinal position of the point.
 
       if (drift_to /= no$) then
-        position = bend_shift(position, ele%value(g$), sign_z_vel*L_half, ref_tilt = ref_tilt)
+        position = bend_shift(position, ele%value(g$), sign_z_vel*orbit%time_dir*L_half, ref_tilt = ref_tilt)
         position%r(3) = position%r(3) + (sign_z_vel+1.0_rp)*L_half
       else
         if (ele%value(g$) == 0) then
