@@ -61,8 +61,6 @@ physical_end = physical_ele_end (particle_at, orb, ele%orientation)
 
 ! Higher order fringes. 
 
-if (logic_option(.false., track_spin)) ave_orb = orb
-
 if (particle_at == first_track_edge$) then
   call hard_multipole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 endif
@@ -109,6 +107,7 @@ endif
 ! spin
 
 if (logic_option(.false., track_spin)) then
+  ave_orb = orb
   ave_orb%vec = (ave_orb%vec + orb%vec) / 2   ! Use average position
   field%E = 0
   if (physical_end == entrance_end$) then
@@ -123,7 +122,7 @@ if (logic_option(.false., track_spin)) then
   if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
   if (physical_ele_end(particle_at, orb, ele%orientation) == downstream_end$) field%B(3) = -field%B(3)
   omega = spin_omega (field, ave_orb, ave_orb%direction * ele%orientation) * ave_orb%time_dir
-  call rotate_spin (orb%time_dir*omega, orb%spin)
+  call rotate_spin (omega, orb%spin)
 endif
 
 end subroutine bend_edge_kick
@@ -569,11 +568,15 @@ f2 = k1_rel * ele%value(fq2$)
 if (f1 == 0 .and. f2 == 0) return
 if (particle_at == second_track_edge$) f1 = -f1
 
+if (orbit%time_dir == -1) then
+  f2 = -f2
+endif
+
+ef1 = exp(f1)
+
 ! 
 
 call tilt_coords(tilt1, orbit%vec, mat6, make_matrix)
-
-ef1 = exp(f1)
 
 vec = orbit%vec(1:4)
 vx = vec(2) / rel_p;  vy = vec(4) / rel_p
@@ -754,8 +757,8 @@ do n = 1, n_max
 
   cab = charge_dir * cmplx(bp, ap, rp) / (4 * (n + 2) * rel_p)
   if (particle_at == first_track_edge$) cab = -cab
-  cn = real(n+3, rp) / (n+1) 
 
+  cn = real(n+3, rp) / (n+1) 
   xny = cmplx(x, -cn * y, rp)
   dxny_dy = cmplx(0.0_rp, -cn, rp)
 
@@ -784,11 +787,11 @@ ddenom_dx = -d2fx_dxx - d2fy_dxy + d2fx_dxx * dfy_dy + dfx_dx * d2fy_dxy - d2fx_
 ddenom_dy = -d2fx_dxy - d2fy_dyy + d2fx_dxy * dfy_dy + dfx_dx * d2fy_dyy - d2fx_dyy * dfy_dx - dfx_dy * d2fy_dxy 
 ddenom_dpz = (dfx_dx + dfy_dy - 2 * dfx_dx * dfy_dy + 2 * dfx_dy * dfy_dx) / rel_p
 
-orbit%vec(1) = orbit%vec(1) - orbit%time_dir * fx
-orbit%vec(2) = px           + orbit%time_dir * ((1.0_rp - dfy_dy - denom) * px + dfy_dx * py) / denom
-orbit%vec(3) = orbit%vec(3) - orbit%time_dir * fy
-orbit%vec(4) = py           + orbit%time_dir * (dfx_dy * px + (1.0_rp - dfx_dx - denom) * py) / denom
-orbit%vec(5) = orbit%vec(5) + orbit%time_dir * (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
+orbit%vec(1) = orbit%vec(1) - fx
+orbit%vec(2) = px           + ((1.0_rp - dfy_dy - denom) * px + dfy_dx * py) / denom
+orbit%vec(3) = orbit%vec(3) - fy
+orbit%vec(4) = py           + (dfx_dy * px + (1.0_rp - dfx_dx - denom) * py) / denom
+orbit%vec(5) = orbit%vec(5) + (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
 
 if (logic_option(.false., make_matrix)) then
   kmat = 0
@@ -815,7 +818,7 @@ if (logic_option(.false., make_matrix)) then
   kmat(5,5) = 1
   kmat(5,6) = (kmat(2,6) * fx + kmat(4,6) * fy) / rel_p - 2 * (orbit%vec(2) * fx + orbit%vec(4) * fy) / rel_p**2
   kmat(6,6) = 1
-  if (orbit%time_dir == -1) call mat_inverse(kmat, kmat)
+  !!! if (orbit%time_dir == -1) call mat_inverse(kmat, kmat)
   mat6 = matmul (kmat, mat6)
 endif
 
@@ -1480,7 +1483,7 @@ if (particle_at == first_track_edge$) then
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
   ! Edge kick
-  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
+  call ptc_fringe_dipoler(X, g_tot, beta0, orb%time_dir*fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
   if (err_flag) then
     orb%state = lost_pz_aperture$
     return
@@ -1505,7 +1508,7 @@ else if (particle_at == second_track_edge$) then
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
   ! Edge kick
-  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
+  call ptc_fringe_dipoler(X, g_tot, beta0, orb%time_dir*fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
   if (err_flag) then
     orb%state = lost_pz_aperture$
     return

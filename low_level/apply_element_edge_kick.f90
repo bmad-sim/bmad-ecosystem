@@ -186,9 +186,9 @@ case (sbend$)
 
 case (sad_mult$)
   if (hard_ele%value(l$) == 0) return
-  if (logic_option(.true., apply_sol_fringe)) call apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
 
   if (particle_at == first_track_edge$) then
+    if (logic_option(.true., apply_sol_fringe)) call apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
     call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     if (orbit_too_large (orb, param)) return
     call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
@@ -202,6 +202,7 @@ case (sad_mult$)
     call soft_quadrupole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     call hard_multipole_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix)
     if (orbit_too_large (orb, param)) return
+    if (logic_option(.true., apply_sol_fringe)) call apply_this_sol_fringe(orb, hard_ele, at_sign, sign_z_vel, track_spn)
   endif
 
 case (solenoid$, sol_quad$)
@@ -336,7 +337,7 @@ logical track_spn
 ks4 = at_sign * charge_of(orb%species) * hard_ele%value(bs_field$) * c_light / (4.0_rp * orb%p0c)
 xy_orb = [orb%vec(1), orb%vec(3)]
 if (hard_ele%key == sad_mult$) then
-  xy_orb = xy_orb + rot_2d ([hard_ele%value(x_offset_mult$), hard_ele%value(y_offset_mult$)], -hard_ele%value(tilt$))
+  xy_orb = rot_2d ([hard_ele%value(x_offset_mult$), hard_ele%value(y_offset_mult$)], -hard_ele%value(tilt$))
 endif
 
 orb%vec(2) = orb%vec(2) + ks4 * xy_orb(2)
