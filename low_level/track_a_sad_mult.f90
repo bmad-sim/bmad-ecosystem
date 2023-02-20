@@ -33,7 +33,7 @@ real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll, r_scale
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), a2_pole(0:n_pole_maxx), b2_pole(0:n_pole_maxx)
 real(rp) :: vec0(6), kmat(6,6)
 
-integer n, nd, orientation, n_div, np_max, physical_end, fringe_at, ix_pole_max
+integer n, nd, n_div, np_max, physical_end, fringe_at, ix_pole_max
 logical, optional :: make_matrix
 
 character(*), parameter :: r_name = 'track_a_sad_mult'
@@ -55,8 +55,7 @@ rel_pc = 1 + orbit%vec(6)
 n_div = nint(ele%value(num_steps$))
 
 rel_pc = 1 + orbit%vec(6)
-orientation = ele%orientation * orbit%direction * orbit%time_dir
-charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * orientation
+charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation * orbit%direction
 
 call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
 
@@ -75,7 +74,7 @@ endif
 ! 
 
 call multipole1_ab_to_kt(a_pole(1), b_pole(1), 1, k1, tilt1)
-k1 = charge_dir * k1 / length
+k1 = charge_dir * k1 / ele%value(l$)
 ks = rel_tracking_charge_to_mass(orbit, param%particle) * ele%value(ks$)
 sol_center = rot_2d ([ele%value(x_offset_mult$), ele%value(y_offset_mult$)], -ele%value(tilt$))
 
@@ -92,7 +91,7 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 
 ! Body
 
-r_scale = 1.0_rp / n_div
+r_scale = rp8(orbit%time_dir) / n_div
 a2_pole = a_pole;  a2_pole(1) = 0  ! Quad term taken care of by sol_quad_mat6_calc.
 b2_pole = b_pole;  b2_pole(1) = 0
 

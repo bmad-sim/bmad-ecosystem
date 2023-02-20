@@ -27,10 +27,10 @@ type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), vec0(6), mc2
-real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, ks, k1, b1, dz4_coef(4,4)
+real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, ks, k1, b1, dz4_coef(4,4), length
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx), e_tot
 
-integer i, n_step, orientation, ix_mag_max, ix_elec_max
+integer i, n_step, ix_mag_max, ix_elec_max
 
 logical, optional :: make_matrix
 logical drifting
@@ -38,10 +38,10 @@ logical drifting
 ! Notice that ks is independent of the ele orientation
 
 start_orb = orbit
-orientation = ele%orientation * start_orb%direction * start_orb%time_dir
 rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
-charge_dir = rel_tracking_charge * orientation
+charge_dir = rel_tracking_charge * ele%orientation * start_orb%direction
 mc2 = mass_of(orbit%species)
+length = orbit%time_dir * ele%value(l$) 
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$, b1)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
@@ -49,7 +49,7 @@ call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$
 n_step = 1
 if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 
-r_step = real(orbit%time_dir, rp) / n_step
+r_step = rp8(orbit%time_dir) / n_step
 step_len = ele%value(l$) * r_step
 
 ! Entrance edge

@@ -328,11 +328,11 @@ end subroutine tilt_this_multipole
 !---------------------------------------------
 ! contains
 
-subroutine convert_this_ab (this_ele, p_type, a_in, b_in, this_a, this_b)
+subroutine convert_this_ab (this_ele, p_type, a_pole, b_pole, this_a, this_b)
 
 type (ele_struct) this_ele
 type (branch_struct), pointer :: branch
-real(rp) a_in(0:n_pole_maxx), b_in(0:n_pole_maxx), this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp) tilt, an, bn, sin_t, cos_t
 integer p_type, ix_max, ref_exp
 logical has_nonzero

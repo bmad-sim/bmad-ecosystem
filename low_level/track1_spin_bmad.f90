@@ -27,7 +27,7 @@ type (coord_struct) :: start_orb, end_orb
 type (coord_struct) :: temp_start, temp_end, ave_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
-type (fringe_field_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info, fringe_info2
 type (em_field_struct) field
 
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track
@@ -75,16 +75,20 @@ if (fringe_info%has_fringe .and. fringe_info%particle_at == first_track_edge$) t
   call calc_next_fringe_edge (ele, s_edge_track, fringe_info, end_orb, .false.)
 endif
 
+!
+
 temp_end  = end_orb
+temp_end%time_dir = -temp_end%time_dir
+call calc_next_fringe_edge(ele, s_edge_track, fringe_info2, temp_end, .true.)
 call offset_particle (ele, set$, temp_end, & ! drift_to_edge = temp_end%location, &
                                                   set_hvkicks = .false., s_pos = temp_end%s-ele%s_start)
 
-if (fringe_info%has_fringe .and. fringe_info%particle_at == second_track_edge$) then
-  if (fringe_info%ds_edge /= 0) call track_a_drift (temp_end, ele%orientation*fringe_info%ds_edge)
-  temp_end%species = antiparticle(temp_end%species)  ! To reverse element edge kick
-  call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
-  temp_end%species = end_orb%species
+if (fringe_info2%has_fringe .and. fringe_info2%particle_at == first_track_edge$) then
+  if (fringe_info2%ds_edge /= 0) call track_a_drift (temp_end, ele%orientation*fringe_info2%ds_edge)
+  call apply_element_edge_kick (temp_end, fringe_info2, ele, param, .true.)
 endif
+
+temp_end%time_dir = -temp_end%time_dir
 
 temp_end%spin = temp_start%spin
 
