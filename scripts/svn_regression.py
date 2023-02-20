@@ -9,8 +9,8 @@ import subprocess
 svn_repo = {
   'https://accserv.classe.cornell.edu/svn/trunk/src/open_spacecharge' :    '50675',
   'https://accserv.classe.cornell.edu/svn/packages/PGPLOT' :               '50204',
-  'https://accserv.classe.cornell.edu/svn/packages/fftw' :                 '53185',
-  'https://accserv.classe.cornell.edu/svn/packages/fgsl' :                 '53176',
+  'https://accserv.classe.cornell.edu/svn/packages/fftw' :                 '54142',
+  'https://accserv.classe.cornell.edu/svn/packages/fgsl' :                 '54143',
   'https://accserv.classe.cornell.edu/svn/packages/gnu_utilities_src' :    '51479',
   'https://accserv.classe.cornell.edu/svn/packages/gsl' :                  '53177',
   'https://accserv.classe.cornell.edu/svn/packages/hdf5' :                 '53179',
