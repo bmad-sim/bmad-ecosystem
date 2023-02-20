@@ -100,6 +100,7 @@ do ib = 0, 0
       write (1, '(2a, es18.10, l4)') quote(trim(str) // '-Merit'),  '             ABS 1E-13', merit, loc_equal
 
       if (debug_mode) then
+        print *
         print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '                ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
         print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '           ABS 1E-13', end_orb%spin - start_orb%spin
         print '(a)', '------------------------------------------------------------------------------------'
@@ -107,13 +108,13 @@ do ib = 0, 0
         print '(2a, 6es18.10)',    quote(trim(str) // '-dSpin'), '              ABS 1E-13', d%spin
         print '(2a, 4es18.10)',    quote(trim(str) // '-c*dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
         print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '              ABS 1E-13', merit, loc_equal
-        print *
         ele_merit = max(ele_merit, merit)
         ele_loc_equal = (ele_loc_equal .and. loc_equal)
       endif
     enddo
     if (debug_mode) then
       print '(a, es18.10, l4)', '*************** "Ele-Merit"  ', ele_merit, ele_loc_equal
+      print *
       global_merit = max(ele_merit, global_merit)
       global_loc_equal = (ele_loc_equal .and. global_loc_equal)
     endif
