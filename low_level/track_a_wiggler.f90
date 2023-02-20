@@ -56,7 +56,7 @@ n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 r_step = real(orbit%time_dir, rp) / n_step
 step_len = ele%value(l$) * r_step
 
-length = ele%value(l$)
+length = orbit%time_dir * ele%value(l$)
 mc2_rel = mass_of(orbit%species) / orbit%p0c
 
 if (ele%value(l_period$) == 0) then
@@ -193,12 +193,12 @@ call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix
 
 ! Add in term to take care of the fact that the particle's motion undulates
 
-orbit%t = t_start + length / (c_light * beta_ref) + (z_start - orbit%vec(5)) / (c_light * orbit%beta)
+orbit%t = t_start + orbit%direction*length / (c_light * beta_ref) + (z_start - orbit%vec(5)) / (c_light * orbit%beta)
 
 if (field_ele%field_calc == helical_model$) then
-  factor = ele%value(l$) * (kz * ele%value(osc_amplitude$))**2 / 2 
+  factor = length * (kz * ele%value(osc_amplitude$))**2 / 2 
 else
-  factor = ele%value(l$) * (kz * ele%value(osc_amplitude$))**2 / 4
+  factor = length * (kz * ele%value(osc_amplitude$))**2 / 4
 endif
 
 orbit%t = orbit%t + factor / (c_light * orbit%beta * rel_p**2)

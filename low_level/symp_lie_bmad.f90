@@ -50,13 +50,15 @@ type (wiggler_computations_struct), pointer :: tm2(:)
 type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
-real(rp) g_x, g_y, b1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch, length, time_dir
 real(rp), parameter :: z0 = 0, z1 = 1
+real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s_pos, m6(6,6), kmat6(6,6)
+real(rp) g_x, g_y, b1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch, length, time_dir
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
 real(rp) dpx, dpy, mc2, z_offset, orient_dir, rel_tracking_charge, charge_dir
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+real(rp), target :: Ax_saved, Ay_saved
+real(rp), pointer :: Axs, Ays
 
 integer i, n_step, key
 integer ix_mag_max, ix_elec_max
@@ -70,16 +72,19 @@ character(*), parameter :: r_name = 'symp_lie_bmad'
 
 ! init
 
+Axs => Ax_saved   ! To get around ifort bug. Needed for debugger.
+Ays => Ay_saved   ! To get around ifort bug. Needed for debugger.
+
 calculate_mat6 = logic_option(.false., make_matrix)
 
 start_orb = orbit
 
 if (orbit%direction*orbit%time_dir == 1) then
   orbit%s = ele%s_start
-  s = 0   ! longitudianal position
+  s_pos = 0   ! longitudianal position
 else
   orbit%s = ele%s
-  s = ele%value(l$)
+  s_pos = ele%value(l$)
 endif
 
 do_offset = logic_option (.true., offset_ele)
@@ -177,10 +182,10 @@ Case (wiggler$, undulator$)
   call calc_wig_coefs (calculate_mat6, field_ele)
   call update_wig_y_terms (err); if (err) return
   call update_wig_x_terms (err); if (err) return
-  call update_wig_s_terms(s, z_offset)
+  call update_wig_s_terms(s_pos, z_offset)
 
   if (present(track)) then
-    call save_this_track_pt ()
+    call save_this_track_pt (s_pos)
   endif
 
   ! Symplectic integration gives a kick to the physical momentum (but not the canonical momentum) at the ends of an 
@@ -196,16 +201,16 @@ Case (wiggler$, undulator$)
 
   do i = 1, n_step
 
-    ! s half step
+    ! s_pos half step
 
-    s = s + ds2 * orbit%direction*orbit%time_dir
-    call update_wig_s_terms(s, z_offset)
+    s_pos = s_pos + ds2
+    call update_wig_s_terms(s_pos, z_offset)
 
     ! Drift_1 = (P_x - Ax)^2 / (2 * (1 + dE))
 
     call apply_wig_exp_int_ax (-1, calculate_mat6)
 
-    call apply_p_x (calculate_mat6)
+    call apply_p_x (ds2, calculate_mat6)
     call update_wig_x_terms (err); if (err) return
 
     call apply_wig_exp_int_ax (+1, calculate_mat6)
@@ -214,7 +219,7 @@ Case (wiggler$, undulator$)
 
     call apply_wig_exp_int_ay (-1, calculate_mat6)
 
-    call apply_p_y (calculate_mat6)
+    call apply_p_y (ds2, calculate_mat6)
     call update_wig_y_terms (err); if (err) return
 
     call apply_wig_exp_int_ay (+1, calculate_mat6)
@@ -238,7 +243,7 @@ Case (wiggler$, undulator$)
 
     call apply_wig_exp_int_ay (-1, calculate_mat6)
 
-    call apply_p_y (calculate_mat6)
+    call apply_p_y (ds2, calculate_mat6)
     call update_wig_y_terms (err); if (err) return
 
     call apply_wig_exp_int_ay (+1, calculate_mat6)
@@ -247,17 +252,17 @@ Case (wiggler$, undulator$)
 
     call apply_wig_exp_int_ax (-1, calculate_mat6)
 
-    call apply_p_x (calculate_mat6)
+    call apply_p_x (ds2, calculate_mat6)
     call update_wig_x_terms (err); if (err) return
 
     call apply_wig_exp_int_ax (+1, calculate_mat6)
 
-    ! s half step
+    ! s_pos half step
 
-    s = s + ds2 * orbit%direction*orbit%time_dir
-    call update_wig_s_terms(s, z_offset)
+    s_pos = s_pos + ds2
+    call update_wig_s_terms(s_pos, z_offset)
 
-    if (present(track)) call save_this_track_pt ()
+    if (present(track)) call save_this_track_pt (s_pos)
 
   enddo
 
@@ -277,9 +282,9 @@ case (lcavity$, rfcavity$)
 
   do i = 1, n_step
 
-    ! s half step
+    ! s_pos half step
 
-    s = s + ds2
+    s_pos = s_pos + ds2
 !    call rf_drift1 (calculate_mat6)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_kick (calculate_mat6)
@@ -287,9 +292,9 @@ case (lcavity$, rfcavity$)
 !    call rf_drift2 (calculate_mat6)
 !    call rf_drift1 (calculate_mat6)
 
-    s = s + ds2
+    s_pos = s_pos + ds2
 
-    if (present(track)) call save_this_track_pt ()
+    if (present(track)) call save_this_track_pt (s_pos)
 
   enddo
 
@@ -325,20 +330,20 @@ case (solenoid$, quadrupole$, sol_quad$)
   ! loop over all steps
 
   do i = 1, n_step
-    s = s + ds2
-    ks_tot_2 = (ks + dks_ds * s) / 2
+    s_pos = s_pos + ds2
+    ks_tot_2 = (ks + dks_ds * s_pos) / 2
 
-    call bsq_drift1 (calculate_mat6)
-    call bsq_drift2 (calculate_mat6)
-    call bsq_kick (calculate_mat6)
+    call bsq_drift1 (ds2, calculate_mat6)
+    call bsq_drift2 (ds2, calculate_mat6)
+    call bsq_kick (ds, calculate_mat6)
     call radiation_kick()
-    call bsq_drift2 (calculate_mat6)
-    call bsq_drift1 (calculate_mat6)
+    call bsq_drift2 (ds2, calculate_mat6)
+    call bsq_drift1 (ds2, calculate_mat6)
 
-    s = s + ds2
-    ks_tot_2 = (ks + dks_ds * s) / 2
+    s_pos = s_pos + ds2
+    ks_tot_2 = (ks + dks_ds * s_pos) / 2
 
-    if (present(track)) call save_this_track_pt ()
+    if (present(track)) call save_this_track_pt (s_pos)
   enddo
 
   fringe_info%particle_at = second_track_edge$
@@ -435,13 +440,14 @@ end subroutine err_set
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine save_this_track_pt ()
+subroutine save_this_track_pt (s_pos)
 
 type (track_point_struct), pointer :: tp
+real(rp) s_pos
 
 !
 
-call save_a_step (track, ele, param, .true., orbit, s, mat6 = mat6)
+call save_a_step (track, ele, param, .true., orbit, s_pos, mat6 = mat6)
 
 tp => track%pt(track%n_pt)
 
@@ -463,8 +469,9 @@ end subroutine save_this_track_pt
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine apply_p_x (do_mat6)
+subroutine apply_p_x (ds2, do_mat6)
 
+real(rp) ds2
 logical do_mat6
 
 orbit%vec(1) = orbit%vec(1) + ds2 * orbit%vec(2) / rel_E
@@ -482,8 +489,9 @@ end subroutine apply_p_x
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine apply_p_y (do_mat6)
+subroutine apply_p_y (ds2, do_mat6)
 
+real(rp) ds2
 logical do_mat6
 
 orbit%vec(3) = orbit%vec(3) + ds2 * orbit%vec(4) / rel_E
@@ -500,8 +508,9 @@ end subroutine apply_p_y
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine rf_drift1 (do_mat6)
+subroutine rf_drift1 (ds2, do_mat6)
 
+real(rp) ds2
 logical do_mat6
 
 ! Drift_1 = (P_x - Ax)**2 / (2 * (1 + dE))
@@ -516,7 +525,7 @@ endif
 
 !
 
-call apply_p_x (do_mat6)
+call apply_p_x (ds2, do_mat6)
 
 !
 
@@ -534,8 +543,9 @@ end subroutine rf_drift1
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine bsq_drift1 (do_mat6)
+subroutine bsq_drift1 (ds2, do_mat6)
 
+real(rp) ds2
 logical do_mat6
 
 ! Drift_1 = (P_x - Ax)**2 / (2 * (1 + dE))
@@ -550,7 +560,7 @@ endif
 
 !
 
-call apply_p_x (do_mat6)
+call apply_p_x (ds2, do_mat6)
 
 !
 
@@ -568,8 +578,9 @@ end subroutine bsq_drift1
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine bsq_drift2 (do_mat6)
+subroutine bsq_drift2 (ds2, do_mat6)
 
+real(rp) ds2
 logical do_mat6
 
 ! Drift_2 = (P_y - Ay)**2 / (2 * (1 + dE))
@@ -584,7 +595,7 @@ endif
 
 !
 
-call apply_p_y (do_mat6)
+call apply_p_y (ds2, do_mat6)
 
 !
 
@@ -602,8 +613,9 @@ end subroutine bsq_drift2
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine bsq_kick (do_mat6)
+subroutine bsq_kick (ds, do_mat6)
 
+real(rp) ds
 logical do_mat6
 
 dpx = k1_norm * (x_q - orbit%vec(1)) - k1_skew * orbit%vec(3) - g_x
@@ -953,11 +965,11 @@ end subroutine update_wig_y_terms
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine update_wig_s_terms(s, z_offset)
+subroutine update_wig_s_terms(s_pos, z_offset)
 
 type (cartesian_map_term1_struct), pointer :: wt
 
-real(rp) s, spz_offset, s0, z_offset
+real(rp) s_pos, spz_offset, s0, z_offset
 real(rp) kzz(1:num_wig_terms)
 
 integer j
@@ -970,7 +982,7 @@ case (anchor_center$);    s0 = ele%value(l$) / 2
 case (anchor_end$);       s0 = ele%value(l$)
 end select
 
-spz_offset = s + z_offset - s0 - ct_map%r0(3)
+spz_offset = s_pos + z_offset - s0 - ct_map%r0(3)
 
 if (ele%orientation == -1) spz_offset = ele%value(l$) - spz_offset
 kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:num_wig_terms)%phi_z
