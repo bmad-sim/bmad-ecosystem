@@ -378,7 +378,7 @@ else
   orbit%vec(4) = orbit%vec(4) + k2 * orbit%vec(3)         ! Exit kick
 endif
 
-!
+! Shift ref momentum if reached element body entrance end
 
 orbit%vec(5) = orbit%vec(5) - (dp_dg - length * (E_start_ref + E_end_ref) / (pc_end_ref + pc_start_ref))
 
