@@ -203,7 +203,7 @@ Case (wiggler$, undulator$)
 
     ! s_pos half step
 
-    s_pos = s_pos + ds2
+    s_pos = s_pos + ds2 * orbit%direction
     call update_wig_s_terms(s_pos, z_offset)
 
     ! Drift_1 = (P_x - Ax)^2 / (2 * (1 + dE))
@@ -259,7 +259,7 @@ Case (wiggler$, undulator$)
 
     ! s_pos half step
 
-    s_pos = s_pos + ds2
+    s_pos = s_pos + ds2 * orbit%direction
     call update_wig_s_terms(s_pos, z_offset)
 
     if (present(track)) call save_this_track_pt (s_pos)

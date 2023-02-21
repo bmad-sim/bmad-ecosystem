@@ -710,6 +710,12 @@ parsing_loop: do
   endif
 
   if (.not. match_found) then
+    if (word_2 == 'RF') then
+      call parser_error ('"RF" ELEMENT TYPE IS AMBIGUOUS. COULD BE "RFCAVITY" OR "RF_BEND".', &
+                         'WILL ASSUME THIS IS A "RFCAVITY"', level = s_warn$)
+      word_2 = 'RFCAVITY'
+    endif
+
     if (index(word_2, '[') /= 0) then
       call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
     else
