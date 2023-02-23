@@ -17,11 +17,6 @@ cmake_policy (SET CMP0015 NEW)
 
 
 #-----------------------------------------------------------
-# Disable the inclusion of RPATH from the Acc Build System
-#-----------------------------------------------------------
-SET (CMAKE_SKIP_RPATH TRUE)
-
-#-----------------------------------------------------------
 # Set CESR_FLAGS depening on OS type
 #-----------------------------------------------------------
 IF (${WIN32})
@@ -69,6 +64,7 @@ ENDIF ()
 
 #-------------------------------------------------------
 # Import environment variables that influence the build
+# Also disable the inclusion of RPATH for Releases but not Distributions RT#64118
 #-------------------------------------------------------
 set (DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
@@ -84,14 +80,16 @@ IF (${DISTRIBUTION_BUILD})
     SET (CMAKE_SYSTEM_IGNORE_PATH /lib /usr/lib)
   ENDIF ()
 
-ELSEIF ("$ENV{ACC_SET_F_COMPILER}" MATCHES "gfortran")
-  set (FORTRAN_COMPILER "gfortran")
-  set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
-  set (PACKAGES_DIR ${RELEASE_DIR}/packages)
 ELSE ()
-  set (FORTRAN_COMPILER "ifort")
+	SET (CMAKE_SKIP_RPATH TRUE)
   set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
   set (PACKAGES_DIR ${RELEASE_DIR}/packages)
+
+	IF ("$ENV{ACC_SET_F_COMPILER}" MATCHES "gfortran")
+		SET (FORTRAN_COMPILER "gfortran")
+	ELSE ()
+		SET (FORTRAN_COMPILER "ifort")
+	ENDIF ()
 ENDIF ()
   
 IF (FORTRAN_COMPILER MATCHES "gfortran")
