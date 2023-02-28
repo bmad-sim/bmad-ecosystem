@@ -1007,7 +1007,8 @@ if (err_flag) stop
 print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
 ltt_com%n_particle = size(beam%bunch(1)%particle)
 
-if (bmad_com%spin_tracking_on .and. all(ltt_com%beam_init%spin == 0)) then
+if (bmad_com%spin_tracking_on .and. all(ltt_com%beam_init%spin == 0) .and. all(beam%bunch(1)%particle%spin(1) == 0) .and. &
+                            all(beam%bunch(1)%particle%spin(2) == 0) .and. all(beam%bunch(1)%particle%spin(3) == 0)) then
   ie = ele_start%ix_ele
   do ib = 1, size(beam%bunch)
     forall (n = 1:3) beam%bunch(ib)%particle%spin(n) = ltt_com%bmad_closed_orb(ie)%spin(n)
