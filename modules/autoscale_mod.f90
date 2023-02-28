@@ -108,12 +108,14 @@ if (.not. do_scale_phase .and. .not. do_scale_amp) return
 ! Init.
 ! Note: phi0_autoscale is set in neg_pz_calc
 
+! Autoscaling with linear tracking does not make sense so just do nothing.
+
 if (ele%tracking_method == mad$) return
+if (ele%tracking_method == linear$) return
 
 ! bmad_standard just needs to set e_tot$, p0c$, and phi0_autoscale$
 
-if (ele%tracking_method == bmad_standard$ .or. &
-        (ele%tracking_method == linear$ .and. ele%mat6_calc_method == bmad_standard$)) then
+if (ele%tracking_method == bmad_standard$) then
   if (ele%key == lcavity$) then 
     ! Set e_tot$ and p0c$ 
     phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
