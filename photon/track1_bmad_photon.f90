@@ -120,6 +120,15 @@ case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
   orbit%vec(5) = 0
 
 !-----------------------------------------------
+! Mask                                                                                                                         
+
+case (mask$)
+
+  call offset_photon (ele, orbit, set$); if (orbit%state /= alive$) return
+  call track1_diffraction_plate_or_mask (ele, param, orbit)
+  call offset_photon (ele, orbit, unset$); if (orbit%state /= alive$) return
+   
+!-----------------------------------------------
 ! Match
 
 case (match$)

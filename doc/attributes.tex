@@ -1804,20 +1804,21 @@ attribute set to one of:
 \end{example}
 A section is called ``clear'' or ``opaque'' depending upon the setting of its \vn{type} attribute.
 The first section $s_1$ must be labeled \vn{clear}. Each \vn{clear} section has zero or more
-associated \vn{opaque} sections. An opaque section $s_j$ is associated with clear section $s_i$ if
-and only if $i$ is less than $j$, and all the sections $k$ between $i$ and $j$ (that is, $i < k < j$)
-are opaque sections. For example, if the \vn{wall} defines 6 sections:
+associated \vn{opaque} sections that follow the \vn{clear} section. An opaque section $s_j$ is
+associated with clear section $s_i$ if and only if $i$ is less than $j$, and all the sections $k$
+between $i$ and $j$ (that is, $i < k < j$) are opaque sections. For example, if the \vn{wall}
+defines 6 sections:
 \begin{example}
-  $s_1$   Clear
-  $s_2$   Clear
-  $s_3$   Opaque
-  $s_4$   Opaque
-  $s_5$   Clear
-  $s_6$   Opaque
+  \(s_1\)   Clear
+  \(s_2\)   Clear
+  \(s_3\)   Opaque
+  \(s_4\)   Opaque
+  \(s_5\)   Clear
+  \(s_6\)   Opaque
 \end{example}
-Then clear section $s_1$ does not have any associated opaque sections, clear section $s_2$ has two
-associated opaque section $s_3$ and $s_4$, and clear section $s_5$ has one associated opaque section
-$s_6$.
+with this arrangement, clear section $s_1$ does not have any associated opaque sections, clear section
+$s_2$ has two associated opaque section $s_3$ and $s_4$, and clear section $s_5$ has one associated
+opaque section $s_6$.
 
 Each \vn{section} covers an area specified by the vertex list associated with the \vn{section}. To
 decide if a particle is transmitted, each clear section, starting from $s_1$, is tested to see if
@@ -1845,21 +1846,21 @@ sections.
 An example geometry is shown in \fig{f:diff.plate}A. A wall that constructs this geometry is:
 \begin{example}
   z_plate: diffraction_plate, wall = \{
-    section = \{          ! $s_1$ 
+    section = \{          ! \(s_1\) 
       type = clear,
       v(1) = \{0, 0, 0.03, 0.013\},
-    section = \{          ! $s_2$
+    section = \{          ! \(s_2\)
       type = opaque,
       v(1) = \{0, 0, 0.005\},
-    section = \{          ! $s_3$
+    section = \{          ! \(s_3\)
       type = opaque,
       r0 = (0.02, 0.00),
       v(1) = \{0, 0, 0.005\} \}
-    section = \{          ! $s_4$
+    section = \{          ! \(s_4\)
       type = clear, 
       v(1) = \{0.04, 0\}, v(2) = \{0.04, 0.022\},
       v(3) = \{0, 0.03\},
-    section = \{          ! $s_5$
+    section = \{          ! \(s_5\)
       type = opaque,
       v(1) = \{0.032, 0.016\},
 \end{example}
