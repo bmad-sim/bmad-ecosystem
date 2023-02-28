@@ -1907,6 +1907,27 @@ Output super_Universe parameters.
 
 \end{verbatim}
 
+%% python taylor_map ------------------------------------
+\subsection{python taylor_map}
+\index{python!taylor_map}
+\label{p:taylor.map}
+
+
+Output Taylor map between two points.
+
+\begin{example}
+   python taylor_map \{ele1_id\} \{ele2_id\} \{order\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele1_id} is the start element.
+  {ele2_id} is the end element.
+  {order} is the map order. Default is order set in the lattice file. {order} cannot be larger than 
+        what is set by the lattice file. 
+If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
+Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+\end{verbatim}
+
 %% python twiss_at_s ------------------------------------
 \subsection{python twiss_at_s}
 \index{python!twiss_at_s}

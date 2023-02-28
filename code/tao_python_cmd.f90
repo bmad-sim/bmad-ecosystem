@@ -114,6 +114,7 @@ type (cartesian_map_term1_struct), pointer :: ctt
 type (cylindrical_map_struct), pointer :: cy_map
 type (cylindrical_map_term1_struct), pointer :: cyt
 type (em_field_struct) :: field
+type (taylor_struct) taylor(6)
 type (taylor_term_struct), pointer :: tt
 type (floor_position_struct) floor, floor1, floor2, end1, end2, f_orb
 type (tao_floor_plan_struct), pointer :: fp
@@ -164,7 +165,7 @@ complex(rp) eval(6), evec(6,6), n_eigen(6,3)
 integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, md, ct, nl2, n, ix, ix2, iu_write, data_type
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
-integer line_width, n_bend, ic, num_ele, n_arr, n_add, n1, n2, i0, i1, i2
+integer line_width, n_bend, ic, num_ele, n_arr, n_add, n1, n2, i0, i1, i2, n_order
 integer, allocatable :: index_arr(:), int_arr(:)
 integer, target :: nl
 integer, pointer :: nl_ptr
@@ -252,7 +253,7 @@ call match_word (cmd, [character(40) :: &
           'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', &
           'shape_pattern_point_manage', 'shape_set', 'show', 'species_to_int', 'species_to_str', &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
-          'twiss_at_s', 'universe', &
+          'taylor_map', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wave'], ix, matched_name = command)
 
@@ -7043,6 +7044,89 @@ case ('super_universe')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% taylor_map
+!
+! Output Taylor map between two points.
+!
+! Notes
+! -----
+! Command syntax:
+!   python taylor_map {ele1_id} {ele2_id} {order}
+!
+! Where:
+!   {ele1_id} is the start element.
+!   {ele2_id} is the end element.
+!   {order} is the map order. Default is order set in the lattice file. {order} cannot be larger than 
+!         what is set by the lattice file. 
+! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
+! Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+! 
+! Parameters
+! ----------
+! ix_uni : optional
+! ele : optional
+! s_offset : optional
+! which : default=model
+!
+! Example:
+!   python taylor_map 2@1>>q01w|design q02w  2
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!    ele1_id: 1@0>>q01w|design
+!    ele2_id: q02w
+!    order: 1
+
+case ('taylor_map')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele1 => point_to_ele(line, tao_lat%lat, err); if (err) return
+  ix_branch = ele1%ix_branch
+
+  call string_trim(tail_str, tail_str, ix)
+  call lat_ele_locator (tail_str(:ix), tao_lat%lat, eles, n_loc, err, ix_dflt_branch = ix_branch)
+  if (err .or. n_loc == 0) then
+    call invalid ('Bad ele2_id: ' // line)
+    return
+  endif
+  if (n_loc > 1) then
+    call invalid ('More than one element matches name: ' // line)
+    return
+  endif
+  ele2 => eles(1)%ele
+
+  n_order = string_to_int(tail_str(ix+1:), -1, err)
+  if (err) then
+    call invalid ('Invalid integer order: ' // quote(tail_str(ix+1:)))
+    return
+  endif
+  if (n_order > ptc_private%taylor_order_ptc) then
+    call invalid ('Taylor order cannot be above order set in lattice: ' // int_str(ptc_private%taylor_order_ptc))
+    return
+  endif
+
+  call transfer_map_calc (tao_lat%lat, taylor, err, ele1%ix_ele, ele2%ix_ele, &
+          tao_lat%tao_branch(ix_branch)%orbit(ele1%ix_ele), one_turn = .true., concat_if_possible = s%global%concatenate_maps)
+  if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
+
+
+  do i = 1, 6
+    do j = 1, size(taylor(i)%term)
+      tt => taylor(i)%term(j)
+      nl=incr(nl); write (li(nl), '(i0, a, es22.14, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+    enddo
+  enddo
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% twiss_at_s
 !
 ! Output twiss parameters at given s position.
@@ -8598,7 +8682,7 @@ function ele_param_value(name, ele, orbit, data_type, err) result (value)
 type (ele_struct) ele
 type (coord_struct) orbit
 real(rp) value
-integer data_type
+integer data_type, ix
 logical err
 character(*) name
 character(40) attrib_name
