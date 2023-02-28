@@ -1210,7 +1210,7 @@ if (beam_init%use_particle_start) then
     call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START = T.')
     return
   endif
-  spin = spin + ele%branch%lat%particle_start%spin
+  spin = ele%branch%lat%particle_start%spin
 else
   spin = beam_init%spin
 endif
