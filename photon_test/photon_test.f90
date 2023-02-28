@@ -6,16 +6,33 @@ use photon_target_mod
 
 implicit none
 
+type vst
+  real(rp) vec(2)
+end type
+
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (coord_struct) orbit, orb_start, orb_end
+type (vst) :: start(6) = [vst([0.0_rp, 0.0_rp]), vst([0.2_rp, 0.1_rp]), vst([0.4_rp, 0.0_rp]), &
+                          vst([0.0_rp, 0.3_rp]), vst([0.0_rp, 0.5_rp]), vst([0.2_rp, 0.5_rp])]
 
-real(rp) E_rel, prob
+real(rp) E_rel, prob, vec(6)
 integer i, ix_pt, iy_pt
 
 !
 
 open (1, file = 'output.now', recl = 200)
+
+!
+
+call bmad_parser ('mask.bmad', lat)
+do i = 1, size(start)
+  vec = [0, 0, 0, 0, 0, 1]
+  vec(1:3:2) = start(i)%vec
+  call init_coord (orb_start, vec, lat%ele(0), downstream_end$)
+  call track1(orb_start, lat%ele(1), lat%param, orb_end)
+  write (1, '(a, i0, a, i0)') '"mask-', i, '" ABS 0  ', orb_end%state
+enddo
 
 !
 
