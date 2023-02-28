@@ -7060,16 +7060,14 @@ case ('super_universe')
 !         what is set by the lattice file. 
 ! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
 ! Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+! Example:
+!   python taylor_map 2@1>>q01w|design q02w  2
 ! 
 ! Parameters
 ! ----------
-! ix_uni : optional
-! ele : optional
-! s_offset : optional
-! which : default=model
-!
-! Example:
-!   python taylor_map 2@1>>q01w|design q02w  2
+! ele1_id : optional
+! ele2_id : optional
+! order : optional
 !
 ! Returns
 ! -------
