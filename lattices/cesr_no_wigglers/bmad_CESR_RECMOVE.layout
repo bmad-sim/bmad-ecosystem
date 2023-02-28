@@ -50,8 +50,8 @@ H_SEP_08W: ELSEP, L =  2.442000, Type = "CSR HSP VOLT   1"
 Q08W: QUAD, L =  0.600000, ALIAS = "Q08W", Type = "CSR QUAD CUR   8" 
 SEX_08W: SEXT, L =  0.272000, ALIAS = "X08W", Type = "CSR SEXT CUR   8" 
 DET_08W: MARKER, ALIAS = "8W" 
-RF_W1: RF, L =  1.800000 
-RF_W2: RF, L =  1.800000 
+RF_W1: rfcavity, L =  1.800000 
+RF_W2: rfcavity, L =  1.800000 
 DET_09W: MARKER, ALIAS = "9W" 
 Q09W: QUAD, L =  0.600000, ALIAS = "Q09W", Type = "CSR QUAD CUR   9" 
 SEX_09W: SEXT, L =  0.272000, ALIAS = "X09W", Type = "CSR SEXT CUR   9" 
@@ -413,8 +413,8 @@ VKICK_09E: KICKER, L =  0.102000
 SEX_09E: SEXT, L =  0.272000, ALIAS = "X09E", Type = "CSR SEXT CUR  90" 
 Q09E: QUAD, L =  0.600000, ALIAS = "Q09E", Type = "CSR QUAD CUR  90" 
 DET_09E: MARKER, ALIAS = "9E" 
-RF_E1: RF, L =  1.800000 
-RF_E2: RF, L =  1.800000 
+RF_E1: rfcavity, L =  1.800000 
+RF_E2: rfcavity, L =  1.800000 
 HKICK_08E: KICKER, L =  0.255000 
 VKICK_08E: KICKER, L =  0.102000 
 DET_08E: MARKER, ALIAS = "8E" 
@@ -994,11 +994,11 @@ cesr: line = (IP_L0, d001, DET_00W, d002, Q00W, d003, DET_01W, d004, &
  
 H01W: overlay = {HV01W}, HKICK, Alias = "1W", Type = "CSR HORZ CUR   1" 
 V01W: overlay = {HV01W}, VKICK, Alias = "1W", Type = "CSR VERT CUR   1" 
-HB01: overlay = {B04W /0.5, B05W /0.5}, HKICK, Alias = "HB1", &
+HB01: overlay = {B04W:0.5, B05W:0.5}, HKICK, Alias = "HB1", &
         Type = "CSR HBND CUR   1" 
 H02W: overlay = {B03W}, HKICK, Alias = "2W", Type = "CSR HORZ CUR   2" 
 V02W: overlay = {SK_Q03W}, VKICK, Alias = "2W", Type = "CSR VERT CUR   2" 
-HB02: overlay = {B06W /0.5, B07W /0.5}, HKICK, Alias = "HB2", &
+HB02: overlay = {B06W:0.5, B07W:0.5}, HKICK, Alias = "HB2", &
         Type = "CSR HBND CUR   2" 
 H03W: overlay = {B03AW}, HKICK, Alias = "3W", Type = "CSR HORZ CUR   3" 
 HB03: overlay = {B47AW}, HKICK, Alias = "HB3", Type = "CSR HBND CUR   3" 
@@ -1006,10 +1006,10 @@ H04W: overlay = {B04W}, HKICK, Alias = "4W", Type = "CSR HORZ CUR   4"
 V04W: overlay = {SK_Q04W}, VKICK, Alias = "4W", Type = "CSR VERT CUR   4" 
 HB04: overlay = {B47AE}, HKICK, Alias = "HB4", Type = "CSR HBND CUR   4" 
 V05W: overlay = {SK_Q05W}, VKICK, Alias = "5W", Type = "CSR VERT CUR   5" 
-HB05: overlay = {B07E /0.5, B06E /0.5}, HKICK, Alias = "HB5", &
+HB05: overlay = {B07E:0.5, B06E:0.5}, HKICK, Alias = "HB5", &
         Type = "CSR HBND CUR   5" 
 V06W: overlay = {SK_Q06W}, VKICK, Alias = "6W", Type = "CSR VERT CUR   6" 
-HB06: overlay = {B05E /0.5, B04E /0.5}, HKICK, Alias = "HB6", &
+HB06: overlay = {B05E:0.5, B04E:0.5}, HKICK, Alias = "HB6", &
         Type = "CSR HBND CUR   6" 
 V07W: overlay = {VKICK_07W}, VKICK, Alias = "7W", Type = "CSR VERT CUR   7" 
 H08W: overlay = {HKICK_08W}, HKICK, Alias = "8W", Type = "CSR HORZ CUR   8" 
@@ -1018,51 +1018,51 @@ V09W: overlay = {VKICK_09W}, VKICK, Alias = "9W", Type = "CSR VERT CUR   9"
 H10W: overlay = {B11W}, HKICK, Alias = "10W", Type = "CSR HORZ CUR  10" 
 V10W: overlay = {VKICK_10W}, VKICK, Alias = "10W", Type = "CSR VERT CUR  10" 
 V11W: overlay = {SEX_11W}, VKICK, Alias = "11W", Type = "CSR VERT CUR  11" 
-H12W: overlay = {B12W /0.5, B13W /0.5}, HKICK, Alias = "12W", &
+H12W: overlay = {B12W:0.5, B13W:0.5}, HKICK, Alias = "12W", &
         Type = "CSR HORZ CUR  12" 
 V13W: overlay = {SEX_13W}, VKICK, Alias = "13W", Type = "CSR VERT CUR  13" 
-H14W: overlay = {B14W /0.5, B15W /0.5}, HKICK, Alias = "14W", &
+H14W: overlay = {B14W:0.5, B15W:0.5}, HKICK, Alias = "14W", &
         Type = "CSR HORZ CUR  14" 
 V15W: overlay = {SEX_15W}, VKICK, Alias = "15W", Type = "CSR VERT CUR  15" 
-H16W: overlay = {B16W /0.5, B17W /0.5}, HKICK, Alias = "16W", &
+H16W: overlay = {B16W:0.5, B17W:0.5}, HKICK, Alias = "16W", &
         Type = "CSR HORZ CUR  16" 
 V16W: overlay = {VKICK_16W}, VKICK, Alias = "16W", Type = "CSR VERT CUR  16" 
 V17W: overlay = {SEX_17W}, VKICK, Alias = "17W", Type = "CSR VERT CUR  17" 
 H18W: overlay = {B18W}, HKICK, Alias = "18W", Type = "CSR HORZ CUR  18" 
 V19W: overlay = {SEX_19W}, VKICK, Alias = "19W", Type = "CSR VERT CUR  19" 
-H20W: overlay = {B20W /0.5, B21W /0.5}, HKICK, Alias = "20W", &
+H20W: overlay = {B20W:0.5, B21W:0.5}, HKICK, Alias = "20W", &
         Type = "CSR HORZ CUR  20" 
 V21W: overlay = {SEX_21W}, VKICK, Alias = "21W", Type = "CSR VERT CUR  21" 
-H22W: overlay = {B22W /0.5, B23W /0.5}, HKICK, Alias = "22W", &
+H22W: overlay = {B22W:0.5, B23W:0.5}, HKICK, Alias = "22W", &
         Type = "CSR HORZ CUR  22" 
 V23W: overlay = {SEX_23W}, VKICK, Alias = "23W", Type = "CSR VERT CUR  23" 
-H24W: overlay = {B24W /0.5, B25W /0.5}, HKICK, Alias = "24W", &
+H24W: overlay = {B24W:0.5, B25W:0.5}, HKICK, Alias = "24W", &
         Type = "CSR HORZ CUR  24" 
 V25W: overlay = {SEX_25W}, VKICK, Alias = "25W", Type = "CSR VERT CUR  25" 
-H26W: overlay = {B26W /0.5, B27W /0.5}, HKICK, Alias = "26W", &
+H26W: overlay = {B26W:0.5, B27W:0.5}, HKICK, Alias = "26W", &
         Type = "CSR HORZ CUR  26" 
 V27W: overlay = {SEX_27W}, VKICK, Alias = "27W", Type = "CSR VERT CUR  27" 
-H28W: overlay = {B28W /0.5, B29W /0.5}, HKICK, Alias = "28W", &
+H28W: overlay = {B28W:0.5, B29W:0.5}, HKICK, Alias = "28W", &
         Type = "CSR HORZ CUR  28" 
 V29W: overlay = {SEX_29W}, VKICK, Alias = "29W", Type = "CSR VERT CUR  29" 
-H30W: overlay = {B30W /0.5, B31W /0.5}, HKICK, Alias = "30W", &
+H30W: overlay = {B30W:0.5, B31W:0.5}, HKICK, Alias = "30W", &
         Type = "CSR HORZ CUR  30" 
 V31W: overlay = {SEX_31W}, VKICK, Alias = "31W", Type = "CSR VERT CUR  31" 
-H32W: overlay = {B32W /0.5, B33W /0.5}, HKICK, Alias = "32W", &
+H32W: overlay = {B32W:0.5, B33W:0.5}, HKICK, Alias = "32W", &
         Type = "CSR HORZ CUR  32" 
 V33W: overlay = {SEX_33W}, VKICK, Alias = "33W", Type = "CSR VERT CUR  33" 
 H34W: overlay = {B35W}, HKICK, Alias = "34W", Type = "CSR HORZ CUR  34" 
 V35W: overlay = {SEX_35W}, VKICK, Alias = "35W", Type = "CSR VERT CUR  35" 
-H36W: overlay = {B36W /0.5, B37W /0.5}, HKICK, Alias = "36W", &
+H36W: overlay = {B36W:0.5, B37W:0.5}, HKICK, Alias = "36W", &
         Type = "CSR HORZ CUR  36" 
 V37W: overlay = {SEX_37W}, VKICK, Alias = "37W", Type = "CSR VERT CUR  37" 
-H38W: overlay = {B38W /0.5, B39W /0.5}, HKICK, Alias = "38W", &
+H38W: overlay = {B38W:0.5, B39W:0.5}, HKICK, Alias = "38W", &
         Type = "CSR HORZ CUR  38" 
 V39W: overlay = {SEX_39W}, VKICK, Alias = "39W", Type = "CSR VERT CUR  39" 
-H40W: overlay = {B40W /0.5, B41W /0.5}, HKICK, Alias = "40W", &
+H40W: overlay = {B40W:0.5, B41W:0.5}, HKICK, Alias = "40W", &
         Type = "CSR HORZ CUR  40" 
 V41W: overlay = {SEX_41W}, VKICK, Alias = "41W", Type = "CSR VERT CUR  41" 
-H42W: overlay = {B42W /0.5, B43W /0.5}, HKICK, Alias = "42W", &
+H42W: overlay = {B42W:0.5, B43W:0.5}, HKICK, Alias = "42W", &
         Type = "CSR HORZ CUR  42" 
 V43W: overlay = {SEX_43W}, VKICK, Alias = "43W", Type = "CSR VERT CUR  43" 
 H44W: overlay = {B44W}, HKICK, Alias = "44W", Type = "CSR HORZ CUR  44" 
@@ -1082,56 +1082,56 @@ H46E: overlay = {B46E}, HKICK, Alias = "46E", Type = "CSR HORZ CUR  53"
 V45E: overlay = {SEX_45E}, VKICK, Alias = "45E", Type = "CSR VERT CUR  54" 
 H44E: overlay = {B44E}, HKICK, Alias = "44E", Type = "CSR HORZ CUR  55" 
 V43E: overlay = {SEX_43E}, VKICK, Alias = "43E", Type = "CSR VERT CUR  56" 
-H42E: overlay = {B43E /0.5, B42E /0.5}, HKICK, Alias = "42E", &
+H42E: overlay = {B43E:0.5, B42E:0.5}, HKICK, Alias = "42E", &
         Type = "CSR HORZ CUR  57" 
 V41E: overlay = {SEX_41E}, VKICK, Alias = "41E", Type = "CSR VERT CUR  58" 
-H40E: overlay = {B41E /0.5, B40E /0.5}, HKICK, Alias = "40E", &
+H40E: overlay = {B41E:0.5, B40E:0.5}, HKICK, Alias = "40E", &
         Type = "CSR HORZ CUR  59" 
 V39E: overlay = {SEX_39E}, VKICK, Alias = "39E", Type = "CSR VERT CUR  60" 
-H38E: overlay = {B39E /0.5, B38E /0.5}, HKICK, Alias = "38E", &
+H38E: overlay = {B39E:0.5, B38E:0.5}, HKICK, Alias = "38E", &
         Type = "CSR HORZ CUR  61" 
 V37E: overlay = {SEX_37E}, VKICK, Alias = "37E", Type = "CSR VERT CUR  62" 
-H36E: overlay = {B37E /0.5, B36E /0.5}, HKICK, Alias = "36E", &
+H36E: overlay = {B37E:0.5, B36E:0.5}, HKICK, Alias = "36E", &
         Type = "CSR HORZ CUR  63" 
 V35E: overlay = {SEX_35E}, VKICK, Alias = "35E", Type = "CSR VERT CUR  64" 
 H34E: overlay = {B35E}, HKICK, Alias = "34E", Type = "CSR HORZ CUR  65" 
 V34E: overlay = {SEX_34E}, VKICK, Alias = "34E", Type = "CSR VERT CUR  65" 
 V33E: overlay = {SEX_33E}, VKICK, Alias = "33E", Type = "CSR VERT CUR  66" 
-H32E: overlay = {B33E /0.5, B32E /0.5}, HKICK, Alias = "32E", &
+H32E: overlay = {B33E:0.5, B32E:0.5}, HKICK, Alias = "32E", &
         Type = "CSR HORZ CUR  67" 
 V31E: overlay = {SEX_31E}, VKICK, Alias = "31E", Type = "CSR VERT CUR  68" 
-H30E: overlay = {B31E /0.5, B30E /0.5}, HKICK, Alias = "30E", &
+H30E: overlay = {B31E:0.5, B30E:0.5}, HKICK, Alias = "30E", &
         Type = "CSR HORZ CUR  69" 
 V29E: overlay = {SEX_29E}, VKICK, Alias = "29E", Type = "CSR VERT CUR  70" 
-H28E: overlay = {B29E /0.5, B28E /0.5}, HKICK, Alias = "28E", &
+H28E: overlay = {B29E:0.5, B28E:0.5}, HKICK, Alias = "28E", &
         Type = "CSR HORZ CUR  71" 
 V27E: overlay = {SEX_27E}, VKICK, Alias = "27E", Type = "CSR VERT CUR  72" 
-H26E: overlay = {B27E /0.5, B26E /0.5}, HKICK, Alias = "26E", &
+H26E: overlay = {B27E:0.5, B26E:0.5}, HKICK, Alias = "26E", &
         Type = "CSR HORZ CUR  73" 
 V25E: overlay = {SEX_25E}, VKICK, Alias = "25E", Type = "CSR VERT CUR  74" 
-H24E: overlay = {B25E /0.5, B24E /0.5}, HKICK, Alias = "24E", &
+H24E: overlay = {B25E:0.5, B24E:0.5}, HKICK, Alias = "24E", &
         Type = "CSR HORZ CUR  75" 
 V23E: overlay = {SEX_23E}, VKICK, Alias = "23E", Type = "CSR VERT CUR  76" 
-H22E: overlay = {B23E /0.5, B22E /0.5}, HKICK, Alias = "22E", &
+H22E: overlay = {B23E:0.5, B22E:0.5}, HKICK, Alias = "22E", &
         Type = "CSR HORZ CUR  77" 
 V21E: overlay = {SEX_21E}, VKICK, Alias = "21E", Type = "CSR VERT CUR  78" 
-H20E: overlay = {B21E /0.5, B20E /0.5}, HKICK, Alias = "20E", &
+H20E: overlay = {B21E:0.5, B20E:0.5}, HKICK, Alias = "20E", &
         Type = "CSR HORZ CUR  79" 
 V19E: overlay = {SEX_19E}, VKICK, Alias = "19E", Type = "CSR VERT CUR  80" 
 H18E: overlay = {B18E}, HKICK, Alias = "18E", Type = "CSR HORZ CUR  81" 
 V17E: overlay = {SEX_17E}, VKICK, Alias = "17E", Type = "CSR VERT CUR  82" 
-H16E: overlay = {B17E /0.5, B16E /0.5}, HKICK, Alias = "16E", &
+H16E: overlay = {B17E:0.5, B16E:0.5}, HKICK, Alias = "16E", &
         Type = "CSR HORZ CUR  83" 
 V15E: overlay = {SEX_15E}, VKICK, Alias = "15E", Type = "CSR VERT CUR  84" 
-H14E: overlay = {B15E /0.5, B14E /0.5}, HKICK, Alias = "14E", &
+H14E: overlay = {B15E:0.5, B14E:0.5}, HKICK, Alias = "14E", &
         Type = "CSR HORZ CUR  85" 
 V13E: overlay = {SEX_13E}, VKICK, Alias = "13E", Type = "CSR VERT CUR  86" 
-H12E: overlay = {B13E /0.5, B12E /0.5}, HKICK, Alias = "12E", &
+H12E: overlay = {B13E:0.5, B12E:0.5}, HKICK, Alias = "12E", &
         Type = "CSR HORZ CUR  87" 
 V11E: overlay = {SEX_11E}, VKICK, Alias = "11E", Type = "CSR VERT CUR  88" 
 H10E: overlay = {B11E}, HKICK, Alias = "10E", Type = "CSR HORZ CUR  89" 
 V09E: overlay = {VKICK_09E}, VKICK, Alias = "9E", Type = "CSR VERT CUR  90" 
-H08E: overlay = {HKICK_08E /0.5, HKICK_07E /0.5}, HKICK, Alias = "8E", &
+H08E: overlay = {HKICK_08E:0.5, HKICK_07E:0.5}, HKICK, Alias = "8E", &
         Type = "CSR HORZ CUR  91" 
 V08E: overlay = {VKICK_08E}, VKICK, Alias = "8E", Type = "CSR VERT CUR  91" 
 V07E: overlay = {VKICK_07E}, VKICK, Alias = "7E", Type = "CSR VERT CUR  92" 
