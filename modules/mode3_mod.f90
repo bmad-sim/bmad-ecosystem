@@ -801,7 +801,7 @@ end subroutine order_evecs_by_tune
 !+
 ! Subroutine make_N(t6, N, err_flag, abz_tunes, tunes_out, U)
 !
-! Given a 1-turn transfer matrix, this returns N and its inverse Ninv.
+! Given a 1-turn transfer matrix, this returns the matrix N.
 ! N converts between normal invarients and phases and canonical coordinates:
 ! X = N.J
 !
