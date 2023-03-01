@@ -79,7 +79,8 @@ if (ele%value(species_strong$) /= real_garbage$ .and. ele%value(e_tot_strong$) >
 else
   beta_strong = ele%value(p0c$) / ele%value(E_tot$)
 endif
-s0 = abs(particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$)) * c_light * beta_strong)
+s0 = 0.1_rp * ele%value(sig_z$) + &
+        abs(particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$)) * c_light * beta_strong)
 
 call offset_particle (ele, set$, orbit, s_pos = s_lab, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
 
