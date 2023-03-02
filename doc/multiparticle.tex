@@ -532,7 +532,7 @@ can be turned on or off by setting the \vn{bmad_com[high_energy_space_charge_on]
 The high energy space charge kick is computed assuming a gaussian bunch shape 
 \begin{align}
   K_y + i \, K_x &=
-  \frac{r_e \, N}{\gamma^3 \, \sigma_z} \, \exp \left[ \frac{z^2}{2 \, \sigma_z} \right] \cdot
+  \frac{r_e \, N}{\gamma^3 \, \sigma_z} \, \exp \left[ \frac{-z^2}{2 \, \sigma_z^2} \right] \cdot
   \sqrt{\frac{\sigma_x + \sigma_y}{\sigma_x - \sigma_y}} \label{fsp1r2} \\
   & \qquad \left\{ w \left[ \frac{x + i \, y}{\sqrt{2 (\sigma_x^2 - \sigma_y^2)}} \right] -
   \exp \left[ -\frac{x^2}{2 \, \sigma_x^2} - \frac{y^2}{2 \, \sigma_y^2} \right] \cdot

@@ -408,7 +408,7 @@ end subroutine track1_bunch_csr
 !   particle(:)          -- coord_struct: Array of particles
 !
 ! Other:
-!   space_charge_com     -- space_charge_common_struct: Space charte/CSR common block
+!   space_charge_com     -- space_charge_common_struct: Space charge/CSR common block
 !     %n_bin                 -- Number of bins.
 !     %particle_bin_span     -- Particle length / dz_slice. 
 !
