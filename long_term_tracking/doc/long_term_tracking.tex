@@ -78,7 +78,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ February 28, 2023}
+\date{David Sagan \\ March 2, 2023}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -444,15 +444,14 @@ unnormalized strength \vn{B1_gradient} will remain fixed and normalized \vn{k1} 
 inversely with the reference momentum.
 
 There are two modes that can be selected to determine how ramper elements are applied. If
-\vn{ltt%ramp_update_each_particle} is set to True (the default), rampers are applied to a given
-lattice element as each particle of the beam passes through the element using the time the particle
-would pass through the center of the element. If set to False, rampers are applied to a given
-element only once per beam passage using the time of the center of the bunch passing the center of
-the element. This will be less accurate but will speed up the calculation. Implicit in this is the
-assumption that controlled parameters are varying slow enough so that the rampers only need be
-applied once per beam passage. This is done to minimize computational time. If ramper controlled
-parameters are slowly varying, for example if ramping magnet strengths with energy ramping which
-occurs over many turns, calculating once per beam passage should be a good approximation.
+\vn{ltt%ramp_update_each_particle} is set to True, rampers are applied to a given lattice element as
+each particle of the beam passes through the element using the time the particle would pass through
+the center of the element. This is appropriate if ramping is fast on the time scale of a bunch
+passage. If set to False (the default), rampers are applied to a given element only once per beam
+passage using the time of the center of the bunch passing the center of the element. This is
+appropriate for parameters that vary slowly on the time scale of a bunch passage. For example if
+ramping magnet strengths with energy ramping which occurs over many turns, calculating once per beam
+passage should be a good approximation.
 
 Before a simulation, individual ramper elements may be toggled on or off by setting the element's
 \vn{is_on} attribute in the lattice file: 
@@ -593,7 +592,7 @@ Example:
   ! Input
   ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
   ltt%ramping_on = F
-  ltt%ramp_update_each_particle = T
+  ltt%ramp_update_each_particle = F
   ltt%ramping_start_time = 0
 
   ! Simulation parameters
@@ -742,8 +741,8 @@ the \ltt program will additionally impose a 0.9~meters aperture independent of t
 \vn{ltt%ptc_aperture}.
 %
 \item[ltt\%ramp_update_each_particle] \Newline
-Default is True. If set to false, to save time, only apply rampers to a given lattice element once
-per beam passage (\sref{s:ramp}).
+Default is False which means only apply rampers to a given lattice element once per beam passage
+(\sref{s:ramp}).
 %
 \item[ltt\%ramping_on] \Newline
 If set to True, \vn{ramper} control elements will be use to modify the lattice during tracking

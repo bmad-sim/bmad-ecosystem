@@ -16,7 +16,7 @@ real(rp) particles_per_thread, now_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size, ix_stage
-integer ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot
+integer ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot, seed
 integer, allocatable :: ix_stop_turn(:), ixp_slave(:)
 
 integer, parameter :: base_tag$  = 1000
@@ -67,13 +67,39 @@ if (lttp%simulation_mode /= 'BEAM' .and. ltt_com%mpi_rank /= master_rank$) then
   stop
 endif
 
+! Synchronize ramper ran state.
+! The problem being solved here is due to the fact that each thread tracks a portion of the beam. If rampers 
+! are used to, for example, simulate something like RF noise, all particles of a given bunch going through a 
+! given element on a given turn need to see the RF waveform shifted by the same noise vector (it is always
+! assumed by the long_term_tracking program that a given random process simulated by a ramper has variation
+! that is small on the time scale of a bunch passage). That is, all threads must use the same random number
+! sequence when dealing with rampers. However, at the same time, the random number sequence for radiation
+! excitation must be different for all particles. This problem is solved by using a common random state
+! for the rampers while each thread has its own unique random state for everything else 
+
+
+if (ltt_com%mpi_rank == master_rank$) then
+  seed = lttp%random_seed 
+  if (seed /= 0) seed = seed + 1234
+endif
+
+call mpi_Bcast (seed, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
+if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI_BCAST RAMPER_RAN_STATE ERROR!', .true.)
+
+call ran_seed_put(seed)
+ltt_com%ramper_ran_state = pointer_to_ran_state()
+
+call mpi_barrier (MPI_COMM_WORLD, ierr)
+if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+
 ! Only the master should create a map file if a file is to be created.
 
 call ltt_init_params(lttp, ltt_com)
 
+call mpi_Bcast (ltt_com%time_start, 1, MPI_DOUBLE_PRECISION, master_rank$, MPI_COMM_WORLD, ierr)
+if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI_BCAST TIME_START ERROR!', .true.)
+
 if (ltt_com%mpi_rank == master_rank$) then
-  call mpi_Bcast (ltt_com%time_start, 1, MPI_DOUBLE_PRECISION, master_rank$, MPI_COMM_WORLD, ierr)
-  if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init tracking', .true.)
   call ltt_init_tracking (lttp, ltt_com)
   call mpi_barrier (MPI_COMM_WORLD, ierr)
@@ -81,8 +107,6 @@ if (ltt_com%mpi_rank == master_rank$) then
   call ltt_print_inital_info (lttp, ltt_com)
 
 else
-  call mpi_Bcast (ltt_com%time_start, 1, MPI_DOUBLE_PRECISION, master_rank$, MPI_COMM_WORLD, ierr)
-  if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call mpi_barrier (MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_init_tracking (lttp, ltt_com)
@@ -188,6 +212,7 @@ enddo
 
 if (ltt_com%mpi_rank == master_rank$) then
   print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
   call reallocate_beam(beam2, max(1, ltt_com%beam_init%n_bunch), ixp_slave(0))
 
   ! Init positions to slaves
@@ -273,6 +298,7 @@ if (ltt_com%mpi_rank == master_rank$) then
   ! And end
 
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: All done!', .true.)
+  call ltt_print_mpi_info (lttp, ltt_com, 'Master: Final Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
   call run_timer ('ABS', now_time)
   call ltt_write_line('# tracking_time = ' // real_str((now_time-ltt_com%time_start)/60, 4, 2), lttp, 0)
   call mpi_finalize(ierr)
@@ -282,6 +308,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 else  ! Is a slave
 
   call ltt_print_mpi_info (lttp, ltt_com, 'Slave Starting...', .true.)
+  call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
   ip0 = ixp_slave(ltt_com%mpi_rank-1)+1; ip1 = ixp_slave(ltt_com%mpi_rank)
   n = ip1 + 1 - ip0
 
@@ -314,6 +341,7 @@ else  ! Is a slave
   enddo
 
   call ltt_print_mpi_info (lttp, ltt_com, 'Slave: All done!', .true.)
+  call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Final Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
   call mpi_finalize(ierr)
 endif
 

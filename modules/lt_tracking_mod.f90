@@ -11,11 +11,12 @@ use beam_mod
 use twiss_and_track_mod
 use ptc_map_with_radiation_mod
 use high_energy_space_charge_mod
-use s_fitting_new, only: probe, internal_state, track_probe, assignment(=), operator(+), default, spin0
 use superimpose_mod, only: add_superimpose
 use radiation_mod
 use expression_mod
 use mode3_mod, only: make_N
+use random_mod
+use s_fitting_new, only: probe, internal_state, track_probe, assignment(=), operator(+), default, spin0
 
 implicit none
 
@@ -72,7 +73,7 @@ type ltt_params_struct
   logical :: core_emit_combined_calc = .true.
   logical :: only_live_particles_out = .true.
   logical :: ramping_on = .false.
-  logical :: ramp_update_each_particle = .true.
+  logical :: ramp_update_each_particle = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: symplectic_map_tracking = .false.
@@ -116,6 +117,7 @@ type ltt_com_struct
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper element locations.
   type (beam_init_struct) beam_init
+  type (random_state_struct) ramper_ran_state
   integer :: n_ramper_loc = 0
   integer, allocatable :: ix_wake_ele(:)     ! List of element indexes where a wake is applied.
   integer :: ix_branch = 0                   ! Lattice branch being tracked.
@@ -439,21 +441,41 @@ type (rad_map_ele_struct), pointer :: ri
 
 real(rp) closed_orb(6), f_tol
 
-integer i, n, ix_branch, ib, n_slice, ie, ir, info, n_rf_included, n_rf_excluded
+integer i, iv, n, ix_branch, ib, n_slice, ie, ir, info, n_rf_included, n_rf_excluded
 
-logical err, map_file_exists
+logical err, map_file_exists, ramping_on
 
 character(40) start_name, stop_name
 character(*), parameter :: r_name = 'ltt_init_tracking'
 
-! PTC has an internal aperture of 1.0 meter. To be safe, set default aperture at 0.9 meter
+! Apply rampers and then turn off ramper use for twiss_and_track since rampers simulating 
+! noise (using random numbers) will drive the closed orbit calc crazy.
 
 call ltt_make_tracking_lat(lttp, ltt_com)
 lat => ltt_com%tracking_lat
 branch => lat%branch(ltt_com%ix_branch)
 
+ramping_on = lttp%ramping_on
+if (lttp%ramping_on) then
+  n = ltt_com%n_ramper_loc
+  do ir = 1, n
+    do iv = 1, size(ltt_com%ramper(ir)%ele%control%var)
+      if (ltt_com%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
+      ltt_com%ramper(ir)%ele%control%var(iv)%value = lttp%ramping_start_time
+    enddo
+  enddo
+
+  do ie = 0, branch%n_ele_max
+    call apply_rampers_to_slave (branch%ele(ie), ltt_com%ramper(1:n), err)
+  enddo
+
+  lttp%ramping_on = .false.
+endif  
+
 call twiss_and_track (lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
 call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
+
+! PTC has an internal aperture of 1.0 meter. To be safe, set default aperture at 0.9 meter
 
 lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
 
@@ -524,19 +546,6 @@ if (lttp%set_beambeam_z_crossing) then
   enddo
 endif
 
-! If using ramping elements, setup the lattice using lttp%ramping_start_time
-
-if (lttp%ramping_on) then
-  do i = 1, ltt_com%n_ramper_loc
-    if (ltt_com%ramper(i)%ele%control%var(1)%name /= 'TIME') cycle
-    ltt_com%ramper(i)%ele%control%var(1)%value = lttp%ramping_start_time
-  enddo
-
-  do ie = 0, branch%n_ele_max
-    call apply_rampers_to_slave (branch%ele(ie), ltt_com%ramper(1:ltt_com%n_ramper_loc), err)
-  enddo
-endif  
-
 !
 
 if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
@@ -560,6 +569,8 @@ if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
     if (allocated(ltt_com%sec(i)%map)) ltt_com%num_maps = ltt_com%num_maps + 1
   enddo
 endif
+
+lttp%ramping_on = ramping_on 
 
 end subroutine ltt_init_tracking
 
@@ -1461,9 +1472,20 @@ if (who == 'action_angle') then
   if (lttp%action_angle_calc_uses_1turn_matrix) then
     lat => ltt_com%tracking_lat
     call ltt_pointer_to_map_ends(lttp, lat, ele_start)
+
     call transfer_matrix_calc (lat, m, vec0, ele_start%ix_ele, ele_start%ix_ele, ele_start%ix_branch, .true.)
+    if (all(m(1:5,6) == 0)) then
+      print *, 'ltt%action_angle_calc_uses_1turn_matrix is set True but RF is off. No computations can be done. Stopping here.'
+      stop
+    endif
+
     call make_N(m, n_inv_mat, error)
+    if (error) then
+      print *, 'ltt%action_angle_calc_uses_1turn_matrix is set True but cannot get 1-turn matrix eigen vectors. Stopping here.'
+      stop
+    endif
     call mat_inverse (n_inv_mat, n_inv_mat)    
+
   else
     call calc_bunch_params (bunch, b_params, error, n_mat = n_inv_mat)
     call mat_inverse (n_inv_mat, n_inv_mat)
@@ -2631,5 +2653,40 @@ else
 endif
 
 end function ltt_bunch_time_sum
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+! See documentation in long_term_tracking_mpi.f90 for why this routine is needed.
+
+subroutine ltt_apply_rampers_to_slave (slave, ramper, err_flag)
+
+type (ele_struct), target :: slave
+type (ele_pointer_struct), target :: ramper(:)
+type (random_state_struct) ran_state_save
+type (random_state_struct), pointer :: ran_state_ptr
+logical err_flag
+
+! Swap out current "radiation" ran state for ramper ran state
+
+if (ltt_com_global%using_mpi) then
+  ran_state_ptr => pointer_to_ran_state()
+  ran_state_save = ran_state_ptr
+  ran_state_ptr = ltt_com_global%ramper_ran_state
+endif
+
+! Apply rampers
+
+call apply_rampers_to_slave (slave, ramper, err_flag)
+
+! Swap out ramper ran state for radiation ran state
+
+if (ltt_com_global%using_mpi) then
+  ltt_com_global%ramper_ran_state = ran_state_ptr ! Update
+  ran_state_ptr = ran_state_save
+endif
+
+end subroutine ltt_apply_rampers_to_slave
 
 end module

@@ -43,6 +43,7 @@ logical err, finished
 
 err = .false.
 finished = .false.
+if (.not. ltt_params_global%ramping_on) return 
 if (ltt_params_global%ramp_update_each_particle) return 
 
 n = ltt_com_global%n_ramper_loc
@@ -60,7 +61,7 @@ do ir = 1, ltt_com_global%n_ramper_loc
 enddo
 
 n = ltt_com_global%n_ramper_loc
-call apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err)
+call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err)
 
 ! The beginning element is never tracked through. If there is energy ramping and the user is writing out 
 ! p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
