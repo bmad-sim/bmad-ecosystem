@@ -49,7 +49,7 @@ integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios, ie
 integer iu_log, omp_n
 
 logical err_flag
-logical err, calc_ok, valid_value, this_calc_ok, using_default, do_print
+logical err, calc_ok, valid_value, this_calc_ok, using_default
 
 namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
@@ -335,7 +335,6 @@ enddo
 
 ! Turn off RF if needed. But first calculate the synchrotron tune.
 
-do_print = .true.
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   if (u%design_same_as_previous) cycle
@@ -344,14 +343,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     branch => u%model%lat%branch(ib)
     if (branch%param%geometry == closed$) then
       call calc_z_tune(u%model%lat%branch(ib))
-      if (s%global%rf_on .and. do_print) then
-        call out_io (s_info$, r_name, 'Note! Default now is for RFcavities is to be left on (used to be off).', &
-                                      'Use the "--rf_on" (notice two dashes) switch on the startup command line', &
-                                      'or "set global%rf_on = False" to turn off the RF.')
-        do_print = .false.   ! Only print message once.
-      else
-        call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
-      endif
+      if (.not. s%global%rf_on) call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
     endif
     do ie = 1, branch%n_ele_max
       ! Make sure cache is calculated with respect to particle orbit.
