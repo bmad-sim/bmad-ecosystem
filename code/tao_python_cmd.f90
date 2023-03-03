@@ -7065,9 +7065,9 @@ case ('super_universe')
 ! 
 ! Parameters
 ! ----------
-! ele1_id : optional
-! ele2_id : optional
-! order : optional
+! ele1_id 
+! ele2_id 
+! order : default=1
 !
 ! Returns
 ! -------
@@ -7113,7 +7113,7 @@ case ('taylor_map')
 
   call transfer_map_calc (tao_lat%lat, taylor, err, ele1%ix_ele, ele2%ix_ele, &
           tao_lat%tao_branch(ix_branch)%orbit(ele1%ix_ele), one_turn = .true., concat_if_possible = s%global%concatenate_maps)
-  if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
+  if (n_order > 0) call truncate_taylor_to_order (taylor, n_order, taylor)
 
 
   do i = 1, 6
