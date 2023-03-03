@@ -6952,6 +6952,10 @@ case ('spin_polarization')
 !   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 !   {which} is one of: "model", "base" or "design"
 !   {ref_ele} is an element name or index.
+! This will return a string_list with the following fields:
+!   spin_tune                   -- Spin tune
+!   dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference Q_spin-Q_mode for modes X = a, b, and c.
+!   xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance strengths for X = a, b, and c modes.  
 !
 ! Parameters
 ! ----------
@@ -6963,9 +6967,7 @@ case ('spin_polarization')
 !
 ! Returns
 ! -------
-! spin_tune                   -- Spin tune
-! dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference Q_spin-Q_mode for modes X = a, b, and c.
-! xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance strengths for X = a, b, and c modes.
+! string_list  
 !
 ! Examples
 ! --------
