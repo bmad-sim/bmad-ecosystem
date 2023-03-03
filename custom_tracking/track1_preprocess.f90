@@ -49,6 +49,8 @@ character(*), parameter :: r_name = 'track1_preprocess'
 
 ! Recording a particle track?
 
+err_flag = .false.
+
 if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
   iu = lunget()
   if (ele%ix_ele <= 1) then
@@ -60,10 +62,10 @@ if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
   close (iu)
 endif
 
-! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
-
-err_flag = .false.
+if (.not. ltt_params_global%ramping_on) return
 if (.not. ltt_params_global%ramp_update_each_particle) return 
+
+! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 
 t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
 
@@ -75,7 +77,7 @@ do ir = 1, ltt_com_global%n_ramper_loc
 enddo
 
 n = ltt_com_global%n_ramper_loc
-call apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err_flag)
+call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err_flag)
 
 ! The beginning element (with index 0) is never tracked through. If there is energy ramping and the user is 
 ! writing out p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
