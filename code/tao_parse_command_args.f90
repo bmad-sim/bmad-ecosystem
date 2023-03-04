@@ -202,7 +202,11 @@ do
     call get_next_arg (arg0, s%init%var_file_arg, i_arg, n_arg)
 
   case default
-    call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
+    if (ix == 0) then
+      call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
+    else
+      call out_io (s_error$, r_name, 'THIS MATCHES TO MULTIPLE COMMAND LINE ARGUMENTS: ' // arg0)
+    endif
     call tao_print_command_line_info
     error = .true.
     return
