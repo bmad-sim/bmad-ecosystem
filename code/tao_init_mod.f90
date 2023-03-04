@@ -405,7 +405,7 @@ if (u%beam%saved_at /= '') then
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
-      if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_lord)
+      if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave)
       u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = .true.
     enddo
   endif

@@ -239,7 +239,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     if (s%init%slice_lattice_arg /= '') design_lat%slice_lattice = s%init%slice_lattice_arg
 
     if (design_lat%start_branch_at /= '') then
-      call start_branch_at (u%design%lat, design_lat%start_branch_at, err)
+      call start_branch_at (u%design%lat, design_lat%start_branch_at, .false., err)
     endif
 
     if (design_lat%slice_lattice /= '') then
