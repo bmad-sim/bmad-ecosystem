@@ -2064,7 +2064,7 @@ case ('orbit.')
 
   select case (data_type)
 
-  case ('orbit.e_tot', 'orbit.kinetic')
+  case ('orbit.energy', 'orbit.e_tot', 'orbit.kinetic')  ! orbit.e_tot is old style
     if (ix_ref > -1) then
       if (data_source == 'beam') then
         orb => bunch_params(ix_ref)%centroid

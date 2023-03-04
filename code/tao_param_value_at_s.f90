@@ -426,7 +426,7 @@ case ('orbit')
   case ('orbit.amp_b');       value = amp_b
   case ('orbit.norm_amp_a');  value = amp_na
   case ('orbit.norm_amp_b');  value = amp_nb
-  case ('orbit.e_tot', 'orbit.kinetic')
+  case ('orbit.e_tot', 'orbit.energy', 'orbit.kinetic')  ! orbit.e_tot is old style
     if (orbit%beta == 0) then
       value = mass_of(branch%param%particle)
     else

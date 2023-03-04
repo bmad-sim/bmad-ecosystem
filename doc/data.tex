@@ -846,7 +846,7 @@ on ``Coupling and Normal Modes'' in the \bmad manual).
   %----------------------
   \item[e_tot_ref] \Newline \hlabel{e.tot.ref}
 The reference energy of the lattice. This is the same as the \vn{E_tot} attribute of a lattice element.
-For the actual particle energy, use \vn{orbit.e_tot}.
+For the actual particle energy, use \vn{orbit.energy}.
 
   %----------------------
   \item[element_attrib.<attrib_name>] \Newline \hlabel{element.attrib}
@@ -1158,8 +1158,8 @@ could be useful to read in the measured values and plot them.
 Energy normalized ``invariant'' amplitude of the orbital motion.
 
   %----------------------
-  \item[orbit.e_tot] \Newline \hlabel{orbit.e.tot}
-The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (with
+  \item[orbit.energy] \Newline \hlabel{orbit.energy}
+The \vn{orbit.energy} data type gives the total energy of a tracked particle (with
 \vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
 \vn{beam}).
 
@@ -1895,7 +1895,7 @@ See the previous section for a description of the data types.
                               orbit.norm_amp_a, \\
                               \hspace{2em} .norm_amp_b       
                             \end{tabular}                       & Energy normalized amplitude               & lat         & Yes \\ \hline 
-  \pref{orbit.e.tot}      & orbit.e_tot                         & Total energy (eV)                         & lat, beam   & Yes \\ \hline
+  \pref{orbit.energy}     & orbit.energy                        & Total energy (eV)                         & lat, beam   & Yes \\ \hline
   \pref{orbit.kinetic}    & orbit.kinetic                       & Kinetic energy (eV)                       & lat, beam   & Yes \\ \hline
   \pref{orbit.x}          & \begin{tabular}{@{}l}
                               orbit.x, .y, .z \\
