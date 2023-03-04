@@ -280,7 +280,7 @@ parsing_loop: do
   ! PRINT
 
   if (word_1(:ix_word) == 'PRINT') then
-    call parser_print_line(in_lat, end_of_file)
+    call parser_print_line(lat, end_of_file)  ! Put directly in lat.
     cycle parsing_loop
   endif
 

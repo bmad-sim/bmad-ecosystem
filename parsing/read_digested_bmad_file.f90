@@ -376,7 +376,7 @@ if (present(err_flag)) err_flag = err_found
 
 if (.not. err_found .and. allocated(lat%print_str)) then
   do i = 1, size(lat%print_str)
-    call out_io (s_dwarn$, r_name, 'Print Message in Lattice File: ' // lat%print_str(i))
+    call out_io (s_important$, r_name, 'Message in Lattice File: ' // lat%print_str(i))
   enddo
 endif
 

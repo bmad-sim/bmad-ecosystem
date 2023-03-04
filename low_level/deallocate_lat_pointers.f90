@@ -23,9 +23,10 @@ integer i
 
 call deallocate_ele_pointers (lat%ele_init)
 
-if (allocated(lat%control))  deallocate (lat%control)
-if (allocated(lat%ic))       deallocate (lat%ic)
-if (allocated(lat%custom))   deallocate (lat%custom)
+if (allocated(lat%control))    deallocate(lat%control)
+if (allocated(lat%ic))         deallocate(lat%ic)
+if (allocated(lat%custom))     deallocate(lat%custom)
+if (allocated(lat%print_str))  deallocate(lat%print_str)
 
 !
 

@@ -1,5 +1,5 @@
 !+
-! Subroutine start_branch_at (lat, ele_start, error)
+! Subroutine start_branch_at (lat, ele_start, move_end_marker, error)
 !
 ! Routine to, while preserving element order, rearrange the elements in a branch such that 
 ! the first element is ele_start. In the finished lattice, the original first element will
@@ -9,13 +9,15 @@
 ! Input:
 !   lat             -- lat_struct: Lattice to modify.
 !   ele_start       -- character(*): Start element. Ele_start will identify the lattice branch to modify.
+!   move_end_marker -- logical: If True then the end marker (if it is present) will be shifted like
+!                       any other element. False means that the end marker will stay at the end.
 !
 ! Output:
 !   lat             -- lat_struct: Modified lattice.
 !   error           -- logical: Set True if there is an error Set False if not.
 !-
 
-subroutine start_branch_at (lat, ele_start, error)
+subroutine start_branch_at (lat, ele_start, move_end_marker, error)
 
 use bmad, dummy => start_branch_at
 
@@ -28,7 +30,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (control_struct), pointer :: ctl
 
 integer ic, ie, n_loc, ie1, iet
-logical error, err
+logical move_end_marker, error, err, shift_end
 
 character(*) ele_start
 character(*), parameter :: r_name = 'start_branch_at'
@@ -70,6 +72,8 @@ endif
 
 ie1 = ele1%ix_ele
 iet = branch%n_ele_track
+shift_end = (move_end_marker .or. branch%ele(iet)%name /= 'END' .or. branch%ele(iet)%key /= marker$)
+if (.not. shift_end) iet = iet - 1
 
 !
 
@@ -91,7 +95,7 @@ do ic = 1, lat%n_control_max
   ctl => lat%control(ic)
   if (ctl%slave%ix_branch /= branch%ix_branch) cycle
   if (ctl%slave%ix_ele > branch%n_ele_track) cycle  ! slave is a lord so do nothing
- 
+
   if (ctl%slave%ix_ele < ie1) then
     ctl%slave%ix_ele = ctl%slave%ix_ele + 1 + iet - ie1
   else
