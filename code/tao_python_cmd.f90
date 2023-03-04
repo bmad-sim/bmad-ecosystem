@@ -8731,7 +8731,7 @@ case ('orbit.state')
   data_type = is_integer$
 case ('orbit.pc')  
   value = (1 + orbit%vec(6)) * orbit%p0c
-case ('orbit.energy')
+case ('orbit.energy', 'orbit.e_tot')  ! orbit.e_tot is old style
   call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = value)
 case ('ele.ix_ele')
   value = ele%ix_ele
@@ -8787,9 +8787,13 @@ case ('ele.gamma_c')
 case default
   call str_upcase (attrib_name, name)
   ix = index(attrib_name, '.')
-  attrib_name = attrib_name(ix+1:)
 
-  call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, .false.)
+  if (attrib_name(1:ix-1) == 'ele') then
+    attrib_name = attrib_name(ix+1:)
+    call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, .false.)
+  else
+    err = .true.
+  endif
 
   if (err) then
     call invalid ('Bad {who}: ' // name); return
