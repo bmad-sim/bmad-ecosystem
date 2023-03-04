@@ -2303,12 +2303,12 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
 end subroutine
 
-subroutine start_branch_at (lat, ele_start, error)
+subroutine start_branch_at (lat, ele_start, move_end_marker, error)
   import
   implicit none
   type (lat_struct), target :: lat
   character(*) ele_start
-  logical error
+  logical move_end_marker, error
 end subroutine
 
 function stream_ele_end (physical_end, ele_orientation) result (stream_end)

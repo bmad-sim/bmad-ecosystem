@@ -63,7 +63,7 @@ character(80) debug_line
 character(280) parse_line_save, string, extra_ele_names
 
 logical, optional :: make_mats6, err_flag
-logical parsing, found, delim_found, err, key_here
+logical parsing, found, delim_found, err, key_here, move
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
 logical multiple_eles_here, heterogeneous_ele_list
 
@@ -332,7 +332,22 @@ parsing_loop: do
   ! START_BRANCH_AT
 
   if (word_1(:ix_word) == 'START_BRANCH_AT') then
-    call start_branch_at (lat, trim(bp_com%parse_line), err)
+    move = .false.
+    if (delim == ',') then
+      call get_next_word (word_1, ix_word, ' ', delim, delim_found, .true.)
+      if (word_1 /= 'MOVE_END_MARKER') then
+        call parser_error('EXPECTED "MOVE_END_MARKER" AFTER COMMA IN START_BRANCH_AT STATEMENT.')
+        cycle parsing_loop
+      endif
+      move = .true.
+    endif
+
+    if (delim /= ' ') then
+      call parser_error('MALFORMED START_BRANCH_AT STATEMENT.')
+      cycle parsing_loop
+    endif
+
+    call start_branch_at (lat, trim(bp_com%parse_line), move, err)
     if (err) call parser_error ('ERROR STARTING BRANCH AT: ' // bp_com%parse_line)
     bp_com%parse_line = ''
     cycle parsing_loop    
