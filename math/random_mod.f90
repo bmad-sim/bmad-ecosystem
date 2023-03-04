@@ -423,49 +423,29 @@ end subroutine ran_gauss_converter
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_seed_put (seed, ran_state, mpi_offset)
+! Subroutine ran_seed_put (seed, mpi_offset)
 !
 ! Routine to seed a random number generator. 
-!
-! Independent random number "generators" are implemented by supplying a ran_state argument.
-! The actual ran_state argument for independent generators must be different.
-! If the ran_state arg is not present, the default generator is used.
-!
-! Each generator is independent of the others. That is the sequence of "random" numbers
-! generated with a given generator is unaffected by usage of the other generators.
-! Multiple generators are useful in cases where you want to maintain the same random number 
-! sequence in one part of the program independent of other parts of the program or
-! when parallel computing is used.
-!
-! For example, suppose you were tracking particles whose initial position was determined
-! with a random number generator. Additionally suppose that these particles could interact 
-! with the residual gas background and that this interaction is modeled using a random
-! number generator. If you want the initial particle positions to be independent of whether
-! you were simulating the particle-gas interaction or not, you could use different generators 
-! for the particle initialization and the particle-gas interaction.
 !
 ! If a program never calls ran_seed_put, or ran_seed_put is called with seed = 0,
 ! the system clock will be used to generate the seed.
 !
 ! Note: The seed is only used with the pseudo_random$ engine.
-!
 ! Note: Use the subroutine ran_seed_get(seed) to get the seed used.
+! Note: Use pointer_to_ran_state() to access the ran state directly.
 !
 ! Input:
 !   seed        -- integer, optional: Seed number. If seed = 0 then a 
 !                   seed will be choosen based upon the system clock.
-!   ran_state   -- random_state_struct, optional: Internal state.
 !   mpi_offset  -- integer, optional: Offset added to seed. Default is zero.
 !                   Used with MPI processes ensure different threads use different random numbers.
 !-
 
-subroutine ran_seed_put (seed, ran_state, mpi_offset)
+subroutine ran_seed_put (seed, mpi_offset)
 
 !$ use omp_lib, only: OMP_GET_THREAD_NUM, OMP_GET_MAX_THREADS
 
 implicit none
-
-type (random_state_struct), optional, target :: ran_state
 
 integer :: seed
 integer nt, max_t, n
@@ -480,7 +460,7 @@ real(rp) dum(2)
 !$  max_t = OMP_GET_MAX_THREADS()
 !$  if (nt == 0) then
 !$    do n = 0, max_t-1
-!$      call this_seed_put(seed, ran_state, n)
+!$      call this_seed_put(seed, n)
 !$    enddo
 !$  endif
 !$OMP BARRIER
@@ -488,22 +468,21 @@ real(rp) dum(2)
 
 ! Non-OpenMP put
 
-call this_seed_put (seed, ran_state, integer_option(0, mpi_offset))
+call this_seed_put (seed, integer_option(0, mpi_offset))
 
 !---------------------------------------------
 contains
 
-subroutine this_seed_put (seed, ran_state, nt)
+subroutine this_seed_put (seed, nt)
 
 type (random_state_struct), pointer :: r_state
-type (random_state_struct), optional, target :: ran_state
 
 integer :: seed
 integer v(10), nt
 
 !
 
-r_state => pointer_to_ran_state(ran_state, nt)
+r_state => pointer_to_ran_state(ix_thread = nt)
 
 r_state%in_sobseq = 0
 r_state%ix_sobseq = 0
@@ -530,12 +509,9 @@ end subroutine ran_seed_put
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_seed_get (seed, ran_state)
+! Subroutine ran_seed_get (seed)
 ! 
 ! Routine to return the seed used for the random number generator.
-!
-! Note: The internal state can be used to put the pseudo-random
-! number generator into a known state. See ran_seed_put
 !
 ! Input:
 !   ran_state -- random_state_struct, optional: Internal state.
@@ -543,21 +519,19 @@ end subroutine ran_seed_put
 !
 ! Output:
 !   seed      -- Integer, optional: Random number seed used.
-!   ran_state -- random_state_struct, optional: Internal state.
 !-
 
-subroutine ran_seed_get (seed, ran_state)
+subroutine ran_seed_get (seed)
 
 implicit none
 
-type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: r_state
 
 integer :: seed
 
 !
 
-r_state => pointer_to_ran_state(ran_state)
+r_state => pointer_to_ran_state()
 seed = r_state%seed
 
 end subroutine ran_seed_get 
