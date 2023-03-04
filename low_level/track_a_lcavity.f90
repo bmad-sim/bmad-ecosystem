@@ -37,13 +37,14 @@ type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, rel_p, coef, k2
-real(rp) E_start_ref, E_end_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2)
+real(rp) alpha, sin_a, cos_a, r_mat(2,2)
 real(rp) phase, cos_phi, sin_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
 real(rp) dE_start, dE_end, dE, beta_start, beta_end, sqrt_beta12, dsqrt_beta12(6), f_ave, pc_start_ref
 real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds, r_step, step_len
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+real(rp) E_tot_start, E_tot, p0c_start, p0c
 
 integer ix_mag_max, ix_elec_max, n_step
 
@@ -87,23 +88,31 @@ call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_ma
 
 !
 
+if (orbit%time_dir * orbit%direction == 1) then
+  E_tot_start = ele%value(E_tot_start$)
+  E_tot       = ele%value(E_tot$)
+  p0c_start   = ele%value(p0c_start$)
+  p0c         = ele%value(p0c$)
+else
+  E_tot_start = ele%value(E_tot$)
+  E_tot       = ele%value(E_tot_start$)
+  p0c_start   = ele%value(p0c$)
+  p0c         = ele%value(p0c_start$)
+endif
+
 rel_p = 1 + orbit%vec(6)
-E_start_ref  = ele%value(E_tot_start$)
-E_end_ref    = ele%value(E_tot$)
-gradient_ref = (E_end_ref - E_start_ref) / length
-pc_start_ref = ele%value(p0c_start$)
-pc_end_ref   = ele%value(p0c$)
+gradient_ref = (E_tot - E_tot_start) / length
 mc2 = mass_of(orbit%species)
 
-pc_start = ele%value(p0c_start$) * rel_p
+pc_start = p0c_start * rel_p
 beta_start = orbit%beta
 E_start = pc_start / beta_start 
 
-gradient_max = e_accel_field(ele, gradient$, .true.) * ele%value(l$) / length
+gradient_max = e_accel_field(ele, gradient$, .true.)
 
 cos_phi = cos(phase)
 sin_phi = sin(phase)
-gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) * ele%value(l$) / length
+gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
 
 dE = gradient_net * length
 E_end = E_start + dE
@@ -124,7 +133,7 @@ mc2 = mass_of(orbit%species)
 if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, first_track_edge$)) then
   ds = bmad_com%significant_length / 10  ! Make sure inside field region
   call em_field_calc (ele, param, ds, orbit, .true., field, logic_option(.false., make_matrix))
-  f = charge_of(orbit%species) / (2 * pc_start_ref)
+  f = charge_of(orbit%species) / (2 * p0c_start)
 
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit(kmat)
@@ -173,7 +182,7 @@ endif
 orbit%vec(2) = orbit%vec(2) / rel_p    ! Convert to x'
 orbit%vec(4) = orbit%vec(4) / rel_p    ! Convert to y'
 orbit%vec(5) = orbit%vec(5) / beta_start
-orbit%vec(6) = rel_p * orbit%p0c / orbit%beta - 1
+orbit%vec(6) = rel_p * orbit%p0c / orbit%beta
 orbit%t = orbit%t + dp_dg / c_light
 
 ! Body tracking. Note: Transverse kick only happens with standing wave cavities.
@@ -380,20 +389,20 @@ endif
 
 ! Shift ref momentum if reached element body entrance end
 
-orbit%vec(5) = orbit%vec(5) - (dp_dg - length * (E_start_ref + E_end_ref) / (pc_end_ref + pc_start_ref))
+orbit%vec(5) = orbit%vec(5) - (dp_dg - length * (E_tot_start + E_tot) / (p0c + p0c_start))
 
-orbit%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
-orbit%p0c = pc_end_ref
+orbit%vec(6) = (pc_end - p0c) / p0c 
+orbit%p0c = p0c
 
 ! Convert back from (x', y', c(t_ref-t), E) coords
 
 if (logic_option(.false., make_matrix)) then
-  rel_p = pc_end / pc_end_ref
-  mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (pc_end_ref * beta_end)
-  mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (pc_end_ref * beta_end)
+  rel_p = pc_end / p0c
+  mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (p0c * beta_end)
+  mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (p0c * beta_end)
 
   m2(1,:) = [beta_end, orbit%vec(5) * mc2**2 / (pc_end * E_end**2)]
-  m2(2,:) = [0.0_rp, 1 / (pc_end_ref * beta_end)]
+  m2(2,:) = [0.0_rp, 1 / (p0c * beta_end)]
 
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 endif
@@ -407,7 +416,7 @@ orbit%beta = beta_end
 if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, second_track_edge$)) then
   ds = bmad_com%significant_length / 10  ! Make sure inside field region
   call em_field_calc (ele, param, length - ds, orbit, .true., field, logic_option(.false., make_matrix))
-  f = -charge_of(orbit%species) / (2 * pc_end_ref)
+  f = -charge_of(orbit%species) / (2 * p0c)
 
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit(kmat)

@@ -121,7 +121,11 @@ dtime_ref = ele%value(delta_ref_time$) * orbit%direction * orbit%time_dir
 if (start_orb%vec(6) == orbit%vec(6) .and. ele%value(p0c$) == ele%value(p0c_start$)) then
   orbit%t = start_orb%t + dtime_ref + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 else
-  call convert_pc_to (ele%value(p0c$) * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
+  if (orbit%time_dir * orbit%direction == 1) then
+    call convert_pc_to (ele%value(p0c$) * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
+  else
+    call convert_pc_to (ele%value(p0c_start$) * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
+  endif
   orbit%t = start_orb%t + dtime_ref + start_orb%vec(5) / (start_orb%beta * c_light) - orbit%vec(5) / (orbit%beta * c_light)
 endif
 
