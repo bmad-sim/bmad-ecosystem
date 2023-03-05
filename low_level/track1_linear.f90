@@ -52,7 +52,11 @@ else
 endif
 
 start_orb = orbit
-orbit%p0c = ele%value(p0c$)
+if (orbit%time_dir * orbit%direction == 1) then
+  orbit%p0c = ele%value(p0c$)
+else
+  orbit%p0c = ele%value(p0c_start$)
+endif
 
 if (orbit%direction == 1) then
   orbit%vec = matmul (mat6, orbit%vec) + v0
@@ -77,7 +81,7 @@ dtime_ref = ele%value(delta_ref_time$)
 if (dtime_ref == 0) dtime_ref = ele%value(l$) / (orbit%beta * c_light)
 dtime_ref = dtime_ref * orbit%direction * orbit%time_dir 
 
-call convert_pc_to (ele%value(p0c$) * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
+call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), orbit%species, beta = orbit%beta)
 
 orbit%t = orbit%t + dtime_ref + (start_orb%vec(5) / start_orb%beta - orbit%vec(5) / orbit%beta) / c_light
 

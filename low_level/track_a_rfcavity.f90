@@ -76,7 +76,7 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, el
 voltage = e_accel_field(ele, voltage$, .true.) * charge_dir
 
 phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
-        (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+            (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
 phase = phase0
 
