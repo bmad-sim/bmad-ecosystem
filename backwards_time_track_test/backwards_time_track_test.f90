@@ -112,12 +112,14 @@ do ib = 0, 0
         ele_loc_equal = (ele_loc_equal .and. loc_equal)
       endif
     enddo
-    if (debug_mode) then
+
+    if (debug_mode .and. branch%n_ele_max > 2) then
       print '(a, es18.10, l4)', '*************** "Ele-Merit"  ', ele_merit, ele_loc_equal
       print *
-      global_merit = max(ele_merit, global_merit)
-      global_loc_equal = (ele_loc_equal .and. global_loc_equal)
     endif
+
+    global_merit = max(ele_merit, global_merit)
+    global_loc_equal = (ele_loc_equal .and. global_loc_equal)
 
   end do
   if (debug_mode .and. ie > 1) then
