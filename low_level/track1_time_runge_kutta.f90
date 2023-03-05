@@ -64,7 +64,6 @@ endif
 err_flag = .true.
 
 rf_time = particle_rf_time (orbit, ele, .true., orbit%s - ele%s_start)
-beta_ref = ele%value(p0c$) / ele%value(E_tot$)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 ! s_lab is longitudinal position relative to entrance end (element body coords).
@@ -109,6 +108,7 @@ elseif (ele%key == patch$) then
     return
   endif
   call track_a_patch (ele, orbit, .false., s0, ds_ref)
+  beta_ref = ele%value(p0c$) / ele%value(E_tot$)
   orbit%vec(5) = orbit%vec(5) + orbit%time_dir * (ds_ref + s0 * orbit%direction*orbit%time_dir * ele%orientation) * orbit%beta / beta_ref 
   t_dir = -sign_of(s0*ele%orientation)
   s_body = s0
@@ -143,14 +143,12 @@ if (err) return
 ! Setting %s is not done for other types of elements since this could potentially cover up code problems.
 
 if (orbit%location == upstream_end$) then
-  orbit%p0c = ele%value(p0c_start$)
-  call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
+  call convert_particle_coordinates_t_to_s(orbit, ele, s_body, .false.)
   orbit%direction = -orbit%time_dir  ! In case t_to_s conversion confused by roundoff error.
   call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin, time = rf_time)
   if (ele%key == patch$) orbit%s = ele%s_start
 
 elseif (orbit%location == downstream_end$) then
-  orbit%p0c = ele%value(p0c$)
   call convert_particle_coordinates_t_to_s(orbit, ele, s_body)
   orbit%direction = orbit%time_dir  ! In case t_to_s conversion confused by roundoff error
   call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = set_spin, time = rf_time)

@@ -1,18 +1,20 @@
 !+
-! Subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body)
+! Subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body, use_downstream_p0c)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
 ! Input:
-!   particle    -- coord_struct: Particle with %vec(:) in t-coords.
-!   ele         -- ele_struct: Element particle is going through.
+!   particle            -- coord_struct: Particle with %vec(:) in t-coords.
+!   ele                 -- ele_struct: Element particle is going through.
+!   use_downstream_p0c  -- logical, optional: If True (the default), use ele%value(p0c$) as the reference momentum.
+!                           If False, use ele%value(p0c_start$) as the reference.
 !
 ! Output:
 !   particle    -- coord_struct: Particle with %vec(:) in s-coords.
 !   s_body      -- real(rp), optional: s-position in element body coords.
 !-
 
-subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body)
+subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body, use_downstream_p0c)
 
 use bmad_struct
 
@@ -23,6 +25,7 @@ type (ele_struct) :: ele
 real(rp), optional :: s_body
 real(rp) :: p0c, pctot
 real(rp), pointer :: vec(:)
+logical, optional :: use_downstream_p0c
 
 !
 
@@ -41,7 +44,11 @@ endif
 
 ! Convert t to s. vec(1) and vec(3) are unchanged.
 
-p0c = ele%value(p0c$)
+if (logic_option(.true., use_downstream_p0c)) then
+  p0c = ele%value(p0c$)
+else
+  p0c = ele%value(p0c_start$)
+endif
 
 vec(2) = vec(2)/p0c
 vec(4) = vec(4)/p0c

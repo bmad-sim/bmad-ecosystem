@@ -539,12 +539,13 @@ subroutine convert_particle_coordinates_s_to_t (particle, s_body, orientation)
   integer :: orientation
 end subroutine
 
-subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body)
+subroutine convert_particle_coordinates_t_to_s (particle, ele, s_body, use_downstream_p0c)
   import
   implicit none
   type (coord_struct), target :: particle
   type (ele_struct) :: ele
   real(rp), optional :: s_body
+  logical, optional :: use_downstream_p0c
 end subroutine
 
 subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, beta1, err_flag, print_err)
