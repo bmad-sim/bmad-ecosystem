@@ -32,7 +32,7 @@ integer sign_z_vel
 sign_z_vel = ele%orientation * orbit%direction
 omega = spin_omega (field, orbit, sign_z_vel)
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   omega = (1 + ele%value(g$) * orbit%vec(1)) * omega + [0.0_rp, ele%value(g$)*sign_z_vel, 0.0_rp]
 endif
 

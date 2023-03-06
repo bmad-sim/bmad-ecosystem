@@ -106,7 +106,7 @@ z = s_body - s0
 
 !
 
-if (ele%key == sbend$ .and. ele%value(g$) /= 0 .and. .not. curved_ref_frame) then
+if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. ele%value(g$) /= 0 .and. .not. curved_ref_frame) then
   cos_ang = cos(z*ele%value(g$))
   sin_ang = sin(z*ele%value(g$))
 

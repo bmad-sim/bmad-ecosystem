@@ -1272,7 +1272,7 @@ end select
 
 if (has_orientation_attributes(slave)) then
 
-  if (slave%key == sbend$ .and. value(g$) /= 0) then
+  if ((slave%key == sbend$ .or. slave%key == rf_bend$) .and. value(g$) /= 0) then
 
     roll = value(roll_tot$);     tilt = value(ref_tilt_tot$)
     off = [value(x_offset_tot$), value(y_offset_tot$), value(z_offset_tot$)]
@@ -1557,7 +1557,7 @@ do i = 1, slave%n_lord
     w_slave_mis_tot = matmul(w_slave_mis_tot, w_slave_mis)
 
     ! If slave is an sbend then correct offsets since roll axis is displaced from the bend center.
-    if (slave%key == sbend$ .and. vs(g$) /= 0) then
+    if ((slave%key == sbend$ .or. slave%key == rf_bend$) .and. vs(g$) /= 0) then
       call floor_w_mat_to_angles (w_slave_mis_tot, vs(x_pitch_tot$), vs(y_pitch_tot$), vs(roll_tot$))
       dr = (1 - cos(vs(angle$)/2)) / vs(g$)
       vs(x_offset_tot$) = l_slave_off_tot(1) + dr * (1 - cos(vs(roll_tot$)))
@@ -1671,7 +1671,7 @@ enddo
 
 if (.not. on_an_offset_girder .and. has_orientation_attributes(slave)) then
   select case (slave%key)
-  case (sbend$)
+  case (sbend$, rf_bend$)
     slave%value(roll_tot$)     = slave%value(roll$)
     slave%value(ref_tilt_tot$) = slave%value(ref_tilt$)
   case (crystal$, mirror$, multilayer_mirror$)

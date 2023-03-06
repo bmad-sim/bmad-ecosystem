@@ -83,7 +83,7 @@ real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), ws(3,3), L_mis(3), p_vec0(3), p_v
 real(rp) L_half, ds
 
 integer, optional :: drift_to_edge
-integer n, ix_pole_max, drift_to, particle, sign_z_vel
+integer n, ix_pole_max, drift_to, particle, sign_z_vel, key
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_tilt, set_spin
@@ -173,6 +173,8 @@ endif
 
 B_factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
 is_misaligned = .false.
+key = ele%key
+if (key == rf_bend$) key = sbend$
 
 !----------------------------------------------------------------
 ! Set...
@@ -189,20 +191,20 @@ if (set) then
     yp    = ele%value(y_pitch_tot$)
     ref_tilt = ele%value(ref_tilt_tot$)
 
-    if (ele%key == sad_mult$) then
+    if (key == sad_mult$) then
       x_off = x_off + ele%value(x_offset_mult$)
       y_off = y_off + ele%value(y_offset_mult$)
     endif
 
     is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
-                                (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
+                                (key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
   endif
 
   if (is_misaligned) then
     position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
     call mat_make_unit (position%w)
 
-    if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
+    if (key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
       position = bend_shift(position, ele%value(g$), ele%orientation*ds_center, ref_tilt = ref_tilt)
 
       call ele_misalignment_L_S_calc(ele, L_mis, ws)
@@ -297,7 +299,7 @@ if (set) then
 
   ! Set: Tilt
 
-  if (set_t .and. ele%key /= sbend$ .and. ele%value(tilt_tot$) /= 0) then
+  if (set_t .and. key /= sbend$ .and. ele%value(tilt_tot$) /= 0) then
     call tilt_coords (ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
     if (set_spn) call rotate_spin([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
   endif
@@ -306,16 +308,16 @@ if (set) then
   ! Note: Since this is applied after tilt_coords, kicks are dependent on any tilt.
 
   if (set_hv2) then
-    if (ele%key == elseparator$) then
+    if (key == elseparator$) then
       rtc = 0.5_rp * abs(rel_tracking_charge) * sign(1, charge_of(orbit%species))
       orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$)
       orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$)
       if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (orbit, sign_z_vel, &
                                       EL = 0.5_rp * [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * ele%value(p0c$), qrot = spin_qrot)
-    elseif (ele%key == hkicker$) then
+    elseif (key == hkicker$) then
       orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(kick$)
       if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
-    elseif (ele%key == vkicker$) then
+    elseif (key == vkicker$) then
       orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(kick$)
       if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
     else
@@ -333,16 +335,16 @@ else
   ! Unset: HV kicks for kickers and separators only.
 
   if (set_hv2) then
-    if (ele%key == elseparator$) then
+    if (key == elseparator$) then
       rtc = 0.5_rp * abs(rel_tracking_charge) * sign(1, charge_of(orbit%species))
       orbit%vec(2) = orbit%vec(2) + rtc * ele%value(hkick$)
       orbit%vec(4) = orbit%vec(4) + rtc * ele%value(vkick$)
       if (set_spn .and. ele%value(e_field$) /= 0) call rotate_spin_given_field (orbit, sign_z_vel, &
                                          EL = 0.5_rp * [ele%value(hkick$), ele%value(vkick$), 0.0_rp] * ele%value(p0c$), qrot = spin_qrot)
-    elseif (ele%key == hkicker$) then
+    elseif (key == hkicker$) then
       orbit%vec(2) = orbit%vec(2) + 0.5_rp * charge_dir * ele%value(kick$)
       if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[0.0_rp, -ele%value(kick$), 0.0_rp], qrot = spin_qrot)
-    elseif (ele%key == vkicker$) then
+    elseif (key == vkicker$) then
       orbit%vec(4) = orbit%vec(4) + 0.5_rp * charge_dir * ele%value(kick$)
       if (set_spn) call rotate_spin_given_field (orbit, sign_z_vel, 0.5_rp*B_factor*[ele%value(kick$), 0.0_rp, 0.0_rp], qrot = spin_qrot)
     else
@@ -354,7 +356,7 @@ else
 
   ! Unset: Tilt & Roll
 
-  if (set_t .and. ele%key /= sbend$) then
+  if (set_t .and. key /= sbend$) then
     call tilt_coords (-ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
     if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
   endif
@@ -380,20 +382,20 @@ else
     yp    = ele%value(y_pitch_tot$)
     ref_tilt = ele%value(ref_tilt_tot$)
 
-    if (ele%key == sad_mult$) then
+    if (key == sad_mult$) then
       x_off = x_off + ele%value(x_offset_mult$)
       y_off = y_off + ele%value(y_offset_mult$)
     endif
 
     is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
-                                (ele%key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
+                                (key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
   endif
 
   if (is_misaligned) then
     position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
     call mat_make_unit (position%w)
 
-    if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
+    if (key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
 
       position = bend_shift(position, ele%value(g$), ds_center)
 

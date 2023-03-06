@@ -1034,6 +1034,7 @@ call init_attribute_name1 (e_gun$, cylindrical_map$,                'CYLINDRICAL
 call init_attribute_name1 (e_gun$, gen_grad_map$,                   'GEN_GRAD_MAP')
 call init_attribute_name1 (e_gun$, grid_field$,                     'GRID_FIELD')
 call init_attribute_name1 (e_gun$, rf_frequency$,                   'RF_FREQUENCY')
+call init_attribute_name1 (e_gun$, rf_wavelength$,                  'RF_WAVELENGTH', dependent$)
 call init_attribute_name1 (e_gun$, rf_clock_harmonic$,              'rf_clock_harminic', private$)
 call init_attribute_name1 (e_gun$, phi0$,                           'PHI0')
 call init_attribute_name1 (e_gun$, phi0_err$,                       'PHI0_ERR')
@@ -1078,6 +1079,7 @@ call init_attribute_name1 (em_field$, gen_grad_map$,                'GEN_GRAD_MA
 call init_attribute_name1 (em_field$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (em_field$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (em_field$, rf_frequency$,                'RF_FREQUENCY')
+call init_attribute_name1 (em_field$, rf_wavelength$,               'RF_WAVELENGTH', dependent$)
 call init_attribute_name1 (em_field$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
 call init_attribute_name1 (em_field$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (em_field$, phi0_autoscale$,              'PHI0_AUTOSCALE', quasi_free$)
@@ -1395,6 +1397,27 @@ call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', 
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
 call init_attribute_name1 (rfcavity$, voltage_err$,                 'voltage_err', private$)
 call init_attribute_name1 (rfcavity$, l_active$,                    'L_ACTIVE', dependent$)
+
+call init_attribute_name1 (rf_bend$, angle$,                        'ANGLE', quasi_free$)
+call init_attribute_name1 (rf_bend$, ref_tilt$,                     'REF_TILT')
+call init_attribute_name1 (rf_bend$, ref_tilt_tot$,                 'REF_TILT_TOT', dependent$)
+call init_attribute_name1 (rf_bend$, g$,                            'G', quasi_free$)
+call init_attribute_name1 (rf_bend$, roll$,                         'ROLL', override = .true.)
+call init_attribute_name1 (rf_bend$, roll_tot$,                     'ROLL_TOT', dependent$, override = .true.)
+call init_attribute_name1 (rf_bend$, rho$,                          'RHO', quasi_free$)
+call init_attribute_name1 (rf_bend$, l_chord$,                      'L_CHORD', quasi_free$)
+call init_attribute_name1 (rf_bend$, l_sagitta$,                    'L_SAGITTA', dependent$)
+call init_attribute_name1 (rf_bend$, b_field$,                      'B_FIELD', quasi_free$)
+call init_attribute_name1 (rf_bend$, field_master$,                 'FIELD_MASTER')
+call init_attribute_name1 (rf_bend$, grid_field$,                   'GRID_FIELD')
+call init_attribute_name1 (rf_bend$, rf_frequency$,                 'RF_FREQUENCY', quasi_free$)
+call init_attribute_name1 (rf_bend$, rf_wavelength$,                'RF_WAVELENGTH', dependent$)
+call init_attribute_name1 (rf_bend$, rf_clock_harmonic$,            'rf_clock_harminic', private$)
+call init_attribute_name1 (rf_bend$, phi0_multipass$,               'PHI0_MULTIPASS')
+call init_attribute_name1 (rf_bend$, phi0$,                         'PHI0')
+call init_attribute_name1 (rf_bend$, harmon$,                       'HARMON', quasi_free$)
+call init_attribute_name1 (rf_bend$, dg$,                           'DG', private$)
+call init_attribute_name1 (rf_bend$, db_field$,                     'DB_FIELD', private$)
 
 call init_attribute_name1 (sbend$, angle$,                          'ANGLE', quasi_free$)
 call init_attribute_name1 (sbend$, ref_tilt$,                       'REF_TILT')
@@ -3013,7 +3036,7 @@ case ('E_TOT', 'P0C')
   if (.not. dep_attribs_free .and. ele%lord_status == multipass_lord$ .and. &
                       .not. ele%field_master .and. nint(ele%value(multipass_ref_energy$)) == user_set$) then
     select case (ele%key)
-    case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
+    case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, rf_bend$, &
           hkicker$, vkicker$, kicker$, ac_kicker$, elseparator$, lcavity$, rfcavity$)
       return  ! Is free
     end select
@@ -3028,7 +3051,7 @@ end select
 if (attrib_info%state == is_free$) return
 
 select case (ele%key)
-case (sbend$)
+case (sbend$, rf_bend$)
   if (any(ix_attrib == [angle$, l_chord$, rho$])) free = .false.
 case (rfcavity$)
   if (.not. dep_attribs_free) then
@@ -3046,7 +3069,7 @@ case (elseparator$)
   if (ix_attrib == voltage$) free = .false.
 end select
 
-if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
+if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. ele%lord_status == multipass_lord$ .and. &
     nint(ele%value(multipass_ref_energy$)) == user_set$ .and. ix_attrib == p0c$) free = .true.
 
 if (.not. free) then
@@ -3160,6 +3183,8 @@ if (ele%field_master) then
   case (sbend$)
     if (attrib_name == 'G') free = .false.
     if (attrib_name == 'DG') free = .false.
+  case (rf_bend$)
+    if (attrib_name == 'G') free = .false.
   case (hkicker$, vkicker$)
     if (attrib_name == 'KICK') free = .false.
   end select
@@ -3189,6 +3214,8 @@ else
     if (attrib_name == 'DB_FIELD') free = .false.
     if (attrib_name == 'B1_GRADIENT') free = .false.
     if (attrib_name == 'B2_GRADIENT') free = .false.
+  case (rf_bend$)
+    if (attrib_name == 'B_FIELD') free = .false.
   case (hkicker$, vkicker$)
     if (attrib_name == 'BL_KICK') free = .false.
   end select

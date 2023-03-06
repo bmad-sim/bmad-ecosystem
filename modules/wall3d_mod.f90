@@ -987,7 +987,7 @@ else
     ! is, for a horizontal bend, ds * (1 + x/rho) where ds is the length along the reference 
     ! trajectory, x is the transverse displacement, and rho is the bend radius.
 
-    if (ele%key == sbend$) then
+    if (ele%key == sbend$ .or. ele%key == rf_bend$) then
       if (ele%value(ref_tilt_tot$) == 0) then
         disp = position(1) 
       else

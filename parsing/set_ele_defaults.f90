@@ -246,6 +246,9 @@ case (photon_init$)
     allocate(ele%photon)
   endif
 
+case (rf_bend$)
+  ele%tracking_method = runge_kutta$
+
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
   ele%value(hgapx$) = real_garbage$

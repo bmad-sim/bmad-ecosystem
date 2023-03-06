@@ -40,7 +40,7 @@ select case (ele%key)
 case (patch$)
   if (present(w_mat)) call mat_make_unit(w_mat)
 
-case (sbend$)
+case (sbend$, rf_bend$)
   g = ele%value(g$)
   s0 = body_position%r(3)
   ref_tilt = ele%value(ref_tilt_tot$)

@@ -78,7 +78,7 @@ logical error
 ! Error checks
 
 select case (ele1%key)
-case (patch$, match$)
+case (patch$, match$, rf_bend$)
   call out_io (s_error$, r_name, 'ELEMENTS OF TYPE ' // trim(key_name(ele1%key)) // ' CANNOT BE COMBINED: ' // ele1%name)
   error = .true.
   return

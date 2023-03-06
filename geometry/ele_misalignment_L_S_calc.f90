@@ -28,7 +28,7 @@ real(rp) :: L_mis(3), S_mis(3,3)
 L_mis = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
 
 select case(ele%key)
-case(sbend$)
+case(sbend$, rf_bend$)
   ! L_mis at ele center:
   ! L_mis = L_offsets + [Rz(roll) - 1] . Rz(tilt) . Ry(bend_angle/2) . rho . [cos(bend_angle/2) -1, 0, sin(bend_angle/2)]
   if (ele%value(roll_tot$) /= 0) then

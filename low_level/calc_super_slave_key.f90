@@ -39,35 +39,26 @@ key2 = lord2%key
 slave%key = -1  ! Default if no superimpose possible
 slave%sub_key = 0
 
-! If one element is a drift then slave%key = key of other element.
+! * If one element is a drift then slave%key = key of other element.
+! * Control elements, etc. cannot be superimposed.
 
-if (key1 == drift$) then
+select case (key1)
+case (drift$)
   slave%key = key2
   slave%sub_key = lord2%sub_key
   return
-endif
-
-if (key2 == drift$) then
-  slave%key = key1
-  slave%sub_key = lord1%sub_key
-  return
-endif
-
-! control elements, etc. cannot be superimposed.
-
-select case (key1)
-case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$)
+case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$)
   return
 end select
 
 select case (key2)
-case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$)
+case (drift$)
+  slave%key = key1
+  slave%sub_key = lord1%sub_key
+  return
+case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$)
   return
 end select
-
-! sbend elements are problematical due to the different reference orbit so cannot superimpose them.
-
-if (key1 == sbend$ .or. key2 == sbend$) return
 
 ! If there are misalignments then no superposition is possible
 

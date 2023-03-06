@@ -103,7 +103,7 @@ w_mat   = floor0%w
 leng = ele%value(l$) * len_factor
 
 key = ele%key
-if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
+if ((key == sbend$ .or. ele%key == rf_bend$) .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
 ! Fiducial, floor_shift and girder elements.
 ! Note that fiducial, and girder elements are independent of floor0
@@ -248,7 +248,7 @@ if (key == multipole$) then
   if (knl(0) /= 0 .and. tilt(0) /= 0) has_multipole_rot_tilt = .true.
 endif
 
-if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
+if (((key == mirror$  .or. key == sbend$ .or. key == rf_bend$ .or. key == multilayer_mirror$) .and. &
          ele%value(ref_tilt_tot$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
          key == crystal$ .or. has_multipole_rot_tilt) then
 
@@ -256,8 +256,8 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 
   ! sbend and multipole
 
-  case (sbend$, multipole$)
-    if (key == sbend$) then
+  case (sbend$, rf_bend$, multipole$)
+    if (key == sbend$ .or. key == rf_bend$) then
       angle = leng * dble(ele%value(g$))
       tlt = ele%value(ref_tilt_tot$)
       rho = 1.0_dp / ele%value(g$)
@@ -444,7 +444,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 else
 
   select case (key)
-  case (sbend$)
+  case (sbend$, rf_bend$)
     angle = leng * ele%value(g$)
     chord_len = 2 * ele%value(rho$) * sin(angle/2)
   case (multipole$)

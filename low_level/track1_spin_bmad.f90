@@ -102,7 +102,7 @@ elseif (temp_start%s /= temp_end%s) then
   call spline_fit_orbit (temp_start, temp_end, spline_x, spline_y)
   omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
   dir = start_orb%direction * ele%orientation * start_orb%time_dir
-  if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir, 0.0_rp]
+  if (ele%key == sbend$ .or. ele%key == rf_bend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*dir, 0.0_rp]
   call rotate_spin (omega, temp_end%spin)
 endif
 
@@ -237,7 +237,7 @@ call em_field_calc (ele, param, s2, orb, .true., field)
 ! 1 + g*x term comes from the curved coordinates.
 
 omega = spin_omega (field, orb, start_orb%direction * ele%orientation) * start_orb%time_dir
-if (ele%key == sbend$) omega = (1 + ele%value(g$) * orb%vec(1)) * omega
+if (ele%key == sbend$ .or. ele%key == rf_bend$) omega = (1 + ele%value(g$) * orb%vec(1)) * omega
 
 end function omega_func
 

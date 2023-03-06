@@ -82,7 +82,7 @@ branch_loop: do ib = 0, ubound(lat%branch, 1)
     weight = 0 
     do ie = 1, branch%n_ele_track
       ele => branch%ele(ie)
-      if (ele%key /= sbend$) cycle
+      if (ele%key /= sbend$ .and. ele%key /= rf_bend$) cycle
       pz_ave = pz_ave + 0.5_rp * ele%value(angle$) * (closed_orb(ie-1)%vec(6) + closed_orb(ie)%vec(6))
       weight = weight + ele%value(angle$)
     enddo

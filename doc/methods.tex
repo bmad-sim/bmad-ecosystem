@@ -177,7 +177,7 @@ explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp})
 \index{drift}\index{ecollimator}\index{elseparator}\index{hkicker}
 \index{instrument}\index{kicker}\index{lcavity}\index{marker}
 \index{match}\index{monitor}\index{multipole}\index{octupole}
-\index{patch}\index{quadrupole}\index{rbend}\index{rcollimator}
+\index{patch}\index{quadrupole}\index{rbend}\index{rcollimator}\index{rf_bend}
 \index{rfcavity}\index{sbend}\index{sextupole}\index{solenoid}
 \index{sol_quad}\index{taylor}\index{vkicker}\index{wiggler}\index{capillary}
 \index{element!table of class types}
@@ -190,13 +190,11 @@ explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp})
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{Linear}\end{sideways} &
 \begin{sideways}\vn{MAD}\end{sideways} &
-\begin{sideways}\vn{Fixed_Step_Runge_Kutta}\end{sideways}
-\begin{sideways}\vn{Runge_Kutta}\end{sideways} &
+\begin{sideways}\vn{Runge_Kutta$^d$}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways} &
-\begin{sideways}\vn{Fixed_Step_Time_Runge_Kutta}\end{sideways}
-\begin{sideways}\vn{Time_Runge_Kutta}\end{sideways}
+\begin{sideways}\vn{Time_Runge_Kutta$^d$}\end{sideways}
 \\ \midrule
 %                               BS   C   L   M   RK    SLB   SLP    T   TRK
   \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &    \\  
@@ -221,12 +219,12 @@ explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp})
   \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
   \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &    \\  
   \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
-  \vn{patch}                   & D & X &   &   &X$^{c,d}$
-                                                     &     &  X  &  X  &    \\ 
+  \vn{patch}                   & D & X &   &   &X$^c$&     &  X  &  X  &    \\ 
   \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
   \vn{rbend}                   & D & X & X & X &     &     &  X  &  X  &    \\ 
   \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
-  \vn{rfcavity}                & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
+  \vn{rf_bend}                 &   & X & X &   &  X  &     &     &     & X  \\
+  \vn{rfcavity}                & D & X & X & X &  D  &     &  X  &  X  & X  \\ 
   \vn{sad_mult}                & D & X & X &   &     &     &  X  &  X  &    \\
   \vn{sbend}                   & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
   \vn{sextupole}               & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
@@ -235,11 +233,12 @@ explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp})
   \vn{taylor}                  &   & X & X &   &     &     &  X  &  D  &    \\ 
   \vn{vkicker}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
   \vn{wiggler} (map type)      &   & X & X &   &  X  &  X  &  X  &  X  & X  \\
-  \vn{wiggler} (periodic type) & D & X & X &   &X$^b$&X$^b$&X$^b$&D$^b$&    \\ \bottomrule
+  \vn{wiggler} (periodic type) & D & X & X &   &X$^b$&X$^b$&X$^b$&D$^b$&    \\ 
+  \bottomrule
   \multicolumn{10}{l}{$^a$Only if the beginning energy is non-zero.}        \\
   \multicolumn{10}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}  \\
   \multicolumn{10}{l}{$^c$Only available for non-reflection patch elements.}\\
-  \multicolumn{10}{l}{$^d$Fixed_step_runge_kutta not available.}
+  \multicolumn{10}{l}{$^d$Includes fixed step versions.}                    \\
 \end{tabular}
 }
 \caption[Table of available tracking_method switches for charged particle tracking.] { 
@@ -377,7 +376,7 @@ sets the six deltas used for displacing the initial particle coordinates from th
 \index{patch}\index{quadrupole}\index{rbend}\index{rcollimator}
 \index{rfcavity}\index{sbend}\index{sextupole}\index{solenoid}
 \index{sol_quad}\index{taylor}\index{vkicker}\index{wiggler}
-\index{crystal}\index{capillary}
+\index{crystal}\index{capillary}\index{rf_bend}
 \begin{table}[pth]
 \centering {
 \begin{tabular}{lcccccccc} \toprule
@@ -418,6 +417,7 @@ sets the six deltas used for displacing the initial particle coordinates from th
   \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  & X \\ 
   \vn{rbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{rcollimator}             & D & X &   & X &     &  X  &  X  & X \\ 
+  \vn{rf_bend}                 & D & X &   & X &     &     &     & X \\
   \vn{rfcavity}                & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{sad_mult}                & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{sbend}                   & D & X & X & X &     &  X  &  X  & X \\ 

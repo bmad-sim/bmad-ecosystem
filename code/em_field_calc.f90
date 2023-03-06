@@ -1048,7 +1048,7 @@ case(fieldmap$)
       !
 
       fld = fld * ct_map%field_scale * master_parameter_value(ct_map%master_parameter, ele)
-      if (ele%key == sbend$) call restore_curvilinear_field(fld)
+      if (ele%key == sbend$ .or. ele%key == rf_bend$) call restore_curvilinear_field(fld)
 
       select case (ct_map%field_type)
       case (electric$)
@@ -1061,7 +1061,7 @@ case(fieldmap$)
 
       if (do_df_calc) then
         dfld = dfld * ct_map%field_scale * master_parameter_value(ct_map%master_parameter, ele)
-        if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
+        if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. ele%value(g$) /= 0) then
           rot2(1,:) = [ cos_ang, sin_ang]
           rot2(2,:) = [-sin_ang, cos_ang]
           dfld(1:3:2,1:3:2) = matmul(dfld(1:3:2,1:3:2), rot2)
@@ -1248,7 +1248,7 @@ case(fieldmap$)
       mode_field%E = coef * [cos(phi) * Er - sin(phi) * Ep, sin(phi) * Er + cos(phi) * Ep, Ez]
       mode_field%B = coef * [cos(phi) * Br - sin(phi) * Bp, sin(phi) * Br + cos(phi) * Bp, Bz]
 
-      if (ele%key == sbend$) call restore_curvilinear_field(mode_field%E, mode_field%B)
+      if (ele%key == sbend$ .or. ele%key == rf_bend$) call restore_curvilinear_field(mode_field%E, mode_field%B)
 
       field%E = field%E + mode_field%E
       field%B = field%B + mode_field%B
@@ -1387,7 +1387,7 @@ case(fieldmap$)
         return
       end select
       
-      if (ele%key == sbend$ .and. .not. g_field%curved_ref_frame) call restore_curvilinear_field(mode_field%E, mode_field%B)
+      if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. .not. g_field%curved_ref_frame) call restore_curvilinear_field(mode_field%E, mode_field%B)
 
       field%E = field%E + mode_field%E
       field%B = field%B + mode_field%B
@@ -1522,7 +1522,7 @@ logical forward_transform
 
 !
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat)
   theta = ele%value(g$) * s_here - ele%value(angle$)/2
   w_s = w_mat_for_x_pitch (theta)
