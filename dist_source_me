@@ -310,7 +310,6 @@ func_add_bmad_path () {
     BMAD_LIB_PROD_PATH=${DIST_BASE_DIR}/production/lib
     BMAD_LIB_DEBUG_PATH=${DIST_BASE_DIR}/debug/lib
 
-    PATH_FOUND=0
     USER_PATH=${PATH}
     USER_PATH_LIST=$(echo ${USER_PATH} | sed s/:/\ /g)
 
@@ -318,6 +317,7 @@ func_add_bmad_path () {
 
     for BMAD_DIR in ${BMAD_DIRS[@]}
     do
+        PATH_FOUND=0    # See RT #65937
         for DIR in ${USER_PATH_LIST}
         do
             if ( [ "${DIR}" == "${BMAD_DIR}" ] ) ; then 
