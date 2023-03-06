@@ -110,7 +110,7 @@ do igf = 1, size(g_field)
   call hdf5_write_attribute_int(b2_id,     'gridLowerBound',       lbound(gptr), err)
   call hdf5_write_attribute_int(b2_id,     'gridSize',             shape(gptr), err)
 
-  if (ele%key == sbend$ .and. gf%curved_ref_frame) then
+  if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. gf%curved_ref_frame) then
     call hdf5_write_attribute_real(b2_id,     'gridCurvatureRadius',       ele%value(rho$), err)
   else
     call hdf5_write_attribute_real(b2_id,     'gridCurvatureRadius',       0.0_rp, err)

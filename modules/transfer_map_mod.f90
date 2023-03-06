@@ -233,7 +233,7 @@ do
 
     if (.not. global_com%mp_threading_is_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
       create_it = .true.
-    elseif (ele%key == sbend$) then
+    elseif (ele%key == sbend$ .or. ele%key == rf_bend$) then
       if (track_upstream_end .or. track_downstream_end .or. old_track_end) create_it = .true.
     elseif (.not. ele_has_constant_ds_dt_ref(ele)) then
       create_it = .true.

@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 292
+integer, parameter :: bmad_inc_version$ = 293
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1604,11 +1604,11 @@ integer, parameter :: radius$ = 3, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
-integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3, repetition_frequency$ = 3
+integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
-integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
-integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4
-integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5, rf_wavelength$ = 5
+integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
+integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
+integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
 integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
@@ -1622,8 +1622,8 @@ integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
 integer, parameter :: darwin_width_pi$ = 12
 integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
 integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
-integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15
-integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16
+integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15, rf_frequency$ = 15
+integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16, rf_wavelength$ = 16
 integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
@@ -1632,7 +1632,7 @@ integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, constant_ref_energy$ = 
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
-integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, dt_max$ = 22
+integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: phi0_max$ = 22, beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23

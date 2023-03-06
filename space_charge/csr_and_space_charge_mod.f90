@@ -1507,7 +1507,7 @@ real(rp) s_ref, s_chord, dtheta, dr(3), x, g, t
 ele => eleinfo%ele
 g = ele%value(g$)
 
-if (ele%key == sbend$ .and. abs(g) > 1d-5) then
+if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. abs(g) > 1d-5) then
   dtheta = eleinfo%floor0%theta - eleinfo%e_floor0%theta
   dr = eleinfo%e_floor0%r - eleinfo%floor0%r
   t = eleinfo%e_floor0%theta + pi/2
@@ -1532,7 +1532,7 @@ end function s_ref_to_s_chord
 !+
 ! Subroutine track1_bunch_csr3d (bunch, ele, centroid, err, bunch_track)
 !
-! EXPERIMENTAL
+! EXPERIMENTAL. NOT CURRENTLY OPERATIONAL!
 !
 ! Routine to track a bunch of particles through an element using
 ! steady-state 3D CSR.
@@ -1584,6 +1584,8 @@ integer i, j, n, ie, ns, nb, n_step, n_live, i_step
 
 character(*), parameter :: r_name = 'track1_bunch_csr3d'
 logical err, auto_bookkeeper, err_flag, parallel0, parallel1
+
+! EXPERIMENTAL. NOT CURRENTLY OPERATIONAL!
 
 ! Init
 

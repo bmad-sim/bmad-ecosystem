@@ -725,7 +725,7 @@ E_force = charge_of(orbit%species) * field%E
 B_force = charge_of(orbit%species) * cross_product(vel, field%B)
 
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   g_bend = ele%value(g$)
   dh_bend = orbit%vec(1) * g_bend
 else
@@ -755,7 +755,7 @@ dr_ds(11) = dt_ds_ref
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
   dr_ds(8:10) = rel_dir * (1 + dh_bend) * spin_omega (field, orbit, rel_dir)
-  if (ele%key == sbend$) dr_ds(8:10) = dr_ds(8:10) + [0.0_rp, g_bend, 0.0_rp]
+  if (ele%key == sbend$ .or. ele%key == rf_bend$) dr_ds(8:10) = dr_ds(8:10) + [0.0_rp, g_bend, 0.0_rp]
 else
   dr_ds(8:10) = 0
 endif

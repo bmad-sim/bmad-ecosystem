@@ -653,7 +653,7 @@ do
 
   ! If the bend has a roll then put kicker elements just before and just after
 
-  if (ele%key == sbend$ .and. val(roll$) /= 0) then
+  if ((ele%key == sbend$) .and. val(roll$) /= 0) then
     j_count = j_count + 1
     write (kicker_ele%name,   '(a, i0)') 'ROLL_Z', j_count
     kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2

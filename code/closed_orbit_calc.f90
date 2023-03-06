@@ -674,7 +674,13 @@ if (dir == 1) then
   if (make_mat6) call lat_make_mat6 (branch%lat, -1, closed_orb, branch%ix_branch)
   call transfer_matrix_calc (branch%lat, t1, ix_branch = branch%ix_branch)
   if (all(t1 == 0)) then ! Something is really wrong so try a hard reset of t1 around the zero orbit.
-    call lat_make_mat6 (branch%lat, -1, ix_branch = branch%ix_branch)
+    call lat_make_mat6 (branch%lat, -1, ix_branch = branch%ix_branch, err_flag = err)
+    if (err) then
+      call out_io (s_error$, r_name, 'PARTICLE LOST. NO CLOSED ORBIT CALCULATED.', &
+                                     'USING BRANCH: ' // branch_name(branch))
+      if (logic_option(.true., cleanup_on_err)) call end_cleanup(branch, .true.)
+      return
+    endif
     call transfer_matrix_calc (branch%lat, t1, ix_branch = branch%ix_branch)
   endif
 
@@ -689,6 +695,7 @@ else
     call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch, track_state)
     if (track_state /= moving_forward$) then 
       call out_io (s_error$, r_name, 'PARTICLE LOST TRACKING BACKWARDS. [POSSIBLE CAUSE: WRONG PARTICLE SPECIES.]', &
+                                     'NO CLOSED ORBIT CALCULATED.', &
                                      'USING BRANCH: ' // branch_name(branch))
       if (logic_option(.true., cleanup_on_err)) call end_cleanup(branch, .true.)
       err = .true.

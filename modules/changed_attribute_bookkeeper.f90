@@ -681,7 +681,7 @@ case (sad_mult$)
 
 ! Sbend
 
-case (sbend$)
+case (sbend$, rf_bend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
       associated(a_ptr, ele%value(rho$)) .or. associated(a_ptr, ele%value(b_field$))) then
     call set_ele_status_stale (ele, floor_position_group$)

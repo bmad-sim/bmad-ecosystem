@@ -349,7 +349,7 @@ rad_map = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
 rad_map%ref_orb = orb_out%vec
 
 if (ele%value(l$) == 0 .or. (orb_out%vec(2) == orb_in%vec(2) .and. &
-                             orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$)) return
+            orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$ .and. ele%key /= rf_bend$)) return
 
 !
 
@@ -434,7 +434,7 @@ enddo
 
 ! Add bend edge if needed
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   if (ele%orientation == 1) then
     call add_bend_edge_to_damp_mat(damp_dmat1, ele, ele%value(e1$), orb0)
     call add_bend_edge_to_damp_mat(damp_dmat1, ele, ele%value(e2$), orb_end, mat_end)
@@ -496,7 +496,7 @@ g3 = g1 * g2
 dg2_dx = 2 * dot_product(g, dg(:,1))
 dg2_dy = 2 * dot_product(g, dg(:,2))
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   g1 = g1 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
   g2 = g2 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
   g3 = g3 * (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
@@ -624,7 +624,7 @@ logical include_opening_angle, save_orb_mat
 int_g = 0;  int_g2 = 0;  int_g3 = 0 
 
 if (ele%value(l$) == 0 .or. (orb_out%vec(2) == orb_in%vec(2) .and. &
-                             orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$)) return
+           orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$ .and. ele%key /= rf_bend$)) return
 
 !
 
@@ -711,7 +711,7 @@ enddo
 ! Add bend edge if needed
 ! And rotate to laboratory coords
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   if (ele%orientation == 1) then
     if (s0 == 0)             call add_bend_edge_to_ints(int_g, int_g2, int_g3, ele, ele%value(e1$), orb0)
     if (s1 == ele%value(l$)) call add_bend_edge_to_ints(int_g, int_g2, int_g3, ele, ele%value(e2$), orb_end)
@@ -768,7 +768,7 @@ call g_bending_strength_from_em_field (ele, ele%branch%param, z_pos, orbz, .true
 g2 = sum(g_vec * g_vec)
 g3 = sqrt(g2)**3
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   f = (1 + ele%value(g$) * orb0%vec(1))  ! Variation in path length effect
   g_vec = g_vec * f
   g2 = g2 * f

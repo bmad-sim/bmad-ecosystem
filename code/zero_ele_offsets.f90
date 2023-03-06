@@ -24,7 +24,7 @@ type (ele_struct) ele
 if (.not. has_orientation_attributes(ele)) return
 
 select case (ele%key)
-case (sbend$)
+case (sbend$, rf_bend$)
   ele%value(roll$) = 0
   ele%value(roll_tot$) = 0
   ele%value(ref_tilt$) = 0

@@ -46,7 +46,7 @@ integer, optional :: relative_to
 ! In all cases remember that ele%floor is the downstream floor coords independent of ele%orientation
 ! sbend case.
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   g = ele%value(g$); ref_tilt = ele%value(ref_tilt_tot$)
   local_position = coords_floor_to_relative (ele%floor, global_position)
 

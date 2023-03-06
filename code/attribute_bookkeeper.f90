@@ -439,6 +439,12 @@ case (crystal$, multilayer_mirror$, mirror$, detector$, sample$, diffraction_pla
 ! E_Gun
 
 case (e_gun$)
+  if (val(rf_frequency$) /= 0) then
+    val(rf_wavelength$) = c_light / val(rf_frequency$)
+  else
+    val(rf_wavelength$) = 0
+  endif
+
   if (ele%lord_status /= multipass_lord$) then
     if (val(gradient$) /= ele%old_value(gradient$) .or. val(l$) /= ele%old_value(l$)) then
       call set_ele_status_stale (ele, ref_energy_group$)
@@ -471,6 +477,15 @@ case (elseparator$)
       val(e_field$) = sqrt(val(hkick$)**2 + val(vkick$)**2) * e_factor / val(l$)
       val(voltage$) = val(e_field$) * val(gap$) 
     endif
+  endif
+
+! EM_field
+
+case (em_field$)
+  if (val(rf_frequency$) /= 0) then
+    val(rf_wavelength$) = c_light / val(rf_frequency$)
+  else
+    val(rf_wavelength$) = 0
   endif
 
 ! Lcavity

@@ -89,7 +89,7 @@ else
 
   if (logic_option(.false., in_body_frame)) then  ! General geometry with possible misalignments
     p = coords_body_to_local(p, ele1, w_mat = S_mat)
-    if (ele1%key == sbend$) then
+    if (ele1%key == sbend$ .or. ele1%key == rf_bend$) then
       ds = ele1%value(L$)-p%r(3)
       p%r(3) = 0
       p = bend_shift (p, ele%value(g$), ds, sm2, ele1%value(ref_tilt_tot$))
@@ -97,7 +97,7 @@ else
       p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit.
     endif
    
-  elseif (ele1%key == sbend$) then  ! Curved geometry, no misalignments. Get relative to ele's exit end.
+  elseif (ele1%key == sbend$ .or. ele1%key == sbend$) then  ! Curved geometry, no misalignments. Get relative to ele's exit end.
     z = p%r(3)
     p%r(3) = 0
     p = bend_shift(p, ele1%value(g$), ele1%value(L$) - z, w_mat = S_mat, ref_tilt = ele1%value(ref_tilt_tot$))
@@ -125,7 +125,7 @@ global_position%w = matmul(matmul(floor0%w, p%w), local_position%w)
 if (logic_option(.true., calculate_angles)) then
   ! Note: Only floor0%theta angle is needed for calc.
   fl = ele1%floor
-  if (ele1%key == sbend$) call ele_geometry(fl, ele1, fl, -0.5_rp)
+  if (ele1%key == sbend$ .or. ele1%key == sbend$) call ele_geometry(fl, ele1, fl, -0.5_rp)
   call update_floor_angles(global_position, fl)
 else
   global_position%theta = 0

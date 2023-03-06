@@ -650,7 +650,7 @@ end select
 
 select case (word)
 case ('TILT')
-  if (ele%key == sbend$ .or. ele%key == rbend$) then
+  if (ele%key == sbend$ .or. ele%key == rbend$ .or. ele%key == rf_bend$) then
     call parser_error ('BENDS HAVE A "REF_TILT" ATTRIBUTE BUT NOT A "TILT" ATTRIBUTE.')
   endif
 
@@ -6848,7 +6848,7 @@ case (beginning_ele$)
 ! Needed is the length and either: angle, G, or rho.
 ! Note: l -> l_chord for rbends has already been done.
 
-case (sbend$, rbend$) 
+case (sbend$, rbend$, rf_bend$) 
 
   b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(db_field$) /= 0)
   g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
@@ -6925,8 +6925,10 @@ case (sbend$, rbend$)
   ! If fintx or hgapx are real_garbage then they have not been set.
   ! If so, set their valuse to fint and hgap.
 
-  if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
-  if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
+  if (ele%key /= rf_bend$) then
+    if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
+    if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
+  endif
 
 !------------------
 ! Accept use of Voltage for lcavities and vary the mode frequencies.

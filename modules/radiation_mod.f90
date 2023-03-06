@@ -197,7 +197,7 @@ endif
 !
 
 if (all(ref_orb_in%vec(2:4:2) == ref_orb_out%vec(2:4:2)) .and. &
-        ele%key /= sbend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$) then
+        ele%key /= sbend$ .and. ele%key /= rf_bend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$) then
   ele%rad_map%rm0%ref_orb = ref_orb_in%vec
   ele%rad_map%rm1%ref_orb = ref_orb_out%vec
   return

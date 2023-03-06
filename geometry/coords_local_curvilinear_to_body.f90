@@ -40,7 +40,7 @@ select case (ele%key)
 case (patch$)
   if (present(w_mat)) call mat_make_unit(w_mat)
 
-case (sbend$)
+case (sbend$, rf_bend$)
   ! Get coords relative to center
   g = ele%value(g$)
   ref_tilt = ele%value(ref_tilt_tot$)

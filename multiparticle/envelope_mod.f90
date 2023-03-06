@@ -97,7 +97,7 @@ real(rp) l, gamma, g_tot
 integer i
 
 M0 = ele%mat6
-if(any(ele%key==[sbend$,rbend$])) then
+if(any(ele%key==[sbend$,rbend$,rf_bend$])) then
   l = ele%value(l$)
   call convert_total_energy_to(ele%value(E_TOT$), ele%ref_species, gamma)
   g_tot = ele%value(g$) + ele%value(dg$)
@@ -197,7 +197,7 @@ type(ele_struct) ele
 real(rp) Sigma_exit(6,6), Sigma_ent(6,6)
 real(rp) M(:,:), Bone(:,:), Yone(:,:)
 
-if(any(ele%key==[sbend$,rbend$])) then
+if(any(ele%key==[sbend$,rbend$,rf_bend$])) then
   Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bone + Yone
 else
   Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6))) + Yone
@@ -247,7 +247,7 @@ logical tail_cut
 
 call beam_envelope_ibs(Sigma_ent, ibs_mat, tail_cut, tau, ele%value(E_TOT$), n_part, species)
 
-if(any(ele%key==[sbend$,rbend$])) then
+if(any(ele%key==[sbend$,rbend$,rf_bend$])) then
   Sigma_exit = matmul(M,matmul(Sigma_ent,transpose(M))) + Bone + Yone + ibs_mat*ele%value(l$) 
 else
   Sigma_exit = matmul(ele%mat6,matmul(Sigma_ent,transpose(ele%mat6))) + Yone + ibs_mat*ele%value(l$)
@@ -451,7 +451,7 @@ do i=1, size(eles)
   vv = matmul(vv, mat_symp_conj(eles(i)%mat6))
   vvinv = matmul(eles(i)%mat6, vvinv)
 
-  if(any(eles(i)%key==[sbend$, rbend$])) then
+  if(any(eles(i)%key==[sbend$, rbend$, rf_bend$])) then
     call convert_total_energy_to(eles(i)%value(E_TOT$), eles(i)%ref_species, gamma)
     delta = coos(i)%vec(6)
     g_tot = eles(i)%value(g$) + eles(i)%value(dg$)

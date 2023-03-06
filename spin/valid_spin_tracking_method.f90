@@ -48,7 +48,7 @@ case (crab_cavity$)
     is_valid = .true.
   end select
 
-case (custom$)
+case (custom$, rf_bend$)
   select case (spin_tracking_method)
   case (tracking$, custom$)
     is_valid = .true.

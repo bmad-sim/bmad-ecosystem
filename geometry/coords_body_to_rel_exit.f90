@@ -37,7 +37,7 @@ logical, optional :: calculate_angles
 rel_exit = body_position
 s = body_position%r(3)
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   ! Get coords relative to center
   theta = ele%value(g$)*s
 

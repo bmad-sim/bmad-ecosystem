@@ -733,7 +733,7 @@ dvec_dt(6) = c_light*force(3)
 
 ! Curvilinear coordinates have added terms
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   h = 1 + ele%value(g$) * orbit%vec(1)
   dvec_dt(2) = dvec_dt(2) + orbit%vec(6) * vel(3) * ele%value(g$) / h
   dvec_dt(5) = vel(3) / h
@@ -773,7 +773,7 @@ endif
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   dvec_dt(7:9) = spin_omega (field, orbit, 0, .false.)
-  if (ele%key == sbend$) dvec_dt(7:9) = dvec_dt(7:9) + [0.0_rp, ele%value(g$), 0.0_rp] * vel(3) / h
+  if (ele%key == sbend$ .or. ele%key == rf_bend$) dvec_dt(7:9) = dvec_dt(7:9) + [0.0_rp, ele%value(g$), 0.0_rp] * vel(3) / h
 else
   dvec_dt(7:9) = 0
 endif

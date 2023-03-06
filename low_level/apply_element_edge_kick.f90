@@ -127,6 +127,10 @@ endif
 
 if (hard_ele_field_calc /= bmad_standard$ .and. hard_ele%tracking_method /= bmad_standard$) then
   call em_field_calc(hard_ele, param, s_edge, orb, .true., field, .false., err_flag, .true.)
+  if (err_flag) then
+    orb%state = lost$
+    return
+  endif
   ff = at_sign * charge_of(orb%species) 
   fac = ff * c_light / orb%p0c
 
@@ -181,6 +185,10 @@ case (sextupole$)
 
 case (sbend$)
   call bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix, track_spn)
+
+case (rf_bend$)
+  call out_io (s_fatal$, r_name, 'BMAD BOOKKEEPING ERROR. PLEASE REPORT THIS.')
+  stop
 
 ! Sad_mult edge fields are 
 

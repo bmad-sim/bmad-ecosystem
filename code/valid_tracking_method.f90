@@ -241,6 +241,12 @@ case (rcollimator$)
     is_valid = .true.
   end select
 
+case (rf_bend$)
+  select case (method)
+  case (runge_kutta$, time_runge_kutta$, custom$)
+    is_valid = .true.
+  end select
+
 case (rfcavity$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, mad$, time_runge_kutta$, custom$)

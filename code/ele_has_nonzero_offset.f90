@@ -25,7 +25,7 @@ has_offset = .false.
 if (.not. has_orientation_attributes(ele)) return
 
 select case (ele%key)
-case (sbend$)
+case (sbend$, rf_bend$)
   if (ele%value(roll_tot$) /= 0) has_offset = .true.
   if (ele%value(ref_tilt_tot$) /= 0) has_offset = .true.
 case (mirror$, multilayer_mirror$, crystal$)

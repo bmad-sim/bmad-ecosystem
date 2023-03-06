@@ -720,7 +720,7 @@ abs_tol(3) = bmad_com%significant_length/c_light
 energy_stale = ele_value_has_changed(ele, [p0c$, e_tot$, delta_ref_time$], abs_tol, .false.)
 if (energy_stale.or. ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_state%floor_position /= ok$) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
-  if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
+  if (ele%slave_status == super_slave$ .and. (ele%key == sbend$ .or. ele%key == rf_bend$)) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       lord%value(e_tot$) = ele%value(e_tot$); lord%value(e_tot_start$) = ele%value(e_tot_start$)

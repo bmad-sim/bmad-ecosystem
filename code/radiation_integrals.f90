@@ -276,7 +276,7 @@ if (use_cache .or. init_cache) then
 
     select case (ele%key)
     case (wiggler$, undulator$, em_field$)
-    case (quadrupole$, sol_quad$, sbend$, sad_mult$, hkicker$, vkicker$)
+    case (quadrupole$, sol_quad$, sbend$, rf_bend$, sad_mult$, hkicker$, vkicker$)
       if (cache_only_wig) cycle
     case default
       if (cache_only_wig) cycle
@@ -444,7 +444,7 @@ do ir = 1, branch%n_ele_track
   if (ele%key == patch$) cycle
   if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0 .and. &
           ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. ele%key /= sbend$ .and. &
-          ele%key /= hkicker$ .and. ele%key /= vkicker$) cycle
+          ele%key /= rf_bend$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$) cycle
 
   ! All other elements
 
@@ -461,6 +461,11 @@ do ir = 1, branch%n_ele_track
     call propagate_part_way (orbit(ir-1), branch%param, pt, ri_info, ll, runt)
     rad_int1%i4a = rad_int1%i4a - g2 * tan(ele%value(e2$)) * (ri_info%eta_a(1) * cos(theta) + ri_info%eta_a(3) * sin(theta))
     rad_int1%i4b = rad_int1%i4b - g2 * tan(ele%value(e2$)) * (ri_info%eta_b(1) * cos(theta) + ri_info%eta_b(3) * sin(theta))
+  elseif (ele%key == rf_bend$) then
+    theta = ele%value(ref_tilt_tot$)
+    pt%g_x0 = cos(theta) * ele%value(g$)
+    pt%g_y0 = sin(theta) * ele%value(g$)
+    g2 = ele%value(g$)**2
   endif
 
   ! Integrate for quads, bends and nonzero kicks
@@ -712,7 +717,7 @@ else
   c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
 
-  if (ele2%key == sbend$) then
+  if (ele2%key == sbend$ .or. ele2%key == rf_bend$) then
     c_pt%g_x0 = c_pt%g_x0 + ele2%value(g$) * cos(ele2%value(ref_tilt$))
     c_pt%g_y0 = c_pt%g_y0 + ele2%value(g$) * sin(ele2%value(ref_tilt$))
   endif

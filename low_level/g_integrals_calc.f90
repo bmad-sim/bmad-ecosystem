@@ -43,7 +43,7 @@ do ib = 0, ubound(lat%branch, 1)
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
     select case (ele%key)
-    case (sbend$)
+    case (sbend$, rf_bend$)
       g = ele%value(g$)
       p%g1_integral = p%g1_integral + g    * ele%value(l$) 
       p%g2_integral = p%g2_integral + g**2 * ele%value(l$) 

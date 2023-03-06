@@ -22,17 +22,18 @@ available in \bmad.
   E_Gun             & \ref{s:e.gun}       &  Quadrupole        & \ref{s:quad}     \\
   Ecollimator       & \ref{s:col}         &  Rbend             & \ref{s:bend}     \\
   ElSeparator       & \ref{s:elsep}       &  Rcollimator       & \ref{s:col}      \\
-  EM_Field          & \ref{s:em.field}    &  RFcavity          & \ref{s:rfcav}    \\
-  Fiducial          & \ref{s:fiducial}    &  Sad_Mult          & \ref{s:sad.mult} \\
-  Floor_Shift       & \ref{s:floor.ele}   &  Sbend             & \ref{s:bend}     \\
-  Fork              & \ref{s:fork}        &  Sextupole         & \ref{s:sex}      \\
-  HKicker           & \ref{s:hvkicker}    &  Sol_Quad          & \ref{s:sq}       \\
-  Hybrid            & \ref{s:hybrid}      &  Solenoid          & \ref{s:sol}      \\
-  Instrument        & \ref{s:monitor}     &  Taylor            & \ref{s:taylor}   \\
-  Kicker            & \ref{s:kicker}      &  Undulator         & \ref{s:wiggler}  \\
-  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \\  
-  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \\
-  Mask              & \ref{s:mask}        &                    &                  \\ \bottomrule
+  EM_Field          & \ref{s:em.field}    &  RF_bend           & \ref{s:rf.bend}  \\
+  Fiducial          & \ref{s:fiducial}    &  RFcavity          & \ref{s:rfcav}    \\
+  Floor_Shift       & \ref{s:floor.ele}   &  Sad_Mult          & \ref{s:sad.mult} \\
+  Fork              & \ref{s:fork}        &  Sbend             & \ref{s:bend}     \\
+  HKicker           & \ref{s:hvkicker}    &  Sextupole         & \ref{s:sex}      \\
+  Hybrid            & \ref{s:hybrid}      &  Sol_Quad          & \ref{s:sq}       \\
+  Instrument        & \ref{s:monitor}     &  Solenoid          & \ref{s:sol}      \\
+  Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \\
+  Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \\
+  Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \\  
+  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\
+  \bottomrule
 \end{tabular}
 }
 \caption{Table of element types suitable for use with charged particles.}
@@ -68,7 +69,8 @@ use.
   Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \\
   Fork               & \ref{s:fork}          &  Rcollimator        & \ref{s:col}        \\
   Instrument         & \ref{s:monitor}       &  Sample             & \ref{s:sample}     \\
-  Lens               & \ref{s:lens}          &                     &                    \\ \bottomrule
+  Lens               & \ref{s:lens}          &                     &                    \\ 
+  \bottomrule
 \end{tabular}
 }
 \caption{Table of element types suitable for use with photons.}
@@ -4095,14 +4097,71 @@ be found at:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{RF_bend}
+\label{s:rf.bend}
+\index{rf_bend|hyperbf}
+
+An \vn{rf_bend} is an RF cavity with the geometry of an \vn{sbend} (\sref{s:bend}). This element is
+currently considered to be experimental so please contact a \bmad maintainer if you want to use this
+type of element.
+
+General \vn{rfcavity} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section            & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Chamber wall               & \ref{s:wall}       & Overlapping Fields         & \ref{s:overlap}    \\
+  Custom Attributes          & \ref{s:cust.att}   & Reference energy           & \ref{s:energy}     \\ 
+  Description strings        & \ref{s:alias}      & Superposition              & \ref{s:super}      \\
+  Symplectify                & \ref{s:symp}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Integration settings       & \ref{s:integ}      & Tracking \& transfer map   & \ref{c:methods}    \\
+  Is_on                      & \ref{s:is.on}      & Wakes                      & \ref{s:wakes}      \\
+  Length                     & \ref{s:l}          &                            &                    \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.rf.bend} for a full list of element attributes along with a their units.
+
+\index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{phi0_multipass}
+Attributes specific to an \vn{rf_bend} are:
+\begin{example}
+  ! Bend-like attributes:
+  angle              = <Real>   ! Design bend angle. Settable dependent var (\sref{s:depend}).
+  b_field            = <Real>   ! Design field strength (= P_0 g / q) (\sref{s:depend}).
+  g                  = <Real>   ! Design bend strength (= 1/rho).
+  l                  = <Real>   ! "Length" of bend. See below.
+  l_arc              = <Real>   ! Arc length. For \vn{rbend}s only. 
+  l_chord            = <Real>   ! Chord length. See \sref{s:l}.
+  l_sagitta                     ! Sagittal length. Dependent param (\sref{s:depend}).
+  rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
+  roll               = <Real>   ! See \ref{s:offset}.
+  field_master       = <T/F>    ! See \ref{s:field.master}.
+
+  ! RF-like attributes:
+  rf_frequency    = <Real>    ! Frequency
+  harmon          = <Real>    ! Harmonic number
+  phi0            = <Real>    ! Cavity phase (rad/2pi).
+  phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
+\end{example}
+
+Tracking through an \vn{rf_bend} is limited to Runge Kutta like tracking methods (\sref{s:tkm}) the
+default being \vn{runge_kutta}. Fields must be specified using a grid field map (\sref{s:fieldmap}).
+
+The geometry of the \vn{rf_bend} is the same as an \vn{sbend}. An \vn{rf_bend} has a sector shape
+which is equivalent to \vn{e1} and \vn{e2} being zero for an \vn{sbend}. Since the fields are specified
+using a grid field map, there are no fringe attributes to set (for any elements where a grid field is
+used, it is always assumed that the fringe fields are included as part of the grid field).
+
+%-----------------------------------------------------------------
 \section{RFcavity}
 \label{s:rfcav}
 \index{rfcavity|hyperbf}
 
-An \vn{rfcavity} is an RF cavity without acceleration generally used
-in a storage ring. The main difference between an \vn{rfcavity} and an
-\vn{lcavity} is that, unlike an \vn{lcavity}, the reference energy
-(\sref{s:phase.space}) through an \vn{rfcavity} is constant.
+An \vn{rfcavity} is an RF cavity without acceleration generally used in a storage ring. The main
+difference between an \vn{rfcavity} and an \vn{lcavity} is that, unlike an \vn{lcavity}, the
+reference energy (\sref{s:phase.space}) through an \vn{rfcavity} is constant.
 
 General \vn{rfcavity} attributes are:
 \begin{center}
