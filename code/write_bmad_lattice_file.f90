@@ -555,11 +555,11 @@ do ib = 0, ubound(lat%branch, 1)
 
         elseif (ix_ptr > 0) then  ! A file has been created so refer to that
 
-          call form_this_field_map_name(string, '.cartesian_map', ele2, ix_ptr, ascii$)
+          call form_this_fieldmap_name(string, '.cartesian_map', ele2, ix_ptr, ascii$)
           write (line, '(3a)')  trim(line), ', cartesian_map = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.cartesian_map', ele, im, ascii$)
+          call form_this_fieldmap_name(string, '.cartesian_map', ele, im, ascii$)
           line = trim(line) // ', cartesian_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
@@ -584,11 +584,11 @@ do ib = 0, ubound(lat%branch, 1)
           call write_this_cylindrical_map (cl_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_field_map_name(string, '.cylindrical_map', ele2, ix_ptr, ascii$)
+          call form_this_fieldmap_name(string, '.cylindrical_map', ele2, ix_ptr, ascii$)
           write (line, '(3a)')  trim(line), ', cylindrical_map = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.cylindrical_map', ele, im, ascii$)
+          call form_this_fieldmap_name(string, '.cylindrical_map', ele, im, ascii$)
           line = trim(line) // ', cylindrical_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
@@ -614,11 +614,11 @@ do ib = 0, ubound(lat%branch, 1)
           call write_this_gen_grad_map_map (gg_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_field_map_name(string, '.gen_grad_map', ele2, ix_ptr, ascii$)
+          call form_this_fieldmap_name(string, '.gen_grad_map', ele2, ix_ptr, ascii$)
           write (line, '(3a)')  trim(line), ', gen_grad_map = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.gen_grad_map', ele, im, ascii$)
+          call form_this_fieldmap_name(string, '.gen_grad_map', ele, im, ascii$)
           line = trim(line) // ', gen_grad_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
           iu2 = lunget()
@@ -639,16 +639,16 @@ do ib = 0, ubound(lat%branch, 1)
         call find_matching_fieldmap (g_field%ptr%file, ele, grid_field$, ele2, ix_ptr, ignore_slaves = .true.) 
 
         if (integer_option(binary$, output_form) == one_file$) then
-          line = trim(line) // ', grid_field_map ='
+          line = trim(line) // ', grid_fieldmap ='
           call write_lat_line (line, iu, .true.)
-          call write_this_grid_field_map (g_field, ele, iu, line)
+          call write_this_grid_fieldmap (g_field, ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_field_map_name(string, '.grid_field', ele2, ix_ptr, output_form)
+          call form_this_fieldmap_name(string, '.grid_field', ele2, ix_ptr, output_form)
           write (line, '(3a)')  trim(line), ', grid_field = call::', trim(string)
 
         else
-          call form_this_field_map_name(string, '.grid_field', ele, im, output_form)
+          call form_this_fieldmap_name(string, '.grid_field', ele, im, output_form)
           line = trim(line) // ', grid_field = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
 
@@ -657,7 +657,7 @@ do ib = 0, ubound(lat%branch, 1)
           else
             iu2 = lunget()
             open (iu2, file = string)
-            call write_this_grid_field_map (g_field, ele, iu2)
+            call write_this_grid_fieldmap (g_field, ele, iu2)
             close (iu2)
           endif
         endif
@@ -1557,7 +1557,7 @@ end subroutine write_expand_lat_header
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine form_this_field_map_name(string, field_type, ele, ix_map, output_form)
+subroutine form_this_fieldmap_name(string, field_type, ele, ix_map, output_form)
 
 type (ele_struct) ele
 integer ix_map
@@ -1576,7 +1576,7 @@ endif
 
 if (integer_option(binary$, output_form) == binary$) string = trim(string) // '.h5'
 
-end subroutine form_this_field_map_name
+end subroutine form_this_fieldmap_name
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -1697,7 +1697,7 @@ end subroutine write_this_cylindrical_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_grid_field_map (g_field, ele, iu9, line)
+subroutine write_this_grid_fieldmap (g_field, ele, iu9, line)
 
 type (grid_field_struct) :: g_field
 type (ele_struct) ele
@@ -1771,7 +1771,7 @@ else
   write (iu9, '(a)') '}'
 endif
 
-end subroutine write_this_grid_field_map
+end subroutine write_this_grid_fieldmap
 
 !--------------------------------------------------------------------------------
 ! contains

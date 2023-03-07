@@ -5,7 +5,7 @@ use bmad_interface
 implicit none
 
 type astra_lattice_param_struct
-  integer :: field_map_dimension = 1    ! Dimensions for field map. 1 or 3
+  integer :: fieldmap_dimension = 1    ! Dimensions for field map. 1 or 3
 end type
 
 contains
@@ -98,7 +98,7 @@ do ie = ix_start, ix_end
   if (ele%lord_status == multipass_lord$) ele => pointer_to_slave (ele, 1)
   if (ele%key == solenoid$)  then
     if (id == 0) write(astra_file_unit, '(a)') '  LBfield = T'
-    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = astra_lattice_param%field_map_dimension)
+    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = astra_lattice_param%fieldmap_dimension)
   endif
 enddo
 write(astra_file_unit, '(a)') '/'
@@ -114,7 +114,7 @@ do ie = ix_start, ix_end
   if (ele%lord_status == multipass_lord$) ele => pointer_to_slave (ele, 1)
   if (ele%key == lcavity$ .or. ele%key == rfcavity$ .or. ele%key == e_gun$)  then
     if (id == 0) write(astra_file_unit, '(a)') '  LEfield = T'
-    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = astra_lattice_param%field_map_dimension)
+    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = astra_lattice_param%fieldmap_dimension)
   endif
 enddo
 write(astra_file_unit, '(a)') '/'

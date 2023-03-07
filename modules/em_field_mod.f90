@@ -53,7 +53,7 @@ end function g_bend_from_em_field
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame,
+! Subroutine to_fieldmap_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame,
 !                                                               x, y, z, cos_ang, sin_ang, err_flag)
 !
 ! Routine to return the (x,y,s) position relative to a field map.
@@ -63,7 +63,7 @@ end function g_bend_from_em_field
 !   local_orb         -- coord_struct: Particle orbit. Must be in local element coordinates.
 !   s_body            -- real(rp): Longitudinal position relative to the entrance end of the element.
 !   ele_anchor_pt     -- integer: anchor point of the field map (anchor_beginning$, anchor_center$, or anchor_end$).
-!   r0(3)             -- real(rp): origin point of the field_map.
+!   r0(3)             -- real(rp): origin point of the fieldmap.
 !   curved_ref_frame  -- logical: If the element is a bend: Does the field map follow the bend reference coords?
 !
 ! Outpt:
@@ -71,7 +71,7 @@ end function g_bend_from_em_field
 !   cos_ang, sin_ang  -- real(rp): cos and sin of coordinate rotation angle.
 !   err_flag          -- logical: Set True if there is an error. False otherwise.
 
-subroutine to_field_map_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, &
+subroutine to_fieldmap_coords (ele, local_orb, s_body, ele_anchor_pt, r0, curved_ref_frame, &
                                                                       x, y, z, cos_ang, sin_ang, err_flag)
 
 type (ele_struct) ele
@@ -82,7 +82,7 @@ integer ele_anchor_pt
 logical curved_ref_frame
 logical :: err_flag
 
-character(*), parameter :: r_name = 'to_field_map_coords'
+character(*), parameter :: r_name = 'to_fieldmap_coords'
 
 !
 
@@ -121,7 +121,7 @@ x = x - r0(1)
 y = local_orb%vec(3) - r0(2)
 z = z - r0(3)
 
-end subroutine to_field_map_coords
+end subroutine to_fieldmap_coords
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -437,7 +437,7 @@ character(40) str
 ig0 = lbound(grid%ptr%pt, ix_x)
 ig1 = ubound(grid%ptr%pt, ix_x)
 
-x_norm = x / grid%dr(ix_x)  ! Note that to_field_map_coords has already been called.
+x_norm = x / grid%dr(ix_x)  ! Note that to_fieldmap_coords has already been called.
 i0 = floor(x_norm)          ! index of lower 1 data point
 rel_x0 = x_norm - i0        ! Relative distance from lower x1 grid point
 

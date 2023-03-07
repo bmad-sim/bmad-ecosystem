@@ -595,12 +595,20 @@ case (lcavity$, e_gun$)
   if (dep_set .and. ele%value(l$) /= 0) then
     if (associated(a_ptr, ele%value(voltage$))) then
       ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
     elseif (associated(a_ptr, ele%value(voltage_err$))) then
       ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
+      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
     elseif (associated(a_ptr, ele%value(gradient$))) then
       ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
     elseif (associated(a_ptr, ele%value(gradient_err$))) then
       ele%value(voltage_err$) = ele%value(gradient_err$) * ele%value(l$)
+      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
     endif
   endif
 
@@ -709,6 +717,9 @@ case (sbend$, rf_bend$)
     elseif (associated(a_ptr, ele%value(dg$))) then
       if (dep2_set) ele%value(db_field$) = ele%value(dg$) * p0c_factor 
     endif
+
+    ele%value(g_tot$) = ele%value(g$) + ele%value(dg$)
+    ele%value(b_field_tot$) = ele%value(b_field$) + ele%value(db_field$)
   endif
 
 ! Sextupole
