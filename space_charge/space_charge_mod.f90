@@ -40,16 +40,16 @@ type (bunch_params_struct), optional :: bunch_params
 
 integer :: n, n_alive, i, imin(1)
 real(rp) :: beta, ratio, t_end
-real(rp) :: Evec(3), Bvec(3), Evec_image(3), cutoff(3)
+real(rp) :: Evec(3), Bvec(3), Evec_image(3), sigma(3)
 logical :: include_image, err
 logical, optional :: newborn(:)
 
 ! Initialize variables
 mesh3d%nhi = space_charge_com%space_charge_mesh_size
 if (present(bunch_params)) then
-  cutoff(1) = sqrt(bunch_params%sigma(1,1))
-  cutoff(2) = sqrt(bunch_params%sigma(3,3))
-  cutoff(3) = sqrt(bunch_params%sigma(5,5))
+  sigma(1) = sqrt(bunch_params%sigma(1,1))
+  sigma(2) = sqrt(bunch_params%sigma(3,3))
+  sigma(3) = sqrt(bunch_params%sigma(5,5))
 endif
 
 ! Gather particles
@@ -135,16 +135,17 @@ contains
 ! Check if a particle is too far from the bunch
 !
 function out_of_sigma_cutoff(p) result (out_of_cutoff)
-  type (coord_struct) :: p
-  logical :: out_of_cutoff
-  real(rp) :: particle_sigma_cutoff
 
-  out_of_cutoff = .false.
-  particle_sigma_cutoff = space_charge_com%particle_sigma_cutoff
-  if (particle_sigma_cutoff .le. 0) return
-  out_of_cutoff = ( abs(p%vec(1) - bunch_params%centroid%vec(1)) > cutoff(1)*particle_sigma_cutoff ) .and. &
-                  ( abs(p%vec(3) - bunch_params%centroid%vec(3)) > cutoff(2)*particle_sigma_cutoff ) .and. &
-                  ( abs(p%s - bunch_params%centroid%vec(5)) > cutoff(3)*particle_sigma_cutoff )
+type (coord_struct) :: p
+logical :: out_of_cutoff
+real(rp) :: particle_sigma_cutoff
+
+out_of_cutoff = .false.
+particle_sigma_cutoff = space_charge_com%particle_sigma_cutoff
+if (particle_sigma_cutoff .le. 0) return
+out_of_cutoff = (abs(p%vec(1) - bunch_params%centroid%vec(1)) / sigma(1) + &
+                 abs(p%vec(3) - bunch_params%centroid%vec(3)) / sigma(2) + &
+                 abs(p%s - bunch_params%centroid%vec(5)) / sigma(3) > particle_sigma_cutoff)
 
 end function out_of_sigma_cutoff
 end subroutine sc_field_calc

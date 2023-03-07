@@ -424,6 +424,7 @@ and an \vn{instance name} of \vn{space_charge_com}. This structure has component
     abs_tol_tracking = 1d-10            
     lsc_sigma_cutoff = 0.1              ! Cutoff for the lsc calc. If a bin sigma
                                         !  is < cutoff * sigma_ave then ignore.
+    particle_sigma_cutoff = -1          ! Veto particles that are far from the bench with 3D SC.
     n_bin = 0                           ! Number of bins used
     particle_bin_span = 2               ! Longitudinal particle length / dz_bin
     n_shield_images = 0                 ! Chamber wall shielding. 0 = no shielding.
@@ -473,9 +474,18 @@ resolution. \vn{n_bin} should also not be set so large that the average number o
 is too small.  ``Typical'' values are in the range 100 --- 1000.
 %
 \item{particle_bin_span} \Newline
-\vn{particle_bin_span} is the width of a particle's triangular density distribution
+The \vn{particle_bin_span} parameter is the width of a particle's triangular density distribution
 (cf.~\sref{s:csr}) in multiples of the bin width. A larger span will give better smoothing of the
 computed particle density with an attendant loss in resolution.
+%
+\item{particle_sigma_cutoff} \Newline
+The 3D space charge calculation uses a particle-in-cell algorithm. If there are halo particles far
+from the bunch center the grid spacing for the particle-in-cell may become too course. To help remidy
+this, particles far from the bunch center may be vetoed by setting \vn{particle_sigma_cutoff} to a 
+positive value. When set positive, particles will be ignored in the space charge calc when
+\begin{equation}
+  \frac{|dx|}{\sigma_x} + \frac{|dy|}{\sigma_y} + \frac{|dz|}{\sigma_z} > \text{particle_sigma_cutoff}
+\end{equation}
 %
 \item[\vn{\%space_charge_mesh_size}] \Newline
 The \vn{%space_charge_mesh_size} sets the size of the grid used when an element's

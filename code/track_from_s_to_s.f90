@@ -36,7 +36,7 @@ real(rp) s_start, s_end
 real(rp) s0
 
 integer, optional :: ix_branch, track_state
-integer ix_start, ix_end
+integer ix_start, ix_end, dir, ie_offset
 integer ix_ele
 
 logical err
@@ -44,6 +44,10 @@ logical err
 character(40), parameter :: r_name = 'track_from_s_to_s'
 
 ! Easy case & error check
+
+dir = orbit_start%time_dir * orbit_start%direction
+ie_offset = 0
+if (dir == -1) ie_offset = -1
 
 branch => lat%branch(integer_option(0, ix_branch))
 if (present(track_state)) track_state = moving_forward$
@@ -53,9 +57,18 @@ if (s_start == s_end .and. branch%param%geometry == open$) then
   return
 endif
 
-if (s_end < s_start .and. branch%param%geometry == open$) then
-  call out_io (s_abort$, r_name, 'S_END < S_START WITH AN OPEN LATTICE.')
-  if (global_com%exit_on_error) call err_exit
+if (branch%param%geometry == open$) then
+  if (s_end < s_start .and. dir == 1) then
+    call out_io (s_abort$, r_name, 'S_END < S_START WITH AN OPEN LATTICE.')
+    if (global_com%exit_on_error) call err_exit
+    orbit_end%state = lost$
+    return
+  elseif (s_end > s_start .and. dir == -1) then
+    call out_io (s_abort$, r_name, 'S_END > S_START WITH AN OPEN LATTICE AND REVERSED DIRECTION TRACKING.')
+    if (global_com%exit_on_error) call err_exit
+    orbit_end%state = lost$
+    return
+  endif
 endif
 
 ! Find elements corresponding to s_start and s_stop
@@ -63,17 +76,17 @@ endif
 if (s_start == branch%ele(0)%s) then
   ix_start = 1
 else
-  ix_start = element_at_s (branch, s_start, .true.)
+  ix_start = element_at_s (branch, s_start, choose_max = (dir == 1))
 endif
 
 s0 = branch%ele(ix_start)%s_start
-ix_end = element_at_s (lat, s_end, .true., ix_branch)
+ix_end = element_at_s (branch, s_end, choose_max = (dir == 1))
 
 ! Track within a single element case
 
 ele => branch%ele(ix_start)
 
-if (s_end > s_start .and. ix_start == ix_end) then
+if (ix_start == ix_end .and. ((s_end > s_start .and. dir == 1) .or. (s_end < s_start .and. dir == -1))) then
   call twiss_and_track_intra_ele (ele, branch%param, s_start-s0, s_end-s0, &
                                                .true., .true., orbit_start, orbit_end)
   if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_start
@@ -82,6 +95,7 @@ endif
 
 ! Track to end of current element
 
+if (dir == -1) ix_start = ix_start - 1
 call twiss_and_track_intra_ele (ele, branch%param,  &
             s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
 
@@ -92,23 +106,23 @@ endif
 
 if (present(all_orb)) then
   call reallocate_coord(all_orb, branch%n_ele_max)
-  all_orb(ix_start) = orbit_end
+  all_orb(ix_start+ie_offset) = orbit_end
 endif
 
 ! Track to ending element
 
-ix_ele = modulo(ix_start, branch%n_ele_track) + 1
+ix_ele = modulo(ix_start, branch%n_ele_track) + dir
 do
   if (ix_ele == ix_end) exit
 
   call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
 
-  if (present(all_orb)) all_orb(ix_ele) = orbit_end
+  if (present(all_orb)) all_orb(ix_ele+ie_offset) = orbit_end
   if (.not. particle_is_moving_forward(orbit_end)) then
     if (present(track_state)) track_state = ix_ele
     return
   endif
-  ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
+  ix_ele = modulo(ix_ele, branch%n_ele_track) + dir
 enddo
 
 ! Track to s_end
