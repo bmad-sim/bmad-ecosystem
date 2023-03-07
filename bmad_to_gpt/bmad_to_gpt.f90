@@ -64,7 +64,7 @@ endif
 call write_gpt_lattice_file(lat, gpt_lat_param, err)
 if (err) stop
 
-print *, 'Field map dimension: ', gpt_lat_param%field_map_dimension
+print *, 'Field map dimension: ', gpt_lat_param%fieldmap_dimension
 print *, 'Written: ', gpt_lat_param%gpt_filename
 
 if (.not. write_bmad_time_particles .and. .not. write_gpt_particles) stop

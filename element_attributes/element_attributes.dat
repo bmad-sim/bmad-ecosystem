@@ -1,4 +1,4 @@
- 2023-01-30 18:42:45 
+ 2023-03-06 15:30:07 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
@@ -49,20 +49,21 @@
   47   E_Gun                 53   Photon_Init
   48   EM_Field              44   Pipe
   49   Floor_Shift            3   Quadrupole
-  50   Fiducial               9   RFcavity
-  51   Undulator             62   Ramper
-  52   Diffraction_Plate     18   Rbend
-  53   Photon_Init           35   Rcollimator
-  54   Sample                56   Sad_Mult
-  55   Detector              54   Sample
-  56   Sad_Mult               2   Sbend
-  57   Mask                   5   Sextupole
-  58   AC_Kicker             13   Sol_Quad
-  59   Lens                  23   Solenoid
-  60   !Space_Charge_Com      8   Taylor
-  61   Crab_Cavity           51   Undulator
-  62   Ramper                34   Vkicker
-  63   !PTC_Com              12   Wiggler
+  50   Fiducial              64   RF_Bend
+  51   Undulator              9   RFcavity
+  52   Diffraction_Plate     62   Ramper
+  53   Photon_Init           18   Rbend
+  54   Sample                35   Rcollimator
+  55   Detector              56   Sad_Mult
+  56   Sad_Mult              54   Sample
+  57   Mask                   2   Sbend
+  58   AC_Kicker              5   Sextupole
+  59   Lens                  13   Sol_Quad
+  60   !Space_Charge_Com     23   Solenoid
+  61   Crab_Cavity            8   Taylor
+  62   Ramper                51   Undulator
+  63   !PTC_Com              34   Vkicker
+  64   RF_Bend               12   Wiggler
  
  !---------------------------------
  20  !Bmad_Com           
@@ -549,11 +550,11 @@
  61  Crab_Cavity         
          1  L                                       
          2  TILT                                    
-         3  RF_FREQUENCY                            
          4  HARMON                                  
-         5  RF_WAVELENGTH                           
          6  GRADIENT                                
          8  VOLTAGE                                 
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                       [private]
         19  AUTOSCALE_PHASE                           [private]
@@ -1112,10 +1113,11 @@
  48  EM_Field            
          1  L                                       
          2  TILT                                    
-         3  RF_FREQUENCY                            
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
@@ -1202,7 +1204,8 @@
  47  E_Gun               
          1  L                                       
          2  TILT                                    
-         3  RF_FREQUENCY                            
+         4  DT_MAX                                  
+         5  GRADIENT_TOT                            
          6  GRADIENT                                
          7  GRADIENT_ERR                            
          8  VOLTAGE                                 
@@ -1210,17 +1213,19 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
-        22  DT_MAX                                  
-        23  EMIT_FRACTION                           
+        22  EMIT_FRACTION                           
         24  PHI0                                    
         25  PHI0_ERR                                
         26  phi0_multipass                            [private]
         27  PHI0_AUTOSCALE                          
         28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                         
+        30  VOLTAGE_TOT                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1877,8 +1882,7 @@
  25  Lcavity             
          1  L                                       
          2  TILT                                    
-         3  RF_FREQUENCY                            
-         5  RF_WAVELENGTH                           
+         5  GRADIENT_TOT                            
          6  GRADIENT                                
          7  GRADIENT_ERR                            
          8  VOLTAGE                                 
@@ -1886,18 +1890,21 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
         20  LONGITUDINAL_MODE                       
         21  E_LOSS                                  
-        23  CAVITY_TYPE                             
+        22  CAVITY_TYPE                             
         24  PHI0                                    
         25  PHI0_ERR                                
         26  PHI0_MULTIPASS                          
         27  PHI0_AUTOSCALE                          
         28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                         
+        30  VOLTAGE_TOT                             
         31  L_ACTIVE                                
         33  N_CELL                                  
         34  X_PITCH                                 
@@ -3005,12 +3012,108 @@
        140  A0                                      
  
  !---------------------------------
+ 64  RF_Bend             
+         1  L                                       
+         2  ROLL                                    
+         3  REF_TILT                                
+         4  HARMON                                  
+         6  G                                       
+         7  DG                                        [private]
+         8  RHO                                     
+        10  FRINGE_TYPE                             
+        11  FRINGE_AT                               
+        13  SPIN_FRINGE_ON                          
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
+        17  STATIC_LINEAR_MAP                       
+        24  PHI0                                    
+        26  PHI0_MULTIPASS                          
+        28  rf_clock_harminic                         [private]
+        29  L_SAGITTA                               
+        30  L_CHORD                                 
+        33  ANGLE                                   
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
+        43  B_FIELD                                 
+        44  DB_FIELD                                  [private]
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  ROLL_TOT                                
+        61  REF_TILT_TOT                            
+        62  MULTIPASS_REF_ENERGY                    
+        64  ref_time_start                            [private]
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       111  FIELD_MASTER                            
+       112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       125  GRID_FIELD                              
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
   9  RFcavity            
          1  L                                       
          2  TILT                                    
-         3  RF_FREQUENCY                            
          4  HARMON                                  
-         5  RF_WAVELENGTH                           
          6  GRADIENT                                
          7  gradient_err                              [private]
          8  VOLTAGE                                 
@@ -3018,12 +3121,14 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
         20  LONGITUDINAL_MODE                       
-        22  phi0_max                                  [private]
-        23  CAVITY_TYPE                             
+        22  CAVITY_TYPE                             
+        23  phi0_max                                  [private]
         24  PHI0                                    
         25  phi0_err                                  [private]
         26  PHI0_MULTIPASS                          
@@ -3150,6 +3255,8 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
+        27  G_TOT                                   
+        28  B_FIELD_TOT                             
         29  L_SAGITTA                               
         30  L_CHORD                                 
         33  ANGLE                                   
@@ -3498,6 +3605,8 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
+        27  G_TOT                                   
+        28  B_FIELD_TOT                             
         29  L_SAGITTA                               
         30  L_CHORD                                 
         33  ANGLE                                   
@@ -4230,139 +4339,139 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    54
-     2    52
-     3    26
-     4    19
-     5    27
-     6    24
-     7    19
-     8    28
+     1    55
+     2    53
+     3    22
+     4    21
+     5    26
+     6    25
+     7    20
+     8    29
      9    11
-    10    28
-    11    30
+    10    29
+    11    31
     12     3
-    13    28
+    13    29
     14     6
-    15    16
-    16    17
-    17    29
+    15    22
+    16    23
+    17    30
     18     7
     19    12
     20    19
     21    19
-    22    19
-    23    21
-    24    22
+    22    20
+    23    19
+    24    23
     25    18
-    26    25
-    27    18
-    28    19
-    29    25
-    30    20
+    26    26
+    27    20
+    28    22
+    29    26
+    30    23
     31    13
     32     9
-    33     9
-    34    45
-    35    45
-    36    47
-    37    47
-    38    47
-    39    25
-    40    26
-    41    24
-    42    21
-    43     9
-    44     7
+    33    10
+    34    46
+    35    46
+    36    48
+    37    48
+    38    48
+    39    26
+    40    27
+    41    25
+    42    22
+    43    10
+    44     8
     45     8
     46     8
     47    20
     48     5
     49     7
-    50    52
-    51    52
-    52    52
-    53    54
-    54    54
-    55    43
-    56    42
-    57    44
-    58    44
-    59    44
-    60    44
-    61     6
-    62    27
+    50    53
+    51    53
+    52    53
+    53    55
+    54    55
+    55    44
+    56    43
+    57    45
+    58    45
+    59    45
+    60    45
+    61     7
+    62    28
     63     0
-    64    52
-    65    28
-    66    27
-    67    27
-    68    28
-    69    28
-    70    34
-    71    49
-    72    49
-    73    49
-    74    49
-    75    57
+    64    53
+    65    29
+    66    28
+    67    28
+    68    29
+    69    29
+    70    35
+    71    50
+    72    50
+    73    50
+    74    50
+    75    58
     76     0
     77     0
     78     0
     79     0
     80     0
     81    11
-    82    58
-    83    34
-    84    38
-    85    35
+    82    59
+    83    35
+    84    39
+    85    36
     86    25
-    87    52
-    88    30
-    89    38
-    90    35
-    91    50
-    92    52
-    93    52
-    94    50
-    95    49
-    96    50
-    97    49
-    98    49
+    87    53
+    88    31
+    89    39
+    90    36
+    91    51
+    92    53
+    93    53
+    94    51
+    95    50
+    96    51
+    97    50
+    98    50
     99     2
-   100    31
+   100    32
    101    10
    102     4
-   103    32
+   103    33
    104     3
-   105    44
-   106    31
-   107    47
-   108    51
+   105    45
+   106    32
+   107    48
+   108    52
    109     6
-   110    27
-   111    21
-   112    55
+   110    28
+   111    22
+   112    56
    113    14
-   114    26
-   115    27
+   114    27
+   115    28
    116     5
-   117    55
-   118    51
-   119    51
-   120    51
-   121    51
-   122    51
+   117    56
+   118    52
+   119    52
+   120    52
+   121    52
+   122    52
    123    19
    124    19
-   125    19
+   125    20
    126    19
-   127    49
-   128    37
-   129    37
-   130    37
-   131    37
+   127    50
+   128    38
+   129    38
+   130    38
+   131    38
    132     6
-   133    51
+   133    52
    134     0
    135     0
    136     0
@@ -4560,6 +4669,7 @@ Index: 1
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 2
@@ -4615,16 +4725,15 @@ Index: 2
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 3
     Sbend               
-    RFcavity            
     BeamBeam            
     Marker              
     Rbend               
     Solenoid            
-    Lcavity             
     !Parameter          
     Match               
     Monitor             
@@ -4639,11 +4748,9 @@ Index: 3
     Crystal             
     Pipe                
     Multilayer_Mirror   
-    E_Gun               
-    EM_Field            
     Detector            
     Lens                
-    Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 4
@@ -4663,16 +4770,17 @@ Index: 4
     Crystal             
     Pipe                
     Capillary           
+    E_Gun               
     Undulator           
     Detector            
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 5
     Drift               
     Sbend               
     Sextupole           
-    RFcavity            
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -4691,11 +4799,11 @@ Index: 5
     Crystal             
     Pipe                
     Multilayer_Mirror   
+    E_Gun               
     Undulator           
     Detector            
     Sad_Mult            
     Lens                
-    Crab_Cavity         
  
  !---------------------------------
 Index: 6
@@ -4723,6 +4831,7 @@ Index: 6
     Detector            
     Mask                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 7
@@ -4745,6 +4854,7 @@ Index: 7
     E_Gun               
     Undulator           
     Detector            
+    RF_Bend             
  
  !---------------------------------
 Index: 8
@@ -4776,6 +4886,7 @@ Index: 8
     AC_Kicker           
     Crab_Cavity         
     Ramper              
+    RF_Bend             
  
  !---------------------------------
 Index: 9
@@ -4821,6 +4932,7 @@ Index: 10
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    RF_Bend             
  
  !---------------------------------
 Index: 11
@@ -4854,6 +4966,7 @@ Index: 11
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    RF_Bend             
  
  !---------------------------------
 Index: 12
@@ -4891,6 +5004,7 @@ Index: 13
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    RF_Bend             
  
  !---------------------------------
 Index: 14
@@ -4906,6 +5020,7 @@ Index: 15
     Sbend               
     Quadrupole          
     Sextupole           
+    RFcavity            
     ELseparator         
     BeamBeam            
     Wiggler             
@@ -4914,17 +5029,23 @@ Index: 15
     Octupole            
     Rbend               
     Solenoid            
+    Lcavity             
     Match               
     Crystal             
+    E_Gun               
+    EM_Field            
     Undulator           
     Photon_Init         
     AC_Kicker           
+    Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 16
     Sbend               
     Quadrupole          
     Sextupole           
+    RFcavity            
     ELseparator         
     BeamBeam            
     Wiggler             
@@ -4933,12 +5054,17 @@ Index: 16
     Octupole            
     Rbend               
     Solenoid            
+    Lcavity             
     Match               
     !Particle_Start     
     Crystal             
+    E_Gun               
+    EM_Field            
     Undulator           
     Photon_Init         
     AC_Kicker           
+    Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 17
@@ -4971,6 +5097,7 @@ Index: 17
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 18
@@ -5050,6 +5177,7 @@ Index: 22
     Wiggler             
     Marker              
     Rbend               
+    Lcavity             
     Match               
     Monitor             
     Instrument          
@@ -5073,7 +5201,6 @@ Index: 23
     Wiggler             
     Marker              
     Rbend               
-    Lcavity             
     Match               
     Monitor             
     Instrument          
@@ -5081,7 +5208,6 @@ Index: 23
     Crystal             
     Pipe                
     Multilayer_Mirror   
-    E_Gun               
     Undulator           
     Photon_Init         
     Detector            
@@ -5111,6 +5237,7 @@ Index: 24
     Detector            
     Sad_Mult            
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 25
@@ -5160,12 +5287,15 @@ Index: 26
     Mask                
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 27
+    Sbend               
     Custom              
     RFcavity            
     Marker              
+    Rbend               
     Lcavity             
     Match               
     Monitor             
@@ -5184,10 +5314,12 @@ Index: 27
  
  !---------------------------------
 Index: 28
+    Sbend               
     Custom              
     RFcavity            
     BeamBeam            
     Marker              
+    Rbend               
     Patch               
     Lcavity             
     Match               
@@ -5203,6 +5335,7 @@ Index: 28
     Photon_Init         
     Detector            
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 29
@@ -5231,6 +5364,7 @@ Index: 29
     Photon_Init         
     Detector            
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 30
@@ -5240,6 +5374,7 @@ Index: 30
     Marker              
     Rbend               
     Patch               
+    Lcavity             
     Beginning_Ele       
     !Line               
     Match               
@@ -5250,10 +5385,12 @@ Index: 30
     Girder              
     Crystal             
     Pipe                
+    E_Gun               
     Floor_Shift         
     Fiducial            
     Photon_Init         
     Detector            
+    RF_Bend             
  
  !---------------------------------
 Index: 31
@@ -5294,6 +5431,7 @@ Index: 33
     !Line               
     Match               
     Multilayer_Mirror   
+    RF_Bend             
  
  !---------------------------------
 Index: 34
@@ -5342,6 +5480,7 @@ Index: 34
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 35
@@ -5390,6 +5529,7 @@ Index: 35
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 36
@@ -5440,6 +5580,7 @@ Index: 36
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 37
@@ -5490,6 +5631,7 @@ Index: 37
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 38
@@ -5540,6 +5682,7 @@ Index: 38
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 39
@@ -5568,6 +5711,7 @@ Index: 39
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 40
@@ -5597,6 +5741,7 @@ Index: 40
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 41
@@ -5624,6 +5769,7 @@ Index: 41
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 42
@@ -5648,6 +5794,7 @@ Index: 42
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 43
@@ -5660,6 +5807,7 @@ Index: 43
     Match               
     Hkicker             
     Vkicker             
+    RF_Bend             
  
  !---------------------------------
 Index: 44
@@ -5670,6 +5818,7 @@ Index: 44
     Lcavity             
     !Parameter          
     Match               
+    RF_Bend             
  
  !---------------------------------
 Index: 45
@@ -5788,6 +5937,7 @@ Index: 50
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 51
@@ -5843,6 +5993,7 @@ Index: 51
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 52
@@ -5898,6 +6049,7 @@ Index: 52
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 53
@@ -5955,6 +6107,7 @@ Index: 53
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 54
@@ -6012,6 +6165,7 @@ Index: 54
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 55
@@ -6058,6 +6212,7 @@ Index: 55
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 56
@@ -6103,6 +6258,7 @@ Index: 56
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 57
@@ -6150,6 +6306,7 @@ Index: 57
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 58
@@ -6197,6 +6354,7 @@ Index: 58
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 59
@@ -6244,6 +6402,7 @@ Index: 59
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 60
@@ -6291,6 +6450,7 @@ Index: 60
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 61
@@ -6300,6 +6460,7 @@ Index: 61
     Mirror              
     Crystal             
     Multilayer_Mirror   
+    RF_Bend             
  
  !---------------------------------
 Index: 62
@@ -6330,6 +6491,7 @@ Index: 62
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 63
@@ -6388,6 +6550,7 @@ Index: 64
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 65
@@ -6419,6 +6582,7 @@ Index: 65
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 66
@@ -6449,6 +6613,7 @@ Index: 66
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 67
@@ -6479,6 +6644,7 @@ Index: 67
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 68
@@ -6510,6 +6676,7 @@ Index: 68
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 69
@@ -6541,6 +6708,7 @@ Index: 69
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 70
@@ -6578,6 +6746,7 @@ Index: 70
     Mask                
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 71
@@ -6630,6 +6799,7 @@ Index: 71
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 72
@@ -6682,6 +6852,7 @@ Index: 72
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 73
@@ -6734,6 +6905,7 @@ Index: 73
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 74
@@ -6786,6 +6958,7 @@ Index: 74
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 75
@@ -6846,6 +7019,7 @@ Index: 75
     Lens                
     Crab_Cavity         
     Ramper              
+    RF_Bend             
  
  !---------------------------------
 Index: 76
@@ -6936,6 +7110,7 @@ Index: 82
     Crab_Cavity         
     Ramper              
     !PTC_Com            
+    RF_Bend             
  
  !---------------------------------
 Index: 83
@@ -6973,6 +7148,7 @@ Index: 83
     AC_Kicker           
     Crab_Cavity         
     Ramper              
+    RF_Bend             
  
  !---------------------------------
 Index: 84
@@ -7014,6 +7190,7 @@ Index: 84
     AC_Kicker           
     Crab_Cavity         
     Ramper              
+    RF_Bend             
  
  !---------------------------------
 Index: 85
@@ -7052,6 +7229,7 @@ Index: 85
     Detector            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 86
@@ -7135,6 +7313,7 @@ Index: 87
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 88
@@ -7168,6 +7347,7 @@ Index: 88
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 89
@@ -7209,6 +7389,7 @@ Index: 89
     AC_Kicker           
     Crab_Cavity         
     Ramper              
+    RF_Bend             
  
  !---------------------------------
 Index: 90
@@ -7247,6 +7428,7 @@ Index: 90
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 91
@@ -7300,6 +7482,7 @@ Index: 91
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 92
@@ -7355,6 +7538,7 @@ Index: 92
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 93
@@ -7410,6 +7594,7 @@ Index: 93
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 94
@@ -7463,6 +7648,7 @@ Index: 94
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 95
@@ -7515,6 +7701,7 @@ Index: 95
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 96
@@ -7568,6 +7755,7 @@ Index: 96
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 97
@@ -7620,6 +7808,7 @@ Index: 97
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 98
@@ -7672,6 +7861,7 @@ Index: 98
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 99
@@ -7711,6 +7901,7 @@ Index: 100
     AC_Kicker           
     Crab_Cavity         
     !PTC_Com            
+    RF_Bend             
  
  !---------------------------------
 Index: 101
@@ -7766,6 +7957,7 @@ Index: 103
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 104
@@ -7819,6 +8011,7 @@ Index: 105
     Crab_Cavity         
     Ramper              
     !PTC_Com            
+    RF_Bend             
  
  !---------------------------------
 Index: 106
@@ -7853,6 +8046,7 @@ Index: 106
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 107
@@ -7903,6 +8097,7 @@ Index: 107
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 108
@@ -7957,6 +8152,7 @@ Index: 108
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 109
@@ -7996,6 +8192,7 @@ Index: 110
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 111
@@ -8020,6 +8217,7 @@ Index: 111
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 112
@@ -8078,6 +8276,7 @@ Index: 112
     Lens                
     Crab_Cavity         
     Ramper              
+    RF_Bend             
  
  !---------------------------------
 Index: 113
@@ -8124,6 +8323,7 @@ Index: 114
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 115
@@ -8154,6 +8354,7 @@ Index: 115
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 116
@@ -8220,6 +8421,7 @@ Index: 117
     Lens                
     Crab_Cavity         
     Ramper              
+    RF_Bend             
  
  !---------------------------------
 Index: 118
@@ -8274,6 +8476,7 @@ Index: 118
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 119
@@ -8328,6 +8531,7 @@ Index: 119
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 120
@@ -8382,6 +8586,7 @@ Index: 120
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 121
@@ -8436,6 +8641,7 @@ Index: 121
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 122
@@ -8490,6 +8696,7 @@ Index: 122
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 123
@@ -8556,6 +8763,7 @@ Index: 125
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 126
@@ -8630,6 +8838,7 @@ Index: 127
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 128
@@ -8670,6 +8879,7 @@ Index: 128
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 129
@@ -8710,6 +8920,7 @@ Index: 129
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 130
@@ -8750,6 +8961,7 @@ Index: 130
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 131
@@ -8790,6 +9002,7 @@ Index: 131
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 132
@@ -8853,6 +9066,7 @@ Index: 133
     AC_Kicker           
     Lens                
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 134
