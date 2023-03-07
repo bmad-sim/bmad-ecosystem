@@ -34,7 +34,7 @@ m1: lcavity, l = 1, rf_frequency = 1e6, voltage = 2, voltage_err = 1, cylindrica
   r0 = (0, 0, 0.001), 
   phi0_fieldmap = 5.6,
   theta0_azimuth = 0.3,
-  master_parameter = voltage,
+  master_parameter = voltage_tot,
   dz = 0.1,
   ele_anchor_pt = center,
   field_scale = 0.7,
