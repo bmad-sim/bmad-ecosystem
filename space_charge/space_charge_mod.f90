@@ -18,13 +18,14 @@ contains
 !   t_end           -- real(rp): Calculate space charge field for preborn particles emitted before t_end.
 !   newborn         -- logical(:), optional: Array of logicals the same size as bunch%particle.
 !                        If true, the corresponding particle will have zero charge for sc calculation.
-!
+!   bunch_params    -- bunch_params_struct, optional: If present, particles too far from the bunch will be ignored.
+!                        The threashold is set by space_charge_com%particle_sigma_cutoff. 
 ! Output:
 !   include_image   -- logical: Set False if image charge calc no longer needed (Note: never set True).
 !   sc_field        -- em_field_struct: Space charge field at particle positions
 !-
 
-subroutine sc_field_calc (bunch, include_image, t_end, sc_field, newborn)
+subroutine sc_field_calc (bunch, include_image, t_end, sc_field, newborn, bunch_params)
 
 use csr_and_space_charge_mod
 
@@ -35,45 +36,55 @@ type (coord_struct), pointer :: p
 type (csr_particle_position_struct) :: position(size(bunch%particle))
 type (em_field_struct) :: sc_field(size(bunch%particle))
 type (mesh3d_struct) :: mesh3d, mesh3d_image
+type (bunch_params_struct), optional :: bunch_params
 
 integer :: n, n_alive, i, imin(1)
 real(rp) :: beta, ratio, t_end
-real(rp) :: Evec(3), Bvec(3), Evec_image(3)
+real(rp) :: Evec(3), Bvec(3), Evec_image(3), cutoff(3)
 logical :: include_image, err
 logical, optional :: newborn(:)
 
 ! Initialize variables
 mesh3d%nhi = space_charge_com%space_charge_mesh_size
+if (present(bunch_params)) then
+  cutoff(1) = sqrt(bunch_params%sigma(1,1))
+  cutoff(2) = sqrt(bunch_params%sigma(3,3))
+  cutoff(3) = sqrt(bunch_params%sigma(5,5))
+endif
 
-! Gather alive particles
-
+! Gather particles
 n = 0
 n_alive = 0
 beta = 0
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  if (p%state == pre_born$ .and. p%t <= t_end) then
+  if (p%state == pre_born$ .and. p%t <= t_end) then ! Particles to be emitted
     n = n + 1
     position(n)%r = [p%vec(1), p%vec(3), p%s]
     position(n)%charge = 0
-  else if (p%state /= alive$) then
+  else if (p%state /= alive$) then  ! Lost particles
     cycle
-  else
+  else if (present(newborn)) then  ! Newly emitted particles
+    if (newborn(i)) then
+      n = n + 1
+      position(n)%r = [p%vec(1), p%vec(3), p%s]
+      position(n)%charge = 0
+    endif
+  else  ! Living particles
+    if (present(bunch_params)) then
+      if (out_of_sigma_cutoff(p)) cycle  ! Ignore particles too far off the bunch
+    endif
     n = n + 1
     position(n)%r = [p%vec(1), p%vec(3), p%s]
     position(n)%charge = p%charge * charge_of(p%species)
     beta = beta + p%beta
-    if (present(newborn)) then
-      if (newborn(i)) then
-        position(n)%charge = 0
-      else
-        n_alive = n_alive + 1
-      endif
-    endif
+    n_alive = n_alive + 1
   endif
 enddo
+
+! Return if not enough living particles
 if (n_alive<2) return
-beta = beta/n
+beta = beta/n_alive
 
 ! Calculate space charge field
 mesh3d%gamma = 1/sqrt(1- beta**2)
@@ -100,18 +111,42 @@ if (include_image) then
 endif
 
 ! Calculate field at particle locations
+
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  if (p%state == pre_born$ .and. p%t <= t_end) then
+  if (p%state == pre_born$ .and. p%t <= t_end) then  ! Particles to be emitted
     call interpolate_field(p%vec(1), p%vec(3), p%s,  mesh3d, E=sc_field(i)%E, B=sc_field(i)%B)
-  else if (p%state /= alive$) then
-    sc_field(i)%E = [0,0,0]
-    sc_field(i)%B = [0,0,0]
-  else
+  else if (p%state /= alive$) then ! Lost particles
+    sc_field(i)%E = 0
+    sc_field(i)%B = 0
+  else  ! Living particles
+    if (present(bunch_params)) then
+      if (out_of_sigma_cutoff(p)) then  ! Ignore particles too far off the bunch
+        sc_field(i)%E = 0
+        sc_field(i)%B = 0
+      endif
+    endif
     call interpolate_field(p%vec(1), p%vec(3), p%s,  mesh3d, E=sc_field(i)%E, B=sc_field(i)%B)
   end if
 enddo
 
+!-------------------------------------------------------------------
+contains
+! Check if a particle is too far from the bunch
+!
+function out_of_sigma_cutoff(p) result (out_of_cutoff)
+  type (coord_struct) :: p
+  logical :: out_of_cutoff
+  real(rp) :: particle_sigma_cutoff
+
+  out_of_cutoff = .false.
+  particle_sigma_cutoff = space_charge_com%particle_sigma_cutoff
+  if (particle_sigma_cutoff .le. 0) return
+  out_of_cutoff = ( abs(p%vec(1) - bunch_params%centroid%vec(1)) > cutoff(1)*particle_sigma_cutoff ) .and. &
+                  ( abs(p%vec(3) - bunch_params%centroid%vec(3)) > cutoff(2)*particle_sigma_cutoff ) .and. &
+                  ( abs(p%s - bunch_params%centroid%vec(5)) > cutoff(3)*particle_sigma_cutoff )
+
+end function out_of_sigma_cutoff
 end subroutine sc_field_calc
 
 !------------------------------------------------------------------------------------------
@@ -127,6 +162,8 @@ end subroutine sc_field_calc
 !   ele           -- ele_struct: Element being tracked through.
 !   include_image -- logical: Include image charge forces?
 !   t_end         -- real(rp): Time at which the tracking ends.
+!   sc_field      -- em_field_struct(:): Array to hold space charge fields. 
+!                       Its length should be the number of particles.
 !   newborn       -- logical(:), optional: Array of logicals the same size as bunch%particle.
 !                      If true, the corresponding particle will have zero charge for sc calculation.
 !
@@ -138,6 +175,8 @@ end subroutine sc_field_calc
 
 subroutine sc_step(bunch, ele, include_image, t_end, sc_field, newborn, n_emit)
 
+use beam_utils
+
 implicit none
 
 type (bunch_struct), target :: bunch
@@ -145,18 +184,20 @@ type (ele_struct) :: ele
 type (em_field_struct) :: extra_field(size(bunch%particle))
 type (coord_struct), pointer :: p
 type (em_field_struct) :: sc_field(:)
+type (bunch_params_struct) :: bunch_params
 
 real(rp) t_end, sum_z
-logical include_image
+logical include_image, error
 integer i, n
 integer, optional :: n_emit
 logical, optional :: newborn(:)
 
-!
-if (present(newborn)) then 
-  call sc_field_calc (bunch, include_image, t_end, sc_field, newborn)
+! Calculate space charge field
+if (space_charge_com%particle_sigma_cutoff > 0) then
+  call calc_bunch_params(bunch, bunch_params, error, is_time_coords=.true., ele=ele)
+  call sc_field_calc(bunch, include_image, t_end, sc_field, newborn, bunch_params)
 else
-  call sc_field_calc (bunch, include_image, t_end, sc_field)
+  call sc_field_calc(bunch, include_image, t_end, sc_field, newborn)
 endif
 
 ! Generate particles at the cathode
@@ -187,6 +228,8 @@ end subroutine sc_step
 !   include_image -- logical: Include image charge forces?
 !   t_now         -- real(rp): Current time at the beginning of tracking
 !   dt_step       -- real(rp): Initial SC time step to take
+!   sc_field      -- em_field_struct(:): Array to hold space charge fields. 
+!                       Its length should be the number of particles.
 !
 ! Output:
 !   bunch         -- bunch_struct: Ending bunch position in t-based coordinates.
