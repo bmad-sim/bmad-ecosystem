@@ -34,7 +34,7 @@ lat2_filename = ''
 astra_filename = ''
 write_time_particles = .false.
 write_astra_particles = .false.
-astra_lattice_param%field_map_dimension = 3
+astra_lattice_param%fieldmap_dimension = 3
 beam_init%n_particle = 1
 beam_init%n_bunch = 1
 
@@ -78,7 +78,7 @@ endif
 
 
 ! 
-print *, 'Field map dimension: ', astra_lattice_param%field_map_dimension
+print *, 'Field map dimension: ', astra_lattice_param%fieldmap_dimension
 
 call write_astra_lattice_file(astra_file, lat, astra_lattice_param, err)
 

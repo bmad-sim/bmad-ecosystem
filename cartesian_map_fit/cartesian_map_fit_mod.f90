@@ -1,7 +1,7 @@
 module cartesian_map_fit_mod
 
 use bmad
-use em_field_mod, only: to_field_map_coords
+use em_field_mod, only: to_fieldmap_coords
 
 type term_struct
   type (cartesian_map_term1_struct) cmt
@@ -268,7 +268,7 @@ c_map => lat%ele(1)%cartesian_map(1)
 ! Offset of the cartesian map
 
 orbit%vec = 0
-call to_field_map_coords (lat%ele(1), orbit, 0.0_rp, c_map%ele_anchor_pt, c_map%r0, .false., &
+call to_fieldmap_coords (lat%ele(1), orbit, 0.0_rp, c_map%ele_anchor_pt, c_map%r0, .false., &
                                         x_offset_map, y_offset_map, z_offset_map, dum1, dum1, err_flag)
 
 !-------------------------------------
