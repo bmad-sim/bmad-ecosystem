@@ -477,7 +477,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
 See \sref{s:list.bend} for a full list of element attributes along with a their units.
 
 \index{g}\index{b_field}\index{dg}\index{db_field}\index{angle}
-\index{l_chord}\index{angle}\index{h1}\index{h2}
+\index{l_chord}\index{angle}\index{h1}\index{h2}\index{g_tot}\index{b_field_tot}
 \index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}\index{l_sagitta}
 \index{hgap}\index{hgapx}\index{roll}\index{k1}\index{exact_multipoles}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
@@ -485,6 +485,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   angle              = <Real>   ! Design bend angle. Settable dependent var (\sref{s:depend}).
   b_field            = <Real>   ! Design field strength (= P_0 g / q) (\sref{s:depend}).
   db_field           = <Real>   ! Actual - Design bending field difference (\sref{s:depend}).
+  b_field_tot                   ! Net field = b_field + db_field. Dependent param (\sref{s:depend}).
   b1_gradient        = <Real>   ! Quadrupole field strength (\sref{s:depend}).
   b2_gradient        = <Real>   ! Sextupole field strength (\sref{s:depend}).
   e1, e2             = <Real>   ! Face angles.
@@ -492,6 +493,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   fint, fintx        = <Real>   ! Face field integrals.
   g                  = <Real>   ! Design bend strength (= 1/rho).
   dg                 = <Real>   ! Actual - Design bend strength difference (\sref{s:depend}).
+  g_tot                         ! Net design strength = g + dg Dependent param (\sref{s:depend}).
   h1, h2             = <Real>   ! Face curvature.
   hgap, hgapx        = <Real>   ! Pole half gap.
   k1                 = <Real>   ! Quadrupole strength.
@@ -1645,12 +1647,14 @@ The attributes specific to an \vn{e_gun} are
 \begin{example}
   gradient       = <Real>    ! Gradient.
   gradient_err   = <Real>    ! Gradient error.
+  gradient_tot               ! Net gradient = gradient + gradient_err. Dependent param (\sref{s:depend}).
   phi0           = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                              !   respect to the RF. phi0 = 0 is on crest.
   phi0_err       = <Real>    ! Phase error (rad/2\(\pi\))
   rf_frequency   = <Real>    ! Frequency of the RF field.
   voltage        = <Real>    ! Voltage. Dependent attribute (\sref{s:depend}). 
   voltage_err    = <Real>    ! Voltage error. Dependent attribute (\sref{s:depend}). 
+  voltage_tot                ! Net voltage = voltage + voltage_err. Dependent param (\sref{s:depend}).
 \end{example}
 
 The \vn{voltage} is simply related to the \vn{gradient} via the element length \vn{l}:
@@ -2757,6 +2761,7 @@ The attributes specific to an \vn{lcavity} are
   cavity_type     = <Switch>  ! Type of cavity.
   gradient        = <Real>    ! Accelerating gradient (V/m).
   gradient_err    = <Real>    ! Accelerating gradient error (V/m).
+  gradient_tot                ! Net gradient = gradient + gradient_err. Dependent param (\sref{s:depend}).
   phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                               !   respect to the RF. phi0 = 0 is on crest.
   phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{s:multipass}).
@@ -2764,15 +2769,18 @@ The attributes specific to an \vn{lcavity} are
   e_loss          = <Real>    ! Loss parameter for short range wakefields (V/Coul).
   rf_frequency    = <Real>    ! RF frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
+  voltage_err                 ! Error voltage
+  voltage_tot                 ! Net voltage = voltage + voltage_err. Dependent param (\sref{s:depend}).
   l_active        = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
   n_cell          = <Int>     ! Number of cavity cells. Default is 1.
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
 \end{example}
 
-The dependent variable \vn{voltage} attribute can be used in place of \vn{gradient} as discussed in
-\sref{s:depend}.  \vn{voltage} is a dependent attribute and is defined to be
+The \vn{voltage} and \vn{voltage_err} attributes can be used in place of \vn{gradient} and \vn{gradient_err}.
+The relationship between gradient and voltage is
 \begin{example}
-  voltage = gradient * L
+  voltage     = L * gradient
+  voltage_err = L * gradient_err
 \end{example}
 
 The energy kick felt by a particle, assuming no phase slippage, is 
@@ -4146,8 +4154,9 @@ Attributes specific to an \vn{rf_bend} are:
   phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
 \end{example}
 
-Tracking through an \vn{rf_bend} is limited to Runge Kutta like tracking methods (\sref{s:tkm}) the
-default being \vn{runge_kutta}. Fields must be specified using a grid field map (\sref{s:fieldmap}).
+Tracking through an \vn{rf_bend} is limited to Runge Kutta like tracking methods (\sref{s:tkm}). The
+default \vn{tracking_method} is \vn{runge_kutta}. Fields must be specified using a grid field map
+(\sref{s:fieldmap}). The default \vn{field_calc} is \vn{fieldmap} (\sref{s:field.calc}).
 
 The geometry of the \vn{rf_bend} is the same as an \vn{sbend}. An \vn{rf_bend} has a sector shape
 which is equivalent to \vn{e1} and \vn{e2} being zero for an \vn{sbend}. Since the fields are specified

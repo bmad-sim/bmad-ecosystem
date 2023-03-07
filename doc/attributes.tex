@@ -499,15 +499,18 @@ affect the physical element and not the reference orbit. However, the orientatio
 some other elements, like the \vn{fiducial} element, do affect the reference orbit. To sort all this
 out, lattice elements can be divided into seven classes:
   \begin{enumerate}
-  \item\vn{Straight line elements} (\sref{s:straight.orient}) \Newline
+%
+\item\vn{Straight line elements} (\sref{s:straight.orient}) \Newline
 Straight line elements are elements where the reference orbit is a straight line. Examples include
 \vn{quadrupoles}, and \vn{sextupoles} as well as zero length elements like \vn{markers}.
-  \item\vn{Dipole bends} (\sref{s:bend.orient}) \Newline
+%
+\item\vn{Dipole bends} (\sref{s:bend.orient}) \Newline
 Dipole bends are:
 \begin{example}
   sbend \& rbend
 \end{example}
-  \item\vn{Photon reflecting elements} (\sref{s:photon.orient}) \Newline
+%
+\item\vn{Photon reflecting elements} (\sref{s:photon.orient}) \Newline
 The reflecting elements are
 \begin{example}
   crystal
@@ -516,16 +519,20 @@ The reflecting elements are
 \end{example}
 These elements have a kink in the reference orbit at the nominal
 element surface.
-  \item\vn{Reference orbit manipulator elements} (\sref{s:manip.orient}) \Newline
+%
+\item\vn{Reference orbit manipulator elements} (\sref{s:manip.orient}) \Newline
 Elements that are used to manipulate the reference orbit are
 \begin{example}
   fork \& photon_fork
   floor_shift
   patch
 \end{example}
-  \item\vn{Fiducial Element} (\sref{s:fiducial.orient}) \Newline
-  \item\vn{Girder Elements} (\sref{s:girder.orient}) \Newline
-  \item\vn{Control Elements} \Newline
+%
+\item\vn{Fiducial Element} (\sref{s:fiducial.orient}) \Newline
+%
+\item\vn{Girder Elements} (\sref{s:girder.orient}) \Newline
+%
+\item\vn{Control Elements} \Newline
 Control elements are elements that control attributes of other
 elements. The control elements are:
 \begin{example}
@@ -1323,6 +1330,7 @@ the center of the $(i,j)$ pixel is:
 
 The different grid types are:
 \begin{description}
+%
 \item[Displacement grid] \Newline
 The general syntax for a \vn{displacement} grid is:
 \begin{example}
@@ -2142,7 +2150,8 @@ individual types for a list of the attributes pertinent to that type.
 \index{field_type}
 \index{field_scale}\index{master_parameter}
   \begin{description}
-  \item[curved_ref_frame] \Newline
+%
+\item[curved_ref_frame] \Newline
 For bends, the coordinates of the field are, by default, Cartesian and do not follow the
 curved bend coordinates. The orientation of the field map coordinates with respect to the
 bend is determined by the placement of the anchor point (specified by \vn{ele_anchor_pt})
@@ -2156,7 +2165,8 @@ setting the \vn{curved_ref_frame} component of the field map to \vn{True}. In th
 the field grid coordinates will follow curved bend coordinates.  The \vn{curved_ref_frame}
 parameter is only pertinent for bend elements (\vn{sbend}s, \vn{rbend}s).  The setting of
 \vn{curved_ref_frame} is ignored for non-bend elements.
-  \item[ele_anchor_pt] \Newline
+%
+\item[ele_anchor_pt] \Newline
 The \vn{ele_anchor_pt}, along with \vn{r0}, determines the origin of the field with
 respect to the lattice element. Possible settings are:
 \begin{example}
@@ -2168,7 +2178,8 @@ Example:
 \begin{example}
   rfc0: rfcavity, gen_grad_map = \{ele_anchor_pt = center, ...\}, ...
 \end{example}
-  \item[field_type] \Newline
+%
+\item[field_type] \Newline
 The \vn{field_type} attribute sets the type of field described. Possible settings for
 \vn{field_type} are:
 \begin{example}
@@ -2182,7 +2193,8 @@ Example:
 \end{example}
 The \vn{cylindrical_map} type does not have a \vn{field_type} since it has explicit arrays
 for the electric and magnetic fields.
-  \item[field_scale] \Newline
+%
+\item[field_scale] \Newline
 The \vn{field_scale} attribute is used to scale the overall field magnitude. The default
 value is 1. A value of -1 will reverse the field. If the \vn{master_parameter} is
 defined, it is multiplied with the \vn{field_scale} to give the overall scale.
@@ -2192,7 +2204,8 @@ Example:
   qq[grid_field(1)%field_scale] = 0.7     ! Change value after element def.
   qq[grid_field(1)%master_parameter] = k1 ! Change value after element def.
 \end{example}
-  \item[harmonic] \Newline
+%
+\item[harmonic] \Newline
 The \vn{harmonic} attribute, along with \vn{rf_frequency} element attribute, sets the oscillation
 frequency of the field map. The \vn{harmonic} attribute is only used with \vn{cylindrical_map} and
 \vn{grid_field} types. The default value of \vn{harmonic} is 0.  The \vn{harmonic} number needs to
@@ -2214,25 +2227,14 @@ the name is blank (""), no master parameter is used. The \vn{master_parameter}, 
 defined, is multiplied with the \vn{field_scale} to give the value used to scale the
 fields. The default \vn{master_parameter} is blank ("") except for \vn{wiggler} elements
 where, for historical reasons, the default is \vn{polarity}.
-
-Certain parameters have an associated ``error'' parameter. If the \vn{master_parameter} is one of
-these parameters, the value used to scale the field is the sum of the \vn{master_parameter} and the
-associated error parameter. The elements that have associated error parameters are:
-\begin{example}
-  Parameter    Assoc. Error Param    Element Type
-  ---------    ------------------    --------------
-  Voltage      Voltage_err           E_gun, LCavity
-  Gradient     Gradient_err          E_gun, LCavity
-  Phi0         Phi0_err              E_gun, LCavity
-  G            dG                    Sbend, Rbend
-  B_field      dB_field              Sbend, Rbend
-\end{example}
-  \item[phi0_fieldmap] \Newline
+%
+\item[phi0_fieldmap] \Newline
 For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the fundamental
 mode. The phase \vn{phi0_fieldmap} is relative to the fundamental frequency and not the frequency of
 the field map mode. That is, the ``zero crossing'' point of the field map is shifted by a time
 \vn{phi0_fieldmap}/$f_0$ where $f_0$ is the fundamental mode frequency.
-  \item[r0] \Newline
+%
+\item[r0] \Newline
 The \vn{r0} attribute is the $(x0, y0, z0)$ vector specifying the offset of the origin point that
 defines the field relative to the \vn{anchor} point defined by \vn{ele_anchor_pt}.  The origin
 position of the field (\vn{r_origin}) is determined by
@@ -2288,14 +2290,18 @@ map types.
 
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
   \begin{itemize}
-  \item
+%
+\item
 There can be only one \vn{cartesian_map} field map and there cannot be any other field maps of any
 kind.
-  \item 
+%
+\item 
 \vn{cartesian_map} may not be used with a bend.
-  \item
+%
+\item
 Only magnetic fields may be used. 
-  \item
+%
+\item
 The transverse terms in \vn{r0} must be zero.
   \end{itemize}
 
@@ -2393,14 +2399,19 @@ Example:
 
 Note: When using PTC based tracking (\sref{c:methods}), the following restrictions apply:
 \begin{Itemize}
+%
 \item
 The fields must be DC.
+%
 \item
 all the \vn{e_coef} and \vn{b_coef} arrays must have the same length.
+%
 \item
 \vn{r0(1)} and \vn{r0(2)} (the transverse offsets) must be zero.
+%
 \item
 The element containing the map cannot be an \vn{sbend} or \vn{rbend}.
+%
 \item
 May not be combined with other field map types.
 \end{Itemize}
@@ -2665,11 +2676,14 @@ of the element. These areas will be ignored while tracking unless field overlap 
 
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
   \begin{itemize}
-  \item
+%
+\item
 There can be only one \vn{gen_grad_map} and there cannot be any other field maps of any kind.
-  \item
+%
+\item
 Only magnetic fields may be used.
-  \item
+%
+\item
 In a bend with \vn{curved_ref_frame} = False, The setting of \vn{ele_anchor_pt} must be
 \vn{center}.
   \end{itemize}

@@ -1041,6 +1041,8 @@ call init_attribute_name1 (e_gun$, phi0_err$,                       'PHI0_ERR')
 ! e_gun attribute phi0_multipass should always be 0 and is used to make lcavity and e_gun equations similar
 call init_attribute_name1 (e_gun$, phi0_multipass$,                 'phi0_multipass', private$) 
 call init_attribute_name1 (e_gun$, phi0_autoscale$,                 'PHI0_AUTOSCALE', quasi_free$)
+call init_attribute_name1 (e_gun$, voltage_tot$,                    'VOLTAGE_TOT', dependent$)
+call init_attribute_name1 (e_gun$, gradient_tot$,                   'GRADIENT_TOT', dependent$)
 
 call init_attribute_name1 (ecollimator$, px_aperture_width2$,       'PX_APERTURE_WIDTH2')
 call init_attribute_name1 (ecollimator$, px_aperture_center$,       'PX_APERTURE_CENTER')
@@ -1168,6 +1170,8 @@ call init_attribute_name1 (lcavity$, grid_field$,                   'GRID_FIELD'
 call init_attribute_name1 (lcavity$, phi0_autoscale$,               'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
 call init_attribute_name1 (lcavity$, l_active$,                     'L_ACTIVE', dependent$)
+call init_attribute_name1 (lcavity$, voltage_tot$,                  'VOLTAGE_TOT', dependent$)
+call init_attribute_name1 (lcavity$, gradient_tot$,                 'GRADIENT_TOT', dependent$)
 
 call init_attribute_name1 (marker$, l$,                             'L', dependent$)
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
@@ -1454,6 +1458,8 @@ call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD'
 call init_attribute_name1 (sbend$, ptc_canonical_coords$,           'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
 call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
+call init_attribute_name1 (sbend$, g_tot$,                          'G_TOT', dependent$)
+call init_attribute_name1 (sbend$, b_field_tot$,                    'B_FIELD_TOT', dependent$)
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -1861,7 +1867,7 @@ case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PH
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GEN_GRAD_MAP', 'GRID_FIELD', 'REF_ORBIT', &
       'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TERM', &
-      'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE')
+      'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE', 'CURVATURE')
   attrib_type = is_struct$
 
 case default
@@ -1966,12 +1972,9 @@ case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', '
 case ('CRITICAL_ANGLE_FACTOR')
   attrib_units = 'rad*eV'
 
-case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z', &
-      'FOCAL_STRENGTH')
-  attrib_units = '1/m'
-
 case ('C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'DG', 'G_MAX', &
-      'H1', 'H2', 'CRAB_X2')
+      'G_TOT', 'H1', 'H2', 'CRAB_X2', 'SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', &
+      'ELLIPTICAL_CURVATURE_Z', 'FOCAL_STRENGTH')
   attrib_units = '1/m'
 
 case ('CURVATURE_X0_Y3', 'CURVATURE_X1_Y2', 'CURVATURE_X2_Y1', 'CURVATURE_X3_Y0', 'DKS_DS', 'CRAB_X3')
@@ -2005,16 +2008,16 @@ case ('EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z')
 case ('E_FIELD', 'E_FIELD_X', 'E_FIELD_Y')
   attrib_units = 'V/m'
 
-case ('VOLTAGE', 'VOLTAGE_ERR')
+case ('VOLTAGE', 'VOLTAGE_ERR', 'VOLTAGE_TOT')
   attrib_units = 'Volt'
 
-case ('GRADIENT', 'GRADIENT_ERR')
+case ('GRADIENT', 'GRADIENT_ERR', 'GRADIENT_TOT')
   attrib_units = 'eV/m'
 
 case ('LR_FREQ_SPREAD', 'RF_FREQUENCY', 'REPETITION_FREQUENCY')
   attrib_units = 'Hz'
 
-case ('BS_FIELD', 'B_FIELD', 'DB_FIELD', 'B_MAX')
+case ('BS_FIELD', 'B_FIELD', 'B_FIELD_TOT', 'DB_FIELD', 'B_MAX')
   attrib_units = 'T'
 
 case ('B1_GRADIENT');                                   attrib_units = 'T/m'

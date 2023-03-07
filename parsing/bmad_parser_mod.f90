@@ -552,7 +552,7 @@ if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
     if (index(word, '%MASTER_PARAMETER') /= 0) then
       call get_next_word (word2, ix_word, ',', delim, delim_found)
       ix = attribute_index(ele, word2)
-      if (ix < 1 .or. ix > num_ele_attrib$) then
+      if (ix < 1) then
         call parser_error ('BAD MASTER_PARAMETER NAME FOR ELEMENT: ' // ele%name)
         return
       endif
@@ -6853,7 +6853,7 @@ case (sbend$, rbend$, rf_bend$)
   b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(db_field$) /= 0)
   g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
 
-  if (ele%key /= sad_mult$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
+  if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
 
   ! Only one of b_field, g, or rho may be set.
   ! B_field may not be set for an rbend since, in this case, L is not computable (we don't know the ref energy).
@@ -7978,7 +7978,7 @@ do
         ix = 0
       else
         ix = attribute_index(ele, word2)
-        if (ix < 1 .or. ix > num_ele_attrib$) then
+        if (ix < 1) then
           call parser_error ('BAD NAME FOR "MASTER_PARAMETER = <NAME>" CONSTRUCT', &
                              'FOUND IN ELEMENT: ' // ele%name)
           return
@@ -8178,7 +8178,7 @@ do
       ix = 0
     else
       ix = attribute_index(ele, word)
-      if (ix < 1 .or. ix > num_ele_attrib$) then
+      if (ix < 1) then
         call parser_error ('BAD NAME FOR "MASTER_PARAMETER = <NAME>" CONSTRUCT', &
                              'FOUND IN ELEMENT: ' // ele%name)
         return
@@ -8387,7 +8387,7 @@ do
       ix = 0
     else
       ix = attribute_index(ele, word)
-      if (ix < 1 .or. ix > num_ele_attrib$) then
+      if (ix < 1) then
         call parser_error ('UNKNOWN ELEMENT PARAMETER NAME FOR GRID_FIELD MASTER_PARAMETER: ' // word, &
                            'THIS IS NOT A PARAMETER DEFINED FOR THIS TYPE OF ELEMENT: ' // key_name(ele%key), &
                            'FOUND IN ELEMENT: ' // ele%name)
@@ -8781,7 +8781,7 @@ do
         ix = 0
       else
         ix = attribute_index(ele, word2)
-        if (ix < 1 .or. ix > num_ele_attrib$) then
+        if (ix < 1) then
           call parser_error ('BAD NAME FOR "MASTER_PARAMETER = <NAME>" CONSTRUCT', &
                                'FOUND IN ELEMENT: ' // ele%name)
           return

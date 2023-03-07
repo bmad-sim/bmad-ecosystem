@@ -25,16 +25,12 @@ integer master_parameter
 
 if (master_parameter < 1) then
   value = 1
-  return
-endif
 
-select case (attribute_name(ele, master_parameter))
-case ('VOLTAGE');   value = ele%value(voltage$) + ele%value(voltage_err$)
-case ('GRADIENT');  value = ele%value(gradient$) + ele%value(gradient_err$)
-case ('PHI0');      value = ele%value(phi0$) + ele%value(phi0_err$)
-case ('G');         value = ele%value(g$) + ele%value(dg$)
-case ('B_FIELD');   value = ele%value(b_field$) + ele%value(db_field$)
-case default;       value = ele%value(master_parameter)
-end select
+elseif (master_parameter > num_ele_attrib$) then  ! Custom master parameter
+  value = ele%custom(master_parameter-custom_attribute0$)
+
+else  ! Normal
+  value = ele%value(master_parameter)
+endif
 
 end function
