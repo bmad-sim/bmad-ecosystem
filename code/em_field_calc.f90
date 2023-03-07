@@ -800,7 +800,7 @@ case(fieldmap$)
 
       fld = 0; dfld = 0
 
-      call to_field_map_coords (ele, local_orb, s_body, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z, cos_ang, sin_ang, err)
+      call to_fieldmap_coords (ele, local_orb, s_body, ct_map%ele_anchor_pt, ct_map%r0, .false., x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
@@ -1112,7 +1112,7 @@ case(fieldmap$)
 
       if (cl_map%harmonic /= 0) k_t = twopi * freq / c_light
 
-      call to_field_map_coords (ele, local_orb, s_body, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z, cos_ang, sin_ang, err)
+      call to_fieldmap_coords (ele, local_orb, s_body, cl_map%ele_anchor_pt, cl_map%r0, .false., x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
@@ -1267,7 +1267,7 @@ case(fieldmap$)
     do i = 1, size(ele%gen_grad_map)
       gg_map => ele%gen_grad_map(i)
 
-      call to_field_map_coords (ele, local_orb, s_body, gg_map%ele_anchor_pt, gg_map%r0, gg_map%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
+      call to_fieldmap_coords (ele, local_orb, s_body, gg_map%ele_anchor_pt, gg_map%r0, gg_map%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
@@ -1304,7 +1304,7 @@ case(fieldmap$)
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
-      call to_field_map_coords (ele, local_orb, s_body, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
+      call to_fieldmap_coords (ele, local_orb, s_body, g_field%ele_anchor_pt, g_field%r0, g_field%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return

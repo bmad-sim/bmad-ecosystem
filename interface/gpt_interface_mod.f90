@@ -5,7 +5,7 @@ use bmad_interface
 implicit none
 
 type gpt_lat_param_struct
-  integer :: field_map_dimension = 3                   ! Dimensions for field map. 1 or 3
+  integer :: fieldmap_dimension = 3                   ! Dimensions for field map. 1 or 3
   logical :: only_write_autophase_parameters = .false. ! Option to only write phasing info
   character(100) :: gpt_filename = ''                  ! Blank => Append '.gpt' to Bmad lattice file name.
   character(100) :: header_file_name = ''              ! Header file to include in gpt file.
@@ -320,10 +320,10 @@ call str_substitute (name, ".", "_")
 
 if (param%only_write_autophase_parameters) then
   if (ele%key == lcavity$ .or. ele%key == rfcavity$ .or. ele%key == e_gun$)  then
-    call write_gpt_ele(gpt_file_unit, ele, name, fieldgrid_names, dimensions = param%field_map_dimension, only_phasing = .true.)
+    call write_gpt_ele(gpt_file_unit, ele, name, fieldgrid_names, dimensions = param%fieldmap_dimension, only_phasing = .true.)
   endif  
 else
-  call write_gpt_ele(gpt_file_unit, ele, name, fieldgrid_names, dimensions = param%field_map_dimension)
+  call write_gpt_ele(gpt_file_unit, ele, name, fieldgrid_names, dimensions = param%fieldmap_dimension)
 endif
 
 end subroutine write_to_file
