@@ -453,6 +453,9 @@ case (e_gun$)
     endif
   endif
 
+  val(voltage_tot$)  = val(voltage$)  + val(voltage_err$)
+  val(gradient_tot$) = val(gradient$) + val(gradient_err$)
+
 ! Elseparator
 
 case (elseparator$)
@@ -518,6 +521,9 @@ case (lcavity$)
       val(l_active$) = val(l$)
     endif
   endif
+
+  val(voltage_tot$)  = val(voltage$)  + val(voltage_err$)
+  val(gradient_tot$) = val(gradient$) + val(gradient_err$)
 
 ! Patch
 
@@ -651,6 +657,9 @@ case (sbend$)
   if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
     call set_ele_status_stale (ele, floor_position_group$)
   endif
+
+  val(g_tot$)       = val(g$)       + val(dg$)
+  val(b_field_tot$) = val(b_field$) + val(db_field$)
 
 ! Sol_quad
 

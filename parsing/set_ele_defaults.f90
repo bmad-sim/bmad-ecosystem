@@ -248,6 +248,7 @@ case (photon_init$)
 
 case (rf_bend$)
   ele%tracking_method = runge_kutta$
+  ele%field_calc = fieldmap$
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$

@@ -35,9 +35,10 @@ case (sbend$, rbend$)
   end select
 
 case (rf_bend$)
-  ! Should not be here
-  call out_io (s_fatal$, r_name, 'BMAD BOOKKEEPING ERROR. PLEASE REPORT ERROR.')
-  stop
+  select case (fringe_type)
+  case (none$)
+    is_valid = .true.
+  end select
 
 case default
   select case (fringe_type)

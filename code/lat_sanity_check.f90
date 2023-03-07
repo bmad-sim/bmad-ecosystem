@@ -893,7 +893,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
         else
           select case (ele%key)
-          case (lcavity$, rfcavity$, em_field$, e_gun$)
+          case (lcavity$, rfcavity$, em_field$, e_gun$, rf_bend$)
           case default
             call out_io (s_fatal$, r_name, &
                   'GRID_FIELD IN ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
