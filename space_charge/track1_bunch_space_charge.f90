@@ -38,8 +38,6 @@ logical err, finished, include_image
 logical, optional :: track_to_same_s
 real(rp) :: dt_step, dt_next, t_now, beta, ds, charge
 
-integer, parameter :: fixed_time_step$ = 1, adaptive_step$ = 2 ! Need this in bmad_struct
-
 character(*), parameter :: r_name = 'track1_bunch_space_charge'
 
 ! Initialize variables
