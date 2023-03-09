@@ -713,13 +713,16 @@ else
   if (n_ele == count(slave%ix_uni == ix_uni)) then
     n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
   else
+    if (n_line+size(slave)+1 >= size(str)) call re_allocate (str, 2*(n_line+size(slave)))
+
     ! Qualified names can only be used after an expand_lattice command.
+
     if (str(1) /= 'expand_lattice') then
-      str(2:n_line) = str(1:n_line-1)
+      str(1:n_line) = str(2:n_line+1)
+      n_line = n_line + 1
       str(1) = 'expand_lattice'
     endif
 
-    if (n_line+size(slave) >= size(str)) call re_allocate (str, 2*(n_line+size(slave)))
     do ix = 1, size(slave)
       if (slave(ix)%ix_uni /= ix_uni) cycle
       ele => lat%branch(slave(ix)%ix_branch)%ele(slave(ix)%ix_ele)

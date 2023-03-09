@@ -169,7 +169,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
             if (curve%data_source /= 'multi_turn_orbit' .and. curve%data_source /= 'rel_multi_turn_orbit') cycle
             if ((curve%ix_universe == -1 .and. iuni /= s%global%default_universe) .or. &
                                   (curve%ix_universe /= -1 .and. iuni /= curve%ix_universe)) cycle
-            if (curve%ix_branch /= ib) cycle
+            if (tao_branch_index(curve%ix_branch) /= ib) cycle
             nc = nc + 1
             s%com%multi_turn_orbit_is_plotted = .true.
             if (nc == 1) then

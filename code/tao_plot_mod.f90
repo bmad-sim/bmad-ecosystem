@@ -31,7 +31,7 @@ type (tao_data_array_struct), allocatable :: d_array(:)
 
 real(rp) location(4), dx, dy, h
 
-integer i, j, k, ic, id
+integer i, j, k, ic, id, nb
 
 character(80) text
 character(*), parameter :: r_name = 'tao_draw_plots'
@@ -73,9 +73,16 @@ endif
 
 ! Draw view universe
 
-if (size(s%u) > 1 .and. s%plot_page%draw_graph_title_suffix) then
-  write (default_uni, '(i3)') s%global%default_universe
-  call qp_draw_text ('Default Universe:' // default_uni, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
+if (s%plot_page%draw_graph_title_suffix) then
+  nb = 0
+  do i = 1, size(s%u)
+    nb = max(nb, size(s%u(1)%model%lat%branch))
+  enddo
+  text = ','
+  if (size(s%u) > 1) text = ', Default Universe:' // int_str(s%global%default_universe)
+  if (nb > 1) text = trim(text) // ', Default Branch: ' // int_str(s%global%default_branch)
+  text = text(3:)
+  if (text /= '') call qp_draw_text (text, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
 endif
 
 ! loop over all plots
@@ -430,7 +437,7 @@ if (graph%ix_universe == -2) then
     call draw_this_floor_plan(isu)
   enddo
 else
-  isu = tao_universe_number(graph%ix_universe)
+  isu = tao_universe_index(graph%ix_universe)
   call draw_this_floor_plan(isu)
 endif
 
@@ -669,7 +676,7 @@ logical is_bend, can_test
 
 !
 
-isu = tao_universe_number(ix_uni)
+isu = tao_universe_index(ix_uni)
 
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
@@ -1183,7 +1190,7 @@ type (tao_var_struct), pointer :: var
 real(rp) x1, x2, y1, y2, y, s_pos, x0, y0, s_lat_min, s_lat_max
 real(rp) lat_len, height, dx, dy, key_number_height, dummy, l2
 
-integer i, j, k, n, kk, ix, ix1, isu, ixe
+integer i, j, k, n, kk, ix, ix1, isu, ixe, ib
 integer ix_var, ixv
 
 logical err, have_data
@@ -1213,10 +1220,11 @@ case default
   return
 end select
 
-isu = tao_universe_number(graph%ix_universe, .true.)
+isu = tao_universe_index(graph%ix_universe, .true.)
 lat => s%u(isu)%model%lat
-branch => lat%branch(graph%ix_branch)
-tao_branch => s%u(isu)%model%tao_branch(graph%ix_branch)
+ib = tao_branch_index(graph%ix_branch)
+branch => lat%branch(ib)
+tao_branch => s%u(isu)%model%tao_branch(ib)
 
 lat_len = branch%param%total_length
 
@@ -1346,7 +1354,7 @@ do
 
   call find_element_ends (ele, ele1, ele2)
   if (.not. associated(ele1)) return
-  if (ele1%ix_branch /= graph%ix_branch) return
+  if (ele1%ix_branch /= tao_branch_index(graph%ix_branch)) return
   x1 = ele1%s
   x2 = ele2%s
   ! If out of range then try to shift by lat_len to get in range
@@ -1548,14 +1556,15 @@ type (branch_struct), pointer :: branch, branch2
 
 real(rp) lat_len, dummy
 
-integer i, isu
+integer i, ib, isu
 
 !
 
-isu = tao_universe_number(graph%ix_universe)
+isu = tao_universe_index(graph%ix_universe)
 lat => s%u(isu)%model%lat
-branch => lat%branch(graph%ix_branch)
-tao_branch => s%u(isu)%model%tao_branch(graph%ix_branch)
+ib = graph%ix_branch
+branch => lat%branch(ib)
+tao_branch => s%u(isu)%model%tao_branch(ib)
 
 lat_len = branch%param%total_length
   

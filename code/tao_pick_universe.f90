@@ -146,7 +146,7 @@ endif
 do i = lbound(p, 1), ubound(p, 1)
   if (.not. p(i)) cycle
 
-  iu = tao_universe_number(i)
+  iu = tao_universe_index(i)
   if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) then
     call out_io (s_error$, r_name, 'NUMBER DOES NOT CORRESPOND TO A UNIVERSE: ' // uni)
     err = .true.

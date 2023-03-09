@@ -44,10 +44,6 @@ do i = 1, size(s%plot_page%region)
       if (.not. associated(u)) cycle
 
       if (.not. u%picked_uni .and. tao_rad_int_calc_needed(curve%data_type, curve%data_source)) then
-        if (curve%ix_branch /= 0) then
-          call out_io (s_error$, r_name, 'PLOTTING THIS: ' // curve%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
-          cycle
-        endif
         u%calc%rad_int_for_plotting = .true.
         u%calc%lattice = .true.
         u%picked_uni = .true.

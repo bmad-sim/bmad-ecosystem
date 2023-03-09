@@ -375,7 +375,7 @@ endif
 ! For a floor plan 
 
 if (graph%type == 'floor_plan') then
-  ix = tao_universe_number(graph%ix_universe)
+  ix = tao_universe_index(graph%ix_universe)
   this_min = 1e30
   this_max = -1e30
   found_data = .false.

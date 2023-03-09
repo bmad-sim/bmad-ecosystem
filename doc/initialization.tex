@@ -910,7 +910,7 @@ synchrotron radiation (CSR), calculations.
     integer n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
     integer sc_min_in_bin = 10          ! Min number of particles in a bin for sigmas to be valid.
     logical print_taylor_warning = True ! Print warning if Taylor element is present?
-    logical write_csr_wake = False      ! Write the CSR wake? For diagnostics.
+    logical diagnostic_output_file = "" ! Write CSR wake if file name is not blank.
     logical lsc_kick_transverse_dependence = F
 \end{example}
 It is important to note that space charge / CSR calculations also depend upon settings in the
@@ -2404,7 +2404,7 @@ The general format of the \vn{tao_template_graph} namelist is:
     graph%allow_wrap_around  = <logical>          ! Wrap curves around lattice ends?
     graph%symbol_size_scale  = <real>             ! Phase_space plots symbol scale factor
     graph%ix_universe        = <integer>          ! Default = -1 => Use default universe
-    graph%ix_branch          = <integer>          ! Lattice branch index.
+    graph%ix_branch          = <integer>          ! Lattice branch index. -1 => Use default branch
     graph%floor_plan         = <floor_plan_struct> ! Floor_plan parameters (\sref{s:floor.plan}).
     graph%draw_only_good_user_data_or_vars        ! Veto data or variables with good_user = F?
                                  = <logical>      !   Default = T.
@@ -2423,8 +2423,8 @@ The general format of the \vn{tao_template_graph} namelist is:
     curve(N)%draw_symbols        = <logical>      ! Draw data symbols?
     curve(N)%draw_symbol_index   = <logical>      ! Print index number next to the data symbol?
     curve(N)%draw_error_bars     = <logical>      ! Draw error bars with data?
-    curve(N)%ix_universe         = <integer>      ! Default = -1 => Use graph%ix_universe.
-    curve(N)%ix_branch           = <integer>      ! Default = 0  => Use main lattice.  
+    curve(N)%ix_universe         = <integer>      ! Default = -1 => Use default uni.
+    curve(N)%ix_branch           = <integer>      ! Default = -1  => Use default lat branch.
     curve(N)%ix_bunch            = <integer>      ! Bunch index. Default = 0 (all bunches).
     curve(N)%n_turn              = <integer>      ! For phase space multi_turn_orbit.
     curve(N)%line     = <qp_line_struct>          ! Line spec (color, width, etc.)
@@ -2515,7 +2515,7 @@ The \vn{%hist} parameter is a structure used for setting histogram parameters (\
 %
 \item[curve(N)\%ix_branch] \Newline
 The \vn{%ix_branch} sets which lattice branch data (beta function, orbit, etc.) is taken.
-from. Default is branch 0 (the root branch). 
+from. Default is -1 which translates to the default branch \vn{global%default_branch}.
 %
 \item[curve(N)\%ix_bunch] \Newline
 The \vn{%ix_bunch} parameter sets which particle bunch data is taken from if \vn{%data_source}
@@ -2523,7 +2523,7 @@ The \vn{%ix_bunch} parameter sets which particle bunch data is taken from if \vn
 %
 \item[curve(N)\%ix_universe] \Newline
 The \vn{%ix_universe} parameter sets which universe (\sref{s:universe}) data is taken from. Default
-is -1 which means that the data will be drawn from the current default universe.
+is -1 which means that the data will be drawn from the current default universe \vn{global%default_uni}.
 %
 \item[curve(N)\%legend_text] \Newline
 The \vn{%legend_text} parameter sets the text that is displayed in the curve legend
