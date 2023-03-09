@@ -67,6 +67,12 @@ function tao_beam_track_endpoint (ele_id, lat, branch_str, where) result (ele)
   character(*) ele_id, where, branch_str
 end function
 
+function tao_branch_index (ix_branch) result (ix_this)
+  import
+  implicit none
+  integer ix_branch, ix_this
+end function
+
 subroutine tao_call_cmd (file_name, cmd_arg)
   implicit none
   character(*) :: file_name
@@ -973,7 +979,7 @@ subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
   implicit none
 end subroutine
 
-function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
+function tao_universe_index (i_uni, neg2_to_default) result (i_this_uni)
   import
   implicit none
   integer i_uni, i_this_uni
@@ -1069,7 +1075,7 @@ character(*), parameter :: r_name = 'tao_pointer_to_universe_int'
 
 !
 
-ix_u = tao_universe_number(ix_uni, neg2_to_default)
+ix_u = tao_universe_index(ix_uni, neg2_to_default)
 
 if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
   call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
@@ -1106,10 +1112,10 @@ nullify(u)
 
 ix = tao_uni_ampersand_index(string)
 if (ix == 0) then
-  u => s%u(tao_universe_number(-1))
+  u => s%u(tao_universe_index(-1))
   return
 elseif (string(1:ix-1) == '') then
-  u => s%u(tao_universe_number(-1))
+  u => s%u(tao_universe_index(-1))
   string = string(ix+1:)
   return
 endif
@@ -1123,7 +1129,7 @@ endif
 read (string(1:ix-1), *) ix_u
 string = string(ix+1:)
 
-ix_u = tao_universe_number(ix_u, neg2_to_default)
+ix_u = tao_universe_index(ix_u, neg2_to_default)
 
 if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
   call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)

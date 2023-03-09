@@ -60,7 +60,7 @@ if (ele%lord_status == group_lord$) return
 if (ele%lord_status == overlay_lord$) return
 if (ele%slave_status == super_slave$) return
 
-ixu = tao_universe_number(ix_uni, .true.)
+ixu = tao_universe_index(ix_uni, .true.)
 
 do k = integer_option(1, ix_shape_min), size(ele_shape)
   es => ele_shape(k)

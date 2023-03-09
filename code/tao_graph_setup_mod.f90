@@ -453,10 +453,10 @@ n_curve_pts = s%plot_page%n_curve_pts
 if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
 
 same_uni = .true.
-ix = tao_universe_number(tao_curve_ix_uni(graph%curve(1)))
+ix = tao_universe_index(tao_curve_ix_uni(graph%curve(1)))
 do k = 2, size(graph%curve)
   curve => graph%curve(k)
-  if (tao_universe_number(tao_curve_ix_uni(curve)) /= ix) same_uni = .false.
+  if (tao_universe_index(tao_curve_ix_uni(curve)) /= ix) same_uni = .false.
 enddo
 
 graph%title_suffix = ''
@@ -510,8 +510,9 @@ do k = 1, size(graph%curve)
       return
     endif
 
-    beam => u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
-    ele => u%model%lat%branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)
+    ib = tao_branch_index(curve%ix_branch)
+    beam => u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam
+    ele => u%model%lat%branch(ib)%ele(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then
       call out_io (s_warn$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
@@ -658,7 +659,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
 type (aperture_scan_struct), pointer :: scan
 type (coord_struct), allocatable :: orbit(:)
-integer :: i, j, k, n_da, n_da_curve, n, ix_ele_ref
+integer :: i, j, k, ib, n_da, n_da_curve, n, ix_ele_ref
 
 logical err
 
@@ -870,10 +871,10 @@ endif
 ! Set up the graph suffix
 
 same_uni = .true.
-ix = tao_universe_number(tao_curve_ix_uni(graph%curve(1)))
+ix = tao_universe_index(tao_curve_ix_uni(graph%curve(1)))
 do k = 2, size(graph%curve)
   curve => graph%curve(k)
-  if (tao_universe_number(tao_curve_ix_uni(curve)) /= ix) same_uni = .false.
+  if (tao_universe_index(tao_curve_ix_uni(curve)) /= ix) same_uni = .false.
 enddo
 
 graph%title_suffix = ''
@@ -919,7 +920,8 @@ do k = 1, size(graph%curve)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam') then
-    beam => u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
+    ib = tao_branch_index(curve%ix_branch)
+    beam => u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_warn$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
@@ -1233,7 +1235,7 @@ real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx, limit, len_bran
 real(rp), allocatable :: value_arr(:), x_arr(:), y_arr(:)
 real(rp), pointer :: var_ptr
 
-integer ii, k, m, n, n_dat, n2_dat, ie, jj, iv, ic
+integer ii, k, m, n, n_dat, n2_dat, ib, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2, n_curve_pts
 integer, allocatable :: xx_arr(:)
 
@@ -1267,7 +1269,9 @@ if (.not. tao_curve_check_universe(curve, u)) return
 
 model_lat => u%model%lat
 base_lat => u%base%lat
-branch => model_lat%branch(curve%ix_branch)
+
+ib = tao_branch_index(curve%ix_branch)
+branch => model_lat%branch(ib)
 
 if (curve%ele_ref_name == '') then
   zero_average_phase = .true.
@@ -1278,7 +1282,8 @@ else
     call tao_set_curve_invalid (curve, 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name))
     return
   endif
-  curve%ix_branch  = scratch%eles(1)%ele%ix_branch
+  curve%ix_branch = scratch%eles(1)%ele%ix_branch
+  ib = curve%ix_branch
   curve%ix_ele_ref = scratch%eles(1)%ele%ix_ele
   call tao_ele_to_ele_track(tao_curve_ix_uni(curve), scratch%eles(1)%ele%ix_branch, &
                                       scratch%eles(1)%ele%ix_ele, curve%ix_ele_ref_track)
@@ -1735,7 +1740,7 @@ case ('lat', 'beam')
     n_dat = max(0, nint(x_max+1-x_min))
     call re_allocate_eles (scratch%eles, n_dat, exact = .true.)
     do i = 1, n_dat
-      scratch%eles(i)%ele => pointer_to_ele (model_lat, nint(i+x_min-1), curve%ix_branch)
+      scratch%eles(i)%ele => pointer_to_ele (model_lat, nint(i+x_min-1), ib)
     enddo
 
   ! x_axis_type == 's':
@@ -1819,7 +1824,7 @@ case ('lat', 'beam')
 
 case ('aperture')
 
-  branch => u%model%lat%branch(curve%ix_branch)
+  branch => u%model%lat%branch(ib)
   call re_allocate (xx_arr, 100)
   call re_allocate (x_arr, 100)
   call re_allocate (y_arr, 100)
@@ -1966,9 +1971,8 @@ case ('s')
     ! Allocate data space. 
     ! Tracking is problematical if the step size is less than significant_length so adjust if needed.
 
-    n = curve%ix_branch
     n_curve_pts = nint(min(1.0_rp*n_curve_pts, &
-                        2+0.1_rp*u%model%lat%branch(n)%param%total_length/bmad_com%significant_length))
+                        2+0.1_rp*u%model%lat%branch(ib)%param%total_length/bmad_com%significant_length))
     call re_allocate (curve%y_line, n_curve_pts) 
     call re_allocate (curve%x_line, n_curve_pts)
     call re_allocate (good, n_curve_pts) 
@@ -2154,7 +2158,7 @@ logical err, good(:), first_time, radiation_fluctuations_on, ok, gd
 
 data_type = curve%data_type
 
-ix_branch = curve%ix_branch
+ix_branch = tao_branch_index(curve%ix_branch)
 lat => tao_lat%lat
 tao_branch => tao_lat%tao_branch(ix_branch)
 orb => tao_branch%orbit
@@ -2844,7 +2848,7 @@ datum%merit_type     = 'target'
 datum%data_type      = curve%data_type
 datum%ele_ref_name   = curve%ele_ref_name
 datum%data_source    = curve%data_source
-datum%ix_branch      = curve%ix_branch
+datum%ix_branch      = tao_branch_index(curve%ix_branch)
 
 call tao_split_component (curve%component, scratch%comp, err)
 if (err) then

@@ -736,7 +736,7 @@ do  ! Loop over plot files
           stop
         endif
 
-        i_uni = tao_universe_number (crv%ix_universe)
+        i_uni = tao_universe_index (crv%ix_universe)
         if (i_uni > ubound(s%u, 1)) then
           call out_io (s_warn$, r_name, &
                           'CURVE OF PLOT: ' // plot%name, &

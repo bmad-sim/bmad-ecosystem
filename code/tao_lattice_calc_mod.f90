@@ -288,7 +288,7 @@ else
     covar = beam_init%dPz_dz * beam_init%sig_z**2
     radix = (beam_init%sig_z * beam_init%sig_pz)**2 - covar**2
     if (radix < 0) then
-      call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_Pz/Sig_z')
+      call out_io (s_error$, r_name, 'Beam init: |dPz_dz| must be less than Sig_Pz/Sig_z to avoid negative sqrt argument in emit calc.')
       calc_ok = .false.
       return
     endif

@@ -211,7 +211,7 @@ type tao_curve_struct
   type (tao_curve_orbit_struct) :: orbit = tao_curve_orbit_struct()   ! Used for E/B field plotting.
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
-  integer :: ix_branch = 0
+  integer :: ix_branch = -1
   integer :: ix_ele_ref = -1             ! Index in lattice of reference element.
   integer :: ix_ele_ref_track = -1       ! = ix_ele_ref except for super_lord elements.
   integer :: ix_bunch = 0                ! Bunch to plot.
@@ -268,7 +268,7 @@ type tao_graph_struct
   real(rp) :: x_axis_scale_factor = 1               ! x-axis conversion from internal to plotting units.
   real(rp) :: symbol_size_scale = 0                 ! Symbol size scale factor for phase_space plots.
   integer :: box(4) = 0                             ! Defines which box the plot is put in.
-  integer :: ix_branch = 0                          ! Branch in lattice.
+  integer :: ix_branch = -1                         ! Branch in lattice. Used when there are no associated curves.
   integer :: ix_universe = -1                       ! Used for lat_layout plots.
   logical :: clip = .false.                         ! Clip plot at graph boundary.
   logical :: y2_mirrors_y = .true.                  ! Y2-axis same as Y-axis?

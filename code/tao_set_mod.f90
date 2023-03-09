@@ -1500,8 +1500,8 @@ character(40) name, comp
 
 !
 
-i_branch = this_curve%ix_branch
-i_uni = tao_universe_number(tao_curve_ix_uni(this_curve))
+i_branch = tao_branch_index(this_curve%ix_branch)
+i_uni = tao_universe_index(tao_curve_ix_uni(this_curve))
 
 this_graph => this_curve%g
 this_graph%p%default_plot = .true.   ! Plot has been modified
@@ -1542,7 +1542,7 @@ case ('ix_universe')
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_branch') 
-  call tao_set_integer_value (this_curve%ix_branch, component, value_str, err, 0, ubound(s%u(i_uni)%model%lat%branch, 1))
+  call tao_set_integer_value (this_curve%ix_branch, component, value_str, err, -1, ubound(s%u(i_uni)%model%lat%branch, 1))
 
 case ('ix_bunch')
   u => tao_pointer_to_universe (tao_curve_ix_uni(this_curve))
@@ -2051,7 +2051,7 @@ case ('ix_universe')
     u => tao_pointer_to_universe(this_graph%ix_universe)
   endif
 case ('ix_branch')
-  call tao_set_integer_value (this_graph%ix_branch, component, value, error, 0, ubound(u%model%lat%branch, 1))
+  call tao_set_integer_value (this_graph%ix_branch, component, value, error, -1, ubound(u%model%lat%branch, 1))
 case ('margin')
   call tao_set_qp_rect_struct (comp, sub_comp, this_graph%margin, value, error, u%ix_uni)
 case ('name')

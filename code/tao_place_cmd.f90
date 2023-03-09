@@ -32,7 +32,7 @@ type (tao_curve_struct), pointer :: curve
 type (tao_plot_region_struct), allocatable :: temp_buf(:)
 
 real(rp) x1, x2, y1, y2
-integer i, j, k, i_uni, n
+integer i, j, k, i_uni, ib, n
 
 logical err
 logical, optional :: no_buffer
@@ -114,10 +114,11 @@ do i = 1, size(region%plot%graph)
                 'CANNOT PLOT PHASE SPACE FOR: ' // tao_curve_name(curve))
       return
     endif
-    u => s%u(tao_universe_number(tao_curve_ix_uni(curve)))
-    if (.not. allocated(u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam%bunch)) then
+    u => s%u(tao_universe_index(tao_curve_ix_uni(curve)))
+    ib = tao_branch_index(curve%ix_branch)
+    if (.not. allocated(u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam%bunch)) then
       if (s%global%plot_on) u%calc%lattice = .true.
-      u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%save_beam_internally = .true.
+      u%model_branch(ib)%ele(curve%ix_ele_ref_track)%save_beam_internally = .true.
     endif
   enddo
 enddo

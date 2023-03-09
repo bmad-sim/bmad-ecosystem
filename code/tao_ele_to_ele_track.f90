@@ -33,7 +33,7 @@ integer i_uni, ix_c
 
 !
 
-i_uni = tao_universe_number(ix_universe)
+i_uni = tao_universe_index(ix_universe)
 lat => s%u(i_uni)%model%lat
 
 if (ix_ele < 0) then

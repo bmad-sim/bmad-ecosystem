@@ -2313,6 +2313,9 @@ case ('graph')
                                   'scale_margin                     = ', g%scale_margin
   nl=nl+1; write(lines(nl), imt)  'box                              = ', g%box
   nl=nl+1; write(lines(nl), imt)  'ix_universe                      = ', g%ix_universe
+  if (.not. allocated(g%curve)) then   ! %ix_branch is only used if there are no curves.
+    nl=nl+1; write(lines(nl), imt)  'ix_branch                        = ', g%ix_branch
+  endif
   nl=nl+1; write(lines(nl), lmt)  'is_valid                         = ', g%is_valid
 
   nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
@@ -5863,8 +5866,9 @@ case ('variables')
       n = nl + 3*size(v_ptr%slave) + 100
       if (size(lines) < n) call re_allocate(lines, n)
       do i = 1, size(v_ptr%slave)
-        nl=nl+1; write(lines(nl), '(4(a, i0))')  '%slave(', i, ')%uni@branch>>ele:        ', &
-                        v_ptr%slave(i)%ix_uni, '@', v_ptr%slave(i)%ix_branch, '>>', v_ptr%slave(i)%ix_ele
+        ele => s%u(v_ptr%slave(i)%ix_uni)%model%lat%branch(v_ptr%slave(i)%ix_branch)%ele(v_ptr%slave(i)%ix_ele)
+        nl=nl+1; write(lines(nl), '(2(a, i0), 2a)')  '%slave(', i, '): Slave Element: ', &
+                                                          v_ptr%slave(i)%ix_uni, '@', ele_full_name(ele)
         if (associated (v_ptr%slave(i)%model_value)) then
           nl=nl+1; write(lines(nl), irmt)  '%slave(', i, ')%Model_value: ', &
                                                             v_ptr%slave(i)%model_value

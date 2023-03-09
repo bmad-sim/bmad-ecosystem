@@ -1,5 +1,5 @@
 !+
-! Function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
+! Function tao_universe_index (i_uni, neg2_to_default) result (i_this_uni)
 !
 ! Fnction to return the universe number.
 ! Generally i_this_uni = i_uni except:
@@ -15,7 +15,7 @@
 !   i_this_uni      -- integer: Universe number. 
 !-
 
-function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
+function tao_universe_index (i_uni, neg2_to_default) result (i_this_uni)
 
 use tao_struct
 
@@ -41,5 +41,5 @@ case default
   i_this_uni = i_uni
 end select
 
-end function tao_universe_number
+end function tao_universe_index
 
