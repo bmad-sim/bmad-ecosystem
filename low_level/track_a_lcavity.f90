@@ -66,7 +66,6 @@ n_step = 1
 r_step = rp8(orbit%time_dir) / n_step
 step_len = length / n_step
 
-
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 

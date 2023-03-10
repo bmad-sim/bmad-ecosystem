@@ -1390,10 +1390,7 @@ bunch_params%centroid%charge = charge_live
 
 !
 
-if (bunch_params%n_particle_live == 0) then
-  error = .false.
-  return
-endif
+if (bunch_params%n_particle_live == 0) return
 
 if (charge_live == 0) then
   charge = 1
@@ -1460,7 +1457,7 @@ complex(rp) :: n_cmplx(6,6), q(6,6)
 integer dim
 
 logical, optional :: print_err
-logical error, err, good(3)
+logical error, good(3)
 
 character(*), parameter :: r_name = 'calc_emittances_and_twiss_from_sigma_matrix'
 
@@ -1494,14 +1491,15 @@ sigma_s(:,6) =  sigma_mat(:,5)
 dim = 6
 if (abs(sigma_mat(6,6)) < 1e-20_rp * maxval(abs(sigma_mat))) dim = 4  ! No energy oscillations.
 
-call mat_eigen (sigma_s(1:dim,1:dim), eigen_val(1:dim), eigen_vec(1:dim,1:dim), err, print_err)
-if (err) return
+call mat_eigen (sigma_s(1:dim,1:dim), eigen_val(1:dim), eigen_vec(1:dim,1:dim), error, print_err)
+if (error) return
 
-call normalize_e (eigen_vec(1:dim,1:dim), dim, good, err)
-if (err) then
+call normalize_e (eigen_vec(1:dim,1:dim), dim, good, error)
+if (error) then
   if (logic_option(.true., print_err)) call out_io (s_warn$, r_name, 'Cannot normalize some eigenvectors.', &
                          'Note: This can happen if the emittance of a normal mode is very small or zero.', &
                          'This will throw off the emittance and other calculations.')
+  return
 endif
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (Wolski Eq. 32)
@@ -1572,7 +1570,6 @@ if (dim == 6 .and. good(3)) then
 endif
 
 bunch_params%twiss_valid = .true.
-error = .false.
 
 !----------------------------------------------------------------------
 contains
