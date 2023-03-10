@@ -1488,7 +1488,11 @@ if (who == 'action_angle') then
 
   else
     call calc_bunch_params (bunch, b_params, error, n_mat = n_inv_mat)
-    call mat_inverse (n_inv_mat, n_inv_mat)
+    if (error) then
+      n_inv_mat = 0
+    else
+      call mat_inverse (n_inv_mat, n_inv_mat)
+    endif
   endif
 endif
 
@@ -1756,7 +1760,7 @@ type (bunch_struct), target :: bunch
 type (ltt_bunch_data_struct) :: bd
 
 real(rp) ave, z, n_inv_mat(6,6)
-real(rp) :: orb2_sum(6,6), orb3_sum(6), orb4_sum(6), orb_sum(6)
+real(rp) :: orb2_sum(6,6), orb3_sum(6), orb4_sum(6), orb_sum(6), core_emit_cutoff
 
 integer i, j, k, n, ib, ic, ix, i_turn, this_turn, n2w
 logical error
@@ -1766,7 +1770,7 @@ logical error
 bd = ltt_bunch_data_struct()
 call calc_bunch_params(bunch, bd%params, error, .true., n_inv_mat)
 bd%n_live = bd%params%n_particle_live
-if (bd%n_live == 0) then
+if (error .or. bd%n_live == 0) then
   bd = ltt_bunch_data_struct()  ! Erase any garbage from calc_bunch_params
   return
 endif
@@ -1821,9 +1825,10 @@ endif
 call mat_inverse (n_inv_mat, n_inv_mat)
 
 do ic = 1, core_max$
-  if (lttp%core_emit_cutoff(ic) <= 0) exit
+  core_emit_cutoff = lttp%core_emit_cutoff(ic)
+  if (core_emit_cutoff <= 0) exit
   if (bd%params%a%emit == 0 .or. bd%params%b%emit == 0 .or. bd%params%c%emit == 0) exit
-  call this_core_calc(bunch, bd, lttp%core_emit_cutoff(ic), n_inv_mat, bd%core_emit(ic,:))
+  call this_core_calc(bunch, bd, core_emit_cutoff, n_inv_mat, bd%core_emit(ic,:))
 enddo
 
 !------------------------------------------------
@@ -1845,7 +1850,7 @@ logical error
 !
 
 n = bd%n_live
-n_cut = nint(core_emit_cutoff * n)
+n_cut = int(core_emit_cutoff * n)
 if (n_cut == 0) return
 
 allocate (core_bunch%particle(n_cut))
@@ -1861,7 +1866,7 @@ if (lttp%core_emit_combined_calc) then
   call mat_inverse (n_inv_mat, n_inv_mat)
   call core_bunch_construct(0, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch, b_params)
 
-  call calc_bunch_params(core_bunch, b_params, error)
+  call calc_bunch_params(core_bunch, b_params, error);  if (error) return
   core_emit(1) = f * b_params%a%emit
   core_emit(2) = f * b_params%b%emit
   core_emit(3) = f * b_params%c%emit
@@ -1873,7 +1878,7 @@ else
   do i = 1, 3
     call core_bunch_construct(i, bunch, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch)
 
-    call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat)
+    call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat); if (error) return
 
     call mat_inverse (n_inv_mat, n_inv_mat)
     call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
@@ -1919,20 +1924,19 @@ integer, allocatable :: indx(:)
 
 n = size(bunch%particle)
 allocate(jamp(n), indx(n))
+jamp = 1e100_rp  ! Something large for dead particles
 
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
-  if (p%state == alive$) then
-    jvec = matmul(n_inv_mat, p%vec-center)
-    if (ix_mode == 0) then
-      jamp(ip) = (jvec(1)**2 + jvec(2)**2) / b_params%a%emit + (jvec(3)**2 + jvec(4)**2) / b_params%b%emit + &
-                                                               (jvec(5)**2 + jvec(6)**2) / b_params%c%emit
-    else
-      ix = ix_mode * 2 - 1
-      jamp(ip) = 0.5_rp * (jvec(ix)**2 + jvec(ix+1)**2)
-    endif
+  if (p%state /= alive$) cycle
+  jvec = matmul(n_inv_mat, p%vec-center)
+
+  if (ix_mode == 0) then
+    jamp(ip) = (jvec(1)**2 + jvec(2)**2) / b_params%a%emit + (jvec(3)**2 + jvec(4)**2) / b_params%b%emit + &
+                                                             (jvec(5)**2 + jvec(6)**2) / b_params%c%emit
   else
-    jamp(ip) = 1e100_rp  ! Something large
+    ix = ix_mode * 2 - 1
+    jamp(ip) = 0.5_rp * (jvec(ix)**2 + jvec(ix+1)**2)
   endif
 enddo
 
@@ -1941,7 +1945,8 @@ call indexer(jamp, indx)
 do ip = 1, n_cut
   j = indx(ip)
   if (bunch%particle(j)%state /= alive$) then
-    print *, 'ERROR IN CORE EMIT CALC. PLEASE REPORT!'
+    print '(a, 2i8, f10.3)', 'ERROR IN CORE EMIT CALC. PLEASE REPORT!', &
+                    count(bunch%particle%state == alive$), n_cut, core_emit_cutoff 
     stop
   endif
   core_bunch%particle(ip) = bunch%particle(j)
