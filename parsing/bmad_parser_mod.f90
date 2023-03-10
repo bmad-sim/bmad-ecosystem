@@ -7318,7 +7318,7 @@ end subroutine parser_identify_fork_to_element
 !
 ! Input:
 !   i_lev         -- integer: Subsequence level. 1 => Root level.
-!   line_name      -- character(*): Root line to expand.
+!   line_name     -- character(*): Root line to expand.
 !   sequence(:)   -- seq_struct: Array of sequencies.
 !   seq_name(:)   -- character(*): Array of sequence names.
 !   seq_indexx(:) -- integer: Index array for the sequence names.
@@ -7388,7 +7388,11 @@ seq => sequence(ix_seq)
 rep_count = seq%ele(1)%rep_count
 ix_ele =  1              ! we start at the beginning
 n_ele_expand = 0
-
+if (seq%active) then
+  call parser_error('INFINITE RECURSION: A SUBLINE OF LINE: ' // trim(line_name) // ' IS THIS SAME LINE!', stop_here = .true.)
+  return
+endif
+seq%active = .true.
          
 sequence(:)%ix_list = 1  ! Init. Used for replacement list index
 sequence(:)%list_upcount = 0 ! Count up
@@ -7521,6 +7525,7 @@ line_expansion: do
 
     call parser_expand_line (i_lev+1, s_ele%name, sequence, seq_name, &
                                             seq_indexx, no_end_marker, n_ele2, lat, in_lat, sub_line)
+    if (bp_com%fatal_error_flag) return
     ixs_start = find_slice_edge(s_ele%slice_start, 1, sub_line(1:n_ele2), s_ele)
     ixs_end = find_slice_edge(s_ele%slice_end, n_ele2, sub_line(1:n_ele2), s_ele)
     if (ixs_start > ixs_end) then
@@ -7570,6 +7575,7 @@ if (present(expanded_line)) then  ! Used by girders and sublines.
   if (allocated(expanded_line)) deallocate(expanded_line)
   allocate(expanded_line(n_ele_expand))
   expanded_line = base_line(1:n_ele_expand)
+  seq%active = .false.
   return
 endif
 
@@ -7642,6 +7648,8 @@ branch%n_ele_track = n_ele_expand
 branch%n_ele_max   = n_ele_expand
 branch%ix_branch   = ix_branch
 branch%name        = line_name
+
+seq%active = .false.
 
 !-------------------------------------------------
 contains

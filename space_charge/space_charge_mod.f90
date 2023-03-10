@@ -138,14 +138,14 @@ function out_of_sigma_cutoff(p) result (out_of_cutoff)
 
 type (coord_struct) :: p
 logical :: out_of_cutoff
-real(rp) :: particle_sigma_cutoff
+real(rp) :: sig_cut
 
 out_of_cutoff = .false.
-particle_sigma_cutoff = space_charge_com%particle_sigma_cutoff
-if (particle_sigma_cutoff .le. 0) return
-out_of_cutoff = (abs(p%vec(1) - bunch_params%centroid%vec(1)) / sigma(1) + &
-                 abs(p%vec(3) - bunch_params%centroid%vec(3)) / sigma(2) + &
-                 abs(p%s - bunch_params%centroid%vec(5)) / sigma(3) > particle_sigma_cutoff)
+sig_cut = space_charge_com%particle_sigma_cutoff
+if (sig_cut .le. 0) return
+out_of_cutoff = (abs(p%vec(1) - bunch_params%centroid%vec(1)) > sigma(1) * sig_cut .or. &
+                 abs(p%vec(3) - bunch_params%centroid%vec(3)) > sigma(2) * sig_cut .or. &
+                 abs(p%s - bunch_params%centroid%vec(5)) > sigma(3) * sig_cut)
 
 end function out_of_sigma_cutoff
 end subroutine sc_field_calc
