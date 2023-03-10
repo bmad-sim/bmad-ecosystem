@@ -340,7 +340,7 @@ do i_step = 0, n_step
 
       csr%kick_factor = (-1)**ns
       if (i_step == 0 .or. i_step == n_step) csr%kick_factor = csr%kick_factor / 2
-      if (ns /= 0) csr%kick_factor = 2* csr%kick_factor
+      if (ns /= 0) csr%kick_factor = 2 * csr%kick_factor
 
       csr%y_source = ns * space_charge_com%beam_chamber_height
 

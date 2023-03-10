@@ -1104,6 +1104,11 @@ do i = 1, n_max
     if (k == 0) cycle
     call parser_expand_line (-1, pele%control(j)%name, sequence, &
                                          seq_name, seq_indexx, .false., n_ele_use, expanded_line = a_line)
+    if (bp_com%fatal_error_flag) then
+      call parser_end_stuff (in_lat)
+      return
+    endif
+
     ! Put elements from the line expansion into the slave list.
 
     call move_alloc(pele%control, pcon)

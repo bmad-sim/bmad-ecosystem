@@ -1560,10 +1560,11 @@ function particle_is_moving_backwards (orbit) result (is_moving_backwards)
   logical is_moving_backwards
 end function
 
-function particle_is_moving_forward (orbit) result (is_moving_forward)
+function particle_is_moving_forward (orbit, dir) result (is_moving_forward)
   import
   implicit none
   type (coord_struct) orbit
+  integer, optional :: dir
   logical is_moving_forward
 end function
 
@@ -2562,14 +2563,14 @@ subroutine track_bunch_time (bunch, ele, t_end, s_end, dt_step, extra_field)
   type (em_field_struct), optional :: extra_field(:)
 end subroutine
 
-subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
+subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state, ix_ele_end)
   import
   implicit none
   type (lat_struct), target :: lat
   type (coord_struct) orbit_start, orbit_end
   type (coord_struct), optional, allocatable :: all_orb(:)
   real(rp) s_start, s_end
-  integer, optional :: ix_branch, track_state
+  integer, optional :: ix_branch, track_state, ix_ele_end
 end subroutine
 
 subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)

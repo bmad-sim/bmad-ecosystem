@@ -48,6 +48,7 @@ type seq_struct
   integer ix_file_line              ! Line number in file where sequence is defined
   logical multipass
   logical ptc_layout                ! Put in separate PTC layout
+  logical :: active = .false.       ! Used to prevent infinite loops.
 end type
 
 ! A LIFO stack structure is used to hold the list of input lattice files that are currently open.

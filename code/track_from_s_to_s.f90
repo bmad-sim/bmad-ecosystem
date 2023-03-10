@@ -1,5 +1,5 @@
 !+
-! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
+! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state, ix_ele_end)
 !
 ! Routine to track a particle between two s-positions.
 ! If the particle is lost in tracking, end_orb will hold the coordinates at the point of loss.
@@ -7,20 +7,21 @@
 !
 ! Input:
 !   lat         -- lat_struct: Lattice to track through
-!   s_start     -- Real(rp): Starting s-position.
-!   s_end       -- Real(rp): Ending s-position. If <= s_start then will wrap
+!   s_start     -- real(rp): Starting s-position.
+!   s_end       -- real(rp): Ending s-position. If <= s_start then will wrap
 !   orbit_start -- coord_struct: Starting coordinates.
-!   ix_branch   -- Integer, optional: Lattice branch index. Default is 0 (main branch).
+!   ix_branch   -- integer, optional: Lattice branch index. Default is 0 (main branch).
+!   ix_ele_end  -- integer, optional: If present, ignore s_end and track to in between ix_ele_end and ix_ele_end+1
 !
 ! Output:
 !   orbit_end   -- coord_struct: Ending coordinates.
 !   all_orb(0:) -- coord_struct, allocatable, optional: If present then the orbit at the exit ends
 !                   of the elements tracked through will be recorded in this structure. 
-!   track_state -- Integer, optional: Set to moving_forward$ if everything is OK.
+!   track_state -- integer, optional: Set to moving_forward$ if everything is OK.
 !                     Otherwise: set to index of element where particle was lost.
 !-   
 
-subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
+subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state, ix_ele_end)
 
 use bmad_interface, dummy => track_from_s_to_s
 
@@ -35,7 +36,7 @@ type (ele_struct), pointer :: ele
 real(rp) s_start, s_end
 real(rp) s0
 
-integer, optional :: ix_branch, track_state
+integer, optional :: ix_branch, track_state, ix_ele_end
 integer ix_start, ix_end, dir, ie_offset
 integer ix_ele
 
@@ -89,17 +90,21 @@ ele => branch%ele(ix_start)
 if (ix_start == ix_end .and. ((s_end > s_start .and. dir == 1) .or. (s_end < s_start .and. dir == -1))) then
   call twiss_and_track_intra_ele (ele, branch%param, s_start-s0, s_end-s0, &
                                                .true., .true., orbit_start, orbit_end)
-  if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_start
+  if (.not. particle_is_moving_forward(orbit_end, dir) .and. present(track_state)) track_state = ix_start
   return
 endif
 
 ! Track to end of current element
 
-if (dir == -1) ix_start = ix_start - 1
-call twiss_and_track_intra_ele (ele, branch%param,  &
-            s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
+if (dir == 1) then
+  call twiss_and_track_intra_ele (ele, branch%param, &
+                  s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
+else
+  call twiss_and_track_intra_ele (ele, branch%param, &
+                  s_start-s0, 0.0_rp, .true., .true., orbit_start, orbit_end)
+endif
 
-if (.not. particle_is_moving_forward(orbit_end)) then
+if (.not. particle_is_moving_forward(orbit_end, dir)) then
   if (present(track_state)) track_state = ix_start
   return
 endif
@@ -118,7 +123,7 @@ do
   call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
 
   if (present(all_orb)) all_orb(ix_ele+ie_offset) = orbit_end
-  if (.not. particle_is_moving_forward(orbit_end)) then
+  if (.not. particle_is_moving_forward(orbit_end, dir)) then
     if (present(track_state)) track_state = ix_ele
     return
   endif
@@ -127,8 +132,15 @@ enddo
 
 ! Track to s_end
 
-call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end)%s_start, &
-                                                                      .true., .true., orbit_end, orbit_end)
-if (.not. particle_is_moving_forward(orbit_end) .and. present(track_state)) track_state = ix_end
+ele => branch%ele(ix_end)
+if (dir == 1) then
+  call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-ele%s_start, &
+                                                                              .true., .true., orbit_end, orbit_end)
+else
+  call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, ele%value(l$), s_end-ele%s_start, &
+                                                                              .true., .true., orbit_end, orbit_end)
+endif
+
+if (.not. particle_is_moving_forward(orbit_end, dir) .and. present(track_state)) track_state = ix_end
 
 end subroutine

@@ -480,12 +480,15 @@ computed particle density with an attendant loss in resolution.
 %
 \item{particle_sigma_cutoff} \Newline
 The 3D space charge calculation uses a particle-in-cell algorithm. If there are halo particles far
-from the bunch center the grid spacing for the particle-in-cell may become too course. To help remidy
+from the bunch center the grid spacing for the particle-in-cell may become too course. To help remedy
 this, particles far from the bunch center may be vetoed by setting \vn{particle_sigma_cutoff} to a 
 positive value. When set positive, particles will be ignored in the space charge calc when
 \begin{equation}
-  \frac{|dx|}{\sigma_x} + \frac{|dy|}{\sigma_y} + \frac{|dz|}{\sigma_z} > \text{particle_sigma_cutoff}
+  \max \left( \frac{|dx|}{\sigma_x}, \frac{|dy|}{\sigma_y}, \frac{|dz|}{\sigma_z} \right)
+  > \text{particle_sigma_cutoff}
 \end{equation}
+where $dx$, $dy$, and $dz$ are the distances along the $x$, $y$, and $z$ axis of the particle from
+the bunch centroid, and $\sigma_x$, $\sigma_y$, and $\sigma_z$ are the bunch beam sizes.
 %
 \item[\vn{\%space_charge_mesh_size}] \Newline
 The \vn{%space_charge_mesh_size} sets the size of the grid used when an element's

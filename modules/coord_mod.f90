@@ -47,15 +47,13 @@ private reallocate_coord_n, reallocate_coord_lat
 ! Routine to initialize a coord_struct. 
 !
 ! This routine is an overloaded name for:
-!   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
-!   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
-!   Subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+!   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
+!   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
+!   Subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
 !
 ! Note: Unless shift_vec6 is set to False, if ele is a beginning_ele (IE, the element at the beginning of the lattice), 
 ! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
 ! corresponding to the beginning_ele's value of ele%value(p0c_start$).
-!
-! Note: If the particle is initialized with element_end = inside$, orb%s will not be set.
 !
 ! For photons:
 !   orb%vec(5) is set depending upon where the photon is relative to the element.
@@ -82,6 +80,7 @@ private reallocate_coord_n, reallocate_coord_lat
 !                     is pegged to the time of the center of the bunch.
 !   shift_vec6   -- logical, optional: If present and False, prevent the shift of orb%vec(6).
 !   spin(3)      -- real(rp), optional: Particle spin. Taken to be zero if not present.
+!   s_pos        -- real(rp), optional: Particle s-position. Only relavent if element_end = inside$.
 !
 ! Output:
 !   orb -- Coord_struct: Initialized coordinate.
@@ -243,20 +242,20 @@ end subroutine reallocate_coord_array
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+! Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
 
 implicit none
 
 type (coord_struct) orb, orb_temp
 type (ele_struct), optional :: ele
 real(rp) :: vec(6)
-real(rp), optional :: t_offset, E_photon, spin(3)
+real(rp), optional :: t_offset, E_photon, spin(3), s_pos
 integer, optional :: element_end, particle, direction
 logical, optional :: shift_vec6
 
@@ -265,7 +264,7 @@ logical, optional :: shift_vec6
 orb_temp = coord_struct()
 orb_temp%vec = vec
 
-call init_coord2 (orb, orb_temp, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+call init_coord2 (orb, orb_temp, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
 
 end subroutine init_coord1
 
@@ -273,13 +272,13 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+! Subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos)
 
 implicit none
 
@@ -287,7 +286,7 @@ type (coord_struct) orb_out, orb_in, orb
 type (ele_struct), optional, target :: ele
 type (branch_struct), pointer :: branch
 
-real(rp), optional :: E_photon, t_offset, spin(3)
+real(rp), optional :: E_photon, t_offset, spin(3), s_pos
 real(rp) p0c, e_tot, ref_time
 
 integer, optional :: element_end, particle, direction
@@ -361,7 +360,11 @@ if (present(ele)) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
-    if (orb%location /= inside$) orb%s = ele%s
+    if (orb%location == inside$) then
+      orb%s = real_option(ele%s, s_pos)
+    else
+      orb%s = ele%s
+    endif
   else
     p0c = ele%value(p0c_start$)
     e_tot = ele%value(e_tot_start$)
@@ -446,7 +449,9 @@ if (present(ele)) then
         orb%vec(5) = 0
       endif
 
-    elseif (orb%location /= inside$) then
+    elseif (orb%location == inside$ .and. ele%value(l$) /= 0) then
+      orb%t = (ele%value(ref_time_start$) * (ele%s - orb%s) + ele%ref_time * (orb%s - ele%s_start)) / ele%value(l$)
+    else
       orb%t = ref_time - orb%vec(5) / (orb%beta * c_light)
       if (present(t_offset)) orb%t = orb%t + t_offset
     endif
