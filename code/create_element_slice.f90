@@ -66,6 +66,8 @@ else
 endif
 sliced_ele%lord_status = not_a_lord$
 sliced_ele%slave_status = slice_slave$
+sliced_ele%n_slave = 0
+sliced_ele%n_slave_field = 0
 sliced_ele%ix_ele = ix_slice_slave$  ! Indicate sliced ele is not an element in the lattice.
 sliced_ele%s_start = ele_in%s - in_len + offset
 sliced_ele%s = sliced_ele%s_start + sliced_ele%value(l$)
