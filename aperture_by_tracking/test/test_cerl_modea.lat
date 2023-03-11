@@ -9010,39 +9010,39 @@ SA.CELLE.PUM07: INSTRUMENT, type = "PUMPPORT", superimpose, ele_origin = beginni
    ref = x__SA.CELLE.PUM07, L = 0.1016, aperture = 0.0127
 x__SA.CELLA.WIG01: null_ele
 SA.CELLA.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLA.WIG01, &
-   L = 25, B_MAX = 1.37, N_POLE = 2272, L_POLE = 0.011003521127, X_RAY_LINE_LEN = 70, &
+   L = 25, B_MAX = 1.37, N_POLE = 2272, L_POLE = 0.011003521127, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLE.WIG01: null_ele
 SA.CELLE.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLE.WIG01, &
-   L = 25, B_MAX = 1.37, N_POLE = 2272, L_POLE = 0.011003521127, X_RAY_LINE_LEN = 70, &
+   L = 25, B_MAX = 1.37, N_POLE = 2272, L_POLE = 0.011003521127, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLB01.WIG01: null_ele
 SA.CELLB01.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLB01.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLB02.WIG01: null_ele
 SA.CELLB02.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLB02.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLB03.WIG01: null_ele
 SA.CELLB03.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLB03.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLB04.WIG01: null_ele
 SA.CELLB04.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLB04.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLB05.WIG01: null_ele
 SA.CELLB05.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLB05.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 55, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLD07.WIG01: null_ele
 SA.CELLD07.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLD07.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__SA.CELLF.WIG01: null_ele
 SA.CELLF.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__SA.CELLF.WIG01, L = 6, &
-   B_MAX = 1.37, N_POLE = 546, L_POLE = 0.010989010989, X_RAY_LINE_LEN = 70, &
+   B_MAX = 1.37, N_POLE = 546, L_POLE = 0.010989010989, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__NA.CELLA.BPM02A: null_ele
 NA.CELLA.BPM02A: INSTRUMENT, type = "BPM", superimpose, ele_origin = beginning, &
@@ -9058,23 +9058,23 @@ NA.CELLA.SLI04: INSTRUMENT, type = "SLIDINGJOINT", superimpose, ele_origin = beg
    ref = x__NA.CELLA.SLI04, L = 0.1016, aperture = 0.0254
 x__NA.CELLA.WIG01: null_ele
 NA.CELLA.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__NA.CELLA.WIG01, &
-   L = 25, B_MAX = 1.37, N_POLE = 2272, L_POLE = 0.011003521127, X_RAY_LINE_LEN = 70, &
+   L = 25, B_MAX = 1.37, N_POLE = 2272, L_POLE = 0.011003521127, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__NA.CELLB01.WIG01: null_ele
 NA.CELLB01.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__NA.CELLB01.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__NA.CELLB02.WIG01: null_ele
 NA.CELLB02.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__NA.CELLB02.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__NA.CELLB03.WIG01: null_ele
 NA.CELLB03.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__NA.CELLB03.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 70, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 x__NA.CELLB04.WIG01: null_ele
 NA.CELLB04.WIG01: WIGGLER, superimpose, ele_origin = beginning, ref = x__NA.CELLB04.WIG01, &
-   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, X_RAY_LINE_LEN = 50, &
+   L = 5, B_MAX = 1.37, N_POLE = 454, L_POLE = 0.011013215859, &
    DS_STEP = 0.01, aperture = 2.5E-3, aperture_at = Both_Ends
 LB.CRMOD29.PIP10#1: DRIFT, type = "NBPIPE", L = 0.07, DS_STEP = 0.01, &
    field_calc = Refer_to_Lords.
