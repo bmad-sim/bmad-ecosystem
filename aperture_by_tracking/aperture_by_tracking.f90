@@ -101,34 +101,35 @@ TYPE(coord_struct) vec_start0
 TYPE(coord_struct) vec_end
 
 !------------------------------Settings to be read in from .in
-NAMELIST /parameters/ lat_file, &         !absolute path to latice file. 
-                      slice_method, &     ! 'bystep' or 'byelem': slice at element ends or take fixed length steps
-                      slice_length, &     ! if 'bystep', this is step size
-                      target_accuracy,&   ! fractional accuracy.  eg. 0.001 finds aperture to within 0.1%
-                      start_stop_type, &  ! if 1, then use start_name, end_name, and track_end_name.
-                                          ! if 2, then use start_s, end_s, and track_till.
-                      start_name, &       ! start generating momentum aperture here (first instance of start_name)
-                      end_name, &         ! stop generating momentum aperture here (first instance of end_name)
-                      track_end_name, &   ! stop tracking particles here (first instance of track_end_name)
-                      start_s, &          ! start generating momentum aperture here (s location in meters)
-                      end_s, &            ! stop generating momentum aperture here (s location in meters)
-                      track_till,&        ! stop tracking particles here (s location in meters)
-                      nturns, &           ! for storage rings only: number of turns to track
-                      Qx, &               ! for storage rings only: qtune lattice
-                      Qy, &               ! for storage rings only: qtune lattice
-                      Qz, &               ! for storage rings only: qtune lattice
-                      halo, &             ! for linacs only: in addition to flagging particles as lost due to beam pipe collisions,
-                                          !                  also count them as lost if they lay outside n-sigma of the beam phase-space
-                                          !                  ellipse at the end of the linac, where n = halo_aperture.  The results from
-                                          !                  halo mode can be extreme if the lattice ends with a dump.  In that case,
-                                          !                  set track_end_name or track_till to some location before the dump.
-                      halo_aperture, &    ! for linacs only: see halo comment
-                      halo_h_emittance, & ! for linacs only: horizontal emittance to use when calculating beam phase space ellipse 
-                                          !                  at end of lattice
-                      aperture_type, &    ! Momentum variable to scan, one of { 'px', 'py', 'pz' (default), 'angle'}
-                                          !   The output file with be prefixed with these characters
-                      angle1, angle2, &   ! Starting and ending angles, if aperture_type == 'angle'
-                      n_angles            ! Number of angles to scan
+NAMELIST /parameters/ &
+    lat_file, &         ! Latice file including possible path. 
+    slice_method, &     ! 'bystep' or 'byelem': slice at element ends or take fixed length steps
+    slice_length, &     ! If 'bystep', this is step size
+    target_accuracy,&   ! Fractional accuracy.  eg. 0.001 finds aperture to within 0.1%
+    start_stop_type, &  ! If 1, then use start_name, end_name, and track_end_name.
+                        !     If 2, then use start_s, end_s, and track_till.
+    start_name, &       ! Start generating momentum aperture here (first instance of start_name)
+    end_name, &         ! Stop generating momentum aperture here (first instance of end_name)
+    track_end_name, &   ! Stop tracking particles here (first instance of track_end_name)
+    start_s, &          ! Start generating momentum aperture here (s location in meters)
+    end_s, &            ! Stop generating momentum aperture here (s location in meters)
+    track_till,&        ! Stop tracking particles here (s location in meters)
+    nturns, &           ! For storage rings only: number of turns to track
+    Qx, &               ! For storage rings only: qtune lattice
+    Qy, &               ! For storage rings only: qtune lattice
+    Qz, &               ! For storage rings only: qtune lattice
+    halo, &             ! For linacs only: in addition to flagging particles as lost due to beam pipe collisions,
+                        !     also count them as lost if they lay outside n-sigma of the beam phase-space
+                        !     ellipse at the end of the linac, where n = halo_aperture.  The results from
+                        !     halo mode can be extreme if the lattice ends with a dump.  In that case,
+                        !     set track_end_name or track_till to some location before the dump.
+    halo_aperture, &    ! For linacs only: see halo comment
+    halo_h_emittance, & ! For linacs only: horizontal emittance to use when calculating beam phase space ellipse 
+                        !     at end of lattice
+    aperture_type, &    ! Momentum variable to scan, one of { 'px', 'py', 'pz' (default), 'angle'}
+                        !     The output file with be prefixed with these characters
+    angle1, angle2, &   ! Starting and ending angles, if aperture_type == 'angle'
+    n_angles            ! Number of angles to scan
 
 !------------------------------Read in parameter file
 halo = .false. !default
