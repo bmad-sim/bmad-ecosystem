@@ -239,6 +239,7 @@ type tao_floor_plan_struct
   real(rp) :: orbit_scale = 0                ! Scale factor for drawing orbits. 0 -> Do not draw.
   character(16) :: orbit_color = 'red'
   character(16) :: orbit_pattern = 'solid'
+  character(16) :: orbit_lattice = 'model'   ! Or 'design' or 'base'
   integer :: orbit_width = 1
 end type
 

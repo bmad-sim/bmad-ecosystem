@@ -3072,6 +3072,7 @@ of this structure can be set to control how a floor plan is drawn. The component
     orbit_color          = "<color>"   ! Line color. Default = "red".
     orbit_pattern        = "<pattern>" ! Line pattern. Default = "solid_line".
     orbit_width          = <integer>   ! Line width. Default = 1.
+    orbit_lattice        = "<string>"  ! May be "model" (default), "design", or "base".
 \end{example}
 A graph is initialized with a \vn{tao_template_graph} namelist (\sref{s:template}). Example:
 \begin{example}
@@ -3100,6 +3101,10 @@ six possible two character combinations. The default "zx" setting represents loo
 horizontal plane from above. A setting of "xz" represents looking at the horizontal plane from
 below. The other combinations involving "y" are only potentially useful if the machine has a significant
 vertical extent.
+
+To draw multiple orbits representing orbits from \vn{model}, \vn{design}, and/or \vn{base} lattices,
+define multiple \vn{graphs} within a \vn{plot}, one for each type of orbit to be displayed and set
+the \vn{floor_plan%orbit_lattice} appropriately for each graph.
 
 %----------------
 \begin{figure}[b]

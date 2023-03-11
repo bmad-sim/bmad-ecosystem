@@ -2028,6 +2028,8 @@ case ('floor_plan')
     call tao_set_real_value(this_graph%floor_plan%orbit_scale, component, value, error, dflt_uni = u%ix_uni)
   case ('orbit_color', 'color')
     this_graph%floor_plan%orbit_color = value
+  case ('orbit_lattice', 'lattice')
+    this_graph%floor_plan%orbit_lattice = value
   case ('orbit_pattern', 'pattern')
     this_graph%floor_plan%orbit_pattern = value
   case ('view')

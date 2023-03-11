@@ -2335,6 +2335,7 @@ case ('graph')
     nl=nl+1; write(lines(nl), lmt)  'floor_plan%draw_only_first_pass  = ', g%floor_plan%draw_only_first_pass
     nl=nl+1; write(lines(nl), fmt)  'floor_plan%orbit_scale           = ', g%floor_plan%orbit_scale
     nl=nl+1; write(lines(nl), amt)  'floor_plan%orbit_color           = ', quote(g%floor_plan%orbit_color)
+    nl=nl+1; write(lines(nl), amt)  'floor_plan%orbit_lattice         = ', quote(g%floor_plan%orbit_lattice)
     nl=nl+1; write(lines(nl), amt)  'floor_plan%orbit_pattern         = ', quote(g%floor_plan%orbit_pattern)
     nl=nl+1; write(lines(nl), imt)  'floor_plan%orbit_width           = ', g%floor_plan%orbit_width
   endif
