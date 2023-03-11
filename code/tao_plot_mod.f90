@@ -453,6 +453,7 @@ contains
 subroutine draw_this_floor_plan(isu)
 
 type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
+type (tao_lattice_struct), pointer :: tao_lat
 type (tao_building_wall_point_struct) pt0, pt1
 type (floor_position_struct) end1, end2, floor
 type (branch_struct), pointer :: branch
@@ -471,7 +472,18 @@ character(40) label_name
 
 !
 
-lat => s%u(isu)%model%lat
+select case(graph%floor_plan%orbit_lattice)
+case ('model');   tao_lat => s%u(isu)%model
+case ('design');  tao_lat => s%u(isu)%design
+case ('base');    tao_lat => s%u(isu)%base
+case default;
+  call out_io (s_error$, r_name, 'Bad floor_plan%orbit_lattice: ' // graph%floor_plan%orbit_lattice, &
+                                 'Should be one of: "model", "design", or "base"', &
+                                 'Will default to "model"')
+  tao_lat => s%u(isu)%model
+end select
+
+lat => tao_lat%lat
 
 ! loop over all elements in the lattice. 
 
@@ -499,10 +511,10 @@ do n = 0, ubound(lat%branch, 1)
           slave => pointer_to_slave(ele, j)
           ele_shape2 => tao_pointer_to_ele_shape (isu, slave, s%plot_page%floor_plan%ele_shape)
           if (associated(ele_shape2)) cycle ! Already drawn. Do not draw twice
-          call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, slave, ele_shape, label_name, y1, y2)
+          call tao_draw_ele_for_floor_plan (plot, graph, tao_lat, slave, ele_shape, label_name, y1, y2)
         enddo
       else
-        call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, ele_shape, label_name, y1, y2)
+        call tao_draw_ele_for_floor_plan (plot, graph, tao_lat, ele, ele_shape, label_name, y1, y2)
       endif
       if (.not. associated(ele_shape)) exit
       if (.not. ele_shape%multi) exit
@@ -614,15 +626,14 @@ end subroutine tao_set_floor_plan_axis_label
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, ele_shape, label_name, offset1, offset2)
+! Subroutine tao_draw_ele_for_floor_plan (plot, graph, tao_lat, ele, ele_shape, label_name, offset1, offset2)
 !
 ! Routine to draw one lattice element or one datum location for the floor plan graph. 
 !
 ! Input:
 !   plot              -- tao_plot_struct: Plot containing the graph.
 !   graph             -- tao_graph_struct: Graph to plot.
-!   ix_uni            -- integer: Universe index.
-!   lat               -- lat_struct: Lattice containing the element.
+!   tao_lat           -- tao_lattice_struct: Lattice containing the element.
 !   ele               -- ele_struct: Element to draw.
 !   ele_shape         -- tao_ele_shape_struct: Shape to draw from s%plot_page%floor_plan%ele_shape(:) array.
 !                         Will be NULL if no associated shape for this element.
@@ -630,14 +641,15 @@ end subroutine tao_set_floor_plan_axis_label
 !   offset1, offset2  -- real(rp): Offsets for drawing the label.
 !-
 
-recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, ele_shape, label_name, offset1, offset2)
+recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, tao_lat, ele, ele_shape, label_name, offset1, offset2)
 
 implicit none
 
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
+type (tao_lattice_struct), target :: tao_lat
 type (branch_struct), pointer :: branch
-type (lat_struct) :: lat
+type (lat_struct), pointer :: lat
 type (ele_struct) :: ele
 type (ele_struct) :: drift
 type (ele_struct), pointer :: ele0, ele1, ele2, lord
@@ -649,7 +661,7 @@ type (coord_struct) orb_here, orb_start, orb_end
 type (tao_shape_pattern_struct), pointer :: pat
 
 integer, parameter :: n_bend_extra = 40, l1 = -n_bend_extra, l2 = 200 + n_bend_extra
-integer ix_uni, i, j, k, n_bend, n, ix, ic, n_mid, isu, min1_bend, min2_bend, max1_bend, max2_bend
+integer i, j, k, n_bend, n, ix, ic, n_mid, min1_bend, min2_bend, max1_bend, max2_bend
 integer n1, n2
 
 real(rp) offset1, offset2
@@ -676,12 +688,10 @@ logical is_bend, can_test
 
 !
 
-isu = tao_universe_index(ix_uni)
-
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
 
-orbit => s%u(isu)%model%tao_branch(ele1%ix_branch)%orbit
+orbit => tao_lat%tao_branch(ele1%ix_branch)%orbit
 
 orb_start = orbit(ele1%ix_ele)
 orb_end = orbit(ele2%ix_ele)

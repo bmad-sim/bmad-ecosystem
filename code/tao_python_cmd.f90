@@ -4130,6 +4130,11 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_optimizer_name(i))
     enddo
 
+  case ('orbit_lattice')
+    nl=incr(nl); li(nl) = '1;model'
+    nl=incr(nl); li(nl) = '2;design'
+    nl=incr(nl); li(nl) = '3;base'
+
   case ('plot^type')
     nl=incr(nl); li(nl) = '1;normal'
     nl=incr(nl); li(nl) = '2;wave'
@@ -5467,6 +5472,7 @@ case ('plot_graph')
       ';size_is_absolute;LOGIC;', logic_str(fp%size_is_absolute), ';draw_building_wall;LOGIC;', logic_str(fp%draw_building_wall), &
       ';draw_only_first_pass;LOGIC;', logic_str(fp%draw_only_first_pass), ';correct_distortion;LOGIC;', logic_str(fp%correct_distortion), &
       ';orbit_scale;REAL;', to_str(fp%orbit_scale, 4), ';orbit_color;ENUM;', trim(fp%orbit_color), &
+      ';orbit_lattice;ENUM;', trim(fp%orbit_lattice), &
       ';orbit_width;INT;', int_str(fp%orbit_width), ';orbit_pattern;ENUM;', trim(fp%orbit_pattern)
   
 
