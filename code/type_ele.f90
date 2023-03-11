@@ -418,7 +418,7 @@ if (associated(ele%cartesian_map)) then
         name = attribute_name(ele, ct_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Cartesian_map mode #: ', im
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Cartesian_map mode #', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(ct_map%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type        ', trim(em_field_type_name(ct_map%field_type))
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
@@ -462,7 +462,7 @@ if (associated(ele%cylindrical_map)) then
         name = attribute_name(ele, cl_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Cylindrical_map mode #:', im
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Cylindrical_map mode #', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(cl_map%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
       nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:         ', cl_map%harmonic
@@ -553,7 +553,7 @@ if (associated(ele%grid_field)) then
         name = attribute_name(ele, g_field%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Grid_field mode #:', im
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Grid_field mode #', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:          ', trim(g_field%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type:         ', em_field_type_name(g_field%field_type)
       nl=nl+1; write (li(nl), '(2a)')         '    geometry:           ', grid_field_geometry_name(g_field%geometry)
