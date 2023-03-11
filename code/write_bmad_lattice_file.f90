@@ -84,9 +84,8 @@ real(rp) s0, x_lim, y_lim, val, x, y
 character(*) bmad_file
 character(4000) line
 character(2000) line2
-character(200) file_name, path, basename
+character(200) file_name, path, basename, fname
 character(120), allocatable :: list(:)
-character(120) string
 character(60) alias
 character(40) name, look_for, attrib_name
 character(40), allocatable :: names(:)
@@ -555,15 +554,15 @@ do ib = 0, ubound(lat%branch, 1)
 
         elseif (ix_ptr > 0) then  ! A file has been created so refer to that
 
-          call form_this_fieldmap_name(string, '.cartesian_map', ele2, ix_ptr, ascii$)
-          write (line, '(3a)')  trim(line), ', cartesian_map = call::', trim(string)
+          call form_this_fieldmap_name(fname, '.cartesian_map', ele2, ix_ptr, ascii$)
+          write (line, '(3a)')  trim(line), ', cartesian_map = call::', trim(fname)
 
         else
-          call form_this_fieldmap_name(string, '.cartesian_map', ele, im, ascii$)
-          line = trim(line) // ', cartesian_map = call::' // trim(string)
-          string = trim(path) // '/' // trim(string)
+          call form_this_fieldmap_name(fname, '.cartesian_map', ele, im, ascii$)
+          line = trim(line) // ', cartesian_map = call::' // trim(fname)
+          fname = trim(path) // '/' // trim(fname)
           iu2 = lunget()
-          open (iu2, file = string)
+          open (iu2, file = fname)
           call write_this_cartesian_map (ct_map, ele, iu2)
           close (iu2)
         endif
@@ -584,15 +583,15 @@ do ib = 0, ubound(lat%branch, 1)
           call write_this_cylindrical_map (cl_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_fieldmap_name(string, '.cylindrical_map', ele2, ix_ptr, ascii$)
-          write (line, '(3a)')  trim(line), ', cylindrical_map = call::', trim(string)
+          call form_this_fieldmap_name(fname, '.cylindrical_map', ele2, ix_ptr, ascii$)
+          write (line, '(3a)')  trim(line), ', cylindrical_map = call::', trim(fname)
 
         else
-          call form_this_fieldmap_name(string, '.cylindrical_map', ele, im, ascii$)
-          line = trim(line) // ', cylindrical_map = call::' // trim(string)
-          string = trim(path) // '/' // trim(string)
+          call form_this_fieldmap_name(fname, '.cylindrical_map', ele, im, ascii$)
+          line = trim(line) // ', cylindrical_map = call::' // trim(fname)
+          fname = trim(path) // '/' // trim(fname)
           iu2 = lunget()
-          open (iu2, file = string)
+          open (iu2, file = fname)
           call write_this_cylindrical_map (cl_map, ele, iu2)
           close (iu2)
         endif
@@ -614,15 +613,15 @@ do ib = 0, ubound(lat%branch, 1)
           call write_this_gen_grad_map_map (gg_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_fieldmap_name(string, '.gen_grad_map', ele2, ix_ptr, ascii$)
-          write (line, '(3a)')  trim(line), ', gen_grad_map = call::', trim(string)
+          call form_this_fieldmap_name(fname, '.gen_grad_map', ele2, ix_ptr, ascii$)
+          write (line, '(3a)')  trim(line), ', gen_grad_map = call::', trim(fname)
 
         else
-          call form_this_fieldmap_name(string, '.gen_grad_map', ele, im, ascii$)
-          line = trim(line) // ', gen_grad_map = call::' // trim(string)
-          string = trim(path) // '/' // trim(string)
+          call form_this_fieldmap_name(fname, '.gen_grad_map', ele, im, ascii$)
+          line = trim(line) // ', gen_grad_map = call::' // trim(fname)
+          fname = trim(path) // '/' // trim(fname)
           iu2 = lunget()
-          open (iu2, file = string, recl = 500)
+          open (iu2, file = fname, recl = 500)
           call write_this_gen_grad_map_map (gg_map, ele, iu2)
           close (iu2)
         endif
@@ -644,19 +643,19 @@ do ib = 0, ubound(lat%branch, 1)
           call write_this_grid_fieldmap (g_field, ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_fieldmap_name(string, '.grid_field', ele2, ix_ptr, output_form)
-          write (line, '(3a)')  trim(line), ', grid_field = call::', trim(string)
+          call form_this_fieldmap_name(fname, '.grid_field', ele2, ix_ptr, output_form)
+          write (line, '(3a)')  trim(line), ', grid_field = call::', trim(fname)
 
         else
-          call form_this_fieldmap_name(string, '.grid_field', ele, im, output_form)
-          line = trim(line) // ', grid_field = call::' // trim(string)
-          string = trim(path) // '/' // trim(string)
+          call form_this_fieldmap_name(fname, '.grid_field', ele, im, output_form)
+          line = trim(line) // ', grid_field = call::' // trim(fname)
+          fname = trim(path) // '/' // trim(fname)
 
           if (integer_option(binary$, output_form) == binary$) then
-            call hdf5_write_grid_field (string, ele, ele%grid_field(im:im), err_flag)
+            call hdf5_write_grid_field (fname, ele, ele%grid_field(im:im), err_flag)
           else
             iu2 = lunget()
-            open (iu2, file = string)
+            open (iu2, file = fname)
             call write_this_grid_fieldmap (g_field, ele, iu2)
             close (iu2)
           endif
@@ -1703,6 +1702,7 @@ type (grid_field_struct) :: g_field
 type (ele_struct) ele
 integer iu9
 character(*), optional :: line
+character(200) string
 
 !
 

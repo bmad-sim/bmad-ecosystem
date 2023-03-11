@@ -209,7 +209,7 @@ variables and the slave attributes. Example:
   gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}
 \end{example}
 
-The function \vn{ran()} and \vn{gauss_ran()} may be used in expressions with \vn{ramper} elements but
+The function \vn{ran()} and \vn{ran_gauss()} may be used in expressions with \vn{ramper} elements but
 may not be used for other types of controllers. These functions can be useful with long-term tracking
 to simulate such things as ground noise or RF jitter. Example
 \begin{example}
@@ -335,7 +335,7 @@ This is equivalent to
 \begin{example}
   gr1: group = \{b1[angle]:angle, b3[angle]:-pi*angle\}, var = \{angle\}
 \end{example}
-The exception is when \vn{ran()} or \vn{gauss_ran()} functions are present in the expression.  In
+The exception is when \vn{ran()} or \vn{ran_gauss()} functions are present in the expression.  In
 this case, the expression will \vn{not} be modified. Example:
 \begin{example}
   quake: ramper = \{*[y_offset]: 1e-3*ran_gauss()\}, var = \{ \}
