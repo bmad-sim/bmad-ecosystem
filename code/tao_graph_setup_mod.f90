@@ -1935,164 +1935,163 @@ end select
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
+! Line calc
 ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
 ! That is, for x-axis = 'index' or 'ele_index' the line is piece-wise linear between the symbols.
 
-select case (plot%x_axis_type)
-case ('index', 'ele_index')
-  call re_allocate (curve%y_line, size(curve%x_symb)) ! allocate space for the data
-  call re_allocate (curve%x_line, size(curve%y_symb)) ! allocate space for the data
-  curve%x_line = curve%x_symb
-  curve%y_line = curve%y_symb
+if (curve%draw_line) then
+  select case (plot%x_axis_type)
+  case ('index', 'ele_index')
+    call re_allocate (curve%y_line, size(curve%x_symb)) ! allocate space for the data
+    call re_allocate (curve%x_line, size(curve%y_symb)) ! allocate space for the data
+    curve%x_line = curve%x_symb
+    curve%y_line = curve%y_symb
 
-! If the axis is by s-value then, if possible, the line is a "smooth" curve with n_curve_pts points.
+  ! If the axis is by s-value then, if possible, the line is a "smooth" curve with n_curve_pts points.
 
-case ('s')
+  case ('s')
 
-  ! beam data_source is not interpolated.
-  smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
-  if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
-  if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
-  if (substr(curve%data_type,1,4) == 'bpm_') smooth_curve = .false.
-  if (substr(curve%data_type,1,6) == 'bunch_') smooth_curve = .false.
-  if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
+    ! beam data_source is not interpolated.
+    smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
+    if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
+    if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
+    if (substr(curve%data_type,1,4) == 'bpm_') smooth_curve = .false.
+    if (substr(curve%data_type,1,6) == 'bunch_') smooth_curve = .false.
+    if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
 
-  if (index(curve%component, 'meas') /= 0 .or. index(curve%component, 'ref') /= 0 .or. &
-      curve%data_source == 'data' .or. curve%data_source == 'var') then
-    straight_line_between_syms = .true.
-    smooth_curve = .false.
-  else
-    straight_line_between_syms = .false.
-  endif
-
-  ! Smooth curves using expressions...
-
-  if (smooth_curve) then
-    ! Allocate data space. 
-    ! Tracking is problematical if the step size is less than significant_length so adjust if needed.
-
-    n_curve_pts = nint(min(1.0_rp*n_curve_pts, &
-                        2+0.1_rp*u%model%lat%branch(ib)%param%total_length/bmad_com%significant_length))
-    call re_allocate (curve%y_line, n_curve_pts) 
-    call re_allocate (curve%x_line, n_curve_pts)
-    call re_allocate (good, n_curve_pts) 
-    good = .true.
-    curve%y_line = 0
-
-    call tao_split_component(curve%component, scratch%comp, err)
-    if (err) then
-      call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT EXPRESSION: ' // curve%component)
-      return
-    endif
-    if (curve%component == '') then
-      call tao_set_curve_invalid (curve, 'BLANK CURVE COMPONENT STRING.')
-      return
-    endif
-
-    do m = 1, size(scratch%comp)
-      select case (scratch%comp(m)%name)
-      case ('') 
-        cycle
-      case ('model')
-        call tao_calc_data_at_s_pts (u%model, curve, scratch%comp(m)%sign, good)
-      case ('base')  
-        call tao_calc_data_at_s_pts (u%base, curve, scratch%comp(m)%sign, good)
-      case ('design')  
-        call tao_calc_data_at_s_pts (u%design, curve, scratch%comp(m)%sign, good)
-      case default
-        call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT: ' // curve%component)
-        return
-      end select
-    enddo
-
-    if (substr(curve%data_type, 1, 3) == 'b0_' .or. substr(curve%data_type, 1, 3) == 'e0_') then
-      ix = index(curve%legend_text, '[')
-      if (ix == 0) ix = len_trim(curve%legend_text) + 2
-      str = ''
-      if (curve%orbit%x /= 0) str = trim(str) // ', x=' // real_str(curve%orbit%x, 5)
-      if (curve%orbit%y /= 0) str = trim(str) // ', y=' // real_str(curve%orbit%y, 5)
-      if (curve%orbit%t /= 0) str = trim(str) // ', t=' // real_str(curve%orbit%t, 5)
-      if (len_trim(str) == 0) then
-        curve%legend_text = curve%legend_text(:ix-1) // '[x=y=t=0]'
-      else
-        curve%legend_text = curve%legend_text(:ix-1) // '[' // trim(str(3:)) // ']'
-      endif
-    endif
-
-    !! if (all(.not. good)) exit
-    n_dat = count(good)
-    curve%x_line(1:n_dat) = pack(curve%x_line, mask = good)
-    curve%y_line(1:n_dat) = pack(curve%y_line, mask = good)
-    call re_allocate (curve%y_line, n_dat) ! allocate space for the data
-    call re_allocate (curve%x_line, n_dat) ! allocate space for the data
-
-  ! For non-smooth curves: Draw straight lines through the symbols if
-  ! the data uses "ref" or "meas" values. Else evaluate at the element ends.
-
-  else if (straight_line_between_syms) then
-    if (allocated (curve%x_symb)) then
-      n_dat = size(curve%x_symb)
-      call re_allocate (curve%y_line, n_dat) 
-      call re_allocate (curve%x_line, n_dat) 
-      curve%x_line = curve%x_symb 
-      curve%y_line = curve%y_symb 
+    if (index(curve%component, 'meas') /= 0 .or. index(curve%component, 'ref') /= 0 .or. &
+        curve%data_source == 'data' .or. curve%data_source == 'var') then
+      straight_line_between_syms = .true.
+      smooth_curve = .false.
     else
-      call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE')
-      if (.not. curve%valid) return
+      straight_line_between_syms = .false.
     endif
 
-  ! Evaluate at element ends
+    ! Smooth curves using expressions...
 
-  else
+    if (smooth_curve) then
+      ! Allocate data space. 
+      ! Tracking is problematical if the step size is less than significant_length so adjust if needed.
 
-    eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
-    l_tot = branch%param%total_length
-    branch%ele%logic = .false.
-    do i = 0, branch%n_ele_track
-      ele => branch%ele(i)
-      if (graph%x%min == graph%x%max) cycle
-      s1 = ele%s
-      ele%logic = (s1 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
-      if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
-        ele%logic = ele%logic .or. ((s1-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps))
+      n_curve_pts = nint(min(1.0_rp*n_curve_pts, &
+                          2+0.1_rp*u%model%lat%branch(ib)%param%total_length/bmad_com%significant_length))
+      call re_allocate (curve%y_line, n_curve_pts) 
+      call re_allocate (curve%x_line, n_curve_pts)
+      call re_allocate (good, n_curve_pts) 
+      good = .true.
+      curve%y_line = 0
+
+      call tao_split_component(curve%component, scratch%comp, err)
+      if (err) then
+        call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT EXPRESSION: ' // curve%component)
+        return
       endif
-    enddo
-    n_dat = count (branch%ele(:)%logic)
-    call re_allocate_eles (scratch%eles, n_dat, exact = .true.)
-    i = 0
-    do j = 0, ubound(branch%ele, 1)
-      if (.not. branch%ele(j)%logic) cycle
-      i = i + 1
-      scratch%eles(i)%ele => branch%ele(j)
-    enddo
+      if (curve%component == '') then
+        call tao_set_curve_invalid (curve, 'BLANK CURVE COMPONENT STRING.')
+        return
+      endif
 
-    ! If there is a wrap-around then reorder the data
-
-    ix1 = 0
-    if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
-      do i = 1, n_dat
-        if (ix1 == 0 .and. branch%ele(scratch%eles(i)%ele%ix_ele)%s - l_tot > graph%x%min) ix1 = i
-        if (branch%ele(scratch%eles(i)%ele%ix_ele)%s < graph%x%max+eps) ix2 = i
+      do m = 1, size(scratch%comp)
+        select case (scratch%comp(m)%name)
+        case ('') 
+          cycle
+        case ('model')
+          call tao_calc_data_at_s_pts (u%model, curve, scratch%comp(m)%sign, good)
+        case ('base')  
+          call tao_calc_data_at_s_pts (u%base, curve, scratch%comp(m)%sign, good)
+        case ('design')  
+          call tao_calc_data_at_s_pts (u%design, curve, scratch%comp(m)%sign, good)
+        case default
+          call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT: ' // curve%component)
+          return
+        end select
       enddo
-      if (ix1 /= 0) then
-        call re_allocate_eles(scratch%eles, n_dat + ix2 + 1 - ix1, .true., .true.)
-        scratch%eles = [scratch%eles(ix1:n_dat), scratch%eles(1:ix2)]
-      endif
-    endif
 
-    if (curve%draw_line) then
+      if (substr(curve%data_type, 1, 3) == 'b0_' .or. substr(curve%data_type, 1, 3) == 'e0_') then
+        ix = index(curve%legend_text, '[')
+        if (ix == 0) ix = len_trim(curve%legend_text) + 2
+        str = ''
+        if (curve%orbit%x /= 0) str = trim(str) // ', x=' // real_str(curve%orbit%x, 5)
+        if (curve%orbit%y /= 0) str = trim(str) // ', y=' // real_str(curve%orbit%y, 5)
+        if (curve%orbit%t /= 0) str = trim(str) // ', t=' // real_str(curve%orbit%t, 5)
+        if (len_trim(str) == 0) then
+          curve%legend_text = curve%legend_text(:ix-1) // '[x=y=t=0]'
+        else
+          curve%legend_text = curve%legend_text(:ix-1) // '[' // trim(str(3:)) // ']'
+        endif
+      endif
+
+      !! if (all(.not. good)) exit
+      n_dat = count(good)
+      curve%x_line(1:n_dat) = pack(curve%x_line, mask = good)
+      curve%y_line(1:n_dat) = pack(curve%y_line, mask = good)
+      call re_allocate (curve%y_line, n_dat) ! allocate space for the data
+      call re_allocate (curve%x_line, n_dat) ! allocate space for the data
+
+    ! For non-smooth curves: Draw straight lines through the symbols if
+    ! the data uses "ref" or "meas" values. Else evaluate at the element ends.
+
+    else if (straight_line_between_syms) then
+      if (allocated (curve%x_symb)) then
+        n_dat = size(curve%x_symb)
+        call re_allocate (curve%y_line, n_dat) 
+        call re_allocate (curve%x_line, n_dat) 
+        curve%x_line = curve%x_symb 
+        curve%y_line = curve%y_symb 
+      else
+        call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE')
+        if (.not. curve%valid) return
+      endif
+
+    ! Evaluate at element ends
+
+    else
+
+      eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
+      l_tot = branch%param%total_length
+      branch%ele%logic = .false.
+      do i = 0, branch%n_ele_track
+        ele => branch%ele(i)
+        if (graph%x%min == graph%x%max) cycle
+        s1 = ele%s
+        ele%logic = (s1 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
+        if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
+          ele%logic = ele%logic .or. ((s1-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps))
+        endif
+      enddo
+      n_dat = count (branch%ele(:)%logic)
+      call re_allocate_eles (scratch%eles, n_dat, exact = .true.)
+      i = 0
+      do j = 0, ubound(branch%ele, 1)
+        if (.not. branch%ele(j)%logic) cycle
+        i = i + 1
+        scratch%eles(i)%ele => branch%ele(j)
+      enddo
+
+      ! If there is a wrap-around then reorder the data
+
+      ix1 = 0
+      if (branch%param%geometry == closed$ .and. graph%allow_wrap_around) then
+        do i = 1, n_dat
+          if (ix1 == 0 .and. branch%ele(scratch%eles(i)%ele%ix_ele)%s - l_tot > graph%x%min) ix1 = i
+          if (branch%ele(scratch%eles(i)%ele%ix_ele)%s < graph%x%max+eps) ix2 = i
+        enddo
+        if (ix1 /= 0) then
+          call re_allocate_eles(scratch%eles, n_dat + ix2 + 1 - ix1, .true., .true.)
+          scratch%eles = [scratch%eles(ix1:n_dat), scratch%eles(1:ix2)]
+        endif
+      endif
+
       call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE')
       if (.not. curve%valid) return
+
+      do i = 1, size(curve%x_line)
+        curve%x_line(i) = branch%ele(scratch%eles(i)%ele%ix_ele)%s
+        if (ix1 /= 0 .and. i <= n_dat - ix1 + 1) curve%x_line(i) = curve%x_line(i) - l_tot
+      enddo
     endif
-
-    do i = 1, size(curve%x_line)
-      curve%x_line(i) = branch%ele(scratch%eles(i)%ele%ix_ele)%s
-      if (ix1 /= 0 .and. i <= n_dat - ix1 + 1) curve%x_line(i) = curve%x_line(i) - l_tot
-    enddo
-
-  endif
-
-end select
+  end select
+endif
 
 !----------------------------------------------------------------------------
 ! Note: Since there is an arbitrary overall phase, the phase data 
