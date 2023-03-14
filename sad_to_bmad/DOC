@@ -38,8 +38,6 @@ CAVI:
 
 Misalignments in SOL element with GEO = 1 not yet implemented.
 
-FB1 and FB2 (MULT and BEND elements) must be equal.
-
 A given MARK element with a non-zero offset cannot appear multiple times in a lattice.
 This is due to the fact that the corresponding Bmad element uses superposition.
 
