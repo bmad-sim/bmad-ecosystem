@@ -201,19 +201,21 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
     orb(0) = vec_end
     DO i=1,nturns
       CALL track_all(lat,orb,track_state=track_state)
+
       IF(track_state .ne. moving_forward$) THEN
         !particle was lost
         vec_end = orb(track_state)
         vec_end%state = lost$
         EXIT
-      ELSE
-        IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. half_period) THEN
-          !particle is outside RF bucket
-          vec_end = orb(lat%n_ele_track)
-          vec_end%state = lost$
-          EXIT
-        ENDIF
       ENDIF
+
+      IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. half_period) THEN 
+        !particle is outside RF bucket 
+        vec_end = orb(lat%n_ele_track) 
+        vec_end%state = lost$ 
+        track_state = lat%n_ele_track 
+        EXIT 
+      ENDIF 
       orb(0) = orb(lat%n_ele_track)
     ENDDO
   ENDIF
