@@ -2736,6 +2736,7 @@ Examples:
 \begin{example}
   show matrix q10w q12e           ! 0th and 1st order maps from q10w to q12e
   show taylor -order 1 q10w q12e  ! Same as above.
+  show matrix -ele *              ! Show matrices for all lattice elements.
 \end{example} 
 
 %% show merit --------------------------------------------------------------
@@ -3053,13 +3054,18 @@ Examples:
 
 Syntax:
 \begin{example}
-  show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-lattice_format\} 
-            \{-number_format <fmt>\} \{-order <n_order>\} \{-ptc\} \{-radiation\}
-            \{-s\} \{-universe\} \{loc1 \{loc2\}\}
+  show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-elements <ele_list>\} 
+            \{-lattice_format\} \{-number_format <fmt>\} \{-order <n_order>\} 
+            \{-ptc\} \{-radiation\} \{-s\} \{-universe\} \{loc1 \{loc2\}\}
 \end{example}
 
 Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by
-\vn{set default universe}).  See also \vn{show matrix}.
+\vn{set default universe}). See also \vn{show matrix}.
+
+If the \vn{-elements} switch is present, other switches are ignored and the individual element
+transfer matrices (along with the zeroth order part of the map) are printed for each element
+specified by \vn{<ele_list>}. Element list format (\sref{s:ele.list.format}), without any
+embedded blanks, is used for the \vn{<ele_list>} list of elements.
 
 If neither \vn{loc1} nor \vn{loc2} are present, the transfer map is computed for the
 entire lattice.
@@ -3136,7 +3142,8 @@ Examples:
 \begin{example}
   show taylor -order 1 q10w q12e  ! 0th and 1st order maps from q10w to q12e
   show taylor 45                  ! Transfer map of element #45
-  show taylor -s 13 23            ! Transfer map from s = 13 meters to 23 meters. 
+  show taylor -s 13 23            ! Transfer map from s = 13 meters to 23 meters.
+  show taylor -ele quad::*        ! Show transfer matrices for all quadrupole elements.
 \end{example} 
 
 \vfill\break

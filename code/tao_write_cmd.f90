@@ -1058,12 +1058,12 @@ case ('ptc')
   file_name = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-old', '-branch', '-all'], .true., switch, err, ix_w2)
+    call tao_next_switch (what2, [character(16):: '-branch', '-all'], .true., switch, err, ix_w2)
     if (err) return
     if (switch == '') exit
 
     select case (switch)
-    case ('-old', '-all')
+    case ('-all')
       which = switch
     case ('-branch')
       branch => pointer_to_branch (what2(1:ix_w2), u%model%lat, blank_branch = s%global%default_branch)
