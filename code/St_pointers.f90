@@ -33,6 +33,7 @@ module pointer_lattice
   private thin
   real(dp) thin
   !  BEAM STUFF
+  private sig,Lbb
   REAL(DP) SIG(6) ,Lbb
   integer nbb
   REAL(DP) ait(6,6)

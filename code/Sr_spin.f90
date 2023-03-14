@@ -685,10 +685,10 @@ endif
       m(j,i)=sf%x(j)
      enddo
     enddo
-    p%damps=matmul(m,p%damps)
-    p%b_kin=matmul(m,p%b_kin)
-    p%b_kin=matmul(p%b_kin,transpose(m))
-    p%d_spin=matmul(m,p%d_spin)
+!    p%damps=matmul(m,p%damps)
+ !   p%b_kin=matmul(m,p%b_kin)
+ !   p%b_kin=matmul(p%b_kin,transpose(m))
+ !   p%d_spin=matmul(m,p%d_spin)
 
     end subroutine  quaternion_to_damps 
 

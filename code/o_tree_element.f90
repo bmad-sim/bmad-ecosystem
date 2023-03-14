@@ -808,12 +808,12 @@ CONTAINS
     P%AC%X(2)=0.0_dp
     P%AC%t=0.0_dp
     p%e_ij=0.0_dp
-    p%damps=0.0_dp
+!    p%damps=0.0_dp
 !    p%t_bks=0
 !    p%t_bks0=0
 
-    p%b_kin=0.0_dp
-    p%d_spin=0.0_dp
+ !   p%b_kin=0.0_dp
+ !   p%d_spin=0.0_dp
  
 
   END    subroutine EQUAL_PROBE8_REAL6
@@ -848,11 +848,10 @@ CONTAINS
     p8%use_q=P%use_q
     P8%e=P%e
     P8%x0=P%x0
-    P8%damps=P%damps
-    P8%b_kin=P%b_kin
-    p8%d_spin=p%d_spin
-!    p8%t_bks=p%t_bks
-!    p8%t_bks0=p%t_bks0
+!    P8%damps=P%damps
+!    P8%b_kin=P%b_kin
+!    p8%d_spin=p%d_spin
+ 
 
   END subroutine EQUAL_PROBE8_PROBE8
 
@@ -1057,12 +1056,11 @@ CONTAINS
     r%use_q=use_quaternion
     r%e=0
     r%x0=0
-    r%damps=0
-!    r%t_bks=0
-!    r%t_bks0=0
+!    r%damps=0
+ 
 
-    r%b_kin=0
-    r%d_spin=0
+!    r%b_kin=0
+!    r%d_spin=0
   END    subroutine EQUAL_IDENTITY_probe_8
 
 
@@ -1426,12 +1424,10 @@ CONTAINS
     r%use_q=use_quaternion
     r%e=0
     r%x0=0
-    r%damps=0
-!    r%t_bks=0
- !  r%t_bks0=0
-
-    r%b_kin=0
-    r%d_spin=0
+!    r%damps=0
+ 
+!    r%b_kin=0
+!    r%d_spin=0
   END    subroutine ALLOC_probe_8
 
   subroutine ALLOC_rf_phasor_8(R)
@@ -1500,12 +1496,11 @@ end subroutine alloc_probes_8
     r%u=.false.
     r%e=0
     r%x0=0
-    r%damps=0
-!    r%t_bks=0
- !   r%t_bks0=0
+!    r%damps=0
 
-    r%b_kin=0
-    r%d_spin=0
+
+ !   r%b_kin=0
+ !   r%d_spin=0
   END    subroutine KILL_probe_8
 
   subroutine kill_rf_phasor_8(R)
