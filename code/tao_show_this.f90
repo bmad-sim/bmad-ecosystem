@@ -4747,21 +4747,26 @@ case ('taylor_map', 'matrix')
   endif
 
   do
-    call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format', &
-             '-universe', '-running', '-angle_coordinates', '-number_format', '-radiation'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-elements', &
+              '-lattice_format', '-universe', '-angle_coordinates', '-number_format', &
+              '-radiation'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
 
     select case (switch)
     case ('-angle_coordinates')
       angle_units = .true.
+
     case ('-eigen_modes')
       print_eigen = .true.
+
     case ('-lattice_format')
       disp_fmt = 'BMAD'
+
     case ('-number_format')
       fmt = what2(:ix)
       call string_trim (what2(ix+1:), what2, ix)
+
     case ('-order')
       read (what2(:ix), *, iostat = ios) n_order
       if (ios /= 0) then
@@ -4774,12 +4779,18 @@ case ('taylor_map', 'matrix')
                   'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS ', ptc_private%taylor_order_ptc
         return
       endif
+
     case ('-ptc')
       print_ptc = .true.
+
     case ('-radiation')
       disp_fmt = 'RADIATION'
-    case ('-running')
-      disp_fmt = 'RUNNING'
+
+    case ('-elements')
+      disp_fmt = 'ELEMENTS'
+      ele_name = what2(1:ix)
+      call string_trim(what2(ix+1:), what2, ix)
+
     case ('-s')
       by_s = .true.
 
@@ -4945,7 +4956,7 @@ case ('taylor_map', 'matrix')
 
     !---------------------------------------
 
-    if (disp_fmt /= 'RUNNING' .and. ele2_name == '') then
+    if (disp_fmt /= 'ELEMENTS' .and. ele2_name == '') then
       nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
       nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
     endif
@@ -4970,22 +4981,40 @@ case ('taylor_map', 'matrix')
 
   ! Print results
 
-  ! "RUNNING" is experimental and is not documented
-  if (disp_fmt == 'RUNNING') then
-    call transfer_matrix_calc (lat, mat6, vec0, 0, ix1, ix_branch, one_turn = .false.)    
-    do i = ix1, ix2
-      ele => branch%ele(i)
-      if (i /= ix1) mat6 = matmul(ele%mat6, mat6)
-      if (angle_units) stop 
+  ! 
+  if (disp_fmt == 'ELEMENTS') THEN
+    call tao_locate_elements (ele_name, u%ix_uni, eles, err)
+    if (err .or. size(eles) == 0) return
+
+    do i = 1, size(eles)
+      ele => eles(i)%ele
+      select case (ele%key)
+      case (group$, overlay$, girder$, ramper$); cycle
+      end select
+
+      mat6 = ele%mat6
+      vec0 = ele%vec0
+
+      if (angle_units) then
+        call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
+        call map_to_angle_coords (taylor, taylor)
+        call taylor_to_mat6 (taylor, ref_vec, vec0, mat6)
+      endif
+
       if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
 
-      fmt2 = '(f14.8, 4x, 6f14.8, 4x, 6f14.8)'
-      if (fmt /= '') call str_substitute(fmt2, 'f14.8', trim(fmt))
+      if (fmt /= '') then
+        fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
+      elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
+        fmt2 = '(6es15.7, a, es12.4)'
+      else
+        fmt2 = '(6f15.8, a, es12.4)'
+      endif
 
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write (lines(nl), '(a, i6, 2x, a40, f18.9)') '#', i, ele%name, ele%s
+      nl=nl+1; write (lines(nl), '(a, f18.9)') ele_full_name(ele), ele%s
       do j = 1, 6
-        nl=nl+1; write (lines(nl), fmt2, iostat = ios) ele%map_ref_orb_out%vec(j), ele%mat6(j,:), mat6(j,:)
+        nl=nl+1; write(lines(nl), fmt2, iostat = ios) mat6(j,:), '   : ', vec0(j)
       enddo
     enddo
 
