@@ -2051,7 +2051,9 @@ CONTAINS
        rectaETILT%ks=rectaETILT%ks+list%ks
        rectaETILT%tilt=list%tilt
        rectaETILT%FINT=list%FINT
+       rectaETILT%FINT2=list%FINT2
        rectaETILT%hgap=list%hgap
+       rectaETILT%hgap2=list%hgap2
        rectaETILT%h1=list%h1
        rectaETILT%h2=list%h2
        rectaETILT%nmul=list%nmul
@@ -3033,8 +3035,8 @@ CONTAINS
 
 
     IF(MADX) then
-       s2%fint=s1%FINT
-       s2%hgap=s1%hgap
+       s2%fint=[s1%FINT, s1%fint2]
+       s2%hgap=[s1%hgap, s1%hgap2]
        s2%h1=s1%h1
        s2%h2=s1%h2
        IF(S2%KIND==KIND3) THEN
