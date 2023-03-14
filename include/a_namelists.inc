@@ -36,6 +36,7 @@ namelist / MAGLname / MAGL0
   integer, private, parameter :: nmul_max=NMAX
   TYPE ele_list
     INTEGER KIND
+!    INTEGER old_integrator   not implemented yet in flat file
 !    character(nlp+3) name_vorname(2)  
     character(nlp) name_vorname(2)  
 	real(dp) L,B_SOL

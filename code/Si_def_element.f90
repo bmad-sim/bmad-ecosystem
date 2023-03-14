@@ -2281,7 +2281,8 @@ fringe,permfringe,bend_like,fint,hgap)
     EL%p%EDGE=EDGE
   endif
 
-
+   write(6,*) "change_settings_magnetr :fint and hgap need to be   arrays of 2"
+  stop
   END SUBROUTINE change_settings_magnetr
 
  
@@ -2338,6 +2339,8 @@ fringe,permfringe,bend_like,fint,hgap)
     EL%p%EDGE=EDGE
   endif
 
+   write(6,*) "change_settings_magnetp :fint and hgap need to be   arrays of 2"
+  stop
 
   END SUBROUTINE change_settings_magnetp
 

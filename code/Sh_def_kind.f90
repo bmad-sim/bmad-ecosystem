@@ -23217,106 +23217,7 @@ call kill(vm,phi,z)
        enddo    
        call kill(xpmap)
 ! new eq 15
-       if(k%spin.and.k%envelope) then
-       if(p%use_q) then
-         q=p%q 
-    
-         call makeso3(q,s)
-         if(c_%no>=2.and.do_d_sij) then
-          call alloc(smap)
-          smap=p
-         call makeso3(smap)
-           do i=1,3
-           do j=1,3
-            sm(j,i)=smap%s%s(i,j)
-            sdelta(i,j)=(smap%s%s(i,j).sub.'000020')*denf
-           enddo
-           enddo
-           do i=0,3
-             qdelta%x(i)=(p%q%x(i).sub.'000020')*denf
-           enddo
-           q_ij=q_ij + q**(-1)*qdelta
 
-           do i=0,3
-             qdelta%x(i)=(p%q%x(i).sub.'000010')*sqrt(denf)
-           enddo
-           q_i=q_i + q**(-1)*qdelta
-
-           d_Sij=d_Sij + matmul(sm,sdelta)
-
-
-          call kill(smap)
-         endif
-       else
-        DO I=1,3
-           DO J=1,3
-              s(i,j)=p%S(J)%X(I)
-           ENDDO
-        ENDDO         
-       endif
- !!  lambda
-        lambda=denf*24.0_dp*sqrt(3.0_dp)/(1.0_dp+x(5))**2/55.0_dp
-
-        x1=5.0_dp*sqrt(3.0_dp)/8.0_dp*lambda
- 
-        do i=1,3
-         p%damps(i,i)=p%damps(i,i)-x1
-        enddo
-        do i=1,3
-         do j=1,3
-             p%damps(i,j)= x1*2.0_dp/9.0_dp*ee(i)*ee(j)   + p%damps(i,j)
-         enddo
-        enddo
-
-!! equation 15 of Barber in Chao's handbook
-
-        theta_oleksii=(denf0/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
- 
- if(c%parent_fibre%mag%p%b0/=0)         then
-! yao etienne
-!w_bks=c%parent_fibre
-i_bks=i_bks+1
-!t_bks_approx=t_bks_approx+ (twopi/99.d0)*c%parent_fibre%mag%p%b0**2*w_bks%energy**5/clight
-endif
-
-
-!write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
-!endif 
-dspin=matmul(s,n_oleksii)
-    t_ns_oleksii=t_ns_oleksii+(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)*b30*FAC*DS
-            x3= bb(1)**2+bb(2)**2+bb(3)**2
-            if(x3==0) then  
-                 x3=1
-               else
-                 x3=1.d0/sqrt(x3)
-            endif   
-  
-    t_nb_oleksii=t_nb_oleksii+ (bb(1)*dspin(1)+bb(2)*dspin(2)+bb(3)*dspin(3)) *b30*FAC*DS*x3
-
- 
-
-        call crossp(ee,bb,a)
-        call crossp(ee,a,dspin)
-        x3=sqrt(a(1)**2+a(2)**2+a(3)**2)
-        
-       if(x3>1.d-38) then
-          x1=24.0_dp*sqrt(3.0_dp)/55.0_dp*lambda
-          do i=1,3
-          do j=1,3
-           p%b_kin(i,j)=x1*dspin(i)*dspin(j)/x3**2 + p%b_kin(i,j)
-          enddo
-          enddo
-            do i=1,3
-               dspin(i)=dspin(i)*lambda/x3
-            enddo
-           do i=1,3
-            p%d_spin(i)=p%d_spin(i)+dspin(i)
-           enddo
-
-
-        endif
- 
-       endif
 
        if(compute_stoch_kick) c%delta_rad_out=sqrt(denf)
     endif
@@ -23423,98 +23324,7 @@ dspin=matmul(s,n_oleksii)
           enddo
        enddo
        call kill(xpmap)
-       if(k%spin.and.k%envelope) then
-        if(p%use_q) then
-  
-         q=p%q 
-
-  
-         call makeso3(q,s)
-
-         if(c_%no>=2.and.do_d_sij) then
-          call alloc(smap)
-          smap=p
-         call makeso3(smap)
-           do i=1,3
-           do j=1,3
-            sm(j,i)=smap%s%s(i,j)
-            sdelta(i,j)=(smap%s%s(i,j).sub.'000020')*denf
-           enddo
-           enddo
-           do i=0,3
-             qdelta%x(i)=(p%q%x(i).sub.'000020')*denf
-           enddo
-           q_ij=q_ij + q**(-1)*qdelta
-
-           do i=0,3
-             qdelta%x(i)=(p%q%x(i).sub.'000010')*sqrt(denf)
-           enddo
-           q_i=q_i + q**(-1)*qdelta
-
-           d_Sij=d_Sij + matmul(sm,sdelta)
-          call kill(smap)
-         endif
-
-       else
-        DO I=1,3
-           DO J=1,3
-              s(i,j)=p%S(J)%X(I)
-           ENDDO
-        ENDDO         
-       endif
-
-        x1=denf*9.0_dp/((1.0_dp+x(5))**2 *11.0_dp)
-        do i=1,3
-         p%damps(i,i)=p%damps(i,i)-x1
-        enddo
-        do i=1,3
-         do j=1,3
-             p%damps(i,j)= x1*2.0_dp/9.0_dp*ee(i)*ee(j)   + p%damps(i,j)
-         enddo
-        enddo
-!!  lambda
-        lambda=denf*24.0_dp*sqrt(3.0_dp)/(1.0_dp+x(5))**2/55.0_dp
-!! equation 15 of Barber in Chao's handbook
- 
-        theta_oleksii=(denf0/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
-        
-! if(c%parent_fibre%mag%p%b0/=0)         then
-  
-!write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
-!endif 
-dspin=matmul(s,n_oleksii)
-    t_ns_oleksii=t_ns_oleksii+(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)*b30*FAC*DS
-            x3= bb(1)**2+bb(2)**2+bb(3)**2
-            if(x3==0) then  
-                 x3=1
-               else
-                 x3=1.d0/sqrt(x3)
-            endif            
-    t_nb_oleksii=t_nb_oleksii+ (bb(1)*dspin(1)+bb(2)*dspin(2)+bb(3)*dspin(3)) *b30*FAC*DS*x3
-
-
-
-        call crossp(ee,bb,a)
-        call crossp(ee,a,dspin)
-        x3=sqrt(a(1)**2+a(2)**2+a(3)**2)
-        
-       if(x3>1.d-38) then
-          x1=24.0_dp*sqrt(3.0_dp)/55.0_dp*lambda
-          do i=1,3
-          do j=1,3
-           p%b_kin(i,j)=x1*dspin(i)*dspin(j)/x3**2 + p%b_kin(i,j)
-          enddo
-          enddo
-            do i=1,3
-               dspin(i)=dspin(i)*lambda/x3
-            enddo
-           do i=1,3
-            p%d_spin(i)=p%d_spin(i)+dspin(i)
-           enddo
-
-        endif
- 
-       endif
+       
        if(compute_stoch_kick) c%delta_rad_in=sqrt(denf)
     endif
     p%x=x
@@ -27905,7 +27715,7 @@ enddo
     CASE(8)
   !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
     CALL ALLOC(NDF);CALL ALLOC(NDK);
-   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+     CALL alloc(NDKH)
           NDF(0)=EL%L*wyoshid(0)/EL%P%NST
           NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
        DO I =1,15
@@ -27929,7 +27739,7 @@ enddo
        ENDDO
  
    CALL KILL(NDF);CALL KILL(NDK);
-   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+   CALL KILL(NDKH)
 
     CASE DEFAULT
 
@@ -28377,7 +28187,7 @@ endif
     CASE(8)
   !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
       CALL ALLOC(NDF);CALL ALLOC(NDK);
-    if(k%spin.or.k%radiation) CALL alloc(NDKH)
+   CALL alloc(NDKH)
           NDF(0)=EL%L*wyoshid(0)/EL%P%NST
           NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
        DO I =1,15
@@ -28404,7 +28214,7 @@ endif
 
 
       CALL KILL(NDF);CALL KILL(NDK);
-   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+  CALL KILL(NDKH)
 
     CASE DEFAULT
        !w_p=0
@@ -29800,7 +29610,8 @@ endif
 !    type(real_8) NDF(0:15),NDK(15)
 
        CALL ALLOC(NDF);CALL ALLOC(NDK);
-   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+  ! if(k%spin.or.k%radiation) 
+CALL alloc(NDKH)
           NDF(0)=EL%L*wyoshid(0)/EL%P%NST
           NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
        DO I =1,15
@@ -29823,7 +29634,7 @@ endif
        ENDDO
  
        CALL KILL(NDF);CALL KILL(NDK);
-   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+     CALL KILL(NDKH)
 
        CASE DEFAULT
           !w_p=0
@@ -29945,7 +29756,8 @@ endif
 !    type(real_8) NDF(0:15),NDK(15)
 
        CALL ALLOC(NDF);CALL ALLOC(NDK);
-   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+!   if(k%spin.or.k%radiation) 
+CALL alloc(NDKH)
           NDF(0)=EL%L*wyoshid(0)/EL%P%NST
           NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
        DO I =1,15
@@ -29968,7 +29780,7 @@ endif
        ENDDO
  
        CALL KILL(NDF);CALL KILL(NDK);
-   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+   CALL KILL(NDKH)
        CASE DEFAULT
           !w_p=0
           !w_p%nc=1
@@ -30287,7 +30099,8 @@ endif
     CASE(8)
   !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
     CALL ALLOC(NDF);CALL ALLOC(NDK);
-   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+ !  if(k%spin.or.k%radiation) 
+CALL alloc(NDKH)
 
           NDF(0)=EL%L*wyoshid(0)/EL%P%NST
           NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
@@ -30315,7 +30128,7 @@ endif
 
  
    CALL KILL(NDF);CALL KILL(NDK);
-   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+  CALL KILL(NDKH)
 
 
 
@@ -30973,7 +30786,7 @@ end SUBROUTINE kick_stochastic_after
     CASE(8)
   !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
     CALL ALLOC(NDF);CALL ALLOC(NDK);
-   if(k%spin.or.k%radiation) CALL alloc(NDKH)
+   CALL alloc(NDKH)
 
           NDF(0)=EL%L*wyoshid(0)/EL%P%NST
           NDDF(0)=EL%P%LD*wyoshid(0)/EL%P%NST
@@ -30999,7 +30812,7 @@ end SUBROUTINE kick_stochastic_after
  
 
    CALL KILL(NDF);CALL KILL(NDK);
-   if(k%spin.or.k%radiation) CALL KILL(NDKH)
+  CALL KILL(NDKH)
 
 
     CASE DEFAULT
