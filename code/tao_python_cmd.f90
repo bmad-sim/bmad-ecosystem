@@ -57,6 +57,7 @@ use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
 use tao_dmerit_mod, only: tao_dmodel_dvar_calc
 use tao_input_struct, only: tao_ele_shape_input, tao_ele_shape_input_to_struct
+use opti_de_mod, only: opti_de_param
 
 
 implicit none
@@ -243,15 +244,15 @@ call match_word (cmd, [character(40) :: &
           'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_grad_map', &
           'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
-          'ele:twiss', 'ele:wake', 'ele:wall3d', &
-          'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
+          'ele:twiss', 'ele:wake', 'ele:wall3d', 'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
+          'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', &
           'place_buffer', 'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_template_manage', 'plot_graph_manage', 'plot_curve_manage', &
           'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'ptc_com', 'ring_general', &
           'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', &
-          'shape_pattern_point_manage', 'shape_set', 'show', 'species_to_int', 'species_to_str', &
+          'shape_pattern_point_manage', 'shape_set', 'show', 'space_charge_com', 'species_to_int', 'species_to_str', &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'taylor_map', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
@@ -4495,10 +4496,11 @@ case ('floor_orbit')
 
 case ('global')
 
-  nl=incr(nl); write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;T;',             s%global%lm_opt_deriv_reinit
   nl=incr(nl); write (li(nl), rmt) 'de_lm_step_ratio;REAL;T;',                s%global%de_lm_step_ratio
   nl=incr(nl); write (li(nl), rmt) 'de_var_to_population_factor;REAL;T;',     s%global%de_var_to_population_factor
+  nl=incr(nl); write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;T;',             s%global%lm_opt_deriv_reinit
   nl=incr(nl); write (li(nl), rmt) 'lmdif_eps;REAL;T;',                       s%global%lmdif_eps
+  nl=incr(nl); write (li(nl), rmt) 'lmdif_negligible_merit;REAL;T;',          s%global%lmdif_negligible_merit
   nl=incr(nl); write (li(nl), rmt) 'svd_cutoff;REAL;T;',                      s%global%svd_cutoff
   nl=incr(nl); write (li(nl), rmt) 'unstable_penalty;REAL;T;',                s%global%unstable_penalty
   nl=incr(nl); write (li(nl), rmt) 'merit_stop_value;REAL;T;',                s%global%merit_stop_value
@@ -4511,6 +4513,8 @@ case ('global')
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
+  nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
+  nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
   nl=incr(nl); write (li(nl), imt) 'srdt_gen_n_slices;INT;T;',                s%global%srdt_gen_n_slices
   nl=incr(nl); write (li(nl), imt) 'srdt_sxt_n_slices;INT;T;',                s%global%srdt_sxt_n_slices
   nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;LOGIC;T;',                 s%global%srdt_use_cache
@@ -4520,6 +4524,7 @@ case ('global')
   nl=incr(nl); write (li(nl), amt) 'optimizer;ENUM;T;',                       trim(s%global%optimizer)
   nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    trim(s%global%print_command)
   nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    trim(s%global%var_out_file)
+
   nl=incr(nl); write (li(nl), lmt) 'external_plotting;LOGIC;I;',              s%global%external_plotting
   nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
   nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
@@ -4537,6 +4542,7 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
   nl=incr(nl); write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
   nl=incr(nl); write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
+  nl=incr(nl); write (li(nl), lmt) 'optimizer_allow_user_abort;LOGIC;T;',     s%global%optimizer_allow_user_abort
   nl=incr(nl); write (li(nl), lmt) 'rf_on;LOGIC;T;',                          s%global%rf_on
   nl=incr(nl); write (li(nl), lmt) 'symbol_import;LOGIC;T;',                  s%global%symbol_import
   nl=incr(nl); write (li(nl), lmt) 'draw_curve_off_scale_warn;LOGIC;T;',      s%global%draw_curve_off_scale_warn
@@ -4544,6 +4550,92 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'disable_smooth_line_calc;LOGIC;T;',       s%global%disable_smooth_line_calc
   nl=incr(nl); write (li(nl), lmt) 'debug_on;LOGIC;T;',                       s%global%debug_on
 
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% global:optimation
+!
+! Output optimization parameters.
+! Also see global:opti_de.
+!
+! Notes
+! -----
+! Command syntax:
+!   python global:opti_de
+!
+! Output syntax is parameter list form. See documentation at the beginning of this file.
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+
+case ('global:optimization')
+
+  nl=incr(nl); write (li(nl), rmt) 'de_lm_step_ratio;REAL;T;',                s%global%de_lm_step_ratio
+  nl=incr(nl); write (li(nl), rmt) 'de_var_to_population_factor;REAL;T;',     s%global%de_var_to_population_factor
+  nl=incr(nl); write (li(nl), rmt) 'lm_opt_deriv_reinit;REAL;T;',             s%global%lm_opt_deriv_reinit
+  nl=incr(nl); write (li(nl), rmt) 'lmdif_eps;REAL;T;',                       s%global%lmdif_eps
+  nl=incr(nl); write (li(nl), rmt) 'lmdif_negligible_merit;REAL;T;',          s%global%lmdif_negligible_merit
+  nl=incr(nl); write (li(nl), rmt) 'svd_cutoff;REAL;T;',                      s%global%svd_cutoff
+  nl=incr(nl); write (li(nl), rmt) 'unstable_penalty;REAL;T;',                s%global%unstable_penalty
+  nl=incr(nl); write (li(nl), rmt) 'merit_stop_value;REAL;T;',                s%global%merit_stop_value
+  nl=incr(nl); write (li(nl), rmt) 'dmerit_stop_value;REAL;T;',               s%global%dmerit_stop_value
+
+  nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
+  nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
+  nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
+
+  nl=incr(nl); write (li(nl), amt) 'optimizer;ENUM;T;',                       trim(s%global%optimizer)
+  nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    trim(s%global%var_out_file)
+
+  nl=incr(nl); write (li(nl), lmt) 'derivative_recalc;LOGIC;T;',              s%global%derivative_recalc
+  nl=incr(nl); write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design
+  nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
+  nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
+  nl=incr(nl); write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
+  nl=incr(nl); write (li(nl), lmt) 'optimizer_allow_user_abort;LOGIC;T;',     s%global%optimizer_allow_user_abort
+  nl=incr(nl); write (li(nl), lmt) 'svd_retreat_on_merit_increase;LOGIC;T;',  s%global%svd_retreat_on_merit_increase
+  nl=incr(nl); write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
+  nl=incr(nl); write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
+
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% global:opti_de
+!
+! Output DE optimization parameters.
+!
+! Notes
+! -----
+! Command syntax:
+!   python global:opti_de
+!
+! Output syntax is parameter list form. See documentation at the beginning of this file.
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+
+case ('global:opti_de')
+
+  nl=incr(nl); write (li(nl), rmt) 'CR;REAL;T;',                              opti_de_param%CR
+  nl=incr(nl); write (li(nl), rmt) 'F;REAL;T;',                               opti_de_param%F
+  nl=incr(nl); write (li(nl), rmt) 'l_best;REAL;T;',                          opti_de_param%l_best
+  nl=incr(nl); write (li(nl), lmt) 'binomial_cross;LOGIC;T;',                 opti_de_param%binomial_cross
+  nl=incr(nl); write (li(nl), lmt) 'use_2nd_diff;LOGIC;T;',                   opti_de_param%use_2nd_diff
+  nl=incr(nl); write (li(nl), lmt) 'randomize_F;LOGIC;T;',                    opti_de_param%randomize_F
+  nl=incr(nl); write (li(nl), lmt) 'minimize_merit;LOGIC;T;',                 opti_de_param%minimize_merit
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -6667,6 +6759,51 @@ case ('shape_set')
 case ('show')
 
   call tao_show_this(trim(line), name, li, nl)
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% space_charge_com
+!
+! Output space_charge_com structure parameters.
+!
+! Notes
+! -----
+! Command syntax:
+!   python space_charge_com
+!
+! Output syntax is parameter list form. See documentation at the beginning of this file.
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+
+case ('space_charge_com')
+
+  nl=incr(nl); write(li(nl), rmt) 'ds_track_step;REAL;T;',                    space_charge_com%ds_track_step
+  nl=incr(nl); write(li(nl), rmt) 'dt_track_step;REAL;T;',                    space_charge_com%dt_track_step
+  nl=incr(nl); write(li(nl), rmt) 'cathode_strength_cutoff;REAL;T;',          space_charge_com%cathode_strength_cutoff
+  nl=incr(nl); write(li(nl), rmt) 'rel_tol_tracking;REAL;T;',                 space_charge_com%rel_tol_tracking
+  nl=incr(nl); write(li(nl), rmt) 'abs_tol_tracking;REAL;T;',                 space_charge_com%abs_tol_tracking
+  nl=incr(nl); write(li(nl), rmt) 'beam_chamber_height;REAL;T;',              space_charge_com%beam_chamber_height
+  nl=incr(nl); write(li(nl), rmt) 'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
+  nl=incr(nl); write(li(nl), rmt) 'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
+
+  nl=incr(nl); write(li(nl), imt) 'space_charge_mesh_size;INT;T;',            space_charge_com%space_charge_mesh_size
+  nl=incr(nl); write(li(nl), imt) 'csr3d_mesh_size;INT;T;',                   space_charge_com%csr3d_mesh_size
+  nl=incr(nl); write(li(nl), imt) 'n_bin;INT;T;',                             space_charge_com%n_bin
+  nl=incr(nl); write(li(nl), imt) 'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
+  nl=incr(nl); write(li(nl), imt) 'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
+  nl=incr(nl); write(li(nl), imt) 'sc_min_in_bin;INT;T;',                     space_charge_com%sc_min_in_bin
+
+  nl=incr(nl); write(li(nl), lmt) 'lsc_kick_transverse_dependence;LOGIC;T;',  space_charge_com%lsc_kick_transverse_dependence
+
+  nl=incr(nl); write(li(nl), amt) 'diagnostic_output_file;STR;T;',            quote(space_charge_com%diagnostic_output_file)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
