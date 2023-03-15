@@ -2161,8 +2161,6 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                   = ', bmad_com%sad_n_div_max
     nl=nl+1; write(lines(nl), iimt)'  %taylor_order                    = ', bmad_com%taylor_order, ' ! Input order. 0 => Use default'
     nl=nl+1; write(lines(nl), imt)'     Actual Taylor order in PTC: ', ptc_private%taylor_order_ptc
-    if (bmad_com%taylor_order /= 0 .and. bmad_com%taylor_order /= ptc_private%taylor_order_ptc) then
-    endif
     nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
 
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
@@ -6322,16 +6320,24 @@ nl=nl+1; write(lines(nl), rmt) '  %lmdif_negligible_merit        = ', s%global%l
 nl=nl+1; write(lines(nl), rmt) '  %merit_stop_value              = ', s%global%merit_stop_value
 nl=nl+1; write(lines(nl), rmt) '  %dmerit_stop_value             = ', s%global%dmerit_stop_value
 nl=nl+1; write(lines(nl), rmt) '  %svd_cutoff                    = ', s%global%svd_cutoff
+nl=nl+1; write(lines(nl), rmt) '  %unstable_penalty              = ', s%global%unstable_penalty
+
 nl=nl+1; write(lines(nl), imt) '  %n_top10_merit                 = ', s%global%n_top10_merit
 nl=nl+1; write(lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
 nl=nl+1; write(lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
+
+nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', quote(s%global%optimizer)
+nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', quote(s%global%var_out_file)
+
 nl=nl+1; write(lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
-nl=nl+1; write(lines(nl), lmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
 nl=nl+1; write(lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
 nl=nl+1; write(lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
 nl=nl+1; write(lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
 nl=nl+1; write(lines(nl), lmt) '  %optimizer_allow_user_abort    = ', s%global%optimizer_allow_user_abort
-nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', quote(s%global%optimizer)
+nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
+nl=nl+1; write(lines(nl), lmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
+nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
+nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
 nl=nl+1; lines(nl) = ''
 nl=nl+1; lines(nl) = 'opti_de_param Parameters:'
 nl=nl+1; write(lines(nl), rmt) '  %CR                   = ', opti_de_param%CR
