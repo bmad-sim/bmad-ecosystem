@@ -355,7 +355,6 @@ end subroutine tao_lat_sigma_track
 !   tao_lat   -- tao_lattice_struct: Structure containing the lattice.
 !   ix_branch -- integer: Branch index to track through.
 !   beam      -- beam_struct: Initial beam distribution
-!   print_err -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
 !
 ! Output:
 !   beam      -- beam_struct: Final beam distribution.
