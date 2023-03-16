@@ -2764,10 +2764,12 @@ The attributes specific to an \vn{lcavity} are
   gradient_tot                ! Net gradient = gradient + gradient_err. Dependent param (\sref{s:depend}).
   phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                               !   respect to the RF. phi0 = 0 is on crest.
+  phi0_autoscale              ! Set by Bmad when autoscaling is turned on \sref{s:autoscale}.
   phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{s:multipass}).
   phi0_err        = <Real>    ! Phase error (rad/2\(\pi\))
   e_loss          = <Real>    ! Loss parameter for short range wakefields (V/Coul).
   rf_frequency    = <Real>    ! RF frequency (Hz).
+  field_autoscale             ! Set by Bmad when autoscaling is turned on \sref{s:autoscale}.
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
   voltage_err                 ! Error voltage
   voltage_tot                 ! Net voltage = voltage + voltage_err. Dependent param (\sref{s:depend}).

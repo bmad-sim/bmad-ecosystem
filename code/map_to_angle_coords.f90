@@ -2,7 +2,7 @@
 ! Subroutine map_to_angle_coords (t_canon, t_angle)
 !
 ! Routine to convert a Taylor map using from Bmad phase space canonical coordinates to
-! a map usin angle coordinates (x, x', y, y', z, pz).
+! a map using angle coordinates (x, x', y, y', z, pz).
 !
 ! Note: The actual t_angle argument may be the same as the actual t_canon argument.
 !
