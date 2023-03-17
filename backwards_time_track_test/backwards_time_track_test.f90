@@ -14,7 +14,7 @@ type (coord_struct) start_orb, end_orb, start2_orb, d
 character(100) :: lat_file  = 'backwards_time_track_test.bmad'
 character(60) str
 
-real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta, merit, global_merit, ele_merit
+real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta, merit, global_merit, ele_merit, s1, s2
 integer j, ib, ie, nargs
 
 logical debug_mode, loc_equal, global_loc_equal, ele_loc_equal
@@ -46,6 +46,7 @@ open (1, file = 'output.now')
 !   * ele%orientation = -1
 !   * absolute and rel time tracking
 !   * radiation
+!   * track_from_s_to_s
 
 if (debug_mode) then
   print '(a, t36, 7es18.10)', 'Start:', lat%particle_start%vec
@@ -53,12 +54,43 @@ if (debug_mode) then
   print *
 endif
 
+if (debug_mode .and. .false.) then
+  call bmad_parser ('s_to_s.bmad', lat, .false.)
+  s1 = 43; s2 = 50
+  call init_coord (start_orb, lat%particle_start, lat%ele(2), inside$, s_pos = s1)
+  call track_from_s_to_s (lat, s1, s2, start_orb, end_orb)
+  end_orb%time_dir = -1
+  call track_from_s_to_s (lat, s2, s1, end_orb, start2_orb)
+
+  beta = start_orb%beta
+  d%vec  =  start2_orb%vec  - start_orb%vec
+  d%spin =  start2_orb%spin - start_orb%spin
+  d%t    = (start2_orb%t    - start_orb%t) * c_light * beta
+  d%s    =  start2_orb%s    - start_orb%s
+  d%p0c  =  start2_orb%p0c  - start_orb%p0c
+  d%beta =  start2_orb%beta - start_orb%beta
+  loc_equal = (start2_orb%location == start_orb%location)
+  merit = maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)])
+
+  print *
+  str = 's-to-s'
+  print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '                ABS 1E-13', end_orb%vec, c_light*beta*end_orb%t
+  print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '           ABS 1E-13', end_orb%spin - start_orb%spin
+  print '(a)', '------------------------------------------------------------------------------------'
+  print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '               ABS 1E-13', d%vec
+  print '(2a, 6es18.10)',    quote(trim(str) // '-dSpin'), '              ABS 1E-13', d%spin
+  print '(2a, 4es18.10)',    quote(trim(str) // '-c*dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
+  print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '              ABS 1E-13', merit, loc_equal
+
+  stop
+endif
+
 !
 
 global_loc_equal = .true.
 global_merit = 0
 
-do ib = 0, 0
+do ib = 0, ubound(lat%branch,1)
   branch => lat%branch(ib)
 
   do ie = 1, branch%n_ele_max - 1
@@ -97,7 +129,7 @@ do ib = 0, 0
       write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dOrb'), '               ABS 1E-13', d%vec
       write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dSpin'), '              ABS 1E-13', d%spin
       write (1, '(2a, 4es18.10)')    quote(trim(str) // '-c*dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
-      write (1, '(2a, es18.10, l4)') quote(trim(str) // '-Merit'),  '             ABS 1E-13', merit, loc_equal
+      write (1, '(2a, es18.10, l4)') quote(trim(str) // '-Merit'),  '             ABS 1E-13', merit
 
       if (debug_mode) then
         print *
