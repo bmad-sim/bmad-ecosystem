@@ -27,10 +27,11 @@
 subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)
 
 use bmad_interface, except_dummy => track_a_lcavity
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
-type (coord_struct) :: orbit, start_orb
+type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 type (em_field_struct) field
@@ -44,9 +45,9 @@ real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds, r_step
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) E_tot_start, E_tot, p0c_start, p0c
+real(rp) E_tot_start, E_tot, p0c_start, p0c, phase0, phase1
 
-integer ix_mag_max, ix_elec_max, n_step
+integer ix_mag_max, ix_elec_max, n_step, status
 
 logical, optional :: make_matrix
 
@@ -81,6 +82,9 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, el
 
 phase = twopi * (ele%value(phi0_err$) + ele%value(phi0$) + ele%value(phi0_multipass$) + &
            (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+if (bmad_com%absolute_time_tracking .and. ele%orientation*orbit%time_dir*orbit%direction == -1) then
+  phase = phase - twopi * ele%value(rf_frequency$) * ele%value(delta_ref_time$)
+endif
 phase = modulo2(phase, pi)
 
 call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_matrix)
@@ -108,6 +112,91 @@ beta_start = orbit%beta
 E_start = pc_start / beta_start 
 
 gradient_max = e_accel_field(ele, gradient$, .true.)
+phase0 = phase
+
+! The idea is to find the "average" phase so that forwards tracking followed by backwards time tracking comes
+! back to the original position.
+
+phase1 = phase_at_end(phase0, .false.)
+phase = super_zbrent (phase_func, phase0, phase1, 0.0_rp, 1e-4_rp, status)
+call track_this_lcavity(phase, orbit, make_matrix)
+
+! And end
+
+if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, second_track_edge$)) then
+  ds = bmad_com%significant_length / 10  ! Make sure inside field region
+  call em_field_calc (ele, param, length - ds, orbit, .true., field, logic_option(.false., make_matrix))
+  f = -charge_of(orbit%species) / (2 * p0c)
+
+  if (logic_option(.false., make_matrix)) then
+    call mat_make_unit(kmat)
+    kmat(2,1) = -f * (field%dE(3,1) * orbit%vec(1) + field%E(3))
+    kmat(2,3) = -f * field%dE(3,2) * orbit%vec(1) 
+    kmat(2,5) = -f * field%dE(3,3) * orbit%vec(1) * beta_end
+    kmat(2,6) =  f * field%E(3) * orbit%vec(1) * f / pc_end
+    kmat(4,1) = -f * field%dE(3,1) * orbit%vec(3)
+    kmat(4,3) = -f * (field%dE(3,2) * orbit%vec(3) + field%E(3))
+    kmat(4,5) = -f * field%dE(3,3) * orbit%vec(3) * beta_end
+    kmat(4,6) =  f * field%E(3) * orbit%vec(1) * f / pc_end
+    mat6 = matmul(kmat, mat6)
+  endif
+
+  orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
+  orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
+endif
+
+! Coupler kick
+
+call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
+
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*step_len, mat6, make_matrix)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
+
+call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+!---------------------------------------------------------------------------------------------
+contains
+
+function phase_at_end(phase0, make_matrix) result (phase1)
+
+type (coord_struct) this_orb
+real(rp) phase0, phase1
+logical, optional :: make_matrix
+
+!
+
+this_orb = orbit
+call track_this_lcavity (phase0, this_orb, .false.)
+phase1 = phase0 + twopi * (ele%value(rf_frequency$) / c_light) * (orbit%vec(5) / orbit%beta - this_orb%vec(5) / this_orb%beta)
+
+end function phase_at_end
+
+!---------------------------------------------------------------------------------------------
+! contains
+
+function phase_func (phase, status) result (dphase)
+
+real(rp), intent(in) :: phase
+real(rp) dphase, phase1
+integer status
+
+!
+
+phase1 = phase_at_end(phase0, .false.)
+dphase = phase - 0.5_rp * (phase0 + phase1)
+
+end function phase_func
+
+!---------------------------------------------------------------------------------------------
+! contains
+
+subroutine track_this_lcavity (phase, orbit, make_matrix)
+
+type (coord_struct) orbit
+real(rp) phase
+logical, optional :: make_matrix
+
+!
 
 cos_phi = cos(phase)
 sin_phi = sin(phase)
@@ -174,7 +263,6 @@ if (logic_option(.false., make_matrix)) then
   call mat_make_unit (kmat)
   kmat(6,5) = om_g * sin_phi
 endif
-
 
 ! Convert to (x', y', c(t_ref-t), E) coords
 
@@ -412,35 +500,6 @@ orbit%vec(5) = orbit%vec(5) * beta_end
 
 orbit%beta = beta_end
 
-if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, second_track_edge$)) then
-  ds = bmad_com%significant_length / 10  ! Make sure inside field region
-  call em_field_calc (ele, param, length - ds, orbit, .true., field, logic_option(.false., make_matrix))
-  f = -charge_of(orbit%species) / (2 * p0c)
+end subroutine track_this_lcavity
 
-  if (logic_option(.false., make_matrix)) then
-    call mat_make_unit(kmat)
-    kmat(2,1) = -f * (field%dE(3,1) * orbit%vec(1) + field%E(3))
-    kmat(2,3) = -f * field%dE(3,2) * orbit%vec(1) 
-    kmat(2,5) = -f * field%dE(3,3) * orbit%vec(1) * beta_end
-    kmat(2,6) =  f * field%E(3) * orbit%vec(1) * f / pc_end
-    kmat(4,1) = -f * field%dE(3,1) * orbit%vec(3)
-    kmat(4,3) = -f * (field%dE(3,2) * orbit%vec(3) + field%E(3))
-    kmat(4,5) = -f * field%dE(3,3) * orbit%vec(3) * beta_end
-    kmat(4,6) =  f * field%E(3) * orbit%vec(1) * f / pc_end
-    mat6 = matmul(kmat, mat6)
-  endif
-
-  orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
-  orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
-endif
-
-! Coupler kick
-
-call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
-
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*step_len, mat6, make_matrix)
-if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
-
-call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
-
-end subroutine
+end subroutine track_a_lcavity
