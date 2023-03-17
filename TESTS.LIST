@@ -2,7 +2,7 @@ abs_time_test
 analysis_test
 aperture_test
 autoscale_test
-!!backwards_time_track_test
+backwards_time_track_test
 beam_test
 bbu_test   
 bookkeeper_test
