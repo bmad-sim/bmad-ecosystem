@@ -234,8 +234,8 @@ end subroutine super_sort
 ! Routine find the root of a function. Use this method when computing derivatives is easy.
 ! Otherwise, use super_zbrent.
 !
-! The x-tolerance is:
-!   x-tolerance = |x_root| * rel_tol + abs_tol
+! The root is considered found if the root is known to a tolerance x_tol given by:
+!   x_tol = |funcs(x_zero)| * rel_tol + abs_tol
 !
 ! This routine is essentially rtsafe from Numerical Recipes with the feature that it 
 ! returns a status flag.
@@ -288,6 +288,7 @@ x_zero = real_garbage$
 
 call funcs(x1, fl, df, status); if (status /= 0) return
 call funcs(x2, fh, df, status); if (status /= 0) return
+
 if ((fl > 0.0 .and. fh > 0.0) .or. (fl < 0.0 .and. fh < 0.0)) then
   status = -1
   return
@@ -326,7 +327,7 @@ do j = 1, maxit
     x_zero = x_zero-dx
     if (temp == x_zero) return
   end if
-  if (abs(dx) < rel_tol * abs(x_zero) + abs_tol) return
+  if (abs(dx) < rel_tol * abs(fh-fl) + abs_tol) return
   call funcs(x_zero, f, df, status); if (status /= 0) return
   if (f < 0.0) then
     xl = x_zero
@@ -783,8 +784,8 @@ end function super_dbrent
 !
 ! Routine to find the root of a function.
 !
-! The x-tolerance is:
-!   x-tolerance = |x_root| * rel_tol + abs_tol
+! The root is considered found if the root is known to a tolerance x_tol given by:
+!   x_tol = |func(x_zero)| * rel_tol + abs_tol
 !
 ! Consider using super_rtsafe if computing derivatives is easy.
 !
@@ -831,7 +832,7 @@ end interface
 integer, parameter :: itmax = 100
 integer :: status, iter
 real(rp) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
-
+logical good_a, good_b
 character(*), parameter :: r_name = 'super_zbrent'
 
 !
@@ -844,6 +845,21 @@ b = x2
 
 fa = func(a, status); if (status /= 0) return
 fb = func(b, status); if (status /= 0) return
+
+
+good_a = (abs(a-b) <= rel_tol * abs(a) + abs_tol)
+good_b = (abs(a-b) <= rel_tol * abs(b) + abs_tol)
+
+if (good_a .and. good_b) then
+  x_zero = 0.5_rp * (a + b)
+  return
+elseif (good_a) then
+  x_zero = a
+  return
+elseif (good_b) then
+  x_zero = b
+  return
+endif
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!, \es12.4\ at \es12.4\ and \es12.4\ at \es12.4\ ', &
