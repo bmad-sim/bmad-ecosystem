@@ -365,8 +365,9 @@ endif
 
 if (word == 'REF')    word = 'REFERENCE' ! allowed abbrev
 if (key == rfcavity$ .and. word == 'LAG') word = 'PHI0'   ! For MAD compatibility
+if (key == def_parameter$ .and. word == 'ABSOLUTE_TIME_TRACKING') key = def_bmad_com$  ! "Parameter[absolute_time_tracking]" is deprecated
   
-! particle_start and bmad_com element can have attributes that are not part of the element so
+! Particle_start and bmad_com elements can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
 if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$ .or. key == def_ptc_com$) then
@@ -1756,9 +1757,6 @@ case ('APERTURE_AT')
 
 case ('APERTURE_TYPE')
   call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele, delim, delim_found); if (err_flag) return
-
-case ('ABSOLUTE_TIME_TRACKING')
-  call parser_get_logical (attrib_word, bmad_com%absolute_time_tracking, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('CAVITY_TYPE')
   call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
