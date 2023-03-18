@@ -1,8 +1,6 @@
 alias snparticle set beam_init n_particle = [[1]]
 alias csrbins set space_charge_com n_bin = [[1]]
 alias csrstep set space_charge_com ds_track_step =
-alias csron  set bmad_com coherent_synch_rad_on  = T
-alias csroff set bmad_com coherent_synch_rad_on  = F
 alias showcsr show global -space_charge_com
 alias szpz  set curve zphase.z.c1 ele_ref_name = [[1]]
 alias beamoff set global track_type = single
