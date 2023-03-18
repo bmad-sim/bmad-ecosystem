@@ -779,7 +779,7 @@ end function super_dbrent
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
+! Function super_zbrent (func, x1, x2, rel_tol, abs_tol, status, func_val) result (x_zero)
 !
 ! Routine to find the root of a function.
 !
@@ -792,26 +792,28 @@ end function super_dbrent
 ! a status integer if something goes wrong instead of bombing.
 !
 ! Input:
-!   func     -- function whose root is to be found. The interface is:
-!                  function func(x, status) result (value)
-!                    real(rp), intent(in) :: x
-!                    integer :: status    ! If non-zero return value, super_zbrent will terminate.
-!                    real(rp) :: value
-!                  end function func
-!   x1, x2   -- real(rp): Bracket values. Note: x2 does not have to be larger than x1
-!   rel_tol  -- real(rp): Relative tolerance for x_zero. This is 4d-16 in NR zbrent.
-!   abs_tol  -- real(rp): Absolute tolerance for x_zero. This is tol in NR zbrent.
+!   func        -- function whose root is to be found. The interface is:
+!                    function func(x, status) result (value)
+!                      real(rp), intent(in) :: x
+!                      integer :: status    ! If non-zero return value, super_zbrent will terminate.
+!                      real(rp) :: value
+!                    end function func
+!   x1, x2      -- real(rp): Bracket values. Note: x2 does not have to be larger than x1
+!   rel_tol     -- real(rp): Relative tolerance for x_zero. This is 4d-16 in NR zbrent.
+!   abs_tol     -- real(rp): Absolute tolerance for x_zero. This is tol in NR zbrent.
+!   func_val(2) -- real(rp), optional: If present, array of [func(x1), func(x2)]. 
+!                    Used to reduce computation time.
 !
 ! Output:
-!   x_zero   -- real(rp): Root found.
-!   status   -- integer: Calculation status:
+!   x_zero      -- real(rp): Root found.
+!   status      -- integer: Calculation status:
 !                      -2    => Max iterations exceeded.
 !                      -1    => Root not bracketed.
 !                       0    => Normal.
 !                       Other => Set by func. 
 !-
 
-function super_zbrent (func, x1, x2, rel_tol, abs_tol, status) result (x_zero)
+function super_zbrent (func, x1, x2, rel_tol, abs_tol, status, func_val) result (x_zero)
 
 implicit none
 
@@ -830,6 +832,7 @@ end interface
 
 integer, parameter :: itmax = 100
 integer :: status, iter
+real(rp), optional :: func_val(2)
 real(rp) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
 
 character(*), parameter :: r_name = 'super_zbrent'
@@ -842,8 +845,13 @@ x_zero = real_garbage$
 a = x1
 b = x2
 
-fa = func(a, status); if (status /= 0) return
-fb = func(b, status); if (status /= 0) return
+if (present(func_val)) then
+  fa = func_val(1)
+  fb = func_val(2)
+else
+  fa = func(a, status); if (status /= 0) return
+  fb = func(b, status); if (status /= 0) return
+endif
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!, \es12.4\ at \es12.4\ and \es12.4\ at \es12.4\ ', &
