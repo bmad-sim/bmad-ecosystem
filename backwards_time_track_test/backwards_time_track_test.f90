@@ -111,8 +111,17 @@ do ib = 0, ubound(lat%branch,1)
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$)
 
       call track1 (start_orb, ele, branch%param, end_orb)
+      if (end_orb%state /= alive$) then
+        print *, '!!!! ', trim(str), '  Forward tracking particle lost'
+        cycle
+      endif
+
       end_orb%time_dir = -1
       call track1 (end_orb, ele, lat%param, start2_orb)
+      if (start2_orb%state /= alive$) then
+        print *, '!!!! ', trim(str), '  Backwards tracking particle lost'
+        cycle
+      endif
 
       beta = start_orb%beta
       d%vec  =  start2_orb%vec  - start_orb%vec
@@ -139,7 +148,7 @@ do ib = 0, ubound(lat%branch,1)
         print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '               ABS 1E-13', d%vec
         print '(2a, 6es18.10)',    quote(trim(str) // '-dSpin'), '              ABS 1E-13', d%spin
         print '(2a, 4es18.10)',    quote(trim(str) // '-c*dt,dp0c,ds,dbeta'), ' ABS 1E-13', d%t, d%p0c, d%s, d%beta
-        print '(2a, es18.10, l4)', quote(trim(str) // '-Merit'), '              ABS 1E-13', merit, loc_equal
+        print '(2a, es18.10, 2l4)', quote(trim(str) // '-Merit'), '              ABS 1E-13', merit, loc_equal
         ele_merit = max(ele_merit, merit)
         ele_loc_equal = (ele_loc_equal .and. loc_equal)
       endif

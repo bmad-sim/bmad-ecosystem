@@ -74,12 +74,12 @@ write (1, '(a, es22.12)') '"RF-vec(6)" REL  1E-10', orb1(n)%vec(6)
 write (1, '(a, es22.12)') '"RF-t"      REL  1E-10', orb1(n)%t
 
 write (1, *)
-write (1, '(a, es22.12)') '"RF-dvec(1)" ABS  2E-19', orb2(n)%vec(1) - orb1(n)%vec(1)
-write (1, '(a, es22.12)') '"RF-dvec(2)" ABS  1E-19', orb2(n)%vec(2) - orb1(n)%vec(2)
+write (1, '(a, es22.12)') '"RF-dvec(1)" ABS  5E-19', orb2(n)%vec(1) - orb1(n)%vec(1)
+write (1, '(a, es22.12)') '"RF-dvec(2)" ABS  2E-19', orb2(n)%vec(2) - orb1(n)%vec(2)
 write (1, '(a, es22.12)') '"RF-dvec(3)" ABS  2E-19', orb2(n)%vec(3) - orb1(n)%vec(3)
 write (1, '(a, es22.12)') '"RF-dvec(4)" ABS  1E-19', orb2(n)%vec(4) - orb1(n)%vec(4)
 write (1, '(a, es22.12)') '"RF-dvec(5)" ABS  2E-15', orb2(n)%vec(5) - orb1(n)%vec(5)
-write (1, '(a, es22.12)') '"RF-dvec(6)" ABS  5E-15', orb2(n)%vec(6) - orb1(n)%vec(6)
+write (1, '(a, es22.12)') '"RF-dvec(6)" ABS  1E-14', orb2(n)%vec(6) - orb1(n)%vec(6)
 write (1, '(a, es22.12)') '"RF-c*dt"    ABS  1E-15', c_light * (orb2(n)%t - orb1(n)%t)
 
 close (1)

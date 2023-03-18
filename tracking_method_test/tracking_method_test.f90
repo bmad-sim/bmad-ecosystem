@@ -54,7 +54,7 @@ if (debug_mode) then
   print '(a, t36, 7es18.10)', 'Start:', lat%particle_start%vec
   print *
   print '(a, t46, a, t64, a, t82, a, t100, a, t118, a, t136, a, t143, a)', &
-                            'Name: Tracking_Method', 'x', 'px', 'y', 'py', 'z', 'pz', 'dz-d(v*(t_ref-t))'
+                            'Name: Tracking_Method', 'x', 'px', 'y', 'py', 'z', 'pz', 'dz-d(v*(t_ref-t)) Alive?'
 endif
 
 call track_it (lat, 1, 1)
@@ -163,7 +163,7 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (ele%key == e_gun$) then
         write (1,fmt) quote(out_str), tolerance(out_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
-        if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, c_light * (end_orb%t - start_orb%t)
+        if (debug_mode) print '(a30, 3x, 7es18.10, l3)', out_str,  end_orb%vec, c_light * (end_orb%t - start_orb%t), (end_orb%state == alive$)
       else
         if (start_orb%direction == 1) then
           del = (end_orb%vec(5) - start_orb%vec(5)) - &
@@ -173,7 +173,7 @@ do ib = 0, ubound(lat%branch, 1)
                    c_light * (end_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - end_orb%t) - start_orb%beta * (ele%ref_time - start_orb%t))
         endif
         write (1,fmt) quote(out_str), tolerance(out_str), end_orb%vec, del
-        if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, del
+        if (debug_mode) print '(a30, 3x, 7es18.10, l3)', out_str,  end_orb%vec, del, (end_orb%state == alive$)
       endif
 
       if (ele%key == wiggler$) then
