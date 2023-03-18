@@ -38,14 +38,15 @@ type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, rel_p, coef, k2
-real(rp) alpha, sin_a, cos_a, r_mat(2,2)
+real(rp) alpha, sin_a, cos_a, r_mat(2,2), dph
 real(rp) phase, cos_phi, sin_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
 real(rp) dE_start, dE_end, dE, beta_start, beta_end, sqrt_beta12, dsqrt_beta12(6), f_ave, pc_start_ref
 real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds, r_step, step_len
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) E_tot_start, E_tot, p0c_start, p0c, phase0, phase1
+real(rp) E_tot_start, E_tot, p0c_start, p0c, phase0, phase1, phase2, dphase, ph_err(2), rf_phase
+real(rp), parameter :: phase_abs_tol = 1e-4_rp
 
 integer ix_mag_max, ix_elec_max, n_step, status
 
@@ -113,13 +114,41 @@ E_start = pc_start / beta_start
 
 gradient_max = e_accel_field(ele, gradient$, .true.)
 phase0 = phase
+phase1 = phase
 
-! The idea is to find the "average" phase so that forwards tracking followed by backwards time tracking comes
-! back to the original position.
+! The idea is to find the "average" phase so that forwards tracking followed by backwards time 
+! tracking comes back to the original position.
+! If the phase change from start to finish is more than pi then this whole calculation is garbage.
+! In this case, the particle is considered lost
 
-phase1 = phase_at_end(phase0, .false.)
-phase = super_zbrent (phase_func, phase0, phase1, 0.0_rp, 1e-4_rp, status)
-call track_this_lcavity(phase, orbit, make_matrix)
+ph_err(1) = phase_func(phase1, status)
+if (abs(dphase) > pi) then
+  orbit%state = lost_pz_aperture$
+  return
+
+elseif (abs(dphase) < phase_abs_tol) then
+  rf_phase = phase1 + 0.5_rp * dphase
+  call track_this_lcavity(rf_phase, orbit, make_matrix)
+
+else
+  phase2 = phase0 + dphase
+  ph_err(2) = phase_func(phase2, status)
+  ! At very low energies can happen that phase0 and phase0+dphase do not bracket the solution.
+  ! In this case try extrapolating. Factor of 2 to try to make sure root is bracketed.
+  do
+    if (ph_err(1)*ph_err(2) <= 0) exit
+    dph = phase2 - phase1
+    phase2 = phase1 + 2 * sign_of(dph) * max(abs(dph), 0.1)
+    if (abs(phase2 - phase1) > pi) then
+      orbit%state = lost_pz_aperture$
+      return
+    endif
+    ph_err(2) = phase_func(phase2, status)
+  enddo
+
+  rf_phase = super_zbrent (phase_func, phase1, phase2, 0.0_rp, phase_abs_tol, status, ph_err)
+  call track_this_lcavity(rf_phase, orbit, make_matrix)
+endif
 
 ! And end
 
@@ -157,49 +186,55 @@ call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix
 !---------------------------------------------------------------------------------------------
 contains
 
-function phase_at_end(phase0, make_matrix) result (phase1)
+! Returns rf_phase_at_end - rf_phase_at_start
+! Note: rf_phase_at_start = phase0 global variable
+!       rf_phase is the phase used to calculate the accelerating gradient.
+
+function dphase_end_minus_start(rf_phase) result (dphase)
 
 type (coord_struct) this_orb
-real(rp) phase0, phase1
-logical, optional :: make_matrix
+real(rp) rf_phase, dphase
 
 !
 
 this_orb = orbit
-call track_this_lcavity (phase0, this_orb, .false.)
-phase1 = phase0 + twopi * (ele%value(rf_frequency$) / c_light) * (orbit%vec(5) / orbit%beta - this_orb%vec(5) / this_orb%beta)
+call track_this_lcavity (rf_phase, this_orb, .false.)
+dphase = twopi * (ele%value(rf_frequency$) / c_light) * (orbit%vec(5) / orbit%beta - this_orb%vec(5) / this_orb%beta)
 
-end function phase_at_end
+end function dphase_end_minus_start
 
 !---------------------------------------------------------------------------------------------
 ! contains
 
-function phase_func (phase, status) result (dphase)
+function phase_func (rf_phase, status) result (phase_err)
 
-real(rp), intent(in) :: phase
-real(rp) dphase, phase1
+real(rp), intent(in) :: rf_phase
+real(rp) phase_err
 integer status
 
 !
 
-phase1 = phase_at_end(phase0, .false.)
-dphase = phase - 0.5_rp * (phase0 + phase1)
+dphase = dphase_end_minus_start(rf_phase)
+phase_err = rf_phase - (phase0 + 0.5_rp * dphase)
+if (abs(phase_err) < phase_abs_tol) phase_err = 0
 
 end function phase_func
 
 !---------------------------------------------------------------------------------------------
 ! contains
 
-subroutine track_this_lcavity (phase, orbit, make_matrix)
+! rf_phase is the phase used to calculate the change in energy.
+
+subroutine track_this_lcavity (rf_phase, orbit, make_matrix)
 
 type (coord_struct) orbit
-real(rp) phase
+real(rp) rf_phase
 logical, optional :: make_matrix
 
 !
 
-cos_phi = cos(phase)
-sin_phi = sin(phase)
+cos_phi = cos(rf_phase)
+sin_phi = sin(rf_phase)
 gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
 
 dE = gradient_net * length
