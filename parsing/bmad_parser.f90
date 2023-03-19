@@ -167,14 +167,6 @@ allocate(sequence(500))
 
 call init_bmad_parser_common()
 bp_com%extra = extra_parsing_info_struct()
-
-call ran_default_state (get_state = bp_com%extra%initial_state) ! Get initial random state.
-if (bp_com%extra%initial_state%ix == -1) then
-  bp_com%extra%deterministic = 0
-else
-  bp_com%extra%deterministic = 1
-endif
-
 bp_com%input_line_meaningful = .true.
 
 n_max => in_lat%n_ele_max   ! Number of elements encountered
@@ -1302,7 +1294,7 @@ if (err) bp_com%error_flag = .true.
 
 call parser_end_stuff (in_lat)
 
-if (bp_com%extra%ran_function_was_called) then
+if (bp_com%extra%undeterministic_ran_function_called) then
   call out_io(s_warn$, r_name, &
                 'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')

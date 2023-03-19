@@ -166,6 +166,7 @@ write (d_unit) lat%beam_init
 
 
 if (present(extra)) then
+  call ran_default_state (get_state = extra%ran_state) ! Get random state.
   write (d_unit) .true.
   write (d_unit) extra
   write (d_unit) bmad_com
