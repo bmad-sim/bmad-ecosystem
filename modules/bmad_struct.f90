@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 295
+integer, parameter :: bmad_inc_version$ = 296
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1999,19 +1999,12 @@ integer, parameter :: is_struct$ = 6, unknown$ = 7
 integer, parameter :: patch_problem$ = 2, outside$ = 3, cannot_find$ = 4
 
 ! extra_parsing_info_struct is used by parsing routines.
-! %deterministic settings:
-!   0 = Not, 1 = Ran state on input deterministic, 2 = ran state deterministice
-!   will be generated in exactly the same way every time?
-! %ran_function_was_called setting:
-!   Only set True when ran function is called with ran_determinisitc = 0.
-! %determinisitc_ran_function_was_called setting:
-!   Only set True when ran function is called with ran_determinisitc = 1.
+! %undeterministic_ran_function_called: Only set True when a ran function is called with ran_seed = 0
 
 type extra_parsing_info_struct
-  type (random_state_struct) :: initial_state       = random_state_struct()
-  integer :: deterministic                          = 0
-  logical :: ran_function_was_called                = .false.
-  logical :: deterministic_ran_function_was_called  = .false.
+  type (random_state_struct) :: ran_state           = random_state_struct()
+  integer :: ran_seed                               = 0   
+  logical :: undeterministic_ran_function_called    = .false.
   ! Used with bmad_com
   logical :: d_orb_set                              = .false.
   logical :: max_aperture_limit_set                 = .false.

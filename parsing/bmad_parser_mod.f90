@@ -309,12 +309,6 @@ if (ele%key == beambeam$) then
   end select
 endif
 
-! For historical reasons, a few paramter[...] parameters are actually in bmad_com.
-
-key = ele%key
-if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') key = def_bmad_com$
-if (ele%key == def_parameter$ .and. word == 'ELECTRIC_DIPOLE_MOMENT') key = def_bmad_com$
-
 if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR_THETA' .or. word == 'SPINOR_XI') then
   call parser_error ('DUE TO BOOKKEEPING COMPLICATIONS, THE OLD SPINOR ATTRIBUTES NO LONGER EXIST: ' // word, &
                      'PLEASE CONVERT TO SPIN_X, SPIN_Y, SPIN_Z COMPONENTS.', 'FOR ELEMENT: ' // ele%name)
@@ -330,6 +324,8 @@ endif
 
 !
 
+key = ele%key
+
 select case (word)
 case ('HIGHER_ORDER_FRINGE_TYPE')
   call parser_error ('Note: HIGHER_ORDER_FRINGE_TYPE is now no longer used and will be ignored.', &
@@ -341,6 +337,7 @@ case ('SPACE_CHARGE_ON')
   call parser_error ('Note: "bmad_com[SPACE_CHARGE_ON]" has been renamed "bmad_com[HIGH_ENERGY_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
   word = 'HIGH_ENERGY_SPACE_CHARGE_ON'
+  key = def_bmad_com$
 
 case ('COHERENT_SYNCH_RAD_ON')
   call parser_error ('Note: "bmad_com[COHERENT_SYNCH_RAD_ON]" has been renamed "bmad_com[CSR_AND_SPACE_CHARGE_ON]"', &
@@ -358,25 +355,44 @@ case ('Y_PITCH_MULT')
   word = 'Y_PITCH'
 end select                    
 
-if (ele%key == sbend$ .or. ele%key == rbend$) then
-  if (word == 'G_ERR')       word = 'DG'
-  if (word == 'B_FIELD_ERR') word = 'DB_FIELD'
-endif
+! Particle_start and bmad_com elements can have attributes that are not part of the element so
+! Need to use pointers_to_attribute.
+
+! For historical reasons, a few paramter[...] parameters are actually in bmad_com.
 
 if (word == 'REF')    word = 'REFERENCE' ! allowed abbrev
 if (key == rfcavity$ .and. word == 'LAG') word = 'PHI0'   ! For MAD compatibility
-if (key == def_parameter$ .and. word == 'ABSOLUTE_TIME_TRACKING') key = def_bmad_com$  ! "Parameter[absolute_time_tracking]" is deprecated
-  
-! Particle_start and bmad_com elements can have attributes that are not part of the element so
-! Need to use pointers_to_attribute.
+if (key == def_parameter$) then
+  select case (word)
+  case ('ABSOLUTE_TIME_TRACKING', 'APERTURE_LIMIT_ON', 'ELECTRIC_DIPOLE_MOMENT') 
+    key = def_bmad_com$  ! "Parameter[absolute_time_tracking]", etc. is deprecated
+  case ('PTC_EXACT_MODEL', 'EXACT_MODEL')
+    key = def_ptc_com$
+    word = 'EXACT_MODEL'
+  case ('PTC_EXACT_MISALIGN', 'EXACT_MISALIGN')
+    key = def_ptc_com$
+    word = 'EXACT_MISALIGN'
+  end select
+endif
+
+if (key == sbend$ .or. key == rbend$) then
+  if (word == 'G_ERR')       word = 'DG'
+  if (word == 'B_FIELD_ERR') word = 'DB_FIELD'
+endif
 
 if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$ .or. key == def_ptc_com$) then
   name = ele%name
 
   if (word(1:4) == 'PTC_') then    ! For backwards compatibility
     name = 'PTC_COM'
+
   elseif (ele%name == 'PARAMETER') then
-    name = 'BMAD_COM'
+    if (word == 'EXACT_MODEL' .or. word == 'EXACT_MISALIGN') then
+      name = 'PTC_COM'
+    else
+      name = 'BMAD_COM'
+    endif
+
   elseif (word == 'SIGMA_CUTOFF') then
     word = 'LSC_SIGMA_CUTOFF'
   endif
@@ -1823,9 +1839,6 @@ case ('GEOMETRY')
   j = nint(ele%value(ix_branch$)) 
   if (j >= 0) lat%branch(j)%param%geometry = ix
 
-case ('HIGH_ENERGY_SPACE_CHARGE_ON')
-  call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
-
 case ('INTERPOLATION')
   if (attrib_word == 'spline') then
     call parser_error ('Setting "interpolation = spline" replaced by "interpolation = cubic".', &
@@ -1884,12 +1897,6 @@ case ('PARTICLE')
 case ('PHOTON_TYPE')
   call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   lat%photon_type = ix   ! photon_type has been set.
-
-case ('EXACT_MODEL', 'PTC_EXACT_MODEL')        ! parameter[ptc_exact_model] is deprecated
-  call parser_get_logical (attrib_word, ptc_com%exact_model, ele%name, delim, delim_found, err_flag); if (err_flag) return
-
-case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN')  ! parameter[ptc_exact_misalign] is deprecated
-  call parser_get_logical (attrib_word, ptc_com%exact_misalign, ele%name, delim, delim_found, err_flag)
 
 case ('PTC_FRINGE_GEOMETRY')
   call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -2055,12 +2062,8 @@ case default   ! normal attribute
         endif
     !
     elseif (attrib_word == 'RAN_SEED') then
-      call ran_seed_put (nint(value))  ! init random number generator
-      if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
-        bp_com%extra%deterministic = 0
-      else
-        bp_com%extra%deterministic = 2
-      endif
+      bp_com%extra%ran_seed = nint(value)
+      call ran_seed_put (bp_com%extra%ran_seed)  ! init random number generator
     elseif (attrib_word == 'APERTURE') then
       ele%value(x1_limit$) = value
       ele%value(x2_limit$) = value
@@ -7724,10 +7727,8 @@ end subroutine parser_expand_line
 
 subroutine bp_set_ran_status
 
-if (bp_com%extra%deterministic == 0) then
-  bp_com%extra%ran_function_was_called = .true.
-elseif (bp_com%extra%deterministic == 1) then
-  bp_com%extra%deterministic_ran_function_was_called = .true.
+if (bp_com%extra%ran_seed == 0) then
+  bp_com%extra%undeterministic_ran_function_called = .true.
 endif
 
 end subroutine bp_set_ran_status

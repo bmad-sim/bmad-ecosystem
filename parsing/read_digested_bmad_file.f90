@@ -352,6 +352,12 @@ if (found_it) then
   if (extra%old_integrator_set)                   ptc_com%old_integrator                            = ptc_com_read%old_integrator
   if (extra%exact_model_set)                      ptc_com%exact_model                               = ptc_com_read%exact_model
   if (extra%exact_misalign_set)                   ptc_com%exact_misalign                            = ptc_com_read%exact_misalign
+
+  if (extra%undeterministic_ran_function_called) err_found = .true.  ! So lattice will be reparsed
+
+  if (extra%ran_seed /= 0) then
+    call ran_default_state (set_state = extra%ran_state) ! Get random state.
+  endif
 endif
 
 ! Setup any attribute aliases in the global attribute name table.

@@ -79,5 +79,3 @@ do j = 1, n_slave
 enddo
 
 end subroutine
-
-
