@@ -1236,7 +1236,7 @@ real(rp), allocatable :: value_arr(:), x_arr(:), y_arr(:)
 real(rp), pointer :: var_ptr
 
 integer ii, k, m, n, n_dat, n2_dat, ib, ie, jj, iv, ic
-integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2, n_curve_pts
+integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2, n_curve_pts, ix_slave
 integer, allocatable :: xx_arr(:)
 
 logical err, err_flag, smooth_curve, found, zero_average_phase, ok
@@ -1955,6 +1955,7 @@ if (curve%draw_line) then
     smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
     if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
     if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
+    if (substr(curve%data_type,1,15) == 'element_attrib.') smooth_curve = .false.
     if (substr(curve%data_type,1,4) == 'bpm_') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'bunch_') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
@@ -2085,10 +2086,47 @@ if (curve%draw_line) then
       call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE')
       if (.not. curve%valid) return
 
-      do i = 1, size(curve%x_line)
-        curve%x_line(i) = branch%ele(scratch%eles(i)%ele%ix_ele)%s
-        if (ix1 /= 0 .and. i <= n_dat - ix1 + 1) curve%x_line(i) = curve%x_line(i) - l_tot
-      enddo
+      if (substr(curve%data_type, 1, 15) == 'element_attrib.') then
+        n = size(curve%x_line)
+        call re_allocate(curve%x_line, 4*n)
+        call re_allocate(curve%y_line, 4*n)
+        do i = n, 1, -1
+          ele => branch%ele(scratch%eles(i)%ele%ix_ele)
+          j = 4*i - 4
+
+          if (ele%slave_status == super_slave$) then
+            ele => pointer_to_lord(ele, 1, ix_slave_back = ix_slave)
+            if (ix_slave /= ele%n_slave) then ! Will be duplicate
+              curve%x_line(j+1:j+4) = real_garbage$
+              cycle
+            endif
+          endif
+
+          curve%y_line(j+2:j+3) = curve%y_line(i)
+          curve%y_line(j+1) = 0
+          curve%y_line(j+4) = 0
+          curve%x_line(j+1:j+2) = ele%s_start
+          curve%x_line(j+3:j+4) = ele%s
+          if (ix1 /= 0 .and. i <= n_dat - ix1 + 1) curve%x_line(j+1:j+4) = curve%x_line(j+1:j+4) - l_tot
+        enddo
+
+        k = 0
+        do j = 0, 4*(n-1), 4
+          if (curve%x_line(j+1) == real_garbage$) cycle
+          curve%x_line(k+1:k+4) = curve%x_line(j+1:j+4)
+          curve%y_line(k+1:k+4) = curve%y_line(j+1:j+4)
+          k = k + 4
+        enddo
+        call re_allocate(curve%x_line, k)
+        call re_allocate(curve%y_line, k)
+
+      else
+        do i = 1, size(curve%x_line)
+          curve%x_line(i) = branch%ele(scratch%eles(i)%ele%ix_ele)%s
+          if (ix1 /= 0 .and. i <= n_dat - ix1 + 1) curve%x_line(i) = curve%x_line(i) - l_tot
+        enddo
+      endif
+
     endif
   end select
 endif
@@ -2815,7 +2853,8 @@ type (tao_curve_struct) curve
 type (tao_universe_struct), pointer :: u
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
-type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_pointer_struct), allocatable, target :: eles(:)
+type (ele_struct), pointer :: ele
 
 real(rp) y_val
 
@@ -2909,7 +2948,14 @@ if (who == 'SYMBOL') then
     if (.not. good(i)) cycle
     j = j + 1
     if (plot%x_axis_type == 's') then
-      curve%x_symb(j)  = eles(i)%ele%s
+      if (substr(datum%data_type, 1, 15) == 'element_attrib.') then
+        ! Element attributes reference ele center.
+        ele => eles(i)%ele
+        if (ele%slave_status == super_slave$) ele => pointer_to_lord(ele, 1)
+        curve%x_symb(j)  = 0.5_rp * (ele%s_start + ele%s)  
+      else        
+        curve%x_symb(j)  = eles(i)%ele%s
+      endif
     else  ! 'index' or 'ele_index'
       curve%x_symb(j)  = eles(i)%ele%ix_ele
     endif
