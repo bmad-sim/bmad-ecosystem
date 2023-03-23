@@ -11,16 +11,19 @@
 ! This routine should be called at the start of any tracking integration.
 !
 ! Input:
-!   ele           -- Ele_struct: Element being tracked through.
-!   orbit         -- Coord_struct: Coordinates to correct.
+!   ele           -- ele_struct: Element being tracked through.
+!   orbit         -- coord_struct: Coordinates to correct.
 !   particle_at   -- integer: first_track_edge$ (that is, entering the element), or 
-!                           second_track_edge$ (that is, leaving the element).
-!   mat6(6,6)     -- Real(rp), optional: Transfer matrix before correction.
+!                             second_track_edge$ (that is, leaving the element), or
+!                             upstream_end$ (inherit ele%value(p0c_start$) ref), or
+!                             downstream_end$ (inherit ele%value(p0c$)).
+!                             inside$ (or anything else) -> Do nothing.
+!   mat6(6,6)     -- real(rp), optional: Transfer matrix before correction.
 !   make_matrix   -- logical, optional: Propagate the transfer matrix? Default is false.
 !
 ! Output:
-!   orbit         -- Coord_struct: Coordinates to correct.
-!   mat6(6,6)     -- Real(rp), optional: Transfer matrix transfer matrix including correction.
+!   orbit         -- coord_struct: Coordinates to correct.
+!   mat6(6,6)     -- real(rp), optional: Transfer matrix transfer matrix including correction.
 !-
 
 subroutine reference_energy_correction (ele, orbit, particle_at, mat6, make_matrix)
@@ -44,10 +47,10 @@ character(*), parameter :: r_name = 'reference_energy_correction'
 
 if (ele%value(p0c$) == ele%value(p0c_start$)) return
 
-if (orbit%direction*orbit%time_dir == 1 .and. particle_at == first_track_edge$) then
+if ((orbit%direction*orbit%time_dir == 1 .and. particle_at == first_track_edge$) .or. particle_at == downstream_end$) then
   p_rel = orbit%p0c / ele%value(p0c$)
   orbit%p0c = ele%value(p0c$)
-elseif (orbit%direction*orbit%time_dir == -1 .and. particle_at == second_track_edge$) then
+elseif ((orbit%direction*orbit%time_dir == -1 .and. particle_at == second_track_edge$) .or. particle_at == upstream_end$) then
   p_rel = orbit%p0c / ele%value(p0c_start$)
   orbit%p0c = ele%value(p0c_start$)
 else
