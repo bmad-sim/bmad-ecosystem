@@ -86,6 +86,7 @@ endif
 ! initialized the starting orbit. If so, we do an init here.
 ! Time Runge-Kutta is tricky so do not attempt to do a set.
 
+time_RK_tracking = (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$)
 if (start2_orb%state == not_set$) then
   if (time_RK_tracking) then
     call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED FOR TIME_RUNGE_KUTTA!', &
@@ -127,7 +128,6 @@ endif
 
 ! symp_lie_bmad tracking does include radiation effects
 
-time_RK_tracking = (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$)
 do_extra = .not. logic_option(.false., ignore_radiation)
 radiation_included = (ele%tracking_method == symp_lie_bmad$) 
 

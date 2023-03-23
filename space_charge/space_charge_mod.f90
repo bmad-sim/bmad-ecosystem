@@ -371,21 +371,19 @@ type (branch_struct) :: branch
 type (coord_struct) :: position
 
 integer i
-real(rp) s, ds
+real(rp) s, ds, s0
 
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
+
   ds = s - p%s
-  call track_a_drift(p, ds)
-  if (p%s > branch%ele(branch%n_ele_track)%s) then
-    p%ix_ele = branch%n_ele_track
-    p%location = downstream_end$
-  else
-    p%ix_ele = element_at_s(branch, p%s, (ds < 0), position=position)
-    p%location = position%location
-  endif
+  if (ds == 0) cycle
+  p%time_dir = sign_of(ds)
+  s0 = p%s
+  call track_from_s_to_s (branch%lat, s0, s, p, p, ix_branch = branch%ix_branch)
+  p%time_dir = 1
 enddo
 
 end subroutine track_to_s
@@ -394,51 +392,77 @@ end subroutine track_to_s
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine track_to_t (bunch, t, branch)
+! Subroutine track_to_t (bunch, t_target, branch)
 !
 ! Drift a bunch of particles to the same t coordinate
 !
 ! Input:
 !   bunch     -- bunch_struct: Input bunch position in s-based coordinate.
-!   t         -- real(rp): Target t coordinate.
+!   t_target  -- real(rp): Target t coordinate.
 !   branch    -- branch_struct: Lattice branch being tracked through.
 !
 ! Output:
 !   bunch     -- bunch_struct: Output bunch position in s-based coordinate. Particles will be at the same t coordinate
 !-
 
-subroutine track_to_t (bunch, t, branch)
+subroutine track_to_t (bunch, t_target, branch)
+
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
 type (bunch_struct), target :: bunch
-type (coord_struct), pointer :: p
+type (coord_struct), pointer :: p0
+type (coord_struct) p
 type (branch_struct) :: branch
 type (coord_struct) :: position
 
-integer i
-real(rp) t, pz0, E_tot, dt, ds
+integer i, status
+real(rp) ds, t_target, dt, dt2, s1
 
 ! Convert bunch to s-based coordinates
 
-do i = 1, size(bunch%particle)
-  p => bunch%particle(i)
-  if (p%state /= alive$) cycle
+particle_loop: do i = 1, size(bunch%particle)
+  p0 => bunch%particle(i)
+  if (p0%state /= alive$) cycle
+  p = p0
 
-  pz0 = sqrt((1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
-  E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
-  dt = t - p%t
-  ds = dt*(c_light*pz0/E_tot)
-  call track_a_drift(p,ds)
+  ! bracket solution
+  do
+    dt = t_target - p0%t
+    ds = min(1.01 * dt * c_light * p0%beta, branch%ele(branch%n_ele_track)%s-p0%s)
+    if (abs(ds) < 0.1_rp * bmad_com%significant_length) cycle particle_loop
+    p0%time_dir = sign_of(ds);  p%time_dir = sign_of(ds)
+    call track_from_s_to_s (branch%lat, p0%s, p0%s+ds, p0, p, ix_branch = p0%ix_branch)
+    dt2 = t_target - p%t
+    if (dt*dt2 <= 0) exit
+    p0 = p
+  enddo
 
-  if (p%s > branch%ele(branch%n_ele_track)%s) then
-    p%ix_ele = branch%n_ele_track
-    p%location = downstream_end$
-  else
-    p%ix_ele = element_at_s(branch, p%s, (ds < 0), position=position)
-    p%location = position%location
-  endif
-enddo
+  ! Use zbrent to find bracketed solution
+  s1 = p%s
+  s1 = super_zbrent(track_func, p0%s, s1, 1e-10_rp, bmad_com%significant_length, status)
+  dt = track_func(s1, status)
+  p%time_dir = 1
+  bunch%particle(i) = p
+enddo particle_loop
+
+!--------------------------------------------------------------------
+contains
+
+function track_func (s_pos, status) result (dt)
+
+real(rp), intent(in) :: s_pos
+integer status
+real(rp) :: dt
+
+!
+
+p0%time_dir = sign_of(s_pos - p0%s);  p%time_dir = sign_of(s_pos - p0%s)
+call track_from_s_to_s (branch%lat, p0%s, s_pos, p0, p, ix_branch = p%ix_branch)
+dt = p%t - t_target
+
+end function track_func
 
 end subroutine track_to_t
   

@@ -133,12 +133,15 @@ enddo
 ! Track to s_end
 
 ele => branch%ele(ix_end)
+
 if (dir == 1) then
-  call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-ele%s_start, &
-                                                                              .true., .true., orbit_end, orbit_end)
+  if (abs(s_end - ele%s_start) > bmad_com%significant_length .or. ele%value(l$) == 0) then
+    call twiss_and_track_intra_ele (ele, branch%param, 0.0_rp, s_end-ele%s_start, .true., .true., orbit_end, orbit_end)
+  endif
 else
-  call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, ele%value(l$), s_end-ele%s_start, &
-                                                                              .true., .true., orbit_end, orbit_end)
+  if (abs(s_end - ele%s) > bmad_com%significant_length .or. ele%value(l$) == 0) then
+    call twiss_and_track_intra_ele (ele, branch%param, ele%value(l$), s_end-ele%s_start, .true., .true., orbit_end, orbit_end)
+  endif
 endif
 
 if (.not. particle_is_moving_forward(orbit_end, dir) .and. present(track_state)) track_state = ix_end

@@ -376,8 +376,7 @@ END FUNCTION integrand_zap
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 !+
-! Subroutine touschek_rate1(mode, rate, lat, s=s)
-! Subroutine touschek_rate1(mode, rate, lat, ix=ix)
+! Subroutine touschek_rate1(mode, rate, lat, ix, s)
 !
 ! Calculates the touschek rate at the location specified by s or ix
 ! This calculation is based on Piwinski 1998 "The Touschek Effect In
@@ -418,8 +417,8 @@ END FUNCTION integrand_zap
 ! Input:
 !   mode            -- TYPE(normal_modes_struct), INTENT(IN): beam properties
 !   lat             -- TYPE(lat_struct): Lattice
-!   s=s             -- REAL(rp), OPTIONAL, INTENT(IN): location in meters (either s or ix must be specified) 
-!   ix=ix           -- INTEGER, OPTIONAL, INTENT(IN): element index (either s or ix must be specified)
+!   ix              -- INTEGER, OPTIONAL, INTENT(IN): element index (either s or ix must be specified)
+!   s               -- REAL(rp), OPTIONAL, INTENT(IN): location in meters (either s or ix must be specified) 
 ! Output:
 !   rate            -- REAL(rp), INTENT(OUT): Touschek rate, in units particle per second, assuming
 !                                two particles per event.

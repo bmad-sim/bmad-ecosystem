@@ -50,7 +50,7 @@ use bmad_interface, dummy => twiss_and_track_intra_ele
 implicit none
 
 type (coord_struct), optional :: orbit_start, orbit_end
-type (coord_struct) orb_at_end
+type (coord_struct) orb_at_start, orb_at_end
 type (ele_struct), optional, target :: ele_start, ele_end
 type (ele_struct), target :: ele
 type (lat_param_struct) param
@@ -129,23 +129,37 @@ if (.not. associated(ele_p)) then
     ele_p => ele
   else
     call create_element_slice (runt, ele, dlength, min(l_start, l_end), param, do_upstream, do_downstream, err_flag, ele_start)
-    if (err_flag) return
+    if (err_flag) then
+      if (present(orbit_end)) orbit_end%state = lost$
+      return
+    endif
     ele_p => runt
   endif
 endif
 
 ! Now track. 
 ! Must take care if orbit_start and orbit_end are the same actual argument so use temporary orb_at_end.
+! Also: In an lcavity, and depending upon how orbit_start was created (EG: with RK tracking), orbit_start%p0c may correspond
+! to ele%value(p0c$) and not runt%value(p0c_start$). If so, shift orbit_start%p0c. Only shift if orbit_start%p0c is
+! equal to ele%value(p0c$) to minimize the possibility of papering over a bug in the calling code.
 
 if (present(orbit_start)) then
   species = orbit_start%species
+  orb_at_start = orbit_start
+  if (ele_p%value(p0c_start$) /= ele%value(p0c$) .and. &
+                      .not. significant_difference(orbit_start%p0c, ele%value(p0c$), rel_tol = small_rel_change$)) then
+    select case (dir)
+    case (1);    call reference_energy_correction(ele_p, orb_at_start, upstream_end$)
+    case (-1);   call reference_energy_correction(ele_p, orb_at_start, downstream_end$)
+    end select
+  endif
 else
   species = default_tracking_species(param)
 endif
 
 if (present(ele_end) .and. species /= photon$) then
   if (present(orbit_start)) then
-    call make_mat6 (ele_p, param, orbit_start, orb_at_end, err_flag = err_flag)
+    call make_mat6 (ele_p, param, orb_at_start, orb_at_end, err_flag = err_flag)
     if (present(orbit_end)) then
       orbit_end = orb_at_end
       orbit_end%ix_ele = ele%ix_ele  ! Since ele_p%ix_ele gets set to -2 to indicate it is a slice.
@@ -161,7 +175,7 @@ if (present(ele_end) .and. species /= photon$) then
   if (err_flag) return
 
 elseif (present(orbit_end)) then  ! and not present(ele_start)
-  orbit_end = orbit_start
+  orbit_end = orb_at_start
   select case (dir)
   case (1);   orbit_end%s = ele_p%s_start
   case (-1);  orbit_end%s = ele_p%s
