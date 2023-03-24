@@ -1,0 +1,91 @@
+%-----------------------------------------
+% To process this file:
+%   pdflatex fpp_manual
+%-----------------------------------------
+
+%\documentclass{article}
+\documentclass{hitec}     % Tutorial overall style
+
+\usepackage{index}
+\usepackage{xr}
+\usepackage{textgreek}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{toc-dcs}    % See toc-dcs.sty file in this directory.
+\usepackage{xspace}
+%%\usepackage{makeidx}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{yhmath}     % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[nottoc,numbib]{tocbibind}   % Makes "References" section show in table of contents
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
+
+%----------------------------------------------------------------
+
+\input{macros.tex}
+
+\definecolor{backcolor}{rgb}{0.8824,1.0,1.0}   % To match code environment
+\lstset{basicstyle = \small, backgroundcolor=\color{backcolor}, escapeinside = {@!}{!@}}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+\title{\hspace*{1in}\parbox{5in}{\includegraphics[width=12cm]{fpp-logo.pdf} \\ 
+\hspace*{0.55in} The Fully Polymorphic Package Manual}}
+
+\author{}
+\date{Etienne Forest and David Sagan \\ March 24, 2023}
+
+\begin{document}
+
+\phantomsection
+\pdfbookmark[1]{Cover Page}{Cover Page}
+\maketitle
+
+\cleardoublepage
+\phantomsection
+\pdfbookmark[1]{Contents}{Contents}
+\tableofcontents
+
+\newpage
+
+%------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
+\Section{Introduction to FPP/PTC}
+\label{s:intro}
+
+FPP/PTC is an object oriented, open source, subroutine library for
+\begin{itemize}
+\item The manipulation and analysis of Taylor series and Taylor maps.
+\item Modeling of charged particle beams in accelerators using Taylor maps.
+\end{itemize}
+FPP/PTC has two parts. The Fully Polymorphic Package (FPP) is the part that deals with Taylor series and maps. FPP is pure math independent1 of any "physics". The Polymorphic Tracking Code (PTC) part of the library deals with the modeling of particle beams and accelerators. PTC contains the "physics" and relies on FPP for producing and manipulating Taylor maps.
+This is illustrated in Figure 1. Roughly, FPP can be subdivided into two parts(see Sec. (6)), a Taylor manipulation part for basic manipulations of Taylor series and an analysis part to do things like normal form analysis. PTC uses the Taylor manipulation part of FPP for things like the construction of Taylor maps. Additionally, PTC uses the analysis tools of FPP. A closer look at FPP shows the existence of a Differential Algebra (DA) package2 within FPP. This package was originally coded by Martin Berz.
+
+This manual covers FPP usage.
+
+
+\end{document}
