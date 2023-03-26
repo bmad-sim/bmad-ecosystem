@@ -124,7 +124,7 @@ FPP defines two fundamental structures that are the building blocks of many othe
 discouraged. Rather the \vn{real_8} and \vn{complex_8} structures should be used.
 
 %--------------------------------------------------------------------------------------------------------
-\subection{Taylor Type}
+\subsection{Taylor Type}
 \label{s:taylor}
 
 The \vn{taylor} structure overloads the Taylor series of the original real ``DA-Package'' of
@@ -140,7 +140,7 @@ of the \vn{taylor} type is discuraged in favor of \vn{real_8} for tracking simul
 be discussed further.
 
 %--------------------------------------------------------------------------------------------------------
-\subection{ComplexTaylor Type}
+\subsection{ComplexTaylor Type}
 \label{s:taylor}
 
 The \vn{complextaylor} structure stores two Taylor series which represent the real and imaginary parts.
@@ -230,9 +230,9 @@ When \vn{r8} is set to a Taylor series in the line
   r8 = 0.7d0 + dz_8(1) + 2*dz_8(2)**3 ! Init r8 as a Taylor series
 \end{example}
 this will cause \vn{r8} to act as a Taylor series. To understand how this initialization works, first consider the initialization of FPP/PTC which was done by the line
-\begin{example1}
+\begin{example}
   call init (only_2d0, 3, 0)  ! Initialize FPP/PTC. #Vars = 2, Order = 3
-\end{example1}
+\end{example}
 The first argument, \vn{only_2d0},  configured FPP/PTC to construct any Taylor series as a function of two phase space variables. These two variables will be called $z_1$ and $z_2$ here. The second argument, \vn{3}, gives the order at which the Taylor series is truncated to. That is, after this initialization, all Taylor series $t$ will be of the form
 \begin{equation}
     t = \sum_{i,j}^{0 \le i+j \le 3} C_{ij} \, z_1^i \, z_2^j
@@ -282,13 +282,13 @@ raises \vn{r8} to the 4th power and puts the result back into \vn{r8}. This is c
     3   2.800000000000000       3  0
     3   2.743999999999999       0  3
 \end{example}
-Notice that the map has been truncated so that no term has an order higher than 3 as expected. Expressions using \vn{real_8} variables involve overloaded operators as discussed in section \sec{sec:over}.
+Notice that the map has been truncated so that no term has an order higher than 3 as expected. Expressions using \vn{real_8} variables involve overloaded operators as discussed in section \sref{s:over}.
 
 %--------------------------------------------------------------
 \subsection{Real\_8 Under the Hood}\label{sec:real8}
 
 The particulars of how the \vn{real_8} structure is defined are generally not of interest to the general user. But it is instructive to take a quick look. In the \vn{FPP} code the \vn{real_8} structure is defined as:
-\begin{example1}
+\begin{example}
   TYPE REAL_8
      TYPE (TAYLOR) T      !  USED IF TAYLOR
      REAL(DP) R           !    USED IF REAL
@@ -297,15 +297,15 @@ The particulars of how the \vn{real_8} structure is defined are generally not of
      REAL(DP) S   !   SCALING FOR KNOBS AND SPECIAL KIND=0
      LOGICAL(LP) :: ALLOC  1 IF TAYLOR IS ALLOCATED IN DA-PACKAGE
   END TYPE REAL_8
-\end{example1}
+\end{example}
 The \vn{t} component of the structure is of type \vn{taylor} and is used if a \vn{real_8} variable is acting as a Taylor series. The \vn{r} component is used if a \vn{real_8} variable is acting as a real number. The \vn{kind} component is an integer that sets the behavior of a \vn{real_8} variable. Besides behaving as \vn{real} or a \vn{Taylor series}, a \vn{real_8} variable may behave as a "\vn{knob}" which will be explained later.
 
 The \vn{real_8} structure contains a component of type \vn{taylor}. The definition of the taylor structure is
-\begin{example1}
+\begin{example}
   TYPE TAYLOR
      INTEGER I       !  integer I is a pointer in old da-package of Berz
   END TYPE TAYLOR
-\end{example1}
+\end{example}
 The component \vn{i} is a pointer to the differential algebra package of Berz that is contained in FPP. The details of how a Taylor series is stored in the structure is not important here. What is important is that this structure can be used to hold a Taylor series.
 
 The reason for hiding a Taylor series under the hood is to defer its use to running time. We really do not know in a tracking code like PTC when the user will need a Taylor series and even what the parameters of that series might be: phase space, if so how many (2,4,6,?), and parameters such as quadrupole strengths which are taken from the huge set of magnets present in the system.
@@ -373,7 +373,7 @@ end program my_small_code_real_8
 
 In this little code, there is one drift of length \vn{L} followed by a multipole kick that contains a dipole of strength \vn{B}, a quadrupole of strength \vn{K_q} and a sextupole of strength \vn{K_s}. We run the code ignoring the parameters:
 
-\begin{example1}
+\begin{example}
  Give  L and parameter ordinality (0 if not a parameter)
 1 0
  Give  B  and parameter ordinality (0 if not a parameter)
@@ -397,12 +397,12 @@ In this little code, there is one drift of length \vn{L} followed by a multipole
 
    1 -0.1000000000000000       1  0
    1  0.9000000000000000       0  1
-\end{example1}
+\end{example}
 
 This little program produces Taylor series to second order in the phase space variables ${\bf z}=(z_1,z_2)$ similar to the programs \vn{Transport} and \vn{Marylie}.
 However, we can now require that the multipole strengths be variables of the Taylor series without recompiling the program. In this example, we make the quadrupole strength the third variable of TPSA:  $K_q=0.1 + dz_3$.
 
-\begin{example2}
+\begin{example}
  Give  L and parameter ordinality (0 if not a parameter)
 1 0
  Give  B  and parameter ordinality (0 if not a parameter)
@@ -428,11 +428,11 @@ However, we can now require that the multipole strengths be variables of the Tay
    1  0.9000000000000000       0  1  0
    2  -1.000000000000000       1  0  1
    2  -1.000000000000000       0  1  1
-\end{example2}
+\end{example}
 
 Again, we must emphasize that while it would have been easy here to use the type \vn{taylor} for all the variables, it is totally unfeasible in a real tracking code to either recompile the code or allow all parameters of the systems to be Taylor series. This is why typical matrix\footnote{This is not true of Berz's COSY INFINITY which handles variable memory of TPSA within its own internal language.} codes, not using TPSA, are limited to a small set of Taylor variables, usually the six phase space variables.
 
-So in summary a \vn{real_8} polymorph can be as mentioned in \sec{sec:real8}:
+So in summary a \vn{real_8} polymorph can be as mentioned in \sref{s:real8}:
 
 \begin{enumerate}
  \item A real number
