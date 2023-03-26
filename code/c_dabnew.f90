@@ -4513,7 +4513,7 @@ contains
     !
     return
       end subroutine dapri
-    subroutine dapri77(ina,iunit)
+    subroutine dapri77(ina,iunit,ind)
     implicit none
     !     ***************************
     !       Etienne
@@ -4521,7 +4521,8 @@ contains
     !
     !-----------------------------------------------------------------------------
     !
-    integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit
+    integer, optional :: ind
+    integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit, inde
     integer,dimension(lnv)::j
     character(10) c10,k10
     logical some
@@ -4546,20 +4547,27 @@ contains
     illa = idall(ina)
     !
 !         '*********************************************'
-    if(longprint) then
+    if (nice_taylor_print) then
+       inde = 1
+       if (present(ind)) inde = ind
+       if (inde == 1) write (iunit, '(a)') 'Out  Order  Coef                     Exponents'
+       write (iunit, '(a)')                '-----------------------------------------------------------'
+ 
+    elseif(longprint) then
        write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)') daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina,&
-         '*********************************************'
+                                                        '*********************************************'
+       if(illa.ne.0) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
+       if(illa.eq.0) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
+       !
+       c10='      NO ='
+       k10='      NV ='
+       write(iunit,'(A10,I6,A10,I6)') c10,inoa,k10,inva
     else
         write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)') "Properties",', NO =',inoa,', NV =',inva,', INA =',ina,&
-         '*********************************************'
+                                                         '*********************************************'
     endif 
    !
-    if(illa.ne.0.and.longprint) write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
-    if(illa.eq.0.and.longprint) write(iunit,'(A)') '   ALL COMPONENTS ZERO '
-    !
-    c10='      NO ='
-    k10='      NV ='
-    if(longprint)write(iunit,'(A10,I6,A10,I6)') c10,inoa,k10,inva
+
     iout = 0
     !
     !      DO 100 IOA = 0,INOA
@@ -4586,8 +4594,10 @@ contains
              !
              !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
              if(abs(cc(ii)).gt.eps_da) then
-                 some=.true.
-                if(eps_da.gt.c_1d_37) then
+                some=.true.
+                if(nice_taylor_print) then
+                   write(iunit, '(i3,a,i6,1x,g23.16,1x,100(1x,i2))'), inde, ':', ioa, cc(ii), (j(i),i=1,inva)
+                elseif(eps_da.gt.c_1d_37) then
                    write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
                 else
                    write(iunit,503) ioa,cc(ii),(j(i),i=1,inva)
@@ -4607,8 +4617,10 @@ contains
        j(i)=0
     enddo
     if(iout.eq.0) iout=1
-if(longprint) write(iunit,502) -iout,zero,(j(i),i=1,inva)
-if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero "
+if (.not. nice_taylor_print) then
+   if(longprint) write(iunit,502) -iout,zero,(j(i),i=1,inva)
+   if((.not.longprint).and.(.not.some)) write(iunit,*) 0," Real Polynomial is zero "
+endif
 !if(.not.longprint) write(iunit,*) " "
     !
     return

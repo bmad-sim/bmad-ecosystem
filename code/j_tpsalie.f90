@@ -852,8 +852,8 @@ contains
 
     DO I=1,size(S1)
        if(s1(i)%i>0) then
-          if(size(S1)>1) write(mfi,*) "Taylor #",i
-          CALL PRI(s1(i),MFILE,PREC)
+          if(size(S1)>1 .and. .not. nice_taylor_print) write(mfi,*) "Taylor #",i
+          CALL PRI(s1(i),MFILE,PREC,ind=i)
        endif
     ENDDO
   END SUBROUTINE DAPRINTTAYLORS
