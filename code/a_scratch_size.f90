@@ -90,6 +90,7 @@ module precision_constants
   !  real(dp),parameter:: A_dt = -0.142987272e0_dp    ! sateesh
   !  real(dp),parameter:: a_h3 =-4.183963e0_dp    ! sateesh
   logical(lp),  public :: longprint = my_true
+  logical(lp),  public :: nice_taylor_print = my_false
 
    real(dp) :: A_particle=A_ELECTRON
    real(dp),parameter::pmae=5.109989461e-4_dp     ! NIST CODATA 2014

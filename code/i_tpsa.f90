@@ -4038,7 +4038,7 @@ if(check_gtpsa(j=j)) then
 
      if(old_package) then
     if(print77) then
-       CALL DAPRI77(s1%i,mfi)
+       CALL DAPRI77(s1%i,mfi,ind=ind)
     else
        CALL DAPRI(s1%i,mfi)
     endif
