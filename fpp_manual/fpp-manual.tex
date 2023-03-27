@@ -107,6 +107,10 @@ The Fully Polymorphic Package (FPP) part of the FPP/PTC library provides manipul
 \Section{Concepts}
 \label{s:concepts}
 
+%-------------------------------------------------------------------
+\subsection{Conventions}
+\label{s:conventions}
+
 FPP/PTC is written in Fortran90. It is assumed that the reader has some familiarity with this language. In particular, it is assumed that the reader knows what a \vn{structure} is (roughly corresponding to a \vn{class} in Python or C++) which is also called a \vn{derived type}. Also it is assumed that the reader knows about operator overloading.
 
 FPP/PTC uses double precision numbers. The kind type parameter ``\vn{dp}'' is defined in FPP/PTC to correspond to double precision numbers. For example:
@@ -114,6 +118,37 @@ FPP/PTC uses double precision numbers. The kind type parameter ``\vn{dp}'' is de
   real(rp) abc, xyz             ! Declare double precision variables abc and xyz.
   xyz = 3.4_dp * abc / 1e9_dp   ! 3.4_dp and 1e9_dp are double precision numbers.
 \end{code}
+
+%-------------------------------------------------------------------
+\subsection{TPSA Versus DA}
+\label{s:tpsa}
+
+TPSA stands for ``Truncated Power Series Algebra'' and DA stands for ``Differential Algebra.'' But what does it mean when applied to a typical accelerator ring? Once we cut the mathematical jargon, we will see that 
+
+\begin{itemize}
+\item TPSA operations take into account the constant part and the results change as a function of the order. 
+\item DA operations are equivalent to normal TPSA operations used around the closed orbit and thus the constant part of the map is ignored. All the coefficients of the Taylor series stay the same independently of the order invoked. It so happens that the computation of nonlinear differential operators (Lie vector fields for example), are self-consistent because they form a differential algebra. But it is much simpler in our field to state that they are self-consistent because there are no feed down terms.
+\end{itemize}
+
+It is important to understand why a non-zero constant part of a Taylor series can be
+problematical. To see this, consider TPSA maps of order $N$ from $x$ to $y$ and $y$ to $z$
+\begin{align}
+  y &= \sum_{j = 0}^N a_j x^j \\
+  z &= \sum_{j = 0}^N b_j y^j + \calO(y^{N+1}) \nonumber
+\end{align}
+In the second equation it is made explicit that since the map is truncated there is an error of
+order $N+1$. These maps can be combined to form a TPSA map of $z$ as a function of $x$ 
+\begin{equation}
+  z = \sum_{j = 0}^N c_j x^j
+\end{equation}
+If the constant term $a_0$ in the equation from $x$ to $y$ is nonzero, an error term of order higher
+than $N$ in the equation from $y$ to $z$ will affect the values of the $c_j$. This is called ``feed
+down''. That is, terms of higher order will affect the coefficients of lower order terms when TPSA
+maps are combined. To avoid this, maps with zero constant term should be used. With simulations,
+this generally means computing maps with respect to the nominal beam orbit. For lattices with a
+closed geometry, this generally means computing maps with respect to the closed orbit. For lattices
+with an open geometry (EG: Linacs), the reference orbit can be some orbit defined by tracking a beam
+from some user-specified initial position.
 
 %--------------------------------------------------------------------------------------------------------
 \Section{Taylor and ComplexTaylor Fundamental Types}
@@ -160,7 +195,13 @@ be discussed further.
 \label{s:real.8}
 
 FPP defines the \vn{taylor} type (\sref{s:taylor} which holds a Taylor series. Since computations
-with Taylor series can be slow, FPP defines ``polymorphic'' type called \vn{real_8}. In general, a
+with Taylor series can be slow, FPP defines ``polymorphic'' type called \vn{real_8}.\footnote
+  {
+The ``8'' here is an allusion to the fact that double precision numbers are generally represented
+by 8 bytes and indeed the \vn{dp} parameter defined by PTC/FPP to designate double precision numbers
+has, on most systems, a value of 8.
+  }
+ In general, a
 "polymorphic" variable is a variable that can act in different ways depending on the context of the
 code. In this case, a \vn{real_8} variable can act as if it were a real number or it can act as if
 it were a Taylor series depending upon how it is initialized. An example program will make this clear.
@@ -174,22 +215,22 @@ real(dp) x            ! Define a double precision number
 
 !
 
-nice_taylor_print = .true.    ! Shorten "call print" output
+nice_taylor_print = .true.    ! Nicely formatted "call print" output
 call init (only_2d0, 3, 0)    ! Initialize: #Vars = 2, Order = 3
 
-x = 0.1d0
 call alloc(r8)          ! Initialize memory for r8
-r8 = x                  ! This will make r8 act as a real
 
-print '(/,a)', 'r8 is now acting as a real:'
-call print (r8)
+x = 0.1d0
+r8 = x                  ! Initializing r8 to a real will make r8 act as a real.
+print "(/,a)", "r8 is now acting as a real:"
+call print (r8)         ! Will print a real number.
 
-r8 = 0.7d0 + dz_8(1) + 2*dz_8(2)**3 ! Init r8 as a Taylor series
-print '(/,a)', 'r8 is now acting as a Taylor series:'
-call print(r8)
+r8 = 0.7d0 + dz_8(1) + 2*dz_8(2)**3   ! Init r8 as a Taylor series
+print "(/,a)", "r8 is now acting as a Taylor series:"
+call print(r8)                        ! Will print a Taylor series.
 
 r8 = r8**4  ! Raise the Taylor series to the 4th power
-print '(/,a)', 'This is r8^4:'
+print "(/,a)", "This is r8^4:"
 call print (r8)
 
 call kill(r8)
@@ -203,68 +244,99 @@ defines \vn{r8} as an instance of a \vn{real_8} variable and the line
 \begin{example}
   call alloc(r8)
 \end{example}
-initializes \vn{r8}. This initialization must be done before \vn{r8} is used. After \vn{r8} is used, any memory that has been allocated for use with \vn{r8} is reclaimed by calling the \vn{kill} routine
+initializes \vn{r8}. This initialization must be done before \vn{r8} is used. After \vn{r8} is used,
+any memory that has been allocated for use with \vn{r8} is reclaimed by calling the \vn{kill}
+routine
 \begin{example}
   call kill(r8)
 \end{example}
-Strictly speaking, the \vn{kill} is not necessary here since \vn{kill} is called at end of the program. However, in a subroutine or function, all local instances of \vn{real_8} variables must be killed otherwise there will be a memory leak.
+Strictly speaking, \vn{kill} is not necessary here since memory cleanup is automatically done at end
+of the program. However, in a subroutine or function, all local instances of \vn{real_8} variables
+must be killed otherwise there will be a memory leak.
 
 When \vn{r8} is set to the real number \vn{x} in the line
 \begin{example}
     r8 = x
 \end{example}
-this will cause \vn{r8} to act as a real number. This is verified by printing the value of \vn{r8} in the lines
+Here the equal sign is overloaded. This initialization of \vn{r8}
+will cause \vn{r8} to act as a real number. This is verified by printing the value of \vn{r8} in the lines
 \begin{example}
-  print *, 'r8 is now acting as a real:'
+  print '(/,a)', "r8 is now acting as a real:"
   call print (r8)
 \end{example}
 The output is just a single real number indicating that \vn{r8} is acting as a real:
 \begin{example}
-  r8 is now acting as a real:'
+  r8 is now acting as a real:"
   0.100000000000000
 \end{example}
-Notice that the \vn{print} statement uses the Fortran intrinsic print function while the \vn{call print} statement uses the overloaded print subroutine defined by \vn{FPP}.
+Notice that the \vn{print} statement uses the Fortran intrinsic print function while the \vn{call
+print} statement uses the overloaded print subroutine defined by \vn{FPP}.
 
 When \vn{r8} is set to a Taylor series in the line
 \begin{example}
   r8 = 0.7d0 + dz_8(1) + 2*dz_8(2)**3 ! Init r8 as a Taylor series
 \end{example}
-this will cause \vn{r8} to act as a Taylor series. To understand how this initialization works, first consider the initialization of FPP/PTC which was done by the line
+this will cause \vn{r8} to act as a Taylor series. To understand how this initialization works,
+first consider the initialization of FPP/PTC which was done by the line
 \begin{example}
   call init (only_2d0, 3, 0)  ! Initialize FPP/PTC. #Vars = 2, Order = 3
 \end{example}
-The first argument, \vn{only_2d0},  configured FPP/PTC to construct any Taylor series as a function of two phase space variables. These two variables will be called $z_1$ and $z_2$ here. The second argument, \vn{3}, gives the order at which the Taylor series is truncated to. That is, after this initialization, all Taylor series $t$ will be of the form
+The first argument, \vn{only_2d0}, is a parameter defined by \vn{PTC}.\footnote
+  {
+The \vn{only_2d0} parameter is of type \vn{internal_state}. Full discussion of the
+\vn{internal_state} type is deferred to the PTC documentation (not in this manual). The relavent
+point here is that when an \vn{internal_state} type is used as the first argument in the overloaded
+routine \vn{init}, both \vn{FPP} and \vn{PTC} will be initialized. 
+  }
+When \vn{only_2d0} is used as the first argument to \vn{init}, the number of variables will be two
+which is appropriate for simulations involving motion along one axis (typically involving phase
+space $(x, p_x)$).\footnote
+  {
+There is also an \vn{only_4d0} parameter for configuring using 4 variables for simulations with
+transverse phase space $(x, p_x, y, p_y)$. However, there is no \vn{only_6d0} parameter sice
+configuring for the full 6D phase space is a bit more complicated (involving consideration like
+whether there are powered RF cavities or not).
+  }
+If only \vn{FPP} needs to be initialized (as is the case with every example in this manual), the
+initialization here could have been done in the above example via:
+\begin{example}
+  call init (3, 2)  ! Initialize just FPP. Order = 3, #Vars = 2 (Notice reversed order!)
+\end{example}
+The second argument, \vn{3}, gives the order at which the Taylor series is truncated to. That is, after this initialization, all Taylor series $t$ will be of the form:
 \begin{equation}
     t = \sum_{i,j}^{0 \le i+j \le 3} C_{ij} \, z_1^i \, z_2^j
 \end{equation}
-In the above initialization of \vn{r8}, \vn{dz_8(1)} represents the variable $z_1$ and \vn{dz_8(2)} represents the variable $z_2$. Thus \vn{r8} is initialized to the Taylor series
+where $z_1$ is the first variable and $z_2$ is the second variable.  \vn{FPP} sets up an array named
+\vn{dz_8} such that \vn{dz_8(N)} represents the $N$\Th variable. Thus in the above code
+\vn{r8} is initialized to the Taylor series:
 \begin{equation}
     t = 0.7 + z_1 + 2 \, z_2^3
 \end{equation}
 This is confirmed by printing \vn{r8} after it has been set via the lines
 \begin{example}
-  print *, 'r8 is now acting as a Taylor series:'
+  print '(/,a)', "r8 is now acting as a Taylor series:"
   call print(r8)
 \end{example}
 The output is:
 \begin{example}
-  r8 is now acting as a Taylor series:
-  Properties, NO =    3, NV =    2, INA =   21
-   *********************************************
-
-     0  0.7000000000000000       0  0
-     1   1.000000000000000       1  0
-     3   2.000000000000000       0  3
+r8 is now acting as a Taylor series:
+Out  Order  Coef                     Exponents
+-----------------------------------------------------------
+  1:     0  0.7000000000000000       0  0
+  1:     1   1.000000000000000       1  0
+  1:     3   2.000000000000000       0  3
 \end{example}
-Each line in the above output, after the line with the asterisks, represents one term in the Taylor series. The general form for printing a Taylor term is:
+Each line in the above output, after the line with dashes, represents one term in the Taylor series. The general form for printing a Taylor term is:
 \begin{example}
-  <term-order>   <term-coefficient>    <z1-exponent>  <z2-exponent>
+  <output-index> <term-order>   <term-coefficient>    <z1-exponent>  <z2-exponent>, ...
 \end{example}
-The <term-order> is the order of the term. That is, the sum of the exponents. For example, the last line in the above printout is
+The \vn{<output-index>} is the index of the output variable. Here, since there is only one Taylor
+series and not an array, that index is one.  The \vn{<term-order>} is the order of the term. That is, the
+sum of the exponents. For example, the last line in the above printout is
 \begin{example}
-   3   2.000000000000000       0  3
+  1:     3   2.000000000000000       0  3
 \end{example}
-and this line represents the term $2 \, z_1^0 \, z_2^3$. 
+This line represents the term $2 \, z_1^0 \, z_2^3$ which is order 3. 
 
 Once \vn{r8} has been initialized, it can be used in expressions. Thus the line
 \begin{example}
@@ -272,15 +344,14 @@ Once \vn{r8} has been initialized, it can be used in expressions. Thus the line
 \end{example}
 raises \vn{r8} to the 4th power and puts the result back into \vn{r8}. This is confirmed by the final print which produces
 \begin{example}
-  This is r8^4:
-  Properties, NO =    3, NV =    2, INA =   23
-  *********************************************
-
-    0  0.2400999999999999       0  0
-    1   1.372000000000000       1  0
-    2   2.940000000000000       2  0
-    3   2.800000000000000       3  0
-    3   2.743999999999999       0  3
+This is r8^4:
+Out  Order  Coef                     Exponents
+-----------------------------------------------------------
+  1:     0  0.2400999999999999       0  0
+  1:     1   1.372000000000000       1  0
+  1:     2   2.940000000000000       2  0
+  1:     3   2.800000000000000       3  0
+  1:     3   2.743999999999999       0  3
 \end{example}
 Notice that the map has been truncated so that no term has an order higher than 3 as expected. Expressions using \vn{real_8} variables involve overloaded operators as discussed in section \sref{s:over}.
 
@@ -289,31 +360,50 @@ Notice that the map has been truncated so that no term has an order higher than 
 
 The particulars of how the \vn{real_8} structure is defined are generally not of interest to the general user. But it is instructive to take a quick look. In the \vn{FPP} code the \vn{real_8} structure is defined as:
 \begin{example}
-  TYPE REAL_8
-     TYPE (TAYLOR) T      !  USED IF TAYLOR
-     REAL(DP) R           !    USED IF REAL
-     INTEGER KIND  !  0,1,2,3 (1=REAL,2=TAYLOR,3=TAYLOR KNOB)
-     INTEGER I   !   USED FOR KNOBS AND SPECIAL KIND=0
-     REAL(DP) S   !   SCALING FOR KNOBS AND SPECIAL KIND=0
-     LOGICAL(LP) :: ALLOC  1 IF TAYLOR IS ALLOCATED IN DA-PACKAGE
-  END TYPE REAL_8
+type real_8
+   type (taylor) t   ! Used if taylor
+   real(dp) r        ! Used if real
+   integer kind      ! 0,1,2,3 (1=real,2=taylor,3=taylor knob)
+   integer i         ! Used for knobs and special kind=0
+   real(dp) s        ! Scaling for knobs and special kind=0
+   logical(lp) :: alloc  ! True if taylor is allocated in da-package
+end type real_8
 \end{example}
-The \vn{t} component of the structure is of type \vn{taylor} and is used if a \vn{real_8} variable is acting as a Taylor series. The \vn{r} component is used if a \vn{real_8} variable is acting as a real number. The \vn{kind} component is an integer that sets the behavior of a \vn{real_8} variable. Besides behaving as \vn{real} or a \vn{Taylor series}, a \vn{real_8} variable may behave as a "\vn{knob}" which will be explained later.
-
-The \vn{real_8} structure contains a component of type \vn{taylor}. The definition of the taylor structure is
-\begin{example}
-  TYPE TAYLOR
-     INTEGER I       !  integer I is a pointer in old da-package of Berz
-  END TYPE TAYLOR
-\end{example}
-The component \vn{i} is a pointer to the differential algebra package of Berz that is contained in FPP. The details of how a Taylor series is stored in the structure is not important here. What is important is that this structure can be used to hold a Taylor series.
-
-The reason for hiding a Taylor series under the hood is to defer its use to running time. We really do not know in a tracking code like PTC when the user will need a Taylor series and even what the parameters of that series might be: phase space, if so how many (2,4,6,?), and parameters such as quadrupole strengths which are taken from the huge set of magnets present in the system.
+The \vn{t} component of the structure is of type \vn{taylor} (\sref{s:taylor}) and is used if a \vn{real_8} variable is acting as a Taylor series. The \vn{r} component is used if a \vn{real_8} variable is acting as a real number. The \vn{kind} component is an integer that sets the behavior of a \vn{real_8} variable. Besides behaving as \vn{real} or a Taylor series, a \vn{real_8} variable may behave as a "\vn{knob}" which will be explained later.
+The reason for hiding a Taylor series under the hood is to defer the decision of its use to run time.
 
 %-------------------------------------------------------------------
-\subsubsection{Type \protect\vn{real_8}}  \label{sec:real8code}
+\Section{Complex\_8 Type}
+\label{s:c8}
 
-The \vn{real_8} type was discussed in Sec.~\sref{s:concepts} and Sec.~\sref{sec:real8}.
+The type \vn{complex_8} is the polymorphic version of the \vn{complextaylor} type just as the \vn{real_8} type is the polymorphic version of the \vn{taylor} type.
+
+The type \vn{complex_8} is rarely used in a tracking code since all quantities we compute are ultimately real. However once in a while it is useful to go into complex coordinates temporarily. If the type \vn{complex_8} did not exist, then a code could become extremely difficult to write. This happens a lot when Maxwell's equations are  written in cylindrical coordinates. In such a case, if ${\bf z}=(x,p_x,y,p_y)$, then most intermediate calculations involve a quantity $q=x+i\,y$. It in such a case, the complex polymorph is useful. This happens in the tracking code for some magnets in PTC but it is generally hidden from a normal programmer using PTC. 
+
+The definition of \vn{complextaylor} is: 
+\begin{example}
+type complex_8
+  type (complextaylor) t 
+  complex(dp) r
+  logical(lp) alloc
+  integer kind
+  integer i,j 
+  complex(dp) s
+end type complex_8
+\end{example}
+As in the case of the real polymorph, the \vn{t} component contains the complex Taylor series and the \vn{r} component contains the complex number if the polymorph is not a Taylor series. 
+
+%-------------------------------------------------------------------
+\Section{Real_8 and Complex_8 Operators}
+\label{s:real.op}
+
+
+
+
+%-------------------------------------------------------------------
+\Section{Knobs}
+\label{sec:real8code}
+
 This type is the most important type if you write a tracking code of respectable length.  Imagine that your code tracks in one degree of freedom (1-d-f). Then you will push two phase space variables through your magnets, let us call them ${\bf z}=(z_1,z_2)$. These variables will denote  the position and the tangent of an angle in our little example.  If it is your  intention to always extract a Taylor series around a special orbit, then  it would suffice to declare as \vn{taylor} only the phase space variables ${\bf z}=(z_1,z_2)$ and any temporary variables the code might used during its calculations. 
 
 But what if we want to have a Taylor map that also depends upon some parameter or parameters of the lattice. For example, a map can include quadrupole strengths as independent variables in the maps. Such variables are called ``\vn{knobs}.'' Since this is a user decision, it is best if the code decides at execution time using the type \vn{real_8}.
@@ -440,10 +530,13 @@ So in summary a \vn{real_8} polymorph can be as mentioned in \sref{s:real8}:
  \item a knob which is a simple temporary Taylor series activated only if needed
 \end{enumerate}
 
+%-------------------------------------------------------------------
+\Section{Manual To Do List}
 
-Notes:
 
-calling init again wipes out existing Taylor series. (Does is wipe out universial taylor?)
+Note: calling init again wipes out existing Taylor series. (Does is wipe out universial taylor?)
+
+Explain knobs
 
 \end{document}
 
