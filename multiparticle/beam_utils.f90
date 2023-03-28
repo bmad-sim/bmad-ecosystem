@@ -1359,7 +1359,6 @@ do i = 1, size(bunch%particle)
   bunch_params%ix_ele = bunch%particle(i)%ix_ele
   bunch_params%location = bunch%particle(i)%location
   bunch_params%centroid = bunch%particle(i)  ! Note: centroid%vec gets set by calc_bunch_sigma_matrix
-  exit
 enddo
 
 ! n_particle and centroid
@@ -1769,7 +1768,7 @@ if (charge_live == 0) then
 endif
 
 p0c_avg = sum(particle%p0c*charge, mask = (particle%state == alive$)) / charge_live
-!! bunch_params%centroid%p0c = p0c_avg  !! Round-off error is problematic with track1 code.
+if (logic_option(.false., is_time_coords)) bunch_params%centroid%p0c = p0c_avg  ! Round-off error is problematic with track1 code if not time coords.
 
 avg = 0
 sig_mat = 0
