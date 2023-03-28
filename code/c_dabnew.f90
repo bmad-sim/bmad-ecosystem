@@ -4596,7 +4596,7 @@ contains
              if(abs(cc(ii)).gt.eps_da) then
                 some=.true.
                 if(nice_taylor_print) then
-                   write(iunit, '(i3,a,i6,1x,g23.16,1x,100(1x,i2))'), inde, ':', ioa, cc(ii), (j(i),i=1,inva)
+                   write(iunit, '(i3,a,i6,1x,g23.16,1x,100(1x,i2))') inde, ':', ioa, cc(ii), (j(i),i=1,inva)
                 elseif(eps_da.gt.c_1d_37) then
                    write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
                 else
