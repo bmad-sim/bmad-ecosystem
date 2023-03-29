@@ -1,6 +1,6 @@
 %-----------------------------------------
 % To process this file:
-%   pdflatex fpp_manual
+%   pdflatex fpp-manual
 %-----------------------------------------
 
 %\documentclass{article}
@@ -53,12 +53,12 @@
   {\vspace*{-1.5ex} \begin{alltt}}
   {\end{alltt} \vspace*{-1.0ex}}
 
-\title{The Fully Polymorphic Package Manual}
+\title{Fully Polymorphic Package Manual}
 %\titlehead{adf}
 
 \author{}
 \date{
-  \parbox{5.5in}{\includegraphics[width=12cm]{logo-fpp.pdf}} \vspace*{0.5in} \\ 
+  \parbox{6in}{\includegraphics[width=5in]{logo-fpp.pdf}\vspace*{0.4in}} \\ 
   Etienne Forest and David Sagan \\ 
   March 25, 2023
 }
@@ -88,7 +88,7 @@ FPP/PTC is an object oriented, open source, subroutine library for
 FPP/PTC has two parts. The Fully Polymorphic Package (FPP) is the part that deals with Taylor series and maps. FPP is pure math independent1 of any "physics". The Polymorphic Tracking Code (PTC) part of the library deals with the modeling of particle beams and accelerators. PTC contains the "physics" and relies on FPP for producing and manipulating Taylor maps.
 This is illustrated in Figure~\ref{f:ptc}. Roughly, FPP can be subdivided into two parts, a Taylor manipulation part for basic manipulations of Taylor series and an analysis part to do things like normal form analysis. PTC uses the Taylor manipulation part of FPP for things like the construction of Taylor maps. Additionally, PTC uses the analysis tools of FPP. A closer look at FPP shows the existence of a Differential Algebra (DA) package within FPP. This package was originally coded by Martin Berz.
 
-This manual covers FPP usage. PTC is covered elsewhere. 
+This manual covers the basic usage of FPP and PTC. 
 
 \begin{figure}[tb]
   \centering
@@ -150,13 +150,40 @@ closed geometry, this generally means computing maps with respect to the closed 
 with an open geometry (EG: Linacs), the reference orbit can be some orbit defined by tracking a beam
 from some user-specified initial position.
 
+%-------------------------------------------------------------------
+\subsection{Tracking Versus Analysis}
+\label{s:tracking.analysis}
+
+An important distiction here is the difference between \vn{tracking} and \vn{analysis}. By
+``tracking'' it is meant either the propagation through a lattice of a single particle or a
+transport map (which here is always an array of truncated Taylor power series).\footnote
+  {
+Mathematically, single particle tracking is just tracking of a transport map using Taylor series
+truncated at zeroth order. From the code perspective, due to the speed penelely with dealing with
+Taylor series, the two are distinct as will be seen in this manual.
+  }
+This is opposed to ``analysis'' which is the study of a transport map to extract such things as
+resonance driving terms, etc. With \vn{fpp}, analysis is always done on maps and not single particle
+results. 
+
+As a result of this dicotomy between tracking and analysis, FPP/PTC defines different structures that
+are optimized to handle one or the other. Structures that have been designed tohandle tracking are
+\begin{example}
+  real_8
+  complex_8
+  probe_8
+\end{example}
+
+Why does probe type exist?
+
 %--------------------------------------------------------------------------------------------------------
 \Section{Taylor and ComplexTaylor Fundamental Types}
 \label{s:fundamental}
 
-FPP defines two fundamental structures that are the building blocks of many other structures: \vn{Taylor} and
-\vn{complextaylor}. The direct use of either in a tracking program (that is, when doing simulations with PTC) is
-discouraged. Rather the \vn{real_8} and \vn{complex_8} structures should be used.
+FPP defines two fundamental structures that are the building blocks of many other structures:
+\vn{Taylor} and \vn{complextaylor}. The \vn{direct} use of either in a tracking program (that is,
+when doing simulations with PTC) is discouraged. Rather, other types like \vn{real_8} and \vn{complex_8}
+should be used.
 
 %--------------------------------------------------------------------------------------------------------
 \subsection{Taylor Type}
@@ -170,9 +197,7 @@ type taylor
 end type taylor
 \end{code}
 The Berz package uses a positive integer to differentiate different Taylor series and the
-\vn{taylor} structure just stores this integer. Since the \vn{real_8} type is similar, and since use
-of the \vn{taylor} type is discuraged in favor of \vn{real_8} for tracking simulations, this type will not
-be discussed further.
+\vn{taylor} structure just stores this integer.
 
 %--------------------------------------------------------------------------------------------------------
 \subsection{ComplexTaylor Type}
@@ -186,9 +211,14 @@ type complextaylor
    type (taylor) i     ! Imaginary part of complex Taylor series.
 end type complextaylor
 \end{code}
-Since the \vn{complex_8} type is similar, and since use
-of the \vn{complextaylor} type is discuraged in favor of \vn{complex_8} for tracking simulations, this type will not
-be discussed further.
+
+%--------------------------------------------------------------------------------------------------------
+\subsection{Overloaded Operators for Taylor and ComplexTaylor Types}
+\label{s:taylor.over}
+
+Overloaded operators for \vn{taylor} and \vn{complextaylor} types include the standard functions
+like \vn{sin} and \vn{tanh} as well as the operators used in arithmetic expressions \vn{+}, \vn{-},
+\vn{*}, \vn{/}, \vn{**}.
 
 %--------------------------------------------------------------------------------------------------------
 \Section{Real_8 Type}
@@ -201,10 +231,10 @@ The ``8'' here is an allusion to the fact that double precision numbers are gene
 by 8 bytes and indeed the \vn{dp} parameter defined by PTC/FPP to designate double precision numbers
 has, on most systems, a value of 8.
   }
- In general, a
-"polymorphic" variable is a variable that can act in different ways depending on the context of the
-code. In this case, a \vn{real_8} variable can act as if it were a real number or it can act as if
-it were a Taylor series depending upon how it is initialized. An example program will make this clear.
+In general, a "polymorphic" variable is a variable that can act in different ways depending on the
+context of the code. In this case, a \vn{real_8} variable can act as if it were a real number or it
+can act as if it were a Taylor series depending upon how it is initialized. 
+An example program will make this clear.
 \begin{code}
 program real_8_example
 use pointer_lattice   ! Read in structure definitions, etc.
@@ -283,10 +313,9 @@ first consider the initialization of FPP/PTC which was done by the line
 \end{example}
 The first argument, \vn{only_2d0}, is a parameter defined by \vn{PTC}.\footnote
   {
-The \vn{only_2d0} parameter is of type \vn{internal_state}. Full discussion of the
-\vn{internal_state} type is deferred to the PTC documentation (not in this manual). The relavent
-point here is that when an \vn{internal_state} type is used as the first argument in the overloaded
-routine \vn{init}, both \vn{FPP} and \vn{PTC} will be initialized. 
+The \vn{only_2d0} parameter is of type \vn{internal_state} (\sref{s:internal}). When an
+\vn{internal_state} type is used as the first argument in the overloaded routine \vn{init}, both
+\vn{FPP} and \vn{PTC} will be initialized.
   }
 When \vn{only_2d0} is used as the first argument to \vn{init}, the number of variables will be two
 which is appropriate for simulations involving motion along one axis (typically involving phase
@@ -297,8 +326,8 @@ transverse phase space $(x, p_x, y, p_y)$. However, there is no \vn{only_6d0} pa
 configuring for the full 6D phase space is a bit more complicated (involving consideration like
 whether there are powered RF cavities or not).
   }
-If only \vn{FPP} needs to be initialized (as is the case with every example in this manual), the
-initialization here could have been done in the above example via:
+If only \vn{FPP} needs to be initialized (as is the case at hand), the initialization here could
+have been done in the above example via:
 \begin{example}
   call init (3, 2)  ! Initialize just FPP. Order = 3, #Vars = 2 (Notice reversed order!)
 \end{example}
@@ -326,7 +355,8 @@ Out  Order  Coef                     Exponents
   1:     1   1.000000000000000       1  0
   1:     3   2.000000000000000       0  3
 \end{example}
-Each line in the above output, after the line with dashes, represents one term in the Taylor series. The general form for printing a Taylor term is:
+Each line in the above output, after the line with dashes, represents one term in the Taylor
+series. The general form for printing a Taylor term is:
 \begin{example}
   <output-index> <term-order>   <term-coefficient>    <z1-exponent>  <z2-exponent>, ...
 \end{example}
@@ -342,7 +372,8 @@ Once \vn{r8} has been initialized, it can be used in expressions. Thus the line
 \begin{example}
   r8 = r8**4  ! Raise the Taylor series to the 4th power
 \end{example}
-raises \vn{r8} to the 4th power and puts the result back into \vn{r8}. This is confirmed by the final print which produces
+raises \vn{r8} to the 4th power and puts the result back into \vn{r8}. This is confirmed by the
+final print which produces
 \begin{example}
 This is r8^4:
 Out  Order  Coef                     Exponents
@@ -353,12 +384,16 @@ Out  Order  Coef                     Exponents
   1:     3   2.800000000000000       3  0
   1:     3   2.743999999999999       0  3
 \end{example}
-Notice that the map has been truncated so that no term has an order higher than 3 as expected. Expressions using \vn{real_8} variables involve overloaded operators as discussed in section \sref{s:over}.
+Notice that the map has been truncated so that no term has an order higher than 3 as
+expected. Expressions using \vn{real_8} variables involve overloaded operators as discussed in
+section \sref{s:over}.
 
 %--------------------------------------------------------------
 \subsection{Real\_8 Under the Hood}\label{sec:real8}
 
-The particulars of how the \vn{real_8} structure is defined are generally not of interest to the general user. But it is instructive to take a quick look. In the \vn{FPP} code the \vn{real_8} structure is defined as:
+The particulars of how the \vn{real_8} structure is defined are generally not of interest to the
+general user. But it is instructive to take a quick look. In the \vn{FPP} code the \vn{real_8}
+structure is defined as:
 \begin{example}
 type real_8
    type (taylor) t   ! Used if taylor
@@ -369,16 +404,30 @@ type real_8
    logical(lp) :: alloc  ! True if taylor is allocated in da-package
 end type real_8
 \end{example}
-The \vn{t} component of the structure is of type \vn{taylor} (\sref{s:taylor}) and is used if a \vn{real_8} variable is acting as a Taylor series. The \vn{r} component is used if a \vn{real_8} variable is acting as a real number. The \vn{kind} component is an integer that sets the behavior of a \vn{real_8} variable. Besides behaving as \vn{real} or a Taylor series, a \vn{real_8} variable may behave as a "\vn{knob}" which will be explained later.
-The reason for hiding a Taylor series under the hood is to defer the decision of its use to run time.
+The \vn{t} component of the structure is of type \vn{taylor} (\sref{s:taylor}) and is used if a
+\vn{real_8} variable is acting as a Taylor series. The \vn{r} component is used if a \vn{real_8}
+variable is acting as a real number. The \vn{kind} component is an integer that sets the behavior of
+a \vn{real_8} variable. Besides behaving as \vn{real} or a Taylor series, a \vn{real_8} variable may
+behave as a "\vn{knob}" which will be explained later.  The reason for hiding a Taylor series under
+the hood is to defer the decision of its use to run time.
+
+This is useful when
+tracking since manipulating Taylor series is computationally more expensive than using real numbers.
 
 %-------------------------------------------------------------------
 \Section{Complex\_8 Type}
 \label{s:c8}
 
-The type \vn{complex_8} is the polymorphic version of the \vn{complextaylor} type just as the \vn{real_8} type is the polymorphic version of the \vn{taylor} type.
+The type \vn{complex_8} is the polymorphic version of the \vn{complextaylor} type just as the
+\vn{real_8} type is the polymorphic version of the \vn{taylor} type.
 
-The type \vn{complex_8} is rarely used in a tracking code since all quantities we compute are ultimately real. However once in a while it is useful to go into complex coordinates temporarily. If the type \vn{complex_8} did not exist, then a code could become extremely difficult to write. This happens a lot when Maxwell's equations are  written in cylindrical coordinates. In such a case, if ${\bf z}=(x,p_x,y,p_y)$, then most intermediate calculations involve a quantity $q=x+i\,y$. It in such a case, the complex polymorph is useful. This happens in the tracking code for some magnets in PTC but it is generally hidden from a normal programmer using PTC. 
+The type \vn{complex_8} is rarely used in a tracking code since all quantities we compute are
+ultimately real. However once in a while it is useful to go into complex coordinates temporarily. If
+the type \vn{complex_8} did not exist, then a code could become extremely difficult to write. This
+happens a lot when Maxwell's equations are written in cylindrical coordinates. In such a case, if
+${\bf z}=(x,p_x,y,p_y)$, then most intermediate calculations involve a quantity $q=x+i\,y$. It in
+such a case, the complex polymorph is useful. This happens in the tracking code for some magnets in
+PTC but it is generally hidden from a normal programmer using PTC.
 
 The definition of \vn{complextaylor} is: 
 \begin{example}
@@ -391,11 +440,60 @@ type complex_8
   complex(dp) s
 end type complex_8
 \end{example}
-As in the case of the real polymorph, the \vn{t} component contains the complex Taylor series and the \vn{r} component contains the complex number if the polymorph is not a Taylor series. 
+As in the case of the real polymorph, the \vn{t} component contains the complex Taylor series and
+the \vn{r} component contains the complex number if the polymorph is not a Taylor series.
 
 %-------------------------------------------------------------------
-\Section{Real_8 and Complex_8 Operators}
+\Section{Real_8 and Complex_8 Functions and Operators}
 \label{s:real.op}
+
+Operators that act on \vn{real_8} and \vn{complex_8} types:
+\begin{example}
+  exp(t)          ! Exponentiation
+  log(t)          ! Log
+  sin(t), sind(t) ! Sine radians and deg
+  cos(t), cosd(t)
+  tan(t), tand(t)
+  acos(t)
+  asin(t)
+  atan(t), atand(t)
+  atan2(ty, tx), atan2d(ty, tx)
+  sinx_x(t)
+  sinhx_x(t)
+  abs(t) 
+  full_abs(t)???? What is this
+  dble ???? is this the same as real?
+  real(ct), aimag(ct)
+  cmplx(t_re, t_im)
+\end{example}
+
+Question: Do all functions act on real_8, taylor, complex_8, complextaylor?
+
+
+%-------------------------------------------------------------------
+\Section{Internal_State Type}
+\label{s:internal}
+
+Components of the \vn{internal_state} structure define parameters that affect such things as whether RF cavities are considered to be on or off or how phase space variables are treated. The structure definition is:
+\begin{example}
+type internal_state
+   integer totalpath      ! T => total time or path length is used
+   logical(lp) time       ! T => Time is used instead of path length
+   logical(lp) radiation  ! T => Radiation is turned on
+   logical(lp) nocavity   ! T => Cavity is turned into a drift
+   logical(lp) fringe     ! T => Fringe fields are turned on (mainly for quadrupoles)
+   logical(lp) stochastic ! T => Random Stochastic kicks to x(5)
+   logical(lp) envelope   ! T => Stochastic envelope terms tracked in probe_8
+   logical(lp) para_in    ! T => Parameters in the map are included
+   logical(lp) only_4d    ! T => Real_8 Taylor in (x,p_x,y,p_y)
+   logical(lp) delta      ! T => Real_8 Taylor in (x,p_x,y,p_y,delta)
+   logical(lp) spin       ! T => spin is tracked
+   logical(lp) modulation ! T => One modulated family tracked by probe
+   logical(lp) only_2d    ! T => Real_8 taylor in (x,p_x)
+   logical(lp) full_way   !
+end type internal_state
+
+For each structure component except \vn{param_in} and \vn{full_way}, there is a global parameter defined 
 
 
 
