@@ -110,7 +110,7 @@ private EQUALq_r,EQUALq_8_c,EQUALq_c_8,EQUALq,POWq,c_invq,subq,mulq,addq,alloc_c
 private c_pri_quaternion,CUTORDERquaternion,c_trxquaternion,EQUALq_c_r,EQUALq_r_c,mulcq,c_exp_quaternion
 private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion,unarySUB_q,c_trxquaternion_tpsa
 private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mulqdiv,powql,quaternion_to_matrix
-private copy_tree_into_tree_zhe,absq2,absq,c_MAP_VEC
+private copy_tree_into_tree_zhe,absq2,absq,c_MAP_VEC,printcomplex,printpoly,print6
 !private equal_map_real8,equal_map_complex8,equal_real8_map,equal_complex8_map
 real(dp) dts
 real(dp), private :: sj(6,6)
@@ -737,6 +737,20 @@ logical :: old_phase_calculation=.false.
       MODULE PROCEDURE print_vector_field_fourier
     END INTERFACE
 
+
+  INTERFACE daprint
+     MODULE PROCEDURE printcomplex
+     MODULE PROCEDURE printpoly
+     MODULE PROCEDURE print6
+  END INTERFACE
+
+  INTERFACE print
+     MODULE PROCEDURE printcomplex
+     MODULE PROCEDURE printpoly
+     MODULE PROCEDURE print6
+  END INTERFACE
+
+ 
 
   ! Constructors and Destructors
 
@@ -2663,8 +2677,9 @@ endif
 if(use_quaternion) then
    call c_full_norm_quaternion(s1t%q,k,xnorm1)
 else
-  write(6,*) "log no longer available for SO(3) "
- stop 1959
+ xnorm1=1.d0
+  !write(6,*) "log no longer available for SO(3) "
+ !stop 1959
 endif
     do i=1,s1t%n
        if(da) then
@@ -7684,6 +7699,87 @@ if(present(mfile)) mfi=mfile
     IF(PRESENT(prec))  CALL c_taylor_eps(deps)
 
   END SUBROUTINE c_pri
+
+
+!!!! moved here per David so23.3.30
+
+  SUBROUTINE  printcomplex(S2,i,PREC)
+    implicit none
+    type (complextaylor),INTENT(INOUT)::S2
+    integer,optional :: i
+    REAL(DP),OPTIONAL,INTENT(INOUT)::PREC
+       type(c_taylor) t
+    if(nice_taylor_print) then
+      call alloc(t)
+         t=s2
+      call print(t,i,PREC)
+      call kill(t)
+     else
+     call daprint(s2%r,i,PREC)
+     call daprint(s2%i,i,PREC) 
+    endif
+  END SUBROUTINE printcomplex
+
+
+  SUBROUTINE  printpoly(S2,mf)
+    implicit none
+    type (complex_8),INTENT(INOUT)::S2
+    integer ipause,mypauses
+    integer,optional :: mf
+    integer i
+    integer,parameter ::m1=1,m2=2,m3=3,ms=4
+     integer,parameter:: m11=m1+ms*m1,m12=m1+ms*m2,m13=m1+ms*m3,  &
+       m21=m2+ms*m1,m22=m2+ms*m2,m23=m2+ms*m3,                         &
+       m31=m3+ms*m1,m32=m3+ms*m2,m33=m3+ms*m3
+    character(255) line
+    i=6
+    if(present(mf)) i=mf
+          write(i,*) " printing a complex polymorph (complex_8)"
+    if(s2%kind/=0) then
+
+       select  case (s2%kind)
+       case(m1)
+          write(i,*)  s2%r
+       case(m2)
+          call printcomplex(S2%t,i)
+       case(m3)
+
+          if(s2%i>0.and.s2%j>0) then
+             write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,"+ i","*x_",s2%j,")"
+          elseif(s2%i>0)then
+             write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,")"
+
+           elseif(s2%j>0)then
+             write(line,*) s2%r,"  +",s2%s,"  ( ","i*x_",s2%j,")"
+
+           else
+            write(line,*) s2%r
+          endif
+             call context(line,maj=.false.)
+             write(i,'(a)') adjustr(line(1:len_trim(line)))
+        
+       end   select
+    else
+
+       line=" Warning not defined "
+       ipause=mypauses(0,line)
+
+    endif
+
+  END SUBROUTINE printpoly
+
+  SUBROUTINE  print6(S1,mf)
+    implicit none
+    type (complex_8),INTENT(INout)::S1(:)
+    integer,optional :: mf
+    integer        i
+ 
+     do i=lbound(s1,1),ubound(s1,1)
+        call print(s1(i),mf)
+     enddo
+ 
+  END SUBROUTINE print6
+!!!!!! end moved by David
 
   SUBROUTINE  DAPRINTTAYLORS(S1,MFILE,PREC)
     implicit none
