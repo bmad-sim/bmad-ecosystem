@@ -18,7 +18,7 @@ module polymorphic_complextaylor
   private equal ,Dequaldacon,cequaldacon,equaldacon,iequaldacon
   private EQUALRP,complexEQUAL,EQUALcomplext,complextEQUAL
   private resetpoly,resetpolyn,resetpoly0,resetpolyn0,k_opt
-  private printpoly,allocpoly,allocpolyn,resetpoly_R,resetpoly_Rn,A_OPT
+  private allocpoly,allocpolyn,resetpoly_R,resetpoly_Rn,A_OPT
   private add,unaryADD,daddsc,caddsc,dscadd,cscadd,addsc,scadd,iaddsc,iscadd
   private subs,unarySUB,cscsub,csubsc,dscsub,dsubsc,subsc,scsub,isubsc,iscsub
   private mul,dmulsc,dscmul,cmulsc,cscmul,mulsc,scmul,imulsc,iscmul
@@ -26,7 +26,7 @@ module polymorphic_complextaylor
   private cpmulsc,cpscmul,cpaddsc,cpscadd,cpsubsc,cpscsub ,cpdivsc,cpscdiv
   private div,cdivsc,cscdiv,ddivsc,dscdiv,divsc,scdiv,idivsc,iscdiv
   private POW,POWR,POWR8
-  private dexpt,dcost,dsint,dlogt,dsqrtt,abst,CONJGT,print6
+  private dexpt,dcost,dsint,dlogt,dsqrtt,abst,CONJGT !,print6
   PRIVATE dimagt,drealt,dcmplxt,GETint,GETORDER,CUTORDER,getchar,GETCHARnd2,GETintnd2
   !
   private asscp,make_it_knobc,kill_knobc
@@ -900,15 +900,6 @@ module polymorphic_complextaylor
 
   ! i/o
 
-  INTERFACE daprint
-     MODULE PROCEDURE printpoly
-     MODULE PROCEDURE print6
-  END INTERFACE
-  INTERFACE print
-     MODULE PROCEDURE print6
-     MODULE PROCEDURE printpoly
-  END INTERFACE
-
 
   ! Constructors and Destructors
   INTERFACE alloc
@@ -1511,65 +1502,70 @@ contains
 
   END SUBROUTINE allocpolyn
 
-  SUBROUTINE  printpoly(S2,mf)
-    implicit none
-    type (complex_8),INTENT(INOUT)::S2
-    integer ipause,mypauses
-    integer,optional :: mf
-    integer i
-    character(255) line
-    i=6
-    if(present(mf)) i=mf
-          write(i,*) " printing a complex polymorph (complex_8)"
-    if(s2%kind/=0) then
+ ! SUBROUTINE  printpoly(S2,mf)
+ !   implicit none
+ !   type (complex_8),INTENT(INOUT)::S2
+ !   integer ipause,mypauses
+ !   integer,optional :: mf
+ !   integer i
+ !   character(255) line
+ !   i=6
+ !   if(present(mf)) i=mf
+ !         write(i,*) " printing a complex polymorph (complex_8)"
+ !   if(s2%kind/=0) then
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!       select  case (s2%kind)
+!       case(m1)
+!          write(i,*)  s2%r
+!       case(m2)
+!          call printcomplex(S2%t,i)
+!       case(m3)
+!
+!          if(s2%i>0.and.s2%j>0) then
+!             write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,"+ i","*x_",s2%j,")"
+!          elseif(s2%i>0)then
+!             write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,")"
 
-       select  case (s2%kind)
-       case(m1)
-          write(i,*)  s2%r
-       case(m2)
-          call printcomplex(S2%t,i)
-       case(m3)
+!           elseif(s2%j>0)then
+!             write(line,*) s2%r,"  +",s2%s,"  ( ","i*x_",s2%j,")"
+!
+!           else
+!            write(line,*) s2%r
+!          endif
+!             call context(line,maj=.false.)
+!             write(i,'(a)') adjustr(line(1:len_trim(line)))
+!        
+!       end   select
+!    else
 
-          if(s2%i>0.and.s2%j>0) then
-             write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,"+ i","*x_",s2%j,")"
-          elseif(s2%i>0)then
-             write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,")"
+ !      line=" Warning not defined "
+ !      ipause=mypauses(0,line)
 
-           elseif(s2%j>0)then
-             write(line,*) s2%r,"  +",s2%s,"  ( ","i*x_",s2%j,")"
+!    endif
 
-           else
-            write(line,*) s2%r
-          endif
-             call context(line,maj=.false.)
-             write(i,'(a)') adjustr(line(1:len_trim(line)))
-        
-       end   select
-    else
+!  END SUBROUTINE printpoly
 
-       line=" Warning not defined "
-       ipause=mypauses(0,line)
-
-    endif
-
-  END SUBROUTINE printpoly
-
-  SUBROUTINE  print6(S1,mf)
-    implicit none
-    type (complex_8),INTENT(INout)::S1(:)
-    integer,optional :: mf
-    integer        i
-    
- !   if(size(s1)==6) then
- !    do i=1,ndd
- !       call print(s1(i),mf)
- !    enddo
- !   else
-     do i=lbound(s1,1),ubound(s1,1)
-        call print(s1(i),mf)
-     enddo
- !   endif
-  END SUBROUTINE print6
+!  SUBROUTINE  print6(S1,mf)
+!    implicit none
+!    type (complex_8),INTENT(INout)::S1(:)
+!    integer,optional :: mf
+!    integer        i
+! 
+!     do i=lbound(s1,1),ubound(s1,1)
+!        call print(s1(i),mf)
+!     enddo
+! 
+!  END SUBROUTINE print6
 
   SUBROUTINE EQUAL(S2,S1)
     implicit none
