@@ -1003,7 +1003,7 @@ case ('bunch_max.', 'bunch_min.')
 
 !-----------
 
-case ('c_mat.', 'cmat')
+case ('c_mat.', 'cmat.')
 
   if (data_type(1:5) == 'c_mat') then
     data_type = 'cmat' // data_type(6:)
