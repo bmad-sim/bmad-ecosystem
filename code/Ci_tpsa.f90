@@ -319,30 +319,33 @@ logical :: old_phase_calculation=.false.
      MODULE PROCEDURE imulsc
      MODULE PROCEDURE iscmul
 
+  END INTERFACE
 
-     MODULE PROCEDURE c_concat      !# c_damap o  c_damap
-     MODULE PROCEDURE c_trxtaylor   !  c_taylor o  c_damap   
-     MODULE PROCEDURE c_bra_v_ct     !# F.grad taylor                !v1
-     MODULE PROCEDURE c_bra_v_dm     !# c_damap=(F.grad) c_damap     !v2
-!     MODULE PROCEDURE c_bra_v_v     !   (exp(F.grad) H) . grad
-     MODULE PROCEDURE c_spinmatrix_spinmatrix !#  Spinmatrix*Spinmatrix
-     MODULE PROCEDURE c_complex_spinmatrix  !# c*Spinmatrix
-     MODULE PROCEDURE c_taylor_spinor    !# taylor * spinor
-     MODULE PROCEDURE c_complex_spinor   !#  complex * spinor
-     MODULE PROCEDURE c_real_spinor      !#  real(dp) * spinor
-     MODULE PROCEDURE c_spinor_spinor    !# spinor x spinor 
-     MODULE PROCEDURE c_trxspinmatrix    !# c_spinmatrix=  c_spinmatrix * c_damap
+ INTERFACE OPERATOR (*)
+     MODULE PROCEDURE c_concat      !# c_damap o  c_damap   M= A*B  (DA concact)
+     MODULE PROCEDURE c_trxtaylor   !  c_taylor o  c_damap  t=a*A (DA substitution)
      MODULE PROCEDURE c_trxquaternion    !# c_quaternion=  c_quaternion * c_damap
-     MODULE PROCEDURE c_spinmatrix_spinor  !# matrix * spinor
-     MODULE PROCEDURE c_spinor_cmap        !# spinor * c_damap
-     MODULE PROCEDURE real_mul_vec  ! real(dp)*vf
-     MODULE PROCEDURE complex_mul_vec  !# complex(dp)*vf
-     MODULE PROCEDURE real_mul_map     !# real(dp)*c_damap
- !    MODULE PROCEDURE c_spinor_spinmatrix    !# spinor.L   spinmatrix
-     MODULE PROCEDURE c_vector_field_quaternion  !# (f.grad + q)quaternion
+     MODULE PROCEDURE real_mul_vec  ! real(dp)*vf  G=rF  → F.grad
+     MODULE PROCEDURE complex_mul_vec  !# complex(dp)*vf G=cF
+     MODULE PROCEDURE real_mul_map     !# real(dp)*c_damap B=rA
+! Vector fields
+     MODULE PROCEDURE c_bra_v_ct     !# F.grad taylor       t = F*a (no quaternion effect)
+     MODULE PROCEDURE c_bra_v_dm     !# c_damap=(F.grad +q ) c_damap     !T = F* A
+     MODULE PROCEDURE c_vector_field_quaternion  !# (f.grad + q)quaternion   q'=F*q
                                                  !  bra_v_q(f,quaternion) = f.grad quaternion
-     !!  uses map_mul_vec for the orbital part 
      MODULE PROCEDURE map_mul_vec_q  !   c_damap * c_vector_field means "transform field by map" 
+!     G=AF   is the same as G=AFA^(-1)
+!    SO(3) stuff : used only these days on the ISF once computed via quaternions
+     MODULE PROCEDURE c_spinmatrix_spinmatrix !#  Spinmatrix*Spinmatrix   S3=S2*S1
+     MODULE PROCEDURE c_complex_spinmatrix  !# c*Spinmatrix scalar multiplication      
+     MODULE PROCEDURE c_taylor_spinor    !# taylor * c_spinor   
+     MODULE PROCEDURE c_complex_spinor   !#  c_spinor= complex * c_spinor
+     MODULE PROCEDURE c_real_spinor      !#  spinor = real(dp) * spinor 
+     MODULE PROCEDURE c_spinor_spinor    !# c_spinor = c_spinor x c_spinor !cross product
+     MODULE PROCEDURE c_spinmatrix_spinor  !# c_spinor = matrix * c_spinor    s' =S2 s
+     MODULE PROCEDURE c_spinor_cmap        !# c_spinor =c_spinor * c_damap substitution 
+     MODULE PROCEDURE c_trxspinmatrix    !# c_spinmatrix=  c_spinmatrix * c_damap
+
   END INTERFACE
 
   INTERFACE OPERATOR (.o.) 
@@ -385,14 +388,17 @@ logical :: old_phase_calculation=.false.
      MODULE PROCEDURE mulqdiv
   END INTERFACE
 
+
   INTERFACE OPERATOR (**)
-     MODULE PROCEDURE POW
-     MODULE PROCEDURE POWQ
-     MODULE PROCEDURE POWql
-     MODULE PROCEDURE powmap
-     MODULE PROCEDURE powmaps
+     MODULE PROCEDURE POW     ! t=a**(n)  negative n OK if TPSA permitted (t0/=0)
+     MODULE PROCEDURE POWQ     ! q'=q**(n) negative n OK  if TPSA permitted (q%x(0)/=0)
   END INTERFACE
 
+  INTERFACE OPERATOR (**)
+     MODULE PROCEDURE POWql    ! TL=AL**(n)  negative n OK  if map has inverse
+     MODULE PROCEDURE powmap    ! T=A**(n)  negative n OK  if map has inverse
+     MODULE PROCEDURE powmaps   ! S2=S1**(n)  negative n OK  if map has inverse  (c_spinmatrix)
+  END INTERFACE
 
 
   ! New Operators
@@ -7708,12 +7714,16 @@ if(present(mfile)) mfi=mfile
     type (complextaylor),INTENT(INOUT)::S2
     integer,optional :: i
     REAL(DP),OPTIONAL,INTENT(INOUT)::PREC
-       type(c_taylor) t
+  !     type(c_taylor) t
+    type (c_UNIVERSAL_TAYLOR) ut
     if(nice_taylor_print) then
-      call alloc(t)
-         t=s2
-      call print(t,i,PREC)
-      call kill(t)
+    !  call alloc(t)
+    !     t=s2
+    !  call print(t,i,PREC)
+    !  call kill(t)
+      call c_FILL_UNI_complextaylor(ut,S2)
+      call print(ut,iunit=i,prec=prec)
+      call kill(ut)
      else
      call daprint(s2%r,i,PREC)
      call daprint(s2%i,i,PREC) 
@@ -8807,12 +8817,23 @@ else
  ND2=0
  NDPT=0
  NV=nv1
+
+    ndct=0  ! 1 if coasting, otherwise 0
+    ndc2t=0  ! 2 if coasting, otherwise 0
+    nd2t=0   !  size of harmonic oscillators minus modulated clocks
+    ndt=0       ! ndt number of harmonic oscillators minus modulated clocks
+    nd2harm=0  !!!!  total dimension of harmonic phase space
+    ndharm=0  !!!! total number of harmonic planes
+
 endif
 !if(present(spin)) spin_on=spin
 !write(6,*) "ndc2t,nd2t,nd2harm,nd2"
 !write(6,*) ndc2t,nd2t,nd2harm,nd2
-
+ 
+ 
       call c_daini(no,nv,0)
+
+  
     c_master=0  !  master=1   2002.12.2
 
     CALL c_ASSIGN
@@ -8822,15 +8843,17 @@ endif
     do i=1,nv
      dz_c(i)=1.0_dp.cmono.i   
     enddo
+ 
 ! for fast inversion in 
     sj=0
     do i=1,3
      sj(2*i-1,2*i)=1
      sj(2*i,2*i-1)=-1
     enddo 
-q_phasor=c_phasor()
-qi_phasor=ci_phasor()
-
+if(present(np1)) then
+ q_phasor=c_phasor()
+ qi_phasor=ci_phasor()
+endif
 c_%rf=>rf
 c_%nd2t=>nd2t
 c_%nd2harm=>nd2harm
@@ -8899,7 +8922,11 @@ endif
     integer, optional :: np1,ndpt1,AC_RF
     logical(lp), optional :: ptc  
     call c_init(NO1,NV1,np1,ndpt1,AC_rf,ptc)
-     call init(NO,nd,np,ndpt) 
+     if(present(np1)) then
+      call init(NO,nd,np,ndpt) 
+     else
+      call init(NO,nv) 
+   endif
  c_%nd2t=>nd2t
 c_%nd2harm=>nd2harm
 c_%ndc2t=>ndc2t
@@ -21297,6 +21324,60 @@ end subroutine cholesky_dt
 
   END SUBROUTINE c_FILL_UNI
 
+  SUBROUTINE  c_FILL_UNI_complextaylor(s2,S1)
+    implicit none
+    type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+    type (complextaylor), intent(in):: s1
+    type (taylor)   t,t_tot
+    INTEGER k,n,I
+    complex(dp) value
+    real(dp) v
+    INTEGER, allocatable :: j(:)
+  
+call alloc(t,t_tot)
+    allocate(j(c_%nv))
+t=s1%r
+    call taylor_cycle(t,size=n)
+
+    do i=1,n
+       call taylor_cycle(t,ii=i,value=v,j=j)
+         t_tot= t_tot + (abs(v).mono.j)
+
+    enddo
+t=s1%i
+   call taylor_cycle(t,size=n)
+
+    do i=1,n
+       call taylor_cycle(t,ii=i,value=v,j=j)
+         t_tot= t_tot + (abs(v).mono.j)
+
+    enddo
+
+    IF(ASSOCIATED(S2%N)) S2=-1
+    S2=0
+    call taylor_cycle(t_tot,n)
+    CALL c_ALLOC_U(S2,N,c_%nv,c_%nd2)
+ 
+    S2%C=0
+ 
+    do i=1,N
+       call taylor_cycle(t_tot,ii=i,value=v,j=j)
+       value=s1.sub.j
+       S2%C(I)=value
+       DO k=1,S2%NV
+          S2%J(i,k)=J(k)
+       ENDDO
+
+    ENDDO
+
+ call c_uni_reorder(s2)
+ 
+call kill(t,t_tot)
+
+    deallocate(j)
+
+  END SUBROUTINE c_FILL_UNI_complextaylor
+
  FUNCTION c_concat_c_uni_ray( S1, S2 )
     implicit none
     complex(dp) c_concat_c_uni_ray,c
@@ -21327,7 +21408,7 @@ end subroutine cholesky_dt
 
   END FUNCTION c_concat_c_uni_ray
 
- 
+
 
  FUNCTION c_concat_c_uni_rays( S1, S2 )
     implicit none
@@ -21676,14 +21757,14 @@ end subroutine d_field_for_demin
    integer i,k,nu,max,kmax
 
 
-allocate(ord(0:no+1))
+allocate(ord(0:c_%no+1))
 
 ord=0
 
 
  do i=1,ut%n
   max=0
-  do kmax=1,nv
+  do kmax=1,c_%nv
    max=ut%J(i,kmax)+max
   enddo
  
@@ -21695,12 +21776,12 @@ ord=0
  
 
  
-  allocate(u(0:no+1))
-do i=0,no+1
+  allocate(u(0:c_%no+1))
+do i=0,c_%no+1
  k=ord(i)
  if(k==0) k=1
  
- call  ALLOC(u(i),k,NV,nd2)
+ call  ALLOC(u(i),k,c_%NV,c_%nd2)
 ! write(6,*) i,u(i)%n
  u(i)%n=0
 enddo
@@ -21711,21 +21792,21 @@ enddo
 
 !pause 111
 do nu=1,ut%n
-  i=sum(ut%j(nu,1:nv))
+  i=sum(ut%j(nu,1:c_%nv))
  
   u(i)%n=u(i)%n+1
-  u(i)%j(u(i)%n,1:nv)=ut%j(nu,1:nv)
+  u(i)%j(u(i)%n,1:c_%nv)=ut%j(nu,1:c_%nv)
   u(i)%c(u(i)%n)=ut%c(nu)
 enddo
 
 ut%n=0
 ut%c=0
 ut%j=0
-do nu=0,no+1
+do nu=0,c_%no+1
   do i=1,u(nu)%n
    if(abs(u(nu)%c(i))/=0) then
     ut%n=ut%n+1
-    ut%j(ut%n,1:nv)= u(nu)%j(i,1:nv) 
+    ut%j(ut%n,1:c_%nv)= u(nu)%j(i,1:c_%nv) 
     ut%c(ut%n)=u(nu)%c(i)
    endif
  enddo
