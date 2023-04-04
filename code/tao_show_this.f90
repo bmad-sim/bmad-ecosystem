@@ -5004,9 +5004,9 @@ case ('taylor_map', 'matrix')
       if (fmt /= '') then
         fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
       elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
-        fmt2 = '(6es15.7, a, es12.4)'
+        fmt2 = '(6es15.7, a, es15.7)'
       else
-        fmt2 = '(6f15.8, a, es12.4)'
+        fmt2 = '(6f15.8, a, es15.7)'
       endif
 
       nl=nl+1; lines(nl) = ''
@@ -5041,9 +5041,9 @@ case ('taylor_map', 'matrix')
         if (fmt /= '') then
           fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
         elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
-          fmt2 = '(6es15.7, a, es12.4)'
+          fmt2 = '(6es15.7, a, es15.8)'
         else
-          fmt2 = '(6f15.8, a, es12.4)'
+          fmt2 = '(6f15.8, a, es15.8)'
         endif
 
         nl=nl+1; write (lines(nl), '(a, es10.2)') 'Symplectic Error:', mat_symp_error(mat6)
