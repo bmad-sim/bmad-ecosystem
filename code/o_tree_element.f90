@@ -248,12 +248,12 @@ CONTAINS
 
   SUBROUTINE  real_8REAL_8(S1,S2)
     implicit none
-    type (real_8),INTENT(in)::S2(ndd)
-    type (real_8),INTENT(inOUT)::S1(ndd)
+    type (real_8),INTENT(in)::S2(:)
+    type (real_8),INTENT(inOUT)::S1(:)
     integer i
 
 
-    do i=1,ndd
+    do i=1,size(s1)  !ndd
        s1(i)=s2(i)
     enddo
   END SUBROUTINE real_8REAL_8
