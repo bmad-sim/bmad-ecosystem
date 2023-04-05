@@ -4610,11 +4610,11 @@ end  function asin_coeff_set
 
   END SUBROUTINE printpolyq
 
-  SUBROUTINE  printpoly(S2,mf,prec)
+  SUBROUTINE  printpoly(S2,mf,prec, ind)
     implicit none
     integer ipause, mypauses,i
     type (real_8),INTENT(INOUT)::S2
-    integer,optional :: mf
+    integer,optional :: mf, ind
     real(dp), optional :: prec
     i=6
     if(present(mf)) i=mf
@@ -4624,7 +4624,7 @@ end  function asin_coeff_set
        case(m1)
           write(i,*)  s2%r
        case(m2)
-          call pri(S2%t,i,prec)
+          call pri(S2%t,i,prec, ind=ind)
        case(m3)
 
           if(s2%i>0) then
@@ -4661,7 +4661,7 @@ end  function asin_coeff_set
  !    enddo
  !   else
      do i=lbound(s1,1),ubound(s1,1)
-        call print(s1(i),mf)
+        call print(s1(i),mf, ind = i)
      enddo
  !   endif
   END SUBROUTINE print6

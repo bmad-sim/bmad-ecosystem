@@ -7709,10 +7709,10 @@ if(present(mfile)) mfi=mfile
 
 !!!! moved here per David so23.3.30
 
-  SUBROUTINE  printcomplex(S2,i,PREC)
+  SUBROUTINE  printcomplex(S2,i,PREC,ind)
     implicit none
     type (complextaylor),INTENT(INOUT)::S2
-    integer,optional :: i
+    integer,optional :: i,ind
     REAL(DP),OPTIONAL,INTENT(INOUT)::PREC
   !     type(c_taylor) t
     type (c_UNIVERSAL_TAYLOR) ut
@@ -7722,7 +7722,7 @@ if(present(mfile)) mfi=mfile
     !  call print(t,i,PREC)
     !  call kill(t)
       call c_FILL_UNI_complextaylor(ut,S2)
-      call print(ut,iunit=i,prec=prec)
+      call print(ut,iunit=i,prec=prec,ind=ind)
       call kill(ut)
      else
      call daprint(s2%r,i,PREC)
@@ -7731,11 +7731,11 @@ if(present(mfile)) mfi=mfile
   END SUBROUTINE printcomplex
 
 
-  SUBROUTINE  printpoly(S2,mf)
+  SUBROUTINE  printpoly(S2,mf,ind)
     implicit none
     type (complex_8),INTENT(INOUT)::S2
     integer ipause,mypauses
-    integer,optional :: mf
+    integer,optional :: mf, ind
     integer i
     integer,parameter ::m1=1,m2=2,m3=3,ms=4
      integer,parameter:: m11=m1+ms*m1,m12=m1+ms*m2,m13=m1+ms*m3,  &
@@ -7744,14 +7744,14 @@ if(present(mfile)) mfi=mfile
     character(255) line
     i=6
     if(present(mf)) i=mf
-          write(i,*) " printing a complex polymorph (complex_8)"
+    if (.not. nice_taylor_print) write(i,*) " printing a complex polymorph (complex_8)"
     if(s2%kind/=0) then
 
        select  case (s2%kind)
        case(m1)
           write(i,*)  s2%r
        case(m2)
-          call printcomplex(S2%t,i)
+          call printcomplex(S2%t,i,ind=ind)
        case(m3)
 
           if(s2%i>0.and.s2%j>0) then
@@ -7785,7 +7785,7 @@ if(present(mfile)) mfi=mfile
     integer        i
  
      do i=lbound(s1,1),ubound(s1,1)
-        call print(s1(i),mf)
+        call print(s1(i),mf, ind=i)
      enddo
  
   END SUBROUTINE print6
@@ -21506,16 +21506,16 @@ call kill(t,t_tot)
     k=size(ut)
 
     do i=1,k
-      call c_printunitaylor_old(ut(i),iunit,print_abs,prec)
+      call c_printunitaylor_old(ut(i),iunit,print_abs,prec, ind=i)
    enddo
   end subroutine c_printunitaylors
 
 
-  subroutine c_printunitaylor_old(ut,iunit,print_abs,prec)
+  subroutine c_printunitaylor_old(ut,iunit,print_abs,prec,ind)
     implicit none
     type(c_universal_taylor) :: ut
-    integer, optional               :: iunit
-    integer                :: i,ii
+    integer, optional :: iunit, ind
+    integer                :: i,ii,inde
     logical, optional :: print_abs
     logical abst
     integer iunit0
@@ -21535,12 +21535,19 @@ call kill(t,t_tot)
        return
     endif
 
-    write(iunit0,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
-         '*********************************************'
-    if(ut%n /= 0) then
-       write(iunit0,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
+    if (nice_taylor_print) then
+       inde = 0
+       if (present(ind)) inde = ind
+       if (inde < 2) write (iunit, '(a)') 'Out  Order  Coef                                             Exponents'
+       write (iunit, '(a)')               '-----------------------------------------------------------------------------------'
     else
-       write(iunit0,'(A)') '   ALL COMPONENTS 0.0_dp '
+      write(iunit0,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
+           '*********************************************'
+      if(ut%n /= 0) then
+         write(iunit0,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
+      else
+         write(iunit0,'(A)') '   ALL COMPONENTS 0.0_dp '
+      endif
     endif
 
     do i = 1,ut%n
@@ -21551,11 +21558,19 @@ call kill(t,t_tot)
     if(abs(aimag(ut%c(i)))>prec0) then
       v=i_*aimag(ut%c(i))+v
     endif 
-       if(abs(v)<=prec0)   cycle
-     if(abst) then
+
+    if(abs(v)<=prec0)   cycle
+
+     if (nice_taylor_print) then
+       if (inde > 0) then
+         write(iunit, '(i3,a,i6,2(1x,g23.16),1x,100(1x,i2))') inde, ':', sum(ut%j(i,:)), v, (ut%j(i,ii),ii=1,ut%nv)
+       else
+         write(iunit, '(4x,i6,2(1x,g23.16),1x,100(1x,i2))') sum(ut%j(i,:)), v, (ut%j(i,ii),ii=1,ut%nv)
+       endif
+     elseif(abst) then
        xr=sqrt(real(ut%c(i))**2+aimag(ut%c(i))**2)
-write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,v,xr,   &
-sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+       write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,v,xr,   &
+       sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      else
        write(iunit0,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,v,sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      endif
@@ -21564,7 +21579,7 @@ sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
        endif
     enddo
 
-    write(iunit0,'(A)') '                                      '
+    if (.not. nice_taylor_print) write(iunit0,'(A)') '                                      '
 
   end subroutine c_printunitaylor_old
 
