@@ -423,20 +423,21 @@ The output is:
 r8 is now acting as a Taylor series:
 Out  Order  Coef                     Exponents
 -----------------------------------------------------------
-  1:     0  0.7000000000000000       0  0
-  1:     1   1.000000000000000       1  0
-  1:     3   2.000000000000000       0  3
+         0  0.7000000000000000       0  0
+         1   1.000000000000000       1  0
+         3   2.000000000000000       0  3
 \end{code}
 Each line in the above output, after the line with dashes, represents one term in the Taylor
 series. The general form for printing a Taylor term is:
 \begin{code}
 <output-index> <order>  <coef>  <z1-exponent>  <z2-exponent>, ...
 \end{code}
-The \vn{<output-index>} is the index of the output variable. Here, since there is only one Taylor
-series and not an array, that index is one.  The \vn{<order>} is the order of the term. That is, the
-sum of the exponents. For example, the last line in the above printout is
+The \vn{<output-index>} is the index of the output variable when there is an array of variables.
+Here, since \vn{r8} is not an array, the \vn{<output-index} column is blank. The \vn{<order>} is the
+order of the term. That is, the sum of the exponents. For example, the last line in the above
+printout is
 \begin{code}
-  1:     3   2.000000000000000       0  3
+         3   2.000000000000000       0  3
 \end{code}
 This line represents the term $2 \, z_1^0 \, z_2^3$ which is order 3. The \vn{<coef>} column is the
 term coefficient and \vn{<z1-exponent>}, and \vn{<z2-exponent>} collums are the exponents 
@@ -452,11 +453,11 @@ final print which produces
 This is r8^4:
 Out  Order  Coef                     Exponents
 -----------------------------------------------------------
-  1:     0  0.2400999999999999       0  0
-  1:     1   1.372000000000000       1  0
-  1:     2   2.940000000000000       2  0
-  1:     3   2.800000000000000       3  0
-  1:     3   2.743999999999999       0  3
+         0  0.2400999999999999       0  0
+         1   1.372000000000000       1  0
+         2   2.940000000000000       2  0
+         3   2.800000000000000       3  0
+         3   2.743999999999999       0  3
 \end{code}
 Notice that the map has been truncated so that no term has an order higher than 3 as
 expected. Expressions using \vn{real_8} variables involve overloaded operators as discussed in

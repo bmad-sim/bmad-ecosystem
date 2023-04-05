@@ -4548,10 +4548,10 @@ contains
     !
 !         '*********************************************'
     if (nice_taylor_print) then
-       inde = 1
+       inde = 0
        if (present(ind)) inde = ind
-       if (inde == 1) write (iunit, '(a)') 'Out  Order  Coef                     Exponents'
-       write (iunit, '(a)')                '-----------------------------------------------------------'
+       if (inde < 2 )         write (iunit, '(a)') 'Out  Order  Coef                     Exponents'
+       write (iunit, '(a)')                        '-----------------------------------------------------------'
  
     elseif(longprint) then
        write(iunit,'(/1X,A10,A6,I5,A6,I5,A7,I5/1X,A/)') daname(ina),', NO =',inoa,', NV =',inva,', INA =',ina,&
@@ -4595,8 +4595,12 @@ contains
              !      WRITE(IUNIT,*) IOA,CC(II),(J(I),I=1,INVA)
              if(abs(cc(ii)).gt.eps_da) then
                 some=.true.
-                if(nice_taylor_print) then
-                   write(iunit, '(i3,a,i6,1x,g23.16,1x,100(1x,i2))') inde, ':', ioa, cc(ii), (j(i),i=1,inva)
+                if (nice_taylor_print) then
+                   if (inde > 0) then
+                     write(iunit, '(i3,a,i6,1x,g23.16,1x,100(1x,i2))') inde, ':', ioa, cc(ii), (j(i),i=1,inva)
+                   else
+                     write(iunit, '(4x,i6,1x,g23.16,1x,100(1x,i2))') ioa, cc(ii), (j(i),i=1,inva)
+                   endif
                 elseif(eps_da.gt.c_1d_37) then
                    write(iunit,501) ioa,cc(ii),(j(i),i=1,inva)
                 else
