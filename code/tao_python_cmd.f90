@@ -6512,7 +6512,7 @@ case ('shape_pattern_list')
     ix = parse_int (line, err, 1, size(s%plot_page%pattern));  if (err) return
     pattern => s%plot_page%pattern(ix)
     do i = 1, size(pattern%pt)
-      nl=incr(nl); write (li(nl), '(3a)') re_str(pattern%pt(i)%s, 6), ';', re_str(pattern%pt(i)%x, 6)
+      nl=incr(nl); write (li(nl), '(3a)') re_str(pattern%pt(i)%s, 6), ';', re_str(pattern%pt(i)%y, 6)
     enddo
   endif
 
@@ -6643,7 +6643,7 @@ case ('shape_pattern_point_manage')
     endif
 
     pattern%pt(ip)%s = parse_real(name1(3), err);  if (err) return
-    pattern%pt(ip)%x = parse_real(name1(4), err);  if (err) return
+    pattern%pt(ip)%y = parse_real(name1(4), err);  if (err) return
   end select
 
 !------------------------------------------------------------------------------------------------

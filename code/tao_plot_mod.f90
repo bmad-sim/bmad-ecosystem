@@ -638,7 +638,7 @@ end subroutine tao_set_floor_plan_axis_label
 !   ele_shape         -- tao_ele_shape_struct: Shape to draw from s%plot_page%floor_plan%ele_shape(:) array.
 !                         Will be NULL if no associated shape for this element.
 !   label_name        -- character(*): Shape label.
-!   offset1, offset2  -- real(rp): Offsets for drawing the label.
+!   offset1, offset2  -- real(rp): Transverse distances used to scale the drawing of the element shape.
 !-
 
 recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, tao_lat, ele, ele_shape, label_name, offset1, offset2)
@@ -996,7 +996,7 @@ if (ix == 0) then
   prefix = ''
   shape = ele_shape%shape
 else
-  prefix = ele_shape%shape(ix-1:)
+  prefix = ele_shape%shape(:ix-1)
   shape = ele_shape%shape(ix+1:)
 endif
 
@@ -1119,10 +1119,9 @@ if (prefix == 'pattern') then
   do i = 1, size(s%plot_page%pattern)
     if (shape /= s%plot_page%pattern(i)%name) cycle
     pat => s%plot_page%pattern(i)
-    r0 = end1%r(1:2) + [pat%pt(1)%s, pat%pt(1)%x] * (end2%r(1:2) - end1%r(1:2))
-    do j = 2, size(pat%pt)
-      r1 = end1%r(1:2) + [pat%pt(j)%s, pat%pt(j)%x] * (end2%r(1:2) - end1%r(1:2))
-      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), units = draw_units)
+    do j = 1, size(pat%pt)
+      r1 = end1%r(1:2) + pat%pt(j)%s * (end2%r(1:2) - end1%r(1:2)) - pat%pt(j)%y * [dx1, dy1]
+      if (j > 1) call qp_draw_line (r0(1), r1(1), r0(2), r1(2), units = draw_units)
       r0 = r1
     enddo
   enddo
@@ -1429,7 +1428,7 @@ if (ix == 0) then
   prefix = ''
   shape = ele_shape%shape
 else
-  prefix = ele_shape%shape(ix-1:)
+  prefix = ele_shape%shape(:ix-1)
   shape = ele_shape%shape(ix+1:)
 endif
 
@@ -1510,10 +1509,9 @@ if (prefix == 'pattern') then
   do i = 1, size(s%plot_page%pattern)
     if (shape /= s%plot_page%pattern(i)%name) cycle
     pat => s%plot_page%pattern(i)
-    r0 = [x1, y1] + [pat%pt(1)%s, pat%pt(1)%x] * [x2-x1, y2-y1]
-    do j = 2, size(pat%pt)
-      r1 = [x1, y1] + [pat%pt(j)%s, pat%pt(j)%x] * [x2-x1, y2-y1]
-      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), width = iwidth, color = color, clip = .true.)
+    do j = 1, size(pat%pt)
+      r1 = [x1, 0.0_rp] + [pat%pt(j)%s, pat%pt(j)%y] * [x2-x1, y1]
+      if (j > 1) call qp_draw_line (r0(1), r1(1), r0(2), r1(2), width = iwidth, color = color, clip = .true.)
       r0 = r1
     enddo
   enddo

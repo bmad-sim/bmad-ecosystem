@@ -3156,7 +3156,7 @@ do  ! Loop over all patterns
   !
 
   pat => s%plot_page%pattern(nn+1)
-  pat%name = upcase(name)
+  pat%name = name
 
   do jpt = size(pt), 1, -1
     if (pt(jpt)%s /= real_garbage$) exit
