@@ -78,7 +78,7 @@ case ('vvar')
 case ('asym_vvar')
   y1 = dat_var_value
   y2 = 0
-case ('')
+case ('', 'pattern')
   y1 = y
   y2 = y
 case default

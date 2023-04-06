@@ -129,7 +129,7 @@ type tao_drawing_struct
 end type
 
 type tao_shape_pattern_point_struct
-  real(rp) :: s = real_garbage$, x = real_garbage$, radius = 0
+  real(rp) :: s = real_garbage$, y = real_garbage$, radius = 0
 end type
 
 type tao_shape_pattern_struct

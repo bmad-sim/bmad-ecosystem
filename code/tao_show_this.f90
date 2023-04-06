@@ -3980,7 +3980,7 @@ case ('plot')
       nl=nl+1; write (lines(nl), '(a, i0)') 'Line Width = ', pattern%line%width
       nl=nl+1; lines(nl) = '            s         x'
       do j = 1, size(pattern%pt)
-        nl=nl+1; write (lines(nl), '(5x, 2f10.5)') pattern%pt(j)%s, pattern%pt(j)%x
+        nl=nl+1; write (lines(nl), '(5x, 2f10.5)') pattern%pt(j)%s, pattern%pt(j)%y
       enddo
     enddo
 
