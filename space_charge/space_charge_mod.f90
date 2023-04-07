@@ -8,12 +8,13 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine sc_field_calc (bunch, include_image, t_end, sc_field, newborn)
+! Subroutine sc_field_calc (bunch, branch, include_image, t_end, sc_field, newborn)
 !
 ! Routine to calculate the space charge field of a bunch
 !
 ! Input:
 !   bunch           -- bunch_struct: Starting bunch position in time-based coordinates
+!   branch          -- branch_struct: Lattice branch being tracked through.
 !   include_image   -- logical: True if cathode image charge fields are to be included.
 !   t_end           -- real(rp): Calculate space charge field for preborn particles emitted before t_end.
 !   newborn         -- logical(:), optional: Array of logicals the same size as bunch%particle.
@@ -25,23 +26,31 @@ contains
 !   sc_field        -- em_field_struct: Space charge field at particle positions
 !-
 
-subroutine sc_field_calc (bunch, include_image, t_end, sc_field, newborn, bunch_params)
+subroutine sc_field_calc (bunch, branch, include_image, t_end, sc_field, newborn, bunch_params)
 
 use csr_and_space_charge_mod
 
 implicit none
 
+type this_w_struct
+  real(rp) w_mat(3,3)
+  integer ixp
+end type
+
 type (bunch_struct), target :: bunch
+type (branch_struct), target :: branch
 type (coord_struct), pointer :: p
 type (csr_particle_position_struct) :: position(size(bunch%particle))
+type (this_w_struct) :: w(size(bunch%particle))
 type (em_field_struct) :: sc_field(size(bunch%particle))
 type (mesh3d_struct) :: mesh3d, mesh3d_image
 type (bunch_params_struct), optional :: bunch_params
+type (floor_position_struct) pos, pos0
 
-integer :: n, n_alive, i, imin(1)
-real(rp) :: beta, ratio, t_end
+integer :: n, n_alive, i, imin(1), k
+real(rp) :: beta, ratio, t_end, s_ave, w_mat_inv(3,3)
 real(rp) :: Evec(3), Bvec(3), Evec_image(3), sigma(3)
-logical :: include_image, err
+logical :: include_image, err, bend_here
 logical, optional :: newborn(:)
 
 ! Initialize variables
@@ -56,6 +65,8 @@ endif
 n = 0
 n_alive = 0
 beta = 0
+bend_here = .false.
+
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state == pre_born$ .and. p%t <= t_end) then ! Particles to be emitted
@@ -79,12 +90,28 @@ do i = 1, size(bunch%particle)
     position(n)%charge = p%charge * charge_of(p%species)
     beta = beta + p%beta
     n_alive = n_alive + 1
+    if (branch%ele(p%ix_ele)%key == sbend$) bend_here = .true.
+    w(i)%ixp = n
   endif
 enddo
 
 ! Return if not enough living particles
 if (n_alive<2) return
 beta = beta/n_alive
+
+! If there is a bend then need to transform from curvilinear to Carteasion coords
+
+if (bend_here .and. .false.) then
+  s_ave = sum(position%r(3)*position%charge) / sum(position%charge)
+  pos0 = coords_curvilinear_to_floor([0.0_rp, 0.0_rp, s_ave], branch, err)
+  w_mat_inv = transpose(pos0%w)
+
+  do i = 1, n
+    pos = coords_curvilinear_to_floor(position(i)%r, branch, err)
+    position(i)%r = matmul(w_mat_inv, pos%r - pos0%r)
+    w(i)%w_mat = matmul(transpose(pos%w), pos0%w)
+  enddo
+endif
 
 ! Calculate space charge field
 mesh3d%gamma = 1/sqrt(1- beta**2)
@@ -127,6 +154,11 @@ do i = 1, size(bunch%particle)
       endif
     endif
     call interpolate_field(p%vec(1), p%vec(3), p%s,  mesh3d, E=sc_field(i)%E, B=sc_field(i)%B)
+    if (bend_here .and. .false.) then
+      k = w(i)%ixp
+      sc_field(i)%E = matmul(w(k)%w_mat, sc_field(i)%E)
+      sc_field(i)%B = matmul(w(k)%w_mat, sc_field(i)%B)
+    endif
   end if
 enddo
 
@@ -196,9 +228,9 @@ logical, optional :: newborn(:)
 ! Calculate space charge field
 if (space_charge_com%particle_sigma_cutoff > 0) then
   call calc_bunch_params(bunch, bunch_params, error, is_time_coords=.true., ele=ele)
-  call sc_field_calc(bunch, include_image, t_end, sc_field, newborn, bunch_params)
+  call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field, newborn, bunch_params)
 else
-  call sc_field_calc(bunch, include_image, t_end, sc_field, newborn)
+  call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field, newborn)
 endif
 
 ! Generate particles at the cathode
@@ -211,7 +243,7 @@ do i = 1, size(bunch%particle)
 enddo 
 
 ! And track
-call track_bunch_time(bunch, ele, t_end, 1e30_rp, extra_field=sc_field)
+call track_bunch_time(bunch, ele%branch, t_end, 1e30_rp, extra_field=sc_field)
 end subroutine sc_step
 
 !------------------------------------------------------------------------------------------

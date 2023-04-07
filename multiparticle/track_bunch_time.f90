@@ -1,5 +1,5 @@
 !+
-! Subroutine track_bunch_time (bunch, ele_in, t_end, s_end, dt_step, extra_field)
+! Subroutine track_bunch_time (bunch, branch, t_end, s_end, dt_step, extra_field)
 !
 ! Routine to track a particle bunch for a given time step (or if the ! particle position exceeds s_end).
 !
@@ -7,7 +7,7 @@
 !
 ! Input:
 !   bunch          -- bunch_struct: Coordinates must be time-coords in element body frame.
-!   ele_in         -- ele_struct: Nominal lattice being tracked through.
+!   branch         -- branch_struct: Lattice branch being tracked through.
 !   t_end          -- real(rp): Ending time.
 !   s_end          -- real(rp): Ending s-position.
 !   dt_step(:)     -- real(rp), optional: Initial step to take for each particle. 
@@ -20,18 +20,18 @@
 !   dt_step(:)     -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
 !-
 
-subroutine track_bunch_time (bunch, ele_in, t_end, s_end, dt_step, extra_field)
+subroutine track_bunch_time (bunch, branch, t_end, s_end, dt_step, extra_field)
 
 use bmad_interface, dummy => track_bunch_time
 !$ use omp_lib
 
 implicit none
 
-type (ele_struct), target :: ele_in, drift_ele
+type (ele_struct), target :: drift_ele
 type (ele_struct), pointer :: ele_here
 type (bunch_struct), target :: bunch
+type (branch_struct), target :: branch
 type (em_field_struct), optional :: extra_field(:)
-type (branch_struct), pointer :: branch
 type (coord_struct), pointer :: orbit
 
 real(rp) t_end, s_end
@@ -46,7 +46,6 @@ character(*), parameter :: r_name = 'track_bunch_time'
 !
 
 significant_time = bmad_com%significant_length / c_light
-branch => pointer_to_branch(ele_in)
 
 n = branch%n_ele_track
 call init_ele (drift_ele, drift$, ix_ele = n + 1, branch = branch)

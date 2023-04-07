@@ -86,7 +86,9 @@ if (n>0) then
   dt_step = min(ds/beta/c_light, dt_step)
 endif
 
-! Track
+! Track.
+! sc_field allocated here and passed into sc_step and sc_adaptive_step to save allocating sc_field multiple times.
+
 do
   ! Track a step
   if (ele%tracking_method==fixed_step_time_runge_kutta$) then

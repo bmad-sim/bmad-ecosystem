@@ -846,7 +846,9 @@ case (lcavity$)
 
   if (ele%value(gradient_err$) /= 0 .or. ele%value(voltage_err$) /= 0) then
     ele%value(gradient_err$) = 0
-    ele%value(voltage_err$) = 0
+    ele%value(voltage_err$)  = 0
+    ele%value(gradient_tot$) = ele%value(gradient$)
+    ele%value(voltage_tot$)  = ele%value(voltage$)
     has_changed = .true.
   endif
 
@@ -858,7 +860,9 @@ case (e_gun$)
 
   if (ele%value(gradient_err$) /= 0 .or. ele%value(voltage_err$) /= 0) then
     ele%value(gradient_err$) = 0
-    ele%value(voltage_err$) = 0
+    ele%value(voltage_err$)  = 0
+    ele%value(gradient_tot$) = ele%value(gradient$)
+    ele%value(voltage_tot$)  = ele%value(voltage$)
     has_changed = .true.
   endif
 
@@ -893,7 +897,7 @@ type (ele_struct) ele
 type (ele_struct), pointer :: lord
 integer i
 
-! 
+!
 
 ele%value = ele%old_value
 ele%is_on = saved_is_on
