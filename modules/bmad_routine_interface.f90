@@ -2553,11 +2553,11 @@ subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track_bunch_time (bunch, ele, t_end, s_end, dt_step, extra_field)
+subroutine track_bunch_time (bunch, branch, t_end, s_end, dt_step, extra_field)
   import
   implicit none
-  type (ele_struct), target :: ele
   type (bunch_struct), target :: bunch
+  type (branch_struct), target :: branch
   real(rp) t_end, s_end
   real(rp), optional :: dt_step(:)
   type (em_field_struct), optional :: extra_field(:)
