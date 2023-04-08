@@ -1745,16 +1745,17 @@ subroutine calc_bunch_sigma_matrix_etc (particle, charge, bunch_params, is_time_
 
 implicit none
 
-type (coord_struct) :: particle(:), p
+type (coord_struct) :: particle(:)
 type (bunch_params_struct), target :: bunch_params
 type (ele_struct), optional :: ele
 
-real(rp) charge_live, vec(6), p0c_avg
+real(rp) charge_live, p0c_avg, vec(6)
 real(rp) charge(:)
-real(rp) :: avg(6), sig_mat(6,6)
+real(rp) :: avg(6)
 
 integer i, j2
 logical, optional :: is_time_coords
+logical is_time
 
 character(*), parameter :: r_name = 'calc_bunch_sigma_matrix'
 
@@ -1767,46 +1768,65 @@ if (charge_live == 0) then
   return
 endif
 
+is_time = logic_option(.false., is_time_coords)
 p0c_avg = sum(particle%p0c*charge, mask = (particle%state == alive$)) / charge_live
-if (logic_option(.false., is_time_coords)) bunch_params%centroid%p0c = p0c_avg  ! Round-off error is problematic with track1 code if not time coords.
+if (is_time) bunch_params%centroid%p0c = p0c_avg  ! Round-off error is problematic with track1 code if not time coords.
 
 avg = 0
-sig_mat = 0
+bunch_params%sigma = 0
 bunch_params%rel_max = -1e30_rp
 bunch_params%rel_min =  1e30_rp
 
+! It is important to use sigma = <r-r_ave>^2 rather than sigma = <r>^2 - r_ave^2 since the latter
+! has round-off issues when r_ave is large.
+
 do i = 1, size(particle)
   if (particle(i)%state /= alive$) cycle
-  if (logic_option(.false., is_time_coords)) then
-    p = particle(i)
-    call convert_particle_coordinates_t_to_s(p, ele)
-    vec = p%vec
-    vec(2) = vec(2) * p%p0c / p0c_avg
-    vec(4) = vec(4) * p%p0c / p0c_avg
-    vec(5) = p%s
-    vec(6) = (vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg
-  else
-    vec = particle(i)%vec
-  endif
-
+  vec = to_basis_coords(particle(i), ele, is_time)
   avg = avg + vec * charge(i)
-  forall (j2 = 1:6)
-    sig_mat(:,j2) = sig_mat(:,j2) + vec(:)*vec(j2)*charge(i)
-  end forall
   bunch_params%rel_max = max(bunch_params%rel_max, vec)
   bunch_params%rel_min = min(bunch_params%rel_min, vec)
 enddo
 
 avg = avg / charge_live
-sig_mat = sig_mat / charge_live
 
-bunch_params%rel_max = bunch_params%rel_max - avg
-bunch_params%rel_min = bunch_params%rel_min - avg
+do i = 1, size(particle)
+  if (particle(i)%state /= alive$) cycle
+  vec = to_basis_coords(particle(i), ele, is_time) - avg
+  
+  forall (j2 = 1:6)
+    bunch_params%sigma(:,j2) = bunch_params%sigma(:,j2) + vec(:)*vec(j2)*charge(i)
+  end forall
+enddo
+
+bunch_params%sigma        = bunch_params%sigma / charge_live
+bunch_params%rel_max      = bunch_params%rel_max - avg
+bunch_params%rel_min      = bunch_params%rel_min - avg
 bunch_params%centroid%vec = avg
 
-forall (j2 = 1:6)
-  bunch_params%sigma(:,j2) = sig_mat(:,j2) - avg(:)*avg(j2)
-end forall
+!------------------------
+contains
+
+function to_basis_coords (particle, ele, is_time) result (vec)
+
+type (coord_struct) particle, p
+type (ele_struct) ele
+real(rp) vec(6)
+logical is_time
+
+! Time coords uses a different basis for the sigma matrix.
+
+if (.not. is_time) then
+  vec = particle%vec
+  return
+endif
+
+p = particle
+call convert_particle_coordinates_t_to_s(p, ele)
+vec = [p%vec(1), p%vec(2) * p%p0c / p0c_avg, p%vec(3), p%vec(4) * p%p0c / p0c_avg, &
+         p%s, (p%vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg]
+
+end function to_basis_coords
 
 end subroutine calc_bunch_sigma_matrix_etc
 
