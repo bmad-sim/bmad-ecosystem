@@ -8,16 +8,17 @@
 !
 ! Input:
 !   lat         -- lat_struct: Lat to track through.
-!   orbit(0)    -- Coord_struct: Coordinates at beginning of lat.
+!   orbit(0:)   -- Coord_struct, allocatable: orbit(0) is the starting coordinates for tracking.
+!                   If not allocated, the zero orbit will be used.
 !   ix_branch   -- Integer, optional: Index of branch to track. Default is 0 (main branch).
 !
 ! Output:
-!   orbit(0:)    -- Coord_struct: Orbit array.
+!   orbit(0:)    -- Coord_struct, allocatable: Orbit array.
 !   track_state  -- Integer, optional: Set to moving_forward$ if everything is OK.
 !                     Otherwise: set to index of element where particle was lost.
 !   err_flag     -- Logical, optional: Set true if particle lost or error. False otherwise
-!   orbit0(0:)   -- Coord_struct, optional: Orbit array for branch 0. Used to fill in the
-!                     orbit at lord elemenets. 
+!   orbit0(0:)   -- Coord_struct, allocatable, optional: Orbit array for branch 0. Used to fill 
+!                     in the orbit at lord elemenets. 
 !                     Only needed when orbit(:) is not the orbit for branch 0.
 !-
 
