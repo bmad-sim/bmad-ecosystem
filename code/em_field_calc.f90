@@ -629,10 +629,10 @@ case (bmad_standard$)
     ! This should be cleaned up so that include_kicks is always present.
     ! Do do this, the code above which puts in the kick, dg, k1, k2, k3 kicks needs to be removed.
     if (ele%key == sbend$) then
-      call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, magnetic$, include_kicks$)
+      call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, magnetic$, include_kicks$)
       add_kicks = .false.
     else
-      call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, magnetic$)
+      call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, magnetic$)
       add_kicks = .true.
     endif
 
