@@ -4,6 +4,7 @@ use bmad
 use ptc_map_with_radiation_mod
 use ptc_layout_mod
 use rad_6d_mod
+use radiation_mod
 
 implicit none
 
@@ -39,6 +40,16 @@ write (1, '(a, 3es14.6)') '"emit_6d" REL 1e-6', mode%a%emittance, mode%b%emittan
 do i = 1, 6
   write (1, '(a, i0, a, 6es14.6)') '"sig_mat', i, '" REL 1e-6', sigma_mat(i,:)
 enddo
+
+ele => lat%ele(1)
+call radiation_map_setup(ele)
+call write_rad_map (ele%rad_map%rm0, trim(ele%name) // '-rm0')
+call write_rad_map (ele%rad_map%rm1, trim(ele%name) // '-rm1')
+
+ele => lat%ele(2)
+call radiation_map_setup(ele)
+call write_rad_map (ele%rad_map%rm0, trim(ele%name) // '-rm0')
+call write_rad_map (ele%rad_map%rm1, trim(ele%name) // '-rm1')
 
 !
 
@@ -98,5 +109,35 @@ call track1 (orb_start, ele, lat%param, orb_end)
 write (1, '(a, 7es16.8)') '"Rad-Zero" ABS 1e-16', orb_end%vec
 
 close(1)
+
+!---------------------------
+contains
+
+subroutine write_rad_map(rm, str)
+
+type (rad_map_struct) :: rm
+integer i
+character(*) str
+
+!
+
+write (1, *)
+write (1, '(2a, 6es14.6)') quote(str // '-ref_orb'), ' ABS 1e-12', rm%ref_orb
+
+do i = 1, 6
+  write (1, '(2a, 6es14.6)') quote(str // '-damp_dmat:' // int_str(i)), ' ABS 1e-12', rm%damp_dmat(i,:)
+enddo
+
+write (1, '(2a, 6es14.6)') quote(str // '-xfer_damp_vec'), ' ABS 1e-12', rm%xfer_damp_vec
+
+do i = 1, 6
+  write (1, '(2a, 6es14.6)') quote(str // '-xfer_damp_mat:' // int_str(i)), ' ABS 1e-12', rm%xfer_damp_mat(i,:)
+enddo
+
+do i = 1, 6
+  write (1, '(2a, 6es14.6)') quote(str // '-stoc_mat:' // int_str(i)), ' ABS 1e-12', rm%stoc_mat(i,:)
+enddo
+
+end subroutine write_rad_map
 
 end program
