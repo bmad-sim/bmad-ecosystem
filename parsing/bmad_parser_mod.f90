@@ -4387,10 +4387,11 @@ do
   if (word == '') then
     if (is_control_var_list) then
       call parser_error ('VARIABLE NAME MISSING WHEN PARSING LORD: ' // ele%name)
+      return
     else
-      call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
+      !! call parser_error ('No slave elements defined for lord: ' // ele%name, level = s_warn$)
+      n_slave = n_slave - 1
     endif
-    return
   endif
 
   ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
