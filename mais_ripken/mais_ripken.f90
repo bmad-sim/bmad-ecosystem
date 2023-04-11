@@ -70,33 +70,12 @@ do n = 0, scount
   a21 = (ele0%c_mat(1,1)*ele0%c_mat(2,2)+ele0%c_mat(1,2)*ele0%c_mat(2,1))*ele0%a%alpha + ele0%c_mat(2,1)*ele0%c_mat(2,2)*ele0%a%beta+ele0%c_mat(1,1)*ele0%c_mat(1,2)*ele0%a%gamma
   b12 = ele0%c_mat(1,1)**2*ele0%b%beta - 2 * ele0%c_mat(1,1)*ele0%c_mat(1,2)*ele0%gamma_c * ele0%b%alpha + ele0%c_mat(1,2)**2*ele0%b%gamma
   a12 = (ele0%c_mat(1,1)*ele0%c_mat(2,2)+ele0%c_mat(1,2)*ele0%c_mat(2,1))*ele0%b%alpha - ele0%c_mat(1,1)*ele0%c_mat(2,1)*ele0%b%beta - ele0%c_mat(1,2)*ele0%c_mat(2,2)*ele0%b%gamma
-  
-
-  kx = sqrt(b21/b11)
-  ky = sqrt(b12/b22)
-  Ax = kx * a11 - a21 / kx
-  Ay = ky * a22 - a12 / ky
-  u_plus = ((-kx**2*ky**2)+sqrt(kx**2*ky**2*(1+(Ax**2-Ay**2)/(kx**2-ky**2) * (1-kx**2*ky**2))))/(1-kx**2*ky**2)
-  u_minus = ((-kx**2*ky**2)-sqrt(kx**2*ky**2*(1+(Ax**2-Ay**2)/(kx**2-ky**2) * (1-kx**2*ky**2))))/(1-kx**2*ky**2)  
-  if (u_plus <= 1) then
-    u = u_plus
-  else
-    u = u_minus 
-  endif
-  
-  if (kx == 0 .and. ky == 0) then
-    u = 0
-  endif
-  num_v1 = cmplx(Ax, (kx*(1-u)+u/kx))
-  denom_v1 = cmplx(Ay, -(ky*(1-u)+u/ky))
-  num_v2 = cmplx(Ax, (kx*(1-u)-u/kx))
-  denom_v2 = cmplx(Ay, (ky*(1-u)-u/ky))
-  
-
-  v1 = (num_v1/denom_v1)
-  v2 = (num_v2/denom_v2)
-  write(twiss_file, '(i10, 2x, a15, 20f15.6)') ele0%ix_ele, ele0%name, s, b11*100, a11, b21*100, a21, v1%re, b12*100, a12, b22*100, a22, v2%re, u, ele0%a%eta*100, ele0%a%etap, ele0%b%eta*100, ele0%b%etap,ele0%a%phi/twopi, ele0%b%phi/twopi, ele0%mat6(5,6)*100
-
+       
+  u = 1 - ele0%gamma_c**2
+  v1 = atan2(-ele0%c_mat(1,2)/sqrt(ele0%a%beta), -ele0%c_mat(2,2)*sqrt(ele0%a%beta) - ele0%c_mat(1,2)*ele0%a%alpha/sqrt(ele0%a%beta))
+  v2 = atan2(-ele0%c_mat(1,2)/sqrt(ele0%b%beta), ele0%c_mat(1,1)*sqrt(ele0%b%beta) - ele0%c_mat(1,2)*ele0%b%alpha/sqrt(ele0%b%beta))
+ 
+  write(twiss_file, '(i10, 2x, a15, 20f15.6)') ele0%ix_ele, ele0%name, s, b11*100, a11, b21*100, a21, v1%re/twopi, b12*100, a12, b22*100, a22, v2%re/twopi, u, ele0%a%eta*100, ele0%a%etap, ele0%b%eta*100, ele0%b%etap,ele0%a%phi/twopi, ele0%b%phi/twopi, ele0%mat6(5,6)*100
 end do
 
 close(twiss_file)
