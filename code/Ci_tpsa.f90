@@ -324,7 +324,7 @@ logical :: old_phase_calculation=.false.
  INTERFACE OPERATOR (*)
      MODULE PROCEDURE c_concat      !# c_damap o  c_damap   M= A*B  (DA concact)
      MODULE PROCEDURE c_trxtaylor   !  c_taylor o  c_damap  t=a*A (DA substitution)
-     MODULE PROCEDURE c_trxquaternion    !# c_quaternion=  c_quaternion * c_damap
+     MODULE PROCEDURE c_trxquaternion    !# c_quaternion=  c_quaternion * c_damap 
      MODULE PROCEDURE real_mul_vec  ! real(dp)*vf  G=rF  → F.grad
      MODULE PROCEDURE complex_mul_vec  !# complex(dp)*vf G=cF
      MODULE PROCEDURE real_mul_map     !# real(dp)*c_damap B=rA
@@ -351,28 +351,30 @@ logical :: old_phase_calculation=.false.
   INTERFACE OPERATOR (.o.) 
   !
 
+
+     module procedure c_concat_tpsa      !# c_damap o  c_damap   M= A*B  (TPSA concact)
+     module procedure c_trxtaylor_da     !c_taylor o  c_damap  t=a*A (TPSA substitution)
+     module procedure c_trxquaternion_tpsa   !# c_quaternion=  c_quaternion .o. c_damap
+
+
+     module procedure c_concat_spinor_ray   !# c_spinor= c_spinor .o.  c_ray
+! c_ray is a general ray contain c_ray%x(lnv) and quaternion
+     MODULE PROCEDURE c_quaternion_mul_cray !# c_ray%q = c_quaternion.o.c_ray%x  
      module procedure c_concat_c_uni_ray    !# c__universal_taylor .o. c_ray  
      module procedure c_concat_c_uni_rays    !# c__universal_taylor(:) .o. c_ray  
      module procedure c_concat_c_ray    !# c_taylor .o. c_ray  
      module procedure c_concat_map_ray  !# c_ray= c_damap .o. c_ray
-     module procedure c_trxtaylor_da   !# c_taylor= c_taylor .o. c_damap
-     module procedure c_concat_tpsa     !# c_damap .o.  c_damap
-     module procedure c_concat_spinor_ray   !# c_spinor= c_spinor .o.  c_ray
-! not overloaded
-   !  module procedure c_concat_spinmatrix_ray !# c_spinmatrix= c_spinmatrix .o.  c_ray
-   !  module procedure c_concat_quaternion_ray !# c_quaternion= c_quaternion .o.  c_ray
-   !  Instead these overloaded
+!!! almost obsolete
+     module procedure c_trxspinmatrixda     !# c_spinmatrix=c_spinmatrix .o.  c_damap 
      MODULE PROCEDURE c_spinmatrix_mul_cray !# c_ray%s = spin_matrix.o.c_ray%x  c_ray%S(1:3)
-     MODULE PROCEDURE c_quaternion_mul_cray !# c_ray%q = c_quaternion.o.c_ray%x  c_ray%q  c_quaternion.o.c_ray%x**(-1)
+!  used with ISF perhaps
+     MODULE PROCEDURE c_spinor_cmap_tpsa        !# spinor=spinor .o. c_damap
 
-  !   module procedure c_concat_vector_field_ray  !# c_vector_field .o.  cray
-     module procedure c_trxspinmatrixda     !# c_spinmatrix=c_spinmatrix .o.  c_damap
-     module procedure c_trxquaternion_tpsa   !# c_quaternion=  c_quaternion .o. c_damap
-     MODULE PROCEDURE c_spinor_cmap_tpsa        !# spinor * c_damap
+
    END INTERFACE 
  
   INTERFACE OPERATOR (.oo.) 
-     module procedure pow_tpsaMAP
+     module procedure pow_tpsaMAP !  Power of a TPSA map
   END INTERFACE 
 
   INTERFACE OPERATOR (/)
@@ -404,93 +406,106 @@ logical :: old_phase_calculation=.false.
   ! New Operators
 
   INTERFACE OPERATOR (.cmono.)
-     MODULE PROCEDURE c_dputint0   !@1 &nbsp; single integer
-     MODULE PROCEDURE c_dputint0r   !@1 &nbsp; single integer
-     MODULE PROCEDURE dputintr    !@1 &nbsp; Accepts J(nv)
-     MODULE PROCEDURE dputcharr   !@1 &nbsp; Accepts String such as '12'
-     MODULE PROCEDURE dputint    !@1 &nbsp; Accepts J(nv)
-     MODULE PROCEDURE dputchar   !@1 &nbsp; Accepts String such as '12'
+     MODULE PROCEDURE c_dputint0   !@1 &nbsp; single integer -> complex(dp).cmono.i = c dz_i
+     MODULE PROCEDURE c_dputint0r   !@1 &nbsp; single integer -> real(dp).cmono.i = r dz_i
+     MODULE PROCEDURE dputint    !@1 &nbsp; Accepts J(nv) > complex(dp).cmono.j(:) = c dz_1^j(1)...dz_n^j(n)
+     MODULE PROCEDURE dputchar   !@1 &nbsp; Accepts String such as '13' -> c.cmono.'13'=c dz_1^1 dz_2^3
+     MODULE PROCEDURE dputintr    !@1 &nbsp; Accepts J(nv)   -> real(dp).cmono.j(:) = r dz_1^j(1)...dz_n^j(n)
+     MODULE PROCEDURE dputcharr   !@1 &nbsp; Accepts String such as '13' -> r.cmono.'13'=r dz_1^1 dz_2^3
   END INTERFACE
 
-  INTERFACE OPERATOR (.var.)
-     MODULE PROCEDURE varf        !@1 &nbsp; replaces var (overloads DAVAR)
-     MODULE PROCEDURE varf001       !@1 replaces var001
+  INTERFACE OPERATOR (.var.)    ! not very useful
+     MODULE PROCEDURE varf        !@1 &nbsp;     varf=S1 + ((1.0_dp,0.0_dp).cmono.S2)
+     MODULE PROCEDURE varf001       !@1     varf001=S1(1) + (s1(2).cmono.S2)
   END INTERFACE
 
   INTERFACE OPERATOR (.d.)
-     MODULE PROCEDURE getdiff    !@1 takes derivatives
-     MODULE PROCEDURE GETdiff_universal !@1 takes derivatives of c_universal_taylor
+     MODULE PROCEDURE getdiff    !@1 takes derivatives of c_taylor  dt/dz_i = t.d.i
+     MODULE PROCEDURE GETdiff_universal !@1 takes derivatives of c_universal_taylor  dt_uni/dz_i=t_uni.d.i
   END INTERFACE
 
   INTERFACE OPERATOR (.i.)
-     MODULE PROCEDURE GETINTegrate    !@1 takes anti-derivatives
+     MODULE PROCEDURE GETINTegrate !@1 takes anti-derivatives of c_taylor (lose one order!),  t = dt/dz_i.d.i
   END INTERFACE
 
 
   INTERFACE OPERATOR (.SUB.)
-     MODULE PROCEDURE GETORDER
-     MODULE PROCEDURE getchar
-     MODULE PROCEDURE GETint
-     MODULE PROCEDURE GETORDERMAP  ! with negative integer map.sub.i the spin is handled with iabs(i)-1
-     MODULE PROCEDURE GETORDERSPINMATRIX ! FOR SPIN MATRICES
-     MODULE PROCEDURE GETORDERquaternion
+     MODULE PROCEDURE GETORDER  !    t2=t.sub.i  extracts second order part only
+     MODULE PROCEDURE getchar  !  complex(dp)= t.sub.'12'  coefficient of z_1 z_2^2 extracted
+     MODULE PROCEDURE GETint !  complex(dp)= t.sub.j(:) same as above using array
+     MODULE PROCEDURE GETORDERMAP  ! extract order i of map  N=M.sub.i  
+!with negative integer map.sub.i the spin is handled with iabs(i)-1
+     MODULE PROCEDURE GETORDERquaternion! same as above for quaternion (negative not accepted)
+     MODULE PROCEDURE GETORDERSPINMATRIX ! same FOR SPIN MATRICES (negative not accepted)
   END INTERFACE
-
 
   INTERFACE OPERATOR (.index.)
-    MODULE PROCEDURE GETintmat
+!  extract linear dependence on ith variables. Useful to get matrices.
+    MODULE PROCEDURE GETintmat  ! complex(dp)=t.index.i for example  t.index.2= t.sub[0,1,0,...]
   END INTERFACE
-
-
- 
 
   INTERFACE OPERATOR (.PAR.)
-     MODULE PROCEDURE getcharnd2
-     MODULE PROCEDURE GETintnd2
+! same as .sub. put returns a c_taylor  as a function of parameters
+     MODULE PROCEDURE getcharnd2 ! w=t.par.'13'  returns w=a(z_1^1 z2^3) 
+! where is a polynomial in variables  3,4,...nv
+! notice that w=t.par.'13 0'  returns w=a(z_1^1 z2^3 z3^0)  where a contains variables 4,5,... 
+     MODULE PROCEDURE GETintnd2  !same using array t.par.[1,3]
   END INTERFACE
 
+ 
+!  not used much
+!TYPE sub_taylor  
+!     INTEGER j(lnv)
+
+!     INTEGER min,max
+!  END TYPE sub_taylor
+!  extract coefficient of x^j(st%min:t%max) as a polynomial (so far useless routine)
   INTERFACE OPERATOR (.part.)
-     MODULE PROCEDURE GETintnd2t
+     MODULE PROCEDURE GETintnd2t  
   END INTERFACE
+ 
+ 
 
 
+! same as .par. But the variables are moved to position 4,5 are moved to 1,2 in .par. example
+! For example, dbeta/ddelta the variable 6 of BMAD become variable 1.
   INTERFACE OPERATOR (<=)
-     MODULE PROCEDURE getcharnd2s
-     MODULE PROCEDURE GETintnd2s
-     MODULE PROCEDURE GETintk
-  END INTERFACE
+     MODULE PROCEDURE getcharnd2s  !  w=t<='11'
+     MODULE PROCEDURE GETintnd2s   !  w=t<=[1,1]
+!!!  Just moves index by integer input
+     MODULE PROCEDURE GETintk      ! for example,w=t<=[1,1] same as w=(t.par.[1,1])<=2
+  END INTERFACE  
 
+!!!! To cut high order terms
   INTERFACE OPERATOR (.CUT.)
-     MODULE PROCEDURE CUTORDER
-     MODULE PROCEDURE CUTORDERMAP
-     MODULE PROCEDURE CUTORDERvec
-     MODULE PROCEDURE CUTORDERspin
-     MODULE PROCEDURE CUTORDERspinor
-     MODULE PROCEDURE CUTORDERquaternion
+     MODULE PROCEDURE CUTORDER      ! w=t.cut.n   Order n and above are gone
+     MODULE PROCEDURE CUTORDERMAP      !  N=M.cut.|n|  if n<0  quaternion part cut |n|-1
+     MODULE PROCEDURE CUTORDERvec      !  G=F.cut.|n|  if n<0  quaternion part cut |n|-1
+     MODULE PROCEDURE CUTORDERspin      ! cut spin matrix S2=s1.cut.n
+     MODULE PROCEDURE CUTORDERspinor      ! Spinor2=spinor1.cut.n    
+     MODULE PROCEDURE CUTORDERquaternion  ! Q2=q1.cut.|n|  if n<0  quaternion part cut |n|-1
   END INTERFACE
 
-
-
-  INTERFACE OPERATOR (.dot.)
-     MODULE PROCEDURE dotc_spinor    ! Used internally primarily
+  INTERFACE OPERATOR (.dot.)    !   Used internally primarily
+     MODULE PROCEDURE dotc_spinor    !   c_taylor=c_spin1.dot.c_spin2 (regular real dot product)
   END INTERFACE
 
-  INTERFACE OPERATOR (.K.)
-     MODULE PROCEDURE getdATRA    ! Used internally primarily
+  INTERFACE OPERATOR (.K.) ! Used internally primarily
+     MODULE PROCEDURE getdATRA    ! lowers the power of the nth variable w=t.k.n  (fake derivative)
   END INTERFACE
 
   INTERFACE OPERATOR (.pb.)
-     MODULE PROCEDURE pbbra
+     MODULE PROCEDURE pbbra    ! Poisson bracket   w=t1.pb.t2 = [t1,t2]
   END INTERFACE
   
     INTERFACE OPERATOR (.cpb.)
-     MODULE PROCEDURE cpbbra
+     MODULE PROCEDURE cpbbra ! Poisson bracket in phasors w=t1.pb.t2 = -n_cai*[t1,t2] 
     END INTERFACE
     
   INTERFACE OPERATOR (.lb.)
-  !
+  !  The Lie bracket of two vector field. 
      MODULE PROCEDURE liebra    !#  F=<G,H> includes spin now 
-     MODULE PROCEDURE liebraquaternion !# used by liebra
+     MODULE PROCEDURE liebraquaternion !# used by liebra mostly private (not to be used alone)
   END INTERFACE
 
  ! INTERFACE getvf
@@ -579,6 +594,22 @@ logical :: old_phase_calculation=.false.
      MODULE PROCEDURE c_exp_quaternion
      MODULE PROCEDURE exp_ad    ! exp(<F,>)F    F is a vector field  !v5
   END INTERFACE
+
+  INTERFACE MAKEquaternion
+     MODULE PROCEDURE matrix_to_quaternion_in_c_damap
+  END INTERFACE
+
+  INTERFACE MAKESO3
+     MODULE PROCEDURE quaternion_to_matrix_in_c_damap
+     MODULE PROCEDURE c_linear_map_to_matrix
+     MODULE PROCEDURE c_linear_map_to_3_by_3_by_6
+     MODULE PROCEDURE quaternion_to_matrix
+  END INTERFACE
+
+  INTERFACE AVERAGE
+     MODULE PROCEDURE c_AVERAGE   !2000.12.25
+  END INTERFACE
+  ! management routines
 
   INTERFACE iexp 
        MODULE PROCEDURE iexp_ad
@@ -822,25 +853,13 @@ logical :: old_phase_calculation=.false.
      MODULE PROCEDURE c_killda
   END INTERFACE
 
-  INTERFACE MAKEquaternion
-     MODULE PROCEDURE matrix_to_quaternion_in_c_damap
-  END INTERFACE
 
-  INTERFACE MAKESO3
-     MODULE PROCEDURE quaternion_to_matrix_in_c_damap
-     MODULE PROCEDURE c_linear_map_to_matrix
-     MODULE PROCEDURE c_linear_map_to_3_by_3_by_6
-     MODULE PROCEDURE quaternion_to_matrix
-  END INTERFACE
-  ! management routines
 
   INTERFACE ass
      MODULE PROCEDURE c_asstaylor   !2000.12.25
   END INTERFACE
 
-  INTERFACE AVERAGE
-     MODULE PROCEDURE c_AVERAGE   !2000.12.25
-  END INTERFACE
+
 
   INTERFACE alloc
      MODULE PROCEDURE c_alloc_u
@@ -3512,13 +3531,13 @@ endif
     TYPE (c_vector_field) CUTORDERVEC
     TYPE (c_vector_field), INTENT (IN) :: S1
     INTEGER, INTENT (IN) ::  S2
-    integer localmaster,I
+    integer localmaster,I,s22
     IF(.NOT.C_STABLE_DA) then
      CUTORDERVEC%v%i=0
      RETURN
     endif
     localmaster=c_master
-
+    s22=iabs(s2)
      CUTORDERVEC%N=S1%N
      CUTORDERVEC%nrmax=S1%nrmax
 
@@ -3527,11 +3546,11 @@ endif
       CUTORDERVEC=S1
 
      DO I=1,CUTORDERVEC%N
-      CUTORDERVEC%V(I)=CUTORDERVEC%V(I).CUT.S2
+      CUTORDERVEC%V(I)=CUTORDERVEC%V(I).CUT.S22
      ENDDO
-
+     if(s2<0) s22=s22-1
      DO I=0,3
-      CUTORDERVEC%q%x(I)= CUTORDERVEC%q%x(I).CUT.s2
+      CUTORDERVEC%q%x(I)= CUTORDERVEC%q%x(I).CUT.s22
      ENDDO
 
     c_master=localmaster
@@ -3569,19 +3588,19 @@ endif
     TYPE (c_quaternion) CUTORDERquaternion
     TYPE (c_quaternion), INTENT (IN) :: S1
     INTEGER, INTENT (IN) ::  S2
-    integer localmaster,I,j
+    integer localmaster,I,j,s22
     IF(.NOT.C_STABLE_DA) then
      CUTORDERquaternion%x(1)=0
      RETURN
     endif
+!!!! changed 2023.4.10
     localmaster=c_master
-
-
+    s22=iabs(s2)
     call c_ass_quaternion(CUTORDERquaternion)
    !   CUTORDERquaternion=S1
-
+    if(s2<0) s22=s22-1
      DO I=0,3
-      CUTORDERquaternion%x(i)=S1%x(i).cut.(s2-1) 
+      CUTORDERquaternion%x(i)=S1%x(i).cut.s22 
     enddo
 
     c_master=localmaster
