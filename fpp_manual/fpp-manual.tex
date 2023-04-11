@@ -703,7 +703,7 @@ The same routine duplication happens with routines that use \vn{real_8}. In this
 corresponding routine will use a \vn{real(dp)} variable. As an example, consider the subroutine in
 the example of \sref{s:real8code}:
 \begin{code}
-subroutine track(z)
+subroutine trackp(z)
 implicit none
 type(real_8) :: z(2) 
 z(1) = z(1) + L*z(2) 
@@ -711,16 +711,19 @@ z(2) = z(2) - B - K_q*z(1) - K_s*z(1)**2
 end subroutine track
 \end{code}
 
-This routines computes the effect of a ``drift'' followed by a multipole ``kick'' in the jargon of accelerator physicists.  The corresponding \vn{real(dp)} version is:
+This routines computes the effect of a ``drift'' followed by a multipole ``kick'' in the jargon of
+accelerator physicinsts.  The corresponding \vn{real(dp)} version is:
 \begin{code}
-subroutine track(z)
+subroutine trackr(z)
 implicit none
 real(dp) :: z(2)            <-------- instead of type(real_8) :: z(2) 
 z(1)=z(1)+L*z(2) 
 z(2)=z(2)-B-K_q*z(1)-K_s*z(1)**2 
 end subroutine track
 \end{code}
-this is indeed a trivial  drift-kick routine.   
+The naming of the two routines \vn{trackp} and \vn{trackr} follow a common PTC convention that
+routines that involve polymorphic types have a name ending in \vn{p} and corresponding
+non-polymorphic routines have a name ending in \vn{r}.
 
 %-------------------------------
 \subsection{The x(6) component of probe_8}
