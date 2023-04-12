@@ -1753,7 +1753,7 @@ end subroutine ltt_write_params_header
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_calc_bunch_data (lttp, bunch, bd)
+subroutine ltt_calc_bunch_data (lttp, ix_turn, bunch, bd)
 
 type (ltt_params_struct) lttp
 type (bunch_struct), target :: bunch
@@ -1762,7 +1762,7 @@ type (ltt_bunch_data_struct) :: bd
 real(rp) ave, z, n_inv_mat(6,6)
 real(rp) :: orb2_sum(6,6), orb3_sum(6), orb4_sum(6), orb_sum(6), core_emit_cutoff
 
-integer i, j, k, n, ib, ic, ix, i_turn, this_turn, n2w
+integer ix_turn, i, j, k, n, ib, ic, ix, i_turn, this_turn, n2w
 logical error
 
 !
@@ -1770,10 +1770,11 @@ logical error
 bd = ltt_bunch_data_struct()
 call calc_bunch_params(bunch, bd%params, error, .true., n_inv_mat)
 bd%n_live = bd%params%n_particle_live
-if (error .or. bd%n_live == 0) then
-  bd = ltt_bunch_data_struct()  ! Erase any garbage from calc_bunch_params
+if (bd%n_live < 10) then
+  !! print *, 'Warning: Some parameters not computed since less than 10 particles are alive. From turn: ', ix_turn
   return
 endif
+
 orb_sum = 0;  orb2_sum = 0;  orb3_sum = 0;  orb4_sum = 0
 
 do i = 1, 6
@@ -2021,7 +2022,7 @@ do ib = 1, nb
   bunch => beam%bunch(ib)
   if (bunch%n_live == 0) exit
 
-  call ltt_calc_bunch_data(lttp, bunch, bd)
+  call ltt_calc_bunch_data(lttp, ix_turn, bunch, bd)
 
   call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
   iu1 = lunget(); open (iu1, file = file_name, recl = 400, access = 'append')
