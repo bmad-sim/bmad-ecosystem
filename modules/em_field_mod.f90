@@ -206,7 +206,7 @@ real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3, r2_x1
 
-integer i, n, i1, i2, i3, grid_dim, allow_what, lbnd, ubnd, nn
+integer i, n, i1, i2, i3, n2, n3, grid_dim, allow_what, lbnd, ubnd, nn
 integer, parameter :: allow_tiny$ = 1, allow_some$ = 2, allow_all$ = 3
 
 logical err_flag, allow_out
@@ -231,6 +231,7 @@ select case(grid_dim)
 case (2)
 
   lbnd = lbound(grid%ptr%pt, 2); ubnd = ubound(grid%ptr%pt, 2)
+  n3 = lbound(grid%ptr%pt, 3)
 
   call get_this_index(x2, 2, i2, rel_x2, err_flag, allow_what, .false.); if (err_flag) return
   ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
@@ -260,9 +261,9 @@ case (2)
       bi_coef => grid%bi_coef(4,:,:)
 
       do i = 1, 3
-        call bicubic_compute_cmplx_field_at_2D_box(grid%ptr%pt(:,:,1)%B(i), lbound(grid%ptr%pt), i1, i2, extrapolation, field2_at_box, err_flag)
+        call bicubic_compute_cmplx_field_at_2D_box(grid%ptr%pt(:,:,n3)%B(i), lbound(grid%ptr%pt), i1, i2, extrapolation, field2_at_box, err_flag)
         call bicubic_interpolation_cmplx_coefs (field2_at_box, bi_coef(1,i))
-        call bicubic_compute_cmplx_field_at_2D_box(grid%ptr%pt(:,:,1)%E(i), lbound(grid%ptr%pt), i1, i2, extrapolation, field2_at_box, err_flag)
+        call bicubic_compute_cmplx_field_at_2D_box(grid%ptr%pt(:,:,n3)%E(i), lbound(grid%ptr%pt), i1, i2, extrapolation, field2_at_box, err_flag)
         call bicubic_interpolation_cmplx_coefs (field2_at_box, bi_coef(2,i))
       enddo
     endif
@@ -292,41 +293,41 @@ case (2)
       rel_x2 = 1 - rel_x2
     endif
 
-    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%E(1:nn) &
-                    + (rel_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%E(1:nn) 
+    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, n3)%E(1:nn) &
+                    + (rel_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, n3)%E(1:nn) 
 
-    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%B(1:nn) &
-                    + (rel_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%B(1:nn)  
+    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, n3)%B(1:nn) &
+                    + (rel_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, n3)%B(1:nn)  
 
     if (grid%geometry == rotationally_symmetric_rz$) then
-      g_field%E(3) = (1-r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%E(3) &
-                   + (r2_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%E(3) 
+      g_field%E(3) = (1-r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, n3)%E(3) &
+                   + (r2_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, n3)%E(3) 
 
-      g_field%B(3) = (1-r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, 1)%B(3) &
-                   + (r2_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, 1)%B(3)  
+      g_field%B(3) = (1-r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1,   i2, n3)%B(3) &
+                   + (r2_x1)*(1-rel_x2)     * grid%ptr%pt(i1+1, i2, n3)%B(3)  
     endif
 
   else  ! Inside
-    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(1:nn) &
-                    + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(1:nn) &
-                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(1:nn) &
-                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(1:nn) 
+    g_field%E(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   n3)%E(1:nn) &
+                    + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, n3)%E(1:nn) &
+                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   n3)%E(1:nn) &
+                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, n3)%E(1:nn) 
 
-    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(1:nn) &
-                    + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(1:nn) &
-                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(1:nn) &
-                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(1:nn)  
+    g_field%B(1:nn) = (1-rel_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   n3)%B(1:nn) &
+                    + (1-rel_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, n3)%B(1:nn) &
+                    + (rel_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   n3)%B(1:nn) &
+                    + (rel_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, n3)%B(1:nn)  
 
     if (grid%geometry == rotationally_symmetric_rz$) then
-      g_field%E(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%E(3) &
-                   + (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%E(3) &
-                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%E(3) &
-                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%E(3) 
+      g_field%E(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   n3)%E(3) &
+                   + (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, n3)%E(3) &
+                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   n3)%E(3) &
+                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, n3)%E(3) 
 
-      g_field%B(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   1)%B(3) &
-                   + (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, 1)%B(3) &
-                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   1)%B(3) &
-                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, 1)%B(3)  
+      g_field%B(3) = (1-r2_x1)*(1-rel_x2) * grid%ptr%pt(i1,   i2,   n3)%B(3) &
+                   + (1-r2_x1)*(rel_x2)   * grid%ptr%pt(i1,   i2+1, n3)%B(3) &
+                   + (r2_x1)*(1-rel_x2)   * grid%ptr%pt(i1+1, i2,   n3)%B(3) &
+                   + (r2_x1)*(rel_x2)     * grid%ptr%pt(i1+1, i2+1, n3)%B(3)  
     endif
   endif
 
@@ -335,6 +336,7 @@ case (2)
 case (3)
 
   lbnd = lbound(grid%ptr%pt, 3); ubnd = ubound(grid%ptr%pt, 3)
+  n2 = lbound(grid%ptr%pt, 2);   n3 = lbound(grid%ptr%pt, 3)
 
   call get_this_index(x3, 3, i3, rel_x3, err_flag, allow_what, .false.); if (err_flag) return
   ! If grossly out of longitudinal bounds just return zero field. Do not test transverse position in this case.
@@ -349,7 +351,7 @@ case (3)
     ! Look for coefs already calculated
     n = size(grid%tri_coef, 1)
     do i = 1, n
-      if (any(grid%tri_coef(i,1,1)%i_box /= [i1, i2, i3])) cycle
+      if (any(grid%tri_coef(i,n2,n3)%i_box /= [i1, i2, i3])) cycle
       tri_coef => grid%tri_coef(i,:,:)
       exit
     enddo
