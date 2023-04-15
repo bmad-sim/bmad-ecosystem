@@ -232,7 +232,7 @@ if (hdf5_exists(root_id, 'magneticField', error, .false.)) then
     else
       gptr%B(i) = 0
     endif
-    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(3))%B(i) = gptr(:,lb(3),:)%B(i)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(2))%B(i) = gptr(:,lb(2),:)%B(i)
   enddo
   call H5Gclose_f(z_id, h5_err)
 endif
@@ -246,7 +246,7 @@ if (hdf5_exists(root_id, 'electricField', error, .false.)) then
     else
       gptr%E(i) = 0
     endif
-    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(3))%E(i) = gptr(:,lb(3),:)%E(i)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(2))%E(i) = gptr(:,lb(2),:)%E(i)
   enddo
   call H5Gclose_f(z_id, h5_err)
 endif
@@ -256,13 +256,13 @@ endif
 do i = 1, 3
   if (hdf5_exists(root_id, B_name(i), error, .false.)) then
     call pmd_read_complex_dataset(root_id, trim(B_name(i)), complex_t, 1.0_rp, gptr%B(i), error)
-    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(3))%B(i) = gptr(:,lb(3),:)%B(i)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(2))%B(i) = gptr(:,lb(2),:)%B(i)
     b_field_here = .true.
   endif
 
   if (hdf5_exists(root_id, E_name(i), error, .false.)) then
     call pmd_read_complex_dataset(root_id, trim(E_name(i)), complex_t, 1.0_rp, gptr%E(i), error)
-    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(3))%E(i) = gptr(:,lb(3),:)%E(i)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(2))%E(i) = gptr(:,lb(2),:)%E(i)
     e_field_here = .true.
   endif
 enddo
