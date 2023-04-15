@@ -26,7 +26,7 @@ type (grid_field_pt1_struct), allocatable, target :: gpt(:,:,:)
 type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
 type (ele_struct) ele
 
-integer i, j, k, n, ix, im, ig, igf, h5_err, indx(3)
+integer i, j, k, n, ix, im, ig, igf, h5_err, indx(3), n3
 integer(hid_t) f_id, r_id, b_id, b2_id, b3_id, z_id, complex_t
 logical err_flag, err
 
@@ -74,9 +74,10 @@ do igf = 1, size(g_field)
     indx = [1, 3, 2]
     allocate(gpt(lbound(gptr, 1):ubound(gptr, 1), lbound(gptr, 3):ubound(gptr, 3), lbound(gptr, 2):ubound(gptr, 2)))
     gptr => gpt
+    n3 = lbound(gf%ptr%pt, 3)
     do i = 1, 3
-      gptr(:,1,:)%B(i) = gf%ptr%pt(:,:,1)%B(i)
-      gptr(:,1,:)%E(i) = gf%ptr%pt(:,:,1)%E(i)
+      gptr(:,n3,:)%B(i) = gf%ptr%pt(:,:,n3)%B(i)
+      gptr(:,n3,:)%E(i) = gf%ptr%pt(:,:,n3)%E(i)
     enddo
     call hdf5_write_attribute_string(b2_id, 'gridGeometry', 'cylindrical', err)
   end select
