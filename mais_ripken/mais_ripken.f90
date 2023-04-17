@@ -56,7 +56,9 @@ print *, 'Number of points: ', scount
 branch => lat%branch(ix_branch)
 
 open(twiss_file, file = twiss_name)
-write (twiss_file, '(a12,20a15)' )  "#N","NAME","S[m]","BetaX1[cm]","AlphaX1","BetaY1[cm]","AlphaY1","Nu1/(2*PI)","BetaX2[cm]","AlphaX2","BetaY2[cm]","AlphaY2","Nu2/(2*PI)","U","DspX[cm]","DspXp","DspY[cm]","DspYp","Q1","Q2","M56[cm]"
+write (twiss_file, '(a12,20a15)' )  "#N", "NAME", "S[m]", "BetaX1[m]", "AlphaX1", "BetaY1[m]", "AlphaY1", "Nu1/(2*PI)", &
+                                                          "BetaX2[m]", "AlphaX2", "BetaY2[m]", "AlphaY2", "Nu2/(2*PI)", &
+                                                          "DspX[m]", "DspXp", "DspY[m]", "DspYp", "U", "Q1", "Q2", "M56[m]"
 
 do n = 0, scount
   s = n*step + branch%ele(0)%s
@@ -75,7 +77,10 @@ do n = 0, scount
   v1 = atan2(-ele0%c_mat(1,2)/sqrt(ele0%a%beta), -ele0%c_mat(2,2)*sqrt(ele0%a%beta) - ele0%c_mat(1,2)*ele0%a%alpha/sqrt(ele0%a%beta))
   v2 = atan2(-ele0%c_mat(1,2)/sqrt(ele0%b%beta), ele0%c_mat(1,1)*sqrt(ele0%b%beta) - ele0%c_mat(1,2)*ele0%b%alpha/sqrt(ele0%b%beta))
  
-  write(twiss_file, '(i10, 2x, a15, 20f15.6)') ele0%ix_ele, ele0%name, s, b11*100, a11, b21*100, a21, v1%re/twopi, b12*100, a12, b22*100, a22, v2%re/twopi, u, ele0%a%eta*100, ele0%a%etap, ele0%b%eta*100, ele0%b%etap,ele0%a%phi/twopi, ele0%b%phi/twopi, ele0%mat6(5,6)*100
+  write(twiss_file, '(i10, 2x, a15, f15.6, 3(f15.4, f15.6, f15.4, 2f15.6), 2f15.6, f15.4)') ele0%ix_ele, ele0%name, s, &
+                                        b11, a11, b21, a21, real(v1,rp)/twopi, &
+                                        b12, a12, b22, a22, real(v2,rp)/twopi, &
+                                        ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap, u, ele0%a%phi/twopi, ele0%b%phi/twopi, ele0%mat6(5,6)
 end do
 
 close(twiss_file)
