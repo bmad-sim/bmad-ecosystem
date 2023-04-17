@@ -52,7 +52,9 @@ ref_ele => ele
 if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   do n = 1, ele%n_lord
     ref_ele => pointer_to_lord (ele, n)
-    if (ref_ele%key /= pipe$) exit    
+    select case (ref_ele%key)
+    case (crab_cavity$, e_gun$, rfcavity$, lcavity$, rf_bend$); exit
+    end select
   enddo
 endif
 
