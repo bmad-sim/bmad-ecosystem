@@ -2732,17 +2732,19 @@ end subroutine beambeam_fibre_setup
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine misalign_ptc_fibre (ele, use_offsets, ptc_fibre)
+! Subroutine misalign_ptc_fibre (ele, use_offsets, ptc_fibre, for_layout)
 !
 ! Routine to misalign a fibre associated with a Bmad element.
 !
 ! Input:
-!   ele -- ele_struct: Bmad element with misalignments.
-!   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
+!   ele         -- ele_struct: Bmad element with misalignments.
+!   use_offsets -- logical: Does ptc_fibre include element offsets, pitches and tilt?
 !                   This argument is ignored if the element is a patch.
+!   for_layout  -- logical: If True then fibre is being created as part of a layout as
+!                   opposed to a stand-alone fibre
 !
 ! Output:
-!   ptc_fibre -- Fibre: PTC fibre element with misalignments.
+!   ptc_fibre   -- fibre: PTC fibre element with misalignments.
 !-
 
 subroutine misalign_ptc_fibre (ele, use_offsets, ptc_fibre, for_layout)
