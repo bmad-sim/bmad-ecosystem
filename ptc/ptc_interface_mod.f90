@@ -2826,10 +2826,13 @@ if (ele%key == patch$) then
 
   ! PTC uses beta_start for the reference time calculation while Bmad uses beta_end so
   ! renormalize the patch length to get PTC to agree with Bmad.
+  ! For Etienne this can be an annoyance so he sets ptc_com%translate_patch_drift_time = False.
 
-  ptc_fibre%patch%time = 2     ! Subtract off reference time (which affects z in tracking).
-  ptc_fibre%patch%b_t = ele%value(l$) / beta_end + ele%orientation * ele%value(t_offset$) * c_light 
-  ptc_fibre%patch%b_l = ele%value(l$) + ele%orientation * ele%value(t_offset$) * c_light * beta_end
+  if (ptc_com%translate_patch_drift_time) then
+    ptc_fibre%patch%time = 2     ! Subtract off reference time (which affects z in tracking).
+    ptc_fibre%patch%b_t = ele%value(l$) / beta_end + ele%orientation * ele%value(t_offset$) * c_light 
+    ptc_fibre%patch%b_l = ptc_fibre%patch%b_t * beta_end
+  endif
 
 !----------------------------------------------------------------------
 ! Not patch nor floor_shift element.

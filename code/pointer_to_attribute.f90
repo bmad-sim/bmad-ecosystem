@@ -81,6 +81,7 @@ if (ele%key == def_ptc_com$) then
   select case (a_name)
   case ('VERTICAL_KICK');                             a_ptr%r => ptc_com%vertical_kick
   case ('CUT_FACTOR');                                a_ptr%r => ptc_com%cut_factor
+  case ('TRANSLATE_PATCH_DRIFT_TIME');                a_ptr%l => ptc_com%translate_patch_drift_time
   case ('PRINT_INFO_MESSAGES');                       a_ptr%l => ptc_com%print_info_messages
   case ('USE_ORIENTATION_PATCHES');                   a_ptr%l => ptc_com%use_orientation_patches
   case ('OLD_INTEGRATOR');                            a_ptr%i => ptc_com%old_integrator
