@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 297
+integer, parameter :: bmad_inc_version$ = 298
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2073,6 +2073,7 @@ type extra_parsing_info_struct
   logical :: exact_misalign_set                     = .false.
   logical :: vertical_kick_set                      = .false.
   logical :: cut_factor_set                         = .false.
+  logical :: translate_patch_drift_time_set         = .false.
 end type
 
 !------------------------------------------------------------------------------
@@ -2150,10 +2151,12 @@ type ptc_common_struct
   logical, pointer :: exact_misalign    => null()  ! Points to PTC ALWAYS_EXACTMIS. Default True. Notice different names.
   real(rp), pointer :: vertical_kick    => null()  ! Points to PTC VERTICAL_KICK for 6D emittance calc. 0 => off, 1 => on (default).
   real(rp) :: cut_factor = 0.006                   ! Cut factor for PTC tracking
-  logical :: print_step_warning = .false.           ! Print warning if element uses too many steps.
-  ! Stuff that should not be set except by experts
+  logical :: print_step_warning = .false.          ! Print warning if element uses too many steps.
+  ! Below is stuff that should not be set except by experts
   logical :: use_orientation_patches = .true.      ! offset, pitch, and tilt attributes are put in ptc patch?
   logical :: print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
+  logical :: translate_patch_drift_time = .true.   ! When a Bmad patch is translated to a PTC fibre, is the drift
+                                                   !   time included in the translation?
 end type
 
 type (ptc_common_struct), save, target :: ptc_com, ptc_com_default

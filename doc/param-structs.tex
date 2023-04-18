@@ -342,6 +342,7 @@ values are:
     old_integrator = True   ! PTC OLD_INTEGRATOR.
     exact_model    = True   ! PTC EXACT_MODEL.
     exact_misalign = True   ! PTC ALWAYS_EXACTMIS.
+    translate_patch_drift_time = True  
   end type
 \end{example}
 
@@ -361,6 +362,13 @@ library. See \sref{s:integ} for more details.
 When using PTC tracking (\sref{s:ptc.intro}), the \vn{parameter[ptc_max_fringe_order]} determines
 the maximum order of the calculated fringe fields. The default is 2 which means that fringe fields
 due to a quadrupolar field. These fields are 3\Rd order in the transverse coordinates.
+%
+  \index{translate_patch_drift_time}
+  \item[{ptc_com[translate_patch_drift_time]}] \Newline
+If \vn{translate_patch_drift_time} is set True (the default) the patch in PTC that is setup to
+correspond to a \bmad patch is given a reference time offset equal to the \bmad reference time
+through the patch. This is generally what is wanted but for a PTC expert who knows what they are
+doing and really wants no time offset, \vn{translate_patch_drift_time} can be set False.
   \end{description}
 
 %-----------------------------------------------------------------

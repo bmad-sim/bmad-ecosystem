@@ -278,7 +278,7 @@ if (found_it) then
   read (d_unit, iostat = ios3) space_charge_com_read
   read (d_unit, iostat = ios4) ptc_com_read%max_fringe_order, ptc_com_read%exact_model, ptc_com_read%exact_misalign, &
           ptc_com_read%vertical_kick, ptc_com_read%cut_factor, ptc_com_read%old_integrator, &
-          ptc_com_read%use_orientation_patches, ptc_com_read%print_info_messages
+          ptc_com_read%use_orientation_patches, ptc_com_read%print_info_messages, ptc_com_read%translate_patch_drift_time
 
 
   if (ios /= 0 .or. ios2 /= 0 .or. ios3 /= 0 .or. ios4 /= 0) then
@@ -352,6 +352,7 @@ if (found_it) then
   if (extra%old_integrator_set)                   ptc_com%old_integrator                            = ptc_com_read%old_integrator
   if (extra%exact_model_set)                      ptc_com%exact_model                               = ptc_com_read%exact_model
   if (extra%exact_misalign_set)                   ptc_com%exact_misalign                            = ptc_com_read%exact_misalign
+  if (extra%translate_patch_drift_time_set)       ptc_com%translate_patch_drift_time                = ptc_com_read%translate_patch_drift_time
 
   if (extra%undeterministic_ran_function_called) err_found = .true.  ! So lattice will be reparsed
 
