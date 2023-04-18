@@ -2215,12 +2215,13 @@ case ('global')
   case ('-ptc_com')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'PTC_com Parameters (set using "set ptc_com ..."):'
-    nl=nl+1; write(lines(nl), rmt) '  %vertical_kick         = ', ptc_com%vertical_kick
-    nl=nl+1; write(lines(nl), imt) '  %max_fringe_order      = ', ptc_com%max_fringe_order
-    nl=nl+1; write(lines(nl), imt) '  %old_integrator        = ', ptc_com%old_integrator
-    nl=nl+1; write(lines(nl), lmt) '  %exact_model           = ', ptc_com%exact_model
-    nl=nl+1; write(lines(nl), lmt) '  %exact_misalign        = ', ptc_com%exact_misalign
-    nl=nl+1; write(lines(nl), lmt) '  %print_info_messages   = ', ptc_com%exact_misalign
+    nl=nl+1; write(lines(nl), rmt) '  %vertical_kick              = ', ptc_com%vertical_kick
+    nl=nl+1; write(lines(nl), imt) '  %max_fringe_order           = ', ptc_com%max_fringe_order
+    nl=nl+1; write(lines(nl), imt) '  %old_integrator             = ', ptc_com%old_integrator
+    nl=nl+1; write(lines(nl), lmt) '  %exact_model                = ', ptc_com%exact_model
+    nl=nl+1; write(lines(nl), lmt) '  %exact_misalign             = ', ptc_com%exact_misalign
+    nl=nl+1; write(lines(nl), lmt) '  %translate_patch_drift_time = ', ptc_com%translate_patch_drift_time
+    nl=nl+1; write(lines(nl), lmt) '  %print_info_messages        = ', ptc_com%print_info_messages
 
   ! Internal parameters are not of general interest.
   case ('-internal')

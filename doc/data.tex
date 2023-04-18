@@ -629,6 +629,257 @@ be set to the measured orbit for one of the measurements while the \vn{ref} comp
 the measured orbit for the other measurement. This way orbit differences can be analyzed.
 
 %------------------------------------------------------------------------
+\section{Data Types Table}
+\label{s:data.table}
+
+This section lists in table form all the data types defined by \tao and section~\sref{s:data.types}
+describes in detail these data types.
+
+\index{data!calculation method}
+\index{unstable.orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
+\index{etap}\index{phase}\index{orbit}\index{wire}\index{building wall}\index{spin}
+\index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
+\index{rad_int.i5a_e6}\index{rad_int.i5b_e6}\index{s_position}\index{e_tot}
+\index{emittance}\index{chrom}\index{norm_emittance}
+\index{sigma}\index{dpx_dx}\index{dpy_dy}\index{dpz_dz}\index{dpa_da}
+\index{dpb_db}\index{rad_int.i1}\index{rad_int.i2}\index{rad_int.i2_e4}
+\index{rad_int.i3}\index{rad_int.i3_e7}
+
+%----------------------------------------------------------------------------------------------
+
+{\tt\small
+\begin{longtable}{lllll} 
+  \caption{Predefined Data Types in Tao}
+  \label{t:data.types}
+  \\ \hline
+
+  {\it Pg}{\texttt \#}    & {\it Data_Type}                      & {\it Description}   & {\it data_source} & 
+                                            \begin{sideways} \parbox{0.6in}{\begin{tabular}{@{}l}
+                                            {\it Can use} \\ {\it s_offset?} \end{tabular}} \end{sideways} \\ \hline\hline
+  \endfirsthead
+
+  \caption[]{(continued)} \\ \hline
+  {\it Pg}{\texttt \#}    & {\it Data_Type}                      & {\it Description}   & {\it data_source} & 
+                                            \begin{sideways} \parbox{0.6in}{\begin{tabular}{@{}l}
+                                            {\it Can use} \\ {\it s_offset?} \end{tabular}} \end{sideways} \\ \hline\hline
+  \endhead
+
+  \pref{alpha}            & alpha.a, .b                         & Normal-Mode alpha function                & lat         & Yes \\ \hline 
+  \pref{apparent.emit}    & apparent_emit.x, .y                 & Apparent emittance                        & lat, beam   & No  \\ \hline
+  \pref{beta.a}           & beta.a, .b, .c                      & Normal-mode beta function                 & lat, beam   & Yes \\ \hline 
+  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & lat, beam   & No  \\ \hline 
+  \pref{bpm.cbar}         & \begin{tabular}{@{}l}   
+                              bpm_cbar.22a, .12a, \\
+                              \hspace{4em} .11b, .12b
+                            \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
+  \pref{bpm.eta}          & bpm_eta.x, .y                       & Measured dispersion                       & lat         & Yes \\ \hline
+  \pref{bpm.orbit}        & bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
+  \pref{bpm.phase}        & bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
+  \pref{bpm.k}            & \begin{tabular}{@{}l}   
+                              bpm_k.22a, .12a, \\
+                              \hspace{4em} .11b, .12b   
+                             \end{tabular}                      & Measured coupling                         & lat         & Yes \\ \hline
+  \pref{bunch.charge}     & \begin{tabular}{@{}l}   
+                              bunch_charge.live, \\
+                              \hspace{4em} .live_relative
+                            \end{tabular}                       & Charge of live particles                  & beam        & No  \\ \hline
+  \pref{bunch.max}        & \begin{tabular}{@{}l}   
+                              bunch_max.x, .y, .z, \\ 
+                              \hspace{4em} .px, .py, .pz  
+                            \end{tabular}                       & Max relative to centroid                  & beam        & No  \\ \hline
+  \pref{bunch.min}        & \begin{tabular}{@{}l}
+                              bunch_min.x, .y, .z, \\ 
+                              \hspace{4em} .px, .py, .pz
+                            \end{tabular}                       & Min relative to centroid                  & beam        & No  \\ \hline
+  \pref{cmat}             & cmat.11, .12, .21, .22              & Coupling matrix elements                  & lat         & Yes \\ \hline 
+  \pref{cmat}             & cbar.11, .12, .21, .22              & Normalized coupling matrix                & lat         & Yes \\ \hline 
+  \pref{chrom.a}          & chrom.a, .b                         & Chromaticities for a ring                 & lat         & No  \\ \hline
+  \pref{chrom.dbeta}      & chrom.dbeta.a, .dbeta.b             & Normalized Chromatic beta                 & lat         & No  \\ \hline
+  \pref{chrom.deta}       & chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
+  \pref{chrom.detap}      & chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
+  \pref{chrom.dphi}       & chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
+  \pref{chrom.w}          & chrom.w.a, .w.b                     & Chromatic W-functions                     & lat         & No  \\ \hline
+  \pref{chrom.ptc}        & \begin{tabular}{@{}l}
+                              chrom_ptc.a.$N$, \\
+                              chrom_ptc.b.$N$, \\
+                              \hspace{4em} $N = 0, 1, \ldots$
+                            \end{tabular}                       & Chromaticity Taylor terms                 & lat         & no  \\ \hline
+  \pref{curly.h}          & curly_h.a, .b                       & \begin{tabular}{@{}l}
+                                                                    Radiation integrals \\
+                                                                    curly H function 
+                                                                  \end{tabular}                             & lat         & Yes \\ \hline
+  \pref{damp}             & damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
+  \pref{dpx.dx}           & dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
+  \pref{da}               & \begin{tabular}{@{}l}
+                              dynamic_aperture.$N$, \\
+                              \hspace{4em} $N = 1, 2, 3 \ldots$
+                            \end{tabular}                       & Dynamic aperture                          & lat         & No  \\ \hline
+  \pref{e.tot.ref}        & e_tot_ref                           & Lattice reference energy (eV)             & lat         & No  \\ \hline
+  \pref{element.attrib}   & element_attrib.<attr_name>          & lattice element attribute                 & lat         & No  \\ \hline
+  \pref{emit.a}           & emit.a, .b, .c                      & Emittance                                 & lat, beam   & No  \\ \hline
+  \pref{emit.x}           & emit.x, .y, .z                      & Projected emittance                       & lat, beam   & No  \\ \hline
+  \pref{eta.x}            & eta.x, .y, .z                       & Dispersion                                & lat, beam   & Yes \\ \hline 
+  \pref{eta.a}            & eta.a, .b                           & Normal-mode dispersion                    & lat, beam   & Yes \\ \hline 
+  \pref{etap.x}           & etap.x, .y                          & Dispersion derivative                     & lat, beam   & Yes \\ \hline 
+  \pref{etap.a}           & etap.a, .b                          & \begin{tabular}{@{}l}   
+                                                                    dispersion derivative
+                                                                  \end{tabular}                             & lat, beam   & Yes \\ \hline 
+  \pref{expression}       & expression:<expression>             & See text above                            & lat         & No  \\ \hline 
+  \pref{floor}            & \begin{tabular}{@{}l}   
+                              floor.x, .y, .z, \\             
+                              \hspace{2em} theta, .phi, .psi
+                            \end{tabular}                       & \begin{tabular}{@{}l}   
+                                                                    Lattice element \\
+                                                                    global position
+                                                                   \end{tabular}                            & lat         & Yes \\ \hline
+  \pref{floor.actual}     & \begin{tabular}{@{}l}
+                              floor_actual.x, .y, .z, \\
+                              \hspace{3em} .theta, .phi, .psi 
+                            \end{tabular}                       & \begin{tabular}{@{}l}   
+                                                                    Lattice element \\ 
+                                                                    misaligned global position
+                                                                  \end{tabular}                             & lat         & Yes \\ \hline 
+  \pref{floor.orbit.x}    & floor_orbit.x, .y, .z               & global position of orbit                  & lat, beam   & Yes \\ \hline 
+  \pref{floor.orbit.t}    & \begin{tabular}{@{}l}   
+                              floor_orbit.theta, \\
+                              \hspace{3em} .phi, .psi 
+                            \end{tabular}                       & global position of orbit                  & lat, beam   & Yes \\ \hline 
+  \pref{gamma}            & gamma.a, .b                         & Normal-mode gamma function                & lat         & Yes \\ \hline 
+  \pref{k.11b}            & k.11b, .12a, .12b, .22a             & Coupling                                  & lat         & Yes \\ \hline   
+  \pref{momentum}         & momentum                            & Momentum: P*C_light (eV)                  & lat         & Yes \\ \hline
+  \pref{mom.comp}         & momentum_compaction                 & Momentum compaction factor                & lat         & No  \\ \hline
+  \pref{mom.comp.ptc}     & \begin{tabular}{@{}l}
+                              momentum_compaction_ptc.$N$ \\
+                              \hspace{3em} $N = 0, 1, 2, \ldots$
+                            \end{tabular}                       & \begin{tabular}{@{}l}
+                                                                    Momentum compaction \\
+                                                                    Taylor terms
+                                                                  \end{tabular}                             & lat         & No  \\ \hline
+  \pref{n.part.loss}      & n_particle_loss                     & Number of particles lost                  & beam        & No  \\ \hline 
+  \pref{norm.app.emit}    & norm_apparent_emit.x, .y            & Normalized apparent emittance             & lat, beam   & No  \\ \hline
+  \pref{norm.emit.a}      & norm_emit.a, .b, .c                 & Normalized beam emittance                 & lat, beam   & No  \\ \hline 
+  \pref{norm.emit.x}      & norm_emit.x, .y, .z                 & Normalized projected emittance            & lat, beam   & No  \\ \hline 
+  \pref{normal.type}      & normal.<type>.$i$.<monomial>        & Normal form map component                 & lat         & No  \\ \hline
+  \pref{normal.h}         & normal.h.<monomial>                 & Normal form driving term                  & lat         & No  \\ \hline
+  \pref{null}             & null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
+  \pref{orbit.amp}        & orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
+  \pref{orbit.norm.amp}   & \begin{tabular}{@{}l}
+                              orbit.norm_amp_a, \\
+                              \hspace{2em} .norm_amp_b       
+                            \end{tabular}                       & Energy normalized amplitude               & lat         & Yes \\ \hline 
+  \pref{orbit.energy}     & orbit.energy                        & Total energy (eV)                         & lat, beam   & Yes \\ \hline
+  \pref{orbit.kinetic}    & orbit.kinetic                       & Kinetic energy (eV)                       & lat, beam   & Yes \\ \hline
+  \pref{orbit.x}          & \begin{tabular}{@{}l}
+                              orbit.x, .y, .z \\
+                              \hspace{3em} .px, .py, .pz
+                            \end{tabular}                       & Phase space orbit                         & lat, beam   & Yes \\ \hline 
+  \pref{periodic.tt}      & \begin{tabular}{@{}l}
+                              periodic.tt.$ijklm\ldots$ \\
+                              \hspace{4em} $1 \le i,j,k,\ldots \le 6$   
+                            \end{tabular}                       & Periodic map Taylor terms                 & lat         & No  \\ \hline 
+  \pref{phase}            & phase.a, .b                         & Betatron phase                            & lat         & Yes \\ \hline 
+  \pref{phase.frac}       & phase_frac.a, .b                    & \begin{tabular}{@{}l}
+                                                                    Fractional betatron phase \\       
+                                                                    $-\pi < \phi_{\mbox{frac}} < \pi$ 
+                                                                  \end{tabular}                             & lat         & No  \\ \hline 
+  \pref{phase.frac.diff}  & phase_frac_diff                     & \begin{tabular}{@{}l}
+                                                                    Phase difference \\
+                                                                    between $a$ and $b$ modes
+                                                                  \end{tabular}                             & lat         & No  \\ \hline 
+  \pref{photon.intens}    & photon.intensity                    & Photon total intensity                    & lat, beam   & No  \\ \hline 
+  \pref{photon.intens.x}  & \begin{tabular}{@{}l}
+                              photon.intensity_x, \\
+                              \hspace{2em} .intensity_y
+                            \end{tabular}                       & Photon intensity components               & lat, beam   & No  \\ \hline
+  \pref{photon.phase}     & photon.phase_x, .phase_y            & Photon phase                              & lat, beam   & No  \\ \hline  
+  \pref{ping.a}           & \begin{tabular}{@{}l}
+                              ping_a.amp_x, .phase_x,                  \\
+                              \hspace{1.5em} .amp_y, .phase_y,         \\
+                              \hspace{1.5em} .amp_sin_y, .amp_cos_y,   \\
+                              \hspace{1.5em} .amp_sin_rel_y,           \\
+                              \hspace{1.5em} .amp_cos_rel_y 
+                            \end{tabular}                       & Pinged beam $a$-mode response             & lat        & No  \\ \hline
+  \pref{ping.b}           & \begin{tabular}{@{}l}
+                              ping_b.amp_x, .phase_x,                 \\
+                              \hspace{1.5em} .amp_y, .phase_y,        \\
+                              \hspace{1.5em} .amp_sin_x, .amp_cos_x,  \\
+                              \hspace{1.5em} .amp_sin_rel_x,          \\
+                              \hspace{1.5em} .amp_cos_rel_x 
+                            \end{tabular}                       & Pinged beam $b$-mode response             & lat        & No  \\ \hline
+  \pref{r.ij}             & r.$ij$ \hspace{10pt} $1 \le i,j \le 6$ & Term in linear transfer map            & lat        & Yes \\ \hline 
+  \pref{r56.comp}         & r56_compaction                        & R56 like compaction factor.             & lat        & No  \\ \hline
+  \pref{rad.int}          & rad_int.i1, .i2, etc.               & Lattice Radiation integrals               & lat        & No  \\ \hline
+  \pref{rad.int1}         & rad_int1.i1, .i2, etc.              & Element radiation integrals               & lat        & No  \\ \hline
+  \pref{ref.time}         & ref_time                            & Reference time                            & lat, beam  & Yes \\ \hline
+  \pref{rel.floor}        & \begin{tabular}{@{}l}
+                              rel_floor.x, .y, \\
+                              \hspace{4em} .z, .theta
+                            \end{tabular}                       & Relative global floor position            & lat        & No  \\ \hline 
+  \pref{s.position}       & s_position                          & longitudinal length constraint            & lat        & Yes \\ \hline 
+  \pref{sigma}            & \begin{tabular}{@{}l}   
+                              sigma.x, .y, .z, \\
+                              \hspace{2em} .px, px, .pz, \\
+                              \hspace{2em} .$ij$ \hspace{10pt} $1 \le i,j \le 6$, \\
+                              \hspace{2em} .Lxy
+                            \end{tabular}                       & Bunch size                                & lat, beam  & No  \\ \hline 
+  \pref{slip.ptc}         & \begin{tabular}{@{}l}
+                              slip_factor_ptc.$N$ \\
+                              \hspace{3em} $N = 0, 1, 2, \ldots$
+                            \end{tabular}                       & Slip factor Taylor terms                  & lat        & No  \\ \hline
+  \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate.                 & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate.                   & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit.                  & lat        & No  \\ \hline
+  \pref{spin.g.matrix}    & \begin{tabular}{@{}l}
+                              spin_g_matrix.$ij$ \\
+                              \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
+                            \end{tabular}                       & Spin G-matrix components                  & lat        & No  \\ \hline
+  \pref{spin.res}         & \begin{tabular}{@{}l}
+                              spin_res.a.sum, .a.diff, \\
+                              \hspace{10pt} .b.sum, .b.diff, \\
+                              \hspace{10pt} .c.sum, .c.diff
+                            \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
+  \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
+                              spin_tune_ptc.$N$, \\
+                              \hspace{10pt} $N = 0, 1, \ldots$
+                            \end{tabular}                       & Spin Tune Taylor terms                    & lat        & no  \\ \hline
+  \pref{srdt.h}           & srdt.h<monomial>.\{r,i,a\}          & \begin{tabular}{@{}l}
+                                                                    Normal form driving terms \\
+                                                                    calculated by summation 
+                                                                  \end{tabular}                             & lat        & No \\ \hline
+  \pref{time}             & time                                & Particle time (sec)                       & lat, beam  & Yes \\ \hline
+  \pref{t.ijk}            & \begin{tabular}{@{}l}   
+                              t.$ijklm\ldots$, \\
+                              tt.$ijklm\ldots$, \\
+                            \hspace{4em} $1 \le i,j,k,\ldots \le 6$  
+                            \end{tabular}                       & \begin{tabular}{@{}l}
+                                                                    Term in n\Th \\
+                                                                    order transfer map
+                                                                  \end{tabular}                             & lat        & No  \\ \hline 
+  \pref{tune}             & tune.a, .b, .z                      & Tune                                      & lat        & No  \\ \hline 
+  \pref{unstable.eigen}   & \begin{tabular}{@{}l}
+                              unstable.eigen, .eigen.a,  \\
+                              \hspace{3em} .eigen.b, .eigen.c
+                            \end{tabular}                       & Maximum eigenvalue amplitude              & lat        & No  \\ \hline
+  \pref{unstable.lat}     & unstable.lattice                    & \begin{tabular}{@{}l}
+                                                                    Positive if \\
+                                                                    lattice is unstable
+                                                                  \end{tabular}                             & lat        & No  \\ \hline
+  \pref{unstable.orbit}   & unstable.orbit                      & \begin{tabular}{@{}l}   
+                                                                    Nonzero if particles are \\
+                                                                    lost in tracking
+                                                                  \end{tabular}                             & lat        & No  \\ \hline
+  \pref{velocity}         & velocity                            & Normalized velocity $v/c$                 & lat, beam  & Yes \\ \hline
+  \pref{velocity}         & velocity.x, .y, .z                  & Normalized velocity component             & lat, beam  & Yes \\ \hline
+  \pref{wall}             & \begin{tabular}{@{}l}   
+                              wall.left_side, \\
+                              \hspace{4em} .right_side
+                            \end{tabular}                       & Building wall constraint                  & lat        & No  \\ \hline
+  \pref{wire}             & wire.<angle>                        & Wire scanner at <angle>                   & beam       & No  \\ \hline
+\end{longtable}
+}
+
+%------------------------------------------------------------------------
 \section{Tao Data Types}\index{data!data Types}
 \label{s:data.types}
 
@@ -1757,252 +2008,3 @@ squared.
 
   \end{description}
 
-%------------------------------------------------------------------------
-\section{Data Types Table}
-\label{s:data.table}
-
-See the previous section for a description of the data types.
-
-\index{data!calculation method}
-\index{unstable.orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
-\index{etap}\index{phase}\index{orbit}\index{wire}\index{building wall}\index{spin}
-\index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
-\index{rad_int.i5a_e6}\index{rad_int.i5b_e6}\index{s_position}\index{e_tot}
-\index{emittance}\index{chrom}\index{norm_emittance}
-\index{sigma}\index{dpx_dx}\index{dpy_dy}\index{dpz_dz}\index{dpa_da}
-\index{dpb_db}\index{rad_int.i1}\index{rad_int.i2}\index{rad_int.i2_e4}
-\index{rad_int.i3}\index{rad_int.i3_e7}
-
-%----------------------------------------------------------------------------------------------
-
-{\tt\small
-\begin{longtable}{lllll} 
-  \caption{Predefined Data Types in Tao}
-  \label{t:data.types}
-  \\ \hline
-
-  {\it Pg}{\texttt \#}    & {\it Data_Type}                      & {\it Description}   & {\it data_source} & 
-                                            \begin{sideways} \parbox{0.6in}{\begin{tabular}{@{}l}
-                                            {\it Can use} \\ {\it s_offset?} \end{tabular}} \end{sideways} \\ \hline\hline
-  \endfirsthead
-
-  \caption[]{(continued)} \\ \hline
-  {\it Pg}{\texttt \#}    & {\it Data_Type}                      & {\it Description}   & {\it data_source} & 
-                                            \begin{sideways} \parbox{0.6in}{\begin{tabular}{@{}l}
-                                            {\it Can use} \\ {\it s_offset?} \end{tabular}} \end{sideways} \\ \hline\hline
-  \endhead
-
-  \pref{alpha}            & alpha.a, .b                         & Normal-Mode alpha function                & lat         & Yes \\ \hline 
-  \pref{apparent.emit}    & apparent_emit.x, .y                 & Apparent emittance                        & lat, beam   & No  \\ \hline
-  \pref{beta.a}           & beta.a, .b, .c                      & Normal-mode beta function                 & lat, beam   & Yes \\ \hline 
-  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & lat, beam   & No  \\ \hline 
-  \pref{bpm.cbar}         & \begin{tabular}{@{}l}   
-                              bpm_cbar.22a, .12a, \\
-                              \hspace{4em} .11b, .12b
-                            \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
-  \pref{bpm.eta}          & bpm_eta.x, .y                       & Measured dispersion                       & lat         & Yes \\ \hline
-  \pref{bpm.orbit}        & bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
-  \pref{bpm.phase}        & bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
-  \pref{bpm.k}            & \begin{tabular}{@{}l}   
-                              bpm_k.22a, .12a, \\
-                              \hspace{4em} .11b, .12b   
-                             \end{tabular}                      & Measured coupling                         & lat         & Yes \\ \hline
-  \pref{bunch.charge}     & \begin{tabular}{@{}l}   
-                              bunch_charge.live, \\
-                              \hspace{4em} .live_relative
-                            \end{tabular}                       & Charge of live particles                  & beam        & No  \\ \hline
-  \pref{bunch.max}        & \begin{tabular}{@{}l}   
-                              bunch_max.x, .y, .z, \\ 
-                              \hspace{4em} .px, .py, .pz  
-                            \end{tabular}                       & Max relative to centroid                  & beam        & No  \\ \hline
-  \pref{bunch.min}        & \begin{tabular}{@{}l}
-                              bunch_min.x, .y, .z, \\ 
-                              \hspace{4em} .px, .py, .pz
-                            \end{tabular}                       & Min relative to centroid                  & beam        & No  \\ \hline
-  \pref{cmat}             & cmat.11, .12, .21, .22              & Coupling matrix elements                  & lat         & Yes \\ \hline 
-  \pref{cmat}             & cbar.11, .12, .21, .22              & Normalized coupling matrix                & lat         & Yes \\ \hline 
-  \pref{chrom.a}          & chrom.a, .b                         & Chromaticities for a ring                 & lat         & No  \\ \hline
-  \pref{chrom.dbeta}      & chrom.dbeta.a, .dbeta.b             & Normalized Chromatic beta                 & lat         & No  \\ \hline
-  \pref{chrom.deta}       & chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
-  \pref{chrom.detap}      & chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
-  \pref{chrom.dphi}       & chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
-  \pref{chrom.w}          & chrom.w.a, .w.b                     & Chromatic W-functions                     & lat         & No  \\ \hline
-  \pref{chrom.ptc}        & \begin{tabular}{@{}l}
-                              chrom_ptc.a.$N$, \\
-                              chrom_ptc.b.$N$, \\
-                              \hspace{4em} $N = 0, 1, \ldots$
-                            \end{tabular}                       & Chromaticity Taylor terms                 & lat         & no  \\ \hline
-  \pref{curly.h}          & curly_h.a, .b                       & \begin{tabular}{@{}l}
-                                                                    Radiation integrals \\
-                                                                    curly H function 
-                                                                  \end{tabular}                             & lat         & Yes \\ \hline
-  \pref{damp}             & damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
-  \pref{dpx.dx}           & dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
-  \pref{da}               & \begin{tabular}{@{}l}
-                              dynamic_aperture.$N$, \\
-                              \hspace{4em} $N = 1, 2, 3 \ldots$
-                            \end{tabular}                       & Dynamic aperture                          & lat         & No  \\ \hline
-  \pref{e.tot.ref}        & e_tot_ref                           & Lattice reference energy (eV)             & lat         & No  \\ \hline
-  \pref{element.attrib}   & element_attrib.<attr_name>          & lattice element attribute                 & lat         & No  \\ \hline
-  \pref{emit.a}           & emit.a, .b, .c                      & Emittance                                 & lat, beam   & No  \\ \hline
-  \pref{emit.x}           & emit.x, .y, .z                      & Projected emittance                       & lat, beam   & No  \\ \hline
-  \pref{eta.x}            & eta.x, .y, .z                       & Dispersion                                & lat, beam   & Yes \\ \hline 
-  \pref{eta.a}            & eta.a, .b                           & Normal-mode dispersion                    & lat, beam   & Yes \\ \hline 
-  \pref{etap.x}           & etap.x, .y                          & Dispersion derivative                     & lat, beam   & Yes \\ \hline 
-  \pref{etap.a}           & etap.a, .b                          & \begin{tabular}{@{}l}   
-                                                                    dispersion derivative
-                                                                  \end{tabular}                             & lat, beam   & Yes \\ \hline 
-  \pref{expression}       & expression:<expression>             & See text above                            & lat         & No  \\ \hline 
-  \pref{floor}            & \begin{tabular}{@{}l}   
-                              floor.x, .y, .z, \\             
-                              \hspace{2em} theta, .phi, .psi
-                            \end{tabular}                       & \begin{tabular}{@{}l}   
-                                                                    Lattice element \\
-                                                                    global position
-                                                                   \end{tabular}                            & lat         & Yes \\ \hline
-  \pref{floor.actual}     & \begin{tabular}{@{}l}
-                              floor_actual.x, .y, .z, \\
-                              \hspace{3em} .theta, .phi, .psi 
-                            \end{tabular}                       & \begin{tabular}{@{}l}   
-                                                                    Lattice element \\ 
-                                                                    misaligned global position
-                                                                  \end{tabular}                             & lat         & Yes \\ \hline 
-  \pref{floor.orbit.x}    & floor_orbit.x, .y, .z               & global position of orbit                  & lat, beam   & Yes \\ \hline 
-  \pref{floor.orbit.t}    & \begin{tabular}{@{}l}   
-                              floor_orbit.theta, \\
-                              \hspace{3em} .phi, .psi 
-                            \end{tabular}                       & global position of orbit                  & lat, beam   & Yes \\ \hline 
-  \pref{gamma}            & gamma.a, .b                         & Normal-mode gamma function                & lat         & Yes \\ \hline 
-  \pref{k.11b}            & k.11b, .12a, .12b, .22a             & Coupling                                  & lat         & Yes \\ \hline   
-  \pref{momentum}         & momentum                            & Momentum: P*C_light (eV)                  & lat         & Yes \\ \hline
-  \pref{mom.comp}         & momentum_compaction                 & Momentum compaction factor                & lat         & No  \\ \hline
-  \pref{mom.comp.ptc}     & \begin{tabular}{@{}l}
-                              momentum_compaction_ptc.$N$ \\
-                              \hspace{3em} $N = 0, 1, 2, \ldots$
-                            \end{tabular}                       & \begin{tabular}{@{}l}
-                                                                    Momentum compaction \\
-                                                                    Taylor terms
-                                                                  \end{tabular}                             & lat         & No  \\ \hline
-  \pref{n.part.loss}      & n_particle_loss                     & Number of particles lost                  & beam        & No  \\ \hline 
-  \pref{norm.app.emit}    & norm_apparent_emit.x, .y            & Normalized apparent emittance             & lat, beam   & No  \\ \hline
-  \pref{norm.emit.a}      & norm_emit.a, .b, .c                 & Normalized beam emittance                 & lat, beam   & No  \\ \hline 
-  \pref{norm.emit.x}      & norm_emit.x, .y, .z                 & Normalized projected emittance            & lat, beam   & No  \\ \hline 
-  \pref{normal.type}      & normal.<type>.$i$.<monomial>        & Normal form map component                 & lat         & No  \\ \hline
-  \pref{normal.h}         & normal.h.<monomial>                 & Normal form driving term                  & lat         & No  \\ \hline
-  \pref{null}             & null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
-  \pref{orbit.amp}        & orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
-  \pref{orbit.norm.amp}   & \begin{tabular}{@{}l}
-                              orbit.norm_amp_a, \\
-                              \hspace{2em} .norm_amp_b       
-                            \end{tabular}                       & Energy normalized amplitude               & lat         & Yes \\ \hline 
-  \pref{orbit.energy}     & orbit.energy                        & Total energy (eV)                         & lat, beam   & Yes \\ \hline
-  \pref{orbit.kinetic}    & orbit.kinetic                       & Kinetic energy (eV)                       & lat, beam   & Yes \\ \hline
-  \pref{orbit.x}          & \begin{tabular}{@{}l}
-                              orbit.x, .y, .z \\
-                              \hspace{3em} .px, .py, .pz
-                            \end{tabular}                       & Phase space orbit                         & lat, beam   & Yes \\ \hline 
-  \pref{periodic.tt}      & \begin{tabular}{@{}l}
-                              periodic.tt.$ijklm\ldots$ \\
-                              \hspace{4em} $1 \le i,j,k,\ldots \le 6$   
-                            \end{tabular}                       & Periodic map Taylor terms                 & lat         & No  \\ \hline 
-  \pref{phase}            & phase.a, .b                         & Betatron phase                            & lat         & Yes \\ \hline 
-  \pref{phase.frac}       & phase_frac.a, .b                    & \begin{tabular}{@{}l}
-                                                                    Fractional betatron phase \\       
-                                                                    $-\pi < \phi_{\mbox{frac}} < \pi$ 
-                                                                  \end{tabular}                             & lat         & No  \\ \hline 
-  \pref{phase.frac.diff}  & phase_frac_diff                     & \begin{tabular}{@{}l}
-                                                                    Phase difference \\
-                                                                    between $a$ and $b$ modes
-                                                                  \end{tabular}                             & lat         & No  \\ \hline 
-  \pref{photon.intens}    & photon.intensity                    & Photon total intensity                    & lat, beam   & No  \\ \hline 
-  \pref{photon.intens.x}  & \begin{tabular}{@{}l}
-                              photon.intensity_x, \\
-                              \hspace{2em} .intensity_y
-                            \end{tabular}                       & Photon intensity components               & lat, beam   & No  \\ \hline
-  \pref{photon.phase}     & photon.phase_x, .phase_y            & Photon phase                              & lat, beam   & No  \\ \hline  
-  \pref{ping.a}           & \begin{tabular}{@{}l}
-                              ping_a.amp_x, .phase_x,                  \\
-                              \hspace{1.5em} .amp_y, .phase_y,         \\
-                              \hspace{1.5em} .amp_sin_y, .amp_cos_y,   \\
-                              \hspace{1.5em} .amp_sin_rel_y,           \\
-                              \hspace{1.5em} .amp_cos_rel_y 
-                            \end{tabular}                       & Pinged beam $a$-mode response             & lat        & No  \\ \hline
-  \pref{ping.b}           & \begin{tabular}{@{}l}
-                              ping_b.amp_x, .phase_x,                 \\
-                              \hspace{1.5em} .amp_y, .phase_y,        \\
-                              \hspace{1.5em} .amp_sin_x, .amp_cos_x,  \\
-                              \hspace{1.5em} .amp_sin_rel_x,          \\
-                              \hspace{1.5em} .amp_cos_rel_x 
-                            \end{tabular}                       & Pinged beam $b$-mode response             & lat        & No  \\ \hline
-  \pref{r.ij}             & r.$ij$ \hspace{10pt} $1 \le i,j \le 6$ & Term in linear transfer map            & lat        & Yes \\ \hline 
-  \pref{r56.comp}         & r56_compaction                        & R56 like compaction factor.             & lat        & No  \\ \hline
-  \pref{rad.int}          & rad_int.i1, .i2, etc.               & Lattice Radiation integrals               & lat        & No  \\ \hline
-  \pref{rad.int1}         & rad_int1.i1, .i2, etc.              & Element radiation integrals               & lat        & No  \\ \hline
-  \pref{ref.time}         & ref_time                            & Reference time                            & lat, beam  & Yes \\ \hline
-  \pref{rel.floor}        & \begin{tabular}{@{}l}
-                              rel_floor.x, .y, \\
-                              \hspace{4em} .z, .theta
-                            \end{tabular}                       & Relative global floor position            & lat        & No  \\ \hline 
-  \pref{s.position}       & s_position                          & longitudinal length constraint            & lat        & Yes \\ \hline 
-  \pref{sigma}            & \begin{tabular}{@{}l}   
-                              sigma.x, .y, .z, \\
-                              \hspace{2em} .px, px, .pz, \\
-                              \hspace{2em} .$ij$ \hspace{10pt} $1 \le i,j \le 6$, \\
-                              \hspace{2em} .Lxy
-                            \end{tabular}                       & Bunch size                                & lat, beam  & No  \\ \hline 
-  \pref{slip.ptc}         & \begin{tabular}{@{}l}
-                              slip_factor_ptc.$N$ \\
-                              \hspace{3em} $N = 0, 1, 2, \ldots$
-                            \end{tabular}                       & Slip factor Taylor terms                  & lat        & No  \\ \hline
-  \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
-  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate.                 & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate.                   & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit.                  & lat        & No  \\ \hline
-  \pref{spin.g.matrix}    & \begin{tabular}{@{}l}
-                              spin_g_matrix.$ij$ \\
-                              \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
-                            \end{tabular}                       & Spin G-matrix components                  & lat        & No  \\ \hline
-  \pref{spin.res}         & \begin{tabular}{@{}l}
-                              spin_res.a.sum, .a.diff, \\
-                              \hspace{10pt} .b.sum, .b.diff, \\
-                              \hspace{10pt} .c.sum, .c.diff
-                            \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
-  \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
-                              spin_tune_ptc.$N$, \\
-                              \hspace{10pt} $N = 0, 1, \ldots$
-                            \end{tabular}                       & Spin Tune Taylor terms                    & lat        & no  \\ \hline
-  \pref{srdt.h}           & srdt.h<monomial>.\{r,i,a\}          & \begin{tabular}{@{}l}
-                                                                    Normal form driving terms \\
-                                                                    calculated by summation 
-                                                                  \end{tabular}                             & lat        & No \\ \hline
-  \pref{time}             & time                                & Particle time (sec)                       & lat, beam  & Yes \\ \hline
-  \pref{t.ijk}            & \begin{tabular}{@{}l}   
-                              t.$ijklm\ldots$, \\
-                              tt.$ijklm\ldots$, \\
-                            \hspace{4em} $1 \le i,j,k,\ldots \le 6$  
-                            \end{tabular}                       & \begin{tabular}{@{}l}
-                                                                    Term in n\Th \\
-                                                                    order transfer map
-                                                                  \end{tabular}                             & lat        & No  \\ \hline 
-  \pref{tune}             & tune.a, .b, .z                      & Tune                                      & lat        & No  \\ \hline 
-  \pref{unstable.eigen}   & \begin{tabular}{@{}l}
-                              unstable.eigen, .eigen.a,  \\
-                              \hspace{3em} .eigen.b, .eigen.c
-                            \end{tabular}                       & Maximum eigenvalue amplitude              & lat        & No  \\ \hline
-  \pref{unstable.lat}     & unstable.lattice                    & \begin{tabular}{@{}l}
-                                                                    Positive if \\
-                                                                    lattice is unstable
-                                                                  \end{tabular}                             & lat        & No  \\ \hline
-  \pref{unstable.orbit}   & unstable.orbit                      & \begin{tabular}{@{}l}   
-                                                                    Nonzero if particles are \\
-                                                                    lost in tracking
-                                                                  \end{tabular}                             & lat        & No  \\ \hline
-  \pref{velocity}         & velocity                            & Normalized velocity $v/c$                 & lat, beam  & Yes \\ \hline
-  \pref{velocity}         & velocity.x, .y, .z                  & Normalized velocity component             & lat, beam  & Yes \\ \hline
-  \pref{wall}             & \begin{tabular}{@{}l}   
-                              wall.left_side, \\
-                              \hspace{4em} .right_side
-                            \end{tabular}                       & Building wall constraint                  & lat        & No  \\ \hline
-  \pref{wire}             & wire.<angle>                        & Wire scanner at <angle>                   & beam       & No  \\ \hline
-\end{longtable}
-}
