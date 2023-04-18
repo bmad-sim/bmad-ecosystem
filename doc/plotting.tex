@@ -356,8 +356,11 @@ Wave analysis plotting (\sref{c:wave}).
 \label{s:axes}
 
 Data graphs (\sref{s:graph.types}) have three axes as shown in \fig{f:plot.axes}. The bottom axis is
-called \vn{x}, and the left and right axes are called \vn{y} and \vn{y2} respectively. The \vn{qp_axis_struct}
-structure (\sref{s:qp.axis}) is used to store axis parameters.
+called \vn{x}, and the left and right axes are called \vn{y} and \vn{y2} respectively. The
+\vn{qp_axis_struct} structure (\sref{s:qp.axis}) is used to store axis parameters which can be
+accessed via the \vn{graph%x}, \vn{graph%y}, and \vn{graph%y2} components in the
+\vn{tao_template_graph} namelist (\sref{s:template}) or by using the \vn{set graph} command
+(\sref{s:set.graph}.
 
 The \vn{scale} command (\sref{s:scale}) can be used to set the vertical axes. The \vn{x_scale}
 (\sref{s:x.scale}) command can be used to set the horizontal axis.
@@ -367,6 +370,13 @@ axis. However, if any curve of a given graph has \vn{curve%use_y2} set to \vn{Tr
 axis will have an independent second scale. In this case, the \vn{y2} axis numbers will be
 drawn. Notice that simply giving the \vn{y2} axis a label does {\em not} make the \vn{y2} axis scale
 independent of the \vn{y} axis scale.
+
+The following \vn{tao_plot_page} namelist (\sref{s:plot.page}) parameters affect the drawing of the axes:
+\begin{example}
+  text_height = 12              ! In points. Scales the height of all text
+  axis_number_text_scale = 0.9  ! Relative to text_height
+  axis_label_text_scale = 1.0   ! Relative to text_height
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Curve}
