@@ -660,6 +660,8 @@ real(rp) rf_time, s_pos, s_tiny
 real(rp) vel(3), force(3), momentum
 real(rp) :: pc, e_tot, mc2, gamma, charge, beta, p0, h, beta0, dp_dt, dbeta_dt
 
+integer ie
+
 logical :: err_flag
 logical, optional :: print_err
 
@@ -755,7 +757,10 @@ else
   dbeta_dt = mass_of(orbit%species)**2 * dp_dt * c_light / e_tot**3
 
   if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-    ele0 => pointer_to_lord(ele, 1)
+    do ie = 1, ele%n_lord
+      ele0 => pointer_to_lord(ele, ie)
+      if (ele0%key /= pipe$) exit
+    enddo
   else
     ele0 => ele
   endif

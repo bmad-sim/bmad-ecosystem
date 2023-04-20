@@ -505,7 +505,7 @@ real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, ab
 real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time
 
 integer i, key
-logical err_flag, err, changed, saved_is_on, energy_stale
+logical err_flag, err, changed, saved_is_on, energy_stale, do_track
 
 character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
@@ -573,17 +573,37 @@ case (lcavity$)
     if (err) goto 9000
   endif
 
+  ! If ele is super_slave and the super_lord and ele are essentially the same element, do not need to track.
+
+  do_track = .true.
+  if (ele%slave_status == super_slave$) then
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      if (lord%key /= lcavity$) cycle  ! May be a pipe$
+      if (lord%n_slave /= 1) cycle
+      do_track = .false.
+      ele%value(p0c$) = lord%value(p0c$)
+      ele%value(E_tot$) = lord%value(E_tot$)
+      ele%value(delta_ref_time$) = lord%value(delta_ref_time$)
+      ele%ref_time = lord%ref_time
+      call calc_time_ref_orb_out(lord%time_ref_orb_out)
+    enddo
+  endif
+
   ! Track. With runge_kutta (esp fixed step with only a few steps), a shift in the end energy can cause 
   ! small changes in the tracking. So if there has been a shift in the end energy, track again.
+  
 
-  do i = 1, 5
-    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
-    call calc_time_ref_orb_out(orb_end)
-    ele%value(p0c$) = orb_end%p0c * (1 + orb_end%vec(6))
-    call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
-    if (err) goto 9000
-    if (abs(orb_end%vec(6)) < small_rel_change$) exit
-  enddo
+  if (do_track) then
+    do i = 1, 5
+      call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
+      call calc_time_ref_orb_out(orb_end)
+      ele%value(p0c$) = orb_end%p0c * (1 + orb_end%vec(6))
+      call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
+      if (err) goto 9000
+      if (abs(orb_end%vec(6)) < small_rel_change$) exit
+    enddo
+  endif
 
   ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   ele%time_ref_orb_out%p0c = ele%value(p0c$)  ! To prevent small roundoff errors
@@ -755,6 +775,7 @@ subroutine track_this_ele (orb_start, orb_end, ref_time_start, is_inside, error)
 type (coord_struct) orb_start, orb_end
 type (ele_struct), pointer :: lord
 real(rp) ref_time_start
+integer ie
 logical error, is_inside, totalpath_saved
 
 ! With use_totalpath = False (the standard setting) and with ptc tracking, orb_end%t is calculated
@@ -781,7 +802,11 @@ call restore_errors_in_ele (ele)
 
 if (ele%tracking_method /= bmad_standard$ .and. &
           (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$)) then
-  lord => pointer_to_lord(ele, 1)
+  do ie = 1, ele%n_lord
+    lord => pointer_to_lord(ele, ie)
+    if (lord%key /= pipe$) exit
+  enddo
+
   if (lord%value(l$) == 0) then
     ele%value(delta_ref_time$) = 0
   else
