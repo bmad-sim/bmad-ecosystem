@@ -2625,10 +2625,12 @@ endif
 !----------------------
 ! If the "exists" component has been set (used by gui interface) check if the datum is truely valid.
 
-if (component == 'exists') then
+select case (component)
+case ('ele_name', 'ele_start_name', 'ele_ref_name', 'data_type', 'data_source', 'ix_uni', &
+      'ix_branch', 'ix_ele', 'ix_ele_start', 'ix_ele_ref', 'eval_point', 'exists')
   do i = 1, size(d_dat)
     d => d_dat(i)%d
-    if (.not. d%exists) cycle
+    if (component == 'exists' .and. .not. d%exists) cycle
 
     d%exists = tao_data_sanity_check(d, .true., '')
     if (.not. d%exists) cycle
@@ -2640,7 +2642,7 @@ if (component == 'exists') then
     endif
     if (d%good_model) call tao_evaluate_a_datum (d, u, u%design, d%design_value, d%good_design, why_invalid)
   enddo
-endif
+end select
 
 ! End stuff
 
