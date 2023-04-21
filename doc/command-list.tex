@@ -1087,13 +1087,14 @@ Format:
 
 For \vn{set curve}, the \vn{<parameter>}s that can be set are:
 \begin{example}
-  ele_ref_name        = <string>  ! Name or index of the reference element
+  ele_ref_name        = <string>  ! Name or index of the reference element. Blank => No ref ele.
+  ix_ele_ref          = <integer> ! Same as setting ele_ref_name. -1 => No ref ele.
   component           = <string>  ! \sref{s:curve.comp}
-  ix_branch           = <number>  ! Branch index.
-  ix_bunch            = <number>  ! Bunch index.
-  ix_universe         = <number>  ! Universe index.
-  symbol_every        = <number>  ! Symbol skip number.
-  y_axis_scale_factor = <number>  ! Scaling of y axis
+  ix_branch           = <integer> ! Branch index.
+  ix_bunch            = <integer> ! Bunch index.
+  ix_universe         = <integer> ! Universe index.
+  symbol_every        = <integer> ! Symbol skip number.
+  y_axis_scale_factor = <integer> ! Scaling of y axis
   draw_line           = <logical> 
   draw_symbols        = <logical> 
   draw_symbol_index   = <logical> 
@@ -1119,25 +1120,17 @@ Format:
 \begin{example}
   set data <data_name>|<component> = <value>
 \end{example}
+Set datum parameters.
 
-For \vn{set data}, the \vn{<component>}s that can be set are:
+parameters that are computed like the \vn{model} value cannot be set. The list of parameter
+that \vn{cannot} be set is:
 \begin{example}
-  base        ! Base model value
-  design      ! Design model value
-  meas        ! Measured data value.
-  ref         ! Reference data value.
-  weight      ! Weight for the merit function.
-  exists      ! Valid datum for computations?
-  good_meas   ! A valid measurement has been taken?
-  good_ref    ! A valid reference measurement has been taken?
-  good_opt    ! Good for using in the merit function for optimization?
-  good_plot   ! Good for using in a plot?
-  good_user   ! This is what is set by the use, veto, and restore commands.
-  merit_type  ! How merit contribution is calculated.
-\end{example}
-Besides a numeric value \vn{<value>} can be any of the above along with:
-\begin{example}
-  meas        ! Measured data value.
+  model, base, design, old
+  good_model, good_base, good_design
+  merit, delta_merit
+  invalid, exists
+  useit_opt, useit_plot
+  ix_d1
 \end{example}
 
 Examples:
