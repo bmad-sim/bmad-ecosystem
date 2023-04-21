@@ -37,8 +37,9 @@ character(10) :: set_char(4) = &
 
 character(1) :: char
 character(2) char2
-character(80) this_file, line
+character(80) this_file
 character(40) :: this_opt, r_name = 'tao_single_mode'
+character(200) line
 
 logical doit, found, err, abort, err_is_fatal
 
