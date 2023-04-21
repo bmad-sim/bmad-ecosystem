@@ -1495,7 +1495,7 @@ type (tao_model_branch_struct), pointer :: model_branch
 type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ix, i_branch
-logical err
+logical err, is_int
 character(40) name, comp
 
 !
@@ -1513,24 +1513,24 @@ ix = index(comp, '.')
 if (ix /= 0) comp(ix:ix) = '%'
 select case (comp)
 
-case ('ele_ref_name')
-  call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
-  if (size(eles) == 0) return
-  this_curve%ele_ref_name = upcase(value_str)
-  this_curve%ix_ele_ref = eles(1)%ele%ix_ele
-  this_curve%ix_branch  = eles(1)%ele%ix_branch
-  call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
+case ('ele_ref_name', 'ix_ele_ref')
+  is_int = is_integer(value_str, ix)
+  if (value_str == '' .or. (is_int .and. ix < 0)) then
+    this_curve%ele_ref_name = ''
+    this_curve%ix_ele_ref = -1
+
+  else
+    call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
+    if (size(eles) == 0) return
+    this_curve%ele_ref_name = upcase(value_str)
+    this_curve%ix_ele_ref = eles(1)%ele%ix_ele
+    this_curve%ix_branch  = eles(1)%ele%ix_branch
+    call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
+  endif
 
 case ('name')
   this_curve%name = value_str
   
-case ('ix_ele_ref')
-  call tao_set_integer_value (this_curve%ix_ele_ref, component, &
-                    value_str, err, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
-  this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
-  call tao_ele_to_ele_track (tao_curve_ix_uni(this_curve), i_branch, &
-                                this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
-
 case ('ix_universe')
   call tao_set_integer_value (this_curve%ix_universe, component, value_str, err, -2, ubound(s%u, 1))
   if (err) return
@@ -1673,13 +1673,6 @@ case ('y_axis_scale_factor')
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
   return
-
-end select
-
-! Set ix_ele_ref_track if necessary
-
-select case (component)
-case ('ele_ref_name', 'ix_ele_ref', 'ix_universe')
 
 end select
 
@@ -2347,8 +2340,6 @@ end subroutine tao_set_branch_cmd
 ! Input:
 !   who_str   -- Character(*): Which data component(s) to set.
 !   value_str -- Character(*): What value to set it to.
-!
-!  Output:
 !-
 
 subroutine tao_set_data_cmd (who_str, value_str)
@@ -2388,7 +2379,7 @@ if (err) return
 select case (component)
   case ('model', 'base', 'design', 'old', 'model_value', 'base_value', 'design_value', &
              'old_value', 'invalid', 'delta_merit', 'merit', 'exists', 'good_base ', &
-             'useit_opt ', 'useit_plot', 'ix_d1', 'ix_uni')
+             'useit_opt ', 'useit_plot', 'ix_d1', 'good_model', 'good_design')
   call out_io (s_error$, r_name, 'DATUM ATTRIBUTE NOT SETTABLE: ' // component)
   return
 end select
@@ -2465,22 +2456,27 @@ elseif (size(int_dat) /= 0) then
       u => s%u(d_dat(i)%d%d1%d2%ix_universe)
       branch => u%design%lat%branch(d_dat(i)%d%ix_branch)
       ie = int_dat(i)%i
+      if (ie < 0) ie = -1
+      tmpstr = ''
 
-      if (ie < 0 .or. ie > branch%n_ele_max) then
+      if (ie > branch%n_ele_max) then
         int_dat(i)%i = int_save(i)
         call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE.')
         return
       endif
 
       if (component == 'ix_ele') then
-        tmpstr = branch%ele(ie)%name
+        if (ie > -1) tmpstr = branch%ele(ie)%name
         d_dat(i)%d%ele_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+        d_dat(i)%d%ix_ele = ie
       elseif (component == 'ix_ele_start') then
-        tmpstr = branch%ele(ie)%name
+        if (ie > -1) tmpstr = branch%ele(ie)%name
         d_dat(i)%d%ele_start_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+        d_dat(i)%d%ix_ele_start = ie
       else
-        tmpstr = branch%ele(ie)%name
+        if (ie > -1) tmpstr = branch%ele(ie)%name
         d_dat(i)%d%ele_ref_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+        d_dat(i)%d%ix_ele_ref = ie
       endif
     enddo
 
@@ -2542,43 +2538,63 @@ elseif (size(s_dat) /= 0) then
     do i = 1, size(d_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_universe)
       call upcase_string (s_dat(i)%s)
-      call lat_ele_locator (s_dat(i)%s, u%design%lat, eles, n_loc)
-
-      if (n_loc == 0) then
-        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_dat(i)%s)
-        s_dat(i)%s = s_save(i)
-        return
-      endif
-
-      if (n_loc > 1) then
-        call out_io (s_error$, r_name, 'MULTIPLE ELEMENT OF THE SAME NAME EXIST: ' // s_dat(i)%s)
-        s_dat(i)%s = s_save(i)
-        return
+      if (s_dat(i)%s /= '') then
+        call lat_ele_locator (s_dat(i)%s, u%design%lat, eles, n_loc)
+        if (n_loc == 0) then
+          call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_dat(i)%s)
+          s_dat(i)%s = s_save(i)
+          return
+        endif
+        if (n_loc > 1) then
+          call out_io (s_error$, r_name, 'MULTIPLE ELEMENT OF THE SAME NAME EXIST: ' // s_dat(i)%s)
+          s_dat(i)%s = s_save(i)
+          return
+        endif
       endif
 
       if (component == 'ele_name') then
-        d_dat(i)%d%ix_ele    = eles(1)%ele%ix_ele
-        if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
-          d_dat(i)%d%ele_ref_name = ''
-          d_dat(i)%d%ix_ele_ref = -1
-          d_dat(i)%d%ele_start_name = ''
-          d_dat(i)%d%ix_ele_start = -1
+        if (s_dat(i)%s == '') then
+          d_dat(i)%d%ix_ele = -1
+          d_dat(i)%d%ele_name = ''
+        else
+          d_dat(i)%d%ix_ele    = eles(1)%ele%ix_ele
+          d_dat(i)%d%ele_name  = eles(1)%ele%name
+          if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+            d_dat(i)%d%ele_ref_name = ''
+            d_dat(i)%d%ix_ele_ref = -1
+            d_dat(i)%d%ele_start_name = ''
+            d_dat(i)%d%ix_ele_start = -1
+          endif
+          d_dat(i)%d%ix_branch = eles(1)%ele%ix_branch
         endif
-        d_dat(i)%d%ix_branch = eles(1)%ele%ix_branch
+
       elseif (component == 'ele_start_name') then
-        if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
-          s_dat(i)%s = s_save(i)
-          call out_io (s_error$, r_name, 'START_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
-          return
+        if (s_dat(i)%s == '') then
+          d_dat(i)%d%ix_ele_start = -1
+          d_dat(i)%d%ele_start_name = ''
+        else
+          if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+            s_dat(i)%s = s_save(i)
+            call out_io (s_error$, r_name, 'START_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
+            return
+          endif
+          d_dat(i)%d%ix_ele_start   = eles(1)%ele%ix_ele
+          d_dat(i)%d%ele_start_name = eles(1)%ele%name
         endif
-        d_dat(i)%d%ix_ele_start = eles(1)%ele%ix_ele
+
       else
-        if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
-          s_dat(i)%s = s_save(i)
-          call out_io (s_error$, r_name, 'REF_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
-          return
+        if (s_dat(i)%s == '') then
+          d_dat(i)%d%ix_ele_ref = -1
+          d_dat(i)%d%ele_ref_name = ''
+        else
+          if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+            s_dat(i)%s = s_save(i)
+            call out_io (s_error$, r_name, 'REF_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
+            return
+          endif
+          d_dat(i)%d%ix_ele_ref   = eles(1)%ele%ix_ele
+          d_dat(i)%d%ele_ref_name = eles(1)%ele%name
         endif
-        d_dat(i)%d%ix_ele_ref = eles(1)%ele%ix_ele
       endif
     enddo
   endif
