@@ -531,6 +531,7 @@ ele%value(ref_time_start$) = ref_time_start
 
 ele%time_ref_orb_out = ele%time_ref_orb_in  ! This should be true when we don't have to track.
 ele%time_ref_orb_out%location = downstream_end$
+ele%time_ref_orb_out%s = ele%s
 
 key = ele%key
 if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcavity$
@@ -586,7 +587,7 @@ case (lcavity$)
       ele%value(E_tot$) = lord%value(E_tot$)
       ele%value(delta_ref_time$) = lord%value(delta_ref_time$)
       ele%ref_time = lord%ref_time
-      call calc_time_ref_orb_out(lord%time_ref_orb_out)
+      ele%time_ref_orb_out = lord%time_ref_orb_out
     enddo
   endif
 
@@ -597,7 +598,7 @@ case (lcavity$)
   if (do_track) then
     do i = 1, 5
       call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
-      call calc_time_ref_orb_out(orb_end)
+      call calc_time_ref_orb_out(ele, orb_end)
       ele%value(p0c$) = orb_end%p0c * (1 + orb_end%vec(6))
       call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
       if (err) goto 9000
@@ -614,6 +615,7 @@ case (custom$, hybrid$)
   if (err) goto 9000
 
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+  ele%time_ref_orb_out%t = ele%ref_time
 
 case (taylor$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)
@@ -625,6 +627,7 @@ case (taylor$)
     ele%value(delta_ref_time$) = ele%value(l$) * E_tot_start / (p0c_start * c_light)
   endif
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+  ele%time_ref_orb_out%t = ele%ref_time
 
 case (e_gun$)
   ! Note: Due to the coupling between an e_gun and the begin_ele, autoscaling is
@@ -640,7 +643,7 @@ case (e_gun$)
   endif
 
   call track_this_ele (orb_start, orb_end, ref_time_start, .true., err); if (err) goto 9000
-  call calc_time_ref_orb_out(orb_end)
+  call calc_time_ref_orb_out(ele, orb_end)
   ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 
 case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, mask$)
@@ -682,6 +685,7 @@ case (patch$)
   velocity = c_light * ele%value(p0c$) / ele%value(E_tot$)
   ele%value(delta_ref_time$) = ele%value(t_offset$) + ele%value(l$) / velocity
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+  ele%time_ref_orb_out%t = ele%ref_time
 
 case (marker$, fork$, photon_fork$)
   ele%value(E_tot$) = E_tot_start
@@ -711,10 +715,11 @@ case default
       ele%value(delta_ref_time$) = ele%value(l$) * E_tot_start / (p0c_start * c_light)
     endif
     ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+    ele%time_ref_orb_out%t = ele%ref_time
 
   else
     call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
-    call calc_time_ref_orb_out(orb_end)
+    call calc_time_ref_orb_out(ele, orb_end)
     ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   endif
 end select
@@ -943,8 +948,9 @@ end subroutine restore_errors_in_ele
 !---------------------------------------------------------------------------------
 ! contains
 
-subroutine calc_time_ref_orb_out (orb_end)
+subroutine calc_time_ref_orb_out (ele, orb_end)
 
+type (ele_struct), target :: ele
 type (coord_struct) orb_end
 type (ele_struct), pointer :: lord
 
