@@ -747,16 +747,18 @@ endif
 ! The effective reference velocity is different from the velocity of the reference particle for wigglers where the 
 ! reference particle is not traveling along the reference line and in elements where the reference velocity is not constant.
 
-! Note: There is a potential problem with RF and e_gun elements when calculating beta0 when there is slicing and where
-! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
-
 if (orbit%beta == 0) then
   dvec_dt(10) = 0
 else
   dp_dt = dot_product(force, vel) / (orbit%beta * c_light)
   dbeta_dt = mass_of(orbit%species)**2 * dp_dt * c_light / e_tot**3
 
-  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  ! Note: There is a potential problem with RF and e_gun elements when calculating beta0 when there is slicing and where
+  ! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
+  ! There is a further potential problem in that a pipe with a lcavity superimposed on it will not have a 
+  ! constant reference energy
+
+  if (ele%slave_status == slice_slave$ .or. (ele%slave_status == super_slave$ .and. ele%key /= pipe$)) then
     do ie = 1, ele%n_lord
       ele0 => pointer_to_lord(ele, ie)
       if (ele0%key /= pipe$) exit

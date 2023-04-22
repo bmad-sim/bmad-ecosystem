@@ -690,12 +690,13 @@ case (marker$, fork$, photon_fork$)
   ele%ref_time = ref_time_start
 
 case default
-  if (significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)) then
-    ele%value(E_tot$) = E_tot_start
-    ele%value(p0c$) = p0c_start
-    ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
-    call attribute_bookkeeper(ele, .true.) 
-  endif
+  changed = significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)
+  ! Need to always do this set in case E_tot_start shifted by non-zero but insignifcant.
+  ! Some code relies on E_tot_start == E_tot or p0c_start = p0c exactly.
+  ele%value(E_tot$) = E_tot_start  
+  ele%value(p0c$) = p0c_start
+  ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
+  if (changed) call attribute_bookkeeper(ele, .true.) 
   
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
                         ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
