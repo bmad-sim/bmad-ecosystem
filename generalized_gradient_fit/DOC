@@ -49,7 +49,7 @@ For the ASCII format The field table must have 7 header lines that look like:
 0.01            ! File length_scale in meters. EG: 0.01 => Positions are in cm.
 1e-4            ! File field_scale in Tesla or V/m. EG: 1e-4 => Field in Gauss (if magnetic).
 0.4  0.2  0.2   ! del_x,y,z  Spacing between grid points in table units (not meters).
-0    0    0     ! r0 (x,y,z) offset of the origin. Not used in calculation.
+0    0    0     ! r0 (x,y,z) offset of the origin.
 
 The remaining lines have the format:
   x-position    y-position  z-position   Field_x   Field_y   Field_z
@@ -64,6 +64,15 @@ If the field table file is a bmad lattice file, the lattice will be searched for
 in the lattice with a field table. If there are multiple elements with field tables, all other
 tables besides the first will be ignored.
 
+The (r0_x, r0_y) components of the r0 parameter shift the grid field so that the (x,y) position of
+a field grid point with indexes (ix, iy) is
+	(x, y) = (ix*del_x + r0_x, iy*del_y + r0_y)
+The GG coefficients are always calculated with respect to (x,y) = (0,0).  that is, center line for
+calculating the GG coefficients is at (-r0_x, -r0_y) with respect to the field grid. In the Bmad
+lattice output file the (r0_x, r0_y) components of the GG map will be zero which makes the grid
+field and GG map consistent with each other. The r0_z component of r0 is not used in the calculation
+and the r0_z component of the GG map in the output bmad lattice file (in meters) will equal to the
+value in the grid field table.
 
 =================================================================================================
 Parameter File:
@@ -113,11 +122,11 @@ if you want to reduce the amount of data being outputted.
 n_deriv_extra: Extra derivatives used in the fit above n_deriv_max. That is, in the fitting process
 the derivatives of order 0 through n_deriv_max+n_deriv_extra will be used. The default is 0.
 
-n_deriv_max: For any given z-position, this parameter sets the maximum derivitive order outputted to
-the lattice file. The minimum derivitive order is zero so the number of derivatives will be
+n_deriv_max: For any given z-position, this parameter sets the maximum derivative order outputted to
+the lattice file. The minimum derivative order is zero so the number of derivatives will be
 n_deriv_max+1.
 
-m_cos, m_sin: Lists of cosine and sine azimuthal harmonics to analyse. A list of "-1" means there
+m_cos, m_sin: Lists of cosine and sine azimuthal harmonics to analyze. A list of "-1" means there
 are no harmonics of this type. In the above example, no cosine harmonics are used and harmonics
 of order 1, 3, and 5 are used.
 
@@ -147,7 +156,7 @@ is non-zero. See the "How the GG Calculation Works" section below for documentat
 merit function.
 
 sym_x and sym_y: These parameters set the symmetry of the field at constant z with respect to the
-x-axis and the y-axis. This is used when the field table only contains one quadrent or one half of
+x-axis and the y-axis. This is used when the field table only contains one quadrant or one half of
 the the field region in the (x,y) plane. Using a reduced region for a table is a way of reducing the
 table file size. If the table covers the full field region, sym_x and sym_y should be set to 0 which
 will prevent the program from trying to use symmetry in the calculation. sym_x = 1 means there is
@@ -158,15 +167,17 @@ mirror symmetry with respect to both planes.
 
 x_pos_plot, y_pos_plot: List of x and y-positions in meters used to create files for plotting fit,
 data and difference (fit-data) field values vs z-position. The files will be in a sub-directory
-called "plot_data".  For each x-position and y-positions pair a file will be created.
+called "plot_data".  For each x-position and y-positions pair a file will be created. For a given
+(x_pos_plot, y_pos_plot), the field values of the nearest points (ignoring r0) to this position will
+be used.
 
 
 =================================================================================================
 How the GG Calculation Works:
 -----------------------------
 
-The GG coefficents are calculated at equally spaced z-positions corresponding to z-planes of the
-field table. GG coeficients are calculated by verying the coefficients to achieve the minimum of a
+The GG coefficients are calculated at equally spaced z-positions corresponding to z-planes of the
+field table. GG coefficients are calculated by varying the coefficients to achieve the minimum of a
 "merit function". This fitting is done z-plane by z-plane. That is, the coefficients of a given
 z-plane are calculated independently of the coefficients of any other z-plane and all coefficients
 of a given z-plane are calculated simultaneously. For a given z-plane, The merit function is
@@ -237,7 +248,7 @@ data within these bounds plus n_planes_add to either side.
   mode = "output_table": This mode is used to convert GGs to a field table. See below.
 
   mode = "truncate_gg": In this mode, GG derivatives are read in from a Bmad lattice file and a
-Bmad compatable output file is created with the number of derivatives truncated (if n_deriv_max is set
+Bmad compatible output file is created with the number of derivatives truncated (if n_deriv_max is set
 non-negative) and/or the z-extent limited (if Nz_min and/or Nz_max are set).
 
 
@@ -252,7 +263,7 @@ file is given by the out_file parameter with a ".deriv" suffix attached. There a
 sets in the table, one for each GG curve of the derivatives versus z-position. With Gnuplot,
 individual data sets can be graphed using the Gnuplot "index" parameter.
 
-This .deriv file also has a column labeled "Init_RMS" with the inital RMS of the field data used in
+This .deriv file also has a column labeled "Init_RMS" with the initial RMS of the field data used in
 the calculation for a particular base plane. and a column labeled "RMS/RMS0" giving the final rms of
 the residual of the fit minus the data divided by the initial RMS. A value small compared to one
 indicates a good fit.
@@ -280,7 +291,7 @@ is perfect and the derivatives higher than n_derivative_max are negligible, deri
 to a given z-plane should be equal to the derivatives calculated at that z-plane. The
 .left_deriv_diff file gives the difference between the derivatives at a z-plane minus the
 derivatives calculated by extrapolation from the neighbor z-plane with index one less than the
-z-plane under consideration.  Similarly, the .righ_deriv_diff file gives the difference between the
+z-plane under consideration.  Similarly, the .right_deriv_diff file gives the difference between the
 derivatives at a z-plane minus the derivatives calculated by extrapolation from the neighbor z-plane
 with index one greater than the z-plane under consideration. To the extent that values in these
 files are non-zero, this gives an indication of the goodness of how well the GG decomposition is
@@ -312,7 +323,7 @@ of different GG parameterizations. An example parameter file to convert GG to a 
   length_scale = 0.01      ! File length_scale in meters. EG: 0.01 => Positions are in cm.
   field_scale = 1e-4       ! File field_scale in Tesla or V/m. EG: 1e-4 => Field in Gauss (if magnetic).
   del_grid = 0.4, 0.2      ! del_x,y  Spacing between grid points in table units (not meters).
-  r0_grid = 0, 0, 0        ! r0 (x,y,z) offset of the origin. Not used in calculation.
+  r0_grid = 0, 0, 0        ! r0 (x,y,z) offset of the origin. 
   Nx_min = -5              ! X-coordinate lower bound.
   Nx_max = 5               ! X-coordinate upper bound.
   Ny_min = 0               ! Y-coordinate lower bound.
