@@ -78,7 +78,7 @@ parameter file will look like:
   out_file = "gg"          ! Output file prefix. Output files will have suffixes like ".dat" and ".bmad".
   every_n_th_plane = 1     ! If equal 2, skip every other z-plane, etc.
   n_deriv_max = 4          ! Max derivative order output order. Min order is zero.
-	n_deriv_extra						 ! Extra derivatives used in the fit. Derivative range in fit is [0, n_deriv_max+n_deriv_extra].
+  n_deriv_extra = 0        ! Extra derivatives used in the fit. Derivative range in fit is [0, n_deriv_max+n_deriv_extra].
   m_cos = -1               ! List of m-values for cosine like GG. -1 => no cosine GG.
   m_sin =  1, 3, 5         ! List of m-values for sine like GG.
   z_min = 3                ! z-plane lower bound to start calc at. If not present, use field table lower bound.
@@ -86,11 +86,11 @@ parameter file will look like:
   mode = "fit"             ! or "binary" to create a binary field table file.
   optimizer = "lm"         ! Optimizer to use. Alternative is "lmdif".
   n_planes_add = 0         ! Extra planes to use for the analysis
-	core_weight = 1          ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
-	outer_plane_weight = 1   ! Merit function weight for the "outer" z-planes. Default is 1 (uniform weighting).
+  core_weight = 1          ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
+  outer_plane_weight = 1   ! Merit function weight for the "outer" z-planes. Default is 1 (uniform weighting).
   sym_x = 1                ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
   sym_y = -1               ! Y-axis symmetry. Possibilities are: -1, 0 (default), 1.
-	ele_anchor_pt = "beginning" ! or "center" or "end". Used to construct lattice file.
+  ele_anchor_pt = "beginning" ! or "center" or "end". Used to construct lattice file.
   x_pos_plot = 0, 0.02, 0.05  ! x-positions (in meters) to create a plotting file.
   y_pos_plot = 0, 0.01, 0.02  ! y-positions (in meters) to create a plotting file.
 /                        ! Ending slash signals end of param list. Everything outside is ignored.
@@ -170,7 +170,7 @@ field table. GG coeficients are calculated by verying the coefficients to achiev
 "merit function". This fitting is done z-plane by z-plane. That is, the coefficients of a given
 z-plane are calculated independently of the coefficients of any other z-plane and all coefficients
 of a given z-plane are calculated simultaneously. For a given z-plane, The merit function is
-	Merit = Sum over field points: weight * (field_from_table - field_calculated_from_GG_coefs)^2
+  Merit = Sum over field points: weight * (field_from_table - field_calculated_from_GG_coefs)^2
 
 The z-plane at which the GG coefficients are being calculated is called the "base plane". The merit
 function is calculated by a sum over those field points that lie in a z-plane that is within
@@ -182,7 +182,7 @@ n_planes_add = 2, a base z-plane at the end of the table will only use three pla
 To calculate the field at a non-base plane, the GG coefficients of the base plane are extrapolated
 to the non-base plane. For each GG specified by the m_cos and m_sin parameters, the extrapolating
 polynomial is
-	GG(dz) = GG(0) + dz * GG'(0) + dz^2 * GG''(0) / 2! + ...
+  GG(dz) = GG(0) + dz * GG'(0) + dz^2 * GG''(0) / 2! + ...
 where GG(dz) is the generalized gradient at a distance dz away from the base plane, GG' is the first
 derivative, etc.  The order of the polynomial is given by n_deriv_max.
 
@@ -193,11 +193,11 @@ using more planes will make the calculation less accurate.
 
 The weight for a given field point is determined by the setting of the core_weight and
 outer_plane_weight parameters. The weight is a product of two factors:
-	weight(x,y,dz) = w_core(x,y) * w_plane(dz)
+  weight(x,y,dz) = w_core(x,y) * w_plane(dz)
 where (x,y,dz) are the coordinates of the field point with respect to the base plane.
 
 The w_core(x,y) factor is computed from:
-	w_core(x,y) = core_weight * rmax^2 / (rmax^2 + r^2 * (core_weight - 1))
+  w_core(x,y) = core_weight * rmax^2 / (rmax^2 + r^2 * (core_weight - 1))
 where r^2 = x^2 + y^2 and rmax is the maximum r over all points. A setting of core_weight of 1 (the
 default) means that w_core is a constant. A setting of w_core greater than 1 means that the core
 points (points with low r) will have higher weight at the expense of points farther away. A better
@@ -205,7 +205,7 @@ core fit is generally what is wanted since particles of a beam will spend most o
 the core.
 
 The w_plane(dz) factor is computed from:
-	w_plane(dz) = 1 + (outer_plane_weight - 1) * |dz| / dz_max
+  w_plane(dz) = 1 + (outer_plane_weight - 1) * |dz| / dz_max
 where dz_max is the maximum dz at the ends of the fit region. If n_planes_add = 0 (in which case
 dz_max is zero and the above equation is singular), the above equation is ignored and a value of 1
 is used for w_plane. A setting of outer_plane_weight of 1 (the default) means that w_plane is a
@@ -222,21 +222,21 @@ grids.
 Operation Modes
 ---------------
 
-	mode = "ascii": In this mode a field table is read in and an ASCII field table is written.
+  mode = "ascii": In this mode a field table is read in and an ASCII field table is written.
 If z_min or z_max is set, the created file will only contain data within these bounds plus
 n_planes_add to either side.
 
-	mode = "binary": In this mode there is no analysis and a binary table is created
+  mode = "binary": In this mode there is no analysis and a binary table is created
 with a ".binary" suffix. This binary table can be used for the field_file in which case reading in the
 table will be faster (it is not clear that with the present speed of computers that this ability to
 create binary files is useful). If z_min or z_max is set, the created file will only contain
 data within these bounds plus n_planes_add to either side. 
 
-	mode = "fit": In this mode the standard GG analysis is done.
+  mode = "fit": In this mode the standard GG analysis is done.
 
-	mode = "output_table": This mode is used to convert GGs to a field table. See below.
+  mode = "output_table": This mode is used to convert GGs to a field table. See below.
 
-	mode = "truncate_gg": In this mode, GG derivatives are read in from a Bmad lattice file and a
+  mode = "truncate_gg": In this mode, GG derivatives are read in from a Bmad lattice file and a
 Bmad compatable output file is created with the number of derivatives truncated (if n_deriv_max is set
 non-negative) and/or the z-extent limited (if Nz_min and/or Nz_max are set).
 
