@@ -290,7 +290,8 @@ else
   iz_max = min(Nz_max, nint(z_max/del_meters(3)))
 endif
 
-r_max = norm2([max(abs(Nx_min), abs(Nx_max)) * del_meters(1), max(abs(Ny_min), abs(Ny_max)) * del_meters(2)])
+r_max = norm2([max(abs(Nx_min), abs(Nx_max)) * del_meters(1) + r0_meters(1), &
+               max(abs(Ny_min), abs(Ny_max)) * del_meters(2) + r0_meters(2)])
 print *, 'r_max radius: ', r_max
 
 !--------------------------------------
@@ -502,10 +503,11 @@ allocate (var_vec(n_var), vec0(n_var), weight(n_merit))
 vec0 = 0
 var_vec = 0
 
-r2_max = (max(abs(Nx_min), Nx_max) * del_meters(1))**2 + (max(abs(Ny_min), Ny_max) * del_meters(2))**2
+r2_max = (max(abs(Nx_min), Nx_max) * del_meters(1) + r0_meters(1))**2 + &
+         (max(abs(Ny_min), Ny_max) * del_meters(2) + r0_meters(2))**2
 do ix = Nx_min, Nx_max
 do iy = Ny_min, Ny_max
-  r2 = (ix*del_meters(1))**2 + (iy*del_meters(2))**2
+  r2 = (ix*del_meters(1)+r0_meters(1))**2 + (iy*del_meters(2)+r0_meters(2))**2
   xy(ix,iy) = core_weight * r2_max / (r2_max + r2 * (core_weight - 1))
 enddo
 enddo
@@ -655,9 +657,9 @@ do izz = iz0, iz1
       f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
 
       do ix = Nx_min, Nx_max
-        x = ix * del_meters(1)
+        x = ix * del_meters(1) + r0_meters(1)
         do iy = Ny_min, Ny_max
-          y = iy * del_meters(2)
+          y = iy * del_meters(2) + r0_meters(2)
           rho = sqrt(x*x + y*y)
           theta = atan2(y,x)
 
@@ -996,7 +998,7 @@ write (1, '(a)')              '  gen_grad_map = {'
 write (1, '(a)')              '    field_scale = 1.0,'
 write (1, '(3a)')             '    ele_anchor_pt = ', trim(ele_anchor_pt), ','
 write (1, '(a, f10.6, a)')    '    dz =', del_meters(3), ','
-write (1, '(3(a, f12.8), a)') '    r0 = (', r0_grid(1), ',', r0_grid(2), ',', r0_grid(3), '),'
+write (1, '(a, f12.8, a)')    '    r0 = (0, 0,', r0_grid(3), '),'
 
 do ig = 1, size(gg1)
   gg => gg1(ig)
