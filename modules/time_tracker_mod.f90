@@ -184,6 +184,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       if (add_ds_safe) then
         s_body = s_body + orb%time_dir * sign_of(orb%vec(6)) * ds_safe
         orb%s = orb%s + orb%direction * orb%time_dir * ds_safe
+        add_ds_safe = .false.
       endif
     enddo
   endif
