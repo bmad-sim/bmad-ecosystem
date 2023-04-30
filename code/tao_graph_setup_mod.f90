@@ -2325,6 +2325,32 @@ do ii = 1, size(curve%x_line)
   endif
 
   !-----------------------------
+  ! Fields at constant transverse position do not need tracking and should not be affected by lost particles.
+
+  select case (data_type_select)
+  case ('b0_field', 'b0_curve', 'b0_div', 'e0_field', 'e0_curve', 'e0_div')
+    orbit = ele_here%time_ref_orb_in
+    orbit%vec(1:5:2) = [curve%orbit%x, curve%orbit%y, 0.0_rp]
+    orbit%t = curve%orbit%t
+    orbit%s = s_now
+    value = tao_param_value_at_s (data_type, ele_here, orbit, err, why_invalid)
+    if (err) then
+      call tao_set_curve_invalid(curve, why_invalid, .true.)
+      good = .false.
+      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+      if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
+      ok = .false.
+      return
+    endif
+
+    curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
+    s_last = s_now
+    if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false. ! The cache is not getting loaded.
+    cycle
+  end select
+
+
+  !-----------------------------
 
   select case (curve%data_source)
   case ('beam')
@@ -2697,12 +2723,6 @@ case ('chrom')
   value = sqrt(aa**2 + bb**2)
 
 case default
-  select case (data_type_select)
-  case ('b0_field', 'b0_curve', 'b0_div', 'e0_field', 'e0_curve', 'e0_div')
-    orbit%vec(1:5:2) = [curve%orbit%x, curve%orbit%y, 0.0_rp]
-    orbit%t = curve%orbit%t
-  end select
-
   value = tao_param_value_at_s (data_type, ele, orbit, err, why_invalid)
   if (err) then
     call tao_set_curve_invalid(curve, why_invalid, .true.)
