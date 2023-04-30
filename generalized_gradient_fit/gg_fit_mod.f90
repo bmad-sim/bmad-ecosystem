@@ -1092,7 +1092,7 @@ if (setup_field_table) then
     theta = atan2(xy(2), xy(1))
 
     do ig = 1, size(gg_map%gg)
-      field = gen_grad_field (gg_map%gg(ig)%deriv(iz,:), gg_map%gg(ig)%m, gg_map%gg(ig)%sincos, rho, theta)
+      field = gen_grad_field (gg_map%gg(ig)%deriv(iz,:), gg_map%gg(ig), rho, theta)
       Bx_dat(ix,iy,iz) = Bx_dat(ix,iy,iz) + field(1)
       By_dat(ix,iy,iz) = By_dat(ix,iy,iz) + field(2)
       Bz_dat(ix,iy,iz) = Bz_dat(ix,iy,iz) + field(3)
