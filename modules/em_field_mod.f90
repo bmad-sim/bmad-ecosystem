@@ -692,26 +692,26 @@ end subroutine em_field_derivatives
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Fuction gen_grad_field (deriv, m, sincos, rho, theta) result (field)
+! Fuction gen_grad_field (deriv, gg, rho, theta) result (field)
 !
 ! Routine to calculate the field from a generalized gradient.
 !
 ! Input:
 !   deriv(0:)     -- real(rp): Array of derivatives.
-!   m             -- integer: Azimuthal order.
-!   sincos        -- integer: sin$ or cos$
+!   gg            -- gen_grad1_struct: Contains m, sincos, and n_deriv_max parameters. 
 !   rho, theta    -- real(rp): Particle transverse position in cylindrical coords.
 !
 ! Output:
 !   field(3)      -- real(rp): Field.
 !-
 
-function gen_grad_field (deriv, m, sincos, rho, theta) result (field)
+function gen_grad_field (deriv, gg, rho, theta) result (field)
+
+type (gen_grad1_struct) :: gg
 
 real(rp) deriv(0:), field(3), rho, theta
 real(rp) cd, f, ff, F_rho, F_theta, p_rho
 
-integer m, sincos 
 integer id, nn
 logical is_even
 
@@ -719,7 +719,7 @@ logical is_even
 
 field = 0
 
-do id = 0, ubound(deriv,1)
+do id = 0, gg%n_deriv_max
   cd = deriv(id)
   if (cd == 0) cycle
 
@@ -730,32 +730,32 @@ do id = 0, ubound(deriv,1)
     nn = (id - 1) / 2
   endif
 
-  f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
+  f = (-0.25_rp)**nn * factorial(gg%m) / (factorial(nn) * factorial(nn+gg%m))
 
-  if (id+m-1 <= 0) then  ! Covers case where rho = 0
+  if (id+gg%m-1 <= 0) then  ! Covers case where rho = 0
     p_rho = 1
   else
-    p_rho = rho**(id+m-1)
+    p_rho = rho**(id+gg%m-1)
   endif
 
   ff = f * p_rho * cd
 
   if (is_even) then
-    if (sincos == sin$) then
-      F_rho   = ff * (2*nn+m) * sin(m*theta)
-      F_theta = ff * m * cos(m*theta)
+    if (gg%sincos == sin$) then
+      F_rho   = ff * (2*nn+gg%m) * sin(gg%m*theta)
+      F_theta = ff * gg%m * cos(gg%m*theta)
     else
-      F_rho   = ff * (2*nn+m) * cos(m*theta)
-      F_theta = -ff * m * sin(m*theta)
+      F_rho   = ff * (2*nn+gg%m) * cos(gg%m*theta)
+      F_theta = -ff * gg%m * sin(gg%m*theta)
     endif
     field(1) = field(1) + F_rho * cos(theta) - F_theta * sin(theta)
     field(2) = field(2) + F_rho * sin(theta) + F_theta * cos(theta)
 
   else
-    if (sincos == sin$) then
-      field(3) = field(3) + ff * sin(m*theta)
+    if (gg%sincos == sin$) then
+      field(3) = field(3) + ff * sin(gg%m*theta)
     else
-      field(3) = field(3) + ff * cos(m*theta)
+      field(3) = field(3) + ff * cos(gg%m*theta)
     endif
   endif
 
