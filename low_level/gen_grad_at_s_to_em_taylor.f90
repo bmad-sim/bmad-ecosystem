@@ -1,7 +1,7 @@
 !+
 ! Subroutine gen_grad_at_s_to_em_taylor (ele, gen_grad, s_pos, em_taylor)
 !
-! Routine to return the equivalent Taylor field map at a point s_pos
+! Routine to return the equivalent Taylor field map at a point s_pos.
 !
 ! Input:
 !   ele           -- ele: Element containing the map.
