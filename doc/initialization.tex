@@ -967,9 +967,14 @@ example,
   /
 \end{example}
 
-A particle beam is initialized in the \vn{tao_beam_init} namelist block.  The file that \tao looks
+Particle beam initialization parameters are set in the \vn{tao_beam_init} namelist block. The file that \tao looks
 in to find this namelist is set by the \vn{beam_file} component of the \vn{tao_start} namelist
 (\sref{s:init.begin}). The default, if \vn{beam_file} is not set, is the root initialization file.
+If the beam initial distribution is {\em not} being read in from a file, \tao calculates the beam initial distribution
+based upon the settings of the \vn{beam_init} structure (see below) and the local Twiss and orbit values at the position
+the beam is initialized at. To avoid jitter due to random number fluctuations, recalculation of the beam initial distribution
+is not automatically done if the beam is tracked multiple times. Rather, recalculation is only done after a \vn{reinit beam}
+command (\sref{s:reinit}) or after changes to the \vn{beam_init} parameters.
 
 The syntax of the \vn{tao_beam_init} namelist is:
 \index{tao_beam_init}\index{ix_universe}
