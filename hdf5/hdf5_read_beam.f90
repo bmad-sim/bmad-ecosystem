@@ -146,6 +146,7 @@ type (coord_struct), pointer :: p
 
 real(rp) charge_factor, f_ev, p0c_initial, p0c_final
 real(rp), allocatable :: dt(:), tot_mom(:), mom_x_off(:), mom_y_off(:), mom_z_off(:)
+real(rp), allocatable :: pos_x_off(:), pos_y_off(:), pos_z_off(:)
 
 integer(hid_t), value :: root_id
 integer(hid_t) g_id, g2_id, a_id
@@ -170,14 +171,14 @@ g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error
 call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.);  if (error) return
 
 allocate (dt(n), charge_state(n), tot_mom(n), mom_x_off(n), mom_y_off(n), mom_z_off(n))
+allocate (pos_x_off(n), pos_y_off(n), pos_z_off(n))
 
 charge_factor = 0
 species = int_garbage$  ! Garbage number
 tot_mom = real_garbage$
 charge_state = 0
-mom_x_off = 0
-mom_y_off = 0
-mom_z_off = 0
+mom_x_off = 0;  mom_y_off = 0;  mom_z_off = 0
+pos_x_off = 0;  pos_y_off = 0;  pos_z_off = 0
 
 call reallocate_bunch(bunch, n)
 bunch%particle = coord_struct()
@@ -236,22 +237,26 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, 'position/x', 1.0_rp, bunch%particle%vec(1), error)
     call pmd_read_real_dataset(g2_id, 'position/y', 1.0_rp, bunch%particle%vec(3), error)
     call pmd_read_real_dataset(g2_id, 'position/z', 1.0_rp, bunch%particle%vec(5), error)
+  case ('positionOffset')
+    call pmd_read_real_dataset(g2_id, 'positionOffset/x', 1.0_rp, pos_x_off, error)
+    call pmd_read_real_dataset(g2_id, 'positionOffset/y', 1.0_rp, pos_y_off, error)
+    call pmd_read_real_dataset(g2_id, 'positionOffset/z', 1.0_rp, pos_z_off, error)
   case ('momentum')
     call pmd_read_real_dataset(g2_id, 'momentum/x', f_ev, bunch%particle%vec(2), error)
     call pmd_read_real_dataset(g2_id, 'momentum/y', f_ev, bunch%particle%vec(4), error)
     call pmd_read_real_dataset(g2_id, 'momentum/z', f_ev, bunch%particle%vec(6), error)
+  case ('momentumOffset')
+    call pmd_read_real_dataset(g2_id, 'momentumOffset/x', f_ev, mom_x_off, error)
+    call pmd_read_real_dataset(g2_id, 'momentumOffset/y', f_ev, mom_y_off, error)
+    call pmd_read_real_dataset(g2_id, 'momentumOffset/z', f_ev, mom_z_off, error)
   case ('velocity')
     call pmd_read_real_dataset(g2_id, 'velocity/x', c_light, bunch%particle%vec(2), error)
     call pmd_read_real_dataset(g2_id, 'velocity/y', c_light, bunch%particle%vec(4), error)
     call pmd_read_real_dataset(g2_id, 'velocity/z', c_light, bunch%particle%vec(6), error)
-  case ('momentumOffset')
-    call pmd_read_real_dataset(g2_id, 'momentum/x', f_ev, mom_x_off, error)
-    call pmd_read_real_dataset(g2_id, 'momentum/y', f_ev, mom_y_off, error)
-    call pmd_read_real_dataset(g2_id, 'momentum/z', f_ev, mom_z_off, error)
   case ('velocityOffset')
-    call pmd_read_real_dataset(g2_id, 'velocity/x', c_light, mom_x_off, error)
-    call pmd_read_real_dataset(g2_id, 'velocity/y', c_light, mom_y_off, error)
-    call pmd_read_real_dataset(g2_id, 'velocity/z', c_light, mom_z_off, error)
+    call pmd_read_real_dataset(g2_id, 'velocityOffset/x', c_light, mom_x_off, error)
+    call pmd_read_real_dataset(g2_id, 'velocityOffset/y', c_light, mom_y_off, error)
+    call pmd_read_real_dataset(g2_id, 'velocityOffset/z', c_light, mom_z_off, error)
   case ('pathLength')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%dt_ref, error)
     bunch%particle%dt_ref = bunch%particle%dt_ref/c_light
@@ -311,6 +316,10 @@ if (species == int_garbage$) then
   error = .true.
   return
 endif
+
+bunch%particle%vec(1) = bunch%particle%vec(1) + pos_x_off
+bunch%particle%vec(3) = bunch%particle%vec(3) + pos_y_off
+bunch%particle%vec(5) = bunch%particle%vec(5) + pos_z_off
 
 bunch%particle%vec(2) = bunch%particle%vec(2) + mom_x_off
 bunch%particle%vec(4) = bunch%particle%vec(4) + mom_y_off

@@ -953,7 +953,7 @@ subroutine calc_time_ref_orb_out (ele, orb_end)
 type (ele_struct), target :: ele
 type (coord_struct) orb_end
 type (ele_struct), pointer :: lord
-
+integer ii
 !
 
 ele%time_ref_orb_out = orb_end
@@ -972,7 +972,10 @@ endif
 if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$) then
   ele%time_ref_orb_out%vec(5) = 0
 elseif (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
-  lord => pointer_to_lord(ele, 1)
+  do ii = 1, ele%n_lord
+    lord => pointer_to_lord(ele, ii)
+    if (lord%key /= pipe$) exit
+  enddo
   beta0 = lord%value(l$) / (c_light * lord%value(delta_ref_time$))
   ele_ref_time = ele%value(ref_time_start$) + ele%value(l$) / (c_light * beta0)
   ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele_ref_time - orb_end%t)
