@@ -46,10 +46,10 @@ assumed to be in ASCII format.
 
 For the ASCII format The field table must have 7 header lines that look like:
 
-0.01            ! File length_scale in meters. EG: 0.01 => Positions are in cm.
+0.01            ! File length_scale in meters. EG: 0.01 => Positions, deltas, and offsets are in cm.
 1e-4            ! File field_scale in Tesla or V/m. EG: 1e-4 => Field in Gauss (if magnetic).
 0.4  0.2  0.2   ! del_x,y,z  Spacing between grid points in table units (not meters).
-0    0    0     ! r0 (x,y,z) offset of the origin.
+0    0    0     ! r0 (x,y,z) offset of the origin (not meters).
 
 The remaining lines have the format:
   x-position    y-position  z-position   Field_x   Field_y   Field_z
@@ -134,7 +134,7 @@ z_min, z_max: Range of z-planes to analyze. In units of meters. If not present o
 the table lower bound, the beginning of the range will be the table lower bound. A similar logic holds
 for z_max.
 
-mode: See the Modes section
+mode: See the Operation Modes section
 
 optimizer: There are two optimizers that can be used: "lm" and "lmdif". Both are variants of the
 Levenburg-Marquardt algorithm. It is expected that the two optimizers should give the same results. 

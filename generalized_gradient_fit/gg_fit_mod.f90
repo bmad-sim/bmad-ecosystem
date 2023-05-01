@@ -290,8 +290,8 @@ else
   iz_max = min(Nz_max, nint(z_max/del_meters(3)))
 endif
 
-r_max = norm2([max(abs(Nx_min), abs(Nx_max)) * del_meters(1) + r0_meters(1), &
-               max(abs(Ny_min), abs(Ny_max)) * del_meters(2) + r0_meters(2)])
+r_max = norm2([max(abs(Nx_min*del_meters(1) + r0_meters(1)), abs(Nx_max*del_meters(1) + r0_meters(1))), &
+               max(abs(Ny_min*del_meters(2) + r0_meters(2)), abs(Ny_max*del_meters(2) + r0_meters(2)))])
 print *, 'r_max radius: ', r_max
 
 !--------------------------------------
@@ -503,8 +503,8 @@ allocate (var_vec(n_var), vec0(n_var), weight(n_merit))
 vec0 = 0
 var_vec = 0
 
-r2_max = (max(abs(Nx_min), Nx_max) * del_meters(1) + r0_meters(1))**2 + &
-         (max(abs(Ny_min), Ny_max) * del_meters(2) + r0_meters(2))**2
+r2_max = max(abs(Nx_min*del_meters(1) + r0_meters(1)), abs(Nx_max*del_meters(1) + r0_meters(1)))**2 + &
+         max(abs(Ny_min*del_meters(2) + r0_meters(2)), abs(Ny_max*del_meters(2) + r0_meters(2)))**2
 do ix = Nx_min, Nx_max
 do iy = Ny_min, Ny_max
   r2 = (ix*del_meters(1)+r0_meters(1))**2 + (iy*del_meters(2)+r0_meters(2))**2
