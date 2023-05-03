@@ -82,27 +82,29 @@ See the "GG to Field Table" section of this file for documentation on how to con
 coefficients to a field table file. For all other modes which convert field table to GG, the
 parameter file will look like:
 
-&params                    ! This line signals the beginning of the parameter list
+&params                        ! This line signals the beginning of the parameter list
   field_file = "w22-20_25_94.table.binary"  ! Field table file. .binary suffix => binary file.
-  out_file = "gg"          ! Output file prefix. Output files will have suffixes like ".dat" and ".bmad".
-  every_n_th_plane = 1     ! If equal 2, skip every other z-plane, etc.
-  n_deriv_max = 4          ! Max derivative order output order. Min order is zero.
-  n_deriv_extra = 0        ! Extra derivatives used in the fit. Derivative range in fit is [0, n_deriv_max+n_deriv_extra].
-  m_cos = -1               ! List of m-values for cosine like GG. -1 => no cosine GG.
-  m_sin =  1, 3, 5         ! List of m-values for sine like GG.
-  z_min = 3                ! z-plane lower bound to start calc at. If not present, use field table lower bound.
-  z_max = 13               ! z-plane upper bound to stop calc at. If not present, use field table upper bound.
-  mode = "fit"             ! or "binary" to create a binary field table file.
-  optimizer = "lm"         ! Optimizer to use. Alternative is "lmdif".
-  n_planes_add = 0         ! Extra planes to use for the analysis
-  core_weight = 1          ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
-  outer_plane_weight = 1   ! Merit function weight for the "outer" z-planes. Default is 1 (uniform weighting).
-  sym_x = 1                ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
-  sym_y = -1               ! Y-axis symmetry. Possibilities are: -1, 0 (default), 1.
-  ele_anchor_pt = "beginning" ! or "center" or "end". Used to construct lattice file.
-  x_pos_plot = 0, 0.02, 0.05  ! x-positions (in meters) to create a plotting file.
-  y_pos_plot = 0, 0.01, 0.02  ! y-positions (in meters) to create a plotting file.
-/                        ! Ending slash signals end of param list. Everything outside is ignored.
+  out_file = "gg"              ! Output file prefix. Output files will have suffixes like ".dat" and ".bmad".
+  every_n_th_plane = 1         ! If equal 2, skip every other z-plane, etc.
+  n_deriv_max = 4              ! Max derivative order output order. -1 => ignore.
+	n_deriv_max_cos = -1				 ! List of maximum derivatives for cos-like GG. Used to override n_deriv_max. -1 => ignore.
+	n_deriv_max_sin = -1, -1, -1 ! List of maximum derivatives for sin-like GG. Used to override n_deriv_max. -1 => ignore.
+  n_deriv_extra = 0            ! Extra derivatives used in the fit.
+  m_cos = -1                   ! List of m-values for cosine like GG. -1 => no cosine GG.
+  m_sin =  1, 3, 5             ! List of m-values for sine like GG.
+  z_min = 3                    ! z-plane lower bound to start calc at. If not present, use field table lower bound.
+  z_max = 13                   ! z-plane upper bound to stop calc at. If not present, use field table upper bound.
+  mode = "fit"                 ! or "binary" to create a binary field table file.
+  optimizer = "lm"             ! Optimizer to use. Alternative is "lmdif".
+  n_planes_add = 0             ! Extra planes to use for the analysis
+  core_weight = 1              ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
+  outer_plane_weight = 1       ! Merit function weight for the "outer" z-planes. Default is 1 (uniform weighting).
+  sym_x = 1                    ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
+  sym_y = -1                   ! Y-axis symmetry. Possibilities are: -1, 0 (default), 1.
+  ele_anchor_pt = "beginning"  ! or "center" or "end". Used to construct lattice file.
+  x_pos_plot = 0, 0.02, 0.05   ! x-positions (in meters) to create a plotting file.
+  y_pos_plot = 0, 0.01, 0.02   ! y-positions (in meters) to create a plotting file.
+/                              ! Ending slash signals end of param list. Everything outside is ignored.
 
 field_file: Name of the file containing the field table or GG derivatives. If the name has a ".bmad"
 suffix, it will be assumed that the file is a Bmad lattice file. If the name has a ".binary" suffix,
@@ -123,8 +125,14 @@ n_deriv_extra: Extra derivatives used in the fit above n_deriv_max. That is, in 
 the derivatives of order 0 through n_deriv_max+n_deriv_extra will be used. The default is 0.
 
 n_deriv_max: For any given z-position, this parameter sets the maximum derivative order outputted to
-the lattice file. The minimum derivative order is zero so the number of derivatives will be
-n_deriv_max+1.
+the lattice file. The minimum derivative order is zero so the number of derivatives, which includes
+the zeroth order derivative will be n_deriv_max+1. Used with n_deriv_max_cos and n_deriv_max_sin. A
+value of -1 means ignore. n_deriv_max is only used for a given GG if the corresponding
+n_deriv_max_cos and n_deriv_max_sin is not set.
+
+n_deriv_max_cos, n_deriv_max_sin: For any given z-position, this parameter is a list of the maximum
+derivative order outputted to the lattice file for cos-like and sin-like GGs. The list corresponds one-to-one
+with the m_cos and m_sin lists. Also see n_deriv_max. A value of -1 means ignore.
 
 m_cos, m_sin: Lists of cosine and sine azimuthal harmonics to analyze. A list of "-1" means there
 are no harmonics of this type. In the above example, no cosine harmonics are used and harmonics
