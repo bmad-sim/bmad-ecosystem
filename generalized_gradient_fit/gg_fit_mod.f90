@@ -15,6 +15,7 @@ type gg1_struct
   integer :: sym_score = 1  ! Symmetry score. 0 => do not use in fit.
   real(rp), allocatable :: deriv(:,:)    ! (iz, deriv)
   integer, allocatable :: ix_var(:)      ! Index to var_vec(:) array.
+  integer :: n_deriv_max = -1
 end type
 
 type (gg1_struct), allocatable, target :: gg1(:)
@@ -49,12 +50,12 @@ integer :: Nx_min, Nx_max, Ny_min, Ny_max, Nz_min = int_garbage$, Nz_max = int_g
 integer :: n_grid_pts
 integer :: n_cycles = 100000
 integer :: every_n_th_plane = 1, n_planes_add = 0
-integer :: n_deriv_max = -1, n_deriv_extra = 0, n_deriv_tot
+integer :: n_deriv_max = -1
 integer :: iz_min = int_garbage$, iz_max = int_garbage$    ! Compute range
-integer :: m_cos(m_max) = -1
-integer :: m_sin(m_max) = -1
+integer :: m_cos(m_max) = -1, n_deriv_max_cos(m_max) = -1
+integer :: m_sin(m_max) = -1, n_deriv_max_sin(m_max) = -1
 integer :: sym_x = 0, sym_y = 0
-integer n_var0, n_var, n_merit
+integer n_var, n_merit
 
 real(rp) :: x_pos_plot(50) = real_garbage$, y_pos_plot(50) = real_garbage$
 
@@ -444,19 +445,9 @@ enddo
 
 !
 
-n_deriv_tot = n_deriv_max + n_deriv_extra
 n_gg = (count(m_cos /= -1) + count(m_sin /= -1))
-n_var0 = n_gg * (n_deriv_tot + 1)
-do im = 1, size(m_cos)
-  if (m_cos(im) == 0) n_var0 = n_var0 - 1
-  if (m_sin(im) == 0) then
-    print *, 'M = 0 sin coefficients do not contribute to the field. Please remove m_sin set.'
-    stop
-  endif
-enddo
 
 n_merit = 3 * (Nx_max-Nx_min+1) * (Ny_max-Ny_min+1) * (2*n_planes_add+1)
-allocate (merit_vec(n_merit), dB_dvar_vec(n_merit, n_var0), zero_vec(n_merit))
 allocate (dBx_dvar(Nx_min:Nx_max, Ny_min:Ny_max), dBy_dvar(Nx_min:Nx_max, Ny_min:Ny_max))
 allocate (dBz_dvar(Nx_min:Nx_max, Ny_min:Ny_max))
 allocate (gg1(n_gg), xy(Nx_min:Nx_max, Ny_min:Ny_max))
@@ -471,25 +462,47 @@ do im = 1, size(m_cos)
     gg => gg1(n_gg)
     gg%sincos = cos$
     gg%m = m_cos(im)
-    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_tot), gg%ix_var(0:n_deriv_tot))
+
+    gg%n_deriv_max = n_deriv_max
+    if (n_deriv_max_cos(im) > -1) gg%n_deriv_max = n_deriv_max_cos(im)
+    if (gg%n_deriv_max < 0) then
+      print *, 'n_deriv_max and n_deriv_max_cos not set for cos-like GG with m = ' // int_str(gg%m) // '. Please fix.'
+      stop
+    endif
+
+    allocate (gg%deriv(iz_min:iz_max, 0:gg%n_deriv_max), gg%ix_var(0:gg%n_deriv_max))
     gg%deriv = 0; gg%ix_var = -1
     gg%sym_score = sym_score_calc (gg%sincos, gg%m)
-    do id = 0, n_deriv_tot
-      if (gg%m == 0 .and. id == 0) cycle
+    do id = 0, gg%n_deriv_max
+      if (gg%m == 0 .and. id == 0) cycle  ! Cos-like GG with m = 0, id = 0 does not exist.
       n_var = n_var + 1
       gg%ix_var(id) = n_var
     enddo
   endif
+enddo
 
+do im = 1, size(m_sin)
   if (m_sin(im) /= -1) then
     n_gg = n_gg + 1
     gg => gg1(n_gg)
     gg%sincos = sin$
     gg%m = m_sin(im)
-    allocate (gg%deriv(iz_min:iz_max, 0:n_deriv_tot), gg%ix_var(0:n_deriv_tot))
+    if (gg%m == 0) then
+      print *, 'M = 0 sin coefficients do not contribute to the field. Please remove m_sin set.'
+      stop
+    endif
+
+    gg%n_deriv_max = n_deriv_max
+    if (n_deriv_max_sin(im) > -1) gg%n_deriv_max = n_deriv_max_sin(im)
+    if (gg%n_deriv_max < 0) then
+      print *, 'n_deriv_max and n_deriv_max_sin not set for sin-like GG with m = ' // int_str(gg%m) // '. Please fix.'
+      stop
+    endif
+
+    allocate (gg%deriv(iz_min:iz_max, 0:gg%n_deriv_max), gg%ix_var(0:gg%n_deriv_max))
     gg%deriv = 0; gg%ix_var = -1
     gg%sym_score = sym_score_calc (gg%sincos, gg%m)
-    do id = 0, n_deriv_tot
+    do id = 0, gg%n_deriv_max
       n_var = n_var + 1
       gg%ix_var(id) = n_var
     enddo
@@ -497,6 +510,8 @@ do im = 1, size(m_cos)
 enddo
 
 !
+
+allocate (merit_vec(n_merit), dB_dvar_vec(n_merit, n_var), zero_vec(n_merit))
 
 allocate (fit(iz_min:iz_max))
 allocate (var_vec(n_var), vec0(n_var), weight(n_merit))
@@ -577,7 +592,7 @@ do iz = iz_min, iz_max, every_n_th_plane
 
   do ig = 1, size(gg1)
     gg => gg1(ig)
-    do id = 0, n_deriv_tot
+    do id = 0, gg%n_deriv_max
       if (gg%ix_var(id) < 1) cycle
       gg%deriv(iz,id) = var_vec(gg%ix_var(id))
     enddo
@@ -586,7 +601,7 @@ do iz = iz_min, iz_max, every_n_th_plane
   do ig = 1, size(gg1)
     print '(a)', '  Ix    m   nd  sym             Deriv       Deriv*r_max^(m+d-1)*(d+m)*m!/((d/2)!*(d/2+m)!)'
     gg => gg1(ig)
-    do id = 0, n_deriv_tot
+    do id = 0, gg%n_deriv_max
       if (gg%ix_var(id) > 0) then
         v = gg%deriv(iz,id)
         print '(i4, 3i5, 2x, a, es16.6, es12.2)', gg%ix_var(id), gg%m, id, &
@@ -635,7 +650,7 @@ do izz = iz0, iz1
 
   do ig = 1, size(gg1)
     gg => gg1(ig)
-    do id = 0, n_deriv_tot
+    do id = 0, gg%n_deriv_max
       iv = gg%ix_var(id)
       if (iv < 1) cycle
 
@@ -652,7 +667,7 @@ do izz = iz0, iz1
         nn = (id - 1) / 2
       endif
 
-      coef = poly_eval(var_vec(iv:iv+n_deriv_tot-id), (izz-iz)*del_meters(3), .true.)
+      coef = poly_eval(var_vec(iv:iv+gg%n_deriv_max-id), (izz-iz)*del_meters(3), .true.)
 
       f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
 
@@ -712,7 +727,7 @@ do izz = iz0, iz1
         dB_dvar_vec(n0+2*n3+1:n0+3*n3, iv) = reshape(dBz_dvar(:,:), [n3])
       endif
 
-    enddo   ! id = 0, n_deriv_tot
+    enddo   ! id = 0, gg%n_deriv_max
   enddo   ! ig = 1, size(gg1)
 
   !
@@ -864,7 +879,7 @@ write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 do ig = 1, size(gg1)
   gg => gg1(ig)
   m = gg%m
-  call re_allocate2 (dderiv, 0, n_deriv_max)
+  call re_allocate2 (dderiv, 0, gg%n_deriv_max)
 
   if (ig > 1) then
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
@@ -876,7 +891,7 @@ do ig = 1, size(gg1)
 
   do iz = iz_min, iz_max
     write (1, '(i4, f10.4, 99es16.8)') iz, iz*del_meters(3)+r0_grid(3), &
-                  (gg%deriv(iz,n) * r_max**(max(0,m+n-1)) * (n+m) * factorial(m) / (factorial(n/2) * factorial(n/2+m)), n = 0, n_deriv_max)
+                  (gg%deriv(iz,n) * r_max**(max(0,m+n-1)) * (n+m) * factorial(m) / (factorial(n/2) * factorial(n/2+m)), n = 0, gg%n_deriv_max)
   enddo
 
 enddo
@@ -894,7 +909,7 @@ write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 do ig = 1, size(gg1)
   gg => gg1(ig)
   m = gg%m
-  call re_allocate2 (dderiv, 0, n_deriv_max)
+  call re_allocate2 (dderiv, 0, gg%n_deriv_max)
 
   if (ig > 1) then
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
@@ -905,7 +920,7 @@ do ig = 1, size(gg1)
   write (1, '(a, i2)') '# Iz     z_pos   Deriv - left_extrapolated_deriv'
 
   do iz = iz_min+1, iz_max
-    do n = 0, n_deriv_max
+    do n = 0, gg%n_deriv_max
       dderiv(n) = gg%deriv(iz,n) - poly_eval(gg1(ig)%deriv(iz-1,n:), del_meters(3), .true.)
     enddo
 
@@ -926,7 +941,7 @@ write (1, '(a, f12.6, a)') '# r_max = ', r_max, '  ! Max transverse radius'
 do ig = 1, size(gg1)
   gg => gg1(ig)
   m = gg%m
-  call re_allocate2 (dderiv, 0, n_deriv_max)
+  call re_allocate2 (dderiv, 0, gg%n_deriv_max)
 
   if (ig > 1) then
     write (1, *)    ! Two blank lines is to separate the data sets for gnuplot plotting
@@ -937,7 +952,7 @@ do ig = 1, size(gg1)
   write (1, '(a, i2)') '# Iz     z_pos   Deriv - right_extrapolated_deriv'
 
   do iz = iz_min, iz_max-1
-    do n = 0, n_deriv_max
+    do n = 0, gg%n_deriv_max
       dderiv(n) = gg%deriv(iz,n) - poly_eval(gg1(ig)%deriv(iz+1,n:), -del_meters(3), .true.)
     enddo
 
@@ -1122,7 +1137,7 @@ else
     gg => gg_map%gg(ig)
     gg1(ig)%sincos = gg%sincos
     gg1(ig)%m      = gg%m
-    n = max(ubound(gg%deriv,2), n_deriv_max)
+    n = max(ubound(gg%deriv,2), gg%n_deriv_max)
     allocate(gg1(ig)%deriv(iz_min:iz_max, 0:n))
     gg1(ig)%deriv = gg%deriv(iz_min:iz_max, 0:n)
   enddo
