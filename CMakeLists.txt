@@ -15,6 +15,7 @@ SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 SET (SRC_DIRS
   code 
   hook
+  version
   )
 
 SET (EXE_SPECS
