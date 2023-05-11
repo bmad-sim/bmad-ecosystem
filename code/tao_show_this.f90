@@ -5984,28 +5984,8 @@ case ('variables')
 
 case ('version')
 
-  nl=nl+1; lines(nl) = 'SVN Version: ' // tao_svn_version
-  nl=nl+1; lines(nl) = 'SVN Dave: ' // tao_svn_date
-
-
-  name = '$TAO_DIR/VERSION'
-  call fullfilename (name, file_name)
-
-  iu = lunget()
-  open (iu, file = file_name, iostat = ios, status = 'old')
-  if (ios /= 0) then
-    nl=nl+1; lines(nl) = 'Distribution Version: Cannot open distribution version file $TAO_DIR/VERSION'
-    return
-  endif
-
-  read (iu, '(a)', iostat = ios) aname
-  if (ios /= 0) then
-    nl=nl+1; lines(nl) = 'Distribution Version: Cannot read distribution version file $TAO_DIR/VERSION'
-    return
-  endif
-  close (iu)
-
-  nl=nl+1; lines(nl) = 'Distribution Version: ' // aname
+  nl=nl+1; lines(nl) = 'Version: ' // tao_svn_version
+  nl=nl+1; lines(nl) = 'Date: ' // tao_svn_date
 
 !----------------------------------------------------------------------
 ! wake_elements
