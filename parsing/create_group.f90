@@ -43,7 +43,7 @@ integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
 
 logical err, err2, free
 
-character(40) attrib_name
+character(40) attrib_name, check_name
 
 ! Error check
 
@@ -117,13 +117,14 @@ do i = 1, n_control
 
   select case (attrib_name)
   case ('START_EDGE', 'END_EDGE', 'ACCORDION_EDGE', 'S_POSITION')
-    free = attribute_free (slave, 'L', .false., .false., .true.)
+    check_name = 'L'
   case default
-    free = attribute_free (slave, attrib_name, .false., .false., .true.)
+    check_name = attrib_name
   end select
 
+  free = attribute_free (slave, check_name, .true., .false., .true.)
   if (.not. free) then
-    call parser_error ('SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lord%name)
+    call parser_error ('SLAVE ATTRIBUTE ' // quote(attrib_name) // ' NOT FREE TO VARY FOR GROUP LORD: ' // lord%name)
     err = .true.
     return
   endif
