@@ -2,14 +2,6 @@ module time_tracker_mod
 
 use element_at_s_mod
 
-type time_runge_kutta_common_struct
-  integer :: num_steps_done = -1              ! Number of integration steps. Not used by Bmad. For external use.
-  logical :: print_too_many_step_err = .true.
-end type
-
-type (time_runge_kutta_common_struct), save :: time_runge_kutta_com
-
-
 contains
 
 !-------------------------------------------------------------------------

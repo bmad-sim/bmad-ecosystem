@@ -18,7 +18,7 @@
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
 
-use autoscale_mod, dummy2 => lat_compute_ref_energy_and_time
+use bmad_interface, dummy => lat_compute_ref_energy_and_time
 
 implicit none
 
@@ -488,7 +488,6 @@ end subroutine lat_compute_ref_energy_and_time
 subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
 
 use bmad_interface, dummy => ele_compute_ref_energy_and_time
-use autoscale_mod, only: autoscale_phase_and_amp
 use radiation_mod, only: track1_radiation
 
 implicit none
@@ -898,17 +897,10 @@ case (e_gun$)
   endif
 
 case (rfcavity$)
-  if (bmad_com%rf_phase_below_transition_ref) then
-    if (ele%value(phi0$) /= 0.5_rp) then
-      ele%value(phi0$) = 0.5_rp
-      has_changed = .true.
-    endif    
-  else
-    if (ele%value(phi0$) /= 0) then
-      ele%value(phi0$) = 0
-      has_changed = .true.
-    endif    
-  endif
+  if (ele%value(phi0$) /= 0) then
+    ele%value(phi0$) = 0
+    has_changed = .true.
+  endif    
 end select
 
 ! For speed, use symp_lie_ptc tracking if the taylor map does not exist or if the taylor

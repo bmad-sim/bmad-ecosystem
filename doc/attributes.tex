@@ -2795,7 +2795,7 @@ the ``desired'' is set by the \vn{voltage} or \vn{gradient} attribute of the ele
 
 The scaling problem is not present when \vn{bmad_standard} tracking (\sref{s:tkm}) is used since
 \vn{bmad_standard} tracking uses an integrated formula that is designed to give the proper
-acceleration. Rather it is a problem for Runge-Kutta and other methods integration methods.
+acceleration. Rather it is a problem for Runge-Kutta and other integration methods.
 
 The problem becomes even more complicated at non-ultra relativistic energies where the particle
 velocity is not a constant. In this case, the proper amplitude and/or phase settings will depend
@@ -2820,28 +2820,34 @@ scaling are varied.  The element parameters varied when autoscaling is done are:
   field_autoscale       ! Amplitude scale
   phi0_autoscale        ! phase scale
 \end{example}
-For an \vn{rfcavity} element, the \vn{field_autoscale} parameter is set so that when the phase is
+For an \vn{rfcavity} element, the \vn{field_autoscale} parameter is set such that when the phase is
 adjusted for maximum acceleration, the voltage gain of a particle on the zero orbit is equal to the
-value of the element's \vn{voltage} parameter and then phi0_autoscale is shifted by approximately 90
-degrees so that with \vn{phi0} equal to zero a particle on the zero orbit will not see any energy
-gain through the cavity.
+value of the element's \vn{voltage} parameter. 
+
+The \vn{phi0_autoscale} is set so that with \vn{phi0} equal to zero, a particle on the zero orbit
+will not see any energy gain through the cavity. There are two values for \vn{phi0_autoscale} where,
+with \vn{phi0} equal zero, the energy gain of the zero orbit particle is zero. If the \vn{bmad_com}
+global parameter \vn{rf_phase_below_transition_ref} (\sref{s:bmad.common}) is set to \vn{False} (the
+default), \vn{phi0_autoscale} will be set such that, with \vn{phi0} equal zero, the zero orbit for a
+particle above transition will be at the stable zero-crossing. For a particle below transition,
+setting \vn{rf_phase_below_transition_ref} to \vn{True}, will result in \vn{phi0_autoscale} being
+set such that, for particles below transition, and with \vn{phi0} equal zero, a particle on the zero
+orbit will be at the stable zero-crossing.
+
+It is important to keep in mind that with a ring, the closed orbit will be the equilibrium
+orbit. For example, for a ring with a single cavity, changes in \vn{phi0} will just result in
+variations in the closed orbit $z$. The voltage kick that the closed orbit particle gets going
+through the cavity is independent of \vn{phi0} and will be equal to the radiation losses throughout
+the ring (and if radiation of off, the kick will be zero).
 
 It is not possible to autoscale if the voltage is very small. \bmad sets a lower limit of 10~Volts
 and if the voltage is set less than this no scaling is done. If no autoscaling is done, the default
 setting of \vn{field_autoscale} is 1 and the default setting of \vn{phi0_autoscale} is 0.
 
-For an \vn{rfcavity}, the autoscaling is normally done around a phase of \vn{phi0} = 0 which is
-appropriate for a ring above transition since \vn{phi0} = 0 is the stable fixed point. Below
-transition, the stable fixed point is at \vn{phi0} = 0.5. In this case, the \vn{bmad_com} global
-parameter \vn{rf_phase_below_transition_ref} (\sref{s:bmad.common}) should be set to True so that
-autoscaling is done around \vn{phi0} = 0.5. For an ultrarelativistic reference particle with speed
-very nearly $c$ there is no difference in the autoscaling between \vn{phi0} = 0 and \vn{phi0} = 0.5.
-However, when there are velocity variations of the particle within the cavity there will be
-differences between autoscaling at the two phases.
-
-Notice that if autoscaling is on, the \vn{field_autoscale} is adjusted so that a particle on the
-zero orbit will see a field appropriate for the setting of the element's \vn{voltage} setting.  If
-autoscaling is off, the field is independent of the element's \vn{voltage} setting.
+Note: If a field map (\sref{s:fieldmap}) is used to define the cavity fields, in order for the
+field amplitude to vary with changes in the value of the \vn{voltage}, the \vn{master_parameter} of
+the field map must be set to \vn{voltage} (or \vn{gradient} since \vn{gradient} and \vn{voltage}
+are linked).
 
 \vn{field_autoscale} and \vn{phi0_autoscale} are not needed and therefore ignored when
 \vn{bmad_standard} tracking is done.

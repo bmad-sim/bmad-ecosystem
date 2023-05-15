@@ -858,10 +858,10 @@ For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
 \end{align}
 
 The functions $C_{m,\alpha}(z)$ are characterized by specifying $C_{m,\alpha}(z_i)$ and derivatives
-at equally spaced points $z_i$, up to some maximum derivative order $N$ chosen by the
+at equally spaced points $z_i$, up to some maximum derivative order $N_{m,\alpha}$ chosen by the
 user. Interpolation is done by constructing an interpolating polynomial (``non-smoothing spline'')
-of order $2N+1$ for each
-interval $[z_i, z_{i+1}]$ which has the correct derivatives from $0$ to $N$ at points $z_i$ and
+for each GG of order $2N_{m,\alpha}+1$ for each
+interval $[z_i, z_{i+1}]$ which has the correct derivatives from $0$ to $N_{m,\alpha}$ at points $z_i$ and
 $z_{i+1}$. The coefficients of the interpolating polynomial are easily calculated by inverting the
 appropriate matrix equation.
 
@@ -875,8 +875,8 @@ is easier (the calculation of $C_{m,\alpha}(z)$ at $z_i$ can be done using only 
 independent of other regions) and it is easier to ensure that the field goes to zero at the
 longitudinal ends of the element. Additionally, the evaluation is faster since only coefficients to
 either side of the evaluation point contribute. The disadvantage of generalized gradients is that
-since the derivatives are truncated at some order $N$, the resulting field does not satisfy
-Maxwell's equations with the error scalling with radius to the order of truncation.
+since the derivatives are truncated at some order $N_{m,\alpha}$, the resulting field does not satisfy
+Maxwell's equations with the error as a function of radius scaling with the power $\rho^{m+N_{m,\alpha}}$.
 
 It is sometimes convenient to express the fields in terms of Cartesian coordinates. For sine like
 even derivatives $C_{m,s}^{[2n]}$ the conversion is
