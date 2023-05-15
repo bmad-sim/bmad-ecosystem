@@ -1,16 +1,3 @@
-module autoscale_mod
-
-use bmad_interface
-use time_tracker_mod
-
-integer, private, save :: n_call ! Used for debugging.
-logical, private, save :: is_lost
-
-contains
-
-!--------------------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------------------
 !+
 ! Subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_amp, scale_phase, call_bookkeeper)
 !
@@ -68,6 +55,8 @@ contains
 subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp, call_bookkeeper)
 
 use super_recipes_mod, only: super_zbrent
+use bmad_interface
+use time_tracker_mod
 
 implicit none
 
@@ -84,7 +73,9 @@ real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 integer n_pts, n_pts_tot, n_loop, n_loop_max, status, sign_of_dE
+integer :: n_call ! Used for debugging.
 
+logical :: is_lost
 logical step_up_seen, err_flag, do_scale_phase, do_scale_amp, phase_scale_good, amp_scale_good
 logical, optional :: scale_phase, scale_amp, call_bookkeeper
 logical :: debug = .false.
@@ -229,7 +220,6 @@ endif
 
 value_saved = ele%value
 ele%value(phi0$) = 0
-if (ele%key == rfcavity$ .and. bmad_com%rf_phase_below_transition_ref) ele%value(phi0$) = 0.5_rp
 ele%value(phi0_multipass$) = 0
 ele%value(phi0_err$) = 0
 if (ele%key == lcavity$ .or. ele%key == e_gun$) ele%value(gradient_err$) = 0
@@ -469,6 +459,8 @@ if (ele%key == rfcavity$) then
   value_saved(phi0_max$) = ele%value(phi0_autoscale$)  ! Save for use with OPAL
   if (do_scale_phase) then
     dphi = 0.1
+    if (bmad_com%rf_phase_below_transition_ref) dphi = -dphi
+
     phi_max = phi_max - dphi
     do
       phi = phi_max - dphi
@@ -578,5 +570,3 @@ neg_pz = -pz_calc(phi, err_flag)
 end function neg_pz_calc
 
 end subroutine autoscale_phase_and_amp
-
-end module

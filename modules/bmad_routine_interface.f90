@@ -190,6 +190,15 @@ subroutine attribute_set_bookkeeping (ele, attrib_name, err_flag, attrib_ptr)
   logical err_flag
 end subroutine
 
+subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp, call_bookkeeper)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (lat_param_struct), target :: param
+  logical err_flag
+  logical, optional :: scale_phase, scale_amp, call_bookkeeper
+end subroutine
+
 function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
   import
   implicit none

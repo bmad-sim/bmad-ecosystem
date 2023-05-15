@@ -1992,6 +1992,15 @@ type (space_charge_common_struct), save, target :: space_charge_com
 
 !------------------------------------------------------------------------------
 
+type time_runge_kutta_common_struct
+  integer :: num_steps_done = -1              ! Number of integration steps. Not used by Bmad. For external use.
+  logical :: print_too_many_step_err = .true.
+end type
+
+type (time_runge_kutta_common_struct), save :: time_runge_kutta_com
+
+!------------------------------------------------------------------------------
+
 integer, parameter :: invalid_name$ = 0, is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
 integer, parameter :: is_struct$ = 6, unknown$ = 7
 
