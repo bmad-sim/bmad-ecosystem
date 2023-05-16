@@ -55,8 +55,7 @@
 subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp, call_bookkeeper)
 
 use super_recipes_mod, only: super_zbrent
-use bmad_interface
-use time_tracker_mod
+use bmad_interface, dummy => autoscale_phase_and_amp
 
 implicit none
 
