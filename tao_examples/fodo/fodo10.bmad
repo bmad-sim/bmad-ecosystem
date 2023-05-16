@@ -1,4 +1,4 @@
-call, file = $ACC_ROOT_DIR/tao/examples/fodo/fodo.bmad
+call, file = fodo.bmad
 call, file = markers.bmad
 
 Q1[k1] = 20.6297896339797
