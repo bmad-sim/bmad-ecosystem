@@ -4,7 +4,7 @@
 ! This module defines the differnet types of particles that Bmad knows about along
 ! with masses, etc.
 !
-! IMPORTANT: DO USE HARD CODED ID NUMBERS IN YOUR CODE!! 
+! IMPORTANT: DO NOT USE HARD CODED ID NUMBERS IN YOUR CODE!! 
 ! For example, the association of positrons with ID = 1 is not assured.
 ! In general, use species_id(name) to get the species ID number or you can use positron$, 
 ! proton$, etc, for particles that have named paramters (see below for a list).
@@ -54,7 +54,7 @@ implicit none
 
 integer, parameter :: pion_0$            = +8
 integer, parameter :: ref_particle$      = +7
-integer, parameter :: neutron            = +6
+integer, parameter :: neutron$           = +6
 integer, parameter :: deuteron$          = +5
 integer, parameter :: pion_plus$         = +4
 integer, parameter :: antimuon$          = +3
@@ -66,7 +66,7 @@ integer, parameter :: antiproton$        = -2
 integer, parameter :: muon$              = -3
 integer, parameter :: pion_minus$        = -4
 integer, parameter :: anti_deuteron$     = -5
-integer, parameter :: anti_neutron       = -6
+integer, parameter :: anti_neutron$      = -6
 integer, parameter :: anti_ref_particle$ = -7
 
 integer, parameter :: lbound_subatomic = -7, ubound_subatomic = 8
