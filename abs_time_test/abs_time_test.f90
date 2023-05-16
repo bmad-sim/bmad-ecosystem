@@ -1,7 +1,6 @@
 program abs_time_test
 
 use bmad
-use autoscale_mod
 
 implicit none
 
