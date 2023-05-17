@@ -18155,7 +18155,8 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     do  j=1,ne
-       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
+       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j) &
++butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
     enddo
     tt=tI+7*GR%p%dir
 !write(6,*) "pancake out",tt,size(gr%b)
@@ -18165,7 +18166,8 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     do  j=1,ne
-       y(j) = y(j)+(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j)) 
+       y(j) = y(j)+(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j) &
++butcher(8,6)*o(j)+butcher(8,7)*p(j)) 
     enddo
     tI=tt
 
@@ -18271,7 +18273,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     do  j=1,ne
-       yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j)) 
+    yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j)) 
     enddo
     tt=tt+GR%p%dir
 
@@ -18281,7 +18283,8 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     do  j=1,ne
-       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
+       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j) &
++butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
     enddo
     tt=tI+7*GR%p%dir
 !write(6,*) "pancake out",tt,size(gr%b)
@@ -18291,7 +18294,8 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     enddo
 
     do  j=1,ne
-       y(j) = y(j)+(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j)) 
+       y(j) = y(j)+(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+ &
+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j)) 
     enddo
     tI=tt
 
@@ -26931,7 +26935,8 @@ enddo
      endif
 
     do  j=1,ne
-       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
+       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j) &
++butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
     enddo
     tt=tI+7*GR%p%dir
 !write(6,*) "pancake out",tt,size(gr%b)
@@ -26954,7 +26959,8 @@ enddo
     endif
 
     do  j=1,ne
-       p%x(j)  = p%x(j) +(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*pt(j)) 
+       p%x(j)  = p%x(j) +(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j) &
++butcher(8,6)*o(j)+butcher(8,7)*pt(j)) 
     enddo
 
     tI=tt
@@ -27155,7 +27161,7 @@ enddo
       e_ijg =hr*de_ij  
     endif
     do  j=1,ne
-       yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j)) 
+    yt(j) = y(j)+(butcher(6,1)*a(j)+butcher(6,2)*b(j)+butcher(6,3)*c(j)+butcher(6,4)*d(j)+butcher(6,5)*e(j) + butcher(6,6)*g(j))
     enddo
     tt=tt+GR%p%dir
 
@@ -27179,7 +27185,8 @@ enddo
       e_ijo =hr*de_ij  
     endif
     do  j=1,ne
-       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
+       yt(j) = y(j)+(butcher(7,1)*a(j)+butcher(7,2)*b(j)+butcher(7,3)*c(j)+butcher(7,4)*d(j)+butcher(7,5)*e(j)+ &
+butcher(7,6)*g(j)+butcher(7,7)*o(j)) 
     enddo
     tt=tI+7*GR%p%dir
  
@@ -27209,7 +27216,8 @@ enddo
     endif
 
     do  j=1,ne
-       p%x(j)  = p%x(j) +(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*pt(j)) 
+       p%x(j)  = p%x(j) +(butcher(8,1)*a(j)+butcher(8,2)*c(j)+butcher(8,3)*d(j)+butcher(8,4)*e(j)+butcher(8,5)*g(j)+ &
+butcher(8,6)*o(j)+butcher(8,7)*pt(j)) 
     enddo
 
     if(k%envelope)  then

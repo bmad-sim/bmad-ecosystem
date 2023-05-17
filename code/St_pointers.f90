@@ -412,9 +412,7 @@ endif
  !         enddo
        case('USER1')
          call my_user_routine1
-       case('SPINTWISSCAS')
-           read(mf,*) no,noca   !  order and general canonise
-         call SMALL_CODE_TWISS(my_ering,no,noca)
+
   !     case('SETORBITPHASORTIME','ORBITTIME')
   !        read(mf,*) xsmt
   !        xsm0t=xsmt
@@ -4725,6 +4723,122 @@ call kill(ft)
 
 end subroutine symplectify_for_oleksii
 
+
+subroutine phase_advance
+implicit none
+type(fibre),pointer:: f
+type(probe) xs0,xs1
+type(probe_8) xs
+type(c_damap) id
+type(c_normal_form) n
+type(integration_node), pointer :: t
+real(dp) phase(3), spin_tune(2),damping(3)
+integer i
+f=>my_ering%start
+
+my_fix=0
+
+my_fix(ndpt_bmad+5)=my_delta
+
+call find_orbit_x(my_fix,my_estate,1.e-8_dp,fibre1=f) 
+
+if(.not.check_stable) then
+  write(6,*) "Could not find closed orbit "
+  write(6,*) " No calculation done "
+ return
+endif
+
+call init(my_estate,1,0)
+
+call alloc(id)
+call alloc(xs)
+call alloc(n)
+
+xs0=my_fix
+id=1
+xs=xs0+id
+ call propagate(xs,my_estate,fibre1=f)
+id=xs
+
+call c_normal(id,n,dospin=my_estate%spin)
+ 
+call c_fast_canonise(n%atot,n%atot, dospin=my_estate%spin)
+ 
+phase=0
+spin_tune=0
+damping=0
+t=>f%t1
+
+xs=xs0+n%atot
+
+do i=1,my_ering%n
+
+if(associated(f%tm)) then
+
+ call propagate(xs,my_estate,fibre1=f,node2=f%tm)
+xs0=xs
+n%atot=xs
+ f%tm%lf%symplectic=.not.my_estate%radiation
+ 
+  call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
+ 
+  call compute_lattice_functions(n%atot,f%tm%lf)
+ f%tm%lf%phase=phase
+ f%tm%lf%damping=damping
+ f%tm%lf%spin=spin_tune
+ f%tm%lf%fix=xs0%x
+
+   xs=xs0+n%atot
+ call propagate(xs,my_estate,node1=f%tm,fibre2=f%next)
+xs0=xs
+n%atot=xs
+ f%next%t1%lf%symplectic=.not.my_estate%radiation
+  call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
+  call compute_lattice_functions(n%atot,f%next%t1%lf)
+ f%next%t1%lf%phase=phase
+ f%next%t1%lf%damping=damping
+ f%next%t1%lf%spin=spin_tune
+ f%next%t1%lf%fix=xs0%x
+else
+
+ f%next%t1%lf%symplectic=.not.my_estate%radiation
+ call propagate(xs,my_estate,fibre1=f,fibre2=f%next)
+  xs0=xs
+  n%atot=xs
+  call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
+  call compute_lattice_functions(n%atot,f%next%t1%lf)
+ 
+ f%next%t1%lf%phase=phase
+ f%next%t1%lf%damping=damping
+ f%next%t1%lf%spin=spin_tune
+ f%next%t1%lf%fix=xs0%x
+endif
+
+
+xs=xs0+n%atot
+f=>f%next
+enddo
+
+write(6,*)  "   "
+write(6,*)  " Phase advance and fractional"
+write(6,format3) phase(1:c_%nd)
+write(6,format3) n%tune(1:c_%nd)
+ 
+write(6,*)  " damping advance "
+write(6,format3) damping
+write(6,*)  " spin advance and chromaticity "
+write(6,format2) spin_tune
+write(6,format1) n%spin_tune
+ write(6,*)  " Closed orbit before and after "
+ write(6,format6)  my_fix
+ write(6,format6)  xs0%x
+write(6,*)  "   "
+
+call kill(id)
+call kill(xs)
+call kill(n)
+
+end subroutine phase_advance
 
 
 

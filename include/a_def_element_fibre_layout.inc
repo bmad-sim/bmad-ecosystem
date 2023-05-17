@@ -14,10 +14,11 @@ type c_linear_map
 end type c_linear_map
 
 type c_lattice_function
- real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0,B(3,6,6) =0
- real(dp) :: H(3,6,6) = 0
+ real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0
+ real(dp) :: H(3,6,6) = 0,B(3,6,6) =0
  real(dp) :: S(1:3,1:3,0:6) =0
- real(dp) ::phase(3) =0 ,damping(3) =0 , spin(2) =0,fix(6) =0
+ real(dp) ::phase(3) =0 ,damping(3) =0 , spin(2) =0
+ real(dp):: fix(6) =0
  type(fibre), pointer :: f => null()
  type(integration_node), pointer :: t => null()
  logical :: symplectic = .true.
@@ -25,29 +26,29 @@ type c_lattice_function
  real(dp) :: sigmas(6,6)
 end type c_lattice_function 
 
-type d_lattice_function
- real(dp) :: E(3,6,6) =0
- real(dp) :: H(3,6,6) =0
- real(dp) :: Spin_lat(1:3,1:3,0:6) =0
- real(dp) ::phase(3) =0 ,damping(3) =0 , spin(2) =0,fixa(6) =0,fixb(6) =0
- real(dp) emittance(3) 
- type(c_linear_map) a0,a1i
- type(fibre), pointer :: f => null()
-!!!!  radiation quantity
- real(dp) :: sigmas(6,6)
-!!!!  map
-type(c_damap), pointer :: m  => null()
-!type(universal_taylor), pointer :: re=> null(),im=> null()
-type(c_universal_taylor), pointer :: ut=> null() 
-end type d_lattice_function 
+!type d_lattice_function
+! real(dp) :: E(3,6,6) =0
+! real(dp) :: H(3,6,6) =0
+! real(dp) :: Spin_lat(1:3,1:3,0:6) =0
+! real(dp) ::phase(3) =0 ,damping(3) =0 , spin(2) =0,fixa(6) =0,fixb(6) =0
+! real(dp) emittance(3) 
+! type(c_linear_map) a0,a1i
+! type(fibre), pointer :: f => null()
+!!!!!  radiation quantity
+! real(dp) :: sigmas(6,6)
+!!!!!  map
+!type(c_damap), pointer :: m  => null()
+!!type(universal_taylor), pointer :: re=> null(),im=> null()
+!type(c_universal_taylor), pointer :: ut=> null() 
+!end type d_lattice_function 
 
-TYPE  array_of_fibres   !!! for Demin program
-  type(fibre), pointer :: fib1  => null()
-  type(fibre), pointer :: fib2  => null()
-  type(c_linear_map), pointer :: m
-  type(d_lattice_function), pointer :: lf
-  integer(1),pointer  :: centre => null()
-END TYPE array_of_fibres
+!TYPE  array_of_fibres   !!! for Demin program
+!  type(fibre), pointer :: fib1  => null()
+!  type(fibre), pointer :: fib2  => null()
+!  type(c_linear_map), pointer :: m
+!  type(d_lattice_function), pointer :: lf
+!  integer(1),pointer  :: centre => null()
+!END TYPE array_of_fibres
 
 TYPE girder
    INTEGER, pointer :: i  => null()
@@ -375,6 +376,7 @@ TYPE INTEGRATION_NODE
    TYPE (INTEGRATION_NODE), POINTER :: PREVIOUS  => null()
    TYPE (NODE_LAYOUT), POINTER :: PARENT_NODE_LAYOUT  => null()
    TYPE(FIBRE), POINTER :: PARENT_FIBRE  => null()
+   type(c_lattice_function), pointer :: lf  => null()
    !   TYPE(EXTRA_WORK), POINTER :: WORK
    TYPE(BEAM_BEAM_NODE), POINTER :: BB  => null()
 !   TYPE(tree_element), POINTER :: T
@@ -430,8 +432,8 @@ TYPE LAYOUT
    type(NODE_LAYOUT), pointer :: T    => null()!  ASSOCIATED  CHILD THIN LENS LAYOUT
    TYPE (MAD_UNIVERSE), POINTER :: parent_universe  => null()
    TYPE(layout_array), POINTER :: DNA(:)  => null()
-   type(array_of_fibres), pointer :: A(:) => null()
-   type(d_lattice_function), pointer :: lf0  => null()
+ !  type(array_of_fibres), pointer :: A(:) => null()
+ !  type(d_lattice_function), pointer :: lf0  => null()
 END TYPE LAYOUT
 
 type layout_array

@@ -5,7 +5,6 @@ implicit none
   public print,zhe_ini,track_TREE_probe_complex_ptc, dp,INTERNAL_STATE !,EQUAL_PROBE_REAL6_zhe,
   public DEFAULT0,TOTALPATH0 ,TIME0,ONLY_4d0,DELTA0,SPIN0,MODULATION0,only_2d0   ,nrmax_zhe
   public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe,nrmax_used_zhe,alloc_bunch,kill_bunch
-  PUBLIC track_TREE_probe_complex_ji,track_TREE_probe_complex_ji_symp,TRACK_TREE_PROBE_COMPLEX_JI_VEC
  public file_zhe,number_zhe_maps,get_seed,set_seed,ALLOC_TREE,track_TREE_probe_complex_zhe_no_orbital,track_miyajima_zhe
 public track_TREE_probe_complex_zhe_no_orbital_quaternion,GRNF_zhe
 ! absoft
@@ -14,8 +13,6 @@ public track_TREE_probe_complex_zhe_no_orbital_quaternion,GRNF_zhe
  public use_gaussian_zhe 
  character(255) ::    file_zhe="zhe"
   integer ::  number_zhe_maps = 1
-  public use_ji
-  logical :: use_ji =.false.
   private alex_ISEED
   integer :: alex_ISEED=1000
 
@@ -142,8 +139,8 @@ private lubksb_nr,ludcmp_nr,matinv
 
 private orthonormaliser
   private track_TREE_probe_complexr
-  integer :: size_tree=15,size_ji=6+6+9+9+1,size_ji_vec=13
-  integer :: ind_spin(3,3),k1_spin(9),k2_spin(9),ind_ji(3,3)
+  integer :: size_tree=15 
+  integer :: ind_spin(3,3),k1_spin(9),k2_spin(9) 
 
  
 
@@ -1986,154 +1983,6 @@ x0_begin=0.0_dp
   end SUBROUTINE track_TREE_probe_complex_zhe_no_orbital_quaternion
 
 
-  SUBROUTINE track_TREE_probe_complex_ji_symp(T,xs)
-!    use da_arrays
-    IMPLICIT NONE
-    TYPE(TREE_ELEMENT),target, INTENT(INout) :: T 
- 
-    type(probe) xs
-    real(dp) x(size_ji),x0(size_ji),s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3),efd(3),ef
-    real(dp) normb,norm,xr(6),normbb
-    integer i,j,k,ier,is
- 
-  
-
- 
-
- 
-
-!    nrmax=1000
-   check_stable_zhe=.true.
-       xs%u=.false.
-
-!!!!!!!!!!!!!!!!!!!
-    x=0.e0_dp
-    x0=0.e0_dp
-    do i=1,6
-      x(i)=xs%x(i)
-      x0(i)=xs%x(i)
-    enddo
- 
-
-     do i=1,6
-      x(i)=x(i)-t%fix0(i)
-      x0(i)=x0(i)-t%fix0(i)
-     enddo
-
-   !   x(7:12)=x(1:6)
-
-
-
-      x0(1:6)=x(1:6)
-  !    x(7:12)=x(1:6)
-!if(t(1)%no>1) then
-    do i=1,3
-     q(i)=x(2*i-1)
-     p(i)=x(2*i)
-    enddo
-
-
-!!! symplectic here!! symplectic here
-! if(t(3)%symptrack) then
-   do i=1,3
-     qf(i)=x(2*i-1)   ! use non symplectic as approximation
-    enddo
-normb=1.d38
-do is=1,nrmax
-   do i=1,3
-     x0(2*i)=p(i)
-     x0(2*i-1)=qf(i)  
-     qg(i)=0
-    enddo
- 
-    call track_TREE_G_complex(T,X0(1:size_ji))
- 
-     ef=1.0_dp
-    do i=1,3 
-     ef=ef*exp(-t%fixr(i)*qf(i)**2)
-    enddo
-      
-    do i=1,3
-     efd(i)= -t%fixr(i)*2*qf(i)*ef
-    enddo
-
-    do i=1,3
-    do j=1,3
-     r(i,j)=ef*x0(ind_ji(i,j))+ efd(j)*x0(2*i-1)+x0(9+ind_ji(i,j))
-    enddo
-    enddo
-
-    call matinv(r,r,3,3,ier)
-    if(ier/=0) then
-     write(6,*) "matinv failed in track_TREE_probe_complex_zhe"
-       check_stable_zhe=.false.
-       xs%u=.true.
-      return
-     stop
-    endif
-    do j=1,3
-      x(2*j-1)=ef*x0(2*j-1)+x0(6+2*j-1)
-    enddo
-    do i=1,3
-    do j=1,3
-      qg(i)=r(i,j)*(q(j)-x(2*j-1)) + qg(i)
-    enddo
-    enddo
-    do i=1,3
-     qf(i) = qf(i) + qg(i)
-    enddo
-   norm=abs(qg(1))+abs(qg(2))+abs(qg(3))
-!write(6,*) is,normb,norm
-!write(6,*) norm>t%eps,norm,t%eps
-   if(norm>t%eps) then
-      normbb=normb  ! saving for debugging
-     normb=norm
-   else
-     if(normb<=norm) then 
-       x(1)=qf(1)
-       x(3)=qf(2)
-       x(5)=qf(3)
-       do i=1,3
-        x(2*i)=efd(i)*x0(size_ji) +  ef*x0(2*i) +x0(2*i+6)
-       enddo
-     
-
-     !  x(1:6)=matmul(t(3)%rad,x(1:6))
-
-       exit
-     endif
-     normb=norm
-   endif
-
-       nrmax_used=is
-
-enddo  ! is 
- if(is>nrmax-10) then
-   if(c_verbose_zhe) write(6,*) " Too many iterations ",normbb,norm,t%eps
-   xs%u=.true.
-   check_stable_zhe=.false.
-  return
- endif
-!!!    
- 
-
-
-
-
-
-
-
-         do i=1,6
-           x(i)=x(i)+t%fix(i)
-         enddo
-
-
-
-    do i=1,6
-      xs%x(i)=x(i)
-    enddo
-
-  end SUBROUTINE track_TREE_probe_complex_ji_symp
 
   SUBROUTINE change_ntot(n)
 !    use da_arrays
@@ -2141,232 +1990,6 @@ enddo  ! is
     integer n
     ntot=n
  end   SUBROUTINE change_ntot
-
-  SUBROUTINE track_TREE_probe_complex_ji_vec(T,xs)
-!    use da_arrays
-    IMPLICIT NONE
-    TYPE(TREE_ELEMENT),target, INTENT(INout) :: T(2) 
- 
-    type(probe) xs
-    real(dp) x(6),h
-    integer i
-   
-  
-!    nrmax=1000
-   check_stable_zhe=.true.
-       xs%u=.false.
-
-!!!!!!!!!!!!!!!!!!!
-    x=0.e0_dp
-    do i=1,6
-      x(i)=xs%x(i)
-    enddo
- 
-
-     do i=1,6
-      x(i)=x(i)-t(1)%fix0(i)
-     enddo
-
-  !!!call track_TREE_G_complex(T(1),X0(1:size_ji_vec))
-
-  h=1.0_dp/ntot
-   
-   do i=1,ntot
-        call rk6_vec(x,t(1),h)
-   enddo
-
-   do i=1,ntot
-        call rk6_vec(x,t(2),h)
-   enddo
-
-         do i=1,6
-           x(i)=x(i)+t(1)%fix(i)
-         enddo
-
-
-
-    do i=1,6
-      xs%x(i)=x(i)
-    enddo
-
-  end SUBROUTINE track_TREE_probe_complex_ji_vec
-
-subroutine fev(x,f,t)
-implicit none
-TYPE(TREE_ELEMENT), INTENT(INout) :: t 
-real(dp), INTENT(INout) ::  x(6)
-real(dp)  f(6),e,de(6),x0(size_ji_vec)
-integer i
-
-!111 x=0
-!write(6,*) "x(1:4)"
-!read(5,*) x(1:4)
-x0=0
-x0(1:6)=x
- 
-  call track_TREE_G_complex(T,X0(1:size_ji_vec))
- 
-e=1
-do i=1,6
- e=e*exp(-t%fixr(i)*x0(i)**2)
- de(i)=-2*t%fixr(i)*x0(i)
-enddo
-de=de*e
-
- 
-do i=1,3
-f(2*i-1)=e*x0(2*i-1)+x0(2*i-1+6)+de(2*i-1)*x0(size_ji_vec)
-f(2*i)= e*x0(2*i)+x0(2*i+6)-de(2*i)*x0(size_ji_vec)
-enddo
-
-!write(6,*) f(1:4)
-!write(6,*) f(5:6)
-!goto 111
-end subroutine fev
-
-  subroutine rk6_vec(y,gr,h)
-    IMPLICIT none
- 
-
-    integer ne
-    parameter (ne=6)
-    real(dp), INTENT(INOUT)::  y(ne)
-    real(dp)  yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),p(ne)
-    TYPE(TREE_ELEMENT), INTENT(INout) :: gr 
-    integer j
-    real(dp), intent(inout) :: h
-
- 
-    call fev(y,f,gr)
- 
-    do  j=1,ne
-       a(j)=h*f(j)
-    enddo
-    do  j=1,ne
-       yt(j)=y(j)+a(j)/9.0_dp
-    enddo
-
-    call fev(yt,f,gr)
-    do  j=1,ne
-       b(j)=h*f(j)
-    enddo
-    do   j=1,ne
-       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
-    enddo
-
-    call fev(yt,f,gr)
-    do  j=1,ne
-       c(j)=h*f(j)
-    enddo
-
-    do  j=1,ne
-       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
-    enddo
-
-    call fev(yt,f,gr)
-    do  j=1,ne
-       d(j)=h*f(j)
-    enddo
-
-    do  j=1,ne
-       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
-    enddo
-
-    call fev(yt,f,gr)
-    do  j=1,ne
-       e(j)=h*f(j)
-    enddo
-
-    do  j=1,ne
-       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
-    enddo
-
-    call fev(yt,f,gr)
-    do   j=1,ne
-       g(j)=h*f(j)
-    enddo
-    do  j=1,ne
-       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
-    enddo
-
-    call fev(yt,f,gr)
-    do  j=1,ne
-       o(j)=h*f(j)
-    enddo
-    do  j=1,ne
-       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
-    enddo
-
-
-    call fev(yt,f,gr)
-    do  j=1,ne
-       p(j)=h*f(j)
-    enddo
-
-    do  j=1,ne
-       y(j) = y(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*p(j))/840.0_dp
-    enddo
-
-
-    return
-  end  subroutine rk6_vec
-
-
-
-  SUBROUTINE track_TREE_probe_complex_ji(T,xs)
-!    use da_arrays
-    IMPLICIT NONE
-    TYPE(TREE_ELEMENT),target, INTENT(INout) :: T 
- 
-    type(probe) xs
-    real(dp) x(12),ef
-    integer i,j,k,ier,is,ns
-    type(quaternion) qu
-
-    ns=12
-
-
-
-!    nrmax=1000
-   check_stable_zhe=.true.
-       xs%u=.false.
-
-
-    x=0.0_dp
-    do i=1,6
-      x(i)=xs%x(i)
-    enddo
-
-     do i=1,6
-      x(i)=x(i)-t%fix0(i)
-     enddo
-ef=1
-do i=1,6
-ef=ef*exp(t%fixr(i)*x(i)**2)
-enddo  
-  do i=1,6
-  x(i)=x(i)*ef
-  enddo  
- 
- 
-   call track_TREE_G_complex(T,X(1:ns)) 
-
-
-x(1:6)= x(1:6)+x(7:12)
-
-         do i=1,6
-           x(i)=x(i)+t%fix(i)
-         enddo
- 
-
-    
-
-
-    do i=1,6
-      xs%x(i)=x(i)
-    enddo
-
-  end SUBROUTINE track_TREE_probe_complex_ji
 
 
   real(dp) FUNCTION RANF_zhe()
@@ -2745,13 +2368,7 @@ if(Present(use_q) )use_quaternion=use_q
     k1_spin(7)=3;k2_spin(7)=1;
     k1_spin(8)=3;k2_spin(8)=2;
     k1_spin(9)=3;k2_spin(9)=3;
-     k=12
-    do i=1,3
-    do j=1,3
-     k=k+1
-     ind_ji(i,j)=k
-    enddo
-   enddo
+ 
 end subroutine zhe_ini
 
 

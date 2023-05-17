@@ -16,7 +16,7 @@
 
 ! THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
 ! INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND
-! FITNESS FOR A PARTICULAR PURPOSE.
+! FITNESS FOR A PARTICULAR PURPOSE. 
 
 
 module precision_constants  
@@ -245,6 +245,7 @@ module precision_constants
   !  lielib_print(16)=1  print eigenvalues in c_linear_a 
   !  lielib_print(17)=1  print magnets with excessive cutting
   integer , target :: old_integrator =1  ! before making spin high order
+  character*255 :: preffile="pref.txt"
 
   INTERFACE read
      MODULE PROCEDURE read_d
