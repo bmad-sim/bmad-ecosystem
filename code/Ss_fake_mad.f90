@@ -39,8 +39,10 @@ contains
     
     allocate(m_u)
     call set_up_universe(m_u)
+     m_u%n=0
     allocate(m_t)
     call set_up_universe(m_t)
+     m_t%n=0
     allocate(bmadl)
     call set_up(bmadl)
     bmadl%NAME='BMAD REUSED FIBRE LAYOUT'

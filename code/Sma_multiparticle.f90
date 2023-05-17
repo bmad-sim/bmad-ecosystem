@@ -178,8 +178,7 @@ CONTAINS
      endif
 
     CALL transfer_ANBN(EL,ELP,VR=V,DVR=DV)
-
-
+ 
   END   SUBROUTINE MODULATE_R
   
    SUBROUTINE do_ramping_R(C,t,K)

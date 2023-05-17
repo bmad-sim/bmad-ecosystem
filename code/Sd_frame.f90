@@ -891,6 +891,104 @@ end  SUBROUTINE print_triad
 
   END SUBROUTINE COMPUTE_ENTRANCE_ANGLE
 
+
+   SUBROUTINE COMPUTE_ENTRANCE_ANGLE_mengyu(ENTL,ENTB,A)
+    ! COMPUTES PTC'S ANGLES IN FRAME OF ENTL
+    IMPLICIT NONE
+    REAL(DP),INTENT(IN):: ENTL(3,3), ENTB(3,3)
+    REAL(DP), INTENT(OUT) :: A(3)
+    REAL(DP) T1(3,3),T10(3,3),T2(3,3),S_IJ,S_JJ
+    REAL(DP) AT(3)
+
+    T1=ENTL
+    T10=ENTL
+    T2=ENTL
+
+
+    CALL COMPUTE_SCALAR(T1,2,ENTB,1,S_IJ)
+    CALL COMPUTE_SCALAR(T1,1,ENTB,1,S_JJ)
+
+    if(S_IJ==0.0_dp.and.S_JJ==0.0_dp) then
+       A(3)=0.0_dp
+    else
+       A(3)=ATAN2(S_IJ,S_JJ)
+    endif
+
+    !   A(1)=ATAN2(-S_IJ,S_JJ)
+    AT=0.0_dp;AT(3)=A(3);
+
+    CALL GEO_ROT(T10,T1,AT,T2)
+    T2=T1
+    T10=T1
+
+    CALL COMPUTE_SCALAR(T1,1,ENTB,3,S_IJ)
+    CALL COMPUTE_SCALAR(T1,3,ENTB,3,S_JJ)
+
+    if(S_IJ==0.0_dp.and.S_JJ==0.0_dp) then
+       A(2)=0.0_dp
+    else
+       A(2)=-ATAN2(S_IJ,S_JJ)
+    endif
+
+    !    A(2)=ATAN2(-S_IJ,S_JJ)
+    AT=0.0_dp;AT(2)=A(2);
+
+    CALL GEO_ROT(T10,T1,AT,T2)
+    T2=T1
+    T10=T1
+
+    CALL COMPUTE_SCALAR(T1,2,ENTB,3,S_IJ)
+    CALL COMPUTE_SCALAR(T1,3,ENTB,3,S_JJ)
+
+    if(S_IJ==0.0_dp.and.S_JJ==0.0_dp) then
+       A(1)=0.0_dp
+    else
+       A(1)=ATAN2(-S_IJ,S_JJ)
+    endif
+ 
+  END SUBROUTINE COMPUTE_ENTRANCE_ANGLE_mengyu
+
+  SUBROUTINE FIND_PATCH_mengyu(A,ENT,B,EXI,D,ANG)
+    ! FINDS PATCH BETWEEN ENT AND EXI : INTERFACED LATER FOR FIBRES
+    IMPLICIT NONE
+    REAL(DP), INTENT(INOUT):: ENT(3,3),EXI(3,3)
+    REAL(DP), INTENT(INOUT):: A(3),B(3),D(3),ANG(3)
+    REAL(DP) dd(3)
+
+    D=B-A
+    dd=d
+    CALL CHANGE_BASIS(Dd,GLOBAL_FRAME,D,ENT)
+
+    CALL COMPUTE_ENTRANCE_ANGLE_mengyu(ENT,EXI,ANG)
+
+  END SUBROUTINE FIND_PATCH_mengyu
+
+  SUBROUTINE FIND_PATCH_from_mengyu_to_ptc(D_m,ANG_m,D_ptc,ang_ptc)
+    ! FINDS PATCH BETWEEN ENT AND EXI : INTERFACED LATER FOR FIBRES
+    IMPLICIT NONE
+    REAL(DP)  ENT(3,3),ang(3)
+    REAL(DP), INTENT(INOUT):: D_m(3),ANG_m(3),D_ptc(3),ang_ptc(3)
+    REAL(DP) omega(3)
+
+ent=global_frame
+
+  omega=0.0_dp
+ang=0
+ang(3)=ang_m(3) 
+    CALL GEO_ROT(ENT,omega,ANG,1,BASIS=ent)
+ang=0
+ang(2)=ang_m(2) 
+    CALL GEO_ROT(ENT,omega,ANG,1,BASIS=ent)
+ang=0
+ang(1)=ang_m(1) 
+    CALL GEO_ROT(ENT,omega,ANG,1,BASIS=ent)
+ 
+call FIND_PATCH(global_origin,global_frame,d_m,ent,D_ptc,ang_ptc)
+
+  END SUBROUTINE FIND_PATCH_from_mengyu_to_ptc
+
+
+
   SUBROUTINE COMPUTE_ENTRANCE_ANGLE_bmad(ENTL,ENTB,A)
     ! COMPUTES BMAD'S ANGLES IN FRAME OF ENTL
     IMPLICIT NONE
@@ -986,6 +1084,7 @@ end  SUBROUTINE print_triad
 
 
   END SUBROUTINE FIND_PATCH_BMAD0
+
 
 
   SUBROUTINE FIND_PATCH_B(A,ENT,B,EXI,D,ANG)

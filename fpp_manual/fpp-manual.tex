@@ -125,6 +125,8 @@ FPP/PTC can be downloaded from the web via the Bmad web site\cite{b:bmad} or at
 https://github.com/jceepf/fpp_book
 \end{code}
 
+
+
 %--------------------------------------------------------------------------------------------------------
 \Section{Concepts}
 \label{s:concepts}
@@ -201,6 +203,26 @@ See the documentation of the \vn{real_8} type (\sref{s:real.8}) as an example.
 The \vn{PTC} tracking code typically has two routines: with a ``p'' or ``r'' at the end...
 
 ToDo: Give an example of a routine that uses real_8 or probe_8 as a scaler.
+
+%-------------------------------------------------------------------
+\subsection{Operator Overloading}
+\label{s:overloading}
+
+FPP/PTC heavily uses operator overloading for Taylor series manipulation. Not only are the standard
+arithmetical operators ($+, -, *, /, **$) overloaded as well as the equal sign ($=$), but there are
+a number of custom operators that are defined as well. Below is a list.\footnote
+  {
+Note: Fortran mandates that custom operator names begin and end with a dot ``.''.
+  }
+\begin{description}
+\item[+, -] \Newline
+Standard addition and subtraction of Taylor series.
+%
+\item[*] \Newline
+
+%
+
+\end{description}
 
 %-------------------------------------------------------------------
 \subsection{Tracking Versus Analysis}
@@ -726,16 +748,27 @@ routines that involve polymorphic types have a name ending in \vn{p} and corresp
 non-polymorphic routines have a name ending in \vn{r}.
 
 %-------------------------------
-\subsection{The x(6) component of probe_8}
+\subsection{The x(6) component}
 \label{s:codetypex6}
 
 The \vn{x(6)} component represents the orbital phase space part of the tracked particle.
  
-\subsection{The spin and quaternion components of probe_8}\label{s:code spin}
+%-------------------------------
+\subsection{The spin and quaternion components}
+\label{s:code spin}
 
-PTC can track spin. There are two ways to track spin: one method uses a regular spin matrix and the other uses a quaternion.
-Since there are three independent directions of spin, PTC tracks three directions: this saves time if one wants to construct a spin matrix. The three directions are represented by the three \vn{s(3)} components which are of type \vn{spinor_8}. The components of a \vn{spinor_8} are
+PTC can track spin. There are two ways to track spin: one method uses a regular spin matrix and the
+other uses a quaternion.  Orignally, only the matrix based method was implemented. The quaternion
+representation was subsiquently implemented since it is a more efficient representation for the spin
+and it simplifies the analysis. From the theory of rotations in three dimensions, we know that there
+is one invariant unit direction and one angle of rotation around this axis. The unit quaternion has
+exactly the same freedom: four numbers whose squares add up to one. Once more we claim that if its
+polymorphic components are properly initialized, a generic Taylor map for the quaternions
+emerges. This is described in \sref{s:mappro}.
 
+For the spin matrix representation, Since there are three independent directions of spin, PTC tracks
+three directions: this saves time if one wants to construct a spin matrix. The three directions are
+represented by the three \vn{s(3)} components which are of type \vn{spinor_8}:
 \begin{code}
 type spinor_8
   type(real_8) x(3)  ! x(3) = (s_x, s_y, s_z)   with  |s|=1
@@ -748,20 +781,15 @@ s(1)&=\left({1,0,0}\right)\nonumber \\
 s(2)&=\left({0,1,0}\right)\nonumber \\
 s(3)&=\left({0,0,1}\right)
 \end{align} 
-The tracking of these vectors for one turn will allow us to construct  the one-turn spin matrix around the closed orbit. Thus if the orbital polymorphs are powered to be appropriate Taylor series in n-d-f (n=1,2, or 3), we can produce a complete approximate 3 by 3 matrix  for the spin. This is shown in \sref{s:mappro}.
+The tracking of these vectors for one turn will allow us to construct the one-turn spin matrix
+around the closed orbit. Thus if the orbital polymorphs are powered to be appropriate Taylor series
+in n-d-f (n=1,2, or 3), we can produce a complete approximate 3 by 3 matrix for the spin. This is
+shown in \sref{s:mappro}.
 
-The polymorphic  quaternion \vn{quaternion_8}, not surprisingly, is given by: 
-\begin{code}
-type  quaternion_8 
-  type(real_8) x(0:3)
-end type quaternion_8
-\end{code}
- 
-As we will see, it is a more efficient representation for the spin and it simplifies the analysis. From the theory of rotations in three dimensions, we know that there is one invariant unit direction and one angle of rotation around this axis. The unit quaternion has exactly the same freedom: four numbers whose squares add up to one. Once more we claim that if its polymorphic components are properly initialized, a generic Taylor map for the quaternions emerges. This is described in \sref{s:mappro}.
  
 \subsection{The components of type rf_phasor_8}\label{s:codemod}
 
-The \vn{rf_phasor_8} type  is  somewhat complex to explain but its definition is simple:
+The \vn{rf_phasor_8} type is somewhat complex to explain but its definition is simple:
 
 \begin{code}
 type rf_phasor_8
@@ -771,21 +799,44 @@ type rf_phasor_8
 end type rf_phasor_8
 \end{code}
   
-The variables \vn{x(2)} represents a vector rotating at a frequency \vn{om} based on a pseudo-time related to the reference time of the ``design'' particle. As the the \vn{probe_8} traverses a magnet, in the integration routines, magnets can use that pseudo-clock to modulate their multipole components. In the end, as we will see, the components \vn{rf_phasor_8%x(2)} are used to add two additional dimensions to a Taylor map. This will be explained later when we discuss the types germane to analysis.
+The variables \vn{x(2)} represents a vector rotating at a frequency \vn{om} based on a pseudo-time
+related to the reference time of the ``design'' particle. As the the \vn{probe_8} traverses a
+magnet, in the integration routines, magnets can use that pseudo-clock to modulate their multipole
+components. In the end, as we will see, the components \vn{rf_phasor_8%x(2)} are used to add two
+additional dimensions to a Taylor map. This will be explained later when we discuss the types
+germane to analysis.
   
 \subsection{The real components E_ij(6,6) and equilibrium moments}\label{s:codesto}
  
-The \vn{E_ij(6,6)} structure allows us to store the quantum fluctuations due to radiation. PTC, like most codes, does not attempt to go beyond linear dynamics when dealing with photon fluctuations. When radiation is present, the polymorphs \vn{x(6)} contain the  closed orbit  (with classical radiation) and   \vn{E_ij(6,6)  } measures the fluctuations $<x_i\, x_j>\,(i,j=1,6)$ due to photon emission. PTC does not attempt any polymorphic computations: you get the zeroth order results around the orbit computed.
+The \vn{E_ij(6,6)} structure allows us to store the quantum fluctuations due to radiation. PTC, does
+not attempt to go beyond linear dynamics when dealing with photon fluctuations. When radiation is
+present, the \vn{x(6)} polymorphic component of \vn{probe_8} contain the closed orbit (with
+classical radiation) and the \vn{E_ij(6,6)} component stores the fluctuations $<x_i\,
+x_j>\,(i,j=1,6)$ due to photon emission. Notice that \vn{E_ij} is not polymorphic. Radiation
+fluctuations are always approximated to zeroth order around the reference orbit.
   
-  If a linear matrix $M$ is extracted from \vn{probe_8}, then the one-turn linear map for moments is given by:
-\begin{align} {\Sigma}^{f}&=M\left({\Sigma+E}\right){M}^{{\rm T}}  \label{eq:mom}  \end{align}
-where
-\begin{align} {\Sigma}_{ij}&=\left\langle{{x}_{i}{x}_{j}}\right\rangle.\end{align}
-However when a \vn{probe_8} is converted into a \vn{c_damap} with the syntax   $\vn{c_damap} =  \vn{probe_8} $, then $E$ is redefined as:
-\begin{align} {\Sigma}^{f}&=M\left({\Sigma+{E}^{probre\_8}}\right){M}^{{\rm T}}=
- M\Sigma{M}^{{\rm T}}+{E}^{c\_damap} \label{eq:momfpp} . \end{align}
+If a linear matrix $M$ is extracted from \vn{probe_8}, then the one-turn linear map for moments is given by:
+\begin{align}
+  {\Sigma}_\text{final} &=M \left( \Sigma_\text{initial} + E \right) {M}^{\rm T}
+  \label{eq:mom}
+\end{align}
+where superscript \vn{T} indicates transpose and 
+\begin{align}
+  {\Sigma}_{ij}&=\left\langle{{x}_{i}{x}_{j}}\right\rangle, \qquad i,j = 1, \dots 6.
+\end{align}
+
+However when a \vn{probe_8} is converted into a \vn{c_damap} with the syntax \vn{c_damap} =
+\vn{probe_8}, then $E$ is redefined as:
+\begin{align}
+  \Sigma_\text{final} &= M \left( \Sigma_\text{initial} + E_\text{probe_8} \right) M^{\rm T} =
+  M \, \Sigma_\text{initial} M^{\rm T} + E_\text{c_damap} 
+  \label{eq:momfpp} . 
+\end{align}
 Thus, in FPP, the equation from the moments is:
-\begin{align} {\Sigma}^{f}&=\ M\Sigma{M}^{{\rm T}}+E,\label{eq:momfppf}  \end{align}
+\begin{align} 
+  {\Sigma}_\text{final}&=\ M \, \Sigma_\text{initial} {M}^{{\rm T}}+E,
+  \label{eq:momfppf}  
+\end{align}
 where $E$ has been redefined.
 
 To get the equilibrium moments, we can first diagonalized the matrix $M$:
@@ -806,17 +857,29 @@ To get the equilibrium moments, we can first diagonalized the matrix $M$:
 \end{align}
 
     We can apply the transformation $B$ on \Eq{eq:momfppf}:
-\begin{align} B{\Sigma}^{f}{B}^{{\rm T}}&=\ BM\Sigma{M}^{{\rm T}}{B}^{{\rm T}}+BE{B}^{{\rm T}}\nonumber \\
- {\sigma }^{f}&=\Lambda \sigma \Lambda +\varepsilon \label{eq:momfppft}  \end{align}
+\begin{align}
+  B{\Sigma}_\text{final} {B}^{{\rm T}}&=\ BM\Sigma_\text{initial} {M}^{{\rm T}}{B}^{{\rm T}}+BE{B}^{{\rm T}} \nonumber \\
+  {\sigma }_\text{final} &=\Lambda \sigma \Lambda +\varepsilon \label{eq:momfppft}  
+\end{align}
 And since $\Lambda $ is diagonal, we can easily get the equilibrium ${\sigma }^{\inf}$ in this basis:
-\begin{align} {\sigma }^{\infty }&=\Lambda {\sigma }^{\infty }\Lambda +\varepsilon \nonumber \\
- &\Downarrow \ \nonumber \\
- {\sigma }_{ij}^{\infty }&={{\varepsilon }_{ij} \over 1-{\lambda }_{i}{\lambda }_{j}}\label{eq:momequf}  \end{align}
-The terms ${\sigma}_{12}$,${\sigma }_{34}$ and  ${\sigma }_{56}$ correspond to the so-called equilibrium emittances and they dominate when damping is small and when the map is far from linear resonances. For example, the horizontal emittance is 
-\begin{align} {\sigma }_{12}^{\infty }&={{\varepsilon }_{12} \over 1-{e}^{-2{\alpha }_{1}}}\approx {{\varepsilon }_{12} \over 2{\alpha }_{1}}.\label{eq:emi1}  \end{align}
+\begin{align}
+  {\sigma }^{\infty }&=\Lambda {\sigma }^{\infty }\Lambda +\varepsilon \nonumber \\
+  &\Downarrow \ \nonumber \\
+  {\sigma }_{ij}^{\infty }&={{\varepsilon }_{ij} \over 1-{\lambda }_{i}{\lambda }_{j}}\label{eq:momequf}  
+\end{align}
+The terms ${\sigma}_{12}$,${\sigma}_{34}$ and ${\sigma}_{56}$ correspond to the so-called
+equilibrium emittances and they dominate when damping is small and when the map is far from linear
+resonances. For example, the horizontal emittance is
+\begin{align}
+  {\sigma }_{12}^{\infty }&={{\varepsilon }_{12} \over 1-{e}^{-2{\alpha }_{1}}}\approx {{\varepsilon }_{12} \over 2{\alpha }_{1}}.
+  \label{eq:emi1}  
+\end{align}
 ${\varepsilon}_{12}$ is called, in accelerator jargon, the horizontal $H$-function. It is the fluctuatuation of the horizontal invariant summed over the entire machine.
 The final beam sizes are given by:
-\begin{align} {\Sigma}^{\infty }&=\ {B}^{-1}{\sigma }^{\infty }{B}^{-1\ {\rm T}}\ .\label{eq:mominfa}  \end{align}
+\begin{align}
+  {\Sigma}^{\infty }&=\ {B}^{-1}{\sigma }^{\infty }{B}^{-1\ {\rm T}}\ .
+  \label{eq:mominfa}  
+\end{align}
 
 In \sref{s:mapstoc} we explain how one can use $E$ in stochastic tracking.
 

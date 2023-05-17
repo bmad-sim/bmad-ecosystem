@@ -11,7 +11,7 @@ module S_fitting
   real(dp) :: fuzzy_split=1.0_dp
   real(dp) :: max_ds=0.0_dp
   integer :: resplit_cutting = 0    ! 0 just magnets , 1 magnets as before / drifts separately
-
+  integer :: metf8=4
   logical :: sagan_even=my_true
   ! 2  space charge algorithm
   logical(lp) :: radiation_bend_split=my_false
@@ -2529,7 +2529,7 @@ eta2=0.0_dp
     logical(lp), OPTIONAL :: useknob,universe
     integer, optional :: limit_wiggler(2),lim(2)
     real(dp) gg,RHOI,XL,QUAD,THI,lm,dl,ggbt,xbend1,gf(7),sexr0,quad0,dq
-    INTEGER M1,M2,M3, MK1,MK2,MK3,limit(2),parity,inc,nst_tot,ntec,ii,metb,sexk
+    INTEGER M1,M2,M3, MK1,MK2,MK3,M4,MK4,limit(2),parity,inc,nst_tot,ntec,ii,metb,sexk
     integer incold ,parityold, nt,nsag,lim0(2),lims(2),kkk
 
     logical(lp) MANUAL,eject,doit,DOBEND
@@ -2600,6 +2600,7 @@ endif
     xbend1=-1.0_dp
 
     if(present(xbend)) xbend1=xbend
+       if(xbend1>0) radiation_bend_split=.true.
     if(present(lmax0)) lm=abs(lmax0)
     if(present(even)) then
        inc=1
@@ -2629,6 +2630,7 @@ endif
     IF(MANUAL) THEN
        write(6,*) "thi: thin lens factor (THI<0 TO STOP), sextupole factor and Bend factor "
        read(5,*) thi,sexr0,xbend1
+       if(xbend1>0) radiation_bend_split=.true.
        IF(THI<0) eject=.true.
     ENDIF
 
@@ -2649,9 +2651,12 @@ endif
     M1=0
     M2=0
     M3=0
+    M4=0
+
     MK1=0
     MK2=0
     MK3=0
+    MK4=0
     r%NTHIN=0
     nst_tot=0
     sexk=0
@@ -2681,6 +2686,9 @@ endif
           CASE(6)
              M3=M3+1
              MK3=MK3+7*C%MAG%P%NST
+          CASE(8)
+             M4=M4+1
+             MK4=MK4+30*C%MAG%P%NST
           END SELECT
           r%NTHIN=r%NTHIN+1   !C%MAG%NST
        endif
@@ -2697,6 +2705,7 @@ if(lielib_print(14)==1) then
     write(6,*) "METHOD 2 ",M1,MK1
     write(6,*) "METHOD 4 ",M2,MK2
     write(6,*) "METHOD 6 ",M3,MK3
+    write(6,*) "METHOD 8 ",M4,MK4
     write(6,*)   "number of Slices ", MK1+MK2+MK3
     write(6,*)   "Total NST ", NST_tot
 endif
@@ -2708,9 +2717,11 @@ endif
     M1=0
     M2=0
     M3=0
+    m4=0
     MK1=0
     MK2=0
     MK3=0
+    mk4=0
     ! CAVITY FOCUSING
     ! TEAPOT SPLITTING....
     ggbt=0.0_dp
@@ -2857,7 +2868,7 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=4
                 MK2=MK2+NTE*3
-             ELSEIF(NTE.GE.limit(2).or.metb==6) THEN
+             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf8*limit(2)).or.metb==6) THEN
                 M3=M3+1
                 NTE=NTE/7
                 IF(NTE.EQ.0) NTE=1
@@ -2865,6 +2876,14 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=6
                 MK3=MK3+NTE*7
+             ELSEIF(NTE.GE.metf8*limit(2).or.metb==8) THEN
+                M4=M4+1
+                NTE=NTE/30
+                IF(NTE.EQ.0) NTE=1
+                if(mod(nte,2)/=parity) nte=nte+inc
+                C%MAG%P%NST=NTE
+                C%MAG%P%METHOD=8
+                MK4=MK4+NTE*30
              ENDIF
 
              r%NTHIN=r%NTHIN+1  !C%MAG%NST
@@ -2968,7 +2987,7 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=4
                 MK2=MK2+NTE*3
-             ELSEIF(NTE.GE.limit(2).or.metb==6) THEN
+             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf8*limit(2)).or.metb==6) THEN
                 M3=M3+1
                 NTE=NTE/7
                 IF(NTE.EQ.0) NTE=1
@@ -2976,6 +2995,14 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=6
                 MK3=MK3+NTE*7
+             ELSEIF(NTE.GE.metf8*limit(2).or.metb==8) THEN
+                M4=M4+1
+                NTE=NTE/30
+                IF(NTE.EQ.0) NTE=1
+                if(mod(nte,2)/=parity) nte=nte+inc
+                C%MAG%P%NST=NTE
+                C%MAG%P%METHOD=8
+                MK4=MK4+NTE*30
              ENDIF
 
 
@@ -3093,7 +3120,7 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=4
                 MK2=MK2+NTE*3
-             ELSEIF(NTE.GE.limit(2).or.metb==6) THEN
+             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf8*limit(2)).or.metb==6) THEN
                 M3=M3+1
                 NTE=NTE/7
                 IF(NTE.EQ.0) NTE=1
@@ -3101,6 +3128,14 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=6
                 MK3=MK3+NTE*7
+             ELSEIF(NTE.GE.metf8*limit(2).or.metb==8) THEN
+                M4=M4+1
+                NTE=NTE/30
+                IF(NTE.EQ.0) NTE=1
+                if(mod(nte,2)/=parity) nte=nte+inc
+                C%MAG%P%NST=NTE
+                C%MAG%P%METHOD=8
+                MK4=MK4+NTE*30
              ENDIF
 
   
@@ -3168,13 +3203,14 @@ if(lielib_print(14)==1) then
     write(6,*) "METHOD 2 ",M1,MK1
     write(6,*) "METHOD 4 ",M2,MK2
     write(6,*) "METHOD 6 ",M3,MK3
-    write(6,*)   "number of Slices ", MK1+MK2+MK3
+    write(6,*) "METHOD 8 ",M4,MK4
+    write(6,*)   "number of Slices ", MK1+MK2+MK3+mk4
     write(6,*)   "Total NST ", NST_tot
 endif
     if(radiation_bend_split) then
 if(lielib_print(14)==1) then
        write(6,*)   "Total NST due to Bend Closed Orbit ", int(ggbt)
-       write(6,*)   "Restricted to method=2 for radiation or spin "
+       write(6,*)   "Restrict to method=2 for radiation or spin if old integrator used"
 endif
     else
 if(lielib_print(14)==1) then
@@ -3190,6 +3226,7 @@ endif
     IF(MANUAL) THEN
        write(6,*) "thi: thin lens factor (THI<0 TO STOP), sextupole factor and Bend factor "
        read(5,*) thi,sexr0, xbend1
+       if(xbend1>0) radiation_bend_split=.true.
        IF(THI<0) THEN
           THI=R%THIN
           !          limit(1)=limit0(1)
@@ -3229,7 +3266,7 @@ call survey(r)
     !    limit(2)=limit0(2)
 
     !    CALL RING_L(R,doneit)
-
+   radiation_bend_split=.false.
   END SUBROUTINE  THIN_LENS_resplit
 
 
@@ -3492,7 +3529,7 @@ end subroutine SKICKt
 
     if(gf(4)<gf(2)) met=4
     if(gf(6)<gf(4).and.gf(6)<gf(2)) met=6
-    if(radiation_bend_split) met=2
+ !   if(radiation_bend_split) met=2
     if(sixtrack_compatible) met=2
     
 
@@ -3587,7 +3624,7 @@ end subroutine SKICKt
     IMPLICIT NONE
     INTEGER NTE
     TYPE(layout),target, intent(inout) :: R
-    INTEGER M1,M2,M3, MK1,MK2,MK3,nst_tot,ii,nt  !,limit0(2)
+    INTEGER M1,M2,M3,m4, MK1,MK2,MK3,mk4,nst_tot,ii,nt  !,limit0(2)
     type(fibre), OPTIONAL, target :: fib
     logical(lp), OPTIONAL :: useknob,universe,ignore_recut
     logical(lp) doit,uni,m_t_pres
@@ -3659,9 +3696,11 @@ endif
     M1=0
     M2=0
     M3=0
+    M4=0
     MK1=0
     MK2=0
     MK3=0
+    MK4=0
 
 
     r%NTHIN=0
@@ -3736,7 +3775,8 @@ if(lielib_print(14)==1) then
     write(6,*) "METHOD 2 ",M1,MK1
     write(6,*) "METHOD 4 ",M2,MK2
     write(6,*) "METHOD 6 ",M3,MK3
-    write(6,*)   "number of Slices ", MK1+MK2+MK3
+    write(6,*) "METHOD 8 ",M3,MK3
+    write(6,*)   "number of Slices ", MK1+MK2+MK3+MK4
     write(6,*)   "Total NST ", NST_tot
 endif
 
