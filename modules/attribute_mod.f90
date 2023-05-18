@@ -604,7 +604,7 @@ do i = 1, n_key$
   end select
 
   call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
-  call init_attribute_name1 (i, ref_time_start$,         'ref_time_start', private$)
+  call init_attribute_name1 (i, ref_time_start$,         'REF_TIME_START', dependent$)
 
   if (i == fiducial$) cycle
 
@@ -943,6 +943,7 @@ call init_attribute_name1 (crystal$, mosaic_diffraction_num$,       'MOSAIC_DIFF
 call init_attribute_name1 (crystal$, p88$,                          'H_MISALIGN')
 call init_attribute_name1 (crystal$, curvature$,                    'CURVATURE')
 call init_attribute_name1 (crystal$, use_reflectivity_table$,       'USE_REFLECTIVITY_TABLE')
+call init_attribute_name1 (crystal$, reflectivity_table$,           'REFLECTIVITY_TABLE')
 
 call init_attribute_name1 (def_mad_beam$, particle$,                      'PARTICLE')
 call init_attribute_name1 (def_mad_beam$, e_tot$,                         'ENERGY')
@@ -1559,6 +1560,7 @@ call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TO
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH', dependent$)
 call init_attribute_name1 (mirror$, curvature$,                     'CURVATURE')
 call init_attribute_name1 (mirror$, use_reflectivity_table$,        'USE_REFLECTIVITY_TABLE')
+call init_attribute_name1 (mirror$, reflectivity_table$,            'REFLECTIVITY_TABLE')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'L', dependent$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')

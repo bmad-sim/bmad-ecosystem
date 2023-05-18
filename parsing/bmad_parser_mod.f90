@@ -1051,54 +1051,54 @@ endif
 ! Reflecting Surface
 
 select case (attrib_word)
-case ('REFLECTION_TABLE')
+case ('REFLECTIVITY_TABLE')
   ph => ele%photon
   nt = 0
-  if (allocated(ph%reflection_table)) deallocate(ph%reflection_table)
-  if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-  if (.not. expect_this ('{', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  if (allocated(ph%reflectivity_table)) deallocate(ph%reflectivity_table)
+  if (.not. expect_this ('={', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
 
   do
     nt = nt + 1
     if (nt == 1) then
-      allocate(ph%reflection_table(nt))
+      allocate(ph%reflectivity_table(nt))
     else
-      call move_alloc(ph%reflection_table, rt_save)
-      allocate (ph%reflection_table(nt))
-      ph%reflection_table(1:nt-1) = rt_save
+      call move_alloc(ph%reflectivity_table, rt_save)
+      allocate (ph%reflectivity_table(nt))
+      ph%reflectivity_table(1:nt-1) = rt_save
     endif
-    rt => ph%reflection_table(nt)
+    rt => ph%reflectivity_table(nt)
+    if (.not. expect_this ('{', .false., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-    if (attrib_word /= 'ANGLES') then
-      call parser_error ('EXPECTING "ANGLES" ATTRIBUTE IN REFLECTION_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+    if (word /= 'ANGLES') then
+      call parser_error ('EXPECTING "ANGLES" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
       return
     endif
     if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
     if (.not. parse_real_list2(lat, trim(ele%name) // ' ANGLES', rt%angle, na, delim, delim_found)) return
-    if (.not. expect_this (',', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+    if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
     ne = 0
     do
       ne = ne + 1
       call re_allocate(rt%energy, ne)
       call re_allocate2d(rt%p_reflect, na, ne)
       call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-      if (attrib_word /= 'P_REFLECT') then
-        call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTION_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+      if (word /= 'P_REFLECT') then
+        call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
         return
       endif
       if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-      if (.not. parse_real_list (lat, trim(ele%name) // ' P_REFLECT', vec(1:na+1), .true., delim, delim_found)) return
-      rt%energy(ne) = vec(1)
-      rt%p_reflect(:,ne) = vec(2:na+1)
+      call parse_evaluate_value (ele%name, rt%energy(ne), lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+      if (.not. parse_real_list (lat, trim(ele%name) // ' P_REFLECT', rt%p_reflect(:,ne), .true., delim, delim_found)) return
       rt%max_energy = vec(1)
-      if (.not. expect_one_of(',}', .true., ele%name, delim, delim_found)) return
+      if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
       if (delim == '}') exit
     enddo
-    if (.not. expect_one_of(',}', .true., ele%name, delim, delim_found)) return
+    allocate(rt%int1(ne))
+    if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
     if (delim == '}') exit
   enddo
 
-  call finalize_reflectivity_tables (ph%reflection_table, .false.)
+  call finalize_reflectivity_tables (ph%reflectivity_table, .false.)
   err_flag = .false.
   return
 
@@ -9390,7 +9390,7 @@ if ((word /= '') .or. (delim /= op_delim)) then
 end if
 
 ! Initial allocation
-call re_allocate(real_array, num_expected, .false.)
+call re_allocate(real_array, num_expect, .false.)
 real_array = default_val
 
 ! Get reals

@@ -1517,11 +1517,11 @@ is_eq = is_eq .and. (f1%grid == f2%grid)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%pixel == f2%pixel)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%reflection_table) .eqv. allocated(f2%reflection_table))
+is_eq = is_eq .and. (allocated(f1%reflectivity_table) .eqv. allocated(f2%reflectivity_table))
 if (.not. is_eq) return
-if (allocated(f1%reflection_table)) is_eq = all(shape(f1%reflection_table) == shape(f2%reflection_table))
+if (allocated(f1%reflectivity_table)) is_eq = all(shape(f1%reflectivity_table) == shape(f2%reflectivity_table))
 if (.not. is_eq) return
-if (allocated(f1%reflection_table)) is_eq = all(f1%reflection_table == f2%reflection_table)
+if (allocated(f1%reflectivity_table)) is_eq = all(f1%reflectivity_table == f2%reflectivity_table)
 
 end function eq_photon_element
 
