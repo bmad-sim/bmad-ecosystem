@@ -5200,11 +5200,11 @@ call set_pixel_detec_test_pattern (F%pixel, ix_patt)
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%reflection_table)) deallocate (F%reflection_table)
+  if (allocated(F%reflectivity_table)) deallocate (F%reflectivity_table)
 else
-  if (.not. allocated(F%reflection_table)) allocate (F%reflection_table(-1:1))
-  do jd1 = 1, size(F%reflection_table,1); lb1 = lbound(F%reflection_table,1) - 1
-    call set_photon_reflect_table_test_pattern (F%reflection_table(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%reflectivity_table)) allocate (F%reflectivity_table(-1:1))
+  do jd1 = 1, size(F%reflectivity_table,1); lb1 = lbound(F%reflectivity_table,1) - 1
+    call set_photon_reflect_table_test_pattern (F%reflectivity_table(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 

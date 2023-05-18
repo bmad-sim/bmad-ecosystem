@@ -6005,13 +6005,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine photon_element_to_c2 (C, z_curvature, z_target, z_material, z_grid, z_pixel, &
-      z_reflection_table, n1_reflection_table) bind(c)
+      z_reflectivity_table, n1_reflectivity_table) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel
-    type(c_ptr) :: z_reflection_table(*)
-    integer(c_int), value :: n1_reflection_table
+    type(c_ptr) :: z_reflectivity_table(*)
+    integer(c_int), value :: n1_reflectivity_table
   end subroutine
 end interface
 
@@ -6020,26 +6020,26 @@ type(c_ptr), value :: C
 type(photon_element_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr), allocatable :: z_reflection_table(:)
-integer(c_int) :: n1_reflection_table
+type(c_ptr), allocatable :: z_reflectivity_table(:)
+integer(c_int) :: n1_reflectivity_table
 
 !
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_reflection_table = 0
-if (allocated(F%reflection_table)) then
-  n1_reflection_table = size(F%reflection_table); lb1 = lbound(F%reflection_table, 1) - 1
-  allocate (z_reflection_table(n1_reflection_table))
-  do jd1 = 1, n1_reflection_table
-    z_reflection_table(jd1) = c_loc(F%reflection_table(jd1+lb1))
+ n1_reflectivity_table = 0
+if (allocated(F%reflectivity_table)) then
+  n1_reflectivity_table = size(F%reflectivity_table); lb1 = lbound(F%reflectivity_table, 1) - 1
+  allocate (z_reflectivity_table(n1_reflectivity_table))
+  do jd1 = 1, n1_reflectivity_table
+    z_reflectivity_table(jd1) = c_loc(F%reflectivity_table(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
 call photon_element_to_c2 (C, c_loc(F%curvature), c_loc(F%target), c_loc(F%material), &
-    c_loc(F%grid), c_loc(F%pixel), z_reflection_table, n1_reflection_table)
+    c_loc(F%grid), c_loc(F%pixel), z_reflectivity_table, n1_reflectivity_table)
 
 end subroutine photon_element_to_c
 
@@ -6060,7 +6060,7 @@ end subroutine photon_element_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine photon_element_to_f2 (Fp, z_curvature, z_target, z_material, z_grid, z_pixel, &
-    z_reflection_table, n1_reflection_table) bind(c)
+    z_reflectivity_table, n1_reflectivity_table) bind(c)
 
 
 implicit none
@@ -6070,8 +6070,8 @@ type(photon_element_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel
-type(c_ptr) :: z_reflection_table(*)
-integer(c_int), value :: n1_reflection_table
+type(c_ptr) :: z_reflectivity_table(*)
+integer(c_int), value :: n1_reflectivity_table
 
 call c_f_pointer (Fp, F)
 
@@ -6086,16 +6086,16 @@ call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]
 call pixel_detec_to_f(z_pixel, c_loc(F%pixel))
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_reflection_table == 0) then
-  if (allocated(F%reflection_table)) deallocate(F%reflection_table)
+if (n1_reflectivity_table == 0) then
+  if (allocated(F%reflectivity_table)) deallocate(F%reflectivity_table)
 else
-  if (allocated(F%reflection_table)) then
-    if (n1_reflection_table == 0 .or. any(shape(F%reflection_table) /= [n1_reflection_table])) deallocate(F%reflection_table)
-    if (any(lbound(F%reflection_table) /= 1)) deallocate(F%reflection_table)
+  if (allocated(F%reflectivity_table)) then
+    if (n1_reflectivity_table == 0 .or. any(shape(F%reflectivity_table) /= [n1_reflectivity_table])) deallocate(F%reflectivity_table)
+    if (any(lbound(F%reflectivity_table) /= 1)) deallocate(F%reflectivity_table)
   endif
-  if (.not. allocated(F%reflection_table)) allocate(F%reflection_table(1:n1_reflection_table+1-1))
-  do jd1 = 1, n1_reflection_table
-    call photon_reflect_table_to_f (z_reflection_table(jd1), c_loc(F%reflection_table(jd1+1-1)))
+  if (.not. allocated(F%reflectivity_table)) allocate(F%reflectivity_table(1:n1_reflectivity_table+1-1))
+  do jd1 = 1, n1_reflectivity_table
+    call photon_reflect_table_to_f (z_reflectivity_table(jd1), c_loc(F%reflectivity_table(jd1+1-1)))
   enddo
 endif
 

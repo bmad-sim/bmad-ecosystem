@@ -3438,10 +3438,10 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.reflection_table.resize(0);
+    C.reflectivity_table.resize(0);
   else {
-    C.reflection_table.resize(3);
-    for (unsigned int i = 0; i < C.reflection_table.size(); i++)  {set_CPP_photon_reflect_table_test_pattern(C.reflection_table[i], ix_patt+i+1);}
+    C.reflectivity_table.resize(3);
+    for (unsigned int i = 0; i < C.reflectivity_table.size(); i++)  {set_CPP_photon_reflect_table_test_pattern(C.reflectivity_table[i], ix_patt+i+1);}
   }
 
 

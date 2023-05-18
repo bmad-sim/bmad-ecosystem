@@ -2130,7 +2130,7 @@ public:
   CPP_photon_material material;
   CPP_surface_grid grid;
   CPP_pixel_detec pixel;
-  CPP_photon_reflect_table_ARRAY reflection_table;
+  CPP_photon_reflect_table_ARRAY reflectivity_table;
 
   CPP_photon_element() :
     curvature(),
@@ -2138,7 +2138,7 @@ public:
     material(),
     grid(),
     pixel(),
-    reflection_table(CPP_photon_reflect_table_ARRAY(CPP_photon_reflect_table(), 0))
+    reflectivity_table(CPP_photon_reflect_table_ARRAY(CPP_photon_reflect_table(), 0))
     {}
 
   ~CPP_photon_element() {
