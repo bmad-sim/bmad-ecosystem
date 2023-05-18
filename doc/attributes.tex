@@ -1174,15 +1174,15 @@ the entrance and exit reference orbit.}
 \end{figure}
 
 %-----------------------------------------------------------------
-\section{X-Ray Reflection Tables}
+\section{X-Ray Reflectivity Tables}
 \label{s:reflect}
 
-Reflection tables are used to define reflectivity propabilities as functions of incidence angle and
+Reflectivity tables are used to define reflectivity propabilities as functions of incidence angle and
 photon energy for \vn{crystal} and \vn{mirror} elements.
 
 The general syntax is:
 \begin{example}
-  m: mirror, reflection_table = \{
+  m: mirror, reflectivity_table = \{
     ! A reflection table
     \{
       angles = (<ang1, <ang2, ... <angN>), 
@@ -1199,8 +1199,11 @@ The general syntax is:
     \}
   \}
 \end{example}
+Multiple tables are used in case
+angles array must be first in table. angles in radians, energy in eV, angle and energy points do not need to be evenly spaced. probabilities between 0 and 1. For particles outside the range of angles, the probability is taken to be zero. 
 
-For \vn{crystal} elements, angles are always with respect to the Bragg angle.
+
+For \vn{crystal} elements, angles are always with respect to the Bragg angle for the energy.
 
 %-----------------------------------------------------------------
 \section{Surface Properties for X-Ray elements}
