@@ -283,8 +283,6 @@ if (allocated(f1%table)) is_eq = all(f1%table == f2%table)
 is_eq = is_eq .and. (f1%surface_roughness_rms == f2%surface_roughness_rms)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%roughness_correlation_len == f2%roughness_correlation_len)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%initialized .eqv. f2%initialized)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_surface == f2%ix_surface)
 
@@ -1518,6 +1516,12 @@ is_eq = is_eq .and. (f1%material == f2%material)
 is_eq = is_eq .and. (f1%grid == f2%grid)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%pixel == f2%pixel)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%reflection_table) .eqv. allocated(f2%reflection_table))
+if (.not. is_eq) return
+if (allocated(f1%reflection_table)) is_eq = all(shape(f1%reflection_table) == shape(f2%reflection_table))
+if (.not. is_eq) return
+if (allocated(f1%reflection_table)) is_eq = all(f1%reflection_table == f2%reflection_table)
 
 end function eq_photon_element
 

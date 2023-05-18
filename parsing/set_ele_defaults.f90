@@ -83,6 +83,7 @@ case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
+  ele%value(use_reflectivity_table$) = false$
   if (logic_option(.true., do_allocate)) then
     ! Avoid "ele%photon = photon_element_struct()" to get around Ifort bug. 4/10/2019
     if (associated(ele%photon)) deallocate(ele%photon)
@@ -199,6 +200,7 @@ case (mask$)
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
+  ele%value(use_reflectivity_table$) = false$
   if (logic_option(.true., do_allocate)) then
     ! Avoid "ele%photon = photon_element_struct()" to get around ifort bug. 4/10/2019
     if (associated(ele%photon)) deallocate(ele%photon)

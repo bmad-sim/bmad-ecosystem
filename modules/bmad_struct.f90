@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 298
+integer, parameter :: bmad_inc_version$ = 299
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -194,8 +194,8 @@ type photon_reflect_table_struct
   real(rp), allocatable :: energy(:)             ! Vector of energy values for %p_reflect
   type (interval1_coef_struct), allocatable :: int1(:)
   real(rp), allocatable :: p_reflect(:,:)        ! (angle, ev) Logarithm of smooth surface reflection probability
-  real(rp) max_energy                            ! maximum energy for this table
-  real(rp), allocatable :: p_reflect_scratch(:)       ! Scratch space
+  real(rp) :: max_energy = -1                    ! maximum energy for this table
+  real(rp), allocatable :: p_reflect_scratch(:)  ! Scratch space
 end type
 
 ! Each photon_reflect_reflect_table_array(:) represents a different surface type.
@@ -209,7 +209,6 @@ type photon_reflect_surface_struct
   type (photon_reflect_table_struct), allocatable :: table(:)
   real(rp) :: surface_roughness_rms = 0       ! sigma in Dugan's notation
   real(rp) :: roughness_correlation_len = 0   ! T in Dugan's notation
-  logical :: initialized = .false.
   integer :: ix_surface = -1
 end type
 
@@ -1015,6 +1014,7 @@ type photon_element_struct
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
+  type (photon_reflect_table_struct), allocatable :: reflection_table(:)
 end type
 
 !------------------------------------------------------------------------------
@@ -1655,7 +1655,7 @@ integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord
 integer, parameter :: downstream_coord_dir$ = 30, pz_aperture_width2$ = 30, y_dispersion_calib$ = 30, voltage_tot$ = 30
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
 integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31
-integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
+integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  

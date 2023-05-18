@@ -679,7 +679,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, csr_method$,           'CSR_METHOD')
   call init_attribute_name1 (i, csr_ds_step$,          'CSR_DS_STEP')
   call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
-  call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', dependent$)
+  call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', private$)
   call init_attribute_name1 (i, static_linear_map$,    'STATIC_LINEAR_MAP')
 
   if (i == sad_mult$)          cycle
@@ -942,6 +942,7 @@ call init_attribute_name1 (crystal$, mosaic_angle_rms_out_plane$,   'MOSAIC_ANGL
 call init_attribute_name1 (crystal$, mosaic_diffraction_num$,       'MOSAIC_DIFFRACTION_NUM')
 call init_attribute_name1 (crystal$, p88$,                          'H_MISALIGN')
 call init_attribute_name1 (crystal$, curvature$,                    'CURVATURE')
+call init_attribute_name1 (crystal$, use_reflectivity_table$,       'USE_REFLECTIVITY_TABLE')
 
 call init_attribute_name1 (def_mad_beam$, particle$,                      'PARTICLE')
 call init_attribute_name1 (def_mad_beam$, e_tot$,                         'ENERGY')
@@ -1557,6 +1558,7 @@ call init_attribute_name1 (mirror$, ref_tilt$,                      'REF_TILT')
 call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH', dependent$)
 call init_attribute_name1 (mirror$, curvature$,                     'CURVATURE')
+call init_attribute_name1 (mirror$, use_reflectivity_table$,        'USE_REFLECTIVITY_TABLE')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'L', dependent$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
@@ -1841,7 +1843,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT', &
-      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH')
+      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'N_PARTICLE', 'VERTICAL_KICK', 'N_CELL', &

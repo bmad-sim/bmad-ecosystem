@@ -1176,10 +1176,11 @@ General \vn{crystal} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}    & Surface Properties         & \ref{s:s.curve} \\ 
+  Aperture limits            & \ref{s:limit}    & Surface Properties         & \ref{s:surface} \\ 
   Custom Attributes          & \ref{s:cust.att} & Symplectify                & \ref{s:symp}    \\
   Description strings        & \ref{s:alias}    & Offsets, Pitches \& Tilt   & \ref{s:offset}  \\
   Reference energy           & \ref{s:energy}   & Tracking \& transfer map   & \ref{c:methods} \\
+  Reflection tables          & \ref{s:reflect}  &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1313,7 +1314,7 @@ same direction as a positive \vn{g} for a bend element. The
 A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming local reference coordinates
 are used for these misalignments.
 
-When a crystal is bent (\sref{s:s.curve}), the $\bfH$ vector is assumed follow the surface
+When a crystal is bent (\sref{s:surface}), the $\bfH$ vector is assumed follow the surface
 curvature. That is, it is assumed that the lattice planes are curved by the bending.
 
 Example:
@@ -1491,7 +1492,7 @@ will set the aperture limits to define a rectangular aperture that just cover th
 grid.
 
 A curved detector can be constructed by setting the appropriate surface curvature parameters
-(\sref{s:s.curve}). It is assumed that any curvature is only in one dimension ($x$ or $y$). This
+(\sref{s:surface}). It is assumed that any curvature is only in one dimension ($x$ or $y$). This
 allows a straight forward mapping of the rectangular pixel grid onto the curved surface.
 
 %-----------------------------------------------------------------
@@ -3204,10 +3205,11 @@ General \vn{mirror} attributes are:
 \tt 
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
+  Aperture limits            & \ref{s:limit}     & Reflection tables          & \ref{s:reflect} \\
   Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
-  Description strings        & \ref{s:alias}     & Surface Properties         & \ref{s:s.curve} \\
+  Description strings        & \ref{s:alias}     & Surface Properties         & \ref{s:surface} \\
   Offsets, pitches \& tilt   & \ref{s:offset}    & Tracking \& transfer map   & \ref{c:methods} \\ 
+  Reference energy           & \ref{s:energy}    &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3294,7 +3296,7 @@ General \vn{crystal} attributes are:
   Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
   Reference energy           & \ref{s:energy}    & Tracking \& transfer map   & \ref{c:methods} \\
-  Surface Properties         & \ref{s:s.curve}   &                            &                 \\
+  Surface Properties         & \ref{s:surface}   &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -4408,7 +4410,7 @@ General \vn{sample} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\ \midrule
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
-  Custom Attributes          & \ref{s:cust.att}  & Surface Properties         & \ref{s:s.curve} \\
+  Custom Attributes          & \ref{s:cust.att}  & Surface Properties         & \ref{s:surface} \\
   Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
   Length                     & \ref{s:l}         &                            &                 \\
