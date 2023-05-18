@@ -16,7 +16,6 @@ use bookkeeper_mod
 use wall3d_mod
 use random_mod
 use taylor_mod
-
 implicit none
 
 contains
@@ -56,6 +55,8 @@ contains
 
 subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
 
+use photon_reflection_mod, only: finalize_reflectivity_tables
+
 implicit none
 
 type (lat_struct), pointer :: lat
@@ -79,12 +80,14 @@ type (grid_field_struct), pointer :: g_field
 type (cartesian_map_struct), pointer :: ct_map
 type (ac_kicker_struct), pointer :: ac
 type (photon_element_struct), pointer :: ph
+type (photon_reflect_table_struct), allocatable :: rt_save(:)
+type (photon_reflect_table_struct), pointer :: rt
 
-real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
+real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2), vec(100)
 real(rp), allocatable :: table(:,:)
 real(rp), pointer :: r_ptr
 
-integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, iy, i_out, ix_coef, switch
+integer i, i2, j, k, n, na, ne, nn, nt, ix_word, how, ix_word1, ix_word2, ios, ix, iy, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_ptr, i_term, ib, ie, im
 integer ix_bounds(2), iy_bounds(2), i_vec(2), n_sec, key
 
@@ -318,6 +321,8 @@ endif
 ! Setting n_ref_pass and multipass_ref_energy is no longer valid and
 ! will be ignored for backwards compatibility.
 if (word == 'N_REF_PASS' .or. word == 'MULTIPASS_REF_ENERGY') then
+  call parser_error(quote(word) // ' IS NOT SETTABLE. PLEASE REMOVE FROM LATTICE FILE. PARSING WILL PROCEED AS NORMAL.', &
+                    'FOR ELEMENT: ' // ele%name, level = s_warn$)
   call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
   return
 endif
@@ -1046,6 +1051,59 @@ endif
 ! Reflecting Surface
 
 select case (attrib_word)
+case ('REFLECTION_TABLE')
+  ph => ele%photon
+  nt = 0
+  if (allocated(ph%reflection_table)) deallocate(ph%reflection_table)
+  if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  if (.not. expect_this ('{', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+
+  do
+    nt = nt + 1
+    if (nt == 1) then
+      allocate(ph%reflection_table(nt))
+    else
+      call move_alloc(ph%reflection_table, rt_save)
+      allocate (ph%reflection_table(nt))
+      ph%reflection_table(1:nt-1) = rt_save
+    endif
+    rt => ph%reflection_table(nt)
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+    if (attrib_word /= 'ANGLES') then
+      call parser_error ('EXPECTING "ANGLES" ATTRIBUTE IN REFLECTION_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+      return
+    endif
+    if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+    if (.not. parse_real_list2(lat, trim(ele%name) // ' ANGLES', rt%angle, na, delim, delim_found)) return
+    if (.not. expect_this (',', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+    ne = 0
+    do
+      ne = ne + 1
+      call re_allocate(rt%energy, ne)
+      call re_allocate2d(rt%p_reflect, na, ne)
+      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+      if (attrib_word /= 'P_REFLECT') then
+        call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTION_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+      if (.not. parse_real_list (lat, trim(ele%name) // ' P_REFLECT', vec(1:na+1), .true., delim, delim_found)) return
+      rt%energy(ne) = vec(1)
+      rt%p_reflect(:,ne) = vec(2:na+1)
+      rt%max_energy = vec(1)
+      if (.not. expect_one_of(',}', .true., ele%name, delim, delim_found)) return
+      if (delim == '}') exit
+    enddo
+    if (.not. expect_one_of(',}', .true., ele%name, delim, delim_found)) return
+    if (delim == '}') exit
+  enddo
+
+  call finalize_reflectivity_tables (ph%reflection_table, .false.)
+  err_flag = .false.
+  return
+
+!
+
 case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
   ph => ele%photon
 
@@ -9131,6 +9189,21 @@ end function parse_integer_list2
 ! 
 ! Similar to parse_real_list2 except does not use allocatable array.
 ! Also see: parse_real_lists.
+!
+! Input:
+!   lat           -- lat_struct: Lattice
+!   err_str       -- character(*): Error string to print if there is an error. 
+!   exact_size    --
+!   open_delim    --
+!   separator     --
+!   close_delim   --
+!   default_value --
+!
+! Output:
+!   real_array    --
+!   delim         --
+!   delim_found   --
+!   num_found     --
 !-
 
 function parse_real_list (lat, err_str, real_array, exact_size, delim, delim_found, open_delim, &
@@ -9251,11 +9324,11 @@ end function parse_real_lists
 !  real_array     -- real(rp), allocatable: the array to be read in 
 !
 !   Optional: 
-!   num_expected = 1     -- integer : number of expected arguments
+!   num_expected = 10    -- integer, optional: number of expected arguments
 !                             Used to initialize real_array
-!   open_delim   = '('   -- character(1) : opening delimeter
-!   separator    = ','   -- character(1) : separating character
-!   close_delim  = ')'   -- character(1) : closing delimeter
+!   open_delim   = '('   -- character(1), optional: opening delimeter
+!   separator    = ','   -- character(1), optional: separating character
+!   close_delim  = ')'   -- character(1), optional: closing delimeter
 !   default_value = 0.0_rp -- real(rp) : inital assignment of real_array elements
 !
 ! Output:
@@ -9299,7 +9372,7 @@ logical delim_found, err_flag
 ! Optional arguments
 
 is_ok = .false.
-num_expect = integer_option(1, num_expected)
+num_expect = integer_option(10, num_expected)
 default_val = real_option(0.0_rp, default_value)
 
 op_delim = '('
@@ -9346,10 +9419,10 @@ do
     call parser_error ('BAD SEPARATOR IN: ' // err_str)
     return  
   end if
-
 end do
 
 is_ok = .true.
+call re_allocate(real_array, num_found)
 
 end function parse_real_list2
 

@@ -331,7 +331,7 @@ prt%p_reflect(:, 69) = [1.00, 0.989781, 0.199288, 0.012511, 0.007791, 0.004174, 
 
 !---------------------------------------------------------------------------------------------
 
-call finalize_reflectivity_tables (surface)
+call finalize_reflectivity_tables (surface%table, .true.)
 
 end subroutine photon_reflection_std_surface_init
 
@@ -339,31 +339,37 @@ end subroutine photon_reflection_std_surface_init
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine finalize_reflectivity_tables (surface)
+! Subroutine finalize_reflectivity_tables (table, in_degrees)
 !
 ! Routine to finalize the construction of the reflectivity tables for a surface.
 !
 ! Input:
-!   surface -- photon_reflect_surface_struct: Surface tables to be finalized.
+!   table(:)    -- photon_reflect_table_struct: Surface tables to be finalized.
+!   in_degrees  -- logical: Table angles in degrees?
+!
+! Output:
+!   table(:)    -- photon_reflect_table_struct: Finalized surface tables.
 !-
 
-Subroutine finalize_reflectivity_tables (surface)
+Subroutine finalize_reflectivity_tables (table, in_degrees)
 
 implicit none
 
-type (photon_reflect_surface_struct), target :: surface
+type (photon_reflect_table_struct), target :: table(:)
 type (photon_reflect_table_struct), pointer :: prt
 
 real(rp) f, deriv, dprob
 
 integer i, j, k
+logical in_degrees
 
 ! Take the logiarithm of p_reflect. Where zero, just use 10^-20
 
-do i = 1, size(surface%table)
-  prt => surface%table(i)
-  do j = 1, size(prt%energy)
+do i = 1, size(table)
+  prt => table(i)
+  if (in_degrees) prt%angle = prt%angle * pi / 180.0_rp
 
+  do j = 1, size(prt%energy)
     do k = 1, size(prt%angle)
       prt%p_reflect(k, j) = log(max(1.0e-20_rp, prt%p_reflect(k, j)))
     enddo
@@ -378,8 +384,6 @@ do i = 1, size(surface%table)
 
   enddo
 enddo
-
-surface%initialized = .true.
 
 end subroutine finalize_reflectivity_tables
 
@@ -591,7 +595,7 @@ enddo
 
 close (iu)
 
-call finalize_reflectivity_tables (surface)
+call finalize_reflectivity_tables (surface%table, .true.)
 
 end subroutine read_surface_reflection_file
 
@@ -682,28 +686,28 @@ do ie = 1, size(prt%energy)-1
   if (e_tot <= prt%energy(ie+1)) exit
 enddo
 
-! Find which angle interval angle_deg is in.
+! Find which angle interval incident angle is in.
 
 n_ang = size(prt%angle)
-ixa = bracket_index (angle*180/pi, prt%angle, 1)
+ixa = bracket_index (angle, prt%angle, 1)
 
 f = (e_tot - prt%energy(ie)) / (prt%energy(ie+1) - prt%energy(ie))
 
 ! Interpolate
 
-call this_reflect_prob (prt%int1, prt%p_reflect, angle*180/pi, p_reflect)
+call this_reflect_prob (prt%int1, prt%p_reflect, angle, p_reflect)
 rel_p_specular = exp(-(twopi * surface%surface_roughness_rms * 2 * sin(angle) * energy / (c_light * h_planck))**2)
 
 !----------------------------------------------------------------------------
 contains
 
-subroutine this_reflect_prob (int1, p_reflect, angle_deg, reflect_prob)
+subroutine this_reflect_prob (int1, p_reflect, angle_incident, reflect_prob)
 
 type (interval1_coef_struct), allocatable :: int1(:)
 type (spline_struct) ang_spline(6)
 
 real(rp) :: p_reflect(:,:) 
-real(rp) reflect_prob, angle_deg
+real(rp) reflect_prob, angle_incident
 real(rp) c0, c1, n_exp
 
 ! If in the first interval then spline interpolation is not good.
@@ -714,7 +718,7 @@ if (ixa == 1) then
   c0    = (1 - f) * int1(ie)%c0 + f * int1(ie)%c0
   c1    = (1 - f) * int1(ie)%c1 + f * int1(ie)%c1
   n_exp = (1 - f) * int1(ie)%n_exp + f * int1(ie)%n_exp
-  reflect_prob = c0 + c1 * angle_deg**n_exp
+  reflect_prob = c0 + c1 * angle_incident**n_exp
   reflect_prob = exp(reflect_prob)
   return
 endif
@@ -733,7 +737,7 @@ ang_spline(1:n_a)%y0 = prt%p_reflect_scratch(ixa0:ixa1)
 call spline_akima(ang_spline(1:n_a), ok)
 if (.not. ok) call err_exit
 
-call spline_evaluate (ang_spline(1:n_a), angle_deg, ok, reflect_prob)
+call spline_evaluate (ang_spline(1:n_a), angle_incident, ok, reflect_prob)
 if (.not. ok) call err_exit
 
 reflect_prob = exp(reflect_prob)

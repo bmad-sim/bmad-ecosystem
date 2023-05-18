@@ -1174,8 +1174,37 @@ the entrance and exit reference orbit.}
 \end{figure}
 
 %-----------------------------------------------------------------
+\section{X-Ray Reflection Tables}
+\label{s:reflect}
+
+Reflection tables are used to define reflectivity propabilities as functions of incidence angle and
+photon energy for \vn{crystal} and \vn{mirror} elements.
+
+The general syntax is:
+\begin{example}
+  m: mirror, reflection_table = \{
+    ! A reflection table
+    \{
+      angles = (<ang1, <ang2, ... <angN>), 
+      p_reflect = <energy1>, (<P_11>, <P_12>, <P_13>, ..., <P_1N>), 
+      p_reflect = <energy2>, (<P_21>, <P_22>, <P_23>, ..., <P_2N>), 
+      ...
+      p_reflect = ...,
+    \}
+    ! Another reflection table
+    \{
+      angles = (...), 
+      p_reflect = ...,
+      ...
+    \}
+  \}
+\end{example}
+
+For \vn{crystal} elements, angles are always with respect to the Bragg angle.
+
+%-----------------------------------------------------------------
 \section{Surface Properties for X-Ray elements}
-\label{s:s.curve}
+\label{s:surface}
 
 The following X-ray elements have a surface which X-rays impinge upon:
 \begin{example}
@@ -2275,7 +2304,9 @@ The lattice file syntax for the \vn{cartesian_map} type is:
     ele_anchor_pt    = <Real>,   ! Anchor position: Beginning (default), Center, or End.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
     term = \{<A>, <k_x>, <k_y>, <k_z>, <x_0>, <y_0>, <phi_z>, <family>\}, 
-    term = \{....\}  \}
+    term = \{....\},
+    ... more terms ...
+  \}
 \end{example}
 The possible settings of \vn{<family>} are explained in Sec.~\sref{s:cart.map.phys}. Example:
 \begin{example}
