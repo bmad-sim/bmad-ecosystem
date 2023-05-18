@@ -9,13 +9,14 @@ on:
       - "main"
   # Run on pull requests
   pull_request:
+  # Future Ideas:
   # PR make it 10 or less
   # For main and time based we can run something bigger
 
   # Run when releases are published
-  release:
-    types:
-      - "published"
+  # release:
+  #   types:
+  #     - "published"
 
 # Configuration for the version of external dependencies
 # We do this so we can cache them and avoid checking out that big
@@ -31,6 +32,7 @@ jobs:
           shell: bash
     strategy:
       matrix:
+        # Future Ideas:
         # add macOS - check if GH Actions can make intel and arm
         os: [ubuntu-latest]
         shared: ["Y"]
@@ -77,60 +79,3 @@ jobs:
 
       - name: Run Tests
         run: .github/scripts/run_tests.sh
-
-      # - name: Add Empty Commit for New Release
-      #   if: steps.cache.outputs.cache-hit != 'true'
-      #   uses: actions-js/push@master
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     branch: 'main'
-      #     message: "Update distribution to ${{ env.BMADDIST }}"
-      #     empty: true
-
-      # - name: Record Release Commit Hash
-      #   if: steps.cache.outputs.cache-hit != 'true'
-      #   run: |
-      #     echo "**** Release Commit is: `git rev-parse HEAD`"
-      #     echo "RELEASE_COMMIT=`git rev-parse HEAD`" >> $GITHUB_ENV
-
-      # - name: Move Artifact Into Upload Area
-      #   if: steps.cache.outputs.cache-hit != 'true'
-      #   run: |
-      #     cp ~/artifact/*.tgz ${GITHUB_WORKSPACE}
-
-      # - name: Deploy New Release for Distribution - ${{ env.BMADDIST }}
-      #   if: steps.cache.outputs.cache-hit != 'true'
-      #   uses: softprops/action-gh-release@v0.1.6
-      #   with:
-      #     tag_name: "${{ env.BMADTAG }}"
-      #     target_commitish: "${{ env.RELEASE_COMMIT }}"
-      #     fail_on_unmatched_files: true
-      #     draft: false
-      #     body: "Bmad Distribution - ${{ env.BMADDIST }}"
-      #     files: |
-      #       ${{ env.BMADDIST }}.tgz
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Report Failure Status on Slack
-      #   if: failure()
-      #   uses: ravsamhq/notify-slack-action@1.4.0
-      #   with:
-      #     status: ${{ job.status }}
-      #     notify_when: 'failure'
-      #     notification_title: 'Bmad Distribution Pipeline Failed'
-      #     message_format: ':poop: *{workflow}* failed. Please check more details at <https://github.com/bmad-sim/bmad_distribution/actions/workflows/distro.yml|{repo}>.'
-      #     footer: ''
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      # - name: Report New Release on Slack
-      #   if: success() && steps.cache.outputs.cache-hit != 'true'
-      #   uses: ravsamhq/notify-slack-action@1.4.0
-      #   with:
-      #     status: ${{ job.status }}
-      #     notification_title: 'Bmad Distribution Pipeline'
-      #     message_format: ':tada: *{workflow}* produced a new release of Bmad. Check it out at <https://github.com/bmad-sim/bmad_distribution/releases|{repo}>.'
-      #     footer: ''
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
