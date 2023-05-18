@@ -121,9 +121,6 @@ every_n_th_plane: This parameter can be used to reduce the number of z-planes be
 setting of "1" means analyze all z-planes, "2" means skip every other z-plane, etc. Use this parameter
 if you want to reduce the amount of data being outputted.
 
-n_deriv_extra: Extra derivatives used in the fit above n_deriv_max. That is, in the fitting process
-the derivatives of order 0 through n_deriv_max+n_deriv_extra will be used. The default is 0.
-
 n_deriv_max: For any given z-position, this parameter sets the maximum derivative order outputted to
 the lattice file. The minimum derivative order is zero so the number of derivatives, which includes
 the zeroth order derivative will be n_deriv_max+1. Used with n_deriv_max_cos and n_deriv_max_sin. A
@@ -131,8 +128,11 @@ value of -1 means ignore. n_deriv_max is only used for a given GG if the corresp
 n_deriv_max_cos and n_deriv_max_sin is not set.
 
 n_deriv_max_cos, n_deriv_max_sin: For any given z-position, this parameter is a list of the maximum
-derivative order outputted to the lattice file for cos-like and sin-like GGs. The list corresponds one-to-one
-with the m_cos and m_sin lists. Also see n_deriv_max. A value of -1 means ignore.
+derivative order outputted to the lattice file for cos-like and sin-like GGs. The list corresponds
+one-to-one with the m_cos and m_sin lists. Also see n_deriv_max. A value of -1 means ignore. One
+strategy is to limit the GGs used to those whose field variation with radius (in cylindrical coords)
+does not exceed some given power law exponent radius^NNN. Using this, for a given m-value,
+n_deriv_max_cos and n_deriv_max_sin should be set to NNN - m + 1.
 
 m_cos, m_sin: Lists of cosine and sine azimuthal harmonics to analyze. A list of "-1" means there
 are no harmonics of this type. In the above example, no cosine harmonics are used and harmonics

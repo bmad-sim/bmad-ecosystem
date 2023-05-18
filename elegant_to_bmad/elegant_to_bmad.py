@@ -767,6 +767,11 @@ def parse_command(command, dlist):
   # Line
 
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
+    if '-' in command: print('''
+WARNING! LINE DEFINITION USES ELEMENT REVERSAL (NEGATIVE SIGN CHARACTER DETECTED).
+IF REVERSAL INVOLVES A BEND WITH DIFFERING E1 AND E2 FACE ANGLES, THE TRANSLATION WILL BE OFF
+SINCE WITH BMAD (AND MAD FOR THAT MATTER) REVERSAL DOES NOT FLIP E1 AND E2 BUT WITH ELEGANT IT DOES.
+THAT IS, YOU WILL NEED TO EDIT THE BMAD LATTICE FILE TO FIX.''')
     wrap_write(command.replace(' ,', ','), f_out)
     if common.beam_line_name != '##': common.beam_line_name = dlist[0]
     return
