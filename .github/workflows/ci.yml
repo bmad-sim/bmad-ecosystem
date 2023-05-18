@@ -1,0 +1,136 @@
+name: Bmad Ecosystem - Build & Test
+
+on:
+  # Run on demand
+  workflow_dispatch:
+  # Run on push to main
+  push:
+    branches:
+      - "main"
+  # Run on pull requests
+  pull_request:
+  # PR make it 10 or less
+  # For main and time based we can run something bigger
+
+  # Run when releases are published
+  release:
+    types:
+      - "published"
+
+# Configuration for the version of external dependencies
+# We do this so we can cache them and avoid checking out that big
+# repository at all times.
+env:
+  EXTERNAL_DEPS_VERSION: main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    defaults:
+        run:
+          shell: bash
+    strategy:
+      matrix:
+        # add macOS - check if GH Actions can make intel and arm
+        os: [ubuntu-latest]
+        shared: ["Y"]
+        openmp_mpi: ["N", "Y"]
+    steps:
+      # Check out the code from GitHub
+      - uses: actions/checkout@v2
+
+      # Install system dependencies
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc
+
+      # sudo apt install build-essential curl wget cmake gfortran automake \
+      # autoconf libtool m4 libgomp1 libreadline-dev libncurses-dev pkg-config \
+      # libcairo2-dev libpango1.0-dev libxt-dev libx11-dev -y
+
+      # Try to check the cache for external dependencies
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: ~/external_deps
+          key: ${{ env.EXTERNAL_DEPS_VERSION }}
+
+      # In case we don't have it available, check it out
+      - name: Checkout External Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
+
+      - name: Extract dependencies
+        run: |
+          for dep in ~/external_deps/*.tar.gz; \
+          do \
+            tar xzvf $dep -C $GITHUB_WORKSPACE/; \
+          done
+
+      - name: Build
+        env:
+          USE_MPI: ${{ matrix.openmp_mpi }}
+          SHARED: ${{ matrix.shared }}
+        run: .github/scripts/install_bmad.sh
+
+      - name: Run Tests
+        run: .github/scripts/run_tests.sh
+
+      # - name: Add Empty Commit for New Release
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   uses: actions-js/push@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: 'main'
+      #     message: "Update distribution to ${{ env.BMADDIST }}"
+      #     empty: true
+
+      # - name: Record Release Commit Hash
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   run: |
+      #     echo "**** Release Commit is: `git rev-parse HEAD`"
+      #     echo "RELEASE_COMMIT=`git rev-parse HEAD`" >> $GITHUB_ENV
+
+      # - name: Move Artifact Into Upload Area
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   run: |
+      #     cp ~/artifact/*.tgz ${GITHUB_WORKSPACE}
+
+      # - name: Deploy New Release for Distribution - ${{ env.BMADDIST }}
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   uses: softprops/action-gh-release@v0.1.6
+      #   with:
+      #     tag_name: "${{ env.BMADTAG }}"
+      #     target_commitish: "${{ env.RELEASE_COMMIT }}"
+      #     fail_on_unmatched_files: true
+      #     draft: false
+      #     body: "Bmad Distribution - ${{ env.BMADDIST }}"
+      #     files: |
+      #       ${{ env.BMADDIST }}.tgz
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Report Failure Status on Slack
+      #   if: failure()
+      #   uses: ravsamhq/notify-slack-action@1.4.0
+      #   with:
+      #     status: ${{ job.status }}
+      #     notify_when: 'failure'
+      #     notification_title: 'Bmad Distribution Pipeline Failed'
+      #     message_format: ':poop: *{workflow}* failed. Please check more details at <https://github.com/bmad-sim/bmad_distribution/actions/workflows/distro.yml|{repo}>.'
+      #     footer: ''
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # - name: Report New Release on Slack
+      #   if: success() && steps.cache.outputs.cache-hit != 'true'
+      #   uses: ravsamhq/notify-slack-action@1.4.0
+      #   with:
+      #     status: ${{ job.status }}
+      #     notification_title: 'Bmad Distribution Pipeline'
+      #     message_format: ':tada: *{workflow}* produced a new release of Bmad. Check it out at <https://github.com/bmad-sim/bmad_distribution/releases|{repo}>.'
+      #     footer: ''
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
