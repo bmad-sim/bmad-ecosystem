@@ -1,6 +1,6 @@
 !+
 ! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele,
-!                                                 dflt_source, dflt_component, dflt_uni, dflt_eval_point)
+!                                               dflt_source, dflt_component, dflt_uni, dflt_eval_point, info)
 !
 ! Routine to evaluate a lattice element parameter of the form 
 !     <universe>@ele::{<ele_class>}::<ele_name_or_num>[<parameter>]{|<component>}
@@ -18,12 +18,13 @@
 !   dflt_eval_point -- integer, optional: Evaluation point: anchor_beginning$, anchor_center$, or anchor_end$.
 !
 ! Output:
-!   err       -- Logical: True if there is an error in syntax. False otherwise
-!   values(:) -- Real(rp), allocatable: Array of datum valuse.
+!   err       -- logical: True if there is an error in syntax. False otherwise
+!   values(:) -- real(rp), allocatable: Array of datum valuse.
+!   info(:)   -- tao_expression_info_struct), allocatable, optional:  
 !-
 
 subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele, &
-                                             dflt_source, dflt_component, dflt_uni, dflt_eval_point)
+                                             dflt_source, dflt_component, dflt_uni, dflt_eval_point, info)
 
 use tao_interface, except_dummy => tao_evaluate_element_parameters
 
@@ -31,6 +32,7 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer, optional :: dflt_ele
+type (tao_expression_info_struct), allocatable, optional :: info(:)
 
 character(*) param_name
 character(*) dflt_source
@@ -126,6 +128,10 @@ n_tot = 0
 if (use_dflt_ele) then
   call re_allocate (values, 1)
   call evaluate_this_parameter(dflt_ele, parameter, component, where, s%u(dflt_uni), n_tot, values, err)
+  if (present(info)) then
+    call tao_re_allocate_expression_info(info, 1)
+    info(1)%ele => dflt_ele
+  endif
 
 else
   do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -134,9 +140,11 @@ else
     call tao_locate_elements (class_ele, u%ix_uni, scratch%eles, err)
     if (err) return
     call re_allocate (values, n_tot + size(scratch%eles))
+    if (present(info)) call tao_re_allocate_expression_info(info, n_tot+size(scratch%eles))
 
     do j = 1, size(scratch%eles)
       call evaluate_this_parameter(scratch%eles(j)%ele, parameter, component, where, u, n_tot, values, err)
+      if (present(info)) info(n_tot)%ele => scratch%eles(j)%ele
       if (err) return
     enddo
   enddo

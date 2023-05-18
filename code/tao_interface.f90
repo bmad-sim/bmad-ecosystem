@@ -238,10 +238,11 @@ function tao_evaluate_tune (q_str, q0, delta_input) result (q_val)
 end function
 
 subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele, &
-                                                       dflt_source, dflt_component, dflt_uni, eval_point)
+                                              dflt_source, dflt_component, dflt_uni, eval_point, info)
   import
   implicit none
   type (ele_struct), pointer, optional :: dflt_ele
+type (tao_expression_info_struct), allocatable, optional :: info(:)
   character(*) param_name
   character(*) dflt_source
   character(*), optional :: dflt_component
