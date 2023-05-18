@@ -913,10 +913,8 @@ endif
 rhs = 6 + offset; F%surface_roughness_rms = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 7 + offset; F%roughness_correlation_len = rhs
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 8 + offset; F%initialized = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%ix_surface = rhs
+rhs = 8 + offset; F%ix_surface = rhs
 
 end subroutine set_photon_reflect_surface_test_pattern
 
@@ -5199,6 +5197,16 @@ call set_photon_material_test_pattern (F%material, ix_patt)
 call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_pixel_detec_test_pattern (F%pixel, ix_patt)
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%reflection_table)) deallocate (F%reflection_table)
+else
+  if (.not. allocated(F%reflection_table)) allocate (F%reflection_table(-1:1))
+  do jd1 = 1, size(F%reflection_table,1); lb1 = lbound(F%reflection_table,1) - 1
+    call set_photon_reflect_table_test_pattern (F%reflection_table(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
 
 end subroutine set_photon_element_test_pattern
 

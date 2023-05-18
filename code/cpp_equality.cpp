@@ -191,7 +191,6 @@ bool operator== (const CPP_photon_reflect_surface& x, const CPP_photon_reflect_s
   is_eq = is_eq && is_all_equal(x.table, y.table);
   is_eq = is_eq && (x.surface_roughness_rms == y.surface_roughness_rms);
   is_eq = is_eq && (x.roughness_correlation_len == y.roughness_correlation_len);
-  is_eq = is_eq && (x.initialized == y.initialized);
   is_eq = is_eq && (x.ix_surface == y.ix_surface);
   return is_eq;
 };
@@ -868,6 +867,7 @@ bool operator== (const CPP_photon_element& x, const CPP_photon_element& y) {
   is_eq = is_eq && (x.material == y.material);
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.pixel == y.pixel);
+  is_eq = is_eq && is_all_equal(x.reflection_table, y.reflection_table);
   return is_eq;
 };
 

@@ -343,7 +343,7 @@ extern "C" void photon_reflect_surface_to_c (const Opaque_photon_reflect_surface
 
 // c_side.to_f2_arg
 extern "C" void photon_reflect_surface_to_f2 (Opaque_photon_reflect_surface_class*, c_Char,
-    c_Char, c_Char, const CPP_photon_reflect_table**, Int, c_Real&, c_Real&, c_Bool&, c_Int&);
+    c_Char, c_Char, const CPP_photon_reflect_table**, Int, c_Real&, c_Real&, c_Int&);
 
 extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface& C, Opaque_photon_reflect_surface_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -357,7 +357,7 @@ extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface& C
   // c_side.to_f2_call
   photon_reflect_surface_to_f2 (F, C.name.c_str(), C.description.c_str(),
       C.reflectivity_file.c_str(), z_table, n1_table, C.surface_roughness_rms,
-      C.roughness_correlation_len, C.initialized, C.ix_surface);
+      C.roughness_correlation_len, C.ix_surface);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_table;
@@ -367,7 +367,7 @@ extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface& C
 extern "C" void photon_reflect_surface_to_c2 (CPP_photon_reflect_surface& C, c_Char z_name,
     c_Char z_description, c_Char z_reflectivity_file, Opaque_photon_reflect_table_class**
     z_table, Int n1_table, c_Real& z_surface_roughness_rms, c_Real&
-    z_roughness_correlation_len, c_Bool& z_initialized, c_Int& z_ix_surface) {
+    z_roughness_correlation_len, c_Int& z_ix_surface) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -383,8 +383,6 @@ extern "C" void photon_reflect_surface_to_c2 (CPP_photon_reflect_surface& C, c_C
   C.surface_roughness_rms = z_surface_roughness_rms;
   // c_side.to_c2_set[real, 0, NOT]
   C.roughness_correlation_len = z_roughness_correlation_len;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.initialized = z_initialized;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_surface = z_ix_surface;
 }
@@ -2078,20 +2076,31 @@ extern "C" void photon_element_to_c (const Opaque_photon_element_class*, CPP_pho
 // c_side.to_f2_arg
 extern "C" void photon_element_to_f2 (Opaque_photon_element_class*, const
     CPP_surface_curvature&, const CPP_photon_target&, const CPP_photon_material&, const
-    CPP_surface_grid&, const CPP_pixel_detec&);
+    CPP_surface_grid&, const CPP_pixel_detec&, const CPP_photon_reflect_table**, Int);
 
 extern "C" void photon_element_to_f (const CPP_photon_element& C, Opaque_photon_element_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_reflection_table = C.reflection_table.size();
+  const CPP_photon_reflect_table** z_reflection_table = NULL;
+  if (n1_reflection_table != 0) {
+    z_reflection_table = new const CPP_photon_reflect_table*[n1_reflection_table];
+    for (int i = 0; i < n1_reflection_table; i++) z_reflection_table[i] = &C.reflection_table[i];
+  }
 
   // c_side.to_f2_call
-  photon_element_to_f2 (F, C.curvature, C.target, C.material, C.grid, C.pixel);
+  photon_element_to_f2 (F, C.curvature, C.target, C.material, C.grid, C.pixel,
+      z_reflection_table, n1_reflection_table);
 
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_reflection_table;
 }
 
 // c_side.to_c2_arg
 extern "C" void photon_element_to_c2 (CPP_photon_element& C, const
     Opaque_surface_curvature_class* z_curvature, const Opaque_photon_target_class* z_target,
     const Opaque_photon_material_class* z_material, const Opaque_surface_grid_class* z_grid,
-    const Opaque_pixel_detec_class* z_pixel) {
+    const Opaque_pixel_detec_class* z_pixel, Opaque_photon_reflect_table_class**
+    z_reflection_table, Int n1_reflection_table) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_curvature_to_c(z_curvature, C.curvature);
@@ -2103,6 +2112,10 @@ extern "C" void photon_element_to_c2 (CPP_photon_element& C, const
   surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[type, 0, NOT]
   pixel_detec_to_c(z_pixel, C.pixel);
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.reflection_table.resize(n1_reflection_table);
+  for (int i = 0; i < n1_reflection_table; i++) photon_reflect_table_to_c(z_reflection_table[i], C.reflection_table[i]);
+
 }
 
 //--------------------------------------------------------------------

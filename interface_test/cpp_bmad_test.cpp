@@ -563,11 +563,8 @@ void set_CPP_photon_reflect_surface_test_pattern (CPP_photon_reflect_surface& C,
   // c_side.test_pat[real, 0, NOT]
   rhs = 7 + offset; C.roughness_correlation_len = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 8 + offset; C.initialized = (rhs % 2 == 0);
-
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 9 + offset; C.ix_surface = rhs;
+  rhs = 8 + offset; C.ix_surface = rhs;
 
 
 }
@@ -3438,6 +3435,14 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_pixel_detec_test_pattern(C.pixel, ix_patt);
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.reflection_table.resize(0);
+  else {
+    C.reflection_table.resize(3);
+    for (unsigned int i = 0; i < C.reflection_table.size(); i++)  {set_CPP_photon_reflect_table_test_pattern(C.reflection_table[i], ix_patt+i+1);}
+  }
 
 
 }

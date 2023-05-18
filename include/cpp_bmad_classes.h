@@ -674,7 +674,7 @@ public:
     energy(0.0, 0),
     int1(CPP_interval1_coef_ARRAY(CPP_interval1_coef(), 0)),
     p_reflect(Real_ARRAY(0.0, 0), 0),
-    max_energy(0.0),
+    max_energy(-1),
     p_reflect_scratch(0.0, 0)
     {}
 
@@ -702,7 +702,6 @@ public:
   CPP_photon_reflect_table_ARRAY table;
   Real surface_roughness_rms;
   Real roughness_correlation_len;
-  Bool initialized;
   Int ix_surface;
 
   CPP_photon_reflect_surface() :
@@ -712,7 +711,6 @@ public:
     table(CPP_photon_reflect_table_ARRAY(CPP_photon_reflect_table(), 0)),
     surface_roughness_rms(0.0),
     roughness_correlation_len(0.0),
-    initialized(false),
     ix_surface(-1)
     {}
 
@@ -2132,13 +2130,15 @@ public:
   CPP_photon_material material;
   CPP_surface_grid grid;
   CPP_pixel_detec pixel;
+  CPP_photon_reflect_table_ARRAY reflection_table;
 
   CPP_photon_element() :
     curvature(),
     target(),
     material(),
     grid(),
-    pixel()
+    pixel(),
+    reflection_table(CPP_photon_reflect_table_ARRAY(CPP_photon_reflect_table(), 0))
     {}
 
   ~CPP_photon_element() {
