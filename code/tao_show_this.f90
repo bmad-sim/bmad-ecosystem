@@ -102,6 +102,7 @@ type (c_taylor) ptc_ctaylor
 type (complex_taylor_struct) bmad_ctaylor
 type (rad_map_ele_struct), pointer :: ri
 type (grid_field_pt1_struct), pointer :: g_pt
+type (tao_expression_info_struct), allocatable :: info(:)
 
 type old_show_lat_column_struct
   character(80) :: name = ''
@@ -159,13 +160,13 @@ character(1) delim
 character(3) undef_str 
 character(6) :: mode(4) = [character(6):: 'a-mode', 'b-mode', 'c-mode', 'spin']
 character(9) angle_str
-character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
+character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt
 character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_show
 character(24) :: var_name, blank_str = '', phase_units_str, val_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, rmt3, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name, param_name, uni_str
-character(40) replacement_for_blank, component
+character(40) replacement_for_blank, component, s_fmt
 character(60) nam, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name, excite_zero(3), veto
@@ -5727,7 +5728,7 @@ case ('value')
     call tao_lattice_calc(ok)
   endif
 
-  call tao_evaluate_expression (what2, 0, .false., value, err)
+  call tao_evaluate_expression (what2, 0, .false., value, err, .true., info)
   if (err) return
 
   if (size(value) == 1) then
@@ -5744,10 +5745,14 @@ case ('value')
       nl=nl+1; write(lines(nl), s_fmt, iostat = ios) value
 
     else
-      s_fmt = '(i5, a, ' // trim(s_fmt) // ')'    
+      s_fmt = '(i5, a, ' // trim(s_fmt) // ', 5x, a)'    
       call re_allocate (lines, size(value)+100, .false.)
       do i = 1, size(value)
-        nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i)
+        if (associated(info(i)%ele)) then
+          nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i), ele_full_name(info(i)%ele)
+        else
+          nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i)
+        endif
         ! For some funny reason ios can be zero on a bad format so check for a star in the string.
         if (ios /= 0 .or. index(lines(nl), '*') /= 0) then
           write(lines(nl), '(i5, a, es24.16, a)', iostat = ios) i, ':  ', value(i), '  ! Note: Value/format mismatch detected'
