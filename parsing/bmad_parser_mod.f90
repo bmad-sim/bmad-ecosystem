@@ -1099,6 +1099,8 @@ case ('REFLECTIVITY_TABLE')
   enddo
 
   call finalize_reflectivity_tables (ph%reflectivity_table, .false.)
+
+  if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
   err_flag = .false.
   return
 
