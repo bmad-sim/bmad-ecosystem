@@ -4527,7 +4527,7 @@ parsing_loop: do
 
     call word_read (phrase, ']', word2, ix_word2, delim, delim_found, phrase, ignore_interior = .true.)
     if (.not. delim_found) then
-      call out_io (s_warn$, r_name, "NO MATCHING ']' FOR OPENING '[':" // expression)
+      call out_io (s_error$, r_name, "NO MATCHING ']' FOR OPENING '[':" // expression)
       return
     endif
     word = trim(word) // '[' // trim(word2) // ']'
@@ -4681,7 +4681,7 @@ parsing_loop: do
       case ('species');         call push_op_stack (op, i_op, species$)
       case ('antiparticle');    call push_op_stack (op, i_op, antiparticle$)
       case default
-        call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS (BAD FUNCTION NAME?) BEFORE "(": ', 'IN EXPRESSION: ' // expression)
+        call out_io (s_error$, r_name, 'UNEXPECTED CHARACTERS (BAD FUNCTION NAME?) BEFORE "(": ', 'IN EXPRESSION: ' // expression)
         return
       end select
 
@@ -4747,7 +4747,7 @@ parsing_loop: do
       enddo
 
       if (i == 0) then
-        call out_io (s_warn$, r_name, 'UNMATCHED ")" IN EXPRESSION: ' // expression)
+        call out_io (s_error$, r_name, 'UNMATCHED ")" IN EXPRESSION: ' // expression)
         return
       endif
 
@@ -4779,7 +4779,7 @@ parsing_loop: do
 
       call word_read (phrase, '+-*/()^,}', word, ix_word, delim, delim_found, phrase)
       if (ix_word /= 0) then
-        if (printit) call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS AFTER ")" IN EXPRESSION: ' // expression)
+        if (printit) call out_io (s_error$, r_name, 'UNEXPECTED CHARACTERS AFTER ")" IN EXPRESSION: ' // expression)
         return
       endif
 
@@ -4788,7 +4788,7 @@ parsing_loop: do
 
 
     if (delim == '(') then
-      if (printit) call out_io (s_warn$, r_name, '")(" CONSTRUCT DOES NOT MAKE SENSE IN EXPRESSION: ' // expression)
+      if (printit) call out_io (s_error$, r_name, '")(" CONSTRUCT DOES NOT MAKE SENSE IN EXPRESSION: ' // expression)
       return
     endif
 
@@ -4796,7 +4796,7 @@ parsing_loop: do
 
   else
     if (ix_word == 0) then
-      call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
+      call out_io (s_error$, r_name, 'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
       return
     endif
     call push_stack (stk, i_lev, numeric$)
@@ -4855,7 +4855,7 @@ parsing_loop: do
     if (expression_eval_level(op(i)) < expression_eval_level(i_delim)) exit
 
     if (op(i) == l_parens$) then
-      if (printit) call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
+      if (printit) call out_io (s_error$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
       return
     endif
 
@@ -5040,7 +5040,7 @@ endif
 if (str(1:1) == '[' .and. index(str, ']@') == 0) then
   n = len_trim(str)
   if (str(n:n) /= ']') then
-    if (print_err) call out_io (s_warn$, r_name, "Malformed array: " // str)
+    if (print_err) call out_io (s_error$, r_name, "Malformed array: " // str)
     err_flag = .true.
     return
   endif
@@ -5074,7 +5074,7 @@ if (is_real(str)) then
   call re_allocate(stack%value, 1)
   read (str, *, iostat = ios) stack%value(1)
   if (ios /= 0) then
-    if (print_err) call out_io (s_warn$, r_name, "This doesn't seem to be a number: " // str)
+    if (print_err) call out_io (s_error$, r_name, "This doesn't seem to be a number: " // str)
     err_flag = .true.
   endif
   call tao_re_allocate_expression_info (stack%info, 1)
@@ -5270,7 +5270,7 @@ elseif (size(int_array) /= 0) then
   enddo
 
 else
-  if (print_err) call out_io (s_warn$, r_name, &
+  if (print_err) call out_io (s_error$, r_name, &
                'THIS IS NOT A DATUM OR A VARIABLE VALUE: ' // name, &
                '[PERHAPS MISSING "|<component>" SUFFIX.]')
   err_flag = .true.
@@ -5776,7 +5776,7 @@ do i = 1, size(stack)
     end select
 
   case default
-    call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+    call out_io (s_error$, r_name, 'INTERNAL ERROR')
     call err_exit
   end select
 enddo
@@ -5784,7 +5784,7 @@ enddo
 !
 
 if (i2 /= 1) then
-  call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+  call out_io (s_error$, r_name, 'INTERNAL ERROR')
   call err_exit
 endif
 
