@@ -71,7 +71,11 @@ set (DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 IF (${DISTRIBUTION_BUILD})
   set (FORTRAN_COMPILER $ENV{DIST_F90})
   set (RELEASE_DIR $ENV{DIST_BASE_DIR})
-  set (PACKAGES_DIR ${RELEASE_DIR})
+	IF (EXISTS ${RELEASE_DIR}/packages)
+    set (PACKAGES_DIR ${RELEASE_DIR}/packages)
+	ELSE ()
+    set (PACKAGES_DIR ${RELEASE_DIR})
+	ENDIF ()
 
   # Explicitly remove 32-bit Libraries from Linux build PATH for 64-bit builds - RT#43178
   # Added /lib to further restict 32-bit Linux build PATH - RT#56203
