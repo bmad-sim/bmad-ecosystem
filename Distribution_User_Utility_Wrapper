@@ -37,13 +37,13 @@ func_dist_build () {
 
     for DIR in "${DIRLIST[@]}"
     do
-	cd ${DIST_BASE_DIR}/${DIR};
-	echo -e "\nBuilding directory: ${DIR}\n"
-	${MK_SCRIPT} -j ${ACC_SET_GMAKE_JOBS} ${1}
-	if ( [ ${?} != 0 ] ) then
-	    echo -e "\nError in distribution build.\n"
-	    exit 1
-	fi
+      cd ${DIST_BASE_DIR}/${DIR};
+      echo -e "\nBuilding directory: ${DIR}\n"
+      ${MK_SCRIPT} -j ${ACC_SET_GMAKE_JOBS} ${1}
+      if ( [ ${?} != 0 ] ) then
+          echo -e "\nError in distribution build.\n"
+          exit 1
+      fi
     done
     
     cd ${DIST_BASE_DIR}
@@ -67,34 +67,34 @@ func_dist_clean () {
 case ${DIST_SCRIPT} in
 
     dist_clean)
-	# Cleanup the distribution.
-	func_dist_clean
+      # Cleanup the distribution.
+      func_dist_clean
         ;;
 
     dist_build_debug)
         # Build the debug version of the distribution.
-	MK_SCRIPT=${DIST_UTIL}/mkd
-	func_dist_build
-	;;
+        MK_SCRIPT=${DIST_UTIL}/mkd
+        func_dist_build
+        ;;
 
     dist_build_production)
         # Build the production version of the distribution.
-	MK_SCRIPT=${DIST_UTIL}/mk
-	func_dist_build
-	;;
+        MK_SCRIPT=${DIST_UTIL}/mk
+        func_dist_build
+        ;;
 
     dist_test_debug)
         # Test the debug version of the distribution.
-	MK_SCRIPT=${DIST_UTIL}/mkd
-	func_dist_build test
-	;;
+        MK_SCRIPT=${DIST_UTIL}/mkd
+        func_dist_build test
+        ;;
 
     dist_test_production)
         # Test the production version of the distribution.
-	MK_SCRIPT=${DIST_UTIL}/mk
-	func_dist_build test
-	;;
+        MK_SCRIPT=${DIST_UTIL}/mk
+        func_dist_build test
+        ;;
 
     *)
-	;;
+        ;;
 esac
