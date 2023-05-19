@@ -19,7 +19,7 @@ type(layout), pointer :: als
 INTEGER MF,mfisf,I,N,k,pos,no,kp,nturn,mfa
 TYPE(FIBRE),POINTER:: P
 type(internal_state) state
-real(dp)  prec,cut,n_isf(3), closed(6), x(6), theta0 
+real(dp)  prec,sig(6),cut,n_isf(3), closed(6), x(6), theta0 
 logical break_symmetry
 logical :: mis=.false.,thin=.false.
 type(c_damap) c_map,c_spin0,U,U_c,D,f,A,b,R ,id_s,D_tilde

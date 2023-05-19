@@ -102,7 +102,7 @@ if (ds==0) n_steps=0
 
 do i=0, n_steps-1
   s = i*ds
-  f0 = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
+  f0 = floor_position_struct(vec3_zero$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
   f0%r = [x, y, s]
   f1= coords_local_curvilinear_to_floor (f0, ele, in_body_frame = logic_option(.false., in_body_frame), w_mat = w_mat)
   write(iu,'(12f10.5)') f1%r, w_mat(:,1), w_mat(:,2), w_mat(:,3)
