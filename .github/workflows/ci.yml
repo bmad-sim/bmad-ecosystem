@@ -73,7 +73,7 @@ jobs:
 
       - name: Build
         env:
-          USE_MPI: ${{ matrix.openmp_mpi }}
+          ### USE_MPI: ${{ matrix.openmp_mpi }}
           SHARED: ${{ matrix.shared }}
         run: .github/scripts/install_bmad.sh
 
