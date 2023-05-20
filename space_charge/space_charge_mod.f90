@@ -8,7 +8,7 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine sc_field_calc (bunch, branch, include_image, t_end, sc_field, newborn)
+! Subroutine sc_field_calc (bunch, branch, include_image, t_end, sc_field)
 !
 ! Routine to calculate the space charge field of a bunch
 !
@@ -17,8 +17,6 @@ contains
 !   branch          -- branch_struct: Lattice branch being tracked through.
 !   include_image   -- logical: True if cathode image charge fields are to be included.
 !   t_end           -- real(rp): Calculate space charge field for preborn particles emitted before t_end.
-!   newborn         -- logical(:), optional: Array of logicals the same size as bunch%particle.
-!                        If true, the corresponding particle will have zero charge for sc calculation.
 !   bunch_params    -- bunch_params_struct, optional: If present, particles too far from the bunch will be ignored.
 !                        The threashold is set by space_charge_com%particle_sigma_cutoff. 
 ! Output:
@@ -26,7 +24,7 @@ contains
 !   sc_field        -- em_field_struct: Space charge field at particle positions
 !-
 
-subroutine sc_field_calc (bunch, branch, include_image, t_end, sc_field, newborn, bunch_params)
+subroutine sc_field_calc (bunch, branch, include_image, t_end, sc_field, bunch_params)
 
 use csr_and_space_charge_mod
 
@@ -51,7 +49,6 @@ integer :: n, n_alive, i, imin(1), k
 real(rp) :: beta, ratio, t_end, s_ave, w_mat_inv(3,3)
 real(rp) :: Evec(3), Bvec(3), Evec_image(3), sigma(3)
 logical :: include_image, err, bend_here
-logical, optional :: newborn(:)
 
 ! Initialize variables
 mesh3d%nhi = space_charge_com%space_charge_mesh_size
@@ -75,12 +72,6 @@ do i = 1, size(bunch%particle)
     position(n)%charge = 0
   else if (p%state /= alive$) then  ! Lost particles
     cycle
-  else if (present(newborn)) then  ! Newly emitted particles
-    if (newborn(i)) then
-      n = n + 1
-      position(n)%r = [p%vec(1), p%vec(3), p%s]
-      position(n)%charge = 0
-    endif
   else  ! Living particles
     if (present(bunch_params)) then
       if (out_of_sigma_cutoff(p)) cycle  ! Ignore particles too far off the bunch
@@ -186,7 +177,7 @@ end subroutine sc_field_calc
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine sc_step(bunch, ele, include_image, t_end, newborn)
+! Subroutine sc_step(bunch, ele, include_image, t_end, n_emit)
 !
 ! Subroutine to track a bunch through a given time step with space charge
 !
@@ -197,8 +188,6 @@ end subroutine sc_field_calc
 !   t_end         -- real(rp): Time at which the tracking ends.
 !   sc_field      -- em_field_struct(:): Array to hold space charge fields. 
 !                       Its length should be the number of particles.
-!   newborn       -- logical(:), optional: Array of logicals the same size as bunch%particle.
-!                      If true, the corresponding particle will have zero charge for sc calculation.
 !
 ! Output:
 !   bunch         -- bunch_struct: Ending bunch position in t-based coordinates after space charge kick.
@@ -206,7 +195,7 @@ end subroutine sc_field_calc
 !   n_emit        -- integer, optional: The number of particles emitted in this step.
 !-
 
-subroutine sc_step(bunch, ele, include_image, t_end, sc_field, newborn, n_emit)
+subroutine sc_step(bunch, ele, include_image, t_end, sc_field, n_emit)
 
 use beam_utils
 
@@ -223,14 +212,13 @@ real(rp) t_end, sum_z
 logical include_image, error
 integer i, n
 integer, optional :: n_emit
-logical, optional :: newborn(:)
 
 ! Calculate space charge field
 if (space_charge_com%particle_sigma_cutoff > 0) then
   call calc_bunch_params(bunch, bunch_params, error, is_time_coords=.true., ele=ele)
-  call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field, newborn, bunch_params)
+  call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field, bunch_params)
 else
-  call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field, newborn)
+  call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field)
 endif
 
 ! Generate particles at the cathode
@@ -241,6 +229,10 @@ do i = 1, size(bunch%particle)
     if (present(n_emit)) n_emit = n_emit + 1
   endif
 enddo 
+
+! Update bunch info
+bunch%charge_live = sum(bunch%particle%charge, (bunch%particle%state == alive$))
+bunch%n_live = count((bunch%particle%state == alive$))
 
 ! And track
 call track_bunch_time(bunch, ele%branch, t_end, 1e30_rp, extra_field=sc_field)
@@ -282,12 +274,9 @@ type (em_field_struct) :: sc_field(:)
 
 real(rp) :: t_now, dt_step, dt_next, sqrt_N
 real(rp) :: r_err(6), r_scale(6), rel_tol, abs_tol, err_max
-real(rp), parameter :: safety = 0.9_rp, p_grow = -0.5_rp
-real(rp), parameter :: p_shrink = -0.5_rp, err_con = 1.89d-4
 real(rp), parameter :: tiny = 1.0e-30_rp
 
 integer i, N, n_emit
-logical :: newborn(size(bunch%particle))
 logical include_image
 
 !
@@ -306,8 +295,7 @@ do
   call sc_step(bunch_full, ele, include_image, t_now+dt_step, sc_field)
   ! Two half steps
   call sc_step(bunch_half, ele, include_image, t_now+dt_step/2, sc_field, n_emit=n_emit)
-  newborn = ( (bunch%particle%state .ne. bunch_half%particle%state) .and. (bunch%particle%state .eq. pre_born$) )
-  call sc_step(bunch_half, ele, include_image, t_now+dt_step, sc_field, newborn, n_emit)
+  call sc_step(bunch_half, ele, include_image, t_now+dt_step, sc_field, n_emit = n_emit)
 
   r_scale = abs(bunch_rms_vec(bunch))+abs(bunch_rms_vec(bunch_half)) + tiny
   r_err = [0,0,0,0,0,0]
@@ -329,9 +317,10 @@ do
   
   err_max = maxval(r_err(:)/(r_scale*rel_tol + abs_tol))
   if (space_charge_com%debug) print *, dt_step, err_max, n_emit
+  
   ! If error is larger than tolerance, try again with a smaller step
   if (err_max <= 1.0) exit
-  dt_step = safety * dt_step * (err_max**p_shrink)
+  dt_step = next_step_size(dt_step, err_max)
   bunch%n_bad = bunch%n_bad + 1
   bunch_full = bunch
   bunch_half = bunch
@@ -339,12 +328,7 @@ enddo
 
 bunch%n_good = bunch%n_good + 1
 ! Adjust next step size
-! Copied from Runge-Kutta
-if (err_max > err_con) then
-  dt_next = safety * dt_step * (err_max**p_grow)
-else
-  dt_next = 5.0_rp * dt_step
-endif
+dt_next = next_step_size(dt_step, err_max)
 
 bunch = bunch_half
 
@@ -356,23 +340,41 @@ contains
 
 function bunch_rms_vec(bunch) result (rms_vec)
 
-type (bunch_struct) bunch
-real(rp) rms_vec(6)
-integer i, N
+  type (bunch_struct) bunch
+  real(rp) rms_vec(6)
+  integer i, N
 
-!
+  !
 
-N = 0
-rms_vec = [0,0,0,0,0,0]
-do i = 1,size(bunch%particle)
-  if (bunch%particle(i)%state /= alive$) cycle
-  rms_vec(:) = rms_vec(:) + bunch%particle(i)%vec(:)**2
-  N = N +1
-enddo
-if (N==0) return
-rms_vec = sqrt(rms_vec/N)
+  N = 0
+  rms_vec = [0,0,0,0,0,0]
+  do i = 1,size(bunch%particle)
+    if (bunch%particle(i)%state /= alive$) cycle
+    rms_vec(:) = rms_vec(:) + bunch%particle(i)%vec(:)**2
+    N = N +1
+  enddo
+  if (N==0) return
+  rms_vec = sqrt(rms_vec/N)
 
 end function bunch_rms_vec
+
+! Determines next time step size
+function next_step_size(dt_step, err_max) result (dt_next)
+
+  real(rp) :: dt_step, err_max, dt_next
+  real(rp), parameter :: safety = 0.9_rp, p_grow = -0.5_rp
+  real(rp), parameter :: p_shrink = -0.5_rp, err_con = 1.89d-4
+
+  ! shrink or grow step size based on err_max
+  if (err_max > 1) then
+    dt_next = safety * dt_step * (err_max**p_grow)
+  else if (err_max > err_con) then
+    dt_next = safety * dt_step * (err_max**p_grow)
+  else
+    dt_next = 5.0_rp * dt_step
+  endif
+
+end function next_step_size
 
 end subroutine sc_adaptive_step
 
@@ -404,7 +406,6 @@ type (coord_struct) :: position
 
 integer i
 real(rp) s, ds, s0
-
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
@@ -498,4 +499,101 @@ end function track_func
 
 end subroutine track_to_t
   
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine drack_to_s (bunch, s, branch)
+!
+! Drift a bunch of particles to the same s coordinate
+!
+! Input:
+!   bunch     -- bunch_struct: Input bunch position in s-based coordinate.
+!   s         -- real(rp): Target s coordinate.
+!   branch    -- branch_struct: Branch being tracked through.
+!
+! Output:
+!   bunch     -- bunch_struct: Output bunch position in s-based coordinate. Particles will be at the same s coordinate
+!-
+
+subroutine drift_to_s (bunch, s, branch)
+
+implicit none
+
+type (bunch_struct), target :: bunch
+type (coord_struct), pointer :: p
+type (branch_struct) :: branch
+type (coord_struct) :: position
+
+integer i
+real(rp) s, ds
+
+
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  if (p%state /= alive$) cycle
+  ds = s - p%s
+  call track_a_drift(p, ds)
+  if (p%s > branch%ele(branch%n_ele_track)%s) then
+	    p%ix_ele = branch%n_ele_track
+	    p%location = downstream_end$
+  else
+    p%ix_ele = element_at_s(branch, p%s, (ds < 0), position=position)
+    p%location = position%location
+	  endif
+enddo
+	
+end subroutine drift_to_s
+	
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine drack_to_t (bunch, t, branch)
+!
+! Drift a bunch of particles to the same t coordinate
+!
+! Input:
+!   bunch     -- bunch_struct: Input bunch position in s-based coordinate.
+!   t         -- real(rp): Target t coordinate.
+!   branch    -- branch_struct: Lattice branch being tracked through.
+!
+! Output:
+!   bunch     -- bunch_struct: Output bunch position in s-based coordinate. Particles will be at the same t coordinate
+!-
+
+subroutine drift_to_t (bunch, t, branch)
+
+implicit none
+
+type (bunch_struct), target :: bunch
+type (coord_struct), pointer :: p
+type (branch_struct) :: branch
+type (coord_struct) :: position
+	
+integer i
+real(rp) t, pz0, E_tot, dt, ds
+
+! Convert bunch to s-based coordinates
+
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  if (p%state /= alive$) cycle
+	
+  pz0 = sqrt((1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
+  E_tot = sqrt((1.0_rp + p%vec(6))**2 + (mass_of(p%species)/p%p0c)**2) ! * p0
+  dt = t - p%t
+  ds = dt*(c_light*pz0/E_tot)
+  call track_a_drift(p,ds)
+	
+  if (p%s > branch%ele(branch%n_ele_track)%s) then
+    p%ix_ele = branch%n_ele_track
+    p%location = downstream_end$
+  else
+    p%ix_ele = element_at_s(branch, p%s, (ds < 0), position=position)
+    p%location = position%location
+  endif
+enddo
+
+end subroutine drift_to_t
 end module
