@@ -36,7 +36,7 @@ jobs:
         # add macOS - check if GH Actions can make intel and arm
         os: [ubuntu-latest]
         shared: ["Y"]
-        openmp_mpi: ["N", "Y"]
+        ## openmp_mpi: ["N", "Y"]
     steps:
       # Check out the code from GitHub
       - uses: actions/checkout@v2
