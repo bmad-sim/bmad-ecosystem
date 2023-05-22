@@ -1,7 +1,7 @@
 !+
 ! Subroutine track_bunch_time (bunch, branch, t_end, s_end, dt_step, extra_field)
 !
-! Routine to track a particle bunch for a given time step (or if the ! particle position exceeds s_end).
+! Routine to track a particle bunch for a given time step (or if the particle position exceeds lattice end).
 !
 ! Note: If a particle passes the end of the lattice, the particle will be tracked as if it was in a drift.
 !
@@ -91,6 +91,8 @@ type (coord_struct) orbit
 type (branch_struct) branch
 type (ele_struct), pointer :: ele_here
 type (ele_struct), target :: drift_ele
+
+integer ie
 logical err_flag
 
 !
@@ -101,8 +103,17 @@ select case (orbit%location)
 case (upstream_end$)
   if (orbit%direction*orbit%time_dir /= -1) return
 
+  ! If needed, setup a drift to take care of particles past the beginning of the branch.
+  ! Except for branches that have e_guns and therefore have a cathode.
   if (ele_here%ix_ele == 1) then
-    orbit%state = lost_z_aperture$
+    do ie = 1, branch%n_ele_track
+      if (branch%ele(ie)%key == e_gun$) then
+        orbit%state = lost_z_aperture$
+        return
+      endif
+      if (branch%ele(ie)%key == drift$) exit
+    enddo
+    ele_here => drift_ele
     return
   endif
 
@@ -117,6 +128,7 @@ case (downstream_end$)
   ! If needed, setup a drift to take care of particles past the end of the branch.
   if (ele_here%ix_ele == branch%n_ele_track) then
     ele_here => drift_ele
+    drift_ele%ix_ele = -1
     return
   endif
 
@@ -124,6 +136,13 @@ case (downstream_end$)
   orbit%location = upstream_end$
   orbit%ix_ele = ele_here%ix_ele
   orbit%vec(5) = 0
+
+! Can happen that a particle that is before the beginning of the branch is inside$
+case (inside$)
+  if (orbit%s < branch%ele(0)%s) then
+    ele_here => drift_ele
+    drift_ele%ix_ele = -1
+  endif
 end select
 
 end function pointer_to_next_track_ele
