@@ -191,6 +191,8 @@ bunch%charge_live = 0
 if (present(ele)) then
   bunch%particle%ix_ele = ele%ix_ele
   bunch%particle%ix_branch = ele%ix_branch
+  bunch%particle%s = ele%s
+  bunch%particle%location = exit_end$
   if (associated(ele%branch)) species = ele%branch%param%particle
 endif
 
@@ -267,7 +269,7 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, 'photonPolarizationPhase/x', 1.0_rp, bunch%particle%phase(1), error)
     call pmd_read_real_dataset(g2_id, 'photonPolarizationPhase/y', 1.0_rp, bunch%particle%phase(2), error)
   case ('sPosition')
-    call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%s, error)
+    if (.not. present(ele)) call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%s, error)
   case ('time')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, dt, error)
   case ('timeOffset')
@@ -283,19 +285,21 @@ do idx = 0, n_links-1
   case ('chargeState')
     call pmd_read_int_dataset(g2_id, name, 1.0_rp, charge_state, error)
   case ('branchIndex')
-    call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%ix_branch, error)
+    if (.not. present(ele)) call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%ix_branch, error)
   case ('elementIndex')
-    call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%ix_ele, error)
+    if (.not. present(ele)) call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%ix_ele, error)
   case ('locationInElement')
-    call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%location, error)
-    do ip = 1, size(bunch%particle)
-      p => bunch%particle(ip)
-      select case(p%location)
-      case (-1);    p%location = upstream_end$
-      case ( 0);    p%location = inside$
-      case ( 1);    p%location = downstream_end$
-      end select
-    enddo
+    if (.not. present(ele)) then
+      call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%location, error)
+      do ip = 1, size(bunch%particle)
+        p => bunch%particle(ip)
+        select case(p%location)
+        case (-1);    p%location = upstream_end$
+        case ( 0);    p%location = inside$
+        case ( 1);    p%location = downstream_end$
+        end select
+      enddo
+    endif
   end select
 
   if (error) exit
@@ -339,8 +343,10 @@ do ip = 1, size(bunch%particle)
 
   p0c_initial = p%p0c
   p0c_final   = p%p0c
-  if (present(ele) .and. p0c_initial == 0) p0c_initial   = ele%value(p0c$)
-  if (present(ele)) p0c_final   = ele%value(p0c$)
+  if (present(ele)) then
+    if (p0c_initial == 0) p0c_initial   = ele%value(p0c$)
+    p0c_final   = ele%value(p0c$)
+  endif
 
   if (p0c_final == 0) then
     call out_io (s_error$, r_name, 'REFERENCE MOMENTUM NOT PRESENT WHILE READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
