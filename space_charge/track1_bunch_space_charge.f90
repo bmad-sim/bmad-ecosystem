@@ -54,7 +54,7 @@ if (ele%value(l$) == 0) then
   !  p => bunch%particle(i)
   !  call track1(p, ele, ele%branch%param, p)
   !enddo
-  if (logic_option(.true., track_to_same_s)) call drift_to_s(bunch, ele%s, branch)
+  if (logic_option(.true., track_to_same_s)) call track_bunch_to_s(bunch, ele%s, branch)
   err = .false.
   return
 endif
@@ -64,7 +64,7 @@ if (bunch%t0 == real_garbage$) then
   charge = count(bunch%particle%state == alive$)
   if (charge /= 0)  bunch%t0 = sum(bunch%particle%t, bunch%particle%state==alive$) / charge
 endif
-call drift_to_t(bunch, bunch%t0, branch)
+call track_bunch_to_t(bunch, bunch%t0, branch)
 t_now = minval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$)
 
 ! Convert to t-based coordinates
@@ -124,7 +124,7 @@ do i= 1, size(bunch%particle)
 enddo
 
 ! Drift bunch to the end of element
-if (logic_option(.true., track_to_same_s)) call drift_to_s(bunch, ele%s, branch)
+if (logic_option(.true., track_to_same_s)) call track_bunch_to_s(bunch, ele%s, branch)
 err = .false.
 
 end subroutine track1_bunch_space_charge
