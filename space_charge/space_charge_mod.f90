@@ -405,27 +405,30 @@ type (branch_struct) :: branch
 type (coord_struct) :: position
 
 integer i
-real(rp) s, ds, s0, s_end
+real(rp) s, ds, s0, s_end, s_begin
 
 !
 
 s_end = branch%ele(branch%n_ele_track)%s
+s_begin = branch%ele(0)%s
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
 
+  ! Can happen that particle has been "drifted" past the end of the branch.
+  ! Track_from_s_to_s cannot handle such a case so use drift_particle_to_s instead.
+  if (p%s > s_end) then
+    call drift_particle_to_s (p, s_end, branch)
+  elseif (p%s < s_begin) then
+    call drift_particle_to_s (p, s_begin, branch)
+  endif
+
   ds = s - p%s
   if (ds == 0) cycle
   p%time_dir = sign_of(ds)
   s0 = p%s
-  ! Can happen that particle has been "drifted" past the end of the branch.
-  ! Track_from_s_to_s cannot handle such a case so use drift_particle_to_s instead.
-  if (s0 > s_end) then
-    call drift_particle_to_s (p, s, branch)
-  else
-    call track_from_s_to_s (branch%lat, s0, s, p, p, ix_branch = branch%ix_branch)
-  endif
+  call track_from_s_to_s (branch%lat, s0, s, p, p, ix_branch = branch%ix_branch)
   p%time_dir = 1
 enddo
 
@@ -455,17 +458,19 @@ use super_recipes_mod, only: super_zbrent
 implicit none
 
 type (bunch_struct), target :: bunch
-type (coord_struct), pointer :: p0
-type (coord_struct) p
+type (coord_struct), pointer :: p0, p_ptr
+type (coord_struct), target :: p
 type (branch_struct) :: branch
 type (coord_struct) :: position
 
 integer i, status
-real(rp) ds, t_target, dt, dt2, s1, s_end, s_target
+real(rp) ds, t_target, dt, dt2, s1, s_end, s_target, s_begin
 
 ! Convert bunch to s-based coordinates
 
+s_begin = branch%ele(0)%s
 s_end = branch%ele(branch%n_ele_track)%s
+p_ptr => p    ! To get around ifort debug info bug
 
 particle_loop: do i = 1, size(bunch%particle)
   p0 => bunch%particle(i)
@@ -475,18 +480,10 @@ particle_loop: do i = 1, size(bunch%particle)
   ! bracket solution
   do
     dt = t_target - p0%t
-    ds = min(1.01 * dt * c_light * p0%beta, s_end-p0%s)
-    s_target = min(1.01 * dt * c_light * p0%beta + p0%s, s_end)
+    ds = 1.01 * dt * c_light * p0%beta
+    s_target = ds + p0%s
     if (abs(ds) < 0.1_rp * bmad_com%significant_length) cycle particle_loop
-    p0%time_dir = sign_of(ds);  p%time_dir = sign_of(ds)
-    ! Can happen that particle needs to "drift" past the end of the branch.
-    ! Track_from_s_to_s cannot handle such a case so use drift_particle_to_t instead.
-    if (p0%s == s_target .and. dt > 0) then
-      call drift_particle_to_t(p0, t_target, branch)
-      cycle particle_loop
-    endif
-    call track_from_s_to_s (branch%lat, p0%s, s_target, p0, p, ix_branch = p0%ix_branch)
-    dt2 = t_target - p%t
+    dt2 = track_func(s_target, status) 
     if (dt*dt2 <= 0) exit
     p0 = p
   enddo
@@ -502,17 +499,31 @@ enddo particle_loop
 !--------------------------------------------------------------------
 contains
 
-function track_func (s_pos, status) result (dt)
+function track_func (s_target, status) result (dt)
 
-real(rp), intent(in) :: s_pos
+real(rp), intent(in) :: s_target
 integer status
 real(rp) :: dt
 
 !
 
-p0%time_dir = sign_of(s_pos - p0%s);  p%time_dir = sign_of(s_pos - p0%s)
-call track_from_s_to_s (branch%lat, p0%s, s_pos, p0, p, ix_branch = p%ix_branch)
-dt = p%t - t_target
+p0%time_dir = sign_of(s_target - p0%s)
+p%time_dir  = sign_of(s_target - p0%s)
+
+! Can happen that particle needs to "drift" past the end of the branch.
+! Track_from_s_to_s cannot handle such a case so use drift_particle_to_t instead.
+
+if (s_target < s_begin .and. p0%s >= s_begin) then
+  call track_from_s_to_s (branch%lat, p0%s, s_begin, p0, p, ix_branch = p%ix_branch)
+  call drift_particle_to_s(p, s_target, branch)
+elseif (s_target > s_end .and. p0%s <= s_end) then
+  call track_from_s_to_s (branch%lat, p0%s, s_end, p0, p, ix_branch = p%ix_branch)
+  call drift_particle_to_s(p, s_target, branch)
+else
+  call track_from_s_to_s (branch%lat, p0%s, s_target, p0, p, ix_branch = p%ix_branch)
+endif
+
+dt = t_target - p%t 
 
 end function track_func
 
@@ -553,8 +564,11 @@ ds = s - p%s
 call track_a_drift(p, ds)
 
 if (p%s > branch%ele(branch%n_ele_track)%s) then
-   p%ix_ele = branch%n_ele_track
-   p%location = downstream_end$
+  p%ix_ele = branch%n_ele_track
+  p%location = downstream_end$
+elseif (p%s < branch%ele(0)%s) then
+  p%ix_ele = 1
+  p%location = upstream_end$
 else
   p%ix_ele = element_at_s(branch, p%s, (ds < 0), position=position)
   p%location = position%location
