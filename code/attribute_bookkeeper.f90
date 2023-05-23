@@ -167,88 +167,93 @@ endif
 
 ! Field_master...
 
-if (ele%field_master) then
+if (val(p0c$) /= 0 .and. particle /= not_set$) then
+  if (ele%field_master) then
 
-  if (val(p0c$) == 0 .or. particle == not_set$) then
-    factor = 0
-  else
     factor = charge_of(particle) * c_light / val(p0c$)
-  endif
 
-  select case (ele%key)
-  case (beambeam$)
-    val(ks$) = factor * val(Bs_field$)
-  case (quadrupole$)
-    val(k1$) = factor * val(B1_gradient$)
-  case (sextupole$)
-    val(k2$) = factor * val(B2_gradient$)
-  case (octupole$)
-    val(k3$) = factor * val(B3_gradient$)
-  case (solenoid$)
-    val(ks$) = factor * val(Bs_field$)
-  case (sad_mult$)
-    val(ks$) = factor * val(Bs_field$)
-  case (sol_quad$)
-    val(ks$) = factor * val(Bs_field$)
-    val(k1$) = factor * val(B1_gradient$)
-  case (rf_bend$)
-    val(g$)     = factor * val(B_field$)
-  case (sbend$)
-    val(g$)     = factor * val(B_field$)
-    val(dg$)    = factor * val(dB_field$)
-    val(k1$)    = factor * val(B1_gradient$)
-    val(k2$)    = factor * val(B2_gradient$)
-  case (hkicker$, vkicker$)
-    val(kick$) = factor * val(BL_kick$)
-  end select
+    select case (ele%key)
+    case (beambeam$)
+      val(ks$) = factor * val(Bs_field$)
+    case (quadrupole$)
+      val(k1$) = factor * val(B1_gradient$)
+    case (sextupole$)
+      val(k2$) = factor * val(B2_gradient$)
+    case (octupole$)
+      val(k3$) = factor * val(B3_gradient$)
+    case (solenoid$)
+      val(ks$) = factor * val(Bs_field$)
+    case (sad_mult$)
+      val(ks$) = factor * val(Bs_field$)
+    case (sol_quad$)
+      val(ks$) = factor * val(Bs_field$)
+      val(k1$) = factor * val(B1_gradient$)
+    case (rf_bend$)
+      val(g$)     = factor * val(B_field$)
+    case (sbend$)
+      ! Case where angle/g/rho is set along with b1_gradient (or similar).
+      ! In this case settable_dep_var_bookkeeping has set B_field$ to real_garbage$
+      if (val(B_field$) == real_garbage$) then
+        val(B_field$)     = factor * val(g$)
+        val(dB_field$)    = factor * val(dg$)
+      else
+        val(g$)     = factor * val(B_field$)
+        val(dg$)    = factor * val(dB_field$)
+      endif
+      val(k1$)    = factor * val(B1_gradient$)
+      val(k2$)    = factor * val(B2_gradient$)
+    case (hkicker$, vkicker$)
+      val(kick$) = factor * val(BL_kick$)
+    end select
 
-  if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
-    val(hkick$) = factor * val(BL_hkick$)
-    val(vkick$) = factor * val(BL_vkick$)
-  endif
+    if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
+      val(hkick$) = factor * val(BL_hkick$)
+      val(vkick$) = factor * val(BL_vkick$)
+    endif
 
-else
-
-  if (charge_of(particle, 0) == 0) then
-    factor = 0
   else
-    factor = val(p0c$) / (charge_of(particle) * c_light)
+
+    if (charge_of(particle, 0) == 0) then
+      factor = 0
+    else
+      factor = val(p0c$) / (charge_of(particle) * c_light)
+    endif
+
+    select case (ele%key)
+    case (beambeam$)
+      val(Bs_field$)    = factor * val(ks$)
+    case (quadrupole$)
+      val(B1_gradient$) = factor * val(k1$)
+    case (sextupole$)
+      val(B2_gradient$) = factor * val(k2$)
+    case (octupole$)
+      val(B3_gradient$) = factor * val(k3$)
+    case (solenoid$)
+      val(Bs_field$)    = factor * val(ks$)
+    case (sad_mult$)
+      val(Bs_field$)    = factor * val(ks$)
+    case (sol_quad$)
+      val(Bs_field$)    = factor * val(ks$)
+      val(B1_gradient$) = factor * val(k1$)
+    case (rf_bend$)
+      val(B_field$)     = factor * val(g$)
+    case (sbend$)
+      val(B_field$)     = factor * val(g$)
+      val(dB_field$)    = factor * val(dg$)
+      val(B1_gradient$) = factor * val(k1$)
+      val(B2_gradient$) = factor * val(k2$)
+    case (hkicker$)
+      val(BL_kick$) = factor * val(kick$)
+    case (vkicker$) 
+      val(BL_kick$) = factor * val(kick$)
+    end select
+
+    if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
+      val(BL_hkick$) = factor * val(hkick$)
+      val(BL_vkick$) = factor * val(vkick$)
+    endif
+
   endif
-
-  select case (ele%key)
-  case (beambeam$)
-    val(Bs_field$)    = factor * val(ks$)
-  case (quadrupole$)
-    val(B1_gradient$) = factor * val(k1$)
-  case (sextupole$)
-    val(B2_gradient$) = factor * val(k2$)
-  case (octupole$)
-    val(B3_gradient$) = factor * val(k3$)
-  case (solenoid$)
-    val(Bs_field$)    = factor * val(ks$)
-  case (sad_mult$)
-    val(Bs_field$)    = factor * val(ks$)
-  case (sol_quad$)
-    val(Bs_field$)    = factor * val(ks$)
-    val(B1_gradient$) = factor * val(k1$)
-  case (rf_bend$)
-    val(B_field$)     = factor * val(g$)
-  case (sbend$)
-    val(B_field$)     = factor * val(g$)
-    val(dB_field$)    = factor * val(dg$)
-    val(B1_gradient$) = factor * val(k1$)
-    val(B2_gradient$) = factor * val(k2$)
-  case (hkicker$)
-    val(BL_kick$) = factor * val(kick$)
-  case (vkicker$) 
-    val(BL_kick$) = factor * val(kick$)
-  end select
-
-  if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
-    val(BL_hkick$) = factor * val(hkick$)
-    val(BL_vkick$) = factor * val(vkick$)
-  endif
-
 endif
 
 ! If the ref energy has not been set then, for example, k1 for a bend with field_master = T has not been set.

@@ -6915,6 +6915,8 @@ case (sbend$, rbend$, rf_bend$)
 
   b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(db_field$) /= 0)
   g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
+  if ((ele%value(angle$) /= 0 .or. .or. ele%value(rho$) /= 0 .or. g_set) .and. &
+                                      .not. b_field_set) ele%value(b_field$) = real_garbage$
 
   if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
 
