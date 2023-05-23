@@ -1070,7 +1070,7 @@ do   ! ix_ele = 1e1, ie2
 
     write (line_out, '(2a)') trim(ele%name) // ': hkicker, l = ', re_str(val(l$))
 
-    call value_to_line (line_out, val(hkick$), 'kick', 'R')
+    call value_to_line (line_out, val(kick$), 'kick', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! kicker MAD
@@ -1089,7 +1089,7 @@ do   ! ix_ele = 1e1, ie2
 
     write (line_out, '(2a)') trim(ele%name) // ': vkicker, l = ', re_str(val(l$))
 
-    call value_to_line (line_out, val(vkick$), 'kick', 'R')
+    call value_to_line (line_out, val(kick$), 'kick', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! marker MAD
@@ -1356,7 +1356,7 @@ do   ! ix_ele = 1e1, ie2
       else
         line_out = trim(line_out) // ', apertype = ellipse'
       endif
-      write (line_out, '(6a)') trim(line_out), ', aperture = (', re_str(limit(1)), ', ', re_str(limit(2)), ')'
+      write (line_out, '(6a)') trim(line_out), ', aperture = {', re_str(limit(1)), ', ', re_str(limit(2)), '}'
     endif
   endif
 
