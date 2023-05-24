@@ -16,14 +16,14 @@
 !------------------------------------------------------------------------
 
 &tao_dynamic_aperture
-  da_init(1)%pz = 0, 0.001, -0.001
-  da_init(1)%n_angle = 9
-  da_init(1)%min_angle = 0
-  da_init(1)%max_angle = 3.14159
-  da_init(1)%n_turn = 200
-  da_init(1)%x_init = 1e-7
-  da_init(1)%y_init = 1e-7
-  da_init(1)%accuracy = 1e-5
+  pz = 0, 0.001, -0.001
+  da_param%n_angle = 9
+  da_param%min_angle = 0
+  da_param%max_angle = 3.14159
+  da_param%n_turn = 200
+  da_param%x_init = 1e-7
+  da_param%y_init = 1e-7
+  da_param%abs_accuracy = 1e-5
 /
 
 &tao_params
