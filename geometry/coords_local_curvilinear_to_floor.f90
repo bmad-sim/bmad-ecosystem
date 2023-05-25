@@ -7,7 +7,8 @@
 ! Input:
 !   local_position    -- floor_position_struct: Floor position in local curvilinear coordinates,
 !                          with %r = [x, y, z_local] where z_local is wrt the entrance end of the element
-!                          except if relative_to = downstream_end$
+!                          except if relative_to = downstream_end$. In this case, z_local is a distance -ele%value(l$)
+!                          from the exit end (important for patch elements).
 !   ele               -- ele_struct: element that local_position coordinates are relative to.
 !   in_body_frame     -- logical, optional: True => local_position is in ele body frame and includes misalignments.
 !                          Ignored if element is a patch. Default: False. 
