@@ -148,30 +148,30 @@ end interface
 !+
 ! Function attribute_name (...) result (attrib_name)
 !
-! Function attribute_name1 (key, ix_att) result (attrib_name)
-!
 ! Function to return the name of an attribute for a particular type of 
 ! Bmad element. 
 !
 ! This routine is an overloaded name for:
-!   attribute_name1 (ele, ix_att) result (attrib_name)
-!   attribute_name2 (key, ix_att) result (attrib_name)
+!   attribute_name1 (ele, ix_att, show_private) result (attrib_name)
+!   attribute_name2 (key, ix_att, show_private) result (attrib_name)
 !
 !
 ! Note: attribute_name (key, ix_att) is not able to handle overlay/group control variables.
 ! Use attributge_name (ele, ix_att) is this is needed.
 !
 ! Input:
-!   ele    -- Ele_struct: 
-!     %key    -- Integer: Key name of element type (e.g. SBEND$, etc.)
-!   key    -- Integer: Key name of element type (e.g. sbend$, etc.)
-!   ix_att -- Integer: Index of attribute (e.g. k1$)
+!   ele             -- ele_struct: 
+!     %key             -- Integer: Key name of element type (e.g. SBEND$, etc.)
+!   key             -- integer: Key name of element type (e.g. sbend$, etc.)
+!   ix_att          -- integer: Index of attribute (e.g. k1$)
+!   show_private    -- logical, optional: If False (default) return null_name$ for private attributes.
 !
 ! Output:
-!   attrib_name -- Character(40): Name of attribute. First character is a "!" if there is a problem.
-!      = "!BAD ELE KEY"                 %key is invalid
-!      = "!BAD INDEX"                   ix_att is invalid (out of range).
-!      = "!NULL" (null_name$)           ix_att does not correspond to an attribute or is private.
+!   attrib_name     -- Character(40): Name of attribute. First character is a "!" if there is a problem.
+!                       Will always be upper case (even with private attributes).
+!                         = "!BAD ELE KEY"           %key is invalid
+!                         = "!BAD INDEX"             ix_att is invalid (out of range).
+!                         = "!NULL" (null_name$)     ix_att does not correspond to an attribute or is private.
 !
 ! Example:
 !   ele%key = sbend$
@@ -357,21 +357,22 @@ end function attribute_index2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_name1 (key, ix_att) result (attrib_name)
+! Function attribute_name1 (key, ix_att, show_private) result (attrib_name)
 !
 ! Overloaded by attribute_name. See attribute_name for more details.
 !-
 
-function attribute_name1 (key, ix_att) result (attrib_name)
+function attribute_name1 (key, ix_att, show_private) result (attrib_name)
 
 type (ele_struct) ele
 integer i, key, ix_att, ix
 character(40) attrib_name
+logical, optional :: show_private
 
 !
 
 ele%key = key
-attrib_name = attribute_name2(ele, ix_att)
+attrib_name = attribute_name2(ele, ix_att, show_private)
 
 end function attribute_name1
 
@@ -379,17 +380,18 @@ end function attribute_name1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_name2 (ele, ix_att) result (attrib_name)
+! Function attribute_name2 (ele, ix_att, show_private) result (attrib_name)
 !
 ! Overloaded by attribute_name. See attribute_name for more details.
 !-
 
-function attribute_name2 (ele, ix_att) result (attrib_name)
+function attribute_name2 (ele, ix_att, show_private) result (attrib_name)
 
 type (ele_struct) ele
 integer i, key, ix_att, ix
 character(40) attrib_name
 character(10) str
+logical, optional :: show_private
 
 !
 
@@ -429,10 +431,10 @@ elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
 
 else
-  if (attrib_array(key, ix_att)%state == private$) then
+  if (attrib_array(key, ix_att)%state == private$ .and. .not. logic_option(.false., show_private)) then
     attrib_name = null_name$
   else
-    attrib_name = attrib_array(key, ix_att)%name
+    attrib_name = upcase(attrib_array(key, ix_att)%name)
   endif
 endif
 
@@ -744,6 +746,7 @@ do i = 1, n_key$
     call init_attribute_name1 (i, y_dispersion_err$,    'Y_DISPERSION_ERR')
     call init_attribute_name1 (i, x_dispersion_calib$,  'X_DISPERSION_CALIB')
     call init_attribute_name1 (i, y_dispersion_calib$,  'Y_DISPERSION_CALIB')
+    call init_attribute_name1 (i, split_id$,            'split_id', private$)
   end select
 enddo
 
@@ -1018,7 +1021,7 @@ call init_attribute_name1 (mask$, ref_wavelength$,                      'REF_WAV
 call init_attribute_name1 (drift$, spin_fringe_on$,                 'spin_fringe_on', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
-call init_attribute_name1 (drift$, drift_id$,                       'drift_id', private$)
+call init_attribute_name1 (drift$, split_id$,                       'split_id', private$)
 
 call init_attribute_name1 (e_gun$, dt_max$,                         'DT_MAX')
 call init_attribute_name1 (e_gun$, emit_fraction$,                  'EMIT_FRACTION')

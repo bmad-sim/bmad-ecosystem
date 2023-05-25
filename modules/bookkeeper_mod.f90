@@ -1205,6 +1205,7 @@ value(p0c_start$)      = slave%value(p0c_start$)
 value(E_tot$)          = slave%value(E_tot$)
 value(p0c$)            = slave%value(p0c$)
 value(num_steps$)      = slave%value(num_steps$)
+if (attribute_name(slave%key, split_id$, .true.) == 'SPLIT_ID') value(split_id$) = slave%value(split_id$)
 
 ! Taylor element has a zero length map. Rule: The map gets applied at the entrance end.
 ! There is no reason why the entrance end was chosen over the exit end.

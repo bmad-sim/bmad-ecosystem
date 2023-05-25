@@ -161,7 +161,7 @@ endif
 
 ! Save element to be split as a null element if it is a drift that has not been already split.
 
-if (branch%ele(ix_split)%key == drift$ .and. branch%ele(ix_split)%value(drift_id$) == 0 .and. &
+if (branch%ele(ix_split)%key == drift$ .and. branch%ele(ix_split)%value(split_id$) == 0 .and. &
                                                                  logic_option(.false., save_null_drift)) then
   call new_control (lat, ix, branch%ele(ix_split)%name)
   lord => lat%ele(ix)
@@ -192,10 +192,12 @@ endif
 ele1%type = '';  ele1%alias = ''
 ele2%type = '';  ele2%alias = ''
 
-! drift_id is used by bmad_parser to keep track of which drifts where originally one bigger drift
-if (ele1%key == drift$ .and. ele1%value(drift_id$) == 0) then
-  ele1%value(drift_id$) = s_split 
-  ele2%value(drift_id$) = s_split 
+! split_id is used by bmad_parser to keep track of which elements where originally one bigger element
+
+if ((ele1%key == drift$ .or. ele1%key == instrument$ .or. ele1%key == monitor$ .or. ele1%key == pipe$) &
+                                                                       .and. ele1%value(split_id$) == 0) then
+  ele1%value(split_id$) = s_split 
+  ele2%value(split_id$) = s_split 
 endif
 
 ! Kill any talyor series, etc.

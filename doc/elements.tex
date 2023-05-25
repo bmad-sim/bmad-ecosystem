@@ -2615,7 +2615,10 @@ example, a \vn{quadrupole} superimposed on top of a \vn{drift} results in a free
 element in the tracking part of the lattice and no lord elements are created. On the other hand, a
 \vn{quadrupole} superimposed on top of a \vn{monitor} results in a \vn{quadrupole} element in the
 tracking part of the lattice and this \vn{quadrupole} element will have two lords: A \vn{quadrupole}
-superposition lord and a \vn{monitor} superposition lord.
+superposition lord and a \vn{monitor} superposition lord. The exception is if a \vn{instrument},
+\vn{monitor}, and \vn{pipe} is superimposed with an element with non-constant reference energy like
+a \vn{lcavity}. In this case no \vn{instrument}, \vn{monitor}, or \vn{pipe} \vn{super_lord} element
+is made.
 
 General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
 \begin{center}
