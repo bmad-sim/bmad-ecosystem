@@ -756,7 +756,7 @@ else
   ! There is a further potential problem in that a pipe with a lcavity superimposed on it will not have a 
   ! constant reference energy
 
-  if (ele%slave_status == slice_slave$ .or. (ele%slave_status == super_slave$ .and. ele%key /= pipe$)) then
+  if ((ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) .and. ele%key /= pipe$) then
     do ie = 1, ele%n_lord
       ele0 => pointer_to_lord(ele, ie)
       if (ele0%key /= pipe$) exit
