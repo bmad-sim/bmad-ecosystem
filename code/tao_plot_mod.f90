@@ -853,8 +853,8 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     dy_orbit(0) = f_orb%r(2)
 
     floor%r(1:2) = graph%floor_plan%orbit_scale * orb_end%vec(1:3:2)
-    floor%r(3) = 0  ! coords are relative to exit end.
-    floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
+    floor%r(3) = ele%value(l$)
+    floor1 = coords_local_curvilinear_to_floor (floor, ele, .false., relative_to = downstream_end$)
     call tao_floor_to_screen_coords (graph, floor1, f_orb)
     dx_orbit(1) = f_orb%r(1)
     dy_orbit(1) = f_orb%r(2)
