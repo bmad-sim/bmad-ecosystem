@@ -656,14 +656,15 @@ logical, optional :: print_err
 
 character(*), parameter :: r_name = 'kick_vector_calc'
 
-! Init
+! Init.
 ! The effective reference velocity is different from the velocity of the reference particle for wigglers where the 
 ! reference particle is not traveling along the reference line and in elements where the reference velocity is not constant.
 
 ! Note: There is a potential problem with RF and e_gun elements when calculating beta0 when there is slicing and where
 ! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
+! Exception: pipe element.
 
-if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+if ((ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) .and. ele%key /= pipe$) then
   ele0 => pointer_to_lord(ele, 1)
 else
   ele0 => ele
