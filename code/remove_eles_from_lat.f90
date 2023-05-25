@@ -3,8 +3,10 @@
 !
 ! Subroutine to compress the ele(:), branch(:), control(:), and ic(:) arrays to remove elements no longer used. 
 !
-! To mark element ie of branch ib for removal use:
+! To mark element ie of branch ib for removal set:
 !     lat%branch(ib)%ele(ie)%ix_ele = -1
+! To mark a super_lord/multipass_lord for removal but *not* remove the slaves set:
+!     lat%branch(ib)%ele(ie)%ix_ele = -2
 ! To remove an entire branch mark the branch index:
 !     lat%branch(ib)%ix_branch = -1
 ! Branches where all the elements with index above 0 are marked for removal will also be removed. 
@@ -26,8 +28,8 @@
 !       branch #1 will become branch #0, etc.
 !   * Whether a super_slave element is removed or not is dependent upon how its super_lord is marked for removal.
 !       This is independent of how the super_slave element itself is marked.
-!   * If multiple super_lord elements overlap, and if one of them is not marked to be removed, none of the
-!       elements will be removed.
+!   * If multiple super_lord elements overlap, and if one of them is not marked to be removed, none of the elements
+!       will be removed. Exception: With %ix_ele = -2, that super_lord will always be removed.
 !
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
@@ -159,7 +161,7 @@ do i = 1, lat%n_control_max
   slave => pointer_to_ele(lat, ctl%slave)
   if (slave%ix_ele == -1) control(i) = -1
   lord => pointer_to_ele(lat, ctl%lord)
-  if (lord%ix_ele == -1) control(i) = -1
+  if (lord%ix_ele == -1 .or. lord%ix_ele == -2) control(i) = -1
   if (ctl%ix_attrib == int_garbage$ .or. ctl%attribute == 'REMOVE') control(i) = -1
   if (control(i) == -1 .and. control_to_ic(i) > 0) ic(control_to_ic(i)) = -1
 enddo
@@ -187,7 +189,7 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 0, branch%n_ele_max
     ele => branch%ele(i)
 
-    if (ele%ix_ele == -1) then
+    if (ele%ix_ele == -1 .or. ele%ix_ele == -2) then
       ibr(ib)%loc(i)%new_ix_ele    = -1
       ibr(ib)%loc(i)%new_ix_branch = -1
     else

@@ -83,7 +83,7 @@ integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
 logical, optional :: save_null_drift, create_jumbo_slave, mangle_slave_names, wrap
-logical err_flag, setup_lord, split1_done, split2_done, all_drift, err, zero_length_lord
+logical err_flag, setup_lord, split1_done, split2_done, all_drift, err, zero_length_lord, doit
 
 character(100) name
 character(20) fmt
@@ -280,7 +280,7 @@ do
   i = i + 1
   if (i > branch%n_ele_track) i = 0
 
-  if (branch%ele(i)%key == drift$ .and. branch%ele(i)%value(drift_id$) == 0 .and. &
+  if (branch%ele(i)%key == drift$ .and. branch%ele(i)%value(split_id$) == 0 .and. &
                                                             logic_option(.false., save_null_drift)) then
     call new_control (lat, ix)
     lord => lat%ele(ix)
@@ -309,11 +309,32 @@ do
   if (i == ix2_split) exit
 enddo
 
-! If element overlays only drifts then just insert it in the tracking part of the lattice.
+! If an lcavity overlaps a pipe/instrument/monitor super_slave, remove the corresponding super_lord.
+
+if (super_saved%key == lcavity$) then
+  doit = .false.
+  do i = ix1_split+1, ix2_split
+    ele => branch%ele(i)
+    if (ele%slave_status /= super_slave$) cycle
+    do n = 1, ele%n_lord
+      lord => pointer_to_lord(ele, n)
+      lord%ix_ele = -2
+      doit = .true.
+    enddo
+  enddo
+  call remove_eles_from_lat(lat, .false.)
+endif
+
+! If element overlaps only drifts then just insert it in the tracking part of the lattice.
 
 all_drift = (ix2_split > ix1_split)
 do i = ix1_split+1, ix2_split
-  if (branch%ele(i)%key /= drift$) all_drift = .false.
+  ele => branch%ele(i)
+  if (super_saved%key == lcavity$) then
+    if (ele%key /= drift$ .and. ele%key /= instrument$ .and. ele%key /= monitor$ .and. ele%key /= pipe$) all_drift = .false.
+  else
+    if (ele%key /= drift$) all_drift = .false.
+  endif
 enddo
 
 if (all_drift) then  
@@ -327,8 +348,8 @@ if (all_drift) then
   call set_flags_for_changed_attribute (branch%ele(ix_super))
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
 
-  if (split1_done .and. branch%ele(ix_super-1)%key == drift$) call adjust_drift_names (lat, branch%ele(ix_super-1))
-  if (split2_done .and. branch%ele(ix_super+1)%key == drift$) call adjust_drift_names (lat, branch%ele(ix_super+1))
+  if (split1_done) call adjust_drift_names (lat, branch%ele(ix_super-1), branch%ele(ix_super-1)%key)
+  if (split2_done) call adjust_drift_names (lat, branch%ele(ix_super+1), branch%ele(ix_super+1)%key)
 
   err_flag = .false.
   return
@@ -876,14 +897,14 @@ end subroutine adjust_super_slave_names
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine adjust_drift_names (lat, drift_ele)
+! Subroutine adjust_drift_names (lat, drift_ele, key_in)
 !
-! If drifts have been split due to superimpose then the split drifts
+! If drifts (or pipes with lcavity superposition) have been split due to superimpose then the split drifts
 ! can have some very convoluted names. Also multipass lord drifts. Here we do some cleanup.
 ! Collect all free elements with the same name before the '#' and renumber.
 !-
 
-subroutine adjust_drift_names (lat, drift_ele)
+subroutine adjust_drift_names (lat, drift_ele, key_in)
 
 implicit none
 
@@ -892,16 +913,21 @@ type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
-real(rp) drift_id
-integer i, ie, ie2, k, ixx
+real(rp) split_id
+
+integer, optional :: key_in
+integer i, ie, ie2, k, ixx, match_key
 
 character(40) d_name
 
 !
 
-if (drift_ele%key /= drift$) return
-drift_id = drift_ele%value(drift_id$)
-if (drift_id == 0) return
+match_key = integer_option(drift$, key_in)
+
+if (drift_ele%key /= match_key) return
+
+split_id = drift_ele%value(split_id$)
+if (split_id == 0) return
 branch => drift_ele%branch
 
 d_name = drift_ele%name
@@ -913,15 +939,15 @@ if (i /= 0) d_name = d_name(:i-1)
 if (drift_ele%orientation == 1) then
   do ie = drift_ele%ix_ele, 1, -1
     ele => branch%ele(ie)
-    if (ele%key /= drift$) cycle
-    if (ele%value(drift_id$) /= drift_id) exit  ! Found start of split drifts
+    if (ele%key /= match_key) cycle
+    if (ele%value(split_id$) /= split_id) exit  ! Found start of split drifts
   enddo
 
   ixx = 0
   do ie2 = ie+1, branch%n_ele_track
     ele => branch%ele(ie2)
-    if (ele%key /= drift$) cycle
-    if (ele%value(drift_id$) /= drift_id) exit
+    if (ele%key /= match_key) cycle
+    if (ele%value(split_id$) /= split_id) exit
     ixx = ixx + 1
     call set_ele_name (ele, trim(d_name) // '#' // int_str(ixx))
   enddo
@@ -929,15 +955,15 @@ if (drift_ele%orientation == 1) then
 else
   do ie = drift_ele%ix_ele, branch%n_ele_track
     ele => branch%ele(ie)
-    if (ele%key /= drift$) cycle
-    if (ele%value(drift_id$) /= drift_id) exit  ! Found start of split drifts
+    if (ele%key /= match_key) cycle
+    if (ele%value(split_id$) /= split_id) exit  ! Found start of split drifts
   enddo
 
   ixx = 0
   do ie2 = ie-1, 1, -1
     ele => branch%ele(ie2)
-    if (ele%key /= drift$) cycle
-    if (ele%value(drift_id$) /= drift_id) exit
+    if (ele%key /= match_key) cycle
+    if (ele%value(split_id$) /= split_id) exit
     ixx = ixx + 1
     call set_ele_name (ele, trim(d_name) // '#' // int_str(ixx))
   enddo
