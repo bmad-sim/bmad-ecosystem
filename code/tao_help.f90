@@ -68,7 +68,10 @@ endif
 iu = lunget()
 open (iu, file = full_file_name, iostat = ios)
 if (ios /= 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // file_name)
+  call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // file_name, &
+                                 'TYPICALLY THIS IS DUE TO THE ENVIRONMENT VARIABLE TAO_DIR NOT BEING SET.', &
+                                 'TYPICALLY TAO_DIR LOOKS LIKE: "<path-to-dist>/bmad_dist_2023_0509-0/tao"', &
+                                 'WHERE "<path-to-dist>" IS THE PATH TO THE BMAD DISTRIBUTION.')
   return
 endif
 
