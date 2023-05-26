@@ -3024,9 +3024,9 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
   enddo
 
   if (n_set == 0) then
-    call out_io (s_error$, r_name, 'NOTHING SET. EG:')
     i = size(eles)
-    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .false.)
+    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .true.)
+    call out_io (s_error$, r_name, 'NOTHING SET.')
   endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)

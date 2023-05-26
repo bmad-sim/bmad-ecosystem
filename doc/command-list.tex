@@ -2460,7 +2460,7 @@ Shows all key bindings (\sref{s:key.bind}).
 Syntax:
 \begin{example}
   show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} \{-beginning\}
-      \{-blank_replacement <string>\}  \{-branch <name_or_index>\}
+      \{-blank_replacement <string>\}  \{-branch <name_or_index>\} \{-center\}
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-no_tail_lines\} \{-orbit\} 
       \{-python\} \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} 
@@ -2522,7 +2522,6 @@ Show value evaluated at the beginning of the lattice elements instead of the def
 element's length or an element's field strength (which can be displayed using the \vn{-attribute}
 switch as discussed below). Also the \vn{-beginning} switch is ignored when displaying beam based
 parameters. Also see \vn{-middle}.
-
 %
 \item[-blank_replacement <string>] \Newline
 The \vn{-blank_replacement} switch specifies that whenever a blank string is encountered (for
@@ -2536,6 +2535,9 @@ This will replace any blank fields with ``zz''.
 \item[-branch] \Newline
 The \vn{-branch <name_or_index>} option can be used to specify the branch of the lattice.
 \vn{<name_or_index>} can be the name or index of the branch.  The default is the main branch (\# 0).
+%
+\item[-center] \Newline
+Same as \vn{-middle}. See \vn{-middle} documentation for more details.
 %
 \item[-custom <file_name>] \Newline
 A table with customized columns may be constructed either by using the \vn{-custom} switch which
