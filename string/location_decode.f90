@@ -1,5 +1,5 @@
 !+
-! Subroutine location_decode (string, array, ix_min, num, names, exact_case, print_err)
+! Subroutine location_decode (string, array, ix_min, num, names, exact_case, can_abbreviate, print_err)
 !
 ! Subroutine to set a list of locations in a logical array to True.
 !
@@ -26,6 +26,8 @@
 !                       instead used of numbers. Names cannot contain blanks, or ":" 
 !   exact_case     -- Logical, optional: Name matching is case sensitive? 
 !                       Default is False.
+!   can_abbreviate -- Logical, optional: If present and False then abbreviations
+!                       are not permitted. Default is True.
 !   print_err      -- logical, optional: If present and False, do not print error messages.
 !
 ! Output:
@@ -46,7 +48,7 @@
 !     num = 44
 !-
 
-subroutine location_decode(string, array, ix_min, num, names, exact_case, print_err)
+subroutine location_decode(string, array, ix_min, num, names, exact_case, can_abbreviate, print_err)
 
 use sim_utils, dummy => location_decode
 
@@ -64,7 +66,7 @@ character(*), optional :: names(ix_min:)
 character(*), parameter :: r_name = 'location_decode'
 
 logical array(ix_min:), found
-logical, optional :: exact_case, print_err
+logical, optional :: exact_case, can_abbreviate, print_err
 
 ! initialize array
 
@@ -97,7 +99,7 @@ do
 
   found = .false.
   if (present(names) .and. ix_word /= 0) then
-    call match_word (str(:ix_word), names, index, exact_case)
+    call match_word (str(:ix_word), names, index, exact_case, can_abbreviate)
     if (index < 0) then
       if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word))
       return

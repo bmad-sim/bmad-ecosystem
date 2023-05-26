@@ -4,19 +4,18 @@
 ! Subroutine to match the first word in a string against a list of names.
 !
 ! Input:
-!   string     -- Character(*): String whose first word is to be matched
-!   names(:)   -- Character(*): Array of names. 
-!   exact_case -- Logical, optional: If present and True then the match must
-!                  be exact. Default: Match is case insensitive.
-!   can_abbreviate 
-!              -- Logical, optional: If present and False then abbreviations
-!                  are not permitted. Default is True.
+!   string          -- Character(*): String whose first word is to be matched
+!   names(:)        -- Character(*): Array of names. 
+!   exact_case      -- Logical, optional: If present and True then the match must
+!                       be exact. Default: Match is case insensitive.
+!   can_abbreviate  -- Logical, optional: If present and False then abbreviations
+!                       are not permitted. Default is True.
 ! Output:
-!   ix -- Integer: Index in names that matched.
-!            = 0 if no match.
-!            < 0 if multiple matches
-!   matched_name -- Character(*), optional: Name that is matched to.
-!                    Set to '' if no or multiple matches.
+!   ix              -- Integer: Index in names that matched.
+!                       = 0 if no match.
+!                       < 0 if multiple matches
+!   matched_name    -- Character(*), optional: Name that is matched to.
+!                       Set to '' if no or multiple matches.
 !
 ! Note: If an exact match is found then it superceeds all abreviated matches
 !-
