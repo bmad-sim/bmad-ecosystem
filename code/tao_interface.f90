@@ -535,6 +535,12 @@ subroutine tao_init_single_mode (single_mode_file)
   character(*) single_mode_file
 end subroutine
 
+function tao_is_valid_name (name, why_invalid) result (is_valid)
+  implicit none
+  character(*) name, why_invalid
+  logical is_valid
+end function
+
 subroutine tao_json_cmd (input_str)
   import
   implicit none
