@@ -65,7 +65,7 @@ character(1) delim
 character(*), optional :: names(ix_min:)
 character(*), parameter :: r_name = 'location_decode'
 
-logical array(ix_min:), found
+logical array(ix_min:)
 logical, optional :: exact_case, can_abbreviate, print_err
 
 ! initialize array
@@ -95,49 +95,44 @@ do
     cycle
   endif
 
-  ! Look for a name match
-
-  found = .false.
-  if (present(names) .and. ix_word /= 0) then
-    call match_word (str(:ix_word), names, index, exact_case, can_abbreviate)
-    if (index < 0) then
-      if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word))
-      return
-    elseif (index > 0) then
-      found = .true.
-      ! Correction since match_word assumes that names(:) has lower bound of 1.
-      index = index + (ix_min - 1)  
-    endif
-  endif
-
   ! If there is no name match then assume it is a number
 
-  if (.not. found) then
-    if (ix_word == 0) then  ! Use default
-      if (delim == ':') then
-        select case (where)
-        case (found_colon2$)
-          if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COLON')
+  if (ix_word == 0) then  ! Use default
+    if (delim == ':') then
+      select case (where)
+      case (found_colon2$)
+        if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COLON')
+        return
+      case (found_colon1$)
+        index = ix_max
+      case (no_range$)
+        index = ix_min
+      end select
+
+    else                   ! delim /= ':'
+      select case (where)
+      case (found_colon1$)
+        index = ix_max
+      case (no_range$, found_colon2$)
+        if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COMMA')
+        return          
+      end select
+    endif
+
+  else
+    ! Prioritize matching to integer over names.
+    if (.not. is_integer(str(:ix_word), index)) then
+      if (present(names)) then
+        call match_word (str(:ix_word), names, index, exact_case, can_abbreviate)
+        if (index < 0) then
+          if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word))
           return
-        case (found_colon1$)
-          index = ix_max
-        case (no_range$)
-          index = ix_min
-        end select
-
-      else                   ! delim /= ':'
-        select case (where)
-        case (found_colon1$)
-          index = ix_max
-        case (no_range$, found_colon2$)
-          if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'MISPLACED COMMA')
-          return          
-        end select
-      endif
-
-    else
-      read (str(:ix_word), *, iostat = ios) index
-      if (ios /= 0) then
+        elseif (index == 0) then
+          if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'BAD NAME: ' // str(:ix_word))
+          return
+        endif
+        index = index + (ix_min - 1)  
+      else    ! Not an integer and names arg not present
         if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'BAD LOCATION: ' // str(:ix_word))
         return
       endif
