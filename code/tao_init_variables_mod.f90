@@ -162,6 +162,12 @@ var_loop: do
   if (ios < 0 .and. v1_var%name == '') exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // quote(v1_var%name))
 
+  if (.not. tao_is_valid_name(v1_var%name, line)) then
+    call out_io (s_error$, r_name, 'V1_VAR%NAME IN TAO_VAR NAMELIST IS INVALID SINCE: ' // line, &
+                                   'IN FILE: ' // var_file)
+    cycle var_loop
+  endif
+
   do i = 1, n_v1-1
     if (v1_var%name /= s%v1_var(i)%name) cycle
     call out_io (s_error$, r_name, 'TWO V1 VARIABLE ARRAYS HAVE THE SAME NAME: ' // quote(v1_var%name), &

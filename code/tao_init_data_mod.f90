@@ -111,10 +111,9 @@ do
   endif
   if (ios < 0 .and. d2_data%name == '') exit  ! Exit on end-of-file and no namelist read
 
-  if (index(d2_data%name, '.') /= 0) then
-    call out_io (s_abort$, r_name, &
-          'D2_DATA%NAME IN TAO_D2_DATA NAMELIST CANNOT CONTAIN A PERIOD CHARACTER: ' // quote(d2_data%name), &
-          'IN FILE: ' // data_file)
+  if (.not. tao_is_valid_name(d2_data%name, line)) then
+    call out_io (s_error$, r_name, 'D2_DATA%NAME IN TAO_D2_DATA NAMELIST IS INVALID SINCE: ' // line, &
+                                   'IN FILE: ' // data_file)
     cycle
   endif
 
@@ -220,10 +219,10 @@ do
       enddo
     endif
 
-    if (index(d1_data%name, '.') /= 0) then
-      call out_io (s_abort$, r_name, &
-            'D1_DATA%NAME IN TAO_D1_DATA NAMELIST CANNOT CONTAIN A PERIOD CHARACTER: ' // quote(d1_data%name))
-      stop
+    if (.not. tao_is_valid_name(d2_data%name, line)) then
+      call out_io (s_error$, r_name, 'D1_DATA%NAME IN TAO_D1_DATA NAMELIST IS INVALID SINCE: ' // line, &
+                                     'IN FILE: ' // data_file)
+      cycle
     endif
 
     ! Convert old format to new
