@@ -19,11 +19,12 @@ integer iu, ix, n, nl, ios
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 character(*) what
-character(100) file_name, result_id
+character(200) file_name
+character(100) result_id
+character(20) switch
 character(len(what)) what2
 character(n_char_show), allocatable :: lines(:)
-character(16) :: r_name = 'tao_show_cmd'
-character(20) switch
+character(*), parameter :: r_name = 'tao_show_cmd'
 
 logical opened, err, doprint, err_out
 
