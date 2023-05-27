@@ -98,7 +98,7 @@ enddo
 ! run optimizer mrqmin from Numerical Recipes.
 
 finished = .false.
-call out_io (s_blank$, r_name, '  Cycle      Merit   A_lambda')
+call out_io (s_blank$, r_name, '  Cycle      Merit    A_lambda')
 
 do i = 1, s%global%n_opti_cycles+1
 
@@ -106,6 +106,9 @@ do i = 1, s%global%n_opti_cycles+1
     call out_io (s_blank$, r_name, 'Optimizer at minimum or derivatives need to be recalculated.')
     finished = .true.
   endif
+
+  ! Underflow can cause lm to bomb so limit min of a_lambda
+  if (a_lambda < 1d-98 .and. a_lambda > 0) a_lambda = 1d-98
 
   if (finished .or. i == s%global%n_opti_cycles+1) then
     a_lambda = 0  ! tell mrqmin we are finished
@@ -119,7 +122,7 @@ do i = 1, s%global%n_opti_cycles+1
   endif
 
   call tao_mrq_func (a, y_fit, dy_da, status2)  ! put a -> model
-  write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
+  write (line, '(i5, es14.4, es11.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 
   ! Try to find problem variable!
