@@ -19,14 +19,14 @@ integer iu, ix, n, nl, ios
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 character(*) what
-character(200) file_name
+character(200) file_name, fname
 character(100) result_id
 character(20) switch
 character(len(what)) what2
 character(n_char_show), allocatable :: lines(:)
 character(*), parameter :: r_name = 'tao_show_cmd'
 
-logical opened, err, doprint, err_out
+logical opened, err, doprint, err_out, valid
 
 ! Init
 
@@ -60,14 +60,21 @@ do
     endif
 
     iu = lunget()
+    call fullfilename(file_name, fname, valid)
+    if (.not. valid) then
+      call out_io (s_error$, r_name, 'NOT A VALID FILE NAME: ' // file_name)
+      return
+    endif
+
     if (switch == '-append') then
-      open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char_show)
+      open (iu, file = fname, position = 'APPEND', status = 'UNKNOWN', recl = n_char_show, iostat = ios)
     else
-      open (iu, file = file_name, status = 'REPLACE', recl = n_char_show, iostat = ios)
-      if (ios /= 0) then
-        call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR WRITING: ' // file_name)
-        return
-      endif
+      open (iu, file = fname, status = 'REPLACE', recl = n_char_show, iostat = ios)
+    endif
+
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR WRITING: ' // fname)
+      return
     endif
 
     opened = .true.
