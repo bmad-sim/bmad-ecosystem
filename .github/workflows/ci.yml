@@ -46,7 +46,7 @@ jobs:
 
     steps:
       # Check out the code from GitHub
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Install system dependencies
       - name: Install System Dependencies
@@ -59,7 +59,7 @@ jobs:
       # libcairo2-dev libpango1.0-dev libxt-dev libx11-dev -y
 
       # Try to check the cache for external dependencies
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache
         with:
           path: ~/external_deps
