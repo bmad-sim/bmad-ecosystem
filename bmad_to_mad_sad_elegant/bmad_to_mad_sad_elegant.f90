@@ -2,7 +2,7 @@
 ! Program to convert a Bmad lattice file to a MAD, SAD, or Elegant file
 !
 ! Usage:
-!   bmad_to_mad_sad_elegant {-nobpm} {-noaperture} {-force} {-mad8} {-madx} {-sad} {-elegant} <bmad_file_name>
+!   bmad_to_mad_sad_elegant {-nobpm} {-noaperture} {-notaylor} {-force} {-mad8} {-madx} {-sad} {-elegant} <bmad_file_name>
 !
 ! The files will be created in the current directory.
 !
@@ -26,7 +26,7 @@
 ! in this case this argument is ignored.
 !
 ! For SAD translations: If the "-force" option is present, this forces translation even when no reference
-! orbit and twiss parameters can be computed.
+! orbit and/or twiss parameters can be computed.
 !-
 
 program bmad_to_mad_sad_elegant
@@ -38,6 +38,7 @@ implicit none
 type (lat_struct) lat
 type (coord_struct), allocatable :: orbit(:)
 
+real(rp) dr_max
 integer i, n_arg, ix, status
 logical is_rel, nobpm, aperture, force
 character(120) file_name, out_name, dir, arg
@@ -52,6 +53,7 @@ nobpm = .false.
 file_name = ''
 out_type = 'all'
 aperture = .true.
+dr_max = -1    ! Use default
 force = .false.
 
 do i = 1, n_arg
@@ -63,6 +65,8 @@ do i = 1, n_arg
     nobpm = .true.
   case ('-noaperture')
     aperture = .false.
+  case ('-notaylor')
+    dr_max = 1d30    ! Something very large.
   case ('-mad8', '-madx', '-sad', '-elegant')
     out_type = arg
   case default
@@ -77,7 +81,16 @@ do i = 1, n_arg
 enddo
 
 if (file_name == '') then
-  print '(a)', 'Usage: bmad_to_mad_sad_elegant {-nobpm} {-noaperture} {-mad8} {-madx} {-sad} {-elegant} <bmad_file_name>'
+  print '(a)', 'Usage: bmad_to_mad_sad_elegant {<options>} <bmad_file_name>'
+  print '(a)', 'Options are:'
+  print '(a)', '  -nobpm        Do not include BPM marker elements in translated file.'
+  print '(a)', '  -noaperture   Do not generate extra elements with apartures.'
+  print '(a)', '  -notaylor     Do not generate extra matrix elements for MAD to correct for nonzero orbit in a drift'
+  print '(a)', '                  These extra elements are to correct for the fact that MAD uses the paraxial approximation.'
+  print '(a)', '  -mad8         Only create a MAD8 file. Default is to create lattices of all types.'
+  print '(a)', '  -madx         Only create a MADX file. Default is to create lattices of all types.'
+  print '(a)', '  -sad          Only create a SAD file. Default is to create lattices of all types.'
+  print '(a)', '  -elegant      Only create a Elegant file. Default is to create lattices of all types.'
   stop
 endif
 
@@ -106,12 +119,12 @@ endif
 
 if (out_type == 'all' .or. out_type == '-mad8') then
   call file_suffixer (out_name, out_name, 'mad8', .true.)
-  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-madx') then
   call file_suffixer (out_name, out_name, 'madx', .true.)
-  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-sad') then
@@ -145,12 +158,12 @@ out_name = file_name
 
 if (out_type == 'all' .or. out_type == '-mad8') then
   call file_suffixer (out_name, out_name, 'mad8', .true.)
-  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-madx') then
   call file_suffixer (out_name, out_name, 'madx', .true.)
-  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-sad') then
