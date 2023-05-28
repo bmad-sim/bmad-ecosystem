@@ -19,8 +19,6 @@ svn_repo = {
   'https://accserv.classe.cornell.edu/svn/packages/openmpi' :              '51988',
   'https://accserv.classe.cornell.edu/svn/packages/plplot' :               '54269',
   'https://accserv.classe.cornell.edu/svn/packages/xraylib' :              '53181',
-  'https://accserv.classe.cornell.edu/svn/trunk/util' :                    '54267',
-  'https://accserv.classe.cornell.edu/svn/trunk/build_system' :            '54203',
 }
 
 all_pass = True
