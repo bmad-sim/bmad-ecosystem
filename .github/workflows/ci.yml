@@ -3,20 +3,23 @@ name: Bmad Ecosystem - Build & Test
 on:
   # Run on demand
   workflow_dispatch:
+
   # Run on push to main
   push:
     branches:
       - "main"
+
   # Run on pull requests
   pull_request:
-  # Future Ideas:
-  # PR make it 10 or less
-  # For main and time based we can run something bigger
 
-  # Run when releases are published
-  # release:
-  #   types:
-  #     - "published"
+  ## Future Ideas:
+  ## PR make it 10 or less
+  ## For main and time based we can run something bigger
+
+  ## Run when releases are published
+  ## release:
+  ##   types:
+  ##     - "published"
 
 # Configuration for the version of external dependencies
 # We do this so we can cache them and avoid checking out that big
@@ -24,12 +27,15 @@ on:
 env:
   EXTERNAL_DEPS_VERSION: main
 
+#
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    #
     defaults:
         run:
           shell: bash
+
     strategy:
       matrix:
         # Future Ideas:
@@ -37,6 +43,7 @@ jobs:
         os: [ubuntu-latest]
         shared: ["Y"]
         ## openmp_mpi: ["N", "Y"]
+
     steps:
       # Check out the code from GitHub
       - uses: actions/checkout@v2
@@ -64,6 +71,7 @@ jobs:
         run: |
           git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
 
+			#
       - name: Extract dependencies
         run: |
           for dep in ~/external_deps/*.tar.gz; \
@@ -71,11 +79,13 @@ jobs:
             tar xzvf $dep -C $GITHUB_WORKSPACE/; \
           done
 
+			#
       - name: Build
         env:
           ### USE_MPI: ${{ matrix.openmp_mpi }}
           SHARED: ${{ matrix.shared }}
         run: .github/scripts/install_bmad.sh
 
+			#
       - name: Run Tests
         run: .github/scripts/run_tests.sh
