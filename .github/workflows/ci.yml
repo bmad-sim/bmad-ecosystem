@@ -71,7 +71,7 @@ jobs:
         run: |
           git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
 
-			#
+      #
       - name: Extract dependencies
         run: |
           for dep in ~/external_deps/*.tar.gz; \
@@ -79,13 +79,13 @@ jobs:
             tar xzvf $dep -C $GITHUB_WORKSPACE/; \
           done
 
-			#
+      #
       - name: Build
         env:
           ### USE_MPI: ${{ matrix.openmp_mpi }}
           SHARED: ${{ matrix.shared }}
         run: .github/scripts/install_bmad.sh
 
-			#
+      #
       - name: Run Tests
         run: .github/scripts/run_tests.sh
