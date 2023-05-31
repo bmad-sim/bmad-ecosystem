@@ -9,7 +9,7 @@
 &tao_design_lattice
   n_universes = 1
   design_lattice(1) = "bmad.lat"
-  design_lattice(1)%dynamic_aperture_calc = f
+  design_lattice(1)%dynamic_aperture_calc = F
   design_lattice(1)%one_turn_map_calc = True
 /
 

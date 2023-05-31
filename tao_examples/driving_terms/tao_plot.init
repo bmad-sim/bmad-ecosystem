@@ -3,17 +3,6 @@ This initialization file defines how plotting is done.
 The following namelist block defines how the plot window (also called
 the plot page) is broken up.
 
-&tao_plot_page
-  plot_page%size = 800, 800
-  plot_page%text_height = 15.0 
-  plot_page%border = 0, 0, 0, 0, '%PAGE'  
-  plot_page%n_curve_pts = 5000
-
-  region(1) = 'mid'       0.05, 0.95, 0.05, 0.95
-  place(1) = 'mid', 'da'
-
-/
-
 &tao_template_plot
   plot%name = 'da'
   default_graph%x%major_div_nominal = 10
