@@ -3,6 +3,8 @@
 !
 ! Module for initializing phtons given the appropriate splines fits
 ! to the photon probability distributions.
+!
+! !!! NOTE: Currently this module is not used and is not being developed. !!!
 !-
 
 module photon_init_spline_mod

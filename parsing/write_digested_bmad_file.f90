@@ -207,6 +207,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
 type (wake_struct), pointer :: wake
 type (photon_element_struct), pointer :: ph
+type (photon_reflect_table_struct), pointer :: prt
 type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
@@ -221,7 +222,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, ix_ele, ix_c, ix_branch
-integer n_cus, ix_convert
+integer n_cus, ix_convert, n_energy, n_angle
 
 logical write_wake, mode3
 
@@ -517,11 +518,11 @@ if (associated(ele%custom)) then
 endif
 
 if (associated (ele%photon)) then
-
   ph => ele%photon
   write (d_unit) ph%target, ph%material, ph%curvature, &
           ph%grid%active, ph%grid%type, ph%grid%dr, ph%grid%r0, allocated(ph%grid%pt), &
-          ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt)
+          ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt), allocated(ph%reflectivity_table), &
+          allocated(ph%init_energy_prob)
 
   if (allocated(ph%grid%pt)) then
     write (d_unit) lbound(ph%grid%pt), ubound(ph%grid%pt)
@@ -535,6 +536,28 @@ if (associated (ele%photon)) then
   if (allocated(ph%pixel%pt)) then
     write (d_unit) lbound(ph%pixel%pt), ubound(ph%pixel%pt)
     ! Detectors do not have any pixel data that needs saving
+  endif
+
+  if (allocated(ph%reflectivity_table)) then
+    write (d_unit) size(ph%reflectivity_table)
+    do i = 1, size(ph%reflectivity_table)
+      prt => ph%reflectivity_table(i)
+      write (d_unit) size(prt%angle), size(prt%energy)
+      write (d_unit) prt%angle
+      write (d_unit) prt%energy
+      write (d_unit) prt%p_reflect_scratch
+      write (d_unit) prt%int1
+      write (d_unit) prt%p_reflect
+      do j = 1, n_energy
+        write (d_unit) prt%p_reflect(:,j)
+      enddo
+    enddo
+  endif
+
+  if (allocated(ph%init_energy_prob)) then
+    write (d_unit) size(ph%init_energy_prob)
+    write (d_unit) ph%init_energy_prob
+    write (d_unit) ph%integrated_init_energy_prob
   endif
 endif
 
