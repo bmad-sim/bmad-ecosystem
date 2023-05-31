@@ -12,8 +12,6 @@
   default_graph%x%label = 'P0c'
   plot%x_axis_type = 'lat'
   plot%n_curve_pts = 50
-  plot%x%min = 0.5e7
-  plot%x%max = 2e7
   plot%n_graph = 1
 /
 
@@ -23,6 +21,9 @@
   graph%box = 1, 1, 1, 1
   graph%title = 'Horizontal Orbit (mm)'
   graph%y%label = 'X'
+  graph%x%eval_min = 8.0e6
+  graph%x%eval_max = 20.0e6
+
   curve(1)%data_type_x = 'beginning[p0c]'
   curve(1)%data_type   = 'orbit.x[10]'
   curve(1)%y_axis_scale_factor = 1000

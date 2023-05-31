@@ -1,4 +1,4 @@
-parameter[p0c] = 1e9
+parameter[p0c] = 8e6
 bmad_com[radiation_damping_on] = f
 bmad_com[radiation_fluctuations_on] = f
 
@@ -12,7 +12,7 @@ k: kicker, l = 0.1, bl_hkick = 3e-3
 s1: sextupole, l = 0.01
 s2: sextupole, l = 0.01
 
-rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 1e6
+rf: rfcavity, l = 1.2, rf_frequency = 100e6, voltage = 1e6
 
 sector: line = (s1, d, q1, d, b, d, q2, d, s2, rf, b)
 ring: line = (sector, k)
