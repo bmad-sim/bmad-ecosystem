@@ -1632,6 +1632,7 @@ call init_attribute_name1 (photon_init$, transverse_sigma_cut$,      'TRANSVERSE
 call init_attribute_name1 (photon_init$, ds_slice$,                  'DS_SLICE')
 call init_attribute_name1 (photon_init$, physical_source$,           'PHYSICAL_SOURCE')
 call init_attribute_name1 (photon_init$, ref_wavelength$,            'REF_WAVELENGTH', dependent$)
+call init_attribute_name1 (photon_init$, photon_energy_norm$,        'photon_energy_norm', private$)
 
 do i = 1, n_key$
   if (attrib_array(i, l$)%name /= 'L') cycle

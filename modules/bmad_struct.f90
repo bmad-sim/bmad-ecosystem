@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 299
+integer, parameter :: bmad_inc_version$ = 300
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -112,11 +112,13 @@ character(16), parameter :: field_calc_name(0:8) = &
 
 ! Distribution
 
-integer, parameter :: uniform$ = 1, gaussian$ = 2, spherical$ = 3
-character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 'Gaussian ', 'Spherical']
+integer, parameter :: uniform$ = 1, gaussian$ = 2, spherical$ = 3, curve$ = 4
+character(12), parameter :: distribution_name(0:4) = [character(12):: 'GARBAGE!', &
+                                                       'Uniform', 'Gaussian', 'Spherical', 'Curve']
 
 ! Control element logicals.
-! Note: super_slave$ and multipass_slave$ are also used as possible settings of the why_not_free argument in attribute_free(...) 
+! Note: super_slave$ and multipass_slave$ are also used as possible settings of the 
+! why_not_free argument in attribute_free(...).
 
 integer, parameter :: ix_slice_slave$ = -2 ! Index to set slice_slave%ix_ele to.
 
@@ -1015,6 +1017,8 @@ type photon_element_struct
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
   type (photon_reflect_table_struct), allocatable :: reflectivity_table(:)
+  type (spline_struct), allocatable :: init_energy_prob(:)  ! Initial energy probability density
+  real(rp), allocatable :: integrated_init_energy_prob(:)
 end type
 
 !------------------------------------------------------------------------------
@@ -1615,7 +1619,7 @@ integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_br
 integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
 integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7
-integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8
+integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8, photon_energy_norm$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8, g_tot$ = 8
 integer, parameter :: rho$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9
 integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
