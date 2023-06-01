@@ -32,6 +32,10 @@ open (1, file = 'output.now', recl = 200)
 
 file_name = 'sigma.bmad'
 call bmad_parser(file_name, lat)
+do i = 1, lat%n_ele_max
+  if (associated(lat%ele(i)%rad_map)) lat%ele(i)%rad_map%stale = .true.
+enddo
+
 ptc_com%vertical_kick = 0
 
 call emit_6d(lat%ele(0), .true., mode, sigma_mat)

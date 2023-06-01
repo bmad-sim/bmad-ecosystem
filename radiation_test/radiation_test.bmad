@@ -1,4 +1,4 @@
-no_digested
+!no_digested
 parameter[geometry] = Open
 parameter[e_tot] = 1e10
 parameter[no_end_marker] = T
