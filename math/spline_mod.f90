@@ -24,6 +24,60 @@ private akima_spline_coef23_calc, akima_spline_slope_calc, bracket_index_for_spl
 
 contains
 
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine reallocate_spline (spline, n, n_min, exact)
+!
+! Subroutine to allocate an allocatable spline_struct array.
+! The data of the array is preserved but data at the end of the
+! array will be lost if n is less than the original size of the array
+! 
+!
+! Input:
+!   spline(:)   -- spline_struct, allocatable: Spline to reallocate.
+!   n           -- integer: Upper bound needed for 1-dimensional arrays.
+!   n_min       -- integer, optional: Lower bound of spline array. Default is 1.
+!   exact       -- logical, optional: If present and False then the size of 
+!                    the output array is permitted to be larger than n. Default is True.
+!
+! Output:
+!   spline(:)   -- spline_struct, allocatable: Allocated spline.
+!-
+
+subroutine reallocate_spline (spline, n, n_min, exact)
+
+type (spline_struct), allocatable :: spline(:)
+type (spline_struct), allocatable :: temp_spline(:)
+
+integer, optional :: n_min
+integer :: n, n1, n2
+integer i, n1_old, n2_old, n1_save, n2_save
+
+logical, optional :: exact
+
+character(*), parameter :: r_name = 'reallocate_spline'
+
+!
+
+n1 = integer_option(1, n_min); n2 = n1 + n - 1
+
+if (allocated (spline)) then
+  n1_old = lbound(spline,1); n2_old = ubound(spline,1)
+  if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old .and. n1 == n1_old) return
+  call move_alloc(spline, temp_spline)
+  allocate (spline(n1:n2))
+  n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+  spline(n1_save:n2_save) = temp_spline(n1_save:n2_save)
+  deallocate (temp_spline)
+
+else
+  allocate (spline(n1:n2))
+endif
+
+end subroutine reallocate_spline
+
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -415,6 +469,7 @@ do i = 2, nmax
 enddo
 
 spline(:)%coef(0) = spline(:)%y0  ! Spline must pass through all the data points
+spline(1:nmax)%x1 = [spline(2:nmax)%x0, spline(nmax)%x0]
 
 ! special case for 2 two points: use a straight line
 
