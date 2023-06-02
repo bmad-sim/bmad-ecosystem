@@ -1,5 +1,5 @@
 !+
-! Program output_surface_data
+! Program photon_surface_data
 !
 ! Program to output data about an element that can be used with gnuplot 
 ! to generate a 3D surface plot.
@@ -10,7 +10,7 @@
 !   <param_file>  -- Name of the parameter file.
 !-
  
-program output_surface_data
+program photon_surface_data
 
 use photon_utils_mod
 

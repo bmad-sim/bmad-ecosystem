@@ -1,22 +1,22 @@
-The code in the util_programs/photonic_surface_plot directory is used for:
-	1) Generating a data file of surface points for a Bmad lattice element.
+The code in the util_programs/photon_surface_plot directory is used for:
+  1) Generating a data file of surface points for a Bmad lattice element.
   2) Generating a 3D plot of the surface using the data file and gnuplot.
 
 ------------------------------
 1) Generating the surface data
 
-The program is photonic_surface_data.f90.
+The program is photon_surface_data.f90.
 This program is built with the standard Bmad Distribution.
 To run use the syntax:
-	photonic_surface_data <init_file>
+  photon_surface_data <init_file>
 where <init_file> is the name of the initialization file containing the parameters needed by the
 program to generate the data file.
 
-An example input file is in example/photonic_surface_data.init .
+An example input file is in example/photon_surface_data.init .
 To run with this file, use the following command in the example directory:
-	photonic_surface_data photonic_surface_data.init
+  photon_surface_data photon_surface_data.init
 
-This example input file is self documenting look in this file for details.
+This example input file is self documenting. look in this file for details.
 
 The resulting data file looks like:
 
@@ -26,7 +26,7 @@ The resulting data file looks like:
      -25      -9      -3.50987227E-02  -1.91538948E-02   1.21422273E-05 -1.728301E+00 -5.406615E+00
      -25      -8      -3.50987227E-02  -1.70256842E-02   4.84936425E-05 -1.728140E+00 -7.562425E+00
      -25      -7      -3.50987227E-02  -1.48974737E-02   1.09094709E-04 -1.727872E+00 -9.718226E+00
-		... etc ...
+    ... etc ...
 
 There are 7 columns.
 The first two columns give indexes ix and iy.
@@ -42,10 +42,10 @@ This command file looks for a data file named "surface.dat" so if your data file
 you will need to edit surface_plot.gp.
 
 To run, first start gnuplot and then use the command:
-	gnuplot> load "<directory>/surface_plot.gp"
+  gnuplot> load "<directory>/surface_plot.gp"
 where <directory> is the directory that surface_plot.gp is in.
 For example, when running from the example directory, you would use:
-	gnuplot> load "../surface_plot.gp"
+  gnuplot> load "../surface_plot.gp"
 
 The default is to plot the surface z.
 Note: Plotted is -z (not z) so that the view of the surface is from above (and not below).

@@ -1,0 +1,9 @@
+set (EXENAME photon_surface_data)
+
+FILE (GLOB SRC_FILES "photon_surface_plot/*.f90")
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)
