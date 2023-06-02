@@ -10,8 +10,8 @@ contains
 !
 ! Note: Use the Fortran intrinsic command_argument_count instead
 !
-! Platform independent function to return the number of command
-! line arguments. Use this with cesr_getarg.
+! Platform independent function to return the number of command line arguments. 
+! Use this with cesr_getarg.
 !
 ! Input:
 !   none
@@ -35,13 +35,13 @@ end function cesr_iargc
 !+
 ! Subroutine cesr_getarg (i_arg, arg)
 !
-! Platform independent function to return the i'th command
-! line argument. Use this with cesr_iargc.
+! Platform independent function to return the i'th command line argument. 
+! Use this with cesr_iargc.
 !
 ! Note: The difference between this routine and the Fortran instrinsic
 ! get_command_argument is that for i_arg = 0, this routine returns the 
-! command line with the name of the executable removed from the beginning
-! of the line. get_command_argument, on the other hand returns the name of the
+! command line with the name of the executable removed from the beginning of the line. 
+! get_command_argument, on the other hand returns the name of the
 ! executable when the argument is 0.
 !
 ! Input:
