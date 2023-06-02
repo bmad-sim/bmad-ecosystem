@@ -490,14 +490,14 @@ integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc
 
-logical error, is_alloc_grid, is_alloc_pix, is_alloc_ref, is_alloc_eprob, ac_kicker_alloc
+logical error, is_alloc_grid, is_alloc_pix, is_alloc_ref, is_alloc_eprob, ac_kicker_alloc, rad_map_alloc
 
 !
 
 error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
-        mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
+        mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, rad_map_alloc, &
         ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
         ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, idum, n_cus, ix_convert ! idum not used
 
@@ -848,6 +848,14 @@ elseif (ix_wall3d < 0) then
   ele%wall3d%n_link = ele%wall3d%n_link + 1
 else
   read (d_unit, err = 9900, end = 9900) idum
+endif
+
+!
+
+if (rad_map_alloc) then
+  allocate (ele%rad_map)
+  read (d_unit, err = 9900, end = 9900) ele%rad_map%rm0
+  read (d_unit, err = 9900, end = 9900) ele%rad_map%rm1, ele%rad_map%stale
 endif
 
 !

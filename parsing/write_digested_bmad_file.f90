@@ -236,7 +236,7 @@ n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0
 if (associated(ele%mode3))             mode3 = .true.
 if (associated(ele%cartesian_map))     n_cart = size(ele%cartesian_map)
 if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
-if (associated(ele%gen_grad_map))    n_gen = size(ele%gen_grad_map)
+if (associated(ele%gen_grad_map))      n_gen = size(ele%gen_grad_map)
 if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
 if (associated(ele%custom))            n_cus = size(ele%custom)
 if (associated(ele%converter))         ix_convert = 1
@@ -305,7 +305,7 @@ endif
 ! Now write the element info. 
 ! The last zero is for future use.
 
-write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
+write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), associated(ele%rad_map), &
           ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
           ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, -999, n_cus, ix_convert
 
@@ -596,6 +596,11 @@ if (associated(wake) .and. write_wake) then
 endif
 
 call write_this_wall3d (ele%wall3d, (ix_wall3d > 0))
+
+if (associated(ele%rad_map)) then
+  write (d_unit) ele%rad_map%rm0
+  write (d_unit) ele%rad_map%rm1, ele%rad_map%stale
+endif
 
 end subroutine
 

@@ -11,8 +11,8 @@
 !
 ! Input:
 !   lat         -- lat_struct: Lat containing the elements.
-!   ix_ele      -- Integer, optional: Index of the element. if not present
-!                    or negative then the entire lattice will be made.
+!   ix_ele      -- Integer, optional: Index of the element. If not present
+!                    or negative, the matrices for all elements will be calculated.
 !   ref_orb(0:) -- Coord_struct, optional: Coordinates of the reference orbit
 !                   around which the matrix is calculated. If not present 
 !                   then the referemce is taken to be the origin.
