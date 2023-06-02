@@ -23,7 +23,8 @@ set (EXE_SPECS
   cmake_files/cmake.generalized_gradient_fit
   cmake_files/cmake.lattice_cleaner
   cmake_files/cmake.mais_ripken
-  cmake_files/cmake.photonic_surface_plot
+  cmake_files/cmake.photon_init_plot
+  cmake_files/cmake.photon_surface_data
   cmake_files/cmake.ptc_profiler
   cmake_files/cmake.sad_to_bmad_postprocess
   cmake_files/cmake.cartesian_map_fit

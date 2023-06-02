@@ -1,0 +1,24 @@
+parameter[p0c] = 7e3
+parameter[particle] = photon
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+
+particle_start[x]  = 0.00
+particle_start[px] = 0.00
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.001
+particle_start[pz] = 0.00
+particle_start[spin_x] = 0
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
+
+pini: photon_init, energy_probability_curve = {call::energy_prob.dat}, 
+                      energy_distribution = curve, e_center_relative_to_ref = F
+
+lz: line = (pini)
+use, lz
+no_digested
+
