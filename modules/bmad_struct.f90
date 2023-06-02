@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 300
+integer, parameter :: bmad_inc_version$ = 301
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1619,7 +1619,7 @@ integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_br
 integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
 integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7
-integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8, photon_energy_norm$ = 8
+integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8, g_tot$ = 8
 integer, parameter :: rho$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9
 integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
@@ -1728,7 +1728,7 @@ integer, parameter :: aperture$ = 95, etap_a$ = 95
 integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
 integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
-integer, parameter :: aperture_limit_on$ = 99, alpha_a$ = 99, reflectivity_table$ = 99
+integer, parameter :: aperture_limit_on$ = 99, alpha_a$ = 99, reflectivity_table$ = 99, energy_probability_curve$ = 99
 
 integer, parameter :: exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_b$ = 100

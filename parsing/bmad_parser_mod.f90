@@ -1051,6 +1051,33 @@ endif
 ! Reflecting Surface
 
 select case (attrib_word)
+case ('ENERGY_PROBABILITY_CURVE')
+  ph => ele%photon
+  nt = 0
+  if (.not. allocated(ph%init_energy_prob)) allocate(ph%init_energy_prob(100))
+  if (.not. expect_this ('={', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  call parser_call_check(word, ix_word, delim, delim_found)
+  do
+    nt = nt + 1
+    if (nt > size(ph%init_energy_prob)) call reallocate_spline(ph%init_energy_prob, 2*nt)
+    if (.not. parser_fast_real_read(vec(:2), ele, ' ,}', delim, '', .true.)) return
+    ph%init_energy_prob(nt)%x0 = vec(1); ph%init_energy_prob(nt)%y0 = vec(2)
+    if (delim == '}') exit
+  enddo
+
+  call reallocate_spline(ph%init_energy_prob, nt)
+  call spline_akima(ph%init_energy_prob, ok)
+  call re_allocate(ph%integrated_init_energy_prob, nt)
+  ph%integrated_init_energy_prob(1) = 0
+  do i = 2, nt
+    ph%integrated_init_energy_prob(i) = ph%integrated_init_energy_prob(i-1) + &
+                      spline1(ph%init_energy_prob(i-1), ph%init_energy_prob(i-1)%x1, -1)
+  enddo
+
+  if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
+  err_flag = .false.
+  return
+
 case ('REFLECTIVITY_TABLE')
   ph => ele%photon
   nt = 0
@@ -2432,6 +2459,62 @@ end subroutine add_this_taylor_term
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine parser_call_check(word, ix_word, delim, delim_found, err_flag))
+!
+! Routine to check if there is a "call::XXX" construct in the input stream.
+!-
+
+subroutine parser_call_check(word, ix_word, delim, delim_found, err_flag)
+
+implicit none
+
+integer ix, ix_word
+
+logical delim_found
+logical, optional :: err_flag
+
+character(*) word, delim
+character(6) str
+character(20) suffix
+character(n_parse_line) line
+
+!
+
+
+call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+call str_upcase (str, bp_com%parse_line(1:6))
+if (str /= 'CALL::') return
+
+bp_com%parse_line = bp_com%parse_line(7:)
+call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)    
+ix = str_last_in_set(line, '.')
+suffix = ''
+if (ix /= 0 .and. ix > len_trim(line)-10) suffix = line(ix:)
+
+if (suffix == '.h5' .or. suffix == '.hdf5') then
+  word = 'hdf5'
+  bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
+  return
+elseif (suffix == '.bin') then
+  word = 'binary'
+  bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
+  return
+else
+  bp_com%parse_line = delim // bp_com%parse_line  ! Put delim back on parse line.
+  call parser_file_stack ('push_inline', line)
+  if (bp_com%fatal_error_flag) then
+    if (present(err_flag)) err_flag = .true.
+    word = ''
+    return
+  endif
+endif
+
+end subroutine parser_call_check
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check, err_flag)
 !
 ! Subroutine to get the next word from the input stream.
@@ -2444,6 +2527,7 @@ end subroutine add_this_taylor_term
 !   upper_case_word -- Logical, optional: if True then convert word to 
 !                       upper case. Default is True.
 !   call_check      -- Logical, optional: If present and True then check for 'call::<filename>' construct.
+!                         Default is False.
 !
 ! Output
 !   ix_word     -- Integer: length of word argument
@@ -2467,41 +2551,14 @@ logical delim_found, end_of_file
 logical, optional :: upper_case_word, call_check, err_flag
 
 character(n_parse_line) line
-character(6) str
-character(20) suffix
 
 ! Possible inline call...
 
 if (present(err_flag)) err_flag = .false.
 
 if (logic_option(.false., call_check)) then
-  call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
-  call str_upcase (str, bp_com%parse_line(1:6))
-  if (str == 'CALL::') then
-    bp_com%parse_line = bp_com%parse_line(7:)
-    call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)    
-    ix = str_last_in_set(line, '.')
-    suffix = ''
-    if (ix /= 0 .and. ix > len_trim(line)-10) suffix = line(ix:)
-
-    if (suffix == '.h5' .or. suffix == '.hdf5') then
-      word = 'hdf5'
-      bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
-      return
-    elseif (suffix == '.bin') then
-      word = 'binary'
-      bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
-      return
-    else
-      bp_com%parse_line = delim // bp_com%parse_line  ! Put delim back on parse line.
-      call parser_file_stack ('push_inline', line)
-      if (bp_com%fatal_error_flag) then
-        if (present(err_flag)) err_flag = .true.
-        word = ''
-        return
-      endif
-    endif
-  endif
+  call parser_call_check(word, ix_word, delim, delim_found, err_flag)
+  if (logic_option(.false.,err_flag) .or. word == 'hdf5' .or. word == 'binary') return
 endif
 
 ! Check for continuation character and, if found, then load more characters
@@ -10260,9 +10317,10 @@ end function parser_fast_complex_read
 !   exact_size      -- logical, optional: If True, 
 !
 ! Output:
-!   cmplx_vec(:)    -- complex(rp): Complex vector.
+!   real_vec(:)     -- complex(rp): Complex vector.
 !   delim           -- character(1): Delimitor at end of array.
 !   is_ok           -- logical: True if everything OK. False otherwise.
+!   n_real          -- integer, optional: Number of elements found
 !-
 
 function parser_fast_real_read (real_vec, ele, end_delims, delim, err_str, exact_size, n_real) result (is_ok)

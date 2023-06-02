@@ -15,14 +15,18 @@
 Subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
 
 use track1_photon_mod, except_dummy => init_a_photon_from_a_photon_init_ele
+use super_recipes_mod, only: super_zbrent
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct) orbit
+type (photon_element_struct), pointer :: ph
+type (spline_struct) spl
 
-real(rp) r(3), rv(2), rr, p2
+real(rp) r(3), rv(2), rr, drr, p2, f, de
+integer n, ix, status
 
 character(*), parameter :: r_name = 'init_a_photon_from_a_photon_init_ele'
 
@@ -63,24 +67,45 @@ end select
 
 ! Energy of photon
 
-if (nint(ele%value(energy_distribution$)) == uniform$) then
+select case (nint(ele%value(energy_distribution$)))
+case (uniform$, gaussian$)
+  if (nint(ele%value(energy_distribution$)) == uniform$) then
+    call ran_uniform(rr)
+    rr = 2 * rr - 1
+  else
+    call ran_gauss(rr)
+  endif
+
+  p2 = 1
+  if (ele%value(E2_probability$) /= 0) call ran_uniform(p2)
+
+  if (p2 < ele%value(E2_probability$)) then
+    orbit%p0c = ele%value(sig_E2$) * rr + ele%value(E2_center$)
+  else
+    orbit%p0c = ele%value(sig_E$)  * rr + ele%value(E_center$)
+  endif  
+
+case (curve$)
   call ran_uniform(rr)
-  rr = 2 * rr - 1
-else if (nint(ele%value(energy_distribution$)) == gaussian$) then
-  call ran_gauss(rr)
-else
-  call out_io (s_fatal$, r_name, 'BAD ELE%VALUE(ENERGY_DISTRIBUTION SETTING: ' // &
+  if (.not. allocated(ele%photon%init_energy_prob)) then
+    call out_io (s_fatal$, r_name, 'NO ENERGY_PROBABILITY_CURVE SPECIFIED FOR: ' // ele%name)
+  endif
+  ph => ele%photon
+  n = ubound(ph%init_energy_prob, 1)
+  f = ph%integrated_init_energy_prob(n)
+  rr = rr * ph%integrated_init_energy_prob(n)
+  ix = bracket_index(rr, ph%integrated_init_energy_prob, 1)
+  drr = rr - ph%integrated_init_energy_prob(ix)
+  spl = ph%init_energy_prob(ix)
+  orbit%p0c = super_zbrent(e_curve_func, spl%x0, spl%x1, 0.0_rp, 1.0e-14_rp*ph%init_energy_prob(n)%x1, status)
+
+case default
+  call out_io (s_error$, r_name, 'BAD ELE%VALUE(ENERGY_DISTRIBUTION SETTING: ' // &
                                              distribution_name(nint(ele%value(energy_distribution$))))
-endif
+  orbit%state = lost$
+end select
 
-p2 = 1
-if (ele%value(E2_probability$) /= 0) call ran_uniform(p2)
-
-if (p2 < ele%value(E2_probability$)) then
-  orbit%p0c = ele%value(sig_E2$) * rr + ele%value(E2_center$)
-else
-  orbit%p0c = ele%value(sig_E$)  * rr + ele%value(E_center$)
-endif  
+!
 
 if (is_true(ele%value(E_center_relative_to_ref$))) orbit%p0c = orbit%p0c + ele%value(p0c$) 
 
@@ -93,6 +118,21 @@ orbit%t = 0
 call offset_photon (ele, orbit, unset$)
 
 call track_a_drift_photon (orbit, -orbit%s, .true.)
+
+!---------------------------------------------------------------------
+contains
+
+function e_curve_func(energy, status) result (dprob)
+
+real(rp), intent(in) :: energy
+real(rp) dprob
+integer status
+
+!
+
+dprob = spline1(spl, energy, -1) - drr
+
+end function e_curve_func
 
 end subroutine init_a_photon_from_a_photon_init_ele
 

@@ -3754,12 +3754,13 @@ region of a patch follows special rules. See section~\sref{s:wall.vacuum} for mo
 \label{s:photon.init}
 \index{photon_init|hyperbf}
 
-A \vn{photon_init} element is used as a starting element for x-ray
-tracking.  A \vn{photon_init} element can be used to define such
-things as the initial energy spectrum and angular orientation. As
-explained below, a \vn{photon_init} element can be a ``stand alone''
-photon source or it can have an associated ``physical source''
-element.
+A \vn{photon_init} element is used as a starting element for x-ray tracking.  A \vn{photon_init}
+element can be used to define such things as the initial energy spectrum and angular orientation. As
+explained below, a \vn{photon_init} element can be a ``stand alone'' photon source or it can have an
+associated ``physical source'' element.
+
+Note: There is a utility program called \vn{photon_init_plot} that comes with a Bmad Distribution
+that will plot initial photon distributions and can be used as a check.
 
 General \vn{photon_init} attributes are:
 \begin{center}
@@ -3783,10 +3784,11 @@ Attributes specific to an \vn{photon_init} element are:
   E_center                 = <Real>    ! Average init photon energy of 1st mode (eV).
   E2_center                = <Real>    ! Average init photon energy of 2nd mode (eV).
   E2_probability           = <Real>    ! Probability of 2nd mode.
-  E_center_relative_to_ref = <T/F>     ! E_center relative to reference E?
+  E_center_relative_to_ref = <T/F>     ! E_center relative to reference E? Default True.
   e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
   e_field_y                = <Real>
-  energy_distribution      = <Switch>  ! Gaussian, uniform, or curve
+  energy_distribution      = <Switch>  ! Gaussian, uniform, or curve.
+  energy_probability_curve = \{...\}   ! Used with energy_distribution = curve. See below.
   physical_source          = <String>  ! physical source of x-rays
   ref_wavelength                       ! Ref wavelength (\sref{s:energy}). Dep attribute (\sref{s:depend}).
   sig_x                    = <Real>
@@ -3801,26 +3803,26 @@ Attributes specific to an \vn{photon_init} element are:
   velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
 \end{example}
 
-The distribution of photons is bimodal. The first mode is characterized by the parameters
-\vn{E_center}, and \vn{sig_E}, the second mode is characterized by the parameters \vn{E2_center} and
-\vn{sig_E2}. The probability of emitting a photon in the second mode is given by \vn{E2_probability}.
+When the \vn{energy_distribution} is set to \vn{gaussian} or \vn{uniform}, the distribution of
+photons is bimodal. The first mode is characterized by the parameters \vn{E_center}, and \vn{sig_E},
+the second mode is characterized by the parameters \vn{E2_center} and \vn{sig_E2}. The probability
+of emitting a photon in the second mode is given by \vn{E2_probability}.
 
-  \begin{description}
+\begin{description}
+%
   \index{ds_slice}
   \item[\vn{ds_slice}] \Newline
-Used when there is an associated physical source element. The physical
-source element is sliced into pieces of thickness \vn{ds_slice} and
-each slice is tested to see if photons from the slice can possibly
-pass through the first aperture. When photons are generated, photons
-will only be generated from slices where they have a hope of passing
-through the first aperture. This makes the simulation more efficient.
-The default value of \vn{ds_slice} is 0.01 meter.
-
+Used when there is an associated physical source element. The physical source element is sliced into
+pieces of thickness \vn{ds_slice} and each slice is tested to see if photons from the slice can
+possibly pass through the first aperture. When photons are generated, photons will only be generated
+from slices where they have a hope of passing through the first aperture. This makes the simulation
+more efficient.  The default value of \vn{ds_slice} is 0.01 meter.
+%
   \index{E_center}\index{E2_center}
   \item[\vn{E_center}, \vn{E2_center}] \Newline
 Average initial photon energy in eV. If \vn{E_center_relative_to_ref} is set to True, \vn{E_center}
 and \vn{E2_center} will be relative to the reference energy.
-
+%
   \index{E_center_relative_to_ref}
   \item[\vn{E_center_relative_to_ref}] \Newline
 With a setting of True (the default), \vn{E_center} and \vn{E2_center} are taken to be with respect
@@ -3831,19 +3833,18 @@ to the reference energy (\sref{s:ref.energy}). That is, if True, the center ener
 \end{example}
 If \vn{E_center_relative_to_ref} is set to False, \vn{E_center} and \vn{E2_center} are taken to be
 the center energy values independent of the reference energy.
-
+%
   \index{E2_probability}
   \item[\vn{E2_probability}] \Newline
 Probability of emitting a photon from the 2nd mode. A value of 0 (the default) will mean
 that all photons will be emitted from the 1st mode and a value of 1 will mean that
 all photons will be emitted from the 2nd mode.
-
+%
   \index{e_field_x}\index{e_field_y}
   \item[\vn{e_field_x}, \vn{e_field_y}] \Newline
-Electric field component of initial photons in the $x$ and $y$ planes.
-If both are set to 0 then a random field is chosen with unit intensity
-$E_x^2 + E_y^2 = 1$.
-
+Electric field component of initial photons in the $x$ and $y$ planes. If both are set to 0 then a
+random field is chosen with unit intensity $E_x^2 + E_y^2 = 1$.
+%
   \index{energy_distribution}
   \item[\vn{energy_distribution}] \Newline
 Sets the type of energy spectrum for emitted photons. If there is an associated physical element
@@ -3852,34 +3853,48 @@ physical element. Possible settings are:
 \begin{example}
   gaussian   ! Default
   uniform
+  curve
 \end{example}
-The \vn{gaussian} setting gives Gaussian distributions for the two modes with width
-set by \vn{sig_E} and \vn{sig_E2}. The \vn{uniform} setting gives a flat
-distribution in the range:
+The \vn{gaussian} setting gives Gaussian distributions for the two modes with width set by
+\vn{sig_E} and \vn{sig_E2}. The \vn{uniform} setting gives a flat distribution in the range:
 \begin{example}
   [-sig_E, sig_E]    ! For the 1st mode
   [-sig_E2, sig_E2]  ! For the 2nd mode
 \end{example}
-
+The \vn{curve} setting uses the energy probability curve set by the \vn{energy_probability_curve}
+component.
+%
+  \index{energy_probability_curve}
+  \item[\vn{energy_probability_curve}] \Newline
+The \vn{energy_probability_curve} attribute provides a way to specify the energy probability
+distribution when an Gaussian or uniform distribution is not suitable. The probability curve is
+defined by specifying the curve at a number of points. The syntax is:
+\begin{example}
+  energy_probability_curve = \{E1 p1, E2 p2, ..., EN pN\}
+\end{example}
+where the \vn{E p} pairs are the energy and photon emissian probability at that energy. 
+The commas between \vn{E p} pairs is optional.
+The probability curve does not have to be normalized, \bmad will take care of that. \bmad will
+use cubic spline interpolation between points. 
+%
   \index{physical_source}
   \item[\vn{physical_source}] \Newline
 Used to specify the ``physical'' source of the photons. See below for more details
-
+%
   \index{sig_E}\index{sig_E2}
   \item[\vn{sig_E}, \vn{sig_E2}] \Newline
-Energy width of the two modes in eV. See \vn{energy_distribution} for more
-details.
-
+Energy width of the two modes in eV. See \vn{energy_distribution} for more details.
+%
   \index{sig_vx}\index{sig_vy}
   \item[\vn{sig_vx, sig_vy}] \Newline
 Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
 \vn{velocity_distribution} for more details.
-
+%
   \index{sig_x}\index{sig_y}\index{sig_z}
   \item[\vn{sig_x, sig_y, sig_z}] \Newline
 Width of emitted photons in $x$, $y$ and $z$ directions. See
 \vn{spatial_distribution} for more details.
-
+%
   \index{spatial_distribution}
   \item[\vn{spatial_distribution}] \Newline
 Sets spacial $(x, y, z)$ spectrum of emitted photons. If there is an associated physical element
@@ -3898,7 +3913,7 @@ $\sigma$ where $\sigma$ is
 \end{example}
 The \vn{uniform} setting gives a flat
 distribution in the range: $[-\sigma, \sigma]$.
-
+%
   \index{velocity_distribution}
   \item[\vn{velocity_distribution}] \Newline
 Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted photons. If there is an associated
@@ -3922,8 +3937,8 @@ setting is used, and the next downstream element excluding drifts and markers is
 with aperture limits (\sref{s:limit}), \bmad can optimize photon emission to only emitting 
 photons that are very likely to be within the aperture when they hit the downstream element.
 This cuts down on computation time.
-
-  \end{description}
+%
+\end{description}
 
 For the purposes of positioning the elements in the lattice around it,
 a \vn{photon_init} element is considered to have zero length.
