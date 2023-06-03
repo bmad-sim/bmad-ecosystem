@@ -1516,12 +1516,22 @@ is_eq = is_eq .and. (f1%material == f2%material)
 is_eq = is_eq .and. (f1%grid == f2%grid)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%pixel == f2%pixel)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%reflectivity_table_sigma == f2%reflectivity_table_sigma)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%reflectivity_table_pi == f2%reflectivity_table_pi)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%reflectivity_table) .eqv. allocated(f2%reflectivity_table))
+is_eq = is_eq .and. (allocated(f1%init_energy_prob) .eqv. allocated(f2%init_energy_prob))
 if (.not. is_eq) return
-if (allocated(f1%reflectivity_table)) is_eq = all(shape(f1%reflectivity_table) == shape(f2%reflectivity_table))
+if (allocated(f1%init_energy_prob)) is_eq = all(shape(f1%init_energy_prob) == shape(f2%init_energy_prob))
 if (.not. is_eq) return
-if (allocated(f1%reflectivity_table)) is_eq = all(f1%reflectivity_table == f2%reflectivity_table)
+if (allocated(f1%init_energy_prob)) is_eq = all(f1%init_energy_prob == f2%init_energy_prob)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%integrated_init_energy_prob) .eqv. allocated(f2%integrated_init_energy_prob))
+if (.not. is_eq) return
+if (allocated(f1%integrated_init_energy_prob)) is_eq = all(shape(f1%integrated_init_energy_prob) == shape(f2%integrated_init_energy_prob))
+if (.not. is_eq) return
+if (allocated(f1%integrated_init_energy_prob)) is_eq = all(f1%integrated_init_energy_prob == f2%integrated_init_energy_prob)
 
 end function eq_photon_element
 

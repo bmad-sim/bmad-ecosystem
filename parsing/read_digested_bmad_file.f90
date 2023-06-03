@@ -490,7 +490,8 @@ integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc
 
-logical error, is_alloc_grid, is_alloc_pix, is_alloc_ref, is_alloc_eprob, ac_kicker_alloc, rad_map_alloc
+logical error, is_alloc_grid, is_alloc_pix, is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
+logical ac_kicker_alloc, rad_map_alloc
 
 !
 
@@ -730,9 +731,9 @@ endif
 if (ix_s /= 0) then
   allocate (ele%photon)
   ph => ele%photon
-  read (d_unit, err = 9360, end = 9360) ph%target, ph%material, ph%curvature, &
-         ph%grid%active, ph%grid%type, ph%grid%dr, ph%grid%r0, is_alloc_grid, &
-         ph%pixel%dr, ph%pixel%r0, is_alloc_pix, is_alloc_ref, is_alloc_eprob
+  read (d_unit, err = 9360, end = 9360) ph%target, ph%material, ph%curvature, ph%grid%active, ph%grid%type, &
+         ph%grid%dr, ph%grid%r0, is_alloc_grid, ph%pixel%dr, ph%pixel%r0, is_alloc_pix, &
+         is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
 
   if (is_alloc_grid) then
     read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
@@ -750,21 +751,31 @@ if (ix_s /= 0) then
     ! Note: At startup detectors do not have any grid data that needs saving
   endif
 
-  if (is_alloc_ref) then
-    read (d_unit, err = 9361, end = 9361) n
-    allocate (ph%reflectivity_table(n))
-    do i = 1, n
-      prt => ph%reflectivity_table(i)
-      read (d_unit, err = 9361, end = 9361) n_energy, n_angle
-      allocate(prt%angle(n_angle), prt%energy(n_energy), prt%p_reflect_scratch(n_angle))
-      allocate(prt%p_reflect(n_angle,n_energy), prt%int1(n_energy))
-      read (d_unit, err = 9361, end = 9361) prt%angle
-      read (d_unit, err = 9361, end = 9361) prt%energy
-      read (d_unit, err = 9361, end = 9361) prt%p_reflect_scratch
-      read (d_unit, err = 9361, end = 9361) prt%int1
-      do j = 1, n_energy
-        read (d_unit, err = 9361, end = 9361) prt%p_reflect(:,j)
-      enddo
+  if (is_alloc_ref_sigma) then
+    prt => ph%reflectivity_table_sigma
+    read (d_unit, err = 9361, end = 9361) n_energy, n_angle
+    allocate(prt%angle(n_angle), prt%energy(n_energy), prt%p_reflect_scratch(n_angle))
+    allocate(prt%p_reflect(n_angle,n_energy), prt%int1(n_energy))
+    read (d_unit, err = 9361, end = 9361) prt%angle
+    read (d_unit, err = 9361, end = 9361) prt%energy
+    read (d_unit, err = 9361, end = 9361) prt%p_reflect_scratch
+    read (d_unit, err = 9361, end = 9361) prt%int1
+    do j = 1, n_energy
+      read (d_unit, err = 9361, end = 9361) prt%p_reflect(:,j)
+    enddo
+  endif
+
+  if (is_alloc_ref_pi) then
+    prt => ph%reflectivity_table_pi
+    read (d_unit, err = 9361, end = 9361) n_energy, n_angle
+    allocate(prt%angle(n_angle), prt%energy(n_energy), prt%p_reflect_scratch(n_angle))
+    allocate(prt%p_reflect(n_angle,n_energy), prt%int1(n_energy))
+    read (d_unit, err = 9361, end = 9361) prt%angle
+    read (d_unit, err = 9361, end = 9361) prt%energy
+    read (d_unit, err = 9361, end = 9361) prt%p_reflect_scratch
+    read (d_unit, err = 9361, end = 9361) prt%int1
+    do j = 1, n_energy
+      read (d_unit, err = 9361, end = 9361) prt%p_reflect(:,j)
     enddo
   endif
 
