@@ -7318,6 +7318,11 @@ case ('twiss_at_s')
   call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%tao_branch(ix_branch)%orbit, ix_branch = ix_branch)
   call twiss_out (this_ele%a, 'a')
   call twiss_out (this_ele%b, 'b')
+  nl=incr(nl); write (li(nl), rmt) 'c_mat11;REAL;F;',            ele%c_mat(1,1)
+  nl=incr(nl); write (li(nl), rmt) 'c_mat12;REAL;F;',            ele%c_mat(1,2)
+  nl=incr(nl); write (li(nl), rmt) 'c_mat21;REAL;F;',            ele%c_mat(2,1)
+  nl=incr(nl); write (li(nl), rmt) 'c_mat22;REAL;F;',            ele%c_mat(2,2)
+  nl=incr(nl); write (li(nl), rmt) 'gamma_c;REAL;F;',            ele%gamma_c
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
