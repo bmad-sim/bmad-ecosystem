@@ -2356,8 +2356,8 @@ case ('graph')
   nl=nl+1; write(lines(nl), rmt)  'x%tick_max                       = ', g%x%tick_max
   nl=nl+1; write(lines(nl), rmt)  'x%tick_min                       = ', g%x%tick_min
   nl=nl+1; write(lines(nl), rmt)  'x%dtick                          = ', g%x%dtick
-  nl=nl+1; write(lines(nl), rmt)  'x%eval_range_max                 = ', g%x%eval_max
-  nl=nl+1; write(lines(nl), rmt)  'x%eval_range_min                 = ', g%x%eval_min
+  nl=nl+1; write(lines(nl), rmt)  'x%eval_max                       = ', g%x%eval_max
+  nl=nl+1; write(lines(nl), rmt)  'x%eval_min                       = ', g%x%eval_min
 
   nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
   nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)
@@ -2725,9 +2725,12 @@ case ('lattice')
 
       if (column(1)%name /= '') then ! Old style
         do i = 1, size(column)
-          col(i) = setup_lat_column(column(i)%name, column(i)%format, column(i)%label, &
-                                                       column(i)%remove_line_if_zero, column(i)%scale_factor)
-          col(i)%width = column(i)%width
+          col(i) = show_lat_column_struct(column(i)%name, column(i)%format, column(i)%label, column(i)%remove_line_if_zero, &
+                                                          column(i)%scale_factor, column(i)%width)
+        enddo
+      else
+        do i = 1, size(column)
+          col(i) = setup_lat_column(col(i)%name, col(i)%format, col(i)%label, col(i)%remove_line_if_zero, col(i)%scale_factor)
         enddo
       endif
 
