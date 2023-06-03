@@ -519,10 +519,9 @@ endif
 
 if (associated (ele%photon)) then
   ph => ele%photon
-  write (d_unit) ph%target, ph%material, ph%curvature, &
-          ph%grid%active, ph%grid%type, ph%grid%dr, ph%grid%r0, allocated(ph%grid%pt), &
-          ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt), allocated(ph%reflectivity_table), &
-          allocated(ph%init_energy_prob)
+  write (d_unit) ph%target, ph%material, ph%curvature, ph%grid%active, ph%grid%type, &
+    ph%grid%dr, ph%grid%r0, allocated(ph%grid%pt), ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt), &
+    allocated(ph%reflectivity_table_sigma%angle), allocated(ph%reflectivity_table_pi%angle), allocated(ph%init_energy_prob)
 
   if (allocated(ph%grid%pt)) then
     write (d_unit) lbound(ph%grid%pt), ubound(ph%grid%pt)
@@ -538,19 +537,29 @@ if (associated (ele%photon)) then
     ! Detectors do not have any pixel data that needs saving
   endif
 
-  if (allocated(ph%reflectivity_table)) then
-    write (d_unit) size(ph%reflectivity_table)
-    do i = 1, size(ph%reflectivity_table)
-      prt => ph%reflectivity_table(i)
-      write (d_unit) size(prt%angle), size(prt%energy)
-      write (d_unit) prt%angle
-      write (d_unit) prt%energy
-      write (d_unit) prt%p_reflect_scratch
-      write (d_unit) prt%int1
-      write (d_unit) prt%p_reflect
-      do j = 1, n_energy
-        write (d_unit) prt%p_reflect(:,j)
-      enddo
+  if (allocated(ph%reflectivity_table_sigma%angle)) then
+    prt => ph%reflectivity_table_sigma
+    write (d_unit) size(prt%angle), size(prt%energy)
+    write (d_unit) prt%angle
+    write (d_unit) prt%energy
+    write (d_unit) prt%p_reflect_scratch
+    write (d_unit) prt%int1
+    write (d_unit) prt%p_reflect
+    do j = 1, n_energy
+      write (d_unit) prt%p_reflect(:,j)
+    enddo
+  endif
+
+  if (allocated(ph%reflectivity_table_pi%angle)) then
+    prt => ph%reflectivity_table_pi
+    write (d_unit) size(prt%angle), size(prt%energy)
+    write (d_unit) prt%angle
+    write (d_unit) prt%energy
+    write (d_unit) prt%p_reflect_scratch
+    write (d_unit) prt%int1
+    write (d_unit) prt%p_reflect
+    do j = 1, n_energy
+      write (d_unit) prt%p_reflect(:,j)
     enddo
   endif
 

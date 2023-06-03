@@ -23,6 +23,8 @@ integer, parameter :: bmad_inc_version$ = 301
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+integer, parameter :: none$ = 1
+
 !   hard_ele     -- ele_struct, pointer: Points to element with the hard edge.
 !                     Will be nullified if there is no hard edge.
 !                     This will be track_ele (if it has a hard edge) unless track_ele is a super_slave.
@@ -192,12 +194,12 @@ type interval1_coef_struct
 end type
 
 type photon_reflect_table_struct
-  real(rp), allocatable :: angle(:)              ! Vector of angle values for %p_reflect
-  real(rp), allocatable :: energy(:)             ! Vector of energy values for %p_reflect
+  real(rp), allocatable :: angle(:)               ! Vector of angle values for %p_reflect
+  real(rp), allocatable :: energy(:)              ! Vector of energy values for %p_reflect
   type (interval1_coef_struct), allocatable :: int1(:)
-  real(rp), allocatable :: p_reflect(:,:)        ! (angle, ev) Logarithm of smooth surface reflection probability
-  real(rp) :: max_energy = -1                    ! maximum energy for this table
-  real(rp), allocatable :: p_reflect_scratch(:)  ! Scratch space
+  real(rp), allocatable :: p_reflect(:,:)         ! (angle, ev) Logarithm of smooth surface reflection probability
+  real(rp) :: max_energy = -1                     ! maximum energy for this table
+  real(rp), allocatable :: p_reflect_scratch(:)   ! Scratch space
 end type
 
 ! Each photon_reflect_reflect_table_array(:) represents a different surface type.
@@ -226,7 +228,6 @@ integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3, one_file$ = 4
 integer, parameter :: num_ele_attrib$ = 75
 
 integer, parameter :: off$ = 1, on$ = 2
-integer, parameter :: none$ = 1
 
 integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 
@@ -1016,7 +1017,8 @@ type photon_element_struct
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
-  type (photon_reflect_table_struct), allocatable :: reflectivity_table(:)
+  type (photon_reflect_table_struct) reflectivity_table_sigma
+  type (photon_reflect_table_struct) reflectivity_table_pi
   type (spline_struct), allocatable :: init_energy_prob(:)  ! Initial energy probability density
   real(rp), allocatable :: integrated_init_energy_prob(:)
 end type

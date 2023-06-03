@@ -331,7 +331,9 @@ prt%p_reflect(:, 69) = [1.00, 0.989781, 0.199288, 0.012511, 0.007791, 0.004174, 
 
 !---------------------------------------------------------------------------------------------
 
-call finalize_reflectivity_tables (surface%table, .true.)
+do i = 1, size(surface%table)
+  call finalize_reflectivity_table (surface%table(i), .true.)
+enddo
 
 end subroutine photon_reflection_std_surface_init
 
@@ -339,24 +341,23 @@ end subroutine photon_reflection_std_surface_init
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine finalize_reflectivity_tables (table, in_degrees)
+! Subroutine finalize_reflectivity_table (table, in_degrees)
 !
 ! Routine to finalize the construction of the reflectivity tables for a surface.
 !
 ! Input:
-!   table(:)    -- photon_reflect_table_struct: Surface tables to be finalized.
+!   table       -- photon_reflect_table_struct: Surface tables to be finalized.
 !   in_degrees  -- logical: Table angles in degrees?
 !
 ! Output:
-!   table(:)    -- photon_reflect_table_struct: Finalized surface tables.
+!   table       -- photon_reflect_table_struct: Finalized surface tables.
 !-
 
-Subroutine finalize_reflectivity_tables (table, in_degrees)
+Subroutine finalize_reflectivity_table (table, in_degrees)
 
 implicit none
 
-type (photon_reflect_table_struct), target :: table(:)
-type (photon_reflect_table_struct), pointer :: prt
+type (photon_reflect_table_struct), target :: table
 
 real(rp) f, deriv, dprob
 
@@ -365,27 +366,24 @@ logical in_degrees
 
 ! Take the logiarithm of p_reflect. Where zero, just use 10^-20
 
-do i = 1, size(table)
-  prt => table(i)
-  if (in_degrees) prt%angle = prt%angle * pi / 180.0_rp
+if (in_degrees) table%angle = table%angle * pi / 180.0_rp
 
-  do j = 1, size(prt%energy)
-    do k = 1, size(prt%angle)
-      prt%p_reflect(k, j) = log(max(1.0e-20_rp, prt%p_reflect(k, j)))
-    enddo
-
-    ! First interval interpolation: p = c0 + c1 * angle^n
-
-    deriv = (prt%p_reflect(3,j) - prt%p_reflect(1,j)) / prt%angle(3)
-    dprob = prt%p_reflect(2,j) - prt%p_reflect(1,j)
-    prt%int1(j)%c0     = prt%p_reflect(1,j)
-    prt%int1(j)%n_exp  = deriv * prt%angle(2) / dprob
-    prt%int1(j)%c1     = dprob / prt%angle(2)**prt%int1(j)%n_exp
-
+do j = 1, size(table%energy)
+  do k = 1, size(table%angle)
+    table%p_reflect(k, j) = log(max(1.0e-20_rp, table%p_reflect(k, j)))
   enddo
+
+  ! First interval interpolation: p = c0 + c1 * angle^n
+
+  deriv = (table%p_reflect(3,j) - table%p_reflect(1,j)) / table%angle(3)
+  dprob = table%p_reflect(2,j) - table%p_reflect(1,j)
+  table%int1(j)%c0     = table%p_reflect(1,j)
+  table%int1(j)%n_exp  = deriv * table%angle(2) / dprob
+  table%int1(j)%c1     = dprob / table%angle(2)**table%int1(j)%n_exp
+
 enddo
 
-end subroutine finalize_reflectivity_tables
+end subroutine finalize_reflectivity_table
 
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
@@ -595,7 +593,9 @@ enddo
 
 close (iu)
 
-call finalize_reflectivity_tables (surface%table, .true.)
+do i = 1, size(surface%table)
+  call finalize_reflectivity_table  (surface%table(i), .true.)
+enddo
 
 end subroutine read_surface_reflection_file
 

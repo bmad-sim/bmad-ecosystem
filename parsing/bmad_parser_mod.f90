@@ -55,7 +55,7 @@ contains
 
 subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
 
-use photon_reflection_mod, only: finalize_reflectivity_tables
+use photon_reflection_mod, only: finalize_reflectivity_table
 
 implicit none
 
@@ -1080,52 +1080,38 @@ case ('ENERGY_PROBABILITY_CURVE')
 
 case ('REFLECTIVITY_TABLE')
   ph => ele%photon
-  nt = 0
-  if (allocated(ph%reflectivity_table)) deallocate(ph%reflectivity_table)
   if (.not. expect_this ('={', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
 
+  rt => ph%reflectivity_table_sigma
+  if (.not. expect_this ('{', .false., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  if (word /= 'ANGLES') then
+    call parser_error ('EXPECTING "ANGLES" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+    return
+  endif
+  if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  if (.not. parse_real_list2(lat, trim(ele%name) // ' ANGLES', rt%angle, na, delim, delim_found)) return
+  if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  ne = 0
   do
-    nt = nt + 1
-    if (nt == 1) then
-      allocate(ph%reflectivity_table(nt))
-    else
-      call move_alloc(ph%reflectivity_table, rt_save)
-      allocate (ph%reflectivity_table(nt))
-      ph%reflectivity_table(1:nt-1) = rt_save
-    endif
-    rt => ph%reflectivity_table(nt)
-    if (.not. expect_this ('{', .false., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+    ne = ne + 1
+    call re_allocate(rt%energy, ne)
+    call re_allocate2d(rt%p_reflect, na, ne)
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-    if (word /= 'ANGLES') then
-      call parser_error ('EXPECTING "ANGLES" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+    if (word /= 'P_REFLECT') then
+      call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
       return
     endif
     if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-    if (.not. parse_real_list2(lat, trim(ele%name) // ' ANGLES', rt%angle, na, delim, delim_found)) return
-    if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-    ne = 0
-    do
-      ne = ne + 1
-      call re_allocate(rt%energy, ne)
-      call re_allocate2d(rt%p_reflect, na, ne)
-      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-      if (word /= 'P_REFLECT') then
-        call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-      call parse_evaluate_value (ele%name, rt%energy(ne), lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-      if (.not. parse_real_list (lat, trim(ele%name) // ' P_REFLECT', rt%p_reflect(:,ne), .true., delim, delim_found)) return
-      rt%max_energy = vec(1)
-      if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
-      if (delim == '}') exit
-    enddo
-    allocate(rt%int1(ne))
+    call parse_evaluate_value (ele%name, rt%energy(ne), lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' P_REFLECT', rt%p_reflect(:,ne), .true., delim, delim_found)) return
+    rt%max_energy = vec(1)
     if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
     if (delim == '}') exit
   enddo
+  allocate(rt%int1(ne))
 
-  call finalize_reflectivity_tables (ph%reflectivity_table, .false.)
+  call finalize_reflectivity_table (ph%reflectivity_table_sigma, .false.)
 
   if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
   err_flag = .false.
