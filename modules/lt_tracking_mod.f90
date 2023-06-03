@@ -1505,7 +1505,7 @@ do ip = 1, size(bunch%particle)
   else
     jvec = matmul(n_inv_mat, p%vec-b_params%centroid%vec)
     jamp = 0.5_rp * [jvec(1)**2 + jvec(2)**2, jvec(3)**2 + jvec(4)**2, jvec(5)**2 + jvec(6)**2]
-    jphase = [atan2(jvec(2), jvec(1)), atan2(jvec(3), jvec(4)), atan2(jvec(5), jvec(6))]
+    jphase = [atan2(jvec(2), jvec(1)), atan2(jvec(4), jvec(3)), atan2(jvec(6), jvec(5))]
     write (iu, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, jamp(1), jphase(1), jamp(2), jphase(2), jamp(3), jphase(3), p%spin, trim(coord_state_name(p%state))
   endif
 enddo
