@@ -2076,31 +2076,41 @@ extern "C" void photon_element_to_c (const Opaque_photon_element_class*, CPP_pho
 // c_side.to_f2_arg
 extern "C" void photon_element_to_f2 (Opaque_photon_element_class*, const
     CPP_surface_curvature&, const CPP_photon_target&, const CPP_photon_material&, const
-    CPP_surface_grid&, const CPP_pixel_detec&, const CPP_photon_reflect_table**, Int);
+    CPP_surface_grid&, const CPP_pixel_detec&, const CPP_photon_reflect_table&, const
+    CPP_photon_reflect_table&, const CPP_spline**, Int, c_RealArr, Int);
 
 extern "C" void photon_element_to_f (const CPP_photon_element& C, Opaque_photon_element_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_reflectivity_table = C.reflectivity_table.size();
-  const CPP_photon_reflect_table** z_reflectivity_table = NULL;
-  if (n1_reflectivity_table != 0) {
-    z_reflectivity_table = new const CPP_photon_reflect_table*[n1_reflectivity_table];
-    for (int i = 0; i < n1_reflectivity_table; i++) z_reflectivity_table[i] = &C.reflectivity_table[i];
+  int n1_init_energy_prob = C.init_energy_prob.size();
+  const CPP_spline** z_init_energy_prob = NULL;
+  if (n1_init_energy_prob != 0) {
+    z_init_energy_prob = new const CPP_spline*[n1_init_energy_prob];
+    for (int i = 0; i < n1_init_energy_prob; i++) z_init_energy_prob[i] = &C.init_energy_prob[i];
+  }
+  // c_side.to_f_setup[real, 1, ALLOC]
+  int n1_integrated_init_energy_prob = C.integrated_init_energy_prob.size();
+  c_RealArr z_integrated_init_energy_prob = NULL;
+  if (n1_integrated_init_energy_prob > 0) {
+    z_integrated_init_energy_prob = &C.integrated_init_energy_prob[0];
   }
 
   // c_side.to_f2_call
   photon_element_to_f2 (F, C.curvature, C.target, C.material, C.grid, C.pixel,
-      z_reflectivity_table, n1_reflectivity_table);
+      C.reflectivity_table_sigma, C.reflectivity_table_pi, z_init_energy_prob,
+      n1_init_energy_prob, z_integrated_init_energy_prob, n1_integrated_init_energy_prob);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_reflectivity_table;
+ delete[] z_init_energy_prob;
 }
 
 // c_side.to_c2_arg
 extern "C" void photon_element_to_c2 (CPP_photon_element& C, const
     Opaque_surface_curvature_class* z_curvature, const Opaque_photon_target_class* z_target,
     const Opaque_photon_material_class* z_material, const Opaque_surface_grid_class* z_grid,
-    const Opaque_pixel_detec_class* z_pixel, Opaque_photon_reflect_table_class**
-    z_reflectivity_table, Int n1_reflectivity_table) {
+    const Opaque_pixel_detec_class* z_pixel, const Opaque_photon_reflect_table_class*
+    z_reflectivity_table_sigma, const Opaque_photon_reflect_table_class*
+    z_reflectivity_table_pi, Opaque_spline_class** z_init_energy_prob, Int n1_init_energy_prob,
+    c_RealArr z_integrated_init_energy_prob, Int n1_integrated_init_energy_prob) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_curvature_to_c(z_curvature, C.curvature);
@@ -2112,9 +2122,18 @@ extern "C" void photon_element_to_c2 (CPP_photon_element& C, const
   surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[type, 0, NOT]
   pixel_detec_to_c(z_pixel, C.pixel);
+  // c_side.to_c2_set[type, 0, NOT]
+  photon_reflect_table_to_c(z_reflectivity_table_sigma, C.reflectivity_table_sigma);
+  // c_side.to_c2_set[type, 0, NOT]
+  photon_reflect_table_to_c(z_reflectivity_table_pi, C.reflectivity_table_pi);
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.reflectivity_table.resize(n1_reflectivity_table);
-  for (int i = 0; i < n1_reflectivity_table; i++) photon_reflect_table_to_c(z_reflectivity_table[i], C.reflectivity_table[i]);
+  C.init_energy_prob.resize(n1_init_energy_prob);
+  for (int i = 0; i < n1_init_energy_prob; i++) spline_to_c(z_init_energy_prob[i], C.init_energy_prob[i]);
+
+  // c_side.to_c2_set[real, 1, ALLOC]
+
+  C.integrated_init_energy_prob.resize(n1_integrated_init_energy_prob);
+  C.integrated_init_energy_prob << z_integrated_init_energy_prob;
 
 }
 

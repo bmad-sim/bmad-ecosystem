@@ -5197,14 +5197,29 @@ call set_photon_material_test_pattern (F%material, ix_patt)
 call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_pixel_detec_test_pattern (F%pixel, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_photon_reflect_table_test_pattern (F%reflectivity_table_sigma, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_photon_reflect_table_test_pattern (F%reflectivity_table_pi, ix_patt)
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%reflectivity_table)) deallocate (F%reflectivity_table)
+  if (allocated(F%init_energy_prob)) deallocate (F%init_energy_prob)
 else
-  if (.not. allocated(F%reflectivity_table)) allocate (F%reflectivity_table(-1:1))
-  do jd1 = 1, size(F%reflectivity_table,1); lb1 = lbound(F%reflectivity_table,1) - 1
-    call set_photon_reflect_table_test_pattern (F%reflectivity_table(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%init_energy_prob)) allocate (F%init_energy_prob(-1:1))
+  do jd1 = 1, size(F%init_energy_prob,1); lb1 = lbound(F%init_energy_prob,1) - 1
+    call set_spline_test_pattern (F%init_energy_prob(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%integrated_init_energy_prob)) deallocate (F%integrated_init_energy_prob)
+else
+  if (.not. allocated(F%integrated_init_energy_prob)) allocate (F%integrated_init_energy_prob(-1:1))
+  do jd1 = 1, size(F%integrated_init_energy_prob,1); lb1 = lbound(F%integrated_init_energy_prob,1) - 1
+    rhs = 100 + jd1 + 10 + offset
+    F%integrated_init_energy_prob(jd1+lb1) = rhs
   enddo
 endif
 

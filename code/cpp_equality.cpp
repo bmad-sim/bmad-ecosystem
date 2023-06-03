@@ -867,7 +867,10 @@ bool operator== (const CPP_photon_element& x, const CPP_photon_element& y) {
   is_eq = is_eq && (x.material == y.material);
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.pixel == y.pixel);
-  is_eq = is_eq && is_all_equal(x.reflectivity_table, y.reflectivity_table);
+  is_eq = is_eq && (x.reflectivity_table_sigma == y.reflectivity_table_sigma);
+  is_eq = is_eq && (x.reflectivity_table_pi == y.reflectivity_table_pi);
+  is_eq = is_eq && is_all_equal(x.init_energy_prob, y.init_energy_prob);
+  is_eq = is_eq && is_all_equal(x.integrated_init_energy_prob, y.integrated_init_energy_prob);
   return is_eq;
 };
 

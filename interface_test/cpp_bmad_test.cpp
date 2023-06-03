@@ -3436,13 +3436,27 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_pixel_detec_test_pattern(C.pixel, ix_patt);
 
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_photon_reflect_table_test_pattern(C.reflectivity_table_sigma, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_photon_reflect_table_test_pattern(C.reflectivity_table_pi, ix_patt);
+
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.reflectivity_table.resize(0);
+    C.init_energy_prob.resize(0);
   else {
-    C.reflectivity_table.resize(3);
-    for (unsigned int i = 0; i < C.reflectivity_table.size(); i++)  {set_CPP_photon_reflect_table_test_pattern(C.reflectivity_table[i], ix_patt+i+1);}
+    C.init_energy_prob.resize(3);
+    for (unsigned int i = 0; i < C.init_energy_prob.size(); i++)  {set_CPP_spline_test_pattern(C.init_energy_prob[i], ix_patt+i+1);}
   }
+
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.integrated_init_energy_prob.resize(0);
+  else {
+    C.integrated_init_energy_prob.resize(3);
+    for (unsigned int i = 0; i < C.integrated_init_energy_prob.size(); i++)
+      {int rhs = 101 + i + 10 + offset; C.integrated_init_energy_prob[i] = rhs;}  }
 
 
 }

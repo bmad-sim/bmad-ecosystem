@@ -6005,13 +6005,16 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine photon_element_to_c2 (C, z_curvature, z_target, z_material, z_grid, z_pixel, &
-      z_reflectivity_table, n1_reflectivity_table) bind(c)
+      z_reflectivity_table_sigma, z_reflectivity_table_pi, z_init_energy_prob, &
+      n1_init_energy_prob, z_integrated_init_energy_prob, n1_integrated_init_energy_prob) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel
-    type(c_ptr) :: z_reflectivity_table(*)
-    integer(c_int), value :: n1_reflectivity_table
+    type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel, z_reflectivity_table_sigma, z_reflectivity_table_pi
+    type(c_ptr) :: z_init_energy_prob(*)
+    integer(c_int), value :: n1_init_energy_prob, n1_integrated_init_energy_prob
+    real(c_double) :: z_integrated_init_energy_prob(*)
   end subroutine
 end interface
 
@@ -6020,26 +6023,35 @@ type(c_ptr), value :: C
 type(photon_element_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr), allocatable :: z_reflectivity_table(:)
-integer(c_int) :: n1_reflectivity_table
+type(c_ptr), allocatable :: z_init_energy_prob(:)
+integer(c_int) :: n1_init_energy_prob
+integer(c_int) :: n1_integrated_init_energy_prob
 
 !
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_reflectivity_table = 0
-if (allocated(F%reflectivity_table)) then
-  n1_reflectivity_table = size(F%reflectivity_table); lb1 = lbound(F%reflectivity_table, 1) - 1
-  allocate (z_reflectivity_table(n1_reflectivity_table))
-  do jd1 = 1, n1_reflectivity_table
-    z_reflectivity_table(jd1) = c_loc(F%reflectivity_table(jd1+lb1))
+ n1_init_energy_prob = 0
+if (allocated(F%init_energy_prob)) then
+  n1_init_energy_prob = size(F%init_energy_prob); lb1 = lbound(F%init_energy_prob, 1) - 1
+  allocate (z_init_energy_prob(n1_init_energy_prob))
+  do jd1 = 1, n1_init_energy_prob
+    z_init_energy_prob(jd1) = c_loc(F%init_energy_prob(jd1+lb1))
   enddo
+endif
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_integrated_init_energy_prob = 0
+if (allocated(F%integrated_init_energy_prob)) then
+  n1_integrated_init_energy_prob = size(F%integrated_init_energy_prob, 1)
 endif
 
 !! f_side.to_c2_call
 call photon_element_to_c2 (C, c_loc(F%curvature), c_loc(F%target), c_loc(F%material), &
-    c_loc(F%grid), c_loc(F%pixel), z_reflectivity_table, n1_reflectivity_table)
+    c_loc(F%grid), c_loc(F%pixel), c_loc(F%reflectivity_table_sigma), &
+    c_loc(F%reflectivity_table_pi), z_init_energy_prob, n1_init_energy_prob, &
+    fvec2vec(F%integrated_init_energy_prob, n1_integrated_init_energy_prob), &
+    n1_integrated_init_energy_prob)
 
 end subroutine photon_element_to_c
 
@@ -6060,7 +6072,8 @@ end subroutine photon_element_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine photon_element_to_f2 (Fp, z_curvature, z_target, z_material, z_grid, z_pixel, &
-    z_reflectivity_table, n1_reflectivity_table) bind(c)
+    z_reflectivity_table_sigma, z_reflectivity_table_pi, z_init_energy_prob, &
+    n1_init_energy_prob, z_integrated_init_energy_prob, n1_integrated_init_energy_prob) bind(c)
 
 
 implicit none
@@ -6069,9 +6082,11 @@ type(c_ptr), value :: Fp
 type(photon_element_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel
-type(c_ptr) :: z_reflectivity_table(*)
-integer(c_int), value :: n1_reflectivity_table
+type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel, z_reflectivity_table_sigma, z_reflectivity_table_pi
+type(c_ptr), value :: z_integrated_init_energy_prob
+type(c_ptr) :: z_init_energy_prob(*)
+integer(c_int), value :: n1_init_energy_prob, n1_integrated_init_energy_prob
+real(c_double), pointer :: f_integrated_init_energy_prob(:)
 
 call c_f_pointer (Fp, F)
 
@@ -6085,18 +6100,35 @@ call photon_material_to_f(z_material, c_loc(F%material))
 call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]
 call pixel_detec_to_f(z_pixel, c_loc(F%pixel))
+!! f_side.to_f2_trans[type, 0, NOT]
+call photon_reflect_table_to_f(z_reflectivity_table_sigma, c_loc(F%reflectivity_table_sigma))
+!! f_side.to_f2_trans[type, 0, NOT]
+call photon_reflect_table_to_f(z_reflectivity_table_pi, c_loc(F%reflectivity_table_pi))
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_reflectivity_table == 0) then
-  if (allocated(F%reflectivity_table)) deallocate(F%reflectivity_table)
+if (n1_init_energy_prob == 0) then
+  if (allocated(F%init_energy_prob)) deallocate(F%init_energy_prob)
 else
-  if (allocated(F%reflectivity_table)) then
-    if (n1_reflectivity_table == 0 .or. any(shape(F%reflectivity_table) /= [n1_reflectivity_table])) deallocate(F%reflectivity_table)
-    if (any(lbound(F%reflectivity_table) /= 1)) deallocate(F%reflectivity_table)
+  if (allocated(F%init_energy_prob)) then
+    if (n1_init_energy_prob == 0 .or. any(shape(F%init_energy_prob) /= [n1_init_energy_prob])) deallocate(F%init_energy_prob)
+    if (any(lbound(F%init_energy_prob) /= 1)) deallocate(F%init_energy_prob)
   endif
-  if (.not. allocated(F%reflectivity_table)) allocate(F%reflectivity_table(1:n1_reflectivity_table+1-1))
-  do jd1 = 1, n1_reflectivity_table
-    call photon_reflect_table_to_f (z_reflectivity_table(jd1), c_loc(F%reflectivity_table(jd1+1-1)))
+  if (.not. allocated(F%init_energy_prob)) allocate(F%init_energy_prob(1:n1_init_energy_prob+1-1))
+  do jd1 = 1, n1_init_energy_prob
+    call spline_to_f (z_init_energy_prob(jd1), c_loc(F%init_energy_prob(jd1+1-1)))
   enddo
+endif
+
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%integrated_init_energy_prob)) then
+  if (n1_integrated_init_energy_prob == 0 .or. any(shape(F%integrated_init_energy_prob) /= [n1_integrated_init_energy_prob])) deallocate(F%integrated_init_energy_prob)
+  if (any(lbound(F%integrated_init_energy_prob) /= 1)) deallocate(F%integrated_init_energy_prob)
+endif
+if (n1_integrated_init_energy_prob /= 0) then
+  call c_f_pointer (z_integrated_init_energy_prob, f_integrated_init_energy_prob, [n1_integrated_init_energy_prob])
+  if (.not. allocated(F%integrated_init_energy_prob)) allocate(F%integrated_init_energy_prob(n1_integrated_init_energy_prob))
+  F%integrated_init_energy_prob = f_integrated_init_energy_prob(1:n1_integrated_init_energy_prob)
+else
+  if (allocated(F%integrated_init_energy_prob)) deallocate(F%integrated_init_energy_prob)
 endif
 
 

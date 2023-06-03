@@ -2130,7 +2130,10 @@ public:
   CPP_photon_material material;
   CPP_surface_grid grid;
   CPP_pixel_detec pixel;
-  CPP_photon_reflect_table_ARRAY reflectivity_table;
+  CPP_photon_reflect_table reflectivity_table_sigma;
+  CPP_photon_reflect_table reflectivity_table_pi;
+  CPP_spline_ARRAY init_energy_prob;
+  Real_ARRAY integrated_init_energy_prob;
 
   CPP_photon_element() :
     curvature(),
@@ -2138,7 +2141,10 @@ public:
     material(),
     grid(),
     pixel(),
-    reflectivity_table(CPP_photon_reflect_table_ARRAY(CPP_photon_reflect_table(), 0))
+    reflectivity_table_sigma(),
+    reflectivity_table_pi(),
+    init_energy_prob(CPP_spline_ARRAY(CPP_spline(), 0)),
+    integrated_init_energy_prob(0.0, 0)
     {}
 
   ~CPP_photon_element() {
