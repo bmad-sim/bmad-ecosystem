@@ -1053,7 +1053,7 @@ end subroutine
 subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct) orbit
 end subroutine
