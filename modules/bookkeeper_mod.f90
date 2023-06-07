@@ -1266,7 +1266,13 @@ elseif (has_hkick_attributes(lord%key)) then
 endif
 
 select case (slave%key)
-case (rfcavity$, crab_cavity$, lcavity$, e_gun$);  value(voltage$) = lord%value(voltage$) * coef
+case (crab_cavity$)
+  value(voltage$)     = lord%value(voltage$) * coef
+  value(voltage_tot$) = lord%value(voltage_tot$) * coef
+case (lcavity$, rfcavity$, e_gun$)
+  value(voltage$)     = lord%value(voltage$) * coef
+  value(voltage_tot$) = lord%value(voltage_tot$) * coef
+  value(voltage_err$) = lord%value(voltage_err$) * coef
 end select
 
 ! s_del is the distance between lord and slave centers
