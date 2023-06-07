@@ -98,7 +98,7 @@ character(80) str, err_str
 character(200) line
 
 logical, target :: delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, hetero_list
-logical is_attrib, err_flag2, old_style_input, ok, err
+logical is_attrib, err_flag2, old_style_input, ok, err, call_found
 logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 
 ! Get next WORD.
@@ -1056,7 +1056,7 @@ case ('ENERGY_PROBABILITY_CURVE')
   nt = 0
   if (.not. allocated(ph%init_energy_prob)) allocate(ph%init_energy_prob(100))
   if (.not. expect_this ('={', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-  call parser_call_check(word, ix_word, delim, delim_found)
+  call parser_call_check(word, ix_word, delim, delim_found, call_found)
   do
     nt = nt + 1
     if (nt > size(ph%init_energy_prob)) call reallocate_spline(ph%init_energy_prob, 2*nt)
@@ -2445,18 +2445,18 @@ end subroutine add_this_taylor_term
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_call_check(word, ix_word, delim, delim_found, err_flag))
+! Subroutine parser_call_check(word, ix_word, delim, delim_found, call_found, err_flag))
 !
 ! Routine to check if there is a "call::XXX" construct in the input stream.
 !-
 
-subroutine parser_call_check(word, ix_word, delim, delim_found, err_flag)
+subroutine parser_call_check(word, ix_word, delim, delim_found, call_found, err_flag)
 
 implicit none
 
 integer ix, ix_word
 
-logical delim_found
+logical delim_found, call_found
 logical, optional :: err_flag
 
 character(*) word, delim
@@ -2466,11 +2466,12 @@ character(n_parse_line) line
 
 !
 
-
+call_found = .false.
 call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
 call str_upcase (str, bp_com%parse_line(1:6))
 if (str /= 'CALL::') return
 
+call_found = .true.
 bp_com%parse_line = bp_com%parse_line(7:)
 call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)    
 ix = str_last_in_set(line, '.')
@@ -2533,7 +2534,7 @@ character(*) word, delim_list, delim
 
 integer n, ix
 
-logical delim_found, end_of_file
+logical delim_found, end_of_file, call_found
 logical, optional :: upper_case_word, call_check, err_flag
 
 character(n_parse_line) line
@@ -2543,8 +2544,8 @@ character(n_parse_line) line
 if (present(err_flag)) err_flag = .false.
 
 if (logic_option(.false., call_check)) then
-  call parser_call_check(word, ix_word, delim, delim_found, err_flag)
-  if (logic_option(.false.,err_flag) .or. word == 'hdf5' .or. word == 'binary') return
+  call parser_call_check(word, ix_word, delim, delim_found, call_found, err_flag)
+  if (logic_option(.false., err_flag) .or. (call_found .and. (word == 'hdf5' .or. word == 'binary'))) return
 endif
 
 ! Check for continuation character and, if found, then load more characters
