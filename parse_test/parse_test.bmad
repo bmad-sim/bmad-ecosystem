@@ -1,12 +1,12 @@
-rt: crystal, reflectivity_table = {
-  {angles = (-0.1, 0, 0.2), 
-    p_reflect= -0.1, (0.3, 0.4, 0.5),
-    p_reflect= 0.1, (0.4, 0.5, 0.6)
-  },
-  {angles = (-0.1, 0, 0.2), 
-    p_reflect= -0.1, (0.3, 0.4, 0.5),
-    p_reflect= 0.1, (0.4, 0.5, 0.6)
-  } }
+!rt: crystal, reflectivity_table = {
+!  {angles = (-0.1, 0, 0.2), 
+!    p_reflect= -0.1, (0.3, 0.4, 0.5),
+!    p_reflect= 0.1, (0.4, 0.5, 0.6)
+!  },
+!  {angles = (-0.1, 0, 0.2), 
+!    p_reflect= -0.1, (0.3, 0.4, 0.5),
+!    p_reflect= 0.1, (0.4, 0.5, 0.6)
+!  } }
 
 no_digested
 beginning[beta_a] = 10
