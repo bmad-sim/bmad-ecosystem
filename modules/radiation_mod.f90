@@ -208,13 +208,13 @@ bmad_com%radiation_damping_on = .false.
 
 ! Mats for first half of element
 
-call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.0_rp, ele%branch%param, .true., .true., err, pointer_to_next_ele(ele, -1))
+call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.0_rp, ele%branch%param, .true., .false., err, pointer_to_next_ele(ele, -1))
 call make_mat6 (runt, branch%param, ref_orb_in, orb1)
 call tracking_rad_map_setup (runt, 1e-4_rp, upstream_end$, ele%rad_map%rm0)
 
 ! Mats for second half of element
 
-call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.5_rp*ele%value(l$), ele%branch%param, .true., .true., err, runt)
+call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.5_rp*ele%value(l$), ele%branch%param, .false., .true., err, runt)
 call make_mat6 (runt, branch%param, orb1, orb2)
 runt%map_ref_orb_out = ref_orb_out  ! Important if test above is done.
 call tracking_rad_map_setup (runt, 1e-4_rp, downstream_end$, ele%rad_map%rm1)
