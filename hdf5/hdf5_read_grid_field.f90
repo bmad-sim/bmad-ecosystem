@@ -154,7 +154,7 @@ err_flag = .true.
 call hdf5_read_attribute_string (root_id, 'masterParameter', name, error, .false.)
 if (name == '') then
   gf%master_parameter = 0
-  call hdf5_read_attribute_real(root_id, 'fieldScale', gf%field_scale, error, .false., 1.0_rp)
+  call hdf5_read_attribute_real(root_id, 'fieldScale', gf%field_scale, error, .false., dflt_value = 1.0_rp)
 else
   gf%master_parameter = attribute_index(ele, upcase(name))
   call hdf5_read_attribute_real(root_id, 'componentFieldScale', gf%field_scale, error, .false.)
@@ -187,7 +187,7 @@ if (gf%harmonic /= 0) then
   endif
 endif
 
-call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
+call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., dflt_value = 1)
 call hdf5_read_attribute_int (root_id, 'gridLowerBound', lb, error, .true.);          if (error) return
 call hdf5_read_attribute_int (root_id, 'gridSize', g_size, error, .true.);            if (error) return
 call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0, error, .true.);    if (error) return

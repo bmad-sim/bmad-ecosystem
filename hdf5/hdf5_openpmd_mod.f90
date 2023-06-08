@@ -755,7 +755,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
   call hdf5_read_dataset_int(root_id, name, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
+  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
   array = c_val
 endif
 
@@ -824,7 +824,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
   call hdf5_read_dataset_int(root_id, name, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
+  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
   array = c_val
 endif
 
@@ -893,7 +893,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
   call hdf5_read_dataset_int(root_id, name, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
+  call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
   array = c_val
 endif
 
@@ -963,7 +963,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
   call hdf5_read_dataset_real(root_id, name, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
+  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
   array = c_val
 endif
 
@@ -1032,7 +1032,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
   call hdf5_read_dataset_real(root_id, name, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
+  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
   array = c_val
 endif
 
@@ -1101,7 +1101,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
   call hdf5_read_dataset_real(root_id, name, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
-  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
+  call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
   array = c_val
 endif
 
