@@ -477,7 +477,7 @@ type (twiss_struct), pointer :: z0, z1, z2
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
-real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
+real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE, s_offset
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
 real(rp), allocatable :: value_vec(:)
@@ -1683,10 +1683,14 @@ case ('expression:', 'expression.')
   case ('max-min');  datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
 
   case ('integral', 'average', 'rms')
+    s_offset = 0
     do i = 1, size(info)
       j = i + ele_start%ix_ele - 1
-      if (j > branch%n_ele_track) j = j - branch%n_ele_track - 1
-      info(i)%s = tao_datum_s_position(datum, branch%ele(j))
+      if (j > branch%n_ele_track) then
+        j = j - branch%n_ele_track - 1
+        s_offset = branch%param%total_length
+      endif
+      info(i)%s = tao_datum_s_position(datum, branch%ele(j)) + s_offset
     enddo
 
     if (j /= ele%ix_ele) then
@@ -3758,7 +3762,7 @@ if (ix_ele < ix_start) then   ! wrap around
 
     do i = 0, ix_ele
       n = n + 1
-      s_pos(n) = tao_datum_s_position(datum, branch%ele(i))
+      s_pos(n) = tao_datum_s_position(datum, branch%ele(i)) + branch%param%total_length
       value(n) = vec_ptr(i)
     enddo
 
@@ -3917,17 +3921,13 @@ if (n_pt < 2) then
 endif
 
 ds1 = s_pos(2) - s_pos(1)
-if (ds1 < 0) ds1 = ds1 + branch%param%total_length
-
 ds2 = s_pos(n_pt) - s_pos(n_pt-1)
-if (ds2 < 0) ds2 = ds2 + branch%param%total_length
 
 integ = 0.5_rp * (values(1) * ds1 + values(n_pt) * ds2)
 integ2 = 0.5_rp * (values(1)**2 * ds1 + values(n_pt)**2 * ds2)
 
 do i = 2, n_pt-1
   ds2 = s_pos(i+1) - s_pos(i)
-  if (ds2 < 0) ds2 = ds2 + branch%param%total_length
   integ = integ + 0.5_rp * values(i) * (ds1 + ds2)
   integ2 = integ2 + 0.5_rp * values(i)**2 * (ds1 + ds2)
   ds1 = ds2
@@ -3939,7 +3939,6 @@ case ('integral')
 
 case ('average', 'rms')
   ds2 = s_pos(n_pt) - s_pos(1)
-  if (ds2 < 0) ds2 = ds2 + branch%param%total_length
   if (ds2 == 0) then
     call tao_set_invalid (datum, 'INTERVAL TO AVERAGE OVER HAS ZERO LENGTH!')
     return

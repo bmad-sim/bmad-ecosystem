@@ -1081,7 +1081,7 @@ Bunch sigma matrix ratios, <x px> / <$x^2$> \& Etc.
   \item[dynamic_aperture.$N$, $N = 1, 2, 3 \ldots$] \Newline \hlabel{da}
 The value of \vn{dynamic_aperture.$N$} is the ``size'' $S_e$ of the maximal ellipse that will fit
 within the $N$\Th dynamical aperture curve. The scan index starts at "1" for the first value in the
-\vn{pz} array set in the \vn{tao_daynamic_aperture} namelist (\sref{s:da.calc}). The maximal
+\vn{pz} array set in the \vn{tao_dynamic_aperture} namelist (\sref{s:da.calc}). The maximal
 ellipse size is determined by the minimum of the size calculated for each point of the $N$\Th scan
 $S_e = \min(S_e(i))$ where the ellipse size $S_e(i)$ for the $i$\Th point is
 \begin{equation}
@@ -1275,7 +1275,7 @@ that is \vn{momentum_compaction_ptc.1} ($\alpha_1$) is the momentum compaction a
 Since there are differences in the tracking between PTC and \bmad, the momentum compaction as calculated
 with \bmad will not exactly agree with the PTC values.
 
-The momentum compactionTaylor series coefficients $\alpha_N$ are calculated up to order $N_T$ where
+The momentum compaction Taylor series coefficients $\alpha_N$ are calculated up to order $N_T$ where
 $N_T$ is the Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default
 is $N_T=3$).
 
@@ -1938,7 +1938,7 @@ the aperture limit. The form of the above equation has been chosen so that the d
 monotonic with increasing stability.
 
 If \vn{ele_name} is not specified, the default for the evaluation element is to use
-the last element in the lattice branch.
+the last element in the lattice branch. {\em This is the recommended way to use this datum.}
 
 With a closed geometry lattice and with single particle tracking, \vn{unstable.orbit} is set to zero
 if the orbit is stable and set to one if the orbit is unstable.
