@@ -1,6 +1,9 @@
 %-----------------------------------------
 % To process this file:
 %   pdflatex fpp-manual
+%   bibtex fpp-manual
+%   pdflatex fpp-manual
+%   pdflatex fpp-manual
 %-----------------------------------------
 
 %\documentclass{article}
@@ -143,12 +146,9 @@ assumed that the reader knows about operator overloading.
 FPP/PTC uses double precision numbers. The kind type parameter ``\vn{dp}'' is defined in FPP/PTC to
 correspond to double precision numbers. For example:
 \begin{code}
-real(rp) abc, xyz             ! Declare double precision variables abc and xyz.
-xyz = 3.4_dp * abc / 1e9_dp   ! 3.4_dp and 1e9_dp are double precision numbers.
+real(rp) abc, xyz             ! Declare double precision vars abc and xyz.
+xyz = 3.4_dp * abc / 1e9_dp   ! 3.4_dp and 1e9_dp are double precision.
 \end{code}
-
-Polymorphic types (\sref{s:poly}) generally (always???) have structure names that have a \vn{_8}
-suffix.
 
 %-------------------------------------------------------------------
 \subsection{TPSA Versus DA}
@@ -201,6 +201,10 @@ define types that can act as if the structure components were real valued number
 See the documentation of the \vn{real_8} type (\sref{s:real.8}) as an example.
 
 The \vn{PTC} tracking code typically has two routines: with a ``p'' or ``r'' at the end...
+
+Polymorphic types (\sref{s:poly}) generally (always???) have structure names that have a \vn{_8}
+suffix.
+
 
 ToDo: Give an example of a routine that uses real_8 or probe_8 as a scaler.
 
@@ -1132,6 +1136,11 @@ So in summary a \vn{real_8} polymorph can be as mentioned in \sref{s:real8}:
 Note: calling init again wipes out existing Taylor series. (Does is wipe out universial taylor?)
 
 Explain knobs
+
+\newpage
+
+\bibliography{bibliography}
+\bibliographystyle{ieeetr}
 
 \end{document}
 
