@@ -89,26 +89,28 @@ FPP/PTC is an object oriented, open source, subroutine library for
 \item The manipulation and analysis of Taylor series and Taylor maps.
 \item Modeling of charged particle beams in accelerators using Taylor maps.
 \end{itemize}
-The popularity of FPP/PTC can be attested to by its use by the Bmad\cite{b:bmad} toolkit for
-accelerator and X-ray simulations as well the MAD\cite{b:mad} simulation program.
+The popularity of FPP/PTC can be attested to by its use with the Bmad\cite{b:bmad} toolkit for
+accelerator and X-ray simulations as well as its use within the MAD\cite{b:mad} simulation program.
 
-FPP/PTC has two parts. The Fully Polymorphic Package (FPP) is the part that deals with Taylor series
-and maps. FPP is pure math independent1 of any "physics". The Polymorphic Tracking Code (PTC) part
-of the library deals with the modeling of particle beams and accelerators. PTC contains the
+The FPP/PTC library has two parts. The Fully Polymorphic Package (FPP) is the part that deals with 
+Taylor series and maps. FPP is pure mathematics detached from any "physics". 
+The Polymorphic Tracking Code (PTC) part
+deals with the modeling of particle beams and accelerators. PTC contains the
 "physics" and relies on FPP for producing and manipulating Taylor maps.  This is illustrated in
 Figure~\ref{f:ptc}. Roughly, FPP can be subdivided into two parts, a Taylor manipulation part for
 basic manipulations of Taylor series and an analysis part to do things like normal form
 analysis. PTC uses the Taylor manipulation part of FPP for things like the construction of Taylor
 maps. Additionally, PTC uses the analysis tools of FPP. A closer look at FPP shows the existence of
-a Differential Algebra (DA) package within FPP. This package was originally coded by Martin Berz.
+a Differential Algebra (DA) package within FPP. This package was originally coded by 
+Martin Berz.\cite{b:berz.da}
 
-This manual is focused on how to use FPP. Since FPP is designed to serve PTC there will be some
+This manual is focused on how to use FPP. Since FPP is designed to serve PTC, there will be some
 mention of PTC but only so far as how PTC relates to FPP. In particular, tracking through lattices
 is not discussed and the reader is referred to the PTC documentation for this.
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=0.8\textwidth]{ptc-fpp.pdf}
+  \includegraphics[width=0.7\textwidth]{ptc-fpp.pdf}
   \caption{
 The Fully Polymorphic Package (FPP) part of the FPP/PTC library provides manipulation and analysis
 of Taylor series and maps and the Polymorphic Tracking Code (PTC) part provides the physics from
@@ -128,7 +130,23 @@ FPP/PTC can be downloaded from the web via the Bmad web site\cite{b:bmad} or at
 https://github.com/jceepf/fpp_book
 \end{code}
 
+Taylor manipulation routines are contained in the following code files:
+\begin{code}
+a_scratch_size.f90                j_tpsalie.f90           
+b_da_arrays_all.f90               k_tpsalie_analysis.f90
+b_da_arrays_all_pancake.f90       l_complex_taylor.f90    
+c_dabnew.f90                      m_real_polymorph.f90    
+c_dabnew_pancake.f90              n_complex_polymorph.f90
+d_lielib.f90                      o_tree_element.f90      
+h_definition.f90                  Sa_extend_poly.f90     
+i_tpsa.f90
+\end{code}
 
+Taylor analysis routines are contained in the following code files
+\begin{code}
+cb_da_arrays_all.f90               Ci_tpsa.f90
+cc_dabnew.f90                      Su_duan_zhe_map.f90
+\end{code}
 
 %--------------------------------------------------------------------------------------------------------
 \Section{Concepts}
@@ -140,7 +158,7 @@ https://github.com/jceepf/fpp_book
 
 FPP/PTC is written in Fortran90. It is assumed that the reader has some familiarity with this
 language. In particular, it is assumed that the reader knows what a \vn{structure} is (roughly
-corresponding to a \vn{class} in Python or C++) which is also called a \vn{derived type}. Also it is
+corresponding to a \vn{class} in Python or C++) which is also called a \vn{derived type}. Additionally it is
 assumed that the reader knows about operator overloading.
 
 FPP/PTC uses double precision numbers. The kind type parameter ``\vn{dp}'' is defined in FPP/PTC to
@@ -154,12 +172,12 @@ xyz = 3.4_dp * abc / 1e9_dp   ! 3.4_dp and 1e9_dp are double precision.
 \subsection{TPSA Versus DA}
 \label{s:tpsa}
 
-TPSA stands for ``Truncated Power Series Algebra'' and DA stands for ``Differential Algebra.'' But
-what does it mean when applied to a typical accelerator ring? Once we cut the mathematical jargon,
+TPSA stands for ``Truncated Power Series Algebra'' and DA stands for ``Differential Algebra.''
+What does it mean when applied to a typical accelerator ring? Once we cut the mathematical jargon,
 we will see that
 
 \begin{itemize}
-\item TPSA operations take into account the constant part and the results change as a function of the order. 
+\item TPSA operations take into account the constant part and the results change as a function of the order (see below). 
 %
 \item DA operations are equivalent to normal TPSA operations used around the closed orbit and thus the
 constant part of the map is ignored. All the coefficients of the Taylor series stay the same
@@ -170,22 +188,23 @@ are no feed down terms.
 \end{itemize}
 
 It is important to understand why a non-zero constant part of a Taylor series can be
-problematical. To see this, consider TPSA maps of order $N$ from $x$ to $y$ and $y$ to $z$
+problematical. To see this, consider two TPSA maps of order $N$. One maps $x$ to $y$ and the second
+maps $y$ to $z$:
 \begin{align}
   y &= \sum_{j = 0}^N a_j x^j  \label{yj0n} \\
   z &= \sum_{j = 0}^N b_j y^j + \calO(y^{N+1}) \label{zj0n}
 \end{align}
-In \Eq{zjon} it is made explicit that are term of order $N+1$ or higher that are being negelted.
-These maps can be concatenated to form a TPSA map of $z$ as a function of $x$ 
+In \Eq{zj0n} it is made explicit that there are terms of order $N+1$ or higher that are being negelted.
+The two maps can be concatenated to form a map of $z$ as a function of $x$:
 \begin{equation}
   z = \sum_{j = 0}^N c_j x^j
-  \label{zj0n}
+  \label{zj0nc}
 \end{equation}
-If there is a neglected term in \Eq{zjon} that looks like $b_m y^m$ with $m > N$, substituting
-\Eq{yjon} into this it is immediately seen that if, and only if, $a_0$ is non-zero, this neglected
-term will (if it were not neglected) contribute to the coefficients $c_j$ in \Eq{zjon}. This is
-called ``feed down''. That is, terms of higher order will affect the coefficients of lower order
-terms when TPSA maps are combined. To avoid this, maps with zero constant term should be used. With
+If there is a neglected term in \Eq{zj0n} that looks, for example, like $b_m y^m$ with $m > N$, substituting
+\Eq{yj0n} into this term will result in modification of all lower order terms in \Eq{zj0nc} if, and
+only if, $a_0$ is non-zero. This is
+called ``feed-down''. That is, terms of higher order will affect the coefficients of lower order
+terms when TPSA maps are combined. To avoid this, maps with zero constant term (DA maps) should be used. With
 simulations, this generally means computing maps with respect to the nominal beam orbit. For
 lattices with a closed geometry, this generally means computing maps with respect to the closed
 orbit. For lattices with an open geometry (EG: Linacs), the reference orbit can be some orbit
@@ -195,18 +214,17 @@ defined by tracking a beam from some user-specified initial position.
 \subsection{Polymorphism}
 \label{s:poly}
 
-In computer programming ``\vn{Polymorphism}'' is the property that a given variable, object, or
+In computer programming ``\vn{polymorphism}'' is the property that a given variable, object, or
 function can act in different ways depending upon the context. With FPP/PTC, polymorphism is used to
 define types that can act as if the structure components were real valued numbers or Taylor series.
 See the documentation of the \vn{real_8} type (\sref{s:real.8}) as an example.
 
-The \vn{PTC} tracking code typically has two routines: with a ``p'' or ``r'' at the end...
+Note: Many \vn{PTC} tracking code routines come in pairs. One routine of the pair, typically having a 
+``r'' suffix in its name, will use real variables while the other routine, typically having a ``p'' suffix 
+in its name, will use Taylor series variables with the exact same calculation as its real counterpart.
 
 Polymorphic types (\sref{s:poly}) generally (always???) have structure names that have a \vn{_8}
 suffix.
-
-
-ToDo: Give an example of a routine that uses real_8 or probe_8 as a scaler.
 
 %-------------------------------------------------------------------
 \subsection{Operator Overloading}
@@ -214,7 +232,7 @@ ToDo: Give an example of a routine that uses real_8 or probe_8 as a scaler.
 
 FPP/PTC heavily uses operator overloading for Taylor series manipulation. Not only are the standard
 arithmetical operators ($+, -, *, /, **$) overloaded as well as the equal sign ($=$), but there are
-a number of custom operators that are defined as well. Below is a list.\footnote
+a number of custom operators that are defined as well. Below is a partial list.\footnote
   {
 Note: Fortran mandates that custom operator names begin and end with a dot ``.''.
   }
@@ -223,6 +241,10 @@ Note: Fortran mandates that custom operator names begin and end with a dot ``.''
 Standard addition and subtraction of Taylor series.
 %
 \item[*] \Newline
+$M1 * M2$, when used with two maps, is TPSA concatenation $M1 \circ M2$ with constant part retained.
+%
+\item[.o.] \Newline
+
 
 %
 
