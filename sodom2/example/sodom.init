@@ -1,0 +1,9 @@
+&params
+  sodom%lat_file = 'esr-main-18GeV-1IP.bmad'	! lattice file
+  sodom%ele_eval = '107'			! element at which n-axis is evaluated
+  !sodom%output_file = '' 			! to store n_axes for inputted action/angles
+  sodom%mode = 2 				! mode to excite orbital motion
+  sodom%J = 100e-9				! mode amplitude
+  sodom%n_particle = 3				! number of particles		
+  sodom%angles_to_eval = 0,   2.0944,   4.188	! angles to evaluate n-axis n(J,phi)
+/ 
