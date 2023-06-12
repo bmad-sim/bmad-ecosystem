@@ -106,7 +106,9 @@ if (branch%param%geometry == closed$) then
 else
   orb_ptr(0) = orb0
   orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)-delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
-  orb_ptr(0)%vec(6) = pz0-delta_e
+  if (present(low_E_orb)) then; call track_all(lat2, low_E_orb, ix_br)
+  else;                         call track_all(lat2, this_orb, ix_br)
+  endif
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
@@ -150,7 +152,9 @@ if (branch%param%geometry == closed$) then
 else
   orb_ptr(0) = orb0
   orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
-  orb_ptr(0)%vec(6) = pz0-delta_e
+  if (present(high_E_orb)) then; call track_all(lat2, high_E_orb, ix_br)
+  else;                          call track_all(lat2, this_orb, ix_br)
+  endif
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
