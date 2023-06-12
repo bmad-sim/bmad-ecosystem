@@ -143,6 +143,10 @@ if (branch%param%geometry == closed$) then
   else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   endif
   if (err) return
+  call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
+  call twiss_at_start (lat2, stat, ix_br, .false.)
+  if (stat /= ok$) return
+
 else
   orb_ptr(0) = orb0
   orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
@@ -150,10 +154,6 @@ else
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
-call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
-
-call twiss_at_start (lat2, stat, ix_br, .false.)
-if (stat /= ok$) return
 call twiss_propagate_all (lat2, ix_br)
 high_tune_x = branch2%ele(nt)%a%phi / twopi
 high_tune_y = branch2%ele(nt)%b%phi / twopi
