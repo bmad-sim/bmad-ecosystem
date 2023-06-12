@@ -467,12 +467,13 @@ subroutine choose_quads_for_set_tune (branch, dk1, eles, mask, err_flag)
 end subroutine
 
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
-                       pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
+                       pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch, orb0)
   import
   implicit none
   type (lat_struct), target :: lat
   type (lat_struct), optional, target :: low_E_lat, high_E_lat
   type (coord_struct), allocatable, optional, target :: low_E_orb(:), high_E_orb(:)
+  type (coord_struct), optional :: orb0
   real(rp) delta_e
   real(rp) chrom_x
   real(rp) chrom_y
