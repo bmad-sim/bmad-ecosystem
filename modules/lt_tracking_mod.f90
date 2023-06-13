@@ -51,6 +51,7 @@ type ltt_params_struct
   character(200) :: averages_output_file = ''
   character(200) :: phase_space_output_file = ''
   character(200) :: action_angle_output_file = ''
+  character(200) :: per_particle_output_file = ''
   character(8) :: ran_engine = ''
   type (ltt_column_struct) column(100)
   integer :: ix_particle_record = -1    ! Experimental
@@ -418,6 +419,7 @@ enddo
 
 !
 
+call fullfilename (ltt%per_particle_output_file, ltt%per_particle_output_file)
 call fullfilename (ltt%phase_space_output_file, ltt%phase_space_output_file)
 call fullfilename (ltt%action_angle_output_file, ltt%action_angle_output_file)
 call fullfilename (ltt%custom_output_file, ltt%custom_output_file)
@@ -578,6 +580,78 @@ end subroutine ltt_init_tracking
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
+subroutine ltt_print_per_particle_file_header(lttp, ltt_com, beam)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+
+integer ib, ip, iu, np
+character(200) file
+character(*), parameter :: r_name = 'ltt_print_per_particle_file_header'
+!
+
+if (lttp%per_particle_output_file == '') return
+
+iu = lunget()
+
+do ib = 1, size(beam%bunch)
+  bunch = beam%bunch(ib)
+  np = size(bunch%particle)
+  if (np > 1000) then
+    call out_io (s_fatal$, r_name, 'IT DOES NOT MAKE SENSE TO HAVE PER_PARTICLE OUTPUT WITH THIS NUMBER OF PARTICLES: ' // int_str(np), &
+                                   'WILL STOP HERE')
+    stop
+  endif
+
+  do ip = 1, np
+    file = ltt_per_particle_file_name(lttp, ib, ip, size(beam%bunch), np)
+    open(iu, file = file, recl = 300)
+    write (iu, '(a)')  '##   Turn |           x              px               y              py               z              pz              pc             p0c   |     spin_x    spin_y    spin_z    State'
+    close(iu)
+  enddo
+enddo
+
+end subroutine ltt_print_per_particle_file_header
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+function ltt_per_particle_file_name (lttp, ix_bunch, ix_particle, n_bunch, n_particle) result (file_name)
+
+type (ltt_params_struct) lttp
+
+integer ix_bunch, ix_particle, n_bunch, n_particle, np, ih, ix
+character(200) file_name
+character(16) fmt, str
+
+!
+
+np = int(log10(1.001*n_particle)) + 1
+
+if (n_bunch == 1) then
+  fmt = '(i' // int_str(np) // '.' // int_str(np) // ')'
+  write (str, fmt) ix_particle
+else
+  fmt = '(2a, i' // int_str(np) // '.' // int_str(np) // ')'
+  write (str, fmt) int_str(ix_bunch), '-', ix_particle
+endif
+
+ih = index(lttp%per_particle_output_file, '#')
+if (ih == 0) then
+  file_name = trim(lttp%per_particle_output_file) // '.' // str
+else
+  file_name = lttp%per_particle_output_file(:ih-1) // trim(str) // lttp%per_particle_output_file(ih+1:)
+endif
+
+end function ltt_per_particle_file_name
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
 subroutine ltt_print_inital_info (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
@@ -650,7 +724,6 @@ do ib = 0, nb
   write (iu, '(a)') trim(line2)
 
   close(iu)
-
 enddo
 
 !------------------------------------------------
@@ -676,6 +749,7 @@ call ltt_write_line('# ltt%lat_file                            = ' // quote(lttp
 call ltt_write_line('# ltt%averages_output_file                = ' // quote(lttp%averages_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%beam_binary_output_file             = ' // quote(lttp%beam_binary_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%custom_output_file                  = ' // quote(lttp%custom_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%per_particle_output_file            = ' // quote(lttp%per_particle_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%phase_space_output_file             = ' // quote(lttp%phase_space_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%action_angle_output_file            = ' // quote(lttp%action_angle_output_file), lttp, iu, print_this)
 call ltt_write_line('# ltt%map_file_prefix                     = ' // quote(lttp%map_file_prefix), lttp, iu, print_this)
@@ -1085,6 +1159,7 @@ time1 = time0
 ix_branch = ltt_com%ix_branch
 branch => lat%branch(ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
+call ltt_print_per_particle_file_header(lttp, ltt_com, beam)
 
 if (ltt_com%using_mpi) then
   prefix_str = 'Thread ' // int_str(ltt_com%mpi_rank) // ':'
@@ -1383,8 +1458,10 @@ type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
+type (coord_struct), pointer :: p
 
-integer i_turn, ib, nb
+integer i_turn, ib, ip, nb, iu
+character(200) file
 
 !
 
@@ -1397,7 +1474,6 @@ end select
 !
 
 nb = size(beam%bunch)
-
 do ib = 1, nb
   bunch => beam%bunch(ib)
 
@@ -1406,6 +1482,17 @@ do ib = 1, nb
 
   if (lttp%action_angle_output_file /= '') call write_this_data (lttp, ltt_com, 'action_angle', &
             lttp%action_angle_output_file, bunch, i_turn, ib, nb, ltt_com%wrote_action_angle_file_header)
+
+  if (lttp%per_particle_output_file /= '') then
+    iu = lunget()
+    do ip = 1, size(bunch%particle)
+      p => bunch%particle(ip)
+      file = ltt_per_particle_file_name(lttp, ib, ip, nb, size(bunch%particle))
+      open(iu, file = file, recl = 300, access = 'append')
+      write (iu, '(i9, 8es16.8, 3x, 3f10.6, 4x, a)')  i_turn, p%vec, (1.0_rp+p%vec(6))*p%p0c, p%p0c, p%spin, trim(coord_state_name(p%state))
+      close(iu)
+    enddo
+  endif
 enddo
 
 !--------------------------------------------------
@@ -1451,7 +1538,7 @@ else
 endif
 
 ! Currently str is always non-blank and a new file is created (no appending is done).
-! Modifying the code to put every in one file is a consideration but it is not clear if this is useful.
+! Modifying the code to put everything in one file is a consideration but it is not clear if this is useful.
 
 if (wrote_header .and. str == '') then
   open (iu, file = file_name, recl = 300, access = 'append')
