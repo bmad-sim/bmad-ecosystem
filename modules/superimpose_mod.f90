@@ -320,6 +320,10 @@ if (super_saved%key == lcavity$) then
       lord => pointer_to_lord(ele, n)
       lord%ix_ele = -2
       doit = .true.
+      do j = 1, lord%n_slave
+        slave => pointer_to_slave(lord, j)
+        slave%field_calc = lord%field_calc
+      enddo
     enddo
   enddo
   call remove_eles_from_lat(lat, .false.)
