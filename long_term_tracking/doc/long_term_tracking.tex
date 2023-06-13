@@ -78,7 +78,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ March 2, 2023}
+\date{David Sagan \\ June 12, 2023}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -636,6 +636,7 @@ Example:
   ltt%beam_binary_output_file = "beam.dat"
   ltt%averages_output_file = "average.dat"
   ltt%custom_output_file = ""
+  ltt%per_particle_output_file = ""
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
   ltt%only_live_particles_out = T
@@ -907,6 +908,14 @@ Sets the number of turns between particle position data files. If set to -1 (the
 will only be generated at the last turn. If set to 0, a file will be generated at the beginning turn
 (turn 0) and at the last turn.
 %
+\item[ltt\%per_particle_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII files
+that are created to hold the particle positions. A blank name (the default) will result in no
+files of this type being created. A file is created for each particle. Individual file names
+are formed by using \vn{ltt%per_particle_output_file} with a suffix indicating the particle index.
+If the name contains a hash character ``\#'', the suffix is inserted in place of the hash character
+instead of at the end.
+%
 \item[ltt\%phase_space_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"SINGLE"}. The name of the ASCII file
 or files that are created to hold the particle positions. A file is created every
@@ -1163,7 +1172,7 @@ The name of the files are derived from the parameters (\sref{s:out.files}):
 ltt%phase_space_output_file   -- phase space file name
 ltt%action_angle_output_file  -- action angle file name
 \end{code}
-If the file name contains a hash character ''\#'', the data file name is formed by substituting the
+If the file name contains a hash character ``\#'', the data file name is formed by substituting the
 turn number for the hash token. If there is no hash character, the data file name is formed by
 appending the turn number to the file name If there are multiple bunches, instead of using the turn
 number, the substituted string will be of the form
