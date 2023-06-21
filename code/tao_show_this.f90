@@ -5726,8 +5726,9 @@ case ('value')
     endif
   endif
 
-  if (index(what2, 'chrom') /= 0) then
-    s%com%force_chrom_calc = .true.
+  if (index(what2, 'chrom') /= 0 .or. index(what2, 'rad') /= 0) then
+    if (index(what2, 'chrom') /= 0) s%com%force_chrom_calc = .true.
+    if (index(what2, 'rad') /= 0) s%com%force_rad_int_calc = .true.
     s%u%calc%lattice = .true.
     call tao_lattice_calc(ok)
   endif

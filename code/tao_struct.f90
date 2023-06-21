@@ -767,6 +767,7 @@ type tao_common_struct
   logical :: all_merit_weights_positive = .true.  
   logical :: multi_turn_orbit_is_plotted = .false.   ! Is a multi_turn_orbit being plotted?
   logical :: force_chrom_calc = .false.              ! Used by a routine to force calculation
+  logical :: force_rad_int_calc = .false.            ! Used by a routine to force calculation
   character(16) :: valid_plot_who(10) = ''           ! model, base, ref etc...
   character(200) :: single_mode_buffer = ''
   character(200) :: cmd = ''                         ! Used for the cmd history
