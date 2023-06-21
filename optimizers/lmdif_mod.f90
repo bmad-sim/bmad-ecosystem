@@ -144,7 +144,7 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
       integer mode, nprint, nend, ldfjac
 
       logical, optional :: reset_flag
-      logical at_end
+      logical at_end, error
 
 !
 
@@ -165,7 +165,11 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
          ldfjac = nfv
          CALL LMDIF(NFV,NV,XV,FV,FTOL,XTOL,GTOL,EPS,ITERMX,EPSFCN, &
               DIAG,MODE,FACTOR,NPRINT,INFO,NFEV,FJAC,LDFJAC, &
-              IPVT,QTF,WA1,WA2,WA3,WA3,NEND,IPOS,IPOS1,.TRUE.)
+              IPVT,QTF,WA1,WA2,WA3,WA3,NEND,IPOS,IPOS1, error, .TRUE.)
+         if (error) then
+           at_end = .true.
+           return
+         endif
          if (present(reset_flag)) return
       endif
 
@@ -236,7 +240,12 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
       LDFJAC = nf
       CALL LMDIF(nf,NV,XV,fvv,FTOL,XTOL,GTOL,EPS,ITERMX,EPSFCN, &
                 DIAG,MODE,FACTOR,NPRINT,INFO,NFEV,FJAC,LDFJAC, &
-                IPVT,QTF,WA1,WA2,WA3,WA4,NEND,IPOS,IPOS1)  
+                IPVT,QTF,WA1,WA2,WA3,WA4,NEND,IPOS,IPOS1, error)  
+      if (error) then
+        at_end = .true.
+        return
+      endif
+
       iter = iter + 1
 !
       GO TO 200
@@ -273,7 +282,7 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
 !     ***************************************************************
       SUBROUTINE LMDIF(M,N,X,FVEC,FTOL,XTOL,GTOL,FATOL,MAXFEV,EPSFCN, &
                       DIAG,MODE,FACTOR,NPRINT,INFO,NFEV,FJAC,LDFJAC, &
-                      IPVT,QTF,WA1,WA2,WA3,WA4,IEND,IPOS,IPOS1,reset_flag)
+                      IPVT,QTF,WA1,WA2,WA3,WA4,IEND,IPOS,IPOS1, error, reset_flag)
 
       INTEGER M,N,MAXFEV,MODE,NPRINT,INFO,NFEV,LDFJAC,IEND,IPOS,IPOS1
       INTEGER IPVT(N)
@@ -454,6 +463,7 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
       integer, save :: old_nfv = -1
 
       logical, optional :: reset_flag
+      logical error
 
       SAVE I,IFLAG,ITER,J,L,ID, &
            ACTRED,DELTA,DIRDER,EPSMCH,FNORM,FNORM1,GNORM, &
@@ -670,7 +680,8 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
 !           DETERMINE THE LEVENBERG-MARQUARDT PARAMETER.
 !       
             CALL LMPAR(N,FJAC,LDFJAC,IPVT,DIAG,QTF,DELTA,PAR,WA1,WA2, &
-                      WA3,WA4)
+                      WA3,WA4, error)
+            if (error) return
 !
 !           STORE THE DIRECTION P AND X + P. CALCULATE THE NORM OF P.
 !
@@ -1256,7 +1267,7 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
       END FUNCTION
 !     **************************************************************
       SUBROUTINE LMPAR(N,R,LDR,IPVT,DIAG,QTB,DELTA,PAR,X,SDIAG,WA1, &
-                      WA2)
+                      WA2, error)
       INTEGER N,LDR
       INTEGER IPVT(N)
       real(dp) DELTA,PAR
@@ -1305,7 +1316,7 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
 !     THE SUBROUTINE STATEMENT IS
 !
 !       SUBROUTINE LMPAR(N,R,LDR,IPVT,DIAG,QTB,DELTA,PAR,X,SDIAG,
-!                        WA1,WA2)
+!                        WA1,WA2, error)
 !
 !     WHERE
 !
@@ -1346,6 +1357,8 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
 !
 !       WA1 AND WA2 ARE WORK ARRAYS OF LENGTH N.
 !
+!       error is a logical set True if there is an error and flase otherwise
+!
 !     SUBPROGRAMS CALLED
 !
 !       MINPACK-SUPPLIED ... DPMPAR,ENORM,QRSOLV
@@ -1359,12 +1372,14 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
       INTEGER I,ITER,J,JM1,JP1,K,L,NSING
       real(dp) DXNORM,DWARF,FP,GNORM,PARC,PARL,PARU,P1,P001, &
                       SUM,TEMP,ZERO
+      logical error
 !      real(dp) DPMPAR,ENORM
       DATA P1,P001,ZERO /1.0D-1,1.0D-3,0.0D0/
 !
 !     DWARF IS THE SMALLEST POSITIVE MAGNITUDE.
 !
       DWARF = DPMPAR(2)
+      error = .false.
 !
 !     COMPUTE AND STORE IN X THE GAUSS-NEWTON DIRECTION. IF THE
 !     JACOBIAN IS RANK-DEFICIENT, OBTAIN A LEAST SQUARES SOLUTION.
@@ -1480,6 +1495,12 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
 !
 !        COMPUTE THE NEWTON CORRECTION.
 !
+          if (dxnorm == 0) then
+            error = .true.
+            print *, 'ERROR IN LMDIF: FLOATING UNDERFLOW. WILL STOP HERE.'
+            return
+          endif
+
          DO 180 J = 1, N
             L = IPVT(J)
             WA1(J) = DIAG(L)*(WA2(L)/DXNORM)
