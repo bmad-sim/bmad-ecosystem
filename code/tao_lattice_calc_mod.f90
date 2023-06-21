@@ -177,7 +177,7 @@ endif
 ! Calc radiation integrals when track_type == "beam" since init_beam_distribution may need this.
 
 if (branch%param%particle /= photon$ .and. s%global%rad_int_calc_on .and. &
-            (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
+            (s%com%force_rad_int_calc .or. u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
   call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                       tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int)
   if (branch%param%geometry == closed$) then
