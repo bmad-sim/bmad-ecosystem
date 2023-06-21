@@ -903,7 +903,6 @@ type tao_lattice_branch_struct
   type (bunch_track_struct), allocatable :: bunch_params_comb(:) ! A comb for each bunch in beam.
   type (coord_struct), allocatable :: orbit(:)
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
-  type (tao_plot_cache_struct) :: plot_ref_cache              ! Plotting data cache
   type (tao_lat_mode_struct) a, b
   type (tao_spin_polarization_struct) spin
   type (summation_rdt_struct) srdt

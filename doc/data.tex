@@ -1003,7 +1003,10 @@ Chromaticities. Also see \vn{chrom_ptc}.
   \item[chrom.dbeta.a, .dbeta.b] \Newline \hlabel{chrom.dbeta}
 The normalized change of the beta function with energy
 $(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$. Unlike the standard chromaticities,\vn{chrom.a} and \vn{chrom.b},
-the these chromaticities are evaluated at individual elements.
+the these chromaticities are evaluated at individual elements. 
+
+Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
 
   %----------------------
   \item[chrom.deta.x, .deta.y] \Newline \hlabel{chrom.deta}
@@ -1011,17 +1014,24 @@ The chromatic dispersion $\partial\eta_{x,y}/\partial\delta$. Unlike the standar
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
+Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
+
   %----------------------
   \item[chrom.detap.x, .detap.y] \Newline \hlabel{chrom.detap}
 The chromatic dispersion derivatives $\partial\eta'_{x,y}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
+Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
+
   %----------------------
   \item[chrom.dphi.a, .dphi.b] \Newline \hlabel{chrom.dphi}
 The chromatic betatron phase $\partial\phi_{a,b}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
+
+Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
 
   %----------------------
   \item[chrom.w.a, chrom.w.b] \Newline \hlabel{chrom.w}
@@ -1038,6 +1048,9 @@ where
   \qquad
   B = \frac{1}{\beta} \, \frac{\partial\beta}{\partial p_z}
 \end{equation}
+
+Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
 
   %----------------------
   \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{chrom.ptc}
