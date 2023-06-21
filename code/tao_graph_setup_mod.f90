@@ -2471,28 +2471,11 @@ if (curve%ele_ref_name /= '') then
       call tao_set_curve_invalid(curve, 'SETTING ele_ref_name FOR CURVE WHERE curve%data_source IS NOT "lat" IS NOT VALID.')
       good = .false.
       bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-      if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
       return
     endif
 
-    if (cache_status == using_cache$) then
-      ele   = tao_branch%plot_ref_cache%ele
-      orbit = tao_branch%plot_ref_cache%orbit
-      mat6  = tao_branch%plot_ref_cache%ele%mat6
-      vec0  = tao_branch%plot_ref_cache%ele%vec0
-      err   = tao_branch%plot_ref_cache%err
-    else
-      s_now = branch%ele(curve%ix_ele_ref)%s
-      call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
-
-      if (cache_status == loading_cache$) then
-        tao_branch%plot_ref_cache%ele      = ele
-        tao_branch%plot_ref_cache%orbit    = orbit
-        tao_branch%plot_ref_cache%ele%mat6 = mat6
-        tao_branch%plot_ref_cache%ele%vec0 = vec0
-        tao_branch%plot_ref_cache%err      = err
-      endif
-    endif
+    s_now = branch%ele(curve%ix_ele_ref)%s
+    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
 
     if (err) then
       tao_branch%plot_cache(ii:)%err = .true.
