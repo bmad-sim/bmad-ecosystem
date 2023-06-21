@@ -33,6 +33,7 @@ radiation_test
 sad_test
 sim_utils_test
 slice_test
+space_charge_test
 spin_general_test
 superimpose_test
 synrad3d_test
