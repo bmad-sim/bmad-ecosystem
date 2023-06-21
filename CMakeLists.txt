@@ -38,6 +38,7 @@ set (EXE_SPECS
   cmake_files/cmake.sad_test
   cmake_files/cmake.sim_utils_test
   cmake_files/cmake.slice_test
+  cmake_files/cmake.space_charge_test
   cmake_files/cmake.spin_map_test
   cmake_files/cmake.spin_general_test
   cmake_files/cmake.superimpose_test
