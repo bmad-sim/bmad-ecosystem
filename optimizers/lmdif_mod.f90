@@ -477,6 +477,8 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 
+      error = .false.
+
 !     INITIALIZE SAVED VARIABLES
       if(present(reset_flag)) then
          I=0
