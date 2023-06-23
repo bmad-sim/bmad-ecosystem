@@ -36,7 +36,7 @@ type (ele_struct), pointer :: ele
 
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
-real(rp) default_low_lim, default_high_lim, default_key_delta
+real(rp) default_low_lim, default_high_lim, default_key_delta, default_meas
 
 integer ios, iu, i, j, j1, j2, k, ix, num
 integer n, iostat, n_list, n_nml
@@ -56,7 +56,7 @@ logical searching, limited
 logical, allocatable :: dflt_good_unis(:), good_unis(:)
 logical :: logical_is_garbage
 
-namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
+namelist / tao_var / v1_var, var, default_weight, default_meas, default_step, default_key_delta, &
                     ix_min_var, ix_max_var, default_universe, default_attribute, &
                     default_low_lim, default_high_lim, default_merit_type, default_good_user, &
                     use_same_lat_eles_as, search_for_lat_eles, default_key_bound
@@ -132,6 +132,7 @@ var_loop: do
   default_merit_type = 'limit'
   default_weight     = 0     ! set default
   default_step       = 0       ! set default
+  default_meas       = real_garbage$
   default_attribute  = ''
   default_universe   = ''
   default_low_lim    = -1d30
@@ -142,7 +143,7 @@ var_loop: do
   var%merit_type     = ''
   var%weight         = 0         ! set default
   var%step           = 0         ! set default
-  var%meas           = 0
+  var%meas           = real_garbage$
   var%attribute      = ''
   var%universe       = ''
   var%low_lim        = default_low_lim
@@ -229,7 +230,7 @@ var_loop: do
   if (gang) then
     call tao_var_stuffit1 (var, v1_var_ptr, v1_var, -1, searching, &
               use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
-              default_attribute, default_weight, default_step, default_merit_type, &
+              default_attribute, default_weight, default_meas, default_step, default_merit_type, &
               default_low_lim, default_high_lim, default_good_user, dflt_good_unis)
 
     if (.not. searching) then
@@ -268,7 +269,7 @@ var_loop: do
       if (.not. dflt_good_unis(i)) cycle
       call tao_var_stuffit1 (var, v1_var_ptr, v1_var, i, searching, &
               use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
-              default_attribute, default_weight, default_step, default_merit_type, &
+              default_attribute, default_weight, default_meas, default_step, default_merit_type, &
               default_low_lim, default_high_lim, default_good_user, dflt_good_unis)
 
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
@@ -323,7 +324,7 @@ end subroutine tao_init_variables
 
 subroutine tao_var_stuffit1 (var, v1_var_ptr, v1_var, ix_uni, searching, &
               use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
-              default_attribute, default_weight, default_step, default_merit_type, &
+              default_attribute, default_weight, default_meas, default_step, default_merit_type, &
               default_low_lim, default_high_lim, default_good_user, dflt_good_unis)
 
 use tao_input_struct
@@ -338,7 +339,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_v1_var_input) v1_var
 type (tao_var_input) var(n_var_minn:n_var_maxx)
 
-real(rp) default_weight, default_step, default_low_lim, default_high_lim
+real(rp) default_weight, default_meas, default_step, default_low_lim, default_high_lim
 
 character(*) use_same_lat_eles_as, search_for_lat_eles, default_attribute
 character(*) default_merit_type
@@ -410,12 +411,14 @@ if (use_same_lat_eles_as /= '') then
     if (default_weight /= 0) s%var(n)%weight = default_weight
     if (var(ix)%weight /= 0) s%var(n)%weight = var(ix)%weight
 
+    s%var(n)%meas_value = v1_ptr%v(ip)%meas_value
+    if (default_weight /= real_garbage$)      s%var(n)%meas_value = default_meas
+    if (var(ix)%meas /= real_garbage$)        s%var(n)%meas_value = var(ix)%meas
+    if (s%var(n)%meas_value == real_garbage$) s%var(n)%meas_value = 0
+
     s%var(n)%step = v1_ptr%v(ip)%step
     if (default_step /= 0) s%var(n)%step = default_step
     if (var(ix)%step /= 0) s%var(n)%step = var(ix)%step
-
-    s%var(n)%meas_value = v1_ptr%v(ip)%meas_value
-    if (var(ix)%meas /= 0) s%var(n)%meas_value = var(ix)%meas
 
     s%var(n)%merit_type = v1_ptr%v(ip)%merit_type
     if (default_merit_type /= '') s%var(n)%merit_type = default_merit_type
@@ -623,7 +626,9 @@ s%var(n1:n2)%step = var(ix1:ix2)%step
 where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
  
 s%var(n1:n2)%meas_value = var(ix1:ix2)%meas
- 
+where (s%var(n1:n2)%meas_value == real_garbage$) s%var(n1:n2)%meas_value = default_meas
+where (s%var(n1:n2)%meas_value == real_garbage$) s%var(n1:n2)%meas_value = 0
+
 s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
 where (s%var(n1:n2)%merit_type == '') s%var(n1:n2)%merit_type = default_merit_type
  

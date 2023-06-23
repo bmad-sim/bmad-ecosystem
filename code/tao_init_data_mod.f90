@@ -33,7 +33,7 @@ type (tao_d1_data_input) d1_data
 type (tao_datum_input), allocatable :: datum(:)
 type (lat_struct), pointer :: lat
 
-real(rp) default_weight, def_weight        ! default merit function weight
+real(rp) default_weight, def_weight, default_meas, def_meas        ! default merit function weight
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat, n_loc, n_nml
@@ -53,10 +53,10 @@ logical err, free, gang, found
 logical :: good_uni(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, universe, &
-                default_merit_type, default_weight, default_data_type, default_data_source
+                default_merit_type, default_weight, default_meas, default_data_type, default_data_source
 
 namelist / tao_d1_data / d1_data, datum, ix_d1_data, &
-               default_merit_type, default_weight, default_data_type, default_data_source, &
+               default_merit_type, default_weight, default_meas, default_data_type, default_data_source, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
 !-----------------------------------------------------------------------
@@ -148,9 +148,10 @@ do
   d2_data%name           = ''
   universe               = '*'
   default_merit_type     = ''
-  default_weight         = 0
   default_data_type      = ''
   default_data_source    = ''
+  default_weight         = real_garbage$
+  default_meas           = real_garbage$
 
   read (iu, nml = tao_d2_data, iostat = ios)
   if (ios < 0 .and. d2_data%name == '') exit    ! Exit on end-of-file and no namelist read
@@ -179,6 +180,7 @@ do
 
   def_merit_type  = default_merit_type   ! Save
   def_weight      = default_weight
+  def_meas        = default_meas
   def_data_type   = default_data_type
   def_data_source = default_data_source
 
@@ -191,6 +193,7 @@ do
     d1_data%name           = ''
     default_merit_type     = def_merit_type
     default_weight         = def_weight
+    default_meas           = def_meas
     default_data_type      = def_data_type
     default_data_source    = def_data_source
     ix_min_data            = int_garbage$
@@ -261,7 +264,8 @@ do
 
     do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. good_uni(i)) cycle
-      call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used, datum)
+      call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used, datum, &
+                  default_merit_type, default_weight, default_meas, default_data_type, default_data_source)
     enddo
 
   enddo  ! d1_data loop
@@ -281,7 +285,8 @@ call tao_init_data_end_stuff ()
 !-----------------------------------------------------------------------
 contains
 
-subroutine d1_data_stuffit (i_d1, u, n_d2, datum)
+subroutine d1_data_stuffit (i_d1, u, n_d2, datum, default_merit_type, &
+                                             default_weight, default_meas, default_data_type, default_data_source)
 
 use srdt_mod
 
@@ -294,12 +299,15 @@ type (ele_struct), pointer :: ele
 type (tao_data_struct), pointer :: dat
 type (resonance_h_struct), allocatable :: h_temp(:)
 type (bmad_normal_form_struct), pointer :: norm_form
+
+real(rp) default_weight, default_meas
 real(rp), allocatable :: s(:)
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2, i_d1, has_associated_ele
 integer, allocatable :: ind(:)
 integer, pointer :: n_ht
 
+character(*) default_merit_type, default_data_source, default_data_type
 character(20) fmt
 character(6) h_str
 
@@ -422,15 +430,16 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%exists          = d1_array(1)%d1%d%exists
   u%data(n1:n2)%s_offset        = d1_array(1)%d1%d%s_offset
   u%data(n1:n2)%eval_point      = d1_array(1)%d1%d%eval_point
-  u%data(n1:n2)%meas_value      = 0
+  u%data(n1:n2)%meas_value      = real_garbage$
 
   u%data(n1:n2)%error_rms       = datum(ix1:ix2)%error_rms
   u%data(n1:n2)%invalid_value   = datum(ix1:ix2)%invalid_value
   u%data(n1:n2)%spin_map%axis_input  = datum(ix1:ix2)%spin_axis
 
-  if (default_data_source /= '')  u%data(n1:n2)%data_source = default_data_source
-  if (default_merit_type /= '')   u%data(n1:n2)%merit_type = default_merit_type
-  if (default_weight /= 0)        u%data(n1:n2)%weight = default_weight
+  if (default_data_source /= '')        u%data(n1:n2)%data_source = default_data_source
+  if (default_merit_type /= '')         u%data(n1:n2)%merit_type  = default_merit_type
+  if (default_weight /= real_garbage$)  u%data(n1:n2)%weight      = default_weight
+  if (default_meas /= real_garbage$)    u%data(n1:n2)%meas_value  = default_meas
 
   do n = n1, n2
     ix = ix_min_data + n - n1
@@ -439,9 +448,10 @@ elseif (use_same_lat_eles_as /= '') then
     if (datum(ix)%data_type /= '')   u%data(n)%data_type   = trim(datum(ix)%data_type)
     if (u%data(n)%data_type == '')   u%data(n)%data_type   = trim(d2_data%name) // '.' // trim(d1_data%name)
 
-    if (datum(ix)%weight /= 0)       u%data(n)%weight      = datum(ix)%weight
-    if (datum(ix)%data_source /= '') u%data(n)%data_source = datum(ix)%data_source
-    if (datum(ix)%merit_type /= '')  u%data(n)%merit_type  = datum(ix)%merit_type
+    if (datum(ix)%weight /= real_garbage$) u%data(n)%weight      = datum(ix)%weight
+    if (datum(ix)%meas /= real_garbage$)   u%data(n)%meas_value  = datum(ix)%meas
+    if (datum(ix)%data_source /= '')       u%data(n)%data_source = datum(ix)%data_source
+    if (datum(ix)%merit_type /= '')        u%data(n)%merit_type  = datum(ix)%merit_type
   enddo
 
 !-----------------------------------------
@@ -480,19 +490,20 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%good_user        = datum(ix1:ix2)%good_user
-  u%data(n1:n2)%good_opt         = datum(ix1:ix2)%good_opt
-  u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
-  u%data(n1:n2)%ele_name         = datum(ix1:ix2)%ele_name
-  u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value
-  u%data(n1:n2)%error_rms        = datum(ix1:ix2)%error_rms
-  u%data(n1:n2)%ele_ref_name     = datum(ix1:ix2)%ele_ref_name
-  u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
-  u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
-  u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
-  u%data(n1:n2)%spin_map%axis_input   = datum(ix1:ix2)%spin_axis
-  u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
+  u%data(n1:n2)%good_user           = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%good_opt            = datum(ix1:ix2)%good_opt
+  u%data(n1:n2)%weight              = datum(ix1:ix2)%weight
+  u%data(n1:n2)%meas_value          = datum(ix1:ix2)%meas
+  u%data(n1:n2)%ele_name            = datum(ix1:ix2)%ele_name
+  u%data(n1:n2)%invalid_value       = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%error_rms           = datum(ix1:ix2)%error_rms
+  u%data(n1:n2)%ele_ref_name        = datum(ix1:ix2)%ele_ref_name
+  u%data(n1:n2)%ele_start_name      = datum(ix1:ix2)%ele_start_name
+  u%data(n1:n2)%ix_bunch            = datum(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source         = datum(ix1:ix2)%data_source
+  u%data(n1:n2)%merit_type          = datum(ix1:ix2)%merit_type
+  u%data(n1:n2)%spin_map%axis_input = datum(ix1:ix2)%spin_axis
+  u%data(n1:n2)%s_offset            = datum(ix1:ix2)%s_offset
 
   ! Find elements associated with the data
 
@@ -518,13 +529,6 @@ else
   enddo
 endif
 
-u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
-where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was not set
-  u%data(n1:n2)%meas_value = 0  
-elsewhere
-  u%data(n1:n2)%good_meas = .true.
-end where
-
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
 ! Point the %data back to the d1_data_struct
@@ -542,11 +546,20 @@ do j = n1, n2
 
   ! Use defaults if a component has not been set.
 
-  if (dat%weight == 0)       dat%weight = default_weight
-  if (dat%merit_type == '')  dat%merit_type = default_merit_type
-  if (dat%merit_type == '')  dat%merit_type = 'target'
-  if (dat%data_source == '') dat%data_source = default_data_source
-  if (dat%data_source == '') dat%data_source = 'lat'
+  if (dat%weight == real_garbage$)      dat%weight     = default_weight
+  if (dat%meas_value == real_garbage$)  dat%meas_value = default_meas
+  if (dat%merit_type == '')             dat%merit_type = default_merit_type
+  if (dat%merit_type == '')             dat%merit_type = 'target'
+  if (dat%data_source == '')            dat%data_source = default_data_source
+  if (dat%data_source == '')            dat%data_source = 'lat'
+
+  if (dat%weight == real_garbage$)      dat%weight = 0
+
+  if (dat%meas_value == real_garbage$) then
+    dat%meas_value = 0  
+  else
+    dat%good_meas = .true.
+  endif
 
   ! Convert old style to new style
 

@@ -1237,6 +1237,7 @@ Variables are initialized using the \vn{tao_var} namelist. The format for this i
     default_universe     = "<integer>"     ! Universe variables belong in.
     default_attribute    = "<attrib_name>" ! Attribute to control.
     default_weight       = <real>          ! Merit_function weight. Default: 0.
+    default_meas         = <real>          ! Default ``measured'' value (\sref{s:del.v}).
     default_step         = <real>          ! Small step value. Default: 0.
     default_merit_type   = "<merit_type>"  ! Sets how the merit is calculated.
                                            !   Default = "limit"
@@ -1455,7 +1456,7 @@ namelist.  The \vn{n_d1_data} parameter in the \vn{tao_d2_data} namelist defines
 structure there must be a \vn{tao_d1_data} namelist which has the form:
 \index{tao_d1_data}\index{ix_d1_data}\index{d1_data!name}
 \index{default_data_type}\index{default_weight}\index{ix_min_data}
-\index{ix_max_data}\index{data!name}\index{data!data_type}
+\index{ix_max_data}\index{data!name}\index{data!data_type}\index{default_meas}
 \index{data!ele_name}\index{data!ele_ref_name}\index{data!ele_start_name}\index{data!merit_type}
 \index{data!meas}\index{data!weight}\index{data!good_user}
 \index{data!ix_bunch}\index{use_same_lat_eles_as}\index{search_for_lat_eles}
@@ -1467,6 +1468,7 @@ structure there must be a \vn{tao_d1_data} namelist which has the form:
     d1_data%name           = "<d1_name>"         ! d1_data name.
     default_data_type      = <type_name>         ! Eg: orbit.x, e_tot, etc...
     default_weight         = <real>              ! Merit function weight. Dflt: 0.0
+    default_meas           = <real>              ! Default datum "measured" value (\sref{s:opt.main}).
     default_data_source    = "<source>"          ! "lat" (dflt), "data", "var", or "beam". 
     ix_min_data            = <integer>           ! Minimum array index.
     ix_max_data            = <integer>           ! Maximum array index.
@@ -1476,7 +1478,7 @@ structure there must be a \vn{tao_d1_data} namelist which has the form:
     datum(j)%ele_start_name = "<ele_start_name>" ! Start lattice element name.
     datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference lattice element name.
     datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
-    datum(j)%meas           = <real>             ! Datum "measured" value
+    datum(j)%meas           = <real>             ! Datum "measured" value (\sref{s:opt.main}).
     datum(j)%weight         = <weight>           ! Merit function weight.
     datum(j)%good_user      = <logical>          ! Use for optimization and plotting?
     datum(j)%ix_bunch       = <integer>          ! Bunch index. Dflt: 0 = all bunches.
