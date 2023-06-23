@@ -69,7 +69,7 @@ type (ele_struct)  super_ele_in
 type (ele_struct), pointer, optional ::  super_ele_out
 type (ele_struct) super_saved, slave_saved
 type (ele_struct), pointer :: slave, lord, slave2, ele0, ele
-type (control_struct)  sup_con(100)
+type (control_struct)  sup_con(1000)
 type (control_struct), pointer ::  cntl
 type (branch_struct), pointer :: branch
 type (lat_ele_loc_struct), pointer :: loc
