@@ -29,7 +29,7 @@ type tao_datum_input
   character(40) :: ele_name = ''
   character(20) :: merit_type = ''
   real(rp) :: meas = real_garbage$   ! used to tag when %meas_value is set in file
-  real(rp) :: weight = 0
+  real(rp) :: weight = real_garbage$
   logical :: good_user = .true.
   logical :: good_opt = .true.
   character(20) :: data_source = ''
@@ -52,7 +52,7 @@ type tao_var_input
   character(40) :: ele_name = ''
   character(40) :: attribute = ''  ! attribute to vary
   character(16) :: universe = ''
-  real(rp) :: weight = 0
+  real(rp) :: weight = real_garbage$
   real(rp) :: step = 0
   real(rp) :: low_lim = -1e30
   real(rp) :: high_lim = 1e30
@@ -60,7 +60,7 @@ type tao_var_input
   logical(4) :: good_user = .true.
   logical(4) :: key_bound = .false.
   real(rp) :: key_delta = 0
-  real(rp) :: meas = 0
+  real(rp) :: meas = real_garbage$
 end type
 
 !-------------------------------------------------------------
