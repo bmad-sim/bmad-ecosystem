@@ -3970,8 +3970,9 @@ case ('evaluate')
     use_real_array_buffer = .true.
   endif
 
-  if (index(line, 'chrom') /= 0) then
-    s%com%force_chrom_calc = .true.
+  if (index(line, 'chrom') /= 0 .or. index(line, 'rad') /= 0) then
+    if (index(line, 'chrom') /= 0) s%com%force_chrom_calc = .true.
+    if (index(line, 'rad') /= 0) s%com%force_rad_int_calc = .true.
     s%u%calc%lattice = .true.
     call tao_lattice_calc(ok)
   endif
