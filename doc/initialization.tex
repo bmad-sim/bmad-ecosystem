@@ -3785,11 +3785,14 @@ example is show in Figure~\ref{f:phase.space}.  Example Phase Space template:
   curve(1)%y_axis_scale_factor = 1000 !rad->mrad
   curve(1)%data_source = "beam_tracking"
   curve(1)%ele_ref_name = "END"
+  curve(1)%symbol_every = 10
   curve(1)%symbol%type = 1
   curve(1)%z_color%data_type = "pz"
   curve(1)%z_color%is_on = T
   /
 \end{example}
+By setting \vn{%symbol_every} to something greater than 1, only a subset of the particles are used
+for plotting.
 
 For a \vn{"phase_space"} type graph, \vn{curve%data_type_x} determines what phase space coordinate
 is plotted along the x-axis and \vn{curve%data_type} determines what phase space coordinate is
