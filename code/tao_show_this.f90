@@ -5884,8 +5884,11 @@ case ('variables')
   ! v_ptr is valid then show the variable info.
 
   if (n_size == 1) then
-
     v_ptr => v_array(1)%v
+    if (.not. v_ptr%exists) then
+      nl=nl+1; write(lines(nl), *) 'Variable does not exist: ' // tao_var1_name(v_ptr)
+      return
+    endif
 
     nl=nl+1; write(lines(nl), amt)  '%ele_name         = ', quote(v_ptr%ele_name)
     nl=nl+1; write(lines(nl), amt)  '%attrib_name      = ', quote(v_ptr%attrib_name)
