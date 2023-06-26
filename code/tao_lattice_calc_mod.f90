@@ -616,6 +616,7 @@ do
       ie = 1
     endif
     ele => point_to_this_ele (branch%ele(ie), rad_map_save, ele)
+    n_slice = max(1, int(1.01_rp*ele%value(l$) / ds_save))
   endif
 enddo
 
