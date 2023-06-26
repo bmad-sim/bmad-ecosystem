@@ -139,7 +139,7 @@ default_graph%x2%draw_label         = .false.
 default_graph%y2                    = init_axis
 default_graph%y2%major_div          = -1
 default_graph%y2%major_div_nominal  = -1
-default_graph%y2%label_color        = 'blue'
+default_graph%y2%label_color        = null_name$
 default_graph%y2%draw_numbers       = .false.
 default_graph%margin                = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 
@@ -711,7 +711,14 @@ do  ! Loop over plot files
         if (crv%use_y2) then
           grph%y2%draw_numbers = .true.
           grph%y2_mirrors_y = .false.
-          grph%y2%label_color = crv%symbol%color
+        endif
+
+        if (grph%y2%label_color == null_name$) then
+          if (crv%use_y2) then
+            grph%y2%label_color = crv%symbol%color
+          else
+            grph%y2%label_color = 'blue'
+          endif
         endif
 
         ! Set curve line width
