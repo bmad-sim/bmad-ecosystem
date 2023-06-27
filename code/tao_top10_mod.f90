@@ -718,7 +718,7 @@ else
     ! Qualified names can only be used after an expand_lattice command.
 
     if (str(1) /= 'expand_lattice') then
-      str(1:n_line) = str(2:n_line+1)
+      str(2:n_line+1) = str(1:n_line)
       n_line = n_line + 1
       str(1) = 'expand_lattice'
     endif

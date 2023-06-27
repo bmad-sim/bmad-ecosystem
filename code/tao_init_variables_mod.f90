@@ -189,8 +189,8 @@ var_loop: do
   ! Convert to upper case.
 
   do i = lbound(var, 1), ubound(var, 1)
-    call str_upcase (var(i)%attribute, var(i)%attribute)
-    call str_upcase (var(i)%ele_name, var(i)%ele_name)
+    call str_upcase (var(i)%attribute, trim(var(i)%attribute))
+    call str_upcase (var(i)%ele_name, trim(var(i)%ele_name))
     if (logical_is_garbage(var(i)%key_bound)) call transfer_logical(default_key_bound,var(i)%key_bound)
     if (var(i)%key_delta.eq.0d0) var(i)%key_delta = default_key_delta
   enddo
