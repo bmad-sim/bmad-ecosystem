@@ -108,10 +108,9 @@ library, developed at Cornell, for the modeling relativistic charged particles i
 Linacs, as well as modeling photons in x-ray beam lines.
 
 For historical reasons, the \vn{Tao} program (another Bmad based program) is also capable of
-calculating the dynamic aperture. 
-In fact both programs use the same underlying code for the
-aperture analysis. The basic difference is that the \da program is more flexible in terms
-of tracking. For example, the \da program can handle \vn{ramper} elements and track with maps.
+calculating the dynamic aperture.  In fact both programs use the same underlying code for the
+aperture analysis. The basic difference is that the \da program is more flexible in terms of
+tracking. For example, the \da program can handle \vn{ramper} elements and track with maps.
 
 %------------------------------------------------------------------
 \Section{Running the Dynamic Aperture Program} 
@@ -589,8 +588,8 @@ The data output file whose name is set by \vn{dat_file} will look like:
 \begin{code}
 # lat_file              = chess_arc_pretzel_20150106.lat
 # set_rf_off            = T
-# da_param%min_angle    =       0.0
-# da_param%max_angle    =       3.1
+# da_param%min_angle    =  0.0000000
+# da_param%max_angle    =  3.1415926
 # da_param%rel_accuracy =  1.00E-02
 ... etc. ...
 # da_param%n_angle      = 37
