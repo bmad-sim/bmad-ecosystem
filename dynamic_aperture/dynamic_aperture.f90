@@ -95,8 +95,15 @@ if (da_param%start_ele /= '') ltt%ele_start = da_param%start_ele
 
 !
 
-da_param%min_angle = da_param%min_angle * pi / 180
-da_param%max_angle = da_param%max_angle * pi / 180
+if (abs(da_param%max_angle) > 7 .or. abs(da_param%min_angle) > 7) then
+  print *, '!!! da_param%min_angle and da_param%max_angle are not in radians instead of '
+  print *, "!!! degrees to be consistent with Tao's implementation of dynamic aperture."
+  print *, "!!! Please modify the init file appropriately!!!"
+  stop
+endif
+
+!da_param%min_angle = da_param%min_angle * pi / 180
+!da_param%max_angle = da_param%max_angle * pi / 180
 
 ! Print number of threads
 
@@ -110,6 +117,7 @@ ltt_com%track_bypass = .true.
 call ltt_init_params(ltt, ltt_com)
 call ltt_init_tracking(ltt, ltt_com)
 ltt_com%track_bypass = .false.
+ltt%ramp_update_each_particle = .true.    ! Needed since doing single particle tracking
 branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 ! Read in lattice
@@ -142,7 +150,6 @@ endif
 write (1, '(2a)') '# ltt%split_bends_for_stochastic_rad = ' // logic_str(ltt%split_bends_for_stochastic_rad)
 write (1, '(2a)') '# ltt%use_rf_clock                   = ' // logic_str(ltt%use_rf_clock)
 write (1, '(2a)') '# ltt%ramping_on                     = ' // logic_str(ltt%ramping_on)
-write (1, '(2a)') '# ltt%ramp_update_each_particle      = ' // logic_str(ltt%ramp_update_each_particle)
 write (1, '(2a)') '# ltt%ramping_start_time             = ' // real_str(ltt%ramping_start_time, 6)
 write (1, '(2a)') '# ltt%set_beambeam_z_crossing        = ' // logic_str(ltt%set_beambeam_z_crossing)
 write (1, '(2a)') '# ltt%random_seed                    = ' // int_str(ltt%random_seed)
@@ -151,8 +158,8 @@ if (ltt%random_seed == 0) then
 endif
 write (1, '(2a)') '# ltt%rfcavity_on                    = ' // logic_str(ltt%rfcavity_on)
 write (1, '(2a)') '# is_RF_on                           = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?'
-write (1, '(a, f10.1)')  '# da_param%min_angle      =', da_param%min_angle
-write (1, '(a, f10.1)')  '# da_param%max_angle      =', da_param%max_angle
+write (1, '(a, f10.6)')  '# da_param%min_angle      =', da_param%min_angle
+write (1, '(a, f10.6)')  '# da_param%max_angle      =', da_param%max_angle
 write (1, '(a, es10.2)') '# da_param%rel_accuracy   =', da_param%rel_accuracy
 write (1, '(a, es10.2)') '# da_param%abs_accuracy   =', da_param%abs_accuracy
 write (1, '(a, f10.5)')  '# da_param%x_init         =', da_param%x_init
