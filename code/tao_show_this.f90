@@ -586,6 +586,9 @@ case ('beam')
     nl=nl+1; write(lines(nl), imt)  '  Particles surviving:        ', n_live
     nl=nl+1; write(lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
     nl=nl+1; write(lines(nl), f3mt) '  Particles lost (%):         ', 100 * real(n_tot - n_live) / n_tot
+    nl=nl+1; write(lines(nl), imt)  '  Good steps:                 ', bunch_p%n_good, '    ! Set when tracking with space charge.'
+    nl=nl+1; write(lines(nl), imt)  '  Bad steps:                  ', bunch_p%n_bad,  '    ! Set when tracking with space charge.'
+
     if (branch%param%particle == photon$) then
       nl=nl+1; write(lines(nl), rmt)  '  Intensity:                  ', &
                         bunch_p%centroid%field(1)**2 + bunch_p%centroid%field(2)**2
