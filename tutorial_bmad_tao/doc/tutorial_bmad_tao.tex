@@ -76,7 +76,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ October 8, 2022}
+\date{David Sagan and Chris Mayes \\ June 29, 2023}
 
 \begin{document}
 
@@ -1452,6 +1452,1168 @@ To save on typing, alias commands may be defined. Define an alias command called
 typing ``\vn{setit 1e-6}'' is equivalent to ``\vn{set ele q vkick = 1e-6}''. Hint: Look in the
 manual or type ``\vn{help alias}'' to get more information on setting and using alias commands.
 Note: Do not confuse \tao alias commands with the alias string component of a lattice element.
+\end{enumerate}
+
+\newpage
+
+%------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
+\Section{Optimization with Tao}
+\label{s:optimization}
+
+%----------------------------------------------------------
+\subsection{What is Optimization?}
+\label{s:opt.what}
+
+``Optimization'' is the process of varying (model) lattice parameters to create a lattice with a
+certain set of properties as close to a ``desired'' state as possible. Optimization is covered in
+detail in the ``Optimization: Lattice Correction and Design'' chapter in the \tao manual.
+
+Optimization problems generally fall into one of two categories. One category involves ``lattice
+design'' where lattice parameters are varied to achieve some set of ideal properties. For example,
+varying sextupole magnet strengths in order to give maximum dynamic aperture.
+
+The other category of optimization problems involves ``lattice correction''. Problems in this
+category involve matching the \vn{model} lattice to actual measured data.  For example, orbit
+flattening involves varying steering in the \vn{model} lattice so that the orbit calculated from the
+\vn{model} lattice matches as close as possible the measured orbit. The steering strengths in the
+\vn{model} lattice can then be used to calculate what changes are needed to correct the orbit
+as discussed section~\sref{s:cor.orbit}. 
+
+An example of lattice design is given below. An example of lattice correction is given in
+Chapter~\sref{s:opt.cor}.
+
+%----------------------------------------------------------
+\subsection{Optimization Overview and the Merit Function}
+\label{s:opt.overview}
+
+Optimization involves ``\vn{data}'' and ``\vn{variables}''. \vn{Data} are the parameters to be
+optimized.  For example, orbit positions when flattening an orbit or the value of beta at the
+interaction point when designing a lattice. \vn{Variables} are what is to be varied which can be
+steering strengths, magnet positions, etc. 
+
+Each datum has a set of associated parameters. For example, each datum has ``\vn{model}'' and
+``\vn{design}'' values which is the value of the datum as calculated from the \vn{model} and
+\vn{design} lattices. Each datum also has a ``\vn{measured}'' value which is set by the User. This
+value can be from an actual measurement which is typical when doing lattice correction or may be the
+desired value of the datum which is typical when doing lattice design. This is further discussed in
+section \sref{s:data}. 
+
+Like datums, each variable has a number of associated parameters. For example, each variable has a
+``\vn{model}'' value which controls the corresponding value or values (a variable can control
+multiple parameters simultaneously) in the \vn{model} lattice. There are also ``\vn{low_lim}'' and
+``\vn{high_lim}'' values that can be set by the user that are used to keep the variable \vn{model}
+value within a given range. This is further discussed in section \sref{s:var}.
+
+Optimization involves minimizing one or more ``objectives'' or ``merit functions''. \tao itself
+implements ``single objective'' optimization. For ``multiple objective'' optimization, there is a
+separate program called \vn{moga} that can be used (\sref{s:programs}). The general form of the
+merit function \vn{M} in \tao is
+\begin{equation}
+  {\cal M} \equiv 
+    \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
+    \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
+  \label{m1}
+\end{equation}
+where the first sum is a sum over the \vn{data} and the second sum is a sum over the
+\vn{variables}. The $w_i$ and $w_j$ are weights specified by the user and the $\delta D_i$ and
+$\delta V_j$ are functions of the data and variables. The merit function is discussed in depth in
+Chapter~\extref{T-c:opti} in the \tao manual.
+
+The form of the $\delta D_i$ can be different for each datum and similarly the form of $\delta V_j$
+can be different for each variable and will be illustrated below in the example optimization.
+
+There are several different optimizers that can be used with \tao. The one optimizer that is good
+for finding global merit function minima is the \vn{de} (differential evolution) optimizer. All of
+the others are good for finding local minima.
+
+%----------------------------------------------------------
+\subsection{Lattice Design Example: Initialization}
+\label{s:opt.files}
+
+An example of lattice design is given in the following section. For a lattice correction example, see 
+chapter~\sref{s:opt.cor}.
+
+The files used to illustrate lattice design optimization are in the directory 
+\begin{code}
+bmad-doc/tutorial_bmad_tao/lattice_files/lattice_optimization
+\end{code}
+Copy these files to your working directory. Here the main initialization file is named
+\vn{tao.init}. Since this is the default name for initialization files (\sref{s:init.file}), and
+since the \vn{tao.init} file contains the name of the lattice file, \tao can be started without the
+\vn{-lat} option (\sref{s:tao.run}).
+
+There are four files here:
+\begin{lstlisting}[mathescape]
+$\textbf{lat.bmad}$               ! Lattice file.
+$\textbf{tao.init}$               ! Primary Tao initialization file. Includes plotting setup.
+$\textbf{setup.tao}$               ! Command file run at startup.
+$\textbf{optimized_var.out}$         ! Output optimized values
+\end{lstlisting}
+
+The file \vn{tao.init} is the main initialization file (\sref{s:init.file}). The file is divided
+into three parts. The first part sets some general parameters while the next two sections setup data
+\sref{s:data} and variable \sref{s:var} lists.
+\begin{code}
+&tao_start
+  startup_file = "setup.tao"
+/
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1)%file = "lat.bmad"
+/
+
+&tao_plot_page
+  plot_page%size = 500, 400
+  place(1) = "layout", "lat_layout"
+  place(2) = "r12", "beta"
+  place(3) = "r22", "key"
+/
+\end{code}
+Namelist format is used as explained in Section~\sref{s:init.file}. A single \vn{universe} will be
+used (\sref{s:multi.uni}) and the lattice file name for the universe is ``\vn{lat.bmad}''. The
+command file ``\vn{setup.tao}'' will be run after all other initialization is complete.
+
+The \vn{tao_plot_page} namelist sets some plotting parameters. The setting of \vn{plot_page%size}
+overrides the default size of the plot window and the \vn{place(1)}, \vn{place(2)}, and \vn{place(3)}
+settings define initial placement of plots (\sref{s:disp.plot}).
+
+The startup command file \vn{setup.tao} defines an \vn{alias} commands:
+\begin{code}
+alias opt run lm
+\end{code}
+This defines the command ``\vn{opt}'' to be equivalent to ``\vn{run lm}''. The \vn{run} command
+starts optimization and the ``\vn{lm}'' option specifies the Levenburg-Marquardt optimizer which is
+a good optimizer for finding a local minimum. See the \vn{Tao Commands} chapter in the \tao manual
+for more details.
+
+%----------------------------------------------------------
+\subsection{Data in Tao}
+\label{s:data}
+
+In order to optimize, you must tell Tao what \vn{data} will contribute to the merit function. A
+detailed description on how to do this is given in the ``\vn{Data}'' chapter of the \tao manual.
+
+The data that is used in the present example is defined in the middle section of the \vn{tao.init}
+file:
+\begin{code}
+&tao_d2_data
+  d2_data%name = "twiss"
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "a"
+  datum(1) =  "beta.a"     "" "" "END"   "target"  12.0   1e1
+  datum(2) =  "alpha.a"    "" "" "END"   "target" -0.4    1e2
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "b"
+  datum(1) =  "beta.b"     "" "" "END"   "target"  12.0   1e1
+  datum(2) =  "alpha.b"    "" "" "END"   "target" -0.4    1e2
+/
+\end{code}
+
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=0.90\textwidth]{data-tree.pdf}
+  \caption{
+Data is grouped into a three level tree. A \vn{d2_data} structure holds a set of \vn{d1_data}
+structures. A \vn{d1_data} structure holds an array of \vn{datums}.}
+  \label{f:data.tree}
+\end{figure}
+
+In general, the \vn{data} is grouped into a three level tree as illustrated in
+Figure~\ref{f:data.tree}. Nodes at the the highest level are instances of what is called
+\vn{d2_data} structures. For example, a \vn{d2_data} structure may be setup to hold \vn{orbit} data.
+In the present case, there is a single \vn{d2_data} structure named ``\vn{twiss}''. 
+
+A \vn{d2_data} structure will hold an array of one or more \vn{d1_data} structures. For example, a
+\vn{orbit} \vn{d2_data} structure may hold ``\vn{x}'' and \vn{y}'' \vn{d1_data} structures which
+represent horizontal and vertical orbit data. In the present case, the \vn{twiss} \vn{d2_data}
+structure has two \vn{d1_data_structures} named ``\vn{a}'' and ``\vn{b}'' representing the two
+transverse normal modes of oscillation. The syntax to refer to a particular \vn{d1_data} structure
+is:
+\begin{code}
+  d2-data-name.d1-data-name
+\end{code}
+So with the above example, the \vn{a} structure would be referred to as \vn{twiss.a} .
+
+A \vn{d1_data} structure will hold an array of one or more \vn{datum} structures. For example, the
+\vn{x} \vn{d1_data} structure contained in an \vn{orbit} \vn{d2_data} structure may be setup with an
+array of datums, one for each beam position monitor in the machine, with each datum representing a
+horizontal orbit measurement at a specified BPM. In this case, both \vn{a} and \vn{b} \vn{d1_data}
+structures hold two datums, one representing {\textbeta} and {\textalpha} Twiss values.  To refer to
+an individual \vn{datum} use the syntax:
+\begin{code}
+  d2-data-name.d1-data-name[datum-index]
+\end{code}
+where \vn{datum-index} is the index for the datum. So with the above example, the first datum in
+\vn{twiss.a}, which is the \vn{a}-mode {\textbeta}, would be referred to as \vn{twiss.a[1]} .
+
+An individual \vn{datum} is structure that has a number of components. With the present
+\vn{tao.init} file, seven components of each datum are set. These components are, in order:
+\begin{code}
+data_type       ! Type of data: "orbit.x", etc.
+ele_ref_name    ! Name of reference lattice element
+ele_start_name  ! Name of starting lattice element when there is a range
+ele_name        ! Name of the lattice element where datum is evaluated.
+merit_type      ! Type of constraint: "target", "max", "min", etc.
+meas            ! Measured datum value.
+weight          ! Weight for the merit function term
+\end{code}
+Thus for the \vn{twiss.b[2]} datum which is set on the line:
+\begin{code}
+  datum(2) =  "alpha.b"    "" "" "END"   "target" -0.4    1e2
+\end{code}
+The \vn{data_type} component is set to ``\vn{alpha.b}'' [For a list of data types that \tao
+recognizes, see the \vn{Tao Data Types} section (\extref{T-s:data.types}) of the \vn{Data} chapter
+of the \tao manual.], the \vn{ele_ref_name} and \vn{ele_start_name} are set to the blank
+string. These parameters are not used in the present example.
+
+The \vn{ele_name} component for \vn{twiss.b[2]} is set to ``\vn{END}'' which is where the datum is
+to be evaluated. Since the \vn{merit_type} is set to \vn{target}, this means that $\delta D$ in
+\Eq{m1} is evaluated using the equation
+\begin{lstlisting}[mathescape]
+$\delta D$ = model - meas
+\end{lstlisting}
+where \vn{model} is the value as calculated from the \vn{model} lattice and \vn{meas} is the
+``\vn{measured}'' value as set on the datum line. For \vn{twiss.b[2]}, \vn{meas} is set to -0.4.
+Also the weight $w$ for \vn{twiss.b[2]} is set to 100.  Thus if the model b-mode alpha function is, say,
+1.0 at element \vn{END}, then this datum would contribute $100*(1.0 - 0.4)^2$ to the merit function.
+
+Start \tao (remember, no \vn{-lat} argument needed). The \vn{d2_data} structures can be shown with
+the command \vn{show data}:
+\begin{code}
+Tao> show data
+
+  Name                                 Using for Optimization
+  twiss.a[1:2]                                   Using: 1:2
+  twiss.b[1:2]                                   Using: 1:2
+\end{code}
+
+To see a list of datums for an individual \vn{d1_data} structure append the \vn{d1_data} name after \vn{show data}.
+For example:
+\begin{code}
+Tao> show data twiss.b
+Data name: twiss.b
+                    ...                                           |   Useit
+                    ...  Ele         Meas       Model      Design | Opt  Plot
+1  beta.b <target>  ...  END    1.200E+01   9.292E+00   9.292E+00     T     F
+2  alpha.b <target> ...  END   -4.000E-01  -4.427E-01  -4.427E-01     T     F
+                    ...  Ele         Meas       Model      Design | Opt  Plot
+                    ...                                           |   Useit
+\end{code}
+
+To see the parameters of an individual datum append the datum name after \vn{show data}.
+For example:
+\begin{code}
+Tao> show data twiss.a[2]
+
+%ele_name          = END
+... etc...
+%data_type         = alpha.a
+... etc...
+%model             =  -4.42701763E-01
+%design            =  -4.42701763E-01
+... etc...
+%good_model        = T
+%good_design       = T
+%good_base         = T
+%good_meas         = T
+%good_ref          = F
+%good_user         = T
+%good_opt          = T
+%good_plot         = F
+%useit_plot        = F
+%useit_opt         = T
+\end{code}
+The \vn{useit_opt} logical indicates whether the datum will be used when the merit function is
+evaluated. For example, if the \vn{meas} value has not been set, \tao will set \vn{good_meas} to
+False and this will cause \tao to set \vn{useit_opt} to False. The user also as control as to whether
+a datum will be used in optimization and this is controlled by setting the \vn{good_user} component.
+The commands that control this are \vn{use}, \vn{veto} and \vn{restore}. Example:
+\begin{code}
+Tao> veto data twiss.a
+  twiss.a[1:2]                                   Using:
+  twiss.b[1:2]                                   Using: 1:2
+\end{code}
+In this example the two \vn{twiss.a} datums have been vetoed. It can be checked that the \vn{twiss.a} datums
+now have their \vn{good_user} components set to False.
+
+Notice that it does not matter to the optimization process how data is divided into \vn{d1_data} and
+\vn{d2_data} groups. It is only a matter of convenience to the user. Also a given \vn{d1_data} group
+of data does not have to contain data of a single type. Thus the \vn{twiss.a} datums include both
+\vn{beta} and \vn{alpha} type data.
+
+%----------------------------------------------------------
+\subsection{Variables in Tao}
+\label{s:var}
+
+In order to optimize, you must tell Tao what \vn{variables} you want to vary to minimize the merit
+function. A detailed description on how to construct \vn{variables} is given in the ``Variables''
+chapter of the \tao manual.
+
+The variables that are used in the present example are defined in the bottom section of the
+\vn{tao.init} file:
+\begin{code}
+&tao_var
+  v1_var%name = "quad"
+  search_for_lat_eles = "Quad::*"
+  default_step = 1e-4
+  default_attribute = "k1"
+  default_merit_type = "limit"
+  default_low_lim = -50
+  default_high_lim = 50
+  default_weight = 1
+  ix_min_var = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+/
+\end{code}
+Just like \vn{data}, \vn{variables} are grouped into a two level tree as illustrated in
+Fig.~\ref{f:var.tree}.  The top level nodes of the tree are called \vn{v1_var} structures. In this
+example a \vn{v1_var} structure is defined called \vn{quad} which controls the \vn{k1} attribute of
+all element whose name matches \vn{quad::*}. This will match to all quadrupoles. In this case, the
+lattice has 6 quadrupoles named \vn{Q1} through \vn{Q6}. Thus there will be an array of 6
+\vn{variables} associated with the \vn{quad} \vn{v1_var} structure.
+
+%----------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.90\textwidth]{var-tree.pdf}
+  \caption{
+Variables are grouped into a two level tree. A \vn{v1_var} structure holds an array of
+\vn{variables}. Illustrated is a \vn{var_var} structure holding an array of variables with each
+variable controlling the \vn{hkick} attribute of a particular lattice element.}
+  \label{f:var.tree}
+\end{figure}
+
+%----------------------------------------------------------
+
+To refer to an individual variable use the syntax:
+\begin{code}
+v1-var-name[var-index]
+\end{code}
+where \vn{var-index} is the index of the variable. For example, the first variable in the \vn{quad}
+structure is \vn{quad[1]}.
+
+The parameters like \vn{default_step} in the above namelist establish a default value for the
+\vn{step} attribute of each variable that is created for the \vn{quad} structure. The \vn{step}
+attribute is used by \tao to calculate derivatives that are used by some of the optimizers.
+Essentially, to calculate derivatives, \tao varies the variable by $\pm$\vn{step} and looks at the
+changes in the \vn{data}. Like many attributes associated with \vn{optimization} it is important
+that the \vn{step} attribute be set properly. To small a setting and round-off error can throw off
+the derivative calculation. On the other hand, if the value of \vn{step} is too large,
+nonlinearities can throw off the calculation.
+
+The \vn{weight} of a variable sets the value of $w_j$ in \Eq{m1}. Since the \vn{merit_type} in this case
+is \vn{limit}, the $\delta V$ used in the merit function is:
+\begin{equation}
+  \delta V = 
+    \begin{cases}
+    \mbox{model} - \mbox{high\_lim}  & \mbox{model} > \mbox{high\_lim} \\
+    \mbox{model} - \mbox{low\_lim}   & \mbox{model} < \mbox{low\_lim} \\
+    0                                & \mbox{Otherwise}
+    \end{cases}
+\end{equation}
+That is, the contribution to the merit function will be zero if the value of the variable is between
+\vn{low_lim} and \vn{high_lim} which in this case is -50 and 50.
+
+Running \tao, the \vn{v1_var} structures can be shown with the command \vn{show variable}: 
+\begin{code}
+Tao> show var
+       Name                                      Using for Optimization
+    quad[1:6]                                    1:6
+\end{code}
+
+To see a list of individual variables of a given \vn{v1_var} structure, append the \vn{v1_var}
+name to the \vn{show variable} command:
+\begin{code}
+Tao> sho var quad
+Variable name:  quad
+
+ Index  Controlled Attribs(s)    Meas         Model        Design  Useit_opt
+     1  Q1[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     2  Q2[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     3  Q3[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     4  Q4[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     5  Q5[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+     6  Q6[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
+ Index  Controlled Attribs(s)    Meas         Model        Design  Useit_opt
+\end{code}
+
+To see the parameters of an individual variable, append the variable name to the \vn{show var}
+command. Example:
+\begin{code}
+Tao> sho var quad[2]
+%ele_name         = Q2
+%attrib_name      = K1
+... etc...
+%exists           = T
+%good_var         = T
+%good_user        = T
+%good_opt         = T
+%useit_opt        = T
+... etc...
+\end{code}
+The \vn{useit_opt} logical indicates whether the variable will be used in the optimization process.
+The user has some control as to whether a variable will be used in optimization and this is controlled
+by setting the \vn{good_user} component. The commands that control this are \vn{use}, \vn{veto} and
+\vn{restore}. Example:
+\begin{code}
+Tao> veto var quad[4]
+  quad[1:6]                                      Using: 1:3 5:6
+\end{code}
+
+Variable properties can also be changed within Tao. For example, 
+\begin{code}
+Tao> set var quad[1:4]|low_lim = -1
+\end{code}
+will set the lower limit for the first four quads.
+
+Notice that, like data, it does not matter to the optimization process how variables are divided
+groups. It is only a matter of convenience to the user. Also a given \vn{v1_var} instance, the array
+of associated \vn{variables} does not all have to be of a single type.
+
+If you want to have one \tao \vn{variable} control a set of parameters, construct an \vn{overlay} or
+\vn{group} element (\sref{s:control}) and then have the \tao variable control the overlay or
+group. For example, the following overlay gangs the \vn{k1} parameters of elements \vn{Q1} and
+\vn{Q3} together:
+\begin{code}
+ps1: overlay = {Q1, Q3}, var = {k1}, k1 = 0.8
+\end{code}
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=5in]{keyboard.pdf}
+  \caption
+{Ten pairs of keys on the keyboard are bound to ten variables so that pressing a key of a given pair
+will either increment or decrement the associated variable. The first key pair bound to variable
+number 1 are the \vn{1} and \vn{Q} keys, etc.}
+  \label{f:keyboard}
+\end{figure}
+
+%----------------------------------------------------------
+\subsection{Key Bindings}
+\label{s:key.bound}
+
+Tao has two modes for entering commands. In \vn{single mode}, each keystroke represents a command.
+That is, with a few exceptions, the user does not have to press the carriage control key to signal
+the end of a command. This is to be contrasted with \vn{line mode}, which you have been using up to
+now, where \tao waits until the return key is depressed to execute a command. \vn{single mode} is
+useful for quickly varying parameters to see how they affect a lattice but the number of commands in
+single mode is limited. \vn{Single mode} is covered in detail in the ``Single Mode'' chapter in the
+\tao manual.
+
+The main purpose of \vn{single mode} is to associate certain keyboard keys with certain variables so that
+the pressing of these keys will change their associated model value of the variable. This is called
+a \vn{key binding} and is illustrated in Figure~\ref{f:keyboard}.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[t]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{opt0.pdf}
+    \caption{Initial plot window showing the initial beta functions.}
+    \label{f:opt0}
+  \end{subfigure}
+  \hfil
+  \begin{subfigure}[t]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{opt1.pdf}
+    \caption{Plot window after optimization showing the optimized beta functions.}
+    \label{f:opt1}
+  \end{subfigure}
+  \caption{}
+\end{figure}
+
+Start \tao using the example optimization files (\sref{s:opt.files}) or use the \vn{reinit tao}
+command to reinitialize \tao. The plot window should look like Figure~\ref{f:opt0}. The
+\vn{key_table} plot in the middle shows what variables (\sref{s:var}) have been bound to what
+keyboard keys. In this instance the \vn{quad[1]} variable is bound so that pressing the ``1'' key
+will change \vn{quad[1]} by +\vn{delta}, and pressing the ``q'' key will change \vn{quad[1]} by
+-\vn{delta}.  Pressing the shift key when pressing the ``1'' or ``q'' keys will change \vn{quad[1]}
+by \vn{+10}$\times$\vn{delta} and \vn{-10}$\times$\vn{delta} respectively. Similarly, the \vn{quad[2]}
+variable is bound to the \vn{2} and \vn{w} keys, etc.
+
+Single mode and key bindings are useful for getting a feel for how variables affect the lattice. Get
+into single mode by issuing the \vn{single_mode} command. Play around with varying variables. To
+get out of single mode press capital \vn{Z}.
+
+\newpage
+
+%----------------------------------------------------------
+\subsection{Running an optimization}
+\label{s:opt.run}
+
+Start \tao using the example optimization files (\sref{s:opt.files}) or use the \vn{reinit tao}
+command to reinitialize \tao. The plot window should look like Figure~\ref{f:opt0}. 
+
+To see what data and what variables are being used in the optimization, use the \vn{show data} and
+\vn{show variables} commands as illustrated above or use the \vn{show optimizer} command:
+\begin{code}
+Tao> show opti
+Data Used:
+  twiss.a[1:2]                                   Using: 1:2
+  twiss.b[1:2]                                   Using: 1:2
+Variables Used:
+  quad[1:6]                                      Using: 1:6
+
+optimizer:        lm
+Global optimization parameters (use "set global" to change):
+  %de_lm_step_ratio              =   1.00000000E+00
+  %de_var_to_population_factor   =   5.00000000E+00
+  %lm_opt_deriv_reinit           =  -1.00000000E+00
+  %lmdif_eps                     =   9.99999996E-13
+  %merit_stop_value              =  -1.00000000E+00
+  %svd_cutoff                    =   9.99999975E-06
+... etc...
+\end{code}
+There are many parameters associated with optimization and it is important to carefully consider
+what values these parameters have in order to be able to have a successful optimization.
+
+To see what the biggest contributions to the merit function
+are use the \vn{show top10} command:
+\begin{code}
+Tao> show top
+
+Constraints                   ...   Ele/S     Target      Value      Merit  
+twiss.b[1]  beta.b <target>   ...   END       1.200E+01   1.513E+01  9.82E+01
+twiss.a[1]  beta.a <target>   ...   END       1.200E+01   9.292E+00  7.33E+01
+twiss.b[2]  alpha.b <target>  ...   END      -4.000E-01  -2.527E-01  2.17E+00
+twiss.a[2]  alpha.a <target>  ...   END      -4.000E-01  -4.427E-01  1.82E-01
+quad[6]     Q6[K1]            ...   3.80     -5.000E+01  -1.000E+00  0.00E+00
+quad[5]     Q5[K1]            ...   3.30      5.000E+01   1.000E+00  0.00E+00
+... etc...
+
+ figure of merit: 1.738388E+02
+
+List of non-zero contributors to the Merit Function:
+Name                           Merit           Sigma [= sqrt(Chi^2/N)]
+twiss.b                        1.0034E+02      2.2179E+00
+twiss.a                        7.3499E+01      1.9149E+00
+\end{code}
+This shows, among other things, that the value of the merit function is 173.8 and that the largest
+contributor to the merit function is \vn{twiss.b[1]} which has a contribution of 98.2 which is over
+50\%.
+
+To run, say, the \vn{lm} optimizer use the \vn{run lm} command. In this case, this command
+has been aliased to the \vn{opt} command by the \vn{setup.tao} command file that was run
+at initialization (\sref{s:opt.files}):
+\begin{code}
+Tao> opt
+Optimizing with: lm
+Type ``.'' to stop the optimizer before it's finished.
+[INFO] tao_dmodel_dvar_calc:
+    Remaking dModel_dVar derivative matrix.
+    This may take a while...
+
+  Cycle      Merit   A_lambda
+    1    5.4532E-01  1.00E-04
+    2    8.7067E-02  1.00E-05
+... etc...
+   19    3.5034E-04  1.00E-22
+   20    2.9333E-04  1.00E-23
+Written: var1.out
+   21    2.9333E-04  0.00E+00
+\end{code}
+The optimization has managed to reduce the merit function from to 2.9E-4 or about six orders of
+magnitude. Further reductions in the merit function can be had by running the optimizer
+repeatedly. At the end of optimization, \tao creates a file \vn{var1.out} which contains the
+optimized variable values:
+\begin{code}
+ Q1[K1] =   7.76217267682967E-01
+ Q2[K1] =  -1.40330956873957E+00
+ Q3[K1] =   8.78773428675319E-01
+ Q4[K1] =  -1.07943627873167E+00
+ Q5[K1] =   1.29072113653010E+00
+ Q6[K1] =  -4.57469896955973E-01
+... etc...
+\end{code}
+This file should be virtually identical to the \vn{optimized_var.out} file (\sref{s:opt.files}). The
+format of this file conforms to \bmad lattice file syntax so this file can be used to create a
+lattice with the optimized values. One way to form a lattice with optimized values is to create a
+new lattice file that calls the original lattice and \vn{var1.out}. That is, the new file would look
+like:
+\begin{code}
+call, file = lat.bmad
+call, file = var1.out
+\end{code}
+
+Note: At any time to print in Bmad format the variable values used in the optimization use the command:
+\begin{code}
+show var -bmad -good
+\end{code}
+To save directly to a file, add the write option:
+\begin{code}
+show -write solution.bmad var -bmad -good
+\end{code}
+
+\newpage
+
+%----------------- 
+%%\subsection{Exercises [Answers in Section \sref{s:ans.opt}]}
+\subsection{Exercises}
+\label{s:opt.ex}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.8\textwidth]{building-wall.pdf}
+  \caption{
+Optimization to keep a machine within existing building walls. A) Initial setup. The end of the machine (a
+1~meter long dipole) is outside the walls (red and green semi circles). B) After optimization the machine is
+safely inside the walls.}
+  \label{f:b.wall}
+\end{figure}
+
+\begin{enumerate}[label=\thesection.\arabic{enumi}]
+%------------------------
+\item
+\label{s:opt.ex1}
+Start with the files in \vn{bmad-doc/tutorial_bmad_tao/lattice_files/lattice_optimization}. Change
+all the quadrupole strengths to zero in \vn{lat.bmad} and change the alpha Twiss \vn{meas} targets
+to -1. Now run with the \vn{opt} command and verify that the optimizer does not not find a good
+solution! Why is this? The problem is that the good solutions (and there is more than one) are
+outside of the local minimum that the optimizer is stuck in. 
+Note: To easily reset the lattice use the command:
+\begin{code}
+set lattice model = design
+\end{code}
+%
+\item
+Start with the situation in Exercise~\ref{s:opt.ex1} and find a good solution by first using
+\vn{single mode} to vary the quadrupole strengths to find an approximate solution. Then run the
+\vn{lm} optimizer to polish the results. This is a general strategy, often there is no single method
+that will work so a combination of methods is what is needed.
+%
+\item
+Start with the situation in Exercise~\ref{s:opt.ex1} and find a good solution by first using the
+\vn{de} optimizer which can find global minimums. Then run the \vn{lm} optimizer to polish the
+results. Warning: Success here depends upon finding the right \vn{de} parameter settings to
+use. This will take some thought and experimentation so successful completion of this exercise will
+not be quick.
+%
+\item
+This exercise shows how to do an optimization with a constraint that the machine stay within
+existing building walls. If you get stuck, a working example can be viewed in the
+directory:
+\begin{code}
+bmad-doc/tutorial_bmad_tao/lattice_files/building_wall_optimization
+\end{code}
+
+\begin{enumerate}
+\item
+Construct a lattice with a single element which is a 1~meter long bend with zero bend angle.
+\item
+Setup a \tao input file that defines two building wall sections as shown in
+Figure~\ref{f:b.wall}A. The sections are two circular arcs of radius 0.8~meters and 1.2~meters.
+\item
+Setup two datums: \vn{wall[1]} and \vn{wall[2]}. The first datum constrains the end of the lattice
+to be to the inside of the outside (left) wall with a 0.1~meter clearance. The second datum constrains
+the end of the lattice to be to the outside of the inside (right) wall with a 0.1~meter clearance.
+\item
+Setup a variable to vary either the \vn{g} or \vn{angle} component of the bend.
+\item
+Run the \vn{lm} optimizer to produce Figure~\ref{f:b.wall}B. Voila! The machine is within the walls with
+the desired clearance.
+\item
+When you startup \tao and the dipole is unbent, you should get the warning:
+\begin{code}
+[WARNING] tao_init:
+    DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: wall[2]
+       INVALID SINCE: No wall section found in the transverse plane
+                      of the evaluation point.
+\end{code}
+Explain why you are getting this warning. Also explain why this warning goes away when the dipole
+gets bent enough. [Hint: Read carefully the description of how the datum value is computed.] Note
+that not being initially able to compute a model value does not hinder the optimization.
+\end {enumerate}
+
+\end{enumerate}
+
+\newpage
+
+%------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
+\Section{Lattice Correction (Including Orbit Correction)}
+\label{s:opt.cor}
+
+The previous chapter (\sref{s:opt.what}) discussed optimization and, in particular, how optimization
+could be used for ``lattice design'' type problems. This chapter discusses ``lattice correction''
+type optimization. In particular, this chapter shows how to calculate corrections to correct the
+Twiss parameters using measured orbits. It is assumed that the reader is familiar with the material
+in the previous chapter.
+
+Side note: With an actual machine, calculating corrections is only one step in the correction
+process. Also needed is the ability to take data and the ability to load corrections. The object
+oriented nature of \tao's design makes it relatively straightforward to implement machine
+communication within \tao itself. This allows \tao to act as an ``online model'' for the machine
+control system. Programming with \bmad and \tao is outside of the scope of this tutorial and the
+reader is referred to the appropriate sections of the \bmad and \tao manuals.
+
+%------------------------------------------------------------------------------
+\subsection{Correcting the Orbit}
+\label{s:cor.orbit}
+
+Before discussing Twiss parameter correction, consider the simpler case of correcting the orbit. The
+\vn{design} lattice will represent the state we want the machine to be in. Typically, the orbit in
+the \vn{design} lattice will be zero but that is not a necessary condition. The analysis starts
+with an orbit measurement. By varying steerings in the \vn{model} lattice, the orbit, as calculated
+in the \vn{model}, can be fit to the measured orbit.\footnote
+  {
+Typically, the measured orbit in a machine with a closed geometry (EG storage ring) will be the
+closed orbit while the orbit in an open geometry machine (EG Linac) will be the orbit as measured
+with the beam starting from some initial position. In the open geometry case, varying the initial
+position in the model lattice along with steerings may be necessary to fit the orbit.
+  }
+If the fit is good, the orbit is corrected in
+the machine by changing the actual steering strengths $K_{actual}$ by an amount $dK$ given by
+\begin{equation}
+  dK_{i} = K_{i}^{(design)} - K_{i}^{(model)}
+  \label{dkkk}
+\end{equation}
+where $i$ denotes the $i$\th steering, and $K_{i}^{(design)}$ and $K_{i}^{(model)}$ are the
+\vn{design} and \vn{model} values for the steering strengths respectively. Typically, the
+\vn{design} steering strengths are zero but that is not necessary for the analysis.
+
+\Eq{dkkk} is derived using the following logic: Once a fit to the measured data has been made, the
+\vn{model} represents the actual state of the machine. On the other hand, the desired state is
+represented by the \vn{design} lattice. Thus the difference $K_{i}^{(design)} - K_{i}^{(model)}$
+represents ``desired - actual'' so the final state of the steering magnets after correction will be
+\begin{code}
+  Final_State = Initial_State + Change
+              = Actual_State + (Desired_State - Actual_State)
+              = Desired_State
+\end{code}
+There are a few points that should be kept in mind here. First, it does not matter to the
+correction whether the deviations of the orbit from the ideal are caused by steering strength errors
+or other errors such as dipole rolls or quadrupole offsets. To the extent that the measured orbit
+can be well fit determines the extent to which the orbit can be corrected. For example, if an unwanted
+kick is generated by some element at a spot that is far from any correctors, it will not be possible
+to fit the measured orbit well and it will not be possible to make a good correction. If, on the
+other hand, an unwanted kick is generated next to one corrector, the measured orbit can be well fit
+and the \vn{model} lattice will have a strength change from the \vn{design} for that one
+corrector. Varying that one corrector can then cancel out the unwanted kick.
+
+Another point is that the correction algorithm will work with varying any set of parameters as long
+as the variation in the parameters affect the \vn{model} data. Thus an analysis can be made using
+dipole rolls and/or quadrupole offsets as variables or any combination thereof. If the fit is good,
+rolling the dipoles and moving the quadrupoles will correct the orbit. With \tao, the User has
+complete freedom to vary any parameters in the fitting process.
+
+A third point is that the fitting process is independent of the strengths of the parameters in the
+\vn{design} lattice. That is, the fit involves the actual machine state independent of what the
+desired state is. It is not until the values needed for the correction are computed that the
+parameter strengths in the \vn{design} lattice come into play. 
+
+Typically, at the start of the fit, the \vn{model} lattice is, by default, equal to the \vn{design}
+lattice but this is not necessary. Generally, the actual machine state is near enough to the
+\vn{design} machine state so that the machine will behave roughly linearly with the variation in the
+parameters (typically, if the machine parameters are far from the design values, it will not be
+possible to store beam to take a measurement in the first place). This means that there will be only
+one minimum merit function state so that the parameter values (steering strengths in this case) at
+the end of the fit are independent of the starting state. To put this in other terms, the User
+generally does not have to worry about the initial state of the \vn{model} at the start of a
+fit. This is in contrast to the lattice design example in chapter~\sref{s:optimization}. With
+lattice design, there are typically many local minima and it can take days of work to find a good
+operating point. With lattice correction, on the other hand, the near linear nature of the problem
+means that finding a solution in a machine with hundreds of correctors and hundreds of BPM readings
+can be done in seconds.
+
+%------------------------------------------------------------------------------
+\subsection{Twiss Parameters Correction}
+\label{s:twiss.cor}
+
+As mentioned in the previous section, with \tao, the User has complete freedom to fit to any
+arbitrary set of lattice parameters. \tao also gives the User complete freedom to optimize using any
+arbitrary collection of data. In particular, as discussed below, by varying quadrupole strengths to
+fit a multiple orbit data sets taken with multiple steering strength settings allows correction of
+the Twiss parameters.
+
+One way to correct Twiss parameters is to vary, one-by-one, the steerings in the machine and for
+each varied steering, take before and after orbits. By fitting the measured orbit differences using
+the \vn{model} quadrupole strengths, the strengths of the quadrupoles can be determined. With this,
+the difference between the \vn{model} quadrupole strengths and the \vn{design} strengths gives the
+needed quadrupole corrections. See \Eq{dkkk} where, in this case, the $K$'s represent quadrupole
+strengths. In practice the steering strengths will also be included in the variable list. This
+correction scheme is similar to the Orbit Response Matrix (ORM) approach in that both uses multiple
+orbits to correct the Twiss parameters.
+
+It should be mentioned that even without doing the correction step, the fitting of the data in 
+itself gives values for the optics in the current state of the machine.
+
+%------------------------------------------------------------------------------
+\subsection{Twiss Parameter Correction Example Input Files}
+\label{s:twiss.setup}
+
+The example files used to illustrate correction of the Twiss parameters are in the directory 
+\begin{code}
+bmad-doc/tutorial_bmad_tao/lattice_files/twiss_correction
+\end{code}
+Copy these files to your working directory. There are six files:
+\begin{lstlisting}[mathescape]
+$\textbf{create_data.tao}$               ! For creating "measured" data. 
+$\textbf{lat.bmad}$               ! Lattice file.
+$\textbf{tao.init}$               ! Primary Tao initialization file.
+$\textbf{tao_plot.init}$               ! Plot setup initialization file.
+$\textbf{startup.tao}$               ! Command file run at startup.
+$\textbf{set_meas.tao}$               ! Set measured data.
+\end{lstlisting}
+
+The lattice being used here has one horizontal steering named \vn{H1} and one vertical steering
+named \vn{V2}. Two universes (\sref{s:multi.uni}) will be needed to store the measured
+data. The first universe will hold the measured data from changing \vn{H1} and the second universe
+will hold the measured data from changing from \vn{V2}.
+
+The file \vn{tao.init} is the main initialization file (\sref{s:init.file}) and is similar to the
+\vn{tao.init} file in Chapter~\sref{s:opt.files}. One difference is the the \vn{tao.init} file here
+initializes \tao with two universes instead of one:
+\begin{code}
+&tao_design_lattice
+  n_universes = 2
+  design_lattice(1)%file = "lat.bmad"
+  design_lattice(2)%file = "lat.bmad"
+/
+\end{code}
+Here both universes use the same lattice.
+
+The \vn{tao.init} file lists the secondary initialization files in the \vn{tao_start} namelist:
+\begin{code}
+&tao_start
+  startup_file = "startup.tao"
+  plot_file = "tao_plot.init"
+/
+\end{code}
+
+%------------------------------------------------------------------------------
+\subsection{Data Setup}
+\label{s:twiss.data}
+
+Data (\sref{s:data}) for the optimization is setup in the file \vn{tao.init} file. There is just one
+\vn{d2_data} block called \vn{orbit}:
+\begin{code}
+&tao_d2_data
+  d2_data%name = "orbit"
+  universe = "*"
+  n_d1_data = 2
+  default_weight = 1e8
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "x"
+  search_for_lat_eles = "det*"
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = "y"
+  search_for_lat_eles = "det*"
+/
+\end{code}
+There are two \vn{d1_data} arrays for the horizontal and vertical orbits. A datum will be set up for
+each element whose name begins with ``\vn{det}''. That is, at the four detectors in the lattice
+\vn{det1} through \vn{det4}. The \vn{universe = *} setting results in an \vn{orbit} data block being
+setup one for each universe.
+
+%------------------------------------------------------------------------------
+\subsection{Variable Setup}
+\label{s:twiss.var}
+
+The variables (\sref{s:var}) setup is in the file \vn{tao.init}. There are three \vn{v1_var}
+blocks --- for quadrupole strengths and tilts, along with steering strengths. By varying quadrupole
+tilts, the coupling can be corrected. [Typically, coupling --- that is, coupling between horizontal and
+vertical orbits due to skew fields --- is corrected by adjusting the strength of skew quadrupoles. Here,
+to simplify things somewhat, the same quadrupoles are used for both beta and coupling correction.]
+
+The variable blocks are defined in \vn{tao_var} namelists The quadrupole strength block is
+\begin{code}
+&tao_var
+  v1_var%name = "quad_k1"
+  search_for_lat_eles = "Quad::*"
+  default_step = 1e-4
+  default_attribute = "k1"
+  default_merit_type = "target"
+  default_weight = 1
+  ix_min_var = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+/
+\end{code}
+The \vn{search_for_lat_eles} setting will searches for quadrupole elements in all universes. All
+quadrupoles of a given name in all universes will be bound together with a single variable. In this
+case there are two quadrupoles named \vn{q1} and \vn{q2} in each universe so the \vn{quad_k1}
+variable array, which has the name \vn{quad_k1[1]}, will have two elements. One element will control
+the \vn{k1} attribute of the \vn{q1} element in universe 1 and the the \vn{k1} attribute of the
+\vn{q1} element in universe 2. Similarly the other variable, \vn{quad_k1[2]} will control the
+\vn{k1} attribute of the \vn{q2} elements.
+
+When a variable controls multiple elements, the controlled parameters (the \vn{k1s} of the two
+\vn{q1} quads in this case) can have different values as long as the \vn{model} value of the
+variable is not touched. When the \vn{model} value is set, either during the optimization or with a
+\vn{set} or \vn{change} command, all the controlled parameters will be set to the same value as the
+\vn{model} value of the variable.  This setup mirrors the orbit measurement conditions were the
+quadrupole strengths were the same for all measurements.
+
+The \vn{merit_type} is set to \vn{target} which means that the contribution to the merit function in \Eq{m1}
+will be 
+\begin{equation}
+  \delta V = \mbox{model} - \mbox{measured}
+\end{equation}
+Here \vn{measured} is the value of the quadrupole strength as ``measured'' when the orbit was
+obtained.  Typically, magnet strengths are ``measured'' using the known calibration between current
+going through the field windings or, if it is a permanent magnet, the measured value is taken to be
+the field that was measured on the bench before installation. 
+
+The reason why the merit function is setup to have a contribution from the variables is to avoid
+near-degeneracies where, if there where no $\delta V$ terms, inaccuracies in the orbit measurement
+coupled with magnets that have a similar effect on the orbit results in the optimization minimum
+being a state where the near-degenerate magnets have large unphysical strengths but the \vn{model}
+orbit will look reasonable since the effect of the near-degenerate magnets nearly cancel one
+another. The trick is to adjust the weights for the $\delta V$ terms to be large enough to keep the
+magnet strengths reasonable but not too large that the fit of the orbit is degraded due to
+inaccuracies in the variable measurement value.
+
+The second variable block defines variables that control quadrupole tilts. These variables are setup
+similar to the quadrupole strength variables.
+
+The third variable block holding the steering strengths is setup with
+\begin{code}
+&tao_var
+  v1_var%name = "steering"
+  default_step = 1e-4
+  default_merit_type = "target"
+  default_weight = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+  var(1:2)%universe  =  1,       2
+  var(1:2)%ele_name  = "h1",    "v2"
+  var(1:2)%attribute = "hkick", "vkick"
+/
+\end{code}
+Here there are two variables \vn{steering[1]} and \vn{steering[2]}. \vn{steering[1]} controls the
+\vn{hkick} attribute of element \vn{h1} in universe 1 and \vn{steering[2]} controls the
+\vn{vkick} attribute of element \vn{v2} in universe 2.
+
+%------------------------------------------------------------------------------
+\subsection{Plotting Setup}
+\label{s:twiss.plot}
+
+For details of how to setup custom plots, see the \vn{Initializing Plotting}
+(\extref{T-s:init.plot}) section of the \vn{Tao Initialization} chapter of the \tao manual.  Here
+the plotting setup is done in the \vn{tao_plot.init} file. This file defines a plot template
+(\sref{s:disp.plot}) called \vn{data_orbit} in a \vn{tao_template_plot} structure:
+\begin{code}
+&tao_template_plot
+  plot%name = "data_orbit"  ! Name of template plot.
+  plot%x_axis_type = "s"    ! Graph x-axes are longitudinal s-coordinate.
+  plot%autoscale_gang_y = F ! So scale command scales the graphs separately.
+  plot%n_graph = 2          ! There are 2 associated graphs.
+/
+\end{code}
+This template plot has two associated graphs defined in two \vn{tao_template_graph} namelists below
+the \vn{tao_template_plot} namelist. The first graph's namelist looks like:
+\begin{code}
+&tao_template_graph
+  graph_index = 1               ! First graph.
+  graph%name = "x"              ! Graph name is "data_orbit.x"
+  graph%box = 1, 1, 1, 2        ! Graph is in lower half of the plot region.
+  graph%title = "X Orbit [mm]"  ! Graph title
+  graph%y%label = "X (mm)"      ! Graph y-axis label.
+  ... etc. ...
+\end{code}
+This graph is named ``\vn{x}'' so the fully qualified name is ``\vn{data_orbit.x}''. There are
+three curves associated with this graph and are defined further down in this namelist. The
+parameters of the first curve are:
+\begin{code}
+  curve(1)%name = "lat"          ! 1st curve name is "data_orbit.x.lat"
+  curve(1)%data_source = "lat"   ! Data is drawn from lattice calculations...
+  curve(1)%data_type = "orbit.x" !   ... In this case the horizontal orbit.
+  curve(1)%draw_symbols = F      ! Do not draw any symbols.
+  curve(1)%draw_line = T         ! But do draw a orbit curve.
+  curve(1)%line%color = "blue"
+\end{code}
+This curve draws the horizontal orbit (\vn{data_type} = "orbit.x") as a curve (\vn{draw_line} = T)
+with values calculated from the lattice (\vn{data_source} = "lat"). The default, since the
+\vn{component} of the curve is not set, is values will be extracted from the \vn{model} lattice.
+
+The second curve of the graph is defined in the namelist by:
+\begin{code}
+  curve(2)%name = "dat"          ! 2nd curve name is "data_orbit.x.dat"
+  curve(2)%data_source = "data"  ! Data is drawn from a data block...
+  curve(2)%data_type = "orbit.x" !   ... In particular, the "orbit.x" data block.
+  curve(2)%draw_symbols = T      ! Draw symbols at the data points.
+  curve(2)%draw_line = F         ! Do not draw lines between the data points.
+  curve(2)%symbol%height = 25
+\end{code}
+This curve draws a symbol at each data point of the \vn{orbit.x} data block.  This
+data block defines datums at each detector element. The default, since the \vn{component} of the
+curve is not set, is values will be extracted from the \vn{model} lattice just like the first
+curve. The result is that symbols are drawn on top of the line drawn by the first curve.
+
+The third curve of the graph is defined in the namelist by:
+\begin{code}
+  curve(3)%name = "meas"
+  curve(3)%component = "meas"
+  curve(3)%data_source = "data"
+  curve(3)%data_type = "orbit.x"
+  curve(3)%draw_symbols = T
+  curve(3)%draw_line = F
+  curve(3)%symbol%height = 15
+\end{code}
+This is similar to the second curve except that the values for drawing the symbols comes from the
+``\vn{meas}'' component of the \vn{orbit.x} data block.
+
+The second graph associated with the \vn{data_orbit} graph is similar to the first except the data is drawn
+from the vertical orbit instead of the horizontal orbit.
+
+Besides setting up the \vn{data_orbit} template plot, the \vn{tao_plot.init} file places plots using
+the \vn{tao_plot_page} namelist
+\begin{code}
+&tao_plot_page
+  place(1) = "r12",   "data_orbit"
+  place(2) = "r22",   "data_orbit"
+  place(3) = "layout" "lat_layout"
+/
+\end{code}
+The plot page will have 3 plots: Two \vn{data_orbit} plots and one \vn{lat_layout} plot. In the
+\vn{startup.tao} command file that is run at startup (since the \vn{startup_file} is set to this file
+in the \vn{tao_start} namelist in \vn{tao.init}), there is:
+\begin{code}
+set graph r12 ix_universe = 1
+set graph r22 ix_universe = 2
+\end{code}
+This sets one of the \vn{data_orbit} plot to use the data from universe 1 and the other
+\vn{data_orbit} plot to use the data from universe 2.
+
+%------------------------------------------------------------------------------
+\subsection{Measured Data and Variables Setup}
+\label{s:twiss.start}
+
+The ``measured'' data and variable values are set by the command file \vn{set_meas.tao} which is
+called by the \vn{startup.tao} file:
+\begin{code}
+set dat 1@orbit.x|meas = [2.9627E-03, 3.1590E-03, 2.3705E-03, 2.1821E-03]
+set dat 1@orbit.y|meas = [-1.1841E-03, -1.0370E-03, -1.3810E-03, -1.5749E-03]
+set dat 2@orbit.x|meas = [-1.0481E-03, -1.1265E-03, -9.6521E-04, -8.8252E-04]
+set dat 2@orbit.y|meas = [7.6870E-04, 6.6229E-04, 8.6742E-04, 9.6448E-04]
+
+set var steering[1:2]|meas = [1e-4, 1e-4]
+set var quad_k1[1:2]|meas = [1.0, -1.1]
+set var quad_tilt[1:2]|meas = [0, 0]
+\end{code}
+
+
+Since the lattice used in this example does not represent an actual machine, the ``measured'' orbit
+data had to be generated and this was done using the file the script \vn{create_data.tao}:
+\begin{code}
+set var quad_k1[1]|model = 0.9
+set var quad_k1[2]|model = -1.05
+set var quad_tilt[1]|model = 0.1    
+set var quad_tilt[2]|model = -0.05
+set var steering[1]|model = 1.2e-4  
+set var steering[2]|model = 0.9e-4
+show value 1@orbit.x|model + 5e-5*ran_gauss() -form es12.4  ! Add 50um noise
+show value 1@orbit.y|model + 5e-5*ran_gauss() -form es12.4
+show value 2@orbit.x|model + 5e-5*ran_gauss() -form es12.4
+show value 2@orbit.y|model + 5e-5*ran_gauss() -form es12.4
+\end{code}
+This file represents the state of the machine at the time the orbit measurements are made.  The
+results of running this script was, with a little bit of reformatting, been put in the file
+\vn{set_meas.tao}. The ``measured'' values for the variables in \vn{set_meas.tao} is somewhat
+different from the ``true'' values \vn{create_data.tao} to simulate inaccuracies inherent in
+measuring these variables. Additionally, 50~$\mu m$ Gaussian noise has been added to the orbit
+data.
+
+%--------------------------
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}[t]{0.49\textwidth}
+    \includegraphics[width=\textwidth]{cor0.pdf}
+    \caption{Plot window at startup. The \vn{measured} orbit data points (red) 
+are far from the \vn{model} orbit orbit which corresponds to the zero orbit.}
+    \label{f:cor0}
+  \end{subfigure}
+  \hfil
+  \begin{subfigure}[t]{0.49\textwidth}
+    \includegraphics[width=\textwidth]{cor1.pdf}
+    \caption{Plot window after optimization showing the \vn{measured} orbit points is fairly 
+well fit by the \vn{model} orbit.}
+    \label{f:cor1}
+  \end{subfigure}
+  \caption{}
+\end{figure}
+
+%------------------------------------------------------------------------------
+\subsection{Running the Optimization}
+\label{s:cor.run}
+
+At startup, the resulting plot window is shown in Fig.~\ref{f:cor0}. It is no surprise that the
+\vn{model} orbit, being zero, does not well fit the \vn{measured} data. Running the optimization
+(\sref{s:opt.run}) with the \vn{run} command and after doing a \vn{scale} command produces
+Fig.~\ref{f:cor1}. Now the \vn{measured} orbit data is fairly well fit.
+
+Even though the optimization can fit the orbit fairly well, the \vn{model} values for the variable
+parameters are a bit off from the ``true'' values (that is, the values when the ``measurements''
+were made) which are the values as set in the \vn{create_data.tao} file (\sref{s:twiss.start}):
+\begin{code}
+Tao> show var *
+  Variable         Slave Parameters        Meas         Model        Design 
+  quad_k1[1]       [1:2]@Q1[K1]        1.0000E+00    9.8011E-01    1.0000E+00 
+  quad_k1[2]       [1:2]@Q2[K1]       -1.1000E+00   -1.1711E+00   -1.1000E+00 
+  quad_tilt[1]     [1:2]@Q1[TILT]      0.0000E+00    8.8747E-02    0.0000E+00 
+  quad_tilt[2]     [1:2]@Q2[TILT]      0.0000E+00   -7.2506E-02    0.0000E+00 
+  steering[1]      1@H1[HKICK]         1.0000E-04    1.5353E-04    0.0000E+00  
+  steering[2]      2@V2[VKICK]         1.0000E-04    1.1896E-04    0.0000E+00 
+\end{code}
+This is due to a combination of the errors that were introduced and some degeneracies among the
+variables. Even though there is a significant differences between here between true and \vn{model}
+values, a correction using \Eq{dkkk} does a good job of correcting the beta function. To simulate a
+correction after the fit was done, the following can be done
+\begin{code}
+Tao> run                       ! Run the optimizer
+Tao> set lattice base = model  ! Save the model fit values in the base lattice
+Tao> call create_data.tao      ! This will load the "true" values
+Tao> set var *|model = *|model + *|design - *|base  ! Load the correction.
+\end{code}
+The result is shown in Fig.~\ref{f:beta}. Fig.~\ref{f:beta}A shows the \vn{design} beta function. 
+Fig.~\ref{f:beta}B shows the shows the ``true'' beta functions that existed at the time of the
+measurements. Finally, Fig.~\ref{f:beta}C shows the beta functions after correction. Fig.~\ref{f:beta}C
+is close to Fig.~\ref{f:beta}A showing that the lattice is fairly well corrected.
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.55\textwidth]{beta.pdf}
+  \caption{Beta plots showing the Twiss parameter correction. A) Design Beta functions. B)
+Beta functions before correction. C) Beta function after a correction. The corrected Beta function
+is near the design which is what is wanted.}
+  \label{f:beta}
+\end{figure}
+
+
+%------------------------------------------------------------------------------
+\subsection{Exercises [Answers in Section \sref{s:ans.corr}]}
+\label{s:opt.corr.ex}
+
+\begin{enumerate}[label=\thesection.\arabic{enumi}]
+\item
+With orbit correction as discussed in section~(\sref{s:cor.orbit}), it was explicitly assumed that
+the \vn{design} orbit was the desired orbit one wanted. But what if this is not the case? Suppose
+that the desired orbit is one that has been empirically determined to minimize, say, the beam size,
+or, say, maximize the lifetime. How should orbit correction proceed in this case where the
+``golden'' orbit is not the \vn{design} orbit?
+%
+\item
+One important component in the optimization process is the setting of the merit function weights for
+the datums and variables. This can frequently be done empirically by varying the weights and while
+observing how well the data is fitted and how well behaved the variable values are. Try varying
+weights in the example in this chapter to see what happens to the fit.
 \end{enumerate}
 
 \newpage
@@ -3330,1168 +4492,6 @@ where \vn{<lattice-file>} is the name of the lattice file. The program can be ru
 
 %------------------------------------------------------------------------------
 %------------------------------------------------------------------------------
-\Section{Optimization with Tao}
-\label{s:optimization}
-
-%----------------------------------------------------------
-\subsection{What is Optimization?}
-\label{s:opt.what}
-
-``Optimization'' is the process of varying (model) lattice parameters to create a lattice with a
-certain set of properties as close to a ``desired'' state as possible. Optimization is covered in
-detail in the ``Optimization: Lattice Correction and Design'' chapter in the \tao manual.
-
-Optimization problems generally fall into one of two categories. One category involves ``lattice
-design'' where lattice parameters are varied to achieve some set of ideal properties. For example,
-varying sextupole magnet strengths in order to give maximum dynamic aperture.
-
-The other category of optimization problems involves ``lattice correction''. Problems in this
-category involve matching the \vn{model} lattice to actual measured data.  For example, orbit
-flattening involves varying steering in the \vn{model} lattice so that the orbit calculated from the
-\vn{model} lattice matches as close as possible the measured orbit. The steering strengths in the
-\vn{model} lattice can then be used to calculate what changes are needed to correct the orbit
-as discussed section~\sref{s:cor.orbit}. 
-
-An example of lattice design is given below. An example of lattice correction is given in
-Chapter~\sref{s:opt.cor}.
-
-%----------------------------------------------------------
-\subsection{Optimization Overview and the Merit Function}
-\label{s:opt.overview}
-
-Optimization involves ``\vn{data}'' and ``\vn{variables}''. \vn{Data} are the parameters to be
-optimized.  For example, orbit positions when flattening an orbit or the value of beta at the
-interaction point when designing a lattice. \vn{Variables} are what is to be varied which can be
-steering strengths, magnet positions, etc. 
-
-Each datum has a set of associated parameters. For example, each datum has ``\vn{model}'' and
-``\vn{design}'' values which is the value of the datum as calculated from the \vn{model} and
-\vn{design} lattices. Each datum also has a ``\vn{measured}'' value which is set by the User. This
-value can be from an actual measurement which is typical when doing lattice correction or may be the
-desired value of the datum which is typical when doing lattice design. This is further discussed in
-section \sref{s:data}. 
-
-Like datums, each variable has a number of associated parameters. For example, each variable has a
-``\vn{model}'' value which controls the corresponding value or values (a variable can control
-multiple parameters simultaneously) in the \vn{model} lattice. There are also ``\vn{low_lim}'' and
-``\vn{high_lim}'' values that can be set by the user that are used to keep the variable \vn{model}
-value within a given range. This is further discussed in section \sref{s:var}.
-
-Optimization involves minimizing one or more ``objectives'' or ``merit functions''. \tao itself
-implements ``single objective'' optimization. For ``multiple objective'' optimization, there is a
-separate program called \vn{moga} that can be used (\sref{s:programs}). The general form of the
-merit function \vn{M} in \tao is
-\begin{equation}
-  {\cal M} \equiv 
-    \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
-    \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
-  \label{m1}
-\end{equation}
-where the first sum is a sum over the \vn{data} and the second sum is a sum over the
-\vn{variables}. The $w_i$ and $w_j$ are weights specified by the user and the $\delta D_i$ and
-$\delta V_j$ are functions of the data and variables. The merit function is discussed in depth in
-Chapter~\extref{T-c:opti} in the \tao manual.
-
-The form of the $\delta D_i$ can be different for each datum and similarly the form of $\delta V_j$
-can be different for each variable and will be illustrated below in the example optimization.
-
-There are several different optimizers that can be used with \tao. The one optimizer that is good
-for finding global merit function minima is the \vn{de} (differential evolution) optimizer. All of
-the others are good for finding local minima.
-
-%----------------------------------------------------------
-\subsection{Lattice Design Example: Initialization}
-\label{s:opt.files}
-
-An example of lattice design is given in the following section. For a lattice correction example, see 
-chapter~\sref{s:opt.cor}.
-
-The files used to illustrate lattice design optimization are in the directory 
-\begin{code}
-bmad-doc/tutorial_bmad_tao/lattice_files/lattice_optimization
-\end{code}
-Copy these files to your working directory. Here the main initialization file is named
-\vn{tao.init}. Since this is the default name for initialization files (\sref{s:init.file}), and
-since the \vn{tao.init} file contains the name of the lattice file, \tao can be started without the
-\vn{-lat} option (\sref{s:tao.run}).
-
-There are four files here:
-\begin{lstlisting}[mathescape]
-$\textbf{lat.bmad}$               ! Lattice file.
-$\textbf{tao.init}$               ! Primary Tao initialization file. Includes plotting setup.
-$\textbf{setup.tao}$               ! Command file run at startup.
-$\textbf{optimized_var.out}$         ! Output optimized values
-\end{lstlisting}
-
-The file \vn{tao.init} is the main initialization file (\sref{s:init.file}). The file is divided
-into three parts. The first part sets some general parameters while the next two sections setup data
-\sref{s:data} and variable \sref{s:var} lists.
-\begin{code}
-&tao_start
-  startup_file = "setup.tao"
-/
-
-&tao_design_lattice
-  n_universes = 1
-  design_lattice(1)%file = "lat.bmad"
-/
-
-&tao_plot_page
-  plot_page%size = 500, 400
-  place(1) = "layout", "lat_layout"
-  place(2) = "r12", "beta"
-  place(3) = "r22", "key"
-/
-\end{code}
-Namelist format is used as explained in Section~\sref{s:init.file}. A single \vn{universe} will be
-used (\sref{s:multi.uni}) and the lattice file name for the universe is ``\vn{lat.bmad}''. The
-command file ``\vn{setup.tao}'' will be run after all other initialization is complete.
-
-The \vn{tao_plot_page} namelist sets some plotting parameters. The setting of \vn{plot_page%size}
-overrides the default size of the plot window and the \vn{place(1)}, \vn{place(2)}, and \vn{place(3)}
-settings define initial placement of plots (\sref{s:disp.plot}).
-
-The startup command file \vn{setup.tao} defines an \vn{alias} commands:
-\begin{code}
-alias opt run lm
-\end{code}
-This defines the command ``\vn{opt}'' to be equivalent to ``\vn{run lm}''. The \vn{run} command
-starts optimization and the ``\vn{lm}'' option specifies the Levenburg-Marquardt optimizer which is
-a good optimizer for finding a local minimum. See the \vn{Tao Commands} chapter in the \tao manual
-for more details.
-
-%----------------------------------------------------------
-\subsection{Data in Tao}
-\label{s:data}
-
-In order to optimize, you must tell Tao what \vn{data} will contribute to the merit function. A
-detailed description on how to do this is given in the ``\vn{Data}'' chapter of the \tao manual.
-
-The data that is used in the present example is defined in the middle section of the \vn{tao.init}
-file:
-\begin{code}
-&tao_d2_data
-  d2_data%name = "twiss"
-  n_d1_data = 2
-/
-
-&tao_d1_data
-  ix_d1_data = 1
-  d1_data%name = "a"
-  datum(1) =  "beta.a"     "" "" "END"   "target"  12.0   1e1
-  datum(2) =  "alpha.a"    "" "" "END"   "target" -0.4    1e2
-/
-
-&tao_d1_data
-  ix_d1_data = 2
-  d1_data%name = "b"
-  datum(1) =  "beta.b"     "" "" "END"   "target"  12.0   1e1
-  datum(2) =  "alpha.b"    "" "" "END"   "target" -0.4    1e2
-/
-\end{code}
-
-
-\begin{figure}[b]
-  \centering
-  \includegraphics[width=0.90\textwidth]{data-tree.pdf}
-  \caption{
-Data is grouped into a three level tree. A \vn{d2_data} structure holds a set of \vn{d1_data}
-structures. A \vn{d1_data} structure holds an array of \vn{datums}.}
-  \label{f:data.tree}
-\end{figure}
-
-In general, the \vn{data} is grouped into a three level tree as illustrated in
-Figure~\ref{f:data.tree}. Nodes at the the highest level are instances of what is called
-\vn{d2_data} structures. For example, a \vn{d2_data} structure may be setup to hold \vn{orbit} data.
-In the present case, there is a single \vn{d2_data} structure named ``\vn{twiss}''. 
-
-A \vn{d2_data} structure will hold an array of one or more \vn{d1_data} structures. For example, a
-\vn{orbit} \vn{d2_data} structure may hold ``\vn{x}'' and \vn{y}'' \vn{d1_data} structures which
-represent horizontal and vertical orbit data. In the present case, the \vn{twiss} \vn{d2_data}
-structure has two \vn{d1_data_structures} named ``\vn{a}'' and ``\vn{b}'' representing the two
-transverse normal modes of oscillation. The syntax to refer to a particular \vn{d1_data} structure
-is:
-\begin{code}
-  d2-data-name.d1-data-name
-\end{code}
-So with the above example, the \vn{a} structure would be referred to as \vn{twiss.a} .
-
-A \vn{d1_data} structure will hold an array of one or more \vn{datum} structures. For example, the
-\vn{x} \vn{d1_data} structure contained in an \vn{orbit} \vn{d2_data} structure may be setup with an
-array of datums, one for each beam position monitor in the machine, with each datum representing a
-horizontal orbit measurement at a specified BPM. In this case, both \vn{a} and \vn{b} \vn{d1_data}
-structures hold two datums, one representing {\textbeta} and {\textalpha} Twiss values.  To refer to
-an individual \vn{datum} use the syntax:
-\begin{code}
-  d2-data-name.d1-data-name[datum-index]
-\end{code}
-where \vn{datum-index} is the index for the datum. So with the above example, the first datum in
-\vn{twiss.a}, which is the \vn{a}-mode {\textbeta}, would be referred to as \vn{twiss.a[1]} .
-
-An individual \vn{datum} is structure that has a number of components. With the present
-\vn{tao.init} file, seven components of each datum are set. These components are, in order:
-\begin{code}
-data_type       ! Type of data: "orbit.x", etc.
-ele_ref_name    ! Name of reference lattice element
-ele_start_name  ! Name of starting lattice element when there is a range
-ele_name        ! Name of the lattice element where datum is evaluated.
-merit_type      ! Type of constraint: "target", "max", "min", etc.
-meas            ! Measured datum value.
-weight          ! Weight for the merit function term
-\end{code}
-Thus for the \vn{twiss.b[2]} datum which is set on the line:
-\begin{code}
-  datum(2) =  "alpha.b"    "" "" "END"   "target" -0.4    1e2
-\end{code}
-The \vn{data_type} component is set to ``\vn{alpha.b}'' [For a list of data types that \tao
-recognizes, see the \vn{Tao Data Types} section (\extref{T-s:data.types}) of the \vn{Data} chapter
-of the \tao manual.], the \vn{ele_ref_name} and \vn{ele_start_name} are set to the blank
-string. These parameters are not used in the present example.
-
-The \vn{ele_name} component for \vn{twiss.b[2]} is set to ``\vn{END}'' which is where the datum is
-to be evaluated. Since the \vn{merit_type} is set to \vn{target}, this means that $\delta D$ in
-\Eq{m1} is evaluated using the equation
-\begin{lstlisting}[mathescape]
-$\delta D$ = model - meas
-\end{lstlisting}
-where \vn{model} is the value as calculated from the \vn{model} lattice and \vn{meas} is the
-``\vn{measured}'' value as set on the datum line. For \vn{twiss.b[2]}, \vn{meas} is set to -0.4.
-Also the weight $w$ for \vn{twiss.b[2]} is set to 100.  Thus if the model b-mode alpha function is, say,
-1.0 at element \vn{END}, then this datum would contribute $100*(1.0 - 0.4)^2$ to the merit function.
-
-Start \tao (remember, no \vn{-lat} argument needed). The \vn{d2_data} structures can be shown with
-the command \vn{show data}:
-\begin{code}
-Tao> show data
-
-  Name                                 Using for Optimization
-  twiss.a[1:2]                                   Using: 1:2
-  twiss.b[1:2]                                   Using: 1:2
-\end{code}
-
-To see a list of datums for an individual \vn{d1_data} structure append the \vn{d1_data} name after \vn{show data}.
-For example:
-\begin{code}
-Tao> show data twiss.b
-Data name: twiss.b
-                    ...                                           |   Useit
-                    ...  Ele         Meas       Model      Design | Opt  Plot
-1  beta.b <target>  ...  END    1.200E+01   9.292E+00   9.292E+00     T     F
-2  alpha.b <target> ...  END   -4.000E-01  -4.427E-01  -4.427E-01     T     F
-                    ...  Ele         Meas       Model      Design | Opt  Plot
-                    ...                                           |   Useit
-\end{code}
-
-To see the parameters of an individual datum append the datum name after \vn{show data}.
-For example:
-\begin{code}
-Tao> show data twiss.a[2]
-
-%ele_name          = END
-... etc...
-%data_type         = alpha.a
-... etc...
-%model             =  -4.42701763E-01
-%design            =  -4.42701763E-01
-... etc...
-%good_model        = T
-%good_design       = T
-%good_base         = T
-%good_meas         = T
-%good_ref          = F
-%good_user         = T
-%good_opt          = T
-%good_plot         = F
-%useit_plot        = F
-%useit_opt         = T
-\end{code}
-The \vn{useit_opt} logical indicates whether the datum will be used when the merit function is
-evaluated. For example, if the \vn{meas} value has not been set, \tao will set \vn{good_meas} to
-False and this will cause \tao to set \vn{useit_opt} to False. The user also as control as to whether
-a datum will be used in optimization and this is controlled by setting the \vn{good_user} component.
-The commands that control this are \vn{use}, \vn{veto} and \vn{restore}. Example:
-\begin{code}
-Tao> veto data twiss.a
-  twiss.a[1:2]                                   Using:
-  twiss.b[1:2]                                   Using: 1:2
-\end{code}
-In this example the two \vn{twiss.a} datums have been vetoed. It can be checked that the \vn{twiss.a} datums
-now have their \vn{good_user} components set to False.
-
-Notice that it does not matter to the optimization process how data is divided into \vn{d1_data} and
-\vn{d2_data} groups. It is only a matter of convenience to the user. Also a given \vn{d1_data} group
-of data does not have to contain data of a single type. Thus the \vn{twiss.a} datums include both
-\vn{beta} and \vn{alpha} type data.
-
-%----------------------------------------------------------
-\subsection{Variables in Tao}
-\label{s:var}
-
-In order to optimize, you must tell Tao what \vn{variables} you want to vary to minimize the merit
-function. A detailed description on how to construct \vn{variables} is given in the ``Variables''
-chapter of the \tao manual.
-
-The variables that are used in the present example are defined in the bottom section of the
-\vn{tao.init} file:
-\begin{code}
-&tao_var
-  v1_var%name = "quad"
-  search_for_lat_eles = "Quad::*"
-  default_step = 1e-4
-  default_attribute = "k1"
-  default_merit_type = "limit"
-  default_low_lim = -50
-  default_high_lim = 50
-  default_weight = 1
-  ix_min_var = 1
-  default_key_delta = 1e-2
-  default_key_bound = T
-/
-\end{code}
-Just like \vn{data}, \vn{variables} are grouped into a two level tree as illustrated in
-Fig.~\ref{f:var.tree}.  The top level nodes of the tree are called \vn{v1_var} structures. In this
-example a \vn{v1_var} structure is defined called \vn{quad} which controls the \vn{k1} attribute of
-all element whose name matches \vn{quad::*}. This will match to all quadrupoles. In this case, the
-lattice has 6 quadrupoles named \vn{Q1} through \vn{Q6}. Thus there will be an array of 6
-\vn{variables} associated with the \vn{quad} \vn{v1_var} structure.
-
-%----------------------------------------------------------
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=0.90\textwidth]{var-tree.pdf}
-  \caption{
-Variables are grouped into a two level tree. A \vn{v1_var} structure holds an array of
-\vn{variables}. Illustrated is a \vn{var_var} structure holding an array of variables with each
-variable controlling the \vn{hkick} attribute of a particular lattice element.}
-  \label{f:var.tree}
-\end{figure}
-
-%----------------------------------------------------------
-
-To refer to an individual variable use the syntax:
-\begin{code}
-v1-var-name[var-index]
-\end{code}
-where \vn{var-index} is the index of the variable. For example, the first variable in the \vn{quad}
-structure is \vn{quad[1]}.
-
-The parameters like \vn{default_step} in the above namelist establish a default value for the
-\vn{step} attribute of each variable that is created for the \vn{quad} structure. The \vn{step}
-attribute is used by \tao to calculate derivatives that are used by some of the optimizers.
-Essentially, to calculate derivatives, \tao varies the variable by $\pm$\vn{step} and looks at the
-changes in the \vn{data}. Like many attributes associated with \vn{optimization} it is important
-that the \vn{step} attribute be set properly. To small a setting and round-off error can throw off
-the derivative calculation. On the other hand, if the value of \vn{step} is too large,
-nonlinearities can throw off the calculation.
-
-The \vn{weight} of a variable sets the value of $w_j$ in \Eq{m1}. Since the \vn{merit_type} in this case
-is \vn{limit}, the $\delta V$ used in the merit function is:
-\begin{equation}
-  \delta V = 
-    \begin{cases}
-    \mbox{model} - \mbox{high\_lim}  & \mbox{model} > \mbox{high\_lim} \\
-    \mbox{model} - \mbox{low\_lim}   & \mbox{model} < \mbox{low\_lim} \\
-    0                                & \mbox{Otherwise}
-    \end{cases}
-\end{equation}
-That is, the contribution to the merit function will be zero if the value of the variable is between
-\vn{low_lim} and \vn{high_lim} which in this case is -50 and 50.
-
-Running \tao, the \vn{v1_var} structures can be shown with the command \vn{show variable}: 
-\begin{code}
-Tao> show var
-       Name                                      Using for Optimization
-    quad[1:6]                                    1:6
-\end{code}
-
-To see a list of individual variables of a given \vn{v1_var} structure, append the \vn{v1_var}
-name to the \vn{show variable} command:
-\begin{code}
-Tao> sho var quad
-Variable name:  quad
-
- Index  Controlled Attribs(s)    Meas         Model        Design  Useit_opt
-     1  Q1[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
-     2  Q2[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
-     3  Q3[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
-     4  Q4[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
-     5  Q5[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
-     6  Q6[K1]               8.6924-311    0.0000E+00    0.0000E+00       F
- Index  Controlled Attribs(s)    Meas         Model        Design  Useit_opt
-\end{code}
-
-To see the parameters of an individual variable, append the variable name to the \vn{show var}
-command. Example:
-\begin{code}
-Tao> sho var quad[2]
-%ele_name         = Q2
-%attrib_name      = K1
-... etc...
-%exists           = T
-%good_var         = T
-%good_user        = T
-%good_opt         = T
-%useit_opt        = T
-... etc...
-\end{code}
-The \vn{useit_opt} logical indicates whether the variable will be used in the optimization process.
-The user has some control as to whether a variable will be used in optimization and this is controlled
-by setting the \vn{good_user} component. The commands that control this are \vn{use}, \vn{veto} and
-\vn{restore}. Example:
-\begin{code}
-Tao> veto var quad[4]
-  quad[1:6]                                      Using: 1:3 5:6
-\end{code}
-
-Variable properties can also be changed within Tao. For example, 
-\begin{code}
-Tao> set var quad[1:4]|low_lim = -1
-\end{code}
-will set the lower limit for the first four quads.
-
-Notice that, like data, it does not matter to the optimization process how variables are divided
-groups. It is only a matter of convenience to the user. Also a given \vn{v1_var} instance, the array
-of associated \vn{variables} does not all have to be of a single type.
-
-If you want to have one \tao \vn{variable} control a set of parameters, construct an \vn{overlay} or
-\vn{group} element (\sref{s:control}) and then have the \tao variable control the overlay or
-group. For example, the following overlay gangs the \vn{k1} parameters of elements \vn{Q1} and
-\vn{Q3} together:
-\begin{code}
-ps1: overlay = {Q1, Q3}, var = {k1}, k1 = 0.8
-\end{code}
-
-\begin{figure}[b]
-  \centering
-  \includegraphics[width=5in]{keyboard.pdf}
-  \caption
-{Ten pairs of keys on the keyboard are bound to ten variables so that pressing a key of a given pair
-will either increment or decrement the associated variable. The first key pair bound to variable
-number 1 are the \vn{1} and \vn{Q} keys, etc.}
-  \label{f:keyboard}
-\end{figure}
-
-%----------------------------------------------------------
-\subsection{Key Bindings}
-\label{s:key.bound}
-
-Tao has two modes for entering commands. In \vn{single mode}, each keystroke represents a command.
-That is, with a few exceptions, the user does not have to press the carriage control key to signal
-the end of a command. This is to be contrasted with \vn{line mode}, which you have been using up to
-now, where \tao waits until the return key is depressed to execute a command. \vn{single mode} is
-useful for quickly varying parameters to see how they affect a lattice but the number of commands in
-single mode is limited. \vn{Single mode} is covered in detail in the ``Single Mode'' chapter in the
-\tao manual.
-
-The main purpose of \vn{single mode} is to associate certain keyboard keys with certain variables so that
-the pressing of these keys will change their associated model value of the variable. This is called
-a \vn{key binding} and is illustrated in Figure~\ref{f:keyboard}.
-
-\begin{figure}
-  \centering
-  \begin{subfigure}[t]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{opt0.pdf}
-    \caption{Initial plot window showing the initial beta functions.}
-    \label{f:opt0}
-  \end{subfigure}
-  \hfil
-  \begin{subfigure}[t]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{opt1.pdf}
-    \caption{Plot window after optimization showing the optimized beta functions.}
-    \label{f:opt1}
-  \end{subfigure}
-  \caption{}
-\end{figure}
-
-Start \tao using the example optimization files (\sref{s:opt.files}) or use the \vn{reinit tao}
-command to reinitialize \tao. The plot window should look like Figure~\ref{f:opt0}. The
-\vn{key_table} plot in the middle shows what variables (\sref{s:var}) have been bound to what
-keyboard keys. In this instance the \vn{quad[1]} variable is bound so that pressing the ``1'' key
-will change \vn{quad[1]} by +\vn{delta}, and pressing the ``q'' key will change \vn{quad[1]} by
--\vn{delta}.  Pressing the shift key when pressing the ``1'' or ``q'' keys will change \vn{quad[1]}
-by \vn{+10}$\times$\vn{delta} and \vn{-10}$\times$\vn{delta} respectively. Similarly, the \vn{quad[2]}
-variable is bound to the \vn{2} and \vn{w} keys, etc.
-
-Single mode and key bindings are useful for getting a feel for how variables affect the lattice. Get
-into single mode by issuing the \vn{single_mode} command. Play around with varying variables. To
-get out of single mode press capital \vn{Z}.
-
-\newpage
-
-%----------------------------------------------------------
-\subsection{Running an optimization}
-\label{s:opt.run}
-
-Start \tao using the example optimization files (\sref{s:opt.files}) or use the \vn{reinit tao}
-command to reinitialize \tao. The plot window should look like Figure~\ref{f:opt0}. 
-
-To see what data and what variables are being used in the optimization, use the \vn{show data} and
-\vn{show variables} commands as illustrated above or use the \vn{show optimizer} command:
-\begin{code}
-Tao> show opti
-Data Used:
-  twiss.a[1:2]                                   Using: 1:2
-  twiss.b[1:2]                                   Using: 1:2
-Variables Used:
-  quad[1:6]                                      Using: 1:6
-
-optimizer:        lm
-Global optimization parameters (use "set global" to change):
-  %de_lm_step_ratio              =   1.00000000E+00
-  %de_var_to_population_factor   =   5.00000000E+00
-  %lm_opt_deriv_reinit           =  -1.00000000E+00
-  %lmdif_eps                     =   9.99999996E-13
-  %merit_stop_value              =  -1.00000000E+00
-  %svd_cutoff                    =   9.99999975E-06
-... etc...
-\end{code}
-There are many parameters associated with optimization and it is important to carefully consider
-what values these parameters have in order to be able to have a successful optimization.
-
-To see what the biggest contributions to the merit function
-are use the \vn{show top10} command:
-\begin{code}
-Tao> show top
-
-Constraints                   ...   Ele/S     Target      Value      Merit  
-twiss.b[1]  beta.b <target>   ...   END       1.200E+01   1.513E+01  9.82E+01
-twiss.a[1]  beta.a <target>   ...   END       1.200E+01   9.292E+00  7.33E+01
-twiss.b[2]  alpha.b <target>  ...   END      -4.000E-01  -2.527E-01  2.17E+00
-twiss.a[2]  alpha.a <target>  ...   END      -4.000E-01  -4.427E-01  1.82E-01
-quad[6]     Q6[K1]            ...   3.80     -5.000E+01  -1.000E+00  0.00E+00
-quad[5]     Q5[K1]            ...   3.30      5.000E+01   1.000E+00  0.00E+00
-... etc...
-
- figure of merit: 1.738388E+02
-
-List of non-zero contributors to the Merit Function:
-Name                           Merit           Sigma [= sqrt(Chi^2/N)]
-twiss.b                        1.0034E+02      2.2179E+00
-twiss.a                        7.3499E+01      1.9149E+00
-\end{code}
-This shows, among other things, that the value of the merit function is 173.8 and that the largest
-contributor to the merit function is \vn{twiss.b[1]} which has a contribution of 98.2 which is over
-50\%.
-
-To run, say, the \vn{lm} optimizer use the \vn{run lm} command. In this case, this command
-has been aliased to the \vn{opt} command by the \vn{setup.tao} command file that was run
-at initialization (\sref{s:opt.files}):
-\begin{code}
-Tao> opt
-Optimizing with: lm
-Type ``.'' to stop the optimizer before it's finished.
-[INFO] tao_dmodel_dvar_calc:
-    Remaking dModel_dVar derivative matrix.
-    This may take a while...
-
-  Cycle      Merit   A_lambda
-    1    5.4532E-01  1.00E-04
-    2    8.7067E-02  1.00E-05
-... etc...
-   19    3.5034E-04  1.00E-22
-   20    2.9333E-04  1.00E-23
-Written: var1.out
-   21    2.9333E-04  0.00E+00
-\end{code}
-The optimization has managed to reduce the merit function from to 2.9E-4 or about six orders of
-magnitude. Further reductions in the merit function can be had by running the optimizer
-repeatedly. At the end of optimization, \tao creates a file \vn{var1.out} which contains the
-optimized variable values:
-\begin{code}
- Q1[K1] =   7.76217267682967E-01
- Q2[K1] =  -1.40330956873957E+00
- Q3[K1] =   8.78773428675319E-01
- Q4[K1] =  -1.07943627873167E+00
- Q5[K1] =   1.29072113653010E+00
- Q6[K1] =  -4.57469896955973E-01
-... etc...
-\end{code}
-This file should be virtually identical to the \vn{optimized_var.out} file (\sref{s:opt.files}). The
-format of this file conforms to \bmad lattice file syntax so this file can be used to create a
-lattice with the optimized values. One way to form a lattice with optimized values is to create a
-new lattice file that calls the original lattice and \vn{var1.out}. That is, the new file would look
-like:
-\begin{code}
-call, file = lat.bmad
-call, file = var1.out
-\end{code}
-
-Note: At any time to print in Bmad format the variable values used in the optimization use the command:
-\begin{code}
-show var -bmad -good
-\end{code}
-To save directly to a file, add the write option:
-\begin{code}
-show -write solution.bmad var -bmad -good
-\end{code}
-
-\newpage
-
-%----------------- 
-%%\subsection{Exercises [Answers in Section \sref{s:ans.opt}]}
-\subsection{Exercises}
-\label{s:opt.ex}
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=0.8\textwidth]{building-wall.pdf}
-  \caption{
-Optimization to keep a machine within existing building walls. A) Initial setup. The end of the machine (a
-1~meter long dipole) is outside the walls (red and green semi circles). B) After optimization the machine is
-safely inside the walls.}
-  \label{f:b.wall}
-\end{figure}
-
-\begin{enumerate}[label=\thesection.\arabic{enumi}]
-%------------------------
-\item
-\label{s:opt.ex1}
-Start with the files in \vn{bmad-doc/tutorial_bmad_tao/lattice_files/lattice_optimization}. Change
-all the quadrupole strengths to zero in \vn{lat.bmad} and change the alpha Twiss \vn{meas} targets
-to -1. Now run with the \vn{opt} command and verify that the optimizer does not not find a good
-solution! Why is this? The problem is that the good solutions (and there is more than one) are
-outside of the local minimum that the optimizer is stuck in. 
-Note: To easily reset the lattice use the command:
-\begin{code}
-set lattice model = design
-\end{code}
-%
-\item
-Start with the situation in Exercise~\ref{s:opt.ex1} and find a good solution by first using
-\vn{single mode} to vary the quadrupole strengths to find an approximate solution. Then run the
-\vn{lm} optimizer to polish the results. This is a general strategy, often there is no single method
-that will work so a combination of methods is what is needed.
-%
-\item
-Start with the situation in Exercise~\ref{s:opt.ex1} and find a good solution by first using the
-\vn{de} optimizer which can find global minimums. Then run the \vn{lm} optimizer to polish the
-results. Warning: Success here depends upon finding the right \vn{de} parameter settings to
-use. This will take some thought and experimentation so successful completion of this exercise will
-not be quick.
-%
-\item
-This exercise shows how to do an optimization with a constraint that the machine stay within
-existing building walls. If you get stuck, a working example can be viewed in the
-directory:
-\begin{code}
-bmad-doc/tutorial_bmad_tao/lattice_files/building_wall_optimization
-\end{code}
-
-\begin{enumerate}
-\item
-Construct a lattice with a single element which is a 1~meter long bend with zero bend angle.
-\item
-Setup a \tao input file that defines two building wall sections as shown in
-Figure~\ref{f:b.wall}A. The sections are two circular arcs of radius 0.8~meters and 1.2~meters.
-\item
-Setup two datums: \vn{wall[1]} and \vn{wall[2]}. The first datum constrains the end of the lattice
-to be to the inside of the outside (left) wall with a 0.1~meter clearance. The second datum constrains
-the end of the lattice to be to the outside of the inside (right) wall with a 0.1~meter clearance.
-\item
-Setup a variable to vary either the \vn{g} or \vn{angle} component of the bend.
-\item
-Run the \vn{lm} optimizer to produce Figure~\ref{f:b.wall}B. Voila! The machine is within the walls with
-the desired clearance.
-\item
-When you startup \tao and the dipole is unbent, you should get the warning:
-\begin{code}
-[WARNING] tao_init:
-    DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: wall[2]
-       INVALID SINCE: No wall section found in the transverse plane
-                      of the evaluation point.
-\end{code}
-Explain why you are getting this warning. Also explain why this warning goes away when the dipole
-gets bent enough. [Hint: Read carefully the description of how the datum value is computed.] Note
-that not being initially able to compute a model value does not hinder the optimization.
-\end {enumerate}
-
-\end{enumerate}
-
-\newpage
-
-%------------------------------------------------------------------------------
-%------------------------------------------------------------------------------
-\Section{Lattice Correction (Including Orbit Correction)}
-\label{s:opt.cor}
-
-The previous chapter (\sref{s:opt.what}) discussed optimization and, in particular, how optimization
-could be used for ``lattice design'' type problems. This chapter discusses ``lattice correction''
-type optimization. In particular, this chapter shows how to calculate corrections to correct the
-Twiss parameters using measured orbits. It is assumed that the reader is familiar with the material
-in the previous chapter.
-
-Side note: With an actual machine, calculating corrections is only one step in the correction
-process. Also needed is the ability to take data and the ability to load corrections. The object
-oriented nature of \tao's design makes it relatively straightforward to implement machine
-communication within \tao itself. This allows \tao to act as an ``online model'' for the machine
-control system. Programming with \bmad and \tao is outside of the scope of this tutorial and the
-reader is referred to the appropriate sections of the \bmad and \tao manuals.
-
-%------------------------------------------------------------------------------
-\subsection{Correcting the Orbit}
-\label{s:cor.orbit}
-
-Before discussing Twiss parameter correction, consider the simpler case of correcting the orbit. The
-\vn{design} lattice will represent the state we want the machine to be in. Typically, the orbit in
-the \vn{design} lattice will be zero but that is not a necessary condition. The analysis starts
-with an orbit measurement. By varying steerings in the \vn{model} lattice, the orbit, as calculated
-in the \vn{model}, can be fit to the measured orbit.\footnote
-  {
-Typically, the measured orbit in a machine with a closed geometry (EG storage ring) will be the
-closed orbit while the orbit in an open geometry machine (EG Linac) will be the orbit as measured
-with the beam starting from some initial position. In the open geometry case, varying the initial
-position in the model lattice along with steerings may be necessary to fit the orbit.
-  }
-If the fit is good, the orbit is corrected in
-the machine by changing the actual steering strengths $K_{actual}$ by an amount $dK$ given by
-\begin{equation}
-  dK_{i} = K_{i}^{(design)} - K_{i}^{(model)}
-  \label{dkkk}
-\end{equation}
-where $i$ denotes the $i$\th steering, and $K_{i}^{(design)}$ and $K_{i}^{(model)}$ are the
-\vn{design} and \vn{model} values for the steering strengths respectively. Typically, the
-\vn{design} steering strengths are zero but that is not necessary for the analysis.
-
-\Eq{dkkk} is derived using the following logic: Once a fit to the measured data has been made, the
-\vn{model} represents the actual state of the machine. On the other hand, the desired state is
-represented by the \vn{design} lattice. Thus the difference $K_{i}^{(design)} - K_{i}^{(model)}$
-represents ``desired - actual'' so the final state of the steering magnets after correction will be
-\begin{code}
-  Final_State = Initial_State + Change
-              = Actual_State + (Desired_State - Actual_State)
-              = Desired_State
-\end{code}
-There are a few points that should be kept in mind here. First, it does not matter to the
-correction whether the deviations of the orbit from the ideal are caused by steering strength errors
-or other errors such as dipole rolls or quadrupole offsets. To the extent that the measured orbit
-can be well fit determines the extent to which the orbit can be corrected. For example, if an unwanted
-kick is generated by some element at a spot that is far from any correctors, it will not be possible
-to fit the measured orbit well and it will not be possible to make a good correction. If, on the
-other hand, an unwanted kick is generated next to one corrector, the measured orbit can be well fit
-and the \vn{model} lattice will have a strength change from the \vn{design} for that one
-corrector. Varying that one corrector can then cancel out the unwanted kick.
-
-Another point is that the correction algorithm will work with varying any set of parameters as long
-as the variation in the parameters affect the \vn{model} data. Thus an analysis can be made using
-dipole rolls and/or quadrupole offsets as variables or any combination thereof. If the fit is good,
-rolling the dipoles and moving the quadrupoles will correct the orbit. With \tao, the User has
-complete freedom to vary any parameters in the fitting process.
-
-A third point is that the fitting process is independent of the strengths of the parameters in the
-\vn{design} lattice. That is, the fit involves the actual machine state independent of what the
-desired state is. It is not until the values needed for the correction are computed that the
-parameter strengths in the \vn{design} lattice come into play. 
-
-Typically, at the start of the fit, the \vn{model} lattice is, by default, equal to the \vn{design}
-lattice but this is not necessary. Generally, the actual machine state is near enough to the
-\vn{design} machine state so that the machine will behave roughly linearly with the variation in the
-parameters (typically, if the machine parameters are far from the design values, it will not be
-possible to store beam to take a measurement in the first place). This means that there will be only
-one minimum merit function state so that the parameter values (steering strengths in this case) at
-the end of the fit are independent of the starting state. To put this in other terms, the User
-generally does not have to worry about the initial state of the \vn{model} at the start of a
-fit. This is in contrast to the lattice design example in chapter~\sref{s:optimization}. With
-lattice design, there are typically many local minima and it can take days of work to find a good
-operating point. With lattice correction, on the other hand, the near linear nature of the problem
-means that finding a solution in a machine with hundreds of correctors and hundreds of BPM readings
-can be done in seconds.
-
-%------------------------------------------------------------------------------
-\subsection{Twiss Parameters Correction}
-\label{s:twiss.cor}
-
-As mentioned in the previous section, with \tao, the User has complete freedom to fit to any
-arbitrary set of lattice parameters. \tao also gives the User complete freedom to optimize using any
-arbitrary collection of data. In particular, as discussed below, by varying quadrupole strengths to
-fit a multiple orbit data sets taken with multiple steering strength settings allows correction of
-the Twiss parameters.
-
-One way to correct Twiss parameters is to vary, one-by-one, the steerings in the machine and for
-each varied steering, take before and after orbits. By fitting the measured orbit differences using
-the \vn{model} quadrupole strengths, the strengths of the quadrupoles can be determined. With this,
-the difference between the \vn{model} quadrupole strengths and the \vn{design} strengths gives the
-needed quadrupole corrections. See \Eq{dkkk} where, in this case, the $K$'s represent quadrupole
-strengths. In practice the steering strengths will also be included in the variable list. This
-correction scheme is similar to the Orbit Response Matrix (ORM) approach in that both uses multiple
-orbits to correct the Twiss parameters.
-
-It should be mentioned that even without doing the correction step, the fitting of the data in 
-itself gives values for the optics in the current state of the machine.
-
-%------------------------------------------------------------------------------
-\subsection{Twiss Parameter Correction Example Input Files}
-\label{s:twiss.setup}
-
-The example files used to illustrate correction of the Twiss parameters are in the directory 
-\begin{code}
-bmad-doc/tutorial_bmad_tao/lattice_files/twiss_correction
-\end{code}
-Copy these files to your working directory. There are six files:
-\begin{lstlisting}[mathescape]
-$\textbf{create_data.tao}$               ! For creating "measured" data. 
-$\textbf{lat.bmad}$               ! Lattice file.
-$\textbf{tao.init}$               ! Primary Tao initialization file.
-$\textbf{tao_plot.init}$               ! Plot setup initialization file.
-$\textbf{startup.tao}$               ! Command file run at startup.
-$\textbf{set_meas.tao}$               ! Set measured data.
-\end{lstlisting}
-
-The lattice being used here has one horizontal steering named \vn{H1} and one vertical steering
-named \vn{V2}. Two universes (\sref{s:multi.uni}) will be needed to store the measured
-data. The first universe will hold the measured data from changing \vn{H1} and the second universe
-will hold the measured data from changing from \vn{V2}.
-
-The file \vn{tao.init} is the main initialization file (\sref{s:init.file}) and is similar to the
-\vn{tao.init} file in Chapter~\sref{s:opt.files}. One difference is the the \vn{tao.init} file here
-initializes \tao with two universes instead of one:
-\begin{code}
-&tao_design_lattice
-  n_universes = 2
-  design_lattice(1)%file = "lat.bmad"
-  design_lattice(2)%file = "lat.bmad"
-/
-\end{code}
-Here both universes use the same lattice.
-
-The \vn{tao.init} file lists the secondary initialization files in the \vn{tao_start} namelist:
-\begin{code}
-&tao_start
-  startup_file = "startup.tao"
-  plot_file = "tao_plot.init"
-/
-\end{code}
-
-%------------------------------------------------------------------------------
-\subsection{Data Setup}
-\label{s:twiss.data}
-
-Data (\sref{s:data}) for the optimization is setup in the file \vn{tao.init} file. There is just one
-\vn{d2_data} block called \vn{orbit}:
-\begin{code}
-&tao_d2_data
-  d2_data%name = "orbit"
-  universe = "*"
-  n_d1_data = 2
-  default_weight = 1e8
-/
-
-&tao_d1_data
-  ix_d1_data = 1
-  d1_data%name = "x"
-  search_for_lat_eles = "det*"
-/
-
-&tao_d1_data
-  ix_d1_data = 2
-  d1_data%name = "y"
-  search_for_lat_eles = "det*"
-/
-\end{code}
-There are two \vn{d1_data} arrays for the horizontal and vertical orbits. A datum will be set up for
-each element whose name begins with ``\vn{det}''. That is, at the four detectors in the lattice
-\vn{det1} through \vn{det4}. The \vn{universe = *} setting results in an \vn{orbit} data block being
-setup one for each universe.
-
-%------------------------------------------------------------------------------
-\subsection{Variable Setup}
-\label{s:twiss.var}
-
-The variables (\sref{s:var}) setup is in the file \vn{tao.init}. There are three \vn{v1_var}
-blocks --- for quadrupole strengths and tilts, along with steering strengths. By varying quadrupole
-tilts, the coupling can be corrected. [Typically, coupling --- that is, coupling between horizontal and
-vertical orbits due to skew fields --- is corrected by adjusting the strength of skew quadrupoles. Here,
-to simplify things somewhat, the same quadrupoles are used for both beta and coupling correction.]
-
-The variable blocks are defined in \vn{tao_var} namelists The quadrupole strength block is
-\begin{code}
-&tao_var
-  v1_var%name = "quad_k1"
-  search_for_lat_eles = "Quad::*"
-  default_step = 1e-4
-  default_attribute = "k1"
-  default_merit_type = "target"
-  default_weight = 1
-  ix_min_var = 1
-  default_key_delta = 1e-2
-  default_key_bound = T
-/
-\end{code}
-The \vn{search_for_lat_eles} setting will searches for quadrupole elements in all universes. All
-quadrupoles of a given name in all universes will be bound together with a single variable. In this
-case there are two quadrupoles named \vn{q1} and \vn{q2} in each universe so the \vn{quad_k1}
-variable array, which has the name \vn{quad_k1[1]}, will have two elements. One element will control
-the \vn{k1} attribute of the \vn{q1} element in universe 1 and the the \vn{k1} attribute of the
-\vn{q1} element in universe 2. Similarly the other variable, \vn{quad_k1[2]} will control the
-\vn{k1} attribute of the \vn{q2} elements.
-
-When a variable controls multiple elements, the controlled parameters (the \vn{k1s} of the two
-\vn{q1} quads in this case) can have different values as long as the \vn{model} value of the
-variable is not touched. When the \vn{model} value is set, either during the optimization or with a
-\vn{set} or \vn{change} command, all the controlled parameters will be set to the same value as the
-\vn{model} value of the variable.  This setup mirrors the orbit measurement conditions were the
-quadrupole strengths were the same for all measurements.
-
-The \vn{merit_type} is set to \vn{target} which means that the contribution to the merit function in \Eq{m1}
-will be 
-\begin{equation}
-  \delta V = \mbox{model} - \mbox{measured}
-\end{equation}
-Here \vn{measured} is the value of the quadrupole strength as ``measured'' when the orbit was
-obtained.  Typically, magnet strengths are ``measured'' using the known calibration between current
-going through the field windings or, if it is a permanent magnet, the measured value is taken to be
-the field that was measured on the bench before installation. 
-
-The reason why the merit function is setup to have a contribution from the variables is to avoid
-near-degeneracies where, if there where no $\delta V$ terms, inaccuracies in the orbit measurement
-coupled with magnets that have a similar effect on the orbit results in the optimization minimum
-being a state where the near-degenerate magnets have large unphysical strengths but the \vn{model}
-orbit will look reasonable since the effect of the near-degenerate magnets nearly cancel one
-another. The trick is to adjust the weights for the $\delta V$ terms to be large enough to keep the
-magnet strengths reasonable but not too large that the fit of the orbit is degraded due to
-inaccuracies in the variable measurement value.
-
-The second variable block defines variables that control quadrupole tilts. These variables are setup
-similar to the quadrupole strength variables.
-
-The third variable block holding the steering strengths is setup with
-\begin{code}
-&tao_var
-  v1_var%name = "steering"
-  default_step = 1e-4
-  default_merit_type = "target"
-  default_weight = 1
-  default_key_delta = 1e-2
-  default_key_bound = T
-  var(1:2)%universe  =  1,       2
-  var(1:2)%ele_name  = "h1",    "v2"
-  var(1:2)%attribute = "hkick", "vkick"
-/
-\end{code}
-Here there are two variables \vn{steering[1]} and \vn{steering[2]}. \vn{steering[1]} controls the
-\vn{hkick} attribute of element \vn{h1} in universe 1 and \vn{steering[2]} controls the
-\vn{vkick} attribute of element \vn{v2} in universe 2.
-
-%------------------------------------------------------------------------------
-\subsection{Plotting Setup}
-\label{s:twiss.plot}
-
-For details of how to setup custom plots, see the \vn{Initializing Plotting}
-(\extref{T-s:init.plot}) section of the \vn{Tao Initialization} chapter of the \tao manual.  Here
-the plotting setup is done in the \vn{tao_plot.init} file. This file defines a plot template
-(\sref{s:disp.plot}) called \vn{data_orbit} in a \vn{tao_template_plot} structure:
-\begin{code}
-&tao_template_plot
-  plot%name = "data_orbit"  ! Name of template plot.
-  plot%x_axis_type = "s"    ! Graph x-axes are longitudinal s-coordinate.
-  plot%autoscale_gang_y = F ! So scale command scales the graphs separately.
-  plot%n_graph = 2          ! There are 2 associated graphs.
-/
-\end{code}
-This template plot has two associated graphs defined in two \vn{tao_template_graph} namelists below
-the \vn{tao_template_plot} namelist. The first graph's namelist looks like:
-\begin{code}
-&tao_template_graph
-  graph_index = 1               ! First graph.
-  graph%name = "x"              ! Graph name is "data_orbit.x"
-  graph%box = 1, 1, 1, 2        ! Graph is in lower half of the plot region.
-  graph%title = "X Orbit [mm]"  ! Graph title
-  graph%y%label = "X (mm)"      ! Graph y-axis label.
-  ... etc. ...
-\end{code}
-This graph is named ``\vn{x}'' so the fully qualified name is ``\vn{data_orbit.x}''. There are
-three curves associated with this graph and are defined further down in this namelist. The
-parameters of the first curve are:
-\begin{code}
-  curve(1)%name = "lat"          ! 1st curve name is "data_orbit.x.lat"
-  curve(1)%data_source = "lat"   ! Data is drawn from lattice calculations...
-  curve(1)%data_type = "orbit.x" !   ... In this case the horizontal orbit.
-  curve(1)%draw_symbols = F      ! Do not draw any symbols.
-  curve(1)%draw_line = T         ! But do draw a orbit curve.
-  curve(1)%line%color = "blue"
-\end{code}
-This curve draws the horizontal orbit (\vn{data_type} = "orbit.x") as a curve (\vn{draw_line} = T)
-with values calculated from the lattice (\vn{data_source} = "lat"). The default, since the
-\vn{component} of the curve is not set, is values will be extracted from the \vn{model} lattice.
-
-The second curve of the graph is defined in the namelist by:
-\begin{code}
-  curve(2)%name = "dat"          ! 2nd curve name is "data_orbit.x.dat"
-  curve(2)%data_source = "data"  ! Data is drawn from a data block...
-  curve(2)%data_type = "orbit.x" !   ... In particular, the "orbit.x" data block.
-  curve(2)%draw_symbols = T      ! Draw symbols at the data points.
-  curve(2)%draw_line = F         ! Do not draw lines between the data points.
-  curve(2)%symbol%height = 25
-\end{code}
-This curve draws a symbol at each data point of the \vn{orbit.x} data block.  This
-data block defines datums at each detector element. The default, since the \vn{component} of the
-curve is not set, is values will be extracted from the \vn{model} lattice just like the first
-curve. The result is that symbols are drawn on top of the line drawn by the first curve.
-
-The third curve of the graph is defined in the namelist by:
-\begin{code}
-  curve(3)%name = "meas"
-  curve(3)%component = "meas"
-  curve(3)%data_source = "data"
-  curve(3)%data_type = "orbit.x"
-  curve(3)%draw_symbols = T
-  curve(3)%draw_line = F
-  curve(3)%symbol%height = 15
-\end{code}
-This is similar to the second curve except that the values for drawing the symbols comes from the
-``\vn{meas}'' component of the \vn{orbit.x} data block.
-
-The second graph associated with the \vn{data_orbit} graph is similar to the first except the data is drawn
-from the vertical orbit instead of the horizontal orbit.
-
-Besides setting up the \vn{data_orbit} template plot, the \vn{tao_plot.init} file places plots using
-the \vn{tao_plot_page} namelist
-\begin{code}
-&tao_plot_page
-  place(1) = "r12",   "data_orbit"
-  place(2) = "r22",   "data_orbit"
-  place(3) = "layout" "lat_layout"
-/
-\end{code}
-The plot page will have 3 plots: Two \vn{data_orbit} plots and one \vn{lat_layout} plot. In the
-\vn{startup.tao} command file that is run at startup (since the \vn{startup_file} is set to this file
-in the \vn{tao_start} namelist in \vn{tao.init}), there is:
-\begin{code}
-set graph r12 ix_universe = 1
-set graph r22 ix_universe = 2
-\end{code}
-This sets one of the \vn{data_orbit} plot to use the data from universe 1 and the other
-\vn{data_orbit} plot to use the data from universe 2.
-
-%------------------------------------------------------------------------------
-\subsection{Measured Data and Variables Setup}
-\label{s:twiss.start}
-
-The ``measured'' data and variable values are set by the command file \vn{set_meas.tao} which is
-called by the \vn{startup.tao} file:
-\begin{code}
-set dat 1@orbit.x|meas = [2.9627E-03, 3.1590E-03, 2.3705E-03, 2.1821E-03]
-set dat 1@orbit.y|meas = [-1.1841E-03, -1.0370E-03, -1.3810E-03, -1.5749E-03]
-set dat 2@orbit.x|meas = [-1.0481E-03, -1.1265E-03, -9.6521E-04, -8.8252E-04]
-set dat 2@orbit.y|meas = [7.6870E-04, 6.6229E-04, 8.6742E-04, 9.6448E-04]
-
-set var steering[1:2]|meas = [1e-4, 1e-4]
-set var quad_k1[1:2]|meas = [1.0, -1.1]
-set var quad_tilt[1:2]|meas = [0, 0]
-\end{code}
-
-
-Since the lattice used in this example does not represent an actual machine, the ``measured'' orbit
-data had to be generated and this was done using the file the script \vn{create_data.tao}:
-\begin{code}
-set var quad_k1[1]|model = 0.9
-set var quad_k1[2]|model = -1.05
-set var quad_tilt[1]|model = 0.1    
-set var quad_tilt[2]|model = -0.05
-set var steering[1]|model = 1.2e-4  
-set var steering[2]|model = 0.9e-4
-show value 1@orbit.x|model + 5e-5*ran_gauss() -form es12.4  ! Add 50um noise
-show value 1@orbit.y|model + 5e-5*ran_gauss() -form es12.4
-show value 2@orbit.x|model + 5e-5*ran_gauss() -form es12.4
-show value 2@orbit.y|model + 5e-5*ran_gauss() -form es12.4
-\end{code}
-This file represents the state of the machine at the time the orbit measurements are made.  The
-results of running this script was, with a little bit of reformatting, been put in the file
-\vn{set_meas.tao}. The ``measured'' values for the variables in \vn{set_meas.tao} is somewhat
-different from the ``true'' values \vn{create_data.tao} to simulate inaccuracies inherent in
-measuring these variables. Additionally, 50~$\mu m$ Gaussian noise has been added to the orbit
-data.
-
-%--------------------------
-
-\begin{figure}[t]
-  \centering
-  \begin{subfigure}[t]{0.49\textwidth}
-    \includegraphics[width=\textwidth]{cor0.pdf}
-    \caption{Plot window at startup. The \vn{measured} orbit data points (red) 
-are far from the \vn{model} orbit orbit which corresponds to the zero orbit.}
-    \label{f:cor0}
-  \end{subfigure}
-  \hfil
-  \begin{subfigure}[t]{0.49\textwidth}
-    \includegraphics[width=\textwidth]{cor1.pdf}
-    \caption{Plot window after optimization showing the \vn{measured} orbit points is fairly 
-well fit by the \vn{model} orbit.}
-    \label{f:cor1}
-  \end{subfigure}
-  \caption{}
-\end{figure}
-
-%------------------------------------------------------------------------------
-\subsection{Running the Optimization}
-\label{s:cor.run}
-
-At startup, the resulting plot window is shown in Fig.~\ref{f:cor0}. It is no surprise that the
-\vn{model} orbit, being zero, does not well fit the \vn{measured} data. Running the optimization
-(\sref{s:opt.run}) with the \vn{run} command and after doing a \vn{scale} command produces
-Fig.~\ref{f:cor1}. Now the \vn{measured} orbit data is fairly well fit.
-
-Even though the optimization can fit the orbit fairly well, the \vn{model} values for the variable
-parameters are a bit off from the ``true'' values (that is, the values when the ``measurements''
-were made) which are the values as set in the \vn{create_data.tao} file (\sref{s:twiss.start}):
-\begin{code}
-Tao> show var *
-  Variable         Slave Parameters        Meas         Model        Design 
-  quad_k1[1]       [1:2]@Q1[K1]        1.0000E+00    9.8011E-01    1.0000E+00 
-  quad_k1[2]       [1:2]@Q2[K1]       -1.1000E+00   -1.1711E+00   -1.1000E+00 
-  quad_tilt[1]     [1:2]@Q1[TILT]      0.0000E+00    8.8747E-02    0.0000E+00 
-  quad_tilt[2]     [1:2]@Q2[TILT]      0.0000E+00   -7.2506E-02    0.0000E+00 
-  steering[1]      1@H1[HKICK]         1.0000E-04    1.5353E-04    0.0000E+00  
-  steering[2]      2@V2[VKICK]         1.0000E-04    1.1896E-04    0.0000E+00 
-\end{code}
-This is due to a combination of the errors that were introduced and some degeneracies among the
-variables. Even though there is a significant differences between here between true and \vn{model}
-values, a correction using \Eq{dkkk} does a good job of correcting the beta function. To simulate a
-correction after the fit was done, the following can be done
-\begin{code}
-Tao> run                       ! Run the optimizer
-Tao> set lattice base = model  ! Save the model fit values in the base lattice
-Tao> call create_data.tao      ! This will load the "true" values
-Tao> set var *|model = *|model + *|design - *|base  ! Load the correction.
-\end{code}
-The result is shown in Fig.~\ref{f:beta}. Fig.~\ref{f:beta}A shows the \vn{design} beta function. 
-Fig.~\ref{f:beta}B shows the shows the ``true'' beta functions that existed at the time of the
-measurements. Finally, Fig.~\ref{f:beta}C shows the beta functions after correction. Fig.~\ref{f:beta}C
-is close to Fig.~\ref{f:beta}A showing that the lattice is fairly well corrected.
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=0.55\textwidth]{beta.pdf}
-  \caption{Beta plots showing the Twiss parameter correction. A) Design Beta functions. B)
-Beta functions before correction. C) Beta function after a correction. The corrected Beta function
-is near the design which is what is wanted.}
-  \label{f:beta}
-\end{figure}
-
-
-%------------------------------------------------------------------------------
-\subsection{Exercises [Answers in Section \sref{s:ans.corr}]}
-\label{s:opt.corr.ex}
-
-\begin{enumerate}[label=\thesection.\arabic{enumi}]
-\item
-With orbit correction as discussed in section~(\sref{s:cor.orbit}), it was explicitly assumed that
-the \vn{design} orbit was the desired orbit one wanted. But what if this is not the case? Suppose
-that the desired orbit is one that has been empirically determined to minimize, say, the beam size,
-or, say, maximize the lifetime. How should orbit correction proceed in this case where the
-``golden'' orbit is not the \vn{design} orbit?
-%
-\item
-One important component in the optimization process is the setting of the merit function weights for
-the datums and variables. This can frequently be done empirically by varying the weights and while
-observing how well the data is fitted and how well behaved the variable values are. Try varying
-weights in the example in this chapter to see what happens to the fit.
-\end{enumerate}
-
-\newpage
-
-%------------------------------------------------------------------------------
-%------------------------------------------------------------------------------
 \Section{Beam tracking in Tao}
 \label{s:beam.tracking}
 
@@ -5282,6 +5282,50 @@ alias setit set ele q vkick = [[1]]
 \end{enumerate}
 
 %------------------------------------------------------------------------------
+%\subsection[Chapter \ref*{s:optimization} ``Optimization with Tao'']{Chapter %\hyperref[s:opt.ex]{\ref*{s:optimization}} ``Optimization with Tao'' Answers}
+%\label{s:ans.opt}
+%
+%\begin{enumerate}[label=\ref*{s:optimization}.\arabic{enumi}]
+%\item
+%%
+%\item
+%\end{enumerate}
+
+%------------------------------------------------------------------------------
+\subsection[Chapter \ref*{s:opt.corr.ex} ``Lattice Correction'']{Chapter \hyperref[s:opt.corr.ex]{\ref*{s:opt.cor}} ``Lattice and Orbit Corrections'' Answers}
+\label{s:ans.corr}
+
+\begin{enumerate}[label=\ref*{s:opt.cor}.\arabic{enumi}]
+\item
+The ``\vn{meas}'' orbit used for the analysis should be set to:
+\begin{code}
+meas = actual_measured - (golden_orbit - design_orbit)
+\end{code}
+Now fit to \vn{model - meas}. If there is a good fit, the \vn{model} orbit will be equal (more or
+less) to \vn{meas}. In the actual machine, if the parameters corresponding to the optimized
+variables are changed by an amount:
+\begin{code}
+param_change = var_design - var_model
+\end{code}
+this will produce (hopefully) an actual orbit:
+\begin{code}
+end_orbit = beginning_measured_orbit + orbit_change
+          = actual_measured + (design_orbit - model_orbit)
+          = actual_measured + (design_orbit - 
+                     (actual_measured - (golden_orbit - design_orbit)))
+          = gloden_orbit
+\end{code}
+%
+\item
+Use the following commands to increase the variable weights by a factor of 10 and refit:
+\begin{code}
+Tao> set var *|weight = 10 * *|weight
+Tao> run
+\end{code}
+With variable weights of $10^4$ the orbit fit is noticeably degraded.
+\end{enumerate}
+
+%------------------------------------------------------------------------------
 \subsection[Chapter \ref*{s:multi.uni.ex} ``Multiple Universes'']{Chapter \hyperref[s:multi.uni.ex]{\ref*{s:multi.uni}} ``Multiple Universes'' Answers}
 \label{s:ans.uni}
 
@@ -5459,50 +5503,6 @@ Tao> change ele 0 eta_x = 0.1
 \begin{enumerate}[label=\ref*{s:methods}.\arabic{enumi}]
 \item
 The \vn{orbit.bmad} lattice in the \vn{lattice_files} directory can be used here.
-\end{enumerate}
-
-%------------------------------------------------------------------------------
-%\subsection[Chapter \ref*{s:optimization} ``Optimization with Tao'']{Chapter %\hyperref[s:opt.ex]{\ref*{s:optimization}} ``Optimization with Tao'' Answers}
-%\label{s:ans.opt}
-%
-%\begin{enumerate}[label=\ref*{s:optimization}.\arabic{enumi}]
-%\item
-%%
-%\item
-%\end{enumerate}
-
-%------------------------------------------------------------------------------
-\subsection[Chapter \ref*{s:opt.corr.ex} ``Lattice Correction'']{Chapter \hyperref[s:opt.corr.ex]{\ref*{s:opt.cor}} ``Lattice and Orbit Corrections'' Answers}
-\label{s:ans.corr}
-
-\begin{enumerate}[label=\ref*{s:opt.cor}.\arabic{enumi}]
-\item
-The ``\vn{meas}'' orbit used for the analysis should be set to:
-\begin{code}
-meas = actual_measured - (golden_orbit - design_orbit)
-\end{code}
-Now fit to \vn{model - meas}. If there is a good fit, the \vn{model} orbit will be equal (more or
-less) to \vn{meas}. In the actual machine, if the parameters corresponding to the optimized
-variables are changed by an amount:
-\begin{code}
-param_change = var_design - var_model
-\end{code}
-this will produce (hopefully) an actual orbit:
-\begin{code}
-end_orbit = beginning_measured_orbit + orbit_change
-          = actual_measured + (design_orbit - model_orbit)
-          = actual_measured + (design_orbit - 
-                     (actual_measured - (golden_orbit - design_orbit)))
-          = gloden_orbit
-\end{code}
-%
-\item
-Use the following commands to increase the variable weights by a factor of 10 and refit:
-\begin{code}
-Tao> set var *|weight = 10 * *|weight
-Tao> run
-\end{code}
-With variable weights of $10^4$ the orbit fit is noticeably degraded.
 \end{enumerate}
 
 %------------------------------------------------------------------------------
