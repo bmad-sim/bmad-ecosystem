@@ -819,6 +819,9 @@ if (ie_start == not_set$) then
   return
 endif
 
+beam%bunch%n_good = 0
+beam%bunch%n_bad = 0
+
 ! If using beam info from a file then no init necessary.
 
 if (s%com%use_saved_beam_in_tracking) then
