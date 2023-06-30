@@ -1363,6 +1363,9 @@ enddo
 
 ! n_particle and centroid
 
+bunch_params%n_good_steps = bunch%n_good
+bunch_params%n_bad_steps = bunch%n_bad
+
 bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%state == alive$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%state == alive$))

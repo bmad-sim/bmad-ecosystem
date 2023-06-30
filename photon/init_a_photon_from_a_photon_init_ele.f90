@@ -9,7 +9,7 @@
 !   param         -- lat_param_struct
 !
 ! Output:
-!   orbit         -- coord_struct: Coords after applying a patch transformation.
+!   orbit         -- coord_struct: Output photon coords.
 !-
 
 Subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)

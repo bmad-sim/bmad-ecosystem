@@ -1136,6 +1136,8 @@ type bunch_params_struct
   integer :: n_particle_tot = 0          ! Total number of particles
   integer :: n_particle_live = 0         ! Number of non-lost particles
   integer :: n_particle_lost_in_ele = 0  ! Number lost in element (not calculated by Bmad)
+  integer :: n_good_steps = 0            ! Number of good steps (set when tracking with space charge)
+  integer :: n_bad_steps = 0             ! Number of bad steps (set when tracking with space charge)
   integer :: ix_ele = -1                 ! Lattice element where params evaluated at.
   integer :: location = not_set$         ! Location in element: upstream_end$, inside$, or downstream_end$
   logical :: twiss_valid = .false.       ! Is the data here valid? Note: IF there is no energy
