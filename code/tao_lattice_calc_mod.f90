@@ -222,7 +222,7 @@ type (beam_init_struct), pointer :: beam_init
 type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct) :: bunch_params
 
-real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
+real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6), t1(6,6)
 
 integer ix_branch
 integer i, n, ie0, ibf, ief
@@ -271,8 +271,10 @@ else
   D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
   D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
 
-  if (branch%param%geometry == closed$ .and. branch%param%t1_with_rf(6,5) /= 0) then
-    call transfer_matrix_calc (lat, branch%param%t1_with_RF, ix_branch = ix_branch, one_turn=.true.)
+  call transfer_matrix_calc (lat, t1, ix_branch = ix_branch, one_turn=.true.)
+
+  if (branch%param%geometry == closed$ .and. t1(6,5) /= 0) then
+    branch%param%t1_with_RF = t1
     call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
     if (err) then
       call mat_type (branch%param%t1_with_RF, &
