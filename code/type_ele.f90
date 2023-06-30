@@ -592,7 +592,7 @@ if (associated(ele%grid_field)) then
       j = j + 1
       if (j > nl2) exit
       if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
-      nl = nl + 1
+      nl=nl + 1
 
       select case (grid_field_dimension(g_field%geometry))
       case (1)
@@ -786,16 +786,35 @@ if (associated(ph)) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Structure Factors:'
     if (ele%key == multilayer_mirror$) then
-      nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 1):', real(ph%material%f0_m1), ' + I ', aimag(ph%material%f0_m1)
-      nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 2):', real(ph%material%f0_m2), ' + I ', aimag(ph%material%f0_m2)
+      nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 1):', real(ph%material%f0_m1), ' + I ', aimag(ph%material%f0_m1)
+      nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 2):', real(ph%material%f0_m2), ' + I ', aimag(ph%material%f0_m2)
     else
-      nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0:             ', real(ph%material%f_0), ' + I ', aimag(ph%material%f_0)
+      nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0:             ', real(ph%material%f_0), ' + I ', aimag(ph%material%f_0)
     endif
-    nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_H:             ', real(ph%material%f_h), ' + I ', aimag(ph%material%f_h)
-    nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_Hbar:          ', real(ph%material%f_hbar), ' + I ', aimag(ph%material%f_hbar)
-    nl = nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(ph%material%f_hkl), ' + I ', aimag(ph%material%f_hkl)
+    nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_H:             ', real(ph%material%f_h), ' + I ', aimag(ph%material%f_h)
+    nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_Hbar:          ', real(ph%material%f_hbar), ' + I ', aimag(ph%material%f_hbar)
+    nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(ph%material%f_hkl), ' + I ', aimag(ph%material%f_hkl)
+  endif
+
+  if (allocated(ph%init_energy_prob)) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Energy_probability_curve:'
+    nl=nl+1; li(nl) = '   Energy(eV)      Prob_density/eV (normalized)'
+    n = size(ph%init_energy_prob)
+    do i = 1, min(5, n)
+      nl=nl+1; write(li(nl), '(4x, 2es12.4)') ph%init_energy_prob(i)%x0, ph%init_energy_prob(i)%y0 / ph%integrated_init_energy_prob(n)
+    enddo
+    if (n > 10) then
+      nl=nl+1; write(li(nl), '(3a)') '   ..... ', int_str(n), ' terms total ...'
+    endif
+    do i = 1, min(5, n-5)
+      j = i + n - 5
+      nl=nl+1; write(li(nl), '(4x, 2es12.4)') ph%init_energy_prob(j)%x0, ph%init_energy_prob(j)%y0 / ph%integrated_init_energy_prob(n)
+    enddo
   endif
 endif
+
+
 
 ! Encode branch info
 
@@ -932,7 +951,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     enddo
   endif
 
-  if (.not. has_it) nl = nl - 3
+  if (.not. has_it) nl=nl - 3
 
   ! Print info on elements slaves.
 
@@ -1087,7 +1106,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     enddo
   endif
 
-  if (.not. has_it) nl = nl - 3
+  if (.not. has_it) nl=nl - 3
 endif
 
 ! Encode Twiss info
@@ -1103,7 +1122,7 @@ if (integer_option(radians$, twiss_out) /= 0 .and. ele%a%beta /= 0) then
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Twiss at end of element:'
   call type_twiss (ele, twiss_out, .false., li(nl+1:), nl2)
-  nl = nl + nl2
+  nl=nl + nl2
 endif
 
 l_status = ele%lord_status
