@@ -821,14 +821,13 @@ if (ie_start == not_set$) then
   return
 endif
 
-beam%bunch%n_good = 0
-beam%bunch%n_bad = 0
-
 ! If using beam info from a file then no init necessary.
 
 if (s%com%use_saved_beam_in_tracking) then
   init_ok = .true.
   beam = model_branch%ele(ie_start)%beam
+  beam%bunch%n_good = 0
+  beam%bunch%n_bad = 0
   u%model_branch(ix_branch)%ele(ie_start)%beam = beam
   call allocate_this_comb(tao_branch%bunch_params_comb, size(beam%bunch))
   return
@@ -851,6 +850,8 @@ if (branch%ix_from_branch >= 0) then  ! Injecting from other branch
   ! species is not well defined. In this case, don't inject.
 
   beam = u%model_branch(ib0)%ele(ie0)%beam
+  beam%bunch%n_good = 0
+  beam%bunch%n_bad = 0
   u%model_branch(ix_branch)%ele(ie_start)%beam = beam
   call allocate_this_comb(tao_branch%bunch_params_comb, size(beam%bunch))
 
@@ -901,6 +902,8 @@ if (bb%init_starting_distribution .or. u%beam%always_reinit) then
 
 else
   beam = bb%beam_at_start
+  beam%bunch%n_good = 0
+  beam%bunch%n_bad = 0
 endif
 
 u%model_branch(ix_branch)%ele(ie_start)%beam = beam
