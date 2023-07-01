@@ -1322,8 +1322,8 @@ end subroutine calc_bunch_params_slice
 ! Output     
 !   bunch_params -- bunch_params_struct:
 !   error        -- Logical: Set True if there is an error.
-!   n_mat(6,6)      -- real(rp), optional: N matrix defined in Wolski Eq 44 and used to convert 
-!                       from action-angle coords to lab coords (Wolski Eq 51.).
+!   n_mat(6,6)   -- real(rp), optional: N matrix defined in Wolski Eq 44 and used to convert 
+!                     from action-angle coords to lab coords (Wolski Eq 51.).
 !-
 
 subroutine calc_bunch_params (bunch, bunch_params, error, print_err, n_mat, is_time_coords, ele)
@@ -1408,6 +1408,8 @@ bunch_params%centroid%s = sum(bunch%particle%s * charge, mask = (bunch%particle%
 bunch_params%centroid%t = sum(bunch%particle%t * charge, mask = (bunch%particle%state == alive$)) / charge_live
 bunch_params%s = bunch_params%centroid%s
 bunch_params%t = bunch_params%centroid%t
+bunch_params%sigma_t = sum(bunch%particle%t**2 * charge, mask = (bunch%particle%state == alive$)) / charge_live
+bunch_params%sigma_t = sqrt(max(0.0_rp, bunch_params%sigma_t - bunch_params%t**2))
 
 if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
