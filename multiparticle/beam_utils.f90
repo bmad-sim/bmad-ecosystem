@@ -361,6 +361,8 @@ if (beam_init%position_file /= '') then
     return
   endif
   bunch = beam%bunch(1)
+  bunch%n_good = 0
+  bunch%n_bad = 0
 
   call bunch_init_end_calc (bunch, beam_init, ix_bunch, ele)
 
@@ -480,6 +482,9 @@ else
 endif
 
 ! Init
+
+bunch%n_good = 0
+bunch%n_bad = 0
 
 n_kv = 0
 ix_kv = 0
