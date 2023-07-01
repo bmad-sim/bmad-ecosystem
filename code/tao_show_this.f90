@@ -595,10 +595,11 @@ case ('beam')
     else
       nl=nl+1; write(lines(nl), rmt) '  Charge live (C):            ', bunch_p%charge_live
     endif
-    nl=nl+1; write(lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
+    nl=nl+1; lines(nl) = '                    x               px               y              py                z               pz          time'
+    nl=nl+1; write(lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec, bunch_p%t
     nl=nl+1; write(lines(nl), rmt) '  RMS:     ', &
                       sqrt(bunch_p%sigma(1,1)), sqrt(bunch_p%sigma(2,2)), sqrt(bunch_p%sigma(3,3)), &
-                      sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6))
+                      sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6)), bunch_p%sigma_t
     if (u%model%lat%branch(ix_branch)%param%particle /= photon$) then
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), rmt) '               norm_emitt            emit            beta           alpha'
