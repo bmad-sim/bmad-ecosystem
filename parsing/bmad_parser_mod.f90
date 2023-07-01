@@ -10296,6 +10296,8 @@ end function parser_fast_complex_read
 ! where <re1>, <re2>, etc. are real numbers (not expressions) and there are no commas except possibly, 
 ! at the end of the array.
 !
+! Note: if end_delim is "," and next character is a delim but not ",", the next character is taken as the delim.
+!
 ! Input:
 !   ele             -- ele_struct: Lattice element associated with the array. Used for error messages.
 !   end_delims      -- character(*): List of possible ending delimitors.
@@ -10355,6 +10357,11 @@ do i = 1, n
   if (delim /= ' ' .and. (.not. exact .or. i == n)) then
     is_ok = .true.
     if (present(n_real)) n_real = i
+    call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+    if (delim == ',' .and. index(end_delims, bp_com%parse_line(1:1)) /= 0 .and. bp_com%parse_line(1:1) /= ',') then
+      delim = bp_com%parse_line(1:1)
+      bp_com%parse_line = bp_com%parse_line(2:)
+    endif
     return
   endif
 
