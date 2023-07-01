@@ -4553,7 +4553,7 @@ case ('global')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
-!%% global:optimation
+!%% global:optimization
 !
 ! Output optimization parameters.
 ! Also see global:opti_de.
@@ -4561,7 +4561,7 @@ case ('global')
 ! Notes
 ! -----
 ! Command syntax:
-!   python global:opti_de
+!   python global:optimization
 !
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 !
