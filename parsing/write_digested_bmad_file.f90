@@ -539,7 +539,9 @@ if (associated (ele%photon)) then
 
   if (allocated(ph%reflectivity_table_sigma%angle)) then
     prt => ph%reflectivity_table_sigma
-    write (d_unit) size(prt%angle), size(prt%energy)
+    n_energy = size(prt%energy)
+    n_angle  = size(prt%angle)
+    write (d_unit) n_energy, n_angle
     write (d_unit) prt%angle
     write (d_unit) prt%energy
     write (d_unit) prt%p_reflect_scratch
@@ -552,7 +554,9 @@ if (associated (ele%photon)) then
 
   if (allocated(ph%reflectivity_table_pi%angle)) then
     prt => ph%reflectivity_table_pi
-    write (d_unit) size(prt%angle), size(prt%energy)
+    n_energy = size(prt%energy)
+    n_angle  = size(prt%angle)
+    write (d_unit) n_energy, n_angle
     write (d_unit) prt%angle
     write (d_unit) prt%energy
     write (d_unit) prt%p_reflect_scratch
