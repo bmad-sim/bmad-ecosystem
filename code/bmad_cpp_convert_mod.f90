@@ -10669,14 +10669,16 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_params_to_c2 (C, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_sigma, &
-      z_rel_max, z_rel_min, z_s, z_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
-      z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location, z_twiss_valid) bind(c)
+      z_rel_max, z_rel_min, z_s, z_t, z_sigma_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
+      z_n_particle_live, z_n_particle_lost_in_ele, z_n_good_steps, z_n_bad_steps, z_ix_ele, &
+      z_location, z_twiss_valid) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_centroid, z_x, z_y, z_z, z_a, z_b, z_c
-    real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live, z_charge_tot
-    integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location
+    real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_sigma_t, z_charge_live
+    real(c_double) :: z_charge_tot
+    integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele, z_n_good_steps, z_n_bad_steps, z_ix_ele, z_location
     logical(c_bool) :: z_twiss_valid
   end subroutine
 end interface
@@ -10694,9 +10696,10 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call bunch_params_to_c2 (C, c_loc(F%centroid), c_loc(F%x), c_loc(F%y), c_loc(F%z), c_loc(F%a), &
-    c_loc(F%b), c_loc(F%c), mat2vec(F%sigma, 6*6), fvec2vec(F%rel_max, 6), fvec2vec(F%rel_min, &
-    6), F%s, F%t, F%charge_live, F%charge_tot, F%n_particle_tot, F%n_particle_live, &
-    F%n_particle_lost_in_ele, F%ix_ele, F%location, c_logic(F%twiss_valid))
+    c_loc(F%b), c_loc(F%c), mat2vec(F%sigma, 6*6), fvec2vec(F%rel_max, 7), fvec2vec(F%rel_min, &
+    7), F%s, F%t, F%sigma_t, F%charge_live, F%charge_tot, F%n_particle_tot, F%n_particle_live, &
+    F%n_particle_lost_in_ele, F%n_good_steps, F%n_bad_steps, F%ix_ele, F%location, &
+    c_logic(F%twiss_valid))
 
 end subroutine bunch_params_to_c
 
@@ -10717,8 +10720,9 @@ end subroutine bunch_params_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_params_to_f2 (Fp, z_centroid, z_x, z_y, z_z, z_a, z_b, z_c, z_sigma, &
-    z_rel_max, z_rel_min, z_s, z_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
-    z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location, z_twiss_valid) bind(c)
+    z_rel_max, z_rel_min, z_s, z_t, z_sigma_t, z_charge_live, z_charge_tot, z_n_particle_tot, &
+    z_n_particle_live, z_n_particle_lost_in_ele, z_n_good_steps, z_n_bad_steps, z_ix_ele, &
+    z_location, z_twiss_valid) bind(c)
 
 
 implicit none
@@ -10728,8 +10732,9 @@ type(bunch_params_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_centroid, z_x, z_y, z_z, z_a, z_b, z_c
-real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_charge_live, z_charge_tot
-integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele, z_ix_ele, z_location
+real(c_double) :: z_sigma(*), z_rel_max(*), z_rel_min(*), z_s, z_t, z_sigma_t, z_charge_live
+real(c_double) :: z_charge_tot
+integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele, z_n_good_steps, z_n_bad_steps, z_ix_ele, z_location
 logical(c_bool) :: z_twiss_valid
 
 call c_f_pointer (Fp, F)
@@ -10751,13 +10756,15 @@ call twiss_to_f(z_c, c_loc(F%c))
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_sigma, F%sigma)
 !! f_side.to_f2_trans[real, 1, NOT]
-F%rel_max = z_rel_max(1:6)
+F%rel_max = z_rel_max(1:7)
 !! f_side.to_f2_trans[real, 1, NOT]
-F%rel_min = z_rel_min(1:6)
+F%rel_min = z_rel_min(1:7)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s = z_s
 !! f_side.to_f2_trans[real, 0, NOT]
 F%t = z_t
+!! f_side.to_f2_trans[real, 0, NOT]
+F%sigma_t = z_sigma_t
 !! f_side.to_f2_trans[real, 0, NOT]
 F%charge_live = z_charge_live
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -10768,6 +10775,10 @@ F%n_particle_tot = z_n_particle_tot
 F%n_particle_live = z_n_particle_live
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_particle_lost_in_ele = z_n_particle_lost_in_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_good_steps = z_n_good_steps
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_bad_steps = z_n_bad_steps
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]

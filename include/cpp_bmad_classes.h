@@ -3703,11 +3703,14 @@ public:
   Real_ARRAY rel_min;
   Real s;
   Real t;
+  Real sigma_t;
   Real charge_live;
   Real charge_tot;
   Int n_particle_tot;
   Int n_particle_live;
   Int n_particle_lost_in_ele;
+  Int n_good_steps;
+  Int n_bad_steps;
   Int ix_ele;
   Int location;
   Bool twiss_valid;
@@ -3721,15 +3724,18 @@ public:
     b(),
     c(),
     sigma(Real_ARRAY(0.0, 6), 6),
-    rel_max(0.0, 6),
-    rel_min(0.0, 6),
+    rel_max(0.0, 7),
+    rel_min(0.0, 7),
     s(-1),
     t(-1),
+    sigma_t(0.0),
     charge_live(0.0),
     charge_tot(0.0),
     n_particle_tot(0),
     n_particle_live(0),
     n_particle_lost_in_ele(0),
+    n_good_steps(0),
+    n_bad_steps(0),
     ix_ele(-1),
     location(Bmad::NOT_SET),
     twiss_valid(false)

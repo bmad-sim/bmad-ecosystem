@@ -1635,11 +1635,14 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && is_all_equal(x.rel_min, y.rel_min);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.t == y.t);
+  is_eq = is_eq && (x.sigma_t == y.sigma_t);
   is_eq = is_eq && (x.charge_live == y.charge_live);
   is_eq = is_eq && (x.charge_tot == y.charge_tot);
   is_eq = is_eq && (x.n_particle_tot == y.n_particle_tot);
   is_eq = is_eq && (x.n_particle_live == y.n_particle_live);
   is_eq = is_eq && (x.n_particle_lost_in_ele == y.n_particle_lost_in_ele);
+  is_eq = is_eq && (x.n_good_steps == y.n_good_steps);
+  is_eq = is_eq && (x.n_bad_steps == y.n_bad_steps);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.location == y.location);
   is_eq = is_eq && (x.twiss_valid == y.twiss_valid);

@@ -9286,21 +9286,27 @@ rhs = 11 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 12 + offset; F%t = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%charge_live = rhs
+rhs = 13 + offset; F%sigma_t = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 14 + offset; F%charge_tot = rhs
+rhs = 14 + offset; F%charge_live = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 15 + offset; F%charge_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%n_particle_tot = rhs
+rhs = 16 + offset; F%n_particle_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 16 + offset; F%n_particle_live = rhs
+rhs = 17 + offset; F%n_particle_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 17 + offset; F%n_particle_lost_in_ele = rhs
+rhs = 18 + offset; F%n_particle_lost_in_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 18 + offset; F%ix_ele = rhs
+rhs = 19 + offset; F%n_good_steps = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 19 + offset; F%location = rhs
+rhs = 20 + offset; F%n_bad_steps = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 21 + offset; F%ix_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 22 + offset; F%location = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 20 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
+rhs = 23 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
 
 end subroutine set_bunch_params_test_pattern
 

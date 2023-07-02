@@ -4364,8 +4364,8 @@ extern "C" void bunch_params_to_c (const Opaque_bunch_params_class*, CPP_bunch_p
 // c_side.to_f2_arg
 extern "C" void bunch_params_to_f2 (Opaque_bunch_params_class*, const CPP_coord&, const
     CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const
-    CPP_twiss&, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&);
+    CPP_twiss&, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&);
 
 extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_params_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
@@ -4373,8 +4373,9 @@ extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Opaque_bunch_param
 
   // c_side.to_f2_call
   bunch_params_to_f2 (F, C.centroid, C.x, C.y, C.z, C.a, C.b, C.c, z_sigma, &C.rel_max[0],
-      &C.rel_min[0], C.s, C.t, C.charge_live, C.charge_tot, C.n_particle_tot,
-      C.n_particle_live, C.n_particle_lost_in_ele, C.ix_ele, C.location, C.twiss_valid);
+      &C.rel_min[0], C.s, C.t, C.sigma_t, C.charge_live, C.charge_tot, C.n_particle_tot,
+      C.n_particle_live, C.n_particle_lost_in_ele, C.n_good_steps, C.n_bad_steps, C.ix_ele,
+      C.location, C.twiss_valid);
 
 }
 
@@ -4383,9 +4384,10 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_clas
     const Opaque_twiss_class* z_x, const Opaque_twiss_class* z_y, const Opaque_twiss_class*
     z_z, const Opaque_twiss_class* z_a, const Opaque_twiss_class* z_b, const
     Opaque_twiss_class* z_c, c_RealArr z_sigma, c_RealArr z_rel_max, c_RealArr z_rel_min,
-    c_Real& z_s, c_Real& z_t, c_Real& z_charge_live, c_Real& z_charge_tot, c_Int&
-    z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele, c_Int&
-    z_ix_ele, c_Int& z_location, c_Bool& z_twiss_valid) {
+    c_Real& z_s, c_Real& z_t, c_Real& z_sigma_t, c_Real& z_charge_live, c_Real& z_charge_tot,
+    c_Int& z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele, c_Int&
+    z_n_good_steps, c_Int& z_n_bad_steps, c_Int& z_ix_ele, c_Int& z_location, c_Bool&
+    z_twiss_valid) {
 
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_centroid, C.centroid);
@@ -4412,6 +4414,8 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_clas
   // c_side.to_c2_set[real, 0, NOT]
   C.t = z_t;
   // c_side.to_c2_set[real, 0, NOT]
+  C.sigma_t = z_sigma_t;
+  // c_side.to_c2_set[real, 0, NOT]
   C.charge_live = z_charge_live;
   // c_side.to_c2_set[real, 0, NOT]
   C.charge_tot = z_charge_tot;
@@ -4421,6 +4425,10 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Opaque_coord_clas
   C.n_particle_live = z_n_particle_live;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_particle_lost_in_ele = z_n_particle_lost_in_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_good_steps = z_n_good_steps;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_bad_steps = z_n_bad_steps;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]
