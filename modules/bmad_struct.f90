@@ -1127,8 +1127,8 @@ type bunch_params_struct
   type (twiss_struct) :: x = twiss_struct(), y = twiss_struct(), z = twiss_struct() ! Projected Twiss parameters
   type (twiss_struct) :: a = twiss_struct(), b = twiss_struct(), c = twiss_struct() ! Normal mode twiss parameters
   real(rp) :: sigma(6,6) = 0             ! beam size matrix
-  real(rp) :: rel_max(6) = 0             ! Max orbit relative to centroid
-  real(rp) :: rel_min(6) = 0             ! Min orbit relative to_centroid
+  real(rp) :: rel_max(7) = 0             ! Max orbit relative to centroid. 7 -> time.
+  real(rp) :: rel_min(7) = 0             ! Min orbit relative to_centroid. 7 -> time.
   real(rp) :: s = -1                     ! Longitudinal position.
   real(rp) :: t = -1                     ! Time.
   real(rp) :: sigma_t = 0                ! RMS of time spread.

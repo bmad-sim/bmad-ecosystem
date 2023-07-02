@@ -1759,9 +1759,9 @@ type (coord_struct) :: particle(:)
 type (bunch_params_struct), target :: bunch_params
 type (ele_struct), optional :: ele
 
-real(rp) charge_live, p0c_avg, vec(6)
+real(rp) charge_live, p0c_avg, vec(7)
 real(rp) charge(:)
-real(rp) :: avg(6)
+real(rp) :: avg(7)
 
 integer i, j2
 logical, optional :: is_time_coords
@@ -1805,14 +1805,14 @@ do i = 1, size(particle)
   vec = to_basis_coords(particle(i), ele, is_time) - avg
   
   forall (j2 = 1:6)
-    bunch_params%sigma(:,j2) = bunch_params%sigma(:,j2) + vec(:)*vec(j2)*charge(i)
+    bunch_params%sigma(:,j2) = bunch_params%sigma(:,j2) + vec(1:6)*vec(j2)*charge(i)
   end forall
 enddo
 
 bunch_params%sigma        = bunch_params%sigma / charge_live
 bunch_params%rel_max      = bunch_params%rel_max - avg
 bunch_params%rel_min      = bunch_params%rel_min - avg
-bunch_params%centroid%vec = avg
+bunch_params%centroid%vec = avg(1:6)
 
 !------------------------
 contains
@@ -1821,20 +1821,20 @@ function to_basis_coords (particle, ele, is_time) result (vec)
 
 type (coord_struct) particle, p
 type (ele_struct) ele
-real(rp) vec(6)
+real(rp) vec(7)
 logical is_time
 
 ! Time coords uses a different basis for the sigma matrix.
 
 if (.not. is_time) then
-  vec = particle%vec
+  vec = [particle%vec, particle%t]
   return
 endif
 
 p = particle
 call convert_particle_coordinates_t_to_s(p, ele)
 vec = [p%vec(1), p%vec(2) * p%p0c / p0c_avg, p%vec(3), p%vec(4) * p%p0c / p0c_avg, &
-         p%s, (p%vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg]
+                                      p%s, (p%vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg, p%t]
 
 end function to_basis_coords
 
