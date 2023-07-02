@@ -24,7 +24,7 @@ type ele_attribute_struct
   integer :: kind = unknown$          ! Is_switch$, is_real$, etc. See attribute_type routine.
   character(16) :: units = ''         ! EG: 'T*m'.
   integer :: ix_attrib = -1           ! Attribute index. Frequently will be where in the ele%value(:) array the attribute is.
-  real(rp) :: value = real_garbage$   ! Attribute value.
+  real(rp) :: value = real_garbage$   ! Used by type_ele.
 end type
 
 type (ele_attribute_struct), private, save :: attrib_array(n_key$, num_ele_attrib_extended$)

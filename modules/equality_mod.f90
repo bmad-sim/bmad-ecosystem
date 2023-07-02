@@ -3050,6 +3050,8 @@ is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%t == f2%t)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sigma_t == f2%sigma_t)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%charge_live == f2%charge_live)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%charge_tot == f2%charge_tot)
@@ -3059,6 +3061,10 @@ is_eq = is_eq .and. (f1%n_particle_tot == f2%n_particle_tot)
 is_eq = is_eq .and. (f1%n_particle_live == f2%n_particle_live)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_particle_lost_in_ele == f2%n_particle_lost_in_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_good_steps == f2%n_good_steps)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_bad_steps == f2%n_bad_steps)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
