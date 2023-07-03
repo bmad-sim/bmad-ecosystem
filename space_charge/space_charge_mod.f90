@@ -426,7 +426,7 @@ do i = 1, size(bunch%particle)
 
   ds = s - p%s
   if (ds == 0) cycle
-  p%time_dir = sign_of(ds)
+  p%time_dir = sign_of(ds) * p%direction
   s0 = p%s
   call track_from_s_to_s (branch%lat, s0, s, p, p, ix_branch = branch%ix_branch)
   p%time_dir = 1
@@ -480,7 +480,7 @@ particle_loop: do i = 1, size(bunch%particle)
   ! bracket solution
   do
     dt = t_target - p0%t
-    ds = 1.01 * dt * c_light * p0%beta
+    ds = 1.01 * dt * c_light * p0%beta * p0%direction
     s_target = ds + p0%s
     if (abs(ds) < 0.1_rp * bmad_com%significant_length) cycle particle_loop
     dt2 = track_func(s_target, status) 

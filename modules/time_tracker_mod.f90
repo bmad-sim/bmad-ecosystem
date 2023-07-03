@@ -63,7 +63,7 @@ real(rp), optional :: t_end, dt_step
 real(rp), target :: old_t, dt_tol, s_fringe_edge, t0
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
 real(rp), target  :: dvec_dt(10), vec_err(10), s_target, dt_next_save
-real(rp) :: stop_time, s_stop_fwd, s_body_old
+real(rp) :: stop_time, s_stop_fwd, s_body_old, ds
 real(rp), pointer :: s_body, s_fringe_ptr
 
 integer :: t_dir, n_step, n_pt, old_direction, status
@@ -93,7 +93,8 @@ if (ele%tracking_method == fixed_step_time_runge_kutta$) then
     call out_io (s_error$, r_name, 'FIXED_STEP_TIME_RUNGE_KUTTA TRACKING USED WITHOUT DS_STEP BEING SET!', &
                                    'WILL USE BMAD_COM%INIT_DS_ADAPTIVE_TRACKING AS A FALLBACK FOR ELEMENT: ' // ele%name)
   else
-    dt_next = abs(ele%value(ds_step$) / c_light) * t_dir
+    ds = min(abs(ele%value(ds_step$)), abs(ele%value(l$)))
+    dt_next = t_dir * ds / c_light
   endif
 endif
 
