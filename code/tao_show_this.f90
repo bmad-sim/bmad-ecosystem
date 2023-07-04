@@ -4255,6 +4255,8 @@ case ('radiation_integrals')
     nl=nl+1; write(lines(nl), fmt) 'Eta_p:', mode_m%momentum_compaction - 1.0_rp/gamma**2, mode_d%momentum_compaction - 1.0_rp/gamma**2, '! Slip factor'
     if (mode_m%momentum_compaction > 0) then
       nl=nl+1; write(lines(nl), fmt) 'gamma_trans:', sqrt(1.0_rp/mode_m%momentum_compaction), sqrt(1.0_rp/mode_d%momentum_compaction), '! Gamma at transition'
+    else
+      nl=nl+1; write(lines(nl), amt) 'gamma_trans:  No transition since momentum compaction is negative.'
     endif
 
     nl=nl+1; write(lines(nl), fmt) 'I0:', mode_m%synch_int(0), mode_d%synch_int(0), '! Radiation Integral'
