@@ -313,7 +313,9 @@ if (.not. ltt%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 call upcase_string(ltt%simulation_mode)
 
 select case (ltt%simulation_mode)
-case ('CHECK', 'SINGLE', 'BEAM', 'STAT')
+case ('BEAM', 'STAT')
+case ('CHECK', 'SINGLE')
+  ltt%ramp_update_each_particle = .true.
 case ('BUNCH')
   print '(a)', '"BUNCH" SETTING FOR LTT%SIMULATION_MODE HAS BEEN CHANGED TO "BEAM"'
 case default

@@ -1,16 +1,29 @@
-\documentclass[11pt,openany]{report}
-\usepackage{tocloft}
-\usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
-\usepackage{xspace}
-\geometry{letterpaper}           % ... or a4paper or a5paper or ... 
-%\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
+\documentclass{hitec}
+
+\usepackage{index}
+\usepackage{xr}
+\usepackage{textgreek}
+\usepackage{setspace}
 \usepackage{graphicx}
-\usepackage{amssymb}
-\usepackage{amsmath}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
 \usepackage{alltt}
+\usepackage{rotating}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{xspace}
+%%\usepackage{makeidx}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{yhmath}     % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
 \usepackage[strings]{underscore}    % to use "_" in text
-\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}
+\usepackage[nottoc,numbib]{tocbibind}   % Makes "References" section show in table of contents
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
 
 %---------------------------------------------------------------------------------
 
@@ -24,10 +37,9 @@
 \newcommand{\bfM}{{\Bf M}}
 \newcommand{\bfQ}{{\Bf Q}}
 \newcommand{\bfR}{{\Bf R}}
+\newcommand{\bfS}{{\Bf S}}
 \newcommand{\bfPhi}{{\Bf \Phi}}
 \newcommand{\Plim}{P_{lim}}
-\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
-\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand{\Begineq}{\begin{equation}}
 \newcommand{\Endeq}{\end{equation}}
 \newcommand{\Th}{$^{th}$\xspace}
@@ -37,118 +49,113 @@
 \newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
 \newcommand{\sref}[1]{$\S$\ref{#1}}
 
-%---------------------------------------------------------------------------------
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{{\usefont{T1}{lmss}{bx}{n} #1}\endgroup}
 
-\newlength{\dPar}
-\newlength{\ExBeg}
-\newlength{\ExEnd}
-\setlength{\dPar}{1.5ex}
-\setlength{\ExBeg}{-\dPar}
-\addtolength{\ExBeg}{-0.5ex}
-\setlength{\ExEnd}{-\dPar}
-\addtolength{\ExEnd}{-0.0ex}
+\makeatletter   % So can use @ sign in \renewcommand
+\renewcommand{\l@subsection}{\@dottedtocline{2}{1.5em}{3.5em}}
+\makeatother    % Reset 
 
-\newenvironment{example}
-  {\vspace{\ExBeg} \begin{alltt}}
-  {\end{alltt} \vspace{\ExEnd}}
-
-%---------------------------------------------------------------------------------
-
-\setlength{\textwidth}{6.25in}
-\setlength{\hoffset}{0.0in}
-\setlength{\oddsidemargin}{0.25in}
-\setlength{\evensidemargin}{0.0in}
-\setlength{\textheight}{8.5in}
-\setlength{\topmargin}{0in}
-
-\setlength{\parskip}{\dPar}
-\setlength{\parindent}{0ex}
-
-\setlength\cftparskip{0pt}
-\setlength\cftbeforesecskip{3pt}
-\setlength\cftaftertoctitleskip{15pt}
+\definecolor{lightcyan}{rgb}{0.88, 1.0, 1.0}
+\newcounter{main}
+\setcounter{main}{1}
+\lstnewenvironment{code}[1][firstnumber=\themain,name=main]
+  {\lstset{ %language=haskell,
+           %columns=fullflexible,
+           columns=fixed,
+           basicstyle=\small\ttfamily,
+           %numbers=left,
+           numberstyle=\tiny\color{gray},
+           backgroundcolor=\color{lightcyan},
+           #1
+          }
+}
+{\setcounter{main}{\value{lstnumber}}}
 
 %---------------------------------------------------------------------------------
+
+\renewcommand{\ttdefault}{txtt}
+%\lstset{basicstyle = \small\asciifamily,columns=flexible}  % Enable cut and paste
+\definecolor{backcolor}{rgb}{0.8824,1.0,1.0}   % To match code environment
+\lstset{basicstyle = \small, backgroundcolor=\color{backcolor}, escapeinside = {@!}{!@}}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+\title{Spin Stroboscope Program}
+\author{}
+\date{David Sagan \\ June 29, 2023}
 
 \begin{document}
-%%\maketitle
 
-\begin{titlepage}
+\phantomsection
+\pdfbookmark[1]{Cover Page}{Cover Page}
+\maketitle
 
-\begin{center}
-
-\vspace*{1in}
-
-\vspace{1in}
-{\Huge\bfseries Spin Stroboscope Program}
-
-\vspace{0.4in}
-{\LARGE\bfseries and David Sagan}
-
-\vspace{0.4in}
-{\large\bfseries December 5, 2017}
-
-\end{center}
-\end{titlepage}
-
+\cleardoublepage
+\phantomsection
 \pdfbookmark[1]{Contents}{Contents}
 \tableofcontents
 
+\newpage
+
 %------------------------------------------------------------------
-\chapter{Introduction} 
+\Section{Introduction} 
 \label{s:intro}
 
-\sss is a program which for calculating the invarient spin field.
+\sss is a program which for calculating the invarient spin field using spin stroboscopic
+averaging\cite{b:sagan.spin}. Alternative techniques for calculating the invarient spin field
+include adiabatic anti-damping and the SODOM-2 algorithm.
+
+Adiabatic anti-damping is a technique that exploits the fact that, away from resonances, the
+quantity $\bfS \cdot \bfn$, where $\bfS$ is a particle's spin, is an adiabatic
+invariant\cite{b:hoff.spin}. Thus by starting a particle on the closed orbit with its spin parallel
+to $\bfn_0$, the closed orbit invariant spin (which is straightforward to compute), and then
+tracking the particle while slowly increasing the orbital amplitude to the point where the phase
+space ampltitude of interest is reached, the particle's spin will remain, more or less, pointing
+along $\bfn$. Issues with this method include the fact that it is not suitable if the particle
+crosses any resonances as its amplitude is increased and the computation time needed for a given
+accuracy.
+
+Another method for computation of the invariant spin field is the SODOM-2 algorithm\cite{b:sodom2}.
+This method computes $\bfn$ by inverting a matrix equation involving the Fourier components of
+$\bfn$ and the Fourier components of the transport map.  The number $N$ of components used needs to
+be choisen small enough so that the problem can be solved in a reasonable time yet large enough for
+the solution to be accurate. Computation time problems arrise for orbital motion in more than one
+degree of freedom or for motion near spin-orbit resonances\cite{b:hoff.spin}.
+
+%------------------------------------------------------------------
+\Section{Running \sss} 
+\label{s:run}
+
+Syntax for invoking \sss:
+\begin{code}
+  spin_stroboscope \{<master_input_file_name>\}
+\end{code}
+Example:
+\begin{code}
+  spin_stroboscope my_input_file.init
+\end{code}
+The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
+default is ``\vn{spin_stroboscope.init}''.
 
 \sss is built atop the the Bmad software library \cite{b:bmad}. The Bmad library, developed at
 Cornell, has been developed for modeling relativistic charged particles in storage rings and Linacs,
 as well as modeling photons in x-ray beam lines.
 
-%------------------------------------------------------------------
-\chapter{Running \sss} 
-\label{s:run}
-
-Syntax for invoking \sss:
-\begin{example}
-  spin_stroboscope \{options\} \{<master_input_file_name>\}
-\end{example}
-Examples:
-\begin{example}
-  spin_stroboscope my_input_file.init
-  spin_stroboscope -plot xy  my_input_file.init
-\end{example}
-
-The \vn{<master_input_file_name>} optional argument is used to set the
-master input file name. The default is ``\vn{spin_stroboscope.init}''. 
-
-The command line options for \sss are:
-\begin{example}
-  -plot <what>  ! For viewing diagnostic plots.
-  -test <what>  ! For generating diagnostic files.
-\end{example}
-
-
-Adiabatic
-anti-damping is a technique that exploits the fact that, away from resonances, $\bfS \cdot \bfn$,
-where $\bfS$ is a particle's spin, is an adiabatic invariant\cite{b:hoff.book}. Thus by starting a
-particle on the closed orbit with its spin parallel to $\bfn_0$, the closed orbit invariant spin
-(which is straightforward to compute), and then tracking the particle while slowly increasing the
-orbital amplitude to the point where the phase space ampltitude of interest is reached, the
-particle's spin will remain, more or less, pointing along $\bfn$. Issues with this method include the
-fact that it is not suitable if the particle crosses any resonances as its amplitude is increased
-and the computation time needed for a given accuracy.
-
-Another method for computation of the invariant spin field is the SODOM-2 algorithm\cite{b:sodom2}.
-This method computes $\bfn$ by inverting a matrix equation involving the Fourier components of
-$\bfn$ and the Fourier components of the transport map $\bfRs$.  The number $N$ of components used
-needs to be choisen small enough so that the problem can be solved in a reasonable time yet large
-enough for the solution to be accurate. Computation time problems arrise for orbital motion in more
-than one degree of freedom or for motion near spin-orbit resonances\cite{b:hoff.book}.
-
-
-
 %------------------------------------------------------------------------
-\chapter{Simulation Technique and Physics Models}
+\Section{Simulation Technique and Physics Models}
 \section{Overview} 
 
 Consider a particle circulating in a storage ring. Let $\bfz(s)$ be the six dimensional
@@ -302,7 +309,7 @@ that the phase space advance is constant (check that this statement is true).
 space points that are close together.
 
 %------------------------------------------------------------------
-\chapter{Master Input File} 
+\Section{Master Input File} 
 \label{s:master}
 
 %------------------------------------------------------------------
@@ -311,22 +318,22 @@ space points that are close together.
 
 Fortran namelist syntax is used for parameter input by \sss. The
 general form of a namelist is
-\begin{example}
+\begin{code}
   &<namelist_name>
     <var1> = ...
     <var2> = ...
     ...
   /
-\end{example}
+\end{code}
 The tag \vn{"\&<namelist_name>"} starts the namelist where
 \vn{<namelist_name>} is the name of the namelist. The namelist ends
 with the slash \vn{"/"} tag. Anything outside of this is
 ignored. Within the namelist, anything after an exclamation mark
 \vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
 \vn{<var2>}, etc. are variable names. Example:
-\begin{example}
+\begin{code}
   &place section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
-\end{example}
+\end{code}
 here \vn{place} is the namelist name and \vn{section} is a
 variable name.  Notice that here \vn{section} is a ``structure'' which
 has five components -- a real number, followed by two strings,
@@ -346,7 +353,7 @@ The master input file can be specified on the command line invoking \sss.
 If not given, the default name for the master input file is ``\vn{spin_stroboscope.init}''.
 
 Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
-\begin{example}
+\begin{code}
   &strobe_parameters
     lattice_file = "bmad.lat"                ! Bmad lattice file.
     rf_on = F
@@ -371,21 +378,21 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     
 
   /
-\end{example}
+\end{code}
 
   \begin{description}
   \item
   \end{description}
 
 %------------------------------------------------------------------
-\chapter{Output Files} 
+\Section{Output Files} 
 
 %------------------------------------------------------------------
 \section{Main Output File}
 \label{s:main.out}
 
 %------------------------------------------------------------------
-\chapter{Custom Spin-Orbit Tracking}
+\Section{Custom Spin-Orbit Tracking}
 
 Custom spin-orbit tracking is useful for doing strobascopic averaging with simplified models for
 spin-orbit tracking. An example model is the single resonance spin-orbit tracking model used in the
@@ -396,18 +403,28 @@ the \vn{bsim/spin_stroboscope} source directory and then recompiling the \sss ex
 not know where this source directory is or how to recompile ask your local Bmad Guru.] The custom
 code must be matched with an appropriate Bmad lattice file. An example of such a lattice file along
 with an appropriate \sss master input file is in the directory:
-\begin{example}
+\begin{code}
   bsim/spin_stroboscope/examples/
-\end{example}
+\end{code}
 
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
 
+\bibitem{b:sagan.spin}
+David Sagan, 
+``A Superconvergent Algorithm for Invariant Spin Field Stroboscopic Calculations'',
+9th International Particle Accelerator Conference (2018).
+
 \bibitem{b:bmad}
 D. Sagan,
 ``Bmad: A Relativistic Charged Particle Simulation Library''
 Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
+
+\bibitem{b:hoff.spin}
+G.~Hoffstaetter, 
+{\it High-Energy Polarized Proton Beams, A Modern View}, 
+Springer. Springer Tracks in Modern Physics Vol~218, (2006).
 
 \end{thebibliography}
 \end{document}  
