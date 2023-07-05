@@ -286,15 +286,15 @@ subroutine dynamic_aperture_point (branch, ele0, orb0, theta_xy, ap_param, ap_po
 
 type (branch_struct)  branch
 type (ele_struct) ele0
-type (bmad_common_struct)  com_save
 type (coord_struct)  orb0
 type (coord_struct), allocatable :: orbit(:)
 type (aperture_point_struct)  ap_point
 type (aperture_param_struct)  ap_param
+type (bmad_common_struct) bmad_com_save
 
 real(rp) theta_xy, x0, x1, x2, y0, y1, y2, r
 
-integer n, it, turn_lost, track_state
+integer n, it, turn_lost, track_state, n_search
 
 character(*), parameter :: r_name = 'dynamic_aperture_point'
 
@@ -314,7 +314,10 @@ if (ap_param%y_init == 0 .and. abs(sin(theta_xy)) > 1e-10) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-com_save = bmad_com
+! Turn spin tracking off for calc.
+
+bmad_com_save = bmad_com
+bmad_com%spin_tracking_on  = .false.
 bmad_com%aperture_limit_on = .true.
 
 call reallocate_coord (orbit, branch%n_ele_max)
@@ -330,7 +333,7 @@ aperture_bracketed = .false.
 
 ! use a binary search to find where the aparture is along the line
 
-do
+do n_search = 1, 1000000
   n = ele0%ix_ele
   orbit(n) = orb0
   orbit(n)%vec(1) = orbit(n)%vec(1) + x1 
@@ -391,7 +394,7 @@ ap_point%x = x1
 ap_point%y = y1
 ap_point%i_turn = turn_lost
 
-bmad_com = com_save
+bmad_com = bmad_com_save
 
 end subroutine dynamic_aperture_point
 
