@@ -59,12 +59,13 @@
 
 subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out_str, ignore_interior)
 
-use utilities_mod
+use sim_utils
 
 implicit none
 
 character(*) in_str, out_str, word, delim_list, delim
 character(1) tab, ch
+character(*), parameter :: r_name = 'word_read'
 parameter (tab = char(9))
 
 integer i, j, ix_word, n_len, ix1, ix2
@@ -113,7 +114,7 @@ do i = 1, n_len
 
     if (blank_delim_in_list .and. non_blank_found .and. exterior) then
       ix_word = ix2 - ix1 + 1
-      word = in_str(ix1:ix2)
+      call set_this_word(word, in_str(ix1:ix2))
       goto 1000
     endif
 
@@ -122,7 +123,7 @@ do i = 1, n_len
   elseif (index(delim_list, ch) /= 0 .and. exterior) then
 
     if (non_blank_found) then
-      word = in_str(ix1:ix2)
+      call set_this_word(word, in_str(ix1:ix2))
       ix_word  = ix2 - ix1 + 1
     endif
     delim = ch
@@ -168,10 +169,10 @@ enddo
 ! here if no delim found
 
 if (ix1 == 0) then
-  word = in_str
+  call set_this_word(word, in_str)
   ix_word = 0
 else
-  word = in_str(ix1:ix2)
+  call set_this_word(word, in_str(ix1:ix2))
   ix_word = ix2 - ix1 + 1
 endif
 delim_found = .false.
@@ -205,5 +206,21 @@ enddo
 
 delim_found = .false.
 out_str = ' '
+
+!-------------------------------------------------------------------------------
+contains
+
+subroutine set_this_word(word, in_str)
+
+character(*) word, in_str
+
+if (len(word) < len_trim(in_str)) then
+  call out_io (s_error$, r_name, 'WORD ARGUMENT LENGTH (' // int_str(len(word)) // ') TOO SHORT')
+  return
+endif
+
+word = in_str
+
+end subroutine set_this_word
 
 end subroutine

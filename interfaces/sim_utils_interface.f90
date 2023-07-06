@@ -382,6 +382,14 @@ subroutine linear_fit (x, y, n_data, a, b, sig_a, sig_b)
   real(rp) sig_b
 end subroutine
 
+subroutine linear_fit_2d (x, y, z, coef, covar)
+  import
+  implicit none
+  real(rp) x(:), y(:), z(:)
+  real(rp) coef(3)
+  real(rp), optional :: covar(3,3)
+end subroutine
+
 subroutine location_decode(string, array, ix_min, num, names, exact_case, can_abbreviate, print_err)
   implicit none
   integer num
