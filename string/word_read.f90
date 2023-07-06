@@ -59,7 +59,7 @@
 
 subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out_str, ignore_interior)
 
-use sim_utils
+use sim_utils, dummy => word_read
 
 implicit none
 
