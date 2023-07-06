@@ -1,5 +1,5 @@
 !+
-! Subroutine linear_fit_2d (x, y, z, coef, covar)
+! Subroutine linear_fit_2d (x, y, z, coef)
 !
 ! Subroutine to fit to z = coef(1) x + coef(2) y + coef(3)
 !
@@ -10,10 +10,9 @@
 !
 ! Output:
 !   coef(3)     -- real(rp): Coefficients of the linear fit
-!   covar(3,3)  -- real(rp), optional: Covariance matrix.
 !-
 
-subroutine linear_fit_2d (x, y, z, coef, covar)
+subroutine linear_fit_2d (x, y, z, coef)
 
 use sim_utils, dummy => linear_fit_2d
 
@@ -22,7 +21,6 @@ implicit none
 integer n, n_data
 
 real(rp) x(:), y(:), z(:), coef(3)
-real(rp), optional :: covar(3,3)
 real(rp) m(3,3), v(3), m_inv(3,3), sig2, det
 
 !
@@ -40,19 +38,11 @@ v = [sum(x*z), sum(y*z), sum(z)]
 det = determinant(m)
 if (det == 0) then
   coef = real_garbage$
-  covar = real_garbage$
   return
 endif
 
 call mat_inverse(m, m_inv)
 coef = matmul(m_inv, v)
-
-!
-
-if (present(covar)) then
-  sig2 = sum((z - x*coef(1) - y*coef(2) - coef(3))*(z - x*coef(1) - y*coef(2) - coef(3))) / n_data
-  covar = sig2 * m_inv * transpose(m_inv)
-endif
 
 end subroutine
 
