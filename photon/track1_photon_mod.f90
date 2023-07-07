@@ -846,9 +846,13 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (crystal_param_struct) cp
+type (photon_reflect_table_struct), pointer :: rt
 
-real(rp) h_bar(3), e_tot, pc, p_factor, field(2), w_surface(3,3)
-real(rp) gamma_0, gamma_h, dr1(3), dr2(3), dphase(2)
+real(rp) h_norm(3), h_bar(3), e_tot, pc, p_factor, field(2), w_surface(3,3)
+real(rp) gamma_0, gamma_h, dr1(3), dr2(3), dphase(2), theta, angle(4), energy(4), prob(4), coef(3)
+real(rp) bragg_ang, p0, lambda, beta
+
+integer ie, ia
 
 character(*), parameter :: r_name = 'track1_cyrstal'
 
@@ -882,7 +886,8 @@ if (orbit%state /= alive$) return
 
 ! Construct h_bar = H * wavelength.
 
-h_bar = ele%photon%material%h_norm
+h_norm = ele%photon%material%h_norm
+h_bar = h_norm
 if (ele%photon%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
 h_bar = h_bar * cp%wavelength / ele%value(d_spacing$)
 
@@ -907,18 +912,47 @@ cp%dtheta_sin_2theta = -dot_product(h_bar + 2 * cp%old_vvec, h_bar) / 2
 
 ! E field calc
 
-p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
-call crystal_diffraction_field_calc (cp, ele, ele%value(thickness$), param, p_factor, .true.,  field(1), dphase(1), orbit%state, dr1)
-call crystal_diffraction_field_calc (cp, ele, ele%value(thickness$), param, 1.0_rp,   .false., field(2), dphase(2), orbit%state, dr2)   ! Sigma pol
+if (is_true(ele%value(use_reflectivity_table$))) then
+  rt => ele%photon%reflectivity_table_sigma
+  theta = atan2(cp%old_vvec(3), norm2(cp%old_vvec(1:2)))
 
-orbit%field = orbit%field * field
-orbit%phase = orbit%phase + dphase
+  lambda = c_light * h_planck / orbit%p0c
+  beta = lambda / (2 * ele%value(d_spacing$))
+  if (ele%value(b_param$) < 0) then ! Bragg
+    bragg_ang = asin((-beta * h_norm(3) - h_norm(1) * sqrt(h_norm(1)**2 + h_norm(3)**2 - beta**2)) / (h_norm(1)**2 + h_norm(3)**2))
+  else
+    bragg_ang = asin((-beta * h_norm(1) + h_norm(3) * sqrt(h_norm(1)**2 + h_norm(3)**2 - beta**2)) / (h_norm(1)**2 + h_norm(3)**2))
+  endif
 
-! For Laue: Average trajectories for the two polarizations weighted by the fields.
-! This approximation is valid as long as the two trajectories are "close" enough.
+  ie = bracket_index(orbit%p0c, rt%energy, 1)
+  ia = bracket_index(theta-bragg_ang, rt%angle, 1)
 
-if (ele%value(b_param$) > 0 .and. (field(1) /= 0 .or. field(2) /= 0)) then ! Laue
-  orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field(1) + dr2 * field(2)) / (field(1) + field(2))
+  if (ie < 1 .or. ie >= size(rt%energy) .or. ia < 1 .or. ia >= size(rt%angle)) then
+    orbit%field = 0
+
+  else
+    energy = [rt%energy(ie), rt%energy(ie), rt%energy(ie+1), rt%energy(ie+1)]
+    angle = [rt%angle(ia), rt%angle(ia+1), rt%angle(ia), rt%angle(ia+1)]
+    prob = [rt%p_reflect(ia, ie), rt%p_reflect(ia+1, ie), rt%p_reflect(ia, ie+1), rt%p_reflect(ia+1, ie+1)]
+    call linear_fit_2D(energy, angle, prob, coef)
+    p0 = coef(1) * orbit%p0c + coef(2) * (theta-bragg_ang) + coef(3)
+    orbit%field = orbit%field * sqrt(p0)
+  endif
+
+else
+  p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
+  call crystal_diffraction_field_calc (cp, ele, ele%value(thickness$), param, p_factor, .true.,  field(1), dphase(1), orbit%state, dr1)
+  call crystal_diffraction_field_calc (cp, ele, ele%value(thickness$), param, 1.0_rp,   .false., field(2), dphase(2), orbit%state, dr2)   ! Sigma pol
+
+  orbit%field = orbit%field * field
+  orbit%phase = orbit%phase + dphase
+
+  ! For Laue: Average trajectories for the two polarizations weighted by the fields.
+  ! This approximation is valid as long as the two trajectories are "close" enough.
+
+  if (ele%value(b_param$) > 0 .and. (field(1) /= 0 .or. field(2) /= 0)) then ! Laue
+    orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field(1) + dr2 * field(2)) / (field(1) + field(2))
+  endif
 endif
 
 ! Rotate back from curved body coords to element coords

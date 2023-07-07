@@ -78,12 +78,13 @@ type (all_pointer_struct) a_ptr
 type (ac_kicker_struct), pointer :: ac
 type (str_index_struct) str_index
 type (rad_map_struct), pointer :: rm0, rm1
+type (photon_reflect_table_struct), pointer :: rt
 
 integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
 integer ia, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
-integer id1, id2, id3
+integer id1, id2, id3, ne, na
 
 real(rp) coef, val, L_mis(3), S_mis(3,3) 
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -784,16 +785,16 @@ if (associated(ph)) then
 
   if (ph%material%f_h /= 0) then
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Structure Factors:'
+    nl=nl+1; li(nl) = 'Structure Factors (Re, Im):'
     if (ele%key == multilayer_mirror$) then
-      nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 1):', real(ph%material%f0_m1), ' + I ', aimag(ph%material%f0_m1)
-      nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0 (Material 2):', real(ph%material%f0_m2), ' + I ', aimag(ph%material%f0_m2)
+      nl=nl+1; write (li(nl), '(4x, 2(a,f10.4))') 'F_0 (Material 1):', real(ph%material%f0_m1), ',', aimag(ph%material%f0_m1)
+      nl=nl+1; write (li(nl), '(4x, 2(a,f10.4))') 'F_0 (Material 2):', real(ph%material%f0_m2), ', ', aimag(ph%material%f0_m2)
     else
-      nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_0:             ', real(ph%material%f_0), ' + I ', aimag(ph%material%f_0)
+      nl=nl+1; write (li(nl), '(4x, 2(a,f10.4))') 'F_0:             ', real(ph%material%f_0), ', ', aimag(ph%material%f_0)
     endif
-    nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_H:             ', real(ph%material%f_h), ' + I ', aimag(ph%material%f_h)
-    nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'F_Hbar:          ', real(ph%material%f_hbar), ' + I ', aimag(ph%material%f_hbar)
-    nl=nl+1; write (li(nl), '(4x, 2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(ph%material%f_hkl), ' + I ', aimag(ph%material%f_hkl)
+    nl=nl+1; write (li(nl), '(4x, 2(a,f10.4))') 'F_H:             ', real(ph%material%f_h), ', ', aimag(ph%material%f_h)
+    nl=nl+1; write (li(nl), '(4x, 2(a,f10.4))') 'F_Hbar:          ', real(ph%material%f_hbar), ', ', aimag(ph%material%f_hbar)
+    nl=nl+1; write (li(nl), '(4x, 2(a,f10.4))') 'Sqrt(F_H*F_Hbar):', real(ph%material%f_hkl), ', ', aimag(ph%material%f_hkl)
   endif
 
   if (allocated(ph%init_energy_prob)) then
@@ -811,6 +812,18 @@ if (associated(ph)) then
       j = i + n - 5
       nl=nl+1; write(li(nl), '(4x, 2es12.4)') ph%init_energy_prob(j)%x0, ph%init_energy_prob(j)%y0 / ph%integrated_init_energy_prob(n)
     enddo
+  endif
+
+  rt => ph%reflectivity_table_sigma
+  if (allocated(rt%p_reflect)) then
+    na = size(rt%angle)
+    ne = size(rt%energy)
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; write(li(nl), '(a, 2f14.9, i6)') 'Angles Min, Max, #Points:           ', rt%angle(1),  rt%angle(na),  na
+    nl=nl+1; write(li(nl), '(a, 2f14.1, i6)') 'Energy Min, Max, #Points:           ', rt%energy(1), rt%energy(ne), ne
+    if (ele%key == crystal$) then
+      nl=nl+1; write(li(nl), '(a, 2f14.9)')   'Bragg angle (uncorrected) Min, Max: ', rt%bragg_angle(1), rt%bragg_angle(ne)
+    endif
   endif
 endif
 

@@ -369,8 +369,8 @@ parsing_loop: do
       lat%title = this_ele%descrip
       deallocate (this_ele%descrip)
     else
-      lat%title = bp_com%next_line_from_file
-      bp_com%next_line_from_file = ''
+      lat%title = bp_com%next_chunk
+      bp_com%next_chunk = ''
     endif
     cycle parsing_loop
   endif

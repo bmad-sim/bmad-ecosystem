@@ -1621,9 +1621,8 @@ upon. (\sref{s:super})].
 \label{s:e.gun}
 \index{e_gun|hyperbf}
 
-An \vn{e_gun} element represents an electron gun and encompasses a
-region starting from the cathode were the electrons are generated.
-General \vn{e_gun} attributes are:
+An \vn{e_gun} element represents an electron gun and encompasses a region starting from the cathode
+were the electrons are generated.  General \vn{e_gun} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
@@ -1662,9 +1661,9 @@ The \vn{voltage} is simply related to the \vn{gradient} via the element length \
 \begin{example}
   voltage = gradient * l
 \end{example}
-If the \vn{voltage} is set to a non-zero value, the length \vn{l} must also be non-zero to
-keep the gradient finite.  A particle with the charge as the reference particle will have
-a positive energy gain if the \vn{voltage} and \vn{gradient} are positive and vice versa.
+If the \vn{voltage} is set to a non-zero value, the length \vn{l} must also be non-zero to keep the
+gradient finite.  A particle with the charge as the reference particle will have a positive energy
+gain if the \vn{voltage} and \vn{gradient} are positive and vice versa.
 
 \index{phi0_autoscale}\vn{field_autoscale}
 The \vn{voltage} and \vn{gradient} are scaled by \vn{field_autoscale} and, if there is a
@@ -1688,13 +1687,11 @@ can be present in a lattice branch and, if it is present, it must be,
 except for possibly \vn{marker} or \vn{null_ele} elements, the first
 element in any branch.
  
-Note: In order to be able to avoid problems with a zero reference
-momentum at the beginning of the \vn{e_gun}, the reference momentum
-and energy associated with an \vn{e_gun} element is calculated as
-outlined in Section~\sref{s:energy}. Additionally, the reference
-momentum at the exit end of the \vn{e_gun}, that is \vn{p0c}, must be
-non-zero. Thus, for example, if \vn{p0c} is zero at the start of the
-lattice, the \vn{e_gun} voltage must be non-zero. 
+Note: In order to be able to avoid problems with a zero reference momentum at the beginning of the
+\vn{e_gun}, the reference momentum and energy associated with an \vn{e_gun} element
+(\sref{s:ref.energy}) is calculated as outlined in Section~\sref{s:energy}. Additionally, the
+reference momentum at the exit end of the \vn{e_gun}, that is \vn{p0c}, must be non-zero. Thus, for
+example, if \vn{p0c} is zero at the start of the lattice, the \vn{e_gun} voltage must be non-zero.
 
 Additionally, in order to be able to avoid problems with a zero reference momentum at the
 beginning of the \vn{e_gun}, absolute time tracking (\sref{s:rf.time}) is always used in
@@ -2732,9 +2729,9 @@ Example:
 \label{s:lcav}
 \index{lcavity|hyperbf}
 
-An \vn{lcavity} is a LINAC accelerating cavity.  The main difference between an
-\vn{rfcavity} and an \vn{lcavity} is that, unlike an \vn{rfcavity}, the reference energy
-(\sref{s:phase.space}) through an \vn{lcavity} is not constant.
+An \vn{lcavity} is a LINAC accelerating cavity.  The main difference between an \vn{rfcavity} and an
+\vn{lcavity} is that, unlike an \vn{rfcavity}, the reference energy (\sref{s:ref.energy}) through
+an \vn{lcavity} is not constant.
 
 General \vn{lcavity} attributes are:
 \begin{center}

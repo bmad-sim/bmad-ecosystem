@@ -16,6 +16,8 @@ use bookkeeper_mod
 use wall3d_mod
 use random_mod
 use taylor_mod
+use iso_fortran_env, only: iostat_eor   ! End of record
+
 implicit none
 
 contains
@@ -83,7 +85,7 @@ type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), allocatable :: rt_save(:)
 type (photon_reflect_table_struct), pointer :: rt
 
-real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2), vec(100)
+real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2), vec(1000)
 real(rp), allocatable :: table(:,:)
 real(rp), pointer :: r_ptr
 
@@ -1080,39 +1082,54 @@ case ('ENERGY_PROBABILITY_CURVE')
 
 case ('REFLECTIVITY_TABLE')
   ph => ele%photon
-  if (.not. expect_this ('={', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-
   rt => ph%reflectivity_table_sigma
-  if (.not. expect_this ('{', .false., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+
+  if (.not. expect_this ('={', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  call parser_call_check(word, ix_word, delim, delim_found, call_found)
+
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
   if (word /= 'ANGLES') then
     call parser_error ('EXPECTING "ANGLES" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
     return
   endif
-  if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-  if (.not. parse_real_list2(lat, trim(ele%name) // ' ANGLES', rt%angle, na, delim, delim_found)) return
+  if (.not. expect_this ('=(', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+  if (.not. parser_fast_real_read(vec, ele, ' ,)', delim, 'REFLECTIVITY_TABLE ANGLES LIST', .false., na)) return
+  allocate(rt%angle(na))
+  rt%angle = vec(1:na)
   if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  if (word /= 'P_REFLECT') then
+    call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+    return
+  endif
+  if (.not. expect_this ('={', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+
   ne = 0
   do
     ne = ne + 1
     call re_allocate(rt%energy, ne)
     call re_allocate2d(rt%p_reflect, na, ne)
-    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-    if (word /= 'P_REFLECT') then
-      call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
-      return
+    if (.not. parser_fast_real_read(vec(:na+1), ele, ' ,}', delim, 'REFLECTIVITY_TABLE P_REFLECT TABLE', .true.)) return
+    rt%energy(ne) = vec(1)
+    rt%max_energy = max(rt%max_energy, vec(1))
+    rt%p_reflect(:,ne) = vec(2:na+1)
+    if (.not. expect_one_of(',}', .true., ele%name, delim, delim_found)) return
+    bp_com%parse_line = adjustl(bp_com%parse_line)
+    if (delim == ',' .and. bp_com%parse_line(1:1) == '}') then
+      delim = '}'
+      bp_com%parse_line = adjustl(bp_com%parse_line(2:))
     endif
-    if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-    call parse_evaluate_value (ele%name, rt%energy(ne), lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' P_REFLECT', rt%p_reflect(:,ne), .true., delim, delim_found)) return
-    rt%max_energy = vec(1)
-    if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
     if (delim == '}') exit
   enddo
-  allocate(rt%int1(ne))
 
-  call finalize_reflectivity_table (ph%reflectivity_table_sigma, .false.)
+  allocate(rt%bragg_angle(ne))
 
+  ! For now just use linear interpolation.
+  ! allocate(rt%int1(ne))
+  ! call finalize_reflectivity_table (ph%reflectivity_table_sigma, .false.)
+
+  if (.not. expect_one_of('}', .false., ele%name, delim, delim_found)) return
   if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
   err_flag = .false.
   return
@@ -2532,11 +2549,12 @@ integer ix_a, ix_word
 
 character(*) word, delim_list, delim
 
-integer n, ix
+integer n, ix, i0
 
 logical delim_found, end_of_file, call_found
 logical, optional :: upper_case_word, call_check, err_flag
 
+character(2), parameter :: space = ' ' // achar(9)
 character(n_parse_line) line
 
 ! Possible inline call...
@@ -2556,21 +2574,22 @@ if (bp_com%input_from_file) then
   do
     n = len_trim(bp_com%parse_line)
     if (n == 0 .or. n > 90) exit
+    i0 = max(str_first_not_in_set(bp_com%next_chunk, space), 1)
 
     if (bp_com%parse_line(n:n) == '&') then
+      bp_com%parse_line(n:n) = ''
       call load_parse_line('continue', n, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
 
-    else if (index(',({[=', bp_com%parse_line(n:n)) /= 0) then
-      call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
+    elseif (index(',({[=', bp_com%parse_line(n:n)) /= 0 .or. bp_com%ios_this_chunk == 0 .or. &
+                                                  index(',)}]=', bp_com%next_chunk(i0:i0)) /= 0) then
+      call load_parse_line('continue', n+1, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
 
-    elseif (index(',)}]=', bp_com%next_line_from_file(1:1)) /= 0) then
-      call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
 
     else
       if (.not. bp_com%inline_call_active) exit
       ! If in an inline called file then make sure the rest of the file is blank and
       ! return to the calling file
-      call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
+      call load_parse_line('continue', n+1, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
       if (bp_com%parse_line(n+1:) /= '') then
         call string_trim (bp_com%parse_line(n+1:), line, ix)
         call str_upcase (line(1:10), line(1:10))
@@ -2648,7 +2667,7 @@ if (how == 'init') then
   call fullfilename ('./', bp_com%file(0)%dir)
   if (present(err)) err = .false.
   if (.not. allocated(bp_com%lat_file_names)) allocate(bp_com%lat_file_names(100))
-  bp_com%next_line_from_file = str_garbage$
+  bp_com%next_chunk = str_garbage$
   bp_com%inline_call_active = .false.
   return
 endif
@@ -2673,12 +2692,15 @@ case ('push', 'push_inline')
   bp_com%input_line2  = ''
   bp_com%rest_of_line = ''
 
-  bp_com%file(i_level)%next_line_from_file_saved = bp_com%next_line_from_file
-  bp_com%file(i_level)%ios_next_line_from_file_saved = bp_com%ios_next_line_from_file
-  bp_com%next_line_from_file = str_garbage$
+  bp_com%file(i_level)%next_chunk_saved = bp_com%next_chunk
+  bp_com%file(i_level)%ios_next_chunk_saved = bp_com%ios_next_chunk
+  bp_com%file(i_level)%ios_this_chunk_saved = bp_com%ios_this_chunk
+  bp_com%next_chunk = str_garbage$
+  bp_com%ios_this_chunk = iostat_eor
 
   if (how == 'push_inline') then
     bp_com%file(i_level)%parse_line_saved = bp_com%parse_line
+    bp_com%file(i_level)%last_char_in_parse_line_saved = bp_com%last_char_in_parse_line
     bp_com%file(i_level)%inline_call_active = .true.    
     bp_com%parse_line = '&'
     bp_com%inline_call_active = .true.
@@ -2772,11 +2794,13 @@ case ('pop')
   bp_com%input_line1  = bp_com%file(i_level+1)%input_line1_saved
   bp_com%input_line2  = bp_com%file(i_level+1)%input_line2_saved
   bp_com%rest_of_line = bp_com%file(i_level+1)%rest_of_line_saved
-  bp_com%next_line_from_file = bp_com%file(i_level+1)%next_line_from_file_saved
-  bp_com%ios_next_line_from_file = bp_com%file(i_level+1)%ios_next_line_from_file_saved
+
+  bp_com%next_chunk     = bp_com%file(i_level+1)%next_chunk_saved
+  bp_com%ios_next_chunk = bp_com%file(i_level+1)%ios_next_chunk_saved
 
   if (bp_com%inline_call_active) then
     bp_com%parse_line = trim(bp_com%parse_line) // ' ' // bp_com%file(i_level+1)%parse_line_saved
+    bp_com%last_char_in_parse_line = bp_com%file(i_level+1)%last_char_in_parse_line_saved
     bp_com%inline_call_active = bp_com%file(i_level+1)%inline_call_active
   endif
 
@@ -2817,28 +2841,30 @@ recursive subroutine load_parse_line (action, ix_start, end_of_file, err_flag)
 
 implicit none
 
-integer ix_start, ix, n, ios
+integer ix_start, ix, n, ios, nn
 
 character(*) action
-character(n_parse_line+20) :: line
-character(1) quote_mark
+character(n_parse_line) :: line
+character(1) quote_mark, last_char
 character(1), parameter :: tab = achar(9)
 
-logical :: end_of_file, flush_this
+logical :: end_of_file, flush_this, has_blank
 logical, optional :: err_flag
 
 ! action = 'init'
 
 if (action == 'init') then
   bp_com%parse_line = ''
+  bp_com%last_char_in_parse_line = ''
   bp_com%rest_of_line = ''
-  bp_com%next_line_from_file = str_garbage$
-  bp_com%ios_next_line_from_file = 0  
+  bp_com%next_chunk = str_garbage$
+  bp_com%ios_next_chunk = iostat_eor
   return
 endif
 
 !
 
+ios = iostat_eor
 end_of_file = .false.
 flush_this = .false.
 if (present(err_flag)) err_flag = .false.
@@ -2862,37 +2888,40 @@ do
     bp_com%rest_of_line = ''
 
   else
-    if (bp_com%next_line_from_file == str_garbage$) then
-      read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_line_from_file) bp_com%next_line_from_file
-      if (bp_com%ios_next_line_from_file == 0) then
-        call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
+    if (bp_com%next_chunk == str_garbage$) then
+      ! With advance = 'no' an ios = 0 means that a full line has *not* been read.
+      read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_chunk, &
+                                                            advance = 'no') bp_com%next_chunk
+      if (bp_com%ios_next_chunk == iostat_eor) then
+        ! Nothing to do
       else
-        bp_com%next_line_from_file = ''
+        bp_com%next_chunk = ''
       endif
     endif
 
-    line = bp_com%next_line_from_file
-    ios = bp_com%ios_next_line_from_file
+    line = bp_com%next_chunk
+    ios = bp_com%ios_next_chunk
 
-    if (ios < 0) then
+    if (ios /= 0 .and. ios /= iostat_eor) then
       end_of_file = .true.
       if (bp_com%parse_line /= '' .and. .not. bp_com%inline_call_active) then
         call parser_error ('FILE ENDED BEFORE PARSING FINISHED', stop_here = .true.)
         if (present(err_flag)) err_flag = .true.
       endif
-      bp_com%next_line_from_file = str_garbage$
-      bp_com%ios_next_line_from_file = 0  
+      bp_com%next_chunk = str_garbage$
+      bp_com%ios_next_chunk = iostat_eor
       return
     elseif (ios > 0) then
       call parser_error ('ERROR READING INPUT LINE.', '[PERHAPS THE LINE HAS TOO MANY CHARACTERS.]', line)
       if (present(err_flag)) err_flag = .true.
       return
     endif
-    read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_line_from_file) bp_com%next_line_from_file
-    if (bp_com%ios_next_line_from_file == 0) then
-      call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
-    else
-      bp_com%next_line_from_file = ''
+    read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_chunk, &
+                                                    advance = 'no') bp_com%next_chunk
+    if (bp_com%ios_next_chunk == iostat_eor) then
+      ! Nothing to do
+    elseif (bp_com%ios_next_chunk /= 0) then
+      bp_com%next_chunk = ''
     endif
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
   endif
@@ -2965,21 +2994,32 @@ do
   enddo
 
   ! if the command line is blank then go back for more input
-  call string_trim (line, line, ix)
-  if (ix /= 0 .or. bp_com%rest_of_line /= '') exit
+  if (line /= '' .or. bp_com%rest_of_line /= '') exit
 enddo
 
 ! now simply append the line to %parse_line starting at ix_start
 
-call str_substitute (line)
+nn = len(line)
+last_char = line(nn:nn)
+has_blank = (bp_com%last_char_in_parse_line == '' .or. line(1:1) == '')
+
 line = adjustl(line)
-if (len_trim(line) + ix_start > n_parse_line) then
+call str_substitute (line)
+
+if (len_trim(line) + ix_start > n_parse_line_extended) then
   call parser_error ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
   if (present(err_flag)) err_flag = .true.
   return
 endif
 
-bp_com%parse_line(ix_start:) = line
+if (has_blank) then
+  bp_com%parse_line(ix_start+1:) = line
+else
+  bp_com%parse_line(ix_start:) = line
+endif
+
+bp_com%last_char_in_parse_line = last_char
+bp_com%ios_this_chunk = ios
 
 ! Flush this line if needed
 
@@ -5991,7 +6031,6 @@ integer, save :: ix_internal = 0
 
 character(1) delim, c_delim
 character(40) str, word, word2
-character(n_parse_line) parse_line_saved
 
 logical delim_found, replacement_line_here, c_delim_found
 logical err_flag, top_level
@@ -9321,7 +9360,7 @@ integer size2
 integer nn, num_found
 
 character(*) err_str
-character(1) delim
+character(*) delim
 
 logical is_ok, delim_found
 
@@ -9403,7 +9442,7 @@ integer, optional :: num_expected
 logical is_ok
 
 character(*) err_str
-character(1), optional :: open_delim, close_delim, separator
+character(*), optional :: open_delim, close_delim, separator
 
 ! Local
 
@@ -10303,13 +10342,13 @@ end function parser_fast_complex_read
 !   end_delims      -- character(*): List of possible ending delimitors.
 !   err_str         -- character(*): String used when printing error messages identifying where in
 !                         the lattice file the error is occuring.
-!   exact_size      -- logical, optional: If True, 
+!   exact_size      -- logical, optional: If True (default), number of values must match real_vec size.
 !
 ! Output:
-!   real_vec(:)     -- complex(rp): Complex vector.
+!   real_vec(:)     -- complex(rp): Real vector.
 !   delim           -- character(1): Delimitor at end of array.
 !   is_ok           -- logical: True if everything OK. False otherwise.
-!   n_real          -- integer, optional: Number of elements found
+!   n_real          -- integer, optional: Number of elements found.
 !-
 
 function parser_fast_real_read (real_vec, ele, end_delims, delim, err_str, exact_size, n_real) result (is_ok)
