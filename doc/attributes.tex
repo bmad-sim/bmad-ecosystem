@@ -1185,26 +1185,21 @@ The general syntax is:
   m: mirror, reflectivity_table = \{
     ! A reflection table
     \{
-      angles = (<ang1, <ang2, ... <angN>), 
-      p_reflect = <energy1>, (<P_11>, <P_12>, <P_13>, ..., <P_1N>), 
-      p_reflect = <energy2>, (<P_21>, <P_22>, <P_23>, ..., <P_2N>), 
-      ...
-      p_reflect = ...,
-    \}
-    ! Another reflection table
-    \{
-      angles = (...), 
-      p_reflect = ...,
-      ...
+      angles = (<ang1 <ang2 ... <angN>),
+      p_reflect = \{
+        <energy1> <P_11> <P_12> <P_13> ... <P_1N>,
+        <energy2> <P_21> <P_22> <P_23> ... <P_2N>, 
+        ...
+      \}
     \}
   \}
 \end{example}
-Multiple tables are used in case angles array must be first in table. angles in radians, energy in
-eV, angle and energy points do not need to be evenly spaced. probabilities between 0 and 1. For
-particles outside the range of angles, the probability is taken to be zero.
+The \vn{angles} array must be before the \vn{p_reflect} table. Angles are in radians and energy is
+in eV. Angle and energy points do not need to be evenly spaced. Probabilities \vn{P_ij} are between
+0 and 1. For particles outside the range of angles, the probability is taken to be zero.
 
-
-For \vn{crystal} elements, angles are always with respect to the Bragg angle for the energy.
+For \vn{crystal} elements, angles are always with respect to the Bragg angle for the energy where
+the Bragg angle is calculated without any kinematic corrections.
 
 %-----------------------------------------------------------------
 \section{Surface Properties for X-Ray elements}
@@ -1977,7 +1972,8 @@ Example
 \index{reference orbit}
 \index{reference energy}
 \vn{is_on} does not affect any apertures that are set. Additionally, \vn{is_on} does not affect the
-reference orbit. Therefore, turning off an \vn{lcavity} will not affect the reference energy.
+reference orbit (\sref{s:ref}) or reference energy (\sref{s:ref.energy}). For example, turning off an
+\vn{lcavity} will not affect the reference energy.
 
 The following elements cannot be ``turned off:''
 \begin{example}

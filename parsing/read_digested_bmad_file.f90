@@ -753,37 +753,35 @@ if (ix_s /= 0) then
 
   if (is_alloc_ref_sigma) then
     prt => ph%reflectivity_table_sigma
-    read (d_unit, err = 9361, end = 9361) n_energy, n_angle
-    allocate(prt%angle(n_angle), prt%energy(n_energy), prt%p_reflect_scratch(n_angle))
-    allocate(prt%p_reflect(n_angle,n_energy), prt%int1(n_energy))
-    read (d_unit, err = 9361, end = 9361) prt%angle
-    read (d_unit, err = 9361, end = 9361) prt%energy
-    read (d_unit, err = 9361, end = 9361) prt%p_reflect_scratch
-    read (d_unit, err = 9361, end = 9361) prt%int1
+    read (d_unit, err = 9370, end = 9370) n_energy, n_angle
+    allocate(prt%angle(n_angle), prt%energy(n_energy))
+    allocate(prt%p_reflect(n_angle,n_energy), prt%bragg_angle(n_energy))
+    read (d_unit, err = 9370, end = 9370) prt%angle
+    read (d_unit, err = 9370, end = 9370) prt%energy
+    read (d_unit, err = 9370, end = 9370) prt%bragg_angle
     do j = 1, n_energy
-      read (d_unit, err = 9361, end = 9361) prt%p_reflect(:,j)
+      read (d_unit, err = 9370, end = 9370) prt%p_reflect(:,j)
     enddo
   endif
 
   if (is_alloc_ref_pi) then
     prt => ph%reflectivity_table_pi
-    read (d_unit, err = 9361, end = 9361) n_energy, n_angle
+    read (d_unit, err = 9380, end = 9380) n_energy, n_angle
     allocate(prt%angle(n_angle), prt%energy(n_energy), prt%p_reflect_scratch(n_angle))
     allocate(prt%p_reflect(n_angle,n_energy), prt%int1(n_energy))
-    read (d_unit, err = 9361, end = 9361) prt%angle
-    read (d_unit, err = 9361, end = 9361) prt%energy
-    read (d_unit, err = 9361, end = 9361) prt%p_reflect_scratch
-    read (d_unit, err = 9361, end = 9361) prt%int1
+    read (d_unit, err = 9380, end = 9380) prt%angle
+    read (d_unit, err = 9380, end = 9380) prt%energy
+    read (d_unit, err = 9380, end = 9380) prt%bragg_angle
     do j = 1, n_energy
-      read (d_unit, err = 9361, end = 9361) prt%p_reflect(:,j)
+      read (d_unit, err = 9380, end = 9380) prt%p_reflect(:,j)
     enddo
   endif
 
   if (is_alloc_eprob) then
-    read (d_unit, err = 9361, end = 9361) n
+    read (d_unit, err = 9390, end = 9390) n
     allocate (ph%init_energy_prob(n), ph%integrated_init_energy_prob(n))
-    read (d_unit, err = 9361, end = 9361) ph%init_energy_prob
-    read (d_unit, err = 9361, end = 9361) ph%integrated_init_energy_prob
+    read (d_unit, err = 9390, end = 9390) ph%init_energy_prob
+    read (d_unit, err = 9390, end = 9390) ph%integrated_init_energy_prob
   endif
 
 endif
@@ -940,6 +938,24 @@ return
 9362  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING %PHOTON%SURFACE%GRID FOR ELEMENT: ' // ele%name)
+close (d_unit)
+return
+
+9370  continue
+call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING %PHOTON%REFLECTIVITY_TABLE_SIGMA FOR ELEMENT: ' // ele%name)
+close (d_unit)
+return
+
+9380  continue
+call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING %PHOTON%REFLECTIVITY_TABLE_PI FOR ELEMENT: ' // ele%name)
+close (d_unit)
+return
+
+9390  continue
+call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING %PHOTON%INTEGRATED_INIT_ENERGY_PROB FOR ELEMENT: ' // ele%name)
 close (d_unit)
 return
 

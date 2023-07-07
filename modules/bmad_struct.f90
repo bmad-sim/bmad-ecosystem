@@ -188,6 +188,7 @@ character(12), parameter :: multipass_ref_energy_name(0:1) = [character(12):: 'U
 
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
+! Used for both smooth surface reflections and custom crystal reflections.
 
 type interval1_coef_struct
   real(rp) c0, c1, n_exp
@@ -197,9 +198,10 @@ type photon_reflect_table_struct
   real(rp), allocatable :: angle(:)               ! Vector of angle values for %p_reflect
   real(rp), allocatable :: energy(:)              ! Vector of energy values for %p_reflect
   type (interval1_coef_struct), allocatable :: int1(:)
-  real(rp), allocatable :: p_reflect(:,:)         ! (angle, ev) Logarithm of smooth surface reflection probability
+  real(rp), allocatable :: p_reflect(:,:)         ! (angle, ev) probability. Log used for smooth surface reflection
   real(rp) :: max_energy = -1                     ! maximum energy for this table
   real(rp), allocatable :: p_reflect_scratch(:)   ! Scratch space
+  real(rp), allocatable :: bragg_angle(:)         ! Bragg angle at energy values.
 end type
 
 ! Each photon_reflect_reflect_table_array(:) represents a different surface type.
@@ -1017,7 +1019,7 @@ type photon_element_struct
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
-  type (photon_reflect_table_struct) reflectivity_table_sigma
+  type (photon_reflect_table_struct) reflectivity_table_sigma  ! For now there is only one table used and polarization is ignored.
   type (photon_reflect_table_struct) reflectivity_table_pi
   type (spline_struct), allocatable :: init_energy_prob(:)  ! Initial energy probability density
   real(rp), allocatable :: integrated_init_energy_prob(:)

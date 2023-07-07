@@ -822,8 +822,11 @@ element. The following elements are exceptions:
 \end{example}
 The reference energy of these elements is determined by tracking a particle (the ``\vn{reference
 particle}'') through the element with the particle starting on the reference orbit and whose energy
-is equal to the reference energy.  The energy of the particle at the downstream end is the reference
-energy of the element.
+is equal to the reference energy. The energy of the particle at the downstream end is the reference
+energy of the element. Note: Tracking through an element to determine the reference energy is always
+done with the element turned on independent of the setting of the element's \vn{is_on}
+(\sref{s:is.on}) parameter. Reference energy tracking is also done ignoring any orientation attributes
+(\sref{s:offset}) and errors like \vn{voltage_err}.
 
 \index{wiggler!reference time}
 Besides the reference energy, lattice elements have an associated \vn{reference time} which is

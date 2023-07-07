@@ -544,9 +544,7 @@ if (associated (ele%photon)) then
     write (d_unit) n_energy, n_angle
     write (d_unit) prt%angle
     write (d_unit) prt%energy
-    write (d_unit) prt%p_reflect_scratch
-    write (d_unit) prt%int1
-    write (d_unit) prt%p_reflect
+    write (d_unit) prt%bragg_angle
     do j = 1, n_energy
       write (d_unit) prt%p_reflect(:,j)
     enddo
@@ -559,9 +557,7 @@ if (associated (ele%photon)) then
     write (d_unit) n_energy, n_angle
     write (d_unit) prt%angle
     write (d_unit) prt%energy
-    write (d_unit) prt%p_reflect_scratch
-    write (d_unit) prt%int1
-    write (d_unit) prt%p_reflect
+    write (d_unit) prt%bragg_angle
     do j = 1, n_energy
       write (d_unit) prt%p_reflect(:,j)
     enddo
