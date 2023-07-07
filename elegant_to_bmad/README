@@ -1,7 +1,10 @@
                                     Elegant to Bmad Lattice File Conversion
-                                    -----------------------------------
+                                    ---------------------------------------
 
 This README file documents how to convert ELEGANT formatted files to Bmad lattice format.
+
+* Note: For conversion from Bmad to Elegant use the "write elegant" command in the Tao program or
+use the bmad_to_mad_sad_elegant program (documentation in bsim/bmad_to_mad_sad_elegant).
 
 Orientation:
 ------------
