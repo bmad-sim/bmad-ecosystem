@@ -15,6 +15,7 @@ type (ele_struct), pointer :: ele
 type (coord_struct) orbit, orb_start, orb_end
 type (vst) :: start(6) = [vst([0.0_rp, 0.0_rp]), vst([0.2_rp, 0.1_rp]), vst([0.4_rp, 0.0_rp]), &
                           vst([0.0_rp, 0.3_rp]), vst([0.0_rp, 0.5_rp]), vst([0.2_rp, 0.5_rp])]
+type (photon_reflect_table_struct), pointer :: rt
 
 real(rp) E_rel, prob, vec(6)
 integer i, ix_pt, iy_pt
@@ -22,6 +23,25 @@ integer i, ix_pt, iy_pt
 !
 
 open (1, file = 'output.now', recl = 200)
+
+!
+
+call ran_seed_put(123456)
+call ran_engine(set = 'quasi')
+call ran_uniform(prob)
+
+call bmad_parser ('photon_test.bmad', lat)
+
+call init_a_photon_from_a_photon_init_ele (lat%ele(1), lat%param, orb_start)
+orb_start%field = [1.0_rp, 2.0_rp]
+
+write (1, '(a, 6es16.8)') '"photon_init-vec" ABS 1E-10', orb_start%vec 
+write (1, '(a, f14.8)')   '"photon_init-p0c" ABS 1E-8', orb_start%p0c
+
+orb_start%p0c = lat%ele(1)%value(p0c$)
+call track1 (orb_start, lat%ele(2), lat%param, orb_end)
+write (1, '(a, 6es16.8)') '"reflect_table-vec"   ABS 1E-10', orb_end%vec
+write (1, '(a, 2f14.8)') '"reflect_table-field" ABS 1E-10', orb_end%field
 
 !
 
