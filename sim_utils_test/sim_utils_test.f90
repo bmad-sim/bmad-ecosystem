@@ -24,6 +24,7 @@ real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2, dx, dy, dz
 real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
 real(rp) field2(10:12, 20:22), field3(10:12, 20:22, 30:32), ff, df_dx, df_dy, df_dz, ff0, ff1
 real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z, value
+real(rp) xx(4), yy(4), zz(4), coef(3), coef_in(3)
 
 integer i, j, k, ie, n, which, where, n_freq, mult, power, width, digits, species, s_mat(6,6)
 integer, allocatable :: arr(:)
@@ -41,6 +42,16 @@ character(16) :: extrap(0:3) = [character(16):: 'ZERO', 'LINEAR', 'CONSTANT', 'S
 !
 
 open (1, file = 'output.now')
+
+!
+
+coef_in = [1.0_rp, 2.0_rp, 3.0_rp]
+xx = [0.0_rp, 0.5_rp, 1.0_rp, 1.5_rp]
+yy = [-1.0_rp, 0.0_rp, 1.0_rp, -0.5_rp]
+zz = coef_in(1) * xx + coef_in(2) * yy + coef_in(3)
+call linear_fit_2d(xx, yy, zz, coef)
+
+write (1, '(a, 3es12.4)') '"linear_fit_2d" ABS 1E-12', coef-coef_in
 
 ! pointer_to_locations
 

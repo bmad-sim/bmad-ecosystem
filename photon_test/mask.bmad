@@ -1,0 +1,16 @@
+parameter[particle] = photon
+parameter[no_end_marker] = T
+parameter[E_tot] = 1e3
+particle_start[field_x] = 1
+particle_start[field_y] = 2
+
+beam_line: line = (mask1)
+use, beam_line
+
+
+mask1: mask, mode = transmission, wall = {
+    section = {type = clear, v(1) = {0.3, 0.4}},
+    section = {type = opaque, absolute_vertices = F, r0 = (0.4, 0), v(1) = {0.0, 0.0, 0.3}},
+    section = {type = clear,  absolute_vertices = T, r0 = (0.0, 0.5), v(1) = {0.3, 0.8}},
+    section = {type = opaque, r0 = (0.0, 0.4), v(1) = {0.0, 0.0, 0.2}}
+    }
