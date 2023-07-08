@@ -332,6 +332,22 @@ function is_alphabetic (string, valid_chars) result (is_alpha)
   logical is_alpha
 end function
 
+function is_decreasing_sequence (array, strict) result (is_decreasing)
+  import
+  implicit none
+  real(rp) array(:)
+  logical, optional :: strict
+  logical is_decreasing
+end function
+
+function is_increasing_sequence (array, strict) result (is_increasing)
+  import
+  implicit none
+  real(rp) array(:)
+  logical, optional :: strict
+  logical is_increasing
+end function
+
 function is_integer (string, int) result (valid)
   implicit none
   character(*) string
