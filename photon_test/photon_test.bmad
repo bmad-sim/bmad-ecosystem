@@ -1,8 +1,10 @@
-pinit: photon_init, energy_distribution = curve, energy_probability_curve = {call::init_e_prob.bmad},
+pinit: photon_init, energy_distribution = curve, 
+          energy_probability_curve = {call::init_e_prob.bmad},
           sig_x = 1e-5, sig_y = 1e-6, spatial_distribution = uniform, E_center_relative_to_ref = False
 
-cst: crystal, reflectivity_table = {call::reflect_pi.bmad}, b_param = -0.6, crystal_type = "Si(620)",
-  use_reflectivity_table = T
+cst: crystal, b_param = -0.6, crystal_type = "Si(620)", use_reflectivity_table = T,
+          reflectivity_table = {polarization = sigma, call::reflect_pi.bmad}, 
+          reflectivity_table = {polarization = pi, call::reflect_pi.bmad}
 
 parameter[geometry] = open
 parameter[particle] = photon
