@@ -753,7 +753,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    ! photon elements with a surface must have ele%photon associated.
+    ! Photon elements with a surface must have ele%photon associated.
 
     if (ele%key == crystal$ .or. ele%key == mirror$ .or. ele%key == multilayer_mirror$) then
       if (.not. associated(ele%photon)) then
@@ -779,6 +779,46 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     if (associated(ele%photon)) then
       ph => ele%photon
+
+      if (ph%reflectivity_table_type == polarized$ .and. .not. allocated(ph%reflectivity_table_pi%p_reflect)) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                  'HAS DEFINES A SIGMA POLARIZATION REFLECTIVITY TABLE BUT NOT A PI POLARIZATION ONE!')
+        err_flag = .true.
+      endif
+
+      if (allocated(ph%reflectivity_table_sigma%p_reflect)) then
+        if (.not. is_increasing_sequence(ph%reflectivity_table_sigma%angle)) then
+          call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                    'HAS DEFINES A POLARIZATION REFLECTIVITY TABLE WITH ANGLE ARRAY NOT STRICTLY INCREASING.')
+          err_flag = .true.
+        endif
+
+        if (.not. is_increasing_sequence(ph%reflectivity_table_sigma%energy)) then
+          call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                    'HAS DEFINES A POLARIZATION REFLECTIVITY TABLE WITH ENERGY ARRAY NOT STRICTLY INCREASING.')
+          err_flag = .true.
+        endif
+      endif
+
+      if (allocated(ph%reflectivity_table_pi%p_reflect)) then
+        if (.not. is_increasing_sequence(ph%reflectivity_table_pi%angle)) then
+          call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                    'HAS DEFINES A POLARIZATION REFLECTIVITY TABLE WITH ANGLE ARRAY NOT STRICTLY INCREASING.')
+          err_flag = .true.
+        endif
+
+        if (.not. is_increasing_sequence(ph%reflectivity_table_pi%energy)) then
+          call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                    'HAS DEFINES A POLARIZATION REFLECTIVITY TABLE WITH ENERGY ARRAY NOT STRICTLY INCREASING.')
+          err_flag = .true.
+        endif
+      endif
+
       if (all (ph%grid%type /= [not_set$, segmented$, h_misalign$, displacement$])) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &

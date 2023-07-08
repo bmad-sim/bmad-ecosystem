@@ -94,7 +94,7 @@ end subroutine write_beam_file
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele)
+! Subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele, print_p0c_shift_warning, conserve_momentum))
 !
 ! Subroutine to read in a beam definition file.
 ! If non_zero, the following components of beam_init are used to rescale the beam:
@@ -109,13 +109,15 @@ end subroutine write_beam_file
 !   file_name   -- character(*): Name of beam file.
 !   beam_init   -- beam_init_struct: See above.
 !   ele         -- ele_struct, optional: Element with reference energy, etc.
+!   print_p0c_shift_warning   -- logical, optional: Default is True. See documentation in hdf5_read_beam routine.
+!   shift_momentum            -- logical, optional: Default is True. See documentation in hdf5_read_beam routine.
 !
 ! Output:
 !   beam        -- Beam_struct: Structure holding the beam information.
 !   err_flag    -- Logical: Set True if there is an error. False otherwise.
 !+ 
 
-subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele)
+subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele, print_p0c_shift_warning, conserve_momentum)
 
 type (beam_struct), target :: beam
 type (beam_init_struct) beam_init
@@ -124,6 +126,7 @@ type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
 type (coord_struct), allocatable :: p_temp(:)
 type (coord_struct) orb_init
+type (pmd_header_struct) :: pmd_header
 
 integer i, j, k, n, np, ix, iu, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
@@ -138,6 +141,7 @@ character(8) file_type
 character(*), parameter :: r_name = 'read_beam_file'
 
 logical err_flag, error, in_parens, valid
+logical, optional :: print_p0c_shift_warning, conserve_momentum
 
 !
 
@@ -153,7 +157,7 @@ endif
 
 n = len_trim(full_name)
 if (full_name(max(1,n-4):n) == '.hdf5' .or. full_name(max(1,n-2):n) == '.h5') then
-  call hdf5_read_beam (full_name, beam, err_flag, ele)
+  call hdf5_read_beam (full_name, beam, err_flag, ele, pmd_header, print_p0c_shift_warning, conserve_momentum)
   if (err_flag) return
 
   np = beam_init%n_particle

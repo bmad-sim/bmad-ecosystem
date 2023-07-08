@@ -1006,12 +1006,13 @@ function gradient_shift_sr_wake (ele, param) result (grad_shift)
   real(rp) grad_shift
 end function
 
-subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
+subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header, print_p0c_shift_warning, conserve_momentum)
   import
   implicit none
   type (beam_struct), target :: beam
   type (ele_struct), optional :: ele
   type (pmd_header_struct), optional :: pmd_header
+  logical, optional :: print_p0c_shift_warning, conserve_momentum
   logical error
   character(*) file_name
 end subroutine

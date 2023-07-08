@@ -1011,6 +1011,9 @@ type photon_material_struct
   real(rp) :: l_ref(3) = 0   ! Crystal reference orbit displacement vector in element coords.
 end type
 
+integer, parameter :: polarized$ = 1, unpolarized$ = 2
+character(8), parameter :: polarization_name(3) = [character(8):: 'SIGMA', 'PI', 'BOTH']
+
 ! photon_element_struct is an ele_struct component holding photon parameters
 
 type photon_element_struct
@@ -1019,7 +1022,8 @@ type photon_element_struct
   type (photon_material_struct) :: material = photon_material_struct()
   type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
-  type (photon_reflect_table_struct) reflectivity_table_sigma  ! For now there is only one table used and polarization is ignored.
+  integer :: reflectivity_table_type = not_set$
+  type (photon_reflect_table_struct) reflectivity_table_sigma  ! If polarization is ignored use sigma table.
   type (photon_reflect_table_struct) reflectivity_table_pi
   type (spline_struct), allocatable :: init_energy_prob(:)  ! Initial energy probability density
   real(rp), allocatable :: integrated_init_energy_prob(:)
