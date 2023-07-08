@@ -777,6 +777,12 @@ if (ix_s /= 0) then
     enddo
   endif
 
+  if (is_alloc_ref_sigma .and. is_alloc_ref_pi) then
+    ph%reflectivity_table_type = polarized$
+  elseif (is_alloc_ref_sigma .or. is_alloc_ref_pi) then
+    ph%reflectivity_table_type = unpolarized$
+  endif
+
   if (is_alloc_eprob) then
     read (d_unit, err = 9390, end = 9390) n
     allocate (ph%init_energy_prob(n), ph%integrated_init_energy_prob(n))

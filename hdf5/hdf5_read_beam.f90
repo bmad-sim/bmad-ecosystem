@@ -1,14 +1,28 @@
 !+
-! Subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
+! Subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header, print_p0c_shift_warning, conserve_momentum)
 !
 ! Routine to read a beam data file. 
 ! See also hdf5_write_beam.
+!
+! What is stored in the file is the momentum and ref momentum for each particle. If ele has a different ref p0c than
+! the stored values, the particles that are created, since they inherit the ele p0c, can either have the same momentum
+! as the particles there were used to create the beam file or they can have the same phase space px, py, pz values. But 
+! not both. This is determined by the conserve_momentum arg.
 !
 ! Input:
 !   file_name         -- character(*): Name of the beam data file.
 !                           Default is False.
 !   ele               -- ele_struct, optional: Element where beam is to be started from.
 !                           The element reference momentum will be used for the particle reference momentum.
+!   print_p0c_shift_warning   -- logical, optional: Default is True. Oly relavent if ele arg is present.
+!                                 Print warning if element p0c reference momentum
+!                                 is different from what is stored for the particles?
+!   shift_momentum            -- logical, optional: Default is True. Only relavent if ele arg is present.
+!                                 If True, the output particles will have the same momentum as the particles used to 
+!                                 create the beam file. But phase space px, py, pz will differ if ele p0c is different 
+!                                 from the ref p0c stored in the file. If False, px, py, pz will be the same and the
+!                                 momentums will differ. See above.
+!                                   
 !
 ! Output:
 !   beam              -- beam_struct: Particle positions.
@@ -16,7 +30,7 @@
 !   pmd_header        -- pmd_header_struct, optional: Extra info like file creation date.
 !-
 
-subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
+subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header, print_p0c_shift_warning, conserve_momentum)
 
 use hdf5_openpmd_mod
 use bmad_interface, dummy => hdf5_read_beam
@@ -45,6 +59,7 @@ character(*) file_name
 character(*), parameter :: r_name = 'hdf5_read_beam'
 character(100) c_name, name, t_match, sub_dir
 
+logical, optional :: print_p0c_shift_warning, conserve_momentum
 logical error, err
 
 ! Init
@@ -356,7 +371,7 @@ do ip = 1, size(bunch%particle)
 
   select case (p%state)
   case (alive$)
-    if (abs(p0c_initial - p0c_final) > 1e-12 * p0c_final) then
+    if (abs(p0c_initial - p0c_final) > 1e-12 * p0c_final .and. logic_option(.true., print_p0c_shift_warning)) then
       call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM OF PARTICLE IN BEAM FILE:  \es20.12\ ', &
                                     'FROM FILE: ' // file_name, &
                                     'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
@@ -371,17 +386,27 @@ do ip = 1, size(bunch%particle)
     if (pmd_head%software /= 'Bmad') p%state = lost$
   end select
 
+  p%species = set_species_charge(species, charge_state(ip))
+
   if (tot_mom(ip) == real_garbage$ .or. p0c_initial == 0) then 
     p%vec(6) = (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2) - p0c_final) / p0c_final
-  else
+  elseif (logic_option(.true., conserve_momentum)) then
     p%vec(6) = (tot_mom(ip) + (p0c_initial - p0c_final)) / p0c_final
+  else
+    p%vec(6) = tot_mom(ip) / p0c_initial
   endif
 
-  p%species = set_species_charge(species, charge_state(ip))
-  call convert_pc_to ((1 + p%vec(6)) * p0c_final, p%species, beta = p%beta)
-  p%vec(2) = p%vec(2) / p0c_final
-  p%vec(4) = p%vec(4) / p0c_final
-  p%vec(5) = -p%beta * c_light * dt(ip)
+  if (logic_option(.true., conserve_momentum)) then
+    call convert_pc_to ((1 + p%vec(6)) * p0c_final, p%species, beta = p%beta)
+    p%vec(2) = p%vec(2) / p0c_final
+    p%vec(4) = p%vec(4) / p0c_final
+    p%vec(5) = -p%beta * c_light * dt(ip)
+  else
+    call convert_pc_to ((1 + p%vec(6)) * p0c_initial, p%species, beta = p%beta)
+    p%vec(2) = p%vec(2) / p0c_initial
+    p%vec(4) = p%vec(4) / p0c_initial
+    p%vec(5) = -p%beta * c_light * dt(ip)
+  endif
 
   p%p0c = p0c_final
 enddo

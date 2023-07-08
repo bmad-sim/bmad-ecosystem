@@ -27,7 +27,6 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_material_struct), pointer :: pms
-type (photon_reflect_table_struct), pointer :: rt
 
 real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
 real(rp) bragg_angle_in, ang_tot, k0_x_norm, k0_y_norm, k0_z_norm
@@ -37,8 +36,6 @@ real(rp) cos_graze_in, sin_graze_in, s_vec(3), k0_norm(3), h_vec(3), dtheta_sin_
 real(rp) p_factor, f
 
 complex(rp) eta, eta1, f_cmp, xi_0k, xi_hk
-
-integer i, ne
 
 character(*), parameter :: r_name = 'crystal_attribute_bookkeeper'
 
@@ -181,14 +178,26 @@ endif
 
 ! Reflectivity table
 
-rt => ele%photon%reflectivity_table_sigma
+call setup_reflect_table(ele%photon%reflectivity_table_sigma)
+call setup_reflect_table(ele%photon%reflectivity_table_pi)
+
+!------------------------------------------------------------------------
+contains
+
+subroutine setup_reflect_table(rt)
+
+type (photon_reflect_table_struct) :: rt
+real(rp) lambda, beta
+integer i, ne
+
+!
+
 if (allocated(rt%p_reflect)) then
   ne = size(rt%energy)
-  d = ele%value(d_spacing$)
   call re_allocate (rt%bragg_angle, ne)
   do i = 1, ne
     lambda = c_light * h_planck / rt%energy(i)
-    beta = lambda / (2 * d)
+    beta = lambda / (2 * ele%value(d_spacing$))
     if (b_param < 0) then ! Bragg
       rt%bragg_angle(i) = asin((-beta * h_z_norm - h_x_norm * sqrt(h_x_norm**2 + h_z_norm**2 - beta**2)) / (h_x_norm**2 + h_z_norm**2))
     else
@@ -196,5 +205,7 @@ if (allocated(rt%p_reflect)) then
     endif
   enddo
 endif
+
+end subroutine setup_reflect_table
 
 end subroutine

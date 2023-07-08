@@ -93,7 +93,7 @@ integer i, i2, j, k, n, na, ne, nn, nt, ix_word, how, ix_word1, ix_word2, ios, i
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_ptr, i_term, ib, ie, im
 integer ix_bounds(2), iy_bounds(2), i_vec(2), n_sec, key
 
-character(40) :: word, str_ix, attrib_word, word2, name
+character(40) :: word, str_ix, attrib_word, word2, name, who
 character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
 character(80) str, err_str
@@ -1082,29 +1082,33 @@ case ('ENERGY_PROBABILITY_CURVE')
 
 case ('REFLECTIVITY_TABLE')
   ph => ele%photon
+  who = 'BOTH'
   rt => ph%reflectivity_table_sigma
 
   if (.not. expect_this ('={', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
   call parser_call_check(word, ix_word, delim, delim_found, call_found)
+  do
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+    if (word == 'ANGLES') then
+      if (.not. expect_this ('=(', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+      if (.not. parser_fast_real_read(vec, ele, ' ,)', delim, 'REFLECTIVITY_TABLE ANGLES LIST', .false., na)) return
+      allocate(rt%angle(na))
+      rt%angle = vec(1:na)
+      if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+    elseif (word == 'POLARIZATION') then
+      call get_switch ('POLARIZATION', polarization_name, ix, err_flag2, ele, delim, delim_found)
+      if (err_flag2) return
+      who = polarization_name(ix)
+      if (who == 'PI') rt => ph%reflectivity_table_pi
+    elseif (word == 'P_REFLECT') then
+      exit
+    else
+      call parser_error ('EXPECTING "ANGLES" or "POLARIZATION" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
+      return
+    endif
+  enddo
 
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-  if (word /= 'ANGLES') then
-    call parser_error ('EXPECTING "ANGLES" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
-    return
-  endif
-  if (.not. expect_this ('=(', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-  if (.not. parser_fast_real_read(vec, ele, ' ,)', delim, 'REFLECTIVITY_TABLE ANGLES LIST', .false., na)) return
-  allocate(rt%angle(na))
-  rt%angle = vec(1:na)
-  if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-  if (word /= 'P_REFLECT') then
-    call parser_error ('EXPECTING "P_REFLECT" ATTRIBUTE IN REFLECTIVITY_TABLE CONSTRUCT FOR ELEMENT: ' // ele%name)
-    return
-  endif
   if (.not. expect_this ('={', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-
   ne = 0
   do
     ne = ne + 1
@@ -1124,6 +1128,11 @@ case ('REFLECTIVITY_TABLE')
   enddo
 
   allocate(rt%bragg_angle(ne))
+
+  select case (who)
+  case ('BOTH');    ph%reflectivity_table_type = unpolarized$
+  case default;     ph%reflectivity_table_type = polarized$
+  end select
 
   ! For now just use linear interpolation.
   ! allocate(rt%int1(ne))

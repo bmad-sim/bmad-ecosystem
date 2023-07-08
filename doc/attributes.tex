@@ -1185,6 +1185,7 @@ The general syntax is:
   m: mirror, reflectivity_table = \{
     ! A reflection table
     \{
+      polarization = <name>
       angles = (<ang1 <ang2 ... <angN>),
       p_reflect = \{
         <energy1> <P_11> <P_12> <P_13> ... <P_1N>,
@@ -1196,7 +1197,17 @@ The general syntax is:
 \end{example}
 The \vn{angles} array must be before the \vn{p_reflect} table. Angles are in radians and energy is
 in eV. Angle and energy points do not need to be evenly spaced. Probabilities \vn{P_ij} are between
-0 and 1. For particles outside the range of angles, the probability is taken to be zero.
+0 and 1. For particles outside the range of angles, the probability is taken to be zero. The
+\vn{p_reflect} portion of the reflectivity table must come last.
+
+Possible \vn{polarization} names are:
+\begin{example}
+  pi        ! Table is for pi mode
+  sigma     ! Table is for sigma mode
+  both      ! Table is for both polarizations. Defalut.
+\end{example}
+An element needs a single table with \vn{polarization} marked as \vn{both} or two tables,
+one for \vn{sigma} and the other for \vn{pi}.
 
 For \vn{crystal} elements, angles are always with respect to the Bragg angle for the energy where
 the Bragg angle is calculated without any kinematic corrections.

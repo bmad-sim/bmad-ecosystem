@@ -819,10 +819,27 @@ if (associated(ph)) then
     na = size(rt%angle)
     ne = size(rt%energy)
     nl=nl+1; li(nl) = ''
-    nl=nl+1; write(li(nl), '(a, 2f14.9, i6)') 'Angles Min, Max, #Points:           ', rt%angle(1),  rt%angle(na),  na
-    nl=nl+1; write(li(nl), '(a, 2f14.1, i6)') 'Energy Min, Max, #Points:           ', rt%energy(1), rt%energy(ne), ne
+    select case (ph%reflectivity_table_type)
+    case (polarized$);  nl=nl+1; li(nl) = 'Reflectivity table for Sigma polarization:'
+    case default;       nl=nl+1; li(nl) = 'Reflectivity table for both polarizations:'
+    end select
+    nl=nl+1; write(li(nl), '(a, 2f14.9, i6)') '  Angles Min, Max, #Points:           ', rt%angle(1),  rt%angle(na),  na
+    nl=nl+1; write(li(nl), '(a, 2f14.1, i6)') '  Energy Min, Max, #Points:           ', rt%energy(1), rt%energy(ne), ne
     if (ele%key == crystal$) then
-      nl=nl+1; write(li(nl), '(a, 2f14.9)')   'Bragg angle (uncorrected) Min, Max: ', rt%bragg_angle(1), rt%bragg_angle(ne)
+      nl=nl+1; write(li(nl), '(a, 2f14.9)')   '  Bragg angle (uncorrected) Min, Max: ', rt%bragg_angle(1), rt%bragg_angle(ne)
+    endif
+  endif
+
+  rt => ph%reflectivity_table_pi
+  if (allocated(rt%p_reflect)) then
+    na = size(rt%angle)
+    ne = size(rt%energy)
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Reflectivity table for Pi polarization:'
+    nl=nl+1; write(li(nl), '(a, 2f14.9, i6)') '  Angles Min, Max, #Points:           ', rt%angle(1),  rt%angle(na),  na
+    nl=nl+1; write(li(nl), '(a, 2f14.1, i6)') '  Energy Min, Max, #Points:           ', rt%energy(1), rt%energy(ne), ne
+    if (ele%key == crystal$) then
+      nl=nl+1; write(li(nl), '(a, 2f14.9)')   '  Bragg angle (uncorrected) Min, Max: ', rt%bragg_angle(1), rt%bragg_angle(ne)
     endif
   endif
 endif
