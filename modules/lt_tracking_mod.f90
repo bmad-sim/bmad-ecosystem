@@ -56,10 +56,13 @@ type ltt_params_struct
   type (ltt_column_struct) column(100)
   integer :: ix_particle_record = -1    ! Experimental
   integer :: ix_turn_record = -1        ! Experimental
+  integer :: ix_turn_start = 0
+  integer :: ix_turn_stop = -1
   integer :: n_turns = -1
   integer :: map_order = -1
   integer :: particle_output_every_n_turns = -1
   integer :: averages_output_every_n_turns = -1
+  integer :: beam_output_every_n_turns = -1
   integer :: random_seed = 0
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
   real(rp) :: core_emit_cutoff(core_max$) = [0.5_rp, (-1.0_rp, i_loop = 2, core_max$)]
@@ -136,6 +139,7 @@ type ltt_com_struct
   logical :: using_mpi = .false.
   logical :: track_bypass = .false.            ! Used by DA program
   character(200) :: master_input_file = ''
+  character(200) :: last_beam_binary_output_file = ''
   character(40) :: ps_fmt = '(2i7, 8es16.8, 3x, 3f10.6, 4x, a)'
 end type
 
@@ -330,6 +334,17 @@ if (ltt%simulation_mode /= 'CHECK') then
     print '(a)', 'UNKNOWN LTT%TRACKING_METHOD: ' // ltt%tracking_method
     stop
   end select
+endif
+
+! Start/stop turn indexes
+
+if (ltt%n_turns > 0 .and. ltt%ix_turn_stop > 0) then
+  print *, 'Setting both ltt%n_turns and ltt%ix_turn_stop not allowed.'
+  stop
+elseif (ltt%ix_turn_stop > 0) then
+  ltt%n_turns = ltt%ix_turn_stop - ltt%ix_turn_start
+else
+  ltt%ix_turn_stop = ltt%ix_turn_start + ltt%n_turns
 endif
 
 ! There is a possible problem with splitting the bends in a lattice if the 
@@ -774,6 +789,8 @@ if (bmad_com%sr_wakes_on) then
 endif
 call ltt_write_line('# ltt%random_sigma_cut                    = ' // real_str(lttp%random_sigma_cut, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%n_turns                             = ' // int_str(lttp%n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lttp%ix_turn_start), lttp, iu, print_this)
+call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
@@ -999,7 +1016,7 @@ write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%ve
 
 if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
 
-do i_turn = 1, lttp%n_turns
+do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
   select case (lttp%tracking_method)
 
   case ('BMAD')
@@ -1092,7 +1109,8 @@ call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 !
 
-call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, modes = ltt_com%modes)
+call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, &
+                                                                 modes = ltt_com%modes, print_p0c_shift_warning = .false.)
 if (err_flag) stop
 print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
 ltt_com%n_particle = size(beam%bunch(1)%particle)
@@ -1255,19 +1273,15 @@ do i_turn = ix_start_turn+1, ix_end_turn
     time1 = time_now
   endif
 
-  ! If using mpi then this data will all be written out at the end.
-  ! Here partial writes are used so the user can monitor progress if they want.
+  ! If using mpi then long_term_tracking_mpi will assemble the beam and call the write routines.
 
   if (.not. ltt_com%using_mpi) then
     call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
     call ltt_write_averages_data(lttp, i_turn, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
+    call ltt_write_beam_binary_file(lttp, ltt_com, i_turn, beam)
   endif
 end do
-
-if (lttp%beam_binary_output_file /= '' .and. .not. ltt_com%using_mpi) then
-  call write_beam_file (lttp%beam_binary_output_file, beam)
-endif
 
 end subroutine ltt_run_beam_mode
 
@@ -1788,6 +1802,38 @@ write (iu, '(2a)') ' ', trim(line)
 close (iu)
 
 end subroutine ltt_write_custom
+
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_write_beam_binary_file (lttp, ltt_com, i_turn, beam)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+
+integer i_turn, iu, ios, nt
+character(200) file
+
+!
+
+if (lttp%beam_binary_output_file == '') return
+nt = lttp%beam_output_every_n_turns 
+if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
+
+file = trim(lttp%beam_binary_output_file) // '.' // int_str(i_turn)
+
+call write_beam_file (file, beam)
+
+if (ltt_com%last_beam_binary_output_file /= '') then
+  iu = lunget()
+  open (iu, iostat = ios, file = ltt_com%last_beam_binary_output_file, status = 'old')
+  if (ios /= 0) close (iu, status = 'delete')
+endif
+
+end subroutine ltt_write_beam_binary_file
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

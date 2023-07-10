@@ -127,7 +127,7 @@ end select
 if (.not. ltt_com%using_mpi) then
   print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
   call ltt_init_beam_distribution(lttp, ltt_com, beam)
-  call ltt_run_beam_mode(lttp, ltt_com, 0, lttp%n_turns, beam)
+  call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam)
   stop
 endif
 
@@ -196,12 +196,12 @@ end select
 
 n = count(stop_here)
 allocate (ix_stop_turn(0:n))
-ix_stop_turn(0) = 0
+ix_stop_turn(0) = lttp%ix_turn_start
 n = 0
 do i = 1, lttp%n_turns
   if (.not. stop_here(i)) cycle
   n = n + 1
-  ix_stop_turn(n) = i
+  ix_stop_turn(n) = i + lttp%ix_turn_start
   if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ix_stop:', n, ix_stop_turn(n)
 enddo
 
@@ -289,11 +289,8 @@ if (ltt_com%mpi_rank == master_rank$) then
     call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
     call ltt_write_averages_data (lttp, i_turn, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
+    call ltt_write_beam_binary_file(lttp, ltt_com, i_turn, beam)
   enddo
-
-  if (lttp%beam_binary_output_file /= '') then
-    call write_beam_file (lttp%beam_binary_output_file, beam)
-  endif
 
   ! And end
 
