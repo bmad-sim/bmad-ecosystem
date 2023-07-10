@@ -18,10 +18,10 @@
 !                                 Print warning if element p0c reference momentum
 !                                 is different from what is stored for the particles?
 !   shift_momentum            -- logical, optional: Default is True. Only relavent if ele arg is present.
-!                                 If True, the output particles will have the same momentum as the particles used to 
-!                                 create the beam file. But phase space px, py, pz will differ if ele p0c is different 
-!                                 from the ref p0c stored in the file. If False, px, py, pz will be the same and the
-!                                 momentums will differ. See above.
+!                                 If True, the output particles will have the same actual momentum as the particles used
+!                                 to create the beam file. But phase space px, py, pz will differ if ele p0c is different 
+!                                 from the ref p0c stored in the file. If False, phase space px, py, pz will be the 
+!                                 same and the actual momentums can differ. See above.
 !                                   
 !
 ! Output:

@@ -94,7 +94,7 @@ end subroutine write_beam_file
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele, print_p0c_shift_warning, conserve_momentum))
+! Subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele, print_p0c_shift_warning, conserve_momentum)
 !
 ! Subroutine to read in a beam definition file.
 ! If non_zero, the following components of beam_init are used to rescale the beam:
@@ -109,8 +109,8 @@ end subroutine write_beam_file
 !   file_name   -- character(*): Name of beam file.
 !   beam_init   -- beam_init_struct: See above.
 !   ele         -- ele_struct, optional: Element with reference energy, etc.
-!   print_p0c_shift_warning   -- logical, optional: Default is True. See documentation in hdf5_read_beam routine.
-!   shift_momentum            -- logical, optional: Default is True. See documentation in hdf5_read_beam routine.
+!   print_p0c_shift_warning   -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
+!   shift_momentum            -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
 !
 ! Output:
 !   beam        -- Beam_struct: Structure holding the beam information.

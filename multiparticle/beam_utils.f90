@@ -154,7 +154,7 @@ end subroutine track1_bunch_hom
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes)
+! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
 !
 ! Subroutine to initialize a beam of particles. 
 ! Initialization uses the downstream parameters of ele.
@@ -177,13 +177,15 @@ end subroutine track1_bunch_hom
 !     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !   modes       -- normal_modes_struct, optional: Normal mode parameters. See above.
+!   print_p0c_shift_warning   -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
+!   shift_momentum            -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
 !
 ! Output:
 !   beam        -- Beam_struct: Structure with initialized particles.
 !   err_flag    -- logical, optional: Set true if there is an error, false otherwise.
 !-
 
-subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes)
+subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
  
 use random_mod
 
@@ -199,6 +201,7 @@ type (coord_struct), pointer :: p
 
 integer i_bunch, i, n, n_kv
 logical, optional :: err_flag
+logical, optional :: print_p0c_shift_warning, conserve_momentum
 logical err_here
 
 character(22) :: r_name = "init_beam_distribution"
@@ -216,7 +219,7 @@ if (beam_init%file_name /= '') then   ! Old name
 endif
 
 if (beam_init%position_file /= '') then
-  call read_beam_file (beam_init%position_file, beam, beam_init, err_here, ele)
+  call read_beam_file (beam_init%position_file, beam, beam_init, err_here, ele, print_p0c_shift_warning, conserve_momentum)
   if (err_here) then
     call out_io (s_abort$, r_name, "PROBLEM READING BEAM POSITION FILE: "// quote(beam_init%position_file))
     return
@@ -248,7 +251,7 @@ end subroutine init_beam_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes)
+! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
 !
 ! Subroutine to initialize a distribution of particles of a bunch.
 ! Initialization uses the downstream parameters of ele.
@@ -285,13 +288,15 @@ end subroutine init_beam_distribution
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !   ix_bunch    -- integer: Bunch index. 0 = bunch generated at time = 0.
 !   modes       -- normal_modes_struct, optional: Normal mode parameters. See above.
+!   print_p0c_shift_warning   -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
+!   shift_momentum            -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
 !
 ! Output:
 !   bunch        -- bunch_struct: Structure with initialized particles.
 !   err_flag     -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes)
+subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
 
 use mode3_mod
 use random_mod
@@ -323,6 +328,7 @@ character(16) old_engine, old_converter
 character(*), parameter :: r_name = "init_bunch_distribution"
 
 logical, optional :: err_flag
+logical, optional :: print_p0c_shift_warning, conserve_momentum
 logical ok, correct_for_coupling(6)
 logical ran_gauss_here, err
 
@@ -355,7 +361,7 @@ if (beam_init%file_name /= '') then   ! Old name
 endif
 
 if (beam_init%position_file /= '') then
-  call read_beam_file (beam_init%position_file, beam, beam_init, err)
+  call read_beam_file (beam_init%position_file, beam, beam_init, err, ele, print_p0c_shift_warning, conserve_momentum)
   if (err) then
     call out_io (s_error$, r_name, "PROBLEM READING BEAM POSITION FILE: " // beam_init%position_file)
     return
