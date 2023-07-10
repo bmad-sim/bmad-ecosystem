@@ -128,9 +128,8 @@ export ACC_ENABLE_SHARED="N"
 
 
 #-----------------------------------------------------------
-# If ACC_ENABLE_SHARED_ONLY is set to "Y", shared versions 
-# of the libraries, are built without any static archive 
-# (*.a files) library dependancies.
+# If ACC_ENABLE_SHARED_ONLY is set to "Y", shared versions of the libraries, 
+# are built without any static archive (*.a files) library dependancies.
 # Shared library building will only be done for a project 
 # with CREATE_SHARED set to TRUE in the CMakeLists.txt 
 # file, as well, the project's executables will be built 
@@ -139,7 +138,7 @@ export ACC_ENABLE_SHARED="N"
 # ACC_ENABLE_SHARED must be set to "N", if 
 # ACC_ENABLE_SHARED_ONLY is set to "Y"
 #-----------------------------------------------------------
-export ACC_ENABLE_SHARED_ONLY="N"
+export ACC_ENABLE_SHARED_ONLY="Y"
 
 
 #-----------------------------------------------------------

@@ -57,7 +57,7 @@ func_set_base_env () {
     case "${ACC_ENABLE_SHARED_ONLY}" in
 	"Y" | "y" | "1" )
             export BUILD_SHARED_ONLY=1
-	    export BUILD_SHARED=1
+            export BUILD_SHARED=1
             export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=yes --enable-static=no"
             ;;
         *)
