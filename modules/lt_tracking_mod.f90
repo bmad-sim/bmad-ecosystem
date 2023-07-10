@@ -214,6 +214,7 @@ read (1, nml = params)
 close (1)
 
 ltt_com%beam_init = beam_init
+ltt_com%beam_init%ix_turn = ltt%ix_turn_start
 
 call bmad_parser (ltt%lat_file, ltt_com%lat)
 
@@ -1110,10 +1111,12 @@ call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 !
 
 call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, &
-                                                                 modes = ltt_com%modes, print_p0c_shift_warning = .false.)
+                                                            modes = ltt_com%modes, print_p0c_shift_warning = .false.)
 if (err_flag) stop
 print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
 ltt_com%n_particle = size(beam%bunch(1)%particle)
+
+!
 
 if (bmad_com%spin_tracking_on .and. all(ltt_com%beam_init%spin == 0) .and. all(beam%bunch(1)%particle%spin(1) == 0) .and. &
                             all(beam%bunch(1)%particle%spin(2) == 0) .and. all(beam%bunch(1)%particle%spin(3) == 0)) then
