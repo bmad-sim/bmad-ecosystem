@@ -1873,8 +1873,9 @@ type (bunch_struct), target :: bunch
 type (beam_init_struct) beam_init
 type (ele_struct) ele
 type (coord_struct), pointer :: p
+type (branch_struct), pointer :: branch
 
-real(rp) center(6), ran_vec(6), old_charge, pz_min
+real(rp) center(6), ran_vec(6), old_charge, pz_min, ref_time
 integer ix_bunch, i, n
 character(*), parameter :: r_name = 'bunch_init_end_calc'
 logical from_file, h5_file
@@ -1907,6 +1908,12 @@ n = len_trim(beam_init%position_file)
 h5_file = (beam_init%position_file(max(1,n-4):n) == '.hdf5' .or. beam_init%position_file(max(1,n-2):n) == '.h5')
 
 if (.not. h5_file) then
+  ref_time = ele%ref_time
+  if (associated(ele%branch)) then
+    branch => ele%branch
+    ref_time = ref_time + beam_init%ix_turn * branch%ele(branch%n_ele_track)%ref_time
+  endif
+
   do i = 1, size(bunch%particle)
     p => bunch%particle(i)
     p%vec = p%vec + center
@@ -1925,14 +1932,14 @@ if (.not. h5_file) then
       else
         ! Fixed time, particles distributed in space using vec(5)
         p%s = p%vec(5)
-        p%t = ele%ref_time + bunch%t_center
+        p%t = ref_time + bunch%t_center
         p%location = inside$
       endif
 
       ! Convert to s coordinates
       p%p0c = ele%value(p0c$)
       call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)
-      p%dt_ref = p%t-ele%ref_time
+      p%dt_ref = p%t-ref_time
       call convert_particle_coordinates_t_to_s (p, ele)
       if (.not. from_file) p%state = alive$
       p%ix_ele    = ele%ix_ele
@@ -1941,7 +1948,7 @@ if (.not. h5_file) then
     ! Usual s-coordinates
     else
       call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
-      p%t = ele%ref_time - p%vec(5) / (p%beta * c_light)
+      p%t = ref_time - p%vec(5) / (p%beta * c_light)
       if (from_file .and. p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
       ! If from a file then no vec6 shift needed.
       call init_coord (p, p, ele, downstream_end$, p%species, shift_vec6 = .not. from_file)

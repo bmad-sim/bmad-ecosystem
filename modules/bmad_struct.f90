@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 301
+integer, parameter :: bmad_inc_version$ = 302
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1076,7 +1076,6 @@ end type
 
 type beam_init_struct
   character(200) :: position_file = ''       ! File with particle positions.
-  character(200) :: file_name = ''           ! Old name for position file.
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", "FILE", "RAN_GAUSS" or "" = "RAN_GAUSS" 
   real(rp) :: spin(3) = 0                    ! Spin (x, y, z)
@@ -1105,6 +1104,7 @@ type beam_init_struct
   real(rp) :: sig_pz = 0                     ! pz sigma
   real(rp) :: bunch_charge = 0               ! charge (Coul) in a bunch.
   integer :: n_bunch = 0                     ! Number of bunches.
+  integer :: ix_turn = 0                     ! Turn index used to adjust particles time if needed.
   character(16) :: species = ""              ! "positron", etc. "" => use referece particle.
   logical :: init_spin     = .true.          ! Not used. Deprecated.
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
@@ -1114,6 +1114,7 @@ type beam_init_struct
   logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
                                              !   If true,  z describes the t distribution 
                                              !   If false, z describes the s distribution
+  character(200) :: file_name = ''           ! OLD NAME FOR POSITION_FILE. DO NOT USE.
   real(rp) :: sig_e_jitter     = 0.0         ! DEPRECATED. DO NOT USE. Replaced by sig_pz_jitter.
   real(rp) :: sig_e = 0                      ! DEPRECATED. DO NOT USE. Replaced by sig_pz.
   logical :: use_particle_start_for_center = .false. ! DEPRECATED. DO NOT USE. Replaced by use_particle_start.
