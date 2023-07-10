@@ -78,7 +78,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ June 12, 2023}
+\date{David Sagan \\ July 10, 2023}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -472,6 +472,14 @@ ltt%ramping_start_time
 When ramping, the \vn{ltt%simulation_mode} (\sref{s:track.methods}) must be set to "\vn{BMAD}". The
 program will detect if there is a conflict and issue an error message and stop.
 
+
+The \vn{ltt%ix_turn_start} parameter can be used to start tracking at any turn. This can be useful if a
+simulation is accidentally interrupted. In this case the beam positions can be saved by setting
+\begin{code}
+  ltt%beam_binary_output_file
+  ltt%beam_output_every_n_turns
+\end{code}
+
 %------------------------------------------------------------------
 \Section{Initial Particle Positions}
 \label{s:init.pos}
@@ -601,6 +609,8 @@ Example:
   ltt%ele_start                 = ""
   ltt%ele_stop                  = ""      ! Used for "CHECK" simulation_mode 
   ltt%n_turns                   = 1000
+  ltt%ix_turn_start             = 0
+  ltt%ix_turn_end               = -1
   ltt%map_order                 = 5
   ltt%rfcavity_on               = T
   ltt%timer_print_dtime         = 300
@@ -639,6 +649,7 @@ Example:
   ltt%per_particle_output_file = ""
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
+  ltt%beam_output_every_n_turns = 200
   ltt%only_live_particles_out = T
   ltt%core_emit_cutoff   = 0.2, 0.5
   ltt%core_emit_combined_calc = T
@@ -711,7 +722,7 @@ downstream end of the element so the first element tracked through is the elemen
 one. Also see \vn{ltt%ele_stop}.
 %
 \item[ltt\%ele_stop] \Newline
-Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"}. \vn{ttl%ele_stop} sets the stopping
+Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"} only. \vn{ttl%ele_stop} sets the stopping
 point for tracking to be the downstream edge of the element. Also see \vn{ltt%ele_start}. Default
 if not set or set to a blank string is for \vn{ltt%ele_stop} to be equal to \vn{tll%ele_start}.
 %
@@ -720,6 +731,14 @@ List of elements to exclude when constructing maps for \vn{SLICK} tracking. Thes
 individually tracking. The default value is \vn{"beambeam::*"} which excludes any \vn{beambeam}
 element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
 the format for such lists.
+%
+\item[ltt\%ix_turn_start, ltt\%ix_turn_stop] \Newline
+These parameters are used to select the starting (\vn{ltt%ix_turn_start}) and stopping
+(\vn{ltt%ix_turn_stop} turn number for \vn{"SINGLE"} and \vn{"BEAM"} simulations. This is only
+useful when ramping in done (\sref{s:ramp}). \vn{ltt%ix_turn_start} defaults to zero. When
+\vn{ltt%ix_turn_end} is set, \vn{ltt%n_turns} is set to \vn{ltt%ix_turn_end} -
+\vn{ltt%ix_turn_start}. If \vn{ltt%n_turns} is set, \vn{ltt%ix_turn_end} is set to
+\vn{ltt%ix_turn_start} + \vn{ltt%n_turns}.
 %
 \item[ltt\%lat_file] \Newline
 Name of the Bmad lattice file to use. This name is required.
@@ -731,7 +750,8 @@ generating a map.  When a map is read in from a file, the order of this map is i
 current setting of \vn{ltt%map_order}.
 %
 \item[ltt\%n_turns] \Newline
-Number of turns to track. See Section~\sref{s:track.methods}.
+Number of turns to track. Only used with \vn{"SINGLE"} and \vn{"BEAM"} modes. Also see
+\vn{ltt%ix_turn_start} and \vn{ltt%ix_turn_stop}.
 %
 \item[ltt\%ptc_aperture] \Newline
 The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
@@ -852,15 +872,21 @@ For particle phase space output, use the \vn{particle_output_every_n_turns} para
 %
 \item[ltt\%beam_binary_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file that
-is created to hold the particle positions at the end of tracking. This is similar to
-\vn{ltt%phase_space_output_file} but here the file will be a binary file that is portable to other
-programs and can also be used as input to the \ltt program. The file suffix should be \vn{.h5} or
-\vn{.hdf5}. If neither of these suffixes are used the binary file name will have an \vn{.h5} suffix
-added. To translate to ASCII, use the \vn{beam_file_translate_format} program. Documentation is in
-any Bmad Distribution in the file:
+is created to hold particle positions. This is similar to \vn{ltt%phase_space_output_file} but here
+the file will be a binary file that is portable to other programs and can also be used as input to
+the \ltt program. A beam file will be created every \vn{ltt%beam_output_every_n_turns} turns if this
+quantity is positive. Additionally, a beam file will be produced at the end of tracking. A beam file
+will be given a suffix \vn{.NNNN.h5} where \vn{NNNN} is the turn number. To save disk space, every
+time a new beam file is created, if there is an old beam file it will be deleted. 
+
+To translate to ASCII, use the \vn{beam_file_translate_format} program. Documentation is in any Bmad
+Distribution in the file:
 \begin{code}
   util_programs/beam_file_translate_format/DOC
 \end{code}
+
+To use a beam file that has been generated on a previous run with a new run set \vn{beam_init%file_name}
+to the name of the beam file.
 %
 \item[ltt\%column(:)] \Newline
 The \vn{ltt%column(:)} parameters are used to specify the columns of a custom data file

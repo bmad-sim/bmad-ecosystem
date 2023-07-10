@@ -24,7 +24,7 @@ call run_timer ('START')
 select case (lttp%simulation_mode)
 case ('BEAM')
   call ltt_init_beam_distribution(lttp, ltt_com, beam)
-  call ltt_run_beam_mode(lttp, ltt_com, 0, lttp%n_turns, beam) ! Beam tracking
+  call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam) ! Beam tracking
 case ('CHECK');  call ltt_run_check_mode(lttp, ltt_com)    ! A single turn tracking check
 case ('SINGLE'); call ltt_run_single_mode(lttp, ltt_com)   ! Single particle tracking
 case ('STAT');   call ltt_run_stat_mode(lttp, ltt_com)     ! Lattice statistics (radiation integrals, etc.).
