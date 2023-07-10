@@ -1826,7 +1826,7 @@ if (lttp%beam_binary_output_file == '') return
 nt = lttp%beam_output_every_n_turns 
 if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
 
-file = trim(lttp%beam_binary_output_file) // '.' // int_str(i_turn)
+file = trim(lttp%beam_binary_output_file) // '.' // int_str(i_turn) // '.h5'
 
 call write_beam_file (file, beam)
 
@@ -1835,6 +1835,8 @@ if (ltt_com%last_beam_binary_output_file /= '') then
   open (iu, iostat = ios, file = ltt_com%last_beam_binary_output_file, status = 'old')
   if (ios /= 0) close (iu, status = 'delete')
 endif
+
+ltt_com%last_beam_binary_output_file = file
 
 end subroutine ltt_write_beam_binary_file
 
@@ -1854,9 +1856,7 @@ integer iu, n_particle
 
 write (iu,  '(3a)')      '# lattice                             = ', quote(lttp%lat_file)
 write (iu,  '(3a)')      '# simulation_mode                     = ', quote(lttp%simulation_mode)
-if (present(n_bunch)) then
-  write (iu,  '(a, i8)')   '# n_bunch                             = ', n_bunch
-endif
+write (iu,  '(a, i8)')   '# n_bunch                             = ', integer_option(1, n_bunch)
 write (iu,  '(a, i8)')   '# n_particle                          = ', n_particle
 write (iu,  '(a, i8)')   '# n_turns                             = ', lttp%n_turns
 write (iu,  '(a, l1)')   '# ramping_on                          = ', lttp%ramping_on
@@ -1880,7 +1880,7 @@ write (iu, '(3a)')       '# Map_file_prefix                     = ', quote(lttp%
 if (lttp%tracking_method == 'MAP') then
   write (iu, '(a, i0)')  '# map_order                           = ', ltt_com%sec(1)%map%map_order
   write (iu, '(a, a)')   '# exclude_from_maps                   = ', lttp%exclude_from_maps
-  write (iu, '(a, l1)')  '# split_bends_for_stochastic_rad           = ', lttp%split_bends_for_stochastic_rad
+  write (iu, '(a, l1)')  '# split_bends_for_stochastic_rad      = ', lttp%split_bends_for_stochastic_rad
   write (iu, '(a, l1)')  '# symplectic_map_tracking             = ', lttp%symplectic_map_tracking
 endif
 write (iu, '(a)') '#'
