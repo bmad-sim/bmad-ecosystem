@@ -1684,6 +1684,11 @@ case ('expression:', 'expression.')
 
   case ('integral', 'average', 'rms')
     s_offset = 0
+    if (.not. associated(ele_start)) then
+      call tao_set_invalid (datum, 'ELE_START NOT SET. THIS IS NEEDED WHEN MERIT_TYPE IS SET TO "integral", "average", OR "rms".', why_invalid)
+      return
+    endif
+
     do i = 1, size(info)
       j = i + ele_start%ix_ele - 1
       if (j > branch%n_ele_track) then
