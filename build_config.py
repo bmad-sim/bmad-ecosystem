@@ -205,7 +205,7 @@ release_build_list = [
                 '/CESR/CESR_progs/ldinit',
                 '/CESR/CESR_progs/linevolt',
                 '/CESR/CESR_progs/linac',
-                '/CESR/CESR_progs/mgb_demo',
+                '/CESR/CESR_services/linmon',
                 '/CESR/CESR_progs/mugshot',
                 '/CESR/CESR_progs/nmr_test',
                 '/CESR/CESR_progs/node_set',
@@ -220,8 +220,6 @@ release_build_list = [
                 '/CESR/CESR_progs/knobs',
                 '/CESR/CESR_progs/xbus_load',
                 '/CESR/CESR_progs/moorecon',
-                '/CESR/CESR_progs/scwigcon',
-                '/CESR/CESR_progs/scwig_mpmdb',
                 '/CESR/CESR_progs/vacmap',
 ]
 
