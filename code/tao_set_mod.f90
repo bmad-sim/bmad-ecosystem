@@ -2333,7 +2333,7 @@ end subroutine tao_set_branch_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_data_cmd (who_str, value_str)
+! Subroutine tao_set_data_cmd (who_str, value_str, silent)
 !
 ! Routine to set data values.
 !
@@ -2342,7 +2342,7 @@ end subroutine tao_set_branch_cmd
 !   value_str -- Character(*): What value to set it to.
 !-
 
-subroutine tao_set_data_cmd (who_str, value_str)
+subroutine tao_set_data_cmd (who_str, value_str, silent)
 
 implicit none
 
@@ -2367,6 +2367,7 @@ character(*), parameter :: r_name = 'tao_set_data_cmd'
 character(100) :: why_invalid, tmpstr
 character, allocatable :: s_save(:)
 
+logical, optional :: silent
 logical err, l1
 
 
@@ -2528,7 +2529,11 @@ elseif (size(s_dat) /= 0) then
 
     do i = 1, size(s_dat)
       s_save(i) = value_str
-      s_dat(i)%s = value_str
+      ! Setting s_data(i)%s for %data_type does not work since %data_type is a var length string.
+      select case (component)
+      case ('data_type');       d_dat(i)%d%data_type = value_str
+      case default;             s_dat(i)%s = value_str
+      end select
     enddo
   endif
 
@@ -2632,7 +2637,7 @@ case ('ele_name', 'ele_start_name', 'ele_ref_name', 'data_type', 'data_source', 
     d => d_dat(i)%d
     if (component == 'exists' .and. .not. d%exists) cycle
 
-    d%exists = tao_data_sanity_check(d, .true., '')
+    d%exists = tao_data_sanity_check(d, .not. logic_option(.false., silent), '')
     if (.not. d%exists) cycle
 
     u => s%u(d%d1%d2%ix_universe) 
