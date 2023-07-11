@@ -209,9 +209,9 @@ if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
   print '(2a)', 'Initialization file: ', trim(ltt_com%master_input_file)
 endif
 
-open (1, file = ltt_com%master_input_file, status = 'old', action = 'read')
+open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
-close (1)
+close(1)
 
 ltt_com%beam_init = beam_init
 ltt_com%beam_init%ix_turn = ltt%ix_turn_start
@@ -221,9 +221,9 @@ call bmad_parser (ltt%lat_file, ltt_com%lat)
 ! Read the master input file again so that bmad_com parameters set in the file
 ! take precedence over bmad_com parameters set in the lattice file.
 
-open (1, file = ltt_com%master_input_file, status = 'old', action = 'read')
+open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)  
-close (1)
+close(1)
 
 !
 
@@ -603,7 +603,6 @@ subroutine ltt_print_per_particle_file_header(lttp, ltt_com, beam)
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
-type (bunch_struct), pointer :: bunch
 
 integer ib, ip, iu, np
 character(200) file
@@ -615,8 +614,7 @@ if (lttp%per_particle_output_file == '') return
 iu = lunget()
 
 do ib = 1, size(beam%bunch)
-  bunch = beam%bunch(ib)
-  np = size(bunch%particle)
+  np = size(beam%bunch(ib)%particle)
   if (np > 1000) then
     call out_io (s_fatal$, r_name, 'IT DOES NOT MAKE SENSE TO HAVE PER_PARTICLE OUTPUT WITH THIS NUMBER OF PARTICLES: ' // int_str(np), &
                                    'WILL STOP HERE')
@@ -688,7 +686,7 @@ if (lttp%averages_output_file == '') return
 do ib = 0, nb
   if (ib == 0 .and. nb == 1) cycle  ! ib = zero is for all bunch averages if there is more than one bunch
   call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
-  open (iu, file = file_name, recl = 400)
+  open(iu, file = file_name, recl = 400)
 
   call ltt_print_this_info(iu, .false.)
 
@@ -703,7 +701,7 @@ do ib = 0, nb
   !
 
   call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
-  open (iu, file = file_name, recl = 400)
+  open(iu, file = file_name, recl = 400)
 
   call ltt_print_this_info(iu, .false.)
 
@@ -719,7 +717,7 @@ do ib = 0, nb
   !
 
   call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
-  open (iu, file = file_name, recl = 2000)
+  open(iu, file = file_name, recl = 2000)
 
   call ltt_print_this_info(iu, .false.)
 
@@ -1010,7 +1008,7 @@ endif
 
 iu_part = lunget()
 if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
-open (iu_part, file = lttp%phase_space_output_file, recl = 300)
+open(iu_part, file = lttp%phase_space_output_file, recl = 300)
 call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
 write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz              pc             p0c  |    spin_x    spin_y    spin_z  | Element'
 write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%spin, trim(ele_start%name)
@@ -1075,7 +1073,7 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
 enddo
 
 print '(2a)', 'Particle output file: ', trim(lttp%phase_space_output_file)
-close (iu_part)
+close(iu_part)
 
 if (lttp%averages_output_file /= '') then
   call ltt_write_single_mode_sigma_file (lttp, n_sum, average, sigma)
@@ -1311,7 +1309,7 @@ branch => lat%branch(ltt_com%ix_branch)
 
 open(unit=20,file="twiss.dat")
 open(unit=21,file="coupling.dat")
-open (unit=22, file = "closed_orbit.dat")
+open(unit=22, file = "closed_orbit.dat")
 
 write(20,'(52x,"s",11x,"b_x",9x,"b_y",9x,"a_x",9x,"a_y",8x,"mu_x",8x,"mu_y",9x,"D_x",9x,"D_y")')
 write(22, '(a)') "Closed orbit"
@@ -1560,9 +1558,9 @@ endif
 ! Modifying the code to put everything in one file is a consideration but it is not clear if this is useful.
 
 if (wrote_header .and. str == '') then
-  open (iu, file = file_name, recl = 300, access = 'append')
+  open(iu, file = file_name, recl = 300, access = 'append')
 else
-  open (iu, file = file_name, recl = 300)
+  open(iu, file = file_name, recl = 300)
   call ltt_write_params_header(lttp, ltt_com, iu, ltt_com%n_particle, size(beam%bunch))
   if (who == 'phase_space') then
     write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz              pc             p0c   |     spin_x    spin_y    spin_z    State'
@@ -1676,7 +1674,7 @@ end select
 iu = lunget()
 
 if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
-  open (iu, file = lttp%custom_output_file, recl = 2000)
+  open(iu, file = lttp%custom_output_file, recl = 2000)
   call ltt_write_params_header(lttp, ltt_com, iu, size(beam%bunch))
   line = '#'
   do i = 1, size(lttp%column)
@@ -1688,7 +1686,7 @@ if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   write (iu, '(a)') trim(line)
 
 else
-  open (iu, file = lttp%custom_output_file, access = 'append', recl = 2000)
+  open(iu, file = lttp%custom_output_file, access = 'append', recl = 2000)
 endif
 
 !
@@ -1802,7 +1800,7 @@ enddo
 
 write (iu, '(2a)') ' ', trim(line)
 
-close (iu)
+close(iu)
 
 end subroutine ltt_write_custom
 
@@ -1832,8 +1830,8 @@ call write_beam_file (file, beam)
 
 if (ltt_com%last_beam_binary_output_file /= '') then
   iu = lunget()
-  open (iu, iostat = ios, file = ltt_com%last_beam_binary_output_file, status = 'old')
-  if (ios /= 0) close (iu, status = 'delete')
+  open(iu, iostat = ios, file = ltt_com%last_beam_binary_output_file, status = 'old')
+  if (ios /= 0) close(iu, status = 'delete')
 endif
 
 ltt_com%last_beam_binary_output_file = file
@@ -2163,11 +2161,11 @@ do ib = 1, nb
   call ltt_calc_bunch_data(lttp, ix_turn, bunch, bd)
 
   call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
-  iu1 = lunget(); open (iu1, file = file_name, recl = 400, access = 'append')
+  iu1 = lunget(); open(iu1, file = file_name, recl = 400, access = 'append')
   call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
-  iu2 = lunget(); open (iu2, file = file_name, recl = 400, access = 'append')
+  iu2 = lunget(); open(iu2, file = file_name, recl = 400, access = 'append')
   call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
-  iu3 = lunget(); open (iu3, file = file_name, recl = 2000, access = 'append')
+  iu3 = lunget(); open(iu3, file = file_name, recl = 2000, access = 'append')
 
   !
 
@@ -2187,9 +2185,9 @@ do ib = 1, nb
 
   write (iu3, '(a)') trim(line)
 
-  close (iu1)
-  close (iu2)
-  close (iu3)
+  close(iu1)
+  close(iu2)
+  close(iu3)
 enddo
 
 end subroutine ltt_write_averages_data
@@ -2209,7 +2207,7 @@ integer i, n_sum
 
 if (lttp%sigma_matrix_output_file == '') return
 
-open (1, file = lttp%sigma_matrix_output_file)
+open(1, file = lttp%sigma_matrix_output_file)
 
 if (n_sum == 0) then
   write (1, '(a)') '# NO DATA TO AVERAGE OVER!'
@@ -2229,7 +2227,7 @@ do i = 1, 6
   write (1, '(5x, 6es16.8)') sigma(i,:)
 enddo
 
-close (1)
+close(1)
 
 print '(2a)', 'Sigma matrix data file: ', trim(lttp%sigma_matrix_output_file)
 
@@ -2268,7 +2266,7 @@ if (.not. map_file_exists) then
   return
 endif
 
-open (1, file = map_file, form = 'unformatted')
+open(1, file = map_file, form = 'unformatted')
 read (1, err = 9000, end = 9000) creation_hash
 
 read (1, err = 9000, end = 9000) n_sec
@@ -2290,7 +2288,7 @@ do i = 0, n_sec
   endif
 enddo
 
-close (1)
+close(1)
 
 if (ltt_com%mpi_rank == master_rank$) then
   if (ltt_com%lat%creation_hash == creation_hash) then
@@ -2303,7 +2301,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 endif
 
 if (lttp%map_ascii_output_file /= '') then
-  open (2, file = lttp%map_ascii_output_file)
+  open(2, file = lttp%map_ascii_output_file)
   do i = 1, n_sec
     if (.not. allocated(ltt_com%sec(i)%map)) cycle
     map => ltt_com%sec(i)%map
@@ -2331,7 +2329,7 @@ if (ltt_com%lat%creation_hash == creation_hash) err_flag = .false.
 return
 
 9000 continue
-close (1)
+close(1)
 print '(a)', 'ERROR READING MAP FILE: ' // map_file
 
 end subroutine ltt_read_map
@@ -2355,7 +2353,7 @@ call ltt_map_file_name (lttp, ltt_com, map_file)
 
 !
 
-open (1, file = map_file, form = 'unformatted')
+open(1, file = map_file, form = 'unformatted')
 write (1) ltt_com%lat%creation_hash
 
 do n_sec = ubound(ltt_com%sec, 1), 0, -1
@@ -2370,7 +2368,7 @@ do i = 0, n_sec
   if (sec%type == map$) call ptc_write_map_with_radiation(sec%map, file_unit = 1)
 enddo
 
-close (1)
+close(1)
 
 end subroutine ltt_write_map
 
