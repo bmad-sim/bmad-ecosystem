@@ -566,12 +566,13 @@ case ('set')
   branch_str = ''
   mask = ''
   listing = .false.
+  silent = .false.
 
   do
     ! "-1" is a universe index and not a switch.
     if (cmd_line(1:1) == '-' .and. cmd_line(1:2) /= '-1') then
-      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-mask', '-branch', '-listing'], &
-                                                                                              .true., switch, err_flag, ix)
+      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-mask', &
+                                    '-branch', '-listing', '-silent'], .true., switch, err_flag, ix)
       if (err_flag) return
       select case (switch)
       case ('-update')
@@ -586,6 +587,8 @@ case ('set')
       case ('-mask')
         mask = cmd_line(:ix)
         call string_trim(cmd_line(ix+1:), cmd_line, ix)
+      case ('-silent')
+        silent = .true.
       end select
       cycle
     endif
@@ -692,7 +695,7 @@ case ('set')
   case ('curve')
     call tao_set_curve_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
   case ('data')
-    call tao_set_data_cmd (cmd_word(1), cmd_word(3))
+    call tao_set_data_cmd (cmd_word(1), cmd_word(3), silent)
   case ('default')
     call tao_set_default_cmd (cmd_word(1), cmd_word(3))
   case ('dynamic_aperture')

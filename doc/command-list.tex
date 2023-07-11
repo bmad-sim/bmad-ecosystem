@@ -1118,7 +1118,7 @@ Examples:
 
 Format:
 \begin{example}
-  set data <data_name>|<component> = <value>
+  set data \{-silent\} <data_name>|<component> = <value>
 \end{example}
 Set datum parameters.
 
@@ -1133,12 +1133,18 @@ that \vn{cannot} be set is:
   ix_d1
 \end{example}
 
+The \vn{-silent} switch, if present, prevents \tao from issuing an error message if \tao detects a
+malformed datum. This is useful when creating datums from scratch (via \vn{python data_d2_create})
+or when modifying multiple datum parameters, like a datum's \vn{data_type} and \vn{data_source},
+where it is known that the datum will be in a malformed state before the final set.
+
 Examples:
 \begin{example}
-  set data *|ref = *|meas            ! Set ref data = measured in current universe.
+  set data *|ref = *|meas              ! Set ref data = measured in current universe.
   set data 2@orbit.x|base = 2@orbit.x|model 
-                                     ! Set the base orbit.x in universe 2 to model
-  set data beta.x[10]|weight = 1e-5  ! Set weight of datum.
+                                       ! Set the base orbit.x in universe 2 to model
+  set data beta.x[10]|weight = 1e-5    ! Set weight of datum.
+  set -silent d[1]|data_type = beta.a  ! Set type_type.
 \end{example}
 
 %% set default --------------------------------------------------------------
