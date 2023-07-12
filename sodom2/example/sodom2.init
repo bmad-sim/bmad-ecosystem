@@ -1,0 +1,9 @@
+&params
+  sodom2%lat_file = 'ring.bmad'			! lattice file
+  sodom2%ele_eval = 'RF0##16'			! element at which n-axis is evaluated
+  !sodom2%output_file = '' 			! writes n-axis and ADST, default is 'sodom2.out' 
+  sodom2%mode = 2 				! mode to excite orbital motion
+  sodom2%J = 100e-9				! mode amplitude in [m]
+  sodom2%n_particle = 801			! number of particles used to calculate ADST and n-axis		
+  !sodom2%angles_to_eval = 0, 2.5133, 5.6549	! array of angle variables (in radians) to write n-axis to output_file. If excluded, writes n-axis for n_particle equally spaced angles to output_file
+/ 
