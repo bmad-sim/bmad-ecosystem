@@ -14,10 +14,10 @@ func_set_base_env () {
 
     # Logic to set cmake version for PLplot support 17-Nov-2020 RT#55118
     if [ ${DIST_BUILD} ] ; then
-	export CMAKE_UTIL="cmake-3.13.2" # Minimum required for PLplot version 5.15.0 released on 01-Jun-2019
-	export CMAKE_UTIL_SRC="cmake-3.18.4"
+      export CMAKE_UTIL="cmake-3.13.2" # Minimum required for PLplot version 5.15.0 released on 01-Jun-2019
+      export CMAKE_UTIL_SRC="cmake-3.18.4"
     else
-	export CMAKE_UTIL="cmake-3.18.4" # now the default version for all ACC Release builds RT#56587
+      export CMAKE_UTIL="cmake-3.18.4" # now the default version for all ACC Release builds RT#56587
     fi
 
     export ACC_LIB_TOOLS_WIKI='https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#A_42Libraries_and_Tools_Needed_for_Compiling_42'
@@ -28,8 +28,8 @@ func_set_base_env () {
 
     # Logic to check for the presence of gmake, else use make 
     [ "$(type gmake &> /dev/null ; echo $?)" -eq 0 ] \
-	&& export GMAKE="gmake" \
-	|| export GMAKE="make"
+      && export GMAKE="gmake" \
+      || export GMAKE="make"
 
     # Set minimum versions of GNU and Build Utilities required by FGSL 1.4 - 01-Jun-2021 RT#58585
     export AUTOCONF_UTIL=autoconf-2.71
@@ -45,7 +45,7 @@ func_set_base_env () {
     export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=no --enable-static=yes"
 
     case "${ACC_ENABLE_SHARED}" in
-	"Y" | "y" | "1" )
+      "Y" | "y" | "1" )
             export BUILD_SHARED=1
             export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=yes --enable-static=yes"
             ;;
@@ -55,7 +55,7 @@ func_set_base_env () {
     esac
 
     case "${ACC_ENABLE_SHARED_ONLY}" in
-	"Y" | "y" | "1" )
+      "Y" | "y" | "1" )
             export BUILD_SHARED_ONLY=1
             export BUILD_SHARED=1
             export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=yes --enable-static=no"
@@ -85,11 +85,11 @@ func_initialize_flags () {
 func_read_version () {
 
     if [ "${PACKAGE_VERSION}" ] ; then
-	export PACKAGE_VERSION=${PACKAGE_VERSION}
+      export PACKAGE_VERSION=${PACKAGE_VERSION}
     elif ( [ -e VERSION ] && [ "$(cat VERSION | head -1 | awk ' { print $2 } ' )" == "VERSION" ] ) ; then
-	export PACKAGE_VERSION=$(cat VERSION)
+      export PACKAGE_VERSION=$(cat VERSION)
     else
-	export PACKAGE_VERSION="$(basename `pwd`| cut -d- -f1) VERSION unknown"
+      export PACKAGE_VERSION="$(basename `pwd`| cut -d- -f1) VERSION unknown"
     fi
 
 }
@@ -102,13 +102,13 @@ func_display_build_time () {
     DIFF=$((${DATE2}-${DATE1}))
     if [ "${DIFF}" -gt 0 ]
     then
-	DTIME=$(echo "scale = 2; ${DIFF}/60" | bc)
-	DTIME_MIN=$(echo "scale = 0; ${DIFF}/60" | bc)
-	DTIME_SEC=$(echo $(echo ${DTIME:(-3)})*60 | bc)
-	[ "${DTIME_MIN}" != 0 ] \
-	    && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" \
-	    || DTIME_MESS="${DTIME_SEC}sec"
-	echo -e "Build time: ${DTIME_MESS}\n"
+      DTIME=$(echo "scale = 2; ${DIFF}/60" | bc)
+      DTIME_MIN=$(echo "scale = 0; ${DIFF}/60" | bc)
+      DTIME_SEC=$(echo $(echo ${DTIME:(-3)})*60 | bc)
+      [ "${DTIME_MIN}" != 0 ] \
+          && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" \
+          || DTIME_MESS="${DTIME_SEC}sec"
+      echo -e "Build time: ${DTIME_MESS}\n"
     fi
 }
 
@@ -126,15 +126,15 @@ func_set_fortran_compiler () {
         export FC="gfortran"
     else
         echo -e \
-	    "\nError: Fortran compiler not specified or installed." \
-	    "\n\nTo install GNU GCC/GFORTRAN, please follow instructions on:" \
-	    "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+          "\nError: Fortran compiler not specified or installed." \
+          "\n\nTo install GNU GCC/GFORTRAN, please follow instructions on:" \
+          "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
         exit 69
     fi
 
     [ "${FC}" == "ifort" ] \
-	&& export IFORT_MAJOR_VER=$(ifort --version | head -1 | awk ' { print $3 } ' | cut -d. -f1) \
-	&& export IFORT_MAJOR_VERSION=${IFORT_MAJOR_VER}
+      && export IFORT_MAJOR_VER=$(ifort --version | head -1 | awk ' { print $3 } ' | cut -d. -f1) \
+      && export IFORT_MAJOR_VERSION=${IFORT_MAJOR_VER}
 }
 
 
@@ -143,7 +143,7 @@ func_set_fortran_compiler () {
 func_set_gmake_job_level () {
 
     if [ -z ${ACC_SET_GMAKE_JOBS} ] || [ "${ACC_SET_GMAKE_JOBS}" == "0" ] ; then 
-	export ACC_SET_GMAKE_JOBS=2 
+      export ACC_SET_GMAKE_JOBS=2 
     fi
 }
 
@@ -153,19 +153,19 @@ func_set_gmake_job_level () {
 func_set_openmp_flags () {
 
     case "${ACC_ENABLE_OPENMP}" in
-	"Y" | "y" | "1" )
+      "Y" | "y" | "1" )
 
-	    # Fix setting OpenMP configure flag 12-Sep-2022
-	    export BUILD_OPENMP=1
+          # Fix setting OpenMP configure flag 12-Sep-2022
+          export BUILD_OPENMP=1
 
-	    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+          if ( [[ "${CONDA_BUILD}" ]] ) ; then
                 export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
                 export FCFLAGS="${FFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
                 export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
-	    fi
-	    export CFLAGS="-fopenmp ${CFLAGS}"
-	    if ( [ "${FC}" == "gfortran" ] ) ; then
-		export FCFLAGS="-fopenmp ${FCFLAGS}"
+          fi
+          export CFLAGS="-fopenmp ${CFLAGS}"
+          if ( [ "${FC}" == "gfortran" ] ) ; then
+      	export FCFLAGS="-fopenmp ${FCFLAGS}"
 		export LDFLAGS="-lgomp ${LDFLAGS}"
 	    elif [ "${IFORT_MAJOR_VERSION}" ] ; then
 		if [ "${IFORT_MAJOR_VERSION}" -gt 15 ] ; then
