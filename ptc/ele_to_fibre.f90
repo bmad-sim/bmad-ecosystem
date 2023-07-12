@@ -352,6 +352,7 @@ case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shi
 !------------------------------
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
+  if (ele%key == kicker$) ptc_key%list%delta_e = ele%value(pz_kick$) * ele%value(p0c$)
 
 !------------------------------
 case (rfcavity$, lcavity$)
