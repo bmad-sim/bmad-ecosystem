@@ -249,7 +249,7 @@ call reallocate_bunch(bunch, 3*sodom2%n_particle)
 call transfer_matrix_calc (lat, m, ix1 = sodom2_com%ix_ele_eval, ix_branch = sodom2_com%ix_branch, one_turn = .true.) !, sodom2_com%ele_eval%ix_ele, sodom2_com%ele_eval%ix_branch, .true.)
 rf_on = rf_is_on(lat%branch(sodom2_com%ix_branch))
 
-if (rf_on == .true.) then
+if (rf_on) then
   print *, "RF is ON"
   call mat_eigen(m, eig_val, eig_vec, error, .false.)
   if (error) then
