@@ -1263,6 +1263,7 @@ call init_attribute_name1 (kicker$, cylindrical_map$,               'CYLINDRICAL
 call init_attribute_name1 (kicker$, gen_grad_map$,                  'GEN_GRAD_MAP')
 call init_attribute_name1 (kicker$, grid_field$,                    'GRID_FIELD')
 call init_attribute_name1 (kicker$, ptc_canonical_coords$,          'PTC_CANONICAL_COORDS')
+call init_attribute_name1 (kicker$, pz_kick$,                       'PZ_KICK')
 
 call init_attribute_name1 (ac_kicker$, interpolation$,                 'INTERPOLATION')
 call init_attribute_name1 (ac_kicker$, r0_mag$,                        'R0_MAG')
@@ -1930,7 +1931,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', &
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
-      'AUTOSCALE_AMP_REL_TOL', &
+      'AUTOSCALE_AMP_REL_TOL', 'PZ_KICK', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
       'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', 'PZ_APERTURE_CENTER', &
       'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2')

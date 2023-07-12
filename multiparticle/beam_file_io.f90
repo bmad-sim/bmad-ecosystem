@@ -23,9 +23,6 @@ contains
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: ascii$, or hdf5$ (default).
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
-!
-! Output:
-!   file_name
 !-
 
 subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
