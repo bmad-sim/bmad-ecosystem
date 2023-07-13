@@ -4984,10 +4984,16 @@ enddo
 
 ! Count slaves.
 ! If n_multi > lat%n_ele_track we are looking at cloning a super_lord which should not happen.
-! If n_multi = 1 then, to symplify the lattice, do not create a lord
 
 n_multipass = size(m_slaves)
-if (n_multipass == 1) return
+
+
+! Old: If n_multi = 1 then, to symplify the lattice, do not create a lord.
+! 7/2023: Ran into a problem where a multipass bend with 1 slave had p0c set but, since no lord was being created,
+! p0c was ignored and this throw off the calc for dg/db_field. So now always create a lord.
+! In the future, if wanted, can revise code to remove the lord but this must be done after all bookkeeping is finished.
+
+!!! if (n_multipass == 1) return
 
 ! setup multipass_lord
 
@@ -5212,6 +5218,8 @@ type (branch_struct), target :: branch
 type (branch_struct), pointer :: ref_branch
 type (lat_struct), pointer :: lat
 
+real(rp) len_tiny
+
 integer ix, i, j, k, it, nn, i_ele, ib, il
 integer n_con, ix_branch, n_loc, n_loc0, ix_insert, ix_pass
 
@@ -5231,6 +5239,7 @@ super_ele = super_ele_in
 super_ele%logic = .false.
 call settable_dep_var_bookkeeping (super_ele)
 
+len_tiny = 0.1_rp * bmad_com%significant_length
 super_ele_saved = super_ele     ! in case super_ele_in changes
 lat => branch%lat
 pele%ix_super_ref_multipass = 0
@@ -5283,7 +5292,6 @@ if (n_loc == 0 .and. n_loc0 > 0) then
   return
 endif
 
-
 ! Group and overlay elements may have not yet been transfered from in_lat to lat.
 ! So search in_lat for a match if there has not been a match using lat. 
 ! Note: Using a group or overlay as the reference element is only valid if there is only one slave element.
@@ -5329,12 +5337,23 @@ endif
 ! region, must add further superpositions to keep the multipass regions on separate passes looking the same.
 ! shift the ref element to the multipass region.
 
+! Note: Need to avoid problem where a patch with a negative length next to a multipass region coupled with
+! round-off error shifted ele_at_s into the multipass region by mistake. 
+
+
 if (n_loc == 1) then
   ref_ele => eles(1)%ele
   ref_branch => pointer_to_branch(ref_ele)
   if (ref_ele%iyy == 0 .and. ref_branch%ix_branch == branch%ix_branch) then
     call compute_super_lord_s (eles(1)%ele, super_ele, pele, ix_insert)
-    ele_at_s => pointer_to_element_at_s (branch, super_ele%s_start, .true., err_flag)
+
+    if (super_ele%s_start > ref_ele%s_start-len_tiny .and. super_ele%s_start < ref_ele%s+len_tiny) then
+      ele_at_s => ref_ele
+      err_flag = .false.
+    else
+      ele_at_s => pointer_to_element_at_s (branch, super_ele%s_start, .true., err_flag)
+    endif
+
     if (err_flag) then
       call parser_error ('PROBLEM SUPERIMPOSING: ' // super_ele%name)
     else
@@ -5752,7 +5771,7 @@ type (branch_struct), pointer :: branch
 
 integer i, ix, ix_insert, ele_pt, ref_pt
 
-real(rp) s_ref_begin, s_ref_end, s0
+real(rp) s_ref_begin, s_ref_end, s0, len_tiny
 logical reflected_or_reversed
 
 ! Find the reference point on the element being superimposed.
@@ -5761,6 +5780,7 @@ logical reflected_or_reversed
 
 ix_insert = -1
 reflected_or_reversed = ref_ele%select
+len_tiny = 0.1_rp * bmad_com%significant_length
 
 super_ele%orientation = ref_ele%orientation
 if (reflected_or_reversed) then
@@ -5836,14 +5856,14 @@ branch => pointer_to_branch(ref_ele)
 s0 = branch%ele(0)%s
 
 if (pele%wrap_superimpose) then
-  if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
+  if (super_ele%s > branch%ele(branch%n_ele_track)%s + len_tiny) then
     super_ele%s = super_ele%s - branch%param%total_length
-  elseif (super_ele%s < s0) then
+  elseif (super_ele%s < s0 - len_tiny) then
     super_ele%s = super_ele%s + branch%param%total_length
   endif
 
   super_ele%s_start = super_ele%s - super_ele%value(l$)
-  if (super_ele%s_start < s0) then
+  if (super_ele%s_start < s0 - len_tiny) then
     super_ele%s_start = super_ele%s_start + branch%param%total_length
   endif
 endif

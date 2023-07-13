@@ -719,6 +719,10 @@ direction (``downward''). See \fig{f:tilt.bend}. It is important to understand t
 unlike the \vn{tilt} attribute of other elements, bends both the reference orbit along with the
 physical element. Note that the MAD \vn{tilt} attribute for bends is equivalent to the \bmad
 \vn{ref_tilt}. Bends in \bmad do not have a \vn{tilt} attribute.
+
+Important! Do not use \vn{ref_tilt} when doing misalignment studies for a machine. Trying to misalign
+a dipole by setting \vn{ref_tilt} will affect the positions of all downstream elements! Rather, use the
+\vn{roll} parameter.
   \end{description}
 
 %---------------
