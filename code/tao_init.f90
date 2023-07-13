@@ -320,14 +320,20 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (branch%param%particle /= photon$) then
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                                   tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
-    endif
 
-    if (branch%param%geometry == closed$) then
-      call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
-                 tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, ix_branch = ib)
-      call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma)
-      call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma)
-      tao_branch%modes_6d%momentum_compaction = momentum_compaction(branch)
+      if (branch%param%geometry == closed$) then
+        call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
+                   tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, ix_branch = ib)
+        call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma)
+        call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma)
+        tao_branch%modes_6d%momentum_compaction = momentum_compaction(branch)
+        if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
+                                                            tao_branch%modes_6d%z%j_damp < 0) then
+          call out_io (s_info$, r_name, 'Negative damping partition number detected!!!', &
+                                        'The lattice is unstable with radiation excitations!', &
+                                        '[However such things as the closed orbit can still be calculated.]')
+        endif
+      endif
     endif
 
   enddo
