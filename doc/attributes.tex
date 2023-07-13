@@ -658,6 +658,10 @@ rotation axis of the reference orbit along with the physical element. A \vn{bend
 \vn{ref_tilt} of $\pi/2$ will bend a beam vertically downward (\sref{s:global}). Note that the
 \vn{ref_tilt} attribute of \bmad is the same as the MAD \vn{tilt} attribute.
 
+Important! Do not use \vn{ref_tilt} when doing misalignment studies for a machine. Trying to misalign
+a dipole by setting \vn{ref_tilt} will affect the positions of all downstream elements! Rather, use the
+\vn{roll} parameter.
+
 %-----------------------------------------------------------------
 \subsection{Photon Reflecting Element Orientation}
 \label{s:photon.orient}
