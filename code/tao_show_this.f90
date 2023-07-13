@@ -5587,7 +5587,12 @@ case ('universe')
     ele2 => u%model%high_e_lat%branch(ix_branch)%ele(0)
     call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat)
     call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat)
-
+    if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
+                                                            tao_branch%modes_6d%z%j_damp < 0) then
+      call out_io (s_info$, r_name, 'Negative damping partition number detected!!!', &
+                                    'The lattice is unstable with radiation excitations!', &
+                                    '[However such things as the closed orbit can still be calculated.]')
+    endif
     call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
                           pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
 
