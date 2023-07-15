@@ -101,7 +101,6 @@ release_build_list = [
                 '/trunk/build_system',
                 '/trunk/include',
                 '/trunk/c_utils',
-                '/trunk/src/mad_tpsa',
                 '/packages/forest',
                 '/trunk/src/sim_utils',
                 '/trunk/src/bmad',
