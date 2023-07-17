@@ -147,24 +147,29 @@ Converting a MAD Error Data File:
 If a MAD lattice has been defined with errors, a corresponding Bmad lattice file with these errors
 can be created with the following procedure:
 
-1) Create a MAD error data file by putting the following in the MAD lattice file and then running MAD:
+1) Create a Bmad lattice file without errors.
+
+2) Create a MAD error data file by putting the following in the MAD lattice file and then running MAD:
 	select, flag=error, full;
   esave, file = "err";
 This will create an error file called "err"
 
-2) Create the corresponding Bmad lattice file by running errors_mad_to_bmad.py:
-	python  $ACC_ROOT_DIR/util_programs/mad_to_bmad/errors_mad_to_bmad.py err
+2) Create the corresponding Bmad lattice file by running errors_mad_to_bmad:
+	errors_mad_to_bmad <bmad-lattice-file-name> err
+where <bmad-lattice-file-name> is the name of the bmad lattice file.
 This will create a file named err.bmad.
 
 3) To use this file with the main lattice file, create a third file that calls the main lattice file
 and the error file. Example:
 	call, file = ags.bmad    ! Main lattice file
-	use, ring
+	use, ring                ! May not be needed if main lattice file has a use statement
+	expand_lattice           ! Will be needed if err.bmad uses "##" construct.
 	call, file = err.bmad		 ! Error file
 
-Note: The Bmad file uses the "##" construct so that differing errors can be assigned to elements with
-the same name. As a consequence, an expand_lattice command is put at the beginning of the lattice.
-This means that any "use" statements must come before calling the error file.
+Note: The Bmad file uses the "##" construct so that differing errors can be assigned to elements
+with the same name. As a consequence, an expand_lattice command is needed if there are multiple
+misaligned elements with the same name. This means that any "use" statements must come before
+calling the error file.
 
 
 ---------------------------------------------------------------------------------------------------

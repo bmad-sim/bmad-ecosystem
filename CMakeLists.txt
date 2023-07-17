@@ -22,6 +22,7 @@ set (EXE_SPECS
   cmake_files/cmake.f77_to_f90
   cmake_files/cmake.generalized_gradient_fit
   cmake_files/cmake.lattice_cleaner
+  cmake_files/cmake.errors_mad_to_bmad
   cmake_files/cmake.mais_ripken
   cmake_files/cmake.photon_init_plot
   cmake_files/cmake.photon_surface_data
