@@ -487,9 +487,9 @@ contains
 
 
     ! The chart frame of reference is located here implicitely
-    IF(PATCHG==1.or.PATCHG==3) THEN
+    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAG%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE,PATCHG)
     ENDIF
 
     IF(PATCHT/=0.AND.PATCHT/=2.AND.(K%TOTALPATH==0)) THEN
@@ -531,9 +531,9 @@ contains
       endif
     ENDIF
 
-    IF(PATCHG==2.or.PATCHG==3) THEN
+    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAG%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE,PATCHG)
     ENDIF
 
     ! The CHART frame of reference is located here implicitely
@@ -655,9 +655,9 @@ contains
 
 
     ! POSITION PATCH
-    IF(PATCHG==1.or.PATCHG==3) THEN
+    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAGP%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE,PATCHG)
     ENDIF
     !    IF(PRESENT(X_IN)) CALL XMID(X_IN,X,-4)
     ! TIME PATCH
@@ -707,9 +707,9 @@ contains
     !    IF(PRESENT(X_IN)) CALL XMID(X_IN,X,X_IN%nst+1)
 
     ! POSITION PATCH
-    IF(PATCHG==2.or.PATCHG==3) THEN
+    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAGP%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE,PATCHG)
     ENDIF
     !    IF(PRESENT(X_IN)) CALL XMID(X_IN,X,X_IN%nst+1)
 
@@ -767,13 +767,28 @@ ENDIF
 
 
 
-  SUBROUTINE PATCH_FIBR(C,X,k,PATCH,ENTERING)
+  SUBROUTINE PATCH_FIBR(C,X,k,PATCH,ENTERING,patchg)
     implicit none
     ! MISALIGNS REAL FIBRES IN PTC ORDER FOR FORWARD AND BACKWARD FIBRES
     TYPE(FIBRE),INTENT(INOUT):: C
     real(dp), INTENT(INOUT):: X(6)
     logical(lp),INTENT(IN):: PATCH,ENTERING
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer(2) patchg,i
+    if(patchg==10) then
+     do i=1,3
+      x(2*i-1)=x(2*i-1)+C%PATCH%A_D(i)
+      x(2*i)=x(2*i)+C%PATCH%A_ANG(i)
+     enddo
+     return
+    endif
+    if(patchg==30) then
+     do i=1,3
+      x(2*i-1)=x(2*i-1)+C%PATCH%B_D(i)
+      x(2*i)=x(2*i)+C%PATCH%B_ANG(i)
+     enddo
+     return
+    endif
     if(C%PATCH%track) then
     IF(ENTERING) THEN
        X(3)=C%PATCH%A_X1*X(3);X(4)=C%PATCH%A_X1*X(4);
@@ -796,13 +811,30 @@ ENDIF
   END SUBROUTINE PATCH_FIBR
 
 
-  SUBROUTINE PATCH_FIBP(C,X,k,PATCH,ENTERING)
+  SUBROUTINE PATCH_FIBP(C,X,k,PATCH,ENTERING,patchg)
     implicit none
     ! MISALIGNS REAL FIBRES IN PTC ORDER FOR FORWARD AND BACKWARD FIBRES
     TYPE(FIBRE),INTENT(INOUT):: C
     TYPE(REAL_8), INTENT(INOUT):: X(6)
     logical(lp),INTENT(IN):: PATCH,ENTERING
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer(2) patchg,i
+! David translation
+    if(patchg==10) then
+     do i=1,3
+      x(2*i-1)=x(2*i-1)+C%PATCH%A_D(i)
+      x(2*i)=x(2*i)+C%PATCH%A_ANG(i)
+     enddo
+     return
+    endif
+    if(patchg==30) then
+     do i=1,3
+      x(2*i-1)=x(2*i-1)+C%PATCH%B_D(i)
+      x(2*i)=x(2*i)+C%PATCH%B_ANG(i)
+     enddo
+     return 
+    endif
+
     if(C%PATCH%track) then
     IF(ENTERING) THEN
        X(3)=C%PATCH%A_X1*X(3);X(4)=C%PATCH%A_X1*X(4);

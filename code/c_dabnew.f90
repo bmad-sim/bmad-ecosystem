@@ -1674,6 +1674,7 @@ contains
     endif
     nocut = nt
         end subroutine datrunc
+
     subroutine dasub(ina,inb,inc)
     implicit none
     !     THIS SUBROUTINE PERFORMS A DA SUBTRACTION OF THE DA VECTORS A AND B.

@@ -672,9 +672,9 @@ CONTAINS
     ENDIF
 
     ! The chart frame of reference is located here implicitely
-    IF(PATCHG==1.or.PATCHG==3) THEN
+    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAG%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE,PATCHG)
     ENDIF
 
     IF(PATCHT/=0.AND.PATCHT/=2.AND.(K%TOTALPATH==0)) THEN
@@ -761,9 +761,9 @@ CONTAINS
     ENDIF
 
     ! The chart frame of reference is located here implicitely
-    IF(PATCHG==1.or.PATCHG==3) THEN
+    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAGP%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_TRUE,PATCHG)
     ENDIF
 
     IF(PATCHT/=0.AND.PATCHT/=2.AND.(K%TOTALPATH==0)) THEN
@@ -824,9 +824,9 @@ CONTAINS
       endif
     ENDIF
 
-    IF(PATCHG==2.or.PATCHG==3) THEN
+    IF(PATCHG==2.or.PATCHG==3.or.PATCHG==20.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAG%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE,PATCHG)
     ENDIF
 
     ! The CHART frame of reference is located here implicitely
@@ -908,9 +908,9 @@ ENDIF
       endif
     ENDIF
 
-    IF(PATCHG==2.or.PATCHG==3) THEN
+    IF(PATCHG==2.or.PATCHG==3.or.PATCHG==20.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAGP%P%EXACT
-       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE)
+       CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE,PATCHG)
     ENDIF
 
     ! The CHART frame of reference is located here implicitely

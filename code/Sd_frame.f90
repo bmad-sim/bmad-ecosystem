@@ -32,7 +32,7 @@ module S_FRAME
   INTERFACE GEO_ROT
      MODULE PROCEDURE GEO_ROTA      !(ENT,V,A,I)
      MODULE PROCEDURE GEO_ROTA_no_vec  !(ENT,A,I)
-     MODULE PROCEDURE GEO_ROTAB_no_vec   ! (ENT,Exi,A_X2,A_X1,A_xy)
+     MODULE PROCEDURE GEO_ROTAB_no_vec   ! (ENT,Exi,A,basis)
      MODULE PROCEDURE GEO_ROTB      ! (ENT,EXI,A,B,A_X2,A_X1,A_XY)
   end  INTERFACE
 
@@ -904,7 +904,7 @@ end  SUBROUTINE print_triad
     T10=ENTL
     T2=ENTL
 
-
+!!! T1 global
     CALL COMPUTE_SCALAR(T1,2,ENTB,1,S_IJ)
     CALL COMPUTE_SCALAR(T1,1,ENTB,1,S_JJ)
 
@@ -916,10 +916,13 @@ end  SUBROUTINE print_triad
 
     !   A(1)=ATAN2(-S_IJ,S_JJ)
     AT=0.0_dp;AT(3)=A(3);
-
+!!! T10 global
     CALL GEO_ROT(T10,T1,AT,T2)
     T2=T1
     T10=T1
+!!! T2=R_z
+!!! T1=R_z
+!!! T10=R_z
 
     CALL COMPUTE_SCALAR(T1,1,ENTB,3,S_IJ)
     CALL COMPUTE_SCALAR(T1,3,ENTB,3,S_JJ)
@@ -1052,6 +1055,146 @@ call FIND_PATCH(global_origin,global_frame,d_m,ent,D_ptc,ang_ptc)
 
 
   END SUBROUTINE COMPUTE_ENTRANCE_ANGLE_bmad 
+  
+subroutine convert_patch_mengyu_to_etienne(R,T,mengyu,b,exi,a,ent)
+implicit none
+real(dp) R(3),rx(3,3),ry(3,3),rz(3,3),rot_(3,3),rot_arr(3,3)
+real(dp) T(3),tra(3),sy,angx,angy,angz,S_IJ,S_JJ 
+logical mengyu
+real(dp),optional :: ent(3,3),exi(3,3),b(3),a(3)
+
+
+if(present(ent)) then
+ rot_arr= matmul(ent,transpose(exi))
+ t=a-b
+tra=matmul(ent,t)
+else
+
+angx= R(1)
+angy= R(2)
+angz= R(3)
+
+if(mengyu) angy=-angy
+!!!! Etienne stupid sign conventions
+rx(1,1:3)=[1,0,0]
+rx(2,1:3)=[0.d0,cos(angx),sin(angx)]
+rx(3,1:3)=[0.d0,-sin(angx), cos(angx)]
+ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+ry(2,1:3)=[0,1,0]
+ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
+rz(1,1:3)=[cos(angz),sin(angz),0.d0]
+rz(2,1:3)=[-sin(angz), cos(angz),0.d0]
+rz(3,1:3)=[0,0,1]
+
+
+rot_=matmul(Ry,RZ)
+rot_arr=matmul(RX,rot_)
+tra=matmul(rot_arr,t);
+
+endif
+
+  
+ 
+    angx=atan2(-rot_arr(3,2),rot_arr(3,3));
+
+ 
+rx(1,1:3)=[1,0,0]
+rx(2,1:3)=[0.d0,cos(angx),sin(angx)]
+rx(3,1:3)=[0.d0,-sin(angx), cos(angx)]
+ 
+S_IJ=Rx(1,1)*rot_arr(3,1)+Rx(1,2)*rot_arr(3,2)+Rx(1,3)*rot_arr(3,3)
+S_JJ=Rx(3,1)*rot_arr(3,1)+Rx(3,2)*rot_arr(3,2)+Rx(3,3)*rot_arr(3,3)
+ 
+    angy=atan2(-S_IJ,S_JJ);
+ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+ry(2,1:3)=[0,1,0]
+ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
+rot_=matmul(ry,rx)
+
+S_IJ=rot_(2,1)*rot_arr(1,1)+rot_(2,2)*rot_arr(1,2)+rot_(2,3)*rot_arr(1,3)
+S_JJ=rot_(1,1)*rot_arr(1,1)+rot_(1,2)*rot_arr(1,2)+rot_(1,3)*rot_arr(1,3)
+
+    angz=atan2(S_IJ,S_JJ);
+    t=tra
+ 
+    R(1)=angx;
+    R(2)=angy;
+    R(3)=angz;
+
+  end subroutine
+
+   subroutine print33(r)
+   implicit none
+   real(dp) r(3,3)
+    write(6,*) r(1,1:3)
+    write(6,*) r(2,1:3)
+    write(6,*) r(3,1:3)
+   end subroutine
+
+ subroutine convert_patch_etienne_to_mengyu(R,T,mengyu,b,exi,a,ent)
+implicit none
+real(dp) R(3),rx(3,3),ry(3,3),rz(3,3),rot_(3,3),rot_arr(3,3)
+real(dp) T(3),tra(3),sy,angx,angy,angz,S_IJ,S_JJ
+logical mengyu
+real(dp),optional :: ent(3,3),exi(3,3),b(3),a(3)
+
+
+if(present(ent)) then
+ rot_arr= matmul(ent,transpose(exi))
+ t=a-b
+tra=matmul(exi,t)
+    t=tra
+else
+
+angx= R(1)
+angy= R(2)
+angz= R(3)
+
+!!!! Etienne stupid sign conventions
+rx(1,1:3)=[1,0,0]
+rx(2,1:3)=[0.d0,cos(angx),sin(angx)]
+rx(3,1:3)=[0.d0,-sin(angx), cos(angx)]
+ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+ry(2,1:3)=[0,1,0]
+ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
+rz(1,1:3)=[cos(angz),sin(angz),0.d0]
+rz(2,1:3)=[-sin(angz), cos(angz),0.d0]
+rz(3,1:3)=[0,0,1]
+
+
+rot_=matmul(Ry,Rx)
+rot_arr=matmul(Rz,rot_)
+tra=matmul(transpose(rot_arr),t);
+t=tra
+
+endif
+    angz=atan2(rot_arr(1,2),rot_arr(1,1));
+rz(1,1:3)=[cos(angz),sin(angz),0.d0]
+rz(2,1:3)=[-sin(angz), cos(angz),0.d0]
+rz(3,1:3)=[0,0,1]
+
+S_IJ=Rz(1,1)*rot_arr(3,1)+Rz(1,2)*rot_arr(3,2)+Rz(1,3)*rot_arr(3,3)
+S_JJ=Rz(3,1)*rot_arr(3,1)+Rz(3,2)*rot_arr(3,2)+Rz(3,3)*rot_arr(3,3)
+ 
+    angy=atan2(-S_IJ,S_JJ);
+ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+ry(2,1:3)=[0,1,0]
+ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
+rot_=matmul(ry,rz)
+
+S_IJ=rot_(2,1)*rot_arr(3,1)+rot_(2,2)*rot_arr(3,2)+rot_(2,3)*rot_arr(3,3)
+S_JJ=rot_(3,1)*rot_arr(3,1)+rot_(3,2)*rot_arr(3,2)+rot_(3,3)*rot_arr(3,3)
+
+    angx=atan2(-S_IJ,S_JJ);
+ 
+    R(1)=angx;
+    R(2)=angy;
+    R(3)=angz;
+  if(mengyu) R(2)=-R(2)
+
+  end subroutine
+
+
 
   SUBROUTINE  COMPUTE_SCALAR(ENTL,I,ENTB,J,S_IJ) ! Adjusts frames of magnet_chart on the basis of the misalignments
     IMPLICIT NONE
