@@ -169,7 +169,11 @@ do ie = 1, 1000000
   call value_out (bmad_name, 'z_offset', ds)
   call value_out (bmad_name, 'x_pitch', dtheta)
   call value_out (bmad_name, 'y_pitch', dphi)
-  call value_out (bmad_name, 'tilt', dpsi)
+  if (ele%key == sbend$) then
+    call value_out (bmad_name, 'roll', dpsi)
+  else
+    call value_out (bmad_name, 'tilt', dpsi)
+  endif
 enddo
 
 9000 continue
