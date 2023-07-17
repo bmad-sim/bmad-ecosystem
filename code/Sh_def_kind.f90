@@ -102,7 +102,7 @@ MODULE S_DEF_KIND
   PRIVATE INTPANCAKER,INTPANCAKEP,INTE_PANCAKE_prober,INTE_PANCAKE_probep
 
   private ADJUST_TIME_CAV4R,ADJUST_TIME_CAV4p,INTE_CAV4R,INTE_CAV4p
-  private INTER_STREX,INTEP_STREX,INTER_SOL5,INTEP_SOL5,INTER_KTK,INTEP_KTK
+  private INTE_STREXR,INTE_STREXP,INTER_SOL5,INTEP_SOL5,INTER_KTK,INTEP_KTK
   private fringe_STRAIGHTr,fringe_STRAIGHTP
   private INTEr_dkd2,INTEP_dkd2,INTER_DRIFT1,INTEP_DRIFT1
   private INTE_TKTFR,INTE_TKTFP
@@ -327,8 +327,8 @@ real(dp) scalee,scaleb,hhh
      MODULE PROCEDURE INTE_STREX_probep
   END INTERFACE 
   INTERFACE TRACK_SLICE_STREX_OLD
-     MODULE PROCEDURE INTER_STREX
-     MODULE PROCEDURE INTEP_STREX
+     MODULE PROCEDURE INTE_STREXR
+     MODULE PROCEDURE INTE_STREXP
   END INTERFACE 
 
   INTERFACE TRACK_SLICE
@@ -422,8 +422,6 @@ real(dp) scalee,scaleb,hhh
 
      MODULE PROCEDURE SYMPINTR ! MID IN INTE  DKD2
      MODULE PROCEDURE SYMPINTP ! MID IN INTE
-     MODULE PROCEDURE SYMPINTEXR ! MID IN INTE
-     MODULE PROCEDURE SYMPINTEXP ! MID IN INTE
      MODULE PROCEDURE KICKTR    ! MID DEFINED /12 KICK
      MODULE PROCEDURE KICKTP    ! MID DEFINED /12 KICK
      ! CAVITY THICK/THIN ELEMENT
@@ -483,9 +481,12 @@ real(dp) scalee,scaleb,hhh
   INTERFACE DRIFT
      MODULE PROCEDURE DRIFTR
      MODULE PROCEDURE DRIFTP       ! USE TO CREATE OTHER ELEMENTS (INTEGRATION)
-
   END INTERFACE
 
+  INTERFACE SYMPINTEX
+     MODULE PROCEDURE SYMPINTEXR ! MID IN INTE
+     MODULE PROCEDURE SYMPINTEXP ! MID IN INTE
+  END INTERFACE
 
   !@  INTERFACE DRIFT_pancake
   !    MODULE PROCEDURE DRIFT_pancaker
@@ -5649,22 +5650,26 @@ integer :: kkk=0
     DIR=EL%P%DIR*EL%P%CHARGE
     X1=X(1)
     X3=X(3)
-
+ 
     if(k%TIME) then
        X5=SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)-1.0_dp
     else
        X5=X(5)
     endif
 
+
     IF(EL%P%NMUL>=1) THEN
        BBYTW=EL%BN(EL%P%NMUL)
        BBXTW=EL%AN(EL%P%NMUL)
-
+ 
 
        DO  J=EL%P%NMUL-1,1,-1
           BBYTWT=X1*BBYTW-X3*BBXTW+EL%BN(J)
           BBXTW=X3*BBYTW+X1*BBXTW+EL%AN(J)
+ 
           BBYTW=BBYTWT
+ 
+
        ENDDO
     ELSE
        BBYTW=0.0_dp
@@ -5675,10 +5680,10 @@ integer :: kkk=0
     IF(EL%P%EXACT) THEN
        X(2)=X(2)-YL*DIR*BBYTW
        X(4)=X(4)+YL*DIR*BBXTW
-    ELSE
+    ELSE 
        X(2)=X(2)-YL*(DIR*BBYTW-EL%P%B0-(X5-X1*DIR*EL%BN(1))*EL%P%B0)
        X(4)=X(4)+YL* DIR*BBXTW
-
+ 
        if(k%TIME) then
           X(6)=X(6)+YL*EL%P%B0*X1*(1.0_dp/EL%P%beta0+x(5))/(1.0_dp+X5)
        else
@@ -5893,7 +5898,6 @@ integer :: kkk=0
        CALL KICK (EL,DK1,X,k)
        CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        CALL KICK (EL,DK2,X,k)
-
        CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        CALL KICK (EL,DK1,X,k)
        CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
@@ -13698,18 +13702,154 @@ endif
   END SUBROUTINE SYMPSEPP
 
   !  New kind for straigth exact
+   function f_prof(i,pos,dir)
+    IMPLICIT NONE
+    real(dp) f_prof,f(24)
+    integer pos,i,pos1,dir
+    f_prof=1
+    if(i==0) return
+    if(i*dir==1) then
+      f(1)  = 0.00037033753d0/0.066769d0
+      f(2)  = 0.004174d0/0.066769d0
+      f(3)  = 0.0126712d0/0.066769d0
+      f(4)  = 0.024906475d0/0.066769d0
+      f(5)  = 0.038702d0/0.066769d0
+      f(6)  = 0.05143675d0/0.066769d0
+      f(7)  = 0.06082475d0/0.066769d0
+      f(8)  = 0.0656945d0/0.066769d0
+      f(9)  = 1.0_dp
+      f(10) = 1.0_dp
+      f(11) = 1.0_dp
+      f(12) = 1.0_dp
+      f(13) = 1.0_dp
+      f(14) = 1.0_dp
+      f(15) = 1.0_dp
+      f(16) = 1.0_dp
+      f(17) = 0.0664d0/0.066769d0
+      f(18) = 0.06269175d0/0.066769d0
+      f(19) = 0.05449075d0/0.066769d0
+      f(20) = 0.04266825d0/0.066769d0
+      f(21) = 0.02921375d0/0.066769d0
+      f(22) = 0.01655545d0/0.066769d0
+      f(23) = 0.0068836d0/0.066769d0
+      f(24) = 0.00147249d0/0.066769d0
+      f_prof=f(pos)
+    endif     
+    if(i*dir==-1) then
+      f(1)  = 0.00037033753d0/0.066769d0
+      f(2)  = 0.004174d0/0.066769d0
+      f(3)  = 0.0126712d0/0.066769d0
+      f(4)  = 0.024906475d0/0.066769d0
+      f(5)  = 0.038702d0/0.066769d0
+      f(6)  = 0.05143675d0/0.066769d0
+      f(7)  = 0.06082475d0/0.066769d0
+      f(8)  = 0.0656945d0/0.066769d0
+      f(9)  = 1.0_dp
+      f(10) = 1.0_dp
+      f(11) = 1.0_dp
+      f(12) = 1.0_dp
+      f(13) = 1.0_dp
+      f(14) = 1.0_dp
+      f(15) = 1.0_dp
+      f(16) = 1.0_dp
+      f(17) = 0.0664d0/0.066769d0
+      f(18) = 0.06269175d0/0.066769d0
+      f(19) = 0.05449075d0/0.066769d0
+      f(20) = 0.04266825d0/0.066769d0
+      f(21) = 0.02921375d0/0.066769d0
+      f(22) = 0.01655545d0/0.066769d0
+      f(23) = 0.0068836d0/0.066769d0
+      f(24) = 0.00147249d0/0.066769d0
+      pos1=24-pos+1
+      f_prof=f(pos1)
+    endif
+    if(i*dir==2) then
+      f( 1) =  5.546548547978853E-003
+      f( 2) =  6.251404094714612E-002
+      f( 3) =  0.189776692776588
+      f( 4) =  0.373024532342854
+      f( 5) =  0.579640252212853
+      f( 6) =  0.770368733993320
+      f( 7) =  0.910972906588387
+      f( 8) =  0.983907202444248
+      f( 9) =   1.00000000000000
+      f(10) =   1.00000000000000
+      f(11) =   1.00000000000000
+      f(12) =   1.00000000000000
+      f(13) =   1.00000000000000
+      f(14) =   1.00000000000000
+      f(15) =   1.00000000000000
+      f(16) =   1.00000000000000
+      f(17) =  0.994473483203283
+      f(18) =  0.938934984798335
+      f(19) =  0.816108523416556
+      f(20) =  0.639042819272417
+      f(21) =  0.437534634336294
+      f(22) =  0.247951144992437
+      f(23) =  0.103095748026779
+      f(24) =  2.205349788075305E-002
+    endif 
+    if(i*dir==-2) then
+      f( 1) =  5.546548547978853E-003
+      f( 2) =  6.251404094714612E-002
+      f( 3) =  0.189776692776588
+      f( 4) =  0.373024532342854
+      f( 5) =  0.579640252212853
+      f( 6) =  0.770368733993320
+      f( 7) =  0.910972906588387
+      f( 8) =  0.983907202444248
+      f( 9) =   1.00000000000000
+      f(10) =   1.00000000000000
+      f(11) =   1.00000000000000
+      f(12) =   1.00000000000000
+      f(13) =   1.00000000000000
+      f(14) =   1.00000000000000
+      f(15) =   1.00000000000000
+      f(16) =   1.00000000000000
+      f(17) =  0.994473483203283
+      f(18) =  0.938934984798335
+      f(19) =  0.816108523416556
+      f(20) =  0.639042819272417
+      f(21) =  0.437534634336294
+      f(22) =  0.247951144992437
+      f(23) =  0.103095748026779
+      f(24) =  2.205349788075305E-002
+      pos1=24-pos+1
+      f_prof=f(pos1)
+    endif 
 
-  SUBROUTINE KICKEXR(EL,YL,X,k)
+  end  function 
+	          
+subroutine set_f_in_k16(f,i)
+IMPLICIT NONE
+type(fibre), target :: f
+integer i
+if(.not.associated(f%mag%k16)) then
+ Write(6,*) " Not a strex magnet "
+ stop 111
+else
+ if(.not.f%mag%k16%DRIFTKICK) then
+  write(6,*) " magnet with profile  must be drift-kick-drift "
+   stop 112
+ endif
+endif
+ f%mag%k16%f =i
+ f%magp%k16%f=i
+
+end subroutine set_f_in_k16
+
+  SUBROUTINE KICKEXR(EL,YL,X,k,pos)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
     TYPE(STREX),INTENT(IN):: EL
     real(dp),INTENT(IN):: YL
     real(dp) X1,X3,BBYTW,BBXTW,BBYTWT !,X5
+    integer, optional :: pos
     INTEGER J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
 
-    DIR=EL%P%DIR*EL%P%CHARGE
+     DIR=EL%P%DIR*EL%P%CHARGE
 
     X1=X(1)
     X3=X(3)
@@ -13734,14 +13874,18 @@ endif
        BBYTW=0.0_dp
        BBXTW=0.0_dp
     ENDIF
+     if(EL%DRIFTKICK) then
+      BBYTW= f_prof(el%f,pos,EL%P%DIR)*BBYTW
+      BBXTW= f_prof(el%f,pos,EL%P%DIR)*BBXTW
+      X(2)=X(2)-YL*DIR*BBYTW
+      X(4)=X(4)+YL*DIR*BBXTW
+     else 
+     X(2)=X(2)-YL*DIR*BBYTW
+     X(4)=X(4)+YL*DIR*BBXTW
+     X(2)=X(2)+YL*DIR*EL%BN(1)
+    endif
 
-
-    X(2)=X(2)-YL*DIR*BBYTW
-    X(4)=X(4)+YL*DIR*BBXTW
-
-    IF(.NOT.EL%DRIFTKICK) THEN
-       X(2)=X(2)+YL*DIR*EL%BN(1)
-    ENDIF
+  
     !outvalishev    if(valishev.and.ABS(el%VS)>eps)   then  !valishev
     !outvalishev     call elliptical_b(el%VA,el%VS,x,BBXTW,BBYTW) !valishev
     !outvalishev       X(2)=X(2)-YL*DIR*BBYTW !valishev
@@ -13750,7 +13894,7 @@ endif
 
   END SUBROUTINE KICKEXR
 
-  SUBROUTINE KICKEXP(EL,YL,X,k)
+  SUBROUTINE KICKEXP(EL,YL,X,k,pos)
     IMPLICIT NONE
     TYPE(REAL_8),INTENT(INOUT):: X(6)
     TYPE(STREXP),INTENT(IN):: EL
@@ -13759,6 +13903,8 @@ endif
     INTEGER J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
+    integer, optional :: pos
+
 
     call PRTP("KICKEX:0", X)
 
@@ -13795,11 +13941,18 @@ endif
        BBXTW=0.0_dp
     ENDIF
 
-    X(2)=X(2)-YL*DIR*BBYTW
-    X(4)=X(4)+YL*DIR*BBXTW
-    IF(.NOT.EL%DRIFTKICK) THEN
-       X(2)=X(2)+YL*DIR*EL%BN(1)
-    ENDIF
+     if(EL%DRIFTKICK) then
+      BBYTW= f_prof(el%f,pos,EL%P%DIR)*BBYTW
+      BBXTW= f_prof(el%f,pos,EL%P%DIR)*BBXTW
+      X(2)=X(2)-YL*DIR*BBYTW
+      X(4)=X(4)+YL*DIR*BBXTW
+     else 
+     X(2)=X(2)-YL*DIR*BBYTW
+     X(4)=X(4)+YL*DIR*BBXTW
+     X(2)=X(2)+YL*DIR*EL%BN(1)
+    endif
+
+ 
     !outvalishev    if(valishev.and.ABS(el%VS)>eps)   then  !valishev
     !outvalishev     call elliptical_b(el%VA,el%VS,x,BBXTW,BBYTW) !valishev
     !outvalishev       X(2)=X(2)-YL*DIR*BBYTW !valishev
@@ -13817,7 +13970,7 @@ endif
 
   END SUBROUTINE KICKEXP
  
-  SUBROUTINE INTER_STREX(EL,X,k,pos)
+  SUBROUTINE INTE_STREXR(EL,X,k,pos)
     IMPLICIT NONE
     TYPE(STREX),INTENT(IN):: EL
     real(dp), INTENT(INOUT) ::  X(6)
@@ -13832,27 +13985,14 @@ endif
     IF(EL%DRIFTKICK) THEN
 
        SELECT CASE(EL%P%METHOD)
-       CASE(1)
-          if(EL%F==1) then
-             f1=0
-          else
-             f1=EL%F+1
-          endif
-          DH=EL%L/EL%P%NST
-          D=EL%L/(EL%P%NST/EL%F/2)
-          DD=EL%P%LD/EL%P%NST
 
-          IF(MOD(POS,2*EL%F)==f1) THEN
-             CALL KICKEX (EL,D,X,k)
-          ENDIF
-          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        CASE(2)
           DH=EL%L/2.0_dp/EL%P%NST
           D=EL%L/EL%P%NST
           DD=EL%P%LD/2.0_dp/EL%P%NST
 
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,D,X,k)
+          CALL KICKEX(EL,D,X,k,pos)
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        CASE(4)
@@ -13864,11 +14004,11 @@ endif
           DK2=EL%L*FK2/EL%P%NST
 
           CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k,pos)
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK2,X,k)
+          CALL KICKEX(EL,DK2,X,k,pos)
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k,pos)
           CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        CASE(6)
@@ -13880,13 +14020,13 @@ endif
 
           DO J=4,2,-1
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k,pos)
           ENDDO
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK(1),X,k)
+          CALL KICKEX(EL,DK(1),X,k,pos)
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
           DO J=2,4
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k,pos)
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
           ENDDO
        CASE(8)
@@ -13902,7 +14042,7 @@ endif
              CALL DRIFT(NDF(0),NDDF(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        DO J=1,15
-             CALL KICKEX (EL,NDK(J),X,k)
+             CALL KICKEX(EL,NDK(J),X,k,pos)
              CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
  
@@ -13921,7 +14061,7 @@ endif
           DD=EL%P%LD/2.0_dp/EL%P%NST
 
           CALL SPAR(EL,DH,DD,X,k)
-          CALL KICKEX (EL,D,X,k)
+          CALL KICKEX(EL,D,X,k)
           CALL SPAR(EL,DH,DD,X,k)
 
        CASE(4)
@@ -13933,11 +14073,11 @@ endif
           DK2=EL%L*FK2/EL%P%NST
 
           CALL SPAR(EL,D1,DD1,X,k)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k)
           CALL SPAR(EL,D2,DD2,X,k)
-          CALL KICKEX (EL,DK2,X,k)
+          CALL KICKEX(EL,DK2,X,k)
           CALL SPAR(EL,D2,DD2,X,k)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k)
           CALL SPAR(EL,D1,DD1,X,k)
 
        CASE(6)
@@ -13949,13 +14089,13 @@ endif
 
           DO J=4,2,-1
              CALL SPAR(EL,DF(J),DDF(J),X,k)
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k)
           ENDDO
           CALL SPAR(EL,DF(1),DDF(1),X,k)
-          CALL KICKEX (EL,DK(1),X,k)
+          CALL KICKEX(EL,DK(1),X,k)
           CALL SPAR(EL,DF(1),DDF(1),X,k)
           DO J=2,4
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k)
              CALL SPAR(EL,DF(J),DDF(J),X,k)
           ENDDO
        CASE(8)
@@ -13969,7 +14109,7 @@ endif
        ENDDO
              CALL SPAR(EL,NDF(0),NDDF(0),X,k)
        DO J=1,15
-             CALL KICKEX (EL,NDK(J),X,k)
+             CALL KICKEX(EL,NDK(J),X,k)
              CALL SPAR(EL,NDF(J),NDDF(J),X,k)
        ENDDO
        CASE DEFAULT
@@ -13983,9 +14123,9 @@ endif
     ENDIF
 
 
-  END SUBROUTINE INTER_STREX
+  END SUBROUTINE INTE_STREXR
 
-  SUBROUTINE INTEP_STREX(EL,X,k,pos)
+  SUBROUTINE INTE_STREXP(EL,X,k,pos)
     IMPLICIT NONE
     TYPE(STREXP),INTENT(IN):: EL
     TYPE(REAL_8), INTENT(INOUT) :: X(6)
@@ -14001,22 +14141,7 @@ endif
     IF(EL%DRIFTKICK) THEN
 
        SELECT CASE(EL%P%METHOD)
-       CASE(1)
-          if(EL%F==1) then
-             f1=0
-          else
-             f1=EL%F+1
-          endif
-          CALL ALLOC(DH,D)
-          DH=EL%L/EL%P%NST
-          D=EL%L/(EL%P%NST/EL%F/2)
-          DD=EL%P%LD/EL%P%NST
 
-          IF(MOD(POS,2*EL%F)==f1) THEN
-             CALL KICKEX (EL,D,X,k)
-          ENDIF
-          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL kill(DH,D)
        CASE(2)
           CALL ALLOC(DH,D)
           DH=EL%L/2.0_dp/EL%P%NST
@@ -14024,7 +14149,7 @@ endif
           DD=EL%P%LD/2.0_dp/EL%P%NST
 
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,D,X,k)
+          CALL KICKEX(EL,D,X,k,pos)
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
           CALL KILL(DH,D)
 
@@ -14038,11 +14163,11 @@ endif
           DK2=EL%L*FK2/EL%P%NST
 
           CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k,pos)
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK2,X,k)
+          CALL KICKEX(EL,DK2,X,k,pos)
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k,pos)
           CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
           CALL KILL(D1,D2,DK1,DK2)
 
@@ -14056,13 +14181,13 @@ endif
 
           DO J=4,2,-1
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k,pos)
           ENDDO
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-          CALL KICKEX (EL,DK(1),X,k)
+          CALL KICKEX(EL,DK(1),X,k,pos)
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
           DO J=2,4
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k,pos)
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
           ENDDO
           CALL KILL(DF,4);CALL KILL(DK,4);
@@ -14083,7 +14208,7 @@ endif
           CALL DRIFT(NDF(0),NDDF(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        DO J=1,15
-             CALL KICKEX (EL,NDK(J),X,k)
+             CALL KICKEX(EL,NDK(J),X,k,pos)
              CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
  
@@ -14106,7 +14231,7 @@ endif
           DD=EL%P%LD/2.0_dp/EL%P%NST
 
           CALL SPAR(EL,DH,DD,X,k)
-          CALL KICKEX (EL,D,X,k)
+          CALL KICKEX(EL,D,X,k)
           CALL SPAR(EL,DH,DD,X,k)
           CALL KILL(DH,D)
 
@@ -14120,11 +14245,11 @@ endif
           DK2=EL%L*FK2/EL%P%NST
 
           CALL SPAR(EL,D1,DD1,X,k)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k)
           CALL SPAR(EL,D2,DD2,X,k)
-          CALL KICKEX (EL,DK2,X,k)
+          CALL KICKEX(EL,DK2,X,k)
           CALL SPAR(EL,D2,DD2,X,k)
-          CALL KICKEX (EL,DK1,X,k)
+          CALL KICKEX(EL,DK1,X,k)
           CALL SPAR(EL,D1,DD1,X,k)
           CALL KILL(D1,D2,DK1,DK2)
 
@@ -14138,13 +14263,13 @@ endif
 
           DO J=4,2,-1
              CALL SPAR(EL,DF(J),DDF(J),X,k)
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k)
           ENDDO
           CALL SPAR(EL,DF(1),DDF(1),X,k)
-          CALL KICKEX (EL,DK(1),X,k)
+          CALL KICKEX(EL,DK(1),X,k)
           CALL SPAR(EL,DF(1),DDF(1),X,k)
           DO J=2,4
-             CALL KICKEX (EL,DK(J),X,k)
+             CALL KICKEX(EL,DK(J),X,k)
              CALL SPAR(EL,DF(J),DDF(J),X,k)
           ENDDO
           CALL KILL(DF,4);CALL KILL(DK,4);
@@ -14165,7 +14290,7 @@ endif
              CALL SPAR(EL,NDF(0),NDDF(0),X,k)
 
        DO J=1,15
-             CALL KICKEX (EL,NDK(J),X,k)
+             CALL KICKEX(EL,NDK(J),X,k)
              CALL SPAR(EL,NDF(J),NDDF(J),X,k)
        ENDDO
  
@@ -14181,7 +14306,7 @@ endif
     ENDIF
 
 
-  END SUBROUTINE INTEP_STREX
+  END SUBROUTINE INTE_STREXP
 
   SUBROUTINE INTEEXR(EL,X,k)
     IMPLICIT NONE
@@ -21044,7 +21169,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     ad=0
     phi=0.0_dp
     SELECT CASE(EL%KIND)
-    case(KIND2,kind3,kind5:kind7,KIND16:kind17,KIND20) ! Straight for all practical purposes
+    case(KIND2,kind3,kind5:kind7,kind17,KIND20) ! Straight for all practical purposes
 
        if(present(pos)) then
           IF(POS<0) THEN
@@ -21054,6 +21179,18 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           ENDIF
        else
           CALL get_Bfield(EL,B,X)
+       endif
+    case(kind16) ! Straight for all practical purposes
+       if(present(pos)) then
+          IF(POS<0) THEN
+             call get_Bfield_fringe(EL,B,E,X,pos,k)   ! fringe effect
+          ELSE
+             call get_Bfield(EL,B,X)   ! fringe effect
+          ENDIF
+       else
+          CALL get_Bfield(EL,B,X)
+          pospan=c%pos_in_fibre-2
+          B=B*f_prof(c%parent_fibre%mag%k16%f,pospan,c%parent_fibre%dir)
        endif
     case(kind10)     ! TEAPOT real curvilinear
        if(present(pos)) then
@@ -21193,7 +21330,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     ENDDO
     phi=0.0_dp
     SELECT CASE(EL%KIND)
-    case(KIND2,kind3,kind5:kind7,KIND16:kind17,KIND20) ! Straight for all practical purposes
+    case(KIND2,kind3,kind5:kind7,kind17,KIND20) ! Straight for all practical purposes
        if(present(pos)) then
           IF(POS<0) THEN
              call get_Bfield_fringe(EL,B,E,X,pos,k)   ! fringe effect
@@ -21202,6 +21339,20 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           ENDIF
        else
           CALL get_Bfield(EL,B,X)
+       endif
+    case(kind16) ! Straight for all practical purposes
+       if(present(pos)) then
+          IF(POS<0) THEN
+             call get_Bfield_fringe(EL,B,E,X,pos,k)   ! fringe effect
+          ELSE
+             call get_Bfield(EL,B,X)   ! fringe effect
+          ENDIF
+       else
+          CALL get_Bfield(EL,B,X)
+          pospan=c%pos_in_fibre-2
+          B(1)=B(1)*f_prof(c%parent_fibre%mag%k16%f,pospan,c%parent_fibre%dir)
+          B(2)=B(2)*f_prof(c%parent_fibre%mag%k16%f,pospan,c%parent_fibre%dir)
+          B(3)=B(3)*f_prof(c%parent_fibre%mag%k16%f,pospan,c%parent_fibre%dir)
        endif
     case(kind10)     ! TEAPOT real curvilinear
        if(present(pos)) then
@@ -29177,24 +29328,7 @@ endif
     IF(EL%DRIFTKICK) THEN
 
        SELECT CASE(EL%P%METHOD)
-       CASE(1)
-          if(EL%F==1) then
-             f1=0
-          else
-             f1=EL%F+1
-          endif
-          DH=EL%L/EL%P%NST
-          D=EL%L/(EL%P%NST/EL%F/2)
-          DD=EL%P%LD/EL%P%NST
 
-          IF(MOD(POS,2*EL%F)==f1) THEN
-             CALL KICKEX (EL,D,p%X,k)
-       if(k%spin.or.k%radiation) then
-        call RAD_SPIN_qua_PROBE(c,p,k,d)
-        endif
-       ENDIF
-        
-          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        CASE(2)
           DH=EL%L/2.0_dp/EL%P%NST
           D=EL%L/EL%P%NST
@@ -29202,11 +29336,11 @@ endif
 
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k,pos)
         call RAD_SPIN_qua_PROBE(c,p,k,d)
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k,pos)
          else
-        CALL KICKEX (EL,D,p%X,k)
+        CALL KICKEX(EL,D,p%X,k,pos)
         endif
           
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
@@ -29225,27 +29359,27 @@ endif
 
          CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k,pos)
             endif
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k,pos)
              call RAD_SPIN_qua_PROBE(c,p,k,DK2)
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k,pos)
             else
-             CALL KICKEX (EL,DK2,p%X,k)
+             CALL KICKEX(EL,DK2,p%X,k,pos)
             endif
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k,pos)
             endif
           CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
 
@@ -29263,29 +29397,29 @@ endif
           DO J=4,2,-1
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k,pos)
             endif
           ENDDO
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
              if(k%spin.or.k%radiation) then
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k,pos)
               call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k,pos)
               else
-                CALL KICKEX (EL,DK(1),p%X,k)
+                CALL KICKEX(EL,DK(1),p%X,k,pos)
               endif
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
           DO J=2,4
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k,pos)
             endif
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
           ENDDO
@@ -29304,11 +29438,11 @@ endif
 
        DO J=1,15
        if(k%spin.or.k%radiation) then
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k,pos)
         call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k,pos)
         else
-          CALL KICKEX (EL,NDK(J),p%X,k)
+          CALL KICKEX(EL,NDK(J),p%X,k,pos)
         endif
              CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        ENDDO
@@ -29329,11 +29463,11 @@ endif
 
           CALL SPAR(EL,DH,DD,p%X,k)
        if(k%spin.or.k%radiation) then
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k)
         call RAD_SPIN_qua_PROBE(c,p,k,d)
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k)
          else
-        CALL KICKEX (EL,D,p%X,k)
+        CALL KICKEX(EL,D,p%X,k)
         endif
           CALL SPAR(EL,DH,DD,p%X,k)
 
@@ -29352,29 +29486,29 @@ endif
 
           CALL SPAR(EL,D1,DD1,p%X,k)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k)
             endif
           CALL SPAR(EL,D2,DD2,p%X,k)
  
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k)
              call RAD_SPIN_qua_PROBE(c,p,k,DK2)
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k)
             else
-             CALL KICKEX (EL,DK2,p%X,k)
+             CALL KICKEX(EL,DK2,p%X,k)
             endif
 
           CALL SPAR(EL,D2,DD2,p%X,k)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k)
             endif
           CALL SPAR(EL,D1,DD1,p%X,k)
 
@@ -29399,11 +29533,11 @@ endif
           DO J=4,2,-1
              CALL SPAR(EL,DF(J),DDF(J),p%X,k)
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k)
             endif
           ENDDO
 
@@ -29411,21 +29545,21 @@ endif
 
           CALL SPAR(EL,DF(1),DDF(1),p%X,k)
               if(k%spin.or.k%radiation) then
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k)
               call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k)
               else
-                CALL KICKEX (EL,DK(1),p%X,k)
+                CALL KICKEX(EL,DK(1),p%X,k)
               endif
 
           CALL SPAR(EL,DF(1),DDF(1),p%X,k)
           DO J=2,4
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k)
             endif
              CALL SPAR(EL,DF(J),DDF(J),p%X,k)
           ENDDO
@@ -29443,11 +29577,11 @@ endif
              CALL SPAR(EL,NDF(0),NDDF(0),p%X,k)
        DO J=1,15
        if(k%spin.or.k%radiation) then
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k)
         call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k)
         else
-          CALL KICKEX (EL,NDK(J),p%X,k)
+          CALL KICKEX(EL,NDK(J),p%X,k)
         endif
              CALL SPAR(EL,NDF(J),NDDF(J),p%X,k)
        ENDDO
@@ -29489,25 +29623,6 @@ endif
     IF(EL%DRIFTKICK) THEN
 
        SELECT CASE(EL%P%METHOD)
-       CASE(1)
-          if(EL%F==1) then
-             f1=0
-          else
-             f1=EL%F+1
-          endif
-          CALL ALLOC(DH,D)
-          DH=EL%L/EL%P%NST
-          D=EL%L/(EL%P%NST/EL%F/2)
-          DD=EL%P%LD/EL%P%NST
-
-          IF(MOD(POS,2*EL%F)==f1) THEN
-             CALL KICKEX (EL,D,p%X,k)
-        if(k%spin.or.k%radiation) then
-         call RAD_SPIN_qua_PROBE(c,p,k,d)
-        endif
-          ENDIF
-          CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
-          CALL kill(DH,D)
        CASE(2)
           CALL ALLOC(DH,D)
           DH=EL%L/2.0_dp/EL%P%NST
@@ -29516,11 +29631,11 @@ endif
 
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k,pos)
         call RAD_SPIN_qua_PROBE(c,p,k,d)
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k,pos)
          else
-        CALL KICKEX (EL,D,p%X,k)
+        CALL KICKEX(EL,D,p%X,k,pos)
         endif
 
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
@@ -29542,27 +29657,27 @@ endif
 
           CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k,pos)
             endif
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k,pos)
              call RAD_SPIN_qua_PROBE(c,p,k,DK2)
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k,pos)
             else
-             CALL KICKEX (EL,DK2,p%X,k)
+             CALL KICKEX(EL,DK2,p%X,k,pos)
             endif
           CALL DRIFT(D2,DD2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k,pos)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k,pos)
             endif
           CALL DRIFT(D1,DD1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
           CALL KILL(D1,D2,DK1,DK2)
@@ -29584,29 +29699,29 @@ endif
           DO J=4,2,-1
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k,pos)
             endif
           ENDDO
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
              if(k%spin.or.k%radiation) then
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k,pos)
               call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k,pos)
               else
-                CALL KICKEX (EL,DK(1),p%X,k)
+                CALL KICKEX(EL,DK(1),p%X,k,pos)
               endif
           CALL DRIFT(DF(1),DDF(1),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
           DO J=2,4
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k,pos)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k,pos)
             endif
              CALL DRIFT(DF(J),DDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
           ENDDO
@@ -29632,11 +29747,11 @@ CALL alloc(NDKH)
 
        DO J=1,15
        if(k%spin.or.k%radiation) then
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k,pos)
         call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k,pos)
         else
-          CALL KICKEX (EL,NDK(J),p%X,k)
+          CALL KICKEX(EL,NDK(J),p%X,k,pos)
         endif
              CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        ENDDO
@@ -29661,11 +29776,11 @@ CALL alloc(NDKH)
 
           CALL SPAR(EL,DH,DD,p%X,k)
        if(k%spin.or.k%radiation) then
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k)
         call RAD_SPIN_qua_PROBE(c,p,k,d)
-         CALL KICKEX (EL,Dh,p%X,k)
+         CALL KICKEX(EL,Dh,p%X,k)
          else
-        CALL KICKEX (EL,D,p%X,k)
+        CALL KICKEX(EL,D,p%X,k)
         endif
           CALL SPAR(EL,DH,DD,p%X,k)
           CALL KILL(DH,D)
@@ -29687,28 +29802,28 @@ CALL alloc(NDKH)
 
           CALL SPAR(EL,D1,DD1,p%X,k)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k)
             endif
           CALL SPAR(EL,D2,DD2,p%X,k)
  
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k)
              call RAD_SPIN_qua_PROBE(c,p,k,DK2)
-             CALL KICKEX (EL,DK2h,p%X,k)
+             CALL KICKEX(EL,DK2h,p%X,k)
             else
-             CALL KICKEX (EL,DK2,p%X,k)
+             CALL KICKEX(EL,DK2,p%X,k)
             endif
           CALL SPAR(EL,D2,DD2,p%X,k)
             if(k%spin.or.k%radiation) then
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
              call RAD_SPIN_qua_PROBE(c,p,k,dk1)
-             CALL KICKEX (EL,DK1h,p%X,k)
+             CALL KICKEX(EL,DK1h,p%X,k)
             else
-             CALL KICKEX (EL,DK1,p%X,k)
+             CALL KICKEX(EL,DK1,p%X,k)
             endif
           CALL SPAR(EL,D1,DD1,p%X,k)
           CALL KILL(D1,D2,DK1,DK2)
@@ -29730,29 +29845,29 @@ CALL alloc(NDKH)
           DO J=4,2,-1
              CALL SPAR(EL,DF(J),DDF(J),p%X,k)
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k)
             endif
           ENDDO
           CALL SPAR(EL,DF(1),DDF(1),p%X,k)
               if(k%spin.or.k%radiation) then
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k)
               call RAD_SPIN_qua_PROBE(c,p,k,DK(1))
-              CALL KICKEX (EL,DKH(1),p%X,k)
+              CALL KICKEX(EL,DKH(1),p%X,k)
               else
-                CALL KICKEX (EL,DK(1),p%X,k)
+                CALL KICKEX(EL,DK(1),p%X,k)
               endif
           CALL SPAR(EL,DF(1),DDF(1),p%X,k)
           DO J=2,4
            if(k%spin.or.k%radiation) then
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             call RAD_SPIN_qua_PROBE(c,p,k,DK(J))
-            CALL KICKEX (EL,DKH(J),p%X,k)
+            CALL KICKEX(EL,DKH(J),p%X,k)
             else
-              CALL KICKEX (EL,DK(J),p%X,k)
+              CALL KICKEX(EL,DK(J),p%X,k)
             endif
              CALL SPAR(EL,DF(J),DDF(J),p%X,k)
           ENDDO
@@ -29778,11 +29893,11 @@ CALL alloc(NDKH)
 
        DO J=1,15
        if(k%spin.or.k%radiation) then
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k)
         call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
-        CALL KICKEX (EL,NDKH(J),p%X,k)
+        CALL KICKEX(EL,NDKH(J),p%X,k)
         else
-          CALL KICKEX (EL,NDK(J),p%X,k)
+          CALL KICKEX(EL,NDK(J),p%X,k)
         endif
              CALL SPAR(EL,NDF(J),NDDF(J),p%X,k)
        ENDDO

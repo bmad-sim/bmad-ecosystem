@@ -828,7 +828,7 @@ eta2=0.0_dp
     enddo
     CALL KILL(t)
 
-    g=g.oo.(-1)
+ g=g.oo.(-1)
     tpsafit=0.0_dp
     tpsafit(1:nt)=g
 
