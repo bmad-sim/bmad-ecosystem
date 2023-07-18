@@ -1197,7 +1197,7 @@ end subroutine c_get_indices
 
     INTEGER I
     integer localmaster
-    IF(.NOT.C_%STABLE_DA) RETURN
+    IF(.NOT.C_STABLE_DA) RETURN
     localmaster=c_master
 
 
@@ -5265,7 +5265,7 @@ cgetvectorfield=0
     TYPE (c_quaternion), INTENT (IN) :: S1
     integer i,localmaster
 
-    IF(.NOT.C_%STABLE_DA) then
+    IF(.NOT.C_STABLE_DA) then
      absq2=0
      RETURN
     endif
@@ -5284,7 +5284,7 @@ cgetvectorfield=0
     TYPE (c_quaternion), INTENT (IN) :: S1
     integer i,localmaster
 
-    IF(.NOT.C_%STABLE_DA) then
+    IF(.NOT.C_STABLE_DA) then
      absq=0
      RETURN
     endif
@@ -5363,7 +5363,7 @@ cgetvectorfield=0
     type(c_taylor) temp(0:3)
     integer i,localmaster
 
-    IF(.NOT.C_%STABLE_DA) then
+    IF(.NOT.C_STABLE_DA) then
      c_invq%x(1)=0
      RETURN
     endif
@@ -5404,7 +5404,7 @@ endif
     INTEGER, INTENT (IN) :: R2
     INTEGER I,R22
     integer localmaster
-    IF(.NOT.C_%STABLE_DA) then
+    IF(.NOT.C_STABLE_DA) then
        POWq=0.0_dp
 
       RETURN
@@ -10505,7 +10505,7 @@ endif
     TYPE (c_damap) S11
     INTEGER I,jn(lnv)
     integer localmaster
-    IF(.NOT.C_%STABLE_DA) RETURN
+    IF(.NOT.C_STABLE_DA) RETURN
     localmaster=c_master
 
 
@@ -14760,7 +14760,7 @@ ft=f
     real(dp),dimension(ndim2t,ndim2t)::revec,aievec,fm,aa,vv
     real(dp) eig2
 
-    if(.not.c_%stable_da) return
+    if(.not.C_STABLE_DA) return
 
     Eigenvalues_off_unit_circle=1
     !  copy matrix to temporary storage (the matrix aa is destroyed)
@@ -16041,7 +16041,7 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
         
        call invert_22(at,ati)
        call invert_22(dt,dti)
-       if(.not.c_%STABLE_DA) then
+       if(.not.C_STABLE_DA) then
         t_e=my_false
        endif 
 
@@ -16049,7 +16049,7 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
        call matmul_nn(ct,ati,ati,sc=-1.0_dp)
        call matmul_nn(ati,bt,bt)
        call matmul_nn(bt,dti,bt)
-       if(.not.c_%STABLE_DA) then
+       if(.not.C_STABLE_DA) then
         t_e=my_false
         goto 888
        endif 
@@ -16153,7 +16153,7 @@ subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
        endif
          888 continue
        if(.not.t_e) then       
-        c_%STABLE_DA=my_true
+        C_STABLE_DA=my_true
         cs_te=0
         R_TE=0
         write(6,*) " Teng-Edwards is crap : Too much coupling! "
@@ -16186,7 +16186,7 @@ end subroutine teng_edwards_a1
     type(c_taylor) b4,b3,b2,b1
     type(c_damap) x
  
-    if(.not.c_%stable_da) return
+    if(.not.C_STABLE_DA) return
 
 
     nd_used=nd0
@@ -16219,7 +16219,7 @@ end subroutine teng_edwards_a1
     !      INTEGER J(NTT)
     integer,dimension(:)::j
     dlie=0.0_dp  
-    if(.not.c_%stable_da) return
+    if(.not.C_STABLE_DA) return
 
 
     do i=1,nd_used
@@ -17293,7 +17293,7 @@ endif
     logical(lp) removeit
 
     c_phase_shift=0.0_dp
-    if(.not.c_%stable_da) return
+    if(.not.C_STABLE_DA) return
 
 
     call check_kernel(0,nd2,j,removeit)
@@ -17311,7 +17311,7 @@ endif
 
  
     c_zeroth=0.0_dp
-    if(.not.c_%stable_da) return
+    if(.not.C_STABLE_DA) return
 
     k=0
     do i=1,nd2t
