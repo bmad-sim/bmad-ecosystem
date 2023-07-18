@@ -530,8 +530,8 @@ contains
        X(6)=X(6)-C%PATCH%b_L
       endif
     ENDIF
-
-    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
+!!! error horrible 
+    IF(PATCHG==2.or.PATCHG==3.or.PATCHG==20.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAG%P%EXACT
        CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE,PATCHG)
     ENDIF
@@ -707,7 +707,7 @@ contains
     !    IF(PRESENT(X_IN)) CALL XMID(X_IN,X,X_IN%nst+1)
 
     ! POSITION PATCH
-    IF(PATCHG==1.or.PATCHG==3.or.PATCHG==10.or.PATCHG==30) THEN
+    IF(PATCHG==2.or.PATCHG==3.or.PATCHG==20.or.PATCHG==30) THEN
        patch=ALWAYS_EXACT_PATCHING.or.C%MAGP%P%EXACT
        CALL PATCH_FIB(C,X,k,PATCH,MY_FALSE,PATCHG)
     ENDIF
@@ -775,20 +775,24 @@ ENDIF
     logical(lp),INTENT(IN):: PATCH,ENTERING
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer(2) patchg,i
-    if(patchg==10) then
+if(entering) then
+    if(patchg==10.or.patchg==30) then
      do i=1,3
       x(2*i-1)=x(2*i-1)+C%PATCH%A_D(i)
       x(2*i)=x(2*i)+C%PATCH%A_ANG(i)
      enddo
      return
-    endif
-    if(patchg==30) then
+   endif
+else
+    if(patchg==20.or.patchg==30) then
      do i=1,3
       x(2*i-1)=x(2*i-1)+C%PATCH%B_D(i)
       x(2*i)=x(2*i)+C%PATCH%B_ANG(i)
      enddo
      return
     endif
+endif
+
     if(C%PATCH%track) then
     IF(ENTERING) THEN
        X(3)=C%PATCH%A_X1*X(3);X(4)=C%PATCH%A_X1*X(4);
@@ -820,20 +824,23 @@ ENDIF
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer(2) patchg,i
 ! David translation
-    if(patchg==10) then
+if(entering) then
+    if(patchg==10.or.patchg==30) then
      do i=1,3
       x(2*i-1)=x(2*i-1)+C%PATCH%A_D(i)
       x(2*i)=x(2*i)+C%PATCH%A_ANG(i)
      enddo
      return
-    endif
-    if(patchg==30) then
+   endif
+else
+    if(patchg==20.or.patchg==30) then
      do i=1,3
       x(2*i-1)=x(2*i-1)+C%PATCH%B_D(i)
       x(2*i)=x(2*i)+C%PATCH%B_ANG(i)
      enddo
-     return 
+     return
     endif
+endif
 
     if(C%PATCH%track) then
     IF(ENTERING) THEN
