@@ -1292,10 +1292,11 @@ centerline of the solenoid so that there is cylindrical symmetry around the $\Bf
 \label{s:sprint.std}
 \index{sprint spin tracking}
 
-Bmad includes precalculated first-order spin transfer quaternions for simple lattice elements. This
-method is much faster than PTC integration, and its run-time does not increase proportionally to
-element length. Currently, the supported lattice elements are bends (including bends with $k_1 \neq
-0$), quadrupoles, and solenoids.
+The \vn{sprint} spin tracking method is named after the \vn{SPRINT} program developed by Matthias
+Vogt.  The \vn{sprint} algorithm Uses a first order spin map evaluated with respect to the zero
+orbit to track through elements. This method is much faster than PTC integration, and its run-time
+does not increase proportionally to element length. Currently, the supported lattice elements are
+bends (including bends with $k_1 \neq 0$), quadrupoles, and solenoids \sref{s:spin.methods}.
 
 Elements with fringe field contributions are split into three quaternions representing the entrance,
 body, and exit of the element. Before propagation, the exit fringe quaternion is always equivalent

@@ -57,7 +57,7 @@ type (taylor) ptc_taylor
 
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, kl(0:n_pole_maxx), t(0:n_pole_maxx)
 real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
-real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset, ff, z0, z, dz_step
+real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset, ff, z0, z, dz_step, vec(6)
 real(rp), pointer :: val(:)
 real(rp), target :: value0(num_ele_attrib$)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
@@ -352,7 +352,11 @@ case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shi
 !------------------------------
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
-  if (ele%key == kicker$) ptc_key%list%delta_e = ele%value(pz_kick$) * ele%value(p0c$)
+
+case (gkicker$)
+  ptc_key%magnet = 'marker'
+  ptc_key%nstep = 1
+  
 
 !------------------------------
 case (rfcavity$, lcavity$)
@@ -588,7 +592,9 @@ endif
 ! Check number of slices and integrator order.
 ! Wigglers are special since they do not have a uniform field so ignore these.
 
-if (ele%key /= wiggler$ .and. ele%key /= undulator$ .and. ele%key /= rfcavity$ .and. ele%key /= lcavity$) then
+select case (ele%key)
+case (wiggler$, undulator$, gkicker$, rfcavity$, lcavity$)
+case default
   switch_to_drift_kick = .false.
   key2 = ptc_key  ! Don't want to change ptc_key
   call change_method_in_create_fibre(key2, 1, change)
@@ -598,7 +604,7 @@ if (ele%key /= wiggler$ .and. ele%key /= undulator$ .and. ele%key /= rfcavity$ .
               ' Suggested num_steps: ' // int_str(key2%nstep) // ' at integrator_order: ' // int_str(key2%method), &
               ' [Note: To turn off this message set ptc_com%print_step_warning = False.]')
   endif
-endif
+end select
 
 !--------------------------------------------
 ! Create ptc_fibre
@@ -659,7 +665,17 @@ else
 
   call survey (ptc_fibre, ent = global_frame, a = global_origin)
   ! Note: Misalignments/patch setup for the layout is handled after the layout is instantiated.
-  call misalign_ptc_fibre (ele, use_offsets, ptc_fibre, .false.)
+  if (ele%key == gkicker$) then
+    vec = ele%value(x_kick$:pz_kick$)
+    beta0 = ele%value(p0c$) / ele%value(E_tot$)
+    call convert_bmad_to_ptc(vec, beta0, .true.)
+    ptc_fibre%patch%b_ang = vec(2:6:2)
+    ptc_fibre%patch%b_d   = vec(1:5:2)
+    ptc_fibre%patch%patch = 20
+
+  else
+    call misalign_ptc_fibre (ele, use_offsets, ptc_fibre, .false.)
+  endif
 
 endif
 

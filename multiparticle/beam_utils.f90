@@ -1238,13 +1238,13 @@ end subroutine init_spin_distribution
 !+
 ! subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err, is_time_coords, ele)
 !
-! Finds all bunch parameters for a slice through the beam distribution.
+! Finds bunch parameters for a slice of the beam.
 !
 ! Input:
 !   bunch           -- bunch_struct
 !   plane           -- Integer: plane to slice through (x$, px$, & etc...)
 !   slice_center    -- real(rp): Center to take slice about
-!   slice_spread    -- real(rp): hard-wall spread in slice about center
+!   slice_spread    -- real(rp): +/- spread in slice about center.
 !   print_err       -- logical, optional: If present and False then suppress 
 !                       "no eigen-system found" messages.
 !   is_time_coords  -- logical, optional: Default is False. If True, input bunch is using time coordinates in which
@@ -1260,7 +1260,7 @@ subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, sl
 
 implicit none
 
-type (bunch_struct), intent(in) :: bunch
+type (bunch_struct) :: bunch
 type (bunch_struct) :: sliced_bunch
 type (bunch_params_struct) bunch_params
 type (ele_struct), optional :: ele
@@ -1276,13 +1276,11 @@ logical err
 !
 
 n_part = 0
-sliced_bunch%charge_tot = 0
 
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%vec(plane) > slice_center + abs(slice_spread) .or. &
       bunch%particle(i)%vec(plane) < slice_center - abs(slice_spread)) cycle
   n_part = n_part + 1
-  sliced_bunch%charge_tot = sliced_bunch%charge_tot + bunch%particle(i)%charge
 enddo
 
 call reallocate_bunch (sliced_bunch, n_part)
@@ -1301,6 +1299,60 @@ enddo
 call calc_bunch_params (sliced_bunch, bunch_params, err, print_err, is_time_coords = is_time_coords, ele = ele)
 
 end subroutine calc_bunch_params_slice
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! subroutine calc_bunch_params_z_slice (bunch, bunch_params, slice_bounds, err, print_err, is_time_coords, ele)
+!
+! Finds bunch parameters for a slice of the beam.
+!
+! The slice is specified in terms of percentage of particles ordered by z-position.
+! For example, slice_bounds = [0.0, 0.5] specifies the trailing half of the bunch
+!
+! Input:
+!   bunch           -- bunch_struct
+!   slice_bounds(2) -- real(rp): Slice bounds in percentage of particles ordered by z-position.
+!                         0.0 is the back of the bunch and 1.0 is the front of the bunch.
+!   print_err       -- logical, optional: If present and False then suppress 
+!                       "no eigen-system found" messages.
+!   is_time_coords  -- logical, optional: Default is False. If True, input bunch is using time coordinates in which
+!                       case there will be a conversion to s-coords before bunch_params are computed.
+!   ele             -- ele_struct, optional: Element being tracked through. Must be present if is_time_coords = True.
+!
+! Output     
+!   params -- bunch_params_struct:
+!   err    -- Logical: Set True if there is an error.
+!-
+
+subroutine calc_bunch_params_z_slice (bunch, bunch_params, slice_bounds, err, print_err, is_time_coords, ele)
+
+type (bunch_struct) :: bunch
+type (bunch_struct) :: sliced_bunch
+type (bunch_params_struct) bunch_params
+type (ele_struct), optional :: ele
+
+real(rp) slice_bounds(2)
+integer i, j, n_part, n0
+logical err
+logical, optional :: print_err, is_time_coords
+
+!
+
+n0 = nint(slice_bounds(1)*size(bunch%particle))
+n_part = nint((slice_bounds(2)-slice_bounds(1))*size(bunch%particle))
+call reallocate_bunch(sliced_bunch, n_part)
+
+call indexer (bunch%particle%vec(5), bunch%ix_z)
+do i = 1, n_part
+  j = bunch%ix_z(i+n0)
+  sliced_bunch%particle(i) = bunch%particle(j)
+enddo
+
+call calc_bunch_params (sliced_bunch, bunch_params, err, print_err, is_time_coords = is_time_coords, ele = ele)
+
+end subroutine calc_bunch_params_z_slice 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

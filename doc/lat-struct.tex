@@ -288,13 +288,13 @@ particle, \vn{%param%particle} will correspond to one of the following constants
   deuteron\$      deuteron_0\$
 \end{example}
 To print the name of the particle use the function
-\vn{particle_name}. A particles mass and charge can be obtained from
+\vn{species_name}. A particles mass and charge can be obtained from
 the functions \vn{mass_of} and \vn{charge_of} respectively. 
 \vn{charge_of} returns the particle's charge in units of $e$. Example:
 \begin{example}
   type (lat_struct) lat
   ...
-  print *, "Beam Particles are: ", particle_name(lat%param%particle)
+  print *, "Beam Particles are: ", species_name(lat%param%particle)
   if (lat%param%particle == proton\$) print *, "I do not like protons!"
   print *, "Particle mass (eV):    ", mass_of(lat%param%particle)
   print *, "Particle charge:       ", charge_of(lat%param%particle)

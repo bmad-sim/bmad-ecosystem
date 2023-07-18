@@ -3060,7 +3060,7 @@ add_multipoles = .true.
 
 select case (key)
 
-case (marker$, detector$, fork$, photon_fork$, beginning_ele$, em_field$, patch$, fiducial$, floor_shift$)
+case (marker$, detector$, fork$, photon_fork$, beginning_ele$, em_field$, patch$, fiducial$, floor_shift$, gkicker$)
   return
 
 case (crab_cavity$)

@@ -26,17 +26,18 @@ available in \bmad.
   Fiducial          & \ref{s:fiducial}    &  RFcavity          & \ref{s:rfcav}    \\
   Floor_Shift       & \ref{s:floor.ele}   &  Sad_Mult          & \ref{s:sad.mult} \\
   Fork              & \ref{s:fork}        &  Sbend             & \ref{s:bend}     \\
-  HKicker           & \ref{s:hvkicker}    &  Sextupole         & \ref{s:sex}      \\
-  Hybrid            & \ref{s:hybrid}      &  Sol_Quad          & \ref{s:sq}       \\
-  Instrument        & \ref{s:monitor}     &  Solenoid          & \ref{s:sol}      \\
-  Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \\
-  Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \\
-  Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \\  
-  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\
+  GKicker           & \ref{s:gkicker}     &  Sextupole         & \ref{s:sex}      \\
+  HKicker           & \ref{s:hvkicker}    &  Sol_Quad          & \ref{s:sq}       \\
+  Hybrid            & \ref{s:hybrid}      &  Solenoid          & \ref{s:sol}      \\
+  Instrument        & \ref{s:monitor}     &  Taylor            & \ref{s:taylor}   \\
+  Kicker            & \ref{s:kicker}      &  Undulator         & \ref{s:wiggler}  \\
+  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \\  
+  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \\
+  Mask              & \ref{s:mask}        &                    &                  \\
   \bottomrule
 \end{tabular}
 }
-\caption{Table of element types suitable for use with charged particles.}
+\caption{Table of element types suitable for use with charged particles. Also see Table~\ref{t:control.classes}}
 \label{t:particle.classes}\center
 \end{table}
 
@@ -56,24 +57,24 @@ use.
 \centering
 {\tt
 \begin{tabular}{llll} \toprule
-  {\it Element}      & {\it Section}         & {\it Element}       & {\it Section}      \\ \midrule
-  Beginning_Ele      & \ref{s:begin.ele}     &  Marker             & \ref{s:mark}       \\
-  Capillary          & \ref{s:capillary}     &  Mask               & \ref{s:mask}       \\
-  Crystal            & \ref{s:crystal}       &  Match              & \ref{s:match}      \\
-  Custom             & \ref{s:custom}        &  Monitor            & \ref{s:monitor}    \\ 
-  Detector           & \ref{s:detector}      &  Mirror             & \ref{s:mirror}     \\
-  Diffraction_Plate  & \ref{s:diff.plate}    &  Multilayer_Mirror  & \ref{s:multilayer} \\
-  Drift              & \ref{s:drift}         &  Patch              & \ref{s:patch}      \\
-  Ecollimator        & \ref{s:col}           &  Photon_Fork        & \ref{s:fork}       \\
-  Fiducial           & \ref{s:fiducial}      &  Photon_Init        & \ref{s:photon.init}\\
-  Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \\
-  Fork               & \ref{s:fork}          &  Rcollimator        & \ref{s:col}        \\
-  Instrument         & \ref{s:monitor}       &  Sample             & \ref{s:sample}     \\
-  Lens               & \ref{s:lens}          &                     &                    \\ 
+  {\it Element}      & {\it Section}         & {\it Element}         & {\it Section}       \\ \midrule
+  Beginning_Ele      & \ref{s:begin.ele}     &    Lens               & \ref{s:lens}        \\
+  Capillary          & \ref{s:capillary}     &  Marker               & \ref{s:mark}        \\
+  Crystal            & \ref{s:crystal}       &  Mask                 & \ref{s:mask}        \\
+  Custom             & \ref{s:custom}        &  Match                & \ref{s:match}       \\
+  Detector           & \ref{s:detector}      &  Monitor              & \ref{s:monitor}     \\ 
+  Diffraction_Plate  & \ref{s:diff.plate}    &  Mirror               & \ref{s:mirror}      \\
+  Drift              & \ref{s:drift}         &  Multilayer_Mirror    & \ref{s:multilayer}  \\
+  Ecollimator        & \ref{s:col}           &  Patch                & \ref{s:patch}       \\
+  Fiducial           & \ref{s:fiducial}      &  Photon_Fork          & \ref{s:fork}        \\
+  Floor_Shift        & \ref{s:floor.ele}     &  Photon_Init          & \ref{s:photon.init} \\
+  Fork               & \ref{s:fork}          &  Pipe                 & \ref{s:monitor}     \\
+  GKicker            & \ref{s:gkicker}       &  Rcollimator          & \ref{s:col}         \\
+  Instrument         & \ref{s:monitor}       &  Sample               & \ref{s:sample}      \\
   \bottomrule
 \end{tabular}
 }
-\caption{Table of element types suitable for use with photons.}
+\caption{Table of element types suitable for use with photons. Also see Table~\ref{t:control.classes}}
 \label{t:photon.classes}\center
 \end{table}
 
@@ -2415,7 +2416,42 @@ A \vn{girder} that has its \vn{is_on} attribute set to False is considered to be
 respect to it's reference frame.
 
 %-----------------------------------------------------------------------------
-\vskip 0ex plus 10ex
+\section{GKicker}
+\label{s:gkicker}
+\index{gkicker|hyperbf}
+
+A \vn{gkicker} element is a ``general'' zero length kicker element that can displace
+a particle in all six phase space dimensions.
+
+General \vn{group} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Custom Attributes          & \ref{s:cust.att}  & Description strings        & \ref{s:alias}   \\ 
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.group} for a full list of element attributes along with a their units.
+
+Attributes specific to a \vn{gkicker} are:
+\index{x_kick}\index{px_kick}\index{y_kick}\index{py_kick}\index{z_kick}\index{pz_kick}
+\begin{example}
+  x_kick        = <Real>  ! X-position kick
+  px_kick       = <Real>  ! X-momentum kick
+  y_kick        = <Real>  ! Y-position kick
+  py_kick       = <Real>  ! Y-momentum kick
+  z_kick        = <Real>  ! Z-position kick
+  pz_kick       = <Real>  ! Momentum kick
+\end{example}
+
+Example:
+\begin{example}
+  gk: gkicker, x_kick = 0.003, pz_kick = 0.12
+\end{example}
+
+%-----------------------------------------------------------------------------
 \section{Group}
 \label{s:group}
 \index{group|hyperbf}
@@ -2722,13 +2758,6 @@ General \vn{kicker} attributes are:
 \end{center}
 \toffset
 See \sref{s:list.kicker} for a full list of element attributes along with a their units.
-
-The attributes specific to a \vn{kicker} are
-\index{pz_kick}
-\begin{example}
-  pz_kick       = <Real>  ! Momentum kick
-\end{example}
-Note: A momentum kick \vn{pz_kick} will not be translated to PTC.
 
 Example:
 \begin{example}
