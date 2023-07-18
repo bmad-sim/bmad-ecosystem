@@ -31,6 +31,7 @@ use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assi
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 use photon_target_mod, only: to_surface_coords
 use expression_mod, only: expression_stack_to_string
+use beam_utils, only: calc_bunch_params_z_slice
 
 implicit none
 
@@ -74,7 +75,7 @@ type (bunch_struct), pointer :: bunch
 type (wake_struct), pointer :: wake
 type (wake_lr_mode_struct), pointer :: lr_mode
 type (coord_struct), target :: orb, orb0, orb2, orbit
-type (bunch_params_struct) bunch_params
+type (bunch_params_struct), target :: bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -141,7 +142,7 @@ type (show_lat_column_info_struct) col_info(60)
 
 real(rp) phase_units, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
 real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), l_lat
-real(rp) pc, e_tot, value_min, value_here, pz1, phase
+real(rp) pc, e_tot, value_min, value_here, pz1, phase, zb(2)
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
 real(rp) pz2, qs, q, x, xi_sum, xi_diff, dn_dpz(3), dn_partial(3,3), dn_partial2(3,3)
@@ -283,9 +284,10 @@ case ('beam')
 
   ele_name = ''
   what_to_show = ''
+  z = -1
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb', '-z'], .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
 
@@ -303,6 +305,24 @@ case ('beam')
     case ('-lattice', '-comb')
       what_to_show = switch
 
+    case ('-z')
+      read (what2(1:ix_s2), *, iostat = ios1) zb(1)
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      read (what2(1:ix_s2), *, iostat = ios2) zb(2)
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      if (ios1 /= 0 .or. ios2 /= 0) then
+        nl=1; lines(1) = 'CANNOT READ Z VALUES.'
+        return
+      endif
+      if (any(zb < 0) .or. any(zb > 1)) then
+        nl=1; lines(1) = 'Z VALUES MUST BE IN RANGE [0, 1].'
+        return
+      endif
+      if (zb(1) >= zb(2)) then
+        nl=1; lines(1) = 'Z(2) MUST BE GREATER THAN Z(1).'
+        return
+      endif
+  
     case default
       if (ele_name /= '') then
         nl=1; lines(1) = 'EXTRA STUFF ON THE COMMAND LINE: ' // switch
@@ -319,6 +339,16 @@ case ('beam')
   bb => u%model_branch(0)%beam
 
   !
+
+  if (what_to_show == '-comb' .and. zb(1) >= 0) then
+    nl=nl+1; lines(nl) = '"-comb" and "-z" cannot both be used at the same time'
+    return
+  endif
+
+  if (zb(1) >= 0 .and. ele_name == '') then
+    nl=nl+1; lines(nl) = 'Lattice element must be specified when using "-z" option.'
+    return
+  endif
 
   if (what_to_show == '-comb' .and. ele_name == '') then
     if (.not. allocated(tao_branch%bunch_params_comb)) then
@@ -557,7 +587,19 @@ case ('beam')
       nl=nl+1; lines(nl) = 'Bunch parameters at comb index: ' // int_str(ix_s2)
 
     else
-      bunch_p => tao_branch%bunch_params(ele%ix_ele)
+      if (zb(1) >= 0) then
+        beam => u%model_branch(0)%ele(ele%ix_ele)%beam
+        if (.not. allocated(beam%bunch)) then
+          nl=nl+1; lines(nl) = 'Bunch parameters at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
+          return
+        endif
+        call calc_bunch_params_z_slice(beam%bunch(s%global%bunch_to_plot), bunch_params, zb, err, .true., ele = ele)
+        if (err) return
+        bunch_p => bunch_params
+      else
+        bunch_p => tao_branch%bunch_params(ele%ix_ele)
+      endif
+
       nl=nl+1; lines(nl) = 'Bunch parameters at: ' // trim(ele%name) // ' ' //  ele_loc_name(ele, .false., '()')
       found = (allocated(u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam%bunch))
     endif
@@ -577,8 +619,6 @@ case ('beam')
       result_id = 'beam:no_live'
       return
     endif
-
-
 
     nl=nl+1; write(lines(nl), imt)  '  Parameters for bunch:       ', n
     nl=nl+1; write(lines(nl), rmt)  '  S-position:                 ', bunch_p%s
@@ -5588,7 +5628,7 @@ case ('universe')
     call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat)
     call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat)
     if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
-                                                            tao_branch%modes_6d%z%j_damp < 0) then
+                                           (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
       call out_io (s_info$, r_name, 'Negative damping partition number detected!!!', &
                                     'The lattice is unstable with radiation excitations!', &
                                     '[However such things as the closed orbit can still be calculated.]')

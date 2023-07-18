@@ -328,7 +328,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma)
         tao_branch%modes_6d%momentum_compaction = momentum_compaction(branch)
         if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
-                                                            tao_branch%modes_6d%z%j_damp < 0) then
+                                                   (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
           call out_io (s_info$, r_name, 'Negative damping partition number detected!!!', &
                                         'The lattice is unstable with radiation excitations!', &
                                         '[However such things as the closed orbit can still be calculated.]')
