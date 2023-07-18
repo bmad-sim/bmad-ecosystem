@@ -1898,7 +1898,7 @@ Format:
   show value ...               ! Show value of an expression \sref{s:show.value}.
   show variables ...           ! Show optimization variable info \sref{s:show.variables}.
   show version                 ! Show Tao version.
-  show wakes                   ! Show wake info \sref{s:show.wakes}.
+  show wake_elements           ! Show wake info \sref{s:show.wake}.
   show wall ...                ! Show vacuum chamber wall info \sref{s:show.wall}.
   show wave                    ! Show wave analysis info \sref{s:show.wave}.
 \end{example}
@@ -1955,7 +1955,7 @@ Shows a list of defined aliases. See the \vn{alias} command for more details.
 
 Command to show beam parameters. Syntax:
 \begin{example}
-  show beam \{-comb\} \{-universe <uni_index>\} \{-lattice\} \{<element_id>\}
+  show beam \{-comb\} \{-universe <uni_index>\} \{-lattice\} \{-z <z1> <z2>\} \{<element_id>\}
 \end{example}
 
 If both \vn{<element_id>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
@@ -1977,6 +1977,13 @@ of longitudinally equally spaced points where the beam parameters are evaluated 
 \vn{write bunch_comb} (\sref{s:write.bunch.comb}) and \vn{python bunch_comb} (\sref{p:bunch.comb})
 commands.
 
+The \vn{-z <z1> <z2>} option shows bunch parameters for a slice of the beam. The slice boundaries
+are specified by \vn{<z1>} and \vn{<z2>}. Both values must be in the range [0.0, 1.0] with 0.0
+indicating the back of the bunch and 1.0 indicating the front of the bunch. For example, "-z 0.0,
+0.5" would give bunch parameters for the back half of the bunch. If the \vn{-z} option is used,
+the \vn{<element_id>} must be specified and the beam must have been saved at the corresponding
+element (\sref{s:beam.init}).
+
 Note: To show individual particle positions, see the \vn{show particle} command
 (\sref{s:show.particle}).
 
@@ -1987,6 +1994,7 @@ Examples:
   show beam          ! Show beam initialization parameters.
   show beam -lat 37  ! Show sigma matrix, etc. calculated at element #37.
   show beam -comb 3  ! Show sigma matrix, etc. calculated at comb index #3.
+  show beam -z 0.1 0.4 q3w  ! Show parameters of a slice of the bunch.
 \end{example}
 
 %% show branch --------------------------------------------------------------
@@ -3427,23 +3435,23 @@ For developers who use SVN to update their Distributions: The version string is 
 you update your Distribution (the version file is not in the SVN repository). 
   }
 
-%% show wakes --------------------------------------------------------------
+%% show wake_elements --------------------------------------------------------------
 
-\subsection{show wakes}
-\label{s:show.wakes}
+\subsection{show wake_elements}
+\label{s:show.wake_elements}
 
 Syntax:
 \begin{example}
-  show wakes 
+  show wake_elements 
 \end{example}
 
-The \vn{show wakes} command will list the lattice elements that have associated wake fields.  Use
+The \vn{show wake_elements} command will list the lattice elements that have associated wake fields.  Use
 the \vn{show ele} command to get more details on a given element. Note that wakes only affect
 particle tracking when tracking with a beam of particles (not when tracking just a single particle
 which is the default for \tao).
 
 At this point in time, \tao is not setup to do multiturn tracking with bunches which means that if
-simulations with wakefields is desired, a different program have to be used.
+simulations with wakefields is desired, a different program have to be used like \vn{long_term_tracking}.
 
 %% show wall --------------------------------------------------------------
 
