@@ -132,13 +132,6 @@ call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, ma
 
 orbit%t = start_orb%t + orbit%direction*orbit%time_dir*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 
-!
-
-select case(ele%key)
-case(kicker$)
-  orbit%vec(6) = orbit%vec(6) + ele%value(pz_kick$)
-end select
-
 !---------------------------------------------
 contains
 

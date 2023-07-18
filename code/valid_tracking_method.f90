@@ -149,6 +149,12 @@ case (fork$, photon_fork$)
     is_valid = .true.
   end select
 
+case (gkicker$)
+  select case (method)
+  case (bmad_standard$, symp_lie_ptc$, linear$, taylor$, mad$, custom$)
+    is_valid = .true.
+  end select
+
 case (group$, overlay$, girder$, ramper$)
   ! No valid methods
 

@@ -100,6 +100,12 @@ case (elseparator$)
   call track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
+! GKicker
+
+case (gkicker$)
+  call track_a_gkicker(orbit, ele, param, mat6, make_matrix)
+
+!-----------------------------------------------
 ! LCavity: Linac rf cavity.
 
 case (lcavity$)

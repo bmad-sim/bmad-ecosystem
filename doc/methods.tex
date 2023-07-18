@@ -190,61 +190,60 @@ explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp})
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{Linear}\end{sideways} &
 \begin{sideways}\vn{MAD}\end{sideways} &
-\begin{sideways}\vn{Runge_Kutta$^d$}\end{sideways} &
+\begin{sideways}\vn{Runge_Kutta$^a$}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways} &
-\begin{sideways}\vn{Time_Runge_Kutta$^d$}\end{sideways}
+\begin{sideways}\vn{Time_Runge_Kutta$^a$}\end{sideways}
 \\ \midrule
-%                               BS   C   L   M   RK    SLB   SLP    T   TRK
-  \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &    \\  
-  \vn{ac_kicker}               & D & X & X &   &  X  &     &     &     & X  \\  
-  \vn{beambeam}                & D & X & X &   &     &     &     &     &    \\  
-  \vn{converter}               & D & X &   &   &     &     &     &     &    \\  
-  \vn{crab_cavity}             & D & X & X &   &     &     &     &     &    \\  
-  \vn{custom}                  &   & D & X &   &  X  &     &     &     & X  \\  
-  \vn{drift}                   & D & X & X & X &  X  &     &  X  &  X  & X  \\  
-  \vn{e_gun}                   &   & X &   &   &X$^a$&     &     &     & D  \\  
-  \vn{ecollimator}             & D & X & X &   &  X  &     &  X  &  X  & X  \\  
-  \vn{elseparator}             & D & X & X & X &  X  &     &  X  &  X  & X  \\  
-  \vn{em_field}                &   & X &   &   &  D  &     &  X  &  X  & X  \\  
-  \vn{fiducial}                & D & X &   &   &     &     &  X  &     &    \\  
-  \vn{floor_shift}             & D & X &   &   &     &     &  X  &     &    \\  
-  \vn{hkicker}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
-  \vn{instrument}              & D & X & X &   &  X  &     &  X  &  X  & X  \\  
-  \vn{kicker}                  & D & X & X &   &  X  &     &  X  &  X  & X  \\  
-  \vn{lcavity}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
-  \vn{marker}                  & D & X & X &   &     &     &  X  &  X  &    \\  
-  \vn{match}                   & D & X &   &   &     &     &     &  X  &    \\ 
-  \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
-  \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &    \\  
-  \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
-  \vn{patch}                   & D & X &   &   &X$^c$&     &  X  &  X  &    \\ 
-  \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{rbend}                   & D & X & X & X &     &     &  X  &  X  &    \\ 
-  \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
-  \vn{rf_bend}                 &   & X & X &   &  X  &     &     &     & X  \\
-  \vn{rfcavity}                & D & X & X & X &  D  &     &  X  &  X  & X  \\ 
-  \vn{sad_mult}                & D & X & X &   &     &     &  X  &  X  &    \\
-  \vn{sbend}                   & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
-  \vn{sextupole}               & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
-  \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{sol_quad}                & D & X & X &   &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{taylor}                  &   & X & X &   &     &     &  X  &  D  &    \\ 
-  \vn{vkicker}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
-  \vn{wiggler} (map type)      &   & X & X &   &  X  &  X  &  X  &  X  & X  \\
-  \vn{wiggler} (periodic type) & D & X & X &   &X$^b$&X$^b$&X$^b$&D$^b$&    \\ 
+%                                     BS   C   L   M   RK    SLB   SLP    T   TRK
+  \vn{ab_multipole and multipole}    & D & X & X &   &     &     &  X  &  X  &    \\  
+  \vn{ac_kicker}                     & D & X & X &   &  X  &     &     &     & X  \\  
+  \vn{beambeam}                      & D & X & X &   &     &     &     &     &    \\  
+  \vn{bends: rbend and sbend}        & D & X & X & X &     &     &  X  &  X  &    \\ 
+  \vn{converter}                     & D & X &   &   &     &     &     &     &    \\  
+  \vn{crab_cavity}                   & D & X & X &   &     &     &     &     &    \\  
+  \vn{custom}                        &   & D & X &   &  X  &     &     &     & X  \\  
+  \vn{drift}                         & D & X & X & X &  X  &     &  X  &  X  & X  \\  
+  \vn{e_gun}                         &   & X &   &   &X$^b$&     &     &     & D  \\  
+  \vn{ecollimator and rcollimator}   & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{elseparator}                   & D & X & X & X &  X  &     &  X  &  X  & X  \\  
+  \vn{em_field}                      &   & X &   &   &  D  &     &  X  &  X  & X  \\  
+  \vn{fiducial}                      & D & X &   &   &     &     &  X  &     &    \\  
+  \vn{floor_shift}                   & D & X &   &   &     &     &  X  &     &    \\  
+  \vn{fork}                          & D & X & X &   &     &     &     &     &    \\
+  \vn{gkicker}                       & D & X & X &   &     &     &  X  &  X  &    \\
+  \vn{hkicker}                       & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{instrument, monitor, and pipe} & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{kicker}                        & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{lcavity and rfcavity}          & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{marker}                        & D & X & X &   &     &     &  X  &  X  &    \\  
+  \vn{match}                         & D & X &   &   &     &     &     &  X  &    \\ 
+  \vn{octupole}                      & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
+  \vn{patch}                         & D & X &   &   &X$^c$&     &  X  &  X  &    \\ 
+  \vn{photonic elements}             & D & X &   &   &     &     &     &     &    \\
+  \vn{quadrupole}                    & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{rf_bend}                       &   & X & X &   &  X  &     &     &     & X  \\
+  \vn{sad_mult}                      & D & X & X &   &     &     &  X  &  X  &    \\
+  \vn{sextupole}                     & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
+  \vn{solenoid}                      & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{sol_quad}                      & D & X & X &   &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{taylor}                        &   & X & X &   &     &     &  X  &  D  &    \\ 
+  \vn{vkicker}                       & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
+  \vn{wiggler} (map type)            &   & X & X &   &  X  &  X  &  X  &  X  & X  \\
+  \vn{wiggler} (periodic type)       & D & X & X &   &X$^d$&X$^d$&X$^d$&D$^d$&    \\ 
   \bottomrule
-  \multicolumn{10}{l}{$^a$Only if the beginning energy is non-zero.}        \\
-  \multicolumn{10}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}  \\
+  \multicolumn{10}{l}{$^a$Includes fixed step versions.}                    \\
+  \multicolumn{10}{l}{$^b$Only if the beginning energy is non-zero.}        \\
   \multicolumn{10}{l}{$^c$Only available for non-reflection patch elements.}\\
-  \multicolumn{10}{l}{$^d$Includes fixed step versions.}                    \\
+  \multicolumn{10}{l}{$^d$See \sref{s:wiggler.periodic} for more details.}  \\
 \end{tabular}
 }
-\caption[Table of available tracking_method switches for charged particle tracking.] { 
-Table of valid tracking_method switches for use charged particle tracking. When tracking photons,
-only bmad_standard and custom tracking methods are available. ``D'' denotes the
-default method. ``X'' denotes a valid method.}
+\caption[Table of available tracking_method switches.] { 
+Table of valid tracking_method switches. ``D'' denotes the
+default method. ``X'' denotes a valid method. Photonic
+elements are elements in Table~\ref{t:photon.classes} that cannot be used for
+charged particle tracking (Table~\ref{t:particle.classes}).}
 
 \label{t:track.methods}
 \end{table}
@@ -390,49 +389,44 @@ sets the six deltas used for displacing the initial particle coordinates from th
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \midrule
-%                               BS   C   M  Stat SLB   SLP   Tlr  Trk 
-  \vn{ab_multipole}            & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{ac_kicker}               &   & X &   & X &     &  X  &  X  & D \\  
-  \vn{beambeam}                & D & X &   & X &     &     &     & X \\  
-  \vn{converter}               & D & X &   &   &     &     &     &   \\  
-  \vn{crab_cavity}             &   & X &   & X &     &     &     & D \\  
-  \vn{custom}                  &   & D &   & X &     &     &     & X \\  
-  \vn{drift}                   & D & X & X & X &     &  X  &  X  & X \\  
-  \vn{e_gun}                   &   & X &   & X &     &     &     & D \\  
-  \vn{ecollimator}             & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{elseparator}             & D & X & X & X &     &  X  &  X  & X \\  
-  \vn{em_field}                &   & X &   & X &     &  X  &  X  & D \\  
-  \vn{fiducial}                & D & X &   & X &     &  X  &     & X \\  
-  \vn{floor_shift}             & D & X &   & X &     &  X  &     & X \\  
-  \vn{hkicker}                 & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{instrument}              & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{kicker}                  & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{lcavity}                 & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{marker}                  & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{match}                   & D & X &   & X &     &     &     & X \\  
-  \vn{monitor}                 & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{multipole}               & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{octupole}                & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{patch}                   & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  & X \\ 
-  \vn{rbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{rcollimator}             & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{rf_bend}                 & D & X &   & X &     &     &     & X \\
-  \vn{rfcavity}                & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{sad_mult}                & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{sbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{sextupole}               & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  & X \\ 
-  \vn{sol_quad}                & D & X & X & X &  X  &  X  &  X  & X \\ 
-  \vn{taylor}                  &   & X &   & X &     &  X  &  D  &   \\ 
-  \vn{vkicker}                 & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{wiggler} (map type)      & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ 
-  \vn{wiggler} (periodic type) &   & X &   & X &X$^a$&X$^a$&D$^a$& X \\ \bottomrule
+%                                     BS   C   M  Stat SLB   SLP   Tlr  Trk
+  \vn{ab_multipole and multipole}    & D & X &   & X &     &  X  &  X  & X \\  
+  \vn{ac_kicker}                     &   & X &   & X &     &  X  &  X  & D \\  
+  \vn{beambeam}                      & D & X &   & X &     &     &     & X \\  
+  \vn{bends: rbend and sbend}        & D & X & X & X &     &  X  &  X  & X \\ 
+  \vn{converter}                     & D & X &   &   &     &     &     &   \\  
+  \vn{crab_cavity}                   &   & X &   & X &     &     &     & D \\  
+  \vn{custom}                        &   & D &   & X &     &     &     & X \\  
+  \vn{drift}                         & D & X & X & X &     &  X  &  X  & X \\  
+  \vn{e_gun}                         &   & X &   & X &     &     &     & D \\  
+  \vn{ecollimator and rcollimator}   & D & X &   & X &     &  X  &  X  & X \\  
+  \vn{elseparator}                   & D & X & X & X &     &  X  &  X  & X \\  
+  \vn{em_field}                      &   & X &   & X &     &  X  &  X  & D \\  
+  \vn{fiducial}                      & D & X &   & X &     &  X  &     & X \\  
+  \vn{floor_shift}                   & D & X &   & X &     &  X  &     & X \\  
+  \vn{hkicker}                       & D & X &   & X &     &  X  &  X  & X \\  
+  \vn{instrument, monitor, and pipe} & D & X &   & X &     &  X  &  X  & X \\  
+  \vn{kicker}                        & D & X &   & X &     &  X  &  X  & X \\  
+  \vn{lcavity and rfcavity}          & D & X &   & X &     &  X  &  X  & X \\  
+  \vn{marker}                        & D & X &   & X &     &  X  &  X  & X \\  
+  \vn{match}                         & D & X &   & X &     &     &     & X \\  
+  \vn{octupole}                      & D & X &   & X &     &  X  &  X  & X \\ 
+  \vn{patch}                         & D & X &   & X &     &  X  &  X  & X \\ 
+  \vn{quadrupole}                    & D & X & X & X &  X  &  X  &  X  & X \\ 
+  \vn{rf_bend}                       & D & X &   & X &     &     &     & X \\
+  \vn{sad_mult}                      & D & X &   & X &     &  X  &  X  & X \\ 
+  \vn{sextupole}                     & D & X & X & X &     &  X  &  X  & X \\ 
+  \vn{solenoid}                      & D & X & X & X &  X  &  X  &  X  & X \\ 
+  \vn{sol_quad}                      & D & X & X & X &  X  &  X  &  X  & X \\ 
+  \vn{taylor}                        &   & X &   & X &     &  X  &  D  &   \\ 
+  \vn{vkicker}                       & D & X &   & X &     &  X  &  X  & X \\ 
+  \vn{wiggler} (map type)            & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ 
+  \vn{wiggler} (periodic type)       &   & X &   & X &X$^a$&X$^a$&D$^a$& X \\ \bottomrule
   \multicolumn{9}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 } 
-\caption[Table of available mat6_calc_method switches for charged-particle tracking.]  {Table of
-available mat6_calc_method switches for charged-particle tracking. When tracking photons, transfer
+\caption[Table of available mat6_calc_method switches.]  {Table of
+available mat6_calc_method switches. When tracking photons, transfer
 matrices are not computed.  ``D'' denotes the default method. ``X'' denotes an available method.}
 
 \label{t:mat6.methods}
@@ -453,13 +447,24 @@ since photons do not have spin.
 
 Possible \vn{spin_tracking_method} settings are:
 \begin{description}
-
+%
 \index{custom!spin_tracking_method}
 \item[\vn{Custom}] \Newline
 This method will call a routine \vn{track1_spin_custom} which must be supplied by the programmer
 implementing the custom spin tracking calculation. See \vn{s:custom.ele} for more details.
-
-\index{tracking!mat6_calc_method}
+%
+\item[\vn{Sprint}] \Newline
+The \vn{sprint} algorithm (\sref{s:sprint.std}) uses first order transfer spin maps to track the
+spin through lattice elements. This method is very fast at the cost of accuracy for particles away
+from the zero orbit. The algorithm is also limited in what elements it can handle and it ignores
+higher order multipoles that may be present.
+%
+\index{symp_lie_ptc!spin_tracking_method}
+\item[\vn{Symp_Lie_PTC}] \Newline
+Symplectic integration using a Hamiltonian and Lie operators.  This uses \'Etienne's PTC software
+for the calculation.  This method is symplectic but can be slow.
+%
+\index{tracking!spin_tracking_method}
 \item[\vn{Tracking}] \Newline
 How spin is tracked here will depend also on the setting of \vn{tracking_method}. If
 \vn{tracking_method} is set to \vn{runge_kutta} or \vn{time_runge_kutta} the spin will be tracked
@@ -470,12 +475,6 @@ integration of the spin rotation matrix.
 
 The \vn{runge_kutta} and \vn{time_runge_kutta} spin tracking uses the same fourth order integrator
 as is used for the orbital coordinates to track the spin rotation vector.
-
-\index{symp_lie_ptc!spin_tracking_method}
-\item[\vn{Symp_Lie_PTC}] \Newline
-Symplectic integration using a Hamiltonian and Lie operators.  This uses \'Etienne's PTC software
-for the calculation.  This method is symplectic but can be slow.
-
 \end{description}
 
 Since speed may be an issue, \bmad has an global parameter called \vn{spin_tracking_on} which is
@@ -510,48 +509,43 @@ Example:
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \midrule
-%                                C  Spt SLP Trk 
-  \vn{ab_multipole}            & X &   &   & D \\  
-  \vn{ac_kicker}               & X &   &   & D \\  
-  \vn{beambeam}                & X &   &   & D \\  
-  \vn{converter}               & X &   &   & D \\  
-  \vn{crab_cavity}             & X &   &   & D \\  
-  \vn{custom}                  & D &   &   & X \\  
-  \vn{drift}                   & X & X & X & D \\  
-  \vn{e_gun}                   & X &   &   & D \\  
-  \vn{ecollimator}             & X & X & X & D \\  
-  \vn{elseparator}             & X &   & X & D \\  
-  \vn{em_field}                & X &   &   & D \\  
-  \vn{fiducial}                & X &   & X & D \\  
-  \vn{floor_shift}             & X &   & X & D \\  
-  \vn{hkicker}                 & X & X & X & D \\  
-  \vn{instrument}              & X & X & X & D \\  
-  \vn{kicker}                  & X & X & X & D \\  
-  \vn{lcavity}                 & X &   & X & D \\  
-  \vn{marker}                  & X &   & X & D \\  
-  \vn{match}                   & X &   &   & D \\  
-  \vn{monitor}                 & X & X & X & D \\  
-  \vn{multipole}               & X &   & X & D \\  
-  \vn{octupole}                & X & X & X & D \\ 
-  \vn{patch}                   & X &   & X & D \\ 
-  \vn{quadrupole}              & X & X & X & D \\ 
-  \vn{rbend}                   & X & X & X & D \\ 
-  \vn{rcollimator}             & X & X & X & D \\ 
-  \vn{rfcavity}                & X & X & X & D \\ 
-  \vn{sad_mult}                & X &   &   & D \\  
-  \vn{sbend}                   & X & X & X & D \\ 
-  \vn{sextupole}               & X & X & X & D \\ 
-  \vn{solenoid}                & X & X & X & D \\ 
-  \vn{sol_quad}                & X &   & X & D \\ 
-  \vn{taylor}                  &   &   &   & D \\ 
-  \vn{vkicker}                 & X & X & X & D \\ 
-  \vn{wiggler}                 & X &   & X & D \\ \bottomrule
+%                                      C  Spt SLP Trk 
+  \vn{ab_multipole and multipole}    & X &   &   & D \\  
+  \vn{ac_kicker}                     & X &   &   & D \\  
+  \vn{beambeam}                      & X &   &   & D \\  
+  \vn{bends: rbend and sbend}        & X & X & X & D \\ 
+  \vn{converter}                     & X &   &   & D \\  
+  \vn{crab_cavity}                   & X &   &   & D \\  
+  \vn{custom}                        & D &   &   & X \\  
+  \vn{drift}                         & X & X & X & D \\  
+  \vn{e_gun}                         & X &   &   & D \\  
+  \vn{ecollimator and rcollimator}   & X & X & X & D \\  
+  \vn{elseparator}                   & X &   & X & D \\  
+  \vn{em_field}                      & X &   &   & D \\  
+  \vn{fiducial}                      & X &   & X & D \\  
+  \vn{floor_shift}                   & X &   & X & D \\  
+  \vn{hkicker}                       & X & X & X & D \\  
+  \vn{instrument, monitor and pipe}  & X & X & X & D \\  
+  \vn{kicker}                        & X & X & X & D \\  
+  \vn{lcavity and rfcavity}          & X &   & X & D \\  
+  \vn{marker}                        & X &   & X & D \\  
+  \vn{match}                         & X &   &   & D \\  
+  \vn{octupole}                      & X & X & X & D \\ 
+  \vn{patch}                         & X &   & X & D \\ 
+  \vn{quadrupole}                    & X & X & X & D \\ 
+  \vn{sad_mult}                      & X &   &   & D \\  
+  \vn{sextupole}                     & X & X & X & D \\ 
+  \vn{solenoid}                      & X & X & X & D \\ 
+  \vn{sol_quad}                      & X &   & X & D \\ 
+  \vn{taylor}                        &   &   &   & D \\ 
+  \vn{vkicker}                       & X & X & X & D \\ 
+  \vn{wiggler}                       & X &   & X & D \\ \bottomrule
 \end{tabular}
 }
 
-\caption[Table of available spin_tracking_method switches for charged-particle tracking.]{Table of
-available \vn{spin_tracking_method}\ switches for charged-particle tracking (photons do not have
-spin). ``D'' denotes the default method. ``X'' denotes an available method.}
+\caption[Table of available spin_tracking_method switches.]{Table of
+available \vn{spin_tracking_method}\ switches. ``D'' denotes the default method. 
+``X'' denotes an available method. Note: Photon tracking does not involve spin.}
 
 \label{t:spin.methods}
 \end{table}

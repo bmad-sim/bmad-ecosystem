@@ -623,10 +623,11 @@ do i = 1, n_key$
   call init_attribute_name1 (i, aperture_type$,          'APERTURE_TYPE')
   call init_attribute_name1 (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
 
-  if (i == hybrid$)   cycle
-  if (i == match$) cycle
+  if (i == hybrid$)        cycle
+  if (i == match$)         cycle
   if (i == photon_fork$)   cycle
   if (i == fork$)          cycle
+  if (i == gkicker$)       cycle
 
   call init_attribute_name1 (i, x_offset$,      'X_OFFSET')
   call init_attribute_name1 (i, y_offset$,      'Y_OFFSET')
@@ -1242,6 +1243,13 @@ call init_attribute_name1 (match$, mode_flip1$,                     'MODE_FLIP1'
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
 
+call init_attribute_name1 (gkicker$, x_kick$,                       'X_KICK')
+call init_attribute_name1 (gkicker$, px_kick$,                      'PX_KICK')
+call init_attribute_name1 (gkicker$, y_kick$,                       'Y_KICK')
+call init_attribute_name1 (gkicker$, py_kick$,                      'PY_KICK')
+call init_attribute_name1 (gkicker$, z_kick$,                       'Z_KICK')
+call init_attribute_name1 (gkicker$, pz_kick$,                      'PZ_KICK')
+
 call init_attribute_name1 (hkicker$, kick$,                         'KICK', quasi_free$)
 call init_attribute_name1 (hkicker$, field_master$,                 'FIELD_MASTER')
 call init_attribute_name1 (hkicker$, bl_kick$,                      'BL_KICK', quasi_free$)
@@ -1263,7 +1271,6 @@ call init_attribute_name1 (kicker$, cylindrical_map$,               'CYLINDRICAL
 call init_attribute_name1 (kicker$, gen_grad_map$,                  'GEN_GRAD_MAP')
 call init_attribute_name1 (kicker$, grid_field$,                    'GRID_FIELD')
 call init_attribute_name1 (kicker$, ptc_canonical_coords$,          'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (kicker$, pz_kick$,                       'PZ_KICK')
 
 call init_attribute_name1 (ac_kicker$, interpolation$,                 'INTERPOLATION')
 call init_attribute_name1 (ac_kicker$, r0_mag$,                        'R0_MAG')
@@ -1931,7 +1938,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', &
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
-      'AUTOSCALE_AMP_REL_TOL', 'PZ_KICK', &
+      'AUTOSCALE_AMP_REL_TOL', 'PX_KICK', 'PY_KICK', 'PZ_KICK', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
       'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', 'PZ_APERTURE_CENTER', &
       'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2')
@@ -1944,7 +1951,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'BETA_A', 'BETA_A0', 'BETA_A1', 'BETA_B', 'BETA_B0', 'BETA_B1', 'BETA_A_STRONG', 'BETA_B_STRONG', &
       'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', 'OSC_AMPLITUDE', 'R_SOLENOID', &
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
-      'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', &
+      'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', 'X_KICK', 'Y_KICK', 'Z_KICK', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
       'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_ACTIVE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &

@@ -104,6 +104,12 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
   orbit%s = ele%s
 
 !-----------------------------------------------
+! Gkicker
+
+case (gkicker$) 
+  call track_a_gkicker(orbit, ele, param)
+
+!-----------------------------------------------
 ! Lens
 
 case (lens$) 

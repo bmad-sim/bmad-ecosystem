@@ -1552,8 +1552,8 @@ integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gu
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, def_space_charge_com$ = 60, crab_cavity$ = 61
-integer, parameter :: ramper$ = 62, def_ptc_com$ = 63, rf_bend$ = 64
-integer, parameter :: n_key$ = 64
+integer, parameter :: ramper$ = 62, def_ptc_com$ = 63, rf_bend$ = 64, gkicker$ = 65
+integer, parameter :: n_key$ = 65
 
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1564,13 +1564,13 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', '!Bmad_Com         ', &
     '!Mad_Beam         ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
     '!Parameter        ', 'Null_Ele          ', 'Beginning_Ele     ', '!Line             ', 'Match             ', &
-    'Monitor           ', 'Instrument        ', 'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', &
+    'Monitor           ', 'Instrument        ', 'HKicker           ', 'VKicker           ', 'Rcollimator       ', &
     'Ecollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', '!Space_Charge_Com ', &
-    'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', 'RF_Bend           ']
+    'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', 'RF_Bend           ', 'GKicker           ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1628,7 +1628,7 @@ integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
-integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6, pz_kick$ = 6
+integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
 integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7
 integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8
@@ -1672,12 +1672,12 @@ integer, parameter :: downstream_coord_dir$ = 30, pz_aperture_width2$ = 30, y_di
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id$ = 31, ref_cap_gamma$ = 31
 integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32
-integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33
-integer, parameter :: x_pitch$ = 34
-integer, parameter :: y_pitch$ = 35  
-integer, parameter :: x_offset$ = 36
-integer, parameter :: y_offset$ = 37 
-integer, parameter :: z_offset$ = 38
+integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33, x_kick$ = 33
+integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
+integer, parameter :: y_pitch$ = 35, y_kick$ = 35
+integer, parameter :: x_offset$ = 36, py_kick$ = 36
+integer, parameter :: y_offset$ = 37, z_kick$ = 37
+integer, parameter :: z_offset$ = 38, pz_kick$ = 38
 integer, parameter :: hkick$ = 39, d_spacing$ = 39, x_offset_mult$ = 39, emittance_a$ = 39, crab_x1$ = 39
 integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40, crab_x2$ = 40
 integer, parameter :: BL_hkick$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41, crab_x3$ = 41
