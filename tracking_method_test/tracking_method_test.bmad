@@ -32,6 +32,7 @@ em_field1:         em_field, l = 1.4, call::gg.bmad
 em_field2:         em_field1, integrator_order = 6
 fiducial1:         fiducial, dx_origin = 0.1, dy_origin = 0.2, dz_origin = 0.3, dtheta_origin = 0.01, dphi_origin = 0.02, dpsi_origin = 0.4
 floor_shift1:      floor_shift, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3, x_pitch = 0.01, y_pitch = 0.02, tilt = 0.4
+gkicker1:          gkicker, x_kick = 0.01, px_kick = 0.02, y_kick = 0.03, py_kick = 0.04, z_kick = 0.05, pz_kick = 0.06
 hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 instrument1:       instrument, l = 4.5, num_steps = 10
 kicker1:           kicker, l = 4.5, b0 = 0.002 , vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
@@ -122,7 +123,7 @@ wiggler_heli1: wiggler, l = 1, b_max = 0.0001, n_pole = 20, num_steps = 1, x_off
 !-----------
 ! Put lcavity elements last since they shift reference energy
 l1: line = (ab_multipole1, ac_kicker1, ac_kicker2, ac_kicker3, beambeam1, crab_cavity1, drift1, ecollimator1, elseparator1, elseparator2,
-            em_field1, em_field2, fiducial1, floor_shift1, hkicker1, instrument1, kicker1, 
+            em_field1, em_field2, fiducial1, floor_shift1, gkicker1, hkicker1, instrument1, kicker1, 
             match1, monitor1, multipole1, octupole1, patch1, quadrupole1, 
             quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2, rfcavity3, sad_mult1, sad_mult2, 
             sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1, solenoid1, solenoid2, sol_quad1, sol_quad2, 
