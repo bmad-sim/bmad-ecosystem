@@ -153,7 +153,7 @@ call mat_make_unit(unit_mat)
 first_time = .true.
 old_dangle = 0
 
-! Construct possible global coordinate z_global points which correspond to the vertices of two compond icosahedron.
+! Construct possible global coordinate z_global points which correspond to the vertices of two compound icosahedrons.
 
 g = (1 + sqrt(5.0_rp)) / 2
 r = sqrt(1 + g*g)
@@ -201,7 +201,7 @@ if (verbose) print '(a, 3f12.6)', 'Closed orbit invariant axis:', closed_orb_inv
 if (verbose) print '(a, 3f12.6)', 'Closed orbit spin tune:     ', closed_orbit_spin_tune
 ele0 => branch%ele(0)
 
-! Loop over all phase space amplitude pointspoints
+! Loop over all phase space amplitude points
 
 call reallocate_coord (orbit, lat, ix_lat_branch)
 call run_timer('START')
