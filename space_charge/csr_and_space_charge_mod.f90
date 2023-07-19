@@ -1308,7 +1308,8 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
     r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
     r0 = 1 - r1
 
-    if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= space_charge_com%n_bin) then
+    ! r1 should be in [0,1] but allow for some round-off error
+    if (r1 < -0.01_rp .or. r1 > 1.01_rp .or. i0 < 1 .or. i0 >= space_charge_com%n_bin) then
       print *, 'CSR INTERNAL ERROR!'
       if (global_com%exit_on_error) call err_exit
     endif
