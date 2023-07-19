@@ -1,5 +1,5 @@
 !+
-! Function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, print_err) result (value)
+! Function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, print_err, bad_datum) result (value)
 !
 ! Routine to evaluate a parameter at a lattice s-position.
 !
@@ -9,13 +9,14 @@
 !   orbit         -- coord_struct: Orbit at the evaluation s-position.
 !
 ! Output:
-!   err_flag      -- logical: Set true if data_type does not have a corresponding Bmad parameter.
+!   err_flag      -- logical: Set true if parameter cannot be evaluated.
 !   value         -- real(rp): Parameter value.
 !   why_invalid   -- character(*), optional: Set if  err_flag = True to document why is there a problem.
 !   print_err     -- logical, optional: Print error message on error? Default is True.
+!   bad_datum     -- logical, optional: Data_type is malformed.
 !-
 
-function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, print_err) result (value)
+function tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid, print_err, bad_datum) result (value)
 
 use tao_interface, except_dummy => tao_param_value_at_s
 use measurement_mod
@@ -39,11 +40,12 @@ character(40) name, prefix, d_type
 integer i, j, ix
 
 logical err_flag
-logical, optional :: print_err
+logical, optional :: print_err, bad_datum
 
 !
 
 err_flag = .false.
+if (present(bad_datum)) bad_datum = .false.
 
 if (data_type == 'state') then
   value = orbit%state
@@ -82,6 +84,7 @@ case ('alpha')
   case ('alpha.z');          value = ele%z%alpha
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -104,6 +107,7 @@ case ('b_curl', 'b0_curl')
   case ('b_curl.z', 'b0_curl.z');  value = field%dB(2,1) - field%dB(1,2) - (field1%E(3) - field0%E(3)) / (2 * dt * c_light**2)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -135,6 +139,7 @@ case ('b_field', 'b0_field')
   case ('b_field.z', 'b0_field.z');  value = field%b(3)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -146,6 +151,7 @@ case ('beta')
   case ('beta.z');           value = ele%z%beta
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -158,6 +164,7 @@ case ('bpm_cbar')
   case ('bpm_cbar.12b');     value = bpm_data%cbar12_b
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -167,6 +174,7 @@ case ('bpm_eta')
   case ('bpm_eta.y');  call to_eta_reading ([ele%x%eta, ele%y%eta], ele, y_plane$, s%com%add_measurement_noise, value, err_flag)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -176,6 +184,7 @@ case ('bpm_orbit')
   case ('bpm_orbit.y');      call to_orbit_reading (orbit, ele, y_plane$, s%com%add_measurement_noise, value, err_flag)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -187,6 +196,7 @@ case ('bpm_phase')
   case ('bpm_phase.b');      value = bpm_data%phi_b
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -199,6 +209,7 @@ case ('bpm_k')
   case ('bpm_k.12b');        value = bpm_data%k_12b
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -210,6 +221,7 @@ case ('c_mat')
   case ('cmat.22');         value = ele%c_mat(2,2)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -222,6 +234,7 @@ case ('cbar')
   case ('cbar.22');          value = cbar(2,2)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -234,6 +247,7 @@ case ('coupling')
   case ('coupling.22a');  value = cbar(2,2) * sqrt(ele%b%beta/ele%a%beta) / ele%gamma_c
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -243,6 +257,7 @@ case ('curly_h')
   case ('curly_h.b');     value = ele%b%gamma * ele%b%eta**2 + 2 * ele%b%alpha * ele%b%eta * ele%b%etap + ele%b%beta * ele%b%etap**2
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -266,6 +281,7 @@ case ('e_curl', 'e0_curl')
   case ('e_curl.z', 'e0_curl.z');  value = field%dE(2,1) - field%dE(1,2) + (field1%B(3) - field0%B(3)) / (2 * dt)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -295,6 +311,7 @@ case ('e_field', 'e0_field')
   case ('e_field.z', 'e0_field.z');  value = field%e(3)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -316,6 +333,7 @@ case ('eta')
   case ('eta.z');            value = ele%z%eta
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -327,6 +345,7 @@ case ('etap')
   case ('etap.y');           value = ele%y%etap
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -340,6 +359,7 @@ case ('floor')
   case ('floor.psi');        value = ele%floor%psi
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -354,6 +374,7 @@ case ('floor_actual')
   case ('floor_actual.psi');        value = floor%psi
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -374,6 +395,7 @@ case ('floor_orbit')
   case ('floor_orbit.psi');        value = floor%psi
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -384,6 +406,7 @@ case ('gamma')
   case ('gamma.z');          value = ele%z%gamma
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -394,6 +417,7 @@ case ('intensity')
   case ('intensity_y', 'intensity.y');    value = orbit%field(2)**2
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -407,6 +431,7 @@ case ('k')
   case ('k.22a');            value = cbar(2,2) / (f * ele%gamma_c)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -436,6 +461,7 @@ case ('orbit')
 
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -454,6 +480,7 @@ case ('phase', 'phase_frac')
   case ('phase_frac.b');      value = modulo2 (ele%b%phi, pi)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -476,6 +503,7 @@ case ('ping_a')
     value = amp * cos(phase)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -498,6 +526,7 @@ case ('ping_b')
     value = amp * cos(phase)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -506,6 +535,7 @@ case ('r')
   j = tao_read_phase_space_index (data_type, 4, .false.)
   if (i == 0 .or. j == 0 .or. len_trim(data_type) /= 4) then
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'BAD DATA_TYPE = "' // trim(data_type)
     return
   endif
@@ -526,6 +556,7 @@ case ('spin')
   case ('spin.amp');      value = norm2(orbit%spin)
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
@@ -546,13 +577,14 @@ case ('velocity')
   case ('velocity.z');  value = sqrt(1 - (orbit%vec(2) * (1 + orbit%vec(6)))**2 - (orbit%vec(4) * (1 + orbit%vec(6)))**2) * orbit%beta
   case default
     err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
 case default
   err_flag = .true.
+  if (present(bad_datum)) bad_datum = .true.
   if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
-
 end select
 
 end function
