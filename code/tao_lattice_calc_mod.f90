@@ -394,7 +394,7 @@ real(rp) :: value1, value2, f, time, old_time, s_start, s_end, s_target, ds_save
 
 integer i, n, i_uni, ip, ig, ic, ie
 integer what_lat, n_lost_old, ie_start, ie_end, i_uni_to, ix_track
-integer n_bunch, n_part, n_lost, ix_branch, ix_slice, n_slice
+integer n_bunch, n_part, n_lost, ix_branch, ix_slice, n_slice, n_loop
 integer, allocatable :: ix_ele(:)
 
 character(*), parameter :: r_name = "tao_beam_track"
@@ -473,6 +473,7 @@ if (ie_end < ie_start .and. branch%param%geometry == open$) then
   return
 endif
 
+n_loop = 0    ! Used for debugging
 n_lost_old = 0
 ie = ie_start
 s_target = s_start
@@ -481,6 +482,7 @@ ix_slice = -1  ! ix_slice will equal -1 if not tracking internally in a sliced e
 n_slice = max(1, int(1.01_rp*ele%value(l$) / ds_save))
 
 do
+  n_loop = n_loop + 1
   ! track to the element and save for phase space plot
 
   if (s%com%use_saved_beam_in_tracking) then
