@@ -5354,8 +5354,10 @@ character(*) err_str
 compute_floor = (datum%data_type(1:min(5,len(datum%data_type))) == 'floor')
 branch => pointer_to_branch(ele)
 orbit => tao_lat%tao_branch(ele%ix_branch)%orbit
+bad_datum = .false.
 
 valid_value = .false.
+value = real_garbage$
 s_eval_ref = branch%ele(0)%s
 ix_ref = 0
 if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
@@ -5363,7 +5365,6 @@ if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
 if (.not. associated(ele)) then
   err_str = 'THERE MUST BE AN ASSOCIATED ELEMENT WHEN S_OFFSET IS NON-ZERO OR EVAL_POINT != END.'
   bad_datum = .true.
-  value = real_garbage$
   return
 endif
 
@@ -5385,10 +5386,9 @@ if (substr(datum%data_type,1,2) == 'r.') then
   orb_at_s = orbit(ix_ref)
   call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, datum%s, &
                                                        orbit(ele%ix_ele), orb2, branch%ix_branch, .true.)
-  value = tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err)
+  value = tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
-    bad_datum = .true.
     return
   endif
 
@@ -5397,15 +5397,12 @@ else
                                                                       err, compute_floor_coords = compute_floor)
   if (err) then
     err_str = 'CANNOT TRACK TO OFFSET POSITION.'
-    bad_datum = .false.
-    value = real_garbage$
     return
   endif
 
-  value = tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err)
+  value = tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
-    bad_datum = .true.
     return
   endif
 
@@ -5414,14 +5411,12 @@ else
                                                                       err, compute_floor_coords = compute_floor)
     if (err) then
       err_str = 'CANNOT TRACK TO REFERENCE POSITION.'
-      bad_datum = .false.
       return
     endif
 
-    value = value - tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err)
+    value = value - tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
     if (err) then
       err_str = 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.'
-      bad_datum = .true.
       return
     endif
   endif
