@@ -4650,6 +4650,9 @@ parsing_loop: do
       case ('atan2')
         call push_op_stack (op, i_op, atan2$)
         func(n_func)%n_arg_target = 2
+      case ('modulo')
+        call push_op_stack (op, i_op, modulo$)
+        func(n_func)%n_arg_target = 2
       case ('sinh');            call push_op_stack (op, i_op, sinh$)
       case ('cosh');            call push_op_stack (op, i_op, cosh$)
       case ('tanh');            call push_op_stack (op, i_op, tanh$)
@@ -5657,6 +5660,10 @@ do i = 1, size(stack)
 
   case (atan2$) 
     stk2(i2-1)%value = atan2(stk2(i2-1)%value, stk2(i2)%value)
+    i2 = i2 - 1
+
+  case (modulo$) 
+    stk2(i2-1)%value = modulo(stk2(i2-1)%value, stk2(i2)%value)
     i2 = i2 - 1
 
   case (sinh$)
