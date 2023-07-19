@@ -70,7 +70,11 @@ character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
 
 if (present(err)) err = .true.
 dir = 1
-if (present(orbit_start)) dir = orbit_start%time_dir * orbit_start%direction  ! Direction particle is being propagated.
+
+if (present(orbit_start)) then
+  if (orbit_start%state /= alive$) return
+  dir = orbit_start%time_dir * orbit_start%direction  ! Direction particle is being propagated.
+endif
 
 ! If a super_lord then must track through the slaves.
 
