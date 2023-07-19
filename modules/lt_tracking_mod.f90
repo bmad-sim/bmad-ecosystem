@@ -1830,8 +1830,8 @@ call write_beam_file (file, beam)
 
 if (ltt_com%last_beam_binary_output_file /= '') then
   iu = lunget()
-  open(iu, iostat = ios, file = ltt_com%last_beam_binary_output_file, status = 'old')
-  if (ios /= 0) close(iu, status = 'delete')
+  open(iu, file = ltt_com%last_beam_binary_output_file, status = 'old')
+  close(iu, status = 'delete')
 endif
 
 ltt_com%last_beam_binary_output_file = file
