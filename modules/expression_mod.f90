@@ -194,6 +194,9 @@ parsing_loop: do
       case ('ATAN2')
         call pushit (op, i_op, atan2$)
         func(n_func)%n_arg_target = 2
+      case ('MODULO')
+        call pushit (op, i_op, modulo$)
+        func(n_func)%n_arg_target = 2
       case ('ABS');           call pushit (op, i_op, abs$)
       case ('SQRT');          call pushit (op, i_op, sqrt$)
       case ('LOG');           call pushit (op, i_op, log$)
@@ -756,6 +759,10 @@ do i = 1, size(stack)
     stack2(i2-1)%value = atan2(stack2(i2-1)%value, stack2(i2)%value)
     i2 = i2 - 1
 
+  case (modulo$)
+    stack2(i2-1)%value = modulo(stack2(i2-1)%value, stack2(i2)%value)
+    i2 = i2 - 1
+
   case (sinh$)
     stack2(i2)%value = sinh(stack2(i2)%value)
 
@@ -1014,7 +1021,7 @@ else
       endif
       s2%type = atom%type
 
-    case (atan2$)
+    case (atan2$, modulo$)
       i2 = i2 - 1
       s2_name(i2)%str = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)%str) // ',' // trim(s2_name(i2+1)%str) // ')'
       s2%type = atom%type
