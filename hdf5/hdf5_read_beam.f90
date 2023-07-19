@@ -1,5 +1,5 @@
 !+
-! Subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header, print_p0c_shift_warning, conserve_momentum)
+! Subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header, print_mom_shift_warning, conserve_momentum)
 !
 ! Routine to read a beam data file. 
 ! See also hdf5_write_beam.
@@ -14,14 +14,14 @@
 !                           Default is False.
 !   ele               -- ele_struct, optional: Element where beam is to be started from.
 !                           The element reference momentum will be used for the particle reference momentum.
-!   print_p0c_shift_warning   -- logical, optional: Default is True. Oly relavent if ele arg is present.
+!   print_mom_shift_warning   -- logical, optional: Default is True. Oly relavent if ele arg is present.
 !                                 Print warning if element p0c reference momentum
 !                                 is different from what is stored for the particles?
-!   shift_momentum            -- logical, optional: Default is True. Only relavent if ele arg is present.
-!                                 If True, the output particles will have the same actual momentum as the particles used
-!                                 to create the beam file. But phase space px, py, pz will differ if ele p0c is different 
-!                                 from the ref p0c stored in the file. If False, phase space px, py, pz will be the 
-!                                 same and the actual momentums can differ. See above.
+!   conserve_momentum         -- logical, optional: Default is False. Only relavent if ele arg is present and 
+!                                 ele ref p0c is different from the ref p0c stored in the file.
+!                                 If True and the ref p0c's differ, the output particles will have the same actual momentum 
+!                                 as the particles used to create the beam file but phase space px, py, pz will differ. 
+!                                 If False, phase space px, py, pz will be the same and the actual momentums can differ. See above.
 !                                   
 !
 ! Output:
@@ -30,7 +30,7 @@
 !   pmd_header        -- pmd_header_struct, optional: Extra info like file creation date.
 !-
 
-subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header, print_p0c_shift_warning, conserve_momentum)
+subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header, print_mom_shift_warning, conserve_momentum)
 
 use hdf5_openpmd_mod
 use bmad_interface, dummy => hdf5_read_beam
@@ -59,7 +59,7 @@ character(*) file_name
 character(*), parameter :: r_name = 'hdf5_read_beam'
 character(100) c_name, name, t_match, sub_dir
 
-logical, optional :: print_p0c_shift_warning, conserve_momentum
+logical, optional :: print_mom_shift_warning, conserve_momentum
 logical error, err
 
 ! Init
@@ -172,9 +172,8 @@ integer, allocatable :: charge_state(:)
 character(*) bunch_obj_name
 character(:), allocatable :: string
 character(100) g_name, a_name, name, c_name
-character(*), parameter :: r_name = 'hdf5_read_bunch'
 
-logical error
+logical error, momentum_warning_printed
 
 ! General note: There is no way to check names for misspellings since any name may just be an extension standard.
 
@@ -188,6 +187,7 @@ call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.);  if (erro
 allocate (dt(n), charge_state(n), tot_mom(n), mom_x_off(n), mom_y_off(n), mom_z_off(n))
 allocate (pos_x_off(n), pos_y_off(n), pos_z_off(n))
 
+momentum_warning_printed = .false.
 charge_factor = 0
 species = int_garbage$  ! Garbage number
 tot_mom = real_garbage$
@@ -371,14 +371,23 @@ do ip = 1, size(bunch%particle)
 
   select case (p%state)
   case (alive$)
-    if (abs(p0c_initial - p0c_final) > 1e-12 * p0c_final .and. logic_option(.true., print_p0c_shift_warning)) then
-      call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM OF PARTICLE IN BEAM FILE:  \es20.12\ ', &
-                                    'FROM FILE: ' // file_name, &
-                                    'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
-                                    'THIS WILL CAUSE A SHIFT IN PHASE SPACE pz = (P - P0)/P', &
-                                    r_array = [p0c_initial, p0c_final])
+    if (abs(p0c_initial - p0c_final) > 1e-12 * p0c_final .and. &
+            logic_option(.true., print_mom_shift_warning) .and. .not. momentum_warning_printed) then
+      if (logic_option(.false., conserve_momentum)) then
+        call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM OF PARTICLE IN BEAM FILE:  \es20.12\ ', &
+                                      'FROM FILE: ' // file_name, &
+                                      'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
+                                      'THIS WILL CAUSE A SHIFT IN PARTICLE''S MOMENTUM (BUT NOT PZ)', &
+                                      r_array = [p0c_initial, p0c_final])
+      else
+        call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM OF PARTICLE IN BEAM FILE:  \es20.12\ ', &
+                                      'FROM FILE: ' // file_name, &
+                                      'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
+                                      'THIS WILL CAUSE A SHIFT IN PARTICLE''S PHASE SPACE pz = (P - P0)/P (BUT NOT THE MOMENTUM)', &
+                                      r_array = [p0c_initial, p0c_final])
+      endif
     endif
-
+    momentum_warning_printed = .true.
   case (pre_born$)
     ! Nothing to be done
 
@@ -390,7 +399,7 @@ do ip = 1, size(bunch%particle)
 
   if (tot_mom(ip) == real_garbage$ .or. p0c_initial == 0) then 
     p%vec(6) = (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2) - p0c_final) / p0c_final
-  elseif (logic_option(.true., conserve_momentum)) then
+  elseif (logic_option(.false., conserve_momentum)) then
     p%vec(6) = (tot_mom(ip) + (p0c_initial - p0c_final)) / p0c_final
   else
     p%vec(6) = tot_mom(ip) / p0c_initial

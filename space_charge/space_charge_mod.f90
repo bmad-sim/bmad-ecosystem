@@ -482,7 +482,10 @@ particle_loop: do i = 1, size(bunch%particle)
     dt = t_target - p0%t
     ds = 1.01 * dt * c_light * p0%beta * p0%direction
     s_target = ds + p0%s
-    if (abs(ds) < 0.1_rp * bmad_com%significant_length) cycle particle_loop
+    if (abs(ds) < 0.1_rp * bmad_com%significant_length) then
+      bunch%particle(i)%time_dir = 1
+      cycle particle_loop
+    endif
     dt2 = track_func(s_target, status) 
     if (dt*dt2 <= 0) exit
     p0 = p
