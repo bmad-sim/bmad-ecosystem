@@ -10,14 +10,17 @@ use sim_utils
 use mode3_mod 
 use beam_mod
 use f95_lapack
+use, intrinsic :: iso_c_binding
 
 implicit none
+include 'fftw3.f03'
 
 integer, parameter :: master_rank$  = 0
 integer, parameter :: a_mode$ = 1
 integer, parameter :: b_mode$ = 2
 integer, parameter :: c_mode$ = 3
-integer, parameter :: angle_max$ = 1000
+real(rp), parameter :: J_tol$ = 1e-19
+!integer, parameter :: angle_max$ = 1000
 integer, private :: i_loop
 
 ! User settable parameters
@@ -25,12 +28,13 @@ integer, private :: i_loop
 type sodom2_params_struct
   character(40) :: ele_eval = ''
   character(200) :: lat_file = ''
-  character(200) :: output_file = 'sodom2.out' ! to store n_axes for inputted action/angles
-  integer :: mode = -1 ! mode to excite orbital motion
-  real(rp) :: J = -1
-  real(rp) :: angles_to_eval(angle_max$) = [(-10.0_rp, i_loop = 1, angle_max$)]
-  integer :: n_particle = -1
-  logical :: rf_on = .true.		! By default, RF is assumed on
+  character(200) :: particle_output_file = 'sodom2.out'
+  character(200) :: n_axis_output_file = 'n_axis.out' 
+  real(rp) :: J(3) = [-1, -1, -1] 
+  integer :: n_samples(3) = [1, 1, 1]
+  logical :: linear_tracking = .true.
+  logical :: add_closed_orbit_to_particle_output = .false.
+  logical :: write_as_beam_init = .true.
 end type
 
 ! Common vars
@@ -45,16 +49,18 @@ type sodom2_com_struct
   integer :: mpi_rank = master_rank$
   logical :: using_mpi = .false.
   character(200) :: master_input_file = ''
-  real(rp) :: Q_2pi(3)
+  real(rp) :: Q_2pi(3) = 0
   real(rp) :: ADST = 0
   real(rp) :: n_mat(6,6) = 0
-  complex(rp), allocatable :: U11(:)
-  complex(rp), allocatable :: U12(:)
-  complex(rp), allocatable :: U21(:)
-  complex(rp), allocatable :: U22(:)
+  integer :: n(3) = [1, 1, 1]			! n_samples in each plane
+  complex(rp), allocatable :: U11(:,:,:)
+  complex(rp), allocatable :: U12(:,:,:)
+  complex(rp), allocatable :: U21(:,:,:)
+  complex(rp), allocatable :: U22(:,:,:)
   complex(rp), allocatable :: M(:,:)
   complex(rp), allocatable :: eig_vec(:,:)
   complex(rp), allocatable :: eig_val(:)
+  type (coord_struct), allocatable :: closed_orb(:)
   integer :: idx_max_0 = 0		     ! Index of eigenvector with max |psi_0|
 end type
 
@@ -111,23 +117,38 @@ close (1)
 
 call bmad_parser (sodom2%lat_file, sodom2_com%lat)
 
-print *,'Mode = ', sodom2%mode
-
 ! Check:
-if (sodom2%J < 0) then
-  call out_io (s_fatal$, r_name, 'sodom2%J MUST BE GREATER THAN ZERO. STOPPING HERE.')
+if (sodom2%J(1) < 0 .and. sodom2%J(2) < 0 .and. sodom2%J(3) < 0) then
+  call out_io (s_fatal$, r_name, 'ATLEAST ONE sodom2%J MUST BE SPECIFIED. STOPPING HERE.')
   stop
 endif
 
-if (sodom2%mode < 0 .or. sodom2%mode > 3) then
-  call out_io (s_fatal$, r_name, 'sodom2%mode MUST BE 1, 2, OR 3. STOPPING HERE.')
-  stop
+if (sodom2%J(1) < 0) then
+  print *, 'sodom2%J(1) not specified. Assuming sodom2%J(1) = 0'
+  sodom2%J(1) = 0
 endif
 
-if (sodom2%n_particle < 1) then
-  call out_io (s_fatal$, r_name, 'sodom2%n_particle MUST BE GREATER THAN 1. STOPPING HERE.')
-  stop
+if (sodom2%J(2) < 0) then
+  print *, 'sodom2%J(2) not specified. Assuming sodom2%J(2) = 0'
+  sodom2%J(2) = 0
 endif
+
+if (sodom2%J(3) < 0) then
+  print *, 'sodom2%J(3) not specified. Assuming sodom2%J(3) = 0'
+  sodom2%J(3) = 0
+endif
+
+do i = 1,3
+  if (sodom2%n_samples(i) < 1) then
+    call out_io (s_fatal$, r_name, 'sodom2%n_samples MUST BE GREATER THAN 1. STOPPING HERE.')
+    stop
+  endif
+
+  if (mod(sodom2%n_samples(i),2) == 0) then
+    sodom2%n_samples(i) = sodom2%n_samples(i) + 1
+    print '(a,I0,a,I0)', ' Setting n_samples(',i,') = ', sodom2%n_samples(i)
+  endif
+enddo
 
 end subroutine sodom2_read_params
 
@@ -140,19 +161,16 @@ subroutine sodom2_init_params(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
 type (lat_struct) :: lat
-!type (branch_struct):: branch
 type (ele_pointer_struct), allocatable :: eles(:)
+integer N
 
 integer n_loc, i
 logical err
+logical :: J(3) = .false.
 
 lat = sodom2_com%lat
 bmad_com%auto_bookkeeper = .false.
 bmad_com%spin_tracking_on = .true.
-
-! Check if RF is on:
-! print '(2a)', 'Note: RF is always set ON for SODOM-2'
-! call set_on_off (rfcavity$, lat, on$)
 
 if (sodom2%ele_eval /= '') then
   call lat_ele_locator (sodom2%ele_eval, lat, eles, n_loc, err)
@@ -173,27 +191,47 @@ else
   sodom2_com%ix_ele_eval = lat%ele(0)%ix_ele
 endif
 
+if (sodom2%linear_tracking) then
 ! set tracking method for each element to linear$
-do i = 1, lat%branch(sodom2_com%ix_branch)%n_ele_track
-  call set_ele_attribute(lat%branch(sodom2_com%ix_branch)%ele(i), "tracking_method = linear", err, .true., .true.)! , .false.)
-enddo
+  do i = 1, lat%branch(sodom2_com%ix_branch)%n_ele_track
+    call set_ele_attribute(lat%branch(sodom2_com%ix_branch)%ele(i), "tracking_method = linear", err, .true., .true.)! , .false.)
+  enddo
+!else
+! set tracking method to Bmad standard
+!  do i = 1, lat%branch(sodom2_com%ix_branch)%n_ele_track
+!    call set_ele_attribute(lat%branch(sodom2_com%ix_branch)%ele(i), "tracking_method = bmad_standard", err, .true., .true.)! , .false.)
+!  enddo
+endif
 
 call lattice_bookkeeper(lat)
 
-call fullfilename (sodom2%output_file, sodom2%output_file)
+call fullfilename (sodom2%particle_output_file, sodom2%particle_output_file)
+call fullfilename (sodom2%n_axis_output_file, sodom2%n_axis_output_file)
+
+! Determine number of particles necessary + memory allocation:
+do i =1,3
+  if (sodom2%J(i) > J_tol$) then
+    J(i) = .true.
+    sodom2_com%n(i) = sodom2%n_samples(i)
+  endif
+enddo
+
+print '(a, 3l4)', ' Oscillating modes: ', [J(1), J(2), J(3)]
+
+N = sodom2_com%n(1)*sodom2_com%n(2)*sodom2_com%n(3)
 
 ! allocate SU2 quaternion discrete function
-allocate(sodom2_com%U11(sodom2%n_particle))
-allocate(sodom2_com%U12(sodom2%n_particle))
-allocate(sodom2_com%U21(sodom2%n_particle))
-allocate(sodom2_com%U22(sodom2%n_particle))
+allocate(sodom2_com%U11(sodom2_com%n(1),sodom2_com%n(2),sodom2_com%n(3)))
+allocate(sodom2_com%U12(sodom2_com%n(1),sodom2_com%n(2),sodom2_com%n(3)))
+allocate(sodom2_com%U21(sodom2_com%n(1),sodom2_com%n(2),sodom2_com%n(3)))
+allocate(sodom2_com%U22(sodom2_com%n(1),sodom2_com%n(2),sodom2_com%n(3)))
 
 ! allocate 2N x 2N matrix
-allocate(sodom2_com%M(2*sodom2%n_particle, 2*sodom2%n_particle))
+allocate(sodom2_com%M(2*N, 2*N))
 
 ! allocate eig vecs/vals
-allocate(sodom2_com%eig_vec(2*sodom2%n_particle, 2*sodom2%n_particle))
-allocate(sodom2_com%eig_val(2*sodom2%n_particle))
+allocate(sodom2_com%eig_vec(2*N,2*N))
+allocate(sodom2_com%eig_val(2*N))
 
 end subroutine sodom2_init_params
 
@@ -207,6 +245,7 @@ type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
 type (bunch_struct) :: bunch
 type (lat_struct) :: lat
+type (coord_struct) :: closed_orbit
 
 real(rp) m(6,6), vec0(6), vec(6)
 real(rp) :: jvec(6) = 0
@@ -215,7 +254,7 @@ real(rp) m_4(4,4)
 complex(rp) :: eig_val4(4) = 0
 complex(rp) :: eig_vec4(4,4) = 0
 
-real(rp) phi, J1, J2, PI
+real(rp) PI, J1_a, J1_b, J2_a, J2_b, J3_a, J3_b, phi1, phi2, phi3
 real(rp) :: spin1(3) = (/1, 0, 0/)
 real(rp) :: spin2(3) = (/0, 1, 0/)
 real(rp) :: spin3(3) = (/0, 0, 1/)
@@ -229,7 +268,7 @@ real(rp) :: c = 1.0_rp/sqrt(2.0_rp)
 real(rp) :: mat_test(4,4) = 0
 
 logical error, rf_on
-integer i
+integer i, j, k, N
 
 PI = acos(-1.0_rp)
 Qr2 = c*reshape((/ 1, 1, 0, 0 /), shape(Qr2))
@@ -241,10 +280,11 @@ Qi(1:2,1:2) = Qi2
 Qi(3:4,3:4) = Qi2
 Qi(5:6,5:6) = Qi2
 
-
+N = sodom2_com%n(1)*sodom2_com%n(2)*sodom2_com%n(3)
 lat = sodom2_com%lat
 ! allocate memory for bunch
-call reallocate_bunch(bunch, 3*sodom2%n_particle)
+call reallocate_bunch(bunch, 3*N)
+
 
 call transfer_matrix_calc (lat, m, ix1 = sodom2_com%ix_ele_eval, ix_branch = sodom2_com%ix_branch, one_turn = .true.) !, sodom2_com%ele_eval%ix_ele, sodom2_com%ele_eval%ix_branch, .true.)
 rf_on = rf_is_on(lat%branch(sodom2_com%ix_branch))
@@ -269,7 +309,7 @@ if (rf_on) then
   sodom2_com%n_mat = matmul(sodom2_com%n_mat, Rot3(MyTan(sodom2_com%n_mat(1,2), sodom2_com%n_mat(1,1)), MyTan(sodom2_com%n_mat(3,4), sodom2_com%n_mat(3,3)),  MyTan(sodom2_com%n_mat(5,6), sodom2_com%n_mat(5,5)) ))
 else
   print *, "RF is OFF"
-  if (sodom2%mode == 3) then
+  if (sodom2_com%n(3) /= 1) then
     print *, 'Cannot excite c-mode with RF off. Stopping here.'
     stop
   endif
@@ -290,24 +330,43 @@ else
   sodom2_com%n_mat(1:4,1:4) = matmul(sodom2_com%n_mat(1:4,1:4), Rot2(MyTan(sodom2_com%n_mat(1,2), sodom2_com%n_mat(1,1)), MyTan(sodom2_com%n_mat(3,4), sodom2_com%n_mat(3,3)) ))
 endif
 
+! Calc closed orbit:
+call closed_orbit_calc(lat, sodom2_com%closed_orb, ix_branch = sodom2_com%ix_branch, print_err = .true.)
+!call twiss_and_track (lat, sodom2_com%bmad_closed_orb, ix_branch = sodom2_com%ix_branch)
+!print '(a, 6es16.8)', 'Closed orbit: ', sodom2_com%bmad_closed_orb(sodom2_com%ix_ele_eval)%vec
 
+do i = 1, sodom2_com%n(1)
+  phi1 = (2.0_rp * PI * (i - 1)) / sodom2_com%n(1)
+  J1_a = sqrt(2*sodom2%J(1))*cos(phi1)
+  J1_b = -sqrt(2*sodom2%J(1))*sin(phi1)
+  jvec(1) = J1_a
+  jvec(2) = J1_b
 
-do i = 1, sodom2%n_particle
-  phi = (2d0 * PI * (i - 1)) / sodom2%n_particle
-  J1 = sqrt(2*sodom2%J)*cos(phi)
-  J2 = -sqrt(2*sodom2%J)*sin(phi)
-  jvec(2*sodom2%mode-1) = J1
-  jvec(2*sodom2%mode) = J2
+  do j =1, sodom2_com%n(2)
+    phi2 = (2.0_rp * PI * (j - 1)) / sodom2_com%n(2)
+    J2_a = sqrt(2*sodom2%J(2))*cos(phi2)
+    J2_b = -sqrt(2*sodom2%J(2))*sin(phi2)
+    jvec(3) = J2_a
+    jvec(4) = J2_b
 
-  vec = matmul(sodom2_com%n_mat, jvec)
+    do k =1, sodom2_com%n(3)
+      phi3 = (2.0_rp * PI * (k - 1)) / sodom2_com%n(3)
+      J3_a = sqrt(2*sodom2%J(3))*cos(phi3)
+      J3_b = -sqrt(2*sodom2%J(3))*sin(phi3)
+      jvec(5) = J3_a
+      jvec(6) = J3_b
+
+      vec = matmul(sodom2_com%n_mat, jvec)
+      vec = vec + sodom2_com%closed_orb(sodom2_com%ix_ele_eval)%vec
  
-
-  ! initialize 3 particles w/ orthogonal spins
-  call init_coord(bunch%particle(3*i-2), vec, sodom2_com%lat%ele(sodom2_com%ix_ele_eval), downstream_end$, sodom2_com%lat%param%particle, 1, spin = spin1)
-  call init_coord(bunch%particle(3*i-1), vec, sodom2_com%lat%ele(sodom2_com%ix_ele_eval), downstream_end$, sodom2_com%lat%param%particle, 1, spin = spin2)
-  call init_coord(bunch%particle(3*i), vec, sodom2_com%lat%ele(sodom2_com%ix_ele_eval), downstream_end$, sodom2_com%lat%param%particle, 1, spin = spin3)
+      ! initialize 3 particles w/ orthogonal spins
+      call init_coord(bunch%particle(3*(k + (j-1)*sodom2_com%n(3) + (i-1)*sodom2_com%n(2)*sodom2_com%n(3))-2), vec, sodom2_com%lat%ele(sodom2_com%ix_ele_eval), downstream_end$, sodom2_com%lat%param%particle, 1, spin = spin1)
+      call init_coord(bunch%particle(3*(k + (j-1)*sodom2_com%n(3) + (i-1)*sodom2_com%n(2)*sodom2_com%n(3))-1), vec, sodom2_com%lat%ele(sodom2_com%ix_ele_eval), downstream_end$, sodom2_com%lat%param%particle, 1, spin = spin2)
+      call init_coord(bunch%particle(3*(k + (j-1)*sodom2_com%n(3) + (i-1)*sodom2_com%n(2)*sodom2_com%n(3))), vec, sodom2_com%lat%ele(sodom2_com%ix_ele_eval), downstream_end$, sodom2_com%lat%param%particle, 1, spin = spin3)
+    enddo
+  enddo
 enddo
-
+!call reallocate_coord(closed_orbit,0)
 sodom2_com%bunch = bunch
 
 contains
@@ -383,19 +442,23 @@ type (sodom2_com_struct), target :: sodom2_com
 complex(rp) U(2,2)
 
 real(rp) R(3,3), q(0:3)
-integer i
+integer i,j,k
 
-do i = 1, sodom2%n_particle
-  R(:,1) = sodom2_com%bunch%particle(3*i-2)%spin
-  R(:,2) = sodom2_com%bunch%particle(3*i-1)%spin
-  R(:,3) = sodom2_com%bunch%particle(3*i)%spin
+do i = 1, sodom2_com%n(1)
+  do j =1, sodom2_com%n(2)
+    do k =1, sodom2_com%n(3)
+      R(:,1) = sodom2_com%bunch%particle(3*(k + (j-1)*sodom2_com%n(3) + (i-1)*sodom2_com%n(2)*sodom2_com%n(3))-2)%spin
+      R(:,2) = sodom2_com%bunch%particle(3*(k + (j-1)*sodom2_com%n(3) + (i-1)*sodom2_com%n(2)*sodom2_com%n(3))-1)%spin
+      R(:,3) = sodom2_com%bunch%particle(3*(k + (j-1)*sodom2_com%n(3) + (i-1)*sodom2_com%n(2)*sodom2_com%n(3)))%spin
 
-  q = w_mat_to_quat(R)
-  call quat_to_SU2(q,U)
-  sodom2_com%U11(i) = U(1,1)
-  sodom2_com%U12(i) = U(1,2)
-  sodom2_com%U21(i) = U(2,1)
-  sodom2_com%U22(i) = U(2,2)
+      q = w_mat_to_quat(R)
+      call quat_to_SU2(q,U)
+      sodom2_com%U11(i,j,k) = U(1,1)
+      sodom2_com%U12(i,j,k) = U(1,2)
+      sodom2_com%U21(i,j,k) = U(2,1)
+      sodom2_com%U22(i,j,k) = U(2,2)
+    enddo
+  enddo
 enddo
 
 
@@ -405,40 +468,82 @@ end subroutine sodom2_construct_quaternions
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
+subroutine sodom2_fft(arr)
+integer(8) plan
+complex(rp) arr(:,:,:)
+call dfftw_plan_dft_3d(plan,size(arr,1), size(arr,2), size(arr,3), arr, arr, FFTW_FORWARD, FFTW_ESTIMATE)
+call dfftw_execute_dft(plan, arr, arr)
+call dfftw_destroy_plan(plan)
+
+end subroutine sodom2_fft
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
 subroutine sodom2_construct_mat(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
 
-integer j, k, n, idx
-
+integer i, j1, j2, j3, k1, k2, k3, idx,  row_idx, col_idx, N, n1, n2, n3, idx1, idx2, idx3
 logical err_flag
+real(rp) jdotQ_2pi
 
-call fft_1d(sodom2_com%U11, -1)
-call fft_1d(sodom2_com%U12, -1)
-call fft_1d(sodom2_com%U21, -1)
-call fft_1d(sodom2_com%U22, -1)
+n1 = sodom2_com%n(1)
+n2 = sodom2_com%n(2)
+n3 = sodom2_com%n(3)
+
+call sodom2_fft(sodom2_com%U11)
+call sodom2_fft(sodom2_com%U12)
+call sodom2_fft(sodom2_com%U21)
+call sodom2_fft(sodom2_com%U22)
 
 ! center harmonics around 0:
-sodom2_com%U11 = cshift(sodom2_com%U11, -(sodom2%n_particle-1)/2)/sodom2%n_particle
-sodom2_com%U21 = cshift(sodom2_com%U21, -(sodom2%n_particle-1)/2)/sodom2%n_particle
-sodom2_com%U12 = cshift(sodom2_com%U12, -(sodom2%n_particle-1)/2)/sodom2%n_particle
-sodom2_com%U22 = cshift(sodom2_com%U22, -(sodom2%n_particle-1)/2)/sodom2%n_particle
+do i = 1, 3
+  sodom2_com%U11 = cshift(sodom2_com%U11, -(sodom2_com%n(i)-1)/2, i)
+  sodom2_com%U21 = cshift(sodom2_com%U21, -(sodom2_com%n(i)-1)/2, i)
+  sodom2_com%U12 = cshift(sodom2_com%U12, -(sodom2_com%n(i)-1)/2, i)
+  sodom2_com%U22 = cshift(sodom2_com%U22, -(sodom2_com%n(i)-1)/2, i)
+enddo
 
-do j = -(sodom2%n_particle - 1)/2, (sodom2%n_particle - 1)/2 
-  do k = -(sodom2%n_particle - 1)/2, (sodom2%n_particle - 1)/2 
-    
-    ! enforce circular indexing of harmonics
-    idx = modulo((j-k)+(sodom2%n_particle-1)/2, sodom2%n_particle)+1
-    !M(2*j+n_particles:2*j+n_particles+1,2*k+n_particles:2*k+n_particles+1) = exp(-1i*2*pi*j*Q)*A(j-k);
-    if (idx == 0) then
-      print *, 'j = ', j, ', k = ', k
-    endif
-    sodom2_com%M(2*j+sodom2%n_particle,2*k+sodom2%n_particle) = exp(-(0,1)*j*sodom2_com%Q_2pi(sodom2%mode))*sodom2_com%U11(idx)
-    sodom2_com%M(2*j+sodom2%n_particle,2*k+sodom2%n_particle+1) = exp(-(0,1)*j*sodom2_com%Q_2pi(sodom2%mode))*sodom2_com%U12(idx)
-    sodom2_com%M(2*j+sodom2%n_particle+1,2*k+sodom2%n_particle) = exp(-(0,1)*j*sodom2_com%Q_2pi(sodom2%mode))*sodom2_com%U21(idx)
-    sodom2_com%M(2*j+sodom2%n_particle+1,2*k+sodom2%n_particle+1) = exp(-(0,1)*j*sodom2_com%Q_2pi(sodom2%mode))*sodom2_com%U22(idx)
+N = n1*n2*n3
+
+sodom2_com%U11 = sodom2_com%U11/N
+sodom2_com%U21 = sodom2_com%U21/N
+sodom2_com%U12 = sodom2_com%U12/N
+sodom2_com%U22 = sodom2_com%U22/N
+
+
+do j1 = -(n1 - 1)/2, (n1 - 1)/2 
+  do j2 = -(n2 - 1)/2, (n2 - 1)/2
+    do j3 = -(n3 - 1)/2, (n3 - 1)/2
+      do k1 = -(n1 - 1)/2, (n1 - 1)/2
+        do k2 = -(n2 - 1)/2, (n2 - 1)/2
+          do k3 = -(n3 - 1)/2, (n3 - 1)/2
+
+            ! enforce circular indexing of harmonics
+            idx1 = modulo((j1-k1)+(n1-1)/2, n1)+1
+	    idx2 = modulo((j2-k2)+(n2-1)/2, n2)+1
+	    idx3 = modulo((j3-k3)+(n3-1)/2, n3)+1
+   	    
+ 	    ! Each row_idx, col_idx correspond to a 2x2 SU(2) matrix
+	    row_idx = (j3 + (n3-1)/2 + 1) + (j2 + (n2-1)/2)*n3 + (j1 + (n1-1)/2)*n3*n2 
+	    col_idx = (k3 + (n3-1)/2 + 1) + (k2 + (n2-1)/2)*n3 + (k1 + (n1-1)/2)*n3*n2 
+
+	    jdotQ_2pi = j1*sodom2_com%Q_2pi(1)+j2*sodom2_com%Q_2pi(2)+j3*sodom2_com%Q_2pi(3)
+
+	    sodom2_com%M(2*row_idx - 1, 2*col_idx - 1) = exp(-(0,1)*jdotQ_2pi)*sodom2_com%U11(idx1,idx2,idx3)
+	    sodom2_com%M(2*row_idx - 1, 2*col_idx    ) = exp(-(0,1)*jdotQ_2pi)*sodom2_com%U12(idx1,idx2,idx3)
+	    sodom2_com%M(2*row_idx    , 2*col_idx - 1) = exp(-(0,1)*jdotQ_2pi)*sodom2_com%U21(idx1,idx2,idx3)
+	    sodom2_com%M(2*row_idx    , 2*col_idx    ) = exp(-(0,1)*jdotQ_2pi)*sodom2_com%U22(idx1,idx2,idx3)
+          enddo
+        enddo
+      enddo
+    enddo
   enddo
 enddo
+
+
 
 end subroutine sodom2_construct_mat
 
@@ -458,6 +563,7 @@ deallocate(sodom2_com%M)
 deallocate(sodom2_com%eig_vec)
 deallocate(sodom2_com%eig_val)
 call reallocate_bunch(sodom2_com%bunch, 0)
+call reallocate_coord(sodom2_com%closed_orb, 0)
 
 end subroutine sodom2_deallocate_memory
 
@@ -465,13 +571,12 @@ end subroutine sodom2_deallocate_memory
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine sodom2_eig(sodom2_com)
+subroutine sodom2_eig(sodom2, sodom2_com)
+type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
 
-logical err
-
 call la_geev(sodom2_com%M, sodom2_com%eig_val, VL = sodom2_com%eig_vec) !, err, .true.)
-
+call sodom2_determine_ADST(sodom2_com)
 
 end subroutine sodom2_eig
 
@@ -479,121 +584,176 @@ end subroutine sodom2_eig
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine sodom2_calc_ADST(sodom2, sodom2_com)
-type (sodom2_params_struct), target :: sodom2
+subroutine sodom2_determine_ADST(sodom2_com)
 type (sodom2_com_struct), target :: sodom2_com
-integer j, n_particle, max_idx
-real(rp) :: PI
+integer j, max_idx, N
+real(rp) PI
 real(rp), parameter::inv_pi = 1.0_rp / acos(-1.0_rp)
+
+N = sodom2_com%n(1)*sodom2_com%n(2)*sodom2_com%n(3)
 
 PI = acos(-1.0_rp)
 
-n_particle = sodom2%n_particle
-
 ! determine eigenvector with largest |psi_0|
 max_idx = 1
-do j = 1, 2*n_particle
-    if (real(sodom2_com%eig_vec(n_particle,j)*conjg(sodom2_com%eig_vec(n_particle,j))) > real(sodom2_com%eig_vec(n_particle, max_idx)*conjg(sodom2_com%eig_vec(n_particle, max_idx)))) then
+do j = 1, 2*N
+    if (real(sodom2_com%eig_vec(N,j)*conjg(sodom2_com%eig_vec(N,j))) > real(sodom2_com%eig_vec(N, max_idx)*conjg(sodom2_com%eig_vec(N, max_idx)))) then
         max_idx = j
     endif
 enddo
 
 sodom2_com%idx_max_0 = max_idx
 sodom2_com%ADST = real(log(sodom2_com%eig_val(max_idx))*(0.0_rp, inv_pi))
-print *,'ADST = ', sodom2_com%ADST
 
-end subroutine sodom2_calc_ADST
+end subroutine sodom2_determine_ADST
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine sodom2_write(sodom2, sodom2_com)
+subroutine sodom2_write_n(sodom2, sodom2_com)
+type (sodom2_params_struct), target :: sodom2
+type (sodom2_com_struct), target :: sodom2_com
+complex(rp) :: psi_n(2)
+real(rp) :: n_axis(3)
+real(rp) PI
+integer iu, j1, j2, j3, n1, n2, n3, row_idx
+
+n1 = sodom2_com%n(1)
+n2 = sodom2_com%n(2)
+n3 = sodom2_com%n(3)
+
+PI = acos(-1.0_rp)
+
+iu = lunget()
+
+open (iu, file = sodom2%n_axis_output_file, recl = 300)
+write (iu,  '(3a)')     	'# lat_file                            	= ', sodom2%lat_file !quote(sodom2_com%lat)
+write (iu, '(a, a)')   		'# ele_eval                   		= ', sodom2%ele_eval
+write (iu,  '(a, 3i8)')  	'# n_samples                         	= ', sodom2%n_samples
+write (iu,  '(a, 8es16.8)')  	'# J                          		= ', sodom2%J
+write (iu,  '(a)') 	'# -----------------------------------------------------------'
+write (iu,  '(a, 8es16.8)') 	'# Orbital Tunes                  	= ', sodom2_com%Q_2pi/(2.0_rp*PI)
+write (iu,  '(a)') 	'# -----------------------------------------------------------'
+write (iu,  '(a, 8es16.8)') 	'# ADST                        		= ', sodom2_com%ADST
+write (iu,  '(a)') 	'# -----------------------------------------------------------'
+write (iu, '(a)')  '##    j1      j2      j3  |      Psi_n1                          Psi_n2'
+write (iu, '(a)')  '##  		          |         Re             Im               Re             Im'
+do j1 = -(n1 - 1)/2, (n1 - 1)/2 
+  do j2 = -(n2 - 1)/2, (n2 - 1)/2
+    do j3 = -(n3 - 1)/2, (n3 - 1)/2
+      row_idx = (j3 + (n3-1)/2 + 1) + (j2 + (n2-1)/2)*n3 + (j1 + (n1-1)/2)*n3*n2 
+      psi_n = sodom2_com%eig_vec(2*row_idx-1:2*row_idx, sodom2_com%idx_max_0)
+      write (iu, '(3i8, 3x, 4es16.8)') j1, j2, j3, real(psi_n(1)), aimag(psi_n(1)), real(psi_n(2)), aimag(psi_n(2))
+    enddo
+  enddo
+enddo
+
+close(iu)
+
+end subroutine sodom2_write_n
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine sodom2_write_particles(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
 complex(rp) sigma_1(2,2), sigma_2(2,2), sigma_3(2,2)
 complex(rp) :: psi_n(2)
 real(rp) :: n_axis(3)
-integer iu, i
-integer j
+integer iu, i1, i2, i3, j1, j2, j3, N, n1, n2, n3, row_idx
 integer :: ia = 1
-real(rp) phi, J1, J2
+real(rp) J1_a, J1_b, J2_a, J2_b, J3_a, J3_b, phi1, phi2, phi3, jdotphi
 real(rp) :: jvec(6) = 0
+real(rp) :: vec(6) = 0
 
 
 sigma_1 = reshape((/ (0,0), (1,0), (1,0), (0,0) /), shape(sigma_1))
 sigma_2 = reshape((/ (0,0), (0,1), (0,-1), (0,0) /), shape(sigma_2))
 sigma_3 = reshape((/ (1,0), (0,0), (0,0), (-1,0) /), shape(sigma_3))
+n1 = sodom2_com%n(1)
+n2 = sodom2_com%n(2)
+n3 = sodom2_com%n(3)
 
 iu = lunget()
-
-open (iu, file = sodom2%output_file, recl = 300)
-write (iu,  '(3a)')     	'# lat_file                            	= ', sodom2%lat_file !quote(sodom2_com%lat)
-write (iu, '(a, a)')   		'# ele_eval                   		= ', sodom2%ele_eval
-write (iu,  '(a, i8)')  	'# n_particle                          	= ', sodom2%n_particle
-write (iu,  '(a, i8)')  	'# mode                          	= ', sodom2%mode
-write (iu,  '(a, 8es16.8)')  	'# J                          		= ', sodom2%J
-write (iu,  '(a)') 	'# -----------------------------------------------------------'
-write (iu,  '(a, 8es16.8)') 	'# ADST                        		= ', sodom2_com%ADST
-write (iu,  '(a)') 	'# -----------------------------------------------------------'
-write (iu, '(a)')  '## phi [rad]	 |          x              px               y              py               z              pz        |         nx              ny              nz'
-
-! if no angles_to_eval given, just write the ISF for each particle used in tracking:
-if (sodom2%angles_to_eval(1) == -10) then
-  do i = 1, sodom2%n_particle
-    jvec = 0.0
-    phi = (2d0 * PI * (i - 1)) / sodom2%n_particle
-    J1 = sqrt(2*sodom2%J)*cos(phi)
-    J2 = -sqrt(2*sodom2%J)*sin(phi)
-    jvec(2*sodom2%mode-1) = J1
-    jvec(2*sodom2%mode) = J2
-
-    jvec = matmul(sodom2_com%n_mat, jvec)
-    psi_n = (/ (0,0), (0,0) /)
-    do j = -(sodom2%n_particle-1)/2, (sodom2%n_particle-1)/2
-      psi_n = psi_n + sodom2_com%eig_vec(2*j+sodom2%n_particle:2*j+sodom2%n_particle+1, sodom2_com%idx_max_0)*exp((0,1)*j*phi);
-    enddo
-  
-    n_axis(1) = dot_product(psi_n, matmul(sigma_1, psi_n))
-    n_axis(2) = dot_product(psi_n, matmul(sigma_2, psi_n))
-    n_axis(3) = dot_product(psi_n, matmul(sigma_3, psi_n))
-    n_axis(1:3) = n_axis(1:3)/norm2(n_axis(1:3))
-
-
-    write (iu, '(1es16.8, 3x, 6es16.8, 3x, 3es16.8)') phi, jvec, n_axis(1), n_axis(2), n_axis(3)
-    ia = ia + 1
- enddo
+open (iu, file = sodom2%particle_output_file, recl = 300)
+if (sodom2%write_as_beam_init) then
+  write (iu,  '(i0)') sodom2_com%ix_ele_eval
+  write (iu,  '(i0)') 1
+  write (iu,  '(i0)') n1*n2*n3
+  write (iu,  '(a)') 'BEGIN_BUNCH'
+  write (iu,  '(2x, a)')  species_name(sodom2_com%lat%param%particle)
+  write (iu,  '(2x, a)')  '0.0'
+  write (iu,  '(2x, a)')  '0.0'
+  write (iu,  '(2x, a)')  '0.0'
 else
-  do while(sodom2%angles_to_eval(ia) /= -10 .and. ia <= angle_max$)
-    jvec = 0.0
-    phi = sodom2%angles_to_eval(ia)
-    J1 = sqrt(2*sodom2%J)*cos(phi)
-    J2 = -sqrt(2*sodom2%J)*sin(phi)
-    jvec(2*sodom2%mode-1) = J1
-    jvec(2*sodom2%mode) = J2
-
-    jvec = matmul(sodom2_com%n_mat, jvec)
-
-    psi_n = (/ (0,0), (0,0) /)
-    do j = -(sodom2%n_particle-1)/2, (sodom2%n_particle-1)/2
-      psi_n = psi_n + sodom2_com%eig_vec(2*j+sodom2%n_particle:2*j+sodom2%n_particle+1, sodom2_com%idx_max_0)*exp((0,1)*j*phi);
-    enddo
-  
-    n_axis(1) = dot_product(psi_n, matmul(sigma_1, psi_n))
-    n_axis(2) = dot_product(psi_n, matmul(sigma_2, psi_n))
-    n_axis(3) = dot_product(psi_n, matmul(sigma_3, psi_n))
-    n_axis(1:3) = n_axis(1:3)/norm2(n_axis(1:3))
-
-
-    write (iu, '(1es16.8, 3x, 6es16.8, 3x, 3es16.8)') phi, jvec, n_axis(1), n_axis(2), n_axis(3)
-    ia = ia + 1
-  enddo
+  write (iu,  '(3a)')     	'# lat_file                            	= ', sodom2%lat_file !quote(sodom2_com%lat)
+  write (iu, '(a, a)')   		'# ele_eval                   		= ', sodom2%ele_eval
+  write (iu,  '(a, 3i8)')  	'# n_samples                         	= ', sodom2%n_samples
+  write (iu,  '(a, 8es16.8)')  	'# J                          		= ', sodom2%J
+  write (iu,  '(a)') 	'# -----------------------------------------------------------'
+  write (iu,  '(a, 8es16.8)') 	'# ADST                        		= ', sodom2_com%ADST
+  write (iu,  '(a)') 	'# -----------------------------------------------------------'
+  write (iu, '(a)')  '## phi_1          phi_2          phi_3          |          x              px               y              py               z              pz        |         nx              ny              nz'
 endif
 
+do i1 = 1, n1
+  phi1 = (2.0_rp * PI * (i1 - 1)) / n1
+  J1_a = sqrt(2*sodom2%J(1))*cos(phi1)
+  J1_b = -sqrt(2*sodom2%J(1))*sin(phi1)
+  jvec(1) = J1_a
+  jvec(2) = J1_b
 
+  do i2 =1, n2
+    phi2 = (2.0_rp * PI * (i2 - 1)) / n2
+    J2_a = sqrt(2*sodom2%J(2))*cos(phi2)
+    J2_b = -sqrt(2*sodom2%J(2))*sin(phi2)
+    jvec(3) = J2_a
+    jvec(4) = J2_b
 
+    do i3 =1, n3
+      phi3 = (2.0_rp * PI * (i3 - 1)) / n3
+      J3_a = sqrt(2*sodom2%J(3))*cos(phi3)
+      J3_b = -sqrt(2*sodom2%J(3))*sin(phi3)
+      jvec(5) = J3_a
+      jvec(6) = J3_b
+
+      vec = matmul(sodom2_com%n_mat, jvec)
+      if (sodom2%add_closed_orbit_to_particle_output) then
+        vec = vec + sodom2_com%closed_orb(sodom2_com%ix_ele_eval)%vec
+      endif
+
+      psi_n = (/ (0,0), (0,0) /)
+      do j1 = -(n1-1)/2, (n1-1)/2
+        do j2 = -(n2-1)/2, (n2-1)/2
+          do j3 = -(n3-1)/2, (n3-1)/2
+	    jdotphi = phi1*j1+phi2*j2+phi3*j3
+	    row_idx = (j3 + (n3-1)/2 + 1) + (j2 + (n2-1)/2)*n3 + (j1 + (n1-1)/2)*n3*n2 
+            psi_n = psi_n + sodom2_com%eig_vec(2*row_idx-1:2*row_idx, sodom2_com%idx_max_0)*exp((0,1)*jdotphi);
+          enddo
+        enddo
+      enddo
+  
+      n_axis(1) = dot_product(psi_n, matmul(sigma_1, psi_n))
+      n_axis(2) = dot_product(psi_n, matmul(sigma_2, psi_n))
+      n_axis(3) = dot_product(psi_n, matmul(sigma_3, psi_n))
+      n_axis(1:3) = n_axis(1:3)/norm2(n_axis(1:3))
+
+      if (sodom2%write_as_beam_init) then
+        write (iu, '(6es16.8, 3x, i0, 3x, i0, 3x, 3es16.8)') vec, 0, 1, n_axis(1), n_axis(2), n_axis(3)
+      else
+        write (iu, '(3es16.8, 3x, 6es16.8, 3x, 3es16.8)') phi1, phi2, phi3, vec, n_axis(1), n_axis(2), n_axis(3)
+      endif
+    enddo
+  enddo
+enddo
+if (sodom2%write_as_beam_init) then
+  write (iu, '(a)') 'END_BUNCH'
+endif
 close(iu)
 
-end subroutine sodom2_write
+end subroutine sodom2_write_particles
 
 end module
