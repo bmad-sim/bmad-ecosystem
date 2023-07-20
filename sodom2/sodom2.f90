@@ -20,17 +20,20 @@ print *, 'Initializing bunch...'
 call sodom2_init_bunch(sodom, sodom2_com)
 print *, 'Tracking 1-turn...'
 call sodom2_track_bunch(sodom, sodom2_com)
-print *,  'Tracking complete. Calculating ADST and n-axis...'
+print *,  'Tracking complete. Constructing matrix of Fourier components...'
 call sodom2_construct_quaternions(sodom, sodom2_com)
 
 call sodom2_construct_mat(sodom, sodom2_com)
+print *, "Matrix constructed. Solving eigensystem to obtain n-axis and ADST..."
 
-call sodom2_eig(sodom2_com)
+call sodom2_eig(sodom, sodom2_com)
+print *,'ADST = ', sodom2_com%ADST
 
-call sodom2_calc_ADST(sodom, sodom2_com)
+!call sodom2_calc_ADST(sodom, sodom2_com)
 
-print *,  'Writing n-axis output to file...'
-call sodom2_write(sodom, sodom2_com)
+print *,  'Writing n-axis to file...'
+call sodom2_write_n(sodom, sodom2_com)
+call sodom2_write_particles(sodom, sodom2_com)
 call run_timer ('READ', del_time)
 print *, 'Total time = ' // real_str(del_time/60, 4, 2)
 
