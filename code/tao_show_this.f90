@@ -284,7 +284,7 @@ case ('beam')
 
   ele_name = ''
   what_to_show = ''
-  z = -1
+  zb = -1
 
   do 
     call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb', '-z'], .true., switch, err, ix_s2)
