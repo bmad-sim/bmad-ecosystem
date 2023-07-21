@@ -34,7 +34,8 @@ type sodom2_params_struct
   integer :: n_samples(3) = [1, 1, 1]
   logical :: linear_tracking = .true.
   logical :: add_closed_orbit_to_particle_output = .false.
-  logical :: write_as_beam_init = .true.
+  logical :: write_as_beam_init = .false.
+  logical :: print_n_mat = .false.
 end type
 
 ! Common vars
@@ -264,6 +265,8 @@ real(rp) :: Qr(6,6) = 0
 real(rp) :: Qr2(2,2) = 0
 real(rp) :: Qi(6,6) = 0
 real(rp) :: Qi2(2,2) = 0
+complex(rp) :: Q2(2,2) = 0
+complex(rp) :: Q(6,6) = 0
 real(rp) :: c = 1.0_rp/sqrt(2.0_rp)
 real(rp) :: mat_test(4,4) = 0
 
@@ -280,6 +283,12 @@ Qi(1:2,1:2) = Qi2
 Qi(3:4,3:4) = Qi2
 Qi(5:6,5:6) = Qi2
 
+Q2 = c*reshape([(1,0),(1,0),(0,1),(0,-1)], shape(Q2))
+Q(1:2,1:2) = Q2
+Q(3:4,3:4) = Q2
+Q(5:6,5:6) = Q2
+
+
 N = sodom2_com%n(1)*sodom2_com%n(2)*sodom2_com%n(3)
 lat = sodom2_com%lat
 ! allocate memory for bunch
@@ -292,21 +301,28 @@ rf_on = rf_is_on(lat%branch(sodom2_com%ix_branch))
 if (rf_on) then
   print *, "RF is ON"
   call mat_eigen(m, eig_val, eig_vec, error, .false.)
+  !call make_N(m, sodom2_com%n_mat, error)
   if (error) then
     print *, 'Cannot compute 1-turn matrix eigen vectors. Stopping here.'
     stop
   endif
-
   ! mat_eigen uses 1,3,5 for tunes:
   sodom2_com%Q_2pi(1) = real(log(eig_val(1))*(0.0_rp, 1.0_rp))
   sodom2_com%Q_2pi(2) = real(log(eig_val(3))*(0.0_rp, 1.0_rp))
   sodom2_com%Q_2pi(3) = real(log(eig_val(5))*(0.0_rp, 1.0_rp))
 
   eig_vec = transpose(eig_vec)
-  sodom2_com%n_mat = matmul(real(eig_vec), Qr) - matmul(aimag(eig_vec), Qi)
+  !sodom2_com%n_mat = matmul(real(eig_vec), Qr) - matmul(aimag(eig_vec), Qi)
+  sodom2_com%n_mat = matmul(eig_vec,Q) !matmul(real(eig_vec), Qr) - matmul(aimag(eig_vec), Qi)
+  if (sodom2%print_n_mat) then
+    print *, ' N matrix for transformation from action-angle variables (X = NJ):'
+    do i = 1, 6
+      print '(6es16.8)', sodom2_com%n_mat(i,1), sodom2_com%n_mat(i,2), sodom2_com%n_mat(i,3), sodom2_com%n_mat(i,4), sodom2_com%n_mat(i,5), sodom2_com%n_mat(i,6)
+    enddo
+  endif
  
   ! Apply rotation matrix to make N12, N34, N56 equal to 0:
-  sodom2_com%n_mat = matmul(sodom2_com%n_mat, Rot3(MyTan(sodom2_com%n_mat(1,2), sodom2_com%n_mat(1,1)), MyTan(sodom2_com%n_mat(3,4), sodom2_com%n_mat(3,3)),  MyTan(sodom2_com%n_mat(5,6), sodom2_com%n_mat(5,5)) ))
+  !sodom2_com%n_mat = matmul(sodom2_com%n_mat, Rot3(MyTan(sodom2_com%n_mat(1,2), sodom2_com%n_mat(1,1)), MyTan(sodom2_com%n_mat(3,4), sodom2_com%n_mat(3,3)),  MyTan(sodom2_com%n_mat(5,6), sodom2_com%n_mat(5,5)) ))
 else
   print *, "RF is OFF"
   if (sodom2_com%n(3) /= 1) then
@@ -324,10 +340,15 @@ else
   sodom2_com%Q_2pi(2) = real(log(eig_val4(3))*(0.0_rp, 1.0_rp))
   
   eig_vec4 = transpose(eig_vec4)
-  sodom2_com%n_mat(1:4,1:4) = matmul(real(eig_vec4), Qr(1:4,1:4)) - matmul(aimag(eig_vec4), Qi(1:4,1:4))
-  
+  sodom2_com%n_mat(1:4,1:4) = matmul(eig_vec4, Q(1:4,1:4)) !real(eig_vec4), Qr(1:4,1:4)) - matmul(aimag(eig_vec4), Qi(1:4,1:4))
+  if (sodom2%print_n_mat) then
+    print *, 'N matrix for transformation from action-angle variables (X = NJ):'
+    do i = 1, 4
+      print '(4es16.8)', sodom2_com%n_mat(i,1), sodom2_com%n_mat(i,2), sodom2_com%n_mat(i,3), sodom2_com%n_mat(i,4)
+    enddo
+  endif
   ! Apply rotation matrix to make N12, N34 equal to 0:
-  sodom2_com%n_mat(1:4,1:4) = matmul(sodom2_com%n_mat(1:4,1:4), Rot2(MyTan(sodom2_com%n_mat(1,2), sodom2_com%n_mat(1,1)), MyTan(sodom2_com%n_mat(3,4), sodom2_com%n_mat(3,3)) ))
+  !sodom2_com%n_mat(1:4,1:4) = matmul(sodom2_com%n_mat(1:4,1:4), Rot2(MyTan(sodom2_com%n_mat(1,2), sodom2_com%n_mat(1,1)), MyTan(sodom2_com%n_mat(3,4), sodom2_com%n_mat(3,3)) ))
 endif
 
 ! Calc closed orbit:
