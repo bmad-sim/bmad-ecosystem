@@ -584,11 +584,12 @@ subroutine convert_bend_exact_multipole (g, out_type, an, bn)
 end subroutine
 
 recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
-                             param, include_upstream_end, include_downstream_end, err_flag, old_slice)
+                       param, include_upstream_end, include_downstream_end, err_flag, old_slice, orb_in)
   import
   implicit none
   type (ele_struct), target :: sliced_ele, ele_in
   type (ele_struct), optional :: old_slice
+  type (coord_struct), optional :: orb_in
   type (lat_param_struct) param
   real(rp) l_slice, offset
   logical include_upstream_end, include_downstream_end, err_flag

@@ -132,7 +132,8 @@ if (.not. associated(ele_p)) then
   if (do_upstream .and. do_downstream) then
     ele_p => ele
   else
-    call create_element_slice (runt, ele, dlength, min(l_start, l_end), param, do_upstream, do_downstream, err_flag, ele_start)
+    call create_element_slice (runt, ele, dlength, min(l_start, l_end), param, &
+                              do_upstream, do_downstream, err_flag, ele_start, orb_in = orbit_start)
     if (err_flag) then
       if (present(orbit_end)) orbit_end%state = lost$
       return
