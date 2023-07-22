@@ -50,26 +50,26 @@ possible
 \centering {\tt
 \begin{tabular}{ll|ll} \toprule
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
-  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
-  call          & \sref{s:call}     & read          & \sref{s:read}     \\
-  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
-  clear         & \sref{s:clear}    & restore       & \sref{s:restore}  \\ 
-  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
-  cut_ring      & \sref{s:cut.ring} & scale         & \sref{s:scale}    \\ 
-  continue      & \sref{s:continue} & set           & \sref{s:set}      \\  
-  derivative    & \sref{s:deriv}    & show          & \sref{s:show}     \\ 
-  do, enddo     & \sref{s:do}       & single_mode   & \sref{s:sing}     \\ 
-  end_file      & \sref{s:end.file} & spawn         & \sref{s:spawn}    \\ 
-  exit          & \sref{s:exit}     & taper         & \sref{s:taper}    \\
-  flatten       & \sref{s:flatten}  & timer         & \sref{s:timer}    \\
-  help          & \sref{s:help}     & use           & \sref{s:use}      \\ 
-  ls            & \sref{s:ls}       & veto          & \sref{s:veto}     \\ 
-  misalign      & \sref{s:misalign} & view          & \sref{s:view}     \\
+  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\
+  call          & \sref{s:call}     & reinitialize  & \sref{s:reinit}   \\ 
+  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ 
+  clear         & \sref{s:clear}    & run_optimizer & \sref{s:run}      \\ 
+  clip          & \sref{s:clip}     & scale         & \sref{s:scale}    \\ 
+  cut_ring      & \sref{s:cut.ring} & set           & \sref{s:set}      \\  
+  continue      & \sref{s:continue} & show          & \sref{s:show}     \\ 
+  derivative    & \sref{s:deriv}    & single_mode   & \sref{s:sing}     \\ 
+  do, enddo     & \sref{s:do}       & spawn         & \sref{s:spawn}    \\ 
+  end_file      & \sref{s:end.file} & taper         & \sref{s:taper}    \\
+  exit          & \sref{s:exit}     & timer         & \sref{s:timer}    \\
+  flatten       & \sref{s:flatten}  & use           & \sref{s:use}      \\ 
+  help          & \sref{s:help}     & veto          & \sref{s:veto}     \\ 
+  ls            & \sref{s:ls}       & view          & \sref{s:view}     \\
   pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\
   place         & \sref{s:place}    & write         & \sref{s:write}    \\ 
   ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
   python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
   quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
+  re_execute    & \sref{s:re.exe}   &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -455,18 +455,21 @@ When the \vn{help} command parses the \vn{\$TAO_DIR/doc/command-list.tex} file, 
 modified to produce a reasonable looking output on the terminal. This translation is not perfect so
 reference should be made to the \tao manual if there is a problem in the translation.
 
-%% misalign --------------------------------------------------------------
-\section{misalign}\index{command!misalign}
-\label{s:misalign}
-
 %% ls --------------------------------------------------------------
 \section{ls}\index{command!ls}
 \label{s:ls}
 
 The \vn{ls} command is the same as the standard UNIX \vn{ls} command to display a list of files and
-directories. The standard ls switches are accepted.
+directories. The standard ls switches are accepted. This is equivalent to the \vn{spawn ls} command.
+Format:
+\begin{example}
+  ls \{switches\}
+\end{example}
 
-This is equivalent to the \vn{spawn ls} command.
+Example:
+\begin{example}
+  ls -lrt
+\end{example}
 
 %% pause --------------------------------------------------------------
 \section{pause}\index{commands!pause}
@@ -1898,7 +1901,7 @@ Format:
   show value ...               ! Show value of an expression \sref{s:show.value}.
   show variables ...           ! Show optimization variable info \sref{s:show.variables}.
   show version                 ! Show Tao version.
-  show wake_elements           ! Show wake info \sref{s:show.wake}.
+  show wake_elements           ! Show wake info \sref{s:show.wake_elements}.
   show wall ...                ! Show vacuum chamber wall info \sref{s:show.wall}.
   show wave                    ! Show wave analysis info \sref{s:show.wave}.
 \end{example}

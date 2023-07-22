@@ -20,7 +20,6 @@ use tao_set_mod, dummy2 => tao_command
 use tao_change_mod, only: tao_change_var, tao_change_ele, tao_dmodel_dvar_calc, tao_change_tune, tao_change_z_tune
 use tao_command_mod, only: tao_cmd_split, tao_re_execute, tao_next_switch
 use tao_data_and_eval_mod, only: tao_to_real
-use tao_misalign_mod, only: tao_misalign
 use tao_scale_mod, only: tao_scale_cmd
 use tao_wave_mod, only: tao_wave_cmd
 use tao_x_scale_mod, only: tao_x_scale_cmd
@@ -329,15 +328,6 @@ case ('help')
   return
 
 !--------------------------------
-! LS
-
-case ('ls')
-  call system_command ('ls ' // cmd_line, err)
-  return
-
-
-
-!--------------------------------
 ! JSON
 ! This is experimental. Removal is a possibility if not developed.
 
@@ -347,12 +337,11 @@ case ('json')
   return
 
 !--------------------------------
-! MISALIGN
+! LS
 
-case ('misalign')
-
-  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err_flag); if (err_flag) goto 9000
-  call tao_misalign (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4), cmd_word(5))
+case ('ls')
+  call system_command ('ls ' // cmd_line, err)
+  return
 
 !--------------------------------
 ! PAUSE
