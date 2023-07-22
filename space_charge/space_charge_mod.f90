@@ -302,6 +302,9 @@ do
   N = 0
   ! Calculate error from the difference
   do i = 1, size(bunch%particle)
+    ! If going backwards then particle is considered dead.
+    if (bunch_half%particle(i)%direction == -1 .or. &
+                      bunch_full%particle(i)%direction == -1) bunch_half%particle(i)%state = lost_z_aperture$
     if (bunch_half%particle(i)%state /= alive$) cycle ! Only count living particles
     r_err(:) = r_err(:) + abs(bunch_full%particle(i)%vec(:)-bunch_half%particle(i)%vec(:))
     N = N +1
@@ -404,7 +407,7 @@ type (coord_struct), pointer :: p
 type (branch_struct) :: branch
 type (coord_struct) :: position
 
-integer i
+integer i, track_state
 real(rp) s, ds, s0, s_end, s_begin
 
 !
@@ -428,7 +431,8 @@ do i = 1, size(bunch%particle)
   if (ds == 0) cycle
   p%time_dir = sign_of(ds) * p%direction
   s0 = p%s
-  call track_from_s_to_s (branch%lat, s0, s, p, p, ix_branch = branch%ix_branch)
+  call track_from_s_to_s (branch%lat, s0, s, p, p, ix_branch = branch%ix_branch, track_state = track_state)
+  if (track_state /= moving_forward$) p%state = lost$
   p%time_dir = 1
 enddo
 
@@ -486,7 +490,11 @@ particle_loop: do i = 1, size(bunch%particle)
       bunch%particle(i)%time_dir = 1
       cycle particle_loop
     endif
-    dt2 = track_func(s_target, status) 
+    dt2 = track_func(s_target, status)
+    if (status /= 0) then
+      p0%state = lost$
+      cycle particle_loop
+    endif
     if (dt*dt2 <= 0) exit
     p0 = p
   enddo
@@ -494,6 +502,10 @@ particle_loop: do i = 1, size(bunch%particle)
   ! Use zbrent to find bracketed solution
   s1 = p%s
   s1 = super_zbrent(track_func, p0%s, s1, 1e-10_rp, bmad_com%significant_length, status)
+  if (status /= 0) then
+    p0%state = lost$
+    cycle particle_loop
+  endif
   dt = track_func(s1, status)
   p%time_dir = 1
   bunch%particle(i) = p
@@ -505,7 +517,7 @@ contains
 function track_func (s_target, status) result (dt)
 
 real(rp), intent(in) :: s_target
-integer status
+integer status, track_state
 real(rp) :: dt
 
 !
@@ -517,13 +529,18 @@ p%time_dir  = sign_of(s_target - p0%s)
 ! Track_from_s_to_s cannot handle such a case so use drift_particle_to_t instead.
 
 if (s_target < s_begin .and. p0%s >= s_begin) then
-  call track_from_s_to_s (branch%lat, p0%s, s_begin, p0, p, ix_branch = p%ix_branch)
+  call track_from_s_to_s (branch%lat, p0%s, s_begin, p0, p, ix_branch = p%ix_branch, track_state = track_state)
   call drift_particle_to_s(p, s_target, branch)
 elseif (s_target > s_end .and. p0%s <= s_end) then
-  call track_from_s_to_s (branch%lat, p0%s, s_end, p0, p, ix_branch = p%ix_branch)
+  call track_from_s_to_s (branch%lat, p0%s, s_end, p0, p, ix_branch = p%ix_branch, track_state = track_state)
   call drift_particle_to_s(p, s_target, branch)
 else
-  call track_from_s_to_s (branch%lat, p0%s, s_target, p0, p, ix_branch = p%ix_branch)
+  call track_from_s_to_s (branch%lat, p0%s, s_target, p0, p, ix_branch = p%ix_branch, track_state = track_state)
+endif
+
+if (track_state /= moving_forward$) then
+  status = 1
+  return
 endif
 
 dt = t_target - p%t 

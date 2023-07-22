@@ -111,7 +111,7 @@ type (ele_struct), target :: this_ele, track_ele
 type (fringe_field_info_struct), target :: fringe_info
 type (coord_struct) orbit
 
-real(rp) s_this_edge, s1, s2, s_hard_entrance, s_hard_exit, s_off, s_edge_body, ds_small, s_orb, leng
+real(rp) s_this_edge, s1, s2, s_hard_entrance, s_hard_exit, s_off, s_edge_body, ds_small, s_orb, this_leng, track_leng
 integer this_end, ix_this_ele, leng_sign
 
 !
@@ -129,20 +129,22 @@ else
   s_orb = track_ele%s - orbit%s
 endif
 
-leng = this_ele%value(l$)
+this_leng = this_ele%value(l$)
+track_leng = track_ele%value(l$)
+
 select case (this_ele%key)
 case (rfcavity$, lcavity$)
-  s1 = s_off + (leng - this_ele%value(l_active$)) / 2  ! Distance from entrance end to active edge
-  s2 = s_off + (leng + this_ele%value(l_active$)) / 2  ! Distance from entrance end to the other active edge
+  s1 = s_off + (this_leng - this_ele%value(l_active$)) / 2  ! Distance from entrance end to active edge
+  s2 = s_off + (this_leng + this_ele%value(l_active$)) / 2  ! Distance from entrance end to the other active edge
 case default
   s1 = s_off         ! Distance from track_ele entrance end to entrance hard edge
-  s2 = s_off + leng  ! Distance from track_ele entrance end to the exit hard edge
+  s2 = s_off + this_leng  ! Distance from track_ele entrance end to the exit hard edge
 end select
 
 ! Make sure that fringes are not outside of track_ele. This is done so calculated maps are symplectic.
 
 s1 = max(s1, 0.0_rp)
-s2 = min(s2, track_ele%value(l$))
+s2 = min(s2, track_leng)
 
 !
 
@@ -166,6 +168,10 @@ if (orbit%direction*orbit%time_dir * track_ele%orientation == 1) then
     else
       s_this_edge = s_hard_entrance
       this_end = first_track_edge$
+      if (s_this_edge < min(0.0_rp, track_leng) .or. s_this_edge > max(0.0_rp, track_leng)) then
+        s_this_edge = s_hard_exit
+        this_end = second_track_edge$
+      endif
     endif
   case (inside$)
     s_this_edge = s_hard_exit
@@ -190,6 +196,10 @@ else
   case (exit_end$)
     s_this_edge = s_hard_exit
     this_end = first_track_edge$
+    if (s_this_edge < min(0.0_rp, track_leng) .or. s_this_edge > max(0.0_rp, track_leng)) then
+      s_this_edge = s_hard_entrance
+      this_end = second_track_edge$
+    endif
   case default
     call err_exit
   end select
@@ -198,6 +208,8 @@ else
 endif
 
 ! 
+
+if (s_this_edge < min(0.0_rp, track_leng) .or. s_this_edge > max(0.0_rp, track_leng)) return
 
 fringe_info%hard_ele => this_ele
 fringe_info%particle_at = this_end

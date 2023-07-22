@@ -822,15 +822,15 @@ When selecting tracking methods for lattice elements, there are several factors 
 including symplecticity. Despite its emphasis in accelerator textbooks, symplecity (or the lack
 therof) is typically only relevant for long-term tracking when there is minimal radiation emission
 over many turns. That is, the potential problem with non-symplectic tracking is the buildup of
-errors over many turns. Thus computations, like calculating Twiss functions or tracking through a
-linac, that involve only tracking through the lattice from beginning to end do not benefit from
-symplectic tracking. More important is the speed of the calculation.
+errors over many turns. Thus, computations that involve only tracking through the lattice from
+beginning to end -- like calculating Twiss functions or tracking through a linac -- generally do not
+benefit from symplectic tracking. More important is the speed of the calculation.
 
-The motion of particles that radiate is not symplectic, thus symplectic tracking for the
-non-radiative part of the motion may not be needed if radiation is large enough. For example,
-experience has found that for the Cornell CESR ring with electron and positron beam energies of
-order 1~GeV to 10~GeV and with damping times on the order of 10,000 turns, The \vn{bmad_standard}
-tracking is adequite.
+The motion of particles that radiate is not symplectic. Thus, symplectic tracking for the
+non-radiative part of the motion may not be needed if radiation is large enough. For example, for
+simulations of the Cornell CESR ring with electron and positron beam energies of order 1~GeV to
+10~GeV and with damping times on the order of 10,000 turns, the \vn{bmad_standard} tracking has
+proved quite adequite.
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}
