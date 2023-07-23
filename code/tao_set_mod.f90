@@ -1262,6 +1262,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     bb%beam_init%spin = u%model%lat%particle_start%spin
   endif
   u%calc%lattice = .true.
+  u%beam%track_beam_in_universe = .true.
 enddo
 
 close (iu, status = 'delete') 
