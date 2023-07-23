@@ -252,3 +252,12 @@
 
 \newcommand{\DAG}{$^\dagger$}
 \newcommand{\DDAG}{$^\ddagger$}
+
+%%% Table of Contents spacing.
+\makeatletter   % So can use @ sign in \renewcommand
+\renewcommand{\l@section}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@subsection}{\@dottedtocline{2}{3.8em}{4.2em}}
+\renewcommand{\l@figure}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@table}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@subsection}{\@dottedtocline{2}{1.5em}{3.5em}}
+\makeatother    % Reset 
