@@ -33,7 +33,7 @@ real(rp) v_mat(4,4), v_inv_mat(4,4), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
 real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
-real(rp) det_factor, deriv_rel, gamma2_c
+real(rp) det_factor, deriv_rel, gamma2_c, df
 
 logical error
 logical, optional :: err_flag
@@ -118,14 +118,15 @@ if (all(mat6(1:2,3:4) == 0)) then
 ! here if we are dealing with a coupled transfer matrix
 
 else
-  big_M = mat6(1:2,1:2)
-  small_m = mat6(1:2,3:4)
-  big_N = mat6(3:4,3:4)
-  small_n = mat6(3:4,1:2)
+  df = (1.0_rp/det_factor)**0.25
+  big_M   = df * mat6(1:2,1:2)
+  small_m = df * mat6(1:2,3:4)
+  big_N   = df * mat6(3:4,3:4)
+  small_n = df * mat6(3:4,1:2)
 
   c_conj_mat = mat_symp_conj (ele1%c_mat)
   mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
-  det = determinant(mat2) / det_factor 
+  det = determinant(mat2)
 
   ! we demand that gamma_c > 0.3 (ie det > 0.1)
   ! try to make it so that there is no net mode flip here
@@ -143,7 +144,7 @@ else
 
   else
     mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
-    det = determinant(mat2) / det_factor
+    det = determinant(mat2)
     if (det < 0) then
       call out_io (s_error$, r_name,  '||mat2|| < 0! (Due to roundoff?) \f12.4\ ', &
                                       'When propagating through: [\i0\]  ' // trim(ele2%name), &
