@@ -9,7 +9,6 @@
 %            Note: It is assumed that the bmad, tao, and examples directories are all on the same level.
 %-----------------------------------------
 
-%\documentclass{article}
 \documentclass{hitec}     % Tutorial overall style
 
 \usepackage{index}
@@ -23,7 +22,6 @@
 \usepackage{rotating}
 \usepackage{enumitem}
 \usepackage{subcaption}
-\usepackage{toc-dcs}    % See toc-dcs.sty file in this directory.
 \usepackage{xspace}
 %%\usepackage{makeidx}
 \usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
@@ -39,6 +37,10 @@
 \usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
 
 %----------------------------------------------------------------
+
+\makeatletter   % So can use @ sign in \renewcommand
+\renewcommand{\l@subsection}{\@dottedtocline{2}{1.5em}{3.5em}}
+\makeatother    % Reset 
 
 \input{macros.tex}
 
