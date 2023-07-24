@@ -1,0 +1,221 @@
+%-----------------------------------------
+% To process this file:
+%   pdflatex tutorial_bmad_tao
+%   bibtex tutorial_bmad_tao
+%   pdflatex tutorial_bmad_tao
+%   pdflatex tutorial_bmad_tao
+%
+% IMPORTANT: This file uses .aux files from the Bmad and Tao manuals so pdflatex these manuals beforehand.
+%            Note: It is assumed that the bmad, tao, and examples directories are all on the same level.
+%-----------------------------------------
+
+\documentclass{hitec}     % Tutorial overall style
+
+\usepackage{index}
+\usepackage{xr}
+\usepackage{textgreek}
+\usepackage{gensymb}
+\usepackage{subfloat}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{xspace}
+%%\usepackage{makeidx}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{yhmath}     % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[nottoc,numbib]{tocbibind}   % Makes "References" section show in table of contents
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
+
+%----------------------------------------------------------------
+
+\input{macros.tex}
+\newcommand{\sodom}{\vn{sodom2}\xspace}
+
+
+\renewcommand{\ttdefault}{txtt}
+%\lstset{basicstyle = \small\asciifamily,columns=flexible}  % Enable cut and paste
+\definecolor{backcolor}{rgb}{0.8824,1.0,1.0}   % To match code environment
+\lstset{basicstyle = \small, backgroundcolor=\color{backcolor}, escapeinside = {@!}{!@}}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+%%% Table of Contents spacing.
+\makeatletter
+\renewcommand{\l@section}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@subsection}{\@dottedtocline{2}{3.8em}{4.2em}}
+\renewcommand{\l@figure}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@table}{\@dottedtocline{1}{1.5em}{3.3em}}
+\makeatother
+
+%------------------------------------------------------------------------------
+\title{SODOM-2 Program}
+\author{}
+\date{Matt Signorelli\\ \today}
+
+%------------------------------------------------------------------------------
+\begin{document}
+
+\phantomsection
+\pdfbookmark[1]{Cover Page}{Cover Page}
+\maketitle
+\phantomsection
+\pdfbookmark[1]{Contents}{Contents}
+\tableofcontents
+
+
+%------------------------------------------------------------------------------
+%\setcounter{section}{-1}
+\Section{Introduction}
+\label{s:intro}
+SODOM-2 is an algorithm formulated by K. Yokoya \cite{b:yokoya} to calculate the invariant spin field (ISF) in an accelerator by decomposing the spin and orbit motion into their Fourier components. The derivation shown here is taken nearly exactly from \cite{b:spin.hoff}. The ISF is a special $2\pi$-periodic spin field that solves the Thomas-BMT equation.
+\begin{equation}
+    \pmb{n}(\pmb{z},\theta)=\textrm{\underbar{$R$}}(\pmb{z}_0,\theta_0 ; \theta)\pmb{n}(\pmb{z}_0, \theta_0),\ \ \ \ \ \ \ \pmb{n}(\pmb{z},\theta_0+2\pi) = \pmb{n}(\pmb{z},\theta_0)
+\end{equation}
+%\begin{equation}
+%    \pmb{n}(\pmb{J},\pmb{\phi},\theta)=\textrm{\underbar{$R$}}(\pmb{J}, \pmb{\phi}_0,\theta_0 ; \theta)\pmb{n}(\pmb{J},\pmb{\phi}_0, \theta_0),\ \ \ \ \ \ \ \pmb{n}(\pmb{J},\pmb{\phi},\theta_0+2\pi) = \pmb{n}(\pmb{J}, \pmb{\phi},\theta_0)
+%\end{equation}
+For 3D linear orbit motion, a particle lies on the invariant torus defined by $\pmb{J} = (J_I, J_{II}, J_{III})$, where each $J_i$ is the action in the $i$-th oscillation mode. For example, in an uncoupled ring, $J_I = J_x$ and a particle's $x$-coordinate is $x(s)=\sqrt{2J_x\beta_x(s)}\cos{\phi_{x}(s)}$. See \cite{b:wolski} for more details. In the following expressions the actions $\pmb{J}$ are omitted because they are constants. The ISF can be expressed as a spinor $\Psi(\pmb{\phi},\theta)$ where $\pmb{n}(\pmb{\phi,\theta}) = \Psi^\dagger\pmb{\sigma}\Psi$ and $\pmb{\sigma}$ are the Pauli matrices. Omitting the azimuth position $\theta$, starting at $\pmb{\phi}$ after one turn the invariant spin direction at the angle coordinates $\pmb{\phi}$ agrees with the invariant spin direction at $\pmb{\phi}+2\pi\pmb{Q}$, where $\pmb{Q}$ are the orbital tunes in each mode, up to some arbitrary phase factor $\tilde{\nu}_{\pmb{J}}(\pmb{\phi})$:
+
+\begin{equation}
+   \textrm{\underbar{$A$}}(\pmb{\phi})\Psi(\pmb{\phi}) =e^{-\textrm{i}\pi\tilde{\nu}_{\pmb{J}}(\pmb{\phi})}\Psi(\pmb{\phi}+2\pi\pmb{Q})  \ , 
+\end{equation}
+where \textrm{\underbar{$A$}}$(\pmb{\phi})$ is the 1-turn spin transport quaternion at initial angle $\pmb{\phi}$. A phase function $\varphi_{\pmb{J}}(\pmb{\phi})$ is used such that the new spinor $\Psi_n(\pmb{\phi})=e^{\textrm{i}\frac{1}{2}\varphi_{\pmb{J}}(\pmb{\phi})}\Psi(\pmb{\phi})$ has the periodicity condition
+
+\begin{equation}
+    \textrm{\underbar{$A$}}(\pmb{\phi})\Psi_n(\pmb{\phi}) = e^{-\textrm{i}\pi\nu(\pmb{J})}\Psi_n(\pmb{\phi}) \ , \label{eq:periodicity1}
+\end{equation}
+where the phase factor $\nu(\pmb{J}) = 2\pi\tilde{\nu}_{\pmb{J}}(\pmb{\phi}) - \varphi_{\pmb{J}}(\pmb{\phi})+\varphi_{\pmb{J}}(\pmb{\phi}+2\pi\pmb{Q})$ is independent of the of the angle coordinates $\pmb{\phi}$. This is the amplitude-dependent spin tune $\nu(\pmb{J})$. The 1-turn quaternion \underbar{$A$}$(\pmb{\phi})$ and the ISF $\Psi_n(\pmb{\phi})$ are $2\pi$-periodic functions of $\pmb{\phi}$ and can therefore be expressed as a Fourier series.
+
+\begin{equation}
+    \textrm{\underbar{$A$}}(\pmb{\phi})=\sum_{\pmb{j}}\textrm{\underbar{$A$}}_{\pmb{j}}e^{\textrm{i}\pmb{j}\cdot\pmb{\phi}} \ , \ \ \Psi_n(\pmb{\phi})=\sum_{\pmb{j}}\Psi_{n,\pmb{j}}e^{\textrm{i}\pmb{j}\cdot\pmb{\phi}} \label{eq:fs}
+\end{equation}
+
+Equation \eqref{eq:periodicity1} can then be expressed as
+
+\begin{equation}
+    e^{-\textrm{i}2\pi\pmb{j}\cdot\pmb{Q}}\sum_{\pmb{k}}\textrm{\underbar{$A$}}_{\pmb{j}-\pmb{k}}\Psi_{n,\pmb{k}}=e^{-\textrm{i}\pi\nu}\Psi_{n,\pmb{j}} \ \ .
+\end{equation}
+
+This is simply an eigenproblem for the matrix $e^{-\textrm{i}2\pi\pmb{j}\cdot\pmb{Q}}\textrm{\underbar{$A$}}_{\pmb{j}-\pmb{k}}$. The eigenvalues give the amplitude-dependent spin tune, and an eigenvector gives the Fourier coefficients $\Psi_{n,\pmb{j}}$ which can then be used to construct the ISF as a function of the angle coordinates $\pmb{\phi}$ per Eq.~\eqref{eq:fs}. It can be checked that the eigenvector with components $\Psi_{n,\pmb{j}}'=\Psi_{n,\pmb{j}-\pmb{l}}$ for some vector of integers $\pmb{l}$ is also an eigenvector with eigenvalue $e^{-\textrm{i}\pi(\nu-2\pmb{l}\cdot\pmb{Q})}$, and so the spin tune obtained from the eigenvalue may be any $2\times$integer multiple of the orbital tunes. The best choice of eigenvector/eigenvalue pair is chosen to be the one with a maximum $|\Psi_{n,(0,0,0)}|$.
+
+\section{Running the SODOM2 Program}
+The \sodom program comes with the ``Bmad Distribution'' which is a package that contains the Bmad toolkit
+library along with a number of Bmad based programs. See the Bmad website for more details. The syntax for invoking the program is:
+
+\begin{code}
+  sodom2 {<master_input_file_name>}
+\end{code}
+Example:
+\begin{code}
+  sodom2 my_input_file.init
+\end{code}
+The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The default value is ``\vn{sodom2.init}''. The syntax of the master input file is explained
+in \sref{s:input}.
+
+Example input files are in the directory (relative to the root of a Distribution):
+\begin{code}
+  bsim/sodom2/example
+\end{code}
+
+\Section{Master Input File}
+\label{s:input}
+
+The \vn{master input file} holds the parameters needed for running the \sodom program. The master input file must contain a single namelist named \vn{params}.  Example:
+\begin{code}
+&params
+  sodom2%lat_file = 'esr-18GeV.bmad'		   	
+  sodom2%ele_eval = '107'		
+  sodom2%J = 0, 100e-9, 0 			   	
+  sodom2%n_samples = 35, 35, 1	
+  sodom2%n_axis_output_file = `n_axis.out'
+  sodom2%particle_output_file = `sodom2.out'
+  sodom2%write_as_beam_init = T
+  sodom2%add_closed_orbit_to_particle_output = F
+  sodom2%print_n_mat = T
+  sodom2%linear_tracking = T
+/
+\end{code}
+%\subsection{Simulation Parameters}
+%\label{s:sim.params}
+
+Parameters in the master input file that affect the program are:
+\begin{description}
+\item[sodom2\%add_closed_orbit_to_particle_output] \Newline
+If set \vn{False} (the default), the particle_output_file includes the particle positions with respect to the closed orbit. If set \vn{True}, the output positions are with respect to the zero orbit. 
+
+\item[sodom2\%ele_eval] \Newline
+Name or element index of the element to evaluate the n-axis at. Examples:
+\begin{code}
+ele_eval = "Q3##2"   ! 2nd element named Q3 in the lattice.
+ele_eval = 37        ! 37th element in the lattice.
+\end{code}
+The default is to start at the beginning of the lattice. Note that the evaluation is performed at the downstream end of the element, so the n-axis is evlauated at the start of the element after ele_eval.
+
+\item[sodom2\%J] \Newline
+Array of the particle actions in each oscillation mode $(J_{I},J_{II},J_{III})$. Atleast one $J_i$ must be specified.
+
+\item[sodom2\%lat_file] \Newline Name of the Bmad lattice file to use. This name is required.
+
+\item[sodom2\%linear_tracking]\Newline
+If set \vn{True} (the default), \sodom will set the orbital tracking method for every element in the lattice to linear before computing the 1-turn quaternions for each sample particle. SODOM-2 assumes the linear actions $\pmb{J}$ are constants, and therefore this flag should generally be set to \vn{True}. If set \vn{False}, \sodom will use the tracking methods specified in the lattice file.
+
+\item[sodom2\%n_axis_output_file] \Newline
+Name of the output file to write the spinor Fourier components of the ISF to. Default is `n_axis.out'.
+
+\item[sodom2\%n_samples] \Newline
+Array of the number of Fourier coefficients to compute in each oscillation mode. In order to center the harmonics around 0, \sodom will automatically set these quantities to be the nearest larger odd number if even numbers are inputted.
+
+\item[sodom2\%particle_output_file]\Newline
+Name of the output file to write the phase space coordinates and $\pmb{n}$ axis of each of the sample particles used to calculate the ISF. Default is `sodom2.out'
+
+\item[sodom2\%print_n_mat] \Newline
+If set \vn{True}, the conversion matrix (\vn{N} matrix) from action-angle coordinates to phase space coordinates $(x, p_x, y, p_y,z, p_z)$ as described by Wolski \cite{b:wolski} is printed to the terminal. Default is \vn{False}.
+
+\item[sodom2\%write_as_beam_init]\Newline
+If set \vn{True}, the particle_output_file is printed in a Bmad beam_init format. The default is \vn{False}.
+
+\end{description}
+
+\begin{thebibliography}{9}
+\bibitem{b:yokoya}
+K. Yokoya, "An algorithm for calculating the spin tune in circular accelerators",
+DESY–99–006 (1999).
+
+\bibitem{b:spin.hoff}
+G. H. Hoffstaetter, 
+{\it High-Energy Polarized Proton Beams, A Modern View}, 
+Springer. Springer Tracks in Modern Physics Vol~218, (2006).
+
+\bibitem{b:wolski}
+A. Wolski, "Alternate approach to general coupled linear optics",
+Phys.\ Rev.\ Special Topics, Accel \& Beams, {\bf 9}, 024001 (2006).
+
+
+
+\end{thebibliography}
+
+\end{document}
