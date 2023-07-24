@@ -640,7 +640,6 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'save', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'vac', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '/packages/')
-    choose_path (dir_list, root_dir, 'mad_tpsa', '/code/mad_ctpsa_fun.c', '')
     choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '')
     choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
     choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
