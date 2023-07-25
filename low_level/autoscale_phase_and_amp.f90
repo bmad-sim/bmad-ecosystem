@@ -183,6 +183,7 @@ phi_tol = bmad_com%autoscale_phase_tol
 
 if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   tracking_method_saved = ele%tracking_method
+  if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_ptc$
   value_saved = ele%value
 
   if (ele%tracking_method == bmad_standard$) ele%tracking_method = time_runge_kutta$
@@ -224,6 +225,9 @@ ele%value(phi0_err$) = 0
 if (ele%key == lcavity$ .or. ele%key == e_gun$) ele%value(gradient_err$) = 0
 
 tracking_method_saved = ele%tracking_method
+
+if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_ptc$
+
 if (ele%tracking_method == bmad_standard$) then
   if (ele%key == e_gun$) then
     ele%tracking_method = time_runge_kutta$

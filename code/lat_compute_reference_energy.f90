@@ -909,7 +909,8 @@ end select
 ! map is not valid for the element with kicks and offsets removed.
 
 changed = has_changed
-if (ele%tracking_method == taylor$ .and. .not. associated (ele%taylor(1)%term)) ele%tracking_method = symp_lie_ptc$
+if (ele%tracking_method == taylor$ .and. (.not. associated (ele%taylor(1)%term) .or. &
+                  .not. ele_has_constant_ds_dt_ref(ele))) ele%tracking_method = symp_lie_ptc$
 
 end subroutine zero_errors_in_ele
 
