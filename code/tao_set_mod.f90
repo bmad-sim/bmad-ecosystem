@@ -1414,6 +1414,8 @@ select case (component)
 case ('subtitle%string', 'subtitle%units', 'subtitle%justify', 'plot_display_type', &
       'title%string', 'title%units', 'title%justify')
   write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // quote(value_str)
+case ('size')
+  write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str) // ',' // trim(value_str2)
 case default
   write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str)
 end select
