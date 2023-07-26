@@ -64,7 +64,10 @@ logical include_opening_angle, err, rf_off
 ! Analysis is documented in the Bmad manual.
 
 mode = normal_modes_struct()
-call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat)
+sigma_mat = 0
+
+call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat, err)
+if (err) return
 
 ! If there is no RF then add a small amount to enable the calculation to proceed.
 ! The RF is modeled as a unit matrix with M(6,5) = 1d-4.
@@ -192,9 +195,10 @@ end subroutine emit_6d
 !     %dpz_damp                 -- Change in pz without RF.
 !     %pz_average               -- Average pz due to damping.
 !   xfer_nodamp_mat(6,6)  -- real(rp): Transfer matrix without damping.
+!   err_flag              -- logical: Set true if there is a problem.
 !-
 
-subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat)
+subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, err_flag)
 
 type (ele_struct), allocatable :: eles_save(:)
 type (ele_struct), target :: ele1, ele2
@@ -231,13 +235,15 @@ bmad_com%spin_tracking_on = .false.
 if (rf_is_on(branch)) then
   bmad_com%radiation_damping_on = .true.
   call closed_orbit_calc(branch%lat, closed_orb, 6, +1, branch%ix_branch, err_flag)
-  if (err_flag) then
-    call out_io (s_error$, r_name, 'Closed orbit calculation failing with radiation damping turned on.', &
-                                   'Emittance and other radiation related quantities will not be calculated.')
-  endif
 else
   bmad_com%radiation_damping_on = .false.
   call closed_orbit_calc(branch%lat, closed_orb, 4, +1, branch%ix_branch, err_flag)
+endif
+
+if (err_flag) then
+  call out_io (s_error$, r_name, 'Closed orbit calculation failing.', &
+                                   'Emittance and other radiation related quantities will not be calculated.')
+  return
 endif
 
 bmad_com = bmad_com_save

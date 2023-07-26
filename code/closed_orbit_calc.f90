@@ -89,9 +89,9 @@ implicit none
 type (lat_struct), target ::  lat
 type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
-type (coord_struct), allocatable, target ::  closed_orb(:), co_saved(:)
+type (coord_struct), allocatable, target ::  closed_orb(:), co_best(:)
 type (coord_struct), pointer :: start_orb, end_orb
-type (coord_struct), pointer :: c_orb(:), s_orb, e_orb
+type (coord_struct), pointer :: c_orb(:), c_best(:), s_orb, e_orb
 type (coord_struct) original_start_orb
 type (bmad_common_struct) bmad_com_saved
 type (super_mrqmin_storage_struct) storage
@@ -273,7 +273,7 @@ end select
 !--------------------------------------------------------------------------
 ! Because of nonlinearities we may need to iterate to find the solution
 
-allocate(co_saved(0:ubound(closed_orb, 1)))
+allocate(co_best(0:ubound(closed_orb, 1)))
 allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), coc%a_vec(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
 vec0 = 0
 maska = .false.
@@ -285,6 +285,8 @@ old_chisq = 1d30   ! Something large
 coc%a_vec = start_orb%vec(1:n_dim)
 if (n_dim == 5) coc%a_vec(5) = start_orb%vec(6)
 try_lmdif = .true.
+co_best = closed_orb
+c_best => co_best
 
 !
 
@@ -296,6 +298,15 @@ do i_loop = 1, i_max
   weight(1:4) = weight(1:4) * [1/sqrt(betas(1)), sqrt(betas(1)), 1/sqrt(betas(2)), sqrt(betas(2))]
 
   call super_mrqmin (vec0, weight, coc%a_vec, chisq, co_func, storage, a_lambda, status)
+  ! If super_mrqmin rejects a trial step then will need to reset closed_orb.
+  if (chisq < old_chisq .and. status /= 1 .and. end_orb%state /= not_set$) then
+    co_best = closed_orb
+  endif
+
+  if (any(coc%a_vec /= start_orb%vec(1:n_dim)) .and. all(coc%a_vec == co_best(ix_ele_start)%vec(1:n_dim))) then
+    closed_orb = co_best
+    branch%param%unstable_factor = 0
+  endif
 
   !
 
@@ -304,7 +315,7 @@ do i_loop = 1, i_max
     case (1)
       n = min(5, n_dim)
       coc%a_vec(1:n) = 0  ! Desperation move.
-      a_lambda = -1  ! Reset super_mrqmin
+      a_lambda = -1       ! Reset super_mrqmin
       cycle
     case (2)
       n = min(5, n_dim)
@@ -383,15 +394,13 @@ do i_loop = 1, i_max
     endif
   endif
 
-  if (track_state == moving_forward$ .and. chisq < old_chisq .and. status /= 1) co_saved = closed_orb
-
   ! If not converging fast enough, remake the transfer matrix.
   ! This is computationally intensive so only do this if the orbit has shifted significantly or the
   ! 1-turn matrix inverting step was a bust.
   ! Status == 1 means that the change in "a" was too large but coc%t1 does not need to be remade.
 
   if (chisq > old_chisq/2 .and. status == 0 .and. branch%param%unstable_factor == 0) then ! If not converging
-    if (maxval(abs(start_orb_t1(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6 .or. invert_step_tried) then 
+    if (maxval(abs(start_orb_t1(1:n_dim)-co_best(0)%vec(1:n_dim))) > 1d-6 .or. invert_step_tried) then 
       invert_step_tried = .false.
       if (.not. allocate_m_done) then
         allocate (m(branch%n_ele_max))
@@ -637,6 +646,7 @@ if (n_dim == 6 .and. bmad_com%absolute_time_tracking) then
 endif
 
 if (track_state == moving_forward$) then
+  if (.not. has_been_alive_at_end) co_best = closed_orb
   has_been_alive_at_end = .true.
   y_fit = del_orb(1:n_dim)
 else
