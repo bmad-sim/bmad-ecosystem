@@ -13,7 +13,6 @@
 \usepackage{alltt}
 \usepackage{rotating}
 \usepackage{subcaption}
-\usepackage{toc}
 \usepackage{xspace}
 \usepackage{makeidx}
 \usepackage{multirow}
@@ -44,6 +43,15 @@
 \renewcommand{\topfraction}{1.0}
 \renewcommand{\bottomfraction}{1.0}
 
+%%% Table of Contents spacing.
+\makeatletter
+\renewcommand{\l@section}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@subsection}{\@dottedtocline{2}{3.8em}{4.2em}}
+\renewcommand{\l@figure}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@table}{\@dottedtocline{1}{1.5em}{3.3em}}
+\makeatother
+
+%----------------------------------------------------------------
 \makeindex
 
 \begin{document}
