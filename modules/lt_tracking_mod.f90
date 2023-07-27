@@ -2262,7 +2262,7 @@ branch => lat%branch(ltt_com%ix_branch)
 
 inquire (file = map_file, exist = map_file_exists)
 if (.not. map_file_exists) then
-  if (ltt_com%mpi_rank == master_rank$) print '(a)', 'MAP FILE DOES NOT EXIST: ' // map_file
+  if (ltt_com%mpi_rank == master_rank$) print '(a)', 'MAP FILE DOES NOT EXIST: ' // trim(map_file)
   return
 endif
 
@@ -2281,7 +2281,7 @@ do i = 0, n_sec
     allocate (sec%map)
     call ptc_read_map_with_radiation(sec%map, err, file_unit = 1)
     if (err) then
-      print '(a)', 'ERROR READING MAP: ' // map_file
+      print '(a)', 'ERROR READING MAP: ' // trim(map_file)
       return
     endif
     map => sec%map
@@ -2428,7 +2428,7 @@ logical err, in_map_section
 
 !
 
-print '(a)', 'Creating map(s) for: ' // ltt_com%lat%input_file_name
+print '(a)', 'Creating map(s) for: ' // trim(ltt_com%lat%input_file_name)
 call run_timer ('ABS', time0)
 time1 = time0
 
@@ -2442,10 +2442,10 @@ n_sec = 2
 ! Count slices and superimpose radiation points.
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
-  if (ele%key == sbend$) then
-    n_sec = n_sec + 1
-  elseif (ele%ix_pointer == not_in_map$) then
+  if (ele%ix_pointer == not_in_map$) then  ! Covers bends not in maps
     n_sec = n_sec + 2
+  elseif (ele%key == sbend$) then
+    n_sec = n_sec + 1
   endif
 enddo
 
