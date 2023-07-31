@@ -1065,7 +1065,7 @@ if (alamda == 0.0) then
   return
 end if
 
-storage%atry = a+unpack(storage%da(1:mfit, 1), storage%mask, 0.0_rp)
+storage%atry = a + unpack(storage%da(1:mfit, 1), storage%mask, 0.0_rp)
 call super_mrqcof(storage%atry, y, storage%covar, storage%da(1:mfit, 1), weight, chisq, funcs, storage, status)
 
 ! Increase alamda by 2 (Instead of 10 as in NR version) gives better convergence. See:
