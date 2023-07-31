@@ -561,6 +561,13 @@ integer(hsize_t) dims(1)
 character(*) dataset_name, bmad_name
 logical err, error
 
+! 
+
+!if (all(array == array(1))) then
+!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, array(1), shape(array), error)
+!  return
+!endif
+
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
 dims = size(array)
@@ -604,6 +611,13 @@ integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(2)
 character(*) dataset_name, bmad_name
 logical error, err
+
+! 
+
+!if (all(array == array(1,1))) then
+!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, array(1,1), shape(array), error)
+!  return
+!endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
@@ -650,6 +664,13 @@ integer(hsize_t) dims(3)
 character(*) dataset_name, bmad_name
 logical err, error
 
+! 
+
+!if (all(array == array(1,1,1))) then
+!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, array(1,1,1), shape(array), error)
+!  return
+!endif
+
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
 dims = shape(array)
@@ -664,6 +685,100 @@ call H5Sclose_f(dspace_id, h5_err)
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
 end subroutine pmd_write_complex_to_dataset_rank3
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, value, v_shape, error)
+!
+! Routine to write an openpmd formatted dataset of an array were all the data values are the same.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   value               -- complex(rp): Data value.
+!   v_shape(:)          -- integer: Shape of the data array.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
+!-
+
+subroutine pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, value, v_shape, error)
+
+type (pmd_unit_struct) unit
+integer(hid_t) :: root_id, group_id, complex_t
+integer(size_t) :: n_dim
+complex(rp) value
+integer err, v_shape(:)
+character(*) dataset_name, bmad_name
+logical error
+
+!
+
+call h5gcreate_f(root_id, dataset_name, group_id, err)
+
+call my_H5LTset_attribute_complex(root_id, dataset_name, complex_t, 'value', value, error) 
+
+n_dim = size(v_shape)
+call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', v_shape, n_dim, err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+
+call h5gclose_f(group_id, err)
+
+end subroutine pmd_write_complex_to_pseudo_dataset
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine my_H5LTset_attribute_complex(root_id, dataset_name, complex_t, attrib_name, value, err) 
+!
+! Routine to set a complex attribute.
+! Modified from H5LTset_attribute_double_f
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
+!   attrib_name         -- character(*): Atrribute name.
+!   value               -- complex(rp): Data value.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
+!-
+
+subroutine my_H5LTset_attribute_complex(root_id, dataset_name, complex_t, attrib_name, value, error) 
+
+integer(hid_t) root_id, complex_t, array_size, dataspace_id, attrib_id
+integer(size_t) name_len, attrib_len, buf_size
+type(c_ptr) f_ptr
+character(*) dataset_name, attrib_name
+complex(rp) value
+integer err
+logical error
+
+!
+
+error = .true.
+
+call H5Screate_f(H5S_SCALAR_F, dataspace_id, err)
+if (err /= 0) return
+
+call H5Acreate_f(root_id, attrib_name, complex_t, dataspace_id, attrib_id, err, H5P_DEFAULT_F, H5P_DEFAULT_F)
+if (err /= 0) return
+
+f_ptr = c_loc(value)
+CALL H5Awrite_f(attrib_id, complex_t, f_ptr, err)
+if (err /= 0) return
+
+error = .false.
+
+end subroutine my_H5LTset_attribute_complex
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -1154,6 +1269,7 @@ character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank1'
 error = .true.
 
 info = hdf5_object_info(root_id, name, error, .true.)
+z_id = hdf5_open_object(root_id, name, info, error, .true.)
 
 if (info%data_class_type /= H5T_COMPOUND_F) then
   allocate (re(size(array,1)), im(size(array,1)))
@@ -1174,8 +1290,6 @@ if (info%data_dim(1) /= size(array)) then
   call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
   return
 endif
-
-z_id = hdf5_open_object(root_id, name, info, error, .true.)
 
 f_ptr = c_loc(cc)
 call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
