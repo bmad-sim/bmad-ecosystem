@@ -758,7 +758,7 @@ integer(hid_t) root_id, complex_t, array_size, dataspace_id, attrib_id
 integer(size_t) name_len, attrib_len, buf_size
 type(c_ptr) f_ptr
 character(*) dataset_name, attrib_name
-complex(rp) value
+complex(rp), target :: value
 integer err
 logical error
 
