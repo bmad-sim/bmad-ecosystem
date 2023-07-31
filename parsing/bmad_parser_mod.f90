@@ -2492,6 +2492,7 @@ character(n_parse_line) line
 
 !
 
+word = ''
 call_found = .false.
 call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
 call str_upcase (str, bp_com%parse_line(1:6))
