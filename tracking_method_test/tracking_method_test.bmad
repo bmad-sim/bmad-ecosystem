@@ -57,11 +57,11 @@ quadrupole3:       q0, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offset = 0.0
 quadrupole4:       q0, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
 quadrupole5:       q0, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
 rcollimator1:      rcollimator, l = 4.5, x_limit = 0.2, y_limit = 0.1, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
-rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
                              y_pitch = 0.001, tilt = 0.1
-rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
                              y_pitch = 0.001, tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1, cavity_type = traveling_wave
-rfcavity3:         rfcavity,          rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+rfcavity3:         rfcavity,          rf_frequency = 500e6, voltage = 1e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
                              y_pitch = 0.001, tilt = 0.1
 sad_mult1:         sad_mult, l = 0.1, fringe_type = full, a1 = 2e-2, b2 = 4e1, a10 = 1e20, fq1 = 1, fq2 = 2, ks = 0.5
 sad_mult2:         sad_mult,          fringe_type = full, a1 = 2e-2, b2 = 4e1, a10 = 1e20, fq1 = 1, fq2 = 2, ks = 0.5
