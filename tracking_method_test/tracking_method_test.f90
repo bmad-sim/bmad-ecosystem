@@ -33,6 +33,7 @@ if (nargs > 0) then
 endif
 
 call bmad_parser (lat_file, lat, .false.)
+bmad_com%auto_bookkeeper = .true.
 
 if (debug_mode) then
   if (lat%param%geometry == open$) then
@@ -117,15 +118,18 @@ do ib = 0, ubound(lat%branch, 1)
         ele%spin_tracking_method = tracking$
       endif
 
+      call this_bookkeeper(lat, ele)
       if (j == linear$) then
         ele%tracking_method = symp_lie_ptc$
         if (ele%key == ac_kicker$) ele%tracking_method = bmad_standard$
+        call this_bookkeeper(lat, ele)
         if (lat%particle_start%direction == 1) then
           call make_mat6 (ele, branch%param, lat%particle_start)
         else  ! Can happen with a test lattice file
           call make_mat6 (ele, branch%param)
         endif
         ele%tracking_method = j
+        call this_bookkeeper(lat, ele)
       endif
 
       if (ele%key /= sbend$ .and. ele%key /= lcavity$ .and. ele%key /= rfcavity$ .and. .not. debug_mode) ele%orientation = ele_o_sign
@@ -305,4 +309,18 @@ character(38) :: instr
   end select
 
 end function tolerance_spin
+
+!--------------------------------------------------------------------------------------
+! contains
+
+subroutine this_bookkeeper(lat, ele)
+
+type (lat_struct) lat
+type (ele_struct) ele
+
+call set_flags_for_changed_attribute(ele, ele%tracking_method)
+call lattice_bookkeeper(lat)
+
+end subroutine
+
 end program
