@@ -276,7 +276,7 @@ real(rp) :: t_now, dt_step, dt_next, sqrt_N
 real(rp) :: r_err(6), r_scale(6), rel_tol, abs_tol, err_max
 real(rp), parameter :: tiny = 1.0e-30_rp
 
-integer i, N, n_emit
+integer i, N, n_emit(2)
 logical include_image
 
 !
@@ -290,12 +290,12 @@ bunch_half = bunch
 dt_next = dt_step
 
 do
-  n_emit = 0
+  n_emit = [0,0]
   ! Full step
   call sc_step(bunch_full, ele, include_image, t_now+dt_step, sc_field)
   ! Two half steps
-  call sc_step(bunch_half, ele, include_image, t_now+dt_step/2, sc_field, n_emit=n_emit)
-  call sc_step(bunch_half, ele, include_image, t_now+dt_step, sc_field, n_emit = n_emit)
+  call sc_step(bunch_half, ele, include_image, t_now+dt_step/2, sc_field, n_emit=n_emit(1))
+  call sc_step(bunch_half, ele, include_image, t_now+dt_step, sc_field, n_emit = n_emit(2))
 
   r_scale = abs(bunch_rms_vec(bunch))+abs(bunch_rms_vec(bunch_half)) + tiny
   r_err = [0,0,0,0,0,0]
@@ -364,13 +364,17 @@ end function bunch_rms_vec
 ! Determines next time step size
 function next_step_size(dt_step, err_max) result (dt_next)
 
-real(rp) :: dt_step, err_max, dt_next
+real(rp) :: dt_step, err_max, dt_next, t_end
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.5_rp
 real(rp), parameter :: p_shrink = -0.5_rp, err_con = 1.89d-4
+integer ix_next
+
+! If early during emission, emit single particle
+
 
 ! shrink or grow step size based on err_max
 if (err_max > 1) then
-  dt_next = safety * dt_step * (err_max**p_grow)
+  dt_next = safety * dt_step * (err_max**p_shrink)
 else if (err_max > err_con) then
   dt_next = safety * dt_step * (err_max**p_grow)
 else
@@ -524,6 +528,7 @@ real(rp) :: dt
 
 p0%time_dir = sign_of(s_target - p0%s)
 p%time_dir  = sign_of(s_target - p0%s)
+status = 0
 
 ! Can happen that particle needs to "drift" past the end of the branch.
 ! Track_from_s_to_s cannot handle such a case so use drift_particle_to_t instead.
