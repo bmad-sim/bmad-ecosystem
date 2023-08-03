@@ -50,13 +50,14 @@ possible
 \centering {\tt
 \begin{tabular}{ll|ll} \toprule
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
-  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\
-  call          & \sref{s:call}     & reinitialize  & \sref{s:reinit}   \\ 
-  change        & \sref{s:change}   & restore       & \sref{s:restore}  \\ 
-  clear         & \sref{s:clear}    & run_optimizer & \sref{s:run}      \\ 
-  clip          & \sref{s:clip}     & scale         & \sref{s:scale}    \\ 
-  cut_ring      & \sref{s:cut.ring} & set           & \sref{s:set}      \\  
-  continue      & \sref{s:continue} & show          & \sref{s:show}     \\ 
+  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
+  call          & \sref{s:call}     & read          & \sref{s:read}     \\
+  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
+  clear         & \sref{s:clear}    & restore       & \sref{s:restore}  \\ 
+  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
+  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ 
+  create        & \sref{s:create}   & set           & \sref{s:set}      \\  
+  cut_ring      & \sref{s:cut.ring} & show          & \sref{s:show}     \\ 
   derivative    & \sref{s:deriv}    & single_mode   & \sref{s:sing}     \\ 
   do, enddo     & \sref{s:do}       & spawn         & \sref{s:spawn}    \\ 
   end_file      & \sref{s:end.file} & taper         & \sref{s:taper}    \\
@@ -69,7 +70,6 @@ possible
   ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
   python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
   quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
-  re_execute    & \sref{s:re.exe}   &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -330,6 +330,42 @@ Examples:
   clip -g orbit.x   ! Clip the orbit.x graph and also veto corresponding points
                     ! in other graphs of the orbit plot.
 \end{example}
+
+%% create --------------------------------------------------------------
+\section{create}\index{commands!create}
+\label{s:create}
+
+Format:
+\begin{example}
+  create data ... ! \sref{s:create.data}
+\end{example}
+
+The \vn{create} command constructs various tao objects that would have
+otherwise been created in tao initialiation. 
+
+% Use the command:
+%   help create <subcommand>
+% to obtain more information on a particular write subcommand. Example:
+%   help create data
+
+%% create data --------------------------------------------------------------
+
+\subsection{create data}
+\label{s:create.data}
+
+The \vn{create data} constructs a new \vn{d2_data} and one or more \vn{d1_data} for it.
+The primary purpose of this command is to make more data available for design
+and optimization in an interactive session; for repeated use, create data using
+data initialization namelists (\sref{s:init.data}). The resulting data must be
+initialized with the \vn{set data} command (\sref{s:set.data}).
+
+Syntax:
+\begin{example}
+  create data d2_name d1_name[ix_min:ix_max] ...
+\end{example}
+
+You may have as many \vn{d1_name}s as needed.
+\vn{ix_min} and \vn{ix_max} must be literal integers, not expressions.
 
 %% cut_ring --------------------------------------------------------------
 \section{cut_ring}\index{commands!cut_ring}
