@@ -5769,26 +5769,38 @@ case ('value')
 
 
   s_fmt = 'es24.16'
-  ix = index(what2, '-f')
+  line = ''
 
-  if (ix /= 0) then
-    ix2 = index(what2(ix:), ' ')
-    if (index('-format', what2(ix:ix+ix2-2)) == 1) then
-      str = what2(1:ix-1)
-      call string_trim(what2(ix+ix2-1:), what2, ix)
-      s_fmt = what2(1:ix)
-      what2 = trim(str) // what2(ix+1:)
-    endif
-  endif
+  do
+    call tao_next_switch (what2, [character(20):: '-format'], .false., switch, err, ix, print_err = .false.)
+    if (err) return
+    select case (switch)
+    case ('')
+      ix = index(what2, '-f')
+      if (ix == 0) then
+        line = trim(line) // trim(what2)
+        what2 = ''
+        exit
+      else
+        line = trim(line) // what2(:ix-1)
+        what2 = what2(ix:)
+      endif
+    case ('-format')
+      s_fmt = unquote(what2(1:ix))
+      call string_trim(what2(ix+1:), what2, ix)
+    case default
+    end select
+  enddo
 
-  if (index(what2, 'chrom') /= 0 .or. index(what2, 'rad') /= 0) then
-    if (index(what2, 'chrom') /= 0) s%com%force_chrom_calc = .true.
-    if (index(what2, 'rad') /= 0) s%com%force_rad_int_calc = .true.
+
+  if (index(line, 'chrom') /= 0 .or. index(line, 'rad') /= 0) then
+    if (index(line, 'chrom') /= 0) s%com%force_chrom_calc = .true.
+    if (index(line, 'rad') /= 0) s%com%force_rad_int_calc = .true.
     s%u%calc%lattice = .true.
     call tao_lattice_calc(ok)
   endif
 
-  call tao_evaluate_expression (what2, 0, .false., value, err, .true., info)
+  call tao_evaluate_expression (line, 0, .false., value, err, .true., info)
   if (err) return
 
   if (size(value) == 1) then
