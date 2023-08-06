@@ -318,6 +318,10 @@ subroutine this_bookkeeper(lat, ele)
 type (lat_struct) lat
 type (ele_struct) ele
 
+!
+
+return   !!! To be removed...
+
 call set_flags_for_changed_attribute(ele, ele%tracking_method)
 call lattice_bookkeeper(lat)
 
