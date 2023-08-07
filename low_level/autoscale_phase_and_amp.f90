@@ -71,7 +71,7 @@ real(rp) value_saved(num_ele_attrib$), phi0_autoscale_original, pz_arr(0:n_sampl
 real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
-integer n_pts, n_pts_tot, n_loop, n_loop_max, status, sign_of_dE
+integer n_pts, n_pts_tot, n_loop, n_loop_max, status, sign_of_dE, tm
 integer :: n_call ! Used for debugging.
 
 logical :: is_lost
@@ -100,17 +100,19 @@ if (.not. do_scale_phase .and. .not. do_scale_amp) return
 
 ! Autoscaling with linear tracking does not make sense so just do nothing.
 
-if (ele%tracking_method == mad$) return
-if (ele%tracking_method == linear$) return
+tm = ele%tracking_method
+if (tm == mad$) return
+if (tm == linear$) return
 
 ! bmad_standard just needs to set e_tot$, p0c$, and phi0_autoscale$
+! Zero length rfcavity elements use bmad_standard tracking
 
-if (ele%tracking_method == bmad_standard$) then
+if (tm == bmad_standard$ .or. (ele%key == rfcavity$ .and. ele%value(l$) == 0 .and. (tm == runge_kutta$ .or. &
+          tm == fixed_step_runge_kutta$ .or. tm == time_runge_kutta$ .or. tm == fixed_step_time_runge_kutta$))) then
   if (ele%key == lcavity$) then 
     ! Set e_tot$ and p0c$ 
     phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
-    e_tot = ele%value(e_tot_start$) + &
-            ele%value(gradient$) * ele%value(field_autoscale$) * ele%value(l$) * cos(phi)
+    e_tot = ele%value(e_tot_start$) + ele%value(gradient$) * ele%value(l$) * cos(phi)
     call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
     if (err_flag) then
       call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele%name)
@@ -272,7 +274,7 @@ endif
 ! The ele%value(field_autoscale$) may be orders of magnitude off so do an initial guess
 ! based upon the integral of abs(voltage) through the element.
 
-if (do_scale_amp) then
+if (do_scale_amp .and. ele%value(l$) /= 0) then
   n_pts = 1
   int_tot = 0
   n_pts_tot = 0
