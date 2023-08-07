@@ -117,14 +117,16 @@ for test_dir in test_dir_list:
   max_fail = 0
   if len(dir_split) == 2: max_fail = int(dir_split[1])
 
-  if not os.path.exists(dir_split[0]):
-    print_all ('\nNon-existant subdirectory given in "TESTS.LIST": ' + dir_split[0], True, True, True)
+  subdir = dir_split[0]
+
+  if not os.path.exists(subdir):
+    print_all ('\nNon-existant subdirectory given in "TESTS.LIST": ' + subdir, True, True, True)
     continue
 
-  os.chdir(dir_split[0])
+  os.chdir(subdir)
 
   print_all ('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-  print_all ('Starting testing in subdirectory: ' + dir_split[0])
+  print_all ('Starting testing in subdirectory: ' + subdir)
 
   # Remove output.now
 
@@ -132,7 +134,7 @@ for test_dir in test_dir_list:
 
   # Run process and make sure output.now has been created
 
-  program = dir_split[0]
+  program = subdir
   if program[-1] == '/': program = program[:-1]
 
   # run.py
@@ -320,9 +322,9 @@ for test_dir in test_dir_list:
   print_all ('     Duration of test (sec): ' + str(time.time() - time0_test))
   print_all ('     Maximum allowed failed tests: ' + str(max_fail))
   if num_local_failures > max_fail: 
-    print_all ('     Grade for tests in this subdirectory: FAILED!', False, True, True)
+    print_all ('     Grade for tests in subdirectory ' + subdir + ': FAILED!', False, True, True)
   else:
-    print_all ('     Grade for tests in this subdirectory: Passed.')
+    print_all ('     Grade for tests in subdirectory ' + subdir + ': Passed.')
 
 
   num_tests += num_local_tests
