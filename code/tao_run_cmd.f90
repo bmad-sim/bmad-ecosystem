@@ -68,7 +68,7 @@ s%com%all_merit_weights_positive = (all(s%var%weight >= 0))
 iu0 = lbound(s%u, 1); iu1 = ubound(s%u, 1)
 do i = iu0, iu1
   u => s%u(i)
-  u_calc = u%calc
+  u_calc(i) = u%calc
 
   u%calc%rad_int_for_data        = .false.
   u%calc%rad_int_for_plotting    = .false.
