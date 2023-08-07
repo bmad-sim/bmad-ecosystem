@@ -197,7 +197,7 @@ if (set) then
     endif
 
     is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
-                                (key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
+                                                            (key == sbend$ .and. ele%value(roll$) /= 0))
   endif
 
   if (is_misaligned) then
@@ -259,9 +259,13 @@ if (set) then
 
     if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
     if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
-  endif    ! has nonzero offset or pitch
 
-  if (.not. is_misaligned) then
+  ! If not misaligned
+  else
+    if (key == sbend$ .and. ele%value(ref_tilt$) /= 0) then
+      call tilt_coords (ele%value(ref_tilt$), orbit%vec, mat6, make_matrix)
+      if (set_spn) call rotate_spin([0.0_rp, 0.0_rp, -ele%value(ref_tilt$)], orbit%spin, qrot = spin_qrot)
+    endif
     select case (ele%orientation)
     case (1);  s_body = s_pos0
     case (-1); s_body = length - s_pos0
@@ -388,7 +392,7 @@ else
     endif
 
     is_misaligned = (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0 .or. &
-                                (key == sbend$ .and. (ref_tilt /= 0 .or. ele%value(roll$) /= 0)))
+                                                             (key == sbend$ .and. ele%value(roll$) /= 0))
   endif
 
   if (is_misaligned) then
@@ -396,7 +400,6 @@ else
     call mat_make_unit (position%w)
 
     if (key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
-
       position = bend_shift(position, ele%value(g$), ds_center)
 
       if (ref_tilt /= 0) then
@@ -453,9 +456,13 @@ else
 
     if (set_spn) orbit%spin = matmul(position%w, orbit%spin)
     if (present(spin_qrot)) spin_qrot = quat_mul(w_mat_to_quat(position%w), spin_qrot)
-  endif    ! has nonzero offset or pitch
 
-  if (.not. is_misaligned) then
+  ! If not misaligned
+  else
+    if (ele%value(ref_tilt$) /= 0) then
+      call tilt_coords (-ele%value(ref_tilt$), orbit%vec, mat6, make_matrix)
+      if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(ref_tilt$)], orbit%spin, qrot = spin_qrot)
+    endif
     select case (ele%orientation)
     case (1);  s_lab = s_pos0
     case (-1); s_lab = length - s_pos0
