@@ -118,6 +118,7 @@ for test_dir in test_dir_list:
   if len(dir_split) == 2: max_fail = int(dir_split[1])
 
   subdir = dir_split[0]
+  if subdir[-1] == "/": subdir = subdir[:-1]
 
   if not os.path.exists(subdir):
     print_all ('\nNon-existant subdirectory given in "TESTS.LIST": ' + subdir, True, True, True)
