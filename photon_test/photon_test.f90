@@ -41,7 +41,7 @@ write (1, '(a, f14.8)')   '"photon_init-p0c" ABS 1E-8', orb_start%p0c
 orb_start%p0c = lat%ele(1)%value(p0c$)
 call track1 (orb_start, lat%ele(2), lat%param, orb_end)
 write (1, '(a, 6es16.8)') '"reflect_table-vec"   ABS 1E-10', orb_end%vec
-write (1, '(a, 2f16.10)') '"reflect_table-field" ABS 1E-10', orb_end%field
+write (1, '(a, 2f16.10)') '"reflect_table-field" ABS 1E-8', orb_end%field
 
 !
 
