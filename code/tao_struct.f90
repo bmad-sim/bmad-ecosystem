@@ -930,6 +930,7 @@ type tao_lattice_struct
   character(8) :: name                         ! "model", "base", or "design".
   type (lat_struct) lat                        ! lattice structures
   type (lat_struct) :: high_E_lat, low_E_lat   ! For chrom calc.
+  logical :: chrom_calc_ok = .false.
   type (tao_universe_struct), pointer :: u => null()  ! Parent universe
   type (rad_int_all_ele_struct) rad_int
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
