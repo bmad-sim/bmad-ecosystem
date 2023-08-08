@@ -54,6 +54,8 @@ integer nt, stat, ix_br
 logical, optional, intent(out) :: err_flag
 logical err, used_this_lat
 
+character(*), parameter :: r_name = 'chrom_calc'
+
 ! Init setup
 
 call cpu_time(time0)
@@ -98,10 +100,16 @@ if (branch%param%geometry == closed$) then
   if (present(low_E_orb)) then; call closed_orbit_calc (lat2, low_E_orb, 4, 1, ix_br, err)
   else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   endif
-  if (err) return
+  if (err) then
+    call out_io (s_warn$, r_name, 'Closed orbit calc failing for low-energy orbit.')
+    return
+  endif
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
   call twiss_at_start (lat2, stat, ix_br, .false.)
-  if (stat /= ok$) return
+  if (stat /= ok$) then
+    call out_io  (s_warn$, r_name, 'Twiss calc failing for low-energy orbit.')
+    return
+  endif
 
 else
   orb_ptr(0) = orb0
@@ -144,10 +152,16 @@ if (branch%param%geometry == closed$) then
   if (present(low_E_orb)) then; call closed_orbit_calc (lat2, high_E_orb, 4, 1, ix_br, err)
   else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   endif
-  if (err) return
+  if (err) then
+    call out_io (s_warn$, r_name, 'Closed orbit calc failing for high-energy orbit.')
+    return
+  endif
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
   call twiss_at_start (lat2, stat, ix_br, .false.)
-  if (stat /= ok$) return
+  if (stat /= ok$) then
+    call out_io  (s_warn$, r_name, 'Twiss calc failing for high-energy orbit.')
+    return
+  endif
 
 else
   orb_ptr(0) = orb0

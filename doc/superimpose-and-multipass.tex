@@ -162,8 +162,12 @@ The location of the origin points are determined by the setting of \vn{ele_origi
   center          ! Center of element. Default.
   end             ! End (downstream) edge of element
 \end{example}
-\vn{center} is the default setting. \vn{Offset} is the longitudinal offset along the local reference
-orbit (\sref{s:ref}) between the origin points. The default offset is zero.
+\vn{center} is the default setting. \vn{Offset} is the longitudinal offset of the origin 
+of the element being superimposed relative
+to the origin of the reference element. The default offset is zero.  
+A positive offset moves the element being superimposed in the \vn{downstream} direction if
+the reference element has a normal longitudinal \vn{orientation} (\sref{s:ele.reverse}) and
+vice versa for the reference element has a reversed longitudinal orientation.
 
 Note: There is an old syntax, deprecated but still supported for now, where the origin points were
 specified by the appearance of:

@@ -165,7 +165,7 @@ do n_step = 1, n_step_max
   if ((s_body+ds-s_edge_body)*s_dir > 0.0) then
     at_hard_edge = .true.
     ds_saved = ds
-    ds = s_edge_body - s_body - ds_tiny*s_dir / 2
+    ds = s_edge_body - s_body - 0.5_rp*ds_tiny*s_dir
   endif
 
   old_orbit = orbit
@@ -249,7 +249,7 @@ end do
 ! Only issue an error message if the particle is *not* turning around since, in this case, there might be an
 ! error in how the field is calculated and we must warn the user of this.
 
-if (sqrt(orbit%vec(2)**2 + orbit%vec(4)**2) > 0.9 * (1 + orbit%vec(6)) .or. orbit%vec(6) < -0.99) then
+if (sqrt(orbit%vec(2)**2 + orbit%vec(4)**2) > 0.9_rp * (1.0_rp + orbit%vec(6)) .or. orbit%vec(6) < -0.99_rp) then
   orbit%state = lost_pz_aperture$
 else
   call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
@@ -320,7 +320,7 @@ real(rp) :: err_max, ds, ds_temp, p2, dmat(6,6)
 real(rp) :: r_err(11), pol
 real(rp) :: sqrt_N, rel_pc, t_new, ds12
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
-real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
+real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4_rp
 real(rp), parameter :: tiny = 1.0e-30_rp
 
 integer ii
@@ -361,7 +361,7 @@ do
     sqrt_N = sqrt(abs(ds12/ds))  ! number of steps we would take with this ds
     rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
     abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
-    pol = 1  ! Spin scale
+    pol = 1.0_rp  ! Spin scale
     r_scal(:) = abs([orb%vec(:), orb%t, pol, pol, pol]) + abs(ds*dr_ds(1:10)) + TINY
     err_max = maxval(abs(r_err(1:10)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
@@ -407,7 +407,7 @@ if (logic_option(.false., make_matrix)) then
       return
     endif
 
-    dmat(1:6, ii) = (end2%vec - end1%vec) / (2 * bmad_com%d_orb(ii))
+    dmat(1:6, ii) = (end2%vec - end1%vec) / (2.0_rp * bmad_com%d_orb(ii))
   enddo
   mat6 = matmul(dmat, mat6)
 endif
@@ -436,7 +436,7 @@ subroutine adjust_start (start0, start)
 
 type (coord_struct) start0, start
 
-call convert_pc_to (start%p0c * (1 + start%vec(6)), start%species, beta = start%beta)
+call convert_pc_to (start%p0c * (1.0_rp + start%vec(6)), start%species, beta = start%beta)
 
 if (start0%beta == 0) then
   start%t = start0%t + start%vec(5) / (c_light * start%beta)
@@ -561,7 +561,7 @@ orb_out%t = orb_in%t + dvec(7)
 orb_out%s = s1 + ele%s_start
 
 if (dvec(6) /= 0) then
-  call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
+  call convert_pc_to (orb_out%p0c * (1.0_rp + orb_out%vec(6)), param%particle, beta = orb_out%beta)
 endif
 
 orb_out%vec(5) = orb_in%vec(5) * orb_out%beta / orb_in%beta + c_light * orb_out%beta * (dvec(11) - dvec(7))
@@ -680,7 +680,7 @@ err = .true.
 rel_dir = ele%orientation * orbit%direction
 dt_ds_ref = ele%orientation / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
-e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
+e_tot = orbit%p0c * (1.0_rp + orbit%vec(6)) / orbit%beta
 
 ! Calculate the field. 
 ! Note: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
@@ -717,11 +717,11 @@ if (err) return
 ! Bend factor
 
 delta = orbit%vec(6)
-rel_pc = 1 + delta
+rel_pc = 1.0_rp + delta
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / rel_pc
 v2 = vel(1)**2 + vel(2)**2
 if (v2 > 0.99999999_rp) return
-vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * rel_dir]
+vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1.0_rp - v2) * rel_dir]
 E_force = charge_of(orbit%species) * field%E
 B_force = charge_of(orbit%species) * cross_product(vel, field%B)
 
@@ -735,7 +735,7 @@ else
 endif
 
 mc2 = mass_of(orbit%species)
-dt_ds = rel_dir * (1 + dh_bend) / abs(vel(3))
+dt_ds = rel_dir * (1.0_rp + dh_bend) / abs(vel(3))
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
 dbeta_ds = mc2**2 * dp_ds * c_light / e_tot**3
 pz_p0 = rel_pc * rel_dir * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
@@ -755,7 +755,7 @@ dr_ds(11) = dt_ds_ref
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
-  dr_ds(8:10) = rel_dir * (1 + dh_bend) * spin_omega (field, orbit, rel_dir)
+  dr_ds(8:10) = rel_dir * (1.0_rp + dh_bend) * spin_omega (field, orbit, rel_dir)
   if (ele%key == sbend$ .or. ele%key == rf_bend$) dr_ds(8:10) = dr_ds(8:10) + [0.0_rp, g_bend, 0.0_rp]
 else
   dr_ds(8:10) = 0
