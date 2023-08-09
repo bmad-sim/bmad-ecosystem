@@ -1,11 +1,12 @@
 &params
-  sodom2%lat_file = 'esr-18GeV.bmad'		   	! Lattice file
-  sodom2%ele_eval = '107'			   	! Element at which n-axis is evaluated. SODOM-2 has been found to work better when ele_eval is in the arc
+  sodom2%lat_file = 'esr-main-18GeV-1IP.bmad'		! Lattice file
+  sodom2%ele_eval = '131'			   	! Element at which n-axis is evaluated. SODOM-2 has been found to work better when ele_eval is in the arc
   sodom2%particle_output_file = 'sodom2.out'	    	! Writes phase space coordinates and invariant spin direction for sample particles, default is 'sodom2.out'
   sodom2%n_axis_output_file = 'n_axis.out'	   	! Writes eigenspinors of n-axis and ADST, default is 'n_axis.out'
   sodom2%J =1e-9, 5e-9, 0 			   	! Array of particle actions for each mode (eg. Jx, Jy, Jz) in [m rad]
-  sodom2%n_samples = 1, 35, 1			   	! Array of number of samples/Fourier coefficients in each eigenmode	
+  sodom2%n_samples = 35, 35, 1			   	! Array of number of samples/Fourier coefficients in each eigenmode	
   sodom2%write_as_beam_init = F			   	! If T, writes particle_output_file in beam_init format for other Bmad programs. Default is F
   sodom2%linear_tracking = T			   	! If T, use linear orbit tracking. SODOM-2 assumes linear actions are constant, and so by default is T. If F, uses tracking_method in Bmad file
   sodom2%add_closed_orbit_to_particle_output = F   	! If T, adds closed orbit to phase space positions printed in particle_output_file. Default is F
+  sodom2%check_n_pts = 100, 100, 1			! Array of number of angles in each plane to sample the n-axis for checking. Default is [0, 0, 0] (no checking).
 / 
