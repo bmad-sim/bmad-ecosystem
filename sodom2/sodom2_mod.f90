@@ -36,6 +36,7 @@ type sodom2_params_struct
   logical :: add_closed_orbit_to_particle_output = .false.
   logical :: write_as_beam_init = .false.
   logical :: print_n_mat = .false.
+  integer :: check_n_pts(3) = [0, 0, 0] 
 end type
 
 ! Common vars
@@ -75,6 +76,7 @@ contains
 subroutine sodom2_read_params(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
+type (lat_struct) :: parse_lat
 integer i, ix
 character(200) arg
 character(40) m_name
@@ -116,7 +118,8 @@ open (1, file = sodom2_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close (1)
 
-call bmad_parser (sodom2%lat_file, sodom2_com%lat)
+call bmad_parser (lat_file=sodom2%lat_file, lat=sodom2_com%lat,parse_lat=parse_lat)
+!call bmad_parser2(lat_file=sodom2%lat_file, lat=sodom2_com%lat, parse_lat=parse_lat
 
 ! Check:
 if (sodom2%J(1) < 0 .and. sodom2%J(2) < 0 .and. sodom2%J(3) < 0) then
@@ -196,6 +199,7 @@ if (sodom2%linear_tracking) then
 ! set tracking method for each element to linear$
   do i = 1, lat%branch(sodom2_com%ix_branch)%n_ele_track
     call set_ele_attribute(lat%branch(sodom2_com%ix_branch)%ele(i), "tracking_method = linear", err, .true., .true.)! , .false.)
+	!call set_flags_for_changed_lat_attribute(lat%branch(sodom2_com%ix_branch)%ele(i), lat%branch(sodom2_com%ix_branch)%ele(i)%value(tracking_method)
   enddo
 !else
 ! set tracking method to Bmad standard
@@ -204,7 +208,7 @@ if (sodom2%linear_tracking) then
 !  enddo
 endif
 
-call lattice_bookkeeper(lat)
+call lattice_bookkeeper(lat, err)
 
 call fullfilename (sodom2%particle_output_file, sodom2%particle_output_file)
 call fullfilename (sodom2%n_axis_output_file, sodom2%n_axis_output_file)
@@ -776,5 +780,137 @@ endif
 close(iu)
 
 end subroutine sodom2_write_particles
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine sodom2_check_n(sodom2, sodom2_com)
+type (sodom2_params_struct), target :: sodom2
+type (sodom2_com_struct), target :: sodom2_com
+type (lat_struct) :: lat
+type (bunch_struct) :: bunch
+real(rp) :: vec(6) = 0
+real(rp) :: jvec(6) = 0
+complex(rp) :: psi_n(2)
+complex(rp) sigma_1(2,2), sigma_2(2,2), sigma_3(2,2)
+real(rp) :: n_axis(3)
+real(rp) Js, phi1, phi2, phi3, jdotphi, PI, spin(3)
+complex(rp) :: n_mat_inv(size(sodom2_com%n_mat,1),size(sodom2_com%n_mat,2)) = 0
+complex(rp) :: n_mat(size(sodom2_com%n_mat,1),size(sodom2_com%n_mat,2)) = 0
+integer j1, j2, j3, n1, n2, n3, row_idx, i1, i2, i3, n1pts, n2pts, n3pts
+logical err_flag
+
+PI = acos(-1.0_rp)
+Js = 0.0_rp
+sigma_1 = reshape((/ (0,0), (1,0), (1,0), (0,0) /), shape(sigma_1))
+sigma_2 = reshape((/ (0,0), (0,1), (0,-1), (0,0) /), shape(sigma_2))
+sigma_3 = reshape((/ (1,0), (0,0), (0,0), (-1,0) /), shape(sigma_3))
+n1 = sodom2_com%n(1)
+n2 = sodom2_com%n(2)
+n3 = sodom2_com%n(3)
+
+n1pts = sodom2%check_n_pts(1)
+n2pts = sodom2%check_n_pts(2)
+n3pts = sodom2%check_n_pts(3)
+
+n_mat = sodom2_com%n_mat
+
+lat = sodom2_com%lat
+
+if (n1pts*n2pts*n3pts == 0) then
+  print '(a)', " Skipping n-axis check..."
+else
+  call reallocate_bunch(bunch, n1pts*n2pts*n3pts)
+  print '(a, i0, 2x, i0, 2x, i0)', " Checking n-axis for check_n_pts = ", n1pts, n2pts, n3pts
+  ! Initialize bunch with angles particle with angles exactly inbetween sampled angles, along calculated ISF
+  do i1 = 1, n1pts
+    phi1 = (PI * (2.0_rp*i1 - 1)) / n1pts
+    jvec(1) = sqrt(2*sodom2%J(1))*cos(phi1)
+    jvec(2) = -sqrt(2*sodom2%J(1))*sin(phi1)
+
+    do i2 =1, n2pts
+      phi2 = (PI * (2.0_rp*i2 - 1)) / n2pts
+      jvec(3) = sqrt(2*sodom2%J(2))*cos(phi2)
+      jvec(4) = -sqrt(2*sodom2%J(2))*sin(phi2)
+
+      do i3 =1, n3pts
+        phi3 = (PI * (2.0_rp*i3 - 1)) / n3pts
+        vec(5) = sqrt(2*sodom2%J(3))*cos(phi3)
+        jvec(6)  = -sqrt(2*sodom2%J(3))*sin(phi3)
+
+        vec = matmul(sodom2_com%n_mat, jvec)
+        vec = vec + sodom2_com%closed_orb(sodom2_com%ix_ele_eval)%vec
+      
+          ! Get n-axis at new angles
+        psi_n = (/ (0,0), (0,0) /)
+        do j1 = -(n1-1)/2, (n1-1)/2
+          do j2 = -(n2-1)/2, (n2-1)/2
+            do j3 = -(n3-1)/2, (n3-1)/2
+              jdotphi = phi1*j1+phi2*j2+phi3*j3
+              row_idx = (j3 + (n3-1)/2 + 1) + (j2 + (n2-1)/2)*n3 + (j1 + (n1-1)/2)*n3*n2 
+              psi_n = psi_n + sodom2_com%eig_vec(2*row_idx-1:2*row_idx, sodom2_com%idx_max_0)*exp((0,1)*jdotphi)
+            enddo
+          enddo
+        enddo
+        n_axis(1) = dot_product(psi_n, matmul(sigma_1, psi_n))
+        n_axis(2) = dot_product(psi_n, matmul(sigma_2, psi_n))
+        n_axis(3) = dot_product(psi_n, matmul(sigma_3, psi_n))
+        n_axis(1:3) = n_axis(1:3)/norm2(n_axis(1:3))
+
+        ! initialize particle along ISF
+        call init_coord(bunch%particle(i3 + (i2-1)*n3pts + (i1-1)*n2pts*n3pts), vec, sodom2_com%lat%ele(sodom2_com%ix_ele_eval), downstream_end$, sodom2_com%lat%param%particle, 1, spin = n_axis)
+      enddo
+    enddo
+  enddo
+
+  ! Track particle 1 turn aligned with calculated n-axis. Check spin action at end.
+  call track_bunch(lat, bunch, lat%ele(sodom2_com%ix_ele_eval), lat%ele(sodom2_com%ix_ele_eval), err_flag )
+
+  call cplx_mat_inverse(n_mat, n_mat_inv)
+
+  ! Check alignment along ISF:
+  do i1 = 1, n1pts
+    do i2 =1, n2pts
+      do i3 =1, n3pts
+        vec = bunch%particle(i3 + (i2-1)*n3pts + (i1-1)*n2pts*n3pts)%vec
+        vec = vec - sodom2_com%closed_orb(sodom2_com%ix_ele_eval)%vec
+        jvec = matmul(n_mat_inv, vec)
+        
+        phi1 = mod(atan2(-jvec(2),jvec(1))+2*PI, 2*PI)
+        phi2 = mod(atan2(-jvec(4),jvec(3))+2*PI, 2*PI)
+        phi3 = mod(atan2(-jvec(6),jvec(5))+2*PI, 2*PI)
+
+        ! Get n-axis at new angles
+        psi_n = (/ (0,0), (0,0) /)
+        do j1 = -(n1-1)/2, (n1-1)/2
+          do j2 = -(n2-1)/2, (n2-1)/2
+            do j3 = -(n3-1)/2, (n3-1)/2
+              jdotphi = phi1*j1+phi2*j2+phi3*j3
+              row_idx = (j3 + (n3-1)/2 + 1) + (j2 + (n2-1)/2)*n3 + (j1 + (n1-1)/2)*n3*n2 
+              psi_n = psi_n + sodom2_com%eig_vec(2*row_idx-1:2*row_idx, sodom2_com%idx_max_0)*exp((0,1)*jdotphi)
+            enddo
+          enddo
+        enddo
+        n_axis(1) = dot_product(psi_n, matmul(sigma_1, psi_n))
+        n_axis(2) = dot_product(psi_n, matmul(sigma_2, psi_n))
+        n_axis(3) = dot_product(psi_n, matmul(sigma_3, psi_n))
+        n_axis(1:3) = n_axis(1:3)/norm2(n_axis(1:3))
+
+        spin = bunch%particle(i3 + (i2-1)*n3pts + (i1-1)*n2pts*n3pts)%spin
+        !if (dot_product(spin, n_axis) < 9.99999e-1) then
+        !  print '(3es16.8)', phi1, phi2, phi3
+        !  print '(3es16.8,3x, 3es16.8, 3x, 6es16.8)', n_axis(1), n_axis(2), n_axis(3), spin(1), spin(2), spin(3), vec
+        !endif
+        Js = Js + dot_product(spin, n_axis)  
+      enddo
+    enddo
+  enddo
+  Js = Js/(n1pts*n2pts*n3pts)
+  print '(a,1es16.8)', ' Average spin action for n-axis check = ', Js
+  call reallocate_bunch(bunch, 0)
+endif 
+
+end subroutine sodom2_check_n
 
 end module

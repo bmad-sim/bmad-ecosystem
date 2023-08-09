@@ -29,7 +29,7 @@ print *, "Matrix constructed. Solving eigensystem to obtain n-axis and ADST..."
 call sodom2_eig(sodom, sodom2_com)
 print *,'ADST = ', sodom2_com%ADST
 
-!call sodom2_calc_ADST(sodom, sodom2_com)
+call sodom2_check_n(sodom, sodom2_com)
 
 print *,  'Writing n-axis to file...'
 call sodom2_write_n(sodom, sodom2_com)
