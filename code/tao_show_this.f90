@@ -189,7 +189,7 @@ integer, allocatable :: ix_c(:), ix_remove(:)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units
+logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc
 logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
@@ -4640,10 +4640,12 @@ case ('spin')
 case ('string')
 
   nc = 0
+  map_calc = u%calc%one_turn_map
 
   if (index(what2, 'chrom') /= 0) then
     s%com%force_chrom_calc = .true.
     s%u%calc%lattice = .true.
+    if (index(what2, 'ptc') /= 0) u%calc%one_turn_map = .true.
     call tao_lattice_calc(ok)
   endif
 
@@ -4660,6 +4662,7 @@ case ('string')
     ix = index(what2, '`')
     if (ix == 0) then
       nl=nl+1; lines(nl) = 'UNMATCHED BACKTICK.'
+      u%calc%one_turn_map = map_calc
       return
     endif
 
@@ -4671,7 +4674,8 @@ case ('string')
     n = index(str, '@@')
     if (n /= 0) then
       if (.not. is_integer(str(n+2:), n_order)) then
-         nl=nl+1; lines(nl) = 'Not an integer after "@@": ' // str(n+2:)
+        nl=nl+1; lines(nl) = 'Not an integer after "@@": ' // str(n+2:)
+        u%calc%one_turn_map = map_calc
         return
       endif
       str = str(:n-1)
@@ -4719,6 +4723,8 @@ case ('string')
 
     nc = len_trim(line)
   enddo
+
+  u%calc%one_turn_map = map_calc
 
   do
     ix = index(line, '\n')
@@ -5793,14 +5799,18 @@ case ('value')
   enddo
 
 
+  map_calc = u%calc%one_turn_map
+
   if (index(line, 'chrom') /= 0 .or. index(line, 'rad') /= 0) then
     if (index(line, 'chrom') /= 0) s%com%force_chrom_calc = .true.
     if (index(line, 'rad') /= 0) s%com%force_rad_int_calc = .true.
     s%u%calc%lattice = .true.
+    if (index(line, 'ptc') /= 0) u%calc%one_turn_map = .true.
     call tao_lattice_calc(ok)
   endif
 
   call tao_evaluate_expression (line, 0, .false., value, err, .true., info)
+  u%calc%one_turn_map = map_calc
   if (err) return
 
   if (size(value) == 1) then
