@@ -7063,7 +7063,7 @@ case ('spin_polarization')
 
   z = anomalous_moment_of(branch%param%particle) * branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
   nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',           z
-  nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',                         branch%param%spin_tune/twopi
+  nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',                         tao_branch%spin%tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_st;REAL;F;',             tao_branch%spin%pol_limit_st
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dk;REAL;F;',             tao_branch%spin%pol_limit_dk
   nl=incr(nl); write (li(nl), rmt) 'polarization_limit_dk_partial_a;REAL;F;',   tao_branch%spin%pol_limit_dk_partial(1)
