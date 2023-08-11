@@ -31,8 +31,8 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) a_ptc(0:n_pole_maxx), b_ptc(0:n_pole_maxx)
 real(rp), pointer :: val(:)
 
-integer i, n, ns, ix, ix_pole_max
-logical survey_needed, rf_standing_wave
+integer i, n, ns, ix, ix_pole_max, cavity_type
+logical survey_needed
 
 character(*), parameter :: r_name = 'update_fibre_from_ele'
 
@@ -49,15 +49,19 @@ magp => fib%magp
 mp => mag%p
 mpp => magp%p
 
-rf_standing_wave = (ele%key == rfcavity$ .and. nint(ele%value(cavity_type$)) == standing_wave$)
+cavity_type = not_set$
+if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
+  cavity_type = nint(ele%value(cavity_type$))
+  if (ele%tracking_method == bmad_standard$) cavity_type = ptc_standard$
+endif
 
 !
 
-if (.not. rf_standing_wave) call set_real_all (mp%ld, mpp%ld, val(l$))
-
 if (ele%key == sbend$) then
+  call set_real_all (mp%ld, mpp%ld, val(l$))
   call set_real_all (mp%lc, mpp%lc, val(l_chord$))
-elseif (.not. rf_standing_wave) then
+elseif (cavity_type /= standing_wave$) then
+  call set_real_all (mp%ld, mpp%ld, val(l$))
   call set_real_all (mp%lc, mpp%lc, val(l$))
 endif
 
@@ -121,7 +125,7 @@ enddo
 
 if (nint(val(num_steps$)) /= mp%nst .and. (mag%kind /= kind0 .and. mag%kind /= kind1)) then
   ns = nint(val(num_steps$))
-  if (rf_standing_wave) ns = min(5, ns) ! To avoid bug
+  if (cavity_type == standing_wave$) ns = min(5, ns) ! To avoid bug
   call set_integer (mp%nst, mpp%nst, ns)
   if (mag%kind /= kind4 .and. mag%kind /= kind21) call add (fib, 1, 1, 0.0_rp)  ! Triggers recompute of matrices.
   survey_needed = .true.
@@ -142,7 +146,7 @@ case (rfcavity$, lcavity$, crab_cavity$)
   phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$))
   if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
 
-  select case (nint(ele%value(cavity_type$)))
+  select case (cavity_type)
   case (standing_wave$)
     call set_real_all (mp%ld, mpp%ld, val(l_active$))
     call set_real_all (mp%lc, mpp%lc, val(l_active$))
