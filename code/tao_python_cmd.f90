@@ -2923,7 +2923,7 @@ case ('ele:grid_field')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T;',                        (';', g_field%dr(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T',                        (';', g_field%dr(i), i = 1, 3)
     nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
     name = attribute_name(ele, g_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
