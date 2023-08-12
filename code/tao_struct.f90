@@ -862,10 +862,17 @@ type tao_lat_sigma_struct
   real(rp) :: mat(6,6) = 0
 end type
 
-type tao_dn_dpz_struct
-  real(rp) vec(3)         ! Spin n0 derivative wrt pz.
+type tao_spin_dn_dpz_struct
+  real(rp) vec(3)         ! n0 derivative wrt pz.
   real(rp) partial(3,3)   ! partial(i:) is spin n0 derivative wrt pz for i^th oscillation mode (1 => a-mode, etc.)
   real(rp) partial2(3,3)  ! partial(i:) is spin n0 derivative wrt pz with i^th oscillation mode missing (1 => a-mode, etc.)
+end type
+
+type tao_spin_ele_struct
+  type (tao_spin_dn_dpz_struct) dn_dpz
+  real(rp) orb_eigen_val(6)
+  real(rp) orb_eigen_vec(6,6)             ! (j,:) is j^th vector
+  real(rp) spin_eigen_vec(6,3)            ! (j,:) is j^th vector
 end type
 
 type tao_spin_polarization_struct
@@ -899,7 +906,7 @@ end type
 type tao_lattice_branch_struct
   type (tao_lattice_struct), pointer :: tao_lat => null()        ! Parent tao_lat
   type (tao_lat_sigma_struct), allocatable :: lat_sigma(:)       ! Sigma matrix derived from lattice (not beam).
-  type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)             ! Spin invariant field
+  type (tao_spin_ele_struct), allocatable :: spin_ele(:)             ! Spin stuff
   type (bunch_params_struct), allocatable :: bunch_params(:)     ! Per element
   type (bunch_track_struct), allocatable :: bunch_params_comb(:) ! A comb for each bunch in beam.
   type (coord_struct), allocatable :: orbit(:)

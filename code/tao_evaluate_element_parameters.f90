@@ -240,16 +240,16 @@ else
   select case (parameter)
   case ('spin_dn_dpz.x')
     if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
-    values(n_tot) = tao_branch%dn_dpz(ixe)%vec(1)
+    values(n_tot) = tao_branch%spin_ele(ixe)%dn_dpz%vec(1)
   case ('spin_dn_dpz.y')
     if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
-    values(n_tot) = tao_branch%dn_dpz(ixe)%vec(2)
+    values(n_tot) = tao_branch%spin_ele(ixe)%dn_dpz%vec(2)
   case ('spin_dn_dpz.z')
     if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch) ;err = .not. tao_branch%spin_valid
-    values(n_tot) = tao_branch%dn_dpz(ixe)%vec(3)
+    values(n_tot) = tao_branch%spin_ele(ixe)%dn_dpz%vec(3)
   case ('spin_dn_dpz.amp')
     if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
-    values(n_tot) = norm2(tao_branch%dn_dpz(ixe)%vec)
+    values(n_tot) = norm2(tao_branch%spin_ele(ixe)%dn_dpz%vec)
   case default
     values(n_tot) = tao_param_value_at_s (parameter, branch%ele(ixe), tao_branch%orbit(ixe), err, print_err = print_err)
     if (err) then
