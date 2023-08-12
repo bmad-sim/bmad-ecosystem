@@ -106,7 +106,7 @@ endif
 if (bbu_param%hybridize) then
   do i = 1, lat_in%n_ele_max
     ele => lat_in%ele(i)
-    ele%select = .false.
+    ele%select = .false.     ! F => Hybridize
     ! Keep the element at the end of tracking, if specified by user
     if (ele%name == bbu_param%ele_track_end) then
       ele%select = .true.
