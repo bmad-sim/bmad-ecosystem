@@ -14,7 +14,7 @@
 !
 ! Output:
 !   tao_branch    -- tao_lattice_branch_struct: Calculated is:
-!     %dn_dpz(:) 
+!     %spin%dn_dpz(:) 
 !     %spin
 !-
 
@@ -78,7 +78,7 @@ if (present(ignore_kinetic)) then
 endif
 
 orbit => tao_branch%orbit
-if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
+if (.not. allocated(tao_branch%spin_ele)) allocate (tao_branch%spin_ele(0:branch%n_ele_track))
 tao_branch%spin_valid = .true.
 
 call spin_concat_linear_maps (err, q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit, excite_zero)
@@ -95,9 +95,9 @@ do ie = 1, branch%n_ele_track
   dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, partial2, err)
   if (err) exit
 
-  tao_branch%dn_dpz(ie)%vec      = dn_dpz
-  tao_branch%dn_dpz(ie)%partial  = partial
-  tao_branch%dn_dpz(ie)%partial2 = partial2
+  tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
+  tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
+  tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
   n0 = q_1turn%spin_q(1:3, 0)
   n0 = n0 / norm2(n0)
 

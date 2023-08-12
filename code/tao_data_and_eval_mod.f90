@@ -3070,24 +3070,24 @@ case ('spin_dn_dpz.')
   select case (data_type)
   case ('spin_dn_dpz.x')
     do i = ix_start, ix_ele
-      value_vec(i) = tao_branch%dn_dpz(i)%vec(1)
+      value_vec(i) = tao_branch%spin_ele(i)%dn_dpz%vec(1)
     enddo
-    value_vec(ix_ele) = tao_branch%dn_dpz(ix_ele)%vec(1)
+    value_vec(ix_ele) = tao_branch%spin_ele(ix_ele)%dn_dpz%vec(1)
   case ('spin_dn_dpz.y')
     do i = ix_start, ix_ele
-      value_vec(i) = tao_branch%dn_dpz(i)%vec(2)
+      value_vec(i) = tao_branch%spin_ele(i)%dn_dpz%vec(2)
     enddo
-    value_vec(ix_ele) = tao_branch%dn_dpz(ix_ele)%vec(2)
+    value_vec(ix_ele) = tao_branch%spin_ele(ix_ele)%dn_dpz%vec(2)
   case ('spin_dn_dpz.z')
     do i = ix_start, ix_ele
-      value_vec(i) = tao_branch%dn_dpz(i)%vec(3)
+      value_vec(i) = tao_branch%spin_ele(i)%dn_dpz%vec(3)
     enddo
-    value_vec(ix_ele) = tao_branch%dn_dpz(ix_ele)%vec(3)
+    value_vec(ix_ele) = tao_branch%spin_ele(ix_ele)%dn_dpz%vec(3)
   case ('spin_dn_dpz.amp')
     do i = ix_start, ix_ele
-      value_vec(i) = norm2(tao_branch%dn_dpz(i)%vec)
+      value_vec(i) = norm2(tao_branch%spin_ele(i)%dn_dpz%vec)
     enddo
-    value_vec(ix_ele) = norm2(tao_branch%dn_dpz(ix_ele)%vec)
+    value_vec(ix_ele) = norm2(tao_branch%spin_ele(ix_ele)%dn_dpz%vec)
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
