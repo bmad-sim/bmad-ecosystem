@@ -42,7 +42,7 @@ type (ele_struct) :: ele2
 type (lat_param_struct) param
 type (coord_struct) time_ref_orb_out
 
-real(rp) l_slice, offset, in_len, r
+real(rp) l_slice, offset, in_len, r, p0c_set
 integer i
 logical include_upstream_end, include_downstream_end, err_flag, err2_flag
 
@@ -221,16 +221,16 @@ endif
 
 if (present(orb_in)) then
   if (orb_in%time_dir * orb_in%direction == 1) then
-    r = orb_in%p0c / sliced_ele%value(p0c_start$)
-    orb_in%p0c = sliced_ele%value(p0c_start$)
-    orb_in%vec(2) = orb_in%vec(2) * r
-    orb_in%vec(4) = orb_in%vec(4) * r
+    p0c_set = sliced_ele%value(p0c_start$)
   else
-    r = orb_in%p0c / sliced_ele%value(p0c$)
-    orb_in%p0c = sliced_ele%value(p0c$)
-    orb_in%vec(2) = orb_in%vec(2) * r
-    orb_in%vec(4) = orb_in%vec(4) * r
+    p0c_set = sliced_ele%value(p0c$)
   endif
+
+  r = orb_in%p0c / p0c_set
+  orb_in%vec(2) = orb_in%vec(2) * r
+  orb_in%vec(4) = orb_in%vec(4) * r
+  orb_in%vec(6) = orb_in%vec(6) * r + (r - 1.0_rp)
+  orb_in%p0c = p0c_set
 endif
 
 err_flag = .false.
