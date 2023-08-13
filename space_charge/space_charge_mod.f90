@@ -183,7 +183,7 @@ end subroutine sc_field_calc
 !
 ! Input:
 !   bunch         -- bunch_struct: Starting bunch position in t-based coordinates
-!   ele           -- ele_struct: Element being tracked through.
+!   ele           -- ele_struct: Nominal element being tracked through.
 !   include_image -- logical: Include image charge forces?
 !   t_end         -- real(rp): Time at which the tracking ends.
 !   sc_field      -- em_field_struct(:): Array to hold space charge fields. 
