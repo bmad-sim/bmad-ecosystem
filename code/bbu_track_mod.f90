@@ -49,6 +49,7 @@ type bbu_param_struct
   type (bbu_current_variation_struct) :: current_vary
   logical :: hybridize = .true.                  ! Combine non-hom elements to speed up simulation?
   logical :: write_digested_hybrid_lat = .false. ! For debugging purposes.
+  logical :: write_voltage_vs_time_dat = .false. ! For debugging purposes.
   logical :: keep_overlays_and_groups = .false.  ! Keep when hybridizing?
   logical :: keep_all_lcavities  = .false.       ! Keep when hybridizing?
   logical :: use_taylor_for_hybrids = .false.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
@@ -215,6 +216,7 @@ implicit none
 
 type (lat_struct) lat
 type (ele_struct), pointer :: end_ele
+type (ele_struct), pointer :: ele
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
@@ -256,8 +258,15 @@ bbu_beam%ix_stage_voltage_max = 1
 growth_rate = real_garbage$
 r_period = 0
 
-!open(28, file = 'volt_v_turn.txt', status = 'unknown', access = 'append')
-!open(29, file = '/home/wl528/nfs/linux_lib/bsim/bbu/examples/volt_v_turn.txt', status = 'unknown', access = 'append')
+if (bbu_param%write_voltage_vs_time_dat) then
+  !open(28, file = 'volt_v_turn2.txt', status = 'unknown', access = 'append')
+  open(29, file = 'volt_v_turn.txt', status = 'unknown', access = 'append')
+  write(29,'(a15, es12.4)') 'current:', bbu_param%current
+  write(29,'(a15, es12.4)') 'bunch_freq:', bbu_param%bunch_freq
+  write(29,'(a15, es12.4)') 'simulation_turn_max:', bbu_param%simulation_turns_max
+  write(29,'(a15, i8)') 'ran_seed:', bbu_param%ran_seed
+  write(29,'(a15, a15, a15, a15)') 'n_period_old', 'time_now', 'hom_vol_max'
+endif
 
 bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
 end_ele => lat%ele(bbu_beam%stage(1)%ix_ele_stage_end)
@@ -414,19 +423,29 @@ do
   !print *, 'period:', n_period   !For debug
   !print *, 'count:', n_count   !For debug
   !print *, 'hom_volt_max:',  bbu_beam%hom_voltage_max   !For debug
-  
+
+
+!end_ele => lat%ele(bbu_beam%stage(1)%ix_ele_stage_end)
+
   ! Write to file for Voltage sum  v.s. Turns (or any wanted information in one
   ! track_a_stage) for first cavity
-!  do i=1, lat%n_ele_track
-!    ele=> lat%ele(i)
-!    if (ele%key == lcavity$) then
-!      !write(28,'(a12, i10, es15.6)') ele%name, n_period_old, hom_voltage_sum
-!      !write(29,'(i10, es15.6)') n_period_old, hom_voltage_sum
-!      !write(29,'(i4, i4, es15.6)') n_count, n_period_old, bbu_beam%hom_voltage_max
-!      write(29,'(i4, es12.4, es12.4, es12.4)') n_period_old, bbu_beam%time_now, bbu_beam%hom_voltage_max, bbu_param%current
-!      exit
-!    endif
-!  enddo
+
+  if (bbu_param%write_voltage_vs_time_dat) then
+    write(29,'(i4, es12.4, es12.4)') n_period_old, bbu_beam%time_now, bbu_beam%hom_voltage_max
+  endif
+
+!  if (bbu_param%write_voltage_vs_time_dat) then
+!    do i=1, lat%n_ele_track
+!      ele => lat%ele(i)
+!      if (ele%key == lcavity$) then
+!       !write(28,'(a12, i10, es15.6)') ele%name, n_period_old, hom_voltage_sum
+!       !write(29,'(i10, es15.6)') n_period_old, hom_voltage_sum
+!       !write(29,'(i4, i4, es15.6)') n_count, n_period_old, bbu_beam%hom_voltage_max
+!        write(29,'(i4, es12.4, es12.4)') n_period_old, bbu_beam%time_now, bbu_beam%hom_voltage_max
+!        exit
+!      endif
+!    enddo
+!  endif
 
 enddo
 
@@ -474,7 +493,7 @@ ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 !endif
 
 ! Track the bunch
-!open(999, file = 'bunch_vec.txt', status = 'unknown')
+open(999, file = 'bunch_vec.txt', status = 'unknown')
 do j = ix_ele_start+1, end_ele%ix_ele
 
   call track1_bunch(bbu_beam%bunch(ib), lat%ele(j), err)
