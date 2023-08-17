@@ -132,6 +132,7 @@ if (bbu_param%hybridize) then
   if (bbu_param%write_digested_hybrid_lat) then
     call write_digested_bmad_file('hybrid.digested', lat)
     print *, 'Wrote hybrid lattice: hybrid.digested'
+    call write_bmad_lattice_file('hybrid.lat', lat)
   endif
 
 else ! If not hybridizing, keep the original lattice
