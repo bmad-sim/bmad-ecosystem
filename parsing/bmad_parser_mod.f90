@@ -96,7 +96,7 @@ integer ix_bounds(2), iy_bounds(2), i_vec(2), n_sec, key
 character(40) :: word, str_ix, attrib_word, word2, name, who
 character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
-character(80) str, err_str
+character(80) str, err_str 
 character(200) line
 
 logical, target :: delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, hetero_list
@@ -110,6 +110,7 @@ logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 err_flag = .true.  ! assume the worst
 call get_next_word (word, ix_word, ':, =(){', delim, delim_found, call_check = .true., err_flag = err); if (err) return
 lat => ele%branch%lat
+err_str = trim(ele%name) // '[' // trim(word) // ']'
 
 if (ele%key == def_particle_start$ .and. word == 'SIG_E') word = 'SIG_PZ'
 
@@ -268,7 +269,7 @@ if ((ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) .and. (
 
     value = 0
     if (delim == '=') then  ! value
-      call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
+      call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele)
       if (err_flag) return
     endif
 
@@ -292,7 +293,7 @@ endif   ! Overlay, Ramper, or Group
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
   if (word == 'L_POLE' .or. word == 'N_POLE') then
     if (.not. expect_one_of ('=', .true., ele%name, delim, delim_found)) return
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
+    call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele)
     if (err_flag) return
     if (word == 'L_POLE') then
       ele%value(l_period$) = 2.0_rp * value
@@ -325,7 +326,7 @@ endif
 if (word == 'N_REF_PASS' .or. word == 'MULTIPASS_REF_ENERGY') then
   call parser_error(quote(word) // ' IS NOT SETTABLE. PLEASE REMOVE FROM LATTICE FILE. PARSING WILL PROCEED AS NORMAL.', &
                     'FOR ELEMENT: ' // ele%name, level = s_warn$)
-  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
+  call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele) 
   return
 endif
 
@@ -427,19 +428,19 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
   endif
 
   if (word == 'D_ORB') then
-    if (.not. parse_real_list (lat, trim(ele%name) // ' ' // word, bmad_com%d_orb, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, err_str, bmad_com%d_orb, .true., delim, delim_found)) return
     bp_com%extra%d_orb_set = .true.
     return
   endif
 
   if (word == 'SPACE_CHARGE_MESH_SIZE') then
-    if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, space_charge_com%space_charge_mesh_size, .true., delim, delim_found)) return
+    if (.not. parse_integer_list (err_str, lat, space_charge_com%space_charge_mesh_size, .true., delim, delim_found)) return
     bp_com%extra%space_charge_mesh_size_set = .true.
     return
   endif
 
   if (word == 'CSR3D_MESH_SIZE') then
-    if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, space_charge_com%csr3d_mesh_size, .true., delim, delim_found)) return
+    if (.not. parse_integer_list (err_str, lat, space_charge_com%csr3d_mesh_size, .true., delim, delim_found)) return
     bp_com%extra%csr3d_mesh_size_set = .true.
     return
   endif
@@ -459,7 +460,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
   endif
 
   if (associated(a_ptrs(1)%r)) then
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
+    call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     a_ptrs(1)%r = value
     if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))              bp_com%extra%max_aperture_limit_set          = .true.
@@ -9501,8 +9502,13 @@ if (present(separator)) sep = separator
 
 ! Expect op_delim
 call get_next_word (word, ix_word, op_delim, delim, delim_found)
-if ((word /= '') .or. (delim /= op_delim)) then
-  call parser_error ('BAD OPENING DELIMITER IN: ' // err_str)
+if (word /= '') then
+  call parser_error ('EXPECTED OPENING DELIMITER ' // quote(op_delim) // ' FOR VECTOR FOR: ' // err_str, &
+                     'BUT GOT: ' // word)
+  return
+elseif (delim /= op_delim) then
+  call parser_error ('BAD OPENING DELIMITER FOR VECTOR FOR: ' // err_str, &
+                     'EXPECTED: ' // quote(op_delim) // ' BUT GOT: ' // delim)
   return
 end if
 

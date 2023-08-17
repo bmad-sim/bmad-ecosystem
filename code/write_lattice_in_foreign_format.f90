@@ -862,6 +862,10 @@ do   ! ix_ele = 1e1, ie2
         call value_to_line (line_out, 360.0_rp*(ele%value(phi0$)+ele%value(phi0_multipass$))+90.0_rp, 'phase', 'R')
       endif
 
+      if (nint(ele%value(cavity_type$)) == standing_wave$) then
+        line_out = trim(line_out) // ', body_focus_model="SRS", standing_wave = 1'
+      endif
+
       bmad_params(:3) = [character(40):: 'l', 'voltage', 'rf_frequency']
       elegant_params(:3) = [character(40):: 'l', 'volt', 'freq']
 
