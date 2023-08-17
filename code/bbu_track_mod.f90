@@ -27,6 +27,7 @@ type bbu_beam_struct
   real(rp) hom_voltage_max
   real(rp) time_now
   real(rp) one_turn_time
+  real(rp) rf_wavelength_max
 end type
 
 ! For now the current variation is a simple ramp
@@ -75,6 +76,7 @@ type bbu_param_struct
   character(40) :: ele_track_end = ' '
   integer :: ix_ele_track_end = -1               ! Default: set to last element with a wake
   logical :: regression = .false.                ! Do regression test?
+  logical :: normalize_z_to_rf = .false.         ! make starting z = mod(z, rf_wavelength)?
 end type
 
 contains
@@ -203,6 +205,10 @@ bbu_beam%ix_bunch_head = 1
 bbu_beam%ix_bunch_end = -1  ! Indicates: No bunches
 
 call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
+
+! RF_wavelength_max calc
+
+
 
 end subroutine bbu_setup
 
@@ -424,12 +430,6 @@ do
   !print *, 'count:', n_count   !For debug
   !print *, 'hom_volt_max:',  bbu_beam%hom_voltage_max   !For debug
 
-
-!end_ele => lat%ele(bbu_beam%stage(1)%ix_ele_stage_end)
-
-  ! Write to file for Voltage sum  v.s. Turns (or any wanted information in one
-  ! track_a_stage) for first cavity
-
   if (bbu_param%write_voltage_vs_time_dat) then
     write(29,'(i4, es12.4, es12.4)') n_period_old, bbu_beam%time_now, bbu_beam%hom_voltage_max
   endif
@@ -508,19 +508,6 @@ do j = ix_ele_start+1, end_ele%ix_ele
     lost = .true.
     return
   endif
-
-  ! Collect orbit stats at element with wake
-  ! Comment out Mar 31 2017
-  !if (j == this_stage%ix_ele_lr_wake) then
-  !  do ip = 1, size(bbu_beam%bunch(ib)%particle)
-  !    this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(ip)%vec
-  !    this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(ip)%vec**2
-  !    this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
-  !    this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(ip)%vec)
-  !    this_stage%n_orb   = this_stage%n_orb + 1
-  !  enddo
-  !endif
-
 enddo
 
 ! Write info to file if needed
@@ -617,13 +604,12 @@ call init_bunch_distribution (lat%ele(0), lat%param, beam_init, ix_bunch, bunch)
 
 !! Bunch pattern is achieved by multiplying bunch%charge_tot with d_charge(time) 
 !! The "correct" current is not computed here 
-if (bbu_param%current_vary%variation_on) then
 
+if (bbu_param%current_vary%variation_on) then
   !! scale the bunch time in t_b, then zero it to where ramp begins
   t0 = bunch%t_center/beam_init%dt_bunch - bbu_param%current_vary%t_ramp_start
   if (t0<0) then 
     d_charge = bbu_param%current_vary%charge_bottom
-    !!d_charge = 0
   else
     charge_diff = bbu_param%current_vary%charge_top - bbu_param%current_vary%charge_bottom
     slope = charge_diff/bbu_param%current_vary%dt_ramp
@@ -648,9 +634,6 @@ if (bbu_param%current_vary%variation_on) then
     endif
   endif
   
-  !! print this for bunch_pattern debugging
-  !!print *, 'D_charge: ', d_charge
-
   bunch%charge_tot = bunch%charge_tot * d_charge
   bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
 endif
@@ -659,13 +642,12 @@ bbu_beam%ix_bunch_end = ixb
 
 ! To excite HOMs initially, offset particles if the particle is born within 
 !"the first turn period" (initial population of bunches in the lattice).
+
 if (bunch%t_center < bbu_beam%one_turn_time) then
   do i = 1, size(bunch%particle)
     call ran_gauss (r)
     bunch%particle%vec(1) = bbu_param%init_particle_offset * r(1)
     bunch%particle%vec(3) = bbu_param%init_particle_offset * r(2)
-    !bunch%particle%vec(1) = 0
-    !bunch%particle%vec(3) = 0
   enddo
 endif
 
