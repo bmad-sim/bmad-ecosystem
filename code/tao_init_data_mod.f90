@@ -551,9 +551,17 @@ do j = n1, n2
   if (dat%merit_type == '')             dat%merit_type = default_merit_type
   if (dat%merit_type == '')             dat%merit_type = 'target'
   if (dat%data_source == '')            dat%data_source = default_data_source
-  if (dat%data_source == '')            dat%data_source = 'lat'
-
   if (dat%weight == real_garbage$)      dat%weight = 0
+
+  if (dat%data_source == '') then
+    select case (dat%data_type)
+    case ('alpha.z', 'beta.z', 'emit.z', 'norm_emit.z', 'emit.c', &
+          'norm_emit.c', 'gamma.z', 'n_particle_loss')
+      dat%data_source = 'beam'
+    case default
+      dat%data_source = 'lat'
+    end select
+  endif
 
   if (dat%meas_value == real_garbage$) then
     dat%meas_value = 0  

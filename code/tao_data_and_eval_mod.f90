@@ -1965,7 +1965,7 @@ case ('momentum_compaction_ptc.')
 !-----------
 
 case ('n_particle_loss')
-  if (data_source /= 'beam') goto 9000  ! Set error message and return
+  if (data_source /= 'beam') goto 9001  ! Set error message and return
   if (ix_ele < 0) ix_ele = branch%n_ele_track
   datum_value = sum(bunch_params(ix_ref+1:ix_ele)%n_particle_lost_in_ele)
   valid_value = .true.
@@ -3625,11 +3625,11 @@ call tao_set_invalid (datum, 'PARTICLE SPECIES TYPE NOT SET ??!! PLEASE SEEK HEL
 return
 
 9000 continue
-call tao_set_invalid (datum, 'DATA_TYPE = "beam" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid, .true.)
+call tao_set_invalid (datum, 'DATA_SOURCE = "beam" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid, .true.)
 return
 
 9001 continue
-call tao_set_invalid (datum, 'DATA_TYPE = "lat" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid, .true.)
+call tao_set_invalid (datum, 'DATA_SOURCE = "lat" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid, .true.)
 return
 
 9100 continue
