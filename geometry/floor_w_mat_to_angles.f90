@@ -48,12 +48,12 @@ if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1d-12) then
 ! normal case
 
 else 
-  if (present(floor0)) f0 = floor0      ! In case actual theta, phi, psi args are floor%theta, etc.
   theta = atan2 (w_mat(1,3), w_mat(3,3))
   phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
   psi = atan2 (w_mat(2,1), w_mat(2,2))
 
   if (present(floor0)) then
+    f0 = floor0
     diff1 = [modulo2(theta-f0%theta, pi), modulo2(phi-f0%phi, pi), modulo2(psi-f0%psi, pi)]
     diff2 = [modulo2(pi+theta-f0%theta, pi), modulo2(pi-phi-f0%phi, pi), modulo2(pi+psi-f0%psi, pi)]
     if (sum(abs(diff2)) < sum(abs(diff1))) diff1 = diff2
