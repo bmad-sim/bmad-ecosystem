@@ -459,7 +459,7 @@ else
 
   ! If not misaligned
   else
-    if (ele%value(ref_tilt$) /= 0) then
+    if (key == sbend$ .and. ele%value(ref_tilt$) /= 0) then
       call tilt_coords (-ele%value(ref_tilt$), orbit%vec, mat6, make_matrix)
       if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(ref_tilt$)], orbit%spin, qrot = spin_qrot)
     endif
