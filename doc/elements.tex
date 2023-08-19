@@ -13,7 +13,7 @@ available in \bmad.
   {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \\ \midrule
   AB_Multipole      & \ref{s:ab.m}        &  Match             & \ref{s:match}    \\ 
   AC_Kicker         & \ref{s:ac.kick}     &  Monitor           & \ref{s:monitor}  \\
-  BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \\
+  BeamBeam          & \ref{s:beambeam}    &  Multipole         & \ref{s:mult}     \\
   Beginning_Ele     & \ref{s:begin.ele}   &  Null_Ele          & \ref{s:null.ele} \\
   Converter         & \ref{s:converter}   &  Octupole          & \ref{s:oct}      \\
   Crab_Cavity       & \ref{s:crab}        &  Patch             & \ref{s:patch}    \\
@@ -256,7 +256,7 @@ scale short compared to the time scale of the change in the field.
 
 %-----------------------------------------------------------------
 \section{BeamBeam}
-\label{s:bbi}
+\label{s:beambeam}
 \index{beambeam|hyperbf}
 
 A \vn{beambeam} element simulates an interaction with an opposing
@@ -4599,8 +4599,10 @@ Example:
   cleo_sol: solenoid, l = 2.6, ks = 1.5e-9 * parameter[p0c]
 \end{example}
 
-``Soft edge'' end fields may be simulated by using Runge-Kutta tracking and setting the \vn{field_calc}
-parameter of the element to \vn{soft_edge}. Example:
+``Soft edge'' end fields may be simulated by using Runge-Kutta tracking and setting the
+\vn{field_calc} parameter of the element to \vn{soft_edge}. Equations for the soft edge model are
+taken from Derby and Olbert \cite{b:derby}. The equations used are for the exact ideal azimuthally
+symmetric solenoid model (not the near-axis approximation model).  Example:
 \begin{example}
   soft_sol: solenoid, l = 1.0, field_calc = soft_edge, l_soft_edge = 0.5, 
               r_solenoid = 0.1, tracking_method = runge_kutta, mat6_calc_method = tracking
