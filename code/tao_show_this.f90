@@ -4493,6 +4493,7 @@ case ('spin')
       do i = 1, u%n_data_used
         d_ptr => u%data(i)
         if (.not. d_ptr%spin_map%valid) cycle
+        if (nl+100 > size(lines)) call re_allocate(lines, nl+200, .false.)
         if (j == 0) then
           nl=nl+1; lines(nl) = ''
           nl=nl+1; lines(nl) = 'Spin G-matrices used in data:'
