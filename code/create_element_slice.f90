@@ -53,6 +53,17 @@ character(*), parameter :: r_name = 'create_element_slice'
 err_flag = .true.
 in_len = ele_in%value(l$)
 
+! Save values from old_slice if present in case the old_slice actual arg is same as sliced_ele.
+
+if (present(old_slice)) then
+  ele0%value(p0c$)   = old_slice%value(p0c$)
+  ele0%value(e_tot$) = old_slice%value(e_tot$)
+  ele0%ref_time      = old_slice%ref_time
+  time_ref_orb_out   = old_slice%time_ref_orb_out
+endif
+
+!
+
 if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= ix_slice_slave$) then
   call transfer_ele(ele_in, sliced_ele, .true.)
 endif
@@ -111,15 +122,6 @@ endif
 if (in_len == 0) then
   err_flag = .false.
   return
-endif
-
-! Save values from old_slice if present in case the old_slice actual arg is same as sliced_ele.
-
-if (present(old_slice)) then
-  ele0%value(p0c$)   = old_slice%value(p0c$)
-  ele0%value(e_tot$) = old_slice%value(e_tot$)
-  ele0%ref_time      = old_slice%ref_time
-  time_ref_orb_out   = old_slice%time_ref_orb_out
 endif
 
 !

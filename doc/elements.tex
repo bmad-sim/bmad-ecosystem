@@ -4602,7 +4602,9 @@ Example:
 ``Soft edge'' end fields may be simulated by using Runge-Kutta tracking and setting the
 \vn{field_calc} parameter of the element to \vn{soft_edge}. Equations for the soft edge model are
 taken from Derby and Olbert \cite{b:derby}. The equations used are for the exact ideal azimuthally
-symmetric solenoid model (not the near-axis approximation model).  Example:
+symmetric solenoid model (not the near-axis approximation model). In this case \vn{ks} and
+\vn{bs_field} are the field of an infinite pipe with the same current density (equal to
+$\mu_0\,n\,I$ in the notation of Derby and Olbert).  Example:
 \begin{example}
   soft_sol: solenoid, l = 1.0, field_calc = soft_edge, l_soft_edge = 0.5, 
               r_solenoid = 0.1, tracking_method = runge_kutta, mat6_calc_method = tracking
