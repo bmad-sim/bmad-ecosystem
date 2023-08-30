@@ -5636,9 +5636,10 @@ case ('universe')
     call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat)
     if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
                                            (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
-      call out_io (s_info$, r_name, 'Negative damping partition number detected!!!', &
-                                    'The lattice is unstable with radiation excitations!', &
-                                    '[However such things as the closed orbit can still be calculated.]')
+      call out_io (s_info$, r_name, &
+        'Negative damping partition number detected therefore the lattice is unstable with radiation excitations.', &
+        'Note1: This may not be a problem if the amount of radiation generated is low (like for protons).', &
+        'Note2: Instability with respect to radiation excitations does not affect such things as the closed orbit calculation.')
     endif
     call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
                           pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
