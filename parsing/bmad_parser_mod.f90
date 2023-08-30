@@ -6340,7 +6340,7 @@ end type
 
 type (lat_struct), target :: lord_lat, lat
 type (lat_struct), optional :: check_lat
-type (ele_struct), pointer :: lord, slave, ele, g_lord, g_slave0, g_slave1
+type (ele_struct), pointer :: lord, ele, g_lord, g_slave0, g_slave1
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable, target :: cs(:)
@@ -6730,6 +6730,7 @@ end function ix_far_index
 subroutine make_this_overlay_group_lord (ix_pick, lord, lat, n_slave, cs, err_flag, pele, m_eles)
 
 type (ele_struct) :: lord
+type (ele_struct), pointer :: slave
 type (lat_struct) lat
 type (control_struct), allocatable, target :: cs(:)
 type (parser_ele_struct), target :: pele
@@ -6774,6 +6775,13 @@ do ip = 1, size(pele%control)
     do k = 1, m_eles(ip)%n_loc
       if (ix_pick /= 0 .and. k /= ix_pick) cycle
       slave => pointer_to_ele (lat, m_eles(ip)%eles(k)%loc)
+      ! Slave can only be a null_ele if it was formally a drift that no longer exists.
+      if (slave%key == null_ele$) then
+        call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
+                           'Slave element: ' // trim(slave%name) // ' no longer exists due to superposition!')
+        return
+      endif
+
       n_slave = n_slave + 1
       if (allocated(pc%y_knot)) then
         cs(n_slave)%y_knot = pc%y_knot
@@ -6795,7 +6803,7 @@ do ip = 1, size(pele%control)
       cs(n_slave)%attribute = attrib_name
       if (ix < 1 .and. .not. associated(a_ptr%r)) then
         call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, 'ATTRIBUTE: ' // attrib_name, &
-                      'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, pele = pele)
+                           'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, pele = pele)
         return
       endif
       if (iv > 1) call parser_transfer_control_struct(cs(n_slave), cs(n_slave), lord, iv)
