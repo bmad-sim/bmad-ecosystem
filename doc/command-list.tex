@@ -3385,12 +3385,13 @@ in with a \vn{call} command.
 
 Syntax:
 \begin{example}
-  show value \{-format <format-string>\} <expression>
+  show value \{#format <format-string>\} <expression>
 \end{example}
 
-Shows the value of an expression. The \vn{-format} switch can be used to set the number format.  The
-default format is \vn{es25.17} which results in number printed in scientific notation format with a
-field width of 25 and 17 digits displayed after the decimal place. Use ``\vn{f}'' for fixed point
+Shows the value of an expression. The \vn{\#format} switch (notice that "\vn{\#}" is used instead of
+"\vn{-}" to avoid confusion with negative signs) can be used to set the number format.  The default
+format is \vn{es25.17} which results in number printed in scientific notation format with a field
+width of 25 and 17 digits displayed after the decimal place. Use ``\vn{f}'' for fixed point
 numbers. For example, ``\vn{f10.3}'' will give display numbers in fixed point format with a field
 width of 10 and 3 digits displayed after the decimal place. Rule: The format string must not contain
 an embedded blank space.
@@ -3400,15 +3401,16 @@ is a format specified and if the format has a repeat count\footnote
   {
 for example ``\vn{4f10.3}'' has a repeat count of 4.
   }
-or a comma (example ``\vn{f9.3,es9.1}''), the values will be printed on one line.
+or a comma (example ``\vn{f9.3,es9.1}''), the values will be printed on one line. 
+
 
 Also see \vn{show string}.
 
 Examples:
 \begin{example}
   show value sqrt(3@lat::orbit.x[34]|model) + sin(0.35)
-  show value -form f10.4 ran_gauss()
-  show value -form 2es10.2 [ele::q20w[hkick], lat::beta.a[4]] ! Output on one line
+  show value #form f10.4 ran_gauss()
+  show value #form 2es10.2 [ele::q20w[hkick], lat::beta.a[4]] ! Output on one line
 \end{example}
 The last example shows how to 
 
