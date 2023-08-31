@@ -31,7 +31,7 @@ type (tao_lattice_branch_struct), target :: tao_branch
 type (coord_struct), pointer :: orbit(:)
 type (spin_orbit_map1_struct) :: q_1turn
 type (spin_orbit_map1_struct), pointer :: q1
-type (spin_orbit_map1_struct), target :: q_ele(branch%n_ele_track)
+type (spin_orbit_map1_struct), target :: q_ele(0:branch%n_ele_track)
 type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable :: eles(:)
 
@@ -84,22 +84,52 @@ tao_branch%spin_valid = .true.
 call spin_concat_linear_maps (err, q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit, excite_zero)
 if (err) return
 
-tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin_q(0,0))
+if (branch%param%geometry == closed$) then
+  tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin_q(0,0))
+  n0       = 0
+  dn_dpz   = 0
+  partial  = 0
+  partial2 = 0
+
+else
+  n0       = branch%lat%particle_start%spin
+  dn_dpz   = branch%ele(0)%value(spin_dn_dpz_x$:spin_dn_dpz_z$)
+  partial  = 0 ! Not sure this is computable.
+  partial2 = 0
+  tao_branch%spin_ele(0)%dn_dpz%vec      = dn_dpz
+  tao_branch%spin_ele(0)%dn_dpz%partial  = partial
+  tao_branch%spin_ele(0)%dn_dpz%partial2 = partial2
+endif
 
 ! Loop over all elements.
 ! Assume that dn_dpz varies linearly within an element so dn_dpz varies quadratically.
 
-do ie = 1, branch%n_ele_track
-  if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
-  
-  dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, partial2, err)
-  if (err) exit
+do ie = 0, branch%n_ele_track
 
-  tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
-  tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
-  tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
-  n0 = q_1turn%spin_q(1:3, 0)
-  n0 = n0 / norm2(n0)
+  old_dn_dpz   = dn_dpz
+  old_n0       = n0
+  old_partial  = partial
+  old_partial2 = partial2
+
+  if (branch%param%geometry == closed$) then
+    q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
+    dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, partial2, err)
+    if (err) exit
+    tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
+    tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
+    tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
+    n0 = q_1turn%spin_q(1:3, 0)
+    n0 = n0 / norm2(n0)
+  else
+    if (ie == 0) cycle
+    n0       = quat_rotate(q_ele(ie)%spin_q(:,0), n0)
+    dn_dpz   = quat_rotate(q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
+    partial  = 0
+    partial2 = 0
+    tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
+    tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
+    tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
+  endif
 
   del_p  = 1 + orbit(ie)%vec(6)
   s_vec(1:2) = [orbit(ie)%vec(2)/del_p, orbit(ie)%vec(4)/del_p]
@@ -134,11 +164,6 @@ do ie = 1, branch%n_ele_track
                                                       integ_dn2 (old_int_g3, old_partial2(kk,:), int_g3, partial2(kk,:))
     enddo
   endif
-
-  old_dn_dpz   = dn_dpz
-  old_n0       = n0
-  old_partial  = partial
-  old_partial2 = partial2
 enddo
 
 ! Some toy lattices may not have any bends (EG: spin single resonance model lattice) or have lattice length zero.
