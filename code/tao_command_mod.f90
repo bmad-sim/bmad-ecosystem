@@ -362,7 +362,7 @@ endif
 
 ! If not a switch...
 
-if ((line(1:1) /= switch_start_char) .or. &
+if ((line(1:1) /= switch_start_char .and. switch_start_char /= ' ') .or. &
           (logic_option(.false., neg_num_not_switch) .and. is_real(line(1:ix_word)))) then
   if (return_next_word) then
     switch = line(1:ix_word)
