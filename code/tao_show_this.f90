@@ -5775,28 +5775,19 @@ case ('use')
 
 case ('value')
 
-
   s_fmt = 'es24.16'
   line = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '-format'], .false., switch, err, ix, print_err = .false.)
+    call tao_next_switch (what2, [character(20):: '#format'], .true., switch, err, ix, print_err = .false.)
     if (err) return
     select case (switch)
-    case ('')
-      ix = index(what2, '-f')
-      if (ix == 0) then
-        line = trim(line) // trim(what2)
-        what2 = ''
-        exit
-      else
-        line = trim(line) // what2(:ix-1)
-        what2 = what2(ix:)
-      endif
-    case ('-format')
+    case ('#format')
       s_fmt = unquote(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
     case default
+      line = trim(line) // trim(switch)
+      if (what2 == '') exit
     end select
   enddo
 
@@ -5813,7 +5804,11 @@ case ('value')
 
   call tao_evaluate_expression (line, 0, .false., value, err, .true., info)
   u%calc%one_turn_map = map_calc
-  if (err) return
+  if (err) then
+    if (index(what, '-f') /= 0) call out_io (s_warn$, r_name, &
+                '"Note: -format" has been changed to "#format" to avoid confusion with any negative signs.')
+    return
+  endif
 
   if (size(value) == 1) then
     s_fmt = '(3x, ' // trim(s_fmt) // ')'
