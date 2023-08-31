@@ -8,10 +8,11 @@ module c_dabnew
   implicit none
   private
 !  public
-  public c_ldamax, c_lstmax,c_leamax,c_liamax
  
-  private daalc_lno1,daall,damult,dasqrt,dacmut,dacma,DALINt,dacctt
-  private dainvt,dadert,dacfut
+  public c_ldamax, c_lstmax,c_leamax,c_liamax,c_dacctt2datest
+ 
+  private daalc_lno1,daall,damult,dasqrt,dacmut,dacma,DALINt,dacctt,dacctt1,dacctt2tpsa,dacctt2da
+  private dainvt,dadert,dacfut,dainvt1
   private dadeb,dapac,dachk,damch,dadcd,dancd,hash,dehash
   public C_STABLE_DA,C_watch_user,c_daini,c_daall0,c_davar,c_damul,c_dacycle
   public c_dapok,c_dapek,c_etall1,c_DAshift,c_dacop,c_dacon,c_daadd,c_dacad,c_dasub
@@ -29,6 +30,38 @@ module c_dabnew
 !real(dp),public :: eps_clean=0
   public c_print_c_nda_dab_c_lda
 complex(dp), private :: i_=(0.0_dp,1.0_dp)
+
+ 
+
+  INTERFACE c_daall1$
+     MODULE PROCEDURE daall1
+  end INTERFACE c_daall1$
+
+
+  INTERFACE c_daall$
+     MODULE PROCEDURE daall
+  end INTERFACE c_daall$
+
+  INTERFACE c_daall0$
+     MODULE PROCEDURE c_daall0
+  end INTERFACE c_daall0$
+
+  INTERFACE c_dadal$
+     MODULE PROCEDURE dadal
+  end INTERFACE c_dadal$
+
+  INTERFACE c_dadal1$
+     MODULE PROCEDURE c_dadal1
+  end INTERFACE c_dadal1$
+
+  INTERFACE c_davar$
+     MODULE PROCEDURE c_davar
+  end INTERFACE c_davar$
+
+  INTERFACE c_dacma$
+     MODULE PROCEDURE dacma
+  end INTERFACE c_dacma$
+
 contains
   !******************************************************************************
   !                                                                             *
@@ -227,6 +260,70 @@ contains
     integer,dimension(c_lnv)::j,jj
     character(10) aa
     !
+     c_nomax = no
+     c_nvmax = nv
+    c_last_tpsa=1
+if(newtpsa) then
+
+    if(c_nomax.eq.1) then
+     call alloc_all_c(no,nv)
+    c_ndamaxi=0
+      do i=1, c_lda
+        c_allvec(i) = .false.
+      enddo
+    c_nhole=0
+
+    c_nda_dab   = 0
+    c_nst0   = 0
+    c_nomax = no
+    c_nvmax = nv
+    c_nocut=no
+    call danum_c(no,nv,c_nmmax)
+ 
+     do i=1,c_lda
+      c_idapo(i)=c_nmmax*(i-1)+1
+     enddo
+       c_idano=1
+       c_idanv=nv
+       c_idalm=c_nmmax
+       c_idall=c_nmmax
+      return
+    endif
+
+    if(c_nomax==2)  then
+ 
+     call alloc_all_c(no,nv)
+ 
+    c_ndamaxi=0
+      do i=1, c_lda
+        c_allvec(i) = .false.
+      enddo
+    c_nhole=0
+
+    c_nda_dab   = 0
+    c_nst0   = 0
+    c_nomax = no
+    c_nvmax = nv
+    c_nocut=no
+ 
+
+    call danum_c(no,nv,c_nmmax)
+ 
+ 
+      do i=1,c_lda
+      c_idapo(i)=c_nmmax*(i-1)+1
+     enddo
+       c_idano=2
+       c_idanv=nv
+       c_idalm=c_nmmax
+       c_idall=c_nmmax
+ 
+    return
+    endif
+
+endif
+
+
     !frs if(eps.le.zero) eps=c_1d_38
     !      if(EPS.le.zero) eps=c_1d_90
     !frs epsmac=c_1d_7
@@ -236,7 +333,7 @@ contains
        endif
        return
     endif
-    c_last_tpsa=1
+ !   c_last_tpsa=1
     if(nv.eq.0) return
     call alloc_all_c(no,nv)
     c_ndamaxi=0
@@ -452,6 +549,7 @@ contains
     enddo
     !
     return
+
   end subroutine c_daini
   !  subroutine daexter
   !    implicit none
@@ -560,6 +658,73 @@ contains
     !       return
     !    endif
     !
+
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+200        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 200
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 200
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: LDA = ',c_LDA
+          stop 201
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic = ind
+      return
+    endif
+
+    if(c_nomax==2)  then
+
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+300        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 300
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 3001
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: LDA = ',c_LDA
+          stop 301
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic = ind
+      return
+    endif
+endif
+
     no=c_nomax
     nv=c_nvmax
     ind = 1
@@ -654,6 +819,77 @@ contains
     integer i,ind,l,ndanum,no,nv,ipause,mypauses
     integer,dimension(:)::ic
     character(10) c,ccc
+
+
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+do i=1,l
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+200        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 200
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 200
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>c_lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: c_lda = ',c_lda
+          stop 201
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic(i) = ind
+       enddo
+      return
+    endif
+
+
+    if(c_nomax==2)  then
+     do i=1,l
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+300        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 300
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 3002
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>c_lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: c_lda = ',c_lda
+          stop 301
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic(i) = ind
+       enddo
+     return
+    endif
+endif
+
     !    if((.not.C_STABLE_DA)) then
     !       if(C_watch_user) then
     !          write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -745,6 +981,7 @@ contains
     if(c_nda_dab.gt.c_ndamaxi) c_ndamaxi=c_nda_dab
     return
   end subroutine daall
+
   subroutine daall1(ic,ccc,no,nv)
     implicit none
     !     ********************************
@@ -757,6 +994,74 @@ contains
     logical(lp) incnda
     integer ic,ind,ndanum,no,nv,ipause,mypauses
     character(10) c,ccc
+
+ 
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+200        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 200
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 200
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: LDA = ',c_LDA
+          stop 201
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic = ind
+      return
+    endif
+
+    if(c_nomax==2)  then
+
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+300        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 300
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 3003
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: LDA = ',c_LDA
+          stop 301
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic = ind
+      return
+    endif
+endif
+
     !    if((.not.C_STABLE_DA)) then
     !       if(C_watch_user) then
     !          write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -871,6 +1176,73 @@ contains
     logical(lp) incnda
     integer ic,ind,ndanum,no,nv,ipause,mypauses
     character(10) c,ccc
+ 
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+200        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 200
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 200
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: LDA = ',c_LDA
+          stop 201
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic = ind
+      return
+    endif
+
+    if(c_nomax==2)  then
+
+       if(c_nhole.gt.0) then
+          ind=c_nda_dab
+300        if (c_allvec(ind)) then
+             ind = ind - 1
+             goto 300
+          endif
+          incnda = .false.
+          c_nhole=c_nhole-1
+       else
+          incnda = .true.
+          c_nda_dab = c_nda_dab + 1
+          ind=c_nda_dab
+          if(c_nda_dab.gt.c_lda) then
+             write(line,'(a52)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,1'
+             stop 3004
+          endif
+       endif
+       if(ind>c_lda_max_used) c_lda_max_used=ind
+       if(ind>c_lda) then
+          write(6,*) "ind>lda ",c_lda,ind
+          print*, 'ERROR IN DAALLNO1, MAX NUMBER OF DA VECTORS EXHAUSTED: LDA = ',c_LDA
+          stop 301
+       endif
+       c_allvec(ind) = .true.
+       !idapo(ind)= ind*(nmmax-1)+1
+       c_daname(ind) = ccc
+       ic = ind
+      return
+    endif
+endif
+
     ccc='         '
     no=c_nomax
     nv=c_nvmax
@@ -972,6 +1344,39 @@ contains
     !
     integer i,l,ipause,mypauses
     integer,dimension(:)::idal
+ 
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+    do i=l,1,-1
+     if(idal(i).eq.c_nda_dab) then
+       !       deallocate 
+       c_nda_dab = c_nda_dab - 1
+    else
+       c_nhole=c_nhole+1
+    endif
+       c_cc(c_idapo(idal(i)):c_idapo(idal(i))+c_nmmax-1)=0
+       c_allvec(idal(i)) = .false.
+       idal(i) = 0
+      enddo
+      return
+    endif
+
+    if(c_nomax==2)  then
+    do i=l,1,-1
+     if(idal(i).eq.c_nda_dab) then
+       !       deallocate 
+       c_nda_dab = c_nda_dab - 1
+    else
+       c_nhole=c_nhole+1
+    endif
+       c_cc(c_idapo(idal(i)):c_idapo(idal(i))+c_nmmax-1)=0
+       c_allvec(idal(i)) = .false.
+       idal(i) = 0
+      enddo
+      return
+    endif
+endif
+
     !
     !    if((.not.C_STABLE_DA)) then
     !       if(C_watch_user) then
@@ -1005,7 +1410,7 @@ contains
     enddo
     return
   end subroutine dadal
-
+ 
   subroutine c_dadal1(idal)
     implicit none
     !     ************************
@@ -1015,6 +1420,35 @@ contains
     !-----------------------------------------------------------------------------
     !
     integer idal
+ 
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+     if(idal.eq.c_nda_dab) then
+       !       deallocate 
+       c_nda_dab = c_nda_dab - 1
+    else
+       c_nhole=c_nhole+1
+    endif
+       c_cc(c_idapo(idal):c_idapo(idal)+c_nmmax-1)=0
+       c_allvec(idal) = .false.
+       idal= 0
+      return
+    endif
+
+    if(c_nomax==2)  then
+     if(idal.eq.c_nda_dab) then
+       !       deallocate 
+       c_nda_dab = c_nda_dab - 1
+    else
+       c_nhole=c_nhole+1
+    endif
+       c_cc(c_idapo(idal):c_idapo(idal)+c_nmmax-1)=0
+       c_allvec(idal) = .false.
+       idal= 0
+      return
+    endif
+endif
+
     !
     !    if((.not.C_STABLE_DA)) then
     !       if(C_watch_user) then
@@ -1072,6 +1506,26 @@ contains
     integer i,ibase,ic1,ic2,illa,ilma,ina,inoa,inva,ipoa,ipause,mypauses
     complex(dp) ckon
     !
+
+ 
+ if(newtpsa) then
+    if(c_nomax.eq.1) then
+       c_cc(c_idapo(ina):c_idapo(ina)+c_nmmax-1) =0
+       c_cc(c_idapo(ina)) = ckon
+       c_cc(c_idapo(ina)+i) = one
+       return
+    endif
+
+    if(c_nomax==2)  then
+
+       c_cc(c_idapo(ina):c_idapo(ina)+c_nmmax-1) =0
+       c_cc(c_idapo(ina)) = ckon
+       c_cc(c_idapo(ina)+i) = one
+    return
+    endif
+endif
+
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1143,6 +1597,22 @@ contains
     integer illa,ilma,ina,inoa,inva,ipoa
     complex(dp) ckon
     !
+ 
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       call daclr(ina)
+       c_cc(c_idapo(ina)) = ckon
+       return
+    endif
+    if(c_nomax==2) then
+       call daclr(ina)
+       c_cc(c_idapo(ina)) = ckon
+       return
+    endif
+endif
+
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1273,6 +1743,77 @@ contains
     integer,dimension(c_lnv)::jj
     complex(dp) cjj
     !
+
+ icu=0
+    do i=1,c_nvmax
+       icu=jv(i)+icu
+    enddo
+if(icu>c_nomax) return
+
+ if(newtpsa) then
+ipoa=c_idapo(ina)
+
+    if(c_nomax==1) then
+ 
+   icu = 0 
+jj1=0
+       jj=0
+    do i=1,size(jv)
+       jj(i)=jv(i)
+    enddo
+             do i=1,c_nvmax
+                icu = icu + jj(i)
+                if(jj(i).eq.1)  jj1=i
+             enddo
+ 
+      if(icu>1) then
+       cjj=0
+       return
+      endif
+ 
+       ipek = ipoa + jj1
+       cjj = c_cc(ipek)
+      return
+    endif
+
+    if(c_nomax==2)  then
+       jj=0
+    do i=1,size(jv)
+       jj(i)=jv(i)
+    enddo
+         ic1=0
+         cjj=0
+        do i=1,c_nvmax
+          ic1=ic1+jj(i) 
+        enddo
+           if(ic1>c_nomax) return
+         ic2=0
+         ic1=0
+         cjj=0
+        do i=1,c_nvmax
+          if(jj(i)==2) then
+           ic1=i
+           ic2=i
+           exit
+          endif
+
+          if(jj(i)==1) then
+           if(ic1==0) then 
+             ic1=i
+            else
+               ic2=i
+             exit
+            endif
+          endif
+        enddo
+
+       ipek = ipoa + inds(ic1,ic2) - 1
+       cjj = c_cc(ipek)
+    return
+    endif
+endif
+
+
     cjj=0
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
@@ -1405,6 +1946,76 @@ contains
     integer,dimension(:)::jv     ! 2002.12.4
     integer,dimension(c_lnv)::jj
     complex(dp) cjj
+ 
+icu=0
+    do i=1,size(jv)
+       icu=jv(i)+icu
+    enddo
+if(icu>c_nomax) return
+
+ if(newtpsa) then
+ipoa=c_idapo(ina)
+
+    if(c_nomax==1) then
+   icu = 0 
+  jj1=0
+       jj=0
+    do i=1,size(jv)
+       jj(i)=jv(i)
+    enddo
+             do i=1,c_nvmax
+                icu = icu + jj(i)
+                if(jj(i).eq.1)  jj1=i
+             enddo
+ 
+      if(icu>1) then
+       return
+      endif
+ 
+       ipok = ipoa + jj1
+       c_cc(ipok) = cjj
+
+      return
+    endif
+
+    if(c_nomax==2)  then
+       jj=0
+    do i=1,size(jv)
+       jj(i)=jv(i)
+    enddo
+         ic1=0
+        do i=1,c_nvmax
+          ic1=ic1+jj(i) 
+        enddo
+           if(ic1>c_nomax) return
+         ic2=0
+         ic1=0
+        do i=1,c_nvmax
+          if(jj(i)==2) then
+           ic1=i
+           ic2=i
+           exit
+          endif
+
+          if(jj(i)==1) then
+           if(ic1==0) then 
+             ic1=i
+            else
+               ic2=i
+             exit
+            endif
+          endif
+        enddo
+
+       ipok = ipoa + inds(ic1,ic2) - 1
+        c_cc(ipok)=cjj
+
+    return
+    endif
+endif
+
+
+
     !
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
@@ -1566,6 +2177,11 @@ contains
     !
     integer i,illc,ilmc,inc,inoc,invc,ipoc
     !
+ if(newtpsa) then
+       c_cc(c_idapo(inc):c_idapo(inc)+c_nmmax-1)=0
+    return
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1604,7 +2220,13 @@ contains
     !-----------------------------------------------------------------------------
     !
     integer ia,ib,illa,ina,inb,ipoa,ipob
-    !
+     
+ if(newtpsa) then
+       c_cc(c_idapo(inb):c_idapo(inb)+c_nmmax-1)=c_cc(c_idapo(ina):c_idapo(ina)+c_nmmax-1)
+    return
+endif
+
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1634,6 +2256,7 @@ contains
     c_idall(inb) = ib - ipob + 1
     return
   end subroutine c_dacop
+
   subroutine c_daadd(ina,inb,inc)
     implicit none
     !     *****************************
@@ -1646,7 +2269,15 @@ contains
     integer i,ina,ipoa
     integer idaadd,inb,inc,ipoc
     integer ipob
-    !
+
+ if(newtpsa) then
+       ipoc = c_idapo(inc)
+       ipoa = c_idapo(ina)
+       ipob = c_idapo(inb)
+          c_cc(ipoc:ipoc+c_nmmax-1) = c_cc(ipoa:ipoa+c_nmmax-1)   + c_cc(ipob:ipob+c_nmmax-1)
+    return
+    
+endif
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1679,6 +2310,39 @@ contains
   subroutine c_datrunc(ina,io,inb)
     implicit none
     integer ina,io,inb,nt,ipoca,ipocb,i
+
+ if(newtpsa) then
+       ipoca=c_idapo(ina)
+       ipocb=c_idapo(inb)
+    if(c_nomax==1) then
+
+       do i=1,c_nvmax
+          c_cc(ipocb+i) =0.0_dp
+       enddo
+
+          if(io==1) then
+            c_cc(ipocb) =c_cc(ipoca)
+          elseif(io>1) then
+             c_cc(ipocb:ipocb+c_nmmax-1)=c_cc(ipoca:ipoca+c_nmmax-1)
+          endif
+      return
+    endif
+
+    if(c_nomax==2)  then
+         c_cc(ipocb+1:ipocb+combien-1) = 0.0_dp
+          if(io==1) then
+            c_cc(ipocb) =c_cc(ipoca)
+          elseif(io==2) then
+            c_cc(ipocb:ipocb+c_nvmax) =c_cc(ipoca:ipoca+c_nvmax)
+            c_cc(ipocb+c_nvmax+1:ipocb+combien-1)=0.0_dp
+          elseif(io>2) then
+             c_cc(ipocb:ipocb+c_nmmax-1)=c_cc(ipoca:ipoca+c_nmmax-1)
+          endif
+    return
+    endif
+endif
+
+
     if((.not.C_%STABLE_DA)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1716,7 +2380,16 @@ contains
     integer i,ina,ipoa
     integer inc,ipoc,inb
     integer ipob
-    !
+ 
+
+ if(newtpsa) then
+       ipoc = c_idapo(inc)
+       ipoa = c_idapo(ina)
+       ipob = c_idapo(inb)
+    c_cc(ipoc:ipoc+c_nmmax-1) = c_cc(ipoa:ipoa+c_nmmax-1)   - c_cc(ipob:ipob+c_nmmax-1)
+    return
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1757,9 +2430,46 @@ contains
     !
     !-----------------------------------------------------------------------------
     !
-    integer ina,inb,inc,incc,ipoc,ipoa,ipob,i
+    integer ina,inb,inc,incc,ipoc,ipoa,ipob,i,j
     complex(dp) ccipoa,ccipob
-    !
+ 
+if(newtpsa) then
+       ipoa=c_idapo(ina)
+       ipob=c_idapo(inb)
+       ipoc=c_idapo(inc)
+    if(c_nomax==1) then
+       ccipoa = c_cc(ipoa)
+       ccipob = c_cc(ipob)
+       c_cc(ipoc) = ccipoa*ccipob
+       do i=1,c_nvmax
+          c_cc(ipoc+i) = ccipoa*c_cc(ipob+i) + ccipob*c_cc(ipoa+i)
+       enddo
+
+      return
+    endif
+
+    if(c_nomax==2)  then
+       ccipoa = c_cc(ipoa)
+       ccipob = c_cc(ipob)
+       reelc=0
+       reelc(1) = ccipoa*ccipob  
+       do i=1,c_nvmax
+          reelc(i+1) = ccipoa*c_cc(ipob+i) + ccipob*c_cc(ipoa+i)+reelc(i+1)
+       enddo
+       do i=poscombien,combien
+          reelc(i) = ccipoa*c_cc(ipob+i-1) + ccipob*c_cc(ipoa+i-1) +reelc(i)
+       enddo
+       do i=1,c_nvmax
+       do j=1,c_nvmax
+        reelc(inds(i,j))=reelc(inds(i,j))+c_cc(ipoa+i)*c_cc(ipob+j)
+       enddo
+       enddo
+       c_cc(ipoc:ipoc+combien-1)=reelc
+    return
+    endif
+endif
+
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1817,7 +2527,19 @@ contains
          inva,invb,invc,ioffb,ipoa,ipob,ipoc,ipos,noib,nom
     integer,dimension(0:c_lno)::ipno,noff
     complex(dp) ccia,ccipoa,ccipob
-    !
+ 
+ if(newtpsa) then
+    if(c_nomax.eq.1) then
+       stop 1000
+      return
+    endif
+
+    if(c_nomax==2)  then
+       stop 1001
+    return
+    endif
+ endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1928,7 +2650,34 @@ contains
     !
     integer idadiv,inb,ina,inc,ipoc,ipoa,ipob,i
     complex(dp) ck,ck1
-    !
+ 
+ if(newtpsa) then
+       ipoa = c_idapo(ina)
+       ipob = c_idapo(inb)
+       ipoc = c_idapo(inc)
+
+    if(c_nomax==1) then
+       ck=1.0_dp/c_cc(ipob)
+       ck1=c_cc(ipoa)*ck
+       do i=1,c_nvmax
+          c_cc(ipoc+i) = (c_cc(ipoa+i)-c_cc(ipob+i)*ck1)*ck
+       enddo
+       c_cc(ipoc)=ck1
+      return
+    endif
+
+    if(c_nomax==2)  then
+     idadiv = 0
+    !      call dainf(inc,inoc,invc,ipoc,ilmc,illc)
+    call daall1(idadiv,'$$DADIV $$',c_nomax,c_nvmax)
+    call c_dafun('INV ',inb,idadiv)
+    call c_damul(ina,idadiv,inc)
+    call c_dadal1(idadiv)
+    return
+    endif
+endif
+
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1968,7 +2717,27 @@ contains
     !
     integer ina,inc,incc,ipoc,i,ipoa
     complex(dp) ccipoa
-    !
+ 
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       ipoc = c_idapo(inc)
+       ipoa = c_idapo(ina)
+       !         minv = min(inva,invc)
+       ccipoa = c_cc(ipoa)
+       c_cc(ipoc) = ccipoa*ccipoa
+       do i=1,c_nvmax
+          c_cc(ipoc+i) = 2.0_dp*ccipoa*c_cc(ipoa+i)
+       enddo
+      return
+    endif
+
+    if(c_nomax==2)  then
+     call c_damul(ina,ina,inc)
+    return
+    endif
+endif
+
     !     CASE OF FIRST ORDER ONLY
     !     ************************
     if((.not.C_STABLE_DA)) then
@@ -2000,6 +2769,7 @@ contains
     endif
     return
   end subroutine dasqr
+
   subroutine dasqrt(ina,inc)
     implicit none
     !     *************************
@@ -2021,7 +2791,19 @@ contains
          inva,invc,ioffa,ioffb,ipoa,ipoc,ipos,noia,noib,nom
     integer,dimension(0:c_lno)::ipno,noff
     complex(dp) ccia,ccipoa
-    !
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+stop 3501
+      return
+    endif
+
+    if(c_nomax==2)  then
+stop 3511
+    return
+    endif
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2134,7 +2916,16 @@ contains
     integer ina,inb
     integer,parameter,dimension(c_lnv)::jjx=0
     complex(dp) ckon,const
-    !
+ 
+ if(newtpsa) then
+    call c_dacop(ina,inb)
+
+       c_cc(c_idapo(inb)) = c_cc(c_idapo(inb)) + ckon
+ 
+    return
+     
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2164,13 +2955,22 @@ contains
     integer ina,inb
     integer,parameter,dimension(c_lnv)::jjx=0
     complex(dp) ckon,const
-    !
+ 
+ if(newtpsa) then
+    call c_dacop(ina,inb)
+
+       c_cc(c_idapo(inb)) = c_cc(c_idapo(inb)) - ckon
+ 
+    return
+endif
+ 
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
        endif
        return
     endif
+
     call c_dacop(ina,inb)
     !
     if(c_nomax.eq.1) then
@@ -2198,7 +2998,17 @@ contains
     !
     integer i,ina,inb,ipoa,ipob
     complex(dp) ckon
-    !
+ 
+
+ if(newtpsa) then
+    ipob=c_idapo(inb)
+    ipoa=c_idapo(ina)
+        c_cc(ipob) = ckon - c_cc(ipoa)
+        c_cc(ipob+1:ipob+c_nmmax-1) =-c_cc(ipoa+1:ipoa+c_nmmax-1)
+        return
+ endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2232,7 +3042,15 @@ contains
     !
     integer ipoa,i,ina,inc,incc,ipoc
     complex(dp) ckon
-    !
+ 
+ if(newtpsa) then
+    ipoc=c_idapo(inc)
+    ipoa=c_idapo(ina)
+        c_cc(ipoc:ipoc+c_nmmax-1) = ckon*c_cc(ipoa:ipoa+c_nmmax-1)
+        return
+ endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2279,7 +3097,21 @@ contains
     integer i,ia,ib,illa,illb,ilma,ilmb,ina,inb,inoa,inob,inva,invb,ipoa,&
          ipob,ipause,mypauses
     complex(dp) ckon
-    !
+ 
+ if(newtpsa) then
+    if(c_nomax==1) then
+    stop 9001
+      return
+    endif
+
+    if(c_nomax==2)  then
+    stop 9011
+
+    return
+    endif
+endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2341,7 +3173,15 @@ contains
     !
     integer i,ina,inb,ipoa,ipob,ipause,mypauses
     complex(dp) ckon
-    !
+ 
+ if(newtpsa) then
+    ipob=c_idapo(inb)
+    ipoa=c_idapo(ina)
+        c_cc(ipob:ipob+c_nmmax-1) =  c_cc(ipoa:ipoa+c_nmmax-1)/ckon
+        return
+ endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2384,7 +3224,30 @@ contains
     !
     integer i,idadic,ina,inc,ipoa,ipoc
     complex(dp) ckon,ck
-    !
+ 
+ if(newtpsa) then
+    if(c_nomax==1) then
+       ipoa = c_idapo(ina)
+       ipoc = c_idapo(inc)
+       c_cc(ipoc)=ckon/c_cc(ipoa)
+       ck=c_cc(ipoc)/c_cc(ipoa)
+       do i=1,c_nvmax
+          c_cc(ipoc+i) = -c_cc(ipoa+i)* ck
+       enddo
+      return
+    endif
+
+    if(c_nomax==2)  then
+    idadic = 0
+    call daall1(idadic,'$$DADIC $$',c_nomax,c_nvmax)
+    call c_dafun('INV ',ina,idadic)
+    call c_dacmu(idadic,ckon,inc)
+    call c_dadal1(idadic)
+    return
+    endif
+endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2439,7 +3302,18 @@ contains
     !
     integer idacma,ina,inb,inc,ipoc,ipob,ipoa,i
     complex(dp) bfac
-    !
+ 
+ if(newtpsa) then
+       ipoc = c_idapo(inc)
+       ipoa = c_idapo(ina)
+       ipob = c_idapo(inb)
+
+       c_cc(ipoc:ipoc+c_nmmax-1) = c_cc(ipoa:ipoa+c_nmmax-1)   + c_cc(ipob:ipob+c_nmmax-1) * bfac
+      return
+
+endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2480,7 +3354,19 @@ contains
     !-----------------------------------------------------------------------------
     !
     integer  ipob,ipoa,i
-    !
+
+
+ if(newtpsa) then
+       ipoc = c_idapo(inc)
+       ipoa = c_idapo(ina)
+       ipob = c_idapo(inb)
+
+        c_cc(ipoc:ipoc+c_nmmax-1) = c_cc(ipoa:ipoa+c_nmmax-1) * afac + c_cc(ipob:ipob+c_nmmax-1) * bfac
+
+       return
+    endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2529,7 +3415,20 @@ contains
          inob,inoc,inva,invb,invc,ipoa,ipob,ipoc,is,ismax,ismin,ja,jb,mchk,&
          ipause,mypauses
     complex(dp) afac,bfac,ccc,copf
-    !
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+        stop 4001
+      return
+    endif
+
+    if(c_nomax==2)  then
+        stop 4011
+    return
+    endif
+endif
+
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2701,7 +3600,20 @@ contains
     !
     integer i,illa,ilma,ina,inoa,inva,ipoa
     real(dp) anorm
-    !
+ 
+    if(newtpsa) then
+    ipoa=c_idapo(ina)
+    anorm = 0.0_dp
+     if(c_nomax==1) illa=c_nmmax+1
+     if(c_nomax==2) illa=combien 
+    do i=ipoa,ipoa+illa-1 
+       anorm = anorm + abs(c_cc(i))
+    enddo
+      return
+    endif
+ 
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2725,6 +3637,428 @@ contains
   end subroutine c_DAABS
   !
   !
+ subroutine dacctt1(mb,ib,mc,ic,ma,ia)
+    implicit none
+    !     ***********************************
+    !
+    !     THIS SUBROUTINE PERFORMS A CONCATENATION MA = MB o MC
+    !     WHERE MA, MB AND MC ARE MATRICES CONSISTING OF IA, IB AND IC
+    !     DA VECTORS, RESPECTIVELY.
+    !
+    !-----------------------------------------------------------------------------
+    !
+    !      INTEGER MON(c_lno+1),Ic_cc(c_lnv)
+    !      INTEGER,dimension(:)::MB,MC,MA
+    !ETIENNE
+    !-----------------------------------------------------------------------------
+    !
+    integer i0,i,j,k,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,inoa,inob,inoc,inva,invb,invc 
+
+    !    integer,dimension(c_lno)::icc
+     integer,dimension(:)::ma,mb,mc
+     integer  ipoa(c_lnv),ipob(c_lnv),ipoc(c_lnv)
+    !
+    !ETIENNE
+    !
+    !     CONSISTENCY CHECKS
+    !     ******************
+    !
+
+         
+ if(ib/=ic) then
+   write(6,*)  " stopped in dacctt1 "
+  stop 880
+ endif
+    
+call dainf(ma(1),inoa,i0,ipoa(1),ilma,illa)
+
+ 
+    do i=1,i0
+    call dainf(ma(i),inoa,inva,ipoa(i),ilma,illa)
+    call dainf(mb(i),inob,invb,ipob(i),ilmb,illb)
+    call dainf(mc(i),inoc,invc,ipoc(i),ilmc,illc)
+
+     c_cc(ipoa(i):ipoa(i)+inva)=0.0_dp
+   enddo
+    
+
+    do i=1,inva
+      c_cc(ipoa(i))=c_cc(ipob(i))
+    enddo
+
+    do i=1,inva
+     do j=1,inva
+     c_cc(ipoa(i))=c_cc(ipoa(i))+c_cc(ipob(i)+j)*c_cc(ipoc(j))
+     enddo
+ 
+    enddo
+     do i=1,inva
+     do j=1,inva
+     do k=1,inva
+     c_cc(ipoa(i)+k)=c_cc(ipoa(i)+k)+c_cc(ipob(i)+j)*c_cc(ipoc(j)+k)
+     enddo
+    enddo
+    enddo
+ 
+
+    return
+  end subroutine dacctt1
+
+  subroutine dacctt2tpsa(mb,ib,mc,ic,ma,ia)
+    implicit none
+    !     ***********************************
+    !
+    !     THIS SUBROUTINE PERFORMS A CONCATENATION MA = MB o MC
+    !     WHERE MA, MB AND MC ARE MATRICES CONSISTING OF IA, IB AND IC
+    !     DA VECTORS, RESPECTIVELY.
+    !
+    !-----------------------------------------------------------------------------
+    !
+    !      INTEGER MON(c_lno+1),Ic_cc(c_lnv)
+    !      INTEGER,dimension(:)::MB,MC,MA
+    !ETIENNE
+    !-----------------------------------------------------------------------------
+    !
+    integer i0,i,j,k,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,inoa,inob,inoc,inva,invb,invc,m,n 
+         real(dp) fac   
+ 
+    !    integer,dimension(c_lno)::icc
+     integer,dimension(:)::ma,mb,mc
+     integer  ipoa(c_lnv),ipob(c_lnv),ipoc(c_lnv)
+     complex(dp), allocatable :: g0(:),h0(:), G(:,:),H(:,:), Ga(:,:,:), He(:,:,:)
+     complex(dp), allocatable :: f0(:),F(:,:),Fi(:,:,:)
+
+    !
+    !ETIENNE
+    !
+    !     CONSISTENCY CHECKS
+    !     ******************
+    !    
+call dainf(ma(1),inoa,i0,ipoa(1),ilma,illa)
+ 
+allocate(g0(i0),h0(i0),f0(i0), G(i0,i0),H(i0,i0),F(i0,i0), Ga(i0,i0,i0), He(i0,i0,i0), fi(i0,i0,i0))
+     g0=0
+     h0=0
+     f0=0
+     g=0
+     h=0
+     f=0
+     ga=0
+     he=0
+     fi=0
+
+    do i=1,i0
+    call dainf(ma(i),inoa,inva,ipoa(i),ilma,illa)
+    call dainf(mb(i),inob,invb,ipob(i),ilmb,illb)
+    call dainf(mc(i),inoc,invc,ipoc(i),ilmc,illc)
+    if(inva/=i0) stop 1234
+    if(invb/=i0) stop 1235
+    if(invc/=i0) stop 1236
+    c_cc(ipoa(i):ipoa(i)+c_nmmax-1)=0.0_dp
+
+     g0(i)=c_cc(ipob(i))
+     h0(i)=c_cc(ipoc(i))
+     do j=1,i0
+      g(i,j)=c_cc(ipob(i)+j)
+      h(i,j)=c_cc(ipoc(i)+j)
+      do k=1,i0
+      fac=2.0_dp
+      if(j==k) fac=1.0_dp
+      ga(i,j,k)=c_cc(ipob(i)+inds(j,k)-1)/fac
+      he(i,j,k)=c_cc(ipoc(i)+inds(j,k)-1)/fac
+     enddo
+   enddo
+   enddo
+ 
+         f0=g0
+
+     do i=1,i0
+      do j=1,i0
+        f0(i)=g(i,j)*h0(j)  +f0(i)
+      
+      do k=1,i0
+        f0(i)=ga(i,j,k)*h0(j)*h0(k) + f0(i)
+       f(i,k)=f(i,k)+g(i,j)*H(j,k)
+      do m=1,i0
+        f(i,k)=f(i,k)+ga(i,j,m)*H(j,k)*h0(m)+ga(i,j,m)*H(m,k)*h0(j)
+       enddo
+       enddo
+     enddo
+     enddo
+ 
+  
+     do i=1,i0
+      do j=1,i0
+       do n=1,i0
+       do m=1,i0
+        fi(i,m,n)=fi(i,m,n)+ g(i,j)*he(j,m,n) 
+        do k=1,i0
+         fi(i,m,n)=fi(i,m,n)+ ga(i,j,k)*he(k,m,n)*h0(j)+ ga(i,j,k)*he(j,m,n)*h0(k) 
+         fi(i,m,n)=fi(i,m,n)+ ga(i,j,k)*h(j,m)*H(k,n) 
+        enddo
+       enddo
+     enddo
+     enddo
+     enddo
+ 
+ 
+    do i=1,i0
+         c_cc(ipoa(i))=f0(i)
+         c_cc(ipoa(i)+1:ipoa(i)+i0)=f(i,1:i0)
+    enddo
+ 
+ 
+    do k=1,i0
+     do j=poscombien, combien
+      fac=2.0_dp
+      if(ind1(j)==ind2(j)) fac=1.0_dp
+          c_cc(ipoa(k)+j-1)=fi(k,ind1(j),ind2(j))*fac
+    enddo
+    enddo
+ 
+ 
+ 
+deallocate(g0,h0, G,H, Ga, He,f0,f,fi)
+
+    return
+  end subroutine dacctt2tpsa
+
+   subroutine dacctt2da(mb,ib,mc,ic,ma,ia)
+    implicit none
+    !     ***********************************
+    !
+    !     THIS SUBROUTINE PERFORMS A CONCATENATION MA = MB o MC
+    !     WHERE MA, MB AND MC ARE MATRICES CONSISTING OF IA, IB AND IC
+    !     DA VECTORS, RESPECTIVELY.
+    !
+    !-----------------------------------------------------------------------------
+    !
+    !      INTEGER MON(c_lno+1),Ic_cc(c_lnv)
+    !      INTEGER,dimension(:)::MB,MC,MA
+    !ETIENNE
+    !-----------------------------------------------------------------------------
+    !
+    integer i,j,k,ia,ib,ic,illa,illb,illc,ilma,ilmb,ilmc,inoa,inob,inoc,inva,invb,invc 
+    integer ab,jk,ik
+
+    !    integer,dimension(c_lno)::icc
+     integer,dimension(:)::ma,mb,mc
+     integer  ipoa(c_lnv),ipob(c_lnv),ipoc(c_lnv)
+     complex(dp)xx
+    !
+    !ETIENNE
+    !
+    !     CONSISTENCY CHECKS
+    !     ******************
+    !
+
+         
+ if(ib/=ic) then
+   write(6,*)  " stopped in dacctt1 "
+  stop 880
+ endif
+    
+ 
+ 
+    do i=1,ia 
+    call dainf(ma(i),inoa,inva,ipoa(i),ilma,illa)
+     c_cc(ipoa(i):ipoa(i)+combien-1)=0.0_dp
+   enddo
+ 
+    do i=1,ib
+    call dainf(mb(i),inob,invb,ipob(i),ilmb,illb)
+   enddo
+ 
+    do i=1,ic
+    call dainf(mc(i),inoc,invc,ipoc(i),ilmc,illc)
+   enddo
+
+ 
+    do i=invc-nphere+1,invc 
+        c_cc(ipoa(i)+i)=1.0_dp
+    enddo
+!c_cc(ipoa(i)+inva-nphere+1:ipoa(i)+inva)=1.0_dp
+ 
+     do i=1,invc-nphere
+     do j=1,invc-nphere  !?
+     do k=1,invc
+      c_cc(ipoa(i)+k)=c_cc(ipoa(i)+k)+c_cc(ipob(i)+j)*c_cc(ipoc(j)+k)
+     enddo
+     enddo
+ 
+     do j=invc-nphere+1,invc
+!     do k=1,inva
+      c_cc(ipoa(i)+j)=c_cc(ipoa(i)+j)+c_cc(ipob(i)+j)*c_cc(ipoc(j)+j)
+!     enddo
+     enddo
+
+     enddo
+ 
+ 
+     do i=1,invc-nphere
+     do j=1,invc  -nphere  !?
+     do jk=poscombien ,combien 
+      c_cc(ipoa(i)+jk-1 )=c_cc(ipoa(i)+jk-1 ) + c_cc(ipob(i)+j)*c_cc(ipoc(j)+jk-1)
+     enddo
+     enddo
+     enddo
+ 
+if(with_para==0) then
+     do i=1,invc-nphere
+     do jk=poscombien,combien 
+     do ab=poscombien,combien
+      c_cc(ipoa(i)+ab-1 )=c_cc(ipoa(i)+ab-1 )  + finds(ind1(jk),ind2(jk),ab)* & 
+      c_cc(ipob(i)+jk-1 )*(c_cc(ipoc(ind1(jk))+ind1(ab))*c_cc(ipoc(ind2(jk)) &
+      +ind2(ab))+c_cc(ipoc(ind1(jk))+ind2(ab))*c_cc(ipoc(ind2(jk))+ind1(ab)))/2.0_dp
+     enddo
+     enddo
+     enddo
+ elseif(with_para==2) then
+ 
+
+     do i=1,invc-nphere
+     do ik=1,ninds
+      ab=nind1(ik)
+      jk=nind2(ik)
+      c_cc(ipoa(i)+ab-1 )=c_cc(ipoa(i)+ab-1 )  + finds1(ik)* & 
+      c_cc(ipob(i)+jk-1 )*(c_cc(ipoc(ind1(jk))+ind1(ab))*c_cc(ipoc(ind2(jk))+ind2(ab)) &
+     +c_cc(ipoc(ind1(jk))+ind2(ab))*c_cc(ipoc(ind2(jk))+ind1(ab)))/2.0_dp
+  
+     enddo
+     enddo
+elseif(with_para==1) then
+     do i=1,invc-nphere
+     do ik=1,ninds
+      ab=nind1(ik)
+      jk=nind2(ik)
+      c_cc(ipoa(i)+ab-1 )=c_cc(ipoa(i)+ab-1 )  + finds(ind1(jk),ind2(jk),ab)* & 
+      c_cc(ipob(i)+jk-1 )*(c_cc(ipoc(ind1(jk))+ind1(ab))*c_cc(ipoc(ind2(jk))+ind2(ab)) &
+     +c_cc(ipoc(ind1(jk))+ind2(ab))*c_cc(ipoc(ind2(jk))+ind1(ab)))/2.0_dp
+  
+     enddo
+     enddo
+endif
+  
+do i=1,inva
+ c_cc(ipoa(i))=c_cc(ipob(i))
+enddo
+ 
+    return
+  end subroutine dacctt2da
+
+
+   subroutine c_dacctt2datest(cnd2)
+    implicit none
+
+    integer i,k,kp,knp,cnd2
+    integer ab,jk
+    logical trash,trash1,trash2,trash3,trash4
+
+ 
+i=0
+k=0
+kp=0
+knp=0
+     do jk=poscombien,combien 
+     do ab=poscombien,combien
+i=i+1
+
+if(ind1(jk)>cnd2.or.ind2(jk)>cnd2) then
+trash=.false.
+k=k+1
+!write(6,*) i,jk,ab
+!write(6,*) ind1(jk),ind2(jk),ind1(ab),ind2(ab)
+if(ind1(jk)>cnd2) then
+ trash1=(ind1(jk)/=ind1(ab))
+ trash3=(ind1(jk)/=ind2(ab))
+endif
+if(ind2(jk)>cnd2) then
+ trash2=(ind2(jk)/=ind2(ab))
+ trash4=(ind2(jk)/=ind1(ab))
+endif
+trash=(trash1.or.trash2).and.(trash3.or.trash4)
+!pause
+endif
+if(trash) then 
+ kp=kp+1
+else
+ knp=knp+1
+endif
+!      c_cc(ipoa(i)+ab-1 )=c_cc(ipoa(i)+ab-1 )  + finds(ind1(jk),ind2(jk),ab)* & 
+ !     c_cc(ipob(i)+jk-1 )*(c_cc(ipoc(ind1(jk))+ind1(ab))*c_cc(ipoc(ind2(jk)) &
+!      +ind2(ab))+c_cc(ipoc(ind1(jk))+ind2(ab))*c_cc(ipoc(ind2(jk))+ind1(ab)))/2.0_dp
+     enddo
+     enddo
+  
+i=0
+k=0
+kp=0
+ninds=knp
+knp=0
+allocate(nind1(ninds),nind2(ninds))
+
+nind1=0
+nind2=0
+ 
+
+     do jk=poscombien,combien 
+     do ab=poscombien,combien
+i=i+1
+
+if(ind1(jk)>cnd2.or.ind2(jk)>cnd2) then
+trash=.false.
+k=k+1
+!write(6,*) i,jk,ab
+!write(6,*) ind1(jk),ind2(jk),ind1(ab),ind2(ab)
+if(ind1(jk)>cnd2) then
+ trash1=(ind1(jk)/=ind1(ab))
+ trash3=(ind1(jk)/=ind2(ab))
+endif
+if(ind2(jk)>cnd2) then
+ trash2=(ind2(jk)/=ind2(ab))
+ trash4=(ind2(jk)/=ind1(ab))
+endif
+trash=(trash1.or.trash2).and.(trash3.or.trash4)
+!pause
+endif
+if(trash) then 
+ kp=kp+1
+else
+ knp=knp+1
+ nind1(knp)=ab
+ nind2(knp)=jk
+endif
+     enddo
+     enddo
+
+
+
+!allocate(finds(nvhere,nvhere,poscombien:combien ))
+if(with_para==2) then
+write(6,*) combien,ninds,size(nind1), size(nind2)
+allocate(finds1(ninds))
+finds1=1
+      do i=1,ninds
+       if(ind1(nind1(i))/=ind2(nind1(i)))      finds1(i)=2
+      enddo
+endif
+!write(6,*) size(finds1),size(ind1), size(ind2)
+
+!pause 777
+
+ !    do ik=1,ninds
+!      ab=nind1(ik)
+!      jk=nind2(ik)
+!finds1(i)
+ !     c_cc(ipoa(i)+ab-1 )=c_cc(ipoa(i)+ab-1 )  + finds(ind1(jk),ind2(jk),ab)* & 
+ !     c_cc(ipoa(i)+ab-1 )=c_cc(ipoa(i)+ab-1 )  + finds1(ik)* & 
+
+
+    return
+  end subroutine c_dacctt2datest
+
+
+
   subroutine c_dacct(ma,ia,mb,ib,mc,ic)
     implicit none
     !     ***********************************
@@ -2736,8 +4070,94 @@ contains
     !-----------------------------------------------------------------------------
     !
     integer i,ia,ib,ic,ij,illc,ilmc,inoc,invc,ipoc
-    integer,dimension(c_lnv)::monx
+    integer,dimension(c_lnv)::monx,maa,mcc
     integer,dimension(:)::ma,mb,mc
+
+ 
+if(newtpsa) then
+   if(ib/=c_nvmax) then
+   write(6,*) "problem in dacct "
+    stop 9
+   endif
+   if(ia/=ic) then
+   write(6,*) "problem in dacct "
+    stop 10
+   endif
+   maa=0
+   mcc=0
+   do i=1,ia
+    maa(i)=ma(i)
+   enddo
+
+   if((mc(1)==ma(1)).or.(mc(1)==mb(1))) then
+    do i=1,ic
+      call c_daall0(mcc(i))
+   enddo    
+   else
+   do i=1,ic
+      mcc(i)=mc(i)
+   enddo
+   endif
+ 
+       do i=ia+1,c_nvmax
+       call c_daall0(maa(i))
+      enddo
+      do i=ic+1,c_nvmax
+       call c_daall0(mcc(i))
+      enddo
+
+   
+
+
+    if(c_nomax==1) then
+       call dacctt1(maa,c_nvmax,mb,c_nvmax,mcc,c_nvmax)
+
+      if((mc(1)==ma(1)).or.(mc(1)==mb(1))) then
+       do i=1,ic
+         call c_dacop(mcc(i),mc(i))
+         call c_dadal1(mcc(i))
+      enddo    
+      endif
+
+      do i=ia+1,c_nvmax
+       call c_dadal1(maa(i))
+      enddo
+      do i=ic+1,c_nvmax
+       call c_dadal1(mcc(i))
+      enddo
+
+      return
+    endif
+
+    if(c_nomax==2)  then
+      if(assume_da_map) then
+ 
+ 
+        call dacctt2da(maa,c_nvmax,mb,c_nvmax,mcc,c_nvmax)
+
+ 
+
+      else
+       call dacctt2tpsa(maa,c_nvmax,mb,c_nvmax,mcc,c_nvmax)
+      endif
+      if((mc(1)==ma(1)).or.(mc(1)==mb(1))) then
+       do i=1,ic
+         call c_dacop(mcc(i),mc(i))
+         call c_dadal1(mcc(i))
+      enddo    
+      endif
+      do i=ia+1,c_nvmax
+       call c_dadal1(maa(i))
+      enddo
+      do i=ic+1,c_nvmax
+       call c_dadal1(mcc(i))
+      enddo
+      return
+    endif
+endif
+
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -2790,12 +4210,24 @@ contains
     integer,dimension(c_lnv)::icc  !johan 2008 March
     integer,dimension(:)::ma,mb,mc
     complex(dp) ccf
-    if((.not.C_STABLE_DA)) then
-       if(C_watch_user) then
-          write(6,*) "big problem in dabnew ", sqrt(crash)
-       endif
-       return
+
+ 
+    if(c_nomax.eq.1.and.newtpsa) then
+      return
     endif
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+     stop 7501
+      return
+    endif
+
+    if(c_nomax==2)  then
+     stop 7511
+    return
+    endif
+endif
+
     !
     !ETIENNE
     !
@@ -2891,6 +4323,19 @@ contains
     integer,dimension(0:c_lno)::jv
     integer,dimension(:)::mb,mc
     complex(dp) apek,bbijj,chkjj
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       stop 8881
+      return
+    endif
+
+    if(c_nomax==2)  then
+       stop 8891
+    return
+    endif
+endif
+
     if((.not.C_%STABLE_DA)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3099,6 +4544,19 @@ contains
     integer i,ic,iv,jc,jl,jv,mf
     integer,dimension(:)::mc
     character(20) line
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       stop 7881
+      return
+    endif
+
+    if(c_nomax==2)  then
+       stop 7891
+    return
+    endif
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3135,6 +4593,19 @@ contains
     integer,dimension(:), intent(in)::mc
     integer,dimension(:), intent(out)::ml,mv
     complex(dp),dimension(:),intent(out)::coef
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       stop 8183
+      return
+    endif
+
+    if(c_nomax==2)  then
+       stop 8194
+    return
+    endif
+endif
+
     !
     jc=0
     jl=0;jv=0;
@@ -3163,6 +4634,7 @@ contains
     enddo
     return
   end subroutine ppushstore
+
   subroutine ppushGETN(mc,ND2,ntot)
     implicit none
     !
@@ -3187,6 +4659,20 @@ contains
     complex(dp),dimension(c_lno+1)::xm
     complex(dp),dimension(c_lno)::xt
     complex(dp),dimension(:)::xf,xi
+
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       stop 8828
+      return
+    endif
+
+    if(c_nomax==2)  then
+       stop 8839
+    return
+    endif
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3223,6 +4709,7 @@ contains
     !
     return
   end subroutine ppush
+
   subroutine ppush1(mc,xi,xf)
     implicit none
     !     *****************************
@@ -3237,6 +4724,19 @@ contains
     complex(dp),dimension(:)::xi
     complex(dp),dimension(c_lno)::xt
     complex(dp),dimension(c_lno+1)::xm
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       stop 8389
+      return
+    endif
+
+    if(c_nomax==2)  then
+       stop 8390
+    return
+    endif
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3268,6 +4768,196 @@ contains
     return
   end subroutine ppush1
 
+
+subroutine dainvt1(mb,ib,mc,ic)
+    implicit none
+    !     ***********************************
+    !
+    !     THIS SUBROUTINE PERFORMS A INVERSION first or second order
+    !ETIENNE
+    !-----------------------------------------------------------------------------
+    !
+    integer i0,i,j,k,ib,ic,illa,illb,illc,ilmb,ilmc,inob,inoc,invb,invc,m,n 
+         real(dp) fac   
+ 
+    !    integer,dimension(lno)::icc
+     integer,dimension(:):: mb,mc
+     integer  ipob(c_lnv),ipoc(c_lnv),ier
+     complex(dp), allocatable :: g0(:),h0(:), G(:,:),H(:,:) 
+
+     integer, allocatable :: icc(:),ipo(:)
+    !
+    !ETIENNE
+    !
+    !     CONSISTENCY CHECKS
+    !     ******************
+    !    
+ 
+
+call dainf(mb(1),inob,i0,ipob(1),ilmb,illb)
+ 
+
+allocate(g0(i0),h0(i0) , G(i0,i0),H(i0,i0)  )
+     g0=0
+     h0=0
+     g=0
+     h=0
+ 
+
+    do i=1,i0
+    call dainf(mc(i),inoc,invc,ipoc(i),ilmc,illc)
+    call dainf(mb(i),inob,invb,ipob(i),ilmb,illb)
+    if(invb/=i0) stop 1235
+    if(invc/=i0) stop 1236
+
+     g0(i)=c_cc(ipob(i))
+     do j=1,i0
+      g(i,j)=c_cc(ipob(i)+j)
+
+   enddo
+   enddo
+ 
+    call c_matinv(g,h,i0,i0,ier)
+
+    h0=-matmul(h,g0)
+
+
+       do i=1,i0
+         c_cc(ipoc(i))=h0(i)
+         c_cc(ipoc(i)+1:ipoc(i)+i0)=H(i,1:i0)
+       enddo
+
+
+
+end subroutine dainvt1
+
+
+subroutine dainvt2(mb,ib,mc,ic)
+    implicit none
+    !     ***********************************
+    !
+    !     THIS SUBROUTINE PERFORMS A INVERSION first or second order
+    !ETIENNE
+    !-----------------------------------------------------------------------------
+    !
+    integer i0,i,j,k,ib,ic,illa,illb,illc,ilmb,ilmc,inob,inoc,invb,invc,m,n 
+         real(dp) fac   
+ 
+    !    integer,dimension(lno)::mcc
+     integer,dimension(:):: mb,mc
+     integer  ipob(c_lnv),ipoc(c_lnv),ier
+     complex(dp), allocatable :: g0(:),h0(:), G(:,:),H(:,:), Ga(:,:,:), He(:,:,:),r0(:), r1(:,:)
+
+     integer, allocatable :: mcc(:),ipo(:),mccc(:),ipoo(:)
+    !
+    !ETIENNE
+    !
+    !     CONSISTENCY CHECKS
+    !     ******************
+    !    
+
+call dainf(mb(1),inob,i0,ipob(1),ilmb,illb)
+ 
+
+allocate(r0(i0),g0(i0),h0(i0) ,r1(i0,i0), G(i0,i0),H(i0,i0) , Ga(i0,i0,i0), He(i0,i0,i0) )
+     g0=0
+     h0=0
+     g=0
+     h=0
+     ga=0
+     he=0
+
+    do i=1,i0
+    call dainf(mc(i),inoc,invc,ipoc(i),ilmc,illc)
+    call dainf(mb(i),inob,invb,ipob(i),ilmb,illb)
+    if(invb/=i0) stop 1235
+    if(invc/=i0) stop 1236
+
+     g0(i)=c_cc(ipob(i))
+     do j=1,i0
+      g(i,j)=c_cc(ipob(i)+j)
+       if(inob==2) then
+      do k=1,i0
+        fac=2.0_dp
+        if(j==k) fac=1.0_dp
+        ga(i,j,k)=c_cc(ipob(i)+inds(j,k)-1)/fac
+        enddo
+      endif
+   enddo
+   enddo
+ 
+    call c_matinv(g,h,i0,i0,ier)
+  
+   ! h0=-matmul(h,g0)
+    
+ 
+
+     allocate(mcc(i0),ipo(i0))
+     allocate(mccc(i0),ipoo(i0))
+
+    call daall(mcc,i0,'$$DACCT $$',c_nomax,c_nvmax)
+    call daall(mccc,i0,'$$DACCT $$',c_nomax,c_nvmax)
+
+       do i=1,i0
+        call dainf(mcc(i),inoc,invc,ipo(i),ilmc,illc)
+        call dainf(mccc(i),inoc,invc,ipoo(i),ilmc,illc)
+        c_cc(ipo(i):ipo(i)+combien-1)=0
+        c_cc(ipo(i))=h0(i)
+        c_cc(ipo(i)+1:ipo(i)+i0)=H(i,1:i0)
+       enddo
+ 
+
+      if(assume_da_map) then
+       call dacctt2da(mb,i0,mcc,i0,mccc,i0)
+      else
+       call dacctt2tpsa(mb,i0,mcc,i0,mccc,i0)
+      endif     
+ 
+
+       do i=1,i0
+        c_cc(ipoo(i)+poscombien-1:ipoo(i)+combien-1)=-c_cc(ipoo(i)+poscombien-1:ipoo(i)+combien-1)
+       enddo
+ 
+      if(assume_da_map) then
+       call dacctt2da(mcc,i0,mccc,i0,mc,ic)
+      else
+       call dacctt2tpsa(mcc,i0,mccc,i0,mc,ic)
+      endif 
+
+ 
+           do i=1,i0
+            c_cc(c_idapo(mcc(i)):c_idapo(mcc(i))+c_nmmax-1  )=0
+            c_cc(c_idapo(mccc(i)):c_idapo(mccc(i))+c_nmmax-1  )=0
+           enddo
+
+            do i=1,i0
+            c_cc(c_idapo(mc(i)):c_idapo(mc(i)) ) = 0.0_dp
+            c_cc(c_idapo(mcc(i)):c_idapo(mcc(i)) ) = -g0(i)
+            c_cc(c_idapo(mcc(i))+i)=1.0_dp
+           enddo
+ 
+      if(assume_da_map) then
+       call dacctt2da(mc,ic,mcc,i0,mccc,i0)
+      else
+       call dacctt2tpsa(mc,ic,mcc,i0,mccc,i0)
+      endif 
+
+ 
+    do i=1,i0
+      c_cc(c_idapo(mc(i)):c_idapo(mc(i)) + c_nmmax-1 ) = c_cc(c_idapo(mccc(i)):c_idapo(mccc(i)) + c_nmmax-1 )
+    enddo
+ 
+    call dadal(mcc,i0)
+    call dadal(mccc,i0)
+    deallocate(mcc)
+    deallocate(mccc)
+    deallocate(ipo)
+    deallocate(ipoo)
+
+deallocate(g0,h0, G,H, Ga, He)
+    
+end subroutine dainvt2
+
   subroutine c_dainv(ma,ia,mb,ib)
     implicit none
     !     *****************************
@@ -3281,6 +4971,22 @@ contains
     integer,dimension(c_lnv)::jj,ml
     integer,dimension(:)::ma,mb
     complex(dp),dimension(c_lnv)::x
+
+ 
+ if(newtpsa) then
+    if(c_nomax==1) then
+       call dainvt1(ma,ia,mb,ib)
+      return
+    endif
+
+    if(c_nomax==2)  then
+ 
+       call dainvt2(ma,ia,mb,ib)
+    return
+    endif
+endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3306,7 +5012,9 @@ contains
           ml(ij)=0
        enddo
        call daall(ml,ib,'$$DAJUNK$$',inob,invb)
+ 
        call dainvt(ma,ia,ml,ib)
+ 
        do i=1,ib
           call c_dacop(ml(i),mb(i))
        enddo
@@ -3316,7 +5024,9 @@ contains
           call c_dapek(ma(i),jj,x(i))
           call c_dapok(ma(i),jj,(0.0_dp,0.0_dp))
        enddo
+ 
        call dainvt(ma,ia,mb,ib)
+ 
        do i=1,ia
           call c_dapok(ma(i),jj,x(i))
        enddo
@@ -3341,6 +5051,20 @@ contains
     complex(dp) amjj,amsjj,prod
     logical, optional :: success
     if(present(success)) success=.true.
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       stop 1780
+      return
+    endif
+
+    if(c_nomax==2)  then
+       stop 1781
+    return
+    endif
+endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3396,6 +5120,8 @@ contains
     !     EXTRACTING LINEAR MATRIX, GENERATING NONLINEAR PART OF A
     !     ********************************************************
     !
+ 
+
     do i=1,ib
        do j=1,ib
           do k=1,ib
@@ -3408,6 +5134,9 @@ contains
        enddo
        call c_dacmu(ma(i),-(1.0_dp,0.0_dp),ma(i))
     enddo
+
+ 
+
     !
     !     INVERTING LINEAR MATRIX, CHECKING RESULT AND STORING IN ML
     !     **********************************************************
@@ -3529,7 +5258,8 @@ contains
     integer,dimension(c_lnv)::jj,ml
     integer,dimension(:)::ma,mb,jx
     complex(dp),dimension(c_lnv)::x
-    !
+    
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3585,6 +5315,9 @@ contains
     integer,dimension(c_lnv)::jj,mn,mi,me
     integer,dimension(:)::ma,mb,jind
     !
+
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3647,8 +5380,56 @@ contains
     !
     !-----------------------------------------------------------------------------
     !
-    integer idif,illc,ilmc,ina,inc,incc,inoc,invc,ipoc
-    !
+    integer idif,illc,ilmc,ina,inc,incc,inoc,invc,ipoc,inoa,inva,ipoa,ilma,illa
+    integer i,jd(c_lnv),ic1,ic2
+    complex(dp) rr
+
+if(newtpsa) then
+    call dainf(ina,inoa,inva,ipoa,ilma,illa)
+    call dainf(inc,inoc,invc,ipoc,ilmc,illc)
+    if(c_nomax.eq.1) then
+       !         PRINT*,'ERROR, DADER CALLED WITH c_nomax = 1'
+       !        call dadeb !(31,'ERR DADER1',1)
+       !         stop 666
+       do i=1,c_lnv
+          jd(i)=0
+       enddo
+       jd(idif)=1
+       call c_dapek(ina,jd,rr)
+       call c_dacon(inc,rr)
+       return
+    endif
+    if(c_nomax.eq.2) then
+        reelc=0
+  
+
+       do i=1,combien
+ 
+        ic1=ind1(i)
+        ic2=ind2(i)
+         
+         if(ic1==ic2) then
+          if(ic1==idif) then
+            ic1=0
+            reelc(inds(ic1,ic2))=2.0_dp*c_cc(ipoa+i-1)
+          endif
+         elseif(ic1==idif) then
+           ic1=0
+          reelc(inds(ic1,ic2))=c_cc(ipoa+i-1)   
+           elseif(ic2==idif) then
+             ic2=0
+           reelc(inds(ic1,ic2))=c_cc(ipoa+i-1)     
+         endif
+        
+      enddo
+ 
+       c_cc(ipoc:ipoc+combien-1) = reelc
+ 
+       return
+    endif
+endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3673,6 +5454,7 @@ contains
     endif
     return
   end subroutine c_dader
+
   subroutine dadert(idif,ina,inc)
     implicit none
     !     ******************************
@@ -3686,7 +5468,21 @@ contains
          ilma,ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,ipause,mypauses
     integer,dimension(c_lnv)::jd
     complex(dp) rr,x,xdivi
-    !
+ 
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+     stop 1310
+      return
+    endif
+
+    if(c_nomax==2)  then
+     stop 1311
+    return
+    endif
+endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3787,9 +5583,55 @@ contains
     !
     !-----------------------------------------------------------------------------
     !
-    integer illc,ilmc,ina,inc,incc,inoc,invc,ipoc
-    complex(dp),external::fun
+    integer illc,ilmc,ina,inc,incc,inoc,invc,ipoc,inoa,inva,ipoa,ilma,illa,i,j(c_lnv)
+
+ !   real(dp) rr,x,xdivi
     !
+    interface
+       !       real(kind(one)) function fun(abc)
+       function fun(abc)
+         use precision_constants
+         implicit none
+         complex(dp) fun
+         integer,dimension(:)::abc
+       end function fun
+    end interface
+ 
+ if(newtpsa) then
+    call dainf(ina,inoa,inva,ipoa,ilma,illa)
+    call dainf(inc,inoc,invc,ipoc,ilmc,illc)
+
+    if(c_nomax==1) then
+       do i=1,c_lnv
+          j(i)=0
+       enddo
+ 
+  do i=0,c_nvmax
+    if(i/=0) j(i)=1
+       c_cc(ipoc+i)=fun(j)*c_cc(ipoa+i)
+    if(i/=0) j(i)=0
+   enddo
+       return
+    endif
+
+    if(c_nomax==2)  then
+  do i=0,c_nvmax
+    if(i/=0) j(i)=1
+       c_cc(ipoc+i)=fun(j)*c_cc(ipoa+i)
+    if(i/=0) j(i)=0
+   enddo
+  do i=poscombien,combien
+       j=0
+       j(ind1(i))=j(ind1(i))+1
+       j(ind2(i))=j(ind2(i))+1
+       c_cc(ipoc+i-1)=fun(j)*c_cc(ipoa+i-1)
+       j(ind1(i)) = 0
+       j(ind2(i)) = 0
+   enddo
+    return
+    endif
+endif
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3841,7 +5683,16 @@ contains
          integer,dimension(:)::abc
        end function fun
     end interface
-    !
+ 
+    if(c_nomax.eq.1.and.newtpsa) then
+      return
+    endif
+
+    if(c_nomax==2.and.newtpsa)  then
+    return
+    endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3920,6 +5771,7 @@ contains
   !    call dancd(c_i_1(I),c_i_2(I),J)!
   !  END subroutine GET_C_J
   !  END subroutine GET_C_J
+
   subroutine c_dapri(ina,iunit)
     implicit none
     !     ***************************
@@ -3935,6 +5787,30 @@ contains
     logical  long
      long=longprint
       if(iunit/=6) longprint=.true.
+
+ 
+
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+       write(iunit,*) "1st order polynomial ", ina,c_nvmax
+        do i=1,c_nvmax+1
+          if(c_cc(c_idapo(ina)+i-1).ne.0.0_dp) write(iunit,*) i-1, c_cc(c_idapo(ina)+i-1)
+        enddo
+
+      return
+    endif
+
+    if(c_nomax==2)  then
+     write(iunit,*) "2nd order polynomial ", ina,c_nvmax
+     do i=1,combien
+      if(c_cc(c_idapo(ina)+i-1).ne.0.0_dp) write(iunit,*) ind1(i),ind2(i),c_cc(c_idapo(ina)+i-1)
+     enddo
+    return
+    endif
+endif
+ 
+
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -4033,17 +5909,67 @@ end function c_clean_complex
     !
     !-----------------------------------------------------------------------------
     !
-    integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit
+    integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,iunit,count
     integer,dimension(c_lnv)::j
     character(10) c10,k10
     real(dp) a,b
     complex(dp) ccc
     logical some,imprime
     logical  long
+  integer(2) xi(3)
      long=longprint
       if(iunit/=6) longprint=.true.
     some=.false.
-    !
+ 
+if(newtpsa) then
+    if(c_nomax.eq.1) then
+       count=0
+       write(iunit,*) "1st order polynomial ", ina,c_nvmax
+        do i=1,c_nvmax+1
+          if(c_cc(c_idapo(ina)+i-1).ne.0.0_dp) then
+           xi(1)=i-1
+           xi(2)=ind1(i)
+           xi(3)=ind2(i)
+           if(xi(2)>c_nvmax-nphere) then
+             xi(2)=-(xi(2)-(c_nvmax-nphere))
+           endif
+           if(xi(3)>c_nvmax-nphere) then
+             xi(3)=-(xi(3)-(c_nvmax-nphere))
+           endif
+            write(iunit,*) xi, c_cc(c_idapo(ina)+i-1)
+            count=count+1
+          endif
+        enddo
+          write(iunit,*) count, " monomial(s) printed "
+      return
+    endif
+
+    if(c_nomax==2)  then
+       count=0
+
+     write(iunit,*) "2nd order polynomial ", ina,c_nvmax
+     do i=1,combien
+          if(c_cc(c_idapo(ina)+i-1).ne.0.0_dp) then
+           xi(1)=i-1
+           xi(2)=ind1(i)
+           xi(3)=ind2(i)
+          if(xi(2)>c_nvmax-nphere) then
+             xi(2)=-(xi(2)-(c_nvmax-nphere))
+           endif
+           if(xi(3)>c_nvmax-nphere) then
+             xi(3)=-(xi(3)-(c_nvmax-nphere))
+           endif
+            write(iunit,*) xi, c_cc(c_idapo(ina)+i-1)
+            count=count+1
+          endif
+        enddo
+          write(iunit,*) count, " monomial(s) printed "
+    return
+    endif
+endif
+
+ 
+
     if(iunit.eq.0) return
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
@@ -4151,9 +6077,75 @@ longprint=long
     !-----------------------------------------------------------------------------
     !
     integer i,ii,illa,ilma,ina,inoa,inva,ioa,iout,ipoa,inb,ishift,ich,&
-         ik,inc,k
+         ik,inc,k,ipob,ic1,ic2
     integer,dimension(c_lnv)::j,jd
-    !
+ 
+ if(newtpsa) then
+    inva = c_idanv(ina)
+    ipoa = c_idapo(ina)
+
+    if(c_nomax==1) then
+    call daall1(inb,'$$DAJUNK$$',inoa,inva)
+    ipob = c_idapo(inb)
+
+      c_cc(ipob:ipob+inva)=0
+
+      do ii=1,inva   
+        if(c_cc(ipoa+ii)/=0.0_dp.and.ii<=ishift) then
+                   write(6,*) " trouble in dashift "
+                   stop 886
+        else
+         c_cc(ipob+ii-ishift)=c_cc(ipoa+ii)
+        endif
+      enddo
+     c_cc(ipob)=c_cc(ipoa)
+     call c_dacop(inb,inc)
+     call c_dadal1(inb)
+     return
+    endif
+
+    if(c_nomax==2) then
+     call daall1(inb,'$$DAJUNK$$',inoa,inva)
+         ipob = c_idapo(inb)
+
+      c_cc(ipob:ipob+combien-1)=0
+
+      do ii=1,inva  !ipoa,ipoa+illa-1
+        if(c_cc(ipoa+ii)/=0.0_dp.and.ii<=ishift) then
+                   write(6,*) " trouble in dashift "
+                   stop 887
+        else
+         c_cc(ipob+ii-ishift)=c_cc(ipoa+ii)
+        endif
+      enddo
+
+      do ii=poscombien,combien  !ipoa,ipoa+illa-1
+ 
+ 
+    if( ((ind1(ii)<=ishift).or.(ind2(ii)<=ishift)).and.c_cc(ipoa+ii-1)/=0.0_dp) then
+                   write(6,*) " trouble in dashift "
+                   stop 889
+        else
+      if(((ind1(ii)>ishift).or.(ind1(ii)==0)).and.((ind2(ii)>ishift).or.(ind2(ii)==0))) then
+            ic1=0;ic2=0;
+            if(ind1(ii)>ishift) ic1 = ind1(ii)-ishift
+            if(ind2(ii)>ishift) ic2 = ind2(ii)-ishift
+  
+           c_cc(ipob+inds(ic1,ic2)-1)=c_cc(ipoa+ii-1)
+ 
+         endif
+        endif
+      enddo
+
+     c_cc(ipob)=c_cc(ipoa)
+     call c_dacop(inb,inc)
+     call c_dadal1(inb)
+     return
+    endif
+    
+ endif
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -4265,7 +6257,16 @@ longprint=long
     integer,dimension(c_lnv)::j
     complex(dp) c
     character(10) c10
+  
+    if(c_nomax.eq.1.and.newtpsa) then
+      return
+    endif
+
+    if(c_nomax==2.and.newtpsa)  then
+    return
+    endif
  
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -4376,7 +6377,16 @@ longprint=long
     real(dp) cr,ci
     character(10) c10,k10
     complex ik
+  
+    if(c_nomax.eq.1.and.newtpsa) then
+      return
+    endif
+
+    if(c_nomax==2.and.newtpsa)  then
+    return
+    endif
  
+
     ik=( 0.0_dp,1.0_dp )
     !
     if((.not.C_STABLE_DA)) then
@@ -4717,9 +6727,49 @@ longprint=long
     !-----------------------------------------------------------------------------
     !
     integer i,ibase,ic,ider1,ider1s,ider2,ider2s,idif,iee,ifac,illa,illc,ilma,&
-         ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,ipause,mypauses
+         ilmc,ina,inc,inoa,inoc,inva,invc,ipoa,ipoc,jj,ipause,mypauses,ic1,ic2
     complex(dp) x,xdivi
-    !
+ 
+
+ if(newtpsa) then
+    if(c_nomax==1) then
+       call c_dader(idif,ina,inc)
+      return
+    endif
+
+    if(c_nomax==2)  then
+        reelc=0
+       ipoa=c_idapo(ina)
+       ipoc=c_idapo(inc)
+
+       do i=1,combien
+ 
+        ic1=ind1(i)
+        ic2=ind2(i)
+         
+         if(ic1==ic2) then
+          if(ic1==idif) then
+            ic1=0
+            reelc(inds(ic1,ic2))= c_cc(ipoa+i-1)
+          endif
+         elseif(ic1==idif) then
+           ic1=0
+          reelc(inds(ic1,ic2))=c_cc(ipoa+i-1)   
+           elseif(ic2==idif) then
+             ic2=0
+           reelc(inds(ic1,ic2))=c_cc(ipoa+i-1)     
+         endif
+        
+      enddo
+ 
+       c_cc(ipoc:ipoc+combien-1) = reelc
+ 
+    return
+    endif
+endif
+
+ 
+
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -4877,7 +6927,33 @@ longprint=long
     integer ii,illa,ilma,ina,inoa,inva,iout,ipoa,ipresent
     integer,optional,dimension(:)::j
     complex(dp) value
-    !
+ 
+
+ if(newtpsa) then
+ 
+     ipoa=c_idapo(ina)
+     if(.not.present(j)) then
+       illa=c_nmmax
+      ! illa0$=0
+
+      ! do i=1,c_nmmax
+      !   if(abs(c_cc(ipoa+i-1))/=0) illa=illa+1
+      ! enddo
+      else
+ 
+        value=c_cc(ipoa+ipresent-1)
+         j=0
+
+         if(ind1(ipresent)/=0) j(ind1(ipresent))=1+j(ind1(ipresent))
+         if(ind2(ipresent)/=0) j(ind2(ipresent))=1+j(ind2(ipresent))
+ 
+
+    return
+    endif
+endif
+
+ 
+
     if(ina.lt.1.or.ina.gt.c_nda_dab) then
        write(line,'(a22,i8)') 'ERROR IN dacycle, INA = ',ina
        ipause=mypauses(39,line)
@@ -4908,44 +6984,7 @@ longprint=long
     !    ipresent=1+ipresent
     return
   end subroutine c_dacycle
-!!!! new stuff lingyun
-  subroutine dacc_lean(ina)
-    implicit none
-    integer ipause, mypauses
-    !     ***************************
-    !
-    !     THIS SUBROUTINE PRINTS THE DA VECTOR INA TO UNIT IUNIT.
-    !
-    !-----------------------------------------------------------------------------
-    !
-    integer ii,illa,ilma,ina,inoa,inva,iout,ipoa
-    real(dp) a,b
  
-
-    if(ina.lt.1.or.ina.gt.c_nda_dab) then
-       write(line,'(a22,i8)') 'ERROR IN dacycle, INA = ',ina
-       ipause=mypauses(39,line)
-       stop
-    endif
-    !
-    inoa = c_idano(ina)
-    inva = c_idanv(ina)
-    ipoa = c_idapo(ina)
-    ilma = c_idalm(ina)
-    illa = c_idall(ina)
-    iout = 0
-    do ii=ipoa,ipoa+ilma-1
-  !     if(abs(c_cc(ii))<value) c_cc(ii)=0.0_dp
-             a=0; b=0;
-             if(abs(real(c_cc(ii)))> eps) a=real(c_cc(ii))
-             if(abs(aimag(c_cc(ii)))> eps) b=aimag(c_cc(ii))
-             c_cc(ii)=a+(0.0_dp,1.0_dp)*b
-    !   
-    enddo
-    !    call dapac(ina)
-    return
-  end subroutine dacc_lean
-
 
 subroutine c_dafun(cf,ina,inc)
     implicit none
@@ -4960,7 +6999,9 @@ subroutine c_dafun(cf,ina,inc)
     !
     integer ina,inc,incc
     character(4) cf
-    !
+ 
+
+ 
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -5001,7 +7042,15 @@ subroutine c_dafun(cf,ina,inc)
     !
     data abcs /'abcdefghijklmnopqrstuvwxyz'/
     data abcc /'ABCDEFGHIJKLMNOPQRSTUVWXYZ'/
-    !
+ 
+   ! if(c_nomax.eq.1.and.newtpsa) then
+   !   return
+   ! endif
+
+   ! if(c_nomax==2.and.newtpsa)  then
+   ! return
+   ! endif
+ 
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -5189,6 +7238,8 @@ subroutine c_dafun(cf,ina,inc)
     integer i,m,h,ht,b1,b2,b3,no,nv
     integer,dimension(c_lnv)::j
     complex(dp) r
+
+
     if(.not.c_stable_da) return
     
     no = c_nomax
@@ -5254,7 +7305,30 @@ subroutine c_dafun(cf,ina,inc)
     !
     integer i,illa,ilma,ina,inoa,inva,ipoa,ipause,mypauses
     real(dp) cm,xran
-    !
+
+ if(newtpsa) then
+
+ipoa=c_idapo(ina)
+
+    do i=ipoa,ipoa+c_nmmax-1
+       if(cm.gt.zero) then
+          c_cc(i) = bran(xran)+(0.0_dp,1.0_dp)*bran(xran)
+             c_cc(i) =c_cc(i)/abs(c_cc(i)) 
+          if(abs(c_cc(i)).gt.cm) c_cc(i) = zero
+       elseif(cm.lt.zero) then
+          c_cc(i) = int(1+10*bran(xran))
+          if(abs(c_cc(i)).gt.-ten*cm) c_cc(i) = zero
+       else
+          line='ERROR IN ROUTINE DARAN'
+          ipause=mypauses(31,line)
+          call dadeb !(31,'ERR DARAN2',1)
+       endif
+    enddo
+ 
+    return
+
+endif
+ 
     if((.not.C_%STABLE_DA)) then
        if(c_%watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -5320,7 +7394,9 @@ subroutine c_dafun(cf,ina,inc)
     integer,dimension(:)::v
     complex(dp),dimension(:)::x
     if(.not.c_stable_da) return
+ 
 
+ 
     do i=1,c_lnv
        jd(i)=0
     enddo
@@ -5337,7 +7413,8 @@ subroutine c_dafun(cf,ina,inc)
     integer,dimension(:)::v
     complex(dp),dimension(:)::x
     if(.not.c_stable_da) return
-
+ 
+ 
     do i=1,c_lnv
        jd(i)=0
     enddo
@@ -5354,6 +7431,8 @@ subroutine c_dafun(cf,ina,inc)
     integer,dimension(:)::h,x,y
     integer,dimension(c_lnv)::t3
     if(.not.c_stable_da) return
+ 
+
     
     call c_etall1(t1)
     call c_etall1(t2)

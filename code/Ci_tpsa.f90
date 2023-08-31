@@ -148,7 +148,7 @@ type(c_linear_map) q_phasor,qi_phasor
 private compute_lattice_functions_1,compute_lattice_functions_2
 !private c_clean_vector,c_clean_matrix,c_clean_vector_complex,c_clean_matrix_complex
 private A_opt_c_vector,K_OPT_c_vector,r_field_for_demin,clean_c_universal_taylor
-logical :: old_phase_calculation=.false.,secondorder=.true.
+logical :: old_phase_calculation=.false.
 
 
 !  These routines computes lattice functions a la Ripken-Forest-Wolski
@@ -3463,7 +3463,7 @@ endif
           enddo
      endif
 
-
+ 
      from_phasor=from_phasor**(k1)
 
     call kill(from_phasori)
@@ -5831,13 +5831,17 @@ endif
 if(.not.q_only) then
 
 write(mff,*) " Orbital Matrix "
-if(present(imaginary) )write(mff,*) "Real part "
+if(present(imaginary) ) then
+
+ if(imaginary) then
+  write(mff,*) "Real part "
       do i=1,6
  
          write(mff,'(6(1x,G21.14))') real(s2%mat(i,1:min(6,nd2)))
        
       enddo
-if(present(imaginary) ) then
+endif
+
 if(imaginary) then
 write(mff,*) "Imaginary part "
       do i=1,6
@@ -5846,8 +5850,14 @@ write(mff,*) "Imaginary part "
        
       enddo
 endif
+ 
+else
+      do i=1,6
+ 
+         write(mff,'(12(1x,G21.14))') (s2%mat(i,1:min(6,nd2)))
+       
+      enddo
 endif
-
 endif
 
 write(mff,*) " Quaternion Matrix "
@@ -8741,12 +8751,18 @@ end subroutine c_bmad_reinit
     integer, optional :: np1,ndpt1,AC_RF
     logical(lp), optional :: ptc  !spin,
     integer ndpt_ptc,i,i1,i2,i3,i4,i5,i6,noo,j
+    real tim(0:10)
+    logical present_newtpsa
  !   if(use_quaternion) spin_def_tune=1
  !NP=np1
  !NO=no1
  !ND=nv1  ! nv1 is just nd if map used 
  !ND2=2*nd !!!!  total dimension of phase space
  !nv=nd2+np !!!!  total number of Taylor variables
+
+ 
+ nphere=0
+if(use_np) nphere=np1
 
     ip_mat=0; jp_mat=0; jt_mat=0;
    
@@ -8767,10 +8783,14 @@ formatlf(5)="(4(25x),2(1x,g23.16,1x))"
 formatlf(6)="(5(25x),1(1x,g23.16,1x))"
 
    ! order_gofix=no1
+
      if(associated(dz_c)) then
+     present_newtpsa=newtpsa
+     newtpsa=previous_newtpsa 
       call kill(dz_c)
       deallocate(dz_c)
       nullify(dz_c)
+     newtpsa=present_newtpsa
      endif
      call set_da_pointers()
 
@@ -8779,7 +8799,10 @@ formatlf(6)="(5(25x),1(1x,g23.16,1x))"
      read77=.true.
      print77=.true.
    if(c_last_tpsa/=0) then
+     present_newtpsa=newtpsa
+     newtpsa=previous_newtpsa 
        call c_DEASSIGN
+     newtpsa=present_newtpsa
        c_last_tpsa=1
    endif
 
@@ -8852,13 +8875,15 @@ endif
 !write(6,*) "ndc2t,nd2t,nd2harm,nd2"
 !write(6,*) ndc2t,nd2t,nd2harm,nd2
  
- 
+!if(no==2.and.newtpsa) call dacctt2datest
       call c_daini(no,nv,0)
+if(no==2.and.newtpsa) call c_dacctt2datest(ND2)
 
   
     c_master=0  !  master=1   2002.12.2
-
+ 
     CALL c_ASSIGN
+ 
     allocate(dz_c(nv))
     call alloc(dz_c)
 
@@ -8873,9 +8898,13 @@ endif
      sj(2*i,2*i-1)=-1
     enddo 
 if(present(np1)) then
- q_phasor=c_phasor()
+   q_phasor=c_phasor()
+     
  qi_phasor=ci_phasor()
-endif
+ 
+ 
+ 
+ endif
 c_%rf=>rf
 c_%nd2t=>nd2t
 c_%nd2harm=>nd2harm
@@ -8897,6 +8926,7 @@ else
   if(i/=0) c_%pos_of_delta=nd2harm+1 
 endif
 
+ 
 
 
 
@@ -8932,7 +8962,7 @@ endif
       jp_mat(3,5,6)=0
     endif 
  
- 
+
   end subroutine c_init
 
 
@@ -9022,7 +9052,12 @@ c_%nv=>nv
     do i=1,n2
        iv(i)=y(i)
     enddo
+ 
     call c_dacct(x,n1,iv,nv,z,n1)
+
+ 
+
+
     if(nt.gt.0) then
        do k=1,nt
          call c_DADAL1(ie(k)) 
@@ -9038,8 +9073,9 @@ c_%nv=>nv
     integer i
     type(c_damap) ie1,ie2 
     type(c_damap), intent(inout):: x,y
+    logical rad1
+
     if(.not.c_stable_da) return
-    
     ie1%n=nv;ie2%n=nv;
     call alloc(ie1)
     call alloc(ie2)
@@ -9049,15 +9085,22 @@ c_%nv=>nv
       do i=x%n+1,nv
          ie1%v(i)=1.0_dp.cmono.i
       enddo
-
+ 
+ 
     call c_dainv(ie1%v(1:nv)%i,nv,ie2%v(1:nv)%i,nv)
        do i=1,x%n
        y%v(i)=ie2%v(i)
       enddo
-
+ 
 if(use_quaternion)   THEN
+  rad1=assume_da_map
+ ! assume_da_map=.false.
+
             y%q=x%q*y
+
       y%q=y%q**(-1)
+  assume_da_map=rad1
+
 else
        y%s=x%s*y
       call c_inv_as(y%s,y%s)
@@ -9179,22 +9222,33 @@ endif
     enddo
 
 !    v1=s1     ! change oct 2004.10
-
+ 
     ! if(old) then
-
+ 
+ 
     call c_etcct(t1%v%i,t1%n,t2%v%i,t2%n,tempnew%v%i)
-    
+
+   !     call c_dacct(t1%v%i,t1%n,t2%v%i,t2%n,tempnew%v%i,tempnew%n)
+
     if(add_constant_part_concat) then
      do i=1,t1%n
       tempnew%v(i)=tempnew%v(i)+(s1%v(i).sub.'0')
      enddo
     endif
-
-     t1%s = t1%s*t2
+ 
+ if(newspin) then
+ rad1=assume_da_map
+!assume_da_map=.false.
+ 
      t1%q = t1%q*t2
-    
-     tempnew%s=t1%s*t2%s
+ 
       tempnew%q=t1%q*t2%q
+ 
+  assume_da_map=rad1
+ else
+     t1%s = t1%s*t2
+     tempnew%s=t1%s*t2%s
+ endif
 
  if(.not.c_similarity) then   
     call c_check_rad(t1%e_ij,rad1)
@@ -10472,13 +10526,17 @@ endif
     s11%n=s1%n
     call alloc(s11)
 
-    s11=1
+ 
 
+    s11=1
+ 
     R22=IABS(R2)
     DO I=1,R22
        s11=s1*s11
    ENDDO
-
+ 
+ 
+ 
     IF(R2.LT.0) THEN
 
  !     CALL c_etinv1(S11%v%i,S11%v%i,s11%n)
@@ -10486,7 +10544,7 @@ endif
 
     ENDIF
 
-  
+ 
 
     powmap=s11
          if(complex_extra_order==1.and.special_extra_order_1) powmap=powmap.cut.no
@@ -11655,10 +11713,14 @@ subroutine c_linear_ac_longitudinal(xy,a1,ac)
         if(mod(i,2)==0) ndloc=i/2  ! degree of freedom of coasting plane
       endif
     enddo
-
+ 
     v=v.cut.(order_gofix+1)
  
+ 
+
     w=v**(-1)    !  W= (Map-1)**-1   
+
+ 
 
     x=0
     x%s=1    ! spin part is identity
@@ -11667,13 +11729,16 @@ subroutine c_linear_ac_longitudinal(xy,a1,ac)
      x%v(i)=1.0e0_dp.cmono.i  !  Identity in all the parameter planes
     enddo
     if(ndpt/=0) x%v(ndpt)=1.0e0_dp.cmono.ndpt !  If coasting, then energy is a parameter
+ 
+    a1=v
+ 
 
     v=w*x  ! v contains the fixed point, for example v(1)= eta_x * x_pt + ...
          
-
+ 
     a1=v
-
-  ! however a1 is not a  transformation, we must add the identity (done at the end) 
+ 
+   ! however a1 is not a  transformation, we must add the identity (done at the end) 
   ! also we must add some stuff to time to make it symplectic if coasting
   ! because the Lie operator which produces v(1)= eta_x * x_pt + ...
   ! is, within a sign, eta_x * x_pt * p_x-eta_x_prime * x_pt * x-...  which affects time
@@ -11767,13 +11832,12 @@ else
  endif       
 
 else ! npdt=0
-
+ 
     do i=1,nd2 
        a1%v(i)=(1e0_dp.cmono.i)+a1%v(i)  ! ndpt is already identity
     enddo 
-
+ 
 endif
-
  
  
     call kill(t1);
@@ -11876,6 +11940,7 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin,irot)
         call alloc(ri)
   !  at= (a,s) =  (a,I) o  (I,s)
   !  call c_full_norm_spin(at%s,kspin,norm)  
+
     call c_full_norm_spin_map(at,kspin,norm)
  
  ! storing the spin because the code is careless (sets it to zero)   
@@ -11902,13 +11967,13 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin,irot)
  
     phi=1
 
-!call print(phi%v(6),6)
-!pause 1
+ 
     if(ir/=1) then
     call extract_a1(att,a1t)
    else
     call extract_a1(att,a1t,phi)
    endif
+ 
 !    if(present(phase))     ar=ar*phi
 !call print(phi%v(6),6)
 !pause 2
@@ -12070,18 +12135,10 @@ subroutine c_full_factorise(at,as,a0,a1,a2,dir)
  
     call extract_only_a0(att,a0t)
 
-!call print(phi%v(6),6)
-!pause 1
+ 
     
     call extract_only_a1(att,a1t)
-!    if(present(phase))     ar=ar*phi
-!call print(phi%v(6),6)
-!pause 2
-!    if(no>1) 
- !   call extract_a2(att,ar)
-
-!call print(phi%v(6),6)
-!pause 3
+ 
 
     a2t=att
 
@@ -12132,17 +12189,18 @@ end subroutine c_full_factorise
   type(quaternion) q0,q1,e_y,q3,qs
   real(dp) alpha,cosalpha,sinalpha,tone
 
+ 
 q0=m_in%q.sub.0
-!call print(q0)
-!pause 3
+ 
          as=1
 
 q1=q0
 q1%x(0)=0.0_dp
 qs=1.0_dp/sqrt(q1%x(1)**2+q1%x(2)**2+q1%x(3)**2)
+ 
+ 
 q1=q1*qs   ! q1=n
-!call print(q1)
-!pause 4
+ 
 e_y=0.0_dp
 e_y%x(2)=1.0_dp
 !call print(e_y)
@@ -16800,20 +16858,24 @@ end subroutine extract_only_a0
             
      endif
     
- 
+
      a=b1**(-1)*a
 
      a1=b1
 
 !  imposed Teng-Edward A_12=0 or, for fun, Anti-Teng-Edwards A_21=0
 
+ 
     if(present(phi1)) then
 
      phi1=1
+ 
       do i=1,nd2/2
       if((i<=ndt).or.(i>nd-rf)) then
        if(courant_snyder_teng_edwards) then
+ 
         t=sqrt((b1%v(2*i-1).d.(2*i))**2+(b1%v(2*i-1).d.(2*i-1))**2)
+ 
         cphi=(b1%v(2*i-1).d.(2*i-1))/t
         sphi=(b1%v(2*i-1).d.(2*i))/t
        else
@@ -16835,7 +16897,7 @@ end subroutine extract_only_a0
        endif
       enddo
 
-    
+ 
 
             a1=a1*phi1**(-1)
             a=phi1*a*phi1**(-1) 
@@ -18286,6 +18348,7 @@ f=u*f
  u=ugiven
 else
  call c_canonise(n%a_t,u,a0=b0,a1=b1,a2=bn)
+n%a_t=u
 ui=ci_phasor()*bn*c_phasor()
 u=ui**(-1)
 f=n%ker
@@ -18804,34 +18867,40 @@ inside_normal=.true.
     ! but energy is constant. (Momentum compaction, phase slip etc.. falls from there)
  ! etienne
  
- if(c_skip_gofix) then
+  if(c_skip_gofix) then
   a1=1
 else
     call  c_gofix(m1,a1) 
 endif 
-     m1=c_simil(a1,m1,-1)
  
+ 
+  m1=c_simil(a1,m1,-1)
+ 
+ 
+
     ! Does the the diagonalisation into a rotation
     call c_linear_a(m1,a2)  
  
+ 
+  
 
     !!! Now the linear map is normalised
     m1=c_simil(a2,m1,-1)
+  
  
-
     !!! We go into the phasors' basis
     ri=from_phasor(-1)
  
-
     m1=c_simil(ri,m1,1)
  
-
  
+!stop 999
     ri=(m1.sub.-1)**(-1) 
+
     ri%s=1  ! make spin identity
     ri%q=1.0_dp  ! make spin identity
  
-
+ 
 
     !!! The tunes are stored for the nonlinear normal form recursive algorithm
     do k=1,xy%n
@@ -18858,6 +18927,7 @@ endif
       nonl= exp_inv(n%ker,nonl)
       nonl=nonl.sub.i
 
+ 
 
       do k=1,xy%n
         if(lielib_print(13)/=0) then
@@ -18925,14 +18995,18 @@ endif
       enddo  ! over vector index
 
       m1=c_simil(n%g%f(i),m1,-1)
-
+ 
     enddo
+ 
+ 
+ 
 
     n%a_t=a1*a2*from_phasor()*texp(n%g)*from_phasor(-1)
-
+ !
     n%a1=a1
     n%a2=a2
 
+ 
 !!!!!   here we put the normalised linear part into the factored vector field
 !!!!!   not necessary but useful
     do k=1,xy%n
@@ -19001,7 +19075,9 @@ endif
  
 
 if(use_quaternion)then
+
       call c_normal_spin_linear_quaternion(m1,m1,n%AS,alpha)
+
       n%quaternion_angle=alpha/2.0_dp
       ri=1 ; ri%q=m1%q.sub.0 ; ! exp(theta_0 L_y)   (2)
 !      sx=sqrt(ri%q%x(1)**2+ri%q%x(2)**2+ri%q%x(3)**2)
@@ -19052,6 +19128,8 @@ endif
       !!! tune is taken from egspin(1) or egspin(3)   spin_def_tune= +/- 1
        n%spin_tune=aimag(log(egspin(2+spin_def_tune))/twopi)  
  
+  
+ 
       ! because  exp(a L_y) x = x- a z + O(a**2)
        ri=ri**(-1) ! exp(-alpha_0 L_y)   (3)
 
@@ -19072,7 +19150,8 @@ endif
             write(mkers,*) "Order ",i
           endif
   
-        
+ 
+         
           mt=m1*ri !  S*exp(-theta_0 L_y)    (5)
  
  
@@ -19146,6 +19225,9 @@ endif
         enddo ! k
      
         call c_nr_to_n0(nr,nr)  !   (10)
+ 
+!write(6,*) " i spin ",i
+!call print(nr,6)
  
 
 if(use_quaternion)then
