@@ -8938,7 +8938,7 @@ case default
   call str_upcase (attrib_name, name)
   ix = index(attrib_name, '.')
 
-  if (attrib_name(1:ix-1) == 'ele') then
+  if (attrib_name(1:ix-1) == 'ELE') then
     attrib_name = attrib_name(ix+1:)
     call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, .false.)
   else
