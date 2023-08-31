@@ -1630,10 +1630,10 @@ integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
 integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
 integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
-integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7
-integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8
+integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7, spin_dn_dpz_x$ = 7
+integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8, spin_dn_dpz_y$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8, g_tot$ = 8
-integer, parameter :: rho$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9
+integer, parameter :: rho$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9, spin_dn_dpz_z$ = 9
 integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
 integer, parameter :: darwin_width_pi$ = 12
