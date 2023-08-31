@@ -2205,7 +2205,7 @@ subroutine spin_concat_linear_maps (err_flag, mat1, branch, n1, n2, mat1_ele, or
   import
   implicit none
   type (spin_orbit_map1_struct) mat1
-  type (spin_orbit_map1_struct), optional :: mat1_ele(:)
+  type (spin_orbit_map1_struct), optional :: mat1_ele(0:)
   type (branch_struct), target :: branch
   type (coord_struct), optional :: orbit(0:)
   logical err_flag

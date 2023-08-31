@@ -888,6 +888,9 @@ call init_attribute_name1 (beginning_ele$, cmat_12$,                     'CMAT_1
 call init_attribute_name1 (beginning_ele$, cmat_21$,                     'CMAT_21')
 call init_attribute_name1 (beginning_ele$, cmat_22$,                     'CMAT_22')
 call init_attribute_name1 (beginning_ele$, mode_flip$,                   'MODE_FLIP')
+call init_attribute_name1 (beginning_ele$, spin_dn_dpz_x$,               'SPIN_DN_DPZ_X')
+call init_attribute_name1 (beginning_ele$, spin_dn_dpz_y$,               'SPIN_DN_DPZ_Y')
+call init_attribute_name1 (beginning_ele$, spin_dn_dpz_z$,               'SPIN_DN_DPZ_Z')
 call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
@@ -1938,7 +1941,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', &
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
-      'AUTOSCALE_AMP_REL_TOL', 'PX_KICK', 'PY_KICK', 'PZ_KICK', &
+      'AUTOSCALE_AMP_REL_TOL', 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'SPIN_DN_DPZ_X', 'SPIN_DN_DPZ_Y', 'SPIN_DN_DPZ_Z', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
       'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', 'PZ_APERTURE_CENTER', &
       'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2')

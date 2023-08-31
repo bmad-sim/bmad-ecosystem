@@ -24,8 +24,8 @@
 !
 ! Output:
 !   err_flag          -- logical: Set True if there is an error. False otherwise.
-!   map1_ele(:)       -- spin_orbit_map1_struct: Map with element spin/orbit maps concatenated.
-!   q_ele(:)          -- spin_orbit_map1_struct, optional: Individual spin/orbit maps.
+!   map1              -- spin_orbit_map1_struct: Map with element spin/orbit maps concatenated.
+!   map1_ele(:)       -- spin_orbit_map1_struct, optional: Individual spin/orbit maps.
 !-
 
 subroutine spin_concat_linear_maps (err_flag, map1, branch, n1, n2, map1_ele, orbit, excite_zero)
@@ -35,7 +35,7 @@ use ptc_interface_mod, dummy => spin_concat_linear_maps
 implicit none
 
 type (spin_orbit_map1_struct) map1
-type (spin_orbit_map1_struct), optional :: map1_ele(:)
+type (spin_orbit_map1_struct), optional :: map1_ele(0:)
 type (branch_struct), target :: branch
 type (coord_struct), optional :: orbit(0:)
 type (ele_pointer_struct), allocatable :: eles(:)
@@ -111,7 +111,10 @@ logical st_on
 !
 
 do ie = n1, n2
-  if (ie == 0) cycle
+  if (ie == 0) then
+    if (present(map1_ele)) call map1_make_unit(map1_ele(0))
+    cycle
+  endif
   ele => branch%ele(ie)
 
   if (present(orbit)) then

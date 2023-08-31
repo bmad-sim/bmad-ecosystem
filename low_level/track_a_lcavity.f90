@@ -441,9 +441,6 @@ else
     drp1_dr0  = -gradient_net / (2 * E_start)
     drp1_drp0 = 1
 
-    xp1 = drp1_dr0 * orbit%vec(1) + drp1_drp0 * orbit%vec(2)
-    yp1 = drp1_dr0 * orbit%vec(3) + drp1_drp0 * orbit%vec(4)
-
     drp2_dr0  = (c_plu * z21)
     drp2_drp0 = (cos_a * z22)
 
