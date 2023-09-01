@@ -1,6 +1,0 @@
-set (EXENAME mpi_mp)
-
-set (SRC_FILES
-  mpi_mp/mpi_mp.f90
-)
-

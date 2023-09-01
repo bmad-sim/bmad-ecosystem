@@ -1,1 +1,16 @@
-.svn
+*~
+./PGPLOT  
+./fftw  
+./fgsl  
+./gsl  
+./hdf5  
+./lapack  
+./lapack95  
+./open_spacecharge  
+./openmpi  
+./plplot  
+./xraylib
+./gnu_utilities_src
+./packages
+production
+debug

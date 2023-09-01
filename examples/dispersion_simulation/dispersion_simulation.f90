@@ -8,7 +8,6 @@
 program dispersion_simulation
 
 use bmad
-use autoscale_mod
 
 implicit none
 

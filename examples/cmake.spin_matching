@@ -1,9 +1,0 @@
-set(EXENAME spin_matching)
-
-file (GLOB SRC_FILES "spin_matching/*f90")
-
-set (LINK_LIBS
-  bmad
-  sim_utils
-  ${ACC_BMAD_LINK_LIBS}
-)
