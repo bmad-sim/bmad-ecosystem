@@ -1,0 +1,103 @@
+name: Bmad Ecosystem - Release
+
+on:
+    # Run on manual trigger
+    workflow_dispatch:
+
+# Configuration for the version of external dependencies
+# We do this so we can cache them and avoid checking out that big
+# repository at all times.
+env:
+  EXTERNAL_DEPS_VERSION: main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    defaults:
+        run:
+          shell: bash
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      # Check out the code from GitHub
+      - uses: actions/checkout@v2
+
+      # Install system dependencies
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc
+
+      # Try to check the cache for external dependencies
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: ~/external_deps
+          key: ${{ env.EXTERNAL_DEPS_VERSION }}
+
+      # In case we don't have it available, check it out
+      - name: Checkout External Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
+
+      - name: Extract dependencies
+        run: |
+          for dep in ~/external_deps/*.tar.gz; \
+          do \
+            tar xzvf $dep -C $GITHUB_WORKSPACE/; \
+          done
+
+      - name: Assemble Tarball
+        run: |
+          tar czvf bmad_dist.tar.gz $GITHUB_WORKSPACE;
+
+      - name: Define Release Name
+        id: release_name
+        run: |
+          # call .github/scripts/next_version.sh to get the next version
+          # and set it as an output variable
+          echo "::set-output name=version::$(.github/scripts/next_version.sh)"
+
+      - name: Create Release - ${{ steps.release_name.outputs.version }}
+        id: create_release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          artifactErrorsFailBuild: true
+          artifacts: bmad_dist.tar.gz
+          body: |
+            # Bmad Distribution - ${{ steps.release_name.outputs.version }}
+          generateReleaseNotes: true
+          makeLatest: true
+          tag: ${{ steps.release_name.outputs.version }}
+          commit: "main"
+
+
+      - name: Report Failure Status on Slack
+        if: failure() && steps.checkrel.conclusion == 'success'
+        uses: ravsamhq/notify-slack-action@1.4.0
+        with:
+          status: ${{ job.status }}
+          notify_when: 'failure'
+          notification_title: 'Bmad Distribution Pipeline Failed'
+          message_format: ':poop: *{workflow}* failed. Please check more details at <https://github.com/bmad-sim/bmad-ecosystem/actions/workflows/release.yml|{repo}>.'
+          footer: ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Report New Release on Slack
+        if: success() && steps.cache.outputs.cache-hit != 'true'
+        uses: ravsamhq/notify-slack-action@1.4.0
+        with:
+          status: ${{ job.status }}
+          notification_title: 'Bmad Distribution Pipeline'
+          message_format: ':tada: *{workflow}* produced a new release of Bmad. Check it out at <${{ steps.create_release.outputs.html_url }}}|{repo}>.'
+          footer: ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
