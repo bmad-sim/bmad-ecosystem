@@ -25,6 +25,8 @@ jobs:
     steps:
       # Check out the code from GitHub
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       # Install system dependencies
       - name: Install System Dependencies
@@ -55,7 +57,7 @@ jobs:
       - name: Assemble Tarball
         run: |
           mkdir -p ~/bmad_dist;
-          tar czvf ~/bmad_dist/bmad_dist.tar.gz $GITHUB_WORKSPACE;
+          tar -cjf ~/bmad_dist/bmad_dist.tar.gz -C $GITHUB_WORKSPACE .
 
       - name: Define Release Name
         id: release_name
@@ -98,7 +100,7 @@ jobs:
         with:
           status: ${{ job.status }}
           notification_title: 'Bmad Distribution Pipeline'
-          message_format: ':tada: *{workflow}* produced a new release of Bmad. Check it out at <${{ steps.create_release.outputs.html_url }}}|{repo}>.'
+          message_format: ':tada: *{workflow}* produced a new release of Bmad. Check it out at <${{ steps.create_release.outputs.html_url }}|{repo}>.'
           footer: ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
