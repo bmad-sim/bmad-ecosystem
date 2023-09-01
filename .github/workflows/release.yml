@@ -100,7 +100,7 @@ jobs:
         with:
           status: ${{ job.status }}
           notification_title: 'Bmad Distribution Pipeline'
-          message_format: ':tada: *{workflow}* produced a new release of Bmad. Check it out at <${{ steps.create_release.outputs.html_url }}|{repo}>.'
+          message_format: ':tada: *{workflow}* produced a new release of Bmad (${{ steps.release_name.outputs.version }}). Check it out at <${{ steps.create_release.outputs.html_url }}|{repo}>.'
           footer: ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
