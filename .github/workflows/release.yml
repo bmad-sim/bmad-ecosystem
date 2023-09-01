@@ -54,7 +54,8 @@ jobs:
 
       - name: Assemble Tarball
         run: |
-          tar czvf bmad_dist.tar.gz $GITHUB_WORKSPACE;
+          mkdir -p ~/bmad_dist;
+          tar czvf ~/bmad_dist/bmad_dist.tar.gz $GITHUB_WORKSPACE;
 
       - name: Define Release Name
         id: release_name
@@ -70,7 +71,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           artifactErrorsFailBuild: true
-          artifacts: bmad_dist.tar.gz
+          artifacts: ~/bmad_dist/bmad_dist.tar.gz
           body: |
             # Bmad Distribution - ${{ steps.release_name.outputs.version }}
           generateReleaseNotes: true
@@ -80,7 +81,7 @@ jobs:
 
 
       - name: Report Failure Status on Slack
-        if: failure() && steps.checkrel.conclusion == 'success'
+        if: failure()
         uses: ravsamhq/notify-slack-action@1.4.0
         with:
           status: ${{ job.status }}
@@ -92,7 +93,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Report New Release on Slack
-        if: success() && steps.cache.outputs.cache-hit != 'true'
+        if: success()
         uses: ravsamhq/notify-slack-action@1.4.0
         with:
           status: ${{ job.status }}
