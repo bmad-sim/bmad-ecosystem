@@ -863,7 +863,7 @@ do   ! ix_ele = 1e1, ie2
       endif
 
       if (nint(ele%value(cavity_type$)) == standing_wave$) then
-        line_out = trim(line_out) // ', body_focus_model="SRS", standing_wave = 1'
+        line_out = trim(line_out) // ', body_focus_model="SRS", standing_wave = 1, end1_focus=1, end2_focus=1'
       endif
 
       bmad_params(:3) = [character(40):: 'l', 'voltage', 'rf_frequency']
