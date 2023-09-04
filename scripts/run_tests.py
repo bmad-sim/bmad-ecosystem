@@ -345,9 +345,10 @@ print('Results file: regression.results')
 
 if pass_all_tests:
   print_all ('\nBottom line for all tests: The code PASSES regression testing.')
+  return 0
 else:
   print_all ('\nBottom line for all tests: The code FAILS regression testing.', color = True)
-  ## raise SystemExit()
+  return 1
 
 results.close()
 
