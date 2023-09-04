@@ -447,6 +447,7 @@ comb_calc_on = (ds_save >= 0)
 bunch_params_comb => tao_branch%bunch_params_comb
 bunch_params_comb%ds_save = ds_save
 bunch_params_comb%n_pt = -1  ! Reset tracks
+if (tao_branch%comb_max_ds_save > 0) bunch_params_comb%max_ds_save = tao_branch%comb_max_ds_save 
 
 
 ! Transfer wakes from  design
