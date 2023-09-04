@@ -1016,15 +1016,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   case ('comb_ds_save')
     call tao_set_real_value (value, switch, value_str, err)
-    do ib = 0, ubound(u%model%tao_branch, 1)
-      u%model%tao_branch(ib)%bunch_params_comb%ds_save = value
-    enddo
+    u%model%tao_branch(:)%comb_ds_save = value
 
   case ('comb_max_ds_save')
     call tao_set_real_value (value, switch, value_str, err)
-    do ib = 0, ubound(u%model%tao_branch, 1)
-      u%model%tao_branch(ib)%bunch_params_comb%max_ds_save = value
-    enddo
+    u%model%tao_branch(ib)%comb_max_ds_save = value
 
   case ('always_reinit')
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
@@ -1155,8 +1151,8 @@ call downcase_string(who2)
 
 ! Special cases not associated with the beam_init structure
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', &
-                    'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'beam_saved_at', &
+                    'beam_track_start', 'beam_track_end', 'beam_init_file_name', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
                     'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
                     'always_reinit'], ix, matched_name=switch)
