@@ -389,7 +389,6 @@ slave%value(e_tot$)          = slave_val(e_tot$)
 slave%value(p0c$)            = slave_val(p0c$)
 slave%value(delta_ref_time$) = slave_val(delta_ref_time$)
 slave%value(ref_time_start$) = slave_val(ref_time_start$)
-if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 
 if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
@@ -471,10 +470,15 @@ if (associated (slave%wake)) then
   slave%wake%lr%t_ref = lord%wake%lr%t_ref - slave%ref_time
 endif
 
-! methods
+! Methods
 
+if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
+slave%ptc_integration_type        = lord%ptc_integration_type
 slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
+slave%symplectify                 = lord%symplectify
 slave%is_on = lord%is_on
+slave%csr_method                  = lord%csr_method
+slave%space_charge_method         = lord%space_charge_method
 
 ! Handled by set_flags_for_changed_attribute
 
@@ -1379,7 +1383,6 @@ slave%value = value
 slave%mat6_calc_method            = lord%mat6_calc_method
 slave%tracking_method             = lord%tracking_method
 slave%field_master                = lord%field_master
-slave%csr_method                  = lord%csr_method
 slave%ptc_integration_type        = lord%ptc_integration_type
 slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
 slave%symplectify                 = lord%symplectify
