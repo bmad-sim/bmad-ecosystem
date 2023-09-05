@@ -24,18 +24,19 @@ jobs:
         os: [ubuntu-latest]
     steps:
       # Check out the code from GitHub
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4.0.0
         with:
-          fetch-depth: 0
+          fetch-tags: true
 
-      # Install system dependencies
-      - name: Install System Dependencies
-        run: |
-          sudo apt update
-          sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc
+    #   Uncomment this block if we decide to run the tests later
+    #   # Install system dependencies
+    #   - name: Install System Dependencies
+    #     run: |
+    #       sudo apt update
+    #       sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc
 
       # Try to check the cache for external dependencies
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache
         with:
           path: ~/external_deps
@@ -64,7 +65,7 @@ jobs:
         run: |
           # call .github/scripts/next_version.sh to get the next version
           # and set it as an output variable
-          echo "::set-output name=version::$(.github/scripts/next_version.sh)"
+          run: echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
 
       - name: Create Release - ${{ steps.release_name.outputs.version }}
         id: create_release
