@@ -12,3 +12,5 @@ beginning[e_tot] = 7.25e3
 
 xr: line = (pinit, cst)
 use, xr
+no_digested
+parameter[ran_seed] = 123456
