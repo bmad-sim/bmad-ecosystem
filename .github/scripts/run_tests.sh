@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 echo "**** Invoking dist_source_me"
 source ./util/dist_source_me
