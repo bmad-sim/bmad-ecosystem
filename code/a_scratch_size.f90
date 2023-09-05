@@ -226,8 +226,6 @@ module precision_constants
   character(18) ::         format8="(8(1x,g23.16,1x))"
   character(18) ::         format9="(9(1x,g23.16,1x))"
   character(19) ::         format10="(10(1x,g23.16,1x))"
-  character(19) ::         format11="(11(1x,g23.16,1x))"
-  character(19) ::         format12="(12(1x,g23.16,1x))"
   !  logical(lp) :: fixed_found
   !  lielib_print(1)=1   lieinit prints info
   !  lielib_print(2)=1   expflo warning if no convergence
@@ -248,16 +246,7 @@ module precision_constants
   !  lielib_print(17)=1  print magnets with excessive cutting
   integer , target :: old_integrator =1  ! before making spin high order
   character*255 :: preffile="pref.txt"
-   logical :: newtpsa=.false., assume_da_map = .true.,previous_newtpsa=.false.,use_np=.true.,newspin=.true.
-   integer :: with_para=2
-   integer :: nphere=0
-  integer(4), pointer :: inds(:,:),ind1(:),ind2(:) => null()
-  integer(4), pointer :: nind1(:),nind2(:) => null()
-  integer(4) combien, poscombien,ninds
-  real(dp), pointer:: reel(:),finds(:,:,:)  => null(),finds1(:)  => null()
-  complex(dp), pointer:: reelc(:)  => null()
-   integer :: ipric=0,ipric2=0
- 
+
   INTERFACE read
      MODULE PROCEDURE read_d
      MODULE PROCEDURE read_int
