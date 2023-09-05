@@ -2971,7 +2971,7 @@ case ('slip_factor_ptc.')
     return
   endif
 
-  if (.not. is_integer(data_type(25:), n)) then
+  if (.not. is_integer(data_type(17:), n)) then
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
   endif
