@@ -9,8 +9,7 @@ module c_da_arrays
   implicit none
   public
   !private ludcmp_nr,lubksb_nr
-  integer c_lda,c_lea,c_lia,c_lst 
-  integer, private :: c_nohere,c_nvhere
+  integer c_lda,c_lea,c_lia,c_lst
 
   ! johan
   ! integer,parameter::c_lno=2,c_lnv=6,c_lc_nomax=8,c_lc_nvmax=9,c_lstmax=800500,c_ldamax=16000,c_leamax=5000,c_liamax=50000
@@ -44,8 +43,6 @@ contains
   subroutine alloc_all_c(no,nv)
     implicit none
     integer no,nv
-c_nohere=no
-c_nvhere=nv
     if(c_reallocate) then
        call dealloc_all_c
        call danum0_c(no,nv)
@@ -64,24 +61,14 @@ c_nvhere=nv
 
   subroutine alloc_c
     implicit none
-
-allocate(c_cc(c_lst))
-if(c_nohere>2.or.(.not.newtpsa)) then
- allocate(c_i_1(c_lst));allocate(c_i_2(c_lst));
- allocate(c_ie1(c_lea));allocate(c_ie2(c_lea));allocate(c_ieo(c_lea));
- allocate(c_ia1(0:c_lia));allocate(c_ia2(0:c_lia));
-else
- allocate(c_i_1(1));allocate(c_i_2(1));
- allocate(c_ie1(1));allocate(c_ie2(1));allocate(c_ieo(1));
- allocate(c_ia1(0:1));allocate(c_ia2(0:1));
-
-endif
-allocate(c_idano(c_lda));allocate(c_idanv(c_lda));allocate(c_idapo(c_lda));
-allocate(c_idalm(c_lda));allocate(c_idall(c_lda));
-allocate(c_daname(c_lda));
-allocate(c_allvec(c_lda));
-
-
+    allocate(c_cc(c_lst))
+    allocate(c_i_1(c_lst));allocate(c_i_2(c_lst));
+    allocate(c_ie1(c_lea));allocate(c_ie2(c_lea));allocate(c_ieo(c_lea));
+    allocate(c_ia1(0:c_lia));allocate(c_ia2(0:c_lia));
+    allocate(c_idano(c_lda));allocate(c_idanv(c_lda));allocate(c_idapo(c_lda));
+    allocate(c_idalm(c_lda));allocate(c_idall(c_lda));
+    allocate(c_daname(c_lda));
+    allocate(c_allvec(c_lda));
 !    do i=1,c_lst
 !       c_cc(I)=0.0_dp  ! ADDED BY ETIENNE
 !       c_i_1(i)=0
