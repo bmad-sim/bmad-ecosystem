@@ -281,11 +281,17 @@ character(*) :: instr
     case("RFCAVITY2-Anti_D: Time_Runge_Kutta")         ; tolerance = 'ABS 1E-12'
     case("RFCAVITY2-Anti_OD: Time_Runge_Kutta")        ; tolerance = 'ABS 1E-12'
     case("WIGGLER_FLAT1-Anti_OD: Runge_Kutta")         ; tolerance = 'ABS 2E-13'
+    case("WIGGLER_FLAT1-Anti_OD: Time_Runge_Kutta")    ; tolerance = 'ABS 2E-13'
     case("WIGGLER_HELI1-Anti_D: Runge_Kutta")          ; tolerance = 'ABS 4e-13'
     case("WIGGLER_HELI1-Anti_D: Time_Runge_Kutta")     ; tolerance = 'ABS 4e-13'
     case("WIGGLER_HELI1-Anti_O: Runge_Kutta")          ; tolerance = 'ABS 4e-13'                  
     case("WIGGLER_HELI1-Anti_O: Time_Runge_Kutta")     ; tolerance = 'ABS 4e-13'                  
     case("WIGGLER_HELI1-Anti_OD: Time_Runge_Kutta")    ; tolerance = 'ABS 4e-13'
+
+    case("EM_FIELD1-Anti_D: Runge_Kutta")              ; tolerance = 'ABS 4e-09'
+    case("EM_FIELD1-Anti_O: Runge_Kutta")              ; tolerance = 'ABS 4e-09'
+    case("EM_FIELD2-Anti_D: Runge_Kutta")              ; tolerance = 'ABS 4e-09'
+    case("EM_FIELD2-Anti_O: Runge_Kutta")              ; tolerance = 'ABS 4e-09'
 
     case default 
       if (index(instr, 'Runge_Kutta') /= 0) then
