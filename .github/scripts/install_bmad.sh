@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # echo "******* DEBUG ********"
 # dpkg -l pkg-config
