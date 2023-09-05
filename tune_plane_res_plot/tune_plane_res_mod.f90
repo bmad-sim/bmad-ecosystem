@@ -508,8 +508,8 @@ subroutine res_line_plot (plot_type, param, res)
 
 ! plot 
 
-  call qp_set_axis ('X', param%x_min, param%x_max, param%x_div, param%places, 'Q_x')
-  call qp_set_axis ('Y', param%y_min, param%y_max, param%y_div, param%places, 'Q_y')
+  call qp_set_axis ('X', param%x_min, param%x_max, param%x_div, param%places, 'Fractional Horizontal Tune, Q\dx\u')
+  call qp_set_axis ('Y', param%y_min, param%y_max, param%y_div, param%places, 'Fractional Vertical Tune, Q\dy\u')
   call qp_set_graph_attrib (draw_grid = .false.)
   call qp_draw_axes 
   call qp_draw_graph_title('Resonance Lines')
@@ -552,7 +552,7 @@ subroutine res_line_plot (plot_type, param, res)
 !
 
   lines(1) = 'Resonance line restrictions:'
-  lines(2) = '  [pQ_x + qQ_y + rQ_s = n]'
+  lines(2) = '  [pQ\dx\u + qQ\dy\u + rQ\ds\u = n]'
   write (lines(3), '(a, i0)') '  |p| + |q| + |r| <= ', param%pqr_max
   write (lines(4), '(a, i0)') '  |r| <= ', param%r_max
   nl = 4
@@ -598,10 +598,10 @@ subroutine res_line_plot (plot_type, param, res)
     nl = nl + 1
     places1 = param%places + 1
     write (fmt, '(a, i0, a)') '(a, f0.', places1, ')'
-    write (lines(nl), fmt) '  Q_s = ', param%q_s * param%scale
+    write (lines(nl), fmt) '  Q\ds\u = ', param%q_s * param%scale
   endif
 
-  call qp_set_text_attrib ("LEGEND", height = 11.0_rp)
+  call qp_set_text_attrib ("LEGEND", height = 15.0_rp)
   call qp_draw_text_legend (lines(1:nl))
 
 end subroutine
