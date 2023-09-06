@@ -24,17 +24,17 @@ jobs:
         os: [ubuntu-latest]
     steps:
       # Check out the code from GitHub and all history
-      - uses: actions/checkout@v4.0.0
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
 
 
       - name: Define Release Name
         id: release_name
         run: |
-            # call .github/scripts/next_version.sh to get the next version
-            # and set it as an output variable
-            echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
+          git fetch --prune --unshallow --tags
+          # call .github/scripts/next_version.sh to get the next version
+          # and set it as an output variable
+          echo "Next version: $(.github/scripts/next_version.sh)"
+          echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
 
     #   Uncomment this block if we decide to run the tests later
     #   # Install system dependencies
