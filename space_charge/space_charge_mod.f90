@@ -545,6 +545,7 @@ endif
 
 if (track_state /= moving_forward$) then
   status = 1
+  dt = real_garbage$
   return
 endif
 

@@ -152,17 +152,17 @@ select case (ele%key)
 Case (wiggler$, undulator$)
 
   field_ele => pointer_to_field_ele(ele, 1, z_offset)
-  if (size(field_ele%cartesian_map) > 1) then
-    call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS MULTIPLE CARTESIAN MAPS. SYMP_LIE_PTC CAN ONLY HANDLE ONE.')
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
 
   if (.not. associated(field_ele%cartesian_map)) then  ! Only if wiggler or undulator
     allocate (ct_map)
     call create_wiggler_cartesian_map(field_ele, ct_map)
     allocated_map = .true.
   else
+    if (size(field_ele%cartesian_map) > 1) then
+      call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS MULTIPLE CARTESIAN MAPS. SYMP_LIE_PTC CAN ONLY HANDLE ONE.')
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
     ct_map => field_ele%cartesian_map(1)
   endif
 

@@ -668,6 +668,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l$,                    'L')
 
   if (i == converter$)         cycle
+  if (i == stripper$)          cycle
 
   call init_attribute_name1 (i, symplectify$,          'SYMPLECTIFY')
   call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')

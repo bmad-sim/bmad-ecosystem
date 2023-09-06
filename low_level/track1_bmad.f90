@@ -212,6 +212,12 @@ case (sol_quad$, solenoid$)
   call track_a_sol_quad (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
+! Stripper
+
+case (stripper$)
+  call track_a_stripper (orbit, ele, param, mat6, make_matrix)
+
+!-----------------------------------------------
 ! Taylor
 
 case (taylor$)
