@@ -65,7 +65,7 @@ jobs:
         run: |
           # call .github/scripts/next_version.sh to get the next version
           # and set it as an output variable
-          run: echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
+          echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
 
       - name: Create Release - ${{ steps.release_name.outputs.version }}
         id: create_release
