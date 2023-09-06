@@ -23,12 +23,18 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
-      # Check out the code from GitHub
+      # Check out the code from GitHub and all history
       - uses: actions/checkout@v4.0.0
+        with:
+          fetch-depth: 0
 
-      # Fetch all tags from the repository
-      - name: Fetch all Tags
-        run: git fetch origin --tags
+
+      - name: Define Release Name
+        id: release_name
+        run: |
+            # call .github/scripts/next_version.sh to get the next version
+            # and set it as an output variable
+            echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
 
     #   Uncomment this block if we decide to run the tests later
     #   # Install system dependencies
@@ -62,12 +68,6 @@ jobs:
           mkdir -p ~/bmad_dist;
           tar -cjf ~/bmad_dist/bmad_dist.tar.gz -C $GITHUB_WORKSPACE .
 
-      - name: Define Release Name
-        id: release_name
-        run: |
-          # call .github/scripts/next_version.sh to get the next version
-          # and set it as an output variable
-          echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
 
       - name: Create Release - ${{ steps.release_name.outputs.version }}
         id: create_release
