@@ -19,7 +19,7 @@ real(rp), parameter :: m_electron = 0.51099895000d6         ! Mass [eV]
 real(rp), parameter :: m_proton   = 0.93827208816d9         ! Mass [eV]
 real(rp), parameter :: m_neutron  = 0.93956542052d9         ! Mass [eV]
 real(rp), parameter :: m_muon     = 105.6583755d6           ! Mass [eV]
-
+real(rp), parameter :: m_helion   = 3.0160293201_rp         ! Mass He3 nucleus
 
 real(rp), parameter :: e_mass = 1d-9 * m_electron          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_ELECTRON INSTEAD.
 real(rp), parameter :: p_mass   = 1d-9 * m_proton          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_PROTON INSTEAD.
