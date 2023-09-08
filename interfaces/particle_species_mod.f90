@@ -68,33 +68,35 @@ integer, parameter :: pion_minus$        = -4
 integer, parameter :: anti_deuteron$     = -5
 integer, parameter :: anti_neutron$      = -6
 integer, parameter :: anti_ref_particle$ = -7
+integer, parameter :: anti_helion        = -8
 
-integer, parameter :: lbound_subatomic = -7, ubound_subatomic = 8
+integer, parameter :: lb_subatomic = -8, ub_subatomic = 8
 
-character(20), parameter:: subatomic_species_name(-7:8) = [character(20):: 'Anti_Ref_Particle', 'Anti_Neutron     ', &
-              'Anti_Deuteron    ', 'Pion-            ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
-              'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', 'Pion+            ', &
-              'Deuteron         ', 'Neutron          ', 'Ref_Particle     ', 'Pion0            ']
+character(20), parameter:: subatomic_species_name(lb_subatomic:ub_subatomic) = [character(20):: 'Anti_Helion', &
+              'Anti_Ref_Particle', 'Anti_Neutron', 'Anti_Deuteron', 'Pion-', 'Muon', 'Antiproton', 'Electron', &
+              'Photon', 'Positron', 'Proton', 'Antimuon', 'Pion+', 'Deuteron', 'Neutron', 'Ref_Particle', 'Pion0']
 
-character(20), parameter:: openPMD_subatomic_species_name(-7:8) = [character(20):: 'Garbage!         ', 'anti-neutron     ', &
-                      'anti-deuteron    ', 'pion-            ', 'muon             ', 'anti-proton      ', 'electron         ', &
-                      'photon           ', 'positron         ', 'proton           ', 'anti-muon        ', 'pion+            ', &
-                      'deuteron         ', 'neutron          ', 'Garbage!         ', 'pion0            ']
+character(20), parameter:: openPMD_subatomic_species_name(lb_subatomic:ub_subatomic) = [character(20):: 'Garbage!', 'Garbage!', &
+                      'anti-neutron', 'anti-deuteron', 'pion-', 'muon', 'anti-proton', 'electron', &
+                      'photon', 'positron', 'proton', 'anti-muon', 'pion+', 'deuteron', 'neutron', 'Garbage!', 'pion0']
 
-integer, parameter :: charge_of_subatomic(-7:8) = [0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 0]
+integer, parameter :: charge_of_subatomic(lb_subatomic:ub_subatomic) = [-2, 0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 0]
 
-real(rp), parameter :: mass_of_subatomic(-7:8) = [0.0_rp, m_neutron, m_deuteron, m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
-                                m_electron, m_proton, m_muon, m_pion_charged, m_deuteron, m_neutron, 0.0_rp, m_pion_0]
+real(rp), parameter :: mass_of_subatomic(lb_subatomic:ub_subatomic) = [m_helion, 0.0_rp, m_neutron, m_deuteron, &
+                                m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon, &
+                                m_pion_charged, m_deuteron, m_neutron, 0.0_rp, m_pion_0]
 
-real(rp), parameter :: anomalous_moment_of_subatomic(-7:8) = [0.0_rp, anomalous_mag_moment_neutron, anomalous_mag_moment_deuteron, &
-                        0.0_rp, anomalous_mag_moment_muon, anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
+real(rp), parameter :: anomalous_moment_of_subatomic(lb_subatomic:ub_subatomic) = [anomalous_mag_moment_He3, 0.0_rp, &
+                        anomalous_mag_moment_neutron, anomalous_mag_moment_deuteron,0.0_rp,  &
+                        anomalous_mag_moment_muon, anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, anomalous_mag_moment_muon, &
                         0.0_rp, anomalous_mag_moment_deuteron, anomalous_mag_moment_neutron, 0.0_rp, 0.0_rp]
 
-integer, parameter :: antiparticle_of_subatomic(-7:8) = [7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, 8]
+integer, parameter :: antiparticle_of_subatomic(lb_subatomic:ub_subatomic) = [int_garbage$, &
+                                                                   7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, 8]
 
-real(rp), parameter :: spin_of_subatomic(-7:8) = [real_garbage$, 0.5_rp, 1.0_rp, 0.0_rp, 0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, &
-                                                    0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 1.0_rp, 0.5_rp, real_garbage$, 0.0_rp]
+real(rp), parameter :: spin_of_subatomic(lb_subatomic:ub_subatomic) = [0.0_rp, real_garbage$, 0.5_rp, 1.0_rp, 0.0_rp, &
+                          0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 1.0_rp, 0.5_rp, real_garbage$, 0.0_rp]
 
 !----------------------
 ! Atoms
@@ -123,6 +125,19 @@ type atom_struct
                                   ! mass(0) is the standard atomic weight
                                   ! mass(n) is the mass of isotope n + i_offset
 end type
+
+! Radiation length X_0 from Y.S. Tsai, Rev. Mod. Phys. 46, 815 (1974). Units are gm/cm^2
+
+real(rp) :: x0_rad_length(92) = [63.0470, 94.3221, 82.7559, 65.1899, 52.6868, 42.6983, 37.9879, 34.2381, 32.9303, 28.9367, &
+                                       27.7362, 25.0387, 24.0111, 21.8234, 21.2053, 19.4953, 19.2783, 19.5489, 17.3167, 16.1442, &
+                                       16.5455, 16.1745, 15.8425, 14.9444, 14.6398, 13.8389, 13.6174, 12.6820, 12.8616, 12.4269, &
+                                       12.4734, 12.2459, 11.9401, 11.9082, 11.4230, 11.3722, 11.0272, 10.7623, 10.4101, 10.1949, &
+                                       9.9225, 9.8029, 9.6881, 9.4825, 9.2654, 9.2025, 8.9701, 8.9945, 8.8491, 8.8170, &
+                                       8.7244, 8.8267, 8.4803, 8.4819, 8.3052, 8.3073, 8.1381, 7.9557, 7.7579, 7.7051, &
+                                       7.5193, 7.5727, 7.4377, 7.4830, 7.3563, 7.3199, 7.2332, 7.1448, 7.0318, 7.0214, &
+                                       6.9237, 6.8907, 6.8177, 6.7630, 6.6897, 6.6763, 6.5936, 6.5433, 6.4608, 6.4368, &
+                                       6.4176, 6.3688, 6.2899, 6.1907, 6.0651, 6.2833, 6.1868, 6.1477, 6.0560, 6.0726, &
+                                       5.9319, 5.9990]
 
 
 ! Isotopes from NIST data 2020/Jan.
@@ -763,7 +778,7 @@ integer species, anti_species
 
 !
 
-if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+if (lb_subatomic <= species .and. species <= ub_subatomic) then
   anti_species = antiparticle_of_subatomic(species)
   return
 
@@ -797,7 +812,7 @@ integer charge, species
 
 !
 
-do species = lbound_subatomic, ubound_subatomic
+do species = lb_subatomic, ub_subatomic
   if (charge == charge_of_subatomic(species) .and. abs(mass - mass_of_subatomic(species)) <= 1d-6 * mass) return
 enddo
 
@@ -860,7 +875,7 @@ if (upcase(nam) == 'PION_MINUS') nam = 'pion-'  ! Old style
 
 call match_word(nam, subatomic_species_name, ix, .false., .false.)
 if (ix > 0) then
-  species = ix + lbound_subatomic - 1
+  species = ix + lb_subatomic - 1
   return
 endif
 
@@ -1069,7 +1084,7 @@ end select
 
 !
 
-if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+if (lb_subatomic <= species .and. species <= ub_subatomic) then
   name = subatomic_species_name(species)
   return
 endif
@@ -1160,7 +1175,7 @@ character(*) pmd_name
 
 ! Subatomic particle
 
-do i = lbound_subatomic, ubound_subatomic
+do i = lb_subatomic, ub_subatomic
   if (pmd_name /= openPMD_subatomic_species_name(i)) cycle
   species = i
   return
@@ -1197,7 +1212,7 @@ character(20) :: pmd_name
 
 ! Subatomic particles
 
-if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+if (lb_subatomic <= species .and. species <= ub_subatomic) then
   pmd_name = openpmd_subatomic_species_name(species)
 
 ! All else just remove any charge suffix. EG: "H-" -> "H".
@@ -1234,7 +1249,7 @@ real(rp) :: moment
 
 !
 
-if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+if (lb_subatomic <= species .and. species <= ub_subatomic) then
   moment = anomalous_moment_of_subatomic(species)
   return
 endif
@@ -1276,7 +1291,7 @@ real(rp), optional :: non_subatomic_default
 
 !
 
-if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+if (lb_subatomic <= species .and. species <= ub_subatomic) then
   spin = spin_of_subatomic(species)
 else
   spin = real_option(0.0_rp, non_subatomic_default)
@@ -1309,7 +1324,7 @@ character(*), parameter :: r_name = 'charge_of'
 
 !
 
-if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+if (lb_subatomic <= species .and. species <= ub_subatomic) then
   charge = charge_of_subatomic(species)
   return
 endif
@@ -1361,7 +1376,7 @@ character(*), parameter :: r_name = 'mass_of'
 
 mass = real_garbage$
 
-if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+if (lb_subatomic <= species .and. species <= ub_subatomic) then
   mass = mass_of_subatomic(species)
   return
 endif
@@ -1491,7 +1506,7 @@ character(*), parameter :: r_name = 'set_species_charge'
 
 !
 
-if (lbound_subatomic <= species_in .and. species_in <= ubound_subatomic) then
+if (lb_subatomic <= species_in .and. species_in <= ub_subatomic) then
   species_charged = species_in
   return
 endif
@@ -1499,6 +1514,66 @@ endif
 species_charged = species_in +  int(z'1000000') * (charge - species_in / int(z'1000000'))
 
 end function set_species_charge
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function x0_radiation_length(species) result (x0)
+!
+! Routine to return the X0 raidation length for atomes.
+!
+! Input:
+!   Species       -- integer: Species ID.
+!
+! Output:
+!   x0            -- real(rp): Radiation length in kg/m^2. Set to real_garbage$ if species is not atomic
+!                     or has atomic index greater than 92.
+!-
+
+function x0_radiation_length(species) result (x0)
+
+integer species, ixa
+real(rp) x0
+
+!
+
+ixa = atomic_number(species)
+if (ixa < 1 .or. ixa > size(x0_rad_length)) then
+  x0 =real_garbage$
+  return
+endif
+
+x0 = x0_rad_length(ixa) * 10.0_rp
+
+end function x0_radiation_length
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function atomic_number(species) result (atomic_num)
+!
+! Routine to return the True if species argument corresponds to a subatomic particle.
+!
+! Input:
+!   species       -- integer: Spicies ID.
+!
+! Output:
+!   atomic_num    -- Integer: Atomic index. Set to zero if species is not atomic
+!-
+
+elemental function atomic_number(species) result (atomic_num)
+
+integer, intent(in) :: species
+integer atomic_num
+
+!
+
+atomic_num = mod(abs(species), int(z'1000000')) / int(z'10000') 
+if (atomic_num > 199) atomic_num = 0
+
+end function atomic_number
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
@@ -1522,7 +1597,7 @@ logical is_subatomic
 
 !
 
-is_subatomic = (lbound_subatomic <= species .and. species <= ubound_subatomic)
+is_subatomic = (lb_subatomic <= species .and. species <= ub_subatomic)
 
 end function is_subatomic_species
 
