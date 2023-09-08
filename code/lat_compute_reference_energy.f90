@@ -505,7 +505,7 @@ type (bmad_common_struct) bmad_com_saved
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, abs_tol(3)
 real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time
 
-integer i, key
+integer i, n, key
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
 
 character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
@@ -539,6 +539,9 @@ if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcav
 
 if (key == converter$) then
   ele%ref_species = ele%converter%species_out
+elseif (key == stripper$) then
+  n = atomic_number(ele0%ref_species)
+  ele%ref_species = set_species_charge(ele0%ref_species, n)
 else
   ele%ref_species = ele0%ref_species
 endif

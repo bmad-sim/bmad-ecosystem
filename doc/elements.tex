@@ -29,11 +29,11 @@ available in \bmad.
   GKicker           & \ref{s:gkicker}     &  Sextupole         & \ref{s:sex}      \\
   HKicker           & \ref{s:hvkicker}    &  Sol_Quad          & \ref{s:sq}       \\
   Hybrid            & \ref{s:hybrid}      &  Solenoid          & \ref{s:sol}      \\
-  Instrument        & \ref{s:monitor}     &  Taylor            & \ref{s:taylor}   \\
-  Kicker            & \ref{s:kicker}      &  Undulator         & \ref{s:wiggler}  \\
-  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \\  
-  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \\
-  Mask              & \ref{s:mask}        &                    &                  \\
+  Instrument        & \ref{s:monitor}     &  Stripper          & \ref{s:stripper} \\
+  Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \\
+  Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \\
+  Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \\ 
+  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\
   \bottomrule
 \end{tabular}
 }
@@ -4552,6 +4552,52 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Sol_Quad}
+\label{s:sq}
+\index{sol_quad|hyperbf}
+
+A \vn{sol_quad} is a combination solenoid/quadrupole. Alternatively, the \vn{sad_mult} element
+can also be used. The advantage of the \vn{sad_mult} element is that it can simulate a
+quadrupole field that is canted with respect to the solenoid field.
+
+General \vn{sol_quad} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}         &                            &                    \\ 
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.sol.quad} for a full list of element attributes along with a their units.
+
+\index{k1}\index{ks}\index{bs_field}\index{b1_gradient}
+Attributes specific to a \vn{sol_quad} element are:
+\begin{example}
+  k1           = <Real>    ! Quadrupole strength.
+  ks           = <Real>    ! Solenoid strength.
+  bs_field     = <Real>    ! Solenoid Field strength.
+  b1_gradient  = <Real>    ! Quadrupole Field strength.
+  field_master = <T/F>     ! See \sref{s:field.master}.
+\end{example}
+The normalized quadrupole \vn{k1} and solenoid \vn{ks} field strengths are related to the
+unnormalized \vn{b1_gradient} and \vn{bs_field} field strengths through \Eq{kqlbp}.
+
+Example:
+\begin{example}
+  sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5e-9*parameter[p0c]
+\end{example}
+
+%-----------------------------------------------------------------
 \section{Solenoid}
 \label{s:sol}
 \index{solenoid|hyperbf}
@@ -4619,49 +4665,49 @@ with \vn{bmad_standard} tracking the field always extends to the edges of the el
 of \vn{l_soft_edge} is ignored.
 
 %-----------------------------------------------------------------
-\section{Sol_Quad}
-\label{s:sq}
-\index{sol_quad|hyperbf}
+\section{Stripper}
+\label{s:stripper}
+\index{stripper|hyperbf}
 
-A \vn{sol_quad} is a combination solenoid/quadrupole. Alternatively, the \vn{sad_mult} element
-can also be used. The advantage of the \vn{sad_mult} element is that it can simulate a
-quadrupole field that is canted with respect to the solenoid field.
+A \vn{stripper} element represents a stripper foil which strips all the electrons from a particle.
+Additionally, there will be scattering of the trajectory of a particle going through a \vn{stripper}.
 
-General \vn{sol_quad} attributes are:
+General \vn{stripper} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
-  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
-  Length                     & \ref{s:l}         &                            &                    \\ 
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}      \\
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Is_on                      & \ref{s:is.on}     &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
 \toffset
-See \sref{s:list.sol.quad} for a full list of element attributes along with a their units.
+See \sref{s:list.solenoid} for a full list of element attributes along with a their units.
 
-\index{k1}\index{ks}\index{bs_field}\index{b1_gradient}
-Attributes specific to a \vn{sol_quad} element are:
+Attributes specific to a \vn{stripper} element are:
 \begin{example}
-  k1           = <Real>    ! Quadrupole strength.
-  ks           = <Real>    ! Solenoid strength.
-  bs_field     = <Real>    ! Solenoid Field strength.
-  b1_gradient  = <Real>    ! Quadrupole Field strength.
-  field_master = <T/F>     ! See \sref{s:field.master}.
+  material_type   = <String>    ! Foil material.
+  thickness       = <Real>      ! Foil thickness.
 \end{example}
-The normalized quadrupole \vn{k1} and solenoid \vn{ks} field strengths are related to the
-unnormalized \vn{b1_gradient} and \vn{bs_field} field strengths through \Eq{kqlbp}.
+
+The \vn{thickness} parameter along with \vn{material_type} is used to calculate the scattering
+sigma. Scattering is simulated to be Gaussian distributed with a sigma given by Eq.~(6) of Lynch and
+Dahl\cite{b:lynch}.
+
+In terms of element placement, The length of a \vn{stripper} element (\Eq{l00l}) is considered to be
+zero.  This is similar to the \vn{beambeam} element which is also considered to have zero length but
+the interaction occurs over a finite length.
+
+The 6x6 transfer matrix of a \vn{stripper} element is the unit matrix. That is, scattering does
+not affect the transfer matrix.
 
 Example:
 \begin{example}
-  sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5e-9*parameter[p0c]
+  foil: stripper, material_type = "Al", thickness = 0.003
 \end{example}
 
 %-----------------------------------------------------------------
@@ -4684,7 +4730,6 @@ General \vn{taylor} attributes are:
   Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}   \\
   Is_on                      & \ref{s:is.on}    & Symplectify                & \ref{s:symp}    \\
   Length                     & \ref{s:l}        & Tracking \& transfer map   & \ref{c:methods} \\
-
   \bottomrule
 \end{tabular}
 \end{center}

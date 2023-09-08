@@ -915,6 +915,9 @@ call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX'
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 
+call init_attribute_name1 (stripper$, thickness$,                   'THICKNESS')
+call init_attribute_name1 (stripper$, material_type$,               'MATERIAL_TYPE')
+
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
 call init_attribute_name1 (lens$, focal_strength$,                  'FOCAL_STRENGTH')
@@ -948,7 +951,7 @@ call init_attribute_name1 (crystal$, mosaic_thickness$,             'MOSAIC_THIC
 call init_attribute_name1 (crystal$, mosaic_angle_rms_in_plane$,    'MOSAIC_ANGLE_RMS_IN_PLANE')
 call init_attribute_name1 (crystal$, mosaic_angle_rms_out_plane$,   'MOSAIC_ANGLE_RMS_OUT_PLANE')
 call init_attribute_name1 (crystal$, mosaic_diffraction_num$,       'MOSAIC_DIFFRACTION_NUM')
-call init_attribute_name1 (crystal$, p88$,                          'H_MISALIGN')
+call init_attribute_name1 (crystal$, p88$,                          'H_MISALIGN')   ! Defined so H_misalign will show up with type_ele
 call init_attribute_name1 (crystal$, curvature$,                    'CURVATURE')
 call init_attribute_name1 (crystal$, use_reflectivity_table$,       'USE_REFLECTIVITY_TABLE')
 call init_attribute_name1 (crystal$, reflectivity_table$,           'REFLECTIVITY_TABLE')
@@ -1587,8 +1590,8 @@ call init_attribute_name1 (multilayer_mirror$, d2_thickness$,         'D2_THICKN
 call init_attribute_name1 (multilayer_mirror$, v1_unitcell$,          'V1_UNITCELL')
 call init_attribute_name1 (multilayer_mirror$, v2_unitcell$,          'V2_UNITCELL')
 call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
-call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
 call init_attribute_name1 (multilayer_mirror$, curvature$,            'CURVATURE')
+call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
 
 call init_attribute_name1 (taylor$, ref_orbit$,                     'REF_ORBIT')
 call init_attribute_name1 (taylor$, tt$,                            'TT<out><n1><n2>...')

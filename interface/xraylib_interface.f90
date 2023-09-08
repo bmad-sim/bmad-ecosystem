@@ -373,6 +373,10 @@ debye_temp_factor = 1
 rel_angle = 1
 
 cryst => Crystal_GetCrystal (cyrstal_type)
+if (.not. associated(cryst)) then
+  call out_io(s_error$, r_name, 'Crystal_type not recognized by xraylib: ' // cyrstal_type)
+  return
+endif
 
 ele%value(v_unitcell$) = 1d-30 * cryst%volume
 ele%value(d_spacing$) = 1d-10 * Crystal_dSpacing(cryst, hkl(1), hkl(2), hkl(3))

@@ -276,6 +276,12 @@ case (sol_quad$)
     is_valid = .true.
   end select
 
+case (stripper$)
+  select case (mat6_calc_method)
+  case (auto$, bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+
 case (taylor$)
   select case (mat6_calc_method)
   case (auto$, taylor$, custom$, symp_lie_ptc$)
