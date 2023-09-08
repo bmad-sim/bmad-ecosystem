@@ -39,7 +39,6 @@ character(*), parameter :: r_name = 'track_a_stripper'
 !
 
 material = species_id(ele%component_name)
-atomic_num = atomic_number(material)
 x0 = x0_radiation_length(material)   ! kg/m^2
 if (x0 == real_garbage$) then
   call out_io(s_error$, r_name, 'CANNOT HANDLE NON-ATOMIC MATERIAL_TYPE: ' // species_name(material))
@@ -47,10 +46,12 @@ if (x0 == real_garbage$) then
   return
 endif
 
+atomic_num = atomic_number(material)
+density = ElementDensity(atomic_num) * 1e3_rp  ! Convert to kg/m^3
+
 !
 
 z = atomic_number(orbit%species)
-density = ElementDensity(atomic_num) * 1e3_rp  ! Convert to kg/m^3
 xx0 = ele%value(thickness$) / (x0 / density)
 p = (1.0_rp + orbit%vec(6)) * orbit%p0c
 ! Factor of 1e6 is due to original formula using MeV/c for momentum
