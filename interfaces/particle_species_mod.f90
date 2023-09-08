@@ -1554,7 +1554,7 @@ end function x0_radiation_length
 !+
 ! Function atomic_number(species) result (atomic_num)
 !
-! Routine to return the True if species argument corresponds to a subatomic particle.
+! Routine to return the True if species argument corresponds to an atomic particle or is a proton.
 !
 ! Input:
 !   species       -- integer: Spicies ID.
@@ -1570,7 +1570,12 @@ integer atomic_num
 
 !
 
-atomic_num = mod(abs(species), int(z'1000000')) / int(z'10000') 
+if (species == proton$) then
+  atomic_num = 1
+  return
+endif
+
+atomic_num = mod(abs(species), int(z'1000000')) / int(z'10000')
 if (atomic_num > 199) atomic_num = 0
 
 end function atomic_number
