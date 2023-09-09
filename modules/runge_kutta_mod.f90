@@ -77,6 +77,7 @@ character(*), parameter :: r_name = 'odeint_bmad'
 
 err_flag = .true.
 s_body = s1_body
+s_last_save = s_body
 s_body_ptr => s_body     ! s_body_ptr used to get around an ifort bug.
 s_dir = sign(1.0_rp, s2_body-s1_body)
 ds_next = bmad_com%init_ds_adaptive_tracking * s_dir
