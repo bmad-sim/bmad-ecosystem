@@ -72,6 +72,7 @@ if (n2 <= n1) then
   call concat_this_map(1, n2)
 else
   call concat_this_map(n1+1, n2)
+  if (n1 == 0 .and. present(map1_ele)) call map1_make_unit(map1_ele(0))
 endif
 
 call spin_map1_normalize(map1%spin_q)
