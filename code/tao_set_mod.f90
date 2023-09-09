@@ -971,7 +971,7 @@ type (beam_struct), pointer :: beam
 type (tao_beam_branch_struct), pointer :: bb
 
 real(rp) value
-integer ix, ib, iu, n_loc, ie, ix_branch
+integer ix, iu, n_loc, ie, ix_branch
 
 logical, allocatable :: this_u(:)
 logical err, logic, always_reinit
@@ -1020,7 +1020,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   case ('comb_max_ds_save')
     call tao_set_real_value (value, switch, value_str, err)
-    u%model%tao_branch(ib)%comb_max_ds_save = value
+    u%model%tao_branch(:)%comb_max_ds_save = value
 
   case ('always_reinit')
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
