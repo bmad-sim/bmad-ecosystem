@@ -44,7 +44,9 @@ n = ubound(deriv0,1)
 allocate(mat(0:n,0:n), v(0:n), x1p(0:2*n+1))
 
 x1p(0) = 1
-forall (j = 1:2*n+1) x1p(j) = x1 * x1p(j-1)
+do j = 1,2*n+1 
+  x1p(j) = x1 * x1p(j-1)
+enddo
 
 do j = 0, n
   v(j) = deriv1(j) - poly_eval(deriv0(j:), x1, diff_coef = .true.)
