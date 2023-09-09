@@ -668,7 +668,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l$,                    'L')
 
   if (i == converter$)         cycle
-  if (i == stripper$)          cycle
+  if (i == foil$)          cycle
 
   call init_attribute_name1 (i, symplectify$,          'SYMPLECTIFY')
   call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')
@@ -915,8 +915,8 @@ call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX'
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 
-call init_attribute_name1 (stripper$, thickness$,                   'THICKNESS')
-call init_attribute_name1 (stripper$, material_type$,               'MATERIAL_TYPE')
+call init_attribute_name1 (foil$, thickness$,                   'THICKNESS')
+call init_attribute_name1 (foil$, material_type$,               'MATERIAL_TYPE')
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
