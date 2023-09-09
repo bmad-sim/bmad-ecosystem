@@ -120,6 +120,8 @@ do ie = 0, branch%n_ele_track
     tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
     n0 = q_1turn%spin_q(1:3, 0)
     n0 = n0 / norm2(n0)
+    if (ie == 0) cycle
+
   else
     if (ie == 0) cycle
     n0       = quat_rotate(q_ele(ie)%spin_q(:,0), n0)
