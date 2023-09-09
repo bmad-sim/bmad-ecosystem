@@ -317,7 +317,7 @@ case ('bunch_comb')
     call out_io (s_error$, r_name, 'COMB ARRAY NOT ALLOCATED. PROBABLY CAUSED BY NO BUNCH TRACKING.')
     return
   endif
-  bunch_params_comb => u%model%tao_branch(ix_branch)%bunch_params_comb
+  bunch_params_comb => u%model%tao_branch(branch%ix_branch)%bunch_params_comb
 
   if (ix_bunch > size(bunch_params_comb)) then
     call out_io (s_error$, r_name, 'IX_BUNCH INDEX OUT OF RANGE.')
