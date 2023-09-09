@@ -33,7 +33,7 @@ real(rp), parameter :: zero6(6) = 0
 integer j, k, n, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end, ix_e_gun, it
 
-logical stale, err, lord_compute
+logical stale, err, lord_compute, stale_gun
 logical :: err_flag
 
 character(*), parameter :: r_name = 'lat_compute_ref_energy_and_time'
@@ -157,13 +157,15 @@ do ib = 0, ubound(lat%branch, 1)
 
   !---------------
   ! Look for an e_gun.
-  ! Remember that there may be markers or null_eles before an e_gun in the lattice but nothing else.
+  ! Remember that there may be markers before an e_gun in the lattice but nothing else.
 
   ix_e_gun = 0
+  stale_gun = stale
+
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
-    if (ele%key == marker$ .or. ele%key == detector$) cycle
-    if (ele%key == null_ele$) cycle
+    stale_gun = stale_gun .or. (ele%bookkeeping_state%ref_energy /= ok$)
+    if (ele%key == marker$ .or. ele%key == null_ele$) cycle
     ! Test first non-marker, non-null_ele element...
     if (ele%slave_status == super_slave$) then
       do j = 1, ele%n_lord
@@ -171,6 +173,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (lord%key == e_gun$) then
           gun_ele => lord
           ix_e_gun = ie
+          stale_gun = stale_gun .or. (gun_ele%bookkeeping_state%ref_energy /= ok$)
           exit
         endif
       enddo
@@ -185,7 +188,7 @@ do ib = 0, ubound(lat%branch, 1)
   ! This must be done by tracking since with autoscale off or if the field is not DC, the 
   ! voltage is not a reliable number.
 
-  if (ix_e_gun /= 0) then ! Have found an e_gun...
+  if (ix_e_gun /= 0 .and. stale_gun) then ! Have found an e_gun...
     do j = 1, ix_e_gun  ! Also mark marker elements before gun
       branch%ele(j)%value(e_tot_ref_init$) = begin_ele%value(e_tot_start$)
       branch%ele(j)%value(p0c_ref_init$) = begin_ele%value(p0c_start$)
@@ -539,7 +542,7 @@ if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcav
 
 if (key == converter$) then
   ele%ref_species = ele%converter%species_out
-elseif (key == stripper$) then
+elseif (key == foil$) then
   n = atomic_number(ele0%ref_species)
   ele%ref_species = set_species_charge(ele0%ref_species, n)
 else

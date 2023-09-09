@@ -276,7 +276,7 @@ case (sol_quad$)
     is_valid = .true.
   end select
 
-case (stripper$)
+case (foil$)
   select case (mat6_calc_method)
   case (auto$, bmad_standard$, custom$)
     is_valid = .true.

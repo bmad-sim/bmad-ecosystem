@@ -1,11 +1,11 @@
 !+
-! Subroutine track_a_stripper (orbit, ele, param, mat6, make_matrix)
+! Subroutine track_a_foil (orbit, ele, param, mat6, make_matrix)
 !
-! Bmad_standard tracking through an stripper element.
+! Bmad_standard tracking through an foil element.
 !
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
-!   ele         -- ele_struct: stripper element.
+!   ele         -- ele_struct: foil element.
 !   param       -- lat_param_struct: Lattice parameters.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is False.
 !
@@ -14,9 +14,9 @@
 !   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
 !-
 
-subroutine track_a_stripper (orbit, ele, param, mat6, make_matrix)
+subroutine track_a_foil (orbit, ele, param, mat6, make_matrix)
 
-use bmad_interface, except_dummy => track_a_stripper
+use bmad_interface, except_dummy => track_a_foil
 use xraylib, dummy => r_e
 use random_mod
 
@@ -34,7 +34,7 @@ integer material, atomic_num
 
 logical, optional :: make_matrix
 
-character(*), parameter :: r_name = 'track_a_stripper'
+character(*), parameter :: r_name = 'track_a_foil'
 
 !
 
@@ -69,4 +69,4 @@ if (logic_option(.false., make_matrix)) then
   call mat_make_unit(mat6)
 endif
 
-end subroutine track_a_stripper
+end subroutine track_a_foil
