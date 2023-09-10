@@ -1,4 +1,0 @@
-&input_params
-	lat_file_name = 'lat.bmad'
-	n_turn = 5
-/
