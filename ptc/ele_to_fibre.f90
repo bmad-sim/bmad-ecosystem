@@ -684,6 +684,7 @@ endif
 if (ptc_key%magnet == 'PANCAKEBMADZERO') then
   call init_pancake (max_order+1, 2)
 
+  field = 0
   call alloc_pancake(field)
   call daall0_pancake(icoef)
 
