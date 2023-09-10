@@ -1,0 +1,22 @@
+! Note: space_charge_com is an instance of a space_charge_common_struct
+!       bmad_com is an instance of a bmad_common_struct
+! Use "getf" to view the structure definitions of these global structures.
+
+&params
+  ran_seed = 123456        ! 0 => Use system clock to init ran number generator.
+  bmad_com%csr_and_space_charge_on = T
+  lat_file_name = 'lat.bmad'
+  beam_init%a_norm_emit   = 4e-12
+  beam_init%b_norm_emit   = 4e-12
+  beam_init%dpz_dz        = 0
+  beam_init%sig_z         = 0.3e-3
+  beam_init%sig_pz         = 0e-20
+  beam_init%bunch_charge  = 0.01e-10
+  beam_init%n_particle    = 1000
+  beam_init%n_bunch       = 1
+  space_charge_com%ds_track_step = 0.1
+  space_charge_com%n_bin = 400
+  space_charge_com%beam_chamber_height = 0.02
+  space_charge_com%n_shield_images = 0
+  space_charge_com%particle_bin_span = 8
+/

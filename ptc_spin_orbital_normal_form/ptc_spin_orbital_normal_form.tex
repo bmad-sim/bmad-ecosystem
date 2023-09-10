@@ -1,0 +1,122 @@
+\documentclass[11pt,openany]{article}
+\usepackage{tocloft}
+\usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
+\usepackage{xspace}
+\geometry{letterpaper}           % ... or a4paper or a5paper or ... 
+%\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true]{hyperref}
+
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand{\wt}{\widetilde}
+
+%---------------------------------------------------------------------------------
+
+\title{Spin/Orbital Hamiltonian Tracking With PTC}
+\author{David Sagan and Etienne Forest}
+\date{September 15, 2016}
+
+%---------------------------------------------------------------------------------
+
+\begin{document}
+\maketitle
+
+%---------------------------------------------------------------------------------
+\section{Overview}
+
+The program \vn{ptc_spin_orbital_hamiltonian_tracking.f90} provides an example of using the
+\vn{FPP} library (which just manipulates Taylor maps and knows nothing about accelerators)
+to integrate an explicit Hamiltonian. By integrating the Hamiltonian around a ring, the
+one turn spin/orbital map is constructed. 
+
+The program also constructs the one turn spin/orbit map using \vn{PTC} and compares the
+two. Since these two maps are constructed using different modules. The fact that the
+difference between the two is small is a good indication that no bugs are present. [Except
+that the same module is used to evaluate the electric and magnetic fields.]
+
+%---------------------------------------------------------------------------------
+\section{Hamiltonian}
+
+The model is of the g-2 experiment at Fermilab. The Hamiltonian is time independent which
+means there are no RF fields and, to simplify things, fringe fields are ignored and the
+lattice is ``perfect'' so the closed orbit is the zero orbit.
+
+The Hamiltonian is
+\begin{equation}
+  H = -(1 + g \, x) \, \sqrt{(1 + \delta_p)^2 - p_x^2 - p_y^2} - a_z
+\end{equation}
+where $a_z$ is the $z$-component of the normalized vector potential, $g$ is the bending
+strength ($g = 1 /r$ with $r$ being the bending radius), and $(x, p_x, y, p_y, -\beta \, c
+\, t, \delta_p)$ are canonical coordinates with
+\begin{equation}
+  p_x = \frac{P_x}{P_0}, \qquad p_y = \frac{P_y}{P_0}, \qquad \delta_p = \frac{P - P_0}{P} 
+\end{equation}
+with $P_0$ being the reference momentum.
+
+Changing to $(-c \, t, \delta_E)$ canonical coords, the Hamiltonian is
+\begin{equation}
+  H = -(1 + g \, x) \, \sqrt{1 + 
+    \frac{2 \, (\delta_E - \wt\phi)}{\beta_0} + (\delta_E - \wt\phi)^2 - p_x^2 - p_y^2} - a_z
+\end{equation}
+where $\wt\phi$ is the normalized electric potential $\wt\phi = \phi/P_0$ with $\phi$ being
+the electric potential, and $\delta_E$ is the energy canonical coordinate
+\begin{equation}
+  \delta_E = \frac{E + \phi - E_0}{P_0}
+\end{equation}
+
+Remember: For a phase space vector $(r(1), \ldots, r(6))$, PTC uses $r(5)$ for the energy
+coordinate $\delta_E$ and $r(6)$ for the time coordinate $c \, t$. [Notice the change in
+sign of the time coordinate.]
+
+
+
+
+%---------------------------------------------------------------------------------
+\section{From scalar to vector potential in cylindrical coordinates without ``s'' dependence using TPSA}
+
+We assume the existence of a magnet scalar potential $V$:
+\begin{eqnarray}
+  B&=&-\nabla V=\left({-{\partial }_{x}V,-{\partial }_{y}V}\right)
+\end{eqnarray}
+Next we express the same field in term of the vector potential $a_s$ in cylindrical coordinates:
+\begin{eqnarray}
+  {B}_{x} &=
+  & {1 \over 1+g\ x}{\partial }_{y}\underbrace{\left({1+g\ x}\right){a}_{s}}\limits_{{a}_{z}}^{} \\ {B}_{y} &=
+  & -{1 \over 1+g\ x}{\partial }_{x}\underbrace{\left({1+g\ x}\right){a}_{s}}\limits_{{a}_{z}}^{}
+\end{eqnarray}
+Combining these equations, for the quantity $a_z$ which appears in the Hamiltonian, we get:
+\begin{eqnarray}
+  d{a}_{z} &=
+  & \left({1+g\ x}\right){\partial }_{y}V\ dx\ -\ \left({1+g\ x}\right){\partial }_{x}V\ dy\ 
+\end{eqnarray}
+Since $a_z$ must be a perfect differential if Forest has solved Maxwell's equation correctly, then
+\begin{eqnarray}
+  {a}_{z} &=
+  & \int_{0}^{x,y}\left({1+g\ x}\right){\partial }_{y}V\ dx\ -\ \left({1+g\ x}\right){\partial }_{x}V\ dy=
+  \int_{0}^{x,y}{W}_{x}\ dx+{W}_{y}dy
+\end{eqnarray}
+where the path is arbitrary.
+
+This situation is totally analogous to the production of a Lie Poisson bracket operator
+from a vector field. If the components violate Maxwell's equations(or the symplectic
+condition) in a known way, then some paths are preferable over others.
+
+Here it is Maxwellian, so we choose the diagonal.
+\begin{eqnarray}
+  {a}_{z} &=
+  & \int_{0}^{1}\left\{{{W}_{x}(\alpha x,\alpha y)x+\ {W}_{y}(\alpha x,\alpha y)y}\right\}d\alpha 
+\end{eqnarray}
+In the TPSA package, the integral amounts to a sum over monomials.
+ 
+This was already implemented for the canonical variables, i.e., to obtain the Lie operator
+from the vector field. I could have re-used the subroutines in FPP through a change of
+variables. But I decided to write it again for $x,y$ rather than using the $x,p_x$
+routine.
+
+\end{document}
