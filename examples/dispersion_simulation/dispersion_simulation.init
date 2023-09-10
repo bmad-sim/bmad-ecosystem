@@ -1,6 +1,0 @@
-&params
-  ix_branch = 0
-  lat_file = 'bmad_L9A18A000-_MOVEREC.lat'
-  dfreq = 4000               ! Frequency difference between conditions (Hz)
-  radiation_damping_on = T   ! For added realism
-/
