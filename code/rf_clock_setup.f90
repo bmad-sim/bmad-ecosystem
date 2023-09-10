@@ -52,7 +52,7 @@ type (basket_struct), allocatable :: basket(:)
 real(rp) ff, clock_period
 integer n_rf_included, n_rf_excluded
 integer n, ie, ie2, ib, ib0, irf, nx, nn, n_rf, n_basket
-logical ok
+logical ok, has_ac_freq
 
 character(*), parameter :: r_name = 'rf_clock_setup'
 
@@ -124,7 +124,9 @@ endif
 do irf = 1, n_rf
   ele => rf_ele(irf)%ele
   if (rf_ele(irf)%ix_basket == ib0) then
-    if (ele%key == ac_kicker$ .and. allocated(ele%ac_kick%frequency)) then
+    has_ac_freq = .false.
+    if (associated(ele%ac_kick)) has_ac_freq = allocated(ele%ac_kick%frequency)
+    if (ele%key == ac_kicker$ .and. has_ac_freq) then
       n = rf_ele(irf)%ix_freq
       ele%ac_kick%frequency(n)%rf_clock_harmonic = nint(rf_ele(irf)%rf_freq * bmad_private%rf_clock_period)
     else
@@ -146,10 +148,14 @@ type (ele_struct), target :: ele
 type (rf_ele_info_struct), allocatable :: rf_ele(:), rf_temp(:)
 real(rp) rf_freq
 integer i, n_rf, n_new
+logical has_ac_freq
 
 !
 
-if (ele%key == ac_kicker$ .and. allocated(ele%ac_kick%frequency)) then
+has_ac_freq = .false.
+if (associated(ele%ac_kick)) has_ac_freq = allocated(ele%ac_kick%frequency)
+
+if (ele%key == ac_kicker$ .and. has_ac_freq) then
   n_new = size(ele%ac_kick%frequency)
 elseif (has_attribute(ele, 'REPETITION_FREQUENCY')) then
   if (ele%value(repetition_frequency$) == 0) return
@@ -168,7 +174,7 @@ if (n_rf+n_new > size(rf_ele)) then
   rf_ele(1:n_rf) = rf_temp
 endif
 
-if (ele%key == ac_kicker$ .and. allocated(ele%ac_kick%frequency)) then
+if (ele%key == ac_kicker$ .and. has_ac_freq) then
   do i = 1, size(ele%ac_kick%frequency)
     n_rf = n_rf + 1
     rf_ele(n_rf)%ele => ele
