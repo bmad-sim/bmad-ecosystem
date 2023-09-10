@@ -112,7 +112,7 @@ def print_help_message ():
   Standard Search directories:
       bmad                recipes_f-90_LEPP      
       bsim                sim_utils         
-      examples            tao
+      code_examples       tao
       forest              util_programs
 
   Additionally, at Cornell, the following directories are searched:
@@ -642,7 +642,7 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '/packages/')
     choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '')
     choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
-    choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
+    choose_path (dir_list, root_dir, 'code_examples', '/simple_bmad_program/simple_bmad_program.f90', '')
     choose_path (dir_list, root_dir, 'sim_utils', '/interfaces/sim_utils.f90', '')
     choose_path (dir_list, root_dir, 'tao', '/code/tao_struct.f90', '')
     choose_path (dir_list, root_dir, 'bmad', '/modules/bmad_struct.f90', '')

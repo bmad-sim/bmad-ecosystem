@@ -157,7 +157,7 @@ release_build_list = [
                 '/CESR/CESR_progs/cesr_programs',
                 '/trunk/src/util_programs',
                 '/CESR/CESR_services/CBIC',
-                '/trunk/src/examples',
+                '/trunk/src/code_examples',
                 '/trunk/src/analyzer',
                 '/CESR/CESR_progs/xbus_book',
                 '/CESR/CESR_progs/newin',

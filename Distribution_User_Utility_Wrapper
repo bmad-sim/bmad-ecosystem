@@ -19,14 +19,14 @@ esac
 
 if ( [[ "${CONDA_BUILD}" ]] ) ; then
     # For conda build most of the dependencies are pulled from conda-forge
-    # We also remove examples and regression tests from the build list
+    # We also remove code_examples and regression tests from the build list
 
     # List of Project Directories - Order here matters!
     DIRLIST=( forest sim_utils bmad tao cpp_bmad_interface bsim util_programs lux )
     [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
 else
     # List of Project Directories - Order here matters!
-    DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} hdf5 fftw lapack lapack95 gsl fgsl forest xraylib sim_utils bmad tao cpp_bmad_interface examples bsim util_programs lux regression_tests )
+    DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} hdf5 fftw lapack lapack95 gsl fgsl forest xraylib sim_utils bmad tao cpp_bmad_interface code_examples bsim util_programs lux regression_tests )
 
     # Build OpenMPI, if requested
     [ "${ACC_ENABLE_MPI}" == "Y" ] && DIRLIST=( openmpi ${DIRLIST[*]} )
