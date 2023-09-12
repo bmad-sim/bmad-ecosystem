@@ -48,11 +48,12 @@ type (all_pointer_struct) a_ptr
 type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
 type (control_struct), pointer :: ctl
+type (taylor_struct), pointer :: tlr
 
 real(rp), pointer :: ptr_attrib, r(:,:,:)
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr_mode, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, j, ivec(3)
+integer ix_d, n, ios, n_lr_mode, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, j, ivec(3), ixs, i0
 integer expn(6)
 integer lb0(3), ub0(3), lb(3), ub(3)
 character(*) attrib_name
@@ -616,23 +617,39 @@ endif
 ! Taylor term?
 
 if (a_name(1:2) == 'TT') then
-  n = index('123456', a_name(3:3))
-  if (.not. associated(ele%taylor(1)%term)) then
-    if (.not. do_allocation) return
-    do i = 1, 6
-      call init_taylor_series(ele%taylor(i), 0)
-    enddo
+  if (a_name(3:3) == 'S') then
+    ixs = index('1XYZ', a_name(4:4))
+    if (ixs == 0) return
+    if (.not. associated(ele%spin_taylor(0)%term)) then
+      if (.not. do_allocation) return
+      do i = 0, 4
+        call init_taylor_series(ele%spin_taylor(i), 0)
+      enddo
+    endif
+    tlr => ele%spin_taylor(ixs-1)
+    i0 = 5
+
+  else
+    n = index('123456', a_name(3:3))
+    if (.not. associated(ele%taylor(1)%term)) then
+      if (.not. do_allocation) return
+      do i = 1, 6
+        call init_taylor_series(ele%taylor(i), 0)
+      enddo
+    endif
+    tlr => ele%taylor(n)
+    i0 = 4
   endif
 
   expn = 0
-  do i = 4, len_trim(a_name)
+  do i = i0, len_trim(a_name)
     j = index('123456', a_name(i:i))
     expn(j) = expn(j) + 1
   enddo
 
-  i = taylor_term_index(ele%taylor(n), expn, do_allocation)
+  i = taylor_term_index(tlr, expn, do_allocation)
   if (i /= 0) then
-    a_ptr%r => ele%taylor(n)%term(i)%coef
+    a_ptr%r => tlr%term(i)%coef
     err_flag = .false.
   endif
   return

@@ -244,7 +244,7 @@ end function attribute_index1
 
 function attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
 
-integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev
+integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev, i0, ixs
 integer attrib_index
 
 character(*) name
@@ -278,11 +278,20 @@ endif
 !
 
 if (ilen > 2 .and. name40(1:2) == 'TT' .and. (key == 0 .or. key == taylor$)) then
-  do i = 3, ilen
+  if (name40(3:3) == 'S') then
+    ixs = index('1XYZ', name40(4:4))
+    if (ixs == 0) return
+    i0 = 5
+  else
+    ixs = 0
+    i0 = 3
+  endif
+
+  do i = i0, ilen
     if (index('123456', name(i:i)) == 0) return
   enddo
-  read (name40(3:), *) attrib_index
-  attrib_index = attrib_index + taylor_offset$
+  if (.not. is_integer(name40(i0:), attrib_index)) return
+  attrib_index = attrib_index + taylor_offset$ + ixs * (taylor_offset$/10)
   full_name = name
   return
 endif
@@ -388,9 +397,10 @@ end function attribute_name1
 function attribute_name2 (ele, ix_att, show_private) result (attrib_name)
 
 type (ele_struct) ele
-integer i, key, ix_att, ix
+integer i, key, ix_att, ix, ixs
 character(40) attrib_name
 character(10) str
+character(1), parameter :: spn(4) = ['1', 'X', 'Y', 'Z']
 logical, optional :: show_private
 
 !
@@ -403,13 +413,20 @@ if (key <= 0 .or. key > n_key$) then
   attrib_name = '!BAD ELE KEY'
 
 elseif (key == taylor$ .and. ix_att > taylor_offset$) then
-  write (str, '(i0)') ix_att - taylor_offset$
+  ixs = (10 * (ix_att - taylor_offset$)) / taylor_offset$
+
+  write (str, '(i0)') ix_att - taylor_offset$ - ixs * (taylor_offset$/10)
   if (str(1:1) == ' ') return
   do i = 1, len(str)
     if (str(i:i) == ' ') exit
     if (index('123456', str(i:i)) == 0) return
   enddo
-  attrib_name = 'TT' // str(1:i-1)
+
+  if (ixs == 0) then
+    attrib_name = 'TT' // str(1:i-1)
+  else
+    attrib_name = 'TTS' // spn(ixs) // str(1:i-1)
+  endif
 
 elseif ((key == group$ .or. key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$

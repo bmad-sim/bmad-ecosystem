@@ -4843,10 +4843,12 @@ and each term $Q_{jk}$ is a polynomial in the input orbital coordinates with res
 \end{equation}
 
 Rather than using an integer index, the four components of a quaternion are labeled (\vn{S1},
-\vn{Sx}, \vn{Sy}, \vn{Sz}). The syntax for the spin part uses the first or second forms as
+\vn{Sx}, \vn{Sy}, \vn{Sz}). The syntax for the spin part uses the three forms as
 described above. For example
 \begin{example}
-  \{Sx: 0.43 | 13 \}
+  \{Sx: 0.43 | 13 \}          ! or
+  \{Sx: 0.43, 1 0 1 0 0 0\}   ! or
+  ttSx13 = 0.43
 \end{example}
 is equivalent to the term
 \begin{equation}
@@ -4886,7 +4888,7 @@ affect tracking but will affect map analysis.
 A term in a \vn{taylor} element will override any previous term
 with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term:
 \begin{example}
-  tt: Taylor, \{1: 4.5, 1 0 0 0 0 0\} 
+  my_tlr: Taylor, \{1: 4.5, 1 0 0 0 0 0\} 
 \end{example}
 will override the default \vn{\{1: 1.0, 1 0 0 0 0 0\}} term.
 
@@ -4919,7 +4921,7 @@ unchanged when tracking through a \vn{taylor} element that is turned off.
 
 Example \vn{taylor} element definitions:
 \begin{example}
-  tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\},
+  mtlr: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\},
               \{S1: 0.43 | 2 \}, ..., 
               ref_orbit = (0.01, 0.003, 0.002, 0.001, 0.0, 0.2)
   t_unit: taylor \{s1: 1 | \}  ! This is the identity spin/orbital map.
