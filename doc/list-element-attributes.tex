@@ -112,13 +112,13 @@ crab_x2 [1/m]                    & offset_moves_aperture            & wall      
  
  \begin{tabular}{llll} \toprule
 alpha_a                          & e_tot [eV]                       & mode_flip                        & s [m]                            \\
-alpha_b                          & e_tot_start [eV]                 & p0c [eV]                         & theta_position [rad]             \\
-beta_a [m]                       & eta_x [m]                        & p0c_start [eV]                   & x_position [m]                   \\
-beta_b [m]                       & eta_y [m]                        & phi_a [rad]                      & y_position [m]                   \\
-cmat_11                          & eta_z [m]                        & phi_b [rad]                      & z_position [m]                   \\
-cmat_12                          & etap_x                           & phi_position [rad]               &                                  \\
-cmat_21                          & etap_y                           & psi_position [rad]               &                                  \\
-cmat_22                          & inherit_from_fork                & ref_time [sec]                   &                                  \\
+alpha_b                          & e_tot_start [eV]                 & p0c [eV]                         & spin_dn_dpz_x                    \\
+beta_a [m]                       & eta_x [m]                        & p0c_start [eV]                   & spin_dn_dpz_y                    \\
+beta_b [m]                       & eta_y [m]                        & phi_a [rad]                      & spin_dn_dpz_z                    \\
+cmat_11                          & eta_z [m]                        & phi_b [rad]                      & theta_position [rad]             \\
+cmat_12                          & etap_x                           & phi_position [rad]               & x_position [m]                   \\
+cmat_21                          & etap_y                           & psi_position [rad]               & y_position [m]                   \\
+cmat_22                          & inherit_from_fork                & ref_time [sec]                   & z_position [m]                   \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -527,6 +527,27 @@ ele_origin                       & ref_time_start [???]             & x1_limit [
  \vfill
  
  %---------------------------------
+ \section{Foil Element Attributes}
+ \label{s:list.foil}
+ 
+ \begin{tabular}{llll} \toprule
+alias                            & material_type                    & tilt_tot [rad]                   & y1_limit [m]                     \\
+aperture [m]                     & offset [m]                       & tracking_method                  & y2_limit [m]                     \\
+aperture_at                      & offset_moves_aperture            & type                             & y_limit [m]                      \\
+aperture_type                    & p0c [eV]                         & wall                             & y_offset [m]                     \\
+create_jumbo_slave               & ptc_integration_type             & wrap_superimpose                 & y_offset_tot [m]                 \\
+delta_ref_time [sec]             & ref_origin                       & x1_limit [m]                     & y_pitch [rad]                    \\
+descrip                          & ref_time_start [???]             & x2_limit [m]                     & y_pitch_tot [rad]                \\
+e_tot [eV]                       & reference                        & x_limit [m]                      & z_offset [m]                     \\
+ele_origin                       & spin_tracking_method             & x_offset [m]                     & z_offset_tot [m]                 \\
+is_on                            & superimpose                      & x_offset_tot [m]                 &                                  \\
+l [m]                            & thickness [m]                    & x_pitch [rad]                    &                                  \\
+mat6_calc_method                 & tilt [rad]                       & x_pitch_tot [rad]                &                                  \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Fork and Photon_Fork Element Attributes}
  \label{s:list.fork}
  
@@ -757,15 +778,16 @@ l [m]                            & superimpose                      & x_offset_t
  \label{s:list.line}
  
  \begin{tabular}{llll} \toprule
-alpha_a                          & e_tot [eV]                       & inherit_from_fork                & psi_position [rad]               \\
-alpha_b                          & e_tot_start [eV]                 & live_branch                      & ref_time [sec]                   \\
-beta_a [m]                       & eta_x [m]                        & mode_flip                        & s [m]                            \\
-beta_b [m]                       & eta_y [m]                        & p0c [eV]                         & theta_position [rad]             \\
-cmat_11                          & eta_z [m]                        & p0c_start [eV]                   & x_position [m]                   \\
-cmat_12                          & etap_x                           & particle                         & y_position [m]                   \\
-cmat_21                          & etap_y                           & phi_a [rad]                      & z_position [m]                   \\
-cmat_22                          & geometry                         & phi_b [rad]                      &                                  \\
-default_tracking_species         & high_energy_space_charge_on      & phi_position [rad]               &                                  \\
+alpha_a                          & e_tot_start [eV]                 & mode_flip                        & spin_dn_dpz_x                    \\
+alpha_b                          & eta_x [m]                        & p0c [eV]                         & spin_dn_dpz_y                    \\
+beta_a [m]                       & eta_y [m]                        & p0c_start [eV]                   & spin_dn_dpz_z                    \\
+beta_b [m]                       & eta_z [m]                        & particle                         & theta_position [rad]             \\
+cmat_11                          & etap_x                           & phi_a [rad]                      & x_position [m]                   \\
+cmat_12                          & etap_y                           & phi_b [rad]                      & y_position [m]                   \\
+cmat_21                          & geometry                         & phi_position [rad]               & z_position [m]                   \\
+cmat_22                          & high_energy_space_charge_on      & psi_position [rad]               &                                  \\
+default_tracking_species         & inherit_from_fork                & ref_time [sec]                   &                                  \\
+e_tot [eV]                       & live_branch                      & s [m]                            &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
