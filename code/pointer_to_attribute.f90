@@ -622,7 +622,7 @@ if (a_name(1:2) == 'TT') then
     if (ixs == 0) return
     if (.not. associated(ele%spin_taylor(0)%term)) then
       if (.not. do_allocation) return
-      do i = 0, 4
+      do i = 0, 3
         call init_taylor_series(ele%spin_taylor(i), 0)
       enddo
     endif
