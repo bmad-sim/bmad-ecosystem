@@ -2141,6 +2141,32 @@ if (all(s%plot_page%template%name /= 'floor_plan')) then
 endif
 
 !---------------
+! gamma plot
+
+if (all(s%plot_page%template%name /= 'gamma')) then
+  call default_plot_init (np, plt, default_plot_g1c2)
+  plt%name                 = 'gamma'
+  plt%description          = 'Twiss gamma function'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Gamma Function'
+  grph%y%label             = '\gg\fn\dA\u, \gg\fn\dB\u [m]'
+
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'gamma.a'
+  crv%legend_text  = '\gg\fn\dA\u'
+
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type    = 'gamma.b'
+  crv%legend_text  = '\gg\fn\dB\u'
+endif
+
+!---------------
 ! i1
 
 if (all(s%plot_page%template%name /= 'i1')) then
