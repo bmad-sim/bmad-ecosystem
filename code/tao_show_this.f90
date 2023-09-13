@@ -240,7 +240,15 @@ if (what == '') then
   return
 endif
 
-call match_word (what, [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
+call string_trim (what, what2, ix_word)
+if (ix_word > 4 .and. index('plot_page', what2(:ix_word)) == 1)        what2 = 'plot -page ' // what2(ix_word+1:)
+if (ix_word > 3 .and. index('bmad_com', what2(:ix_word)) == 1)         what2 = 'global -bmad_com ' // what2(ix_word+1:)
+if (ix_word > 3 .and. index('ptc_com', what2(:ix_word)) == 1)          what2 = 'global -ptc_com ' // what2(ix_word+1:)
+if (ix_word > 2 .and. index('csr_param', what2(:ix_word)) == 1)        what2 = 'global -csr_param ' // what2(ix_word+1:)
+if (ix_word > 3 .and. index('space_charge_com', what2(:ix_word)) == 1) what2 = 'global -space_charge_com ' // what2(ix_word+1:)
+if (ix_word > 2 .and. index('floor_plan', what2(:ix_word)) == 1)       what2 = 'plot -floor_plan ' // what2(ix_word+1:)
+
+call match_word (what2, [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
         'chromaticity', 'constraints', 'control', 'curve', 'data', &
         'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', &
         'history', 'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', &
@@ -258,7 +266,7 @@ if (ix < 0) then
   return
 endif
 
-call string_trim (what, what2, ix_word)
+call string_trim (what2, what2, ix_word)
 call string_trim (what2(ix_word+1:), what2, ix_word)
 word1 = what2(:ix_word)
 result_id = show_what  ! Default
