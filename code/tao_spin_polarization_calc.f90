@@ -111,6 +111,8 @@ do ie = 0, branch%n_ele_track
   old_partial  = partial
   old_partial2 = partial2
 
+  ele => branch%ele(ie)
+
   if (branch%param%geometry == closed$) then
     q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
     dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, partial2, err)
@@ -124,8 +126,8 @@ do ie = 0, branch%n_ele_track
 
   else
     if (ie == 0) cycle
+    dn_dpz   = quat_sym(ele, q_ele(ie)%spin_q, n0) + quat_rotate(q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
     n0       = quat_rotate(q_ele(ie)%spin_q(:,0), n0)
-    dn_dpz   = quat_rotate(q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
     partial  = 0
     partial2 = 0
     tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
@@ -137,7 +139,6 @@ do ie = 0, branch%n_ele_track
   s_vec(1:2) = [orbit(ie)%vec(2)/del_p, orbit(ie)%vec(4)/del_p]
   s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
 
-  ele => branch%ele(ie)
   call rad_g_integrals (ele, upstream$, orbit(ie-1), orbit(ie), int_g, int_g2, old_int_g3, g_tol, g2_tol, g3_tol)
   old_b_vec = [int_g(2), -int_g(1), 0.0_rp]
   if (any(old_b_vec /= 0)) old_b_vec = old_b_vec / norm2(old_b_vec)
@@ -223,4 +224,24 @@ enddo
 
 end subroutine mark_logic_false
 
+!--------------------------------------
+! contains
+
+function quat_sym(ele, q, vec) result(vec_sym)
+
+type (ele_struct) ele
+real(rp) q(0:3,0:6), q0(0:3), dq(0:3), vec(3), vec_sym(3), q_sym(0:3)
+
+!
+
+q_sym = [0.0_rp, vec]
+dq = q(:,6) + ele%x%eta * q(:,1) + ele%x%etap * q(:,2) + ele%y%eta * q(:,3) + ele%y%etap * q(:,4)
+q0 = q(:,0)
+
+q_sym = quat_mul(dq, q_sym, quat_conj(q0)) + quat_mul(q0, q_sym, quat_conj(dq))
+vec_sym = q_sym(1:3)
+
+end function quat_sym
+
 end subroutine tao_spin_polarization_calc
+
