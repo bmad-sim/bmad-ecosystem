@@ -290,7 +290,11 @@ if (ilen > 2 .and. name40(1:2) == 'TT' .and. (key == 0 .or. key == taylor$)) the
   do i = i0, ilen
     if (index('123456', name(i:i)) == 0) return
   enddo
-  if (.not. is_integer(name40(i0:), attrib_index)) return
+  if (name40(i0:) == '') then
+    attrib_index = 0
+  else
+    if (.not. is_integer(name40(i0:), attrib_index)) return
+  endif
   attrib_index = attrib_index + taylor_offset$ + ixs * (taylor_offset$/10)
   full_name = name
   return
