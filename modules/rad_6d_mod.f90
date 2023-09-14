@@ -240,14 +240,13 @@ else
   call closed_orbit_calc(branch%lat, closed_orb, 4, +1, branch%ix_branch, err_flag)
 endif
 
+bmad_com = bmad_com_save
+
 if (err_flag) then
   call out_io (s_error$, r_name, 'Closed orbit calculation failing.', &
                                    'Emittance and other radiation related quantities will not be calculated.')
-  return
+  goto 9000
 endif
-
-bmad_com = bmad_com_save
-if (err_flag) goto 9000  ! Restore and return
 
 call lat_make_mat6 (ele1_track%branch%lat, -1, closed_orb, branch%ix_branch, err_flag)
 if (err_flag) goto 9000  ! Restore and return
