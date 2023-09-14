@@ -52,7 +52,8 @@ implicit none
 ! Note: It is convenient for debugging to define an "antiparticle" with reversed sign even though it does not exit in practice. 
 ! Example: anti_deuteron$.
 
-integer, parameter :: pion_0$            = +8
+integer, parameter :: pion_0$            = +9
+integer, parameter :: helion$            = +8
 integer, parameter :: ref_particle$      = +7
 integer, parameter :: neutron$           = +6
 integer, parameter :: deuteron$          = +5
@@ -68,35 +69,35 @@ integer, parameter :: pion_minus$        = -4
 integer, parameter :: anti_deuteron$     = -5
 integer, parameter :: anti_neutron$      = -6
 integer, parameter :: anti_ref_particle$ = -7
-integer, parameter :: anti_helion        = -8
+integer, parameter :: anti_helion$       = -8
 
-integer, parameter :: lb_subatomic = -8, ub_subatomic = 8
+integer, parameter :: lb_subatomic = -8, ub_subatomic = 9
 
 character(20), parameter:: subatomic_species_name(lb_subatomic:ub_subatomic) = [character(20):: 'Anti_Helion', &
               'Anti_Ref_Particle', 'Anti_Neutron', 'Anti_Deuteron', 'Pion-', 'Muon', 'Antiproton', 'Electron', &
-              'Photon', 'Positron', 'Proton', 'Antimuon', 'Pion+', 'Deuteron', 'Neutron', 'Ref_Particle', 'Pion0']
+              'Photon', 'Positron', 'Proton', 'Antimuon', 'Pion+', 'Deuteron', 'Neutron', 'Ref_Particle', 'Helion', 'Pion0']
 
 character(20), parameter:: openPMD_subatomic_species_name(lb_subatomic:ub_subatomic) = [character(20):: 'Garbage!', 'Garbage!', &
                       'anti-neutron', 'anti-deuteron', 'pion-', 'muon', 'anti-proton', 'electron', &
-                      'photon', 'positron', 'proton', 'anti-muon', 'pion+', 'deuteron', 'neutron', 'Garbage!', 'pion0']
+                      'photon', 'positron', 'proton', 'anti-muon', 'pion+', 'deuteron', 'neutron', 'Garbage!', 'Garbage!', 'pion0']
 
-integer, parameter :: charge_of_subatomic(lb_subatomic:ub_subatomic) = [-2, 0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 0]
+integer, parameter :: charge_of_subatomic(lb_subatomic:ub_subatomic) = [-2, 0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 2, 0]
 
 real(rp), parameter :: mass_of_subatomic(lb_subatomic:ub_subatomic) = [m_helion, 0.0_rp, m_neutron, m_deuteron, &
                                 m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon, &
-                                m_pion_charged, m_deuteron, m_neutron, 0.0_rp, m_pion_0]
+                                m_pion_charged, m_deuteron, m_neutron, 0.0_rp, m_helion, m_pion_0]
 
 real(rp), parameter :: anomalous_moment_of_subatomic(lb_subatomic:ub_subatomic) = [anomalous_mag_moment_He3, 0.0_rp, &
                         anomalous_mag_moment_neutron, anomalous_mag_moment_deuteron,0.0_rp,  &
                         anomalous_mag_moment_muon, anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, anomalous_mag_moment_muon, &
-                        0.0_rp, anomalous_mag_moment_deuteron, anomalous_mag_moment_neutron, 0.0_rp, 0.0_rp]
+                        0.0_rp, anomalous_mag_moment_deuteron, anomalous_mag_moment_neutron, 0.0_rp, anomalous_mag_moment_He3, 0.0_rp]
 
-integer, parameter :: antiparticle_of_subatomic(lb_subatomic:ub_subatomic) = [int_garbage$, &
-                                                                   7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, 8]
+integer, parameter :: antiparticle_of_subatomic(lb_subatomic:ub_subatomic) = [helion$, &
+                                                                   7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, anti_helion$, 9]
 
 real(rp), parameter :: spin_of_subatomic(lb_subatomic:ub_subatomic) = [0.0_rp, real_garbage$, 0.5_rp, 1.0_rp, 0.0_rp, &
-                          0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 1.0_rp, 0.5_rp, real_garbage$, 0.0_rp]
+                          0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 1.0_rp, 0.5_rp, real_garbage$, 0.0_rp, 0.0_rp]
 
 !----------------------
 ! Atoms
@@ -833,7 +834,7 @@ end function species_of
 !
 ! Input:
 !   name    -- character(20): Name of the species.
-!   default -- integer, optional: Default species to use if name is blank.
+!   default -- integer, optional: Default species to use if name is blank or 'ref_species'.
 !               If not present, a blank name is an error.
 !
 ! Output:
@@ -852,7 +853,7 @@ character(40), parameter :: r_name = 'species_id'
 
 ! Init
 
-if (name == '') then
+if (name == '' .or. upcase(name) == 'REF_SPECIES') then
   if (present(default)) then
     species = default
   else
