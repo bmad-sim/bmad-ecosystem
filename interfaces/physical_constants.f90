@@ -19,7 +19,7 @@ real(rp), parameter :: m_electron = 0.51099895000d6         ! Mass [eV]
 real(rp), parameter :: m_proton   = 0.93827208816d9         ! Mass [eV]
 real(rp), parameter :: m_neutron  = 0.93956542052d9         ! Mass [eV]
 real(rp), parameter :: m_muon     = 105.6583755d6           ! Mass [eV]
-real(rp), parameter :: m_helion   = 3.0160293201_rp         ! Mass He3 nucleus
+real(rp), parameter :: m_helion   = 2.808391607035771d9     ! Mass He3 nucleus
 
 real(rp), parameter :: e_mass = 1d-9 * m_electron          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_ELECTRON INSTEAD.
 real(rp), parameter :: p_mass   = 1d-9 * m_proton          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_PROTON INSTEAD.
@@ -54,6 +54,12 @@ real(rp), parameter :: N_avogadro = 6.02214076d23    ! Number / mole  (exact)
 ! Note: Deuteron g-factor
 !   g_deu = (g_p / (mu_p / mu_N)) (mu_deu / mu_N) * (m_deu / m_p) * (q_p / q_deu) * (S_p / S_deu)
 ! The anomlous mag moment a = (g - 2) / 2 as always.
+
+! For Helion:
+!   g_eff = 2 * R_mass * (mu_h/mu_p) / Q
+!         = 2 * (2808.39160743(85) MeV / 938.27208816(29) MeV) * (−2.127625307(25)) / (2)
+!         = −6.368307373
+!   anom_mag_moment = (g_eff - 2) / 2 = -4.184153686d0
 
 real(rp), parameter :: fine_structure_constant =  7.2973525693d-3
 real(rp), parameter :: anomalous_mag_moment_electron = 1.15965218128d-3
