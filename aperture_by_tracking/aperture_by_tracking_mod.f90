@@ -170,7 +170,7 @@ END SUBROUTINE make_slices
 
 !+
 !-
-SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
+SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,nturns, track_state)
   IMPLICIT NONE
 
   TYPE(lat_struct) lat
@@ -178,8 +178,9 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
   INTEGER nturns
   INTEGER i
   REAL(rp) start_s
-  TYPE(coord_struct) vec_start
-  TYPE(coord_struct) vec_end
+  real(rp) vec_start(6)
+  TYPE(coord_struct) coord_start
+  TYPE(coord_struct) coord_end
 
   TYPE(ele_pointer_struct), ALLOCATABLE :: eles(:)
   INTEGER n_loc
@@ -194,25 +195,26 @@ SUBROUTINE check_if_lost_ring(lat,start_s,vec_start,vec_end,nturns, track_state)
   IF( .not.ALLOCATED(orb) ) ALLOCATE(orb(0:lat%n_ele_track))
 
   !First track from start_s to the last element of the ring
-  CALL track_from_s_to_s(lat, start_s, lat%param%total_length, vec_start, vec_end, track_state=track_state)
+  call init_coord(coord_start, vec_start, lat%ele(element_at_s(lat,start_s,.true.)), element_end=upstream_end$)
+  CALL track_from_s_to_s(lat, start_s, lat%param%total_length, coord_start, coord_end, track_state=track_state)
   IF(track_state .eq. moving_forward$) THEN
     !particle was not lost.
     !Track over many turns
-    orb(0) = vec_end
+    orb(0) = coord_end
     DO i=1,nturns
       CALL track_all(lat,orb,track_state=track_state)
 
       IF(track_state .ne. moving_forward$) THEN
         !particle was lost
-        vec_end = orb(track_state)
-        vec_end%state = lost$
+        coord_end = orb(track_state)
+        coord_end%state = lost$
         EXIT
       ENDIF
 
       IF(ABS(orb(lat%n_ele_track)%vec(5)) .gt. half_period) THEN 
         !particle is outside RF bucket 
-        vec_end = orb(lat%n_ele_track) 
-        vec_end%state = lost$ 
+        coord_end = orb(lat%n_ele_track) 
+        coord_end%state = lost$ 
         track_state = lat%n_ele_track 
         EXIT 
       ENDIF 
@@ -228,8 +230,9 @@ SUBROUTINE check_if_lost_linac(lat,start_s,vec_start,track_state,track_till,halo
 
   TYPE(lat_struct) lat
   REAL(rp) start_s
-  TYPE(coord_struct) vec_start
-  TYPE(coord_struct) vec_end
+  real(rp) vec_start(6)
+  TYPE(coord_struct) coord_start
+  TYPE(coord_struct) coord_end
   INTEGER track_state
   REAL(rp) track_till
   LOGICAL halo 
@@ -241,9 +244,11 @@ SUBROUTINE check_if_lost_linac(lat,start_s,vec_start,track_state,track_till,halo
   REAL(rp) psi, pt_r2, e_r2
   REAL(rp) betaF, alphaF, gammaF
 
-  CALL track_from_s_to_s(lat, start_s, track_till, vec_start, vec_end, track_state=track_state)
+  call init_coord(coord_start, vec_start, lat%ele(element_at_s(lat,start_s,.true.)), element_end=upstream_end$)
+
+  CALL track_from_s_to_s(lat, start_s, track_till, coord_start, coord_end, track_state=track_state)
   IF(halo) THEN
-    IF(vec_end%state .eq. alive$) THEN
+    IF(coord_end%state .eq. alive$) THEN
       CALL twiss_and_track_at_s(lat,track_till,ele_at_end)
       alphaF = ele_at_end%a%alpha
       betaF =  ele_at_end%a%beta
@@ -251,14 +256,14 @@ SUBROUTINE check_if_lost_linac(lat,start_s,vec_start,track_state,track_till,halo
       !check if particle lays outside n-sigma of phase space at last ele, where
       !n = halo_aperture
       !see ehrlichman lab book 2 page 60
-      pt_x = vec_end%vec(1)
-      pt_xp = vec_end%vec(2)
+      pt_x = coord_end%vec(1)
+      pt_xp = coord_end%vec(2)
       IF((betaF*pt_xp + alphaF*pt_x) .ne. 0.0_rp) THEN
         psi = ATAN(pt_x/(betaF*pt_xp + alphaF*pt_x))
         pt_r2 = pt_x*pt_x + pt_xp*pt_xp
         e_r2 = (halo_aperture**2)*halo_h_emittance/gammaF*(betaF*SIN(psi)**2 + 1./betaF*(COS(psi)-alphaF*SIN(psi))**2)
         IF(pt_r2 .gt. e_r2) THEN
-          vec_end%state = lost$
+          coord_end%state = lost$
         ENDIF
       ENDIF
     ENDIF

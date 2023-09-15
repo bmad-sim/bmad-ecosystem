@@ -82,6 +82,7 @@ REAL(rp) target_accuracy
 REAL(rp) track_till
 REAL(rp) start_s, end_s, slice_length
 REAL(rp) :: Qx = -1.0, Qy = -1.0, Qz = -999.0
+REAL(rp) vec_init(6)
 character(5) :: aperture_type
 
 !------------------------------Data
@@ -96,8 +97,7 @@ TYPE(ApertureResult_struct) ApertureResult
 TYPE(ele_pointer_struct), ALLOCATABLE :: eles(:)
 TYPE(coord_struct), ALLOCATABLE :: co(:)
 TYPE(coord_struct), ALLOCATABLE :: sco(:)
-TYPE(coord_struct) vec_start
-TYPE(coord_struct) vec_start0
+real(rp) vec_start(6)
 TYPE(coord_struct) vec_end
 
 !------------------------------Settings to be read in from .in
@@ -324,7 +324,6 @@ IF(master) THEN
     CALL progress_indicator(i,n_slices) !Prints percent done
   ENDDO
 ELSE !slave
-  vec_start0 = vec_start
   DO WHILE(.true.)
     CALL mympi_check_mailbox_with_timeout(return_address)  !Blocks until something arrives in mailbox.
     CALL mympi_receive_job(ApertureJob)
@@ -345,22 +344,21 @@ ELSE !slave
         delta_m = first_guess  
 
         DO WHILE (accuracy .gt. target_accuracy)
-          vec_start = vec_start0 
-          vec_start%vec = ApertureJob%sco                 ! start from the closed orbit
+          vec_start = ApertureJob%sco                 ! start from the closed orbit
           
           if (angle_scan) then
-            vec_start%vec(2) = vec_start%vec(2) + cos(angle(k))*delta_m  ! Kick at an angle
-            vec_start%vec(4) = vec_start%vec(4) + sin(angle(k))*delta_m
+            vec_start(2) = vec_start(2) + cos(angle(k))*delta_m  ! Kick at an angle
+            vec_start(4) = vec_start(4) + sin(angle(k))*delta_m
           else
             ! Simple positive or negative kick
             ! if k=1, then pos aperture.  if k=2, then neg aperture.
-            vec_start%vec(vec_ix) = vec_start%vec(vec_ix) + ((-1)**(k+1))*delta_m   ! add the momentum kick
+            vec_start(vec_ix) = vec_start(vec_ix) + ((-1)**(k+1))*delta_m   ! add the momentum kick
           endif
           
           IF(ring) THEN
-            CALL check_if_lost_ring(lat,ApertureJob%s,vec_start,vec_end,nturns, track_state)
+            CALL check_if_lost_ring(lat, ApertureJob%s, vec_start, nturns, track_state)
           ELSE
-            CALL check_if_lost_linac(lat,ApertureJob%s,vec_start,track_state,track_till,halo,halo_aperture,halo_h_emittance)
+            CALL check_if_lost_linac(lat, ApertureJob%s, vec_start, track_state, track_till, halo, halo_aperture, halo_h_emittance)
           ENDIF
 
           lost = (track_state .ne. moving_forward$)

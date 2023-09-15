@@ -1,18 +1,18 @@
 &parameters
-  lat_file = 'test_cerl_modea.lat'
+  lat_file = 'LCLS2_soft.lat'
   target_accuracy = 0.001
 
   nturns = 100
 
-  !start_stop_type = 1
-  !start_s = 0.
-  !end_s = -1       ! a negative number here means lat%param%total_length
-  !track_till =  -1 ! a negative number here means lat%param%total_length
+  start_stop_type = 1
+  start_s = 0.
+  end_s = -1       ! a negative number here means lat%param%total_length
+  track_till =  -1 ! a negative number here means lat%param%total_length
 
-  start_stop_type = 2
-  start_name = 		'erl.mar.beg'
-  end_name = 		'lb.mar.end\2'
-  track_end_name =  'lb.mar.end\2'
+  !start_stop_type = 2
+  !start_name = 		'beginning'
+  !end_name = 		'end'
+  !track_end_name =  'end'
 
   slice_method = 'bystep'  !'bystep' or 'byelem'
   slice_length = 1.0  ! in meters.  must be present if slice_method is 'bystep'
