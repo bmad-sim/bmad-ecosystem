@@ -19,7 +19,7 @@ svn_repo = {
   "https://accserv.classe.cornell.edu/svn/packages/openmpi"            : "51988",
   "https://accserv.classe.cornell.edu/svn/packages/plplot"             : "55075",  #  Change from 54925
   "https://accserv.classe.cornell.edu/svn/packages/xraylib"            : "54916",  #  Change from 53181
-  "https://accserv.classe.cornell.edu/svn/trunk/util"                  : "55117",  #  Change from 54987
+  "https://accserv.classe.cornell.edu/svn/trunk/util"                  : "55177",  #  Change from 55117
   "https://accserv.classe.cornell.edu/svn/trunk/build_system"          : "54615",
 }
 
