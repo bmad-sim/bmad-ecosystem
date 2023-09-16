@@ -1,0 +1,108 @@
+\newcommand{\hlabel}{\phantomsection\label}  % Used so hyper links will point to the spot where \hlabel is used.
+\newcommand{\extref}[1]{$\S$\ref*{#1}}       % No hyperlink. For external refs. \extref
+\newcommand{\pref}[1]{[\pageref{#1}]}
+
+\newcommand{\comma}{\> ,}
+\newcommand{\period}{\> .}
+\newcommand{\wt}{\widetilde}
+\newcommand{\grv}{\textasciigrave}
+\newcommand{\hyperbf}[1]{\textbf{\hyperpage{#1}}}
+\newcommand{\Ss}{\(^*\)}
+\newcommand{\Dd}{\(^\dagger\)}
+
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\figs}[1]{Figs.~\ref{#1}}
+
+\newcommand{\AND}{&& \hskip -17pt\relax}
+\newcommand{\CR}{\\}
+\newcommand{\CRNO}{\nonumber \\}
+\newcommand{\dstyle}{\displaystyle}
+\newcommand{\NoPrint}[1]{}
+
+\newcommand{\pow}[1]{\cdot 10^{#1}}
+\newcommand{\Bf}[1]{{\bf #1}}
+\newcommand{\bfr}{\Bf r}
+\newcommand{\bfl}{\Bf l}
+\newcommand{\bfm}{\Bf m}
+\newcommand{\bfn}{\Bf n}
+\newcommand{\bfq}{\Bf q}
+\newcommand{\bfG}{\Bf G}
+\newcommand{\bfD}{\Bf D}
+\newcommand{\bfM}{\Bf M}
+\newcommand{\bfsig}{{\boldsymbol{\sigma}}}
+\newcommand{\arrowbfq}{\overrightarrow{\Bf q}}
+
+\newcommand{\bmad}{{\sl Bmad}\xspace}
+\newcommand{\tao}{{\sl Tao}\xspace}
+\newcommand{\mad}{{\sl MAD}\xspace}
+\newcommand{\cesr}{{\sl CESR}\xspace}
+
+\newcommand{\sref}[1]{\S\ref{#1}}
+\newcommand{\Sref}[1]{Sec.~\sref{#1}}
+\newcommand{\cref}[1]{Chapter~\ref{#1}}
+
+\newcommand{\Newline}{\hfil \\ \relax}
+
+\newcommand{\eq}[1]{{(\protect\ref{#1})}}
+\newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
+\newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
+
+\newcommand{\vn}{\ttcmd}           % For variable names
+\newcommand{\vni}{\ttcmdindx}
+\newcommand{\cs}{\ttcmd}           % For code source
+\newcommand{\cmd}{\ttcmd}          % For Unix commands
+\newcommand{\rn}{\ttcmd}           % For Routine names
+\newcommand{\tn}{\ttcmd}           % For Type (structure) names
+\newcommand{\bn}[1]{{\bf #1}}       
+\newcommand{\toffset}{\vskip 0.01in}
+\newcommand{\rot}[1]{\begin{rotate}{-45}#1\end{rotate}}
+\newcommand{\tv}[1]{\text{\vn{#1}}}
+
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+
+\newcommand\ttcmdindx{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdindx}
+\newcommand\dottcmdindx[1]{\texttt{#1}\endgroup\index{#1}}
+
+\newcommand{\St}{$^{st}$\xspace}
+\newcommand{\Nd}{$^{nd}$\xspace}
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\B}{$\backslash$}
+\newcommand{\W}{$^\wedge$}
+
+\newcommand{\cbar}[1]{\overline C_{#1}}
+
+\newlength{\dPar}
+\setlength{\dPar}{1.5ex}
+
+\newenvironment{example}
+  {\vspace{-3.0ex} \begin{alltt}}
+  {\end{alltt} \vspace{-2.5ex}}
+
+\newcommand\Strut{\rule[-2ex]{0mm}{6ex}}
+
+\newenvironment{Itemize}
+  {\begin{list}{$\bullet$}
+    {\addtolength{\topsep}{-1.5ex}
+     \addtolength{\itemsep}{-1ex}
+     \addtolength{\partopsep}{-1ex}
+    }
+  }
+  {\end{list} \vspace*{1ex}}
+
+\newcommand{\Section}[1]{\section{#1}\indent\vspace{-3ex}}
+
+\newcommand{\SECTION}[1]{\section*{#1}\indent\vspace{-3ex}}
+
+% From pg 64 of The LaTex Companion.
+
+\newenvironment{ventry}[1]
+  {\begin{list}{}
+    {\renewcommand{\makelabel}[1]{\textsf{##1}\hfil}
+     \settowidth{\labelwidth}{\textsf{#1}}
+     \addtolength{\itemsep}{-1.5ex}
+     \addtolength{\topsep}{-1.0ex} 
+     \setlength{\leftmargin}{5em}
+    }
+  }
+  {\end{list}}

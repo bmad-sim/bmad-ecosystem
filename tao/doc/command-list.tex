@@ -1,0 +1,4426 @@
+%---------------------------------------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------------------------------------
+% WARNING! If you are modifying this file, be aware that the online help system depends upon the lines starting 
+% with "%%" to match blocks of text in this file with a given command. 
+%
+% The online help system also makes some further assumptions about how this file is formatted.
+% Please test any modifications by running Tao and using the appropriate help command to see how
+% your modifications translate. 
+% Note: The translation code is at: 
+%     tao/code/tao_help.f90
+%---------------------------------------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------------------------------------
+
+\chapter{Commands}
+\label{c:command}
+\index{commands!Command list} 
+
+\tao has two \vn{modes} for entering commands. In \vn{line mode}'', described in this chapter, \tao
+waits until the \vn{return} key is depressed to execute a command. That is, a command consists of a
+single line of input. Conversely, \vn{Single Mode}, which is described in \vn{Single Mode} chapter
+(\sref{c:single}), interprets each keystroke as a command. Single Mode is useful for quickly varying
+parameters to see how they affect a lattice but the number of commands in Single Mode is limited. To
+put \tao into \vn{single mode} use the \vn{single_mode} command (\sref{s:sing}).
+
+The syntax for \vn{line mode} commands is discussed in Section~\sref{s:com.syntax}. The list of
+commands is shown in Table~\ref{t:commands}.
+
+This chapter uses the following special characters to define the command line syntax:
+\begin{example}
+  \{\}        ! Identifies an optional argument.
+            !   Arguments now enclosed in brackets are required
+  <>        ! Indicates a non-literal argument.
+\end{example}
+
+Example:
+\begin{example}
+  change \{-silent\} variable <name>[<locations>] <number>
+\end{example}
+Here the \vn{-silent} argument is optional while the \vn{variable} argument is mandatory.
+Appropriate values for \vn{<name>}, \vn{<locations>}, and \vn{<number>} must be substituted. A
+possible
+
+\begin{example}
+  change var steering[34:36] @1e-3  ! set the steering strength #34-36 to 0.001
+\end{example}
+
+%% command_table -----------------------------------------------------
+
+\begin{table}[h]
+\centering {\tt
+\begin{tabular}{ll|ll} \toprule
+  {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
+  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
+  call          & \sref{s:call}     & read          & \sref{s:read}     \\
+  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
+  clear         & \sref{s:clear}    & restore       & \sref{s:restore}  \\ 
+  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
+  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ 
+  create        & \sref{s:create}   & set           & \sref{s:set}      \\  
+  cut_ring      & \sref{s:cut.ring} & show          & \sref{s:show}     \\ 
+  derivative    & \sref{s:deriv}    & single_mode   & \sref{s:sing}     \\ 
+  do, enddo     & \sref{s:do}       & spawn         & \sref{s:spawn}    \\ 
+  end_file      & \sref{s:end.file} & taper         & \sref{s:taper}    \\
+  exit          & \sref{s:exit}     & timer         & \sref{s:timer}    \\
+  flatten       & \sref{s:flatten}  & use           & \sref{s:use}      \\ 
+  help          & \sref{s:help}     & veto          & \sref{s:veto}     \\ 
+  ls            & \sref{s:ls}       & view          & \sref{s:view}     \\
+  pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\
+  place         & \sref{s:place}    & write         & \sref{s:write}    \\ 
+  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
+  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
+  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
+\bottomrule 
+\end{tabular}}
+\caption{Table of \tao commands.}
+\label{t:commands}
+\end{table}
+
+When running \tao, use the \vn{help} (\sref{s:help}) command to show documentation on any command.
+For example, \vn{help plot} will show documentation on the \vn{plot} command.
+
+%% Marker: "help" will not display anything after this  -----------
+
+\vfil
+\break
+
+%% alias --------------------------------------------------------------
+\section{alias}\index{commands!alias}
+\label{s:alias}
+
+The \vn{alias} command defines command shortcuts. Format:
+\begin{example}
+  alias \{<alias_name> <string>\}
+\end{example}
+
+\vskip 7pt 
+
+\vn{Alias} is like Unix aliases. Using the \vn{alias} command without any arguments
+results in a printout of the aliases that have been defined. When using an alias up to 9 arguments
+may be substituted in the \vn{<string>}. The i\Th argument is substituted in place of the sub-string
+``[[i]]'' or ``[<i>]''.  Arguments that do not have a corresponding ``[[i]]'' or ``[<i>]'' are
+placed at the end of \vn{<string>}. The difference between ``[[i]]'' and ``[<i>]'' is that ``[[i]]''
+is a required argument while ``[<i>]'' defines an optional argument. For example
+\begin{example}
+  alias aaa show element [[1]] [[2]]
+  alias zzz show element [[1]] [<2>]
+\end{example}
+This defines ``\vn{aaa}'' as an alias for the \vn{show element} command with two required arguments
+while ``\vn{zzz}'' has only one requred argument.
+
+Aliases can be set up for multiple commands using semicolons.
+
+Examples:
+\begin{example}
+  alias xyzzy plot [[1]] model  ! Define xyzzy
+  alias                         ! Show all aliases
+  xyzzy top                     ! Use an alias
+  plot top model                ! Equivalent to "xyzzy top"
+  xyzzy top abc                 ! Equivalent to "plot top model abc"
+  alias foo  show uni; show top ! "foo" equivalent to "show uni; show top"
+\end{example}
+In the above example ``xyzzy'' is the alias for the string ``plot [[1]] model''.  When the
+command xyzzy is used ``top'' is substituted for ``[[1]]'' in the string.
+
+%% call --------------------------------------------------------------
+\section{call}\index{commands!call}
+\label{s:call}
+
+The \vn{call} command opens a command file (\sref{s:command.files}) and executes the commands in
+it. Format: 
+\vskip 1pt
+\begin{example}
+  call <filename> \{<arg_list>\}
+  call -no_calc \{<arg_list>\}
+  call -ptc <filename>
+\end{example}
+
+\vskip 1pt 
+The \vn{call} command without \vn{-ptc} is for running a set of \tao commands.  Up to 9
+arguments may be passed to the command file. The i\Th argument is substituted in place of the string
+``[[i]]'' in the file. Nesting of command files (command files calling other command files) is
+allowed. There is no limit to the number of nested files.  See the \vn{Command Files and Aliases}
+section (\sref{s:command.files}) for more details.
+
+The \vn{call -ptc} command passes the command file to PTC for processing. Previous to such a call,
+the command \vn{ptc init} must be issued. This is for PTC wizards only.
+
+If a command file calls another command file, and the name of the second command file has a relative
+(as opposed to absolute) path name, \tao will look for the second command file relative to the
+directory of the first command file. To have \tao look relative to your current working directory
+(where you started \tao), use the prefix \vn{\$PWD/}. For example, to call a command file that is
+one level up from your current working directory use
+\begin{example}
+  call \$PWD/../second.cmd
+\end{example}
+
+Command loops can be implemented in a command file. See the documentation on \vn{do/enddo}
+(\sref{s:do}) for more details.
+
+The \vn{-no_calc} option is equivalent to putting the following at the beginning of the
+command file to speed up execution time:
+\begin{example}
+  set global lattice_calc_on = F   ! Stop lattice calculations (\sref{s:lat.calc}).
+  set global plot_on = F           ! Halt replotting 
+or
+  set calc -on                     ! Same as the two lines above.
+\end{example}
+When using the \vn{-no_calc} option, at the end of the command file the \vn{lattice_calc_on} and
+\vn{plot_on} logicals will be toggled back to their initial values.
+
+To suppress the output when running a command file use the command:
+\begin{example}
+  set global quiet = all
+\end{example}
+Note: quiet mode is automatically turned off at the end when a command file exits back to the
+terminal level. See the \vn{Tao_global_struct Structure} section (\sref{s:tao.global.struct}) for
+more details.
+
+Examples:
+\begin{example}
+    call -no my_cmd_file abc def 
+\end{example}
+In the above example the argument ``abc'' is substituted for any ``[[1]]'' appearing the
+file and ``def'' is substituted for any ``[[2]]''.  \Newline
+
+%% change * --------------------------------------------------------------
+\section{change}\index{commands!change}
+\label{s:change}
+
+The \vn{change} command changes element attribute values or variable values in the \vn{model}
+lattice. Format:
+\begin{example}
+  change \{-update\} element <element_list> <attribute> \{prefix>\} <number>
+  change \{-silent\} variable <name>[<locations>] \{<prefix>\} <number>
+  change \{n@\}particle_start <coordinate> \{prefix>\} <number>
+  change \{-branch <branch_list>\} \{-listing\} \{-mask <veto_list>\} tune \{dQa\} \{dQb\}
+  change \{-branch <branch_list>\} z_tune dQz
+\end{example}
+
+\vskip 10pt 
+The \vn{change} is used for changing real (as opposed to integer or logical) parameters. Also
+consider using the \vn{set} command (\sref{s:set}) which is more general.
+
+If \vn{<prefix>} is not present, \vn{<number>} is added to the existing value
+of the attribute or variable. That is:
+\begin{example}
+  final_model_value = initial_model_value + <number>
+\end{example}
+If \vn{<prefix>} is present, it may be one of
+\begin{example}
+  @       final_model_value = <number>
+  d       final_model_value = design_value + <number>
+  \%       final_model_value = initial_model_value * (1 + <number> / 100)
+\end{example}
+
+Element list format (\sref{s:ele.list.format}), without any embedded blanks, is used for
+the \vn{<element_list>} argument.
+
+For \vn{change particle_start}, The optional \vn{n@} universe specification (\sref{s:universe}) may
+be used to specify the universe or universes to apply the change command to.
+
+For lattices with an open geometry, \vn{change particle_start <coordinate> <number>} can be used to
+vary the starting coordinates for single particle tracking. If the \vn{use_particle_start} of the
+\vn{beam_init} structure (\sref{s:beam.init}) is set to True, \vn{particle_start} will also vary the
+beam centroid and the beam particle spin for tracking. Here \vn{<coordinate>} is one of:
+\begin{example}
+  x, px, y, py, z, pz, t
+\end{example}
+For photons, \vn{<coordinate>} may also be:
+\begin{example}
+  e_photon, field_x, field_y, phase_x, phase_y
+\end{example}
+For closed lattices only the \vn{pz} component is applicable. For lattices that have an \vn{e_gun}
+(which necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must
+be varied instead of \vn{pz}.
+
+For open lattices, \vn{change element beginning <twiss>} can be used to vary the starting Twiss
+parameters where \vn{<twiss>} is one of:
+\begin{example}
+  beta_a, beta_b, alpha_a, alpha_b 
+  eta_a, eta_b,etap_a, etap_b    
+\end{example}
+
+The \vn{change z_tune} command will vary the longitudinal tune by \vn{<dQz>}. The \vn{<branch_list>}
+is used to select which lattice branches the tune is varied in. Each branch listed can have an
+optional universe prefix. The default is to vary branch 0 of the current default universe.
+
+The \vn{change tune} command will vary the transverse tunes by \vn{<dQa>} and \vn{<dQb>} and 
+the \vn{change z_tune} command will vary the longitudinal tune by \vn{<dQz>}. Units are in radians/2pi
+With the \vn{change tune} command, if \vn{<dQa>} or \vn{<dQb>} is not given, the value will
+be taken to be zero (that is, no change). The \vn{<branch_list>} is a list of lattice
+branches with optional universe prefix, to vary the tunes. The \vn{<veto_list>} of the \vn{-mask}
+option gives a list of quadrupoles {\em not} to use for varying the tune. See the \vn{set tune}
+(\sref{s:set.tune}) command for more details. The \vn{-listing} option, if present, will, in
+addition to the tune change, generate a list of quadrupoles varied along with variation
+coefficients.
+
+The \vn{-silent} switch, if present, suppresses the printing of what variables are changed.
+
+The \vn{-update} switch, if present, suppresses \tao from printing error messages if a ``variable
+slave value mismatch'' is detected (\sref{s:var.mismatch}). Independent of whether \vn{-update} is
+present or not, \tao will fix the mismatch using the changed value to set all of the slave values.
+
+Note: The \vn{change element} command can be used with \vn{ramper} type elements.
+
+Examples:
+\begin{example}
+  change ele 3@124 x_offset 0.1        ! Offset element #124 in universe 3 by 0.1
+  change ele 1,3:5 x_offset 0.1        ! Offset elements 1, 3, 4, and 5 by 0.1
+  change ele q* k1 d 1.2e-2            ! Set the k1 strength of all elements starting with
+                                       !   the letter "q" relative to the design
+  change ele quadrupole::* k1 d 1.2e-2 ! Set the k1 strength of all quadrupole elements.
+  change var steering[34:36] @1e-3     ! set the steering strength #34-36 to 0.001
+  change var steering[*] \%10           ! vary all steering strengths by 10\%
+  change 2@particle_start x @0.001     ! set beginning x position in universe 2 to 1 mm.
+  change -mask Q1* tune 0 0.01         ! Change transverse tunes without using quadrupoles
+                                       !   whose names start with "Q1".
+  change -branch 2@1 z_tune 0.02       ! Change z-tune of branch #1 of universe #2.
+\end{example}
+
+
+%% clear --------------------------------------------------------------
+\section{clear}\index{commands!clear}
+\label{s:clear}
+
+The \vn{clear} command clears stored spin and orbital Taylor maps from all elements in a lattice
+with the exception of \vn{Taylor} elements (which are specified in the lattice file as opposed to
+being calculated by \bmad). Format:
+\begin{example}
+  clear maps
+\end{example}
+
+Clearing the Taylor maps may be needed if the maps are in use (for example, with a spin polarization
+calculation) and orbit excursions place the calculated orbit outside of the range of validity of the
+maps.
+
+%% clip --------------------------------------------------------------
+\section{clip}\index{commands!clip}
+\label{s:clip}
+
+The \vn{clip} command vetoes data points for plotting and optimizing. That is, the \vn{good_user}
+logical of the data associated with the out-of-bound plotted points are set to False.  Format:
+\begin{example}
+  clip \{-gang\} \{<where> \{<limit1> \{<limit2>\}\}\}
+\end{example}
+
+\vskip 10pt Which graphs are clipped is determined by the \vn{<where>} switch. If \vn{<where>} is
+not present, all graphs are clipped. If \vn{where} is a plot name, then all the graphs of that plot
+are clipped. If \vn{where} is the name of a \vn{d2_data} (for example, \vn{orbit}) or a \vn{d1_data}
+(for example, \vn{orbit.x}) structure, then those graphs that display this data are clipped.
+
+The points that are clipped those points whose $y$ values are outside a certain range defined by
+\vn{<limit1>} and \vn{<limit2>}. If neither \vn{<limit1>} nor \vn{<limit2>} are present, the clip
+range is taken to be outside the graph minimum and maximum $y$--axis values. If only \vn{<limit1>}
+is present then the clip range is outside the region from -\vn{<limit1>} to +\vn{<limit1>}. If both
+are present than the range is from \vn{<limit1>} to \vn{<limit2>}.
+
+The \vn{-gang} switch is apply a clip to corresponding data in a \vn{d2_data} structure. For example
+\begin{example}
+  clip -g orbit.x   ! Clips both orbit.x and orbit.y 
+\end{example}
+Here the \vn{orbit.x} data is clipped and the corresponding data in \vn{orbit.y} is also vetoed. For
+example, if datum number 23 in \vn{orbit.x} is clipped, datum number 23 in \vn{orbit.y} will be
+vetoed.
+
+Examples:
+\begin{example}
+  clip top.x -3  7  ! Clip the curves in the x graph in the region named "top".
+  clip bottom       ! Clip the graphs in the "bottom" region
+  clip -g orbit.x   ! Clip the orbit.x graph and also veto corresponding points
+                    ! in other graphs of the orbit plot.
+\end{example}
+
+%% create --------------------------------------------------------------
+\section{create}\index{commands!create}
+\label{s:create}
+
+Format:
+\begin{example}
+  create data ... ! \sref{s:create.data}
+\end{example}
+
+The \vn{create} command constructs various tao objects that would have
+otherwise been created in tao initialiation. 
+
+% Use the command:
+%   help create <subcommand>
+% to obtain more information on a particular write subcommand. Example:
+%   help create data
+
+%% create data --------------------------------------------------------------
+
+\subsection{create data}
+\label{s:create.data}
+
+The \vn{create data} constructs a new \vn{d2_data} and one or more \vn{d1_data} for it.
+The primary purpose of this command is to make more data available for design
+and optimization in an interactive session; for repeated use, create data using
+data initialization namelists (\sref{s:init.data}). The resulting data must be
+initialized with the \vn{set data} command (\sref{s:set.data}).
+
+Syntax:
+\begin{example}
+  create data d2_name d1_name[ix_min:ix_max] ...
+\end{example}
+
+You may have as many \vn{d1_name}s as needed.
+\vn{ix_min} and \vn{ix_max} must be literal integers, not expressions.
+
+%% cut_ring --------------------------------------------------------------
+\section{cut_ring}\index{commands!cut_ring}
+\label{s:cut.ring}
+
+Format:
+\begin{example}
+  cut_ring
+\end{example}
+
+The \vn{cut_ring} command is used to switch the geometry of the viewed \vn{model} lattice from
+\vn{closed} to \vn{open} and vice versa.
+
+%% continue --------------------------------------------------------------
+\section{continue}\index{commands!continue}
+\label{s:continue}
+
+The \vn{continue} command is used to continue reading of a suspended command file
+(\sref{s:command.files}) after a \vn{pause} command (\vn{s:pause}). Format:
+\begin{example}
+  continue
+\end{example}
+
+%% do --------------------------------------------------------------
+\section{do/enddo command file looping}\index{commands!do}
+\label{s:do}
+
+Command loops can be implemented in a command file files. Format:
+\begin{example}
+  do <var> = <l_bound>, <u_bound> \{, <incr>\}
+    ...   ! use the syntax ``[[<var>]]'' to refer to a variable.
+  enddo
+\end{example}
+Note: ``\vn{enddo}'' is one word and my not be split into two words. Loops can be nested and the
+number of levels is not unlimited.
+
+A loop will execute the code in between the \vn{do} and \vn{enddo} lines a certain number of
+times. Each time trough the the the integer variable \vn{<var>} will be incremented by \vn{<incr>},
+starting at \vn{<l_bound>} and stopping before \vn{<var>} is greater than \vn{<u_bound>}. If
+\vn{<incr>} is not present, the increment will be 1. Note: \vn{<l_bound>}, \vn{<u_bound>}, and
+\vn{<incr>} must all be integers.
+
+Example:
+\begin{example}
+  do j = 0, 10, 2
+    set particle_start pz = 1e-3 * [[j]]
+    ...
+  enddo
+\end{example}
+As shown in the above example, to refer to a loop variable in a command, use the syntax ``[[<var>]]''.
+
+%% end_file --------------------------------------------------------------
+\section{end_file} \label{s:end.file}
+\index{commands!end_file}
+
+The \vn{end_file} command is used in command files (\sref{s:command.files}) to signal the end of the
+file. Everything after an \vn{end_file} command is ignored. An \vn{end_file} command entered at the
+command line will simply generate an error message.  Format:
+\begin{example}
+  end_file
+\end{example}
+
+%% exit --------------------------------------------------------------
+\section{exit}\index{commands!exit}
+\label{s:exit}
+
+The \vn{exit} command exits the program. Same as \vn{Quit}.  Format:
+\begin{example}
+  exit
+\end{example}
+
+%% derivative --------------------------------------------------------------
+\section{derivative}\index{commands!derivative}
+\label{s:deriv}
+
+The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative matrix needed for the
+\vn{lm} optimizer.  Format:
+\begin{example}
+  derivative
+\end{example}
+
+%% flatten --------------------------------------------------------------
+\section{flatten}\index{commands!flatten}
+\label{s:flatten}
+
+The \vn{Flatten} command runs the optimizer to minimize the merit function. This is the same as the
+\vn{run_optimizer} command.  See the \vn{run_optimizer} command for more details. Format:
+\begin{example}
+  flatten \{<optimizer>\}
+\end{example}
+
+\vskip 10pt
+
+%% help --------------------------------------------------------------
+\section{help}\index{commands!help}
+\label{s:help}
+
+The \vn{help} command gives help on \tao commands. Format:
+\begin{example}
+  help \{<command> \{<subcommand>\}\}
+\end{example}
+
+\vskip 10pt
+The \vn{help} command without any arguments gives a list of all commands.  Some commands, like
+\vn{show}, are so large that help on these commands is divided up by their subcommand.
+
+Examples:
+\begin{example}
+  help            ! Gives list of commands.
+  help run        ! Gives help on the run_optimizer command.
+  help show       ! Help on the show command.
+  help show alias ! Help on the show alias command.
+\end{example}
+
+The \vn{help} command works by parsing the file \vn{\$TAO_DIR/doc/command-list.tex} which is the
+LaTeX file for the \vn{Tao Commands} chapter of the \tao manual. For the \vn{help} command to work
+properly, the environment variable \vn{TAO_DIR} must be appropriately defined. Generally,
+\vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been run. For
+``Distributions'', this is the same setup script used to setup a distribution. See your local \bmad
+guru for details.
+
+When the \vn{help} command parses the \vn{\$TAO_DIR/doc/command-list.tex} file, LaTeX syntax will be
+modified to produce a reasonable looking output on the terminal. This translation is not perfect so
+reference should be made to the \tao manual if there is a problem in the translation.
+
+%% ls --------------------------------------------------------------
+\section{ls}\index{command!ls}
+\label{s:ls}
+
+The \vn{ls} command is the same as the standard UNIX \vn{ls} command to display a list of files and
+directories. The standard ls switches are accepted. This is equivalent to the \vn{spawn ls} command.
+Format:
+\begin{example}
+  ls \{switches\}
+\end{example}
+
+Example:
+\begin{example}
+  ls -lrt
+\end{example}
+
+%% pause --------------------------------------------------------------
+\section{pause}\index{commands!pause}
+\label{s:pause}
+
+The \vn{pause} command is used to pause \tao when executing a command file
+(\sref{s:command.files}). Format:
+\begin{example}
+  pause \{<time>\} ! Pause time in seconds.
+\end{example}
+
+\vskip 10pt
+If \vn{<time>} is not present or zero, \tao will pause until the \vn{CR} key is pressed. Once the
+\vn{CR} key is pressed, the command file will be resumed. If \vn{<time>} is negative, \tao will
+suspend the command file. Commands can now be issued from the keyboard and the command file will be
+resumed when a \vn{continue} command (\sref{s:continue}) is issued. Multiple command files can be
+simultaneously suspended.  Thus, while one command file is suspended, a second command file can be
+run and this command file too can be suspended. A \vn{continue} command will resume the second
+command file and when that command file ends, another \vn{continue} command will be needed to
+complete the first suspended command file. Use the \vn{show global} command to see the number of
+suspended command files.
+
+Example:
+\begin{example}
+  pause 1.5    ! Pause for 1.5 seconds.
+  pause -1     ! Suspend the command file until a \vn{continue} 
+               !   command is issued.
+\end{example}
+
+%% place --------------------------------------------------------------
+\section{place}\index{commands!place}
+\label{s:place}
+
+The \vn{place} command is used to associate a \vn{<template>} plot with a \vn{<region>} and thus
+create a visible plot in that region. Format:
+\begin{example}
+  place \{-no_buffer\} <region> <template>
+  place <region> none
+  place * none
+\end{example}
+
+\vskip 10pt 
+If \vn{<region>} is set to ``\vn{*}'' then all regions are selected.
+
+If \vn{<template>} is set to ``\vn{none}'' all selected regions are cleared of plots.
+
+The \vn{-no_buffer} optional switch is used when external plotting is being done (EG with a GUI) and
+is not of interest otherwise.
+
+Notice that by using multiple \vn{place} commands a \vn{template} can be associated with more than
+one region. For example, if multiple orbit plots are desired.
+
+Examples:
+\begin{example}
+  place * none     ! Erase all plots.
+  place top orbit  ! Place the orbit template in the top region
+  place top none   ! Erase any plots in the top region
+\end{example}
+
+%% ptc -----------------------------------------------------------
+\section{ptc}\index{commands!ptc}
+\label{s:ptc}
+
+The \vn{ptc} command is used manipulating PTC layouts associated with Bmad
+lattices. Format:
+\begin{example}
+  ptc init            ! Init associated PTC layout.
+  ptc reslice         !
+\end{example}
+
+\vskip 10pt 
+
+The \vn{ptc init} command initializes a PTC layout.
+
+The \vn{ptc reslice} command calculates good values for lattice element \vn{num_steps} and \vn{integrator_order}. This
+command does not adjust the following elements since the algorithm for the calculation can be problematical when the field
+is varying longitudinally within an element:
+\begin{example}
+  rfcavity, lcavity, crab_cavity
+  wiggler, undulator
+\end{example}
+
+Also see:
+\begin{example}
+  call -ptc <file>         ! Run a PTC script
+  read ptc                 ! Read a PTC lattice
+  write ptc                ! Write a PTC lattice
+\end{example}
+
+Examples:
+\begin{example}
+  ptc init
+\end{example}
+
+%% python -----------------------------------------------------------
+\section{python}\index{commands!python}
+\label{s:python}
+
+The \vn{python} command is like the \vn{show} command in that the \vn{python} command prints
+information to the terminal. The difference is that the output from the \vn{show} command is meant
+for viewing by the user while the output of the \vn{python} command is meant for easy
+parsing. Format:
+\begin{example}
+  python \{-append <file_name>\} \{-noprint\} <subcommand> <arguments>
+  python \{-write <file_name>\} \{-noprint\} <subcommand> <arguments>
+\end{example}
+
+The \vn{python} command has \vn{-append} and \vn{-write} optional arguments which can be used to
+write the results to a file. The \vn{python -append} command will appended to the output file. The
+\vn{python -write} command will first erase the contents of the output file. Example:
+\begin{example}
+  python -write d2.dat data_d2    ! Write to file "d2.dat"
+\end{example}
+
+The \vn{-noprint} option suppresses printing and is useful when writing large amounts of data to a
+file.  The \vn{python} command can be used to pass information to a parent process when \tao is run
+as a subprocess.  The parent process may be any scripting program like Python, Perl, Tcl, etc.  In
+particular, see the \vn{Python/GUI Interface} chapter (\sref{c:python}) for details on how to run
+\tao as a Python subprocess.
+
+In terms of long term maintainability, the advantage of using the \vn{python} command in the scripts
+over the \vn{show} command comes from the fact that the output syntax of \vn{show} commands can (and
+does) change.
+
+For further documentation on the python command and interfacing to python is in the \vn{Python/GUI
+Interface} chapter (\sref{c:python}).
+
+Documentation on interfacing Python scripts to \tao's python command is given in the \vn{Tao Python
+Command} section (\sref{s:python.python}).
+
+Note to programmers: For debugging, the \vn{show internal -python} command will show the \vn{c_real}
+and \vn{c_integer} arrays.
+
+List of possible \vn{<what_to_print>} choices:
+\begin{example}
+  beam, beam_init, branch1, bunch_comb, bunch_params, bunch1, bmad_com, 
+  building_wall_list, building_wall_graph, building_wall_point, 
+  building_wall_section, constraints, da_params, da_aperture, data, 
+  data_d2_create, data_d2_destroy, data_d_array, data_d1_array,
+  data_d2, data_d2_array, data_set_design_value, data_parameter,
+  datum_create, datum_has_ele, derivative, ele:ac_kicker, ele:cartesian_map,
+  ele:chamber_wall, ele:control_var, ele:cylindrical_map, ele:elec_multipoles,
+  ele:floor, ele:gen_grad_map, ele:grid_field, ele:gen_attribs, ele:head, ele:lord_slave, 
+  ele:mat6, ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, 
+  ele:spin_taylor, ele:taylor, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
+  evaluate, floor_plan, floor_orbit, global, help, inum, lat_branch_list,
+  lat_calc_done, lat_ele_list, lat_list, lat_param_units, matrix, merit, orbit_at_s,
+  place_buffer, plot_curve, plot_graph, plot_histogram, plot_lat_layout, plot_line,
+  plot_plot_manage, plot_graph_manage, plot_curve_manage, plot_list, plot_symbol,
+  plot_transfer, plot1, ptc_com, ring_general, shape_list, shape_manage,
+  shape_pattern_list, shape_pattern_manage, shape_pattern_point_manage, shape_set,
+  show, species_to_int, species_to_str, spin_invariant, spin_polarization, 
+  spin_resonance, super_universe, twiss_at_s, universe, var_v1_create, var_v1_destroy, 
+  var_create, var_general, var_v1_array, var_v_array, var, wave
+\end{example}
+
+%% quit --------------------------------------------------------------
+\section{quit}\index{commands!quit}
+\label{s:quit}
+
+\vn{Quit} exits the program. Same as \vn{exit}.
+Format:
+\begin{example}
+  quit
+\end{example}
+
+%% re_execute --------------------------------------------------------------
+\section{re_execute}
+\index{commands!re_execute}
+\label{s:re.exe}
+
+The \vn{re_execute} command reruns prior commands.  Format:
+\begin{example}
+  re_execute <index>   ! Re-execute a command with the given index number.
+  re_execute <string>  ! Re-execute last command that begins with <string>.
+\end{example}
+
+\vskip 10pt 
+
+Every \tao command entered is recorded in a ``history stack''. These commands can be viewed using
+the \vn{show history} command. The \vn{show history} command will also display the index number
+associated with each command.
+
+Note: The up and down arrow keys on the keyboard can be used to scroll through the command history
+stack.
+
+Examples
+\begin{example}
+  re_exe 34   ! Re-execute command number 34.
+  re_exe set  ! Re-execute last ``set'' command.  
+\end{example}
+
+%% read --------------------------------------------------------------
+\section{read}\index{commands!read}
+\label{s:read}
+
+The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the associated \vn{PTC}
+lattice. Format:
+\begin{example}
+  read lattice \{-silent\} \{-universes <universe-list>\} <file_name>
+  read ptc <file_name>
+\end{example}
+
+\vskip 10pt 
+
+With the \vn{read lattice} command, the \vn{model} lattices contained in the universes specified by
+\vn{<universe-list>} are modified using a ``secondary lattice'' file.  [See the \bmad manual for the
+definition of ``secondary lattice''.] For example, with the appropriate file, the \vn{read} command
+can be used to misalign the lattice elements. For the \vn{read lattice} command, the input file must
+be in Bmad standard lattice format.
+
+If \vn{-universes} is not present, only the \vn{model} lattice
+in the default universe is modified.
+
+If, after the lattice file has been read in, a given \tao variable has slave parameters that have
+different values there is a problem. For example, if a \tao variable controls the \vn{k2} value of
+sextupoles elements \vn{S1} and \vn{S2}, and if \vn{S1} is set to a different value than \vn{S2},
+there is an inconsistency which needs to be corrected. This can be done in a number of ways. For
+example, by using the \vn{set ele -update} command or using a further \vn{read lattice} command with
+a lattice that corrects the problem.
+
+If desired, the \vn{-silent} switch can be used to suppress error messages about differing \tao
+variable slave parameter values.
+
+Note: Due to bookkeeping complications, the number of lattice elements may not be modified. If it is
+desired to initiate \tao using both ``primary'' and secondary lattice files, this can be done as
+illustrated in \sref{s:init.lat}.
+
+The \vn{read ptc} command reads in a PTC lattice. WARNING: This command is untested. Please contact
+David Sagan if you want to use it.
+
+Examples:
+\begin{example}
+  read lat -uni * lat.bmad   ! Modify model lattice of all universes.
+  read lat -uni 2,3 lat.bmad ! Modify model lattice universes 2 and 3.
+\end{example}
+
+%% reinitialize -------------------------------------------------------
+\section{reinitialize}\index{commands!reinitialize}
+\label{s:reinit}
+
+The \vn{reinitialize} command reinitializes various things. Format:
+\begin{example}
+  reinitialize beam
+  reinitialize data
+  reinitialize tao \{-clear\} \{command line optional arguments\}
+\end{example}
+
+\vskip 10pt 
+
+The \vn{reinitialize beam} command reinitializes the beam at the start of the lattice. That is, a
+new random distribution is generated.  Note: This also reinitializes the model data.
+
+\vn{reinitialize data} forces a recalculation of the model data.  Normally, a recalculation is done
+automatically when any lattice parameter is changed so this command is generally only useful for
+debugging purposes.
+
+\vn{reinitializes tao} reinitializes \tao. This can be useful to reset everything to initial
+conditions or to perform analysis with more than one initialization file. See the Command Line
+Initialization section (\sref{s:command.line}) for a list of the optional arguments. If an argument
+is not set, the \vn{reinitialize} command uses the same argument value that were used in the last
+\vn{reinitialize} command, or, if this is the first reinitialization, what was used to start \tao.
+Exception: If the \vn{-clear} switch is present, all initialization parameters are set to their
+default state before the command line arguments specified in the \vn{reinitialize} command are
+parsed. The \vn{-clear} switch, if used, should come before any command line arguments since if
+there are command line arguments before the \vn{-clear} switch, these arguments will be cleared.
+
+Examples:
+\begin{example}
+  reinit tao                         ! Reinit using previous arguments
+  reinit tao -init special.init      ! Reinitializes \tao with the initialization file 
+                                     !   special.init.
+  reinit -clear -start my_start      ! Use default init values except for the start file.                    
+\end{example}
+
+%% restore --------------------------------------------------------------
+\section{restore}\index{commands!restore}
+\label{s:restore}
+
+The \vn{restore} command cancels data or variable vetoes. Format:
+\begin{example}
+  restore data  <data_name> <locations>
+  restore var <var_name> <locations>
+\end{example}
+
+\vskip 10pt 
+
+See also the \vn{use} and \vn{veto} commands.
+
+Examples:
+\begin{example}
+  restore data orbit.x[23,34:56]   ! un-veto orbit.x 23 and 34 through 56.
+  restore data orbit.x[23,34:56:2] ! un-veto orbit.x 23 and even data between 34 
+                                   !                                          and 56
+  restore data *@orbit[34]         ! un-veto orbit data in all universes.
+  restore var quad_k1[67]          ! un-veto variable
+\end{example}
+
+%% run --------------------------------------------------------------
+\section{run_optimizer}\index{commands!run}
+\label{s:run}
+
+The \vn{run_optimizer} command runs an optimizer. Format:
+\begin{example}
+  run_optimizer \{<optimizer>\}
+\end{example}
+
+\vskip 10pt 
+
+\index{de!optimizer}\index{lm!optimizer}
+If \vn{<optimizer>} is not given then the default optimizer is used.  Use the \vn{show optimizer}
+(\sref{s:show.optimizer}) command to see optimizer parameters.  To stop the optimizer before it is
+finished press the period ``.''  key. If you want the optimizer to run forever run the optimizer in
+\vn{single mode}. Valid optimizers are:
+\begin{example}
+  custom        ! Used when a custom optimizer has been implemented (\sref{c:custom.tao}).
+  de            ! Differential Evolution (good for global optimizations).
+  geodesic_lm   ! ``Geodesic'' Levenburg-Marquardt (good for local optimizations).
+  lm            ! Levenburg-Marquardt (good for local optimizations).
+  lmdif         ! Levenburg-Marquardt (alternative version) (good for local optimizations).
+  svd           ! svd optimizer (good for local optimizations).
+\end{example}
+
+See the optimization chapter (\sref{c:opti}) for details on how \tao structures optimization and for
+more details on the different optimizers.
+
+Examples:
+\begin{example}
+  run         ! Run the default optimizer
+  run de      ! Run the de optimizer
+\end{example}
+
+%% scale --------------------------------------------------------------
+\section{scale}\index{commands!scale}
+\label{s:scale}
+
+The \vn{scale} command scales the vertical axis of a graph or set of graphs.  Format:
+\begin{example}
+  scale \{-exact\} \{-gang\} \{-include_wall\} \{-nogang\} 
+             \{-y\} \{-y2\} \{<where> \{<value1> \{<value2>\}\}\}
+\end{example}
+
+Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not present or
+\vn{<where>} is \vn{all} then all graphs are scaled. \vn{<where>} can be a plot name or the name of
+an individual graph withing a plot.
+
+\vn{scale} adjusts the vertical scale of graphs. If neither \vn{<value1>} nor \vn{<value2>} is
+present then an \vn{autoscale} is performed and the scale is adjusted so that all the data points
+are within the graph region. If an autoscale is performed upon an entire plot, and if
+\vn{plot%autoscale_gang_y} (\sref{s:template}) is True, then the chosen scales will be the same for
+all graphs. That is, a single scale is calculated so that all the data of all the graphs is within
+the plot region. The affect of \vn{plot%autoscale_gang_y} can be overridden by using the \vn{-gang}
+or \vn{-nogang} switches.
+
+If only \vn{<value1>} is present then the scale is taken to be from -\vn{<value1>} to +\vn{<value1>}.
+If both are present than the scale is from \vn{<value1>} to \vn{<value2>}.
+
+A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (right) axis.
+Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these axes can be
+achieved by using the \vn{-y} or \vn{-y2} switches.
+
+How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
+\vn{y} and \vn{y2} components of the graph. See \vn{s:quick.plot} for more details. The \vn{-exact}
+switch, if present, will set \vn{bounds} to \vn{"EXACT"} which means that \tao will use the min and
+max bounds as given by \vn{<value1>} and \vn{<value2>} and not try to find ``nice'' values near the
+given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds} is set to
+\vn{"EXACT"}, \tao will set \vn{bounds} to \vn{"GENERAL"}. Note: To set the axis \vn{bounds}
+directly, use the \vn{set graph} command.
+
+For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}
+is present and autoscaling is being done, then the plot bounds are extended to include the extent of
+the building wall.
+
+Examples:
+\begin{example}
+  scale top.x -3  7  ! Scale the x graph in the top region
+  scale -y2 top.x    ! Scale only the y2 axis of the top.x graph.
+  scale bottom       ! Autoscale the graphs of the plot in the bottom region
+  scale -include     ! Scale everything and include the extent of any 
+                     !   building walls in the calculation of the plot bounds.
+\end{example}
+
+
+%% set --------------------------------------------------------------
+\section{set}\index{commands!set}
+\label{s:set}
+
+The \vn{set} command is used to set values for data, variables, etc. Subcommands are:
+\begin{example}
+  set beam \{n@\}<parameter> = <value>                        ! \sref{s:set.beam}
+  set beam_init \{n@\}<parameter> = <value>                   ! \sref{s:set.beam.init}
+  set bmad_com <parameter> = <value>                        ! \sref{s:set.bmad.com}
+  set branch <branch> <parameter> = <value>                 ! \sref{s:set.branch}
+  set calculate <on/off>                                    ! \sref{s:set.calc}
+  set curve <curve> <parameter> = <value>                   ! \sref{s:set.curve}
+  set data <data_name>|<parameter> = <value>                ! \sref{s:set.data}
+  set default <parameter> = <value>                         ! \sref{s:set.default}
+  set dynamic_aperture \{n@\}<parameter = <value>             ! \sref{s:set.da}
+  set element <element_list> <attribute> = <value>          ! \sref{s:set.element}
+  set floor_plan <parameter> = <value>                      ! \sref{s:set.floor.plan}
+  set geodesic_lm <parameter> = <value>                     ! \sref{s:set.geodesic.lm}
+  set global <parameter> = <value>                          ! \sref{s:set.global}
+  set graph <graph> <parameter> = <value>                   ! \sref{s:set.graph}
+  set key <key> = <command>                                 ! \sref{s:set.key}
+  set lat_layout <parameter> = <value>                      ! \sref{s:set.lat.layout}
+  set lattice \{n@\}<destination_lat> = <source_lat>          ! \sref{s:set.lattice}
+  set opti_de_param <parameter> = <value>                   ! \sref{s:set.opti.de.param}
+  set particle_start \{n@\}<coordinate> = <value>             ! \sref{s:set.particle.start}
+  set plot <plot> <parameter> = <value>                     ! \sref{s:set.plot}
+  set plot_page <parameter> = <value1> \{<value2>\}           ! \sref{s:set.plot.page}
+  set ptc_com <parameter> = <value>                         ! \sref{s:set.ptc.com}
+  set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
+  set region <region> <parameter> = <value>                 ! \sref{s:set.region}
+  set space_charge_com <parameter> = <value>                ! \sref{s:set.sc.com}
+  set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
+  set tune <Qa> <Qb>                                        ! \sref{s:set.tune}
+  set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
+  set universe <what_universe> <calc_name> <on/off>         ! \sref{s:set.universe}
+  set variable <var_name>|<parameter> = <value>             ! \sref{s:set.variable}
+  set wave <parameter> = <value>                            ! \sref{s:set.wave}
+  set z_tune <Qz>                                           ! \sref{s:set.z.tune}
+\end{example}
+
+\vskip 10pt 
+
+When running \tao, to see documentation on any of the subcommands, use the \vn{help set
+<subcommand>} command. For example, \vn{help set element} will show information on the \vn{set
+element} subcommand.
+
+Also see the \vn{change} command (\sref{s:change}). The \vn{change} command is specialized for
+varying real parameters while the \vn{set} command is more general.
+
+Note: The \vn{show} command (\sref{s:show}) is able to display the settings of many variables that
+can be set by the \vn{set} command.
+
+To apply a set to all data or variable classes use ``*'' in place of \vn{<data_name>} or \vn{var_name}.
+
+To set the prompt color, use the command
+\begin{example}
+  set global prompt_color = <value>
+\end{example}
+Where \vn{<value>} may be one of:
+\begin{example}
+  "BLACK"
+  "RED"
+  "GREEN"
+  "YELLOW"
+  "BLUE"
+  "MAGENTA"
+  "CYAN"
+  "GRAY"
+  "DEFAULT"       ! Default foreground color
+\end{example}
+
+% Use the command:
+%   help set <subcommand>
+% to obtain more information on a particular set subcommand. Example:
+%   help set plot
+
+%% set beam --------------------------------------------------------------
+
+\subsection{set beam}
+\label{s:set.beam}
+
+Format:
+\begin{example}
+  set beam \{n@\}<parameter> = <value>
+  set beam \{n@\}beginning = <ele-name>
+  set beam \{n@\}add_saved_at = <ele-list>
+  set beam \{n@\}subtract_saved_at = <ele-list>
+\end{example}
+
+The \vn{set beam} command sets beam parameters such as the initial and final tracking positions.
+Use the \vn{show beam} command (\sref{s:show}) to see the current values.
+
+For the \vn{set beam beginning <ele-name>} command, the element specified by \vn{<ele-name>} must be
+an element where particle positions of the tracked beam have been stored. With this command, the
+initial distribution of the beam at the beginning of the lattice will be set to the distribution at
+the indicated element. This is useful to track the beam over many turns.
+
+The \vn{set beam \{n@\}add_saved_at} command adds to the list of elements where the beam
+distribution is saved at.
+
+The \vn{set beam \{n@\}subtract_saved_at} command subtracts from the list of elements where the beam
+distribution is saved at.
+
+The optional \vn{n@} allows the specification of the universe or universes the set is applied to.
+The current default universe (\sref{s:universe}) will be used if no universe is given.
+
+Also see the commands: \vn{set beam_init} and \vn{set particle_start}.
+
+Examples:
+\begin{example}
+  set beam 2@track_start = q10w  ! Set the tracking start at element Q10W in universe 2.
+  set beam saved_at = "Q*, B*"   ! Save beam parameters (sigma matrix, etc.) at elements
+                                 !  whose names begin with "Q" or "B".
+  set beam add_saved_at = S10    ! Save beam parameters at element "S10" as well.
+  set beam beginning = end       ! Set the initial beam distribution equal to the distribution at
+                                 !  the lattice element named "end".
+\end{example}
+
+%% set beam_init --------------------------------------------------------------
+
+\subsection{set beam_init}
+\label{s:set.beam.init}
+
+Format:
+\begin{example}
+  set beam_init \{n@\}<parameter> = <value>
+\end{example}
+
+The \vn{set beam_init} command sets parameters of the \vn{beam_init} structure (\sref{s:beam.init}).
+Additionally, the \vn{set beam_init} command can set the parameters (\sref{s:beam.init})
+\begin{example}
+  track_start  and
+  track_end
+\end{example}
+
+The optional \vn{n@} allows the specification of the universe or universes the set is applied to.
+The current default universe (\sref{s:universe}) will be used if no universe is given.
+
+Use the \vn{show beam} command (\sref{s:show}) to see the current values.
+
+Also see the commands: \vn{set beam} and \vn{set particle_start}.
+
+Examples:
+\begin{example}
+  set beam_init 3@center(2) = 0.004   ! Set px center of beam for universe 3.
+  set beam_init [1,2]@sig_e = 0.02    ! Set sig_e for universes 1 and 2.
+  set beam_init track_end = q10w      ! Set track_end parameter.
+\end{example}
+
+%% set bmad_com --------------------------------------------------------------
+
+\subsection{set bmad_com}
+\label{s:set.bmad.com}
+
+Format:
+\begin{example}
+  set bmad_com <parameter> = <value>
+\end{example}
+
+Sets global \bmad parameters. Use the \vn{show global -bmad_com} command to see a list of
+\vn{<parameter>}s. See the \bmad manual for information on this structure.
+
+Example:
+\begin{example}
+  set bmad_com radiation_fluctuations_on = T ! Turn on synchrotron radiation fluctuations.
+\end{example}
+
+%% set branch --------------------------------------------------------------
+
+\subsection{set branch}
+\label{s:set.branch}
+
+Format:
+\begin{example}
+  set branch <branch-id> <parameter> = <value>
+\end{example}
+
+Sets parameters associated with a lattice branch. The parameters that can be set are:
+\begin{example}
+  particle                  = <species>   ! Reference particle
+  default_tracking_species  = <species>   ! Particle that is tracked.
+  geometry                  = open or closed
+  live_branch               = T or F
+\end{example}
+Use the \vn{show branch} command to see lattice branch information. \vn{<branch-id>} may be the
+branch index or branch name. \vn{<branch-id>} may also contain an optional \vn{n@} prefix to
+specify a particular universe to apply the set to. The default is to only set the current viewed
+universe.
+
+Note: When toggling a branch from closed to open the beginning orbit and Twiss parameters will not
+change. On the other hand, when toggling a branch from open to closed, the orbit and Twiss
+parameters will, in general, shift.
+
+Examples:
+\begin{example}
+  set branch 2@0 live_branch = F     ! Suppress calculations for branch \# 0 of universe 2.
+  set branch a_line geometry = open  ! Open geometry for branch named a_line.
+  set branch default_tracking_species = positron
+                                     ! Set the tracking species to positron.
+\end{example}
+
+%% set calculate --------------------------------------------------------------
+
+\subsection{set calculate}
+\label{s:set.calc}
+
+Format:
+\begin{example}
+  set calculate \{<on/off>\}
+\end{example}
+
+Toggles the following on (True) or off (False):
+\begin{example}
+  global%lattice_calc_on
+  global%plot_on
+\end{example}
+
+Examples:
+\begin{example}
+  set calc on    ! Sets lattice calc and plot_on to True
+  set calc off   ! Sets lattice calc and plot_on to False
+  set call       ! Toggles lattice_calc and sets plot_on to
+                 !  the same value as lattice_calc.
+\end{example}
+
+%% set curve --------------------------------------------------------------
+
+\subsection{set curve}
+\label{s:set.curve}
+
+Format:
+\begin{example}
+  set curve <curve> <parameter> = <value>
+\end{example}
+
+For \vn{set curve}, the \vn{<parameter>}s that can be set are:
+\begin{example}
+  ele_ref_name        = <string>  ! Name or index of the reference element. Blank => No ref ele.
+  ix_ele_ref          = <integer> ! Same as setting ele_ref_name. -1 => No ref ele.
+  component           = <string>  ! \sref{s:curve.comp}
+  ix_branch           = <integer> ! Branch index.
+  ix_bunch            = <integer> ! Bunch index.
+  ix_universe         = <integer> ! Universe index.
+  symbol_every        = <integer> ! Symbol skip number.
+  y_axis_scale_factor = <integer> ! Scaling of y axis
+  draw_line           = <logical> 
+  draw_symbols        = <logical> 
+  draw_symbol_index   = <logical> 
+\end{example}
+See the \vn{Plot Templates} section (\sref{s:template}) for a description of these attributes.  Use
+the \vn{show curve} (\sref{s:show}) to see the settings of the attributes.
+
+If there are visible plots with the same name as the plot parameter of \vn{<curve>}, a template plot
+of the same name is ignored. To set template plot curve(s) in this case, add a ``\vn{T::}'' prefix.
+
+Examples:
+\begin{example}
+  set curve top.x.c1 ix_universe = 2       ! Set universe number for curve.
+  set curve T::orbit.x.c1 ix_universe = 2  ! Set curve in template plot.
+\end{example}
+
+%% set data --------------------------------------------------------------
+
+\subsection{set data}
+\label{s:set.data}
+
+Format:
+\begin{example}
+  set data \{-silent\} <data_name>|<component> = <value>
+\end{example}
+Set datum parameters.
+
+parameters that are computed like the \vn{model} value cannot be set. The list of parameter
+that \vn{cannot} be set is:
+\begin{example}
+  model, base, design, old
+  good_model, good_base, good_design
+  merit, delta_merit
+  invalid, exists
+  useit_opt, useit_plot
+  ix_d1
+\end{example}
+
+The \vn{-silent} switch, if present, prevents \tao from issuing an error message if \tao detects a
+malformed datum. This is useful when creating datums from scratch (via \vn{python data_d2_create})
+or when modifying multiple datum parameters, like a datum's \vn{data_type} and \vn{data_source},
+where it is known that the datum will be in a malformed state before the final set.
+
+Examples:
+\begin{example}
+  set data *|ref = *|meas              ! Set ref data = measured in current universe.
+  set data 2@orbit.x|base = 2@orbit.x|model 
+                                       ! Set the base orbit.x in universe 2 to model
+  set data beta.x[10]|weight = 1e-5    ! Set weight of datum.
+  set -silent d[1]|data_type = beta.a  ! Set type_type.
+\end{example}
+
+%% set default --------------------------------------------------------------
+
+\subsection{set default}
+\label{s:set.default}
+
+Format:
+\begin{example}
+  set default <parameter> = <value>
+\end{example}
+
+The parameters that can be set are:
+\begin{example}
+  branch            ! See: Lattices section (\sref{s:lattice})
+  universe          ! See: Universe section (\sref{s:universe})
+\end{example}
+
+Use the \vn{show global} (\sref{s:show}) command to see the current
+default values.
+
+Example:
+\begin{example}
+  set default universe = 3
+\end{example}
+
+%% set dynamic_aperture --------------------------------------------------------------
+
+\subsection{set dynamic_aperture}
+\label{s:set.da}
+
+Format:
+\begin{example}
+  set dynamic_aperture \{n@\}<parameter> = <value>
+\end{example}
+
+The \vn{set dynamic_aperture} command sets parameters for dynamic aperture simulations
+(\sref{s:da.calc}) Also see the \vn{set universe dynamic_aperture} (\sref{s:set.universe}) and
+\vn{show dynamic_aperture} (\sref{s:show.da}).
+
+To set the particle energy for the <n>\Th scan use \vn{pz(<n>)}. Use a value less than -1 to remove
+the scan.
+
+The optional \vn{n@} prefix allows the specification of the universe or universes the set is applied
+to. The current default universe (\sref{s:universe}) will be used if no universe is given.
+
+Examples:
+\begin{example}
+  set dy 2@n_angle = 20   ! Set number of scan points for universe 2.
+  set dy accuracy = 1e-5  ! Set scan scan accuracy
+  set dy pz(3) = -0.05    ! Set particle energy for the 3rd scan.
+\end{example}
+
+%% set element --------------------------------------------------------------
+
+\subsection{set element}
+\label{s:set.element}
+
+Format:
+\begin{example}
+  set \{-update\} \{-lord_no_set\} element <element_list> <attribute> = <value>
+\end{example}
+
+The \vn{set element} command sets the attributes of an element. Use the \vn{show element}
+command to view the attributes of an element.
+
+The \vn{-lord_no_set} switch, if present, will prevent the set of the corresponding attribute in a
+\vn{super_lord} or \vn{multipass_lord} of a slave element that appears in \vn{element_list}. For
+example:
+\begin{example}
+  set ele -lord quad::A:B field_calc = True
+\end{example}
+In this example the element list is all quadrupole in the region between elements \vn{A} and \vn{B}
+in the lattice. The presence of the \vn{-lord_no_set} switch means that any \vn{super_slave} or
+\vn{multipass_slave} quadrupole in that region will be ignored.
+
+The \vn{-update} switch, if present, suppresses \tao from printing error messages if a ``variable
+slave value mismatch'' is detected (\sref{s:var.mismatch}). Independent of whether \vn{-update} is
+present or not, \tao will fix the mismatch using the changed value to set all of the slave values.
+
+Note: \vn{set element} can be used to set \vn{ramper} type elements.
+
+Note: If an element in the \vn{<element_list>} does not specify a universe (or universes),
+only the element in the viewed universe is used. See the examples below.
+
+Note: It is also possible to use the \vn{change element} command to change real (as opposed to
+logical or integer) attributes.
+
+Examples:
+\begin{example}
+  set ele rfcav::* is_on = F        ! Turn off all rfcavity elements the viewed universe.
+  set ele *@rfcav::* is_on = F      ! Turn off all rfcavity elements in all universes.
+  set ele A:B track_method = linear ! Set tracking_method for all elements between 
+                                    !   elements A and B
+  set ele q10w k1 = 0.7             ! Set element q10w k1 of the viewed universe.
+\end{example}
+
+%% set floor_plan --------------------------------------------------------------
+
+\subsection{set floor_plan}
+\label{s:set.floor.plan}
+
+Format:
+\begin{example}
+  set floor_plan <parameter> = <value>
+\end{example}
+
+
+Sets parameters for \vn{floor_plan} plots (\sref{s:shapes}).  Possible \vn{<parameters>} are:
+\begin{example}
+  <shape_name>%<shape_parameter>
+  draw_beam_chamber_wall
+  beam_chamber_wall_scale
+\end{example}
+Where \vn{<ele_shape_name>} is of the form ``\vn{ele_shape(<n>)}'' where \vn{<n>} is the index of
+the \vn{ele_shape} in the \vn{floor_plan_drawing} namelist.  Use ``\vn{show plot -floor_plan}'' to
+see the current state of the \vn{floor_plan} parameters
+
+Example:
+\begin{example}
+  set floor_plan ele_shape(2)%draw = F  ! Veto drawing of ele_shape(2)
+  set floor_plan beam_chamber_scale = 0.5
+\end{example}
+
+%% set geodesic_lm --------------------------------------------------------------
+
+\subsection{set geodesic_lm}
+\label{s:set.geodesic.lm}
+
+Format:
+\begin{example}
+  set geodesic_lm <parameter> = <value>
+\end{example}
+
+For \vn{set geodesic_lm}: The \vn{show optimizer geodesic_lm} command will give a list of
+\vn{<parameter>}s.
+
+Example:
+\begin{example}
+  set geodesic_lm method = 10
+\end{example}
+
+%% set global --------------------------------------------------------------
+
+\subsection{set global}
+\label{s:set.global}
+
+Format:
+\begin{example}
+  set global <parameter> = <value>
+\end{example}
+
+The \vn{set global} command sets global parameters of \tao. The \vn{show global} command will give
+a list of global parameters.
+
+Example:
+\begin{example}
+  set global n_opti_loops = 30  ! Set number of optimization cycles
+  set global rf_on = T          ! Turn on the RF cavities.
+\end{example}
+
+%% set graph --------------------------------------------------------------
+
+\subsection{set graph}
+\label{s:set.graph}
+
+Format:
+\begin{example}
+  set graph <graph> <parameter> = <value>
+\end{example}
+
+The \vn{set graph} command is used to set parameters of a graph structure (\sref{s:template}).
+
+If the \vn{<graph>} name corresponds to a plot, the set is applied to all the graphs associated with
+the plot. If there are visible plots with the same name as the plot parameter of \vn{<graph>}, a
+template plot of the same name is ignored. To set template plot graphs(s) in this case, add a
+``\vn{T::}'' prefix.
+
+For setting the \vn{parameter} attribute see also the commands:
+\begin{example}
+  set plot parameter      ! \sref{s:set.plot}
+  set curve parameter     ! \sref{s:set.curve}
+\end{example}
+
+Example:
+\begin{example}
+  set graph orbit.x component = model - design  ! Plot orbit (model - design).
+  set graph orbit component = model - design    ! Applies to all graphs of orbit plot.
+  set graph T::orbit.x component = design       ! Set template plot
+  set graph r11 floor_plan%orbit_scale = 100    ! To display an orbit.
+  set graph beta y%bounds = "zero_at_end"       ! \sref{s:quick.plot}.
+\end{example}
+
+%% set key --------------------------------------------------------------
+
+\subsection{set key}
+\label{s:set.key}
+
+Format:
+\begin{example}
+  set key <key> = <command>
+\end{example}
+
+Binds a custom command to a key for use in single mode (\sref{c:single}).  This will override the
+default behavior (if there is one) of the key.  The command \vn{default} will reset the key to its
+default usage.
+
+Example:
+\begin{example}
+  set key h = veto var *
+  set key j = default
+\end{example}
+
+
+%% set lat_layout --------------------------------------------------------------
+
+\subsection{set lat_layout}
+\label{s:set.lat.layout}
+
+Format:
+\begin{example}
+  set lat_layout <parameter> = <value>
+\end{example}
+
+Sets parameters for \vn{lat_layout} plots (\sref{s:shapes}).  Syntax for ``\vn{set lat_layout}'' is
+identical to syntax of ``\vn{set floor_plan}''.  See ``\vn{set floor_plan}'' for more details.
+
+Use ``\vn{show plot -lat_layout}'' to see a listing of all shapes. 
+
+Example:
+\begin{example}
+  set lat_layout ele_shape(2)%draw = F  ! Veto drawing of shape \#2
+\end{example}
+
+%% set lattice --------------------------------------------------------------
+
+\subsection{set lattice}
+\label{s:set.lattice}
+
+Format:
+\begin{example}
+  set lattice \{n@\}<destination_lat> = <source_lat>
+\end{example}
+
+The \vn{set lattice} command transfers lattice parameters (element strengths, etc., etc.)  from one
+lattice (the \vn{source} lattice) to another (the \vn{destination} lattice). Both lattices are
+restricted to be from the same universe. The optional \vn{n@} prefix (\sref{s:universe}) of the
+destination lattice can be used to specify which universe the lattices are in. If multiple universes
+are specified, the corresponding destination lattice will be set to the corresponding source lattice
+in each universe. Note: At this time, it is not permitted to transfer parameters between lattices in
+different universes.
+
+The destination lattices that can be set are:
+\begin{example}
+  model      ! Model lattice.
+  base       ! Base lattice
+\end{example}
+The source lattice can be:
+\begin{example}
+  model       ! model lattice.
+  base        ! base lattice.
+  design      ! design lattice
+\end{example}
+
+Note: \tao variables that control parameters in multiple universes can complicate things. If, for
+example, there are two universes, and a \tao variable controls, say, the quadrupole strength of
+quadrupoles in both universes, then a ``set lat 2@model = design'' will result in the quadrupole
+strengths of those quadrupoles controlled by the variable in universe 1 being changed.
+
+Example:
+\begin{example}
+  set lattice *@model = design  ! Set the model lattice to the design in 
+                                !   all universes.
+  set lattice base = model      ! Set the base lattice to the model lattice in 
+                                !   the default universe.
+\end{example}
+
+%% set opti_de_param --------------------------------------------------------------
+
+\subsection{set opti_de_param}
+\label{s:set.opti.de.param}
+
+Format:
+\begin{example}
+  set opti_de_param <parameter> = <value>
+\end{example}
+
+For \vn{set opti_de_param}: The \vn{show global} command will give a list of \vn{<parameter>}s.
+
+Example:
+\begin{example}
+  set opti_de_param binomial_cross = T  ! Use binomial crossovers 
+\end{example}
+
+%% set particle_start --------------------------------------------------------------
+
+\subsection{set particle_start}
+\label{s:set.particle.start}
+
+Format:
+\begin{example}
+  set particle_start \{n@\}<coordinate> = <value>
+\end{example}
+The \vn{set particle_start} command sets the starting coordinates for single particle tracking for
+lattices with an open geometry. If the \vn{use_particle_start} of the \vn{beam_init}
+structure (\sref{s:beam.init}) is set to True, \vn{particle_start} will also vary the beam centroid
+and beam particle spin for beam tracking.
+
+The optional \vn{n@} universe specification (\sref{s:universe}) may be used to specify the universe
+or universes to apply the set command to.
+
+\vn{<coordinate>} is one of:
+\begin{example}
+  x, px, y, py, z, pz, t
+  spin_x, spin_y, spin_z
+\end{example}
+For photons, \vn{<coordinate>} may also be:
+\begin{example}
+  field_x, field_y, phase_x, phase_y
+\end{example}
+The \vn{*} coordinate denotes the phase space vector $(x, p_x, y, p_y, z, p_z)$.  For closed
+lattices only the \vn{pz} parameter is applicable. For lattices that have an \vn{e_gun} (which
+necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must be
+varied instead of \vn{pz}.
+
+To see the values for \vn{particle_start} use the command \vn{show element 0}.
+
+Also see the commands: \vn{set beam} (\sref{s:set.beam}), \vn{set beam_init} (\sref{s:set.beam.init}), 
+and \vn{change particle_start} (\sref{s:change}).
+
+Examples:
+\begin{example}
+  set particle_start 2@x = 0.001         ! Set beginning x position in universe 2 to 1 mm.
+  set particle_start field_x = 1         ! Set photon field
+  set particle_start spin_y = 0.37       ! Set spin parameter.
+\end{example}
+
+%% set plot --------------------------------------------------------------
+
+\subsection{set plot}
+\label{s:set.plot}
+
+The \vn{set plot} command set various parameters of a plot. Format:
+\begin{example}
+  set plot <plot_or_region> <parameter> = <value>
+\end{example}
+
+The \vn{<parameters>}s that can be set are:
+\begin{example}
+  autoscale_x        = <logical>
+  autoscale_y        = <logical>
+  visible            = <logical>
+  component          = <string>    ! Sets curve component \sref{s:curve.comp}
+  x%<axis_parameter> = <value>
+  n_curve_pts        = <integer>
+\end{example}
+Use the \vn{show plot <plot_name>} to see the settings of various parameters. See the \vn{Plot
+Templates} section (\sref{s:template}) for information on the plotting parameters.
+
+The \vn{visible} parameter hides a plot but keeps the plot associated with the associate region. If
+the plot window is not enabled (\vn{-noplot} option used at startup), the \vn{visible} parameter is
+used by \tao to decide whether to calculate the points needed for plotting curves (saves time if the
+computation is not needed). This is relevant when \tao is interfaced to a \vn{GUI}
+(\sref{s:gui.plot}).
+
+The \vn{n_curve_pts} parameters sets the number of points to use for drawing ``smooth'' curves. This
+overrides the setting of \vn{plot_page%n_plot_pts} (\sref{s:init.plot}). Warning: \tao will cache
+intermediate calculations used to compute a smooth curve to use in the computation of other smooth
+curves. \tao will only do this for curves that have \vn{plot_page%n_curve_pts} number of
+points. Depending upon the circumstances, setting \vn{plot%n_curve_pts} for individual plots may
+slow down plotting calculations significantly.
+
+Note: If the \vn{component} parameter is set, the \vn{<value>} is stored in each of the curves of
+the plot since the \vn{component} attribute is associated with individual curves and not the plot as
+a whole.
+
+If \vn{<plot_or_region>} is a plot name, and there are visible plots of that name, any template plot
+of the same name is ignored. To set a template plot in this case, add a ``\vn{T::}'' prefix.
+
+Example:
+\begin{example}
+  set plot orbit visible = F           ! Hide orbit plot
+  set plot beta component = design     ! Plot the design value.
+  set plot T::beta component = design  ! Set the template plot instead of any displayed plots.
+  set plot x%draw_label = False        ! Do not draw x-axis label.
+\end{example}
+
+%% set plot_page --------------------------------------------------------------
+
+\subsection{set plot\_page}
+\label{s:set.plot.page}
+
+Format:
+\begin{example}
+  set plot_page <parameter> = <value1> \{<value2>\}
+\end{example}
+
+The \vn{set plot_page} command sets \vn{plot page} parameters (\sref{s:plot.page.def}).
+use the \vn{show plot -page} command to see a list of plot page parameters.
+
+The \vn{<value2>} value is needed for the plot window \vn{size}.
+
+Examples:
+\begin{example}
+  set plot_page title = 'XYZ'  ! Set plot page title string
+  set plot_page size = 500 600 ! Set plot window size in pixels.
+\end{example}
+
+%% set ptc_com --------------------------------------------------------------
+
+\subsection{set ptc_com}
+\label{s:set.ptc.com}
+
+Format:
+\begin{example}
+  set ptc_com <parameter> = <value>
+\end{example}
+
+Sets global PTC parameters. Use the \vn{show global -ptc_com} command to see a list of
+\vn{<parameter>}s. See the \bmad manual for information on this structure.
+
+Note: to set the Taylor map order, use the command:
+\begin{example}
+  set bmad_com taylor_order = ...
+\end{example}
+
+Example:
+\begin{example}
+  set ptc_com exact_model = F ! Non-exact is not as accurate but faster.
+\end{example}
+
+%% set ran_state --------------------------------------------------------------
+
+\subsection{set ran\_state}
+\label{s:set.ran.state}
+
+Format:
+\begin{example}
+  set ran_state = <random_number_generator_state>
+\end{example}
+
+Sets the state of the random number generator to a specific state. Use \vn{show global -ran_state}
+to show the random number generator state. Manipulating the state for generating random numbers is
+generally only used for debugging purposes and is not of interest to the typical user.
+
+%% set region --------------------------------------------------------------
+
+\subsection{set region}
+\label{s:set.region}
+
+Format:
+\begin{example}
+  set region <parameter> = <value>
+\end{example}
+
+Sets a plot region parameter. Parameters are:
+\begin{example}
+  x1, x2, y1, y2    ! Region rectangle placement
+  visible           ! Is plot in region visible?
+\end{example}
+
+Use the \vn{show plot} command to see a listing of region parameters.
+
+Example:
+\begin{example}
+  set region r13 y2 = 0.3  ! Set y2 parameter of region r13
+\end{example}
+
+%% set space_charge_com --------------------------------------------------------------
+
+\subsection{set space_charge_com}
+\label{s:set.sc.com}
+
+Format:
+\begin{example}
+  set space_charge_com <parameter> = <value>
+\end{example}
+
+Sets global space charge (including CSR) parameters. Use the \vn{show global -space_charge_com}
+command to see a list of \vn{<parameter>}s. See the \bmad manual for information on this structure.
+
+Example:
+\begin{example}
+  set space_charge_com n_bin = 30  ! Set number of bins used in the csr calc.
+\end{example}
+
+%% set symbolic_number --------------------------------------------------------------
+
+\subsection{set symbolic_number}
+\label{s:set.symbolic}
+
+Format:
+\begin{example}
+  set symbolic_number <name> = <value>
+\end{example}
+
+Create a symbolic number that can be used in expressions. Use the \vn{show symbolic_number} command
+to show a list of symbols that have been defined. Repeated \vn{set} commands may be used to modify
+the value of a symbol if desired.
+
+Example:
+\begin{example}
+  set sym aa = 23.4 * pi  ! Define the symbol "aa"
+\end{example}
+
+%% set tune --------------------------------------------------------------
+
+\subsection{set tune}
+\label{s:set.tune}
+
+Format:
+\begin{example}
+  set tune \{-branch <branch_list>\} \{-listing\} \{-mask <veto_list>\} \{<Qa>\} \{<Qb>\}
+\end{example}
+
+Set the two transverse tunes. Units for \vn{<Qa>} and \vn{<Qb>} are radians/2pi. If only the
+fractional part of \vn{<Qa>} and \vn{<Qb>} is given, the integer part will be taken to be the
+integer part of the tunes in the model lattice. If not given, \vn{<Qa>} and \vn{<Qb>} will
+default to the model lattice tunes.
+
+The \vn{<branch_list>} is a list of lattice branches with optional universe prefix.
+
+The algorithm used to vary the tunes starts by selecting all quadrupole elements or overlay elements
+whose slave parameters are all quadrupole \vn{k1}. From this list all quadrupoles that have a
+non-zero tilt are thrown out. The list is divided up into two groups: One group where $\beta_a >
+\beta_b$ at the quadrupole and the other group is where $\beta_a > \beta_b$. The elements in each
+group are assigned a weight. Currently the weights assigned is +1 for all the elements in one group
+and -1 for all elements in the other group. To get the desired tune, the \vn{k1} strengths of the
+elements of each group are are varied such that the fractional change of \vn{k1} for all
+quadrupoles in a group is proportional to the weights. 
+
+The \vn{-listing} option, if present, will, in addition to the tune change, generate a list of
+quadrupoles varied along with variation coefficients.
+
+It is sometimes desireable to veto from changing certain quadrupols (or overlays). The
+\vn{<veto_list>} of the \vn{-mask} option gives a list of quadrupoles {\em not} to use.
+A tilde \vn{~} in front of an element name means that the element will not be vetoed. This
+can be used to specify what quadrupoles to use (not veto). For example:
+\begin{example}
+  set tune -mask *,~qf_\%\%,~qd_\% 0.23 0.45
+\end{example}
+In this example, the mask string has three ``words'' speparated by commas. The first word is
+``\vn{*}'' which will veto everything. The second word \vn{~qf_\%} reinstates all elements whose
+name starts with \vn{qf_} and has exactly two characters after the beginning \vn{qf_}. The third
+word reinstates all elements that match the wild card pattern \vn{qd_\%}. The upshot is that only
+elements whose names match \vn{qf_\%\%} or \vn{qd_\%} will be varied.
+
+The tunes can also be varied using the \vn{change tune} command. For the longitudinal tune there is
+the \vn{set z_tune} and \vn{change z_tune} commands. Note that with the present algorithms used for
+varying the transverse and longitudinal tunes, varying the transverse tunes will vary the
+longitudinal tune somewhat and vice versa.
+
+Examples:
+\begin{example}
+  set tune -mask qd* 0.45 0.67  ! Use all quads except with name starting with "qd".
+\end{example}
+
+%% set universe --------------------------------------------------------------
+
+\subsection{set universe}
+\label{s:set.universe}
+
+Format:
+\begin{example}
+  set universe <what_universe> <on/off>
+  set universe <what_universe> recalculate
+  set universe <what_universe> twiss_calc <on/off>
+  set universe <what_universe> dynamic_aperture_calc <on/off>
+  set universe <what_universe> one_turn_map_calc <on/off>
+  set universe <what_universe> track_calc <on/off>
+\end{example}
+
+The \vn{set universe <what_universe> ...} command will turn on or off specified lattice/tracking
+calculations for the specified universe(s). Turning specified calculations off for a universe is
+useful to speed up lattice calculations when the calculation is not necessary. 
+
+To specify the currently default universe (\sref{s:universe}), you can use \vn{-1} as the
+\vn{<what_universe>} index. To specify all universes, use \vn{*}. Use the \vn{show universe} command
+to see the state of these switches are. The \vn{<what_universe>} argument may be a list of universes
+enclosed in brackets ``[...]''. See below for an example.
+
+Note: The global logical \vn{lattice_calc_on} (\sref{s:globals}) is separate from the logicals set
+by \vn{set universe}. That is, toggling the state of \vn{lattice_calc_on} will not affect the
+settings of the logicals set by \vn{set universe}. If \vn{lattice_calc_on} is set to \vn{False} then
+no calculations are done in any universe independent of the settings of the \vn{set universe}
+logicals. That is, \vn{lattice_calc_on} acts as a master toggle that can be used to turn off all
+lattice/tracking calculations.
+
+If optimizing while one or more universes are turned off, the variables associated with that
+universe will still be included in the merit function but not the data for that universe. The
+variables will still vary in the turned off universe.
+
+The \vn{set universe <what_universe> recalculate} command will recalculate the lattice parameters
+for that universe.
+
+The \vn{set universe <what_universe> dynamic_aperture_calc} command will enable the dynamic aperture
+calculation for a ring. See the \vn{Initializing Dynamic Aperture} section (\sref{s:da.calc}) for
+more details. To enable the dynamic aperture calculation at startup, set the
+\vn{design_lattice(i)%dynamic_aperture} parameter (\sref{s:init.lat}).
+
+The \vn{set universe <what_universe> one_turn_map_calc} command will enable a one-turn-map
+calculation for a ring using PTC, and populate the normal form taylor maps. See
+Eq.~\ref{normalform1} and Eq.~\ref{normalform2} in the \vn{normal.} data type. To enable the map
+calculation at startup, set the \vn{design_lattice(i)%one_turn_map_calc} parameter
+(\sref{s:init.lat}).
+
+The commands
+\begin{example}
+  set universe <what_universe> twiss_calc  and
+  set universe <what_universe> track_calc
+\end{example}
+will set whether the 6x6 transfer matrices and the central orbit (closed orbit for circular rings)
+is calculated for a given universe. Turning this off is useful in speeding up calculations in the
+case where the transfer matrices and/or orbit is not being used.
+
+Example:
+\begin{example}
+  set universe [1,3] off ! Set universes 1 and 3 off.
+  set universe -1 on     ! Set on currently default universe.
+  set universe * recalc  ! Recalculate in all universes.
+\end{example}
+
+%% set variable --------------------------------------------------------------
+
+\subsection{set variable}
+\label{s:set.variable}
+
+Format:
+\begin{example}
+  set variable <var_name>|<parameter> = <value>
+\end{example}
+
+For \vn{set var}, the \vn{<parameter>}s that can be set are:
+\begin{example}
+  model       ! Model lattice value.
+  base        ! Base model value
+  design      ! Design model value
+  meas        ! Value at the time of a measurement.
+  ref         ! Value at the time of a reference measurement.
+  weight      ! Weight for the merit function.
+  exists      ! Does this variable actually correspond to something?
+  good_var    ! The optimizer can be allowed to vary it
+  good_opt    ! Good for using in the merit function for optimization?
+  good_plot   ! Good for using in a plot?
+  good_user   ! This is what is set by the use, veto, and restore commands.
+  step        ! Sets what a "small" variation of the variable is.
+  merit_type  ! How merit contribution is calculated.
+  key_bound   ! Model value can be modified using keyboard?
+  key_delta   ! Change in model value when key is pressed.
+\end{example}
+
+Example:
+\begin{example}
+  set var quad_k1|weight = 0.1         ! Set quad_k1 weights. 
+\end{example}
+
+%% set wave --------------------------------------------------------------
+
+\subsection{set wave}
+\label{s:set.wave}
+
+Format:
+\begin{example}
+  set wave <parameter> = <value>
+\end{example}
+
+The \vn{set wave} command sets the boundaries of the $A$ and $B$ regions for the wave analysis
+(\sref{c:wave}). The parameters are
+\begin{example}
+  ix_a = <ix_a1> <ix_a2>  ! A-region left and right boundaries.
+  ix_b = <ix_b1> <ix_b2>  ! B-region left and right boundaries.
+\end{example}
+
+Example:
+\begin{example}
+  set wave ix_a = 15 27    ! Set A-region to span from datum #15 to #27
+\end{example}
+
+Note: Use the \vn{wave} command (\sref{s:wave}) first to setup the display of the wave analysis.
+
+%% set z_tune --------------------------------------------------------------
+
+\subsection{set z_tune}
+\label{s:set.z.tune}
+
+Format:
+\begin{example}
+  set z_tune <Qz>
+\end{example}
+
+Set the longitudinal tune by varying RF cavity voltages. 
+
+Also see the \vn{change z_tune} command as well as the \vn{set tune} and \vn{change_tune} commands.
+Note that with the present algorithms used for varying the transverse and longitudinal tunes,
+varying the transverse tunes will vary the longitudinal tune somewhat and vice versa.
+
+Example:
+\begin{example}
+  set z_tune 0.023
+\end{example}
+
+%% show --------------------------------------------------------------
+
+\section{show}\index{commands!show}
+\label{s:show}
+
+The \vn{show} command is used to display information.
+Format:
+\begin{example}
+  show \{-append <file_name>\} \{-noprint\} \{-no_err_out\} <subcommand>
+  show \{-write <file_name>\} \{-noprint\} \{-no_err_out\} <subcommand>
+\end{example}
+
+\vn{<subcommand>} subcommands may be one of:
+\begin{example}
+  show alias                   ! Show aliases \sref{s:show.alias}.
+  show beam ...                ! Show beam info \sref{s:show.beam}.
+  show branch ...              ! Show lattice branch info \sref{s:show.branch}.
+  show building_wall           ! Show building wall info \sref{s:show.building}.
+  show chromaticity ...        ! Show chromaticity, momentum compaction, phase slip \sref{s:show.chrom}.
+  show constraints             ! Show optimization constraints \sref{s:show.constraints}.
+  show control ...             ! Show lords and slaves of a given element \sref{s:show.control}.
+  show curve ...               ! Show plot curve info \sref{s:show.curve}.
+  show data ...                ! Show optimization data info \sref{s:show.data}.
+  show derivative ...          ! Show d_data/d_var optimization info \sref{s:show.derivative}.
+  show dynamic_aperture        ! Show DA info \sref{s:show.da}.
+  show element ...             ! Show lattice element info \sref{s:show.element}.
+  show emittance               ! Show normal mode emittances \sref{s:show.emit}.
+  show field ...               ! Show EM field \sref{s:show.field}.
+  show global ...              ! Show Tao global parameters \sref{s:show.global}.
+  show graph ...               ! Show plot graph info \sref{s:show.graph}.
+  show history ...             ! Show command history \sref{s:show.history}.
+  show hom                     ! Show Higher Order Mode info \sref{s:show.hom}.
+  show internal ...            ! Used for code debugging \sref{s:show.internal}.
+  show key_bindings            ! Show single mode key bindings \sref{s:show.key}.
+  show lattice ...             ! Lattice element-by-element table \sref{s:show.lattice}.
+  show matrix ...              ! Show transport matrix \sref{s:show.matrix}.
+  show merit ...               ! Show optimization merit function \sref{s:show.merit}.
+  show optimizer ...           ! Show optimizer info \sref{s:show.optimizer}.
+  show particle ...            ! Show tracked particle beam info \sref{s:show.particle}.
+  show plot ...                ! Show plot info \sref{s:show.plot}.
+  show ptc ...                 ! Show PTC calculated parameters \sref{s:show.ptc}.
+  show radiation_integrals ... ! Show synchrotron radiation integrals \sref{s:show.rad.int}.
+  show spin ...                ! Show information on spin simulations \sref{s:show.spin}.
+  show string ...              ! Print a string \sref{s:show.string}.
+  show symbolic_numbers ...    ! Show symbolic constants \sref{s:show.symbolic}.
+  show taylor_map ...          ! Show transport Taylor map\sref{s:show.taylor}.
+  show track ...               ! Show phase space coords, Twiss, EM field, 
+                               !   and other info along the tracked orbit \sref{s:show.track}.
+  show twiss_and_orbit ...     ! Show Twiss and orbit info at given position including
+                               !   synchrotron radiation related parameters \sref{s:show.twiss}.
+  show universe ...            ! Show universe info \sref{s:show.universe}.
+  show use                     ! Show data and vars used in optimization \sref{s:show.use}.
+  show value ...               ! Show value of an expression \sref{s:show.value}.
+  show variables ...           ! Show optimization variable info \sref{s:show.variables}.
+  show version                 ! Show Tao version.
+  show wake_elements           ! Show wake info \sref{s:show.wake_elements}.
+  show wall ...                ! Show vacuum chamber wall info \sref{s:show.wall}.
+  show wave                    ! Show wave analysis info \sref{s:show.wave}.
+\end{example}
+
+\vskip 10pt 
+
+When running \tao, to see documentation on any of the subcommands, use the \vn{help show
+<subcommand>} command. For example, \vn{help show element} will show information on the \vn{show
+element} subcommand.
+
+The \vn{show} command has \vn{-append} and \vn{-write} optional arguments which can be used to write
+the results to a file.  The \vn{show -append} command will appended to the output file. The \vn{show
+-write} command will first erase the contents of the output file. If \vn{global%write_file} has a
+\vn{*} character in it, a three digit number is substituted for the \vn{*}. The value of the number
+starts at \vn{001} and increases by 1 each time \vn{show -write} is used.  Example:
+\begin{example}
+  show -write floor.dat lat -floor  ! Write floor positions to the file "floor.dat".
+\end{example}
+
+The \vn{-noprint} option suppresses printing and is useful when writing large amounts of data to a
+file.
+
+When writing to a file, if there are any error messages (for example, that something could not be
+computed), the error messages are reproduced in the file. If this behavior is not wanted, the
+\vn{-no_err_out} switch may be used to block the error messages being written.
+
+The \vn{-append}, \vn{-write}, \vn{-noprint}, and \vn{-no_err_out} switches must be placed before
+\vn{<subcommand>}.
+
+Note: When running \tao as a subprocess, use the \vn{python} command (\sref{s:python})
+instead of the \vn{show} command for communicating with the parent process.
+
+% Use the command:
+%   help show <subcommand>
+% to obtain more information on a particular show subcommand. Example:
+%   help show plot
+
+%% show alias --------------------------------------------------------------
+
+\subsection{show alias}
+\label{s:show.alias}
+
+Syntax:
+\begin{example}
+  show alias
+\end{example}
+
+Shows a list of defined aliases. See the \vn{alias} command for more details.
+
+%% show beam --------------------------------------------------------------
+
+\subsection{show beam}
+\label{s:show.beam}
+
+Command to show beam parameters. Syntax:
+\begin{example}
+  show beam \{-comb\} \{-universe <uni_index>\} \{-lattice\} \{-z <z1> <z2>\} \{<element_id>\}
+\end{example}
+
+If both \vn{<element_id>} and \vn{-lattice} are absent, \vn{show beam} shows parameters
+used with beam tracking including the number of particles in a bunch, etc.
+
+If no universe is given, the current default universe (\sref{s:universe}) is used.
+
+If \vn{<element_id>} is present, and \vn{-lattice} is not, \vn{show beam} will show beam
+parameters at the selected element. 
+
+If \vn{-lattice} is present, \vn{show beam} will show the beam sigma matrix as calculated from the
+lattice at the position given by \vn{<element_id>} (\sref{s:lat.sig.init}). If an
+element is not specified, the beginning element (with index 0) will be used.
+
+If the \vn{-comb} is present, \vn{<element_id>} should be an integer which is the index of the comb
+of longitudinally equally spaced points where the beam parameters are evaluated at.  Note:
+\vn{comb_ds_save} (\sref{s:tao.global.struct}) is used to set the spacing between points.  If
+\vn{<element_id>} is not present, information about all the comb points is output. Also see the
+\vn{write bunch_comb} (\sref{s:write.bunch.comb}) and \vn{python bunch_comb} (\sref{p:bunch.comb})
+commands.
+
+The \vn{-z <z1> <z2>} option shows bunch parameters for a slice of the beam. The slice boundaries
+are specified by \vn{<z1>} and \vn{<z2>}. Both values must be in the range [0.0, 1.0] with 0.0
+indicating the back of the bunch and 1.0 indicating the front of the bunch. For example, "-z 0.0,
+0.5" would give bunch parameters for the back half of the bunch. If the \vn{-z} option is used,
+the \vn{<element_id>} must be specified and the beam must have been saved at the corresponding
+element (\sref{s:beam.init}).
+
+Note: To show individual particle positions, see the \vn{show particle} command
+(\sref{s:show.particle}).
+
+Note: Use the \vn{set beam_init} command to set values of the \vn{beam_init} structure.
+
+Examples:
+\begin{example}
+  show beam          ! Show beam initialization parameters.
+  show beam -lat 37  ! Show sigma matrix, etc. calculated at element #37.
+  show beam -comb 3  ! Show sigma matrix, etc. calculated at comb index #3.
+  show beam -z 0.1 0.4 q3w  ! Show parameters of a slice of the bunch.
+\end{example}
+
+%% show branch --------------------------------------------------------------
+
+\subsection{show branch}
+\label{s:show.branch}
+
+Syntax:
+\begin{example}
+  show branch \{-universe <uni_index>\}
+\end{example}
+
+Lists the lattice branches of the lattice associated with the given universe along with information
+on the fork elements connecting the branches.  If no universe is given, the current default universe
+(\sref{s:universe}) is used.
+
+Example:
+\begin{example}
+  show branch -u 2     ! Show info on lattice branches associated with universe 2
+\end{example}
+
+%% show building_wall --------------------------------------------------------------
+
+\subsection{show building_wall}
+\label{s:show.building}
+
+Syntax:
+\begin{example}
+  show building_wall
+\end{example}
+
+List all building wall (\sref{s:building.wall}) sections along with the points that define
+the sections.
+
+For vacuum_chamber, capillary, and diffraction_plate walls use the ``show wall'' command.
+
+%% show chromaticity --------------------------------------------------------------
+
+\subsection{show chromaticity}
+\label{s:show.chrom}
+
+Syntax:
+\begin{example}
+  show chromaticity \{-taylor\} \{-universe <uni_index>\} 
+\end{example}
+
+Shows chromaticity and derivatives as calculated from PTC normal form analysis. Also shown
+is momentum compaction and phase slip and derivatives.
+
+If no universe is given, the current default universe (\sref{s:universe}) is used.
+
+The \vn{-taylor} switch will show the Taylor series for the three normal mode tunes and spin tune
+as functions of the phase space coordinates. The computation uses complex series. The imaginary part
+should be zero (or very small). The spin Taylor series is only computed when spin tracking is on.
+
+
+%% show constraints --------------------------------------------------------------
+
+\subsection{show constraints}
+\label{s:show.constraints}
+
+Syntax:
+\begin{example}
+  show constraints
+\end{example}
+
+Lists data and variable constraints. Also see \vn{show merit}.
+
+%% show constraints --------------------------------------------------------------
+
+\subsection{show control}
+\label{s:show.control}
+
+Syntax:
+\begin{example}
+  show control {element-name-or-index}
+\end{example}
+
+This command compiles a list of all lords (and lords of lords, etc.) of the given element as well as
+a list of all slaves (and slaves of slaves, etc.) of the given element. Then for each element in the
+lists, the lords and slaves of that element are displayed. Example:
+\begin{example}
+  show control q1#2   ! Show lords/slaves of second instance of element named q1.
+\end{example}
+
+%% show curve --------------------------------------------------------------
+
+\subsection{show curve}
+\label{s:show.curve}
+
+Syntax:
+\begin{example}
+  show curve \{-line\} \{-no_header\} \{-symbol\} <curve_name>
+\end{example}
+
+Show information on a particular curve of a particular plot. See \sref{c:plotting} for the syntax on
+plot, graph, and curve names.  Use \vn{show plot} to get a list of plot names. The \vn{-symbol}
+switch will additionally print the (x,y) points for the symbol placement and the \vn{-line} switch
+will print the (x,y) points used to draw the ``smooth'' curve in between the symbols. The line or
+symbol points from multiple curves can be printed by specifying multiple curves. Example:
+\begin{example}
+  show curve -sym orbit
+\end{example}
+This will produce a three column table assuming that the orbit plot has curves \vn{orbit.x.c1} and
+\vn{orbit.y.c1}. When specifying multiple curves, each curve must have the same number of data
+points and it will be assumed that the horizontal data values are the same for all curves so the
+horizontal data values will be put in column 1.
+
+The \vn{-no_header} switch is used with \vn{-line} and \vn{-symbol} to suppress the printing of
+header lines. This is useful when the generated table is to be read in by another program.
+
+If there are visible plots with the same name as the plot parameter of \vn{<curve>}, a template plot
+of the same name is ignored. To show template plot curve(s) in this case, add a ``\vn{T::}'' prefix.
+
+Also see: \vn{show plot} and \vn{show graph} commands.
+
+Example:
+\begin{example}
+  show curve r2.g1.c3     ! Show the attributes of a curve named "c3" which is 
+                          !   in the graph "g1" which is plotted in region "r2".
+\end{example}
+
+%% show data --------------------------------------------------------------
+
+\subsection{show data}
+\label{s:show.data}
+
+Syntax:
+\begin{example}
+  show data \{<data_name>\}
+\end{example}
+
+Shows data information. If \vn{<data_name>} is not present then a list of all \vn{d2_data} names is
+printed.
+
+Examples:
+\begin{example}
+  show data                   ! Lists d2_data for all universes
+  show data *@*               ! Same as above
+  show data -1@*              ! Lists d2_data for the currently default universe.
+  show data *                 ! Same as above.
+  show data 2@*               ! Shows d2_data in universe 2.
+  show data orbit             ! Show orbit data.
+  show data orbit.x           ! list all orbit.x data elements.
+  show data orbit.x[35]       ! Show details for orbit.x element 35
+  show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
+  show data orbit.x[1:99:5]   ! list every fifth orbit.x between 1 and 99  
+\end{example}
+
+%% show derivative --------------------------------------------------------------
+
+\subsection{show derivative}
+\label{s:show.derivative}
+
+Syntax:
+\begin{example}
+  show derivative \{-derivative_recalc\} \{<data_name(s)>\} \{<var_name(s)>\}
+\end{example}
+
+\index{lm}\index{svd}
+Shows the derivative dData_Model_Value/dVariable. This derivative is used by the optimizers \vn{lm}
+and \vn{svd}. Note: Wild card characters can be used to show multiple derivatives.  Default values
+for \vn{<data_name(s)>} and \vn{<var_name(s)>} is "*" (all data or variables).
+
+The \vn{-derivative_recalc} forces a recalculation of the derivative matrix. This is exactly the
+same as using \vn{derivative} command (\sref{s:deriv}) before the \vn{show derivative} command.
+
+Note: Derivatives are only calculated for data and variables that are used in an optimization. That
+is, derivatives are only calculated for data and variables whose \vn{useit_opt} parameter (see
+\sref{s:data.anatomy} and \sref{c:var}) is True.
+
+The output of this command is a number of lines that look like:
+\begin{example}
+  Data                Variable               Derivative   ix_dat  ix_var
+  k.22a[98]           v_steer[92]           -7.63151E+01    1584     214
+  k.22a[98]           v_steer[93]           -1.81810E+00    1584     215
+\end{example}
+The first and second columns are the datum and variable names, the third column is the derivative,
+and the last two columns are the indexes of where the derivative is stored in \tao's internal
+derivative matrix. These last two columns are for debugging purposes and can be ignored.
+
+Example:
+\begin{example}
+  show deriv orbit.x[2] k1[3] ! Show dModel_Value/dVariable Derivative.
+  show deriv                  ! Show all derivatives. Warning! The output may be large.
+
+\end{example}
+
+%% show dynamic_aperture --------------------------------------------------------------
+
+\subsection{show dynamic_aperture}
+\label{s:show.da}
+\index{dynamic_aperture}
+
+Syntax:
+\begin{example}
+  show dynamic_aperture
+\end{example}
+
+Shows parameters and results of the dynamic aperture calculation (\sref{s:da.calc}).
+See also the commands \vn{set dynamic_aperture}, and \vn{set universe dynamic_aperture}.
+
+%% show element --------------------------------------------------------------
+
+\subsection{show element}
+\label{s:show.element}
+
+Syntax:
+\begin{example}
+  show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\}
+      \{-floor_coords\} \{-no_slaves\} \{-no_super_slaves\} \{-ptc\} \{-taylor\} \{-wall\} 
+      \{-xfer_mat\} <ele_name>
+\end{example}
+
+This shows information on lattice elements. The syntax for \vn{<ele_name>} is explained in section
+\sref{s:ele.list.format}. If \vn{<ele_name>} contains a wild card or a class name then a list of
+elements that match the name are shown. If no wild--card or class name is present then information
+about the element whose name matches \vn{<ele_name>} is shown.
+
+If the \vn{-ptc} switch is used, then the associated PTC fibre information will be displayed. If
+there is not associated PTC fibre (which will be true if PTC has not been used for tracking with
+this element), an associated PTC fibre will be created. In this case, only the PTC information will
+be displayed and the other switches will be ignored.
+
+If the \vn{-attributes} switch is present, then all of the element ``attributes'' will be
+displayed. The default is is to display only those attributes with non-zero values. ``Attributes''
+here does not include such things as the cross-section, Taylor map and wiggler element parameters.
+
+By default, the appropriate element(s) within the \vn{model} lattice (\sref{s:universe}) are
+used. This can be overridden by using the \vn{-base} or the \vn{-design} switches which switch the
+lattice to the \vn{base} or \vn{design} lattices respectively.
+
+If the \vn{-wall} switch is present, the wall information for the element, if it has been defined in
+the lattice file, is displayed. For an x-ray \vn{capillary} element, the wall is the inner surface
+of the capillary. For all other elements, the wall is the beam chamber wall.
+
+If the \vn{-data} switch is present, information about the all the datums associated with the
+element will be listed.
+
+If the \vn{-floor_coords} switch is present, the global floor coordinates at the exit end of the
+element will be printed. See the \bmad manual for an explanation of the floor coordinates.
+
+When using wild cards in the element name, if the \vn{-no_super_slaves} switch is present then
+\vn{super_slave} elements will not be included in the output. If the \vn{-no_slaves} switch is
+present, both \vn{super_slave} and \vn{multipass_slave} elements will be ignored.
+
+If the \vn{-taylor} switch is present, the Taylor map associated with an element, if there is one,
+is also displayed. An element will have an associated Taylor map if tracking or transfer matrix
+calculations for the element call for one. For example, if an elements \vn{tracking_method} is set
+to \vn{Taylor}, it will have an associated Taylor map. To see the Taylor map for an element that
+does not have an associated map, use the \vn{show taylor_map} command.
+
+If the \vn{-field} switch is present, any associated Electro-magnetic field maps or grid data is
+printed. For example, wiggler terms for a \vn{map_type} \vn{wiggler} element are printed.
+
+If the \vn{-xfer_mat} switch is present, the 6x6 transfer matrix (the first order part of the
+transfer map) along with the zeroth order part of the transfer map are printed.
+
+The \vn{-all} switch is equivalent to using:
+\begin{example}
+  -attributes
+  -floor_coords
+  -taylor
+  -wall
+  -xfer_mat
+\end{example}
+If the element has a field map, the \vn{-all} switch will print map parameters (such as the spacing between points) but
+not the entire field table itself. To print the field table as well, use the \vn{-field} switch.
+
+Example:
+\begin{example}
+  show ele quad::z* -no_slaves  ! list all non-slave quadrupole elements with 
+                                !   names beginning with "z".
+  show ele q10w                 ! Show a particular lattice element.
+  show ele -att 105             ! Show element #105 in the lattice.
+\end{example}
+
+%% show emittance --------------------------------------------------------------
+
+\subsection{emittance}
+\label{s:show.emit}
+
+Syntax:
+\begin{example}
+  show emittance \{-element <ele_id>\} \{-sigma_matrix\} \{-universe <uni_index>\} \{-xmatrix\} 
+\end{example}
+
+The \vn{show emittance} command shows, for a given lattice branch, the three normal mode emittances
+as calculated by PTC, a full non-PTC based 6D calculation, and via radiation integrals evaluation
+(also non-PTC).
+
+The \vn{-element} switch is used to select what lattice element is used as the end points of the
+one-turn integrals that are used in the calculation. If the \vn{-element} switch is not present, the
+beginning element of the default branch (set by \vn{set default branch}) is used. With radiation
+damping, the emittance is not an exact invariant of the motion. Thus the calculated emittance will
+vary depending upon what lattice element is used.
+
+If the \vn{-sigma_matrix} switch is present, the sigma matrix at the given element will be displayed
+along with the emittances.
+
+If the \vn{-xmatrix} switch is present, instead of showing emittances, the damping and stochastic
+kick transfer matrices used for particle tracking are displayed for the element given by the
+\vn{-element} switch.
+
+Examples:
+\begin{example}
+  show emit -ele 1>>q7  ! Use element q7 in branch \#1
+\end{example}
+
+%% show field --------------------------------------------------------------
+
+\subsection{show field}
+\label{s:show.field}
+
+Syntax:
+\begin{example}
+  show field <ele> \{-derivatives\} \{-absolute_s\} \{-percent_len\} <x> <y> <s> \{<t-or-z>\}
+\end{example}
+
+The \vn{show field} command shows the electric and magnetic field at a point in space-time and, if
+the \vn{-derivatives} switch is present, the field derivatives as well as curl and divergence are
+also printed.
+
+\vn{<ele>} is the lattice element whose fields are to be displayed. The syntax for \vn{<ele>} is
+explained in section \sref{s:ele.list.format}. Wild card characters are permitted. If multiple
+elements are matched, the field for each will be printed.
+
+\vn{<x>}, and \vn{<y>} are the transverse coordinates and \vn{<s>} coordinate is the longitudinal
+position with respect to the beginning of the element. 
+
+The \vn{<t-or-z>} argument is optional and specifies the time if absolute time tracking is being
+used or the phase space $z$ value if relative time tracking is being used (use the \vn{show
+universe} command to see if absolute time tracking is used or not). The \vn{<t-or-z>} argument is
+only useful for elements with RF fields. If not set, \vn{<t-or-z>} will default to zero.
+
+Expressions can be used for all real quantities. An expression must be quoted if it contains any
+blank spaces or, simpler, any blank spaces can be removed.
+
+If the \vn{-absolute_s} switch is present, the \vn{<s>} value will be relative to the start
+of the element's lattice branch instead of relative to the start of the element.
+
+If the \vn{-percent_len} switch is present, the \vn{<s>} value will be taken as a percentage
+of the element length with 0.0 representing the upstream end of the element and 1.0 representing
+the downstream end.
+
+\begin{example}
+  show field q1 0.1  0.2, 0.5*ele::q1[L]  ! Show field at (x, y) = (0.1, 0.2) and 
+                                          !    at s-center of q1 element.
+  show field q1 -percent 0.1  0.2 0.5     ! Same as above.
+  show field 2>>3 0 0 0 -deriv            ! Show field at start of 3rd element in branch 2.
+\end{example}
+
+%% show global --------------------------------------------------------------
+
+\subsection{show global}
+\label{s:show.global}
+
+Syntax:
+\begin{example}
+  show global \{-bmad_com\} \{-space_charge_com\} \{-optimization\} \{-ptc_com\} \{-ran_state\} 
+\end{example}
+
+The \vn{show global} command prints lists of global parameters. 
+
+Note: The state of the random number generator is only used for debugging purposes and is not of
+interest to the typical user.
+
+Specifically:
+\begin{example}
+  show global                   ! Displays \tao's global parameters.
+  show global -bmad_com         ! Displays \vn{bmad_com} parameters (\sref{s:globals}).
+  show global -space_charge_com ! Displays \vn{space_charge_com} parameters (\sref{s:globals}).
+  show global -optimization     ! Displays optimization parameters.
+  show global -ran_state        ! Displays the state of the random number generator.
+\end{example}
+
+Use the \vn{set} command to set global parameters 
+
+%% show graph --------------------------------------------------------------
+
+\subsection{show graph}
+\label{s:show.graph}
+
+Syntax:
+\begin{example}
+  show graph <graph_name>
+\end{example}
+
+Show information on a particular graph of a particular plot. See \sref{c:plotting} for the syntax on
+plot, graph, and curve names.  Use \vn{show plot} to get a list of plot names.
+
+If there are visible plots with the same name as the plot parameter of \vn{<graph>}, a template plot
+of the same name is ignored. To show template plot graphs(s) in this case, add a ``\vn{T::}''
+prefix.
+
+Also see: \vn{show plot} and \vn{show curve} commands.
+
+Example:
+\begin{example}
+  show graph r2.g1         ! Show the attributes of graph "g1" which is 
+                           !   plotted in region "r2".
+\end{example}
+
+%% show history --------------------------------------------------------------
+
+\subsection{show history}
+\label{s:show.history}
+
+Syntax:
+\begin{example}
+  show history \{-filed\} \{-no_num\} \{<num_to_display>\}
+\end{example}
+
+Shows the command history. Each command is given an index number starting from 1 for the first
+command. This index is printed with the command unless the \vn{-no_num} switch is present. If the
+\vn{-filed} switch is present, the numbering is shifted so that the current \vn{show history} command
+has index zero.
+
+The number of commands printed is, by default, the last 50. Setting the \vn{<num_to_display>} will
+change this. Setting \vn{<num_to_display>} to \vn{all}  will cause all the commands to be printed.
+
+Use the command \vn{re_execute} (\sref{s:re.exe}) to re-execute a command. Also the up and down
+arrow keys on the keyboard can be used to scroll through the command history stack.
+
+If a command file has been called, the commands within the command file will be displayed but will
+be proceeded by an exclamation mark ``!'' to show that the command was not ``directly'' executed.
+
+Commands from previous sessions of \tao are saved in the file \vn{~/.history_tao}. By default they
+are not displayed. Use the \vn{-filed} switch to include commands from previous sessions.
+
+Examples
+\begin{example}
+  show -write cmd_file hist all -no   ! Create a command history file
+  show hist 30                        ! Show the last 30 commands.
+\end{example}
+
+%% show hom --------------------------------------------------------------
+
+\subsection{show hom}
+\label{s:show.hom}
+
+Syntax:
+\begin{example}
+  show hom
+\end{example}
+
+Shows long--range higher order mode information for linac accelerating
+cavities.
+
+%% show hom --------------------------------------------------------------
+
+\subsection{show internal}
+\label{s:show.internal}
+
+The \vn{show internal} command is for printing parameter values that are internal to \tao. This
+command is used for code debugging and not useful (nor understandable) to non-programmers. Note to
+programmers: Further information is contained in the code that executes the \vn{show internal}
+command.
+
+%% show key_bindings  --------------------------------------------------------------
+
+\subsection{show key_bindings}
+\label{s:show.key}
+
+Syntax:
+\begin{example}
+  show key_bindings
+\end{example}
+
+Shows all key bindings (\sref{s:key.bind}).
+
+%% show lattice --------------------------------------------------------------
+
+\subsection{show lattice}
+\label{s:show.lattice}
+
+Syntax:
+\begin{example}
+  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} \{-beginning\}
+      \{-blank_replacement <string>\}  \{-branch <name_or_index>\} \{-center\}
+      \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
+      \{-no_label_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-no_tail_lines\} \{-orbit\} 
+      \{-python\} \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} 
+      \{-rms\} \{-s <s1>:<s2>\} \{-spin\} \{-sum_radiation_integrals\} \{-tracking_elements\} 
+      \{-undef0\} \{-universe <uni_index>\} \{<element_list>\} 
+\end{example}
+
+Show a table of Twiss and orbit data, etc. at the specified element locations. The default is to
+show the parameters at the exit end of the elements. To show the parameters in the middle use the
+\vn{-middle} switch.
+
+By default, the appropriate element(s) within the \vn{model} lattice (\sref{s:universe}) are
+used. This can be overridden by using the \vn{-base} or the \vn{-design} switches which switch the
+lattice to the \vn{base} or \vn{design} lattices respectively.
+
+\begin{description}
+\item[-0undef] \Newline
+See the \vn{-undef0} attribute for a description. Also see the \vn{blank_replacement} switch.
+%
+\item[-all] \Newline
+For lattices with a large number of elements, the \vn{show lattice} command defaults to only showing
+the first 200 elements or so to prevent the accidental generation of possibly tens of thousands of
+lines. The \vn{-all} switch overrides this default and shows all tracking and lord elements. Also
+see the \vn{-lords}, \vn{-no_slaves}, \vn{no_super_slaves}, \vn{-tracking_elements} switches.
+%
+\item[-attribute <attrib>] \Newline
+Instead of defining a custom file, the \vn{-attribute <attrib>} switch can be used as a shortcut way
+for customizing the output columns.  When using the \vn{-attribute} switch, the first five columns
+are the the same default columns of \vn{index}, \vn{name}, \vn{element key}, \vn{s} and
+\vn{length}. All additional columns are determined by the \vn{-attribute} switch. Multiple
+\vn{-attribute} switches can be present and the number of additional columns will be equal to the
+number of times \vn{-attribute} is used.  The \vn{<attrib>} parameter for each \vn{-attribute}
+switch specifies what attribute will be printed.  The general form of \vn{<attrib>} is:
+\begin{example}
+  attribute-name         or
+  attribute-name@format
+\end{example}
+where \vn{attribute-name} is the name of an attribute and \vn{format} specifies the Fortran style
+edit descriptors to be used (\sref{s:edit.descrip}). The default format is \vn{es12.4}.  Example:
+\begin{example}
+  show lat -attrib is_on@l4 -attrib voltage rfcavity::*
+\end{example}
+In the above example, \vn{-attribute} appears twice and the total number of columns of output will
+thus be 7 (= 5 + 2). The sixth column will have the \vn{is_on} element attribute and will be printed
+using the \vn{l4} format (logical with a field width of 4 characters). The seventh column will show
+the voltage attribute.
+
+Note: Data can be used in custom output but data is evaluated independent of whether the
+\vn{-middle} switch is used.
+
+Also see the \vn{-0undef}, \vn{-undef0}, and \vn{-blank_replacement} switches.
+%
+\item[-base] \Newline
+  Show values from the \vn{base} lattice instead of the \vn{model} lattice. Also see the \vn{-design} switch.
+%
+\item[-beginning] \Newline
+Show value evaluated at the beginning of the lattice elements instead of the default exit end.  The
+\vn{-beginning} switch is ignored when displaying ``Intrinsic'' element parameters such as the
+element's length or an element's field strength (which can be displayed using the \vn{-attribute}
+switch as discussed below). Also the \vn{-beginning} switch is ignored when displaying beam based
+parameters. Also see \vn{-middle}.
+%
+\item[-blank_replacement <string>] \Newline
+The \vn{-blank_replacement} switch specifies that whenever a blank string is encountered (for
+example, the \vn{type} attribute for an element can be blank), \vn{<string>} should be substituted
+in its place. \vn{<string>} may not contain any blank characters. Example:
+\begin{example}
+  show lat -cust custom.file -blank zz 1:100
+\end{example}
+This will replace any blank fields with ``zz''.
+%
+\item[-branch] \Newline
+The \vn{-branch <name_or_index>} option can be used to specify the branch of the lattice.
+\vn{<name_or_index>} can be the name or index of the branch.  The default is the main branch (\# 0).
+%
+\item[-center] \Newline
+Same as \vn{-middle}. See \vn{-middle} documentation for more details.
+%
+\item[-custom <file_name>] \Newline
+A table with customized columns may be constructed either by using the \vn{-custom} switch which
+specifies a file containing a description of the custom columns or by using one or more
+\vn{-attribute} switches. Example customization file:
+\begin{example}
+  &custom_show_list
+    col(1)  = "#",                      "i6"  
+    col(2)  = "x",                      "2x"    ! two blank spaces
+    col(3)  = "ele::#[name]",           "a0"  
+    col(4)  = "ele::#[key]",            "a16"
+    col(5)  = "ele::#[s]",              "f10.3"
+    col(6)  = "ele::#[l]",              "f10.3"
+    col(7)  = "ele::#[beta_a]",         "f7.2"
+    col(8)  = "1e3 * ele::#[orbit_x]",  "f8.3", "Orbit_x| (mm)" 
+    col(9)  = "lat::unstable.orbit[#]", "f9.3"
+    col(10) = "beam::n_particle_loss[#]", "i8"
+  /
+\end{example}
+each \vn{col(n)} line has three parameters. The first parameter is what is to be displayed in that
+column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}). The second parameter is the
+Fortran edit descriptor. Notice that strings (like the element name) are left justified and numbers
+are right justified. In the case of a number followed by a string, there will be no white space in
+between. The use of an "x" column can solve this problem. A field width of 0, which can only be used
+for an \vn{ele::\#[name]} column, indicates that the field width will be taken to be one greater
+then the maximum characters of any element name.
+
+The last parameter is column title name. This parameter is optional and if not present then \tao
+will choose something appropriate. The column title can be split into two lines using \vn{"|"} as a
+separator.  In the example above, The column title corresponding to \vn{"Orbit_x| (mm)"} will have
+``Orbit_x'' printed in one row of the title and ``(mm)'' in the next row.
+
+To encode the element index, use a \vn{\#} or \vn{\#index}. To encode the branch index, use
+\vn{\#branch}. Any element attribute is permitted ("show ele" will show element attributes or see
+the Bmad manual). Additionally, the following are recognized:
+\begin{example}
+  x                           ! Add spaces
+  #                           ! Index number of element.
+  ele::#[name]                ! Name of element.
+  ele::#[key]                 ! Type of element (``quadrupole'', etc.)
+  ele::#[slave_status]        ! Slave type (``super_slave'', etc.)
+  ele::#[lord_status]         ! Slave type (``multipass_lord'', etc.)
+  ele::#[type]                ! Element type string (see \bmad manual).
+\end{example}
+
+Note: Data can be used in custom output but data is evaluated independent of whether the
+\vn{-middle} switch is used.
+
+Also see the \vn{-0undef}, \vn{-undef0}, and \vn{-blank_replacement} switches.
+%
+\item[-design] \Newline
+Show values from the \vn{design} lattice instead of the \vn{model} lattice. Also see the \vn{-base}
+switch.
+%
+\item[<element_list>] \Newline
+The locations to show are specified either by specifying an element list or by specifying a
+longitudinal position range using the \vn{-s} switch The syntax used for specifying the element list
+is given in the \vn{Lattice Element List Format} section (\sref{s:ele.list.format}). In this case
+there should be no blank characters in the list.
+%
+\item[-floor_coords] \Newline
+If present, the \vn{-floor_coords} switch will print the global floor (laboratory) coordinates for
+each element. If used with the \vn{-orbit} option, the orbit in floor coordinates will be shown.
+%
+\item[-lords] \Newline
+If present, the \vn{-lords} switch will print a list of lord elements only. Also see the
+\vn{-all}, \vn{-no_slaves}, \vn{no_super_slaves}, \vn{-tracking_elements} switches.
+%
+\item[-middle] \Newline
+Show value evaluated at the middle of the lattice elements instead of the default exit end.
+The \vn{-middle} switch is ignored when displaying ``Intrinsic'' element
+parameters such as the element's length or an element's field strength (which can be displayed using
+the \vn{-attribute} switch as discussed below). Also the \vn{-middle} switch is ignored when
+displaying beam based parameters. Also see \vn{-beginning}.
+%
+\item[-no_label_lines] \Newline
+If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the
+column labels) lines at the top and bottom of the table.  This is useful when the output needs to be
+read in by another program. Also see the \vn{-no_tail_lines} switch.
+%
+\item[-no_slaves] \Newline
+If the \vn{-no_slaves} switch is present, all \vn{super slave} and \vn{multipass slave} elements
+will be ignored. Also see the \vn{-all}, \vn{-lords}, \vn{no_super_slaves}, \vn{-tracking_elements}
+switches.
+%
+\item[-no_super_slaves] \Newline
+If present, the \vn{-no_super_slaves} switch will veto from the list of elements to print all
+\vn{super slave} elements. Also see the \vn{-all}, \vn{-lords}, \vn{-no_slaves}, \vn{no_super_slaves},
+\vn{-tracking_elements} switches.
+%
+\item[-no_tail_lines] \Newline
+The \vn{-no_tail_lines} just suppress the header lines at the bottom of the table. Also see the
+\vn{-no_label_lines} switch.
+%
+\item[-orbit] \Newline
+The \vn{-orbit} switch will show the particle's phase space orbit which is the closed orbit if the
+lattice has a closed geometry and is the orbit beginning from the specified starting position for
+lattices with an open geometry. Use \vn{set particle_start} to vary the starting position in this
+case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed. If used
+with the \vn{-floor_coords} option, the orbit in floor coordinates will be shown.
+%
+\item[-python] \Newline
+The \vn{-python} switch gives a comma delimited table as output. This switch is used with the
+\vn{python} command (\sref{s:python}).
+%
+\item[-radiation_integrals] \Newline
+The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for each
+lattice element instead of the standard Twiss and orbit data. See the \bmad manual for the
+definitions of the radiation integrals. Also see \vn{-sum_radiation_integrals}.
+%
+\item[-remove_line_if_zero <column \#>] \Newline
+If present, the \vn{-remove_line_if_zero} switch will suppress any lines where the value
+in the column given by \vn{<column \#>} is zero or not defined. Notice that when specifying custom
+columns using the \vn{-custom} switch, columns that only insert blank space are not counted. For
+example:
+\begin{example}
+  show lat -custom cust.table -remove 5
+\end{example}
+Assuming that the file \vn{cust.table} contains the example customization given above, the fifth
+visible column corresponds to \vn{column(6)} which prints the element length. The \vn{-remove 5}
+will then remove all lines associated with elements whose length is zero. Multiple
+\vn{-remove_line_if_zero} may be present. In this case the row will be suppressed if all designated
+columns have a zero entry.
+%
+\item[-rms] \Newline
+When the \vn{-rms} switch is present, five additional lines will be added to the output showing the
+mean and RMS values for columns that had floating point numbers along with mean and RMS values
+integrated over the longitudinal s-position. A simple trapezoid integration is used for the
+integrated values. The fifth row shows the number of data points. Only valid values will be included
+in the calculation.
+%
+\item[-s <s1>:<s2>] \Newline
+The locations to show are specified either by specifying a longitudinal position range with \vn{-s},
+or by specifying a list \vn{<element_list>} of elements. 
+%
+\item[-spin] \Newline
+The \vn{-spin} switch will show the particle's spin which is the invariant spin if the lattice has a
+closed geometry and is the spin beginning from the specified starting spin for lattices with an open
+geometry. Use \vn{set particle_start} to vary the starting spin in this case. If the \vn{-orbit} switch
+is also present, the particle's phase space orbit will also be displayed.
+%
+\item[-sum_radiation_integrals] \Newline
+The \vn{-sum_radiation_integrals} switch, if present, will display the radiation integrals
+integrated from the start of the lattice to for each lattice element. See the \bmad manual for the
+definitions of the radiation integrals. Also see the \vn{-radiation_integrals} switch.
+%
+\item[-tracking_elements] \Newline
+The \vn{-tracking_elements} switch can be used to show all the elements in the tracking part of the
+lattice. Also see the \vn{-all}, \vn{-lords}, \vn{-no_slaves}, \vn{no_super_slaves} switches.
+%
+\item[-undef0] \Newline
+If an attribute does not exist for a given element (for example, \vn{quadrupole}s do not have a
+\vn{voltage}), a series of dashes, ``-{}-{}-{}-'', will be placed in the appropriate spot in the
+table.  Additionally, an arithmetic expression that results in a divide by zero will result in
+dashes being printed. This behavior is changed if the \vn{-0undef} or \vn{-undef0} switch is
+present. In this case, a zero, ``0'', will be printed. The difference between \vn{-0undef} and
+\vn{-undef0} is that with \vn{-undef0} the zero will be printed using the same format as the other
+numbers in the column. With the \vn{-0undef} switch the zero will be printed as a right justified
+``0'' which gives a visual clue to differentiate between a true zero value and a zero that
+represents an undefined parameter.
+%
+\item[-universe <index>] \Newline
+The \vn{-universe} switch specifies which universe is used. If not present, the current viewed universe is
+used.
+\end{description}
+
+Examples:
+\begin{example}
+  show lattice 50:100         ! Show lattice elements with index 50 through 100
+  show lat 45:76, 101, 106    ! Show element #45 through #76 and 101 and 106.
+  show lat q34w:q45e          ! Show from element q34w through q45e.
+  show lat q*                 ! Show elements whose name begins with "q"
+  show lat marker::bpm*       ! Show marker elements whose name begins with "bpm"
+  show lat -s 23.9:55.3       ! Show elements whose position is between 
+                              !   23.9 meters and 55.3 meters.
+  show lat -att x_offset -rms ! Table will have a column of lattice element x_offset
+                              !   values. Additionally, mean and RMS will be shown.
+\end{example}
+
+%% show matrix --------------------------------------------------------------
+
+\subsection{show matrix}
+\label{s:show.matrix}
+
+The \vn{show matrix} command is shorthand for \vn{show taylor_map -order 1}. See the \vn{show
+taylor_map} documentation for more details on optional arguments, etc.
+
+Also see \vn{write matrix}.
+
+Examples:
+\begin{example}
+  show matrix q10w q12e           ! 0th and 1st order maps from q10w to q12e
+  show taylor -order 1 q10w q12e  ! Same as above.
+  show matrix -ele *              ! Show matrices for all lattice elements.
+\end{example} 
+
+%% show merit --------------------------------------------------------------
+
+\subsection{show merit}
+\label{s:show.merit}
+
+Syntax:
+\begin{example}
+  show merit \{-derivative\} \{-merit_only\}
+\end{example}
+
+If the \vn{-derivative} switch is present, this command shows top dMerit/dVariable derivatives, and
+Largest changes in variable value. If not present, this command shows top contributors to the merit
+function.
+
+Also see: \vn{show constraints}.
+
+If the \vn{-merit_only} switch is present, only the value of the merit function is printed and
+nothing else. That is, it makes the output compact if only the value of the merit function is
+desired.
+
+Note: To set the number of top contributors shown, use the command 
+\begin{example}
+  set global n_top10_merit = <number>
+\end{example}
+where \vn{<number>} is the desired number of top contributors to the merit function to be shown.
+
+Note: The \vn{show merit} command was once called the \vn{show top10} command.
+
+Example:
+\begin{example}
+  show merit -der     ! Show merit derivative info
+\end{example}
+
+%% show optimizer --------------------------------------------------------------
+
+\subsection{show optimizer}
+\label{s:show.optimizer}
+
+Syntax:
+\begin{example}
+  show optimizer \{-geodesic_lm\}
+\end{example}
+
+
+Shows parameters pertinent to optimization: Data and variables used,
+etc. 
+
+If \vn{-geodesic_lm} option is present, parameters for the \vn{geodesic_lm} optimizer will
+be shown. These parameters are shown in any case if the optimizer has been set to use
+\vn{geodesic_lm}.
+
+Also see:
+\begin{example}
+  show constraints
+  show data
+  show derivative
+  show merit
+  show variables
+\end{example}
+
+%% show particle --------------------------------------------------------------
+
+\subsection{show particle}
+\label{s:show.particle}
+
+Syntax:
+\begin{example}
+    show particle \{-bunch <bunch_index>\} \{-particle <particle_index>
+                  \{-element <element_id>\} \{-lost\} \{-all\}
+\end{example}
+
+
+Shows individual beam particle information except if the the \vn{-lost} or \vn{-all} options are used. 
+
+The default for the optional \vn{-bunch} index is set by the global variable \vn{global%bunch_to_plot}.
+The default \vn{-element} is \vn{init} which is the initial beam distribution.
+The default \vn{-particle} to show is the particle with index 1.
+
+The \vn{-lost} option shows which particles are lost during beam tracking. Note: Using the
+\vn{-lost} option results in one line printed for each lost particle. It is thus meant for use with
+bunches with a small number of particles.
+
+The \vn{-all} option shows all particles at the given element.
+
+The \vn{dtime} column shows the time relative to the reference time ($t - t_{ref}$). The conversion
+between phase space $z$ and \vn{dtime} is $z = -\beta \, c \, (t - t_{ref})$ where $\beta = v/c$ is
+the normalized velocity. Since \vn{dtime} is undefined if $\beta = 0$, zero will be displayed in
+this case.
+
+Also see \vn{show beam}.
+
+Examples:
+\begin{example}
+  show part -bun 3 -part 47 -ele 8 ! Shows information on particle #47 of 
+                                   !   bunch #3 at lattice element #8.
+  show part -part 47 -ele 8        ! Same as above except the default bunch is used.
+  show part -lost -bun 3           ! Show lost particle positions for bunch #3
+\end{example}
+
+%% show plot --------------------------------------------------------------
+
+\subsection{show plot}
+\label{s:show.plot}
+
+Syntax:
+\begin{example}
+  show plot \{-floor_plan\} \{-page\} \{-lat_layout\} \{-regions\} 
+            \{-templates\} \{<plot_or_template_name>\}
+\end{example}
+
+The \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands show the parameters
+associated with the \vn{floor_plan} or \vn{lat_layout} plots (\sref{s:shapes}). Use the \vn{set
+floor_plan} or \vn{set lat_layout} commands to set these parameters.
+
+The \vn{show plot -page} command shows some plot page plotting parameters like the size of the plot
+window.
+
+The \vn{show plot -regions} command shows what plots are placed in which regions. Use the \vn{place}
+command to change where plots are placed.
+
+The \vn{show plot -templates} command displays what plot templates have been defined for plotting.
+See \sref{s:init.plot} for information on setting up template plots.
+
+The \vn{show plot <plot_or_region_name>} command will display information on a particular plot. If
+there are visible plots with the same name, a template plot of the same name is ignored. To show a
+template plot in this case, add a ``\vn{T::}'' prefix.
+
+The various \vn{show plot} options are mutually exclusive and only the last option is used. That is,
+a command like
+\begin{example}
+  show plot -lat_layout -regions
+\end{example}
+is equivalent to \vn{show plot -regions}.
+
+Also see \vn{show graph} and \vn{show_curve}.
+
+Examples:
+\begin{example}
+  show plot         ! Show plot region information by default.
+  show plot r13     ! Show information on plot in region r13.
+  show plot T::beta ! Show template beta plot.
+\end{example}
+
+%% show ptc --------------------------------------------------------------
+
+\subsection{show ptc}
+\label{s:show.ptc}
+
+Syntax:
+\begin{example}
+  show ptc 
+\end{example}
+
+Show quantities as calculated by PTC. This command is under development. Currently emittances and
+tunes are shown.
+
+%% show radiation_integrals --------------------------------------------------------------
+
+\subsection{show radiation_integrals}
+\label{s:show.rad.int}
+
+Syntax:
+\begin{example}
+  show  \{-branch <branch_name>\} \{universe_number\}
+\end{example}
+
+Show radiation integrals along with associated parameters computed from the integrals like the
+emittance, damping decrement, etc. Values for the associated parameters like the emittance will vary
+from the values shown by the \vn{show universe} command since the \vn{show universe} command uses a
+computation that derives from the transport matrices with included radiation effects. Differences
+between the two are due to differing approximations as explained in the \bmad manual (See the
+chapter on \vn{Synchrotron Radiation}).
+
+%% show spin --------------------------------------------------------------
+
+\subsection{show spin}
+\label{s:show.spin}
+
+Syntax:
+\begin{example}
+  show spin \{-element \{<ref_ele_name>\} <ele_name>\} \{-flip_n_axis\} \{-g_map\}
+                  \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
+                  \{-ignore_kinetic <ele_list>\}
+                  \{-x_zero <ele_list>\} \{-y_zero <ele_list>\} \{-z_zero <ele_list>\}
+\end{example}
+
+Show spin related information.  Note: To see the closed orbit invariant spin at any element, make
+sure spin tracking is on (if not, use: \vn{set bmad_com spin_tracking_on = T}), and then the
+\vn{show element} command will display $n_0$.
+
+If \vn{-element} is not present, \vn{show spin} will show various quantities including polarization
+limits and polarization rates. See the \vn{Spin Dynamics} chapter of the \bmad manual for a
+discussion of how these quantities are calculated.
+
+If \vn{-element} is present, the output will be the first order spin transfer map from the
+downstream end of the element given by \vn{<ref_ele_name>} to the downstream end of the element
+given by \vn{<ele_name>}.  If \vn{<ref_ele_name>} is not given, the default is the element
+given by \vn{<ele_name>}. This gives the 1-turn spin transport from the downstream end of
+\vn{<ele_name>}. The spin map can be displayed in two different forms. If the \vn{-l_axis}
+or \vn{-n_axis} is given, or if \vn{-g_map} is present, the G-matrix form of the spin map will be
+printed.  The G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin
+vector (see the \vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and
+$\Bf l$ axes can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. The $\Bf m$-axis is
+calculated from knowledge of the other two axes. If not given, the $\Bf n$-axes will be set to the
+reference orbit $\bfn_0$ value (the reference orbit is the closed orbit if the lattice geometry is
+closed).  The $\Bf l$-axis, if not given, will be chosen to be perpendicular to $\Bf n$. Commas
+between axis parameters are optional. If \vn{q_map} is present, or if the G-matrix is not being
+printed, the quaternion form of the map will be printed.
+
+To see the linear spin-orbit resonance strengths, use the \vn{-ele} switch with either
+\vn{<ref_ele_name>} being blank or the same as \vn{<ele_name>}. The spin-orbit resonance strength
+table has three rows for the three orbital modes $a$, $b$, and $c$. The columns of the table are:
+\begin{Itemize}
+  \item Col 1: Name of mode
+  \item Col 2: Orbital tune.
+  \item Col 3: Q_spin + Q_mode + N where N is an integer that minimizes this expression. 
+The sum resonance occures when this is zero. 
+  \item Col 4: Sum resonance strength. This number is only accurate if the value
+of column 3 is small compared to one.
+  \item Col 5: Q_spin - Q_mode + N where N is an integer that minimizes this expression. 
+The difference resonance occures when this is zero. 
+  \item Col 6: Difference resonance strength. This number is only accurate if the value
+of column 5 is small compared to one.
+\end{Itemize}
+\vskip -1.0ex
+See the Bmad manual section on the linear spin/orbit resonance analysis for more details. The
+\vn{python spin_resonance} command can be used to extract resonance values when using running \tao
+with a script.
+
+The \vn{-flip_n_axis} switch, if present, will flip the direction of the displayed $n$-axis. 
+
+The \vn{-x_zero}, \vn{-y_zero}, and \vn{-z_zero} options are for testing if supressing certain terms
+in the linear part of the spin transport map for a set of elements selected by the user will
+significantly affect the polarization. This is discussed in the section ``\vn{Linear dn/dpz
+Calculation}'' in the \bmad manual. In particular, \vn{-x_zero} will zero the $\bfq_1$ and $\bfq_2$
+terms in the $\arrowbfq$ vector (equivalent to zeroing $\bfG_x$ in the SLIM fromalism) for the spin
+transport map of the chosen lattice elements. Similarly, \vn{-y_zero} and \vn{-z_zero} will zero
+vertical and longitudinal components. Element list format (\sref{s:ele.list.format}), without any
+embedded blanks, is used for the \vn{<ele_list>} list of elements to apply to.
+
+The \vn{-ignore_kinetic} option can be used such that the kinetic term in the Derbenev-Kondratenko
+polarization formula coming from lattice elements specified by \vn{<lat_list>} are not used in
+evaluating the polarization. Element list format (\sref{s:ele.list.format}), without any embedded
+blanks, is used for the \vn{<ele_list>} list of elements to apply to.
+
+
+Example:
+\begin{example}
+  show spin
+  show spin -ele Q1-1 Q1 -n 0,1,0 -l 1,0,0  ! G-matrix for Q1
+  show spin -ele S1      ! 1-turn analysis at downstream end of S1 
+  show spin -ele 4 7 -g  ! G-matrix from end of element 4 to end of element 7
+  show spin -x_zer s1:s2 ! Zero \(\bfq_1\) and \(\bfq_2\) components for all lattice elements
+                         ! between elements s1 and s2.
+  show spin -ign B0\%    ! Ignore the kinetic term for all elements whose name has three 
+                         !   characters and starts with "B0".
+\end{example}
+
+%% show string --------------------------------------------------------------
+
+\subsection{show string}
+\label{s:show.string}
+
+Syntax:
+\begin{example}
+  show string \{string-to-print\}
+\end{example}
+
+Print a string. This can be useful when creating a data file. Use ``\vn{\B{}n}'' to output multiple
+lines. Anything within backticks, \`{}...\`{}, will be evaluated. If an evaluated quantity is an
+array, the array is enclosed in brackets ``[...]''. Also if the evaluated quanty ends in
+\vn{``@@N''} where \vn{N} is an integer, this is used to determine the accuracy of the printed
+value(s). The default is 14. Also see \vn{show value}.
+
+Examples:
+\begin{example}
+  show -append a.dat str 2 + 2 = \`{}2+2\`{} ! Writes the line "2 + 2 = 4" to a.dat
+  show str \`{}1e3*lat::orbit.x[3:5]@@2\`{}  ! Prints something like "[3.4, 3.2, 2.7]"
+\end{example}
+
+%% show symbolic_numbers --------------------------------------------------------------
+
+\subsection{show symbolic_numbers}
+\label{s:show.symbolic}
+
+Syntax:
+\begin{example}
+  show symbolic_numbers \{-physical_constants\} \{-lattice_constants\}
+\end{example}
+
+Show the symbolic constants created using the \vn{set symbolic_number} command. 
+
+If the \vn{-physical_constants} switch is present, the predefined physical constants (like
+\vn{c_light}) along with predefined mathematical constants (like \vn{pi}) are displayed instead
+(Also see the \bmad manual for this list).
+
+If the \vn{-lattice_constants} switch is present, constants defined in the lattice are displayed.
+Note: To import these symbols into Tao, set \vn{global%symbol_import} to True (or use the
+\vn{-symbol_import} switch on the startup command line). The default is to not import lattice
+symbols.
+
+Examples:
+\begin{example}
+  set sym aaa = 23  ! Set a symbol.
+  show sym          ! Show all user defined symbols.
+  show sym -phys    ! Show predefined physical and mathematical constants.
+\end{example}
+
+%% show taylor_map --------------------------------------------------------------
+
+\subsection{show taylor_map}
+\label{s:show.taylor}
+
+Syntax:
+\begin{example}
+  show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-elements <ele_list>\} 
+            \{-lattice_format\} \{-number_format <fmt>\} \{-order <n_order>\} 
+            \{-ptc\} \{-radiation\} \{-s\} \{-universe\} \{loc1 \{loc2\}\}
+\end{example}
+
+Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by
+\vn{set default universe}). See also \vn{show matrix}.
+
+If the \vn{-elements} switch is present, other switches are ignored and the individual element
+transfer matrices (along with the zeroth order part of the map) are printed for each element
+specified by \vn{<ele_list>}. Element list format (\sref{s:ele.list.format}), without any
+embedded blanks, is used for the \vn{<ele_list>} list of elements.
+
+If neither \vn{loc1} nor \vn{loc2} are present, the transfer map is computed for the
+entire lattice.
+
+if \vn{loc1} and \vn{loc2} are the same, the 1-turn transfer map is computed. If the
+s-position of \vn{loc1} is greater than the s-position of \vn{loc2}, the map from
+\vn{loc1} to the end of the lattice with the map from the beginning to \vn{loc2} is
+computed.
+
+If the \vn{-s} switch is present, \vn{loc1} and \vn{loc2} will be interpreted as longitudinal
+s-positions. In this case, if \vn{loc2} is not present, the map will be the 1-turn map if the
+lattice is circular and the map from the beginning to \vn{loc1} if the map is not.
+
+If the \vn{-s} switch is not present, \vn{loc1} and \vn{loc2} will be interpreted as element names
+or indexes. The map will be from the exit end of the \vn{loc1} element to the exit end of the
+\vn{loc2} element. In this case, if \vn{loc2} is not present, the map will be the for the element
+given by \vn{loc1}
+
+If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated as a
+1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
+
+The \vn{-number_format} switch, if present, overrides the default format for the displayed format.
+Examples:
+\begin{example}
+  show taylor -num f12.6  ! Fixed format. 12 char width, 6 digits after decimal point.
+  show taylor -num es12.4 ! Float format. 12 char width, 4 digits after decimal point.
+\end{example}
+
+The \vn{-order} switch, if present, gives the limiting order to display. In any case, the
+maximum order of the map is limited to the order set by the lattice file.
+
+The \vn{-ptc} switch is used with \vn{-order 1}. By default, order 1 maps (matrices) are calculated
+using native Bmad code. If the \vn{-ptc} switch is present, the matrix is calculated using the
+\vn{PTC} code (see the \bmad manual for details on PTC). Since PTC is always used to calculate maps
+of order higher than 1, the \vn{-ptc} switch is ignored for higher orders. If used with the
+\vn{-radiation} switch, the \vn{-ptc} switch 
+
+The \vn{-lattice_format} switch, if present, causes the output to be displayed in a format suitable
+for using in a \bmad lattice file.
+
+If the the \vn{-radiation} switch is present, displayed will be the linear map with radiation
+damping and excitation. See the \vn{Synchrotron Radiation} chapter in the \bmad manual for how the
+matrices displayed here are defined. The RF cavities should, in general be powered since these
+affect the reference orbit and transfer matrix. The damping matrix will be computed independent of
+whether radiation damping is on or off for tracking. The difference is that the reference orbit is
+affected by having damping on or off. Having radiation damping off in fact may be the preferable
+since in an actual machine the ``sawtooth'' orbit which comes with having damping on will tend to be
+compensated by tuning of the machine to meet the design conditions. If the \vn{-ptc} switch is used
+with \vn{-radiation}, the PTC calculated closed orbit will be used as a reference instead of the
+\bmad one.
+
+To toggle radiation damping and RF use the commands:
+\begin{example}
+  set bmad_com radiation_damping_on = T
+  set global rf_on = T
+\end{example}
+Note that the calculation does not depend upon the radiation excitation being turned on (since
+radiation excitation will not affect the reference orbit or transfer matrix).
+
+The \vn{-angle_coordinates} switch, if present, causes the output to be displayed using ``angle''
+phase space coordinates $(x, x', y, y', z, p_z)$ in place of the standard \bmad canonical
+coordinates $(x, p_x, y, p_y, z, p_z)$.\footnote
+  {
+The conversion between the two coordinate systems is given in the Bmad manual.
+  }
+
+Maps are computed about the particle orbit. Not the zero orbit. Also see \vn{write matrix}.
+
+Expressions can be used for all real quantities (that is, \vn{loc1} and \vn{loc2} if \vn{-s} is
+present). An expression must be quoted if it contains any blank spaces or, simpler, any blank spaces
+can be removed.
+
+Examples:
+\begin{example}
+  show taylor -order 1 q10w q12e  ! 0th and 1st order maps from q10w to q12e
+  show taylor 45                  ! Transfer map of element #45
+  show taylor -s 13 23            ! Transfer map from s = 13 meters to 23 meters.
+  show taylor -ele quad::*        ! Show transfer matrices for all quadrupole elements.
+\end{example} 
+
+\vfill\break
+
+%% show track -----------------------------------------------------------------------
+
+\subsection{show track}
+\label{s:show.track}
+
+Syntax:
+\begin{example}
+  show track \{-b_field \{<fmt>\}\} \{-base\} \{-branch <name_or_index>\} \{-design\} 
+      \{-dispersion \{<fmt>\}\} \{-e_field \{<fmt>\}\} \{-element <ele_id>\} \{-momentum \{<fmt>\}\} 
+      \{-no_label_lines\} \{-points <num>\} \{-position \{<fmt>\}\} \{-energy \{<fmt>\}\} 
+      \{-range <s1> <s2>\} \{-s \{<fmt>\}\} \{-spin \{<fmt>\}\} \{-time \{<fmt>\}\} 
+      \{-twiss \{<fmt>\}\} \{-universe <ix_uni>\} \{-velocity \{<fmt>\}\}
+\end{example}
+
+The \vn{show track} command shows a table of phase space coords, Twiss parameters, EM fields, and
+other info at equally spaced points along the tracked orbit. Also see the \vn{show twiss_and_orbit}
+command.
+
+Command arguments that toggle whether a certain quantity is displayed have an optional \vn{<fmt>}
+format specifier that can be used to set the format of the displayed quantities. The format uses
+Fortran edit descriptor syntax (\sref{s:edit.descrip}). If ``\vn{no}'' is used as the format then
+the associated quantity will not be displayed. If there is no format specified then \tao will use
+a default format. Example:
+\begin{example}
+  show track -b_field      ! Display magnetic field parameters using the default format
+  show track -position no  ! Do not display position information.
+  show track -s 3pf12.1    ! Display S-position with decimal point shifted by 3 places.
+                           !   That is, display the S-position in millimeters.
+\end{example}
+When the value of quantities are shifted, using the ``\vn{P}'' prefix, the header string for the
+corresponding column(s) will be appropriately marked.
+
+\begin{description}
+\item[\vn{\{-b_field \{<fmt>\}\}}] \Newline
+Set the format for the three parameters of the magnetic field (in Tesla). The default, if
+\vn{-b_field} is not present, is not to print the field.
+%
+\item[\vn{\{-base\}}] \Newline
+If present, use the \vn{base} lattice for evaluating quantities. The default is the \vn{model}
+lattice.
+%
+\item[\vn{\{-branch <name_or_index>\}}] \Newline
+Lattice branch to use. The default is the default branch (\sref{s:lattice})
+%
+\item[\vn{\{-design\}}] \Newline
+If present, use the \vn{design} lattice for evaluating quantities. The default is the \vn{model}
+lattice.
+%
+\item[\vn{\{-dispersion \{<fmt>\}\}}] \Newline
+Set the format for the dispersion and dispersion derivative columns $(\eta_x, \eta'_x, \eta_y, \eta'_y)$. 
+The default is not to print these columns.
+%
+\item[\vn{\{-e_field \{<fmt>\}\}}] \Newline
+Set the format for the three parameters of the electric field (in V/m). The default is not to print
+the field.
+%
+\item[\vn{\{-element <ele_id>\}}] \Newline
+The \vn{-element} switch can be used instead of \vn{-range} to set the $s$-position. With
+\vn{-element} the track range is the extent of the element given by \vn{<ele_id>}. Note: If the
+element is a \vn{beambeam} element, the track will show the before and after particle positions at
+each strong beam slice along with the initial position after tracking through the previous lattice
+element along with the final position which is used to start tracking through the next element.
+%
+\item[\vn{\{-momentum \{<fmt>\}\}}] \Newline
+Set the format for the three phase space momentum parameters $(p_x, p_y, p_z)$. Notice that these
+are canonical momenta and are dimensionless as explained in the \bmad manual. In particular, $p_z$
+is the momentum deviation from the reference momentum. The default is to print the momenta using the
+default format.
+%
+\item[\vn{\{-no_label_lines\} }] \Newline
+If present then suppress the output header lines.
+%
+\item[\vn{\{-points <num>\}}] \Newline
+Set the number of evaluation points. That is, set the number of rows in the table.
+%
+\item[\vn{\{-position \{<fmt>\}\}}] \Newline
+Set the format for the three phase space position parameters $(x, y, z)$. See the \bmad manual for 
+details on phase space coordinates. The default is to print the position using the default format.
+The default format is \vn{3PF14.6} so the output will be in mm.
+%
+\item[\vn{\{-energy \{<fmt>\}\}}] \Newline
+Set the format for the column showing the total energy (in eV) of the particle. The default is not
+to print this.
+%
+\item[\vn{\{-range <s1> <s2>\}}] \Newline
+Set the S-position min/max bounds for the table. Default is beginning and ending $s$-positions of the
+lattice.
+%
+\item[\vn{\{-s \{<fmt>\}\}}] \Newline
+Set the format for the S-position column. The default, if \vn{-s} is not present, is to print the
+column.
+%
+\item[\vn{\{-spin \{<fmt>\}\}}] \Newline
+Set the format for the three parameters of the particle's spin. The default, if
+\vn{-spin} is not present, is not to print the spin.
+%
+\item[\vn{\{-time \{<fmt>\}\}}] \Newline
+Set the format for the time column. The default, if \vn{-s} is not present, is to not the column.
+%
+\item[\vn{\{-twiss \{<fmt>\}\}}] \Newline
+Set the format for the Beta and Alpha functions of the two transverse normal modes. The default, if
+\vn{-twiss} is not present, is not to print the Twiss parameters
+%
+\item[\vn{\{-universe <ix_uni>\}}] \Newline
+Set the universe to use. The default is the default universe (\sref{s:universe}).
+%
+\item[\vn{\{-velocity \{<fmt>\}\}}] \Newline
+Set the format for the three particle velocity parameters $(v_x/c, v_y/c, v_z/c)$ normalized by the
+speed of light. The default is not to print the velocity.
+%
+\end{description}
+
+%% show twiss_and_orbit --------------------------------------------------------------
+
+\subsection{show twiss_and_orbit}
+\label{s:show.twiss}
+
+Syntax:
+\begin{example}
+    show twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\}
+    \{-universe <ix_uni>\} <s_position>
+\end{example}
+
+The \vn{show twiss_and_orbit} shows Twiss and orbit information at a given longitudinal position
+\vn{<s_position>} including synchrotron radiation related parameters. Also see \vn{show track}.
+
+The default universe to use is the current default universe. This can be changed using the
+\vn{-universe} switch.
+
+The default is to show the \vn{model} Twiss and orbit parameters. The use of \vn{-base} or
+\vn{-design} switches can be used to show parameters for the \vn{base} or \vn{design} lattices.
+
+The particular branch used in the analysis can be selected by the \vn{-branch} switch. The
+default is the default branch (\sref{s:lattice}).
+
+Examples:
+\begin{example}
+  show twiss -uni 2 23.7     ! Show parameters in universe 2 at s = 23.7 meters.
+\end{example} 
+
+%% show universe --------------------------------------------------------------
+
+\subsection{show universe}
+\label{s:show.universe}
+
+Syntax:
+\begin{example}
+  show universe \{-branch <branch_name>\} \{universe_number\}
+\end{example}
+
+Shows various parameters associated with a given branch of a given universe. If no universe is
+specified, the current default universe is used. If no branch is given, the current default branch
+is used. Parameters displayed include tune, emittances, etc. 
+
+Here quantities like the emittance or momentum compaction factor are calculated from the transport
+matrices with included radiation effects. Previously (pre April 2022), such quantities where
+calculated from evaluation of the synchrotron radiation integrals. To see the radiation integral
+derived values use the command \vn{show} \vn{radiation_integrals}. Differences between the results
+of the transport matrix and radiation integral treatments are due to differing approximations as
+explained in the \bmad manual (See the chapter on \vn{Synchrotron Radiation}).
+
+Example:
+\begin{example}
+  show universe -branch 1 3  ! Show info on branch 1 of universe 3.
+\end{example}
+
+%% show use --------------------------------------------------------------
+
+\subsection{show use}
+\label{s:show.use}
+
+Syntax:
+\begin{example}
+  show use
+\end{example}
+
+Shows what data and variables are used in a format that, if saved to a file, can be read
+in with a \vn{call} command.
+
+%% show value --------------------------------------------------------------
+
+\subsection{show value}
+\label{s:show.value}
+
+Syntax:
+\begin{example}
+  show value \{#format <format-string>\} <expression>
+\end{example}
+
+Shows the value of an expression. The \vn{\#format} switch (notice that "\vn{\#}" is used instead of
+"\vn{-}" to avoid confusion with negative signs) can be used to set the number format.  The default
+format is \vn{es25.17} which results in number printed in scientific notation format with a field
+width of 25 and 17 digits displayed after the decimal place. Use ``\vn{f}'' for fixed point
+numbers. For example, ``\vn{f10.3}'' will give display numbers in fixed point format with a field
+width of 10 and 3 digits displayed after the decimal place. Rule: The format string must not contain
+an embedded blank space.
+
+If the expression is a vector, values will be printed one per line. The exception is that if there
+is a format specified and if the format has a repeat count\footnote
+  {
+for example ``\vn{4f10.3}'' has a repeat count of 4.
+  }
+or a comma (example ``\vn{f9.3,es9.1}''), the values will be printed on one line. 
+
+
+Also see \vn{show string}.
+
+Examples:
+\begin{example}
+  show value sqrt(3@lat::orbit.x[34]|model) + sin(0.35)
+  show value #form f10.4 ran_gauss()
+  show value #form 2es10.2 [ele::q20w[hkick], lat::beta.a[4]] ! Output on one line
+\end{example}
+The last example shows how to 
+
+
+%% show variables --------------------------------------------------------------
+
+\subsection{show variables}
+\label{s:show.variables}
+
+Syntax:
+\begin{example}
+  show variables \{-no_label_lines\} \{-universe <universes>\}            
+         \{-good_opt_only\} \{-bmad_format\} \{<var_name>\}
+\end{example}
+
+
+Shows variable information. If \vn{<var_name>} is not present, a list of all appropriate \vn{v1_var}
+classes is printed.
+
+The \vn{-universe} switch is used to select only variables what control parameters in a given
+universe or universes. Use \vn{-universe @} to select the current viewed universe.
+
+If the \vn{-bmad_format} switch is used then the Bmad lattice parameters that the \tao variables
+control will be printed in Bmad lattice format. This is the same syntax used in generating the
+variable files when an optimizer is run. If \vn{-good_opt_only} is used in conjunction with
+\vn{-bmad_format} then the list of variables will be restricted to ones that are currently being
+used in the optimization.
+
+If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the
+column labels) lines. This switch is ignored if \vn{-bmad_format} is present.
+
+Examples:
+\begin{example}
+  show var             ! List all v1 variables.
+  show var quad_k1     ! List variables in the quad_k1[*] array.
+  show var quad_k1[10] ! List detailed information on the variable quad_k1[10].
+  show var -uni 2      ! List all variables that control attributes in universe 2.
+  show var -bmad       ! List variables in Bmad Lattice format.
+\end{example}
+
+%% show version --------------------------------------------------------------
+
+\subsection{show version}
+\label{s:show.version}
+
+Syntax:
+\begin{example}
+  show version 
+\end{example}
+
+The \vn{show version} command will show the ``version'' of \tao corresponding to \tao executable
+being run. Since \bmad and \tao are under continuous development, the standard semantic versioning
+scheme using major and minor numbers does not make sense. Instead, the version string associated
+with \tao is a date encoded in the form
+\begin{example}
+  YYYY_MMDD
+\end{example}
+where \vn{YYYY} is the four digit year, \vn{MM} is the two digit month, and \vn{DD} is the two digit
+day. The version string is stored in the file \vn{\$TAO_DIR/VERSION}.  For the \vn{show version}
+command to work properly, the environment variable \vn{TAO_DIR} must be appropriately
+defined. Generally, \vn{TAO_DIR} will be defined if the appropriate \bmad setup script has been
+run. For ``Bmad Distributions'', this is the same setup script used to setup a distribution. See
+your local \bmad guru for details.\footnote
+  {
+For developers who use SVN to update their Distributions: The version string is not updated when
+you update your Distribution (the version file is not in the SVN repository). 
+  }
+
+%% show wake_elements --------------------------------------------------------------
+
+\subsection{show wake_elements}
+\label{s:show.wake_elements}
+
+Syntax:
+\begin{example}
+  show wake_elements 
+\end{example}
+
+The \vn{show wake_elements} command will list the lattice elements that have associated wake fields.  Use
+the \vn{show ele} command to get more details on a given element. Note that wakes only affect
+particle tracking when tracking with a beam of particles (not when tracking just a single particle
+which is the default for \tao).
+
+At this point in time, \tao is not setup to do multiturn tracking with bunches which means that if
+simulations with wakefields is desired, a different program have to be used like \vn{long_term_tracking}.
+
+%% show wall --------------------------------------------------------------
+
+\subsection{show wall}
+\label{s:show.wall}
+
+Syntax:
+\begin{example}
+  show wall \{-branch <name_or_index>\}\{-section <index>\} \{-angle <angle>\}
+  \{-s <s1>:<s2>\} \{<n1>:<n2>\}
+\end{example}
+
+The \vn{show wall} command shows the vacuum chamber wall associated with a lattice branch.
+
+For the building wall, use the ``show building_wall'' command.
+
+For showing the wall associated with a given element, use the ``show ele -wall'' command.
+
+The \vn{-branch} switch is used to select a particular branch.
+
+The \vn{-section} switch is used to show information about a specific chamber wall cross-section. In
+this case, all the other options are ignored except for \vn{-branch}.
+
+If \vn{-section} is not present, a list of vacuum chamber wall sections is presented. In this case,
+the range of wall sections shown is given by \vn{<n1>:<n2>} except if \vn{-s} is present in which
+case all sections within a range of \vn{s} values is given within the range \vn{<s1>} to
+\vn{<s2>}. With each section, a wall radius is given. The angle in the $(x,y)$ plane at which the
+radius is computed is determined by the \vn{-angle} option. The default angle is 0 which corresponds
+to the $+x$ direction.
+
+Examples:
+\begin{example}
+  show wall 45:100       ! Show vacuum chamber wall sections 45 through 100.
+  show wall -s 10.0:37.5 ! Show wall sections that have S-position between 10 and 37.5.
+  show wall -section 49  ! Show chamber wall section 49.
+\end{example}
+
+%% show wave --------------------------------------------------------------
+
+\subsection{show wave}
+\label{s:show.wave}
+
+Syntax:
+\begin{example}
+  show wave
+\end{example}
+
+The \vn{show wave} command shows the results of the current wave analysis (\sref{c:wave}).
+
+%% single_mode --------------------------------------------------------------
+
+\section{single_mode}\index{commands!single_mode}
+\label{s:sing}
+
+The \vn{single_mode} command puts \tao into \vn{single mode} (\sref{c:single}).  For on-line help
+when running \tao go to \vn{single mode} and type ``?''.  To get out of single mode type ``Z''.
+
+%% spawn --------------------------------------------------------------
+\section{spawn}\index{commands!spawn}
+\label{s:spawn}
+
+The \vn{spawn} command is used to pass a command to the command shell. Format:
+\begin{example}
+  spawn <shell_command>
+\end{example}
+
+The users default shell is used. \vn{spawn} only works in Linux and Unix environments.
+Note: Shell aliases will not be recognized.
+
+Examples:
+\begin{example}
+  spawn gv quick_plot.ps &      ! view a postscript file with ghostview
+                                ! (and return to the TAO prompt)
+  spawn tcsh                    ! launch a new tcsh shell 
+                                ! (type 'exit' to return to TAO)
+  spawn ls                      ! Get a directory listing.
+\end{example}
+
+%% taper --------------------------------------------------------------
+
+\section{taper}
+\index{commands!taper}
+\label{s:taper}
+
+The \vn{taper} command is used to vary magnet strengths to eliminate the transverse orbital and Twiss
+changes due to the radiation damping induced ``sawtooth'' effect. Format:
+\begin{example}
+  taper \{-universe <ix_uni>\} \{-except <ele_list>\}
+\end{example}
+
+The sawtooth effect is the variation of the energy as a function of longitudinal position due to
+radiation damping. This affects the transverse closed orbit and Twiss parameters. The \vn{taper}
+command will adjust magnet strengths in the \vn{model} universe to counteract this making strengths
+weaker or stronger in proportion to the local closed orbit momentum deviation.
+
+Note: Another way of handling the sawtooth effect is to set \vn{bmad_com%radiation_zero_average} to
+True. See the \bmad manual for more details.
+
+The magnet strengths that are tapered are the ``multipole'' like parameters:
+\begin{example}
+  dg, k1, k2, k3, ks, hkick, vkick, kick, a1, a2, ..., b1, b2, ...
+\end{example}
+Notice that something like wiggler strengths are not included.
+
+The \vn{-except} switch is used select lattice elements to not vary their magnetic strength. 
+
+Note: Tapering must be done with Rf on.
+
+Important! The scaling of the magnet strengths is done with respect to the \vn{base} lattice (which
+is the same as the \vn{design} lattice if the \vn{set lattice base = ...} command has not been
+issued). That is, if two \vn{taper} commands are issued one after another, the second \vn{taper}
+command will not affect magnet strengths. The reason why this is done is so that successive
+\vn{taper} commands do not cause the magnet strengths to ``walk''. That is, there is no unique
+solution to the taper problem since a changing all magnet strengths along with a corresponding shift
+in particle energy will not change the orbit.
+
+The \vn{-universe <ix_uni>} switch can be used select the desired universe to taper. If not present,
+the default universe will be used. Set <ix_uni> to ``*'' to choose all universes.
+
+The taper command will vary magnet strengths independent of the element's name. That is, the magnet
+strengths of elements which have the same name will be different. If a \bmad lattice file is created
+after tapering using the \vn{write bmad} command, The created lattice file will have the proper
+magnet strengths (the lattice file will use the \vn{\#\#N} construct to set strengths for individual
+elements with the same same). However, creating a lattice file in a non-\bmad (MAD, etc.) format will
+be problematical.
+
+No tapering will be applied to strengths that are controlled by an \vn{overlay} controller element.
+
+Examples:
+\begin{example}
+  taper -uni *            ! Taper all universes.
+  taper -exc solenoid::*  ! Taper default uni except solenoid elements.
+\end{example}
+
+%% timer --------------------------------------------------------------
+
+\section{timer}
+\index{commands!timer}
+\label{s:timer}
+
+The \vn{timer} command is used to show computation time. Format:
+\begin{example}
+  timer start      ! Start (reset) the timer
+  timer read       ! Display the time from the last \vn{timer start} command.    
+  timer beam       ! Toggle beam timing mode on/off.
+\end{example}
+The timer has a \vn{beam timing} mode which can be toggled using the \vn{timer beam} command. The
+initial state, when \tao is started, is for \vn{beam timing} to be off. With \vn{beam timing} mode
+on, when \tao is tracking a particle beam through the lattice, \tao will print, about once a minute,
+the element number and the elapsed time.
+
+The \vn{timer start} and \vn{timer read} commands can be used to time execution
+times. Example:
+\begin{example}
+  timer start ; call my_cmd_file ; timer read
+\end{example}
+
+Note: \vn{timer start} will toggle \vn{beam timing} off.
+
+%% use --------------------------------------------------------------
+\section{use}\index{commands!use}
+\label{s:use}
+
+The \vn{use} command un-vetoes data or variables and sets a veto for the rest of the
+data. Format:
+\begin{example}
+  use data  <data_name>
+  use var <var_name>
+\end{example}
+
+\vskip 7pt 
+
+See also the \vn{restore} and \vn{veto} commands.
+
+Examples:
+\begin{example}
+  use data orbit.x             ! use orbit.x data in the default universe.
+  use data *@orbit[34]         ! use element 34 orbit data in all universes.
+  use var quad_k1[67]          ! use variable.
+  use var quad_k1[30:60:10]    ! use variables 30, 40, 50 and 60.
+  use data *                   ! use all data in the default universe.
+  use data *@*                 ! use all data in all universes.
+\end{example}
+
+%% veto --------------------------------------------------------------
+
+\section{veto}\index{commands!veto}
+\label{s:veto}
+
+The \vn{veto} command vetoes data or variables. Format:
+\begin{example}
+  veto data <data_name> <locations>
+  veto var <var_name> <locations>
+\end{example}
+
+\vskip 7pt 
+
+See also the \vn{restore} and \vn{use} commands.
+
+Examples:
+\begin{example}
+  veto data orbit.x[23,34:56]  ! veto orbit.x data.
+  veto data *@orbit.*[34]      ! veto orbit data in all universes.
+  veto var quad_k1[67]         ! veto variable
+  veto var quad_k1[30:60:10]   ! veto variables 30, 40, 50 and 60
+  veto data *                  ! veto all data
+  veto data *[10:20]           ! veto all data from index 10 to 20 (see note)
+\end{example}
+
+Note: The command `\cmd{veto data *.*[10:20]}' will veto all \vn{d1_data} elements within the range
+10:20 \textit{using the index convention for each \vn{d1_data} structure separately}. This may produce
+curious results if the indexes for the \vn{d1_data} structures do not all point to the same lattice
+elements.
+
+%% view --------------------------------------------------------------
+
+\section{view}\index{commands!view}
+\label{s:view}
+
+The \vn{view} command is just a shortcut for the \vn{set default universe} command. Format:
+\begin{example}
+  view <universe-index>
+\end{example}
+
+Example:
+\begin{example}
+  view 2   ! Same as "set default uni = 2".
+\end{example}
+
+%% wave --------------------------------------------------------------
+
+\section{wave}\index{commands!wave}
+\label{s:wave}
+
+The \vn{wave} command sets what data is to be used for the wave analysis (\sref{c:wave}). 
+Format:
+\begin{example}
+  wave <curve-or-data_type> \{<plot_location>\}
+\end{example}
+
+\vskip 7pt
+
+The \vn{<curve-or-data-type>} argument specifies what plot \vn{curve} or \vn{data_type} is to be
+used in the analysis. Possible \vn{<data_type>}s that can be analyzed are:
+\begin{example}
+  orbit.x, orbit.y
+  beta.a,  beta.b
+  phase.a, phase.b
+  eta.x, eta.y
+  cbar.11, cbar.12, cbar.22      ! Analysis not possible for cbar.21
+  ping_a.amp_x, ping_a.phase_x
+  ping_a.sin_y, ping_a.cos_y
+  ping_a.amp_sin_y, ping_a.amp_cos_y
+  ping_a.amp_sin_rel_y, ping_a.amp_cos_rel_y
+  ping_b.amp_y, ping_b.phase_y
+  ping_b.sin_x, ping_b.cos_x
+  ping_b.amp_sin_x, ping_b.amp_cos_x
+  ping_b.amp_sin_rel_x, ping_b.amp_cos_rel_x
+\end{example}
+If there is more than one displayed curve that has the \vn{data_type} to be analyzed, use the
+\vn{curve} name instead (\sref{c:plotting}).
+
+The \vn{<plot_location>} argument specifies the plot region where the results of the wave analysis
+is to be plotted. If not present, the region defaults to the region of the plot containing the curve
+used for the analysis.
+
+Note: use the \vn{set wave} (\sref{s:set.wave}) command to set the boundaries of the fit regions.
+
+Examples:
+\begin{example}
+  wave orbit.x      ! Use the orbit.x curve for the wave analysis.
+  wave top.x bottom ! Use the curve in top.x and the results of the 
+                    !  wave analysis are put in the bottom region.
+\end{example}
+
+%% write --------------------------------------------------------------
+
+\section{write}\index{commands!write}
+\label{s:write}
+
+The \vn{write} command creates various files.
+Format:
+\begin{example}
+  write beam ...                  ! \sref{s:write.beam}
+  write blender ...               ! \sref{s:write.blender}
+  write bmad ...                  ! \sref{s:write.bmad}
+  write bunch_comb ...            ! \sref{s:write.bunch.comb}
+  write covariance_matrix ...     ! \sref{s:write.covar.matrix}
+  write curve ...                 ! \sref{s:write.curve}
+  write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
+  write digested ...              ! \sref{s:write.digested}
+  write elegant ...               ! \sref{s:write.elegant}
+  write gif ...                   ! \sref{s:write.gif}
+  write hard                      ! \sref{s:write.hard}
+  write mad8 ...                  ! \sref{s:write.mad8}
+  write madx ...                  ! \sref{s:write.madx}
+  write matrix ...                ! \sref{s:write.mat}
+  write namelist ...              ! \sref{s:write.namelist}
+  write opal ...                  ! \sref{s:write.opal}
+  write pdf ...                   ! \sref{s:write.pdf}  
+  write ps ...                    ! \sref{s:write.ps}  
+  write ptc ...                   ! \sref{s:write.ptc}
+  write sad ...                   ! \sref{s:write.sad}
+  write spin_mat8                 ! \sref{s:write.spin.mat8}
+  write variable ...              ! \sref{s:write.variable}
+  write xsif ...                  ! \sref{s:write.xsif}
+\end{example}
+
+% Use the command:
+%   help write <subcommand>
+% to obtain more information on a particular write subcommand. Example:
+%   help write namelist
+
+%% write beam --------------------------------------------------------------
+
+\subsection{write beam}
+\label{s:write.beam}
+
+The \vn{write beam} command writes beam particle information to a file.
+Syntax:
+\begin{example}
+    write beam \{-ascii\} \{-floor_position\} -at <element_list> \{<file_name>\} 
+\end{example}
+
+The \vn{write beam} command creates a file of beam particle positions at a given lattice element(s). The
+\vn{-at} switch specifies at what elements the particle positions are written. Element list format
+(\sref{s:ele.list.format}), without any embedded blanks, is used for the \vn{<element_list>}
+argument to the \vn{-at} switch. 
+
+The default, if \vn{-floor_position} is not present, is to write particle phase space positions.
+If \vn{-floor_position} is present. The particle position in global coordinate space is written.
+In this case, a ASCII file is always produced.
+
+Note: Non-floor position beam files can be used to initialize \tao (\sref{s:command.line}).
+
+If \vn{-floor_position} is not present, the default is to write a binary HDF5 file. See the \vn{Beam
+Initialization} chapter in the \bmad manual for a discussion of the syntax. This default can be overridden
+by using the \vn{-ascii} switch.
+
+If \vn{-floor_position} is present, the default file name is \vn{beam_floor_\#.dat} where \vn{\#} is
+replaced by the universe number. If \vn{-floor_position} is not present, the default ASCII file name
+is \vn{beam_\#.dat} and the default HDF5 binary file name is \vn{beam_\#.hdf5}.
+
+Examples:
+\begin{example}
+  write beam -at *        ! Output beam at every element.
+  write beam -floor end   ! Output beam floor coords at element named ``end''.
+\end{example}
+
+%% write blender --------------------------------------------------------------
+
+\subsection{write blender}
+\label{s:write.blender}
+
+The \vn{write blender} creates a script which can then be run by
+the \vn{blender} program\cite{b:blender}. Syntax:
+\begin{example}
+    write blender \{<file_name>\}            ! Write a blender script (Same as 3d_model).
+\end{example}
+
+The default file name is \vn{blender_lat_\#.py} where \vn{\#} is replaced by the universe number. 
+
+\vn{Blender} is a free, open source, program for creating, among other things, 3D images. This
+script will create a 3D model of the lattice in the current default universe (\sref{s:universe}).
+The suffix must by '.py' and if this suffix is not present it will be added. To run the script in
+\vn{blender}, use the following on the operating system command line:
+\begin{example}
+  <path-to-blender-exe>/blender -P <script-file-from-tao>
+\end{example}
+To learn how to pan, zoom, etc. in \vn{blender}, consult any one of a number of online tutorials and
+videos. A good place to start is:
+\begin{example}
+  www.blender.org/support/tutorials/  
+\end{example}
+Note: In order of the script to work, the script must be able to find the ``base'' file
+\vn{blender_base.py}. This base file lives in the \vn{bmad/scripts} directory and the \vn{bmad}
+directory is found using one of the following environment variables:
+\begin{example}
+  BMAD_BASE_DIR
+  DIST_BASE_DIR
+  ACC_RELEASE_DIR
+\end{example}
+Generally, one of the latter two environment variables will be defined.  If not, a copy of the
+\bmad directory must be created and then \vn{BMAD_BASE_DIR} be appropriately defined.
+
+%% write bmad --------------------------------------------------------------
+
+\subsection{write bmad}
+\label{s:write.bmad}
+
+The \vn{write bmad} command will create a bmad lattice file. Syntax:
+\begin{example}
+    write bmad \{-format <type>\} \{<file_name>\} 
+\end{example}
+
+The default file name is \vn{lat_\#.bmad} where \vn{\#} is replaced by the universe number. 
+
+The \vn{-format} switch is used set how field description parameters of a lattice element
+are stored. The \vn{-format} switch can be set to one of:
+\begin{example}
+  one_file      ! One lattice file.
+  ascii         ! Separate ASCII field files.
+  binary        ! [Default] Separate ASCII field files with the exception that
+                !   grid_field files use the HDF5 binary format.
+\end{example}
+Lattice elements may have associated field descriptions. There are four types as explained in the
+\bmad manual:
+\begin{example}
+  cartesian_map
+  cylindrical_map
+  gen_grad_map
+  grid_field
+\end{example}
+Since the data associated with these may be largish, there is the option of storing the data is
+separate secondary lattice files. This is done by setting \vn{format} to either \vn{ascii} or
+\vn{binary}. The difference between \vn{ascii} and \vn{binary} is that for \vn{grid_field}s, which
+may have a huge amount of associated data, the \vn{binary} format stores \vn{grid_field}s using
+HDF5. The other three field description types are always stored using ASCII files.
+
+\begin{example}
+  write bmad -format one lat.bmad  ! Single lattice file lat.bmad created.
+\end{example}
+
+%% write bunch_comb --------------------------------------------------------------
+
+\subsection{write bunch_comb}
+\label{s:write.bunch.comb}
+
+The \vn{write bunch_comb} command writes to a file bunch parameters (bunch sigma matrix, etc.) at
+the ``comb'' points where these aggragrate bunch parameters are saved (\sref{s:beam.init}). Also see
+the \vn{show beam -comb} (\sref{s:show.beam} and \vn{python bunch_comb} (\sref{p:bunch.comb})
+commands. Syntax:
+\begin{example}
+    write bunch_comb \{-branch <ix_branch> \} \{-centroid\} \{-ix_bunch <ix_bunch>\} 
+                        \{-min_max\} \{-sigma\} \{-universe <ix_uni>\} \{file_name\}  
+\end{example}
+
+There are three file types described below. For all types the file will contain a table. The rows of
+the table correspond to different comb points. The columns of the table correspond to varias bunch
+parameters calculated at the comb points.
+\begin{description}
+\item[-centroid] \Newline
+The table generated when the \vn{-centroid} switch is present has columns showing phase space and
+spin centroid values averaged over the bunch. Additionally, the sigmas for the six phase space
+variables are given along with emittances for the three normal modes.
+%
+\item[-min_max] \Newline
+The table generated when the \vn{-min_max} switch is present has columns showing the minimum and
+maximum values for the six phase space coordinates of all the particles of the bunch.
+% 
+\item[-sigma] \Newline 
+The table generated when the \vn{-sigma} switch is present has columns giving values of the bunch
+beam size sigma matrix.
+\end{description}
+If no file type switch is given, \vn{-sigma} is the default.
+
+The \vn{file_name} option gives the name of the output file. If not present, the default name is
+``\vn{bunch_comb.XXX}'' where ``\vn{.XXX} is suffix that is set dependent upon the type of output
+file. ``\vn{.centroid}'' for the centroid table, etc.
+
+The \vn{-branch} switch specifies which branch to use the comb from. The default is the default
+branch.
+
+The \vn{-ix_bunch} switch specifies which bunch comb to use (if there are multiple bunches in a beam).
+
+The \vn{-universe} switch specifies which universe to look in for the comb. The default is the
+current default universe.
+
+Examples:
+\begin{example}
+  write bunch_c -uni 2 -cent  ! Centroid type table for universe 2
+\end{example}
+
+%% write covariance_matrix --------------------------------------------------------------
+
+\subsection{write covariance_matrix}
+\label{s:write.covar.matrix}
+
+Syntax:
+\begin{example}
+    write covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
+\end{example}
+
+The default file name is \vn{covar.matrix}.
+
+%% write curve  --------------------------------------------------------------
+
+\subsection{write curve}
+\label{s:write.curve}
+
+The \vn{write curve} command writes plot curve data to a file.
+Syntax:
+\begin{example}
+    write curve <curve_name> \{<file_name>\} ! Write the curve data
+\end{example}
+
+\vn{write curve} will produce two or three files:
+\begin{example}
+  <file_name>.symbol_dat    ! Symbol coordinates file
+  <file_name>.line_dat      ! Curve coords.
+  <file_name>.particle_dat  ! Particle data file
+\end{example}
+The particle data file is only produced if particle data is associated with the curve.  The curve
+coordinates are the the set of points that are used to draw the (possibly smooth) curve through the
+symbols.
+
+
+%% write derivative_matrix --------------------------------------------------------------
+
+\subsection{write derivative_matrix}
+\label{s:write.deriv.matrix}
+
+Syntax:
+\begin{example}
+    write derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
+\end{example}
+
+The default file name is \vn{derivative_matrix.dat}. 
+
+%% write digested --------------------------------------------------------------
+
+\subsection{write digested}
+\label{s:write.digested}
+
+Syntax:
+\begin{example}
+    write digested \{<file_name>\}      ! Write a digested Bmad lattice file of the model.
+\end{example}
+
+The default file name is \vn{lat_\#.digested} where \vn{\#} is replaced by the universe number. 
+
+
+%% write elegant --------------------------------------------------------------
+
+\subsection{write elegant}
+\label{s:write.elegant}
+
+Syntax:
+\begin{example}
+    write elegant \{<file_name>\}           ! Elegant lattice file using the model lattice.
+\end{example}
+
+Write a lattice file in \vn{Elegant} format. The default file name is \vn{lat_\#.lte} where \vn{\#}
+is replaced by the universe number.
+
+%% write gif --------------------------------------------------------------
+
+\subsection{write gif}
+\label{s:write.gif}
+
+Syntax:
+\begin{example}
+    write gif \{<file_name>\}           ! Create a gif file of the plot window.
+\end{example}
+
+Write a \vn{gif} file. The default file name is \vn{tao.gif}.
+
+Note: PGPLOT, if being used, does a poor job producing gif files so consider making a
+postscript file instead and using a ps to gif converter.
+
+%% write hard --------------------------------------------------------------
+
+\subsection{write hard}
+\label{s:write.hard}
+
+Syntax:
+\begin{example}
+    write hard                        ! Print the plot window to a printer.
+\end{example}
+
+%% write mad8 --------------------------------------------------------------
+
+\subsection{write mad8}
+\label{s:write.mad8}
+
+Syntax:
+\begin{example}
+    write mad8 \{<file_name>\}  ! Write a MAD-8 lattice file of the model
+\end{example}
+
+The default file name is \vn{lat_\#.mad8} where \vn{\#} is replaced by the universe number. 
+
+%% write madx --------------------------------------------------------------
+
+\subsection{write madx}
+\label{s:write.madx}
+
+Syntax:
+\begin{example}
+    write madx \{<file_name>\}  ! Write a MAD-X lattice file of the model
+\end{example}
+
+The default file name is \vn{lat_\#.madx} where \vn{\#} is replaced by the universe number. 
+
+%% write matrix --------------------------------------------------------------
+
+\subsection{write matrix}
+\label{s:write.mat}
+
+Syntax:
+\begin{example}
+    write matrix \{-branch <branch>\} \{-single\} \{-from_start\} \{-combined\}
+               \{-universe <ix_uni>\} \{<file_name>\}  ! Write transport matrices
+\end{example}
+
+The \vn{write matrix} command writes transport matrices to a file for a particular lattice branch
+determined by the \vn{-universe} and \vn{-branch} switches. The default is the current viewed
+universe and default lattice branch.
+
+If \vn{<file_name>} is not present, the default file name to write to is \vn{matrix.dat}.
+
+What is written is determined by the \vn{-single}, \vn{-from_start}, and \vn{-combined}
+switches. If \vn{-single} is present, the transfer matrices through each lattice element is recorded.
+If \vn{-from_start} is present, the transfer matrices from the start of the branch to each element
+is written. If \vn{-combined} is present, both the element matrices and the matrices from the start
+of the branch are written. The default is to write the element matrices.
+
+Examples:
+\begin{example}
+  write mat -uni 3 -br 1  ! Write matrices from universe 3, branch 1.
+  write mat -from m.dat   ! Write matrices in m.dat from branch beginning to elements
+\end{example}
+
+%% write namelist --------------------------------------------------------------
+
+\subsection{write namelist}
+\label{s:write.namelist}
+
+Syntax:
+\begin{example}
+    write namelist \{-append\} \{-data\} \{-plot\} \{-variable\} \{file_name\}
+\end{example}
+
+The default file name is \vn{tao.namelist}.
+
+%% write opal --------------------------------------------------------------
+
+\subsection{write opal}
+\label{s:write.opal}
+
+Syntax:
+\begin{example}
+    write opal \{<file_name>\}  ! Write a OPAL lattice file of the model
+\end{example}
+
+The default file name is \vn{lat_\#.opal} where \vn{\#} is replaced by the universe number. 
+
+%% write pdf --------------------------------------------------------------
+
+\subsection{write pdf}
+\label{s:write.pdf}
+
+The \vn{write pdf} command produces PDF output. Syntax:
+\begin{example}
+  write pdf \{-scale <scale>\} \{<file_name>\}
+\end{example}
+This command is not available When using PGPLOT as the plotting backend.
+
+The default file name is \vn{tao.pdf}. 
+
+The optional \vn{-scale} switch sets the scale for the postscript file. A value of 1.0 (the
+default) will result in no scaling, 2.0 will double the size, etc.
+
+%% write ps --------------------------------------------------------------
+
+\subsection{write ps}
+\label{s:write.ps}
+
+The \vn{write ps} command produces postscript output. Syntax:
+\begin{example}
+  write ps \{-scale <scale>\} \{<file_name>\}
+\end{example}
+When using PLPLOT as the plotting backend, it is recommended to use the \vn{write pdf} command.
+
+The default file name is \vn{tao.ps}. 
+
+The optional \vn{-scale} switch sets the scale for the postscript file. A value of 1.0 (the
+default) will result in no scaling, 2.0 will double the size, etc.
+
+%% write ptc --------------------------------------------------------------
+
+\subsection{write ptc}
+\label{s:write.ptc}
+
+Syntax:
+\begin{example}
+  write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}
+\end{example}
+
+The default file name is \vn{ptc.flatfile}
+
+The \vn{write ptc} command creates PTC lattice files (called ``flat'' files).  If the \vn{-all}
+switch is present, there will be two main flat files generated. The \vn{-all} switch needs to be
+used when there are multiple lattice branches that need to be translated to PTC. For example, in a
+dual colliding ring machine with two storage rings. Both \vn{M_u} and \vn{M_t} mad_universe
+structures will be generated. The two main files generated will have the suffixes \vn{.m_u} and
+\vn{.m_t} appended to the file names. In this case, the setting of \vn{-branch} is ignored.
+
+If \vn{-all} is not present, only one main flat file is generated. In this case, if \vn{-old} is
+present, the flat file generated will be of the ``old'' syntax. Generally there is no reason to
+generate old style flat files. When generating a single flat file (no \vn{-all} switch present), the
+flat file will contain the information for a single lattice branch. The lattice branch used can be
+specified by the \vn{-branch} switch. The default, if \vn{-branch} is not present, is to use default
+branch. The \vn{-old} switch will generate an ``old style'' version.
+
+In all cases, the \vn{write ptc} command can only be used after a \vn{ptc init} command has been
+used to setup PTC.
+
+%% write sad --------------------------------------------------------------
+
+\subsection{write sad}
+\label{s:write.sad}
+
+Syntax:
+\begin{example}
+  write sad \{<file_name>\}  ! Write a SAD lattice file of the model
+\end{example}
+
+The default file name is \vn{lat_\#.sad} where \vn{\#} is replaced by the universe number. 
+
+%% write spin_mat8 --------------------------------------------------------------
+
+\subsection{write spin_mat8}
+\label{s:write.spin.mat8}
+
+The \vn{write spin_mat8} writes the 8x8 matrices spin/orbit transport matrices, element-by-element, for
+a given branch of the model lattice of the default universe.
+Syntax:
+\begin{example}
+  write spin_mat8 -l_axis <lx> <ly> <lz> \{-branch <name_or_index>\} \{<file_name>\}
+\end{example}
+See the \bmad manual for details on how the 8x8 spin/orbit matrices are defined. 
+
+The default file name if \vn{<file_name>} is not present is \vn{spin_mat8.dat}.
+
+The computation starts at the beginning of the lattice. The $n_0$-axis is computed by \bmad. The
+$l_0$-axis must be given in the \vn{write spin_mat8} command.  The $m_0$-axis will be computed so
+that $(l_0, n_0, m_0)$ form a right handed coordinate system.
+
+Example:
+\begin{example}
+  write spin -l 1 0 0    ! l-axis is (1, 0, 0).
+\end{example}
+
+%% write variable --------------------------------------------------------------
+
+\subsection{write variable}
+\label{s:write.variable}
+
+The \vn{write variable} command writes \tao variable values to a file or files.
+Syntax:
+\begin{example}
+  write variable \{-good_var_only\} \{-tao_format\} \{<file_name>\} 
+\end{example}
+This is useful, for example, for recording changes when a lattice is optimized.
+
+If the \vn{-tao_format} switch is absent, the output is a list of lines with each line of the form:
+\begin{example}
+  slave_ele[slave_param] = value
+\end{example}
+where \vn{slave_param} is a parameter of \bmad element \vn{slave_ele} that is controlled by a \tao
+variable. And \vn{value} is the value of that parameter. For example, if \vn{quad_rot[14]} is a \tao
+variable that controls the \vn{tilt} parameter of \bmad lattice element \vn{q_arc_12}, the output
+will contain a line like:
+\begin{example}
+  q_arc12[tilt] = 0.23465e-4
+\end{example}
+This output can be used construct a lattice with optimized values. For example, if the output file
+name of the \vn{write variable} command is called \vn{var1.out}, a three line lattice file with the
+optimized values can be constructed which looks like:
+\begin{example}
+  call, file = original_lattice.bmad
+  expand_lattice
+  call, file = var1.out
+\end{example}
+where ``\vn{original_lattice.bmad}'' is the name of the original unoptimized lattice file. The
+\vn{expand_lattice} command may not be needed if the controlled \bmad elements have unique names.
+
+If the \vn{tao_format} switch is present, the output is a set of lines of the form:
+\begin{example}
+  set tao_var[index]|model = value
+\end{example}
+where \vn{tao_var[index]} designates a \tao variable which has the given \vn{model} value. For
+example, if \vn{quad_rot[14]} is a \tao variable, the output
+will contain a line like:
+\begin{example}
+  set quad_rot[14]|model = 0.23465e-4
+\end{example}
+With this format, the output of \vn{write variable} can be read back into \tao using a \vn{call}
+command.
+
+Note: after the \bmad or \tao compatible set lines, there will be an \vn{end_file} command (so \bmad
+or \tao will ignore the rest of the file), and following this will be information on the
+optimization state.
+
+When there are multiple universes, and if \vn{-tao_format} is not present, the \vn{write variable}
+command writes a number of files, one for each universe.
+
+The default file name is \vn{var\#.out} where \vn{\#} is replaced by the universe number. 
+
+If the optional \vn{-good_var_only} switch is present, only the information on variables that are
+currently used in the optimization is written.
+
+%% write madx --------------------------------------------------------------
+
+\subsection{write xsif}
+\label{s:write.xsif}
+
+Syntax:
+\begin{example}
+    write xsif \{<file_name>\}  ! Write an XSIF lattice file of the model
+\end{example}
+
+The default file name is \vn{lat_\#.xsif} where \vn{\#} is replaced by the universe number. XSIF is
+a version of MAD-8 customized by SLAC to handle \vn{lcavity} elements.
+
+%% x_axis --------------------------------------------------------------
+
+\section{x_axis}\index{commands!x_axis}
+\label{s:x.axis}
+
+The \vn{x_axis} command sets the data type used for the x-axis coordinate. Format:
+\begin{example}
+  x_axis <where> <axis_type>
+\end{example}
+
+\vskip 7pt 
+
+The \vn{x_axis} command sets the \vn{plot%x_axis_type}. This determines what data is used
+for the horizontal axis. Possibilities for \vn{<axis_type>} are:
+\begin{example}
+  index     -- Use data index
+  ele_index -- Use data element index
+  s         -- Use longitudinal position.
+\end{example}
+Note that \vn{index} only makes sense for data that has an index associated with it.
+
+Examples:
+\begin{example}
+  x_axis * s
+  x_axis top index
+\end{example}
+
+%% x_scale --------------------------------------------------------------
+\section{x_scale}\index{commands!x_scale}
+\label{s:x.scale}
+
+The \vn{x_scale} command scales the horizontal axis of a graph or set of graphs. Format:
+\begin{example}
+  x_scale \{-exact\} \{-gang\} \{-nogang\} \{-include_wall\} \{<where> \{<value1> <value2>\}\}
+\end{example}
+
+Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not present or
+\vn{<where>} is \vn{*} then all graphs are scaled. \vn{<where>} can be a plot name or the name of an
+individual graph withing a plot. If \vn{<where>} is \vn{s} then the scaling is done only for the
+plots where the x-axis scale is the longitudinal s-position.
+
+\vn{x_scale} sets the lower and upper bounds for the horizontal axis.  If \vn{<bound1>} and
+\vn{<bound2>} are present, \vn{<bound1>} is taken to be the lower (left) bound and \vn{<bound2>} is
+the upper (right) bound. If neither is present, an \vn{autoscale} will be invoked to give the
+largest bounds commensurate with the data. If an autoscale is performed upon an entire plot. In the
+case where there is an autoscale, if \vn{plot%autoscale_gang_x} (\sref{s:template}) is True, then
+the chosen scales will be the same for all graphs. That is, a single scale is calculated so that all
+the data of all the graphs is within the plot region. The affect of \vn{plot%autoscale_gang_x} can
+be overridden by using the \vn{-gang} or \vn{-nogang} switches.
+
+How a graph is scaled is determined in part by the setting of the \vn{bounds} parameter in the
+\vn{x} parameter of the graph. See \vn{s:quick.plot} for more details. The \vn{-exact} switch, if
+present, will set \vn{bounds} to \vn{"EXACT"}. which means that \tao will use the min and
+max bounds as given by \vn{<value1>} and \vn{<value2>} and not try to find ``nice'' values near the
+given ones. If \vn{<value1>} and \vn{<value2>} are not given, and if \vn{bounds} is set to
+\vn{"EXACT"}, \tao will set \vn{bounds} to \vn{"GENERAL"}. Note: To set the axis \vn{bounds}
+directly, use the \vn{set graph} command.
+
+Note: The \vn{x_scale} command will vary the number of major divisions (set by
+\vn{graph%x%major_divisions} (\sref{s:template})) to try to give a nice looking axis. The result
+can be that if two plots have the same range of data but differing major division settings, the
+\vn{x_scale} command can produce differing results.
+
+For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}
+is present and autoscaling is being done, then the plot bounds are extended to include the extent of
+the building wall.
+
+Example:
+\begin{example}
+  x_scale -include      ! Autoscale all x-axes and include the extent of any 
+                        !   building walls in the calculation of the plot bounds.
+  x_scale * 0 100       ! Scale all x-axes to go from 0 to 100.
+  x_scale orbit -10 10  ! This "wraps around" the beginning of the lattice.
+  x_scale s             ! Scale all graphs using x_axis = "s".
+\end{example}
+
+%% xy_scale --------------------------------------------------------------
+
+\section{xy_scale}\index{commands!xy_scale}
+\label{s:xy.scale}
+
+The \vn{xy_scale} command sets horizontal and vertical axis bounds. Format:
+\begin{example}
+  xy_scale \{-include_wall\} \{<where> \{<bound1> <bound2>\}\}\}
+\end{example}
+
+\vn{xy_scale} is equivalent to an \vn{x_scale} followed by a \vn{y-scale}.
+
+Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not present or
+\vn{<where>} is \vn{*} then all graphs are scaled. \vn{<where>} can be a plot name or the name of an
+individual graph withing a plot.
+
+\vn{xy_scale} sets the lower and upper bounds for both the horizontal and vertical axes.  This is
+just a shortcut for doing an \vn{x_scale} followed by a \vn{scale}.  If both \vn{<bound1>} and
+\vn{<bound2>} are present then \vn{<bound1>} is taken to be the lower (left) bound and \vn{<bound2>}
+is the upper (right) bound. If only \vn{<bound1>} is present then the bounds will be from
+-\vn{<bound1>} to \vn{<bound1>}.
+
+If neither \{<bound1>\} nor \{<bound2>\} is present then an \vn{autoscale} will be invoked to give
+the largest bounds commensurate with the data.
+
+For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}
+is present and autoscaling is being done, then the plot bounds are extended to include the extent of
+the building wall.
+
+Example:
+\begin{example}
+  xy_scale -include ! Autoscale all axes and include the extent of any 
+                    !   building walls in the calculation of the plot bounds.
+  xy_scale * -1 1   ! Scale all axes to go from -1 to 1.
+\end{example}
+

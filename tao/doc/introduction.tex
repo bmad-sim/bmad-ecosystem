@@ -1,0 +1,133 @@
+\chapter{Introduction}
+\label{c:introduction}
+
+%----------------------------------------------------------------
+\section{Obtaining Tao}
+\index{tao!Obtaining}
+\label{s:obtaining}
+
+A \vn{Distribution} is a set of files, including \bmad and \tao source files, which are used to
+build the \bmad, the \tao program, and various other simulation programs. A \vn{Release} is like a
+\vn{Distribution} except that it is created on the Linux computer system at CLASSE (Cornell's
+Laboratory for Accelerator-based Sciences and Education). More information can be obtained from the
+\bmad web site. 
+
+If there is no local \bmad Guru to guide you, download and setup instructions for downloading a
+Distribution, environment variable setup, and building \tao is contained on the \bmad web
+site and will not be covered here.
+
+%----------------------------------------------------------------
+\section{Starting and Initializing Tao}
+\index{initializing!files}
+\label{s:initializing}
+
+The syntax for starting \tao is given in \Sref{s:command.line}.
+
+Initialization occurs when \tao is started. Initialization information is stored in one or more
+files as discussed in Chapter \sref{c:init}.
+
+%%----------------------------------------------------------------
+\section{Running Tao with OpenMP}
+\index{openMP}
+\label{s:openmp}
+
+\vn{OpenMP} is a standard that enables programs to run calculations with multiple threads which will
+reduce computation time. Certain calculations done by \tao, including beam tracking and dynamic
+aperture calculations, can be run multithreaded via OpenMP if the \tao executable file has been
+properly compiled.  Interested users should consult their local \bmad Guru for guidance. Note:
+\vn{OpenMP} multithreading involves using multiple cores of a single machine (unlike \vn{Open MPI}
+which involves multiple machines). Therefore, it is not necessary to have a cluster of machines to
+use \vn{OpenMP}.
+
+To set the number of threads when running a program compiled with \vn{OpenMP}, set the environment variable
+\vn{OMP_NUM_THREADS}. Example:
+\begin{example}
+  export OMP_NUM_THREADS=8
+\end{example}
+
+To the local \bmad Guru: Compiling and linking of \tao with \vn{OpenMP} is documented on the \bmad
+web site. By default, \vn{OpenMP} is not enabled. Essentially, OpenMP is enabled by modifying
+the \vn{dist_prefs} file before compiling and linking.
+
+%----------------------------------------------------------------
+\section{Command Line Mode and Single Mode}
+\label{s:modes}
+
+After \tao is initialized, \tao interacts with the user though the command line. \tao has two modes
+for this. In \vn{command line} mode, which is the default mode, \tao waits until the the \vn{return}
+key is depressed to execute a command. Command line mode is described in Chapter~\sref{c:command}. 
+
+In \vn{single} mode, single keystrokes are interpreted as commands. \tao can be set up so that in
+\vn{single mode} the pressing of certain keys increase or decrease variables. While the same effect
+can be achieved in the standard \vn{line mode}, \vn{single mode} allows for quick adjustments of
+variables. See Chapter~\sref{c:single} for more details.
+
+%-----------------------------------------------------------------
+\section{Lattice Calculations}
+\index{lattice calculaitons}
+\label{s:lat.calc.overview} 
+
+By default \tao recalculates lattice parameters and does tracking of particles after each command.
+The exception is for commands that do not change any parameter that would affect such calculations
+such as the \vn{show} command. See \sref{s:lat.calc} for more details. If the recalculation takes a
+significant amount of time, the recalculation may be suppressed using the \vn{set global
+lattice_calc_on} command (\sref{s:set.global}) or the \vn{set universe} command
+(\sref{s:set.universe}).
+
+%-----------------------------------------------------------------
+\section{Command Files and Aliases}
+\index{command files}
+\label{s:command.files} 
+
+Typing repetitive commands in command line mode can become tedious. \tao has two constructs to
+mitigate this: Aliases and Command Files. 
+
+Aliases are just like aliases in Unix. See Section~\sref{s:alias} for more details.
+
+Command files are like Unix shell scripts. A series of commands are
+put in a file and then that file can be called using the \vn{call}
+command (\sref{s:call}).
+
+\tao will call a command file at startup. The default name of this startup file is \vn{tao.startup}
+but this name can be changed (\sref{s:format}).
+
+Do loops (\sref{s:do}) are allowed with the following syntax:
+\begin{example}
+  do <var> = <begin>, <end> \{, <step>\} 
+    ...
+    tao command [[<var>]]
+    ...
+  enddo
+\end{example}
+The \vn{<var>} can be used as a variable in the loop body but must be
+bracketed ``[[<var>]]''.  The step size can be any integer positive or
+negative but not zero.  Nested loops are allowed and command files can
+be called within do loops.
+
+\begin{example}
+  do i = 1, 100
+    call set_quad_misalignment [[i]] ! command file to misalign quadrupoles
+    zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
+  enddo
+\end{example}
+
+To reduce unnecessary calculations, the logicals \vn{global%lattice_calc_on}
+and \vn{global%plot_on} can be toggled from within the command file. Also 
+setting \vn{global%quiet} can turn off verbose output to the terminal. Example
+\begin{example}
+  set global quiet = all          ! Turn off verbose output to the terminal.
+  set global lattice_calc_on = F  ! Turn off lattice calculations
+  set global plot_on = F          ! Turn off plot calculations
+  ... do some stuff ...
+  set global plot_on = T          ! Turn back on 
+  set global lattice_calc_on = T  ! Turn back on
+  set global quiet = off         
+\end{example}
+See \sref{s:globals} for more details.
+
+A \vn{end_file} command (\sref{s:end.file}) can be used to signal the
+end of the command file.
+
+The \vn{pause} command (\sref{s:pause}) can be used to temporarily
+pause the command file.
+
