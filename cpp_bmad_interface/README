@@ -1,0 +1,59 @@
+There are two parts to cpp_bmad_interface:
+  1) Scripts to create the appropriate code files.
+  2) The standard Cmake files to create the cpp_bmad_interface
+
+Normally you should not have to create any code files since:
+  1) The code files are part of the SVN repository and do not normally have to be regenerated.
+  2) They only need to be regenerated when there are changes to Bmad structures or
+     if a new structure is to be added.
+  3) Code file generation is not meant for the unintiated.
+
+So: If you want to generate new code files, please talk to David Sagan first.
+
+
+----------------------------------------------------
+Code Generation Overview: 
+
+There are two scipts to generate files:
+  * scripts/bmad_enums_to_c.py 
+  * scripts/create_interface.py 
+
+Note: You must have a local copy of bmad and sim_utils and these must be in the same
+directory as cpp_bmad_interface.
+
+* bmad_enums_to_c.py:
+  Run from the cpp_bmad_directory:
+      ./scripts/bmad_enums_to_c.py
+
+  This script searches a set of Bmad files and generates corresponding constants for use with C++ code.
+  The constants file is: include/bmad_enums.h
+  For example, the proton$ parameter on the Fortran side is translated to PROTON on the C++ side.
+
+* scripts/create_interface.py:
+  Run from the cpp_bmad_directory:
+      ./scripts/create_interface.py
+
+  If the Bmad structures are modified then the file scripts/interface_input_params.py must
+    be appropriately updatted. See this file for more instructions.
+  This script generates:
+    A) The include/cpp_bmad_classes.h file defining the C++ classes 
+    B) .f90 and .cpp translation code files in the code directory.
+    C) .f90 and .cpp test files in the interface_test directory.
+    D) equality_mod.f90 which is placed in the bmad/modules directory.
+       This file is placed in bmad since it is used by some bmad routines. 
+
+* After generating new code for cpp_bmad_interface, generate new code for the cpp_tao_interface.
+
+----------------------------------------------------
+Compiling and Linking:
+
+The standard "mk" and "mkd" scripts will create both the cpp_bmad_interface library and
+the test program cpp_bmad_interfac_test.
+
+
+----------------------------------------------------
+Testing:
+
+1) Go to the bmad directory and recompile
+2) Return to the cpp_bmad_interface directory and run the test program:
+  ../production/bin/cpp_bmad_interface_test
