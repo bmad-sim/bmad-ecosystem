@@ -1,0 +1,36 @@
+!no_digested
+PARAMETER[LATTICE] = "Element Test"
+
+BEGINNING[BETA_A]  =  10  
+BEGINNING[ALPHA_A]=  0    
+BEGINNING[BETA_B] =   10
+BEGINNING[ALPHA_B] =   0
+BEGINNING[ETA_X] =  0
+BEGINNING[ETAP_X] =0
+
+PARAMETER[geometry] = open
+BEGINNING[E_TOT]  = 5.0E+09
+
+
+m1: MARKER
+m2: MARKER, type = 'BPM'
+
+i1: INSTRUMENT, type = "gauge"
+i9: INSTRUMENT, type = "pump"
+
+q1: QUADRUPOLE, L=0.6, k1=0.2
+q2: QUADRUPOLE, L=0.6, k1=-0.2
+
+d0: DRIFT, L = 2.0
+d1: DRIFT, L = 2.0
+d2: DRIFT, L = 2.0 
+d3: DRIFT, L = 2.0
+
+b1: SBEND, L=4.0, g=1/100.0
+b2: SBEND, L=4.0, g=-1/100.0
+
+call, file = ../lattice_file_examples/simple_erl/sub_files/cavity7.bmad
+
+erl: line = (m1, d0, b1, m2,  d1, q1, d2, b2, d3, 10*q2, b1, i1, i9, cavity7) 
+
+use, ERL

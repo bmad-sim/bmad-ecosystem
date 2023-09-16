@@ -1,0 +1,26 @@
+!+
+! Example parameter input file for the particle_track_example program.
+! The input syntax follows Fortran namelist format.
+!-
+
+&params                             ! Start of namelist. Everything outside is ignored.
+  lat_file = 'small_ring.bmad'      ! Bmad lattice file name.
+  dat_file = 'orbit.dat'            ! Output data file name.
+  ix_branch = 0                     ! Lattice branch to use. 0 => root branch.
+  n_turn    = 100                   ! Number of turns to track.
+  ! %vec is the particle orbital phase space position (x, px, y, py, z, pz)
+  start_orbit%vec = 1e-3, 0, 0, 0, 0
+  ! %spin is the starting (x, y, z) spin orientation.
+  start_orbit%spin = 0, 1, 0
+  ran_seed = 1234                   ! Initial random number seed. Only used with the radiation excitation calc.
+                                    ! 0 => Use system clock. If non-zero will get the same results each run.
+  write_track_at = "BEGINNING"      ! Specify lattice element (or elements) to write orbit at each turn. 
+                                    ! "ALL" => Output at all elements.
+  ! See the Bmad manual for a discussion of bmad_com components.
+  bmad_com%radiation_damping_on = T
+  bmad_com%radiation_fluctuations_on = T
+  bmad_com%spin_tracking_on = T
+  ! Convert_from_prime_coords = T means take the start_orbit%vec coords as being (x, x', y, y', t, pz) and
+  ! convert to standard Bmad (x, px, y, py, z, pz) coords.
+  convert_from_prime_coords = F
+/                               ! Slash ends the namelist
