@@ -1,0 +1,13 @@
+set (EXENAME lux_mpi)
+
+set (SRC_FILES program/lux_mpi.f90)
+
+set (LINK_FLAGS ${READLINE_LINK_FLAGS})  # Needed for shared builds
+
+set (LINK_LIBS
+  lux
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

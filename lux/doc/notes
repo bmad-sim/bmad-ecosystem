@@ -1,0 +1,33 @@
+New stuff:
+
+reject_dead_at_det_photon1: Default False
+
+lux_param%n_energy_pts:
+	Defines the number of coherent sets
+	Only used with coherent photons
+
+explain energy binning (see lux_com%energy_bin(:))
+
+coherent photons
+	Set: lattice parameter[photon_type] = COHERENT
+	stop values are per energy point
+
+Initial photon field (x/y) will be normalized to 1.
+
+photon_def%e_field_x and/or photon_def%e_field_y must be non-zero for a rocking curve.
+
+Added photon_def%normalize_field [Always normalized when using random number generator]
+
+rocking_curve: Generates photons from beginning of lattice.
+
+source element slicing: number of slices based upon photon_init%ds_slice
+
+det element: must set surface = {grid = {...}}
+
+---------
+
+To set emittance:
+
+  \item[\vn{photon_init\%emit_x, photon_init\%emit_y}] \Newline
+$x$ and $y$ charged particle beam emittances. 
+Used when the photon source is a bend, wiggler, or undulator.

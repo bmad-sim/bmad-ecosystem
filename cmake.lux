@@ -1,0 +1,13 @@
+set (EXENAME lux)
+
+set (SRC_FILES program/lux.f90 ${SRC_FILES})
+
+set (LINK_FLAGS ${READLINE_LINK_FLAGS})  # Needed for shared builds
+
+set (LINK_LIBS
+  lux
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)
