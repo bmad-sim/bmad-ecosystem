@@ -1,0 +1,198 @@
+\chapter{HDF5}
+\label{c:hdf5}
+\index{hdf5}
+
+\vn{HDF5}, which stands for ``Hierarchical Data Format'' version 5\cite{b:hdf5}, is a set of file
+formats designed to store and organize large amounts of data. HDF5 has been developed by scientists
+from a number of institutions including the National Center for Supercomputing Applications, the
+University of Illinois at Urbana-Champaign, and Sandia National Laboratories. Tools for viewing and
+editing HDF5 files are available from the HDF Group\cite{b:hdf5}. Programs include \vn{h5dump} and
+\vn{HDFView} which can be used to directly view files. Interfaces so that HDF5 files can accessed
+via Java or Python also exist.
+
+\bmad uses HDF5 for storing beam particle (positions, spin, etc.) and \vn{grid_field}
+(\sref{s:grid.field}) data. Storage details are given in sections \sref{s:hdf5.beam} and
+\sref{s:hdf5.grid} respectively. While \vn{HDF5} defines how data is formatted, \vn{HDF5} does not
+define the syntax for how data is to be stored. For that, \bmad uses the syntax defined by the
+\vn{Beam Physics} extension to the \vn{openPMD} standard\cite{b:openpmd}. To understand the rest of
+this chapter, the reader should familiarize themselves with the \vn{openPMD} and \vn{Beam Physics}
+standards.
+
+%-----------------------------------------------------------------
+\section{HDF5 Particle Beam Data Storage}
+\label{s:hdf5.beam}
+\index{hdf5 and particle beam data}
+
+The code for reading and writing beam data to/from HDF5 files is contained in the routines
+\Hyperref{r:hdf5.read.beam}{hdf5_read_beam} and \Hyperref{r:hdf5.write.beam}{hdf5_write_beam}.
+
+As per the \vn{openPMD}/\vn{Beam Physics} standard, particle beam data is stored in a tree structure
+within a data file. The root ``\vn{group}'' (tree node) for each bunch of the beam has the path
+within the file:
+\begin{example}
+  /data/%T/particles/
+\end{example}
+where \vn{%T} is an integer.
+
+For any bunch, parameters (``attributes'') stored in the bunch root group are:
+\begin{example}
+  speciesType     ! The name of the particle species using the \vn{SpeciesType} syntax.
+  totalCharge     ! Total bunch charge.
+  chargeLive      ! Charge of live particles.
+  numParticles    ! Number of particles.
+\end{example}
+The \vn{SpeciesType} syntax defined by the \vn{SpeciesType} extension to the \vn{openPMD} standard
+is similar to the \bmad standard (\sref{s:param}) but there are differences. For one, the
+\vn{SpeciesType} standard does not have an encoding for the charge state of atoms and
+molecules. Another difference is that for fundamental particles the names are case sensitive while
+for \bmad they are not (Note that atom and molecule names in \bmad are case sensitive).
+
+What per-particle data is stored is determined by whether the bunch particles are photons or
+not. The following particle parameters are common for both types:
+\begin{center}
+\tt
+\begin{tabular}{lll} \toprule
+  {\em Beam Physics Parameter} & {\em Bmad Equivalent}   & {\em Notes}                      \\ \midrule
+  time                         & -\%vec(5) / (c \%beta)  & time - ref_time. See \Eq{zbctt}  \\
+  timeOffset                   & \%t - time              & reference time                   \\
+  totalMomentumOffset          & \%p0c                   &                                  \\
+  sPosition                    & \%s                     & See Fig.~\ref{f:local.coords}    \\
+  weight                       & \%charge                & Macro bunch charge               \\
+  branchIndex                  & \%ix_branch             &                                  \\
+  elementIndex                 & \%ix_ele                &                                  \\
+  locationInElement            & \%location              & See below                        \\
+  particleStatus               & \%state   & See the \%state table in \sref{s:coord.struct} \\ \bottomrule
+\end{tabular}
+\end{center}
+The \vn{Bmad Equivalent} column gives the conversion between the Beam Physics parameters and the
+\vn{coord_struct} (\sref{s:coord.struct}) structure components (the \vn{coord_struct} structure
+contains the particle position information).  Parameters with a ``\%'' suffix are \vn{coord_struct}
+components and \vn{%vec(5)} corresponds to the phase space $z$ coordinate. The \vn{particleState} is an integer
+which corresponds to the \vn{coord_struct} \vn{%state} component. A value of 1 indicates that the particle is alive
+(corresponding to the value of \vn{alive\$}) and any other value indicates that the particle is dead.
+
+The \vn{locationInElement} Beam Physics parameter is related to the \vn{coord_struct} \vn{%location} parameter via
+the following transformation:
+\vspace{-1ex}
+\begin{center}
+\tt
+\begin{tabular}{ll} \toprule
+  {\em locationInElement Value} & {\em \%location Value}  \\ \midrule
+  -1                            & upstream_end\$          \\
+   0                            & inside\$                \\
+   1                            & downstream_end\$        \\ \bottomrule
+\end{tabular}
+\end{center}
+
+For photons, additional per-particle data is:
+\vspace{-1ex}
+\begin{center}
+\tt
+\begin{tabular}{ll} \toprule
+  {\em Beam Physics Parameter}     & {\em Bmad Equivalent}  \\ \midrule
+  velocity/x, y, z                 & (\%vx, \%vy, \%vz)     \\
+  position/x, y, z                 & (\%x, \%y, \%z)        \\
+  pathLength                       & \%path_len             \\
+  photonPolarizationAmplitude/x, y & \%field                \\
+  photonPolarizationPhase/x, y     & \%phase                \\ \bottomrule
+\end{tabular}
+\end{center}
+For clarity's sake, the \vn{%vec(1)} through \vn{%vec(6)} phase space coordinate components in the
+\vn{coord_struct} have been replaced by \vn{%x}, \vn{%vx}, $\ldots$, \vn{%z}, \vn{%vz} in the above table
+
+For non-photons, additional per-particle data is:
+\vspace{-1ex}
+\begin{center}
+\tt
+\begin{tabular}{ll} \toprule
+  {\em Beam Physics Parameter}    & {\em Bmad Equivalent}     \\ \midrule
+  momentum/x, y, z                & \%p0c$\times$(\%px, \%py, sqrt((1 + \%pz)$^2$ - \%px$^2$ - \%py$^2$)) \\
+  totalMomentum                   & \%p0c$\times$\%pz         \\
+  position/x, y, z                & (\%x, \%y, 0)             \\
+  spin/x, y, z                    & \%spin                    \\
+  chargeState                     & Derived from \%species    \\ \bottomrule
+\end{tabular}
+\end{center}
+For clarity's sake, the \vn{%vec(1)} through \vn{%vec(6)} phase space coordinate components in the
+\vn{coord_struct} have been replaced by \vn{%x}, \vn{%px}, $\ldots$, \vn{%z}, \vn{%pz} in the above
+table. Notice that the Beam Physics \vn{z} position (not to be confused with phase space \vn{z}) is
+always zero by construction as shown in Fig.~\ref{f:local.coords}. 
+
+%-----------------------------------------------------------------
+\section{HDF5 Grid\_Field Data Storage}
+\label{s:hdf5.grid}
+\index{hdf5 and grid_field data}
+
+The code for reading and writing \vn{grid_field} data to/from HDF5 files is contained in the
+routines \Hyperref{r:hdf5.read.grid.field}{hdf5_read_grid_field} and
+\Hyperref{r:hdf5.write.grid.field}{hdf5_write_grid_field}.
+
+As per the \vn{openPMD}/\vn{Beam Physics} standard, \vn{grid_field} (\sref{s:grid.field} data is
+stored in a tree structure within a data file. The root ``\vn{group}'' (tree node) for each \vn{grid_field}
+has the path within the file:
+\begin{example}
+  /ExernalFieldmesh/%T/
+\end{example}
+where \vn{%T} is an integer.
+
+For any \vn{grid_field}, parameters stored in the \vn{grid_field} root group are:
+\vspace{-1ex}
+\begin{center}
+\tt
+\begin{tabular}{lll} \toprule
+  {\em Parameter in File}      & {\em Bmad Equivalent}      \\ \midrule
+  gridGeometry                 & \%geometry                 \\ 
+  masterParameter              & \%master_parameter         \\ 
+  componentFieldScale          & \%field_scale              \\ 
+  fieldScale                   & $\left\{ \text{
+                                  \begin{tabular}{@{}ll}
+                                    \%field_scale$\times$master param value & If master parameter set. \\
+                                    \%field_scale & Otherwise.
+                                 \end{tabular}} \right.$    \\ 
+  harmonic                     & \%harmonic                 \\ 
+  RFphase                      & $\left\{ \text{
+                                 \begin{tabular}{@{}ll}
+                                    \%harmonic$\times$\%phi0_fieldmap & For \vn{lcavity} elements \\
+                                    \%harmonic$\times$(0.25 - \%phi0_fieldmap) & For all others.
+                                 \end{tabular}} \right.$    \\ 
+  eleAnchorPt                  & \%ele_anchor_pt            \\ 
+  gridOriginOffset             & \%r0                       \\ 
+  gridSpacing                  & \%dr                       \\ 
+  interpolationOrder           & \%interpolation_order      \\ 
+  gridLowerBound               & \%ptr\%pt lower bound      \\ 
+  gridSize                     & \%ptr\%pt size             \\ 
+  fundamentalFrequency         & ele%value(rf_frequency$)   \\
+  gridCurvatureRadius          & ele%value(rho$)            \\ \bottomrule
+\end{tabular}
+\end{center}
+The \vn{Bmad Equivalent} column gives the conversion between the Beam Physics parameters and the
+\vn{grid_field_struct} structure components (that have a ``\%'' prefix). The value for
+\vn{gridCurvatureRadius} is set to the value of \vn{rho} of the associated lattice element if
+\vn{%curved_ref_frame} is True. 
+
+Notice that the \vn{masterParameter} attribute is not part of the standard. If not present, which
+could happen if a file is created by non-\bmad code, the default is a blank string indicating no
+master parameter. If \vn{masterParameter} is set in the data file, there is a potential problem in
+that it may not be possible to calculate \vn{%field_scale} if the value of the master parameter is
+not equal to the value when the data was written. To get around this, if the non-standard
+\vn{masterParameter} is present, the value of the non-standard \vn{componentFieldScale} (which has a
+default value of one) will be used to set \vn{%field_scale} and the \vn{fieldScale} parameter will
+be ignored. If \vn{masterParameter} is not present, \vn{componentFieldScale} is ignored and
+\vn{%field_scale} is set from the value of \vn{fieldScale}.
+
+When reading a data file, the setting of \vn{grid_field%field_type} is determined by what data is
+stored in the file. If both electric and magnetic field data is present, \vn{%field_type} is set to
+\vn{mixed\$}. Otherwise, \vn{%field_type} is set to \vn{magnetic\$} if magnetic field data is present
+or \vn{electric\$} if electric field data is present.
+
+The correspondence between the \vn{gridGeometry} parameter and the \vn{grid_field%geometry}
+component is \vspace{-1ex}
+\begin{center}
+\tt
+\begin{tabular}{ll} \toprule
+  {\em gridGeometry Value}      & {\em \%geometry Value}      \\ \midrule
+  "rectangular"                 & xyz\$                       \\
+  "cylindrical"                 & rotationally_symmetric_rz\$ \\ \bottomrule
+\end{tabular}
+\end{center}
+

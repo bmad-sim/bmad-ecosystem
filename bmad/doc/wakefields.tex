@@ -1,0 +1,245 @@
+\chapter{Wakefields}
+\label{c:wakefields.eq}
+\index{wakefields|hyperbf}
+
+Wakefield effects are divided into short--range (within a bunch) and long--range (between
+bunches). Short--range wakes are described in \Sref{s:sr.wake.eq} and long--range wakes are
+described in \Sref{s:lr.wake.eq}. The syntax for describing wakes in a lattice file is given in
+\Sref{s:wakes}.
+
+%-----------------------------
+\section{Short--Range Wakes}
+\label{s:sr.wake.eq}
+\index{wakefields!short-range}
+
+The syntax for assigning short--range wakes to a lattice element is described in
+\Sref{s:sr.wake.syntax}. Only the monopole and dipole wakefields are modeled.
+
+Short--range wakes are divided into three classes: Those that are dependent linearly upon transverse
+offset of the leading particle (but independent of the position of the trailing particle), those
+that are dependent linearly upon the transverse offset of the trailing particle (but independent of
+the position of the leading particle, and those wakes that are independent of the offset.
+
+The longitudinal monopole energy kick $dE$ for the $i$\Th (trailing) macroparticle due to the wake
+from the $j$\Th (leading) macroparticle, assuming the kick is independent of the transverse
+positions, is computed from the equation
+\begin{equation}
+  \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \Bigl( \frac{1}{2}\WlS(0) \,  |q_i| +
+        \sum_{j \ne i} \WlS(dz_{ij}) \, |q_j| \Bigr)
+  \label{delvp1}
+\end{equation}
+where $v$ is the particle velocity, $e$ is the charge on an electron, $q$ is the macroparticle
+charge, $L$ is the cavity length, $dz_{ij}$ is the longitudinal distance between the $i$\Th and
+$j$\Th macroparticles, $\WlS$ is the short--range longitudinal wakefield function.
+
+If the beam chamber has azimuthal symmetry the energy kick will be independent of the transverse
+positions. If this is not true, there can be some dependence. There are four cases that \bmad
+simulates: Linear in the $x$ or $y$-position of the leading particle, or linear in the $x$ or
+$y$-position of the trailing particle. For example, if the kick is linear in the $x$-position of the
+leading particle the kick is
+\begin{equation}
+  \Delta p_z(i) = \frac{-e \, L \, x_i}{v \, P_0} \, \Bigl( \frac{1}{2}\WlS(0) \,  |q_i| +
+        \sum_{j \ne i} \WlS(dz_{ij}) \, |q_j| \Bigr)
+  \label{delvp2}
+\end{equation}
+And if the kick is linear in the $y$-position of the trailing particle the kick is
+\begin{equation}
+  \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \Bigl( \frac{1}{2}\WlS(0) \,  |q_i| \, y_i +
+        \sum_{j \ne i} \WlS(dz_{ij}) \, |q_j| \, y_j \Bigr)
+  \label{delvp3}
+\end{equation}
+
+The kick $\Delta p_x(i)$ due to the transverse wake for the $i$\Th particle is modeled with the
+equation
+\begin{equation}
+  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, x \, \WtS(dz_{ij})}{v \, P_0}
+  \label{pelqxw1}
+\end{equation}
+Where $\WtS$ is the transverse short--range wake function and $x$ is the horizontal displacement of
+the leading or trailing particle as appropriate. There is a similar equation for $\Delta p_y(i)$.
+If the beam chamber has azimuthal symmetry, the only wakes present are those that are dependent upon
+the offset of the leading particle. If the transverse wake is modeled as being independent of
+position the above equation is modified:
+\begin{equation}
+  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, \WtS(dz_{ij})}{v \, P_0}
+  \label{pelqxw2}
+\end{equation}
+
+
+With either the longitudinal wake $\WlS$ or the transverse $\WtS$ wake, the wake can be
+approximated as a sum of what are called ``pseudo'' modes $W_i(z)$, $i = 1 \ldots M$:
+\begin{equation}
+  W(z) = A_{amp} \, \sum_{i = 1}^M W_i(z)
+  = A_{amp} \, \sum_{i = 1}^M A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
+  \label{wadzk}
+\end{equation}
+This is similar to approximating any function as a sum of Fourier terms. The parameters $(A_i, d_i,
+k_i, \phi_i)$ are chosen by the person constructing the lattice to fit the calculated wake
+potential. Since $z$ is negative for trailing particles, $d_i$ should be positive to get the wake to
+decay exponentially with distance. The dimensionless overall amplitude scale $A_{amp}$ is introduced
+as a convenient way to scale the overall wake. The reason why the pseudo mode approach is used in \bmad is
+due to the fact that, with pseudo modes, the calculation time scales as the number of particles $N$
+while a calculation based upon a table of wake vs $z$ would scale as $N^2$. [The disadvantage is
+that initially must perform a fit to the wake potential to generate the mode parameter
+values.]
+
+%-----------------------------
+\section{Long--Range Wakes}
+\label{s:lr.wake.eq}
+\index{wakefields!long-range}
+
+The lattice syntax for defining long-range wakes is discussed in \Sref{s:lr.wake.syntax}.
+
+Following Chao\cite{b:chao} Eq.~2.88, the long--range wakefields are characterized by a set of
+cavity modes. The wake function $W_i$ for the $i$\Th mode is
+\begin{equation}
+  W_i(t) = -c \, A_{amp} \, \left( \frac{R}{Q} \right)_i \,\,
+  \exp(-d_i \, t) \, \sin (\omega_i \, t + \phi_i)
+  \label{wcrq}
+\end{equation}
+The order of the mode $m_i$ does not come into this equation but will appear in equations below.
+The dimensionless overall amplitude scale $A_{amp}$ is introduced as a convenient way to scale the
+amplitude of all the wakes with just one parameter. Normally, for a wake that has a well defined
+mode, The phase factor $\phi_i$ is zero. Finite $\phi_i$ is used for simulations of such things as
+the long-range resistive wall wake. In this case, the resistive wall wake needs to be modeled as the
+sum of a number of modes since the resistive wall wake is not well modeled by a single damped
+sinusoid.
+
+The mode strength $(R/Q)_i$ in the above equation has units of Ohms/meter$^{2m_i}$. Notice that
+$R/Q$ is defined so that it includes the cavity length. Thus the long--range wake equations, as
+opposed to the short--range ones, do not have any explicit dependence on $L$. To make life more
+interesting, different people define $R/Q$ differently. A common practice is to define an $R/Q$ ``at
+the beam pipe radius''. In this case the above equations must be modified to include factors of the
+beam pipe radius. Another convention uses a ``linac definition'' which makes $R/Q$ twice as large
+and adds a factor of 2 in \Eq{wcrq} to compensate.
+
+Note: Originally, \bmad characterized the damping factor $d_i$ using the quality factor $Q_i$ via the
+relationship
+\begin{equation}
+  d_i = \frac{\omega_i}{2 \, Q_i}
+  \label{do2q}
+\end{equation}
+This proved to be inconvenient when modeling such things as the resistive wall wake (where it is convenient
+to have modes where $\omega_i = 0$) so the lattice file syntax was modified to use $d_i$ directly.
+
+Assuming that the macroparticle generating the wake is offset a distance $r_w$ along the $x$--axis,
+a trailing macroparticle at transverse position $(r, \theta)$ will see a kick
+\begin{align}
+  \Delta {\Bf p}_\perp &= 
+    -C \, I_m \, W(t) \, m \, r^{m-1} \, \left( 
+    \bfhat r \cos m\theta - {\bf\hat\theta} \sin m\theta \right) \\
+  &= -C \, I_m \, W(t) \, m \, r^{m-1} \, \left( \bfhat x \cos [(m-1) \theta] - 
+    \bfhat y \sin [(m-1)\theta] \right) \CRNO
+  \Delta p_z &= -C \, I_m \, W'(t) \, r^m \, \cos m\theta
+\end{align}
+where in this, and other equations below, the subscript $i$ has been dropped. $C$ is given by
+\begin{equation}
+  C = \frac{e}{c \, P_0}
+\end{equation}
+ and
+\begin{equation}
+  I_m = q_w \, r_w^m
+\end{equation}
+with $q_w$ being the magnitude of the charge on the particle.  Generalizing the above, a
+macroparticle at $(r_w, \theta_w)$ will generate a wake
+\begin{align}
+  -\Delta p_x + i\Delta p_y &= C \, I_m \, W(t) \, 
+    m \, r^{m-1} \, e^{-i m \theta_w} \, e^{i (m-1) \theta} 
+    \label{ppcimr} \\
+  \Delta p_z &= C \, I_m \, W'(t) \, r^m \, \cos [m(\theta - \theta_w)]
+    \label{pciwr}
+\end{align}
+Comparing \Eq{ppcimr} to \eq{bib1nb}, and using the relationship between kick and field as given by
+\eq{pqlbp1} and \eq{pqlbp2}, shows that the form of the wakefield transverse kick is the same as
+for a multipole of order $n = m - 1$.
+
+The wakefield felt by a particle is due to the wakefields generated by all the particles ahead of
+it. If the wakefield kicks are computed by summing over all particle pairs, the computation will
+scale as $N^2$ where $N$ is the number of particles. This quickly becomes computationally
+exorbitant. A better solution is to keep track of the wakes in a cavity. When a particle comes
+through, the wake it generates is simply added to the existing wake. This computation scales as $N$
+and makes simulations with large number of particles practical.
+
+To add wakes together, a wake must be decomposed into its components.  Spatially, there are normal
+and skew components and temporally there are sin and cosine components. This gives 4 components
+which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$, and $b_{\sin}$. For a mode of order $m$, a
+particle passing through at a time $t_w$ with respect to the reference particle will produce wake
+components
+\begin{alignat}{2}
+  \delta a_{\sin} &\equiv  &c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
+    \CRNO
+  \delta a_{\cos} &\equiv -&c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
+    \label{ac2rq} 
+    \\
+  \delta b_{\sin} &\equiv  &c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
+    \CRNO
+  \delta b_{\cos} &\equiv -&c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
+    \nonumber
+\end{alignat}
+These are added to the existing wake components. The total is
+\begin{equation}
+  a_{\sin} = \sum_{\text{particles}} \delta a_{\sin}
+\end{equation}
+with similar equations for $a_{\cos}$ etc. Here the sum is over all particles that cross the
+cavity before the kicked particle. To calculate the kick due to wake, the normal and skew components
+are added together
+\begin{align}
+  a_{tot} &= e^{-d \, t} \, \left( 
+    a_{\cos} \, \cos (\omega \, t + \phi) + a_{\sin} \, \sin (\omega \, t + \phi) \right) 
+    \label{akz2q} \\
+  b_{tot} &= e^{-d \, t} \, \left(
+    b_{\cos} \, \cos (\omega \, t + \phi) + b_{\sin} \, \sin (\omega \, t + \phi) \right) \nonumber 
+\end{align}
+Here $t$ is the passage time of the particle with respect to the reference particle. In analogy to
+\Eq{ppcimr} and \eq{pciwr}, the kick is
+\begin{align}
+  -\Delta p_x + i\Delta p_y &= C \, 
+    m \, (b_{tot} + i a_{tot}) \, r^{m-1} \, e^{i (m-1) \theta} 
+    \label{ppcmbar} \\
+  \Delta p_z &= -C \, r^m \, \left( 
+    (b_{tot}' + i a_{tot}') e^{i m\theta} + (b_{tot}' - i a_{tot}') e^{-i m\theta} \right)
+\end{align}
+where $a' \equiv da/dt$ and $b' \equiv db/dt$.
+
+When simulating trains of bunches, the exponential factor $d \, t_w$ in \Eq{ac2rq} can
+become very large. To prevent numerical overflow, \bmad uses a reference time $z_\REF$ so
+that all times $t$ in the above equations are replaced by
+\begin{equation}
+  t \longrightarrow t - t_\REF
+  \label{ttt}
+\end{equation}
+
+The above equations were developed assuming cylindrical symmetry. With cylindrical symmetry, the
+cavity modes are actually a pair of degenerate modes. When the symmetry is broken, the modes no
+longer have the same frequency. In this case, one has to consider a mode's polarization angle
+$\theta_p$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged.  In place of \Eq{ac2rq}, the
+contribution of a particle to a mode is
+\begin{alignat}{2}
+  \delta a_{\sin} &=  & c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \left[
+    \sin(m \theta_w) \, \sin^2(m \theta_p) + 
+    \cos(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
+    \CRNO
+  \delta a_{\cos} &= -& c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \left[ 
+    \sin(m \theta_w) \, \sin^2(m \theta_p) + 
+    \cos(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
+    \\
+  \delta b_{\sin} &=  & c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \left[
+    \cos(m \theta_w) \, \cos^2(m \theta_p) + 
+    \sin(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
+    \CRNO
+  \delta b_{\cos} &= -& c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+    e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \left[
+    \cos(m \theta_w) \, \cos^2(m \theta_p) + 
+    \sin(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
+    \nonumber
+\end{alignat}
+Note: Technically an unpolarized mode is actually two polarized modes perpendicular to each
+other. The axes of these two normal modes can be chosen arbitrary as long as they are at
+right angles.

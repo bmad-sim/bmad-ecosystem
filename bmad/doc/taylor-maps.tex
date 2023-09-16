@@ -1,0 +1,290 @@
+\chapter{Taylor Maps}
+
+%-----------------------------------------------------------------
+\section{Taylor Maps}
+\label{s:taylor.phys}
+\index{taylor map|hyperbf}
+\index{symplectic integration}
+
+A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through an element or a section of a
+lattice is a function that maps the starting phase space coordinates $\Bf r(\In)$ to the ending
+coordinates $\Bf r(\Out)$
+\begin{equation}
+  \Bf r(\Out) = {\cal M} \, (\delta \bfr)
+\end{equation}
+where
+\begin{equation}
+  \delta \bfr = \bfr(\In) - \bfr_\REF
+\end{equation}
+$\bfr_\REF$ is the reference orbit at the start of the map around which the map is made. In many
+cases the reference orbit is the zero orbit. For a storage ring, the closed orbit is commonly used
+for the reference orbit. For a lattice with an open geometry the reference orbit may be the orbit as
+computed from some given initial coordinates.
+
+${\cal M}$ in the above equation is made up of six functions ${\cal M}_i: {\cal R}^6 \rightarrow
+{\cal R}$. Each of these functions maps to one of the $r(\Out)$ coordinates. Each of these functions
+can be expanded in a Taylor series and truncated at some order. Each Taylor series is in the form
+\begin{equation}
+  r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, (\delta r_k)^{e_{ijk}}
+  \label{rcr}
+\end{equation}
+Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.  The order of a given
+term associated with index $i,j$ is the sum over the exponents
+\begin{equation}
+  \text{order}_{ij} = \sum_{k = 1}^6 e_{ijk} 
+\end{equation}
+The order of the entire map is the order at which the map is truncated.
+
+The standard \bmad routine for printing a Taylor map might produce something like this:
+\begin{example}
+   Taylor Terms:
+   Out      Coef             Exponents          Order       Reference
+   --------------------------------------------------
+    1:     -0.600000000000   0  0  0  0  0  0       0       0.200000000
+    1:      1.000000000000   1  0  0  0  0  0       1
+    1:      0.145000000000   2  0  0  0  0  0       2
+   --------------------------------------------------
+    2:     -0.185000000000   0  0  0  0  0  0       0       0.000000000
+    2:      1.300000000000   0  1  0  0  0  0       1
+    2:      3.800000000000   2  0  0  0  0  1       3
+   --------------------------------------------------
+    3:      1.000000000000   0  0  1  0  0  0       1       0.100000000
+    3:      1.600000000000   0  0  0  1  0  0       1
+    3:    -11.138187077310   1  0  1  0  0  0       2
+   --------------------------------------------------
+    4:      1.000000000000   0  0  0  1  0  0       1       0.000000000
+   --------------------------------------------------
+    5:      0.000000000000   0  0  0  0  0  0       0       0.000000000
+    5:      0.000001480008   0  1  0  0  0  0       1
+    5:      1.000000000000   0  0  0  0  1  0       1
+    5:      0.000000000003   0  0  0  0  0  1       1
+    5:      0.000000000003   2  0  0  0  0  0       2
+   --------------------------------------------------
+    6:      1.000000000000   0  0  0  0  0  1       1       0.000000000
+\end{example}
+Each line in the example represents a single \vn{Taylor term}. The Taylor terms are grouped into 6
+\vn{Taylor series}. There is one series for each of the output phase space coordinate. The first
+column in the example, labeled ``out'', (corresponding to the $i$ index in \Eq{rcr}) indicates the
+Taylor series: $1 = x(out)$, $2 = p_x(out)$, etc. The 6 exponent columns give the $e_{ijk}$ of
+\Eq{rcr}. In this example, the second Taylor series (\vn{out} = 2), when expressed as a formula,
+would read:
+\begin{equation}
+  p_x(out) = -0.185 + 1.3 \, \delta p_x + 3.8 \, \delta x^2 \, \delta p_z
+\end{equation}
+
+\index{taylor map!reference coordinates}
+The reference column in the above example shows the input coordinates around which the Taylor map is
+calculated. In this case, the reference coordinates where
+\begin{equation}
+  (x, p_x, y, p_y, z, p_z)_\REF = (0.2, 0, 0.1, 0, 0, 0, 0)
+\end{equation}
+The choice of the reference point will affect the values of the coefficients of the Taylor map. As
+an example, consider the 1-dimension map
+\begin{equation}
+  x(out) = A \, \sin(k \, \delta x)
+\end{equation}
+Then a Taylor map to 1\St order is
+\begin{equation}
+  x(out) = c_0 + c_1 \, \delta x
+\end{equation}
+where
+\begin{align}
+  c_1 &= A \, k \, \cos(k \, x_\REF) \\
+  c_0 &= A \, \sin(k \, x_\REF)
+\end{align}
+
+Taylor maps using complex numbers is also used by \bmad. The output of such maps is similar to the
+output for real maps as shown above except that the coefficient has a real and imaginary part.
+
+%-----------------------------------------------------------------
+\section{Spin Taylor Map}
+\label{s:spin.map}
+\index{spin taylor map}
+
+A Taylor map that fully describes spin (\sref{s:spin.dyn}) and orbital motion, would consist of nine
+Taylor series (six for the orbital phase space variables and three for the spin components) and each
+Taylor series would be a polynomial in nine variables.
+
+To simplify things, \bmad assumes that the effect on the orbital phase space due to the spin
+orientation is negligible. That is, Stern-Gerlach effects are ignored. With this assumption, the
+orbital part of the map is only dependent on the six orbital variables. This means that
+${\pmb\Omega}_{BMT}$ and ${\pmb\Omega}_{EDM}$ in the Thomas-Bargmann-Michel-Telegdi equation
+(\sref{tbmt}), are assumed independent of the spin. Thus the spin transport is just a rotation.
+\bmad represents this rotation using a quaternion (\sref{s:quat}). Each of the four components of
+the quaternion is a Taylor series and the full phase space plus spin transport uses 10 (= 6 orbital
++ 4 spin) Taylor series with each Taylor series only being dependent on the six orbital phase space
+coordinates.
+
+Spin transport involves:
+\begin{enumerate}[itemsep=-0.6ex, topsep=-0.9ex]
+\item Using the six orbital coordinates, evaluate the four spin Taylor series to produce a quaternion $\bfq$.
+\item Normalize the quaternion to one: $\bfq \longrightarrow \bfq/|\bfq|$.
+\item Rotate the spin vector: $\bfS \longrightarrow \bfq \, \bfS \, \bfq^{-1}$.
+\end{enumerate}
+The  normalization of the quaternion is needed since the truncation of the map to a finite order will produce errors
+in the magnitude of the quaternion.
+
+The standard \bmad routine for printing a spin Taylor map will produce a result that is very similar
+as that produced for the orbital phase space. The difference is that there will only be four Taylor
+series labeled (\vn{S1}, \vn{Sx}, \vn{Sy}, \vn{Sz}) for the four components of the quaternion. Also the reference orbit
+will not be shown (it is exactly the same as the orbital phase space reference orbit).
+
+Note: When tracking a particle's spin through a map, the quaternion used to rotate the spin is
+always normalized to one so that the magnitude of the spin will be invariant.
+
+%-----------------------------------------------------------------
+\section{Symplectification}
+\label{s:symp.method}
+\index{symplectification}
+
+If the evolution of a system can be described using a Hamiltonian then
+it can be shown that the linear part of any transport map (the Jacobian)
+must obey the symplectic condition. If a matrix $\Bf M$ is not symplectic,
+Healy\cite{b:healy} has provided an elegant method for finding a symplectic 
+matrix that is ``close'' to $\Bf M$. The procedure is as follows:
+From $\Bf M$ a matrix $\bfV$ is formed via
+\begin{equation}
+  \bfV = \Bf S (\Bf I - \Bf M)(\Bf I + \Bf M)^{-1} 
+  \label{e:vsimi}
+\end{equation}
+where $\Bf S$ is the matrix
+\begin{equation}
+  \Bf S = 
+  \begin{pmatrix} 
+      0 &  1 &  0 &  0 &  0 &  0 \cr
+     -1 &  0 &  0 &  0 &  0 &  0 \cr
+      0 &  0 &  0 &  1 &  0 &  0 \cr
+      0 &  0 & -1 &  0 &  0 &  0 \cr
+      0 &  0 &  0 &  0 &  0 & -1 \cr
+      0 &  0 &  0 &  0 & -1 &  0 \cr
+  \end{pmatrix}
+  \label{s0100}
+\end{equation}
+$\bfV$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
+a symmetric matrix $\Bf W$ near $\bfV$ can be
+formed via
+\begin{equation}
+  \Bf W = \frac{\bfV + \bfV^t}{2}
+\end{equation}
+A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
+\begin{equation}
+  \Bf F = (\Bf I + \Bf S \Bf W) (\Bf I - \Bf S \Bf W)^{-1}
+\end{equation}
+
+%-----------------------------------------------------------------
+\section{Map Concatenation and Feed-Down}
+\label{s:map.concat}
+
+\index{taylor map!feed-down}
+Of importance in working with Taylor maps is the concept of
+\vn{feed-down}.  This is best explained with an example. To keep the
+example simple, the discussion is limited to one phase space
+dimension so that the Taylor maps are a single Taylor series. Take the
+map $M_1$ from point 0 to point 1 to be
+\begin{equation}
+  M_1: x_1 = x_0 + 2
+  \label{xx2}
+\end{equation}
+and the map $M_2$ from point 1 to point 2 to be
+\begin{equation}
+  M_2: x_2 = x_1^2 + 3 \, x_1
+  \label{xx3x}
+\end{equation}
+Then concatenating the maps to form the map $M_3$ from point 0 to point 2
+gives
+\begin{equation}
+  M_3: x_2 = (x_0 + 2)^2 + 3 (x_0 + 2) = x_0^2 + 7 \, x_0 + 10
+  \label{xx23x2}
+\end{equation}
+However if we are evaluating our maps to only 1\St order the map $M_2$
+becomes
+\begin{equation}
+  M_2: x_2 = 3 \, x_1
+\end{equation}
+and concatenating the maps now gives
+\begin{equation}
+  M_3: x_2 = 3 (x_0 + 2) = 3 \, x_0 + 6
+  \label{x3x23}
+\end{equation}
+Comparing this to \Eq{xx23x2} shows that by neglecting the 2\Nd order
+term in \Eq{xx3x} leads to 0\Th and 1\St order errors in
+\Eq{x3x23}. These errors can be traced to the finite 0\Th order term in
+\Eq{xx2}. This is the principal of feed--down: Given $M_3$ which is a map
+produced from the concatenation of two other maps, $M_1$, and $M_2$
+\begin{equation}
+  M_3 = M_2(M_1)
+\end{equation}
+Then if $M_1$ and $M_2$ are correct to n\Th order, $M_3$ will also be
+correct to n\Th order as long as $M_1$ has no constant (0\Th order)
+term. [Notice that a constant term in $M_2$ does not affect the
+argument.]  What happens if we know there are constant terms in our
+maps? One possibility is to go to a coordinate system where the
+constant terms vanish. In the above example that would mean using the
+coordinate $\widetilde x_0$ at point 0 given by
+\begin{equation}
+  \widetilde x_0 = x_0 + 2
+\end{equation}
+\index{symplectic integration}
+
+%-----------------------------------------------------------------
+\section{Symplectic Integration}
+\label{s:symp.integ}
+
+Symplectic integration, as opposed to concatenation, never has
+problems with feed--down. The subject of symplectic integration is too
+large to be covered in this guide. The reader is referred to the book
+``Beam Dynamics: A New Attitude and Framework'' by \'Etienne
+Forest\cite{b:forest}. A brief synopsis: Symplectic integration uses
+as input 1) The Hamiltonian that defines the equations of motion, and
+2) a Taylor map $M_1$ from point 0 to point 1. Symplectic integration
+from point 1 to point 2 produces a Taylor map $M_3$ from point 0 to
+point 2. Symplectic integration can produce maps to arbitrary
+order. In any practical application the order $n$ of the final map is
+specified and in the integration procedure all terms of order higher
+than $n$ are ignored. If one is just interested in knowing the final
+coordinates of a particle at point 2 given the initial coordinates at
+point 1 then $M_1$ is just the constant map
+\begin{equation}
+  M_1: x_1 = c_i
+\end{equation}
+where $c_i$ is the initial starting point. The order of the integration is set to 0 so that all
+non--constant terms are ignored. The final map is also just a constant map
+\begin{equation}
+  M_3: x_2 = c_f
+\end{equation}
+If the map from point 1 to point 2 is desired then the map $M_1$ is just set to the identity map
+\begin{equation}
+  M_1: x_1 = x_0
+\end{equation}
+In general it is impossible to exactly integrate any non--linear system. In practice, the symplectic
+integration is achieved by slicing the interval between point 1 and point 2 into a number of
+(generally equally spaced) slices. The integration is performed, slice step by slice step. This is
+analogous to integrating a function by evaluating the function at a number of points. Using more
+slices gives better results but slows down the calculation. The speed and accuracy of the
+calculation is determined by the number of slices and the \vn{order} of the integrator. The concept
+of integrator order can best be understood by analogy by considering the trapezoidal rule for
+integrating a function of one variable:
+\begin{equation}
+  \int_{y_a}^{y_b} f(y) \, dy = 
+  h \left[ \frac{1}{2} f(y_a) + \frac{1}{2} f(y_b) \right] +
+  o(h^3 \, f^{(2)})
+\end{equation}
+In the formula $h = y_b - y_a$ is the slice width. $0(h^3 \, f^{(2)})$ means that the error of the
+trapezoidal rule scales as the second derivative of $f$. Since the error scales as $f^{(2)}$ this is
+an example of a second order integrator. To integrate a function between points $y_1$ and $y_N$ we
+slice the interval at points $y_2 \ldots y_{N-1}$ and apply the trapezoidal rule to each
+interval. The concept of integrator order in symplectic integration is analogous.
+
+The optimum number of slices is determined by the smallest number that gives an acceptable
+error. The slice size is given by the \vn{ds_step} attribute of an element (\sref{s:integ}).
+Integrators of higher order will generally need a smaller number of slices to achieve a given
+accuracy. However, since integrators of higher order take more time per slice step, and since it is
+computation time and not number of slices which is important, only a measurement of error and
+calculation time as a function of slice number and integrator order will unambiguously give the
+optimum integrator order and slice width.  In doing a timing test, it must be remembered that since
+the magnitude of any non-nonlinearities will depend upon the starting position, the integration
+error will be dependent upon the starting map $M_1$. \bmad has integrators of order 2, 4, and 6
+(\sref{s:integ}). Timing tests performed for some wiggler elements (which have strong
+nonlinearities) showed that, in this case, the 2\Nd order integrator gave the fastest computation
+time for a given accuracy. However, the higher order integrators may give better results for
+elements with weaker nonlinearities.

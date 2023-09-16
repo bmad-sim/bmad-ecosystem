@@ -1,0 +1,1547 @@
+\chapter{Tracking of Charged Particles}
+\label{c:charged.track}
+
+\bmad can track both charged particles and X-rays. This chapter deals with charged particles and
+X-rays are handled in chapter~\sref{c:xray.track}.
+
+For tracking and transfer map calculations (here generically called ``tracking''), \bmad has various
+methods that can be applied to a given element (Cf. Chapter~\sref{c:methods}). This chapter
+discusses the \vn{bmad_standard} calculation that is the default for almost all element types and
+the \vn{symp_lie_bmad} calculation that does symplectic integration.
+
+Generally, it will be assumed that tracking is in the forward direction.
+
+%-----------------------------------------------------------------
+\section{Relative Versus Absolute Time Tracking}
+\label{s:rf.time}
+
+\index{relative time tracking}\index{absolute time tracking}
+\index{lcavity}\index{rfcavity}\index{em_field}
+Unlike other elements, the kick given a particle going through an \vn{lcavity}, \vn{rfcavity}, or
+possibly an \vn{em_field} element depends upon the time that the particle enters the element
+relative to some ``RF clock''. \bmad has two modes for calculating this time called ``\vn{relative
+time tracking}'' and ``\vn{absolute time tracking}''. The switch to set the type of tracking for a
+lattice is \vn{bmad_com[absolute_time_tracking]} (\sref{s:bmad.common}).\footnote
+  {
+An old, deprecated notation for this switch is \vn{parameter[absolute_time_tracking]}.
+  }
+The phase of the RF, $\phi_\text{rf}$, is determined by
+\begin{equation}
+  \phi_\text{rf} = \phi_\text{t} + \phi_\REF
+\end{equation}
+where $\phi_\text{t}$ is the part of the phase that depends upon the time $t$ and $\phi_\REF$
+is a fixed phase offset (generally set in the lattice file) and independent of the particle
+coordinates. See \Eqs{lcav.phi} and \eq{rfcav.phi}
+
+The phase $\phi_\text{t}$ is 
+\begin{equation}
+  \phi_\text{t} = f_\text{rf} \ t_\text{eff}
+\end{equation}
+where $f_\text{rf}$ is the RF frequency, and $t_\text{eff}$ is the effective time. With \vn{relative
+time tracking}, which \bmad uses by default, $t_\text{eff}$ is a function of the 
+phase space coordinate $z$ (\sref{s:phase.space}) via
+\begin{equation}
+  t_\text{eff}(s) = t_0(s) - t_0(s_\text{ent}) - \frac{z(s)}{\beta \, c}
+  \label{tttz}
+\end{equation}
+where $t_0$ is the reference time (see \Eq{zbctt}) and $s_\text{ent}$ is the $s$-position at the
+upstream end of the element. $t_\text{eff}$ is defined such that a particle entering an element 
+with $z = 0$ has $t_\text{eff} = 0$.
+
+With \vn{absolute time tracking}, and \vn{bmad_com%absolute_time_ref_shift} set to True (the
+default), $t_\text{eff}$ is defined by
+\begin{equation}
+  t_\text{eff}(s) = t(s) - t_0(s_\text{ent})
+\end{equation}
+$t_0(s_\text{ent})$, by definition, equal to the time of the reference particle at the entrance end
+of the element. With multipass \sref{s:multipass}, $t_0(s_\text{ent})$ is set by the time of the
+reference particle at the entrance end of the element on the first pass. For absolute time tracking,
+it is important to keep in mind that $t_0(s_\text{ent})$ is a property of the element independent of
+how tracking is done. Thus, if a particle goes through a particular element multiple times, the
+value of $t_\text{ent}$ will be the same for each transit. If \vn{bmad_com%absolute_time_ref_shift}
+set to True, $t_\text{eff}$ is simply
+\begin{equation}
+  t_\text{eff}(s) = t(s) 
+\end{equation}
+
+To understand the difference between relative and absolute time tracking, consider a particle
+traveling on the reference orbit along side the reference particle in a circular ring with one RF
+cavity. This particle always has $z = 0$ and thus, with \vn{relative time tracking}, $t_\text{eff}$
+will always be zero (assuming \vn{bmad_com%absolute_time_ref_shift} is set to True) at the entrance
+to the cavity.  With \vn{absolute time tracking}, the particle, on the first turn, will have
+$t_\text{eff}$ equal to zero. However, on subsequent turns (or subsequent passes if using
+multipass), the time will increase by the revolution time $t_\text{C}$ on each turn. If the RF
+frequency $f_\text{rf}$ is some multiple of the revolution harmonic, the RF phase with absolute vs
+relative time tracking will be some multiple of $2 \, \pi$ and thus RF kick given the particle will
+be the same in both cases. However, if the RF frequency is not some multiple of the revolution
+harmonic, there will be a difference in the RF kicks (except for the kick on the first turn).
+
+There are advantages and disadvantages to using either relative or absolute time tracking. Absolute
+time tracking is more correct since RF cavities may have frequencies that are not commensurate with
+the revolution time. The problem with absolute time tracking is that the transfer map through the
+cavity is now a function of time and therefore is a function of $z$ {\em and} the turn number. This
+complicates lattice analysis. For example, standard element transfer maps use phase space
+coordinates so with absolute time tracking, one has a different map for each turn.
+
+With relative time tracking the transfer map problem is swept under the rug. The penalty for using
+relative time tracking is that results can be unphysical. For example, with relative time tracking,
+the closed orbit is essentially independent of the RF frequency. From a different angle this can be
+viewed as a desirable feature since if one is only interested in, say, calculating the Twiss
+parameters, it can be an annoyance to have to worry that the ring one has constructed have a length
+that is exactly commensurate with the RF frequency. And it is potentially confusing to see non-zero
+closed orbits when one is not expecting it due to a mismatch between the ring circumference and the
+RF frequency or due to RF cavities not being spaced a multiple of the RF wavelength apart.
+
+The above discussion is limited to the cavity fundamental mode. Long-range wakefields, on the
+other hand, cannot be synchronized to the $z$ coordinate since, in general, their frequencies are
+not commensurate with the fundamental mode frequency. For simulating the long-range wakes, the kick
+is thus, by necessity, tied to the absolute time. The exception is that a wake associated with the
+fundamental mode (that is, has the same frequency as the fundamental mode) will always use relative
+time if the fundamental is using relative time and vice versa.
+
+Do not confuse absolute time tracking with the \vn{time_runge_kutta} tracking method
+(\sref{s:tkm}). The \vn{time_runge_kutta} method uses time as the independent variable instead of
+$z$. Absolute time tracking just means that the RF phase is dependent upon the time instead of
+$z$. It is perfectly possible to use absolute time tracking with code that uses $z$ as the
+independent variable.
+
+One important point to always keep in mind is that any PTC based tracking (\sref{s:ptc.intro}) will
+always use relative time tracking independent of the setting of \vn{bmad_com[absolute_time_tracking]}.
+
+%-------------------------------------------------------------------------
+%-------------------------------------------------------------------------
+\section{Element Coordinate System}
+\label{s:ele.coords}
+
+\index{element coordinates}
+The general procedure for tracking through an element makes use of \vn{element reference}
+coordinates (also called just \vn{element} coordinates). Without any offsets, pitches or tilt
+(\sref{s:offset}), henceforth called ``misalignments'', the \vn{element} coordinates are the same as
+the \vn{laboratory reference} coordinates (or simply \vn{laboratory} coordinates)
+(\sref{s:ref}). The \vn{element} coordinates stay fixed relative to the element. Therefore, if the
+element is misaligned, the \vn{element coordinates} will follow as the element shifts in the
+laboratory frame as shown in \fig{f:ele.coord}.
+
+Tracking a particle through an element is a three step process:
+\begin{enumerate}
+\item
+At the entrance end of the element, transform from the \vn{laboratory} coordinates to the entrance
+\vn{element} coordinates.
+\item
+Track through the element ignoring any misalignments. 
+\item
+At the exit end of the element, transform from the exit \vn{element} reference frame to the
+\vn{laboratory} reference frame.
+\end{enumerate}
+
+The transformation between \vn{laboratory} and \vn{element} reference frames is given in
+\sref{s:straight.mis} and \sref{s:bend.mis}.
+
+%-------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{coord-offset.pdf}
+  \caption[Element Coordinate System.]
+  {
+\vn{Element} coordinates are coordinates attached to the physical element (solid green outline). The
+\vn{laboratory} coordinates are fixed at the nominal position of the element (red dashed outline).
+  }
+  \label{f:ele.coord}.
+\end{figure}
+
+%-------------------------------------------------------------------------
+\section{Hamiltonian}
+\label{s:mag.hamiltonian}
+The time dependent Hamiltonian $H_t$ in the curvilinear coordinate system shown
+in \fig{f:local.coords} is (\cite{b:ruth})
+\begin{equation}
+  H_t = \wt\psi + \left[ \left( \frac{p_s - a_s}{1 + g\, x} \right)^2 + \wt m^2 + 
+  (p_x - a_x)^2 + (p_y - a_y)^2 \right]^{1/2}
+\end{equation}
+where $(p_x, p_y, p_s/(1+gx))$ are the momentum normalized by $P_0$, $\rho$ being the local radius
+of curvature of the reference particle, and $\wt m$, $\Bf a$ and $\wt\psi$ are the normalized mass,
+vector, and scalar potentials:
+\begin{equation}
+  \wt m = \frac{m \, c^2}{c \, P_0} \qquad
+  \left( a_x, a_y, \frac{a_s}{1+g \, x} \right) = \frac{q \, \Bf A}{P_0 \, c} \qquad 
+  \wt\psi(x,y,z) = \frac{q \, \psi}{P_0 \, c}
+  \label{mmccp}
+\end{equation}
+In terms of the normalized velocities $\beta_x$, $\beta_y$, the canonical momentum are
+\begin{equation}
+  p_x = \frac{m \, c^2}{P_0 \, c} \, \beta_x + a_x, \qquad 
+  p_y = \frac{m \, c^2}{P_0 \, c} \, \beta_y + a_y
+  \label{pmc2pc}
+\end{equation}
+
+The $s$-dependent Hamiltonian is obtained from $H_t$ by solving for
+$-p_s$ and using a contact transformation to convert to \bmad
+coordinates (\sref{s:phase.space}). For particles propagating in the
+positive $s$ direction, the $s$-dependent Hamiltonian is, assuming
+$\wt\psi$ is zero
+\begin{equation}
+  H \equiv H_s = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - 
+  a_s + \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
+  \label{h1gx1}
+\end{equation}
+where $\beta_0$ is the reference velocity and the equality $(1 +
+p_z)^2 = (E/c\, P_0)^2 - \wt m^2$ has been used. The last term on the
+RHS of \Eq{h1gx1} accounts for the fact that the \bmad canonical $z$
+(\Eq{zbctt}) has an ``extra'' term $\beta \, c \, t_0$ so that \bmad
+canonical $z$ is with respect to the reference particle's $z$.
+
+The equations of motion are
+\begin{equation}
+  \frac{dq_i}{ds} = \frac{\partial H}{\partial p_i} \qquad
+  \frac{dp_i}{ds} = -\frac{\partial H}{\partial q_i}
+  \label{rshp}
+\end{equation}
+
+\label{paraxial approximation} Without an electric field, $\psi$ is zero. Assuming a
+non-curved coordinate system ($g = 0$), and using the paraxial approximation (which
+expands the square root in the Hamiltonian assuming the transverse momenta are small)
+(\sref{s:phase.space}), \Eq{h1gx1} becomes
+\begin{equation}
+  H = \frac{(p_x - a_x)^2}{2 (1 + p_z)} + \frac{(p_y - a_y)^2}{2 (1 + p_z)} - 
+  (1 + g \, x) \, (1 + p_z) - a_s +   \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
+  \label{hpapa}
+\end{equation}
+
+Once the transverse trajectory has been calculated, the longitudinal position
+$z_2$ at the exit end of an element is obtained from symplectic
+integration of \Eq{hpapa}
+\begin{equation}
+  z_2 = z_1 - \frac{1}{2 (1 + p_{z1})^2} \int \! ds \, 
+  \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \, g \, x
+  \label{zz121p}
+\end{equation}
+where $z_1$ is the longitudinal position at the entrance end of the element.
+Using the equations of motion \Eqs{rshp} this can also be rewritten as
+\begin{equation}
+  z_2 = z_1 - \frac{1}{2} \int \! ds \, 
+  \left[ \left( \frac{dx}{ds} \right)^2 + \left( \frac{dy}{ds} \right)^2 \right] - 
+  \int \! ds \, g \, x
+  \label{zz12sx}
+\end{equation}
+
+For some elements, \vn{bmad_standard} uses a truncated Taylor map for
+tracking.  For elements without electric fields where the particle
+energy is a constant, the transfer map for a given coordinate $r_i$
+may be expanded in a Taylor series
+\begin{equation}
+  r_{i,2} \rightarrow m_i + \sum_{j = 1}^4 m_{ij} \, r_{j,1} + 
+  \sum_{j = 1}^4 \sum_{k = j}^4 m_{ijk} \, r_{j,1} \, r_{k,1} + \ldots
+\end{equation}
+where the map coefficients $m_{ij\cdots}$ are functions of $p_z$.  For
+linear elements, the transfer map is linear for the transverse
+coordinates and quadratic for $r_i = z$.
+
+Assuming mid--plane symmetry of the magnetic field, so
+that $a_x$ and $a_y$ can be set to zero\cite{b:madphysics}, The vector
+potential up to second order is (cf.~\Eq{byx0b})
+\begin{equation}
+  a_s = -k_0 \left( x - \frac{g \, x^2}{2 (1 + g\, x)} \right) -
+  \frac{1}{2} k_1 \left( x^2 - y^2 \right)
+  \label{akxgx}
+\end{equation}
+
+For backwards propagation, where particle are traveling in the $-\Bf
+s$ direction and where $p_s$ is negative, solving for $p_s$ involves
+using a different part of the square root branch. There is also an
+overall negative sign coming from switching from using $s$ as the
+independent variable to $\wt s \equiv -s$ as the independent
+variable. the Hamiltonian $H_{\wt s}$ is then
+\begin{equation}
+  H_{\wt s} = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} + 
+  a_s + \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
+\end{equation}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Symplectic Integration}
+\label{s:symp.track}
+\index{symplectic integration}
+
+Using \Eq{hpapa} the Hamiltonian is written in the form
+\begin{equation}
+  H = H_x + H_y + H_z
+\end{equation}
+where
+\begin{equation}
+  H_x = \frac{(p_x - a_x)^2}{2 (1 + \delta)}, \qquad
+  H_y = \frac{(p_y - a_y)^2}{2 (1 + \delta)}, \qquad
+  H_s = - a_s 
+\end{equation}
+
+For tracking, the element is broken up into a number of slices set by
+the element's \vn{ds_step} attribute. For each slice, the tracking
+uses a quadratic symplectic integrator $I$:
+\begin{equation}
+  I = T_{s/2} \; I_{x/2} \; I_{y/2} \; I_s \; I_{y/2} \; I_{x/2} \; T_{s/2}
+\end{equation}
+$T_{s/2}$ is just a translation of the $s$ variable:
+\begin{equation}
+  s \rightarrow s + \frac{ds}{2}
+\end{equation}
+And the other integrator components are
+\begin{align}
+  I_{x/2} &= \exp \left( : -\frac{ds}{2} H_x : \right) \CRNO
+  I_{y/2} &= \exp \left( : -\frac{ds}{2} H_y : \right) \\
+  I_{s}   &= \exp \left( : -ds \, H_s : \right) \nonumber
+\end{align}
+The evaluation of $I_{x/2}$ and $I_{y/2}$ is tricky since it involves both transverse
+position and momentum variables. The trick is to split the integration into three parts.
+For $I_{x/2}$ this is
+\begin{align}
+  I_{x/2} &= \exp \left( : -\frac{ds}{2} \frac{(p_x - A_x)^2}{2 (1 + \delta)} : \right) \CRNO
+  &= \exp \left( : -\int A_x \, dx : \right) \,
+     \exp \left( : -\frac{ds}{2} \frac{p_x^2}{2 (1 + \delta)} : \right) \,
+     \exp \left( : \int A_x \, dx : \right)
+  \label{ids2}
+\end{align}
+With an analogous expression for $I_{y/2}$.
+
+\index{quadrupole}\index{sextupole}\index{wiggler}
+For magnetic elements that do not have longitudinal fields
+(quadrupoles, sextupoles, etc.), $a_x$ and $a_y$ can be taken to be
+zero (cf.~\Eq{akxgx}).
+
+\index{lcavity}\index{rfcavity}
+For \vn{lcavity} and \vn{rfcavity} elements, the vector potential is computed from
+\Eq{aiew}.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{BeamBeam Tracking}
+\label{s:beambeam.std}
+\index{beambeam}
+
+A beam-beam element (\sref{s:beambeam}) simulates the effect on a tracked particle of an opposing
+beam of particles moving in the opposite direction. The opposing beam, called the ``strong'' beam,
+is assumed to be Gaussian in shape.
+
+The strong beam is divided up into \vn{n_slice} equal charge (not equal thickness) slices.
+Propagation through the strong beam involves a kick at the charge center of each slice with drifts
+in between the kicks. The kicks are calculated using the standard Bassetti--Erskine complex error
+function formula\cite{b:talman}.  Even though the strong beam can have a finite \vn{sig_z}, the
+length of the element is always considered to be zero. This is achieved by adding drifts at either
+end of any tracking so that the longitudinal starting point and ending point are identical. The
+longitudinal $s$--position of the \vn{BeamBeam} element is at the center of the strong bunch. For
+example, with \vn{n_slice} = 2 and with a solenoid field, the calculation would proceed as follows:
+\begin{enumerate}
+  \item 
+Start with the particle longitudinally at the \vn{beambeam} element (which is considered to have
+zero longitudinal length) in laboratory coordinates (\sref{s:coords.3}).
+  %
+  \item
+Propagate backwards through the solenoid field so that the particle is in the plane of the first
+beambeam slice. The fact that the plane of the slice may be, due to finite \vn{x_pitch} or
+\vn{y_pitch} values, canted with respect to the laboratory $x$-$y$ plane is taken into account.
+  %
+  \item
+Transform the particle coordinates to the \vn{beambeam} element body coordinates
+(\sref{s:lab.body.transform}).
+  %
+  \item
+Apply the beam--beam kick due to the first slice including a spin rotation.
+  %
+  \item
+Transform back to laboratory coordinates.
+  %
+  \item
+Propagate forwards so that the particle is in the plane of the second slice.
+  %
+  \item
+Transform the particle coordinates to the \vn{beambeam} element body coordinates.
+  %
+  \item 
+Apply the beam--beam kick due to the second slice.
+  %
+  \item 
+Transform back to laboratory coordinates.
+  %
+  \item 
+Propagate backwards through the solenoid field to end up with the particle longitudinally at the
+\vn{beambeam} element.
+  %
+\end{enumerate}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Bend: Exact Body Tracking with k1 = 0}
+\label{s:bend.body.std}
+\index{sbend}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=5in]{bend-exact.pdf}
+  \caption{Geometry for the exact bend calculation.}
+  \label{f:bend.exact}
+\end{figure}
+
+
+Function definitions:
+\begin{align}
+  \sinc(x) &\equiv \frac{\sin(x)}{x} \\
+  \cosc(x) &\equiv \frac{1 - \cos(x)}{x^2}
+\end{align}
+These functions cannot be directly evaluated at $x = 0$ and are defined at $x = 0$ using the $x
+\rightarrow 0$ limit. The point to keep in mind here is that these functions are well behaved and
+can be easily coded in software.
+
+Referring to Figure~\ref{f:bend.exact}, at point 1 where the particle enters a sector bend, the angle
+$\phi_1$ of the particle trajectory in the $(x,s)$ plane with respect to the $s$ axis is
+\begin{equation}
+  \sin(\phi_1) = \frac{p_{x1}}{\sqrt{(1+p_z)^2 - p_y^2}}
+\end{equation}
+where the subscript ``1'' for $p_z$ and $p_y$ is dropped since these quantities are invariant.
+
+The $(u,v)$ coordinate system in the plane of the bend is defined with the $u$-axis along the exit
+edge of the bend and the $v$-axis is perpendicular to the $u$-axis. The origin is at the design
+center of the bend. In this coordinate system the point $(u_1, v_1)$ where the particle enters the
+bend is given by
+\begin{align}
+  u_1 &= (\rho + x_1) \, \cos(\theta) \\
+  v_1 &= (\rho + x_1) \, \sin(\theta)
+\end{align}
+where $\rho$ is the design radius of curvature, $x_1$ is the offset of the particle from the design
+at the entrance point, and $\theta$ is the design bend angle
+\begin{equation}
+  \theta = \frac{L}{\rho} = g \, L
+\end{equation}
+with $L$ being the design arc length and $g \equiv 1/\rho$.
+
+The coordinates $(u_0, v_0)$ of the center of curvature of the particle trajectory is
+\begin{align}
+  u_0 &= u_1 - \rho_p \, \cos(\theta + \phi_1) \\
+  v_0 &= v_1 - \rho_p \, \sin(\theta + \phi_1)
+\end{align}
+where $\rho_p$ is the radius of curvature of the particle trajectory in the $(u, v)$ plane (see
+\Eq{g1rg}).
+
+The coordinates of the particle at the exit face is $(u_2, 0)$ where
+\begin{equation}
+  u_2 = u_0 + \sqrt{\rho_p^2 - v_0^2}
+\end{equation}
+After some manipulation, the offset of the particle $x_2$ from the design point at the exit face is
+\begin{equation}
+  x_2 = u_2 - \rho = x_1 \, \cos(\theta) - L^2 \, g \, \cosc(\theta) + \xi
+\end{equation}
+where $\xi$ can be expressed in two different ways
+\begin{align}
+  \xi &= \frac{\alpha}{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} + \cos(\theta + \phi_1)} 
+    \quad \text{or} \label{xctlg1} \\
+  &= \frac{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} - \cos(\theta + \phi_1)}{g_p}
+    \label{xctlg2}
+\end{align}
+where
+\begin{align}
+  \alpha &= 2 \, (1 + g \, x_1) \, \sin(\theta + \phi_1) \, L \, \sinc(\theta) - 
+        g_p \, (1 + g \, x_1)^2 \, L^2 \, \sinc^2(\theta) \\
+  g_p &= \frac{1}{\rho_p} = \frac{g_\tot}{\sqrt{(1 + p_z)^2 - p_y^2}} \label{g1rg}
+\end{align}
+In the above equation $g_\tot$ is the bending strength of the actual field. Both \Eq{xctlg1} and
+\Eq{xctlg2} are needed since \Eq{xctlg1} is singular when $\alpha = 0$ and $\theta + \phi_1 = \pi$
+(which happens when the particle is bent by 180\Deg), and \Eq{xctlg2} is singular when $g_p$ is
+zero. A simple way to implement the calculation for $x_2$ is to use \Eq{xctlg1} when $|\theta +
+\phi_1| < \pi/2$ and otherwise use \Eq{xctlg2}.
+
+Once $x_2$ is computed, the arc length of the particle $L_p$ is 
+\begin{equation}
+  L_p = \frac{|\bfL_c|}{\sinc(\theta_p/2)}
+\end{equation}
+where $\bfL_c$ is the vector (chord) from point 1 and point 2
+\begin{equation}
+  \bfL_c = (L_{cu}, L_{cv}) =
+  \left( \xi, -L \, \sinc(\theta) - x_1 \, \sin(\theta) \right) 
+\end{equation}
+and $\theta_p$ is the angle made by the particle trajectory which is twice the angle between
+the initial particle trajectory $\Bf P$ and the vector $\bfL_c$
+\begin{equation}
+  \theta_p = 2 \, \left( \theta + \phi_1 - \atantwo \left( L_{cu}, -L_{cv} \right) \right)
+\end{equation}
+where $\atantwo(y, x)$ is the standard two argument arctangent function.
+
+Once $L_p$ is computed, $p_{x2}$, $y_2$ and $z_2$ are easily derived from
+\begin{align}
+  p_{x2} &= \sqrt{(1 + p_z)^2 - p_y^2} \, \sin(\theta + \phi_1 - \theta_p) \\
+  y_2 &= y_1 + \frac{p_y \, L_p}{\sqrt{(1+p_z)^2 - p_y^2}} \\
+  z_2 &= z_1 + \frac{\beta \, L}{\beta_\REF} - \frac{(1 + p_z) \, L_p}{\sqrt{(1+p_z)^2 - p_y^2}}
+\end{align}
+where $\beta$ is the normalized velocity of the particle and $\beta_\REF$ if the normalized
+velocity of the reference particle.
+
+Using the above equation, round-off error will give a non-zero final position even if the initial
+position is zero. Even though the round-off error will be very small, a non-zero result can be
+confusing. To avoid this, the standard linear transfer matrix for a bend is used if all the
+following conditions are satisfied:
+\begin{equation}
+  |x \, g|, |p_x|, |p_y|, |p_z| <  10^{-9}, \quad \text{and}, \quad g_\tot = g
+\end{equation}
+The matrix is:
+\begin{equation}
+  \begin{pmatrix}
+    \cos(\theta)            & L \, \sinc(\theta)  & 0 & 0 & 0 & g \, L^2 \, \cosc(\theta) \\
+   -g \, \sin(\theta)       & \cos(\theta)        & 0 & 0 & 0 & g \, L \, \sinc(\theta)   \\
+    0                       & 0                   & 1 & L & 0 & 0                         \\
+    0                       & 0                   & 0 & 1 & 0 & 0                         \\
+   -g \, L \, \sinc(\theta) & 
+                       -g \, L^2 \, \cosc(\theta) & 0 & 0 & 1 & 
+                   L \,  \left( \frac{1}{\gamma^2} - g^2 \, L^2 \, \sincc(\theta) \right) \\
+    0                       & 0                   & 0 & 0 & 0 & 1                       
+  \end{pmatrix}
+\end{equation}
+where
+\begin{equation}
+  \sincc(\theta) \equiv \frac{x - \sin(x)}{x^3}
+\end{equation}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Bend: Body Tracking with finite k1}
+\label{s:bend.body.std.k1}
+\index{sbend}
+
+For a bend with a finite \vn{k1}, the Hamiltonian for the body of an \vn{sbend} is
+\begin{equation}
+  H = (g_\tot - g) \, x - g \, x \, p_z + 
+  \frac{1}{2}\left( (k_1 + g \, g_\tot) x^2 - k_1 \, y^2 \right) +
+  \frac{p_x^2 + p_y^2}{2 (1 + p_z)} 
+\end{equation}
+
+This is simply solved
+\begin{align}
+  x_2    &= c_x \, (x - x_c) + s_x \, \frac{p_{x1}}{1 + p_{z1}} + x_c \CRNO
+  p_{x2} &= \tau_x \, \om_x^2 \, \, (1 + p_{z1}) \, s_x \, (x -x_c) + c_x \, p_{x1} \CRNO
+  y_2    &= c_y \, y_1 + s_y \, \frac{p_{y1}}{1 + p_{z1}} \CRNO
+  p_{y2} &= \tau_y \, \om_y^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \\
+  z_2    &= z_1 + m_5 + m_{51} (x - x_c) + m_{52} p_{x1} + m_{511} \, (x-x_c)^2 \, + \CRNO
+         &\hspace*{20ex} m_{512} \, (x-x_c) \, p_{x1} + m_{522} \, p_{x1}^2 + 
+                         m_{533} \, y^2 + m_{534} \, y_1 \, p_{y1} + m_{544} \, p_{y1}^2 \CRNO
+  p_{z2} &= p_{z1} \nonumber
+\end{align}
+where 
+\begin{alignat}{2}
+  k_x &= k_1 + g \, g_\tot & \qqquad
+  \om_x &\equiv \sqrt{\frac{|k_x|}{1 + p_{z1}}} \CRNO
+  x_c &= \frac{g \, (1 + p_{z1}) - g_\tot}{k_x} & \qqquad
+  \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_{z1}}} 
+\end{alignat}
+and
+\begin{alignat}{6}
+         &\hspace*{3ex}  && k_x > 0          &\hspace*{3ex}& k_x < 0 & \qqquad
+         &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 \CRNO
+     c_x &=   && \cos  (\om_x \, L)               && \cosh (\om_x \, L) & \qqquad
+     c_y &=   && \cosh (\om_y \, L)               && \cos  (\om_y \, L) \CRNO
+     s_x &=   && \frac{\sin  (\om_x \, L)}{\om_x} && \frac{\sinh (\om_x \, L)}{\om_x} & \qqquad
+     s_y &=   && \frac{\sinh (\om_y \, L)}{\om_y} && \frac{\sin  (\om_y \, L)}{\om_y} \\
+  \tau_x &=   && {-}1             && {+}1             & \qqquad
+  \tau_y &=   && {+}1             && {-}1             \nonumber
+\end{alignat}
+and
+\begin{alignat}{2}
+  m_5     &= -g \, x_c \, L & \qqquad & \CRNO
+  m_{51}  &= -g \, s_x & \qqquad
+  m_{52}  &= \frac{\tau_x \, g}{1 + p_{z1}} \, \frac{1 - c_x}{\om_x^2} \CRNO
+  m_{511} &= \frac{\tau_x \,\, \om_x^2}{4} \, (L - c_x \, s_x) & \qqquad
+  m_{533} &= \frac{\tau_y \,\, \om_y^2}{4} \, (L - c_y \, s_y) \CRNO
+  m_{512} &= \frac{-\tau_x \,\, \om_x^2}{2 \, (1 + p_{z1})} \, s_x^2 & \qqquad
+  m_{534} &= \frac{-\tau_y \,\, \om_y^2}{2 \, (1 + p_{z1})} \, s_y^2 \CRNO
+  m_{522} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_x \, s_x) & \qqquad
+  m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
+\end{alignat}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Converter Tracking}
+\label{s:converter.track}
+\index{converter} 
+
+Tracking through a \vn{converter} element involves generating five random numbers
+  \footnote{
+Since the outgoing particle starts at the exit surface of the converter only five numbers
+are needed to generate the 6-dimensional particle phase space position.
+  }
+and then using these numbers with the outgoing particle distribution to generate the position and
+orientation of the outgoing particle. The outgoing particle distribution is pre-computed by a
+program \vn{converter_element_modeling} and the distribution parameters are included in the
+converter element description in the \bmad lattice file (\sref{s:converter}). The accuracy of the
+converter modeling will depend in part upon the granularity of the the probability tables generated
+by the \vn{converter_element_modeling} program and on other approximations made during
+tracking. Generally, inaccuracies in the 1\% to 10\% range are to be expected.
+
+In a tracking simulation, a single outgoing particle is generated for each incoming particle. Since,
+in a real machine, the number of outgoing particles will not be equal to the number of incoming
+particles, each outgoing particle is assigned a weight such that the weighted distribution of
+outgoing particles is correct. This weight will be the same for all outgoing particles. The weight
+will depend upon whether the momentum or angular range of the outgoing particles is restricted using
+the element parameters (\sref{s:converter}):
+\begin{example}
+  pc_out_min    ! Minimum momentum of generated outgoing particles (eV).
+  pc_out_max    ! Maximum momentum of generated outgoing particles (eV).
+  angle_out_max ! Maximum angle to the surface perpendicular (rad).
+\end{example}
+
+%-------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{converter.pdf}
+  \caption[Converter geometry.]
+  {
+An incoming particle strikes the bottom of the converter. At some point within the interior, a new
+particle is generated and this new particle exits the top surface. To calculate the position and
+orientation of the outgoing particle, a coordinate system is established where the origin point
+$\wt\calO$ is the point that the incoming particle would strike the top surface if it went straight
+through and the $(x,y)$ axes are randomly rotated with respect to the $(x_b,y_b)$ body coordinate axes.
+By construction, the position of the outgoing particle will be along the $x$-axis.
+  }
+  \label{f:converter}.
+\end{figure}
+
+%-------------------------------------------------------------------------
+
+The geometry of the converter is shown in \fig{f:converter}. On the top surface, where the outgoing
+particle emerges, $(x_b,y_b)$ are the axes for the element body coordinate system (\sref{s:coords.3}).
+To generate the position and orientation of the outgoing particle, another coordinate system is used
+with axes labeled by $(x,y)$. Each outgoing particle will be assigned its own $(x,y)$
+axes. The origin $\wt\calO$ of this coordinate system is constructed by placing $\wt\calO$ at the
+point where the incoming particle under consideration would strike the top surface if the incoming
+particle would pass straight through the converter. The angular orientation of the $(x,y)$ axes
+with respect to the $(x,y)$ axes is chosen using a random number with a uniform probability
+distribution in the interval $[0, \pi]$. By construction, the outgoing particle, at the surface of
+the converter will be generated at a point a distance $r$ along the $x$-axis.
+
+The particle distribution is calculated at a number of converter thickness $t_i$, $i = 1 \ldots
+N_t$. It is an error if the actual converter thickness is outside the range of these
+thicknesses. [The exception is if only one distribution for a given thickness is present, this
+distribution is used to generate the outgoing particle coordinates independent of the converter
+thickness.]  The particle distribution is also calculated within a certain incoming particle
+momentum range. It is also an error if an incoming particle has a momentum outside of this range.
+
+The first step is to choose the value of the outgoing particle's momentum $p_\txt{out}$. For each
+thickness $t_i$, the pre-computed particle distribution parameters includes a two-dimensional table
+of $P(p_\txt{out}, r)$ --- the probability density of creating an outgoing particle versus
+$p_\txt{out}$ and $r$. $P(p_\txt{out},r)$ is normalized so that the integrated probability is equal
+to the average number of outgoing particles created for each incoming particle $N_\txt{out}/N_{in}$
+\begin{equation}
+  \frac{N_\txt{out}}{N_{in}} = \int \int dp_\txt{out} \, dr \, P(p_\txt{out}, r)
+  \label{nnprp}
+\end{equation}
+The integrals are done using linear interpolation between grid points.  From a $P(p_\txt{out},r)$
+probability table, a ``normalized'' probability $P_\txt{n}(p_\txt{out},r)$ table is computed where
+$P_\txt{n}$ is the probability of generating a particle at given $p_\txt{out}$ and $r$ with an
+angular range restricted by \vn{angle_out_max}. If \vn{angle_out_max} is not set, $P_\txt{n}$ will
+be equal to $P$.  This calculation is part of a ``setup'' computation done before tracking which, to
+save time, is only done if one of the three element parameters, \vn{pc_out_min}, \vn{pc_out_max}, or
+\vn{angle_out_max}, changes. Additionally, the setup includes creating a table of $I(p_\txt{out})$
+which is the integrated probability for generating a particle with momentum less than $p_\txt{out}$
+\begin{equation}
+  I_p(p_\txt{out}) = \frac{\dstyle \int_{p_\txt{min}}^{p_\txt{out}} d\pw_\txt{out} 
+  \int dr \, P_\txt{n}(\pw_\txt{out}, r)}
+  {\dstyle \int_{p_\txt{min}}^{p_\txt{max}} d\pw_\txt{out} \int dr \, P_{n}(\pw_\txt{out}, r)}
+\end{equation}
+where $p_\txt{min}$ is the minimum momentum in the $P(p_\txt{out}, r)$ table or the value of
+\vn{pc_out_min} which ever is greatest and $p_\txt{max}$ is the maximum momentum in the
+$P(p_\txt{out}, r)$ table or the value of \vn{pc_out_max} which ever is smallest. $I(p_\txt{out})$
+is normalized such that $I(p_\txt{max}) = 1$. A value for $p_\txt{out}$ is generated by solving
+numerically for $p_\txt{out}$ the equation
+\begin{equation}
+  I_p(p_\txt{out}) = R_1
+\end{equation}
+where $R_1$ is a random number with uniform distribution in the interval $[0,1]$.  This
+calculation is done for the two $t_i$ thicknesses that straddle the actual thickness. The value of
+$p_\txt{out}$ assigned to the outgoing particle is obtained via linear interpolation between the two
+computed values. Note that for both thicknesses the same random number needs to be used.
+
+The next step is to choose a value for $r$. This is done by solving the equation
+\begin{equation}
+  I_r(r) = R_2
+\end{equation}
+where $R_2$ is another random number with uniform distribution in the interval $[0,1]$ and $I_r$ is 
+\begin{equation}
+  I_r(r) = \frac{\dstyle \int_0^r d\rw \, P_\txt{n}(p_\txt{out}, \rw)}
+  {\dstyle \int_0^{r_\txt{max}} d\rw \, P_{n}(p_\txt{out}, \rw)}
+\end{equation}
+with $p_\txt{out}$ being the momentum chosen for the particle and $r_\txt{max}$ being the maximum
+radius the probability table goes out to\footnote
+  {
+The range $[0,r_\txt{max}]$ encompasses nearly all of the outgoing particles. In principle, the
+integral could be extended by extrapolating the values in the table but this could potentially lead
+to inaccuracies in determining the outgoing orientation. Generally the inaccuracy in truncating the
+distribution at $r_\txt{max}$ should be small.
+  }. 
+Like $p_\txt{out}$, this calculation is done for the two
+$t_i$ thicknesses that straddle the actual thickness. The value of $r$ assigned to the outgoing
+particle is obtained via linear interpolation between the two computed values. Note that for both
+thicknesses the same random number needs to be used.
+
+Once $p_\txt{out}$ and $r$ have been chosen, the next steps are to choose values for the angular
+orientation of the outgoing particle. The angular orientation is characterized by the distribution
+parameters using the derivatives $x' = dx/ds$ and $y' = dy/ds$ in the form of a skewed Lorentzian
+probability distribution $P_d$
+\begin{equation}
+  P_d\left( x', y' ; p_\txt{out}, r \right) =
+  A_d \, \frac{1 + \beta \, x'}{1 + \alpha_x^2 \, \left( x' - c_x \right)^2 +
+  \alpha_y^2 \, \left( y' \right)^2}
+  \label{pxsxs}
+\end{equation}
+where the parameters $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ all depend upon $p_\txt{out}$
+and $r$. Notice that by construction, with the outgoing particle generated on the $x$-axis, the
+distribution is symmetric about $y'$-axis. The pre-computed distribution characterizes each of these
+parameters by a set of one or more fits which are functions of $p_\txt{out}$ and $r$. There are also
+four functions of $p_\txt{out}$ and $r$ that give the range over which \Eq{pxsxs} is valid
+$x'_\txt{min}$, $x'_\txt{max}$, $y'_\txt{min}$, and $y'_\txt{max}$. By symmetry, $y'_\txt{min} =
+-y'_\txt{max}$. Also $A_d$ can be computed from knowledge of $\beta$, $c_x$, $\alpha_x$, and
+$\alpha_y$ using the normalization condition that at any given $p_\txt{out}$ and $r$
+\begin{equation}
+  1 = \int_{x'_\txt{min}}^{x'_\txt{max}} dx' 
+  \int_{-y'_\txt{max}}^{y'_\txt{max}} dy' \, P_d \left( x', y' \right)
+\end{equation}
+Thus there are only seven independent parameters that need to be fitted. The fit functions for all
+seven have the same form. The fit is divided into two regions. For $p_\txt{out}$ lower than some
+cutoff, a parameter is fit using a set of one-dimensional functions $\Gamma_i(r)$ at discrete momentum $p_i$,
+$i = 1, \ldots, N_\beta$ with
+\begin{equation}
+  \Gamma_i(r) = \sum_{n=1}^M c_{n,i} \, r^n
+  \label{gcr}
+\end{equation}
+The polynomial cutoff $M$ is 4 for $c_x$ and $\beta$ and is 3 for the other five.  To evaluate a
+parameter at momenta lower than $p_{N_\beta}$, the $\Gamma_i$ are used with linear interpolation in
+$p$ between functions of different $p_i$. At higher energies, the parameter variation is smoother so
+a two dimensional fit $Xi$ is used
+\begin{equation}
+  \Xi(p_\txt{out},r) = e^{-(k_p \, p_\txt{out} + k_r \, r)} \,
+  \left( \sum_{n=0}^3 k_{n} \, r^n \right) \, 
+  \left( 1 + \sum_{n=1}^3 w_{n} \, p_\txt{out}^n \right) + C
+  \label{xkpkr}
+\end{equation}
+The $C$ parameter is only nonzero for $x'_\txt{min}$. 
+
+Once $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ have been calculated for a given $p_\txt{out}$ and
+$r$, The calculation of $x'$ starts with integrating $P_d$ in \Eq{pxsxs} over $y'$
+\begin{align} 
+  I_{xd} (x') &\equiv \int_{-y'_\txt{lim}}^{y'_\txt{lim}} dy' \, P_d(x', y')
+  \label{ixdyp} \\
+  &= 2 \, A_d \, \frac{1 + \beta \, x'}{\alpha_y \, \sqrt{1 + \alpha_x^2 \, (x' - c_x)^2 }} \,
+  \tan^{-1} \left( \frac{\alpha_y \, y'_\txt{lim}}{\sqrt{1 + \alpha_x^2 \, (x' - c_x)^2}} \right)
+  \nonumber
+\end{align}
+where $y'_\txt{lim}$ is either the lesser of $y'_\txt{max}$ and $\tan^{-1}(\text{angle_out_max})$.
+A spline fit is used to integrate $I_{xd}$ and this is used to choose a value for $x'$. Once $x'$
+is known, The integral of $P_d(x', y')$ over $y'$ is used to choose a value for $y'$.
+
+Except for the placement of $\wt\calO$, the above algorithm for calculating the position and
+orientation of the outgoing particle will be independent of the angular orientation of the incoming
+particle. This is valid for incoming particles that are traveling perpendicular to the converter
+surface. To the extent that the incoming particles are not perpendicular to the converter, this will
+introduce inaccuracies. Typically, however, the incoming particles will be fairly close to being
+perpendicular. Considering this, and considering the approximations used to calculate the
+distribution parameters, the neglect of incoming particle orientation effects is usually justified.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Drift Tracking}
+\label{s:drift.std}
+\index{drift} 
+
+\bmad uses the exact map for a drift
+This gives the map
+\begin{align}
+  x_2    &= x_1 + \frac{L \, p_{x1}}{(1 + p_{z1}) \, p_l} \CRNO
+  p_{x2} &= p_{x1}  \CRNO
+  y_2    &= y_1 + \frac{L \, p_{y1}}{(1 + p_{z1}) \, p_l} \CRNO
+  p_{y2} &= p_{y1}  \\
+  z_2    &= z_1 + \left( \frac{\beta}{\beta_\REF} - \frac{1}{p_l} \right) \, L \CRNO
+  p_{z2} &= p_{z1} \nonumber
+\end{align}
+where $\beta$ is the normalized particle velocity, $\beta_\REF$ is 
+the reference particle's normalized velocity, and $p_l$ is the
+longitudinal momentum
+\begin{equation}
+  p_l = \sqrt{1 - \frac{p_x^2 + p_y^2}{(1 + p_z)^2}}
+\end{equation}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+%\section{FFT Grid Tracking with Space Charge}
+%\label{s:egun.sc}
+%\index{e_gun}
+%\index{space charge}
+
+
+
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{ElSeparator Tracking}
+\label{s:elsep.std}
+\index{elseparator}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{elseparator.pdf}
+  \caption[ElSeparator electric field.]
+  {
+Elseparator Electric field. The fringe field lines break the
+translational invariance in $x$.
+  }
+  \label{f:elsep}.
+\end{figure}
+
+[Thanks to \'Etienne Forest for the derivation of the elseparator equation of motion.]
+
+The Hamiltonian for an electric separator is 
+\begin{equation}
+  H = -p_s 
+  = - \left\{ \left( \frac{1}{\beta_0} + \delta + k_E \, x \right)^2 - 
+  \wt m^2 - p_x^2 - p_y^2 \right\}^{1/2}
+  \label{hp1b}
+\end{equation}
+Here the canonical coordinates $(-c \, t, \delta$ are being used, $\wt m$ is defined in \Eq{mmccp},
+and $p_s = -H$ is just the longitudinal momentum.  In the above equation, $k_E$ is the normalized
+field
+\begin{equation}
+  k_E = \frac{q \, E}{P_0 \, c}
+\end{equation}
+The field is taken to be pointing along the $x$-axis with positive $k_E$ accelerating a particle in
+the positive $x$ direction. To solve the equations of motion, a ``hard edge'' model is used where
+$k_E$ is constant inside the separator and the field ends abruptly at the separator edges.
+
+\index{solenoid}
+Since, as shown in \fig{f:elsep}, the fringe fields break the translational invariance in $x$, it is
+important here that the $x = 0$ plane be centered within the separator plates. With this, the
+canonical momentum $\delta$ just outside the separator assumes its free space form of $\delta = (E -
+E_0) / E_0)$. This is analogous to the case of a \vn{solenoid} where, to ensure that the canonical
+transverse momenta assume their free space form just outside the solenoid, the $\Bf z$-axis must be
+along the centerline of the solenoid.
+
+The solution of the equations of motion is:
+\begin{align}
+  x   &= (x_0 - x_c) \, \cosh \left( \frac{k_E \, L}{p_s} \right) + 
+         \frac{p_{x0}}{k_E} \, \sinh \left( \frac{k_E \, L}{p_s} \right) + x_c \CRNO
+  p_x &= k_E \, (x_0 - x_c) \, \sinh \left( \frac{k_E \, L}{p_s} \right) + 
+         {p_{x0}} \, \cosh \left( \frac{k_E \, L}{p_s} \right) \CRNO
+  y   &= y_0 + L \, \frac{p_{y0}}{p_s} \label{xxlp} \\
+  p_y &= p_{y0} \CRNO
+  c \, \delta t &=  \int_0^L -\frac{\partial H}{\partial \delta}
+      = (x_0 - x_c) \, \sinh \left( \frac{k_E \, L}{p_s} \right) +
+        \frac{p_{x0}}{k_E} \, \left[ \cosh \left( \frac{k_E \, L}{p_s} \right) - 1 \right]
+        \nonumber
+\end{align}
+where the critical position $x_c$ is
+\begin{equation} 
+  x_c = -\frac{\wt E}{k_E}
+\end{equation}
+and 
+\begin{equation}
+  \wt E \equiv \frac{1}{\beta_0} + \delta = \frac{E}{P_0 \, c}
+\end{equation}
+ 
+\Eqs{xxlp} predict that for $x < x_c$ and $p_{x0} = 0$ a particle will, unphysically, accelerate in
+the negative $x$ direction. In actuality, a particle in this instance will be reflected backwards by
+the longitudinal component of the edge field. Specifically, the argument of the square root in
+\Eq{hp1b} must be non-negative and a particle will only make it through the separator if
+\begin{equation}
+  x_0 > \frac{1}{k_E} \, \left( \sqrt{\wt m^2 + p_{x0}^2 + p_{y0}^2} - \wt E \right)
+\end{equation}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Kicker, Hkicker, and Vkicker, Tracking}
+\label{s:kicker.std}
+\index{kicker}
+\index{hkicker}
+\index{vkicker}
+\index{elseparator}
+
+The Hamiltonian for a horizontally deflecting kicker or separator is
+\begin{equation}
+  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} - k_0 \, x 
+\end{equation}
+This gives the map
+\begin{alignat}{2}
+  x_2 &= x_1 + \frac{1}{1 + p_{z1}} \, \left( L \, p_{x1} + \frac{1}{2} k_0 \, L^2 \right), &
+    p_{x2} &= p_{x1} + k_0 \, L, \CRNO
+  y_2 &= y_1 + \frac{L \, p_{y1}}{1 + p_{z1}}, &
+    p_{y2} &= p_{y1},  \\
+  z_2 &= z_1 - \frac{L}{2 (1 + p_{z1})^2} \, 
+    \left( p_{x1}^2 + p_{y1}^2 + p_{x1} \, k_0 \, L + \frac{1}{3} k_0^2 \, L^2 \right), \quad &
+  p_{z2} &= p_{z1} \nonumber
+\end{alignat}
+The generalization when the kick is not in the horizontal plane is easily derived.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{LCavity Tracking}
+\label{s:lcavity.std}
+\index{lcavity}
+
+For tracking using something like \vn{runge_kutta}, with \vn{field_calc} set to \vn{bmad_standard},
+the fields are modeled by the equations given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}.
+
+For \vn{bmad_standard} tracking, and with \vn{cavity_type} set to \vn{standing_wave}, the transverse
+trajectory through an \vn{Lcavity} is modeled using equations developed by Rosenzweig and
+Serafini\cite{b:rosenzweig} (R\&S) with
+\begin{equation}
+  b_0 = 1, \qquad \text{and} \qquad b_{-1} = 1 
+\end{equation}
+and all other $b_n$ set to zero.
+
+The transport equations in R\&S were developed in the ultra-relativistic limit with $\beta = 1$.  To
+extend these equations to lower energies, the transport through the cavity body (R\&S Eq.~(9)) has
+been modified to give the correct phase-space area at non ultra-relativistic energies:
+\begin{equation}
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_2 = \sqrt{\frac{\beta_1}{\beta_2}} \, 
+  \begin{pmatrix}
+    \cos(\alpha)  &
+        \sqrt{\frac{8}{\eta(\Delta\phi)}} \, \frac{\, \gamma_1}{\gamma'} \, \cos(\Delta\phi) \, \sin(\alpha) \\
+    -\sqrt{\frac{\eta(\Delta\phi)}{8}} \, \frac{\gamma'}{\gamma_2 \, \cos(\Delta\phi)} \, \sin(\alpha) &
+        \frac{\gamma_1}{\gamma_2} \, \cos(\alpha)
+  \end{pmatrix}
+  \,
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_1
+  \label{xxpc}
+\end{equation}
+The added factor of $\sqrt{\beta_1/\beta_2}$ gives the matrix the correct determinant of $\beta_1 \,
+\gamma_1 / \beta_2 \, \gamma_2$. {\em While the added factor of $\sqrt{\beta_1/\beta_2}$ does
+correct the phase space area, the above equation can only be considered as a rough approximation for
+simulating particles when $\beta$ is significantly different from 1. Indeed, the only accurate way
+to simulate such particles is by integrating through the actual field [Cf.~Runge Kutta tracking
+(\sref{s:tkm})]}.
+
+The change in $z$ going through a cavity is calculated by first calculating the particle
+transit time $\Delta t$
+\begin{align}
+  c \, \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} \CRNO
+  &= \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
+  &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
+\end{align}
+where it has been assumed that the accelerating gradient $G$ is constant through the cavity. In this
+equation $\beta = v / c$, $E$ is the energy, and $P_{z1}$ and $P_{z2}$ are the entrance and exit
+momenta. Using \Eq{zbctt}, the change in $z$ is thus
+\begin{equation}
+  z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
+  \beta_2 \, 
+  \left(
+  \frac{c \, P_{z2} - c \, P_{z1}}{G} - 
+  \frac{c \, \Pbar_{z2} - c \, \Pbar_{z1}}{\BAR G}
+  \right)
+\end{equation}
+where $\Pbar$ and $\BAR G$ are the momentum and gradient of the
+reference particle.
+
+Note that the above transport equations are only symplectic on-axis There are second order terms in
+the transverse coordinates that are missing. To obtain a proper symplectic matrix, the
+\vn{symplectify} attribute of an \vn{lcavity} element (\sref{s:symp}) can be set to True.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Octupole Tracking}
+\label{s:octupole.std}
+\index{octupole}
+
+The Hamiltonian for an upright octupole is
+\begin{equation}
+  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_3}{24} (x^4 - 6 \, x^2 \, y^2 + y^4)
+\end{equation}
+
+An octupole is modeled using a kick-drift-kick model.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Patch Tracking}
+\label{s:patch.std}
+\index{patch}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{patch.pdf}
+  \caption[Standard patch transformation.]
+{Standard tracking through a patch element. A particle's starting coordinate at the entrance end of
+the patch has, by construction, coordinate $z$ = 0. The particle is drifted, as in a field free
+region, between the entrance $z = 0$ plane and the exit $z = 0$ plane.}
+  \label{f:patch.track}
+\end{figure}
+
+%---------------------------------------------------------------------------------
+
+The transformation of the reference coordinates through a ``standard'' patch (a patch where custom
+fields are not used) is given by \Eqs{vwlv} and \eq{wws}. At the entrance end of the patch, a
+particle's position and momentum in the entrance coordinate system will be
+\begin{alignat}{1}
+  \bfr &= (x, y, 0) \CRNO
+  \bfP &= (P_x, P_y, P_z) = 
+    \left( p_x, p_y, \pm \sqrt{(1+p_z)^2 - p_x^2 - p_y^2} \right) \, P_{0\text{ent}}
+\end{alignat}
+where $p_x$, $p_y$ and $p_z$ are the phase space momenta, and $z$, which is coordinate $z$ and not
+phase space $z$, is always zero by construction as shown in \fig{f:patch.track} [Also see
+\fig{f:local.coords} and the discussion in \sref{s:phase.space}.] The sign of the longitudinal
+momentum $P_z$ is determined by whether the particle is traveling in the positive $s$ or negative
+$s$ direction (which will occur when an element is flipped longitudinally).
+
+The transformation between entrance and exit coordinate systems is given by \Eqs{rwlr} and \eq{pps}
+\begin{alignat}{1}
+  \bfr &\rightarrow 
+    \bfS^{-1} \, (\bfr - \bfL_\text{off}) \CRNO
+  \bfP &\rightarrow \bfS^{-1} \, \bfP
+\end{alignat}
+where $\bfL_\text{off}$ is given by \Eq{swww}
+
+After this transformation, the particle must be propagated by a longitudinal length
+$-r_z$ to intersect the $r_z = 0$ plane of the exit face.
+\begin{alignat}{1}
+  \bfr &\rightarrow (r_x - r_z \, \frac{P_x}{P_z}, r_y - r_z \, \frac{P_y}{P_z}, 0) \CRNO
+  \bfP &\rightarrow \bfP
+\end{alignat}
+
+The final $\bfr$ and $\bfP$ can now be used compute the particles
+phase space coordinates, along with the time $t$ and the reference time
+$t_\REF$ at the exit end.
+\begin{alignat}{3}
+  x &\rightarrow r_x \qquad &p_x &\rightarrow \frac{P_x}{P_{0\text{exi}}} \CRNO
+  y &\rightarrow r_y \qquad &p_y &\rightarrow \frac{P_y}{P_{0\text{exi}}} \\
+  z &\rightarrow z + r_z \, \frac{|\bfP|}{P_z} + L_0 \, \frac{\beta}{\beta_0} +
+    \beta \, \text{t_offset} \qquad
+    &p_z &\rightarrow \frac{(1+p_z) \, P_{0\text{ent}} - P_{0\text{exi}}}{P_{0\text{exi}}} \CRNO
+  t &\rightarrow t - r_z \, \frac{|\bfP|}{P_z \, \beta} \qquad
+  &t_\REF &\rightarrow t_\REF + \text{t_offset} + L_0 \, \frac{1}{\beta_0} \nonumber
+\end{alignat}
+where the exit reference momentum $P_{0\text{exi}}$ is related to the
+entrance reference momentum $P_{0\text{ent}}$ through
+\vn{e_tot_offset}.  In the above equation, $\beta$ is the particle
+velocity, $\beta_0$ is the velocity of the reference particle, and
+$L_0$ is the drift length of the reference particle
+\begin{equation}
+  L_0 = \frac{1}{S^{-1}_{33}} \, \left( 
+  S^{-1}_{31} \, \text{x_offset} + S^{-1}_{32} \, \text{y_offset} + S^{-1}_{33} \, \text{z_offset}
+  \right)
+\end{equation}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Quadrupole Tracking}
+\label{s:quadrupole.std}
+\index{quadrupole}
+
+The \vn{bmad_standard} calculates the transfer map through an upright
+quadrupole and then transforms that map to the laboratory frame.
+
+The Hamiltonian for an upright quadrupole is
+\begin{equation}
+  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
+\end{equation}
+This is simply solved
+\begin{align}
+  x_2    &= c_x \, x_1 + s_x \, \frac{p_{x1}}{1 + p_{z1}} \CRNO
+  p_{x2} &= \tau_x \, \om^2 \, \, (1 + p_{z1}) \, s_x \, x_1 + c_x \, p_{x1} \CRNO
+  y_2    &= c_y \, y_1 + s_y \, \frac{p_{y1}}{1 + p_{z1}} \CRNO
+  p_{y2} &= \tau_y \, \om^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \\
+  z_2    &= z_1 + m_{511} \, x_1^2 + m_{512} \, x_1 \, p_{x1} + m_{522} \, p_{x1}^2 + 
+                   m_{533} \, y_1^2 + m_{534} \, y_1 \, p_{y1} + m_{544} \, p_{y1}^2 \CRNO
+  p_{z2} &= p_{z1} \nonumber
+\end{align}
+where 
+\begin{equation}
+  \om \equiv \sqrt{\frac{|k_1|}{1 + p_{z1}}}
+\end{equation}
+and
+\begin{alignat}{6}
+         &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 & \qqquad
+         &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 \CRNO
+     c_x &=   && \cos  (\om \, L) && \cosh (\om \, L) & \qqquad
+     c_y &=   && \cosh (\om \, L) && \cos  (\om \, L) \CRNO
+     s_x &=   && \frac{\sin  (\om \, L)}{\om} && \frac{\sinh (\om \, L)}{\om} & \qqquad
+     s_y &=   && \frac{\sinh (\om \, L)}{\om} && \frac{\sin  (\om \, L)}{\om} \\
+  \tau_x &=   && {-}1             && {+}1             & \qqquad
+  \tau_y &=   && {+}1             && {-}1             \nonumber
+\end{alignat}
+with this
+\begin{alignat}{2}
+  m_{511} &= \frac{\tau_x \,\, \om^2}{4} \, (L - c_x \, s_x) & \qqquad
+  m_{533} &= \frac{\tau_y \,\, \om^2}{4} \, (L - c_y \, s_y) \CRNO
+  m_{512} &= \frac{-\tau_x \,\, \om^2}{2 \, (1 + p_{z1})} \, s_x^2 & \qqquad
+  m_{534} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_{z1})} \, s_y^2 \\
+  m_{522} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_x \, s_x) & \qqquad
+  m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
+\end{alignat}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{RFcavity Tracking}
+\label{s:rfcavity.std}
+\index{rfcavity}
+
+For tracking using something like \vn{runge_kutta}, with \vn{field_calc} set to \vn{bmad_standard},
+the fields are modeled by the equations given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}.
+
+With \vn{bmad_standard} tracking, a kick-drift-kick model is used. The kick is a
+pure energy kick (see equations in \sref{s:rfcav}) and the phase of the RF is calculated under the
+assumption that the waveform moves at a phase velocity equal to the velocity of the reference
+particle.
+
+With \vn{bmad_standard} tracking, the transverse forces due to the RF are ignored. This is generally
+a reasonable approximation when the acceleration is small as is standard in rings. \vn{Lcavity}
+elements should be used in place of \vn{rfcavity} elements when this is not so.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Sad\_Mult Tracking}
+\label{s:sad.mult.std}
+\index{sad_mult}
+
+The ``hard edge'' fringe field kick is taken from Forest\cite{b:forest} Eqs.~(13.29) and onward.
+In the notation of \bmad, and taking into account both normal and skew terms, Eq.~(13.29)
+is for the $m$\th order multipole (what Forest labels $n+1$)
+\begin{equation}
+  f_\pm = \mp \Re \frac{(b_m + i \, a_m) \, (x + i \, y)^{(m+1)}}{4 \, (m+2) \, (1 + p_z)}
+    \left[ x \, p_x + y \, p_y + i\frac{m+3}{m+1}(x \, p_y - y \, p_x) \right]
+\end{equation}
+
+The ``soft edge'' dipole fringe for \vn{sad_mult} elements is a generalization of the soft edge
+dipole fringe for a SAD bend element. For the entrance kick the equations are:
+\begin{align}
+  x_2 &= x_1 + \frac{\delta_1}{1 + \delta_1} \, \Delta x_{fx}, \qquad
+  p_{x2} = p_{x1} + \frac{1}{1 + \delta_1} \, \left[ 
+    \Delta x_{fy} \, v - \Delta x_{fay} \, v^3 \right] \CRNO
+  y_2 &= y_1 - \frac{\delta_1}{1 + \delta_1} \, \Delta y_{fy}, \qquad
+  p_{y2} = p_{y1} + \frac{1}{1 + \delta_1} \, \left[ 
+    \Delta y_{fx} \, w - \Delta y_{fax} \, w^3 \right] \\
+  z_2 &= z_1 + \frac{1}{(1 + \delta_1)^2} \, \left[ \, 
+    \Delta x_{fx} \, p_{x1} - \Delta y_{fy} \, p_{y1} + 
+    \frac{1}{2} \, (\Delta y_{fx} + \Delta x_{fy}) \, w^2 -
+    \frac{1}{4} (\Delta y_{fax} + \Delta x_{fay}) \, w^4
+    \right] \nonumber
+\end{align}
+where
+\begin{alignat}{3}
+  \Delta x_{fx}  &= \frac{K_0 \, F_B^2}{24 \, L}, & \qquad 
+  \Delta y_{fx}  &= \frac{K_0^2 \, F_B}{6 \, L^2}, & \qquad 
+  \Delta y_{fax} &= \frac{2 \, K_0^2}{3 \, F_B \, L^2}, \CRNO 
+  \Delta y_{fy}  &= \frac{SK_0 \, F_B^2}{24 \, L}, & \qquad
+  \Delta x_{fy}  &= \frac{SK_0^2 \, F_B}{6 \, L^2}, & \qquad
+  \Delta x_{fay} &= \frac{2 \, SK_0^2}{3 \, F_B \, L^2}, \\
+  v &= \cos\theta \, x_1 + \sin\theta \, y_1, & \qquad
+  w &= -\sin\theta \, x_1 + \cos\theta \, y_1, & \qquad
+  \tan\theta &= \frac{-SK_0}{K_0} \nonumber
+\end{alignat}
+
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Sextupole Tracking}
+\label{s:sextupole.std}
+\index{sextupole}
+
+The Hamiltonian for an upright sextupole is
+\begin{equation}
+  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_2}{6} (x^3 - 3 \, x \, y^2)
+\end{equation}
+
+Tracking through a sextupole uses a kick-drift-kick model.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Sol\_Quad Tracking}
+\label{s:sol.quad.std}
+\index{sol_quad}
+
+The Hamiltonian is
+\begin{equation}
+  H = \frac{(p_x + \frac{k_s }{2}\, y)^2}{2 (1 + p_z)} + 
+  \frac{(p_y - \frac{k_s}{2} \, x)^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
+\end{equation}
+Solving the equations of motion gives
+\begin{align}
+  x_2    &= m_{11} \, x_1 + m_{12} \, p_{x1} + m_{13} \, y_1 + m_{14} \, p_{y1} \CRNO
+  p_{x2} &= m_{21} \, x_1 + m_{22} \, p_{x1} + m_{23} \, y_1 + m_{24} \, p_{y1} \CRNO
+  y_2    &= m_{31} \, x_1 + m_{32} \, p_{x1} + m_{33} \, y_1 + m_{34} \, p_{y1} \CRNO
+  p_{y2} &= m_{41} \, x_1 + m_{42} \, p_{x1} + m_{43} \, y_1 + m_{44} \, p_{y1} \\
+  z_2    &= z_1 + \sum_{j = 1}^4 \sum_{k = j}^4 m_{5jk} \, r_j \, r_k  \CRNO
+  p_{z2} &= p_{z1} \nonumber
+\end{align}
+where
+\begin{alignat}{2}
+  m_{11} &= \frac{1}{2 \, f} \, \left( f_{0+} \, c + f_{0-} \, c_h \right) & \qqquad
+  m_{31} &= -m_{24} \CRNO
+  m_{12} &= \frac{1}{2 \, f \, (1 + p_{z1})} \, 
+            \left( \frac{f_{++}}{\om_+} \,  s + \frac{f_{--}}{\om_-} \, s_h \right) & \qqquad
+  m_{32} &= -m_{14} \CRNO
+  m_{13} &= \frac{\ks}{4 \, f} \, 
+            \left( \frac{f_{+-}}{\om_+} \, s +\frac{f_{-+}}{\om_-} \, s_h \right) & \qqquad
+  m_{33} &= \frac{1}{2 \, f} \, \left( f_{0-} \, c + f_{0+} \, c_h \right) \CRNO
+  m_{14} &= \frac{\ks}{f \, (1 + p_{z1})} \, \left( -c + c_h \right) & \qqquad
+  m_{34} &= \frac{1}{2 \, f \, (1 + p_{z1})} \, 
+            \left( \frac{f_{+-}}{\om_+} \, s + \frac{f_{-+}}{\om_-} \, s_h \right) \CRNO
+  m_{21} &= \frac{-(1 + p_{z1})}{8 \, f} \, 
+            \left( \frac{\xi_{1+}}{\om_+} \, s + \frac{\xi_{2+}}{\om_-} s_h \right) & \qqquad
+  m_{41} &= -m_{23} \\
+  m_{22} &= m_{11} & \qqquad
+  m_{42} &= -m_{13} \CRNO
+  m_{23} &= \frac{\ks^3 \, (1 + p_{z1})}{4 \, f} \, \left( c - c_h \right) & \qqquad
+  m_{43} &= \frac{-(1 + p_{z1})}{8 \, f} \, 
+            \left( \frac{\xi_{1-}}{\om_+} \, s + \frac{\xi_{2-}}{\om_-} \, s_h \right) \CRNO
+  m_{24} &= \frac{\ks}{4 \, f} \, 
+            \left( \frac{f_{++}}{\om_+} \, s + \frac{f_{--}}{\om_-} \, s_h \right) & \qqquad
+  m_{44} &= m_{33} \nonumber
+\end{alignat}
+and
+\begin{alignat}{2}
+  \kone        &= \frac{k_1}{1 + p_{z1}} & \qqquad 
+  \ks          &= \frac{k_s}{1 + p_{z1}} \CRNO
+  f            &= \sqrt{\ks^4 + 4 \, \kone^2} & \qqquad
+  f_{\pm0}     &= f \pm \ks^2 \CRNO
+  f_{0\pm}     &= f \pm 2 \, \kone & \qqquad
+  f_{\pm\pm}   &= f \pm \ks^2 \pm 2 \, \kone \CRNO
+  \om_+        &= \sqrt{\frac{f_{+0}}{2}} & \qqquad
+  \om_-        &= \sqrt{\frac{f_{-0}}{2}} \\
+  s            &= \sin (\om_+ \, L) & \qqquad
+  s_h          &= \sinh (\om_- \, L) \CRNO
+  c            &= \cos (\om_+ \, L) & \qqquad
+  c_h          &= \cosh (\om_- \, L) \CRNO
+  \xi_{1\pm} &= \ks^2 \, f_{+\mp} \pm 4 \, \kone \, f_{+\pm} & \qqquad
+  \xi_{2\pm} &= \ks^2 \, f_{-\pm} \pm 4 \, \kone \, f_{-\mp} \nonumber
+\end{alignat}
+
+The $m_{5jk}$ terms are obtained via \Eq{zz121p}
+\begin{align}
+  m_{5jk} = - \frac{\tau_{jk}}{2 (1 + p_{z1})^2} \int \! ds \, 
+  & \left[ 
+    \left( m_{2j} + \frac{k_s}{2} \, m_{3j} \right) \, 
+    \left( m_{2k} + \frac{k_s}{2} \, m_{3k} \right)   
+  \right. + \\
+  & \hspace*{15ex} \left.
+    \left( m_{4j} - \frac{k_s}{2} \, m_{1j} \right) \, 
+    \left( m_{4k} - \frac{k_s}{2} \, m_{1k} \right) 
+  \right] \nonumber
+\end{align}
+where
+\begin{equation}
+  \tau_{jk} = 
+  \begin{cases}
+    1 & j = k \\
+    2 & j \ne k 
+  \end{cases}
+\end{equation}
+The needed integrals involve the product of two trigonometric or
+hyperbolic functions. These integrals are trivial to do but the
+explicit equations for $m_{5jk}$ are quite long and in the interests of
+brevity are not reproduced here.
+
+%---------------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{solenoid.pdf}
+  \caption[Solenoid with a hard edge.]
+  {
+Solenoid with a hard edge. The field is assumed to end abruptly at the edges of the solenoid. Here,
+for purposes of illustration, the field lines at the ends are displaced from one another.
+  }
+  \label{f:solenoid}.
+\end{figure}
+
+%---------------------------------------------------------------------------------
+\section{Solenoid Tracking}
+\label{s:solenoid.std}
+\index{solenoid}
+
+The \vn{bmad_standard} solenoid tracking does not make the small angle approximation.
+The transfer map for the solenoid is:
+\begin{align}
+  x_2    &= \frac{1 + c}{2} \, x_1 + \frac{s}{k_s} \, p_{x1} +
+           \frac{s}{2} \, y_1 + \frac{1 - c}{k_s} \, p_{y1} \CRNO
+  p_{x2} &= \frac{-k_s \, s}{4} \, x_1 + \frac{1 + c}{2} \, p_{x1} - 
+           \frac{k_s \, (1 - c)}{4} \, y_1 + \frac{s}{2} \, p_{y1} \CRNO
+  y_2    &= \frac{-s}{2} \, x_1 - \frac{1 - c}{k_s} \, p_{x1} +
+           \frac{1 + c}{2} \, y_1 + \frac{s}{k_s} \, p_{y1} \\      
+  p_{y2} &= \frac{k_s \, (1 - c)}{4} \, x_1 + \frac{-s}{2} \, p_{x1} -
+            \frac{k_s \, s}{4} \, y_1 + \frac{1 + c}{2} \, p_{y1} \CRNO 
+  z_2    &= z_1 + \frac{L \, (1 + p_{z1})^2}{2 \, p_r^3} \, 
+                   \left[ \left( p_{x1} + \frac{k_s}{2} \, y_1 \right)^2 +
+                          \left( p_{y1} - \frac{k_s}{2} \, x_1 \right)^2 \right] \CRNO
+  p_{z2} &= p_{z1} \nonumber
+\end{align}
+where $k_s = B/P_0$ is the normalized field and
+\begin{align}
+  c &= \cos \left( k_s L / p_r \right) \CRNO
+  s &= \sin \left( k_s L / p_r \right)
+\end{align}
+with
+\begin{equation}
+  p_r = \sqrt{(1 + p_z)^2 - (p_x + y_1 \, k_s/2)^2 - (p_y - x_1 \, k_s/2)^2}
+\end{equation}
+
+To be useful, the canonical momenta $p_x$ and $p_y$ in the above equations must be connected to the
+canonical momenta used for other elements (drifts, quadrupoles, etc.) that may be placed to either
+side of the solenoid. These side elements use zero $a_x$ and $a_y$ (cf. \Eq{pmc2pc}). The vector
+potential used in the solenoid canonical momenta may be made zero at the edges of the solenoid if
+the solenoid fringe field is assumed to end abruptly at the edges of the solenoid (as shown in
+\fig{f:solenoid}), and the reference axis $\Bf z$-axis (at $x$ = $y$ = 0) is placed along the
+centerline of the solenoid so that there is cylindrical symmetry around the $\Bf z$-axis.
+
+%-----------------------------------------------------------------------------------------
+\section{Sprint Spin Tracking}
+\label{s:sprint.std}
+\index{sprint spin tracking}
+
+The \vn{sprint} spin tracking method is named after the \vn{SPRINT} program developed by Matthias
+Vogt.  The \vn{sprint} algorithm Uses a first order spin map evaluated with respect to the zero
+orbit to track through elements. This method is much faster than PTC integration, and its run-time
+does not increase proportionally to element length. Currently, the supported lattice elements are
+bends (including bends with $k_1 \neq 0$), quadrupoles, and solenoids \sref{s:spin.methods}.
+
+Elements with fringe field contributions are split into three quaternions representing the entrance,
+body, and exit of the element. Before propagation, the exit fringe quaternion is always equivalent
+to the entrance fringe quaternion, with all field strengths multiplied by -1, and $e_1$ replaced
+with $-e_2$. The exit quaternion is then propagated to the end of the element via Bmad mapping
+tools. Appropriate quaternions are concatenated according to the values of \vn{spin_fringe_on} and
+\vn{fringe_at}.
+
+\begin{alignat}{8}
+ & {d}    &&= g \, l              && {e}    &&= a \, g \, l\gamma   && s     &&= a \, k_s l       && {t}    &&= (1+a) k_s l         \CRNO
+ & c_{d}  &&= \cos({d})    \qquad && s_{e2} &&= \sin(\frac{{e}}{2}) && c_{s} &&= \cos({s}) \qquad && c_{t}  &&= \cos({t})           \\
+ & s_{d}  &&= \sin({d})           && c_{e2} &&= \cos(\frac{{e}}{2}) && s_{s} &&= \sin({s})        && s_{t2} &&= \sin(\frac{{t}}{2}) \CRNO
+ & \chi   &&= 1+a\gamma           && \zeta  &&= \gamma - 1   \qquad && \psi  &&= \gamma^2 - 1     && c_{t2} &&= \cos(\frac{{t}}{2}) \nonumber
+\end{alignat}
+
+%-----------------------------------------------------------------------------------------
+\subsection{SBend Body, $k_1 = 0$}
+
+\begin{center}
+\begin{tabular}{llll} \toprule
+        & $q_0$    & $q_y$     & $q_z$ \\ \midrule
+  $1$   & $c_{e2}$ & $-s_{e2}$ &       \\ \addlinespace[1ex]
+  $x$   & $-\frac{1}{2} g \chi s_{d} s_{e2}$ & $-\frac{1}{2} g \chi \, s_{d} c_{e2}$ & \\ \addlinespace[1ex]
+  $p_x$ & $\frac{1}{2} \chi \, (c_{d} - 1)  s_{e2}$ & $\frac{1}{2} \chi \, (c_{d} - 1) c_{e2}$ & \\ \addlinespace[1ex]
+  $p_y$ &          &           & $\frac{1}{\gamma} \zeta \, s_{e2}$ \\ \addlinespace[1ex]
+  $p_z$ & $\frac{1}{2 \gamma} \left(\gamma \, \chi \, s_{d} -a \, \psi \, {d} \right) s_{e2}$ & & \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+%-----------------------------------------------------------------------------------------
+\subsection{Sbend Body, $k_1 \neq 0$}
+
+\begin{equation}
+\begin{aligned}
+  &  k_x = k_1 + g^2 \\
+  & \omega_x = \sqrt{|k_x|} \\
+  & \omega_y = \sqrt{|k_1|}
+\end{aligned}
+\qquad\qquad\qquad
+\begin{aligned}
+  & \alpha = 2(a^2 g^2 \gamma^2 + k_1) \\ \nonumber
+  & \beta = a g k_1 (\gamma \chi - \zeta) \\ \nonumber
+  & \sigma = \omega_y (k_1 + a k_1 \gamma + a^2g^2 \zeta \gamma)\\ \nonumber
+  & \xi = \omega_y (k_1 \chi + a^2 g^2 \zeta \gamma) \nonumber
+\end{aligned}
+\end{equation}
+
+\begin{center}
+\begin{tabular}{cccc}
+  $k_x > 0$                  & $k_x < 0$              & $k_1 > 0$                   & $k_1 < 0$  \\
+  $s_x = \sin{(l \omega_x)}$ & $ \sinh{(l \omega_x)}$ & $s_y = \sinh{(l \omega_y)}$ & $ \sin{(l \omega_y)}$ \\
+  $c_x = \cos{(l \omega_x)}$ & $ \cosh{(l \omega_x)}$ & $c_y = \cosh{(l \omega_y)}$ & $ \cos{(l \omega_y)}$ \\
+  $\tau_x = -1$              & $+1$                   & $\tau_y = +1$               & $-1$
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lllll} \toprule
+        & $q_0$    & $q_x$ & $q_y$     & $q_z$ \\ \midrule
+  1     & $c_{e2}$ &       & $-s_{e2}$ &       \\ \addlinespace[1ex]
+  $x$   & $\frac{-k_x \chi}{2 \omega_x} s_x s_{e2}$            &   &
+    $\frac{-k_x \chi}{2 \omega_x} s_x c_{e2}$ & \\ \addlinespace[1ex]
+  $p_x$ & $\frac{k_x \chi}{2\omega_x^2} \tau_x (1-c_x) s_{e2}$ &   &
+    $\frac{k_x \chi}{2 \omega_x^2} \tau_x \left(1-c_x\right) c_{e2}$ & \\ \addlinespace[1ex]
+  $y$   &          &
+    {$\begin{aligned}
+      \frac{-1}{\alpha} &\bigl[ \beta (1+ c_y) s_{e2} +{} \\[-1.5ex]
+      & \hskip4.5em \tau_y \sigma s_y c_{e2} \bigr]
+    \end{aligned}$} &  &
+    {$\begin{aligned}
+       \frac{1}{\alpha} &\bigl[ \beta (1-c_y) c_{e2} + {} \\[-1.5ex]
+       & \hskip4.5em \tau_y \sigma s_y s_{e2} \bigr]
+    \end{aligned}$} \\ \addlinespace[1ex]
+  $p_y$ &          &
+    {$\begin{aligned}
+      \frac{1}{\omega_y \alpha} &\bigl[ \xi (1 - c_y) c_{e2} - {} \\[-1.5ex]
+      & \hskip5em \beta s_y s_{e2} \bigr]
+    \end{aligned}$} &   &
+    {$\begin{aligned}
+      \frac{1}{\omega_y \alpha} &\bigl[ \xi (1+c_y) s_{e2} - {} \\[-1.5ex]
+      & \hskip5em \beta s_y c_{e2}\bigr]
+    \end{aligned}$} \\ \addlinespace[1ex]
+  $p_z$ & $\frac{g}{2}\left(\frac{\chi s_x}{\omega_x} - \frac{a l \psi}{\gamma}\right) s_{e2}$ &    &
+    $\frac{g}{2}\left(\frac{\chi s_x}{\omega_x} - \frac{a l \psi}{\gamma}\right) c_{e2}$ & \\
+  \bottomrule
+  \end{tabular}
+\end{center}
+
+%-----------------------------------------------------------------------------------------
+\subsection{Sbend Entrance Fringe}
+
+To calculate the exit fringe, multiply all field strengths $g$ by
+-1, and replace all entrance face angles $e_1$ with exit face angles $-e_2$. The negative exit face
+angle is used due to Bmad convention.
+\begin{center}
+  \begin{tabular}{lllll} \toprule
+      & $q_0$ & $q_x$                         & $q_y$                          & $q_z$ \\ \midrule
+  1   & 1     &                               &                                & \\ \addlinespace[1ex]
+  $x$ &       &                               & $\frac{1}{2} \chi g \tan(e_1)$ & \\ \addlinespace[1ex]
+  $y$ &       & $\frac{1}{2}(1+a)g \sin(e_1)$ &                                & $-\frac{1}{2}(1+a)g \cos(e_1)$ \\
+  \bottomrule
+  \end{tabular}
+\end{center}
+
+%-----------------------------------------------------------------------------------------
+\subsection{Quadrupole}
+
+\begin{equation}
+  \omega = \sqrt{|k_1|} \nonumber
+\end{equation}
+
+\begin{center}
+\begin{tabular}{cccc}
+  $k_1 > 0$ & $k_1 < 0$ & $k_1 > 0$ & $k_1 < 0$  \\
+  $s_x = \frac{\sin{(l \omega)}}{\omega}$ & $ \frac{\sinh{(l \omega)}}{\omega}$ &$s_y = \frac{\sinh{(l \omega)}}{\omega}$ & $ \frac{\sin{(l \omega)}}{\omega}$ \\
+  $c_x = \frac{1 - \cos{(l \omega)}}{\omega^2}$ & $ \frac{-1 + \cosh{(l \omega)}}{\omega^2}$ &$c_y = \frac{-1 + \cosh{(l \omega)}}{\omega^2}$ & $ \frac{1 - \cos{(l \omega)}}{\omega^2}$ \\
+\end{tabular}
+\end{center}
+\everymath{}
+
+\begin{center}
+\begin{tabular}{llll} \toprule
+        & $q_0$ & $q_x$ & $q_y$ \\ \midrule
+  1     & 1     &       &       \\ \addlinespace[1ex]
+  $x$   &       &       & $-\frac{1}{2} k_1 \chi s_x$ \\ \addlinespace[1ex]
+  $p_x$ &       &       & $-\frac{1}{2} k_1 \chi c_x$ \\ \addlinespace[1ex]
+  $y$   &       & $-\frac{1}{2} k_1 \chi s_y$ & \\ \addlinespace[1ex]
+  $p_y$ &       & $-\frac{1}{2} k_1 \chi c_y$ & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%-----------------------------------------------------------------------------------------
+\subsection{Solenoid Element Body}
+
+\begin{center}
+\begin{tabular}{lllll} \toprule
+  &  $q_0$ & $q_x$ & $q_y$ & $q_z$ \\ \midrule
+  1 & $c_{t2}$ & & & $-s_{t2}$ \\ \addlinespace[1ex]
+  $x$ & & $\frac{1}{4} k_s \zeta ((1 - c_{s}) c_{t2} - s_{s} s_{t2})$ & $\frac{1}{4} k_s \zeta ((-1 + c_{s}) s_{t2} - s_{s} c_{t2})$ & \\ \addlinespace[1ex]
+  $p_x$ & & $\frac{1}{2} \zeta ((1-c_{s}) {st2} + s_{s} c_{t2})$ & $\frac{1}{2} \zeta ((1 - c_{s}) c_{t2} - s_{s} s_{t2})$ & \\ \addlinespace[1ex]
+  $y$ & & $\frac{1}{4} k_s \zeta ((1 - c_{s}) s_{t2} + s_{s} c_{t2})$ & $\frac{1}{4} k_s \zeta ((1 - c_{s}) c_{t2} - s_{s} s_{t2})$ &\\ \addlinespace[1ex]
+  $p_y$ & & $\frac{1}{2} \zeta ((-1 + c_{s}) c_{t2} + s_{s} s_{t2})$ & $\frac{1}{2} \zeta ((1-c_{s}) s_{t2} + s_{s} c_{t2})$ & \\ \addlinespace[1ex]
+  $p_z$ & $\frac{1}{2} {t} s_{t2}$ & & & $\frac{1}{2} {t} c_{t2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%-----------------------------------------------------------------------------------------
+\subsection{Solenoid Entrance Fringe}
+To calculate the exit fringe, multiply all field strengths $k_s$ by -1.
+\begin{center}
+\begin{tabular}{llll} \toprule
+  & $q_0$ & $q_x$ & $q_y$ \\ \midrule
+  1 & 1 & & \\
+  $x$ & & $\frac{1}{4} k_s \chi $ &  \\
+  $y$ & & & $\frac{1}{4} k_s \chi $ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%---------------------------------------------------------------------------------
+\section{Symplectic Tracking with Cartesian Modes}
+\label{s:wiggler.std}
+\index{wiggler!tracking}
+
+The method for symplectic integration for elements that define the magnetic field using a
+Cartesian mode decomposition (\sref{s:cart.map}) is outlined in \sref{s:symp.track}.  The
+vector potential is constructed to avoid singularities when one of the wave vectors $k_x$,
+$k_y$, or $k_z$ is zero.
+
+For the \vn{x} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 
+    $A$ & $\dfrac{k_z}{k_y^2}$      & $\Se_x \, \Sh_y \, \Se_z \qquad$ &
+    $A$ & $\dfrac{1}{k_y}$          & $\Sh_x \, \Sh_y \, \Se_z \qquad$ &
+    $A$ & $\dfrac{k_z}{k_x \, k_y}$ & $\Sh_x \, \Se_y \, \Se_z$ \\
+  $A_y$   & 0 &&& 0 &&& 0 && \\
+  $A_z$   & 
+    $A$ & $\dfrac{k_x}{k_y^2}$      & $\Ce_x \, \Sh_y \, \Ce_z \qquad$ &
+    $A$ & $\dfrac{k_x}{k_y \, k_z}$ & $\Ch_x \, \Sh_y \, \Ce_z \qquad$ &
+    $A$ & $\dfrac{1}{k_y}$          & $\Ch_x \, \Se_y \, \Ce_z$ 
+\end{tabular}
+}
+\end{center}
+
+For the \vn{y} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 0 &&& 0 &&& 0 && \\
+  $A_y$   & 
+    $-A$ & $\dfrac{k_z}{k_x \, k_y}$ & $\Se_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{1}{k_x}$          & $\Sh_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{k_z}{k_x^2}$      & $\Sh_x \, \Se_y \, \Se_z$ \\
+  $A_z$   & 
+    $-A$ & $\dfrac{1}{k_x}$          & $\Se_x \, \Ch_y \, \Ce_z \qquad$ &
+    $-A$ & $\dfrac{k_y}{k_x \, k_z}$ & $\Sh_x \, \Ch_y \, \Ce_z \qquad$ &
+    $-A$ & $\dfrac{k_y}{k_x^2}$      & $\Sh_x \, \Ce_y \, \Ce_z$ 
+\end{tabular}
+}
+\end{center}
+
+For the \vn{qu} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 
+     $A$ & $\dfrac{1}{k_z}$          & $\Se_x \, \Ch_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_z^2}$      & $\Sh_x \, \Ch_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_x \, k_z}$ & $\Sh_x \, \Ce_y \, \Se_z$ \\
+  $A_y$   & 
+    $-A$ & $\dfrac{k_x}{k_y \, k_z}$ & $\Ce_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{k_x}{k_z^2}$      & $\Ch_x \, \Sh_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{1}{k_z}$          & $\Ch_x \, \Se_y \, \Se_z$ \\
+  $A_z$   & 0 &&& 0 &&& 0 &&
+\end{tabular}
+}
+\end{center}
+
+For the \vn{sq} \vn{family} the vector potential is:
+\begin{center}
+{
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{lrllrllrll}
+  Form \; & \multicolumn{3}{l}{hyper-y}  & \multicolumn{3}{l}{hyper-xy}  & \multicolumn{3}{l}{hyper-x} \\
+  $A_x$   & 
+     $A$ & $\dfrac{1}{k_z}$          & $\Ce_x \, \Sh_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_z^2}$      & $\Ch_x \, \Sh_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{k_y}{k_x \, k_z}$ & $\Ch_x \, \Se_y \, \Se_z$ \\
+  $A_y$   & 
+     $A$ & $\dfrac{k_x}{k_y \, k_z}$ & $\Se_x \, \Ch_y \, \Se_z \qquad$ &
+    $-A$ & $\dfrac{k_x}{k_z^2}$      & $\Sh_x \, \Ch_y \, \Se_z \qquad$ &
+     $A$ & $\dfrac{1}{k_z}$          & $\Sh_x \, \Ce_y \, \Se_z$ \\
+  $A_z$   & 0 &&& 0 &&& 0 &&
+\end{tabular}
+}
+\end{center}
+

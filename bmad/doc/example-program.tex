@@ -1,0 +1,286 @@
+\chapter{An Example Bmad Based Program}
+\label{c:program.info}
+
+To get the general feel for how \bmad works before getting into the nitty--gritty details in
+subsequent chapters, this chapter analyzes an example test program.
+
+%-----------------------------------------------------------------------------
+\section{Programming Setup}
+\label{s:prog.setup}
+
+Information on how to setup your work environment for the compiling and linking of programs can be
+obtained from the \bmad web site at:
+\hfill\break
+\hspace*{0.3in}
+\url{https://www.classe.cornell.edu/bmad}
+In particular, instructions for compiling, linking, and running of the example program can be
+obtained by going to the above web page and clicking on the button labeled ``Compiling Custom Programs''.
+
+%-----------------------------------------------------------------------------
+\section{A First Program}
+\label{s:first.program}
+\index{programming!example program}
+
+Consider the example program shown in \fig{f:program}. The source code for this program is provided
+with \bmad in the directory:
+\begin{example}
+  \$ACC_ROOT_DIR/examples/simple_bmad_program
+\end{example}
+[Note: \vn{\$ACC_ROOT_DIR} is the root directory of the \bmad \vn{Distribution} when you are running
+``off-site'' and is root directory of the \vn{Release} when you are running ``on-site''.]
+
+\begin{figure}[htp]
+\index[routine]{bmad_parser}\index[routine]{twiss_at_start}
+\index[routine]{twiss_propagate_all}\index[routine]{lat_ele_locator}
+\index[routine]{type_ele}\index{ele_struct}\index{lat_struct}
+\index{ele_pointer_struct}\index{geometry}
+\begin{listing}{1}
+program test
+
+use bmad                 ! Define the structures we need to know about.
+implicit none
+type (lat_struct), target :: lat   ! This structure holds the lattice info
+type (ele_struct), pointer :: ele, cleo
+type (ele_pointer_struct), allocatable :: eles(:)
+type (all_pointer_struct) a_ptr
+integer i, ix, n_loc
+logical err
+
+! Programs should always implement "intelligent bookkeeping".
+bmad_com%auto_bookkeeper = .false.
+
+! Read in a lattice, and modify the ks solenoid strength of "cleo_sol".
+
+call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
+
+call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)  ! Find element
+cleo => eles(1)%ele                        ! Point to cleo_sol element.
+call pointer_to_attribute (cleo, "KS", .true., a_ptr, err) ! Point to KS attribute.
+a_ptr%r = a_ptr%r + 0.001         ! Modify KS component.
+call set_flags_for_changed_attribute (cleo, a_ptr%r)
+call lattice_bookkeeper (lat)
+call lat_make_mat6 (lat, cleo%ix_ele)      ! Remake transfer matrix
+
+! Calculate starting Twiss params if the lattice is closed, 
+! and then propagate the Twiss parameters through the lattice.
+
+if (lat%param%geometry == closed$) call twiss_at_start (lat)
+call twiss_propagate_all (lat)      ! Propagate Twiss parameters
+
+! Print info on the first 11 elements
+
+print *, " Ix  Name              Ele_type                   S      Beta_a"
+do i = 0, 10
+  ele => lat%ele(i)
+  print "(i4,2x,a16,2x,a,2f12.4)", i, ele%name, key_name(ele%key), ele%s, ele%a%beta
+enddo
+
+! print information on the CLEO_SOL element.
+
+print *
+print *, "!---------------------------------------------------------"
+print *, "! Information on element: CLEO_SOL"
+print *
+call type_ele (cleo, .false., 0, .false., 0, .true., lat)
+
+deallocate (eles)
+
+end program
+\end{listing}
+\caption{Example Bmad program}
+\label{f:program}
+\end{figure}
+
+%-----------------------------------------------------------------------------
+\section{Explanation of the Simple_Bmad_Program}
+
+\index{lat_struct!example use of}
+A line by line explanation of the example program follows. The \vn{use bmad} statement at line 3
+defines the \bmad structures and defines the interfaces (argument lists) for the \bmad
+subroutines. In particular, the \vn{lat} variable (line 5), which is of type \vn{lat_struct}
+(\sref{s:lat.struct}), holds all of the lattice information: The list of elements, their attributes,
+etc.  The setting of \vn{bmad_com%auto_bookkeeper} to \vn{False} in line 13 enables the
+``intelligent'' bookkeeping of lattice attributes as discussed in \sref{s:lat.bookkeeping}). The
+call to \Hyperref{r:bmad.parser}{bmad_parser} (line 17) causes the lattice file \vn{lat.bmad} to be
+parsed and the lattice information is stored the \vn{lat} variable. Note: To get a listing of the
+\vn{lat_struct} components or to find out more about \vn{bmad_parser} use the \vn{getf} command as
+discussed in \sref{s:getf}.
+
+The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator} (\sref{s:lat.ele.find}) is used in line
+19 to find the element in the lattice with the name \vn{CLEO_SOL}. Line 20 defines a pointer
+variable named \vn{cleo} which is used here as shortcut notation rather than having to write
+\vn{eles(1)%ele} when refering to this element. The call to \vn{pointer_to_attribute} in line 21
+sets up a pointer structure \vn{a_ptr%r} to point to the \vn{KS} solenoid strength component of
+\vn{cleo}. [\vn{a_ptr} also has components \vn{a_ptr%i} and \vn{a_ptr%l} to point to integrer
+or logical components if needed. See \sref{s:lat.ele.attribute}.]
+
+Line 22 changes the \vn{ks} solenoid strength of \vn{cleo}. Since an element attribute has been
+changed, the call to \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
+in line 23 is needed for \bmad to inform \bmad that this attribute has changed and the call to
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} does the necessary lattice bookkeeping
+(\sref{s:lat.bookkeeping}).
+
+The call to \Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 25 recalculates the linear transfer
+matrix for the \vn{CLEO_SOL} element.
+
+In line 30, the program checks if the lattice is circular (\sref{s:param}) and, if so, uses the
+routine \Hyperref{r:twiss.at.start}{twiss_at_start} to multiply the transfer matrices of the
+individual elements together to form the 1--turn matrix from the start of the lat back to the
+start. From this matrix \vn{twiss_at_start} calculates the Twiss parameters at the start of the
+lattice and puts the information into \vn{lat%ele(0)} (\sref{s:twiss}).  The next call, to
+\Hyperref{r:twiss.propagate.all}{twiss_propagate_all}, takes the starting Twiss parameters and,
+using the transfer matrices of the individual elements, calculates the Twiss parameters at all the
+elements. Notice that if the lattice is not circular, The starting Twiss parameters will need to
+have been defined in the lattice file.
+
+\index{ele_struct!\%x}\index{ele_struct!\%key}
+\index{ele_struct!\%s}\index{lat_struct!\%ele(:)}
+The program is now ready output some information. Lines 24 through 28 of the program print
+information on the first 11 elements in the lattice.  The do-loop is over the array \vn{lat%ele(:)}.
+Each element of the array holds the information about an individual lattice element as explained in
+Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)} element is basically a marker element to denote the
+beginning of the array (\sref{c:sequence}). Using the pointer \vn{ele} to point to the individual
+elements (line 37) makes for a cleaner syntax and reduces typing. The table that is produced is
+shown in lines 1 through 12 of \fig{f:output}.  The first column is the element index $i$. The
+second column, \vn{ele%name}, is the name of the element. The third column, key_name(ele%key), is
+the name of the element class. \vn{ele%key} is an integer denoting what type of element (quadrupole,
+wiggler, etc.) it is.  \vn{key_name} is an array that translates the integer key of an element to a
+printable string. The fourth column, \vn{ele%s}, is the longitudinal position at the exit end of the
+element. Finally, the last column, \vn{ele%x%beta}, is the $a$--mode (nearly horizontal mode) beta
+function.
+
+The \Hyperref{r:type.ele}{type_ele} routine on line 47 of the program is used to type out the
+\vn{CLEO_SOL}'s attributes and other information as shown on lines 14 through 41 of the output (more
+on this later).
+
+This brings us to the lattice file used for the input to the program.
+The call to \vn{bmad_parser} shows that this file is called 
+\vn{simple_bmad_program/lat.bmad}.
+In this file there is a call to another file
+  \begin{example}
+  call, file = "layout.bmad"
+  \end{example}
+\index{line}
+It is in this second file
+that the layout of the lattice is defined. In particular, the \vn{line} used
+to define the element order looks like
+\begin{example}
+  cesr: line = (IP_L0, d001, DET_00W, d002, Q00W, d003, ...)
+  use, cesr
+\end{example}
+If you compare this to the listing of the elements in \fig{f:output} you will find differences. For
+example, element \#2 in the program listing is named \vn{CLEO_SOL\B3}. From the definition of the
+\vn{cesr} line this should be \vn{d001} which, if you look up its definition in \vn{layout.bmad} is
+a drift.  The difference between lattice file and output is due to the presence the \vn{CLEO_SOL}
+element which appears in \vn{lat.bmad}:
+\begin{example}
+  ks_solenoid    := -1.0e-9 * clight * solenoid_tesla / beam[energy]
+  cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose 
+\end{example}
+\index{superimpose!example}
+The solenoid is 3.51 meters long and it is superimposed upon the lattice with its center at $s = 0$
+(this is the default if the position is not specified).  When \vn{bmad_parser} constructs the
+lattice list of elements the superposition of \vn{IP_L0}, which is a zero--length marker, with the
+solenoid does not modify \vn{IP_L0}. The superposition of the \vn{d001} drift with the solenoid
+gives a solenoid with the same length as the drift. Since this is a ``new'' element,
+\vn{bmad_parser} makes up a name that reflects that it is basically a section of the solenoid it
+came from.  Next, since the \vn{CLEO_SOL} element happens to only cover part of the \vn{Q00W}
+quadrupole, \vn{bmad_parser} breaks the quadrupole into two pieces. The piece that is inside the
+solenoid is a \vn{sol_quad} and the piece outside the solenoid is a regular quadrupole. See
+\sref{s:super} for more details. Since the center of the \vn{CLEO_SOL} is at $s = 0$, half of it
+extends to negative $s$. In this situation, \vn{bmad_parser} will wrap this half back and
+superimpose it on the elements at the end of the lattice list near $s = s_{lat}$ where $s_{lat}$ is
+the length of the lattice.  As explained in Chapter~\ref{c:lat.struct}, the lattice list that is
+used for tracking extends from \vn{lat%ele(0)} through \vn{lat%ele(n)} where \vn{n =
+lat%n_ele_track}. The \vn{CLEO_SOL} element is put in the section of \vn{lat%ele(n)} with \vn{n >
+lat%n_ele_track} since it is not an element to be tracked through. The \vn{Q00W} quadrupole also
+gets put in this part of the list.  The bookkeeping information that the \vn{cleo_sol\B3} element is
+derived from the \vn{cleo_sol} is put in the \vn{cleo_sol} element as shown in lines 33 through 41
+of the output.  It is now possible in the program to vary, say, the strength of the \vn{ks}
+attribute of the \vn{CLEO_SOL} and have the \vn{ks} attributes of the dependent
+(``\vn{super_slave}'') elements updated with one subroutine call. For example, the following code
+increases the solenoid strength by 1\% \Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper}
+\Hyperref{r:lat.ele.locator}{lat_ele_locator}
+\begin{example}
+  call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
+  eles(1)%ele(ix)%value(ks$) = eles(1)%ele%value(ks$) * 1.01 
+  call lattice_bookkeeper (lat)
+\end{example}
+\bmad takes care of the bookkeeping. In fact \vn{control_bookkeeper} is
+automatically called when transfer matrices are remade so the direct call
+to \vn{control_bookkeeper} may not be necessary.
+
+Running the program (\sref{s:prog.setup}) gives the output as shown in \fig{f:output}.
+
+\begin{figure}[ht]
+\small
+\begin{listing}{1}
+  Ix  Name              Ele_type                   S      Beta_a
+   0  BEGINNING         BEGINNING_ELE         0.0000      0.9381
+   1  IP_L0             MARKER                0.0000      0.9381
+   2  CLEO_SOL#3        SOLENOID              0.6223      1.3500
+   3  DET_00W           MARKER                0.6223      1.3500
+   4  CLEO_SOL#4        SOLENOID              0.6380      1.3710
+   5  Q00W\CLEO_SOL     SOL_QUAD              1.7550      7.8619
+   6  Q00W#1            QUADRUPOLE            2.1628     16.2350
+   7  D003              DRIFT                 2.4934     27.4986
+   8  DET_01W           MARKER                2.4934     27.4986
+   9  D004              DRIFT                 2.9240     46.6018
+  10  Q01W              QUADRUPOLE            3.8740     68.1771
+
+ !---------------------------------------------------------
+ ! Information on element: CLEO_SOL 
+
+ Element #              871
+ Element Name: CLEO_SOL
+ Key: Solenoid
+ S_start, S:    766.671421,      1.755000
+ Ref_time:  5.854050E-09
+
+ Attribute values [Only non-zero/non-default values shown]:
+  1   L                           =  3.5100000E+00 m
+  5   KS                          = -8.5023386E-02 1/m
+ 10   FRINGE_TYPE                 =  None (1)
+ 11   FRINGE_AT                   =  Both_Ends (3)
+ 13   SPIN_FRINGE_ON              =  T (1)
+ 47   PTC_CANONICAL_COORDS        =  1.0000000E+00
+ 49   BS_FIELD                    =  1.5000000E+00 T
+ 50   DELTA_REF_TIME              =  1.1708100E-08 sec
+ 53   P0C                         =  5.2890000E+09 eV      BETA            =  0.999999995
+ 54   E_TOT                       =  5.2890000E+09 eV      GAMMA           =  1.0350315E+04
+ 66   NUM_STEPS                   = 18
+ 67   DS_STEP                     =  2.0000000E-01 m
+
+      TRACKING_METHOD             =  Bmad_Standard       APERTURE_AT               =  Exit_End
+      MAT6_CALC_METHOD            =  Bmad_Standard       APERTURE_TYPE             =  Rectangular
+      SPIN_TRACKING_METHOD        =  Tracking            OFFSET_MOVES_APERTURE     =  F
+      PTC_INTEGRATION_TYPE        =  Matrix_Kick         SYMPLECTIFY               =  F
+      CSR_METHOD                  =  Off                 FIELD_MASTER              =  F
+      SPACE_CHARGE_METHOD         =  Off
+      FIELD_CALC                  =  Bmad_Standard
+
+Slave_status: Free
+
+Lord_status:  Super_Lord
+Slaves:
+   Index   Name           Type
+     865   Q00E\CLEO_SOL  Sol_Quad
+     866   CLEO_SOL#1     Solenoid
+     868   CLEO_SOL#2     Solenoid
+       2   CLEO_SOL#3     Solenoid
+       4   CLEO_SOL#4     Solenoid
+       5   Q00W\CLEO_SOL  Sol_Quad
+
+Twiss at end of element:
+                        A              B            Cbar                        C_mat
+Beta (m)         7.73293815    88.01448113  | -0.16691726   0.00910908     -0.05360747   0.23764236
+Alpha           -6.94661336    -1.53007417  |  2.24946759  -0.02027746      0.03925732   0.14506787
+Gamma (1/m)      6.36956306     0.03796110  |  Gamma_c =   1.00851669       Mode_Flip = F
+Phi (rad)        1.00744612     1.55387058            X              Y              Z
+Eta (m)         -0.08500243    -0.00073095    -0.08600823    -0.00846284     0.00029134
+Etap            -0.08439901    -0.00135097    -0.08534249    -0.00922386     1.00000000
+\end{listing}
+\caption{Output from the example program}
+\label{f:output}
+\end{figure}
+

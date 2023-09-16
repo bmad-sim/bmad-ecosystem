@@ -1,0 +1,199 @@
+\chapter{Lattice Element Manipulation}
+\label{c:ele.manip}
+
+%--------------------------------------------------------------------------
+\section{Creating Element Slices}
+\label{s:ele.slice}
+
+\index{sbend}\index{rbend}\index{wiggler}
+It is sometimes convenient to split an element longitudinally into
+``slices'' that represent a part of the element.  This is complicated
+by the fact that elements are not necessarily uniform.  For example,
+map type wigglers are nonuniform and bend elements have end effects.
+Furthermore, attributes like \vn{hkick} need to be scaled with the
+element length.
+
+To create an element slice, the routine
+\Hyperref{r:create.element.slice}{create_element_slice} can be used.
+Example:
+\begin{example}
+  type (ele_struct) ele, sliced_ele
+  ...
+  sliced_ele = ele
+  sliced_ele%value(l$) = l_slice ! Set the sliced element's length
+  call create_element_slice (sliced_ele, ele, l_start, param, ...)
+\end{example}
+See the documentation on \vn{create_element_slice} for more details (\sref{s:getf}).
+
+%----------------------------------------------------------------------------
+\section{Adding and Deleting Elements From a Lattice}
+\label{s:lat.add.delete}
+
+Modifying the number of elements in a lattice involves a bit of
+bookkeeping. To help with this there are a number of routines. 
+
+The routine \Hyperref{r:remove.eles.from.lat}{remove_eles_from_lat} is
+used to delete elements from a lattice.
+
+For adding elements there are three basic routines: To add a lord
+element, the \Hyperref{r:new.control}{new_control} routine is used.
+To add a new element to the tracking part of the lattice, use the
+\Hyperref{r:insert.element}{insert_element} routine. Finally, to split
+an element into two pieces, the routine
+\Hyperref{r:split.lat}{split_lat} is used. These basic routines are
+then used in such routines as
+\Hyperref{r:create.overlay}{create_overlay} that creates overlay
+elements, \Hyperref{r:create.group}{create_group} which creates group
+elements, \Hyperref{r:add.superimpose}{add_superimpose} which
+superimposes elements, etc. Example:
+\begin{example}
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: g_lord, slave
+
+  type (control_struct) con(1)
+  integer ix, n
+  logical err_flag
+  ...
+  call new_control (lat, ix)
+  g_lord => lat%ele(ix)
+  allocate (ele%control_var(1))
+  ele%control_var(1)%name = "A"
+  call reallocate_expression_stack(con(1)%stack, 10))
+  call expression_string_to_stack ('3.2*A^2', con(1)%stack, n, err_flag)
+  con(1)%ix_attrib = k1$
+  call lat_ele_locator ('Q1W', lat, eles)
+  con(1)%slave = ele_to_lat_loc(eles(1)%ele)
+  call create_group (g_lord, con, err_flag)
+\end{example}
+This example constructs a group element with one variable with name
+\vn{A} controlling the \vn{K1} attribute of element \vn{Q1W} using the
+expression ``$3.2 \cdot A^2$'' where \vn{A} is the name of the control
+variable.
+
+For constructing \vn{group} elements (but not \vn{overlay} elements),
+the controlled attribute (set by \vn{con(1)%ix_attrib} in the above
+example) can be set to, besides the set of element attributes, any one
+in the following list:
+\begin{example}
+  accordion_edge$  ! Element grows or shrinks symmetrically
+  start_edge$      ! Varies element's upstream edge s-position
+  end_edge$        ! Varies element's downstream edge s-position
+  s_position$      ! Varies element's overall s-position. Constant length.
+\end{example}
+See Section~\sref{s:group} for the meaning of these attributes
+
+%---------------------------------------------------------------------------
+\section{Finding Elements}
+\label{s:lat.ele.find}
+
+\index{ele_struct!\%ix_ele}
+The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator} 
+can be used to search for an element
+in a lattice by name or key type or a combination of both. Example:
+\begin{example}
+  type (lat_struct) lat
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n_loc; logical err
+  ...
+  call lat_ele_locator ("quad::skew*", lat, eles, n_loc, err)
+  print *, "Quadrupole elements whose name begins with the string "SKEW":"
+  print *, "Name                 Branch_index        Element_index"
+  do i = 1, n_loc  ! Loop over all elements found to match the search string.
+    print *, eles(i)%ele%name, eles(i)%ele%ix_branch, eles(i)%ele%ix_ele
+  enddo
+\end{example}
+This example finds all elements where \vn{ele%key} is \vn{quadrupole\$} 
+and \vn{ele%name} starts with ``\vn{skew}''. See the documentation on 
+\vn{lat_ele_locator} for more details on the syntax of the search string.
+
+The \vn{ele_pointer_struct} array returned by \vn{lat_ele_locator} is
+an array of pointers to \vn{ele_struct} elements
+\begin{example}
+  type ele_pointer_struct
+    type (ele_struct), pointer :: ele
+  end type
+\end{example}
+The \vn{n_loc} argument is the number of elements found and the \vn{err} argument
+is set True on a decode error of the search string.
+
+Once an element (or elements) is identified in the lattice,
+it's attributes can be altered. However, care must be taken that an element's attribute
+can be modified (\sref{s:depend}). The function \vn{attribute_free} will
+check if an attribute is free to vary.
+\begin{example}
+  type (lat_struct) lat
+  integer ix_ele
+  ...
+  call lat_ele_locator ('Q10W', lat, eles, n_loc, err)   ! look for an element "Q10W"
+  free = attribute_free (eles(i)%ele, "K1", lat, .false.)
+  if (.not. free) print *, "Cannot vary k1 attribute of element Q10W"
+\end{example}
+
+%---------------------------------------------------------------------------
+\section{Accessing Named Element Attributes}
+\label{s:lat.ele.attribute}
+
+A ``named'' parameter of the \vn{ele_struct} structure is a parameter that has an associated name
+that can be used in a lattice file. For example, the quadrupole strength is named \vn{K1}
+(\sref{s:quad}). This parameter is stored in the \vn{ele%value(:)} array. Specifically at
+\vn{ele%value(k1\$)}.
+
+Historically, named parameters where always accessed directly but this has proved to be somewhat
+problematical for a number of reasons. For one, something like \vn{ele%value(k1\$)} will always have
+a value even if the associated lattice element does not have an associated \vn{K1} parameter (For
+example, a sextupole does not have a \vn{K1} parameter). Another issue involves allocation since
+components like \vn{ele%a_pole(:)} are pointers that are not necessarily allocated.
+
+To get around some of these issues, accessor functions have been developed for all non-character
+based named attributes. These accessor functions are:
+\begin{example}
+  pointer_to_attribute    ! \Hyperref{r:pointer.to.attribute}{pointer_to_attribute}
+  pointers_to_attribute   ! \Hyperref{r:pointers.to.attribute}{pointers_to_attribute}
+  set_ele_attribute       ! \Hyperref{r:set.ele.attribute}{set_ele_attribute}
+  value_of_attribute      ! \Hyperref{r:value.of.attribute}{value_of_attribute}
+\end{example}
+
+The workhorse is \vn{pointer_to_attribute} that returns a pointer to the appropriate attribute.
+The returned pointer argument is actually an instance of an \vn{all_pointer_struct} which looks like:
+\begin{example}
+  type all_pointer_struct
+    real(rp), pointer :: r => null()
+    integer, pointer :: i => null()
+    logical, pointer :: l => null()
+  end type
+\end{example}
+When the \vn{all_pointer_struct} argument is returned, one (or zero if the attribute name is not
+recognized) of the pointer components will be associated. For example:
+\begin{example}
+  type (ele_struct) ele
+  type (all_pointer_struct) attrib_ptr
+  ...
+  call pointer_to_attribute (ele, "A3_ELEC", .true., attrib_ptr, err)
+  attrib_ptr%r = 0.34
+  call attribute_set_bookkeeping (ele, "A3_ELEC", err_flag, attrib_ptr)
+  call lattice_bookkeeper (lat)  ! Bookkeeping needed due to parameter change 
+\end{example}
+Also see the example program in \sref{s:first.program}.
+
+The \vn{set_ele_attribute} routine is useful when there is user input since this routine
+can evaluate expressions. For example:
+\begin{example}
+  type (lat_struct) lat
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n_loc, n
+  logical err_flag, make_xfer_mat
+  ...
+  call lat_ele_locator ('Q01W', lat, eles, n_loc, err_flag)
+  do n = 1, n_loc
+    call set_ele_attribute (eles(n)%ele, "K1 = 0.1*c_light", lat, err_flag)
+  enddo
+\end{example}
+\index{overlay}
+This example sets the \vn{K1} attribute of all elements named \vn{Q01W}.
+\vn{set_ele_attribute} checks whether an element is actually free to
+be varied and sets the \vn{err_flag} logical accordingly. An element's
+attribute may not be freely varied if, for example, the attribute is
+controlled via an \vn{Overlay}.
+
+
+

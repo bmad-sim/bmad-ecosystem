@@ -1,0 +1,850 @@
+\chapter{The ele_struct}
+\label{c:ele.struct}
+\index{ele_struct|hyperbf}
+
+This chapter describes the \vn{ele_struct} which is the structure that
+holds all the information about an individual lattice element:
+quadrupoles, separators, wigglers, etc. The \vn{ele_struct} structure is
+shown in \figs{f:ele.struct1}  and \ref{f:ele.struct2}. This
+structure is somewhat complicated, however, in practice, a lot of the
+complexity is generally hidden  by the \bmad bookkeeping routines.
+
+As a general rule, for variables like the Twiss parameters that are not
+constant along the length of an element, the value stored in the
+corresponding component in the \vn{ele_struct} is the value at the downstream
+end of the element.
+
+For printing information about an element, the
+\Hyperref{r:type.ele}{type_ele} or \Hyperref{r:type.ele}{type_ele} routines
+can be used (\sref{s:first.program}). The difference between the two is
+that \vn{type_ele} will print to the terminal window while \vn{type_ele}
+will return an array of strings containing the element information.
+\nopagebreak[4]
+\begin{figure}[htb]
+\centering
+\footnotesize
+\begin{verbatim}
+type ele_struct
+  character(40) name                       ! name of element \sref{c:ele.string}.
+  character(40) type                       ! type name \sref{c:ele.string}.
+  character(40) alias                      ! Another name \sref{c:ele.string}.
+  character(40) component_name             ! Used by overlays, multipass patch, etc.
+  character(200), pointer :: descrip       ! Description string.
+  type (twiss_struct)  a, b, z             ! Twiss parameters at end of element \sref{c:normal.modes}.
+  type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:normal.modes}.
+  type (ac_kicker_struct), pointer :: ac_kick  ! ac_kicker element parameters.
+  type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
+  type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
+  type (controller_struct), pointer :: control ! For group and overlay elements. 
+  type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define DC fields
+  type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define DC fields
+  type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
+  type (gen_grad_map_struct), pointer :: gen_grad_map(:)       ! Used to define DC fields.
+  type (grid_field_struct), pointer :: grid_field(:)           ! Used to define DC and AC fields.
+  type (fibre), pointer :: ptc_fibre           ! PTC tracking.
+  type (floor_position_struct) floor           ! Global floor position.
+  type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
+  type (photon_element_struct), pointer :: photon
+  type (rad_int_ele_cache_struct), pointer :: rad_int_cache  
+                                               ! Radiation integral calc cached values 
+  type (space_charge_struct), pointer :: space_charge 
+  type (taylor_struct) :: taylor(6)            ! Orbital Taylor map.
+  type (taylor_struct) :: spin_taylor(0:3)     ! Spin Taylor map.
+  type (wake_struct), pointer :: wake    ! Wakes
+    ele_struct definition continued on next figure...
+\end{verbatim}
+\caption[The \vn{ele_struct} (part 1).]{The \vn{ele_struct}. structure definition. 
+The complete structure is shown in this and the following figure.}
+\label{f:ele.struct1}
+\end{figure}
+
+%--------------------------------------------------------------------------
+
+\begin{figure}[tb]
+\centering
+\footnotesize
+\begin{verbatim}
+    ... ele_struct definition continued from previous figure.
+  type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
+  type(coord_struct) map_ref_orb_in            ! Transfer map ref orbit at upstream end of element.
+  type(coord_struct) map_ref_orb_out           ! Transfer map ref orbit at downstream end of element.
+  type(coord_struct) time_ref_orb_in           ! Reference orbit at upstream end for ref_time calc.
+  type(coord_struct) time_ref_orb_out          ! Reference orbit at downstream end for ref_time calc.
+  real(rp) value(num_ele_attrib$)              ! attribute values.
+  real(rp) old_value(num_ele_attrib$)          ! Used to see if %value(:) array has changed.
+  real(rp) vec0(6)                             ! 0th order transport vector.
+  real(rp) mat6(6,6)                           ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
+  real(rp) gamma_c                             ! gamma associated with C matrix
+  real(rp) s_start                             ! longitudinal ref position at entrance_end
+  real(rp) s                                   ! longitudinal position at the downstream end.
+  real(rp) ref_time                            ! Time ref particle passes downstream end.
+  real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:)               ! multipole
+  real(rp), pointer :: b_pole(:)               ! multipoles
+  real(rp), pointer :: a_pole_elec(:)          ! Electrostatic multipoles.
+  real(rp), pointer :: b_pole_elec(:)          ! Electrostatic multipoles.
+  real(rp), pointer :: custom(:)               ! Custom attributes
+  integer key                    ! key value
+  integer sub_key                ! Records bend input type (rbend$, sbend$).
+  integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer lord_status            ! overlay_lord$, etc.
+  integer n_slave                ! Number of slaves
+  integer n_slave_field          ! Number of field slaves
+  integer ix1_slave              ! Pointer to lat%control array
+  integer slave_status           ! super_slave$, etc.
+  integer n_lord                 ! Number of lords
+  integer n_lord_field           ! Number of field lords
+  integer ic1_lord               ! Pointer to lat%ic array.
+  integer ix_pointer             ! For general use. Not used by Bmad.
+  integer ixx, iyy               ! Index for Bmad internal use
+  integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
+  integer tracking_method        ! bmad_standard$, taylor$, etc.
+  integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
+  integer ptc_integration_type   ! drift_kick$, matrix_kick$, etc.
+  integer field_calc             ! Used with Runge-Kutta integrators.
+  integer aperture_at            ! Aperture location: exit_end$, ...
+  integer aperture_type          ! Type of aperture: rectanular$, elliptical$, or custom$. 
+  integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
+  logical symplectify            ! Symplectify mat6 matrices.
+  logical mode_flip              ! Have the normal modes traded places?
+  logical multipoles_on          ! For turning multipoles on/off
+  logical scale_multipoles       ! multipole components scaled by the strength of element?
+  logical taylor_map_includes_offsets       ! Taylor map calculated with element offsets?
+  logical field_master           ! Calculate strength from the field value?
+  logical is_on                  ! For turning element on/off.
+  logical logic                  ! For general use. Not used by Bmad.
+  logical bmad_logic             ! For Bmad internal use only.
+  logical select                 ! For element selection. Used by make_hybrid_ring, etc.
+  logical csr_method             ! Coherent synchrotron radiation calculation
+  logical space_charge_method    ! Space charge method.
+  logical offset_moves_aperture  ! element offsets affects aperture?          
+end type
+\end{verbatim}
+\caption[The \vn{ele_struct} (part 2).]{The \vn{ele_struct}. 
+The complete structure is shown in this and the preceding figure.}
+\label{f:ele.struct2}
+\end{figure}
+
+%--------------------------------------------------------------------------
+\section{Initialization and Pointers}
+\index{ele_struct!initialization}
+\index{ele_struct!pointer components}
+
+The \vn{ele_struct} has a number of components and subcomponents 
+that are pointers and this raises a deallocation issue.
+Generally, most \vn{ele_struct} elements are part of a \vn{lat_struct}
+variable (\sref{s:lat:point})
+and such elements in a \vn{lat_struct} are handled by the
+\vn{lat_struct} allocation/deallocation routines. 
+In the case where a local \vn{ele_struct}
+variable is used within a subroutine or function, the \vn{ele_struct} 
+variable must either be defined with the \vn{save} attribute 
+\begin{example}
+  type (ele_struct), save :: ele          ! Use the save attribute
+  logical, save :: init_needed = .false.
+  ...
+  if (init_needed) then
+    call init_ele (ele, quadrupole\$)     ! Initialize element once
+    init_needed = .false.
+  endif
+\end{example}
+or the pointers within the variable must be deallocated  with a call to
+\Hyperref{r:deallocate.ele.pointers}{deallocate_ele_pointers}:
+\begin{example}
+  type (ele_struct) ele  
+  ...
+  call init_ele (ele, sbend\$)            ! Initialize element each time
+  ...
+  call deallocate_ele_pointers (ele) ! And deallocate.
+\end{example}
+
+In the ``normal'' course of events, the pointers of an \vn{ele_struct} variable should not be
+pointing to the same memory locations as the pointers of any other \vn{ele_struct} variable. To make
+sure of this, the equal sign in the assignment \vn{ele1 = ele2} is overloaded by the routine
+\Hyperref{r:ele.equal.ele}{ele_equal_ele}.  The exception here are the ``Electro-magnetic field
+component'' pointers \vn{ele%wig_term}, \vn{ele%em_field%mode(:)%map}, and
+\vn{ele%em_field%mode(:)%grid}. Since these components potentially contain large arrays, and since
+the individual sub-components of these components are not likely to be individually modified, The
+field component pointers of \vn{ele1} and \vn{ele2} after the set \vn{ele1 = ele2} will point at the
+same memory locations.
+
+Note: The assignment \vn{ele1 = ele2} will not modify \vn{ele1%ix_ele} or \vn{ele1%ix_branch}. If
+\vn{ele1} is associated with a lattice then \vn{ele1%lat} will also be unaffected.
+
+%--------------------------------------------------------------------------
+\section{Element Attribute Bookkeeping}
+\label{s:ele.book}
+\index{Element attribute bookkeeping}
+
+When a value of an attribute in an element changes, the values of other attributes may need to be
+changed (\sref{s:depend}). Furthermore, in a lattice, changes to one element may necessitate changes
+to attribute values in other elements. For example, changing the accelerating gradient in an
+\vn{lcavity} will change the reference energy throughout the lattice.
+
+The attribute bookkeeping for a lattice can be complicated and, if not done intelligently, can cause
+programs to be slow if attributes are continually being changed. In order to keep track what
+bookkeeping has been done, the \vn{ele%status} component is used by the appropriate bookkeeping
+routines for making sure the bookkeeping overhead is keep to a minimum. However, ``intelligent''
+bookkeeping is only done if explicitly enabled in a program. See \sref{s:lat.bookkeeping} for more
+details.
+
+%--------------------------------------------------------------------------
+\section{String Components}
+\label{s:ele.string}
+
+\index{ele_struct!\%descrip}\index{ele_struct!\%alias}
+\index{ele_struct!\%type}\index{ele_struct!\%name}
+The \vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} components of the \vn{ele_struct} all
+have a direct correspondence with the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element
+attributes in an input lattice file (\sref{s:alias}). On input (\sref{s:lat.readin}), The \vn{name}
+attribute is converted to uppercase before being loaded into an \vn{ele_struct}. The other three are
+not. To save memory, since \vn{%descrip} is not frequently used, \vn{%descrip} is a pointer that is
+only allocated if \vn{descrip} is set for a given element.
+
+When a lattice is constructed by \Hyperref{r:bmad.parser}{bmad_parser}, a ``nametable'' is
+constructed to enable the fast lookup of element names. Therefore, It is important that if element
+names are modified, that the nametable is updated appropriately. This is done by calling
+\Hyperref{r:create.lat.ele.nametable}{create_lat_ele_nametable} after any element name
+modifications.
+
+%--------------------------------------------------------------------------
+\section{Element Key}
+\label{s:ele.key}
+
+\index{ele_struct!\%key}
+The \vn{%key} integer component gives the class of element
+(\vn{quadrupole}, \vn{rfcavity}, etc.). In general, to get the
+corresponding integer parameter for an element class, just add a ``\$''
+character to the class name. For example \vn{quadrupole\$} is the integer
+parameter for \vn{quadrupole} elements. The \vn{key_name} array converts from
+integer to the appropriate string. For example:
+\begin{example}
+  type (ele_struct) ele
+  if (ele%key == wiggler\$) then       ! Test if element is a wiggler.
+  print *, "This element: ", key_name(ele%key) ! Prints, for example, "WIGGLER"
+\end{example}
+Note: The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
+outside of a \vn{lat_struct} structure.
+
+\index{wiggler}\index{rbend}\index{sbend}\index{ele_struct!\%sub_key}
+The \vn{%sub_key} component is only used for bend element.  When a lattice file is parsed,
+(\sref{s:lat.readin}), all \vn{rbend} elements are converted into \vn{sbend} elements
+(\sref{s:bend}). To keep track of what the original definition of the element was, the \vn{%sub_key}
+component will be set to \vn{sbend\$} or \vn{rbend\$} whatever is appropriate. 
+The \vn{%sub_key} component does not affect any calculations and is only used in the routines that
+recreate lattice files from a \vn{lat_struct} (\sref{s:lat.write}).
+
+%--------------------------------------------------------------------------
+\section{The \%value(:) array}
+\label{s:ele.dep}
+\index{ele_struct!attribute values}
+
+\index{ele_struct!\%value(:)}
+Most of the real valued attributes of an element are held in the \vn{%value(:)} array. For example,
+the value of the \vn{k1} attribute for a quadrupole element is stored in \vn{%value(k1\$)} where
+\vn{k1\$} is an integer parameter that \bmad defines.  In general, to get the correct index in
+\vn{%value(:)} for a given attribute, add a ``\$" as a suffix. To convert from an attribute name to
+its index in the \vn{%value} array use the \Hyperref{r:attribute.index}{attribute_index} routine.
+To go back from an index in the \vn{%value} array to a name use the
+\Hyperref{r:attribute.name}{attribute_name} routine. Example:
+\begin{example}
+  type (ele_struct) ele
+  call init_ele (ele, quadrupole\$)    ! Initialize element
+  ele%value(k1\$) = 0.3                                        ! Set K1 value
+  print *, "Index for Quad K1:  ", attribute_index(ele, "K1") ! prints: `4' (= k1\$)
+  print *, "Name for Quad k1\$: ", attribute_name (ele, k1\$)   ! prints: `K1' 
+\end{example}
+The list of attributes for a given element
+type is given in the writeup for the different element in
+Chapter~\ref{c:elements}. 
+
+To obtain a list of attribute names and associated \vn{%value(:)}
+indexes, the program \vn{element_attributes} can be used. This program
+is included in the standard \bmad distribution.
+
+Besides real valued attributes, the \vn{value(:)} array also holds logical,
+integer, and, as explained below, ``switch'' attributes. To find out the
+type of a given attribute, use the function \Hyperref{r:attribute.type}{attribute_type}. See the
+routine \vn{type_ele} for an example of how \vn{attribute_type} is used.
+
+An example of a logical attribute is the \vn{flexible} logical of match elements which is stored in
+\vn{%value(flexible\$)}. To evaluate logical attributes, the functions
+\Hyperref{r:is.true}{is_true(param)} or \Hyperref{r:is.false}{is_false(param)} should be used.
+
+Integer attributes stored in the \vn{value(:)} array include \vn{n_slice} (stored
+in \vn{%value(n_slice\$)}). With integer attributes, the \vn{nint(param)} 
+Fortran instrinsic should be used for evaluation.
+
+A switch attribte is an attribute whose value is one of a certain set of integers
+where each integer corresponds to some ``state''. For example, the \vn{fringe_at}
+switch which, as explained in \sref{s:fringe}, may have one of four values.
+Generally, the integer parameters that correspond to the states of a switch
+can be constructed by putting a ``\$'' after the associated name. Thus,
+with the \vn{fringe_at} switch, the four integer parameters are \vn{no_end\$},
+\vn{both_ends\$}, \vn{entrance_end\$}, and \vn{exit_end\$}. For example:
+\begin{example}
+  if (nint(ele%value(fringe_type$)) == soft_edge_only$) then
+    ...
+\end{example}
+For printing purposes, to convert a switch value to the appropriate string, use
+the routine\Hyperref{r:switch.attrib.value.name}{switch_attrib_value_name} can be used.
+
+\index{ele_struct!\%field_master}\index{harmon}
+The \vn{%field_master} logical within an element sets whether it is the normalized strength or field
+strength that is the independent variable. See \sref{s:depend} for more details.
+
+\index{ele_struct!\%old_value(:)}
+The \vn{%old_value(:)} component of the \vn{ele_struct} is used by the
+\Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper} routine to check for changes for changes in
+the \vn{%value(:)} array since the last time the \vn{attribute_bookkeeper} routine had been called.
+If nothing has been changed, the \vn{attribute_bookkeeper} routine knows not to waste time
+recalculating dependent values. Essentially what this means is that the \vn{%old_value(:)} array
+should not be modified outside of \vn{attribute_bookkeeper}.
+
+%--------------------------------------------------------------------------
+\section{Connection with the Lat_Struct}
+\label{s:ele.lat}
+
+\index{ele_struct!\%ix_ele}
+\index{ele_struct!\%ix_branch}
+\index{ele_struct!\%lat}
+If an element is part of a \vn{lat_struct} (\sref{c:lat.struct}), the
+\vn{%ix_ele} and \vn{%ix_branch} components of the \vn{ele_struct}
+identify where the element is. Additionally, the \vn{%lat} component
+will point to the encomposing lattice. That is
+\begin{example}
+  type (lat_struct), pointer :: lat
+  type (ele_struct), pointer :: ele2
+  if (ele%ix_ele > -1) then
+    ie = ele%ix_ele
+    ib = ele%ix_branch
+    lat => ele%lat
+    ele2 => lat%branch(ib)%ele(ie)
+    print *, associated(ele2, ele)  ! Will print True.
+  endif
+\end{example}
+In this example the \vn{ele2} pointer is constructed to point to the \vn{ele} element. The test
+(\vn{ele%ix_ele}~>~-1) is needed since \vn{ele_struct} elements may exist outside of any
+\vn{lat_struct} instance. Such ``external'' elements always have \vn{%ix_ele}~<~0.  A value for
+\vn{%ix_ele} of -2 is special in that it prevents the
+\Hyperref{r:deallocate.ele.pointers}{deallocate_ele_pointers} routine from deallocating the pointers
+of an element which has its \vn{%ix_ele} set to -2.
+
+An element ``slice'' is an example of an element that exists external to any \vn{lat_struct}
+instance. A slice is an \vn{ele_struct} instance that represents some sub-section of a given
+element. Element slices are useful when tracking particles only part way through an element
+(\sref{s:tracking.partial}).
+
+%--------------------------------------------------------------------------
+\section{Limits}
+\index{aperture}
+\index{x_limit}\index{x1_limit}\index{x2_limit}
+\index{x_limit}\index{x1_limit}\index{x2_limit}
+
+The aperture limits (\sref{s:limit}) in the \vn{ele_struct} are:
+\begin{example}
+  %value(x1_limit$)
+  %value(x2_limit$)
+  %value(y1_limit$)
+  %value(y2_limit$)
+\end{example}
+The values of these limits along with the \vn{%aperture_at}, \vn{%aperture_type},
+and \vn{%offset_moves_aperture} components are used in tracking to determine
+if a particle has hit the vacuum chamber wall. See Section~\sref{s:tracking.apertures}
+for more details.
+
+%--------------------------------------------------------------------------
+\section{Twiss Parameters, etc.}
+\label{s:ele.twiss}
+
+\index{ele_struct!\%gamma_c}
+\index{ele_struct!\%c_mat}
+\index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
+\index{ele_struct!\%mode3}\index{ele_struct!\%mode_flip}
+
+The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
+\vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
+hold information on the Twiss parameters, dispersion, and coupling
+at the downstream end of the element. See \cref{c:normal.modes} for more details.
+
+%--------------------------------------------------------------------------
+\section{Element Lords and Element Slaves}
+\label{s:ele.control}
+
+\index{ele_struct!\%slave_status}
+\index{ele_struct!\%n_slave}
+\index{ele_struct!\%n_slave_field}
+\index{ele_struct!\%ix1_slave}
+\index{ele_struct!\%lord_status}
+\index{ele_struct!\%n_lord}
+\index{ele_struct!\%n_lord_field}
+\index{ele_struct!\%ic1_lord}
+\index{ele_struct!\%component_name}
+In \bmad, elements in a lattice can control other elements.
+The components that determine this control are:
+\begin{example}
+  %slave_status
+  %n_slave
+  %n_slave_field
+  %ix1_slave
+  %lord_status
+  %n_lord
+  %n_lord_field
+  %ic1_lord
+  %component_name
+\end{example}
+\index{lat_struct}
+This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struct}).
+
+%--------------------------------------------------------------------------
+\section{Group and Overlay Controller Elements}
+\label{s:control.ele}
+\index{group}\index{overlay}
+
+\vn{Group} and \vn{overlay} elements use the \vn{%control_var(:)} array for storing information about
+the control variables. Each element in the array represents a single variable. \vn{%control_var(:)}
+is an array of \vn{controller_var_struct} structures and these structures look like:
+\begin{example}
+  type controller_struct
+    character(40) :: name = ""
+    real(rp) :: value = 0
+    real(rp) :: old_value = 0
+  end type
+\end{example}
+The \vn{%old_value} component is only used for \vn{group} elements. 
+
+See Section~\sref{s:lat.add.delete} for an example of setting up a controller element within a program.
+
+%--------------------------------------------------------------------------
+\section{Coordinates, Offsets, etc.}
+\label{s:ele.offset}
+\index{global coordinates!in ele_struct}
+
+The ``upstream'' and ``downstream'' ends of an element are, by definition,
+where the physical ends of the element would be if there were no
+offsets. In particular, if an element has a finite \vn{z_offset}, the
+physical ends will be displaced from upstream and downstream ends. See
+\sref{s:track1} for more details.
+
+\index{ele_struct!\%floor}
+\index{floor_position_struct}
+The \vn{%floor} component gives the ``laboratory'' global ``floor'' coordinates (\sref{s:global})
+at the downstream end of the element. These coordinates are computed without misalignments.
+That is, the coordinates are not ``body'' coordinates. The components of the \vn{%floor} structure are
+\begin{example}
+  type floor_position_struct
+    real(rp) r(3)               ! Offset from origin
+    real(rp) w(3,3)             ! Orientation matrix (\Eq{wwww})
+    real(rp) theta, phi, psi    ! Angular orientation
+  end type
+\end{example}
+The routine \Hyperref{r:ele.geometry}{ele_geometry} will calculate an element's 
+floor coordinates given the floor coordinates at the beginning of the element.
+In a lattice, the \Hyperref{r:lat.geometry}{lat_geometry} routine will calculate
+the floor coordinates for the entire lattice using repeated calls to \vn{ele_geometry}.
+
+\index{x_offset}\index{y_offset}\index{x_pitch}\index{y_pitch}
+\index{tilt}\index{x_offset_tot}\index{y_offset_tot}\index{x_pitch_tot}
+\index{y_pitch_tot}\index{tilt_tot}
+The positional offsets (\sref{s:offset}) for an element 
+from the reference orbit are stored in
+\begin{example}
+  %value(x_offset\$)
+  %value(y_offset\$)
+  %value(z_offset\$)
+  %value(x_pitch\$)
+  %value(y_pitch\$)
+  %value(tilt\$)
+\end{example}
+\index{girder}
+If the element is supported by a \vn{girder} element (\sref{s:girder})
+then the \vn{girder} offsets are added to the element offsets 
+and the total offset with respect to the
+reference coordinate system is stored in:
+\begin{example}
+  %value(x_offset_tot\$)
+  %value(y_offset_tot\$)
+  %value(z_offset_tot\$)
+  %value(x_pitch_tot\$)
+  %value(y_pitch_tot\$)
+  %value(tilt_tot\$)
+\end{example}
+If there is no \vn{girder}, the values for \vn{%value(x_offset_tot\$)}, etc.
+are set to the corresponding values in \vn{%value(x_offset\$)}, etc.
+Thus, to vary the position of an individual
+element the values of \vn{%value(x_offset\$)}, etc. are changed and to
+read the position of an element a program should look at
+\vn{%value(x_offset_tot\$)}, etc.
+
+\index{ele_struct!\%s}
+\index{ele_struct!\%ref_time}
+The longitudinal position at the downstream end of an element is stored in \vn{%s} and the reference
+time is stored in \vn{%ref_time}. This reference time is calculated assuming that the reference time
+is zero at the start of the lattice. Also stored in the \vn{ele_struct} is the reference time at the
+start of the element and the differnece in the reference time between the end and the beginning.
+These are given in \vn{%value(ref_time_start\$)} and \vn{%value(delta_ref_time\$)} respectively.
+
+Notice that the reference time used to calculate the $z$ phase
+space coordinate (\Eq{zbctt}) may be different from \vn{%ref_time}. For example, with multiple
+bunches the $z$ phase space coordinate is generally taken to be with respect to a reference particle
+at the center of the bunch the particle is in. And, at a given element, the reference time of the
+different bunch reference particles will be different. Another example happens when a particle is
+tracked through multiple turns. In this case the reference time at a given element will depend upon
+the turn number.
+
+%--------------------------------------------------------------------------
+\section{Transfer Maps: Linear and Non-linear (Taylor)}
+\label{s:ele.maps}
+\index{ele_struct!transfer maps}
+\index{transfer map!in ele_struct}
+\index{ele_struct!\%mat6}
+\index{ele_struct!\%vec0}
+\index{ele_struct!\%map_ref_orb_in}
+\index{ele_struct!\%map_ref_orb_out}
+
+The routine \Hyperref{r:make.mat6}{make_mat6} computes the linear 
+transfer matrix (Jacobian) along with the zeroth order transfer vector. 
+This matrix is stored in \vn{%mat6(6,6)} and the
+zeroth order vector is stored in \vn{%vec0(6)}. The reference orbit at
+the upstream end of the element about
+which the transfer matrix is computed is stored in \vn{%map_ref_orb_in}
+and the reference orbit at the downstream end is stored in \vn{%map_ref_orb_out}.
+In the calculation of the transfer map, the vector \vn{%vec0} is set so that
+\begin{example}
+  map_ref_orb_out = %mat6 * map_ref_orbit_in + %vec0
+\end{example}
+The reason redundant information is stored in the element is to save
+computation time.
+
+To compute the transfer maps for an entire lattice use the routine 
+\Hyperref{r:lat.make.mat6}{lat_make_mat6}.
+
+\index{ele_struct!Taylor maps}
+\index{taylor map!structure in ele_struct}
+The Taylor map (\sref{c:methods})  for an element is stored in
+\vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a \vn{taylor_struct}
+structure that defines a Taylor series:
+\begin{example}
+  type taylor_struct
+    real (rp) ref
+    type (taylor_term_struct), pointer :: term(:) => null()
+  end type
+\end{example}
+Each Taylor series has an array of \vn{taylor_term_struct} terms defined as
+\begin{example}
+  type taylor_term_struct
+    real(rp) :: coef
+    integer :: expn(6)
+  end type
+\end{example}
+The coefficient for a Taylor term is stored in \vn{%coef} and the
+six exponents are stored in \vn{%exp(6)}. 
+
+To see if there is a Taylor map associated with an element the
+association status of \vn{%taylor(1)%term} needs to be checked.
+As an example the following finds the order of a Taylor map.
+\begin{example}
+  type (ele_struct) ele
+  ...
+  if (associated(ele%taylor(1)%term) then  ! Taylor map exists
+    taylor_order = 0
+    do i = 1, 6
+      do j = 1, size(ele%taylor(i)%term)
+        taylor_order = max(taylor_order, sum(ele%taylor(i)%term(j)%exp)
+      enddo
+    enddo
+  else  ! Taylor map does not exist
+    taylor_order = -1  ! flag non-existence
+  endif
+\end{example}
+
+The Taylor map is made up around some reference phase space point
+corresponding to the coordinates at the upstream of the element.
+This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
+made, the reference point is not needed in subsequent
+calculations. However, the Taylor map itself will depend upon what
+reference point is chosen (\sref{s:taylor.phys}).
+
+%--------------------------------------------------------------------------
+\section{Reference Energy and Time}
+
+The reference energy and reference time are computed around a
+reference orbit which is different from the reference orbit used for
+computing transfer maps (\sref{s:ele.maps}). The energy and time
+reference orbit for an element is stored in
+\begin{example}
+  ele%time_ref_orb_in        ! Reference orbit at upstream end
+  ele%time_ref_orb_out       ! Reference orbit at downstream end
+\end{example}
+Generally \vn{ele%time_ref_orb_in} is the zero orbit. The exception
+comes when an element is a \vn{super_slave}. In this case, the
+reference orbit through the super_slaves of a given \vn{super_lord} is
+constructed to be continuous. This is done for consistancey sake. For
+example, to ensure that when a marker is superimposed on top of a
+wiggler the reference orbit, and hence the reference time, is not altered.
+
+%--------------------------------------------------------------------------
+\section{EM Fields}
+\label{s:ele.em.field}
+
+\index{ele_struct!\%em_field}
+\vn{%em_field} component holds information on 
+the electric and magnetic fields of an element (\sref{s:em.field})
+Since \vn{ele%em_field} is a pointer its association
+status must be tested before any of its sub--components are accessed.
+\begin{example}
+  type (ele_struct) ele
+  ...
+  if (associated(ele%em_field)) then
+    ...
+\end{example}
+
+The \vn{ele%em_field} component is of type \vn{em_fields_struct} which
+holds an array of modes
+\begin{example}
+  type em_fields_struct
+    type (em_field_mode_struct), allocatable :: mode(:)
+  end type
+\end{example}
+Each mode has components
+\begin{example}
+  type em_field_mode_struct
+    integer m                     ! Mode varies as cos(m*phi - phi_0)
+    real(rp) freq                 ! Oscillation frequency (Hz)
+    real(rp) :: f_damp = 0        ! 1/Q damping factor
+    real(rp) :: phi0_autoscale = 0     ! Mode oscillates as: twopi * (f * t + phi0_autoscale)
+    real(rp) :: phi0_azimuth = 0  ! Azimuthal orientation of mode.
+    real(rp) :: field_scale = 1   ! Factor to scale the fields by
+    type (em_field_mode_map_struct), pointer :: map => null()
+    type (em_field_grid_struct), pointer :: grid => null()
+  end type
+\end{example}
+
+%--------------------------------------------------------------------------
+\section{Wakes}
+\label{s:ele.wake}
+\index{wakefields!in ele_struct}
+
+\index{ele_struct!\%wake}
+\index{lcavity}\index{rfcavity}
+The \vn{ele%wake} component holds information on the wakes associated with an element.  Since
+\vn{ele%wake} is a pointer, its association status must be tested before any of its sub--components
+are accessed.
+\begin{example}
+  type (ele_struct) ele
+  ...
+  if (associated(ele%wake)) then
+    ...
+\end{example}
+\bmad observes the following rule: If \vn{%wake} is associated, it is assumed that all the
+sub--components (\vn{%wake%sr_table}, etc.) are associated. This simplifies programming in that you
+do not have to test directly the association status of the sub--components.
+
+\index{ele_struct!\%wake}
+See \sref{c:wakefields.eq} for the equations used in wakefield calculations.  wakefields are stored
+in the \vn{%wake} struct:
+\begin{example}
+  type wake_struct
+    type (wake_sr_struct) :: sr     ! Short-range wake.
+    type (wake_lr_struct) :: lr     ! Long-range wake.
+    real(rp) :: amp_scale = 1       ! Wake amplitude scale factor.
+    real(rp) :: time_scale = 1      ! Wake time scale factor.
+  end type
+\end{example}
+
+\index{wake_sr_mode_struct}
+The short--range wake parameterization uses pseudo--modes (\sref{s:sr.wake.eq}). This parameterization
+utilizes the \vn{%wake%sr%long(:)}, and \vn{%wake%sr%trans(:)} arrays for the longitudinal and
+transverse modes respectively.  The structure used for the elements of these arrays are:
+\begin{example}
+  type wake_sr_mode_struct  ! Pseudo-mode short-range wake struct 
+    real(rp) amp        ! Amplitude
+    real(rp) damp       ! Damping factor.
+    real(rp) freq       ! Frequency in Hz
+    real(rp) phi        ! Phase in radians/2pi
+    real(rp) b_sin      ! non-skew sin-like component of the wake
+    real(rp) b_cos      ! non-skew cos-like component of the wake
+    real(rp) a_sin      ! skew sin-like component of the wake
+    real(rp) a_cos      ! skew cos-like component of the wake
+  end type
+\end{example}
+The wakefield kick is calculated from \Eq{wadzk}. \vn{%amp}, \vn{%damp}, \vn{%freq}, and \vn{%phi}
+are the input parameters from the lattice file. the last four components (\vn{%norm_sin}, etc.)
+store the accumulated wake: Before the bunch passes through these are set to zero and as each
+particle passes through the cavity the contribution to the wake due to the particle is calculated
+and added the components.
+
+\vn{%wake%z_sr_mode_max} is the maximum $z$ value beyond which the pseudo mode representation is not
+valid. This is set in the input lattice file.
+
+\index{wake_lr_struct}
+The \vn{%wake%lr} array stores the long--range wake modes. The
+structure definition is:
+\begin{example}
+  type wake_lr_struct   ! Long-Range Wake struct 
+    real(rp) freq       ! Actual Frequency in Hz
+    real(rp) freq_in    ! Input frequency in Hz
+    real(rp) R_over_Q   ! Strength in V/C/m^2
+    real(rp) Q          ! Quality factor
+    real(rp) angle      ! polarization angle (radians/2pi).
+    integer m           ! Order (1 = dipole, 2 = quad, etc.)
+    real(rp) b_sin      ! non-skew sin-like component of the wake
+    real(rp) b_cos      ! non-skew cos-like component of the wake
+    real(rp) a_sin      ! skew sin-like component of the wake
+    real(rp) a_cos      ! skew cos-like component of the wake
+    logical polarized   ! Polarized mode?
+  end type
+\end{example}
+\index{lr_freq_spread}
+This is similar to the \vn{sr_mode_wake_struct}. \vn{%freq_in} is the actual frequency in the input
+file. \Hyperref{r:bmad.parser}{bmad_parser} will set \vn{%freq} to \vn{%freq_in} except when the
+\vn{lr_freq_spread} attribute is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
+explained in \sref{s:lcav}. \vn{%polarized} is a logical that indicates whether the mode has a
+polarization angle. If so, then \vn{%angle} is the polarization angle.
+
+%--------------------------------------------------------------------------
+\section {Wiggler Types}
+\index{wiggler!types}
+
+The \vn{%sub_key} component of the \vn{ele_struct} is used to distinguish
+between \vn{map type} and \vn{periodic type} wigglers (\sref{s:ele.key}):
+\begin{example}
+  if (ele%key == wiggler\$ .and. ele%sub_key == map_type$) ...
+  if (ele%key == wiggler\$ .and. ele%sub_key == periodic_type$) ...
+\end{example}
+For a \vn{map} type wiggler, the wiggler field terms
+(\sref{s:wiggler.map}) are stored in the \vn{%wig_term(:)} array of
+the \vn{element_struct}. This is an array of \vn{wig_term_struct}
+structure. A \vn{wig_term_struct} looks like:
+\index{wig_term_struct}
+\begin{example}
+  type wig_term_struct
+    real(rp) coef
+    real(rp) kx, ky, kz
+    real(rp) phi_z
+    integer type      ! hyper_y\$, hyper_xy\$, or hyper_x\$
+  end type
+\end{example}
+A \vn{periodic} wiggler will have a single \vn{%wig_term(:)} term that
+can be used for tracking purposes, etc. The setting for this
+\vn{wig_term} element is
+\begin{example}
+  ele%wig_term(1)%ky     = pi / ele%value(l_pole$)
+  ele%wig_term(1)%coef   = ele%value(b_max$)
+  ele%wig_term(1)%kx     = 0
+  ele%wig_term(1)%kz     = ele%wig_term(1)%ky
+  ele%wig_term(1)%phi_z  = (ele%value(l_pole$) - ele%value(l$)) / 2
+  ele%wig_term(1)%type   = hyper_y$
+\end{example}
+
+%--------------------------------------------------------------------------
+\section {Multipoles}
+\index{ele_struct!multipoles}
+
+\index{ele_struct!\%b_pole(:)}\index{ele_struct!\%a_pole(:)}
+\index{multipole!an, bn!in ele_struct}
+\index{multipole!KnL, Tn!in ele_struct}
+\index{multipole!\%scale_multipoles}
+The multipole components of an element (See \sref{s:mag.field}) are
+stored in the pointers \vn{%a_pole(:)} and \vn{%b_pole(:)}. If
+\vn{%a_pole} and \vn{%b_pole} are allocated they always have a range
+\vn{%a_pole(0:n_pole_maxx)} and \vn{%b_pole(0:n_pole_maxx)}. Currently
+\vn{n_pole_maxx} = 20. For a \vn{Multipole} element, the
+\vn{%a_pole(n)} array stores the integrated multipole strength
+\vn{KnL}, and the \vn{%b_pole(n)} array stores the tilt \vn{Tn}.
+
+A list of \bmad routines for manipulating multipoles can be found in
+\sref{r:multipoles}.
+
+%--------------------------------------------------------------------------
+\section{Tracking Methods}
+\label{s:ele.tracking.methods}
+
+A number of \vn{ele_struct} components control tracking and transfer
+map calculations.  These are:
+\begin{example}
+  %mat6_calc_method
+  %tracking_method
+  %taylor_order
+  %symplectify
+  %multipoles_on
+  %taylor_map_includes_offsets
+  %is_on
+  %csr_method
+  %space_charge_method
+  %offset_moves_apaerture
+\end{example}
+See Chapter~\sref{c:tracking} for more details.
+
+%--------------------------------------------------------------------------
+\section{Custom and General Use Attributes}
+\index{ele_struct!components not used by Bmad}
+\label{s:ele.gen}
+
+\index{ele_struct!\%r}
+\index{ele_struct!\%ix_pointer}
+\index{ele_struct!\%logic}
+There are four components of an \vn{ele_struct} that are guaranteed to never be used by any \bmad
+routine and so are available for use by someone writing a program. These components are:
+\begin{example}
+  %r(:,:,:)                     ! real(rp), pointer.
+  %custom(:)                    ! real(rp), pointer.
+  %ix_pointer                   ! integer.
+  %logic                        ! logical.
+\end{example}
+Values for \vn{ele%r} and \vn{ele%custom} can be set in the lattice file (\sref{s:cust.att}). If
+values are set for \vn{ele%r} or \vn{ele%custom}, these arrays will be expanded in size if needed.
+
+Accessing the \vn{ele%custom} array should be done using the standard accessor routines
+(\sref{s:lat.ele.attribute}). For example, if the lattice file being used defines a custom
+attribute called \vn{rise_time} (\sref{s:cust.att}):
+\begin{example}
+  parameter[custom_attribute1] = "rise_time"
+\end{example}
+then a program can access the \vn{rise_time} attribute via:
+\begin{example}
+  type (ele_struct), poiner :: ele
+  type (all_pointer_struct) a_ptr
+  ...
+  ele => ...            ! Point ele to some element in the lattice
+  call pointer_to_attribute (ele, "RISE_TIME", .true., a_ptr, err_flag)
+  print *, "RISE_TIME Attribute has value:", a_ptr%r
+\end{example}
+
+Note: Even if there are custom attributes associated with a given type of element (say, all
+quadrupoles), a given element of that type may not have its \vn{%custom(:)} array allocated. [In
+this case, none of the custom values have been set so are zero by definition.] In the above example,
+the \vn{%custom} array will be allocated if needed in the call to \vn{pointer_to_attribute}.
+
+If not defined through a lattice file, custom attributes can also be
+defined directly from within a program using the 
+\Hyperref{r:set.custom.attribute.name}{set_custom_attribute_name} routine.
+For example:
+\begin{example}
+  logical err_flag
+  ...
+  call set_custom_attribute_name ('QUADRUPOLE::ERROR_CURRENT', err_flag) 
+\end{example}
+
+Note: When there is a superposition (\sref{s:super}), the \vn{super_slave} elements that are formed
+do {\em not} have any custom attributes assigned to them even when their \vn{super_lord} elements
+have custom attributes. This is done since the \bmad bookkeeping routines are not able to handle the
+situation where a \vn{super_slave} element has multiple \vn{super_lord} elements and thus the custom
+attributes from the different \vn{super_lord} elements have to be combined. Proper handling of this
+situation is left to any custom code that a program implements to handle custom attributes.
+
+%--------------------------------------------------------------------------
+\section{Bmad Reserved Variables}
+
+\index{ele_struct!\%ixx} \index{ele_struct!\%bmad_logic} \index{ele_struct!\%iyy} 
+A number of \vn{ele_struct} components are reserved for \bmad internal use only. These are:
+\begin{example}
+  %ixx
+  %iyy
+  %bmad_logic
+\end{example}
+To avoid conflict with multiple routines trying to use these components simultaneously, these
+components are only used for short term bookkeeping within individual routines.
+

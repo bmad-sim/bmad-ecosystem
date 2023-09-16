@@ -1,0 +1,53 @@
+\chapter{Using PTC/FPP}
+\label{c:ptc.use}
+\index{PTC/FPP}
+
+%----------------------------------------------------------------------------
+
+The PTC/FPP library of \'Etienne Forest handles Taylor maps to any arbitrary order. This is also
+known as Truncated Power Series Algebra (TPSA). The core Differential Algebra (DA) package used by
+PTC/FPP was developed by Martin Berz\cite{b:berz}. The PTC/FPP libraries are interfaced to \bmad so
+that calculations that involve both \bmad and PTC/FPP can be done in a fairly seamless manner.
+
+The FPP (``Fully Polymorphic Package'') part of the code handles Taylor map manipulation
+and Lie algebraic operations. This is purely mathematical. FPP has no knowledge of accelerators,
+magnetic fields, particle tracking etc. PTC (``Polymorphic Tracking Code'') implements the physics
+and uses FPP to handle the Taylor map manipulation. Since the distinction between \vn{FPP} and
+\vn{PTC} is irrelevant to the non-programmer, ``PTC'' will be used to refer to the entire package.
+
+PTC is used by \bmad when constructing Taylor maps and when the \vn{tracking_method}
+\sref{s:tkm}) is set to \vn{symp_lie_ptc}. All Taylor maps above first order are calculated
+via PTC. No exceptions.
+
+For the programmer, see Chapter~\sref{c:ptc.program} for more information.
+
+%----------------------------------------------------------------------------
+\section{PTC Tracking Versus Bmad Tracking}
+\label{s:ptc.bmad.track}
+
+While such things as magnet strengths will be the same, the model that PTC uses when it tracks
+through a lattice element is independent of \bmad. That is, what approximations are made can be
+different. Generally the agreement between PTC and \bmad tracking is quite good. But there are
+situations where there is a noticeable difference. In such cases, one thing to do is to vary
+parameters that affect PTC tracking. Two parameters that affect PTC accuracy are the integration
+step size and the order of the integrator. The step size is set by each lattice element's \vn{ds_step}
+parameter (\sref{s:ds.step}). 
+
+%----------------------------------------------------------------------------
+\section{PTC / Bmad Interfacing}
+\label{s:ptc.interface}
+
+\index{PTC!single element mode}
+\bmad interfaces to PTC in two ways: One way, called ``single element'' mode, uses PTC on a per
+element basis. In this case, the method used for tracking a given element can be selected on an
+element-by-element basis so non-PTC tracking methods can be mixed with PTC tracking methods to
+optimize speed and accuracy. [PTC tends to be accurate but slow.] The advantage of single element
+mode is the flexibility it affords. The disadvantage is that it precludes using PTC's analysis tools
+which rely on the entire lattice being tracked via PTC. Such tools include normal form analysis beam
+envelope tracking, etc.
+
+\index{PTC!whole lattice mode}
+The alternative to single element mode is ``whole lattice'' mode where a series of PTC \vn{layout}s
+(equivalent to a \bmad branch) are created from a \bmad lattice. Whether single element or whole
+lattice mode (or both) is used is determined by the program being run.
+

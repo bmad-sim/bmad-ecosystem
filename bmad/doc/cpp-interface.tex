@@ -1,0 +1,127 @@
+\chapter{C++ Interface}
+\label{c:cpp.interface}
+\index{C++ interface}
+
+To ease the task of using \cpp routines with \bmad, there is a
+library called \vn{cpp_bmad_interface} which implements a set of \cpp
+classes in one--to--one correspondence with the major \bmad
+structures. In addition to the \cpp classes, the \bmad library
+defines a set of conversion routines to transfer data values between
+the \bmad Fortran structures and the corresponding \cpp classes.
+
+The list of all classes is given in the file
+\begin{example}
+  cpp_bmad_interface/include/cpp_bmad_classes.h
+\end{example}
+The general rule is that the equivalent class to a \bmad structure
+named \vn{xxx_struct} will be named \vn{CPP_xxx}. Additionally, for
+each \bmad structure, there is a opaque class named \vn{Bmad_xxx_class}
+for use in the translation code discussed below. The names of these
+opaque classes have the form \vn{Bmad_xxx_class} and are used to define
+pointer instances in routine argument lists.
+
+%----------------------------------------------------------------------------
+\section{C++ Classes and Enums}
+\index{C++ interface!classes}
+
+Generally, The \cpp classes have been set up to simply mirror the
+corresponding \bmad structures. For example, the \vn{CPP_lat} class
+has a string component named \vn{.version} that mirrors the
+\vn{%version} component of the \vn{lat_struct} structure. There are
+some exceptions. For example, structure components that are part of
+\vn{PTC} (\sref{s:ptc.intro}) are not present in the classes.
+
+While generally the same component name is used for both the \bmad
+structures and the \cpp classes, in the case where there is a \cpp
+reserved word conflict, the \cpp component name will be different.
+
+A header file \vn{bmad_enums.h} defines corresponding \bmad
+parameters for all \cpp routine. The \bmad parameters are in a
+namespace called \vn{Bmad}. The convention is that the name of a
+corresponding \cpp parameter is obtained by dropping the ending
+\vn{\$} (if there is one) and converting to uppercase. For example,
+\vn{electron\$} on the Fortran side converts to \vn{Bmad::ELECTRON} in
+\cpp. 
+
+All of the \cpp class components that are arrays or matrices are zero
+based so that, for example, the index of the \vn{.vec[i]} array in a
+\vn{CPP_coord} runs from 0 through 5 and not 1 through 6 as on the
+Fortran side. Notice that for a \vn{lat_struct} the \vn{%ele(0:)}
+component has a starting index of zero so there is no off--by--one
+problem here.  The exception to this rule is the \vn{%value(:)} array
+of the \vn{ele_struct} which has a span from 1 to
+\vn{num_ele_attrib\$}. In this case, To keep the conversion of the of
+constructs like \vn{ele%value(k1\$)} consistant, the corresponding
+\vn{ele.value[]} array has goes from 0 to \vn{Bmad::NUM_ELE_ATTRIB}
+with the 0th element being unused.
+
+%----------------------------------------------------------------------------
+\section{Conversion Between Fortran and C++}
+\index{C++ interface!Fortran calling C++}
+
+\begin{figure}[tb]
+\begin{listing}{1}
+  subroutine f_test
+    use bmad_cpp_convert_mod
+    implicit none
+
+    interface
+      subroutine cpp_routine (f_lat, c_coord) bind(c)
+        import f_lat, c_ptr
+        type (lat_struct) :: f_lat
+        type (c_ptr), value :: c_coord
+      end subroutine
+    end interface
+
+    type (lat_struct), target :: lattice   // lattice on Fortran side 
+    type (coord_struct), target :: orbit
+    type (c_ptr), value :: c_lat
+    ! ... 
+    call lat_to_c (c_loc(lattice), c_lat)    ! Fortran side convert
+    call cpp_routine (c_lat, c_loc(orbit))   ! Call C++ routine
+    call lat_to_f (c_lat, c_loc(lattice))    ! And convert back
+  end subroutine
+\end{listing}
+\caption{Example Fortran routine calling a \cpp routine.}
+\label{f:fortran}
+\end{figure}
+
+
+\begin{figure}
+\begin{listing}{1}
+  #include "cpp_bmad_classes.h"
+
+  using namespace Bmad;
+
+  extern "C" cpp_routine (CPP_lat& c_lat, Bmad_coord_class* f_coord,  f_lat) {
+    CPP_coord c_coord;
+    coord_to_c (f_coord, c_coord);        // C++ side convert
+    // ... do calculations ...
+    cout << c_lat.name << "  " << c_lat.ele[1].value[K1] << endl;
+    coord_to_f (c_coord, f_coord);        // And convert back
+  }
+\end{listing}
+\caption{Example \cpp routine callable from a Fortran routine.}
+\label{f:cpp}
+\end{figure}
+
+A simple example of a Fortran routine calling a \cpp routine is shown
+in \figs{f:fortran} and \ref{f:cpp}. Conversion between structure and
+classes can happen on either the Fortran side or the \cpp side. In
+this example, the \vn{lat_struct} / \vn{CPP_lat} conversion is on the
+Fortran side and the \vn{coord_struct} / \vn{CPP_coord} is on the \cpp
+side. 
+
+On the Fortran side, the interface block defines the argument list of
+the \cpp routine being called.
+
+On the \cpp side, \vn{f_coord} is an instance of the
+\vn{Bmad_coord_class} opaque class.
+
+A \cpp routine calling a Fortran routine has a similar structure to
+the above example. The interface block in \fig{f:fortran} can be used
+as a prototype. For additional examples of conversion between Fortran
+and \cpp, look at the test code in the directory
+\begin{example}
+  cpp_bmad_interface/interface_test
+\end{example}

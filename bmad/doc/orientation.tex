@@ -1,0 +1,125 @@
+\chapter{Orientation}
+\label{c:orient}
+
+\section{What is Bmad?}
+
+\bmad is an open-source software library (aka toolkit) for simulating charged particles and
+X-rays. \bmad is not a program itself but is used by programs for doing calculations. The advantage
+of \bmad over a stand-alone simulation program is that when new types of simulations need to be
+developed, \bmad can be used to cut down on the time needed to develop such programs with the added
+benefit that the number of programming errors will be reduced.
+
+Over the years, \bmad has been used for a wide range of charged-particle and X-ray simulations. This
+includes:
+\begin{example}
+Lattice design                                  X-ray simulations
+Spin tracking                                   Wakefields and HOMs
+Beam breakup (BBU) simulations in ERLs          Touschek Simulations
+Intra-beam scattering (IBS) simulations         Dark current tracking
+Coherent Synchrotron Radiation (CSR)            Frequency map analysis
+\end{example}
+
+%---------------------------------------------------------------------------
+\section{Tao and Bmad Distributions}
+\label{s:tao.intro}
+\index{Tao}
+
+The strength of \bmad is that, as a subroutine library, it provides a flexible framework from which
+sophisticated simulation programs may easily be developed. The weakness of \bmad comes from its
+strength: \bmad cannot be used straight out of the box. Someone must put the pieces together into a
+program. To remedy this problem, the \tao program\cite{b:tao} has been developed. \tao, which uses
+\bmad as its simulation engine, is a general purpose program for simulating particle beams in
+accelerators and storage rings. Thus \bmad combined with \tao represents the best of both worlds:
+The flexibility of a software library with the ease of use of a program.
+
+Besides the \tao program, an ecosystem of \bmad based programs has been developed. These programs,
+along with \bmad, are bundled together in what is called a \bmad \vn{Distribution} which can be
+downloaded from the web. The following is a list of some of the more commonly used programs.
+  \begin{description}
+%
+  \item[bmad_to_mad_sad_elegant] \Newline
+The \vn{bmad_to_mad_sad_elegant} program converts \bmad lattice format files to \vn{MAD8},
+\vn{MADX}, \vn{Elegant} and \vn{SAD} format.
+%
+  \item[bbu] \Newline
+The \vn{bbu} program simulates the beam breakup instability in Energy Recovery Linacs (ERLs). 
+%
+  \item[dynamic_aperture] \Newline
+The \vn{dynamic_aperture} program finds the dynamic aperture through tracking.
+%
+  \item[ibs_linac] \Newline
+The \vn{ibs_linac} program simulates the effect of intra-beam scattering (ibs) for beams in a Linac.
+%
+  \item[ibs_ring] \Newline
+The \vn{ibs_linac} program simulates the effect of intra-beam scattering (ibs) for beams
+in a ring.
+%
+  \item[long_term_tracking] \Newline
+The \vn{long_term_tracking_program} is for long term tracking of a particle or beam possibly
+including tracking of the spin.
+%
+  \item[lux] \Newline
+The \vn{lux} program simulates X-ray beams from generation through to experimental end stations.
+%
+  \item[mad8_to_bmad.py, madx_to_bmad.py] \Newline
+These python programs will convert \vn{MAD8} and \vn{MADX} lattice files to to \bmad format. 
+%
+  \item[moga] \Newline
+The \vn{moga} (multiobjective genetic algorithms) program does multiobjective optimization.
+%
+  \item[synrad] \Newline
+The \vn{synrad} program computes the power deposited on the inside of a vacuum chamber
+wall due to synchrotron radiation from a particle beam. The calculation is essentially two
+dimensional but the vertical emittance is used for calculating power densities along the
+centerline. Crotch geometries can be handled as well as off axis beam orbits. 
+%
+  \item[synrad3d] \Newline
+The \vn{synrad3d} program tracks, in three dimensions, photons generated from a beam
+within the vacuum chamber. Reflections at the chamber wall is included.
+%
+  \item[tao] \Newline
+\tao is a general purpose simulation program.
+  \end{description}
+
+%---------------------------------------------------------------------------
+\section{Resources: More Documentation, Obtaining Bmad, etc.}
+\label{s:bmad.web}
+
+More information and download instructions are readily available at the \bmad web site:
+\begin{example}
+  \url{\detokenize{www.classe.cornell.edu/bmad/}}
+\end{example}
+Links to the most up-to-date \bmad and \tao manuals can be found there as well as manuals for other
+programs and instructions for downloading and setup.
+
+The \bmad manual is organized as reference guide and so does not do a good job of instructing the
+beginner as to how to use \bmad. For that there is an introduction and tutorial on \bmad and \tao
+(\sref{s:tao.intro}) concepts that can be downloaded from the \bmad web page. Go to either the \bmad or
+\tao manual pages and there will be a link for the tutorial.
+
+%---------------------------------------------------------------------------
+\section{PTC: Polymorphic Tracking Code}
+\label{s:ptc.intro}
+\index{PTC}
+
+The PTC/FPP library of \'Etienne Forest handles Taylor maps to any arbitrary order. This is also
+known as Truncated Power Series Algebra (TPSA). The core Differential Algebra (DA) package used by
+PTC/FPP was developed by Martin Berz\cite{b:berz}. The PTC/FPP libraries are interfaced to \bmad so
+that calculations that involve both \bmad and PTC/FPP can be done in a fairly seamless manner.
+
+Basically, the FPP (``Fully Polymorphic Package'') part of the PTC/FPP code handles Taylor map
+manipulation. This is purely mathematical. FPP has no knowledge of accelerators, magnetic fields,
+particle tracking etc. PTC (``Polymorphic Tracking Code'') implements the physics and uses FPP to
+handle the Taylor map manipulation. Since the distinction between \vn{FPP} and \vn{PTC} is
+irrelevant to the non-programmer, ``PTC'' will be used to refer to the entire PTC/FPP package.
+
+PTC is used by \bmad when constructing Taylor maps and when the \vn{tracking_method}
+\sref{s:tkm}) is set to \vn{symp_lie_ptc}. All Taylor maps above first order are calculated
+via PTC. No exceptions.
+
+For more discussion of PTC see Chapter~\sref{c:ptc.use}. For the programmer, also see
+Chapter~\sref{c:ptc.program}.
+
+For the purposes of this manual, PTC and FPP are generally considered one package and
+the combined PTC/FPP library will be referred to as simply ``PTC''.
+

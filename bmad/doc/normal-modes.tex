@@ -1,0 +1,225 @@
+\chapter{Normal Modes: Twiss Parameters, Coupling, Emittances, Etc.}
+\label{c:normal.modes}
+
+%-----------------------------------------------------------------------------
+\section{Components in the Ele\_struct}
+\label{s:twiss.ele}
+
+\index{ele_struct!\%gamma_c}
+\index{ele_struct!\%c_mat}
+\index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
+The \vn{ele_struct} (\sref{c:ele.struct}) has a number of components that hold information on the
+Twiss parameters, dispersion, and coupling at the exit end of the element. The Twiss parameters of
+the three normal modes (\sref{s:coupling}) are contained in the \vn{ele%a}, \vn{ele%b}, and
+\vn{ele%z} components which are of type \vn{twiss_struct}:
+\index{twiss_struct}
+\begin{example}
+  type twiss_struct
+    real(rp) beta         ! Twiss Beta function
+    real(rp) alpha        ! Twiss Alpha function
+    real(rp) gamma        ! Twiss gamma function
+    real(rp) phi          ! Normal mode Phase advance
+    real(rp) eta          ! Normal mode dispersion
+    real(rp) etap         ! Normal mode dispersion derivative
+    real(rp) sigma        ! Normal mode beam size
+    real(rp) sigma_p      ! Normal mode beam size derivative
+    real(rp) emit         ! Geometric emittance
+    real(rp) norm_emit    ! Energy normalized emittance (= \(\beta \, \gamma \, \epsilon\))
+  end type 
+\end{example}
+\index{xy_disp_struct}
+The projected horizontal and vertical dispersions in an \vn{ele_struct} are contained in the
+\vn{ele%x} and \vn{ele%y} components. These components are of type \vn{xy_disp_struct}:
+\index{xy_disp_struct}
+\begin{example}
+  type xy_disp_struct
+    real(rp) eta     ! Projected dispersion 
+    real(rp) etap    ! Projected dispersion derivative.
+  end type 
+\end{example}
+
+\index{ele_struct!\%emit}\index{ele_struct!\%norm_emit}
+\index{ele_struct!\%sigma}\index{ele_struct!\%sigma_p}
+The components \vn{ele%emit}, \vn{ele%norm_emit}, \vn{ele%sigma}, \vn{ele%sigma_p} are not set by
+the standard \bmad routines and are present for use by any program.
+
+\index{ele_struct!\%c}\index{ele_struct!\%gamma_c}
+The relationship between the projected and normal mode dispersions are given by \Eq{avx}. The 2x2
+coupling matrix $\bfC$ (\Eq{vgicc1}) is stored in the \vn{ele%c_mat(2,2)} component of the
+\vn{ele_struct} and the $\gamma$ factor of \Eq{vgicc1} is stored in the \vn{ele%gamma_c}
+component. There are several routines to manipulate the coupling factors. For example:
+\begin{example}
+  \Hyperref{r:c.to.cbar}{c_to_cbar}(ele, cbar_mat)             ! Form Cbar(2,2) matrix
+  \Hyperref{r:make.v.mats}{make_v_mats}(ele, v_mat, v_inv_mat)   ! Form V coupling matrices.
+\end{example}
+See \sref{r:mat} for a complete listing of such routines.
+
+Since the normal mode and projected dispersions are related, when one is changed within a program
+the appropriate change must be made to the other. To make sure everything is consistent, the
+\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute} routine can be
+used. Example:
+\begin{example}
+  type (lat_struct), target :: lat
+  real(rp), pointer :: attrib_ptr
+  ...
+  attrib_ptr => lat%ele(ix_ele)%value(k1$) ! Point to some attribute.
+  attrib_ptr = value                       ! Change the value.
+  call set_flags_for_changed_attribute (lat%ele(ix_ele), attrib_ptr)
+\end{example}
+
+The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates whether the $a$ and $b$ normal
+modes have been flipped relative to the beginning of the lattice. See Sagan and
+Rubin\cite{b:coupling} for a discussion of this. The convention adopted by \bmad is that the \vn{%a}
+component of all the elements in a lattice will all correspond to the same physical normal
+mode. Similarly, the \vn{%b} component of all the elements will all correspond to some (other)
+physical normal mode.  That is, at an element where there is a mode flip (with \vn{%mode_flip} set
+to True), the \vn{%a} component actually corresponds to the $\bfB$ matrix element in \Eq{ua00b} and
+vice versa. The advantage of this convention is that calculations of mode properties (for example
+the emittance), can ignore whether the modes are flipped or not.
+
+The normal mode analysis of Sagan and Rubin, while it has the benefit of simplicity, is strictly
+only applicable to lattices where the RF cavities are turned off.  The full 6-dimensional analysis
+is summarized by Wolski\cite{b:wolski.coupling}.  The
+\Hyperref{r:normal.mode3.calc}{normal_mode3_calc} routine perform the full analysis. The results are
+put in the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_struct}:
+\index{ele_struct!\%mode3}
+\index{mode3_struct}
+\begin{example}
+  type mode3_struct
+    real(rp) v(6,6)
+    type (twiss_struct) a, b, c
+    type (twiss_struct) x, y
+  end type
+\end{example}
+The 6-dimensional \vn{mode3%v(6,6)} component is the analog of the 4-dimensional
+$\bfV$ matrix appearing in \Eq{tvuv}.
+
+%-----------------------------------------------------------------------------
+\section{Tune and Twiss Parameter Calculations}
+\label{s:twiss}
+\index{twiss parameters}
+\index{twiss parameters!calculation}
+\index{tune!calculation}
+
+A calculation of the Twiss parameters starts with the Twiss parameters at the beginning of the
+lattice. For linear machines, these Twiss parameters are generally set in the input lattice file
+(\sref{s:beginning}). For circular machines, the routine \Hyperref{r:twiss.at.start}{twiss_at_start}
+may be used (\sref{s:beginning})
+\begin{example}
+  type (lat_struct) lat
+  ...
+  if (lat%param%geometry == closed$) call twiss_at_start(lat)
+\end{example}
+In either case, the initial Twiss parameters are placed in \vn{lat%ele(0)}.  The tune is placed in
+the variables \vn{lat%a%tune} and \vn{lat%b%tune}.
+
+To propagate the Twiss, coupling and dispersion parameters from the start of the lattice to the end,
+the routine, \Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be used. This routine works
+by repeated calls to \Hyperref{r:twiss.propagate1}{twiss_propagate1} which does a single propagation
+from one element to another. The Twiss propagation depends upon the transfer matrices having already
+computed (\sref{c:tracking}).  \vn{twiss_propagate_all} also computes the Twiss parameters for all
+the lattice branches.
+
+Before any Twiss parameters can be calculated, the transfer matrices stored in the lattice elements
+must be computed.  \Hyperref{r:bmad.parser}{bmad_parser} does this automatically about the zero
+orbit. If, to see nonlinear effects, a different orbit needs to be used for the reference, The
+routine \Hyperref{r:twiss.and.track}{twiss_and_track} can be used. For example:
+\begin{example}
+  type (lat_struct) lat
+  type (coord_struct), allocatable :: orbit(:)
+  call bmad_parser ('my_lattice', lat)
+  call twiss_and_track (lat, orb, ok)
+\end{example}
+
+Once the starting Twiss parameters are set, \Hyperref{r:twiss.propagate.all}{twiss_propagate_all}
+can be used to propagate the Twiss parameters to the rest of the elements
+\begin{example}
+\end{example}
+
+The routine \Hyperref{r:twiss.and.track.at.s}{twiss_and_track_at_s} can be used to calculate the
+Twiss parameters at any given longitudinal location. Alternatively, to propagate the Twiss
+parameters partially through a given element use the routine
+\Hyperref{r:twiss.and.track.intra.ele}{twiss_and_track_intra_ele}.
+
+%-----------------------------------------------------------------------------
+\section{Tune Setting}
+\label{s:tune.set}
+\index{tune!setting}
+
+The routine \Hyperref{r:set.tune}{set_tune} can be used
+to set the transverse tunes:
+\begin{example}
+  set_tune (phi_a_set, phi_b_set, dk1, lat, orb_, ok)
+\end{example}
+\vn{set_tune} varies quadrupole strengths until the desired tunes are achieved. As
+input,\vn{set_tune} takes an argument \vn{dk1(:)} which is an array that specifies the relative
+change to be make to the quadrupoles in the lattice.
+
+To set the longitudinal (synchrotron) tune, the routine \Hyperref{r:set.z.tune}{set_z_tune} can be
+used.  \Hyperref{r:set.z.tune}{set_z_tune} works by varying rf cavity voltages until the desired
+tune is achieved.
+
+%-----------------------------------------------------------------------------
+\section{Emittances \& Radiation Integrals}
+\label{s:emit}
+
+See Section~\sref{s:synch.ints} for details on the radiation integral formulas.
+
+The routine \Hyperref{r:radiation.integrals}{radiation_integrals} is used to calculate the 
+normal mode emittances along with the radiation integrals:
+\begin{example}
+  type (lat_struct) lat
+  type (normal_modes_struct) modes
+  type (rad_int_all_ele_struct) ele_rad_int
+  ...
+  call radiation_integrals (lat, orbit, modes, rad_int_by_ele = ele_rad_int)
+\end{example}
+The \vn{modes} argument, which is of type \vn{normal_modes_struct}, holds the radiation integrals
+integrated over the entire lattice.
+\begin{example}
+  type normal_modes_struct
+    real(rp) synch_int(0:3) ! Synchrotron integrals I0, I1, I2, and I3
+    real(rp) sigE_E         ! SigmaE/E
+    real(rp) sig_z          ! Sigma_Z
+    real(rp) e_loss         ! Energy loss / turn (eV)
+    real(rp) rf_voltage     ! Total rfcavity voltage (eV)
+    real(rp) pz_aperture    ! pz aperture limit
+    type (anormal_mode_struct)  a, b, z
+    type (linac_normal_mode_struct) lin
+  end type
+\end{example}
+In particular, the \vn{%a}, \vn{%b}, and \vn{%z} components, which are of type
+\vn{anormal_mode_struct} hold the emittance values:
+\begin{example}
+  type anormal_mode_struct
+    real(rp) emittance        ! Beam emittance
+    real(rp) synch_int(4:6)   ! Synchrotron integrals
+    real(rp) j_damp           ! damping partition number
+    real(rp) alpha_damp       ! damping per turn
+    real(rp) chrom            ! Chromaticity
+    real(rp) tune             ! "Fractional" tune in radians
+  end type
+\end{example}
+
+The \vn{ele_rad_int} argument, which is is of type \vn{rad_int_all_ele_struct}, holds the radiation
+integrals on an element-by-element basis.
+\begin{example}
+  type rad_int_all_ele_struct
+    type (rad_int1_struct), allocatable :: ele(:) ! Array is indexed from 0
+  end type
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Chromaticity Calculation}
+\label{s:chrom}
+
+\index{chromaticity}
+For a circular lattice, \Hyperref{r:chrom.calc}{chrom_calc} calculates the chromaticity by
+calculating the tune change with change in beam energy.
+
+\Hyperref{r:chrom.tune}{chrom_tune} sets the chromaticity by varying the sextupoles. This is a very
+simple routine that simply divides the sextupoles into two families based upon the local beta
+functions at the sextupoles.
+
+
+

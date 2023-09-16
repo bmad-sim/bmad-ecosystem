@@ -1,0 +1,57 @@
+\chapter{Helper Routines}
+\label{c:helper}
+
+This chapter gives an overview of various computational helper routines.
+
+%-----------------------------------------------------------------------------
+\section{Nonlinear Optimization}
+\label{s:opti}
+\index{optimizers}
+
+\index{tao}
+Nonlinear optimization is the process of finding a minimum (or
+maximum) of a nonlinear function (the "merit" function). Nonlinear
+optimization is frequently used for lattice design or matching of data
+to a model. For more information on this see the \tao manual.
+
+In terms of routines for implementing nonlinear optimization the
+Numerical Recipes library (\sref{s:libs}) that is distributed along
+with \bmad contains several. In particular, 
+the routine \Hyperref{r:super.mrqmin}{super_mrqmin}
+which implements the Levenberg--Marquardt is an excellent routine for
+finding local minimum when the merit function can be expressed as the
+sum of quadratic terms. Another routine, \vn{frprmn}, which is an
+implementation of the Fletcher--Reeves algorithm, is also good at
+finding local minimum and has the advantage that as input it does not
+need a derivative matrix as does Levenberg--Marquardt. The
+disadvantage of Fletcher--Reeves is that it is slower than
+Levenberg--Marquardt. 
+
+A second implementation of Levenberg--Marquardt available with \bmad
+is \Hyperref{r:opti.lmdif}{opti_lmdif} which is Fortran90 version of the popular
+\vn{lmdif} routine. Also available is \Hyperref{r:opti.de}{opti_de} which implements
+the Differential Evolution algorithm of Storn and
+Price\cite{b:de}. This routine is good for finding global minima
+but can be slow. 
+
+Another routine that should be mentioned is the \vn{amoeba} routine
+from Numerical Recipes that implements the downhill simplex method of
+Neider and Mead. This routine is robust but slow but is easily
+parallelized so it is a good routine for parallel processing.
+
+%-----------------------------------------------------------------------------
+\section{Matrix Manipulation}
+\label{s:matrix}
+\index{matrix manipulation}
+
+There are a number of \bmad routines for matrix manipulation as listed
+in \sref{r:mat}. In fact, Fortran90 has a number of intrinsic matrix
+routines as well but this is outside the scope of this manual. The
+following example shows some of the \bmad matrix routines
+\Hyperref{r:mat.inverse}{mat_inverse} and 
+\Hyperref{r:mat.make.unit}{mat_make_unit}.
+\begin{example}
+  real(rp) mat(6,6), mat_inv(6,6)
+  call mat_make_unit (mat)    ! make a unit matrix
+  call mat_inverse (mat, mat_inv) ! Compute the inverse matrix.
+\end{example}

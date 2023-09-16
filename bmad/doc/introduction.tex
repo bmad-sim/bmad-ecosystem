@@ -1,0 +1,59 @@
+\section*{Introduction}
+\pdfbookmark[1]{Introduction}{Intro}
+
+As a consequence of \bmad being a software library, this manual serves two masters: The
+programmer who wants to develop applications and needs to know about the inner workings of
+\bmad, and the user who simply needs to know about the \bmad standard input format and
+about the physics behind the various calculations that \bmad performs.
+
+\index{MAD|hyperbf}
+To this end, this manual is divided into three parts. The first two
+parts are for both the user and programmer while the third part is
+meant just for programmers. 
+  \begin{description}
+  \item[Part~I] \Newline
+Part~I discusses the \bmad lattice input standard. The \bmad lattice input standard was
+developed using the \mad\cite{b:maduser,b:madphysics}. lattice input standard as a
+starting point but, as \bmad evolved, \bmad's syntax has evolved with it.
+  \item[Part~II] \Newline
+part~II gives the conventions used by \bmad --- coordinate systems, magnetic field
+expansions, etc. --- along with some of the physics behind the calculations. By necessity,
+the physics documentation is brief and the reader is assumed to be familiar with high
+energy accelerator physics formalism.
+  \item[Part~III] \Newline
+Part~III gives the nitty--gritty details of the \bmad
+subroutines and the structures upon which they are based.
+\end{description}
+
+\index{Bmad!information}
+More information, including the most up--to--date version of this manual, can be found at
+the \bmad web site\cite{b:bmad.web}.  Errors and omissions are a fact of life for any
+reference work and comments from you, dear reader, are therefore most welcome. Please send
+any missives (or chocolates, or any other kind of sustenance) to:
+\begin{example}
+  David Sagan <dcs16@cornell.edu>
+\end{example}
+\index{Bmad!error reporting}
+
+The \bmad manual is organized as reference guide and so does not do a good job of instructing the
+beginner as to how to use \bmad. For that there is an introduction and tutorial on \bmad and \tao
+(\sref{s:tao.intro}) concepts that can be downloaded from the \bmad web page. Go to either the \bmad or
+\tao manual pages and there will be a link for the tutorial.
+
+It is my pleasure to express appreciation to people who have contributed to this effort, and without
+whom, \bmad would only be a shadow of what it is today: To David Rubin for his support all these
+years, to \'Etienne Forest (aka Patrice Nishikawa) for use of his remarkable PTC/FPP library (not to
+mention his patience in explaining everything to me), to Desmond Barber for very useful discussions
+on how to simulate spin, to Mark Palmer, Matt Rendina, and Attilio De~Falco for all their work
+maintaining the build system and for porting \bmad to different platforms, to Frank Schmidt and CERN
+for permission to use the \mad tracking code. To Hans Grote and CERN for granting permission to
+adapt figures from the \mad manual for use in this one, to Martin Berz for his DA package, and to
+Dan Abell, Jacob Asimow, Ivan Bazarov, Moritz Beckmann, Scott Berg, Oleksii Beznosov, Joel Brock,
+Sarah Buchan, Avishek Chatterjee, Jing Yee Chee, Christie Chiu, Joseph Choi, Robert Cope, Jim
+Crittenden, Laurent Deniau, Bhawin Dhital, Gerry Dugan, Michael Ehrlichman, Jim Ellison, Ken
+Finkelstein, Mike Forster, Thomas Gl{\"a}{\ss}le, Juan Pablo Gonzalez-Aguilera, Colwyn Gulliford,
+Klaus Heinemann, Richard Helms, Georg Hoffstaetter, Henry Lovelace III, Chris Mayes, Karthik
+Narayan, Katsunobu Oide, Tia Plautz, Matt Randazzo, Michael Saelim, Jim Shanks, Matthew Signorelli,
+Hugo Slepicka, Jeff Smith, Jeremy Urban, Ningdong Wang, Suntao Wang, Mark Woodley, and Demin Zhou
+for their help.
+

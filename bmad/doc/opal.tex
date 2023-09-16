@@ -1,0 +1,84 @@
+\chapter{OPAL}
+\label{c:opal}
+\index{OPAL}
+%----------------------------------------------------------------------------
+
+OPAL (Object Oriented Parallel Accelerator Library) is a tool for charged-particle optic
+calculations in large accelerator structures and beam lines including 3D space charge. OPAL is built
+from first principles as a parallel application, OPAL admits simulations of any scale: on the laptop
+and up to the largest High Performance Computing (HPC) clusters available today. Simulations, in
+particular HPC simulations, form the third pillar of science, complementing theory and experiment.
+
+OPAL includes various beam line element descriptions and methods for single particle optics, namely
+maps up to arbitrary order, symplectic integration schemes and lastly time integration. OPAL is
+based on IPPL (Independent Parallel Particle Layer) which adds parallel capabilities. Main functions
+inherited from IPPL are: structured rectangular grids, fields and parallel FFT and particles with
+the respective interpolation operators. Other features are, expression templates and massive
+parallelism (up to 8000 processors) which makes is possible to tackle the largest problems in the
+field.
+
+The  manual can be obtained at
+\begin{example} 
+  amas.web.psi.ch/docs/opal/   
+\end{example}
+
+%--------------------------------------------------------------------------
+\section{Phase Space}
+\label{s:opal.space}
+\index{OPAL!phase space}
+
+OPAL uses different longitudinal phase space coordinates compared to \bmad.  \bmad's phase space
+coordinates are
+\begin{equation}
+  (x, p_x/p_0, y, p_y/p0, -\beta c (t - t_0), (p-p_0)/p_0)
+\end{equation}
+OPAL uses
+\begin{equation}
+  (x, \gamma \beta_x,  y, \gamma \beta_y, z, \gamma \beta_z)
+\end{equation}
+\vn{convert_particle_coordinates_s_to_t} and \vn{convert_particle_coordinates_s_to_t} are conversion routines \ldots
+
+%%--------------------------------------------------------------------------
+%\section{Initialization}
+%\label{s:etienne.init}
+%\index{PTC/FPP!initialization}
+%
+%One important parameter in PTC is the order of the Taylor maps.
+%By default \bmad will set this to 3. The order can be set within
+%a lattice file using the \vn{parameter[taylor_order]} attribute.
+%In a program the order can be set using \vn{set_ptc}. In fact
+%\vn{set_ptc} must be called by a program before PTC can be used.
+%\vn{bmad_parser} will do this when reading in a lattice file.
+%That is, if a program does not use \vn{bmad_parser} then to use PTC it
+%must call \vn{set_ptc}. Note that resetting PTC to a different order
+%reinitializes PTC's internal memory so one must be careful if one wants
+%to change the order in mid program.
+%
+%%--------------------------------------------------------------------------
+%\section{Taylor Maps}
+%\label{s:etienne.taylor}
+%\index{PTC/FPP!Taylor Maps}
+%
+%\index{PTC/FPP!real_8}\index{PTC/FPP!universal_taylor}
+%FPP stores its \vn{real_8} Taylor maps in such a way that it is not
+%easy to access them directly to look at the particular terms. To
+%simplify life, \'Etienne has implemented the
+%\vn{universal_taylor}structure:
+%\begin{example}
+%  type universal_taylor
+%    integer, pointer  :: n       ! Number of coefficients
+%    integer, pointer  :: nv      ! Number of variables
+%    real(dp), pointer :: c(:)    ! Coefficients C(N)
+%    integer, pointer  :: j(:,:)  ! Exponents of each coefficients J(N,NV)
+%  end type
+%\end{example}
+%\bmad always sets \vn{nv} = 6. \bmad overloads the equal sign to call 
+%routines to convert between \'Etienne's
+%\vn{real_8} Taylor maps and \vn{universal_taylor}:
+%\begin{example}
+%  type (real_8) tlr(6)           ! Taylor map
+%  type (universal_taylor) ut(6)  ! Taylor map
+%  ...
+%  tlr = ut                       ! Convert universal_taylor -> real_8
+%  ut = tlr                       ! Convert real_8 -> universal_taylor
+%\end{example}

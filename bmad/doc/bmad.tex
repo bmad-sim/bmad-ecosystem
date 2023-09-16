@@ -1,0 +1,196 @@
+%-----------------------------------------
+% Note: Use pdflatex to process this file.
+%-----------------------------------------
+
+\documentclass{book}
+
+%%\usepackage[all]{nowidow}
+\usepackage{index}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subcaption}
+\usepackage{xspace}
+\usepackage{xcolor}
+%%\usepackage{makeidx}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{yhmath}     % For widehat
+\usepackage{eso-pic}    % For cover graphics
+\usepackage{enumitem}
+%%\usepackage{fancyvrb}
+
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
+
+%----------------------------------------------------------------
+
+%\newcommand\BackgroundPic{%
+%\put(0,0){%
+%\parbox[b][\paperheight]{\paperwidth}{%
+%\vfill
+%\centering
+%\includegraphics[width=\paperwidth,height=\paperheight,%
+%keepaspectratio]{success-kid-image.jpg}%
+%\vfill
+%}}}
+
+\input{macros.tex}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\makeindex
+\newindex{routine}{rdx}{rnd}{Routine Index}
+
+\begin{document}
+
+%\AddToShipoutPicture*{\BackgroundPic}
+
+\index{coordinates!reference|see{reference orbit}}
+\index{coordinates!global|see{global coordinates}}
+\index{coordinates!phase space|see{phase space coordinates}}
+\index{floor coordinates|see{global coordinates}}
+\index{canonical coordinates|see{phase space coordinates}}
+\index{FPP|see{PTC/FPP}}
+\index{Forest, \'Etienne|see{PTC/FPP}}
+\index{Bmad!lattice format|see{lattice file format}}
+\index{radiation damping and excitation|see{\hfill\break synchrotron radiation}}
+\index{coupling|see{normal mode}}
+\index{variables|see{lattice file format, variables}}
+\index{transfer map!Taylor map|see{Taylor map}}
+\index{transfer map!mat6_calc_method|see{mat6_calc_method}}
+\index{map|see{transfer map}}
+\index{beam line|see{line}}
+\index{replacement list|see{list}}
+\index{functions|see{intrinsic functions}}
+\index{arithmetic expressions!intrinsic functions|see{intrinsic functions}}
+\index{lat_struct!\%param|see{lat_param_struct}}
+\index{an|see{multipole, an}}
+\index{bn|see{multipole, bn}}
+\index{knl|see{multipole, knl}}
+\index{tn|see{multipole, tn}}
+\index{coherent synchrotron radiation|see{CSR}}
+
+%----------------------------------------------------------------
+\include{cover-page}
+
+%----------------------------------------------------------------
+{
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+\include{overview}
+\include{introduction}
+}
+
+%----------------------------------------------------------------
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[0]{Contents}{Contents}
+\pdfbookmark[1]{Table of Contents}{toc} 
+\tableofcontents
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[1]{List of Figures}{LoF} 
+\listoffigures
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[1]{List of Tables}{LoT} 
+\listoftables
+
+%----------------------------------------------------------------
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+%----------------------------------------------------------------
+\part{Language Reference}
+%----------------------------------------------------------------
+\include{orientation}
+\include{concepts}
+\include{lattice-file}
+\include{elements}
+\include{attributes}
+\include{methods}
+\include{lines-and-lists}
+\include{superimpose-and-multipass}
+\include{param-statements}
+\include{param-structs}
+\include{beam-init}
+\include{lattice-examples}
+\include{conversion}
+\include{list-element-attributes}
+
+%----------------------------------------------------------------
+\part{Conventions and Physics}
+%----------------------------------------------------------------
+\include{coordinates}
+\include{electromagnetic-fields}
+\include{fringe-fields}
+\include{wakefields}
+\include{multiparticle}
+\include{synchrotron-radiation}
+\include{linear-optics}
+\include{spin}
+\include{taylor-maps}
+\include{charged-tracking}
+\include{xray-tracking}
+\include{simulation-modules}
+\include{ptc-use}
+
+%----------------------------------------------------------------
+\part{Programmer's Guide}
+%----------------------------------------------------------------
+\include{programming}
+\include{example-program}
+\include{ele-struct}
+\include{lat-struct}
+\include{manipulation-lat-ele}
+\include{reading-and-writing-lattices}
+\include{normal-modes}
+\include{tracking}
+\include{misc-programming}
+\include{ptc-programming}
+%% \include{fpp}
+\include{opal}
+\include{cpp-interface}
+\include{quick-plot}
+\include{hdf5-programming}
+\include{subroutines}
+
+%----------------------------------------------------------------
+\part{Bibliography and Index}
+%----------------------------------------------------------------
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
+\include{bibliography}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Routine Index}
+\printindex[routine]
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Index}
+\printindex
+
+\end{document}

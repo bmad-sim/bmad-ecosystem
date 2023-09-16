@@ -1,0 +1,408 @@
+\chapter{Beam Initialization}
+\label{c:beam.init}
+
+Some \bmad based programs track beams of particles instead of tracking individual particles
+one-by-one. This can be useful for several reasons. For example, tracking beams is useful when
+inter-bunch or intra-bunch effects are to be simulated. Also tracking beams can simplify the
+bookkeeping a program needs to do to calculate such quantities such as the bunch size.
+
+A \bmad based program has two standard ways to specify the initial distribution of a beam. One is
+using a \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) which holds parameters (for
+example, the beam emittances) from which a distribution of particles can be constructed. The
+\vn{beam_init_struct} structure is explained in Section~\sref{s:beam.init.struct}. The other way is to
+specify the initial beam distribution via a file that has the individual particle positions. This is
+covered in Section~\sref{s:beam.init.file}.
+
+%-----------------------------------------------------------------
+\section{Beam_Init_Struct Structure}
+\label{s:beam.init.struct}
+\index{beam initialization parameters|hyperbf}
+
+\index{beam_init_struct|hyperbf}
+The \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) holds parameters which are used to
+initialize a beam. The parameters of this structure, shown with their default values, are:
+\begin{example}
+  type beam_init_struct
+    character(200) :: position_file = ''       ! Initialization file name.
+    character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
+    type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
+    type (kv_beam_init_struct) KV              ! For KV beam distribution
+    type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
+    logical use_particle_start = F     ! Use particle_start instead of %center and %spin?
+    character random_engine            ! "pseudo" (default) or "quasi". 
+    character random_gauss_converter   ! "exact" (default) or "quick". 
+    real center(6) = 0                 ! Bench center offset.
+    real center_jitter(6) = 0          ! Bunch center rms jitter
+    real emit_jitter(2)   = 0          ! %RMS a and b-mode emittance jitter
+    real sig_z_jitter     = 0          ! bunch length RMS jitter 
+    real sig_pz_jitter     = 0         ! pz energy spread RMS jitter 
+    real random_sigma_cutoff = -1      ! -1 => no cutoff used.
+    integer n_particle = 0             ! Number of simulated particles per bunch.
+    logical renorm_center = T          ! Renormalize centroid?
+    logical renorm_sigma = T           ! Renormalize sigma?
+    real(rp) spin(3) = 0, 0, 0         ! Spin (x, y, z)
+    real a_norm_emit = 0               ! a-mode normalized emittance (= \(\beta\,\gamma\,\epsilon_{unnorm}\))
+    real b_norm_emit = 0               ! b-mode normalized emittance (= \(\beta\,\gamma\,\epsilon_{unnorm}\))
+    real a_emit = 0                    ! a-mode unnormalized emittance (= \(\epsilon_{norm}/\beta\gamma\))
+    real b_emit = 0                    ! b-mode unnormalized emittance (= \(\epsilon_{norm}/\beta\gamma\))
+    real dpz_dz = 0                    ! Correlation of pz with longitudinal position.
+    real dt_bunch = 0                  ! Time between bunches.
+    real sig_z = 0                     ! Z sigma in m.
+    real sig_pz = 0                    ! pz sigma.
+    real bunch_charge = 0              ! Charge in a bunch.
+    integer n_bunch = 0                ! Number of bunches.
+    character species = ""             ! Species. Default is reference particle.
+    logical full_6D_coupling_calc = F  ! Use 6x6 1-turn matrix to match distribution?  
+    logical use_t_coords = F  ! If true, the distributions will be 
+                              !   calculated using time coordinates (\sref{s:time.phase.space}). 
+    logical use_z_as_t   = F  ! Only used if use_t_coords = T:
+                              !   If True,  the z coordinate stores the time.
+                              !   If False, the z coordinate stores the s-position.
+  end type
+\end{example}
+Note: The \vn{z} coordinate value given to particles of a bunch is with respect to the
+nominal center of the bunch. Therefore, if there are multiple bunches, and there is an RF
+cavity whose frequency is not commensurate with the spacing between bunches, absolute time
+tracking (\sref{s:rf.time}) must be used.
+
+\begin{description}
+\item[\%position_file] \Newline
+\vn{%position_file} sets the name of the file to be read in containing the particle coordinates.  Input
+from a file is triggered if not-blank. The format of the file is discussed in
+Section~\sref{s:beam.init.file}.
+%
+\item[\%a_emit, \%b_emit, \%a_norm_emit, \%b_norm_emit] \Newline
+Normalized and unnormalized emittances. Either \vn{a_norm_emit} or \vn{a_emit} may be set but not
+both. similarly, either \vn{b_norm_emit} or \vn{b_emit} may be set but not both. 
+
+When simulating a ring, if any of these parameters is set negative, and if the \bmad based program
+being run has enabled it, the value of the parameter will be set the value as calculated from the
+lattice using synchrotron radiation integral formulas (\sref{s:synch.ints}).
+%
+\item[\%bunch_charge] \Newline
+The \vn{%bunch_charge} paramter sets the charge of a bunch. If reading from a file, the bunch
+charge will be set to the value of \vn{%bunch_charge} except if \vn{%bunch_charge} has a value
+of zero in which case the bunch charge as specified in the file is used.
+%
+\item[\%center(6)] \Newline
+The \vn{%center} parameter is used to offset the center position of a bunch. Exception: When
+\vn{%use_particle_start} is set to True, the \vn{particle_start} orbital values are used instead for the
+center position offset. See the description of \vn{%use_particle_start} below for more details.
+%
+\item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_pz_jitter] \Newline
+These components can be used to provide a bunch-to-bunch random variation in the emittance and bunch
+center. Note: The old, deprecated, name for \vn{%sig_pz_jitter} is \vn{%sig_e_jitter}. This deprecated
+name is currently accepted. 
+%
+\item[\%distribution_type(3)] \Newline
+The \vn{%distribution_type(:)} array determines what algorithms are used to generate
+the particle distribution for a bunch. Note: If \vn{%position_file} is not blank, the
+beam distribution will be read from the appropriate file and \vn{%distribution_type}
+will be ignored.
+
+\vn{%distributeion_type(1)} sets the distribution 
+type for the $(x, p_x)$ 2D phase space, etc. 
+Possibilities for \vn{%distributeion_type(:)} are:
+\begin{example}
+  "", or "RAN_GAUSS"  ! Random distribution (default).
+  "ELLIPSE"           ! Ellipse distribution (\sref{s:ellipse.init})
+  "KV"                ! Kapchinsky-Vladimirsky distribution (\sref{s:kv.init})
+  "GRID"              ! Uniform distribution.
+\end{example}
+Since the Kapchinsky-Vladimirsky distribution is for a 4D phase space, if the Kapchinsky-Vladimirsky
+distribution is used, \vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)} array.
+
+Unlike all other distribution types, the \vn{GRID} distribution is independent of the Twiss
+parameters at the point of generation.  For the non-\vn{GRID} distributions, the distributions are
+adjusted if there is local $x$-$y$ coupling (\sref{s:coupling}). For lattices with a closed
+geometry, if \vn{full_6D_coupling_calc} is set to \vn{True}, the full 6-dimensional coupling matrix
+is used. If \vn{False}, which is the default, The 4-dimensional $\bfV$ matrix of \Eq{vgicc1} is
+used.
+
+Note: The total number particles generated is the product of the individual
+distributions. For example:
+\begin{example}
+  type (beam_init_struct) bi
+  bi%distribution_type = ELLIPSE", "ELLIPSE", "GRID"
+  bi%ellipse(1)%n_ellipse = 4
+  bi%ellipse(1)%part_per_ellipse = 8
+  bi%ellipse(2)%n_ellipse = 3
+  bi%ellipse(2)%part_per_ellipse = 100
+  bi%grid(3)%n_x = 20
+  bi%grid(3)%n_px = 30
+\end{example}
+The total number of particles per bunch will be $32 \times 300 \times 600$. The exception is that
+when \vn{RAN_GAUSS} is mixed with other distributions, the random distribution is overlaid with the
+other distributions instead of multiplying. For example:
+\begin{example}
+  type (beam_init_struct) bi
+  bi%distribution_type = RAN_GAUSS", "ELLIPSE", "GRID"
+  bi%ellipse(2)%n_ellipse = 3
+  bi%ellipse(2)%part_per_ellipse = 100
+  bi%grid(3)%n_x = 20
+  bi%grid(3)%n_px = 30
+\end{example}
+Here the number of particle is $300 \times 600$. Notice that when \vn{RAN_GAUSS} is mixed with other
+distributions, the value of \vn{beam_init%n_particle} is ignored.
+%
+\item[\%full_6D_coupling_calc] \Newline
+If set \vn{True}, coupling between the transverse and longitudinal modes is taken into
+account when calculating the beam distribution. 
+The default \vn{False} decouples the transverse and longitudinal calculations.
+%
+\item[\%dPz_dz] \Newline
+Correlation between $p_z$ and $z$ phase space coordinates. 
+%
+\item[\%dt_bunch] \Newline
+Time between bunches
+%
+\item[\%ellipse(3)] \Newline
+The \vn{%ellipse(:)} array sets the parameters for the 
+\vn{ellipse} distribution (\sref{s:ellipse.init}). 
+Each component of this array looks like
+\begin{example}
+  type ellipse_beam_init_struct
+    integer part_per_ellipse  ! number of particles per ellipse.
+    integer n_ellipse         ! number of ellipses.
+    real(rp) sigma_cutoff     ! sigma cutoff of the representation.
+  end type
+\end{example}
+%
+\item[\%grid(3)] \Newline
+The \vn{%grid} component of the \vn{beam_init_struct} sets the parameters 
+for a uniformly spaced grid of particles. The components of \vn{%grid}
+are:
+\begin{example}
+  type grid_beam_init_struct
+    integer n_x        ! number of columns.
+    integer n_px       ! number of rows.
+    real(rp) x_min     ! Lower x limit.
+    real(rp) x_max     ! Upper x limit.
+    real(rp) px_min    ! Lower px limit.
+    real(rp) px_max    ! Upper px limit.
+  end type
+\end{example}
+%
+\item[\%KV] \Newline
+The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the 
+Kapchinsky-Vladimirsky distribution (\sref{s:kv.init}). The components of \vn{%KV}
+are:
+\begin{example}
+  type kv_beam_init_struct
+    integer part_per_phi(2)    ! number of particles per angle variable.
+    integer n_I2               ! number of I2
+    real(rp) A                 ! A = I1/e
+  end type
+\end{example}
+%
+\item[\%n_bunch] \Newline
+The number of bunches in the beam is set by \vn{n_bunch}. If reading the distribution from a file,
+if \vn{%n_bunch} is zero, the number of bunches created is the number of defined in the file and if
+\vn{%n_bunch} is not zero, the number created is \vn{%n_bunch}. It is an error if \vn{%n_bunch} is
+greater than the number of bunches defined in the file. If not reading from a file, if \vn{%n_bunch}
+is zero, one bunch is created.
+%
+\item[\%n_particle] \Newline
+Number of particles generated when the \vn{%distribution_type} is \vn{"RAN_GAUSS"}. Ignored for
+other distribution types. When reading the distribution from a file, if \vn{%n_particle} is zero,
+the number of particles in a bunch will be the number of particles defined in the file.  If
+\vn{%n_particle} is non-zero when reading from a file, the number of particles in a bunch will be
+\vn{%n_particle}. It is an error if \vn{%n_particle} is non-zero and the number of particles defined
+in the file is less than \vn{%n_particle}.
+%
+\item[\%random_engine] \Newline
+This component sets the algorithm to use in generating a uniform distribution
+of random numbers in the interval [0, 1]. \vn{"pseudo"} is a pseudo random
+number generator and "quasi" is a quasi random generator. "quasi random" is
+a misnomer in that the distribution generated is fairly uniform.
+%
+\item[\%random_gauss_converter, \%random_sigma_cutoff] \Newline
+To generate Gaussian random numbers, a conversion algorithm from the
+flat distribution generated according to \vn{%random_engine} is
+needed.  \vn{%random_gauss_converter} selects the algorithm. The
+\vn{"exact"} conversion uses an exact conversion. The \vn{"quick"}
+method is somewhat faster than the \vn{"exact"} method but not as accurate.
+With either conversion method, if \vn{%random_sigma_cutoff} is set to a positive number,
+this limits the maximum sigma generated.
+%
+\item[\%renorm_center, \%renorm_sigma] \Newline 
+If set to True, these components will ensure that the actual beam center 
+and sigmas will correspond to the input values. 
+Otherwise, there will be fluctuations due to the finite number of 
+particles generated.
+%
+\item[\%sig_pz, \%sig_z] \Newline
+Longitudinal sigmas. \vn{%sig_pz} is the fractional energy spread dE/E.  This, along with
+\vn{%dPz_dz} determine the longitudinal profile. Note: The old, deprecated, name for \vn{%sig_pz} is
+\vn{%sig_e}. This deprecated name is currently accepted.
+
+When simulating a ring, if any of these parameters is set negative, and if the \bmad based program
+being run has enabled it, the value of the parameter will be set the value as calculated from the
+lattice using synchrotron radiation integral formulas (\sref{s:synch.ints}).
+%
+\item[\%species] \Newline
+Name of the species tracked. If not set then the default tracking particle type is used.
+%
+\item[\%spin] \Newline
+Particle spin in Cartesian $(x, y, z)$ coordinates. Only used when not reading in particle positions
+from a file. Also: When \vn{%use_particle_start} is set to True, and not reading in particle
+positions form a file, the \vn{particle_start} spin values are used instead. See the description of
+\vn{%use_particle_start} below for more details.
+%
+\item[\%use_particle_start] \Newline
+If \vn{%use_particle_start} is set to \vn{False} (the default) the center of
+the bunch is determined by the setting of the \vn{%center} component. If set to \vn{True}, the
+center is determined by the setting of:
+\begin{example}
+  particle_start[x], particle_start[px],
+  particle_start[y], particle_start[py],
+  particle_start[z], particle_start[pz]
+\end{example}
+If not reading from from a particle position file, \vn{%use_particle_start} will affect the setting
+of the spin. If \vn{%use_particle_start} is set to \vn{False}, the initial spin orientation is
+determined by the setting of the \vn{%spin} component. If set to \vn{True}, the spin is determined
+by:
+\begin{example}
+  particle_start[spin_x], particle_start[spin_y], particle_start[spin_z]
+\end{example}
+See \sref{s:beam.start} for details about the \vn{particle_start} structure. Using the
+\vn{particle_start} structure allows setting center and spin values in the lattice file rather than
+the setting of \vn{%center} and \vn{%spin} in the \vn{beam_init_struct}. In this case, \vn{%center}
+is a dependent parameter and will be set to the value of \vn{particle_start}. Note: Old deprecated
+name for \vn{%use_particle_start} is is \vn{%use_particle_start_for_center}
+%
+\item[\%use_t_coords, \%use_z_as_t] \Newline
+The problem with handling particle distributions at low energies is that when a particle's velocity
+is zero, the phase space $z$-coordinate is zero. What is needed here is to generate distributions in
+time and or in longitudinal $s$-position. To do this, two switches, \vn{use_to_coords} and
+\vn{use_z_as_t}, are used.
+
+If \vn{use_t_coords} is True (default is False), the values in the distributions are taken as
+describing particles using ``time coordinates'' (\sref{s:time.phase.space}).
+
+The \vn{use_z_as_t} parameter is only used if \vn{use_t_coords} is set to True. When
+\vn{use_t_coords} is True, if \vn{use_z_as_t} is also True, the value of the time (in seconds)
+assigned to a particle will be set equal to the \vn{z}-coordinate (in meters) and a new
+\vn{z}-coordinate will be calculated based upon \Eq{zbctt}.  This is useful for describing the
+situation, for example, where particles may originate at a cathode at the same $s$-position, but
+different times.  If \vn{use_z_as_t} is False (the default), the $z$ coordinate is taken to describe
+the $s$-coordinate.  This is useful for modeling particles that have the same time but different $s$
+positions. In this case, particles are ``born'' inside the lattice element at the location of the
+particle's $s$-coordinate. To properly track the particles, the bunch will need to be tracked
+through the element where they are born with a tracking method that can handle inside
+particles. Currently the only such tracking method is \vn{time_runge_kutta}.  When the particles get
+to the end of the element, the particle positions are converted to standard $s$-coordinates.
+
+Since HDF5 beam files store complete information about a particle, \vn{use_to_coords} and
+\vn{use_z_as_t} are not needed and are ignored.
+
+\end{description}
+
+%-----------------------------------------------------------------
+\section{File Based Beam Initialization}
+\label{s:beam.init.file}
+\index{beam initialization parameters|hyperbf}
+
+A beam initialization file specifies the coordinates of all the particles in a beam. If a \bmad
+based program uses a \vn{beam_init_struct} (\sref{s:beam.init.file}) for inputting initialization
+parameters, the file name for file based beam initialization can be set using the \vn{%position_file}
+component of the structure. Also the bunch charge, bunch number, and number of particles per bunch
+can be set in the \vn{beam_init_struct}. Additionally, the bunch centroid can be offset by setting
+\vn{beam_init%center} and \vn{beam_init%center_jitter}.
+
+There are two formats for the beam initialization file: ASCII and binary. The binary file format for
+beam position storage is based on the \vn{HDF5} standard. More information is in
+chapter~\sref{c:hdf5}.
+
+The ASCII file format is:
+\begin{example}
+  <ix_ele>         ! Lattice element index. This is ignored.
+  <n_bunch>        ! Number of bunches.
+  <n_particle>     ! Number of particles per bunch to use
+  [bunch loop: ib = 1 to n_bunch]
+    BEGIN_BUNCH    ! Marker to mark the beginning of a bunch specification block.
+    <species_name> ! Species of particle
+    <bunch_charge> ! Charge of bunch. 0 => Use <macro_charge>.
+    <z_center>     ! z position at center of bunch.
+    <t_center>     ! t position at center of bunch.
+    [particle loop: Stop when END_BUNCH marker found]
+      <x> <px> <y> <py> <z> <pz> <macro_charge> <state> <spin_x> <spin_y> <spin_z> 
+    [end particle loop]
+    END_BUNCH      ! Marker to mark the end of the bunch specification block
+  [end bunch loop]
+\end{example}
+Example:
+\begin{example}
+  0       ! ix_ele
+  1       ! n_bunch
+  25000   ! n_particle
+  BEGIN_BUNCH
+    POSITRON
+    3.2E-9   ! bunch_charge
+    0.0      ! z_center
+    0.0      ! t_center
+   -6.5E-3  9.6E-3 -1.9E-2  8.8E-3  2.2E-2 -2.4E-2  1.2E-13  1 1.0 0.0 0.0
+    8.5E-3  5.5E-3  4.0E-2 -1.9E-2 -4.9E-3  2.1E-2  1.2E-13  1 1.0 0.0 0.0
+    1.1E-2 -1.9E-2 -2.5E-2  1.0E-2 -1.8E-2 -7.1E-3  1.2E-13  1 1.0 0.0 0.0
+   -3.4E-2 -2.7E-3 -4.1E-3  1.3E-2  1.3E-2  1.0E-2  1.2E-13  1 1.0 0.0 0.0
+    6.8E-3 -4.5E-3  2.5E-3  1.4E-2 -2.3E-3  7.3E-2  1.2E-13  1 1.0 0.0 0.0
+    1.2E-2 -9.8E-3  1.7E-3  6.4E-3 -9.8E-3 -7.2E-2  1.2E-13  1 1.0 0.0 0.0
+    1.1E-2 -3.5E-4  1.2E-2  1.8E-2  5.4E-3  1.4E-2  1.2E-13  1 1.0 0.0 0.0
+       ... etc. ...
+  END_BUNCH
+\end{example}
+
+The first line of the file gives \vn{<ix_ele>}, the index of the lattice element at which the
+distribution was created. This is ignored when the file is Read. 
+
+The second line gives \vn{<n_bunch>}, the number of bunches. This can be overridden by a non-zero
+setting of \vn{beam_init%n_bunch}.
+
+The third line gives \vn{<n_particle>} the number of particles in a bunch. The actual number rows
+specifying particle coordinates may be more then \vn{<n_particle>}. In this case, particles will be
+discarded so that the beam has \vn{<n_particle>} particles.  The setting of \vn{<n_particle>} can be
+overridden by a non-zero setting of \vn{beam_init%n_particle}.
+
+After this, there are \vn{<n_bunch>} blocks of data, one for each bunch. Each one of these blocks
+starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with a
+\vn{END_BUNCH} marker line. In between, the first four lines give the \vn{<species_name>} name,
+\vn{<bunch_charge>}, \vn{<z_center>}, and \vn{<t_center>} values. The \vn{<species_name>} name may
+be one of:
+\begin{example}
+  positron  ! default
+  electron
+  proton
+  antiproton
+  muon
+  antimuon
+  photon
+\end{example}
+
+The lines following the \vn{<t_center>} line specify particle coordinates. One line for each
+particle.  Only the first six numbers, which are the phase space coordinates, need to be specified
+for each particle. If the \vn{<macro_charge>} column is not present, or is zero, it defaults to
+\vn{<bunch_charge>/<n_particle>}.
+
+The \vn{<state>} parameter indicates whether a particle is alive or dead. Values are
+\begin{example}
+  1     ! Alive
+  2-7   ! Dead
+  8     ! Pre-born
+\end{example}
+The \vn{pre-born} state indicates that the particle is waiting to be emitted from the cathode of 
+an electron gun (\sref{s:sc.fft}).
+
+The particle spin is specified by $x$, $y$ and $z$ components.
+
+Each particle has an associated \vn{<macro_charge>}. If \vn{<bunch_charge>} is set to a non-zero
+value, the charge of all the particles will be scaled by a factor to make the total macro charge
+equal to \vn{<bunch_charge>}. The macro charge is ignored in tracking. The charge of the particle
+used in tracking is the charge as calculated for the particle species. On the other hand, the macro
+charge is used to calculate such things as the total charge in a particular region or the field
+produced by a particle. That is, the macro charge acts as a weighting factor for a particle when the
+particle's field or the particle's effect on other particles is calculated.
+
+\index{change}\index{beam_init}
+When the particle coordinates are read in the centroid will be shifted by the setting of
+\vn{beam_init%center} (unless \vn{beam_init%use_particle_start} is set True) and
+\vn{beam_init%center_jitter}.

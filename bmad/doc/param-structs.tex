@@ -1,0 +1,599 @@
+\chapter{Parameter Structures}
+\label{c:param.structs}
+
+%-----------------------------------------------------------------
+\section{What is a Structure?}
+\label{s:struct}
+\index{structure|hyperbf}
+
+A ``structure'' is a collection of parameters.  \bmad has various structures which can be used for
+various tasks. For example, the \vn{beam_init_struct} structure (\sref{s:beam.init.struct}) is used
+to set parameters used to initialize particle beams.
+
+A given program may give the user access to some of these structures so, in order to allow
+intelligent parameter setting, this chapter gives an in-depth description of the most common ones.
+
+Each structure has a \vn{``structure name''} (also called a \vn{``type name''}) which identifies the
+list of parameters (also called ``components'') in the structure. Associated with a structure there
+will be an \vn{``instance''} of this structure and this instance will have an \vn{``instance name''}
+which is what the user uses to set parameters. It is possible to have multiple instances of a
+structure. For example, in the situation where a program is simulating multiple particle beams,
+there could be multiple \vn{beam_init_struct} (\sref{s:beam.init.struct}) instances with one for
+each beam.
+
+\bmad defines uses some structures to hold global parameters. That is, parameters that shared by all
+code. Each of these structures has a single associated instance. These are:
+\begin{center}
+  \begin{tabular}{ll} \toprule
+  Structure                 & Instance         \\
+  \midrule
+  bmad_common_stuct         & bmad_com         \\
+  space_charge_common_stuct & space_charge_com \\
+  \bottomrule
+  \end{tabular}
+\end{center}
+All other structures will have instance names that are program specific. That is, see the program
+documentation for the instance name(s) used.
+
+For historical reasons, There are two syntaxes used for setting structure components. The syntax when
+setting in a lattice file uses square brackets:
+\begin{example}
+  instance_name[parameter_name] = value
+\end{example}
+When setting a component in a program initialization file the syntax uses the percent ``\vn{%}'' character:
+\begin{example}
+  instance_name%parameter_name = value
+\end{example}
+Examples:
+\begin{example}
+  bmad_com[max_aperture_limit] = 10   ! Lattice file syntax.
+  bmad_com%max_aperture_limit = 10    ! Program initialization file syntax.
+\end{example}
+this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com} which is an instance name of the
+\vn{bmad_common_struct}. Note: A program is free to set the instance name for any structure. This
+should be documented in the program manual.
+
+Note: Thought must be given to setting \vn{bmad_com} and other global parameters in a lattice file
+(\sref{s:bmad.ptc.com}) since that will affect every program that uses the lattice.
+
+%-----------------------------------------------------------------
+\section{Bmad_Common_Struct}
+\label{s:bmad.common}
+\index{Bmad!general parameters|hyperbf}
+
+The \vn{bmad_common_struct} structure contains a set of global parameters. There is only one global
+instance (\sref{c:param.structs}) of this structure and this instance has the name
+\vn{bmad_com}. The components of this structure along with the default values are:
+\index{max_aperture_limit}\index{d_orb(6)}
+\index{grad_loss_sr_wake}\index{default_ds_step}
+\index{rel_tol_tracking}\index{abs_tol_tracking}
+\index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
+\index{taylor_order}\index{default_integ_order}
+\index{sr_wakes_on}\index{lr_wakes_on}\index{high_energy_space_charge_on}
+\index{auto_bookkeeper}\index{csr_and_space_charge_on}
+\index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
+\index{radiation_fluctuations_on}\index{radiation_zero_average}\index{mp_threading_is_safe}
+\index{absolute_time_tracking}
+\index{bmad_common_struct|hyperbf}
+\begin{example}
+  type bmad_common_struct
+    max_aperture_limit = 1e3            ! Max Aperture.
+    d_orb(6)           = 1e-5           ! for the make_mat6_tracking routine.
+    default_ds_step    = 0.2            ! Integration step size.  
+    significant_length = 1e-10          ! meter 
+    rel_tol_tracking = 1e-8             ! Closed orbit relative tolerance.
+    abs_tol_tracking = 1e-11            ! Closed orbit absolute tolerance.
+    rel_tol_adaptive_tracking = 1e-8    ! Runge-Kutta tracking relative tolerance.
+    abs_tol_adaptive_tracking = 1e-10   ! Runge-Kutta tracking absolute tolerance.
+    init_ds_adaptive_tracking = 1e-3    ! Initial step size.
+    min_ds_adaptive_tracking = 0        ! Minimum step size to use.
+    fatal_ds_adaptive_tracking = 1e-8   ! Threshold for loosing particles.
+    autoscale_amp_abs_tol = 0.1_rp      ! Autoscale absolute amplitude tolerance (eV).
+    autoscale_amp_rel_tol = 1d-6        ! Autoscale relative amplitude tolerance
+    autoscale_phase_tol = 1d-5          ! Autoscale phase tolerance.
+    electric_dipole_moment = 0          ! Particle's EDM. 
+    synch_rad_scale = 1.0               ! Synch radiation kick scale. 1 => normal
+    ptc_cut_factor = 0.006              ! Cut factor for PTC tracking
+    sad_eps_scale = 5.0d-3              ! Used in sad_mult step length calc.
+    sad_amp_max = 5.0d-2                ! Used in sad_mult step length calc.
+    sad_n_div_max = 1000                ! Used in sad_mult step length calc.
+    taylor_order = 3                    ! 3rd order is default
+    default_integ_order = 2             ! PTC integration order
+    ptc_max_fringe_order = 2            ! PTC max fringe order (2 => Quadrupole !).
+    max_num_runge_kutta_step = 10000    ! Max num RK steps before particle is lost.
+    rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
+    sr_wakes_on = T                     ! Short range wakefields?
+    lr_wakes_on = T                     ! Long range wakefields
+    ptc_use_orientation_patches = T     ! Ele orientation translated to PTC patches?
+    auto_bookkeeper = T                 ! Automatic bookkeeping?
+    high_energy_space_charge_on = F     ! High energy space charge calc toggle.
+    csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
+    spin_tracking_on = F                ! spin tracking?
+    spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
+    radiation_damping_on = F            ! Radiation damping toggle.
+    radiation_fluctuations_on = F       ! Radiation fluctuations toggle.
+    radiation_zero_average = F          ! Shift so that average radiation kick is zero?
+    conserve_taylor_maps = T            ! Enable bookkeeper to set
+                                        ! ele%taylor_map_includes_offsets = F?
+    absolute_time_tracking = F          ! Set absolute or relative time tracking.
+    absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
+    aperture_limit_on = T               ! Use aperture limits in tracking.
+    debug = F                           ! Used for code debugging.
+  end type
+\end{example}
+
+Parameter description:
+\begin{description}
+\index{aperture_limit_on}
+\item[\vn{abs_tol_adaptive_tracking}] \Newline
+Absolute tolerance to use in adaptive tracking. This is used in \vn{runge-kutta} and
+\vn{time_runge_kutta} tracking (\sref{s:integ}).
+%
+\item[\vn{abs_tol_tracking}] \Newline
+Absolute tolerance to use in tracking. Specifically, Tolerance to use when finding the closed orbit.
+%
+\item[\vn{absolute_time_tracking}] \Newline
+The \vn{absolute_time_tracking} switch\footnote
+  {
+An old, deprecated notation for this switch is \vn{parameter[absolute_time_tracking]}.
+  }
+sets whether the clock for the \vn{lcavity} and \vn{rfcavity} elements is tied to the reference
+particle or to uses the absolute time (\sref{s:rf.time}). A value of \vn{False} (the default)
+mandates relative time and a value of \vn{True} mandates absolute time. The exception is that for an
+\vn{e_gun} element (\sref{s:e.gun}), absolute time tracking is always used in order to be able to
+avoid problems with a zero reference momentum at the beginning of the element.
+%
+\item[\vn{absolute_time_ref_shift}] \Newline
+When absolute time tracking is used (\sref{s:rf.time}), if \vn{absolute_time_ref_shift} is True (the
+default), then the value of the time used to calculate RF phases and other time dependent parameters
+is shifted by the reference time of the lattice element under consideration. If set to False, no
+time shift is done. The advantage of \vn{absolute_time_ref_shift} set to True is that (at least on
+the first turn of tracking) there is no phase shift between relative time and absolute time
+tracking. The advantage of \vn{absolute_time_ref_shift} set to False is that when trying to compare
+tracking in \bmad with tracking in programs that use absolute time tracking but do not implement a
+reference shift (for example, the IMPACT and GPT programs), it is convenient not to have to worry
+about the reference shift.
+%
+\item[\vn{aperture_limit_on]}] \Newline
+Aperture limits may be set for elements in the lattice (\sref{s:limit}). Setting
+\vn{aperture_limit_on} to \vn{False} will disable all set apertures. \vn{True} is the default.
+%
+\item[\vn{auto_bookkeeper}] \Newline
+Toggles automatic or intelligent bookkeeping. See
+section~\sref{s:lat.bookkeeping} for more details.
+%
+\item[\vn{autoscale_amp_abs_tol}] \Newline
+Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
+absolute tolerance for the autoscale amplitude parameter.
+%
+\item[\vn{autoscale_amp_rel_tol}] \Newline
+Used when \bmad autoscales (\sref{s:autoscale}) an elements field amplitude. This parameter sets the
+relative tolerance for the autoscale amplitude parameter.
+%
+Used when \bmad autoscales (\sref{s:autoscale}) an elements AC phase. This parameter sets the
+absolute tolerance for the autoscale parameter.
+%
+\item[\vn{autoscale_phase_tol}] \Newline
+\item[\vn{init_ds_adaptive_tracking}] \Newline
+Initial step to use for adaptive tracking. This is used in
+\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+%
+\item[\vn{conserve_taylor_maps}] \Newline
+Toggle to determine if the Taylor map for an element include any
+element ``misalignments''.  See Section~\sref{s:mapoff} for more
+details.
+%
+\item[\vn{csr_and_space_charge_on}] \Newline
+Turn on or off the coherent synchrotron radiation and space charge calculations. (\sref{s:csr}).
+The space charge calculation here is not to be confused with the high energy space charge
+calculation (\sref{s:he.space.charge})
+%
+\item[\vn{d_orb}] \Newline 
+Sets the orbit displacement used in the routine that calculates the transfer matrix through an
+element via tracking. That is, when the \vn{mat6_calc_method} (\sref{s:xfer}) is set to
+\vn{tracking}. \vn{d_orb} needs to be large enough to avoid significant round-off errors but not so
+large that nonlinearities will affect the results. The default value is $10^{-5}$.
+%
+\item[\vn{debug}] \Newline
+Used for communication between program units for debugging purposes.
+%
+\item[\vn{default_ds_step}] \Newline
+Step size for tracking code \sref{c:methods} that uses a fixed step
+size. For example, \vn{symp_lie_ptc} tracking.
+%
+\item[\vn{default_integ_order}] \Newline
+Order of the integrator used by \'Etienne Forest's PTC code (\sref{s:libs}).
+The order of the PTC integrator is like the order of a Newton-Cotes method.
+Higher order means the error term involves a higher order derivative of the field.
+%
+\item[\vn{electric_dipole_moment}] \Newline
+The electric dipole moment value used in tracking a particle's spin (\sref{s:spin.dyn}).
+%
+\item[\vn{fatal_ds_adaptive_tracking}] \Newline
+This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
+(\sref{s:integ}).  If the step size falls below the value set for
+\vn{fatal_ds_adaptive_tracking}, a particle is considered lost.
+This prevents a program from ``hanging'' due to taking a large number
+of extremely small steps. The most common cause of small step size is
+an ``unphysical'' magnetic or electric field.
+%
+\item[\vn{high_energy_space_charge_on}] \Newline
+Toggle to turn on or off the ultra-relativistic space charge effect in particle tracking
+(\sref{s:he.space.charge}). Computationally, this is separate from the lower energy space charge and
+CSR calculation (\sref{s:csr}). Default is \vn{False}. Notice that including the high energy space
+charge can be done on a branch-by-branch basis (\sref{s:beginning}).
+%
+\item[\vn{lr_wakes_on}] \Newline
+Toggle for turning on or off long-range higher order mode wakefield effects.
+%
+\item[\vn{max_aperture_limit}] \Newline 
+Sets the maximum amplitude a particle can have during tracking. If this amplitude is exceeded, the
+particle is lost even if there is no element aperture set. Having a maximum aperture limit helps
+prevent numerical overflow in the tracking calculations.
+%
+\item[\vn{max_num_runge_kutta_step}] \Newline 
+The maximum number of steps to take through an element with \vn{runge_kutta} or
+\vn{time_runge_kutta} tracking. The default value is 10,000. If the number of steps reaches this
+value, the particle being tracked is marked as lost and a warning message is issued. Under
+``normal'' circumstances, a particle will take far fewer steps to track through an element. If a
+particle is not through an element after 10,000 steps, it generally indicates that there is a
+problem with how the field is defined. That is, the field does not obey Maxwell's
+Equations. Especially: discontinuities in the field can cause problems.
+%
+\item[\vn{min_ds_adaptive_tracking}] \Newline
+This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}). Minimum step
+size to use for adaptive tracking. If To be useful, \vn{min_ds_adaptive_tracking} must be set
+larger than the value of \vn{fatal_ds_adaptive_tracking}. In this case, particles are never lost
+due to taking too small a step.
+%
+\item{ptc_use_orientation_patches} \Newline
+With \bmad, there is no distinction whether an element's orientation attributes (\vn{offsets},
+\vn{pitches}, or \vn{tilt} (\sref{s:offset})) is deliberate (part of the ``design'' of the machine)
+or an error (a ``misalignment'').  With PTC this is not true. If the \vn{ptc_use_orientation_patches}
+switch is set to True (the default), when a \bmad element is translated to PTC,
+the element's orientation attributes are stored as patches. That is, ``design'' values.
+If set to False, these parameters are stored as misalignments. This will generally not make any
+difference to a calculation. The exception comes with PTC centric programs that vary machine
+parameters.\footnote
+  {
+None of the programs that come bundled with \bmad (a \bmad \vn{Distribution}) are
+PTC centric.
+  }
+%
+\item{ptc_max_fringe_order} \Newline
+Maximum order for computing fringe field effects in PTC. 
+%
+\item[\vn{rf_phase_below_transition_ref}] \Newline
+Used when \bmad autoscales (\sref{s:autoscale}) an \vn{rfcavity} and when \bmad calculates the
+reference time through a cavity (which affects calculation of phase space $z$ via \Eq{zbctt}).  If
+True, the reference phase will be taken to be at \vn{phi0} = 0.5 which is appropriate for a ring
+below transition. Default is False in which case autoscaling will be around the phase \vn{phi0} = 0.
+%
+\item[\vn{radiation_damping_on}] \Newline
+Toggle to turn on or off effects due to radiation damping in particle tracking
+(\sref{s:radiation}). The default is \vn{False}. Note: The standard \bmad emittance calculation,
+which involves calculating synchrotron radiation integrals (\sref{s:synch.ints}) can be done without
+a problem when \vn{radiation_damping_on} is set to False. However, since the closed orbit will be
+affected by whether \vn{radiation_damping_on} is set or not, the calculated emittances will depend
+upon the setting of \vn{radiation_damping_on}.
+%
+\item[\vn{radiation_fluctuations_on}] \Newline
+Toggle to turn on or off effects due to radiation fluctuations in particle tracking
+(\sref{s:radiation}).  The default is \vn{False}. Note: The standard \bmad emittance calculation,
+which involves calculating synchrotron radiation integrals (\sref{s:synch.ints}) can be done without
+a problem when \vn{radiation_damping_on} is set to False. And since the calculation of the closed orbit
+ignores the fluctuating part of the radiation, the setting of \vn{radiation_damping_on}, unlike the
+setting of \vn{radiation_damping_on}, will not affect the emittance calculation.
+%
+\item[\vn{radiation_zero_average}] \Newline
+As discussed in Section~\sref{s:radiation}, it is sometimes convenient to shift the emitted radiation
+spectrum so that the average energy emitted along the closed orbit is zero. This gets rid of the ``sawtooth''
+effect. To shift the average emitted energy to zero, set \vn{radiation_zero_average} to \vn{True}. The
+default is \vn{False}. Currently, the shifting of the spectrum only works for non PTC
+dependent tracking. That is, the shifting is not applicable to tracking with Taylor maps and with
+\vn{symp_lie_ptc} (\sref{s:tkm}) tracking.
+%
+\item[\vn{rel_tol_adaptive_tracking}] \Newline
+Relative tolerance to use in adaptive tracking. This is used in \vn{runge_kutta} and
+\vn{time_runge_kutta} tracking (\sref{s:integ}).
+%
+\item[\vn{rel_tol_tracking}] \Newline
+Relative tolerance to use in tracking. Specifically, Tolerance to use when finding the closed orbit.
+%
+\item[\vn{significant_length}] \Newline
+Sets the scale to decide if two length values are significantly different. For example, The
+superposition code will not create any super_slave elements that have a length less then this.
+%
+\item[\vn{sr_wakes_on}] \Newline
+Toggle for turning on or off short-range higher order mode wakefield effects.
+%
+\item[\vn{spin_sokolov_ternov_flipping_on}] \Newline
+This determines if the Sokolov-Ternov effect is included in a simulation.  The Sokolov-Ternov
+effect\cite{b:barber99} is the self-polarization of charged particle beams due to asymmetric flipping
+of a particle's spin when the particle is bent in a magnetic field. Also, spin flipping will {\em
+not} be done if spin tracking is off or both radiation damping and excitation are off.
+%
+\item[\vn{spin_tracking_on}] \Newline
+Determines if spin tracking is performed or not.
+%
+\item[\vn{synch_rad_scale}] \Newline
+This parameter is a multiplier for the kick given particles when radiation damping or excitation is
+turned on.  This parameter is useful for artificially speeding up (or slowing down) the effect of
+radiation.  The default value is one. Values greater than one will give larger kicks and will reduce
+the equilibrium settling time.
+%
+\item[\vn{taylor_order}] \Newline
+Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
+\end{description}
+
+%-----------------------------------------------------------------
+\section{PTC_Common_Struct}
+\label{s:ptc.common}
+
+The \vn{ptc_common_struct} structure contains a set of global parameters that effect tracking when
+PTC is involved. There is only one global instance (\sref{c:param.structs}) of this structure and
+this instance has the name \vn{ptc_com}. The components of this structure along with the default
+values are:
+\begin{example}
+  type ptc_common_struct
+    max_fringe_order  = 2   ! 2 => Quadrupole.
+    complex_ptc_used = True ! Complex PTC code in use? 
+    use_totalpath  = False  ! phase space z = time instead of time - ref_time?
+    old_integrator = True   ! PTC OLD_INTEGRATOR.
+    exact_model    = True   ! PTC EXACT_MODEL.
+    exact_misalign = True   ! PTC ALWAYS_EXACTMIS.
+    translate_patch_drift_time = True  
+  end type
+\end{example}
+
+Note: To set the Taylor map order for PTC, set the \vn{taylor_order} parameter of \vn{bmad_com}.
+
+\begin{description}
+%
+  \index{ptc_exact_model}\index{exact_misalign}
+  \item[{parameter[ptc_exact_model]}] \Newline
+Deprecated. Replaced by \vn{ptc_com[exact_model]} (\sref{s:bmad.ptc.com}).
+
+The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect tracking using the \vn{PTC}
+library. See \sref{s:integ} for more details.
+%
+  \index{max_fringe_order}
+  \item[{ptc_com[max_fringe_order]}] \Newline
+When using PTC tracking (\sref{s:ptc.intro}), the \vn{parameter[ptc_max_fringe_order]} determines
+the maximum order of the calculated fringe fields. The default is 2 which means that fringe fields
+due to a quadrupolar field. These fields are 3\Rd order in the transverse coordinates.
+%
+  \index{translate_patch_drift_time}
+  \item[{ptc_com[translate_patch_drift_time]}] \Newline
+If \vn{translate_patch_drift_time} is set True (the default) the patch in PTC that is setup to
+correspond to a \bmad patch is given a reference time offset equal to the \bmad reference time
+through the patch. This is generally what is wanted but for a PTC expert who knows what they are
+doing and really wants no time offset, \vn{translate_patch_drift_time} can be set False.
+  \end{description}
+
+%-----------------------------------------------------------------
+\section{Bmad_Com}
+\label{s:bmad.ptc.com}
+\index{bmad_com}
+
+The parameters of the \vn{bmad_com} instance of the \vn{bmad_common_struct} structure
+(\sref{s:bmad.common}) can be set in the lattice file using the syntax
+\begin{example}
+  bmad_com[parm-name] = value
+\end{example}
+where \vn{parm-name} is the name of a component of
+\vn{bmad_common_struct}. For example:
+\begin{example}
+  bmad_com[rel_tol_tracking] = 1e-7
+\end{example}
+
+A similar situation holds for the \vn{ptc_com} instance of the \vn{ptc_common_struct} structure.
+
+Be aware that setting either a \vn{bmad_com} or \vn{ptc_com} parameter value in a lattice file will
+affect all computations of a program even if the program reads in additional lattice files. That is,
+setting of \vn{bmad_com} or \vn{ptc_com} components is ``sticky'' and persists even when other
+lattice files are read in. There are two exceptions: A program is always free to override settings
+of these parameters.  Additionally, a second lattice file can also override the setting made in a
+prior lattice file.
+
+%-----------------------------------------------------------------
+\section{Space_Charge_Common_Struct}
+\label{s:sc.com}
+\index{space_charge_common_struct|hyperbf}
+
+The \vn{space_charge_common_struct} structure holds parameters for space charge (including CSR
+(\sref{s:csr})) calculations.\footnote
+  {
+This structure was formally called the \vn{csr_parameter_struct}. The name was changed to reflect
+the fact that the structure has parameters for space charge calculations that do not involve CSR.
+  }
+The setting of the \vn{csr_method} and \vn{space_charge_method} element parameters
+(\sref{s:csr.sc.meth}) will also affect space charge calculations as well as the setting of the
+\vn{bmad_com} logical \vn{csr_and_space_charge_on} (\sref{s:bmad.common}).
+
+Besides the parameters discussed below, the \vn{csr_and_space_charge_on} parameter of \vn{bmad_com}
+(\sref{s:bmad.ptc.com}) must be set True to enable the space charge/CSR calculations. Additionally,
+tracking with \vn{CSR} will only be done through elements where the element parameter
+\vn{csr_method} (\sref{s:integ}) has been set to something other than \vn{off} and tracking with
+space charge will only be done through elements where the element parameter \vn{space_charge_method}
+is set to something other than \vn{off}. This is done so that the computationally intensive space
+charge and CSR calculations can be restricted to places where the effects are significant.
+
+The space charge / CSR parameter structure has a \vn{type name} of \vn{space_charge_common_struct}
+and an \vn{instance name} of \vn{space_charge_com}. This structure has components
+\index{space_charge_mesh_size}
+\begin{example}
+  type space_charge_common_struct 
+    ds_track_step = 0                   ! Tracking step size
+    dt_track_step = 0                   ! Time based space charge step
+    beam_chamber_height = 0             ! Used in shielding calculation.
+    cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
+    rel_tol_tracking = 1d-8
+    abs_tol_tracking = 1d-10            
+    lsc_sigma_cutoff = 0.1              ! Cutoff for the lsc calc. If a bin sigma
+                                        !  is < cutoff * sigma_ave then ignore.
+    particle_sigma_cutoff = -1          ! Veto particles that are far from the bench with 3D SC.
+    n_bin = 0                           ! Number of bins used
+    particle_bin_span = 2               ! Longitudinal particle length / dz_bin
+    n_shield_images = 0                 ! Chamber wall shielding. 0 = no shielding.
+    sc_min_in_bin = 10                  ! Min number of particle needed to compute sigmas.
+    space_charge_mesh_size = [32,32,64] ! Mesh size with fft_3d space charge calc.
+    csr_3d_mesh_size = [32,32,64]       ! Mesh size for 3D CSR calc.
+    print_taylor_warning = T            ! Print Taylor element warning?
+    diagnostic_output_file = ""         ! Wake file name
+  end type
+\end{example}
+The values for the various quantities shown above are their default values. 
+
+\begin{description}
+\item{ds_track_step} \Newline
+The \vn{ds_track_step} parameter sets the nominal longitudinal distance traveled by the bunch
+between CSR kicks if the lattice element in which the bunch is being tracked has not set element's
+\vn{csr_ds_track} parameter. The actual distance between kicks within a lattice element is adjusted
+so that there is an integer number of steps from the element entrance to the element exit. Either
+\vn{ds_track_step} or the element's \vn{csr_track_step} must be set to something positive otherwise
+an error will result when doing CSR or space charge tracking. Larger values will speed up the
+calculation at the expense of accuracy.
+%
+\item{dt_track_step} \Newline
+The \vn{dt_track_step} parameter is used when the \vn{tracking_method} of the lattice element the
+bunch is passing through is set to \vn{time_runge_kutta} or \vn{fixed_step_time_runge_kutta}. 
+%
+\item{beam_chamber_height} \Newline
+\vn{beam_chamber_height} is the height of the beam chamber in meters. This parameter is used when
+shielding is taken into account.  See also the description of the parameter \vn{n_shield_images}.
+%
+\item{cathode_strength_cutoff} \Newline
+When tracking through an element whose \vn{space_charge_method} is set to \vn{cathode_fft_3d}
+(\sref{s:csr.sc.meth}, The value of \vn{cathode_strength_cutoff} is used to determine at how far
+from the cathode the cathode image field is included. If the image field is less than
+\vn{cathode_strength_cutoff} * bunch field, the image field will be ignored.
+%
+\item{lsc_sigma_cutoff} \Newline
+\vn{lsc_sigma_cutoff} is used in the longitudinal space charge (LSC) calculation and is used to prevent
+bins with only a few particles in them to give a large contribution to the kick when the computed
+transverse sigmas are abnormally low.
+%
+\item{n_bin} \Newline
+\vn{n_bin} is the number of bins used. The bind width is dynamically adjusted at each kick point so
+that the bins will span the bunch length.  This parameter must be set to something positive. Larger
+values will slow the calculation while smaller values will lead to inaccuracies and loss of
+resolution. \vn{n_bin} should also not be set so large that the average number of particles in a bin
+is too small.  ``Typical'' values are in the range 100 --- 1000.
+%
+\item{particle_bin_span} \Newline
+The \vn{particle_bin_span} parameter is the width of a particle's triangular density distribution
+(cf.~\sref{s:csr}) in multiples of the bin width. A larger span will give better smoothing of the
+computed particle density with an attendant loss in resolution.
+%
+\item{particle_sigma_cutoff} \Newline
+The 3D space charge calculation uses a particle-in-cell algorithm. If there are halo particles far
+from the bunch center the grid spacing for the particle-in-cell may become too course. To help remedy
+this, particles far from the bunch center may be vetoed by setting \vn{particle_sigma_cutoff} to a 
+positive value. When set positive, particles will be ignored in the space charge calc when
+\begin{equation}
+  \max \left( \frac{|dx|}{\sigma_x}, \frac{|dy|}{\sigma_y}, \frac{|dz|}{\sigma_z} \right)
+  > \text{particle_sigma_cutoff}
+\end{equation}
+where $dx$, $dy$, and $dz$ are the distances along the $x$, $y$, and $z$ axis of the particle from
+the bunch centroid, and $\sigma_x$, $\sigma_y$, and $\sigma_z$ are the bunch beam sizes.
+%
+\item[\vn{\%space_charge_mesh_size}] \Newline
+The \vn{%space_charge_mesh_size} sets the size of the grid used when an element's
+\vn{space_charge_method} is set to \vn{fft_3d} (\sref{s:csr.sc.meth}). The value of this parameter
+is a 3-element array $(n_x, n_y, n_z)$ giving the mesh size in the $x$, $y$, and $z$ directions
+respectively. Default values are $(32, 32, 64)$.
+%
+\item[\vn{\%csr3d_mesh_size}] \Newline
+The \vn{%csr3d_mesh_size} sets the size of the grid used when an element's
+\vn{csr_method} is set to \vn{steady_state_3d} (\sref{s:csr.sc.meth}). The value of this parameter is a
+3-element array $(n_x, n_y, n_z)$ giving the mesh size in the $x$, $y$, and $z$ directions
+respectively. Default values are $(32, 32, 64)$.
+%
+\item{n_shield_images} \Newline
+\vn{n_shield_images} is the number of shielding current layers used in the shielding calculation. A
+value of zero results in no shielding. See also the description of the parameter
+\vn{beam_chamber_height}. The proper setting of this parameter depends upon how strong the shielding
+is. Larger values give better accuracy at the expense of computation speed. ``Typical'' values are
+in the range 0 --- 5.
+%
+\item{sc_min_in_bin} \Newline
+the \vn{sc_min_in_bin} parameter sets the minimum number of particle in a bin needed to compute the
+transverse beam sigmas for that bin. If the number of particles is less than this number, the beam
+sigmas are taken to be equal to the beam sigmas of a nearby bin where there are enough particle to
+compute the sigma. The beam sigmas are needed for the CS calculation but not need for the CSR
+calculation.
+%
+\item{diagnostic_output_file} \Newline
+If set non blank, an output file of this name is created that contains a table of the CSR wake at
+each track step (the track step size is set by \vn{ds_track_step}). If tracking is done through
+multiple lattice elements, the wake tables for the elements are appended to the file. This file is
+useful for visualization of the wake.
+\end{description}
+
+Note: \vn{Taylor} map elements (\sref{s:taylor}) that have a finite length cannot be subdivided for
+the CSR calculation. \bmad will ignore any \vn{taylor} elements present in the lattice but will
+print a warning that it is doing so. To suppress the warning, \vn{print_taylor_warning} should be
+set to False.
+
+%-----------------------------------------------------------------
+\section{Opti_DE_Param_Struct}
+\label{s:de.params}
+\index{de optimizer parameters|hyperbf}
+
+\index{opti_de_param_struct}
+The Differential Evolution (\vn{DE}) optimizer is used in nonlinear optimization problems. This
+optimizer is based upon the work of Storn and Price\cite{b:de}. There are a number of parameters
+that can be varied to vary how the optimizer works. These parameters are are contained in a
+structure named \vn{opti_de_param_struct}. the instance name is \vn{opti_de_param}.  This structure
+has components
+\begin{example}
+                              Default
+  type opti_de_param_struct
+    CR             = 0.8    ! Crossover Probability.
+    F              = 0.8    !
+    l_best         = 0.0    ! Percentage of best solution used.
+    binomial_cross = False  ! IE: Default = Exponential.
+    use_2nd_diff   = False  ! use F * (x_4 - x_5) term
+    randomize_F    = False  !
+    minimize_merit = True   ! F => maximize the Merit func.
+  end type
+\end{example}
+
+The "perturbed vector" is
+  v = x_1 + l_best * (x_best - x_1) + F * (x_2 - x_3) + F * (x_4 - x_5)
+The last term F * (x_4 - x_5) is only used if \vn{use_2nd_diff} = T.
+
+The crossover can be either "Exponential" or "Binary". 
+Exponential crossover is what is described in the paper.
+With Exponential crossover the crossover parameters from a contiguous block
+and the average number of crossover parameters is approximately
+    average crossovers $\sim$ min(D, CR / (1 - CR))
+where D is the total number of parameters.
+With Binary crossover the probability of crossover of a parameter is 
+uncorrelated with the probability of crossover of any other parameter and
+the average number of crossovers is
+    average crossovers = D * CR
+
+\vn{randomize_F} = True means that the F that is used for a given 
+generation  is randomly chosen to be within the range 
+[0, 2*F] with average F.
+
+%-----------------------------------------------------------------
+\section{Dynamic Aperture Simulations: Aperture_Param_Struct}
+
+\index{dynamic_aperture_struct|hyperbf}
+The \vn{dynamic_aperture_struct} is used for dynamic aperture
+calculations. This structure has components:
+\begin{example}
+  type aperture_param_struct
+    min_angle = 0
+    max_angle = pi
+    n_angle   = 9
+    n_turn = 100                ! Number of turns a particle must survive
+    x_init = 1e-3              ! Initial estimate for horizontal aperture
+    y_init = 1e-3              ! Initial estimate for vertical aperture
+    accuracy = 1e-5            ! Resolution of bracketed aperture.
+  end type
+\end{example}
+
