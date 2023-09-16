@@ -1,0 +1,11 @@
+set (EXENAME envelope_ibs)
+
+set (SRC_FILES
+  envelope_ibs/envelope_ibs.f90
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

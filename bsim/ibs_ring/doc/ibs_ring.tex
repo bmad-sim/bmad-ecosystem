@@ -1,0 +1,677 @@
+\documentclass[11pt]{article}
+\usepackage{tocloft}
+\usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
+\usepackage{xspace}
+\geometry{letterpaper}           % ... or a4paper or a5paper or ... 
+%\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}
+
+%---------------------------------------------------------------------------------
+
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand{\srthree}{\texttt{Synrad3D}\xspace}
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+\newcommand{\fig}[1]{Figure~\ref{#1}}
+\newcommand{\vn}{\ttcmd}           
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\Newline}{\hfil \\}
+
+
+\newcommand{\bearray}{\begin{eqnarray}}
+\newcommand{\eearray}{\end{eqnarray}}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bearraynn}{\begin{eqnarray*}}
+\newcommand{\eearraynn}{\end{eqnarray*}}
+\newcommand{\benn}{\begin{displaymath}}
+\newcommand{\eenn}{\end{displaymath}}
+\newcommand{\eq}[1]{{Eq.~(\ref{#1})}}
+\newcommand{\eqs}[2]{{Eqs.~(\ref{#1}--\ref{#2})}}
+
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-0.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-0.0ex}
+
+\newenvironment{example}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
+
+%---------------------------------------------------------------------------------
+
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+\setlength\cftparskip{0pt}
+\setlength\cftbeforesecskip{3pt}
+\setlength\cftaftertoctitleskip{15pt}
+
+%---------------------------------------------------------------------------------
+
+\title{ibs_ring Simulation Program}
+\author{Michael Ehrlichman, D. Sagan}
+\date{October 21, 2022}
+
+%---------------------------------------------------------------------------------
+
+\begin{document}
+\maketitle
+
+\pdfbookmark[1]{Contents}{Contents}
+\tableofcontents
+
+%------------------------------------------------------------------
+\section{Introduction} 
+\label{s:intro}
+
+\vn{ibs_ring} is a program for simulating intra-beam scattering (IBS) in a storage ring.
+The source code for this program lives in the \vn{bsim} directory in
+the standard Bmad\cite{b:bmad} distribution.
+
+Many formulas for calculating IBS rates are implemented.  They are:
+\begin{enumerate}
+\item Modified Piwinski with Zotter's integral.
+\item Modified Piwinski with constant Coulomb Log.
+\item Completely Integrated Modified Piwinski (CIMP).
+\item Bjorken \& Mtingwa's formula.
+\item Bane's approximation of Bjorken \& Mtigwa's formula.
+\item Kubo \& Oide's generalization of Bjorken \& Mtingwa's formula.
+\end{enumerate}
+These formula's are described in the following section.
+
+%---------------------------------------------------------------------------------
+\section{Methods for calculating IBS growth rates}
+
+%---------------------------------------------------------------------------------
+\subsection{Modified Piwinski with Zotter's integral}
+This formula is selected by setting {\tt ibs_formula=`mpzt'}.
+
+Piwinski's original formula for calculating IBS rates is Ref.~\cite{b:pw}.  The
+original formula contained a numerically difficult triple integral.  In
+Ref.~\cite{b:zotter}, the triple integral is reduced to a single integral that is 
+much easier to evaluate.  No 
+approximations are applied to obtain the single integral, it is exact.
+
+The original formula included Twiss $\beta$ and dispersion $\eta$, but neglicted
+the derivatives of the lattice functions Twiss $\alpha$ and $\eta'$.
+In Ref.~\cite{b:martini}, the derivatives of the lattice functions are included.
+This form of Piwinski's original formula with derivatives of the lattice
+functions is usually called ``Modified Piwinski''.
+
+%---------------------------------------------------------------------------------
+\subsection{Modified Piwinski with constant Coulomb Log}
+This formula is selected by setting {\tt ibs_formula=`mpxx'}.
+
+Piwinski's origional IBS formula typically gives a considerablly different growth rate than
+Bjorken \& Mtingwa's, Kubo \& Oide's, and approximations of Piwinski.  This is because
+Piwinski's formula is unique in how it treats the Coulomb Logarithm.
+
+In the {\tt `mpxx'} IBS formula, Piwinski's formula has been rederived and the
+log term pulled out of the integral.  This allows the Coulomb Logarithm to be treated the
+same as it is in other IBS formulas.  This derivation is available in Ref.~\cite{b:ehr-thesis}.
+
+%---------------------------------------------------------------------------------
+\subsection{Completely Integrated Modified Piwinski (CIMP)}
+This formula is selected by setting {\tt ibs_formula=`cimp'}.
+
+In Ref.~\cite{b:wolski}, a high energy approximation of the Modified Piwinski formula is 
+obtained.  This formula contains one integral which can be easily and quickly tabulated.
+This formula is very fast and, for ILC and CesrTA, returns growth rates similar to those obtained
+from the more general IBS formulas.
+
+%---------------------------------------------------------------------------------
+\subsection{Bjorken \& Mtingwa's formula}
+This formula is selected by setting {\tt ibs_formula=`cimp'}.
+
+In Ref.~\cite{b:bjmt}, the authors take a distinct approach to calculating IBS growth rates.
+In Ref.~\cite{b:bane-comp}, Bjorken \& Mtingwa's formula is compared to
+the Modified Piwinski formula.  It is found that, for high energy beams, after some
+modifications to Piwinski's formula, the two formulas are algebraically similar
+and give similar results.
+
+%---------------------------------------------------------------------------------
+\subsection{Bane's approximation of Bjorken \& Mtingwa's formula}
+This formula is selected by setting {\tt ibs_formula=`bane'}.
+
+In Ref.~\cite{b:bane-approx}, a high energy approximation of Bjorken \& Mtingwa's formula
+is obtained.  The formula is simpler and numerically easier to evaluate, but does
+not give sensible results when vertical dispersion is zero.
+
+%---------------------------------------------------------------------------------
+\subsection{Kubo \& Oide's generalization of Bjorken \& Mtingwa's formula}
+This formula is selected by setting {\tt ibs_formula=`kubo'}.
+
+In Ref.~\cite{b:kubo}, a generalization of Bjorken \& Mtingwa's formula
+is derived.  This formula is unique in that it is based on the $6\times6$
+matrix of the second order moments of the beam distribution (the beam sigma matrix),
+rather than on Twiss parameters.
+
+This formula should be able to handle arbitrary coupling conditions, though
+that has not been tested in experiment.
+
+When {\tt ibs_formula=`kubo'}, it may be helpful to set {\tt use_t6_cache=.true.}.
+This causes {\tt ibs_ring} to pre-compute the one-turn maps.  This greatly speeds up
+{\tt ibs_ring} on larger accelerators.  With {\tt use_t6_cache=.true.}, the simulation
+is ${\cal O}\left(n\right)$.  With {\tt use_t6_cache=.false.}, the simulation
+is ${\cal O}\left(n^2\right)$.  This setting has no effect for other IBS calculation methods.
+
+\section{Setting vertical dispersion}
+Vertical dispersion is zero in an ideal flat storage ring.  Realistically, storage rings are not
+ideal and have misalignments which result in vertical dispersion.  One method to simulate the effect
+of misalignments is to use a lattice with a realistic distribution of element misalignments.
+Since it is often the case that obtaining such a lattice is not possible, {\tt ibs_ring}
+allows the vertical dispersion $\eta_b$ and derivative of vertical dispersion $\eta_b'$ to be
+specified in the parameters file.
+
+The following setting can be used to set the vertical dispersion.
+\begin{verbatim}
+   set_dispersion = <logical>
+          eta_set = <float>
+         etap_set = <float>
+\end{verbatim}
+
+The interpretation of these parameters depends on the IBS formula being used.  These differences 
+are described below.  Note that the two interpretations are not equivalent.  Results obtained
+from the Twiss-based IBS formulas using a particular {\tt eta_set} and {\tt etap_set} are
+not necessarily comparable to results obtained from the {\tt kubo} formula using the
+same {\tt eta_set} and {\tt etap_set}.
+
+\subsection{For all IBS calculation formulas except {\tt kubo}}
+If {\tt set_dispersion=.true.}, then {\tt ele\%b\%eta} and {\tt ele\%b\%etap} will be overwritten
+with {\tt eta_set} and {\tt etap_set} for every element.
+
+\subsection{For {\tt kubo} IBS formula}
+If {\tt set_dispersion=.true.}, then the one-turn matrix $\mathbf{T}_6$ will be replaced
+with $\mathbf{\tilde{T}}_6$, where $\mathbf{\tilde{T}}_6=\mathbf{T}_6\mathbf{W}$ and
+\begin{equation}
+\mathbf{W}=\begin{pmatrix}
+1&0&0&0&0&0\\
+0&1&0&0&0&0\\
+0&0&1&0&0&-\eta_b\\
+0&0&0&1&0&-\eta_b'\\
+0&0&\eta_b'&-\eta_b&1&0\\
+0&0&0&0&0&1\\
+\end{pmatrix},
+\end{equation}
+where $\eta_b$ and $\eta_b'$ are set by {\tt eta_set} and {\tt etap_set}.
+
+\section{Potential well distortion (pwd)}
+Intrabeam scattering does not directly change the bunch length.  It changes the energy spread,
+which in turn results in a change in bunch length.
+
+If {\tt do_pwd=.false.}, then the simulation maintains the ratio between energy spread and bunch length.
+i.e.,
+\begin{equation}
+\frac{\sigma_{p,IBS}}{\sigma_{z,IBS}}=\frac{\sigma_{p0}}{\sigma_{z0}},
+\end{equation}
+where $\sigma_{p0}$ and $\sigma_{z0}$ are the zero-current energy spread and bunch length,
+and $\sigma_{p,IBS}$ and $\sigma_{z,IBS}$ are the energy spread and bunch length after
+including IBS effects.
+
+If {\tt do_pwd=.true.}, then the the effect of potential well distortion is simulated as a 
+current-dependent defocusing rf voltage $V_{pwd}$,
+
+\begin{equation}
+V_{pwd}=\frac{-L N e c^2}{\sqrt{2\pi}\sigma_z^3 E_0},
+\end{equation}
+where $e$ is electric charge, $c$ is the speed of light,
+$\sigma_z$ is the bunch length, and $E_0$ is the beam energy.
+$L$ is inductance and is a parameter set using {\tt inductance = <float>}.
+Typical values of $L$ are tens of nH.
+
+The parameter {\tt resistance} is no longer used.
+
+%---------------------------------------------------------------------------------
+\section{Methods for determining equilibrium emittances}
+
+%---------------------------------------------------------------------------------
+\subsection{Derivatives method}
+This method is selected by setting {\tt eqb_method=`der'}.
+
+This method finds the equilibrium beam size using differential equations to 
+evolve the emittance through time.  The time step is hard coded to $\frac{\tau}{10}$,
+where $\tau$ is the horizontal damping time.
+
+The differential equations are,
+\begin{align}
+\frac{d\epsilon_a}{dt}&= -\left(\epsilon_a-\epsilon_{a0}\right)\frac{2}{\tau_a}+\epsilon_a\frac{2}{T_a}\label{e:da}\\
+\frac{d\epsilon_b}{dt}&= -\left(\epsilon_b-\epsilon_{b0}\right)\frac{2}{\tau_b}+\epsilon_b\frac{2}{T_b}\label{e:db}\\
+\frac{d \sigma_p}{dt}&= -\left(\sigma_p-\sigma_{p0}\right)\frac{1}{\tau_z}+\sigma_p\frac{1}{T_z}\label{e:dp},
+\end{align}
+where $\epsilon_{a0}$, $\epsilon_{b0}$, and $\sigma_{p0}$ are the zero-current emittances and energy spread,
+$\tau_a$, $\tau_b$, and $\tau_z$ are the damping times, and $T_a$, $T_b$, and $T_z$ are the IBS
+growth rates given the IBS formulas.  The factors of $2$ come about because $\tau_a$, $\tau_b$,
+$T_a$, and $T_b$ are betatron growth rates.  i.e.  they are the rates of change the beam sizes,
+rather than the emittances.
+
+%---------------------------------------------------------------------------------
+\subsection{Relaxation of equilibrium equations}
+\label{ss:rlx}
+
+This method is selected by setting {\tt eqb_method=`rlx'}.
+
+The solutions to differential equations (\ref{e:da}), (\ref{e:db}), and (\ref{e:dp}) are,
+\begin{align}
+\epsilon_a&=\frac{1}{1-\frac{\tau_a}{T_a}}\epsilon_{a0}\label{e:eea}\\
+\epsilon_b&=\frac{1}{1-\frac{\tau_b}{T_b}}\epsilon_{b0}\label{e:eeb}\\
+\sigma_p&=\frac{1}{1-\frac{\tau_z}{T_z}}\sigma_{p0}\label{e:eep}.
+\end{align}
+Note that $T_a$, $T_b$, and $T_z$ are functions of $\epsilon_a$, $\epsilon_b$, and $\sigma_p$.
+
+In Ref.~\cite{b:wolski}, a method for approximating the effect of 
+transverse coupling replaces Eqn.~\ref{e:eeb} with,
+\begin{equation}
+\epsilon_b=\left(\left(1-r_\epsilon\right)\frac{1}{1-\frac{\tau_b}{T_b}}+
+r_\epsilon\frac{1}{1-\frac{\tau_a}{T_a}}\right)\epsilon_{b0},
+\end{equation}
+where $r_\epsilon$ describes the amount of vertical emittance that is due to transverse mode coupling.
+$0<r_\epsilon<1$.
+$r_\epsilon=0$ describes a situation where there is no mode coupling and $\epsilon_{b0}$ is
+determined entirely by physics in the vertical plane.  $r_\epsilon=1$ describes a situation
+where $\epsilon_{b0}$ is determined entirely by coupling from the horizontal plane.
+
+In the {\tt ibs\_ring} simulation $r_\epsilon$ is set by {\tt ratio}.
+
+\section{Coulomb Logarithm}
+The IBS growth rates are directly proportional to a quantity that has come to be called
+the Coulomb Logarithm
+The Coulomb Logarithm is,
+\begin{equation}
+\log\frac{b_{max}}{b_{min}},
+\end{equation}
+where $b_{max}$ is the largest impact parameter for particle-on-particle collisions
+within a bunch, and $b_{min}$ is the smallest impact parameter.  The IBS growth rates
+blow up as $b_{min}$ goes to zero or $b_{max}$ gets large.
+
+$b_{max}$ is set to the smallest of either the beam height or mean interparticle distance. 
+
+In machines with little damping, such as proton rings and linacs, $b_{min}$ is set to the
+impact parameter associated with a scattering angle of $\frac{\pi}{2}$.
+
+It was proposed in \cite{b:raubenheimer}, that
+in machines with strong damping, such as light sources, damping rings, and circular
+lepton colliders, $b_{min}$ should be set according to the damping rate.  This 
+is called the {\it Tail Cut} because the idea is to exclude from the calculation of the
+rise time rare, large angle scattering events that populate non-gaussian tails
+of the beam distribution.
+
+The Tail Cut was also applied in Ref.~\cite{b:kubo}, albeit using a different formulation.
+The formulation there is,
+\begin{align}
+b_{min1}&=\frac{r_e}{\left(p_\perp \gamma\right)^2}\\
+b_{min2}&=\sqrt{\frac{vol}{N\pi p_\perp c \tau_a}}\\
+b_{min}&=max\left(b_{min1},b_{min2}\right),
+\label{e:tailcut}
+\end{align}
+where $r_e$ is the classical electron radius, $p_\perp$ is the average 
+transverse momentum of particles in the bunch, $\gamma$ is the relativistic factor
+of the bunch centroid, $vol$ is the volume of the bunch envelop, $N$ is the number
+of particles in the bunch, $c$ is the speed of light, and $\tau_a$ is the 
+horizontal damping rate.
+
+In {\tt BMAD}, the method used for calculating the Coulomb Log is set 
+using {\tt clog_to_use = <integer>}.  
+
+For all IBS formulas except for {\tt kubo}, the following options are available,
+\begin{description}
+\item[1] Classic Coulomb Log (no Tail Cut, $\frac{\pi}{2}$ scattering angle).
+\item[2] Integral-based Tail Cut given in Ref.~\cite{b:raubenheimer}.
+\item[3] Tail Cut Eqn.~\ref{e:tailcut}, as prescribed in Ref.~\cite{b:bane-tc}.
+\item[4] Tail Cut Eqn.~\ref{e:tailcut}, similar to that in Ref.~\cite{b:kubo}.
+\end{description}
+
+For the {\tt kubo} IBS formulas, the following options are available,
+\begin{description}
+\item[1]    Tail Cut disabled (no Tail Cut, $\frac{\pi}{2}$ scattering angle).
+\item[else] Tail Cut applied as described in Ref.~\cite{b:kubo}.
+\end{description}
+
+
+\section{Beam size calculations}
+{\tt ibs_ring} calculates beam size by computing the sigma matrix $\mathbf{\Sigma}$ 
+of a beam matched to the machine optics.  
+The beam envelop projected into the horizontal, vertical, and longitudinal planes
+are the $11$, $33$, and $55$ elements of the sigma matrix.  This method of calculating
+beam sizes naturally takes into account arbitrary coupling conditions.
+
+$\mathbf{\Sigma}$ is obtained
+from,
+\begin{equation}
+\mathbf{\Sigma S}=\mathbf{NDN}^\dagger,
+\end{equation}
+where $\mathbf{S}$ is the symplectic matrix, $\mathbf{N}$ is formed from the
+eigenvectors of the one-turn transfer matrix at a particular element,
+and $\mathbf{D}$ is,
+\begin{equation}
+\mathbf{D}=\begin{pmatrix}
+0&\epsilon_a&0&0&0&0\\
+-\epsilon_a&0&0&0&0&0\\
+0&0&0&\epsilon_b&0&0\\
+0&0&-\epsilon_b&0&0&0\\
+0&0&0&0&0&\epsilon_c\\
+0&0&0&0&-\epsilon_c&0\\
+\end{pmatrix}.
+\end{equation}
+
+This calculation and $\mathbf{N}$ are discussed in detail in Ref.~\cite{b:prst-crab}
+and Ref.~\cite{b:wolski-N}.
+
+The {\tt ibs_ring} parameters {\tt x_view}, {\tt y_view}, and {\tt z_view}
+are the element indexes
+where the horizontal, vertical, and longitudinal beam sizes are calculated.
+
+\section{Current range}
+The {\tt ibs_ring} simulation is designed to generate beam size versus current graphs.
+The current range, in mA, is set by {\tt low_current}, {\tt high_current}, and {\tt delta_current},
+
+{\tt mA_per_bunch} is the highest current and {\tt stop_mA} is the lowest current.
+{\tt delta_mA} is the approximate step size.  The actual step size is adjusted by the simulation
+such that an current range is spanned by equally sized steps.
+
+\section{{\tt ibs_ring} output files}
+
+\subsection{{\tt emittance.dat}}
+Properties of beam envelop at equilibrium.  By column:
+\begin{description}
+\item[{\tt current}] Current in Amps.
+\item[{\tt emit_a}] a-mode emittance.
+\item[{\tt emit_b}] b-mode emittance.
+\item[{\tt sigE/E}] Energy spread.
+\item[{\tt sigma_x}] Size of horizontal projection of beam envelop at element {\tt x_view}.
+\item[{\tt sigma_y}] Size of vertical projection of beam envelop at element {\tt y_view}.
+\item[{\tt sigma_z}] Size of longitudinal projection of beam envelop at element {\tt z_view}.
+\end{description}
+
+\subsection{{\tt ibs_rates.out}}
+IBS growth rate at each element at equilibrium.  Useful in for answering question
+``Where in the lattice is the IBS growth coming from?''.  By column:
+\begin{description}
+\item[{\tt ele ix}] Element index
+\item[{\tt s}] Element location in meters.
+\item[{\tt inv_Ta}] $\frac{1}{T_a}$, where $T_a$ is the a-mode IBS growth time.
+\item[{\tt inv_Tb}] $\frac{1}{T_b}$, where $T_b$ is the b-mode IBS growth time.
+\item[{\tt inv_Tz}] $\frac{1}{T_z}$, where $T_z$ is the longitudinal IBS growth time.
+\end{description}
+
+\subsection{{\tt rad_int.out}}
+Beam properties at zero current, determined either by radiation integrals or set
+in parameters file.  Also contains beam properties at high current ({\tt mA_per_bunch}).
+
+\section{Parallelization}
+The {\tt ibs_ring} code has been parallelized with OpenMP.  Enabling OpenMP
+requires setting the environment variable {\tt ACC_ENABLE_OPENMP=1} before
+compillation.  The entire
+BMAD distribution, including packages such as LAPACK and forest, must be
+compiled with {\tt ACC_ENABLE_OPENMP=1}, otherwise the resulting code
+will not be thread safe.
+
+If {\tt ibs_ring} is compiled with OpenMP enabled, then the environment
+variable {\tt OMP_NUM_THREADS=<integer>} will set the number of cores used for 
+computation.
+
+Signs of the code not being thread safe include unstable lattice errors.
+Thread safety can be diagnosed by setting {\tt OMP_NUM_THREADS=1}.
+
+%------------------------------------------------------------------
+\section{Parameter file summary}
+\label{s:run}
+
+The input for the \vn{ibs_ring} program uses Fortran90 namelist
+syntax: The data begins with the string \vn{\&parameters} and ends
+with a slash \vn{/}. Everything outside this is ignored.
+The input parameters are:
+\begin{example}
+\&parameters
+  lat_file = <lattice-file-name>
+  ibs_formula = <type>  ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx', or 'kubo'
+  eqb_method = <type>   ! 'der' or 'rlx'
+  use_t6_cache = <logical>
+  clog_to_use = <int>   ! 1=no tail cut, 2=raubenheimer, 3=kubo, 4=kubo w/vertical
+  do_pwd = <logical>
+  inductance = <real>
+  resistance = <real>
+  set_dispersion = <logical> ! applied only for kubo method.
+  eta_set = <real>
+  etap_set = <real>
+  b_emit = <real>
+  a_emit = <real>
+  energy_spread = <real>
+  ratio = <real>
+  granularity = <real>   ! -1 for element-by-element.
+  x_view = <int>  ! element lattice index 
+  y_view = <int>  
+  z_view = <int>  
+  mA_per_bunch = <real>  ! highest current
+  stop_mA = <real>       ! lowest current
+  delta_mA = <real>      ! step size
+/
+\end{example}
+
+  \begin{description}
+  \item[\vn{lat_file}] \Newline
+Bmad lattice file describing the ring.
+
+  %------------------------------
+  \item[\vn{ibs_formula}] \Newline
+Name of the algorithm to use for the calculation. Possibilities are:
+\begin{example}
+  'cimp'
+  'bjmt'
+  'bane'
+  'mpzt'
+  'mpxx'
+  'kubo'
+\end{example}
+
+  %------------------------------
+  \item[\vn{eqb_method}] \Newline
+Method used for finding the equilibrium solution. Possibilities are:
+\begin{example}
+  'der'
+  'rlx'
+\end{example}
+'der' finds the equilibrium emittances using differential equations.
+The differential is with respect to time.
+
+'rlx finds the equilibrium emittances by iterating to find the
+solution to an analytic form for the equilibrium emittance.  The 'rlx'
+method includes the controversial 'coupling parameter' which says that
+the vertical emittance has contributions from both the vertical and
+horizontal IBS rates and damping rates.
+
+In the limit that the coupling parameter is zero, 'der' and 'rlx' are
+equivalent.  In fact, the equations used for 'rlx' are the equilibrium
+solution to the 'der' method's differential equations.
+
+'der' is much faster and robust.  However, it does not allow for the
+'coupling parameter', which has its uses.  Also, the two different
+methods can be useful in diagnosing the code.
+
+  %------------------------------
+  \item[\vn{clog_to_use}] \Newline
+Logarithmic cutoff to use. Possibilities are:
+\begin{example}
+  1  ! Classic, no tail cut.  
+  2  ! Raubenheimer.  
+  3  ! Bane.
+  4  ! Oide.  
+\end{example} 
+
+  %------------------------------
+  \item[\vn{inductance}] \Newline
+Longitudinal inductance for PWD calc.
+Effects bunch length vs. current.
+
+  %------------------------------
+  \item[\vn{resistance}] \Newline
+Resistive inductance for PWD calc.
+Currently not used. 
+
+  %------------------------------
+  \item[\vn{set_dispersion}] \Newline
+If true, then apply eta_set and etap_set.
+If false, then do not.
+
+  %------------------------------
+  \item[\vn{eta_set}] \Newline
+Used only if ibs_formula set to 'kubo'.
+Applies x-pz coupling to each
+element of lattice when calculating IBS rates.
+
+  %------------------------------
+  \item[\vn{etap_set}] \Newline
+Used only if ibs_formula set to 'kubo'. Applies px-pz coupling to
+each element of lattice when calculating IBS rates.
+
+  %------------------------------
+  \item[\vn{a_emit}] \Newline
+Zero current horizontal emittance. If set to -1 then value is 
+obtained from an evaluation of the radiation integrals.
+
+  %------------------------------
+  \item[\vn{b_emit}] \Newline
+Zero current vertical emittance. If set to -1 then value is 
+obtained from an evaluation of the radiation integrals.
+
+  %------------------------------
+  \item[\vn{energy_spread}] \Newline
+Zero current energy spread. If set to -1 then value is 
+obtained from an evaluation of the radiation integrals.
+
+  %------------------------------
+  \item[\vn{ratio}] \Newline
+"Coupling parameter r" hack (\sref{ss:rlx}) for including coupling.
+
+  %------------------------------
+  \item[\vn{granularity}] \Newline
+Step size along lattice in meters to evaluate the various 
+integrals.  Set to -1 for one step per element.
+
+  %------------------------------
+  \item[\vn{x_view}] \Newline
+Index of element where projection is taken for horizontal beam size
+calculation.
+
+  %------------------------------
+  \item[\vn{y_view}] \Newline
+Index of element where projection is taken for vertical beam size
+calculation.
+
+  %------------------------------
+  \item[\vn{z_view}] \Newline
+Index of element where projection is taken for longitudinal beam size
+calculation.
+
+  %------------------------------
+  \item[\vn{mA_per_bunch}] \Newline
+Largest current per bunch in mA.
+
+  %------------------------------
+  \item[\vn{stop_mA}] \Newline
+Smallest current per bunch in mA.
+
+  %------------------------------
+  \item[\vn{delta_mA}] \Newline
+mA step size.
+
+  \end{description}
+
+%------------------------------------------------------------------
+\section{How to Run Multi-Threaded} 
+\label{s:multi}
+
+
+%------------------------------------------------------------------
+\section{Output} 
+\label{s:output}
+
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem{b:bmad}
+D. Sagan,
+"Bmad: A Relativistic Charged Particle Simulation Library"
+Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
+The Bmad web site:
+\hfill\break
+\hspace*{0.3in} \url{http://www.lepp.cornell.edu/~dcs/bmad}
+
+\bibitem{b:pw}
+Piwinski, A., ``Intra-Beam Scattering''.
+Proceedings of the 9th International Conference on High Energy Accelerators,
+Stanford, CA, 1974. p. 405.
+
+\bibitem{b:martini}
+Martini, M., CERN PS/84-9 (AA) (1984).
+
+\bibitem{b:zotter}
+Evans, L. and Zotter, B., ``Intrabeam Scattering in the SPS''.
+CERN-SPS-80-15, CERN, 1980.
+
+\bibitem{b:wolski}
+Kubo, K., Mtingwa, S. K. and Wolski, A., ``Intrabeam Scattering Formulas for 
+High Energy Beams,'' Phys. Rev. ST Accel. Beams, 8, 2005.
+
+\bibitem{b:ehr-thesis}
+Ehrlichman, M., ``Thesis: Normal Mode Analysis of Single Bunch, Charge Density
+Dependent Behavior in Electron/Positron Beams''.  Cornell University (2013).
+
+\bibitem{b:bjmt}
+Bjorken, J., Mtingwa, S., ``Intrabeam Scattering'', Particle Accelerators. 13. 
+pp. 115-143. (1983).
+
+\bibitem{b:bane-comp}
+Bane, K., ``An Accurate, Simplified Model of Intrabeam Scattering'', SLAC-AP-141,
+arXiv:physics/0205058. (2002).
+
+\bibitem{b:bane-approx}
+Bane, K. in {\it Proceedings of the 8th European Particle Accelerator Conference, Paris,
+France, 2002}, p. 1443, (2002).
+
+\bibitem{b:kubo}
+Kubo, K., Katsunobu, O., ``Intrabeam Scattering in Electron Storage Rings'',
+Phys. Rev. ST Accel. Beams 4, 124401 (2001).
+
+\bibitem{b:raubenheimer}
+Raubenheimer, T. O., ``The Core Emittance with Intrabeam Scattering in e$^+/$e$^-$ Rings'',
+Part. Accel. 45, pp. 111-118, (1994).
+
+\bibitem{b:bane-tc}
+Bane, K. L. F, Hayano, H., Kubo, K., Naito, T., Okugi, T., Urakawa, J.,
+``Intrabeam scattering analysis of measurements at KEK's ATF damping ring'',
+SLAC-PUB-9227 (also KEK-Preprint 2002-26), (2002).
+
+\bibitem{b:prst-crab}
+Ehrlichman, M., et. al., ``Measurement and Compensation of Horizontal Crabbing at the
+Cornell Electron Storage Ring Test Accelerator'',
+Submitted to Phys. Rev. ST Accel. Beams (2013).
+
+\bibitem{b:wolski-N}
+Wolski, A., ``Alternative approach to general coupled linear optics'', 
+Phys. Rev. ST Accel. Beams 9, 024001 (2006).
+
+
+
+\end{thebibliography}
+\end{document}  

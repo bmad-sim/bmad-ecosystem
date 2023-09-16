@@ -1,0 +1,12 @@
+set (EXENAME srdt_lsq_soln)
+
+set (SRC_FILES
+  srdt_lsq_soln/srdt_lsq_soln.f90
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

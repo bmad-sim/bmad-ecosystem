@@ -1,0 +1,36 @@
+
+no_digested
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[PARTICLE] = ELECTRON
+parameter[absolute_time_tracking]=true
+PARAMETER[geometry] = open
+BEGINNING[E_TOT]  = 84e6
+
+radius = 0.02
+radius2 = 0.1
+
+
+P1: PIPE, L = 1.0
+P1[wall] = {
+    section = { s = 0,
+      v(1) = {0, 0, radius}},
+    section = { s = P1[L],
+      v(1) = {0, 0, radius}}}
+
+
+
+linac: LCAVITY, L=0.115305, voltage=-78e6, rf_frequency = 1.3e9 !Half-wave cavity
+linac[wall] = {
+    section = { s = 0,
+      v(1) = {0, 0, radius2}},
+    section = { s = linac[L],
+      v(1) = {0, 0, radius2}}}
+
+
+lat: line = (P1, linac, P1)
+
+USE, lat

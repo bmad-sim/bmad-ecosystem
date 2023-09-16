@@ -1,0 +1,30 @@
+&params
+  ts%lat_file = "small_ring.bmad"
+  ts%dat_out_file = "tune_scan.dat"
+
+  ts%Q_a0 = 0.100
+  ts%Q_a1 = 0.400
+  ts%dQ_a = 0.005
+  ts%a0_amp = 1
+
+  ts%Q_b0 = 0.490
+  ts%Q_b1 = 0.700
+  ts%dQ_b = 0.005
+  ts%b0_amp = 1
+
+  ts%Q_z0 = 0.050
+  ts%Q_z1 = 0.050
+  ts%dQ_z = 0.01
+  ts%pz0_amp = 1
+
+  ts%pz0 = 0.000
+  ts%pz1 = 0.01
+  ts%dpz = 0.01
+
+  ts%n_turn = 2000
+  ts%rf_on = T
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F
+  ts%debug = .false.
+/
+

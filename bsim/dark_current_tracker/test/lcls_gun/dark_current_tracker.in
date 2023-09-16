@@ -1,0 +1,23 @@
+&dark_current_tracker_params
+  lat_name = "lat.bmad"		 ! Input lattice
+  particle_file_name = "ReferenceParticles.dat"	 ! Input particles
+
+save_tracks = true				 ! save_tracks on
+save_field = T
+
+plot_on = T
+
+parallel=F
+plot_y_min = -.03
+plot_y_max = .03
+plot_color_scale = 1
+
+!dt_save = 1e-12
+save_tracks = false				 ! save_tracks off
+
+!  verbose = false				 ! Print info to screen off
+  verbose = true				 ! Print info to screen on
+
+  min_charge_ratio = 0			 ! Only accept charges above
+						 ! max_charge / max_charge_ratio
+/

@@ -1,0 +1,14 @@
+&strob_params
+  bmad_lat = 'one_res.bmad'
+  rf_on = F
+  relaxation_tolerance = 1e-8
+  orbit_start = 1e-3, 0, 0
+  orbit_stop = 1e-3, 0, 0
+  n_points = 1, 1, 1
+  n_turns_max = 100
+  n_in_bin = 2
+  n_relaxation_max = 20
+  scatter_minimization = T
+  invar_spin_tolerance = 1e-8
+/
+

@@ -1,0 +1,17 @@
+&parameters
+    lat_file = 'lat.bmad'
+    aperture_limits = .false.
+    x0 = 0.0          ! Starting point of scan in x-y-e space
+    y0 = 0.0
+    e0 = 0.00
+    x1 = 0.002        ! Ending point of scan in x-y-e space
+    y1 = 0.010
+    e1 = 0.00
+    dx = 0.00012      ! Step size
+    dy = 0.0006
+    de = 0.001
+    out_file_prefix = 'cta_2.0GeV_12wig_21kg'  ! What to call the output files
+    n_turn = 1024     ! Number of turns to track each point
+    fft_turns = 0			! Size of FFT window. 0 -> Divide n_turn in two.
+    z_cut = .false. 	! if z_cut == .true., particles longitudinally displaced by more than 1/4 of an RF bucket are considered lost.
+/

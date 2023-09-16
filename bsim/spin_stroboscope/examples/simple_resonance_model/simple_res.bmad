@@ -1,0 +1,18 @@
+beginning[beta_a]  = 50
+beginning[alpha_a]=  0
+beginning[beta_b] = 50
+beginning[alpha_b] = 0
+
+parameter[geometry] = closed
+parameter[p0c] = 1e6
+
+parameter[custom_attribute1] = "custom::kappa"
+parameter[custom_attribute2] = "custom::nu0"
+parameter[custom_attribute3] = "custom::eps_k"
+
+! a1: custom, mat6_calc_method = tracking, kappa = 0.23, nu0 = 0.30, eps_k = 0.2
+a1: custom, mat6_calc_method = tracking, kappa = 0.61803398875, nu0 = 0.55, eps_k = 0.2
+lat: line = (a1)
+USE, lat
+
+

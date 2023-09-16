@@ -1,0 +1,13 @@
+set (EXENAME dark_current_tracker)
+
+FILE (GLOB SRC_FILES dark_current_tracker/*.f90)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

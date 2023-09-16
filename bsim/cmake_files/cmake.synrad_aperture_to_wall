@@ -1,0 +1,14 @@
+set (EXENAME synrad_aperture_to_wall)
+set (SRC_FILES
+  synrad_aperture_to_wall/synrad_aperture_to_wall.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

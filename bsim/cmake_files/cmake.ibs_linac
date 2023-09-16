@@ -1,0 +1,16 @@
+set (EXENAME ibs_linac)
+
+set (SRC_FILES
+  ibs_linac/ibs_linac.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

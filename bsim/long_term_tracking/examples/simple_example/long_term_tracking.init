@@ -1,0 +1,33 @@
+&params
+  ltt%lat_file = 'simple_ring.bmad'         ! Lattice file
+  ltt%ele_start = '2'                   ! Where to start in the lattice
+  ltt%ele_stop = ''                     ! Where to start in the lattice
+
+  ltt%phase_space_output_file = 'ps.dat'
+  ltt%averages_output_file = '#.dat'
+  ltt%beam_binary_output_file = ''
+  ltt%averages_output_every_n_turns = 1
+
+  ltt%simulation_mode = 'CHECK'
+  ltt%tracking_method = 'MAP'   !
+  ltt%n_turns = 20                         ! Number of turns to track
+  ltt%rfcavity_on = T
+  ltt%map_order = 3
+  ltt%split_bends_for_stochastic_rad = T
+  ltt%random_seed = 0                       ! Random number seed. 0 => use system clock.
+  ltt%timer_print_dtime = 300
+  ltt%add_closed_orbit_to_init_position = F
+  ltt%ptc_aperture = 0.1, 0.1           ! Apertures when tracking_method = "MAP" or "PTC"
+
+  bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F 
+
+  beam_init%n_particle = 10
+  beam_init%spin = 1, 1, 0              ! See Bmad manual for beam_init_struct parameters.
+  beam_init%center = 0.001, 0, 0, 0, 0, 0
+  beam_init%a_emit = 1e-8
+  beam_init%b_emit = 1e-8
+  beam_init%sig_z = 1e-4
+  beam_init%sig_pz = 1e-4
+/

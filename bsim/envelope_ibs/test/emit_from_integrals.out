@@ -1,0 +1,5 @@
+ From envelope-based radiation integrals and IBS calculations: 
+  Emittance (SR only):           1.36945E-10   1.22119E-11   2.69128E-06
+  Emittance (with IBS):          1.86668E-10   1.65864E-11   3.27442E-06
+  Damping decrements (alpha):    2.06629E-04   1.22294E-04   1.45747E-04
+  Damping times:                 4.68797E-03   7.92082E-03   6.64622E-03

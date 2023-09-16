@@ -1,0 +1,466 @@
+!+
+! Translated from MADX to Bmad by madx_to_bmad.py
+! File: DA_opt.madx
+!-
+
+!-------------
+! Added by hand. The following were not defined in the madx file:
+
+s5  = 0
+s6  = 0
+kd0 = 0
+kf1 = 0
+kd1 = 0
+kf2 = 0
+kd2 = 0
+kf3 = 0
+kd3 = 0
+kf4 = 0
+kd4 = 0
+kf5 = 0
+kd5 = 0
+kf6 = 0
+kd6 = 0
+kf7 = 0
+kd7 = 0
+kf8 = 0
+kd8 = 0
+
+!-------------
+! Values from MAD lattice
+
+!kf = 0.3488924199
+!kd = 0.4207816892
+
+!s1 = -3.373365252
+!s2 = 1.839397265
+!s3 = -3.373365252
+!s4 = 1.839397265
+
+
+!-------------
+! Tuned values
+
+kf = 0.3496387319   ! Qx = 57.88
+kd = 0.4208336761   ! Qy = 60.71
+
+s1 = -3.393666284
+s2 = 1.908892205
+s3 = -3.393666284
+s4 = 1.908892205
+
+!
+
+none = 0
+kd8m = 0.07010741036
+! Duplicate: hk = 0
+! Duplicate: vk = 0
+kf8m = -0.1241221152
+kd7m = -0.2640053341
+kf7m = -0.09051598249
+kd6m = 0.04806092253
+kf6m = 0.1690034295
+s9 = 0
+kd5m = 0.1785145022
+kf5m = 0.2168667231
+kd4m = 0.1251337868
+kf4m = 0.1462681603
+kd3m = 0.1635301776
+s8 = 0
+kf3m = 0.2058820936
+kd2m = 0.1479474798
+kf2m = 0.2973822179
+kd1m = 0.2001521386
+s7 = 0
+kf1m = 0.2833372082
+kd0m = 0.238543803
+kd0n = 0.2653171115
+kf1n = 0.3398506278
+kd1n = 0.1750677405
+kf2n = 0.1715989561
+kd2n = 0.1539951277
+kf3n = 0.1887295673
+kd3n = 0.1254148793
+! Duplicate: volt_rf = 0
+kf4n = 0.1812851176
+kd4n = 0.1751336655
+kf5n = 0.2748633189
+kd5n = 0.2008445444
+kf6n = 0.2743664086
+kd6n = 0.08954079904
+kf7n = -0.1231367716
+kd7n = -0.2717652947
+kf8n = -0.2254805881
+kd8n = -0.2856027626
+kfold = KF
+kdold = KD
+ange = 0.0
+lkick = 0.5
+qx0 = 59.28
+qy0 = 60.18
+chx0 = 2.0
+chy0 = 2.0
+circ = 3841.3513
+ncells = 32.0
+larc = 403.0552646
+lenir = (CIRC/6.0 - LARC)/2.0
+harmon_rf = 7560
+! Duplicate: volt_rf = 3.255
+lag_rf = 0.5
+lq = 0.6
+lrf = 1.0
+lrf2 = 1.2
+lbend = 1.922589255
+bdif = 0.2
+lsx = 0.5
+lcell = LARC/NCELLS
+ldif = 0.5*(LCELL/2.0 - LQ - LBEND*2.0-BDIF) -lkick
+lqd = 2.25256/2.0
+ldift = LQD -lkick-LQ/2.0
+lcellt = 4*(LQD+LBEND+BDIF/2)
+larct = LCELLt*NCELLS
+nbends = 4.0*NCELLS
+rho = 3.0*NBENDS*LBEND/PI
+ldsx = (LDIF - LSX +lkick)/2.0
+ldsx0 = (LDIF - LSX+lkick )/2.0
+lspst = LENIR/16.0 - LQ-lkick
+lspstm = LENIR/16.0 - LQ-lkick
+lqrf = LSPST - LRF - LSX - LDIF - LDSX
+hk = 0.0
+vk = 0.0
+volt_rf = 0.005
+
+TITLE, "20GeV ring for Ring-Ring eRHIC"
+!
+parameter[particle] = electron
+parameter[E_tot] = 1 * 1e9
+!
+! ------- The strengths -----------------------------------
+!
+! The quadrupole strengths
+
+
+
+
+
+
+
+cmag: kicker, l = lkick, hkick = hk, vkick = vk
+!
+! Sets all sextupoles to zero (to get the natural chromaticity).
+!s1 =   0.0;
+!s2 =   0.0;
+!s3 =   0.0;
+!s4 =   0.0;
+!s5 =   0.0;
+!s6 =   0.0;
+!s7 =   0.0;
+!s8 =   0.0;
+!s9 =   0.0;
+!
+! ------- Some other parameters ---------------------------
+!
+! The FODO cell parameters
+!
+! ------- The geometry ------------------------------------
+! Global parameters.
+
+!
+! The quadrpole length.
+!
+! Length of the RF cavities.
+! Length of Dipole Bending magnets
+! Length of space between bends
+! Sextupole length.
+!
+! The arc dipole length. 6 Arcs total 360 degrees of bending
+! magnets. Each  Arc  is  60 degrees = PI/3  bending  angle.
+! Between 12 + 2 cells and the dispersion suppressors  there
+! are the equivalent of 32 arc dipoles.
+
+
+
+
+!stop;
+!
+! The bending radius for the dipole magnets.
+!
+! Drift spoace lengths.
+!LEMPTY   := 2.0*LDIF + LBEND;
+
+
+
+!stop;
+
+!
+! ------- The sextupoles ----------------------------------
+sx1: sextupole, l = lsx, k2 = s1
+sx2: sextupole, l = lsx, k2 = s2
+sx3: sextupole, l = lsx, k2 = s3
+sx4: sextupole, l = lsx, k2 = s4
+sx5: sextupole, l = lsx, k2 = s5
+sx6: sextupole, l = lsx, k2 = s6
+sx7: sextupole, l = lsx, k2 = s7
+sx8: sextupole, l = lsx, k2 = s8
+sx9: sextupole, l = lsx, k2 = s9
+!
+! ------- The quadrupoles ---------------------------------
+hqf: quadrupole, l = lq, k1 = kf
+hqd: quadrupole, l = lq, k1 = -kd
+hqd0: quadrupole, l = lq, k1 = -kd0
+hqf1: quadrupole, l = lq, k1 = kf1
+hqd1: quadrupole, l = lq, k1 = -kd1
+hqf2: quadrupole, l = lq, k1 = kf2
+hqd2: quadrupole, l = lq, k1 = -kd2
+hqf3: quadrupole, l = lq, k1 = kf3
+hqd3: quadrupole, l = lq, k1 = -kd3
+hqf4: quadrupole, l = lq, k1 = kf4
+hqd4: quadrupole, l = lq, k1 = -kd4
+hqf5: quadrupole, l = lq, k1 = kf5
+hqd5: quadrupole, l = lq, k1 = -kd5
+hqf6: quadrupole, l = lq, k1 = kf6
+hqd6: quadrupole, l = lq, k1 = -kd6
+hqf7: quadrupole, l = lq, k1 = kf7
+hqd7: quadrupole, l = lq, k1 = -kd7
+hqf8: quadrupole, l = lq, k1 = kf8
+hqd8: quadrupole, l = lq/2.0, k1 = -kd8
+
+hqd0m: quadrupole, l = lq, k1 = -kd0m
+hqf1m: quadrupole, l = lq, k1 = kf1m
+hqd1m: quadrupole, l = lq, k1 = -kd1m
+hqf2m: quadrupole, l = lq, k1 = kf2m
+hqd2m: quadrupole, l = lq, k1 = -kd2m
+hqf3m: quadrupole, l = lq, k1 = kf3m
+hqd3m: quadrupole, l = lq, k1 = -kd3m
+hqf4m: quadrupole, l = lq, k1 = kf4m
+hqd4m: quadrupole, l = lq, k1 = -kd4m
+hqf5m: quadrupole, l = lq, k1 = kf5m
+hqd5m: quadrupole, l = lq, k1 = -kd5m
+hqf6m: quadrupole, l = lq, k1 = kf6m
+hqd6m: quadrupole, l = lq, k1 = -kd6m
+hqf7m: quadrupole, l = lq, k1 = kf7m
+hqd7m: quadrupole, l = lq, k1 = -kd7m
+hqf8m: quadrupole, l = lq, k1 = kf8m
+hqd8m: quadrupole, l = lq/2.0, k1 = -kd8m
+
+hqd0n: quadrupole, l = lq, k1 = -kd0n
+hqf1n: quadrupole, l = lq, k1 = kf1n
+hqd1n: quadrupole, l = lq, k1 = -kd1n
+hqf2n: quadrupole, l = lq, k1 = kf2n
+hqd2n: quadrupole, l = lq, k1 = -kd2n
+hqf3n: quadrupole, l = lq, k1 = kf3n
+hqd3n: quadrupole, l = lq, k1 = -kd3n
+hqf4n: quadrupole, l = lq, k1 = kf4n
+hqd4n: quadrupole, l = lq, k1 = -kd4n
+hqf5n: quadrupole, l = lq, k1 = kf5n
+hqd5n: quadrupole, l = lq, k1 = -kd5n
+hqf6n: quadrupole, l = lq, k1 = kf6n
+hqd6n: quadrupole, l = lq, k1 = -kd6n
+hqf7n: quadrupole, l = lq, k1 = kf7n
+hqd7n: quadrupole, l = lq, k1 = -kd7n
+hqf8n: quadrupole, l = lq, k1 = kf8n
+hqd8n: quadrupole, l = lq/2.0, k1 = -kd8n
+!
+! ------- The dipoles.
+d0: sbend, l = lbend, angle = lbend/rho
+de: sbend, l = lbend*2+bdif-lkick, angle = ange
+
+
+
+!stop;
+
+!
+! ------- RF Cavities.
+rf0: rfcavity, l = lrf2, harmon = harmon_rf, voltage = volt_rf * 1e6, phi0 = lag_rf - 0.5
+!
+! ------- Drifts.
+oempty: drift, l = lrf
+space: drift, l = bdif
+hspace: drift, l = bdif/2.0
+odif: drift, l = ldif
+odsx: drift, l = ldsx
+odsx4: drift, l = ldsx+4.704459
+odsx2: drift, l = ldsx+0.016917
+odsx0: drift, l = ldsx+4.7044594
+oqrf: drift, l = lqrf
+oqrfd: drift, l = 81.017779 - 77.2329601
+ospst: drift, l = lspst
+ospstr: drift, l = lspst-5*lrf2
+ospstl: drift, l = lspst+4.7044594
+ospst2: drift, l = lspst-lbend+3.8795792
+ospstd: drift, l = lspst+0.0169157
+ospstd2: drift, l = lspst-1.6071014
+ospst3: drift, l = lspst-lbend+3.8795792-0.1103
+ospst0: drift, l = lspst-lbend
+ospst1: drift, l = lspst-lbend+0.055861786/2
+!0.05584179559/2
+!OSPST1	 : DRIFT, L = LSPST-LBEND*2;
+
+!stop;
+!
+D	  : LINE=(D0,SPACE,D0)
+
+
+! ------- Markers.
+mst: marker
+mst0: marker
+mst1: marker
+mq: monitor
+mq0d: monitor
+mq1d: monitor
+mq2d: monitor
+mq3d: monitor
+mq4d: monitor
+mq5d: monitor
+mq6d: monitor
+mq7d: monitor
+mq8d: monitor
+mq1f: monitor
+mq2f: monitor
+mq3f: monitor
+mq4f: monitor
+mq5f: monitor
+mq6f: monitor
+mq7f: monitor
+mq8f: monitor
+
+mq0dn: monitor
+mq1dn: monitor
+mq2dn: monitor
+mq3dn: monitor
+mq4dn: monitor
+mq5dn: monitor
+mq6dn: monitor
+mq7dn: monitor
+mq8dn: monitor
+mq1fn: monitor
+mq2fn: monitor
+mq3fn: monitor
+mq4fn: monitor
+mq5fn: monitor
+mq6fn: monitor
+mq7fn: monitor
+mq8fn: monitor
+ip6: marker
+ip8: marker
+ip10: marker
+ip12: marker
+ip4: marker
+ip2: marker
+mbeg: marker
+mend: marker
+left: marker
+right: marker
+right0: marker
+left0: marker
+right1: marker
+left1: marker
+right2: marker
+left2: marker
+right3: marker
+left3: marker
+right4: marker
+left4: marker
+right5: marker
+left5: marker
+!
+! A MACRO for printing the values.
+!
+! Packing fractions [%].
+!
+! Lengths and main parameters.
+!
+! Quadrupole strengths.
+!
+! Sextupole strengths.
+! -------- The FODO cell beam line ------------------------
+ACELL : LINE=(ODSX, SX1, ODSX, D, ODIF, cmag,HQF,MQ, ODSX, SX2, ODSX,D, ODIF, cmag,HQD,MQ)
+BCELL : LINE=(ODSX, SX3, ODSX, D, ODIF, cmag,HQF,MQ, ODSX, SX4, ODSX,D, ODIF, cmag,HQD,MQ)
+ECELL : LINE=(left, ODSX, SX1, ODSX, D, ODIF,cmag, HQF,MQ)
+ECELL0 : LINE=(ODSX, SX3, ODSX, D, ODIF)
+ECELL1 : LINE=(left, ODSX, SX3, ODSX0, D, ODIF,cmag, HQF,MQ)
+
+
+SCELL : LINE=( HQF,MQ, ODSX, SX4, ODSX, D, ODIF, cmag,HQD,MQ,right)
+SCELL1 : LINE=( HQF,MQ, ODSX, SX4, ODSX, D, ODIF,cmag, HQD,MQ,right)
+!
+
+
+!
+! ------- The beam lines ----------------------------------
+!
+! The straight section.
+TM    : LINE=(MBEG,cmag, ODSX, SX4, ODSX,DE, ODIF,cmag, HQD0,MQ0D, OSPST, cmag,HQF1, MQ1F, OQRF, OEMPTY, ODIF, SX7,ODSX,
+         cmag, HQD1, MQ1D, OSPSTD2,D, cmag, HQF2, MQ2F, OSPST,cmag,HQD2, MQ2D,  OSPST, cmag, HQF3, MQ3F, OQRF, OEMPTY, ODIF,SX8,
+          ODSX2,D,cmag, HQD3, MQ3D, OSPST, cmag, HQF4, MQ4F, OSPST,cmag,HQD4, MQ4D,  OSPST, cmag, HQF5, MQ5F,  OSPST, cmag, HQD5,
+          MQ5D,ODSX, SX9, ODIF, OEMPTY, OQRF, cmag, HQF6, MQ6F, OSPST,cmag,HQD6, MQ6D, OSPST, cmag, HQF7, MQ7F, OSPST,cmag,HQD7,
+         MQ7D, OSPST, cmag, HQF8, MQ8F, OSPST2,cmag,HQD8,MQ8D,D,HSPACE, MEND)
+
+TM0    : LINE=(MBEG,cmag, ODSX, SX2, ODSX,DE, ODIF, cmag, HQD0m,MQ0D, OSPSTL, cmag, HQF1m, MQ1F, OQRF, OEMPTY, ODIF,
+          SX7,ODSX, cmag, HQD1m, MQ1D,D, OSPSTD, cmag, HQF2m, MQ2F, OSPST,cmag,HQD2m, MQ2D,  OSPST, cmag, HQF3m, MQ3F,D ,OQRFD,
+          OEMPTY, ODIF,SX8, ODSX, cmag, HQD3m, MQ3D, OSPST, cmag, HQF4m, MQ4F, OSPST,cmag,HQD4m, MQ4D,  OSPST, cmag, HQF5m, MQ5F,
+           OSPST, cmag, HQD5m, MQ5D,ODSX, SX9, ODIF, OEMPTY, OQRF, cmag, HQF6m, MQ6F, OSPST, cmag,HQD6m, MQ6D, OSPST, cmag,
+          HQF7m, MQ7F, OSPST, cmag,HQD7m, MQ7D, OSPST0, cmag, HQF8m, MQ8F, OSPST1, cmag,HQD8m,MQ8D,D,HSPACE, MEND)
+
+TM1    : LINE=(MBEG,cmag, ODSX, SX3, ODSX,DE, ODIF, cmag, HQD0m,MQ0D, OSPSTL, cmag, HQF1m, MQ1F, OQRF, OEMPTY, ODIF,
+          SX7,ODSX, cmag, HQD1m, MQ1D,D, OSPSTD, cmag, HQF2m, MQ2F, OSPST,cmag,HQD2m, MQ2D,  OSPST, cmag, HQF3m, MQ3F,D ,OQRFD,
+          OEMPTY, ODIF,SX8, ODSX, cmag, HQD3m, MQ3D, OSPST, cmag, HQF4m, MQ4F, OSPST,cmag,HQD4m, MQ4D,  OSPST, cmag, HQF5m, MQ5F,
+           OSPST, cmag, HQD5m, MQ5D,ODSX, SX9, ODIF, OEMPTY, OQRF, cmag, HQF6m, MQ6F, OSPST, cmag,HQD6m, MQ6D, OSPST, cmag,
+          HQF7m, MQ7F, OSPST, cmag,HQD7m, MQ7D, OSPST0, cmag, HQF8m, MQ8F, OSPST1, cmag,HQD8m,MQ8D,D,HSPACE, MEND)
+
+TM3    : LINE=(MBEG,cmag, ODSX, SX2, ODSX,DE, ODIF,cmag, HQD0n,MQ0Dn, OSPST, cmag,HQF1n, MQ1Fn, OQRF, OEMPTY, ODIF, SX7,
+         ODSX,cmag, HQD1n, MQ1Dn, OSPSTD2,D, cmag, HQF2n, MQ2Fn, OSPST,cmag,HQD2n, MQ2Dn,  OSPST, cmag, HQF3n, MQ3Fn, OQRF,
+          OEMPTY, ODIF,SX8, ODSX2,D,HSPACE,HSPACE,D,cmag, HQD3n,MST, MQ3Dn, OSPST, cmag, HQF4n, MQ4Fn, OSPST,cmag,HQD4n, MQ4Dn,
+           OSPST, cmag, HQF5n, MQ5Fn,  OSPST, cmag, HQD5n, MQ5Dn,ODSX, SX9, ODIF, OEMPTY, OQRF, cmag, HQF6n, MQ6Fn, OSPST,cmag,
+         HQD6n, MQ6Dn, OSPST, cmag, HQF7n, MQ7Fn, OSPST,cmag,HQD7n, MQ7Dn, OSPST, cmag, HQF8n, MQ8Fn, OSPST3,cmag,HQD8n, MQ8Dn,
+          MEND)
+
+TM4    : LINE=(MBEG,cmag, ODSX, SX3, ODSX,DE, ODIF,cmag, HQD0n,MQ0Dn, OSPST, cmag,HQF1n, MQ1Fn, OQRF, OEMPTY, ODIF, SX7,
+         ODSX,cmag, HQD1n, MQ1Dn, OSPSTD2,D, cmag, HQF2n, MQ2Fn, OSPST,cmag,HQD2n, MQ2Dn,  OSPST, cmag, HQF3n, MQ3Fn, OQRF,
+          OEMPTY, ODIF,SX8, ODSX2,D,HSPACE,HSPACE,D,cmag, HQD3n,MST, MQ3Dn, OSPST, cmag, HQF4n, MQ4Fn, OSPST,cmag,HQD4n, MQ4Dn,
+           OSPST, cmag, HQF5n, MQ5Fn,  OSPST, cmag, HQD5n, MQ5Dn,ODSX, SX9, ODIF, OEMPTY, OQRF, cmag, HQF6n, MQ6Fn, OSPST,cmag,
+         HQD6n, MQ6Dn, OSPST, cmag, HQF7n, MQ7Fn, OSPST,cmag,HQD7n, MQ7Dn, OSPST, cmag, HQF8n, MQ8Fn, OSPST3,cmag,HQD8n, MQ8Dn,
+          MEND)
+
+TMRF0    : LINE=(MBEG,cmag, ODSX, SX2, ODSX,DE, ODIF,cmag, HQD0n,MQ0Dn, OSPST, cmag,HQF1n, MQ1Fn, OQRF, OEMPTY, ODIF,
+          SX7,ODSX,cmag, HQD1n, MQ1Dn, OSPSTD2,D, cmag, HQF2n, MQ2Fn, OSPST,cmag,HQD2n, MQ2Dn,  OSPST, cmag, HQF3n, MQ3Fn, OQRF,
+          OEMPTY, ODIF,SX8, ODSX2,D,HSPACE,HSPACE,D,cmag, HQD3n,MST0, MQ3Dn, RF0,RF0,RF0,RF0,RF0,OSPSTR, cmag, HQF4n, MQ4Fn,RF0,
+         RF0,RF0,RF0,RF0,OSPSTR,cmag,HQD4n, MQ4Dn,  OSPST, cmag, HQF5n, MQ5Fn,  OSPST, cmag, HQD5n, MQ5Dn,ODSX, SX9, ODIF,
+          OEMPTY, OQRF, cmag, HQF6n, MQ6Fn, OSPST,cmag,HQD6n, MQ6Dn, OSPST, cmag, HQF7n, MQ7Fn, OSPST,cmag,HQD7n, MQ7Dn, OSPST,
+          cmag, HQF8n, MQ8Fn, OSPST3,cmag,HQD8n, MQ8Dn, MEND)
+
+TMRF1    : LINE=(MBEG,cmag, ODSX, SX3, ODSX,DE, ODIF,cmag, HQD0n,MQ0Dn, OSPST, cmag,HQF1n, MQ1Fn, OQRF, OEMPTY, ODIF,
+          SX7,ODSX,cmag, HQD1n, MQ1Dn, OSPSTD2,D, cmag, HQF2n, MQ2Fn, OSPST,cmag,HQD2n, MQ2Dn,  OSPST, cmag, HQF3n, MQ3Fn, OQRF,
+          OEMPTY, ODIF,SX8, ODSX2,D,HSPACE,HSPACE,D,cmag, HQD3n,MST1, MQ3Dn,  RF0,RF0,RF0,RF0,RF0,OSPSTR, cmag, HQF4n, MQ4Fn,RF0,
+         RF0,RF0,RF0,RF0,OSPSTR,cmag,HQD4n, MQ4Dn,  OSPST, cmag, HQF5n, MQ5Fn,  OSPST, cmag, HQD5n, MQ5Dn,ODSX, SX9, ODIF,
+          OEMPTY, OQRF, cmag, HQF6n, MQ6Fn, OSPST,cmag,HQD6n, MQ6Dn, OSPST, cmag, HQF7n, MQ7Fn, OSPST,cmag,HQD7n, MQ7Dn, OSPST,
+          cmag, HQF8n, MQ8Fn, OSPST3,cmag,HQD8n, MQ8Dn, MEND)
+
+
+
+
+!
+! The full Arc.
+AARC  : LINE=(SCELL,14*(ACELL, BCELL), ECELL)
+
+
+
+! The FODO Cell (CELL) optics.
+use, acell
+!   PLOT,VAXIS1=BETX,BETY,VAXIS2=DX,HAXIS=S,COLOUR=100,INTERPOLATE=TRUE,
+!        TABLE=twiss,TITLE="CELL";
+
+LIP8 : LINE=(TM0,IP8,-TM1)
+LIP10 : LINE=(TMRF0,IP10,-TMRF1)
+
+
+!stop;
+!stop;
+!
+! A ring.
+RING  : LINE=(IP6, -TM1,right5, AARC,left0, TM0, IP8, -TM1,right0, AARC,left1, TMRF0, IP10, -TMRF1,right1, AARC,left2,
+         TM3, IP12, -TM4,right2, AARC,left3, TM3, IP2, -TM4,right3, AARC,left4, TM3, IP4, -TM4,right4, AARC, left5,TM0, IP6)
+
+use, ring
+
+

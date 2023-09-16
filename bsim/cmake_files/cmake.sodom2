@@ -1,0 +1,13 @@
+set (EXENAME sodom2)
+
+FILE (GLOB SRC_FILES sodom2/*.f90)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

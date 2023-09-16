@@ -1,0 +1,28 @@
+set (EXENAME aperture_by_tracking)
+set (SRC_FILES
+  aperture_by_tracking/aperture_by_tracking.f90
+  aperture_by_tracking/aperture_by_tracking_mod.f90
+  aperture_by_tracking/aperture_by_tracking_mpi_mod.f90
+)
+
+set (INC_DIRS
+  /usr/local/include
+)
+
+set (LINK_DIRS
+  /usr/local/lib
+)
+
+
+set (LINK_LIBS
+	bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)
+
+#set (SHARED_LINK_LIBS
+#  mpi_f90
+#  mpi_f77
+#  mpi
+#)

@@ -1,0 +1,10 @@
+set (EXENAME frequency_map)
+
+FILE (GLOB SRC_FILES frequency_map/*.f90)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

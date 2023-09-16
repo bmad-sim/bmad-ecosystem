@@ -1,0 +1,16 @@
+set (EXENAME tune_plane_res_plot)
+set (SRC_FILES
+  tune_plane_res_plot/tune_plane_res_plot.f90
+  tune_plane_res_plot/tune_plane_res_mod.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

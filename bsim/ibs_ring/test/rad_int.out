@@ -1,0 +1,12 @@
+ Beam distribution parameters before IBS:
+    emit_a      :   3.800000000000000E-009
+    emit_b      :   1.790000000000000E-011
+    sigmaE_E    :   8.126045314880993E-004
+    sigma_z     :   9.214969169335188E-003
+ 
+ Beam distribution parameters after IBS:
+    emit_a      :   1.119898859262764E-008
+    emit_b      :   2.027889776673552E-011
+    sigmaE_E    :   8.738823344027307E-004
+    sigma_z     :   9.909862001878045E-003
+ 

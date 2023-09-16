@@ -1,0 +1,73 @@
+!+
+! Example wall specification:
+!-
+
+&shape_def
+  name = "rectangular1"
+  v(1) = 0.045, 0.025
+/
+
+&multi_place
+  name = "zigzag"
+  section(1) = 0.00, "inzig", 'dip1'
+  section(2) = 0.02, "outzag", "rect_zag"
+  section(3) = 0.08, "closed", "end_marker"
+/
+
+&shape_def
+  name = "dip1"
+  v(1) =  0.01378  0.01715 0.02200 0.02200
+  v(2) = -0.01378  0.01715
+  v(3) = -0.01378 -0.01715 0.02200, 0.02200
+  v(4) =  0.01378 -0.01715
+/
+
+&shape_def
+  name = "rect_zag"
+  v(1) = 0.0901, 0.04
+/
+
+&shape_def
+  name = 'z1_shape'
+  r0 = 0.1, 0.01
+  v(1) = 0.03, 0.03
+/
+
+&shape_def
+  name = 'z2_shape'
+  absolute_vertices = T
+  r0 = 0.1, 0.01
+  v(1) =  0.13,  0.04
+  v(2) =  0.07,  0.04
+  v(3) =  0.07, -0.02
+  v(4) =  0.13, -0.02
+/
+
+&shape_def
+	name = 'f_shape'
+	v(1) = 0.0, 0.0, 0.02
+/
+
+! This defines the "CCu" surface.
+&surface_def
+	reflectivity_file = 'reflection_surface.table'
+/
+
+&place section = 0.0,  'rec1', 'rectangular1' /
+&place section = 10.0, '',     'zigzag', 10 /
+&place section = 768.42, 'rec2', 'rectangular1' /
+
+&place section =  0, 'z1', 'ante:z1_shape' /
+&place section = 768.42, 'z2', 'ante:z2_shape' /
+
+! Note: The f subchamber wraps around zero.
+&place section = 0, '', 'f:z2_shape' /
+&place section = 1, '', 'f:f_shape@END' 
+	     surface = "CCu" /
+&place section = 14, '', 'f:f_shape@START' /
+&place section = 768.42, '', 'f:z2_shape' /
+
+&slow_fast
+	slow = ''
+	fast = 'f'
+/

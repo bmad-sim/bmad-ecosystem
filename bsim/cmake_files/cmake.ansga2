@@ -1,0 +1,8 @@
+set (EXENAME ansga2)
+
+set (SRC_FILES
+  apisa/nsga2/nsga2.cpp
+  apisa/nsga2/nsga2_functions.cpp
+  apisa/nsga2/nsga2.hpp
+  apisa/nsga2/nsga2_io.cpp
+)

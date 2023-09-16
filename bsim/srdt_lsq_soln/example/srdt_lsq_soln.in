@@ -1,0 +1,36 @@
+&srdt_lsq
+  lat_file = 'bmad.lat'
+  chrom_x = 1.0
+  chrom_y = 1.0
+  gen_slices = 30
+  sxt_slices = 60
+  var_names = 'SEX_09AW','SEX_10W', 'SEX_10AW','SEX_12W', 'SEX_13W', 'SEX_14W',
+              'SEX_15W', 'SEX_16W', 'SEX_17W', 'SEX_18W', 'SEX_19W', 'SEX_20W',
+              'SEX_21W', 'SEX_22W', 'SEX_23W', 'SEX_24W', 'SEX_25W', 'SEX_26W',
+              'SEX_27W', 'SEX_28W', 'SEX_29W', 'SEX_30W', 'SEX_31W', 'SEX_32W',
+              'SEX_33W', 'SEX_34W', 'SEX_35W', 'SEX_36W', 'SEX_37W', 'SEX_38W',
+              'SEX_39W', 'SEX_40W', 'SEX_41W', 'SEX_42W', 'SEX_43W', 'SEX_44W',
+              'SEX_45W', 'SEX_47W', 'SEX_47E', 'SEX_45E', 'SEX_44E', 'SEX_43E',
+              'SEX_42E', 'SEX_41E', 'SEX_40E', 'SEX_39E', 'SEX_38E', 'SEX_37E',
+              'SEX_36E', 'SEX_35E', 'SEX_34E', 'SEX_33E', 'SEX_32E', 'SEX_31E',
+              'SEX_30E', 'SEX_29E', 'SEX_28E', 'SEX_27E', 'SEX_26E', 'SEX_25E',
+              'SEX_24E', 'SEX_23E', 'SEX_22E', 'SEX_21E', 'SEX_20E', 'SEX_19E',
+              'SEX_18E', 'SEX_17E', 'SEX_16E', 'SEX_15E', 'SEX_14E', 'SEX_13E',
+              'SEX_12E', 'SEX_11E', 'SEX_10AE','SEX_09AE'
+
+
+! Any weight terms equal to zero are given default values which is 1.0e4 for wgt_chrom_x and
+! wgt_chrom_y and is 1.0 for everything else.
+
+wgt_chrom_x = 0
+wgt_chrom_y = 0
+wgt_h20001 = 0
+wgt_h00201 = 0
+wgt_h10002 = 0
+wgt_h21000 = 0
+wgt_h30000 = 0
+wgt_h10110 = 0
+wgt_h10020 = 0
+wgt_h10200 = 0
+
+/
