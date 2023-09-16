@@ -1,0 +1,46 @@
+no_digested
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 1e9
+parameter[geometry] = open
+
+a: quadrupole, l = 1, field_overlaps = b, field_overlaps = c, field_overlaps = yy
+b: quadrupole, l = 1
+c: quadrupole, l = 1
+
+dd: drift
+
+xx: quadrupole, l = 1, field_overlaps = yy
+yy: quadrupole, l = 1, field_overlaps = xx
+
+tt1: quad, l = 1, field_overlaps = tt2
+tt2: quad, l = 1, field_overlaps = tt1
+
+ma: marker, superimpose, ref = a
+mb: marker, superimpose, ref = b
+
+d: drift, l = 10
+
+z1: line[multipass] = (a, b, c)
+
+z2: line = (dd, z1, d, z1)
+z2[beta_a] = 10
+z2[beta_b] = 10
+z2[geometry] = open
+
+ylin: line = (dd, yy)
+ylin[beta_a] = 10
+ylin[beta_b] = 10
+ylin[geometry] = open
+
+use, xlin, ylin, z2
+
+gg: girder = {z1}
+
+xlin: line = (dd&
+, xx, tt1, tt2)
+
+xlin[beta_a] = 10
+xlin[beta_b] = 10
+xlin[geometry] = open
+

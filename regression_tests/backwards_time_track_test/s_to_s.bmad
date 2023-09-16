@@ -1,0 +1,41 @@
+parameter[e_tot] = 1e6
+parameter[n_part] = 1e10
+parameter[ptc_exact_model] = True
+parameter[no_end_marker] = True
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+fff = 1
+particle_start[x]  = 0.001*fff
+particle_start[px] = 0.002*fff
+particle_start[y]  = 0.003*fff
+particle_start[py] = 0.004*fff
+particle_start[z]  = 0.005*fff
+particle_start[pz] = 0.006*fff
+particle_start[spin_x] = 0.3
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
+
+crab_cavity1:      crab_cavity, l = 0.6, voltage = 1e3, phi0 = -0.2, rf_frequency = 1e8
+e_gun1:            e_gun, l = 2, voltage = 0.5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
+patch1:            patch, x_offset = 0.01, y_offset = 0.02, z_offset = 1, t_offset = 1e-11, x_pitch = 0.001, y_pitch = 0.002, tilt = 2
+
+q0: quadrupole, a0 = 0.01, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e4
+quadrupole1:       q0, l = 0.6, k1 = -0.11, tilt, num_steps = 10, x_offset = 0.001, y_pitch = 0.001
+rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, phi0 = -0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1
+sb0: sbend, a0 = 0.01, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e4, r0_mag = 2, r0_elec = 3
+sbend1:            sb0, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, exact_multipole=vertically_pure
+
+
+l1: line = (e_gun1, crab_cavity1, crab_cavity1, patch1, patch1, quadrupole1, quadrupole1, rfcavity1, rfcavity1, lcavity1, lcavity1)
+l1[e_tot] = 1e6
+l1[geometry] = open
+l1[beta_a] = 10
+l1[beta_b] = 10
+
+!-----------
+
+use, l1

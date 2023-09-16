@@ -1,0 +1,30 @@
+no_digested
+parameter[e_tot] = 1e9
+parameter[ptc_exact_model] = true
+parameter[geometry] = open
+
+parameter[taylor_order] = 3
+
+particle_start[x]  = 0.002
+particle_start[px] = 0.0
+particle_start[y]  = 0.0
+particle_start[py] = 0.0
+particle_start[z]  = 0.0
+particle_start[pz] = 0.0
+particle_start[spin_x] = 0.3
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
+
+q: quad, l = 0.2, b1_elec = 1e8, num_steps = 10, tracking_method = runge_kutta, r0_elec = 2
+tt: taylor, {S1: cos(-pi/4) |}, {Sy: sin(-pi/4) |}      !! Old: {xz: -1|}, {yy: 1|}, {zx: 1|}
+
+ll: line = (q, tt)
+use, ll
+
+end_file
+
+!----------------------------
+
+&param
+  dr = 0.001, 0, 0, 0, 0, 0
+/

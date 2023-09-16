@@ -1,0 +1,33 @@
+&params
+  ltt%lat_file = 'lat.bmad'         ! Lattice file
+  ltt%ramping_on = F
+  ltt%ramping_start_time = 0
+  ltt%regression_test = T
+
+  ltt%particle_output_file = ''
+  ltt%averages_output_file = ''
+  ltt%sigma_matrix_output_file = ''
+  ltt%custom_output_file = ''
+
+  ltt%simulation_mode = 'BEAM'
+  ltt%tracking_method = 'PTC'  
+  ltt%n_turns = 10
+  ltt%rfcavity_on = T
+  ltt%map_order = 2
+  ltt%split_bends_for_radiation = F
+  ltt%random_seed = 1234                       ! Random number seed. 0 => use system clock.
+  ltt%add_closed_orbit_to_init_position = T
+  ltt%ptc_aperture = 0.1, 0.1           ! Apertures when tracking_method = "MAP" or "PTC"
+
+  bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
+  bmad_com%radiation_damping_on = T
+  bmad_com%radiation_fluctuations_on = F 
+
+  beam_init%n_particle = 10
+  beam_init%spin = 0, 1, 0              ! See Bmad manual for beam_init_struct parameters.
+  beam_init%center = 0.00, 0, 0, 0, 0, 0
+  beam_init%a_emit = 1e-8
+  beam_init%b_emit = 2e-8
+  beam_init%sig_z = 54e-3  
+  beam_init%sig_pz = 2.5e-3
+/

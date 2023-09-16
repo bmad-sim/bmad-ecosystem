@@ -1,0 +1,5 @@
+cd ../../bmad
+mkd -j99
+cd ../regression_tests
+mkd tracking_method_test-exe
+cd tracking_method_test

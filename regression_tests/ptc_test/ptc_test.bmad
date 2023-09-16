@@ -1,0 +1,102 @@
+no_digested
+! Wiggler tracking uses ultra relativistic approximation so want to compare methods
+! at very large energies.
+parameter[e_tot] = 1e12
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+wig0: wiggler, l= 1.2, tracking_method = symp_lie_bmad, num_steps = 100, &
+      mat6_calc_method = symp_lie_bmad, polarity = 1.2, 
+      term(001)={1.0E+0, 0.5, 0.4, 0.3, 0.6}
+
+xoff = 5e-3
+xpitch = 1e-4
+
+wig1: wig0, x_offset = xoff, x_pitch = xpitch
+wig2: wig0, taylor_map_includes_offsets = T
+
+
+l: line = (wig1, wig2)
+m: marker, superimpose, offset = 2, ele_origin = center
+
+! Branch 1 and 2
+
+ab_multipole1:     ab_multipole, a2 = 1e3, b2 = 1e3, x_offset = 0.02, tilt = 0.1
+drift1:            drift, l = 4.5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+ecollimator1:      ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
+elseparator1:      elseparator, l = 4.5, hkick = 0.005, gap = 0.11, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+instrument1:       instrument, l = 4.5, num_steps = 10
+kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+monitor1:          monitor, l = 4.5, num_steps = 10
+multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05
+octupole1:         octupole, l = 4.5, k3 = 1e3, tilt, num_steps = 10, x_offset = 0.01, y_pitch = 0.001
+patch1:            patch, x_pitch = 0.01, t_offset = 1e-8,
+                          z_offset = 1, tilt = 1, x_offset = 1.3, y_pitch = 0.01, y_offset = 0.5
+quadrupole1:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
+rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, 
+                             x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sextupole1:        sextupole, l = 0.6, k2 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+solenoid1:         solenoid, l = 2.6, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+sol_quad1:         sol_quad, l = 2.6, k1 = 1, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+vkicker1:          vkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+wiggler_map1:      wiggler, l = 1.6, term(1) = {0.003, 3.00, 4.00, 5.00, 0.63}, num_steps = 10, tracking_method = symp_lie_ptc, 
+                            x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+wiggler_periodic1: wiggler, l = 1, b_max = 0.2, n_pole = 20, num_steps = 100, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
+
+
+ab_multipole2:      ab_multipole, l = 0.1
+drift2:             drift, l = 0.1
+ecollimator2:       ecollimator, l = 0.1
+elseparator2:       elseparator, l = 0.1
+hkicker2:           hkicker, l = 0.1
+instrument2:        instrument, l = 0.1
+kicker2:            kicker, l = 0.1
+lcavity2:           lcavity, l = 0.1, rf_frequency = 0.1
+monitor2:           monitor, l = 0.1
+multipole2:         multipole, l = 0.1
+octupole2:          octupole, l = 0.1
+patch2:             patch
+quadrupole2:        quadrupole, l = 0.1
+rcollimator2:       rcollimator, l = 0.1
+rfcavity2:          rfcavity, l = 0.1, rf_frequency = 0.1
+sbend2:             sbend, l = 0.1
+sextupole2:         sextupole, l = 0.1
+solenoid2:          solenoid, l = 0.1
+sol_quad2:          sol_quad, l = 0.1
+vkicker2:           vkicker, l = 0.1
+wiggler_map2:       wiggler, l = 0.1, term(1) = {0.00, 3.00, 4.00, 5.00, 0}, tracking_method = symp_lie_bmad
+wiggler_periodic2:  wiggler, l = 0.1, n_pole = 2
+
+
+b1: line = (ab_multipole1, drift1, ecollimator1, elseparator1, hkicker1, instrument1, kicker1, lcavity1, 
+            monitor1, multipole1, octupole1, patch1, quadrupole1, rcollimator1, rfcavity1, sbend1, sextupole1, solenoid1, 
+            sol_quad1, vkicker1, wiggler_map1, wiggler_periodic1)
+b1[e_tot] = 1e12
+b1[geometry] = open
+
+b2: line = (ab_multipole2, drift2, ecollimator2, elseparator2, hkicker2, instrument2, kicker2, lcavity2, 
+            monitor2, multipole2, octupole2, patch2, quadrupole2, rcollimator2, rfcavity2, sbend2, sextupole2, solenoid2, 
+            sol_quad2, vkicker2, wiggler_map2, wiggler_periodic2)
+b2[e_tot] = b1[e_tot]
+b2[geometry] = open
+
+use, l, b1, b2
+
+!--------------------------------------------------------
+
+expand_lattice
+
+wig2[x_offset] = xoff
+wig2[x_pitch] = xpitch
+
+end_file
+
+
+&params
+  start_orb%vec = 0.001, 0.002, 0.003, 0.004, 0.000, 0.005
+/

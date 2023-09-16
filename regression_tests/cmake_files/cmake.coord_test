@@ -1,0 +1,14 @@
+set (EXENAME coord_test)
+
+set (SRC_FILES
+  coord_test/coord_test.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

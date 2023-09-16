@@ -1,0 +1,46 @@
+no_digested
+parameter[e_tot] = 1e6
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+particle_start[y] = 1e-3
+
+s1: sextupole, k2 = 1, l = 2, b1 = 0.01
+s2: sextupole, k2 = 2, l = 2, b1 = 0.02, superimpose, offset = 2
+
+d: drift, l = 4
+q: quad, l = 1, k1 = 1e-2
+ll: line = (s1, d)
+superimpose, element = q, ref = d, offset = 2, ref_origin = beginning, ele_origin = end
+
+q2: quad, l = 1
+
+d1: drift, l = 1
+d2: drift, l = 1
+d3: drift, l = 1
+b0: line = (d1, q2, d2)
+b1: line = (-b0)
+b1[geometry] = open
+b2: line = (--b0)
+b2[geometry] = open
+b3: line = (d3)
+b3[geometry] = open
+
+ss: sextupole, l = 0.2, superimpose, ref = q2, offset = 0.3, ref_origin = end, ele_origin = beginning
+
+q1: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = -0.5
+q3: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = 0.7
+
+use, ll, b1, b2, b3, lt
+
+dd: drift, l = 3
+lt: line = (dd)
+lt[geometry] = open
+
+m1: marker, superimpose, offset = 1, ref = lt>>beginning
+m2: marker, superimpose, offset = 1, ref = lt>>beginning
+m3: marker, superimpose, ref = m2, ref_origin = end
+
+p1: marker, superimpose, offset = 2, ref = lt>>beginning
+p2: marker, superimpose, ref = p1, ref_origin = beginning
+p3: marker, superimpose, ref = p1, ref_origin = end

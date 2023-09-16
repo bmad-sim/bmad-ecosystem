@@ -1,0 +1,16 @@
+"n_wall"  ABS 0  14
+"Section  1" ABS 0    9     1.000
+"Section  2" ABS 0    1     6.000
+"Section  3" ABS 0    1     7.000
+"Section  4" ABS 0    1    10.000
+"Section  5" ABS 0   11    12.000
+"Section  6" ABS 0    3    14.000
+"Section  7" ABS 0    3    16.000
+"Section  8" ABS 0    5    26.000
+"Section  9" ABS 0    5    27.000
+"Section 10" ABS 0    5    30.000
+"Section 11" ABS 0   12    32.000
+"Section 12" ABS 0    7    34.000
+"Section 13" ABS 0    7    36.000
+"Section 14" ABS 0    9    39.000
+"N_section" ABS 0  2

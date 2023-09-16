@@ -1,0 +1,12 @@
+set (EXENAME space_charge_test)
+
+FILE (GLOB SRC_FILES "space_charge_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

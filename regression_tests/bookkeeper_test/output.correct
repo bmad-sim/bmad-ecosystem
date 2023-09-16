@@ -1,0 +1,153 @@
+"Expression-val1" ABS 1E-10     0.58849050
+"Expression-str1" STR  "atan2(1,2)+ran()"
+"Expression-val2" ABS 1E-10     0.78539816
+"Expression-str2" STR  "atan2(atan2(1,2),atan(0.5))"
+"Expression-val3" ABS 1E-10     0.14095604
+"Expression-str3" STR  "atan(atan(1/(3+4)))"
+"Expression-val4" ABS 1E-10    -3.29766961
+"Expression-str4" STR  "ran_gauss(0.3*2)+ran_gauss()"
+"Sort"  STR   ";0;20;68;57;58;17;77;6;12;29;8;70;47;31;24;5;56;27;40;13;44;73;1;4;59;63"
+"Loc1" STR  "SB1;SB1;BEGINNING;"
+"Loc2" STR  "BEGINNING;OCT;QU;"
+"Loc3" STR  "DR2;SB99;SB99;"
+"Loc4" STR  "SB;END;OCT;"
+"Loc5" STR  "DR;DR1;DR2;"
+"Loc6" STR  "SB;SB;SB;SB;SB;SB;"
+"Loc7" STR  "DR;SB1;QU1#1;M1;QU1#2;OCT1;DR1;SB2;QU2#1;M2;QU2#2;DR2;SB99;"
+"Loc8" STR  "QU;QU1;QU1#1;QU1#2;QU2;QU2#1;QU2#2;QU99;QU;"
+"Loc9" STR  "OCT;OCT1;OCT2;OCT99;"
+"Loc10" STR  "SB;SB;SB;"
+"Loc11" STR  "SB;SB1;SB;SB;SB1;SB;SB;SB;SB1;"
+"Loc12" STR  "QU;QU;QU;QU;QU;QU;"
+"Loc13" STR  "DR;DR;DR;DR;DR;DR;"
+"Loc14" STR  "SB1;SB2;SB1;SB2;SB2;SB1;"
+"Loc15" STR  "DR1;"
+"Loc16" STR  "DR1;DR2;"
+"Loc17" STR  "SB;SB;SB1;"
+"lat%ic"   ABS 0       1   3   2   4   5   7   6   8   9  11  10  12  13  15  14  16  17  18  19  20  21  22  24  25  26  27  28  29  30  33  34  31  35  23  32  36  37
+"lat%con1"    ABS 0       1   0  17   0
+"lat%con2"    ABS 0       2   0  17   0
+"lat%con3"    ABS 0       3   0  17   0
+"lat%con4"    ABS 0       2   0  18   0
+"lat%con5"    ABS 0       9   0  19   0
+"lat%con6"    ABS 0      10   0  19   0
+"lat%con7"    ABS 0      11   0  19   0
+"lat%con8"    ABS 0      10   0  20   0
+"lat%con9"    ABS 0       4   0  21   0
+"lat%con10"    ABS 0       5   0  21   0
+"lat%con11"    ABS 0       6   0  21   0
+"lat%con12"    ABS 0       5   0  22   0
+"lat%con13"    ABS 0      12   0  23   0
+"lat%con14"    ABS 0      13   0  23   0
+"lat%con15"    ABS 0      14   0  23   0
+"lat%con16"    ABS 0      13   0  24   0
+"lat%con17"    ABS 0       1   1  25   0
+"lat%con18"    ABS 0       3   1  25   0
+"lat%con19"    ABS 0       7   0  26   0
+"lat%con20"    ABS 0      15   0  26   0
+"lat%con21"    ABS 0      17   0  27   0
+"lat%con22"    ABS 0      19   0  27   0
+"lat%con23"    ABS 0      29   0  27   0
+"lat%con24"    ABS 0      18   0  28   0
+"lat%con25"    ABS 0      20   0  28   0
+"lat%con26"    ABS 0      21   0  29   0
+"lat%con27"    ABS 0      23   0  29   0
+"lat%con28"    ABS 0      22   0  30   0
+"lat%con29"    ABS 0      24   0  30   0
+"lat%con30"    ABS 0      27   0  31   0
+"lat%con31"    ABS 0      29   0  31   0
+"lat%con32"    ABS 0      26   0  31   0
+"lat%con33"    ABS 0      27   0  32   0
+"lat%con34"    ABS 0      27   0  33   0
+"lat%con35"    ABS 0      29   0  33   0
+"lat%con36"    ABS 0      26   0  33   0
+"lat%con37"    ABS 0      33   0  34   0
+"ele1"    ABS 0       0   0   0   1   1   0
+"ele2"    ABS 0       0   0   0   3   2   0
+"ele3"    ABS 0       0   0   0   2   1   0
+"ele4"    ABS 0       0   0   0   9   1   0
+"ele5"    ABS 0       0   0   0  11   2   0
+"ele6"    ABS 0       0   0   0  10   1   0
+"ele7"    ABS 0       0   0   0  19   1   0
+"ele8"    ABS 0       0   0   0   0   0   0
+"ele9"    ABS 0       0   0   0   5   1   0
+"ele10"    ABS 0       0   0   0   7   2   0
+"ele11"    ABS 0       0   0   0   6   1   0
+"ele12"    ABS 0       0   0   0  13   1   0
+"ele13"    ABS 0       0   0   0  15   2   0
+"ele14"    ABS 0       0   0   0  14   1   0
+"ele15"    ABS 0       0   0   0  20   1   0
+"ele16"    ABS 0       0   0   0   0   0   0
+"ele17"    ABS 0       1   3   0  21   1   0
+"ele18"    ABS 0       4   1   0  23   1   0
+"ele19"    ABS 0       5   3   0  22   1   0
+"ele20"    ABS 0       8   1   0  24   1   0
+"ele21"    ABS 0       9   3   0  25   1   0
+"ele22"    ABS 0      12   1   0  27   1   0
+"ele23"    ABS 0      13   3   0  26   1   0
+"ele24"    ABS 0      16   1   0  28   1   0
+"ele25"    ABS 0      17   2   0   0   0   0
+"ele26"    ABS 0      19   2   0  35   2   0
+"ele27"    ABS 0      21   2   1  29   3   0
+"ele28"    ABS 0      24   2   0   0   0   0
+"ele29"    ABS 0      26   2   0  32   2   1
+"ele30"    ABS 0      28   2   0   0   0   0
+"ele31"    ABS 0      30   3   0   0   0   0
+"ele32"    ABS 0      33   1   0   0   0   0
+"ele33"    ABS 0      34   3   0  37   1   0
+"ele34"    ABS 0      37   1   0   0   0   0
+"Hybrid" ABS 1e-12     5.036E-14
+"ON_OFF_SAVE"  ABS 0     0.100     0.300     0.400     0.200
+"Q1#1[L]"      ABS 0    1.5000
+"Q1\Q4[L]"      ABS 0    0.5000
+"Q2\Q4[L]"      ABS 0    6.0000
+"Q3\Q4[L]"      ABS 0    1.5000
+"Q3#1[L]"      ABS 0    1.7000
+"S\LC[L]"      ABS 0   17.0000
+"END[L]"      ABS 0    0.0000
+"Q1[K1]"     ABS 0   -0.0020
+"Q1[TILT]"   ABS 0   18.0000
+"Q1[HKICK]"  ABS 0    2.0000
+"Q1[Y_OFF]"  ABS 0    0.0000
+"Q1[L]"      ABS 0    2.0000
+"Q3[L]"      ABS 0    3.2000
+"Q4[L]"      ABS 0    8.0000
+"Q2[L]"      ABS 0    6.0000
+"LC[L]"      ABS 0   13.0000
+"S[L]"      ABS 0   17.0000
+"OV1[L]"      ABS 0    0.0000
+"OV2[L]"      ABS 0    0.0000
+"OV3[L]"      ABS 0    0.0000
+"GR1[L]"      ABS 0    0.0000
+"GR2[L]"      ABS 0    0.0000
+"GR3[L]"      ABS 0    0.0000
+"GR4[L]"      ABS 0    0.0000
+"GRN[L]"      ABS 0    0.0000
+"Q1[L]"      ABS 0    2.0000
+"Q3[L]"      ABS 0    3.2000
+"Q4[L]"      ABS 0    8.0000
+"Q2[L]"      ABS 0    6.0000
+"LC[L]"      ABS 0   13.0000
+"S[L]"      ABS 0   17.0000
+"OV1[HKICK]"      ABS 0    8.0000
+"OV2[HKICK]"      ABS 0    2.0000
+"OV3[L]"      ABS 0    6.0000
+"GR1[COMMAND]"      ABS 0    7.0000
+"GR2[COMMAND]"      ABS 0    1.0000
+"GR3[COMMAND]"      ABS 0    0.2000
+"GR4[COMMAND]"      ABS 0    8.0000
+"GRN[A]"      ABS 0    0.0100
+"GRN[B]"      ABS 0    2.0000
+"GRN[string]" STR "(tan(a)+b)*(0.1/c_light)^(a+0.2)-a-(1+2)"
+"Next-1" ABS 0   0
+"Next-2" ABS 0   1
+"Next-3" ABS 0   2
+"Next-4" ABS 0   1
+"Aperture-1"   STR "Alive"
+"Aperture-2"   STR "Hit +X Side"
+"Aperture-3"   STR "Hit -X Side"
+"Aperture-4"   STR "Hit +Y Side"
+"Aperture-5"   STR "Hit -Y Side"
+"Aperture-6"   STR "Hit +Y Side"
+"Aperture-7"   STR "Hit -X Side"
+"N_Quad_Loc" ABS 0   9

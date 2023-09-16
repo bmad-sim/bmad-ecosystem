@@ -1,0 +1,13 @@
+
+cavity2: lcavity, tracking_method = runge_kutta, mat6_calc_method = tracking, n_cell = 2, 
+rf_frequency = 1.3e9, 
+field_calc = fieldmap,
+L = 	0.470	, !Grid extends to 0.484. Center of the 2 cells is at 0.286 m 
+field = { 
+ mode = {
+ m = 0,
+ harmonic = 1, 
+ master_scale = voltage,   !To be used when autophasing is off
+grid = call::cavity2_grid.bmad }}
+
+cavity2[voltage] = 5e6 ! Maximum on-axis Ez in V/m

@@ -1,0 +1,34 @@
+no_digested
+
+parameter[lattice]                = g_2
+parameter[particle]               = antimuon
+parameter[geometry] = open
+parameter[p0c]                    = 3.094353005E9
+particle_start[px] = 1.5e-3
+
+infa:    drift,  l=2,
+         tracking_method = bmad_standard, mat6_calc_method = bmad_standard, ds_step=0.001,
+         aperture_at = wall_transition,
+         aperture_type = wall3d, 
+         wall = { superimpose = .true., thickness = 0.0005,
+         section = { type = wall_start, s = 0, v(1) = {0.002, 0.01}},
+         section = { type = wall_end,   s = 2, v(1) = {0.001, 0.01}} }
+
+dd: drift, l = 10
+
+ec: ecollimator, px_aperture_width2 = 0.01, px_aperture_center = 0.01, 
+                 py_aperture_width2 = 0.015,
+                 z_aperture_width2 = 0.2, z_aperture_center = -0.6,
+                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02,
+                 x1_limit = 1e-10, x2_limit = 0.02,
+                 y_limit = 0.015
+
+rc: rcollimator, px_aperture_width2 = 0.01, px_aperture_center = 0.01,
+                 py_aperture_width2 = 0.015,
+                 z_aperture_width2 = 0.2, z_aperture_center = -0.6,
+                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02,
+                 x1_limit = 1e-10, x2_limit = 0.02,
+                 y_limit = 0.015
+
+ring: line=(dd, infa, ec, rc)
+use, ring

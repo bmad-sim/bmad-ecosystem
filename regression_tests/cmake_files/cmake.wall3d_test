@@ -1,0 +1,12 @@
+set (EXENAME wall3d_test)
+
+FILE (GLOB SRC_FILES "wall3d_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

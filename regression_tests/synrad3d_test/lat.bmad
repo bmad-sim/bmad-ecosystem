@@ -1,0 +1,8 @@
+parameter[geometry] = open
+parameter[e_tot] = 1e9
+dd: drift, l = 100
+bb: sbend, l = 1.000001, angle = 0.01 
+pp: patch, z_offset = 1, y_offset = 0.06, y_pitch = 0.0
+ll: line = (dd, bb, pp)
+use, ll
+

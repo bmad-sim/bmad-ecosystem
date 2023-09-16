@@ -1,0 +1,18 @@
+&place section =  0,   "", "sdef" /
+&place section = 2.0,  "", "sdef" /
+
+&place section =  0,   "", "x_wall:sdef" /
+&place section = 3.0,  "", "x_wall:sdef" /
+
+
+
+&shape_def
+  name = "sdef"
+  v(1) =    0.01,    0.01
+/
+
+
+&subchamber_branch
+	subchamber_name = 'x_wall'
+	branch_name = 'b1'
+/

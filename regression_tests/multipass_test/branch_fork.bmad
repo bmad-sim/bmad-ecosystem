@@ -1,0 +1,29 @@
+no_digested
+
+beginning[beta_a] =  10
+beginning[beta_b] =  10
+
+parameter[geometry] = open
+beginning[e_tot] = 1e9
+
+pfork: photon_fork, to_line = l2, superimpose, ref = d1
+fork2: fork, to_line = l1, to_element = m, new_branch = F
+ff: fork, to_line = mm, to_element = m3\1
+
+d1: pipe, l = 1
+d2: pipe, l = 1
+m: marker
+
+m3: marker
+multi: line[multipass] = (m3)
+mm: line = (multi, multi)
+mm[p0c] = 1e4
+
+l1: line = (d1, m)
+
+l2: line = (d2, fork2, ff)
+l2[e_tot] = 100
+
+use, l1
+
+

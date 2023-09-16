@@ -1,0 +1,10 @@
+set (EXENAME csr_and_space_charge_test)
+
+FILE (GLOB SRC_FILES "csr_and_space_charge_test/*.f90")
+
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

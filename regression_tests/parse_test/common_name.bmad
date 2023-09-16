@@ -1,0 +1,35 @@
+parameter[geometry] = Open            
+no_digested
+parameter[p0c]                    = 7e6
+parameter[particle]               = Electron
+
+beginning[beta_a]   = 10
+beginning[beta_b]   = 32
+
+q: quadrupole, l = 1
+aline: line[multipass] = (q, q)
+l0: line = (aline, aline)
+l1: line = (q, q)
+
+m: marker, superimpose, ref = l1>>q##2
+
+l1[geometry] = open
+l1[beta_a] = 1
+l1[beta_b] = 1
+
+use, l0, l1
+
+expand_lattice
+
+l0>>q##1[tilt] = 101
+l0>>q##1[b3] = 201
+
+l0>>q##2[tilt] = 102
+l0>>q##2[b3_elec] = 302
+
+l1>>q##1[tilt] = 111
+l1>>q##1[a3] = 411
+
+l1>>q##2[tilt] = 112
+l1>>q##2[a3_elec] = 512
+

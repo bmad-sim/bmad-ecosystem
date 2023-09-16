@@ -1,0 +1,34 @@
+no_digested
+parameter[geometry] = open
+parameter[e_tot] = 1e6
+
+q1: quadrupole, l = 2, k1 = 1e-3, a11 = 0.1
+q2: quadrupole, l = 2, k1 = 2e-3, a11 = 0.2
+q3: quadrupole, l = 2, k1 = 3e-3, a11 = 0.3
+
+q4: quadrupole, l = 4, superimpose, ref = q2, offset = 0.5, ref_origin = center, a11 = 0.4
+
+ov1: overlay = {q1[k1]:-1e-3, q1[tilt]:2}, hkick = 1
+ov2: overlay = {q1[k1]:3e-3, q1[tilt], q1}, hkick = 2
+ov3: overlay = {q2}, l = 6
+
+gr1: group = {ov1[hkick]}, k3 = 5
+gr2: group = {q3}, end_edge
+gr3: group = {q3}, l
+
+s: solenoid, l = 10
+lc: lcavity, l = 6, superimpose, ref =  s, create_jumbo_slave = T, rf_frequency = 500e6
+
+gr4: group = {lc}, l = 8
+
+a_line: line = (q1, q2, q3, s)
+use, a_line
+
+expand_lattice
+
+gr1[command] = 7
+gr2[command] = 1
+gr3[command] = 0.2
+
+grn: group = {q1[b12]:(tan(a)+b)*(0.1/c_light)^(a+0.2)-a-(1+2), q2[b12]:b^2*a}, var = {a,b}, a = 0.01
+grn[b] = 2

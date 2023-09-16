@@ -1,0 +1,38 @@
+no_digested
+parameter[p0c] = 1e6
+parameter[geometry] = open
+parameter[no_end_marker] = T
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = 0.01
+particle_start[px] = 0.02
+particle_start[y]  = 0.03
+particle_start[py] = 0.04
+particle_start[z]  = 0.05
+particle_start[pz] = 0.06
+
+q: quadrupole, l = 2, tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+p1: patch, z_offset = 1, x_offset = 0.1, x_pitch = 0.01, y_offset = 0.2, y_offset = 0.02, tilt = 0.3
+p2: p1, ref_coords = entrance_end
+pr: patch, z_offset = 2, x_pitch = pi, x_offset = 0.1
+
+b1: sbend, l = 2, angle = 0.2, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+b2: sbend, l = 2, angle = 0.0, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+b3: sbend, l = 2, angle = 0.2, roll = 0.1, ref_tilt =  0, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+b4: sbend, l = 2, angle = 0.0, roll = 0.1, ref_tilt =  0, x_pitch = 0.1, y_pitch = 0.2, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3
+
+p_line: line = (q, b1, b2, b3, b4, p1, p2, pr, --p1, --p2, --q, --b1, --b2, --b3, --b4, --pr)
+
+!
+
+dz: drift, l = 1
+p1z: patch, z_offset = 1, x_pitch = pi
+
+bz: sbend, l = 1, angle = 1, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2
+b2z: sbend, l = 1, g = 0.1
+
+z_line: line = (dz, bz, p1z, --dz, --bz)
+
+
+use, p_line, z_line

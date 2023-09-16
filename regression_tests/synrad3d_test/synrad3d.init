@@ -1,0 +1,7 @@
+! Bare bones for plotting purposes.
+
+&synrad3d_parameters
+  lattice_file      = 'lat.bmad'
+  wall_file         = 'ellipse.wall'                          ! File specifying the vacuum chamber wall
+  surface_reflection_file = 'C_CU_reflectivity.table'
+/

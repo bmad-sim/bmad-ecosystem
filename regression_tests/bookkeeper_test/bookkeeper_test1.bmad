@@ -1,0 +1,42 @@
+parameter[geometry] = open
+beginning[p0c] = 1e3
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+
+sb:   sbend, l = 1, type = "a b"
+sb1:  sbend, l = 1, type = "c::>>d"
+sb2:  sbend, l = 1
+sb99: sbend, l = 1
+
+qu:   quad, l = 1, alias = "q>> :T"
+qu1:  quad, l = 1, alias = "HHHH"
+qu2:  quad, l = 1
+qu99: quad, l = 1
+
+dr:   drift, l = 1, descrip = "So Long"
+dr1:  drift, l = 1, descrip = "SSSS"
+dr2:  drift, l = 1
+dr99: drift, l = 1
+
+oct:   octupole, l = 1
+oct1:  octupole, l = 1
+oct2:  octupole, l = 1
+oct99: octupole, l = 1
+
+m1: marker, superimpose, ref = qu1
+m2: marker, superimpose, ref = qu2
+
+
+ll1: line = (sb, qu, dr, sb1, qu1, oct1, dr1, sb2, qu2, dr2, sb99, qu99, dr99, sb, qu, dr)
+
+ll2: line = (oct, sb, qu, dr, sb1, qu1, dr1, dr2, sb2, qu2, sb99, qu99, dr99, sb, qu, dr, oct1, oct2, oct99)
+ll2[geometry] = open
+ll2[p0c] = 1e3
+ll2[beta_a] = 1
+ll2[beta_b] = 1
+
+use, ll1, ll2, ll2
+
+expand_lattice
+
+start_branch_at 2>>qu1

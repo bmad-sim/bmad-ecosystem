@@ -1,0 +1,3 @@
+rm output.now
+../../debug/bin/multipass_test lat.bmad
+cat output.now

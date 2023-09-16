@@ -1,0 +1,24 @@
+&bbu_params
+  bbu_param%lat_file_name = 'prstab2004_chrom.lat'         ! Bmad lattice file name   
+  bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
+  bbu_param%limit_factor = 1e1                ! Init_hom_amp * limit_factor = simulation unstable limit
+  bbu_param%hybridize = False               ! Combine non-hom elements to speed up simulation?
+  bbu_param%keep_overlays_and_groups = True ! Keep when hybridizing?
+  bbu_param%current = 20e-3                   ! Starting current (amps)
+  bbu_param%rel_tol = 1e-3                    ! Final threshold current accuracy.
+  bbu_param%write_hom_info = True  
+  bbu_param%drscan = True                   ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
+  bbu_param%elname = 'T1'
+  bbu_param%nstep = 50
+! PRSTAB 2004
+  bbu_param%begdr = 5.234
+  bbu_param%enddr = 6.135
+
+  beam_init%n_particle = 100
+  beam_init%sig_e = 0.2e-3
+
+  bbu_param%ran_seed = 1234
+
+  bbu_param%verbose = False
+  bbu_param%regression = True
+/

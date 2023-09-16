@@ -1,0 +1,22 @@
+no_digested
+parameter[e_tot] = 1e9
+!parameter[n_part] = 1e10
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+q1: quad, wall = {thickness = 0.1, 
+    superimpose = F, ele_anchor_pt = center, 
+    section = {type = opaque, s = 1, x0 = 1, y0 = 2, dr_ds = 10, 
+      v(1) = {11, 12, 130, 140}, 
+      v(2) = {1, 2, 30, 40, 5}, 
+      v(3) = {-21, 22} &
+    },
+    section = {s = 2, v(1) = {1,1}},
+    section = {s = 5, v(1) = {1,1}} &
+}, l = 10 
+
+
+lw: line = (q1)
+use, lw
+

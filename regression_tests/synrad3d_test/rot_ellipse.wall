@@ -1,0 +1,7 @@
+&place section =     0.0000, "BEAMPIPE_Q00: 1", "117"   /
+&place section =    10.0000, "BEAMPIPE_Q00: 2", "117"   /
+
+&shape_def
+  name = "117"
+  v(  1) =  0.01, 0.020,.035,.02,0.523598775598299
+/

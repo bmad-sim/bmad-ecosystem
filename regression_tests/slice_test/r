@@ -1,0 +1,2 @@
+rm output.now
+../../debug/bin/slice_test lat.bmad

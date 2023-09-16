@@ -1,0 +1,47 @@
+abs_time_test
+analysis_test
+aperture_test
+autoscale_test
+backwards_time_track_test
+beam_test
+bbu_test   
+bookkeeper_test
+! cathode_sc_test
+closed_orbit_test
+coord_test
+csr_and_space_charge_test
+envelope_ibs_test
+fringe_test
+geometry_test
+girder_test
+hdf5_test
+long_term_tracking_test
+mat6_calc_method_test
+mode_flip_test
+mode3_test
+multipass_test
+multipole_test
+nonlin_test
+parse_test
+particle_species_test
+patch_test
+photon_test
+ptc_test
+NOTE: SKIPPING REVERSE_TEST!
+! reverse_test
+radiation_test
+sad_test
+sim_utils_test
+slice_test
+space_charge_test
+spin_general_test
+superimpose_test
+synrad3d_test
+tao_test
+taylor_test
+time_runge_kutta_test
+tracking_method_test
+twiss_track_test
+wake_test
+wall3d_test
+xraylib_test

@@ -1,0 +1,50 @@
+no_digested
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+
+parameter[particle] = positron ! electron
+parameter[geometry] = open
+parameter[p0c]                    = 2.998e8
+parameter[ptc_exact_model] = T
+
+particle_start[spin_x] = 0.
+particle_start[spin_y] = 0.
+particle_start[spin_z] = 0.5
+
+particle_start[x]  = 1e-3
+particle_start[px] = 0e-3
+particle_start[y]  = 2e-3
+particle_start[py] = 0e-4
+particle_start[z]  = 0
+particle_start[pz] = 0
+
+qq: quad, l = 0.1, k1 = 1,
+  cylindrical_map = {
+    m = 0, 
+    theta0_azimuth = 0,
+    master_parameter = k1,
+    dz = 0.1,
+    ele_anchor_pt = beginning,
+    field_scale = 1,
+    r0 = (0, 0, 0), 
+    e_coef_im = (-1e0, 0.00, 0.00, 0.00),
+    b_coef_re = (-1e0, 0.0, 0.0, 0.0) }, field_calc = fieldmap
+
+ln: line = (qq)
+use, ln
+
+end_file
+
+    e_coef_im = (0.005, 0.006, 0.007, 0.008),
+    e_coef_re = (0.01, 0.02, 0.03, 0.04),
+
+    e_coef_im = (0.00, 0.00, 0.00, 0.00),
+    e_coef_re = (0.01, 0.0, 0.0, 0.0),
+
+    b_coef_im = (0.005, 0.006, 0.007, 0.008),
+    b_coef_re = (0.01, 0.02, 0.03, 0.04) }, field_calc = fieldmap
+
+    e_coef_re = (1, 2, 3, 4, 5, 6),
+    b_coef_re = (0.01, 0.02, 0.03, 0.04, 0.05, 0.06) }, field_calc = fieldmap
