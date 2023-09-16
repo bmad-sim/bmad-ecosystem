@@ -1,0 +1,45 @@
+no_digested
+
+beginning[beta_a]  = 10  
+beginning[beta_b]  = 12
+
+parameter[geometry] = open
+beginning[e_tot]  = 7e6
+
+! branch 3
+
+em: em_field, l = 2,
+    grid_field = {
+      field_scale = 0.01,
+      geometry = xyz,
+      ele_anchor_pt = center,
+      r0 = (0.1, 0.2, -1),
+      dr = (1,1,2),
+      pt(-1,-1, 0) = (1, -1, -1, 0, -4, -2),
+      pt(-1, 0, 0) = (1, -1,  0, 0, -2, -1),
+      pt(-1, 1, 0) = (1, -1,  1, 0,  0,  0),
+      pt( 0,-1, 0) = (1,  0, -1, 0, -2, -1),
+      pt( 0, 0, 0) = (1,  0,  0, 0,  0,  0),
+      pt( 0, 1, 0) = (1,  0,  1, 0,  2,  1),
+      pt( 1,-1, 0) = (1,  1, -1, 0,  0,  0),
+      pt( 1, 0, 0) = (1,  1,  0, 0,  2,  1),
+      pt( 1, 1, 0) = (1,  1,  1, 0,  4,  2),
+      pt(-1,-1, 1) = (1, -1, -1, 1, -4, -1),
+      pt(-1, 0, 1) = (1, -1,  0, 1, -2,  0),
+      pt(-1, 1, 1) = (1, -1,  1, 1,  0,  1),
+      pt( 0,-1, 1) = (1,  0, -1, 1, -2,  0),
+      pt( 0, 0, 1) = (1,  0,  0, 1,  0,  1),
+      pt( 0, 1, 1) = (1,  0,  1, 1,  2,  2),
+      pt( 1,-1, 1) = (1,  1, -1, 1,  0,  1),
+      pt( 1, 0, 1) = (1,  1,  0, 1,  2,  2),
+      pt( 1, 1, 1) = (1,  1,  1, 1,  4,  3) &
+    }, field_calc = fieldmap
+
+mm: marker, superimpose, ref = em, offset = -0.1
+m:marker
+
+branch3: line = (em)
+
+!
+
+use, branch3

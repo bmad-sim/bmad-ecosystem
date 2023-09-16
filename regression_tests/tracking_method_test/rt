@@ -1,0 +1,1 @@
+totalview ../../debug/bin/tracking_method_test -a lat.bmad $1

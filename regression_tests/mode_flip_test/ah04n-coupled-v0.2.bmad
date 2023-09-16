@@ -1,0 +1,209 @@
+! c:\users\streun\opadat\sls-2\ah04n.opa
+parameter[particle] = ELECTRON
+parameter[e_tot] = 2.4 * 1e9
+
+!rfcav: rfcavity, voltage = 1.228 * 1e6 / 12, harmon = 480, l = 0.62  ! 500 MHz RF, 5% bucket
+rfcav: rfcavity, voltage = 0.683 * 1e6 / 12, harmon = 96, l = 0.62    ! 100 MHz RF, 5% bucket
+
+d0         : drift, l = 0.1
+d1         : drift, l = 0.15
+d2         : drift, l = 0.45
+dq         : drift, l = 0.45
+dc         : drift, l = 0.405
+dc1        : drift, l = 0.29
+dc2        : drift, l = 0.29
+ds1        : drift, l = 0.15
+ds2        : drift, l = 0.15
+dm1        : drift, l = 0.05
+dm2        : drift, l = 0.1
+dl1        : drift, l = 0.42
+dl2        : drift, l = 0.17
+!dsend      : drift, l = 0.62
+dsend: rfcav
+dsmgp      : drift, l = 1
+dm         : drift, l = 2.85
+dl         : drift, l = 4.97
+dqs        : drift, l = 0.05
+de         : drift, l = 0.1
+doc        : drift, l = 0.025
+no_sas     : drift, l = 0.1
+no_sam     : drift, l = 0.1
+no_sal     : drift, l = 0.1
+no_sx      : drift, l = 0.1
+
+no_oxxm0   : marker
+no_oxxs0   : marker
+no_oxyl0   : marker
+no_ocyy0   : marker
+
+lat_start   : marker
+qsk1       : quadrupole, l = 0.1, tilt, k1 = 0.0, superimpose, ref=lat_start, ele_origin=end, offset=72.83066
+qsk2       : quadrupole, l = 0.1, tilt, k1 = 0.0, superimpose, ref=lat_start, ele_origin=end, offset=89.58088
+qsk3       : quadrupole, l = 0.1, tilt, k1 = 0.0, superimpose, ref=lat_start, ele_origin=end, offset=90.77088
+qsk4       : quadrupole, l = 0.1, tilt, k1 = 0.0, superimpose, ref=lat_start, ele_origin=end, offset=101.33088
+qsk5       : quadrupole, l = 0.1, tilt, k1 = 0.0, superimpose, ref=lat_start, ele_origin=end, offset=102.52088
+qsk6       : quadrupole, l = 0.1, tilt, k1 = 0.0, superimpose, ref=lat_start, ele_origin=end, offset=119.27110
+
+qsk1[k1]  =  -1.05738
+qsk2[k1]  =  4.678451
+qsk3[k1]  =  -0.27377
+qsk4[k1]  =  -1.62274
+qsk5[k1]  =  3.868939
+qsk6[k1]  =  0.207396
+
+qf         : quadrupole, l = 0.2, k1 = 7.297285
+qf1        : quadrupole, l = 0.15, k1 = 0
+qcs        : quadrupole, l = 0.15, k1 = 6.911505
+qds        : quadrupole, l = 0.1, k1 = 2.797563
+qs1        : quadrupole, l = 0.15, k1 = 0
+qs2        : quadrupole, l = 0.15, k1 = -6.412388
+qs3        : quadrupole, l = 0.2, k1 = 7.031396
+qm1        : quadrupole, l = 0.1, k1 = 1.597225
+qm2        : quadrupole, l = 0.15, k1 = -7.793596
+qm3        : quadrupole, l = 0.2, k1 = 7.001737
+ql1        : quadrupole, l = 0.1, k1 = 4.166184
+ql2        : quadrupole, l = 0.2, k1 = -5.216113
+ql3        : quadrupole, l = 0.2, k1 = 6.047934
+ql4        : quadrupole, l = 0.1, k1 = -2.197502
+qd         : quadrupole, l = 0.15, k1 = -7.095565
+qes        : quadrupole, l = 0.1, k1 = -3.919869
+qa         : quadrupole, l = 0.1, k1 = 6.821369
+
+bs00       : sbend, l = 0.0062, angle = 0.0044226643,e1 = 0, 
+             e2 = 0.004420919, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs00_inv   : bs00, e1 = bs00[e2], e2 = bs00[e1]
+bs01       : sbend, l = 0.00748, angle = 0.004420919,e1 = -0.004420919, 
+             e2 = 0.0088435833, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs01_inv   : bs01, e1 = bs01[e2], e2 = bs01[e1]
+bs02       : sbend, l = 0.00897, angle = 0.004420919,e1 = -0.0088435833, 
+             e2 = 0.013264502, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs02_inv   : bs02, e1 = bs02[e2], e2 = bs02[e1]
+bs03       : sbend, l = 0.01072, angle = 0.004420919,e1 = -0.013264502, 
+             e2 = 0.017685421, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs03_inv   : bs03, e1 = bs03[e2], e2 = bs03[e1]
+bs04       : sbend, l = 0.01275, angle = 0.004420919,e1 = -0.017685421, 
+             e2 = 0.022108086, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs04_inv   : bs04, e1 = bs04[e2], e2 = bs04[e1]
+bs05       : sbend, l = 0.0151, angle = 0.004420919,e1 = -0.022108086, 
+             e2 = 0.026529005, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs05_inv   : bs05, e1 = bs05[e2], e2 = bs05[e1]
+bs06       : sbend, l = 0.01782, angle = 0.004420919,e1 = -0.026529005, 
+             e2 = 0.030949924, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs06_inv   : bs06, e1 = bs06[e2], e2 = bs06[e1]
+bs07       : sbend, l = 0.02094, angle = 0.004420919,e1 = -0.030949924, 
+             e2 = 0.035372588, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs07_inv   : bs07, e1 = bs07[e2], e2 = bs07[e1]
+bs08       : sbend, l = 0.02452, angle = 0.004420919,e1 = -0.035372588, 
+             e2 = 0.039793507, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs08_inv   : bs08, e1 = bs08[e2], e2 = bs08[e1]
+bs09       : sbend, l = 0.02861, angle = 0.004420919,e1 = -0.039793507, 
+             e2 = 0.044214426, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs09_inv   : bs09, e1 = bs09[e2], e2 = bs09[e1]
+bs10       : sbend, l = 0.03328, angle = 0.004420919,e1 = -0.044214426, 
+             e2 = 0.04863709, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs10_inv   : bs10, e1 = bs10[e2], e2 = bs10[e1]
+bs11       : sbend, l = 0.03859, angle = 0.004420919,e1 = -0.04863709, 
+             e2 = 0.053058009, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs11_inv   : bs11, e1 = bs11[e2], e2 = bs11[e1]
+bs12       : sbend, l = 0.04461, angle = 0.004420919,e1 = -0.053058009, 
+             e2 = 0.057478928, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs12_inv   : bs12, e1 = bs12[e2], e2 = bs12[e1]
+bs13       : sbend, l = 0.05142, angle = 0.004420919,e1 = -0.057478928, 
+             e2 = 0.061901593, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs13_inv   : bs13, e1 = bs13[e2], e2 = bs13[e1]
+bs14       : sbend, l = 0.0591, angle = 0.004420919,e1 = -0.061901593, 
+             e2 = 0.066322512, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bs14_inv   : bs14, e1 = bs14[e2], e2 = bs14[e1]
+bn         : sbend, l = 0.38, angle = 0.041364303,e1 = 0, 
+             e2 = 0.041364303, k1 = -1.386587, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+bn_inv     : bn, e1 = bn[e2], e2 = bn[e1]
+ba2        : sbend, l = 0.1, angle = -0.0043633231,e1 = -0.0021816616, 
+             e2 = -0.0021816616, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+ba2_inv    : ba2, e1 = ba2[e2], e2 = ba2[e1]
+ba1        : sbend, l = 0.1, angle = -0.006981317,e1 = -0.0034906585, 
+             e2 = -0.0034906585, k1 = 0, hgap = 0, fint = 0, fintx = 0, fringe_type=linear_edge
+ba1_inv    : ba1, e1 = ba1[e2], e2 = ba1[e1]
+
+sf         : sextupole, l = 0.1, k2 = 612.64594
+sfc        : sextupole, l = 0.1, k2 = 711.62032
+sd1        : sextupole, l = 0.1, k2 = 68.960148
+sd2        : sextupole, l = 0.1, k2 = -420.72739
+sd3        : sextupole, l = 0.1, k2 = -699.25898
+sd4        : sextupole, l = 0.1, k2 = -999.97774
+sde        : sextupole, l = 0.1, k2 = -89.989796
+sd         : sextupole, l = 0.1, k2 = -900.51904
+sal        : sextupole, l = 0.1, k2 = 0
+sam        : sextupole, l = 0.1, k2 = 0
+sas        : sextupole, l = 0.1, k2 = 0
+sfc1       : sextupole, l = 0.1, k2 = 654.11289
+ 
+osbend     : marker
+obm        : marker
+obm2       : marker
+ol3        : marker
+
+oyy0       : multipole, l=0.0, k3l = 2518.3026
+oxy0       : multipole, l=0.0, k3l = -35.7043
+ocxx0      : multipole, l=0.0, k3l = 184.4044
+ 
+! ----- table of segments ---------------------------------------------------
+!
+ds          : line=(dsend, dsmgp)
+
+oxy         : line=(doc, oxy0, doc)
+oyy         : line=(doc, oyy0, doc)
+ocxx        : line=(doc, ocxx0, doc)
+
+bs          : line=(bs00, bs01, bs02, bs03, bs04, bs05, bs06, bs07, bs08, bs09, bs10, bs11, bs12, bs13, bs14)
+bs_inv      : line=(bs14_inv, bs13_inv, bs12_inv, bs11_inv, bs10_inv, bs09_inv, bs08_inv, bs07_inv, 
+                    bs06_inv, bs05_inv, bs04_inv, bs03_inv, bs02_inv, bs01_inv, bs00_inv)
+
+hc          : line=(bs, d0, qd, dqs, sd, dqs, qf, dqs, sf, dqs, ocxx, d1, ba1, 
+                    dqs, qa, d2, dq, sd1, dqs, bn_inv, obm, bn, dqs, sd2, dc)
+hc_inv      : line=(dc, sd2, dqs, bn_inv, obm, bn, dqs, sd1, dq, d2, qa, dqs, ba1_inv,
+                    d1, ocxx, dqs, sf, dqs, qf, dqs, sd, dqs, qd, d0, bs_inv)
+
+ts          : line=(qcs, dqs, sfc, dqs, qcs, dc, sd3, dqs, bn_inv, obm2, bn, dqs, sd4, dqs, qds, dc1, qcs, dqs, ba2, 
+                    dqs, sfc1, dqs, qcs, dc2, qes, dqs, sde, dqs, bn_inv, dqs, oyy)
+ts_inv      : line=(oyy, dqs, bn, dqs, sde, dqs, qes, dc2, qcs, dqs, sfc1, dqs, ba2_inv, dqs, qcs, dc1, qds,
+                    dqs, sd4, dqs, bn_inv, obm2, bn, dqs, sd3, dc, qcs, dqs, sfc, dqs, qcs)
+
+ms          : line=(no_sx, dqs, qs2, ds2, oxy, dqs, qs3, ds)
+ms_inv      : line=(ds, qs3, dqs, oxy, ds2, qs2, dqs, no_sx)
+
+mm          : line=(dqs, qm1, dm1, no_sx, dqs, qm2, dm2, oxy, dqs, qm3, dm)
+mm_inv      : line=(dm, qm3, dqs, oxy, dm2, qm2, dqs, no_sx, dm1, qm1, dqs)
+
+ml          : line=(dqs, ql1, dl1, ql2, dl2, no_sx, oxy, dqs, ol3, ql3, dl1, ql4, dl)
+ml_inv      : line=(dl, ql4, dl1, ql3, ol3, dqs, oxy, no_sx, dl2, ql2, dl1, ql1, dqs)
+
+hs          : line=(osbend, hc, ts, ms)
+hs_inv      : line=(ms_inv, ts_inv, hc_inv, osbend)
+
+hm          : line=(osbend, hc, ts, mm)
+hm_inv      : line=(mm_inv, ts_inv, hc_inv, osbend)
+
+hl          : line=(osbend, hc, ts, ml)
+hl_inv      : line=(ml_inv, ts_inv, hc_inv, osbend)
+
+six         : line=(hl_inv, hs, hs_inv, hm)
+six_inv     : line=(hm_inv, hs, hs_inv, hl)
+
+per         : line=(six, six_inv)
+ring        : line=(lat_start,per,per,per)
+
+! sbend[tracking_method] = symp_lie_ptc
+sbend[ds_step] = 0.005
+sextupole::*[num_steps] = 16
+quad::*[num_steps] = 16
+
+parameter[taylor_order] = 6
+parameter[ptc_exact_model] = .false.
+
+use, ring
+
+expand_lattice
+877[k1] = -7.12994  ! QS2.4
+883[k1] = 7.18299   ! QS3.4
+894[k1] = -5.11201  ! QS2.5
+888[k1] = 5.67989   ! QS3.5

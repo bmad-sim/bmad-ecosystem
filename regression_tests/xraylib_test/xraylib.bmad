@@ -1,0 +1,13 @@
+no_digested
+l2: line = (crystal1, multilayer_mirror1)
+
+l2[e_tot] = 1e4
+l2[geometry] = open
+l2[particle] = photon
+
+use, l2
+
+multilayer_mirror1: multilayer_mirror, material_type = 'W:B4C', n_cell = 100, 
+      d1_thickness = 1e-9, d2_thickness = 1.5e-9
+
+crystal1: crystal, crystal_type = 'Si(113)', b_param = -1.1

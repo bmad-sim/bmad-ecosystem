@@ -1,0 +1,108 @@
+parameter[e_tot] = 1e12
+parameter[ptc_exact_model] = true
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = 0.1
+particle_start[px] = 0.0
+particle_start[y]  = 0.3
+particle_start[py] = 0.0
+particle_start[z]  = 0.5
+particle_start[pz] = 0.0
+
+
+drift1:            drift, l = 4.5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+e_gun1:            e_gun, l = 2, voltage = 0.5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+ecollimator1:      ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
+elseparator1:      elseparator, l = 4.5, hkick = 0.005, gap = 0.11, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+elseparator2:      elseparator, l = 4.5, vkick = 0.005, gap = 0.11, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+instrument1:       instrument, l = 4.5, num_steps = 10
+kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
+                            tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10
+monitor1:          monitor, l = 4.5, num_steps = 10
+
+octupole1:         octupole, l = 4.5, k3 = 1e3, tilt, num_steps = 10, x_offset = 0.01, y_pitch = 0.001
+
+patch1:            patch, x_offset = 0.001, y_offset = 0.002, z_offset = 0.004, t_offset = 1e-11, x_pitch = 0.001, y_pitch = 0.002, tilt = 2
+
+quadrupole1:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole2:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole3:       quadrupole, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole4:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
+quadrupole5:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
+rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
+rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1
+rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1
+sad_mult1:         sad_mult, l = 0.1, fringe_type = full, ks = 0.1, a1 = 2e-5, b2 = 4e-3
+sad_mult2:         sad_mult, fringe_type = full, a1 = 2e-5, b2 = 4e-3
+sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend4:            sbend, l = 0.6, g = 0.01, dg = -0.0099, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+                          fringe_type = full, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
+                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, fint = 0.7, hgap = 2
+sextupole1:        sextupole, l = 0.6, k2 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+solenoid1:         solenoid, l = 2.6, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+solenoid2:         solenoid, l = 2.6, ks = 1e-12, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+sol_quad1:         sol_quad, l = 2.6, k1 = 1, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+sol_quad2:         sol_quad, l = 2.6, k1 = 1e-5, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+vkicker1:          vkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+wiggler_map1:      wiggler, l = 1.6, term(1) = {3, 3.00, 4.00, 5.00, 0.63}, num_steps = 10, 
+                            tracking_method = symp_lie_ptc, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+wiggler_periodic1: wiggler, l = 1, b_max = 1, n_pole = 20, num_steps = 100, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
+
+
+w1x: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     cartesian_map = {term = {1.0, 4, 5, 3, 0.2, 0.1, 2, x}}, field_calc = fieldmap
+
+w2x: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     cartesian_map = {term = {1.0, 3, 4, 5, 0.2, 0.1, 2, x}}, field_calc = fieldmap
+
+w3x: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     cartesian_map = {term = {1.0, 5, 4, 3, 0.2, 0.1, 2, x}}, field_calc = fieldmap
+
+w1y: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     cartesian_map = {term = {1.0, 4, 5, 3, 0.2, 0.1, 2, y}}, field_calc = fieldmap
+
+w2y: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     cartesian_map = {term = {1.0, 3, 4, 5, 0.2, 0.1, 2, y}}, field_calc = fieldmap
+
+w3y: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     cartesian_map = {term = {1.0, 5, 4, 3, 0.2, 0.1, 2, y}}, field_calc = fieldmap
+
+!-----------
+! Separate e_gun from rest of elements since e_gun shifts reference energy.
+
+l1: line = (e_gun1)
+l1[e_tot] = 1e12
+l1[geometry] = open
+
+! Put lcavity elements last since they shift reference energy
+
+l2: line = (drift1, ecollimator1, elseparator1, elseparator2, hkicker1, 
+            instrument1, kicker1, monitor1, octupole1, patch1, quadrupole1, quadrupole2, quadrupole3, quadrupole4, quadrupole5,
+            rcollimator1, rfcavity1, rfcavity2, sad_mult1, sad_mult2, sbend1, sbend2, sbend3, sbend4, sbend5, sextupole1, 
+            solenoid1, solenoid2, sol_quad1, sol_quad2, vkicker1, wiggler_map1, wiggler_periodic1, 
+            w1x, w2x, w3x, w1y, w2y, w3y, 
+            lcavity1, lcavity2, lcavity3)
+l2[e_tot] = 1e12
+l2[geometry] = open
+
+!---------------
+
+use, l1, l2
+
+
+end_file
+
+&params
+  del = 1e-6
+/

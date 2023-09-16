@@ -1,0 +1,52 @@
+no_digested
+parameter[no_end_marker] = T
+parameter[e_tot] = 1e6
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = -0.001
+particle_start[px] = 0.002 
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.00
+particle_start[pz] = 0.00
+
+particle_start[x]  = 0.00
+particle_start[px] = 0.002
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.00
+particle_start[pz] = 0.00
+
+q1: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
+q2: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
+p1: patch, z_offset = 1, mat6_calc_method = tracking, tracking_method = runge_kutta, x_pitch = 0.002
+p2: patch, flexible = True, user_sets_length = T
+
+pp: patch, mat6_calc_method = tracking, x_offset = 0.01, y_offset = 0.02, tilt = 1, y_pitch = 0.005
+p_norm: pp, z_offset =  1, x_pitch = 0.002
+p_in:   pp, z_offset =  1, x_pitch = pi+0.002
+p_out:  pp, z_offset = -1, x_pitch = pi+0.002
+pr_norm: p_norm
+pr_in:   p_in
+pr_out:  p_out
+
+mm: line[multipass] = (q1, q2, p1)
+l1: line = (mm, p2, mm)
+
+l2: line = (p_norm, p_in, --pr_norm, p_out, --pr_in, --pr_out)
+l2[geometry] = open
+l2[beta_a] = 10
+l2[beta_b] = 10
+
+pp1: patch, z_offset = 0.001, x_offset = 0.002, x_pitch = 0.5
+pp2: pp1, user_sets_length = T
+pp3: pp1, ref_coords = entrance_end
+
+l3: line = (pp1, pp2, pp3)
+l3[geometry] = open
+l3[beta_a] = 10
+l3[beta_b] = 10
+
+use, l1, l2, l3

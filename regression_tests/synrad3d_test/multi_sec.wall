@@ -1,0 +1,30 @@
+&shape_def
+  name = "rectangular1"
+  v(1) = 0.045, 0.025
+/
+
+&multi_place
+  name = "zigzag"
+  section(1) = 0.00, "inzig", 'dip1'
+  section(2) = 0.02, "outzag", "rect_zag"
+  section(3) = 0.08, "closed", "end_marker"
+/
+
+&shape_def
+  name = "dip1"
+  v(1) = 0.01378 0.01715 0.02200 0.02200
+  v(2) = -0.01378 0.01715
+  v(3) = -0.01378 -0.01715 0.02200, 0.02200
+  v(4) = 0.01378 -0.01715
+/
+
+&shape_def
+  name = "rect_zag"
+  v(1) = 0.0901, 0.04
+/
+
+&place section = 0.0,  'rec1', 'rectangular1' /
+&place section = 10.0, '',     'zigzag', 10 /
+&place section = 14.0, 'rec2', 'rectangular1' /
+
+ 

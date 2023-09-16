@@ -1,0 +1,27 @@
+beginning[beta_a]  =  0.3
+beginning[alpha_a] = -2.2
+beginning[beta_b]  =  0.34
+beginning[alpha_b] =  0.0
+beginning[eta_x]   =  -0.006
+beginning[etap_x]  =   0.067
+
+parameter[geometry] = open
+parameter[particle] = electron
+parameter[e_tot] = 42e6
+bmad_com[csr_and_space_charge_on] = T
+
+particle_start[x] = 2e-4
+particle_start[y] = 1e-4
+
+ben01: sbend, l = 0.1, b_field = 0.17, b1_gradient = -10
+eg1: e_gun, l = 1, space_charge_method = cathode_fft_3d
+
+br0: line = (ben01)
+br1: line = (eg1)
+
+br1[p0c] = 1e6
+br1[geometry] = open
+br1[beta_a] = 1
+br1[beta_b] = 1
+
+use, br0, br1

@@ -1,0 +1,71 @@
+parameter[lattice] = "PRSTAB 7, 2004 Toy Lattice"
+
+
+betaa=1e4
+betab=1e4
+alphaa=0
+alphab=0
+ beginning[beta_a]  =    betaa
+ beginning[alpha_a]=   alphaa
+ beginning[beta_b] =    betab
+ beginning[alpha_b] =   alphab
+
+beginning[e_tot] = 5e9
+
+parameter[geometry] = open
+
+
+rfw: lcavity, l = 0, gradient = 0.0, lr_wake_file="prstab2004.dat", lr_freq_spread=0.0E-3, rf_frequency = 1.3e9
+
+m1: match, beta_a1=betaa, alpha_a1=alphaa, beta_b1=betab, alpha_b1=alphab, dphi_a=1, dphi_b=1, l=1.269, match_end=.true.
+
+p0c=5e9
+!p0c=1
+
+m12=-1.0e-6*p0c
+m21=-m12/(betaa^2)
+m11=sqrt(1-m12*m21)
+m22=m11
+
+xi=500
+
+! Expand xout = x'in (beta1*beta2)^1/2 * sin(Psi+xi*delta)
+! Multiply by 1/(1+delta) simeq (1-delta) to account for 
+! delta dependence of x'in.
+! Average over symmetric delta distribution to keep only
+! even powers of delta.
+! xout propto (1+(1-0.5*xi^2)*delta^2)*sin(Psi) - xi*delta^2*cos(Psi)
+! M12 = (beta1*beta2)^1/2 * sin(psi)=-5e3, so sin(psi)=-0.5 for beta1=beta2=1e4 m.
+! So cos(psi) = sqrt(1-sin^2) = 0.87
+sinpsi=m12/betaa
+cospsi=sqrt(1-sinpsi^2)
+m1266=betaa*((1-0.5*(xi^2))*sinpsi-xi*cospsi)
+!m1266=0
+!t1: Taylor, {1:   m12,  0 1 0 0 0 0}, l=1.269
+
+! Simple phase space rotation
+!t1: Taylor, {1:   m12,  0 1 0 0 0 0}, &
+!            {1:   m11,  1 0 0 0 0 0}, &
+!            {2:   m21,  1 0 0 0 0 0}, &
+!            {2:   m22,  0 1 0 0 0 0}, l=1.269
+
+! Add chromatic terms
+t1: Taylor, {1:   m12,  0 1 0 0 0 0}, &
+!            {1:   m11,  1 0 0 0 0 0}, &
+!            {2:   m21,  1 0 0 0 0 0}, &
+!            {2:   m22,  0 1 0 0 0 0}, &
+!            {1:    1.,  1 0 0 0 0 1}, &
+!            {2:    1.,  0 1 0 0 0 1}, &
+! linear dependence on delta 
+!            {1: .0001,  0 1 0 0 0 1}, l=1.269
+! Quadratic dependence on delta 1/2 * delta^2
+!            {1: -xi/2,  0 1 0 0 0 2}, l=1.269
+! With cosine term: -xi*delta^2*cos(psi), cos(psi)about unity
+!            {1: -xi,  0 1 0 0 0 2}, l=1.269
+            {1: m1266,  0 1 0 0 0 2}, l=1.269
+
+simple: line[multipass] = (rfw, t1)
+
+dual: line = (simple,simple)
+
+use, dual

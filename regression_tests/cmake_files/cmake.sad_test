@@ -1,0 +1,9 @@
+set (EXENAME sad_test)
+
+FILE (GLOB SRC_FILES "sad_test/*.f90")
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

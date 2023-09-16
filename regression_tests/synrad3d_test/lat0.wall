@@ -1,0 +1,32 @@
+&place section = 0.0,  "", "C1:1rad@START" /
+&place section = 2.0,  "", "C1:3rad@END" /
+
+&place section = 1.0,  "", "C2:1rad@START" /
+&place section = 5.0,  "", "C2:3rad@END" /
+
+&place section = 3.0,   "", "C3:3rad@START" /
+&place section = 11.0,  "", "C3:1rad@END" /
+
+
+
+&shape_def
+  name = "1rad"
+  v(1) = 0.0, 0.0, 1.0
+/
+
+&shape_def
+  name = "2rad"
+  v(1) = 0.0, 0.0, 2.0
+/
+
+&shape_def
+  name = "3rad"
+  v(1) = 0.0, 0.0, 3.0
+/
+
+&shape_def
+  name = "4rad"
+  v(1) = 0.0, 0.0, 4.0
+/
+
+

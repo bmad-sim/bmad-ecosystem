@@ -1,0 +1,4 @@
+
+!set graph r33 floor_plan%orbit_scale = 1 
+place -no_buffer r13 beta
+set curve r13 draw_symbols = T

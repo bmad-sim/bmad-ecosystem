@@ -1,0 +1,140 @@
+parameter[e_tot] = 1e6
+parameter[n_part] = 1e10
+parameter[ptc_exact_model] = true
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = 0.001
+particle_start[px] = 0.002
+particle_start[y]  = 0.003
+particle_start[py] = 0.004
+particle_start[z]  = 0.005
+particle_start[pz] = 0.006
+particle_start[spin_x] = 0.3
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
+
+
+ab_multipole1:     ab_multipole, a2 = 1e2, b2 = 1e2, x_offset = 0.02, tilt = 0.1
+ac_kicker1:        ac_kicker, l = 0.3, hkick = 0.01, amp_vs_time = {(-1e-8, 1.0), (2e-8, 0.7)}, t_offset = 1e-9
+ac_kicker2:        ac_kicker, l = 0.4, vkick = 0.01, frequencies = {(1e8, 1.7, 0.01)}, t_offset = 2e-9
+beambeam1:         beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05, y_offset = 0.05
+crab_cavity1:      crab_cavity, l = 0.2, voltage = 1e3, phi0 = -0.2, rf_frequency = 1e8
+drift1:            drift, l = 4.5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+e_gun1:            e_gun, l = 2, voltage = 0.5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+ecollimator1:      ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1, hkick = 0.01, vkick = 0.002
+elseparator1:      elseparator, l = 4.5, hkick = 0.005, gap = 0.11, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+elseparator2:      elseparator, l = 4.5, vkick = 0.005, gap = 0.11, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+fiducial1:         fiducial, dx_origin = 0.1, dy_origin = 0.2, dz_origin = 0.3, dtheta_origin = 0.01, dphi_origin = 0.02, dpsi_origin = 0.4
+floor_shift1:      floor_shift, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3, x_pitch = 0.01, y_pitch = 0.02, tilt = 0.4
+hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+instrument1:       instrument, l = 4.5, num_steps = 10
+kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
+lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
+lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
+                            tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, cavity_type = traveling_wave
+match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3,
+                            c11_mat0 = 0.1, c12_mat0 = 0.2, c21_mat0 = 0.3, c22_mat0 = 0.4, 
+                            c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1
+monitor1:          monitor, l = 4.5, num_steps = 10
+multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05
+
+octupole1:         octupole, l = 4.5, k3 = 1e3, tilt, num_steps = 10, x_offset = 0.01, y_pitch = 0.001
+
+patch1:            patch, x_offset = 0.001, y_offset = 0.002, z_offset = 0.004, t_offset = 1e-11, x_pitch = 0.001, y_pitch = 0.002, tilt = 2
+
+q0: quadrupole, a0 = 0.01, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e4
+quadrupole1:       q0, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole2:       q0, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole3:       q0, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole4:       q0, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
+quadrupole5:       q0, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
+rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
+rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1
+rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1, cavity_type = traveling_wave
+rfcavity3:         rfcavity,          rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
+                             y_pitch = 0.001, tilt = 0.1
+sad_mult1:         sad_mult, l = 0.1, fringe_type = full, a1 = 2e-2, b2 = 4e1, a10 = 1e20, fq1 = 1, fq2 = 2, ks = 0.5
+sad_mult2:         sad_mult,          fringe_type = full, a1 = 2e-2, b2 = 4e1, a10 = 1e20, fq1 = 1, fq2 = 2, ks = 0.5
+
+
+sb0: sbend, a0 = 0.01, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e4, r0_mag = 2, r0_elec = 3
+rb0: rbend, a0 = 0.01, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e4, r0_mag = 2, r0_elec = 3
+
+sbend1:            sb0, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, exact_multipole=vertically_pure
+rbend2:            rb0, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, exact_multipole=horizontally_pure
+sbend3:            sb0, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+rbend4:            rb0, l = 0.6, g = 0.01, dg = -0.0099, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+                          fringe_type = full, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend5:            sb0, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
+                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, fint = 0.7, hgap = 2
+rbend6:            rb0, l = 0.6, g = 0.01, dg = -0.0099999, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend7:            sb0, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+
+sextupole1:        sextupole, l = 0.6, k2 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+solenoid1:         solenoid, l = 2.6, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+solenoid2:         solenoid, l = 2.6, ks = 1e-12, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+sol_quad1:         sol_quad, l = 2.6, k1 = 1, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+sol_quad2:         sol_quad, l = 2.6, k1 = 1e-5, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+taylor1:           taylor, l = 0.5, {s1: 0.6|}, {sx: 0.7|}, {sy: 0.8|}, {sz: 0.23|133},
+     {1: -0.009548848273192 |}, {1: 1.0044545389465 | 1}, {1: 8.8121098650987 | 2}, {1: 3.1588658629825E-06 | 3},
+     {1: 6.2473608609793E-07 | 4}, {1: -0.00079443016535773 | 5}, {1: -0.0015989734203102 | 6}, {1: -0.18688671328749 | 11},
+     {1: -4.4998640546185E-08 | 14}, {1: 2.2651451374404E-06 | 24}, {1: 0.073788700448494 | 34}, {1: 0.007484956273838 | 44},
+     {1: 0.00082601396763208 | 55}, {1: -0.0028821993367623 | 16}, {1: -5.8123275619217 | 26}, {1: -2.265886079839E-06 | 36},
+     {1: -1.0735265475719E-06 | 46}, {1: -2.5977503757166E-05 | 56}, {1: 0.001599145934809 | 66}, {2: 0.000275022360283 |},
+     {2: 0.00051707642703828 | 1}, {2: 1.0001015415885 | 2}, {2: 3.6671688283007E-07 | 3}, {2: 7.2562277969591E-08 | 4},
+     {2: -0.00082466736904442 | 22}, {2: 0.021696204516247 | 33}, {2: -1.6688665581997E-08 | 14}, {2: -1.00550787364E-07 | 24},
+     {2: 0.0085656912718635 | 34}, {2: 0.00087607181539392 | 44}, {2: 1.5386804916133E-06 | 15}, {2: 0.0029708711792291 | 25},
+     {2: -7.7463649579207E-08 | 46}, {2: -8.1698276776954E-07 | 56}, {2: 2.8869908085531E-08 | 66}, {3: 3.2610587848949E-05 |},
+     {3: -8.4878689763542E-06 | 5}, {3: -1.6296474350809E-05 | 6}, {3: 5.2306276920315E-08 | 12}, {3: 9.9263012775823E-07 | 22},
+     {3: 0.37377502367754 | 13}, {3: 0.073779185147525 | 23}, {3: 0.073717614772643 | 14}, {3: 0.01455164869765 | 24},
+     {3: -0.0014099480251362 | 35}, {3: -3.0176045012421 | 45}, {3: 8.4155398883643E-06 | 55}, {3: -2.265461523986E-06 | 16},
+     {3: -1.0704091926158E-06 | 26}, {3: 0.0028826770573567 | 36}, {3: -5.8094307630203 | 46}, {3: 1.1948119498249E-07 | 56},
+     {4: -0.00051721102259608 | 3}, {4: 0.99989735493446 | 4}, {4: 8.3316347911185E-09 | 5}, {4: -7.3754939754283E-08 | 22},
+     {4: -1.6488657985452E-08 | 34}, {4: -1.7426362705245E-07 | 44}, {4: -1.5335666645362E-06 | 35}, {4: 0.00297026174678 | 45},
+     {4: -2.4061772320287E-08 | 16}, {4: -7.7038857344361E-08 | 26}, {4: -2.3149938691032E-06 | 36}, {4: 0.00010238081722251 | 46},
+     {5: -8.6213990823047E-05 |}, {5: -7.9767882767976E-07 | 1}, {5: -0.0015988799230182 | 2}, {5: 7.5743225597097E-09 | 3},
+     {5: -3.4279364209869E-05 | 33}, {5: -2.1930300969081E-06 | 14}, {5: -8.1288561193211E-07 | 24}, {5: 0.0028890834757965 | 34},
+     {5: -2.9048688615274 | 44}, {5: 8.0459784624258E-07 | 15}, {5: -2.3619439665921E-05 | 25}, {5: 1.4526115573872E-07 | 45},
+     {5: 1.4504319745257E-08 | 56}, {5: -7.4136661038076E-07 | 66}, {6: -7.5702326313154E-06 |}, {6: 1.2266225971909E-06 | 1},
+     {6: 0.00079221093326577 | 2}, {6: 4.2434113169099E-09 | 3}, {6: 8.4636393264336E-06 | 4}, {6: 0.0059409439272306 | 5},
+     {6: 3.6954232986861E-07 | 13}, {6: 1.1765753082019E-06 | 23}, {6: 1.6057156163853E-05 | 33}, {6: 1.1766022575118E-06 | 14},
+     {6: 4.782914122933E-07 | 24}, {6: 0.0014203210587175 | 34}, {6: 1.504474955002 | 44}, {6: -5.3002411118529E-07 | 15},
+     {6: 3.2952059293287E-05 | 26}, {6: -4.6831132007123E-08 | 46}
+vkicker1:          vkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+wiggler_map1:      wiggler, l = 1.6, num_steps = 10, field_calc = fieldmap, cartesian_map = {
+                          term = {3e-4, 3, 4, 5, 0.002, 3e-4, 0.63, x}, term = {3e-4, 3, 4, 5, 0.002, 3e-4, 0.63, y},
+                          term = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, x}, term = {3e-4, 5, 3, 4, 0.002, 3e-4, 0.63, y},
+                          term = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, x}, term = {3e-4, 4, 5, 3, 0.002, 3e-4, 0.63, y}},
+                            tracking_method = symp_lie_ptc, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+wiggler_flat1: wiggler, l = 1, b_max = 0.0001, n_pole = 20, num_steps = 1, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
+wiggler_heli1: wiggler, l = 1, b_max = 0.0001, n_pole = 20, num_steps = 1, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1, field_calc = helical_model
+
+!-----------
+! Separate e_gun from rest of elements since e_gun shifts reference energy.
+
+l1: line = (e_gun1)
+l1[e_tot] = 1e6
+l1[geometry] = open
+l1[beta_a] = 10
+l1[beta_b] = 10
+
+! Put lcavity elements last since they shift reference energy
+l2: line = (ab_multipole1, ac_kicker1, ac_kicker2, beambeam1, crab_cavity1, drift1, ecollimator1, elseparator1, elseparator2, 
+            fiducial1, floor_shift1, hkicker1, instrument1, kicker1, match1, monitor1, multipole1, octupole1, patch1, quadrupole1, 
+            quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2, rfcavity3, sad_mult1, sad_mult2, 
+            sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1, solenoid1, solenoid2, sol_quad1, sol_quad2, 
+            taylor1, vkicker1, wiggler_map1, wiggler_flat1, wiggler_heli1, lcavity1, lcavity2, lcavity3)
+l2[e_tot] = 1e6
+l2[geometry] = open
+l2[beta_a] = 10
+l2[beta_b] = 10
+
+!-----------
+
+use, l1, l2

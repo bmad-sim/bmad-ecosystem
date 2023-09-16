@@ -1,0 +1,203 @@
+!rt: crystal, reflectivity_table = {
+!  {angles = (-0.1, 0, 0.2), 
+!    p_reflect= -0.1, (0.3, 0.4, 0.5),
+!    p_reflect= 0.1, (0.4, 0.5, 0.6)
+!  },
+!  {angles = (-0.1, 0, 0.2), 
+!    p_reflect= -0.1, (0.3, 0.4, 0.5),
+!    p_reflect= 0.1, (0.4, 0.5, 0.6)
+!  } }
+
+no_digested
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[particle] = He++
+beam, energy =   +5.28900
+parameter[p0c] = +1e12
+
+a_mom = anomalous_moment_of(parameter[particle])
+
+parameter[custom_attribute3] = 'zzz'
+parameter[custom_attribute2] = 'quadrupole::qqq'
+parameter[custom_attribute2] = 'parameter::abc'
+
+parameter[abc] = 17
+
+bmad_com[max_aperture_limit] = 23.5
+bmad_com[ptc_max_fringe_order] = -1
+bmad_com[convert_to_kinetic_momentum] = T
+bmad_com[conserve_taylor_maps] = False
+
+parameter[custom_attribute1] = quadrupole::my_custom
+
+myramp1: ramper = {rfcavity::*[phi0]:{0, 1}, rfcavity::r*[voltage]:1e6*(1+ran_gauss())}, var = {abc}, x_knot = {0, 2}
+myramp2: ramper = {q*[x_offset]:ran()/twopi}, var = {}
+
+aaa: ac_kicker, l = 0.3, hkick = 0.01, amp_vs_time = {(-1e-8, 0.0), (1e-8, 0.7)}
+aaa[amp_vs_time(1)%amp] = 1.0
+aaa[amp_vs_time(2)%time] = 2e-8
+
+bbb: ac_kicker, l = 0.3, hkick = 0.01, frequencies = {(1e7, 0.0, 0.0), (2e7, 0.7, 0.0)}
+bbb[frequencies(1)%freq] = 1.2e7
+bbb[frequencies(1)%amp] = 1.0
+bbb[frequencies(1)%phi] = 0.1
+bbb[frequencies(2)%phi] = 0.2
+
+gang0: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, t = 3, old_t = 3
+gang1: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, gang = false
+
+g_cc: group = {cc}, accordion_edge
+
+sbend0: sbend, r_custom(3) = 4, lr_self_wake_on = F, superimpose = F, offset = 3.2, field_calc = fieldmap,
+    grid_field = {
+        geometry = xyz,
+        curved_coords = T,
+        r0 = (0, 0, 0),
+        dr = (0.001, 0.001, 0.002),
+        pt(1,2,3) = (1, 2, 3, 4, 5, 6)}
+
+sbend0[grid_field(1)%field_scale] = 0.7
+
+sss: sbend
+
+tt: taylor, {s1: 0.4 | 13}, {sx: 0.1|}
+
+c: diffraction_plate, mode = transmission, 
+      displacement = {
+        dr = (1, 2),
+        ix_bounds = (10, 11),
+        iy_bounds = (0, 0),
+        pt(10,0) = (0, 1, 2, 3),
+        pt(11,0) = (1, 2, 3, 4),
+        r0 = (3,4) &
+      }
+
+mm: mask, mode = transmission, 
+  wall = {
+    section = {type = clear, v(1) = {1, 1}},
+    section = {type = opaque, r0 = (0,0), v(1) = {1, 1}}}
+
+m2: mask
+m2[wall] = mm[wall]
+
+cap: capillary, wall = {
+  section = {s = 0, v(1) = {1, 1}},
+  section = {s = 1, v(1) = {1, 1}}}
+
+*[aperture] = 3
+
+cry: crystal, crystal_type = 'Si(111)'
+
+ B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
+ B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! RHO =  31.65434
+ B03: RBEND, L = 2.945314, ANGLE = 0.020944245 ! RHO = 140.6264
+ B04: RBEND, L = 1.643524, ANGLE = 0.018699330 ! RHO =  87.8915
+ B06: RBEND, L = 3.287171, ANGLE = 0.037400530 ! RHO =  87.8915
+ B07: SBEND, L = 3.177222, ANGLE = 0.091254660 ! RHO =  34.81718
+ B08: SBEND, L = 6.575289, ANGLE = 0.112200220, E1=0.02805, E2=0.02805 ! 58.60
+
+IP_L0: MARKER 
+DET_00W: MARKER, ALIAS = "0W" 
+Q00W: QUAD, L =  1.524800, ALIAS = "Q00W" 
+DET_01W: MARKER, ALIAS = "1W" 
+Q01W: QUAD, L =  0.950000, ALIAS = "Q01W", Type = "CSR QUAD CUR   1" 
+HV01W: KICKER, L =  0.172700 
+Q02W: QUAD, L =  0.600000, ALIAS = "Q02W", Type = "CSR QUAD CUR   2" 
+DET_02W: MARKER, ALIAS = "2W" 
+SK_Q02W: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "2W", &
+        Type = "CSR SQEWQUAD   2" 
+SK_Q03W: QUAD, TILT = PI/4, L =  0.172700, ALIAS = "3W", &
+        Type = "CSR SQEWQUAD   3" 
+B03W:  B03, ALIAS = "B03W" 
+B03AW: B04, ALIAS = "B03AW" 
+DET_03W: MARKER, ALIAS = "3W" 
+
+!
+
+parameter[lattice] =  L9A18A000-_MOVEREC
+parameter[geometry] = open 
+parameter[particle] = proton
+aa: quadrupole, l = 1, my_custom = 123, qqq = 3
+bb: aa, l = 2
+
+b2: sextupole
+cc: sextupole
+
+xxx = mass_of(parameter[particle])/mass_of(proton)
+ov1: overlay = {aa}, hkick
+ov2: overlay = {aa:-2}, hkick
+gr1: group = {aa:-vkick^2/c_light*xxx/mass_of(proton)}, var = {vkick}, vkick = 1e-10
+gr2: group = {aa[k1]:k1, aa[tilt]:tilt}, var = {k1, tilt}
+gr3: group = {aa:-vkick^2*mass_of(proton)}, var = {vkick}, vkick = 1e-6 * atan2(1,2)
+
+b*[k1] = 1
+*[tracking_method] = runge_kutta
+sextupole::cc[k2] = 3
+
+pp: pipe, l = 1
+q1: quad, L=0.1, superimpose, ref = pp, offset = -0.2
+q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
+
+
+ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt, m2, aaa, bbb)
+call, file = sub_dir/sub.bmad;  abz2 = abz; phot: line = (ddd, cap, cry, ff)
+phot[E_tot] = 1e4
+phot[particle] = photon
+phot[beta_a] = 10
+phot[beta_b] = 10
+
+
+mp: marker, superimpose, offset = 3, ref = phot>>beginning
+
+ddd: drift, l = 10
+ff: fork, to_line = f_line
+qq: pipe, l = 1;  f_line: line = (qq, gf); f_line[particle] = photon
+mk: marker, superimpose, ref = qq, offset = 0.3
+
+gf: fork, to_line = g_line
+g_line: line = (ddd)
+
+!
+
+sub_l: line = (cc, qq)
+tag_line: line = (t1@sub_l, t2@sub_l)
+tag_line[geometry] = open
+tag_line[beta_a] = 10
+tag_line[beta_b] = 10
+tag_line[live_branch] = F
+
+! group_line
+
+qa: quad, l = 1
+qb: quad, l = 1
+
+m_in: marker, superimpose, ref = qa
+m_end1: marker
+m_end2: marker
+grd: girder = {m_end1:m_end2}
+
+group_line: line = (m_end1, qa, qb, m_end2)
+group_line[particle] = electron
+group_line[p0c] = 1e9
+
+! Group using element not in constructed lattice is ok
+
+zzz: quad
+gzzz: group = {zz*[k1]}, var = {a}
+
+!
+
+*[thickness] = 1.3
+*::*[b_param] = -1.1
+
+*[thickness] = 2.1
+
+expand_lattice
+
+*[psi_angle] = 2.1
+
+aa[k1] = 2
+a*[tracking_method] = symp_lie_bmad
+aa[num_steps] = 7
+!!zz: overlay = {aa[x_offset]:1}, var = {xx}, xx = ov1[hkick]

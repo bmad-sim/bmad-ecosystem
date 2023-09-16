@@ -1,0 +1,30 @@
+no_digested
+
+parameter[geometry] = open
+beginning[e_tot] = 1e9
+beginning[beta_a] = 100
+beginning[beta_b] = 1000
+parameter[absolute_time_tracking] = True
+
+particle_start[x]  = 0.00
+particle_start[px] = 0.00
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.00
+particle_start[pz] = 0.00
+particle_start[direction] = 1
+
+particle_start[spin_x] = 1
+particle_start[spin_y] = 0
+particle_start[spin_z] = 0
+
+
+bpm1: marker
+q1: quad, l = 15
+q2: quad, l = 185
+use, l1
+
+l1: line = (rr)
+
+rr: rfcavity, l = 1, rf_frequency = 1000e6
+ss: ac_kick, l = 1, hkick = 0.0001, interpolation = linear, amp_vs_time = {(0,1), (2e-7, 1), (2.001e-7, 0)}

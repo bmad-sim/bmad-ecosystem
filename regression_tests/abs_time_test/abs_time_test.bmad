@@ -1,0 +1,25 @@
+no_digested
+beginning[beta_a]  = 10  
+beginning[beta_b]  = 12
+
+parameter[geometry] = open
+beginning[p0c]  = 2e5
+
+particle_start[x] = 0e-4
+particle_start[px] = 1e-4
+particle_start[z] = 0.123e-3
+
+!
+
+d: drift, l = 1
+rf: lcavity, l = 1, rf_frequency = 1e9, gradient = 1e6, phi0 = 0.1, ds_step = 0.001
+
+lat: line = (d, rf)
+
+rf3: lcavity, l = 1, rf_frequency = 3e9, gradient = 1e6, phi0 = 0.1, ds_step = 0.001
+lat3: line = (d, rf, rf3, rf, rf3)
+lat3[beta_a] = 10
+lat3[beta_b] = 10
+lat3[geometry] = open
+
+use, lat, lat3

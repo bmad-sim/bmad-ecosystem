@@ -1,0 +1,8 @@
+&particle_species_test_params
+
+
+example_names(1:8) = 'NH3+', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+', 'H2O-4', 'Electron'
+
+verbose = F
+
+/

@@ -1,0 +1,30 @@
+!no_digested
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+beginning[p0c] = 0
+parameter[geometry] = open
+parameter[particle] = electron
+
+bmad_com[csr_and_space_charge_on] = T
+space_charge_com[rel_tol_tracking] = 0.1
+space_charge_com[dt_track_step] = 1e-13
+space_charge_com[space_charge_mesh_size] = (4,4,4)
+space_charge_com[debug] = F
+
+apex_gun: e_gun, 
+   L = 0.175,
+   tracking_method = time_runge_kutta,  mat6_calc_method = tracking, space_charge_method = cathode_fft_3d,
+   rf_frequency = 1300e6/7,
+   field_calc = fieldmap, 
+   grid_field = call::APEX_gun_fieldmesh.h5,
+   aperture_at = continuous, aperture_type=wall3d,
+   wall = {section={s=0, v(1) = {0, 0, 0.015}}, section={s=0.175, v(1)={0, 0, 0.015}} }
+  
+P1: pipe, L = 0.5 - apex_gun[L]
+
+GUN: apex_gun, voltage = 750e3, phi0 = 0
+
+lat: line = (GUN, P1)
+
+use, lat

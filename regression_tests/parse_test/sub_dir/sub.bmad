@@ -1,0 +1,2 @@
+print, 'In sub_dir/sub.bmad'
+abz = 10;  call, file = sub2_dir/sub2.bmad; atc = 7

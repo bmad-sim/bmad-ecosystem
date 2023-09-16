@@ -1,0 +1,75 @@
+no_digested
+parameter[e_tot] = 1e9
+parameter[n_part] = 1e10
+parameter[geometry] = closed
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+q1: quad, wall = {thickness = 0.1, 
+    superimpose = F, ele_anchor_pt = center, 
+    section = {type = opaque, s = 1, x0 = 1, y0 = 2, dr_ds = 10, 
+      v(1) = {11, 12, 130, 140}, 
+      v(2) = {1, 2, 30, 40, 5}, 
+      v(3) = {-21, 22} &
+    },
+    section = {s = 2, v(1) = {1,1}},
+    section = {s = 5, v(1) = {1,1}} &
+}, l = 10 
+
+q2: quad, l = 10, wall = {
+    section = {s = 2, v(1) = {1,1}},
+    section = {s = 5, v(1) = {1,1}} &
+  }
+
+
+q3: q2
+
+m: marker, superimpose, ref = q2, wall = {superimpose = T,
+    section = {s = -1, v(1) = {1,1}},
+    section = {s = 1, v(1) = {1,1}} &
+  }
+
+m2: marker, wall = {superimpose = T,
+    section = {s = -1, v(1) = {1,1}},
+    section = {s = 1, v(1) = {1,1}} &
+  }
+
+lw: line = (q1)
+use, lw
+
+l1: line[multipass] = (q1, q2)
+l2: line = (l1, l1, m2)
+l4: line = (qq)
+l4[geometry] = open
+l4[beta_a] = 1
+l4[beta_b] = 1
+!use, l2, l3, l4
+
+l3: line = (bnd, a, b, c)
+l3[e_tot] = 1e9
+l3[geometry] = open
+l3[beta_a] = 1
+l3[beta_b] = 1
+
+
+qq: quadrupole, wall = {
+      section = {s = 1, x0 = 1, y0 = 2,
+        v(1) = {1, 1, 20}},
+      section = {s = 11, x0 = 5, y0 = -2,
+        v(1) = {20, 20}}} , l = 20
+
+mq: marker, superimpose, ref = qq
+
+a: marker, wall = {
+      section = {s = 0, x0 = 1,
+        v(1) = {10, 10}}}
+
+c: marker, wall = {
+      section = {s = 0, x0 = -2,
+        v(1) = {20, 20}}}
+
+b: patch, z_offset = 10 
+
+
+bnd: sbend, l = 0.1, angle = pi, ref_tilt = 0.3
+dft: drift, l = 1

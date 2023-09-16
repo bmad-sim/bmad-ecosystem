@@ -1,0 +1,28 @@
+no_digested
+parameter[geometry] = open
+parameter[taylor_order] = 1
+parameter[ptc_exact_model] = T
+beginning[p0c] =   1e9
+beginning[beta_a] = 10 
+beginning[beta_b] = 10
+beginning[alpha_a] = 0
+beginning[alpha_b] = 0
+
+particle_start[x]  = 0.00
+particle_start[px] = 0
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  =  1e-6
+particle_start[pz] = 0.0
+particle_start[spin_x] = 1
+particle_start[spin_y] = 0
+particle_start[spin_z] = 0
+
+q: quad, l = 1, k1 = 1
+rf: lcav, l = 1, rf_frequency = 1e9, gradient = 1e6
+mm: match, beta_a1 = 1, beta_b1 = 11, match_end = T
+l1: line = (q, rf, mm)
+use, l1
+
+expand_lattice
+slice_lattice 1:2

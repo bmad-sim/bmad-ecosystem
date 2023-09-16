@@ -1,0 +1,95 @@
+no_digested
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[geometry] = open
+
+tt: taylor, {1: 1.1| 122}, {2: 2.2, 1 2 3 4 5 6}
+
+q1: quad, k1 = 0.4, cartesian_map = {
+  field_scale= 2,
+  master_parameter = k1,
+  r0 = (0, 0, 0.1),
+  ele_anchor_pt = center,
+  term = {1, 3, 4, 5, 0.2, 0.1, 2, x},
+  term = {1, 3, 4, 5, 0.2, 0.1, 2, y},
+  field_type = electric }, field_calc = fieldmap
+
+q2: quad, field_calc = fieldmap
+q2[k1] = q1[k1]
+q2[cartesian_map] = q1[cartesian_map]
+q3: q1
+q2[cartesian_map(1)%field_scale] = 3
+q4: quad, k1 = 0.4, cartesian_map = {
+  field_scale= 2,
+  master_parameter = k1,
+  r0 = (0, 0, 0.1),
+  ele_anchor_pt = center,
+  term = {3, 3, 4, 5, 0.2, 0.1, 2, x},
+  field_type = electric }, field_calc = fieldmap
+
+
+m1: lcavity, l = 1, rf_frequency = 1e6, voltage = 2, voltage_err = 1, cylindrical_map = {
+  m = 2, 
+  harmonic = 3,
+  r0 = (0, 0, 0.001), 
+  phi0_fieldmap = 5.6,
+  theta0_azimuth = 0.3,
+  master_parameter = voltage,
+  dz = 0.1,
+  ele_anchor_pt = center,
+  field_scale = 0.7,
+  e_coef_re = (1, 2, 3, 4, 5, 6),
+  b_coef_re = (10, 20, 30, 40, 50, 60) }, field_calc = fieldmap
+
+m2: lcavity, l = m1[l], voltage = m1[voltage], rf_frequency = m1[rf_frequency], field_calc = m1[field_calc]
+m2[cylindrical_map] = m1[cylindrical_map]
+
+g1: rfcavity, voltage = 2, rf_frequency = 500e6, grid_field = {
+  geometry = xyz,
+  field_type = electric,
+  harmonic = 0,
+  master_parameter = voltage,
+  curved_coords = False,
+  dr = (0.8, 0.9, 0.5),
+  ele_anchor_pt = center,
+  r0 = (0.4, 0.2, -0.2),
+  pt(-1, 0, -1) = (1, 2, 3),
+  pt( 0, 0, -1) = (4, 5, 6),
+  pt(-1, 1, -1) = (7, 8, 9),
+  pt( 0, 1, -1) = (0, 1, 0),
+  pt(-1, 0,  0) = (1, 0, 0),
+  pt( 0, 0,  0) = (0, 1, 0),
+  pt(-1, 1,  0) = (1, 0, 0),
+  pt( 0, 1,  0) = (0, 1, 0)}, l = 0.3, field_calc = fieldmap, autoscale_phase = F
+
+g2: rfcavity, l = g1[l], voltage = g1[voltage], rf_frequency = g1[rf_frequency], field_calc = g1[field_calc]
+g2[grid_field] = g1[grid_field]
+g2[autoscale_phase] = F
+
+gg: quadrupole, l = 0.4, k1 = 0,
+  gen_grad_map = {
+    dz = 0.1,
+    r0 = (0, 0, 0),
+    ele_anchor_pt = beginning,
+    field_scale = 2e0,
+    curve = {
+      kind = sin,
+      m = 2,
+      derivs = {
+        0.0: 1 0.1,
+        0.1: 2 0.2,
+        0.2: 3 0.3,
+        0.3: 4 0.4,
+        0.4: 5 0.5
+      }
+    }
+  },
+  field_calc = fieldmap, tracking_method = runge_kutta
+
+
+ll: line = (q1, q2, q3, q4, m1, m2, g1, g2, gg)
+use, ll
+
+
+parameter[p0c] = 1e12
+

@@ -1,0 +1,42 @@
+!no_digested
+parameter[geometry] = Open
+parameter[e_tot] = 1e10
+parameter[no_end_marker] = T
+
+beginning[beta_a]   = 10
+beginning[beta_b]   = 32
+
+particle_start[x]  = 0.00
+particle_start[px] = 0.00
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.00
+particle_start[pz] = 0.00
+
+b: sbend, l = 2, angle = 0.01
+ln1: line = (b)
+
+c1: sbend, l = 1, g = 0.001, roll = pi/2
+c2: sbend, l = 1, g = 0.001, ref_tilt = pi/2
+
+b1: sbend, e1 = 0.1, e2 = 0.2, l = 1, g = 0.1
+b2: sbend, e1 = 0.1, e2 = 0.2, l = 1, g = 0.1, ref_tilt = pi/2
+
+q1: quadrupole, l = 1, k1 =  0.1, vkick = 0.01, hkick = 0.003, x_offset = 0.1
+q2: quadrupole, l = 1, k1 = -0.1, vkick = 0.01, hkick = 0.003, x_offset = 0.1, tilt = pi/2
+
+
+ln2: line = (c1, b1, q1)
+ln2[geometry] = open
+ln2[beta_a] = 10
+ln2[beta_b] = 10
+!ln2[no_end_marker] = True
+
+ln3: line = (c2, b2, q2)
+ln3[geometry] = open
+ln3[beta_a] = 10
+ln3[beta_b] = 10
+
+use, ln1, ln2, ln3
+
+

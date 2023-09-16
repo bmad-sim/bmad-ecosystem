@@ -1,0 +1,36 @@
+no_digested
+parameter[e_tot] = 1e6
+parameter[n_part] = 1e10
+parameter[ptc_exact_model] = true
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = 0.001
+particle_start[px] = 0.002
+particle_start[y]  = 0.003
+particle_start[py] = 0.004
+particle_start[z]  = 0.005
+particle_start[pz] = 0.006
+
+
+!-----------
+
+l4: line = (crystal1)
+
+l4[e_tot] = 1e4
+l4[geometry] = open
+l4[particle] = photon
+
+r0 = 1
+
+crystal1: crystal, crystal_type = 'Si(444)', b_param = -1.1, tilt = 0.1, psi_angle = 1.8,
+	curvature = {x0y2 =  1 / (2 *r0), x0y4 = 1 / (8*r0^3), x2y0 = 1 / (2*r0), x4y0 = 1 / (8*r0^3),
+	x2y2 = 1 / (4*r0^3)}, mat6_calc_method = tracking
+
+
+!---------------
+
+use, l4
+
+

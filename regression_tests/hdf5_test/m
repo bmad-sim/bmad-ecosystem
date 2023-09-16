@@ -1,0 +1,5 @@
+cd ../../bmad
+mkd -j99
+cd ../regression_tests
+mkd hdf5_test-exe
+cd hdf5_test

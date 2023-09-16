@@ -1,0 +1,29 @@
+no_digested
+beginning[beta_a] = 11.743818508
+beginning[alpha_a] = -3.6168634781
+beginning[beta_b] = 2.1522931176
+beginning[alpha_b] = 0.29530240044
+
+parameter[particle] = electron
+parameter[absolute_time_tracking]=true
+
+PARAMETER[geometry] = open
+PARAMETER[E_TOT] = 1.5E7
+
+!
+
+cavity2_3D: lcavity, tracking_method = runge_kutta,  mat6_calc_method = tracking,  
+field_calc = fieldmap, rf_frequency = 1.3e9, autoscale_amplitude = T, autoscale_phase = T,
+L = 0.568, grid_field = call::grid.bmad
+
+!
+
+cavity2_3D[voltage] = 16e6
+CRMOD.Rfc01: line = (cavity2_3D)
+
+
+test_line : line = (CRMOD.Rfc01)
+
+*[ds_step] = 1e-3
+
+USE, test_line

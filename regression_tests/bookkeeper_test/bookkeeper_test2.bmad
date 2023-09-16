@@ -1,0 +1,36 @@
+no_digested
+
+parameter[p0c] = 1e9
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 20
+
+a: quad, l = 1, y_pitch = 0.003, field_overlaps = b
+b: sext, l = 2, type = "A", x_pitch = 0.02, tilt = 0.2
+c: oct, l = 3, type = "", y_pitch = 0.002
+dd: drift, l = 10
+
+lm: line[multipass] = (a, b, c)
+
+ll: line = (lm, dd, lm)
+
+use, ll, mm
+
+s1: quad, l = 0.1, superimpose, ref = a
+s2: sext, l = 0.1, superimpose, ref = b
+
+z1: overlay = {a[k1]:v1^2+1, b[k2]:v2^3, c[k3]:v1*v2}, var = {v1, v2}
+z2: overlay = {a[k1]:v1+3}, var = {v1, v2}
+
+g1: girder = {a, b, c}, x_pitch = 0.01, y_pitch = 0.02, tilt = pi/2
+g2: girder = {g1}
+
+!-----
+
+wi: wiggler, l = 1, field_calc = planar_model, b_max = 1e-3, n_period = 3
+ma: marker, superimpose, ref = wi
+
+mm: line = (wi)
+mm[geometry] = open
+mm[beta_a] = 1
+mm[beta_b] = 1

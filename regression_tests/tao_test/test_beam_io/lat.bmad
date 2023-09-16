@@ -1,0 +1,13 @@
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[particle] = positron ! electron
+parameter[geometry] = open
+parameter[p0c]                    = 5e6
+
+d: drift, l = 1
+
+lat: line = (d)
+use, lat
+
+

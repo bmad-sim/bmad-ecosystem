@@ -1,0 +1,30 @@
+
+parameter[p0c] = 5e9
+bmad_com[radiation_damping_on] = T
+
+ff = 0.1
+
+q1: quad, l = 0.5, k1 = 0.71, tilt = 0.01, y_offset = ff
+q2: quad, l = 0.5, k1 = -0.61, y_offset = ff
+
+d: drift, l = 0.3
+
+b2: sbend, l = 0.1, g = 0.2, num_steps = 10, y_offset = ff, e2 = 0.1, e1 = 0.2
+
+bb: sbend, l = 3, g = 0.1, num_steps = 20, y_offset = ff
+b: bb, y_offset = ff
+
+s1: sextupole, l = 0.01, y_offset = ff
+s2: sextupole, l = 0.01, y_offset = ff
+
+rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 0.5e7, phi0 = 0., y_offset = ff
+
+ss: solenoid, l = 0.3, ks = 0.2
+
+sector: line = (b, s1, d, q1, d, bb, d, q2, d, s2, rf, b2, ss)
+ring: line = (b1, k1, 4*sector)
+
+b1: sbend, l = 0.1, ref_tilt = 0.2, g = 0.001, dg = -0.0005
+k1: kicker, l = 0.1, hkick = 1e-5, tilt = 2
+
+use, ring

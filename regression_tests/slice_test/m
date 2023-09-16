@@ -1,0 +1,5 @@
+cd ../../bmad/
+mkd -j99
+cd ../regression_tests
+mkd slice_test-exe
+cd slice_test

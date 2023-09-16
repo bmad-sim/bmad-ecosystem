@@ -1,0 +1,13 @@
+wig1_14e[tracking_method] = taylor
+wig2_14e[tracking_method] = taylor
+wig_15e[tracking_method] = taylor
+wig1_18e[tracking_method] = taylor
+wig2_18e[tracking_method] = taylor
+wig3_18e[tracking_method] = taylor
+
+wig1_14e[mat6_calc_method] = taylor
+wig2_14e[mat6_calc_method] = taylor
+wig_15e[mat6_calc_method] = taylor
+wig1_18e[mat6_calc_method] = taylor
+wig2_18e[mat6_calc_method] = taylor
+wig3_18e[mat6_calc_method] = taylor

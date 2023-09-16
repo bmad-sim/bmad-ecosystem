@@ -1,0 +1,28 @@
+no_digested
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = open
+PARAMETER[p0c] = 180806.1746
+!PARAMETER[e_tot] = 5e6
+
+cavity2: lcavity, l = 1.5, rf_frequency = 1.3e9, gradient = 1e5
+
+lat: line = (cavity2)
+
+USE, lat
+
+lcavity::*[autoscale_amplitude] = T
+lcavity::*[autoscale_phase] = T
+
+
+
+end_file
+
+&params
+  start_orb%vec = 0.001, 0.002, 0.003, 0.004, 0.005, 0.006
+  !start_orb%vec = 0,0,0,0,0,0
+/

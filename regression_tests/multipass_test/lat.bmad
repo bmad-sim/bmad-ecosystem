@@ -1,0 +1,43 @@
+parameter[geometry] = Open            
+ 
+parameter[p0c]                    =9.9999986944E8
+parameter[particle]               = Positron
+parameter[absolute_time_tracking]    = F
+beginning[s]        = 3
+
+beginning[beta_a]   = 10
+beginning[beta_b]   = 10
+ 
+!-------------------------------------------------------
+ 
+A: DRIFT, L = 1
+MA: PATCH
+ 
+!-------------------------------------------------------
+! Overlays, groups, etc.
+ 
+B: SBEND, L = 0.1, REF_TILT = 0.1, G = 31.415926536, N_REF_PASS = 1
+A2: DRIFT, L = 2, N_REF_PASS = 1
+FID: FIDUCIAL, DX_ORIGIN = 1, DTHETA_ORIGIN = 0.01, origin_ele = MA
+PF: PATCH, TILT = -6.4599543167E-30, FLEXIBLE = T, X_PITCH = -1.9997892306E-14, &
+   Y_PITCH = -8.8817844391E-16, X_OFFSET = 6.487865977E-16, &
+   Y_OFFSET = -3.9187172163E-16, Z_OFFSET = 1
+ 
+!-------------------------------------------------------
+ 
+multi_line_01: line[multipass] = ( A, B, A2, B)
+ 
+B1: line = ( A, MA)
+ 
+B2: line = ( multi_line_01, FID, PF, multi_line_01)
+ 
+B2[geometry] = Open
+B2[particle] = Positron
+B2[p0c]      = 9.9999986944E8
+B2[s]        = 2
+B2[ref_time] = 1E-9
+
+B2[beta_a]   = 10
+B2[beta_b]   = 10
+ 
+ use, B1, B2

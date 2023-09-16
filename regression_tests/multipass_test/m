@@ -1,0 +1,5 @@
+cd ../../bmad
+mkd -j99
+cd ../regression_tests
+mkd multipass_test-exe
+cd multipass_test

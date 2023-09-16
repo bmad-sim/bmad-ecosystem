@@ -1,0 +1,38 @@
+no_digested
+parameter[e_tot] = 1e6
+
+particle_start[x]  = 0.1
+particle_start[px] = 0.02
+particle_start[y]  = 0.2
+particle_start[py] = 0.03
+particle_start[z]  = .4
+particle_start[pz] = 0.1
+particle_start[spin_x] = 1
+particle_start[spin_y] = 2
+particle_start[spin_z] = 3
+
+q: quadrupole, l = 0
+s: sample, x_offset = 1, y_offset = 2, x_pitch = 4, y_pitch = 5, tilt = 6, z_offset = 7, l = 2
+m: mirror, graze_angle = pi/2, &
+        x_offset = 2, y_offset = 2, x_pitch = 4, y_pitch = 5, tilt = 6, z_offset = 7, x_limit = 0.1, y_limit = 0.1
+!!m2: mirror, graze_angle = pi/4, tilt = pi/2
+m2: mirror, graze_angle = pi/4!, tilt = pi/2
+
+l0: line = (q)
+
+l1: line = (s, m, m2)
+l1[e_tot] = 1e4
+l1[particle] = photon
+
+l2: line = (q0, q1, b0, b1, b2)
+l2[e_tot] = 1e8
+l2[particle] = electron
+
+q0: solenoid, l = 2
+q1: solenoid, l = 2, x_offset = 0.2, y_offset = 0.3, x_pitch = 0.1, y_pitch = 0.2, tilt = 2
+b0: sbend, l = 2, g = 0.1, dg = -0.1
+b1: sbend, l = 2, g = 0.1, dg = -0.1, x_offset = 0.2, y_offset = 0.3, x_pitch = 0.1, y_pitch = 0.2, roll = 0.3
+b2: sbend, l = 2, g = 0.1, dg = -0.1, x_offset = 0.2, y_offset = 0.3, x_pitch = 0.1, y_pitch = 0.2, roll = 0.3, ref_tilt = 2
+
+use, l0, l1, l2
+

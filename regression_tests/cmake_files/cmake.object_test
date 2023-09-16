@@ -1,0 +1,11 @@
+set (EXENAME object_test)
+
+FILE (GLOB SRC_FILES "object_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)
