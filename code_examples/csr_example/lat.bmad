@@ -1,0 +1,12 @@
+beginning[beta_a] = 100
+beginning[beta_b] = 100
+beginning[e_tot] = 5e8
+parameter[geometry] = open
+
+b1: sbend, l = 1, rho = 10, csr_method = 1_dim
+b2: sbend, l = 2, rho = 10, csr_method = 1_dim
+d1: drift, l = 1, csr_method = 1_dim
+
+lat: line = (b1, d1, b2)
+
+use, lat
