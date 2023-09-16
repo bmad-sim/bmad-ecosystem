@@ -1,0 +1,20 @@
+&params
+  lux_param%lattice_file = 'rowland_circle_spectrometer.bmad'        ! Defines experimental layout.
+  lux_param%det_pix_out_file = 'spherical.det_pix'
+
+  lux_param%photon_init_element = 'source'              ! Name of source element
+  lux_param%detector_element = 'det'
+  lux_param%photon1_element = ''
+
+  lux_param%random_seed = 123                      ! Random seed. 0 => Use system clock
+  lux_param%intensity_normalization_coef = 1e6     ! For normalizing photon intensities.
+
+  lux_param%stop_total_intensity = 1e6          ! Cumulative intensity to stop at.
+  lux_param%stop_num_photons = 1e6             ! Max number of photons to track
+
+  lux_param%intensity_min_det_pixel_cutoff = 0.1 ! Cutoff for det_pix_out file
+  lux_param%histogram_bin_width = 1e-3
+
+  lux_param%photon1_out_file = 'lux.photon1'
+  lux_param%intensity_min_photon1_cutoff = 1e-3  ! Cutoff for photon1_out file
+/
