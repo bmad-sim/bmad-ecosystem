@@ -1,0 +1,16 @@
+! Lattice File: fork.bmad
+
+beginning[beta_a] = 10.0        ! m  a-mode beta function
+beginning[beta_b] = 10.0        ! m  b-mode beta function
+beginning[e_tot] = 10e6         ! eV 
+parameter[geometry] = open      ! or closed
+
+b: sbend, l = 2, angle = pi/3
+f: fork, to_line = extract_line, superimpose, offset = 0.4
+q: quadrupole, l = 2
+
+extract_line: line = (q)       ! The line forked to.
+extract_line[geometry] = open
+
+lat: line = (b)
+use, lat                ! Line used to construct the lattice

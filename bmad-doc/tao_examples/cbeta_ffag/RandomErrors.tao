@@ -1,0 +1,6 @@
+!Random Errors
+!Quad x offset
+set var quad_x_offset[*]|model = quad_x_offset[*]|design + 400e-6*ran_gauss()
+set var quad_y_offset[*]|model = quad_y_offset[*]|design + 400e-6*ran_gauss()
+
+!set var quad_x_pitch[*]|model = quad_x_pitch[*]|design + 100e-6*ran_gauss()

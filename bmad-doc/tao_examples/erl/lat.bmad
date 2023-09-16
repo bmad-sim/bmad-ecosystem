@@ -1,0 +1,45 @@
+
+parameter[lattice] = "Tao ERL example"
+no_digested
+
+beginning[beta_a] = 5
+beginning[beta_b] = 5
+
+parameter[geometry] = open
+parameter[e_tot] = 10e6
+parameter[absolute_time_tracking] = T
+
+freq = 1.3e9
+
+cav: lcavity, L = 1, rf_frequency = freq, n_cell = 9, voltage = 10e6
+
+
+
+cav1: cav
+cav2: cav
+
+r56 =  0.12
+t566 = 1.23
+                       
+d1: drift, L = 0.1
+d2: drift, L = 0.1
+d3: drift, L = 0.1
+
+t1: taylor, L = 10.5*c_light/freq, {5: r56 | 6} 
+ 
+arc: line = (t1)
+!o_arc: overlay = {t1[tt56]:r56, t1[tt566]:t566}, var={r56, t566}
+
+
+linac.beg: marker
+linac.end: marker
+
+linac: line[multipass] = (linac.beg, d1, cav1, d2, cav2, d3, linac.end)
+
+o_phase: overlay = {cav1[phi0]:phideg*pi/180, cav2[phi0]:phideg*pi/180}, var={phideg}
+o_phase[phideg] = 1
+
+erl: line = (linac, arc, linac)
+
+
+use, erl

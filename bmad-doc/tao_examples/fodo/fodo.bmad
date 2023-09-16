@@ -1,0 +1,44 @@
+no_digested
+parameter[geometry] = closed
+parameter[particle] = electron
+
+beginning[e_tot] = 150e6
+
+L_tot = 2
+Lq = 0.1
+Ld = (L_tot - 2*Lq)/2
+
+! Optimal for flat beam
+! k1_optimal = 1/(sqrt(2) * Lq * L_tot/2)
+
+! Optimal for round beam (90 deg phase advance):
+k1_optimal =  (1/Lq) * 2*sqrt(2) / L_tot
+
+P0: pipe
+
+P1: P0, l = Ld
+
+q0: quad, L = Lq
+q1: q0
+q2: q0
+
+O_L: overlay = {p1[L]:(Lcell - 2*Lq)/2}, var = {Lcell}
+O_L[Lcell] = L_tot
+
+! qx: overlay = {q1[k1]:k1, q2[k1]:-k1}, var = {k1}, k1= k1_optimal
+
+q1[k1] = k1_optimal
+q2[k1] = -k1_optimal
+
+fodo1: line = (p1, q1, p1, q2 )
+
+use, fodo1
+
+!lat: line = (40*fodo1)
+
+!use, lat
+
+
+
+
+

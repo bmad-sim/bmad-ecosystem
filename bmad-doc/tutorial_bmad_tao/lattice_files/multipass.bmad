@@ -1,0 +1,15 @@
+! Lattice File: multipass.bmad
+
+beginning[beta_a] = 100.   ! m  a-mode beta function
+beginning[beta_b] = 100.   ! m  b-mode beta function
+beginning[p0c] = 10e6   ! eV   
+parameter[geometry] = open      ! or closed
+
+cavity: lcavity, l = 1, voltage = 10e6, rf_frequency = 1e9
+
+linac: line[multipass] = (cavity)
+erl: line = (linac, linac) 
+use, erl
+
+expand_lattice                
+cavity\2[phi0_multipass] = 0.5

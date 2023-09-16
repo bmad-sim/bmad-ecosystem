@@ -1,0 +1,244 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%plot_display_type = 'X'       ! 'X' or 'TK'
+  plot_page%size = 800, 400
+  plot_page%text_height = 12.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'  
+  plot_page%n_curve_pts = 600
+
+!  plot_page%axis_number_text_scale = 2 ! 0.9 
+! plot_page%axis_label_text_scale  = 2 ! 1.0 
+
+  plot_page%floor_plan_shape_scale = 0.01 !m to cm
+
+  region(1)%name = 'floor'
+  region(1)%location = 0.0, 1.0, 0.5, 0.95
+  
+  region(2)%name = 'top'
+  region(2)%location = 0.0, 1.0, 0.3, 0.5
+  
+  region(3)%name = 'middle'
+  region(3)%location = 0.0, 1.0, 0.1, 0.26
+  
+  region(4)%name = 'bottom'
+  region(4)%location = 0.0, 1.0, 0.0, 0.1
+
+  region(5)%name = 'r21'
+  region(5)%location = 0.0, .5, 0.1, 0.5
+  region(6)%name = 'r11'
+  region(6)%location = 0.0, .5, .5, 1.0
+  region(7)%name = 'r22'
+  region(7)%location = 0.5, 1.0, 0.1, 0.5
+  region(8)%name = 'r12'
+  region(8)%location = 0.5, 1.0, 0.5, 1.0
+  
+  region(9)%name = 'r00'
+  region(9)%location = 0.0, 1.0, 0.0, 1.0
+
+
+  ! 2-plot layout
+  region(10)%name = 'top2'
+  region(10)%location = 0.0, 1.0, 0.55, .95
+  
+  region(11)%name = 'middle2'
+  region(11)%location = 0.0, 1.0, 0.1, 0.5
+
+  ! Phase space row
+  region(12)%name = 'p1'
+  region(12)%location = 0.0, 0.2, 0.5, 1.0
+  region(13)%name = 'p2'
+  region(13)%location = 0.2, 0.4, 0.5, 1.0
+  region(14)%name = 'p3'
+  region(14)%location = 0.4, 0.6, 0.5, 1.0
+  region(15)%name = 'p4'
+  region(15)%location = 0.6, 0.8, 0.5, 1.0
+  region(16)%name = 'p5'
+  region(16)%location = 0.8, 1.0, 0.5, 1.0
+
+  ! histograms
+  region(17)%name = 'h1'
+  region(17)%location = 0.0, 0.2, 0.3, 0.45
+  region(18)%name = 'h2'
+  region(18)%location = 0.2, 0.4, 0.3, 0.45
+  region(19)%name = 'h3'
+  region(19)%location = 0.4, 0.6, 0.3, 0.45
+  region(20)%name = 'h4'
+  region(20)%location = 0.6, 0.8, 0.3, 0.45
+  region(21)%name = 'h5'
+  region(21)%location = 0.8, 1.0,0.3, 0.45
+
+
+  place(1) = 'floor', 'floor'     !'abs_dispersion'
+  place(2) = 'top', 'beta'
+  place(3) = 'middle', 'dispersion'
+  place(4) = 'bottom', 'layout'
+
+/
+
+
+
+!------------------ layout ------
+&tao_template_plot
+	plot%name = 'layout'
+	default_graph%x%label = ' '
+	plot%n_graph = 1
+	plot%x_axis_type = 's'
+/
+
+&tao_template_graph
+	graph_index = 1
+	graph%name = 'u1'
+	graph%type = 'lat_layout'
+	graph%box = 1, 1, 1, 1
+	graph%x%draw_numbers = False
+	graph%ix_universe = -1 !Syntax Changed from 0
+	graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
+ 	graph%y%max = 2
+	graph%y%min = -2
+ 	graph%y%major_div = 4
+/
+
+&lat_layout_drawing 
+  ele_shape(1) = "Quadrupole::*"   	"asym_var_box"	"Blue"	 .1 		'none'
+  ele_shape(2) = "SBend::*"		"Box"		"Red"		1		'none'
+  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		.5		'none'
+  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	.5		'none'
+  ele_shape(5) = "Sextupole::*"		"asym_var_box"	"magenta"	0.1		'none'
+  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		20		'none'
+  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		.2		'none'
+  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		.2		'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		.1		'none'
+  ele_shape(10) = "kicker::*"		"Box"		"Red"		.2		'none'
+  ele_shape(11) = "PIPE::*"		"Box"		"Light_Grey" .01		'none'
+  ele_shape(12) = "INSTRUMENT::*"	"Xbox"	  	"Black"		1		'none'
+  ele_shape(13) = "SOLENOID::*"		"Xbox"	  	"Blue"		1		'none'
+  ele_shape(14) = "rfcavity::*"	    	"XBox"		"Red"		100		'none'
+  ele_shape(15) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
+  ele_shape(16) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
+  ele_shape(16) = "MARKER::*"	    	"Box"		"Black"		.1		'none'
+  !ele_shape(16) = "wall::beam_chamber"	    	"XBox"		"Black"		500		'none'
+/       
+   
+&floor_plan_drawing
+  ele_shape(1) = "Quadrupole::F*"   	"Box"		"Blue"	13		'none'  ! 13 cm radius FFAG Quads
+  ele_shape(2) = "SBend::IN.MERGE*"		"Box"		"Red"		15.5		'none'
+  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		20		'none'
+  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	10		'none'
+  ele_shape(5) = "Sextupole::*"		"Box"	"orange"	4		'none'
+  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		10		'none'
+  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		5		'none'
+  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		5		'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		1		'none'
+  ele_shape(10) = "kicker::*"		"Box"		"Red"		5		'none'
+  ele_shape(11) = "PIPE::F*"		"Box"		"Light_Grey"		3.7		'none'
+  ele_shape(12) = "PIPE::*"		"Box"		"Light_Grey"		  2.1		'none'
+  ele_shape(13) = "INSTRUMENT::*"	"Xbox"	  	"Black"		5		'none'
+  ele_shape(14) = "SOLENOID::*"		"Xbox"	  	"Blue"		5		'none'
+  ele_shape(15) = "rfcavity::*"	    	"XBox"		"Red"		10		'none'
+  ele_shape(16) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
+  ele_shape(17) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
+  ele_shape(18) = "Quadrupole::Z*"   	"Box"		"Blue"	13		'none'  ! 13 cm radius FFAG Quads (includes correctors)
+  ele_shape(19) = "Quadrupole::T*"   	"Box"		"Blue"	13		'none'  ! 13 cm radius FFAG Quads 
+  ele_shape(20) = "Quadrupole::*"   	"Box"		"Blue"	7.5	'none'   ! All other quads
+  !ele_shape(20) = "Quadrupole::*"   	"Box"		"Blue"	13.0	'none'   ! TEST
+  ele_shape(21) = 'wall::building' '-' 'black' 0 '-'
+  ele_shape(22) = "SBend::*"		"Box"		"Red"		12		'none'
+/  
+                                          	
+! Colors: 
+!"BLACK" 
+!"RED" 
+!"ORANGE" 
+!"MAGENTA" 
+!"YELLOW" 
+!"GREEN" 
+!"CYAN" 
+!"BLUE" 
+!"PURPLE" 
+
+
+
+
+&tao_template_plot
+  plot%name = 'xphase'
+  default_graph%x%min =   -4.5
+  default_graph%x%max = 4.5
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x (mm)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'x'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'X-Px'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = '\gDp\dx\u (MeV/c)'
+  !graph%y%max = 0.1
+  !graph%y%min = -0.1
+  graph%y%major_div = 4
+  graph%y%label_offset=.4
+  curve(1)%data_type = 'x-px' 
+  curve(1)%y_axis_scale_factor = 9.986935415832026 !px/p0 -> px (MeV/c) for 10 MeV beam
+  curve(1)%data_source = 'beam_tracking'
+  !curve(1)%ix_universe = 1
+  curve(1)%ele_ref_name = 'END'
+  curve(1)%symbol%type = 1
+  curve(1)%z_color%data_type = 'pz'
+  curve(1)%z_color%is_on = T
+  ! Color by pz
+  !curve(1)%z_color%data_type = 'z'
+  !curve(1)%z_color%min = 0
+  !curve(1)%z_color%max = 0
+  !curve(1)%z_color%is_on = T
+  
+/
+
+!--------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'zphase'
+  default_graph%x%min = -.4
+  default_graph%x%max =  .4
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Z-Pz'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = '\gDp (MeV/c)'
+  graph%y%max = 3
+  graph%y%min = -3
+  graph%y%major_div = 4
+  graph%y%label_offset=.2
+  curve(1)%data_type = 'z-pz' 
+  curve(1)%y_axis_scale_factor = 9.986935415832026 !delta -> delta pz (MeV/c) for 10 MeV beam
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = 'END'
+  curve(1)%symbol%type = 1
+  curve(1)%symbol%color =4
+  
+  ! Color by pz
+  curve(1)%z_color%data_type = 'pz'
+  curve(1)%z_color%min = -.02
+  curve(1)%z_color%max =  .02
+  curve(1)%z_color%is_on = T
+/
+
+!--------------------------------------------------------------
+
+

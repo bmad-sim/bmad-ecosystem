@@ -1,0 +1,4 @@
+call, file = COSY.bmad
+col[hkick] = 0.001  ! To display a nonzero orbit
+beginning[theta] = 0.2618  ! Makes COSY axes aligned with global axes.
+beginning[theta] = 0.39

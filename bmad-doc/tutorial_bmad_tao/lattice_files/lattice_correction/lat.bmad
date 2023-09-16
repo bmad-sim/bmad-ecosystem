@@ -1,0 +1,21 @@
+! Lattice File: orbit_correction/lat.bmad
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[geometry] = closed
+parameter[e_tot] = 1e7
+
+d: drift, l = 0.4
+d2: drift, l = 0.1
+h1: kicker, l = 0.2
+v2: kicker, l = 0.2
+
+q1: quad, l = 0.5, k1 =  1.0
+q2: quad, l = 0.5, k1 = -1.1
+
+det1: marker;  det2: marker
+det3: marker;  det4: marker
+
+lat: line = (h1, d, det1, d, q1, d2, det2, d, v2, d, det3, d, q2, d2, det4, d)
+use, lat

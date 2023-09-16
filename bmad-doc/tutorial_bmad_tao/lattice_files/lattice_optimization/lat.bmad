@@ -1,0 +1,18 @@
+! Lattice File: lattice_optimization/lat.bmad
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[geometry] = open
+parameter[e_tot] = 10e6
+
+d: drift, l = 5
+q1: quad, l = 0.1, k1 =  1, superimpose, offset = 1.25
+q2: quad, l = 0.1, k1 = -1, superimpose, offset = 1.75
+q3: quad, l = 0.1, k1 =  1, superimpose, offset = 2.25
+q4: quad, l = 0.1, k1 = -1, superimpose, offset = 2.75
+q5: quad, l = 0.1, k1 =  1, superimpose, offset = 3.25
+q6: quad, l = 0.1, k1 = -1, superimpose, offset = 3.75
+
+lat: line = (d)
+use, lat

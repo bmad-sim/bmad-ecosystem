@@ -1,0 +1,9 @@
+Example of how to display a plot with the x-axis being a lattice parameter.
+In this case the lattice parameter is the reference energy.
+
+The lattice contains a kicker named K whose field (set by bl_hkick) is constant independent of the reference energy.
+
+This means that at the lowest energies of the scan range (set by plot%x%min in the tao.init file), the
+lattice is unstable and there is no closed orbit. When Tao is run, Tao will issue error messages about this.
+Ignore these messages. Tao will properly handle the low ref energy instability. If you want to get rid of these
+messages, set plot%x%min to a value where the lattice is stable.

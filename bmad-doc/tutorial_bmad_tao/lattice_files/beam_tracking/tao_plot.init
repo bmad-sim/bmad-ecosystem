@@ -1,0 +1,84 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%size = 500, 400
+  place(1) = 'layout', 'lat_layout'
+  place(2) = 'r12', 'beta'
+  place(3) = 'r22', 'key'
+/
+
+
+!------- Fancy X-Px phase space --------------------------------------
+
+&tao_template_plot
+  plot%name = 'xphase'
+  default_graph%x%min = -3
+  default_graph%x%max = 3
+  default_graph%x%label = 'x (mm)'
+  plot%x_axis_type = 's'
+  plot%n_graph =1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'g'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'X-Px'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = 'p\dx\u/p\d0\u (mrad)'
+  graph%y%min = -0.4
+  graph%y%max =  0.4
+
+  graph%y%major_div = 4
+  graph%y%label_offset=.4
+  
+  curve(1)%data_source = 'beam'
+  curve(1)%data_type = 'px'
+  curve(1)%data_type_x = 'x' 
+  curve(1)%data_type_z = 'px' ! Color by px 
+  curve(1)%draw_symbols = T
+  curve(1)%y_axis_scale_factor = 1000 !rad->mrad
+  curve(1)%ele_ref_name = 'END'
+  curve(1)%symbol%type = 'DOT'
+  curve(1)%use_z_color = T
+
+/
+
+
+!------------  histogram x-----------------------------
+
+&tao_template_plot
+  plot%name = 'xhist'
+  default_graph%x%min = -3
+  default_graph%x%max = 3
+  default_graph%x%label = 'x (mm)'
+  plot%x_axis_type = 's'
+  plot%n_graph =1
+/
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'histogram'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Bunch Histogram: X'
+  graph%y%label = 'Charge density (nC/mm)'
+  graph%y%label_offset = .4
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+
+  curve(1)%hist%density_normalized = T
+  curve(1)%hist%weight_by_charge = T
+  curve(1)%hist%number = 100
+  curve(1)%line%color = 'BLUE'
+  curve(1)%line%pattern = 'DASHED'
+  curve(1)%y_axis_scale_factor = 1e6 !C/m * 1e-3 mm/m * 1e9 nC/C
+  curve(1)%data_type = 'x' 
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = 'END'
+  curve(1)%symbol%type = 'DOT'
+/  
+
+

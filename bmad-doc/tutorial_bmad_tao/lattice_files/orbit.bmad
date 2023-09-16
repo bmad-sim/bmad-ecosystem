@@ -1,0 +1,17 @@
+! Lattice File: orbit.bmad
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV
+parameter[geometry] = open  ! or closed
+bmad_com[spin_tracking_on] = T
+
+particle_start[y] = 0.01
+particle_start[px] = 0.06
+particle_start[pz] = -0.2
+particle_start[spin_x] = 1
+
+b: sbend, L = 0.5, g = 1    ! g = 1 / bending_radius
+q: quadrupole, L = 0.6, k1 = 10
+
+lat: line = (b, q)   ! List of lattice elements
+use, lat                ! Line used to construct the lattice

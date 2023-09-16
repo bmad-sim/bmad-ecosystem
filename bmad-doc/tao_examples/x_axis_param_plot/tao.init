@@ -1,0 +1,30 @@
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "small_ring.bmad"
+/
+
+&tao_plot_page
+  place(1) = 'r13' 'x_var'
+/
+
+&tao_template_plot
+  plot%name = 'x_var'
+  default_graph%x%label = 'P0c'
+  plot%x_axis_type = 'lat'
+  plot%n_curve_pts = 50
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'g'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Horizontal Orbit (mm)'
+  graph%y%label = 'X'
+  graph%x%eval_min = 8.0e6
+  graph%x%eval_max = 20.0e6
+
+  curve(1)%data_type_x = 'beginning[p0c]'
+  curve(1)%data_type   = 'orbit.x[10]'
+  curve(1)%y_axis_scale_factor = 1000
+/

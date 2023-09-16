@@ -1,0 +1,6 @@
+! Note: When you start Tao there will be an error message! Can you figure out why?
+! [Hint: Read carefully the description of how the datum value is computed.]
+
+place r11 floor_plan
+set graph r11 floor_plan%orbit_scale = 2
+set graph r11 floor_plan%orbit_color = 'purple'

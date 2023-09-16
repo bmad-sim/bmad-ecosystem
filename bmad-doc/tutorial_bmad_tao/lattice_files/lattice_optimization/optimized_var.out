@@ -1,0 +1,41 @@
+ Q1[K1] =   7.57510225132039E-01
+ Q2[K1] =  -1.38377269432999E+00
+ Q3[K1] =   8.78859952315491E-01
+ Q4[K1] =  -1.09329289776131E+00
+ Q5[K1] =   1.32989752192460E+00
+ Q6[K1] =  -4.84170585210923E-01
+ 
+ end_file
+ 
+ 
+ ! Top 10
+ 
+ Constraints                   Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
+ twiss.a[2]  alpha.a <target>                        END      -4.000E-01  -3.988E-01  1.49E-04
+ twiss.b[2]  alpha.b <target>                        END      -4.000E-01  -3.991E-01  8.18E-05
+ twiss.a[1]  beta.a <target>                         END       1.200E+01   1.200E+01  4.91E-05
+ twiss.b[1]  beta.b <target>                         END       1.200E+01   1.200E+01  1.34E-05
+ quad[6]     Q6[K1]                                  3.80     -5.000E+01  -4.842E-01  0.00E+00
+ quad[5]     Q5[K1]                                  3.30      5.000E+01   1.330E+00  0.00E+00
+ quad[4]     Q4[K1]                                  2.80     -5.000E+01  -1.093E+00  0.00E+00
+ quad[3]     Q3[K1]                                  2.30      5.000E+01   8.789E-01  0.00E+00
+ quad[2]     Q2[K1]                                  1.80     -5.000E+01  -1.384E+00  0.00E+00
+ quad[1]     Q1[K1]                                  1.30      5.000E+01   7.575E-01  0.00E+00
+ Constraints                   Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
+ 
+  figure of merit: 2.933290E-04
+ 
+ Constraints                   Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
+ twiss.a[1]  beta.a <target>                         END       1.200E+01   1.200E+01  4.91E-05
+ twiss.a[2]  alpha.a <target>                        END      -4.000E-01  -3.988E-01  1.49E-04
+ twiss.b[1]  beta.b <target>                         END       1.200E+01   1.200E+01  1.34E-05
+ twiss.b[2]  alpha.b <target>                        END      -4.000E-01  -3.991E-01  8.18E-05
+ quad[1]     Q1[K1]                                  1.30      5.000E+01   7.575E-01  0.00E+00
+ quad[2]     Q2[K1]                                  1.80     -5.000E+01  -1.384E+00  0.00E+00
+ quad[3]     Q3[K1]                                  2.30      5.000E+01   8.789E-01  0.00E+00
+ quad[4]     Q4[K1]                                  2.80     -5.000E+01  -1.093E+00  0.00E+00
+ quad[5]     Q5[K1]                                  3.30      5.000E+01   1.330E+00  0.00E+00
+ quad[6]     Q6[K1]                                  3.80     -5.000E+01  -4.842E-01  0.00E+00
+ Constraints                   Ref_Ele    Start_Ele    Ele/S     Target      Value      Merit     Max
+ 
+  figure of merit: 2.933290E-04

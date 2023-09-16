@@ -1,0 +1,25 @@
+!------------------------ General Init -----------------------
+!-------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init' 
+  startup_file = 'setup.tao'
+/
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1)%file = "lat.bmad"
+/
+
+!------------------------ Beam Init --------------------------
+!-------------------------------------------------------------
+
+&tao_beam_init
+  saved_at =  "*" ! Or as: "MARKER::*"
+  beam_init%n_particle = 1000
+  beam_init%a_norm_emit = 1.0e-6  ! Normalized emit = emit * gamma
+  beam_init%b_norm_emit = 1.0e-6  ! Normalized emit = emit * gamma
+  beam_init%bunch_charge = 1e-9   ! 1 nC
+  beam_init%sig_pz = 1e-3
+  beam_init%sig_z = 0.00059958  ! 2 ps * cLight
+/

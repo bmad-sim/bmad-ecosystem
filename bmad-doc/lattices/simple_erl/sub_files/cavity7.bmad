@@ -1,0 +1,11 @@
+
+cavity7: lcavity, tracking_method = runge_kutta,  mat6_calc_method = tracking,  
+          field_calc = fieldmap, rf_frequency = 1.3e9, n_cell = 7, 
+          L = 1.0, grid_field = call::cavity7_grid.bmad
+CALL, FILE = cavity7_wall.bmad
+
+cavity7_reverse: lcavity, tracking_method = runge_kutta, mat6_calc_method = tracking,  
+                  field_calc = fieldmap, rf_frequency = 1.3e9, n_cell = 7, 
+                  L = 	1.0, grid_field = call::cavity7_reverse_grid.bmad
+CALL, FILE = cavity7_reverse_wall.bmad
+

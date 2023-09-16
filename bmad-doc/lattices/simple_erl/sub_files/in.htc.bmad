@@ -1,0 +1,41 @@
+
+!HTC
+! Total length: 2.61520 m
+
+CALL, FILE = cavity7.bmad
+
+IN.HTC.small_aperture = 0.034798/2
+IN.HTC.mid_aperture = 0.0603/2
+IN.HTC.large_aperture = 0.110/2
+
+
+IN.HTC.Pip01: PIPE, L = 0.7475,
+    wall = {
+	section = { s = 0,               v(1) = {0, 0, IN.HTC.small_aperture}},
+	section = { s = .0909,               v(1) = {0, 0, IN.HTC.small_aperture}},
+	section = { s = .1383,               v(1) = {0, 0, IN.HTC.mid_aperture}},
+	section = { s = .2903,               v(1) = {0, 0, IN.HTC.mid_aperture}},
+	section = { s = .3798,               v(1) = {0, 0, IN.HTC.large_aperture}},
+	section = { s = IN.HTC.Pip01[L], v(1) = {0, 0, IN.HTC.large_aperture}}}
+
+
+IN.HTC.Pip02: PIPE, L = 0.8677,
+    wall = {section = { s = 0,               v(1) = {0, 0, IN.HTC.large_aperture}},
+	section = { s = .3669,               v(1) = {0, 0, IN.HTC.large_aperture}},
+	section = { s = .4564,               v(1) = {0, 0, IN.HTC.mid_aperture}},
+	section = { s = .7545,               v(1) = {0, 0, IN.HTC.mid_aperture}},
+	section = { s = .8019,               v(1) = {0, 0, IN.HTC.small_aperture}},
+	section = { s = IN.HTC.Pip02[L], v(1) = {0, 0, IN.HTC.small_aperture}}}
+
+IN.HTC.Rfc01: line = (cavity7)
+
+IN.HTC.Mar.BEG: MARKER
+IN.HTC.Mar.END: MARKER
+
+!CAVITY7SIMPLE: LCAVITY, L = CAVITY7[L], frequency = CAVITY7[frequency]
+
+IN.HTC: LINE = (IN.HTC.Mar.BEG, 
+	IN.HTC.Pip01,
+		IN.HTC.Rfc01,
+	IN.HTC.Pip02,
+	IN.HTC.Mar.END)

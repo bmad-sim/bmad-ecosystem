@@ -1,0 +1,57 @@
+view 1
+set uni * on
+set global track_type = single
+call SetMultiOrbit.tao
+place bottom var_correctors
+x-a all s
+sc
+sc bottom -100 100
+
+set global plot_on = false
+
+veto dat *@*
+veto var *
+
+
+! Set all BPM data to the design values
+view 1
+set dat orbit.x[*]|meas=orbit.x[*]|model
+set dat orbit.y[*]|meas=orbit.y[*]|model
+view 2
+set dat orbit.x[*]|meas=orbit.x[*]|model
+set dat orbit.y[*]|meas=orbit.y[*]|model
+view 3
+set dat orbit.x[*]|meas=orbit.x[*]|model
+set dat orbit.y[*]|meas=orbit.y[*]|model
+view 4
+set dat orbit.x[*]|meas=orbit.x[*]|model
+set dat orbit.y[*]|meas=orbit.y[*]|model
+view 1
+
+
+set dat *@extra_orbit.x[*]|meas=0
+set dat *@extra_orbit.y[*]|meas=0
+
+
+use dat *@orbit
+use dat *@extra_orbit
+
+use var fa.correctors.x
+use var fa.correctors.y
+use var za.correctors.x
+use var za.correctors.y
+
+!use var fa.correctors.x[1:-2:2]
+!use var za.correctors.x[1:-2:2]
+!use var fa.correctors.y[2:-1:2]
+
+!use var quad.correctors.x
+
+set global derivative_recalc = F 
+set global derivative_uses_design = T
+set global svd_retreat_on_merit_increase = F
+osvd
+scycles 10
+set global n_opti_loops  = 1
+
+set global plot_on = true

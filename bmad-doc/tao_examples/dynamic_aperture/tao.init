@@ -1,0 +1,30 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = "tao_plot.init"
+/
+
+!------------------------------------------------------------------------
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "bmad_L9A18A000-_MOVEREC.lat"
+  design_lattice(1)%dynamic_aperture_calc = True
+/
+
+!------------------------------------------------------------------------
+
+&tao_params
+  global%plot_on = T
+/
+
+&tao_dynamic_aperture
+  a_emit = 2e-7
+  b_emit = 1e-8
+  ellipse_scale = 10   ! Draw beam ellipse at 10 sigma
+  pz = 0, 0.01, 0.015
+  da_param%n_angle = 10
+  da_param%n_turn = 200 ! This is set low for demonstration purposes.
+  da_param%abs_accuracy = 1e-5
+/
+

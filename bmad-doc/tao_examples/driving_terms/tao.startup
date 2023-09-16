@@ -1,0 +1,3 @@
+alias da set universe 1 dynamic_aperture_calc [[1]]
+alias run set universe 1 dynamic_aperture_calc off; run_optimizer [[1]]
+show string Use the command "da on" to run the DA calc and generate a plot.

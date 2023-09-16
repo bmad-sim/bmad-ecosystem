@@ -1,0 +1,49 @@
+This initialization file defines how plotting is done.
+
+&tao_plot_page
+  plot_page%plot_display_type = 'X'       ! 'X' or 'TK'
+  plot_page%size = 1000, 600
+  plot_page%text_height = 14.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'  
+
+  plot_page%floor_plan_shape_scale = 0.15
+
+  region(1)%name = 'all'
+  region(1)%location = 0.0, 1.0, 0.0, 0.95
+
+  place(1) = 'all', 'floor'
+/
+
+
+&floor_plan_drawing
+  include_default_shapes = T
+  ele_shape(1) = "building_wall::*", "solid_line", "black", 0, "none", T, F, 1  ! 20
+  ele_shape(2) = "hkicker::*",       "u_triangle", "red",   8, "none", T, F, 1
+  ele_shape(3) = "vkicker::*",       "u_triangle", "yellow",   8, "none", T, F, 1
+
+/
+
+&tao_template_plot
+  plot%name = 'floor'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'plan'
+  graph%type = 'floor_plan'
+  graph%title = 'floor_plan'
+  graph%box = 1, 1, 1, 1
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%floor_plan%draw_only_first_pass  = F
+  graph%floor_plan%correct_distortion = T
+  graph%floor_plan%size_is_absolute = T
+  graph%floor_plan%orbit_scale = 300
+  graph%floor_plan%orbit_color = 'red'
+  graph%floor_plan%orbit_width = 6
+  graph%floor_plan%rotation = 0
+  graph%x%label = "SMART LABEL"
+  graph%y%label = "SMART LABEL"
+
+/
+

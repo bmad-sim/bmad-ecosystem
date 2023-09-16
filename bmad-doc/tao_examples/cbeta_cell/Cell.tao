@@ -1,0 +1,91 @@
+veto dat *@*
+veto var *
+call SetMultiOrbit.tao
+call PhaseSet.tao
+
+x-s all 0 0.5
+sc floor -30 30
+sc top 0 3
+sc middle 0 0.5
+use dat *@ff
+!use var q[1, 3,5,6,7,8]
+! Don't bother varying the drift lengths 
+use var q
+
+alias somin  set dat *@ff.orbit[1]|meas = -1e-3*
+alias somax  set dat *@ff.orbit[2]|meas =  1e-3*
+
+alias slength set dat *@ff.floor[1]|meas = 
+
+alias sangle set var angle[1]|model = 
+
+alias sg set var q[1]|model = 
+
+! Fix the gradient
+!veto var q[1]
+set var q[1,2]|step = 5e-3
+set var q[4]|step = 1e-3
+
+! Bfield
+use dat *@bfield
+alias sb set dat *@bfield.tip[1]|meas = 
+sb 1.5
+
+alias sq2 set var q[2]|model = -1*
+
+! Try raising tune for lowest energy a and b modes
+!set dat 1@ff.phasea[1]|meas = 0.35*2*pi
+!set dat 1@ff.phasea[2]|meas = 0.45*2*pi
+!set dat 1@ff.phaseb[1]|meas = 0.35*2*pi
+!set dat 1@ff.phaseb[2]|meas = 0.45*2*pi
+! Clear uni 1 phase constraint
+set dat 1@ff.phasea[1]|meas = 0.05*2*pi
+set dat 1@ff.phasea[2]|meas = 0.45*2*pi
+set dat 1@ff.phaseb[1]|meas = 0.05*2*pi
+set dat 1@ff.phaseb[2]|meas = 0.45*2*pi
+
+
+
+! Universe 3 has the 60 MeV beam 
+set dat 3@ff.phasea[2]|meas = 0.49*2*pi
+set dat 3@ff.phaseb[2]|meas = 0.49*2*pi
+
+
+! Step by .5mm
+!alias sp  set dat *@ff.orbit[1]|meas = *@ff.orbit[1]|meas -5e-4;set dat *@ff.orbit[2]|meas = *@ff.orbit[2]|meas +5e-4
+!alias sm    set dat *@ff.orbit[1]|meas = *@ff.orbit[1]|meas +5e-4;set dat *@ff.orbit[2]|meas = *@ff.orbit[2]|meas -5e-4
+set key 0 =  set dat *@ff.orbit[1]|meas = *@ff.orbit[1]|meas -5e-4;set dat *@ff.orbit[2]|meas = *@ff.orbit[2]|meas +5e-4
+set key p =  set dat *@ff.orbit[1]|meas = *@ff.orbit[1]|meas +5e-4;set dat *@ff.orbit[2]|meas = *@ff.orbit[2]|meas -5e-4
+
+
+
+alias s12 set dat *@ff.orbit[1]|meas = -12e-3;set dat *@ff.orbit[2]|meas = 12e-3
+alias s13 set dat *@ff.orbit[1]|meas = -13e-3;set dat *@ff.orbit[2]|meas = 13e-3
+alias s14 set dat *@ff.orbit[1]|meas = -14e-3;set dat *@ff.orbit[2]|meas = 14e-3
+alias s15 set dat *@ff.orbit[1]|meas = -15e-3;set dat *@ff.orbit[2]|meas = 15e-3
+alias s16 set dat *@ff.orbit[1]|meas = -16e-3;set dat *@ff.orbit[2]|meas = 16e-3
+alias s17 set dat *@ff.orbit[1]|meas = -17e-3;set dat *@ff.orbit[2]|meas = 17e-3
+alias s18 set dat *@ff.orbit[1]|meas = -18e-3;set dat *@ff.orbit[2]|meas = 18e-3
+alias s19 set dat *@ff.orbit[1]|meas = -19e-3;set dat *@ff.orbit[2]|meas = 19e-3
+alias s20 set dat *@ff.orbit[1]|meas = -20e-3;set dat *@ff.orbit[2]|meas = 20e-3
+alias s21 set dat *@ff.orbit[1]|meas = -21e-3;set dat *@ff.orbit[2]|meas = 21e-3
+alias s22 set dat *@ff.orbit[1]|meas = -22e-3;set dat *@ff.orbit[2]|meas = 22e-3
+alias s23 set dat *@ff.orbit[1]|meas = -23e-3;set dat *@ff.orbit[2]|meas = 23e-3
+alias s24 set dat *@ff.orbit[1]|meas = -24e-3;set dat *@ff.orbit[2]|meas = 24e-3
+alias s25 set dat *@ff.orbit[1]|meas = -25e-3;set dat *@ff.orbit[2]|meas = 25e-3
+alias s26 set dat *@ff.orbit[1]|meas = -26e-3;set dat *@ff.orbit[2]|meas = 26e-3
+alias s27 set dat *@ff.orbit[1]|meas = -27e-3;set dat *@ff.orbit[2]|meas = 27e-3
+alias s28 set dat *@ff.orbit[1]|meas = -28e-3;set dat *@ff.orbit[2]|meas = 28e-3
+alias s29 set dat *@ff.orbit[1]|meas = -29e-3;set dat *@ff.orbit[2]|meas = 29e-3
+alias s30 set dat *@ff.orbit[1]|meas = -30e-3;set dat *@ff.orbit[2]|meas = 30e-3
+
+vk
+set var q|key_bound=T
+
+
+
+
+
+
+ode
+sde .01

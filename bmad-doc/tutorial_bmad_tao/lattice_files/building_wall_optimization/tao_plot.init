@@ -1,0 +1,37 @@
+&tao_plot_page
+  place(1) = 'r11', 'floor_plan'
+/
+
+
+
+&floor_plan_drawing
+ele_shape(1) =    "fork::*"                           "circle"        "red"              3.0  "name"      t     f      1
+ele_shape(2) =    "crystal::*"                        "circle"        "red"              3.0  "name"      t     f      1
+ele_shape(3) =    "detector::*"                       "box"           "black"            6.0  "name"      t     f      1
+ele_shape(4) =    "diffraction_plate::*"              "box"           "cyan"             6.0  "name"      t     f      1
+ele_shape(5) =    "e_gun::*"                          "xbox"          "red"              8.0  "name"      t     f      1
+ele_shape(6) =    "em_field::*"                       "xbox"          "blue"             8.0  "name"      t     f      1
+ele_shape(7) =    "ecollimator::*"                    "xbox"          "blue"             4.0  "name"      f     f      1
+ele_shape(8) =    "instrument::*"                     "box"           "blue"             6.0  "name"      f     f      1
+ele_shape(9) =    "lcavity::*"                        "xbox"          "red"             10.0  "none"      t     f      1
+ele_shape(10) =   "marker::*"                         "box"           "blue"             6.0  "name"      f     f      1
+ele_shape(11) =   "mirror::*"                         "circle"        "red"              3.0  "name"      t     f      1
+ele_shape(12) =   "monitor::*"                        "box"           "black"            6.0  "name"      f     f      1
+ele_shape(13) =   "multilayer_mirror::*"              "circle"        "red"              3.0  "name"      t     f      1
+ele_shape(14) =   "octupole::*"                       "box"           "black"            6.0  "name"      f     f      1
+ele_shape(15) =   "patch::*"                          "box"           "yellow"           5.0  "none"      f     f      1
+ele_shape(16) =   "photon_fork::*"                    "circle"        "red"              3.0  "name"      t     f      1
+ele_shape(17) =   "quadrupole::*"                     "xbox"          "magenta"          7.4  "name"      t     f      1
+ele_shape(18) =   "rcollimator::*"                    "xbox"          "blue"             4.0  "name"      f     f      1
+ele_shape(19) =   "rfcavity::*"                       "xbox"          "red"             10.0  "name"      t     f      1
+ele_shape(20) =   "sample::*"                         "box"           "black"            6.0  "name"      t     f      1
+ele_shape(21) =   "sbend::*"                          "box"           "black"            4.0  "name"      t     f      1
+ele_shape(22) =   "sextupole::*"                      "xbox"          "green"            7.4  "none"      t     f      1
+ele_shape(23) =   "sol_quad::*"                       "box"           "black"            8.0  "name"      f     f      1
+ele_shape(24) =   "solenoid::*"                       "box"           "blue"             6.0  "name"      t     f      1
+ele_shape(25) =   "wiggler::*"                        "xbox"          "cyan"            10.0  "name"      t     f      1
+ele_shape(26) =   "photon_init::*"                    "box"           "black"            6.0  "name"      t     f      1
+ele_shape(27) =   "building_wall::inside"             "solid_line"    "green"            6.0  "name"      t     f      3
+ele_shape(28) =   "building_wall::outside"            "solid_line"    "red"              6.0  "name"      t     f      3
+ele_shape(29) =   "building_wall::*"                  "solid_line"    "black"            6.0  "name"      t     f      3
+/

@@ -1,0 +1,24 @@
+call, file=wig_7pole_plus.bmad
+call, file=wig_8pole_plus.bmad
+
+wig1_14e: wig_7pole_plus
+wig2_14e: wig_7pole_plus
+wig_15e: wig_8pole_plus
+wig1_18e: wig_8pole_plus
+wig2_18e: wig_8pole_plus
+wig3_18e: wig_8pole_plus
+
+wig1_14e[polarity]:=-1
+wig2_14e[polarity]:=-1
+wig_15e[polarity]:=-1
+wig1_18e[polarity]:=-1
+wig2_18e[polarity]:=-1
+wig3_18e[polarity]:=-1
+
+wig1_14e[num_steps]:=100
+wig2_14e[num_steps]:=100
+wig_15e[num_steps]:=100
+wig1_18e[num_steps]:=100
+wig2_18e[num_steps]:=100
+wig3_18e[num_steps]:=100
+

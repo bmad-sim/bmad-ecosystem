@@ -1,0 +1,18 @@
+
+parameter[lattice] = "Space Charge example"
+
+beginning[beta_a] = 1000
+beginning[beta_B] = 1000
+parameter[e_tot] = 10e6
+parameter[particle] = electron    
+
+parameter[geometry] = open
+
+
+p1: pipe, L = 1
+
+!, ds_step = .1
+
+lat: line = (p1)
+
+use, lat 

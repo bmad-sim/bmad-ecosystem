@@ -1,0 +1,2894 @@
+This initialization file defines how plotting is done.
+call, file = ../za/za.X.bmad
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%size = 600, 600
+  plot_page%text_height = 12.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'  
+  plot_page%n_curve_pts = 900
+
+  region(1)%name = 'floor'
+  region(1)%location = 0.0, 1.0, 0.5, 0.95
+  region(2)%name = 'top'
+  region(2)%location = 0.0, 1.0, 0.3, 0.5
+  region(3)%name = 'middle'
+  region(3)%location = 0.0, 1.0, 0.1, 0.26
+  region(4)%name = 'bottom'
+  region(4)%location = 0.0, 1.0, 0.0, 0.1
+
+  region(5)%name = 'r21'
+  region(5)%location = 0.0, .5, 0.1, 0.5
+  region(6)%name = 'r11'
+  region(6)%location = 0.0, .5, .5, 1.0
+  region(7)%name = 'r22'
+  region(7)%location = 0.5, 1.0, 0.1, 0.5
+  region(8)%name = 'r12'
+  region(8)%location = 0.5, 1.0, 0.5, 1.0
+  
+  region(9)%name = 'r00'
+  region(9)%location = 0.0, 1.0, 0.0, 1.0
+
+  place(1) = 'floor', 'floor'
+  place(2) = 'top', 'beta'
+  place(3) = 'middle', 'eta'
+  place(4) = 'bottom', 'layout'
+
+/
+
+
+
+!------------------ layout ------
+&tao_template_plot
+	plot%name = 'layout'
+	default_graph%x%label = ' '
+	plot%n_graph = 1
+	plot%x_axis_type = 's'
+/
+
+&tao_template_graph
+	graph_index = 1
+	graph%name = 'u1'
+	graph%type = 'lat_layout'
+	graph%box = 1, 1, 1, 1
+	graph%x%draw_numbers = False
+	graph%ix_universe = -1 !Syntax Changed from 0
+	graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
+  	!graph%y%label = 'Layout'
+ 	graph%y%max =  20
+  	graph%y%min = -20
+ 	graph%y%major_div = 4
+/
+
+&lat_layout_drawing
+  ele_shape(1) = "Quadrupole::*"   	"asym_var:box"	"Blue"	 .1 		'none'
+ ! ele_shape(1) = "Quadrupole::*"   	"box"	"Blue"	 1 		'none'                ! TEMP
+  ele_shape(2) = "SBend::*"		"Box"		"Red"		1		'none'
+  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		.5		'none'
+  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	.5		'none'
+  ele_shape(5) = "Sextupole::*"		"asym_var_box"	"magenta"	0.1		'none'
+  !ele_shape(5) = "Sextupole::*"		"box"	"orange"	20		'none'
+  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		20		'none'
+  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		1		'none'
+  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		1		'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		1		'none'
+  ele_shape(10) = "kicker::*"		"Box"		"Red"		5		'none'
+  ele_shape(11) = "PIPE::*"		"Box"		"Black" .01		'none'
+  ele_shape(12) = "INSTRUMENT::*"	"Xbox"	  	"Black"		1		'none'
+  ele_shape(13) = "SOLENOID::*"		"Xbox"	  	"Blue"		1		'none'
+  ele_shape(14) = "rfcavity::*"	    	"XBox"		"Red"		100		'none'
+  ele_shape(15) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
+  ele_shape(16) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
+  !ele_shape(16) = "wall::beam_chamber"	    	"XBox"		"Black"		500		'none'
+/       
+
+&floor_plan_drawing
+  ele_shape(1) = "Quadrupole::*"   	"Box"		"Blue"	15		'none'
+  ele_shape(2) = "SBend::*"		"Box"		"Red"		15		'none'
+  ele_shape(3) = "lcavity::*"		"XBox"		"Green"		20		'none'
+  ele_shape(4) = "wiggler::*"		"XBox"		"Orange"	10		'none'
+  ele_shape(5) = "Sextupole::*"		"Box"	"orange"	4		'none'
+  ele_shape(6) = "ECOLLIMATOR::*"	"Xbox"		"Black"		10		'none'
+  ele_shape(7) = "hkicker::*"		"XBox"		"Red"		5		'none'
+  ele_shape(8) = "vkicker::*"		"bow_tie"	"Red"		5		'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"	"Diamond"	"Black"		5		'none'
+  ele_shape(10) = "kicker::*"		"Box"		"Red"		5		'none'
+  ele_shape(11) = "PIPE::*"		"Box"		"Black"		2.54		'none'
+  ele_shape(12) = "INSTRUMENT::*"	"Xbox"	  	"Black"		5		'none'
+  ele_shape(13) = "SOLENOID::*"		"Xbox"	  	"Blue"		5		'none'
+  ele_shape(14) = "rfcavity::*"	    	"XBox"		"Red"		10		'none'
+  ele_shape(15) = "E_GUN::*"	    	"XBox"		"Black"		20		'none'
+  ele_shape(16) = "EM_FIELD::*"	    	"Box"		"Blue"		20		'none'
+/  
+                                          	
+! Colors: 
+!"BLACK" 
+!"RED" 
+!"ORANGE" 
+!"MAGENTA" 
+!"YELLOW" 
+!"GREEN" 
+!"CYAN" 
+!"BLUE" 
+!"PURPLE" 
+
+
+
+!------------------ key_table ------
+&tao_template_plot
+	plot%name = 'key_table'
+	default_graph%x%label = ' '
+	plot%n_graph = 1
+	plot%x_axis_type = 's'
+/
+
+&tao_template_graph
+	graph_index = 1
+	graph%name = 'u1'
+	graph%type = 'key_table'
+	graph%box = 1, 1, 1, 1
+	graph%ix_universe = -1 !Syntax Changed from 0
+	graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+	graph%y%label = 'X'
+ 	graph%y%major_div = 4
+/
+
+
+
+
+!!------------  template ------------
+
+&tao_template_plot
+  plot%name = 'template'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'template'
+
+ !graph%title = 'Lattice \gb functions'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\gb\dx\u'
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width= 2
+  curve(2)%legend_text = '\gb\dy\u'
+/
+
+!------------  Relative floor X ------------
+
+&tao_template_plot
+  plot%name = 'rel_floor_x'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'template'
+
+ graph%title = 'Relative floor X'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'rel_floor.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%smooth_line_calc = False
+!  curve(1)%legend_text = '\gb\dx\u'
+/
+
+
+!------------  histogram z-----------------------------
+
+&tao_template_plot
+  plot%name = 'zhist'
+  default_graph%x%min = -6
+  default_graph%x%max =  6
+  default_graph%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'histogram'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Bunch Histogram: Z'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Current (A)'
+ ! graph%y%max =  15
+ ! graph%y%min = 0
+ ! graph%y%major_div = 4
+  graph%y%label_offset = .1
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+
+  curve(1)%hist%density_normalized = T
+  curve(1)%hist%weight_by_charge = T
+  curve(1)%hist%number = 100
+  curve(1)%line%color = "blue"
+  curve(1)%line%pattern = "dashed"
+  curve(1)%y_axis_scale_factor = 299792458  !Q/m * c_light
+  curve(1)%data_type = 'z' 
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+/  
+
+!------------  bends ------------
+
+&tao_template_plot
+  plot%name = 'bends'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'quads'
+
+ !graph%title = 'bend field'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin  =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
+  graph%y%label_offset = .1
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'element_attrib.b_field'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red" 
+  curve(1)%line%width = 2
+  curve(1)%draw_symbols = False
+  curve(1)%legend_text  = '\gb\dx\u'
+
+/  
+
+!!------------  quads ------------
+
+&tao_template_plot
+  plot%name = 'quads'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'quads'
+
+ !graph%title = 'Quadrupole K1 (m\u-2\d)'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin  =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
+  graph%y%label_offset = .1
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'element_param.k1'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red" 
+  curve(1)%line%width = 2
+  curve(1)%draw_symbols = False
+  curve(1)%legend_text  = '\gb\dx\u'
+
+/
+
+!!------------ beta a b ------------
+
+&tao_template_plot
+  plot%name = 'beta'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'beta'
+
+ !graph%title = 'Lattice \gb functions'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\gb\dx\u'
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width= 2
+  curve(2)%legend_text = '\gb\dy\u'
+/
+
+!!------------ eta x y ------------
+
+&tao_template_plot
+  plot%name = 'eta'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'eta'
+
+ !graph%title = 'Lattice dispersion functions'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gy\dx\u, \gy\dy\u (m)'
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'eta.x'
+  curve(1)%legend_text = '\gy\dx\u'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  !curve(1)%line%color = "red"
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'eta.y'
+  curve(2)%legend_text = '\gy\dy\u'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+/
+
+
+!!------------  template ------------
+
+&tao_template_plot
+  plot%name = 'dispersionx'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'dispersionx'
+
+ !graph%title = 'First and Second order X Dispersion (m)'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+   graph%y%label = 'r\d16\u, t\d166\u (m)'
+  graph%y%label_offset=.1
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'eta.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = 'r\d16\u'
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 't.166'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%ele_ref_name = 'BEGINNING'
+  curve(2)%line%pattern = "dotted"
+  curve(2)%smooth_line_calc = False
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "black"
+  curve(2)%line%width= 2
+  curve(2)%legend_text = 't\d166\u'
+/
+
+!!------------  phase ------------
+
+&tao_template_plot
+  plot%name = 'phase'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'phase'
+
+ !graph%title = 'Phase'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gf\da\u, \gf\db\u (2\gp)'
+  graph%y%label_offset=.1
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'phase.a'
+  curve(1)%y_axis_scale_factor = 0.1591549430 !this is 1/(2pi)
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\gf\da\u'
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'phase.b'
+  curve(2)%y_axis_scale_factor = 0.1591549430 !this is 1/(2pi)
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width= 2
+  curve(2)%legend_text = '\gf\db\u'
+/
+
+
+
+!!------------  orbit x y ------------
+
+&tao_template_plot
+  plot%name = 'orbit'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'orbit'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'Orbit (mm)'
+  graph%y%label_offset=.1
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "black"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1000
+
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'orbit.y'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width= 2
+  curve(2)%legend_text = 'orbit.y'
+  curve(2)%y_axis_scale_factor = 1000
+/
+
+!!------------  diff_orbit x y ------------
+
+&tao_template_plot
+  plot%name = 'diff_orbit'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+  default_curve%component = 'model - design'
+/
+
+&tao_template_graph
+  graph%name = 'difference orbit'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'Difference Orbit (mm)'
+  graph%y%label_offset=.1
+
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "black"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%smooth_line_calc = False
+
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'orbit.y'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width= 2
+  curve(2)%legend_text = 'orbit.y'
+  curve(2)%y_axis_scale_factor = 1000
+  curve(2)%smooth_line_calc = False
+/
+
+!!------------  diff_beam_orbit x y ------------
+
+&tao_template_plot
+  plot%name = 'diff_beam_orbit'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+  default_curve%component = 'model'
+/
+
+&tao_template_graph
+  graph%name = 'difference orbit'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'Beam \gDOrbit (mm)'
+  graph%y%label_offset=.1
+
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'expression: beam::orbit.x|model - lat::orbit.x|design'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "black"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%smooth_line_calc = False
+
+
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'expression: beam::orbit.y|model - lat::orbit.y|design'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width= 2
+  curve(2)%legend_text = 'orbit.y'
+  curve(2)%y_axis_scale_factor = 1000
+  curve(2)%smooth_line_calc = False
+/
+
+
+
+
+!!------------  Multi orbit 4 ------------
+
+&tao_template_plot
+  plot%name = 'multiorbit4'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'orbit'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+ 
+  graph%y%min = -40
+  graph%y%max =  40
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'Orbit (mm)'
+  graph%y%label_offset=.1
+
+  curve(1)%ix_universe = -1
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '1@orbit.x'
+  curve(1)%y_axis_scale_factor = 1000
+
+  curve(2)%ix_universe = -1
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'orbit.x'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = "orange"
+  curve(2)%line%width=2
+  curve(2)%draw_symbols=False
+  curve(2)%legend_text = '2@orbit.x'
+  curve(2)%y_axis_scale_factor = 1000
+  
+  curve(3)%ix_universe = -1
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'orbit.x'
+  curve(3)%y_axis_scale_factor = 1
+  curve(3)%line%color = "navy_blue"
+  curve(3)%line%width=2
+  curve(3)%draw_symbols=False
+  curve(3)%legend_text = '3@orbit.x'
+  curve(3)%y_axis_scale_factor = 1000
+
+  curve(4)%ix_universe = -1
+  curve(4)%data_source = 'lattice'
+  curve(4)%data_type   = 'orbit.x'
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%line%color = "purple"
+  curve(4)%line%width=2
+  curve(4)%draw_symbols=False
+  curve(4)%legend_text = '4@orbit.x'
+  curve(4)%y_axis_scale_factor = 1000
+
+
+
+/
+
+!!------------  Multi beta a b 4 ------------
+
+&tao_template_plot
+  plot%name = 'multibeta4'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'beta'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+ 
+  graph%y%min = 0
+  graph%y%max =  5
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gb (m)'
+  graph%y%label_offset=.2
+
+  curve(1)%ix_universe = -1
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '1@beta.a'
+  curve(1)%y_axis_scale_factor = 1
+
+  curve(2)%ix_universe = -1
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = "red"
+  curve(2)%line%width=2
+  curve(2)%draw_symbols=False
+  curve(2)%legend_text = '1@beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%pattern = "dashed"
+  
+  curve(3)%ix_universe = -1
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'beta.a'
+  curve(3)%y_axis_scale_factor = 1
+  curve(3)%line%color = "orange"
+  curve(3)%line%width=2
+  curve(3)%draw_symbols=False
+  curve(3)%legend_text = '2@beta.a'
+  curve(3)%y_axis_scale_factor = 1
+
+  curve(4)%ix_universe = -1
+  curve(4)%data_source = 'lattice'
+  curve(4)%data_type   = 'beta.b'
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%line%color = "orange"
+  curve(4)%line%width=2
+  curve(4)%draw_symbols=False
+  curve(4)%legend_text = '2@beta.b'
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%line%pattern = "dashed"
+
+  curve(5)%ix_universe = -1
+  curve(5)%data_source = 'lattice'
+  curve(5)%data_type   = 'beta.a'
+  curve(5)%y_axis_scale_factor = 1
+  curve(5)%line%color = "navy_blue"
+  curve(5)%line%width=2
+  curve(5)%draw_symbols=False
+  curve(5)%legend_text = '3@beta.a'
+  curve(5)%y_axis_scale_factor = 1
+
+  curve(6)%ix_universe = -1
+  curve(6)%data_source = 'lattice'
+  curve(6)%data_type   = 'beta.b'
+  curve(6)%y_axis_scale_factor = 1
+  curve(6)%line%color = "navy_blue"
+  curve(6)%line%width=2
+  curve(6)%draw_symbols=False
+  curve(6)%legend_text = '3@beta.b'
+  curve(6)%y_axis_scale_factor = 1
+  curve(6)%line%pattern = "dashed"
+  
+  curve(7)%ix_universe = -1
+  curve(7)%data_source = 'lattice'
+  curve(7)%data_type   = 'beta.a'
+  curve(7)%y_axis_scale_factor = 1
+  curve(7)%line%color = "purple"
+  curve(7)%line%width=2
+  curve(7)%draw_symbols=False
+  curve(7)%legend_text = '4@beta.a'
+  curve(7)%y_axis_scale_factor = 1
+
+  curve(8)%ix_universe = -1
+  curve(8)%data_source = 'lattice'
+  curve(8)%data_type   = 'beta.b'
+  curve(8)%y_axis_scale_factor = 1
+  curve(8)%line%color = "purple"
+  curve(8)%line%width=2
+  curve(8)%draw_symbols=False
+  curve(8)%legend_text = '4@beta.b'
+  curve(8)%y_axis_scale_factor = 1
+  curve(8)%line%pattern = "dashed"
+
+/
+
+
+!!------------  Multi phase a b 4 ------------
+
+&tao_template_plot
+  plot%name = 'multiphase4'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'phase'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+ 
+  graph%y%min = 0
+  graph%y%max =  5
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gf\da\u, \gf\db\u (2\gp)'
+  graph%y%label_offset=.2
+
+  curve(1)%ix_universe = -1
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'phase.a'
+  curve(1)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '1@phase.a'
+  curve(1)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+
+  curve(2)%ix_universe = -1
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'phase.b'
+  curve(2)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(2)%line%color = "red"
+  curve(2)%line%width=2
+  curve(2)%draw_symbols=False
+  curve(2)%legend_text = '1@phase.b'
+  curve(2)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(2)%line%pattern = "dashed"
+  
+  curve(3)%ix_universe = -1
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'phase.a'
+  curve(3)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(3)%line%color = "orange"
+  curve(3)%line%width=2
+  curve(3)%draw_symbols=False
+  curve(3)%legend_text = '2@phase.a'
+  curve(3)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+
+  curve(4)%ix_universe = -1
+  curve(4)%data_source = 'lattice'
+  curve(4)%data_type   = 'phase.b'
+  curve(4)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(4)%line%color = "orange"
+  curve(4)%line%width=2
+  curve(4)%draw_symbols=False
+  curve(4)%legend_text = '2@phase.b'
+  curve(4)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(4)%line%pattern = "dashed"
+
+  curve(5)%ix_universe = -1
+  curve(5)%data_source = 'lattice'
+  curve(5)%data_type   = 'phase.a'
+  curve(5)%y_axis_scale_factor = 0.1591549430 !this is 1/(2pi)
+  curve(5)%line%color = "navy_blue"
+  curve(5)%line%width=2
+  curve(5)%draw_symbols=False
+  curve(5)%legend_text = '3@phase.a'
+  curve(5)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+
+  curve(6)%ix_universe = -1
+  curve(6)%data_source = 'lattice'
+  curve(6)%data_type   = 'phase.b'
+  curve(6)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(6)%line%color = "navy_blue"
+  curve(6)%line%width=2
+  curve(6)%draw_symbols=False
+  curve(6)%legend_text = '3@phase.b'
+  curve(6)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(6)%line%pattern = "dashed"
+  
+  curve(7)%ix_universe = -1
+  curve(7)%data_source = 'lattice'
+  curve(7)%data_type   = 'phase.a'
+  curve(7)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(7)%line%color = "purple"
+  curve(7)%line%width=2
+  curve(7)%draw_symbols=False
+  curve(7)%legend_text = '4@phase.a'
+  curve(7)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+
+  curve(8)%ix_universe = -1
+  curve(8)%data_source = 'lattice'
+  curve(8)%data_type   = 'phase.b'
+  curve(8)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(8)%line%color = "purple"
+  curve(8)%line%width=2
+  curve(8)%draw_symbols=False
+  curve(8)%legend_text = '4@phase.b'
+  curve(8)%y_axis_scale_factor =  0.1591549430 !this is 1/(2pi)
+  curve(8)%line%pattern = "dashed"
+
+/
+
+
+!!------------  Multi orbit 4 ------------
+
+&tao_template_plot
+  plot%name = 'multieta4'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'eta'
+
+ !graph%title = 'Lattice orbit'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+ 
+  graph%y%min = -0.1
+  graph%y%max =  0.1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'eta (m)'
+  graph%y%label_offset=.1
+
+  curve(1)%ix_universe = -1
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'eta.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '1@eta.x'
+  curve(1)%y_axis_scale_factor = 1
+
+  curve(2)%ix_universe = -1
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'eta.x'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = "orange"
+  curve(2)%line%width=2
+  curve(2)%draw_symbols=False
+  curve(2)%legend_text = '2@eta.x'
+  curve(2)%y_axis_scale_factor = 1
+  
+  curve(3)%ix_universe = -1
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'eta.x'
+  curve(3)%y_axis_scale_factor = 1
+  curve(3)%line%color = "navy_blue"
+  curve(3)%line%width=2
+  curve(3)%draw_symbols=False
+  curve(3)%legend_text = '3@eta.x'
+  curve(3)%y_axis_scale_factor = 1
+
+  curve(4)%ix_universe = -1
+  curve(4)%data_source = 'lattice'
+  curve(4)%data_type   = 'eta.x'
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%line%color = "purple"
+  curve(4)%line%width=2
+  curve(4)%draw_symbols=False
+  curve(4)%legend_text = '4@eta.x'
+  curve(4)%y_axis_scale_factor = 1
+
+
+
+/
+
+
+
+!!------------  momentum_compaction ------------
+
+&tao_template_plot
+  plot%name = 'momentum_compaction'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'momentum_compaction'
+
+ ! graph%title = 'Momentum Compaction'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+  graph%y%label_offset=.4
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'r\d56\u contribution (m)'
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'momentum_compaction'
+  curve(1)%smooth_line_calc = False
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+/
+
+
+
+!!------------  emittance_growth (rad_int.i5a_e6 * (2/3) * C_q * r_e ) ------------
+
+&tao_template_plot
+  plot%name = 'emittance_growth'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'emittance_growth'
+
+ !graph%title = 'rad_int.i5a_e6 * (2/3) * C_q * r_e * 1E9 nm/m'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\ge\dN\u Growth (mm-mrad)'
+  graph%y%label_offset=.1
+
+  curve(1)%smooth_line_calc = False
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'rad_int.i5a_e6'
+  curve(1)%legend_text = '\ge\dN\u'
+  !curve(1)%y_axis_scale_factor = 7.213927194325027E-28 for meters
+  !curve(1)%y_axis_scale_factor = 7.213927194325027E-19 !for nm
+  curve(1)%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  curve(1)%line%color = "blue"
+
+/
+
+
+
+!!------------  sr_energy_loss ( rad_int.i2_e4 * (2/3) * r_e *mec2 ) ------------
+
+&tao_template_plot
+  plot%name = 'sr_energy_loss'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'sr_energy_loss'
+
+ !graph%title = 'rad_int.i2_e4 * (2/3) * r_e *mec2'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '-\gDE\dISR\u (MeV)'
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'rad_int.i2_e4'
+  curve(1)%y_axis_scale_factor = 9.59976e-16 ! (2/3) * r_e *mec2 in MeV*m
+  curve(1)%smooth_line_calc = False
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%line%width=2
+  curve(1)%line%color = "blue"
+  curve(1)%draw_symbols=False
+
+/
+
+!!------------  e_spread_growth ( rad_int.i3_e7 * (4/3) * C_q * r_e *mec2^2 ) ------------
+
+&tao_template_plot
+  plot%name = 'e_spread_growth'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'e_spread_growth'
+
+ !graph%title = 'Energy Spread Growth'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = '\gs\dE\u\u2\d Growth (eV\u2\d)'
+  graph%y%label_offset=.1
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'rad_int.i3_e7'
+  curve(1)%y_axis_scale_factor = 3.75949e-16 !for eV^2
+  curve(1)%smooth_line_calc = False
+  curve(1)%ele_ref_name = 'BEGINNING' 
+  curve(1)%line%width=2
+  curve(1)%line%color = "blue"
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\gb\dx\u'
+
+/
+
+
+!!------------  energy (MeV) ------------
+
+&tao_template_plot
+  plot%name = 'energy'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'energy'
+
+ !graph%title = 'Energy'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  !graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = '\(0555) (MeV)'  ! \(0555) is caligraphic E
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'e_tot'
+  curve(1)%y_axis_scale_factor = 1e-6
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\gb\dx\u' 
+
+/
+
+!!------------  xpx ------------
+
+&tao_template_plot
+  plot%name = 'xpx'
+  default_graph%x%label = 'X (\gmm)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'xpx'
+
+ !graph%title = 'x-px\dx\u phase space'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%y%label = 'P\dx\u (\gmrad)'
+  graph%y%label_offset=.1
+
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type = 'x-px' 
+  curve(1)%y_axis_scale_factor = 1e6
+  curve(1)%symbol%type = "dot"
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%legend_text = '\gb\dx\u'
+
+/
+
+
+!!
+!
+!========================OLD=======================
+!
+!!
+
+
+
+!-------beta_error-----------------------------------
+
+&tao_template_plot
+  plot%name = 'beta_error'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+  default_curve%component = 'model-design'
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph%x%draw_numbers = False
+  graph%x%draw_label = False
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+ ! graph%title = 'Lattice \gb functions'
+ ! graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
+  graph%y%label_offset=.1
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\gb\dx\u'
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+  curve(2)%legend_text = '\gb\dy\u'
+/
+
+
+
+
+
+
+
+
+!-------Beam Orbit (mm) --------------------------------------
+
+&tao_template_plot
+  plot%name = 'beamorbit'
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph =1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Beam Orbit (mm)'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = 'Beam Orbit (mm)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+ curve(1)%legend_text = 'X'
+  curve(1)%data_source = 'beam'
+  curve(1)%data_type   = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%draw_symbols=False
+curve(2)%legend_text = 'Y'
+  curve(2)%data_source = 'beam'
+  curve(2)%data_type   = 'orbit.y'
+  curve(2)%y_axis_scale_factor = 1000
+  curve(2)%draw_symbols=False
+/
+
+
+!-------Orbit Angle (mrad) --------------------------------------
+
+&tao_template_plot
+  plot%name = 'orbitangle'
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph =1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Orbit Angle (mrad)'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = 'Orbit Angle (mrad)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+ curve(1)%legend_text = 'X'
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'orbit.px'
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%draw_symbols=False
+curve(2)%legend_text = 'Y'
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'orbit.py'
+  curve(2)%y_axis_scale_factor = 1000
+  curve(2)%draw_symbols=False
+/
+
+
+
+!----------------------------------------------------------------
+!--------------------------------------------------------------
+
+!--------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'xphase'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x (mm)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'x'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'X-Px'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+   graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = 'p\dx\u/p\d0\u (mrad)'
+  graph%y%max = 0.1
+  graph%y%min = -0.1
+  graph%y%major_div = 4
+  graph%y%label_offset=.4
+  curve(1)%data_type = 'x-px' 
+  curve(1)%y_axis_scale_factor = 1000 !rad->mrad
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ix_universe = 1
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+/
+
+&tao_template_plot
+  plot%name = 'yphase'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'y (mm)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'y (mrad)'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Y-Py'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = 'p\dy\u/p\d0\u (mrad)'
+  graph%y%max = 0.1
+  graph%y%min = -0.1
+  graph%y%major_div = 4
+  curve(1)%data_type = 'y-py' 
+  curve(1)%y_axis_scale_factor = 1000 !rad->mrad
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ix_universe = 1
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+/
+!--------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'zphase'
+  default_graph%x%min = -6
+  default_graph%x%max =  6
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Z-Pz'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = '\gd (10\u-3\d)'
+  graph%y%max = 3
+  graph%y%min = -3
+  graph%y%major_div = 4
+  graph%y%label_offset=.4
+  curve(1)%data_type = 'z-pz' 
+  curve(1)%y_axis_scale_factor = 1000.0 !1->10^-3 relative
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+/
+
+!--------------------------------------------------------------
+
+
+
+
+!--------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'xpzphase'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x (mm)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'x'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'X-Pz'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+   graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = '\gd (10\u-3\d)'
+  graph%y%max = 0.1
+  graph%y%min = -0.1
+  graph%y%major_div = 4
+  curve(1)%data_type = 'x-pz' 
+  curve(1)%y_axis_scale_factor = 1000 !rad->mrad
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ix_universe = 1
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+/
+
+!--------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'screen'
+  default_graph%x%min =   -0.001
+  default_graph%x%max = 0.001
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'x'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'x'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'X-Y'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Y'
+  graph%y%max = 0.1
+  graph%y%min = -0.1
+  graph%y%major_div = 4
+  curve(1)%data_type = 'x-y' 
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ix_universe = 1
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+/
+
+!-------alpha-----------------------------------
+
+&tao_template_plot
+  plot%name = 'alpha'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph%x%draw_numbers = False
+  graph%x%draw_label = False
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+ ! graph%title = 'Lattice \gb functions'
+ ! graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = '\ga\dx\u, \ga\dy\u (m)'
+  graph%y%label_offset=.1
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'alpha.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\ga\dx\u'
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'alpha.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+  curve(2)%legend_text = '\ga\dy\u'
+/
+
+
+!-------betalabel - same as above but with s (m) label---------------------------------
+
+&tao_template_plot
+  plot%name = 'betalabel'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div =10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  !default_graph%x%label_offset = 1.2
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  !graph%x%draw_numbers = False
+  !graph%x%draw_label = False
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+ ! graph%title = 'Lattice \gb functions'
+ ! graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = '\gb\dx\u, \gb\dy\u (m)'
+  graph%y%label_offset=.1
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(1)%legend_text = '\gb\dx\u'
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+  curve(2)%legend_text = '\gb\dy\u'
+/
+
+
+!-------betadispersion-----------------------------------
+
+&tao_template_plot
+  plot%name = 'betadispersion'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div =10
+  !default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph%x%draw_numbers = False
+  graph%x%draw_label = False
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Lattice \gb functions'
+ ! graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  
+  graph%margin =  0.15, 0.06, 0.06, 0.12, '%BOX'
+    !----y1
+  graph%y%label = '\gb\dx\u (m), \gb\dy\u (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+   !-----y2
+  graph%y2%label='yafaf'
+  graph%y2%max =  20
+  graph%y2%min = -20
+  graph%y2%major_div = 4  	  
+  graph%y2%label_color=2
+  
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'eta.a'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+/
+
+!-----------beambeta--------------------------------------
+
+&tao_template_plot
+  plot%name = 'beambeta'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Beta X, Y (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Beta (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'beta.a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(2)%data_source = 'beam_tracking'
+  curve(2)%data_type   = 'beta.b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+  
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'beta.a'
+  curve(3)%legend_text = 'Lattice \gb\dx\u'	
+  curve(3)%y_axis_scale_factor = 1
+  curve(3)%line%color = "red"
+  curve(3)%line%width=2
+  curve(3)%line%pattern = "dashed" !Dashed
+  curve(4)%data_source = 'lattice'
+  curve(4)%data_type   = 'beta.b'
+  curve(4)%legend_text = 'Lattice \gb\dy\u'	
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%line%color = "green"
+  curve(4)%line%width=2
+  curve(4)%line%pattern = "dashed" !Dashed
+ /
+  
+/
+
+!-----------beameta--------------------------------------
+
+&tao_template_plot
+  plot%name = 'beameta'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Beam eta'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = '\gy\dx\u, \gy\dy\u (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'eta.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%legend_text = 'beam \gy\dx\u'
+  curve(2)%data_source = 'beam_tracking'
+  curve(2)%data_type   = 'etap.x'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+  curve(2)%legend_text = 'beam \gy\dy\u'
+/
+
+
+
+
+!-------------- ETAZ  -----------------------------------
+
+&tao_template_plot
+  plot%name = 'etaz'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%minor_div = 4
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'z'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Z Eta (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Eta Z (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  graph%y%label = '\gy\dz\u(m)'
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'eta.z'
+  curve(1)%legend_text = '\gy\dz\u'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  !curve(1)%line%color = "red"
+/
+
+
+
+!-------------- ETAP -----------------------------------
+
+&tao_template_plot
+  plot%name = 'etap'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%minor_div = 4
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Horizontal Etap (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Etap X (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'etap.x'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  !curve(1)%line%color = "red"
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'etap.y'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+/
+
+
+!------- First and Second order dispersion: dispersionx -----------------------------------
+
+
+
+
+!------- Scaled First and Second order dispersion: dispersionx -----------------------------------
+
+&tao_template_plot
+  plot%name = 'dispersionxscaled'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'First and Second order Dispersion (m)'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = 'r\d16\u (m), t\d166\u (10m)'
+  !graph%draw_axes = False
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%label_offset=.1
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'eta.x'
+  curve(1)%y_axis_scale_factor = 1 !m
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  !curve(1)%smooth_line_calc = False
+  !curve(1)%line%color = "red"
+  curve(1)%legend_text = 'r\d16\u (m)'
+  curve(2)%data_source = 'lattice'
+  curve(2)%line%pattern = "dotted"
+  curve(2)%data_type   = 't.166'
+  curve(2)%smooth_line_calc = False
+  curve(2)%ele_ref_name = 'BEGINNING'
+  curve(2)%y_axis_scale_factor = 0.1 !m->10m
+  curve(2)%draw_symbols=False
+  curve(2)%line%width=2
+  curve(2)%legend_text = 't\d166\u (10m)'
+  curve(2)%line%color = "red"    !1:Black 2:Red 3:Blue . . . see bottom of this file
+/
+
+
+!------------ orbit.amp
+&tao_template_plot
+  plot%name = 'orbitamp'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Orbit Amp X, Y (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Amp'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'orbit.amp_a'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(2)%data_source = 'lattice'
+  curve(2)%data_type   = 'orbit.amp_b'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+/
+
+
+
+
+
+
+
+
+
+
+!-------------- tof : time of flight -----------------------------------
+
+&tao_template_plot
+  plot%name = 'tof'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'z'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Time of Flight terms'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = 'r\d56\u, t\d566\u (m)'
+  graph%y%max =  20
+  graph%y%label_offset=.1
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'r.56'
+  curve(1)%legend_text = 'r\d56\u'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%smooth_line_calc = False
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  curve(1)%line%color = "black"
+  curve(2)%data_source = 'lattice'
+  curve(2)%legend_text = 't\d566\u'
+  curve(2)%data_type = 't.566'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%smooth_line_calc = False
+  curve(2)%ele_ref_name = 'BEGINNING'
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "black"
+  curve(2)%line%width=2
+  curve(2)%line%pattern = "dotted"
+/
+
+
+!-------------- Scaled tof : time of flight -----------------------------------
+
+&tao_template_plot
+  plot%name = 'tofscaled'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'z'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Time of Flight terms'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = 'r\d56\u (cm), t\d566\u (m)'
+  graph%y%max =  20
+  graph%y%label_offset=.1
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'r.56'
+  curve(1)%legend_text = 'r\d56\u (cm)'
+  curve(1)%y_axis_scale_factor = 100 !m->cm
+  !curve(1)%smooth_line_calc = False
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  curve(1)%line%color = "black"
+  curve(2)%data_source = 'lattice'
+  curve(2)%legend_text = 't\d566\u (m)'
+  curve(2)%data_type = 't.566'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%smooth_line_calc = False
+  curve(2)%ele_ref_name = 'BEGINNING'
+  curve(2)%draw_symbols=False
+  curve(2)%line%color = "red"
+  curve(2)%line%width=2
+  curve(2)%line%pattern = "dotted"
+/
+
+
+
+!-------------- txx6 -----------------------------------
+
+&tao_template_plot
+  plot%name = 'txx6'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = ''
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = 't\1xx\u ()'
+  graph%y%max =  20
+  graph%y%label_offset=.1
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_type = 't.116'
+  curve(2)%data_type = 't.126'
+  curve(3)%data_type = 't.226'
+  curve(4)%data_type = 't.166'
+  curve(5)%data_type = 't.266'
+  !curve(1)%ele_ref_name = 'wa_cellb01_mar_beg'
+  !curve(2)%ele_ref_name = 'wa_cellb01_mar_beg'
+  !curve(3)%ele_ref_name = 'wa_cellb01_mar_beg'
+  !curve(4)%ele_ref_name = 'wa_cellb01_mar_beg'
+  !curve(5)%ele_ref_name = 'wa_cellb01_mar_beg'
+  curve(1)%smooth_line_calc = False
+  curve(2)%smooth_line_calc = False
+  curve(3)%smooth_line_calc = False
+  curve(4)%smooth_line_calc = False
+  curve(5)%smooth_line_calc = False
+  curve(4)%data_source = 'lattice'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  curve(1)%line%color = "black"
+  curve(2)%data_source = 'lattice'
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%draw_symbols=False
+  curve(2)%line%width=2
+  curve(2)%line%color = "red"
+  curve(3)%data_source = 'lattice'
+  curve(3)%y_axis_scale_factor = 1
+  curve(3)%draw_symbols=False
+  curve(3)%line%width=2
+  curve(3)%line%color = "green"
+  curve(4)%data_source = 'lattice'
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%draw_symbols=False
+  curve(4)%line%width=2
+  curve(4)%line%color = "blue"
+!  curve(5)%data_source = 'lattice'
+!  curve(5)%y_axis_scale_factor = 1
+!  curve(5)%draw_symbols=False
+!  curve(5)%line%width=2
+!  curve(5)%line%color = "cyan"
+/
+
+
+!-------------- u1666 -----------------------------------
+
+&tao_template_plot
+  plot%name = 'u1666'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = ''
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = 'u\d1666\u (m)'
+  graph%y%max =  20
+  graph%y%label_offset=.1
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'tt.1666'
+  curve(1)%legend_text = 'u\d1666\u'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%smooth_line_calc = False
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  curve(1)%line%color = "black"
+/
+
+!-------------- u5666 -----------------------------------
+
+&tao_template_plot
+  plot%name = 'u5666'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'z'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = ''
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = 'u\d5666\u (m)'
+  graph%y%max =  20
+  graph%y%label_offset=.1
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'tt.5666'
+  curve(1)%legend_text = 'u\d5666\u'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%smooth_line_calc = False
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  curve(1)%line%color = "black"
+/
+
+
+
+!-------------- xt16 CTAO ONLY!!! -----------------------------------
+
+&tao_template_plot
+  plot%name = 'xt1'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'xeriodic t16 (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'xeriodic t166 (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%smooth_line_calc = False
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'xeriodic_tt.1'
+  curve(1)%y_axis_scale_factor = 1
+  !curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+/
+
+!-------------- pt166 -----------------------------------
+
+&tao_template_plot
+  plot%name = 'pt166'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'periodic t166 (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'periodic t166 (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%smooth_line_calc = False
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'periodic.tt.166'
+  curve(1)%y_axis_scale_factor = 1
+  !curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+/
+
+
+!-------------- t116 -----------------------------------
+
+&tao_template_plot
+  plot%name = 't116'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 't116 (1)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 't116 (1)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%smooth_line_calc = False
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 't.116'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  !curve(1)%line%color = "red"
+/
+
+!-------------- t166 -----------------------------------
+
+&tao_template_plot
+  plot%name = 't166'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 't166 (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 't166 (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%smooth_line_calc = False
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 't.166'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  !curve(1)%line%color = "red"
+/
+!-------------- t266 -----------------------------------
+
+&tao_template_plot
+  plot%name = 't266'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 't266 (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Eta X (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 't.266'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%line%width=2
+  !curve(1)%line%color = "red"
+/
+!-------------- t566 -----------------------------------
+
+&tao_template_plot
+  plot%name = 't566'
+  default_graph%x%min =   800
+  default_graph%x%max = 2000
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 't566 (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 't566 X [m]'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 't.566'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  !curve(1)%line%color = "red"
+  curve(1)%line%width=2
+/
+!-------------- pt566 -----------------------------------
+
+&tao_template_plot
+  plot%name = 'pt566'
+  default_graph%x%min =   800
+  default_graph%x%max = 2000
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 't566 (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Periodic t566 X [m]'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'periodic.tt.566'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%smooth_line_calc = False
+  !curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  !curve(1)%line%color = "red"
+  curve(1)%line%width=2
+/
+
+!-------------- t116 -----------------------------------
+
+&tao_template_plot
+  plot%name = 't116'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 't166 (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 't116 (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%smooth_line_calc = False
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 't.116'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%ele_ref_name = 'BEGINNING'
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  !curve(1)%line%color = "red"
+/
+
+
+
+!----------beamdispersion------------------------------------
+
+&tao_template_plot
+  plot%name = 'beamdispersion'
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+  plot%autoscale_gang_y = False
+/
+
+ &tao_template_graph
+  graph%name = 'xy'
+  graph_index = 1
+  graph%x%draw_numbers = False
+  graph%x%draw_label = False
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'D\dx\u, D\dy\u (m)'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = 'D\dx\u, D\dy\u (m)'
+  graph%y%max =  6.0
+  graph%y%label_offset=.1
+  graph%y%min = -6.0
+  graph%y%major_div = 4
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'eta.x'
+  curve(1)%legend_text = 'D\dx\u'	
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(2)%data_source = 'beam_tracking'
+  curve(2)%data_type   = 'eta.y'
+  curve(2)%legend_text = 'D\dy\u'	
+  curve(2)%y_axis_scale_factor = 1
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+  curve(3)%data_source = 'lattice'
+  curve(3)%data_type   = 'eta.x'
+  curve(3)%legend_text = 'Lattice D\dx\u'	
+  curve(3)%y_axis_scale_factor = 1
+  curve(3)%line%color = "red"
+  curve(3)%line%width=2
+  curve(3)%line%pattern = "dashed" !Dashed
+  curve(4)%data_source = 'lattice'
+  curve(4)%data_type   = 'eta.y'
+  curve(4)%legend_text = 'Lattice D\dy\u'	
+  curve(4)%y_axis_scale_factor = 1
+  curve(4)%line%color = "green"
+  curve(4)%line%width=2
+  curve(4)%line%pattern = "dashed" !Dashed
+ /
+
+
+
+
+
+!----------emittancexy------------------------------------
+
+&tao_template_plot
+  plot%name = 'emittancexy'
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+  plot%autoscale_gang_y = False
+/
+
+ &tao_template_graph
+  graph%name = 'xy'
+  graph_index = 1
+  graph%x%draw_numbers = False
+  graph%x%draw_label = False
+  graph%box = 1, 1, 1, 1
+  !graph%title = '\ge\dN\u X, Y (mm-mrad)'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = 'Beam \ge\dN\u (mm-mrad)'
+  graph%y%max =  100
+  graph%y%label_offset=.4
+  graph%y%min = 0.0
+  graph%y%major_div = 4
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'norm_emit.x'
+  curve(1)%legend_text = '\ge\dN\u X'	
+  curve(1)%y_axis_scale_factor = 1e6
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(2)%data_source = 'beam_tracking'
+  curve(2)%data_type   = 'norm_emit.y'
+  curve(2)%legend_text = '\ge\dN\u Y'	
+  curve(2)%y_axis_scale_factor = 1e6
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+ /
+
+!----------------------------------------------------------------
+
+!-------------- emittancez -----------------------------------
+
+&tao_template_plot
+  plot%name = 'emittancez'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'Distance [m]'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Z Normalized Projected Emittance (m)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Normalized Emittance (m)'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  !curve(1)%smooth_line_calc = False
+  curve(1)%data_source = 'beam'
+  curve(1)%data_type   = 'norm_emit.z'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%draw_symbols=False
+  curve(1)%line%width=2
+  !curve(1)%ele_ref_name = 'BEGINNING'
+/
+!----------sigmaxy------------------------------------
+
+&tao_template_plot
+  plot%name = 'sigmaxy'
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+  plot%autoscale_gang_y = False
+/
+
+ &tao_template_graph
+  graph%name = 'xy'
+  graph_index = 1
+  !graph%x%draw_numbers = False
+  !graph%x%draw_label = False
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Sigma X, Y (\gmm)'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = '\gs\dx\u, \gs\dy\u (\gmm)'
+  graph%y%max =  100
+  graph%y%label_offset=.4
+  graph%y%min = 0.0
+  graph%y%major_div = 4
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'sigma.x'
+  curve(1)%legend_text = '\gs\dx\u'	
+  curve(1)%y_axis_scale_factor = 1e6
+  curve(1)%line%color = "red"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+  curve(2)%data_source = 'beam_tracking'
+  curve(2)%data_type   = 'sigma.y'
+  curve(2)%legend_text = '\gs\dy\u'	
+  curve(2)%y_axis_scale_factor = 1e6
+  curve(2)%line%color = "green"
+  curve(2)%line%width=2
+  curve(2)%draw_symbols=False
+ /
+!!------------ sigmaz (MeV) ------------
+
+&tao_template_plot
+  plot%name = 'sigmaz'
+  plot%x_axis_type = 's'
+  default_graph%x%label = 's (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'sigmaz'
+
+ !graph%title = 'Energy'
+ !graph%x%draw_numbers = False
+ !graph%x%draw_label = False
+  graph_index = 1
+
+  !graph%margin =  0.15, 0.05, 0.05, 0.0, '%BOX'
+  graph%margin =  0.15, 0.06, 0.06, 0.0, '%BOX'
+  graph%y%label = '\gs\dz\u/c (ps)'
+  graph%y%label_offset=.4
+
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'sigma.z'
+  curve(1)%y_axis_scale_factor = 3335.64095
+  curve(1)%line%color = "blue"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+ ! curve(1)%legend_text = '' 
+
+/
+!----------sigmapz------------------------------------
+
+ &tao_template_plot
+  plot%name = 'sigmapz'
+  default_graph%x%min =   0
+  default_graph%x%max = 2900
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+  plot%autoscale_gang_y = False
+  default_graph%x%label = 's (m)'
+ /
+
+ &tao_template_graph
+  graph%name = 'z'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Sigma P_z Beam (-)'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = '\gs\d\gd\u (10\u-4\d)'
+  graph%y%max =  100
+  graph%y%label_offset=.1
+  graph%y%min = 0.0
+  graph%y%major_div = 4
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'sigma.pz'
+  curve(1)%y_axis_scale_factor = 1e4
+  curve(1)%line%color = "blue"
+  curve(1)%line%width=2
+  /
+!----------------------------------------------------------------
+
+!&tao_template_plot
+  plot%name = 'quads'
+  default_graph%x%min =   0
+  default_graph%x%max = 120
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 'index'
+  plot%n_graph = 1
+/
+
+!&tao_template_graph
+  graph%name = 'k1'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Quadrupole K1 (m\u-2\d)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'k1'
+  graph%y%max =  0.1
+  graph%y%min = -0.1
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type = 'element_param.k1'
+  curve(1)%y_axis_scale_factor = 1
+/
+
+!----------ploss (Particles Lost)------------------------------------
+
+ &tao_template_plot
+  plot%name = 'ploss'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+  plot%autoscale_gang_y = False
+  default_graph%x%label = 's (m)'
+ /
+
+ &tao_template_graph
+  graph%name = 'z'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Particles Lost'
+  !graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%margin =  0.15, 0.06, 0.12, 0.06, '%BOX'
+  graph%y%label = 'Particles Lost'
+  graph%y%max =  100
+  graph%y%label_offset=.1
+  graph%y%min = 0.0
+  graph%y%major_div = 4
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%data_type   = 'n_particle_loss'
+  curve(1)%y_axis_scale_factor =1
+  curve(1)%line%color = "blue"
+  curve(1)%line%width=2
+  curve(1)%draw_symbols=False
+/
+
+!------delta_heuristic-----------------------------------
+
+&tao_template_plot
+  plot%name = 'delta_heuristic'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Test'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = '\gd Heuristic'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'delta_heuristic'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%draw_symbols=False
+  curve(1)%smooth_line_calc = False
+/
+!------touschek_heuristic-----------------------------------
+
+&tao_template_plot
+  plot%name = 'touschek_heuristic'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Test'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = '\(2558) (\gs\dx\u\gs\dy\u)\u-1/2\d'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%data_type   = 'touschek_heuristic'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%draw_symbols=False
+  curve(1)%smooth_line_calc = False
+/
+
+
+!------touschek_heuristic_integral-----------------------------------
+
+&tao_template_plot
+  plot%name = 'touschek_heuristic_integral'
+  default_graph%x%min =   0
+  default_graph%x%max = 100
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 's (m)'
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'a'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'Test'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = '\(2412) \(2558) (\gs\dx\u\gs\dy\u)\u-1/2\d'
+  graph%y%max =  20
+  graph%y%min = -20
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%data_type   = 'touschek_heuristic_integral'
+  curve(1)%y_axis_scale_factor = 1
+  curve(1)%line%color = "red"
+  curve(1)%draw_symbols=False
+  curve(1)%smooth_line_calc = False
+/
+
+
+! ---------- dynamic aperture
+
+&tao_template_plot
+  plot%name = 'dynamic_aperture'
+  default_graph%x%min = -20
+  default_graph%x%max =  20
+  default_graph%x%major_div_nominal = 4
+  default_graph%x%label = 'x (mm)'
+  plot%x_axis_type = 'phase_space'
+  plot%n_graph = 1
+/
+&tao_template_graph
+  graph%name = 'g1'
+  graph%type = 'dynamic_aperture'
+  graph_index = 1
+  graph%title = 'dynamic aperture'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000
+  graph%y%label = 'y (mm)'
+  graph%y%label_offset = .2
+  graph%y%max =  20
+  graph%y%min = 0
+  graph%y%major_div = 4
+  curve(1)%y_axis_scale_factor = 1000
+  curve(2)%y_axis_scale_factor = 1000
+  curve(3)%y_axis_scale_factor = 1000
+  curve(4)%y_axis_scale_factor = 1000
+  curve(5)%y_axis_scale_factor = 1000
+  curve(1)%draw_symbols = F
+  curve(2)%draw_symbols = F
+  curve(3)%draw_symbols = F
+  curve(4)%draw_symbols = F
+  curve(5)%data_type = 'physical_aperture'
+  curve(5)%draw_symbols = F
+  curve(5)%line%width = 5
+  !curve(1)%data_type = 'dynamic_aperture'
+  
+  curve(1)%line%color = "red"
+  curve(2)%line%color = "orange"
+  curve(3)%line%color = "blue"
+  curve(4)%line%color = "purple"
+  curve(5)%line%color = "black"
+/
+
+
+!--------floor----------------------------------------
+
+&tao_template_plot
+  plot%name = 'floor'
+  default_graph%x%min =   -0.1
+  default_graph%x%max = 0.5
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'X (m)'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'plan'
+  graph%type = 'floor_plan'
+  graph%floor_plan%correct_distortion = T
+  graph%box = 1, 1, 1, 1
+  graph%title = 'floor_plan'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Y (m)'
+  graph%y%max = 0.3
+  graph%y%min = -0.3
+  graph%y%major_div = 4
+  curve(1)%data_source = 'lattice'
+  curve(1)%ix_universe = 1
+/
+
+
+!--------- variable 1 -------------
+&tao_template_plot
+  plot%name = 'var1'
+  default_graph%x%min =   0
+  default_graph%x%max = 10
+  !default_graph%x%major_div_nominal = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'quadrupole, cell offset (mm)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'x_offset (mm)'
+  graph%y%label_offset=.4
+  graph%y%max =  2
+  graph%y%min = -6
+  graph%y%major_div = 4
+  curve(1)%data_source = 'var_array'
+  curve(1)%data_type = 'quad_offset'
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%draw_symbols = T
+  
+ ! curve(2)%data_source = 'var_array'
+ ! curve(2)%data_type = 'patch_offset'
+ ! curve(2)%y_axis_scale_factor = 1000
+ ! curve(2)%draw_symbols = T
+ ! curve(2)%line%color = "red"
+/
+
+
+!--------- variable BL_kicks -------------
+&tao_template_plot
+  plot%name = 'var_correctors'
+  default_graph%x%min =   0
+  default_graph%x%max = 10
+  !default_graph%x%major_div_nominal = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 's'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  !graph%title = 'quadrupole, cell offset (mm)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Cor. B*L (G*cm)'
+  graph%y%label_offset=.4
+  graph%y%max =  1
+  graph%y%min = -1
+  graph%y%major_div = 4
+
+  curve(1)%data_source = 'var_array'
+  curve(1)%data_type = 'fa.correctors.x'
+  curve(1)%y_axis_scale_factor = 1e6  ! Gauss*cm
+  curve(1)%draw_symbols = T
+
+  curve(2)%data_source = 'var_array'
+  curve(2)%data_type = 'fa.correctors.y'
+  curve(2)%y_axis_scale_factor = 1e6  ! Gauss*cm
+  curve(2)%draw_symbols = T
+  curve(2)%line%color = "red"
+  
+  curve(3)%data_source = 'var_array'
+  curve(3)%data_type = 'za.correctors.x'
+  curve(3)%y_axis_scale_factor = 1e6  ! Gauss*cm
+  curve(3)%draw_symbols = T
+
+  curve(4)%data_source = 'var_array'
+  curve(4)%data_type = 'za.correctors.y'
+  curve(4)%y_axis_scale_factor = 1e6  ! Gauss*cm
+  curve(4)%draw_symbols = T
+  curve(4)%line%color = "red"
+  
+  curve(5)%data_source = 'var_array'
+  curve(5)%data_type = 'quad.correctors.x'
+  curve(5)%y_axis_scale_factor = 1e6  ! Gauss*cm
+  curve(5)%draw_symbols = T
+
+  curve(6)%data_source = 'var_array'
+  curve(6)%data_type = 'quad.correctors.y'
+  curve(6)%y_axis_scale_factor = 1e6  ! Gauss*cm
+  curve(6)%draw_symbols = T
+  curve(6)%line%color = "red"
+  
+
+/
+
+
+!The Quick Plot line patterns (curve(1)%line%pattern= ) are: 
+!1 -- solid$ Solid 
+!2 -- dashed$ Dashed 
+!3 -- dash_dot$ Dash--dot 
+!4 -- dotted$ Dotted 
+!5 -- dash_dot3$ Dash--dot--dot--dot 
+!The color patterns in Quick Plot are: 
+!0 -- White$ (actually the background color) 
+!1 -- Black$ (actually the foreground color) 
+!2 -- Red$ 
+!3 -- Green$ 
+!4 -- Blue$ 
+!5 -- Cyan$ 
+!6 -- Magenta$ 
+!7 -- Yellow$ 
+!8 -- Orange$ 
+!9 -- Yellow_Green$ 
+!10 -- Light_Green$ 
+!11 -- Navy_Blue$ 
+!12 -- Purple$ 
+!13 -- Reddish_Purple$ 
+!14 -- Dark_Grey$ 
+!15 -- Light_Grey$

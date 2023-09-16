@@ -1,0 +1,103 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init' 
+  startup_file = 'tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes =1
+ ! unique_name_suffix="*::_?"
+  design_lattice(1)%file = "lat.bmad"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = True
+  global%track_type = 'single'
+  global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+
+  global%prompt_color = 'BLUE'
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F
+  /
+
+
+&tao_beam_init
+ix_universe = 1
+saved_at =  "MARKER::*"
+beam_init%n_particle = 0
+beam_init%random_engine = 'quasi' ! or 'pseudo'
+beam_init%bunch_charge = 100.0e-12  
+beam_init%a_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
+beam_init%b_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
+beam_init%n_bunch = 1     
+beam_init%sig_pz = 1e-3
+beam_init%sig_z = 0.00059958  ! 2 ps * cLight
+!---Ellipse
+beam_init%distribution_type = 'ellipse', 'ran_gauss', 'grid'
+beam_init%ellipse(1)%part_per_ellipse = 50
+beam_init%ellipse(1)%n_ellipse = 3
+beam_init%ellipse(1)%sigma_cutoff = 6
+
+beam_init%grid(3)%n_x = 1
+beam_init%grid(3)%n_px = 3
+beam_init%grid(3)%x_min = 0 
+beam_init%grid(3)%x_max = 0
+beam_init%grid(3)%px_min = -0.01 
+beam_init%grid(3)%px_max =  0.01
+/
+
+
+
+
+!------------------------Data--------------------------------------------
+!------------------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = 'twiss'
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = 'end'
+  datum( 1) =  'beta.a'     '' '' 'END'   'target'  12.5   1e1
+  datum( 2) =  'alpha.a'    '' '' 'END'   'target' -1.0    1e2
+  datum( 3) =  'beta.b'     '' '' 'END'   'target'  12.5   1e1
+  datum( 4) =  'alpha.b'    '' '' 'END'   'target' -1.0    1e2
+  datum( 5) =  'eta.x'      '' '' 'END'   'target'  0.0    1e1
+  datum( 6) =  'etap.x'     '' '' 'END'   'target'  0.0    1e2
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = 'max'
+  datum( 1) =  'beta.a'    '' 'Q1' 'END'   'max'      100   1e1
+  datum( 2) =  'eta.x'     '' 'Q1' 'END'   'abs_max'  1     1e2
+/ 
+
+!------------------------Variables---------------------------------------
+!------------------------------------------------------------------------
+
+&tao_var
+  v1_var%name = 'quad'
+  default_step = 1e-4
+  default_universe = '1'
+  default_attribute = 'k1'
+  !default_low_lim = -50
+  !default_high_lim = 50
+  default_key_delta = 1e-2
+  ix_min_var = 1
+  search_for_lat_eles = 'Quad::*'
+  ! or:
+  !var(1:)%ele_name = 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6'
+  default_key_bound = T
+/
+

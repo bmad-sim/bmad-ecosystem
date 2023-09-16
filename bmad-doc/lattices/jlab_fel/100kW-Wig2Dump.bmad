@@ -1,0 +1,202 @@
+parameter[e_tot]     =  100.96926E+06
+beginning[beta_a]    =  0.25  !  4
+beginning[alpha_a]   =  0     ! -1
+beginning[beta_b]    =  0.25  !  4
+beginning[alpha_b]   =  0     ! -1
+beginning[phi_a]     =  0     !12.91392751
+beginning[phi_b]     =  0     !9.59484602
+beginning[s]         =  0
+
+radians  = pi/180
+cc    = 1/360
+freq  = 748.5e6
+
+l_lcav = 1.0
+lrad2  = 1/l_lcav
+
+cav: lcavity, l=l_lcav, lrad=lrad2, phi0=160*cc, rf_frequency=freq
+
+R421: cav
+R422: cav
+R423: cav
+R424: cav
+R425: cav
+R426: cav
+
+!----------------------------------------------------------------------
+! LINAC
+
+dl0: drift, l=0.300829807
+dl1: drift, l=0.399723277
+dl2: drift, l=0.601659613
+
+module(cav1, cav2, cav3, cav4, cav5, cav6): line=(dl0, &
+  cav1, dl1, cav2, dl2, cav3, dl1, cav4, dl2, cav5, dl1, cav6, dl0)
+
+linac: line = (module(R421, R422, R423, R424, R425, R426))
+
+!----------------------------------------------------------------------
+! BATES BEND
+
+!d1: drift, l=1.0
+!d2: drift, l=0.6547005
+!d3: drift, l=0.29502947272149  !0.6
+
+!rho_1 = 0.33333333
+!e_1   = 5.15 * radians
+!e_2  = 10.04291434 * radians
+!e_y  = 7.45537647  * radians
+!e_b  = -45 * radians
+!f_1  = 0.3338
+!l_1  = 0.17453295
+!l_b  = 1.04719740
+!bang_1  = 30  * radians
+!bang_b  = 180 * radians
+
+!b1a: sbend, rho=rho_1, e1=e_1, hgap=0.0, fint=f_1
+!b1b: sbend, l=l_1, angle=bang_1
+!b1c: sbend, rho=rho_1, e2=e_1, hgap=0.0, fint=f_1
+
+!b2a: sbend, rho=rho_1, e1=e_2, hgap=0.0, fint=f_1, ref_tilt=pi
+!b2b: sbend, l=l_1, angle=bang_1, ref_tilt=pi
+!b2c: sbend, rho=rho_1, e2=e_2, hgap=0.0, fint=f_1, ref_tilt=pi
+
+!bba: sbend, rho=rho_1, e1=e_b, hgap=0.0, fint=f_1
+!bbb: sbend, l=l_b, angle=bang_b
+!bbc: sbend, rho=rho_1, e2=e_b, hgap=0.0, fint=f_1 
+
+!b1z: sbend, rho=rho_1, e1=e_1, hgap=0.0, fint=f_1
+!b1y: sbend, rho=rho_1, e2=e_y, hgap=0.0, fint=f_1  
+
+!bates: line=(d1, b1a, b1b, b1c, d2, b2a, b2b, b2c, d3, &
+!    bba, bbb, bbc, d3, b2a, b2b, &
+!    b2c, d2, b1z, b1b, b1y)
+
+!----------------------------------------------------------------------
+! QUADRUPOLE TRIPLET
+
+!d4: drift,  l=0.6
+!d5: drift,  l=1.475
+!d6: drift,  l=0.6
+!dwig:drift, l=0.36
+
+!qa: quadrupole, l=0.15, k1=0
+!qb: quadrupole, l=0.15, k1=0
+!qc: quadrupole, l=0.15, k1=0
+!q1: quadrupole, l=0.15, k1=  5.801734 ! 2.40867 DIMAD  
+!q2: quadrupole, l=0.15, k1=-11.763272 !-3.42976 DIMAD
+!q3: quadrupole, l=0.15, k1= 11.759239 ! 3.42917 DIMAD
+
+!quads: line=(d4, qa, d5, qb, d5, qc, d6, q1, d6, q2, d6, q3, dwig)
+
+!----------------------------------------------------------------------
+! WIGGLER
+
+!wig1:  taylor, l = 0.39, &
+!      {1: 0.100000E+01,1 0 0 0 0 0},{1: 0.390175E+00,0 1 0 0 0 0}, &
+!      {2: 0.0,         1 0 0 0 0 0},{2: 0.100000E+01,0 1 0 0 0 0}, & 
+!      {3: 0.100935E-01,0 0 1 0 0 0},{3: 0.249837E+00,0 0 0 1 0 0}, &  
+!      {4:-0.400219E+01,0 0 1 0 0 0},{4: 0.100935E-01,0 0 0 1 0 0}
+
+wig2:  taylor, l = 0.39, &
+      {1: 0.100000E+01,1 0 0 0 0 0},{1: 0.390175E+00,0 1 0 0 0 0}, &
+      {2: 0.0,         1 0 0 0 0 0},{2: 0.100000E+01,0 1 0 0 0 0}, & 
+      {3: 0.100935E-01,0 0 1 0 0 0},{3: 0.249837E+00,0 0 0 1 0 0}, &  
+      {4:-0.400219E+01,0 0 1 0 0 0},{4: 0.100935E-01,0 0 0 1 0 0}
+
+
+!wig:  taylor, l = 0.39, &
+!      {1: 0.100000E+01,1 0 0 0 0 0},{1: 0.390175E+00,0 1 0 0 0 0}, &
+!      {2: 0.0,         1 0 0 0 0 0},{2: 0.100000E+01,0 1 0 0 0 0}, & 
+!      {3: 0.100935E-01,0 0 1 0 0 0},{3: 0.249837E+00,0 0 0 1 0 0}, &  
+!      {4:-0.400219E+01,0 0 1 0 0 0},{4: 0.100935E-01,0 0 0 1 0 0}
+
+!wiggler: line=(wig1, wig2)
+!wigf:   line=(wig1)
+wigs:   line=(wig2)
+
+! DIMAD
+!bwiga: sbend,l= 0.7501125E-02, angle=1.71913132088, &
+!       e1=0, e2=1.71913132088
+!bwigb: sbend,l= 0.1500225E-01, angle=3.43826264176, & 
+!       e1=1.71913132088, e2=1.71913132088, ref_tilt=180
+!bwigc: sbend,l= 0.7501125E-02, angle=1.71913132088, & 
+!       e1=1.71913132088, e2=0
+!wiggler: line=(26*(bwiga, bwigb, bwigc))
+
+!----------------------------------------------------------------------
+! CSR CHICANE
+
+d21: drift, l=0.2769671 !0.86
+d22: drift, l=0.53089859!0.485
+d24: drift, l=0.15      !0.25
+
+rho_csr  = 0.4
+f_csr    = 0.27816744
+e_24     = 24 * radians
+bang_csr1  = 24 * radians
+bang_csr2  = 48 * radians
+l_csr1  = 0.1675516
+l_csr2  = 0.3351032
+
+b21a: sbend, rho=rho_csr, e1=-33.43703181 * radians, hgap=0.00, fint=f_csr
+b21b: sbend, l=l_csr1, angle=bang_csr1
+b21c: sbend, rho=rho_csr, e2=e_24, hgap=0.00, fint=f_csr
+
+b22a: sbend, rho=rho_csr, e1=e_24, hgap=0.00, fint=f_csr, ref_tilt=pi
+b22b: sbend, l=l_csr2, angle=bang_csr2, ref_tilt=pi
+b22c: sbend, rho=rho_csr, e2=e_24, hgap=0.00, fint=f_csr, ref_tilt=pi
+
+b23a: sbend, rho=rho_csr, e1=e_24, hgap=0.00, fint=f_csr
+b23b: sbend, l=l_csr1, angle=bang_csr1
+b23c: sbend, rho=rho_csr, e2=31.04991693 * radians, hgap=0.00, fint=f_csr
+
+csrchic: line=(d21, b21a, b21b, b21c, d22, d22, &
+    b22a, b22b, b22c, d22, d22, &
+    b23a, b23b, b23c, d24, d24)
+
+!----------------------------------------------------------------------
+! MIRROR BEND
+
+d23: drift, l=0.21
+d26: drift, l=0.39  !0.5
+
+rho_m   = 0.54
+e_m   = -45 * radians
+f_m   = 0.20604995
+bang_m    = 90 * radians
+l_m   = 0.8482299
+
+m2b1a: sbend, rho=rho_m, e1=-3.30055362 * radians, hgap=0.00, fint=f_m
+m2b1b: sbend, l=l_m, angle=bang_m
+m2b1c: sbend, rho=rho_m, e2=e_m, hgap=0.00, fint=f_m
+
+m2b2a: sbend, rho=rho_m, e1=e_m, hgap=0.00, fint=f_m
+m2b2b: sbend, l=l_m, angle=bang_m
+m2b2c: sbend, rho=rho_m, e2=30.93623512 * radians, hgap=0.00, fint=f_m
+
+mirror: line=(m2b1a, m2b1b, m2b1c, d23, d23, m2b2a, m2b2b, m2b2c, d26)
+
+!----------------------------------------------------------------------
+
+!all: line = (linac, bates, quads, wiggler, csrchic, mirror, linac)
+!fhalf: line=(bates, quads, wigf)
+shalf: line=(wigs, csrchic, mirror, linac)
+use, shalf
+
+R421[gradient] =   10.0e6 * 1.0 / R421[l]
+R422[gradient] =   18.0e6 * 1.0 / R422[l]
+R423[gradient] =   18.0e6 * 1.0 / R423[l]
+R424[gradient] =   18.0e6 * 1.0 / R424[l]
+R425[gradient] =   18.0e6 * 1.0 / R425[l]
+R426[gradient] =   18.0e6 * 1.0 / R426[l]
+
+!expand_lattice
+
+!R421\2[dphi0] = 0.5
+!R422\2[dphi0] = 0.5
+!R423\2[dphi0] = 0.5
+!R424\2[dphi0] = 0.5
+!R425\2[dphi0] = 0.5
+!R426\2[dphi0] = 0.5
+
