@@ -1,0 +1,16 @@
+set (EXENAME bbu)
+
+set (SRC_FILES
+  bbu/bbu_program.f90
+  code/bbu_track_mod.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

@@ -1,0 +1,9 @@
+set (EXENAME aspea2)
+
+set (SRC_FILES
+  apisa/spea2/spea2.cpp
+  apisa/spea2/spea2_functions.cpp
+  apisa/spea2/spea2.hpp
+  apisa/spea2/spea2_io.cpp
+)
+

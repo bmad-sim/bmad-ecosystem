@@ -1,0 +1,37 @@
+$substrate = "Al" # Chemical formula
+
+$layer = "C" # Chemical formula
+$layerThickness = 10 # nm
+
+# Energy & angle grid. Make sure it samples the data well (look at the plots)
+$tables =
+[
+  {
+    :Emin => 30,  # in eV, between 30 and 30k
+    :Emax => 600, # in eV, between 30 and 30k
+    :Estep => 10, # in eV
+    :angles => [0.4, 0.8, 1, 2, 3, 4, 5, 6, 7, 10, 15, 20, 30, 45, 60, 75, 90] # degrees
+  },
+  {
+    :Emin => 600,
+    :Emax => 1400,
+    :Estep => 20,
+    :angles => [0.4, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 10.0, 90.0]
+  },
+  {
+    :Emin => 1400,
+    :Emax => 1600,
+    :Estep => 5,
+    :angles => [0.2, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 90.0]
+  },
+  {
+    :Emin => 1600,
+    :Emax => 30000,
+    :Estep => 100,
+    :angles => [0.1, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 90.0]
+  }
+]
+
+# Default Synrad3D roughness parameters for this material. Not used by Henke
+$s3d_roughness_rms = "100e-9" 
+$s3d_roughness_correlation_len = "5.5e-6"

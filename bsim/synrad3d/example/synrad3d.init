@@ -1,0 +1,23 @@
+&synrad3d_parameters
+  lattice_file     = 'bmad_L9A18A000-_MOVEREC.lat                        ' 
+  wall_file        = 'synrad3d.wall'                          ! File specifying the vacuum chamber wall
+  dat_file         = 'synrad3d.dat'                            ! For output
+  reflect_file = ''            ! If not blank then create a photon reflections data file.
+  lat_ele_file = 'lat_ele.dat' ! If not blank then create a lattice element data file.
+  ix_ele_track_start   = 103   ! Radiation is produced from the *exit* end of this element...
+  ix_ele_track_end     = 104   !  ... to the exit end of this element. -1 -> Go to the end of the lattice
+  photon_direction     = 1     ! 1 = Forward generation, -1 = Backward generation.
+  num_photons          = 100  ! Nominal number of unfiltered photons generated. 
+  num_photons_per_pass = -1    ! Number of photons generated per pass. -1 => Use num_photons value.
+  ds_step_min          = 0.01  ! Photons are generated at discrete points. 
+                               !   Multipole photons can be generated at each point.
+                               !   This is minimum distance between points.
+  emit_a               = 0     ! Horiontal emit. If < 0 -> Use value from radiation integral calc.
+  emit_b               = 0     ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
+  sig_pz               = 0     ! Sigma pz. If < 0 -> Use value from radiation integral calc.
+  sr3d_params%allow_reflections = True  ! For testing purposes.
+                               !    of photon before/after reflection coords.
+  random_seed  = 123456        ! Random number seed. 0 -> Use sys clock.
+  e_filter_min = 4
+  surface_reflection_file = '' ! For custom reflection parameters.
+/

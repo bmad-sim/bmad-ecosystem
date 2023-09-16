@@ -1,0 +1,138 @@
+========================================================================
+APISA  (www.tik.ee.ethz.ch/pisa/; www.lepp.cornell.edu/~ib38/apisa/)
+========================================================================
+Computer Engineering (TIK)
+ETH Zurich	 
+
+Cornell University
+Ithaca, NY 14853
+========================================================================
+NSGA2 - Nondominated Sorting GA II
+
+Implementation in C++ for the selector side.
+
+Documentation
+  
+file: nsga2_documentation.txt
+author: Marco Laumanns, laumanns@tik.ee.ethz.ch
+modified: Ivan Bazarov, bazarov@cornell.edu
+last change: July 22, 2004
+========================================================================
+
+
+
+The Optimizer
+=============
+
+NSGA2 in an elitist multiobjective evolutionary algorithm and has been
+proposed by Prof. Kalyanmoy Deb at the KanGAL. Here, we present a
+PISA-implementation of the algorithm based on the description in the
+cited paper. In addition, constraint-handling has been implemented.
+
+@InProceedings{DAPM2000,
+  author = {K. Deb and Samir Agrawal and Amrit Pratap and T. Meyarivan},
+   title = {A Fast Elitist Non-Dominated Sorting Genetic Algorithm for
+                  Multi-Objective Optimization: {NSGA-II}}, 
+   booktitle = {Parallel Problem Solving from Nature -- {PPSN VI}},
+   pages = {849--858},
+   year = {2000},
+   editor = {Marc Schoenauer and K. Deb and G.
+                  Rudolph and Xin Yao and Evelyne Lutton and Juan
+                  Julian Merelo and Hans-Paul Schwefel},
+   address = {Berlin},
+   publisher = {Springer}
+}
+
+
+The Parameters
+==============
+
+NSGA2 uses the following values for the common parameters.
+These parameters are specified in 'PISA_cfg'.
+
+initial_population_size (population size)
+parent_set_size         (number of parent individuals)
+offspring_set_size      (number of offspring individuals)
+objectives              (number of objectives)
+constraints             (number of constraints)
+
+
+NSGA2 takes two local parameter which is given in a parameter
+file. The name of this parameter file is passed to NSGA2 as command
+line argument. (See 'nsga2_param.txt' for an example.)
+
+seed         (seed for the random number generator)
+tournament   (tournament size for mating selection)
+verbose      (YES/NO prints out diagnostics messages to a file)
+
+
+Source Files
+============
+
+The source code for NSGA2 is divided into four files:
+
+'nsga2.hpp' is the header file.
+
+'nsga2.cpp' contains the main function and implements the control flow.
+
+'nsga2_io.cpp' implements the file i/o functions.
+
+'nsga2_functions.cpp' implements all other functions including the
+selection.
+
+Additionally a Makefile, a APISA_cfg file with common parameters
+and 'nsga2_param.txt' file with local parameters are contained in
+the tar file.
+
+Depending on whether you compile on Windows or on Unix (any OS having
+<unistd.h>) uncomment the according '#define' in the 'nsga2.hpp' file.
+
+
+Usage
+=====
+
+Start NSGA2 with the following arguments:
+
+nsga2 paramfile filenamebase poll
+
+paramfile: specifies the name of the file containing the local
+parameters (e.g. nsga2_param.txt)
+
+filenamebase: specifies the name (and optionally the directory) of the
+communication files. The filenames of the communication files and the
+configuration file are built by appending 'sta', 'var', 'sel','ini',
+'arc' and 'cfg' to the filenamebase. This gives the following names for
+the 'APISA_' filenamebase:
+
+APISA_cfg - configuration file
+APISA_ini - initial population
+APISA_sel - individuals selected for variation
+APISA_var - variated individuals (offspring)
+APISA_arc - individuals in the archive
+
+
+Caution: the filenamebase must be consistent with the name of
+the configuration file and the filenamebase specified for the NSGA2
+module.
+
+poll: gives the value for the polling time in seconds (e.g. 0.5). This
+      polling time must be larger than 0.01 seconds.
+
+
+
+
+Limitations
+===========
+
+None limitations are known so far.
+
+
+
+Stopping and Resetting
+======================
+
+The behaviour in state 5 and 9 is not determined by the interface but
+by each variator module specifically. NSGA2 behaves as follows:
+
+state 5 (= variator terminated): set state to 6 (terminate as well).
+state 9 (= variator resetted): set state to 10 (reset as well).

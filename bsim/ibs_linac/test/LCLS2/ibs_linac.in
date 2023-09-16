@@ -1,0 +1,34 @@
+&ibs_linac_params
+ lat_name = 'LCLS2_soft.lat'
+
+ use_beam = T
+ beam_init%file_name = 'injector_end_10k_LaserHeated.bbunch'
+ beam_init%distribution_type(1) = 'FILE'
+
+ initial_slice_energy_spread_eV = 10e3
+
+ !verbose = T
+ 
+ ISR_energy_spread_on = T
+
+ !ibs_formula = 'cimp'    ! Modified Piwinski
+ !ibs_formula = 'bjmt'    ! (default) Bjorken-Mtingwa formulation general to bunched beams (time consuming)
+ ibs_formula = 'kubo'    !Kubo and Oide's sigma matrix-based
+
+radiation_damping_on = F
+radiation_fluctuations_on = T
+
+ibs_on = T
+ibs_affects_bunch = T
+
+
+ beam_init%n_particle = 10000
+ beam_init%random_engine = 'quasi'
+ !beam_init%random_engine = 'pseudo'
+ beam_init%a_norm_emit = 0.45e-6
+ beam_init%b_norm_emit = 0.45e-6
+ beam_init%dPz_dz = 0.0
+ beam_init%bunch_charge = 100.0e-12
+ beam_init%sig_pz = 5e-5
+ beam_init%sig_z = 0.00059958 ! 2 ps * cLight
+/

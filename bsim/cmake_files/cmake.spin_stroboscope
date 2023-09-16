@@ -1,0 +1,9 @@
+set (EXENAME spin_stroboscope)
+
+FILE (GLOB SRC_FILES "spin_stroboscope/*.f90")
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

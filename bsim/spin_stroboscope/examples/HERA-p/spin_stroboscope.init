@@ -1,0 +1,30 @@
+&strob_params
+  bmad_lat = 'hp96lu820yhof.bmad'
+  rf_on = F
+  relaxation_tolerance = 1e-8
+  n_turns_max = 200
+  calc_every = 20
+  invar_spin_tolerance = 1e-4
+  spin_tune_tolerance = 1e-3
+  linear_in_action = T
+  debug = F
+
+  orbit_start = 0, 0.00000000, 0
+  orbit_stop  = 0, 0.00045000, 0
+  n_points = 1, 101, 1
+
+/
+
+
+  orbit_start = 0, 0.00002000, 0
+  orbit_stop  = 0, 0.00002000, 0
+  n_points = 1, 1, 1
+
+  orbit_start = 0, 0.00023445, 0
+  orbit_stop  = 0, 0.00023445, 0
+  n_points = 1, 1, 1
+
+
+  orbit_start = 0, 0.00023010, 0
+  orbit_stop  = 0, 0.00023010, 0
+  n_points = 1, 1, 1

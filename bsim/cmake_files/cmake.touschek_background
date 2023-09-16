@@ -1,0 +1,15 @@
+set (EXENAME touschek_background)
+
+set (SRC_FILES
+  touschek_background/touschek_background.f90
+  touschek_background/touschek_background_mod.f90
+  touschek_background/touschek_background_mpi_mod.f90
+  touschek_background/special_collimate_lattice.f90
+)
+
+set (LINK_LIBS
+	bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

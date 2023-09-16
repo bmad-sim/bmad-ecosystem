@@ -1,0 +1,5 @@
+!call, file = '~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat_examp.bmad' 
+!call, file = '~/nfs/linux_lib/bsim/bbu/examples/oneturn_assignHOMs.bmad'  
+
+call, file = 'oneturn_lat_examp.bmad' 
+call, file = 'oneturn_assignHOMs.bmad'  

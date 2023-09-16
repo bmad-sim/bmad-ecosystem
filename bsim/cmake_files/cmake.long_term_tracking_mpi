@@ -1,0 +1,17 @@
+set (EXENAME long_term_tracking_mpi)
+
+set (SRC_FILES 
+	long_term_tracking/long_term_tracking_mpi.f90
+	long_term_tracking/track1_bunch_hook.f90
+	custom_tracking/track1_preprocess.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

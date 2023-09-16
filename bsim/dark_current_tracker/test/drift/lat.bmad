@@ -1,0 +1,39 @@
+
+no_digested
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[PARTICLE] = ELECTRON
+parameter[absolute_time_tracking]=true
+PARAMETER[geometry] = open
+BEGINNING[E_TOT]  = 15.0E+06
+
+
+radius = 0.1
+P1: PIPE, L =0.25
+P2: PIPE, L = 1.0
+
+P1[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, radius}},
+	section = { s = P1[L],
+	  v(1) = {0, 0, radius}}}
+
+!Q1: quadrupole, L = 0.5, superimpose, ref = p2
+!Q1[k1] = 0
+
+P2[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, radius}},
+	section = { s = P2[L],
+	  v(1) = {0, 0, radius}}}
+
+
+test_line : line = (4*P1,p2)
+!test_line : line = (p2)
+
+*[ds_step] = 1e-3
+
+USE, test_line

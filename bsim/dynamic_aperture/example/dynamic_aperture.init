@@ -1,0 +1,15 @@
+&params
+  dat_file = 'da.dat'
+
+  ltt%lat_file = 'chess_arc_pretzel_20150106.lat'
+  ltt%rfcavity_on = F
+
+  dpz = 0, 0.005, 0.01
+  da_param%min_angle = 0  
+  da_param%max_angle = 3.1415926
+  da_param%abs_accuracy = 1e-5
+  da_param%x_init = 0.005
+  da_param%y_init = 0.005
+  da_param%n_turn = 1000
+  da_param%n_angle = 37
+/

@@ -1,0 +1,38 @@
+&parameters
+  lat_file = 'lat/cta_2085_xr40m_cd_20111210.lat'
+  granularity = -1.0   ! Step size in meters.  -1 for element-by-element.
+
+  ibs_formula = 'bjmt' ! 'cimp': completely integrated modified piwinski
+                       ! 'bjmt': Bjorken-Mtingwa
+                       ! 'bane': Karl Bane's IBS formula
+                       ! 'mpzt': Modified Piwinski with Zotter's integral
+                       ! 'mpxx': Modieied Piwinski integrated such that is has a Coulomb Log, allowing for tail cut.
+  eqb_method = 'der'  ! 'der': step through time using derivatives. 
+                      ! 'rlx': relax the solution for the differential equations, allowing for coupling 'r' parameter to be used.
+  ratio = 0.0  ! Coupling 'r' parameter.  Used only if eqb_method set to 'rlx'.
+  fake_3HC = -1  ! Multiply zero-current bunch length by this factor.  -1 to disable.
+
+  clog_to_use = 4   ! 1=no tail cut, 2=raubenheimer, 3=bane, 4=kubo
+
+  set_dispersion = .true.
+  eta_set = 0.010  !sets vertical dispersion that is plugged into IBS formulas.
+  etap_set = 0.002  !sets vertical dispersion prime that is plugged in to IBS formulas.
+
+  do_pwd = .false. 
+  inductance = 25.9E-9
+
+  ptc_calc = .false.  !use ptc to calculate emittances
+  a_emit = 3.8E-9  !negative value to use radiation integrals
+  b_emit = 17.90E-12  ! 16.9E-12  !negative value to use radiation integrals
+  energy_spread = -1   !negative value to use radiation integrals
+
+  high_current = 8.0   !highest current
+  delta_current = 0.40  !step size
+  low_current = 0.01  !lowest current
+
+	initial_blow_up = 4, 4, 4
+
+  x_view = 479    !vBSM positrons   !element number in lattice where horizontal projection to be taken.
+  y_view = 939    !xBSM positrons   !element number in lattice where vertical projection to be taken.
+  z_view = 479    !vBSM positrons   !element number in lattice where longitudinal projection to be taken.
+/

@@ -1,0 +1,53 @@
+! input file for tune_plane_res_plot program
+
+&res_params
+    param%x_min = 195.         ! x min tune 
+    param%x_max = 220.         ! x max tune
+    param%y_min = 225.         ! y min tune (see note)
+    param%y_max = 250.         ! y max tune (see note)
+    param%x_div = 5            ! Number of x-axis divisions
+    param%y_div = 5            ! Number of y-axis divisions
+
+    param%Q_s   = 36.8         ! Synch tune
+
+    param%units = 'kHz'        ! Axis & Q_s units: 'kHz' or '1' ('1' == tune units)
+
+    param%pqr_max = 5          ! max resonance order (= max (|p| + |q| + |r|)) 
+    param%p_max  = -1          ! max |p|, -1 => ignore this restriction
+    param%q_max  = -1          ! max |q|, -1 => ignore this restriction
+    param%r_max  = 2           ! max synchrotron order (= max (|r|))
+    param%pq_max = -1          ! max (|p| + |q|),  -1 => ignore this restriction
+
+    param%p_restrict = -1      ! p restriction: -1 => ignore, 0 => plot even p only, 
+                               !                 1 => plot odd p only
+    param%q_restrict = -1      ! q restriction: -1 => ignore, 0 => plot even q only,
+                               !                 1 => plot odd q only
+    param%sum_diff = -1        ! sum/diff toggle: -1 => ignore, 0 => sum res only, 
+                               !                   1 => diff res only
+    param%length = -1.         ! length: length in inches of the graph 
+                               !                   -1. => default (5.0")
+    param%plot_all_1st_and_2nd = .false.       
+                               ! plot all 1st and 2nd order lines (see note).
+    param%show_labels = .true. ! show '(p, q, r, n)' labels?
+/
+
+
+! NOTE: notation: p*Q_x + q*Q_y + r*Q_s = n <==> (p, q, r, n)
+
+! NOTE: a line will only be plotted if it meets all the constraints
+        simultaneously (restrictions ANDed together)
+
+! NOTE: min tune, max tune, and Q_s are in kHz if axes toggle is 1 and
+        normal units (1.0 = 390 kHz) if axes toggle is 0
+
+! NOTE: if ymin = ymax = 0.0 then the program will set ymin = xmin
+        and ymax = xmax
+  
+! NOTE: The PLOT_ALL_1ST_AND_2ND toggle modifies the P RESTRICTION, Q RESTRICTION,
+        and SUM/DIFF toggles so that these toggles are only used for lines with
+        order (= |p| + |q|) larger than 3. That is to say the PLOT_ALL_1ST_AND_2ND 
+        toggle will force the plotting of all 1st and 2nd order lines.
+
+! NOTE: Restricting plotting to q even will mask all lines 
+        due to skew multipoles. For example the lines due to skew sextupoles
+        are of the form (0, 3, r, n) or (2, 1, r, n). 

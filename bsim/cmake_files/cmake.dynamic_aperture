@@ -1,0 +1,13 @@
+set (EXENAME dynamic_aperture)
+
+FILE (GLOB SRC_FILES dynamic_aperture/*.f90 custom_tracking/*.f90)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

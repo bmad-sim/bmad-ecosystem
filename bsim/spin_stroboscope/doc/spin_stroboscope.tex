@@ -1,0 +1,430 @@
+\documentclass{hitec}
+
+\usepackage{index}
+\usepackage{xr}
+\usepackage{textgreek}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{amsmath, amsthm, amssymb, amsbsy, mathtools}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{xspace}
+%%\usepackage{makeidx}
+\usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
+\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{yhmath}     % For widehat
+\usepackage{xcolor}      % Needed for listings package.
+\usepackage{listings}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[nottoc,numbib]{tocbibind}   % Makes "References" section show in table of contents
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
+
+%---------------------------------------------------------------------------------
+
+\newcommand{\Bf}[1]{{\bf #1}}
+\newcommand{\bfn}{{\Bf n}}
+\newcommand{\bfr}{{\Bf r}}
+\newcommand{\bfs}{{\Bf s}}
+\newcommand{\bfu}{{\Bf u}}
+\newcommand{\bfz}{{\Bf z}}
+\newcommand{\bfJ}{{\Bf J}}
+\newcommand{\bfM}{{\Bf M}}
+\newcommand{\bfQ}{{\Bf Q}}
+\newcommand{\bfR}{{\Bf R}}
+\newcommand{\bfS}{{\Bf S}}
+\newcommand{\bfPhi}{{\Bf \Phi}}
+\newcommand{\Plim}{P_{lim}}
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\sss}{\vn{Spin_Stroboscope}\xspace}
+\newcommand{\eq}[1]{{(\protect\ref{#1})}}
+\newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
+\newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{{\usefont{T1}{lmss}{bx}{n} #1}\endgroup}
+
+\makeatletter   % So can use @ sign in \renewcommand
+\renewcommand{\l@subsection}{\@dottedtocline{2}{1.5em}{3.5em}}
+\makeatother    % Reset 
+
+\definecolor{lightcyan}{rgb}{0.88, 1.0, 1.0}
+\newcounter{main}
+\setcounter{main}{1}
+\lstnewenvironment{code}[1][firstnumber=\themain,name=main]
+  {\lstset{ %language=haskell,
+           %columns=fullflexible,
+           columns=fixed,
+           basicstyle=\small\ttfamily,
+           %numbers=left,
+           numberstyle=\tiny\color{gray},
+           backgroundcolor=\color{lightcyan},
+           #1
+          }
+}
+{\setcounter{main}{\value{lstnumber}}}
+
+%---------------------------------------------------------------------------------
+
+\renewcommand{\ttdefault}{txtt}
+%\lstset{basicstyle = \small\asciifamily,columns=flexible}  % Enable cut and paste
+\definecolor{backcolor}{rgb}{0.8824,1.0,1.0}   % To match code environment
+\lstset{basicstyle = \small, backgroundcolor=\color{backcolor}, escapeinside = {@!}{!@}}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+\settextfraction{0.9}  % Width of text
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+%\setlength{\textwidth}{6in}
+\newcommand{\Section}[1]{\section{#1}\vspace*{-1ex}}
+
+\newenvironment{display}
+  {\vspace*{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace*{-1.0ex}}
+
+\title{Spin Stroboscope Program}
+\author{}
+\date{David Sagan \\ June 29, 2023}
+
+\begin{document}
+
+\phantomsection
+\pdfbookmark[1]{Cover Page}{Cover Page}
+\maketitle
+
+\cleardoublepage
+\phantomsection
+\pdfbookmark[1]{Contents}{Contents}
+\tableofcontents
+
+\newpage
+
+%------------------------------------------------------------------
+\Section{Introduction} 
+\label{s:intro}
+
+\sss is a program which for calculating the invarient spin field using spin stroboscopic
+averaging\cite{b:sagan.spin}. Alternative techniques for calculating the invarient spin field
+include adiabatic anti-damping and the SODOM-2 algorithm.
+
+Adiabatic anti-damping is a technique that exploits the fact that, away from resonances, the
+quantity $\bfS \cdot \bfn$, where $\bfS$ is a particle's spin, is an adiabatic
+invariant\cite{b:hoff.spin}. Thus by starting a particle on the closed orbit with its spin parallel
+to $\bfn_0$, the closed orbit invariant spin (which is straightforward to compute), and then
+tracking the particle while slowly increasing the orbital amplitude to the point where the phase
+space ampltitude of interest is reached, the particle's spin will remain, more or less, pointing
+along $\bfn$. Issues with this method include the fact that it is not suitable if the particle
+crosses any resonances as its amplitude is increased and the computation time needed for a given
+accuracy.
+
+Another method for computation of the invariant spin field is the SODOM-2 algorithm\cite{b:sodom2}.
+This method computes $\bfn$ by inverting a matrix equation involving the Fourier components of
+$\bfn$ and the Fourier components of the transport map.  The number $N$ of components used needs to
+be choisen small enough so that the problem can be solved in a reasonable time yet large enough for
+the solution to be accurate. Computation time problems arrise for orbital motion in more than one
+degree of freedom or for motion near spin-orbit resonances\cite{b:hoff.spin}.
+
+%------------------------------------------------------------------
+\Section{Running \sss} 
+\label{s:run}
+
+Syntax for invoking \sss:
+\begin{code}
+  spin_stroboscope \{<master_input_file_name>\}
+\end{code}
+Example:
+\begin{code}
+  spin_stroboscope my_input_file.init
+\end{code}
+The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
+default is ``\vn{spin_stroboscope.init}''.
+
+\sss is built atop the the Bmad software library \cite{b:bmad}. The Bmad library, developed at
+Cornell, has been developed for modeling relativistic charged particles in storage rings and Linacs,
+as well as modeling photons in x-ray beam lines.
+
+%------------------------------------------------------------------------
+\Section{Simulation Technique and Physics Models}
+\section{Overview} 
+
+Consider a particle circulating in a storage ring. Let $\bfz(s)$ be the six dimensional
+phase space vector of the particle at a given longitudinal position $s$ and let $\bfs(s)$ be the the
+spin vector of the particle. It is assumed that any Stern-Gerlach forces are negligible so that the
+one-turn orbital map $\bfM(s;\bfz)$, which maps $\bfz(s)$ from $s$ back to $s$, is independent of
+the spin $\bfs$ and the one-turn spin transport map $\bfR(s;\bfz)$ is also independent of the spin.
+In fact, since the magnitude of the spin is an invarient, $\bfR$ is just a $3 \times 3$ rotation
+matrix.
+
+The motion of a particle can be described in action-angle coordinates. The three normal modes of the
+orbital motion are denoted $a$, $b$ and $c$. The action vector $\bfJ = (J_a, J_b, J_c)$ is a
+constant of the motion and each turn the phase vector $\bfPhi = (\Phi_a, \Phi_b, \Phi_c)$ changes by
+the tune $2\pi\bfQ$ where $\bfQ = (Q_a, Q_b, Q_c)$.
+
+Particles with constant action $\bfJ$ travel on a three-torus in six dimensional space. It can be
+shown that if there are no resonances, there is an {\em invariant spin field} $\bfn (s,
+\bfJ, \bfPhi)$ which is a continuous function with unit amplitude and has the property that if a particle
+initially has it's spin parallel to the invariant spin field it will always maintain its spin
+parallel to the invariant spin field. In general, the spin of a particle can be written as
+\Begineq
+  \bfs(\bfPhi) = s_1 \, \bfu_1(\bfPhi) + s_2 \, \bfu_2(\bfPhi) + J_S \, \bfn(\bfPhi)
+\Endeq
+where $(\bfu_1, \bfu_2, \bfn)$ form a right handed coordinate system. Here, for the sake of
+compactness, the dependence on $\bfJ$ and $s$ is implicit. The coefficient $J_S$ is called the spin
+action and is an invariant of the motion. The transverse component of the spin $(s_1, s_2)$ will
+rotate and average to zero. The quantity $\Plim(\bfJ)$, which is the average of $\bfn$ over all
+$\bfPhi$, is the polarization that a set of particles, at a given $\bfJ$, and uniformly distributed
+in $\bfPhi$, with spins pointing along $\bfn$, has. Any other distribution of spins will have less
+long-term polarization since any spin components perpendicular to $\bfn$ will average to zero. Since 
+$\Plim$ is the maximum achievable polarizaiton, it is important that machine lattices are designed
+to maximize $\Plim$ over the range of actions $\bfJ$ where the density of particles is significant.
+
+If there are no resonances, the invarient spin field is unique up to a sign flip ($\bfn
+\longrightarrow -\bfn$).
+
+The two common methods for computing the inveriant spin field are using a Fourier decomposition
+(Hoff 4.1.1) and by averaging the spin motion over many turns. The Fourier decomposition method,
+which is embodied by the SODOM and SODOM-2 algorithms, decomposes $\bfn$ into its Fourier
+components. Approximating $\bfn$ by its first $N$ components (where $N$ needs to be choisen small
+enough so that the problem can be solved in a reasonable time yet large enough for the solution to
+be accurate), A matrix equation involving the Fourier components of $\bfn$ and the Fourier
+components of the transport map $bfR$ can be constructed. Inverting this matrix equation gives a
+solution for the Fourier components of $\bfn$. Computation time problems arrise for orbital motion
+in more than one degree of freedom or for motion near spin-orbit resonances.
+
+The alternative to Fourier decomposition is spin-orbit tracking over many turns. An advantage of
+spin-orbit tracking is that the computation does not involve resonance denominators which can make
+the computation difficult near spin-orbit resonances (Hoff, Sec 4.2 pg 159). However, like Fourier
+decomposition, spin-orbit tracking can have computation time issues. Esspecially with large
+rings. The calculation of $\bfn$ via spin-orbit tracking uses what is called stroboscopic averaging.
+There are several varients. The one used in this program is as follows. The idea is to track a
+particle and average the spin over many turns. The trick is that the averaging must be done at a
+selected phase space point since $\bfn(\bfPhi)$ is dependent $\bfPhi$. Once $\bfn$ has been
+calculated for one $\bfPhi$, $\bfn$ may be computed at other phase space points by simply setting
+the particle's spin to $\bfn$ and propagating the particle for a number of turns. Interpolation can
+then be used to evaluate $\bfn$ at any given $\bfPhi$.
+
+The averaging of the spin at a given phase space point $\bfPhi_0$ starts with a particle at
+$\bfPhi_0$. At this phase space point a guess, $\bfn_g(\bfPhi_0)$, is made as to the invarient spin
+direction and this guess is taken as the $N = 0$ average where $N$ is the number of turns
+tracked. Also the spin transfer map (matrix) $\bfR_N(\bfPhi_0)$ for $N = 0$ is
+saved. $\bfR_N(\bfPhi_0)$ is the spin transfer map for a particle starting at $\bfPhi_0$ tracked
+over $N$ turns. $\bfR_0(\bfPhi_0)$ is just the $3 \times 3$ unit matrix. The invarient spin
+direction averge $\bfs_N$ over $N$ turns is then
+\Begineq
+  \bfn_N = \frac{ \bfs_N }{ | \bfs_N | }
+\Endeq
+where
+\Begineq
+  \bfs_N = \sum_{n = 0}^N \bfn_g(\bfPhi_n) \, \bfR_n^{-1}(\bfPhi_0)
+  \label{snng}
+\Endeq
+where $\bfPhi_n$ is the phase of the particle after the $n$\Th turn. $\bfR_n$ can be computed
+from saving $\bfR_{n-1}$ and then simply multiplying by the spin map for the $n$\Th turn, the
+computation time for $\bfn_N$ is linear in $N$. The guess $\bfn_g(\bfPhi_n)$ used in the computation
+of $\bfn_N$ is typically chosen to be the invarient spin direction on the closed orbit. The
+invarient spin direction on the closed orbit is simply the axis of rotation for the one turn map
+on the closed orbit. 
+
+The convergence of \bfn_N to the actual invarient spin direction as $N \rightarrow \infty$ is linear
+in $N$. To motivate this (See Hoffstaetter for a more regorous discussion), take as an example the
+case where the one-turn spin map is a rotation around the $z$ axis with rotation angle $\nu$
+independent of the phase space position of the particle. In this case the invarient spin field is
+along the $z$-axis for all points in phase space. Assume that the guess $\bfn_g$ is, for all phase
+space points
+\Begineq
+  \bfn_g = (\alpha, 0, \beta)
+\Endeq
+where $\alpha^2 + \beta^2 = 1$. Assuming $N$ is large, the averaged invarient spin direction is
+\Begineq
+  \bfn_N = \frac{1}{f} \left[ \frac{\alpha}{N+1} \, 
+    \Re \left( \frac{e^{i (N+1) \nu} - 1}{e^{i \nu} - 1} \right),
+    0, \beta \right]
+\Endeq
+where $\Re()$ stands for real part and $f$ is a normalizing factor to make the magnitude of $\bfn_N$
+unity. In the limit of large $N$ $f$ converges to $\beta$. The factor $\Re(\ldots)$ in the above
+equation is of order unity so at large $N$ the error $\epsilon$ will vary as
+\Begineq
+  \epsilon \sim \frac{|\alpha|}{|\beta| \, (N+1)}
+\Endeq
+That is, the error in the calculated invarient direction decreases as $1/N$. Since $\alpha$ and
+$\beta$ are expected to be of order unit, it is expected that the error will scale as $1/N$ with a
+coefficient of order unity. As an example of this, Hoffstaetter reports (Section 4.2 pg 159) that
+for an accuracy on the level of $10^{-3}$, simulations using the code SPRINT needed around 3000
+turns of tracking. And a simulation of HERA-p neede 10,000 turns of tracking to get an accruacy of
+$10^{-3}$.
+
+
+is important since it can be used to
+calculate the maximum achievable time averaged polarization by averaging over the invariant spin
+field. Expressing the orbital phase space $\bfr$ in terms of the three actions $\bfJ$ and three normal
+mode phases $\bfPhi$, the limiting polarization $\Plim(\bfJ)$ at a given orbital amplitude is
+\Begineq
+  \Plim(\bfJ) = \int d\bfPhi \, \bfn(\bfJ, \bfPhi)
+\Endeq
+And the maximum polarization of a beam is just
+\Begineq
+   \Plim(beam) = \int d\bfJ \, \Plim(\bfJ) \, \widehat\rho(\bfJ) 
+\Endeq
+where $\widehat\rho(\bfJ)$ is the density of the beam, normalized to 1, as a function of orbital
+amplitude.
+
+\section{Superconvergent Calculation}
+
+The convergence of the spin-orbit tracking calculation may be speeded up using an iterative method
+where the result of the computation, $\bfn_N$ is used to produce a refined guess for $\bfn_g$ which
+is then used in \Eq{snng}. This makes the calculation superconvergent. That is, convergance is
+faster than $1/N$ which is what is had with the standard calculation of the previous section. The
+refined guess starts with $\bfn_N(\bfPhi_0)$ and propagates this fowrard using the transfer maps
+$\bfR_n(\bfPhi_0)$. These maps can be saved from the initial tracking run so there is negligible
+computation time in calculating the refined guess. If one would now naively use this propagated
+guess in \Eq{snng}, no improvement in the accuracy would be obtained (in fact the computed $\bfn_N$
+would be unchanged). The reason why the accuracy would not be imporved, despite using a more
+accurate $\bfn_g$, is that the errors in $\bfn_g(\bfPhi_N)$ would add coherently. 
+
+
+
+\Notes:
+1) For simple case where spin invariant is independent of phase the superconvergent calculation will produce the
+correct solution after tracking one turn!
+
+2) For Fourier method suseptabal to problems with nonlinearities in the phase space transport since it is assumed
+that the phase space advance is constant (check that this statement is true).
+
+3) Superconvergent algorithms: Self-Consistant Stroboscopic Averaging and Scatter Minimization.
+
+4) Merit min algorithim is the real space analogue of the Fourier algorithim.
+
+5) Scatter Minimization can give accurate results with just a few turns of tracking if there are two phase
+space points that are close together.
+
+%------------------------------------------------------------------
+\Section{Master Input File} 
+\label{s:master}
+
+%------------------------------------------------------------------
+\section{Fortran Namelist}
+\label{s:namelist}
+
+Fortran namelist syntax is used for parameter input by \sss. The
+general form of a namelist is
+\begin{code}
+  &<namelist_name>
+    <var1> = ...
+    <var2> = ...
+    ...
+  /
+\end{code}
+The tag \vn{"\&<namelist_name>"} starts the namelist where
+\vn{<namelist_name>} is the name of the namelist. The namelist ends
+with the slash \vn{"/"} tag. Anything outside of this is
+ignored. Within the namelist, anything after an exclamation mark
+\vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
+\vn{<var2>}, etc. are variable names. Example:
+\begin{code}
+  &place section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
+\end{code}
+here \vn{place} is the namelist name and \vn{section} is a
+variable name.  Notice that here \vn{section} is a ``structure'' which
+has five components -- a real number, followed by two strings,
+followed by two real numbers.
+
+Everything is case insensitive except for quoted strings.
+
+Logical values are specified by \vn{True} or \vn{False} or can be
+abbreviated \vn{T} or \vn{F}. Avoid using the dots (periods) that one
+needs in Fortran code.
+
+%------------------------------------------------------------------
+\section{Example Master Input File} 
+\label{s:master.example}
+
+The master input file can be specified on the command line invoking \sss.
+If not given, the default name for the master input file is ``\vn{spin_stroboscope.init}''.
+
+Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
+\begin{code}
+  &strobe_parameters
+    lattice_file = "bmad.lat"                ! Bmad lattice file.
+    rf_on = F
+    ix_lat_branch = 0
+    dat_file     = "spin_stroboscope.dat"    ! Output data file.
+
+    orbit_start = 0, 0, 0                    ! Start x, y, pz
+    orbit_stop = 0, 0.004, 0                 ! Stop
+    n_points = 1, 10, 1
+    linear_in_action = T
+    ix_spin_branch
+
+    n_turns = 400                            ! Number of turns to track.
+    calc_every = 100
+
+    evaluation_fraction
+    bin_fraction
+    n_relaxation_cycles
+    spin_tune_branch_correction
+    invar_axis_tolerance
+    keep_invar_axis_parallel
+    
+
+  /
+\end{code}
+
+  \begin{description}
+  \item
+  \end{description}
+
+%------------------------------------------------------------------
+\Section{Output Files} 
+
+%------------------------------------------------------------------
+\section{Main Output File}
+\label{s:main.out}
+
+%------------------------------------------------------------------
+\Section{Custom Spin-Orbit Tracking}
+
+Custom spin-orbit tracking is useful for doing strobascopic averaging with simplified models for
+spin-orbit tracking. An example model is the single resonance spin-orbit tracking model used in the
+paper by Sagan. 
+
+Custom spin-orbit tracking is implemented by modifying the \vn{track1_custom.f90} routine that is in
+the \vn{bsim/spin_stroboscope} source directory and then recompiling the \sss executable. [If you do
+not know where this source directory is or how to recompile ask your local Bmad Guru.] The custom
+code must be matched with an appropriate Bmad lattice file. An example of such a lattice file along
+with an appropriate \sss master input file is in the directory:
+\begin{code}
+  bsim/spin_stroboscope/examples/
+\end{code}
+
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem{b:sagan.spin}
+David Sagan, 
+``A Superconvergent Algorithm for Invariant Spin Field Stroboscopic Calculations'',
+9th International Particle Accelerator Conference (2018).
+
+\bibitem{b:bmad}
+D. Sagan,
+``Bmad: A Relativistic Charged Particle Simulation Library''
+Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
+
+\bibitem{b:hoff.spin}
+G.~Hoffstaetter, 
+{\it High-Energy Polarized Proton Beams, A Modern View}, 
+Springer. Springer Tracks in Modern Physics Vol~218, (2006).
+
+\end{thebibliography}
+\end{document}  

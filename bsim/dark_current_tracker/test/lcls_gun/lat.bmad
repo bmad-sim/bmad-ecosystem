@@ -1,0 +1,6 @@
+call, file = $ACC_ROOT_DIR/lattice/fieldmaps/lcls_gun/lat2.bmad
+
+SOL1[bs_field] = 0.25
+
+
+use, lat

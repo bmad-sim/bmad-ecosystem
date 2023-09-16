@@ -1,0 +1,17 @@
+set (EXENAME synrad)
+
+
+FILE (GLOB SRC_FILES synrad/*.f90) 
+
+set (INC_DIRS
+)
+
+SET (LINK_FLAGS ${READLINE_LINK_FLAGS})
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

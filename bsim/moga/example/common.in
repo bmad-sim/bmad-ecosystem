@@ -1,0 +1,61 @@
+ &general
+    lat_file = 'dc12a_alt3.bmad'
+    use_hybrid = .true.   ! concatenate linear elements (faster tracking)
+ /
+ &da
+    tracking_method = 1  ! 1 = bmad_standard$
+    n_turn   = 200   ! number of turns for DA calculation
+    n_adts   = 200   ! number of turns over which to average ADTS
+    n_angle = 7   ! number of angles for DA
+    dE(1) = 0.0   ! on-energy objective
+    dE(2) = -0.03  ! negative dE objective
+    dE(3) =  0.03  ! positive dE objective
+    track_dims = 4  ! 4D tracking
+    init_len = 0.002  ! initial length for DA binary search
+    adts_x_min = 37.0  ! particles whose amplitude dependent tune exceeds these bounds are treated as lost.
+    adts_x_max = 38.0
+    adts_y_min = 10.0
+    adts_y_max = 11.0
+ /
+ &nl_moga
+    generate_feasible_seeds_only = -1   ! If positive number, do not calculate objectives.  Only calculate constraints and terminate program
+                                        ! this nubmer of constraint-satisfying seeds have been generated.  -1 to disable
+    moga_output_file = 'moga_results.out'
+    initial_pop = 'random'  ! 'random' to start with random initial population.  'file name' to seed from a file.
+    seed = 24984  ! seed random number generator
+    max_gen = 900  ! force termination after this many generations
+
+    set_chrom_x = -5.0  ! set chromaticity to this value.
+    set_chrom_y = -5.0
+
+    !breeder parameters
+    breeder_params%cross_p = 0.8   ! cross over probability
+    breeder_params%mutate_p = 0.0909  ! mutation probability.  1/<number of variables> is a good choice.
+    breeder_params%eta = 0.8  ! width for cross over distribution
+
+    !constraints
+    linear_vec_cutoff = 0.0020  !if the off-momentum linear aperture shrinks below this value, then perfectly bad objective is returned.
+    co_limit = 0.0040  ! nonlinear dispersion global orbit dominance constraint.
+    fp_dE_neg = -0.05  ! bound for chromatic footprint constraint
+    fp_dE_pos = 0.05
+    n_fp_steps = 51  ! granularity of chromatic footprint calculation
+    x_fp_min = 37.0  ! bounds for horizontal and vertical trace
+    x_fp_max = 38.0
+    y_fp_min = 10.0
+    y_fp_max = 11.0
+
+    !variables.  code assumes chromatic 'c' types come before harmonic 'h' types
+    !              type    name       property   l cons     u cons    l init    u init    mutate width
+    mags_in(1)   = 'c',    'sd',      'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(2)   = 'c',    'sfh',     'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(3)   = 'c',    'sfxh',    'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(4)   = 'c',    'sdx',     'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(5)   = 'h',    'sxx_mh',  'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(6)   = 'h',    'sxy_mh',  'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(7)   = 'h',    'syy_mh',  'k2',      -1000.0,   1000.0,   -1000.0,  1000.0,   300.0
+    mags_in(8)   = 'h',    'ocxx',    'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+    mags_in(9)   = 'h',    'oyy_m',   'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+    mags_in(10)  = 'h',    'oxy_m',   'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+    mags_in(11)  = 'h',    'oxx_m',   'k3l',     -3000.0,   3000.0,   -3000.0,  3000.0,   600.0
+ /
+

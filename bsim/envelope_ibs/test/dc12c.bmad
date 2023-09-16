@@ -1,0 +1,295 @@
+!c:\users\streun\opadat\sls-2\dc12c.opa
+!period 12 version of dc01a, only m straights
+
+!opa to bmad export
+
+parameter[particle] = electron
+parameter[e_tot] = 2.40000e+09
+
+!----- variables ----------------------------------------------------
+
+aban  = 0.78
+dtor  = 0.01745329
+
+rfcav: rfcavity, voltage = -1.4093 * 1e6, harmon = 484, l = 0.0001   ! 500 MHz RF, 5% bucket
+rfcav_per: rfcavity, voltage = -1.4093/12 * 1e6, harmon = 40.33333, l = 0.0001   ! 500 MHz RF, 5% bucket
+
+!----- table of elements ----------------------------------------------------
+
+mobius: marker
+bx = 2.6731
+by = 2.7900
+! mobius: taylor, 
+! {1: sqrt(bx/by), 0 0 1 0 0 0},
+! {2: sqrt(by/bx), 0 0 0 1 0 0},
+! {3: sqrt(by/bx), 1 0 0 0 0 0},
+! {4: sqrt(bx/by), 0 1 0 0 0 0}
+
+dmon   : drift, l = 0.050000
+dnvb   : drift, l = 0.010000
+dsvb   : drift, l = 0.084000
+dnm    : drift, l = 0.300000
+dnm1   : drift, l = 0.050000
+dnm2   : drift, l = 0.150000
+dxs    : drift, l = 0.200000
+dmp    : drift, l = 0.150000
+dsx    : drift, l = 0.100000
+dme    : drift, l = 0.300000
+ds1    : drift, l = 0.050000
+ds2    : drift, l = 0.070000
+mgp    : drift, l = 1.000000
+dm1    : drift, l = 0.100000
+dm2    : drift, l = 0.100000
+dl1    : drift, l = 0.100000
+dl2    : drift, l = 0.100000
+dms    : drift, l = 2.692000
+dxd    : drift, l = 0.050000
+doc    : drift, l = 0.050000
+dbs    : drift, l = 0.074000
+dxm    : drift, l = 0.218000
+
+har_skquad : multipole, k1l=0.00, t1
+
+center : marker
+
+qs1    : quadrupole, l = 0.150000, k1 = -6.442563
+qs2    : quadrupole, l = 0.200000, k1 = 8.781815
+qs3    : quadrupole, l = 0.100000, k1 = -4.907590
+qm1    : quadrupole, l = 0.150000, k1 = -6.584737
+qm2    : quadrupole, l = 0.250000, k1 = 6.266000, tilt = 0.01
+qm3    : quadrupole, l = 0.100000, k1 = -4.962000
+ql1    : quadrupole, l = 0.150000, k1 = -6.402326
+ql2    : quadrupole, l = 0.250000, k1 = 6.114719
+ql3    : quadrupole, l = 0.100000, k1 = -4.455466
+ql4    : quadrupole, l = 0.100000, k1 = -6.247519
+ql5    : quadrupole, l = 0.100000, k1 = 6.284436
+
+
+bn00   : sbend, l = 0.021832, angle = 0.005454, k1 = 0.000000,
+         e1 = 0.000000, e2 = 0.005454
+i_bn00   : sbend, l = 0.021832, angle = 0.005454, k1 = 0.000000,
+         e1 = 0.005454, e2 = 0.000000
+bn01   : sbend, l = 0.022967, angle = 0.005455, k1 = 0.000000,
+         e1 = -0.005454, e2 = 0.010909
+i_bn01   : sbend, l = 0.022967, angle = 0.005455, k1 = 0.000000,
+         e1 = 0.010909, e2 = -0.005454
+bn02   : sbend, l = 0.031095, angle = 0.005454, k1 = 0.000000,
+         e1 = -0.010909, e2 = 0.016363
+i_bn02   : sbend, l = 0.031095, angle = 0.005454, k1 = 0.000000,
+         e1 = 0.016363, e2 = -0.010909
+bn03   : sbend, l = 0.038596, angle = 0.005454, k1 = 0.000000,
+         e1 = -0.016363, e2 = 0.021817
+i_bn03   : sbend, l = 0.038596, angle = 0.005454, k1 = 0.000000,
+         e1 = 0.021817, e2 = -0.016363
+bn04   : sbend, l = 0.045882, angle = 0.005454, k1 = 0.000000,
+         e1 = -0.021817, e2 = 0.027271
+i_bn04   : sbend, l = 0.045882, angle = 0.005454, k1 = 0.000000,
+         e1 = 0.027271, e2 = -0.021817
+bn05   : sbend, l = 0.053107, angle = 0.005454, k1 = 0.000000,
+         e1 = -0.027271, e2 = 0.032725
+i_bn05   : sbend, l = 0.053107, angle = 0.005454, k1 = 0.000000,
+         e1 = 0.032725, e2 = -0.027271
+bn06   : sbend, l = 0.060418, angle = 0.005454, k1 = 0.000000,
+         e1 = -0.032725, e2 = 0.038179
+i_bn06   : sbend, l = 0.060418, angle = 0.005454, k1 = 0.000000,
+         e1 = 0.038179, e2 = -0.032725
+
+
+bs00   : sbend, l = 0.004613, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.000000, e2 = 0.003182
+i_bs00   : sbend, l = 0.004613, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.003182, e2 = 0.000000
+bs01   : sbend, l = 0.007205, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.003182, e2 = 0.006363
+i_bs01   : sbend, l = 0.007205, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.006363, e2 = -0.003182
+bs02   : sbend, l = 0.009727, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.006363, e2 = 0.009545
+i_bs02   : sbend, l = 0.009727, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.009545, e2 = -0.006363
+bs03   : sbend, l = 0.012042, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.009545, e2 = 0.012726
+i_bs03   : sbend, l = 0.012042, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.012726, e2 = -0.009545
+bs04   : sbend, l = 0.014194, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.012726, e2 = 0.015908
+i_bs04   : sbend, l = 0.014194, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.015908, e2 = -0.012726
+bs05   : sbend, l = 0.016223, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.015908, e2 = 0.019090
+i_bs05   : sbend, l = 0.016223, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.019090, e2 = -0.015908
+bs06   : sbend, l = 0.018160, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.019090, e2 = 0.022271
+i_bs06   : sbend, l = 0.018160, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.022271, e2 = -0.019090
+bs07   : sbend, l = 0.020024, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.022271, e2 = 0.025453
+i_bs07   : sbend, l = 0.020024, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.025453, e2 = -0.022271
+bs08   : sbend, l = 0.021833, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.025453, e2 = 0.028634
+i_bs08   : sbend, l = 0.021833, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.028634, e2 = -0.025453
+bs09   : sbend, l = 0.023599, angle = 0.003182, k1 = 0.000000,
+         e1 = -0.028634, e2 = 0.031816
+i_bs09   : sbend, l = 0.023599, angle = 0.003182, k1 = 0.000000,
+         e1 = 0.031816, e2 = -0.028634
+bs10   : sbend, l = 0.025288, angle = 0.003176, k1 = 0.000000,
+         e1 = -0.031816, e2 = 0.034992
+i_bs10   : sbend, l = 0.025288, angle = 0.003176, k1 = 0.000000,
+         e1 = 0.034992, e2 = -0.031816
+bs11   : sbend, l = 0.027092, angle = 0.003187, k1 = 0.000000,
+         e1 = -0.034992, e2 = 0.038179
+i_bs11   : sbend, l = 0.027092, angle = 0.003187, k1 = 0.000000,
+         e1 = 0.038179, e2 = -0.034992
+
+sd     : sextupole, l = 0.100000, k2 = -563.124841
+sfh    : sextupole, l = 0.050000, k2 = 689.439306
+sfxh   : sextupole, l = 0.050000, k2 = 826.834506
+sdx    : sextupole, l = 0.100000, k2 = -693.055549
+sxx_mh : sextupole, l = 0.050000, k2 = 523.152218
+sxy_mh : sextupole, l = 0.050000, k2 = -543.428944
+syy_mh : sextupole, l = 0.050000, k2 = 309.451560
+
+bnom   : marker
+bsom   : marker
+
+vb     : sbend, l = 0.206100, angle = (0.312499+aban)*dtor,
+         k1 = -3.875276, e1 = -0.038179, e2 = (2.5+aban)*dtor
+i_vb     : sbend, l = 0.206100, angle = (0.312499+aban)*dtor,
+         k1 = -3.875276, e1 = (2.5+aban)*dtor, e2 = -0.038179
+vb_bs  : sbend, l = 0.206100, angle = (0.312499+aban)*dtor,
+         k1 = -3.856634, e1 = -0.038179, e2 = (2.5+aban)*dtor
+i_vb_bs  : sbend, l = 0.206100, angle = (0.312499+aban)*dtor,
+         k1 = -3.856634, e1 = (2.5+aban)*dtor, e2 = -0.038179
+vbm    : sbend, l = 0.206100, angle = (0.312499+aban)*dtor,
+         k1 = -2.079498, e1 = -0.038179, e2 = (2.5+aban)*dtor
+i_vbm    : sbend, l = 0.206100, angle = (0.312499+aban)*dtor,
+         k1 = -2.079498, e1 = (2.5+aban)*dtor, e2 = -0.038179
+an     : sbend, l = 0.300000, angle = (-aban)*dtor, k1 = 3.920132,
+         e1 = (-aban)*dtor, e2 = 0.000000
+i_an     : sbend, l = 0.300000, angle = (-aban)*dtor, k1 = 3.920132,
+         e1 = 0.000000, e2 = (-aban)*dtor
+an_bs  : sbend, l = 0.300000, angle = (-aban)*dtor, k1 = 3.918671,
+         e1 = (-aban)*dtor, e2 = 0.000000
+i_an_bs  : sbend, l = 0.300000, angle = (-aban)*dtor, k1 = 3.918671,
+         e1 = 0.000000, e2 = (-aban)*dtor
+anm    : sbend, l = 0.300000, angle = (-aban)*dtor, k1 = 3.508741,
+         e1 = (-aban)*dtor, e2 = 0.000000
+i_anm    : sbend, l = 0.300000, angle = (-aban)*dtor, k1 = 3.508741,
+         e1 = 0.000000, e2 = (-aban)*dtor
+
+xm     : marker
+xo     : marker
+xs     : marker
+
+lgbs   : marker
+lgbn   : marker
+lgbe   : marker
+
+ocxx   : multipole, l= 0.0, k3l = 67.4915
+ocxx2  : multipole, l= 0.0, k3l = 141.2640
+oyy_m  : multipole, l= 0.0, k3l = 1068.1094
+oxy_m  : multipole, l= 0.0, k3l = 340.7881
+oxx_m  : multipole, l= 0.0, k3l = 258.8591
+
+mon    : monitor
+
+ch     : hkicker
+
+cv     : vkicker
+
+!----- table of segments ----------------------------------------------------
+
+dss    : line=(dss0, mgp)
+bs     : line=(bsom, bs00, bs01, bs02, bs03, bs04, bs05, bs06, bs07,
+         bs08, bs09, bs10, bs11)
+i_bs   : line=(i_bs11, i_bs10, i_bs09, i_bs08, i_bs07, i_bs06, i_bs05,
+         i_bs04, i_bs03, i_bs02, i_bs01, i_bs00, bsom)
+bsl    : line=(bs, lgbs)
+i_bsl  : line=(lgbs, i_bs)
+bn     : line=(bnom, bn00, bn01, bn02, bn03, bn04, bn05, bn06)
+i_bn   : line=(i_bn06, i_bn05, i_bn04, i_bn03, i_bn02, i_bn01, i_bn00, bnom)
+bnl    : line=(bn, lgbn)
+i_bnl  : line=(lgbn, i_bn)
+bnsup  : line=(lgbe, bn, lgbe)
+i_bnsup: line=(lgbe, i_bn, lgbe)
+cc     : line=(ch, cv)
+sxx_m  : line=(sxx_mh, cc, sxx_mh)
+sxy_m  : line=(sxy_mh, cc, sxy_mh)
+syy_m  : line=(syy_mh, cc, syy_mh)
+hnc    : line=(bnl, dnvb, vb, dnm1, sd, dnm2, an)
+i_hnc  : line=(i_an, dnm2, sd, dnm1, i_vb, dnvb, i_bnl)
+hsc    : line=(bsl, dbs, dnvb, vb_bs, dnm1, sd, dnm2, an_bs)
+i_hsc  : line=(i_an_bs, dnm2, sd, dnm1, i_vb_bs, dnvb, dbs, i_bsl)
+mpfho  : line=(doc, ocxx2, doc, sfh)
+mpfh_  : line=(doc, mon, doc, sfh)
+mpf    : line=(mpfh_, cc, -mpfho)
+ncell  : line=(-mpfho, i_hnc, hnc, mpfh_)
+i_ncell: line=(-mpfh_, i_hnc, hnc, mpfho)
+ncellr : line=(hnc, mpfh_, -mpfho, i_hnc)
+i_ncellr: line=(hnc, mpfho, -mpfh_, i_hnc)
+scell  : line=(-mpfho, i_hsc, hsc, mpfh_)
+i_scell: line=(-mpfh_, i_hsc, hsc, mpfho)
+mpfx   : line=(doc, mon, doc, sfxh, cc, sfxh, doc, ocxx, doc)
+hcor   : line=(xm, hnc, mpf, i_hnc, xo, hnc, mpf, i_hnc, xo)
+i_hcor : line=(xo, hnc, -mpf, i_hnc, xo, hnc, -mpf, i_hnc, xm)
+hscor  : line=(hsc, mpf, i_hnc, hnc, mpf, i_hnc)
+i_hscor: line=(hnc, -mpf, i_hnc, hnc, -mpf, i_hsc)
+moxy_m : line=(doc, oxy_m, doc, sxy_m, doc)
+moxx_m : line=(doc, oxx_m, doc, sxx_m, doc)
+moyy_m : line=(doc, oyy_m, doc, syy_m, doc)
+dsupm  : line=(hnc, mpfx, anm, dxm, sdx, dnm1, i_vbm, dnvb, i_bnsup)
+i_dsupm: line=(bnsup, dnvb, vbm, dnm1, sdx, dxm, i_anm, -mpfx, i_hnc)
+matm   : line=(moyy_m, dmon, mon, dme, qm1, dm1, dmon, mon, moxy_m,
+         qm2, moxx_m, dmon, mon, dm2, qm3, dms)
+tm     : line=(dsupm, matm)
+i_tm   : line=(-matm, i_dsupm)
+hm     : line=(hcor, tm)
+i_hm   : line=(i_tm, i_hcor)
+hsm    : line=(hscor, tm)
+i_hsm  : line=(i_tm, i_hscor)
+marc   : line=(hm, i_hm)
+i_marc : line=(hm, i_hm)
+per    : line=(center, xs, i_hm, hm, xs, i_hsm, hsm, xs, i_hm, hm, xs,
+         i_hm, hm)
+i_per  : line=(i_hm, hm, xs, i_hm, hm, xs, i_hsm, hsm, xs, i_hm, hm,
+         xs, center)
+arcn   : line=(center, xs, i_hm, hm)
+arcnrf   : line=(center, xs, i_hm, hm,rfcav_per)
+i_arcn : line=(i_hm, hm, xs, center)
+!ring   : line=(12*arcn,rfcav)
+ring   : line=(arcn,har_skquad,10*arcn,rfcav,arcn)
+!ring   : line=(arcn,mobius,har_skquad,10*arcn,rfcav,arcn)
+i_ring : line=(12*i_arcn)
+
+sbend[ds_step] = 0.001
+sbend[fringe_type] = linear_edge
+sbend[num_steps]=8
+sextupole[num_steps]=8
+
+*[aperture_type]=elliptical
+*[aperture]=0.01
+
+g_vbm_k1     : group = {vbm, i_vbm}, var={k1}
+g_anm_k1     : group = {anm, i_anm}, var={k1}
+g_vb_k1     : group = {vb, i_vb}, var={k1}
+g_an_k1     : group = {an, i_an}, var={k1}
+
+g1 : group = { &
+qm1[k1]:1.436e-05+b*-4.370e+00+a*-4.725e+00+b^2*-8.577e+00+a*b*1.106e+01+ &
+ a^2*-4.399e+01+a*b^2*9.531e+01+b*a^2*-2.247e+01+b^3*1.300e+01+a^3*1.386e+02, &
+qm2[k1]:-3.167e-07+b*2.748e+00+a*2.631e+00+b^2*1.527e+01+a*b*4.453e-01+ &
+ a^2*-1.291e+01+a*b^2*1.156e+01+b*a^2*2.601e+01+b^3*6.151e+00+a^3*1.239e+01, &
+qm3[k1]:-1.295e-06+b*-1.007e+01+a*1.752e+00+b^2*-7.185e+01+a*b*-1.343e+01+ &
+ a^2*6.195e+01+a*b^2*-1.267e+02+b*a^2*-6.549e+01+b^3*-9.088e+01+a^3*-1.149e+02, &
+g_vbm_k1[k1]:-2.568e-05+b*2.596e+00+a*3.042e+00+b^2*2.731e+01+a*b*-4.437e+00+ &
+ a^2*4.129e+01+a*b^2*-7.559e+01+b*a^2*6.982e+01+b^3*4.730e+01+a^3*-7.963e+01}, var = {a,b}
+
+g1[a] = 0.0/12.0
+g1[b] = 0.0/12.0
+
+use, ring
+
+!c:\users\streun\opadat\sls-2\dc12c.opa
