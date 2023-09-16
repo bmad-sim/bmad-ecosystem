@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# To upgrade local svn directory
+# from 1.6 to current svn client
+# version.
+#
+
+LIST=$(ls -d */)
+
+for DIR in ${LIST}
+do
+    echo ${DIR}
+    cd ${DIR}
+    svn upgrade
+    cd ..
+done
+

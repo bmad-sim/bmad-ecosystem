@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+#+
+# Script to create the searchf.namelist files so that getf and listf can do faster searches.
+# searchf.namelist files are placed may be placed at each "root search directory".
+# For example, The sim_utils directory is a root search directory.
+#
+# If getf/listf do not find a searchf.namelist for a given root search 
+# directory, getf/listf will simply search each file in the directory 
+# tree below the root directory.
+#
+# searchf.namelist files may be generated for local copies of the repository code
+# by running create_searchf_namelist in a local directory. The only problem with
+# having local copies of searchf.namelist is that one has to remember to update
+# searchf.namelist when the code files are updated.
+#
+# Usage:
+#   create_searchf_namelist {<dir_name>}
+#
+# If the optional <dir_name> is present, a searchf.namelist file will be generated
+# for only for that directory. 
+# If not present, a searchf.namelist file will be generated for each root directory
+# in the internal list of root directories that getf/listf has.
+#-
+
+import searchf
+
+searchf.search_all('LIST')

@@ -1,0 +1,7 @@
+#!/bin/sh                                                                                                                   
+#                                                                                                                           
+# Frontend script to do a Distribution debug build, with all build tests/checks enabled.
+export DIST_SCRIPT='dist_test_debug'
+${ACC_ROOT_DIR}/util/Distribution_User_Utility_Wrapper $1
+
+#
