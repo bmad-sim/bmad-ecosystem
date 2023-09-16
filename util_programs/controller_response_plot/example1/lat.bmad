@@ -1,0 +1,12 @@
+parameter[geometry] = Open
+parameter[e_tot]    = 1e6
+parameter[particle]  = Electron
+beginning[beta_a]   = 10
+beginning[beta_b]   = 32
+
+ramp_pc: ramper = {*[p0c]:{1e9, 1.00053e9, 1.068e9, 1.794e9, 2.55e9, 3.89e9, 5.066e9, 7.23e9, 18.1e9}}, var = {time}, 
+                        x_knot = {0, 0.001, 0.006, 0.010, 0.012, 0.017, 0.02358, 0.03612, 0.09915}
+q: quadrupole, l = 1
+
+ll: line = (q)
+use, ll

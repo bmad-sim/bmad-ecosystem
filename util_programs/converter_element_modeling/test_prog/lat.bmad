@@ -1,0 +1,15 @@
+parameter[ran_seed] = 100
+no_digested
+parameter[particle] = electron
+parameter[geometry] = open
+beginning[p0c] =   200e6
+beginning[beta_a] = 10 
+beginning[beta_b] = 10
+beginning[alpha_a] = 0
+beginning[alpha_b] = 0
+
+c: converter, species_out = positron, call::converter.bmad, alias = abc, p0c = 4e8
+
+l1: line = (c)
+use, l1
+

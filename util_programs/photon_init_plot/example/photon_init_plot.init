@@ -1,0 +1,11 @@
+&params
+  lat_name = 'lat.bmad'
+  n_photons = 1000000
+  n_bin = 400
+  x_min = 6.8e3
+  x_max = 8.0e3
+  x_var = 'E'
+  plot_type = 'histogram'
+  ignore_out_of_bounds = F
+  plot_size = 400, 400
+/

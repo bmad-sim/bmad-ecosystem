@@ -1,0 +1,19 @@
+beam_file_translate_format program
+----------------------------------
+
+Program to translate between different beam file formats.
+
+Beam files are files containing the positions of particles in a beam.
+Beam files are produced, for example, when using the "write beam" command of Tao.
+
+Usage:
+  > beam_file_translate_format <beam_file> <out_format>
+
+where
+	<beam_file>  = Name of input beam file.
+
+And <out_format> is one of:
+  ascii			! ASCII file format
+  hdf5      ! HDF5 format
+
+

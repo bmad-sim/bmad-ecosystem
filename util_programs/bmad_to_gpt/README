@@ -1,0 +1,31 @@
+Documentation for the bmad_to_gpt Program
+-----------------------------------------
+
+This program is for translating Bmad lattices to GPT and optionally creating a particle distribution
+file to be used with GPT.
+
+This documentation, along with the program source code and examples, is in:
+	<Bmad-Distribution-Path>/util_prgrams/bmad_to_gpt
+
+To run program:
+	bmad_to_gpt <input_file>
+where <input_file> is the name of the master input file. The default is "bmad_to_gpt.in"
+
+Example master input file:
+
+  &bmad_to_gpt_params  
+    bmad_lat_filename = 'lat.bmad'                     ! Bmad lattice file name
+    gpt_lat_param%header_file_name = 'gpt_header.in'   ! Header lines to put in GPT file.
+  	gpt_lat_param%gpt_filename = 'gpt.in'							 ! Name of created GPT file
+    gpt_lat_param%tracking_end_element = ''   ! Blank means all elements translated to gpt.
+    gpt_lat_param%field_map_dimension = 2
+
+    write_gpt_particles = .true.        ! Create file of initial particle positions in gpt format?
+    write_bmad_time_particles = .true.  ! Create file of initial particle positions in Bmad time units?
+
+    beam_init%bunch_charge = 1.0e-9     ! Specify initial particle distribution
+  	beam_init% ... etc. ...
+  /
+
+For more information on the beam_init structure which is used to specify an initial particle
+distribution, see the Bmad manual.

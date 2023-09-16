@@ -1,0 +1,352 @@
+Generalized_Gradients_Fit Program Documentation:
+------------------------------------------------
+
+The main purpose of this program is to calculate generalized gradient (GG) coefficients starting
+from a field table for use in a Bmad lattice file. The field table may be for either magnetic or
+electric fields. Note: The GG coefficients do not depend upon the type (magnetic or electric) of
+field being used. The distinction between electric and magnetic is done in the lattice file.
+
+This program can also be used to manipulate field tables and GG coefficient tables.
+
+This documentation file and source code is in the directory:
+  util_programs/generalized_gradients_fit
+
+
+=================================================================================================
+Running the Program
+-------------------
+
+To run the program use the command:
+  generalized_gradients_fit <file_name>
+where <file_name> is the name of the parameter file (see below). 
+The default name, if <file_name> is not given, is "gg_fit.init".
+
+
+=================================================================================================
+Input Files:
+------------
+
+There are two input files:
+  1) A program parameter file controlling how the program runs and 
+  2) A field table or GG derivative file.
+
+Example input files can be found at:
+  util_programs/generalized_gradients_fit/example
+
+
+=================================================================================================
+Field Table File
+----------------
+
+There are three formats for the field table: ASCII, Binary, and Bmad lattice format. If the name of
+the file containing the field table has a ".bmad" suffix, it will be assumed that the file is a Bmad
+lattice file with one of the lattice elements containing a field table. If the name has a ".binary"
+suffix, it will be assumed that the file has a binary format. For any other name, the file will be
+assumed to be in ASCII format.
+
+For the ASCII format The field table must have 7 header lines that look like:
+
+0.01            ! File length_scale in meters. EG: 0.01 => Positions, deltas, and offsets are in cm.
+1e-4            ! File field_scale in Tesla or V/m. EG: 1e-4 => Field in Gauss (if magnetic).
+0.4  0.2  0.2   ! del_x,y,z  Spacing between grid points in table units (not meters).
+0    0    0     ! r0 (x,y,z) offset of the origin (not meters).
+
+The remaining lines have the format:
+  x-position    y-position  z-position   Field_x   Field_y   Field_z
+
+The x, y and z-positions must be multiples of del_x, del_y, an del_z respectively.
+
+Binary format files are used for quick parsing of the field table. Note: it is not clear that with
+the present speed of computers that this ability to create binary files is useful. Binary files can
+be created by setting the "mode" parameter in the parameter file to "binary" (see below).
+
+If the field table file is a bmad lattice file, the lattice will be searched for the first element
+in the lattice with a field table. If there are multiple elements with field tables, all other
+tables besides the first will be ignored.
+
+The (r0_x, r0_y) components of the r0 parameter shift the grid field so that the (x,y) position of
+a field grid point with indexes (ix, iy) is
+	(x, y) = (ix*del_x + r0_x, iy*del_y + r0_y)
+The GG coefficients are always calculated with respect to (x,y) = (0,0).  that is, center line for
+calculating the GG coefficients is at (-r0_x, -r0_y) with respect to the field grid. In the Bmad
+lattice output file the (r0_x, r0_y) components of the GG map will be zero which makes the grid
+field and GG map consistent with each other. The r0_z component of r0 is not used in the calculation
+and the r0_z component of the GG map in the output bmad lattice file (in meters) will equal to the
+value in the grid field table.
+
+=================================================================================================
+Parameter File:
+---------------
+
+See the "GG to Field Table" section of this file for documentation on how to convert from GG
+coefficients to a field table file. For all other modes which convert field table to GG, the
+parameter file will look like:
+
+&params                        ! This line signals the beginning of the parameter list
+  field_file = "w22-20_25_94.table.binary"  ! Field table file. .binary suffix => binary file.
+  out_file = "gg"              ! Output file prefix. Output files will have suffixes like ".dat" and ".bmad".
+  every_n_th_plane = 1         ! If equal 2, skip every other z-plane, etc.
+  n_deriv_max = 4              ! Max derivative order output order. -1 => ignore.
+	n_deriv_max_cos = -1				 ! List of maximum derivatives for cos-like GG. Used to override n_deriv_max. -1 => ignore.
+	n_deriv_max_sin = -1, -1, -1 ! List of maximum derivatives for sin-like GG. Used to override n_deriv_max. -1 => ignore.
+  n_deriv_extra = 0            ! Extra derivatives used in the fit.
+  m_cos = -1                   ! List of m-values for cosine like GG. -1 => no cosine GG.
+  m_sin =  1, 3, 5             ! List of m-values for sine like GG.
+  z_min = 3                    ! z-plane lower bound to start calc at. If not present, use field table lower bound.
+  z_max = 13                   ! z-plane upper bound to stop calc at. If not present, use field table upper bound.
+  mode = "fit"                 ! or "binary" to create a binary field table file.
+  optimizer = "lm"             ! Optimizer to use. Alternative is "lmdif".
+  n_planes_add = 0             ! Extra planes to use for the analysis
+  core_weight = 1              ! Merit function weight on "core" (points with (x,y) near (0,0)) field table points.
+  outer_plane_weight = 1       ! Merit function weight for the "outer" z-planes. Default is 1 (uniform weighting).
+  sym_x = 1                    ! X-axis symmetry. Possibilities are: -1, 0 (default), 1.
+  sym_y = -1                   ! Y-axis symmetry. Possibilities are: -1, 0 (default), 1.
+  ele_anchor_pt = "beginning"  ! or "center" or "end". Used to construct lattice file.
+  x_pos_plot = 0, 0.02, 0.05   ! x-positions (in meters) to create a plotting file.
+  y_pos_plot = 0, 0.01, 0.02   ! y-positions (in meters) to create a plotting file.
+/                              ! Ending slash signals end of param list. Everything outside is ignored.
+
+field_file: Name of the file containing the field table or GG derivatives. If the name has a ".bmad"
+suffix, it will be assumed that the file is a Bmad lattice file. If the name has a ".binary" suffix,
+it will be assumed that the file has a binary format. For any other name, the file will be assumed
+to be in ASCII format.
+
+out_file: Prefix used for naming output file(s).
+
+ele_anchor_pt: Anchor point of the map. See the Bmad manual for more details. Not used in any
+calculation and just used when constructing the compatible Bmad lattice file with the GG
+derivatives. Default is "beginning"
+
+every_n_th_plane: This parameter can be used to reduce the number of z-planes being analyzed. A
+setting of "1" means analyze all z-planes, "2" means skip every other z-plane, etc. Use this parameter
+if you want to reduce the amount of data being outputted.
+
+n_deriv_max: For any given z-position, this parameter sets the maximum derivative order outputted to
+the lattice file. The minimum derivative order is zero so the number of derivatives, which includes
+the zeroth order derivative will be n_deriv_max+1. Used with n_deriv_max_cos and n_deriv_max_sin. A
+value of -1 means ignore. n_deriv_max is only used for a given GG if the corresponding
+n_deriv_max_cos and n_deriv_max_sin is not set.
+
+n_deriv_max_cos, n_deriv_max_sin: For any given z-position, this parameter is a list of the maximum
+derivative order outputted to the lattice file for cos-like and sin-like GGs. The list corresponds
+one-to-one with the m_cos and m_sin lists. Also see n_deriv_max. A value of -1 means ignore. One
+strategy is to limit the GGs used to those whose field variation with radius (in cylindrical coords)
+does not exceed some given power law exponent radius^NNN. Using this, for a given m-value,
+n_deriv_max_cos and n_deriv_max_sin should be set to NNN - m + 1.
+
+m_cos, m_sin: Lists of cosine and sine azimuthal harmonics to analyze. A list of "-1" means there
+are no harmonics of this type. In the above example, no cosine harmonics are used and harmonics
+of order 1, 3, and 5 are used.
+
+z_min, z_max: Range of z-planes to analyze. In units of meters. If not present of z_min is lower then
+the table lower bound, the beginning of the range will be the table lower bound. A similar logic holds
+for z_max.
+
+mode: See the Operation Modes section
+
+optimizer: There are two optimizers that can be used: "lm" and "lmdif". Both are variants of the
+Levenburg-Marquardt algorithm. It is expected that the two optimizers should give the same results. 
+And "lm" should be faster than "lmdif". So the only reason for using "lmdif" is for testing purposes.
+See the "How the GG Calculation Works" section below for documentation on the optimizer merit function.
+
+n_planes_add: The parameter sets the number of z-planes added to either side of the base z-plane to
+be used in the analysis of the derivatives at any given base z-plane (see "How the GG Calculation
+Works" section). For example, for n_planes_add = 2, two planes would be added to either side of the
+base plane making the total number of planes used in the analysis equal to five.
+
+core_weight: Merit function weight for "core" points (field table points whose transverse (x,y)
+position is near (0,0)). Default is 1.0 which gives an equal weight for all points of a given
+z-plane. See the "How the GG Calculation Works" section below for documentation on the optimizer
+merit function.
+
+outer_plane_weight: Merit function weight for z-planes away from the base z-plane when n_planes_add
+is non-zero. See the "How the GG Calculation Works" section below for documentation on the optimizer
+merit function.
+
+sym_x and sym_y: These parameters set the symmetry of the field at constant z with respect to the
+x-axis and the y-axis. This is used when the field table only contains one quadrant or one half of
+the the field region in the (x,y) plane. Using a reduced region for a table is a way of reducing the
+table file size. If the table covers the full field region, sym_x and sym_y should be set to 0 which
+will prevent the program from trying to use symmetry in the calculation. sym_x = 1 means there is
+mirror symmetry with respect to the x-z plane and -1 means there is anti-symmetry with respect to
+the x-z plane. Similarly for sym_y with respect to the y-z plane. Example: A quadrupole magnet has
+mirror anti-symmetry with respect to both the x-z and y-z planes and a skew quadrupole magnet has
+mirror symmetry with respect to both planes.
+
+x_pos_plot, y_pos_plot: List of x and y-positions in meters used to create files for plotting fit,
+data and difference (fit-data) field values vs z-position. The files will be in a sub-directory
+called "plot_data".  For each x-position and y-positions pair a file will be created. For a given
+(x_pos_plot, y_pos_plot), the field values of the nearest points (ignoring r0) to this position will
+be used.
+
+
+=================================================================================================
+How the GG Calculation Works:
+-----------------------------
+
+The GG coefficients are calculated at equally spaced z-positions corresponding to z-planes of the
+field table. GG coefficients are calculated by varying the coefficients to achieve the minimum of a
+"merit function". This fitting is done z-plane by z-plane. That is, the coefficients of a given
+z-plane are calculated independently of the coefficients of any other z-plane and all coefficients
+of a given z-plane are calculated simultaneously. For a given z-plane, The merit function is
+  Merit = Sum over field points: weight * (field_from_table - field_calculated_from_GG_coefs)^2
+
+The z-plane at which the GG coefficients are being calculated is called the "base plane". The merit
+function is calculated by a sum over those field points that lie in a z-plane that is within
+n_planes_add of the base plane. For example, for n_planes_add = 2, two planes would be added to
+either side of the base plane making the total number of planes used in the analysis equal to
+five. Near the ends of the table, the number of z-planes used will be reduced. Thus, for
+n_planes_add = 2, a base z-plane at the end of the table will only use three planes in the analysis.
+
+To calculate the field at a non-base plane, the GG coefficients of the base plane are extrapolated
+to the non-base plane. For each GG specified by the m_cos and m_sin parameters, the extrapolating
+polynomial is
+  GG(dz) = GG(0) + dz * GG'(0) + dz^2 * GG''(0) / 2! + ...
+where GG(dz) is the generalized gradient at a distance dz away from the base plane, GG' is the first
+derivative, etc.  The order of the polynomial is given by n_deriv_max.
+
+Adding extra planes to the analysis smooths the calculated values. The approximation that the GG
+curve is well fit by a polynomial with coefficients given by the derivatives at the base
+plane becomes less accurate as more planes are used in the analysis. Therefore, past some limit,
+using more planes will make the calculation less accurate.
+
+The weight for a given field point is determined by the setting of the core_weight and
+outer_plane_weight parameters. The weight is a product of two factors:
+  weight(x,y,dz) = w_core(x,y) * w_plane(dz)
+where (x,y,dz) are the coordinates of the field point with respect to the base plane.
+
+The w_core(x,y) factor is computed from:
+  w_core(x,y) = core_weight * rmax^2 / (rmax^2 + r^2 * (core_weight - 1))
+where r^2 = x^2 + y^2 and rmax is the maximum r over all points. A setting of core_weight of 1 (the
+default) means that w_core is a constant. A setting of w_core greater than 1 means that the core
+points (points with low r) will have higher weight at the expense of points farther away. A better
+core fit is generally what is wanted since particles of a beam will spend most of their time near
+the core.
+
+The w_plane(dz) factor is computed from:
+  w_plane(dz) = 1 + (outer_plane_weight - 1) * |dz| / dz_max
+where dz_max is the maximum dz at the ends of the fit region. If n_planes_add = 0 (in which case
+dz_max is zero and the above equation is singular), the above equation is ignored and a value of 1
+is used for w_plane. A setting of outer_plane_weight of 1 (the default) means that w_plane is a
+constant. To weight the planes nearer to the base plane more than the outer planes, choose a value
+less than 1 but still non-negative.
+
+Note: In theory, the merit function fitting does not require that the field table be a rectangular
+grid of equally spaced points. In fact, a set of randomly spaced field points would work. The
+generalized_gradient fit program, however, is not presently configured to handle non-rectangular
+grids.
+
+
+=================================================================================================
+Operation Modes
+---------------
+
+  mode = "ascii": In this mode a field table is read in and an ASCII field table is written.
+If z_min or z_max is set, the created file will only contain data within these bounds plus
+n_planes_add to either side.
+
+  mode = "binary": In this mode there is no analysis and a binary table is created
+with a ".binary" suffix. This binary table can be used for the field_file in which case reading in the
+table will be faster (it is not clear that with the present speed of computers that this ability to
+create binary files is useful). If z_min or z_max is set, the created file will only contain
+data within these bounds plus n_planes_add to either side. 
+
+  mode = "fit": In this mode the standard GG analysis is done.
+
+  mode = "output_table": This mode is used to convert GGs to a field table. See below.
+
+  mode = "truncate_gg": In this mode, GG derivatives are read in from a Bmad lattice file and a
+Bmad compatible output file is created with the number of derivatives truncated (if n_deriv_max is set
+non-negative) and/or the z-extent limited (if Nz_min and/or Nz_max are set).
+
+
+=================================================================================================
+Output:
+-------
+
+With mode = "fit", There are multiple output files.
+
+.deriv file: One output file is meant to be used for plotting derivative values. The name of this
+file is given by the out_file parameter with a ".deriv" suffix attached. There are multiple data
+sets in the table, one for each GG curve of the derivatives versus z-position. With Gnuplot,
+individual data sets can be graphed using the Gnuplot "index" parameter.
+
+This .deriv file also has a column labeled "Init_RMS" with the initial RMS of the field data used in
+the calculation for a particular base plane. and a column labeled "RMS/RMS0" giving the final rms of
+the residual of the fit minus the data divided by the initial RMS. A value small compared to one
+indicates a good fit.
+
+.deriv_at_rmax file: Another output file gives information on how significant the derivative values
+are. The name of this file is given by the out_file parameter with a ".deriv_at_rmax" suffix
+attached. The data blocks in this file might look like:
+
+# m    = 3
+# type = sin
+# Iz     z_pos    Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)
+  10    0.0200   3.07486025E-01  1.07290432E+00 -2.07656736E-01 -2.59055645E-01 
+  11    0.0220   3.32020880E-01  9.37495727E-01 -3.12597302E-01 -2.10447354E-01 
+  12    0.0240   3.52985405E-01  7.64678462E-01 -3.94031086E-01 -7.38811389E-02 
+
+Column three and above show the significance of a the derivatives. The field due to a finite given
+derivative scales roughly as r^(m+d-1) (plus some other factors) where "r" is the radius and "d" is
+the derivative index. So at the outer edges of the table, the contribution of the derivative will
+be a maximum and this is what is given in the table. Only the relative numbers are import. For example,
+in the above table, the first derivatives (d = 1) contribute more than the other three derivatives. 
+
+.left_deriv_diff and .right_deriv_diff files: From the derivative fit at a given z-plane, the value
+of a GG and its derivatives can be computed from extrapolation at any other z-plane. If everything
+is perfect and the derivatives higher than n_derivative_max are negligible, derivatives extrapolated
+to a given z-plane should be equal to the derivatives calculated at that z-plane. The
+.left_deriv_diff file gives the difference between the derivatives at a z-plane minus the
+derivatives calculated by extrapolation from the neighbor z-plane with index one less than the
+z-plane under consideration.  Similarly, the .right_deriv_diff file gives the difference between the
+derivatives at a z-plane minus the derivatives calculated by extrapolation from the neighbor z-plane
+with index one greater than the z-plane under consideration. To the extent that values in these
+files are non-zero, this gives an indication of the goodness of how well the GG decomposition is
+fitting the field.
+
+plot_data files: Other files that can be used for plotting are put in the plot_data directory. Each
+one of these files have a table of fit and input data field versus z-position at a fixed (x,y)
+position. The (x,y) positions used to generate these files is given by the x_pos_plot and y_pos_plot
+parameters.  See above for more details.
+
+.bmad lattice file: The final output file has the derivative values in bmad lattice format. The name
+of this file is given by the out_file parameter with a ".bmad" suffix attached. This file may be
+called from another lattice file. For example, if the output file is called gg.bmad the following
+will call the file:
+  q1: quadrupole, l = 0.6, call::gg.bmad
+
+
+=================================================================================================
+GG to Field Table
+-----------------
+
+Converting an existing GG to a field table can be useful, for example, in comparing the accuracy
+of different GG parameterizations. An example parameter file to convert GG to a field table is:
+
+&params                  ! This line signals the beginning of the parameter list
+  mode = "output_table"    ! GG -> field table mode.
+  field_file = "lat.bmad"  ! Bmad lattice with a lattice element with GG 
+  out_file = "table.dat"   ! Name of field table file to be created.
+  length_scale = 0.01      ! File length_scale in meters. EG: 0.01 => Positions are in cm.
+  field_scale = 1e-4       ! File field_scale in Tesla or V/m. EG: 1e-4 => Field in Gauss (if magnetic).
+  del_grid = 0.4, 0.2      ! del_x,y  Spacing between grid points in table units (not meters).
+  r0_grid = 0, 0, 0        ! r0 (x,y,z) offset of the origin. 
+  Nx_min = -5              ! X-coordinate lower bound.
+  Nx_max = 5               ! X-coordinate upper bound.
+  Ny_min = 0               ! Y-coordinate lower bound.
+  Ny_max = 3               ! Y-coordinate upper bound.
+  Nz_min = -200            ! Z-coordinate lower bound.
+  Nz_max =  200            ! Z-coordinate upper bound.
+/                        ! Ending slash signals end of param list. Everything outside is ignored.
+
+
+field_file: Here this is the name of the Bmad lattice file.  The lattice will be searched for the
+first element in the lattice with a gen_grad_map. If there are multiple elements with gen_grad_maps,
+other maps besides the first will be ignored.
+
+del_grid: Field table grid spacing in x and y. del_grid(3) (z spacing) is set by the gen_grad_map in the
+lattice file.
+
+If Nz_min is absent from the parameter list, Nz_min will default to the lower bound of the GG map in the file.
+If Nz_max is absent from the parameter list, Nz_max will default to the upper bound of the GG map in the file.

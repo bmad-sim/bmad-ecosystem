@@ -1,0 +1,11 @@
+set (EXENAME mais_ripken)
+
+set (SRC_FILES
+  mais_ripken/mais_ripken.f90
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

@@ -1,0 +1,10 @@
+
+in.cavity2: lcavity, tracking_method = runge_kutta, mat6_calc_method = tracking, n_cell = 2, 
+rf_frequency = 1.3e9, 
+field_calc = fieldmap,
+L = 	0.470	, !Grid extends to 0.484. Center of the 2 cells is at 0.286 m 
+grid_field = call::in.cavity2_grid.bmad
+
+in.cavity2[voltage] = 5e6 ! Maximum on-axis Ez in V/m
+CALL, FILE = in.cavity2_wall.bmad
+

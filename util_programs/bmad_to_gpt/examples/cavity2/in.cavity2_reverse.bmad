@@ -1,0 +1,12 @@
+
+in.cavity2_reverse: lcavity, tracking_method = runge_kutta, mat6_calc_method = tracking, n_cell = 2, 
+rf_frequency = 1.3e9, 
+field_calc = fieldmap,
+L = 	0.470	, !Grid extends to 0.484
+grid_field = call::in.cavity2_reverse_grid.bmad
+
+in.cavity2_reverse[voltage] = 5e6
+
+
+CALL, FILE = in.cavity2_reverse_wall.bmad
+

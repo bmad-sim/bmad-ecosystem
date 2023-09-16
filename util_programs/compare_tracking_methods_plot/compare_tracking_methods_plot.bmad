@@ -1,0 +1,32 @@
+no_digested
+! Lattice containing only 1 quadrupole
+parameter[e_tot] = 1e6
+parameter[lattice_type] = linear_lattice
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = 0.001 ! Horizontal position.
+particle_start[px] = 0.002 ! Horizontal momentum.
+particle_start[y]  = 0.003 ! Vertical position.
+particle_start[py] = 0.004 ! Vertical momentum.
+particle_start[z]  = 0.000 ! Longitudinal position.
+particle_start[pz] = 0.005 ! Longitudinal momentum (energy deviation).
+
+quad: quadrupole, l = 0.5, k1 = 0.2, num_steps = 1000
+
+l: line = (quad)
+
+use, l
+
+end_file
+
+&scan_params
+  !output_file = 'test' 
+  base_method = 'bmad_standard'
+  veto_methods(1) = 'symp_map'
+  element_to_vary = 'PARTICLE_START'
+  attrib_to_vary = 'PX'
+  scan_start = 0.
+  scan_end = 0.1
+  nsteps = 100
+/

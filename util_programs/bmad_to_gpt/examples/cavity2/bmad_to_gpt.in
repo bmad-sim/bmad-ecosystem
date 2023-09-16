@@ -1,0 +1,28 @@
+&bmad_to_gpt_params
+  bmad_lat_filename = 'lat.bmad'
+
+  gpt_lattice_param%field_map_dimension = 2
+  gpt_lat_param%header_file_name = 'gpt_header.in'
+  gpt_lat_param%tracking_end_element = ''   ! Blank means all elements translated.
+
+  write_gpt_particles = .true.
+  write_time_particles = .true.
+  beam_init%bunch_charge = 1.0e-9
+  beam_init%n_particle = 27
+  beam_init%distribution_type(1) = 'GRID'
+  beam_init%distribution_type(2) = 'GRID'
+  beam_init%distribution_type(3) = 'GRID'
+  beam_init%grid(1)%n_x = 3
+  beam_init%grid(1)%n_px = 1
+  beam_init%grid(1)%x_min = -1e-3
+  beam_init%grid(1)%x_max =  1e-3
+  beam_init%grid(2)%n_x = 3   
+  beam_init%grid(2)%n_px = 1
+  beam_init%grid(2)%x_min = -1e-3
+  beam_init%grid(2)%x_max =  1e-3
+  beam_init%grid(3)%n_x = 3
+  beam_init%grid(3)%n_px = 1
+  beam_init%grid(3)%x_min =  1e-6
+  beam_init%grid(3)%x_max =  2e-6
+  beam_init%n_bunch = 1
+/

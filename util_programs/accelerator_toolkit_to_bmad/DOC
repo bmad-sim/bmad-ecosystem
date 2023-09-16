@@ -1,0 +1,11 @@
+Lattice Translation from Accelerator Toolkit to Bmad format
+
+Note: Translation is only good for simple lattices. Better is to convert to MAD and then convert MAD to Bmad.
+
+Syntax:
+  accelerator_toolkit_to_bmad <at_file_name> {<bmad_file_name>}
+Default:
+  <bmad_file_name> = <at_file_name>.bmad  # If <at_file_name> has ending ".at" this will be stripped.
+
+Notes:
+* Lines that cannot be translated will appear with a "???" prefix in the output file.

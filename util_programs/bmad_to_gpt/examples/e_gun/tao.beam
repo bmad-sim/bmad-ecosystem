@@ -1,0 +1,7 @@
+&tao_beam_init
+beam_init%use_lattice_center = T
+ix_universe = 1
+beam_saved_at =  "MARKER::*"
+beam0_file ='converted.beam0'
+
+/

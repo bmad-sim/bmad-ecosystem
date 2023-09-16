@@ -1,0 +1,21 @@
+0.01           ! position_scale
+1              ! field_scale
+-1, 0          ! Nx_min, Nx_max
+0, 1           ! Ny_min, Ny_max
+-1, 1          ! Nz_min, Ny_max
+1.0, 2.0, 10.0 ! Distance between points: del_x, del_y, del_z
+0.0, 0.0, 0.0  ! Grid origin offset x_off, y_off, z_off 
+
+!  X    Y    Z    B_x    B_y   B_z
+  -1    0  -10    0      0     0
+  -1    0    0    0      0     0
+  -1    0   10    0      0     0
+  -1    2  -10    0      0     0
+  -1    2    0    0      0     0
+  -1    2   10    0      0     0
+   0    0  -10    0     -1     0
+   0    0    0    0      0     0
+   0    0   10    0      1     0
+   0    2  -10    0      0     0
+   0    2    0    0      0     0
+   0    2   10    0      0     0

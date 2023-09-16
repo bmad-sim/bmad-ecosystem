@@ -1,0 +1,11 @@
+set (EXENAME make_a_matching_knob)
+
+set (SRC_FILES
+  make_a_matching_knob/make_a_matching_knob.f90
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

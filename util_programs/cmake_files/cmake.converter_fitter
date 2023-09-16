@@ -1,0 +1,13 @@
+set (EXENAME converter_fitter)
+file (GLOB SRC_FILES
+  converter_element_modeling/fitter/*.cpp
+  )
+set (INC_DIRS
+  converter_element_modeling/fitter
+  )
+set (CFLAGS "-std=c++17")
+set (LINK_LIBS
+  stdc++fs
+  gsl
+  gslcblas
+  )

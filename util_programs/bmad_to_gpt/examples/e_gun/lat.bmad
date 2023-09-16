@@ -1,0 +1,59 @@
+
+
+!no_digested
+
+BEGINNING[BETA_A]  = 1
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 1
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = OPEN
+
+parameter[p0c] = 0
+
+in.mar.beg: marker
+
+in.gun: E_GUN, L = 0.15, field_calc = fieldmap, tracking_method = time_runge_kutta,
+  mat6_calc_method = tracking, autoscale_phase = F,
+  grid_field = call::in.gun_grid.bmad
+
+in.gun[voltage] = 250e3 !Voltage in V
+
+! Wall
+call, file = in.gun_wall.bmad
+
+
+!Note that the original superfish grid had a maximum on-axis field of:
+! 0.008353829
+! T
+!
+
+in.solenoid: SOLENOID, L = 0.6,  field_calc = fieldmap, tracking_method = time_runge_kutta,
+  mat6_calc_method = tracking,
+  grid_field = call::in.solenoid_grid.bmad,
+  superimpose, ref = in.mar.beg
+
+
+in.solenoid[bs_field] = 0.025331
+
+
+in.solenoid[x_offset] = 0.001234
+in.solenoid[y_offset] = 0.004321
+in.solenoid[x_pitch] = -0.001
+in.solenoid[y_pitch] =  0.001
+
+
+
+in.solenoid[offset] = 0.311
+
+
+
+d0: drift, L = 1.0
+
+!in.gun[ds_step] = 0.001
+
+lat: LINE = (in.mar.beg, in.gun, d0)
+
+use, lat
+

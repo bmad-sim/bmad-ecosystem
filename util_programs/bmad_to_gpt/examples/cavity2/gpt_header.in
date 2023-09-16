@@ -1,0 +1,12 @@
+
+setfile("beam", "beam0.gdf");
+
+#GBacc = 4.5;
+#xacc  = 6.5;
+GBacc = 6;
+xacc  = 8;
+accuracy(GBacc, xacc);
+
+tout( 0/c, 1/c, 0.01/c);
+
+

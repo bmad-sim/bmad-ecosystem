@@ -1,0 +1,22 @@
+! Parameters for photonic_surface_data program
+! Parameters use Fortran namelist input.
+! The namelist begins with the line "&params" and ends with the line "/".
+
+&params
+  lat_file_name = 'lat.bmad'     ! Bmad lattice file name 
+  ele_name = ''                  ! Lattice element to use. Default is first crystal element in the lattice
+  data_file_name = ''            ! Output data file name. Default is "surface.dat"
+
+! Values for the following will default to the values set by the surface grid of the lattice element.
+! If a surface grid has not been defined for the element, values must be 
+! given in this file (except for r0 which will default to 0, 0).
+! Note: See the Bmad manual on surface grids for a discussion of the parameters dr, r0, ix_bounds, and iy_bounds.
+
+!  dr = 0.1, 0.1                     ! Spacing between point in x and y
+!  r0 = 0, 0                         ! (x, y) position of the point with (ix, iy) = (0, 0).
+!  ix_bounds = -20, 30               ! Index range in x . 
+!  iy_bounds = -10, 10               ! Index range in y.
+  granularity = 1                    ! Sample within the grid to produce a finer mesh of data in the output file?
+                                     ! A granularity = N will increase the number of points by approximately N^2
+/
+

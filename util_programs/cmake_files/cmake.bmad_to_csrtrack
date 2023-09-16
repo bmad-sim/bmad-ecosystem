@@ -1,0 +1,11 @@
+set (EXENAME bmad_to_csrtrack)
+
+set (SRC_FILES
+  bmad_to_csrtrack/bmad_to_csrtrack.f90
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

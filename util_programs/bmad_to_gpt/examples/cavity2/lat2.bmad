@@ -1,0 +1,5 @@
+
+
+
+cav2_voltage = 20e6 ! Can't set voltage directly in lat2. Must do:
+cav2[gradient] = cav2_voltage / cav2[L]

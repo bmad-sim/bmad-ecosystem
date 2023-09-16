@@ -1,0 +1,98 @@
+                                    Elegant to Bmad Lattice File Conversion
+                                    ---------------------------------------
+
+This README file documents how to convert ELEGANT formatted files to Bmad lattice format.
+
+* Note: For conversion from Bmad to Elegant use the "write elegant" command in the Tao program or
+use the bmad_to_mad_sad_elegant program (documentation in bsim/bmad_to_mad_sad_elegant).
+
+Orientation:
+------------
+
+This README file is contained in the directory:
+  <bmad-dist-or-release>/util_programs/elegant_to_bmad/
+Where <bmad-dist-or-release> is the directory of the Distribution or Release that you are using (See
+the online Bmad documentation or your local Bmad Guru for more details on Distributions and Releases).
+
+There are two python scrips in this directory:
+  elegant_to_bmad.py    -- Converts from Elegant to Bmad format.
+
+
+How to Convert:
+---------------
+
+Minimum python version needed is 3.6.
+The scripts run independently of whether the standard Bmad environmental variables have been setup.
+
+To convert Elegant files, use the command:
+  <path-to-script>/elegant_to_bmad.py {options} <elegant-file1> <elegant-file2> ...
+
+where <path-to-script> is the path to the directory where the script is and <elegant-file1>,
+<elegant-file2> etc. are the names of the files to convert. 
+
+Example conversion command:
+  $ACC_ROOT_DIR/util_programs/elegant_to_bmad/elegant_to_bmad -f a.lte
+This example converts a Elegant file called "a.lte"
+[Note: If you are setup to run Bmad based programs, the ACC_ROOT_DIR environmental variable will be
+set to the <bmad-dist-or-release> directory.]
+
+The Bmad output file name is the input file name with the ".lte" suffix removed (if it
+exists) and with a ".bmad" suffix appended.
+
+The optional arguments are:
+  -h, --help              Show a help message and exit
+  -d, --debug             Print debug info while running (not of general interest).
+  -f, --many_files        Create a Bmad file for each Elegant input file.
+  -c  --constants         Add to lattice file a list of Elegant defined constants.
+
+If the --debug (or -d) option is present, the script will print information on the parsing process
+to the terminal. This option is only of interest for someone debugging the code.
+
+By default, only one Bmad output file is produced even when the Elegant input is split among multiple
+files that call each other. If The --many_files (or -f) option is present, the script will produce
+multiple Bmad output files, one for each Elegant input file.
+
+Note: If a line in the Elegant or ElegantX file begins with the string "!!verbatim", everything after
+"!!verbatim" on the line will be put in the Bmad file. This is useful for transferring extra
+information to the Bmad file without affecting the reading of the Elegant file by Elegant. Example:
+  !!verbatim parameter[geometry] = open
+will appear in the Bmad file as:
+  parameter[geometry] = open
+
+
+Limitations:
+------------
+
+Bmad, unlike Elegant, does not have any ``action'' commands. An action command is a command that makes a
+calculation. 
+
+Many Elegant elements do not have an equivalent Bmad element. Additionally, Elegant elements
+generally have attributes with no Bmad equivalent. Thus case should be taken to verify if the
+translated Bmad lattice is a good approximation to the Elegant lattice.
+
+When there are tilt, x_pitch (yaw), and/or y_pitch (pitch) misalignments, the translation is exact as long
+as either x_pitch or y_pitch is zero. If both are non-zero there is an angular error of order x_pitch*y_pitch.
+
+Notes:
+------
+
+By default, Bmad will treat a lattice without \vn{lcavity} elements as having a closed geometry and
+a lattice with an \vn{lcavity} as having an open geometry. To override the default, put the following
+in the Bmad file (or use the "!!verbatim" construct discussed above):
+  parameter[geometry] = open  ! or closed
+
+Help:
+-----
+
+* If you find a problem with the conversion, please send a message along with the original Elegant files
+to a Bmad maintainer. Contact info can be obtained on the Bmad site by clicking on the "Help &
+Mailing Lists" button.
+
+* If you have a lattice with a closed geometry, and the Bmad computed orbit or Twiss parameters are
+different enough from the Elegant ones where you suspect a conversion problem, one way to try to
+diagnose things is to track in Elegant and Bmad as if the lattice had an open geometry to see if there
+are any particular spots in the lattice where differences suddenly become much larger. If you can
+spot such places, you can examine the lattice element at that location. 
+
+* Another diagnostic trick is to back translate the Bmad lattice to Elegant. The resulting lattice can then
+be compared to the original lattice.
