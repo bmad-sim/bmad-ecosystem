@@ -1,0 +1,108 @@
+\chapter{Reading and Writing Lattices}
+
+%----------------------------------------------------------------------------
+\section{Reading in Lattices}
+\label{s:lat.readin}
+\index{lattice files!reading}
+
+There are two subroutines in \bmad to read in a \bmad standard lattice file:
+\Hyperref{r:bmad.parser}{bmad_parser} and \Hyperref{r:bmad.parser2}{bmad_parser2}. \vn{bmad_parser}
+is used to initialize a \vn{lat_struct} (\sref{c:lat.struct}) structure from scratch using the
+information from a lattice file. Unless told otherwise, after reading in the lattice,
+\vn{bmad_parser} will compute the 6x6 transfer matrices for each element and this information will
+be stored in the \vn{digested file} (\sref{s:digested}) that is created.  Notice that
+\vn{bmad_parser} does {\em not} compute any Twiss parameters.
+
+\Hyperref{r:bmad.parser2}{bmad_parser2} is typically used after \vn{bmad_parser} if there is
+additional information that needs to be added to the lattice. For example, consider the case where
+the aperture limits for the elements is stored in a file that is separate from the main lattice
+definition file and it is undesirable to put a \vn{call} statement in one file to reference the
+other.  To read in the lattice information along with the aperture limits, there are two
+possibilities: One possibility is to create a third file that calls the first two:
+\begin{verbatim}
+ ! This is a file to be called by bmad_parser
+ call, file = ""lattice_file""
+ call, file = ""aperture_file""
+\end{verbatim}
+and then just use \vn{bmad_parser} to parse this third file. The
+alternative is to use \vn{bmad_parser2} so that the program code looks
+like:
+\begin{verbatim}
+  ! program code to read in everything
+  type (lat_struct) lat
+  call bmad_parser ('lattice_file', lat)       ! read in a lattice.
+  call bmad_parser2 ('aperture_file', lat)     ! read in the aperture limits.
+\end{verbatim}
+
+%----------------------------------------------------------------------------
+\section{Digested Files}
+\index{digested files}
+
+\index{bmad_parser}
+\index{bmad version number}
+Since parsing can be slow, once the \vn{bmad_parser} routine has transferred the information from a
+lattice file into the \vn{lat_struct} it will make what is called a digested file. A digested file
+is an image of the \vn{lat_struct} in binary form. When \vn{bmad_parser} is called, it first looks
+in the same directory as the lattice file for a digested file whose name is of the form:
+\begin{verbatim}
+  ""digested_"" // LAT_FILE 
+\end{verbatim}
+where \vn{LAT_FILE} is the lattice file name. If \vn{bmad_parser} finds the digested file, it checks
+that the file is not out--of--date (that is, whether the lattice file(s) have been modified after
+the digested file is made).  \vn{bmad_parser} can do this since the digested file contains the names
+and the dates of all the lattice files that were involved. Also stored in the digested file is the
+``\bmad \vn{version number}''. The \bmad version number is a global parameter that is increased (not
+too frequently) each time a code change involves modifying the structure of the \vn{lat_struct} or
+\vn{ele_struct}. If the \bmad version number in the digested file does not agree with the number
+current when \vn{bmad_parser} was compiled, or if the digested file is out--of--date, a warning will
+be printed, and \vn{bmad_parser} will reparse the lattice and create a new digested file.
+
+\index{taylor map!with digested files}
+Since computing Taylor Maps can be very time intensive, \vn{bmad_parser} tries to reuse Taylor Maps
+it finds in the digested file even if the digested file is out--of--date. To make sure that
+everything is OK, \vn{bmad_parser} will check that the attribute values of an element needing a
+Taylor map are the same as the attribute values of a corresponding element in the digested file
+before it reuses the map. Element names are not a factor in this decision.
+
+This leads to the following trick: If you want to read in a lattice where there is no corresponding
+digested file, and if there is another digested file that has elements with the correct Taylor Maps,
+then, to save on the map computation time, simply make a copy of the digested file with the digested
+file name corresponding to the first lattice.
+
+\Hyperref{r:read.digested.bmad.file}{read_digested_bmad_file}
+\Hyperref{r:write.digested.bmad.file}{write_digested_bmad_file} The digested file is in binary
+format and is not human readable but it can provide a convenient mechanism for transporting lattices
+between programs. For example, say you have read in a lattice, changed some parameters in the
+\vn{lat_struct}, and now you want to do some analysis on this modified \vn{lat_struct} using a
+different program.  One possibility is to have the first program create a digested file
+\begin{example}
+  call write_digested_bmad_file ('digested_file_of_mine', lat)
+\end{example}
+and then read the digested file in with the second program
+\begin{example}
+  call read_digested_bmad_file ('digested_file_of_mine', lat)
+\end{example}
+An alternative to writing a digested file is to write a lattice file
+using \vn{write_bmad_lattice_file}
+
+%----------------------------------------------------------------------------
+\section{Writing Lattice files}
+\label{s:lat.write}
+\index{lattice files!MAD files}
+\index{MAD}
+
+\index{MAD!MAD-8}
+\Hyperref{r:write.bmad.lattice.file}{write_bmad_lattice_file} To create a \bmad lattice file from a
+\vn{lat_struct} instance, use the routine
+\Hyperref{r:write.bmad.lattice.file}{write_bmad_lattice_file}.  \mad--8, \mad--X, or \vn{SAD}
+compatible lattice files can be created from a \vn{lat_struct} variable using the routine
+\Hyperref{r:write.lattice.in.foreign.format}{write_lattice_in_foreign_format}:
+\begin{example}
+  type (lat_struct) lat             ! lattice
+  ...
+  call bmad_parser (bmad_lat_file, lat)               ! Read in a lattice
+  call write_lattice_in_foreign_format ("lat.mad", "MAD-8", lat)  ! create MAD file
+\end{example}
+Information can be lost when creating a \mad or \vn{SAD} file.  For example, neither \mad nor
+\vn{SAD} has the concept of things such as \vn{overlay}s and \vn{group}s.
+

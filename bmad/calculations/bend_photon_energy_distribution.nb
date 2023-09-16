@@ -1,0 +1,4569 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[    163551,       4561]
+NotebookOptionsPosition[    159078,       4447]
+NotebookOutlinePosition[    159416,       4462]
+CellTagsIndexPosition[    159373,       4459]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Some Basic Equations (See: X-Ray Data Booklet)", "Subchapter",
+ CellChangeTimes->{{3.742151337966227*^9, 3.7421513440938377`*^9}, {
+  3.7421514590142*^9, 
+  3.74215146918821*^9}},ExpressionUUID->"ee42b0c9-6fbf-4a76-991d-\
+6ad9592f1f9c"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"nForm", "[", "num_", "]"}], ":=", 
+  RowBox[{"Print", "[", 
+   RowBox[{"NumberForm", "[", 
+    RowBox[{
+     RowBox[{"N", "[", 
+      RowBox[{"num", ",", "8"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"10", ",", "7"}], "}"}], ",", 
+     RowBox[{"NumberFormat", "\[Rule]", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"SequenceForm", "[", 
+         RowBox[{"#1", ",", "\"\<D\>\"", ",", "#3"}], "]"}], "&"}], ")"}]}], 
+     ",", 
+     RowBox[{"ExponentFunction", "\[Rule]", 
+      RowBox[{"(", 
+       RowBox[{"#", "&"}], ")"}]}]}], "]"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.742442606100004*^9, 
+  3.742442607022176*^9}},ExpressionUUID->"9dc3597e-f8ae-4ec0-8b87-\
+666781cd919e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"wx", "[", "yIn_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"3", "/", 
+     RowBox[{"(", 
+      RowBox[{"5", "Pi"}], ")"}]}], ")"}], 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"BesselK", "[", 
+      RowBox[{
+       RowBox[{"5", "/", "3"}], ",", "yi"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"yi", ",", "yIn", ",", "Infinity"}], "}"}]}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.742410522341668*^9, 3.7424105258018208`*^9}, {
+  3.742410559468277*^9, 3.742410574084127*^9}, {3.742410713859117*^9, 
+  3.742410779824551*^9}, {3.742410880172265*^9, 3.742410880810173*^9}, {
+  3.742410915316948*^9, 3.74241094558657*^9}, {3.742424238984112*^9, 
+  3.742424265035624*^9}, {3.742424527887635*^9, 3.742424536878242*^9}, {
+  3.742429391986573*^9, 3.742429410977907*^9}, {3.742429457817834*^9, 
+  3.7424294596741734`*^9}, {3.742429569615353*^9, 3.742429582829023*^9}, {
+  3.7424332241505833`*^9, 3.742433254796928*^9}, {3.742442975105414*^9, 
+  3.742442993866646*^9}},ExpressionUUID->"42583307-0a63-45e0-bfae-\
+f94cd7d5a578"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"dwx", "[", "yIn_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"-", 
+    RowBox[{"(", 
+     RowBox[{"3", "/", 
+      RowBox[{"(", 
+       RowBox[{"5", " ", "Pi"}], ")"}]}], ")"}]}], 
+   RowBox[{"BesselK", "[", 
+    RowBox[{
+     RowBox[{"5", "/", "3"}], ",", "yIn"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.7424340720908833`*^9, 3.7424340999015217`*^9}, 
+   3.742438383354395*^9},ExpressionUUID->"27937b13-e4da-4822-be15-\
+e8f9d7b2d3bc"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"LogLogPlot", "[", 
+  RowBox[{
+   RowBox[{"wx", "[", "z", "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"z", ",", 
+     RowBox[{"10", "^", 
+      RowBox[{"-", "6"}]}], ",", "1"}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.742433838139756*^9, 
+  3.742433873975524*^9}},ExpressionUUID->"1474c704-11e7-426f-b08e-\
+a98ab0fa3c61"],
+
+Cell[BoxData[
+ GraphicsBox[{{{}, {}, 
+    TagBox[
+     {RGBColor[0.368417, 0.506779, 0.709798], AbsoluteThickness[1.6], Opacity[
+      1.], LineBox[CompressedData["
+1:eJwB4QQe+yFib1JlAgAAAE0AAAACAAAAyhIakIqhK8BRfWVQ0KMgQCOm1y9f
+nyvA3aU2CF6iIEB8OZXPM50rwFYBAsDroCBALmAQD92YK8A9QIcvB54gQJOt
+Bo4vkCvAeGdLDj6YIEBcSPOL1H4rwFeetsqrjCBA733Mhx5cK8DjHvo+h3Ug
+QBTpfn+yFivATEw2FD5HIEBjs5+oLIAqwHngYffDxR9ADQVAZKDzKcB/NBvN
+VwofQPSsHurVaSnA284sjpdSHkDhSLmpXdQowG/tK5lCix1AKGzT+95IKMAw
+Wb0lOdEcQHWDqYeysSfAIWs425kHHEAA8b3dRx0nwHVJ+sekQRtA5eVRxtaS
+JsDbmQBL+ogaQM/Ooei3/CXAKaiUWrfAGUATP3GdknAlwGhCBOO9BRlAlQV/
+HC/nJMDW5OJlbE4YQB3ASNUdUiTA1lq+Bn6HF0D/AZIgBscjwAT6oM7WzRZA
+5zeXpUAwI8Bq6Z6mjQQWQA3E2vQ8nCLAwwqT2uQ+FUCN153WMhIiwEOGsRt/
+hhRAEt8c8np8IcA2iza8a74TQPFtG6C88CDAYhB8bZYDE0DW8NWHUFkgwPRW
+t0gGORJA8ZOdc0yJH8CAxDQDAnIRQOpUjvzqcx7AH/c+6jC4EEDu/fb4LUcd
+wM8yhX0M3Q9AprVeGmQuHMDJP9rhAmQOQNoZQ9AdGxvAlXXPitvxDEAaZp/5
+e/AZwPVHc5WXXwtADsH6R83ZGMAbOa/lZucJQA0EzgnDqxfA1bRv0J9OCECI
+8x1gPIMWwMeW5ecBvAZAt/Fs26huFcAb77M6EEMFQPHXM8q5QhTA6q8Mv2eo
+A0DfzPndvSoTwLIhSVvqJgJASW48hkUYEsCxj5/dkaoAQL739qFx7hDAetug
+2gYV/j/QH2HFIbEPwLn4s4X8BPs/OyDELalWDcDPj1Xku6j3Pw4+JeAWJAvA
+sm8dXYV59D/YtH+7i/wIwIirTt51TPE/ufvJfUmmBsA0EedCoI7rPwJgEort
+dwTA9ywc34bP5D9ilEp92hoCwMLAYBHzg9o/c0P4Mp2R/78dqsUQByDGP/KY
+V/9RPfu/wgHB0wpAsL+fjpaZmIv2vw7Lt/aPddW/HL/Rx6sp8r+QLRWcJHTj
+vxFD/4+au+u/66kKMU697L9ESBosAWnivw5p1QJd8fO/L4Zb4AFs07/brjLs
+ec35v4IOld1RHtO/Q72JvmDp+b/Uls7aodDSv7hsa0RYBfq/eKdB1UE10r90
+6Eq8eT36v8LIJ8qB/tC/XFqVnIiu+r+qFuhnAyLNv3kKMHfok/u/9iAZDwNs
+w796vKXuSGz9v5sxjAmj0MK/T2KWp2+K/b9AQv8DQzXCv27MB9SpqP2/iWPl
++IL+wL/A3fTmWOX9vzhMY8UFIr2/KeBdmKRf/r+EVpRsBWyzv464Z6oHWP+/
+znd6YUU1sr8XM1ENcXf/vxeZYFaF/rC/u3v1b++W/79Ut1mACiKtv10d25sr
+1v+/ocGKJwpso792OKY00ioAwDQEVxGK/qC/gTMtUtw6AMCOjUb2EyKdv2f0
+rVjxSgDA25d3nRNsk7/3nGpWPGsAwAI6IOImIo2/pDm4aHJ7AMBPRFGJJmyD
+v+8wI5qziwDAN50EYUxsc78EiF/4/5sAwHz1c6zZ65K+Ia8ykVesAMAck2Oc
+
+       "]]},
+     Annotation[#, "Charting`Private`Tag$216008#1"]& ]}, {}, {}},
+  AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+  Axes->{True, True},
+  AxesLabel->{None, None},
+  AxesOrigin->{-14.10333369458853, -2.0841513961403426`},
+  CoordinatesToolOptions:>{"DisplayFunction" -> ({
+      Exp[
+       Part[#, 1]], 
+      Exp[
+       Part[#, 2]]}& ), "CopiedValueFunction" -> ({
+      Exp[
+       Part[#, 1]], 
+      Exp[
+       Part[#, 2]]}& )},
+  DisplayFunction->Identity,
+  Frame->{{False, False}, {False, False}},
+  FrameLabel->{{None, None}, {None, None}},
+  FrameTicks->{{
+     Charting`ScaledTicks[{Log, Exp}], 
+     Charting`ScaledFrameTicks[{Log, Exp}]}, {
+     Charting`ScaledTicks[{Log, Exp}], 
+     Charting`ScaledFrameTicks[{Log, Exp}]}},
+  GridLines->{None, None},
+  GridLinesStyle->Directive[
+    GrayLevel[0.5, 0.4]],
+  ImagePadding->All,
+  Method->{
+   "DefaultBoundaryStyle" -> Automatic, "DefaultMeshStyle" -> 
+    AbsolutePointSize[6], "ScalingFunctions" -> None},
+  PlotRange->
+   NCache[{{-Log[1000000], 0}, {-2.0841513961403426`, 
+     8.319948685063226}}, {{-13.815510557964274`, 0}, {-2.0841513961403426`, 
+     8.319948685063226}}],
+  PlotRangeClipping->True,
+  PlotRangePadding->{{
+     Scaled[0.02], 
+     Scaled[0.02]}, {
+     Scaled[0.05], 
+     Scaled[0.05]}},
+  Ticks->FrontEndValueCache[{
+     Charting`ScaledTicks[{Log, Exp}], 
+     Charting`ScaledTicks[{Log, Exp}]}, {{{-13.815510557964274`, 
+       FormBox[
+        TemplateBox[{"10", 
+          RowBox[{"-", "6"}]}, "Superscript", SyntaxForm -> SuperscriptBox], 
+        TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {-11.512925464970229`, 
+       FormBox[
+        TemplateBox[{"10", 
+          RowBox[{"-", "5"}]}, "Superscript", SyntaxForm -> SuperscriptBox], 
+        TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {-9.210340371976182, 
+       FormBox[
+        TemplateBox[{"10", 
+          RowBox[{"-", "4"}]}, "Superscript", SyntaxForm -> SuperscriptBox], 
+        TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {-6.907755278982137, 
+       FormBox["0.001`", TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {-4.605170185988091, 
+       FormBox[
+        TagBox[
+         InterpretationBox["\"0.010\"", 0.01, AutoDelete -> True], 
+         NumberForm[#, {
+           DirectedInfinity[1], 3.}]& ], TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {-2.3025850929940455`, 
+       FormBox[
+        TagBox[
+         InterpretationBox["\"0.100\"", 0.1, AutoDelete -> True], 
+         NumberForm[#, {
+           DirectedInfinity[1], 3.}]& ], TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {0., 
+       FormBox["1", TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {-16.11809565095832, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-15.424948470398375`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-15.01948336229021, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-14.73180128983843, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-14.508657738524219`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-14.326336181730264`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-14.172185501903007`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-14.038654109278484`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-13.9208710736221, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-13.122363377404328`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-12.716898269296165`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-12.429216196844383`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-12.206072645530174`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-12.02375108873622, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-11.86960040890896, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-11.736069016284437`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-11.618285980628055`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-10.819778284410283`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-10.41431317630212, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-10.126631103850338`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-9.903487552536127, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-9.721165995742174, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-9.567015315914915, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-9.433483923290392, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-9.315700887634009, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-8.517193191416238, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-8.111728083308073, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-7.824046010856292, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-7.600902459542082, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-7.418580902748128, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-7.264430222920869, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-7.1308988302963465`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-7.013115794639964, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-6.214608098422191, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-5.809142990314028, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-5.521460917862246, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-5.298317366548036, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-5.115995809754082, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-4.961845129926823, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-4.8283137373023015`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-4.710530701645918, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-3.912023005428146, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-3.506557897319982, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-3.2188758248682006`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.995732273553991, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.8134107167600364`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.659260036932778, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.5257286443082556`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.4079456086518722`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-1.6094379124341003`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-1.2039728043259361`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.916290731874155, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.6931471805599453, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.5108256237659907, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.35667494393873245`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.2231435513142097, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.10536051565782628`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {0.6931471805599453, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.0986122886681098`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.3862943611198906`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.6094379124341003`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.791759469228055, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.9459101490553132`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {2.0794415416798357`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {2.1972245773362196`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {2.302585092994046, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}}, {{-2.3025850929940455`, 
+       FormBox["0.1`", TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {0., 
+       FormBox["1", TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {2.302585092994046, 
+       FormBox["10", TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {4.605170185988092, 
+       FormBox["100", TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {6.907755278982137, 
+       FormBox["1000", TraditionalForm], {0.01, 0.}, {
+        AbsoluteThickness[0.1]}}, {-4.605170185988091, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-3.912023005428146, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-3.506557897319982, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-3.2188758248682006`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.995732273553991, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.8134107167600364`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.659260036932778, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.5257286443082556`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-2.4079456086518722`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-1.6094379124341003`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-1.2039728043259361`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.916290731874155, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.6931471805599453, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.5108256237659907, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.35667494393873245`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.2231435513142097, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {-0.10536051565782628`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {0.6931471805599453, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.0986122886681098`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.3862943611198906`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.6094379124341003`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.791759469228055, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {1.9459101490553132`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {2.0794415416798357`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {2.1972245773362196`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {2.995732273553991, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {3.4011973816621555`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {3.6888794541139363`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {3.912023005428146, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {4.0943445622221, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {4.248495242049359, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {4.382026634673881, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {4.499809670330265, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {5.298317366548036, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {5.703782474656201, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {5.991464547107982, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {6.214608098422191, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {6.396929655216146, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {6.551080335043404, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {6.684611727667927, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {6.802394763324311, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {7.600902459542082, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {8.006367567650246, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {8.294049640102028, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {8.517193191416238, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {8.699514748210191, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {8.85366542803745, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {8.987196820661973, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {9.104979856318357, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {9.210340371976184, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {9.903487552536127, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}, {10.308952660644293`, 
+       FormBox[
+        InterpretationBox[
+         StyleBox[
+          
+          GraphicsBox[{}, ImageSize -> {0., 0.}, BaselinePosition -> 
+           Baseline], "CacheGraphics" -> False], 
+         Spacer[{0., 0.}], Selectable -> False], TraditionalForm], {0.005, 
+       0.}, {
+        AbsoluteThickness[0.1]}}}}]]], "Output",
+ CellChangeTimes->{
+  3.74243388646342*^9},ImageCache->GraphicsData["CompressedBitmap", "\<\
+eJztycENgCAUg+G+uAjT6MkhXogJHIwGWdV5EIxb+F+a9uvqNW271xw9LMXP
+lOMV5qN0mkyyJOkOGr31+sWb45L10T4GAAAAAAAAAAAAfgmyB15kttM=\
+\>"],ExpressionUUID->"2198a4f9-0717-4930-b159-5f57ee2c56d9"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"swx", "[", "yIn_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"3", "/", 
+     RowBox[{"(", 
+      RowBox[{"5", " ", "Pi"}], ")"}]}], ")"}], 
+   RowBox[{"yIn", "^", 
+    RowBox[{"(", 
+     RowBox[{"2", "/", "3"}], ")"}]}], " ", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"BesselK", "[", 
+      RowBox[{
+       RowBox[{"5", "/", "3"}], ",", "yi"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"yi", ",", "yIn", ",", "Infinity"}], "}"}]}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.742441534587344*^9, 3.7424415893890057`*^9}, 
+   3.742442078248901*^9},ExpressionUUID->"d3877f6f-ad92-42d7-a30b-\
+8f6319de4e94"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"dswx", "[", "yIn_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"3", "/", 
+     RowBox[{"(", 
+      RowBox[{"5", " ", "Pi"}], ")"}]}], ")"}], " ", 
+   RowBox[{"yIn", "^", 
+    RowBox[{"(", 
+     RowBox[{"2", "/", "3"}], ")"}]}], " ", 
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{"-", 
+      RowBox[{"BesselK", "[", 
+       RowBox[{
+        RowBox[{"5", "/", "3"}], ",", "yIn"}], "]"}]}], "+", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"2", "/", 
+        RowBox[{"(", 
+         RowBox[{"3", "yIn"}], ")"}]}], ")"}], " ", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{"BesselK", "[", 
+         RowBox[{
+          RowBox[{"5", "/", "3"}], ",", "yi"}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"yi", ",", "yIn", ",", "Infinity"}], "}"}]}], "]"}]}]}], 
+    ")"}]}]}]], "Input",
+ CellChangeTimes->{{3.742441613202278*^9, 3.742441678782744*^9}, {
+  3.742442079409278*^9, 
+  3.7424420896312037`*^9}},ExpressionUUID->"25903ca6-4024-42ef-a210-\
+8fc2e90eb171"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"dswxLog", "[", "yIn_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"dswx", "[", "yIn", "]"}], "yIn", " ", 
+   RowBox[{"Log", "[", "10", "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.7424444764206867`*^9, 3.742444508847848*^9}, {
+  3.742446061666147*^9, 
+  3.742446070340063*^9}},ExpressionUUID->"5d5c6fa1-32fd-4236-a441-\
+e7324d8f595b"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["", "Subchapter",ExpressionUUID->"6f75f4b2-8aaa-4cbc-89cc-dcdf13501029"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"swx", ",", 
+    RowBox[{"PowerRange", "[", 
+     RowBox[{
+      RowBox[{"10", "^", 
+       RowBox[{"-", "7"}]}], ",", 
+      RowBox[{"10", "^", 
+       RowBox[{"-", "2"}]}], ",", "10"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.742446042749381*^9, 3.742446042749737*^9}, {
+  3.742446311906097*^9, 
+  3.7424463127154303`*^9}},ExpressionUUID->"64c6111a-d6ce-4fa0-8a85-\
+bb7838e778d1"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"4.1052219\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["4.1052219", "D", "-1"],
+      Editable->False],
+     0.41052219075640356`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"4.1049501\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["4.1049501", "D", "-1"],
+      Editable->False],
+     0.4104950128848988,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"4.1036886\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["4.1036886", "D", "-1"],
+      Editable->False],
+     0.4103688643872696,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"4.0978334\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["4.0978334", "D", "-1"],
+      Editable->False],
+     0.4097833356560562,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"4.0706563\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["4.0706563", "D", "-1"],
+      Editable->False],
+     0.4070656292605117,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.9445841\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.9445841", "D", "-1"],
+      Editable->False],
+     0.3944584100614432,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{3.742446077317212*^9, 
+  3.742446317637808*^9},ExpressionUUID->"f17de6ed-0b3a-4330-8c50-\
+26b077446c2f"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"dswxLog", ",", 
+    RowBox[{"PowerRange", "[", 
+     RowBox[{
+      RowBox[{"10", "^", 
+       RowBox[{"-", "7"}]}], ",", 
+      RowBox[{"10", "^", 
+       RowBox[{"-", "2"}]}], ",", "10"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.742446056129971*^9, 3.742446056130336*^9}, {
+  3.7424463196829863`*^9, 
+  3.742446319954665*^9}},ExpressionUUID->"c806548d-1d43-4eaa-baf8-\
+b637efd72ee6"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.1456421\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-5\"\>"}],
+      SequenceForm["-1.1456421", "D", "-5"],
+      Editable->False],
+     -0.000011456420956506225`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.3175995\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-5\"\>"}],
+      SequenceForm["-5.3175995", "D", "-5"],
+      Editable->False],
+     -0.00005317599524635582,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.4682107\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-2.4682107", "D", "-4"],
+      Editable->False],
+     -0.0002468210719468395,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.1456386\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.1456386", "D", "-3"],
+      Editable->False],
+     -0.0011456385510626344`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.3172381\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-5.3172381", "D", "-3"],
+      Editable->False],
+     -0.005317238100007866,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.4646674\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.4646674", "D", "-2"],
+      Editable->False],
+     -0.024646674167795177`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{3.742446081552177*^9, 
+  3.742446321291079*^9},ExpressionUUID->"afaa7675-4ec0-4e6c-a421-\
+a8b03e057bd5"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"swx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"0.01", ",", "0.1", ",", "0.01"}], "]"}]}], "]"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.74244627245469*^9, 
+  3.742446283888986*^9}},ExpressionUUID->"becd8e0c-f25e-40a4-9676-\
+bbd63c6d5c63"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.9445841\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.9445841", "D", "-1"],
+      Editable->False],
+     0.3944584100614432,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.8503667\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.8503667", "D", "-1"],
+      Editable->False],
+     0.385036667533203,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.7715318\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.7715318", "D", "-1"],
+      Editable->False],
+     0.37715317864798464`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.7013587\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.7013587", "D", "-1"],
+      Editable->False],
+     0.37013586883558447`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.6370582\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.6370582", "D", "-1"],
+      Editable->False],
+     0.3637058171301312,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.5771314\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.5771314", "D", "-1"],
+      Editable->False],
+     0.3577131361791507,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.5206552\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.5206552", "D", "-1"],
+      Editable->False],
+     0.35206551999753555`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.4670102\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.4670102", "D", "-1"],
+      Editable->False],
+     0.34670101939169523`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.4157550\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.4157550", "D", "-1"],
+      Editable->False],
+     0.3415755023793747,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.3665612\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.3665612", "D", "-1"],
+      Editable->False],
+     0.3366561155925239,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742446285543837*^9},ExpressionUUID->"43e8d106-7747-4950-927a-\
+7133802f2938"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"dswx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"0.01", ",", "0.1", ",", "0.01"}], "]"}]}], "]"}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.742446302279582*^9, 
+  3.742446307244482*^9}},ExpressionUUID->"175933c7-df61-4e6b-9c83-\
+9f817ceaddf5"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.0703915\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"0\"\>"}],
+      SequenceForm["-1.0703915", "D", "0"],
+      Editable->False],
+     -1.0703914588340866`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-8.4772113\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-8.4772113", "D", "-1"],
+      Editable->False],
+     -0.8477211319364428,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-7.3863972\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-7.3863972", "D", "-1"],
+      Editable->False],
+     -0.7386397215716239,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-6.6916168\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-6.6916168", "D", "-1"],
+      Editable->False],
+     -0.6691616804316279,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-6.1924820\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-6.1924820", "D", "-1"],
+      Editable->False],
+     -0.6192481993874994,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.8078618\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-5.8078618", "D", "-1"],
+      Editable->False],
+     -0.5807861787612318,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.4975032\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-5.4975032", "D", "-1"],
+      Editable->False],
+     -0.549750318700258,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.2387509\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-5.2387509", "D", "-1"],
+      Editable->False],
+     -0.5238750892932608,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.0176995\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-5.0176995", "D", "-1"],
+      Editable->False],
+     -0.5017699489106544,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.8252543\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-4.8252543", "D", "-1"],
+      Editable->False],
+     -0.4825254285275893,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742446307910523*^9},ExpressionUUID->"da848f0d-7c5d-406f-8c66-\
+1568050b345a"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"swx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"0.1", ",", "1", ",", "0.02"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.7424434287859697`*^9, 
+  3.7424434315094347`*^9}},ExpressionUUID->"2bb31c39-c2b9-45e6-aad2-\
+c911b176edd0"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.3665612\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.3665612", "D", "-1"],
+      Editable->False],
+     0.3366561155925238,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.2733982\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.2733982", "D", "-1"],
+      Editable->False],
+     0.32733981961947345`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1860491\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1860491", "D", "-1"],
+      Editable->False],
+     0.3186049100827453,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1035234\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1035234", "D", "-1"],
+      Editable->False],
+     0.3103523395484047,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0251133\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0251133", "D", "-1"],
+      Editable->False],
+     0.3025113339608004,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9502902\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9502902", "D", "-1"],
+      Editable->False],
+     0.29502901690380334`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8786450\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8786450", "D", "-1"],
+      Editable->False],
+     0.2878644995683239,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8098528\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8098528", "D", "-1"],
+      Editable->False],
+     0.2809852824107656,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7436495\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7436495", "D", "-1"],
+      Editable->False],
+     0.27436494695231456`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6798161\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6798161", "D", "-1"],
+      Editable->False],
+     0.26798161158844397`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6181686\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6181686", "D", "-1"],
+      Editable->False],
+     0.2618168621135822,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5585499\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5585499", "D", "-1"],
+      Editable->False],
+     0.25585498918641403`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5008243\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5008243", "D", "-1"],
+      Editable->False],
+     0.2500824310211628,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4448736\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4448736", "D", "-1"],
+      Editable->False],
+     0.24448735728956592`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.3905935\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.3905935", "D", "-1"],
+      Editable->False],
+     0.23905935262280936`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.3378917\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.3378917", "D", "-1"],
+      Editable->False],
+     0.23378917190340195`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.2866855\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.2866855", "D", "-1"],
+      Editable->False],
+     0.22866854829952715`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.2369004\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.2369004", "D", "-1"],
+      Editable->False],
+     0.2236900407111408,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.1884691\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.1884691", "D", "-1"],
+      Editable->False],
+     0.21884691111677942`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.1413302\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.1413302", "D", "-1"],
+      Editable->False],
+     0.21413302491721783`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.0954277\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.0954277", "D", "-1"],
+      Editable->False],
+     0.20954276918606798`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.0507099\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.0507099", "D", "-1"],
+      Editable->False],
+     0.20507098502150048`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.0071291\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.0071291", "D", "-1"],
+      Editable->False],
+     0.20071291111665537`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.9646414\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.9646414", "D", "-1"],
+      Editable->False],
+     0.19646413633987794`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.9232056\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.9232056", "D", "-1"],
+      Editable->False],
+     0.19232055961375888`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.8827836\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.8827836", "D", "-1"],
+      Editable->False],
+     0.18827835575436194`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.8433395\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.8433395", "D", "-1"],
+      Editable->False],
+     0.18433394621372476`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.8048397\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.8048397", "D", "-1"],
+      Editable->False],
+     0.18048397388400608`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.7672528\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.7672528", "D", "-1"],
+      Editable->False],
+     0.1767252812877642,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.7305489\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.7305489", "D", "-1"],
+      Editable->False],
+     0.1730548916081633,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.6946999\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.6946999", "D", "-1"],
+      Editable->False],
+     0.16946999211441596`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.6596792\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.6596792", "D", "-1"],
+      Editable->False],
+     0.16596791961806023`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.6254615\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.6254615", "D", "-1"],
+      Editable->False],
+     0.1625461476596595,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.5920228\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.5920228", "D", "-1"],
+      Editable->False],
+     0.1592022751768469,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.5593402\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.5593402", "D", "-1"],
+      Editable->False],
+     0.1559340164460873,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.5273919\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.5273919", "D", "-1"],
+      Editable->False],
+     0.15273919212420456`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.4961572\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.4961572", "D", "-1"],
+      Editable->False],
+     0.1496157212432361,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.4656161\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.4656161", "D", "-1"],
+      Editable->False],
+     0.14656161403477594`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.4357497\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.4357497", "D", "-1"],
+      Editable->False],
+     0.14357496547863455`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.4065395\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.4065395", "D", "-1"],
+      Editable->False],
+     0.14065394948612092`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.3779681\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.3779681", "D", "-1"],
+      Editable->False],
+     0.13779681364116633`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.3500187\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.3500187", "D", "-1"],
+      Editable->False],
+     0.13500187443331105`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.3226751\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.3226751", "D", "-1"],
+      Editable->False],
+     0.1322675129256626,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.2959217\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.2959217", "D", "-1"],
+      Editable->False],
+     0.12959217080860175`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.2697435\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.2697435", "D", "-1"],
+      Editable->False],
+     0.12697434679651287`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"1.2441259\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["1.2441259", "D", "-1"],
+      Editable->False],
+     0.12441259333033677`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742443433625684*^9},ExpressionUUID->"80b3576c-97d7-4191-afab-\
+03b859e475bd"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"dswx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"0.1", ",", "1", ",", "0.02"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.742441909869574*^9, 3.742441914988083*^9}, {
+  3.7424420043390617`*^9, 3.742442016805603*^9}, {3.742442138392223*^9, 
+  3.7424421449416323`*^9}, {3.742442274032488*^9, 3.742442274586211*^9}, {
+  3.742442620901966*^9, 
+  3.742442625796608*^9}},ExpressionUUID->"a6e3e04e-abb8-4e69-be76-\
+a29da4fc926f"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.8252543\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-4.8252543", "D", "-1"],
+      Editable->False],
+     -0.4825254285275894,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.5029908\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-4.5029908", "D", "-1"],
+      Editable->False],
+     -0.45029907640352035`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.2400202\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-4.2400202", "D", "-1"],
+      Editable->False],
+     -0.4240020172292965,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.0183669\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-4.0183669", "D", "-1"],
+      Editable->False],
+     -0.4018366905735831,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.8269981\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-3.8269981", "D", "-1"],
+      Editable->False],
+     -0.38269980830586503`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.6586975\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-3.6586975", "D", "-1"],
+      Editable->False],
+     -0.3658697498466716,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.5085095\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-3.5085095", "D", "-1"],
+      Editable->False],
+     -0.3508509479012872,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.3728967\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-3.3728967", "D", "-1"],
+      Editable->False],
+     -0.33728966741530425`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.2492535\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-3.2492535", "D", "-1"],
+      Editable->False],
+     -0.3249253528755283,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.1356101\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-3.1356101", "D", "-1"],
+      Editable->False],
+     -0.3135610113704791,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.0304439\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-3.0304439", "D", "-1"],
+      Editable->False],
+     -0.30304439019899787`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.9325558\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.9325558", "D", "-1"],
+      Editable->False],
+     -0.2932555754367925,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.8409857\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.8409857", "D", "-1"],
+      Editable->False],
+     -0.2840985666195046,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.7549540\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.7549540", "D", "-1"],
+      Editable->False],
+     -0.2754953995617884,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.6738195\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.6738195", "D", "-1"],
+      Editable->False],
+     -0.26738195133422116`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.5970488\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.5970488", "D", "-1"],
+      Editable->False],
+     -0.25970488484752935`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.5241938\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.5241938", "D", "-1"],
+      Editable->False],
+     -0.2524193832976392,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.4548744\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.4548744", "D", "-1"],
+      Editable->False],
+     -0.24548744326358052`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.3887657\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.3887657", "D", "-1"],
+      Editable->False],
+     -0.2388765701492553,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.3255877\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.3255877", "D", "-1"],
+      Editable->False],
+     -0.2325587681530469,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.2650975\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.2650975", "D", "-1"],
+      Editable->False],
+     -0.22650974904020799`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.2070831\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.2070831", "D", "-1"],
+      Editable->False],
+     -0.2207083056532516,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.1513581\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.1513581", "D", "-1"],
+      Editable->False],
+     -0.2151358109799139,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.0977581\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.0977581", "D", "-1"],
+      Editable->False],
+     -0.2097758139948428,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.0461371\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-2.0461371", "D", "-1"],
+      Editable->False],
+     -0.20461371086255414`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.9963648\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.9963648", "D", "-1"],
+      Editable->False],
+     -0.19963647538801316`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.9483244\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.9483244", "D", "-1"],
+      Editable->False],
+     -0.1948324364587773,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.9019109\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.9019109", "D", "-1"],
+      Editable->False],
+     -0.190191093064134,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.8570296\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.8570296", "D", "-1"],
+      Editable->False],
+     -0.18570295959262925`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.8135944\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.8135944", "D", "-1"],
+      Editable->False],
+     -0.1813594357011162,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.7715270\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.7715270", "D", "-1"],
+      Editable->False],
+     -0.1771526962571943,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.7307560\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.7307560", "D", "-1"],
+      Editable->False],
+     -0.17307559778298537`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.6912160\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.6912160", "D", "-1"],
+      Editable->False],
+     -0.1691215985435816,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.6528469\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.6528469", "D", "-1"],
+      Editable->False],
+     -0.16528468998047327`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.6155934\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.6155934", "D", "-1"],
+      Editable->False],
+     -0.16155933762707164`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5794043\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.5794043", "D", "-1"],
+      Editable->False],
+     -0.1579404299883902,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5442323\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.5442323", "D", "-1"],
+      Editable->False],
+     -0.15442323414113807`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5100336\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.5100336", "D", "-1"],
+      Editable->False],
+     -0.15100335702976364`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4767671\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.4767671", "D", "-1"],
+      Editable->False],
+     -0.1476767116103921,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4443949\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.4443949", "D", "-1"],
+      Editable->False],
+     -0.14443948713730823`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4128812\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.4128812", "D", "-1"],
+      Editable->False],
+     -0.14128812300267674`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3821929\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.3821929", "D", "-1"],
+      Editable->False],
+     -0.13821928563503122`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3522985\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.3522985", "D", "-1"],
+      Editable->False],
+     -0.13522984803994728`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3231687\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.3231687", "D", "-1"],
+      Editable->False],
+     -0.13231687163055836`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.2947759\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.2947759", "D", "-1"],
+      Editable->False],
+     -0.1294775900488,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.2670939\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["-1.2670939", "D", "-1"],
+      Editable->False],
+     -0.12670939472255677`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{{3.7424426311966543`*^9, 
+  3.7424426609221077`*^9}},ExpressionUUID->"46d973c8-7da6-4643-93c6-\
+1aa723024763"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ewx", "[", "yIn_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"3", "/", 
+     RowBox[{"(", 
+      RowBox[{"5", " ", "Pi"}], ")"}]}], ")"}], 
+   RowBox[{"Exp", "[", "yIn", "]"}], " ", 
+   RowBox[{"Sqrt", "[", "yIn", "]"}], 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"BesselK", "[", 
+      RowBox[{
+       RowBox[{"5", "/", "3"}], ",", "yi"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"yi", ",", "yIn", ",", "Infinity"}], "}"}]}], 
+    "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.742439640845715*^9, 3.742439680779024*^9}, 
+   3.742441563760737*^9},ExpressionUUID->"3fad6354-3915-496d-961a-\
+306ac7de5eb3"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"dewx", "[", "yIn_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"3", "/", 
+     RowBox[{"(", 
+      RowBox[{"5", " ", "Pi"}], ")"}]}], ")"}], 
+   RowBox[{"Exp", "[", "yIn", "]"}], 
+   RowBox[{"Sqrt", "[", "yIn", "]"}], 
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{"-", 
+      RowBox[{"BesselK", "[", 
+       RowBox[{
+        RowBox[{"5", "/", "3"}], ",", "yIn"}], "]"}]}], "+", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{"1", "+", 
+        RowBox[{"1", "/", 
+         RowBox[{"(", 
+          RowBox[{"2", "yIn"}], ")"}]}]}], ")"}], 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{"BesselK", "[", 
+         RowBox[{
+          RowBox[{"5", "/", "3"}], ",", "yi"}], "]"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"yi", ",", "yIn", ",", "Infinity"}], "}"}]}], "]"}]}]}], 
+    ")"}]}]}]], "Input",
+ CellChangeTimes->{{3.7424391446609*^9, 3.742439165441482*^9}, {
+   3.742439256594041*^9, 3.7424392970038643`*^9}, {3.742439341436014*^9, 
+   3.7424394202364397`*^9}, 3.742439632457285*^9, 3.742439829271101*^9, {
+   3.742440303162713*^9, 
+   3.742440307900185*^9}},ExpressionUUID->"ac1ac575-5e93-4704-b20e-\
+eddd5249be3b"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"ewx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"1", ",", "3", ",", "0.05"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.7424427191172533`*^9, 
+  3.742442721998786*^9}},ExpressionUUID->"79739bea-680f-45f3-b6be-\
+598c55f5d059"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.3818849\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.3818849", "D", "-1"],
+      Editable->False],
+     0.3381884916813194,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.3516487\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.3516487", "D", "-1"],
+      Editable->False],
+     0.33516486872707674`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.3233973\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.3233973", "D", "-1"],
+      Editable->False],
+     0.33233972880342033`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.2969287\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.2969287", "D", "-1"],
+      Editable->False],
+     0.32969287017621746`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.2720686\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.2720686", "D", "-1"],
+      Editable->False],
+     0.32720685992094733`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.2486656\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.2486656", "D", "-1"],
+      Editable->False],
+     0.3248665615416781,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.2265876\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.2265876", "D", "-1"],
+      Editable->False],
+     0.32265875807797956`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.2057185\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.2057185", "D", "-1"],
+      Editable->False],
+     0.32057184858108745`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1859560\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1859560", "D", "-1"],
+      Editable->False],
+     0.3185956015735938,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1672095\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1672095", "D", "-1"],
+      Editable->False],
+     0.3167209532063722,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1493984\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1493984", "D", "-1"],
+      Editable->False],
+     0.3149398407971808,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1324506\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1324506", "D", "-1"],
+      Editable->False],
+     0.3132450646147482,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1163017\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1163017", "D", "-1"],
+      Editable->False],
+     0.3116301723892961,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.1008936\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.1008936", "D", "-1"],
+      Editable->False],
+     0.3100893622430917,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0861740\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0861740", "D", "-1"],
+      Editable->False],
+     0.3086174006529571,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0720955\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0720955", "D", "-1"],
+      Editable->False],
+     0.30720955275848155`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0586152\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0586152", "D", "-1"],
+      Editable->False],
+     0.3058615228706874,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0456940\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0456940", "D", "-1"],
+      Editable->False],
+     0.3045694034562482,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0332963\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0332963", "D", "-1"],
+      Editable->False],
+     0.3033296312014947,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0213895\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0213895", "D", "-1"],
+      Editable->False],
+     0.302138949019947,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"3.0099437\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["3.0099437", "D", "-1"],
+      Editable->False],
+     0.30099437307309157`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9989316\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9989316", "D", "-1"],
+      Editable->False],
+     0.29989316403870075`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9883280\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9883280", "D", "-1"],
+      Editable->False],
+     0.29883280199320994`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9781096\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9781096", "D", "-1"],
+      Editable->False],
+     0.2978109643815249,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9682551\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9682551", "D", "-1"],
+      Editable->False],
+     0.2968255066345165,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9587445\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9587445", "D", "-1"],
+      Editable->False],
+     0.2958744450653016,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9495594\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9495594", "D", "-1"],
+      Editable->False],
+     0.29495594173366746`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9406829\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9406829", "D", "-1"],
+      Editable->False],
+     0.29406829101595494`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9320991\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9320991", "D", "-1"],
+      Editable->False],
+     0.2932099076574211,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9237932\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9237932", "D", "-1"],
+      Editable->False],
+     0.29237931611720497`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9157514\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9157514", "D", "-1"],
+      Editable->False],
+     0.2915751410435363,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9079610\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9079610", "D", "-1"],
+      Editable->False],
+     0.2907960987400078,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.9004099\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.9004099", "D", "-1"],
+      Editable->False],
+     0.2900409895031415,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8930869\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8930869", "D", "-1"],
+      Editable->False],
+     0.2893086907279286,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8859815\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8859815", "D", "-1"],
+      Editable->False],
+     0.2885981506919154,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8790838\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8790838", "D", "-1"],
+      Editable->False],
+     0.2879083829402387,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8723846\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8723846", "D", "-1"],
+      Editable->False],
+     0.2872384612040875,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8658751\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8658751", "D", "-1"],
+      Editable->False],
+     0.28658751479368727`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8595472\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8595472", "D", "-1"],
+      Editable->False],
+     0.28595472441429304`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8533932\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8533932", "D", "-1"],
+      Editable->False],
+     0.2853393183600283,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8474057\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8474057", "D", "-1"],
+      Editable->False],
+     0.28474056904589284`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742442723805929*^9},ExpressionUUID->"fb5593fd-fbf7-4e9d-9c17-\
+da512021e3ee"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"dewx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"1", ",", "3", ",", "0.05"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.742441141176158*^9, 3.74244116096911*^9}, {
+  3.7424426947243*^9, 
+  3.742442699605234*^9}},ExpressionUUID->"c3ba6bb9-7d95-4339-ad8b-\
+dbb6f1d85d42"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-6.2608102\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-6.2608102", "D", "-2"],
+      Editable->False],
+     -0.06260810210160425,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.8415126\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-5.8415126", "D", "-2"],
+      Editable->False],
+     -0.05841512574627052,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.4657613\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-5.4657613", "D", "-2"],
+      Editable->False],
+     -0.05465761288305962,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.1274686\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-5.1274686", "D", "-2"],
+      Editable->False],
+     -0.05127468589205178,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.8216055\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-4.8216055", "D", "-2"],
+      Editable->False],
+     -0.04821605469455341,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.5439837\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-4.5439837", "D", "-2"],
+      Editable->False],
+     -0.045439836589364985`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.2910890\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-4.2910890", "D", "-2"],
+      Editable->False],
+     -0.04291089016908416,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.0599528\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-4.0599528", "D", "-2"],
+      Editable->False],
+     -0.04059952777253662,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.8480510\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-3.8480510", "D", "-2"],
+      Editable->False],
+     -0.038480510190509576`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.6532254\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-3.6532254", "D", "-2"],
+      Editable->False],
+     -0.03653225427782511,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.4736203\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-3.4736203", "D", "-2"],
+      Editable->False],
+     -0.034736202884422265`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.3076320\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-3.3076320", "D", "-2"],
+      Editable->False],
+     -0.0330763197658139,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.1538682\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-3.1538682", "D", "-2"],
+      Editable->False],
+     -0.031538681609153664`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.0111146\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-3.0111146", "D", "-2"],
+      Editable->False],
+     -0.030111146170280254`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.8783081\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.8783081", "D", "-2"],
+      Editable->False],
+     -0.028783080537289955`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.7545137\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.7545137", "D", "-2"],
+      Editable->False],
+     -0.027545137248590618`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.6389069\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.6389069", "D", "-2"],
+      Editable->False],
+     -0.026389068765357175`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.5307573\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.5307573", "D", "-2"],
+      Editable->False],
+     -0.02530757288680246,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.4294163\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.4294163", "D", "-2"],
+      Editable->False],
+     -0.024294163283736077`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.3343061\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.3343061", "D", "-2"],
+      Editable->False],
+     -0.02334306054144287,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.2449100\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.2449100", "D", "-2"],
+      Editable->False],
+     -0.022449100041193226`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.1607654\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.1607654", "D", "-2"],
+      Editable->False],
+     -0.021607653738803474`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.0814563\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.0814563", "D", "-2"],
+      Editable->False],
+     -0.020814563469364687`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.0066084\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-2.0066084", "D", "-2"],
+      Editable->False],
+     -0.020066083856658107`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.9358833\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.9358833", "D", "-2"],
+      Editable->False],
+     -0.019358833261761747`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.8689751\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.8689751", "D", "-2"],
+      Editable->False],
+     -0.018689751489129946`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.8056063\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.8056063", "D", "-2"],
+      Editable->False],
+     -0.018056063195732823`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.7455246\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.7455246", "D", "-2"],
+      Editable->False],
+     -0.017455246131967014`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.6885003\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.6885003", "D", "-2"],
+      Editable->False],
+     -0.016885003491126035`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.6343240\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.6343240", "D", "-2"],
+      Editable->False],
+     -0.01634323976490897,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5828040\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.5828040", "D", "-2"],
+      Editable->False],
+     -0.015828039600833052`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5337649\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.5337649", "D", "-2"],
+      Editable->False],
+     -0.015337649238050597`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4870460\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.4870460", "D", "-2"],
+      Editable->False],
+     -0.014870460164912351`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4424995\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.4424995", "D", "-2"],
+      Editable->False],
+     -0.014424994696417458`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3999893\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.3999893", "D", "-2"],
+      Editable->False],
+     -0.013999893215540184`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3593903\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.3593903", "D", "-2"],
+      Editable->False],
+     -0.013593902860463625`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3205867\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.3205867", "D", "-2"],
+      Editable->False],
+     -0.013205867471624453`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.2834719\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.2834719", "D", "-2"],
+      Editable->False],
+     -0.012834718639201761`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.2479468\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.2479468", "D", "-2"],
+      Editable->False],
+     -0.01247946771418627,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.2139199\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.2139199", "D", "-2"],
+      Editable->False],
+     -0.012139198665177008`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.1813062\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.1813062", "D", "-2"],
+      Editable->False],
+     -0.011813061679144272`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742442701955977*^9},ExpressionUUID->"c9979223-1f4d-4ae0-8b52-\
+7a8db0be1e82"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"ewx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"3", ",", "10", ",", "0.2"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.742442814124022*^9, 
+  3.742442817204979*^9}},ExpressionUUID->"8fddf256-2903-4e3c-98a0-\
+7d1686a4734d"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8474057\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8474057", "D", "-1"],
+      Editable->False],
+     0.28474056904589284`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8249896\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8249896", "D", "-1"],
+      Editable->False],
+     0.28249896190592344`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.8047519\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.8047519", "D", "-1"],
+      Editable->False],
+     0.28047519190666,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7863827\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7863827", "D", "-1"],
+      Editable->False],
+     0.27863826846326634`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7696291\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7696291", "D", "-1"],
+      Editable->False],
+     0.2769629104994982,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7542827\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7542827", "D", "-1"],
+      Editable->False],
+     0.2754282730697272,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7401700\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7401700", "D", "-1"],
+      Editable->False],
+     0.2740170035028192,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7271453\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7271453", "D", "-1"],
+      Editable->False],
+     0.27271453094656645`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7150852\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7150852", "D", "-1"],
+      Editable->False],
+     0.2715085241458679,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.7038847\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.7038847", "D", "-1"],
+      Editable->False],
+     0.2703884724073466,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6934536\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6934536", "D", "-1"],
+      Editable->False],
+     0.26934535806059046`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6837140\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6837140", "D", "-1"],
+      Editable->False],
+     0.26837139776592933`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6745984\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6745984", "D", "-1"],
+      Editable->False],
+     0.2674598362437329,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6660478\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6660478", "D", "-1"],
+      Editable->False],
+     0.2666047803555941,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6580106\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6580106", "D", "-1"],
+      Editable->False],
+     0.2658010645596598,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6504414\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6504414", "D", "-1"],
+      Editable->False],
+     0.2650441409868748,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6432999\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6432999", "D", "-1"],
+      Editable->False],
+     0.2643299890052161,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6365504\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6365504", "D", "-1"],
+      Editable->False],
+     0.2636550403327984,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6301612\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6301612", "D", "-1"],
+      Editable->False],
+     0.2630161166496762,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6241038\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6241038", "D", "-1"],
+      Editable->False],
+     0.2624103773266652,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6183528\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6183528", "D", "-1"],
+      Editable->False],
+     0.26183527539690965`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6128852\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6128852", "D", "-1"],
+      Editable->False],
+     0.26128852028436905`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6076805\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6076805", "D", "-1"],
+      Editable->False],
+     0.2607680461032055,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.6027198\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.6027198", "D", "-1"],
+      Editable->False],
+     0.2602719845752191,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5979864\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5979864", "D", "-1"],
+      Editable->False],
+     0.25979864179510415`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5934648\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5934648", "D", "-1"],
+      Editable->False],
+     0.25934647821733803`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5891409\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5891409", "D", "-1"],
+      Editable->False],
+     0.25891409135280896`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5850020\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5850020", "D", "-1"],
+      Editable->False],
+     0.2585002007545758,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5810363\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5810363", "D", "-1"],
+      Editable->False],
+     0.2581036349454395,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5772332\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5772332", "D", "-1"],
+      Editable->False],
+     0.2577233199991989,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5735827\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5735827", "D", "-1"],
+      Editable->False],
+     0.25735826953549407`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5700758\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5700758", "D", "-1"],
+      Editable->False],
+     0.257007575927324,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5667040\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5667040", "D", "-1"],
+      Editable->False],
+     0.25667040255243256`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5634598\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5634598", "D", "-1"],
+      Editable->False],
+     0.2563459769461846,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5603358\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5603358", "D", "-1"],
+      Editable->False],
+     0.2560335847354062,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5573256\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5573256", "D", "-1"],
+      Editable->False],
+     0.2557325642507923,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742442819526622*^9},ExpressionUUID->"8ab5f764-ca0d-4163-98a0-\
+565fd203f8bd"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"dewx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"3", ",", "10", ",", "0.2"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.742440015921219*^9, 3.742440030580041*^9}, {
+  3.742440097890826*^9, 3.7424400992007027`*^9}, {3.742441268210979*^9, 
+  3.742441269270851*^9}, {3.7424428033498697`*^9, 
+  3.742442808752781*^9}},ExpressionUUID->"3c838550-140b-4da3-80c7-\
+1bf4ab710e41"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.1813062\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.1813062", "D", "-2"],
+      Editable->False],
+     -0.011813061679144272`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.0634850\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-2\"\>"}],
+      SequenceForm["-1.0634850", "D", "-2"],
+      Editable->False],
+     -0.010634849820955335`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-9.6285326\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-9.6285326", "D", "-3"],
+      Editable->False],
+     -0.009628532554381153,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-8.7616650\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-8.7616650", "D", "-3"],
+      Editable->False],
+     -0.008761664974143046,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-8.0092079\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-8.0092079", "D", "-3"],
+      Editable->False],
+     -0.008009207884655633,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-7.3515685\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-7.3515685", "D", "-3"],
+      Editable->False],
+     -0.007351568499583406,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-6.7732249\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-6.7732249", "D", "-3"],
+      Editable->False],
+     -0.006773224860812567,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-6.2617422\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-6.2617422", "D", "-3"],
+      Editable->False],
+     -0.006261742172873161,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.8070577\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-5.8070577", "D", "-3"],
+      Editable->False],
+     -0.0058070576901045855`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.4009530\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-5.4009530", "D", "-3"],
+      Editable->False],
+     -0.005400953029865927,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.0366595\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-5.0366595", "D", "-3"],
+      Editable->False],
+     -0.005036659480954002,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.7085591\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-4.7085591", "D", "-3"],
+      Editable->False],
+     -0.004708559118523176,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.4119559\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-4.4119559", "D", "-3"],
+      Editable->False],
+     -0.004411955893538255,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.1428985\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-4.1428985", "D", "-3"],
+      Editable->False],
+     -0.004142898480011902,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.8980419\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-3.8980419", "D", "-3"],
+      Editable->False],
+     -0.0038980418539256156`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.6745382\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-3.6745382", "D", "-3"],
+      Editable->False],
+     -0.003674538169400229,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.4699500\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-3.4699500", "D", "-3"],
+      Editable->False],
+     -0.003469950017698378,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.2821809\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-3.2821809", "D", "-3"],
+      Editable->False],
+     -0.003282180945610873,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.1094194\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-3.1094194", "D", "-3"],
+      Editable->False],
+     -0.003109419397895342,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.9500932\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.9500932", "D", "-3"],
+      Editable->False],
+     -0.002950093185242189,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.8028323\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.8028323", "D", "-3"],
+      Editable->False],
+     -0.002802832267634859,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.6664382\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.6664382", "D", "-3"],
+      Editable->False],
+     -0.0026664381537627787`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.5398586\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.5398586", "D", "-3"],
+      Editable->False],
+     -0.0025398585996130704`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.4221666\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.4221666", "D", "-3"],
+      Editable->False],
+     -0.002422166578204291,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.3125427\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.3125427", "D", "-3"],
+      Editable->False],
+     -0.0023125427123224956`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.2102605\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.2102605", "D", "-3"],
+      Editable->False],
+     -0.00221026053078803,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.1146740\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.1146740", "D", "-3"],
+      Editable->False],
+     -0.002114674039119103,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.0252072\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-2.0252072", "D", "-3"],
+      Editable->False],
+     -0.0020252071968146087`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.9413450\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.9413450", "D", "-3"],
+      Editable->False],
+     -0.0019413449728578648`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.8626257\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.8626257", "D", "-3"],
+      Editable->False],
+     -0.0018626257135430954`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.7886346\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.7886346", "D", "-3"],
+      Editable->False],
+     -0.001788634606260941,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.7189981\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.7189981", "D", "-3"],
+      Editable->False],
+     -0.0017189980623290415`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.6533789\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.6533789", "D", "-3"],
+      Editable->False],
+     -0.0016533788735494715`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5914720\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.5914720", "D", "-3"],
+      Editable->False],
+     -0.0015914720226081216`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5330010\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.5330010", "D", "-3"],
+      Editable->False],
+     -0.001533001047992707,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4777149\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.4777149", "D", "-3"],
+      Editable->False],
+     -0.0014777148808229213`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.74244282319853*^9},ExpressionUUID->"5c50de89-cf3d-4c3a-bd80-8df4c7901a1e"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"ewx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"10", ",", "40", ",", "1"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.742442843692423*^9, 3.7424428462286997`*^9}, {
+  3.7424430782638693`*^9, 3.7424430789373827`*^9}, {3.742447686166098*^9, 
+  3.74244769324666*^9}},ExpressionUUID->"54734cf1-9869-4cee-a7d3-\
+52a500b2319c"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5573256\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5573256", "D", "-1"],
+      Editable->False],
+     0.2557325642507924,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5437801\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5437801", "D", "-1"],
+      Editable->False],
+     0.2543780054048111,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5323167\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5323167", "D", "-1"],
+      Editable->False],
+     0.25323167424393633`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5224879\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5224879", "D", "-1"],
+      Editable->False],
+     0.25224878982321397`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5139659\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5139659", "D", "-1"],
+      Editable->False],
+     0.25139659415977084`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.5065056\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.5065056", "D", "-1"],
+      Editable->False],
+     0.2506505605859554,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4999195\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4999195", "D", "-1"],
+      Editable->False],
+     0.24999195493556395`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4940622\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4940622", "D", "-1"],
+      Editable->False],
+     0.24940621704655497`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4888186\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4888186", "D", "-1"],
+      Editable->False],
+     0.24888185722506756`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4840969\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4840969", "D", "-1"],
+      Editable->False],
+     0.2484096858429413,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4798226\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4798226", "D", "-1"],
+      Editable->False],
+     0.2479822641888867,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4759351\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4759351", "D", "-1"],
+      Editable->False],
+     0.2475935057234929,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4723838\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4723838", "D", "-1"],
+      Editable->False],
+     0.247238381713798,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4691270\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4691270", "D", "-1"],
+      Editable->False],
+     0.246912700662971,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4661294\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4661294", "D", "-1"],
+      Editable->False],
+     0.24661294079212026`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4633612\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4633612", "D", "-1"],
+      Editable->False],
+     0.2463361212444376,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4607970\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4607970", "D", "-1"],
+      Editable->False],
+     0.24607970194541207`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4584150\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4584150", "D", "-1"],
+      Editable->False],
+     0.24584150493922002`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4561965\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4561965", "D", "-1"],
+      Editable->False],
+     0.24561965200812805`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4541251\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4541251", "D", "-1"],
+      Editable->False],
+     0.24541251477020162`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4521867\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4521867", "D", "-1"],
+      Editable->False],
+     0.24521867443463363`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4503689\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4503689", "D", "-1"],
+      Editable->False],
+     0.24503688910047092`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4486607\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4486607", "D", "-1"],
+      Editable->False],
+     0.24486606699783123`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4470524\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4470524", "D", "-1"],
+      Editable->False],
+     0.24470524444784367`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4455357\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4455357", "D", "-1"],
+      Editable->False],
+     0.24455356759752833`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4441028\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4441028", "D", "-1"],
+      Editable->False],
+     0.244410277195714,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4427470\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4427470", "D", "-1"],
+      Editable->False],
+     0.24427469583484746`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4414622\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4414622", "D", "-1"],
+      Editable->False],
+     0.24414621720467294`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4402430\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4402430", "D", "-1"],
+      Editable->False],
+     0.2440242969969008,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4390845\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4390845", "D", "-1"],
+      Editable->False],
+     0.2439084451721591,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"2.4379822\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-1\"\>"}],
+      SequenceForm["2.4379822", "D", "-1"],
+      Editable->False],
+     0.24379821935684573`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742447726327731*^9},ExpressionUUID->"5b290d78-e5c4-4e95-bad9-\
+82839b58d106"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"nForm", "[", 
+  RowBox[{"Map", "[", 
+   RowBox[{"dewx", ",", 
+    RowBox[{"Range", "[", 
+     RowBox[{"10", ",", "40", ",", "1"}], "]"}]}], "]"}], "]"}]], "Input",
+ CellChangeTimes->{{3.74243942740977*^9, 3.7424394347537203`*^9}, {
+  3.742439688974408*^9, 3.7424397531866617`*^9}, {3.7424398837981167`*^9, 
+  3.742439888662094*^9}, {3.7424399772640867`*^9, 3.742439978961892*^9}, {
+  3.742442836121015*^9, 3.742442836540435*^9}, {3.7424430831529493`*^9, 
+  3.742443083901937*^9}, {3.742447697084318*^9, 
+  3.742447702845428*^9}},ExpressionUUID->"35dccd6e-c0cd-4667-8289-\
+cc8e9198c5f0"],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"{", 
+   RowBox[{
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4777149\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.4777149", "D", "-3"],
+      Editable->False],
+     -0.0014777148808229215`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.2417257\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.2417257", "D", "-3"],
+      Editable->False],
+     -0.0012417257473349578`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.0583022\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-3\"\>"}],
+      SequenceForm["-1.0583022", "D", "-3"],
+      Editable->False],
+     -0.0010583021955982302`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-9.1286524\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-9.1286524", "D", "-4"],
+      Editable->False],
+     -0.0009128652362461225,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-7.9557438\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-7.9557438", "D", "-4"],
+      Editable->False],
+     -0.0007955743837026523,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-6.9958881\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-6.9958881", "D", "-4"],
+      Editable->False],
+     -0.0006995888087061655,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-6.2003118\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-6.2003118", "D", "-4"],
+      Editable->False],
+     -0.0006200311758634044,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-5.5334694\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-5.5334694", "D", "-4"],
+      Editable->False],
+     -0.0005533469357815423,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.9689529\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-4.9689529", "D", "-4"],
+      Editable->False],
+     -0.0004968952910067866,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.4868069\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-4.4868069", "D", "-4"],
+      Editable->False],
+     -0.0004486806876877889,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-4.0717218\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-4.0717218", "D", "-4"],
+      Editable->False],
+     -0.0004071721771749079,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.7117922\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-3.7117922", "D", "-4"],
+      Editable->False],
+     -0.0003711792165888498,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.3976460\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-3.3976460", "D", "-4"],
+      Editable->False],
+     -0.0003397645958466897,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-3.1218231\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-3.1218231", "D", "-4"],
+      Editable->False],
+     -0.00031218231473036177`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.8783255\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-2.8783255", "D", "-4"],
+      Editable->False],
+     -0.00028783255315261694`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.6622856\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-2.6622856", "D", "-4"],
+      Editable->False],
+     -0.000266228558034606,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.4697197\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-2.4697197", "D", "-4"],
+      Editable->False],
+     -0.0002469719709167098,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.2973422\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-2.2973422", "D", "-4"],
+      Editable->False],
+     -0.00022973422174202626`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.1424234\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-2.1424234", "D", "-4"],
+      Editable->False],
+     -0.00021424234077634802`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-2.0026803\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-2.0026803", "D", "-4"],
+      Editable->False],
+     -0.0002002680281311515,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.8761915\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.8761915", "D", "-4"],
+      Editable->False],
+     -0.00018761915262967738`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.7613308\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.7613308", "D", "-4"],
+      Editable->False],
+     -0.0001761330815200707,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.6567140\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.6567140", "D", "-4"],
+      Editable->False],
+     -0.00016567140356160855`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.5611572\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.5611572", "D", "-4"],
+      Editable->False],
+     -0.00015611572226953237`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.4736428\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.4736428", "D", "-4"],
+      Editable->False],
+     -0.00014736427812072343`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3932922\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.3932922", "D", "-4"],
+      Editable->False],
+     -0.0001393292180351444,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.3193437\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.3193437", "D", "-4"],
+      Editable->False],
+     -0.0001319343740804877,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.2511345\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.2511345", "D", "-4"],
+      Editable->False],
+     -0.00012511344562030337`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.1880850\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.1880850", "D", "-4"],
+      Editable->False],
+     -0.00011880850324153218`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.1296875\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.1296875", "D", "-4"],
+      Editable->False],
+     -0.00011296875093567095`,
+     Editable->False], ",", 
+    InterpretationBox[
+     InterpretationBox[
+      RowBox[{"\<\"-1.0754950\"\>", "\[InvisibleSpace]", "\<\"D\"\>", 
+       "\[InvisibleSpace]", "\<\"-4\"\>"}],
+      SequenceForm["-1.0754950", "D", "-4"],
+      Editable->False],
+     -0.00010754949678891291`,
+     Editable->False]}], "}"}],
+  NumberForm[#, {10, 7}, NumberFormat -> (SequenceForm[#, "D", #3]& ), 
+   ExponentFunction -> (#& )]& ]], "Print",
+ CellChangeTimes->{
+  3.742447736326715*^9},ExpressionUUID->"04a123c9-44a1-4124-8b76-\
+9234dbcee4b2"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1046, 1205},
+WindowMargins->{{Automatic, 973}, {55, Automatic}},
+FrontEndVersion->"11.1 for Linux x86 (64-bit) (April 18, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 242, 4, 64, "Subchapter", "ExpressionUUID" -> \
+"ee42b0c9-6fbf-4a76-991d-6ad9592f1f9c"],
+Cell[825, 28, 731, 21, 57, "Input", "ExpressionUUID" -> \
+"9dc3597e-f8ae-4ec0-8b87-666781cd919e"],
+Cell[1559, 51, 1090, 25, 34, "Input", "ExpressionUUID" -> \
+"42583307-0a63-45e0-bfae-f94cd7d5a578"],
+Cell[2652, 78, 468, 14, 34, "Input", "ExpressionUUID" -> \
+"27937b13-e4da-4822-be15-e8f9d7b2d3bc"],
+Cell[CellGroupData[{
+Cell[3145, 96, 350, 10, 34, "Input", "ExpressionUUID" -> \
+"1474c704-11e7-426f-b08e-a98ab0fa3c61"],
+Cell[3498, 108, 45546, 1184, 228, 45273, 1179, "CachedBoxData", "BoxData", \
+"Output", "ExpressionUUID" -> "2198a4f9-0717-4930-b159-5f57ee2c56d9"]
+}, Open  ]],
+Cell[49059, 1295, 676, 21, 34, "Input", "ExpressionUUID" -> \
+"d3877f6f-ad92-42d7-a30b-8f6319de4e94"],
+Cell[49738, 1318, 1033, 33, 57, "Input", "ExpressionUUID" -> \
+"25903ca6-4024-42ef-a210-8fc2e90eb171"],
+Cell[50774, 1353, 360, 9, 34, "Input", "ExpressionUUID" -> \
+"5d5c6fa1-32fd-4236-a441-e7324d8f595b"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[51171, 1367, 77, 0, 64, "Subchapter", "ExpressionUUID" -> \
+"6f75f4b2-8aaa-4cbc-89cc-dcdf13501029"],
+Cell[CellGroupData[{
+Cell[51273, 1371, 469, 13, 34, "Input", "ExpressionUUID" -> \
+"64c6111a-d6ce-4fa0-8a85-bb7838e778d1"],
+Cell[51745, 1386, 1993, 56, 26, "Print", "ExpressionUUID" -> \
+"f17de6ed-0b3a-4330-8c50-26b077446c2f"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[53775, 1447, 473, 13, 34, "Input", "ExpressionUUID" -> \
+"c806548d-1d43-4eaa-baf8-b637efd72ee6"],
+Cell[54251, 1462, 2031, 56, 26, "Print", "ExpressionUUID" -> \
+"afaa7675-4ec0-4e6c-a421-a8b03e057bd5"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[56319, 1523, 320, 9, 34, "Input", "ExpressionUUID" -> \
+"becd8e0c-f25e-40a4-9676-bbd63c6d5c63"],
+Cell[56642, 1534, 3108, 88, 48, "Print", "ExpressionUUID" -> \
+"43e8d106-7747-4950-927a-7133802f2938"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[59787, 1627, 322, 9, 34, "Input", "ExpressionUUID" -> \
+"175933c7-df61-4e6b-9c83-9f817ceaddf5"],
+Cell[60112, 1638, 3129, 88, 48, "Print", "ExpressionUUID" -> \
+"da848f0d-7c5d-406f-8c66-1568050b345a"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[63278, 1731, 319, 8, 34, "Input", "ExpressionUUID" -> \
+"2bb31c39-c2b9-45e6-aad2-c911b176edd0"],
+Cell[63600, 1741, 13349, 376, 136, "Print", "ExpressionUUID" -> \
+"80b3576c-97d7-4191-afab-03b859e475bd"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[76986, 2122, 513, 11, 34, "Input", "ExpressionUUID" -> \
+"a6e3e04e-abb8-4e69-be76-a29da4fc926f"],
+Cell[77502, 2135, 13495, 376, 158, "Print", "ExpressionUUID" -> \
+"46d973c8-7da6-4643-93c6-1aa723024763"]
+}, Open  ]],
+Cell[91012, 2514, 669, 20, 34, "Input", "ExpressionUUID" -> \
+"3fad6354-3915-496d-961a-306ac7de5eb3"],
+Cell[91684, 2536, 1190, 35, 57, "Input", "ExpressionUUID" -> \
+"ac1ac575-5e93-4704-b20e-eddd5249be3b"],
+Cell[CellGroupData[{
+Cell[92899, 2575, 315, 8, 34, "Input", "ExpressionUUID" -> \
+"79739bea-680f-45f3-b6be-598c55f5d059"],
+Cell[93217, 2585, 11905, 336, 136, "Print", "ExpressionUUID" -> \
+"fb5593fd-fbf7-4e9d-9c17-da512021e3ee"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[105159, 2926, 360, 9, 34, "Input", "ExpressionUUID" -> \
+"c3ba6bb9-7d95-4339-ad8b-dbb6f1d85d42"],
+Cell[105522, 2937, 12093, 336, 136, "Print", "ExpressionUUID" -> \
+"c9979223-1f4d-4ae0-8b52-7a8db0be1e82"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[117652, 3278, 313, 8, 34, "Input", "ExpressionUUID" -> \
+"8fddf256-2903-4e3c-98a0-7d1686a4734d"],
+Cell[117968, 3288, 10482, 296, 114, "Print", "ExpressionUUID" -> \
+"8ab5f764-ca0d-4163-98a0-565fd203f8bd"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[128487, 3589, 462, 10, 34, "Input", "ExpressionUUID" -> \
+"3c838550-140b-4da3-80c7-1bf4ab710e41"],
+Cell[128952, 3601, 10661, 295, 136, "Print", "ExpressionUUID" -> \
+"5c50de89-cf3d-4c3a-bd80-8df4c7901a1e"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[139650, 3901, 412, 9, 34, "Input", "ExpressionUUID" -> \
+"54734cf1-9869-4cee-a7d3-52a500b2319c"],
+Cell[140065, 3912, 9079, 256, 92, "Print", "ExpressionUUID" -> \
+"5b290d78-e5c4-4e95-bad9-82839b58d106"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[149181, 4173, 610, 12, 34, "Input", "ExpressionUUID" -> \
+"35dccd6e-c0cd-4667-8289-cc8e9198c5f0"],
+Cell[149794, 4187, 9256, 256, 114, "Print", "ExpressionUUID" -> \
+"04a123c9-44a1-4124-8b76-9234dbcee4b2"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+

@@ -1,0 +1,113 @@
+\chapter{Lattice File Conversion}
+\label{c:lat.convert}
+\index{conversion to other lattice formats}
+
+A \bmad Distribution (\sref{s:tao.intro}) contains a number of translation programs between \bmad
+and other formats.
+
+
+%-----------------------------------------------------------------------------
+\section{MAD Conversion}
+\label{s:mad.convert}
+\index{MAD!conversion}
+
+%-----------------------------------------------------------------------------
+\subsection{Convert MAD to Bmad}
+\label{s:mad.bmad.uap}
+
+Python scripts to convert from MAD8 and MADX are available at:
+\begin{example}
+  util_programs/mad_to_bmad
+\end{example}
+Due to differences in language definitions, conversions must be done with some care. The following
+differences should be noted:
+  \begin{itemize}
+  \item
+\bmad, unlike \mad, does not have any ``action'' commands. An action command is a command that makes
+a calculation. Examples include \mad's \vn{SURVEY} and \vn{TWISS} commands.
+  \item
+In \bmad all variables must be defined before being used (\sref{s:arith}) while \mad will simply take
+a variable's value to be zero if it is not defined.
+  \item
+\bmad, unlike \mad, does not allow variable values to be redefined.
+  \end{itemize}
+
+%-----------------------------------------------------------------------------
+\subsection{Convert Bmad to MAD}
+\label{s:bmad.mad}
+
+\index{wiggler!conversion to MAD}
+\index{sol_quad!conversion to MAD}
+To convert to MAD8 or MADX, the \tao program can be used. Additionally, there is the program
+\begin{example}
+  util_programs/bmad_to_mad_sad_elegant
+\end{example}
+Since \mad does not have a \vn{wiggler} or a
+\vn{sol_quad} element, this conversion routine makes ``equivalent'' substitution. For a
+\vn{sol_quad}, the equivalent substitution will be a drift-matrix-drift series of elements. For a
+\vn{wiggler}, a series of bend and drift elements will be used (the program can also use a
+drift-matrix-drift model here but that is not as accurate). The bends and drifts for the
+\vn{wiggler} model are constructed so that the global geometry of the lattice does not
+change. Additionally the bends and drifts are constructed to most nearly match the wiggler's
+\begin{example}
+  Transfer matrix
+  $I_2$ and $I_3$ synchrotron radiation integrals (\sref{s:synch.ints})
+\end{example}
+Note that the resulting model will not have the vertical cubic nonlinearity that the actual wiggler
+has.
+
+%-----------------------------------------------------------------------------
+\section{Convert to PTC}
+\label{s:to.ptc}
+
+A PTC ``\vn{flatfile}'' can be constructed using the \tao program with the following commands:
+\begin{example}
+  Tao> ptc init
+  Tao> write ptc
+\end{example}
+
+%---------------------------------------------------------------------------
+\section{SAD Conversion}
+\label{s:sad.convert}
+\index{SAD}
+
+Conversion from \vn{SAD}\cite{b:sad} to \bmad is accomplished using the Python script
+\begin{example}
+  util_programs/sad_to_bmad/sad_to_bmad.py
+\end{example}
+Currently, the following restrictions on SAD lattices apply:
+  \begin{itemize}
+  \item
+SAD \vn{mult} elements cannot have an associated RF field
+  \item
+Misalignments in a \vn{sol} element with \vn{geo} = 1 cannot be handled.
+  \end{itemize}
+
+\bmad to \vn{SAD} to conversion can be done with the \tao program or the program 
+\begin{example}
+  util_programs/bmad_to_mad_sad_elegant
+\end{example}
+
+%---------------------------------------------------------------------------
+\section{Elegant Conversion}
+\label{s:elegant.convert}
+\index{Elegant}
+
+Conversion from \vn{Elegant}\cite{b:elegant} to \bmad is accomplished using the Python script
+\begin{example}
+  util_programs/elegant_to_bmad/elegant_to_bmad.py
+\end{example}
+
+\bmad to \vn{Elegant} to conversion can be done with the \tao program or the program 
+\begin{example}
+  util_programs/bmad_to_mad_sad_elegant
+\end{example}
+
+%---------------------------------------------------------------------------
+\section{Astra, Blender, CSRTrack, GPT, and Merlin Conversion}
+\label{s:other.convert}
+\index{Astra}\index{Blender}\index{CSRTrack}\index{GPT}\index{Merlin}
+
+Conversion programs to Astra, Blender, CSRTrack, GPT, and Merlin exist in the \vn{util_programs}
+directory. Some conversion code is still in beta development so if you encounter
+problems please contact a \bmad maintainer. 

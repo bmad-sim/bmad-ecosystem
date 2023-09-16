@@ -1,0 +1,590 @@
+\chapter{Quick_Plot Plotting}
+\label{c:quick.plot}
+\index{quick_plot|hyperbf}
+\index{pgplot!and Quick_Plot}
+
+\quickplot is an interface layer to either the \vn{PGPLOT}\cite{b:pgplot} or
+\vn{PLPLOT}\cite{b:plplot} plotting libraries. Whether \vn{PGPLOT} or \vn{PLPLOT} is used depends upon
+an environmental switch set when the \bmad library and other associated libraries are compiled
+(\sref{s:libs}). [Note: \quickplot lives in the \vn{sim_utils} library which comes with the Bmad
+distribution.] A quick reference guide can be seen online by using the command \vn{getf
+quick_plot}. For identification in a program, all \quickplot subroutines start with a \vn{qp_}
+prefix. Also, by convention, all PGPLOT subroutines start with a \vn{pg} prefix.
+
+%----------------------------------------------------------------------------
+
+\begin{figure}
+\index[routine]{qp_open_page}
+\index[routine]{qp_close_page}
+\index[routine]{qp_read_data}
+\index[routine]{qp_calc_and_set_axis}
+\index[routine]{qp_draw_text}
+\index[routine]{qp_draw_axes}
+\index[routine]{qp_draw_data}
+\index[routine]{qp_save_state}
+\index[routine]{qp_restore_state}
+\index[routine]{qp_set_page_border}
+\index[routine]{qp_set_margin}
+\index[routine]{qp_set_line_attrib}
+\index[routine]{qp_set_box}
+\index[routine]{qp_set_graph_attrib}
+\index[routine]{qp_set_symbol_attrib}
+\index[routine]{qp_set_axis}
+\footnotesize
+\begin{listing}{1}
+  program example_plot
+    use quick_plot
+    integer id
+    character(1) ans
+  
+    ! Generate PS and X-windows plots.
+    call qp_open_page ("PS-L")  ! Tell \quickplot to generate a PS file.
+    call plot_it              ! Generate the plot
+    call qp_close_page        ! quick_plot.ps is the file name
+    call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
+    call plot_it
+    write (*, "(a)", advance = "NO") " Hit any class to end program: "
+    accept "(a)", ans
+
+  !----------------------------------------------------------------------
+  contains
+  subroutine plot_it                             ! This generates the plot
+    real(rp), allocatable :: x(:), y(:), z(:), t(:)
+    real(rp) x_axis_min, x_axis_max, y_axis_min, y_axis_max
+    integer x_places, x_divisions, y_places, y_divisions
+    character(80) title
+    logical err_flag
+    namelist / parameters / title
+
+    ! Read in the data
+    open (1, file = "plot.dat", status = "old")
+    read (1, nml = parameters)                  ! read in the parameters.
+    call qp_read_data (1, err_flag, x, 1, y, 3, z, 4, t, 5) ! read in the data.
+    close (1)
+
+    ! Setup the margins and page border and draw the title
+    call qp_set_page_border (0.01_rp, 0.02_rp, 0.2_rp, 0.2_rp, "%PAGE")
+    call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, "%PAGE")
+    call qp_draw_text (title, 0.5_rp, 0.85_rp, "%PAGE", "CT") 
+
+    ! draw the left graph
+    call qp_set_box (1, 1, 2, 1)
+    call qp_calc_and_set_axis ("X", minval(x), maxval(x), 4, 8, "ZERO_AT_END")
+    call qp_calc_and_set_axis ("Y", minval(z), maxval(z), 4, 8, "GENERAL")
+    call qp_draw_axes ("X\dlab\u", "\gb(\A)")
+    call qp_draw_data (x, y, symbol_every = 0)
+
+    call qp_save_state (.true.)
+    call qp_set_symbol_attrib ('times', color = "blue", height = 20.0_rp)
+    call qp_set_line_attrib ("PLOT", color = "blue", style = "dashed")
+    call qp_draw_data (x, z, symbol_every = 5)
+    call qp_restore_state
+
+    ! draw the right graph. "star5_filled" is a five pointed star.
+    call qp_save_state (.true.)
+    call qp_set_box (2, 1, 2, 1)
+    call qp_set_graph_attrib (draw_grid = .false.)
+    call qp_set_symbol_attrib ('star5_filled', height = 10.0_rp)
+    call qp_set_axis ("Y", -0.1_rp, 0.1_rp, 4, 2)
+    call qp_set_axis ('Y2', 1.0_rp, 100.0_rp, label = "Y2 axis", &
+                                draw_numbers = .true., ax_type = "LOG")
+    call qp_draw_axes ("\m1 \m2 \m3 \m4 \m5 \m6 \m7", "\fsLY\fn", title = "That Darn Graph")
+    call qp_draw_data (x, t, draw_line = .false., symbol_every = 4)
+    call qp_restore_state
+  end subroutine
+  end program
+\end{listing}
+\caption{\quickplot example program.}
+\label{f:plot.example}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=5.5in]{plot-example.pdf}
+\caption{Output of plot_example.f90.}
+\label{f:plot.out}
+\end{figure}
+
+%----------------------------------------------------------------------------
+\section{An Example}
+\label{s:plot.example}
+
+An example of how \quickplot can be used in a program is shown in
+\fig{f:plot.example}. In the \bmad distribution a copy of this
+program is in the file
+\begin{example}
+  sim_utils/plot_example/plot_example.f90
+\end{example}
+The \vn{plot_example.f90} program generates the figure shown in
+\fig{f:plot.out} from the input file named \vn{plot.dat}. The
+first few lines of the data file are
+\begin{example}
+  \&parameters
+    title = "A Tale of Two Graphs"
+  /
+ 
+  Any junk here...
+ 
+  Col1      Col2      Col3      Col4      Col5
+     0    0.0000    0.1000    0.0000   -0.0125
+     1    0.0001    0.0995    0.0101   -0.0127
+     2    0.0004    0.0980    0.0203   -0.0130
+     3    0.0009    0.0955    0.0304   -0.0132
+     ...
+\end{example}
+
+The program first creates a PostScript file for printing on lines 7
+through 9 and then makes an X--windows plot on lines 10 and 11. The
+write/accept lines 12 and 13 are to pause the program to prevent the
+X-window from immediately closing upon termination of the program.
+
+The heart of the plotting is in the subroutine \vn{plot_it} beginning
+on line 17. The namelist read on line 27 shows how both parameters and
+data can be stored in the same file so that a plotting program can be
+automatically told what the appropriate plot labels are. The
+\Hyperref{r:qp.draw.text}{qp_draw_text} call on line 34 draws the 
+title above the two graphs.
+
+The \Hyperref{r:qp.read.data}{qp_read_data} call on line 28 will skip
+any ``header'' lines (lines that do not begin with something that looks
+like a number) in the data file. In this instance
+\Hyperref{r:qp.read.data}{qp_read_data} will read the first, third forth
+and fifth data columns and put them into the \vn{x}, \vn{y}, \vn{z}, and
+\vn{t} arrays.
+
+\Hyperref{r:qp.set.page.border}{qp_set_page_border},
+\Hyperref{r:qp.set.box}{qp_set_box}, and
+\Hyperref{r:qp.set.margin}{qp_set_margin} sets where the graph is
+going to be placed.  \Hyperref{r:qp.set.box}{qp_set_box}\vn{(1, 1, 2,
+1)} on line 37 tells \quickplot to put the first graph in the left box
+of a 2 box grid. The \Hyperref{r:qp.set.margin}{qp_set_margin} on line
+33 sets the margins between the box and the graph axes.
+
+\Hyperref{r:qp.calc.and.set.axis}{qp_calc_and_set_axis} on lines 38
+and 39 are used to scale the axes. \vn{"ZERO_AT_END"} ensures that the
+$x$--axis starts (or stops) at zero.
+\Hyperref{r:qp.calc.and.set.axis}{qp_calc_and_set_axis} is told to
+restrict the number of major divisions to be between 4 and 8. For the
+horizontal axis, as can be seen in \fig{f:plot.out}, it chooses
+5 divisions.
+
+After drawing the first data curve (the solid curve) in the left
+graph, the routines
+\Hyperref{r:qp.set.symbol.attrib}{qp_set_symbol_attrib} and
+\Hyperref{r:qp.set.line.attrib}{qp_set_line_attrib} are called on
+lines 44 and 45 to plot the next data curve in blue with a dashed line
+style. By default, this curve goes where the last one did: in the left
+graph. To keep the setting of the line and symbol attributes from
+affecting other plots the routines
+\Hyperref{r:qp.save.state}{qp_save_state} and
+\Hyperref{r:qp.restore.state}{qp_restore_state} on lines 43 and 47 are
+used. \Hyperref{r:qp.save.state}{qp_save_state} saves the current
+attributes in an attribute
+stack. \Hyperref{r:qp.restore.state}{qp_restore_state} restores the
+saved attributes from the attribute
+stack. \Hyperref{r:qp.draw.axes}{qp_draw_axes} is called on line 40 to
+draw the $x$ and $y$-axes along, and \vn{qp_draw_data} is called on
+lines 41 and 46 to draw the two data curves.
+
+Lines 50 through 60 draw the third curve in the right hand graph.  The
+\vn{qp_set_axis} call on lines 55/56 sets a log scale for the \vn{y2}
+(right hand) axis. The syntax of the string arguments of
+\Hyperref{r:qp.draw.axes}{qp_draw_axes} in lines 40 and 57/58 comes from PGPLOT and allows
+special symbols along with subscripts and superscripts.
+
+%----------------------------------------------------------------------------
+\section{Plotting Coordinates}
+\label{s:plot.coords}
+
+\begin{figure}
+  \centering
+  \includegraphics{plot-coords.pdf}
+  \caption{A Graph within a Box within a Page.}
+  \label{f:plot.coords}
+\end{figure}
+
+\quickplot uses the following concepts as shown in \fig{f:plot.coords}
+\begin{example}
+  PAGE  -- The entire drawing surface.
+  BOX   -- The area of the page that a graph is placed into.
+  GRAPH -- The actual plotting area within the bounds of the axes.
+\end{example}
+In case you need to refer to the PGPLOT routines the correspondence
+between this and PGPLOT is:
+\begin{example}
+  QUICK_PLOT    PGPLOT
+  ----------    ------
+  PAGE          VIEW SURFACE
+  BOX           No corresponding entity.
+  GRAPH         VIEWPORT and WINDOW
+\end{example}
+Essentially the VIEWPORT is the region outside of which lines and symbols
+will be clipped (if clipping is turned on) and the WINDOW defines the
+plot area. I'm not sure why PGPLOT makes a distinction, but VIEWPORT and
+WINDOW are always the same region.
+
+\Hyperref{r:qp.open.page}{qp_open_page} determines the size of the \vn{page} if it is
+settable (like for X--windows). The page is divided up into a grid of
+boxes. For example, in \fig{f:plot.coords}, the grid is 1 box
+wide by 3 boxes tall. The border between the grid of boxes and the
+edges of the page are set by \Hyperref{r:qp.set.page.border}{qp_set_page_border}.  The box that
+the graph falls into is set by \Hyperref{r:qp.set.box}{qp_set_box}. The default is to
+have no margins with 1 box covering the entire page. The
+\Hyperref{r:qp.set.margin}{qp_set_margin} routine sets the distance between the box edges
+and the axes (See the PGPLOT manual for more details).
+
+
+%----------------------------------------------------------------------------
+\section{Length and Position Units}
+\label{s:plot.units}
+\index{quick_plot!position units}
+
+Typically there is an optional \vn{units} argument for \quickplot routines that
+have length and/or position arguments. For example, using \vn{getf} one can
+see that the arguments for \Hyperref{r:qp.draw.rectangle}{qp_draw_rectangle} are
+\begin{example}
+  Subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip)
+\end{example}
+The \vn{units} argument is a character string which is divided into three
+parts. The syntax of the \vn{units} argument is
+\begin{example}
+  unit_type/ref_object/corner
+\end{example}
+The first part \vn{unit_type} gives the type of units
+\begin{example}
+  "%"       -- Percent.
+  "DATA"    -- Data units. (Draw default)
+  "MM"      -- millimeters.
+  "INCH"    -- Inches. (Set default)
+  "POINTS"  -- Printers points. NOT PIXELS. (72 points = 1 inch).
+\end{example}
+Note: For displays with a resolution of 72 pixels / inch, \vn{POINTS} corresponds to pixels but
+many displays have a higher resolution.
+The second and third parts give the reference point for a position.
+The second part specifies the reference object
+\begin{example}
+    "PAGE"  -- Relative to the page (Set default).
+    "BOX"   -- Relative to the box.
+    "GRAPH" -- Relative to the graph (Draw default).
+\end{example}
+The third part gives corner of the reference object that is the reference point
+\begin{example}
+    "LB"    -- Left Bottom (Set and Draw default).
+    "LT"    -- Left Top.
+    "RB"    -- Right Bottom.
+    "RT"    -- Right Top.
+\end{example}
+
+Notes:
+\begin{itemize}
+ \item 
+The \vn{DATA} unit type, by definition, always uses the lower left
+corner of the \vn{GRAPH} as a reference point.
+ \item 
+For the \vn{%} \vn{unit_type} the \vn{/} between \vn{unit_type} 
+and \vn{ref_object} can be omitted.
+ \item 
+If the \vn{corner} is specified then the \vn{ref_object} must appear also.
+ \item 
+Everything must be in upper case.
+ \item 
+For some routines (\Hyperref{r:qp.set.margin}{qp_set_margin}, etc.) only a relative distance
+is needed. In this case the \vn{ref_object/corner} part, if present,
+is ignored.
+ \item 
+The \vn{units} argument is typically an optional argument. If not
+present the default units will be used. There are actually two
+defaults: The draw default is used for drawing text, symbols, or whatever.
+The set default is used for setting margins, and other lengths.
+Initially the draw default is \vn{DATA/GRAPH/LB} and the set
+default is \vn{INCH/PAGE/LB}. 
+Use \Hyperref{r:qp.set.parameters}{qp_set_parameters} to change this.
+\end{itemize}
+Examples:
+\begin{example}
+  "DATA"          -- This is the draw default. 
+  "DATA/GRAPH/LB" -- Same as above.
+  "DATA/BOX/RT"   -- ILLEGAL: DATA must always go with GRAPH/LB.
+  "%PAGE/LT"      -- Percentage of page so (0.0, 1.0) = RT of page.
+  "%BOX"          -- Percentage of box so (1.0, 1.0) = RT of box.
+  "INCH/PAGE"     -- Inches from LB of page.
+\end{example}
+
+%----------------------------------------------------------------------------
+\section{Y2 and X2 axes}
+\label{s:axes2}
+\index{quick_plot!axes}
+
+The top and right axes of a graph are known as \vn{X2} and \vn{Y2}
+respectively as shown in \fig{f:plot.coords}. Normally the
+\vn{X2} axis mirrors the \vn{X} axis and the \vn{Y2} axis mirrors the
+\vn{Y} axis in that the tick marks and axis numbering for the \vn{X2}
+and \vn{Y2} axes are the same as the \vn{X} and \vn{Y} axes
+respectively. \Hyperref{r:qp.set.axis}{qp_set_axis} can be used to disable mirroring. For
+example:
+\begin{example}
+  call qp_set_axis ("Y2", mirror = .false.)  ! y2-axis now independent of y.
+\end{example}
+\Hyperref{r:qp.set.axis}{qp_set_axis} can also be used to set \vn{Y2} axis parameters
+(axis minimum, maximum, etc.) and setting the \vn{Y2} or \vn{X2} axis
+minimum or maximum will, by default, turn off mirroring.
+
+Note that the default is for the \vn{X2} and \vn{Y2} axis numbering
+not to be shown. To enable or disable axis numbering again use
+\Hyperref{r:qp.set.axis}{qp_set_axis}. For example:
+\begin{example}
+  call qp_set_axis ("Y2", draw_numbers = .true.)  ! draw y2 axis numbers
+\end{example}
+
+To plot data using the \vn{X2} or \vn{Y2} scale use the
+\Hyperref{r:qp.use.axis}{qp_use_axis} routine. For example:
+\begin{example}
+  call qp_save_state (.true.)
+  call qp_use_axis (y = "Y2")
+  ! ... Do some data plotting here ...
+  call qp_restore_state
+\end{example}
+
+%----------------------------------------------------------------------------
+\section{Text}
+\label{s:text}
+
+PGPLOT defines certain escape sequences that can be used in text strings to draw Greek letters,
+etc. These escape sequences are given in Table~\ref{t:pgplot.escape}.
+
+PGPLOT defines a text background index:
+\begin{example}
+         -1 - Transparent background.
+          0 - Erase underlying graphics before drawing text.
+   1 to 255 - Opaque with the number specifying the color index.
+\end{example}
+
+%----------------------------------------------------------------------------
+\section{Styles}
+\label{s:styles}
+
+Symbolic constants have been defined for \quickplot subroutine arguments that are used to choose
+various styles. As an example of this is in lines 44 and 45 of \fig{f:plot.example}. The numbers in
+the following are the PGPLOT equivalents.
+
+\index{quick_plot!line styles}
+The \quickplot line styles are:
+\begin{example}
+    1 -- solid\$                  Solid
+    2 -- dashed\$                 Dashed
+    3 -- dash_dot\$               Dash--dot 
+    4 -- dotted\$                 Dotted
+    5 -- dash_dot3\$              Dash--dot--dot--dot        
+\end{example}
+
+\index{quick_plot!color styles}
+The color styles in \quickplot are:
+\begin{example}
+    0 -- White\$   (actually the background color)
+    1 -- Black\$   (actually the foreground color)
+    2 -- Red\$
+    3 -- Green\$
+    4 -- Blue\$
+    5 -- Cyan\$
+    6 -- Magenta\$
+    7 -- Yellow\$ 
+    8 -- Orange\$
+    9 -- Yellow_Green\$
+   10 -- Light_Green\$
+   11 -- Navy_Blue\$
+   12 -- Purple\$
+   13 -- Reddish_Purple\$
+   14 -- Dark_Grey\$
+   15 -- Light_Grey\$
+\end{example}
+   
+Integers from [17, (largest integer)] represent continuous colors. The function \vn{pq_continuous_color} maps [0.0, 1.0] to these integers. See Fig.~\ref{f:plot-continuous-color}.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth]{plot-continuous-color.pdf}
+\caption{Continuous colors using the function \vn{pg_continuous_color} in PGPlot and PLPlot. Typical usage: \vn{call qp_routine(..., color = pg_continuous_color(0.25_rp), ...)}}
+\label{f:plot-continuous-color}
+\end{figure}
+
+\index{quick_plot!fill styles}
+The fill styles are:
+\begin{example}
+    1 -- solid_fill\$        
+    2 -- no_fill\$           
+    3 -- hatched\$           
+    4 -- cross_hatched\$     
+\end{example}
+
+\index{quick_plot!symbol styles}
+The symbol types are:
+\begin{example}
+    0 -- square_sym\$
+    1 -- dot_sym\$
+    2 -- plus_sym\$
+    3 -- times_sym\$
+    4 -- circle_sym\$
+    5 -- x_sym\$
+    7 -- triangle_sym\$
+    8 -- circle_plus_sym\$
+    9 -- circle_dot_sym\$
+   10 -- square_concave_sym\$
+   11 -- diamond_sym\$
+   12 -- star5_sym\$
+   13 -- triangle_filled_sym\$
+   14 -- red_cross_sym\$
+   15 -- star_of_david_sym\$
+   16 -- square_filled_sym\$
+   17 -- circle_filled_sym\$
+   18 -- star5_filled_sym\$
+\end{example}
+Beside this list, PGPLOT maps other numbers onto symbol types. 
+The PGPLOT list of symbols is:
+\begin{example}
+  -3 ... -31 - a regular polygon with abs(type) edges.
+          -2 - Same as -1.
+          -1 - Dot with diameter = current line width.
+   0 ...  31 - Standard marker symbols.
+  32 ... 127 - ASCII characters (in the current font).
+                  E.G. to use letter F as a marker, set type = ICHAR("F"). 
+       > 127 - A Hershey symbol number.
+\end{example}
+Table~\ref{t:plot.syms} shows some of the symbols and there associated 
+numbers. Note: At constant height PGPLOT gives symbols of different size.
+To partially overcome this, \quickplot scales some of the symbols to
+give a more uniform appearance. Table~\ref{t:plot.syms} was generated
+using a height of 40 via the call
+\begin{example}
+  call qp_draw_symbol (0.5_rp, 0.5_rp, "%BOX", k, height = 40.0_rp)
+\end{example}
+
+\index{quick_plot!symbol table}
+\begin{table}
+  \centering
+  \includegraphics{plot-syms.pdf}
+  \caption{Plotting Symbols at Height = 40.0}
+  \label{t:plot.syms}
+\end{table}
+
+\begin{table}
+\begin{tabular}{ll} \toprule
+{\B}u       & Start a superscript or end a subscript \\[0.5ex]
+{\B}d       & Start a subscript or end a superscript.
+              {\B}u and {\B}d must always be used in pairs \\[0.5ex]
+{\B}b       & Backspace (i.e., do not advance text pointer  
+               after plotting the previous character) \\[0.5ex]
+{\B}fn      & Switch to Normal font (1)       \\[0.5ex]
+{\B}fr      & Switch to Roman font (2)        \\[0.5ex]
+{\B}fi      & Switch to Italic font (3)       \\[0.5ex]
+{\B}fs      & Switch to Script font (4)       \\[0.5ex]
+{\B}{\B}    & Backslash character (\B)        \\[0.5ex]
+{\B}x       & Multiplication sign ($\times$)  \\[0.5ex]
+{\B}.       & Centered dot ($\cdot$)          \\[0.5ex]
+{\B}A       & Angstrom symbol (\AA)         \\[0.5ex]
+{\B}gx      & Greek letter corresponding to roman letter x \\[0.5ex]
+{\B}mn {\B}mnn & Graph marker number $n$ or $nn$ (1-31) \\[1ex]
+{\B}(nnnn)  & 
+\parbox{4.8in}{\setstretch{0.5} Character number nnnn (1 to 4 decimal digits) from the
+Hershey character set; the closing parenthesis may be omitted if the
+next character is neither a digit nor ``)''. This makes a number of
+special characters (e.g., mathematical, musical, astronomical, and
+cartographical symbols) available.} \\ \bottomrule
+\end{tabular}
+\caption{PGPLOT Escape Sequences.}
+\label{t:pgplot.escape}
+\end{table}
+
+Table~\ref{t:greek} shows how the character string \vn{"{\B}g<r>"}, where \vn{"<r>"} 
+is a Roman letter, map onto the Greek character set.
+\begin{table}
+  \centering
+  \includegraphics[width=5.5in]{greek.pdf}
+  \caption[Roman to Greek Character Conversion]{Conversion for the string 
+\vn{"{\B}g<r>"} where \vn{"<r>"} is a Roman character to the corresponding 
+Greek character.}
+\label{t:greek}
+\end{table}
+
+
+%----------------------------------------------------------------------------
+\section{Structures}
+\label{s:qp.structs}
+\index{quick_plot!structures}
+
+\index{qp_line_struct}
+\quickplot uses several structures to hold data. The structure that
+defines a line is a \vn{qp_line_struct}
+\begin{example}
+  type qp_line_struct
+    integer width         ! Line width.   Default = 1
+    character(16) color   ! Line color.   Default = "black"
+    character(16) pattern ! line pattern. Default = "solid"
+  end type
+\end{example}
+
+\index{qp_symbol_struct}
+The \vn{qp_symbol_struct} defines how symbols are drawn 
+\begin{example}
+  type qp_symbol_struct
+    character(16)  type        ! Default = "circle_dot"
+    real(rp) height            ! Default = 6.0 (points)
+    character(16)  color       ! Default = "black"
+    character(16)  fill        ! Default = "solid_fill"
+    integer  line_width        ! Default = 1
+  end type
+\end{example}
+
+\index{qp_axis_struct}
+The \vn{qp_axis_struct} defines how axes are drawn 
+\begin{example}
+  type qp_axis_struct
+    character(80) label       ! Axis label.
+    real(rp) min              ! Axis range left/bottom number.
+    real(rp) max              ! Axis range right/top number.
+    real(rp) number_offset    ! Offset in inches of numbering from the axis line. 
+                              !  Default = 0.05
+    real(rp) label_offset     ! Offset in inches of the label from the numbering.
+                              !  Default = 0.05
+    character(16) label_color ! Default = "black"
+    real(rp) major_tick_len   ! Length of the major ticks in inches. Def = 0.10
+    real(rp) minor_tick_len   ! Length of the minor ticks in inches. Def = 0.06
+    integer major_div         ! Number of major divisions. Default = 5
+    integer major_div_nominal ! Nominal value. Def = 5.
+    integer minor_div         ! Number of minor divisions. 0 = auto-choose. Default = 0
+    integer minor_div_max     ! Maximum number for auto choose. Default = 5
+    integer places            ! Places after the decimal point. Default = 0
+    character(16) type        ! "LINEAR" (default), "LOG", or "CUSTOM".
+    character(16) bounds      ! "GENERAL" (default), "ZERO_AT_END", etc.
+    integer tick_side         ! +1 = draw to the inside (def), 0 = both, -1 = outside.
+    integer number_side       ! +1 = draw to the inside, -1 = outside (default).
+    logical draw_label        ! Draw the label? Default = True.
+    logical draw_numbers      ! Draw the numbering? Default = True.
+  end type
+\end{example}
+
+The \vn{%bounds} parameter sets how axis min and max values are calculated. Possible settings are:
+\begin{example}
+  "ZERO_AT_END"      ! Min or max value is set to zero.
+  "ZERO_SYMMETRIC"   ! Min and max chosen so that max = -min.
+  "GENERAL"          ! No restrictions.
+  "EXACT"            ! The inputted data min/max is used.
+\end{example}
+
+Finally, the \vn{qp_plot_struct} is a container for the axis that make up a plot
+\begin{example}
+  type qp_plot_struct
+    character(80) :: title = " "
+    type (qp_axis_struct) x, y, x2, y2
+    type (qp_axis_struct), pointer :: xx, yy  ! Pointer to axes used for plotting.
+    logical :: draw_box    = .true.
+    logical :: draw_title  = .true.
+    logical :: draw_grid   = .true.
+    logical :: x2_mirrors_x = .true.
+    logical :: y2_mirrors_y = .true.
+    logical :: xx_points_to_x
+    logical :: yy_points_to_y
+  end type
+\end{example}
+
+%\end{document}

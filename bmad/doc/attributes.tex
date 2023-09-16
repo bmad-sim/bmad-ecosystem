@@ -1,0 +1,3440 @@
+\chapter {Element Attributes}
+\label{c:attrib}
+\index{element attribute}
+
+For a listing of element attributes for each type of element, see Chapter~\sref{c:attrib.list}.
+
+%-----------------------------------------------------------------
+\section{Dependent and Independent Attributes} 
+\label{s:depend} 
+\index{element attribute!dependent and independent}
+
+\index{parameter statement}
+\index{dependent attribute}
+For convenience, \bmad computes the values of some attributes based upon the values of other
+attributes. Some of these dependent variables are listed in Table~\ref{t:dependent}. Also shown in
+Table~\ref{t:dependent} are the independent variables they are calculated from.
+
+\index{bbi_constant}\index{charge}\index{sig_x}\index{sig_y}
+\index{e_tot}\index{e_field}\index{voltage}
+\index{hkick}\index{vkick}\index{gap}\index{l}
+\index{e_tot}\index{e_loss}\index{delta_e}\index{gradient}
+\index{l}\index{rho}\index{angle}\index{l_chord}
+\index{g}\index{l}\index{k1}\index{rho}\index{num_steps}\index{ds_step}
+\index{b_max}\index{e_tot}\index{beambeam}\index{elseparator}
+\index{lcavity}\index{rbend}\index{sbend}\index{wiggler}
+\begin{table}[ht]
+\centering {
+\begin{tabular}{lll} \toprule
+ {\em Element}                & {\em Independent Variables}    & {\em Dependent Variables}          \\ \midrule
+ All elements                 & \vn{ds_step}                   & \vn{num_steps}                     \\
+ \vn{BeamBeam}                & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{e_tot}
+                                                               & \vn{bbi_constant}                  \\
+ \vn{Elseparator}             & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{e_tot}      
+                                                               & \vn{e_field}, \vn{voltage}         \\
+ \vn{Lcavity}                 & \vn{gradient}, \vn{l}          & \vn{e_loss}, \vn{voltage}          \\
+ \vn{Rbend}, \vn{Sbend}       & \vn{g}, \vn{l}                     
+                                                               & \vn{rho}, \vn{angle}, \vn{l_chord} \\
+
+ \vn{Wiggler} (map type)      & \vn{term(i)}                   & \vn{b_max}, \vn{k1}, \vn{rho}      \\
+ \vn{Wiggler} (periodic type) & \vn{b_max}, \vn{e_tot}         & \vn{k1}, \vn{rho}                  \\ \bottomrule
+\end{tabular}
+}
+\caption[Table of dependent variables.]{Partial listing of dependent variables and 
+  the independent variables they are calculated from.}
+\label{t:dependent}
+\end{table}
+
+For electric and magnetic field strength parameters, the \vn{field_master} parameter
+(\sref{s:field.master}) can be used to determine if the be normalized or unnormalized, values are
+dependent or independent.
+
+\index{lattice!expansion}\index{harmon}\index{delta_e}\index{gradient}
+\index{rho}\index{g}\index{angle}\index{rf_frequency}
+No attempt should be made to set or vary within a program dependent attributes. It should be
+remarked that this is not an iron clad rule.  If a program properly bypasses \bmad's attribute
+bookkeeping routine then anything is possible. In a lattice file, before lattice expansion
+(\sref{s:expand}), \bmad allows the setting of a select group of dependent attributes if the
+appropriate independent attributes are not set. The list of settable dependent variables is given in
+Table~\ref{t:dep.except}.  After reading in the lattice \bmad will set the appropriate independent
+variable based upon the value of the dependent variable. \vn{harmon} is the exception in that it
+will never be set by the bookkeeping routine.
+\index{lcavity}\index{rbend}
+\index{sbend}\index{rfcavity}
+\begin{table}[ht]
+\centering {
+\begin{tabular}{lll} \toprule
+{\em Element}                  & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \\ \midrule
+  \vn{Lcavity}                 & \vn{voltage}       & \vn{gradient}      \\
+  \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}             \\
+  \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}, or \vn{l}  \\
+  \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}        \\
+  \vn{Wiggler} (periodic type) & \vn{n_pole}        & \vn{l_pole}        \\ \bottomrule
+\end{tabular}
+}
+\caption {Dependent variables that can be set in a primary lattice file.}
+\label{t:dep.except}
+\end{table}
+
+%-----------------------------------------------------------------
+\section{Field_Master and Normalized Vs. Unnormalized Field Strengths}
+\label{s:field.master}
+\index{field_master}
+
+The \vn{field_master} attribute of an element sets whether the element's normalized (normalized by
+the reference energy) field strengths or the unnormalized strengths are the independent variables
+(\sref{s:depend}). See \sref{s:mag.field} for details as to how they are related. The setting of
+\vn{field_master} also sets whether an element's magnetic multipoles (\sref{s:multip}) are
+interpreted as normalized or unnormalized (electric multipoles are always treated as unnormalized).
+
+Table~\ref{t:dep.field} shows some normalized and unnormalized field strength attributes.  The
+default value of \vn{field_master} for an element is False if there are no field values set in the
+lattice file for that element. If normalized field values are present then the default is also False.
+If there are unnormalized field values present then the default is True.
+
+For example:
+\begin{example}
+  Q1: quadrupole, b1_gradient = 0   ! Field strengths are the independent variables
+  Q1: quadrupole, field_master = T  ! Same as above
+  Q2: quadrupole        ! Define Q2.
+  Q2[b1_gradient] = 0   ! Field strengths now the independent variables.
+  Q2[field_master] = T  ! Same as above.
+\end{example}
+
+Specifying both normalized and unnormalized strengths for a given element is not
+permitted. For example:
+\begin{example}
+  Q3: quadrupole, k1 = 0.6, bl_hkick = 37.5  ! NO. Not VALID.
+\end{example}
+
+\index{g}\index{dg}\index{b_field}\index{bs_field}\index{db_field}
+\index{b1_gradient}\index{b2_gradient}\index{b3_gradient}\index{ks}
+\index{k1}\index{k2}\index{k3}
+\index{bl_kick}\index{bl_hkick}\index{bl_vkick}
+\index{kick}\index{hkick}\index{vkick}
+\index{sbend}\index{rbend}\index{solenoid}\index{quadrupole}
+\index{sol_quad}\index{sextupole}\index{octupole}
+\begin{table}[ht]
+\centering {
+\begin{tabular}{lll} \toprule
+  {\em Element}              & {\em Normalized} & {\em Unnormalized}   \\ \midrule
+  \vn{Sbend}, \vn{Rbend}     & \vn{g}           &  \vn{b_field}        \\
+  \vn{Sbend}, \vn{Rbend}     & \vn{dg}          &  \vn{db_field}       \\
+  \vn{Solenoid, Sol_quad}    & \vn{ks}          &  \vn{bs_field}       \\
+  \vn{Quadrupole, Sol_quad, Sbend, Rbend}            
+                             & \vn{k1}          &  \vn{b1_gradient}    \\
+  \vn{Sextupole, Sbend, Rbend}             
+                             & \vn{k2}          &  \vn{b2_gradient}    \\
+  \vn{Octupole}              & \vn{k3}          &  \vn{b3_gradient}    \\
+  \vn{HKicker}, \vn{VKicker} & \vn{kick}        &  \vn{bl_kick}        \\
+  Most                       & \vn{hkick}       &  \vn{bl_hkick}       \\
+  Most                       & \vn{vkick}       &  \vn{bl_vkick}       \\ \bottomrule
+\end{tabular}
+}
+\caption {Example normalized and unnormalized field strength attributes.}
+\label{t:dep.field}
+\end{table}
+
+%-----------------------------------------------------------------
+\section{Type, Alias and Descrip Attributes}
+\label{s:alias}
+\index{type|hyperbf}
+\index{alias|hyperbf}
+\index{descrip|hyperbf}
+
+There are three string labels associated with any element:
+\begin{example}
+  type    = "<String>"
+  alias   = "<String>"
+  descrip = "<String>"
+\end{example}
+The \vn{type} and \vn{alias} attributes can be up to 40 characters in length and \vn{descrip} can be
+up to 200 characters. If the attribute string does not contain a blank, comma, or a semicolon, the
+quotation marks may be omitted. Unlike the element name, these strings are not converted to upper case.
+
+These labels have a number of purposes. For example, a \bmad based program that is used as an online
+machine model could associate a label string with a machine database element to facilitate machine
+control. Also these labels can be used with pattern matching when selecting elements (\sref{s:ele.match}).
+
+Example:
+\begin{example}
+  Q00W: Quad, type = "My Type", alias = Who_knows, &
+                                  descrip = "Only the shadow knows"
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Group, Overlay, and Ramper Element Syntax}
+\label{s:go.syntax}
+\index{group!syntax}\index{overlay!syntax}
+\index{gang|hyperbf}
+
+The syntax for specifying \vn{group} (\sref{s:group}), \vn{overlay} (\sref{s:overlay}), or
+\vn{ramper} (\sref{s:ramper}) elements
+are virtually identical and is discussed below. The name ``\vn{controller}'' will be used to denote
+either a \vn{group}, \vn{overlay}, or \vn{ramper} element.
+
+Controller elements have a set of one or more ``\vn{variables}'' that are used to control the values
+of attributes of other elements (called ``\vn{slave}'' attributes).
+
+There are two types of controllers in terms of how slave attribute values are computed ---
+\vn{Expression} based controllers and \vn{knot} based controllers. \vn{Expression} based controllers
+use mathematical expressions (\sref{s:arith}) to define how slave attribute values are calculated
+based upon the values of the controller variables. \vn{Knot} based controllers use an array of
+points (called ``\vn{knots}'') with either linear or cubic spline interpolation (in particular, the
+cubic non-smoothing Akima spline\cite{b:akima}) to determine the relationship between variables and
+slave attributes. With a knot based controller, the number of controller variables is restricted
+to be one.
+
+The general syntax for an expression based \vn{group} element is
+\begin{example}
+  name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
+          VAR = \{var1, var2, ...\}, var1 = init_val1, 
+          old_var1 = old_init_val1, ..., GANG = logical, ...
+\end{example}
+For an expression based \vn{overlay} element, the syntax is identical except OVERLAY is
+substituted for GROUP and there are no old values to set:
+\begin{example}
+  name: OVERLAY = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
+          VAR = \{var1, var2, ...\}, var1 = init_val1, GANG = logical, ...
+\end{example}
+For an expression based \vn{ramper} element, the syntax is identical to the \vn{overlay} element
+except \vn{RAMPER} is used in place of \vn{OVERLAY} and there is no \vn{GANG} attribute.
+
+In the above, \vn{Name} is the name of the controller element, \vn{ele1}, \vn{ele2}, ... are the
+elements whose attributes are to be controlled, \vn{attrib1}, \vn{attrib2}, etc. are the controlled
+attributes (called ``slave'' attributes), \vn{var1}, \vn{var2}, etc. are the control variables, and
+\vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions that define the relationship between the
+variables and the slave attributes. Example:
+\begin{example}
+  gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}
+\end{example}
+
+The function \vn{ran()} and \vn{ran_gauss()} may be used in expressions with \vn{ramper} elements but
+may not be used for other types of controllers. These functions can be useful with long-term tracking
+to simulate such things as ground noise or RF jitter. Example
+\begin{example}
+  rf_noise: ramper = \{rfcavity::*[phi0]: 1e-4*ran_gauss()\}, var = \{ \}
+\end{example}
+Notice that the expression does not depend upon any variables and the variable list is empty. An empty
+variable list is permissible only if all slave expressions involve \vn{ran()} or \vn{ran_gauss()}.
+With an empty variable list, \bmad will define a variable for the \vn{ramper} called \vn{null} to serve
+as a place holder for bookkeeping purposes. 
+
+To define an expression based \vn{controller} element, two lists are needed: One list defines the
+slave attributes along with the arithmetic expressions used for computing the value of the slave
+attributes. The other list defines the variables within the \vn{controller} element that can be
+varied. In the above example, the variables are \vn{a} and \vn{b}, and the slave attributes are the
+\vn{k1} attribute of element \vn{q1} and the \vn{tilt} attribute of element \vn{q2}. The arithmetic
+expressions used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
+
+The general syntax for For a \vn{knot} based \vn{group} element is:
+\begin{example}
+  name: GROUP = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, INTERPOLATION = \{type\},
+              var1 = init_val1, old_var1 = init_val_old1, ..., GANG = logical, ... 
+\end{example}
+and the general syntax for a \vn{knot} based \vn{overlay} element is similar:
+\begin{example}
+  name: OVERLAY = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
+        VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ..., 
+        GANG = logical, INTERPOLATION = \{type\}, ...
+\end{example}
+For \vn{ramper} elements, the syntax is similar to the \vn{overlay} syntax except that \vn{OVERLAY}
+is replaced by \vn{RAMPER} and there is no \vn{GANG} attribute. The \vn{x_knot} array is combined
+with a given \vn{y_knot} array to give a series of $N$ knot points where $N$ is the size of the
+\vn{x_knot} and \vn{y_knot} arrays. As such, the size of all knot arrays must be the same with the
+additional restriction that the \vn{x_knot} array must have values that are strictly ascending.
+Example:
+\begin{example}
+  ov: overlay = \{q1[k1]:\{-0.12, 0.23, 0.53\}, q2[k1], q3[k1], q4[k1]:\{0.37, 0.12, 0.92\}\}, 
+        var = {time}, x_knot = \{0.0, 0.7, 1.0\}
+\end{example}K
+In this example there are three knot points for each slave parameter. For the slave parameter
+\vn{q4[k1]} the knot points are $(0.0, 0.37)$, $(0.7, 0.12)$, and $(1.0, 0.92)$.  If a
+\vn{y_knot_points} array is not present for a particular slave attribute, the knot array of the
+previous slave attribute is used. Thus, in the above example, the y_knot array used for \vn{q2[k1]}
+and \vn{q3[k1]} are the same as the y_knot array for \vn{q1[k1]}.
+
+The method used to interpolate between the knot points is determined by the setting of the
+\vn{interpolate} parameter which may be one of
+\begin{example}
+  linear      ! Linear interpolation.
+  cubic       ! Cubic spline interpolation (default).
+\end{example}
+For variable values outside of the range specified by \vn{x_knot}, the slave parameter value will be
+extrapolated using the interpolation function calculated from the three points nearest the end. That
+is, extrapolation will be linear if \vn{interpolate} is set to \vn{linear} and will be cubic if
+\vn{interpolate} is set to \vn{cubic}. For the cubic spline, extrapolation is only permitted over a
+distance outside the x_knot range equal to the difference between the value of the x_knot end point
+and its neighbor point. Thus in the above example, extrapolation will be allowed in the intervals
+$[-0.7, 0.0]$ and $[1.0, 1.7]$.
+
+After a controller has been defined, the individual knot points may be referenced using the syntax
+\begin{example}
+  name[x_knot(i)]           ! I^th x_knot point
+  name[slave(j)%y_knot(i)]  ! I^th y_knot point of j^th slave.
+\end{example}
+For example:
+\begin{example}
+  ov: overlay = \{q1[k1]:\{-0.12, 0.23, 0.53\}, q2[tilt]:\{0.37, 0.12, 0.92\}\}, 
+                          var = {time}, x_knot = \{0.0, 0.7, 1.0\}
+  ov[x_knot(3)] = 2.0           ! Changes from 1.0 to 2.0
+  ov[slave(2)%y_knot(2)] = 0.2  ! Changes q2[tilt] y_knot(2) from 0.12 to 0.2
+\end{example}
+
+If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will control all
+elements of a given name. Thus, in the above example, if there are multiple elements named \vn{q1}
+then \vn{gr1} will control the \vn{k1} attribute of all of them.  If \vn{gang} is set to \vn{False},
+a separate controller is created for each element in the lattice of a given name. For example:
+\begin{example}
+  gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}, gang = False
+\end{example}
+In this example, suppose there are five \vn{q1} and five \vn{q2} elements in the lattice.  In this
+case, there will be five \vn{gr1} group elements created. The first \vn{gr1} will control the first
+\vn{q1} and \vn{q2} to appear in the lattice, etc. With \vn{gang} set to \vn{False}, it is an error
+if the number of instances in the lattice for a given slave name is different from any other slave
+name. In this example, it would be an error if the number of \vn{q1} elements in the lattice is
+different from the number of \vn{q2} elements in the lattice.
+
+To vary coefficients in expressions, use variables in place of the coefficients and then variables
+can be varied. For example:
+\begin{example}
+  gr1: group = \{s1[k2]: 0.03+1.07*vv\}, var = \{vv\}                     ! Instead of this...
+  gr2: group = \{s1[k2]: a+b*vv\}, var = \{vv, a, b\}, a = 0.03, b = 1.07 !   Use this.
+\end{example}
+
+Wild card characters can be used in element names. Example:
+\begin{example}
+  rf_control: overlay = \{rfcavity::*[voltage]:v\}, var = \{v\}
+\end{example}
+
+The syntax for specifying an attribute \vn{attrib} of element \vn{ele} to be controlled is
+\vn{ele[attrib]}. The attribute part \vn{[attrib]} may be omitted and in this case the name of the
+attribute will be taken to be the name of the first variable. Example:
+\begin{example}
+  ov1: overlay = \{sex1:-tan(k2)^b\}, var = \{k2, b\}
+  ov2: overlay = \{sex1[k2]: -tan(k2)^b\}, var = \{k2, b\} ! Equivalent to ov1.
+\end{example}
+In this example, the controlled attribute of element \vn{sex1} is \vn{k2}.  Except in cases where
+this default attribute syntax is used, the names of the variables are arbitrary and do not have to
+correspond to the name of any actual attribute. If the slave attribute name is set to ``\vn{*}'', 
+multiple slaves will be generated, one for each variable. Example:
+\begin{example}
+  zz1: overlay = \{sb0[*]\}, var = \{g, e1\}   
+  zz2: overlay = \{sb0[g]:g, sb0[e1]:e1\}, var = \{g, e1\} ! Equivalent to zz1.
+\end{example}
+
+The arithmetic expressions used to evaluate controlled attribute value changes may be a constant. In
+this case, the actual expression used is this constant times the first variable. If the expression
+is omitted entirely, along with the separating ``:'', the constant will be taken to be
+unity. Example:
+\begin{example}
+  gr1: group = \{b1, b3:-pi\}, var = \{angle\}
+\end{example}
+This is equivalent to
+\begin{example}
+  gr1: group = \{b1[angle]:angle, b3[angle]:-pi*angle\}, var = \{angle\}
+\end{example}
+The exception is when \vn{ran()} or \vn{ran_gauss()} functions are present in the expression.  In
+this case, the expression will \vn{not} be modified. Example:
+\begin{example}
+  quake: ramper = \{*[y_offset]: 1e-3*ran_gauss()\}, var = \{ \}
+  quake: ramper = \{*[y_offset]: 1e-3*ran_gauss()\}, var = \{time\}  ! Equivalent to above
+\end{example}
+
+Arithmetic expressions may themselves contain element attributes.
+Example:
+\begin{example}
+  sk_q20W: overlay = \{sex_20W[a1]:-sex_20W[L]\}, k1
+\end{example}
+Here the \vn{sk_q20w} overlay controls the \vn{a1} multipole attribute of element \vn{sex_20w} and
+the length of \vn{sex_20w} is used as a scale factor between the overlay's variable \vn{k1} and the
+controlled attribute \vn{a1}. The potential problem here is that, to keep the internal bookkeeping
+simple, the value of \vn{sex_20w[L]} is evaluated once during parsing of the lattice file and never
+reevaluated (\sref{s:arith}).  If it is desired to use a variable element attribute in an
+expression, this may be effectively done by defining a control variable to take its place. Thus the
+above overlay may be recast as:
+\begin{example}
+  sk_q20W: overlay = \{sex_20W[L]:ll, sex_20W[a1]:ll*k1\}, var = \{k1, ll\}
+\end{example}
+
+Initial values can be assigned to the variables from within the
+definition of the controller element. Example:
+\begin{example}
+  ov1: overlay = \{...\}, var = \{a, b\}, a = 7, b = 2
+\end{example}
+Here the initial values 7 and 2 are assigned to \vn{a} and \vn{b} respectively.  Alternatively,
+variables can be set after a controller element has been defined.  Example:
+\begin{example}
+  ov1: overlay = \{...\}, var = \{a, b\}
+  ov1[a] = 7
+  gr1[b] = 2
+\end{example}
+
+Note: There is an old deprecated syntax. For \vn{group} elements the syntax was:
+\begin{example}
+  name: GROUP = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
+                       attrib = init_value  ! DO NOT USE THIS SYNTAX!
+\end{example}
+and for \vn{overlay} elements the old syntax was identical except
+that \vn{GROUP} was replaced by \vn{OVERLAY}:
+\begin{example}
+  name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
+                       attrib = init_value  ! DO NOT USE THIS SYNTAX!
+\end{example}
+
+With this old syntax, there is only one variable. Additionally, there are no arithmetic
+expressions. Rather, attribute changes are linear in the \vn{command} variable with the constant of
+proportionality given by a specified coefficient. For example with the old syntax
+\begin{example}
+  ov1: overlay = \{sq1:3.7, sq2[tilt]\}, k0 = 2  ! DO NOT USE THIS SYNTAX!
+\end{example}
+is equivalent, in the present syntax, to:
+\begin{example}
+  ov1: overlay = \{sq[k0]:3.7, sq2[tilt]\}, var = \{k0\}, k0 = 2  
+\end{example}
+Note: In this old syntax the colon ``:'' separating the controlled attribute from the linear
+coefficient may be replaced by a slash ``/''.  For \vn{group} elements, there was an added wrinkle
+that, with the old syntax, the variable's name is fixed to be \vn{command}. For example, with the
+old syntax
+\begin{example}
+  gr1: group = \{sq1:3.7, sq2[tilt]\}, k0 = 2  ! DO NOT USE THIS SYNTAX!
+\end{example}
+is equivalent, in the present syntax, to:
+\begin{example}
+  gr1: group = \{sq[k0]:3.7, sq2[tilt]\}, var = \{command\}, command = 2  
+\end{example}
+
+%-----------------------------------------------------------------
+\section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and \\ Ref_Wavelength}
+\label{s:energy}
+
+\index{parameter statement}\index{e_tot}
+\index{e_tot_start}\index{p0c_start}
+\index{patch}\index{lcavity}\index{p0c}\index{e_gun}
+\index{ref_wave_length}
+The attributes that define the reference energy and momentum at an element are:
+\begin{example}
+  e_tot  = <Real>  ! Total energy in eV.
+  p0c    = <Real>  ! Momentum in eV.
+\end{example}
+The energy and momentum are defined at the exit end of the element.  For ultra--relativistic
+particles, and for photons, these two values are the same (\sref{s:phase.space}). Except for
+multipass elements (\sref{s:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes and,
+except for multipass elements, any setting of \vn{e_tot} and \vn{p0c} in the lattice input file is
+an error. The value of \vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be the same
+as the previous element except for \vn{e_gun}, \vn{lcavity}, \vn{converter}, and \vn{patch}
+elements. To set the \vn{e_tot} or \vn{p0c} at the start of the lattice use the \vn{beginning} or
+\vn{parameter} statements.  See~\sref{s:param}. Since the reference energy changes from the start to
+the end of an \vn{lcavity}, \vn{converter} or \vn{em_field} element, these elements have the
+dependent attributes
+\index{em_field}\index{lcavity}
+\begin{example}
+  e_tot_start   and
+  p0c_start
+\end{example}
+which are just the reference energy and momentum at the start of the element.
+
+\index{beginning_ele}
+The \vn{beginning_ele} element (\sref{s:begin.ele}) also has associated \vn{e_tot_start} and
+\vn{p0c_start} attributes as well as \vn{e_tot} and \vn{p0c}. Generally, for a \vn{beginning_ele},
+\vn{p0c_start} and \vn{p0c} are the same and \vn{e_tot_start} and \vn{e_tot} are the same and the
+values for these attributes are set in the lattice file with the appropriate \vn{parameter}
+(\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statement. The exception occurs when there
+is an \vn{e_gun} element in the lattice (\sref{s:e.gun}). In this case, the \vn{p0c_start} and
+\vn{e_tot_start} attributes of the \vn{beginning_ele} are set to the values as set in the lattice
+file and \vn{e_tot} is set to
+\begin{example}
+  e_tot = e_tot_start + voltage
+\end{example}
+and \vn{p0c} is calculated from \vn{e_tot} and the mass of the particle being tracked. For example,
+if the lattice file contained:
+\begin{example}
+  beginning[p0c] = 0
+  gun: e_gun, voltage = 0.5e6
+  injector: line = (gun, ...)
+\end{example}
+Then the following energy values will be set for the beginning \vn{beginning_ele} element:
+\begin{example}
+  p0c_start   = 0
+  e_tot_start = mc2
+  e_tot       = mc2 + 0.5e6
+  p0c         = Sqrt(e_tot - mc2^2)
+\end{example}
+where \vn{mc2} is the particle rest mass.  The reason for using this convoluted convention is to
+allow the setting, in the lattice file, of a zero reference momentum at the start of the lattice,
+while avoiding the calculational problems that would occur if the \vn{e_gun} element truly had a
+starting reference momentum of zero.  Specifically, the problem with zero reference momentum is that
+the phase space momentum would be infinity as can be seen from \Eqs{ppp}.
+
+For lattice branches other than the root branch, the reference energy or momentum is set using the
+line name of the branch (\sref{s:beginning}). For example:
+\begin{example}
+  ff: fork, to_line = line_2nd, ...
+  line_2nd: line = (...)
+  line_2nd[particle] = He+
+  line_2nd[p0c] = 1e9
+\end{example}
+
+For \vn{multipass} elements, the reference energy may be set by specifying one of \vn{e_tot},
+\vn{p0c}, as described in \sref{s:multipass}.
+
+For photons, the reference wavelength, \vn{ref_wavelength} is also a dependent attribute calculated
+from the reference energy.
+
+\vfill
+
+%-----------------------------------------------------------------
+\section{Orientation: Offset, Pitch, Tilt, and Roll Attributes}
+\label{s:offset}
+\index{x_offset|hyperbf}
+\index{y_offset|hyperbf}\index{z_offset|hyperbf}
+\index{x_pitch|hyperbf}\index{y_pitch|hyperbf}
+\index{roll|hyperbf}\index{tilt|hyperbf}
+
+By default, an element, like a quadrupole, is aligned in space coincident with the reference orbit
+running through it (\sref{s:ref.construct}). A quadrupole can be displaced in space using the
+quadrupole's ``\vn{orientational}'' attributes. For a quadrupole, the orientational attributes only
+affect the physical element and not the reference orbit. However, the orientational attributes of
+some other elements, like the \vn{fiducial} element, do affect the reference orbit. To sort all this
+out, lattice elements can be divided into seven classes:
+  \begin{enumerate}
+%
+\item\vn{Straight line elements} (\sref{s:straight.orient}) \Newline
+Straight line elements are elements where the reference orbit is a straight line. Examples include
+\vn{quadrupoles}, and \vn{sextupoles} as well as zero length elements like \vn{markers}.
+%
+\item\vn{Dipole bends} (\sref{s:bend.orient}) \Newline
+Dipole bends are:
+\begin{example}
+  sbend \& rbend
+\end{example}
+%
+\item\vn{Photon reflecting elements} (\sref{s:photon.orient}) \Newline
+The reflecting elements are
+\begin{example}
+  crystal
+  mirror
+  multilayer_mirror
+\end{example}
+These elements have a kink in the reference orbit at the nominal
+element surface.
+%
+\item\vn{Reference orbit manipulator elements} (\sref{s:manip.orient}) \Newline
+Elements that are used to manipulate the reference orbit are
+\begin{example}
+  fork \& photon_fork
+  floor_shift
+  patch
+\end{example}
+%
+\item\vn{Fiducial Element} (\sref{s:fiducial.orient}) \Newline
+%
+\item\vn{Girder Elements} (\sref{s:girder.orient}) \Newline
+%
+\item\vn{Control Elements} \Newline
+Control elements are elements that control attributes of other
+elements. The control elements are:
+\begin{example}
+  group
+  overlay
+\end{example}
+These elements do not have orientational attributes.
+  \end{enumerate}
+
+%-----------------------------------------------------------------
+\subsection{Straight Line Element Orientation}
+\label{s:straight.orient}
+
+The straight line elements have the following orientational attributes:
+\begin{example}
+  x_offset = <Real>
+  y_offset = <Real>
+  z_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  tilt     = <Real>    
+\end{example}
+For straight line elements the orientational attributes only shift the
+physical element and do not affect the reference orbit.
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics{pitch.pdf}
+  \caption{Geometry of Pitch and Offset attributes}
+  \label{f:pitch}
+\end{figure}
+
+\vn{x_offset} translates an element in the local $x$--direction as shown in
+\fig{f:pitch}. Similarly, \vn{y_offset} and \vn{z_offset} translate an element along the local $y$
+and $z$--directions respectively.
+
+The \vn{x_pitch} attribute rotates an element about the element's center such that with a positive
+\vn{x_pitch} the exit face of the element is displaced in the $+x$--direction as shown in
+figure~\ref{f:pitch}. [One way to visualize the effect of an \vn{x_pitch} is to think of the element
+as an airplane pointing in the $+z$ direction. A positive \vn{x_pitch} would then move the front of
+the plane in the $+x$--direction.] An\vn{x_pitch} represents a rotation around the positive
+$y$-axis.
+
+Similarly, the \vn{y_pitch} attribute rotates an element about the element's center using the
+negative $x$--axis as the rotation axis so that, with a positive \vn{y_pitch} the exit face of the
+element is displaced in the $+y$--direction.
+
+Note: the \vn{x_pitch} and \vn{y_pitch} rotations are about the center of the element which is in contrast
+to the \vn{dtheta} and \vn{dphi} misalignments of \mad which rotate around the entrance point. The
+sense of the rotation between \bmad and MAD is:
+\index{MAD!element rotation origin}
+\begin{example}
+  x_pitch (Bmad) =  dtheta (MAD)
+  y_pitch (Bmad) = -dphi (MAD)
+\end{example}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics{tilt.pdf}
+  \caption{Geometry of a Tilt}
+  \label{f:tilt}
+\end{figure}
+
+The tilt attribute rotates the element in the $(x, y)$ plane as shown in figure~\ref{f:tilt}. The
+rotation axis is the positive $z$-axis. For example
+\begin{example}
+  q1: quad, l = 0.6, x_offset = 0.03, y_pitch = 0.001, tilt
+\end{example}
+\index{sol_quad!tilt default}\index{quadrupole!tilt default}
+\index{sextupole!tilt default}\index{octupole!tilt default}
+Like MAD, \bmad allows the use of the \vn{tilt} attribute without a value to designate a skew
+element. The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the element:
+\begin{example}
+  sol_quad       n = 1
+  quadrupole     n = 1
+  sextupole      n = 2
+  octupole       n = 3
+\end{example}
+
+Note that \vn{hkick} and \vn{vkick} attributes are not affected by \vn{tilt} except for \vn{kicker}
+and \vn{elseparator} elements.
+
+%-----------------------------------------------------------------
+\subsection{Bend Element Orientation}
+\label{s:bend.orient}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{roll.pdf}
+  \caption[Geometry of a Bend]{
+Geometry of a Bend. Like straight line elements, offsets and pitches are calculated with respect to
+the coordinates at the center of the bend. The exception is the \vn{roll} attribute which is a
+rotation around the axis passing through the entrance and exit points.  Shown here is the geometry
+for a bend with \vn{ref_tilt} = 0. That is, the bend is in the $x-z$ plane.}
+  \label{f:roll}
+\end{figure}
+
+The orientation attributes for \vn{sbend}, \vn{rbend} and \vn{rf_bend} elements is
+\begin{example}
+  x_offset = <Real>
+  y_offset = <Real>
+  z_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  ref_tilt = <Real>    ! Shifts and reference orbit rotation axis.
+  roll     = <Real>    
+\end{example}
+The geometry for orienting a bend is shown in \fig{f:roll}. Like straight line elements, the offset
+and pitch attributes are evaluated with respect to the center of the element.
+
+Unlike the straight line elements, bends do not have a \vn{tilt} attribute. Rather they have a
+\vn{ref_tilt} and a \vn{roll} attribute.  The \vn{roll} attribute rotates the bend along an axis
+that runs through the entrance point and exit point as shown in figure~\ref{f:roll}. A \vn{roll}
+attribute, like the offset and pitch attributes does not affect the reference orbit.  The major
+effect of a \vn{roll} is to give a vertical kick to the beam. For a bend with positive bend angle, a
+positive \vn{roll} will move the outside portion ($+x$ side) of the bend upward and the inside
+portion (-$x$ side) downward. Much like car racetracks which are typically slanted towards the
+inside of a turn.
+
+The \vn{ref_tilt} attribute of a bend rotates the bend about the $z$ axis at the upstream end of the
+bend as shown in \fig{f:roll}. Unlike \vn{rolls} and \vn{tilts}, \vn{ref_tilt} also shifts the
+rotation axis of the reference orbit along with the physical element. A \vn{bend} with a
+\vn{ref_tilt} of $\pi/2$ will bend a beam vertically downward (\sref{s:global}). Note that the
+\vn{ref_tilt} attribute of \bmad is the same as the MAD \vn{tilt} attribute.
+
+Important! Do not use \vn{ref_tilt} when doing misalignment studies for a machine. Trying to misalign
+a dipole by setting \vn{ref_tilt} will affect the positions of all downstream elements! Rather, use the
+\vn{roll} parameter.
+
+%-----------------------------------------------------------------
+\subsection{Photon Reflecting Element Orientation}
+\label{s:photon.orient}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{reflect-orient.pdf}
+  \caption[Geometry of a photon reflecting element orientation]{
+Geometry of a photon reflecting element orientation.  The reference coordinates used for defining
+the orientational attribute is the entrance reference coordinates.  }
+  \label{f:reflect.orient}
+\end{figure}
+
+Photon reflecting elements have the following orientational attributes:
+\begin{example}
+  x_offset = <Real>
+  y_offset = <Real>
+  z_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  ref_tilt = <Real>    ! Shifts both element and reference orbit.
+  tilt     = <Real>    
+\end{example}
+Roughly, these elements can be viewed as zero length bends except, since there is no center
+position, the orientational attributes are defined with respect to the entrance coordinates as shown
+in \fig{f:reflect.orient}. Like bend elements, the \vn{ref_tilt} attribute rotates both the physical
+element and the reference coordinates.  The \vn{tilt} attribute rotates just the physical
+element. Thus the total rotation of the physical element about the entrance $z$ axis is the sum
+\vn{tilt} + \vn{ref_tilt}.
+
+Frequently, it is desired to orient reflecting elements with respect to the element's surface. This
+can be done using a \vn{girder} element (\sref{s:girder}) which supports the reflecting element and
+with the \vn{girder}'s \vn{origin_ele_ref_pt} attribute set to \vn{center}.
+
+%-----------------------------------------------------------------
+\subsection{Reference Orbit Manipulator Element Orientation}
+\label{s:manip.orient}
+
+The \vn{fork}, \vn{photon_fork}, \vn{floor_shift}, and \vn{patch} elements use the following
+attributes to orient their exit edge with respect to their entrance edge:
+\begin{example}
+  x_offset = <Real>
+  y_offset = <Real>
+  z_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  tilt     = <Real>    
+\end{example}
+Here "exit" edge for \vn{fork} and \vn{photon_fork} elements is defined to be the start of the line
+being branched to. [Within the line containing the fork, the \vn{fork} element is considered to have
+zero length so the exit face in the line containing the fork is coincident with the entrance face.]
+The placement of the exit edge for these elements defines the reference orbit.  Thus, unlike the
+corresponding attributes for other elements, the orientational attributes here directly control the
+reference orbit.
+
+%-----------------------------------------------------------------
+\subsection{Fiducial Element Orientation}
+\label{s:fiducial.orient}
+
+The \vn{fiducial} element (\sref{s:girder}) uses the 
+following attributes to define its position:
+\begin{example}
+  origin_ele        = <Name>     ! Reference element.
+  origin_ele_ref_pt = <location> ! Reference pt on reference ele.
+  dx_origin         = <Real>     ! x-position offset
+  dy_origin         = <Real>     ! y-position offset
+  dz_origin         = <Real>     ! z-position offset
+  dtheta_origin     = <Real>     ! orientation angle offset.
+  dphi_origin       = <Real>     ! orientation angle offset.
+  dpsi_origin       = <Real>     ! orientation angle offset.
+\end{example}
+See Section~\sref{s:fiducial} for more details.
+
+%-----------------------------------------------------------------
+\subsection{Girder Orientation}
+\label{s:girder.orient}
+
+A \vn{girder} (\sref{s:girder}) element uses the same attributes as a \vn{fiducial} element
+(\sref{s:fiducial}) to orient the reference girder position. In addition, the following attributes
+are used to move the girder physically from the reference position:
+\begin{example}
+  x_offset = <Real>
+  y_offset = <Real>
+  z_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  tilt     = <Real>    
+\end{example}
+Shifting the girder from its reference position shifts all the elements that are supported by the
+girder. See Section~\sref{s:girder} for more details.
+
+\index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{z_offset_tot|hyperbf}
+\index{x_pitch_tot|hyperbf}\index{y_pitch_tot|hyperbf}
+\index{tilt_tot|hyperbf}\index{roll_tot|hyperbf}\index{tilt_err_tot|hyperbf}
+If an element is supported by a \vn{girder} element (\sref{s:girder}), the orientational attributes
+of the element are with respect to the orientation of the \vn{girder}. The computed offsets, pitches
+and tilt with respect to the local reference coordinates are stored in the dependent attributes
+\begin{example}
+  x_offset_tot
+  y_offset_tot
+  z_offset_tot
+  x_pitch_tot
+  y_pitch_tot
+  tilt_tot
+  roll_tot
+\end{example}
+\index{sbend}\index{rbend}
+A \vn{*_tot} attribute will only be present if the corresponding non \vn{*_tot} attribute is
+present. For example, only \vn{sbend} and \vn{rbend} elements have a \vn{roll_tot} attribute since
+only these elements have a \vn{roll} attribute.
+
+If an element is not supported by a \vn{girder}, the values of the \vn{*_tot} attributes will be the
+same value as the values of the corresponding non \vn{*_tot} attributes.
+
+%-----------------------------------------------------------------
+\section{Hkick, Vkick, and Kick Attributes}
+\label{s:kick}
+\index{hkick|hyperbf}\index{bl_hkick|hyperbf}
+\index{vkick|hyperbf}\index{bl_vkick|hyperbf}
+\index{kick|hyperbf}\index{bl_kick|hyperbf}
+
+
+\index{hkicker}
+\index{vkicker}
+\index{elseparator}
+\index{kicker}
+The kick attributes that an element may have are:
+\begin{example}
+  kick,  bl_kick  = <Real>  ! Used only with a Hkicker or Vkicker
+  hkick, bl_hkick = <Real>
+  vkick, bl_vkick = <Real>
+\end{example}
+\vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated kick of an element in
+radians. \vn{kick} is only used for \vn{hkicker} and \vn{vkicker} elements. All other elements that
+can kick use \vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate a kick for
+\vn{hkicker}, \vn{vkicker}, \vn{elseparator} and \vn{kicker} elements. This rule was implemented so
+that, for example, the \vn{hkick} attribute for a skew quadrupole would represent a horizontal
+steering. The \vn{bl_kick}, \vn{bl_hkick}, and \vn{bl_vkick} attributes are the integrated field
+kick in \vn{meters-Tesla}. Normally these are dependent attributes except if they appear in the
+lattice file (\sref{s:depend}).
+
+For an \vn{elseparator} element, the \vn{hkick} and \vn{vkick} are appropriate for a positively
+charged particle. The kick for a negatively charged particle is opposite this.
+
+%-----------------------------------------------------------------
+\section{Aperture and Limit Attributes}
+\label{s:limit}
+\index{aperture|hyperbf}
+\index{limit|hyperbf}
+\index{aperture_at|hyperbf}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics{apertures.pdf}
+  \caption[Apertures for ecollimator and rcollimator elements.]
+  {Apertures for ecollimator and rcollimator elements. 
+  [note: positive $z$ points up, out of the page.] 
+  As drawn, all limits \vn{x1_limit}, \vn{x2_limit}, 
+  \vn{y1_limit}, \vn{y2_limit} are  positive.}  
+  \label{f:limit}
+\end{figure}
+
+\index{ecollimator}
+\index{rcollimator}
+\index{x_limit|hyperbf}
+\index{y_limit|hyperbf}
+\index{x1_limit|hyperbf}
+\index{y1_limit|hyperbf}
+\index{x2_limit|hyperbf}
+\index{y2_limit|hyperbf}
+\index{x_offset|hyperbf}
+\index{offset_moves_aperture|hyperbf}
+\index{aperture_type}
+The aperture attributes are:
+\begin{example}
+  x1_limit      = <Real>      ! Horizontal, negative side, aperture limit
+  x2_limit      = <Real>      ! Horizontal, positive side, aperture limit
+  y1_limit      = <Real>      ! Vertical, negative side, aperture limit
+  y2_limit      = <Real>      ! Vertical, positive side, aperture limit
+  x_limit       = <Real>      ! Alternative to specifying x1_limit and x2_limit
+  y_limit       = <Real>      ! Alternative to specifying y1_limit and y2_limit
+  aperture      = <Real>      ! Alternative to specifying x_limit and y_limit
+  aperture_at   = <Switch>    ! What end aperture is at. (\sref{s:ap.place})
+  aperture_type = <Switch>    ! What type of aperture it is
+  offset_moves_aperture = <Logical> ! Element offsets affect aperture position (\sref{s:offset.ap})
+\end{example}
+\vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify the half--width of the
+aperture of an element as shown in figure~\ref{f:limit}. Note: Normally all of these will be zero or
+positive. A zero \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or \vn{y2_limit} is interpreted as no
+aperture in the appropriate plane.
+
+For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
+\vn{x2_limit} to a common value. Example:
+\begin{example}
+  s: sextupole, x1_limit = 0.09, x2_limit = 0.09
+  s: sextupole, x_limit = 0.09   ! Same as above
+\end{example}
+Similarly, \vn{y_limit} can be used
+to set \vn{y1_limit} and \vn{y2_limit}.  The \vn{aperture} attribute
+can be use to set all four \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}
+and \vn{y2_limit} to a common value. Internally, the \bmad code does {\em not}
+store \vn{x_limit}, \vn{y_limit}, or \vn{aperture}. This means that
+using \vn{x_limit}, \vn{y_limit} or aperture in arithmetic expressions is
+an error:
+\begin{example}
+  q1: quad, aperture = 0.09         
+  q2: quad, aperture = q1[aperture]   ! THIS IS AN ERROR!
+  q2: quad, aperture = q1[x1_limit]   ! Correct
+\end{example}
+
+By default, apertures are assumed to be rectangular except that an \vn{ecollimator} has a elliptical
+aperture. This can be changed by setting the \vn{aperture_type} attribute. The possible values of
+this attribute are:
+\begin{example}
+  auto         ! Default for detector, mask and diffraction_plate elements
+  custom
+  elliptical   ! Default for \vn{ecollimator} elements.
+  rectangular  ! Default for most elements.
+  wall3d       ! Vacuum chamber wall (\sref{s:wall}).
+\end{example}
+The \vn{custom} setting is used in the case where programs have been compiled with custom, non-Bmad,
+code to handle the aperture calculation.  The \vn{auto} setting is used for automatic calculation of
+a rectangular aperture. For \vn{diffraction_plate} and \vn{mask} elements, the \vn{auto} setting
+causes the four aperture limits to be set to just cover the clear area of element
+(\sref{s:masking.wall}). For all other elements, the \vn{auto} setting is only to be used when there
+is an associated surface grid (\sref{s:surf.grid}) for the element and, in this case, \bmad to set
+the four limits to just cover the surface grid.
+
+The \vn{wall3d} setting uses the vacuum chamber wall as specified by a \vn{wall} attribute
+(\sref{s:wall}). Using the \vn{wall} construct allows for complex apertures to be
+constructed. Note that The wall thickness and material type are not used when calculating
+if a particle has hit the wall. That is, the wall is considered to be infinitely thin.
+Also note that a wall must cover the entire length of the element longitudinally. This is done
+in order to be able to spot errors in specifying the wall geometry.
+
+For elliptical apertures, all four \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit}
+must be non-zero.
+
+For rectangular apertures, the limits \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or \vn{y2_limit}
+may be negative. For example:
+\begin{example}
+  s: sextupole, x1_limit = -0.02, x2_limit = 0.09
+\end{example}
+In this case, particles will hit the aperture if their $x$-coordinate is outside the interval [0.02,
+0.09]. That is, particles at the origin will be lost.
+
+To avoid numerical overflow and other errors in tracking, a particle will be considered to have hit
+an aperture in an element, even if there are no apertures set for that element, if its orbit exceeds
+1000 meters. Additionally, there are other situations where a particle will be considered lost. For
+example, if a particle's trajectory does not intersect the output face in a bend.
+
+Examples:
+\begin{example}
+  q1, quadrupole, y1_limit = 0.03
+  q1[y2_limit] = 0.03
+  q1[y_limit] = 0.03  ! equivalent to the proceeding 2 lines.  
+  q1[aperture_at] = both_ends
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Apertures and Element Offsets}
+\label{s:offset.ap}
+
+\index{tilt}
+\index{x_offset}
+\index{y_offset}
+\index{x_pitch}
+\index{y_pitch}
+\index{rcollimator}\index{ecollimator}
+\index{multilayer_mirror}\index{mirror}\index{crystal}
+Normally, whether a particle hits an aperture or not is evaluated independent of any element offsets
+(\sref{s:offset}). This is equivalent to the situation where a beam pipe containing an aperture is
+independent of the placement of the physical element the beam pipe passes through. That is, the beam
+pipe does not ``touch'' the physical element. This can be changed by setting the
+\vn{offset_moves_aperture} attribute to \vn{True}. In this case any offsets or pitches will be
+considered to have shifted the aperture boundary. The exceptions here is that the default for the
+following elements is for \vn{offset_moves_aperture} to be \vn{True}:
+\begin{example}
+  rcollimator, 
+  ecollimator,
+  multilayer_mirror, 
+  mirror, and 
+  crystal 
+\end{example}
+
+Even with \vn{offset_moves_aperture} set to \vn{True}, \vn{tilt}s will not affect the aperture
+calculation. This is done, for example, so that the tilt of a skew quadrupole does not affect the
+aperture. The exception here is that tilting an \vn{rcollimator} or \vn{ecollimator} element will
+tilt the aperture. Additionally, when the aperture is at the \vn{surface} (see below), any \vn{tilt}
+will be used in the calculation.
+
+Example:
+\begin{example}
+  q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Aperture Placement}
+\label{s:ap.place}
+
+\index{both_ends|hyperbf}\index{continuous|hyperbf}
+\index{entrance_end|hyperbf}\index{exit_end|hyperbf}\index{wall_transition|hyperbf}
+\index{surface|hyperbf}\index{aperture_at}\index{no_aperture}
+By default, for most elements, the aperture is evaluated at the exit face of the element. This can
+be changed by setting the \vn{aperture_at} attribute.  Possible settings for \vn{aperture_at} are:
+\begin{example}
+  both_ends
+  continuous
+  entrance_end
+  exit_end       ! Default for most elements
+  no_aperture
+  surface  
+  wall_transition
+\end{example}
+The \vn{exit_end} setting is the default for most elements except for
+the following elements who have a default of \vn{surface}:
+\index{mirror}\index{multilayer_mirror}\index{crystal}
+\index{diffraction_plate}\index{sample}
+\begin{example}
+  crystal
+  detector
+  diffraction_plate
+  mask
+  mirror
+  multilayer_mirror
+  sample
+\end{example}
+
+In fact, for the following elements:
+\begin{example}
+  mirror, 
+  multilayer_mirror
+  crystal
+\end{example}
+The \vn{surface} setting for \vn{aperture_at} must be used.  Additionally, due to the complicated
+geometry of these elements, to keep things conceptionally simple, the rule is imposed that, for an
+aperture at the surface, the \vn{offset_moves_aperture} setting must be left in its default state of
+True. Additionally, For \vn{entrance_end} or \vn{exit_end} apertures, \vn{offset_moves_aperture}
+must be set to False.
+
+Note: The entrance and exit ends of an element are independent of which direction particles are
+tracked through an element. Thus if a particle is tracked backwards it enters an element at the
+``exit end'' and exits at the ``entrance end''. The \vn{continuous} setting indicates that the
+aperture is continuous along the length of the element. This only matters when particle tracking
+involves stepping through an element a little bit at a time. For example, as in Runge-Kutta tracking
+(\sref{s:tkm}). For tracking where a formula is used to transform the particle coordinates at the
+entrance of an element to the coordinates at the exit end, the aperture is only checked at the end
+points so, in this situation, a \vn{continuous} aperture is equivalent to the \vn{both_ends}
+setting.
+
+The \vn{wall_transition} setting is like the \vn{continuous} setting in that the aperture boundary
+is considered to be continuous along the element's length. However, unlike the \vn{continuous}
+setting, with the \vn{wall_transition} setting a particle outside the wall is considered alive and
+it is only when a particle moves through the wall that it is lost.  The \vn{wall_transition} setting
+is used for things like septum magnets where a particle may be safely outside or inside the
+wall. Note to programmers: By supplying a custom \vn{wall_hit_handler_custom} routine, scattering of
+particles through a wall may be simulated.
+
+Examples:
+\begin{example}
+  q2: quad, aperture_type = elliptical, aperture_at = continuous
+  q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Apertures and X-Ray Generation}
+\label{s:aper.x.ray}
+
+With X-ray simulation apertures can be used by \bmad to limit the directions in which photons are
+generated. This can greatly decrease simulation times. For example, a photon passing through a
+\vn{diffraction_plate} element will diffract in an arbitrary direction. If a {\em downstream}
+element has an aperture set, \bmad can restrict the velocity directions so that the photons will
+fill the downstream aperture and the amount of time wasted tracking photons that ultimately would be
+collimated is minimal.
+
+%-----------------------------------------------------------------
+\section{X-Rays Crystal \& Compound Materials}
+\label{s:cryst.list}
+
+For basic crystallographic and X-ray matter interaction cross-sections, \bmad uses the
+XRAYLIB\cite{b:xraylib} library. Crystal structure parameters in XRAYLIB are mainly from
+R.~W.~G.~Wyckoff\cite{b:wyckoff} with some structure parameters coming from NIST. The list of
+available structures is:
+\begin{center}
+\begin{tabular}{llll} \toprule
+AlphaAlumina & GaP       & KCl        & Platinum  \\
+AlphaQuartz  & GaSb      & KTP        & RbAP      \\
+Aluminum     & Ge        & LaB6       & Sapphire  \\
+Be           & Gold      & LaB6_NIST  & Si        \\
+Beryl        & Graphite  & LiF        & Si_NIST   \\
+Copper       & InAs      & LiNbO3     & Si2       \\
+CsCl         & InP       & Muscovite  & SiC       \\
+CsF          & InSb      & NaCl       & Titanium  \\
+Diamond      & Iron      & PET        & TlAP      \\
+GaAs         & KAP       &            &           \\ \bottomrule
+\end{tabular}
+\end{center}
+These names are case sensitive
+
+Besides the above crystal list, \bmad can calculate structure factors for all the elements and the
+following list of materials. Material properties are from NIST. These names are case sensitive. That
+is, the NIST materials all use upper case. As noted in the table, several of the materials may be
+specified using the appropriate chemical formula. For example, liquid water may be referenced using
+the name \vn{H2O}.
+\begin{center}
+\footnotesize
+\begin{longtable}{lll}
+\multicolumn{3}{r}{{\normalsize Continued on next page}} \\
+\endfoot
+\endlastfoot
+A_150_TISSUE_EQUIVALENT_PLASTIC     & LITHIUM_TETRABORATE                       \\
+ACETONE                             & LUNG_ICRP                                 \\
+ACETYLENE                           & M3_WAX                                    \\
+ADENINE                             & MAGNESIUM_CARBONATE                       \\
+ADIPOSE_TISSUE_ICRP                 & MAGNESIUM_FLUORIDE                        \\
+AIR_DRY_NEAR_SEA_LEVEL              & MAGNESIUM_OXIDE                           \\
+ALANINE                             & MAGNESIUM_TETRABORATE                     \\
+ALUMINUM_OXIDE, Al2O3               & MERCURIC_IODIDE                           \\
+AMBER                               & METHANE                                   \\
+AMMONIA, NH3                        & METHANOL                                  \\
+ANILINE                             & MIX_D_WAX                                 \\
+ANTHRACENE                          & MS20_TISSUE_SUBSTITUTE                    \\
+B_100_BONE_EQUIVALENT_PLASTIC       & MUSCLE_SKELETAL                           \\
+BAKELITE                            & MUSCLE_STRIATED                           \\
+BARIUM_FLUORIDE                     & MUSCLE_EQUIVALENT_LIQUID_WITH_SUCROSE     \\
+BARIUM_SULFATE                      & MUSCLE_EQUIVALENT_LIQUID_WITHOUT_SUCROSE  \\
+BENZENE, C6H6                       & NAPHTHALENE                               \\
+BERYLLIUM_OXIDE                     & NITROBENZENE                              \\
+BISMUTH_GERMANIUM_OXIDE             & NITROUS_OXIDE                             \\
+BLOOD_ICRP                          & NYLON_DU_PONT_ELVAMIDE_8062               \\
+BONE_COMPACT_ICRU                   & NYLON_TYPE_6_AND_TYPE_6_6                 \\
+BONE_CORTICAL_ICRP                  & NYLON_TYPE_6_10                           \\
+BORON_CARBIDE, B4C                  & NYLON_TYPE_11_RILSAN                      \\
+BORON_OXIDE, B2O3                   & OCTANE_LIQUID                             \\
+BRAIN_ICRP                          & PARAFFIN_WAX                              \\
+BUTANE                              & N_PENTANE                                 \\
+N_BUTYL_ALCOHOL                     & PHOTOGRAPHIC_EMULSION                     \\
+C_552_AIR_EQUIVALENT_PLASTIC        & PLASTIC_SCINTILLATOR_VINYLTOLUENE_BASED   \\
+CADMIUM_TELLURIDE                   & PLUTONIUM_DIOXIDE                         \\
+CADMIUM_TUNGSTATE                   & POLYACRYLONITRILE                         \\
+CALCIUM_CARBONATE                   & POLYCARBONATE_MAKROLON_LEXAN              \\
+CALCIUM_FLUORIDE                    & POLYCHLOROSTYRENE                         \\
+CALCIUM_OXIDE                       & POLYETHYLENE                              \\
+CALCIUM_SULFATE                     & POLYETHYLENE_TEREPHTHALATE_MYLAR          \\
+CALCIUM_TUNGSTATE                   & POLYMETHYL_METHACRALATE_LUCITE_PERSPEX    \\
+CARBON_DIOXIDE                      & POLYOXYMETHYLENE                          \\
+CARBON_TETRACHLORIDE                & POLYPROPYLENE                             \\
+CELLULOSE_ACETATE_CELLOPHANE        & POLYSTYRENE                               \\
+CELLULOSE_ACETATE_BUTYRATE          & POLYTETRAFLUOROETHYLENE_TEFLON            \\
+CELLULOSE_NITRATE                   & POLYTRIFLUOROCHLOROETHYLENE               \\
+CERIC_SULFATE_DOSIMETER_SOLUTION    & POLYVINYL_ACETATE                         \\
+CESIUM_FLUORIDE                     & POLYVINYL_ALCOHOL                         \\
+CESIUM_IODIDE                       & POLYVINYL_BUTYRAL                         \\
+CHLOROBENZENE                       & POLYVINYL_CHLORIDE                        \\
+CHLOROFORM                          & POLYVINYLIDENE_CHLORIDE_SARAN             \\
+CONCRETE_PORTLAND                   & POLYVINYLIDENE_FLUORIDE                   \\
+CYCLOHEXANE                         & POLYVINYL_PYRROLIDONE                     \\
+12_DDIHLOROBENZENE                  & POTASSIUM_IODIDE                          \\
+DICHLORODIETHYL_ETHER               & POTASSIUM_OXIDE                           \\
+12_DICHLOROETHANE                   & PROPANE                                   \\
+DIETHYL_ETHER                       & PROPANE_LIQUID                            \\
+NN_DIMETHYL_FORMAMIDE               & N_PROPYL_ALCOHOL                          \\
+DIMETHYL_SULFOXIDE                  & PYRIDINE                                  \\
+ETHANE                              & RUBBER_BUTYL                              \\
+ETHYL_ALCOHOL                       & RUBBER_NATURAL                            \\
+ETHYL_CELLULOSE                     & RUBBER_NEOPRENE                           \\
+ETHYLENE                            & SILICON_DIOXIDE                           \\
+EYE_LENS_ICRP                       & SILVER_BROMIDE                            \\
+FERRIC_OXIDE                        & SILVER_CHLORIDE                           \\
+FERROBORIDE                         & SILVER_HALIDES_IN_PHOTOGRAPHIC_EMULSION   \\
+FERROUS_OXIDE                       & SILVER_IODIDE                             \\
+FERROUS_SULFATE_DOSIMETER_SOLUTION  & SKIN_ICRP                                 \\
+FREON_12                            & SODIUM_CARBONATE                          \\
+FREON_12B2                          & SODIUM_IODIDE                             \\
+FREON_13                            & SODIUM_MONOXIDE                           \\
+FREON_13B1                          & SODIUM_NITRATE                            \\
+FREON_13I1                          & STILBENE                                  \\
+GADOLINIUM_OXYSULFIDE               & SUCROSE                                   \\
+GALLIUM_ARSENIDE                    & TERPHENYL                                 \\
+GEL_IN_PHOTOGRAPHIC_EMULSION        & TESTES_ICRP                               \\
+GLASS_PYREX                         & TETRACHLOROETHYLENE                       \\
+GLASS_LEAD                          & THALLIUM_CHLORIDE                         \\
+GLASS_PLATE                         & TISSUE_SOFT_ICRP                          \\
+GLUCOSE                             & TISSUE_SOFT_ICRU_FOUR_COMPONENT           \\
+GLUTAMINE                           & TISSUE_EQUIVALENT_GAS_METHANE_BASED       \\
+GLYCEROL                            & TISSUE_EQUIVALENT_GAS_PROPANE_BASED       \\
+GUANINE                             & TITANIUM_DIOXIDE                          \\
+GYPSUM_PLASTER_OF_PARIS             & TOLUENE                                   \\
+N_HEPTANE                           & TRICHLOROETHYLENE                         \\
+N_HEXANE                            & TRIETHYL_PHOSPHATE                        \\
+KAPTON_POLYIMIDE_FILM               & TUNGSTEN_HEXAFLUORIDE                     \\
+LANTHANUM_OXYBROMIDE                & URANIUM_DICARBIDE                         \\
+LANTHANUM_OXYSULFIDE                & URANIUM_MONOCARBIDE                       \\
+LEAD_OXIDE                          & URANIUM_OXIDE                             \\
+LITHIUM_AMIDE                       & UREA                                      \\
+LITHIUM_CARBONATE                   & VALINE                                    \\
+LITHIUM_FLUORIDE                    & VITON_FLUOROELASTOMER                     \\
+LITHIUM_HYDRIDE                     & WATER_LIQUID, H2O                         \\
+LITHIUM_IODIDE                      & WATER_VAPOR                               \\
+LITHIUM_OXIDE                       & XYLENE                                    \\
+\end{longtable}
+\end{center}
+
+%-----------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{surface-curvature.pdf}
+  \caption[Surface curvature geometry.]
+{Surface curvature geometry. The element reference frame used to describe surface curvature has the
+$z$ axis pointing towards the interior of the element, and the $x$ axis in the plane defined by
+the entrance and exit reference orbit.}
+  \label{f:surface}
+\end{figure}
+
+%-----------------------------------------------------------------
+\section{X-Ray Reflectivity Tables}
+\label{s:reflect}
+
+Reflectivity tables are used to define reflectivity propabilities as functions of incidence angle and
+photon energy for \vn{crystal} and \vn{mirror} elements.
+
+The general syntax is:
+\begin{example}
+  m: mirror, reflectivity_table = \{
+    ! A reflection table
+    \{
+      polarization = <name>
+      angles = (<ang1 <ang2 ... <angN>),
+      p_reflect = \{
+        <energy1> <P_11> <P_12> <P_13> ... <P_1N>,
+        <energy2> <P_21> <P_22> <P_23> ... <P_2N>, 
+        ...
+      \}
+    \}
+  \}
+\end{example}
+The \vn{angles} array must be before the \vn{p_reflect} table. Angles are in radians and energy is
+in eV. Angle and energy points do not need to be evenly spaced. Probabilities \vn{P_ij} are between
+0 and 1. For particles outside the range of angles, the probability is taken to be zero. The
+\vn{p_reflect} portion of the reflectivity table must come last.
+
+Possible \vn{polarization} names are:
+\begin{example}
+  pi        ! Table is for pi mode
+  sigma     ! Table is for sigma mode
+  both      ! Table is for both polarizations. Defalut.
+\end{example}
+An element needs a single table with \vn{polarization} marked as \vn{both} or two tables,
+one for \vn{sigma} and the other for \vn{pi}.
+
+For \vn{crystal} elements, angles are always with respect to the Bragg angle for the energy where
+the Bragg angle is calculated without any refraction corrections.
+
+%-----------------------------------------------------------------
+\section{Surface Properties for X-Ray elements}
+\label{s:surface}
+
+The following X-ray elements have a surface which X-rays impinge upon:
+\begin{example}
+  crystal               \sref{s:crystal}
+  detector              \sref{s:detector}
+  diffraction_plate     \sref{s:diff.plate}
+  mask                  \sref{s:mask}
+  mirror, and           \sref{s:mirror}
+  multilayer_mirror     \sref{s:multilayer}
+  sample                \sref{s:sample}
+\end{example}
+[There is also the \vn{capillary} element but this element specifies
+its surface differently.]
+
+\index{spherical_curvature}\index{elliptical_curvature_x}
+\index{elliptical_curvature_y}\index{elliptical_curvature_z}
+The coordinate system used for characterizing the curvature of a surface is the element reference
+frame as shown in \fig{f:surface}). This coordinate system has the $z$ axis pointing towards the
+interior of the element, and the $x$ axis in the plane defined by the entrance and exit reference
+orbit. In this coordinate system, the surface is an ellipsoid plus a fourth order polynomial in $x$
+and $y$ plus a possible ``figure error'' contribution $z_\text{off}$ defined by a surface grid:
+\begin{align}
+  \label{xs2ij4}
+  {-z} &= \frac{1}{g_z} \, \left[ 1 - \sqrt{1 - (g_x \, x)^2 - (g_y \, y)^2} \right] + \\
+  &\qquad \qquad \frac{1}{g_{sp}} \, \left[ 1 - \sqrt{1 - (g_{sp} \, x)^2 - (g_{sp} \, y)^2} \right] + 
+  \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j - z_\text{off} \nonumber
+\end{align}
+$z_\text{off}$ is discussed in section~\sref{s:surf.grid} and is only present when the surface grid
+\vn{type} is set to \vn{Displacement}. In \Eq{xs2ij4} the $c_{ij}$ coefficients parameterize the
+fourth order polynomial, $g_{sp}$ parameterize the spherical curvature, and $g_x, g_y$, and $g_z$
+parameterize ellipsoid curvature. [In principle, the spherical curvature is not needed since the
+elliptical curvature is more general. In practice, it is sometimes convenient to be able to specify
+spherical curvature.]  If $g_z$ is zero, the elliptical curvature is ignored. If $g_z$ or $g_{sp}$
+is positive, the curvature is concave towards the incoming photon. If negative, the curvature is
+convex. 
+
+The spherical, ellipsoid and polynomial parameters are set for an element by setting the element's
+curvature parameter. The syntax is
+\begin{example}
+  curvature = \{
+      spherical    = <Real>,   ! g_{sp}
+      elliptical_x = <Real>,   ! g_{x}
+      elliptical_y = <Real>,   ! g_{y}
+      elliptical_z = <Real>,   ! g_{z}
+      xMyN         = <Real>    ! $c_{ij}
+\end{example}
+
+The polynomial coefficients $c_{ij}$ are set via the \vn{xMyN} components where \vn{M} and \vn{N}
+are integers in the range 0 through 6 with the restriction
+\begin{example}
+  2 \(\le\) M + N \(\le\) 6
+\end{example}
+Example:
+\begin{example}
+  c2: crystal, spherical_curvature = 1/4.7, curvature = \{x2y0 = 0.37, ...\}
+\end{example}
+in this example, \vn{x2y0} corresponds to the $c_{20}$ term in \Eq{xs2ij4}. To get the
+effect of a nonzero $x^0\, y^0$, $x^1 \, y^0$, or $x^0 \, y^1$ terms (since corresponding
+\vn{curvature} \vn{xNyM} are not permitted), element offsets and pitches can be used (\sref{s:offset}).
+
+Some useful formulas: Series expansion for a sphere of radius $R$:
+\begin{equation}
+  {-z} = \frac{x^2}{2 \, R} + \frac{x^4}{8 \, R^3} + \frac{x^6}{16 \, R^5} +
+         \frac{y^2}{2 \, R} + \frac{y^4}{8 \, R^3} + \frac{y^6}{16 \, R^5} +
+         \frac{x^2 \, y^2}{4 \, R^3} + \frac{3 \, x^4 \, y^2}{16 \, R^5} +
+         \frac{3 \, x^2 \, y^4}{16 \, R^5} 
+\end{equation}
+
+For a torus with equation
+\begin{equation}
+  \left( \sqrt{x^2 + (z + r + R)^2} - R \right)^2 + y^2 = r^2
+\end{equation}
+The series expansion is:
+\begin{align}
+  {-z} &= \frac{x^2}{2 \, (r+R)} + \frac{x^4}{8 \, (r+R)^3} + \frac{x^6}{16 \, (r+R)^5} + 
+         \frac{y^2}{2 \, r} + \frac{y^4}{8 \, r^3} + \\
+  & \qquad \frac{y^6}{16 \, r^5} +
+         \frac{x^2 \, y^2}{4 \, r \, (r+R)^2} + \frac{3 \, x^4 \, y^2}{16 \, r \, (r + R)^4} + 
+         \frac{(3 \, r + R) \, x^2 \, y^4}{16 \, r^3 \, (r + R)^3} \nonumber
+\end{align}
+
+For a curved crystal, if $p$ is the distance from the source to the crystal, and $q$ is the distance
+from the crystal to the detector, the needed radius of curvature $R_s$ in the sagittal (transverse)
+plane to give focusing is \cite{b:del.rio}:
+\begin{equation}
+  \frac{1}{p} + \frac{1}{q} = \frac{\sin\theta_{g,in} + \sin\theta_{g,out}}{R_s}
+\end{equation}
+where $\theta_{g,in}$ and $\theta_{g,out}$ are the entrance and exit graze angles. In the tangential
+(meridional) plane, the radius $R_t$ needed for focusing is
+\begin{equation}
+  \frac{\sin^2\theta_{g,in}}{p} + \frac{\sin^2\theta_{g,out}}{q} = \frac{\sin\theta_{g,in} + \sin\theta_{g,out}}{R_t}
+\end{equation}
+The above formulas assume that the crystal is constructed so that the orientation of the Bragg planes
+follows the orientation of the surface. Mirrors have similar formulas with $\theta_{g,in} =
+\theta_{g,out} = \theta$.
+
+Example:
+\begin{example}
+  t_bragg = 1.3950647
+  rt = 1  ! Crystal transverse radius
+  rs = rt*(sin(t_bragg))^2
+  c: crystal, crystal_type =  "Si(553)", b_param = -1, curvature = \{x0y2 = 1 / (2 * rs), 
+                      x0y4 = 1 / (8 * rs^3), x2y0 = 1 / (2 * rt), x4y0 = 1 / (8 * rt^3)\}
+  c[curvature%x0y2] = 1.01 * c[curvature%x0y2]  ! Put in an error
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Displacement, H_Misalign, and Segmented Surface Grids}
+\label{s:surf.grid}
+\index{surface grid}
+
+A surface can be broken up into a grid of rectangles. This is useful, for example, in simulating
+crystal surface roughness. The case of the \vn{pixel} grid for a \vn{detector} element is discussed
+in \Sref{s:detector}. Here the other three types of grids are explained. These are:
+\begin{example}
+  Displacement       ! Mesh defines an offset from the nominal surface.
+  H_Misalign         ! Misalignment of crystal H vector
+  Segmented          ! Surface is a matrix of flat rectangles
+\end{example}
+Note: Currently there is the restriction that a maximum of one grid (excluding the \vn{pixel} grid)
+can be defined for any given element.
+
+All grids have the following common parameters:
+\begin{example}
+  active = <T/F>                     ! Turn on/off effect of grid. Default = True
+  ix_bounds = (<ix_min>, <ix_max>),  ! Min/max grid index bounds in x-direction
+  iy_bounds = (<iy_min>, <iy_max>),  ! Min/max grid index bounds in y-direction
+  r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+  dr = (<dx>, <dy>),                 ! Spacing between grid points.
+\end{example}
+
+Example:
+\begin{example}
+  ccd: crystal, n_misalign = \{
+            r0 = (0.0, 0.01), dr = (0.005, 0.005),
+            ix_bounds = (1, 57), iy_bounds = (-30, 10),
+            pt(1,-30) = (0.001, -0.002, 0, 0), 
+            pt(1,-29) = ..., 
+          \}
+\end{example}
+
+The grid is a two dimensional rectangular mesh with bounds given by the \vn{ix_bounds} and
+\vn{iy_bounds} components. In the above example the grid is 57 pixels in $x$ and 41 pixels in $y$.
+
+The physical placement of the grid on the element is determined by the \vn{r0} and \vn{dr}
+components. \vn{r0} is optional and gives the $(x,y)$ coordinates of the center of the pixel with
+index $(0,0)$. The \vn{dr} component, which must be present, gives the pixel width and height. Thus
+the center of the $(i,j)$ pixel is:
+\begin{example}
+  (x,y) = (r0(1), r0(2)) + (i*dr(1), j*dr(2))
+\end{example}
+
+The different grid types are:
+\begin{description}
+%
+\item[Displacement grid] \Newline
+The general syntax for a \vn{displacement} grid is:
+\begin{example}
+  displacement = \{
+      active = <T/F>                     ! Turn on/off effect of grid. Default = True
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>),                 ! Spacing between grid points.
+      pt(<i>,<j>) = (<z>),                                  ! or
+      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>),                ! or
+      pt(<i>,<j>) = (<z>, <dz/dx>, <dz/dy>, <d2z/dxdy>),
+          \}
+\end{example}
+
+With a \vn{displacement} grid, an offset $z_\text{off}$ is added to the surface
+position defined in \Eq{xs2ij4}. The $z$ offset at a given $(x,y)$ position is determined by a
+spline interpolation of the $z$ values of the grid of points defined by \vn{pt(<i>,<j>)}. For each
+point \vn{pt(<i>,<j>)}, the $z$ value along with the $dz/dx$, $dz/dy$, $d2z/dxdy$ slopes can be specified or
+only the $z$ value needs to be specified. With the later option the slopes will be computed by
+taking finite differences of nearest neighbors.
+%
+\item[H_Misalign grid] \Newline
+The general syntax for a \vn{h_misalign} grid:
+\begin{example}
+  h_misalign = \{
+      active = <T/F>                     ! Turn on/off effect of grid. Default = True
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>)                  ! Spacing between grid points.
+      pt(<i>,<j>) = (<dz_dx>, <dz_dy>, <dz_dx_rms>, <dz_dy_rms>)
+          \}
+\end{example}
+
+An \vn{h_misalign} grid is used with crystals only. With \vn{H_Misalign}, the grid defines
+misalignment of the $H$ vector which is the normal to the diffracting planes of the crystal
+(\sref{s:crystal.tracking}).  When using \vn{H_Misalign}, each \vn{pt(i,j)} component gives the
+misalignment of $H$ for the region around the point. For an individual photon, the misalignment of $H$
+will be
+\begin{example}
+  dz/dx_tot = <dz/dx> + r1 * <dz/dx_rms>
+  dz/dy_tot = <dz/dy> + r2 * <dz/dy_rms>
+\end{example}
+where \vn{dz/dx_tot} and \vn{dz/dy_tot} are the rotational misalignment (\sref{s:offset}) used
+in the calculation, the quantities in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
+\vn{r2} are Gaussian distributed random numbers with unit rms. These random numbers are regenerated
+for each photon.
+%
+\item[Segmented grid] \Newline
+The general syntax for a \vn{segmented} grid:
+\begin{example}
+  segmented = \{
+      active = <T/F>                     ! Turn on/off effect of grid. Default = True
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>)                  ! Spacing between grid points.
+          \}
+\end{example}
+
+With a \vn{segmented} grid the crystal surface is modeled as a grid of flat ``rectangles'' (the
+actual shape is very close but not quite rectangular). Using a segmented surface only makes sense
+when the surface is curved (see \Eq{xs2ij4}). There is one rectangle for each grid point. Each rectangle
+has an extent in the $(x,y)$ transverse dimensions equal to the spacing between grid points.
+\Eq{xs2ij4} is used to calculate the $z$ coordinate of the vertices of a given rectangle and
+then these $z$ values are adjusted so that
+\begin{example}
+  1) The rectangle is flat (the vertices all lie on a plane).
+  2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two diagonally 
+       opposite vertices.
+  3) The other two diagonally opposite vertices will be as close as possible in the 
+       least squares sense from the unsegmented surface.
+\end{example}
+Note: The \vn{pt} component is not used here.
+\end{description}
+
+%-----------------------------------------------------------------
+\section{Walls: Vacuum Chamber, Capillary and Mask}
+\label{s:wall}
+\index{wall}
+
+The \vn{wall} attribute for an element is used to define:
+\begin{example}
+  vacuum chamber wall
+  capillary element (\sref{s:capillary}) inside wall
+  diffraction_plate (\sref{s:diff.plate}) geometry
+\end{example}
+
+The topics of the following subsections are:
+\begin{example}
+  \sref{s:wall.syntax}      General wall syntax.
+  \sref{s:wall.section}      Cross-section construction. 
+  \sref{s:wall.interpolation}      Capillary and vacuum chamber wall interpolation.
+  \sref{s:wall.capillary}      Capillary wall.
+  \sref{s:wall.vacuum}      Vacuum chamber wall.
+  \sref{s:masking.wall}      Diffraction_plate and mask element geometries.
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Wall Syntax}
+\label{s:wall.syntax}
+
+The syntax of the \vn{wall} attribute is:
+\begin{example}
+  wall = \{
+    superimpose = <T/F>,               ! Chamber wall only
+    thickness = <real>                 ! Default thickness. 
+    opaque_material = <material_type>  ! Default opaque material. 
+    clear_material = <material_type>   ! Default clear material. 
+    section = \{ 
+      type = <section_type>,           ! Chamber Mask, and Diffraction_plate only
+      s = <longitudinal_position>,     ! Relative to beginning of element.
+                                       !   Not used for mask or diffraction_plate.
+      r0 = (<x0>, <y0>),               ! section (x,y) origin. Default = (0, 0).
+      absolute_vertices = <T/F>,       ! Vertex relative to r0? Default = F.
+      material = <material_type>,      ! Mask and Diffraction_plate only.
+      thickness = <real>,              ! Mask and Diffraction_plate only.
+      dr_ds = <value>,                 ! Capillary and Chamber only
+      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
+      v(2) = \{ ... \},
+      ...\},
+    section = \{
+      s = <longitudinal_position>, 
+      v(1) = \{... \},
+      ... \},
+    ... \}
+\end{example}
+A \vn{wall} begins with ``\vn{wall = \{}'' and ends with a ``\vn{\}}''. In between are a number of
+individual cross-section structures. Each individual cross-section begins with ``\vn{section = \{}''
+and ends with a ``\vn{\}}''. The \vn{s} parameter of a cross-section gives the longitudinal position
+of the cross-section.  Example:
+\begin{example}
+  this_cap: capillary, 
+    wall = \{   
+      section = \{ ! cross-section with top/bottom symmetry
+        s = 0, v(1) =  \{0.02, 0.00\}, 
+        v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\} \}, 
+      section = \{  ! Cross-section that is a tilted ellipse.
+        s = 0.34, 
+        v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\} \} \}
+\end{example}
+In this example an element called \vn{this_cap} is a \vn{capillary}
+whose wall is defined by two cross-sections.
+
+%------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{chamber-wall.pdf}
+  \caption[Capillary or vacuum chamber wall.]
+{A) The inside wall of a capillary or the vacuum chamber wall of a non-capillary element is defined
+by a number of cross-sectional slices.  B) Each cross-section is made up of a number of
+vertices. The segments between the vertices can be either a line segment, the arc of a circle, or a
+section of an ellipse.}
+  \label{f:chamber.wall}
+\end{figure}
+
+%-----------------------------------------------------------------
+\subsection{Wall Sections}
+\label{s:wall.section}
+
+The wall is defined by a number of cross-sectional slices. For \fig{f:chamber.wall}A shows the
+geometry for \vn{capillary} or vacuum chamber walls.  Each cross-section is defined by a
+longitudinal position $s$ relative to the beginning of the element and a number of vertices. The arc
+between each vertex may be either a straight line, an arc of a circle, or a section of an
+ellipse. For a capillary it is mandatory that a cross-section be convex. That is, given any two
+points within the cross-section, all points on the line segment connecting them must be within the
+cross-section.
+
+The \vn{v(<j>)} within a cross-section define the vertices for each cross-section. The vertices are
+defined with respect to the section origin given by \vn{r0}. Each \vn{v(<j>)} has five
+parameters. It is mandatory to specify the first two parameters \vn{<x>} and \vn{<y>}. Specifying
+the rest, \vn{<radius_x>}, \vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if not
+specified, is zero. The point (\vn{<x>}, \vn{<y>}) defines the position of the vertex. The
+parameters \vn{<radius_x>}, \vn{<radius_y>}, and \vn{<tilt>} define the shape of the segment of the
+cross-section between the given vertex and the preceding one.
+\begin{example}
+  <radius_x>  = 0, <radius_y>  = 0   --> Straight line segment.
+  <radius_x> != 0, <radius_y>  = 0   --> Circular arc with radius = radius_x
+  <radius_x>  = 0, <radius_y> != 0   --> Illegal!
+  <radius_x> != 0, <radius_y> != 0   --> Ellipse section.
+\end{example}
+When an ellipse is specified, \vn{<radius_x>}, and \vn{<radius_y>} are
+the half width and half height of the semi-major axes and the
+\vn{<tilt>} parameter gives the tilt of the ellipse. \vn{<radius_x>}
+and \vn{<radius_y>} must not be negative.
+
+In the example above, for the first cross-section, \vn{v(2)} specifies a non-zero \vn{<radius_x>}
+and, by default, \vn{<radius_y>} is zero. Thus the segment of the cross-section between \vn{v(1)}
+and \vn{v(2)} is circular in nature with a radius of 0.02. Since \vn{v(3)} does not specify
+\vn{<radius_x>} nor \vn{<radius_y>}, the cross-section between \vn{v(2)} and \vn{v(3)} is a straight
+line segment.
+
+The vertex points must be arranged in a ``counter clockwise manner''.  For vertices \vn{<v(i)>} and
+\vn{<v(i+1)>} connected by a line segment this translates to
+\begin{equation}
+  0 < \theta_{i+1} - \theta_{i} \pmod{2\pi} < \pi
+  \label{0tt2p}
+\end{equation}
+where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$ vertex with respect to the point
+\vn{r0}. For vertices connected by an arc, ``counter clockwise manner'' means that the line segment
+with one end at the center of the arc and the other end traversing the arc from \vn{<v(i)>} to
+\vn{<v(i+1)>} rotates in counter clockwise as shown in \fig{f:chamber.wall}B.
+
+The red line segment with one end at the center of the arc and the other end traversing the arc
+from, in this case, $V(2)$ to $V(3)$, rotates in counter clockwise manner. In general, there are two
+solutions for constructing such an arc. For positive radii, the solution chosen is the one whose
+center is closest to the section origin $(x_0, y_0)$. If the radii are negative, the center point
+will be the point farthest from the origin (the dashed line between $V(2)$ and $V(3)$ in the
+figure).
+
+A restriction on cross-sections is that the section origin $(x_0, y_0)$ must be in the interior of
+any cross-section and that for any cross-section a line drawn from the origin at any given angle
+$\theta$ will intersect the cross-section at exactly one point as shown in
+\fig{f:chamber.wall}B. This is an important point in the construction of the wall between
+cross-sections as explained below.
+
+The last vertex specified, call it \vn{<v(n)>}, should not have the same \vn{<x>}, \vn{<y>} values
+as the first vertex \vn{<v(1)>}. That is, there will be a segment of the cross-section connecting
+\vn{<v(n)>} to \vn{<v(1)>}. The geometry of this segment is determined by the parameters of
+\vn{<v(1)>}.
+
+If there is mirror symmetry about the $x$ or $y$ axis for a cross-section, the ``mirrored''
+vertices, on the ``negative'' side of the mirror plane, do not have to be specified. Thus if all the
+vertex points of a cross-section are in the first quadrant, that is, all \vn{<x>} and \vn{<y>} are
+zero or positive, mirror symmetry about both the $x$ and $y$ axes is assumed. If all the \vn{<y>}
+values are zero or positive and some \vn{<x>} values are positive and some are negative, mirror
+symmetry about the $x$ axis is assumed. Finally, if all the \vn{<x>} values are zero or positive but
+some \vn{<y>} values are positive and some are negative, symmetry about the $y$ axis is assumed. For
+example, for the first in the above example, since all the \vn{<y>} values are non-negative and
+there are positive and negative \vn{<x>} values, symmetry about the $x$ axis is assumed.
+
+The one exception to the above rule that (\vn{<x>}, \vn{<y>}) is the vertex center is when a single
+vertex \vn{v(1)} is specified for a cross-section with a non-zero \vn{<radius_x>}. In this case,
+(\vn{<x>}, \vn{<y>}) are taken to be the center of the circle or ellipse. For example, if a single
+vertex is specified for a cross-section as:
+\begin{example}
+  section = \{s = 0.3, v(1) = \{0.03, -0.01, 0.15, 0.08, 0.2\}\}
+\end{example}
+the cross-section will be an ellipse with center at $(0.03, -0.01)$ with a tilt of $0.2$ and axes
+radii of $0.15$ and $0.08$. If a cross-section has a single vertex and \vn{<radius_x>} is not
+specified, the cross-section is a rectangle. For example
+\begin{example}
+  section = \{s = 0.3, v(1) = \{0.03, 0.01\}\}
+\end{example}
+
+The vertices are defined with respect to the local sector origin $r_0$ except if
+\vn{absolute_vertices} is set to \vn{True} in which case the vertex numbers are taken as absolute.
+For example, the following two cross-sections are identical and describe a rectangle with edges at
+$x = 1$ and 5 and $y = -6$ and 6
+\begin{example}
+  section = \{absolute_vertices = T, r0 = (4, 0), 
+                  v(1) = \{5, 6\}, v(2) = \{1, 6\}, v(3) = \{1, -6\}, v(4) = \{5, -6\}\}
+  section = \{r0 = (4, 0), v(1) = \{2, 6\}\}
+\end{example}
+Notice that while $r0$ is not needed in the first section for positioning of the vertices, it is
+needed in the first section to make \Eq{0tt2p} true.
+
+%-----------------------------------------------------------------
+\subsection{Interpolation Between Sections}
+\label{s:wall.interpolation}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=4in]{concave-capillary.pdf}
+  \caption[Convex cross-sections do not guarantee a convex volume.]
+{Example where convex cross-sections do not produce a convex volume.  Cross-sections (A) and (C) are
+ellipses with a 5 to 1 aspect ratio.  Half way in between, linear interpolation produces a convex
+cross-section as shown in (B).}
+  \label{f:concave.capillary}
+\end{figure}
+
+For \vn{capillary} and vacuum chamber walls, the wall between cross-sections, is defined by
+interpolation. At a given $s$ position, the $r, \theta$ coordinate system in the transverse $x, y$
+plane is defined with respect to an origin $\bfr_O(s)$ given by a linear interpolation of the
+origins of the cross-sections to either side of the given $s$ position. Let $s_1$ denote the
+position of the cross-section just before $s$ and $s_2$ denote the position of the cross-section
+just after $s$. Let $\bfr_{01}$ be the $(x_0, y_0)$ origin defined for the cross section at $s_1$
+and $\bfr_{02}$ be the $(x_0, y_0)$ origin defined for the cross section at $s_2$. Then
+\begin{equation}
+  \bfr_O(s) = (1 - \stilde) \, \bfr_{01} + \stilde \, \bfr_{02}
+\end{equation}
+where 
+\begin{equation}
+  \stilde \equiv \frac{s - s_1}{s_2 - s_1}
+\end{equation}
+
+Let $r_{c1}(\theta)$ and $r_{c2}(\theta)$ be the radius of the wall as a function of $\theta$ for
+the cross-sections at $s = s_1$ and $s = s_2$ respectively. The wall $r_c(\theta, s)$ at any point
+$s$ between $s_1$ and $s_2$ is then defined by the equation
+\begin{equation}
+  r_c(\theta, s) = p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
+\end{equation}
+where $p_1$ and $p_2$ are cubic polynomials parameterized by
+\begin{align}
+  p_1 &= 1 - \stilde + a_1 \, \stilde + a_2 \, \stilde^2 + a_3 \, \stilde^3 \CRNO
+  p_2 &= \stilde + b_1 \, \stilde + b_2 \, \stilde^2 + b_3 \, \stilde^3 
+\end{align}
+If $a_i = b_i = 0$ for all $i = 1, 2, 3$, the interpolation is linear and this is the default if
+either of the parameters \vn{dr_ds1} and \vn{dr_ds2} are not given in the wall definition. These
+parameters are the slopes of the wall with respect to $s$ at the end points
+\begin{equation}
+  \text{dr_ds1} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_1} \comma \qquad
+  \text{dr_ds2} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_2} 
+\end{equation}
+where $\overline{r}$ is the average $r$ averaged over all $\theta$. When {\em both} \vn{dr_ds1} and
+\vn{dr_ds2} are specified, the $a_i$ and $b_i$ are calculated so that the slopes of the wall match
+the values of \vn{dr_ds1} and \vn{dr_ds2} along with the constraints.
+\begin{align}
+  p_1(0) &= 1 \comma \qquad p_1(1) = 0 \CRNO
+  p_2(0) &= 0 \comma \qquad p_2(1) = 1 \\
+  M &\equiv a_1^2 + a_2^2 + a_3^2 + b_1^2 + b_2^2 + b_3^2 \text{ is a minimum}
+  \nonumber
+\end{align}
+The last constraint ensures a ``smooth'' transition between the two cross-sections.
+
+To refer to a cross-section parameters after an element has been defined, the following syntax is
+used:
+\begin{example}
+  ele_name[wall%section(n)%v(j)%x]   ! x value of j^th vertex of n^th cross-section
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Capillary Wall}
+\label{s:wall.capillary}
+\index{capillary!wall}
+
+For a \vn{capillary}, \vn{s} must be zero for the first cross-section and the length of the
+capillary is given by the value of \vn{s} of the last cross-section.
+
+For a \vn{capillary}, in order for \bmad to quickly track photons, \bmad assumes that the volume
+between the cross-sections is convex. The volume will be convex if each cross-section $r_c(\theta,
+s)$ at any given $s$ is convex. Note that it is {\em not} sufficient for $r_c(\theta, s)$ to be
+convex at the specified cross-sections as shown in \fig{f:concave.capillary}. Also note that it is
+perfectly fine for the total capillary volume to not be convex.
+
+%-----------------------------------------------------------------
+\subsection{Vacuum Chamber Wall}
+\label{s:wall.vacuum}
+
+The vacuum chamber wall is independent of the element apertures (\sref{s:limit}). Unless a program
+is specifically constructed, the presence of a vacuum chamber wall will not affect particle
+tracking.
+
+The vacuum chamber wall defined for an element may be shorter or longer than the element.  The
+vacuum chamber wall for a particular lattice branch is the sum of all the chamber walls of the
+individual elements. That is, the chamber wall at any given point is determined by interpolation of
+the nearest sections upstream and downstream to the point.  Thus a given lattice element need not
+contain a \vn{wall} component for the chamber wall to be well defined at the element.
+
+The exception to the above rule is when a \vn{section} has its
+\vn{type} component set to either:
+\begin{example}
+  wall_start
+  wall_end
+\end{example}
+\vn{wall_start} and \vn{wall_end} sections must come in pairs. The next section after a
+\vn{wall_end} section (if this section is not the last section in the lattice) must be a
+\vn{wall_start} section.  If a section has a \vn{type} of \vn{wall_start}, the region between that
+section and the previous section (which must be a \vn{wall_end} section) will be considered to have
+no wall. If the \vn{wall_start} section is the first section of the lattice branch, the region of no
+wall will start at the beginning of the branch. Similarly, if a section has a \vn{type} of
+\vn{wall_end}, the region between that section and the next section (or the end of the lattice
+branch if there is no next section) will not have a wall.
+
+The chamber walls of any two elements may not overlap. The exception is when the \vn{superimpose}
+attribute for a wall of an element is set to True. In this case, any other wall cross-sections from
+any other elements that overlap the superimposed wall are discarded.  Superposition of a wall is
+useful, for example, in introducing mask regions into the wall.
+
+If a branch has a closed geometry (\sref{s:param}), wall sections that extend beyond the ends of the
+branch are ``wrapped'' around.
+
+If a particle is past the last wall cross-section or before the first wall cross-section, The
+following rules are used: If the branch has a \vn{closed geometry}, the wall will be interpolated
+between the last and first cross-sections. If the branch has an \vn{open} geometry, the wall is
+taken to have a constant cross-section in these regions.
+
+The chamber wall is defined with respect to the local coordinate system (\sref{s:ref}). That is, in
+a bend a wall that has a constant cross section is a section of a torus.
+
+\index{patch!and chamber wall}
+\vn{Patch} elements (\sref{s:patch}) complicate the wall geometry since the coordinate system at the
+end of the \vn{patch} may be arbitrarily located relative to the beginning of the patch. To avoid
+confusion as to what coordinate system a wall section belongs to, \vn{patch} elements are not
+allowed to define a wall. The wall through a patch is determined by the closest wall sections of
+neighboring elements.
+
+%-------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{crotch.pdf}
+  \caption[vacuum chamber crotch geometry.]
+{A) Crotch geometry: Two pipes labeled ``leg1'' and ``leg2'' merge into a single pipe called the
+``trunk'' pipe. Five wall sections are used to define the crotch geometry (solid lines). Dashed
+lines represent sections not involved in defining the crotch. For purposes of illustration, the
+three trunk sections are displaced longitudinally but in reality must have the same longitudinal
+coordinate.  B) Example layout of the trunk1, trunk2 and trunk wall sections. $O_1$, $O_2$ and $O$
+are the $x_0, y_0$ origins of the sections.}
+  \label{f:crotch}
+\end{figure}
+
+%-------------------
+
+\index{crotch chamber geometry}
+Each section has a \vn{type} attribute. This attribute is not used for \vn{capillary} elements. For
+a vacuum chamber wall, the \vn{type} attribute is used to describe a ``crotch'' geometry where two
+pipes merge into one pipe. The possible values for the \vn{type} attribute are:
+\begin{example}
+  normal     ! default
+  leg1
+  leg2
+  trunk1
+  trunk2
+  trunk
+\end{example}
+The geometry of a crotch is shown in \fig{f:crotch}A. Two pipes, called ``leg1'' and ``leg2'', merge
+into one pipe called the ``trunk'' pipe.  The trunk pipe can be either upstream or downstream of the
+leg pipes.  To describe this situation, five sections are needed: One section in each leg pipe which
+need to have their \vn{type} attribute set to \vn{leg1} and \vn{leg2}, and three sections in the
+trunk with one having a a \vn{type} attribute of \vn{trunk1}, another having a \vn{type} attribute
+of \vn{trunk2} and the third having a \vn{type} attribute of \vn{trunk}. There can be no sections
+between the leg sections and the trunk sections.
+
+All three trunk sections must be associated with the same element and have the same \vn{s} value. In
+the list of sections of the element containing the trunk elements, the \vn{trunk1} and \vn{trunk2}
+sections must be listed first if the leg pipes are upstream of the trunk pipe (the situation shown
+in the figure) and must be listed last if the leg pipes are downstream. That is, the \vn{trunk1} and
+\vn{trunk2} sections are ``between'' the leg sections and the \vn{trunk} section. It does not matter
+if \vn{trunk1} is before or after \vn{trunk2}.
+
+The \vn{trunk1} and \vn{trunk2} sections must not overlap and the \vn{trunk} section must be
+constructed so that its area is the union of the areas of \vn{trunk1} and \vn{trunk2}. An example is
+illustrated in \fig{f:crotch}B. Here the \vn{trunk1} and \vn{trunk2} sections are squares with
+origins labeled $O_1$ and $O_2$ in the figure. By necessity, these origins must be different since
+each must lie within the boundaries of their respective areas. The \vn{trunk} section is a rectangle
+encompassing the two squares and has an origin labeled $O$.
+
+Between \vn{leg1} and \vn{trunk1} sections the wall is interpolated using these two
+section. Similarly for the region between \vn{leg2} and \vn{trunk2} sections. Away from these
+regions interpolation is done as outlined in \sref{s:wall.interpolation}. However, these two regions
+need a different interpolation scheme since, \vn{leg1} and \vn{trunk1}, as well as \vn{leg2} and
+\vn{trunk2} sections do not have to be parallel to each other.
+
+%-----------------------------------------------------------------
+\subsection{Mask Wall For Diffraction Plate and Mask Elements}
+\label{s:masking.wall}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{diffraction-plate.pdf}
+  \caption[Example mask wall]{
+A) The surface of a \vn{diffraction_plate} or \vn{mask} element is divided into ``clear'' (white)
+and ``opaque'' (black) areas. As explained in the text, these areas are defined by five
+\vn{sections} labeled $s_1$ through $s_5$. B) All wall sections must be star shaped with respect to
+the section's origin. In this example, The section is {\em not} star shaped since a line drawn from
+the origin point $o$ to the point $p$ on the boundary intersects the boundary twice in between. In
+this case the section can be made star shaped by moving the origin to $o'$.
+  }
+  \label{f:diff.plate}
+\end{figure}
+
+The \vn{wall} attribute (\sref{s:wall}) of a \vn{diffraction_plate} or \vn{mask} element specifies
+what areas of the element will transmit or reflect particle and what areas will not. Here the
+``wall'' defines a 2-dimensional area where particles (or X-rays) impinge upon and not a
+3-dimensional surface.  As such, the \vn{s} longitudinal position parameter of wall \vn{sections} is
+not used with \vn{mask} and \vn{diffraction_plate} elements.
+
+The algorithm used to decide if a particle hitting a given point will be transmitted or not is as
+follows.  A \vn{wall} is comprised a a ordered list of \vn{sections} as discussed in
+\sref{s:wall.section}.  Sections will be labeled $s_1, s_2, s_3, \ldots$ with $s_i$ being the $i$\Th
+section defined in the \vn{wall} structure. Each section of the wall must have its \vn{type}
+attribute set to one of:
+\begin{example}
+  clear
+  opaque
+\end{example}
+A section is called ``clear'' or ``opaque'' depending upon the setting of its \vn{type} attribute.
+The first section $s_1$ must be labeled \vn{clear}. Each \vn{clear} section has zero or more
+associated \vn{opaque} sections that follow the \vn{clear} section. An opaque section $s_j$ is
+associated with clear section $s_i$ if and only if $i$ is less than $j$, and all the sections $k$
+between $i$ and $j$ (that is, $i < k < j$) are opaque sections. For example, if the \vn{wall}
+defines 6 sections:
+\begin{example}
+  \(s_1\)   Clear
+  \(s_2\)   Clear
+  \(s_3\)   Opaque
+  \(s_4\)   Opaque
+  \(s_5\)   Clear
+  \(s_6\)   Opaque
+\end{example}
+with this arrangement, clear section $s_1$ does not have any associated opaque sections, clear section
+$s_2$ has two associated opaque section $s_3$ and $s_4$, and clear section $s_5$ has one associated
+opaque section $s_6$.
+
+Each \vn{section} covers an area specified by the vertex list associated with the \vn{section}. To
+decide if a particle is transmitted, each clear section, starting from $s_1$, is tested to see if
+the particle's $(x,y)$ coordinates is within the section. If the particle position is not within any
+clear section, the particle is considered to have hit an opaque region. If a particle is within one
+or more clear regions, let $s_i$ be the clear region with the smallest index $i$ that the particle
+is within. The particle is transmitted if the particle is outside of all associated opaque region of
+$s_i$.
+
+When tracking photons, any clear section can be given a \vn{material} and \vn{thickness}. Available
+materials are listed in \sref{s:cryst.list}. A photon transversing a clear area with a defined
+material will be attenuated and have a phase shift. Note that \vn{material} and \vn{thickness}
+properties are not to be assigned to \vn{opaque} sections.
+
+To enable \bmad to quickly calculate whether a particle has landed on a clear or opaque section, All
+sections, both clear and opaque, must be ``star shaped'' with respect to the $(x_0, y_0)$ origin
+used by the section. That is, a line drawn from the section origin to any point on the section
+boundary must not pass through any boundary points of the section in between. This is illustrated in
+\fig{f:diff.plate}B where the section is not star shaped since a line drawn from the origin $o$ to
+the point $p$ on the boundary passes through two boundary points in between. In this case the
+section can trivially be made star shaped by moving the origin to point $o'$. If it is not possible
+to make a section star shaped by moving the origin, the section must be divided into multiple
+sections.
+
+An example geometry is shown in \fig{f:diff.plate}A. A wall that constructs this geometry is:
+\begin{example}
+  z_plate: diffraction_plate, wall = \{
+    section = \{          ! \(s_1\) 
+      type = clear,
+      v(1) = \{0, 0, 0.03, 0.013\},
+    section = \{          ! \(s_2\)
+      type = opaque,
+      v(1) = \{0, 0, 0.005\},
+    section = \{          ! \(s_3\)
+      type = opaque,
+      r0 = (0.02, 0.00),
+      v(1) = \{0, 0, 0.005\} \}
+    section = \{          ! \(s_4\)
+      type = clear, 
+      v(1) = \{0.04, 0\}, v(2) = \{0.04, 0.022\},
+      v(3) = \{0, 0.03\},
+    section = \{          ! \(s_5\)
+      type = opaque,
+      v(1) = \{0.032, 0.016\},
+\end{example}
+There are two clear sections $s_1$ and $s_4$. Clear section $s_1$ has an oval shape and has two
+associated circular opaque sections $s_2$ and $s_3$. Clear section $s_4$ has a hexagonal shape and
+has one associated rectangular opaque section $s_5$. Notice that because opaque section $s_5$ is
+associated with clear section $s_4$, and since clear section $s_4$ comes after clear section $s_1$,
+opaque section $s_5$ does not affect clear section $s_1$ even though $s_5$ (completely) overlaps
+$s_1$. This shows that the ordering of the clear sections is important but the ordering of the
+opaque sections associated with a given clear section is not important.
+
+%-----------------------------------------------------------------
+\section{Length Attributes}
+\label{s:l}
+
+\index{length of elements}
+\index{l|hyperbf}
+\index{l_chord|hyperbf}
+\index{rbend}
+\index{sbend}
+The length attributes are
+\begin{example}
+  l       = <Real>  ! 
+  l_chord = <Real>  ! Chord length of a bend. Dependent attribute.
+\end{example}
+The length \vn{l} is the path length of the reference particle. The one exception is for an
+\vn{rbend}, the length \vn{l} set in the lattice file is the chord length
+(\sref{s:bend}). internally, \bmad converts all \vn{rbend}s to \vn{sbend}s and stores the chord
+length under the \vn{l_chord} attribute.  Example:
+\begin{example}
+  b: rbend, l = 0.6   ! For rbends, l will be converted to l_chord
+\end{example}
+
+\index{girder}
+For a \vn{girder} element the length \vn{l} is a dependent attribute and is set by \bmad to be the
+difference in longitudinal position $s$ of the downstream end of the last element supported relative
+to the upstream end of the first element.
+
+\index{wiggler}
+For \vn{wiggler}s, the length \vn{l} is not the same as the path length for a particle with the
+reference energy starting on the reference orbit. See~\sref{s:ref}.
+
+\index{patch}
+For \vn{patch} elements the \vn{l} length is, by definition, equal to \vn{z_offset}. For \vn{patch}
+elements, \vn{l} is a dependent attribute and will be automatically set to \vn{z_offset} by \bmad.
+
+\index{capillary}
+The length of a \vn{capillary} element is a dependent variable and is given by the value of \vn{s}
+of the last wall cross-section (\sref{s:wall.capillary}).
+
+\index{crystal}
+The length of a crystal is zero for Bragg diffraction and is a dependent attribute dependent upon
+the crystal thickness for Laue diffraction. See \sref{s:crystal} for more details.
+
+%-----------------------------------------------------------------
+\section{Is_on Attribute}
+\label{s:is.on}
+\index{is_on|hyperbf}
+
+The \vn{is_on} attribute
+\begin{example}
+  is_on = <Logical>
+\end{example}
+is used to turn an element off. Turning
+an element off essentially converts it into a drift.
+Example
+\begin{example}
+  q1: quad, l = 0.6, k1 = 0.95
+  q1[is_on] = False
+\end{example}
+
+\index{aperture}
+\index{reference orbit}
+\index{reference energy}
+\vn{is_on} does not affect any apertures that are set. Additionally, \vn{is_on} does not affect the
+reference orbit (\sref{s:ref}) or reference energy (\sref{s:ref.energy}). For example, turning off an
+\vn{lcavity} will not affect the reference energy.
+
+The following elements cannot be ``turned off:''
+\begin{example}
+  beginning_ele       null_ele
+  capillary           overlay
+  crystal             hybrid
+  drift               mirror
+  fiducial            multilayer_mirror
+  floor_shift         photon_init
+  patch               sample
+  group
+\end{example}
+
+A related parameter is \vn{multipoles_on} (\sref{s:multip}).
+
+%-----------------------------------------------------------------
+\section{Multipole Attributes: Magnetic and Electric}
+\label{s:multip}
+
+Multipole formulas for are given in \sref{s:mag.field} and \sref{s:elec.field}. Note that the
+setting of \vn{field_master} (\sref{s:field.master}) will determine if multipoles are interpreted as
+normalized or unnormalized.
+
+\index{multipole!knl, tn|hyperbf} 
+\index{multipole}
+A \vn{multipole} (\sref{s:mult}) element specifies its magnetic multipole components using normal
+and skew components with a tilt
+\begin{example}
+  KnL  = <Real>  ! Normal component. n = Integer. 
+  KnSL = <Real>  ! Skew component. n = Integer. 
+  Tn   = <Real>  ! Tilt. n = Integer. Default is $pi$/(2n + 2)
+\end{example}
+Where \vn{n} is an integer in the range from 0 (dipole component) through 21.  If \vn{Tn} is given
+without a value, a default of $pi$/(2n + 2) will be used producing a skew field. Example:
+\begin{example}
+  m: multipole, k1l = 0.32, t1  ! Skew quadrupole of strength 0.32
+\end{example}
+Following \vn{MAD}, a non-zero dipole (\vn{K0L} component will affect the reference orbit (just like
+a normal dipole will). This is not true for any other element.
+
+\index{ab_multipole}
+\index{multipole!an, bn|hyperbf} 
+An \vn{ab_multipole} (\sref{s:ab.m}) specifies magnetic multipoles
+using normal (\vn{Bn}) and skew (\vn{An}) components:
+\begin{example}
+  An = <Real>
+  Bn = <Real>
+\end{example}
+Here \vn{n} ranges from 0 (dipole component) through 21. Example:
+\begin{example}
+  q1: ab_multipole, b2 = 0.12, a20 = 1e7, field_master = T
+\end{example}
+Note that there is a factor of $n$-factorial difference between \vn{An}, \vn{Bn} and \vn{KnL},
+\vn{KnSL} multipoles \sref{s:mag.field}.
+
+\index{r0_mag}\index{scale_multipoles}
+Elements like \vn{quadrupoles} and \vn{sextupoles} can have assigned to them both magnetic and
+electric multipole fields. In this case, the magnetic fields are specified using the same convention
+as the \vn{ab_multipole}.  For such non-multipole elements, the magnetic multipole strength is
+scaled via (\Eq{ababf}) 
+\begin{equation}
+a_n(\text{actual}) = F \, \frac{r_0^{n_\REF}}{r_0^n} \, a_n(\text{input}), \qquad
+b_n(\text{actual}) = F \, \frac{r_0^{n_\REF}}{r_0^n} \, b_n(\text{input})
+\end{equation}
+where ``\vn{input}'' denotes the input value set in the lattice file, ``\vn{actual}'' denotes the
+value that is used to compute the field, $F$ is the strength of the element (for example $F$ is $K1 \cdot
+L$ for a quadrupole), and $r_0$ is the ``measurement radius'' and is set by the \vn{r0_mag}
+attribute. The default value of $r_0$ is 0 in which case the factor of $r_0^{n_\REF}/r_0^n$ is
+omitted. The scaling may be turned off altogether by setting the \vn{scale_multipoles} attribute.
+Example:
+\begin{example}
+  q1: quadrupole, b2 = 0.12, a20 = 1e7, scale_multipoles = F
+\end{example}
+
+Electric multipoles are specified using normal (\vn{Bn_elec}) and skew
+(\vn{An_elec}) components. \begin{example}
+  An_elec = <Real>
+  Bn_elec = <Real>
+\end{example}
+Here \vn{n} ranges from 0 (dipole component) through 21. Like the magnetic multipoles, a measurement
+radius \vn{r0_elec} can be used to scale the multipoles as explained in \sref{s:elec.field}.
+Example:
+\begin{example}
+  q1: quadrupole, l = 1.2, b2_elec = 1e6, r0_elec = 0.034
+\end{example}
+See \sref{s:elec.field} for how electric multipoles are defined. Notice that Electric multipoles are
+never scaled by the element's field strength as they are with magnetic multipoles. If the value of
+\vn{r0_elec} is zero (the default) the multipoles will not be scaled.
+
+Unlike magnetic multipoles, there are no factors of the reference momentum nor the element length in
+the definition for electric multipoles. That is, electric multipole values represent the field and
+not the normalized integrated field. Thus an electric multipole associated with a zero length
+element will have no effect on tracking. This being the case, \bmad does not allow electric
+multipole values to be specified for \vn{multipole} and \vn{ab_multipole} elements. Indeed, in the
+limit of zero element length at constant integrated electric field strength, the equations of motion
+are singular since, unlike the magnetic case, the infinite fringe fields give rise to infinite
+energy shifts.
+
+\index{multipoles_on}
+The magnetic and electric multipole kick can be toggled on or off using the
+\vn{multipoles_on} attribute. Example:
+\begin{example}
+  call, file = "lattice.bmad"             ! Read in a lattice file
+  quadrupole::*[multipoles_on] = False    ! But I want the multipoles off.
+  q1[k1] = 0.3                            ! k1 attribute not affected.
+\end{example}
+\vn{multipoles_on} only effect multipoles specified by \vn{An}, \vn{Bn}, \vn{An_elec}, or
+\vn{Bn_elec}. Other multipoles, like the \vn{k2} multipole of a \vn{sextupole}, are not
+affected. The exception is \vn{multipole} and \vn{ab_multipole} elements do not have the
+\vn{multipoles_on} attribute. Rather they can be toggles on/off using the \vn{is_on}
+attribute.
+
+%-----------------------------------------------------------------
+\section{Field Maps}
+\label{s:fieldmap}
+\index{field maps}
+
+There are two general ways to specify complicated electro-magnetic field configurations
+that cannot be simply modeled using multipoles. One way is to use \vn{custom}
+fields. Specifying a custom field is done by using custom code and linking this code with
+\bmad into a program. That is, custom fields are defined outside of the \bmad software
+(\sref{s:integ}).
+
+\index{cylindrical_map}\index{cartesian_map}\index{grid_field}\index{gen_grad_map}
+The other way to specify a complicated field is to use a ``\vn{field map}''. There
+are four types of field maps:
+\begin{example}
+  cartesian_map       ! \sref{s:cart.map}
+  cylindrical_map     ! \sref{s:cylind.map}
+  grid_field          ! \sref{s:grid.field}
+  gen_grad_map        ! \sref{s:gen.grad.map}
+\end{example}
+Essentially, \vn{cylindrical_map} and \vn{cartesian_map} define fields using a set of
+functions with user defined coefficients with the functions formulated to obey Maxwell's
+equations. The \vn{grid_field} type defines the field on a grid of points and
+interpolation is used to evaluate the field in between the points. Finally, the
+\vn{gen_grad_map} type defines a set of ``generalized gradients'' (\sref{s:gen.grad.phys}).
+
+The \vn{cylindrical_map} and \vn{grid_field} types can be used with both RF and DC fields.
+The other two types can only be used with DC fields. RF fields may only be used with the following
+element classes:
+\begin{example}
+  e_gun         ! \sref{s:e.gun}
+  em_field      ! \sref{s:em.field}
+  lcavity       ! \sref{s:lcav}
+  rfcavity      ! \sref{s:rfcav}
+\end{example}
+
+An element may specify multiple fields of a given type and/or may define multiple fields
+of different types. In both these cases, the field in the element is taken to be the sum
+of the individual fields. For example:
+\begin{example}
+  sb: sbend, field_calc = fieldmap, cylindrical_map = \{...\},  cylindrical_map = \{...\}
+\end{example}
+In this example an element has two \vn{cylindrical_map} fields and the total field is the
+sum of the fields of each one. Separating fields like this can be useful, for example, to
+decouple the specification of electric from magnetic fields, or to decouple the
+specification of AC and DC fields.
+
+The field of one element can overlap onto other elements. This is explained in
+Sec.~\sref{s:overlap}.
+
+Field maps are used with integration type tracking methods (\sref{s:integ}).  It is important to
+note that field maps are {\em ignored} by \vn{bmad_standard} tracking. Additionally, \vn{grid_field}
+field maps cannot be used with \vn{symp_lie_ptc}.
+
+Field maps may extend longitudinally beyond the ends of an element. See Sec~(\sref{s:overlap}) for
+more details.
+
+In a lattice file, once a field map is defined for an element, components of the field map
+may be redefined using the notation
+\begin{example}
+  ele_name[fieldmap_name(index)%component_name] = value
+\end{example}
+where \vn{ele_name} is the name of the element, \vn{fieldmap_name} is the name of the
+type of field map, \vn{index} is the index of the field map which is ``1'' for the first
+field map defined for an element, etc., \vn{component_name} is the name of the component,
+and \vn{value} is the value to set to. Example:
+\begin{example}
+  qq, quadrupole, grid_field = \{field_scale = 0.5, ...\}, ...
+  qq[grid_field(1)%field_scale] = 0.7  ! Change field_scale value
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Field Map Common attributes}
+\label{s:fieldmap.com}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics{bend-grid-coords.pdf}
+  \caption[\vn{Field map} coordinates when used with a bend element.]{
+When used with a bend element, by default, field map coordinates will be Cartesian and not curved
+like the reference orbit. The orientation of the field map coordinates is determined by the setting
+of \vn{ele_anchor_pt}. To use curvilinear coordinates instead, \vn{curved_ref_frame} must be set to
+\vn{True} [Available in \vn{grid_field} and \vn{gen_grad_map} only].}
+  \label{f:bend.grid}
+\end{figure}
+
+This section explains some of the attributes that are common to the \vn{field map}
+types. Not all attributes are used in all field map types. See the documentation on the
+individual types for a list of the attributes pertinent to that type.
+
+\index{field_type}
+\index{field_scale}\index{master_parameter}
+  \begin{description}
+%
+\item[curved_ref_frame] \Newline
+For bends, the coordinates of the field are, by default, Cartesian and do not follow the
+curved bend coordinates. The orientation of the field map coordinates with respect to the
+bend is determined by the placement of the anchor point (specified by \vn{ele_anchor_pt})
+as shown in \fig{f:bend.grid}. In this case, when tracking a particle, \bmad will convert
+particle coordinates (which are expressed in the bend's curvilinear coordinate system
+defined by the reference orbit) to the Cartesian coordinates of the field map and will
+rotate the computed field from the field map coordinates back to the particle coordinates.
+
+For \vn{grid_field} and \vn{gen_grad_map} types only, this default behavior can be changed by
+setting the \vn{curved_ref_frame} component of the field map to \vn{True}. In this case,
+the field grid coordinates will follow curved bend coordinates.  The \vn{curved_ref_frame}
+parameter is only pertinent for bend elements (\vn{sbend}s, \vn{rbend}s).  The setting of
+\vn{curved_ref_frame} is ignored for non-bend elements.
+%
+\item[ele_anchor_pt] \Newline
+The \vn{ele_anchor_pt}, along with \vn{r0}, determines the origin of the field with
+respect to the lattice element. Possible settings are:
+\begin{example}
+  beginning   ! Beginning of element (default).
+  center      ! Center of element.
+  end         ! Exit end of element.
+\end{example}
+Example:
+\begin{example}
+  rfc0: rfcavity, gen_grad_map = \{ele_anchor_pt = center, ...\}, ...
+\end{example}
+%
+\item[field_type] \Newline
+The \vn{field_type} attribute sets the type of field described. Possible settings for
+\vn{field_type} are:
+\begin{example}
+  electric      ! Pure electric field. For DC fields only.
+  magnetic      ! Pure magnetic field. For DC fields only.
+  mixed         ! Mixed EM fields. Used for \vn{grid_field} only.
+\end{example}
+Example:
+\begin{example}
+  bb: sbend, cartesian_map = \{field_type = electric, ...\}, ...
+\end{example}
+The \vn{cylindrical_map} type does not have a \vn{field_type} since it has explicit arrays
+for the electric and magnetic fields.
+%
+\item[field_scale] \Newline
+The \vn{field_scale} attribute is used to scale the overall field magnitude. The default
+value is 1. A value of -1 will reverse the field. If the \vn{master_parameter} is
+defined, it is multiplied with the \vn{field_scale} to give the overall scale.
+Example:
+\begin{example}
+  qq, quadrupole, grid_field = \{field_scale = 0.5, ...\}, ...
+  qq[grid_field(1)%field_scale] = 0.7     ! Change value after element def.
+  qq[grid_field(1)%master_parameter] = k1 ! Change value after element def.
+\end{example}
+%
+\item[harmonic] \Newline
+The \vn{harmonic} attribute, along with \vn{rf_frequency} element attribute, sets the oscillation
+frequency of the field map. The \vn{harmonic} attribute is only used with \vn{cylindrical_map} and
+\vn{grid_field} types. The default value of \vn{harmonic} is 0.  The \vn{harmonic} number needs to
+be 0 for DC fields. Example:
+\begin{example}
+  lc1: lcavity, rf_frequency = 500e6, grid_field = \{harmonic = 2, ...\}, ...
+\end{example}
+Notice that \vn{rf_frequency} is set outside of any field map and is common to all field maps.
+  \item[master_parameter] \Newline
+The \vn{master_parameter} defines a ``master'' element attribute for scaling the field. Example:
+\begin{example}
+  qq: quadrupole, gen_grad_map = \{master_parameter = "K1", ...\}, k1 = ...
+\end{example}
+This example defines the \vn{master_parameter} for the \vn{gen_grad_map} to be the
+quadrupole strength \vn{k1}. By using the same master parameter for a set of field map
+instances within a given lattice element, the sum field of the set can be controlled by a
+single attribute. The \vn{master_parameter} must be set to a valid element attribute. If
+the name is blank (""), no master parameter is used. The \vn{master_parameter}, if
+defined, is multiplied with the \vn{field_scale} to give the value used to scale the
+fields. The default \vn{master_parameter} is blank ("") except for \vn{wiggler} elements
+where, for historical reasons, the default is \vn{polarity}.
+%
+\item[phi0_fieldmap] \Newline
+For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the fundamental
+mode. The phase \vn{phi0_fieldmap} is relative to the fundamental frequency and not the frequency of
+the field map mode. That is, the ``zero crossing'' point of the field map is shifted by a time
+\vn{phi0_fieldmap}/$f_0$ where $f_0$ is the fundamental mode frequency.
+%
+\item[r0] \Newline
+The \vn{r0} attribute is the $(x0, y0, z0)$ vector specifying the offset of the origin point that
+defines the field relative to the \vn{anchor} point defined by \vn{ele_anchor_pt}.  The origin
+position of the field (\vn{r_origin}) is determined by
+\begin{example}
+  r_origin = r0 + r_anchor
+\end{example}
+where \vn{r_anchor} is determined by the setting of \vn{ele_anchor_pt}. In the reference
+coordinates (\sref{s:ref}) with respect to the element \vn{r_anchor} is:
+\begin{example}
+  ele_anchor_pt       r_anchor
+  -------------       ---------
+  beginning           (0, 0, 0)      ! Default
+  center              (0, 0, L/2)
+  end                 (0, 0, L)
+\end{example}
+with \vn{L} being the length of the element. 
+
+Example:
+\begin{example}
+  rfc0: rfcavity, gen_grad_map = \{r0 = (-0.23, ...), ...\}, ...
+\end{example}
+  \end{description}
+
+%-----------------------------------------------------------------
+\subsection{Cartesian_Map Field Map}
+\label{s:cart.map}
+\index{cartesian_map}
+
+The \vn{cartesian_map} is used to describe DC fields. Each term of a \vn{cartesian_map} is a solution
+of Laplace's equation in cartesian coordinates.  as described in Sec.~\sref{s:cart.map.phys}.
+
+The lattice file syntax for the \vn{cartesian_map} type is:
+\begin{example}
+  cartesian_map = \{
+    field_type       = <String>, ! Type of field: Default = Magnetic.
+    field_scale      = <Real>,   ! Scale factor for the E & B fields.
+    master_parameter = <Name>,   ! Master scaling parameter for E & B fields.
+    ele_anchor_pt    = <Real>,   ! Anchor position: Beginning (default), Center, or End.
+    r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
+    term = \{<A>, <k_x>, <k_y>, <k_z>, <x_0>, <y_0>, <phi_z>, <family>\}, 
+    term = \{....\},
+    ... more terms ...
+  \}
+\end{example}
+The possible settings of \vn{<family>} are explained in Sec.~\sref{s:cart.map.phys}. Example:
+\begin{example}
+  q01: quadrupole, l = 0.6, field_calc = fieldmap,
+        cartesian_map = \{
+          term = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\},
+          term = \{...\}, ...    \}
+\end{example}
+
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with other field
+map types.
+
+To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
+  \begin{itemize}
+%
+\item
+There can be only one \vn{cartesian_map} field map and there cannot be any other field maps of any
+kind.
+%
+\item 
+\vn{cartesian_map} may not be used with a bend.
+%
+\item
+Only magnetic fields may be used. 
+%
+\item
+The transverse terms in \vn{r0} must be zero.
+  \end{itemize}
+
+%-----------------------------------------------------------------
+\subsection{Cylindrical_Map Field Map}
+\label{s:cylind.map}
+\index{ccylindrical map}
+
+The \vn{cylindrical_map} is used to describe both DC and AC fields. Each term of a
+\vn{cylindrical_map} is a solution of Laplace's equation in cylindrical coordinates.  as described
+in Sec.~\sref{s:cylind.map.phys}.
+
+The lattice file syntax for the \vn{cylindrical_map} type is:
+\begin{example}
+  cylindrical_map = \{
+    field_scale      = <Real>,    ! Scale factor for the E & B fields.
+    master_parameter = <Name>,    ! Master scaling parameter for E & B fields.
+    ele_anchor_pt    = <Real>,    ! Anchor position: Beginning (default), Center, or End.
+    m                = <Integer>, ! Azimuthal mode number
+    harmonic         = <Integer>, ! RF frequency harmonic number 
+    phi0_fieldmap    = <Real>,    ! Phase of oscillations.
+    theta0_azimuth   = <Real>,    ! Azimuthal orientation.
+    r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
+    dz        = <Real>,                    ! Distance between sampled field points.
+    e_coef_re = (<Real>, <Real>, ....),    ! Real part of E.
+    e_coef_im = (<Real>, <Real>, ....),    ! Imaginary part of E.
+    b_coef_re = (<Real>, <Real>, ....),    ! Real part of B.
+    b_coef_im = (<Real>, <Real>, ....),    ! Imaginary part of B.
+  \}
+\end{example}
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
+other field map types.
+
+For DC fields, the \vn{e} coefficients specify the electric fields and the \vn{b} coefficients
+specify the magnetic fields. For AC fields, the \vn{e} coefficients specify modes that have finite
+longitudinal electric fields while the modes associated with the \vn{b} coefficients do not.
+
+To specify the RF frequency, specify the \vn{rf_frequency} {\em element} attribute along with
+the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute in 
+Sec.~\sref{s:fieldmap.com}.
+
+The basic equations used for the \vn{cylindrical_map} decomposition of the fields are given in
+Section~\sref{s:cylind.map.phys}. A lattice element may have multiple \vn{cylindrical_map}
+components with each \vn{cylindrical_map} being associated with a particular azimuthal mode $m$.
+
+\vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and \vn{b_re} and \vn{b_im} give the
+real and imaginary part of $b$. All of these vectors must be present and have the same length. The
+exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be omitted and will default to
+zero. The number of terms $N$ for the $e$ or $b$ vectors must be a power of $2$ and all modes must
+have the same number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$ running from 0
+to $N-1$, is associated with a wavelength $k_n$
+\begin{equation}
+  k_n = \begin{cases}
+    \frac{2 \, \pi \, n}{N \, dz} & 0 \le n < \frac{N}{2} \\
+    \frac{2 \, \pi \, (n-N)}{N \, dz} & \frac{N}{2} \le n \le N - 1
+  \end{cases}
+\end{equation}
+This convention produces less high frequency components then the convention of using $k_n = 2 \, \pi
+\, n / N dz$.
+
+The longitudinal length of the field is
+\begin{equation}
+  L_{\text{field}} = \frac{N - 1}{dz}
+\end{equation}
+this may be different from the length \vn{l} specified for the element.
+
+For AC fields, the time $t$ in \Eq{eseei} is computed depending upon whether \vn{absolute time
+tracking} or \vn{relative time tracking} is being used as discussed in \sref{s:rf.time}. For
+\vn{rfcavity} elements, the phase factor $\phi_{0j}$ in \Eq{eseei} is computed by
+\begin{example}
+  \(\phi_{0j}\) = harmonic(j) * [0.25 - (phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j))] 
+\end{example}
+where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th grid field
+while the other factors are element parameters and so will be the same for all grid field
+maps of a given element. For non \vn{rfcavity} elements the phase is
+\begin{example}
+  \(\phi_{0j}\) = harmonic(j) * [phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j)]
+\end{example}
+where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th cylindrical field map
+while the other factors are element parameters and so will be the same for all cylindrical field
+maps of a given element.
+
+Example:
+\begin{example}
+  m1: lcavity, rf_frequency = 1e6, voltage = 2e6, cylindrical_map = \{
+    m = 2,                   harmonic = 3,
+    r0 = (0, 0, 0.001),      dz = 0.1,
+    theta0_azimuth = 0.3,    field_scale = 0.7,
+    ele_anchor_pt = center,  master_parameter = voltage,
+    e_coef_re = (...),       e_coef_im = (...),
+    b_coef_re = (...),       b_coef_im = (...)\}, field_calc = fieldmap
+\end{example}
+
+Note: When using PTC based tracking (\sref{c:methods}), the following restrictions apply:
+\begin{Itemize}
+%
+\item
+The fields must be DC.
+%
+\item
+all the \vn{e_coef} and \vn{b_coef} arrays must have the same length.
+%
+\item
+\vn{r0(1)} and \vn{r0(2)} (the transverse offsets) must be zero.
+%
+\item
+The element containing the map cannot be an \vn{sbend} or \vn{rbend}.
+%
+\item
+May not be combined with other field map types.
+\end{Itemize}
+
+%-----------------------------------------------------------------
+\subsection{Grid_Field Field Map}
+\label{s:grid.field}
+\index{grid field}
+
+A \vn{grid_field} is grid of field points specified using the syntax:
+\begin{example}
+  grid_field = \{ 
+    geometry         = <String>,    ! Geometry of the grid.
+    field_type       = <String>,    ! Type of field: Default = Mixed.
+    field_scale      = <Real>,      ! Scale factor for the E & B fields.
+    phi0_fieldmap    = <Real>,      ! Phase of oscillations.
+    harmonic         = <Int>,       ! RF frequency harmonic number 
+    interpolation_order = <Int>,    ! 1 (default) or 3 interpolation polynomial order.
+    master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
+    curved_ref_frame = <Logical>,   ! Use a curved reference frame with bends?
+    r0   = (...),                   ! Grid origin. Syntax is \vn{geometry} dependent.
+    dr   = (...),                   ! Grid spacing. Syntax is \vn{geometry} dependent.
+    ele_anchor_pt = <Position>      ! BEGINNING, CENTER, or END
+    \{ ... \},                      ! Field table. Syntax is \vn{geometry} dependent.
+    pt(<Integer>, \dots) = ( \ldots ), ! Field table point. Old style.
+  \}
+\end{example}
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with
+other field map types.
+
+To specify the RF frequency, specify the \vn{rf_frequency} {\em element} attribute along with
+the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute in 
+Sec.~\sref{s:fieldmap.com}.
+
+For \vn{field_type} set to \vn{electric} or \vn{magnetic}, the field is DC. That is, For
+\vn{field_type} set to \vn{electric} or \vn{magnetic}, the value of \vn{harmonic} must be
+0. For \vn{field_type} set to \vn{mixed}, the field may be DC or AC. 
+
+For AC fields, the individual field components are complex.  the syntax for specifying a complex
+number is:
+\begin{example}
+  (<Re> <Im>)
+\end{example}
+Example:
+\begin{example}
+  \{
+    0 0 -7: (0.34 -4.3) (2.37 9.34) ...,    ! Complex field
+    0 0 -7: 0.12 -0.33 ...,                 ! Imaginary components are zero
+    ...
+  \}
+\end{example}
+
+The actual fields $\bfE$ and $\bfB$ are computed from the complex fields $\bfE_c$ and $\bfB_c$ via
+\begin{equation}
+  \bfE = \Re \Bigl[ \bfE_c \exp \left( -2 \, \pi \, i \, (\phi_t + \phi_\REF) \right) \Bigr]
+\end{equation}
+with a similar equation for $\bfB$. $\phi_t$ is the part of the phase due to when the particle
+arrives at the cavity and depends upon whether \vn{absolute time tracking} or \vn{relative time
+tracking} is being used as discussed in \sref{s:rf.time}. The phase $\phi_\REF$ for the
+$j$\Th grid field in an \vn{rfcavity} element is
+\begin{example}
+  \(\phi_\text{ref,j}\) = harmonic(j) * [0.25 - (phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j))] 
+\end{example}
+where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th grid field while the other
+factors are element parameters and so will be the same for all grid field maps of a given
+element. For non \vn{rfcavity} elements the phase is
+\begin{example}
+  \(\phi_\text{ref,j}\) = harmonic(j) * [phi0 + phi0_multipass + phi0_err + 
+                                                  phi0_autoscale + phi0_fieldmap(j)]
+\end{example}
+
+The \vn{geometry} switch sets the type of the grid and must come before the field table. The
+possible settings of \vn{geometry} are:
+\begin{example} 
+  rotationally_symmetric_rz
+  xyz
+\end{example}
+
+The \vn{rotationally_symmetric_rz} setting for \vn{geometry} is for fields that are rotationally
+symmetric around the $z$ axis. The format for this type of \vn{grid_field} is
+\begin{example}
+  grid_field = \{ 
+    geometry = rotationally_symmetric_rz,
+    r0   = (<x0>, <y0>, <z0>),        ! Grid origin 
+    dr   = (<dr>, <dz>),              ! Grid spacing
+    \{                                ! Field table...
+      <ir> <iz>: <E_r> <E_phi> <E_z>,   ! For field_type = Electric
+      <ir> <iz>: <B_r> <B_phi> <B_z>,   ! For field_type = Magnetic
+      <ir> <iz>: <E_r> <E_phi> <E_z> <B_r> <B_phi> <B_z>,
+                                        ! For field_type = Mixed.
+      \ldots 
+    \} 
+  \}
+\end{example}
+where \vn{<iz>} can be negative but \vn{<ir>} must be non-negative. Notice that commas are only used
+in the field table to demarcate between field points.
+
+There is an old style syntax for the field table that looks like:
+\begin{example}
+    pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>) ! For field_type = Electric
+    pt(<ir>, <iz>) = (<B_r>, <B_phi>, <B_z>) ! For field_type = Magnetic
+    pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>, <B_r>, <B_phi>, <B_z>)
+                                             ! For field_type = Mixed.
+\end{example}
+While the old style is accepted, parsing the old syntax is almost a factor of two slower. The only
+possible advantage to the old style is that expressions can be used for field values.
+
+The \vn{xyz} setting for \vn{geometry} can be used for all rectangular field grids. The format for
+this type of \vn{grid_field} is
+\begin{example}
+  grid_field = \{ 
+    geometry = xyz,
+    r0   = (<x0>, <y0>, <z0>),    ! Grid origin 
+    dr   = (<dx>, <dy>, <dz>),    ! Grid spacing
+    \}
+      <ix> <iy> <iz>: <E_x> <E_y> <E_z>,  ! For field_type = Electric
+      <ix> <iy> <iz>: <B_x> <B_y> <B_z>,  ! For field_type = Magnetic
+      <ix> <iy> <iz>: <E_x> <E_y> <E_z> <B_x> <B_y> <B_z>, 
+                                                   ! For field_type = Mixed.
+      \ldots 
+    \}
+  \}
+\end{example}
+where \vn{<ix>}, \vn{<iy>}, and \vn{<iz>} can be negative.
+
+The old style syntax for the \vn{xyz} field table is:
+\begin{example}
+    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>),  ! For field_type = Electric
+    pt(<ix>, <iy>, <iz>) = (<B_x>, <B_y>, <B_z>),  ! For field_type = Magnetic
+    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>), 
+                                                   ! For field_type = Mixed.
+\end{example}
+
+
+[For clarity sake, the following discusses the \vn{xyz} case. Extension to other cases is straight
+forward.]  There is no restriction on the bounds of the indexes \vn{(ix, iy, iz)} of the \vn{pt(ix,
+iy, iz)} array. A point $(ix, iy, iz)$ corresponds in space to the point $(x, y, z)$:
+\begin{example}
+  (x, y, z) = dr * (ix, iy, iz) + r0 + r_anchor
+\end{example}
+where \vn{z} is measured from the beginning of the element and
+\vn{r_anchor} is determined by the setting of \vn{ele_anchor_pt}:
+\begin{example}
+  ele_anchor_pt       r_anchor
+  -------------       ---------
+  beginning           (0, 0, 0)      ! Default
+  center              (0, 0, L/2)
+  end                 (0, 0, L)
+\end{example}
+with \vn{L} being the length of the element. 
+
+Example:
+\begin{example}
+  apex: e_gun, l = 0.23, field_calc = fieldmap, rf_frequency = 187e6, 
+                                  grid_field = call::apex_gun_grid.bmad
+\end{example}
+with the file \vn{apex_gun_grid.bmad} being:
+\begin{example}
+  \{
+    geometry = rotationally_symmetric_rz,
+    harmonic = 1,
+    master_parameter = voltage,
+    r0 = (0, 0),
+    dr = (0.001, 0.001),
+    \{
+      0 0:  (0 0) (0 0) (1 0)     (0 0) (0 0) (0 0),
+      0 1:  (0 0) (0 0) (0.99 0)  (0 0) (0 0) (0 0),
+      ... 
+    \}
+  \}
+\end{example}
+
+The order of the polynomials used to interpolate the field is determined by the setting of
+\vn{interpolation_order}. The value of this integer may be either \vn{1} or \vn{3}. A value of
+\vn{1} is the default and gives linear interpolation.  A value of \vn{3} will give cubic
+interpolation which will be better if the field values on the grid are smooth and well behaved.
+However, a cubic interpolation will be slower and will magnify gird field errors so care should be
+taken in choosing the interpolation order.
+
+It is considered an error if the field of the grid is evaluated for a point that is transversely
+outside of the grid. That is, a grid must extend transversely to the aperture or at least beyond the
+trajectory of any particle. [Actually, to prevent problems when the aperture is set at the grid
+boundary, if the distance between the particle and the grid boundary is within 1/2 of the spacing
+between grid points, no error is generated and the field will be calculated using extrapolation.] On
+the other hand, it is acceptable to evaluate the grid field at a point that is longitudinally
+outside of the grid. In this case, the field is assumed to go to zero. This is done by effectively
+adding to the grid two planes of zero field longitudinally to either side of the grid. So a particle
+traveling outside of the grid longitudinally will see the field drop to zero within one longitudinal
+grid spacing length.
+
+Grid fields may stored in \vn{HDF5} binary format which may then be called using an \vn{inline call}
+(\sref{s:call.inline}). For example:
+\begin{example}
+  qq: quadrupole, grid_field = call::my_grid.h5, ...
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Gen_Grad_Map}
+\label{s:gen.grad.map}
+\index{gen_grad_map}
+
+The \vn{gen_grad_map} characterizes DC magnetic or electric fields using ``generalized gradients''
+(GG) as described by Venturini and Dragt\cite{b:gen.grad}. Formulas for the GG are given in
+\Sref{s:gen.grad.phys}.
+
+An element can store an set of GGs. For example, a GG for the magnetic field and a GG for the
+electric field. The syntax for describing a single GG is:
+\begin{example}
+  gen_grad_map = \{
+    field_type       = <String>,    ! Type of field: Default = magnetic.
+    field_scale      = <Real>,      ! Scale factor for the E & B fields.
+    master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
+    curved_ref_frame = <Logical>,   ! Use curved coords with bends?
+    ele_anchor_pt    = <Real>,      ! Anchor position: Beginning (default), Center, or End.
+    r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
+    dz               = <Real>,             ! Distance between sampled field points.
+    curve = \{                      ! Generalized gradient curve
+      m = <Int>,                    ! Azimuthal m value
+      type = <Sin-or-Cos>           ! Type of curve: sin or cos.
+      derivs = \{
+        <z0>: <d0> <d1> <d2> ... <dN>,
+        <z1>: ...,
+        ...
+      \}
+    \},
+    curve = \{
+      ...
+    \}
+  \}
+\end{example}
+
+Example:
+\begin{example}
+  t1: sbend, k1 = 2, gen_grad_map = \{
+    field_type = electric,   ele_anchor_pt = end, 
+    dz = 1.2,                r0 = (0, 0, 2.0),
+    field_scale = 1.3,       curved_ref_frame = False,
+    master_parameter = k1,
+
+    ...  \}, field_calc = fieldmap, integrator_order = 6, num_steps = 70, 
+  tracking_method = taylor, mat6_calc_method = taylor
+\end{example}
+
+See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with other field
+map types. In general there will be multiple \vn{curve} instances.  A given \vn{curve} instance
+specifies one generalized gradient with a given azimuthal \vn{m} value and a \vn{type} which
+specifies if the generalized gradient is \vn{sin}-like or \vn{cos}-like. Each \vn{curve} has a table
+of derivatives given by the \vn{derivs} component. Each row in the derivative table starts with the
+z-position of the derivatives \vn{<z0>}, \vn{<z1>}, \vn{z2}, ... etc. The z-positions must be in
+increasing order and be multiples of \vn{dz} with no gaps (that is, \vn{<z1>} = \vn{<z0>} + \vn{dz},
+etc.). Each line in the \vn{derivs} table specifies the derivatives \vn{<d0>}, \vn{<d1>}, etc. at
+the given z-position where \vn{<d0>} is the zeroth derivative (the value of the generalized gradient
+itself), \vn{<d1>} is the first derivative, etc. For a given \vn{curve} instance, all derivative
+rows must have the same number of derivatives. Different \vn{curves} can have differing number of
+derivatives. All curves must specify the same z-positions but different curves may have differing
+number of derivatives.
+
+Like \vn{grid_field}s, the edges of a \vn{gen_grad_map}, can be defined to be outside of the edges
+of the element. These areas will be ignored while tracking unless field overlap is defined
+(\sref{s:overlap})).
+
+To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
+  \begin{itemize}
+%
+\item
+There can be only one \vn{gen_grad_map} and there cannot be any other field maps of any kind.
+%
+\item
+Only magnetic fields may be used.
+%
+\item
+In a bend with \vn{curved_ref_frame} = False, The setting of \vn{ele_anchor_pt} must be
+\vn{center}.
+  \end{itemize}
+
+The \vn{integrator_order} for PTC dependent tracking can be either set to 4 or 6 with 4 being the
+default\vn{s:ptc.integ}.
+
+%-----------------------------------------------------------------
+\section{RF Couplers}
+\label{s:rf.coupler}
+
+\index{lcavity}\index{rfcavity}
+\index{coupler_at}\index{coupler_strength}
+\index{coupler_angle}\index{coupler_phase}
+For \vn{lcavity} and \vn{rfcavity} elements, the attributes that characterize the dipole transverse
+kick due to a coupler port are:
+\begin{example}
+  coupler_at       = <Switch> ! What end the coupler is at
+  coupler_strength = <Real>   ! Normalized strength
+  coupler_angle    = <Real>   ! Polarization angle (rad/2\(\pi\))
+  coupler_phase    = <Real>   ! Phase angle with respect to the RF (rad/2\(\pi\))
+\end{example}
+The possible \vn{coupler_at} settings are:
+\begin{example}
+  entrance_end
+  exit_end  ! default
+  both_ends
+\end{example}
+The kick due to the coupler is
+\begin{example}
+  dP_x = amp * cos(phase) * cos(angle) 
+  dP_y = amp * cos(phase) * sin(angle)
+  dE   = amp * (cos(angle) * x + sin(angle) * y) * sin(phase) * twopi * rf_frequency / c_light 
+\end{example}
+where \vn{dP_x} and \vn{dP_y} are the transverse momentum kicks, \vn{dE} is an energy kick, and
+\begin{example}
+  amp   = gradient * coupler_strength 
+  phase = twopi * (phase_particle + phase_ref + coupler_phase)         ! For lcavity \sref{s:lcav}
+        = pi/2 + twopi * (phase_particle - phase_ref + coupler_phase)  ! For rfcavity \sref{s:lcav}
+  angle = twopi * coupler_angle
+\end{example}
+The energy kick is needed to keep things symplectic. 
+
+Example:
+\begin{example}
+  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends,
+                                                  coupler_strength = 0.037
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Field Extending Beyond Element Boundary}
+\label{s:overlap}
+
+\index{field_overlaps} 
+The \vn{field_overlaps} element attribute can be used to indicate that the electric or
+magnetic fields of one element overlap another element. The syntax is:
+\begin{example}
+  <overlapping_ele>: ... field_overlaps = \{<overlapped_ele1>, <overlapped_ele2>, ...\}
+\end{example}
+The \{\} braces are optional if there is only one overlapped element.
+
+Example:
+\begin{example}
+  b1: sbend, l = 2.3, field_overlaps = \{q1, s2\}, ...
+  inj_line: line = (..., s2, b1, mark3, q1, ...)
+\end{example}
+In this example, the field of element \vn{b1} extends beyond the ends of \vn{b1} and overlaps
+elements \vn{q1} and \vn{s2}. There is no limit to the number of elements that are overlapped by any
+given element and overlapped elements do not have to be next to the overlapping element in the
+line. If there are multiple elements whose name matches the name of a overlapped element, the
+element closest to the overlapping element is chosen. Thus in the above example, if there are
+multiple elements named \vn{q1}, the closest \vn{q1} to \vn{b1} is designated as the overlapped
+element.
+
+There can be multipole \vn{field_overlaps = ...} constructs for an overlapping element.
+Thus the following is equivalent to the above example:
+\begin{example}
+  b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2
+\end{example}
+
+Note: When the field overlaps elements that are superimposed (\sref{s:super}), the overlapped 
+elements must be the \vn{super_lord} elements and never the slaved elements.
+
+The field, when \vn{field_calc} (\sref{s:integ}) is set to \vn{bmad_standard}, never extends beyond
+the element boundary and so a \vn{bmad_standard} field will never overlap another element.
+
+%-----------------------------------------------------------------
+\section{Automatic Phase and Amplitude Scaling of RF Fields}
+\label{s:autoscale}
+\index{automatic field scaling|hyperbf}
+
+\index{e_gun}\index{em_field}\index{lcavity}\index{rfcavity}
+Elements that have accelerating fields are:
+\begin{example}
+  e_gun       ! \sref{s:e.gun}
+  em_field    ! \sref{s:em.field}
+  lcavity     ! \sref{s:lcav}
+  rfcavity    ! \sref{s:rfcav}
+\end{example}
+[Notice that \vn{rfcavity} elements by definition, have a constant reference energy while with all
+the other elements the entrance end reference energy will, in general, be different from the exit
+end reference energy.]
+
+The problem that arises with accelerating fields is how to set the overall amplitude (and phase if
+the fields are oscillating) of the field so that a particle, starting on the reference orbit and
+starting with the reference energy, has the desired energy gain at the exit end of the element where
+the ``desired'' is set by the \vn{voltage} or \vn{gradient} attribute of the element plus a
+\vn{phi0} phase attribute for AC fields.
+
+The scaling problem is not present when \vn{bmad_standard} tracking (\sref{s:tkm}) is used since
+\vn{bmad_standard} tracking uses an integrated formula that is designed to give the proper
+acceleration. Rather it is a problem for Runge-Kutta and other integration methods.
+
+The problem becomes even more complicated at non-ultra relativistic energies where the particle
+velocity is not a constant. In this case, the proper amplitude and/or phase settings will depend
+upon what the incoming energy of the reference particle is.
+
+To help with the scaling problem, \bmad has the capability to automatically scale an accelerating
+field's amplitude and/or phase. The two lattice element parameters that turn on/off auto scaling are
+(\sref{s:param}):
+\begin{example}
+  autoscale_phase      = <Logical>  ! Automatic phase scaling.
+  autoscale_amplitude  = <Logical>  ! Automatic amplitude scaling.
+\end{example}
+The default value is True for both parameters. Example:
+\begin{example}
+  rf2: rfcavity, autoscale_phase = F
+\end{example}
+
+Scaling takes place during program execution when a lattice is initially created (that is,
+when the lattice file is parsed) and when parameters in the lattice that would change the
+scaling are varied.  The element parameters varied when autoscaling is done are:
+\begin{example}
+  field_autoscale       ! Amplitude scale
+  phi0_autoscale        ! phase scale
+\end{example}
+For an \vn{rfcavity} element, the \vn{field_autoscale} parameter is set such that when the phase is
+adjusted for maximum acceleration, the voltage gain of a particle on the zero orbit is equal to the
+value of the element's \vn{voltage} parameter. 
+
+The \vn{phi0_autoscale} is set so that with \vn{phi0} equal to zero, a particle on the zero orbit
+will not see any energy gain through the cavity. There are two values for \vn{phi0_autoscale} where,
+with \vn{phi0} equal zero, the energy gain of the zero orbit particle is zero. If the \vn{bmad_com}
+global parameter \vn{rf_phase_below_transition_ref} (\sref{s:bmad.common}) is set to \vn{False} (the
+default), \vn{phi0_autoscale} will be set such that, with \vn{phi0} equal zero, the zero orbit for a
+particle above transition will be at the stable zero-crossing. For a particle below transition,
+setting \vn{rf_phase_below_transition_ref} to \vn{True}, will result in \vn{phi0_autoscale} being
+set such that, for particles below transition, and with \vn{phi0} equal zero, a particle on the zero
+orbit will be at the stable zero-crossing.
+
+It is important to keep in mind that with a ring, the closed orbit will be the equilibrium
+orbit. For example, for a ring with a single cavity, changes in \vn{phi0} will just result in
+variations in the closed orbit $z$. The voltage kick that the closed orbit particle gets going
+through the cavity is independent of \vn{phi0} and will be equal to the radiation losses throughout
+the ring (and if radiation of off, the kick will be zero).
+
+It is not possible to autoscale if the voltage is very small. \bmad sets a lower limit of 10~Volts
+and if the voltage is set less than this no scaling is done. If no autoscaling is done, the default
+setting of \vn{field_autoscale} is 1 and the default setting of \vn{phi0_autoscale} is 0.
+
+Note: If a field map (\sref{s:fieldmap}) is used to define the cavity fields, in order for the
+field amplitude to vary with changes in the value of the \vn{voltage}, the \vn{master_parameter} of
+the field map must be set to \vn{voltage} (or \vn{gradient} since \vn{gradient} and \vn{voltage}
+are linked).
+
+\vn{field_autoscale} and \vn{phi0_autoscale} are not needed and therefore ignored when
+\vn{bmad_standard} tracking is done.
+
+%-----------------------------------------------------------------
+\section{Wakefields}
+\label{s:wakes}
+
+Wakefield modeling is discussed in Chapter~\sref{c:wakefields.eq}. The syntax for specifying
+short-range wakefields for an element is given in \Sref{s:sr.wake.syntax}. The syntax for specifying
+long-range wakefields is given in \Sref{s:lr.wake.syntax}.
+
+\bmad has two modes for tracking particles. One mode tracks individual particles one at a time. The
+other mode tracks bunches of particles. Which mode is used for a given program is decided by the
+program. wakefields are ignored when tracking individual particles and only used when tracking
+bunches.
+
+%-----------------------------------------------------------------
+\subsection{Short-Range Wakes}
+\label{s:sr.wake.syntax}
+\index{wakes!short-range}
+
+The short-range wakes for a lattice element are specified via a set of ``pseudo'' modes.  Equations
+for short-range wakefields are given in \Sref{s:sr.wake.eq}.  The \vn{sr_wake} attribute is used to set
+wakefield parameters. The general form of this attribute is:
+\begin{example}
+  sr_wake = \{z_max = <real>, z_scale = <real>, amp_scale = <real>, 
+      scale_with_length = <logical>,
+      longitudinal = \{<amp>, <damp>, <k>, <phi>, <position_dependence>\},
+      ...
+      longitudinal = \{...\}, 
+      transverse = \{<amp>, <damp>, <k>, <phi>, <polarization>, <particle_dependence>\},
+      ...
+      transverse = \{...\} \}
+\end{example}
+The \vn{sr_wake} structure has optional components \vn{z_max}, \vn{z_scale}, \vn{amp_scale}, and
+\vn{scale_with_length} along with zero or more \vn{longitudinal} sub-structures each one specifying
+a single longitudinal mode, and zero or more \vn{transverse} sub-structures each one specifying a
+single transverse mode. Example:
+\begin{example}
+  cav9: lcavity, ..., sr_wake = \{z_max = 1.3e-3, scale_with_length = F, 
+       longitudinal = \{3.23e14, 1.23e3, 3.62e3, 0.123, none\}, 
+       longitudinal = \{6.95e13, 5.02e2, 1.90e3, -1.503, x_leading\}, 
+       transverse = \{4.23e14, 2.23e3, 5.62e3, 0.789, none,  trailing\},
+       transverse = \{8.40e13, 5.94e2, 1.92e3, 1.455, x_axis, none\} \}
+\end{example}
+Note: After an element has been defined, to refer to a given component use the notation:
+\begin{example}
+  <element-name>[sr_wake%<component-name>]
+\end{example}
+where \vn{<element-name>} is the name of the element and \vn{<component-name>} is the name of the component.
+For example, after the \vn{cav9} element has been defined, the \vn{z_scale} component can be changed via:
+\begin{example}
+  cav9[sr_wake%z_scale] = 0.4 * cav9[sr_wake%z_max]
+\end{example}
+
+The first four components of both the \vn{longitudinal} and \vn{transverse} sub-structures give
+$A_i$, $d_i$, $k_i$, and $\phi_i/2\pi$ of \Eq{wadzk}. The units for these components are:
+\begin{center} \tt
+\begin{tabular}{lll} \toprule
+                & {\em Monopole}  & {\em Dipole}     \\ \midrule
+  $A$           & V/Coul/m        & V/Coul/m$^2$     \\
+  $d$           & 1/m             & 1/m              \\
+  $k$           & 1/m             & 1/m              \\
+  $\phi/2\pi$   & Radians/2$\pi$  & Radians/2$\pi$   \\ \bottomrule
+\end{tabular}
+\end{center}
+Monopole modes are modes that are independent of transverse position and dipole modes are modes that
+are linear in the transverse position. 
+
+For the \vn{longitudinal} sub-structures, there is a 5\Th
+component which gives the transverse position dependence of the wake. Possible values are:
+\begin{example}
+  none          ! No position dependence
+  x_leading     ! Linear in the leading particle x-position
+  y_leading     ! Linear in the leading particle y-position
+  x_trailing    ! Linear in the trailing particle x-position
+  y_trailing    ! Linear in the trailing particle y-position
+\end{example}
+``\vn{x_leading}'', for example, means that the wake left by a ``leading'' particle is linear
+in the $x$-position of the particle while the kick to a ``trailing'' particle is independent of the
+the trailing particle's transvrse position. ``\vn{y_trailing}'', on the other hand, means that the 
+wake left by a leading particle is independent of the leading particle's transverse position but that
+the kick felt by a trailing particle is proportional to the trailing particle's $y$-position.
+
+For the \vn{transverse} sub-structures, there is a 5\Th component giving the polarization and a 6\Th
+component specifying if the kick is dependent upon the leading or trailing particle transverse position.
+Possible values for the polarization are
+\begin{example}
+  none          ! Kick in both x and y-planes
+  x_axis        ! Kick in only the x-plane
+  y_axis        ! Kick in only the y-plane
+\end{example}
+and possible values for the particle dependence are:
+\begin{example}
+  none          ! No transverse dependence
+  leading       ! Depends linearly on the leading particle position.
+  trailing      ! Depends linearly on the trailing particle position.
+\end{example}
+
+The \vn{z_max} component of \vn{sr_wake} specifies the the maximum $z$ value at which the pseudo
+mode fit is valid. The \vn{z_max} component is optional and if present and \vn{positive}, \bmad will
+check that the distance between particles does not exceed \vn{z_max}. If it does, \bmad will report
+an error. If \vn{z_max} is not positive it is ignored.
+
+If \vn{scale_with_length} is False (the default is True), the length factors in Equations like
+\Eqs{delvp1} and \eq{pelqxw1} are dropped. This is convenient for using zero length elements with
+wake simulations.
+
+The \vn{amp_scale} component is used to scale the amplitude of the modes. This corresponds to $A_{amp}$
+in \Eq{wadzk}. The default value is 1.0.
+
+The \vn{z_scale} is used to scale the $z$ distance in the wake equations:
+\begin{example}
+  z(used in equations) = z_scale * z(actual)
+\end{example}
+The default value is 1.0.
+
+Note: In a beam chamber with circular symmetry, the linear terms in the \vn{longitudinal} wake are
+zero and the transverse wake has no terms independent of the transverse offsets nor terms that
+depend upon the trailing particle offset.
+
+%-----------------------------------------------------------------
+\subsection{Short-Range Wakes --- Old Format}
+\label{s:sr.wake.old}
+
+There is an old, deprecated, format for specifying short-range wakes where the wake data is
+contained in a separate file whose name is given by the \vn{lr_wake_file} attribute.
+Example:
+\begin{example}
+  abc: lcavity, sr_wake_file = "sr.wake", lr_freq_spread = 0.0023, lr_self_wake_on = F
+\end{example}
+Example file:
+\begin{example}
+  ! Pseudo Wake modes:
+  !                      Amp       Damp          K      Phase  Polar-    Transverse_
+  ! Longitudinal:      [V/C/m]     [1/m]      [1/m]     [rad]  ization   Dependence
+  ! Transverse:      [V/C/m^2]     [1/m]      [1/m]     [rad]  
+
+  &short_range_modes
+    longitudinal(1) = 3.23e14     1.23e3     3.62e3     0.123
+    longitudinal(2) = 6.95e13     5.02e2     1.90e3    -1.503
+    .. etc ..
+    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789   none   linear_trailing
+    transverse(2) =   8.40e13     5.94e2     1.92e3     1.455
+     .. etc ..
+    z_max = 1.3e-3
+  /
+\end{example}
+{\bf Notice that the old format uses radians and not radians/2$\pi$ for the phase.}
+
+\index{none}\index{x_axis}\index{y_axis}
+Possible settings for the polarization parameter are:
+parameter are:
+\begin{example}
+  none    ! Default
+  x_axis  
+  y_axis 
+\end{example}
+The \vn{polarization} name may be abbreviated.
+
+\index{none}\index{linear_leading}\index{linear_trailing}
+The \vn{transverse_dependence} parameter sets whether the wake kick is linear in the offset of the
+leading or trailing particle or is independent of the transverse offset.  Possible settings of this
+parameter are:
+\begin{example}
+  none              ! Default for longitudinal modes
+  linear_leading    ! Default for transverse modes
+  linear_trailing
+\end{example}
+The \vn{transverse_dependence} parameter may be abbreviated. Note: Due to the way the wake file is
+parsed, if \vn{transverse_dependence} is specified for a particular mode, \vn{polarization} must
+also be specified.
+
+For \vn{longitudinal} modes: If the \vn{transverse_dependence} is \vn{none} (the default), the
+\vn{polarization} must also be \vn{none} (other combinations do not make sense). If the
+\vn{transverse_dependence} is \emph{not} \vn{none} for a \vn{longitudinal} mode, the
+\vn{polarization} must be set to \vn{x_axis} or \vn{y_axis}.
+
+%-----------------------------------------------------------------
+\subsection{Long-Range Wakes}
+\label{s:lr.wake.syntax}
+
+The \vn{lr_wake} attribute is used to set the long-range wakefield parameters for a lattice element.
+Equations for long-range wakes is given in \Sref{s:lr.wake.eq}.
+The general form of this attribute is:
+\begin{example}
+  lr_wake = \{time_scale = <real>, amp_scale = <real>, freq_spread = <real>,
+      self_wake_on = <logical>, t_ref = <real>,
+      mode = \{<freq_in>, <R_over_Q>, <damp>, <phi>, <m_order>, <polar_angle>, 
+                                                <b_sin>, <b_cos>, <a_sin>, a_cos>\},
+      ...
+      mode = \{...\} \}
+\end{example}
+The \vn{lr_wake} structure has optional components \vn{time_scale}, \vn{amp_scale},
+\vn{freq_spread}, \vn{self_wake_on}, and \vn{t_ref} along with one or more \vn{mode} sub-structures each
+specifying a single long-range mode. Example:
+\begin{example}
+  f1 = 1.65e9;  q1 = 7e4
+  cav9: lcavity, ..., lr_wake = \{time_scale = 1.7, freq_spread = 0.001,  
+       mode = \{f1, 0.76, f1/(2*q1), 0, 1, unpolarized\}, 
+       mode = \{-1, 0.57, 3e4, 0, 2, 0.15\} \}
+\end{example}
+
+The first six components of the \vn{mode} sub-structure correspond to $\omega/2\pi$, $R/Q$, $d$,
+$\phi/2\pi$, $m$, and $\theta_p/2\pi$ in \sref{s:lr.wake.eq}. The units of $R/Q$ are
+$\Omega$/meter$^{2m}$. The last four components, which are optional, correspond to $b_{\sin}$,
+$b_{\cos}$, $a_{\sin}$, and $a_{\cos}$. These four components can be used as a convenient way to
+save the state of the long-range wakes. These components will typically not be present in a lattice
+file except for lattice files generated by a program that does wake simulations.
+
+A negative frequency is used to designate wakes that are part of the fundamental accelerating
+mode. That is, the frequency of such a mode is set to the value of \vn{rf_frequency} for the lattice
+element the wake is associated with. It is an error to have a negative frequency for a mode for
+elements that do not have a \vn{rf_frequency} attribute. \bmad needs to know if a wake is part of
+the fundamental mode due to timing issues as discussed in \sref{s:rf.time}.
+
+The \vn{freq_spread} component of the \vn{lr_wake} structure is used to randomly vary the long-range
+mode frequencies. This can be used to spread out the long-range mode frequencies among different
+cavities. The default value is zero which means there is no varying the mode frequencies. The
+fractional difference between of the mode frequencies used in a simulation and the input mode
+frequencies will have a Gaussian distribution with an RMS given by \vn{freq_spread}. For example, a
+value of 0.01 for \vn{freq_spread} gives a 1\% variation in frequency. Note: Wake modes that are
+locked to the fundamental accelerating mode (\sref{s:lr.wake.old}), are not shifted.
+
+The \vn{self_wake_on} component can be used to turn off the long-range self-wake
+which is the longitudinal kick given a particle due to the wake generated by that same
+particle. [The transverse self wake is always zero.] The default setting of \vn{self_wake_on} is
+\vn{True}. Turning off the self-wake, for example, can be done to avoid double counting if both
+long-range and short-range wakes are defined. Also, The standard formulas for the long--range
+resistive wall wake are not valid over short time scales. In this case, the self-wake should be
+turned off.
+
+The \vn{amp_scale} component is used to scale the amplitude of the modes. This corresponds to $A_{amp}$
+in \Eq{wadzk}. The default value is 1.0.
+
+The \vn{time_scale} component  is used to scale the time distance in the wake equations:
+\begin{example}
+  t (used in equations) = time_scale * t(actual)
+\end{example}
+The default value is 1.0.
+
+The \vn{t_ref} component is the reference time used in computing the wake (\Eq{ttt}). Like the mode
+components \vn{b_sin}, etc., This component is typically not set when a lattice file is
+constructed.
+
+After the long--range wake has been defined, components can be referenced or redefined using the notation
+\begin{example}
+  lr_wake%mode(n)%freq_in      ! Input Frequency
+  lr_wake%mode(n)%freq         ! Actual Frequency (set by Bmad)
+  lr_wake%mode(n)%r_over_q     ! R/Q
+  lr_wake%mode(n)%damp         ! d
+  lr_wake%mode(n)%phi          ! Actually phi/2pi
+  lr_wake%mode(n)%polar_angle  ! Polarization Angle
+  lr_wake%mode(n)%polarized    ! Logical
+  lr_wake%freq_spread          ! Frequency spread
+  lr_wake%amp_scale            ! Amplitude scale
+  lr_wake%time_scale           ! Time scale
+\end{example}
+\vn{freq_in} is the input frequency set in the \vn{lr_wake} structure and \vn{freq} is the actual
+frequency set by \bmad. \vn{Freq} will only be different from \vn{freq_in} if \vn{freq_spread} is
+nonzero. Example:
+\begin{example}
+  cav9[lr_wake%mode(2)%freq_in] = 1.1 * cav9[lr_wake%mode(2)%freq_in] ! Raise frequency by 10\%
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Long-Range Wakes -- Old Format}
+\label{s:lr.wake.old}
+
+There is an old, deprecated, format for specifying long-range wakes where the wake data is
+contained in a separate file whose name is given by the \vn{lr_wake_file} element attribute.
+Example:
+\begin{example}
+  abc: lcavity, lr_wake_file = "lr.wake", lr_freq_spread = 0.0023, lr_self_wake_on = F
+\end{example}
+The file gives the wake modes by specifying the frequency ($\omega/2\pi$), R/Q, Q, and m (order
+number), and, optionally, the polarization angle $\theta_p/2\pi$ for each cavity mode. The input uses
+Fortran90 namelist syntax: The data begins with the string \vn{\&long_range_modes} and ends with a
+slash \vn{/}. Everything outside this is ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is
+the mode index. An example input file is:
+\begin{example}
+              Freq      R/Q      Q    m   Polar   b_sin  b_cos a_sin  a_cos  t_ref 
+                      [Ohm/               Angle 
+              [Hz]     m^(2m)]           [Rad/2pi]
+  &long_range_modes
+    lr(1) = 1.650e9    0.76    7.0e4  1    "unpol"
+    lr(2) = 1.699e9   11.21    5.0e4  1    "0.15"
+    lr(3) =    -1      0.57    1.1e6  0    "unpol"
+  /
+\end{example}
+[Note: The quotation marks are needed with some compilers and not with others.]
+If the polarization angle is set to ``\vn{unpolarized}'' the mode is taken to be unpolarized. 
+
+Two deprecated element attributes that affect the long-range wake are \vn{lr_freq_spread} and
+\vn{lr_self_wake_on} which correspond to \vn{lr_wake%freq_spread} and \vn{lr_wake%self_wake_on}
+(\ref{s:lr.wake.syntax}
+
+Notice that with the old format it is not possible to specify the phase offset $\phi$.
+
+%-----------------------------------------------------------------
+\section{Fringe Fields}
+\label{s:fringe}
+\index{fringe fields}
+
+Some lattice elements can have fringe fields at the element edges. Whether \bmad tries to model the
+fringe fields using the models described below first depends upon what kind of tracking is
+done. Fringe effects are {\em not} applied when an element's \vn{tracking_method} is set to:
+\begin{example}
+  custom
+  mad
+\end{example}
+Additionally, no fringe effects will be used if the \vn{tracking_method} is \vn{runge_kutta} or
+\vn{time_runge_kutta}, and the element's \vn{field_calc} (\sref{s:integ}) is {\em not}
+\vn{bmad_standard}. This is done since, for non-\vn{bmad_standard} field calculations, it is assumed
+that the field profile includes the fringe regions.
+
+%-----------------------------------------------------------------
+\subsection{Turning On/Off Fringe Effects}
+\label{s:fringe.at}
+
+\index{fringe_at}
+For elements that have a fringe, whether fringe fields are ignored or not is determined by the
+setting of the \vn{fringe_at} element parameter. The possible settings are
+\begin{example}
+  no_end         
+  both_ends             ! Default
+  entrance_end
+  exit_end
+\end{example}
+This is particularly useful in vetoing the fringe effect in the interior of split elements. The
+setting of attributes like \vn{fringe_type} (see below) are ignored for boundaries where the fringe
+has been turned off.
+
+\index{spin_fringe_on}
+When a particle's spin is being tracked, the \vn{spin_fringe_on} logical attribute of the element
+determines how the spin tracking is handled through a fringe region. Example:
+\begin{example}
+  q: quad, spin_fringe_on = T, fringe_at = exit_end
+\end{example}
+Here, there is no fringe effect at the entrance of the element and the fringe at the exit end of the
+element will affect the spin. The default setting of \vn{spin_fringe_on} is \vn{True}. The
+\vn{spin_fringe_on} attribute is useful for examining how much fringe fields affect spin precession.
+
+%-----------------------------------------------------------------
+\subsection{Fringe Types}
+\label{s:fringe.type}
+
+\index{fringe_type}
+\bmad and PTC have several fringe field models for static magnetic fields. Which fringe model is
+used is set by two element attributes: \vn{ fringe_type} and \vn{ptc_fringe_geometry} with
+\vn{ptc_fringe_geometry} only being used with bends and PTC dependent tracking.
+The \vn{fringe_type} switch is used to select how a fringe field is
+simulated.  The possible settings of \vn{fringe_type} are:
+\begin{example}
+  none              ! No fringe effect. 
+  soft_edge_only
+  hard_edge_only
+  full
+  linear_edge       ! Sbend, rbend only.
+  basic_bend        ! Sbend, rbend only. 
+  sad_full          ! Sbend, rbend, sad_mult only.
+\end{example}
+Default settings for \vn{fringe_type} are
+\newline\hspace*{0.1in}
+{ \tt
+\begin{tabular}{ll}
+  Element Type        & Default fringe_type  \\ \midrule
+  e_gun               & full                 \\
+  lcavity, rfcavity   & full                 \\
+  sbend, rbend        & basic_bend           \\
+  All others          & none                 \\
+  \bottomrule
+\end{tabular}
+}
+
+Some fringe fields can be divided into two pieces.  The first piece is called the \vn{hard edge}
+fringe kick and is the kick in the limit that the longitudinal extent of the fringe is zero. The
+second piece is the \vn{soft edge} fringe kick which is the fringe kick with the fringe having a
+finite longitudinal extent minus the hard edge fringe kick. That is
+\begin{example}
+  fringe kick = hard fringe kick + soft fringe kick
+\end{example}
+The advantage of separating the fringe kick in this way is that the hard fringe can be used without
+having to know anything about the longitudinal extent of the fringe (which happens when simulating
+magnets that have not yet been fully designed).  In many cases, this is a good enough
+approximation. Note that using the soft fringe without the hard fringe is not physical but can be
+useful in understanding how the soft edge component affects tracking. See~\sref{s:fringe.std} for
+details.
+
+For bend elements the following fringe maps are used: 
+\newline\hspace*{0.1in}
+{{ \tt
+\begin{tabular}{ll}
+  fringe_type     & Fringe model    \\ \midrule
+  none            & No fringe effect                                  \\
+  soft_edge_only  & SAD dipole soft edge (\sref{s:fringe.bend.soft})  \\
+  hard_edge_only  & Bend Second Order (\sref{s:fringe.bend.hard}) with \vn{fint} and \vn{hgap} ignored. \\
+  full            & Exact bend                                        \\
+  linear_edge     & Linear dipole hard edge (\sref{s:lin.dip.fringe}) \\
+  basic_bend      & Bend Second Order (\sref{s:fringe.bend.hard})     \\
+  sad_full        &  \\
+  \bottomrule
+\end{tabular}
+\hfill\vspace*{0.1in}
+}\newline}
+The \vn{basic_bend} setting for bend elements, which is the default, is essentially the basic
+vertical focusing effect that is present when there is a finite \vn{e1} or \vn{e2} face angle. With
+\vn{bmad_standard} tracking, \vn{basic_bend} also includes second order terms
+(\sref{s:fringe.bend.hard}). The \vn{linear_edge} setting ignores these second order terms.  In some
+cases, for instance in a chicane, \vn{basic_bend} is not good enough. With \vn{fringe_type} set to
+\vn{full}, higher order effects are taken into account.
+
+PTC does not have a \vn{linear_edge} fringe model.
+With PTC tracking, \vn{basic_bend} tracking is used if \vn{linear_edge} is chosen.
+
+Additionally, for use with PTC, the \vn{ptc_fringe_geometry} switch can be used
+to define the symmetry of the fringe fields. Possible settings are:
+\begin{example}
+  x_invariant
+  multipole_symmetry
+\end{example}
+\index{max_fringe_order}
+The difference between \vn{x_invariant} and \vn{multipole_symmetry} is that with
+\vn{multipole_symmetry} the fringe field for an $n$\Th order multipole is assumed to have the same
+rotational symmetry as the multipole. With this assumption, the fringe field has $n+1$\St order
+terms.  With \vn{x_invariant}, the fringe field is calculated assuming that there is translational
+invariance along the horizontal $x$ axis. This differs from \vn{multipole_symmetry} by adding terms
+of increasing order consistent with the translational invariance. See \'Etienne Forest's
+book\cite{b:forest} for more details. Which setting of \vn{ptc_fringe_geometry} is appropriate
+depends upon how the dipole under consideration is constructed. The two settings of
+\vn{ptc_fringe_geometry} represent two points of a continuum of possible fringe field geometries.
+
+When using PTC tracking (\sref{s:ptc.intro}), the \vn{ptc_com[max_fringe_order]}
+(\sref{s:param}) determines the maximum order of the calculated fringe fields.
+
+Example:
+\begin{example}
+  b1: rbend, angle = pi/4, g = 0.3, fringe_type = full
+\end{example}
+
+\index{sad}\index{sbend}\index{rbend}
+The \vn{soft_edge_only}, \vn{hard_edge_only} and \vn{sad_full} settings of \vn{fringe_type} emulate
+the fringe field tracking used in the SAD program\cite{b:sad}.  The \vn{soft_edge_only} setting only
+uses the linear part of the fringe, \vn{hard_edge_only} ignores the linear part of the fringe, and
+\vn{sad_full} uses the full fringe.  For an \vn{sbend} or \vn{rbend} element, these SAD fringe
+fields are in addition to the fringe fields that occurs with a finite \vn{e1} or \vn{e2} face angle.
+
+Equivalent settings of SAD \vn{fringe} and \vn{disfrin} for \vn{sbend} and \vn{rbend} elements:
+\newline\hspace*{0.1in}
+{ \tt
+\begin{tabular}{lll}
+  fringe_type       & fringe & disfrin \\ \midrule
+  soft_edge_only    &  1     & 1       \\
+  hard_edge_only    &  0     & 0       \\
+  basic_bend        &  0     & 1       \\
+  sad_full          &  1     & 0       \\
+  \bottomrule
+\end{tabular}
+}
+
+For \vn{quadrupole} and \vn{sad_mult} elements, the translation between the \vn{fringe_at}
+and \vn{fringe_type} settings and the \vn{fringe} and \vn{disfrin} switches of SAD is:
+\newline\hspace*{0.1in}
+{{ \tt
+\begin{tabular}{lllll} 
+                       & \multicolumn{4}{c}{fringe_at:}                               \\
+  fringe_type          & no_end       & entrance_end   & exit_end     & both_ends$^*$ \\ \midrule
+  none                 & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$]  \\
+  soft_edge_only       & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$]  \\
+  hard_edge_only$^*$   & [0, $\ne 0$] & No SAD Equiv   & No SAD Equiv & [0, $= 0$]    \\
+  full                 & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]    \\ 
+  \bottomrule
+  $^*$Default value.   & \multicolumn{4}{l}{\textbf{[fringe, disfrin]}} \\
+\end{tabular}
+\hfill\vspace*{0.1in}
+}\newline}
+Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}]. The \vn{soft_edge_only} fringe
+kick is a kick that is linear in the transverse $(x, p_x, y, p_y)$ coordinates and comes from the
+finite width of the quadrupolar fringe field. The width of the quadrupolar fringe field is
+characterized by the \vn{f1} and \vn{f2} attributes. The \vn{sad_nonlinear_only} fringe kick comes
+from the nonlinear part of the quadrupolar field plus the fringes of the other multipoles.
+
+The soft fringe quadrupole parameters \vn{fq1} and \vn{fq2} (\sref{s:q.soft}) are related
+to the corresponding SAD parameters \vn{f1} and \vn{f2} via
+\begin{example}
+  f1 = -sign(fq1) * sqrt(24 * |fq1|)
+  f2 = fq2
+\end{example}
+In the SAD documentation, the soft edge is called the ``linear'' fringe.
+
+\index{permfringe}\index{bendfringe}
+For programmers who deal with PTC directly: The translation between \vn{ptc_fringe_geometry} on the
+\bmad side and \vn{bendfringe} on the PTC side is:
+\newline\hspace*{0.1in}
+{
+\begin{tabular}{lll} \toprule 
+  ptc_fringe_geometry     & bendfringe \\ \midrule
+  x_invariant             & True       \\
+  multipole_symmetry      & False      \\ 
+  \bottomrule
+\end{tabular}
+}
+
+%-----------------------------------------------------------------
+\section{Instrumental Measurement Attributes}
+\label{s:meas.attrib}
+
+\index{instrument}\index{monitor}\index{marker}\index{detector}
+\index{x_gain_err}\index{y_gain_err}\index{crunch}\index{noise}
+\index{x_gain_calib}\index{y_gain_calib}\index{crunch_calib}
+\index{x_offset}\index{y_offset}\index{tilt}
+\index{x_offset_calib}\index{y_offset_calib}\index{tilt_calib}
+\index{de_eta_meas}\index{n_sample}\index{osc_amplitude}
+
+\vn{instrument}, \vn{monitor}, \vn{detector}, and \vn{marker} elements have special attributes to
+describe errors associated with orbit, betatron phase, dispersion and coupling measurements. These
+attributes are: \hfill\break \hspace*{0.1in}
+\begin{tabular}{lll} \toprule
+  {\em Attribute}           & {\em Symbol} (See: \sref{s:meas.calc}) & \\ \midrule
+  \vn{tilt}                 & $\theta_t$               & See \sref{s:offset} \\ 
+  \vn{x_offset}             & $x_{\text{off}}$         & See \sref{s:offset} \\ 
+  \vn{y_offset}             & $y_{\text{off}}$         & See \sref{s:offset} \\ 
+  \vn{x_gain_err}           & $dg_{x,\text{err}}$      & Horizontal gain error \\ 
+  \vn{y_gain_err}           & $dg_{y,\text{err}}$      & Vertical gain error \\ 
+  \vn{crunch}               & $\psi_{\text{err}}$      & Crunch angle \\ 
+  \vn{tilt_calib}           & $\theta_{\text{err}}$    & tilt angle calibration \\ 
+  \vn{x_offset_calib}       & $x_{\text{calib}}$       & Horizontal offset calibration \\ 
+  \vn{y_offset_calib}       & $y_{\text{calib}}$       & Vertical offset calibration \\ 
+  \vn{x_gain_calib}         & $dg_{x,\text{calib}}$    & Horizontal gain calibration \\ 
+  \vn{y_gain_calib}         & $dg_{y,\text{calib}}$    & Vertical gain calibration \\ 
+  \vn{crunch_calib}         & $\psi_{\text{calib}}$    & Crunch angle calibration \\ 
+  \vn{noise}                & $n_f$                    & Noise factor \\ 
+  \vn{de_eta_meas}          & $dE/E$                   & Percent change in energy \\ 
+  \vn{x_dispersion_err}     & $\eta_{x,\text{err}}$    & Horizontal dispersion error \\ 
+  \vn{y_dispersion_err}     & $\eta_{y,\text{err}}$    & Vertical dispersion error \\ 
+  \vn{x_dispersion_calib}   & $\eta_{x,\text{calib}}$  & Horizontal dispersion calibration \\ 
+  \vn{y_dispersion_calib}   & $\eta_{y,\text{calib}}$  & Vertical dispersion calibration \\ 
+  \vn{n_sample}             & $N_s$                    & Number of sampling points \\ 
+  \vn{osc_amplitude}        & $A_{\text{osc}}$         & Oscillation amplitude \\ \bottomrule
+\end{tabular}
+\hfill\break A program can use these quantities to calculate ``measured'' values from the
+``laboratory'' values. Here, ``laboratory'' means as calculated from some model lattice.  See
+\sref{s:meas.calc} for the conversion formulas.

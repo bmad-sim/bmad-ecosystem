@@ -1,0 +1,803 @@
+\chapter{The lat_struct}
+\label{c:lat.struct}
+\index{lat_struct|hyperbf}
+
+The \vn{lat_struct} is the structure that holds of all the information
+about a lattice (\sref{s:lattice.def}). The components of a
+\vn{lat_struct} are listed in \fig{f:lat.struct}.
+\begin{figure}[htb]
+\centering
+\begin{verbatim}
+type lat_struct
+  character(40) use_name                   ! Name in USE statement
+  character(40) lattice                    ! Lattice name
+  character(80) input_file_name            ! Lattice input file name
+  character(80) title                      ! From TITLE statement
+  character(100), allocatable :: print_str(:) ! Saved print statements
+  type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
+  type (mode_info_struct) a, b, z             ! Tunes, etc.                       
+  type (lat_param_struct) param               ! Parameters                        
+  type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.          
+  type (ele_struct) ele_init                  ! For use by any program            
+  type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
+  type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
+  type (control_struct), allocatable :: control(:) ! Control list
+  type (photon_reflect_surface_struct), pointer :: surface(:) => null()
+  type (coord_struct) particle_start      ! Starting coords
+  type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACT-T
+  type (nametable_struct) nametable       ! For quick searching by element name.
+  real(rp), allocatable :: custom(:)      ! Custom attributes.
+  integer version                         ! Version number
+  integer n_ele_track                     ! Number of lat elements to track through.
+  integer n_ele_max                       ! Index of last valid element in %ele(:) array
+  integer n_control_max                   ! Last index used in control_array
+  integer n_ic_max                        ! Last index used in ic_array
+  integer input_taylor_order              ! As set in the input file
+  integer, allocatable :: ic(:)           ! Index to %control(:)
+  integer :: photon_type = incoherent$    ! Or coherent$. For X-ray simulations.
+  integer :: creation_hash                ! Number to determine if lattice is different.
+end type
+\end{verbatim}
+\caption{Definition of the \vn{lat_struct}.}
+\label{f:lat.struct}
+\end{figure}
+
+\index{lat_struct!\%ele_init}
+The \vn{%ele_init} component within the \vn{lat_struct} is not used
+by \bmad and is available for general program use.
+
+%----------------------------------------------------------------------------
+\section{Initializing}
+\label{s:lat:init}
+\index{lat_struct!initializing}
+
+Normally initialization of a \vn{lat_struct} lattice is done by
+\Hyperref{r:bmad.parser}{bmad_parser} when a lattice file is parsed and does not have to be done by
+the programmer. When a programmer needs to initialize a lattice, however,
+\Hyperref{r:init.lat}{init_lat} is used to initialize the lattice with a single branch. After this
+initial setup, the routines \Hyperref{r:allocate.branch.array}{allocate_branch_array} and
+\Hyperref{r:allocate.lat.ele.array}{allocate_lat_ele_array} can be used to set up additional
+branches. Example:
+\begin{example}
+  type (lat_struct) lat
+  ...
+  call init_lat (lat, 1000)           ! Branch(0) has 1001 elements.
+  call allocate_branch_array (lat, 2) ! Allocate Branch(1) and Branch(2).
+  call allocate_lat_ele_array (lat, 20, 1)  ! Branch(1) has 21 elements
+  call allocate_lat_ele_array (lat, 30, 2)  ! Branch(2) has 31 elements.
+\end{example}
+
+
+%----------------------------------------------------------------------------
+\section{Pointers}
+\label{s:lat:point}
+\index{lat_struct!pointers}
+
+Since the \vn{lat_struct} has pointers within it, there is an extra burden on the programmer to make
+sure that allocation and deallocation is done properly. To this end, the equal sign has been
+overloaded by the routine \vn{lat_equal_lat} so that when one writes
+\begin{example}
+    type (lat_struct) lattice1, lattice2
+    ! ... some calculations ...
+    lattice1 = lattice2
+\end{example}
+the pointers in the \vn{lat_struct} structures will be handled properly. The result will be that
+lattice1 will hold the same information as \vn{lattice2} with all the lattice elements in the same
+place but the pointers in \vn{lattice1} will point to different locations in physical memory so that
+changes to one lattice will not affect the other.
+
+\Hyperref{r:deallocate.lat.pointers}{deallocate_lat_pointers} Initial allocation of the pointers in
+a \vn{lat_struct} variable is generally handled by the \Hyperref{r:bmad.parser}{bmad_parser} and
+\Hyperref{r:lat.equal.lat}{lat_equal_lat} routines.  Once allocated, local \vn{lat_struct} variables
+must have the save attribute or the pointers within must be appropriately deallocated before leaving
+the routine.
+\begin{example}
+  type (lat_struct), save :: lattice     ! Either do this at the start or ...
+  ...
+  call deallocate_lat_pointers (lattice) ! ... Do this at the end.
+\end{example}
+Using the save attribute will generally be faster but will use more
+memory. Typically using the save attribute will be the best choice.
+
+%----------------------------------------------------------------------------
+\section{Branches in the lat_struct}
+\label {s:lat.struct}
+
+\index{lat_struct!\%branch(:)}
+\index{fork}\index{photon_fork}\index{branch!root}
+The lattice is divided up into the ``root branch'' (\sref{s:use}) and,
+if there are \vn{fork} or \vn{photon_fork} elements, a number ``forked''
+\vn{branches}.
+
+\index{branch_struct}
+The branches of a lattice is contained in the \vn{lat%branch(0:)}
+array. The \vn{%branch(0:)} array is always indexed from 0 with the
+$0$ branch being a root branch. The definition of the
+\vn{branch_struct} structure is
+\begin{example}
+  type branch_struct
+    character(40) name
+    integer ix_branch                    ! Index in lat%branch(:) array.
+    integer ix_from_branch               ! -1 => No forking element to this branch.
+    integer ix_from_ele                  ! Index of forking element
+    integer, pointer :: n_ele_track      ! Number of tracking elements
+    integer, pointer :: n_ele_max
+    type (mode_info_struct), pointer :: a, b, z
+    type (ele_struct), pointer :: ele(:)
+    type (lat_param_struct), pointer :: param
+    type (wall3d_struct), pointer :: wall3d(:)
+    type (ptc_branch1_info_struct) ptc
+    type (normal_form_struct) normal_form_with_rf, normal_form_no_rf
+  end type
+\end{example}
+The value of the \vn{%branch(i)%ix_branch} conponent is the branch
+index and will thus have the value \vn{i}. This can be useful when
+passing a branch to a subroutine.  The \vn{%branch(i)%ix_from_branch}
+component gives the branch index of the branch that the $i$\Th branch
+branched off from.  \vn{%branch(i)%ix_from_ele} gives the index in the
+\vn{%branch(j)%ele(:)} array of the \vn{fork} or \vn{photon_fork}
+element that marks the beginning of the $i$\Th branch. Example:
+\begin{example}
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: ele
+  ...
+  ib = lat%branch(3)%ix_from_branch
+  ie = lat%branch(3)%ix_from_ele
+  ! ele is the fork or photon_fork element for lat%branch(3)
+  ele => lat%branch(ib)%ele(ie)
+  ! This is the same as the above.
+  ele => pointer_to_ele(lat%branch(3)%ix_from_branch, lat%branch(3)%ix_from_ele)
+\end{example}
+
+\index{lat_struct!\%ele(:)}\index{lat_struct!\%n_ele_track}
+\index{lat_struct!\%n_ele_max}\index{ele_struct!in lat_struct} 
+\index{girder}\index{overlay}\index{group}\index{ramper}
+The \vn{%branch%ele(:)} array holds the array of elements in the
+branch. Historically, the \vn{lat_struct} was developed at the start
+of the \bmad project and branches were implemented well after that. To
+maintain compatibility with older code, the following components point
+to the same memory blocks
+\begin{example}
+  lat%ele(:)              <--->  lat%branch(0)%ele(:)
+  lat%n_ele_track         <--->  lat%branch(0)%n_ele_track
+  lat%n_ele_max           <--->  lat%branch(0)%n_ele_max
+  lat%param               <--->  lat%branch(0)%param        
+\end{example}
+
+\begin{table}[tb]
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+              & \multicolumn{2}{c} {\em Element index}   \\ \cmidrule{2-3}
+{\em section} & {\em min}          & {\em max}            \\ \midrule
+tracking      & 0                  & \vn{%n_ele_track}    \\ 
+control       & \vn{%n_ele_track}+1 & \vn{%n_ele_max}     \\ \bottomrule
+\end{tabular} 
+\caption[Bounds of the root branch array.]
+{Bounds of the tracking and control parts 
+of the root branch (\vn{lat\%branch(0)\%ele(:)}) array.}
+\label{t:part.extent}
+\end{center}
+\end{table}
+
+All \vn{%branch%ele(:)} arrays are allocated with zero as the lower
+bound. The \vn{%ele(0)} element of all branches is an \vn{beginning_ele}
+element with its \vn{%name} component set to ``\vn{BEGINNING}''.
+\vn{%ele(0)%mat6} is always the unit matrix. For the root branch, the
+\vn{%branch(0)%ele(0:)} array is divided up into two parts: The
+``tracking'' part and a ``control'' part (also called the ``lord''
+part). The tracking part of this array holds the elements that are
+tracked through. The control part holds elements that control
+attributes of other elements (\sref{s:lat.control}). The bounds of
+these two parts is given in Table~\ref{t:part.extent}.
+Only the root branch has a lord section so 
+\vn{%branch%n_ele_track} and \vn{%branch%n_ele_max} are the same for 
+all other branches. Since the root branch can also be accessed via the \vn{lat%ele(:)}
+array, code that deals with the lord section of the lattice may use \vn{lat%ele(:)}
+in place of \vn{lat%branch(0)%ele(:)}.
+
+for a given \vn{fork} or \vn{photon_fork} element, the index of
+the branch that is being forked to and the index of the element that
+is being forked to is stored in:
+\begin{example}
+  ix_branch  = nint(branch_ele%value(ix_branch_to$))  ! branch index
+  ix_element = nint(branch_ele%value(ix_element_to$)) ! element index
+  direction  = nint(branch_ele%value(direction$))
+\end{example}
+The direction will be +1 for forward forking and -1 for backward forking.
+
+%----------------------------------------------------------------------------
+\section{Param_struct Component}
+\label{s:lat.param.struct}
+\index{lat_param_struct}
+
+The \vn{%param} component within each \vn{lat%branch(:)} is a
+\vn{lat_param_struct} structure whose definition is shown in
+\fig{f:lat.param.struct}
+\begin{figure}[tb]
+\centering
+\begin{verbatim}
+  type lat_param_struct
+    real(rp) n_part             ! Particles/bunch.
+    real(rp) total_length       ! total_length of lattice
+    real(rp) unstable_factor    ! closed branch: growth rate/turn. 
+                                !   all branches: |orbit/limit|
+    real(rp) t1_with_RF(6,6)    ! Full 1-turn 6x6 matrix
+    real(rp) t1_no_RF(6,6)      ! Transverse 1-turn 4x4 matrix (RF off).
+    integer particle            ! +1 = positrons, -1 = electrons, etc.
+    integer geometry            ! open$, etc...
+    integer ixx                 ! Integer for general use
+    logical stable              ! For closed branch. Is lat stable?
+    type (bookkeeper_status_struct) bookkeeping_state
+                                          ! Overall status for the branch.
+  end type
+\end{verbatim}
+\caption{Definition of the \vn{param_struct}.}
+\label{f:lat.param.struct}
+\end{figure}
+This structure would be more aptly named \vn{branch_param_struct} but
+is named otherwise for historical reasons.
+
+\index{lat_param_struct!\%total_length}
+\vn{%param%total_length} is the length of the branch that a beam
+tracks through defined by
+\begin{example}
+  %param%total_length = %ele(n_ele_track)%s - %ele(0)%s
+\end{example}
+Normally \vn{%ele(0)%s} = 0 so \vn{%param%total_length} =
+\vn{%ele(n_ele_track)%s} but this is not always the case.
+
+\index{lat_param_struct!\%n_part}
+\index{beambeam}
+\index{lcavity!and param\%n_part}
+\vn{%param%n_part} is the number of particles in a bunch and is used in various calculations.
+Historically, this parameter has been used to set the number of strong beam particle with
+\vn{BeamBeam} elements but it is strongly recommended to use the \vn{beambeam} element's
+\vn{n_particle} parameter instead.
+
+\index{lat_param_struct!\%t1_with_RF}
+\index{lat_param_struct!\%t1_no_RF}
+\index{lat_param_struct!\%stable}
+For closed branches, \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF} are the 1--turn transfer
+matrices from the start of the branch to the end. \vn{%param%t1_with_RF} is the full transfer matrix
+with RF on. \vn{%param%t1_no_RF} is the transverse transfer matrix with RF off. \vn{%param%t1_no_RF}
+is used to compute the Twiss parameters. When computing the Twiss parameters \vn{%param%stable} is
+set according to whether the matrix is stable or not. If the matrix is not stable the Twiss
+parameters cannot be computed. If unstable, \vn{%param%unstable_factor} will be set to the growth
+rate per turn of the unstable mode.
+
+Besides being set when the 1--turn transfer matrix is calculated, \vn{%param%unstable_factor} will
+be set if a particle is lost in tracking to:
+\begin{example}
+  orbit_amplitude / limit - 1
+\end{example}
+
+The particle type for a branch is stored in the integer variable \vn{%param%particle}. The value of
+this variable will encode for a fundamental particle, atom, or molecule. See the file
+\vn{particle_species_mod.f90} for more details. If the particle corresponds to a fundamental
+particle, \vn{%param%particle} will correspond to one of the following constants:
+\index{positron\$}\index{electron\$}\index{proton\$}\index{antiproton\$}
+\index{muon\$}\index{antimuon\$}\index{pion_0\$}\index{pion_minus\$}
+\index{pion_plus\$}
+\begin{example}
+  electron\$,     positron\$,   
+  muon\$,         antimuon\$,
+  proton\$,       antiproton\$,
+  photon\$,       pion_0\$,
+  pion_minus\$,   pion_plus\$
+  deuteron\$      deuteron_0\$
+\end{example}
+To print the name of the particle use the function
+\vn{species_name}. A particles mass and charge can be obtained from
+the functions \vn{mass_of} and \vn{charge_of} respectively. 
+\vn{charge_of} returns the particle's charge in units of $e$. Example:
+\begin{example}
+  type (lat_struct) lat
+  ...
+  print *, "Beam Particles are: ", species_name(lat%param%particle)
+  if (lat%param%particle == proton\$) print *, "I do not like protons!"
+  print *, "Particle mass (eV):    ", mass_of(lat%param%particle)
+  print *, "Particle charge:       ", charge_of(lat%param%particle)
+\end{example}
+
+%----------------------------------------------------------------------------
+\section{Elements Controlling Other Elements}
+\label{s:lat.control}
+
+\index{lord|hyperbf}\index{slave|hyperbf}
+In the \vn{lat_struct} structure, certain elements in the \vn{%ele(:)} array (equivalent to the
+\vn{%branch(0)%ele(:)} array), called \vn{lord} elements, can control the attributes (component
+values) of other \vn{%branch(:)%ele(:)} elements.  Elements so controlled are called \vn{slave}
+elements.  The situation is complicated by the fact that a given element may simultaneously be a
+\vn{lord} and a \vn{slave}. For example, an \vn{overlay} element (\sref{s:overlay}) is a lord since
+it controls attributes of other elements but an \vn{overlay} can itself be controlled by other
+\vn{overlay} and \vn{group} elements. In all cases, circular lord/slave chains are not permitted.
+
+\index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
+The lord and slave elements can be divided up into classes. What type of lord an element is, is set
+by the value of the element's \vn{ele%lord_status} component. Similarly, what type of slave an
+element is is set by the value of the element's \vn{ele%slave_status} component.  Nomenclature note:
+An element may be referred to by it's \vn{%lord_status} or \vn{%slave_status} value. For example, an
+element with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to as a
+``\vn{super_lord}'' element.
+
+\index{super_lord\$}
+\index{group_lord}\index{girder_lord\$}
+\index{multipass_lord\$}
+\index{girder_lord\$}\index{not_a_lord\$}
+The value of the \vn{ele%lord_status} component can be one of:
+  \begin{description}
+  %
+  \item[super_lord\$]\Newline 
+A \vn{super_lord} element is created when elements are superimposed on top of other elements
+(\sref{s:super}). \vn{super_lords} (along with \vn{multipass_lords}), are called \vn{major} lords
+since the attribute values of a \vn{super_slave} are entirely determined by the attribute values of
+the \vn{super_lord}(s) of the slave. 
+  %
+  \item[girder_lord\$]\Newline 
+A \vn{girder_lord} element is a \vn{girder} element (\sref{s:girder}). That is, the element will
+have \vn{ele%key} = \vn{girder\$}.
+  %
+  \item[multipass_lord\$]\Newline
+\vn{multipass_lord} elements are created when multipass lines are present (\sref{s:multipass}).
+\vn{multipass_lords} (along with \vn{super_lords}) are called \vn{major} lords since most of the
+attribute values of a \vn{multipass_slave} are entirely determined by the attribute values of the
+\vn{multipass_lord} of the slave. The few exceptions are parameters like \vn{phi0_multipass} which can
+be set for individual slave elements.
+  %
+  \item[overlay_lord\$]\Newline 
+An \vn{overlay_lord} is an \vn{overlay} element (\sref{s:overlay}). That is, such an element will
+have \vn{ele%key} = \vn{overlay\$}.
+  %
+  \item[ramper_lord\$]\Newline 
+A \vn{ramper_lord} is a \vn{ramper} element (\sref{s:ramper}). That is, such an element will have
+\vn{ele%key} = \vn{ramper\$}. Note that a \vn{ramper_lord} will not have pointers to its slaves.
+That is, \vn{ele%n_slave} will be zero. 
+  %
+  \item[group_lord\$]\Newline 
+A \vn{group_lord} is a \vn{group} element (\sref{s:group}). That is, such an element will have
+\vn{ele%key} = \vn{group\$}.
+  %
+  \item[not_a_lord\$]\Newline
+This element does not control anything.
+  \end{description}
+Any element whose \vn{%lord_status} is something other than \vn{not_a_lord\$} is called a \vn{lord}
+element. In the \vn{tracking part} of the branch (\sref{s:lat.struct}), \vn{%lord_status} will
+always be \vn{not_a_lord\$}. In the \vn{lord section} of the branch, under normal circumstances,
+there will never be any \vn{not_a_lord} elements.  However, it is permissible, and sometimes
+convenient, for programs to set the \vn{%lord_status} of a lord element to \vn{not_a_lord\$}.
+
+\index{super_slave\$}\index{multipass_slave\$}
+\index{free\$}\index{minor_slave\$}\index{slice_slave\$}
+The possible values for the \vn{ele%slave_status} component are:
+  \begin{description}
+  \item[multipass_slave\$]\Newline
+A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
+(\sref{s:multipass}).
+  \item[slice_slave\$]\Newline
+A \vn{slice_slave} element represents a longitudinal slice of another element.
+Slice elements are not part of the lattice but rather are created on-the-fly
+when, for example, a program needs to track part way through an element.
+  \item[super_slave\$]\Newline 
+A \vn{super_slave} element is an element in the tracking part of the branch that 
+has one or more \vn{super_lord} lords (\sref{s:super}).
+  \item[minor_slave\$]\Newline
+A \vn{minor_slave} element is an element that is not a \vn{slice_slave} and does not have a
+\vn{major} lord. Major lords are \vn{super_lord}s and \vn{multipass_lord}s. A \vn{minor_slave}
+element will some have attributes that are controlled by \vn{overlay_lords}, \vn{group_lords},
+\vn{girder_lords}, or \vn{ramper_lords}.
+  \item[free\$]\Newline
+A \vn{free} element is one that has no lords except for perhaps \vn{ramper_lords}. Additionally,
+there still might be field overlap from other elements.
+  \end{description}
+
+\vn{super_slave} elements always appear in the tracking part of the branch. The other types can be
+in either the tracking or control parts of the branch.
+
+\begin{table}[tb]
+  \footnotesize
+
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \begin{tabular}{lcccccc} 
+      \toprule
+      & \multicolumn{6}{c}{\vn{ele\%lord_status}} \\ 
+      \cmidrule(lr){2-7}
+      {\vn{ele{\%}slave_status}} &
+      \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
+      \begin{sideways}\vn{group_lord\$}\end{sideways} &
+      \begin{sideways}\vn{girder_lord\$}\end{sideways} &
+      \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+      \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+      \begin{sideways}\vn{super_lord\$}\end{sideways}
+      \\ \midrule
+      %                         NL  GR  GI  O   M   S
+      \vn{free\$}             & X & X & X & X & X & X \\ 
+      \vn{minor_slave\$}      & X & X & X & X & X & X \\ 
+      \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
+      \vn{slice_slave\$}      & X &   &   &   &   &   \\
+      \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
+    \end{tabular}
+    \caption{Possible {ele\%lord_status} and {ele\%slave_status} combinations within an individual element.}
+    \label{f:lord.slave.a}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \begin{tabular}{lcccccc} 
+      \toprule
+      & \multicolumn{6}{c}{\vn{lord\%lord_status}} \\ 
+      \cmidrule(lr){2-7}
+      {\vn{slave{\%}slave_status}} &
+      \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
+      \begin{sideways}\vn{group_lord\$}\end{sideways} &
+      \begin{sideways}\vn{girder_lord\$}\end{sideways} &
+      \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+      \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+      \begin{sideways}\vn{super_lord\$}\end{sideways}
+      \\ \midrule
+      %                         NL  GR  GI  O   M   S
+      \vn{free\$}             &   &   &   &   &   &   \\ 
+      \vn{minor_slave\$}      &   & X & X & X &   &   \\ 
+      \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
+      \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule
+    \end{tabular}
+    \caption{Possible {\%lord_status} and {\%slave_status} combinations for any lord/slave pair.}
+    \label{f:lord.slave.b}
+  \end{subfigure}
+  \caption[Possible element \%lord_status/\%slave_status combinations.]{Possible 
+    \%lord_status/\%slave_status combinations. 
+    ``X'' marks a possible combination.
+    ``1'' indicates that the slave will have exactly one lord of the type given in the column.}
+  \label{f:lord.slave}
+\end{table}
+
+\index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
+Only some combinations of \vn{%lord_status} values and \vn{%slave_status} values are permissible for
+a given element.  Table~\ref{f:lord.slave.a} lists the valid combinations. Thus, for example, it is
+{\em not} possible for an element to be simultaneously a \vn{super_lord} and a \vn{super_slave}.
+
+\begin{figure}[tb]
+\centering \includegraphics[width=5.5in]{superimpose-and-multipass.pdf} \caption[Example of
+multipass combined with superposition] {Example of multipass combined with superposition. A
+\vn{multipass_lord} element named \vn{A} controls a set of \vn{multipass_slaves} (only one shown).
+The \vn{multipass_slave} elements are also \vn{super_lord} elements and they will control
+\vn{super_slave} elements in the tracking part of the branch.}  \label{f:super.mul}
+\end{figure}
+
+For lord/slave pairs, Table~\ref{f:lord.slave.b} lists the valid combinations of \vn{%lord_status}
+values in the lord element and \vn{%slave_status} values in the slave element. Thus, for example, a
+\vn{super_slave} may only be controlled by a \vn{super_lord}. In the example in
+Section~\sref{s:multipass}, element \vn{A} would be a \vn{multipass_lord} and \vn{A\B1} and
+\vn{A\B2} would be \vn{multipass_slave}s. When superposition is combined with multipass, the
+elements in the tracking part of the branch will be \vn{super_slave}s.  These elements will be
+controlled by \vn{super_lord}s which will also be \vn{multipass_slave}s and these
+\vn{super_lord}/\vn{multipass_slave} elements will be controlled by \vn{multipass_lord}s. This is
+illustrated in \fig{f:super.mul}.
+
+\index{ele_struct!\%n_lord}\index{ele_struct!\%n_slave}
+The number of slave elements that a lord controls is given by the value of the lord's \vn{%n_slave}
+component. Additionally, the number of lord elements that the slave has is given by the value of the
+slave's.  \vn{%n_lord} component. To find the slaves and lords of a given element, use the routines
+\Hyperref{r:pointer.to.slave}{pointer_to_slave} and
+\Hyperref{r:pointer.to.lord}{pointer_to_lord}. Example:
+\begin{example}
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: this_ele, lord_ele, slave_ele
+  ...
+  this_ele => lat%ele(321)    ! this_ele points to a given element in the lattice
+
+  do i = 1, this_ele%n_lord   ! Loop over all lords of this_ele
+    ! lord_ele points to the i^th lord element of this_ele
+    lord_ele => pointer_to_lord (this_ele, i)  
+    ...
+  enddo
+
+  do i = 1, this_ele%n_slave  ! Loop over all slaves of this_ele
+    ! slave_ele points to the i^th slave element of this_ele
+    slave_ele => pointer_to_slave (this_ele, i) 
+    ...
+  enddo
+\end{example}
+For non-ramper elements, the lord/slave bookkeeping is bidirectional. That is, for any given
+element, call it \vn{this_ele}, consider the i\Th lord:
+\begin{example}
+  lord_ele_i => pointer_to_lord (this_ele, i)
+\end{example}
+then there will always be some index j such that the 
+element pointed to by
+\begin{example}
+  pointer_to_slave(lord_ele_i, j)
+\end{example}
+is the original element \vn{this_ele}. The same is true for the slaves of any given element. That
+is, for the i\Th slave
+\begin{example}
+  slave_ele_i => pointer_to_slave (this_ele, i)
+\end{example}
+there will always be some index j such that the 
+element pointed to by
+\begin{example}
+  pointer_to_lord(slave_ele_i, j)
+\end{example}
+
+\index{slave!ordering}\index{lords!ordering}
+\index{super_lord}\index{super_slave}
+\index{multipass_lord}\index{multipass_slave}
+\index{patch}
+The following ordering of slaves and lords is observed:
+  \begin{description}
+  \item[Slaves of a super_lord:] \Newline
+The associated \vn{super_slave} elements of a given \vn{super_lord} element are ordered from the
+entrance end of the \vn{super_lord} to the exit end. That is, in the code snippet above,
+\vn{pointer_to_slave (this_ele, 1)} will point to the slave at the start of the \vn{super_lord} and
+\vn{ pointer_to_slave (this_ele, this_ele%n_lord)} will point to the slave at the exit end of the
+\vn{super_lord}.
+  \item[Slaves of a multipass_lord:] \Newline
+The associated \vn{multipass_slave} elements of a \vn{multipass_lord} element are ordered by pass
+number. That is, in the code snippet above, \vn{pointer_to_slave (this_ele, i)} will point to the
+slave of the $i$\Th pass.
+  \item[Lord of a multipass_slave:] \Newline
+A \vn{multipass_slave} will have exactly one associated \vn{multipass_lord} and this lord will be
+the first one. That is, \vn{pointer_to_lord (this_ele, 1)}.
+  \end{description}
+
+\index{control_struct}
+The element control information is stored in the \vn{lat%control(:)} array.  Each element of this
+array is a \vn{control_struct} structure
+\begin{example}
+  type control_struct
+    type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
+    type (lat_ele_loc_struct) slave ! Slave location
+    type (lat_ele_loc_struct) lord  ! Lord location
+    integer ix_attrib               ! index of controlled attribute 
+  end type
+\end{example}
+\index{girder}\index{overlay}\index{group}
+\index{lat_struct!\%control}
+Each element in the \vn{lat%control(:)} array holds the information on one lord/slave pair. The
+\vn{%lord} component gives the location of the lord element which is always in the root branch ---
+branch 0. The \vn{%slave} component give the element location of the slave element.  The \vn{%stack}
+and \vn{%ix_attrib} components are used to store the arithmetic expression and attribute index for
+\vn{overlay} and \vn{group} control. The appropriate control_struct for a given lord/slave pair can
+be obtained from the optional fourth argument of the \Hyperref{r:pointer.to.lord}{pointer_to_lord}
+and \Hyperref{r:pointer.to.slave}{pointer_to_slave} functions.  Example: The following prints a list
+of the slaves, along with the attributes controlled and coefficients, on all group elements in a
+lattice.
+\begin{example}
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: lord, slave
+  type (control_struct), pointer :: con
+  ...
+  do i = lat%n_ele_track+1, lat%n_ele_max  ! loop over all lords
+    lord => lat%ele(i) 
+    if (lord%lord_status = group_lord$) then 
+      print *, "Slaves for group lord: ", lord%name
+      do j = 1, lord%n_slave
+        slave => pointer_to_slave (lord, j, con)
+        attrib_name = attribute_name (slave, con%ix_attrib)
+        print *, i, slave%name, attrib_name, con%coef
+      enddo
+    endif
+  enddo
+\end{example}
+
+\index{lat_struct!\%control}\index{lat_struct!\%n_slave_field}
+\index{lat_struct!\%ix1_slave}\index{lat_struct!\%n_slave}
+The elements in the \vn{lat%control(:)} array associated with the slaves of a given lord are in the
+same order as the slaves and the index of the associated \vn{lat%control(:)} element of the first
+slave is given by the \vn{%ix1_slave} component of the lord Example:
+\begin{example}
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: lord, slave
+  type (control_struct), pointer :: con1, con2
+  ...
+  lord => lat%ele(i)                    ! Point to some lord
+  do j = 1, lord%n_slave
+    slave => pointer_to_slave (lord, j, con1)
+    con2 => lat%control(lord%ix1_slave+j-1) ! con1 and con2 are the same.
+  enddo
+\end{example}
+
+\index{ele_struct!\%ic1_lord}\index{ele_struct!\%n_lord}
+\index{lat_struct!\%ic}\index{ele_struct!\%n_lord_field}
+Except for a \vn{slice_slave}, the \vn{%ic1_lord}, \vn{%n_lord}, and \vn{%n_lord_field} components
+of a given slave element, along with the \vn{lat%ic(:)} array, can be used to find the lords of the
+slave.  Simplified, the code for the \Hyperref{r:pointer.to.lord}{pointer_to_lord} function is:
+\begin{example}
+  function pointer_to_lord (slave, ix_lord, con, ...) result (lord_ptr)
+    implicit none
+    type (lat_struct), target :: lat
+    type (ele_struct) slave
+    type (ele_struct), pointer :: lord_ptr
+    type (control_struct), pointer, optional :: control
+    integer ix_lord, icon
+    !
+    icon = lat%ic(slave%ic1_lord + ix_lord - 1)
+    lord_ptr => lat%ele(lat%control(icon)%lord%ix_ele)
+    if (present(con)) con => lat%control(icon)
+  end function
+\end{example}
+This method for finding the lords of an element is considered
+``private''. That is, no code outside of the official \bmad library
+should rely on this.
+
+\vn{slice_slave} element bookkeeping has is different depending upon whether the element being
+sliced is a \vn{super_slave} or not. If the element being sliced is a \vn{super_slave}, a
+\vn{slice_slave} element that is created is, for bookkeeping purposes, considered to be a slave of
+the \vn{super_slave}'s lords. In this case, the bookkeeping is exactly the same as that of any
+\vn{super_slave}, and \vn{pointer_to_lord} will return a pointer to one of the \vn{super_slave}'s
+lords.
+
+On the other hand, if a non \vn{super_slave} element is being sliced, the \vn{%lord} pointer
+component of the \vn{slice_slave} will be set to point to the element being sliced.
+
+%----------------------------------------------------------------------------
+\section{Lattice Bookkeeping}
+\label{s:lat.bookkeeping}
+
+\index{reference energy}
+The term ``lattice bookkeeping'' refers to the updating of the appropriate parameter values when a
+given parameter in the lattice is changed. For example, if the accelerating gradient of an
+\vn{lcavity} element is modified, the reference energy parameter of all elements downstream of the
+\vn{lcavity} will need to be changed and this can also alter the transfer maps of the \vn{lcavity}
+and downstream elements. \bmad divides the lattice bookkeeping into ``core'' part and everything
+else. The core part itself is divided into five parts:
+  \begin{description}
+  \item[Attribute bookkeeping] \Newline
+This refers to intra-element dependent attribute bookkeeping (\sref{s:depend}).
+  \item[Control bookkeeping] \Newline
+This refers to Lord/Slave bookkeeping for \vn{overlay}
+(\sref{s:overlay}) and \vn{group} (\sref{s:group})elements, and for
+\vn{superposition} (\sref{s:super}) and \vn{multipass}
+(\sref{s:multipass}) lords.
+  \item[Floor Position bookkeeping]
+This refers to bookkeeping to keep track of an elements global ``floor'' position
+stored in the \vn{ele%floor} structure.
+  \item[Length bookkeeping]
+This refers to bookkeeping to keep track of the longitudinal s-position of an element
+stored in the \vn{ele%s} component.
+  \item[Reference Energy bookkeeping]
+This refers to the reference energy assigned to each element (\sref{s:ref.energy.prog}).
+\vn{ele%value(E_tot\$)} and \vn{ele%value(p0c\$)}
+  \end{description}
+
+\index{bookkeeping!automatic}
+\index{bookkeeping!intelligent}
+Historically, as the concept of lattice bookkeeping was being developed, to be back compatible with
+existing programs, calls to bookkeeping routines were added to calculational routines such as the
+tracking routine \Hyperref{r:track1}{track1} and the routine for calculating the linear transfer map
+\Hyperref{r:make.mat6}{make_mat6}.  This ``automatic'' bookkeeping system is inefficient since there
+is no good way to keep track of what element attributes have been modified which leads to redundant
+bookkeeping calculations. Eventually, as \bmad developed and became more complicated, it was found
+that the unnecessary bookkeeping load was generally causing a significant slowdown in program
+execution time --- even in programs where no element attributes were changed. To avoid this, an
+``intelligent'' bookkeeping system was developed. In order to be back compatible with existing
+programs, the automatic bookkeeping system is the default. However, given the fact that the
+automatic bookkeeping system has known deficiencies, and given the overhead with maintaining two
+bookkeeping systems, the current plan is to start phasing out the automatic bookkeeping system
+sometime in the not-so-far future. Thus old programs should be converted to the new system and all
+new programs should use the new bookkeeping system.
+
+\index{bmad_common_struct!auto_bookkeeper}
+To use intelligent bookkeeping, a program must set the global \vn{bmad_com%auto_bookkeepper} to
+false. This is done once at the start of the program. When a set of attributes needs to be modified,
+the \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute} routine must be
+called for each element attribute that is set. After all the attributes have been set,
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is called to do the core bookkeeping. Example
+\begin{example}
+  type (lat_struct) lat
+  ...
+  bmad_com%auto_bookkeeper = .false.    ! Only needs to be done once.
+  ...
+  lat%ele(i)%value(gradient$) = 1.05e6  ! Change, say, the gradient of an RFCavity
+  call set_flags_for_changed_attribute (lat%ele(i), lat%ele(i)%value(gradient$))
+
+  ... Set attributes of other elements ...
+
+  call lattice_bookkeeper (lat)         ! Do once after all attribute sets done.
+\end{example}
+The argument list for \vn{set_flags_for_changed_attribute} is 
+\begin{example}
+  set_flags_for_changed_attribute (ele, attribute)
+\end{example}
+The \vn{attribute} argument may be either real, integer, or logical.
+
+\index{ele!\%status}
+\index{bookkeeper_status_struct}
+The \vn{set_flags_for_changed_attribute} routine sets flags in the \vn{ele%status} structure. This
+structure is of type \vn{bookkeeper_status_struct} and looks like
+\begin{example}
+  type bookkeeper_status_struct
+    integer attributes      ! Intra element dependent attribute status
+    integer control         ! Lord/slave bookkeeping status
+    integer floor_position  ! Global (floor) geometry status
+    integer length          ! Longitudinal position status
+    integer ref_energy      ! Reference energy status
+    integer mat6            ! Linear transfer map status
+    integer rad_int         ! Radiation integrals cache status
+  end type
+\end{example}
+All components of this structure give the status of some lattice
+bookkeeping aspect. The first five components of this structure
+correspond to the five core bookkeeping parts discussed above. The
+other two components are discussed below.
+
+Possible values for the status components are
+\begin{example}
+  super_ok\$
+  ok\$
+  stale\$
+\end{example}
+The \vn{set_flags_for_changed_attribute} routine sets the appropriate status components of an
+element to \vn{stale\$} which marks that element for the appropriate bookkeeping. When the
+bookkeeping is done by \vn{lattice_bookkeeper}, the \vn{stale\$} status components are set to
+\vn{ok\$}. The \vn{super_ok\$} value is reserved for use by any program that needs to do its own
+custom bookkeeping. How this works is as follows: The \bmad bookkeeping routines will never convert
+a status component with value \vn{super_ok\$} to \vn{ok\$} without first doing some needed
+bookkeeping. Thus if a program sets a status component to \vn{super_ok\$} and then later on finds
+that the status component is set to \vn{ok\$}, the program knows that bookkeeping has been done. An
+example will make this clear. Suppose a program needs to keep track of a collection of high order
+transfer maps between various points in a lattice. Suppose that the constant calculation of these
+maps would slow the program done so it is desired to recalculate a given map only when necessary. To
+implement this, the program could set the \vn{ele%status%mat6} attribute of all the element to
+\vn{super_ok\$} when the maps are calculated. If the program subsequently finds a
+\vn{ele%status%mat6} attribute of an element set to \vn{ok\$} it knows that it should recalculate
+any transfer maps that span that element.
+
+It is guaranteed that when \vn{lattice_bookkeeper} is run,
+all five core status components will not be \vn{stale\$}.
+The routines used by \vn{lattice_bookkeeper} are:
+\begin{example}
+  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}      ! Intra-element attributes
+  \Hyperref{r:control.bookkeeper}{control_bookkeeper}        ! Lord/slave control
+  \Hyperref{r:s.calc}{s_calc}                    ! Longitudinal element s-position
+  \Hyperref{r:lat.geometry}{lat_geometry}              ! Global (floor) positions.
+  \Hyperref{r:lat.compute.ref.energy.and.time}{lat_compute_ref_energy_and_time}  ! Reference energy 
+\end{example}
+In general, these routines should not be called directly since the correct way to do things is not
+always straight forward. See the code for \vn{lattice_bookkeeper} for more details.
+
+After the core bookkeeping is done, a program can call \Hyperref{r:lat.make.mat6}{lat_make_mat6} to
+remake the transfer matrices.  \vn{lat_make_mat6} will remake the transfer matrices if either the
+\vn{ele%status%mat6} flag is \vn{stale\$} or the reference orbit around which the existing transfer
+matrix was computed has shifted.  \vn{lat_make_mat6} will set the \vn{ele%status%mat6} flag to
+\vn{ok\$} for all elements whose transfer matrices are recomputed.
+
+%----------------------------------------------------------------------------
+\section{particle_start Component}
+\label{s:lat.beam.start}
+
+\index{particle_start}
+\index{lat_struct!\%particle_start}
+The \vn{lat%particle_start} component is a \vn{coord_struct} structure for holding the information
+obtained from \vn{particle_start} statements (\sref{s:beam.start}) in a \bmad lattice file.
+
+This component is not used in any standard \bmad calculation. It is up to an individual program to
+use as desired. Use \Hyperref{r:init.coord}{init_coord} to initalize a particle position. Example:
+\begin{example}
+  type (lat_struct) lat
+  type (coord_struct) orbit_start
+  ...
+  call bmad_parser("lat.bmad", lat)  ! Read in a lattice.
+  ...
+  ! orbit_start is initalized for tracking from the beginning of the lattice
+  call init_coord(orbit_start, lat%particle_start, lat%ele(0), downstream_end$)
+\end{example}
+
+%----------------------------------------------------------------------------
+\section{Custom Parameters}
+\label{s:lat.custom}
+
+Custom parameters defined for the lattice as a whole (\sref{s:cust.att} are stored in
+\vn{lat%custom}. The following shows how to print a table of the custom parameters
+\begin{example}
+  type (lat_struct) lat
+  character(80) aname
+  ...
+  if (allocated(lat%custom)) then
+    do i = 1, size(lat%custom)
+      aname = attribute_name(def_parameter$, i+custom_attribute0$)
+      if (aname(1:1) == "!") cycle    ! Ignore non-existant parameters
+      print "(a, es12.4)", "  parameter[" // trim(aname) // "] = ", lat%custom(i)
+    enddo
+  endif
+\end{example}

@@ -1,0 +1,969 @@
+\chapter{Electromagnetic Fields}
+
+%-----------------------------------------------------------------
+\section{Magnetostatic Multipole Fields}
+\label{s:mag.field}
+\index{magnetic fields|hyperbf}
+
+\index{MAD}
+Start with the assumption that the local magnetic field has no longitudinal component
+(obviously this assumption does not work with, say, a solenoid).  Following \mad, ignoring
+skew fields for the moment, the vertical magnetic field along the $y = 0$ axis is expanded
+in a Taylor series
+\begin{equation}
+  B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
+  \label{byx0b}
+\end{equation}
+Assuming that the reference orbit is locally straight (there are correction terms if the
+reference orbit is curved (\sref{s:field.exact})), the field is
+\begin{alignat}{5}
+  B_x &=           &&B_1 y \plus         &&B_2 \, xy       
+                   && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \CRNO
+  B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) 
+                   && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
+  \label{bbb}
+\end{alignat}
+The relation between the field $B_n$ and the normalized field $K_n$ is:
+\index{multipole!KnL, Tn|hyperbf}
+\begin{equation}
+  K_n \equiv \frac{q \, B_n}{P_0}
+  \label{kqlbp}
+\end{equation}
+where $q$ is the charge of the reference particle (in units of the elementary charge), and $P_0$ is
+the reference momentum (in units of eV/c).  Note that $P_0/q$ is sometimes written as $B\rho$. This
+is just an old notation where $\rho$ is the bending radius of a particle with the reference energy
+in a field of strength $B$. Notice that $P_0$ is the local reference momentum at the element which
+may not be the same as the reference energy at the beginning of the lattice if there are
+\vn{lcavity} elements (\sref{s:lcav}) present.
+
+The kicks $\Delta p_x$ and $\Delta p_y$ that a particle experiences going through a multipole field
+is
+\begin{alignat}{5}
+  \Delta p_x & = \frac{-q \, L \, B_y}{P_0} \label{pqlbp1} \\
+             & = -K_0 L \;-\; 
+             && K_1 L \, x \plus 
+             \frac{1}{2} && K_2 L (y^2 - x^2) && \plus 
+             && \frac{1}{6} K_3 L (3x y^2 - x^3) \plus \ldots 
+             \nonumber \\
+  \Delta p_y & = \frac{q \, L \, B_x}{P_0} \label{pqlbp2} \\
+             & =     
+             && K_1 L \, y \plus 
+             && K_2 L \, xy && \plus 
+             && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
+\end{alignat}
+A positive $K_1L$ quadrupole component gives horizontal focusing and vertical defocusing. The
+general form is
+\begin{align}
+  \Delta p_x &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
+             \sum_{m = 0}^{2m \le n}
+             \begin{pmatrix} n \cr 2m \end{pmatrix} \,
+             (-1)^{m+1} \, x^{n-2m} \, y^{2m} \\
+  \Delta p_y &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
+             \sum_{m = 0}^{2m \le n-1}
+             \begin{pmatrix} n \cr 2m+1 \end{pmatrix} \,
+             (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
+\end{align}
+where $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient.
+
+\index{multipole!KnL, Tn|hyperbf}
+The above equations are for fields with a normal component only. If a given multipole field of order
+$n$ has normal $B_n$ and skew $S_n$ components and is rotated in the $(x, y)$ plane by an angle
+$T_n$, the magnetic field at a point $(x,y)$ can be expressed in complex notation as
+\begin{equation}
+  B_y(x,y) + i B_x(x,y) = 
+    \frac{1}{n!} (B_n + i S_n) \, e^{-i(n+1)T_n} \, e^{i n \theta} \, r^n 
+  \label{bib1nb}
+\end{equation}
+where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
+
+\index{multipole}
+Note that, for compatibility with MAD, the $K0L$ component of a \vn{Multipole} element rotates the
+reference orbit essentially acting as a zero length bend. This is not true for multipoles of any
+other type of element.
+
+Instead of using magnitude $K_n$ and rotation angle $\theta_n$, Another representation is using
+normal $\wt K_n$ and skew $\wt S_n$. The conversion between the two are
+\begin{align}
+  \wt K_n &= K_n \, \cos((n + 1) \, T_n) \CRNO
+  \wt S_n &= K_n \, \sin((n + 1) \, T_n) 
+\end{align}
+
+\index{multipole!an, bn|hyperbf}
+Another representation of the magnetic field used by \bmad divides the fields into normal $b_n$ and
+skew $a_n$ components. In terms of these components the magnetic field for the $n$\Th\ order
+multipole is
+\begin{equation}
+  \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
+  \label{qlpbb}
+\end{equation}
+The $a_n$, $b_n$ representation of multipole fields can be used in elements such as
+quadrupoles, sextupoles, etc. to allow ``error'' fields to be represented.  
+The conversion between $(a_n, b_n)$ and $(K_nL, S_nL, T_n)$ is
+\begin{equation}
+  b_n + i a_n = \frac{1}{n!} \, (K_nL + i \, S_nL) \, e^{-i(n+1)T_n}
+\end{equation}
+In the case where $S_nL = 0$
+\begin{align}
+  K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
+  \tan[(n+1) T_n] &= \frac{-a_n}{b_n}
+\end{align}
+To convert a normal magnet (a magnet with no skew component) into a skew magnet (a magnet with no
+normal component) the magnet should be rotated about its longitudinal axis with a rotation angle of
+\begin{equation}
+  (n+1) T_n = \frac{\pi}{2}
+\end{equation}
+For example, a normal quadrupole rotated by $45^\circ$ becomes a skew quadrupole.
+
+The multipole fields can be ``\vn{reference energy}'' scaled and/or ``\vn{element strength}''
+scaled.  Scaling here means that the $a_n$ and $b_n$ values used in tracking are scaled from the
+input values given in the lattice file.
+
+\vn{Reference energy} scaling is applied if the \vn{field_master} attribute (\sref{s:field.master})
+is True for an element so that the multipole values specified in the lattice file are not reference
+energy normalized
+\begin{equation}
+  \bigl[ a_n, b_n \bigr] \longrightarrow
+  \bigl[ a_n, b_n \bigr] \cdot \frac{q}{P_0}
+  \label{ababq}
+\end{equation}
+
+\index{r0_mag}
+\index{F (multipole scale factor)}
+\vn{Element strength} scaling is applied when the multipoles are associated with a non
+\vn{AB_Multipole} element and if the \vn{scale_multipoles} attribute (\sref{s:multip}) is
+\vn{True}. This scaling uses a measurement radius $r_0$ and a scale factor $F$:
+\begin{equation}
+  \bigl[ a_n, b_n \bigr] \longrightarrow
+  \bigl[ a_n, b_n \bigr]
+  \cdot F \cdot \frac{r_0^{n_\REF}}{r_0^n}
+  \label{ababf}
+\end{equation}
+$r_0$ is set by the \vn{r0_mag} attribute of an element. $F$ and $n_\REF$ are set
+automatically depending upon the type of element as shown in Table~\ref{t:ab}. The
+$\gamma_p$ term is
+
+\index{kicker}\index{hkicker}\index{vkicker}\index{ac_kicker}
+\index{rbend}\index{sbend}\index{elseparator}
+\index{quadrupole}\index{solenoid}\index{sol_quad}
+\index{sextupole}\index{octupole}
+\begin{table}[ht]
+\centering
+\begin{tabular}{lll} \toprule
+\tt
+  {\em Element} & $F$                              & $n_\REF$ \\ \midrule
+  \vn{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Hkicker}     & Kick                                   & 0 \\
+  \vn{Kicker},\vn{AC_Kicker}
+                   & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Rbend}       & G * L                                  & 0 \\
+  \vn{Sbend}       & G * L                                  & 0 \\
+  \vn{Vkicker}     & Kick                                   & 0 \\
+  \vn{Wiggler}     & $\dsfrac{2 \, c \, {\tt L\_pole} \, B_{max}}{\pi \, {\tt p0c}}$ 
+                                                            & 0 \\
+  \vn{Quadrupole}  & K1 * L                                 & 1 \\
+  \vn{Sol_Quad}    & K1 * L                                 & 1 \\
+  \vn{Solenoid}    & KS * L                                 & 1 \\
+  \vn{Sextupole}   & K2 * L                                 & 2 \\
+  \vn{Octupole}    & K3 * L                                 & 3 \\ \bottomrule
+\end{tabular}
+\caption{$F$ and $n_\REF$ for various elements.}
+\label{t:ab}
+\end{table}
+
+%-----------------------------------------------------------------
+\section{Electrostatic Multipole Fields}
+\label{s:elec.field}
+\index{electric fields}
+
+Except for the \vn{elseparator} element, \bmad specifies DC electric fields using normal
+$b_{en}$ and skew $a_{en}$ components (\sref{s:multip}). The potential $\phi_n$ for the
+$n$\Th\ order multipole is
+\begin{equation}
+  \phi_n = -\re \left[ \frac{b_{en} - i a_{en}}{n + 1} \, \frac{(x + i y)^{n+1}}{r_0^n} \right]
+  \label{pbian1}
+\end{equation}
+where $r_0$ is a ``measurement radius'' set by the \vn{r0_elec} attribute of an element
+(\sref{s:multip}).
+
+The electric field for the $n$\Th order multipole is
+\begin{equation}
+  E_x - i E_y = (b_{en} - i a_{en}) \, \frac{(x + i y)^n}{r_0^n}
+  \label{exiey}
+\end{equation}
+Notice that the magnetic multipole components $a_n$ and $b_n$ are normalized by the
+element length, reference charge, and reference momentum (\Eq{qlpbb}) while their electric
+counterparts are not.
+
+Using the paraxial approximation, The kick given a particle due to the electric field is
+\begin{equation}
+  \frac{dp_x}{ds} = \frac{q \, E_x}{\beta \, P_0 \, c}, \qquad \frac{dp_y}{ds} = \frac{q \, E_y}{\beta \, P_0 \, c}
+\end{equation}
+Where $\beta$ is the normalized velocity.
+
+%-----------------------------------------------------------------
+\section{Exact Multipole Fields in a Bend}
+\label{s:field.exact}
+
+For static magnetic and electric multipole fields in a bend, the spacial dependence of the
+field is different from multipole fields in an element with a straight geometry as given
+by \Eqs{qlpbb} and \eq{exiey}. The analysis of the multipole fields in a bend here follows
+McMillan\cite{b:mcmillan}.  
+
+In the rest of this section, normalized coordinates $\rw = r / \rho$, $\xw / = x /
+\rho$, and $\yw = y / \rho$ will be used where $\rho$ is the bending radius of the
+reference coordinate system, $r$ is the distance, in the plane of the bend, from the bend
+center to the observation point, $x$ is the distance in the plane of the from the reference
+coordinates to the observation point and $y$ is the distance out-of-plane. With this
+convention $\rw = 1 + \xw$.
+
+An electric or magnetic multipole can be characterized by a scalar potential $\phi$ with
+the field given by $-\nabla \phi$.  The potential is a solution to Laplace's equation
+\begin{equation}
+  \frac{1}{\rw} \, \frac{\partial}{\partial \, \rw} 
+  \left( \rw \, \frac{\partial \, \phi}{\partial \, \rw} \right) +
+  \frac{\partial^2 \phi}{\partial \, \yw^2} = 0
+\end{equation}
+As McMillian shows, it is also possible to calculate the magnetic field by constructing the
+appropriate vector potential. However, from a practical point of view, it is simpler to use the
+scalar potential for both the magnetic and electric fields.
+
+Solutions to Laplace's equation can be found in form
+\begin{equation}
+  \phi_{n}^r = \frac{-1}{1+n} \sum_{p = 0}^{2p \le n+1} 
+             \begin{pmatrix} n + 1 \cr 2 \, p \end{pmatrix} \,
+             (-1)^{p} \, F_{n+1-2p}(\rw) \, \yw^{2p}
+  \label{pspn1}
+\end{equation}
+and in the form
+\begin{equation}
+  \phi_{n}^i = \frac{-1}{1+n} \sum_{p = 0}^{2p \le n}
+             \begin{pmatrix} n + 1 \cr 2p +1 \end{pmatrix} \,
+             (-1)^{p} \, F_{n-2p}(\rw) \, \yw^{2p+1}
+  \label{pspn2}
+\end{equation}
+where $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient, and $n$ is the order
+number which can range from 0 to infinity.\footnote
+  { 
+Notice that here $n$ is related to $m$ in
+McMillian's paper by $m = n + 1$. Also note that the $\phi^r$ and $\phi^i$ here have a
+normalization factor that is different from McMillian.
+  }
+
+In \Eq{pspn2} the $F_p(\rw)$ are related by
+\begin{equation}
+  F_{p+2} = (p + 1) \, (p + 2) \, \int_1^{\rw} \frac{d\rw}{\rw} 
+  \left[ \int_1^{\rw} d\rw \, \rw \, F_{p} \right]
+\end{equation}
+with the ``boundary condition'':
+\begin{align}
+  F_0(\rw) &= 1 \CRNO
+  F_1(\rw) &= \ln \, \rw
+\end{align}
+This condition ensures that the number of terms in the sums in \Eqs{pspn1} and \eq{pspn2}
+are finite. With this condition, all the $F_p$ can be constructed:
+\begin{align}
+  F_1 &= \ln \, \rw = \xw - \frac{1}{2}\xw^2 + \frac{1}{3}\xw^3 - \ldots \CRNO
+  F_2 &= \frac{1}{2} (\rw^2 - 1) - \ln \rw = \xw^2 - \frac{1}{3}\xw^3 + \frac{1}{4} \xw^4 - \ldots \CRNO
+  F_3 &= \frac{3}{2} [-(\rw^2 - 1) + (\rw^2 + 1) \ln \rw] = \xw^3 - \frac{1}{2} \xw^4 + \frac{7}{20} \xw^5 - \ldots 
+         \label{ffff} \\
+  F_4 &= 3 [ \frac{1}{8} (\rw^4 - 1) + \frac{1}{2} (\rw^2 - 1) - (\rw^2 + \frac{1}{2}) \ln \rw] = 
+         \xw^4 - \frac{2}{5} \xw^5 + \frac{3}{10} \xw^6 - \ldots \CRNO
+  &\text{Etc...} \nonumber
+\end{align}
+Evaluating these functions near $\xw = 0$ using the exact $\rw$-dependent functions can be
+problematical due to round off error. For example, Evaluating $F_4(\rw)$ at $\xw = 10^{-4}$ results
+in a complete loss of accuracy (no significant digits!) when using double precision numbers. In
+practice, \bmad uses a Pad\'e approximant for $\xw$ small enough and then switches to the
+$\rw$-dependent formulas for $\xw$ away from zero.
+
+For magnetic fields, the ``real'' $\phi_n^r$ solutions will correspond to skew fields and the
+``imaginary'' $\phi_n^i$ solutions will correspond to normal fields
+\begin{equation}
+  \bfB = -\frac{P_0}{q \, L} \, 
+    \sum_{n = 0}^\infty \rho^n \, \left[ a_n \, \widetilde \nabla \phi_n^r + b_n \, \widetilde \nabla \phi_n^i \right]
+  \label{bpql}
+\end{equation}
+where the gradient derivatives of $\widetilde \nabla$ are with respect to the normalized
+coordinates. In the limit of infinite bending radius $\rho$, the above equations converge
+to the straight line solution given in \Eq{qlpbb}.
+
+For electric fields, the ``real'' solutions will correspond to normal fields and the
+``imaginary'' solutions are used for skew fields
+\begin{equation}
+  \bfE = -\sum_{n = 0}^\infty \rho^n \, \left[ a_{en} \, \widetilde \nabla \phi_n^i + 
+  b_{en} \, \widetilde \nabla \phi_n^r \right]
+  \label{enrn}
+\end{equation}
+And this will converge to \Eq{exiey} in the straight line limit.
+
+In the vertical plane, with $\xw = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the same
+variation in $\yw$ as the multipole fields with a straight geometry. For example, the field
+strength of an $n = 1$ (quadrupole) multipole will be linear in $\yw$ for $\xw = 0$. However, in the
+horizontal direction, with $\yw = 0$, the multipole field will vary like $dF_2/d\xw$ which has
+terms of all orders in $\xw$. In light of this, the solutions $\phi_n^r$ and $\phi_n^i$ are
+called ``vertically pure'' solutions.
+
+It is possible to construct ``horizontally pure'' solutions as well. That is, it is possible to
+construct solutions that in the horizontal plane, with $\yw = 0$, behave the same as the corresponding
+multipole fields with a straight geometry. A straight forward way to do this, for some given
+multipole of order $n$, is to construct the horizontally pure solutions, $\psi_n^r$ and $\psi_n^i$,
+as linear superpositions of the vertically pure solutions
+\begin{equation}
+  \psi_n^r = \sum_{k = n}^\infty C_{nk} \, \phi_k^r, \qquad
+  \psi_n^i = \sum_{k = n}^\infty D_{nk} \, \phi_k^i
+  \label{p1rc}
+\end{equation}
+with the normalizations $C_{nn} = D_{nn} = 1$. The $C_{nk}$ and $D_{nk}$ are chosen, order
+by order, so that $\psi_n^r$ and $\psi_n^i$ are horizontally pure. For the real
+potentials, the $C_{nk}$, are obtained from a matrix $\bfM$ where $M_{ij}$ is the
+coefficient of the $\xw^j$ term of $(dF_i/d\xw)/i$ when $F_i$ is expressed as an expansion in
+$\xw$ (\Eq{ffff}). $C_{nk}$, $k = 0, \ldots, \infty$ are the row vectors of the inverse
+matrix $\bfM^{-1}$. For the imaginary potentials, the $D_{nk}$ are constructed similarly
+but in this case the rows of $\bfM$ are the coefficients in $\xw$ for the functions $F_i$.
+To convert between field strength coefficients, \Eqs{bpql} and \eq{enrn} and \Eqs{p1rc}
+are combined
+\begin{alignat}{3}
+  a_n &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, C_{nk} \, \alpha_k, \quad 
+  &a_{en} &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \alpha_{ek}, \CRNO
+  b_n &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \beta_k, \quad
+  &b_{en} &= \sum_{k = n}^\infty \frac{1}{\rho^{k-n}} \, D_{nk} \, \beta_{ek}
+\end{alignat}
+where $\alpha_k$, $\beta_k$, $\alpha_{ek}$, and $\beta_{ek}$ are the corresponding coefficients
+for the horizontally pure solutions.
+
+When expressed as a function of $\rw$ and $\yw$, the vertically pure solutions $\phi_n$ have a
+finite number of terms (\Eqs{pspn1} and \eq{pspn2}). On the other hand, the horizontally
+pure solutions $\psi_n$ have an infinite number of terms.
+
+The vertically pure solutions form a complete set. That is, any given field that satisfies
+Maxwell's equations and is independent of $z$ can be expressed as a linear combination of
+$\phi_n^r$ and $\phi_n^i$. Similarly, the horizontally pure solutions form a complete
+set. [It is, of course, possible to construct other complete sets in which the basis
+functions are neither horizontally pure nor vertically pure.]
+
+\index{exact_multipoles}
+This brings up an important point. To properly simulate a machine, one must first of all
+understand whether the multipole values that have been handed to you are for horizontally
+pure multipoles, vertically, pure multipoles, or perhaps the values do not correspond to
+either horizontally pure nor vertically pure solutions! Failure to understand this point
+can lead to differing results. For example, the chromaticity induced by a horizontally
+pure quadrupole field will be different from the chromaticity of a vertically pure
+quadrupole field of the same strength. With \bmad, the \vn{exact_multipoles}
+(\sref{s:bend}) attribute of a bend is used to set whether multipole values are for
+vertically or horizontally pure solutions. [Note to programmers: PTC always assumes
+coefficients correspond to horizontally pure solutions. The \bmad PTC interface will
+convert coefficients as needed.]
+
+%-----------------------------------------------------------------
+\section{Map Decomposition of Magnetic and Electric Fields}
+\label{s:field.map}
+\index{electric fields!map decomposition}
+\index{magnetic fields!map decomposition}
+
+Electric and magnetic fields can be parameterized as the sum over a number of functions
+with each function satisfying Maxwell's equations. These functions are also referred to as
+``maps'', ``modes'', or ``terms''. \bmad has three parameterizations:
+\begin{example}
+  Cartesian Map              ! \sref{s:cart.map.phys}.
+  Cylindrical Map            ! \sref{s:cylind.map.phys}
+  Generalized Gradient Map   ! \sref{s:gen.grad.phys}
+\end{example}
+These parameterizations are three of the four \vn{field map} parameterizations that \bmad
+defines \sref{s:fieldmap}.
+
+The \vn{Cartesian map} decomposition involves a set of terms, each term a solution the
+Laplace equation solved using separation of variables in Cartesian coordinates. This
+decomposition can be used for DC but not AC fields. See \sref{s:cart.map.phys}.
+for more details. The syntax for specifying the \vn{Cartesian map} decomposition
+is discussed in \sref{s:cart.map}.
+
+The \vn{cylindrical map} decomposition can be used for both DC and AC fields. See
+\sref{s:cylind.map.phys} for more details. The syntax for specifying the \vn{cylindrical map}
+decomposition is discussed in \sref{s:cylind.map}.
+
+The \vn{generalized gradient map} start with the cylindrical map decomposition but then express the
+field using coefficients derived from an expansion of the scalar potential in powers of the radius
+(\sref{s:gen.grad.phys}.
+
+%-----------------------------------------------------------------
+\section{Cartesian Map Field Decomposition}
+\label{s:cart.map.phys}
+\index{cartesian_map}
+
+Electric and magnetic fields can be parameterized as the sum over a number of functions
+with each function satisfying Maxwell's equations. These functions are also referred to as
+``maps'', ``modes'', or ``terms''. \bmad has two types. The ``\vn{Cartesian}''
+decomposition is explained here. The other type is the \vn{cylindrical} decomposition
+(\sref{s:cylind.map.phys}).
+
+The \vn{Cartesian} decomposition implemented by \bmad involves a set of terms, each
+term a solution the Laplace equation solved using separation of variables in Cartesian
+coordinates. This decomposition is for DC electric or magnetic fields. No AC Cartesian Map
+decomposition is implemented by \bmad. In a lattice file, a \vn{Cartesian} map is specified using
+the \vn{cartesian_map} attribute as explained in Sec.~\sref{s:cart.map}.
+
+The \vn{Cartesian} decomposition is modeled using an extension of the method of Sagan,
+Crittenden, and Rubin\cite{b:wiggler}. In this decomposition, the magnetic(or electric
+field is written as a sum of terms $B_i$ (For concreteness the symbol $B_i$ is used but
+the equations below pertain equally well to both electric and magnetic fields) with:
+\begin{equation}
+  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; A, k_x, k_y, k_z, x_0, y_0, \phi_z, family)
+\end{equation}
+Each term $B_i$ is specified using seven numbers $(A, k_x, k_y, k_z,
+x_0, y_0, \phi_z)$ and a switch called \vn{family} which can be one of:
+\begin{example}
+  x,  qu
+  y,  sq
+\end{example}
+Roughly, taking the offsets $x_0$ and $y_0$ to be zero (see the equations below), the \vn{x}
+\vn{family} gives a field on-axis where the $y$ component of the field is zero. that is, the \vn{x}
+family is useful for simulating, say, magnetic vertical bend dipoles. The \vn{y} \vn{family} has a
+field that on-axis has no $x$ component. The \vn{qu} \vn{family} has a magnetic quadrupole like
+(which for electric fields is skew quadrupole like) field on-axis and the \vn{sq} \vn{family} has a
+magnetic skew quadrupole like field on-axis. Additionally, assuming that the $x_0$ and $y_0$ offsets
+are zero, the \vn{sq} family, unlike the other three families, has a nonzero on-axis $z$ field
+component.
+
+Each family has three possible forms These are designated as ``\vn{hyper-y}'',
+``\vn{hyper-xy}'', and ``\vn{hyper-x}''. 
+
+For the \vn{x} \vn{family} the \vn{hyper-y} form is:
+\begin{alignat}{4}
+  B_x &=  &&A \, &\dfrac{k_x}{k_y} & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &&A \, &                 & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&&A \, &\dfrac{k_z}{k_y} & \sin(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm1} \\
+  &&&&& \text{with} \,\, k_y^2 = k_x^2 + k_z^2 \nonumber
+\end{alignat}
+The \vn{x} \vn{family} \vn{hyper-xy} form is:
+\begin{alignat}{4}
+  B_x &=  &&A \, &\dfrac{k_x}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &&A \, &\dfrac{k_y}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&&A \, &                 & \sinh(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm3} \\
+  &&&&& \text{with} \,\, k_z^2 = k_x^2 + k_y^2 \nonumber
+\end{alignat}
+And the \vn{x} \vn{family} \vn{hyper-x} form is:
+\begin{alignat}{4}
+  B_x &=  &&A \, &                 & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &= -&&A \, &\dfrac{k_y}{k_x} & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&&A \, &\dfrac{k_z}{k_x} & \sinh(\kxx) \, \cos(\kyy) \, \sin(\kzz) \label{cm5} \\
+  &&&&& \text{with} \,\, k_x^2 = k_y^2 + k_z^2 \nonumber
+\end{alignat}
+
+The relationship between $k_x$, $k_y$, and $k_z$ ensures that
+Maxwell's equations are satisfied. Notice that which form
+\vn{hyper-y}, \vn{hyper-xy}, and \vn{hyper-x} a particular $\bfB_i$
+belongs to can be computed by \bmad by looking at the values of $k_x$,
+$k_y$, and $k_z$.
+
+Using a compact notation where $\Ch \equiv \cosh$, subscript $x$ is $\kxx$, subscript $z$
+is $\kzz$, etc., the \vn{y} \vn{family} of forms is:
+\begin{alignat}{7}
+  & \text{Form} \quad  && \text{hyper-y} \quad && \text{hyper-xy} \quad && \text{hyper-x} \quad \CRNO
+  & B_x  
+    &-& A \, \dfrac{k_x}{k_y} \, \Se_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_x}{k_z} \, \Sh_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \hphphp          \, \Sh_x \, \Se_y \, \Ce_z \quad \CRNO
+  & B_y
+    & & A \, \hphphp          \, \Ce_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_z} \, \Ch_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_x} \, \Ch_x \, \Ce_y \, \Ce_z \quad \label{family.y} \\
+  & B_z
+    &-& A \, \dfrac{k_z}{k_y} \, \Ce_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \hphphp          \, \Ch_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \dfrac{k_z}{k_x} \, \Ch_x \, \Se_y \, \Se_z \quad \CRNO
+  & \text{with} 
+    && k_y^2 = k_x^2 + k_z^2 
+    && k_z^2 = k_x^2 + k_y^2
+    && k_x^2 = k_y^2 + k_z^2 \nonumber
+\end{alignat}
+
+the \vn{qu} \vn{family} of forms is:
+\begin{alignat}{7}
+  & \text{Form} \quad  && \text{hyper-y} \quad && \text{hyper-xy} \quad && \text{hyper-x} \quad \CRNO
+  & B_x  
+    & & A \, \dfrac{k_x}{k_y} \, \Ce_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_x}{k_z} \, \Ch_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \hphphp          \, \Ch_x \, \Se_y \, \Ce_z \quad \CRNO
+  & B_y
+    & & A \, \hphphp          \, \Se_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_z} \, \Sh_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_x} \, \Sh_x \, \Ce_y \, \Ce_z \quad \\
+  & B_z
+    &-& A \, \dfrac{k_z}{k_y} \, \Se_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \hphphp          \, \Sh_x \, \Sh_y \, \Se_z \quad
+    &-& A \, \dfrac{k_z}{k_x} \, \Sh_x \, \Se_y \, \Se_z \quad \CRNO
+  & \text{with} 
+    && k_y^2 = k_x^2 + k_z^2 
+    && k_z^2 = k_x^2 + k_y^2
+    && k_x^2 = k_y^2 + k_z^2 \nonumber
+\end{alignat}
+
+the \vn{sq} \vn{family} of forms is:
+\begin{alignat}{7}
+  & \text{Form} \quad  && \text{hyper-y} \quad && \text{hyper-xy} \quad && \text{hyper-x} \quad \CRNO
+  & B_x  
+    &-& A \, \dfrac{k_x}{k_y} \, \Se_x \, \Ch_y \, \Ce_z \quad
+    & & A \, \dfrac{k_x}{k_z} \, \Sh_x \, \Ch_y \, \Ce_z \quad
+    &-& A \, \hphphp          \, \Sh_x \, \Ce_y \, \Ce_z \quad \CRNO
+  & B_y
+    & & A \, \hphphp          \, \Ce_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_z} \, \Ch_x \, \Sh_y \, \Ce_z \quad
+    & & A \, \dfrac{k_y}{k_x} \, \Ch_x \, \Se_y \, \Ce_z \quad \label{bsq} \\
+  & B_z
+    &-& A \, \dfrac{k_z}{k_y} \, \Ce_x \, \Ch_y \, \Se_z \quad
+    &-& A \, \hphphp          \, \Ch_x \, \Ch_y \, \Se_z \quad
+    & & A \, \dfrac{k_z}{k_x} \, \Ch_x \, \Ce_y \, \Se_z \quad \CRNO
+  & \text{with} 
+    && k_y^2 = k_x^2 + k_z^2 
+    && k_z^2 = k_x^2 + k_y^2
+    && k_x^2 = k_y^2 + k_z^2 \nonumber
+\end{alignat}
+
+
+The singular case where $k_x = k_y = k_z = 0$ is not allowed. If a uniform field is needed, a term
+with very small $k_x$, $k_y$, and $k_z$ can be used. Notice that since $k_y$ must be non-zero for
+the \vn{hyper-y} forms (remember, $k_y^2 = k_x^2 + k_z^2$ for these forms and not all $k$'s can be
+zero), and $k_z$ must be non-zero for the \vn{hyper-xy} forms, and $k_x$ must be nonzero for the
+\vn{hyper-x} forms. The magnetic field is always well defined even if one of the $k$'s is zero.
+
+%-----------------------------------------------------------------
+\section{Cylindrical Map Decomposition}
+\label{s:cylind.map.phys}
+\index{cylindrical map}
+
+Electric and magnetic fields can be parameterized as the sum over a number of functions with each
+function satisfying Maxwell's equations. These functions are also referred to as ``maps'',
+``modes'', or ``terms''. \bmad has two types. The ``\vn{cylindrical}'' decomposition is explained
+here. The other type is the \vn{Cartesian} decomposition (\sref{s:cylind.map.phys}).
+
+In a lattice file, a \vn{cylindrical} map is specified using the \vn{cylindrical_map} attribute as
+explained in Sec.~\sref{s:cylind.map}.
+
+The \vn{cylindrical} decomposition takes one of two forms depending upon whether the fields are time
+varying or not. The DC decomposition is explained in Sec.~\sref{s:cylind.dc} while the RF
+decomposition is explained in Sec.~\sref{s:cylind.ac}.
+
+%-----------------------------------------------------------------
+\subsection{DC Cylindrical Map Decomposition}
+\label{s:cylind.dc}
+
+The DC \vn{cylindrical} parametrization used by \bmad essentially follows Venturini et
+al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the syntax used to cylindrical
+maps in \bmad. The electric and magnetic fields are both described by a scalar potential\footnote
+  {
+Notice the negative sign here and in \Eq{psps1k} compared to Venturini et al.\cite{b:vent.map}. This
+is to keep the definition of the electric scalar potential $\psi_E$ consistent with the normal
+definition.
+  }
+\begin{equation}
+  \bfB = -\nabla \, \psi_B, \qquad \bfE = -\nabla \, \psi_E
+  \label{bpep}
+\end{equation}
+The scalar potentials both satisfy the Laplace equation $\nabla^2 \, \psi = 0$.
+The scalar potentials are decomposed as a sum of modes indexed by an integer $m$
+\begin{equation}
+  \psi_B = \re \left[ \sum_{m = 0}^\infty \, \psi_{Bm} \right]
+\end{equation}
+[Here and below, only equations for the magnetic field will be shown. The equations for the electric
+fields are similar.] The $\psi_{Bm}$ are decomposed in $z$ using a discrete Fourier
+sum.\footnote
+  {
+Venturini uses a continuous Fourier transformation but \bmad uses a discrete
+transformation so that only a finite number of coefficients are needed.
+  }
+Expressed in cylindrical coordinates the decomposition of $\psi_{Bm}$ is
+\begin{equation}
+  \psi_{Bm} = \sum_{n=-N/2}^{N/2-1} \psi_{Bmn} =
+  \sum_{n=-N/2}^{N/2-1} \frac{-1}{k_n} \, e^{i \, k_n \, z} \,
+  \cos (m \, \theta - \theta_{0m}) \, b_m(n) \, I_m(k_n \, \rho)
+  \label{psps1k}
+\end{equation}
+where $I_m$ is a modified Bessel function of the first kind, and the
+$b_m(n)$ are complex coefficients. [For electric fields, $e_m(n)$ is
+substituted for $b_m(n)$] In \Eq{psps1k} $k_n$ is
+given by
+\begin{equation}
+  k_n = \frac{2 \pi \, n}{N \, dz}
+\end{equation}
+where $N$ is the number of ``sample points'', and $dz$ is the longitudinal ``distance between
+points''. That is, the above equations will only be accurate over a longitudinal length $(N-1)
+\, dz$. Note: Typically the sum in \Eq{psps1k} and other equations below runs from $0$ to $N-1$.
+Using a sum from $-N/2$ to $N/2-1$ gives exactly the same field at the sample points ($z = 0, dz,
+2\,ds, \ldots$) and has the virtue that the field is smoother in between.
+
+The field associated with $\psi_{Bm}$ is for $m = 0$:
+\begin{align}
+  B_\rho &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} e^{i \, k_n \, z} \, b_0(n) \,
+    I_1(k_n \, \rho) \right] \CRNO
+  B_\theta &= 0 \\
+  B_z &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} i \, e^{i \, k_n \, z} \, b_0(n) \,
+    I_0(k_n \, \rho) \right]
+    \nonumber
+\end{align}
+
+And for $m \neq 0$:
+\begin{align}
+  B_\rho &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} \frac{1}{2} \, e^{i \, k_n \, z} \, 
+    \cos (m \, \theta - \theta_{0m}) \, b_m(n) \,
+    \Big[ I_{m-1}(k_n \, \rho) + I_{m+1}(k_n \, \rho) \Big] \right] \CRNO
+  B_\theta &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} \frac{-1}{2} \, e^{i \, k_n \, z} \, 
+    \sin (m \, \theta - \theta_{0m}) \, b_m(n) \,
+    \Big[ I_{m-1}(k_n \, \rho) - I_{m+1}(k_n \, \rho) \Big] \right] \\
+  B_z &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} i \, e^{i \, k_n \, z} \, 
+    \cos (m \, \theta - \theta_{0m}) \, b_m(n) \,
+    I_m(k_n \, \rho) \right]
+    \nonumber
+\end{align}
+
+While technically $\psi_{Bm0}$ is not well defined due to the $1/k_n$ factor that is present, the
+field itself is well behaved. Mathematically, \Eq{psps1k} can be corrected if, for $n = 0$, the term
+$I_m(k_n \, \rho) / k_n$ is replaced by
+\begin{equation}
+  \frac{I_m(k_0 \, \rho)}{k_0} \rightarrow 
+  \begin{cases}
+    \rho   &\text{if } m = 0 \\
+    \rho/2 &\text{if } m = 1 \\
+    0      &\text{otherwise}
+  \end{cases}
+\end{equation}
+
+The magnetic vector potential for $m = 0$ is constructed such that only $A_\theta$ is non-zero
+\begin{align}
+  A_\rho &= 0 \CRNO
+  A_\theta &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} \frac{i}{k_n} \, e^{i \, k_n \, z} \, b_0(n) \, I_1(k_n \, \rho) \right] \\
+  A_z    &= 0 \nonumber
+\end{align}
+For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
+\begin{align}
+  A_\rho &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} \frac{-i \, \rho}{2 \, m} \, e^{i \, k_n \, z} \, 
+    \cos (m \, \theta - \theta_{0m}) \, b_m(n) \,
+    \Big[ I_{m-1}(k_n \, \rho) - I_{m+1}(k_n \, \rho) \Big] \right] \CRNO
+  A_\theta &= 0 \\
+  A_z    &= \re \left[ 
+    \sum_{n=-N/2}^{N/2-1} \frac{-i \, \rho}{m} \, e^{i \, k_n \, z} \, 
+    \cos (m \, \theta - \theta_{0m}) \, b_m(n) \,
+    I_m(k_n \, \rho) \right] \nonumber
+\end{align}
+
+Note: The description of the field using \vn{``generalized gradients''}\cite{b:newton} is similar to
+the above equations. The difference is that, with the generalized gradient formalism, terms in
+$\theta$ and $\rho$ are expanded in a Taylor series in $x$ and $y$.
+
+%-----------------------------------------------------------------
+\subsection{AC Cylindrical Map Decomposition}
+\label{s:cylind.ac}
+\index{rf fields|hyperbf}
+
+For RF fields, the \vn{cylindrical} mode parametrization used by \bmad essentially
+follows Abell\cite{b:rf.abell}. The electric field is the real part of the complex field
+\begin{equation}
+  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, \exp[{-2 \pi i \, (f_j \, t + \phi_{0j})}]
+  \label{eseei}
+\end{equation}
+where $M$ is the number of modes. Each mode satisfies the vector Helmholtz
+equation
+\begin{equation}
+  \nabla^2 \bfE_j + k_{tj}^2 \, \bfE_j = 0
+  \label{bke}
+\end{equation}
+where $k_{tj} = 2 \, \pi \, f_j/c$ with $f_j$ being the mode frequency.
+
+The individual modes vary azimuthally as $\cos(m \, \theta - \theta_0)$ where $m$ is a non-negative
+integer.  [in this and in subsequent equations, the mode index $j$ has been dropped.]  For the $m =
+0$ modes, there is an accelerating mode whose electric field is in the form
+\begin{align}
+  E_\rho(\bfr) &= \sum_{n=-N/2}^{N/2-1} -e^{i \, k_n \, z} \, 
+    i \, k_n \, e_0(n) \, \wt I_1(\kappa_n, \rho) \CRNO
+  E_\theta(\bfr) &= 0 \\
+  E_z(\bfr) &= \sum_{n=-N/2}^{N/2-1}e^{i \, k_n \, z} \, 
+    e_0(n) \, \wt I_0(\kappa_n, \rho) \nonumber
+\end{align}
+where $\wt I_m$ is
+\begin{equation}
+  \wt I_m (\kappa_n, \rho) \equiv \frac{I_m(\kappa_n \, \rho)}{\kappa_n^m}
+\end{equation}
+with $I_m$ being a modified Bessel function first kind, and $\kappa_n$ is given by
+\begin{equation}
+  \kappa_n = \sqrt{k_n^2 - k_t^2} = 
+  \begin{cases}
+    \sqrt{k_n^2 - k_t^2} & |k_n| > k_t \\
+    -i \, \sqrt{k_t^2 - k_n^2} & k_t > |k_n|
+  \end{cases}
+\end{equation}
+with
+\begin{equation}
+  k_n = \frac{2 \pi \, n}{N \, dz}
+\end{equation}
+$N$ is the number of points where $E_{zc}$ is evaluated, and $dz$ is
+the distance between points. The length of the field region is $(N-1) \, dz$. When
+$\kappa_n$ is imaginary, $I_m(\kappa_n \, \rho)$ can be evaluated
+through the relation
+\begin{equation}
+  I_m(-i \, x) = i^{-m} \, J_m(x)
+\end{equation}
+where $J_m$ is a Bessel function of the first kind.
+The $e_0$ coefficients can be obtained given knowledge of the field at some radius $R$ via
+\begin{align}
+  e_0(n) &= \frac{1}{\wt I_0(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
+    e^{-2 \pi i n p / N} \, E_{z}(R, p \, dz)
+\end{align}
+
+The non-accelerating $m = 0$ mode has an electric field in the form
+\begin{align}
+  E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
+  E_\theta(\bfr) &= \sum_{n=-N/2}^{N/2-1}e^{i k_n z} \, 
+    b_0(n) \, \wt I_1(\kappa_n, \rho)
+\end{align}
+where the $b_0$ coefficients can be obtained given knowledge of the field at some radius $R$ via
+\begin{equation}
+  b_0(n) = \frac{1}{\wt I_1(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
+    e^{-2 \pi i \, n \, p / N} \, E_{\theta}(R, p \, dz)
+\end{equation}
+
+For positive $m$, the electric field is in the form
+\begin{align}
+  E_\rho(\bfr) &= \sum_{n=-N/2}^{N/2-1}
+    -i \, e^{i \, k_n \, z} \, 
+    \left[ 
+    k_n \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) +
+    b_m(n) \, \frac{\wt I_m(\kappa_n, \rho)}{\rho}
+    \right]
+    \cos(m \, \theta - \theta_{0m}) \CRNO
+  E_\theta(\bfr) &= \sum_{n=-N/2}^{N/2-1} 
+    -i \, e^{i \, k_n \, z} \, 
+    \left[
+    k_n \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) \, + \right. \\
+  & \left. \qquad \qquad \qquad \qquad \qquad \qquad
+    b_m(n) \, \left( \frac{\wt I_m(\kappa_n, \rho)}{\rho} - 
+    \frac{1}{m} \, \wt I_{m-1}(\kappa_n, \rho) \right)
+    \right] 
+    \sin(m \, \theta - \theta_{0m}) \CRNO
+  E_z(\bfr) &= \sum_{n=-N/2}^{N/2-1}e^{i \, k_n \, z} \, 
+    e_m(n) \, \wt I_m(\kappa_n, \rho) \cos(m \, \theta - \theta_{0m}) \nonumber
+\end{align}
+The \vn{e_m} and \vn{b_m} coefficients can be obtained given knowledge of the field at some radius $R$ via
+\begin{align}
+  e_m(n) &= \frac{1}{\wt I_m(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
+    e^{-2 \, \pi \, i \, n \, p / N} \, E_{zc}(R, p \, dz) \CRNO
+  b_m(n) &= \frac{R}{\wt I_m(\kappa_n, R)} \left[
+    \frac{1}{N} \, \sum_{p=0}^{N-1}
+    i \, e^{-2 \, \pi \, i \, n \, p / N} \, E_{\rho c}(R, p \, dz) -
+    k_n \, e_m(n) \, \wt I_{m+1}(\kappa_n, R)
+    \right]
+\end{align}
+where $E_{\rho c}$, $E_{\theta s}$, and $E_{z c}$ are defined by
+\begin{align}
+  E_\rho(R, \theta, z) &= E_{\rho c}(R, z) \, \cos(m \, \theta - \theta_{0m}) \CRNO
+  E_\theta(R, \theta, z) &= E_{\theta s}(R, z) \, \sin(m \, \theta - \theta_{0m}) \\
+  \label{erpze}
+  E_z(R, \theta, z)    &= E_{z c}(R, z)    \, \cos(m \, \theta - \theta_{0m}) \nonumber
+\end{align}
+
+The above mode decomposition was done in the gauge where the scalar potential $\psi$ is zero. The
+electric and magnetic fields are thus related to the vector potential $\bfA$ via
+\begin{equation}
+  \bfE = -\partial_t \, \bfA, \qquad \bfB = \nabla \times \bfA
+\end{equation}
+Using \Eq{eseei}, the vector potential can be obtained from the electric field via
+\begin{equation}
+  \bfA_j = \frac{-i \, \bfE_j}{2 \, \pi \, f_j}
+  \label{aiew}
+\end{equation}
+ 
+Symplectic tracking through the RF field is discussed in Section~\sref{s:symp.track}.  For the
+fundamental accelerating mode, the vector potential can be analytically integrated using the
+identity
+\begin{equation}
+  \int dx \,\frac{x \, I_1 (a \, \sqrt{x^2+y^2})}{\sqrt{x^2+y^2}}  = 
+  \frac{1}{a} \, I_0 (a \, \sqrt{x^2+y^2})
+\end{equation}
+
+%-----------------------------------------------------------------
+\section{Generalized Gradient Map Field Modeling}
+\label{s:gen.grad.phys}
+\index{generalized gradient field modeling}
+
+\bmad has a number of \vn{field map} models that can be used to model electric or magnetic fields
+(\sref{s:fieldmap}). One model involves what are called \vn{generalized gradients}\cite{b:gen.grad}.
+This model is restricted to modeling DC magnetic or electric fields. In a lattice file, the
+generalized gradient field model is specified using the \vn{gen_grad_map} attribute as explained
+in Sec.~\sref{s:gen.grad.map}.
+
+The electric and magnetic fields are both described by a scalar potential\footnote
+  {
+Notice the negative sign here and in \Eq{ppmpp} compared to Venturini et al.\cite{b:gen.grad}. This
+is to keep the definition of the electric scalar potential $\psi_E$ consistent with the normal
+definition.
+  }
+\begin{equation}
+  \bfB = -\nabla \, \psi_B, \qquad \bfE = -\nabla \, \psi_E
+  \label{bpep2}
+\end{equation}
+The scalar potential is then decomposed into azimuthal components
+\begin{equation}
+  \psi = \sum_{m = 1}^\infty \psi_{m,s} \, \sin(m \theta) + \sum_{m = 0}^\infty \psi_{m,c} \, \cos(m \theta)
+\end{equation}
+where the $\psi_{m,\alpha}$ ($\alpha = c,s$) are characterized by a using functions
+$C_{m,\alpha}(z)$ which are functions along the longitudinal $z$-axis.
+\begin{equation}
+  \psi_{m,\alpha} = \sum_{n = 0}^\infty \frac{(-1)^{n+1} m!}{4^n \, n! \, (n+m)!} 
+  \, \rho^{2n+m} \, C_{m,\alpha}^{[2n]}(z) 
+  \label{ppmpp}
+\end{equation}
+The notation $[2n]$ indicates the $2n$\Th derivative of $C_{m,\alpha}(z)$.
+
+From \Eq{ppmpp} the field is given by
+\begin{align}
+  B_\rho   &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, (2n+m)}{4^n \, n! \, (n+m)!}
+    \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \sin m\theta + C^{[2n]}_{m,c}(z) \, \cos m\theta \right] + \CRNO
+    & \hspace{25 em} \sum_{n = 1}^\infty \frac{(-1)^n \, 2n}{4^n n! \, n!} \rho^{2n-1} \, C^{[2n]}_{0,c}(z) \CRNO
+  B_\theta &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, m}{4^n \, n! \, (n+m)!}
+    \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \cos m\theta - C^{[2n]}_{m,c}(z) \, \sin m\theta \right] \\
+  B_z      &= \sum_{m = 0}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m!}{4^n \, n! \, (n+m)!}
+    \rho^{2n+m} \left[ C^{[2n+1]}_{m,s}(z) \, \sin m\theta + C^{[2n+1]}_{m,c}(z) \, \cos m\theta \right] \nonumber
+\end{align}
+Even though the scalar potential only involves even derivatives of $C_{m,\alpha}$, the field is
+dependent upon the odd derivatives as well. The multipole index $m$ is such that $m = 0$ is for
+solenoidal fields, $m = 1$ is for dipole fields, $m = 2$ is for quadrupolar fields, etc. The
+\vn{sin}--like generalized gradients represent normal (non-skew) fields and the \vn{cos}--like one
+represent skew fields. The on-axis fields at $x=y=0$ are given by:
+\begin{equation}
+  (B_x, B_y, B_z) = (C_{1,c}, C_{1,s}, -C^{[1]}_{0,c})
+\end{equation}
+
+The magnetic vector potential for $m = 0$ is constructed such that only $A_\theta$ is non-zero
+\begin{align}
+  A_\rho   &= 0 \CRNO
+  A_\theta &= \sum_{n=1}^\infty 
+    \frac{(-1)^{n+1} \, 2n}{4^n \, n! \, n!} \rho^{2n-1} \, C_{0,c}^{[2n-1]} \\
+  A_z      &= 0 \nonumber
+\end{align}
+For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
+\begin{align}
+  A_\rho   &= \sum_{m = 1}^{\infty} \sum_{n=0}^\infty 
+    \frac{(-1)^{n} \, (m-1)!}{4^n \, n! \, (n+m)!} \rho^{2n+m+1} \, 
+    \left[ C_{m,s}^{[2n+1]} \cos(m \theta) - C_{m,c}^{[2n+1]} \, \sin(m \theta) \right] \CRNO 
+  A_\theta &= 0 \\
+  A_z      &= \sum_{m = 1}^{\infty} \sum_{n=0}^\infty 
+    \frac{(-1)^n \, (m-1)! \, (2n+m)}{4^n \, n! \, (n+m)!} \rho^{2n+m} \, 
+    \left[ -C_{m,s}^{[2n]} \cos(m \theta) + C_{m,c}^{[2n]} \, \sin(m \theta) \right]
+  \nonumber
+\end{align}
+
+The functions $C_{m,\alpha}(z)$ are characterized by specifying $C_{m,\alpha}(z_i)$ and derivatives
+at equally spaced points $z_i$, up to some maximum derivative order $N_{m,\alpha}$ chosen by the
+user. Interpolation is done by constructing an interpolating polynomial (``non-smoothing spline'')
+for each GG of order $2N_{m,\alpha}+1$ for each
+interval $[z_i, z_{i+1}]$ which has the correct derivatives from $0$ to $N_{m,\alpha}$ at points $z_i$ and
+$z_{i+1}$. The coefficients of the interpolating polynomial are easily calculated by inverting the
+appropriate matrix equation.
+
+The advantages of a generalized gradient map over a cylindrical or Cartesian map decomposition come
+from the fact that with generalized gradients the field at some point $(x,y,z)$ is only dependent
+upon the value of $C_{m,\alpha}(z)$ and derivatives at points $z_i$ and $z_{i+1}$ where $z$ is in
+the interval $[z_i, z_{i+1}]$. This is in contrast to the cylindrical or Cartesian map decomposition
+where the field at any point is dependent upon {\em all} of the terms that characterize the
+field. This ``\vn{locality}'' property of generalized gradients means that calculating coefficients
+is easier (the calculation of $C_{m,\alpha}(z)$ at $z_i$ can be done using only the field near $z_i$
+independent of other regions) and it is easier to ensure that the field goes to zero at the
+longitudinal ends of the element. Additionally, the evaluation is faster since only coefficients to
+either side of the evaluation point contribute. The disadvantage of generalized gradients is that
+since the derivatives are truncated at some order $N_{m,\alpha}$, the resulting field does not satisfy
+Maxwell's equations with the error as a function of radius scaling with the power $\rho^{m+N_{m,\alpha}}$.
+
+It is sometimes convenient to express the fields in terms of Cartesian coordinates. For sine like
+even derivatives $C_{m,s}^{[2n]}$ the conversion is
+\begin{align}
+  \left( B_x, B_y \right) &= \left( \cos\theta \, B_\rho - \sin\theta \, B_\theta, \,
+    \sin\theta \, B_\rho + \cos\theta \, B_\theta \right) \CRNO
+  &= \frac{(-1)^n \, m!}{4^n n! \, (n+m)!} \, C_{m,s}^{[2n]} \, \Big[ (n+m) \, (x^2 + y^2)^n \,
+    \left( S_{xy}(m-1), \, C_{xy}(m-1) \right) \, + 
+    \label{bbtb} \\
+  &\hspace{13em}  n \, (x^2 + y^2)^{n-1} \, 
+    \left( S_{xy}(m+1), \, -C_{xy}(m+1) \right) \Big] \nonumber
+\end{align}
+and for the sine like odd derivatives $C_{m,s}^{[2n+1]}$
+\begin{equation}
+  B_z = \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
+    (x^2 + y^2)^n \, C^{[2n+1]}_{m,s}(z) \, S_{xy}(m)
+\end{equation}
+where the last term in \Eq{bbtb} is only present for $n > 0$.
+\begin{align}
+  S_{xy}(m) &\equiv \rho^m \, \sin m\theta = 
+    \sum_{r=0}^{2r \le m-1} (-1)^r \begin{pmatrix} m \cr 2r+1 \end{pmatrix} \,
+    x^{m-2r-1} \, y^{2r+1} \CRNO
+  C_{xy}(m) &\equiv \rho^m \, \cos m\theta = 
+    \sum_{r=0}^{2r \le m} (-1)^r \begin{pmatrix} m \cr 2r \end{pmatrix} \,
+    x^{m-2r} \, y^{2r} 
+\end{align}
+The conversion for the cosine like derivatives is:
+\begin{align}
+  \left( B_x, B_y \right) &= 
+    \frac{(-1)^n \, m!}{4^n n! \, (n+m)!} \, C_{m,c}^{[2n]} \, \Big[ (n+m) \, (x^2 + y^2)^n \,
+    \left( C_{xy}(m-1), \, -S_{xy}(m-1) \right) \, + \CRNO
+  &\hspace{13em}  n \, (x^2 + y^2)^{n-1} \, 
+    \left( C_{xy}(m+1), \, S_{xy}(m+1) \right) \Big] \\
+  B_z &= \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
+    (x^2 + y^2)^n \, C^{[2n+1]}_{m,c}(z) \, C_{xy}(m) \nonumber
+\end{align}
+
+%-----------------------------------------------------------------
+\section{RF fields}
+\label{s:rf.fields}
+\index{RF fields|hyperbf}
+
+The following describes the how RF fields are calculated when the the \vn{field_calc}
+attribute of an RF element is set to \vn{bmad_standard}.\footnote
+  {
+Notice that the equations here are only relavent with the \vn{tracking_method} for an RF element set
+to a method like \vn{runge_kutta} where tracking through the field of an element is done.  For
+\vn{bmad_standard} tracking, Equations for \vn{lcavity} tracking are shown in \sref{s:lcavity.std}
+and \vn{rfcavity} tracking in \sref{s:rfcavity.std}.
+  }
+Also see Section~\sref{s:rf.fringe} for how fringe fields are calculated.
+
+With \vn{cavity_type} set to \vn{traveling_wave}, the setting of \vn{longitudinal_mode} is ignored
+and the field is given by
+\begin{align}
+  E_s(r, \phi, s, t) &= G \, \cos\bigl( \omega \, t - k \, s + 2 \, \pi \, \phi \bigr) \CRNO
+  E_r(r, \phi, s, t) &= -\frac{r}{2} \, G \, k \, \sin\bigl( \omega \, t - k \, s + 2 \, \pi \, \phi \bigr) \\
+  B_\phi(r, \phi, s, t) &= -\frac{r}{2 \, c} \, G \, k \, \sin\bigl( \omega \, t - k \, s + 2 \, \pi \, \phi \bigr) \nonumber
+  \label{egot}
+\end{align}
+where $G$ is the accelerating gradient, $k = \omega / c$ is the wave number with $\omega$ being the
+RF frequency.
+
+For standing wave cavities, with \vn{cavity_type} set to \vn{standing_wave}, the RF fields are
+modeled as $N$ half-wave cells, each having a length of $\lambda/2$ where $\lambda = 2 \, \pi / k$
+is the wavelength. If the length of the RF element is not equal to the length of $N$ cells, the
+``active region'' is centered in the element and the regions to either side are treated as field
+free.
+
+The field in the standing wave cell is modeled either with a $p = 0$ or $p = 1$ longitudinal mode
+(set by the \vn{longitudinal_mode} element parameter). The $p = 1$ longitudinal mode models the
+fields as a pillbox with the transverse wall at infinity as detailed in Chapter 3, Section VI of
+reference \cite{b:lee}
+\begin{align}
+  E_s(r, \phi, s, t)    &= 2 \, G \,                 \cos(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \CRNO
+  E_r(r, \phi, s, t)    &= r \, G \, k \,            \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \\
+  B_\phi(r, \phi, s, t) &= -\frac{r}{c} \, G \, k \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \nonumber
+  \label{egot2}
+\end{align}
+The overall factor of 2 in the equation is present to ensure that an ultra-relativistic particle
+entering with $\phi = 0$ will experience an average gradient equal to $G$.
+
+For the $p = 0$ longitudinal mode (which is the default), a ``pseudo TM$_{010}$'' mode is used that
+has the correct symmetry:
+\begin{align}
+  E_s(r, \phi, s, t)    &= 2 \, G \,                \sin(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \CRNO
+  E_r(r, \phi, s, t)    &= -r \, G \, k \,          \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi) \\
+  B_\phi(r, \phi, s, t) &= \frac{r}{c} \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi) \nonumber
+  \label{egot3}
+\end{align}

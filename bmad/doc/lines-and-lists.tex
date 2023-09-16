@@ -1,0 +1,408 @@
+\chapter{Beam Lines and Replacement Lists}
+\label{c:sequence}
+
+\index{branch}
+This chapter describes how to define the ordered list of elements that make up a lattice branch
+(\sref{s:branch.def}).  In a lattice, branches may be connected together using \vn{fork} or
+\vn{photon fork} elements (\vn{s:fork}), or by using \vn{multipass} (\sref{s:multipass}).
+
+%-----------------------------------------------------------------------------
+\section{Branch Construction Overview}
+\label{s:branch.construct}
+
+\index{list}
+A lattice branch (\sref{s:branch.def}) is defined in a lattice file using what are called \vn{beam lines}
+(\sref{s:lines.wo.arg}) and \vn{replacement lists} (\sref{s:replace.list}).  The \vn{beam lines} are
+divided into two types - lines with (\sref{s:lines.with.arg}) and lines without
+(\sref{s:lines.wo.arg}) \vn{replacement arguments}. This essentially corresponds to the \mad
+definition of lines and lists. There can be multiple \vn{beam lines} and \vn{replacement lists}
+defined in a lattice file and lines and lists can be nested inside other lines and lists.
+
+Since lines can be nested within other lines, The same element name may be repeated multiple times
+in a branch. To distinguish between multiple elements of the same name, lines and lists may be
+\vn{tagged} (\sref{s:tag}) to produce unique element names.
+
+A marker element named \vn{END} will, by default, be placed at the ends of all the branches unless a
+\vn{parameter[no_end_marker]} statement (\sref{s:param}) is used to suppress the insertion.
+Additionally, if an ending marker named \vn{END} is already present in the lattice file, no extra
+marker will be created.
+
+Branches are ordered in an array (\sref{s:lattice.def}) and each branch is assigned an index number
+starting with index 0. When there are multiple branches in a lattice, the reference orbit
+(\sref{s:ref}) of a branch must not depend upon details of branches later on in the array.  \bmad
+depends upon this and calculates the reference orbits of the branches one at a time starting with
+the first branch.
+
+%-----------------------------------------------------------------------------
+\section{Beam Lines and Lattice Expansion}
+\label{s:lines.wo.arg}
+\index{line|hyperbf}
+
+A \vn{beam line} without arguments has the format
+\begin{example}
+  label: line = (member1, member2, ...)
+\end{example}
+where \vn{member1}, \vn{member2}, etc. are either elements, other \vn{beam lines} or \vn{replacement
+lists}, or sublines enclosed in parentheses.  Example:
+\begin{example}
+  line1: line = (a, b, c)
+  line2: line = (d, line1, e)
+  use, line2
+\end{example}
+The \vn{use} statement is explained in Section~\sref{s:use}.  This example shows how a \vn{beam
+line} member can refer to another \vn{beam line}. This is helpful if the same sequence of elements
+appears repeatedly in the lattice.
+
+The process of constructing the ordered sequences of elements that comprise the branches of the
+lattice is called \vn{lattice expansion}. In the example above, when \vn{line2} is expanded to form
+the lattice (in this case there is only one branch so \vn{lattice} and \vn{branch} can be considered
+synonymous), the definition of \vn{line1} will be inserted in to produce the following lattice:
+\begin{example}
+  beginning, d, a, b, c, e, end
+\end{example}
+The \vn{beginning} and \vn{end} marker elements are automatically inserted at the beginning and end
+of the lattice. The \vn{beginning} element will always exist but insertion of the \vn{end} element
+can be suppressed by inserting into the lattice:
+\begin{example}
+ parameter[no_end_marker] = T    ! See: \sref{s:param}
+\end{example}
+Lattice expansion occurs either at the end after the lattice file has been parsed, or, during parsing, at the
+point where an \vn{expand_lattice} statement (\sref{s:expand}) is found.
+
+Each element is assigned an \vn{element index} number starting from 0 for the \vn{beginning}
+element, 1 for the next element, etc.
+
+In the expanded lattice, any \vn{null_Ele} type elements (\sref{s:null.ele}) will be discarded. For
+example, if element \vn{b} in the above example is a \vn{null_Ele} then the actual expanded lattice
+will be:
+\begin{example}
+  beginning, d, a, c, e, end
+\end{example}
+
+\index{reflection of elements}
+A member that is a line or list can be ``reflected'' (elements taken in reverse order) if a negative
+sign is put in front of it. For example:
+\begin{example}
+  line1: line = (a, b, c)
+  line2: line = (d, -line1, e)
+\end{example}
+\vn{line2} when expanded gives
+\begin{example}
+  d, c, b, a, e
+\end{example}
+It is important to keep in mind that line reflection is \vn{not} the same as going backwards through
+elements. For example, if an \vn{sbend} or \vn{rbend} element (\sref{s:bend}) is reflected, the
+face angle of the upstream edge (\sref{s:ref.construct}) is still specified by the \vn{e1} attribute
+and not the \vn{e2} attribute. True element reversal can be accomplished as discussed in \Sref{s:ele.reverse}.
+
+Reflecting a subline will also reflect any sublines of the subline. For example:
+\begin{example}
+  line0: line = (y, z)
+  line1: line = (line0, b, c)
+  line2: line = (d, -line1, e)
+\end{example}
+\vn{line2} when expanded gives
+\begin{example}
+  d, c, b, z, y, e
+\end{example}
+\index{sbend}\index{rbend}
+
+A repetition count, which is an integer followed by an asterisk, 
+means that the member is
+repeated. For example
+\begin{example}
+  line1: line = (a, b, c)
+  line2: line = (d, 2*line1, e)
+\end{example}
+\vn{line2} when expanded gives
+\begin{example}
+  d, a, b, c, a, b, c, e
+\end{example}
+Repetition count can be combined with reflection. For example
+\begin{example}
+  line1: line = (a, b, c)
+  line2: line = (d, -2*line1, e)
+\end{example}
+\vn{line2} when expanded gives
+\begin{example}
+  d, c, b, a, c, b, a, e
+\end{example}
+Instead of the name of a line, subline members can also be given as an explicit list using
+parentheses. For example, the previous example could be rewritten as
+\begin{example}
+  line2: line = (d, -2*(a, b, c), e)
+\end{example}
+
+Lines can be defined in any order in the lattice file so a subline does not have to come before a
+line that references it. Additionally, element definitions can come before or after any lines that
+reference them.
+
+A line can have the \vn{multipass} attribute. This is covered in \sref{s:multipass}.
+
+%-----------------------------------------------------------------------------
+\section{Line Slices}
+\label{s:line.slice}
+\index{line slice}
+
+A line ``\vn{slice}'' is a section of a line from some starting element to some ending element.  A
+line slice can be used to construct a new line similar to how an unsliced line is used to construct
+a new line. An example will make this clear:
+\begin{example}
+  line1: line = (a, b, c, d, e)
+  line2: line = (z1, line1[b:d], z2)
+\end{example}
+The line slice \vn{line1[b:d]} that is used to construct \vn{line2} consists of the elements in
+\vn{line1} from element \vn{b} to element \vn{d} but not elements \vn{a} or \vn{e}. When \vn{line2}
+is expanded, it will have the elements:
+\begin{example}
+  z1, b, c, d, z2
+\end{example}
+
+The general form for line slices is
+\begin{example}
+  line_name[element1:element2]
+\end{example}
+where \vn{line_name} is the name of the line and \vn{element1} and \vn{element2} delimit the
+beginning and ending positions of the slice. The beginning and ending element names may be omitted
+and, if not present, the default is the beginning element and ending element of the line
+respectively. Thus, for example, ``\vn{line4[:q1]}'' represents the list of elements from the start
+of \vn{line4} up to, and including the element \vn{q1}.
+
+If there are multiple elements of the same name, the double hash \vn{\#\#} symbol
+(\sref{s:ele.match}) can be use to denote the N\Th element of a given name. If double hash is not
+used, the first instance of a given element name is assumed. That is, something like ``\vn{q1}'' is
+equivalent to ``\vn{q1\#\#1}''.
+
+Wild card characters and \vn{class::element_name} syntax (\sref{s:ele.match}) are not allowed with
+slice element names.
+
+Line slicing of a given line occurs after the line has been expanded (all sublines and line slices
+substituted in). Thus, the following makes sense:
+\begin{example}
+  line1: line = (a, b, c, d, e)
+  line2: line = (z1, line1, z2)
+  line3: line = (line2[z1:c])
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Element Orientation Reversal}
+\label{s:ele.reverse}
+\index{element reversal}
+
+An element's orientation is \vn{reversed} if particles traveling through it enter at the ``exit'' end and leave at
+the ``entrance'' end. Being able to reverse elements is useful, for example, in describing the
+interaction region of a pair of rings where particles of one ring are going in the opposite
+direction relative to the particles in the other ring.
+
+Element reversal is indicated by using a double negative sign ``$--$'' prefix. The double negative
+sign prefix can be applied to individual elements or to a line. If it is applied to a line, the line
+is both reflected (same as if a single negative sign is used) and each element is reversed. For
+example:
+\begin{example}
+  line1: line = (a, b, --c)
+  line2: line = (--line1)
+  line3: line = (c, --b, --a)
+\end{example}
+In this example, \vn{line2} and \vn{line3} are identical. Notice that the reversal of a reversed
+element makes the element unreversed.
+
+Another example involving element reversal is given in Section~\sref{s:reverse}.
+
+Reversed elements, unlike other elements, have their local $z$-axis pointing in the opposite
+direction to the local $s$-axis (\sref{s:ref.construct}). This means that there must be a
+\vn{reflection patch} (\sref{s:reflect.patch}) between reversed and unreversed elements. Since this
+complicates matters, it is generally only useful to employ element reversal in cases where there are
+multiple intersecting lines with particle beams going in opposite directions through some elements
+(for example, colliding beam interaction regions). In this case, element reversal is typically used
+with \vn{multipass} (\sref{s:multipass}) and the lattice will contain a branch of unreversed
+elements for simulating particles going in one direction along with a branch of reversed elements to
+simulate particle going in the other direction.
+
+Where reversed elements are not needed, it is simple to define elements that are
+effectively reversed. For example:
+\begin{example}
+  b00: bend, angle = 0.023, e1 = ...
+  b00_rev: b00, angle = -b00[angle], e1 = -b00[e2], e2 = -b00[e1]
+\end{example}
+and \vn{b00_rev} serves as a reversed version of \vn{b00}.
+
+Internally, \bmad associates an \vn{orientation} attribute with each element. This attribute is set
+to -1 for reversed elements and 1 for unreversed elements.
+
+%-----------------------------------------------------------------------------
+\section{Beam Lines with Replaceable Arguments}
+\label{s:lines.with.arg}
+\index{line!with arguments}
+
+\vn{Beam lines} can have an argument list using the following syntax
+\begin{example}
+  line_name(dummy_arg1, dummy_arg2, ...): LINE = (member1, member2, ...)
+\end{example}
+The dummy arguments are replaced by the actual arguments when the line is used
+elsewhere. For example:
+\begin{example}
+  line1(DA1, DA2): line = (a, DA2, b, DA1)
+  line2: line = (h, line1(y, z), g)
+\end{example}
+When \vn{line2} is expanded the actual arguments of \vn{line1}, in this case \vn(y, z), replaces the
+dummy arguments \vn{(DA1, DA2)} to give for \vn{line2}
+\begin{example}
+  h, a, z, b, y, g
+\end{example} 
+\index{MAD}
+Unlike \mad, \vn{beam line} actual arguments can only be elements or \vn{beam lines}. 
+Thus the following is not allowed
+\begin{example}
+  line2: line = (h, line1(2*y, z), g)   ! NO: 2*y NOT allowed as an argument.
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Lists}
+\label{s:replace.list}
+\index{list|hyperbf}
+
+When a lattice is expanded, all the lattice members that correspond to a name of a \vn{list} are
+replaced successively, by the members in the \vn{list}. The general syntax is
+\begin{example}
+  label: LIST = (member1, member2, ...)
+\end{example}
+For example:
+\begin{example}
+  my_list1 list = (a, b, c)
+  line1: line = (z1, my_list, z2, my_list, z3, my_list, z4, my_list)
+  use, line1
+\end{example}
+When the lattice is expanded the first instance of \vn{my_list} in \vn{line1} is replaced by \vn{a}
+(which is the first element of \vn{my_list}), the second instance of \vn{my_list} is replaced by
+\vn{b}, etc. If there are more instances of \vn{my_list} in the lattice then members of
+\vn{my_list}, the replacement starts at the beginning of \vn{my_list} after the last member of
+\vn{my_list} is used. In this case the lattice would be:
+\begin{example}
+  z1, a, z2, b, z3, c, z4, a
+\end{example}
+members of a \vn{replacement list} can only be simple elements and not other lines or lists. 
+For example, the following is not allowed:
+\begin{example}
+  line1: line = (a, b)
+  my_list: list = (2*line1)  ! Lines cannot be list members.
+\end{example}
+A repetition count is permitted
+\begin{example}
+  my_list1: list = (2*a, b) 
+  my_list2: list = (a, a, b) ! Equivalent to my_list1
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Use Statement}
+\label{s:use}
+
+\index{use statement|hyperbf}
+The particular line or lines that defines the root branches (\sref{s:lattice.def}) to be used in the
+lattice is selected by the \vn{use} statement. The general syntax is
+\begin{example}
+  use, line1, line2 ...
+\end{example}
+For example, \vn{line1} may correspond to one ring and \vn{line2} may correspond to the other ring
+of a dual ring colliding beam machine. In this case, \vn{multipass} (\sref{s:multipass}) will be
+needed to describe the common elements of the two rings. Example
+\begin{example}
+  use, e_ring, p_ring
+\end{example}
+would pick the lines \vn{e_ring} and \vn{p_ring} for analysis.  These will be the \vn{root}
+branches.
+
+\vn{use} statements can come anywhere in the lattice, even before the definition of the lines they
+refer to. Additionally, there can be multiple \vn{use} statements.  The last \vn{use} statement in
+the file defines which \vn{line} to use.
+
+The total number of branches in the lattice is equal to the number of lines that appear on the
+\vn{use} statement plus the number of \vn{fork} and \vn{photon_fork} elements that branch to a new
+branch.
+
+To set such things as the geometry of a branch, beginning Twiss parameters, etc., see Section
+\vn{s:beginning}.
+
+%-----------------------------------------------------------------------------
+\section{Tagging Lines and Lists}
+\index{tags for lines and lists|hyperbf}
+\label{s:tag}
+
+When a lattice has repeating lines, it can be desirable to differentiate
+between repeated elements. This can be done by tagging lines with a \vn{tag}. 
+An example will make this clear:
+\begin{example}
+  line1: line = (a, b)
+  line2: line = (line1, line1)
+  use, line2
+\end{example}
+When expanded the lattice would be:
+\begin{example}
+  a, b, a, b
+\end{example}
+The first and third elements have the same name ``a'' and the second and fourth
+elements have the same name ``b''. Using tags the lattice elements can be given
+unique names. lines or lists are tagged  
+using the at (@) sign. The general syntax is:
+\begin{example}
+  tag_name@line_name                           ! Syntax for lines
+  tag_name@list_name                           ! Syntax for lists
+  tag_name@replacement_line(arg1, arg2, ...)   ! Syntax for replacement lines.
+\end{example}
+Thus to differentiate the lattice elements in the above example \vn{line2} needs to
+be modified using tags:
+\begin{example}
+  line1: line = (a, b)
+  line2: line = (t1@line1, t2@line1)
+  use, line2
+\end{example}
+In this case the lattice elements will have names of the form:
+\begin{example}
+  tag_name.element_name
+\end{example}
+In this particular example, the lattice with tagging will be:
+\begin{example}
+  t1.a, t1.b, t2.a, t2.b
+\end{example}
+Of course with this simple example one could have just as easily not used tags:
+\begin{example}
+  t1.a: a;   t2.a: a
+  t1.b: b;   t2.b: b
+  line1: line = (t1.a, t1.b, t2.a, t2.b)
+  use, line2
+\end{example}
+But in more complicated situations tagging can make for compact lattice files.
+
+When lines are nested, the name of an element is formed by concatenating the tags together with dots
+in between in the form:
+\begin{example}
+  tag_name1.tag_name2. ... tag_name_n.element_name
+\end{example}
+An example will make this clear:
+\begin{example}
+  list1 = (g, h)
+  line1(y, z) = (a, b)
+  line2: line = (t1@line1(a, b))
+  line3: line = (line2, hh@list1)
+  line4: line = (z1@line3, z2@line3)
+  use, line4
+\end{example}
+The lattice elements in this case are:
+\begin{example}
+  z1.t1.a, z1.t1.b, z1.hh.g, z2.t1.a, z2.t1.b, z1.hh.h 
+\end{example}
+
+\index{expand_lattice}
+To modify a particular tagged element the lattice must be expanded
+first (\sref{s:expand}). For example:
+\begin{example}
+  line1: line = (a, b)
+  line2: line = (t1@line1, t2@line1)
+  use, line2
+  expand_lattice
+  t1.b[k1] = 1.37
+  b[k1] = 0.63       ! This statement generates an error
+\end{example}
+After the lattice has been expanded there is no connection between the original \vn{a} and \vn{b}
+elements and the elements in the lattice like \vn{t1.b}. Thus the last line in the example where the
+\vn{k1} attribute of\vn{b} is modified generates an error since there are no elements named \vn{b}
+in the lattice.

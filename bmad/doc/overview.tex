@@ -1,0 +1,45 @@
+\section*{Overview}
+\index{Bmad|hyperbf}
+\pdfbookmark[1]{Overview}{Overview}
+
+\bmad (Otherwise known as ``Baby MAD" or ``Better MAD" or just plain ``Be MAD!") is a subroutine
+library for charged--particle and X-Ray simulations in accelerators and storage rings. \bmad has
+been developed at the Cornell Laboratory for Accelerator-based ScienceS and Education (CLASSE) and
+has been in use since 1996.
+
+Prior to the development of \bmad, simulation programs at Cornell were written almost from scratch
+to perform calculations that were beyond the capability of existing, generally available software.
+This practice was inefficient, leading to much duplication of effort. Since the development of
+simulation programs was time consuming, needed calculations where not being done. As a response, the
+\bmad subroutine library, using an object oriented approach and written in Fortran 2008, were
+developed.  The aim of the \bmad project was to:
+\begin{Itemize}
+\item Cut down on the time needed to develop programs.
+\item Cut down on programming errors.
+\item Provide a simple mechanism for lattice function calculations
+from within control system programs.
+\item Provide a flexible and powerful lattice input format.
+\item Standardize sharing of lattice information between 
+programs.
+\end{Itemize}
+
+\bmad can be used to study both single and multi--particle beam dynamics as well as X-rays.  Over
+the years, \bmad modules have been developed for simulating a wide variety of phenomena including
+intra beam scattering (IBS), coherent synchrotron radiation (CSR), Wakefields, Touschek scattering,
+higher order mode (HOM) resonances, etc., etc.  \bmad has various tracking algorithms including
+Runge--Kutta and symplectic (Lie algebraic) integration. Wakefields, and radiation excitation and
+damping can be simulated. \bmad has routines for calculating transfer matrices, emittances, Twiss
+parameters, dispersion, coupling, etc. The elements that \bmad knows about include quadrupoles, RF
+cavities (both storage ring and LINAC accelerating types), solenoids, dipole bends, Bragg crystals
+etc.  In addition, elements can be defined to control the attributes of other elements. This can be
+used to simulate the ``girder'' which physically support components in the accelerator or to easily
+simulate the action of control room ``knobs'' that gang together, say, the current going through a
+set of quadrupoles.
+
+To be able to extend \bmad easily, \bmad has been developed in a modular, object oriented, fashion
+to maximize flexibility. As just one example, each individual element can be assigned a particular
+tracking method in order to maximize speed or accuracy and the tracking methods can be assigned via
+the lattice file or at run time in a program.
+
+\vfill
+\break

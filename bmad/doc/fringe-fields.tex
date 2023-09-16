@@ -1,0 +1,338 @@
+\chapter{Fringe Fields}
+\label{s:fringe.std}
+
+It can be convient to divide the fringe field kick into two pieces. The first piece is called the \vn{hard
+edge} fringe kick and is the kick in the limit that the longitudinal extent of the fringe is
+zero. The second piece is the \vn{soft edge} fringe kick which is the fringe kick with the fringe
+having a finite longitudinal extent minus the hard edge fringe kick. That is
+\begin{example}
+  Total fringe kick = hard fringe kick + soft fringe kick
+\end{example}
+The advantage of separating the fringe kick in this way is that the hard fringe can be used without
+having to know anything about the longitudinal extent of the fringe field. In many cases, this is a
+good enough approximation.
+
+Discussion of the fringe parameters of an element are detailed in \Sref{s:fringe}.
+
+%---------------------------------------------------------------------------------
+\section{Bend Second Order Fringe Map}
+\label{s:fringe.bend.hard}
+
+The bend fringe kick is a combination of the equations developed by Hwang and Lee\cite{b:hwang}
+modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:madphysics}. The Lie
+map generator $\Omega_M$ given by Hwang and Lee in Eqs.~(35) and (36) is used under the conditions
+that
+\begin{equation}
+  K_{0h} = K_{1h} = K_{3h} = K_{4h} = K_{5h} = K_{6h} = 0
+\end{equation}
+Here the subscript ``\vn{h}'' has been added so as to not confuse these parameters with the magnetic
+multipole coefficients $K_1$, $K_2$, etc. Note: Hwang and Lee do not present an equation for the
+change in the longitudinal phase space $z$ coordinate in their paper.
+
+The generator used by \bmad for the entrance fringe is:
+\begin{align}
+  \Omega_{M1} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2} 
+  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_1) \, [1 + \sin^2 (e_1)] \, f_{int} \,  h_{gap}}{(1 + p_z)} \CRNO
+  & \qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_1) - g_\tot^2 \, \tan^3 (e_1)]}{12 \, (1 + p_z)}
+  + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_1) + g_\tot^2 \, \tan (e_1) \, \sec^2 (e_1)]}{4 \, (1 + p_z)} \\
+  &\qquad + \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \, \tan^2 (e_1)}{2 \, (1 + p_z)}
+  - \frac{y^2 \, p_x \, g_\tot \, \sec^2 (e_1)}{2 \, (1 + p_z)} \nonumber
+\end{align}
+where $g_\tot$ is the total bending strength (design + error) and $K_1$ is the quadrupole moment of the bend.
+The generator for the exit fringe is
+\begin{align}
+  \Omega_{M2} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2} 
+  + \frac{y^2 \, g_\tot^2 \, \sec^3 (e_2) \, [1 + \sin^2 (e_2)] \, f_{int} \,  h_{gap}}{(1 + p_z)} \CRNO
+  &\qquad + \frac{x^3 \, [4 \, K_1 \, \tan (e_2) - g_\tot^2 \, \tan^3 (e_2)]}{12 \, (1 + p_z)}
+  + \frac{x \, y^2 \, [-4 \, K_1 \, \tan (e_2) + g_\tot^2 \, \tan (e_2) \, \sec^2 (e_2)]}{4 \, (1+p_z)} \\
+  &\qquad - \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \tan^2 (e_2)}{2 \, (1 + p_z)}
+  + \frac{y^2 \, p_x \, g_\tot \, \sec^2 (e_2)}{2 \, (1 + p_z)} \nonumber
+\end{align}
+
+The map $\cal M$ is obtained from the equation $\Cal M = \exp[\colon\Omega_M\colon]$. To second order in the
+transverse coordinates the map can be obtained by expanding the exponential to second order
+\begin{equation}
+  \Cal M \simeq 1 + \colon\Omega_M\colon + \frac{1}{2} \, \colon\Omega_M\colon \, \colon\Omega_M\colon
+\end{equation}
+The transport for the entrance fringe is then
+\begin{align}
+  \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ -x^2 \, \tan^2 (e_1) + y^2 \sec^2 (e_1) \right] \CRNO
+  \Delta p_x &= x \, g_\tot \, \tan (e_1)
+    + \frac{y^2 \, g_\tot^2 \, [ \tan (e_1) + 2 \, \tan^3 (e_1) ]}{2 \, (1 + p_z)} \CRNO
+    &\qquad\qquad + \frac{(x^2 - y^2) \, K_1 \tan (e_1)}{1 + p_z}
+    + \frac{(x \, p_x - y \, p_y) \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \CRNO
+  \Delta y &= \frac{x \, y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \\
+  \Delta p_y &= y \left[ -g_\tot \, \tan (e_1)
+    + \frac{2 \, g^2_\tot \, [1 + \sin^2 (e_1)] \, \sec^3 (e_1)}{1 + p_z} \, f_{int} \,  h_{gap} \right] \CRNO
+    &\qquad\qquad - \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
+    - \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
+    - \frac{2 \, x \, y \, K_1 \tan (e_1)}{(1 + p_z)} \CRNO
+  \Delta z &= \frac{\Omega_{M1} - (x^2 - y^2) \, g_\tot \, \tan (e_1)/2}{1 + p_z} \nonumber
+\end{align}
+The transport for the exit fringe is
+\begin{align}
+  \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ x^2 \, \tan^2 (e_2) - y^2 \sec^2 (e_2) \right] \CRNO
+  \Delta p_x &= x \, g_\tot \, \tan (e_2)
+    - \frac{(x^2 + y^2) \, g_\tot^2 \, \tan^3 (e_2)}{2 \, (1 + p_z)} \CRNO
+    &\qquad\qquad + \frac{(x^2 - y^2) \, K_1 \tan (e_2)}{1 + p_z}
+    + \frac{(-x \, p_x + y \, p_y) \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \CRNO
+  \Delta y &= -\frac{x \, y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \\
+  \Delta p_y &= y \left[ -g_\tot \, \tan (e_2)
+    + \frac{2\, g^2_\tot \, [1 + \sin^2 (e_2)] \, \sec^3 (e_2)}{1 + p_z} \, f_{int} \,  h_{gap} \right]
+    + \frac{x \, y \, g^2_\tot \, \sec^2 (e_2) \, \tan (e_2)}{1 + p_z} \CRNO
+    &\qquad\qquad + \frac{(x \, p_y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} 
+    + \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_2)]}{1 + p_z} 
+    - \frac{2 \, x \, y \, K_1 \tan (e_2)}{(1 + p_z)} \CRNO
+  \Delta z &= \frac{\Omega_{M2} - (x^2 - y^2) \, g_\tot \, \tan (e_2)/2}{1 + p_z} \nonumber
+\end{align}
+
+%---------------------------------------------------------------------------------
+\section{SAD Dipole Soft Edge Fringe Map}
+\label{s:fringe.bend.soft}
+
+The SAD dipole soft edge fringe model is adapted from the SAD program\cite{b:sad}. This model is
+only used for \vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements. For \vn{sbend} and \vn{rbend}
+elements, the fringe map is defined in terms of the \vn{fint} and \vn{hgap} for the entrance end and
+\vn{fintx} and \vn{hgapx} at the exit end (\sref{s:bend}). The field integral $F_{H1}$ for the
+entrance end given is given by (see \Eq{fsbbb})
+\begin{equation}
+  F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
+  {2 \, B_{y0}^2}
+\end{equation}
+With a similar equation for $F_{H2}$ for the exit end.
+
+For a \vn{sad_mult} element the corresponding parameters are \vn{fb1} and \vn{fb2}. the conversion between
+the bend and \vn{sad_mult} parameters is
+\begin{equation}
+  \text{fb1} = 12 \, F_{H1}, \qquad \text{fb2} = 12 \, F_{H2}
+\end{equation}
+
+The map itself is
+\begin{align}
+  x_2 &=  x_1 + c_1 \, p_z \CRNO
+  p_{y2} &= p_{y1} + c_2 \, y_1 - c_3 \, y_1^3 \\
+  z_2 &= z_1 + \frac{1}{1 + p_{z1}} \, \left( 
+    c_1 \, p_{x1} + \frac{1}{2} \, c_2 \, y_1^2 -\frac{1}{4} \, c_3 \, y_1^4 \right)
+    \nonumber
+\end{align}
+For the entrance face the map parameters are:
+\begin{align}
+  c_1 = \frac{g_\tot \, \text{fb1}^2}{24 \, (1 + p_z)} &= \frac{6 \, g_\tot \, F_{H1}^2}{1 + p_z}, \qquad 
+  c_2 = \frac{g_\tot^2 \, \text{fb1}}{6 \, (1 + p_z)} = \frac{2 \, g_\tot^2 \, F_{H1}}{1 + p_z}, \CRNO
+  &c_3 = \frac{2 \, g_\tot^2}{3 \, \text{fb1} \, (1 + p_z)} = \frac{g_\tot^2}{18 \, F_{H1} \, (1 + p_z)}
+\end{align}
+And for the exit face, the appropriate equations can be derived using the substitution
+\begin{align}
+  F_{H1} &\rightarrow F_{H2} \CRNO
+  g_\tot &\rightarrow -g_\tot
+\end{align}
+
+In the above equations, for a bend, \vn{g_\tot} is the total bending strength
+\begin{equation}
+  g_\tot = \text{g} + \text{dg}
+\end{equation}
+\vn{g} being the reference bend strength and \vn{dg} being bend the difference between the actual
+and reference bend strengths (\sref{s:bend}). For a \vn{sad_mult} element \vn{g_tot} is calculated
+from the equation
+\begin{equation}
+  g_\tot = \sqrt{a_0^2 + b_0^2}
+\end{equation}
+
+The SAD dipole soft edge map is ``incomplete'' and for a realistic fringe map the SAD dipole soft
+edge fring map must be combined with a ``hard edge'' map (\sref{s:fringe}).
+
+It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to zero since naively one would
+expect the soft edge kick to vanish in the hard edge limit where the fringe has no longitudinal
+extent. However, in the hard edge limit, the field does not obey Maxwell's equations. The limiting
+map, as $F_H$ goes to zero, has fields that diverge to infinity and this explains why the full (hard
++ soft) limiting map is not the same as the hard edge map at the limit of zero longitudinal extent.
+
+%---------------------------------------------------------------------------------
+\section{Sad\_Mult Dipole Hard Edge Fringe Map} 
+\label{s:sad.mult.bend.fringe}
+
+For \vn{sad_mult} elements, the hard dipole edge kick is adapted from SAD. The dipole normalized
+field $g = \sqrt{\text{a0}^2 + \text{b0}^2}$ is calculated from the \vn{a0} and \vn{b0}
+multipoles. Before the fringe kick is applied, the particle position is rotated in the $(x,y)$ plane
+so that the dipole kick is in the horizontal direction. The dipole edge kick is then given by
+\begin{align}
+  \Delta x &= g \, y^2 \, \left( 1 - f_{yg} \right) \, \frac{1 + p_z^2}{2 \, p_{zy}^3} \CRNO
+  \Delta p_y &= -g \, p_x \, y \, \frac{1 - 2f_{yg}}{p_{zy}} \\
+  \Delta z &= -g \, y^2 \, p_x \, (1 - f_{yg}) \frac{1 + p_z}{2 \, p_{zy}^3} \nonumber
+\end{align}
+where
+\begin{equation}
+  f_{yg} = \frac{y^2 \, g^2}{12}, \quad \text{and} \qquad
+  p_{zy} = \sqrt{(1+p_z)^2 - p_x^2}
+\end{equation}
+
+This is used in place of the dipole hard edge fringe kick given in \sref{s:fringe.bend.hard}.
+
+%---------------------------------------------------------------------------------
+\section{Linear Dipole Hard Edge Fringe Map}
+\label{s:lin.dip.fringe}
+
+The linear dipole hard edge fringe model is adapted from MAD\cite{b:maduser} and only includes linear
+terms. The fringe transport is
+\begin{align}
+  \Delta p_x &= g_\tot \, \tan(e) \CRNO
+  \Delta p_y &= -g_\tot \, \tan \left( e - 
+    \frac{2 \, f_{int} \, h_{gap} \, g_\tot \, (1 + \sin^2(e))}{\cos(e)} \right)
+\end{align}
+where $g_\tot = g + dg$ is the actual field and $e$ is \vn{e1} if the particle is entering the
+dipole and \vn{e2} if the particle is exiting the dipole.
+
+%---------------------------------------------------------------------------------
+\section{Exact Dipole Hard Edge Fringe Map}
+\label{s:exact.dip.fringe}
+
+The exact dipole hard edge fringe is the exact transport in the wedge region of a dipole when there
+is a finite \vn{e1} or \vn{e2} as shown in \fig{f:sbend}. This model assumes that there are no
+higher order multipole fields. The transport is done in two stages. For a particle entering the
+dipole the propagation is
+\begin{enumerate}
+\item
+Drift (propagate in a straight line) the particle from the sector edge to the actual bend edge. The
+propagation may be forward or backwards depending upon on the geometry.
+%
+\item
+Propagate the particle as if it were in the dipole field from the actual bend edge to the sector
+edge.
+\end{enumerate}
+The body of the dipole is treated as a sector bend. At the exit end, the propagation through the
+wedge is the reverse of the above.
+
+%---------------------------------------------------------------------------------
+\section{Quadrupole Soft Edge Fringe Map}
+\label{s:q.soft}
+
+The quadrupole soft edge fringe model is adapted from SAD\cite{b:sad}. This fringe is only used with
+\vn{sad_mult} and \vn{quadrupole} elements. The fringe map is:
+\begin{align}
+  x_2 &= x_1 \, e^{g_1} + g_2 \, p_{x1} \CRNO
+  p_{x2} &= p_{x1} e^{-g_1} \CRNO
+  y_2 &= y_1 \, e^{-g_1} - g_2 \, p_{y1} \\
+  p_{y2} &= p_{y1} e^{g_1} \CRNO
+  z_2 &= z_1 - 
+    \left[g_1 \, x_1 \, p_{x1} + g_2 \, \left( 1 + \frac{g_1}{2} \right)
+    \, e^{-g_1} \, p_{x1}^2 \right] + 
+    \left[g_1 \, y_1 \, p_{y1} + g_2 \, \left( 1 - \frac{g_1}{2} \right)
+    \, e^{g_1} \, p_{y1}^2 \right] \nonumber
+\end{align}
+where
+\begin{equation}
+  g_1 = \frac{K_1 \, \text{fq1}}{1 + p_z} , \qquad
+  g_2 = \frac{K_1 \, \text{fq2}}{1 + p_z}
+\end{equation}
+$K_1$ is the quadrupole strength, and \vn{fq1} and \vn{fq2} are the fringe
+quadrupole parameters. These parameters are related to the field integral $I_n$
+via
+\begin{equation}
+  \text{fq1} = I_1 - \frac{1}{2} \, I_0^2 , \qquad
+  \text{fq2} = I_2 - \frac{1}{3} \, I_0^3
+\end{equation}
+where $I_n$ is defined by
+\begin{equation}
+  I_n = \frac{1}{K_1} \, \int_{-\infty}^{\infty} \; 
+    (K_1(s) - H(s-s_0) \, K_1) \, (s - s_0)^n \, ds
+\end{equation}
+and $H(s)$ is the step function
+\begin{equation}
+  H(s) = \begin{cases}
+    1   & s > 0 \\
+    0   & s < 0
+  \end{cases}
+\end{equation}
+and it is assumed that the quadrupole edge is at $s_0$ and the interior is 
+in the region $s > s_0$. 
+
+See Sec.~\sref{s:fringe} for the relation between \vn{fq1} / \vn{fq2} and
+the corresponding \vn{f1} and \vn{f2} parameters of SAD.
+
+%---------------------------------------------------------------------------------
+\section{Magnetic Multipole Hard Edge Fringe Map}
+
+The magnetic multipole hard edge fringe field is modeled using the method shown in
+Forest\cite{b:forest}. For the $m$\Th order multipole the Lee transform 
+is (Forest Eq.~(13.29)):
+\begin{align}
+  f_\pm &= \mp \Re \left[ \frac{(b_m + i \, a_m) \, 
+    (x + i \, y)^{m+1}}{4 \, (m + 2) \, (1 + \delta)} \,
+    \left\{ x \, p_x + y \, p_y + i \frac{m+3}{m+1} 
+    (x \, p_x - y \, p_y) \right\} \right] \CRNO
+  &\equiv \frac{p_x \, f^x + p_y \, f^y}{1 + \delta}
+\end{align}
+The multipole strengths $a_m$ and $b_m$ are given by \eq{bib1nb}
+and the second equation defines $f^x$ and $f^y$. On the right had side of the first
+equation, the minus sign is appropriate for particles entering the magnet and the
+plus sign is for particle leaving the magnet.
+Notice that here the multipole order $m$ is equivalent to $n-1$ in Forest's notation.
+
+With this, the implicit multipole map is (Forest Eq.~(13.31))
+\begin{align}
+  x^f &= x - \frac{f^x}{1 + \delta} \CRNO
+  p_x &= p_x^f - \frac{p_x^f \, \partial_x f^x + p_y^f \, \partial_x f^y}{1 + \delta} \CRNO
+  y^f &= y - \frac{f_y}{1 + \delta} \\
+  p_y &= p_y^f - \frac{p_x^f \, \partial_y f^x + p_y^f \, \partial_y f^y}{1 + \delta} \CRNO
+  \delta^f &= \delta \CRNO
+  z^f &=\frac{p_x^f \, f^x + p_y^f \, f^y}{(1 + \delta)^2} \nonumber
+\end{align}
+
+%---------------------------------------------------------------------------------
+\section{Electrostatic Multipole Hard Edge Fringe Map}
+\label{s:spin.hard.fringe}
+
+The electric multipole hard edge fringe field, to lowest order, consists of just a longitudinal
+field. The integrated longitudinal field at constant $(x,y)$ for the $n$\Th order multipole is
+simply obtained by requiring that the curl of the field is zero.  This gives:
+\begin{equation}
+  \int E_s(x,y) \, ds = \phi_n(x,y)
+\end{equation}
+where $\phi_n$ is given in \Eq{pbian1}. [For a magnetic multipole there is an analogous
+equation.]
+
+The effect on the spin when tracking through the fringe field of a multipole field tends
+to be weak. As such, this hard edge model is sufficient.  and the spin is tracked using
+the T-BMT equation (\Eq{tbmt}).
+
+%---------------------------------------------------------------------------------
+\section{RF Fringe Fields}
+\label{s:rf.fringe}
+
+Assuming cylindrical symmetry, the radial and azimuthal fields near the axis 
+can be related to the longitudinal electric field via Maxwell's equations\cite{b:hartman}
+\begin{equation}
+  E_r = -\frac{r}{2} \, \frac{\partial E_z}{\partial z}, \qquad
+  B_\phi = \frac{r}{2 \, c} \, \frac{\partial E_z}{\partial t}
+\end{equation}
+Assuming the particle velocity is $c$, these equations can be combined with the force equation
+\begin{equation}
+  F_r = q \, \left( E_r - c \, B_\phi \right)
+\end{equation}
+to give\cite{b:rosenzweig}
+\begin{equation}
+  F_r = - \frac{q \, r}{2} \, \frac{d E_z}{dz}
+  \label{fqr2}
+\end{equation}
+where the total derivative is used here\footnote
+  {
+Hartman\cite{b:hartman} Eq~(16) is not valid for a forward propagating wave component of
+the field. Thus Hartman Eq~(17) is only valid for a backward propagating wave component. \Eq{fqr2},
+on the other hand, is valid for all wave components.
+  }.
+From \Eq{fqr2}, the fringe field kick in the horizontal plane at the entrance end, valid for both
+traveling wave and standing wave cavities, is (cf. Rosenzweig\cite{b:rosenzweig} Eq~(10))
+\begin{equation}
+  \Delta p_x = - \frac{q \, \what E_z}{2 \, c \, P_0} \, x
+  \label{pqe2c}
+\end{equation}
+with a similar equation in the vertical. Here $\what E_z$ is the longitudinal electric field just inside
+the fringe, and $P_0$ is the reference momentum. At the exit end, the kick is the negative of
+\Eq{pqe2c}. This fringe kick is built into \vn{xxpc}.
+
+The integrated fringe fields, needed to calculate the spin precession, are at the entrance end
+\begin{align}
+  \int E_r \, ds &= -\frac{r}{4} \, \what E_z \CRNO
+  \int B_\phi \, ds &= \frac{r}{4 \, c} \, \what E_z
+\end{align}
+The integrated fields at the exit end are obtained by negating the RHS of these equations.
