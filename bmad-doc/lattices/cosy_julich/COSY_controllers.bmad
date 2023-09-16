@@ -1,0 +1,27 @@
+
+QTov1 : overlay = {QT1[k1]:k1*dk , QT4[k1]:k1*dk , QT13[k1]:k1*dk, QT16[k1]:k1*dk}, var = {k1,dk}, k1= -0.553299, dk=1.0
+QTov2 : overlay = {QT2[k1]:k1*dk , QT3[k1]:k1*dk , QT14[k1]:k1*dk, QT15[k1]:k1*dk}, var = {k1,dk}, k1= 0.514285, dk=1.0
+QTov3 : overlay = {QT5[k1]:k1*dk , QT8[k1]:k1*dk , QT9[k1]:k1*dk , QT12[k1]:k1*dk}, var = {k1,dk}, k1= 0.730639, dk=1.0
+QTov4 : overlay = {QT6[k1]:k1*dk , QT7[k1]:k1*dk , QT10[k1]:k1*dk, QT11[k1]:k1*dk}, var = {k1,dk}, k1= -0.67389, dk=1.0
+QTov5 : overlay = {QT17[k1]:k1*dk, QT20[k1]:k1*dk, QT29[k1]:k1*dk, QT32[k1]:k1*dk}, var = {k1,dk}, k1= -0.629671156, dk=1.0
+QTov6 : overlay = {QT18[k1]:k1*dk, QT19[k1]:k1*dk, QT30[k1]:k1*dk, QT31[k1]:k1*dk}, var = {k1,dk}, k1= 0.579184782, dk=1.0
+QTov7 : overlay = {QT21[k1]:k1*dk, QT24[k1]:k1*dk, QT25[k1]:k1*dk, QT28[k1]:k1*dk}, var = {k1,dk}, k1= -0.622108141, dk=1.0
+QTov8 : overlay = {QT22[k1]:k1*dk, QT23[k1]:k1*dk, QT26[k1]:k1*dk, QT27[k1]:k1*dk}, var = {k1,dk}, k1= 0.579169937, dk=1.0
+
+     
+QUov1 : overlay = {QU1[k1]:k1*dk , QU4[k1]:k1*dk , QU21[k1]:k1*dk, QU24[k1]:k1*dk}, var = {k1,dk}, k1= -0.25, dk=1.0 ! d d d d
+QUov2 : overlay = {QU2[k1]:k1*dk , QU3[k1]:k1*dk , QU22[k1]:k1*dk, QU23[k1]:k1*dk}, var = {k1,dk}, k1= 0.322, dk=1.0 ! f f f f 
+QUov3 : overlay = {QU5[k1]:k1*dk , QU8[k1]:k1*dk , QU17[k1]:k1*dk, QU20[k1]:k1*dk}, var = {k1,dk}, k1= -0.25, dk=1.0 ! d d d d
+QUov4 : overlay = {QU6[k1]:k1*dk , QU7[k1]:k1*dk , QU18[k1]:k1*dk, QU19[k1]:k1*dk}, var = {k1,dk}, k1= 0.43, dk=1.0 ! f f f f 
+QUov5 : overlay = {QU9[k1]:k1*dk , QU12[k1]:k1*dk, QU13[k1]:k1*dk, QU16[k1]:k1*dk}, var = {k1,dk}, k1= -0.25, dk=1.0 ! d d d d
+QUov6 : overlay = {QU10[k1]:k1*dk, QU11[k1]:k1*dk, QU14[k1]:k1*dk, QU15[k1]:k1*dk}, var = {k1,dk}, k1= 0.322, dk=1.0 ! f f f f
+
+facT : overlay = {QTov1, QTov2, QTov3, QTov4, QTov5, QTov6, QTov7, QTov8}, var={dk}, dk=1.0193
+facUdefoc : overlay = {QUov1,        QUov3,        QUov5       }         , var={dk}, dk=1.085
+facUfoc   : overlay = {       QUov2,        QUov4,        QUov6}         , var={dk}, dk=1.036
+
+MXS : overlay = {MX05, MX09, MX14, MX18}, var={k2}, k2= 0.
+MXL : overlay = {MX06, MX08, MX15, MX17}, var={k2}, k2= 0.
+MXG : overlay = {MX07, MX16}            , var={k2}, k2= 0.
+
+

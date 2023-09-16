@@ -1,0 +1,32 @@
+set global plot_on = false
+!set global lattice_calc_on = false
+set global track_type = single
+set universe * twiss_calc off
+
+!---Special Settings
+
+!---Limits
+!set var *|low_lim = -100e-3
+!set var *|high_lim = 100e-3
+
+!set dat extra_orbit.x[*]|weight=1e12
+!set dat extra_orbit.y[*]|weight=1e12
+
+
+
+set global merit_stop_value = 1
+sloops 100
+run
+run
+sloops 4
+set global merit_stop_value = -1
+run
+
+
+set universe * twiss_calc on
+
+!---Dispersion Correction
+!call ../../DispersionCorrect.tao
+
+!set global track_type = beam
+set global plot_on = true

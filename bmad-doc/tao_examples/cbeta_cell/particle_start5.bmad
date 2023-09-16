@@ -1,0 +1,10 @@
+particle_start[x]  =    -0.0103745568
+particle_start[px] =    -0.0224250871
+particle_start[pz] =     0.0000000000
+beginning[e_tot]  =   1.58500000E+08
+beginning[beta_a]  =     0.4764562758
+beginning[alpha_a] =    -0.9285855700
+beginning[beta_b]  =     0.6007830251
+beginning[alpha_b] =     1.1493920030
+beginning[eta_x]  =     0.0282579715
+beginning[etap_x] =     0.0871600339

@@ -1,0 +1,10 @@
+&tao_start
+  startup_file = 'setup.tao'
+/
+
+
+&tao_design_lattice
+  n_universes = 2
+  design_lattice(1)%file = "lat1.bmad"
+  design_lattice(2)%file = "lat2.bmad"
+/

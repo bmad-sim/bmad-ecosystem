@@ -1,0 +1,5 @@
+
+call, file = cell.lat.bmad
+
+call, file = energy2.bmad
+

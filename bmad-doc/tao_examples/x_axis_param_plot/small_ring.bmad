@@ -1,0 +1,20 @@
+parameter[p0c] = 8e6
+bmad_com[radiation_damping_on] = f
+bmad_com[radiation_fluctuations_on] = f
+
+q1: quad, l = 0.5, k1 = 0.6
+q2: quad, l = 0.5, k1 = -0.5
+
+d: drift, l = 0.3
+b: sbend, l = 3, angle = pi/8, e1 = 0.07, e2 = 0.07
+k: kicker, l = 0.1, bl_hkick = 3e-3
+
+s1: sextupole, l = 0.01
+s2: sextupole, l = 0.01
+
+rf: rfcavity, l = 1.2, rf_frequency = 100e6, voltage = 1e6
+
+sector: line = (s1, d, q1, d, b, d, q2, d, s2, rf, b)
+ring: line = (sector, k)
+
+use, ring

@@ -1,0 +1,93 @@
+
+! CBETA FFAG Prototype Cell
+
+
+FF.Pip01a: PIPE
+FF.Pip01: PIPE
+FF.Pip02: PIPE
+
+FF.Qua: QUAD, fringe_type = full, field_master = T
+
+FF.Qua01: FF.Qua
+FF.Qua02: FF.Qua
+
+
+
+FF.patch01a: patch
+FF.patch01b: patch
+FF.patch02: patch
+
+O_FF_angle_deg: overlay = {FF.patch01a:0.5*pi/180, FF.patch01b:0.5*pi/180}, x_pitch
+O_FF_angle_deg[x_pitch] = -3.6
+
+
+FF.Mar.BEG: MARKER
+FF.Mar.END: MARKER
+FF.Qua01.Mar.MID: marker, superimpose, ref = FF.Qua01
+ 
+shift = 0.05
+FF.Pip01a[L] = shift
+FF.Pip01[L] = 0.05
+FF.Pip02[L] = 0.11 -shift
+
+
+FF.PIP01[L] =   5e-2
+FF.PIP02[L] =   7e-2
+
+
+
+! Apertures
+FF.Mar.BEG[aperture_type] = elliptical
+FF.Qua01[aperture_type] = elliptical
+FF.QUA01.MAR.MID[aperture_type] = elliptical
+FF.Qua02[aperture_type] = elliptical
+FF.Qua01[aperture_at] = both_ends
+FF.Qua02[aperture_at] = both_ends
+
+O_aperture: overlay = {
+  FF.Mar.BEG[x1_limit], FF.Mar.BEG[x2_limit],
+  FF.Mar.BEG[y1_limit], FF.Mar.BEG[y2_limit],
+  FF.Qua01[x1_limit], FF.Qua01[x2_limit],
+  FF.Qua01[y1_limit], FF.Qua01[y2_limit],
+  FF.Qua01.Mar.MID[x1_limit], FF.Qua01.Mar.MID[x2_limit],
+  FF.Qua01.Mar.MID[y1_limit], FF.Qua01.Mar.MID[y2_limit],
+  FF.Qua02[x1_limit], FF.Qua02[x2_limit],
+  FF.Qua02[y1_limit], FF.Qua02[y2_limit]}, var = {r0}
+O_aperture[r0] = 0
+
+
+! Fractional lengths of quads
+O_quad_length: overlay = {FF.Qua01[L]:f*L, FF.Qua02[L]:(1-f)*L}, var = {L, f}
+O_quad_length[f] = 0.5
+O_quad_length[L] = .22
+
+
+! solution
+call, file = solution_4.5deg.bmad
+
+! Soft edges
+FF.QUA01[FQ1] =  2e-4
+FF.QUA02[FQ1] =  2e-4
+
+
+
+!- - - Lines        
+
+FF.arc_cell: line = (FF.Pip01a, FF.Qua01, FF.Pip01, FF.patch01a, FF.Qua02, FF.patch01b, FF.patch02,  FF.Pip02)
+FF.straight_cell: line = (FF.Pip01a, FF.Qua01, FF.Pip01, FF.Qua02, FF.Pip02)
+
+
+FFAG.CELL: LINE = (
+  FF.Mar.BEG,
+  FF.arc_cell,
+  FF.Mar.END)
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,75 @@
+!------------------------ General Init -----------------------
+!-------------------------------------------------------------
+
+&tao_start
+  startup_file = 'startup.tao'
+  plot_file = 'tao_plot.init'
+/
+
+&tao_design_lattice
+  n_universes = 2
+  design_lattice(1)%file = "lat.bmad"
+  design_lattice(2)%file = "lat.bmad"
+/
+
+!------------------------ Data -------------------------------
+!-------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = 'orbit'
+  universe = "*"
+  n_d1_data = 2
+  default_weight = 1e8
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = 'x'
+  search_for_lat_eles = 'det*'
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = 'y'
+  search_for_lat_eles = 'det*'
+/
+
+!------------------------ Variables --------------------------
+!-------------------------------------------------------------
+
+&tao_var
+  v1_var%name = 'quad_k1'
+  search_for_lat_eles = 'Quad::*'
+  default_step = 1e-4
+  default_attribute = 'k1'
+  default_merit_type = 'target'
+  default_weight = 1
+  ix_min_var = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+/
+
+&tao_var
+  v1_var%name = 'quad_tilt'
+  search_for_lat_eles = 'Quad::*'
+  default_step = 1e-4
+  default_attribute = 'tilt'
+  default_merit_type = 'target'
+  default_weight = 1
+  ix_min_var = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+/
+
+&tao_var
+  v1_var%name = 'steering'
+  default_step = 1e-4
+  default_attribute = 'k1'
+  default_merit_type = 'target'
+  default_weight = 1
+  default_key_delta = 1e-2
+  default_key_bound = T
+  var(1:2)%universe  =  1,       2
+  var(1:2)%ele_name  = 'h1',    'v2'
+  var(1:2)%attribute = 'hkick', 'vkick'
+/

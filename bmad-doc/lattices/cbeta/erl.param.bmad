@@ -1,0 +1,45 @@
+! Parameters needed in multiple places
+
+global_rf_frequency = 1.3e9 - 100e3
+
+lr20 = 0.20
+lr_hdip1_3350 = 0.2197
+lr_hdip1_4660 = 0.2187
+lr_hdip2 = 0.296
+lr_hdip3 = 0.3543
+lr_hdip4 = 0.1571
+
+sr_bpm_offset = 34.89e-3
+h2_bpm_offset = 40.89e-3
+h5_bpm_offset = 27.89e-3
+
+e006 =   6e6
+e042 =  42e6
+e078 =  78e6
+e114 = 114e6
+e150 = 150e6
+
+p006 = sqrt(e006^2-m_electron^2)
+p042 = sqrt(e042^2-m_electron^2)
+p078 = sqrt(e078^2-m_electron^2)
+p114 = sqrt(e114^2-m_electron^2)
+p150 = sqrt(e150^2-m_electron^2)
+
+srqua : quadrupole, aperture = 0.0254, field_master=t, fringe_type=full,
+ l=+1.5123131574978999e-01, fq1=-8.4454203521079928e-05, fq2=+4.5142804358600607e-06
+srqua[descrip] = "3DMODEL=Splitter_Quad/Splitter_Quad.blend"
+srqua_long : quadrupole, aperture = 0.0254, field_master=t, fringe_type=full,
+ l=+2.0472760605914792e-01, fq1=-1.3921632035855878e-04, fq2=+9.2609583203089141e-06
+
+vc1 : kicker, l=140e-3, field_master=t
+vc2 : kicker, l=94e-3,  field_master=t
+
+septum2.g = 0.67792
+septum2.angle = pi/3.14159*20.05/85.1
+septum2 : sbend, g = -septum2.g, l = septum2.angle/septum2.g
+
+indpa.angle = -15*pi/180
+! Injector dipole, used with one face perpendicular to beam
+indpa.asym : sbend, fringe_type=full, l=0.255856230795702133
+! Injector dipole, used symmetrically as rbend
+indpa.sym  : sbend, fringe_type=full, l=0.31932/sinc(0.5*indpa.angle)

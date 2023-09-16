@@ -1,0 +1,34 @@
+parameter[lattice]           = COSY_Yann_V_0.0
+parameter[particle]          = deuteron
+parameter[geometry]          = closed
+
+
+
+beam, pc                     = 0.970
+beam, n_part                 =  1.0E11
+
+
+
+
+! call, file = COSY_bend_errors.bmad
+call, file = COSY_bend_NO_errors.bmad
+call, file = COSY_magnet_settings.bmad
+
+call, file=COSY_layout.bmad
+call, file=COSY_lattice.bmad
+
+call, file = COSY_controllers.bmad
+
+! *[tracking_method] = symp_lie_ptc
+*[tracking_method] = runge_kutta
+*[mat6_calc_method] = tracking
+*[spin_tracking_method] = tracking
+
+
+! quadrupole::*[fringe_type] = full
+! sbend::*[fringe_type]=full
+
+
+CAVITY[is_on] = false
+CAVITY[tracking_method] = Bmad_standard
+CAVITY[mat6_calc_method] = Bmad_standard

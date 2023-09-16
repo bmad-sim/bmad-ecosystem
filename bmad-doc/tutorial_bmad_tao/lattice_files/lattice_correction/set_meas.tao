@@ -1,0 +1,8 @@
+set dat 1@orbit.x|meas = [2.9627E-03, 3.1590E-03, 2.3705E-03, 2.1821E-03]
+set dat 1@orbit.y|meas = [-1.1841E-03, -1.0370E-03, -1.3810E-03, -1.5749E-03]
+set dat 2@orbit.x|meas = [-1.0481E-03, -1.1265E-03, -9.6521E-04, -8.8252E-04]
+set dat 2@orbit.y|meas = [7.6870E-04, 6.6229E-04, 8.6742E-04, 9.6448E-04]
+
+set var steering[1:2]|meas = [1e-4, 1e-4]
+set var quad_k1[1:2]|meas = [1.0, -1.1]
+set var quad_tilt[1:2]|meas = [0, 0]

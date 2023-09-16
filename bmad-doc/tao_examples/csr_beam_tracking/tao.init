@@ -1,0 +1,64 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = 'tao_plot.init' 
+  startup_file = 'CSR.tao'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes =1
+ ! unique_name_suffix="*::_?"
+  design_lattice(1)%file = "lat.bmad"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = True
+  global%track_type = 'single'
+  global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F
+/
+
+!----MODE X ----
+&tao_beam_init
+  beam_init%n_particle = 1000
+  beam_init%random_engine = 'quasi'
+  !beam_init%random_engine = 'pseudo'
+  ix_universe = 1
+  saved_at =  "MARKER::*, BEGINNING, END"
+  beam_init%a_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
+  beam_init%b_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
+  beam_init%dPz_dz = 0.0
+  beam_init%n_bunch = 1     
+  beam_init%bunch_charge = 77.0e-12
+  beam_init%sig_pz = 0e-9
+  beam_init%sig_z = 0.000899377 ! 3 ps * cLight
+/
+
+!------------------------Data--------------------------------------------
+!------------------------------------------------------------------------
+
+
+! FFAG orbit matching
+
+!&tao_d2_data
+      d2_data%name = "o1" 
+      universe = 1
+      n_d1_data = 1
+/
+
+!&tao_d1_data
+      ix_d1_data = 1
+      default_weight = 1
+      d1_data%name = "end"
+      datum( 1) =  "orbit.x"     ''  '' 'FFAG.CELLMATCH\1'   'target'     -0.0169816520 40
+      datum( 2) =  "orbit.px"     '' '' 'FFAG.CELLMATCH\1'   'target'   -0.0931239496  1
+/
+

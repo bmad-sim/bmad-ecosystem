@@ -1,0 +1,15 @@
+
+wave phase.b  ! invoke the wave analysis
+
+set wave ix_a = 74 92    ! Set A-region boundaries
+set wave ix_b = 94 104   ! Set B-region boundaries
+
+! Looking at the plot one can see that there is a bad point in the A-region so veto it.
+
+veto data phase.b[90]
+
+! The wave analysis indicates a quadrupole error near element 948 so look for a quadrupole in this region.
+
+show lat 940:960   ! This shows that quadrupole Q13E (#955) is a good candidate.
+show ele 955       ! This shows that Q13E has beta_b ~ 10*beta_a which is consistant with the fact that
+									 !   the phi_b change is much larger than the phi_a change.

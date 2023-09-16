@@ -1,0 +1,166 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  plot_page%size = 600 , 300 
+  plot_page%text_height = 12.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'  
+  plot_page%n_curve_pts = 1600
+
+  plot_page%floor_plan_shape_scale = 0.01 !m to cm
+
+  region(1)%name = 'floor'
+  region(1)%location = 0.0, 1.0, 0.5, 0.95
+  
+  region(2)%name = 'top'
+  region(2)%location = 0.0, 1.0, 0.3, 0.5
+  
+  region(3)%name = 'middle'
+  region(3)%location = 0.0, 1.0, 0.1, 0.26
+  
+  region(4)%name = 'bottom'
+  region(4)%location = 0.0, 1.0, 0.0, 0.1
+
+  region(5)%name = 'r21'
+  region(5)%location = 0.0, .5, 0.1, 0.5
+  region(6)%name = 'r11'
+  region(6)%location = 0.0, .5, .5, 1.0
+  region(7)%name = 'r22'
+  region(7)%location = 0.5, 1.0, 0.1, 0.5
+  region(8)%name = 'r12'
+  region(8)%location = 0.5, 1.0, 0.5, 1.0
+  
+  region(9)%name = 'r00'
+  region(9)%location = 0.0, 1.0, 0.0, 1.0
+
+
+  ! 2-plot layout
+  region(10)%name = 'top2'
+  region(10)%location = 0.0, 1.0, 0.5, .95
+  
+  region(11)%name = 'middle2'
+  region(11)%location = 0.0, 1.0, 0.1, 0.45
+
+
+
+  place(1) = 'r00', 'floor_plan'
+
+/
+
+
+
+!------------------ layout ------
+&tao_template_plot
+  plot%name = 'layout'
+  default_graph%x%label = ' '
+  plot%n_graph = 1
+  plot%x_axis_type = 's'
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'u1'
+  graph%type = 'lat_layout'
+  graph%box = 1, 1, 1, 1
+  graph%x%draw_numbers = False
+  graph%ix_universe = -1 !Syntax Changed from 0
+  graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
+  !graph%y%label = 'Layout'
+  graph%y%max = 2
+  graph%y%min = -2
+  graph%y%major_div = 4
+/
+
+&lat_layout_drawing 
+  ele_shape(1) = "Quadrupole::*"        "asym_var_box" "Blue"        0.1    'none'
+  ele_shape(2) = "SBend::*"             "Box"          "Red"         1      'none'
+  ele_shape(3) = "lcavity::*"           "XBox"         "Green"       0.5    'none'
+  ele_shape(4) = "wiggler::*"           "XBox"         "Orange"      0.5    'none'
+  ele_shape(5) = "Sextupole::*"         "asym_var_box" "magenta"     0.1    'none'
+  ele_shape(6) = "ECOLLIMATOR::*"       "Xbox"         "Black"       20     'none'
+  ele_shape(7) = "hkicker::*"           "XBox"         "Red"         0.2    'none'
+  ele_shape(8) = "vkicker::*"           "bow_tie"      "Red"         0.2    'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"    "Diamond"      "Black"       0.1    'none'
+  ele_shape(10) = "kicker::*"           "Box"          "Red"         0.2    'none'
+  ele_shape(11) = "PIPE::*"             "Box"          "Light_Grey"  0.01   'none'
+  ele_shape(12) = "INSTRUMENT::*"       "Xbox"         "Black"       1      'none'
+  ele_shape(13) = "SOLENOID::*"         "Xbox"         "Blue"        1      'none'
+  ele_shape(14) = "rfcavity::*"         "XBox"         "Red"         100    'none'
+  ele_shape(15) = "E_GUN::*"            "XBox"         "Black"       20     'none'
+  ele_shape(16) = "EM_FIELD::*"         "Box"          "Blue"        20     'none'
+  !ele_shape(16) = "wall::beam_chamber" "XBox"         "Black"       500    'none'
+/       
+   
+&floor_plan_drawing
+  ele_shape(1) = "Quadrupole::F*"     "Box"        "Blue"      30    'none'  ! 30 cm radius FFAG Quads
+  ele_shape(2) = "SBend::*"           "Box"        "Red"       12    'none'
+  ele_shape(3) = "lcavity::*"         "XBox"       "Green"     20    'none'
+  ele_shape(4) = "wiggler::*"         "XBox"       "Orange"    10    'none'
+  ele_shape(5) = "Sextupole::*"       "Box"        "orange"     4    'none'
+  ele_shape(6) = "ECOLLIMATOR::*"     "Xbox"       "Black"     10    'none'
+  ele_shape(7) = "hkicker::*"         "XBox"       "Red"        5    'none'
+  ele_shape(8) = "vkicker::*"         "bow_tie"    "Red"        5    'none'
+  ele_shape(9) = "INSTRUMENT::*BPM*"  "Diamond"    "Black"      1    'none'
+  ele_shape(10) = "kicker::*"         "Box"        "Red"        5    'none'
+  ele_shape(11) = "PIPE::F*"          "Box"        "Light_Grey" 3.7  'none'
+  ele_shape(12) = "PIPE::*"           "Box"        "Light_Grey" 2.54 'none'
+  ele_shape(13) = "INSTRUMENT::*"     "Xbox"       "Black"      5    'none'
+  ele_shape(14) = "SOLENOID::*"       "Xbox"       "Blue"       5    'none'
+  ele_shape(15) = "rfcavity::*"       "XBox"       "Red"       10    'none'
+  ele_shape(16) = "E_GUN::*"          "XBox"       "Black"     20    'none'
+  ele_shape(17) = "EM_FIELD::*"       "Box"        "Blue"      20    'none'
+  ele_shape(18) = "Quadrupole::Z*"    "Box"        "Blue"      30    'none'  ! 30 cm radius FFAG Quads
+  ele_shape(19) = "Quadrupole::*"     "Box"        "Blue"       7    'none'   ! All other quads
+  ele_shape(20) = 'building_wall::*'  "solid_line" 'black'      0     '-'
+/  
+                                            
+! Colors: 
+!"BLACK" 
+!"RED" 
+!"ORANGE" 
+!"MAGENTA" 
+!"YELLOW" 
+!"GREEN" 
+!"CYAN" 
+!"BLUE" 
+!"PURPLE" 
+
+
+
+
+!-----------------
+
+&tao_template_plot
+  plot%name = 'zphase'
+  default_graph%x%min = -6
+  default_graph%x%max =  6
+  !default_graph%x%major_div = 10
+  default_graph%x%label = 'z (mm)'  
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'phase_space'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Z-Pz'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+  graph%y%label = '\gd (10\u-3\d)'
+  graph%y%max = 3
+  graph%y%min = -3
+  graph%y%major_div = 4
+  graph%y%label_offset=.4
+  curve(1)%data_type = 'z-pz' 
+  curve(1)%y_axis_scale_factor = 1000.0 !1->10^-3 relative
+  curve(1)%data_source = 'beam_tracking'
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
+/
+
+!--------------------------------------------------------------
+
+

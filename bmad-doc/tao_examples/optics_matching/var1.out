@@ -1,0 +1,49 @@
+ Q1[K1] = -8.09258961838637525E+000
+ Q2[K1] =  2.80211533446350103E+000
+ Q3[K1] =  4.24580394658263227E+000
+ Q4[K1] =  2.75132626563968051E-002
+ Q5[K1] =  5.20448193230816258E-001
+ Q6[K1] = -3.10119153302061834E+000
+ 
+ end_file
+ 
+ 
+ ! Top 10
+ 
+ Constraints                     Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ twiss.end[6]  etap.x <target>                         END        0.0000E+00  -1.1075E-01  1.227E+00
+ twiss.end[5]  eta.x <target>                          END        0.0000E+00  -2.8668E-01  8.218E-01
+ twiss.end[1]  beta.a <target>                         END        1.2500E+01   1.2475E+01  6.092E-03
+ twiss.end[2]  alpha.a <target>                        END       -1.0000E+00  -9.9319E-01  4.640E-03
+ twiss.end[3]  beta.b <target>                         END        1.2500E+01   1.2489E+01  1.157E-03
+ twiss.end[4]  alpha.b <target>                        END       -1.0000E+00  -1.0010E+00  9.978E-05
+ quad[6]       Q6[K1]                                  4.35      -1.0000E+30  -3.1012E+00  0.000E+00
+ quad[5]       Q5[K1]                                  3.95      -1.0000E+30   5.2045E-01  0.000E+00
+ quad[4]       Q4[K1]                                  3.15      -1.0000E+30   2.7513E-02  0.000E+00
+ quad[3]       Q3[K1]                                  2.75      -1.0000E+30   4.2458E+00  0.000E+00
+ Constraints                     Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ 
+  figure of merit: 2.060332E+00
+ 
+ List of non-zero contributors to the Merit Function:
+ Name                                          Merit           Sigma [= sqrt(Chi^2/N)]
+ twiss.end                                     2.0603E+00      1.2598E-01
+ 
+ Constraints                     Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ twiss.end[1]  beta.a <target>                         END        1.2500E+01   1.2475E+01  6.092E-03
+ twiss.end[2]  alpha.a <target>                        END       -1.0000E+00  -9.9319E-01  4.640E-03
+ twiss.end[3]  beta.b <target>                         END        1.2500E+01   1.2489E+01  1.157E-03
+ twiss.end[4]  alpha.b <target>                        END       -1.0000E+00  -1.0010E+00  9.978E-05
+ twiss.end[5]  eta.x <target>                          END        0.0000E+00  -2.8668E-01  8.218E-01
+ twiss.end[6]  etap.x <target>                         END        0.0000E+00  -1.1075E-01  1.227E+00
+ twiss.max[1]  beta.a <max>                Q1          END        1.0000E+02   1.6618E+01  0.000E+00  P3\Q3
+ twiss.max[2]  eta.x <abs_max>             Q1          END        1.0000E+00   2.8668E-01  0.000E+00  P5
+ quad[1]       Q1[K1]                                  1.55      -1.0000E+30  -8.0926E+00  0.000E+00
+ quad[2]       Q2[K1]                                  1.95      -1.0000E+30   2.8021E+00  0.000E+00
+ quad[3]       Q3[K1]                                  2.75      -1.0000E+30   4.2458E+00  0.000E+00
+ quad[4]       Q4[K1]                                  3.15      -1.0000E+30   2.7513E-02  0.000E+00
+ quad[5]       Q5[K1]                                  3.95      -1.0000E+30   5.2045E-01  0.000E+00
+ quad[6]       Q6[K1]                                  4.35      -1.0000E+30  -3.1012E+00  0.000E+00
+ Constraints                     Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ 
+  figure of merit: 2.060332E+00

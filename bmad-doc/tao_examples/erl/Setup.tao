@@ -1,0 +1,21 @@
+place * none
+set global track_type = beam
+place r11 zphase
+place r12 zphase
+place r21 zphase
+place r22 zphase2
+
+set curve r11.z.c1 ele_ref_name = linac.beg\1
+set curve r12.z.c1 ele_ref_name = linac.end\1
+set curve r21.z.c1 ele_ref_name = linac.beg\2
+set curve r22.z.c1 ele_ref_name = linac.end\2
+
+x-s all -5 5
+sc all -10 10
+
+sc r22 0 50
+
+place r3 key
+
+set var r56[1]|model = 0.234
+set var t566[1]|model = 0.567

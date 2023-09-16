@@ -1,0 +1,1523 @@
+parameter[lattice]     = "CBETA first half FFAG arc + merge + straight"
+parameter[geometry] = Open            
+ 
+parameter[p0c]                    =1.5849917628E8
+parameter[particle]               = Electron
+parameter[absolute_time_tracking]    = F
+beginning[theta_position] = -0.7853981634
+
+beginning[beta_a]   = 0.733087315
+beginning[alpha_a]  = -2.2284040975
+beginning[eta_x]    = -0.0232471665
+beginning[etap_x]   = 0.133020692
+beginning[beta_b]   = 0.5844819822
+beginning[alpha_b]  = 1.7413371069
+particle_start[x]  = -0.0128497944
+particle_start[px] = -0.0351727014
+particle_start[pz] = -0.577297164
+ 
+!-------------------------------------------------------
+ 
+MAR.BEG: MARKER
+FA.MAR.BEG: MARKER
+FA.ALIGN_PATCH: PATCH
+FA.PIP01A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_1: drift, l = 0.057651224775
+FA.QUA01.MAR.MID: MARKER
+slave_drift_2: drift, l = 0.057651224775
+FA.PIP01: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH01A: PATCH, X_PITCH = -0.03926990817
+slave_drift_3: drift, l = 0.053698316075
+FA.QUA02.MAR.MID: MARKER
+slave_drift_4: drift, l = 0.053698316075
+FA.PATCH01B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH02: PATCH
+FA.PIP02: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP03A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_5: drift, l = 0.057651224775
+FA.QUA03.MAR.MID: MARKER
+slave_drift_6: drift, l = 0.057651224775
+FA.PIP03: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH03A: PATCH, X_PITCH = -0.03926990817
+slave_drift_7: drift, l = 0.053698316075
+FA.QUA04.MAR.MID: MARKER
+slave_drift_8: drift, l = 0.053698316075
+FA.PATCH03B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH04: PATCH
+FA.PIP04: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP05A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_9: drift, l = 0.057651224775
+FA.QUA05.MAR.MID: MARKER
+slave_drift_10: drift, l = 0.057651224775
+FA.PIP05: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH05A: PATCH, X_PITCH = -0.03926990817
+slave_drift_11: drift, l = 0.053698316075
+FA.QUA06.MAR.MID: MARKER
+slave_drift_12: drift, l = 0.053698316075
+FA.PATCH05B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH06: PATCH
+FA.PIP06: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP07A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_13: drift, l = 0.057651224775
+FA.QUA07.MAR.MID: MARKER
+slave_drift_14: drift, l = 0.057651224775
+FA.PIP07: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH07A: PATCH, X_PITCH = -0.03926990817
+slave_drift_15: drift, l = 0.053698316075
+FA.QUA08.MAR.MID: MARKER
+slave_drift_16: drift, l = 0.053698316075
+FA.PATCH07B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH08: PATCH
+FA.PIP08: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP09A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_17: drift, l = 0.057651224775
+FA.QUA09.MAR.MID: MARKER
+slave_drift_18: drift, l = 0.057651224775
+FA.PIP09: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH09A: PATCH, X_PITCH = -0.03926990817
+slave_drift_19: drift, l = 0.053698316075
+FA.QUA10.MAR.MID: MARKER
+slave_drift_20: drift, l = 0.053698316075
+FA.PATCH09B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH10: PATCH
+FA.PIP10: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP11A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_21: drift, l = 0.057651224775
+FA.QUA11.MAR.MID: MARKER
+slave_drift_22: drift, l = 0.057651224775
+FA.PIP11: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH11A: PATCH, X_PITCH = -0.03926990817
+slave_drift_23: drift, l = 0.053698316075
+FA.QUA12.MAR.MID: MARKER
+slave_drift_24: drift, l = 0.053698316075
+FA.PATCH11B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH12: PATCH
+FA.PIP12: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP13A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_25: drift, l = 0.057651224775
+FA.QUA13.MAR.MID: MARKER
+slave_drift_26: drift, l = 0.057651224775
+FA.PIP13: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH13A: PATCH, X_PITCH = -0.03926990817
+slave_drift_27: drift, l = 0.053698316075
+FA.QUA14.MAR.MID: MARKER
+slave_drift_28: drift, l = 0.053698316075
+FA.PATCH13B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH14: PATCH
+FA.PIP14: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP15A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_29: drift, l = 0.057651224775
+FA.QUA15.MAR.MID: MARKER
+slave_drift_30: drift, l = 0.057651224775
+FA.PIP15: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH15A: PATCH, X_PITCH = -0.03926990817
+slave_drift_31: drift, l = 0.053698316075
+FA.QUA16.MAR.MID: MARKER
+slave_drift_32: drift, l = 0.053698316075
+FA.PATCH15B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH16: PATCH
+FA.PIP16: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP17A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_33: drift, l = 0.057651224775
+FA.QUA17.MAR.MID: MARKER
+slave_drift_34: drift, l = 0.057651224775
+FA.PIP17: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH17A: PATCH, X_PITCH = -0.03926990817
+slave_drift_35: drift, l = 0.053698316075
+FA.QUA18.MAR.MID: MARKER
+slave_drift_36: drift, l = 0.053698316075
+FA.PATCH17B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH18: PATCH
+FA.PIP18: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP19A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_37: drift, l = 0.057651224775
+FA.QUA19.MAR.MID: MARKER
+slave_drift_38: drift, l = 0.057651224775
+FA.PIP19: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH19A: PATCH, X_PITCH = -0.03926990817
+slave_drift_39: drift, l = 0.053698316075
+FA.QUA20.MAR.MID: MARKER
+slave_drift_40: drift, l = 0.053698316075
+FA.PATCH19B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH20: PATCH
+FA.PIP20: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP21A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_41: drift, l = 0.057651224775
+FA.QUA21.MAR.MID: MARKER
+slave_drift_42: drift, l = 0.057651224775
+FA.PIP21: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH21A: PATCH, X_PITCH = -0.03926990817
+slave_drift_43: drift, l = 0.053698316075
+FA.QUA22.MAR.MID: MARKER
+slave_drift_44: drift, l = 0.053698316075
+FA.PATCH21B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH22: PATCH
+FA.PIP22: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP23A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_45: drift, l = 0.057651224775
+FA.QUA23.MAR.MID: MARKER
+slave_drift_46: drift, l = 0.057651224775
+FA.PIP23: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH23A: PATCH, X_PITCH = -0.03926990817
+slave_drift_47: drift, l = 0.053698316075
+FA.QUA24.MAR.MID: MARKER
+slave_drift_48: drift, l = 0.053698316075
+FA.PATCH23B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH24: PATCH
+FA.PIP24: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP25A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_49: drift, l = 0.057651224775
+FA.QUA25.MAR.MID: MARKER
+slave_drift_50: drift, l = 0.057651224775
+FA.PIP25: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH25A: PATCH, X_PITCH = -0.03926990817
+slave_drift_51: drift, l = 0.053698316075
+FA.QUA26.MAR.MID: MARKER
+slave_drift_52: drift, l = 0.053698316075
+FA.PATCH25B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH26: PATCH
+FA.PIP26: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP27A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_53: drift, l = 0.057651224775
+FA.QUA27.MAR.MID: MARKER
+slave_drift_54: drift, l = 0.057651224775
+FA.PIP27: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH27A: PATCH, X_PITCH = -0.03926990817
+slave_drift_55: drift, l = 0.053698316075
+FA.QUA28.MAR.MID: MARKER
+slave_drift_56: drift, l = 0.053698316075
+FA.PATCH27B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH28: PATCH
+FA.PIP28: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP29A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_57: drift, l = 0.057651224775
+FA.QUA29.MAR.MID: MARKER
+slave_drift_58: drift, l = 0.057651224775
+FA.PIP29: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH29A: PATCH, X_PITCH = -0.03926990817
+slave_drift_59: drift, l = 0.053698316075
+FA.QUA30.MAR.MID: MARKER
+slave_drift_60: drift, l = 0.053698316075
+FA.PATCH29B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH30: PATCH
+FA.PIP30: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP31A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_61: drift, l = 0.057651224775
+FA.QUA31.MAR.MID: MARKER
+slave_drift_62: drift, l = 0.057651224775
+FA.PIP31: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH31A: PATCH, X_PITCH = -0.03926990817
+slave_drift_63: drift, l = 0.053698316075
+FA.QUA32.MAR.MID: MARKER
+slave_drift_64: drift, l = 0.053698316075
+FA.PATCH31B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH32: PATCH
+FA.PIP32: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP33A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_65: drift, l = 0.057651224775
+FA.QUA33.MAR.MID: MARKER
+slave_drift_66: drift, l = 0.057651224775
+FA.PIP33: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH33A: PATCH, X_PITCH = -0.03926990817
+slave_drift_67: drift, l = 0.053698316075
+FA.QUA34.MAR.MID: MARKER
+slave_drift_68: drift, l = 0.053698316075
+FA.PATCH33B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH34: PATCH
+FA.PIP34: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP35A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_69: drift, l = 0.057651224775
+FA.QUA35.MAR.MID: MARKER
+slave_drift_70: drift, l = 0.057651224775
+FA.PIP35: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH35A: PATCH, X_PITCH = -0.03926990817
+slave_drift_71: drift, l = 0.053698316075
+FA.QUA36.MAR.MID: MARKER
+slave_drift_72: drift, l = 0.053698316075
+FA.PATCH35B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH36: PATCH
+FA.PIP36: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP37A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_73: drift, l = 0.057651224775
+FA.QUA37.MAR.MID: MARKER
+slave_drift_74: drift, l = 0.057651224775
+FA.PIP37: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH37A: PATCH, X_PITCH = -0.03926990817
+slave_drift_75: drift, l = 0.053698316075
+FA.QUA38.MAR.MID: MARKER
+slave_drift_76: drift, l = 0.053698316075
+FA.PATCH37B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH38: PATCH
+FA.PIP38: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP39A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_77: drift, l = 0.057651224775
+FA.QUA39.MAR.MID: MARKER
+slave_drift_78: drift, l = 0.057651224775
+FA.PIP39: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH39A: PATCH, X_PITCH = -0.03926990817
+slave_drift_79: drift, l = 0.053698316075
+FA.QUA40.MAR.MID: MARKER
+slave_drift_80: drift, l = 0.053698316075
+FA.PATCH39B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH40: PATCH
+FA.PIP40: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP41A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_81: drift, l = 0.057651224775
+FA.QUA41.MAR.MID: MARKER
+slave_drift_82: drift, l = 0.057651224775
+FA.PIP41: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH41A: PATCH, X_PITCH = -0.03926990817
+slave_drift_83: drift, l = 0.053698316075
+FA.QUA42.MAR.MID: MARKER
+slave_drift_84: drift, l = 0.053698316075
+FA.PATCH41B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH42: PATCH
+FA.PIP42: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP43A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_85: drift, l = 0.057651224775
+FA.QUA43.MAR.MID: MARKER
+slave_drift_86: drift, l = 0.057651224775
+FA.PIP43: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH43A: PATCH, X_PITCH = -0.03926990817
+slave_drift_87: drift, l = 0.053698316075
+FA.QUA44.MAR.MID: MARKER
+slave_drift_88: drift, l = 0.053698316075
+FA.PATCH43B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH44: PATCH
+FA.PIP44: PIPE, L = 0.07, DS_STEP = 0.01
+FA.MERGE.MAR.BEG: MARKER
+FA.PIP45A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_89: drift, l = 0.057651224775
+FA.QUA45.MAR.MID: MARKER
+slave_drift_90: drift, l = 0.057651224775
+FA.PIP45: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH45A: PATCH, X_PITCH = -0.03926990817
+slave_drift_91: drift, l = 0.053698316075
+FA.QUA46.MAR.MID: MARKER
+slave_drift_92: drift, l = 0.053698316075
+FA.PATCH45B: PATCH, X_PITCH = -0.03926990817
+FA.PATCH46: PATCH
+FA.PIP46: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP47A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_93: drift, l = 0.057651224775
+FA.QUA47.MAR.MID: MARKER
+slave_drift_94: drift, l = 0.057651224775
+FA.PIP47: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH47A: PATCH, X_PITCH = -0.038769580451
+slave_drift_95: drift, l = 0.053698316075
+FA.QUA48.MAR.MID: MARKER
+slave_drift_96: drift, l = 0.053698316075
+FA.PATCH47B: PATCH, X_PITCH = -0.038769580451
+FA.PATCH48: PATCH
+FA.PIP48: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP49A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_97: drift, l = 0.057651224775
+FA.QUA49.MAR.MID: MARKER
+slave_drift_98: drift, l = 0.057651224775
+FA.PIP49: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH49A: PATCH, X_PITCH = -0.037361681521
+slave_drift_99: drift, l = 0.053698316075
+FA.QUA50.MAR.MID: MARKER
+slave_drift_100: drift, l = 0.053698316075
+FA.PATCH49B: PATCH, X_PITCH = -0.037361681521
+FA.PATCH50: PATCH
+FA.PIP50: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP51A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_101: drift, l = 0.057651224775
+FA.QUA51.MAR.MID: MARKER
+slave_drift_102: drift, l = 0.057651224775
+FA.PIP51: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH51A: PATCH, X_PITCH = -0.03518583772
+slave_drift_103: drift, l = 0.053698316075
+FA.QUA52.MAR.MID: MARKER
+slave_drift_104: drift, l = 0.053698316075
+FA.PATCH51B: PATCH, X_PITCH = -0.03518583772
+FA.PATCH52: PATCH
+FA.PIP52: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP53A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_105: drift, l = 0.057651224775
+FA.QUA53.MAR.MID: MARKER
+slave_drift_106: drift, l = 0.057651224775
+FA.PIP53: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH53A: PATCH, X_PITCH = -0.032381675389
+slave_drift_107: drift, l = 0.053698316075
+FA.QUA54.MAR.MID: MARKER
+slave_drift_108: drift, l = 0.053698316075
+FA.PATCH53B: PATCH, X_PITCH = -0.032381675389
+FA.PATCH54: PATCH
+FA.PIP54: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP55A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_109: drift, l = 0.057651224775
+FA.QUA55.MAR.MID: MARKER
+slave_drift_110: drift, l = 0.057651224775
+FA.PIP55: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH55A: PATCH, X_PITCH = -0.029088820867
+slave_drift_111: drift, l = 0.053698316075
+FA.QUA56.MAR.MID: MARKER
+slave_drift_112: drift, l = 0.053698316075
+FA.PATCH55B: PATCH, X_PITCH = -0.029088820867
+FA.PATCH56: PATCH
+FA.PIP56: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP57A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_113: drift, l = 0.057651224775
+FA.QUA57.MAR.MID: MARKER
+slave_drift_114: drift, l = 0.057651224775
+FA.PIP57: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH57A: PATCH, X_PITCH = -0.025446900494
+slave_drift_115: drift, l = 0.053698316075
+FA.QUA58.MAR.MID: MARKER
+slave_drift_116: drift, l = 0.053698316075
+FA.PATCH57B: PATCH, X_PITCH = -0.025446900494
+FA.PATCH58: PATCH
+FA.PIP58: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP59A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_117: drift, l = 0.057651224775
+FA.QUA59.MAR.MID: MARKER
+slave_drift_118: drift, l = 0.057651224775
+FA.PIP59: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH59A: PATCH, X_PITCH = -0.021595540611
+slave_drift_119: drift, l = 0.053698316075
+FA.QUA60.MAR.MID: MARKER
+slave_drift_120: drift, l = 0.053698316075
+FA.PATCH59B: PATCH, X_PITCH = -0.021595540611
+FA.PATCH60: PATCH
+FA.PIP60: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP61A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_121: drift, l = 0.057651224775
+FA.QUA61.MAR.MID: MARKER
+slave_drift_122: drift, l = 0.057651224775
+FA.PIP61: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH61A: PATCH, X_PITCH = -0.017674367559
+slave_drift_123: drift, l = 0.053698316075
+FA.QUA62.MAR.MID: MARKER
+slave_drift_124: drift, l = 0.053698316075
+FA.PATCH61B: PATCH, X_PITCH = -0.017674367559
+FA.PATCH62: PATCH
+FA.PIP62: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP63A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_125: drift, l = 0.057651224775
+FA.QUA63.MAR.MID: MARKER
+slave_drift_126: drift, l = 0.057651224775
+FA.PIP63: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH63A: PATCH, X_PITCH = -0.013823007676
+slave_drift_127: drift, l = 0.053698316075
+FA.QUA64.MAR.MID: MARKER
+slave_drift_128: drift, l = 0.053698316075
+FA.PATCH63B: PATCH, X_PITCH = -0.013823007676
+FA.PATCH64: PATCH
+FA.PIP64: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP65A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_129: drift, l = 0.057651224775
+FA.QUA65.MAR.MID: MARKER
+slave_drift_130: drift, l = 0.057651224775
+FA.PIP65: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH65A: PATCH, X_PITCH = -0.010181087303
+slave_drift_131: drift, l = 0.053698316075
+FA.QUA66.MAR.MID: MARKER
+slave_drift_132: drift, l = 0.053698316075
+FA.PATCH65B: PATCH, X_PITCH = -0.010181087303
+FA.PATCH66: PATCH
+FA.PIP66: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP67A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_133: drift, l = 0.057651224775
+FA.QUA67.MAR.MID: MARKER
+slave_drift_134: drift, l = 0.057651224775
+FA.PIP67: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH67A: PATCH, X_PITCH = -6.8882327812E-3
+slave_drift_135: drift, l = 0.053698316075
+FA.QUA68.MAR.MID: MARKER
+slave_drift_136: drift, l = 0.053698316075
+FA.PATCH67B: PATCH, X_PITCH = -6.8882327812E-3
+FA.PATCH68: PATCH
+FA.PIP68: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP69A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_137: drift, l = 0.057651224775
+FA.QUA69.MAR.MID: MARKER
+slave_drift_138: drift, l = 0.057651224775
+FA.PIP69: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH69A: PATCH, X_PITCH = -4.0840704497E-3
+slave_drift_139: drift, l = 0.053698316075
+FA.QUA70.MAR.MID: MARKER
+slave_drift_140: drift, l = 0.053698316075
+FA.PATCH69B: PATCH, X_PITCH = -4.0840704497E-3
+FA.PATCH70: PATCH
+FA.PIP70: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP71A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_141: drift, l = 0.057651224775
+FA.QUA71.MAR.MID: MARKER
+slave_drift_142: drift, l = 0.057651224775
+FA.PIP71: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH71A: PATCH, X_PITCH = -1.9082266488E-3
+slave_drift_143: drift, l = 0.053698316075
+FA.QUA72.MAR.MID: MARKER
+slave_drift_144: drift, l = 0.053698316075
+FA.PATCH71B: PATCH, X_PITCH = -1.9082266488E-3
+FA.PATCH72: PATCH
+FA.PIP72: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP73A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_145: drift, l = 0.057651224775
+FA.QUA73.MAR.MID: MARKER
+slave_drift_146: drift, l = 0.057651224775
+FA.PIP73: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH73A: PATCH, X_PITCH = -5.0032771891E-4
+slave_drift_147: drift, l = 0.053698316075
+FA.QUA74.MAR.MID: MARKER
+slave_drift_148: drift, l = 0.053698316075
+FA.PATCH73B: PATCH, X_PITCH = -5.0032771891E-4
+FA.PATCH74: PATCH
+FA.PIP74: PIPE, L = 0.07, DS_STEP = 0.01
+FA.PIP75A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_149: drift, l = 0.057651224775
+FA.QUA75.MAR.MID: MARKER
+slave_drift_150: drift, l = 0.057651224775
+FA.PIP75: PIPE, L = 0.05, DS_STEP = 0.01
+FA.PATCH75A: PATCH
+slave_drift_151: drift, l = 0.053698316075
+FA.QUA76.MAR.MID: MARKER
+slave_drift_152: drift, l = 0.053698316075
+FA.PATCH75B: PATCH
+FA.PATCH76: PATCH
+FA.PIP76: PIPE, L = 0.07, DS_STEP = 0.01
+FA.MERGE.MAR.END: MARKER
+FA.MAR.END: MARKER
+ZA.MAR.BEG: MARKER
+ZA.PIP01A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_153: drift, l = 0.057651224775
+ZA.QUA01.MAR.MID: MARKER
+slave_drift_154: drift, l = 0.057651224775
+ZA.PIP01: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_155: drift, l = 0.053698316075
+ZA.QUA02.MAR.MID: MARKER
+slave_drift_156: drift, l = 0.053698316075
+ZA.PIP02: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP03A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_157: drift, l = 0.057651224775
+ZA.QUA03.MAR.MID: MARKER
+slave_drift_158: drift, l = 0.057651224775
+ZA.PIP03: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_159: drift, l = 0.053698316075
+ZA.QUA04.MAR.MID: MARKER
+slave_drift_160: drift, l = 0.053698316075
+ZA.PIP04: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP05A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_161: drift, l = 0.057651224775
+ZA.QUA05.MAR.MID: MARKER
+slave_drift_162: drift, l = 0.057651224775
+ZA.PIP05: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_163: drift, l = 0.053698316075
+ZA.QUA06.MAR.MID: MARKER
+slave_drift_164: drift, l = 0.053698316075
+ZA.PIP06: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP07A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_165: drift, l = 0.057651224775
+ZA.QUA07.MAR.MID: MARKER
+slave_drift_166: drift, l = 0.057651224775
+ZA.PIP07: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_167: drift, l = 0.053698316075
+ZA.QUA08.MAR.MID: MARKER
+slave_drift_168: drift, l = 0.053698316075
+ZA.PIP08: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP09A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_169: drift, l = 0.057651224775
+ZA.QUA09.MAR.MID: MARKER
+slave_drift_170: drift, l = 0.057651224775
+ZA.PIP09: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_171: drift, l = 0.053698316075
+ZA.QUA10.MAR.MID: MARKER
+slave_drift_172: drift, l = 0.053698316075
+ZA.PIP10: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP11A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_173: drift, l = 0.057651224775
+ZA.QUA11.MAR.MID: MARKER
+slave_drift_174: drift, l = 0.057651224775
+ZA.PIP11: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_175: drift, l = 0.053698316075
+ZA.QUA12.MAR.MID: MARKER
+slave_drift_176: drift, l = 0.053698316075
+ZA.PIP12: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP13A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_177: drift, l = 0.057651224775
+ZA.QUA13.MAR.MID: MARKER
+slave_drift_178: drift, l = 0.057651224775
+ZA.PIP13: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_179: drift, l = 0.053698316075
+ZA.QUA14.MAR.MID: MARKER
+slave_drift_180: drift, l = 0.053698316075
+ZA.PIP14: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP15A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_181: drift, l = 0.057651224775
+ZA.QUA15.MAR.MID: MARKER
+slave_drift_182: drift, l = 0.057651224775
+ZA.PIP15: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_183: drift, l = 0.053698316075
+ZA.QUA16.MAR.MID: MARKER
+slave_drift_184: drift, l = 0.053698316075
+ZA.PIP16: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP17A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_185: drift, l = 0.057651224775
+ZA.QUA17.MAR.MID: MARKER
+slave_drift_186: drift, l = 0.057651224775
+ZA.PIP17: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_187: drift, l = 0.053698316075
+ZA.QUA18.MAR.MID: MARKER
+slave_drift_188: drift, l = 0.053698316075
+ZA.PIP18: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP19A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_189: drift, l = 0.057651224775
+ZA.QUA19.MAR.MID: MARKER
+slave_drift_190: drift, l = 0.057651224775
+ZA.PIP19: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_191: drift, l = 0.053698316075
+ZA.QUA20.MAR.MID: MARKER
+slave_drift_192: drift, l = 0.053698316075
+ZA.PIP20: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP21A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_193: drift, l = 0.057651224775
+ZA.QUA21.MAR.MID: MARKER
+slave_drift_194: drift, l = 0.057651224775
+ZA.PIP21: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_195: drift, l = 0.053698316075
+ZA.QUA22.MAR.MID: MARKER
+slave_drift_196: drift, l = 0.053698316075
+ZA.PIP22: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP23A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_197: drift, l = 0.057651224775
+ZA.QUA23.MAR.MID: MARKER
+slave_drift_198: drift, l = 0.057651224775
+ZA.PIP23: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_199: drift, l = 0.053698316075
+ZA.QUA24.MAR.MID: MARKER
+slave_drift_200: drift, l = 0.053698316075
+ZA.PIP24: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP25A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_201: drift, l = 0.057651224775
+ZA.QUA25.MAR.MID: MARKER
+slave_drift_202: drift, l = 0.057651224775
+ZA.PIP25: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_203: drift, l = 0.053698316075
+ZA.QUA26.MAR.MID: MARKER
+slave_drift_204: drift, l = 0.053698316075
+ZA.PIP26: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP27A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_205: drift, l = 0.057651224775
+ZA.QUA27.MAR.MID: MARKER
+slave_drift_206: drift, l = 0.057651224775
+ZA.PIP27: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_207: drift, l = 0.053698316075
+ZA.QUA28.MAR.MID: MARKER
+slave_drift_208: drift, l = 0.053698316075
+ZA.PIP28: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP29A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_209: drift, l = 0.057651224775
+ZA.QUA29.MAR.MID: MARKER
+slave_drift_210: drift, l = 0.057651224775
+ZA.PIP29: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_211: drift, l = 0.053698316075
+ZA.QUA30.MAR.MID: MARKER
+slave_drift_212: drift, l = 0.053698316075
+ZA.PIP30: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP31A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_213: drift, l = 0.057651224775
+ZA.QUA31.MAR.MID: MARKER
+slave_drift_214: drift, l = 0.057651224775
+ZA.PIP31: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_215: drift, l = 0.053698316075
+ZA.QUA32.MAR.MID: MARKER
+slave_drift_216: drift, l = 0.053698316075
+ZA.PIP32: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP33A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_217: drift, l = 0.057651224775
+ZA.QUA33.MAR.MID: MARKER
+slave_drift_218: drift, l = 0.057651224775
+ZA.PIP33: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_219: drift, l = 0.053698316075
+ZA.QUA34.MAR.MID: MARKER
+slave_drift_220: drift, l = 0.053698316075
+ZA.PIP34: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP35A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_221: drift, l = 0.057651224775
+ZA.QUA35.MAR.MID: MARKER
+slave_drift_222: drift, l = 0.057651224775
+ZA.PIP35: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_223: drift, l = 0.053698316075
+ZA.QUA36.MAR.MID: MARKER
+slave_drift_224: drift, l = 0.053698316075
+ZA.PIP36: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP37A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_225: drift, l = 0.057651224775
+ZA.QUA37.MAR.MID: MARKER
+slave_drift_226: drift, l = 0.057651224775
+ZA.PIP37: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_227: drift, l = 0.053698316075
+ZA.QUA38.MAR.MID: MARKER
+slave_drift_228: drift, l = 0.053698316075
+ZA.PIP38: PIPE, L = 0.07, DS_STEP = 0.01
+ZA.PIP39A: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_229: drift, l = 0.057651224775
+ZA.QUA39.MAR.MID: MARKER
+slave_drift_230: drift, l = 0.057651224775
+ZA.PIP39: PIPE, L = 0.05, DS_STEP = 0.01
+slave_drift_231: drift, l = 0.053698316075
+ZA.QUA40.MAR.MID: MARKER
+slave_drift_232: drift, l = 0.053698316075
+ZA.PIP40: PIPE, L = 0.062592544011, DS_STEP = 0.01
+ZA.MAR.END: MARKER
+slave_drift_233: drift, l = 0.057651224775
+ZA.QUA99.MID: MARKER
+slave_drift_234: drift, l = 0.057651224775
+MAR.END: MARKER
+ 
+!-------------------------------------------------------
+! Overlays, groups, etc.
+ 
+x__FA.QUA01: null_ele
+FA.QUA01: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA01, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA02: null_ele
+FA.QUA02: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA02, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA03: null_ele
+FA.QUA03: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA03, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA04: null_ele
+FA.QUA04: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA04, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA05: null_ele
+FA.QUA05: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA05, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA06: null_ele
+FA.QUA06: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA06, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA07: null_ele
+FA.QUA07: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA07, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA08: null_ele
+FA.QUA08: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA08, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA09: null_ele
+FA.QUA09: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA09, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA10: null_ele
+FA.QUA10: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA10, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA11: null_ele
+FA.QUA11: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA11, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA12: null_ele
+FA.QUA12: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA12, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA13: null_ele
+FA.QUA13: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA13, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA14: null_ele
+FA.QUA14: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA14, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA15: null_ele
+FA.QUA15: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA15, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA16: null_ele
+FA.QUA16: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA16, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA17: null_ele
+FA.QUA17: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA17, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA18: null_ele
+FA.QUA18: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA18, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA19: null_ele
+FA.QUA19: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA19, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA20: null_ele
+FA.QUA20: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA20, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA21: null_ele
+FA.QUA21: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA21, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA22: null_ele
+FA.QUA22: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA22, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA23: null_ele
+FA.QUA23: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA23, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA24: null_ele
+FA.QUA24: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA24, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA25: null_ele
+FA.QUA25: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA25, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA26: null_ele
+FA.QUA26: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA26, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA27: null_ele
+FA.QUA27: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA27, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA28: null_ele
+FA.QUA28: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA28, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA29: null_ele
+FA.QUA29: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA29, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA30: null_ele
+FA.QUA30: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA30, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA31: null_ele
+FA.QUA31: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA31, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA32: null_ele
+FA.QUA32: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA32, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA33: null_ele
+FA.QUA33: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA33, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA34: null_ele
+FA.QUA34: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA34, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA35: null_ele
+FA.QUA35: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA35, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA36: null_ele
+FA.QUA36: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA36, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA37: null_ele
+FA.QUA37: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA37, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA38: null_ele
+FA.QUA38: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA38, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA39: null_ele
+FA.QUA39: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA39, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA40: null_ele
+FA.QUA40: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA40, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA41: null_ele
+FA.QUA41: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA41, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA42: null_ele
+FA.QUA42: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA42, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA43: null_ele
+FA.QUA43: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA43, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA44: null_ele
+FA.QUA44: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA44, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025342, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA45: null_ele
+FA.QUA45: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA45, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA46: null_ele
+FA.QUA46: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA46, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025401981199, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA47: null_ele
+FA.QUA47: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA47, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA48: null_ele
+FA.QUA48: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA48, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.025216713567, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA49: null_ele
+FA.QUA49: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA49, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA50: null_ele
+FA.QUA50: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA50, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.024117205184, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA51: null_ele
+FA.QUA51: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA51, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA52: null_ele
+FA.QUA52: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA52, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.022646599517, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA53: null_ele
+FA.QUA53: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA53, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA54: null_ele
+FA.QUA54: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA54, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.021127211724, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA55: null_ele
+FA.QUA55: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA55, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA56: null_ele
+FA.QUA56: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA56, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.01928635695, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA57: null_ele
+FA.QUA57: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA57, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA58: null_ele
+FA.QUA58: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA58, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.016167579328, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA59: null_ele
+FA.QUA59: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA59, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA60: null_ele
+FA.QUA60: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA60, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.013725569183, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA61: null_ele
+FA.QUA61: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA61, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA62: null_ele
+FA.QUA62: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA62, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 0.011427497156, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA63: null_ele
+FA.QUA63: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA63, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA64: null_ele
+FA.QUA64: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA64, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 9.2946352888E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA65: null_ele
+FA.QUA65: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA65, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA66: null_ele
+FA.QUA66: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA66, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 6.2153960468E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA67: null_ele
+FA.QUA67: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA67, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA68: null_ele
+FA.QUA68: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA68, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 3.8822484472E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA69: null_ele
+FA.QUA69: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA69, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA70: null_ele
+FA.QUA70: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA70, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 2.6895170603E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA71: null_ele
+FA.QUA71: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA71, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA72: null_ele
+FA.QUA72: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA72, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 1.1782475434E-3, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA73: null_ele
+FA.QUA73: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA73, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA74: null_ele
+FA.QUA74: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA74, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = 3.5907687999E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA75: null_ele
+FA.QUA75: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__FA.QUA75, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__FA.QUA76: null_ele
+FA.QUA76: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__FA.QUA76, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, X_OFFSET = -4.1069800455E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA01: null_ele
+ZA.QUA01: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA01, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA02: null_ele
+ZA.QUA02: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA02, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA03: null_ele
+ZA.QUA03: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA03, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA04: null_ele
+ZA.QUA04: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA04, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA05: null_ele
+ZA.QUA05: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA05, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA06: null_ele
+ZA.QUA06: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA06, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA07: null_ele
+ZA.QUA07: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA07, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA08: null_ele
+ZA.QUA08: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA08, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA09: null_ele
+ZA.QUA09: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA09, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA10: null_ele
+ZA.QUA10: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA10, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA11: null_ele
+ZA.QUA11: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA11, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA12: null_ele
+ZA.QUA12: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA12, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA13: null_ele
+ZA.QUA13: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA13, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA14: null_ele
+ZA.QUA14: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA14, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA15: null_ele
+ZA.QUA15: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA15, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA16: null_ele
+ZA.QUA16: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA16, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA17: null_ele
+ZA.QUA17: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA17, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA18: null_ele
+ZA.QUA18: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA18, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA19: null_ele
+ZA.QUA19: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA19, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA20: null_ele
+ZA.QUA20: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA20, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA21: null_ele
+ZA.QUA21: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA21, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA22: null_ele
+ZA.QUA22: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA22, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA23: null_ele
+ZA.QUA23: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA23, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA24: null_ele
+ZA.QUA24: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA24, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA25: null_ele
+ZA.QUA25: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA25, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA26: null_ele
+ZA.QUA26: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA26, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA27: null_ele
+ZA.QUA27: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA27, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA28: null_ele
+ZA.QUA28: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA28, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA29: null_ele
+ZA.QUA29: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA29, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA30: null_ele
+ZA.QUA30: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA30, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA31: null_ele
+ZA.QUA31: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA31, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA32: null_ele
+ZA.QUA32: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA32, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.32, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA33: null_ele
+ZA.QUA33: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA33, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.931, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA34: null_ele
+ZA.QUA34: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA34, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.148883149, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA35: null_ele
+ZA.QUA35: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA35, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.941784128, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA36: null_ele
+ZA.QUA36: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA36, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.673927573, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA37: null_ele
+ZA.QUA37: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA37, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*21.282195777, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA38: null_ele
+ZA.QUA38: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA38, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-20.016919147, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA39: null_ele
+ZA.QUA39: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA39, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.092107357, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+x__ZA.QUA40: null_ele
+ZA.QUA40: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_BD_N35SH_AllStar.blend", superimpose, &
+   ele_origin = beginning, ref = x__ZA.QUA40, L = 0.10739663215, FRINGE_TYPE = Full, &
+   FQ1 = 2E-4, B1_GRADIENT = -1*-21.724696566, DS_STEP = 0.01, aperture_at = Both_Ends, &
+   aperture_type = Elliptical, field_master = T
+x__ZA.QUA99: null_ele
+ZA.QUA99: QUADRUPOLE, &
+   descrip = "3DMODEL=FFAG_Halbach/magnet_Chris_QFround_N35SH_AllStar.blend", &
+   superimpose, ele_origin = beginning, ref = x__ZA.QUA99, L = 0.11530244955, &
+   FRINGE_TYPE = Full, FQ1 = 2E-4, B1_GRADIENT = -1*20.930879124, DS_STEP = 0.01, &
+   aperture_at = Both_Ends, aperture_type = Elliptical, field_master = T
+ 
+lat_line: line = ( MAR.BEG, FA.MAR.BEG, FA.ALIGN_PATCH, FA.PIP01A, x__FA.QUA01, &
+   slave_drift_1, FA.QUA01.MAR.MID, slave_drift_2, FA.PIP01, FA.PATCH01A, x__FA.QUA02, &
+   slave_drift_3, FA.QUA02.MAR.MID, slave_drift_4, FA.PATCH01B, FA.PATCH02, FA.PIP02, &
+   FA.PIP03A, x__FA.QUA03, slave_drift_5, FA.QUA03.MAR.MID, slave_drift_6, FA.PIP03, &
+   FA.PATCH03A, x__FA.QUA04, slave_drift_7, FA.QUA04.MAR.MID, slave_drift_8, &
+   FA.PATCH03B, FA.PATCH04, FA.PIP04, FA.PIP05A, x__FA.QUA05, slave_drift_9, &
+   FA.QUA05.MAR.MID, slave_drift_10, FA.PIP05, FA.PATCH05A, x__FA.QUA06, &
+   slave_drift_11, FA.QUA06.MAR.MID, slave_drift_12, FA.PATCH05B, FA.PATCH06, &
+   FA.PIP06, FA.PIP07A, x__FA.QUA07, slave_drift_13, FA.QUA07.MAR.MID, slave_drift_14, &
+   FA.PIP07, FA.PATCH07A, x__FA.QUA08, slave_drift_15, FA.QUA08.MAR.MID, &
+   slave_drift_16, FA.PATCH07B, FA.PATCH08, FA.PIP08, FA.PIP09A, x__FA.QUA09, &
+   slave_drift_17, FA.QUA09.MAR.MID, slave_drift_18, FA.PIP09, FA.PATCH09A, &
+   x__FA.QUA10, slave_drift_19, FA.QUA10.MAR.MID, slave_drift_20, FA.PATCH09B, &
+   FA.PATCH10, FA.PIP10, FA.PIP11A, x__FA.QUA11, slave_drift_21, FA.QUA11.MAR.MID, &
+   slave_drift_22, FA.PIP11, FA.PATCH11A, x__FA.QUA12, slave_drift_23, &
+   FA.QUA12.MAR.MID, slave_drift_24, FA.PATCH11B, FA.PATCH12, FA.PIP12, FA.PIP13A, &
+   x__FA.QUA13, slave_drift_25, FA.QUA13.MAR.MID, slave_drift_26, FA.PIP13, &
+   FA.PATCH13A, x__FA.QUA14, slave_drift_27, FA.QUA14.MAR.MID, slave_drift_28, &
+   FA.PATCH13B, FA.PATCH14, FA.PIP14, FA.PIP15A, x__FA.QUA15, slave_drift_29, &
+   FA.QUA15.MAR.MID, slave_drift_30, FA.PIP15, FA.PATCH15A, x__FA.QUA16, &
+   slave_drift_31, FA.QUA16.MAR.MID, slave_drift_32, FA.PATCH15B, FA.PATCH16, &
+   FA.PIP16, FA.PIP17A, x__FA.QUA17, slave_drift_33, FA.QUA17.MAR.MID, slave_drift_34, &
+   FA.PIP17, FA.PATCH17A, x__FA.QUA18, slave_drift_35, FA.QUA18.MAR.MID, &
+   slave_drift_36, FA.PATCH17B, FA.PATCH18, FA.PIP18, FA.PIP19A, x__FA.QUA19, &
+   slave_drift_37, FA.QUA19.MAR.MID, slave_drift_38, FA.PIP19, FA.PATCH19A, &
+   x__FA.QUA20, slave_drift_39, FA.QUA20.MAR.MID, slave_drift_40, FA.PATCH19B, &
+   FA.PATCH20, FA.PIP20, FA.PIP21A, x__FA.QUA21, slave_drift_41, FA.QUA21.MAR.MID, &
+   slave_drift_42, FA.PIP21, FA.PATCH21A, x__FA.QUA22, slave_drift_43, &
+   FA.QUA22.MAR.MID, slave_drift_44, FA.PATCH21B, FA.PATCH22, FA.PIP22, FA.PIP23A, &
+   x__FA.QUA23, slave_drift_45, FA.QUA23.MAR.MID, slave_drift_46, FA.PIP23, &
+   FA.PATCH23A, x__FA.QUA24, slave_drift_47, FA.QUA24.MAR.MID, slave_drift_48, &
+   FA.PATCH23B, FA.PATCH24, FA.PIP24, FA.PIP25A, x__FA.QUA25, slave_drift_49, &
+   FA.QUA25.MAR.MID, slave_drift_50, FA.PIP25, FA.PATCH25A, x__FA.QUA26, &
+   slave_drift_51, FA.QUA26.MAR.MID, slave_drift_52, FA.PATCH25B, FA.PATCH26, &
+   FA.PIP26, FA.PIP27A, x__FA.QUA27, slave_drift_53, FA.QUA27.MAR.MID, slave_drift_54, &
+   FA.PIP27, FA.PATCH27A, x__FA.QUA28, slave_drift_55, FA.QUA28.MAR.MID, &
+   slave_drift_56, FA.PATCH27B, FA.PATCH28, FA.PIP28, FA.PIP29A, x__FA.QUA29, &
+   slave_drift_57, FA.QUA29.MAR.MID, slave_drift_58, FA.PIP29, FA.PATCH29A, &
+   x__FA.QUA30, slave_drift_59, FA.QUA30.MAR.MID, slave_drift_60, FA.PATCH29B, &
+   FA.PATCH30, FA.PIP30, FA.PIP31A, x__FA.QUA31, slave_drift_61, FA.QUA31.MAR.MID, &
+   slave_drift_62, FA.PIP31, FA.PATCH31A, x__FA.QUA32, slave_drift_63, &
+   FA.QUA32.MAR.MID, slave_drift_64, FA.PATCH31B, FA.PATCH32, FA.PIP32, FA.PIP33A, &
+   x__FA.QUA33, slave_drift_65, FA.QUA33.MAR.MID, slave_drift_66, FA.PIP33, &
+   FA.PATCH33A, x__FA.QUA34, slave_drift_67, FA.QUA34.MAR.MID, slave_drift_68, &
+   FA.PATCH33B, FA.PATCH34, FA.PIP34, FA.PIP35A, x__FA.QUA35, slave_drift_69, &
+   FA.QUA35.MAR.MID, slave_drift_70, FA.PIP35, FA.PATCH35A, x__FA.QUA36, &
+   slave_drift_71, FA.QUA36.MAR.MID, slave_drift_72, FA.PATCH35B, FA.PATCH36, &
+   FA.PIP36, FA.PIP37A, x__FA.QUA37, slave_drift_73, FA.QUA37.MAR.MID, slave_drift_74, &
+   FA.PIP37, FA.PATCH37A, x__FA.QUA38, slave_drift_75, FA.QUA38.MAR.MID, &
+   slave_drift_76, FA.PATCH37B, FA.PATCH38, FA.PIP38, FA.PIP39A, x__FA.QUA39, &
+   slave_drift_77, FA.QUA39.MAR.MID, slave_drift_78, FA.PIP39, FA.PATCH39A, &
+   x__FA.QUA40, slave_drift_79, FA.QUA40.MAR.MID, slave_drift_80, FA.PATCH39B, &
+   FA.PATCH40, FA.PIP40, FA.PIP41A, x__FA.QUA41, slave_drift_81, FA.QUA41.MAR.MID, &
+   slave_drift_82, FA.PIP41, FA.PATCH41A, x__FA.QUA42, slave_drift_83, &
+   FA.QUA42.MAR.MID, slave_drift_84, FA.PATCH41B, FA.PATCH42, FA.PIP42, FA.PIP43A, &
+   x__FA.QUA43, slave_drift_85, FA.QUA43.MAR.MID, slave_drift_86, FA.PIP43, &
+   FA.PATCH43A, x__FA.QUA44, slave_drift_87, FA.QUA44.MAR.MID, slave_drift_88, &
+   FA.PATCH43B, FA.PATCH44, FA.PIP44, FA.MERGE.MAR.BEG, FA.PIP45A, x__FA.QUA45, &
+   slave_drift_89, FA.QUA45.MAR.MID, slave_drift_90, FA.PIP45, FA.PATCH45A, &
+   x__FA.QUA46, slave_drift_91, FA.QUA46.MAR.MID, slave_drift_92, FA.PATCH45B, &
+   FA.PATCH46, FA.PIP46, FA.PIP47A, x__FA.QUA47, slave_drift_93, FA.QUA47.MAR.MID, &
+   slave_drift_94, FA.PIP47, FA.PATCH47A, x__FA.QUA48, slave_drift_95, &
+   FA.QUA48.MAR.MID, slave_drift_96, FA.PATCH47B, FA.PATCH48, FA.PIP48, FA.PIP49A, &
+   x__FA.QUA49, slave_drift_97, FA.QUA49.MAR.MID, slave_drift_98, FA.PIP49, &
+   FA.PATCH49A, x__FA.QUA50, slave_drift_99, FA.QUA50.MAR.MID, slave_drift_100, &
+   FA.PATCH49B, FA.PATCH50, FA.PIP50, FA.PIP51A, x__FA.QUA51, slave_drift_101, &
+   FA.QUA51.MAR.MID, slave_drift_102, FA.PIP51, FA.PATCH51A, x__FA.QUA52, &
+   slave_drift_103, FA.QUA52.MAR.MID, slave_drift_104, FA.PATCH51B, FA.PATCH52, &
+   FA.PIP52, FA.PIP53A, x__FA.QUA53, slave_drift_105, FA.QUA53.MAR.MID, &
+   slave_drift_106, FA.PIP53, FA.PATCH53A, x__FA.QUA54, slave_drift_107, &
+   FA.QUA54.MAR.MID, slave_drift_108, FA.PATCH53B, FA.PATCH54, FA.PIP54, FA.PIP55A, &
+   x__FA.QUA55, slave_drift_109, FA.QUA55.MAR.MID, slave_drift_110, FA.PIP55, &
+   FA.PATCH55A, x__FA.QUA56, slave_drift_111, FA.QUA56.MAR.MID, slave_drift_112, &
+   FA.PATCH55B, FA.PATCH56, FA.PIP56, FA.PIP57A, x__FA.QUA57, slave_drift_113, &
+   FA.QUA57.MAR.MID, slave_drift_114, FA.PIP57, FA.PATCH57A, x__FA.QUA58, &
+   slave_drift_115, FA.QUA58.MAR.MID, slave_drift_116, FA.PATCH57B, FA.PATCH58, &
+   FA.PIP58, FA.PIP59A, x__FA.QUA59, slave_drift_117, FA.QUA59.MAR.MID, &
+   slave_drift_118, FA.PIP59, FA.PATCH59A, x__FA.QUA60, slave_drift_119, &
+   FA.QUA60.MAR.MID, slave_drift_120, FA.PATCH59B, FA.PATCH60, FA.PIP60, FA.PIP61A, &
+   x__FA.QUA61, slave_drift_121, FA.QUA61.MAR.MID, slave_drift_122, FA.PIP61, &
+   FA.PATCH61A, x__FA.QUA62, slave_drift_123, FA.QUA62.MAR.MID, slave_drift_124, &
+   FA.PATCH61B, FA.PATCH62, FA.PIP62, FA.PIP63A, x__FA.QUA63, slave_drift_125, &
+   FA.QUA63.MAR.MID, slave_drift_126, FA.PIP63, FA.PATCH63A, x__FA.QUA64, &
+   slave_drift_127, FA.QUA64.MAR.MID, slave_drift_128, FA.PATCH63B, FA.PATCH64, &
+   FA.PIP64, FA.PIP65A, x__FA.QUA65, slave_drift_129, FA.QUA65.MAR.MID, &
+   slave_drift_130, FA.PIP65, FA.PATCH65A, x__FA.QUA66, slave_drift_131, &
+   FA.QUA66.MAR.MID, slave_drift_132, FA.PATCH65B, FA.PATCH66, FA.PIP66, FA.PIP67A, &
+   x__FA.QUA67, slave_drift_133, FA.QUA67.MAR.MID, slave_drift_134, FA.PIP67, &
+   FA.PATCH67A, x__FA.QUA68, slave_drift_135, FA.QUA68.MAR.MID, slave_drift_136, &
+   FA.PATCH67B, FA.PATCH68, FA.PIP68, FA.PIP69A, x__FA.QUA69, slave_drift_137, &
+   FA.QUA69.MAR.MID, slave_drift_138, FA.PIP69, FA.PATCH69A, x__FA.QUA70, &
+   slave_drift_139, FA.QUA70.MAR.MID, slave_drift_140, FA.PATCH69B, FA.PATCH70, &
+   FA.PIP70, FA.PIP71A, x__FA.QUA71, slave_drift_141, FA.QUA71.MAR.MID, &
+   slave_drift_142, FA.PIP71, FA.PATCH71A, x__FA.QUA72, slave_drift_143, &
+   FA.QUA72.MAR.MID, slave_drift_144, FA.PATCH71B, FA.PATCH72, FA.PIP72, FA.PIP73A, &
+   x__FA.QUA73, slave_drift_145, FA.QUA73.MAR.MID, slave_drift_146, FA.PIP73, &
+   FA.PATCH73A, x__FA.QUA74, slave_drift_147, FA.QUA74.MAR.MID, slave_drift_148, &
+   FA.PATCH73B, FA.PATCH74, FA.PIP74, FA.PIP75A, x__FA.QUA75, slave_drift_149, &
+   FA.QUA75.MAR.MID, slave_drift_150, FA.PIP75, FA.PATCH75A, x__FA.QUA76, &
+   slave_drift_151, FA.QUA76.MAR.MID, slave_drift_152, FA.PATCH75B, FA.PATCH76, &
+   FA.PIP76, FA.MERGE.MAR.END, FA.MAR.END, ZA.MAR.BEG, ZA.PIP01A, x__ZA.QUA01, &
+   slave_drift_153, ZA.QUA01.MAR.MID, slave_drift_154, ZA.PIP01, x__ZA.QUA02, &
+   slave_drift_155, ZA.QUA02.MAR.MID, slave_drift_156, ZA.PIP02, ZA.PIP03A, &
+   x__ZA.QUA03, slave_drift_157, ZA.QUA03.MAR.MID, slave_drift_158, ZA.PIP03, &
+   x__ZA.QUA04, slave_drift_159, ZA.QUA04.MAR.MID, slave_drift_160, ZA.PIP04, &
+   ZA.PIP05A, x__ZA.QUA05, slave_drift_161, ZA.QUA05.MAR.MID, slave_drift_162, &
+   ZA.PIP05, x__ZA.QUA06, slave_drift_163, ZA.QUA06.MAR.MID, slave_drift_164, &
+   ZA.PIP06, ZA.PIP07A, x__ZA.QUA07, slave_drift_165, ZA.QUA07.MAR.MID, &
+   slave_drift_166, ZA.PIP07, x__ZA.QUA08, slave_drift_167, ZA.QUA08.MAR.MID, &
+   slave_drift_168, ZA.PIP08, ZA.PIP09A, x__ZA.QUA09, slave_drift_169, &
+   ZA.QUA09.MAR.MID, slave_drift_170, ZA.PIP09, x__ZA.QUA10, slave_drift_171, &
+   ZA.QUA10.MAR.MID, slave_drift_172, ZA.PIP10, ZA.PIP11A, x__ZA.QUA11, &
+   slave_drift_173, ZA.QUA11.MAR.MID, slave_drift_174, ZA.PIP11, x__ZA.QUA12, &
+   slave_drift_175, ZA.QUA12.MAR.MID, slave_drift_176, ZA.PIP12, ZA.PIP13A, &
+   x__ZA.QUA13, slave_drift_177, ZA.QUA13.MAR.MID, slave_drift_178, ZA.PIP13, &
+   x__ZA.QUA14, slave_drift_179, ZA.QUA14.MAR.MID, slave_drift_180, ZA.PIP14, &
+   ZA.PIP15A, x__ZA.QUA15, slave_drift_181, ZA.QUA15.MAR.MID, slave_drift_182, &
+   ZA.PIP15, x__ZA.QUA16, slave_drift_183, ZA.QUA16.MAR.MID, slave_drift_184, &
+   ZA.PIP16, ZA.PIP17A, x__ZA.QUA17, slave_drift_185, ZA.QUA17.MAR.MID, &
+   slave_drift_186, ZA.PIP17, x__ZA.QUA18, slave_drift_187, ZA.QUA18.MAR.MID, &
+   slave_drift_188, ZA.PIP18, ZA.PIP19A, x__ZA.QUA19, slave_drift_189, &
+   ZA.QUA19.MAR.MID, slave_drift_190, ZA.PIP19, x__ZA.QUA20, slave_drift_191, &
+   ZA.QUA20.MAR.MID, slave_drift_192, ZA.PIP20, ZA.PIP21A, x__ZA.QUA21, &
+   slave_drift_193, ZA.QUA21.MAR.MID, slave_drift_194, ZA.PIP21, x__ZA.QUA22, &
+   slave_drift_195, ZA.QUA22.MAR.MID, slave_drift_196, ZA.PIP22, ZA.PIP23A, &
+   x__ZA.QUA23, slave_drift_197, ZA.QUA23.MAR.MID, slave_drift_198, ZA.PIP23, &
+   x__ZA.QUA24, slave_drift_199, ZA.QUA24.MAR.MID, slave_drift_200, ZA.PIP24, &
+   ZA.PIP25A, x__ZA.QUA25, slave_drift_201, ZA.QUA25.MAR.MID, slave_drift_202, &
+   ZA.PIP25, x__ZA.QUA26, slave_drift_203, ZA.QUA26.MAR.MID, slave_drift_204, &
+   ZA.PIP26, ZA.PIP27A, x__ZA.QUA27, slave_drift_205, ZA.QUA27.MAR.MID, &
+   slave_drift_206, ZA.PIP27, x__ZA.QUA28, slave_drift_207, ZA.QUA28.MAR.MID, &
+   slave_drift_208, ZA.PIP28, ZA.PIP29A, x__ZA.QUA29, slave_drift_209, &
+   ZA.QUA29.MAR.MID, slave_drift_210, ZA.PIP29, x__ZA.QUA30, slave_drift_211, &
+   ZA.QUA30.MAR.MID, slave_drift_212, ZA.PIP30, ZA.PIP31A, x__ZA.QUA31, &
+   slave_drift_213, ZA.QUA31.MAR.MID, slave_drift_214, ZA.PIP31, x__ZA.QUA32, &
+   slave_drift_215, ZA.QUA32.MAR.MID, slave_drift_216, ZA.PIP32, ZA.PIP33A, &
+   x__ZA.QUA33, slave_drift_217, ZA.QUA33.MAR.MID, slave_drift_218, ZA.PIP33, &
+   x__ZA.QUA34, slave_drift_219, ZA.QUA34.MAR.MID, slave_drift_220, ZA.PIP34, &
+   ZA.PIP35A, x__ZA.QUA35, slave_drift_221, ZA.QUA35.MAR.MID, slave_drift_222, &
+   ZA.PIP35, x__ZA.QUA36, slave_drift_223, ZA.QUA36.MAR.MID, slave_drift_224, &
+   ZA.PIP36, ZA.PIP37A, x__ZA.QUA37, slave_drift_225, ZA.QUA37.MAR.MID, &
+   slave_drift_226, ZA.PIP37, x__ZA.QUA38, slave_drift_227, ZA.QUA38.MAR.MID, &
+   slave_drift_228, ZA.PIP38, ZA.PIP39A, x__ZA.QUA39, slave_drift_229, &
+   ZA.QUA39.MAR.MID, slave_drift_230, ZA.PIP39, x__ZA.QUA40, slave_drift_231, &
+   ZA.QUA40.MAR.MID, slave_drift_232, ZA.PIP40, ZA.MAR.END, x__ZA.QUA99, &
+   slave_drift_233, ZA.QUA99.MID, slave_drift_234, MAR.END)
+ 
+ use, lat_line
