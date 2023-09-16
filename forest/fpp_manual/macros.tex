@@ -1,0 +1,38 @@
+\newcommand{\sref}[1]{\S\ref{#1}}
+\newcommand{\Sref}[1]{Sec.~\sref{#1}}
+\newcommand{\calO}{{\cal O}}
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
+\newcommand{\Newline}{\hfil \\}
+
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{{\usefont{T1}{lmss}{bx}{n} #1}\endgroup}
+
+\newenvironment{example}
+  {\vspace{-2.0ex} \begin{alltt}}
+  {\end{alltt} \vspace{-1.5ex}}
+
+
+\definecolor{light-gray}{gray}{0.95}
+\lstset{backgroundcolor=\color{light-gray}}
+\lstset{xleftmargin=0cm}
+\lstset{framexleftmargin=0.3em}
+
+\lstnewenvironment{Xcode}{}{}
+
+\definecolor{lightcyan}{rgb}{0.88, 1.0, 1.0}
+\newcounter{main}
+\setcounter{main}{1}
+\lstnewenvironment{code}[1][firstnumber=\themain,name=main]
+  {\lstset{ %language=haskell,
+           %columns=fullflexible,
+           columns=fixed,
+           basicstyle=\small\ttfamily,
+           %numbers=left,
+           numberstyle=\tiny\color{gray},
+           backgroundcolor=\color{lightcyan},
+           #1
+          }
+}
+{\setcounter{main}{\value{lstnumber}}}
+
