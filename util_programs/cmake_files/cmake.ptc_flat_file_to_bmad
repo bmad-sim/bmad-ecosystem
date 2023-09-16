@@ -1,0 +1,11 @@
+set (EXENAME ptc_flat_file_to_bmad)
+
+set (SRC_FILES
+  ptc_flat_file_to_bmad/ptc_to_bmad.f90
+)
+
+set (LINK_LIBS
+  bmad         
+  sim_utils    
+  ${ACC_BMAD_LINK_LIBS}
+)

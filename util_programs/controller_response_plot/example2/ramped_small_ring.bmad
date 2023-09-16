@@ -1,0 +1,33 @@
+parameter[p0c] = 1e9
+
+q1: quad, l = 0.5, k1 = 0.6
+q2: quad, l = 0.5, k1 = -0.5
+
+d: drift, l = 0.3
+b: sbend, l = 3, angle = pi/8, e1 = 0.07, e2 = 0.07
+
+rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 5e6*0
+
+sector: line = (d, q1, d, b, d, q2, d, rf, b)
+ring: line = (8*sector)
+
+use, ring
+
+! merge using RF h = 7560, 3780, and 1890
+
+rf_freq = 1.4750218E+08 
+rf7560: rfcavity, l = 0, rf_frequency = 4*rf_freq, superimpose, phi0 = 0, is_on = T
+rf3780: rfcavity, l = 0, rf_frequency = 2*rf_freq, superimpose, phi0 = 0.25, is_on = T
+rf1890: rfcavity, l = 0, rf_frequency = rf_freq, superimpose, phi0 = 0.375, is_on = t
+
+t0 = 1.281336860382258e-5
+
+volt7560: ramper = {rf7560[voltage]:{40.052e6, 0, 0}}, var = {time},
+      x_knot = {0, 18250*t0, 55600*t0}, interpolation = linear, time = 0
+
+volt3780: ramper = {rf3780[voltage]:{0, 20.026e6, 20.026e6, 0, 0}}, var = {time},
+      x_knot = {0, 9000*t0, 18250*t0, 54501*t0, 55600*t0}, interpolation = linear, time = 0
+
+volt1890: ramper = {rf1890[voltage]:{0, 0, 10.013e6, 10.013e6}}, var = {time},
+      x_knot = {0, 18251*t0, 36251*t0, 55501*t0}, interpolation = linear, time = 0
+

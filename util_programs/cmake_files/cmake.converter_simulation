@@ -1,0 +1,47 @@
+set (EXENAME converter_simulation)
+set (CONVERTER_SIM_DIR converter_element_modeling/simulation)
+
+#----------------------------------------------------------------------------
+# Find Geant4 package
+#
+option(WITH_GEANT4_UIVIS OFF)
+if(WITH_GEANT4_UIVIS)
+  find_package(Geant4 REQUIRED ui_all vis_all)
+else()
+  find_package(Geant4 REQUIRED)
+endif()
+
+#----------------------------------------------------------------------------
+# Setup Geant4 include directories and compile definitions
+# Setup include directory for this project
+#
+include(${Geant4_USE_FILE})
+get_property(INC_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+set(INC_DIRS
+  ${INC_DIRS}
+  ${CONVERTER_SIM_DIR}/include
+  )
+
+#----------------------------------------------------------------------------
+# Locate sources and headers for this project
+# NB: headers are included so they will show up in IDEs
+#
+file(GLOB SRC_FILES
+  ${CONVERTER_SIM_DIR}/src/*.cpp
+  ${CONVERTER_SIM_DIR}/main.cpp
+  )
+
+#----------------------------------------------------------------------------
+# Compiler flags
+SET(GCC_COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Wshadow -std=c++17")
+#add_definitions(${GCC_COMPILE_FLAGS})
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COMPILE_FLAGS}")
+SET(CFLAGS "${CMAKE_CXX_FLAGS}")
+
+#----------------------------------------------------------------------------
+# Add the executable, and link it to the Geant4 libraries
+#
+SET (SHARED_LINK_LIBS
+  stdc++fs
+  ${Geant4_LIBRARIES}
+  )

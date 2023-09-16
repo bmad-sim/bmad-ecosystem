@@ -1,0 +1,51 @@
+option, -echo;
+
+call file='fcc_z.seq';  !== with bpms and correctors
+
+
+beam, particle = electron, energy = 45.6, radiate=true;
+
+use, sequence=FCCEE_P_RING;
+
+
+!=====set and save errors==========
+!==================================
+
+!EOPTION, SEED=11;
+
+!=========all arc quads============
+select, flag=error, pattern='^QD.*';
+select, flag=error, pattern='^QF.*';
+ealign, dx:=tgauss(2.5)*1e-7, dy:=tgauss(2.5)*1e-7, ds:=tgauss(2.5)*1e-7, dpsi:=tgauss(2.5)*1e-7, dtheta:=tgauss(2.5)*1e-7, dphi:=tgauss(2.5)*1e-7; 
+select, flag=error, clear;
+
+!===========all dipoles============
+select, flag=error, pattern='^B[^PM].*';
+ealign, dx:=tgauss(2.5)*1e-7, dy:=tgauss(2.5)*1e-7, ds:=tgauss(2.5)*1e-7, dpsi:=tgauss(2.5)*1e-7;  
+select, flag=error, clear;
+
+
+select, flag=error;
+esave, file = 'error.out';
+
+
+!=====compute closed orbit=========
+!==================================
+
+!coguess, x=-0.000001584283875, y=0.000003675016241, tolerance=1e-5;
+
+SET, FORMAT="10.15f";
+select,flag=twiss,column=name,s,x,y,L,betx,bety,DX,DY;
+twiss,save,file=twiss_before_correction.out;
+
+
+!correct,mode=SVD,plane=x, clist=”c.tab”,mlist=”m.tab”;
+!correct,mode=SVD,plane=y, clist=”c1.tab”,mlist=”m1.tab”;
+
+!SET, FORMAT="10.15f";
+!select,flag=twiss,column=name,s,x,y,L;
+!twiss,save,file=twiss_after_correction.out;
+
+
+
+stop;

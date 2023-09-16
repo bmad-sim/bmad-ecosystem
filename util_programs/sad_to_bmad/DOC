@@ -1,0 +1,86 @@
+SAD to Bmad Translation
+
+[Note: For Bmad to SAD translation, use the bmad_to_mad_and_sad program.]
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+How to translate: 
+
+The translation script is:
+  util_programs/sad_to_bmad/sad_to_bmad.py
+
+There is an example parameter input file at:
+  util_programs/sad_to_bmad/sad_to_bmad.params
+
+To translate: Copy util_programs/sad_to_bmad/sad_to_bmad.params to your working directory and
+edit. Documentation for editing this file and running the translation script is in the file itself.
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+Notes:
+
+*) Bmad has no equivalent attribute for a SOL F1 attribute. This is not a problem since
+the SOL F1 attribute is only used by SAD for emittance calculations and does not effect
+particle tracking. However, it is convenient to preserve this information in the Bmad
+lattice so that if the Bmad lattice is back translated to SAD then the SOL F1 information
+can be restored. To do this, a custom F1 attribute is defined in the Bmad lattice file.
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+Known Translation Limitations (at the present time):
+
+CAVI: 
+  Parameters not translated: 
+    V1, V20, V11, V02
+    DISFRIN, FRINGE
+    DPHI
+
+Misalignments in SOL element with GEO = 1 not yet implemented.
+
+A given MARK element with a non-zero offset cannot appear multiple times in a lattice.
+This is due to the fact that the corresponding Bmad element uses superposition.
+
+Conversion cannot handle the same MULT element appearing two different
+places in the lattice when the solenoid field is different in these
+different places.
+
+MULT elements cannot have a finite bending angle nor can a MULT element have
+an RF field.
+
+Important note:
+At the exit end of a solenoid, SAD will calculate the reference orbit using particle tracking.
+If SAD then generates a lattice, the final SOL element will have the orientation offset parameters 
+for the reference orbit.
+The translation script is not able to do the reference orbit translation so it assumes that the
+shift in reference orbit is given by the orientation offset parameters in the final SOL element.
+THUS: It is important to make sure that the orientation offset parameters are in the lattice and,
+if not, run the lattice through SAD to generate a lattice with them.
+
+'end' is a reserved bmad element name. If used in the lattice file, 'end_ele' will be substituted.
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+What to do if translation fails:
+
+Multiple "use" statements may confuse the translator. Remove unused use statements in case of trouble.
+
+"Action" commands, that is, commands that modify the lattice (EG optimizing lattice parameters) cannot
+be translated. In fact, these statements may confuse the translator. Remove action commands in case 
+of trouble.
+
+If all else fails, or if you want to generate a lattice that has been modified by SAD (EG SAD has
+been used to optimize lattice parameters), you can use SAD to generate a lattice file that is
+easily converted. Add this to your SAD lattice file:
+
+fout=OpenWrite["new.sad"];
+FFS["OUTPUT "//fout//" TYPE"];
+WriteBeamLine[fout,Format->"MAIN",Name->{"XXX"}];
+Write[fout," FSHIFT = "//FSHIFT//";"];
+Write[fout," MOMENTUM = "//MOMENTUM//";"];
+Write[fout," USE XXX;"];
+Close[fout];
+
+Here "XXX" should be replaced by the name of the line to use.
+The one disadvanteage in doing this is that all parameters are evaluated 
+and so varialbes used in the original file are lost.

@@ -1,0 +1,12 @@
+set (EXENAME compare_tracking_methods_plot)
+
+set (SRC_FILES
+  compare_tracking_methods_plot/compare_tracking_methods_plot.f90
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${PLOT_LINK_LIBS} 
+  ${ACC_BMAD_LINK_LIBS}
+)

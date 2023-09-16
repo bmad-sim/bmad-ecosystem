@@ -1,0 +1,45 @@
+beginning[e_tot] = 13358.658982699999 ! eV
+parameter[particle] = photon
+parameter[no_end_marker] = T
+particle_start[field_x] = 0.5
+particle_start[field_y] = 0.5
+
+r2d = 180.0/pi
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!Rlocal = -20.0 ! positive is concave for the inc. beam
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! from rtrace.py
+p0 = 326.76207128665646e-3
+q0 = 704.273244354224e-3
+th_det = 14.158186720309702/r2d - 0.5*pi
+
+source: photon_init, spatial_distribution=gaussian,
+                     !sig_x = 0.42e-3, sig_y = 0.42e-3,
+                     !sig_x = 0.21e-3, sig_y = 0.21e-3,
+                     !sig_x = 0.042e-3, sig_y = 0.042e-3, 
+                     !sig_x = 0.021e-3, sig_y = 0.021e-3,
+                     !sig_x = 0.0042e-3, sig_y = 0.0042e-3, !018
+                     !sig_x = 0.0084e-3, sig_y = 0.0084e-3,
+                     sig_x = 0.0042e-3, sig_y = 0.0042e-3,
+                     e_field_x=0.5, e_field_y=0.5,
+                     E_center_relative_to_ref = T, sig_E = 750, energy_distribution = uniform,
+                     velocity_distribution = uniform, sig_vx = 0.1, sig_vy = 0.02  !rad
+
+drift1: drift, l = p0
+
+cryst1: crystal, crystal_type = 'Si(422)', thickness = 0.080e-3, b_param = -1.0, ref_tilt = 0,
+aperture_type = rectangular, y_limit = 7.5e-3,
+        x1_limit = 30e-3, x2_limit = 30e-3,
+        !aperture_at = entrance_end, offset_moves_aperture = False
+        aperture_at = surface, offset_moves_aperture = True,
+        call::"$PWD/Pb-vrspiral1_fit4-displ-51-21.bmad"
+
+drift2: drift, l = q0
+
+det: detector, pixel = {ix_bounds=(-700,700),iy_bounds=(-100,100),dr=(100e-6,2e-6)},
+     x_pitch = th_det
+     !aperture_type = rectangular, x_limit = 13.0e-3, y_limit = 30e-3,
+     !aperture_at = entrance_end, offset_moves_aperture = False 
+
+beam_line: line = (source, drift1, cryst1, drift2, det)
+use, beam_line

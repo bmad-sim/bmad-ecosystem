@@ -1,0 +1,71 @@
+&general_params
+	bmad_lattice = "merger.bmad"
+/
+
+&beam_params
+	beam_init%a_norm_emitt = 3.0e-7
+	beam_init%b_norm_emitt = 3.0e-7
+	beam_init%sig_z = 0.006
+	beam_init%sig_e = 0.001
+	beam_init%n_particle = 100
+	beam_init%bunch_charge = 8e-11
+/
+
+io_path{input =in,output=out,logfile=log.txt}
+
+INSERT_LATTICE_AND_BUNCH_PARAMS_HERE
+
+!---------------------------------------------------
+! online monitors
+!---------------------------------------------------
+online_monitor{name=sub_bunch.dat,type=subbunch
+               start_time_c0=now
+               end_time_marker=d4b,end_time_shift_c0=2.0
+               time_step_c0=all
+              }
+online_monitor{name=steps.dat,type=steps
+               start_time_c0=now
+               end_time_marker=d4b,end_time_shift_c0=2.0
+               time_step_c0=all
+              }
+online_monitor{name=p1.fmt3,type=phase,format=fmt3,particle=1
+               start_time_c0=now
+               end_time_marker=d4b,end_time_shift_c0=1.0
+               time_step_c0=all
+              }
+online_monitor{name=x.fmt3,type=phase,format=fmt3,particle=all
+               start_time_c0=now
+               end_time_marker=d4b,end_time_shift_c0=1.0
+               time_step_c0=0.10
+              }
+
+!---------------------------------------------------
+! force definition
+!---------------------------------------------------
+forces{type=projected
+       sigma_long= 5.3e-6
+      }
+!---------------------------------------------------
+! tracking
+!---------------------------------------------------
+  track_step{precondition=yes
+             iterative=2
+             error_per_ct=0.001
+             error_weight_momentum=0.0
+
+             ct_step_min=0.02
+             ct_step_max=0.10
+             ct_step_first=0.10
+             increase_factor=1.5
+             arc_factor=0.3
+             duty_steps=yes
+            }
+
+  tracker{end_time_marker=$end_marker,end_time_shift_c0=1.00}
+
+!---------------------------------------------------
+! offline monitors
+!---------------------------------------------------
+  monitor{format=fmt3,name=end.fmt3}
+
+exit

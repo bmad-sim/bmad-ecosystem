@@ -1,0 +1,32 @@
+beginning[beta_a ] = 1.0
+beginning[beta_b ] = 1.0
+parameter[particle] = electron
+parameter[geometry] = open
+parameter[absolute_time_tracking] = T
+parameter[e_tot] = 10e6
+
+standard_cavity2_delta_e = 1e6
+standard_rfc_phi0 = 0.0
+standard_rfc_rf_frequency = 1.3e9
+
+! Prototype cavities
+CALL, FILE = in.cavity2.bmad
+CALL, FILE = in.cavity2_reverse.bmad
+
+! Actual cavity instances                    
+cav1:in.cavity2
+cav2:in.cavity2_reverse
+
+d1: drift, L = 0.2
+d2: drift, L = 0.2
+d3: drift, L = 0.2
+
+
+lat: line = (d1, cav1, d2, cav2, d3)
+
+*[ds_step] = 1e-3
+
+USE, lat
+
+cav2_voltage = 20e6 ! Can't set voltage directly in lat2. Must do:
+cav2[gradient] = cav2_voltage / cav2[L]

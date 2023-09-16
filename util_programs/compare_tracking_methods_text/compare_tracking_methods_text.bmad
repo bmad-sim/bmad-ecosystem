@@ -1,0 +1,53 @@
+no_digested
+parameter[e_tot] = 1e6
+parameter[n_part] = 1e10
+parameter[lattice_type] = linear_lattice
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = 0.001 ! Horizontal position.
+particle_start[px] = 0.002 ! Horizontal momentum.
+particle_start[y]  = 0.003 ! Vertical position.
+particle_start[py] = 0.004 ! Vertical momentum.
+particle_start[z]  = 0.000 ! Longitudinal position.
+particle_start[pz] = 0.005 ! Longitudinal momentum (energy deviation).
+
+ab_multipole1:     ab_multipole, a2 = 1e3, b2 = 1e3
+beambeam1:         beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05, y_offset = 0.05
+drift1:            drift, l = 4.5, num_steps = 10
+e_gun1:            e_gun, l = 2, voltage = 0.5e6, num_steps = 10
+ecollimator1:      ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10
+elseparator1:      elseparator, l = 4.5, hkick = 0.005, gap = 0.11, num_steps = 10
+elseparator2:      elseparator, l = 4.5, vkick = 0.005, gap = 0.11, num_steps = 10
+hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10
+instrument1:       instrument, l = 4.5, num_steps = 10
+kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10
+lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_steps = 10
+lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10
+monitor1:          monitor, l = 4.5, num_steps = 10
+multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi
+octupole1:         octupole, l = 4.5, k3 = 1e3, tilt, num_steps = 10
+quadrupole1:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10
+quadrupole2:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10
+quadrupole3:       quadrupole, l = 0.6, k1 = 1e-20, tilt, num_steps = 10
+rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10
+rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10
+sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10
+sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10
+sextupole1:        sextupole, l = 0.6, k2 = 1, tilt, num_steps = 10
+solenoid1:         solenoid, l = 2.6, ks = 1, num_steps = 10
+sol_quad1:         sol_quad, l = 2.6, k1 = 1, ks = 1, num_steps = 10
+vkicker1:          vkicker, l = 4.5, kick = 0.005, num_steps = 10
+wiggler_map1:      wiggler, l = 1.6, term(1) = {0.003, 3.00, 4.00, 5.00, 0.63}, num_steps = 10, tracking_method = symp_lie_ptc
+wiggler_periodic1: wiggler, l = 1.6, b_max = 2.1, n_pole = 2, num_steps = 1000
+
+l1: line = (e_gun1, ab_multipole1, beambeam1, drift1, ecollimator1, elseparator1, elseparator2, hkicker1, instrument1, kicker1, monitor1, multipole1, octupole1, quadrupole1, quadrupole2, quadrupole3)
+l2: line = (l1, rcollimator1, rfcavity1, sbend1, sbend2, sextupole1, solenoid1, sol_quad1, vkicker1, wiggler_map1, wiggler_periodic1, lcavity1, lcavity2)
+
+l3: line = (lcavity1)
+
+use, l3
+
+end_file
+
+

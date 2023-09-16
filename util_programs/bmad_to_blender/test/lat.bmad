@@ -1,0 +1,35 @@
+parameter[lattice] = "test lattice"
+parameter[geometry] = open
+ 
+parameter[e_tot] = 10e6
+parameter[particle]               = ELECTRON        
+parameter[absolute_time_tracking] = F
+
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+
+
+m1: marker
+p1: pipe, L = 1
+p2: pipe, L = 1
+b1: sbend, L =1, angle = pi/4
+
+b2: sbend, L =1, angle = -pi/4
+
+cav1: lcavity, L = 1, rf_frequency = 1.3e9
+cav1[descrip] = "3DMODEL=7103-210.blend"
+
+
+
+cav2: lcavity, L = 1, rf_frequency = 1.3e9
+cav2[descrip] = "test descrip"
+
+
+lat: line = (p1, b1, p2, cav1, b2, cav2, m1)
+
+use, lat
+
+
+
+

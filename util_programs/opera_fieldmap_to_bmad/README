@@ -1,0 +1,27 @@
+####README FILE FOR OPERA_TO_BMAD.PY SCRIPT####
+#PURPOSE
+#Script generates a bmad format
+#How to run
+python opera_to_bmad.py filename.table
+#filename is the opera table that will be parsed
+#the file header must be in the following format
+#############################################################################
+ 29 29 321 1
+ 1 X [CM]
+ 2 Y [CM]
+ 3 Z [CM]
+ 4 BX [1]
+ 5 BY [1]
+ 6 BZ [1]
+ 7 BMOD [1]
+##################################################
+#top line is the number of nodes x y z
+#x (horizontal) coordinate
+#y (vertical) coordinate
+#z (longitudinal/along magnet center line) coordinate
+#Fields BX,BY,and BZ /the script was written for gausian fields. If the field is in some other unit, just change line 23
+#Once file is parsed, be sure to verify the ele_anchor_pt. Default is center. Depending on your map, this will need to be changed.
+#Output is the filename with bmad_ prepended
+#Any questions just contact me at hlovelace.bnl.gov
+
+

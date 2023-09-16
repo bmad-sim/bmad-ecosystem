@@ -1,0 +1,13 @@
+set (EXENAME bmad_to_blender)
+set (SRC_FILES
+  bmad_to_blender/bmad_to_blender.f90
+#  bmad_to_blender/blender_interface_mod.f90
+)
+
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

@@ -1,0 +1,11 @@
+set (EXENAME beam_file_translate_format)
+
+set (SRC_FILES
+  beam_file_translate_format/beam_file_translate_format.f90
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

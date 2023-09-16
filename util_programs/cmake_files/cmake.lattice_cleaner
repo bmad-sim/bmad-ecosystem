@@ -1,0 +1,11 @@
+set (EXENAME lattice_cleaner)
+
+set (SRC_FILES
+  lattice_cleaner/lattice_cleaner.f90
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

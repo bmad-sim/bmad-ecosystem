@@ -1,0 +1,11 @@
+set (EXENAME sad_to_bmad_postprocess)
+
+set (SRC_FILES
+  sad_to_bmad/sad_to_bmad_postprocess.f90
+)
+
+set (LINK_LIBS
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

@@ -1,0 +1,14 @@
+5/2022
+
+Documentation for bmad_to_blender
+---------------------------------
+
+The conversion is a two step process:
+
+1) Run the bmad_to_blender program to create a data file with the appropriate lattice information.
+2) Use the blender_base.py script to create a blender file.
+
+Status: Development has stopped due to lack of interest. The blender_base.py script was moved to the
+directory bmad/old avoid accidental use. If you are interested in helping development, please
+contact David Sagan.
+

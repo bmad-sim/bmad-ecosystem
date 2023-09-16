@@ -1,0 +1,19 @@
+\documentclass[12pt,border=1pt]{standalone}
+\usepackage{tikz, amssymb}
+\usetikzlibrary{decorations.pathmorphing, decorations.pathreplacing}
+\begin{document}
+\begin{tikzpicture}
+\draw [->] (0,0) -- (1.9,0);
+%\draw [->] (0.5, 1) -- (1.5, 1) node[anchor=west] {$z$};
+%\draw [->] (0.5, 1) -- (0.5, 2) node[anchor=south] {$x$};
+\draw (0,0) node[anchor=east] {$e^-$};
+\draw (2,3) -- (4,3) -- (4,-3) -- (2, -3) -- (2,3);
+\draw (3,3) node[anchor=south] {Converter};
+\draw [dashed] (2, 0) -- (7,0);
+\draw (7,0) node[anchor=west] {$(x,y) = (0,0)$};
+\draw [->] (4.1, 1) -- (5.1, 1.5) node[anchor=west] {$e^+$};
+\draw [->, dashed] (5, 0.3) -- (6,0.3) node[anchor=west] {$\mathbf{\hat{s}}$};
+\draw [decorate, decoration={brace, mirror}] (4.1, 0.05) -- (4.1,0.95);
+\draw (4.2, 0.5) node[anchor=west] {$r$};
+\end{tikzpicture}
+\end{document}

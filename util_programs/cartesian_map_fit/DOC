@@ -1,0 +1,350 @@
+cartesian_map_fit program documentation:
+
+This program varies the parametes of a Cartesian map to fit the field as calculated from the map to
+a field table.
+
+This documentation and source code is in the directory:
+  util_programs/cartesian_map_fit
+
+
+%-----------------------------------------------------------------
+Input Files
+
+There are three input files. Example input files can be found at 
+  util_programs/cartesian_map_fit/example
+
+
+%-----------------------------------------------------------------
+number.in Input File
+
+The first file to be read in by the program is:
+  number.in
+  
+This file has only one line and this line just contains a number. The program will read in this
+number and then open a file "fitNNNN.in" where "NNNN" is the number read in. For example, if the
+number is "132" then the program will look for the input file: "fit0132.in".
+
+After the fitNNNN.in file has been read in, the program will take the following steps:
+  1) Optimize the map parameters.
+  2) Every n_cycles (set in the fitNNNN.in file, see below):
+    2a) Increase the number in the number.in file by one,
+    2b) Write a fitNNNN.in file where NNNN is the number that was writen to the number.in file.
+
+Step (2) will be done n_loops times. Each time incrementing the number it writes to number.in. The
+program will stop before n_loops are done if it feels that it cannot make progress.
+
+
+%-----------------------------------------------------------------
+Optimization
+
+The merit function to be minimized is:
+  M = Sum over exterior grid points: (Bx_fit - Bx_table)^2 + 
+      Sum over exterior grid points: (By_fit - By_table)^2 + 
+      Sum over exterior grid points: (Bz_fit - Bz_table)^2 + 
+      Sum over Cartesian map coef terms: coef_weight * (coef_i)^2 +
+      Sum over Cartesian map kxy terms:  k_weight * delta_kxy^2 +
+      Sum over Cartesian map kz terms:   k_weight * delta_kz^2 +
+
+where:
+  delta_kxy = kxy + limit_xy  if kxy < -limit_xy
+            = 0               if |kxy| < limit_xy
+            = kxy - limit_xy  if kxy > limit_xy
+
+  delta_kz = kz + limit_z   if kz < -limit_z
+           = 0              if |kz| < limit_z
+           = kz - limit_z   if kz > limit_z
+
+	limit_kxy = pi / (4*del_grid_x) + pi / (4*del_grid_z)
+	limit_kz  = pi / (4*del_grid_z)
+
+	del_grid_x/y/z = Grid spacing of field table.
+
+The sum over the coef terms is included to keep the coefficients of degenerate or near-degenate
+terms (where kx, ky, kz are nearly equal) from diverging to +/- infinity. The value for coef_weight
+is set in the fitNNNN.in file.
+
+The sum over kxy and kz is included to keek the k values reasonably small. kxy = kx + ky (see below).
+
+Note: To save time, the sum over grid points is restricted to the grid points on the exterior of the
+grid volume. This is valid since the error between the fit and grid points will is maximal on the
+exterior points.
+
+The parameters that will be varied by the optimization are the parameters for each Cartesian map term:
+  Coef kxy, kz, x0, y0, phi_z
+The reason for using kxy = kx + ky is discussed in the Under the Hood section below. The x0, y0, and
+phi_z parameters may be excluded from varying in the optimization as discussed below. Thus the
+maximum number of variables is 6*N where N is the number of Cartesian map terms. Notice that the
+family of a term is never varied.
+
+For the lm optimizer, the program also prints out lines like:
+           1   391407.750877595        10.0000000000000     
+           2   391407.750877595        100.000000000000     
+           3   391393.714610333        100.000000000000     
+           4   391357.721046570        100.000000000000     
+           5   391357.721046570        1000.00000000000     
+           6   391355.478001373        1000.00000000000     
+           7   391352.133272867        1000.00000000000     
+           8   391352.133272867        10000.0000000000     
+
+The first column is n_cycles The second column is the merit function
+The third column is something called "lambda" which is a measure of
+how well the fitting is going. lambda decreases or remains roughly the
+same when the optimizer is making progress and increases when the
+optimizer is stuck.
+
+Every time a new fitNNNN.in file is generated, parameters of the optimization fit will
+be printed. Example:
+    Merit_tot:   391407.750877595     
+    Chi2_coef:  1.890402000000000E-004
+    B_diff (G):   4229.52984190201     
+    dB_rms (G):   12894.8166488047     
+    B_Merit   :   1.00384824152624     
+    B_int:   -6.011840298555775E-002
+    B_diff:     31.37  10752.85   1904.38  12688.59
+    B_rms:      67.25  12474.38   3265.23  12894.82
+    B_dat:      25.47  10710.09   1904.38  12639.95
+
+Merit_tot is the figure of merit (M).
+
+Merit_coef is the part of the figure of merit for the coefficients. This will always be less than
+merit_tot.
+
+B_diff = Average: |Bx_fit - Bx_table| + |By_fit - By_table| + |Bz_fit - Bz_table| 
+
+dB_rms = RMS average: (Bx_fit - Bx_table), (By_fit - By_table) & (Bz_fit - Bz_table) 
+
+B_Merit = B_diff / [sum: abs(Bx_table) + abs(By_table) + abs(Bz_table)]
+
+B_int = sum over z points: By_fit(x = 0, y = 0)
+
+B_diff [x, y, z, tot] = B_diff for Bx, By, and Bz components. The 4th
+number is just the sum of the first three.
+
+B_rms [x, y, z, tot] = B_rms for Bx, By, and Bz components
+
+B_dat: [x, y, z, tot] = Average |Bx_table|, |By_table|, and |Bz_table| 
+
+
+%-----------------------------------------------------------------
+fitNNNN.in Input File
+
+The program will read in the "fitNNNN.in" as explained above. 
+This file should look something like:
+
+  parameter[E_tot] = 5e9
+  map:  quadrupole, l = 1.6, cartesian_map = {
+  term = {0.03, 3.0, 4.0, 5.0, 0, 0, 0.63, y},
+  term = {...},
+  ...
+  term = {...} }
+
+  l: line = (map)
+  use, l
+
+  end_file
+
+  &Parameters
+    field_file = "binary::w8-20_37_144.table"
+    optimizer = "lm"
+    n_loops = 1000
+    n_cycles = 100
+    coef_weight = 4.0
+		k_weight = 2.0
+    mask_x0 = T
+    mask_y0 = T
+    mask_phi_z = F
+    de_var_to_population_factor = 5
+    de_coef_step  = 0.01
+    de_k_step     = 0.01
+    de_x0_y0_step = 0.0001
+    de_phi_z_step = 1e-4
+  /
+
+  Chi2:       0.140916528215442     
+  Chi2_coef:  1.443933309059283E-002
+  B_diff (G):   1.94478176399389     
+  dB_rms (G):   9.31438448020503     
+  B_Merit   :  3.978451184747663E-004
+  B_int:  3.533268607619795E-009
+
+
+The first part of the file before the "end_file" line specifies a bmad lattice with one element that
+contains the starting cartesian map fit.
+
+The "&Parameters" line to the slash "/" is a fortran namelist. This namelist specifies optimization
+parameters which will be explained below.
+
+The stuff below the Parameters namelist is information about the fit that was performed to create
+this file if the file was created by the cartesian_map_fit program (as opposed to being created by
+the user, see below). This information is ignored on input.
+
+Parameters:
+
+field_file
+-----------
+The name of the file that contains the field table. A discussion of the syntax of this file
+is given below.
+
+optimizer
+----------
+Selects which optimizer is used. Possibilities are:
+  "lm"        ! Levenburg-Marquadt
+  "de"        ! Differential Evolution
+See the Tao manual for more details on these optimizers
+
+n_loops, n_cycles
+------------------
+The optimizer will cycle for n_loops and then write out a new fitNNNN.in file. After n_cycles of n_loops
+the program will end. N_cycles can be set larger to cut down on the number of fitNNNN.in files generated and 
+vice verse. N_loops can be set to something large.
+
+coef_weight
+-----------
+Weight to keep the Cartesian map term coefficients resonably small. See the Optimization section
+above.  Note: Part of the fitting procedure is making sure the coef_weight is adjusted properly.
+Too large and the fit to the field will be poor.  Too small and the fit can include near degenerate
+term pairs which give a good fit at the grid points but have an unphysical ripple in between.
+
+k_weight
+--------
+Weight to keep the Cartesian map kx, ky and kz coefficients within a reasonable range.  See the
+Optimization section above.  Note: Part of the fitting procedure is making sure the k_weight is
+adjusted properly. Generally having large k_weight is not a problem.
+
+mask_x0, mask_y0
+----------------
+If set True then x0 and/or y0 parameters in the Cartesian map terms are not varied.
+
+mask_phi_z
+----------
+If set True then the phi_z term will not be varied in the optimization.
+
+de_var_to_population_factor
+---------------------------
+For the de optimizer: Ratio of population number to number of variables in the optimization.
+
+de_coef_step
+------------
+For the de optimizer: The spread in the coefficient variables for the inital population distribution.
+
+de_k_step
+---------
+For the de optimizer: The spread in the kxy and kz variables for the inital population distribution.
+
+de_x0_y0_step
+-------------
+For the de optimizer: The spread in the x0 and y0 variables for the inital population distribution.
+
+de_phi_z_step
+-------------
+For the de optimizer: The spread in the phi_z variables for the inital population distribution.
+
+
+%-----------------------------------------------------------------
+Field Table File
+
+The name of the field table input file is set by the field_file parameter of the Parameters namelist
+(see above). There are two types of field files: ASCII and binary. The binary files are created from the
+ascii files and their advantage is that they can be read in much quicker. This is a significant
+advantage since these files tend to be large. To designate a binary file prefix the field_file name with
+"binary::". Example:
+  &Parameters
+    field_file = "binary::table.dat"
+    ...
+  /
+
+To convert an ASCII file into a binary file, run the program with the "binary" command line option:
+  cartesian_map_fit binary
+
+
+For ASCII files, the first seven lines in the file must be
+  length_scale
+  field_scale
+  Nx_min, Nx_max
+  Ny_min, Ny_max
+  Nz_min, Nz_max
+  del_grid
+  r0_grid
+
+Example:
+  0.01             ! length_scale
+  1                ! field_scale
+  -20, 20          ! Nx_min, Nx_max
+  -10, 10          ! Ny_min, Ny_max
+   0, 100          ! Nz_min, Ny_max
+  1.0, 2.0, 10.0   ! Distance between points: del_x, del_y, del_z
+  0.0, 0.0, 0.0    ! Grid origin offset x_off, y_off, z_off 
+
+The length_scale gives the conversion factor between position values in terms of meters. For
+example, a length_scale of 0.01 means that the positions in the file are in cm.
+
+The field_scale gives the conversion factor between field in terms of Tesla. For example, a
+field_scale of 1e-4 means that the field values in the file are in Gauss.
+
+The next three lines gives minimum and maximum indexs for the field grid
+along the x, y, and z-axes. 
+
+The 6th line gives the spacing (length) between grid points in the x, y, and z-directions.
+
+The 7th line gives the actual position of the (0, 0, 0) grid point with respect to element coordinates.
+The origin for element coordinates is the x = y = 0 point at the entrance end of the element.
+
+After the initial seven lines, the rest of the file gives the field table. This table should have
+six columns:
+      ! x_postion   y_position   z_position  Bx    By    Bz
+
+
+%-----------------------------------------------------------------
+FFT calculation
+
+The fit will be very dependent upon the setting initial map terms so choosing the initial map terms
+is important. Also if you want to increase the number of map terms, an FFT can indicate the best
+parameter values to use for additional terms.
+
+When starting fresh, start with a fitNNNN.in file with no map terms. 
+
+Run the program with the "fft" command line option:
+  cartesian_map_fit fft
+
+The program will run three FFTs in kz for Bx, By and Bz along the centerline (x = y = 0).
+The FFT terms with the largest amplitude indicate the best kz value to use:
+If the FFT term is in the FFT for Bx then the map term should have family x.
+If the FFT term is in the FFT for By then the map term should have family y.
+If the FFT term is in the FFT for Bz then the map term should have family sq.
+
+Currently an FFT for finding family qu terms has not yet been implemented
+
+After putting in the some terms run the program to find the best solution. 
+After this, another fft run will show you values for further map terms, etc., etc.
+Eventually you get a fit that has the accuracy you want.
+
+
+%-----------------------------------------------------------------
+Under the Hood
+
+Some details about the optimization: For a given family, the different forms for the field are
+constructed such that they can be considered as one continuous function of (kx, ky, kz) such that
+when kx passes through zero there is a transition between hyper_y and hyper_xy forms and when ky
+passes through zero there is a transition between hyper_x and hyper_xy forms.  [Note: With the forms
+as constructed, a transition between hyper_x and hyper_y when kz passes through zero is not
+continuous.  This is not a problem since the constructed continuous function avoids direct
+transitions between hyper_x and hyper_y.]
+
+Since there are only two degrees of freedom for (kx, ky, kz) the field is considered to be a
+function of kxy = kx + ky and kz. The reason why kxy is used instead of kx or ky is that the
+optimizer needs the derivatives of the field with respect the independent variables and if kx or ky
+is used, the derivatives can become infinite at the transition points between forms. Using kxy
+avoids all infinities. With this, the correspondence between form and (kxy, kz) values is
+                                                                                                      Sign of
+  Condition          Form          kx                                  ky                             kx   ky
+  ---------          --------  --------------------------------    --------------------------------   -------
+  kxy > |kz|         hyper_y   (kxy^2 - kz^2) / (2kxy)             (kxy^2 + kz^2) / (2kxy)            +    + 
+-|kz| < kxy < |kz|   hyper_xy  (kxy - sqrt(2 kz^2 - kxy^2)) / 2    (kxy + sqrt(2 kz^2 - kxy^2)) / 2   -    +
+  kxy < -|kz|        hyper_x   (kxy^2 + kz^2) / (2kxy)             (kxy^2 - kz^2) / (2kxy)            -    -
+
+When the (kx, ky, kz) parameters of a given term are read in from the input file, the form for the
+term can determined by using the relationship between kx, ky, and kz for each form. For example,
+that ky^2 = kx^2 + kz^2 for the hyper_y form, etc. The sign of the input kx and ky might not
+correspond to what is given in the above table. This can be corrected by flipping signs as needed
+for kx and ky and then possibly flipping the sign for the Coef coefficient to keep the calculated
+field invariant.

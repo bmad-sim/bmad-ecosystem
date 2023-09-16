@@ -1,0 +1,27 @@
+parameter[E_tot] = 5e9
+map:  quadrupole, l = 1.6, cartesian_map = {
+  ele_anchor_pt = center, !r0 = (0.1, 0.1, 0.1),
+term = {0.03, 5.0, 3.0, 4.0, 0.11, 0.22, 0.63, sq}}
+
+l: line = (map)
+use, l
+
+end_file
+
+
+&Parameters
+  field_file = "field.table"
+  coef_weight = 2
+	optimizer = "lm"
+  n_loops = 2
+  n_cycles = 10
+  mask_x0 = F
+  mask_y0 = F
+  mask_phi_z = F
+	! For DE optimizer
+	de_var_to_population_factor = 5
+	de_coef_step = 0.01
+	de_k_step = 0.01
+	de_x0_y0_step = 0.0001
+	de_phi_z_step = 1e-4
+/
