@@ -1,0 +1,129 @@
+%-----------------------------------------
+% Note: Use pdflatex to process this file.
+%
+% IMPORTANT: This file uses .aux files from the Bmad manual so pdflatex the Bmad manual beforehand.
+%            Note: It is assumed that the bmad and tao directories have the same parent directory.
+%-----------------------------------------
+
+\documentclass{book}
+\usepackage{xr}       % Defines \externaldocument
+\usepackage{graphicx}
+\usepackage{moreverb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subcaption}
+\usepackage{xspace}
+\usepackage{makeidx}
+\usepackage{multirow}
+\usepackage{booktabs}   % For table layouts
+\usepackage{longtable}
+\usepackage{enumitem} % enumeration lists
+
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage{textcomp}
+\usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}  % This must be the last package
+
+\input{macros.tex}
+
+\externaldocument[B-]{../../bmad/doc/lattice-file}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.00in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+\setlength{\skip\footins}{6pt}
+\setlength{\footnotesep}{3ex}
+
+\setlist[description]{itemsep = 0pt}
+
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+
+%%% Table of Contents spacing.
+\makeatletter
+\renewcommand{\l@section}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@subsection}{\@dottedtocline{2}{3.8em}{4.2em}}
+\renewcommand{\l@figure}{\@dottedtocline{1}{1.5em}{3.3em}}
+\renewcommand{\l@table}{\@dottedtocline{1}{1.5em}{3.3em}}
+\makeatother
+
+%----------------------------------------------------------------
+\makeindex
+
+\begin{document}
+
+\index{lattice!model|see{model lattice}}
+\index{lattice!design|see{design lattice}}
+\index{lattice!base|see{base lattice}}
+
+\include{cover-page}
+
+%----------------------------------------------------------------
+{
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+}
+
+%----------------------------------------------------------------
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[0]{Contents}{Contents}
+\pdfbookmark[1]{Table of Contents}{toc} 
+\tableofcontents
+
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[1]{List of Figures}{LoF} 
+\listoffigures
+
+
+\cleardoublepage
+\phantomsection 
+\pdfbookmark[1]{List of Tables}{LoT} 
+\listoftables
+
+%----------------------------------------------------------------
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+%----------------------------------------------------------------
+\part{Reference Guide}
+\label{ref-guide}
+
+\include{overview}
+\include{introduction}
+\include{organization}
+\include{syntax}
+\include{variables}
+\include{data}
+\include{plotting}
+\include{optimization}
+\include{wave}
+\include{initialization}
+\include{command-list}
+\include{single-mode}
+\include{python-interface}
+
+%----------------------------------------------------------------
+\part{Programmer's Guide}
+
+\include{customization}
+\include{structures}
+
+%----------------------------------------------------------------
+\part{Bibliography}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
+\include{bibliography}
+
+\printindex
+
+\end{document}

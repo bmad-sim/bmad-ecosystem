@@ -1,0 +1,315 @@
+\chapter{Tao Structures}
+\index{structures in tao}
+\label{c:structures}
+
+This chapter gives an overview of the structures (classes) used in \tao.  Knowledge of the
+structures is needed in order to create custom versions of \tao. See Chapter \sref{c:custom.tao} for
+details of how to create custom \tao versions.
+
+%-----------------------------------------------------------------
+\section{Overview}
+\index{programming!overview}
+
+The \tao code files are stored in the following directories:
+\begin{example}
+  tao/code
+  tao/hooks
+  tao/program
+\end{example}
+Here \vn{tao} is the root directory of \tao. Ask your local guru
+where to find this directory.
+
+The files in \vn{tao/code} should not be modified when creating custom versions of \tao. The files
+in \vn{tao/hooks}, as explained in Chapter \sref{c:custom.tao}, are templates used for
+customization. Finally, the directory \vn{tao/program} holds the program file \vn{tao_program.f90}.
+
+The structures used by tao are defined in the file \vn{tao_struct.f90}.  All \tao structures begin
+with the prefix \vn{tao_} so any structure encountered that does not begin with \vn{tao_} must be
+defined in some other library The \vn{getf} and \vn{listf} commands can be used to quickly get
+information on any structure. See the \bmad manual for more details.
+
+%-----------------------------------------------------------------
+\section{tao_super_universe_struct}
+\label{s:super.uni.struct}
+\index{tao_super_universe_struct}
+
+The "root" structure in \tao is the \vn{tao_super_universe_struct}. 
+The definition of this structure is:
+\begin{example}
+  type tao_super_universe_struct
+    type (tao_global_struct) global                      ! Global variables.
+    type (tao_common_struct) :: com                      ! Global variables
+    type (tao_plotting_struct) :: plotting               ! Plot parameters.
+    type (tao_v1_var_struct), allocatable :: v1_var(:)   ! V1 Variable array
+    type (tao_var_struct), allocatable :: var(:)         ! Array of all variables.
+    type (tao_universe_struct), allocatable :: u(:)      ! Array of universes.
+    type (tao_mpi_struct) mpi
+    integer, allocatable :: key(:)
+    type (tao_building_wall_struct) :: building_wall
+    type (tao_wave_struct) :: wave 
+    integer n_var_used
+    integer n_v1_var_used
+    type (tao_cmd_history_struct) :: history(1000)        ! command history
+  end type
+\end{example}
+An instance of this structure called \vn{s} is defined in \vn{tao_struct.f90}:
+\begin{example}
+  type (tao_super_universe_struct), save, target :: s
+\end{example}
+This \vn{s} variable is common to all of \tao's routines and serves as a giant common block for \tao.
+
+The components of the \vn{tao_super_universe_struct} are:
+  \begin{description}
+  \index{tao_global_struct}
+  \item[\%global] \Newline
+The \vn{%global} component contains global variables that a user can set
+in an initialization file.
+See \sref{s:globals} for more details.
+  \index{tao_common_struct}
+  \item[\%com] \Newline
+The \vn{%com} component is for global variables that are not directly
+user accessible.
+  \index{tao_plotting_struct}
+  \item[\%plot_page] \Newline
+The \vn{%plot_page} component holds parameters used in plotting (\sref{s:s.plot.page}).
+  \index{tao_v1_var_struct}
+  \item[\%v1_var(:)] \Newline
+The \vn{%v1_var(:)} component is an array of all the \vn{v1_var} blocks
+(\sref{c:var}) that the user has defined (\sref{s:s.v1.var}).
+  \index{tao_var_struct}
+  \item[\%var(:)]
+The \vn{%var(:)} array holds a list of all variables (\sref{c:var})
+that the user has defined (\sref{s:s.var}).
+  \index{tao_universe_struct}
+  \item[\%u(:)] \Newline
+The \vn{%u(:)} component is an array of universes (\sref{s:universe}) (\sref{s:s.u}).
+  \index{tao_mpi_struct}
+  \item[\%mpi] \Newline
+The \vn{%mpi} component holds parameters needed for parallel processing (\sref{s:s.mpi}).
+  \item[\%key(:)] \Newline
+The \vn{%key(:)} component is an array of indexes used for key bindings 
+(\sref{s:key.bind}). 
+  \index{tao_building_wall_struct}
+  \item[\%building_wall] \Newline
+The \vn{%building_wall} component holds parameters associated
+with a building wall (\sref{s:building.wall}).
+  \index{tao_wave_struct}
+  \item[\%wave] \Newline
+The \vn{%wave} component holds parameters needed for the wave analysis
+(\sref{c:wave}).
+  \item[\%history] \Newline
+The \vn{%history} component holds the command history (\sref{s:s.history}).
+  \end{description}
+
+%-----------------------------------------------------------------
+\section{s\%plot_page Component}
+\label{s:s.plot.page}
+
+The \vn{s%plot_page} component of the \vn{super universe} (\sref{s:super.uni.struct}) holds plotting
+information and is initialized in the routine \vn{tao_init_plotting}. \vn{s%plot_page} is a
+\vn{tao_plot_page_struct} structure which has components:
+\begin{example}
+  type tao_plot_page_struct
+    type (tao_title_struct) title             ! Title at top of page.
+    type (tao_title_struct) subtitle          ! Subtitle at top of page.
+    type (qp_rect_struct) border              ! Border around plots edge of page.
+    type (tao_drawing_struct) :: floor_plan
+    type (tao_drawing_struct) :: lat_layout
+    type (tao_shape_pattern_struct), allocatable :: pattern(:)
+    type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
+    type (tao_plot_region_struct), allocatable :: region(:)
+    character(8) :: plot_display_type = 'X'   ! 'X' (X11) or 'TK'
+    real(rp) size(2)                          ! width and height of window in pixels.
+    real(rp) :: text_height = 12              ! In points. Scales the height of all text
+    real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
+    real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
+    real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
+    real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
+    real(rp) :: legend_text_scale      = 0.7  ! Relative to text_height
+    real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
+    real(rp) :: curve_legend_line_len  = 50   ! Points
+    real(rp) :: curve_legend_text_offset = 10 ! Points
+    real(rp) :: floor_plan_shape_scale = 1.0
+    real(rp) :: lat_layout_shape_scale = 1.0
+    integer :: n_curve_pts = 401              ! Default number of points for plotting a smooth curve.
+    integer :: id_window = -1                 ! X window id number.
+    logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
+  end type
+\end{example}
+
+\begin{description}
+  \item[\%template(:)] \Newline
+The \vn{%template(:)} array contains the array of plot templates defined by the user (\sref{s:template}) and/or
+the default plot templates which are created in the routine \vn{tao_init_plotting}.
+  \item[\%region(:)] \Newline
+The \vn{%region(:)} array contains the plot regions. Each element in the array is a \vn{tao_plot_region_struct}
+structure:
+\begin{example}
+  type tao_plot_region_struct
+    character(40) :: name = ''     ! Region name. Eg: 'r13', etc.
+    type (tao_plot_struct) plot    ! Plot associated with this region
+    real(rp) location(4)           ! [x1, x2, y1, y2] location on page.
+    logical :: visible = .false.   ! To draw or not to draw.
+    logical :: list_with_show_plot_command = .true.  ! False used for default plots to 
+                                                     !  shorten the output of "show plot"
+  end type
+\end{example}
+Then \vn{place} command finds the appropriate plot in the \vn{s%plot_page%template(:)} array and
+copies it to the \vn{s%plot_page%region(i)%plot} component where \vn{i} is the index of the region
+specified by the \vn{place} command.
+\end{description}
+
+%-----------------------------------------------------------------
+\section {s\%v1_var Component}
+\label{s:s.v1.var}
+
+The \vn{s%v1_var(:)} array holds the list of \vn{v1} variable blocks (\sref{c:var}).
+This array is initialized in the routine \vn{tao_init_variables}.
+The range of valid elements in this array goes from 1 to \vn{s%n_v1_var_used}.
+Each element of this array is a \vn{tao_v1_var_struct} structure:
+\begin{example}
+  type tao_v1_var_struct
+    character(40) :: name = ''       ! V1 variable name. Eg: 'quad_k1'.
+    integer ix_v1_var                ! Index to s%v1_var(:) array
+    type (tao_var_struct), pointer :: v(:) => null()
+                                     ! Pointer to the appropriate section in s%var.
+  end type
+\end{example}
+
+The \vn{%ix_v1_var} component is the index of the element in the \vn{s%v1_var(:)} array.
+That is, \vn{s%v1_var(1)%ix_v1_var} = 1, etc. This is useful when debugging. 
+
+The \vn{%v(:)} component is a pointer to the appropreiate block in the \vn{s%var(:)} array
+(\sref{s:s.var}) which contain the individual variables associated with the particular
+\vn{v1} variable block. 
+
+%-----------------------------------------------------------------
+\section {s\%var Component}
+\label{s:s.var}
+
+The \vn{s%var(:)} array holds the list complete list of all variables (\sref{c:var}).  This array is
+initialized in the routine \vn{tao_init_variables}. The range of valid variables goes from 1 to
+\vn{s%n_var_used}. Each element in the \vn{s%v1_var(:)} array (\sref{s:s.v1.var}) has a pointer to
+the section of the \vn{s%var(:)} array holding the variables associated with \vn{v1} block. Using a
+single array of variables simplifies code where one wants to simply loop over all variables (for
+example, during optimization).
+
+Each element of the \vn{s%var(:)} array is a \vn{tao_var_struct} structure:
+\begin{example}
+  type tao_var_struct
+    character(40) :: ele_name = ''    ! Associated lattice element name.
+    character(40) :: attrib_name = '' ! Name of the attribute to vary.
+    character(40) :: id = ''          ! Used by Tao extension code. Not used by Tao directly.
+    type (tao_var_slave_struct), allocatable :: slave(:)
+    type (tao_var_slave_struct) :: common_slave
+    integer :: ix_v1 = 0              ! Index of this var in the s%v1_var(i)%v(:) array.
+    integer :: ix_var = 0             ! Index number of this var in the s%var(:) array.
+    integer :: ix_dvar = -1           ! Column in the dData_dVar derivative matrix.
+    integer :: ix_attrib = 0          ! Index in ele%value(:) array if appropriate.
+    integer :: ix_key_table = 0       ! Has a key binding?
+    real(rp), pointer :: model_value => null()     ! Model value.
+    real(rp), pointer :: base_value => null()      ! Base value.
+    real(rp) :: design_value = 0      ! Design value from the design lattice.
+    real(rp) :: scratch_value = 0     ! Scratch space to be used within a routine.
+    real(rp) :: old_value = 0         ! Scratch space to be used within a routine.
+    real(rp) :: meas_value = 0        ! The value when the data measurement was taken.
+    real(rp) :: ref_value = 0         ! Value when the reference measurement was taken.
+    real(rp) :: correction_value = 0  ! Value determined by a fit to correct the lattice.
+    real(rp) :: high_lim = -1d30      ! High limit for the model_value.
+    real(rp) :: low_lim = 1d30        ! Low limit for the model_value.
+    real(rp) :: step = 0              ! Sets what is a small step for varying this var.
+    real(rp) :: weight = 0            ! Weight for the merit function term.
+    real(rp) :: delta_merit = 0       ! Diff used to calculate the merit function term.
+    real(rp) :: merit = 0             ! merit_term = weight * delta^2.
+    real(rp) :: dMerit_dVar = 0       ! Merit derivative.
+    real(rp) :: key_val0 = 0          ! Key base value
+    real(rp) :: key_delta = 0         ! Change in value when a key is pressed.
+    real(rp) :: s = 0                 ! longitudinal position of ele.
+    character(40) :: merit_type = ''  ! 'target' or 'limit'
+    logical :: exists = .false.       ! See above
+    logical :: good_var = .false.     ! See above
+    logical :: good_user = .true.     ! See above
+    logical :: good_opt = .false.     ! See above
+    logical :: good_plot = .false.    ! See above
+    logical :: useit_opt = .false.    ! See above
+    logical :: useit_plot = .false.   ! See above
+    logical :: key_bound = .false.    ! Variable bound to keyboard key?
+    type (tao_v1_var_struct), pointer :: v1 => null() ! Pointer to the parent.
+  end type tao_var_struct
+\end{example}
+
+  \begin{description}
+  \item[\%exists] \Newline
+The variable exists. Non-existent variables can serve as place holders in the \vn{s%var array}.
+  \item[\%good_var] \Newline
+The variable can be varied. Used by the lm optimizer to veto variables that do not change the merit
+function.
+  \item[\%good_user] \Newline
+What the user has selected using the use, veto, and restore commands.
+  \item[\%good_opt] \Newline
+Not modified by Tao. Setting is reserved to be done by extension code.
+  \item[\%good_plot] \Newline
+Not modified by Tao. Setting is reserved to be done by extension code.
+  \item[\%useit_opt] \Newline
+Variable is to be used for optimizing:
+\begin{example}
+  %useit_opt = %exists & %good_user & %good_opt & %good_var
+\end{example}
+  \item[\%useit_plot] \Newline
+If True variable is used in plotting variable values:
+\begin{example}
+  %useit_plot = %exists & %good_plot & %good_user
+\end{example}
+\end{description}
+
+%-----------------------------------------------------------------
+\section {s\%u Component}
+\label{s:s.u}
+
+The \vn{s%u(:)} array holds the \tao universes (\sref{s:universe}). Each element
+of this array is a \vn{tao_universe_struct} structure:
+\begin{example}
+  type tao_universe_struct
+    type (tao_universe_struct), pointer :: common => null()
+    type (tao_lattice_struct), pointer :: model, design, base
+    type (tao_beam_struct) beam
+    type (tao_dynamic_aperture_struct) :: dynamic_aperture
+    type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
+    type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types
+    type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
+    type (tao_ping_scale_struct) ping_scale
+    type (lat_struct) scratch_lat                          ! Scratch area.
+    type (tao_universe_calc_struct) calc                   ! What needs to be calculated?
+    real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
+    integer ix_uni                         ! Universe index.
+    integer n_d2_data_used                 ! Number of used %d2_data(:) components.
+    integer n_data_used                    ! Number of used %data(:) components.
+    logical is_on                          ! universe turned on
+    logical picked_uni                     ! Scratch logical.
+  end type
+\end{example}
+
+%-----------------------------------------------------------------
+\section {s\%mpi Component}
+\label{s:s.mpi}
+
+The \vn{s%mpi} component holds information that is used when running \tao multi-threaded.
+
+
+%-----------------------------------------------------------------
+\section {s\%key Component}
+\label{s:s.key}
+
+The value of \vn{%key(i)} is the index in the \vn{%var(:)} array associated with the $i$\th key.
+
+%-----------------------------------------------------------------
+\section {s\%building_wall Component}
+\label{s:s.building.wall}
+
+%-----------------------------------------------------------------
+\section {s\%wave Component}
+\label{s:s.wave}
+
+%-----------------------------------------------------------------
+\section {s\%history Component}
+\label{s:s.history}

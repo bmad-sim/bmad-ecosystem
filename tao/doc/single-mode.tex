@@ -1,0 +1,248 @@
+%---------------------------------------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------------------------------------
+% WARNING: If you are modifying this file, be aware that the online help system depends upon the lines starting 
+% with "%%" to match blocks of text in this file with a given command.
+%---------------------------------------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------------------------------------
+
+\chapter{Single Mode}\index{single mode}
+\label{c:single}
+
+\index{single mode}
+\tao has two \vn{modes} for entering commands. In \vn{Single Mode}, described in this chapter, each
+keystroke represents a command.  That is, the user does not have to press the carriage control key
+to signal the end of a command (there are a few exceptions which are noted below). Conversely, in
+\vn{Line Mode}, which is described in Chapter~\sref{c:command}, \tao waits until the \vn{return} key
+is depressed to execute a command. That is, in Line Mode a command consists of a single line of
+input.  Single Mode is useful for quickly varying parameters to see how they affect a lattice but
+the number of commands in Single Mode is limited.
+
+From \vn{line mode} use the \vn{single_mode} command (\sref{s:sing}) to get into \vn{single
+mode}. To go back to \vn{line mode} type "\vn{Z}".
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{keyboard.pdf}
+  \caption[Bindings of key pairs on the keyboard to variables.]
+{Ten pairs of keys on the keyboard are bound to ten variables so that pressing a key of a given pair
+will either increment or decrement the associated variable. The first key pair bound to variable
+number 1 are the \vn{1} and \vn{Q} keys, etc.}
+  \label{f:keyboard}
+\end{figure}
+
+%% key_table ------------------------------------------------------------------------
+\section{Key Bindings}\index{key bindings}
+\label{s:key.bind}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{layout-graph-table.pdf}
+  \caption[Example key table with a lattice layout and data plots.]
+{A lattice layout plot (top) above a data plot (middle) which in turn is above a key table plot
+(bottom). Elements that have attributes that are varied as shown in the key table have the
+corresponding key table number printed above the element's glyph in the lattice layout.}
+  \label{f:key.table}
+\end{figure}
+
+\index{key bindings}
+The main purpose of Single Mode is to associate certain keyboard keys with certain variables so that
+the pressing of these keys will change their associated model value of the variable as illustrated
+in Figure~\ref{f:keyboard}. This is called a \vn{key binding}. Key bindings are established in a
+startup file by setting the \vn{var(i)%key_bound} and \vn{var(i)%key_delta} parameters (see
+Section~\sref{s:init.var}). After startup, associated variables with keyboard keys can be done using
+the \vn{set variable} command (\sref{s:set}).
+
+The variables are divided into banks of 10. The 0\Th bank uses the first ten variables that have
+their \vn{key_bound} attribute (\sref{s:init.var}) set to True.  the 1\St bank uses the next ten,
+etc.  At any one time, only one bank is active. To see the status of this bank, a \vn{key_table}
+plot (\sref{s:key.table})can be setup as shown in Figure~\ref{f:key.table}. The relationship between
+the keys and a change in a variable is:
+\begin{example}
+                 Change by factor of:          
+     Variable    -10  -1    1     10
+   ----------    ---  ---  ---  -------
+    1 + 10*ib     Q    q    1   shift-1   ("!")
+    2 + 10*ib     W    w    2   shift-2   ("@")
+    3 + 10*ib     E    e    3   shift-3   ("\#")
+    4 + 10*ib     R    r    4   shift-4   ("\$")
+    5 + 10*ib     T    t    5   shift-5   ("%")
+    6 + 10*ib     Y    y    6   shift-6   ("^")
+    7 + 10*ib     U    u    7   shift-7   ("\&")
+    8 + 10*ib     I    i    8   shift-8   ("*")
+    9 + 10*ib     O    o    9   shift-9   ("(")
+   10 + 10*ib     P    p    0   shift-0   (")")
+\end{example}
+In the above table ib is the bank number (0 for the
+0\Th bank, etc.), and the change is in multiples of the \vn{step} (\sref{s:init.var}).  value for a
+variable. Note: In \vn{line mode}, the command \vn{show key_bindings} (\sref{s:show}) may be used to
+show the entire set of bound keys.
+
+Initially the 0\Th bank is active. The left arrow and right arrow are used to decrease or increase
+the bank number.  Additionally the "\vn{<}" and "$>$" keys can be used to change the deltas for the
+variables.
+
+For example, looking at Figure~\ref{f:key.table}, the \vn{"1:"} in the upper left corner of the
+\vn{Key Table} shows that the 1\St bank is active. \vn{key(14)} is associated with the \vn{"4"} key
+and from the \vn{Key Table} it is seen that the bound attribute is the \vn{b1_gradient} of the
+element named \vn{Q15_2}.  Thus, if the \vn{"4"} key is depressed in single mode, the value of the
+\vn{b1_gradient} of element \vn{Q15_2} will be increased by the given Delta (0.1000 in this
+case). Pressing the \vn{"r"} key (which is just below the \vn{"4"} key) will decrease the value of
+the \vn{b1_gradient} by 0.1000. Using the shift key, which is shift-4 (\vn{"\$"}) will increase
+\vn{b1_gradient} by 10 times the given delta (1.000 in this case) and \vn{"R"} will decrease, by a
+factor of 10, the given delta.
+
+Since element \vn{Q15_2} is also displayed in the \vn{Lattice Layout}, there is a \vn{"4"} drawn
+above this element that reflects the fact that the element contains a bound attribute. Since, in
+this case, the Lattice Layout only shows part of the lattice, not all key indexes are present.
+
+%------------------------------------------------------------------------
+
+%% keys ------------------------------------------------------------------------
+\section{List of Key Strokes}\index{single mode!list of Key strokes}
+\label{s:keys}
+
+In the following list, certain commands use multiple key strokes. For example, the \vn{"/v"} command
+is invoked by first pressing the slash (\vn{"/"}) key followed by the \vn{"v"} key. \vn{"a
+$<$left_arrow$>$"} represents pressing the \vn{"a"} key followed by the left-arrow key.
+
+Additionally, custom commands can be associated with any key using the \vn{set key} command
+\sref{s:set}. Example:
+\begin{example}
+  set key h = veto var *  ! This sets the "h" key to the command "veto var *"
+\end{example}
+
+\begin{description}
+\item[?]
+Type a short help message.
+
+\item[a $<$left\_arrow$>$]
+Pan plots left by half the plot width.
+
+\item[a $<$right\_arrow$>$]
+Pan plots right by half the plot width.
+
+\item[a $<$up\_arrow$>$]
+Pan plots up by half the plot height.
+
+\item[a $<$down\_arrow$>$]
+Pan plots down by half the plot height.
+
+\item[s $<$left\_arrow$>$]
+Scale x-axis of plots by a factor of 2.0.
+
+\item[s $<$right\_arrow$>$]
+Scale x-axis of plots by a factor of 0.5
+
+\item[s $<$up\_arrow$>$]
+Scale y-axis of plots by a factor of 2.0.
+
+\item[s $<$down\_arrow$>$]
+Scale y-axis of plots by a factor of 0.5
+
+
+\item[z $<$left\_arrow$>$]
+Zoom x-axis of plots by a factor of 2.0.
+
+\item[z $<$right\_arrow$>$]
+Zoom x-axis of plots by a factor of 0.5
+
+\item[z $<$up\_arrow$>$]
+Zoom y-axis of plots by a factor of 2.0.
+
+\item[z $<$down\_arrow$>$]
+Zoom y-axis of plots by a factor of 0.5
+
+\item[c]  
+Show constraints.
+
+\item[g]
+Go run the default optimizer (\sref{s:tao.opti}). The optimizer will run until you type a '.' (a
+period).  Periodically during the optimization the variable values will be written to files, one for
+each universe, whose name is \vn{tao_opt_vars\#.dat}. where \vn{\#} is the universe number.
+
+\item[v]
+Show Bmad variable values in bmad lattice format. See also the \vn{/v} command. Equivalent to
+\vn{show vars -bmad} in line mode.
+
+\item[V] 
+Same an \vn{v} except only variables currently enabled for optimization are shown.
+This is equivalent to \vn{show vars -bmad -good} in line mode.
+
+\item[Z] 
+Go back to \vn{line mode}
+
+\item[$<$]
+Reduce the deltas (the amount that a variable is changed when you use
+the keys 0 through 9) of all the variables by a factor of 2.
+
+\item[$>$]
+Increase the deltas (the amount that a variable is changed when you
+use the keys 0 through 9) of all the variables by a factor of 2.
+
+\item[$<$left\_arrow$>$]
+Shift the active key bank down by 1: ib -$>$ ib - 1
+
+\item[$<$right\_arrow$>$]
+Shift the active key bank up by 1: ib -$>$ ib + 1
+
+\item[/$<$up\_arrow$>$]
+Increase all key deltas by a factor of 10.
+
+\item[/$<$down\_arrow$>$]
+Decrease all key deltas by a factor of 10.
+
+\item[$<$CR$>$]
+Do nothing but replot.
+
+\item[-p]
+Toggle plotting. Whether to plot or not to plot is initially determined by \vn{plot%enable}.
+
+\item['$<$command$>$]
+Accept a Line Mode (\sref{c:command}) command.
+
+\item[/b]
+Switch the default lattice branch (\sref{s:lattice}).
+
+\item[/e $<$Index or Name$>$]
+Prints info on a lattice element. If there are two lattices being used and only the information of
+an element from one particular lattice is wanted then prepend with "n@" where n is the lattice
+index.
+
+\item[/l]
+Print a list of the lattice elements with Twiss parameters.
+
+\item[/u $<$Universe Index$>$]
+Switch the default universe (\sref{s:universe}).
+
+\item[/v]
+Write variable values to the default output file in Bmad lattice format.  The default output file
+name is set by \vn{global%var_out}.  See also the \vn{V} command.
+
+\item[/x $<$min$>$ $<$max$>$]
+Set the horizontal scale min and max values for all the plots. This is the same as setting
+\vn{default_graph%x%min} and \vn{default_graph%x%max} in the \tao input file. If \vn{min} and
+\vn{max} are not given then the scale will be chosen to include the entire lattice.
+
+\item[/y $<$min$>$ $<$max$>$]
+Set the y-axis min and max values for all the plots. This is the same as setting \vn{plot%y%min} and
+\vn{plot%y%max} in the \tao input file. If \vn{min} and \vn{max} are not given then an autoscale
+will be done.
+
+\item[=v $<$digit$>$ $<$value$>$]
+Set variable value. \vn{<digit>} is between 0 and 9 corresponding to a
+variable of the current bank. \vn{<value>} is the value to set the
+variable to.
+
+\item[=$<$right\_arrow$>$]
+Set saved ("value0") values to variable values to saved values. The saved values (the value0 column
+in the display) are initially set to the initial value on startup. There are saved values for both
+the manual and automatic variables. Note that reading in a TOAD input file will reset the saved
+values. If you want to save the values of the variables in this case use "/w" to save to a file. Use
+the "\vn{/$<$left_arrow$>$}" command to go in the reverse direction.
+
+\item[=$<$left\_arrow$>$]
+Paste saved (\vn{value0} column in the display) values back to the variable values.  The saved
+values are initially set to the initial value on startup. Use the "\vn{/$<$right_arrow$>$}" command
+to go in the reverse direction.
+
+\end{description}

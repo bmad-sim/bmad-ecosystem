@@ -1,0 +1,211 @@
+\chapter{Python/Tao Interface}
+\index{python interface}
+\label{c:python}
+
+It is sometimes convenient to interface \tao to an external program.\footnote
+  { 
+Commonly the external program is \vn{Python}. 
+  }
+For example, to analyze Tao generated data in an external program. Another application is to
+interface \tao to an online control system environment. In this case, \tao can be used for such
+things as flattening orbits.
+
+To aid in interfacing, \tao has the \vn{python} command (\sref{s:python.python}).\footnote
+  {
+Dispite its name, \tao's \vn{python} command can be used with any external program. 
+  }
+The \vn{python} command defaines a standardized syntax with which to communicate with \tao.
+
+Another aid is the \vn{PyTao} package which is an interface layer to be used between \tao and
+\vn{Python}. See \sref{s:pytao} for more details.
+
+%--------------------------------------------------------------------------
+\section{PyTao Interface}
+\label{s:pytao}
+
+The \vn{PyTao} package is an interface layer to be used between \tao and
+\vn{Python}. \vn{PyTao} is hosted on \vn{GitHub}
+(independent of \bmad distributions) at:
+\vspace{-2ex}
+\begin{itemize}
+  \item[] \url{https://bmad-sim.github.io/pytao}
+\end{itemize}
+\vspace{-2ex}
+Documentation for setup and using PyTao is at:
+\begin{example}
+  bmad-sim.github.io/pytao/
+\end{example}
+See the \vn{PyTao} documentation for installation instructions, examples, etc. In this chapter, some
+simple examples will be given.
+
+There are two ways to interface with Python/PyTao. One way is using the Python \vn{ctypes}
+library. The other way is using the \vn{pexpect} module. A Web search will point to documentation on
+\vn{ctypes} and \vn{pexpect}. 
+
+\vn{ctypes} is a foreign function library for Python which can be used to link to a \tao shared
+library.  The \vn{pexpect} module is a general purpose tool for interfacing Python with programs
+like \tao. If \vn{pexpect} is not present your system, it can be downloaded from
+\vn{www.noah.org/wiki/pexpect}.
+
+The advantage of \vn{ctypes} is that it directly accesses \tao code
+which makes communication between Python and \tao more robust. The disadvantage of \vn{ctypes} is
+that it needs a shared-object version of the \vn{Tao} library. [See the Bmad web site for
+information on building shared-object libraries.] The disadvantage of \vn{pexpect} is that it is
+slower and it is possible for \vn{pexpect} to time out waiting for a response from \tao.
+
+%--------------------------------------------------------------------------
+\subsection{Python/PyTao Via Pexpect}
+
+For communicaiton via \vn{pexpect} (\sref{s:pytao}), the python module \vn{tao_pipe.py}, is
+provided by \vn{PyTao} in the directory \vn{pytao/tao_pexpect}.
+
+Example Python session:
+\begin{example}
+  >>> from pytao.tao_pexpect import tao_pipe  # import module
+  >>> p = tao_pipe.tao_io("-lat my_lat.bmad") # init session
+  >>> out = p.cmd_in("show global")           # Command to Tao
+  >>> print(out)                              # print the output from Tao
+  >>> p.cmd("show global")                    # Like p.cmd_in() excepts prints the output too.
+\end{example}
+
+%--------------------------------------------------------------------------
+\subsection{Python/PyTao Interface Via Ctypes}
+
+A \vn{ctypes} based python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided by
+\vn{PyTao} (\sref{s:pytao}) in the directory \vn{pytao/tao_pexpect}.
+
+A test driver script named \vn{pytao_example.py} is in the same directory. See the documentation in
+both of these files for further information.
+
+%--------------------------------------------------------------------------
+\section{Tao's Python Command}
+\label{s:python.python}
+
+\tao's \vn{python} (\sref{s:python}) command was developed to:
+%
+\begin{itemize}
+\item 
+Standardize output of information (data, parameters, etc.) from \tao to simplify the task of
+interfacing \tao to external programs especially scripting languages like \vn{Python}.
+% 
+\item 
+Act as an intermediate layer for the control of \tao by such things as machine online control
+programs or the planned graphical user interface for \tao.
+\end{itemize}
+Dispite its name, \tao's \vn{python} command can be used with any external program. However, the
+\vn{PyTao} package has code that uses the \vn{python} command to ease integration with \vn{Python}.
+
+Using the \vn{python} command to control \tao will not be covered here. The interested reader is
+invited to read the sections of this manual on the coding of \tao and look at the \tao code itself
+(which is heavily documented).
+
+Using the \vn{python} command is far superior to using the \vn{show} command when interfacing to an
+external program. For one, the \vn{python} command is formatted for ease of parsing. Another reason
+to use the \vn{python} command is that, as \tao is developed over time, the output format of the
+\vn{python} command is much more stable than output from the \vn{show} command.\footnote
+  {
+The output of the \vn{python} command will change when \tao's or \bmad's internal structures are
+modified. This is in contrast to the \vn{show} command whose output is formated to be human readible
+and whose output format may change on a whim.
+  }
+Thus the risk of User developed interface code breaking is much reduced by using the \vn{python} command.
+
+The general form of the \vn{python} command is:
+\begin{example}
+  python <subcommand> <arguments>
+\end{example}
+The \vn{python} command has a number of \vn{subcommands} (over 100) that are listed in
+\Sref{s:python.sub}. The sub-commands can be divided into two categories. One category are the
+``\vn{action}'' subcommands which allow the user to control \tao (for example, creating variables
+and data for use in an optimization). The other category are the ``\vn{output}'' subcommands which
+output information from \tao.
+
+The output of the \vn{python} command are semi-colon delimited lists. Example: With the
+\vn{python global} the output looks like:
+\begin{example}
+  lm_opt_deriv_reinit;REAL;T; -1.0000000000000000E+00
+  de_lm_step_ratio;REAL;T;  1.0000000000000000E+00
+  de_var_to_population_factor;REAL;T;  5.0000000000000000E+00
+  unstable_penalty;REAL;T;  1.0000000474974513E-03
+  n_opti_cycles;INT;T;20
+  track_type;ENUM;T;single
+  derivative_uses_design;LOGIC;T;F
+  ... etc ...
+\end{example}
+
+Most \vn{output} subcommands use ``\vn{parameter list form}'' format where each line has four fields
+separated by semicolons:
+\begin{example}
+  {name};{type};{variable};{value(s)}
+\end{example}
+The fields are:
+\begin{example}
+    name:       The name of the parameter
+
+    type:       The type of the parameter:
+        INT           Integer number
+        REAL          Real number
+        COMPLEX       Complex number. A complex number is output as Re;Im
+        REAL_ARR      Real array
+        LOGIC         Logical: "T" or "F".
+        INUM          Integer whose allowed values can be obtained 
+                        using the "python inum" command.
+        ENUM          String whose allowed values can be obtained 
+                        using the "python enum" command.
+        FILE          Name of file.
+        CRYSTAL       Crystal name string. EG: "Si(111)"
+        DAT_TYPE      Data type string. EG: "orbit.x"
+        DAT_TYPE_Z    Data type string if plot%x_axis_type = 'data'. 
+                        Otherwise is a data_type_z enum.
+        SPECIES       Species name string. EG: "H2SO4++"
+        ELE_PARAM     Lattice element parameter string. EG "K1"
+        STR           String that does not fall into one of the above string categories.
+        STRUCT        Structure. In this case {component_value(s)} is of the form:
+                        {name1};{type1};{value1};{name2};{type2};{value2};...
+        COMPONENT     For curve component parameters.
+
+    can_vary:   Either 'T', 'F', or 'I', indicating whether or not the
+                user may change the value of the parameter. 'I' indicates
+                that the parameter is to be ignored by a GUI when displaying parameters.
+
+    value(s):   The value or values of the the parameter. If a parameter has multiple
+                values (EG an array), the values will be separated by semicolons.
+\end{example}
+
+%--------------------------------------------------------------------------
+\section{Plotting Issues}
+\label{s:gui.plot}
+
+When using \tao with a \vn{GUI}, and when the \vn{GUI} is doing the plotting, the \vn{-noplot} and
+\vn{-external_plotting} options (\sref{s:command.line}) should be used when starting \tao. The
+\vn{-noplot} option (which sets \vn{global%plot_on}) prevents \tao from opening a plotting
+window. Note: Both of these options can also be set, after startup, with the \vn{set global} command
+and the setting of both can be viewed using the \vn{show global} command.
+
+With \vn{-external_plotting} set, the external code should handle how plots are assigned to plot
+regions and it would be potentially disruptive if a user tired to place plots (which could
+inadvertently happen when running command files). To avoid this, with \vn{-external_plotting} set,
+the \vn{place} command will not do any placement but rather save the \vn{place} arguments (which is
+the name of a template plot and a region name) to a buffer which then can be read out by the
+external code using the \vn{python place_buffer} command. The external code may then decide how to
+proceed. The external code is able to bypass the buffering and perform placements by using
+\vn{place} with the \vn{-no_buffer} switch (\sref{s:place}). Notice: \tao never processes place
+command information put in the buffer. It is up to the external code to decide on a course of action.
+
+Normally when \tao is not displaying the plot page when the \vn{-noplot} option is used, \tao will,
+to save time, not calculate the points needed for plotting curves. The exception is if
+\vn{-external_plotting} is turned on. In this case, to make plot references unambiguous, plot can be
+referred to by their index number. The plot index number can be viewed using the \vn{python
+plot_list} command. Template plots can be referenced using the syntax ``\vn{@Tnnn}'' where \vn{nnn}
+is the index number. For example, \vn{@T3} referrers to the template plot with index 3. Similarly,
+the displayed plots (plots that are associated with plot regions) can be referred to using the
+syntax ``\vn{@Rnnn}''.
+
+%--------------------------------------------------------------------------
+\section{Python subcommands}
+\label{s:python.sub}
+
+The \vn{python} command has the following subcommands:
+
+\input{python-interface-commands.tex}
+

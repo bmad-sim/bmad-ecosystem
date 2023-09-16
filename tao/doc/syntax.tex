@@ -1,0 +1,522 @@
+\chapter{Syntax}
+\label{c:syntax}
+
+%------------------------------------------------------------------------
+\section{Command Line Syntax}
+\label{s:com.syntax}
+
+In ``\vn{line mode}'' (\sref{c:command}), commands are case sensitive. Multiple commands may be
+entered on one line using the semicolon ``;'' character as a separator.  [However, a semicolon used
+as as part of an \vn{alias} (\sref{s:alias}) definition is part of that definition.]  An exclamation
+mark ``\vn{!}''  denotes the beginning of a comment and the exclamation mark and everything after it
+to the end of the line is ignored.  Example:
+\begin{example}
+  set default uni = 2; show global  ! Two commands and a comment
+\end{example}
+
+The length of a command on a single line is currently limited to 300 characters. Multiple lines may
+be used for a single command by putting a ``\&'' character at the end of a line to be
+continued. Example:
+\begin{example}
+  set default &    ! Continue command to next line
+  uni = 2
+\end{example}
+     
+%------------------------------------------------------------------------
+\section{Specifying a Single Lattice Element}
+\label{s:ele.name}
+
+A full description of how to specify a lattice element is given in section \extref{B-s:ele.match}
+``\vn{Matching to Lattice Element Names}'' in the \bmad manual. Generally, elements are specified
+using either their names or by their index number. Additionally, in \tao, the universe in which
+the element exists may be specified by prepending the element name by the universe number followed by
+the ``\vn{@}'' sign.
+Examples:
+\begin{example}
+  Q3##2      ! 2nd instance of element named Q3 in branch 0 of the default universe.
+  134        ! Element with index 134 in branch 0 of the default universe.
+  1>>13      ! Element with index 13 in branch 1 of the default universe.
+  2@1>>TZ    ! Element named TZ in branch 1 of universe 2.
+  B37        ! Element named B37 of the default universe.
+  0@B37      ! Same as the previous example.
+\end{example}
+Note: element names are {\em not} case sensitive.
+
+%------------------------------------------------------------------------
+\section{Lattice Element List Format}
+\label{s:ele.list.format}
+
+The syntax for specifying a set of lattice elements is called \vn{element list} format. 
+A element list is a list of items separated by a comma.\footnote
+  {
+ A blank space may be acceptable in some circumstances but a comma is always safe.
+  }
+Each item of the list is one of:
+\begin{center}
+\begin{tabular}{ll}
+  {\it Item Type} & {\it Example} \\ \hline     
+  A single element (\sref{s:ele.name})                & "1>>Q10W"            \\
+  A name with wild card characters                    & "5@q*"               \\
+  A range of elements in the form <ele1>:<ele2>       & "b23w:67"            \\
+  A class::name specification                         & "sbend::b*"          \\
+\end{tabular}
+\break
+\end{center}
+
+Example element list:
+\begin{example}
+  23, 45:74, quad::q*
+\end{example}
+
+The wild card characters ``*'' and/or ``\%'' can be used. The ``*'' wildcard matches any number of
+characters, The ``\%'' wildcard matches a single character. For example, ``q\%1*'' matches any
+element whose name begins with ``q'' and whose third character is ``1''.  If there are multiple
+elements in the lattice that match a given name, all such elements are included. Thus ``d12'' will
+match to all elements of that name. Examples
+\begin{example}
+  "134"        ! Element with index 134 in branch 0 of the default universe.
+  "1>>13"      ! Element with index 13 in branch 1 of the default universe.
+  "5@q*"       ! All elements whose name begins with "q" of universe 5.
+  "2@3>>q1##4" ! The fourth element named "q1" in branch 3 of universe 2.
+  "*@sex10w"   ! Element "sex10w" of all universes.
+  "b37"        ! Element "b37" of the default universe.
+  "0@b37"      ! Same as the previous example.
+\end{example}
+Note: element names are {\em not} case sensitive.
+
+An element index item is simply the index of the number in the lattice list of elements. A prefix
+followed by the string ">>" can be used to specify a branch. As with element names, a universe
+prefix can be given. Example
+\begin{example}
+  2@3>>183   ! Element number 183 of branch \# 3 of universe 2.
+\end{example}
+
+A range of elements is specified using the format:
+\begin{example}
+  \{<class>::\}<ele1>:<ele2>
+\end{example}
+\vn{<ele1>} is the element at the beginning of the range and \vn{<ele2>} is the element at the end
+of the range. Either an element name or index can be used to specify \vn{<ele1>} and
+\vn{<ele2>}. Both \vn{<ele1>} and \vn{<ele2>} are part of the range. The optional \vn{<class>}
+prefix can be used to select only those elements in the range that match the class.  Example:
+\begin{example}
+  quad::sex10w:sex20w
+\end{example}
+This will select all quadrupoles between elements \vn{sex10w} and \vn{sex20w}.
+
+\index{class::name}
+A \vn{class::name} item
+selects elements based upon their class (Eg: \vn{quadrupole},
+\vn{marker}, etc.), and their name. The syntax is:
+\begin{example}
+  <element class>::<element name>
+\end{example}
+where \vn{<element class>} is an element class and \vn{<element name>} is the element name that can
+(and generally does) contain the wild card characters ``\%'' and ``*''. Essentially this is an
+extension of the \vn{element name} format. As with element names, a universe prefix can be
+given. Example:
+\begin{example}
+  "4@quad::q*"   ! All quadrupole whose name starts with "q" of universe 4.
+\end{example}
+
+%------------------------------------------------------------------------
+\section{Arithmetic Expressions}
+\index{arithmetic Expressions}
+\label{s:arithmetic.exp}
+
+\tao is able to handle arithmetic expressions within commands (\sref{c:command}) and in strings in a
+\tao initialization file.  Arithmetic expressions can be used in a place where a real value or an
+array of real values are required.  The standard binary operators are defined: \hfil\break \hspace*{0.15in}
+\begin{tabular}{ll}
+  $a + b$           & Addition        \\
+  $a - b$           & Subtraction     \\
+  $a \, \ast \, b$  & Multiplication  \\
+  $a \; / \; b$     & Division        \\
+  $a \, \land \, b$ & Exponentiation  \\
+\end{tabular} \newline
+The following intrinsic functions are also recognized (this is the same list as the \bmad parser):
+\hfil\break
+\index{intrinsic functions}
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  \vn{sqrt}(x)                & Square Root                      \\
+  \vn{log}(x)                 & Logarithm                        \\
+  \vn{exp}(x)                 & Exponential                      \\
+  \vn{sin}(x), \vn{cos}(x)    & Sine and Cosine                  \\
+  \vn{tan}(x), \vn{cot}(x)    & Tangent and Cotangent            \\
+  \vn{asin}(x), \vn{acos}(x)  & Arc sine and Arc Cosine          \\
+  \vn{atan}(y)                & Arc Tangent                      \\
+  \vn{atan2}(y, x)            & Arc Tangent                      \\
+  \vn{abs}(x)                 & Absolute Value                   \\
+  \vn{factorial(x)}           & Factorial                        \\
+  \vn{ran}()                  & Random number between 0 and 1    \\
+  \vn{ran_gauss}()            & Gaussian distributed random number with unit RMS \\
+  \vn{ran_gauss}(sig_cut)     & Gaussian distributed random number truncated at sig_cut. \\
+  \vn{int(x)}                 & Nearest integer with magnitude less then x \\
+  \vn{nint(x)}                & Nearest integer to x           \\
+  \vn{floor(x)}               & Nearest integer less than x    \\
+  \vn{ceiling(x)}             & Nearest integer greater than x \\
+  \vn{modulo(a, p)}           & a - floor(a/p) * p. Will be in range [0, p]. \\
+  \vn{average(arr)}           & Average value of an array      \\
+  \vn{rms(arr)}               & RMS value of an array          \\
+  \vn{sum(arr)}               & Sum of array values.           \\
+  \vn{min(arr)}               & Minimum of array values.       \\
+  \vn{max(arr)}               & Maximum of array values.
+\end{tabular} \newline
+Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator.  Setting the seed is
+described in Section~\sref{s:globals}.
+
+Expressions may involve arrays of values. For example:
+\begin{example}
+  lat::orbit.x[5:8]     ! X-orbit at lattice elements 5 through 8.
+  [1, 2, 3]             ! A vector of size three.
+\end{example}
+When using vectors with binary operators or intrinsic functions, the standard rules apply. For example:
+\begin{example}
+  s * [a, b, c]         = [s*a, s*b, s*c]
+  [a, b, c] - [x, y, z] = [a-x, b-y, c-z]
+  tan([a, b, c])        = [tan(a), tan(b), tan(c)]
+  sum([a, b, c])        = a+b+c
+  min(a, b, c)          ! Error: Correct is min([a, b, c])
+\end{example}
+Note that \tao does not make a distinction between a scalar and a vector of length one.
+
+See the following sections for the syntax for using data, variable, and lattice parameters in an
+expression. Use the \vn{show value} command (\sref{s:show.value}) to show the results of expressions.
+
+%------------------------------------------------------------------------
+\section{Specifying Data Parameters in Expressions}
+\label{s:data.token}
+
+A data (\sref{s:data.org}) parameter ``\vn{token}'' is a string that specifies a scalar or an array
+of data parameters.  The general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
+\begin{example}
+  \{[<universe(s)>]@\}data::<d2.d1_name>[<index_list>]|<component>
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <d2.d1_name>        D2.D1 data name
+  <index_list>        List of indexes.
+  <component>         Component. 
+\end{example}
+examples:
+\begin{example}
+  [2:4,7]@data::orbit.x      ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
+  [2]@data::orbit.x          ! The \vn{orbit.x} data in universe 2. 
+  2@data::orbit.x[4]         ! Fourth \vn{orbit.x} datum in universe 2.
+  data::orbit.x[4,7:9]|meas  ! Default uni measured values of datums 4, 7, 8, and 9.
+  -1@data::orbit.x           ! Same as "orbit.x".
+  *@data::orbit.x            ! orbit.x data in all the universes.
+  *@data::*                  ! All the data in all the universes.
+\end{example}
+
+It is important to keep in mind that data must be defined at startup in the appropriate
+initialization file as discussed in \Sref{s:init.data} before reference is made to data in an
+expression. The \vn{<d2.d1_name>} data names that have been defined at initialization time may be
+viewed using the \vn{show data} command. Note that these names are user defined and do not have to
+correspond to the data types given in \Sref{s:data.types}. See \Sref{s:lat.token} for how to use
+``lattice parameters'' that correspond to the data types given in \Sref{s:data.types} and that do
+not need to be defined at initialization.
+
+See \Sref{s:data.anatomy} for a list of datum \vn{<component>}s (when running \tao, view a
+particular datum with the \vn{show data} command to see the list).
+
+\vn{<index_list>} is a list of indexes. \vn{<index_list>} will determine how many elements are in
+the array. For example, \vn{orbit.x[10:21,44]} represents an array of 13 elements.
+
+Depending upon the context, some parts of a token may be omitted. For example, with the \vn{set
+data} command the ``\vn{data::}'' part of the token may be omitted.  Example:
+\begin{example}
+  set data 2@orbit.x|meas = var::quad_k1[5]|model - orbit.y[3]|ref
+\end{example}
+Here \tao will default to evaluating a token as data. In general, what may be omitted
+should be clear in context.
+
+Data components that are computed by \tao may be used on the right hand side of an equal sign but
+may not be set. For example, the \vn{model} value of a datum is computed by \tao but the \vn{ref}
+value is not.
+
+If multiple tokens are used in an expression, all tokens must evaluate to arrays of the same size.
+
+%------------------------------------------------------------------------
+\section{Specifying Variable Parameters in Expressions}
+\label{s:var.token}
+
+A variable (\sref{c:var}) parameter ``\vn{token}'' is a string that specifies a scalar or an array
+of variable parameters. The general form for variable tokens in expressions
+(\sref{s:arithmetic.exp}) is:
+\begin{example}
+  var::<v1_name>[<index_list>]<component>
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <v1_name>           V1 variable name.
+  <index_list>        List of indexes.
+  <component>         component. 
+\end{example}
+Examples:
+\begin{example}
+  var::*                     ! All the variables
+  var::quad_k1[*]|design     ! All design values of quad_k1.
+  var::quad_k1[]|model       ! No values. That is, the empty set.
+  var::quad_k1|model         ! Same as quad_k1[*]|model
+\end{example}
+
+It is important to keep in mind that variables must be defined at startup in the appropriate
+initialization file as discussed in \Sref{s:init.var} before reference is made to them in an
+expression.  The defined \vn{<v1_name>} variable names can be viewed using the \vn{show variable}
+command. Since these names are user defined they will change if different initialization files are
+used.
+
+See \Sref{c:var} for a list of \vn{<components>} of a variable.
+
+\vn{<index_list>} is a list of indexes. \vn{<index_list>} will determine how many elements are in
+the array. For example, \vn{k_quad[10:21,44]} represents an array of 13 elements.
+
+Depending upon the context, some parts of a token may be omitted. For example, with the \vn{set
+variable} command the ``\vn{var::}'' part of the token may be omitted.  Example:
+\begin{example}
+  set var quad_k1[5]|meas = data::2@orbit.x|meas
+\end{example}
+Here \tao will default to evaluating a token as a variable component. In general, what may be
+omitted should be clear in context.
+
+Variable components that are computed by \tao may be used on the right hand side of an equal sign
+but may not be set. For example, the \vn{design} value of a variable is computed by \tao but the
+\vn{meas} value is not.
+
+If multiple tokens are used in an expression, all tokens must evaluate to arrays of the same size.
+
+%------------------------------------------------------------------------
+\section{Specifying Lattice Parameters in Expressions}
+\label{s:lat.token}
+
+``Lattice parameters'' are like \vn{data} parameters (\sref{s:data.token}) except lattice parameters
+are calculated from the lattice and do not have to be defined at initialization time.  A lattice
+parameter ``\vn{token}'' is a string that specifies a scalar or an array of lattice parameters. The
+general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
+\begin{example}
+  \{[<universe(s)>]@\}lat::<eval_param>[\{<ref_ele>&\}<element_list>\{-><s_offset>\}]\{|<component>\}
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <eval_param>        Name of the parameter to evaluate. 
+                        Possible data types listed in \Sref{s:data.types}. 
+  <ref_ele>           Optional reference element.
+  <element_list>      Evaluation point or points.
+  <s_offset>          Longitudinal offset to evaluate at.
+  <component>         Optional component. 
+\end{example}
+The \vn{<s_offset>} string can be an expression. Any parameter in this expression, if not qualified,
+will be interpreted as a parameter of the element containing the evaluation point. For example
+\begin{example}
+  3@lat::orbit.x[q10w->-L/2]|model
+\end{example}
+Here ``\vn{L}'' in the \vn{<s_offset>} string ``\vn{-L/2}'' is interpreted as the length of the element
+\vn{q10w}. Other examples:
+\begin{example}
+  3@lat::orbit.x[34:37]            ! Array of orbits at element 34 through 37 in universe 3.
+  3@lat::orbit.x[q10w]|model       ! Orbit.x model value at exit end of element q10w
+  3@lat::orbit.x[q10w->0.1]|model  ! Same as above except eval point is shifted 0.1 meters.
+  lat::sigma.12[q10w]              ! Beam sigma matrix component at element q10w computed 
+                                   !  from lattice parameters.
+\end{example}
+
+The list of possible lattice \vn{<eval_param>} names is given in \Sref{s:data.types}. The table
+\ref{t:data.types} shows which data names are associated with the lattice. Lattice parameters are
+independent of \vn{data} parameters. For example, \vn{lat::orbit.x} refers to the horizontal orbit
+while \vn{data::orbit.x} refers to user defined data whose name corresponds to \vn{orbit.x} and in
+fact there is nothing to prevent a user from assigning the name \vn{orbit.x} to data that is derived
+from, say, the Twiss beta function.
+
+Also notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and ``\vn{data::orbit.x[10]}''.
+With the ``\vn{lat::}'' source, the element index, in this case \vn{10}, refers to the 10th lattice
+element. With the ``\vn{data::}'' source, ``\vn{10}'' refers to the 10\Th element in the
+\vn{orbit.x} data array which may or may not correspond to the 10\Th lattice element.
+
+The optional \vn{<ref_ele>} specifies a reference element for the evaluation. For example
+\begin{example}
+  lat::r.56[q0\&qa:qb]
+\end{example}  
+is an array of the $r(5,6)$ matrix element of the transport map between element \vn{q0} and each
+element in the range from element \vn{qa} and \vn{qb}.
+
+The optional \vn{s_offset>} specifies a longitudinal offset for the evaluation point. This may be
+an expression.
+
+%------------------------------------------------------------------------
+\section{Specifying Beam Parameters in Expressions}
+\label{s:beam.token}
+
+Beam parameters are like lattice parameters (\sref{s:lat.token}) except beam parameters are derived
+from tracking a beam of particles and may only be used in an expression if beam tracking is turned
+on.  A beam parameter ``\vn{token}'' is a string that specifies a scalar or an array of beam
+parameters. The general form for data tokens in expressions (\sref{s:arithmetic.exp}) is:
+\begin{example}
+  \{[<universe(s)>]@\}beam::<eval_param>[\{<ref_ele>&\}<element_list>]\{|<component>\}
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <eval_param>        Name of the parameter
+  <ref_ele>           Optional reference element.
+  <element_list>      Evaluation point or points.
+  <component>         Component. 
+\end{example}
+Examples:
+\begin{example}
+  2@beam::sigma.x[q10w]           Beam sigma at element q10w.
+  beam::n_particle_loss[2&56]     Particle loss between elements 2 and 56.
+\end{example}
+
+The list of possible beam \vn{<eval_param>} names is given in \Sref{s:data.types}. The table
+\ref{t:data.types} shows which data names are associated with beam tracking.
+
+%------------------------------------------------------------------------
+\section{Specifying Element Parameters in Expressions}
+\label{s:ele.token}
+
+``Element parameters'' are parameters associated with lattice elements like the quadrupole strength
+associated with an element. Element parameters also include derived quantities like the computed
+Twiss parameters and the beam orbit. An element parameter ``\vn{token}'' is a string that specifies
+a scalar or an array of element parameters. The general form for element tokens in expressions is:
+\begin{example}
+  \{<universe(s)>@\}ele::<element_list>[<parameter>]\{|<component>\}
+  \{<universe(s)>@\}ele_mid::<element_list>[<parameter>]\{|<component>\}
+\end{example}
+where:
+\begin{example}
+  <universe(s)>       Optional universe specification (\sref{s:universe})
+  <element_list>      List of element names or indexes.
+  <parameter>         Name of the element parameter
+  <component>         Component. 
+\end{example}
+Examples:
+\begin{example}
+  3@ele_mid::34[orbit_x]     Orbit at middle of element with index 34 in universe 3.
+  ele::sex01w[k2]            Sextupole component of element \vn{sex01w}
+  ele::Q01W[is_on]|model     The on/off status of element \vn{Q01W}.
+\end{example}
+
+There is some overlap between element parameters and lattice parameters (\sref{s:lat.token}).  For
+historical reasons, the \vn{element} parameter syntax roughly follows a convention developed for
+\bmad lattice files which is somewhat different from the convention developed for \tao data. For
+example, the $a$-mode beta is named \vn{beta.a} in \tao while \bmad uses the name \vn{beta_a}. See
+the \bmad manual for more information on the \bmad lattice file syntax. The following table lists
+the parameters that have both \tao datum and \bmad element parameter names
+\begin{table}[ht] 
+\centering 
+{\tt
+\begin{tabular}{lll} \toprule
+  \vn{\tao Datum}                   & \vn{\bmad Element Parameter}        \\ \midrule
+  alpha.a, alpha.b                  & alpha_a, alpha_b                    \\
+  beta.a, beta.b                    & beta_a, beta_b                      \\
+  cmat.11, etc.                     & cmat_11, etc.                       \\
+  e_tot                             & e_tot                               \\
+  eta.a, eta.b                      & eta_a, eta_b                        \\
+  eta.x, eta.y                      & eta_x, eta_y                        \\
+  etap.a, etap.b                    & etap_a, etap_b                      \\
+  etap.x, etap.y                    & etap_x, etap_y                      \\
+  floor.x, floor.y, floor.z         & x_position, y_position, z_position  \\
+  floor.theta, floor.phi, floor.psi & theta_position, phi_position, psi_position \\
+  gamma.a, gamma.b                  & gamma_a, gamma_b                    \\
+  phase.a, phase.b                  & phi_a, phi_b                        \\
+\bottomrule
+\end{tabular}
+} 
+\caption{\tao datums that have equivalent \bmad element parameters.}  
+\label{t:bmad.equiv1}
+\end{table}
+
+The following table lists the parameters that have both \tao datum and \bmad particle orbit names
+\begin{table}[ht] 
+\centering 
+{\tt
+\begin{tabular}{lll} \toprule
+  \vn{\tao Datum}               & \vn{\bmad Orbit Parameter}         \\ \midrule
+  orbit.x, orbit.y, orbit.z     & x, y, z                            \\
+  orbit.px, orbit.py, orbit.pz  & px, py, pz                         \\
+  spin.x, spin.y, spin.z        & spin_x, spin_y, spin_z             \\
+  spin.amp spin.theta, spin.phi & spinor_polarization, spinor_theta, spinor_phi \\
+\bottomrule
+\end{tabular}
+} 
+\caption{\tao datums that have equivalent \bmad orbital parameters.}  
+\label{t:bmad.equiv2}
+\end{table}
+
+For parameters that are varying throughout the element, like the Twiss parameters, \vn{ele::} will
+evaluate the parameter at the exit end of the element and \vn{ele_mid::} will evaluate the parameter
+at the middle of the element. For parameters that do not vary, like the quadrupole strength, use the
+\vn{ele::} syntax.
+
+Element list format (\sref{s:ele.list.format}) is used for the \vn{<element_list>} so an array of
+elements can be defined.
+
+For element parameter that evaluate to a logical, if they are used on the right hand side of an
+expression where the result is a real number, a \vn{True} value will be converted to a value of
+\vn{1} and a \vn{False} value is converted to a value of \vn{0}.
+
+%------------------------------------------------------------------------
+\section{Format Descriptors}
+\label{s:edit.descrip}
+
+Some \tao commands like \vn{show lattice} (\sref{s:show.lattice}) have optional arguments where the
+format output of various quantities can be specified. \tao follows Fortran format descriptor
+notation.  Since complete information is available on the Web (do a search for ``fortran edit
+descriptor''), only a brief introduction will be given here.
+
+Format descriptors are case insensitive. The commonly used descriptors with \tao are:
+\begin{example}
+  Form     Output
+  ----     ----------------------------
+  Aw       String
+  Fw.d     Real numbers. Fixed point (no exponent).
+  nPFw.d   Real numbers. Fixed point with the decimal point shifted \vn{n} places.
+  ESw.d    Real numbers. Floating point (with exponent).
+  Lw       Logicals.
+  Iw       Integers.
+  Iw.r     Integers padded with zeros to width \vn{r}.
+  wX       White space.
+  Tc       Tab to column \vn{c}.
+\end{example}
+In the above, ``\vn{w}'' is the width of the field (number of charactgers in the printed string) and 
+``\vn{d}'' is the number of digits to the right of the decimal place, 
+
+Examples:
+\begin{example}
+           Internal
+  Format   Quantity   Output String   Comment
+  ----     --------   -------------   -----------
+  F7.2     76.1234    "  76.12"       Right justified.
+  1PF7.2   76.1234    " 761.23"       Shifted decimal place 1 digit.
+  F0.2     76.1234    "76.12"         0 Field width => Output width exactly fits.
+  F3.2     76.1234    "***"           Number overflows field width.
+  ES9.2    76.1234    " 7.61E+01"     Right justified.
+  L3       True       "  T"           Right justified.
+  I0       34         "34"            0 Field width => Actual width = number of digits.
+  I4       34         "  34"          Right justified.
+  I4.3     34         " 034"          Number padded with a zero to three digits.
+  A3       "abcdef"   "abc"           String truncated.
+  A3       "ab    "   "ab "           String truncated but looks left justified.
+  A        "abcdef"   "abcdef"        Output width exactly fits string.
+  A8       "abcdef"   "  abcdef"      Right justified.
+  4x                  "   "           Four spaces.
+  T45                                 Next output string starts at column 45
+\end{example}
+
+Note: When a format descriptor is being used to construct a table (EG \vn{show lattice} command),
+using a ``\vn{0}'' for the field width is ill-advised since columns will not be properly aligned.
+
+A comma delimited list is used for outputting multiple quantities. For example, the format ``\vn{I4,
+A}'' is used to output an integer followed by a string.
+
+If multiple quantities with the same format are to be outputted a \vn{multiplier} prefix number can
+be used. For example, ``\vn{3A}'' is equivalent to ``\vn{A, A, A}''. If the format has a \vn{P}
+prefix then parentheses can be used to separate the multiplier from the \vn{P} prefix. Example:
+``\vn{2(3PF7.2)}'' is equivalent to ``\vn{3PF7.2, 3PF7.2}''.
+
+Note to programmers: In a code file, a format string must always be enclosed in parentheses.

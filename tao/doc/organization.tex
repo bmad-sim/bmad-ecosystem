@@ -1,0 +1,235 @@
+\chapter{Organization and Structure}
+\label{c:organization}
+
+This chapter discusses how \tao is organized. After you are familiar with the basics of \tao, you
+might be interested to exploit its versatility by extending \tao to do custom calculations. For
+this, see Chapter~\ref{c:custom.tao}.
+
+%----------------------------------------------------------------
+\section{The Organization of Tao: The Super\_Universe}
+\label{s:organization}
+\index{super_universe}
+
+Many simulation problems fall into one of three categories: 
+\begin{itemize}
+\item 
+Design a lattice subject to various constraints.
+\item
+Simulate errors and changes in machine parameters. For example, you want to simulate what happens to
+the orbit, beta function, etc., when you change something in the machine.
+\item 
+Simulate machine commissioning including simulating data measurement and correction. For example,
+you want to know what steering strength changes will make an orbit flat.
+\end{itemize}
+Programs that are written to solve these types of problems have common elements: You have variables
+you want to vary in your model of your machine, you have "data" that you want to view, and, in the
+first two categories above, you want to match the machine model to the data (in designing a lattice
+the constraints correspond to the data).
+
+With this in mind, \tao was structured to implement the essential ingredients needed to solve these
+simulation problems.  The information that \tao knows about can be divided into five (overlapping)
+categories:
+\begin{description}
+  \index{lattice}
+  \item[Lattice] \Newline   
+Machine layout and component strengths, and the beam orbit (\sref{s:lattice}).
+  \index{data}
+  \item[Data] \Newline
+Anything that can be measured.
+For example: The orbit of a particle or the lattice beta 
+functions, etc. (\sref{c:data})
+  \index{variable}
+  \item[Variables] \Newline
+Essentially, any lattice parameter or initial condition that can be varied. For example: quadrupole
+strengths, etc. (\sref{c:var}).
+  \index{plotting}
+  \item[Plotting]  \Newline
+Information used to draw graphs, display the lattice 
+floor plan, etc. (\sref{c:plotting}).
+  \index{global parameters}
+  \item[Global Parameters] \Newline
+ \tao has a set of parameters to control every aspect of how it behaves from
+the random number seed \tao uses to what optimizer is used for fitting data.
+\end{description}
+
+%------------------------------------------------------------------------
+\section{The Super\_universe}
+\label{s:super.uni}
+\index{super_universe|hyperbf}
+
+\index{structure|hyperbf}
+The information in \tao deals is organized in a hierarchy of \vn{``structures''}. At the top level,
+everything known to \tao is placed in a single structure called the \vn{super_universe}.
+
+\index{universe}
+\index{variable}
+Within the \vn{super_universe}, lies one or more \vn{universes} (\sref{s:universe}), each
+\vn{universe} containing a particular machine lattice and its associated data. This allows for the
+user to do analysis on multiple machines or multiple configurations of a single machine at the same
+time. The \vn{super_universe} also contains the \vn{variable}, \vn{plotting}, and \vn{global
+parameter} information.
+
+%------------------------------------------------------------------------
+\section{The Universe}
+\label{s:universe}
+\index{universe|hyperbf}
+
+\index{lattice}\index{design lattice}\index{model lattice}
+\index{base lattice}\index{data}\index{super_universe}
+The \tao \vn{super_universe} (\sref{s:super.uni}) contains one or more \vn{universes}.  A
+\vn{universe} contains a \vn{lattice} (\sref{s:lattice}) plus whatever data (\sref{c:data}) one
+wishes to study within this lattice (i.e. twiss parameters, orbit, phase, etc.). Actually, there are
+three lattices within each universe: the \textbf{design} lattice, \textbf{model} lattice and
+\textbf{base} lattice. Initially, when \tao is started, all three lattices are identical and
+correspond to the lattice read in from the lattice description file (\sref{s:init.lat}).
+
+There are several situations in which multiple universes are useful. One case where multiple
+universes are useful is where data has been taken under different machine conditions. For example,
+suppose that a set of beam orbits have been measured in a storage ring with each orbit corresponding
+to a different steering element being set to some non-zero value. To determine what quadrupole
+settings will best reproduce the data, multiple universes can be setup, one universe for each of the
+orbit measurements. Variables can be defined to simultaneously vary the corresponding quadrupoles in
+each universe and \tao's built in optimizer can vary the variables until the data as determined from
+the \vn{model} lattice (\sref{s:lattice}) matches the measured data. This \vn{orbit response matrix}
+(ORM) analysis is, in fact, a widely used procedure at many laboratories.
+
+If multiple universes are present, it is important to be able to specify, when issuing commands to
+tao and when constructing \tao initialization files, what universe is being referred to when
+referencing parameters such as data, lattice elements or other stuff that is universe
+specific. [Note: \tao variables are {\em not} universe specific.] If no universe is specified with a
+command, the \vn{default} universe will be used. This default universe is set set by the \vn{set
+default universe} command (\sref{s:set}). When \tao starts up, the default universe is initially set
+to universe 1. Use the \vn{show global} (\sref{s:show}) command to see the current default universe.
+
+the syntax used to specify a particular universe or range of universes is attach a prefix of the
+form:
+\begin{example}
+  [<universe_range>]@<parameter>
+\end{example}
+Commas and colons can be used in the syntax for \vn{<universe_range>}, similar to the \vn{element
+list} format used to specify lattice elements (\sref{s:ele.list.format}).  When there is only a
+single Universe specified, the brackets \vn{[...]} are optional. When the universe prefix is not
+present, the current default universe is used. The current default universe can also be specified
+using the number \vn{-1}. Additionally, a ``\vn{*}'' can be used as a wild card to denote all of the
+universes. Examples:
+\begin{example}
+  [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
+  [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
+  2@orbit.x       ! Same as "2@orbit.x".
+  orbit.x         ! The \vn{orbit.x} data in the current default universe.
+  -1@orbit.x      ! Same as "orbit.x".
+  *@orbit.x       ! orbit.x data in all the universes.
+  *@*             ! All the data in all the universes. 
+\end{example}
+
+%------------------------------------------------------------------------
+\section{Lattices}
+\index{lattice|hyperbf}
+\label{s:lattice}
+
+\index{design lattice}\index{model lattice}
+\index{base lattice}
+A \vn{lattice} consists of a machine description (the strength and placement of elements such as
+quadrupoles and bends, etc.), along with the beam orbit through them. There are actually three types
+of lattices:
+  \vspace*{-3ex}
+  \begin{description}
+  \index{design lattice|hyperbf}
+  \item[Design Lattice] \Newline 
+The \vn{design} lattice corresponds to the lattice read in from the lattice description file(s)
+(\sref{s:init.lat}). In many instances, this is the particular lattice that one wants the actual
+physical machine to conform to. The \vn{design} lattice is fixed. Nothing is allowed to vary in this
+lattice.
+  \index{model lattice|hyperbf}
+  \item[Model Lattice] \Newline
+Initially the \vn{model} lattice is the same as the \vn{design} lattice. Except for some commands
+that explicitly set the \vn{base} lattice, all \tao commands to vary lattice variables vary
+quantities in the \vn{model} lattice. In particular, things like orbit correction involve varying
+\vn{model} lattice variables until the \vn{data}, as calculated from the \vn{model}, matches the
+\vn{data} as actually measured.
+  \index{base lattice|hyperbf}
+  \index{base lattice!using set command}
+  \item[Base Lattice] \Newline
+It is sometimes convenient to designate a reference lattice so that changes in the \vn{model} from
+the reference point can be examined.  This reference lattice is called the \vn{base} lattice. The
+\vn{set} command (\sref{s:set}) is used to transfer information from the \vn{design} or \vn{model}
+lattices to the base lattice. Initially, the \vn{base} lattice is set equal to the \vn{design}
+lattice by \tao.
+  \end{description}
+
+Lattices can have multiple \vn{branches}. For example, two intersecting rings can be represented as
+a lattice with two branches, one for each ring. See the \bmad manual for more details. Many \tao
+commands operate on a particular lattice branch. For example, the \vn{show lat} command prints the
+lattice elements of a particular branch. If no branch is specified with a command, the default
+branch is used. The default branch is set with the \vn{set default branch} command
+(\sref{s:set}). Initially, when \tao is started, the default branch is set to branch 0. Use the
+\vn{show global} (\sref{s:show}) command to see the current default branch.
+
+%------------------------------------------------------------------------
+\section{Tracking Types}
+\index{tracking!types}
+
+\index{track_type}
+\index{tao_global_struct}
+\index{global%track_type}
+The are two types of tracking implemented in \tao: single particle tracking and many particle
+multi-bunch tracking.  Single particle tracking is just that, the tracking of a single particle
+through the lattice. Many particle multi-bunch tracking creates a Gaussian distribution of particles
+at the beginning of the lattice and tracks each particle through the lattice, including any
+wakefields.  Single particle tracking is used by default. The \vn{global%track_type} parameter
+(\sref{s:globals}), which is set in the initialization file, is used to set the tracking.
+
+Particle spin tracking has also been set up for single particle and many particle tracking. See
+Sections~\sref{s:globals} and \sref{s:beam.init} for details on setting up spin tracking.
+
+%------------------------------------------------------------------------
+\section{Lattice Calculation}\index{lattice!calculation of}
+\label{s:lat.calc}
+
+After each \tao command is processed, the lattice and ``merit'' function are recalculated and the
+plot window is regenerated. The merit function determines how well the \vn{model} fits the measured
+data. See Chapter~\ref{c:opti} for more information on the merit function and its use by the
+optimizer.
+
+Below are the steps taken after each \tao command execution:
+\begin{enumerate}
+  \item 
+The data and variables used by the optimizer are re-determined. This is affected by commands such as
+\vn{use, veto,} and \vn{restore} and any changes in the status of elements in the ring (e.g. if any
+elements have been turned off).
+  \item 
+If changes have been made to the lattice (e.g. variables changed) then the model lattice for all
+universes will be recalculated. The \vn{model} orbit, linear transfer matrices and Twiss parameters
+are recalculated for every element. All data types will also be calculated at each element specified
+in the initialization file.  For single particle tracking the linear transfer matrices and Twiss
+parameters are found about the tracked orbit. Tracking is performed using the tracking method
+defined for each element (i.e. Bmad Standard, Symplectic Lie, etc...). See the \bmad Reference
+manual for details on tracking and finding the linear transfer matrices and Twiss parameters.
+  \item 
+The \vn{model} data is recalculated from the \vn{model} orbit, linear transfer matrices, Twiss
+parameters, particle beam information and global lattice parameters.  Any custom data type
+calculations are performed \textit{before} the standard \tao data types are calculated.
+  \item 
+Any user specified data post-processing is performed in
+\vn{tao_hook_post_process_data}.
+  \item 
+The contributions to the merit function from the variables and data are computed.
+  \item 
+Data and variable values are transferred to the plotting structures.
+  \item 
+The plotting window is regenerated.
+\end{enumerate}
+
+If a closed orbit is to be calculated, \tao uses an iterative method to converge on a solution where
+\tao starts with some initial orbit at the beginning of the lattice, tracks from this initial orbit
+through to the end of the lattice, and then adjusts the beginning orbit until the end orbit matches
+the beginning orbit. A problem arises if the tracked particle is lost before it reaches the end of
+the lattice since \tao has no good way to calculate how to adjust the beginning orbit to prevent the
+particle from getting lost. In this case, \tao, in desperation, will try the orbit specified by
+\vn{particle_start} in the \bmad lattice file (see the \bmad manual for more details on setting
+\vn{particle_start}). Note: \vn{particle_start} can be varied while running \tao using the \vn{set
+particle_start} (\sref{s:set}) or \vn{change particle_start} (\sref{s:change}) commands.
+
+If the recalculation takes a significant amount of time, the recalculation may be suppressed using
+the \vn{set global lattice_calc_on} command (\sref{s:set.global}) or the \vn{set universe} command
+(\sref{s:set.universe}).

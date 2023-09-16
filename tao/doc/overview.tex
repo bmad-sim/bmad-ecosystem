@@ -1,0 +1,95 @@
+\chapter{Overview}
+\label{c:overview}
+
+%------------------------------------------------------------------------
+\section{In the beginning...}
+\label{s:overview}
+
+
+\tao stands for ``Tool for Accelerator Optics''. \tao is a general purpose program for simulating
+high energy particle beams in accelerators and storage rings. This manual assumes you are already
+familiar with the basics of particle beam dynamics and its formalism. There are several books that
+introduce the topics very well. A good place to start is, for example, \textit{The Physics of
+Particle Accelerators} by Klaus Wille\cite{b:wille}.
+
+\index{bmad}
+The simulation engine that \tao uses for doing such things as particle tracking is the \bmad
+software library\cite{b:bmad}. \bmad was developed as an object-oriented library so that common
+tasks, such as reading in a lattice file and particle tracking, did not have to be coded from
+scratch every time someone wanted to develop a program to calculate this, that or whatever.  An
+understanding of the nitty-gritty details of the routines that comprise \bmad is not necessary,
+however, one should be familiar with the conventions that \bmad uses and this is covered in the
+\bmad manual.
+
+\bmad was developed before \tao. As \bmad was being developed, it became apparent that many
+simulation programs had common needs: For example, plotting data, viewing machine parameters,
+etc. Because of this commonality, the \tao program was developed to reduce the time needed to
+develop a working programs without sacrificing flexibility. That is, while the ``vanilla'' version
+of the \tao program is quite a powerful simulation tool, \tao has been designed to be easily
+customizable so that extending \tao to solve new and different problems is relatively straight
+forward.
+
+So, what is \tao good for? A large variety of applications: Single and multiparticle tracking,
+lattice simulation and analysis, lattice design, machine commissioning and correction,
+etc. Furthermore, it is designed to be extensible using interface ``hooks'' built into the program.
+This versatility has been used, for example, to enable \tao to directly read in measurement data
+from Cornell's Cesr storage ring and Jefferson Lab's FEL. Think of \tao as an accelerator design and
+analysis environment. But even without any customizations, \tao will do much analysis.
+
+More information, including the most up--to--date version of this manual, can be found at the \bmad
+web site at:
+\begin{example}
+  classe.cornell.edu/bmad
+\end{example}
+
+Errors and omissions are a fact of life for any reference work and comments from you, dear reader,
+are therefore most welcome. Please send any missives (or chocolates, or any other kind of
+sustenance) to:
+\begin{example}
+  David Sagan <dcs16@cornell.edu>
+\end{example}
+
+It is my pleasure to express appreciation to people who have contributed to this effort. To Scott
+Berg, Michael Ehrlichman, Chris Mayes, and Jeff Smith for bug reports, suggestions, code
+improvements, Etc. To John Mastroberti and Kevin Kowalski for their work on a graphics user
+interface and associated plotting, And last but not least thanks also must go to Dave Rubin and
+Georg Hoffstaetter for their help, support, and patience.
+
+%------------------------------------------------------------------------
+\section{Bmad and Tao Tutorial}
+\label{s:tutorial}
+
+\vspace{0.1in} The \tao manual is organized as reference guide and so does not do a good job of
+instructing the beginner as to how to use \tao. For this there is an introduction and tutorial on
+\bmad and \tao concepts that can be downloaded from the \bmad web page. Go to either the \bmad
+manual or the \tao manual page and there will be a link for the tutorial.
+
+%------------------------------------------------------------------------
+\section{Tao Examples}
+\label{s:examples}
+
+Example input files for running a number of different simulations can be found with the \bmad and \tao
+Tutorial (\sref{s:tutorial}). Additionally, there are a number of examples in the directory
+\begin{example}
+  \$ACC_ROOT_DIR/bmad-doc/tao_examples/
+\end{example}
+where \vn{\$ACC_ROOT_DIR} is the base directory of your local \bmad Distribution or Release (a full
+description of \bmad Distributions and Releases is given in the \bmad and \tao Tutorial).
+
+%------------------------------------------------------------------------
+\section{Manual Organization}
+
+This manual is divided into two parts. Part I is the reference section which defines the terms used
+by \tao, discusses \tao commands, etc. Part II is a programmer's guide which shows how to extend
+\tao's capabilities including interfacing to Python and how to incorporate custom calculations into
+\tao.
+
+%------------------------------------------------------------------------
+\section{Other Bmad based programs}
+\label{s:other}
+
+\tao is not the only program based upon \bmad. There are other programs which are specialized for
+certain computations such as long-term tracking, beam break-up instability, multi-objective
+optimization, etc. The discussion of these programs is beyond the scope of this manual. More
+information along with instructions for obtaining the programs can be obtained from the \bmad web site (\sref{s:overview}).
+
