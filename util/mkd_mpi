@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# Frontend script to do a debug build.
+# This script removes the need for symlinks, for Windows builds.
+
+export ACC_ENABLE_MPI=Y
+export THIS_SCRIPT='mkd'
+mk-mkd ${@}

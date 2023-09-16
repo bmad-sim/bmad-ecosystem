@@ -1,0 +1,204 @@
+#-----------------------------------------------------------
+# dist_prefs
+# ----------
+#
+# The variables in this file control how a Distribution
+# build will proceed.  It allows the user to enable and
+# disable the use and building of various support libraries
+# and to specify locations of 3rd-party libraries installed
+# by the user whose functionality is supported by the 
+# Distribution code.
+#
+# All values should be enclosed in quotes " ".
+#-----------------------------------------------------------
+
+# IMPORTANT: IF THE DISTRIBUTION HAS ALREADY BEEN COMPILED, AND
+# YOU CHANGE ANYTHING IN THIS FILE, YOU NEED TO RECOMPILE.
+# IF THE DISTRIBUTION HAS ALREADY BEEN COMPILED, TO BE SAFE, 
+# RUN THE "./util/dist_clean" SCRIPT FIRST BEFORE THE RECOMPILE.
+
+#-----------------------------------------------------------
+# Setting the variable DIST_F90_REQUEST here to the name
+# of the desired Fortran compiler will allow for its use
+# during the build.
+#
+#    NOTE: gfortran support is limited to version
+#          6.3 and later.
+#
+#    NOTE: ifort support is limited to version
+#          17.0.7.259 and later.
+#
+# Supported options are:
+#   "ifort"
+#   "gfortran"
+#-----------------------------------------------------------
+export DIST_F90_REQUEST="gfortran"
+
+
+#-----------------------------------------------------------
+# Plotting preferences:
+#
+# ACC_PLOT_PACKAGE sets the desired plotting library.
+#
+# Supported options are:
+#   "plplot"         # Only PLPLOT is built
+#   "pgplot"         # Only PGPLOT is built
+#   "none"           # No Plot Libraries are built. For cases
+#                      where plot lib building is problematical.
+#-----------------------------------------------------------
+export ACC_PLOT_PACKAGE="plplot"
+
+
+#-----------------------------------------------------------
+# Plot display preferences:
+#
+# The variable ACC_PLOT_DISPLAY_TYPE sets the desired type of
+# plotting window to be created by a program. 
+#
+# This variable may be ignored by any individual program.
+# The Tao program does use this variable however.
+#
+# NOTE: "QT" is automatically set for Windows builds.
+#
+# For a list of supported options, please see the qp_open_page
+# documentation in the file sim_utils/plot/quick_plot.f90
+#-----------------------------------------------------------
+export ACC_PLOT_DISPLAY_TYPE="X"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_OPENMP here to "Y"
+# will enable OpenMP support during the production build.
+#
+# NOTE: Installing and using the MacPorts version(s) of gcc 
+#       is need to support OpenMP on Mac OS X.  See 
+#       http://macports.org
+#       
+#-----------------------------------------------------------
+export ACC_ENABLE_OPENMP="N"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_MPI here to "Y"
+# will enable OpenMPI support during the production build.
+#
+# NOTE: To enable this option, OpenMPI must already be 
+#       installed on your system and be compatible with the
+#       requested Fortran compiler, or it will be built
+#       from included source code in this Distribution.
+#-----------------------------------------------------------
+export ACC_ENABLE_MPI="N"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_BUILTIN_MPI here to "Y"
+# will enforce using the system installed OpenMPI. 
+#
+# REQUIRES: ACC_ENABLE_MPI="Y"
+#
+# NOTE: To enable this option, OpenMPI must already be 
+#       installed on your system and be compatible with the
+#       requested Fortran compiler, or it will be built
+#       from included source code in this Distribution.
+#-----------------------------------------------------------
+export ACC_FORCE_BUILTIN_MPI="N"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_GFORTRAN_OPTIMIZATION here 
+# to "Y" will force gfortran -O2 optimization during the 
+# production build, "N" will disable. The default depends 
+# on how your gcc/gfortran is configured.
+# Type "gfortran -Q --help=optimizers -O2" to see what
+# optimizations are enabled with the "-O2" flag. 
+#-----------------------------------------------------------
+export ACC_ENABLE_GFORTRAN_OPTIMIZATION="Y"
+
+
+#-----------------------------------------------------------
+# If ACC_ENABLE_SHARED is set to "Y", shared versions of the
+# libraries will be created. Static library building will 
+# be done independent of the setting of ACC_ENABLE_SHARED and
+# Executables will always be built using the static libraries.
+#
+# ACC_ENABLE_SHARED_ONLY must set to "N" if
+# ACC_ENABLE_SHARED is set to "Y"
+#-----------------------------------------------------------
+export ACC_ENABLE_SHARED="N"
+
+
+#-----------------------------------------------------------
+# If ACC_ENABLE_SHARED_ONLY is set to "Y", shared versions of the libraries, 
+# are built without any static archive (*.a files) library dependancies.
+# Shared library building will only be done for a project 
+# with CREATE_SHARED set to TRUE in the CMakeLists.txt 
+# file, as well, the project's executables will be built 
+# without using the static libraries.
+#
+# ACC_ENABLE_SHARED must be set to "N", if 
+# ACC_ENABLE_SHARED_ONLY is set to "Y"
+#-----------------------------------------------------------
+export ACC_ENABLE_SHARED_ONLY="Y"
+
+
+#-----------------------------------------------------------
+# By default -fPIC (Position Independent Code) flag is on 
+# static library builds of c/c++ code and off for Fortran
+# code.  Setting the variable ACC_ENABLE_FPIC here to "Y"
+# will enable -fPIC objects to be built in static libraries 
+# (.a files).
+#
+# Setting ACC_ENABLE_SHARED="Y" alone will enable -fPIC in 
+# shared libraries (.so files ) but will not explicitly 
+# enable -fPIC in static libraries (.a files).
+#-----------------------------------------------------------
+export ACC_ENABLE_FPIC="Y"
+
+
+#-----------------------------------------------------------
+# By default the gprof profiling flag "-pg" is off.
+# Setting the variable ACC_ENABLE_PROFILING here to "Y"
+# will enable the "-pg" flag to be added for compiling and 
+# linking all libraries and executables.
+#
+# NOTE - WILL NOT WORK ON macOS WITH XCODE 11.
+#-----------------------------------------------------------
+export ACC_ENABLE_PROFILING="N"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_SET_GMAKE_JOBS here to an 
+# interger value will set gmake to execute that number of 
+# recipes or "jobs" at once, effectively running parallel 
+# compilations using that number of CPU cores.  The default 
+# value is "2" and cannot be set lower than "1"
+#-----------------------------------------------------------
+export ACC_SET_GMAKE_JOBS="4"
+
+
+#-----------------------------------------------------------
+# By default the conda build flag is off.
+# Setting the variable ACC_CONDA_BUILD here to "Y" will
+# enable the compilation path assuming external
+# dependencies from the system and it will also reduce
+# the number of targets to only essential pieces.
+# E.g.: regression tests are not compiled
+#-----------------------------------------------------------
+export ACC_CONDA_BUILD="N"
+
+
+#-----------------------------------------------------------
+# If using ACC_CONDA_BUILD configure here the path to your
+# environment.
+#-----------------------------------------------------------
+export ACC_CONDA_PATH="${CONDA_PREFIX}"
+
+
+#-----------------------------------------------------------
+# By default this flag is on.
+# When ACC_USE_MACPORTS is set to "Y", this will enable the 
+# MacPorts path (/opt/local/) to be added to library search path.
+# This option is only valid for MacOS (Darwin).
+#-----------------------------------------------------------
+export ACC_USE_MACPORTS="Y"
+

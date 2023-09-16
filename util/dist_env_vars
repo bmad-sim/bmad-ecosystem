@@ -1,0 +1,42 @@
+#--------------------------------------------------------------
+#  dist_env_vars
+#  -------------
+#
+# Set CLASSE distribution build system environment variables.
+#--------------------------------------------------------------
+
+#--------------------------------------------------------------
+# Distribution control and setup variables
+#--------------------------------------------------------------
+export DIST_BUILD="TRUE"
+
+export ACC_BUILD_SYSTEM=${DIST_BASE_DIR}/build_system
+export ACC_BUILD_EXES=Y
+export ACC_CMAKE_VERSION=3.13.2 # Updated as per request in RT#56874
+export ACC_EXE=${DIST_BASE_DIR}/production/bin
+export ACC_DEBUG=${DIST_BASE_DIR}/debug/bin
+
+#--------------------------------------------------------------
+# Distribution directory tree assignments
+#--------------------------------------------------------------
+export DIST_UTIL=${DIST_BASE_DIR}/util
+export DIST_EXE=${DIST_BASE_DIR}/production/bin
+export DIST_DEBUG=${DIST_BASE_DIR}/debug/bin
+
+#--------------------------------------------------------------
+# PGPLOT server/font directory specification
+#--------------------------------------------------------------
+export PGPLOT_DIR=${DIST_BASE_DIR}/PGPLOT
+export PGPLOT_FONT=${DIST_BASE_DIR}/PGPLOT/grfont.dat
+
+#--------------------------------------------------------------
+# TAO help file search path
+#--------------------------------------------------------------
+export TAO_DIR=${DIST_BASE_DIR}/tao
+
+#--------------------------------------------------------------
+# Enable fPIC flag as default 
+#--------------------------------------------------------------
+export ACC_ENABLE_FPIC=Y
+
+

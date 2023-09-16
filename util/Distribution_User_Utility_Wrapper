@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Central Wrapper Scipt to run all Distribution User Utilities  
+
+#set -x
+
+# Check if the Distribution environment has been set
+[ -d "${DIST_BASE_DIR}" ] || echo -e '\nPlease first initalize the Distribution environment by typing: "source util/dist_source_me"\n'
+
+# Set Plotting package directory 
+[ "${ACC_PLOT_PACKAGE}" == "pgplot" ] && export ACC_PLOT_PACKAGE_DIR="PGPLOT" 
+[ "${ACC_PLOT_PACKAGE}" == "plplot" ] && export ACC_PLOT_PACKAGE_DIR="plplot"
+
+case "${ACC_CONDA_BUILD}" in
+    "Y" | "y" | "1" )
+    CONDA_BUILD=1
+    ;;
+esac
+
+if ( [[ "${CONDA_BUILD}" ]] ) ; then
+    # For conda build most of the dependencies are pulled from conda-forge
+    # We also remove code_examples and regression tests from the build list
+
+    # List of Project Directories - Order here matters!
+    DIRLIST=( forest sim_utils bmad tao cpp_bmad_interface bsim util_programs lux )
+    [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
+else
+    # List of Project Directories - Order here matters!
+    DIRLIST=( ${ACC_PLOT_PACKAGE_DIR} hdf5 fftw lapack lapack95 gsl fgsl forest xraylib sim_utils bmad tao cpp_bmad_interface code_examples bsim util_programs lux regression_tests )
+
+    # Build OpenMPI, if requested
+    [ "${ACC_ENABLE_MPI}" == "Y" ] && DIRLIST=( openmpi ${DIRLIST[*]} )
+fi
+
+# General Distribution Build Function
+func_dist_build () { 
+
+    for DIR in "${DIRLIST[@]}"
+    do
+      cd ${DIST_BASE_DIR}/${DIR};
+      echo -e "\nBuilding directory: ${DIR}\n"
+      ${MK_SCRIPT} -j ${ACC_SET_GMAKE_JOBS} ${1}
+      if ( [ ${?} != 0 ] ) then
+          echo -e "\nError in distribution build.\n"
+          exit 1
+      fi
+    done
+    
+    cd ${DIST_BASE_DIR}
+    
+    exit 0
+}
+
+# General Distribution Cleanup Function
+func_dist_clean () { 
+
+    cd ${DIST_BASE_DIR}/${DIRLIST[1]}
+    mk obliterate
+    mkd obliterate
+
+}
+
+# Check for the script requested 
+[ -z "${DIST_SCRIPT}" ] &&  DIST_SCRIPT=$(basename $0)
+
+# Perform the requested script
+case ${DIST_SCRIPT} in
+
+    dist_clean)
+      # Cleanup the distribution.
+      func_dist_clean
+        ;;
+
+    dist_build_debug)
+        # Build the debug version of the distribution.
+        MK_SCRIPT=${DIST_UTIL}/mkd
+        func_dist_build
+        ;;
+
+    dist_build_production)
+        # Build the production version of the distribution.
+        MK_SCRIPT=${DIST_UTIL}/mk
+        func_dist_build
+        ;;
+
+    dist_test_debug)
+        # Test the debug version of the distribution.
+        MK_SCRIPT=${DIST_UTIL}/mkd
+        func_dist_build test
+        ;;
+
+    dist_test_production)
+        # Test the production version of the distribution.
+        MK_SCRIPT=${DIST_UTIL}/mk
+        func_dist_build test
+        ;;
+
+    *)
+        ;;
+esac

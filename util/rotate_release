@@ -1,0 +1,269 @@
+#!/usr/bin/python
+# -*- python -*-      
+# rotate_release   
+#--------------------------------------------------------
+import argparse
+import time
+import sys
+import os
+import subprocess as sub
+import build_mgmt
+
+#mailing_list_address = 'acc-code-lepp@lnx122.lns.cornell.edu'
+mailing_list_address = 'classe-acc-comp-l@list.cornell.edu'
+from_address = 'classe-acc-comp-l@list.cornell.edu'
+
+# Make unique tempfile name to hold e-mail body
+mail_tempfile = '/tmp/relrot-'+str(time.time())
+
+
+# Set up command-line argument handling
+argparser = argparse.ArgumentParser(description='Build-to-release rotation tool')
+argparser.add_argument('buildname',
+                       type=str,
+                       help='Name of build')
+argparser.add_argument('--mail',
+                       action='store_true',
+                       dest='send_mail',
+                       default=False,
+                       help='Send rotation notification message to libraries mailing list.')
+argparser.add_argument('--tag',
+                       action='store_true',
+                       dest='create_tag',
+                       default=False,
+                       help='Create a tagged copy of all source and support files in repository under the release\'s name.')
+
+muxgroup = argparser.add_mutually_exclusive_group()
+muxgroup.add_argument('--devel',
+                      action='store_true',
+                      dest='devel',
+                      default=True,
+                      help='DEVEL rotation request')
+muxgroup.add_argument('--current',
+                      action='store_true',
+                      dest='current',
+                      default=False,
+                      help='CURRENT rotation request')
+
+argresults = argparser.parse_args()
+
+release_type = 'devel'
+if argresults.current:
+    argresults.devel = False
+    release_type = 'current'
+
+buildname = argresults.buildname
+send_mail = argresults.send_mail
+
+
+# Get local copies of needed collections of values.
+platforms = build_mgmt.Platforms()
+releases = build_mgmt.Releases()
+fulldiritems = build_mgmt.FullDirItems()
+builds_basedir = build_mgmt.builds_basedir
+active_relnames = build_mgmt.ActiveRelNames(release_type)
+
+for platform in platforms:
+    if buildname in releases[platform]:
+        print 'Note: ['+platform+']'+ ' Build has already been promoted'
+
+
+# Verify that the specified release is promoted to the same rank in
+# on all supported build platforms.
+if build_mgmt.RelNameConsistency(release_type):
+    old_releasenames = build_mgmt.ActiveRelNames(release_type)
+    activenames = []
+    for platform in old_releasenames:
+        activenames.append(old_releasenames[platform])
+    if len(set(activenames)) != 1:
+        print '\n\nThere is a mismatch between the active release across'
+        print 'the collection of supported platforms.'
+        for platform in old_releasenames:
+            print '  '+platform+'  :  '+old_releasenames[platform]
+        print 'Please address this before continuing with a'
+        print 'rotation,or perform the release rotation manually.\n'
+        sys.exit(1)
+    else:
+        old_releasename = activenames[0]
+        #print old_releasename
+
+
+# Verify that the build directory exists in all supported build
+# platform directories.
+if not build_mgmt.BuildExists(buildname):
+    print 'Build name ' + buildname + ' does not exist in all'
+    print 'of the following archive directories.'
+    for platform in platforms:
+        print platform
+    sys.exit(1)
+
+
+def send_notification_email(old_relname):
+    # Make unique tempfile name to hold e-mail body
+    mail_tempfile = '/tmp/relrot-'+str(time.time())
+    
+    time_of_day = 'morning'
+    hour = time.localtime()[3]
+    if hour >= 12:
+        time_of_day = 'afternoon'
+
+    f = open(mail_tempfile, 'w')
+    f.write('Good '+ time_of_day +' everyone,\n\n')
+    f.write('The accelerator physics libraries have been rotated as follows:\n\n')
+    f.write(release_type.upper() + ' release rotation for:\n')
+    for platform in platforms:
+        f.write('                             ' + platform + '\n')
+    f.write('\n')
+    f.write('Old:  ' + old_relname +'  -->  New:  '+ buildname +'\n\n')
+    f.write('\n')
+    f.write('   -Accelerator Code Librarian\n\n')
+    f.write('--------------------------------------------------------------------------------\n')
+    f.write('Accelerator Code Support Links -\n')
+    f.write('Documentation      : https://wiki.classe.cornell.edu/ACC/ACL/WebHome\n')
+    f.write('Bug Reports        : service-classe@cornell.edu\n')
+    f.write('Librarian Email    : cesrulib@cornell.edu\n')
+    f.write('Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/\n')
+
+    mail_command = '/bin/mailx -s "Accelerator Libraries Rotation" -r ' + from_address + ' ' + mailing_list_address + ' < ' + mail_tempfile
+    print 'Sending e-mail notification of this rotation to mailing list...'
+    f.close()
+    p = sub.call(mail_command,
+                  bufsize=1,
+                  shell=True)
+    if os.path.exists(mail_tempfile):
+        os.remove(mail_tempfile)
+    print 'Done.'
+
+#def tag_release():
+#    
+
+
+
+# If a tag operation was requested, compose the command(s) for tagging and
+# execute them.
+
+# Perform the rotation of active release to archive link
+# and requested build to active release.
+#
+archive_linkname = build_mgmt.NewLinkName(release_type)
+for platform in platforms:
+
+    # Definitions needed for online Rotation
+    platform_dir = builds_basedir +'/'+ platform +'/'
+    active_relname = active_relnames[platform]
+    packages_link = os.readlink(platform_dir + buildname +'/packages')
+    packages_dir = packages_link[3:26]
+    online_basedir = '/nfs/cesr/online/lib/Linux_x86_64_intel/'
+    online_cmd_mkdir = ("ssh cesrulib@cesrshell mkdir " + online_basedir + buildname)
+    online_cmd_remote_tar = ("cd " + platform_dir + buildname + "; tar -cf - . | ssh cesrulib@cesrshell 'cd "+ online_basedir + buildname + " ; tar -xf - .'")
+    online_cmd_rm_link = ("ssh cesrulib@cesrshell rm -f " + online_basedir + release_type)
+    online_cmd_new_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
+    online_cmd_rotate_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
+    online_cmd_check_packages = ("ssh cesrulib@cesrshell '[ -d " + online_basedir + packages_dir + " ] && echo yes || echo no'")
+    online_cmd_mkdir_packages = ("ssh cesrulib@cesrshell mkdir -p " + online_basedir + packages_dir)
+    online_cmd_remote_packages_tar = ("cd " + platform_dir + packages_dir + "; tar -cf - . | ssh cesrulib@cesrshell 'cd "+ online_basedir + packages_dir  + " ; tar -xf - .'")
+
+    # 
+    print ''
+    print 'New '+ release_type +' Build name:                   ' + buildname  
+    print 'New '+ release_type +' Build directory to copy:      ' + platform_dir + buildname 
+    print 'Old '+ release_type +' will be rotated to link name: ' + archive_linkname
+    print 'Old '+ release_type +':                              ' + active_relname
+    print 'CESR Online base directory to copy to:  ' + online_basedir 
+
+    # ssh/tar release to CESR Online
+    if not os.path.exists(online_basedir+buildname):
+      #print online_cmd_mkdir
+      step1 = sub.Popen(online_cmd_mkdir,
+                        bufsize=1,
+                        shell=True,
+                        stdout=sub.PIPE,
+                        stderr=sub.STDOUT )
+      print ''
+      print 'Making Build directory:                 ' + online_basedir + buildname
+      step1.communicate()
+
+      #print online_cmd_remote_tar
+      step2 = sub.Popen(online_cmd_remote_tar,
+                        bufsize=1,
+                        shell=True,
+                        stderr=sub.STDOUT )
+      print ''
+      print 'Copying ' + buildname + ' to:            ' + online_basedir + buildname 
+      step2.communicate()
+
+      # Check for Online packages                                                                                                                                           
+      #print online_cmd_check_packages 
+      step3 = sub.Popen(online_cmd_check_packages,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+      output = step3.communicate()[0]
+
+      if "yes" in output:
+          print 'CESR Online Packages directory:         ' + online_basedir + packages_dir
+      else:
+          # Make online packages dir
+          #print online_cmd_mkdir_packages
+          step4 = sub.Popen(online_cmd_mkdir_packages,
+                            bufsize=1,
+                            shell=True,
+                            stdout=sub.PIPE,
+                            stderr=sub.STDOUT )
+          print ''  
+          print 'Making CESR Online Packages directory:  ' + online_basedir + packages_dir
+          step4.communicate()
+
+          # ssh/tar over packages to online
+          #print online_cmd_remote_packages_tar
+          step5 = sub.Popen(online_cmd_remote_packages_tar,
+                    bufsize=1,
+                    shell=True,
+                    stdout=sub.PIPE,
+                    stderr=sub.STDOUT )
+          print ''
+          print 'Copying ' + packages_dir + ' to:        ' + online_basedir + packages_dir
+          step5.communicate()
+
+    # Now update off-line links
+    os.chdir(platform_dir)
+    os.symlink(active_relname, archive_linkname)
+    os.remove(platform_dir+'/'+release_type)
+    os.symlink(buildname, release_type)
+
+    # Now update on-line links
+    #print online_cmd_rm_link
+    step6 = sub.Popen(online_cmd_rm_link,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+    print ''
+    print 'Cleaning up old ' + release_type + ' link.'
+    step6.communicate()
+
+    #print online_cmd_new_link
+    step7 = sub.Popen(online_cmd_new_link,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+    print ''
+    print 'Making new soft link from ' + buildname + ' to ' + release_type
+    step7.communicate()
+
+    #print online_cmd_rotate_link
+    step8 = sub.Popen(online_cmd_rotate_link,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+    print ''
+    print 'Rotating old ' + release_type + ' ' + active_relname + ' to '  + archive_linkname
+    step8.communicate()
+    print ''
+
+
+if send_mail:
+    send_notification_email(old_releasename)

@@ -1,0 +1,504 @@
+#!/bin/bash
+#-----------------------------------------------------------------
+# dist_source_me
+#
+# Bmad Distribution libraries management and software build system
+# environment setup script.
+#
+# This script uses Bourne shell syntax.
+#
+#-----------------------------------------------------------------
+
+
+
+#-----------------------------------------------------------------
+# Function used to determine if the passed-in directory is the 
+# top-level directory of a valid distribution source tree.
+#     Accepts: Full pathname of directory to test
+#-----------------------------------------------------------------
+func_is_dir_toplevel () {
+
+    DIST_TOPLEVEL_CHECKLIST="bmad build_system util gnu_utilities_src"
+    TESTDIR=${1}
+    RETVAL="Y"
+
+    for DIR in ${DIST_TOPLEVEL_CHECKLIST}
+    do
+        if [ ! -d "${TESTDIR}/${DIR}" ] ; then
+            RETVAL="N"
+            break
+        fi
+    done
+
+    echo ${RETVAL}
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to set the environment for specific OSes
+#-----------------------------------------------------------------
+func_set_os_env () {
+
+    export ACC_COMPILER_TOOLSET=default
+
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+        # No need to set os env for Conda Build.
+        return;
+    fi
+
+    if ( [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
+        # Workaround for $(uname -m) == x86_64 on Msys2/MinGW-w64-i686
+        if [[ "$(uname -o)/$(uname -s)" == "Msys/MINGW32_NT-6.1" ]] ; then
+
+            export DIST_OS_ARCH="$(uname -o)/$(uname -s)_$(uname -m)"
+
+            if [[ "$(uname -m)" == "x86_64" ]] ; then
+                export PATH=${DIST_BASE_DIR}/util/mingw-w64-i686:${PATH}
+            fi
+        fi
+
+        # Determine the compiler toolset for Msys2/MinGW-w64-i686
+        if [[ "$(uname -o)" == "Msys" ]]; then
+
+            # msys/mingw32 has MINGW32-NT-6.1:
+            if [[ "$(uname -s)" == MINGW32* ]]; then
+                export ACC_COMPILER_TOOLSET=mingw32-msys
+            fi
+
+            # msys2/mingw-w64 has MINGW64-NT-6.1:
+            if [[ "$(uname -s)" == MINGW64* ]]; then
+                export ACC_COMPILER_TOOLSET=mingw64-msys
+            fi
+        fi
+    fi
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to check for Fortran. If gfortran or ifort is 
+# requested, check for the specified minimum version
+#-----------------------------------------------------------------
+func_check_fortran_version () {
+
+    # Set minimum Fortran compiler versions 
+    GCC_REQ_VER=6.3
+    IFORT_REQ_VER=17.0.7.259
+
+
+    func_echo_fortran () {
+        [ "${DIST_F90_REQUEST}" == "gfortran" ] \
+            && echo -e "\nUsing: $(gfortran --version | head -1)\n" >> ${DIST_SETUP_LOG}    
+        [ "${DIST_F90_REQUEST}" == "ifort" ] \
+            && echo -e "\nUsing: $(ifort --version | head -1)\n" >> ${DIST_SETUP_LOG}    
+    }
+
+
+    func_search_devtoolset () {
+        # Check for Red Hat Developer Toolset Distribution - this is RHEL, Centos, SL specific
+        if [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ; then
+            DEVTOOLSET_DIR=/opt/rh/devtoolset
+
+            AVAIL_DEV=()
+
+            for ((NUM=6 ; NUM < 29 ; NUM++))
+            {
+                [ -d "${DEVTOOLSET_DIR}-${NUM}" ] && AVAIL_DEV=("${AVAIL_DEV[@]}" "${NUM}")
+            }
+            
+            if [ -d "${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" ] ; then
+                source ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}/enable
+                echo -e "\nEnabling GCC/gfortran from the Red Hat Developer Toolset" >> ${DIST_SETUP_LOG} 
+                echo -e "in ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" >> ${DIST_SETUP_LOG}
+                func_echo_fortran
+            fi
+        else
+            func_no_fortran
+        fi
+    }
+
+
+    func_search_ifort () {
+        # This is CLASSE specific, for user convenience sake
+        if ( [ -e /nfs/opt/intel/ifort/bin/compilervars.sh ] ) ; then
+            source /nfs/opt/intel/ifort/bin/compilervars.sh intel64
+            func_echo_fortran
+        else
+            func_no_fortran
+        fi
+    }
+
+
+    func_no_fortran () {
+        echo -e "\nWARNING - no compatible fortran compiler found, unable to build the Bmad Distribution." \
+            >> ${DIST_SETUP_LOG}
+
+        if [ "${DIST_F90_REQUEST}" == "gfortran" ] ; then
+            if ( [ $(type gfortran &> /dev/null ; echo $?) -eq 0 ] ) ; then
+                echo -e "Please upgrade your version of GNU GCC/gfortran, to the ${GCC_REQ_VER} version, or later" \
+                    >> ${DIST_SETUP_LOG}
+            else
+                echo -e "Please install GNU GCC/gfortran version ${GCC_REQ_VER}, or later"  \
+                    >> ${DIST_SETUP_LOG}
+            fi
+            echo -e "or set your PATH to where a minimum GNU GCC/gfortran version of ${GCC_REQ_VER} is located.\n" \
+            >> ${DIST_SETUP_LOG}
+
+        elif [ "${DIST_F90_REQUEST}" == "ifort" ] ; then
+            if ( [ $(type ifort &> /dev/null ; echo $?) -eq 0 ] ) ; then
+                echo -e "Please upgrade your version of Intel ifort, to the ${IFORT_REQ_VER} version, or later" \
+                    >> ${DIST_SETUP_LOG}
+            else
+                echo -e "Please install Intel ifort version ${IFORT_REQ_VER}, or later" \
+                    >> ${DIST_SETUP_LOG}
+            fi
+            echo -e "or set your PATH to where a minimum Intel ifort version of ${IFORT_REQ_VER} is located.\n" \
+            >> ${DIST_SETUP_LOG}
+        fi
+    }
+
+
+    if ( [ "${DIST_F90_REQUEST}" == "gfortran" ] ) ; then
+
+    unset DEVTOOLSET_DIR
+
+    if ( [ $(type gfortran &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
+        GCC_MIN_MAJOR_VER=$(echo ${GCC_REQ_VER} | cut -d. -f1)
+        GCC_MIN_MINOR_VER=$(echo ${GCC_REQ_VER} | cut -d. -f2)
+        GCC_MAJOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | awk ' { print $1 } ' | cut -d. -f1)
+
+        [ "${GCC_MAJOR_VER}" -le "${GCC_MIN_MAJOR_VER}" ] \
+        && GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | awk ' { print $1 } ' | cut -d. -f2)
+
+        case "${GCC_MAJOR_VER}" in
+        [1-4])
+            [ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+            [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+            if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+            [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+            fi
+            ;;
+
+        5)
+            if [ "${GCC_MINOR_VER}" -lt ${GCC_MIN_MINOR_VER} ] ; then
+            [ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+            [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+            if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+                [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+            fi
+            else
+                func_echo_fortran
+            fi
+            ;;
+
+        [6-9]|1[0-9]|2[0-9])
+            func_echo_fortran
+            ;;
+
+        *)
+            func_no_fortran
+            ;;
+        esac
+        
+    else
+        func_no_fortran
+    fi
+
+    elif ( [ "${DIST_F90_REQUEST}" == "ifort" ] ) ; then
+    
+        if ( [ $(type ifort &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
+            IFORT_MIN_MAJOR_VER=$(echo ${IFORT_REQ_VER} | cut -d. -f1)
+            IFORT_MIN_MINOR_VER=$(echo ${IFORT_REQ_VER} | cut -d. -f3)
+            IFORT_MAJOR_VER=$(ifort --version | head -1 | awk ' { print $3 } ' | cut -d. -f1)
+
+            [ "${IFORT_MAJOR_VER}" -le "${IFORT_MIN_MAJOR_VER}" ] \
+            && IFORT_MINOR_VER=$(ifort --version | head -1 | awk ' { print $3 } ' | cut -d. -f3)
+
+            case "${IFORT_MAJOR_VER}" in
+            [1-9]|1[0-6])
+                [ "$(uname -s)" == "Linux" ] && func_search_ifort
+                [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+                if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+                    [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+                fi
+                ;;
+
+            1[7])
+                if [ "${IFORT_MINOR_VER}" -lt ${IFORT_MIN_MINOR_VER} ] ; then
+                    [ "$(uname -s)" == "Linux" ] && func_search_ifort
+                    [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+                    if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+                        [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+                    fi
+                else
+                    func_echo_fortran
+                fi
+                ;;
+
+            1[8-9]|2[0-9]|3[0-9])
+                func_echo_fortran 
+                ;;
+
+            20[1-3][0-9])
+                func_echo_fortran 
+                ;;
+
+            *)
+                func_no_fortran
+                ;;
+            esac
+
+        else
+            [ "$(uname -s)" == "Linux" ] && func_search_ifort || func_no_fortran
+        fi
+    
+    else
+        func_no_fortran
+    fi
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to set the Bmad Environment
+#-----------------------------------------------------------------
+func_set_bmad_env () {
+
+    export ACC_ROOT_DIR=${DIST_BASE_DIR}
+
+    echo -e "\$DIST_BASE_DIR = ${DIST_BASE_DIR}" \
+    >> ${DIST_SETUP_LOG}
+
+    unset DIST_F90_REQUEST
+
+    echo -e "Sourcing User build preferences from util/dist_prefs..." \
+    >> ${DIST_SETUP_LOG}
+    source ${DIST_BASE_DIR}/util/dist_prefs
+
+    echo "Sourcing common build variable set..." \
+    >> ${DIST_SETUP_LOG}
+    source ${DIST_BASE_DIR}/util/dist_env_vars
+    source ${DIST_BASE_DIR}/util/build_flags_config
+
+    echo "Setting the Fortran compiler..." \
+    >> ${DIST_SETUP_LOG}
+    export DIST_F90=${DIST_F90_REQUEST}
+
+    export DIST_OS=$(uname)
+    export DIST_ARCH=$(uname -m)
+    [ "${DIST_OS_ARCH}" ] || export DIST_OS_ARCH="${DIST_OS}_${DIST_ARCH}"
+    export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
+
+    alias distinfo="env | grep DIST ; env | grep ACC"
+    alias accinfo="env | grep DIST ; env | grep ACC"
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to add the distribution's util and bin to user's PATH 
+# and LD_LIBRARY_PATH
+#-----------------------------------------------------------------
+func_add_bmad_path () {
+
+    BMAD_BIN_PROD_PATH=${DIST_BASE_DIR}/production/bin
+    BMAD_BIN_DEBUG_PATH=${DIST_BASE_DIR}/debug/bin
+    BMAD_LIB_PROD_PATH=${DIST_BASE_DIR}/production/lib
+    BMAD_LIB_DEBUG_PATH=${DIST_BASE_DIR}/debug/lib
+
+    USER_PATH=${PATH}
+    USER_PATH_LIST=$(echo ${USER_PATH} | sed s/:/\ /g)
+
+    BMAD_DIRS=( ${BMAD_BIN_DEBUG_PATH} ${BMAD_BIN_PROD_PATH} ${DIST_UTIL} )
+
+    for BMAD_DIR in ${BMAD_DIRS[@]}
+    do
+        PATH_FOUND=0    # See RT #65937
+        for DIR in ${USER_PATH_LIST}
+        do
+            if ( [ "${DIR}" == "${BMAD_DIR}" ] ) ; then 
+                PATH_FOUND=1
+            fi
+        done
+
+        if [ "${PATH_FOUND}" -eq 0 ] ; then 
+
+            if [ "${BMAD_DIR}" != "${DIST_UTIL}" ] ; then
+                USER_PATH=${BMAD_DIR}:${USER_PATH}
+            else
+                USER_PATH=${USER_PATH}:${BMAD_DIR}
+            fi
+        fi
+    done
+
+    export PATH=${USER_PATH}
+
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+        export LD_LIBRARY_PATH=${ACC_CONDA_PATH}/lib:${LD_LIBRARY_PATH}
+    fi
+
+
+    if [ ${LD_LIBRARY_PATH} ] ; then
+        USER_LIB_PATH_LIST=$(echo ${LD_LIBRARY_PATH} | sed s/:/\ /g)
+
+        BMAD_LIBS=( ${BMAD_LIB_DEBUG_PATH} ${BMAD_LIB_PROD_PATH} )
+
+        for BMAD_LIB in ${BMAD_LIBS[@]}
+        do
+            for LIB_PATH in ${USER_LIB_PATH_LIST}
+            do
+                if ( [ "${LIB_PATH}" == "${BMAD_LIB}" ] ) ; then 
+                    PATH_FOUND=1
+                fi
+            done
+
+            if [ "${PATH_FOUND}" -eq 0 ] ; then
+                export LD_LIBRARY_PATH=${BMAD_LIB}:${LD_LIBRARY_PATH}
+            fi
+        done
+
+    else
+        export LD_LIBRARY_PATH=${BMAD_LIB_PROD_PATH}:${BMAD_LIB_DEBUG_PATH}
+
+        # Configure DYLD_LIBRARY_PATH for Mac OS X
+        if [ "${DIST_OS}" == "Darwin" ] ; then
+
+            if ( [ "${DIST_F90_REQUEST}" == "ifort" ] && [ -d /opt/intel/lib ] ) ; then
+                export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/lib
+
+            elif [ -d /opt/local/lib ] ; then
+                export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+            fi
+        fi
+    fi
+}
+
+
+
+#-----------------------------------------------------------------
+# Function to set CC and CXX to the MacPorts gcc/g++, under macOS.
+# Addresses issue with Conda support Patch (RT#59013).  
+# Issue was raised in RT#61171 by cmayes@stanford.edu
+#-----------------------------------------------------------------
+func_use_MacPorts_gcc () {
+
+    case "${ACC_USE_MACPORTS}" in
+    "Y" | "y" | "1" )
+            USE_MACPORTS=1
+            ;;
+    esac
+
+    if [ "$(uname)" == "Darwin" ] ; then
+        if ( [[ "${USE_MACPORTS}" ]] ) ; then
+            if [ -e /opt/local/bin/gcc ] ; then
+                export CC=gcc
+                export CXX=g++
+            fi
+        fi
+    fi
+}
+
+
+case "${ACC_CONDA_BUILD}" in
+    "Y" | "y" | "1" )
+        CONDA_BUILD=1
+        ;;
+esac
+
+
+#-----------------------------------------------------------------
+# Main Script
+#
+# Check to see if a directory has been specified in the
+# DIST_BASE_DIR environment variable.  Otherwise, if this 
+# script is run in the top-level directory of a 
+# distribution source tree, use that directory. 
+#
+# If neither, cough up an error message prompting the user
+# to try again.
+#
+# Check for a distribution signature in subdirectories of 
+# the current working directory.
+#
+# Determine if current working directory is the top level
+# of a distribution source tree.
+#
+# Set universal ACC_ROOT_DIR variable. Defined for both 
+# Release and Distribution Builds.
+#-----------------------------------------------------------------
+DIST_SETUP_LOG=${HOME}/.Bmad_Dist_Setup_Log.tmp
+CWD=$(pwd)
+CWD_DIR_CHECK=$(func_is_dir_toplevel ${CWD})
+DIST_BASE_DIR_CHECK=$(func_is_dir_toplevel ${DIST_BASE_DIR})
+
+
+if ( [[ "${CONDA_BUILD}" ]] ) ; then
+    DIST_SETUP_LOG=/dev/stdout
+    DIST_SETUP_QUIET="Y"
+fi
+
+
+if ( [ "${CWD_DIR_CHECK}" == "Y" ] && [[ ! ${CWD} -ef ${DIST_BASE_DIR} ]]) ; then
+
+    [ ! -z "${DIST_BASE_DIR}" ] && echo -e "\n-----------------------------------------------------" \
+                                           "\nNOTE: The DIST_BASE_DIR setting is being overwritten." \
+                                           "\n-----------------------------------------------------\n"
+
+    export DIST_BASE_DIR=${CWD}
+    echo -e "\nCurrent working directory is the root of a Bmad Distribution tree." \
+    > ${DIST_SETUP_LOG}
+
+    func_set_os_env
+    func_set_bmad_env
+    func_add_bmad_path
+    if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+    func_check_fortran_version
+    func_use_MacPorts_gcc
+    fi
+
+elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
+    echo -e "\nThe working directory of the Bmad Distribution tree is defined by DIST_BASE_DIR." \
+    > ${DIST_SETUP_LOG}
+
+    func_set_os_env
+    func_set_bmad_env
+    func_add_bmad_path
+    if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+        func_check_fortran_version
+        func_use_MacPorts_gcc
+    fi
+
+else
+    echo -e "\nERROR - Cannot Enable the Bmad Distribution Environment.\n" \
+    > ${DIST_SETUP_LOG}
+    echo -e "Verify that the current working directory is the top level directory of a distribution source tree" \
+    >> ${DIST_SETUP_LOG}
+    echo -e "-OR- if sourcing the this script from another location, " \
+    >> ${DIST_SETUP_LOG}
+    echo -e "verify that the value of the environment variable DIST_BASE_DIR" \
+    >> ${DIST_SETUP_LOG}
+    echo -e "contains the full path of the top-level directory of a distribution source tree," \
+    >> ${DIST_SETUP_LOG}
+    echo -e "-AND- has been made available (exported) to child processes of your current shell.\n" \
+    >> ${DIST_SETUP_LOG}
+
+    [ "${DIST_SETUP_QUIET}" == "Y" ] \
+    && echo -e "\nERROR - Cannot Enable the Bmad Distribution Environment." \
+    && echo -e "\nPlease see ${DIST_SETUP_LOG}\n"
+fi
+
+echo -e "For updates, information and help - please see the Bmad Distribution Wiki at:\n" \
+        >> ${DIST_SETUP_LOG}
+echo -e "     https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc\n" \
+        >> ${DIST_SETUP_LOG}
+
+#-----------------------------------------------------------------
+# Display Logfile, unless requested not to.
+#-----------------------------------------------------------------
+if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+    [ "${DIST_SETUP_QUIET}" != "Y" ] && cat ${DIST_SETUP_LOG}
+fi

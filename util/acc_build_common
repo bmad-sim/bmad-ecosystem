@@ -1,0 +1,874 @@
+#!/bin/bash
+
+# Script to define and execute the common acc_build 
+# functions, as well as loading Package Specific functions. 
+# This script is invoked by acc_build.
+# No Package Specific settings are in this file.
+# Exit Codes found in /usr/include/sysexits.h
+
+#set -x
+
+# Function to set the base environmental variables
+
+func_set_base_env () {
+
+    # Logic to set cmake version for PLplot support 17-Nov-2020 RT#55118
+    if [ ${DIST_BUILD} ] ; then
+      export CMAKE_UTIL="cmake-3.13.2" # Minimum required for PLplot version 5.15.0 released on 01-Jun-2019
+      export CMAKE_UTIL_SRC="cmake-3.18.4"
+    else
+      export CMAKE_UTIL="cmake-3.18.4" # now the default version for all ACC Release builds RT#56587
+    fi
+
+    export ACC_LIB_TOOLS_WIKI='https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#A_42Libraries_and_Tools_Needed_for_Compiling_42'
+    export BASE_DIR=$(dirname `pwd`)
+    export PROJ_DIR_NAME=$(basename `pwd`)
+    export OUTPUT_DIR=${BASE_DIR}/${BUILD_TYPE}
+    export WORK_DIR=${BASE_DIR}/${PROJ_DIR_NAME}/${BUILD_TYPE}
+
+    # Logic to check for the presence of gmake, else use make 
+    [ "$(type gmake &> /dev/null ; echo $?)" -eq 0 ] \
+      && export GMAKE="gmake" \
+      || export GMAKE="make"
+
+    # Set minimum versions of GNU and Build Utilities required by FGSL 1.4 - 01-Jun-2021 RT#58585
+    export AUTOCONF_UTIL=autoconf-2.71
+    export AUTOMAKE_UTIL=automake-1.16.3
+    export LIBTOOL_UTIL=libtool-2.4.6
+    export M4_UTIL=m4-1.4.19
+    export PKGCONFIG_UTIL=pkg-config-0.29.1
+
+    # Check for Scientific Linux OS version
+    [ "$(grep Scientific /etc/redhat-release &> /dev/null ; echo $?)" -eq 0 ] && export SL_RELEASE=1
+
+    # Added support for SHARED only library builds, as requested in RT#63875 
+    export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=no --enable-static=yes"
+
+    case "${ACC_ENABLE_SHARED}" in
+      "Y" | "y" | "1" )
+            export BUILD_SHARED=1
+            export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=yes --enable-static=yes"
+            ;;
+        *)
+            export BUILD_SHARED=0
+            ;;
+    esac
+
+    case "${ACC_ENABLE_SHARED_ONLY}" in
+      "Y" | "y" | "1" )
+            export BUILD_SHARED_ONLY=1
+            export BUILD_SHARED=1
+            export SHARED_LIB_CONFIGURE_FLAGS="--enable-shared=yes --enable-static=no"
+            ;;
+        *)
+            export BUILD_SHARED_ONLY=0
+            ;;
+    esac
+}
+
+
+# Function to unset Compiler and Linker flags to reduce confusion
+
+func_initialize_flags () {
+
+    unset CFLAGS
+    unset FCFLAGS
+    unset FFLAGS
+    unset LDFLAGS
+    unset BASE_OPTS
+
+}
+
+
+# Function to Read in Package Version information
+
+func_read_version () {
+
+    if [ "${PACKAGE_VERSION}" ] ; then
+      export PACKAGE_VERSION=${PACKAGE_VERSION}
+    elif ( [ -e VERSION ] && [ "$(cat VERSION | head -1 | awk ' { print $2 } ' )" == "VERSION" ] ) ; then
+      export PACKAGE_VERSION=$(cat VERSION)
+    else
+      export PACKAGE_VERSION="$(basename `pwd`| cut -d- -f1) VERSION unknown"
+    fi
+
+}
+
+
+# Function to calculate and display total Compile and Link time
+
+func_display_build_time () {
+    DATE2=$(date +"%s")
+    DIFF=$((${DATE2}-${DATE1}))
+    if [ "${DIFF}" -gt 0 ]
+    then
+      DTIME=$(echo "scale = 2; ${DIFF}/60" | bc)
+      DTIME_MIN=$(echo "scale = 0; ${DIFF}/60" | bc)
+      DTIME_SEC=$(echo $(echo ${DTIME:(-3)})*60 | bc)
+      [ "${DTIME_MIN}" != 0 ] \
+          && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" \
+          || DTIME_MESS="${DTIME_SEC}sec"
+      echo -e "Build time: ${DTIME_MESS}\n"
+    fi
+}
+
+# Function to set default Fortran compiler from environmental variables
+
+func_set_fortran_compiler () {
+
+    if ( [ "${DIST_BUILD}" ] ) ; then
+        export FC="${DIST_F90}"
+    elif ( [ "${ACC_SET_F_COMPILER}" ] ) ; then
+        export FC="${ACC_SET_F_COMPILER}"
+    elif [ "$(type ifort &> /dev/null ; echo $?)" -eq 0 ] ; then
+        export FC="ifort"
+    elif [ "$(type gfortran &> /dev/null ; echo $?)" -eq 0 ] ; then
+        export FC="gfortran"
+    else
+        echo -e \
+          "\nError: Fortran compiler not specified or installed." \
+          "\n\nTo install GNU GCC/GFORTRAN, please follow instructions on:" \
+          "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+        exit 69
+    fi
+
+    [ "${FC}" == "ifort" ] \
+      && export IFORT_MAJOR_VER=$(ifort --version | head -1 | awk ' { print $3 } ' | cut -d. -f1) \
+      && export IFORT_MAJOR_VERSION=${IFORT_MAJOR_VER}
+}
+
+
+# Function to set gmake -j level, we'll set it here to "2"
+
+func_set_gmake_job_level () {
+
+    if [ -z ${ACC_SET_GMAKE_JOBS} ] || [ "${ACC_SET_GMAKE_JOBS}" == "0" ] ; then 
+      export ACC_SET_GMAKE_JOBS=2 
+    fi
+}
+
+
+# Function to set compiler and Linker flags, if OpenMP is enabled
+
+func_set_openmp_flags () {
+
+    case "${ACC_ENABLE_OPENMP}" in
+      "Y" | "y" | "1" )
+
+          # Fix setting OpenMP configure flag 12-Sep-2022
+          export BUILD_OPENMP=1
+
+          if ( [[ "${CONDA_BUILD}" ]] ) ; then
+                export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+                export FCFLAGS="${FFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+                export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
+          fi
+          export CFLAGS="-fopenmp ${CFLAGS}"
+          if ( [ "${FC}" == "gfortran" ] ) ; then
+            export FCFLAGS="-fopenmp ${FCFLAGS}"
+            export LDFLAGS="-lgomp ${LDFLAGS}"
+          elif [ "${IFORT_MAJOR_VERSION}" ] ; then
+            if [ "${IFORT_MAJOR_VERSION}" -gt 15 ] ; then
+                export FCFLAGS="-qopenmp" 
+            else
+                export FCFLAGS="-openmp"
+            fi
+            export LDFLAGS="-liomp5"
+          fi
+            ;;
+      *)
+          ;;
+    esac
+}
+
+
+# Function to set compiler and Linker flags, if fPIC is enabled
+
+func_set_fpic_flags () {
+
+    # Enable -fPIC as default for all "packages" Fortran compilations - 24-Mar-2017.
+    export ACC_ENABLE_FPIC=Y
+    export FCFLAGS="-fPIC ${FCFLAGS}"
+
+}
+
+# Function to check for required MacPorts install on Mac OS X
+
+func_check_macports () {
+    # We don't need MacPorts for CONDA builds
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+           return
+    fi
+
+    # We don't need MacPorts if not using it
+    if ( [[ ! "${USE_MACPORTS}" ]] ) ; then
+           return
+    fi
+
+    if ( [ `uname` == "Darwin" ] ) ; then
+      if ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
+          export VER=$(uname -r | cut -d. -f1)
+          export GCC_PATH=$(type gcc | cut -d" " -f3)
+          if ( [ "${GCC_PATH}" != "/usr/local/bin/gcc" ] ) ; then
+            if ( [ "${VER}" -gt 11 ] && [ ! -d "/opt/local/etc/macports" ] ) ; then 
+                echo -e \
+                   "\nSince gcc is not installed at /usr/local/bin/gcc, I'm assuming you are using MacPorts..." \
+                   "\nCan't find GNU GCC, please install MacPorts, using instructions on:" \
+                   "\n\n    http://www.macports.org/install.php" \
+                   "\n\nThen follow instructions on:" \
+                   "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+                exit 69
+            elif [ ! -L /opt/local/bin/gcc ] ; then
+                echo -e \
+                   "\nSince gcc is not installed at /usr/local/bin/gcc, I'm assuming you are using MacPorts..." \
+                   "\nBut! No selected MacPorts gcc version is found!" \
+                   "\n\nPlease follow instructions on:" \
+                "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+                exit 70
+            elif ( [ "${GCC_PATH}" == "/usr/bin/gcc" ] && [ -d "/opt/local/etc/macports" ] ) ; then
+                echo -e \
+                   "\nSince gcc is not installed at /usr/local/bin/gcc, I'm assuming you are using MacPorts..." \
+                   "\nBut! MacPorts gcc is not in your PATH..." \
+                   "\nPlease add the following line to the bottom of your ~/.bash_profile or ~/.bashrc file:" \
+                   "\n\n    export PATH=/opt/local/bin:/opt/local/sbin:\$PATH" \
+                   "\n\nThen logout and log back in, cd into the Bmad distribution folder and" \
+                   "\nreinitialize the Bmad Environment using:" \
+                   "\n\n    source util/dist_source_me\n"
+                exit 78
+            elif [ "${GCC_PATH}" == "/opt/local/bin/gcc" ] ; then
+                export CC=gcc
+            fi
+          elif ( [ "${GCC_PATH}" == "/usr/local/bin/gcc" ] ) ; then
+            export CC=gcc
+          fi
+      else
+          echo -e \
+             "\nCan't find GCC, please install Xcode and MacPorts, using instructions on:" \
+             "\n\n    http://www.macports.org/install.php:" \
+             "\n\nThen follow instructions on:" \
+             "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+          exit 69
+      fi
+    fi
+}
+
+     
+#-----------------------------------------------------------------
+# Function to check for Fortran. If gfortran or ifort is 
+# requested, check for the specified minimum version
+#-----------------------------------------------------------------
+
+func_check_fortran_version () {
+
+    # Set minimum Fortran compiler versions 
+    GCC_REQ_VER=6.3
+    IFORT_REQ_VER=17.0.7.259
+
+    func_echo_fortran () {
+      [ "${FC}" == "gfortran" ] \
+          && echo -e "\nUsing: $(gfortran --version | head -1)\n"      
+      [ "${FC}" == "ifort" ] \
+          && echo -e "\nUsing: $(ifort --version | head -1)\n"
+    }
+
+
+    func_search_devtoolset () {
+      # Check for Red Hat Developer Toolset Distribution - this is RHEL, Centos, SL specific
+      if [ $(ls -1 /opt/rh | grep devtoolset &> /dev/null ; echo $?) -eq 0 ] ; then
+          DEVTOOLSET_DIR=/opt/rh/devtoolset
+
+          AVAIL_DEV=()
+
+          for ((NUM=6 ; NUM < 29 ; NUM++))
+          {
+            [ -d "${DEVTOOLSET_DIR}-${NUM}" ] && AVAIL_DEV=("${AVAIL_DEV[@]}" "${NUM}")
+          }
+          
+          if [ -d "${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" ] ; then
+            source ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}/enable
+            echo -e "\nEnabling GCC/gfortran from the Red Hat Developer Toolset" 
+            echo -e "in ${DEVTOOLSET_DIR}-${AVAIL_DEV[0]}" 
+            func_echo_fortran
+          fi
+      else
+          func_no_fortran
+      fi
+    }
+
+
+    func_search_ifort () {
+      # This is CLASSE specific, for user convenience sake
+      if ( [ -e /nfs/opt/intel/ifort/bin/compilervars.sh ] ) ; then
+          source /nfs/opt/intel/ifort/bin/compilervars.sh intel64
+          func_echo_fortran
+      else
+          func_no_fortran
+      fi
+    }
+
+
+    func_no_fortran () {
+      echo -e "\nWARNING - no compatible fortran compiler found."
+
+      if [ "${FC}" == "gfortran" ] ; then
+          if ( [ $(type gfortran &> /dev/null ; echo $?) -eq 0 ] ) ; then
+            echo -e "Please upgrade your version of GNU GCC/gfortran, to the ${GCC_REQ_VER} version, or later"
+            exit 69
+          else
+            echo -e "Please install GNU GCC/gfortran version ${GCC_REQ_VER}, or later"
+            exit 69
+          fi
+          echo -e "or set your PATH to where a minimum GNU GCC/gfortran version of ${GCC_REQ_VER} is located.\n"
+          exit 69
+
+      elif [ "${FC}" == "ifort" ] ; then
+          if ( [ $(type ifort &> /dev/null ; echo $?) -eq 0 ] ) ; then
+            echo -e "Please upgrade your version of Intel ifort, to the ${IFORT_REQ_VER} version, or later"
+            exit 69
+          else
+            echo -e "Please install Intel ifort version ${IFORT_REQ_VER}, or later"
+            exit 69
+          fi
+            echo -e "or set your PATH to where a minimum Intel ifort version of ${IFORT_REQ_VER} is located.\n"
+          exit 69
+      fi
+    }
+
+    if ( [ "${FC}" == "gfortran" ] ) ; then
+
+      unset DEVTOOLSET_DIR
+
+      if ( [ $(type gfortran &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
+          GCC_MIN_MAJOR_VER=$(echo ${GCC_REQ_VER} | cut -d. -f1)
+          GCC_MIN_MINOR_VER=$(echo ${GCC_REQ_VER} | cut -d. -f2)
+          GCC_MAJOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | awk ' { print $1 } ' | cut -d. -f1)
+
+          [ "${GCC_MAJOR_VER}" -le "${GCC_MIN_MAJOR_VER}" ] \
+            && GCC_MINOR_VER=$(gfortran --version | head -1 | cut -d')' -f2 | awk ' { print $1 } ' | cut -d. -f2)
+
+          case ${GCC_MAJOR_VER} in
+            [1-4])
+                [ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+                [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+                if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+                  [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+                fi
+                ;;
+
+            5)
+                if [ "${GCC_MINOR_VER}" -lt ${GCC_MIN_MINOR_VER} ] ; then
+                  [ "$(uname -s)" == "Linux" ] && func_search_devtoolset
+                  [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+                  if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+                      [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+                  fi
+                else
+                  func_echo_fortran
+                fi
+                ;;
+
+            [6-9]|1[0-9]|2[0-9])
+                func_echo_fortran 
+                ;;
+
+            *)
+                func_no_fortran
+                ;;
+          esac
+
+      else
+          func_no_fortran
+      fi
+
+    elif ( [ "${FC}" == "ifort" ] ) ; then
+
+      if ( [ $(type ifort &> /dev/null ; echo $?) -eq 0 ] ) ; then
+
+            IFORT_MIN_MAJOR_VER=$(echo ${IFORT_REQ_VER} | cut -d. -f1)
+            IFORT_MIN_MINOR_VER=$(echo ${IFORT_REQ_VER} | cut -d. -f3)
+            [ ${IFORT_MAJOR_VER} ] || IFORT_MAJOR_VER=$(ifort --version | head -1 | awk ' { print $3 } ' | cut -d. -f1)
+
+            [ "${IFORT_MAJOR_VER}" -le "${IFORT_MIN_MAJOR_VER}" ] \
+            && IFORT_MINOR_VER=$(ifort --version | head -1 | awk ' { print $3 } ' | cut -d. -f3)
+
+          case "${IFORT_MAJOR_VER}" in
+            [1-9]|1[0-6])
+                [ "$(uname -s)" == "Linux" ] && func_search_ifort
+                [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+                if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+                  [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+                fi
+                ;;
+
+            1[7])
+                if [ "${IFORT_MINOR_VER}" -lt ${IFORT_MIN_MINOR_VER} ] ; then
+                  [ "$(uname -s)" == "Linux" ] && func_search_ifort
+                  [ "$(uname -s)" == "Darwin" ] && func_no_fortran
+                  if [ $(uname -o &> /dev/null ; echo $?) -eq 0 ] ; then 
+                      [[ "$(uname -o)" == "Msys" ]] && func_no_fortran
+                  fi
+                else
+                  func_echo_fortran
+                fi
+                ;;
+
+                1[8-9]|2[0-9]|3[0-9])
+                func_echo_fortran 
+                ;;
+
+            20[1-3][0-9])
+                func_echo_fortran
+                ;;
+
+            *)
+                func_no_fortran
+                ;;
+          esac
+
+      else
+          [ "$(uname -s)" == "Linux" ] && func_search_ifort || func_no_fortran
+      fi
+      
+    else
+      func_no_fortran
+    fi
+}
+
+
+# Function to check minimium version of GNU Utility Programs needed, install which is needed
+    
+func_install_utilities () {
+    # We don't need to install utilities for CONDA builds
+    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+           return
+    fi
+
+    UTIL_DIR=${OUTPUT_DIR}/gnu_utilities
+    UTIL_SRC_DIR=${BASE_DIR}/gnu_utilities_src
+
+    # Inner Function to download and build GNU Utility Programs
+
+    func_get_build_utilities () {
+
+      echo -e \
+          "\nThe installed version of ${UTIL_NAME} cannot be used." \
+
+      [ -d ${UTIL_DIR}/log ] || mkdir -p ${UTIL_DIR}/log
+      [ -d ${UTIL_DIR}/src ] || mkdir -p ${UTIL_DIR}/src
+
+      [ ${UTIL} == ${CMAKE_UTIL} ] && local UTIL=${CMAKE_UTIL_SRC} && local CMAKE_UTIL=${CMAKE_UTIL_SRC}
+
+      [ -e ${UTIL_SRC_DIR}/${UTIL}.tar.gz ] && ln -s ${UTIL_SRC_DIR}/${UTIL}.tar.gz ${UTIL_DIR}/src/
+
+      cd ${UTIL_DIR}/src
+
+      [ ${UTIL} == "makeinfo-4.8" ] && UTIL="texinfo-4.8" && UTIL_NAME="texinfo"
+
+      DATE=$(date)
+
+      if [ ! -e ${UTIL_DIR}/src/${UTIL}.tar.gz ] ; then
+            echo -e "\nAttempting to download ${UTIL}..."
+          echo -e "\nAttempting to download ${UTIL}... at ${DATE}" 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+
+            [ ${UTIL} == ${CMAKE_UTIL} ] \
+            && export FTP_SERVER_NAME="cmake.org" \
+            || export FTP_SERVER_NAME="ftp.gnu.org"
+
+            [ ${UTIL} == ${PKGCONFIG_UTIL} ] \
+            && export FTP_SERVER_NAME="pkgconfig.freedesktop.org" \
+            || export FTP_SERVER_NAME="ftp.gnu.org"
+
+          ping -c1 ${FTP_SERVER_NAME} &> /dev/null 2>&1 \
+
+          if [ $? -eq 0 ] ; then
+            [ ${UTIL_NAME} == "cmake" ] \
+                && export CMAKE_VER_DIR=$(echo ${CMAKE_UTIL} | cut -d- -f2 | cut -d. -f1,2) \
+                && curl https://${FTP_SERVER_NAME}/files/v${CMAKE_VER_DIR}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 \
+                || curl http://${FTP_SERVER_NAME}/gnu/${UTIL_NAME}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+
+            [ ${UTIL_NAME} == "pkg-config" ] \
+                && export PKGCONFIG_VER_DIR=$(echo ${PKGCONFIG_UTIL} | awk -F"-" ' { print $3 } ') \
+                && curl https://${FTP_SERVER_NAME}/releases/${PKGCONFIG_UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 \
+                || curl http://${FTP_SERVER_NAME}/gnu/${UTIL_NAME}/${UTIL}.tar.gz -v -o ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+
+            if [ $? -ne 0 ] ; then
+                echo -e \
+                  "\nError downloading ${UTIL}...\n" \
+                  "\nPlease retry build later or manually upgrade to ${UTIL}." \
+                  exit 70
+            fi
+          else
+            echo -e \
+                "\nUnable to contact ${FTP_SERVER_NAME} and download ${UTIL}"
+            exit 70
+          fi
+      fi
+
+      if [ -a ${UTIL_DIR}/src/${UTIL}.tar.gz ] ; then
+            echo -e "\nAttempting to build ${UTIL}..."
+          echo -e "\nAttempting to build ${UTIL}... at ${DATE}\n" 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+
+          DATE1=$(date +"%s")
+
+          tar -xf ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
+          cd ${UTIL} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+          ./configure --prefix=${UTIL_DIR} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+          ${GMAKE} -j ${ACC_SET_GMAKE_JOBS} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+          ${GMAKE} install 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+
+          STATUS=$?
+
+          if [ ${STATUS} -ne 0 ] ; then
+            echo -e \
+                "\nError in building ${UTIL}, Please see ${UTIL_DIR}/log/${UTIL}.log." \
+                "\n\nError in building ${PACKAGE_VERSION}.\n"
+            [ -e ${UTIL_DIR}/bin/.BUILDCOMPLETE ] && rm ${UTIL_DIR}/bin/.BUILDCOMPLETE
+            exit 70
+          fi
+
+          #[ "${ARGUMENTS[1]}" == "-test" ] && gmake check
+
+          if [ -e ${UTIL_DIR}/bin/${UTIL_NAME} ] ; then
+            echo -e "Success!"
+            func_display_build_time
+
+            # If cmake is built, copy to bin and share directories
+            if [ ${UTIL_NAME} == "cmake" ] ; then
+
+                [ ! -d ${OUTPUT_DIR}/bin ] && mkdir -p ${OUTPUT_DIR}/bin
+                cp ${UTIL_DIR}/bin/${UTIL_NAME} ${OUTPUT_DIR}/bin
+
+                [ ! -d ${OUTPUT_DIR}/share ] && mkdir -p ${OUTPUT_DIR}/share
+                [ ${CMAKE_VER_DIR} ] || CMAKE_VER_DIR=$(echo ${CMAKE_UTIL} | cut -d- -f2 | cut -d. -f1,2)
+                # Due to rsync being missing on some OSes, cp is used instead - see RT#60244 
+                #rsync -aq ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/ ${OUTPUT_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR}/
+                \cp -pRd ${UTIL_DIR}/share/${UTIL_NAME}-${CMAKE_VER_DIR} ${OUTPUT_DIR}/share/
+
+                [ `hash -l >& /dev/null ; echo $?` -eq 0 ] && hash -r || rehash
+            fi
+          fi
+
+          #rm -rf ${UTIL_DIR}/src/${UTIL}*
+            cd ${WORK_DIR}
+
+      else
+            echo -e \
+            "\n\nError in building ${PACKAGE_VERSION}.\n"
+          exit 75
+      fi
+    }
+
+    if ( [ `uname` == "Darwin" ] && [ -d "/opt/local/libexec/gnubin" ] ) ; then
+        export PATH=/opt/local/libexec/gnubin${PATH:+:${PATH}}
+    fi
+
+    export PATH=${UTIL_DIR}/bin:${PATH:+:${PATH}}
+    export LD_LIBRARY_PATH=${UTIL_DIR}/lib:${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+    if [ ! -e ${UTIL_DIR}/bin/.BUILDCOMPLETE ] ; then
+      echo -e "\nChecking minimium version of GNU Utility Programs needed...\n"
+
+      UTIL_PROG=( "${CMAKE_UTIL}" "${LIBTOOL_UTIL}" "${M4_UTIL}" "${AUTOCONF_UTIL}" "${AUTOMAKE_UTIL}" "${PKGCONFIG_UTIL}" )
+
+      for UTIL in "${UTIL_PROG[@]}"
+      do
+          [ "${UTIL}" == "${PKGCONFIG_UTIL}" ] \
+            && UTIL_NAME=$(echo ${UTIL} | awk -F"-" ' { print $1"-"$2  } ') \
+            || UTIL_NAME=$(echo ${UTIL} | cut -d- -f1)
+            [ "${UTIL}" == "${PKGCONFIG_UTIL}" ] \
+            && UTIL_MIN_VERSION=$(echo ${UTIL} | awk -F"-" ' { print $3  } ') \
+            || UTIL_MIN_VERSION=$(echo ${UTIL} | cut -d- -f2)
+
+          UTIL_MIN_MAJOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f1)
+          UTIL_MIN_MINOR_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f2)
+          UTIL_MIN_SUB_VERSION=$(echo ${UTIL_MIN_VERSION} | cut -d. -f3)
+
+          ${UTIL_NAME} --version &>/dev/null 2>&1
+          local STATUS=$?
+
+          if [ ${STATUS} -eq 0 ] ; then
+
+            if ( [ `uname` == "Darwin" ] ) ; then
+                func_check_macports
+            fi
+            
+            [ ${UTIL_NAME} == "pkg-config" ] \
+                && UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version) \
+                || UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $4 } ')
+            UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
+            UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
+            UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
+
+            if [ -z ${UTIL_INSTALLED_VERSION} ] ; then 
+                UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $3 } ')
+                UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
+                UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
+                UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
+            fi
+          else
+            echo -e \
+                 "\nCannot check version of ${UTIL_NAME}" \
+                 "\nThe installed version of ${UTIL_NAME} maybe too old.\n"
+            export UTIL_INSTALLED_MAJOR_VERSION=0
+            export UTIL_INSTALLED_MINOR_VERSION=0
+          fi
+
+          # Check CMAKE version and build if necessary. 
+          if [ ${UTIL_NAME} == "cmake" ] ; then
+            if ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -lt "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
+                func_get_build_utilities
+            elif ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -eq "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
+                if ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -lt "${UTIL_MIN_MINOR_VERSION}" ] ) ; then
+                  func_get_build_utilities
+                elif ( [ "${UTIL_INSTALLED_MINOR_VERSION}" -eq "${UTIL_MIN_MINOR_VERSION}" ] ) ; then 
+                  if [ ${UTIL_INSTALLED_SUB_VERSION} ] ; then
+                      [ "${UTIL_INSTALLED_SUB_VERSION}" -lt "${UTIL_MIN_SUB_VERSION}" ] && func_get_build_utilities \
+                        || echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+                  fi
+                else
+                  echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+                fi
+            else
+                echo -e "\nUsing found ${UTIL_NAME}-${UTIL_INSTALLED_VERSION}"
+            fi
+          else
+            # Force the build of all GNU Utilities for Scientific Linux only.
+            # Issue with building FGSL requires this - see RT#59328, RT#59565 and others.
+            [ ${SL_RELEASE} ] && func_get_build_utilities
+          fi
+
+      done
+      [ -e ${UTIL_DIR}/bin ] && date > ${UTIL_DIR}/bin/.BUILDCOMPLETE
+    else
+      echo -e "\nRequired local GNU Utility Programs are present, skipping version check...\n"
+    fi
+}
+
+
+# Function to set base OS and Package specific Debug or Production C Flags
+
+func_set_c_flags () {
+
+    if ( [ `uname` == "Linux" ] && [ `uname -m` == "x86_64" ] ) ; then
+      export CFLAGS="-std=gnu99 -fPIC ${CFLAGS}"
+      export LDFLAGS="${LDFLAGS}"
+    elif ( [ `uname` == "Darwin" ] ) ; then
+      export CFLAGS="-std=gnu99 -Wall -fPIC -Wno-trigraphs -Wno-unused -g ${CFLAGS}"
+      export LDFLAGS="-v ${LDFLAGS}"
+    else
+      export CFLAGS="-std=gnu99 -Wall -Wno-trigraphs -Wno-unused -g ${CFLAGS}"
+      export LDFLAGS="${LDFLAGS}"
+    fi
+
+    if [ "${BUILD_TYPE}" == "debug" ] ; then
+      export CFLAGS="-O0 -Wall -Wno-trigraphs -Wno-unused -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wnested-externs -Wconversion -Wshadow -Wcast-qual -Wcast-align -Wwrite-strings -g ${CFLAGS}"
+    else
+      export CFLAGS="-O2 -w ${CFLAGS}"
+    fi
+}
+
+
+# Function to set base OS and Package specific Debug or Production Fortran Flags
+
+func_set_fortran_flags () {
+    
+    if ( [ `uname` == "Linux" ] && [ `uname -m` == "x86_64" ] && [ "${FC}" != "gfortran" ] ) ; then
+      export BASE_OPTS="-u -traceback -mcmodel=medium"
+    elif ( [ `uname` == "Darwin" ] && [ "${FC}" != "gfortran" ] ) ; then
+      export DYLD_LIBRARY_PATH="/opt/intel/lib:${DYLD_LIBRARY_PATH}"
+      export BASE_OPTS="-u -traceback"
+    else
+      export BASE_OPTS="-u -traceback"
+    fi
+
+    # For ifort, move STACK memory to the HEAP, see RT#45710
+    if [ "${FC}" != "gfortran" ] ; then
+      export BASE_OPTS="${BASE_OPTS} -heap-arrays 32"
+    fi
+
+    if [ "${BUILD_TYPE}" == "debug" ] ; then
+      if [ "${FC}" == "gfortran" ] ; then
+          export FCFLAGS="-O0 -fno-range-check -fbounds-check -Wuninitialized -fimplicit-none -Wall -Wextra -Bstatic -g ${FCFLAGS}" 
+      else
+          export FCFLAGS="-O0 -check bounds -check format -check uninit -warn declarations -fltconsistency -g ${BASE_OPTS} ${FCFLAGS}"
+      fi
+    else
+      if [ "${FC}" == "gfortran" ] ; then
+          export FCFLAGS="-O2 -cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -w ${FCFLAGS}" 
+      else
+          export FCFLAGS="-O2 -fltconsistency ${BASE_OPTS} ${FCFLAGS}"
+      fi
+    fi
+    export FFLAGS=${FCFLAGS}
+}
+
+
+# Function to make the Production or Debug directory                                                                                    
+
+func_make_build_directory () {
+    
+    [ ! -d ${BUILD_TYPE} ] && mkdir ${BUILD_TYPE}
+    [ ! -d ${OUTPUT_DIR} ] && mkdir -p ${OUTPUT_DIR}
+    [ ! -d ${OUTPUT_DIR}/bin ] && mkdir -p ${OUTPUT_DIR}/bin
+    [ ! -d ${OUTPUT_DIR}/modules ] && mkdir -p ${OUTPUT_DIR}/modules
+    [ ! -d ${OUTPUT_DIR}/lib ] && mkdir -p ${OUTPUT_DIR}/lib
+
+    # Prepare the build diretcory
+
+    [ ! -e ${WORK_DIR}/ALREADY_BUILT ] && ( cd `pwd` ; tar --exclude=production --exclude=debug --exclude=.svn --exclude=.git -cf - . ) | ( cd ${WORK_DIR} ; tar -xf - )
+}
+
+
+# Function to set LD_LIBRARY_PATH based on whether the ACC envirnoment has been set
+ 
+func_set_LD_LIBRARY_PATH () {
+
+    [ "$(typeset -f | grep accinfo)" ] || export LD_LIBRARY_PATH=${DIST_BASE_DIR}/${BUILD_TYPE}/lib:${LD_LIBRARY_PATH}
+}
+
+
+# Function to print compiler and linker flags
+
+func_print_compiler_linker_flags () {
+
+    [ "${CFLAGS}" ] && echo -e "\n  C Flags      : ${CFLAGS}"
+    [ "${CXXFLAGS}" ] && echo -e "  C++ Flags    : ${CXXFLAGS}"
+    [ "${FFLAGS}" ] && echo -e "  Fortran Flags: ${FFLAGS}"
+    [ "${LDFLAGS}" ] && echo -e "  Linker Flags : ${LDFLAGS}"
+    echo -e "\n\n"
+}
+
+
+# Function to clean up variables
+
+func_cleanup_variables () {
+
+    unset FC
+    unset CFLAGS
+    unset FCFLAGS
+    unset FFLAGS
+    unset LDFLAGS
+    unset BASE_OPTS
+    unset OUTPUT_DIR
+    unset WORK_DIR
+    unset BUILD_TYPE
+    unset ARGUMENTS
+    unset DYLD_LIBRARY_PATH
+    unset PACKAGE_VERSION
+    unset BUILD_SHARED
+    unset BUILD_SHARED_ONLY
+    unset BUILD_OPENMP
+    unset SHARED_LIB_CONFIGURE_FLAGS
+    [ -e /tmp/ifort_version_tmp_${USER} ] && rm -f /tmp/ifort_version_tmp_${USER} || echo -e "\n"
+}
+
+
+# Main script
+
+case "${ACC_CONDA_BUILD}" in
+    "Y" | "y" | "1" )
+        CONDA_BUILD=1
+        ;;
+esac
+case "${ACC_USE_MACPORTS}" in
+    "Y" | "y" | "1" )
+        USE_MACPORTS=1
+        ;;
+esac
+
+if ( [ "${1}" == "-debug" ] || [ "${1}" == "-production" ] ) ; then
+
+    export BUILD_TYPE=$(echo ${1} | cut -d- -f2)
+    export ARGUMENTS=("$@")
+    [ "${BUILD_TYPE}" == "production" ] && BUILD_CMD="mk" || BUILD_CMD="mkd"
+
+    func_initialize_flags
+    func_set_base_env
+    func_read_version
+    func_set_fortran_compiler
+
+    # Load Package Specific functions
+
+    . ${BASE_DIR}/${PROJ_DIR_NAME}/acc_build_${PROJ_DIR_NAME}
+
+    # Clean up the build, if requested
+
+    if [ "${2}" == "-cleaner" ] ; then
+      func_remove_package
+      func_cleanup_variables
+
+    elif ( [ "${2}" != "-cleaner" ] && [ "${2}" != "-test" ] && [ ! -z "${2}" ] ) ; then
+
+      echo -e \
+          "\nError in acc_build..." \
+          "\nThe second command line flag ${2} is not valid, must be ethier:" \
+          "\n\n   -cleaner" \
+          "\n\nor" \
+          "\n\n   -test\n"
+      exit 64
+
+    # Or Start the build 
+    
+    elif ( [ ! -e ${WORK_DIR}/ALREADY_BUILT ] || [ "${2}" == "-test" ] ) ; then
+      echo -e "\nPreparing "${BUILD_TYPE}" build of `echo ${PACKAGE_VERSION}`...\n"
+
+      func_set_gmake_job_level
+      func_set_openmp_flags
+      func_set_fpic_flags
+      func_check_macports
+      func_check_fortran_version
+      func_set_c_flags
+        func_set_fortran_flags
+      [ "${PROJ_DIR_NAME}" == "LAPACK95" ] || func_make_build_directory
+      func_set_LD_LIBRARY_PATH 
+      func_install_utilities
+
+      echo -e "\nThe search PATH is: ${PATH}\n"
+      echo -e "\nThe search LD_LIBRARY_PATH is: ${LD_LIBRARY_PATH}\n"      
+      echo -e "\nBuilding `echo ${PACKAGE_VERSION}`...\n"
+
+      func_configure_make_install
+
+      if [ "${RETVAL}" -eq 0 ] ; then 
+          [ ! -e ${WORK_DIR}/ALREADY_BUILT ] && touch ${WORK_DIR}/ALREADY_BUILT
+      
+          func_cleanup_variables
+
+      else
+
+          echo -e "\nError in building ${PACKAGE_VERSION}.\n"
+          exit 1
+
+      fi
+      
+    else
+
+      echo -e \
+          "\nThe ${BUILD_TYPE} build already exists. To force a rebuild, please type:" \
+          "\n\n ${BUILD_CMD} cleaner" \
+          "\n\nthen type:" \
+          "\n\n ${BUILD_CMD}\n"
+      exit 0
+
+    fi
+
+elif [ -z "${1}" ] ; then
+
+    echo -e \
+      "\nPlease specify either:" \
+      "\n\n   -debug" \
+      "\n\nor" \
+      "\n\n   -production\n"
+    exit 64
+
+else
+
+    echo -e "\nError in acc_build..." \
+      "\nFirst command line flag $1 is not valid, must be either:" \
+      "\n\n   -debug" \
+      "\n\nor" \
+      "\n\n   -production\n"
+    exit 64
+
+fi

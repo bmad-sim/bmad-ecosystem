@@ -1,0 +1,7 @@
+#!/bin/sh                                                                                                                   
+#                                                                                                                           
+# Frontend script to clean a Distribution build.
+export DIST_SCRIPT='dist_clean'
+${ACC_ROOT_DIR}/util/Distribution_User_Utility_Wrapper $1
+
+#
