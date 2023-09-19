@@ -1,3 +1,0 @@
-rm output.now
-../../debug/bin/spin_general_test
-cat output.now
