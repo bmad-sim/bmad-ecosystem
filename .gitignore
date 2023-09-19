@@ -32,6 +32,10 @@ bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
 bmad-doc/tao_examples/csr_beam_tracking/csr_wake.dat
 
 regression_tests/*/output.now
+regression_tests/*/lat.bmad
+regression_tests/*/r
+regression_tests/*/rt
+regression_tests/*/m
 regression_tests/bbu_test/bunch_vec.txt
 regression_tests/bookkeeper_test/lat2.bmad
 regression_tests/envelope_ibs_test/emit_from_integrals.out
