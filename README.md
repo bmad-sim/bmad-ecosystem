@@ -9,7 +9,7 @@ Two possibilities for setting up Bmad:
 - Use **conda-forge** (a Python package manager). Instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>. 
 
 Or if you want to compile Bmad directly:
-- Download a **Release** (click on link on right hand side of this page) and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
+- Download a **Release** (click on link on right hand side of this page and download the **bmad_dist.tar.gz** file [Ignore the *source code* files.]) and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
 
 ## Contributing to Bmad: Pull Requests
 
