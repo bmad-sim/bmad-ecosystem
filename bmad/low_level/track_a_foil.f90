@@ -3,6 +3,11 @@
 !
 ! Bmad_standard tracking through an foil element.
 !
+! From Eq. (6) in 
+!   Approximations to Multiple Coulomb Scattering
+!   Gerald R. Lynch and Orin Dahl
+!   Nuclear Insturments and methods in Physics Research B58 (7991) 6-10.
+!
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- ele_struct: foil element.
@@ -27,8 +32,8 @@ type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
-real(rp) x0, xx0, sigma, z, rnd(2), density, p
-real(rp), parameter :: S2 = 13.6, epsilon = 0.088
+real(rp) x0, xx0, sigma, z, rnd(2), density
+real(rp), parameter :: S2 = 13.6e6_dp, epsilon = 0.088 ! Factor of 1e6 is due to original formula using MeV/c for momentum
 
 integer material, atomic_num
 
@@ -53,9 +58,7 @@ density = ElementDensity(atomic_num) * 1e3_rp  ! Convert to kg/m^3
 
 z = atomic_number(orbit%species)
 xx0 = ele%value(thickness$) / (x0 / density)
-p = (1.0_rp + orbit%vec(6)) * orbit%p0c
-! Factor of 1e6 is due to original formula using MeV/c for momentum
-sigma = 1.0e6_rp * S2 * z * sqrt(xx0) / (p * orbit%beta) * (1.0_rp + epsilon * log10(xx0*z*z/orbit%beta**2))
+sigma = S2 * z * sqrt(xx0) / (orbit%p0c * orbit%beta) * (1.0_rp + epsilon * log10(xx0*z*z/orbit%beta**2))
 
 !
 
