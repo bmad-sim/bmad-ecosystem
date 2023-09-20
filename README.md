@@ -3,6 +3,14 @@ Bmad toolkit (library) for the simulation of charged particles and X-rays in acc
 
 **Bmad web site at: [https://www.classe.cornell.edu/bmad/](https://www.classe.cornell.edu/bmad/)**
 
+## Bmad Setup
+
+Two possibilities for setting up Bmad:
+- Use **conda-forge** (a Python package manager). Instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>. 
+
+Or if you want to compile Bmad directly:
+- Download a **Release** (click on link on right hand side of this page) and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
+
 ## Contributing to Bmad: Pull Requests
 
 What is a Pull Request? A Pull Request (PR) is a mechanism for requesting that changes that you have made 
