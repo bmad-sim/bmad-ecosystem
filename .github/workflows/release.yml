@@ -66,6 +66,8 @@ jobs:
       - name: Assemble Tarball
         run: |
           mkdir -p ~/bmad_dist;
+          mkdir ~/bmad_dist/${{ steps.release_name.outputs.version }};
+          mv ~/bmad_dist/* ~/bmad_dist/${{ steps.release_name.outputs.version }}/;
           tar -czf ~/bmad_dist/bmad_dist.tar.gz -C $GITHUB_WORKSPACE .
 
 
