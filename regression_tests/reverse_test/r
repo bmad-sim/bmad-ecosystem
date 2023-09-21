@@ -1,3 +1,0 @@
-rm output.now
-../../debug/bin/reverse_test lat.bmad $1
-cat output.now

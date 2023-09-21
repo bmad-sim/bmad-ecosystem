@@ -1,3 +1,0 @@
-rm output.now
-../../debug/bin/spin_map_test
-cat output.now
