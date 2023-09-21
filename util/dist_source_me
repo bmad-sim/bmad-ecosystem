@@ -278,6 +278,8 @@ func_set_bmad_env () {
     echo -e "Sourcing User build preferences from util/dist_prefs..." \
     >> ${DIST_SETUP_LOG}
     source ${DIST_BASE_DIR}/util/dist_prefs
+    [[ -n "${BMAD_USER_PREFS}" ]] && [[ -r "${BMAD_USER_PREFS}" ]] && . ${BMAD_USER_PREFS}
+    [[ -r ${DIST_BASE_DIR}/util/user_prefs ]] && . ${DIST_BASE_DIR}/util/user_prefs
 
     echo "Sourcing common build variable set..." \
     >> ${DIST_SETUP_LOG}
