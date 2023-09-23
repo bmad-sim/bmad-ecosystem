@@ -822,7 +822,7 @@ if ( [ "${1}" == "-debug" ] || [ "${1}" == "-production" ] ) ; then
         func_set_fortran_flags
       [ "${PROJ_DIR_NAME}" == "LAPACK95" ] || func_make_build_directory
       func_set_LD_LIBRARY_PATH 
-      func_install_utilities
+      [ -d ${BASE_DIR}/gnu_utilities_src ] && func_install_utilities
 
       echo -e "\nThe search PATH is: ${PATH}\n"
       echo -e "\nThe search LD_LIBRARY_PATH is: ${LD_LIBRARY_PATH}\n"      
