@@ -450,14 +450,18 @@ if (is_real(word)) then
 
 else
   call pushit_stack (stack, n_stack, var_type)
-  stack(n_stack)%name = word
   ! "my_species" in "mass_of(my_species)" is considered a variable and not a species_const
   if (var_type == species_const$) then
+    stack(n_stack)%name = word
     stack(n_stack)%value = species_id(word)
     if (species_id(word) == invalid$) stack(n_stack)%type = variable$
+  elseif (var_type == variable$) then
+    stack(n_stack)%name = upcase(word)
+  else
+    stack(n_stack)%name = word
   endif
 
-  select case (word)
+  select case (downcase(word))
   case ('twopi');                 stack(n_stack) = expression_atom_struct(word, constant$, twopi)
   case ('fourpi');                stack(n_stack) = expression_atom_struct(word, constant$, fourpi)
   case ('pi');                    stack(n_stack) = expression_atom_struct(word, constant$, pi)
