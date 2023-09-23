@@ -856,7 +856,7 @@ do ig = 1, size(gg1)
     write (1, *)
   endif
   write (1, '(a, i2)') '# m    =', gg%m
-  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(2a)')    '# kind = ', sincos_name(gg%sincos)
   write (1, '(a, i2)') '# Iz     z_pos    Init_RMS     RMS/RMS0   Derivs...'
   write (1, '(a, i2)') '# Iz     z_pos    Derivs'
 
@@ -886,7 +886,7 @@ do ig = 1, size(gg1)
     write (1, *)
   endif
   write (1, '(a, i2)') '# m    =', gg%m
-  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(2a)')    '# kind = ', sincos_name(gg%sincos)
   write (1, '(a, i2)') '# Iz     z_pos   Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)'
 
   do iz = iz_min, iz_max
@@ -916,7 +916,7 @@ do ig = 1, size(gg1)
     write (1, *)
   endif
   write (1, '(a, i2)') '# m    =', gg%m
-  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(2a)')    '# kind = ', sincos_name(gg%sincos)
   write (1, '(a, i2)') '# Iz     z_pos   Deriv - left_extrapolated_deriv'
 
   do iz = iz_min+1, iz_max
@@ -948,7 +948,7 @@ do ig = 1, size(gg1)
     write (1, *)
   endif
   write (1, '(a, i2)') '# m    =', gg%m
-  write (1, '(2a)')    '# type = ', sincos_name(gg%sincos)
+  write (1, '(2a)')    '# kind = ', sincos_name(gg%sincos)
   write (1, '(a, i2)') '# Iz     z_pos   Deriv - right_extrapolated_deriv'
 
   do iz = iz_min, iz_max-1

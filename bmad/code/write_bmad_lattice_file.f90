@@ -838,7 +838,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (has_attribute (ele, 'APERTURE_TYPE') .and. (ele%aperture_type /= ele_dflt%aperture_type)) &
                                       line = trim(line) // ', aperture_type = ' // aperture_type_name(ele%aperture_type)
 
-    if (has_attribute (ele, 'SYMPLECTIFY') .and. ele%symplectify) line = trim(line) // ', symplectify'
+    if (has_attribute (ele, 'SYMPLECTIFY') .and. ele%symplectify) line = trim(line) // ', symplectify = T'
 
     if (has_attribute (ele, 'FIELD_MASTER') .and. (ele%field_master .neqv. ele_dflt%field_master)) &
                                       write (line, '(2a, l1)') trim(line), ', field_master = ', ele%field_master
@@ -1802,13 +1802,12 @@ do ig = 1, size(gg_map%gg)
   gg => gg_map%gg(ig)
   write (iu9, '(2x, a)') 'curve = {'
   write (iu9, '(4x, a, i0, a)') 'm = ', gg%m, ','
-  write (iu9, '(4x, 3a)')       'type = ', trim(expression_op_name(gg%sincos)), ','
+  write (iu9, '(4x, 3a)')       'kind = ', trim(expression_op_name(gg%sincos)), ','
   write (iu9, '(4x, a)')        'derivs = {'
 
 
   n = gg%n_deriv_max
   write (fmt, '(a, i0, a)') '(f13.5, a, ', n+1, 'es20.12, a)' 
-  print *, fmt
   do iz = gg_map%iz0, gg_map%iz1-1
     write (iu9, fmt) iz*gg_map%dz, ':', gg%deriv(iz,0:n), ','
   enddo
