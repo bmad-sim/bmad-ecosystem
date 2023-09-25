@@ -11,6 +11,33 @@ Two possibilities for setting up Bmad:
 Or if you want to compile Bmad directly:
 - Download a **Release** (click on link on right hand side of this page and download the **bmad_dist.tar.gz** file [Ignore the *source code* files.]) and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
 
+
+## Developer Setup
+
+Developers should clone this repository, as well as its external dependencies:
+
+```bash
+git clone https://github.com/bmad-sim/bmad-ecosystem.git
+git clone https://github.com/bmad-sim/bmad-external-deps.git
+```
+
+The external dependencies repository is simply a set of compressed files. A simple bash script is provided to extract these into the `bmad-ecoystem`:
+```bash
+cd bmad-ecosystem
+bash util/extract_external_deps
+```
+
+To build everything:
+```bash
+cd bmad-ecosystem
+source util/dist_source_me
+util/dist_build_production
+```
+
+
+
+
+
 ## Contributing to Bmad: Pull Requests
 
 What is a Pull Request? A Pull Request (PR) is a mechanism for requesting that changes that you have made 
