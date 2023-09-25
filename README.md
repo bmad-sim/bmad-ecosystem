@@ -21,7 +21,7 @@ git clone https://github.com/bmad-sim/bmad-ecosystem.git
 git clone https://github.com/bmad-sim/bmad-external-deps.git
 ```
 
-The external dependencies repository is simply a set of compressed files. A simple bash script is provided to extract these into the `bmad-ecoystem`:
+The external dependencies repository is simply a set of compressed files. A simple bash script is provided to extract these into the `bmad-ecosystem`:
 ```bash
 cd bmad-ecosystem
 bash util/extract_external_deps
