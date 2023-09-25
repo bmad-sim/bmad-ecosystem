@@ -26,7 +26,8 @@ if ( [[ "${CONDA_BUILD}" ]] ) ; then
     [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
 else
     # List of Project Directories - Order here matters!
-    DIRLIST=(${ACC_PLOT_PACKAGE_DIR})
+    DIRLIST=()
+    [ -d "${ACC_PLOT_PACKAGE_DIR}" ] && DIRLIST=(${ACC_PLOT_PACKAGE_DIR})
     for d in hdf5 fftw lapack lapack95 gsl fgsl forest xraylib sim_utils bmad tao cpp_bmad_interface code_examples bsim util_programs lux regression_tests
     do
 	[ -d "$DIST_BASE_DIR/$d" ] && DIRLIST=(${DIRLIST[*]} $d)

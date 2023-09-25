@@ -112,7 +112,7 @@ do i = 1, s%global%n_opti_cycles+1
 
   if (finished .or. i == s%global%n_opti_cycles+1) then
     a_lambda = 0  ! tell mrqmin we are finished
-    call tao_var_write (s%global%var_out_file)
+    if (s%global%opti_write_var_file) call tao_var_write (s%global%var_out_file)
   endif
 
   call super_mrqmin (y, weight, a, chi_sq, tao_mrq_func, storage, a_lambda, status)
