@@ -347,8 +347,10 @@ ENDIF ()
 
 string (STRIP "${ACC_LINK_FLAGS}" ACC_LINK_FLAGS)
 
-SET (ACC_INC_DIRS ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS} ${MPI_INC_DIRS})
-SET (ACC_LIB_DIRS ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS} ${MPI_LIB_DIRS})
+# Environment variables BMAD_USER_INC_DIRS and BMAD_USER_LIB_DIRS hold include/library directories
+# to search for include/module or libraries respectively. Multiple directories separated by semicolons.
+SET (ACC_INC_DIRS $ENV{BMAD_USER_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS} ${MPI_INC_DIRS})
+SET (ACC_LIB_DIRS $ENV{BMAD_USER_LIB_DIRS} ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS} ${MPI_LIB_DIRS})
 
 
 #--------------------------------------

@@ -4542,6 +4542,7 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'beam_timer_on;LOGIC;T;',                  s%global%beam_timer_on
   nl=incr(nl); write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
   nl=incr(nl); write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
+  nl=incr(nl); write (li(nl), lmt) 'opti_write_var_file;LOGIC;T;',            s%global%opti_write_var_file
   nl=incr(nl); write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
   nl=incr(nl); write (li(nl), lmt) 'optimizer_allow_user_abort;LOGIC;T;',     s%global%optimizer_allow_user_abort
   nl=incr(nl); write (li(nl), lmt) 'rf_on;LOGIC;T;',                          s%global%rf_on
@@ -4593,6 +4594,7 @@ case ('global:optimization')
 
   nl=incr(nl); write (li(nl), amt) 'optimizer;ENUM;T;',                       trim(s%global%optimizer)
   nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    trim(s%global%var_out_file)
+  nl=incr(nl); write (li(nl), lmt) 'opti_write_var_file;LOGIC;T;',            s%global%opti_write_var_file
 
   nl=incr(nl); write (li(nl), lmt) 'derivative_recalc;LOGIC;T;',              s%global%derivative_recalc
   nl=incr(nl); write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design

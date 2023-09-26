@@ -2105,6 +2105,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
+    nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
     nl=nl+1; write(lines(nl), lmt) '  %rad_int_calc_on               = ', s%global%rad_int_calc_on
@@ -6403,6 +6404,7 @@ nl=nl+1; write(lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n
 
 nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', quote(s%global%optimizer)
 nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', quote(s%global%var_out_file)
+nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
 
 nl=nl+1; write(lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
 nl=nl+1; write(lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
