@@ -37,6 +37,7 @@ type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 type (bookkeeping_state_struct), pointer :: stat
 
+real(rp) dval(num_ele_attrib$)
 integer i, j
 
 logical, optional :: err_flag
@@ -58,7 +59,7 @@ if (auto_saved) then
     branch => lat%branch(i)
     do j = 0, branch%n_ele_max
       call set_ele_status_stale (branch%ele(j), all_groups$, .false.) 
-      call attributes_need_bookkeeping(branch%ele(j))
+      call attributes_need_bookkeeping(branch%ele(j), dval)
     enddo
   enddo
 endif
