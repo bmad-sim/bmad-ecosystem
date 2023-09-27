@@ -1901,16 +1901,42 @@ if (associated(ele%a_pole_elec)) then
   enddo
 endif
 
+if (associated(ele%cartesian_map)) then
+  do i = 1, size(ele%cartesian_map)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%cartesian_map(i)%field_scale
+  enddo
+endif
+
+if (associated(ele%cylindrical_map)) then
+  do i = 1, size(ele%cylindrical_map)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%cylindrical_map(i)%field_scale
+  enddo
+endif
+
+if (associated(ele%gen_grad_map)) then
+  do i = 1, size(ele%gen_grad_map)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%gen_grad_map(i)%field_scale
+  enddo
+endif
+
+if (associated(ele%grid_field)) then
+  do i = 1, size(ele%grid_field)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%grid_field(i)%field_scale
+  enddo
+endif
+
 !
 
-dv = abs(ele%value - ele%old_value)
-dv(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
-if (present(dval)) dval = dv
+if (present(dval)) then
+  dv = abs(ele%value - ele%old_value)
+  dv(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
+  dval = dv
 
-if (all(dv == 0) .and. ele%key /= capillary$) then
-  ele%bookkeeping_state%attributes = ok$
-else
-  ele%bookkeeping_state%attributes = stale$
+  if (all(dv == 0) .and. ele%key /= capillary$) then
+    ele%bookkeeping_state%attributes = ok$
+  else
+    ele%bookkeeping_state%attributes = stale$
+  endif
 endif
 
 end subroutine attributes_need_bookkeeping

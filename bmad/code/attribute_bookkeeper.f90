@@ -87,6 +87,7 @@ if (bmad_com%auto_bookkeeper) then
   if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
 
 else
+  call attributes_need_bookkeeping(ele)
   if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
 
   if (ele%lord_status /= not_a_lord$) then
