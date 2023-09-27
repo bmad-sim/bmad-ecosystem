@@ -69,7 +69,7 @@ jobs:
           mkdir -p ~/bmad_dist;
           mkdir ~/bmad_dist_${{ steps.release_name.outputs.version }};
           cp -r $GITHUB_WORKSPACE  ~/bmad_dist_${{ steps.release_name.outputs.version }}/;
-          tar -czf ~/bmad_dist/bmad_dist.tar.gz -C ~/ bmad_dist_${{ steps.release_name.outputs.version }}
+          tar --exclude .git --exclude .github  --exclude .gitignore -czf ~/bmad_dist/bmad_dist.tar.gz -C ~/ bmad_dist_${{ steps.release_name.outputs.version }}
 
 
       - name: Create Release - ${{ steps.release_name.outputs.version }}
