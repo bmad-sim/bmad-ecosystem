@@ -416,6 +416,17 @@ real(rp) s, ds, s0, s_end, s_begin
 
 !
 
+if (bunch%drift_between_t_and_s) then
+  do i = 1, size(bunch%particle)
+    p => bunch%particle(i)
+    if (p%state /= alive$) cycle
+    call drift_particle_to_s(p, s, branch)
+  enddo
+  return
+endif
+
+!
+
 s_end = branch%ele(branch%n_ele_track)%s
 s_begin = branch%ele(0)%s
 
@@ -473,6 +484,17 @@ type (coord_struct) :: position
 
 integer i, status
 real(rp) ds, t_target, dt, dt2, s1, s_end, s_target, s_begin
+
+!
+
+if (bunch%drift_between_t_and_s) then
+  do i = 1, size(bunch%particle)
+    p0 => bunch%particle(i)
+    if (p0%state /= alive$) cycle
+    call drift_particle_to_t(p0, t_target, branch)
+  enddo
+  return
+endif
 
 ! Convert bunch to s-based coordinates
 
