@@ -9,13 +9,14 @@ module da_arrays
   implicit none
   public
   integer lda,lea,lia,lst
+  integer, private :: nohere,nvhere
   integer,private,parameter::nmax=400
   real(dp),private,parameter::tiny=1e-20_dp
 
   ! johan
   ! integer,parameter::lno=2,lnv=6,lnomax=8,lnvmax=9,lstmax=800500,ldamax=16000,leamax=5000,liamax=50000
   !
-  integer,parameter :: lnv=100,lno=200
+  integer,parameter :: lnv=200,lno=200
   integer :: lstmax=800500,ldamax=16000,leamax=5000,liamax=50000
   !integer,parameter::lno=200,lnv=100,lnomax=8,lnvmax=9,lstmax=800500,ldamax=16000,leamax=5000,liamax=50000
   logical(lp) :: reallocate = .true.
@@ -45,7 +46,15 @@ contains
   subroutine alloc_all(no,nv)
     implicit none
     integer no,nv
+nohere=no
+nvhere=nv
     if(reallocate) then
+       if(associated(ind1))deallocate(ind1)
+       if(associated(ind2))deallocate(ind2)
+       if(associated(inds))deallocate(inds)
+       if(associated(reel))deallocate(reel)
+       if(associated(reelc))deallocate(reelc)
+!       if(Allocated(comp))deallocate(comp)
        call dealloc_all
        call danum0(no,nv)
        call alloc_
@@ -63,10 +72,18 @@ contains
 
 subroutine alloc_
 implicit none
+integer i,j,k
 allocate(cc(lst))
-allocate(i_1(lst));allocate(i_2(lst));
-allocate(ie1(lea));allocate(ie2(lea));allocate(ieo(lea));
-allocate(ia1(0:lia));allocate(ia2(0:lia));
+if(nohere>2.or.(.not.newtpsa)) then
+ allocate(i_1(lst));allocate(i_2(lst));
+ allocate(ie1(lea));allocate(ie2(lea));allocate(ieo(lea));
+ allocate(ia1(0:lia));allocate(ia2(0:lia));
+else
+ allocate(i_1(1));allocate(i_2(1));
+ allocate(ie1(1));allocate(ie2(1));allocate(ieo(1));
+ allocate(ia1(0:1));allocate(ia2(0:1));
+
+endif
 allocate(idano(lda));allocate(idanv(lda));allocate(idapo(lda));
 allocate(idalm(lda));allocate(idall(lda));
 allocate(daname(lda));
@@ -85,6 +102,108 @@ idanv=0
 idapo=0
 idalm=0
 idall=0
+combien=1
+
+if(nohere==1.and.newtpsa) then
+ if(associated(ind1)) then
+   DEALLOCATE(ind1,ind2,inds,reel,reelc);
+ endif
+ if(associated(nind2)) then
+   DEALLOCATE(nind1,nind2);
+  ninds=0
+ endif
+combien=nvhere+1
+allocate(ind1(combien),ind2(combien),inds(0:nvhere,0:nvhere))
+allocate(reel(combien),reelc(combien)  )  !,comp(combien))
+reel=0.0_dp
+reelc=0.0_dp
+ 
+!comp=0.0_dp
+k=nvhere
+inds(0,0)=1
+ind1(1)=0
+ind2(1)=0
+k=1
+do i=1,nvhere
+  k=k+1
+   ind1(k)=i
+   ind2(k)=0
+   inds(i,0)=k
+   inds(0,i)=k
+enddo
+poscombien=0
+
+ endif
+
+
+if(nohere==2.and.newtpsa) then
+ if(associated(ind1)) then
+   DEALLOCATE(ind1,ind2,inds,reel,reelc,finds);
+ endif
+ if(associated(finds)) then
+   DEALLOCATE(finds);
+ endif
+ if(associated(finds1)) then
+   DEALLOCATE(finds1);
+ endif
+ if(associated(nind2)) then
+   DEALLOCATE(nind1,nind2);
+  ninds=0
+ endif
+ 
+combien=(nvhere+2)*(nvhere+1)/2
+allocate(ind1(combien),ind2(combien),inds(0:nvhere,0:nvhere))
+allocate(reel(combien),reelc(combien)  )  !,comp(combien))
+reel=0.0_dp
+reelc=0.0_dp
+
+!comp=0.0_dp
+k=nvhere
+inds(0,0)=1
+ind1(1)=0
+ind2(1)=0
+k=1
+do i=1,nvhere
+  k=k+1
+   ind1(k)=i
+   ind2(k)=0
+   inds(i,0)=k
+   inds(0,i)=k
+enddo
+poscombien=k+1
+
+if(with_para<2) then
+  allocate(finds(nvhere,nvhere,poscombien:combien ))
+ finds=1
+endif
+
+do i=1,nvhere
+do  j=i,nvhere
+  k=k+1
+   ind1(k)=i
+   ind2(k)=j
+   inds(i,j)=k
+   inds(j,i)=k
+enddo
+enddo
+
+if(with_para<2) then
+
+      do i=1,nvhere
+      do k=1,nvhere
+      do j=poscombien,combien
+       if(ind1(j)/=ind2(j))      finds(i,k,j)=2
+      enddo
+      enddo
+      enddo
+
+endif
+ !write(6,*) k,poscombien,combien
+!pause 765
+!do k=1,combien  !+ finds(ind1(jk),ind2(jk),ab)* & 
+!write(6,*) ind1(k),ind2(k),inds(ind1(k),ind2(k)),inds(ind2(k),ind1(k))
+!enddo
+ endif
 
 end subroutine alloc_
 

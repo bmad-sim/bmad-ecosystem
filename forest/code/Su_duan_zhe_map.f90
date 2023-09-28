@@ -1073,18 +1073,19 @@ endif ! jumpnot
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   new zhe tracking   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  SUBROUTINE track_TREE_probe_complex_zhe(T,xs,spin,rad,stoch,linear,slim)
+  SUBROUTINE track_TREE_probe_complex_zhe(T,xs,spin,rad,stoch,linear,slim,flucfac)
 !    use da_arrays
     IMPLICIT NONE
     TYPE(TREE_ELEMENT),target, INTENT(INout) :: T(3)
  
     type(probe) xs
     real(dp) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3)
-    real(dp) normb,norm,x0_begin(size_tree),xr(6),normbb 
+    real(dp) normb,norm,x0_begin(size_tree),xr(6),normbb,flucfac1
     integer i,j,k,ier,is
     logical, optional  :: spin,stoch,rad,linear,slim
     logical  spin0,stoch0,rad0,doit,as_is0,slim0
     integer no1
+    real(dp), optional :: flucfac
     type(quaternion) qu
     as_is0=t(1)%usenonsymp
     spin0=.true.
@@ -1099,7 +1100,8 @@ endif ! jumpnot
     if(present(spin)) spin0=spin
     if(present(stoch)) stoch0=stoch
     if(present(rad)) rad0=rad
-
+    flucfac1=1
+    if(present(flucfac)) flucfac1=flucfac
     if(as_is0) rad0=.true.
     doit=rad0.or.stoch0
     x=0
@@ -1117,11 +1119,11 @@ endif ! jumpnot
     xr=0.0_dp
   if(use_gaussian_zhe) then
    do i=1,6
-     xr(i)=GRNF_zhe_gaussian()*t(2)%fix0(i)  
+     xr(i)=flucfac1*GRNF_zhe_gaussian()*t(2)%fix0(i)  
    enddo
   else
    do i=1,6
-     xr(i)=GRNF_zhe()*t(2)%fix0(i)  
+     xr(i)=flucfac1*GRNF_zhe()*t(2)%fix0(i)  
    enddo
   endif
     xr =matmul(t(2)%rad,xr)
