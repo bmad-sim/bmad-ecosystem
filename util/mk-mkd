@@ -166,7 +166,7 @@ case ${@} in
 	        ACC_CMAKE_ARGS=()
 	    fi
 
-	    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} "${ACC_CMAKE_ARGS[@]}" .. || exit 1
+	    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${CMAKE_ARGS} "${ACC_CMAKE_ARGS[@]}" .. || exit 1
 	    ${GMAKE} -j ${ACC_SET_GMAKE_JOBS} ${ACC_EXE_NAME}
 	    [ $? -eq 0 ] && func_display_build_time
 	fi
