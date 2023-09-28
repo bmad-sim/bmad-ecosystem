@@ -5,9 +5,6 @@
 #      include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 # Found in CMakeLists.txt files in project directories.
 
-# Update - 15-Jun-2021 - formated line endings to Unix-style 
-# (vs Windows style) as requested by dcs16 in RT#58583.
-
 #-----------------------------------------------------------
 # Set link_directories relative path composition to use new
 # behvaior that appends relative path information to the
@@ -19,6 +16,7 @@ cmake_policy (SET CMP0015 NEW)
 #-----------------------------------------------------------
 # Set CESR_FLAGS depening on OS type
 #-----------------------------------------------------------
+
 IF (${WIN32})
     SET (CESR_FLAGS "-DCESR_WINCVF")
 ELSE ()
@@ -66,35 +64,22 @@ ENDIF ()
 # Import environment variables that influence the build
 # Also disable the inclusion of RPATH for Releases but not Distributions RT#64118
 #-------------------------------------------------------
-set (DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
-IF (${DISTRIBUTION_BUILD})
-  set (FORTRAN_COMPILER $ENV{DIST_F90})
-  set (RELEASE_DIR $ENV{DIST_BASE_DIR})
-	IF (EXISTS ${RELEASE_DIR}/packages)
-    set (PACKAGES_DIR ${RELEASE_DIR}/packages)
-	ELSE ()
-    set (PACKAGES_DIR ${RELEASE_DIR})
-	ENDIF ()
-
-  # Explicitly remove 32-bit Libraries from Linux build PATH for 64-bit builds - RT#43178
-  # Added /lib to further restict 32-bit Linux build PATH - RT#56203
-  IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT "$ENV{ACC_FORCE_32_BIT}" MATCHES "Y")
-    SET (CMAKE_IGNORE_PATH /lib /usr/lib)
-    SET (CMAKE_SYSTEM_IGNORE_PATH /lib /usr/lib)
-  ENDIF ()
-
-ELSE ()
-	SET (CMAKE_SKIP_RPATH TRUE)
-  set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
+set (FORTRAN_COMPILER $ENV{DIST_F90})
+set (RELEASE_DIR $ENV{DIST_BASE_DIR})
+IF (EXISTS ${RELEASE_DIR}/packages)
   set (PACKAGES_DIR ${RELEASE_DIR}/packages)
-
-	IF ("$ENV{ACC_SET_F_COMPILER}" MATCHES "gfortran")
-		SET (FORTRAN_COMPILER "gfortran")
-	ELSE ()
-		SET (FORTRAN_COMPILER "ifort")
-	ENDIF ()
+ELSE ()
+  set (PACKAGES_DIR ${RELEASE_DIR})
 ENDIF ()
+
+# Explicitly remove 32-bit Libraries from Linux build PATH for 64-bit builds - RT#43178
+# Added /lib to further restict 32-bit Linux build PATH - RT#56203
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT "$ENV{ACC_FORCE_32_BIT}" MATCHES "Y")
+  SET (CMAKE_IGNORE_PATH /lib /usr/lib)
+  SET (CMAKE_SYSTEM_IGNORE_PATH /lib /usr/lib)
+ENDIF ()
+
   
 IF (FORTRAN_COMPILER MATCHES "gfortran")
 
@@ -211,14 +196,10 @@ SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (PLOT_LIBRARY_FLAG "-DCESR_PLPLOT")
 
-  IF (${DISTRIBUTION_BUILD})
-    IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
-      SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
-    ELSE ()
-      SET (PLOT_LINK_FLAGS "$ENV{PLOT_LINK_FLAGS}")
-    ENDIF ()
-  ELSE ()
+  IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
     SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
+  ELSE ()
+    SET (PLOT_LINK_FLAGS "$ENV{PLOT_LINK_FLAGS}")
   ENDIF ()
 
   IF (${MSYS})
@@ -329,12 +310,7 @@ IF ($ENV{ACC_ENABLE_SHARED})
    SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -fPIC")
 ENDIF ()
 
-IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS} ${STDCXX_LINK_FLAGS})
-ELSE ()
-    # Added support for linking SHARED ZMQ libraries, as requested in RT#63682
-    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread ${STDCXX_LINK_FLAGS} -lactivemq-cpp -lzmq ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS}")
-ENDIF ()
 
 if (FORTRAN_COMPILER MATCHES "gfortran")
  list (APPEND ACC_LINK_FLAGS "-ldl")
@@ -443,7 +419,7 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "HARDWARE-DEVEL")
   message("Linker               : ${CMAKE_LINKER}")
   set (BASE_C_FLAGS)
 ELSE ()
-	message("Current Directory    : ${CMAKE_CURRENT_SOURCE_DIR}")
+  message("Current Directory    : ${CMAKE_CURRENT_SOURCE_DIR}")
   message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
   message("C Compiler           : ${CMAKE_C_COMPILER}")
   message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
@@ -509,21 +485,6 @@ SET (MASTER_INC_DIRS
   ${ACC_INC_DIRS}
   ${X11_INCLUDE_DIR}
 )
-
-# If not building a distribution, include the include directories which are not part 
-# of the distribution.
-
-IF (${DISTRIBUTION_BUILD})
-ELSE ()
-  SET (MASTER_INC_DIRS
-    ${RELEASE_DIR}/include
-    ${MASTER_INC_DIRS}
-    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include
-    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/root
-    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/activemq-cpp-3.7.0
-    ${PACKAGES_OUTPUT_BASEDIR}/modules
-  )
-ENDIF ()
 
 # If building for HARDWARE-DEVEL, remove the include directories which are not needed 
 
@@ -812,8 +773,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-	LIST(FIND TARGETS ${dep} DEP_SEEN)
-	IF(${DEP_SEEN} EQUAL -1)
+  LIST(FIND TARGETS ${dep} DEP_SEEN)
+  IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.so)
             add_library(${dep} SHARED IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -827,7 +788,7 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.so)
           ENDIF ()
-	ENDIF()
+  ENDIF()
       ENDIF()
 
     endforeach(dep)
@@ -838,8 +799,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-	LIST(FIND TARGETS ${dep} DEP_SEEN)
-	IF(${DEP_SEEN} EQUAL -1)
+  LIST(FIND TARGETS ${dep} DEP_SEEN)
+  IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.dylib)
             add_library(${dep} SHARED IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -853,7 +814,7 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.dylib)
           ENDIF ()
-	ENDIF()
+  ENDIF()
       ENDIF()
 
     endforeach(dep)
@@ -864,8 +825,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-	LIST(FIND TARGETS ${dep} DEP_SEEN)
-	IF(${DEP_SEEN} EQUAL -1)
+  LIST(FIND TARGETS ${dep} DEP_SEEN)
+  IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
             add_library(${dep} STATIC IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -879,7 +840,7 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
           ENDIF ()
-	ENDIF()
+  ENDIF()
       ENDIF()
 
     endforeach(dep)
@@ -1075,10 +1036,10 @@ foreach(exespec ${EXE_SPECS})
     IF (FORTRAN_COMPILER MATCHES "ifort")
       # Added support for SHARED only library builds, as requested in RT#63875
       IF (ENABLE_SHARED_ONLY)
-	SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
+  SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
       ELSE ()
-	SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
-	SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
+  SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
+  SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
       ENDIF ()
     ENDIF ()
 
