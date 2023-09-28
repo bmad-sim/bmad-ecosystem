@@ -1572,8 +1572,10 @@ endif
  !   endif
 
     IF(K%MODULATION.and.xs%nac/=0) then
+     knob=.true.
        if(c%parent_fibre%mag%slow_ac/=0)  CALL MODULATE(C,XS,K) !modulate
        CALL TRACK_MODULATION(C,XS,K) !modulate
+     knob=.false.
     ENDIF !modulate
 
 
@@ -1939,8 +1941,10 @@ endif ! full_way
  !   endif
 
     IF(K%MODULATION.and.xs%nac/=0) then
+       knob=.true.
        if(c%parent_fibre%mag%slow_ac/=0)  CALL MODULATE(C,XS,K) !modulate
        CALL TRACK_MODULATION(C,XS,K) !modulate
+      knob=.false.
     ENDIF !modulate
 
 
