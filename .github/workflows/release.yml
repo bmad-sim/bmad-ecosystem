@@ -43,16 +43,8 @@ jobs:
     #       sudo apt update
     #       sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc
 
-      # Try to check the cache for external dependencies
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          path: ~/external_deps
-          key: ${{ env.EXTERNAL_DEPS_VERSION }}
-
       # In case we don't have it available, check it out
       - name: Checkout External Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
 
