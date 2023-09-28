@@ -10,7 +10,7 @@
 #--------------------------------------------------------------
 export DIST_BUILD="TRUE"
 
-export ACC_BUILD_SYSTEM=${DIST_BASE_DIR}/build_system
+export ACC_BUILD_SYSTEM=${DIST_BASE_DIR}/util
 export ACC_BUILD_EXES=Y
 export ACC_CMAKE_VERSION=3.13.2 # Updated as per request in RT#56874
 export ACC_EXE=${DIST_BASE_DIR}/production/bin

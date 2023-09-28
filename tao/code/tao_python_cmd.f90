@@ -3724,8 +3724,8 @@ case ('ele:twiss')
 
   nl=incr(nl); write (li(nl), lmt) 'mode_flip;LOGIC;F;', ele%mode_flip
 
-  call twiss_out (ele%a, 'a', can_vary = free)
-  call twiss_out (ele%b, 'b', can_vary = free)
+  call twiss_out (ele%a, '', 'a', can_vary = free)
+  call twiss_out (ele%b, '', 'b', can_vary = free)
   call xy_disp_out (ele%x, 'x', can_vary = free)
   call xy_disp_out (ele%y, 'y', can_vary = free)
 
@@ -7319,8 +7319,8 @@ case ('twiss_at_s')
   ix_branch = ele%ix_branch
 
   call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%tao_branch(ix_branch)%orbit, ix_branch = ix_branch)
-  call twiss_out (this_ele%a, 'a')
-  call twiss_out (this_ele%b, 'b')
+  call twiss_out (this_ele%a, '', 'a')
+  call twiss_out (this_ele%b, '', 'b')
   nl=incr(nl); write (li(nl), rmt) 'c_mat11;REAL;F;',            ele%c_mat(1,1)
   nl=incr(nl); write (li(nl), rmt) 'c_mat12;REAL;F;',            ele%c_mat(1,2)
   nl=incr(nl); write (li(nl), rmt) 'c_mat21;REAL;F;',            ele%c_mat(2,1)
@@ -8401,10 +8401,10 @@ end subroutine
 !----------------------------------------------------------------------
 ! contains
 
-subroutine twiss_out (twiss, suffix, emit_out, can_vary)
+subroutine twiss_out (twiss, prefix, suffix, emit_out, can_vary)
 
 type (twiss_struct) twiss
-character(*) suffix
+character(*) prefix, suffix
 character(20) fmt
 character(8) v_str
 logical, optional :: emit_out, can_vary
@@ -8415,20 +8415,20 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es22.14)'
+fmt = '(4a, es22.14)'
 
-nl=incr(nl); write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
-nl=incr(nl); write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
-nl=incr(nl); write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                    twiss%gamma
-nl=incr(nl); write (li(nl), fmt) 'phi_', suffix, v_str,                           twiss%phi
-nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           twiss%eta
-nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          twiss%etap
+nl=incr(nl); write (li(nl), fmt) prefix, 'beta_', suffix, v_str,                twiss%beta
+nl=incr(nl); write (li(nl), fmt) prefix,  'alpha_', suffix, v_str,              twiss%alpha
+nl=incr(nl); write (li(nl), fmt) prefix,  'gamma_', suffix, ';REAL;F;',         twiss%gamma
+nl=incr(nl); write (li(nl), fmt) prefix,  'phi_', suffix, v_str,                twiss%phi
+nl=incr(nl); write (li(nl), fmt) prefix,  'eta_', suffix, v_str,                twiss%eta
+nl=incr(nl); write (li(nl), fmt) prefix,  'etap_', suffix, v_str,               twiss%etap
 
 if (logic_option(.false., emit_out)) then
-  nl=incr(nl); write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                  twiss%sigma
-  nl=incr(nl); write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                twiss%sigma_p
-  nl=incr(nl); write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                   twiss%emit
-  nl=incr(nl); write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',              twiss%norm_emit
+  nl=incr(nl); write (li(nl), fmt) prefix, 'sigma_', suffix, ';REAL;F;',       twiss%sigma
+  nl=incr(nl); write (li(nl), fmt) prefix, 'sigma_p_', suffix, ';REAL;F;',     twiss%sigma_p
+  nl=incr(nl); write (li(nl), fmt) prefix, 'emit_', suffix, ';REAL;F;',        twiss%emit
+  nl=incr(nl); write (li(nl), fmt) prefix, 'norm_emit_', suffix, ';REAL;F;',   twiss%norm_emit
 endif
 
 end subroutine twiss_out
@@ -9059,12 +9059,12 @@ type (bunch_params_struct) bunch_params
 
 !
 
-call twiss_out(bunch_params%x, 'x', .true.)
-call twiss_out(bunch_params%y, 'y', .true.)
-call twiss_out(bunch_params%z, 'z', .true.)
-call twiss_out(bunch_params%a, 'a', .true.)
-call twiss_out(bunch_params%b, 'b', .true.)
-call twiss_out(bunch_params%c, 'c', .true.)
+call twiss_out(bunch_params%x, 'twiss_', 'x', emit_out = .true.)
+call twiss_out(bunch_params%y, 'twiss_', 'y', emit_out = .true.)
+call twiss_out(bunch_params%z, 'twiss_', 'z', emit_out = .true.)
+call twiss_out(bunch_params%a, 'twiss_', 'a', emit_out = .true.)
+call twiss_out(bunch_params%b, 'twiss_', 'b', emit_out = .true.)
+call twiss_out(bunch_params%c, 'twiss_', 'c', emit_out = .true.)
 
 ! Sigma matrix
 do i = 1, 6

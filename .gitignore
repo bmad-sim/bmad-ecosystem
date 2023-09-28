@@ -14,6 +14,9 @@ xraylib/*
 gnu_utilities_src/*
 packages/*
 
+# Jupyter notebooks
+.ipynb_checkpoints
+
 bmad-doc/tutorial_bmad_tao/doc/2www.pl
 bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.aux
 bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.bbl
