@@ -18,7 +18,7 @@
 #-----------------------------------------------------------------
 func_is_dir_toplevel () {
 
-    DIST_TOPLEVEL_CHECKLIST="bmad build_system util"
+    DIST_TOPLEVEL_CHECKLIST="bmad util tao"
     TESTDIR=${1}
     RETVAL="Y"
 
