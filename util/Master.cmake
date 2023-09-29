@@ -558,6 +558,13 @@ SET (MASTER_LINK_DIRS
   ${ACC_LIB_DIRS}
 )
 
+foreach(h5dir ${HDF5_Fortran_LIBRARY_DIRS})
+  list(FIND CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES "${h5dir}" h5found)
+  if (h5found EQUAL -1)
+    list(APPEND MASTER_LINK_DIRS "${h5dir}")
+  endif()
+endforeach()
+
 IF (DEBUG)
   IF (IS_DIRECTORY "${PACKAGES_DIR}/debug/lib/root")
     LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
