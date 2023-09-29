@@ -486,6 +486,15 @@ SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
 )
 
+# If we use system HDF5 libraries, search for include directories
+find_package(HDF5 COMPONENTS Fortran)
+foreach(h5dir ${HDF5_Fortran_INCLUDE_DIRS})
+  list(FIND CMAKE_Fortran_IMPLICIT_INCLUDE_DIRECTORIES "${h5dir}" h5found)
+  if (h5found EQUAL -1)
+    list(APPEND MASTER_INC_DIRS "${h5dir}")
+  endif()
+endforeach()
+
 # If building for HARDWARE-DEVEL, remove the include directories which are not needed 
 
 IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
