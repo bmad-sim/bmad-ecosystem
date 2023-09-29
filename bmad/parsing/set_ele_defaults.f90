@@ -153,6 +153,10 @@ case (floor_shift$)
   ele%value(upstream_coord_dir$) = 1
   ele%value(downstream_coord_dir$) = 1
 
+case (foil$)
+  ele%value(num_steps$) = 10
+  ele%value(final_charge$) = real_garbage$
+
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
 

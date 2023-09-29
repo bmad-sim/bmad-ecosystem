@@ -689,7 +689,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l$,                    'L')
 
   if (i == converter$)         cycle
-  if (i == foil$)          cycle
+  if (i == foil$)              cycle
 
   call init_attribute_name1 (i, symplectify$,          'SYMPLECTIFY')
   call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')
@@ -936,8 +936,9 @@ call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX'
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 
-call init_attribute_name1 (foil$, thickness$,                   'THICKNESS')
-call init_attribute_name1 (foil$, material_type$,               'MATERIAL_TYPE')
+call init_attribute_name1 (foil$, thickness$,                       'THICKNESS')
+call init_attribute_name1 (foil$, material_type$,                   'MATERIAL_TYPE')
+call init_attribute_name1 (foil$, final_charge$,                    'FINAL_CHARGE')
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
@@ -1911,7 +1912,7 @@ case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PH
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GEN_GRAD_MAP', 'GRID_FIELD', 'REF_ORBIT', &
       'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TERM', 'ENERGY_PROBABILITY_CURVE', &
-      'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE', 'CURVATURE')
+      'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE', 'CURVATURE', 'REFLECTIVITY_TABLE')
   attrib_type = is_struct$
 
 case default
@@ -2043,7 +2044,7 @@ case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT
       'PC_OUT_MIN', 'PC_OUT_MAX', 'E_TOT_STRONG')
   attrib_units = 'eV'
 
-case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET', 'DELTA_TIME', 'DT_MAX')
+case ('DELTA_REF_TIME', 'REF_TIME', 'REF_TIME_START', 'T', 'T_OFFSET', 'DELTA_TIME', 'DT_MAX')
   attrib_units = 'sec'
 
 case ('EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z')
