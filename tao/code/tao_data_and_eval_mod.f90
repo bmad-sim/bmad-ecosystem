@@ -3148,7 +3148,7 @@ case ('spin_res.')
   endif
 
   j = index('abc', data_type(10:10))
-  if (j == 0 .or. len_trim(data_type) > 11) then
+  if (j == 0) then
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
   endif
