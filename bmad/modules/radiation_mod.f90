@@ -89,8 +89,10 @@ case (drift$, taylor$, multipole$, ab_multipole$, mask$, marker$);  return
 end select
 
 ! Use stochastic and damp mats
-
-call radiation_map_setup(ele)
+! Only setup if the element produces radiation and there isn't existing non-stale data
+if ((ele%value(l$) /= 0 .and. ele%key /= taylor$) .and. (.not. associated(ele%rad_map) .or. ele%rad_map%stale)) then
+  call radiation_map_setup(ele)
+endif
 
 if (edge == start_edge$) then
   rad_map = ele%rad_map%rm0
