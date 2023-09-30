@@ -2056,6 +2056,7 @@ Attributes specific to a \vn{foil} element are:
 \begin{example}
   material_type   = <String>    ! Foil material.
   thickness       = <Real>      ! Foil thickness.
+  final_charge    = <Integer>   ! Final charge state
 \end{example}
 
 The \vn{thickness} parameter along with \vn{material_type} is used to calculate the scattering
@@ -2069,8 +2070,9 @@ the interaction occurs over a finite length.
 The 6x6 transfer matrix of a \vn{foil} element is the unit matrix. That is, scattering does
 not affect the transfer matrix.
 
-Currently, particles going through the \vn{foil} are considered to be fully stripped. Additionally,
-energy losses are ignored.
+Particles going through the \vn{foil} are stripped to have a final charge given by \vn{final_charge}.
+
+Energy loss is calculated using the Bethe-Bloch formula.
 
 Example:
 \begin{example}
