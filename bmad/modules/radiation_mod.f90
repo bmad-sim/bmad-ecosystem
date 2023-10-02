@@ -85,12 +85,13 @@ if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuati
 if (ele%value(l$) == 0) return
 if (ele%tracking_method == taylor$ .and. ele%mat6_calc_method == taylor$) return
 select case (ele%key)
-case (drift$, taylor$, multipole$, ab_multipole$, mask$, marker$);  return
+case (drift$, pipe$, taylor$, multipole$, ab_multipole$, mask$, marker$);  return
 end select
 
 ! Use stochastic and damp mats
 
 call radiation_map_setup(ele)
+if (.not. associated(ele%rad_map)) return
 
 if (edge == start_edge$) then
   rad_map = ele%rad_map%rm0
@@ -171,6 +172,7 @@ character(*), parameter :: r_name = 'radiation_map_setup'
 if (present(err_flag)) err_flag = .false.
 
 if (ele%value(l$) == 0 .or. ele%key == taylor$) return   ! Does not produce radiation.
+
 if (.not. associated(ele%rad_map)) allocate(ele%rad_map)
 if (.not. ele%rad_map%stale .and. .not. present(ref_orbit_in)) return
 ele%rad_map%stale = .false.

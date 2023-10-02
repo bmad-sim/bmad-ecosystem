@@ -83,7 +83,7 @@ enddo
 
 ! Charge
 
-n = nint(ele0%value(final_charge$))
+n = nint(ele%value(final_charge$))
 orbit%species = set_species_charge(orbit%species, n)
 
 !
