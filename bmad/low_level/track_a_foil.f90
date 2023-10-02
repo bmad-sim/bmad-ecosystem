@@ -35,7 +35,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) x0, xx0, sigma, rnd(2), density, I_excite, mass_material, dE_dx, E0, E1, pc, p2, elec_density
 real(rp), parameter :: S2 = 13.6e6_dp, epsilon = 0.088 ! Factor of 1e6 is due to original formula using MeV/c for momentum
 
-integer i, material, z_material, z_part, n_step
+integer i, n, material, z_material, z_part, n_step
 
 logical, optional :: make_matrix
 
@@ -76,10 +76,15 @@ do i = 1, n_step
   dE_dx = -fourpi * mass_of(electron$) * elec_density * (z_part * r_e / orbit%beta)**2 * &
               (log(2 * mass_of(electron$) * p2 / I_excite) - orbit%beta**2)
   E0 = orbit%p0c * (1.0_rp + orbit%vec(6)) / orbit%beta
-  E1 = E0 - dE_dx * ele%value(thickness$) / n_step
+  E1 = E0 + dE_dx * ele%value(thickness$) / n_step
   call convert_total_energy_to(E1, orbit%species, beta = orbit%beta, pc = pc)
   orbit%vec(6) = (pc - orbit%p0c) / orbit%p0c
 enddo
+
+! Charge
+
+n = nint(ele%value(final_charge$))
+orbit%species = set_species_charge(orbit%species, n)
 
 !
 

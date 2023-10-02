@@ -44,7 +44,7 @@ type (coord_struct) time_ref_orb_out
 
 real(rp) l_slice, offset, in_len, r, p0c_set
 integer i
-logical include_upstream_end, include_downstream_end, err_flag, err2_flag
+logical include_upstream_end, include_downstream_end, err_flag, err2_flag, rad_map_stale
 
 character(*), parameter :: r_name = 'create_element_slice'
 
@@ -55,11 +55,15 @@ in_len = ele_in%value(l$)
 
 ! Save values from old_slice if present in case the old_slice actual arg is same as sliced_ele.
 
+rad_map_stale = .true.
+ele0%value(l$) = 0
 if (present(old_slice)) then
   ele0%value(p0c$)   = old_slice%value(p0c$)
   ele0%value(e_tot$) = old_slice%value(e_tot$)
   ele0%ref_time      = old_slice%ref_time
+  ele0%value(l$)     = old_slice%value(l$)
   time_ref_orb_out   = old_slice%time_ref_orb_out
+  if (associated(old_slice%rad_map)) rad_map_stale = old_slice%rad_map%stale
 endif
 
 !
@@ -128,6 +132,18 @@ endif
 
 call makeup_super_slave1 (sliced_ele, ele_in, offset, param, include_upstream_end, include_downstream_end, err2_flag)
 if (err2_flag) return
+
+! See if %rad_map can be saved. Can only do this if the old_slice is the same as the new one.
+! Therefore cannot save with wigglers and other elements which are not uniform longitudinally
+
+if (present(old_slice) .and. .not. rad_map_stale .and. .not. include_upstream_end .and. &
+    .not. include_downstream_end .and. ele0%value(l$) == sliced_ele%value(l$) .and. &
+    (ele_in%tracking_method == bmad_standard$ .or. ele_in%field_calc == bmad_standard$)) then
+  select case (ele_in%key)
+  case (sbend$, quadrupole$, sextupole$, octupole$)
+    sliced_ele%rad_map%stale = .false.
+  end select
+endif  
 
 ! For a sliced taylor element the %taylor%term components point to the lord components. 
 ! The routine deallocate_ele_pointers will only nullify and never deallocate these components of a slice_slave.

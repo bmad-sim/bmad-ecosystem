@@ -43,7 +43,7 @@ create_jumbo_slave               & offset_moves_aperture            & type      
 delta_ref_time [sec]             & p0c [eV]                         & wall                             & y_offset_tot [m]                 \\
 descrip                          & ptc_integration_type             & wrap_superimpose                 & z_offset [m]                     \\
 e_tot [eV]                       & ref_origin                       & x1_limit [m]                     & z_offset_tot [m]                 \\
-ele_origin                       & ref_time_start [sec]             & x2_limit [m]                     &                                  \\
+ele_origin                       & ref_time_start [???]             & x2_limit [m]                     &                                  \\
 field_master                     & reference                        & x_limit [m]                      &                                  \\
  \bottomrule
  \end{tabular}
@@ -60,7 +60,7 @@ amp_vs_time                      & fringe_type                      & ptc_integr
 aperture [m]                     & gen_grad_map                     & r0_elec [m]                      & wall                             \\
 aperture_at                      & grid_field                       & r0_mag [m]                       & wrap_superimpose                 \\
 aperture_type                    & hkick                            & ref_origin                       & x1_limit [m]                     \\
-bl_hkick [T*m]                   & integrator_order                 & ref_time_start [sec]             & x2_limit [m]                     \\
+bl_hkick [T*m]                   & integrator_order                 & ref_time_start [???]             & x2_limit [m]                     \\
 bl_vkick [T*m]                   & interpolation                    & reference                        & x_limit [m]                      \\
 cartesian_map                    & is_on                            & scale_multipoles                 & x_offset [m]                     \\
 create_jumbo_slave               & l [m]                            & space_charge_method              & x_offset_tot [m]                 \\
@@ -87,7 +87,7 @@ field_overlaps                   & offset_moves_aperture            & tilt_tot [
 alias                            & crab_x3 [1/m$^2$]                & p0c [eV]                         & wrap_superimpose                 \\
 alpha_a_strong                   & crab_x4 [1/m$^3$]                & ptc_integration_type             & x1_limit [m]                     \\
 alpha_b_strong                   & crab_x5 [1/m$^4$]                & ref_origin                       & x2_limit [m]                     \\
-aperture [m]                     & create_jumbo_slave               & ref_time_start [sec]             & x_limit [m]                      \\
+aperture [m]                     & create_jumbo_slave               & ref_time_start [???]             & x_limit [m]                      \\
 aperture_at                      & delta_ref_time [sec]             & reference                        & x_offset [m]                     \\
 aperture_type                    & descrip                          & repetition_frequency [Hz]        & x_offset_tot [m]                 \\
 bbi_constant                     & e_tot [eV]                       & sig_x [m]                        & x_pitch [rad]                    \\
@@ -145,7 +145,7 @@ create_jumbo_slave               & hgap [m]                         & r0_mag [m]
 csr_ds_step [m]                  & hgapx [m]                        & ref_origin                       & x_offset_tot [m]                 \\
 csr_method                       & hkick                            & ref_tilt [rad]                   & x_pitch [rad]                    \\
 cylindrical_map                  & integrator_order                 & ref_tilt_tot [rad]               & x_pitch_tot [rad]                \\
-db_field [T]                     & is_on                            & ref_time_start [sec]             & y1_limit [m]                     \\
+db_field [T]                     & is_on                            & ref_time_start [???]             & y1_limit [m]                     \\
 delta_ref_time [sec]             & k1 [1/m$^2$]                     & reference                        & y2_limit [m]                     \\
 descrip                          & k2 [1/m$^3$]                     & rho [m]                          & y_limit [m]                      \\
 dg [1/m]                         & l [m]                            & roll [rad]                       & y_offset [m]                     \\
@@ -180,7 +180,7 @@ aperture_type                    & offset_moves_aperture            & type      
 create_jumbo_slave               & p0c [eV]                         & wall                             & y_limit [m]                      \\
 critical_angle_factor [rad*eV]   & ptc_integration_type             & wrap_superimpose                 & y_offset [m]                     \\
 delta_ref_time [sec]             & ref_origin                       & x1_limit [m]                     & y_offset_tot [m]                 \\
-descrip                          & ref_time_start [sec]             & x2_limit [m]                     & y_pitch [rad]                    \\
+descrip                          & ref_time_start [???]             & x2_limit [m]                     & y_pitch [rad]                    \\
 e_tot [eV]                       & reference                        & x_limit [m]                      & y_pitch_tot [rad]                \\
 ele_origin                       & spin_tracking_method             & x_offset [m]                     & z_offset [m]                     \\
 l [m]                            & superimpose                      & x_offset_tot [m]                 & z_offset_tot [m]                 \\
@@ -194,7 +194,7 @@ l [m]                            & superimpose                      & x_offset_t
  
  \begin{tabular}{llll} \toprule
 alias                            & is_on                            & ref_origin                       & x2_limit [m]                     \\
-aperture [m]                     & l [m]                            & ref_time_start [sec]             & x_limit [m]                      \\
+aperture [m]                     & l [m]                            & ref_time_start [???]             & x_limit [m]                      \\
 aperture_at                      & lord_pad1 [m]                    & reference                        & x_offset [m]                     \\
 aperture_type                    & lord_pad2 [m]                    & space_charge_method              & x_offset_tot [m]                 \\
 bl_hkick [T*m]                   & lr_freq_spread [Hz]              & spin_fringe_on                   & x_pitch [rad]                    \\
@@ -232,7 +232,7 @@ delta_ref_time [sec]             & pc_out_max [eV]                  & wall      
 descrip                          & pc_out_min [eV]                  & wrap_superimpose                 & y_pitch [rad]                    \\
 distribution                     & ptc_integration_type             & x1_limit [m]                     & y_pitch_tot [rad]                \\
 e_tot [eV]                       & ref_origin                       & x2_limit [m]                     & z_offset [m]                     \\
-e_tot_start [eV]                 & ref_time_start [sec]             & x_limit [m]                      & z_offset_tot [m]                 \\
+e_tot_start [eV]                 & ref_time_start [???]             & x_limit [m]                      & z_offset_tot [m]                 \\
 ele_origin                       & reference                        & x_offset [m]                     &                                  \\
 is_on                            & species_out                      & x_offset_tot [m]                 &                                  \\
  \bottomrule
@@ -246,7 +246,7 @@ is_on                            & species_out                      & x_offset_t
  \begin{tabular}{llll} \toprule
 alias                            & gradient [eV/m]                  & ptc_integration_type             & wall                             \\
 aperture [m]                     & grid_field                       & ref_origin                       & wrap_superimpose                 \\
-aperture_at                      & harmon                           & ref_time_start [sec]             & x1_limit [m]                     \\
+aperture_at                      & harmon                           & ref_time_start [???]             & x1_limit [m]                     \\
 aperture_type                    & hkick                            & reference                        & x2_limit [m]                     \\
 bl_hkick [T*m]                   & integrator_order                 & rf_frequency [Hz]                & x_limit [m]                      \\
 bl_vkick [T*m]                   & is_on                            & rf_wavelength [m]                & x_offset [m]                     \\
@@ -278,10 +278,10 @@ alpha_angle                      & elliptical_curvature_x [1/m]     & ref_orbit_
 aperture [m]                     & elliptical_curvature_y [1/m]     & ref_origin                       & x1_limit [m]                     \\
 aperture_at                      & elliptical_curvature_z [1/m]     & ref_tilt [rad]                   & x2_limit [m]                     \\
 aperture_type                    & graze_angle_in [rad]             & ref_tilt_tot [rad]               & x_limit [m]                      \\
-b_param                          & graze_angle_out [rad]            & ref_time_start [sec]             & x_offset [m]                     \\
+b_param                          & graze_angle_out [rad]            & ref_time_start [???]             & x_offset [m]                     \\
 bragg_angle [rad]                & h_misalign                       & ref_wavelength [m]               & x_offset_tot [m]                 \\
 bragg_angle_in [rad]             & is_mosaic                        & reference                        & x_pitch [rad]                    \\
-bragg_angle_out [rad]            & l [m]                            & reflectivity_table               & x_pitch_tot [rad]                \\
+bragg_angle_out [rad]            & l [m]                            & reflectivity_table [???]         & x_pitch_tot [rad]                \\
 create_jumbo_slave               & mat6_calc_method                 & segmented                        & y1_limit [m]                     \\
 crystal_type                     & mosaic_angle_rms_in_plane [rad]  & spherical_curvature [1/m]        & y2_limit [m]                     \\
 curvature                        & mosaic_angle_rms_out_plane [rad] & spin_tracking_method             & y_limit [m]                      \\
@@ -317,7 +317,7 @@ ds_step [m]                      & p0c [eV]                         & val11     
 e_tot [eV]                       & p0c_start [eV]                   & val12                            & y_limit [m]                      \\
 e_tot_start [eV]                 & ptc_integration_type             & val2                             & y_offset [m]                     \\
 ele_origin                       & ref_origin                       & val3                             & y_offset_tot [m]                 \\
-field_calc                       & ref_time_start [sec]             & val4                             & y_pitch [rad]                    \\
+field_calc                       & ref_time_start [???]             & val4                             & y_pitch [rad]                    \\
 field_master                     & reference                        & val5                             & y_pitch_tot [rad]                \\
 field_overlaps                   & space_charge_method              & val6                             & z_offset [m]                     \\
 integrator_order                 & spin_tracking_method             & val7                             & z_offset_tot [m]                 \\
@@ -344,7 +344,7 @@ curvature_x0_y2 [1/m]            & p0c [eV]                         & x2_limit [
 de_eta_meas                      & pixel                            & x_dispersion_calib [m]           & y_offset_calib [m]               \\
 delta_ref_time [sec]             & ptc_integration_type             & x_dispersion_err [m]             & y_offset_tot [m]                 \\
 descrip                          & ref_origin                       & x_gain_calib [m]                 & y_pitch [rad]                    \\
-displacement                     & ref_time_start [sec]             & x_gain_err [m]                   & y_pitch_tot [rad]                \\
+displacement                     & ref_time_start [???]             & x_gain_err [m]                   & y_pitch_tot [rad]                \\
 e_tot [eV]                       & reference                        & x_limit [m]                      & z_offset [m]                     \\
 ele_origin                       & segmented                        & x_offset [m]                     & z_offset_tot [m]                 \\
 elliptical_curvature_x [1/m]     & spherical_curvature [1/m]        & x_offset_calib [m]               &                                  \\
@@ -369,7 +369,7 @@ curvature_x0_y2 [1/m]            & offset_moves_aperture            & type      
 delta_ref_time [sec]             & p0c [eV]                         & wall                             & y_pitch [rad]                    \\
 descrip                          & ptc_integration_type             & wrap_superimpose                 & y_pitch_tot [rad]                \\
 displacement                     & ref_origin                       & x1_limit [m]                     & z_offset [m]                     \\
-e_tot [eV]                       & ref_time_start [sec]             & x2_limit [m]                     & z_offset_tot [m]                 \\
+e_tot [eV]                       & ref_time_start [???]             & x2_limit [m]                     & z_offset_tot [m]                 \\
 ele_origin                       & ref_wavelength [m]               & x_limit [m]                      &                                  \\
 elliptical_curvature_x [1/m]     & reference                        & x_offset [m]                     &                                  \\
 elliptical_curvature_y [1/m]     & segmented                        & x_offset_tot [m]                 &                                  \\
@@ -392,7 +392,7 @@ csr_method                       & offset_moves_aperture            & tracking_m
 delta_ref_time [sec]             & p0c [eV]                         & type                             & y_offset_tot [m]                 \\
 descrip                          & ptc_integration_type             & wall                             & y_pitch [rad]                    \\
 ds_step [m]                      & ref_origin                       & wrap_superimpose                 & y_pitch_tot [rad]                \\
-e_tot [eV]                       & ref_time_start [sec]             & x1_limit [m]                     & z_offset [m]                     \\
+e_tot [eV]                       & ref_time_start [???]             & x1_limit [m]                     & z_offset [m]                     \\
 ele_origin                       & reference                        & x2_limit [m]                     & z_offset_tot [m]                 \\
 field_calc                       & space_charge_method              & x_limit [m]                      &                                  \\
 integrator_order                 & spin_tracking_method             & x_offset [m]                     &                                  \\
@@ -408,7 +408,7 @@ integrator_order                 & spin_tracking_method             & x_offset [
 a0 - a20, b0 - b20               & gap                              & r0_elec [m]                      & wall                             \\
 alias                            & gen_grad_map                     & r0_mag [m]                       & wrap_superimpose                 \\
 aperture [m]                     & grid_field                       & ref_origin                       & x1_limit [m]                     \\
-aperture_at                      & hkick                            & ref_time_start [sec]             & x2_limit [m]                     \\
+aperture_at                      & hkick                            & ref_time_start [???]             & x2_limit [m]                     \\
 aperture_type                    & integrator_order                 & reference                        & x_limit [m]                      \\
 cartesian_map                    & is_on                            & scale_multipoles                 & x_offset [m]                     \\
 create_jumbo_slave               & l [m]                            & space_charge_method              & x_offset_tot [m]                 \\
@@ -439,7 +439,7 @@ alias                            & fringe_at                        & phi0_err [
 aperture [m]                     & fringe_type                      & ptc_canonical_coords             & wrap_superimpose                 \\
 aperture_at                      & gen_grad_map                     & ptc_integration_type             & x1_limit [m]                     \\
 aperture_type                    & grid_field                       & ref_origin                       & x2_limit [m]                     \\
-autoscale_amplitude              & integrator_order                 & ref_time_start [sec]             & x_limit [m]                      \\
+autoscale_amplitude              & integrator_order                 & ref_time_start [???]             & x_limit [m]                      \\
 autoscale_phase                  & is_on                            & reference                        & x_offset [m]                     \\
 cartesian_map                    & l [m]                            & rf_frequency [Hz]                & x_offset_tot [m]                 \\
 constant_ref_energy              & lord_pad1 [m]                    & rf_wavelength [m]                & x_pitch [rad]                    \\
@@ -468,7 +468,7 @@ field_overlaps                   & phi0_autoscale [rad/2pi]         & type      
 alias                            & fringe_type                      & phi0_err [rad/2pi]               & voltage_tot [Volt]               \\
 aperture [m]                     & gen_grad_map                     & ptc_integration_type             & wall                             \\
 aperture_at                      & gradient [eV/m]                  & ref_origin                       & wrap_superimpose                 \\
-aperture_type                    & gradient_err [eV/m]              & ref_time_start [sec]             & x1_limit [m]                     \\
+aperture_type                    & gradient_err [eV/m]              & ref_time_start [???]             & x1_limit [m]                     \\
 autoscale_amplitude              & gradient_tot [eV/m]              & reference                        & x2_limit [m]                     \\
 autoscale_phase                  & grid_field                       & rf_frequency [Hz]                & x_limit [m]                      \\
 cartesian_map                    & integrator_order                 & rf_wavelength [m]                & x_offset [m]                     \\
@@ -501,7 +501,7 @@ delta_ref_time [sec]             & dz_origin [m]                    & origin_ele
 descrip                          & e_tot [eV]                       & p0c [eV]                         & tracking_method                  \\
 dphi_origin [rad]                & ele_origin                       & ptc_integration_type             & type                             \\
 dpsi_origin [rad]                & l [m]                            & ref_origin                       & wrap_superimpose                 \\
-dtheta_origin [rad]              & mat6_calc_method                 & ref_time_start [sec]             &                                  \\
+dtheta_origin [rad]              & mat6_calc_method                 & ref_time_start [???]             &                                  \\
 dx_origin [m]                    & offset [m]                       & reference                        &                                  \\
  \bottomrule
  \end{tabular}
@@ -521,7 +521,7 @@ delta_ref_time [sec]             & origin_ele_ref_pt                & type      
 descrip                          & p0c [eV]                         & upstream_ele_dir                 & y_limit [m]                      \\
 downstream_ele_dir               & ptc_integration_type             & wall                             & y_offset [m]                     \\
 e_tot [eV]                       & ref_origin                       & wrap_superimpose                 & y_pitch [rad]                    \\
-ele_origin                       & ref_time_start [sec]             & x1_limit [m]                     & z_offset [m]                     \\
+ele_origin                       & ref_time_start [???]             & x1_limit [m]                     & z_offset [m]                     \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -531,18 +531,18 @@ ele_origin                       & ref_time_start [sec]             & x1_limit [
  \label{s:list.foil}
  
  \begin{tabular}{llll} \toprule
-alias                            & mat6_calc_method                 & tilt [rad]                       & x_pitch_tot [rad]                \\
-aperture [m]                     & material_type                    & tilt_tot [rad]                   & y1_limit [m]                     \\
-aperture_at                      & offset [m]                       & tracking_method                  & y2_limit [m]                     \\
-aperture_type                    & offset_moves_aperture            & type                             & y_limit [m]                      \\
-create_jumbo_slave               & p0c [eV]                         & wall                             & y_offset [m]                     \\
-delta_ref_time [sec]             & ptc_integration_type             & wrap_superimpose                 & y_offset_tot [m]                 \\
-descrip                          & ref_origin                       & x1_limit [m]                     & y_pitch [rad]                    \\
-e_tot [eV]                       & ref_time_start [sec]             & x2_limit [m]                     & y_pitch_tot [rad]                \\
-ele_origin                       & reference                        & x_limit [m]                      & z_offset [m]                     \\
-final_charge [???]               & spin_tracking_method             & x_offset [m]                     & z_offset_tot [m]                 \\
+alias                            & material_type                    & tilt_tot [rad]                   & y1_limit [m]                     \\
+aperture [m]                     & offset [m]                       & tracking_method                  & y2_limit [m]                     \\
+aperture_at                      & offset_moves_aperture            & type                             & y_limit [m]                      \\
+aperture_type                    & p0c [eV]                         & wall                             & y_offset [m]                     \\
+create_jumbo_slave               & ptc_integration_type             & wrap_superimpose                 & y_offset_tot [m]                 \\
+delta_ref_time [sec]             & ref_origin                       & x1_limit [m]                     & y_pitch [rad]                    \\
+descrip                          & ref_time_start [???]             & x2_limit [m]                     & y_pitch_tot [rad]                \\
+e_tot [eV]                       & reference                        & x_limit [m]                      & z_offset [m]                     \\
+ele_origin                       & spin_tracking_method             & x_offset [m]                     & z_offset_tot [m]                 \\
 is_on                            & superimpose                      & x_offset_tot [m]                 &                                  \\
 l [m]                            & thickness [m]                    & x_pitch [rad]                    &                                  \\
+mat6_calc_method                 & tilt [rad]                       & x_pitch_tot [rad]                &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -554,7 +554,7 @@ l [m]                            & thickness [m]                    & x_pitch [r
  \begin{tabular}{llll} \toprule
 alias                            & is_on                            & ref_origin                       & wrap_superimpose                 \\
 aperture [m]                     & ix_to_branch                     & ref_species                      & x1_limit [m]                     \\
-aperture_at                      & ix_to_element                    & ref_time_start [sec]             & x2_limit [m]                     \\
+aperture_at                      & ix_to_element                    & ref_time_start [???]             & x2_limit [m]                     \\
 aperture_type                    & l [m]                            & reference                        & x_limit [m]                      \\
 create_jumbo_slave               & mat6_calc_method                 & spin_tracking_method             & y1_limit [m]                     \\
 delta_ref_time [sec]             & new_branch                       & superimpose                      & y2_limit [m]                     \\
@@ -571,7 +571,7 @@ ele_origin                       & ptc_integration_type             & type      
  \label{s:list.gkicker}
  
  \begin{tabular}{llll} \toprule
-alias                            & mat6_calc_method                 & ref_time_start [sec]             & x_kick [m]                       \\
+alias                            & mat6_calc_method                 & ref_time_start [???]             & x_kick [m]                       \\
 aperture [m]                     & offset [m]                       & reference                        & x_limit [m]                      \\
 aperture_at                      & offset_moves_aperture            & spin_tracking_method             & y1_limit [m]                     \\
 aperture_type                    & p0c [eV]                         & superimpose                      & y2_limit [m]                     \\
@@ -619,7 +619,7 @@ end_edge [m]                     & slave                            & x_knot    
  
  \begin{tabular}{llll} \toprule
 alias                            & e_tot [eV]                       & ref_origin                       & x1_limit [m]                     \\
-aperture [m]                     & ele_origin                       & ref_time_start [sec]             & x2_limit [m]                     \\
+aperture [m]                     & ele_origin                       & ref_time_start [???]             & x2_limit [m]                     \\
 aperture_at                      & l [m]                            & reference                        & x_limit [m]                      \\
 aperture_type                    & mat6_calc_method                 & spin_tracking_method             & y1_limit [m]                     \\
 create_jumbo_slave               & offset [m]                       & superimpose                      & y2_limit [m]                     \\
@@ -654,7 +654,7 @@ e_tot [eV]                       & osc_amplitude [m]                & wrap_super
 ele_origin                       & p0c [eV]                         & x1_limit [m]                     & y_pitch [rad]                    \\
 field_calc                       & ptc_integration_type             & x2_limit [m]                     & y_pitch_tot [rad]                \\
 field_overlaps                   & ref_origin                       & x_dispersion_calib [m]           & z_offset [m]                     \\
-fringe_at                        & ref_time_start [sec]             & x_dispersion_err [m]             & z_offset_tot [m]                 \\
+fringe_at                        & ref_time_start [???]             & x_dispersion_err [m]             & z_offset_tot [m]                 \\
 fringe_type                      & reference                        & x_gain_calib [m]                 &                                  \\
 hkick                            & space_charge_method              & x_gain_err [m]                   &                                  \\
  \bottomrule
@@ -670,7 +670,7 @@ a0 - a20, b0 - b20               & fringe_type                      & ptc_integr
 alias                            & gen_grad_map                     & r0_elec [m]                      & wall                             \\
 aperture [m]                     & grid_field                       & r0_mag [m]                       & wrap_superimpose                 \\
 aperture_at                      & h_displace [m]                   & ref_origin                       & x1_limit [m]                     \\
-aperture_type                    & hkick                            & ref_time_start [sec]             & x2_limit [m]                     \\
+aperture_type                    & hkick                            & ref_time_start [???]             & x2_limit [m]                     \\
 bl_hkick [T*m]                   & integrator_order                 & reference                        & x_limit [m]                      \\
 bl_vkick [T*m]                   & is_on                            & scale_multipoles                 & x_offset [m]                     \\
 cartesian_map                    & l [m]                            & space_charge_method              & x_offset_tot [m]                 \\
@@ -700,7 +700,7 @@ a0 - a20, b0 - b20               & fringe_at                        & p0c [eV]  
 alias                            & fringe_type                      & ptc_canonical_coords             & wall                             \\
 aperture [m]                     & gen_grad_map                     & ptc_integration_type             & wrap_superimpose                 \\
 aperture_at                      & grid_field                       & ref_origin                       & x1_limit [m]                     \\
-aperture_type                    & integrator_order                 & ref_time_start [sec]             & x2_limit [m]                     \\
+aperture_type                    & integrator_order                 & ref_time_start [???]             & x2_limit [m]                     \\
 bl_kick [T*m]                    & is_on                            & reference                        & x_limit [m]                      \\
 cartesian_map                    & kick                             & scale_multipoles                 & x_offset [m]                     \\
 create_jumbo_slave               & l [m]                            & space_charge_method              & x_offset_tot [m]                 \\
@@ -735,7 +735,7 @@ bl_vkick [T*m]                   & gradient [eV/m]                  & phi0_err [
 cartesian_map                    & gradient_err [eV/m]              & phi0_multipass [rad/2pi]         & wrap_superimpose                 \\
 cavity_type                      & gradient_tot [eV/m]              & ptc_integration_type             & x1_limit [m]                     \\
 coupler_angle [rad]              & grid_field                       & ref_origin                       & x2_limit [m]                     \\
-coupler_at                       & hkick                            & ref_time_start [sec]             & x_limit [m]                      \\
+coupler_at                       & hkick                            & ref_time_start [???]             & x_limit [m]                      \\
 coupler_phase [rad/2pi]          & integrator_order                 & reference                        & x_offset [m]                     \\
 coupler_strength                 & is_on                            & rf_frequency [Hz]                & x_offset_tot [m]                 \\
 create_jumbo_slave               & l [m]                            & rf_wavelength [m]                & x_pitch [rad]                    \\
@@ -765,7 +765,7 @@ aperture_type                    & p0c [eV]                         & type      
 create_jumbo_slave               & ptc_integration_type             & wall                             & y_limit [m]                      \\
 delta_ref_time [sec]             & radius [m]                       & wrap_superimpose                 & y_offset [m]                     \\
 descrip                          & ref_origin                       & x1_limit [m]                     & y_offset_tot [m]                 \\
-e_tot [eV]                       & ref_time_start [sec]             & x2_limit [m]                     & y_pitch [rad]                    \\
+e_tot [eV]                       & ref_time_start [???]             & x2_limit [m]                     & y_pitch [rad]                    \\
 ele_origin                       & reference                        & x_limit [m]                      & y_pitch_tot [rad]                \\
 focal_strength [1/m]             & spin_tracking_method             & x_offset [m]                     & z_offset [m]                     \\
 l [m]                            & superimpose                      & x_offset_tot [m]                 & z_offset_tot [m]                 \\
@@ -808,7 +808,7 @@ de_eta_meas                      & p0c [eV]                         & x1_limit [
 delta_ref_time [sec]             & ptc_integration_type             & x2_limit [m]                     & y_limit [m]                      \\
 descrip                          & ref_origin                       & x_dispersion_calib [m]           & y_offset [m]                     \\
 e_tot [eV]                       & ref_species                      & x_dispersion_err [m]             & y_offset_calib [m]               \\
-ele_origin                       & ref_time_start [sec]             & x_gain_calib [m]                 & y_offset_tot [m]                 \\
+ele_origin                       & ref_time_start [???]             & x_gain_calib [m]                 & y_offset_tot [m]                 \\
 is_on                            & reference                        & x_gain_err [m]                   & y_pitch [rad]                    \\
 l [m]                            & spin_tracking_method             & x_limit [m]                      & y_pitch_tot [rad]                \\
 lr_freq_spread [Hz]              & sr_wake                          & x_offset [m]                     & z_offset [m]                     \\
@@ -829,7 +829,7 @@ aperture_at                      & offset_moves_aperture            & type      
 aperture_type                    & p0c [eV]                         & wall                             & y_offset [m]                     \\
 create_jumbo_slave               & ptc_integration_type             & wrap_superimpose                 & y_offset_tot [m]                 \\
 delta_ref_time [sec]             & ref_origin                       & x1_limit [m]                     & y_pitch [rad]                    \\
-descrip                          & ref_time_start [sec]             & x2_limit [m]                     & y_pitch_tot [rad]                \\
+descrip                          & ref_time_start [???]             & x2_limit [m]                     & y_pitch_tot [rad]                \\
 e_tot [eV]                       & ref_wavelength [m]               & x_limit [m]                      & z_offset [m]                     \\
 ele_origin                       & reference                        & x_offset [m]                     & z_offset_tot [m]                 \\
 field_scale_factor               & spin_tracking_method             & x_offset_tot [m]                 &                                  \\
@@ -862,7 +862,7 @@ c12_mat0 [m]                     & etap_y0                          & py1       
 c12_mat1 [m]                     & etap_y1                          & pz0                              & z0 [m]                           \\
 c21_mat0 [1/m]                   & is_on                            & pz1                              & z1 [m]                           \\
 c21_mat1 [1/m]                   & l [m]                            & ref_origin                       &                                  \\
-c22_mat0                         & mat6_calc_method                 & ref_time_start [sec]             &                                  \\
+c22_mat0                         & mat6_calc_method                 & ref_time_start [???]             &                                  \\
 c22_mat1                         & match_end                        & reference                        &                                  \\
  \bottomrule
  \end{tabular}
@@ -884,10 +884,10 @@ curvature_x0_y2 [1/m]            & ptc_integration_type             & type      
 delta_ref_time [sec]             & ref_origin                       & use_reflectivity_table           & y_pitch [rad]                    \\
 descrip                          & ref_tilt [rad]                   & wall                             & y_pitch_tot [rad]                \\
 displacement                     & ref_tilt_tot [rad]               & wrap_superimpose                 & z_offset [m]                     \\
-e_tot [eV]                       & ref_time_start [sec]             & x1_limit [m]                     & z_offset_tot [m]                 \\
+e_tot [eV]                       & ref_time_start [???]             & x1_limit [m]                     & z_offset_tot [m]                 \\
 ele_origin                       & ref_wavelength [m]               & x2_limit [m]                     &                                  \\
 elliptical_curvature_x [1/m]     & reference                        & x_limit [m]                      &                                  \\
-elliptical_curvature_y [1/m]     & reflectivity_table               & x_offset [m]                     &                                  \\
+elliptical_curvature_y [1/m]     & reflectivity_table [???]         & x_offset [m]                     &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -911,7 +911,7 @@ descrip                          & ptc_integration_type             & v1_unitcel
 displacement                     & ref_origin                       & v2_unitcell [m$^3$]              & y_pitch [rad]                    \\
 e_tot [eV]                       & ref_tilt [rad]                   & wall                             & y_pitch_tot [rad]                \\
 ele_origin                       & ref_tilt_tot [rad]               & wrap_superimpose                 & z_offset [m]                     \\
-elliptical_curvature_x [1/m]     & ref_time_start [sec]             & x1_limit [m]                     & z_offset_tot [m]                 \\
+elliptical_curvature_x [1/m]     & ref_time_start [???]             & x1_limit [m]                     & z_offset_tot [m]                 \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -929,7 +929,7 @@ create_jumbo_slave               & offset_moves_aperture            & type      
 delta_ref_time [sec]             & p0c [eV]                         & wall                             & y_offset_tot [m]                 \\
 descrip                          & ptc_integration_type             & wrap_superimpose                 & z_offset [m]                     \\
 e_tot [eV]                       & ref_origin                       & x1_limit [m]                     & z_offset_tot [m]                 \\
-ele_origin                       & ref_time_start [sec]             & x2_limit [m]                     &                                  \\
+ele_origin                       & ref_time_start [???]             & x2_limit [m]                     &                                  \\
 field_master                     & reference                        & x_limit [m]                      &                                  \\
 is_on                            & spin_tracking_method             & x_offset [m]                     &                                  \\
  \bottomrule
@@ -946,7 +946,7 @@ alias                            & fringe_type                      & ptc_integr
 aperture [m]                     & gen_grad_map                     & r0_elec [m]                      & wrap_superimpose                 \\
 aperture_at                      & grid_field                       & r0_mag [m]                       & x1_limit [m]                     \\
 aperture_type                    & hkick                            & ref_origin                       & x2_limit [m]                     \\
-b3_gradient [T/m$^3$]            & integrator_order                 & ref_time_start [sec]             & x_limit [m]                      \\
+b3_gradient [T/m$^3$]            & integrator_order                 & ref_time_start [???]             & x_limit [m]                      \\
 bl_hkick [T*m]                   & is_on                            & reference                        & x_offset [m]                     \\
 bl_vkick [T*m]                   & k3 [1/m$^4$]                     & scale_multipoles                 & x_offset_tot [m]                 \\
 cartesian_map                    & l [m]                            & space_charge_method              & x_pitch [rad]                    \\
@@ -1013,7 +1013,7 @@ field_x                          & pz                               & t [sec]   
  
  \begin{tabular}{llll} \toprule
 alias                            & e_tot_start [eV]                 & ref_origin                       & wrap_superimpose                 \\
-aperture [m]                     & ele_origin                       & ref_time_start [sec]             & x1_limit [m]                     \\
+aperture [m]                     & ele_origin                       & ref_time_start [???]             & x1_limit [m]                     \\
 aperture_at                      & field_calc                       & reference                        & x2_limit [m]                     \\
 aperture_type                    & flexible                         & space_charge_method              & x_limit [m]                      \\
 create_jumbo_slave               & l [m]                            & spin_tracking_method             & x_offset [m]                     \\
@@ -1044,7 +1044,7 @@ descrip                          & p0c [eV]                         & spin_track
 ds_slice [m]                     & physical_source                  & superimpose                      & y1_limit [m]                     \\
 e2_center [eV]                   & ptc_integration_type             & tilt [rad]                       & y2_limit [m]                     \\
 e2_probability                   & ref_origin                       & tilt_tot [rad]                   & y_limit [m]                      \\
-e_center [eV]                    & ref_time_start [sec]             & tracking_method                  & y_offset [m]                     \\
+e_center [eV]                    & ref_time_start [???]             & tracking_method                  & y_offset [m]                     \\
 e_center_relative_to_ref         & ref_wavelength [m]               & transverse_sigma_cut             & y_offset_tot [m]                 \\
 e_field_x [V/m]                  & reference                        & type                             & y_pitch [rad]                    \\
 e_field_y [V/m]                  & scale_field_to_one               & velocity_distribution            & y_pitch_tot [rad]                \\
@@ -1066,7 +1066,7 @@ aperture_at                      & fringe_type                      & ptc_integr
 aperture_type                    & gen_grad_map                     & r0_elec [m]                      & wrap_superimpose                 \\
 b1_gradient [T/m]                & grid_field                       & r0_mag [m]                       & x1_limit [m]                     \\
 bl_hkick [T*m]                   & hkick                            & ref_origin                       & x2_limit [m]                     \\
-bl_vkick [T*m]                   & integrator_order                 & ref_time_start [sec]             & x_limit [m]                      \\
+bl_vkick [T*m]                   & integrator_order                 & ref_time_start [???]             & x_limit [m]                      \\
 cartesian_map                    & is_on                            & reference                        & x_offset [m]                     \\
 create_jumbo_slave               & k1 [1/m$^2$]                     & scale_multipoles                 & x_offset_tot [m]                 \\
 csr_ds_step [m]                  & l [m]                            & space_charge_method              & x_pitch [rad]                    \\
@@ -1094,7 +1094,7 @@ angle [rad]                      & grid_field                       & ptc_integr
 aperture [m]                     & harmon                           & ref_origin                       & vkick                            \\
 aperture_at                      & hkick                            & ref_tilt [rad]                   & wall                             \\
 aperture_type                    & integrator_order                 & ref_tilt_tot [rad]               & wrap_superimpose                 \\
-b_field [T]                      & is_on                            & ref_time_start [sec]             & x1_limit [m]                     \\
+b_field [T]                      & is_on                            & ref_time_start [???]             & x1_limit [m]                     \\
 bl_hkick [T*m]                   & l [m]                            & reference                        & x2_limit [m]                     \\
 bl_vkick [T*m]                   & l_chord [m]                      & rf_frequency [Hz]                & x_limit [m]                      \\
 create_jumbo_slave               & l_sagitta [m]                    & rf_wavelength [m]                & x_offset [m]                     \\
@@ -1128,7 +1128,7 @@ autoscale_phase                  & gen_grad_map                     & phi0_autos
 bl_hkick [T*m]                   & gradient [eV/m]                  & phi0_multipass [rad/2pi]         & wrap_superimpose                 \\
 bl_vkick [T*m]                   & grid_field                       & ptc_integration_type             & x1_limit [m]                     \\
 cartesian_map                    & harmon                           & ref_origin                       & x2_limit [m]                     \\
-cavity_type                      & hkick                            & ref_time_start [sec]             & x_limit [m]                      \\
+cavity_type                      & hkick                            & ref_time_start [???]             & x_limit [m]                      \\
 coupler_angle [rad]              & integrator_order                 & reference                        & x_offset [m]                     \\
 coupler_at                       & is_on                            & rf_frequency [Hz]                & x_offset_tot [m]                 \\
 coupler_phase [rad/2pi]          & l [m]                            & rf_wavelength [m]                & x_pitch [rad]                    \\
@@ -1164,7 +1164,7 @@ interpolation                    & type                             & y_knot    
  
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fb2 [m]                          & ref_origin                       & x2_limit [m]                     \\
-alias                            & field_calc                       & ref_time_start [sec]             & x_limit [m]                      \\
+alias                            & field_calc                       & ref_time_start [???]             & x_limit [m]                      \\
 aperture [m]                     & fq1 [m]                          & reference                        & x_offset [m]                     \\
 aperture_at                      & fq2 [m]                          & rho [m]                          & x_offset_mult [m]                \\
 aperture_type                    & fringe_at                        & space_charge_method              & x_offset_tot [m]                 \\
@@ -1201,7 +1201,7 @@ delta_ref_time [sec]             & offset_moves_aperture            & type      
 descrip                          & p0c [eV]                         & wall                             & y_offset_tot [m]                 \\
 displacement                     & ptc_integration_type             & wrap_superimpose                 & y_pitch [rad]                    \\
 e_tot [eV]                       & ref_origin                       & x1_limit [m]                     & y_pitch_tot [rad]                \\
-ele_origin                       & ref_time_start [sec]             & x2_limit [m]                     & z_offset [m]                     \\
+ele_origin                       & ref_time_start [???]             & x2_limit [m]                     & z_offset [m]                     \\
 elliptical_curvature_x [1/m]     & reference                        & x_limit [m]                      & z_offset_tot [m]                 \\
  \bottomrule
  \end{tabular}
@@ -1217,7 +1217,7 @@ alias                            & fringe_type                      & ptc_integr
 aperture [m]                     & gen_grad_map                     & r0_elec [m]                      & wrap_superimpose                 \\
 aperture_at                      & grid_field                       & r0_mag [m]                       & x1_limit [m]                     \\
 aperture_type                    & hkick                            & ref_origin                       & x2_limit [m]                     \\
-b2_gradient [T/m$^2$]            & integrator_order                 & ref_time_start [sec]             & x_limit [m]                      \\
+b2_gradient [T/m$^2$]            & integrator_order                 & ref_time_start [???]             & x_limit [m]                      \\
 bl_hkick [T*m]                   & is_on                            & reference                        & x_offset [m]                     \\
 bl_vkick [T*m]                   & k2 [1/m$^3$]                     & scale_multipoles                 & x_offset_tot [m]                 \\
 cartesian_map                    & l [m]                            & space_charge_method              & x_pitch [rad]                    \\
@@ -1249,7 +1249,7 @@ aperture_at                      & gen_grad_map                     & ptc_integr
 aperture_type                    & grid_field                       & r0_elec [m]                      & wrap_superimpose                 \\
 b1_gradient [T/m]                & hkick                            & r0_mag [m]                       & x1_limit [m]                     \\
 bl_hkick [T*m]                   & integrator_order                 & ref_origin                       & x2_limit [m]                     \\
-bl_vkick [T*m]                   & is_on                            & ref_time_start [sec]             & x_limit [m]                      \\
+bl_vkick [T*m]                   & is_on                            & ref_time_start [???]             & x_limit [m]                      \\
 bs_field [T]                     & k1 [1/m$^2$]                     & reference                        & x_offset [m]                     \\
 cartesian_map                    & ks [1/m]                         & scale_multipoles                 & x_offset_tot [m]                 \\
 create_jumbo_slave               & l [m]                            & space_charge_method              & x_pitch [rad]                    \\
@@ -1279,7 +1279,7 @@ aperture_at                      & grid_field                       & r0_elec [m
 aperture_type                    & hkick                            & r0_mag [m]                       & wrap_superimpose                 \\
 bl_hkick [T*m]                   & integrator_order                 & r_solenoid [m]                   & x1_limit [m]                     \\
 bl_vkick [T*m]                   & is_on                            & ref_origin                       & x2_limit [m]                     \\
-bs_field [T]                     & ks [1/m]                         & ref_time_start [sec]             & x_limit [m]                      \\
+bs_field [T]                     & ks [1/m]                         & ref_time_start [???]             & x_limit [m]                      \\
 cartesian_map                    & l [m]                            & reference                        & x_offset [m]                     \\
 create_jumbo_slave               & l_soft_edge [m]                  & scale_multipoles                 & x_offset_tot [m]                 \\
 csr_ds_step [m]                  & lord_pad1 [m]                    & space_charge_method              & x_pitch [rad]                    \\
@@ -1312,7 +1312,7 @@ delta_ref_time [sec]             & py_ref                           & type      
 descrip                          & pz_ref                           & wall                             & y_offset_tot [m]                 \\
 e_tot [eV]                       & ref_orbit                        & wrap_superimpose                 & y_pitch [rad]                    \\
 ele_origin                       & ref_origin                       & x1_limit [m]                     & y_pitch_tot [rad]                \\
-is_on                            & ref_time_start [sec]             & x2_limit [m]                     & y_ref [m]                        \\
+is_on                            & ref_time_start [???]             & x2_limit [m]                     & y_ref [m]                        \\
 l [m]                            & reference                        & x_limit [m]                      & z_offset [m]                     \\
 lord_pad1 [m]                    & spin_tracking_method             & x_offset [m]                     & z_offset_tot [m]                 \\
 lord_pad2 [m]                    & superimpose                      & x_offset_tot [m]                 & z_ref [m]                        \\
@@ -1333,7 +1333,7 @@ aperture_type                    & integrator_order                 & ptc_integr
 b_max [T]                        & is_on                            & r0_elec [m]                      & x1_limit [m]                     \\
 bl_hkick [T*m]                   & k1x [1/m$^2$]                    & r0_mag [m]                       & x2_limit [m]                     \\
 bl_vkick [T*m]                   & k1y [1/m$^2$]                    & ref_origin                       & x_limit [m]                      \\
-cartesian_map                    & kx [1/m]                         & ref_time_start [sec]             & x_offset [m]                     \\
+cartesian_map                    & kx [1/m]                         & ref_time_start [???]             & x_offset [m]                     \\
 create_jumbo_slave               & l [m]                            & reference                        & x_offset_tot [m]                 \\
 csr_ds_step [m]                  & l_period [m]                     & scale_multipoles                 & x_pitch [rad]                    \\
 csr_method                       & lord_pad1 [m]                    & space_charge_method              & x_pitch_tot [rad]                \\
