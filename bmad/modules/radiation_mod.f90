@@ -78,6 +78,7 @@ real(rp), parameter :: damp_const = 2.0_rp / 3.0_rp
 real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
 
 character(*), parameter :: r_name = 'track1_radiation'
+logical doit
 
 !
 
@@ -90,7 +91,9 @@ end select
 
 ! Use stochastic and damp mats
 
-call radiation_map_setup(ele)
+doit = .not. associated(ele%rad_map)
+if (.not. doit) doit = ele%rad_map%stale
+if (doit) call radiation_map_setup(ele)
 if (.not. associated(ele%rad_map)) return
 
 if (edge == start_edge$) then
