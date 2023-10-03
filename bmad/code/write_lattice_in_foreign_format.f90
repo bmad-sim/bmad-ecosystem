@@ -675,6 +675,11 @@ do   ! ix_ele = 1e1, ie2
       bmad_params(:1) = [character(40):: 'l']
       elegant_params(:1) = [character(40):: 'l']
 
+    case (gkicker$)
+      write (line_out, '(2a)') trim(ele%name) // ': malign'
+      bmad_params(:6) = [character(40):: 'x_kick', 'y_kick', 'z_kick', 'px_kick', 'py_kick', 'pz_kick']
+      elegant_params(:6) = [character(40):: 'dx', 'dy', 'dz', 'dxp', 'dyp', 'dp']
+
     case (hkicker$)   ! Elegant
       write (line_out, '(2a)') trim(ele%name) // ': ehkick'
       bmad_params(:6) = [character(40):: 'l', 'kick', 'tilt', 'x_offset', 'y_offset', 'z_offset']

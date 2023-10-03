@@ -209,9 +209,6 @@ variables pertain to the \vn{root} branch.
   particle_start[spin_x]              = <Real>   ! Spin polarization x-coordinate
   particle_start[spin_y]              = <Real>   ! Spin polarization y-coordinate
   particle_start[spin_z]              = <Real>   ! Spin polarization z-coordinate
-  particle_start[spin_dn_dpz_x]       = <Real>   ! Spin dn/dpz x-coordinate
-  particle_start[spin_dn_dpz_y]       = <Real>   ! Spin dn/dpz y-coordinate
-  particle_start[spin_dn_dpz_z]       = <Real>   ! Spin dn/dpz z-coordinate
 \end{example}
 Normally the absolute time, set by \vn{particle_start[t]}, is a dependent
 parameter set by solving \Eq{zbctt} for $t$. The exception is when the
@@ -281,22 +278,26 @@ are the same as \vn{parameter[particle]}.
 For non--circular lattices, the \vn{beginning} statement can be used to set the Twiss parameters and
 beam energy at the beginning of the first lattice branch.
 \begin{example}
-  beginning[alpha_a]   = <Real>  ! "a" mode alpha
-  beginning[alpha_b]   = <Real>  ! "b" mode alpha
-  beginning[beta_a]    = <Real>  ! "a" mode beta
-  beginning[beta_b]    = <Real>  ! "b" mode beta
-  beginning[cmat_ij]   = <Real>  ! C coupling matrix. i, j = \{``1'', or ``2''\} 
-  beginning[mode_flip] = <logic> ! Set the mode flip status (\sref{s:coupling}). Default is False.
-  beginning[e_tot]     = <Real>  ! Reference total energy in eV.
-  beginning[eta_x]     = <Real>  ! x-axis dispersion
-  beginning[eta_y]     = <Real>  ! y-axis dispersion
-  beginning[etap_x]    = <Real>  ! x-axis dispersion derivative.
-  beginning[etap_y]    = <Real>  ! y-axis dispersion derivative.
-  beginning[p0c]       = <Real>  ! Reference momentum in eV.
-  beginning[phi_a]     = <Real>  ! "a" mode phase.
-  beginning[phi_b]     = <Real>  ! "b" mode phase.
-  beginning[ref_time]  = <Real>  ! Starting reference time.
-  beginning[s]         = <Real>  ! Longitudinal starting position.
+  beginning[alpha_a]       = <Real>  ! "a" mode alpha
+  beginning[alpha_b]       = <Real>  ! "b" mode alpha
+  beginning[beta_a]        = <Real>  ! "a" mode beta
+  beginning[beta_b]        = <Real>  ! "b" mode beta
+  beginning[cmat_ij]       = <Real>  ! C coupling matrix. i, j = \{``1'', or ``2''\} 
+  beginning[mode_flip]     = <logic> ! Set the mode flip status (\sref{s:coupling}). Default is False.
+  beginning[e_tot]         = <Real>  ! Reference total energy in eV.
+  beginning[eta_x]         = <Real>  ! x-axis dispersion
+  beginning[eta_y]         = <Real>  ! y-axis dispersion
+  beginning[etap_x]        = <Real>  ! x-axis dispersion derivative.
+  beginning[etap_y]        = <Real>  ! y-axis dispersion derivative.
+  beginning[p0c]           = <Real>  ! Reference momentum in eV.
+  beginning[phi_a]         = <Real>  ! "a" mode phase.
+  beginning[phi_b]         = <Real>  ! "b" mode phase.
+  beginning[ref_time]      = <Real>  ! Starting reference time.
+  beginning[s]             = <Real>  ! Longitudinal starting position.
+  beginning[spin_dn_dpz_x] = <Real>   ! Spin dn/dpz x-coordinate
+  beginning[spin_dn_dpz_y] = <Real>   ! Spin dn/dpz y-coordinate
+  beginning[spin_dn_dpz_z] = <Real>   ! Spin dn/dpz z-coordinate
+
 \end{example}
 \index{e_tot}
 The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma factor) will be kept consistent
