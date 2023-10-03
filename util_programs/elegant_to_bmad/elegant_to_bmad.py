@@ -127,7 +127,7 @@ ele_type_translate = {
   'koct':        'octupole',
   'center':      'patch',
   'energy':      'patch',
-  'malign':      'patch',
+  'malign':      'gkicker',
   'rotate':      'marker', #  [exclude_floor != 0, exclude_optics != 0]
                            # taylor      [exclude_floor != 0, exclude_optics == 0]
                            # floor_shift [exclude_floor == 0, exclude_optics != 0]
@@ -600,9 +600,33 @@ def parse_element(dlist):
 
   for eparam in ele.param:
     ## if eparam in ['dx', 'dy', 'dz'] and 'etilt' in params: continue   # Handled later
-    bparam = bmad_param(eparam, ele.name)
-    if bparam == '?': continue
-    if ele.bmad_type == 'drift' and bparam != 'l': continue
+
+    # Malign -> Gkicker
+
+    if ele.bmad_type == 'malign':
+      if eparam == 'dx': 
+        bparam = 'x_kick'
+      elif eparam == 'dy':
+        bparam = 'y_kick'
+      elif eparam == 'dz':
+        bparam = 'z_kick'
+      elif eparam == 'dxp':
+        bparam = 'px_kick'
+      elif eparam == 'dyp':
+        bparam = 'py_kick'
+      elif eparam == 'dp':
+        bparam = 'pz_kick'
+      else:
+        bparam = '?'
+
+    else:
+      bparam = bmad_param(eparam, ele.name)
+      if bparam == '?': continue
+      if ele.bmad_type == 'drift' and bparam != 'l': continue
+    endif
+
+    #
+
     value = postfix_to_infix(params[eparam])
 
     if bparam == 'phi0':
