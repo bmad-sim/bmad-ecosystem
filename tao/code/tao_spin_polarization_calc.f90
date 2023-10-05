@@ -87,12 +87,13 @@ if (err) return
 if (branch%param%geometry == closed$) then
   tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin_q(0,0))
   n0       = 0
+  s_vec    = [0.0_rp, 0.0_rp, 1.0_rp]
   dn_dpz   = 0
   partial  = 0
   partial2 = 0
-
 else
   n0       = branch%lat%particle_start%spin
+  s_vec    = [0.0_rp, 0.0_rp, 1.0_rp]
   dn_dpz   = branch%ele(0)%value(spin_dn_dpz_x$:spin_dn_dpz_z$)
   partial  = 0 ! Not sure this is computable.
   partial2 = 0
@@ -110,6 +111,7 @@ do ie = 0, branch%n_ele_track
   old_n0       = n0
   old_partial  = partial
   old_partial2 = partial2
+  old_s_vec    = s_vec
 
   ele => branch%ele(ie)
 

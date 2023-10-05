@@ -2335,7 +2335,7 @@ See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are com
 map types.
 
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
-  \begin{itemize}
+\begin{itemize}
 %
 \item
 There can be only one \vn{cartesian_map} field map and there cannot be any other field maps of any
@@ -2349,6 +2349,10 @@ Only magnetic fields may be used.
 %
 \item
 The transverse terms in \vn{r0} must be zero.
+%
+\item
+Since PTC evaluates the vector potential (\sref{s:wiggler.std}), and since \vn{k_z} appears in the
+denominator of some terms, \vn{k_z} must be non-negative for all terms.
   \end{itemize}
 
 %-----------------------------------------------------------------
