@@ -892,6 +892,8 @@ type tao_spin_polarization_struct
   real(rp) :: integral_1ns = real_garbage$             ! Integral of g^3 (1 - 2(n * s_hat)/9)
   real(rp) :: integral_dn2 = real_garbage$             ! Integral of g^3 * 11 (dn/ddelta)^2 / 9
   logical :: valid = .false.
+  type (spin_orbit_map1_struct) :: q_1turn               ! Save results from spin_concat_linear_maps in tao_spin_polarization.
+  type (spin_orbit_map1_struct), allocatable :: q_ele(:) ! Save results from spin_concat_linear_maps in tao_spin_polarization.
 end type
 
 ! For caching lattice calculations associated with plotting.

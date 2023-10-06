@@ -1,5 +1,5 @@
 !+
-! Subroutine spin_concat_linear_maps (map1, branch, n1, n2, q_ele, orbit, excite_zero)
+! Subroutine spin_concat_linear_maps (err_flag, map1, branch, n1, n2, q_ele, orbit, excite_zero)
 !
 ! Routine to concatenate element spin/orbit maps in the range branch%ele(n1+1:n2)
 ! This routine will wrap around the ends of the lattice so n2 may be less than n1.
