@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
+! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic, err_flag)
 !
 ! Routine to calculate the spin equalibrium polarization in a ring along with the polarization rate and
 ! the depolarization rate due to emission of synchrotron radiation photons.
@@ -16,9 +16,10 @@
 !   tao_branch    -- tao_lattice_branch_struct: Calculated is:
 !     %spin%dn_dpz(:) 
 !     %spin
+!   err_flag      -- logical, optional: Set True if there is an error (EG: invalid orbit). False otherwise.
 !-
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
+subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic, err_flag)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
@@ -46,10 +47,13 @@ real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_b
 integer ix1, ix2, n_loc
 integer i, j, k, kk, n, p, ie
 
+logical, optional :: err_flag
 logical valid_value, err
 character(*), optional :: excite_zero(3), ignore_kinetic
 
 !
+
+if (present(err_flag)) err_flag = .true.
 
 g_tol  = 1e-4_rp * branch%param%g1_integral / branch%param%total_length
 g2_tol = 1e-4_rp * branch%param%g2_integral / branch%param%total_length
@@ -66,6 +70,14 @@ integral_dn2_partial2 = 0
 
 !
 
+orbit => tao_branch%orbit
+if (.not. allocated(tao_branch%spin_ele)) allocate (tao_branch%spin_ele(0:branch%n_ele_track))
+tao_branch%spin_ele(:)%valid = .false.
+tao_branch%spin%valid = .false.
+if (branch%param%geometry == closed$ .and. orbit(branch%n_ele_track)%state /= alive$) return
+
+!
+
 call tao_spin_tracking_turn_on()
 
 branch%ele%logic = .true.  ! False => Ignore kinetic term
@@ -77,14 +89,13 @@ if (present(ignore_kinetic)) then
   enddo
 endif
 
-orbit => tao_branch%orbit
-if (.not. allocated(tao_branch%spin_ele)) allocate (tao_branch%spin_ele(0:branch%n_ele_track))
-tao_branch%spin_valid = .true.
+if (.not. tao_branch%spin_map_valid) then
+  call spin_concat_linear_maps (err, q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit, excite_zero)
+  if (err) return
+  tao_branch%spin_map_valid = .true.
+endif
 
-call spin_concat_linear_maps (err, q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit, excite_zero)
-if (err) return
-
-if (branch%param%geometry == closed$) then
+if (branch%param%geometry == closed$) then  
   tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin_q(0,0))
   n0       = 0
   s_vec    = [0.0_rp, 0.0_rp, 1.0_rp]
@@ -97,6 +108,7 @@ else
   dn_dpz   = branch%ele(0)%value(spin_dn_dpz_x$:spin_dn_dpz_z$)
   partial  = 0 ! Not sure this is computable.
   partial2 = 0
+  tao_branch%spin_ele(0)%valid = .true.
   tao_branch%spin_ele(0)%dn_dpz%vec      = dn_dpz
   tao_branch%spin_ele(0)%dn_dpz%partial  = partial
   tao_branch%spin_ele(0)%dn_dpz%partial2 = partial2
@@ -119,6 +131,7 @@ do ie = 0, branch%n_ele_track
     q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
     dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, partial2, err)
     if (err) exit
+    tao_branch%spin_ele(ie)%valid = .true.
     tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
     tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
     tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
@@ -132,9 +145,15 @@ do ie = 0, branch%n_ele_track
     n0       = quat_rotate(q_ele(ie)%spin_q(:,0), n0)
     partial  = 0
     partial2 = 0
+    tao_branch%spin_ele(ie)%valid = .true.
     tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
     tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
     tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
+  endif
+
+  if (orbit(ie)%state /= alive$) then
+    err = .true.
+    exit
   endif
 
   del_p  = 1 + orbit(ie)%vec(6)
@@ -199,6 +218,8 @@ else
   tao_branch%spin%integral_bdn          = integral_bdn
   tao_branch%spin%integral_1ns          = integral_1ns
   tao_branch%spin%integral_dn2          = integral_dn2
+  tao_branch%spin%valid = .true.
+  if (present(err_flag)) err_flag = .false.
 endif
 
 !--------------------------------------
