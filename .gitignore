@@ -1,18 +1,18 @@
 *~
-PGPLOT/*
-fftw/*
-fftw/*
-fgsl/*
-gsl/*
-hdf5/* 
-lapack/*  
-lapack95/*  
-open_spacecharge/*
-openmpi/*
-plplot/*
-xraylib/*
-gnu_utilities_src/*
-packages/*
+PGPLOT
+fftw
+fftw
+fgsl
+gsl
+hdf5 
+lapack  
+lapack95  
+open_spacecharge
+openmpi
+plplot
+xraylib
+gnu_utilities_src
+packages
 
 # Jupyter notebooks
 .ipynb_checkpoints
