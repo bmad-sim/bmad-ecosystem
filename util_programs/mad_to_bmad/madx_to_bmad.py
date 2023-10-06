@@ -148,7 +148,7 @@ ele_type_translate = {
 }
 
 ignore_madx_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'thick', 'add_angle', 'assembly_id', 
-                     'mech_sep', 'betrf', 'tfill', 'shunt', 'pg']
+                     'mech_sep', 'betrf', 'tfill', 'shunt', 'pg', 'model']
 ignore_madx_ele_param = {}
 ignore_madx_ele_param['beambeam'] = ['particle', 'pc']
 
@@ -543,7 +543,8 @@ def parse_and_write_element(dlist, write_to_file, command):
     if 'kill_ent_fringe' in params: kill_ent = (params['kill_ent_fringe'] == 'true')
     if 'kill_exi_fringe' in params: kill_exi = (params['kill_exi_fringe'] == 'true')
     if 'k0' in params: params['dg'] = params.pop('k0')
-    if 'k0s' in params and 'l' in params: params['a0'] = params.pop('k0s') + ' * ' + params['l']
+    if 'k0s' in params: params['a0'] = params.pop('k0s') + ' * ' + ele.name + '[angle]'
+    if 'ktap' in params: params['dg'] = params.pop('ktap') + ' * ' + ele.name + '[angle] / ' + ele.name + '[l]'
 
     if kill_ent and kill_exi:
       params['fringe_at'] = 'no_end'
@@ -567,6 +568,8 @@ def parse_and_write_element(dlist, write_to_file, command):
         params['tilt'] = '-pi/4'
       params.pop('k1s')
 
+    if 'ktap' in params: params['k1'] = ele.name + '[k1] * (1 + ' + params.pop('ktap') + ')' 
+
   elif ele.madx_base_type == 'sextupole':
     if 'k2' in params and 'k2s' in params:
       if 'tilt' in params:
@@ -581,6 +584,8 @@ def parse_and_write_element(dlist, write_to_file, command):
       else:
         params['tilt'] = '-pi/6'
       params.pop('k2s')
+
+    if 'ktap' in params: params['k2'] = ele.name + '[k2] * (1 + ' + params.pop('ktap') + ')' 
 
 
   elif ele.madx_base_type == 'octupole':
