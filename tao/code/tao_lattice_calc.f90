@@ -106,7 +106,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       tao_branch => tao_lat%tao_branch(ib)
       tao_branch%spin_map_valid = .false.
       tao_branch%spin%valid = .false.
-      tao_branch%spin_ele(:)%valid = .false.
+      if (allocated(tao_branch%spin_ele)) tao_branch%spin_ele(:)%valid = .false.
 
       u%model%tao_branch(:)%plot_cache_valid = .false.
       u%design%tao_branch(:)%plot_cache_valid = .false.
