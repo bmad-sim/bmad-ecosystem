@@ -922,12 +922,13 @@ subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele, excite_zero)
   character(*), optional :: excite_zero(3)
 end subroutine
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
+subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic, err_flag)
   import
   implicit none
   type (branch_struct), target :: branch
   type (tao_lattice_branch_struct), target :: tao_branch
   character(*), optional :: excite_zero(3), ignore_kinetic
+  logical, optional :: err_flag
 end subroutine
 
 function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)

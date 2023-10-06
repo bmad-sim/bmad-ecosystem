@@ -280,6 +280,7 @@ type spin_matching_struct
   real(rp) :: M_1turn(8,8) = 0      ! 1-turn matrix
   real(rp) :: M_ele(8,8) = 0        ! Transfer matrix through element.
   real(rp) :: sq_ele(0:3) = 0, sq_1turn(0:3) = 0
+  logical :: valid = .false.
 end type
 
 ! Note: Polarization is not 1 when the spin_polar struct represents an ensamble of spins.

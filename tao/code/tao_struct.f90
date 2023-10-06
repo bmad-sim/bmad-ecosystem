@@ -871,9 +871,10 @@ end type
 
 type tao_spin_ele_struct
   type (tao_spin_dn_dpz_struct) dn_dpz
-  real(rp) orb_eigen_val(6)
-  real(rp) orb_eigen_vec(6,6)             ! (j,:) is j^th vector
-  real(rp) spin_eigen_vec(6,3)            ! (j,:) is j^th vector
+  real(rp) :: orb_eigen_val(6) = 0
+  real(rp) :: orb_eigen_vec(6,6) = 0            ! (j,:) is j^th vector
+  real(rp) :: spin_eigen_vec(6,3) = 0           ! (j,:) is j^th vector
+  logical :: valid = .false.
 end type
 
 type tao_spin_polarization_struct
@@ -890,6 +891,7 @@ type tao_spin_polarization_struct
   real(rp) :: integral_bdn = real_garbage$             ! Integral of g^3 * b_hat * dn/ddelta
   real(rp) :: integral_1ns = real_garbage$             ! Integral of g^3 (1 - 2(n * s_hat)/9)
   real(rp) :: integral_dn2 = real_garbage$             ! Integral of g^3 * 11 (dn/ddelta)^2 / 9
+  logical :: valid = .false.
 end type
 
 ! For caching lattice calculations associated with plotting.
@@ -929,7 +931,7 @@ type tao_lattice_branch_struct
   integer :: n_hterms = 0                                     ! Number of distinct res driving terms to evaluate.
   logical has_open_match_element
   logical :: plot_cache_valid = .false.                       ! Valid plotting data cache?
-  logical :: spin_valid = .false.
+  logical :: spin_map_valid = .false.
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in

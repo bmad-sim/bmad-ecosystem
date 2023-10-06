@@ -498,7 +498,7 @@ character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(100) data_type, str
 character(:), allocatable :: e_str
 
-logical found, valid_value, err, taylor_is_complex, use_real_part, term_found
+logical found, valid_value, err, taylor_is_complex, use_real_part, term_found, ok
 logical particle_lost, exterminate, printit
 logical, allocatable :: good(:)
 
@@ -3027,8 +3027,8 @@ case ('spin.')
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     
   case ('spin.depolarization_rate', 'spin.polarization_rate', 'spin.polarization_limit')
-    if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch)
-    valid_value = tao_branch%spin_valid
+    if (.not. tao_branch%spin%valid) call tao_spin_polarization_calc(branch, tao_branch, err_flag = err)
+    valid_value = tao_branch%spin%valid
 
     if (.not. valid_value) then
       call tao_set_invalid (datum, 'ERROR IN SPIN POLARIZAITON CALC.', why_invalid, .false.)
@@ -3060,8 +3060,11 @@ case ('spin_dn_dpz.')
     return
   endif
 
-  if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch)
-  valid_value = tao_branch%spin_valid
+  call tao_spin_polarization_calc(branch, tao_branch)
+
+  valid_value = (tao_branch%spin_ele(ix_start)%valid .and. tao_branch%spin_ele(ix_ele)%valid)
+  if (ix_ref > -1) valid_value = (valid_value .and. tao_branch%spin_ele(ix_ref)%valid)
+
   if (.not. valid_value) then
      call tao_set_invalid (datum, 'ERROR IN SPIN POLARIZAITON CALC.', why_invalid, .false.)
      return
