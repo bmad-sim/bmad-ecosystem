@@ -141,7 +141,7 @@ if (present(old_slice) .and. .not. rad_map_stale .and. .not. include_upstream_en
     (ele_in%tracking_method == bmad_standard$ .or. ele_in%field_calc == bmad_standard$)) then
   select case (ele_in%key)
   case (sbend$, quadrupole$, sextupole$, octupole$)
-    sliced_ele%rad_map%stale = .false.
+    if (associated(sliced_ele%rad_map)) sliced_ele%rad_map%stale = .false.
   end select
 endif  
 
