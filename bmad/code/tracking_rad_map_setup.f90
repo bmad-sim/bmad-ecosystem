@@ -43,7 +43,8 @@ orb0 = ele%map_ref_orb_in
 orb1 = ele%map_ref_orb_out
 
 rad_map = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
-if (orb0%vec(2) == orb1%vec(2) .and. orb0%vec(4) == orb1%vec(4) .and. ele%key /= sbend$ .and. ele%key /= rf_bend$) return
+if (orb0%vec(2) == orb1%vec(2) .and. orb0%vec(4) == orb1%vec(4) .and. &
+      ele%key /= sbend$ .and. ele%key /= rf_bend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$) return
 
 !
 
