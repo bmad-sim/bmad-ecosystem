@@ -353,8 +353,8 @@ logical include_opening_angle, save_orb_mat
 rad_map = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
 rad_map%ref_orb = orb_out%vec
 
-if (ele%value(l$) == 0 .or. (orb_out%vec(2) == orb_in%vec(2) .and. &
-            orb_out%vec(4) == orb_in%vec(4) .and. ele%key /= sbend$ .and. ele%key /= rf_bend$)) return
+if (ele%value(l$) == 0 .or. (orb_out%vec(2) == orb_in%vec(2) .and. orb_out%vec(4) == orb_in%vec(4) .and. &
+       ele%key /= sbend$ .and. ele%key /= rf_bend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$)) return
 
 !
 
