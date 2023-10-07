@@ -58,7 +58,7 @@ use tao_data_and_eval_mod, only: tao_evaluate_expression
 use tao_dmerit_mod, only: tao_dmodel_dvar_calc
 use tao_input_struct, only: tao_ele_shape_input, tao_ele_shape_input_to_struct
 use opti_de_mod, only: opti_de_param
-
+use rad_6d_mod, only: emit_6d
 
 implicit none
 
@@ -6311,7 +6311,7 @@ case ('ring_general')
                                                   pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
   call calc_z_tune(branch)
   call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
-
+  call emit_6d(branch%ele(0), .true., tao_branch%modes_ri, mat6)
   n = branch%n_ele_track
   time1 = branch%ele(n)%ref_time
   gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
@@ -6323,20 +6323,20 @@ case ('ring_general')
   nl=incr(nl); write (li(nl), rmt) 'Q_spin;REAL;F;',                            branch%param%spin_tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'chrom_a;REAL;F;',                           tao_branch%a%chrom
   nl=incr(nl); write (li(nl), rmt) 'chrom_b;REAL;F;',                           tao_branch%b%chrom
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes_ri%a%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes_ri%b%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes_ri%z%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'emit_a;REAL;F;',                            tao_branch%modes_ri%a%emittance
-  nl=incr(nl); write (li(nl), rmt) 'emit_b;REAL;F;',                            tao_branch%modes_ri%b%emittance
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_a;REAL;F;',                      tao_branch%modes_ri%a%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_b;REAL;F;',                      tao_branch%modes_ri%b%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_z;REAL;F;',                      tao_branch%modes_ri%z%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_a;REAL;F;',                    time1/tao_branch%modes_ri%a%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_b;REAL;F;',                    time1/tao_branch%modes_ri%b%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_z;REAL;F;',                    time1/tao_branch%modes_ri%z%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'sigE_E;REAL;F;',                            tao_branch%modes_ri%sigE_E
-  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;F;',                             tao_branch%modes_ri%sig_z
-  nl=incr(nl); write (li(nl), rmt) 'energy_loss;REAL;F;',                       tao_branch%modes_ri%e_loss
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes_6d%a%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes_6d%b%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes_6d%z%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'emit_a;REAL;F;',                            tao_branch%modes_6d%a%emittance
+  nl=incr(nl); write (li(nl), rmt) 'emit_b;REAL;F;',                            tao_branch%modes_6d%b%emittance
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_a;REAL;F;',                      tao_branch%modes_6d%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_b;REAL;F;',                      tao_branch%modes_6d%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_z;REAL;F;',                      tao_branch%modes_6d%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_a;REAL;F;',                    time1/tao_branch%modes_6d%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_b;REAL;F;',                    time1/tao_branch%modes_6d%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_z;REAL;F;',                    time1/tao_branch%modes_6d%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'sigE_E;REAL;F;',                            tao_branch%modes_6d%sigE_E
+  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;F;',                             tao_branch%modes_6d%sig_z
+  nl=incr(nl); write (li(nl), rmt) 'energy_loss;REAL;F;',                       tao_branch%modes_6d%e_loss
   nl=incr(nl); write (li(nl), rmt) 'I0;REAL;F;',                                tao_branch%modes_ri%synch_int(0)
   nl=incr(nl); write (li(nl), rmt) 'I1;REAL;F;',                                tao_branch%modes_ri%synch_int(1)
   nl=incr(nl); write (li(nl), rmt) 'I2;REAL;F;',                                tao_branch%modes_ri%synch_int(2)
