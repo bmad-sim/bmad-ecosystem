@@ -178,7 +178,7 @@ endif
 
 if (branch%param%particle /= photon$ .and. s%global%rad_int_calc_on .and. tao_branch%track_state == moving_forward$ .and. &
             (s%com%force_rad_int_calc .or. u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
-  call emit_6d(branch%ele(0), .true., tao_branch%modes_ri, sigma)
+  call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit)
 endif
 
 end subroutine tao_single_track

@@ -5641,8 +5641,8 @@ case ('universe')
   if (lat%param%geometry == closed$) then
     u%model%high_e_lat = u%model%lat
     ele2 => u%model%high_e_lat%branch(ix_branch)%ele(0)
-    call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat)
-    call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat)
+    call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat, tao_branch%orbit)
+    call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat, tao_branch%orbit)
     if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
                                            (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
       call out_io (s_info$, r_name, &
