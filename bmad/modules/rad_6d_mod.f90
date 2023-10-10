@@ -19,7 +19,7 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat)
+! Subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat, closed_orbit)
 !
 ! Routine to calculate the three normal mode emittances, damping partition numbers, etc. 
 ! Since the emattances, etc. are only an invariant in the limit of zero damping, the calculated
@@ -29,13 +29,14 @@ contains
 !   ele_ref               -- ele_struct: Origin of the 1-turn maps used to evaluate the emittances.
 !   include_opening_angle -- logical: If True include the effect of the vertical opening angle of emitted radiation.
 !                             Generally use True unless comparing against other codes.
+!   closed_orbit(0:)      -- coord_struct, optional: Closed orbit. If not present this routine will calculate it.
 !
 ! Output:
 !   mode            -- normal_modes_struct: Emittance and other info.
 !   sigma_mat(6,6)  -- real(rp): Sigma matrix
 !-
 
-subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat)
+subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat, closed_orbit)
 
 use f95_lapack, only: dgesv_f95
 
@@ -45,6 +46,7 @@ type (coord_struct) orbit
 type (branch_struct), pointer :: branch
 type (normal_modes_struct) mode
 type (rad_map_struct) rmap
+type (coord_struct), optional, target :: closed_orbit(0:)
 
 real(rp) sigma_mat(6,6), rf65, sig_s(6,6), mat6(6,6), xfer_nodamp_mat(6,6)
 real(rp) mt(21,21), v_sig(21,1)
@@ -66,7 +68,7 @@ logical include_opening_angle, err, rf_off
 mode = normal_modes_struct()
 sigma_mat = 0
 
-call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat, err)
+call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat, err, closed_orbit)
 if (err) return
 
 ! If there is no RF then add a small amount to enable the calculation to proceed.
@@ -171,7 +173,7 @@ end subroutine emit_6d
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat)
+! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, closed_orbit)
 !
 ! Routine to calculate the damping and stochastic variance matrices from exit end of ele1
 ! to the exit end of ele2. Use ele1 = ele2 to get 1-turn matrices.
@@ -187,6 +189,7 @@ end subroutine emit_6d
 !   ele2                  -- ele_struct: End element of integration range.
 !   include_opening_angle -- logical: If True include the effect of the vertical opening angle of emitted radiation.
 !                             Generally use True unless comparing against other codes.
+!   closed_orbit(0:)      -- coord_struct, optional: Closed orbit. If not present this routine will calculate it.
 !
 ! Output:
 !   rmap                  -- rad_map_struct: Damping and stochastic mats 
@@ -198,7 +201,7 @@ end subroutine emit_6d
 !   err_flag              -- logical: Set true if there is a problem.
 !-
 
-subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, err_flag)
+subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, err_flag, closed_orbit)
 
 type (ele_struct), allocatable :: eles_save(:)
 type (ele_struct), target :: ele1, ele2
@@ -208,7 +211,9 @@ type (normal_modes_struct) mode
 type (branch_struct), pointer :: branch
 type (bmad_common_struct) bmad_com_save
 type (rad_map_struct), allocatable :: rm1(:)
-type (coord_struct), allocatable :: closed_orb(:)
+type (coord_struct), optional, target :: closed_orbit(0:)
+type (coord_struct), pointer :: closed_orb(:)
+type (coord_struct), allocatable, target :: closed(:)
 
 real(rp) sig_mat(6,6), mt(6,6), xfer_nodamp_mat(6,6), tol, length
 integer ie
@@ -232,12 +237,17 @@ bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%spin_tracking_on = .false.
 
-if (rf_is_on(branch)) then
+if (present(closed_orbit)) then
+  closed_orb => closed_orbit
+  err_flag = .false.
+elseif (rf_is_on(branch)) then
   bmad_com%radiation_damping_on = .true.
-  call closed_orbit_calc(branch%lat, closed_orb, 6, +1, branch%ix_branch, err_flag)
+  call closed_orbit_calc(branch%lat, closed, 6, +1, branch%ix_branch, err_flag)
+  closed_orb => closed
 else
   bmad_com%radiation_damping_on = .false.
-  call closed_orbit_calc(branch%lat, closed_orb, 4, +1, branch%ix_branch, err_flag)
+  call closed_orbit_calc(branch%lat, closed, 4, +1, branch%ix_branch, err_flag)
+  closed_orb => closed
 endif
 
 bmad_com = bmad_com_save
@@ -248,8 +258,10 @@ if (err_flag) then
   goto 9000
 endif
 
-call lat_make_mat6 (ele1_track%branch%lat, -1, closed_orb, branch%ix_branch, err_flag)
-if (err_flag) goto 9000  ! Restore and return
+if (.not. present(closed_orbit)) then
+  call lat_make_mat6 (ele1_track%branch%lat, -1, closed_orb, branch%ix_branch, err_flag)
+  if (err_flag) goto 9000  ! Restore and return
+endif
 
 ! Calculate element-by-element damping and stochastic mats.
 

@@ -6311,7 +6311,7 @@ case ('ring_general')
                                                   pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
   call calc_z_tune(branch)
   call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
-  call emit_6d(branch%ele(0), .true., tao_branch%modes_ri, mat6)
+  call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, mat6, tao_branch%orbit)
   n = branch%n_ele_track
   time1 = branch%ele(n)%ref_time
   gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
