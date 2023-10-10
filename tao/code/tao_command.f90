@@ -345,8 +345,6 @@ case ('cut_ring')
   u%model%lat%particle_start%vec = 0
   call tao_lattice_calc (ok)
 
-  return
-
 !--------------------------------
 ! DERIVATIVE
 
