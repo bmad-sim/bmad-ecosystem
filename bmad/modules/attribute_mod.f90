@@ -1405,14 +1405,14 @@ call init_attribute_name1 (crab_cavity$, cartesian_map$,            'CARTESIAN_M
 call init_attribute_name1 (crab_cavity$, cylindrical_map$,          'CYLINDRICAL_MAP')
 call init_attribute_name1 (crab_cavity$, gen_grad_map$,             'GEN_GRAD_MAP')
 call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD')
-call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
+call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT')
 call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
 call init_attribute_name1 (crab_cavity$, rf_wavelength$,            'RF_WAVELENGTH', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_clock_harmonic$,        'rf_clock_harminic', private$)
-call init_attribute_name1 (crab_cavity$, field_autoscale$,          'FIELD_AUTOSCALE', private$)  ! Not yet used
-call init_attribute_name1 (crab_cavity$, phi0_autoscale$,           'PHI0_AUTOSCALE', private$)  ! Not yet used
+call init_attribute_name1 (crab_cavity$, field_autoscale$,          'FIELD_AUTOSCALE', private$)      ! Not yet used
+call init_attribute_name1 (crab_cavity$, phi0_autoscale$,           'PHI0_AUTOSCALE', private$)       ! Not yet used
 call init_attribute_name1 (crab_cavity$, autoscale_amplitude$,      'AUTOSCALE_AMPLITUDE', private$)  ! Not yet used
-call init_attribute_name1 (crab_cavity$, autoscale_phase$,          'AUTOSCALE_PHASE', private$)  ! Not yet used
+call init_attribute_name1 (crab_cavity$, autoscale_phase$,          'AUTOSCALE_PHASE', private$)      ! Not yet used
 call init_attribute_name1 (crab_cavity$, field_master$,             'FIELD_MASTER')
 
 call init_attribute_name1 (rfcavity$, longitudinal_mode$,           'LONGITUDINAL_MODE')
