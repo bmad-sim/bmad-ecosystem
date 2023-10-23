@@ -42,7 +42,7 @@ jobs:
         # add macOS - check if GH Actions can make intel and arm
         os: [ubuntu-latest]
         shared: ["Y"]
-        ## openmp_mpi: ["N", "Y"]
+        openmp_mpi: ["N", "Y"]
 
     steps:
       # Check out the code from GitHub
@@ -74,7 +74,7 @@ jobs:
       #
       - name: Build
         env:
-          ### USE_MPI: ${{ matrix.openmp_mpi }}
+          USE_MPI: ${{ matrix.openmp_mpi }}
           SHARED: ${{ matrix.shared }}
         run: .github/scripts/install_bmad.sh
 
