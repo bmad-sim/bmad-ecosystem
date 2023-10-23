@@ -12,9 +12,9 @@ particle_start[spin_y] = 2
 particle_start[spin_z] = 3
 
 q: quadrupole, l = 0
-s: sample, x_offset = 1, y_offset = 2, x_pitch = 4, y_pitch = 5, tilt = 6, z_offset = 7, l = 2
+s: sample, x_offset = 1, y_offset = 2, x_pitch = 0.4, y_pitch = 0.5, tilt = 6, z_offset = 7, l = 2
 m: mirror, graze_angle = pi/2, &
-        x_offset = 2, y_offset = 2, x_pitch = 4, y_pitch = 5, tilt = 6, z_offset = 7, x_limit = 0.1, y_limit = 0.1
+        x_offset = 2, y_offset = 2, x_pitch = 0.4, y_pitch = 0.5, tilt = 6, z_offset = 7, x_limit = 0.1, y_limit = 0.1
 !!m2: mirror, graze_angle = pi/4, tilt = pi/2
 m2: mirror, graze_angle = pi/4!, tilt = pi/2
 

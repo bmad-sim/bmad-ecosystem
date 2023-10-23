@@ -322,7 +322,7 @@ The ASCII file format is:
   [bunch loop: ib = 1 to n_bunch]
     BEGIN_BUNCH    ! Marker to mark the beginning of a bunch specification block.
     <species_name> ! Species of particle
-    <bunch_charge> ! Charge of bunch. 0 => Use <macro_charge>.
+    <charge_tot>   ! Total charge of bunch (alive + dead). 0 => Use <macro_charge>.
     <z_center>     ! z position at center of bunch.
     <t_center>     ! t position at center of bunch.
     [particle loop: Stop when END_BUNCH marker found]
@@ -338,7 +338,7 @@ Example:
   25000   ! n_particle
   BEGIN_BUNCH
     POSITRON
-    3.2E-9   ! bunch_charge
+    3.2E-9   ! charge_tot
     0.0      ! z_center
     0.0      ! t_center
    -6.5E-3  9.6E-3 -1.9E-2  8.8E-3  2.2E-2 -2.4E-2  1.2E-13  1 1.0 0.0 0.0
@@ -366,7 +366,7 @@ overridden by a non-zero setting of \vn{beam_init%n_particle}.
 After this, there are \vn{<n_bunch>} blocks of data, one for each bunch. Each one of these blocks
 starts with a \vn{BEGIN_BUNCH} line to mark the beginning of the block and ends with a
 \vn{END_BUNCH} marker line. In between, the first four lines give the \vn{<species_name>} name,
-\vn{<bunch_charge>}, \vn{<z_center>}, and \vn{<t_center>} values. The \vn{<species_name>} name may
+\vn{<charge_tot>}, \vn{<z_center>}, and \vn{<t_center>} values. The \vn{<species_name>} name may
 be one of:
 \begin{example}
   positron  ! default
@@ -381,7 +381,7 @@ be one of:
 The lines following the \vn{<t_center>} line specify particle coordinates. One line for each
 particle.  Only the first six numbers, which are the phase space coordinates, need to be specified
 for each particle. If the \vn{<macro_charge>} column is not present, or is zero, it defaults to
-\vn{<bunch_charge>/<n_particle>}.
+\vn{<charge_tot>/<n_particle>}.
 
 The \vn{<state>} parameter indicates whether a particle is alive or dead. Values are
 \begin{example}
@@ -394,9 +394,9 @@ an electron gun (\sref{s:sc.fft}).
 
 The particle spin is specified by $x$, $y$ and $z$ components.
 
-Each particle has an associated \vn{<macro_charge>}. If \vn{<bunch_charge>} is set to a non-zero
+Each particle has an associated \vn{<macro_charge>}. If \vn{<charge_tot>} is set to a non-zero
 value, the charge of all the particles will be scaled by a factor to make the total macro charge
-equal to \vn{<bunch_charge>}. The macro charge is ignored in tracking. The charge of the particle
+equal to \vn{<charge_tot>}. The macro charge is ignored in tracking. The charge of the particle
 used in tracking is the charge as calculated for the particle species. On the other hand, the macro
 charge is used to calculate such things as the total charge in a particular region or the field
 produced by a particle. That is, the macro charge acts as a weighting factor for a particle when the

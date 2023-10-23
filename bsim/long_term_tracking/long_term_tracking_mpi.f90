@@ -11,12 +11,13 @@ type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam, beam2
 type (bunch_struct), pointer :: bunch
 type (coord_struct) orb
+type (coord_struct), pointer :: particle
 
 real(rp) particles_per_thread, now_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size, ix_stage
-integer ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot, seed
+integer ip, ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot, seed
 integer, allocatable :: ix_stop_turn(:), ixp_slave(:)
 
 integer, parameter :: base_tag$  = 1000
@@ -129,7 +130,7 @@ case ('BEAM')
 case ('INDIVIDUAL')
   if (.not. ltt_com%using_mpi) then
     print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
-    call ltt_run_individual_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam)
+    call ltt_run_individual_mode(lttp, ltt_com)
     stop
   endif
 
@@ -164,22 +165,27 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
         if (all(slave_working)) then
           slave_rank = MPI_ANY_SOURCE
           call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for data.')
-          call mpi_recv (orbit, dat_size, MPI_BYTE, slave_rank, base_tag$+3, MPI_COMM_WORLD, stat, ierr)
+          call mpi_recv (orb, dat_size, MPI_BYTE, slave_rank, base_tag$+3, MPI_COMM_WORLD, stat, ierr)
           if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
           slave_rank = stat(MPI_SOURCE)  ! Slave rank
           nn = ixp_slave(slave_rank)
-          beam%bunch(ib)%particle(nn) = orbit
+          beam%bunch(ib)%particle(nn) = orb
           slave_working(slave_rank) = .false.
           call ltt_print_mpi_info (lttp, ltt_com, 'Master: Got data from slave: ' // int_str(slave_rank))
         endif
 
-        ix = findloc(slave_working, .false.)
-        call ltt_print_mpi_info (lttp, ltt_com, 'Master: Tell slave ' // int_str(ix)) // ' to be ready to track using Slave')
+        do ix = 1, num_slaves
+          if (.not. slave_working(ix)) exit
+        enddo
+
+        call ltt_print_mpi_info (lttp, ltt_com, 'Master: Tell slave ' // int_str(ix) // ' to be ready to track using Slave')
         call mpi_send (1, 1, MPI_INTEGER, ix, base_tag$+1, MPI_COMM_WORLD, ierr)
         if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR #2!', .true.)             ! Tell slave more tracking needed.
+
         call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting particle ' // int_str(ip) // ' using Slave: ' // int_str(ix))
         call mpi_send (particle, dat_size, MPI_BYTE, ix, base_tag$+2, MPI_COMM_WORLD, ierr)
         if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR #3!', .true.)
+
         ixp_slave(ix) = ip
         slave_working(ix) = .true.
       enddo
@@ -190,11 +196,11 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Finished broadcasting particle runs. Now collecting final data.')
     do
       if (all(.not. slave_working)) exit
-      call mpi_recv (orbit, dat_size, MPI_BYTE, slave_rank, base_tag$+3, MPI_COMM_WORLD, stat, ierr)
+      call mpi_recv (orb, dat_size, MPI_BYTE, slave_rank, base_tag$+3, MPI_COMM_WORLD, stat, ierr)
       if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
       slave_rank = stat(MPI_SOURCE)  ! Slave rank
       nn = ixp_slave(slave_rank)
-      beam%bunch(ib)%particle(nn) = orbit
+      beam%bunch(ib)%particle(nn) = orb
       slave_working(slave_rank) = .false.
     enddo
 

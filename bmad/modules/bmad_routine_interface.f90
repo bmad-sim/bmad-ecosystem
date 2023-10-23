@@ -1875,11 +1875,12 @@ subroutine reallocate_beam (beam, n_bunch, n_particle, save)
   logical, optional :: save
 end subroutine
 
-subroutine reallocate_bunch (bunch, n_particle)
+subroutine reallocate_bunch (bunch, n_particle, save)
   import
   implicit none
   type (bunch_struct) bunch
   integer n_particle
+  logical, optional :: save
 end subroutine
 
 function relative_mode_flip (ele1, ele2)

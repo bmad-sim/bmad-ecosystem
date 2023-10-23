@@ -982,9 +982,7 @@ do ib = 1, size(beam%bunch)
   enddo
 enddo
 
-if (.not. ltt_com%using_mpi) then
-  call ltt_write_particle_data (lttp, ltt_com, 0, beam)
-endif
+call ltt_write_particle_data (lttp, ltt_com, 0, beam)
 
 end subroutine
 

@@ -267,6 +267,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    if (has_attribute(ele, 'X_PITCH_TOT')) then
+      if (abs(ele%value(x_pitch_tot$)) + abs(ele%value(y_pitch_tot$)) > 0.5*pi) then
+        call out_io (s_fatal$, r_name, &
+              'HAVING |X_PITCH_TOT| + |Y_PITCH_TOT| > PI/2 FOR AN ELEMENT (' // trim(ele%name) // ') DOES NOT MAKE SENSE ', &
+              'SINCE PARTICLES WILL NOT BE MOVING IN THE RIGHT DIRECTION WITHIN THE ELEMENT.')
+        err_flag = .true.
+      endif
+    endif
+
     ! Do not check the extra elements temporarily inserted by bmad_parser2.
 
     select case (ele%key)
