@@ -166,7 +166,7 @@ else
       ix = ix - ja * num_b * num_z
       jb = ix / num_z
       jz = ix - jb * num_z
-      call ts_track_particle (ts, ts_com, ja, jb, jz, dat_arr(i))
+      call ts_track_particle (ts, ts_com, [ja, jb, jz], dat_arr(i))
       call ts_print_mpi_info (ts, ts_com, 'Slave: Tracked particle at index: ' // &
                                     int_str(ja) // ', ' // int_str(jb) // ', ' // int_str(jz))
     enddo

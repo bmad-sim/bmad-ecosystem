@@ -72,7 +72,7 @@ do ib = 1, size(beam%bunch)
   bunch => beam%bunch(ib)
   write (iu, *) 'BEGIN_BUNCH'
   write (iu, *) '  ', trim(species_name(bunch%particle(1)%species))
-  write (iu, *) bunch%charge_tot, '  ! bunch_charge_tot'
+  write (iu, *) bunch%charge_tot, '  ! charge_tot'
   write (iu, *) bunch%z_center,   '  ! z_center'
   write (iu, *) bunch%t_center,   '  ! t_center'
   do ip = 1, size(bunch%particle)
@@ -97,7 +97,7 @@ end subroutine write_beam_file
 ! If non_zero, the following components of beam_init are used to rescale the beam:
 !     %n_bunch
 !     %n_particle
-!     %bunch_charge
+!     %charge_tot
 !
 ! If the beam file has '.h5' or '.hdf5' suffix then the file is taken to be an HDF5 file.
 ! Otherwise the file is assumed to be ASCII.
@@ -128,7 +128,7 @@ type (pmd_header_struct) :: pmd_header
 integer i, j, k, n, np, ix, iu, ix_word, ios, ix_ele, species
 integer n_bunch, n_particle, n_particle_lines, ix_lost
 
-real(rp) vec(6), sum_charge, bunch_charge
+real(rp) vec(6), sum_charge, charge_tot
 complex(rp) spinor(2)
 
 character(*) file_name
@@ -554,7 +554,7 @@ end subroutine read_beam_file
 ! If non_zero, the following components of beam_init are used to rescale the beam:
 !     %n_bunch
 !     %n_particle
-!     %bunch_charge
+!     %charge_tot
 !
 ! If the beam file has '.h5' or '.hdf5' suffix then the file is taken to be an HDF5 file.
 ! Otherwise the file is assumed to be ASCII.
@@ -579,58 +579,132 @@ type (beam_init_struct) beam_init
 type (ele_struct), optional :: ele
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
+type (coord_struct) p0
 
-real(rp) bunch_charge, z_center, t_center
+real(rp) charge_tot, z_center, t_center
 
 integer iu, ip, ix, ios, n_particle, n_bunch
 
 character(*) file_name
 character(*), parameter :: r_name = 'read_beam_ascii4'
-character(200) cols, line
+character(200) cols, line, str
 
-logical err_flag
+logical err_flag, err
 logical, optional :: print_mom_shift_warning, conserve_momentum
 
 !
 
-
-cols = ''
 n_bunch = 0
+err_flag = .true.
+err = .false.
+
+! bunch loop
 do
+  n_bunch = n_bunch + 1
+  call reallocate_beam(beam, n_bunch, save = .true.)
+  call reallocate_bunch(beam%bunch(n_bunch), 1000)
+  bunch => beam%bunch(n_bunch)
+
+  cols = ''
+  p0 = coord_struct()
+
+  ! Read bunch header
   do
     read (iu, '(a)', iostat = ios) line
     if (line(1:1) /= '#') exit
     call string_trim(line(2:), line, ix)
 
     select case (line(:ix))
-    case ('n_bunch');       n_bunch      = nint(read_param(line))
-    case ('n_particle');    n_particle   = nint(read_param(line))
-    case ('bunch_charge');  bunch_charge = read_param(line)
-    case ('z_center');      z_center     = read_param(line)
-    case ('t_center');      t_center     = read_param(line)
-    case ('columns');       cols         = read_string(line)
+    case ('charge_tot');  bunch%charge_tot   = read_param(line)
+    case ('z_center');    bunch%z_center     = read_param(line)
+    case ('t_center');    bunch%t_center     = read_param(line)
+
+    case ('columns');     cols               = read_string(line)
+
+    case ('species')
+      str = read_string(line)
+      p0%species = species_id(str, positron$)
+
+    case ('location')
+      str = read_string(line)
+      call match_word(str, location_name(1:), p0%location)
+      if (p0%location <= 0) then
+        call out_io (s_error$, r_name, 'LOCATION NAME NOT RECOGNIZED: ' // str)
+        return
+      endif
+
+    case ('state')
+      str = read_string(line)
+      call match_word(str, state_name, p0%state)
+      if (p0%state <= 0) then
+        call out_io (s_error$, r_name, 'PARTICLE STATE NAME NOT RECOGNIZED: ' // str)
+        return
+      endif
+      p0%state = p0%state - 1   ! Since state_name is zero based.
+
+    case ('s_position');  p0%s           = read_param(line)
+    case ('time');        p0%t           = read_param(line)
+    case ('p0c');         p0%p0c         = read_param(line)
+    case ('charge');      p0%charge      = read_param(line)
+    case ('time_dir');    p0%time_dir    = nint(read_param(line))
+    case ('direction');   p0%direction   = nint(read_param(line))
+    case ('ix_ele');      p0%ix_ele      = nint(read_param(line))
+    case ('ix_branch');   p0%ix_branch   = nint(read_param(line))
     end select
   enddo
 
-  call reallocate_beam(beam, n_bunch, n_particle)
+  ! Read particle info
+  backspace(unit = iu)
 
-  do ip = 1, n_particle
-    p => beam%bunch(ip)%particle(ip)
-    read (iu, *, iostat = ios, err = 9000) p%vec, p%p0c
+  ip = 0
+  do 
+    read (iu, '(a)', iostat = ios, end = 8000) line
+    if (line == '') cycle
+    if (line(1:1) == '#') exit
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'CANNOT READ BEAM FILE: ' // file_name)
+      return
+    endif
+
+    ip = ip + 1
+    if (ip > size(bunch%particle)) call reallocate_bunch (bunch, 2*ip, .true.)
+
+    p => bunch%particle(ip)
+    p = p0
+
+    do
+      call string_trim(cols, cols, ix)
+      call read_particle_params(p, cols(1:ix), err); if (err) return
+      cols = cols(ix+1:)
+      if (cols == '') exit
+    enddo
   enddo
-
-  n_bunch = n_bunch + 1
-  !!call reallocate_bunch(
-
 
 enddo
 
-
-9000 continue
-stop
+8000 continue
+call reallocate_bunch(bunch, ip, .true.)
+err_flag = .false.
 
 !---------------------------------------------------------------------------------------------------
 contains
+
+subroutine read_particle_params(p, col, err)
+type (coord_struct) p
+character(*) col
+logical err
+
+!
+
+select case (col)
+
+case default
+end select
+
+end subroutine read_particle_params
+
+!---------------------------------------------------------------------------------------------------
+! contains
 
 function read_param(line) result (param)
 character(*) line

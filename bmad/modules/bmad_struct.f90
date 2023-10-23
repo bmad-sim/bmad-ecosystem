@@ -495,8 +495,13 @@ integer, parameter :: alive$ = 1       ! Conforms to OpenPMD standard.
 integer, parameter :: lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
-integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
-integer, parameter :: lost_z_aperture$ = 9
+integer, parameter :: lost_z_aperture$ = 7
+integer, parameter :: lost_pz_aperture$ = 8  ! Particle "turned around" when not tracking with time_runge_kutta.
+
+! State_name is not the full list of coord%state possible settings! Missing is not_set$
+character(12), parameter ::state_name(0:8) = [character(12):: 'Pre_Born', 'Alive', 'Lost', 'Hit_Neg_X', &
+                                                 'Hit_Pos_X', 'Hit_Neg_Y', 'Hit_Pos_Y', 'Hit_Pz_Aper', 'Hit_Z_Aper']
+
 
 real(rp), parameter :: vec0$(6) = 0
 
@@ -2414,39 +2419,59 @@ end function next_in_branch
 !-------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------
 !+
-! Function coord_state_name (coord_state) result (state_str)
+! Function coord_state_name (coord_state, one_word) result (state_str)
 !
 ! Routine to return the string representation of a coord%state state.
 !
 ! Input:
 !   coord_state -- integer: coord%state value
+!   one_word    -- logical, optional. Default False. If True then output string will be one word (no blanks).
+!   
 !
 ! Output:
 !   state_str   -- character(16): String representation.
 !-
 
-function coord_state_name (coord_state) result (state_str)
+function coord_state_name (coord_state, one_word) result (state_str)
 
 implicit none
 
 integer coord_state
 character(16) state_str
+logical, optional :: one_word
 
 !
 
-select case (coord_state)
-case (pre_born$);              state_str = 'Pre_Born'
-case (alive$);                 state_str = 'Alive'
-case (lost$);                  state_str = 'Lost'
-case (not_set$);               state_str = 'Not_Set'
-case (lost_neg_x_aperture$);   state_str = 'Hit -X Side'
-case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
-case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
-case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
-case (lost_pz_aperture$);      state_str = 'Hit Energy Aper'
-case (lost_z_aperture$);       state_str = 'Hit Z Side'
-case default;                  state_str = 'UNKNOWN!'
-end select
+if (logic_option(.false., one_word)) then
+  select case (coord_state)
+  case (not_set$);               state_str = 'Not_Set'
+  case (pre_born$);              state_str = 'Pre_Born'
+  case (alive$);                 state_str = 'Alive'
+  case (lost$);                  state_str = 'Lost'
+  case (lost_neg_x_aperture$);   state_str = 'Hit_Neg_X'
+  case (lost_pos_x_aperture$);   state_str = 'Hit_Pos_X'
+  case (lost_neg_y_aperture$);   state_str = 'Hit_Neg_Y'
+  case (lost_pos_y_aperture$);   state_str = 'Hit_Pos_Y'
+  case (lost_pz_aperture$);      state_str = 'Hit_Pz_Aper'
+  case (lost_z_aperture$);       state_str = 'Hit_Z_Aper'
+  case default;                  state_str = 'UNKNOWN!'
+  end select
+
+else
+  select case (coord_state)
+  case (not_set$);               state_str = 'Not_Set'
+  case (pre_born$);              state_str = 'Pre_Born'
+  case (alive$);                 state_str = 'Alive'
+  case (lost$);                  state_str = 'Lost'
+  case (lost_neg_x_aperture$);   state_str = 'Hit -X Side'
+  case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
+  case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
+  case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
+  case (lost_z_aperture$);       state_str = 'Hit Z Side'
+  case (lost_pz_aperture$);      state_str = 'Hit Energy Aper'
+  case default;                  state_str = 'UNKNOWN!'
+  end select
+endif
 
 end function coord_state_name
 
