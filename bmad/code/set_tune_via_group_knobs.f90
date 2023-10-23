@@ -19,7 +19,7 @@
 
 function set_tune_via_group_knobs (phi_set, branch, group_knobs, orb, print_err) result (ok)
 
-use bmad_interface, except_dummy => set_tune
+use bmad_interface, except_dummy => set_tune_via_group_knobs
 
 implicit none
 
