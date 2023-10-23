@@ -1,0 +1,590 @@
+
+File: aperture_by_tracking/aperture_by_tracking.f90
+aperture_by_tracking
+
+File: aperture_by_tracking/aperture_by_tracking_mod.f90
+aperture_by_tracking_mod
+progress_indicator
+prep_lat_ring
+make_slices
+check_if_lost_ring
+check_if_lost_linac
+binary_search
+
+File: aperture_by_tracking/aperture_by_tracking_mpi_mod.f90
+aperture_by_tracking_mpi_mod
+aperture_by_tracking_mpi_mod_max_apertures
+aperturejob_struct
+apertureresult_struct
+mympi_initialize
+mympi_bmad_parser
+mympi_register_derived_types
+mympi_check_mailbox_with_timeout
+mympi_receive_result
+mympi_send_result
+mympi_receive_job
+mympi_send_job
+mympi_shutdown
+
+File: apisa/nsga2/nsga2.cpp
+main
+check_sel
+if
+if
+
+File: apisa/nsga2/nsga2_functions.cpp
+initialize
+chk_malloc
+create_pop
+create_ind
+free_memory
+free_pop
+free_ind
+selection
+mergeOffspring
+calcFitnesses
+calcDistances
+environmentalSelection
+matingSelection
+select_initial
+select_normal
+irand
+read_ini
+read_var
+write_sel
+write_arc
+check_sel
+check_arc
+
+File: apisa/nsga2/nsga2_io.cpp
+read_pop
+
+File: apisa/spea2/spea2.cpp
+main
+
+File: apisa/spea2/spea2_functions.cpp
+initialize
+chk_malloc
+create_pop
+create_ind
+free_memory
+free_pop
+free_ind
+selection
+mergeOffspring
+calcFitnesses
+calcDistances
+environmentalSelection
+truncate_nondominated
+truncate_dominated
+
+File: apisa/spea2/spea2_io.cpp
+read_pop
+
+File: bbu/bbu_program.f90
+bbu_program
+
+File: code/adjust_optics.f90
+adjust_optics
+
+File: code/bbu_track_mod.f90
+bbu_track_mod
+bbu_stage_struct
+bbu_beam_struct
+bbu_current_variation_struct
+bbu_param_struct
+bbu_setup
+bbu_track_all
+bbu_track_a_stage
+bbu_add_a_bunch
+bbu_remove_head_bunch
+bbu_hom_voltage_calc
+rf_cav_names
+check_rf_freq
+write_bunch_by_bunch_info
+hom_voltage
+logical_to_python
+
+File: code/bsim_interface.f90
+bsim_interface
+
+File: code/count_lines_in_file.f90
+count_lines_in_file_mod
+count_lines_in_file
+
+File: code/insert_phase_trombone.f90
+insert_phase_trombone
+
+File: code/longitudinal_beta.f90
+longitudinal_beta
+
+File: code/set_tune_3d.f90
+set_tune_3d
+
+File: code/slice_mod.f90
+slice_mod
+track_s_to_s
+
+File: code_synrad/break_wall_into_segments.f90
+break_wall_into_segments
+
+File: code_synrad/calculate_synrad_power.f90
+calculate_synrad_power
+
+File: code_synrad/check_end.f90
+check_end
+
+File: code_synrad/check_wall.f90
+check_wall
+
+File: code_synrad/ele_synrad_power.f90
+ele_synrad_power
+
+File: code_synrad/get_initial_wall_pt.f90
+get_initial_wall_pt
+
+File: code_synrad/init_ray.f90
+init_ray
+
+File: code_synrad/outline_concat.f90
+outline_concat
+
+File: code_synrad/outline_reverse.f90
+outline_reverse
+
+File: code_synrad/ray_is_outside_wall.f90
+ray_is_outside_wall
+
+File: code_synrad/seg_power_calc.f90
+seg_power_calc
+
+File: code_synrad/set_wall_eles.f90
+set_wall_eles
+
+File: code_synrad/synrad_adjust_wall_points.f90
+synrad_adjust_wall_points
+
+File: code_synrad/synrad_custom_seg_calc.f90
+synrad_custom_seg_calc
+
+File: code_synrad/synrad_interface.f90
+synrad_interface
+
+File: code_synrad/synrad_mod.f90
+synrad_mod
+
+File: code_synrad/synrad_read_vac_wall_geometry.f90
+synrad_read_vac_wall_geometry
+
+File: code_synrad/synrad_setup_walls.f90
+synrad_setup_walls
+
+File: code_synrad/synrad_struct.f90
+synrad_struct
+wall_pt_struct
+source_struct
+seg_power_struct
+wall_seg_struct
+wall_struct
+walls_struct
+ray_struct
+ele_power_struct
+synrad_param_struct
+synrad_mode_struct
+outline_pt_struct
+outline_struct
+wall_list_struct
+concat_part_struct
+concat_struct
+negative_x$
+positive_x$
+start_side$
+exit_side$
+synrad_significant_length
+
+File: code_synrad/synrad_write_power_mod.f90
+synrad_write_power_mod
+write_power_header
+write_power_results
+write_header
+write_results
+
+File: code_synrad/theta_floor.f90
+theta_floor
+
+File: code_synrad/track_ray_to_wall.f90
+track_ray_to_wall
+
+File: code_synrad3d/synrad3d_output_mod.f90
+synrad3d_output_mod
+sr3d_write_hit_points
+sr3d_write_photon_start_file
+sr3d_record_photon_position
+
+File: code_synrad3d/synrad3d_parse_wall.f90
+synrad3d_parse_wall
+sr3d_section_struct
+sr3d_multi_section_struct
+sr3d_wall_struct
+sr3d_section_input
+surface_input
+old_wall_section_input
+sr3d_read_wall_file
+sr3d_old_wall_file_format
+sr3d_associate_surface
+sr3d_read_wall_multi_section
+
+File: code_synrad3d/synrad3d_plot_mod.f90
+synrad3d_plot_mod
+sr3d_plot_diffuse_probability
+sr3d_plot_reflection_probability
+sr3d_plot_wall_vs_s
+sr3d_plot_wall_cross_sections
+sr3d_find_wall_point
+
+File: code_synrad3d/synrad3d_struct.f90
+synrad3d_struct
+sr3d_photon_wall_hit_struct
+sr3d_coord_struct
+sr3d_photon_track_struct
+sr3d_params_struct
+sr3d_fast_struct
+sr3d_branch_overlap_struct
+sr3d_branch_com_struct
+sr3d_common_struct
+is_through_wall$
+at_wall_end$
+inside_the_wall$
+at_transverse_wall$
+sr3d_plot_param_struct
+
+File: code_synrad3d/synrad3d_test_mod.f90
+synrad3d_test_mod
+sr3d_diffuse_probability_test
+sr3d_monte_carlo_reflection_test
+sr3d_specular_reflection_test
+
+File: code_synrad3d/synrad3d_track_mod.f90
+synrad3d_track_mod
+sr3d_track_photon
+sr3d_track_photon_to_wall
+sr3d_check_if_photon_init_coords_outside_wall
+sr3d_photon_status_calc
+sr3d_propagate_photon_a_step
+sr3d_photon_hit_spot_calc
+sr3d_reflect_photon
+
+File: code_synrad3d/synrad3d_utils.f90
+synrad3d_utils
+sr3d_get_emission_pt_params
+sr3d_emit_photon
+sr3d_photon_d_radius
+sr3d_get_section_index
+sr3d_print_photon_info
+i0_eff_calc
+
+File: code_synrad3d/synrad3d_wall_to_synrad_walls_mod.f90
+synrad3d_wall_to_synrad_walls_mod
+synrad3d_wall_to_synrad_walls
+calc_this_side
+add_this_point
+calc_this_x
+
+File: custom_tracking/track1_preprocess.f90
+track1_preprocess
+
+File: dark_current_tracker/dark_current_mod.f90
+dark_current_mod
+dark_current_param_struct
+dark_current_tally_struct
+plot_particle_track
+plot_wall
+write_particle_track
+wall_position_from_s_to_s
+import_time_distribution
+dark_current_tracker_parse_command_args
+
+File: dark_current_tracker/dark_current_tracker.f90
+dark_current_tracker
+
+File: dynamic_aperture/da_program_mod.f90
+da_program_mod
+
+File: dynamic_aperture/dynamic_aperture.f90
+dynamic_aperture_program
+
+File: dynamic_aperture/track_many_hook.f90
+track_many_hook
+
+File: envelope_ibs/envelope_ibs.f90
+envelope_ibs
+
+File: frequency_map/frequency_map.f90
+frequency_map
+
+File: ibs_linac/ibs_linac.f90
+ibs_linac
+
+File: ibs_ring/ibs_ring.f90
+ibs_ring
+param_bomb
+
+File: long_term_tracking/long_term_tracking.f90
+long_term_tracking
+
+File: long_term_tracking/long_term_tracking_mpi.f90
+long_term_tracking
+
+File: long_term_tracking/track1_bunch_hook.f90
+track1_bunch_hook
+
+File: modules/adts_mod.f90
+adts_mod
+tune_ele_by_ele
+accumulate_phase_advance
+
+File: modules/crm_mod.f90
+crm_mod
+numerical_delta
+crm_struct
+crm_alloc
+crm_build
+
+File: modules/custom_dynamic_aperture_mod.f90
+custom_dynamic_aperture_mod
+custom_aperture_data_struct
+custom_aperture_param_struct
+custom_aperture_scan_struct
+custom_dynamic_aperture_scan
+custom_dynamic_aperture
+local_cosphi
+local_sinphi
+
+File: modules/dynap_mod.f90
+dynap_mod
+get_magnet_strengths
+set_magnet_strengths
+is_linear_ele
+frac
+read_initial_population
+k2_to_omega
+omega_to_k2
+count_feasible_in_pop
+write_population
+
+File: modules/four_mod.f90
+four_mod
+xy_to_action
+
+File: modules/linear_aperture_mod.f90
+linear_aperture_mod
+linear_aperture
+
+File: modules/lt_tracking_mod.f90
+lt_tracking_mod
+master_rank$
+in_map$
+not_in_map$
+core_max$
+ltt_column_struct
+ltt_params_struct
+map$
+ele$
+ltt_section_struct
+ltt_com_struct
+new$
+valid$
+written$
+ltt_bunch_data_struct
+ltt_read_params
+ltt_init_params
+ltt_init_tracking
+ltt_print_per_particle_file_header
+ltt_per_particle_file_name
+ltt_print_inital_info
+ltt_write_line
+ltt_run_check_mode
+ltt_run_individual_mode
+ltt_run_single_mode
+ltt_init_beam_distribution
+ltt_run_beam_mode
+ltt_run_stat_mode
+ltt_track1_radiation_center
+ltt_setup_high_energy_space_charge
+ltt_write_particle_data
+ltt_write_custom
+ltt_write_beam_binary_file
+ltt_write_params_header
+ltt_calc_bunch_data
+ltt_averages_file_name
+ltt_write_averages_data
+ltt_write_single_mode_sigma_file
+ltt_read_map
+ltt_write_map
+ltt_map_file_name
+ltt_make_map
+ltt_make_tracking_lat
+ltt_pointer_to_map_ends
+ltt_track_bmad_single
+ltt_track_bmad_bunch
+ltt_track_map
+ltt_print_mpi_info
+ltt_bunch_time_sum
+ltt_apply_rampers_to_slave
+
+File: modules/moga_struct_mod.f90
+moga_struct_mod
+mag_struct
+
+File: modules/namelist_da.f90
+namelist_da
+max_de
+
+File: modules/namelist_general.f90
+namelist_general
+
+File: modules/namelist_moga.f90
+namelist_moga
+max_mags
+
+File: modules/pisa_mod.f90
+pisa_mod
+pool_struct
+pop_struct
+breeder_params_struct
+find_empty_pop_slot
+delete_the_dead
+pisa_cfg_parser
+increment_ptr
+name_to_ix
+read_pisa_indexes
+write_pop_pisa
+write_objective_report
+write_constraint_report
+block_on_pisa_status
+poll_state
+write_state
+kangal_breeder
+niave_breeder
+
+File: modules/ts_mod.f90
+ts_mod
+master_rank$
+job_tag$
+have_data_tag$
+results_tag$
+ts_params_struct
+ts_com_struct
+ts_data_struct
+ts_init_params
+ts_track_particle
+ts_write_results
+ts_print_mpi_info
+
+File: moga/moga.f90
+moga
+
+File: sodom2/sodom2.f90
+sodom2
+
+File: sodom2/sodom2_mod.f90
+sodom2_mod
+master_rank$
+a_mode$
+b_mode$
+c_mode$
+j_tol$
+angle_max$
+sodom2_params_struct
+sodom2_com_struct
+sodom2_read_params
+sodom2_init_params
+sodom2_init_bunch
+sodom2_track_bunch
+quat_to_su2
+sodom2_construct_quaternions
+sodom2_fft
+sodom2_construct_mat
+sodom2_deallocate_memory
+sodom2_eig
+sodom2_determine_adst
+sodom2_write_n
+sodom2_write_particles
+sodom2_check_n
+
+File: spin_stroboscope/spin_stroboscope.f90
+spin_stroboscope
+
+File: spin_stroboscope/track1_custom.f90
+track1_custom
+
+File: srdt_lsq_soln/srdt_lsq_soln.f90
+srdt_lsq_soln
+
+File: synrad/synrad.f90
+synrad
+
+File: synrad/synrad_plot_mod.f90
+synrad_plot_mod
+plot_param_struct
+synrad_plot_sx
+
+File: synrad3d/synrad3d.f90
+synrad3d
+
+File: synrad3d/custom/synrad3d_photon_init_custom.f90
+synrad3d_photon_init_custom
+
+File: synrad_aperture_to_wall/synrad_aperture_to_wall.f90
+synrad_aperture_to_wall
+
+File: touschek_background/special_collimate_lattice.f90
+special_collimate_lattice_mod
+collimator_struct
+special_collimate_lattice
+
+File: touschek_background/touschek_background.f90
+touschek_background
+
+File: touschek_background/touschek_background_mod.f90
+touschek_background_mod
+orbit_data_struct
+raw_touschek_analysis
+
+File: touschek_background/touschek_background_mpi_mod.f90
+touschek_background_mpi_mod
+trackjob_struct
+jobdesc_struct
+trackresult_struct
+jobresults_struct
+mympi_initialize
+mympi_register_derived_types
+mympi_bmad_parser
+mympi_bcast_sigmap
+mympi_check_mailbox_with_timeout
+mympi_send_job_desc
+mympi_recv_job_desc
+mympi_receive_results
+mympi_send_results
+mympi_shutdown
+
+File: tune_plane_res_plot/tune_plane_res_mod.f90
+tune_plane_res_mod
+res_params_struct
+res_line_struct
+res_struct
+res_line_calc
+res_line_write_list
+res_line_plot
+
+File: tune_plane_res_plot/tune_plane_res_plot.f90
+tune_plane_res_plot
+
+File: tune_scan/tune_scan.f90
+tune_scan
+
+File: tune_scan/tune_scan_mpi.f90
+tune_scan_mpi
+
+File: wall_generator/wall_generator.f90
+wall_generator

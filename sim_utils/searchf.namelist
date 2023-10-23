@@ -1,0 +1,1492 @@
+
+File: file/calc_file_number.f90
+calc_file_number
+
+File: file/change_file_number.f90
+change_file_number
+
+File: file/directory_mod.f90
+directory_mod
+dir_list
+dir_open
+dir_read
+dir_close
+
+File: file/file_directorizer.f90
+file_directorizer
+
+File: file/file_get.f90
+file_get
+
+File: file/file_get_open.f90
+file_get_open
+
+File: file/file_suffixer.f90
+file_suffixer
+
+File: file/filename_mod.f90
+filename_mod
+fullfilename
+splitfilename
+file_name_is_relative
+simplify_path
+append_subdirectory
+
+File: file/get_file_number.f90
+get_file_number
+
+File: file/get_file_time_stamp.f90
+get_file_time_stamp
+
+File: file/increment_file_number.f90
+increment_file_number
+
+File: file/object_model_mod.f90
+object_model_mod
+temp_struct
+object_struct
+object_document_parse
+object_print
+subobject_reallocate
+object_deallocate
+subobject_number
+pointer_to_subobject
+object_tree_name
+object_root
+
+File: file/read_dir.cpp
+close_dir_
+open_dir_
+read_dir_
+
+File: file/real_path.f90
+real_path
+
+File: file/skip_header.f90
+skip_header
+
+File: file/type_this_file.f90
+type_this_file
+
+File: geodesic_lm/accept.f90
+acceptance
+
+File: geodesic_lm/converge.f90
+convergence_check
+
+File: geodesic_lm/fdavv.f90
+fdavv
+
+File: geodesic_lm/fdjac.f90
+fdjac
+
+File: geodesic_lm/geodesic_lm.f90
+geodesic_lm
+geodesic_lm_param_struct
+type_geodesic_lm
+run_geodesic_lm
+
+File: geodesic_lm/lambda.f90
+trustregion
+updatelam_factor
+updatelam_nelson
+updatelam_umrigar
+updatedelta_factor
+updatedelta_more
+
+File: geodesic_lm/leastsq.f90
+geolevmar_module
+geodesiclm
+
+File: geodesic_lm/updatejac.f90
+updatejac
+
+File: geodesic_lm/user_signal.f90
+user_signal
+
+File: interfaces/parallel_mod.f90
+parallel_mod
+
+File: interfaces/physical_constants.f90
+physical_constants
+pi
+twopi
+fourpi
+sqrt_2
+sqrt_3
+m_electron
+m_proton
+m_neutron
+m_muon
+m_helion
+e_mass
+p_mass
+m_pion_0
+m_pion_charged
+m_deuteron
+atomic_mass_unit
+c_light
+r_e
+r_p
+e_charge
+h_planck
+h_bar_planck
+mu_0_vac
+eps_0_vac
+classical_radius_factor
+n_avogadro
+fine_structure_constant
+anomalous_mag_moment_electron
+anomalous_mag_moment_proton
+anomalous_mag_moment_muon
+anomalous_mag_moment_deuteron
+anomalous_mag_moment_neutron
+anomalous_mag_moment_he3
+
+File: interfaces/precision_def.f90
+precision_def
+rp
+sp
+dp
+i4_b
+global_common_struct
+named_number_struct
+
+File: interfaces/sim_utils.f90
+sim_utils
+
+File: interfaces/sim_utils_interface.f90
+sim_utils_interface
+set_parameter
+set_parameter_real
+set_parameter_int
+set_parameter_logic
+inverse_prob
+is_alphabetic
+is_decreasing_sequence
+is_increasing_sequence
+is_integer
+is_logical
+is_real
+isatty
+j_bessel
+linear_fit
+linear_fit_2d
+location_decode
+logic_str
+lunget
+match_reg
+milli_sleep
+make_legal_comment
+match_wild
+mat_pseudoinverse
+mat_eigen
+mat_inverse
+mat_rotation
+mat_scale_p0
+mat_symp_conj
+mat_symp_conj_i
+mat_symp_error
+mat_symplectify
+mat_type
+mat_make_unit
+match_word
+max_nonzero
+n_choose_k
+n_spline_create
+nametable_add
+nametable_bracket_indexx
+nametable_change1
+nametable_init
+nametable_remove
+node_put
+ordinal_str
+outer_product
+parse_fortran_format
+pointer_to_locations
+poly_eval
+probability_funct
+query_string
+quote
+quoten
+real_to_string
+reals_to_string
+reals_to_table_row
+all_pointer_to_string
+unquote
+real_num_fortran_format
+str_set
+svd_fit
+real_path
+real_str
+rms_value
+rot_2d
+run_timer
+sinc
+sincc
+sinhx_x
+skip_header
+sqrt_one
+str_first_in_set
+str_first_not_in_set
+str_last_in_set
+str_last_not_in_set
+string_to_int
+string_to_real
+string_trim2
+substr
+test_tune_tracker_lock
+to_str
+type_this_file
+upcase
+upcase_string
+word_len
+word_read
+str_substitute
+str_match_wild
+str_upcase
+str_downcase
+system_command
+string_trim
+virtual_memory_usage
+
+File: interfaces/sim_utils_struct.f90
+sim_utils_struct
+var_length_string_struct
+str_index_struct
+nametable_struct
+all_pointer_struct
+i_imaginary
+i_imag
+int_garbage$
+real_garbage$
+null_name$
+str_garbage$
+lf$
+invalid$
+not_set$
+invalid_name
+x_axis$
+y_axis$
+z_axis$
+true$
+false$
+true_int$
+false_int$
+yes$
+no$
+maybe$
+provisional$
+rl_prompt_start_ignore
+rl_prompt_end_ignore
+black_color
+red_color
+green_color
+yellow_color
+blue_color
+magenta_color
+cyan_color
+gray_color
+dark_gray_color
+peach_color
+light_green_color
+light_yellow_color
+light_blue_color
+pink_color
+aqua_color
+white_color
+blink_color
+bold_color
+reset_color
+int_logic
+is_true
+is_false
+value_of_all_ptr
+
+File: interfaces/particle_species_mod.f90
+particle_species_mod
+pion_0$
+helion$
+ref_particle$
+neutron$
+deuteron$
+pion_plus$
+antimuon$
+proton$
+positron$
+photon$
+electron$
+antiproton$
+muon$
+pion_minus$
+anti_deuteron$
+anti_neutron$
+anti_ref_particle$
+anti_helion$
+lb_subatomic
+ub_subatomic
+subatomic_species_name
+openpmd_subatomic_species_name
+charge_of_subatomic
+mass_of_subatomic
+anomalous_moment_of_subatomic
+antiparticle_of_subatomic
+spin_of_subatomic
+atomic_name
+atom_struct
+mean_excitation_energy_over_z
+molecular_name
+antiparticle
+species_of
+species_id
+species_name
+species_id_from_openpmd
+openpmd_species_name
+anomalous_moment_of
+spin_of
+charge_of
+mass_of
+charge_to_mass_of
+set_species_charge
+x0_radiation_length
+atomic_number
+is_subatomic_species
+
+File: io/command_line_mod.f90
+command_line_mod
+cesr_iargc
+cesr_getarg
+
+File: io/get_tty_char_c.c
+init_tty_char_
+get_tty_char_c_
+init_tty_char_
+get_tty_char_c_
+
+File: io/input_mod.f90
+input_mod
+get_tty_char
+get_a_char
+read_a_line
+readline_read_history
+readline_write_history
+
+File: io/lunget.f90
+lunget
+
+File: io/out_io_called.f90
+out_io_called
+
+File: io/out_io_end.f90
+out_io_end
+
+File: io/out_io_line.f90
+out_io_line
+
+File: io/output_mod.f90
+output_mod
+s_nooutput$
+s_blank$
+s_info$
+s_dinfo$
+s_success$
+s_warn$
+s_dwarn$
+s_error$
+s_fatal$
+s_abort$
+s_important$
+out_io_output_direct_struct
+out_io_mod_com_struct
+out_io
+procedure
+procedure
+procedure
+procedure
+procedure
+output_direct
+out_io_line_out
+out_io_real
+out_io_int
+out_io_logical
+out_io_line12
+out_io_lines
+insert_numbers
+find_format
+header_io
+out_io_print_and_capture_setup
+out_io_buffer_reset
+out_io_buffer_num_lines
+out_io_buffer_get_line
+
+File: io/read_line.c
+read_line_
+read_history_
+write_history_
+
+File: io/system_command.f90
+system_command
+
+File: io/ttychr.f90
+ttychr
+
+File: math/all_phase_fft.f90
+all_phase_fft
+apfft_corr
+apfft
+apfft_ext
+hanhan
+han
+
+File: math/bin_mod.f90
+bin_mod
+bin_struct
+general_bin_struct
+bin_data_density
+bin_data
+bin_data_density_2d
+bin_2d
+bin_index
+bin_x_center
+count_at_index
+n_bins_automatic
+general_bin_index
+general_bin_count
+general_bin_index_in_bounds
+
+File: math/bit_set_mod.f90
+bit_mod
+bit_set
+
+File: math/bracket_index.f90
+bracket_index
+
+File: math/bracket_index2.f90
+bracket_index2
+
+File: math/bracket_index_int.f90
+bracket_index_int
+
+File: math/cross_product.f90
+cross_product
+
+File: math/cubic_interpolation_mod.f90
+cubic_interpolation_mod
+field1_at_2d_pt_struct
+field_at_2d_box_struct
+bicubic_coef_struct
+cmplx_field1_at_2d_pt_struct
+cmplx_field_at_2d_box_struct
+bicubic_cmplx_coef_struct
+field1_at_3d_pt_struct
+field_at_3d_box_struct
+tricubic_coef_struct
+cmplx_field1_at_3d_pt_struct
+cmplx_field_at_3d_box_struct
+tricubic_cmplx_coef_struct
+m16_row_struct
+m16_matrix_struct
+m64_row_struct
+m64_matrix_struct
+bicubic_compute_field_at_2d_box
+bicubic_interpolation_coefs
+bicubic_eval
+tricubic_compute_field_at_3d_box
+tricubic_interpolation_coefs
+tricubic_eval
+bicubic_compute_cmplx_field_at_2d_box
+bicubic_interpolation_cmplx_coefs
+bicubic_cmplx_eval
+tricubic_compute_cmplx_field_at_3d_box
+tricubic_interpolation_cmplx_coefs
+tricubic_cmplx_eval
+
+File: math/da2_mod.f90
+da2_mod
+da2_mult
+da2_div
+da2_inverse
+da2_evaluate
+
+File: math/fft_1d.f90
+fft_1d
+
+File: math/fourier_mod.f90
+fourier_mod
+coarse_frequency_estimate
+fine_frequency_estimate
+fourier_amplitude
+
+File: math/inverse.f90
+inverse
+
+File: math/is_decreasing_sequence.f90
+is_decreasing_sequence
+
+File: math/is_increasing_sequence.f90
+is_increasing_sequence
+
+File: math/linear_fit.f90
+linear_fit
+
+File: math/linear_fit_2d.f90
+linear_fit_2d
+
+File: math/max_nonzero.f90
+max_nonzero
+
+File: math/n_spline_create.f90
+n_spline_create
+
+File: math/naff.f90
+naff_mod
+naff
+projdd
+ed
+maximize_projection
+interpolated_fft_gsl
+interpolated_fft
+
+File: math/outer_product.f90
+outer_product
+
+File: math/poly_eval.f90
+poly_eval
+
+File: math/probability_funct.f90
+probability_funct
+
+File: math/random_mod.f90
+random_mod
+kr4b
+im_nr_ran
+sobseq_maxbit
+sobseq_maxdim
+ran_engine_name
+ran_gauss_converter_name
+pseudo_random$
+quasi_random$
+quick_gaussian$
+exact_gaussian$
+random_state_struct
+ran_gauss
+procedure
+procedure
+ran_uniform
+procedure
+procedure
+ran_gauss_scalar
+ran_gauss_vector
+ran_engine
+ran_gauss_converter
+ran_seed_put
+ran_seed_get
+ran_default_state
+ran_uniform_scalar
+ran_uniform_vector
+super_sobseq
+pointer_to_ran_state
+allocate_thread_states
+
+File: math/rms_value.f90
+rms_value
+
+File: math/rot_2d.f90
+rot_2d
+
+File: math/rotation_3d_mod.f90
+rotation_3d_mod
+quat_conj
+procedure
+procedure
+quat_mul
+procedure
+procedure
+quat_rotate
+procedure
+procedure
+w_mat_to_axis_angle
+w_mat_to_quat
+quat_to_w_mat
+axis_angle_to_w_mat
+quat_to_omega
+omega_to_quat
+quat_to_axis_angle
+axis_angle_to_quat
+quat_conj_real
+quat_conj_complex
+quat_inverse
+quat_mul_real
+quat_mul_complex
+quat_rotate_real
+quat_rotate_complex
+rotate_vec_given_axis_angle
+rotate_vec
+rotate_mat
+
+File: math/sign_of_mod.f90
+sign_of_mod
+sign_of
+procedure
+procedure
+sign_of_real
+sign_of_int
+
+File: math/spline_mod.f90
+spline_mod
+spline_struct
+reallocate_spline
+create_a_spline
+spline_akima_interpolate
+spline_evaluate
+bracket_index_for_spline
+spline1
+spline_akima
+end_akima_spline_calc
+akima_spline_slope_calc
+akima_spline_coef23_calc
+
+File: math/super_recipes_mod.f90
+super_recipes_mod
+super_mrqmin_storage_struct
+super_bicubic_interpolation
+super_bicubic_coef
+super_sort
+super_rtsafe
+super_mnbrak
+shft
+super_brent
+shft
+super_dbrent
+mov3
+super_zbrent
+super_mrqmin
+super_mrqcof
+super_gaussj
+super_ludcmp
+super_qromb
+super_polint
+super_trapzd
+super_qromb_2d
+trapzd_2d
+super_poly
+covar_expand
+
+File: math/windowLS.f90
+windowls_mod
+max_wls
+wls_struct
+initfixedwindowls
+destfixedwindowls
+fixedwindowls
+shortfactorial
+
+File: matrix/cplx_mat_inverse.f90
+cplx_mat_inverse
+
+File: matrix/cplx_mat_make_unit.f90
+cplx_mat_make_unit
+
+File: matrix/determinant.f90
+determinant
+
+File: matrix/mat_eigen.f90
+mat_eigen
+
+File: matrix/mat_inverse.f90
+mat_inverse
+
+File: matrix/mat_make_unit.f90
+mat_make_unit
+
+File: matrix/mat_pseudoinverse.f90
+mat_pseudoinverse
+
+File: matrix/mat_rotation.f90
+mat_rotation
+
+File: matrix/mat_scale_p0.f90
+mat_scale_p0
+
+File: matrix/mat_symp_conj.f90
+mat_symp_conj
+
+File: matrix/mat_symp_conj_i.f90
+mat_symp_conj_i
+
+File: matrix/mat_symp_error.f90
+mat_symp_error
+
+File: matrix/mat_symplectify.f90
+mat_symplectify
+
+File: matrix/mat_type.f90
+mat_type
+
+File: matrix/qr_mod.f90
+qr_mod
+qr
+thin_qr
+twonorm2
+house
+rbacks
+print_mat
+
+File: matrix/svd_fit.f90
+svd_fit
+
+File: misc/assert_equal.f90
+assert_equal
+
+File: misc/cpp_fortran_utils.cpp
+bool_to_int
+int_to_bool
+
+File: misc/csr_bell.f90
+csr_bell
+
+File: misc/err_exit.f90
+err_exit
+
+File: misc/fortran_cpp_utils.f90
+fortran_cpp_utils
+c_dummy_struct
+vec2fvec
+procedure
+fscalar2scalar
+procedure
+fvec2vec
+procedure
+procedure
+procedure
+procedure
+mat2vec
+procedure
+procedure
+procedure
+procedure
+tensor2vec
+procedure
+procedure
+procedure
+procedure
+vec2mat
+procedure
+procedure
+procedure
+procedure
+vec2tensor
+procedure
+procedure
+procedure
+procedure
+remove_null_in_string
+procedure
+procedure
+f_logic
+procedure
+procedure
+c_logic
+procedure
+procedure
+f_logic_int
+f_logic_bool
+r_size
+i_size
+remove_null_in_string_arr
+remove_null_in_string_char
+to_f_str
+bool_fscalar2scalar
+real_fvec2vec
+int_fvec2vec
+cmplx_fvec2vec
+bool_fvec2vec
+real_mat2vec
+int_mat2vec
+bool_mat2vec
+cmplx_mat2vec
+real_tensor2vec
+int_tensor2vec
+cmplx_tensor2vec
+bool_tensor2vec
+bool_vec2fvec
+real_vec2mat
+int_vec2mat
+bool_vec2mat
+cmplx_vec2mat
+real_vec2tensor
+int_vec2tensor
+cmplx_vec2tensor
+bool_vec2tensor
+set_fortran_string
+
+File: misc/logical_is_garbage.f90
+logical_is_garbage
+
+File: misc/milli_sleep.f90
+milli_sleep
+
+File: misc/program_sleep.cpp
+program_sleep_
+
+File: misc/re_allocate_mod.f90
+re_allocate_mod
+re_allocate
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+re_allocate2
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+re_allocate2d
+procedure
+procedure
+procedure
+procedure
+procedure
+re_associate
+procedure
+procedure
+procedure
+procedure
+procedure
+re_allocate_string
+re_allocate_var_string
+re_allocate_var_string1
+re_allocate_integer
+re_allocate_complex
+re_allocate_real
+re_allocate_all_pointer
+re_allocate_logical
+re_allocate2_string
+re_allocate2_var_string
+re_allocate2_integer
+re_allocate2_complex
+re_allocate2_real
+re_allocate2_all_pointer
+re_allocate2_logical
+re_allocate_string2d
+re_allocate_var_string2d
+re_allocate_integer2d
+re_allocate_real2d
+re_allocate_logical2d
+re_associate_string
+re_associate_var_string
+re_associate_integer
+re_associate_real
+re_associate_logical
+
+File: misc/run_timer.f90
+run_timer
+
+File: misc/set_logical_to_garbage.f90
+set_logical_to_garbage
+
+File: misc/set_parameter.f90
+set_parameter_real
+set_parameter_int
+set_parameter_logic
+
+File: misc/swap_mod.f90
+swap_mod
+swap
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+swap_i
+swap_r
+swap_rv
+swap_c
+swap_cv
+swap_cm
+
+File: misc/transfer_logical.f90
+transfer_logical
+
+File: misc/userex.c
+userex_
+
+File: misc/utilities_mod.f90
+utilities_mod
+integer_option
+logic_option
+real_option
+string_option
+eval_logical
+on_off_logic
+
+File: misc/virtual_memory_usage.f90
+virtual_memory_usage
+
+File: mpi/opti_de_mpi_mod.f90
+opti_de_mpi_mod
+solution_struct
+opti_de_mpi
+this_merit_calc
+
+File: optimizers/lmdif_mod.f90
+lmdif_mod
+opti_lmdif
+initial_lmdif
+suggest_lmdif
+lmdif
+fdjac2
+lmpar
+qrfac
+qrsolv
+
+File: optimizers/opti.cpp
+RandInt
+UniRand
+
+File: optimizers/opti_de_mod.f90
+opti_de_mod
+opti_de_param_struct
+opti_de
+solution_struct
+
+File: optimizers/opti_de_openmp_mod.f90
+opti_de_openmp_mod
+opti_de_openmp
+solution_struct
+
+File: plot/display_size_and_resolution.c
+display_size_and_res
+display_size_and_res
+
+File: plot/display_size_and_resolution.f90
+display_size_and_resolution
+
+File: plot/noplot_interface.f90
+noplot_interface
+qp_set_graph_position_basic
+qp_set_symbol_size_basic
+qp_paint_rectangle_basic
+qp_set_symbol_fill_basic
+qp_set_line_width_basic
+qp_set_line_pattern_basic
+qp_set_clip_basic
+qp_set_char_size_basic
+qp_set_text_background_color_basic
+qp_text_len_basic
+qp_draw_text_basic
+qp_draw_arrow_basic
+qp_draw_symbol_basic
+qp_save_state_basic
+qp_restore_state_basic
+qp_set_color_basic
+qp_clear_page_basic
+qp_clear_box_basic
+qp_draw_polyline_basic
+qp_open_page_basic
+qp_select_page_basic
+qp_close_page_basic
+qp_end_basic
+
+File: plot/pgplot_interface.f90
+pgplot_interface
+pg_interface_struct
+qp_set_graph_position_basic
+qp_set_symbol_size_basic
+qp_set_symbol_fill_basic
+qp_set_line_width_basic
+qp_set_line_pattern_basic
+qp_set_clip_basic
+qp_set_char_size_basic
+qp_set_text_background_color_basic
+qp_text_len_basic
+qp_draw_text_basic
+qp_draw_arrow_basic
+qp_draw_symbol_basic
+qp_save_state_basic
+qp_restore_state_basic
+qp_wait_to_flush_basic
+qp_set_color_basic
+qp_clear_page_basic
+qp_paint_rectangle_basic
+qp_draw_polyline_basic
+qp_open_page_basic
+qp_select_page_basic
+qp_close_page_basic
+qp_end_basic
+
+File: plot/pgsubs.f90
+palett
+
+File: plot/plplot_interface.f90
+plplot_interface
+viewport_size
+pl_interface_struct
+qp_set_graph_position_basic
+qp_set_symbol_size_basic
+qp_paint_rectangle_basic
+qp_set_symbol_fill_basic
+qp_set_line_width_basic
+qp_set_line_pattern_basic
+qp_set_clip_basic
+qp_set_char_size_basic
+qp_set_text_background_color_basic
+qp_text_len_basic
+qp_draw_text_basic
+qp_draw_arrow_basic
+qp_draw_symbol_basic
+qp_save_state_basic
+qp_restore_state_basic
+qp_wait_to_flush_basic
+qp_set_color_basic
+qp_clear_page_basic
+qp_clear_box_basic
+qp_draw_polyline_basic
+qp_open_page_basic
+qp_select_page_basic
+qp_close_page_basic
+qp_end_basic
+
+File: plot/quick_plot.f90
+quick_plot
+qp_base_library
+qp_base_library
+qp_base_library
+qp_set_layout
+qp_get_layout_attrib
+qp_wait_to_flush
+qp_init_com_struct
+qp_save_state
+qp_restore_state
+qp_pointer_to_axis
+qp_use_axis
+qp_set_axis
+qp_get_axis_attrib
+qp_calc_and_set_axis
+qp_calc_axis_params
+qp_calc_axis_scale
+qp_axis_niceness
+qp_calc_axis_places
+qp_set_graph_limits
+qp_clear_page
+qp_clear_box
+qp_paint_rectangle
+qp_set_box
+qp_set_page_border_to_box
+qp_set_page_border
+qp_from_inch_rel
+qp_from_inch_abs
+qp_to_inch_rel
+qp_to_inches_rel
+qp_to_inch_abs
+qp_to_inches_abs
+qp_convert_point_rel
+qp_convert_point_abs
+qp_convert_rectangle_rel
+qp_join_units_string
+qp_split_units_string
+qp_set_graph_placement
+qp_set_margin
+qp_draw_rectangle
+qp_draw_arrow
+qp_draw_symbol
+qp_draw_symbols
+qp_set_graph
+qp_draw_graph
+qp_draw_data
+qp_draw_axes
+qp_draw_graph_title
+qp_draw_histogram
+qp_draw_text_legend
+qp_draw_curve_legend
+qp_draw_ellipse
+qp_draw_circle
+qp_draw_polyline
+qp_draw_polyline_no_set
+qp_draw_line
+qp_open_page
+qp_select_page
+qp_close_page
+qp_draw_text
+qp_draw_text_no_set
+qp_justify
+qp_draw_main_title
+qp_set_arrow
+qp_set_symbol
+qp_set_arrow_attrib
+qp_set_symbol_attrib
+qp_get_arrow_attrib
+qp_get_symbol_attrib
+qp_set_line
+qp_get_line_attrib
+qp_set_line_attrib
+qp_set_clip
+qp_subset_box
+qp_get_text_attrib
+qp_set_text_attrib
+qp_draw_x_axis
+qp_draw_y_axis
+qp_to_axis_number_text
+qp_text_len
+qp_set_graph_attrib
+qp_draw_grid
+qp_calc_minor_div
+qp_get_parameters
+qp_set_parameters
+qp_text_height_to_inches
+qp_read_data
+qp_eliminate_xy_distortion
+qp_continuous_color
+qp_continuous_color_inverse
+qp_end
+
+File: plot/quick_plot_struct.f90
+quick_plot_struct
+white$
+black$
+red$
+green$
+blue$
+cyan$
+magenta$
+yellow$
+orange$
+yellow_green$
+light_green$
+navy_blue$
+purple$
+reddish_purple$
+dark_grey$
+light_grey$
+transparent$
+qp_color_name
+solid$
+dashed$
+dash_dot$
+dotted$
+dash_dot3$
+qp_line_pattern_name
+solid_fill$
+no_fill$
+hatched$
+cross_hatched$
+qp_symbol_fill_pattern_name
+square_sym$
+dot_sym$
+plus_sym$
+times_sym$
+circle_sym$
+x_symbol_sym$
+triangle_sym$
+circle_plus_sym$
+circle_dot_sym$
+square_concave_sym$
+diamond_sym$
+star5_sym$
+triangle_filled_sym$
+red_cross_sym$
+star_of_david_sym$
+square_filled_sym$
+circle_filled_sym$
+star5_filled_sym$
+qp_symbol_type_name
+dflt_draw$
+dflt_set$
+print_page_long_len
+print_page_short_len
+filled_arrow_head$
+outline_arrow_head$
+qp_arrow_head_type_name
+qp_axis_struct
+qp_plot_struct
+qp_point_struct
+qp_rect_struct
+qp_text_struct
+qp_line_struct
+qp_symbol_struct
+qp_arrow_struct
+qp_state_struct
+qp_string_to_enum
+qp_enum_to_string
+
+File: special_functions/asinc.f90
+asinc
+
+File: special_functions/complex_error_function.f90
+complex_error_function
+
+File: special_functions/cos_one.f90
+cos_one
+
+File: special_functions/cosc.f90
+cosc
+
+File: special_functions/dj_bessel.f90
+dj_bessel
+
+File: special_functions/elliptic_integral_mod.f90
+elliptic_integral_mod
+ellipinc
+test_xgelbd
+gelbd
+rgelbd
+elbd
+elsbd
+elcbd
+celbd
+serbd
+relbd
+relsbd
+relcbd
+rcelbd
+rserbd
+
+File: special_functions/factorial.f90
+factorial
+
+File: special_functions/gen_complete_elliptic.f90
+gen_complete_elliptic
+
+File: special_functions/i_bessel.f90
+i_bessel
+
+File: special_functions/i_bessel_extended.f90
+i_bessel_extended
+
+File: special_functions/j_bessel.f90
+j_bessel
+
+File: special_functions/modulo2_mod.f90
+modulo2_mod
+modulo2
+procedure
+procedure
+procedure
+modulo2_sp
+modulo2_dp
+modulo2_int
+
+File: special_functions/n_choose_k.f90
+n_choose_k
+
+File: special_functions/sinc.f90
+sinc
+
+File: special_functions/sincc.f90
+sincc
+
+File: special_functions/sinhx_x.f90
+sinhx_x
+
+File: special_functions/sqrt_one.f90
+sqrt_one
+
+File: string/all_pointer_to_string.f90
+all_pointer_to_string
+
+File: string/date_and_time_stamp.f90
+date_and_time_stamp
+
+File: string/djb_hash.f90
+djb_hash
+
+File: string/djb_str_hash.f90
+djb_str_hash
+
+File: string/doubleup_quotes.f90
+doubleup_quotes
+
+File: string/downcase.f90
+downcase
+
+File: string/downcase_string.f90
+downcase_string
+
+File: string/index_nocase.f90
+index_nocase
+
+File: string/indexer_mod.f90
+indexer_mod
+indexer
+procedure
+procedure
+procedure
+procedure
+find_index
+procedure
+procedure
+procedure
+procedure
+init_str_index_struct
+find_index0
+find_index1
+find_index2
+find_index3
+indexer_str
+indexer_var_str
+indexer_real
+indexer_int
+
+File: string/int_str.f90
+int_str
+
+File: string/is_alphabetic.f90
+is_alphabetic
+
+File: string/is_integer.f90
+is_integer
+
+File: string/is_logical.f90
+is_logical
+
+File: string/is_real.f90
+is_real
+
+File: string/location_decode.f90
+location_decode
+
+File: string/location_encode_mod.f90
+location_encode_mod
+location_encode
+procedure
+procedure
+location_encode2
+location_encode1
+
+File: string/logic_str.f90
+logic_str
+
+File: string/make_legal_comment.f90
+make_legal_comment
+
+File: string/match_reg.f90
+match_reg
+
+File: string/match_reg_c.c
+match_reg_c_
+
+File: string/match_wild.f90
+match_wild
+
+File: string/match_word.f90
+match_word
+
+File: string/nametable_add.f90
+nametable_add
+
+File: string/nametable_bracket_indexx.f90
+nametable_bracket_indexx
+
+File: string/nametable_change1.f90
+nametable_change1
+
+File: string/nametable_init.f90
+nametable_init
+
+File: string/nametable_remove.f90
+nametable_remove
+
+File: string/ordinal_str.f90
+ordinal_str
+
+File: string/parse_fortran_format.f90
+parse_fortran_format
+
+File: string/pointer_to_locations.f90
+pointer_to_locations
+
+File: string/query_string.f90
+query_string
+
+File: string/quote.f90
+quote
+
+File: string/quoten.f90
+quoten
+
+File: string/real_num_fortran_format.f90
+real_num_fortran_format
+
+File: string/real_str.f90
+real_str
+
+File: string/real_to_string.f90
+real_to_string
+
+File: string/reals_to_string.f90
+reals_to_string
+
+File: string/reals_to_table_row.f90
+reals_to_table_row
+
+File: string/str_downcase.f90
+str_downcase
+
+File: string/str_first_in_set.f90
+str_first_in_set
+
+File: string/str_first_not_in_set.f90
+str_first_not_in_set
+
+File: string/str_last_in_set.f90
+str_last_in_set
+
+File: string/str_last_not_in_set.f90
+str_last_not_in_set
+
+File: string/str_match_wild.f90
+str_match_wild
+
+File: string/str_set.f90
+str_set
+
+File: string/str_substitute.f90
+str_substitute
+
+File: string/str_upcase.f90
+str_upcase
+
+File: string/string_to_int.f90
+string_to_int
+
+File: string/string_to_real.f90
+string_to_real
+
+File: string/string_trim.f90
+string_trim
+
+File: string/string_trim2.f90
+string_trim2
+
+File: string/substr.f90
+substr
+
+File: string/to_str.f90
+to_str
+
+File: string/unquote.f90
+unquote
+
+File: string/upcase.f90
+upcase
+
+File: string/upcase_string.f90
+upcase_string
+
+File: string/var_length_string_mod.f90
+var_length_string_mod
+all_equal_var_str
+
+File: string/word_len.f90
+word_len
+
+File: string/word_read.f90
+word_read

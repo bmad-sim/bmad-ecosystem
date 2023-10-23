@@ -65,7 +65,7 @@ if (.not. ts_com%using_mpi) then
   do ja = 0, ts_com%n_a
   do jb = 0, ts_com%n_b
   do jz = 0, ts_com%n_z
-    call ts_track_particle (ts, ts_com, ja, jb, jz, ts_dat(ja,jb,jz))
+    call ts_track_particle (ts, ts_com, [ja, jb, jz], ts_dat(ja,jb,jz))
   enddo
   enddo
   enddo

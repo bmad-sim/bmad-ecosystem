@@ -38,7 +38,7 @@ end type
 ! User settable parameters
 
 type ltt_params_struct
-  character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BEAM, STAT
+  character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BEAM, STAT, INDIVIDUAL
   character(20) :: tracking_method = 'BMAD'   ! MAP, PTC, BMAD
   character(100) :: exclude_from_maps = 'beambeam::*'
   character(40) :: ele_start = ''
@@ -319,7 +319,7 @@ call upcase_string(ltt%simulation_mode)
 
 select case (ltt%simulation_mode)
 case ('BEAM', 'STAT')
-case ('CHECK', 'SINGLE')
+case ('CHECK', 'SINGLE', 'INDIVIDUAL')
   ltt%ramp_update_each_particle = .true.
 case ('BUNCH')
   print '(a)', '"BUNCH" SETTING FOR LTT%SIMULATION_MODE HAS BEEN CHANGED TO "BEAM"'
@@ -961,7 +961,38 @@ end subroutine ltt_run_check_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_single_mode (lttp, ltt_com)
+subroutine ltt_run_individual_mode (lttp, ltt_com)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+type (coord_struct), pointer :: particle
+type (coord_struct) orbit
+
+integer ib, ip
+
+!
+
+call ltt_init_beam_distribution(lttp, ltt_com, beam)
+
+do ib = 1, size(beam%bunch)
+  do ip = 1, size(beam%bunch(ib)%particle)
+    particle => beam%bunch(ib)%particle(ip)
+    call ltt_run_single_mode(lttp, ltt_com, particle)
+  enddo
+enddo
+
+if (.not. ltt_com%using_mpi) then
+  call ltt_write_particle_data (lttp, ltt_com, 0, beam)
+endif
+
+end subroutine
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_run_single_mode (lttp, ltt_com, orb_in)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -969,13 +1000,14 @@ type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) :: orbit
+type (coord_struct), optional :: orb_in
 type (ele_struct), pointer :: ele_start, ele0, ele1
 type (probe) prb
 
 real(rp) average(6), sigma(6,6), dt
 integer i, n_sum, iu_part, i_turn, ix_branch
 
-! Run serial in single mode.
+! Run a single particle in single mode.
 
 lat => ltt_com%tracking_lat
 
@@ -990,7 +1022,9 @@ call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
 if (lttp%tracking_method == 'BMAD') call reallocate_coord (orb, lat)
 
-if (ltt_com%beam_init%use_particle_start) then
+if (present(orb_in)) then
+  call init_coord (orbit, orb_in, ele_start, downstream_end$, lat%param%particle)
+elseif (ltt_com%beam_init%use_particle_start) then
   call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, lat%param%particle)
 else
   call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = ltt_com%beam_init%spin)
@@ -1006,14 +1040,19 @@ endif
 
 !
 
-iu_part = lunget()
-if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
-open(iu_part, file = lttp%phase_space_output_file, recl = 300)
-call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
-write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz              pc             p0c            time   |       spin_x       spin_y       spin_z  | Element'
-write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
+if (lttp%simulation_mode == 'INDIVIDUAL') then
+  iu_part = -1
+else
+  iu_part = lunget()
+  if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
+  open(iu_part, file = lttp%phase_space_output_file, recl = 300)
+  call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
+  write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz              pc             p0c            time   |       spin_x       spin_y       spin_z  | Element'
+  write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
+  if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
+endif
 
-if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
+!
 
 do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
   select case (lttp%tracking_method)
@@ -1052,15 +1091,21 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
 
   !
 
+  if (orbit%state /= alive$) then
+    if (lttp%simulation_mode == 'INDIVIDUAL') then
+      orb_in = orbit
+      return
+    endif
+    print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
+    exit
+  endif
+
+  if (lttp%simulation_mode == 'INDIVIDUAL') cycle
+
   if (lttp%particle_output_every_n_turns > 0) then
     if (modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
       write (iu_part, ltt_com%ps_fmt) i_turn, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
     endif
-  endif
-
-  if (orbit%state /= alive$) then
-    print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
-    exit
   endif
 
   if (lttp%averages_output_file /= '') then
@@ -1071,6 +1116,11 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
 
   if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, i_turn, orbit = orbit)
 enddo
+
+if (lttp%simulation_mode == 'INDIVIDUAL') then
+  orb_in = orbit
+  return
+endif
 
 print '(2a)', 'Particle output file: ', trim(lttp%phase_space_output_file)
 close(iu_part)
@@ -2649,7 +2699,9 @@ do
     call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
   endif
 
-  if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
+  if (orbit%state /= alive$) return
+
+  if (integer_option(-1, iu_part) > 0 .and. lttp%particle_output_every_n_turns < 1) then
     write (iu_part, ltt_com%ps_fmt) i_turn, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele%name)
   endif
 

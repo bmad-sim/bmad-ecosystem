@@ -2163,6 +2163,17 @@ function set_tune (phi_a_set, phi_b_set, dk1, eles, branch, orb, print_err) resu
   logical ok
 end function
 
+function set_tune_via_group_knobs (phi_set, branch, group_knobs, orb, print_err) result (ok)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  type (coord_struct), allocatable :: orb(:)
+  character(*) group_knobs(2)
+  real(rp) phi_set(2)
+  logical, optional :: print_err
+  logical ok
+end function
+
 function significant_difference (value1, value2, abs_tol, rel_tol) result (is_different)
   import
   implicit none
