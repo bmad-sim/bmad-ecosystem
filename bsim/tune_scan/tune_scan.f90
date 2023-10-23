@@ -25,7 +25,7 @@ time0 = 0
 do ja = 0, ts_com%n_a
 do jb = 0, ts_com%n_b
 do jz = 0, ts_com%n_z
-  call ts_track_particle (ts, ts_com, ja, jb, jz, ts_dat(ja,jb,jz))
+  call ts_track_particle (ts, ts_com, [ja, jb, jz], ts_dat(ja,jb,jz))
   call run_timer ('READ', del_time)
 
   if (del_time - time0 > ts%timer_print_dtime) then

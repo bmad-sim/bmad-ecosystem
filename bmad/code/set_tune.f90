@@ -43,7 +43,7 @@ integer i, j, status
 logical, optional :: print_err
 logical ok, err, rf_on, master_saved
 
-character(20) :: r_name = 'set_tune'
+character(*), parameter :: r_name = 'set_tune'
 real(rp), dimension(2) :: phi_array
 
 ! Init
@@ -149,6 +149,5 @@ call out_io (s_error$, r_name, 'CANNOT GET TUNE RIGHT.', &
       'CURRENT TUNE: \2f\ ', &
       'SET TUNE:     \2f\ ', &
       r_array = [phi_a/twopi, phi_b/twopi, phi_a_set/twopi, phi_b_set/twopi ])
-
 
 end function

@@ -34,18 +34,21 @@ bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.pdf
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
 bmad-doc/tao_examples/csr_beam_tracking/csr_wake.dat
 
-bmad/doc/*aux
-bmad/doc/bmad.idx
-bmad/doc/bmad.ilg
-bmad/doc/bmad.ind
-bmad/doc/bmad.lof
-bmad/doc/bmad.log
-bmad/doc/bmad.lot
-bmad/doc/bmad.out
 bmad/doc/bmad.pdf
-bmad/doc/bmad.rdx
-bmad/doc/bmad.rnd
-bmad/doc/bmad.toc
+bsim/**/doc/*.pdf
+
+**/doc/*.idx
+**/doc/*.ilg
+**/doc/*.ind
+**/doc/*.lof
+**/doc/*.log
+**/doc/*.lot
+**/doc/*.out
+**/doc/*.rdx
+**/doc/*.rnd
+**/doc/*.toc
+**/doc/*.aux
+**/2www.pl
 
 regression_tests/*/output.now
 regression_tests/*/lat.bmad

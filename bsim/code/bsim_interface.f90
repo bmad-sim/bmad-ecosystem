@@ -4,7 +4,7 @@ use bmad_interface
 
 interface
 
-function set_tune_3d (branch, target_tunes, mask, use_phase_trombone, z_tune_set, print_err) result (everything_ok)
+function set_tune_3d (branch, target_tunes, mask, use_phase_trombone, z_tune_set, group_knobs, print_err) result (everything_ok)
   import
   implicit none
   type (branch_struct), target :: branch
@@ -12,6 +12,7 @@ function set_tune_3d (branch, target_tunes, mask, use_phase_trombone, z_tune_set
   logical everything_ok
   logical, optional :: use_phase_trombone, z_tune_set, print_err
   character(*), optional :: mask
+  character(*), optional :: group_knobs(2)
 end function
 
 subroutine insert_phase_trombone(branch)

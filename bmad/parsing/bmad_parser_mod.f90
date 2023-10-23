@@ -7154,6 +7154,8 @@ case (crab_cavity$)
     else
       ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
     endif
+  else
+    ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
   endif
 
 !------------------

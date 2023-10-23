@@ -1081,7 +1081,7 @@ enddo
 call drift_multipass_name_correction(lat)
 
 !-------------------------------------
-! If a girder elements refer to a line then must expand that line.
+! If a girder element refers to a line then must expand that line.
 
 do i = 1, n_max
   lord => in_lat%ele(i)
@@ -1113,26 +1113,6 @@ do i = 1, n_max
     j = j + n_ele_use - 1
   enddo
 enddo
-
-! Check for misspellings of superposition reference elements.
-
-if (bp_com%do_superimpose) then
-  do i = 1, n_max
-    if (in_lat%ele(i)%lord_status /= super_lord$) cycle
-    pele => plat%ele(i)
-    if (pele%ref_name == blank_name$) cycle
-
-    call lat_ele_locator (pele%ref_name, lat, eles, n_loc, err)
-    if (err) cycle    ! this error already handled by parser_add_superimpose
-    if (n_loc /= 0) cycle
-
-    call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err)
-    if (n_loc /= 0) cycle
-
-    call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &      
-                       'FOR SUPERPOSITION OF: ' // in_lat%ele(i)%name, pele = pele)
-  enddo
-endif
 
 ! PTC stuff.
 ! Use arbitrary energy above the rest mass energy since when tracking individual elements the

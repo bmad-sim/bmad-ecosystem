@@ -48,7 +48,7 @@ where $t_0$ is the reference time (see \Eq{zbctt}) and $s_\text{ent}$ is the $s$
 upstream end of the element. $t_\text{eff}$ is defined such that a particle entering an element 
 with $z = 0$ has $t_\text{eff} = 0$.
 
-With \vn{absolute time tracking}, and \vn{bmad_com%absolute_time_ref_shift} set to True (the
+With \vn{absolute time tracking}, and \vn{bmad_com[absolute_time_ref_shift]} set to True (the
 default), $t_\text{eff}$ is defined by
 \begin{equation}
   t_\text{eff}(s) = t(s) - t_0(s_\text{ent})
@@ -58,7 +58,7 @@ of the element. With multipass \sref{s:multipass}, $t_0(s_\text{ent})$ is set by
 reference particle at the entrance end of the element on the first pass. For absolute time tracking,
 it is important to keep in mind that $t_0(s_\text{ent})$ is a property of the element independent of
 how tracking is done. Thus, if a particle goes through a particular element multiple times, the
-value of $t_\text{ent}$ will be the same for each transit. If \vn{bmad_com%absolute_time_ref_shift}
+value of $t_\text{ent}$ will be the same for each transit. If \vn{bmad_com[absolute_time_ref_shift]}
 set to True, $t_\text{eff}$ is simply
 \begin{equation}
   t_\text{eff}(s) = t(s) 
@@ -67,7 +67,7 @@ set to True, $t_\text{eff}$ is simply
 To understand the difference between relative and absolute time tracking, consider a particle
 traveling on the reference orbit along side the reference particle in a circular ring with one RF
 cavity. This particle always has $z = 0$ and thus, with \vn{relative time tracking}, $t_\text{eff}$
-will always be zero (assuming \vn{bmad_com%absolute_time_ref_shift} is set to True) at the entrance
+will always be zero (assuming \vn{bmad_com[absolute_time_ref_shift] is set to True) at the entrance
 to the cavity.  With \vn{absolute time tracking}, the particle, on the first turn, will have
 $t_\text{eff}$ equal to zero. However, on subsequent turns (or subsequent passes if using
 multipass), the time will increase by the revolution time $t_\text{C}$ on each turn. If the RF

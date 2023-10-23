@@ -698,7 +698,8 @@ Another group are atoms. The general syntax for atoms is:
 The curly brackets \{...\} denote optional prefixes and suffixes. \vn{AA} here is the
 atomic symbol, \vn{\#nnn} is the number of nucleons, and \vn{ccc} is the charge. Examples:
 \begin{example}
-  parameter[particle] = \#12C+3       ! Triply charged carbon-12
+  parameter[particle] = \#12C+3       ! Triply charged carbon-12.
+  parameter[p0c] = 12 * 500e6         ! Reference momentum is total momentum for particle.
   parameter[particle] = He--          ! Doubly charged He.
 \end{example}
 If the number of nucleons is given, the appropriate weight for that isotope is used. If the number
@@ -713,6 +714,9 @@ The mass of an atom is adjusted by the number of electrons relative to neutral. 
 where $C$ is the charge in units number of electrons relative to neutral. No adjustment is made for
 mass shifts due to finite electron binding energies. This shift is small typically being well less
 than 1\% of the mass of the electron.
+
+Note: When setting the reference momentum \vn{parameter[p0c]}, or reference total energy
+\vn{parameter[E_tot]}, the total for the whole particle is used. {\em Not} the value per nucleon.
 
 Another group of particles are the ``known'' molecules. The syntax for these are:
 \begin{example}
