@@ -621,26 +621,20 @@ do
 
     case ('columns');     cols               = read_string(line)
 
-    case ('species')
-      str = read_string(line)
-      p0%species = species_id(str, positron$)
-
     case ('location')
       str = read_string(line)
-      call match_word(str, location_name(1:), p0%location)
-      if (p0%location <= 0) then
-        call out_io (s_error$, r_name, 'LOCATION NAME NOT RECOGNIZED: ' // str)
-        return
-      endif
+      call read_switch(line(:ix), p0%location, str, err)
+      if (err) return
 
     case ('state')
       str = read_string(line)
-      call match_word(str, state_name, p0%state)
-      if (p0%state <= 0) then
-        call out_io (s_error$, r_name, 'PARTICLE STATE NAME NOT RECOGNIZED: ' // str)
-        return
-      endif
-      p0%state = p0%state - 1   ! Since state_name is zero based.
+      call read_switch(line(:ix), p0%state, str, err)
+      if (err) return
+
+    case ('species')
+      str = read_string(line)
+      call read_switch(line(:ix), p0%species, str, err)
+      if (err) return
 
     case ('s_position');  p0%s           = read_param(line)
     case ('time');        p0%t           = read_param(line)
@@ -674,7 +668,7 @@ do
 
     do
       call string_trim(cols, cols, ix)
-      call read_particle_params(p, cols(1:ix), err); if (err) return
+      call read_particle_params(p, cols(1:ix), line, err); if (err) return
       cols = cols(ix+1:)
       if (cols == '') exit
     enddo
@@ -689,19 +683,140 @@ err_flag = .false.
 !---------------------------------------------------------------------------------------------------
 contains
 
-subroutine read_particle_params(p, col, err)
+subroutine read_particle_params(p, col, line, err)
 type (coord_struct) p
-character(*) col
+character(*) col, line
 logical err
 
 !
 
 select case (col)
+case ('vec');         call read_components(col, p%vec, line, err); if (err) return
+case ('spin');        call read_components(col, p%spin, line, err); if (err) return
+case ('field');       call read_components(col, p%field, line, err); if (err) return
+case ('s');           call read_component(col, p%s, line, err); if (err) return
+case ('t');           call read_component(col, p%t, line, err); if (err) return
+case ('phase');       call read_components(col, p%phase, line, err); if (err) return
+case ('charge');      call read_component(col, p%charge, line, err); if (err) return
+case ('dt_ref');      call read_component(col, p%dt_ref, line, err); if (err) return
+case ('r');           call read_component(col, p%r, line, err); if (err) return
+case ('p0c');         call read_component(col, p%p0c, line, err); if (err) return
+case ('E_potential'); call read_component(col, p%E_potential, line, err); if (err) return
+case ('beta');        call read_component(col, p%beta, line, err); if (err) return
+case ('ix_ele');      call read_component_int(col, p%ix_ele, line, err); if (err) return
+case ('ix_branch');   call read_component_int(col, p%ix_branch, line, err); if (err) return
+case ('ix_user');     call read_component_int(col, p%ix_user, line, err); if (err) return
+case ('direction');   call read_component_int(col, p%direction, line, err); if (err) return
+case ('time_dir');    call read_component_int(col, p%time_dir, line, err); if (err) return
+case ('state');       call read_switch(col, p%state, line, err); if (err) return
+case ('species');     call read_switch(col, p%species, line, err); if (err) return
+case ('location');    call read_switch(col, p%location, line, err); if (err) return
 
 case default
+  err = .true.
+  call out_io(s_error$, r_name, 'COLUMN NAME NOT RECOGNIZED: ' // col)
+  return
 end select
 
 end subroutine read_particle_params
+
+!---------------------------------------------------------------------------------------------------
+! contains
+
+subroutine read_switch(who, switch, line, err)
+
+integer switch, ix
+character(*) who, line
+logical err
+
+!
+
+call string_trim(line, line, ix)
+if (ix == 0) err = .true.
+
+select case (who)
+case ('location')
+  call match_word(line(:ix), location_name(1:), switch)
+  if (switch <= 0) then
+    call out_io (s_error$, r_name, 'LOCATION NAME NOT RECOGNIZED: ' // line)
+    return
+  endif
+
+case ('state')
+  call match_word(line(:ix), state_name, switch)
+  if (switch <= 0) then
+    call out_io (s_error$, r_name, 'PARTICLE STATE NAME NOT RECOGNIZED: ' // line)
+    return
+  endif
+  switch = switch - 1   ! Since state_name is zero based.
+
+case ('species')
+  switch = species_id(line(:ix), positron$)
+  if (switch == invalid$) err = .true.
+end select
+
+line = line(ix+1:)
+
+end subroutine read_switch
+
+!---------------------------------------------------------------------------------------------------
+! contains
+
+subroutine read_components(who, components, line, err)
+
+real(rp) components(:)
+integer ix
+character(*) who, line
+logical err
+
+!
+
+do ix = 1, size(components)
+  call read_component(who, components(ix), line, err)
+  if (err) return
+enddo
+
+end subroutine read_components
+
+!---------------------------------------------------------------------------------------------------
+! contains
+
+subroutine read_component(who, component, line, err)
+
+real(rp) component
+integer ix
+character(*) who, line
+logical err
+
+!
+
+call string_trim(line, line, ix)
+if (ix == 0) err = .true.
+if (err) return
+read (line, *, iostat = ios) component
+err = (ios /= 0)
+
+end subroutine read_component
+
+!---------------------------------------------------------------------------------------------------
+! contains
+
+subroutine read_component_int(who, component, line, err)
+
+integer component
+integer ix
+character(*) who, line
+logical err
+
+!
+
+call string_trim(line, line, ix)
+if (ix == 0) err = .true.
+if (err) return
+read (line, *, iostat = ios) component
+err = (ios /= 0)
+
+end subroutine read_component_int
 
 !---------------------------------------------------------------------------------------------------
 ! contains
