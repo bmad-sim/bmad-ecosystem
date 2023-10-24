@@ -55,6 +55,11 @@ character(*), optional :: excite_zero(3), ignore_kinetic
 
 if (present(err_flag)) err_flag = .true.
 
+if (tao_branch%spin%valid .and. tao_branch%spin_map_valid) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
 g_tol  = 1e-4_rp * branch%param%g1_integral / branch%param%total_length
 g2_tol = 1e-4_rp * branch%param%g2_integral / branch%param%total_length
 g3_tol = 1e-4_rp * branch%param%g3_integral / branch%param%total_length
@@ -73,8 +78,6 @@ integral_dn2_partial2 = 0
 orbit => tao_branch%orbit
 tspin => tao_branch%spin
 if (.not. allocated(tao_branch%spin_ele)) allocate (tao_branch%spin_ele(0:branch%n_ele_track))
-tao_branch%spin_ele(:)%valid = .false.
-tspin%valid = .false.
 if (branch%param%geometry == closed$ .and. orbit(branch%n_ele_track)%state /= alive$) return
 
 !
