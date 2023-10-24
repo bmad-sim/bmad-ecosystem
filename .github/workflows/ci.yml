@@ -47,9 +47,6 @@ jobs:
     steps:
       # Check out the code from GitHub
       - uses: actions/checkout@v4
-
-      # MPI setup
-      - name: Setup MPI
       - uses: mpi4py/setup-mpi@v1 "openmpi"
 
       # Install system dependencies
