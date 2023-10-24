@@ -47,6 +47,7 @@ jobs:
     steps:
       # Check out the code from GitHub
       - uses: actions/checkout@v4
+      # - uses: mpi4py/setup-mpi@v1
 
       # Install system dependencies
       - name: Install System Dependencies

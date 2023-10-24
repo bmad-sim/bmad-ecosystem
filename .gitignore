@@ -13,6 +13,7 @@ plplot
 xraylib
 gnu_utilities_src
 packages
+.directoryhash
 
 # Jupyter notebooks
 .ipynb_checkpoints
