@@ -5788,14 +5788,14 @@ case ('value')
   line = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '#format'], .true., switch, err, ix, print_err = .false.)
+    call tao_next_switch (what2, [character(20):: '#format'], .true., line2, err, ix, print_err = .false.)
     if (err) return
-    select case (switch)
+    select case (line2)
     case ('#format')
       s_fmt = unquote(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
     case default
-      line = trim(line) // trim(switch)
+      line = trim(line) // trim(line2)
       if (what2 == '') exit
     end select
   enddo
