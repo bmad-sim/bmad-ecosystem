@@ -15,8 +15,8 @@ on:
   # Run on PR from DCS
   workflow_run:
     workflows: ["dcs16_push"]
-      types:
-        - completed
+    types:
+      - completed
 
   ## Future Ideas:
   ## PR make it 10 or less
