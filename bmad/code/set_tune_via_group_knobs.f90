@@ -31,7 +31,7 @@ type (coord_struct), allocatable :: orb(:)
 
 real(rp) phi_set(2), dphi_a, dphi_b, dQ_max
 real(rp) phi_a, phi_b, d_a1, d_a2, d_b1, d_b2, det
-real(rp) d1, d2, del0
+real(rp) d1, d2, del0, factor
 real(rp) :: phi_array(2)
 real(rp), allocatable :: deriv1(:), deriv2(:), kinit(:)
 
@@ -48,6 +48,7 @@ character(*), parameter :: r_name = 'set_tune_via_group_knobs'
 dQ_max = 0.001
 del0 = 0.001
 ok = .false.
+factor = 1
 rf_on = rf_is_on(branch)
 
 allocate(kinit(branch%n_ele_track), deriv1(branch%n_ele_track), deriv2(branch%n_ele_track))
@@ -58,7 +59,7 @@ group2 => find_group(group_knobs(2), branch, del0, kinit, deriv2, err); if (err)
 
 ! Q tune
 
-do i = 1, 10
+do i = 1, 20
   call lattice_bookkeeper(branch%lat)
 
   if (rf_on) then
@@ -72,7 +73,19 @@ do i = 1, 10
   call lat_make_mat6 (branch%lat, -1, orb, branch%ix_branch)
 
   call twiss_at_start(branch%lat, status, branch%ix_branch, print_err)
-  if (status /= ok$) return
+  if (status /= ok$) then
+    if (i == 1) return
+    group1%control%var(1)%value = group1%control%var(1)%value - factor * d1
+    group2%control%var(1)%value = group2%control%var(1)%value - factor * d2
+    factor = 0.5 * factor
+    group1%control%var(1)%value = group1%control%var(1)%value + factor * d1
+    group2%control%var(1)%value = group2%control%var(1)%value + factor * d2
+    call set_flags_for_changed_attribute (group1)
+    call set_flags_for_changed_attribute (group2)
+    cycle
+  else
+    factor = 1.0
+  endif
 
   call twiss_propagate_all (branch%lat, branch%ix_branch, err)
   if (err) return
@@ -113,8 +126,8 @@ do i = 1, 10
 
   ! Put in the changes
 
-  group1%control%var(1)%value = group1%control%var(1)%value + d1
-  group2%control%var(1)%value = group2%control%var(1)%value + d2
+  group1%control%var(1)%value = group1%control%var(1)%value + factor * d1
+  group2%control%var(1)%value = group2%control%var(1)%value + factor * d2
 
   call set_flags_for_changed_attribute (group1)
   call set_flags_for_changed_attribute (group2)
