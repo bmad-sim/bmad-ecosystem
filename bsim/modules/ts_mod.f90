@@ -14,11 +14,11 @@ type ts_params_struct
   character(100) :: lat_file = '', dat_out_file = '', quad_mask = ''
   character(40) :: group_knobs(2) = ["", ""]
   character(40) :: test = ""
-  real(rp) :: Q_a0 = 0, Q_a1 = 0, dQ_a = 0
-  real(rp) :: Q_b0 = 0, Q_b1 = 0, dQ_b = 0
-  real(rp) :: Q_z0 = 0, Q_z1 = 0, dQ_z = 0
+  real(rp) :: Q_a0 = real_garbage$, Q_a1 = real_garbage$, dQ_a = real_garbage$
+  real(rp) :: Q_b0 = real_garbage$, Q_b1 = real_garbage$, dQ_b = real_garbage$
+  real(rp) :: Q_z0 = real_garbage$, Q_z1 = real_garbage$, dQ_z = real_garbage$
   real(rp) :: pz0 = 0, pz1 = 0, dpz = 0
-  real(rp) :: a_emit = 0, b_emit = 0, sig_pz
+  real(rp) :: a_emit = 0, b_emit = 0, sig_pz = 0
   real(rp) :: a0_amp = 0, b0_amp = 0, pz0_amp = 0
   real(rp) :: timer_print_dtime = 120
   integer :: n_turn = 0
@@ -80,13 +80,31 @@ endif
 ts_com%master_input_file = 'tune_scan.init'
 if (n_arg == 1) call get_command_argument(1, ts_com%master_input_file)
 
+bmad_com%auto_bookkeeper = .false.
+
 open (unit= 1, file = ts_com%master_input_file, status = 'old', action = 'read')
 read(1, nml = params)
 close (1)
 
-ts%Q_z0 = abs(ts%Q_z0)
-ts%Q_z1 = abs(ts%Q_z1)
-ts%dQ_z = abs(ts%dQ_z)
+if (ts%Q_a0 == real_garbage$ .or. ts%Q_a1 == real_garbage$ .or. ts%dQ_a == real_garbage$) then
+  print '(a)', 'Error: One of ts%Q_a0, ts%Q_a1, ts%dQ_a is not set! Stopping here.'
+  stop
+endif
+
+if (ts%Q_b0 == real_garbage$ .or. ts%Q_b1 == real_garbage$ .or. ts%dQ_b == real_garbage$) then
+  print '(a)', 'Error: One of ts%Q_b0, ts%Q_b1, ts%dQ_b is not set! Stopping here.'
+  stop
+endif
+
+if (ts%rf_on) then
+  if (ts%Q_z0 == real_garbage$ .or. ts%Q_z1 == real_garbage$ .or. ts%dQ_z == real_garbage$) then
+    print '(a)', 'Error: One of ts%Q_z0, ts%Q_z1, ts%dQ_z is not set! Stopping here.'
+    stop
+  endif
+  ts%Q_z0 = abs(ts%Q_z0)
+  ts%Q_z1 = abs(ts%Q_z1)
+  ts%dQ_z = abs(ts%dQ_z)
+endif
 
 if (ts%dat_out_file == '') call file_suffixer(ts_com%master_input_file, ts%dat_out_file, 'dat', .true.)
 
@@ -201,7 +219,7 @@ type (coord_struct), allocatable :: closed_orb(:), orbit(:)
 type (ele_struct), pointer :: ele
 
 real(rp) Jvec0(1:6), Jvec(1:6), init_vec(6), amp(3), r(3), v_mat(4,4)
-integer jtune(3), nt, track_state, status
+integer jtune(3), nt, track_state, status, iqm
 logical ok, error
 
 !
@@ -213,8 +231,10 @@ ts_dat%tune(1) = ts_com%int_Qa + ts%Q_a0 + jtune(1)*ts%dQ_a
 ts_dat%tune(2) = ts_com%int_Qb + ts%Q_b0 + jtune(2)*ts%dQ_b
 if (ts%rf_on) then
   ts_dat%tune(3) = -(ts%Q_z0 + jtune(3)*ts%dQ_z)
+  iqm = 3
 else
   ts_dat%tune(3) = ts%pz0 + jtune(3)*ts%dpz
+  iqm = 2
 endif
 
 ring = ts_com%ring              ! Use copy in case tune setting fails, which may garble the lattice
@@ -222,6 +242,8 @@ closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may
 ele => ring%ele(0)
 
 ok = set_tune_3d (ring%branch(0), ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on, ts%group_knobs)  ! Tunes in radians.
+if (.not. ok) print '(a, 3f9.4)', 'Cannot set tunes (due to resonance?) for: ', ts_dat%tune(1:iqm)
+
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 
 if (ts%rf_on) then

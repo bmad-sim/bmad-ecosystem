@@ -10,12 +10,14 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
+! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat, cols)
 !
 ! Routine to write a beam file.
 !
 ! A '.h5' suffix will be appended to the created file if hdf5$ format is used and file_name does not
 ! already have a '.h5' or '.hdf5' suffix.
+!
+! The ASCII format is ASCII::4 except if cols is present. In this case ASCII::5 is used.
 !
 ! Input:
 !   file_name     -- character(*): Name of file.
@@ -23,9 +25,11 @@ contains
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: ascii$, or hdf5$ (default).
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
+!   cols          -- character(*): Table columns. Possibilities are coord_struct component names.
+!                      column names should be separated by spaces.
 !-
 
-subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
+subroutine write_beam_file (file_name, beam, new_file, file_format, lat, cols)
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -36,6 +40,7 @@ integer j, iu, ib, ip, ix_ele, n, n0
 integer, optional :: file_format
 
 character(*) file_name
+character(*), optional :: cols
 character(200) full_name
 character(*), parameter :: r_name = 'write_beam_file'
 
@@ -57,6 +62,11 @@ if (integer_option(hdf5$, file_format) == hdf5$) then
 endif
 
 !
+
+if (present(cols)) then
+  call write_ascii4_beam_file(file_name, beam, new_file, cols, lat)
+  return
+endif
 
 if (logic_option(.true., new_file)) then
   open (iu, file = full_name)
@@ -86,6 +96,64 @@ enddo
 close (iu)
 
 end subroutine write_beam_file
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine write_ascii4_beam_file (file_name, beam, new_file, cols, lat)
+!
+! Routine to write a beam file in ASCII::4 format.
+!
+! A '.h5' suffix will be appended to the created file if hdf5$ format is used and file_name does not
+! already have a '.h5' or '.hdf5' suffix.
+!
+! The ASCII format is ASCII::4 except if cols is present. In this case ASCII::5 is used.
+!
+! Input:
+!   file_name     -- character(*): Name of file.
+!   beam          -- beam_struct: Beam to write
+!   new_file      -- logical, optional: New file or append? Default = True.
+!   cols          -- character(*): Table columns. Possibilities are coord_struct component names.
+!                      column names should be separated by spaces.
+!   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
+!-
+
+subroutine write_ascii4_beam_file (file_name, beam, new_file, cols, lat)
+
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+type (coord_struct), pointer :: p
+type (lat_struct), optional :: lat
+
+integer j, iu, ib, ip, ix_ele, n, n0
+
+character(*) file_name
+character(*), optional :: cols
+character(200) full_name
+character(*), parameter :: r_name = 'write_ascii4_beam_file'
+
+logical, optional :: new_file
+logical error, append
+
+!
+
+iu = lunget()
+call fullfilename (file_name, full_name)
+
+if (logic_option(.true., new_file)) then
+  open (iu, file = full_name)
+  write (iu, '(a)') '!ASCII::3'
+else
+  open (iu, file = full_name, access = 'append')
+endif
+
+!
+
+
+close (iu)
+
+end subroutine write_ascii4_beam_file
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -636,10 +704,15 @@ do
       call read_switch(line(:ix), p0%species, str, err)
       if (err) return
 
-    case ('s_position');  p0%s           = read_param(line)
-    case ('time');        p0%t           = read_param(line)
+    case ('r');           p0%r           = read_param(line)
+    case ('s');           p0%s           = read_param(line)
+    case ('t');           p0%t           = read_param(line)
     case ('p0c');         p0%p0c         = read_param(line)
+    case ('dt_ref');      p0%dt_ref      = read_param(line)
     case ('charge');      p0%charge      = read_param(line)
+    case ('spin');        call read_params(line, p0%spin)
+    case ('field');       call read_params(line, p0%field)
+    case ('phase');       call read_params(line, p0%phase)
     case ('time_dir');    p0%time_dir    = nint(read_param(line))
     case ('direction');   p0%direction   = nint(read_param(line))
     case ('ix_ele');      p0%ix_ele      = nint(read_param(line))
@@ -835,6 +908,24 @@ if (ios /= 0 .or. ix == 0) then
 endif
 
 end function read_param
+
+!---------------------------------------------------------------------------------------------------
+! contains
+
+subroutine read_params(line, param)
+character(*) line
+real(rp) param(:)
+integer ix, ios
+
+!
+
+ix = index(line, '=')
+read(line(ix+1:), *, iostat = ios) param
+if (ios /= 0 .or. ix == 0) then
+  call out_io (s_error$, r_name, 'ERROR READING BEAM FILE PARAMETER!')
+endif
+
+end subroutine read_params
 
 !---------------------------------------------------------------------------------------------------
 ! contains
