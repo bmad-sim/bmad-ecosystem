@@ -75,7 +75,7 @@
 
 \title{Tune Scan Program}
 \author{}
-\date{David Sagan \\ October 22, 2023}
+\date{David Sagan \\ October 24, 2023}
 \begin{document}
 \maketitle
 
@@ -281,7 +281,7 @@ made, etc. The range of values for $Q_z$ is set by \vn{[ts%Q_z0, ts%Q_z1]} with 
 \vn{ts%dQ_z} between points.
 %
 \item[ts\%pz0, ts\%pz1, ts\%dpz] \Newline
-Only used when \vn{ts%rf_on} is set to True. In the RF off mode, the phase space $p_z$ of the
+Only used when \vn{ts%rf_on} is set to False. In the RF off mode, the phase space $p_z$ of the
 tracked particle is set to a certain value and a tune plane scan is made. $p_z$ is then changed and
 a new tune plane scan is made, etc. The range of values for $p_z$ is set by \vn{[ts%p_z0, ts%p_z1]}
 with a spacing of \vn{ts%dp_z} between points.
