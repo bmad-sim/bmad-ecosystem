@@ -12,12 +12,6 @@ on:
   # Run on pull requests
   pull_request:
 
-  # Run on PR from DCS
-  workflow_run:
-    workflows: ["dcs16_push"]
-    types:
-      - completed
-
   ## Future Ideas:
   ## PR make it 10 or less
   ## For main and time based we can run something bigger

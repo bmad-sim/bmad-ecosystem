@@ -23,4 +23,4 @@ jobs:
       - uses: actions/checkout@v2
       - run: gh pr create -B main -H ${{ github.ref_name }} --title "${{ github.ref_name }}" --body "${{ github.event.head_commit.message }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DCS_PUSH }}
