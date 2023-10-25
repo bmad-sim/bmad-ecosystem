@@ -130,7 +130,7 @@ integer j, iu, ib, ip, ix_ele, n, n0
 
 character(*) file_name
 character(*), optional :: cols
-character(200) full_name
+character(200) full_name, colum
 character(*), parameter :: r_name = 'write_ascii4_beam_file'
 
 logical, optional :: new_file
@@ -148,8 +148,20 @@ else
   open (iu, file = full_name, access = 'append')
 endif
 
+if (present(cols)) then
+  colum = cols
+else
+  colum = ''
+endif 
+
 !
 
+do ib = 1, size(beam%bunch)
+  bunch => beam%bunch(ib)
+  write (iu, '(a, i6)') 'ix_bunch     =', ib
+  write (iu, '(a, i6)') 'n_particle   =', size(bunch%particle)
+  write (iu, '(2a)')    'cols         =', quote(cols)
+enddo
 
 close (iu)
 
@@ -687,7 +699,7 @@ do
     case ('z_center');    bunch%z_center     = read_param(line)
     case ('t_center');    bunch%t_center     = read_param(line)
 
-    case ('columns');     cols               = read_string(line)
+    case ('columns');     cols               = unquote(read_string(line))
 
     case ('location')
       str = read_string(line)
@@ -695,12 +707,12 @@ do
       if (err) return
 
     case ('state')
-      str = read_string(line)
+      str = unquote(read_string(line))
       call read_switch(line(:ix), p0%state, str, err)
       if (err) return
 
     case ('species')
-      str = read_string(line)
+      str = unquote(read_string(line))
       call read_switch(line(:ix), p0%species, str, err)
       if (err) return
 

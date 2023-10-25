@@ -114,7 +114,7 @@ endif
 
 if (ts%dat_out_file == '') call file_suffixer(ts_com%master_input_file, ts%dat_out_file, 'dat', .true.)
 
-if (ts%group_knobs(1) == '' .xor. ts%group_knobs(2) == '') then
+if (ts%group_knobs(1) == '' .neqv. ts%group_knobs(2) == '') then
   print '(a)', 'Error: Both ts%group_knobs(1) and ts%group_knobs(2) strings must be non-blank or both must be non-blank'
   stop
 endif
