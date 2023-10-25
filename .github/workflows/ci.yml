@@ -12,6 +12,12 @@ on:
   # Run on pull requests
   pull_request:
 
+  # Run on PR from DCS
+  workflow_run:
+    workflows: ["dcs16_push"]
+    types:
+      - completed
+
   ## Future Ideas:
   ## PR make it 10 or less
   ## For main and time based we can run something bigger
@@ -24,6 +30,7 @@ on:
 # Configuration for the version of external dependencies
 # We do this so we can cache them and avoid checking out that big
 # repository at all times.
+
 env:
   EXTERNAL_DEPS_VERSION: main
 
@@ -47,7 +54,6 @@ jobs:
     steps:
       # Check out the code from GitHub
       - uses: actions/checkout@v4
-      ### - uses: mpi4py/setup-mpi@v1 "openmpi"
 
       # Install system dependencies
       - name: Install System Dependencies

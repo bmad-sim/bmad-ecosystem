@@ -17,7 +17,7 @@ type ts_params_struct
   real(rp) :: Q_a0 = real_garbage$, Q_a1 = real_garbage$, dQ_a = real_garbage$
   real(rp) :: Q_b0 = real_garbage$, Q_b1 = real_garbage$, dQ_b = real_garbage$
   real(rp) :: Q_z0 = real_garbage$, Q_z1 = real_garbage$, dQ_z = real_garbage$
-  real(rp) :: pz0 = 0, pz1 = 0, dpz = 0
+  real(rp) :: pz0 = real_garbage$, pz1 = real_garbage$, dpz = real_garbage$
   real(rp) :: a_emit = 0, b_emit = 0, sig_pz = 0
   real(rp) :: a0_amp = 0, b0_amp = 0, pz0_amp = 0
   real(rp) :: timer_print_dtime = 120
@@ -98,12 +98,18 @@ endif
 
 if (ts%rf_on) then
   if (ts%Q_z0 == real_garbage$ .or. ts%Q_z1 == real_garbage$ .or. ts%dQ_z == real_garbage$) then
-    print '(a)', 'Error: One of ts%Q_z0, ts%Q_z1, ts%dQ_z is not set! Stopping here.'
+    print '(a)', 'Error: One of ts%Q_z0, ts%Q_z1, ts%dQ_z is not set with RF on! Stopping here.'
     stop
   endif
   ts%Q_z0 = abs(ts%Q_z0)
   ts%Q_z1 = abs(ts%Q_z1)
   ts%dQ_z = abs(ts%dQ_z)
+
+else
+  if (ts%pz0 == real_garbage$ .or. ts%pz1 == real_garbage$ .or. ts%dpz == real_garbage$) then
+    print '(a)', 'Error: One of ts%pz0, ts%pz1, ts%dpz is not set with RF off! Stopping here.'
+    stop
+  endif
 endif
 
 if (ts%dat_out_file == '') call file_suffixer(ts_com%master_input_file, ts%dat_out_file, 'dat', .true.)
