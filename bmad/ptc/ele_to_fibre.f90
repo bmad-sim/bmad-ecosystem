@@ -897,8 +897,8 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even planar_model with field_calc = bmad_standard$
 
-if (.not. associated(ele2%gen_grad_map) .and. ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. &
-                key == wiggler$ .or. key == undulator$)) then
+if (.not. associated(ele2%gen_grad_map) .and. .not. associated(ele2%cylindrical_map) .and. (key == wiggler$ .or. &
+                          key == undulator$ .or. (associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$))) then
 
   
   is_planar_wiggler = ((key == wiggler$ .or. key == undulator$) .and. ele2%field_calc == planar_model$) 
