@@ -11,7 +11,8 @@ on:
 env:
   EXTERNAL_DEPS_VERSION: main
 
-#
+# secrets.DCS_PUSH works allows the ci.yml workflow to be triggered by this workflow. Documentation at:
+#		https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
 
 jobs:
   create-pull-request:
@@ -23,4 +24,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: gh pr create -B main -H ${{ github.ref_name }} --title "${{ github.ref_name }}" --body "${{ github.event.head_commit.message }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DCS_PUSH }}

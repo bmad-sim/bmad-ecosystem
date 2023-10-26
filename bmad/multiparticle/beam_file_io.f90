@@ -126,11 +126,12 @@ type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
 type (lat_struct), optional :: lat
 
-integer j, iu, ib, ip, ix_ele, n, n0
+integer j, iu, ib, ip, ix, ix_ele, n, n0, n_col
 
 character(*) file_name
 character(*), optional :: cols
-character(200) full_name, colum
+character(200) name, col_out
+character(12) colvec(20)
 character(*), parameter :: r_name = 'write_ascii4_beam_file'
 
 logical, optional :: new_file
@@ -139,31 +140,120 @@ logical error, append
 !
 
 iu = lunget()
-call fullfilename (file_name, full_name)
+call fullfilename (file_name, name)
 
 if (logic_option(.true., new_file)) then
-  open (iu, file = full_name)
+  open (iu, file = name)
   write (iu, '(a)') '!ASCII::3'
 else
-  open (iu, file = full_name, access = 'append')
+  open (iu, file = name, access = 'append')
 endif
 
+colvec = ''
 if (present(cols)) then
-  colum = cols
+  name = cols
+  do n_col = 0, 20
+    call string_trim(name, name, ix)
+    if (ix == 0) exit
+    colvec(n_col+1) = name(:ix)
+    name = name(ix+1:)
+  enddo
 else
-  colum = ''
+  colvec(1:14) = [character(12):: 'vec', 'p0c', 's', 't', 'charge', 'spin', 'field', 'phase', 'state', 'ix_ele', 'location', 'species', 'direction', 'time_dir']
 endif 
 
 !
 
 do ib = 1, size(beam%bunch)
   bunch => beam%bunch(ib)
-  write (iu, '(a, i6)') 'ix_bunch     =', ib
-  write (iu, '(a, i6)') 'n_particle   =', size(bunch%particle)
-  write (iu, '(2a)')    'cols         =', quote(cols)
+
+  ! Write header
+
+  p => bunch%particle(1)
+  write (iu, '(2a)')    '# cols           =', quote(cols)
+  write (iu, '(a, i6)') '# ix_bunch       =', ib
+  write (iu, '(a, i6)') '# n_particle     =', size(bunch%particle)
+
+  call headwrite_re('s', colvec, bunch%particle(:)%s)
+  call headwrite_re('t', colvec, bunch%particle(:)%t)
+  call headwrite_re('charge', colvec, bunch%particle(:)%charge)
+  call headwrite_re('dt_ref', colvec, bunch%particle(:)%dt_ref)
+  call headwrite_re('p0c', colvec, bunch%particle(:)%p0c)
+
+  call headwrite_int('ix_ele', colvec, bunch%particle(:)%ix_ele)
+  call headwrite_int('ix_branch', colvec, bunch%particle(:)%ix_branch)
+  call headwrite_int('direction', colvec, bunch%particle(:)%direction)
+  call headwrite_int('time_dir', colvec, bunch%particle(:)%time_dir)
+
+  call headwrite_str('state', colvec, bunch%particle(:)%state, coord_state_name(p%state))
+  call headwrite_str('species', colvec, bunch%particle(:)%species, species_name(p%species))
+  call headwrite_str('location', colvec, bunch%particle(:)%location, location_name(p%location))
+
+  ! Write table
+
+
+
 enddo
 
+
+
+
+
 close (iu)
+
+!-----------------------------------------------------------------------------
+contains
+
+subroutine headwrite_re(who, colvec, re_vec)
+
+character(*) who
+character(12) colvec(:)
+real(rp) re_vec(:)
+
+!
+
+if (any(colvec == who)) return
+if (any(re_vec /= re_vec(1))) return
+
+write (iu, '(2a, t18, a, es24.16)') '# ', who, '=', re_vec(1)
+
+end subroutine headwrite_re
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine headwrite_int(who, colvec, int_vec)
+
+character(*) who
+character(12) colvec(:)
+integer int_vec(:)
+
+!
+
+if (any(colvec == who)) return
+if (any(int_vec /= int_vec(1))) return
+
+write (iu, '(2a, t18, a, i0)') '# ', who, '= ', int_vec(1)
+
+end subroutine headwrite_int
+
+!-----------------------------------------------------------------------------
+! contains
+
+subroutine headwrite_str(who, colvec, int_vec, name)
+
+character(*) who, name
+character(12) colvec(:)
+integer int_vec(:)
+
+!
+
+if (any(colvec == who)) return
+if (any(int_vec /= int_vec(1))) return
+
+write (iu, '(2a, t18, 2a)') '# ', who, '= ', name
+
+end subroutine headwrite_str
 
 end subroutine write_ascii4_beam_file
 
