@@ -115,6 +115,7 @@ end subroutine write_beam_file
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   cols          -- character(*): Table columns. Possibilities are coord_struct component names.
+!                      "index" will give the index of the particle in the bunch%particle(:) array.
 !                      column names should be separated by spaces.
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
 !-
@@ -126,16 +127,20 @@ type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
 type (lat_struct), optional :: lat
 
-integer j, iu, ib, ip, ix, ix_ele, n, n0, n_col
+integer j, iu, ib, ic, ip, ix, ix_ele, n, n0, n_col
 
 character(*) file_name
 character(*), optional :: cols
+character(20) col
 character(200) name, col_out
+character(600) line
 character(12) colvec(20)
 character(*), parameter :: r_name = 'write_ascii4_beam_file'
 
 logical, optional :: new_file
 logical error, append
+logical spin0, field0, phase0, ix_ele0, loc0, dir0, tdir0, charge0, species0
+
 
 !
 
@@ -158,8 +163,36 @@ if (present(cols)) then
     colvec(n_col+1) = name(:ix)
     name = name(ix+1:)
   enddo
+
 else
   colvec(1:14) = [character(12):: 'vec', 'p0c', 's', 't', 'charge', 'spin', 'field', 'phase', 'state', 'ix_ele', 'location', 'species', 'direction', 'time_dir']
+  spin0 = .true.; field0 = .true.; phase0 = .true.; ix_ele0 = .true.; loc0 = .true.; dir0 = .true.; tdir0 = .true.; charge0 = .true.; species0 = .true.
+  do ib = 1, size(beam%bunch)
+    bunch => beam%bunch(ib)
+    if (any(bunch%particle%spin(1) /= 0))    spin0 = .false.
+    if (any(bunch%particle%spin(2) /= 0))    spin0 = .false.
+    if (any(bunch%particle%spin(3) /= 0))    spin0 = .false.
+    if (any(bunch%particle%field(1) /= 0))   field0 = .false.
+    if (any(bunch%particle%field(2) /= 0))   field0 = .false.
+    if (any(bunch%particle%phase(1) /= 0))   phase0 = .false.
+    if (any(bunch%particle%phase(2) /= 0))   phase0 = .false.
+    if (any(bunch%particle%ix_ele /= 0))     ix_ele0 = .false.
+    if (any(bunch%particle%location /= 0))   loc0 = .false.
+    if (any(bunch%particle%direction /= 0))  dir0 = .false.
+    if (any(bunch%particle%time_dir /= 0))   tdir0 = .false.
+    if (any(bunch%particle%charge /= 0))     charge0 = .false.
+    if (any(bunch%particle%species /= 0))    species0 = .false.
+  enddo
+
+  if (.not. spin0) call remove_col('spin', colvec)
+  if (.not. field0) call remove_col('field', colvec)
+  if (.not. phase0) call remove_col('phase', colvec)
+  if (.not. ix_ele0) call remove_col('ix_ele', colvec)
+  if (.not. loc0) call remove_col('location', colvec)
+  if (.not. dir0) call remove_col('direction', colvec)
+  if (.not. tdir0) call remove_col('time_dir', colvec)
+  if (.not. charge0) call remove_col('charge', colvec)
+  if (.not. species0) call remove_col('species', colvec)
 endif 
 
 !
@@ -177,7 +210,6 @@ do ib = 1, size(beam%bunch)
   call headwrite_re('s', colvec, bunch%particle(:)%s)
   call headwrite_re('t', colvec, bunch%particle(:)%t)
   call headwrite_re('charge', colvec, bunch%particle(:)%charge)
-  call headwrite_re('dt_ref', colvec, bunch%particle(:)%dt_ref)
   call headwrite_re('p0c', colvec, bunch%particle(:)%p0c)
 
   call headwrite_int('ix_ele', colvec, bunch%particle(:)%ix_ele)
@@ -191,7 +223,15 @@ do ib = 1, size(beam%bunch)
 
   ! Write table
 
+  write (iu, '(a)') '#'
 
+  do ic = 1, size(colvec)
+    col = colvec(ic)
+    if (col == '') cycle
+    select case (col)
+    case ('index');     
+    end select
+  enddo
 
 enddo
 
@@ -203,6 +243,21 @@ close (iu)
 
 !-----------------------------------------------------------------------------
 contains
+
+subroutine remove_col(who, colvec)
+
+integer ix, n
+character(*) who
+character(12) colvec(:)
+
+n = size(colvec)
+ix = find_location(colvec, who)
+colvec(ix:n-1) = colvec(ix+1:n)
+
+end subroutine remove_col
+
+!-----------------------------------------------------------------------------
+! contains
 
 subroutine headwrite_re(who, colvec, re_vec)
 

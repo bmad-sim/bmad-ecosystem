@@ -966,6 +966,31 @@ end function
 
 end interface
 
+!
+
+interface find_location
+  function find_location_real(arr, value) result (ix_match)
+    import
+    real(rp) arr(:), value
+    integer ix_match
+  end function
+
+  function find_location_int(arr, value) result (ix_match)
+    integer arr(:), value
+    integer ix_match
+  end function
+
+  function find_location_logic(arr, value) result (ix_match)
+    logical arr(:), value
+    integer ix_match
+  end function
+
+  function find_location_str(arr, value) result (ix_match)
+    character(*) arr(:), value
+    integer ix_match
+  end function
+end interface
+
 ! This is to suppress the ranlib "has no symbols" message
 
 integer, private :: private_dummy
