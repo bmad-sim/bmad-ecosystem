@@ -355,7 +355,7 @@ if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
 
 else
   field = em_field_struct()
-  f_p0c = ele%value(p0c$) / (c_light * charge_of(param%particle))
+  f_p0c = r_step * ele%value(p0c$) / (step_len * c_light * charge_of(param%particle))
 
   do i = 0, ix_mag_max
     if (an(i) == 0 .and. bn(i) == 0) cycle
@@ -389,12 +389,12 @@ endif
 
 if (ix_mag_max > -1) then
   orb0 = orbit
-  f_coef = r_step * coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
+  f_coef = step_len * coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
   orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
   orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
 
   if (logic_option(.false., make_matrix)) then
-    df_coef_dx = r_step * coef * c_dir * ele%value(g$) * c_light / orb0%p0c
+    df_coef_dx = step_len * coef * c_dir * ele%value(g$) * c_light / orb0%p0c
 
     mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
                             (f_coef * field%dB(2,2)) * mat6(3,:)
