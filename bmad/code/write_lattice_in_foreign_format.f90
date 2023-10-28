@@ -104,7 +104,7 @@ character(4000) line_out   ! Can be this large for taylor maps.
 character(2) continue_char, eol_char, comment_char, separator_char
 
 logical, optional :: use_matrix_model, include_apertures, err
-logical init_needed, mad_out, err_flag
+logical init_needed, mad_out, err_flag, monopole
 logical parsing, warn_printed, converted, ptc_exact_model
 
 ! SAD translation
@@ -288,9 +288,18 @@ do
   endif
 
   ! If there is a multipole component then put multipole elements at half strength 
-  ! just before and just after the element.
+  ! just before and just after the element. Exception: With Elegant if there is only one multipole for a quad, sextupole, or octupole
 
-  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
+  monopole = .false.
+  if (out_type == 'ELEGANT') then
+    select case (ele%key)
+    case (quadrupole$, sextupole$, octupole$)    ! Elegant
+      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
+      if (count(knl /= 0) == 1 .and. all(knl(0:3) == 0)) monopole = .true.
+    end select
+  endif
+
+  if (.not. monopole .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
     call multipole_ele_to_ab (ele, .true., ix_pole_max, ab_ele%a_pole, ab_ele%b_pole)
     if (ix_pole_max > -1) then
       ab_ele%a_pole = ab_ele%a_pole / 2
@@ -661,10 +670,8 @@ do   ! ix_ele = 1e1, ie2
     select case (ele%key)
     case (quadrupole$, sextupole$, octupole$)    ! Elegant
       call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
-      knl = knl / ele%value(l$)
-
       if (count(knl /= 0) == 1 .and. all(knl(0:3) == 0)) then
-        n = find_location(knl /= 0, .true.)
+        n = find_location(knl /= 0, .true.) - 1
         write (line_out, '(2a)') trim(ele%name) // ': mult'
         call value_to_line(line_out, knl(n), 'knl', 'R')
         write (line_out, '(2a, i0)') trim(line_out), ', order = ', n
@@ -676,6 +683,7 @@ do   ! ix_ele = 1e1, ie2
           call pointer_to_attribute (ele, upcase(bmad_params(i)), .true., a_ptr, err_flag)
           call value_to_line (line_out, a_ptr%r, elegant_params(i), 'R')
         enddo
+        call write_line(line_out)
         cycle
       endif
     end select
