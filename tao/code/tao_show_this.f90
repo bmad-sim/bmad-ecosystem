@@ -4843,7 +4843,9 @@ case ('taylor_map', 'matrix')
         nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
         return
       endif
+
       call string_trim (what2(ix+1:), what2, ix)
+
       if (n_order > ptc_private%taylor_order_ptc) then
         nl=1; write(lines(nl), '(a, i0)') &
                   'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS ', ptc_private%taylor_order_ptc
@@ -4860,6 +4862,7 @@ case ('taylor_map', 'matrix')
       disp_fmt = 'ELEMENTS'
       ele_name = what2(1:ix)
       call string_trim(what2(ix+1:), what2, ix)
+      if (n_order == -1) n_order = 1
 
     case ('-s')
       by_s = .true.
@@ -4931,9 +4934,9 @@ case ('taylor_map', 'matrix')
       ref_vec = orb%vec
     endif
 
-  ! By element
+  !
 
-  else
+  elseif (disp_fmt /= 'ELEMENTS') then
 
     if (ele1_name == '') then
       ix2 = lat%n_ele_track
@@ -5026,32 +5029,33 @@ case ('taylor_map', 'matrix')
 
     !---------------------------------------
 
-    if (disp_fmt /= 'ELEMENTS' .and. ele2_name == '') then
-      nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
-      nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
-    endif
-
-    if (n_order > 1 .or. print_ptc) then
-      call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), &
-                                                      one_turn = .true., concat_if_possible = s%global%concatenate_maps)
-      if (err) then
-        nl = 1; lines(1) = 'TAYLOR MAP TERM OVERFLOW.'
-        return
+    if (disp_fmt /= 'ELEMENTS') then
+      if (ele2_name == '') then
+        nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
+        nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
       endif
 
-      call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
-      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+      if (n_order > 1 .or. print_ptc) then
+        call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), ix_branch, &
+                                                        one_turn = .true., concat_if_possible = s%global%concatenate_maps)
+        if (err) then
+          nl = 1; lines(1) = 'TAYLOR MAP TERM OVERFLOW.'
+          return
+        endif
 
-    else
-      call transfer_matrix_calc (lat, mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
-      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+        call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
+        ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+
+      else
+        call transfer_matrix_calc (lat, mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
+        ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+      endif
     endif
 
   endif
 
   ! Print results
 
-  ! 
   if (disp_fmt == 'ELEMENTS') THEN
     call tao_locate_elements (ele_name, u%ix_uni, eles, err)
     if (err .or. size(eles) == 0) return
@@ -5061,31 +5065,45 @@ case ('taylor_map', 'matrix')
       select case (ele%key)
       case (group$, overlay$, girder$, ramper$); cycle
       end select
-
-      mat6 = ele%mat6
-      vec0 = ele%vec0
-
-      if (angle_units) then
-        call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
-        call map_to_angle_coords (taylor, taylor)
-        call taylor_to_mat6 (taylor, ref_vec, vec0, mat6)
+      if (i > 1) then
+        nl=nl+1; lines(nl) = ''
       endif
+      nl=nl+1; write (lines(nl), '(4a)') 'Element: ', trim(ele%name), ' ', ele_loc_name(ele, .false., '()')
+      if (size(lines) < nl+400) call re_allocate(lines, 2*size(lines))
 
-      if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
+      if (n_order == 1) then
+        mat6 = ele%mat6
+        vec0 = ele%vec0
 
-      if (fmt /= '') then
-        fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
-      elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
-        fmt2 = '(6es15.7, a, es15.7)'
-      else
-        fmt2 = '(6f15.8, a, es15.7)'
+        if (angle_units) then
+          call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
+          call map_to_angle_coords (taylor, taylor)
+          call taylor_to_mat6 (taylor, ref_vec, vec0, mat6)
+        endif
+
+        if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
+
+        if (fmt /= '') then
+          fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
+        elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
+          fmt2 = '(6es15.7, a, es15.7)'
+        else
+          fmt2 = '(6f15.8, a, es15.7)'
+        endif
+
+        do j = 1, 6
+          nl=nl+1; write(lines(nl), fmt2, iostat = ios) mat6(j,:), '   : ', vec0(j)
+        enddo
+
+      else  ! n_order /= 1
+        i0 = ele%ix_ele-1
+        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch) 
+        call truncate_taylor_to_order (taylor, n_order, taylor)
+        call type_taylors (taylor, lines = alloc_lines, n_lines = n, out_style = disp_fmt, clean = .true.)
+        do j = 1, n
+          nl=nl+1; lines(nl) = alloc_lines(j)
+        enddo
       endif
-
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; write (lines(nl), '(a, f18.9)') ele_full_name(ele), ele%s
-      do j = 1, 6
-        nl=nl+1; write(lines(nl), fmt2, iostat = ios) mat6(j,:), '   : ', vec0(j)
-      enddo
     enddo
 
   else

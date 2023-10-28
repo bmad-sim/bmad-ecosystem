@@ -34,10 +34,6 @@ source util/dist_source_me
 util/dist_build_production
 ```
 
-
-
-
-
 ## Contributing to Bmad: Pull Requests
 
 What is a Pull Request? A Pull Request (PR) is a mechanism for requesting that changes that you have made 
