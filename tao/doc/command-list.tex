@@ -3113,10 +3113,10 @@ Syntax:
 Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by
 \vn{set default universe}). See also \vn{show matrix}.
 
-If the \vn{-elements} switch is present, other switches are ignored and the individual element
-transfer matrices (along with the zeroth order part of the map) are printed for each element
-specified by \vn{<ele_list>}. Element list format (\sref{s:ele.list.format}), without any
-embedded blanks, is used for the \vn{<ele_list>} list of elements.
+If the \vn{-elements} switch is present, other switches are ignored except \vn{-order} and the
+individual element transfer maps are printed for each element specified by \vn{<ele_list>}. The
+default order is one. Element list format (\sref{s:ele.list.format}), without any embedded blanks,
+is used for the \vn{<ele_list>} list of elements.
 
 If neither \vn{loc1} nor \vn{loc2} are present, the transfer map is computed for the
 entire lattice.
