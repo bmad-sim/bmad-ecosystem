@@ -21,7 +21,7 @@ jobs:
     runs-on: Ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: gh pr create -B main -H ${{ github.ref_name }} --title "${{ github.event.head_commit.message }}" --body "${{ github.event.head_commit.message }}"
         env:
           GITHUB_TOKEN: ${{ secrets.DCS_PUSH }}
