@@ -81,6 +81,8 @@ ele_inv_param_factor = {
   'lag':      ' - 0.5',
 }
 
+negate_param = ['lag']
+
 const_trans = {
   'e':       'e_log',
   'nmass':   'm_neutron * 1e9',
@@ -338,7 +340,7 @@ def parameter_dictionary(word_lst):
 # To convert <expression> a construct that look like "<target_param> = <expression>".
 
 def bmad_expression(line, target_param):
-  global const_trans, ele_param_factor
+  global const_trans, ele_param_factor, negate_param, ele_inv_param_factor
 
   # Remove {, and } chars for something like "kn := {a, b, c}". Also remove leading and ending quote marks
   line = line.replace('{', '').replace('}', '').strip('"\'')
@@ -369,7 +371,13 @@ def bmad_expression(line, target_param):
 
   # End while
 
-  if target_param in ele_inv_param_factor: out = add_parens(out, True) + ele_inv_param_factor[target_param]
+  if target_param in ele_inv_param_factor: 
+    if target_param in negate_param:
+      out = '-' + add_parens(out, True) + ele_inv_param_factor[target_param]
+    else:
+      out = add_parens(out, True) + ele_inv_param_factor[target_param]
+
+
   return out
 
 #-------------------------------------------------------------------
