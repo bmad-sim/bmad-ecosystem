@@ -134,7 +134,7 @@ character(*), optional :: cols
 character(20) col
 character(200) name, col_out
 character(600) line
-character(12) colvec(20)
+character(12) colvec(20), cfmt(20)
 character(*), parameter :: r_name = 'write_ascii4_beam_file'
 
 logical, optional :: new_file
@@ -148,7 +148,7 @@ iu = lunget()
 call fullfilename (file_name, name)
 
 if (logic_option(.true., new_file)) then
-  open (iu, file = name)
+  open (iu, file = name, recl = 600)
   write (iu, '(a)') '!ASCII::3'
 else
   open (iu, file = name, access = 'append')
@@ -221,22 +221,59 @@ do ib = 1, size(beam%bunch)
   call headwrite_str('species', colvec, bunch%particle(:)%species, species_name(p%species))
   call headwrite_str('location', colvec, bunch%particle(:)%location, location_name(p%location))
 
-  ! Write table
+  ! Write table header
 
-  write (iu, '(a)') '#'
+  line = '#'
 
   do ic = 1, size(colvec)
     col = colvec(ic)
     if (col == '') cycle
     select case (col)
-    case ('index');     
+    case ('index', 'ix_ele', 'ix_branch', 'direction', 'time_dir')
+                                      write (line, '(a, a10)') trim(line), trim(col)
+    case ('s', 't', 'charge', 'p0c'); write (line, '(a, a22)') trim(line), trim(col)
+    case ('vec');           write (line, '(a, 6a22)') trim(line), 'x', 'px', 'y', 'py', 'z', 'pz'
+    case ('spin');          write (line, '(a, 6a22)') trim(line), 'spin_x', 'spin_y', 'spin_z'
+    case ('field');         write (line, '(a, 6a22)') trim(line), 'field_x', 'field_y'
+    case ('phase');         write (line, '(a, 6a22)') trim(line), 'phase_x', 'phase_y'
+    case ('state');         write (line, '(a, a13)') trim(line), 'state'
+    case ('species');       write (line, '(a, a12)') trim(line), 'spieces'
+    case ('location');      write (line, '(a, a12)') trim(line), 'location'
+    case default
+      call err_exit
     end select
   enddo
 
+  write (iu, '(a)') trim(line)
+
+  !
+
+  line = ''
+  do ip = 1, size(colvec)
+    col = colvec(ic)
+    if (col == '') cycle
+    select case (col)
+    case ('index');       write (line, '(a, i10)') trim(line), ip
+    case ('ix_ele');      write (line, '(a, i10)') trim(line), p%ix_ele
+    case ('ix_branch');   write (line, '(a, i10)') trim(line), p%ix_branch
+    case ('direction');   write (line, '(a, i10)') trim(line), p%direction
+    case ('time_dir');    write (line, '(a, i10)') trim(line), p%time_dir
+    case ('s');           write (line, '(a, 2es22.14)') trim(line), p%s
+    case ('t');           write (line, '(a, 2es22.14)') trim(line), p%t
+    case ('charge');      write (line, '(a, 2es22.14)') trim(line), p%charge
+    case ('p0c');         write (line, '(a, 2es22.14)') trim(line), p%p0c
+    case ('vec');         write (line, '(a, 2es22.14)') trim(line), p%vec
+    case ('spin');        write (line, '(a, 2es22.14)') trim(line), p%spin
+    case ('field');       write (line, '(a, 2es22.14)') trim(line), p%field
+    case ('phase');       write (line, '(a, 2es22.14)') trim(line), p%phase
+    case ('state');       write (line, '(a, a13)') trim(line), state_name(p%state)
+    case ('species');     write (line, '(a, a12)') trim(line), species_name(p%species)
+    case ('location');    write (line, '(a, a12)') trim(line), location_name(p%location)
+    end select
+  enddo
+  write (iu, '(a)') trim(line)
+
 enddo
-
-
-
 
 
 close (iu)
