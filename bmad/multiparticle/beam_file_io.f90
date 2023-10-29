@@ -10,7 +10,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat, cols)
+! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
 !
 ! Routine to write a beam file.
 !
@@ -25,11 +25,9 @@ contains
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: ascii$, or hdf5$ (default).
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
-!   cols          -- character(*): Table columns. Possibilities are coord_struct component names.
-!                      column names should be separated by spaces.
 !-
 
-subroutine write_beam_file (file_name, beam, new_file, file_format, lat, cols)
+subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -40,12 +38,18 @@ integer j, iu, ib, ip, ix_ele, n, n0
 integer, optional :: file_format
 
 character(*) file_name
-character(*), optional :: cols
 character(200) full_name
 character(*), parameter :: r_name = 'write_beam_file'
 
 logical, optional :: new_file
 logical error, append
+
+!
+
+if (file_format == ascii4$) then
+  call write_ascii4_beam_file(file_name, beam, new_file, lat)
+  return
+endif
 
 !
 
@@ -58,13 +62,6 @@ if (integer_option(hdf5$, file_format) == hdf5$) then
 
   append = .not. logic_option(.true., new_file)
   call hdf5_write_beam(full_name, beam%bunch, append, error, lat)
-  return
-endif
-
-!
-
-if (present(cols)) then
-  call write_ascii4_beam_file(file_name, beam, new_file, cols, lat)
   return
 endif
 
@@ -101,7 +98,7 @@ end subroutine write_beam_file
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_ascii4_beam_file (file_name, beam, new_file, cols, lat)
+! Subroutine write_ascii4_beam_file (file_name, beam, new_file, lat)
 !
 ! Routine to write a beam file in ASCII::4 format.
 !
@@ -114,13 +111,10 @@ end subroutine write_beam_file
 !   file_name     -- character(*): Name of file.
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
-!   cols          -- character(*): Table columns. Possibilities are coord_struct component names.
-!                      "index" will give the index of the particle in the bunch%particle(:) array.
-!                      column names should be separated by spaces.
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
 !-
 
-subroutine write_ascii4_beam_file (file_name, beam, new_file, cols, lat)
+subroutine write_ascii4_beam_file (file_name, beam, new_file, lat)
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -130,7 +124,6 @@ type (lat_struct), optional :: lat
 integer j, iu, ib, ic, ip, ix, ix_ele, n, n0, n_col
 
 character(*) file_name
-character(*), optional :: cols
 character(20) col
 character(200) name, col_out
 character(600) line
@@ -139,8 +132,7 @@ character(*), parameter :: r_name = 'write_ascii4_beam_file'
 
 logical, optional :: new_file
 logical error, append
-logical spin0, field0, phase0, ix_ele0, loc0, dir0, tdir0, charge0, species0
-
+logical spin0, field0, phase0, ix_branch0, loc0, dir0, tdir0, charge0, species0, s0, t0, p0c0
 
 !
 
@@ -149,51 +141,45 @@ call fullfilename (file_name, name)
 
 if (logic_option(.true., new_file)) then
   open (iu, file = name, recl = 600)
-  write (iu, '(a)') '!ASCII::3'
 else
-  open (iu, file = name, access = 'append')
+  open (iu, file = name, access = 'append', recl = 600)
 endif
 
 colvec = ''
-if (present(cols)) then
-  name = cols
-  do n_col = 0, 20
-    call string_trim(name, name, ix)
-    if (ix == 0) exit
-    colvec(n_col+1) = name(:ix)
-    name = name(ix+1:)
-  enddo
+colvec(1:15) = [character(12):: 'vec', 'p0c', 's-position', 'time', 'charge', 'spin', 'field', &
+                      'phase', 'state', 'ix_ele', 'ix_branch', 'location', 'species', 'direction', 'time_dir']
+spin0 = .true.; field0 = .true.; phase0 = .true.; ix_branch0 = .true.; loc0 = .true.; dir0 = .true.
+tdir0 = .true.; charge0 = .true.; species0 = .true.; s0 = .true.; t0 = .true.; p0c0 = .true.
+do ib = 1, size(beam%bunch)
+  bunch => beam%bunch(ib)
+  p => bunch%particle(1)
+  if (any(bunch%particle%spin(1) /= 0))              spin0 = .false.
+  if (any(bunch%particle%spin(2) /= 0))              spin0 = .false.
+  if (any(bunch%particle%spin(3) /= 0))              spin0 = .false.
+  if (any(bunch%particle%field(1) /= 0))             field0 = .false.
+  if (any(bunch%particle%field(2) /= 0))             field0 = .false.
+  if (any(bunch%particle%phase(1) /= 0))             phase0 = .false.
+  if (any(bunch%particle%phase(2) /= 0))             phase0 = .false.
+  if (any(bunch%particle%ix_branch /= p%ix_branch))  ix_branch0 = .false.
+  if (any(bunch%particle%location /= p%location))    loc0 = .false.
+  if (any(bunch%particle%direction /= p%direction))  dir0 = .false.
+  if (any(bunch%particle%time_dir /= p%time_dir))    tdir0 = .false.
+  if (any(bunch%particle%charge /= p%charge))        charge0 = .false.
+  if (any(bunch%particle%species /= p%species))      species0 = .false.
+  if (any(bunch%particle%s /= p%s))                  s0 = .false.
+  if (any(bunch%particle%t /= p%t))                  t0 = .false.
+  if (any(bunch%particle%p0c /= p%p0c))              p0c0 = .false.
+enddo
 
-else
-  colvec(1:14) = [character(12):: 'vec', 'p0c', 's', 't', 'charge', 'spin', 'field', 'phase', 'state', 'ix_ele', 'location', 'species', 'direction', 'time_dir']
-  spin0 = .true.; field0 = .true.; phase0 = .true.; ix_ele0 = .true.; loc0 = .true.; dir0 = .true.; tdir0 = .true.; charge0 = .true.; species0 = .true.
-  do ib = 1, size(beam%bunch)
-    bunch => beam%bunch(ib)
-    if (any(bunch%particle%spin(1) /= 0))    spin0 = .false.
-    if (any(bunch%particle%spin(2) /= 0))    spin0 = .false.
-    if (any(bunch%particle%spin(3) /= 0))    spin0 = .false.
-    if (any(bunch%particle%field(1) /= 0))   field0 = .false.
-    if (any(bunch%particle%field(2) /= 0))   field0 = .false.
-    if (any(bunch%particle%phase(1) /= 0))   phase0 = .false.
-    if (any(bunch%particle%phase(2) /= 0))   phase0 = .false.
-    if (any(bunch%particle%ix_ele /= 0))     ix_ele0 = .false.
-    if (any(bunch%particle%location /= 0))   loc0 = .false.
-    if (any(bunch%particle%direction /= 0))  dir0 = .false.
-    if (any(bunch%particle%time_dir /= 0))   tdir0 = .false.
-    if (any(bunch%particle%charge /= 0))     charge0 = .false.
-    if (any(bunch%particle%species /= 0))    species0 = .false.
-  enddo
-
-  if (.not. spin0) call remove_col('spin', colvec)
-  if (.not. field0) call remove_col('field', colvec)
-  if (.not. phase0) call remove_col('phase', colvec)
-  if (.not. ix_ele0) call remove_col('ix_ele', colvec)
-  if (.not. loc0) call remove_col('location', colvec)
-  if (.not. dir0) call remove_col('direction', colvec)
-  if (.not. tdir0) call remove_col('time_dir', colvec)
-  if (.not. charge0) call remove_col('charge', colvec)
-  if (.not. species0) call remove_col('species', colvec)
-endif 
+if (.not. spin0) call remove_col('spin', colvec)
+if (.not. field0) call remove_col('field', colvec)
+if (.not. phase0) call remove_col('phase', colvec)
+if (.not. dir0) call remove_col('direction', colvec)
+if (.not. tdir0) call remove_col('time_dir', colvec)
+if (.not. charge0) call remove_col('charge', colvec)
+if (.not. species0) call remove_col('species', colvec)
+if (.not. ix_branch0) call remove_col('ix_branch', colvec)
+if (.not. loc0) call remove_col('location', colvec)
 
 !
 
@@ -203,27 +189,26 @@ do ib = 1, size(beam%bunch)
   ! Write header
 
   p => bunch%particle(1)
-  write (iu, '(2a)')    '# cols           =', quote(cols)
+  write (iu, '(a, es22.14)') '# charge_tot     =', bunch%charge_tot
+  write (iu, '(a, es22.14)') '# z_center       =', bunch%z_center
+  write (iu, '(a, es22.14)') '# t_center       =', bunch%t_center
   write (iu, '(a, i6)') '# ix_bunch       =', ib
   write (iu, '(a, i6)') '# n_particle     =', size(bunch%particle)
+  write (iu, '(a, i6)') '# n_alive        =', count(bunch%particle%state == alive$)
+  write (iu, '(a, i6)') '# n_dead         =', count(bunch%particle%state /= alive$)
 
-  call headwrite_re('s', colvec, bunch%particle(:)%s)
-  call headwrite_re('t', colvec, bunch%particle(:)%t)
-  call headwrite_re('charge', colvec, bunch%particle(:)%charge)
-  call headwrite_re('p0c', colvec, bunch%particle(:)%p0c)
+  call headwrite_re(charge0, 'charge', colvec, p%charge)
 
-  call headwrite_int('ix_ele', colvec, bunch%particle(:)%ix_ele)
-  call headwrite_int('ix_branch', colvec, bunch%particle(:)%ix_branch)
-  call headwrite_int('direction', colvec, bunch%particle(:)%direction)
-  call headwrite_int('time_dir', colvec, bunch%particle(:)%time_dir)
+  call headwrite_int(ix_branch0, 'ix_branch', colvec, p%ix_branch)
+  call headwrite_int(dir0, 'direction', colvec, p%direction)
+  call headwrite_int(tdir0, 'time_dir', colvec, p%time_dir)
 
-  call headwrite_str('state', colvec, bunch%particle(:)%state, coord_state_name(p%state))
-  call headwrite_str('species', colvec, bunch%particle(:)%species, species_name(p%species))
-  call headwrite_str('location', colvec, bunch%particle(:)%location, location_name(p%location))
+  call headwrite_str(species0, 'species', colvec, species_name(p%species))
+  call headwrite_str(loc0, 'location', colvec, location_name(p%location))
 
   ! Write table header
 
-  line = '#'
+  line = ''
 
   do ic = 1, size(colvec)
     col = colvec(ic)
@@ -231,12 +216,12 @@ do ib = 1, size(beam%bunch)
     select case (col)
     case ('index', 'ix_ele', 'ix_branch', 'direction', 'time_dir')
                                       write (line, '(a, a10)') trim(line), trim(col)
-    case ('s', 't', 'charge', 'p0c'); write (line, '(a, a22)') trim(line), trim(col)
+    case ('s-position', 'time', 'charge', 'p0c'); write (line, '(a, a22)') trim(line), trim(col)
     case ('vec');           write (line, '(a, 6a22)') trim(line), 'x', 'px', 'y', 'py', 'z', 'pz'
     case ('spin');          write (line, '(a, 6a22)') trim(line), 'spin_x', 'spin_y', 'spin_z'
     case ('field');         write (line, '(a, 6a22)') trim(line), 'field_x', 'field_y'
     case ('phase');         write (line, '(a, 6a22)') trim(line), 'phase_x', 'phase_y'
-    case ('state');         write (line, '(a, a13)') trim(line), 'state'
+    case ('state');         write (line, '(a, a14)') trim(line), 'state'
     case ('species');       write (line, '(a, a12)') trim(line), 'spieces'
     case ('location');      write (line, '(a, a12)') trim(line), 'location'
     case default
@@ -244,37 +229,40 @@ do ib = 1, size(beam%bunch)
     end select
   enddo
 
+  line(1:2) = '#!'
   write (iu, '(a)') trim(line)
 
   !
 
-  line = ''
-  do ip = 1, size(colvec)
-    col = colvec(ic)
-    if (col == '') cycle
-    select case (col)
-    case ('index');       write (line, '(a, i10)') trim(line), ip
-    case ('ix_ele');      write (line, '(a, i10)') trim(line), p%ix_ele
-    case ('ix_branch');   write (line, '(a, i10)') trim(line), p%ix_branch
-    case ('direction');   write (line, '(a, i10)') trim(line), p%direction
-    case ('time_dir');    write (line, '(a, i10)') trim(line), p%time_dir
-    case ('s');           write (line, '(a, 2es22.14)') trim(line), p%s
-    case ('t');           write (line, '(a, 2es22.14)') trim(line), p%t
-    case ('charge');      write (line, '(a, 2es22.14)') trim(line), p%charge
-    case ('p0c');         write (line, '(a, 2es22.14)') trim(line), p%p0c
-    case ('vec');         write (line, '(a, 2es22.14)') trim(line), p%vec
-    case ('spin');        write (line, '(a, 2es22.14)') trim(line), p%spin
-    case ('field');       write (line, '(a, 2es22.14)') trim(line), p%field
-    case ('phase');       write (line, '(a, 2es22.14)') trim(line), p%phase
-    case ('state');       write (line, '(a, a13)') trim(line), state_name(p%state)
-    case ('species');     write (line, '(a, a12)') trim(line), species_name(p%species)
-    case ('location');    write (line, '(a, a12)') trim(line), location_name(p%location)
-    end select
+  do ip = 1, size(bunch%particle)
+    p => bunch%particle(ip)
+    line = ''
+    do ic = 1, size(colvec)
+      col = colvec(ic)
+      if (col == '') cycle
+      select case (col)
+      case ('index');       write (line, '(a, i10)') trim(line), ip
+      case ('ix_ele');      write (line, '(a, i10)') trim(line), p%ix_ele
+      case ('ix_branch');   write (line, '(a, i10)') trim(line), p%ix_branch
+      case ('direction');   write (line, '(a, i10)') trim(line), p%direction
+      case ('time_dir');    write (line, '(a, i10)') trim(line), p%time_dir
+      case ('s');           write (line, '(a,  es22.14)') trim(line), p%s
+      case ('t');           write (line, '(a,  es22.14)') trim(line), p%t
+      case ('charge');      write (line, '(a,  es22.14)') trim(line), p%charge
+      case ('p0c');         write (line, '(a,  es22.14)') trim(line), p%p0c
+      case ('vec');         write (line, '(a, 6es22.14)') trim(line), p%vec
+      case ('spin');        write (line, '(a, 3es22.14)') trim(line), p%spin
+      case ('field');       write (line, '(a, 2es22.14)') trim(line), p%field
+      case ('phase');       write (line, '(a, 2es22.14)') trim(line), p%phase
+      case ('state');       write (line, '(a, a14)') trim(line), trim(state_name(p%state))
+      case ('species');     write (line, '(a, a12)') trim(line), trim(species_name(p%species))
+      case ('location');    write (line, '(a, a12)') trim(line), trim(location_name(p%location))
+      end select
+    enddo
+    write (iu, '(a)') trim(line)
   enddo
-  write (iu, '(a)') trim(line)
 
 enddo
-
 
 close (iu)
 
@@ -296,53 +284,49 @@ end subroutine remove_col
 !-----------------------------------------------------------------------------
 ! contains
 
-subroutine headwrite_re(who, colvec, re_vec)
+subroutine headwrite_re(is_const, who, colvec, re_val)
 
 character(*) who
 character(12) colvec(:)
-real(rp) re_vec(:)
+real(rp) re_val
+logical is_const
 
 !
 
-if (any(colvec == who)) return
-if (any(re_vec /= re_vec(1))) return
-
-write (iu, '(2a, t18, a, es24.16)') '# ', who, '=', re_vec(1)
+if (any(colvec == who) .or. .not. is_const) return
+write (iu, '(2a, t18, a, es24.16)') '# ', who, '=', re_val
 
 end subroutine headwrite_re
 
 !-----------------------------------------------------------------------------
 ! contains
 
-subroutine headwrite_int(who, colvec, int_vec)
+subroutine headwrite_int(is_const, who, colvec, int_val)
 
 character(*) who
 character(12) colvec(:)
-integer int_vec(:)
+integer int_val
+logical is_const
 
 !
 
-if (any(colvec == who)) return
-if (any(int_vec /= int_vec(1))) return
-
-write (iu, '(2a, t18, a, i0)') '# ', who, '= ', int_vec(1)
+if (any(colvec == who) .or. .not. is_const) return
+write (iu, '(2a, t18, a, i0)') '# ', who, '= ', int_val
 
 end subroutine headwrite_int
 
 !-----------------------------------------------------------------------------
 ! contains
 
-subroutine headwrite_str(who, colvec, int_vec, name)
+subroutine headwrite_str(is_const, who, colvec, name)
 
 character(*) who, name
 character(12) colvec(:)
-integer int_vec(:)
+logical is_const
 
 !
 
-if (any(colvec == who)) return
-if (any(int_vec /= int_vec(1))) return
-
+if (any(colvec == who) .or. .not. is_const) return
 write (iu, '(2a, t18, 2a)') '# ', who, '= ', name
 
 end subroutine headwrite_str
@@ -453,11 +437,9 @@ endif
 ! Note: BIN type files no longer generated by Bmad (HDF5 is always used instead).
 
 read (iu, '(a80)') line
-if (index(line, '!BINARY') /= 0) then
-  call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'OLD STYLE BEAM FILE NOT SUPPORTED...')
+if (index(line, '!BINARY') /= 0 .or. index(line, '!BIN::2') /= 0) then
+  call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'OLD STYLE BINARY BEAM FILE NOT SUPPORTED...')
   return
-elseif (index(line, '!BIN::2') /= 0) then 
-  file_type = 'BIN::2'
 elseif (index(line, '!BIN::3') /= 0) then
   file_type = 'BIN::3'
 elseif (index(line, '!ASCII::3') /= 0) then
@@ -469,17 +451,16 @@ else
   enddo
 
   if (line(1:1) == '#') then
-    file_type = 'ASCII::4'
-  else
-    file_type = 'ASCII::3'
+    close (iu)
+    call read_beam_ascii4(file_name, beam, beam_init, err_flag, ele, print_mom_shift_warning, conserve_momentum)
+    return
   endif
 
-  rewind (iu)
-  call read_beam_ascii4(iu, file_name, beam, beam_init, err_flag, ele, print_mom_shift_warning, conserve_momentum)
-  return
+  file_type = 'ASCII::3'
+  backspace (iu)
 endif
 
-if (file_type(1:3) == 'BIN') then
+if (file_type == 'BIN::3') then
   close (iu)
   open (iu, file = full_name, form = 'unformatted', status = 'old', action = 'read')
 endif
@@ -649,12 +630,7 @@ do i = 1, n_bunch
     endif
 
     do j = 1, n_particle_lines
-      if (file_type == 'BIN::3') then
-        read (iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, ix_ele, p(j)%location
-      else
-        read (iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, spinor, ix_ele, p(j)%location
-        p(j)%spin = spinor_to_vec(spinor)
-      endif
+      read (iu, iostat = ios) p(j)%vec, p(j)%charge, p(j)%state, p(j)%spin, ix_ele, p(j)%location
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'IN FILE: ' // trim(file_name), 'ERROR READING PARTICLE COORDINATES')
         return
@@ -810,7 +786,7 @@ end subroutine read_beam_file
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine read_beam_ascii4 (iu, file_name, beam, beam_init, err_flag, ele, print_mom_shift_warning, conserve_momentum)
+! Subroutine read_beam_ascii4 (file_name, beam, beam_init, err_flag, ele, print_mom_shift_warning, conserve_momentum)
 !
 ! Subroutine to read in a beam definition file.
 ! If non_zero, the following components of beam_init are used to rescale the beam:
@@ -834,7 +810,7 @@ end subroutine read_beam_file
 !   err_flag    -- Logical: Set True if there is an error. False otherwise.
 !+ 
 
-subroutine read_beam_ascii4 (iu, file_name, beam, beam_init, err_flag, ele, print_mom_shift_warning, conserve_momentum)
+subroutine read_beam_ascii4 (file_name, beam, beam_init, err_flag, ele, print_mom_shift_warning, conserve_momentum)
 
 type (beam_struct), target :: beam
 type (beam_init_struct) beam_init
@@ -845,13 +821,15 @@ type (coord_struct) p0
 
 real(rp) charge_tot, z_center, t_center
 
-integer iu, ip, ix, ios, n_particle, n_bunch
+integer iu, ic, ip, ix, ios, n_particle, n_bunch, n_col
 
 character(*) file_name
 character(*), parameter :: r_name = 'read_beam_ascii4'
-character(200) cols, line, str
+character(20) col(30)
+character(200) full_name
+character(600) line, str
 
-logical err_flag, err
+logical err_flag, err, valid
 logical, optional :: print_mom_shift_warning, conserve_momentum
 
 !
@@ -860,6 +838,19 @@ n_bunch = 0
 err_flag = .true.
 err = .false.
 
+call fullfilename(file_name, full_name, valid)
+if (.not. valid) then
+  call out_io (s_error$, r_name, 'NOT A VALID FILE NAME:' // file_name)
+  return
+endif
+
+iu = lunget()
+open (iu, file = full_name, status = 'old', iostat = ios, action = 'read')
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE: ' // quote(file_name))
+  return
+endif
+
 ! bunch loop
 do
   n_bunch = n_bunch + 1
@@ -867,21 +858,40 @@ do
   call reallocate_bunch(beam%bunch(n_bunch), 1000)
   bunch => beam%bunch(n_bunch)
 
-  cols = ''
   p0 = coord_struct()
 
   ! Read bunch header
-  do
+  header_loop: do
     read (iu, '(a)', iostat = ios) line
-    if (line(1:1) /= '#') exit
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'CANNOT READ BUNCH HEADER IN FILE: ' // file_name)
+      return
+    endif
+
+    if (line == '') cycle
+
+    if (line(1:2) == '#!') then
+      call string_trim(line(3:), line, ix)
+      n_col = 0
+      do
+        if (ix == 0) exit header_loop
+        n_col = n_col + 1
+        col(n_col) = line(:ix)
+        call string_trim(line(ix+1:), line, ix)
+      enddo
+    endif
+
+    if (line(1:1) /= '#') then
+      call out_io (s_error$, r_name, 'CANNOT DECODE HEADER LINE: ' // line, 'FOR FILE: ' // file_name)
+      return
+    endif
+
     call string_trim(line(2:), line, ix)
 
     select case (line(:ix))
     case ('charge_tot');  bunch%charge_tot   = read_param(line)
     case ('z_center');    bunch%z_center     = read_param(line)
     case ('t_center');    bunch%t_center     = read_param(line)
-
-    case ('columns');     cols               = unquote(read_string(line))
 
     case ('location')
       str = read_string(line)
@@ -899,8 +909,8 @@ do
       if (err) return
 
     case ('r');           p0%r           = read_param(line)
-    case ('s');           p0%s           = read_param(line)
-    case ('t');           p0%t           = read_param(line)
+    case ('s_position');  p0%s           = read_param(line)
+    case ('time');        p0%t           = read_param(line)
     case ('p0c');         p0%p0c         = read_param(line)
     case ('dt_ref');      p0%dt_ref      = read_param(line)
     case ('charge');      p0%charge      = read_param(line)
@@ -912,18 +922,17 @@ do
     case ('ix_ele');      p0%ix_ele      = nint(read_param(line))
     case ('ix_branch');   p0%ix_branch   = nint(read_param(line))
     end select
-  enddo
+  enddo header_loop
 
   ! Read particle info
-  backspace(unit = iu)
 
   ip = 0
   do 
     read (iu, '(a)', iostat = ios, end = 8000) line
     if (line == '') cycle
-    if (line(1:1) == '#') exit
+    if (line(1:1) == '#') exit   ! Next bunch
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'CANNOT READ BEAM FILE: ' // file_name)
+      call out_io (s_error$, r_name, 'CANNOT READ BEAM FILE TABLE IN FILE: ' // file_name)
       return
     endif
 
@@ -933,15 +942,50 @@ do
     p => bunch%particle(ip)
     p = p0
 
-    do
-      call string_trim(cols, cols, ix)
-      call read_particle_params(p, cols(1:ix), line, err); if (err) return
-      cols = cols(ix+1:)
-      if (cols == '') exit
+    do ic = 1, n_col
+      select case (col(ic))
+      case ('x');           call read_component(p%vec(1), line, err); if (err) return
+      case ('px');          call read_component(p%vec(2), line, err); if (err) return
+      case ('y');           call read_component(p%vec(3), line, err); if (err) return
+      case ('py');          call read_component(p%vec(4), line, err); if (err) return
+      case ('z');           call read_component(p%vec(5), line, err); if (err) return
+      case ('pz');          call read_component(p%vec(6), line, err); if (err) return
+      case ('spin_x');      call read_component(p%spin(1), line, err); if (err) return
+      case ('spin_y');      call read_component(p%spin(2), line, err); if (err) return
+      case ('spin_z');      call read_component(p%spin(3), line, err); if (err) return
+      case ('field_x');     call read_component(p%field(1), line, err); if (err) return
+      case ('field_y');     call read_component(p%field(2), line, err); if (err) return
+      case ('phase_x');     call read_component(p%phase(1), line, err); if (err) return
+      case ('phase_y');     call read_component(p%phase(2), line, err); if (err) return
+      case ('s_position');  call read_component(p%s, line, err); if (err) return
+      case ('time');        call read_component(p%t, line, err); if (err) return
+      case ('charge');      call read_component(p%charge, line, err); if (err) return
+      case ('dt_ref');      call read_component(p%dt_ref, line, err); if (err) return
+      case ('r');           call read_component(p%r, line, err); if (err) return
+      case ('p0c');         call read_component(p%p0c, line, err); if (err) return
+      case ('E_potential'); call read_component(p%E_potential, line, err); if (err) return
+      case ('beta');        call read_component(p%beta, line, err); if (err) return
+      case ('ix_ele');      call read_component_int(p%ix_ele, line, err); if (err) return
+      case ('ix_branch');   call read_component_int(p%ix_branch, line, err); if (err) return
+      case ('ix_user');     call read_component_int(p%ix_user, line, err); if (err) return
+      case ('direction');   call read_component_int(p%direction, line, err); if (err) return
+      case ('time_dir');    call read_component_int(p%time_dir, line, err); if (err) return
+      case ('state');       call read_switch(col(ic), p%state, line, err); if (err) return
+      case ('species');     call read_switch(col(ic), p%species, line, err); if (err) return
+      case ('location');    call read_switch(col(ic), p%location, line, err); if (err) return
+
+      case default
+        err = .true.
+        call out_io(s_error$, r_name, 'COLUMN NAME NOT RECOGNIZED: ' // col)
+        return
+      end select
     enddo
   enddo
 
+  call reallocate_bunch(bunch, ip, .true.)
 enddo
+
+!
 
 8000 continue
 call reallocate_bunch(bunch, ip, .true.)
@@ -949,46 +993,6 @@ err_flag = .false.
 
 !---------------------------------------------------------------------------------------------------
 contains
-
-subroutine read_particle_params(p, col, line, err)
-type (coord_struct) p
-character(*) col, line
-logical err
-
-!
-
-select case (col)
-case ('vec');         call read_components(col, p%vec, line, err); if (err) return
-case ('spin');        call read_components(col, p%spin, line, err); if (err) return
-case ('field');       call read_components(col, p%field, line, err); if (err) return
-case ('s');           call read_component(col, p%s, line, err); if (err) return
-case ('t');           call read_component(col, p%t, line, err); if (err) return
-case ('phase');       call read_components(col, p%phase, line, err); if (err) return
-case ('charge');      call read_component(col, p%charge, line, err); if (err) return
-case ('dt_ref');      call read_component(col, p%dt_ref, line, err); if (err) return
-case ('r');           call read_component(col, p%r, line, err); if (err) return
-case ('p0c');         call read_component(col, p%p0c, line, err); if (err) return
-case ('E_potential'); call read_component(col, p%E_potential, line, err); if (err) return
-case ('beta');        call read_component(col, p%beta, line, err); if (err) return
-case ('ix_ele');      call read_component_int(col, p%ix_ele, line, err); if (err) return
-case ('ix_branch');   call read_component_int(col, p%ix_branch, line, err); if (err) return
-case ('ix_user');     call read_component_int(col, p%ix_user, line, err); if (err) return
-case ('direction');   call read_component_int(col, p%direction, line, err); if (err) return
-case ('time_dir');    call read_component_int(col, p%time_dir, line, err); if (err) return
-case ('state');       call read_switch(col, p%state, line, err); if (err) return
-case ('species');     call read_switch(col, p%species, line, err); if (err) return
-case ('location');    call read_switch(col, p%location, line, err); if (err) return
-
-case default
-  err = .true.
-  call out_io(s_error$, r_name, 'COLUMN NAME NOT RECOGNIZED: ' // col)
-  return
-end select
-
-end subroutine read_particle_params
-
-!---------------------------------------------------------------------------------------------------
-! contains
 
 subroutine read_switch(who, switch, line, err)
 
@@ -1029,30 +1033,11 @@ end subroutine read_switch
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine read_components(who, components, line, err)
-
-real(rp) components(:)
-integer ix
-character(*) who, line
-logical err
-
-!
-
-do ix = 1, size(components)
-  call read_component(who, components(ix), line, err)
-  if (err) return
-enddo
-
-end subroutine read_components
-
-!---------------------------------------------------------------------------------------------------
-! contains
-
-subroutine read_component(who, component, line, err)
+subroutine read_component(component, line, err)
 
 real(rp) component
 integer ix
-character(*) who, line
+character(*) line
 logical err
 
 !
@@ -1068,11 +1053,11 @@ end subroutine read_component
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine read_component_int(who, component, line, err)
+subroutine read_component_int(component, line, err)
 
 integer component
 integer ix
-character(*) who, line
+character(*) line
 logical err
 
 !

@@ -37,6 +37,10 @@ case ('ascii')
   call file_suffixer(full_name, full_name, '.dat', .true.)
   call write_beam_file (full_name, beam, .true., ascii$)
 
+case ('test')
+  call file_suffixer(full_name, full_name, '.dat', .true.)
+  call write_beam_file (full_name, beam, .true., ascii4$)
+
 case ('hdf5')
   call file_suffixer(full_name, full_name, '.hdf5', .true.)
   call write_beam_file (full_name, beam, .true., hdf5$)

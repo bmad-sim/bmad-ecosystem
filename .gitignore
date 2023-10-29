@@ -38,6 +38,7 @@ bmad-doc/tao_examples/csr_beam_tracking/csr_wake.dat
 tao/doc/tao.pdf
 bmad/doc/bmad.pdf
 bsim/**/doc/*.pdf
+util/searchf.pyc
 
 **/doc/*.idx
 **/doc/*.ilg

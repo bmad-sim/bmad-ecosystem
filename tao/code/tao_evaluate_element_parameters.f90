@@ -238,8 +238,9 @@ if (where /= anchor_end$ .and. ixe /= 0) then
 
 else
   if (parameter(1:12) == 'spin_dn_dpz.') then
+    if (.not. allocated(tao_branch%spin_ele)) call tao_spin_polarization_calc(branch, tao_branch)
     if (.not. tao_branch%spin_ele(ixe)%valid) call tao_spin_polarization_calc(branch, tao_branch)
-    err = tao_branch%spin_ele(ixe)%valid
+    err = (.not. tao_branch%spin_ele(ixe)%valid)
     if (err) return
 
     select case (parameter)

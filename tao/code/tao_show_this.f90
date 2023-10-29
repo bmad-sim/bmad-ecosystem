@@ -4393,10 +4393,7 @@ case ('spin')
 
   !
 
-  if (.not. bmad_com%spin_tracking_on) then
-    call tao_spin_tracking_turn_on
-    call tao_lattice_calc(ok)
-  endif
+  if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on
 
   ! what_to_show = standard
 

@@ -6963,10 +6963,7 @@ case ('spin_invariant')
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
-  if (.not. bmad_com%spin_tracking_on) then
-    call tao_spin_tracking_turn_on()
-    call tao_lattice_calc(ok)
-  endif
+  if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on()
 
   orb = tao_lat%tao_branch(ix_branch)%orbit(0)
   n0 = orb%spin
