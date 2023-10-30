@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ July 10, 2023}
+\date{David Sagan \\ October 30, 2023}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -433,7 +433,7 @@ the cavity voltage and phase (\vn{phi0}) being varied.
 To simulate noise, use the \vn{ran()} or \vn{ran_gauss()} functions in a slave expression. Example:
 \begin{code}
   quake: ramper = \{*[y_offset]: 1e-5*ran_gauss()\}, var = \{\}
-\end
+\end{code}
 In this case no ramper variable is needed. 
 When a bunch passes through an element, the slave expression \vn{1e-5*ran_gauss()} is evaluated just
 once. That is, it is assumed that the frequency spectrum of the noise falls below 1/\vn{dt_bunch}
