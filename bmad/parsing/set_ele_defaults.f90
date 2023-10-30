@@ -144,6 +144,7 @@ case (em_field$)
   ele%value(fringe_type$) = full$
   ele%value(field_autoscale$) = 1
   ele%value(constant_ref_energy$) = true$
+  ele%value(polarity$) = 1.0
 
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$
