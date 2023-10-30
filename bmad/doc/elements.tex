@@ -1811,6 +1811,13 @@ See \sref{s:list.em.field} for a full list of element attributes along with a th
 Attributes specific to an \vn{em_field} element are:
 \begin{example}
   constant_ref_energy = <Logical> ! Is the reference energy constant? Default = True.
+  polarity   = <Real>  ! For scaling the field.
+\end{example}
+
+The \vn{polarity} value is used to scale the magnetic field. By
+default, \vn{polarity} has a value of 1.0.  Example:
+\begin{example}
+  wig1: wiggler, l = 1.6, polarity = -1, cartesian_map = \{...\}
 \end{example}
 
 If the \vn{constant_ref_energy} logical is set to \vn{True} (the default), the reference energy

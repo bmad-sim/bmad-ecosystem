@@ -1125,6 +1125,8 @@ call init_attribute_name1 (em_field$, autoscale_phase$,             'AUTOSCALE_P
 call init_attribute_name1 (em_field$, phi0$,                        'PHI0')
 call init_attribute_name1 (em_field$, phi0_err$,                    'PHI0_ERR')
 call init_attribute_name1 (em_field$, constant_ref_energy$,         'CONSTANT_REF_ENERGY')
+call init_attribute_name1 (em_field$, polarity$,                    'POLARITY')
+
 
 call init_attribute_name1 (girder$, l$,                             'L', dependent$)
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')

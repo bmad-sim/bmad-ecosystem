@@ -135,6 +135,8 @@ case (em_field$)
   select case (method)
   case (symp_lie_ptc$, taylor$, runge_kutta$, time_runge_kutta$, custom$)
     is_valid = .true.
+  case (symp_lie_bmad$)
+    if (associated(ele%cartesian_map) .and. ele%field_calc == fieldmap$) is_valid = .true.
   end select
 
 case (floor_shift$, fiducial$)
