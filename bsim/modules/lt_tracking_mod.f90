@@ -1691,7 +1691,7 @@ type (expression_atom_struct), allocatable, target :: stack(:)
 type (expression_atom_struct), pointer :: st
 
 integer i_turn
-integer i, n, ib, iu, ix, ix1, ix2, is, multi, power, width, digits, n_loc, n_stack
+integer i, n, ib, iu, ix, ix1, ix2, is, multi, power, width, digits, n_loc, n_stack, n_bunch
 
 logical err
 
@@ -1721,10 +1721,12 @@ end select
 !
 
 iu = lunget()
+n_bunch = 0
+if (present(beam)) n_bunch = size(beam%bunch)
 
 if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   open(iu, file = lttp%custom_output_file, recl = 2000)
-  call ltt_write_params_header(lttp, ltt_com, iu, size(beam%bunch))
+  call ltt_write_params_header(lttp, ltt_com, iu, n_bunch)
   line = '#'
   do i = 1, size(lttp%column)
     col => lttp%column(i)
@@ -1745,9 +1747,9 @@ if (present(orbit)) then
   orb_b(1) = orbit
 
 else  ! beam is passed
-  allocate (orb_b(size(beam%bunch)))
+  allocate(orb_b(n_bunch))
 
-  do ib = 1, size(beam%bunch)
+  do ib = 1, n_bunch
     bunch => beam%bunch(ib)
     n = count(bunch%particle%state == alive$)
     orb_b(ib)%t = ltt_bunch_time_sum(bunch, lttp) / n
