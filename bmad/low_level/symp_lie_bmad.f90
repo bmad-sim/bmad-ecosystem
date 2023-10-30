@@ -142,9 +142,9 @@ endif
 ! select the element
 
 key = ele%key
-if (associated(ele%cartesian_map)) key = wiggler$
+if (associated(ele%cartesian_map) .and. ele%field_calc == fieldmap$) key = wiggler$
 
-select case (ele%key)
+select case (key)
 
 !------------------------------------------------------------------
 ! Wiggler
@@ -365,8 +365,8 @@ case (solenoid$, quadrupole$, sol_quad$)
 
 case default
 
-  call out_io (s_fatal$, r_name, 'TRACKING NOT YET IMPLEMENTED FOR: ' // key_name(ele%key), &
-                                 'FOR ELEMENT: ', ele%name)
+  call out_io (s_fatal$, r_name, 'TRACKING NOT YET IMPLEMENTED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
+                                 'FOR ELEMENT: ' // ele%name)
 
 end select
 

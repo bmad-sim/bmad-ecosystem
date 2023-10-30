@@ -345,17 +345,20 @@ real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef, dkm(2,2), f_p0c, Ex, Ey
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, charge, ix_mag_max, ix_elec_max
+logical exact
 
 ! Calculate field
 
 charge = charge_of(orbit%species)
 
 if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
+  exact = .true.
   call bend_exact_multipole_field (ele, param, orbit, .true., field, make_matrix)
 
 else
+  exact = .false.
   field = em_field_struct()
-  f_p0c = r_step * ele%value(p0c$) / (step_len * c_light * charge_of(param%particle))
+  f_p0c = r_step * ele%value(p0c$) / (c_light * charge_of(param%particle))
 
   do i = 0, ix_mag_max
     if (an(i) == 0 .and. bn(i) == 0) cycle
@@ -389,12 +392,14 @@ endif
 
 if (ix_mag_max > -1) then
   orb0 = orbit
-  f_coef = step_len * coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
+  f_coef = coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
+  if (exact) f_coef = f_coef * step_len
   orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
   orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
 
   if (logic_option(.false., make_matrix)) then
-    df_coef_dx = step_len * coef * c_dir * ele%value(g$) * c_light / orb0%p0c
+    df_coef_dx = coef * c_dir * ele%value(g$) * c_light / orb0%p0c
+    if (exact) df_coef_dx = f_coef * step_len
 
     mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
                             (f_coef * field%dB(2,2)) * mat6(3,:)
