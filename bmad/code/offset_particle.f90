@@ -247,7 +247,7 @@ if (set) then
 
     pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
     if (pz <= 0) then
-      orbit%state = lost_pz_aperture$
+      orbit%state = lost_pz$
     else
       p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
       p_vec = matmul(position%w, p_vec0)
@@ -445,7 +445,7 @@ else
 
     pz = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
     if (pz <= 0) then
-      orbit%state = lost_pz_aperture$
+      orbit%state = lost_pz$
     else
       p_vec0 = [orbit%vec(2), orbit%vec(4), sign_z_vel * sqrt(pz)]
       p_vec = matmul(position%w, p_vec0)

@@ -3070,7 +3070,7 @@ case (crab_cavity$)
     bn(1) = 1d-9 * e_accel_field(ele, voltage$) / leng
   endif
 
-case (drift$, rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$)
+case (drift$, rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
   ! Nothing to be done
 
 case (octupole$)

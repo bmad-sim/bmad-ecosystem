@@ -44,21 +44,21 @@ is_too_large = .true.
 ! Test aperture
 
 if (orbit%vec(1) > bmad_com%max_aperture_limit) then
-  orbit%state = lost_pos_x_aperture$
+  orbit%state = lost_pos_x$
   if (present(param)) param%unstable_factor = (abs(orbit%vec(1)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 elseif (-orbit%vec(1) > bmad_com%max_aperture_limit) then
-  orbit%state = lost_neg_x_aperture$
+  orbit%state = lost_neg_x$
   if (present(param)) param%unstable_factor = (abs(orbit%vec(1)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 endif
 
 if (orbit%vec(3) > bmad_com%max_aperture_limit) then
-  orbit%state = lost_pos_y_aperture$
+  orbit%state = lost_pos_y$
   if (present(param)) param%unstable_factor = (abs(orbit%vec(3)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 elseif (-orbit%vec(3) > bmad_com%max_aperture_limit) then
-  orbit%state = lost_neg_y_aperture$
+  orbit%state = lost_neg_y$
   if (present(param)) param%unstable_factor = (abs(orbit%vec(3)) - bmad_com%max_aperture_limit) / bmad_com%max_aperture_limit
   return
 endif
@@ -74,7 +74,7 @@ endif
 
 if (orbit%species == photon$) then
   if (abs(orbit%vec(6)) > 1) then
-    orbit%state = lost_pz_aperture$
+    orbit%state = lost_pz$
     if (present(param)) param%unstable_factor = abs(orbit%vec(6)) - 1
     return
   endif
@@ -88,7 +88,7 @@ endif
 rel_p = 1 + orbit%vec(6)
 
 if (rel_p < 0) then
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   if (present(param)) param%unstable_factor = abs(rel_p) + 1e-6_rp
   return
 endif
@@ -99,16 +99,16 @@ if (f_unstable > 0) then
 
   if (abs(orbit%vec(2)) > abs(orbit%vec(4))) then
     if (orbit%vec(2) > 0) then
-      orbit%state = lost_pos_x_aperture$
+      orbit%state = lost_pos_x$
     else
-      orbit%state = lost_neg_x_aperture$
+      orbit%state = lost_neg_x$
     endif
 
   else
     if (orbit%vec(4) > 0) then
-      orbit%state = lost_pos_y_aperture$
+      orbit%state = lost_pos_y$
     else
-      orbit%state = lost_neg_y_aperture$
+      orbit%state = lost_neg_y$
     endif
   endif
 

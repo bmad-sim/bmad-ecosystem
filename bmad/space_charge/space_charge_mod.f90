@@ -304,7 +304,7 @@ do
   do i = 1, size(bunch%particle)
     ! If going backwards then particle is considered dead.
     if (bunch_half%particle(i)%direction == -1 .or. &
-                      bunch_full%particle(i)%direction == -1) bunch_half%particle(i)%state = lost_z_aperture$
+                      bunch_full%particle(i)%direction == -1) bunch_half%particle(i)%state = lost_z$
     if (bunch_half%particle(i)%state /= alive$) cycle ! Only count living particles
     r_err(:) = r_err(:) + abs(bunch_full%particle(i)%vec(:)-bunch_half%particle(i)%vec(:))
     N = N +1

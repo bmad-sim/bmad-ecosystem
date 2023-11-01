@@ -47,7 +47,7 @@ xp = end_orb%vec(2) + kss0 * end_orb%vec(3)
 yp = end_orb%vec(4) - kss0 * end_orb%vec(1)
 ff = rel_p**2 - xp**2 - yp**2
 if (ff <= 0) then
-  end_orb%state = lost_pz_aperture$
+  end_orb%state = lost_pz$
   return
 endif
 pz = sqrt(ff)

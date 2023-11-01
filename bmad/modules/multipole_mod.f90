@@ -379,7 +379,7 @@ if (integer_option(magnetic$, pole_type) == magnetic$) then
 else  ! Electric
   alpha = (kx_tot * (2*orb0%vec(2) + kx_tot) + ky_tot * (2*orb0%vec(4) + ky_tot)) / (1 + orb0%vec(6))**2
   if (alpha < -1) then
-    orbit%state = lost_pz_aperture$
+    orbit%state = lost_pz$
     return
   endif
   dk_dp = (mass_of(orb0%species) * orb0%beta / ((1 + orb0%vec(6)) * orb0%p0c))**2 / (1 + orb0%vec(6))

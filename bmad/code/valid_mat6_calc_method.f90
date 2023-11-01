@@ -210,7 +210,7 @@ case (multipole$)
 case (null_ele$)
   ! Nothing to do
 
-case (octupole$)
+case (octupole$, thick_multipole$)
   select case (mat6_calc_method)
   case (auto$, bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.

@@ -10,35 +10,35 @@ available in \bmad.
 \centering
 {\tt
 \begin{tabular}{llll} \toprule
-  {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \\ \midrule
-  AB_Multipole      & \ref{s:ab.m}        &  Mask              & \ref{s:mask}     \\
-  AC_Kicker         & \ref{s:ac.kick}     &  Match             & \ref{s:match}    \\ 
-  BeamBeam          & \ref{s:beambeam}    &  Monitor           & \ref{s:monitor}  \\
-  Beginning_Ele     & \ref{s:begin.ele}   &  Multipole         & \ref{s:mult}     \\
-  Converter         & \ref{s:converter}   &  Null_Ele          & \ref{s:null.ele} \\
-  Crab_Cavity       & \ref{s:crab}        &  Octupole          & \ref{s:oct}      \\
-  Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \\
-  Drift             & \ref{s:drift}       &  Photon_Fork       & \ref{s:fork}     \\
-  E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \\
-  Ecollimator       & \ref{s:col}         &  Quadrupole        & \ref{s:quad}     \\
-  ElSeparator       & \ref{s:elsep}       &  Rbend             & \ref{s:bend}     \\
-  EM_Field          & \ref{s:em.field}    &  Rcollimator       & \ref{s:col}      \\
-  Fiducial          & \ref{s:fiducial}    &  RF_bend           & \ref{s:rf.bend}  \\
-  Floor_Shift       & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \\
-  Foil              & \ref{s:foil}        &  Sad_Mult          & \ref{s:sad.mult} \\
-  Fork              & \ref{s:fork}        &  Sbend             & \ref{s:bend}     \\
-  GKicker           & \ref{s:gkicker}     &  Sextupole         & \ref{s:sex}      \\
-  HKicker           & \ref{s:hvkicker}    &  Sol_Quad          & \ref{s:sq}       \\
-  Hybrid            & \ref{s:hybrid}      &  Solenoid          & \ref{s:sol}      \\
-  Instrument        & \ref{s:monitor}     &  Taylor            & \ref{s:taylor}   \\
-  Kicker            & \ref{s:kicker}      &  Undulator         & \ref{s:wiggler}  \\
-  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \\ 
-  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \\
+  {\it Element}     & {\it Section}         & {\it Element}      & {\it Section}      \\ \midrule
+  AB_Multipole      & \ref{s:ab.m}          &  Match             & \ref{s:match}      \\
+  AC_Kicker         & \ref{s:ac.kick}       &  Monitor           & \ref{s:monitor}    \\
+  BeamBeam          & \ref{s:beambeam}      &  Multipole         & \ref{s:mult}       \\
+  Beginning_Ele     & \ref{s:begin.ele}     &  Null_Ele          & \ref{s:null.ele}   \\
+  Converter         & \ref{s:converter}     &  Octupole          & \ref{s:oct}        \\
+  Crab_Cavity       & \ref{s:crab}          &  Patch             & \ref{s:patch}      \\
+  Custom            & \ref{s:custom}        &  Photon_Fork       & \ref{s:fork}       \\
+  Drift             & \ref{s:drift}         &  Pipe              & \ref{s:monitor}    \\
+  E_Gun             & \ref{s:e.gun}         &  Quadrupole        & \ref{s:quad}       \\
+  Ecollimator       & \ref{s:col}           &  Rbend             & \ref{s:bend}       \\
+  ElSeparator       & \ref{s:elsep}         &  Rcollimator       & \ref{s:col}        \\
+  EM_Field          & \ref{s:em.field}      &  RF_bend           & \ref{s:rf.bend}    \\
+  Fiducial          & \ref{s:fiducial}      &  RFcavity          & \ref{s:rfcav}      \\
+  Floor_Shift       & \ref{s:floor.ele}     &  Sad_Mult          & \ref{s:sad.mult}   \\
+  Foil              & \ref{s:foil}          &  Sbend             & \ref{s:bend}       \\
+  Fork              & \ref{s:fork}          &  Sextupole         & \ref{s:sex}        \\
+  GKicker           & \ref{s:gkicker}       &  Sol_Quad          & \ref{s:sq}         \\
+  HKicker           & \ref{s:hvkicker}      &  Solenoid          & \ref{s:sol}        \\
+  Hybrid            & \ref{s:hybrid}        &  Taylor            & \ref{s:taylor}     \\
+  Instrument        & \ref{s:monitor}       &  Thick_Multipole   & \ref{s:thick.mult} \\
+  Kicker            & \ref{s:kicker}        &  Undulator         & \ref{s:wiggler}    \\
+  Lcavity           & \ref{s:lcav}          &  VKicker           & \ref{s:hvkicker}   \\ 
+  Marker            & \ref{s:mark}          &  Wiggler           & \ref{s:wiggler}    \\
+  Mask              & \ref{s:mask}          &                    &                    \\
   \bottomrule
 \end{tabular}
-}
-\caption{Table of element types suitable for use with charged particles. Also see Table~\ref{t:control.classes}}
-\label{t:particle.classes}
+} \caption{Table of element types suitable for use with charged particles. Also see
+Table~\ref{t:control.classes}} \label{t:particle.classes}
 \end{table}
 
 \index{MAD}
@@ -5044,6 +5044,46 @@ evaluated and no effort at symplectification is done. Furthermore, evaluating th
 map of a \vn{taylor} element using the \vn{taylor} method is faster than evaluation using
 \vn{symp_lie_ptc}. Thus the \vn{taylor} tracking method should always be used with
 \vn{taylor} elements.
+
+\newpage
+
+%-----------------------------------------------------------------
+\section{Thick_Multipole}
+\label{s:thick.mult}
+\index{thick_multipole|hyperbf} 
+
+A \vn{thick_multipole} element is like a \vn{sextupole} or \vn{octupole} element except that the
+\vn{thick_multipole} does not have a \vn{K2} sextupole like parameter nor a \vn{K3} octupole like
+parameter. Rather, \vn{thick_multipoles}, like \vn{sextupole} or \vn{octupole} elements, have
+\vn{a0}, \vn{a1}, \vn{a2}, etc.  and \vn{b0}, \vn{b1}, \vn{b2}, etc. multipoles
+(\sref{s:mag.field}). In terms of tracking, given equivalent multipole values, \vn{thick_multipoles}
+are indistinguishable from \vn{sextupoles} or \vn{octupoles}.  \vn{thick_multipole} elements are
+useful for differentiating elements that only have higher order multipole moments.
+
+General \vn{thick_multipole} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}       & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}           &                            &                    \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.thick.multipole} for a full list of element attributes along with a their units.
+
+Example:
+\begin{example}
+  tm1: thick_multipole, l = 4.5, tilt, x_pitch = 0.34, a7 = 1.23e3, b8 = 7.54e5
+\end{example}
 
 \newpage
 

@@ -116,7 +116,7 @@ endif
 
 if (orbit%vec(6) < -1.0_rp) then
   call out_io (s_warn$, r_name, 'Particle is kaput due to radiation loss!')
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
 endif
 
 ! Sokolov-Ternov Spin flip

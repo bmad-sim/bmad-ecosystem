@@ -66,7 +66,7 @@ if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
 select case (key)
 case (ab_multipole$, crab_cavity$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, &
       rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$, &
-      elseparator$, rfcavity$, lcavity$, match$, multipole$, octupole$, sextupole$, &
+      elseparator$, rfcavity$, lcavity$, match$, multipole$, octupole$, thick_multipole$, sextupole$, &
       sol_quad$, solenoid$, taylor$, wiggler$, undulator$, ac_kicker$, gkicker$, foil$)
   tm = ele%tracking_method
   field_ele => pointer_to_field_ele(ele, 1)

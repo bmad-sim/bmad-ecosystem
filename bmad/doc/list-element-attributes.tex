@@ -1321,6 +1321,35 @@ lord_pad2 [m]                    & superimpose                      & x_offset_t
  \vfill
  
  %---------------------------------
+ \section{Thick_Multipole Element Attributes}
+ \label{s:list.thick.multipole}
+ 
+ \begin{tabular}{llll} \toprule
+a0 - a20, b0 - b20               & fringe_at                        & ptc_canonical_coords             & wall                             \\
+alias                            & fringe_type                      & ptc_integration_type             & wrap_superimpose                 \\
+aperture [m]                     & gen_grad_map                     & ref_origin                       & x1_limit [m]                     \\
+aperture_at                      & grid_field                       & ref_time_start [sec]             & x2_limit [m]                     \\
+aperture_type                    & hkick                            & reference                        & x_limit [m]                      \\
+bl_hkick [T*m]                   & integrator_order                 & scale_multipoles                 & x_offset [m]                     \\
+bl_vkick [T*m]                   & is_on                            & space_charge_method              & x_offset_tot [m]                 \\
+cartesian_map                    & l [m]                            & spin_fringe_on                   & x_pitch [rad]                    \\
+create_jumbo_slave               & lord_pad1 [m]                    & spin_tracking_method             & x_pitch_tot [rad]                \\
+csr_ds_step [m]                  & lord_pad2 [m]                    & sr_wake                          & y1_limit [m]                     \\
+csr_method                       & lr_freq_spread [Hz]              & sr_wake_file                     & y2_limit [m]                     \\
+cylindrical_map                  & lr_self_wake_on                  & static_linear_map                & y_limit [m]                      \\
+delta_ref_time [sec]             & lr_wake                          & superimpose                      & y_offset [m]                     \\
+descrip                          & lr_wake_file                     & symplectify                      & y_offset_tot [m]                 \\
+ds_step [m]                      & mat6_calc_method                 & taylor_map_includes_offsets      & y_pitch [rad]                    \\
+e_tot [eV]                       & multipoles_on                    & tilt [rad]                       & y_pitch_tot [rad]                \\
+ele_origin                       & num_steps                        & tilt_tot [rad]                   & z_offset [m]                     \\
+field_calc                       & offset [m]                       & tracking_method                  & z_offset_tot [m]                 \\
+field_master                     & offset_moves_aperture            & type                             &                                  \\
+field_overlaps                   & p0c [eV]                         & vkick                            &                                  \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Wiggler and Undulator Element Attributes}
  \label{s:list.wiggler}
  

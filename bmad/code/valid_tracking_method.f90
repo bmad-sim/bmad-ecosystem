@@ -217,7 +217,7 @@ case (multipole$)
 case (null_ele$)
   ! Nothing to do
 
-case (octupole$)
+case (octupole$, thick_multipole$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.

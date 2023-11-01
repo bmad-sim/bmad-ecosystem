@@ -329,7 +329,7 @@ case (bmad_standard$)
   !------------------
   ! Drift, et. al. Note that kicks get added at the end for all elements
 
-  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, detector$)
+  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, detector$, thick_multipole$)
 
   !------------------
   ! E_Gun

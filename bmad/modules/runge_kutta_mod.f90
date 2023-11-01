@@ -251,7 +251,7 @@ end do
 ! error in how the field is calculated and we must warn the user of this.
 
 if (sqrt(orbit%vec(2)**2 + orbit%vec(4)**2) > 0.9_rp * (1.0_rp + orbit%vec(6)) .or. orbit%vec(6) < -0.99_rp) then
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
 else
   call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
                                  'AT (X,Y,Z) POSITION FROM ENTRANCE: \3F14.7\ ', &

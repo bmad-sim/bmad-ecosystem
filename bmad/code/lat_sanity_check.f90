@@ -1080,7 +1080,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (l_stat == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0 .and. &
         ele%value(e_tot$) == 0 .and. ele%value(multipass_ref_energy$) == 0) then
       select case (ele%key)
-      case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, rf_bend$, &
+      case (quadrupole$, sextupole$, octupole$, thick_multipole$, solenoid$, sol_quad$, sbend$, rf_bend$, &
             hkicker$, vkicker$, kicker$, elseparator$)
         call out_io (s_fatal$, r_name, &
               'FOR MULTIPASS LORD: ' // ele_full_name(ele, '@N (&#)'), &

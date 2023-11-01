@@ -123,7 +123,7 @@ phase1 = phase
 
 ph_err(1) = phase_func(phase1, status)
 if (abs(dphase) > pi) then
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   return
 
 elseif (abs(dphase) < phase_abs_tol) then
@@ -140,7 +140,7 @@ else
     dph = phase2 - phase1
     phase2 = phase1 + 2 * sign_of(dph) * max(abs(dph), 0.1)
     if (abs(phase2 - phase1) > pi) then
-      orbit%state = lost_pz_aperture$
+      orbit%state = lost_pz$
       return
     endif
     ph_err(2) = phase_func(phase2, status)
@@ -240,7 +240,7 @@ gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param)
 dE = gradient_net * length
 E_end = E_start + dE
 if (E_end <= mass_of(orbit%species)) then
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   orbit%vec(6) = -1.01  ! Something less than -1
   if (present(mat6)) mat6 = 0
   return
