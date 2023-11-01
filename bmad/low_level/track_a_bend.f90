@@ -164,7 +164,7 @@ do n = 1, n_step
       sinc_a = sinc(angle)
       pt = sqrt(rel_p2 - py**2)
       if (abs(px) > pt) then
-        orbit%state = lost_pz_aperture$
+        orbit%state = lost_pz$
         return
       endif
       g_p = g_tot / pt

@@ -428,13 +428,13 @@ call out_io (s_warn$, r_name, &
 
 if (plane == x_plane$) then
   orbit%vec(1) = sign(2 * bmad_com%max_aperture_limit, orbit%vec(1))
-  if (orbit%vec(1) > 0) then ; orbit%state = lost_pos_x_aperture$
-  else;                          orbit%state = lost_neg_x_aperture$
+  if (orbit%vec(1) > 0) then ; orbit%state = lost_pos_x$
+  else;                        orbit%state = lost_neg_x$
   endif
 else
   orbit%vec(3) = sign(2 * bmad_com%max_aperture_limit, orbit%vec(3))
-  if (orbit%vec(3) > 0) then ; orbit%state = lost_pos_y_aperture$
-  else;                          orbit%state = lost_neg_y_aperture$
+  if (orbit%vec(3) > 0) then ; orbit%state = lost_pos_y$
+  else;                        orbit%state = lost_neg_y$
   endif
 endif
 

@@ -51,7 +51,7 @@ px = rel_z_vel * orb%vec(2) / rel_pc
 py = rel_z_vel * orb%vec(4) / rel_pc
 pxy2 = px**2 + py**2
 if (pxy2 >= 1) then
-  orb%state = lost_pz_aperture$
+  orb%state = lost_pz$
   return
 endif
 ps = sqrt(1 - pxy2)

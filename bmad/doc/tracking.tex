@@ -19,7 +19,7 @@ The \vn{coord_struct} holds the coordinates of a particle The definition of the 
     real(rp) field(2)   ! Photon (x, y) field intensity.
     real(rp) phase(2)   ! Photon (x, y) phase.
     real(rp) charge     ! charge in a particle (Coul).
-    real(rp) path_len   ! path length (used by coherent photons).
+    real(rp) dt_dref    ! path length (used by coherent photons).
     real(rp) r          ! For general use. Not used by Bmad.
     real(rp) p0c        ! For non-photons: Reference momentum. Negative -> going backwards.
                         !     For photons: Photon momentum (not reference).
@@ -28,7 +28,7 @@ The \vn{coord_struct} holds the coordinates of a particle The definition of the 
                         !   May be -1 or -2 if element is not associated with a lattice.
     integer ix_branch   ! Index of the lattice branch the particle is in.
     integer ix_user     ! Not used by \bmad
-    integer state       ! alive\$, lost\$, lost_neg_x_aperture\$, etc.
+    integer state       ! alive\$, lost\$, lost_neg_x\$, etc.
     integer direction   ! +1 or -1. Sign of longitudinal direction of motion (ds/dt).
                         !  This is independent of the element orientation.
     integer time_dir    ! +1 or -1. Time direction. -1 => Traveling backwards in time.
@@ -133,26 +133,28 @@ The \vn{%spin(3)} component gives a particle's $(x, y, z)$ spin vector (\sref{s:
 The \vn{%state} component will be one of:
 \begin{example}
   not_set\$
+  pre_born\$
   alive\$
   lost\$
-  lost_neg_x_aperture\$
-  lost_pos_x_aperture\$
-  lost_neg_y_aperture\$
-  lost_pos_y_aperture\$
-  lost_z_aperture\$
+  lost_neg_x\$
+  lost_pos_x\$
+  lost_neg_y\$
+  lost_pos_y\$
+  lost_z\$
+  lost_pz\$
 \end{example}
 The \vn{not_set\$} setting indicates that the \vn{coord_struct} has not yet been used in
 tracking. The \vn{alive\$} setting indicates that the particle is alive. If a particle is ``dead'',
-the \vn{%state} component will be set to one of the other settings. The \vn{lost_neg_x_aperture\$}
+the \vn{%state} component will be set to one of the other settings. The \vn{lost_neg_x\$}
 setting indicates that the particle was lost at an aperture on the $-x$ side of the element. The
-\vn{lost_z_aperture\$} setting is used to indicate that the particle tried to ``turn around''. This
+\vn{lost_z\$} setting is used to indicate that the particle tried to ``turn around''. This
 can happen, for example, with strong magnetic fields or when a particle has been decelerated too
 much.  The reason why the particle is marked lost in this case is due to the fact that $s$-based
 tracking algorithms cannot handle particles that reverse direction. The exception is that the
 \vn{time_runge_kutta} (\sref{s:tkm}) tracking method can handle particle reversal so in this case,
 particles will not be declared lost if they reverse direction.
 
-The \vn{lost\$} setting is used when neither of the other \vn{lost_*_aperture\$} settings are not
+The \vn{lost\$} setting is used when neither of the other \vn{lost_*\$} settings are not
 appropriate. For example, \vn{lost\$} is used in Runge-Kutta tracking when the adaptive step size
 becomes too small (this may happen if the fields do not obey Maxwell's equations).
 

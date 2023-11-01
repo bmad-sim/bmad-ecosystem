@@ -293,7 +293,7 @@ do
   monopole = .false.
   if (out_type == 'ELEGANT') then
     select case (ele%key)
-    case (quadrupole$, sextupole$, octupole$)    ! Elegant
+    case (quadrupole$, sextupole$, octupole$, thick_multipole$)    ! Elegant
       call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
       if (count(knl /= 0) == 1 .and. all(knl(0:3) == 0)) monopole = .true.
     end select
@@ -668,7 +668,7 @@ do   ! ix_ele = 1e1, ie2
 
     ! Special case where element is a pure thick N-pole of order greater than octupole.
     select case (ele%key)
-    case (quadrupole$, sextupole$, octupole$)    ! Elegant
+    case (quadrupole$, sextupole$, octupole$, thick_multipole$)    ! Elegant
       call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
       if (count(knl /= 0) == 1 .and. all(knl(0:3) == 0)) then
         n = find_location(knl /= 0, .true.) - 1

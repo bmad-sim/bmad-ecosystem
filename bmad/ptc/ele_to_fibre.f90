@@ -328,7 +328,7 @@ case (sextupole$)
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 !------------------------------
-case (octupole$)
+case (octupole$, thick_multipole$)
   ptc_key%magnet = 'octupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 

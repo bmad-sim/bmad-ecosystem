@@ -803,7 +803,7 @@ do i = 1, n_key$
   select case (i)
   case (ac_kicker$, elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, &
-         hkicker$, vkicker$, sad_mult$)
+         hkicker$, vkicker$, sad_mult$, thick_multipole$)
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
@@ -1383,6 +1383,13 @@ call init_attribute_name1 (octupole$, cylindrical_map$,             'CYLINDRICAL
 call init_attribute_name1 (octupole$, gen_grad_map$,                'GEN_GRAD_MAP')
 call init_attribute_name1 (octupole$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (octupole$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
+
+call init_attribute_name1 (thick_multipole$, field_master$,         'FIELD_MASTER')
+call init_attribute_name1 (thick_multipole$, cartesian_map$,        'CARTESIAN_MAP')
+call init_attribute_name1 (thick_multipole$, cylindrical_map$,      'CYLINDRICAL_MAP')
+call init_attribute_name1 (thick_multipole$, gen_grad_map$,         'GEN_GRAD_MAP')
+call init_attribute_name1 (thick_multipole$, grid_field$,           'GRID_FIELD')
+call init_attribute_name1 (thick_multipole$, ptc_canonical_coords$, 'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (patch$, l$,                              'L', quasi_free$)
 call init_attribute_name1 (patch$, user_sets_length$,               'USER_SETS_LENGTH')
@@ -3086,7 +3093,7 @@ case ('E_TOT', 'P0C')
   if (.not. dep_attribs_free .and. ele%lord_status == multipass_lord$ .and. &
                       .not. ele%field_master .and. nint(ele%value(multipass_ref_energy$)) == user_set$) then
     select case (ele%key)
-    case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, rf_bend$, &
+    case (quadrupole$, sextupole$, octupole$, thick_multipole$, solenoid$, sol_quad$, sbend$, rf_bend$, &
           hkicker$, vkicker$, kicker$, ac_kicker$, elseparator$, lcavity$, rfcavity$)
       return  ! Is free
     end select

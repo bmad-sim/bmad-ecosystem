@@ -108,7 +108,7 @@ case (upstream_end$)
   if (ele_here%ix_ele == 1) then
     do ie = 1, branch%n_ele_track
       if (branch%ele(ie)%key == e_gun$) then
-        orbit%state = lost_z_aperture$
+        orbit%state = lost_z$
         return
       endif
       if (branch%ele(ie)%key == drift$) exit

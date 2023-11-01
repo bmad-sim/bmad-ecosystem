@@ -165,7 +165,7 @@ case (multipole$, ab_multipole$)
 ! octupole
 ! The octupole is modeled using kick-drift.
 
-case (octupole$)
+case (octupole$, thick_multipole$)
   call track_a_thick_multipole (orbit, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------

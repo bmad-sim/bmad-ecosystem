@@ -92,7 +92,7 @@ case (diffraction_plate$)
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   if (orbit%vec(6) * orbit%direction < 0) then  ! Heading backwards
-    orbit%state = lost_pz_aperture$
+    orbit%state = lost_pz$
     return
   endif
 
