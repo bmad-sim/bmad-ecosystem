@@ -430,27 +430,27 @@ The header section lines all start with a pound ``\#'' sign. The last line in th
 must start with ``\#!'' and this line defines the particle parameter table columns. With the
 exception of the last line, all header lines will be ignored except ones that begin with a
 recognized parameter followed by an equal sign. Recognized parameters are the components of the
-\vn{coord_struct} (\sref{s:coord.struct}) that describes individual particles. In addition, the
-following parameters are recognized:
+\vn{coord_struct}, as documented in \sref{s:coord.struct}, that describes individual particles. In
+addition, the following parameters are recognized:
 \begin{example}
   charge_tot      ! Total bunch charge (including dead particles).
   s_position      ! Longitudinal position of bunch. Can be used in place of "s".
   time            ! Time particles of bunch are at. Can be used in place of "t".
 \end{example}
 These parameters, if present, will be used to set the corresponding particle parameter in all the
-particles of the corresponding bunch. Possible \vn{location} and \vn{state} settings are given in
-\sref{s:coord.struct}. The string equivalent to any setting is obtained by removing the trailing
-``\$'' from the variable name. For example, the variable \vn{alive\$} which is a possible \vn{state}
-setting becomes the string \vn{alive}. Note: \vn{charge_tot} (total bunch charge) will superceed
-\vn{charge} (the charge per particle).
+particles of the corresponding bunch. Possible \vn{location} and \vn{state} parameter settings are
+documented in \sref{s:coord.struct}. The string equivalent to any setting is obtained by removing
+the trailing ``\$'' from the variable name. For example, the variable \vn{alive\$} which is a
+possible \vn{state} setting becomes the string \vn{alive}. Note: \vn{charge_tot} (total bunch
+charge) will superceed \vn{charge} (the charge per particle).
 
 The particle parameter table follows the header section. Each row gives the parameters for one
 particle. Not all particle parameters must be specified. If a particular parameter is not present,
 its default value will be used or, if present, the value given in the header section. Column order
 is irrelavent and what determines what particle parameter is associated with a given column is the
-last line of the header section which starts with the characters \vn{\#!}.  Column names correspond
-to \vn{coord_struct} parameters the same as in the header section. For parameters that are vectors,
-the mapping from column name to parameter is:
+last line of the header section which starts with the characters \vn{\#!}. Except for vector
+parameters, column names correspond to \vn{coord_struct} parameters the same as in the header
+section. For parameters that are vectors, the mapping from column name to parameter is:
 \begin{example}
   Column Name             Corresponding coord_struct components
   ----------------------  -----------------------------------------
@@ -461,6 +461,6 @@ the mapping from column name to parameter is:
 \end{example}
 Additionally, there can be (but is not required) an \vn{index} column giving the particle index in
 the array of particles of a bunch.  This column is ignored so, for example, values in the first line
-of the table will, on input, always be used to set the particle with index 1 independent of the
-value given in the index column. This rule is implemented so that a beam file can be edited to add
+of the table will always be used to set the particle with index 1 independent of the
+value given in the index column. This behavior is implemented so that a beam file can be edited to add
 or remove particles without worrying about reindexing.
