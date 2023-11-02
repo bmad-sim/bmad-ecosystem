@@ -54,7 +54,7 @@ character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
 ix_pole_max = -1
 
-if (.not. ele%is_on) then
+if (.not. ele%is_on .or. ele%key == pipe$) then
   a = 0;  b = 0
   if (present(b1)) b1 = 0
   return

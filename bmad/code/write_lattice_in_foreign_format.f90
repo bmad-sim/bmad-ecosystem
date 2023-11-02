@@ -763,12 +763,13 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:12) = [character(40):: 'l', 'angle', 'e1', 'e2', 'tilt', 'etilt', 'h1', 'h2', 'ykick', 'dx', 'dy', 'dz']
 
     case (quadrupole$)   ! Elegant
+      knl = knl / ele%value(l$)
       if (knl(2) == 0) then
         write (line_out, '(2a)') trim(ele%name) // ': kquad'
         if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
       else
         write (line_out, '(2a)') trim(ele%name) // ': kquse'
-        call value_to_line (line_out, knl(2)*cos(3*(tilts(2)-tilts(1)))/2, 'k2', 'R')
+        call value_to_line (line_out, 0.5_rp*knl(2)*cos(3*(tilts(2)-tilts(1))), 'k2', 'R')
       endif
 
       tilt = tilts(1)
@@ -778,6 +779,7 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:1) = [character(40):: 'l']
 
     case (sextupole$)   ! Elegant
+      knl = knl / ele%value(l$)
       write (line_out, '(2a)') trim(ele%name) // ': ksext'
       if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
       call value_to_line (line_out, knl(2), 'k2', 'R')
@@ -791,6 +793,7 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:1) = [character(40):: 'l']
 
     case (octupole$)   ! Elegant
+      knl = knl / ele%value(l$)
       write (line_out, '(2a)') trim(ele%name) // ': koct'
       call value_to_line (line_out, knl(3), 'k3', 'R')
       call value_to_line (line_out, knl(0)*cos(tilts(0)), 'hkick', 'R')
