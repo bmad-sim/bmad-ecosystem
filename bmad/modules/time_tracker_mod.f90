@@ -98,7 +98,8 @@ if (ele%tracking_method == fixed_step_time_runge_kutta$) then
   endif
 endif
 
-call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, true_int$)
+stop_time = real_garbage$
+if (associated(time_runge_kutta_periodic_kick_hook_ptr)) call time_runge_kutta_periodic_kick_hook_ptr (orb, ele, param, stop_time, true_int$)
 
 call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, .true., time_tracking = .true.)
 old_direction = orb%direction
@@ -209,11 +210,12 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       endif
       orb%location = inside$
       orb%state = lost$
-      ! Convert for wall handler
-      call convert_particle_coordinates_t_to_s(orb, ele, s_save)
-      call wall_hit_handler_custom (orb, ele, orb%s)
-      ! Restore s_body to relative s 
-      call convert_particle_coordinates_s_to_t(orb, s_save, ele%orientation)
+      if (associated(wall_hit_handler_custom_ptr)) then
+        ! Convert for wall handler
+        call convert_particle_coordinates_t_to_s(orb, ele, s_save)
+        call wall_hit_handler_custom_ptr (orb, ele, orb%s)
+        call convert_particle_coordinates_s_to_t(orb, s_save, ele%orientation)
+      endif
       if (orb%state /= alive$) exit_flag = .true.
     endif
   end select
@@ -291,8 +293,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   if (stop_time_limited) then
     dt_next = dt_next_save
-    if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light / 2) then
-      call time_runge_kutta_periodic_kick_hook (orb, ele, param, stop_time, false_int$)
+    if (associated(time_runge_kutta_periodic_kick_hook_ptr)) then
+      if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light / 2) then
+        call time_runge_kutta_periodic_kick_hook_ptr (orb, ele, param, stop_time, false_int$)
+      endif
     endif
   endif
 

@@ -1117,6 +1117,6 @@ endif
 
 err_flag = .false.
 
-call ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
+if (associated(ele_to_fibre_hook_ptr)) call ele_to_fibre_hook_ptr (ele, ptc_fibre, param, use_offsets, err_flag)
 
 end subroutine ele_to_fibre

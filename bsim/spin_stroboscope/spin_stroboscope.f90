@@ -144,6 +144,7 @@ close (1)
 bmad_com%auto_bookkeeper = .false.
 bmad_com%spin_tracking_on = .true.
 
+track1_custom_ptr => track1_custom
 
 nt_max = max(n_turns_max, methods_n_turn_invar_spin0)
 allocate(s(0:nt_max), indx(0:nt_max), result(0:nt_max))

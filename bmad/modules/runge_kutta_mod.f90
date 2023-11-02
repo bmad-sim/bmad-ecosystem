@@ -186,7 +186,7 @@ do n_step = 1, n_step_max
       ds_zbrent = super_zbrent (wall_intersection_func, 0.0_rp, ds_did, 1e-15_rp, ds_tiny, status)
       dist_to_wall = wall_intersection_func(ds_zbrent+ds_tiny, status)
 
-      call wall_hit_handler_custom (orbit, ele, s_body)
+      if (associated(wall_hit_handler_custom_ptr)) call wall_hit_handler_custom_ptr (orbit, ele, s_body)
       if (orbit%state /= alive$) return
       if (ele%aperture_at /= wall_transition$) then
         call out_io (s_error$, r_name, 'CUSTOM CODE IS KEEPING A PARTICLE ALIVE ACCROSS A BOUNDARY!', &

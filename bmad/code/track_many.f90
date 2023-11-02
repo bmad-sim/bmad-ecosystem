@@ -67,8 +67,10 @@ character(*), parameter :: r_name = 'track_many'
 
 ! custom tracking?
 
-call track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
-if (finished) return
+if (associated(track_many_hook_ptr)) then
+  call track_many_hook_ptr (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
+  if (finished) return
+endif
 
 ! init
 

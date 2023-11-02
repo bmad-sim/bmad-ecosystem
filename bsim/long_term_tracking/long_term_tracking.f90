@@ -14,6 +14,11 @@ character(4) prefix
 
 !
 
+track1_preprocess_ptr => ltt_track1_preprocess
+track1_bunch_hook_ptr => ltt_track1_bunch_hook
+
+!
+
 call ltt_read_params(lttp, ltt_com)
 call ltt_init_params(lttp, ltt_com)
 call ltt_init_tracking (lttp, ltt_com)

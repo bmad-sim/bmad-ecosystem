@@ -434,7 +434,12 @@ do ir = 1, branch%n_ele_track
   ! custom
 
   if (ele%key == custom$) then
-    call radiation_integrals_custom (lat, ir, orbit, rad_int1, err)
+    if (.not. associated(radiation_integrals_custom_ptr)) then
+      call out_io (s_error$, r_name, 'RADIATION_INTEGRALS_CUSTOM_PTR HAS NOT BEEN SET IN THIS PROGRAM!', &
+                                     'NEEDED FOR CUSTOM ELEMENT: ' // ele%name)
+      cycle
+    endif
+    call radiation_integrals_custom_ptr (lat, ir, orbit, rad_int1, err)
     cycle
   endif
 
