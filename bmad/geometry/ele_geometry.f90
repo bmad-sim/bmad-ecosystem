@@ -75,8 +75,10 @@ endif
 
 ! Custom geometry
 
-call ele_geometry_hook (floor_start, ele, floor_end, finished, len_scale)
-if (finished) return
+if (associated(ele_geometry_hook_ptr)) then
+  call ele_geometry_hook_ptr (floor_start, ele, floor_end, finished, len_scale)
+  if (finished) return
+endif
 
 ! Init.
 

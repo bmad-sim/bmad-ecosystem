@@ -80,7 +80,12 @@ endif
 ! Custom
 
 if (ele%aperture_type == custom_aperture$) then
-  call check_aperture_limit_custom (orb, ele, particle_at, param, err)
+  if (.not. associated(check_aperture_limit_custom_ptr)) then
+    call out_io (s_error$, r_name, 'INVALID CUSTOM_APERTURE SINCE CHECK_APERTURE_LIMIT_CUSTOM_PTR HAS NOT BEEN SET IN THIS PROGRAM!')
+    orb%state = lost$
+    return
+  endif
+  call check_aperture_limit_custom_ptr (orb, ele, particle_at, param, err)
   return
 endif
 

@@ -50,8 +50,7 @@ endif
 method = ele%spin_tracking_method
 if (method == tracking$) then
   select case (ele%tracking_method)
-  case (runge_kutta$, time_runge_kutta$, symp_lie_ptc$, custom$, &
-                                                       fixed_step_runge_kutta$, fixed_step_time_runge_kutta$)
+  case (runge_kutta$, time_runge_kutta$, symp_lie_ptc$, custom$, fixed_step_runge_kutta$, fixed_step_time_runge_kutta$)
     return ! Spin tracking is done at the same time orbital tracking is done
   case (taylor$)
     method = taylor$
@@ -68,7 +67,14 @@ case (bmad_standard$)
   call track1_spin_bmad (start_orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_spin_custom (start_orb, ele, param, end_orb, err, make_quaternion)
+  if (.not. associated(track1_spin_custom_ptr)) then
+    call out_io (s_error$, r_name, 'TRACK1_SPIN_CUSTOM_PTR HAS NOT BEEN SET IN THIS PROGRAM!', &
+                                   'NEEDED FOR CUSTOM ELEMENT OR TRACKING_METHOD = CUSTOM: ' // ele%name)
+    end_orb%state = lost$
+    return
+  endif
+
+  call track1_spin_custom_ptr (start_orb, ele, param, end_orb, err, make_quaternion)
 
 ! Notice that PTC spin tracking is only done here only when the (orbital) tracking_method is *not* symp_lie_ptc
 case (symp_lie_ptc$)

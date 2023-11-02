@@ -34,6 +34,7 @@ type (ele_struct), pointer :: lord
 real(rp) dist, x_particle, y_particle, r_wall, x_lim, y_lim, x0, y0, r, position(6), d_radius, lord_dist
 integer particle_at, physical_end, i
 logical no_aperture_here, no_ap
+character(*), parameter :: r_name = 'distance_to_aperture'
 
 ! Init
 
@@ -62,7 +63,12 @@ endif
 ! Custom calc
 
 if (ele%aperture_type == custom_aperture$) then
-  dist = distance_to_aperture_custom (orbit, particle_at, ele, no_aperture_here)
+  if (.not. associated(distance_to_aperture_custom_ptr)) then
+    call out_io (s_error$, r_name, 'INVALID CUSTOM_APERTURE SINCE DISTANCE_TO_APERTURE_CUSTOM_PTR HAS NOT BEEN SET IN THIS PROGRAM!')
+    orbit%state = lost$
+    return
+  endif
+  dist = distance_to_aperture_custom_ptr (orbit, particle_at, ele, no_aperture_here)
   return
 endif
 

@@ -1513,8 +1513,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       ! element is only allowed more than one girder_lord if custom geometry calculation is done.
 
       if (t2_type == girder_lord$) then
-        if (girder_here) then
-          call ele_geometry_hook (floor0, ele, floor, finished, 1.0_rp)
+        if (girder_here .and. associated(ele_geometry_hook_ptr)) then
+          call ele_geometry_hook_ptr (floor0, ele, floor, finished, 1.0_rp)
           if (.not. finished) then
             call out_io (s_fatal$, r_name, &
                     'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &

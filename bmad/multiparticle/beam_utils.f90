@@ -121,7 +121,8 @@ endif
 
 call order_particles_in_z (bunch)  
 
-call track1_wake_hook (bunch, ele, finished)
+finished = .false.
+if (associated(track1_wake_hook_ptr)) call track1_wake_hook_ptr (bunch, ele, finished)
 
 if (.not. finished) then
   call track1_sr_wake (bunch, wake_ele)

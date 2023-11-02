@@ -2,8 +2,6 @@ set (EXENAME long_term_tracking)
 
 set (SRC_FILES 
 	long_term_tracking/long_term_tracking.f90
-	long_term_tracking/track1_bunch_hook.f90
-	custom_tracking/track1_preprocess.f90
 )
 
 set (INC_DIRS

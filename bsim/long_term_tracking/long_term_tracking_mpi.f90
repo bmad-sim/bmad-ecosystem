@@ -31,6 +31,10 @@ character(40) file, str
 character(40), allocatable :: file_list(:)
 character(MPI_MAX_PROCESSOR_NAME) name
 
+!
+
+track1_preprocess_ptr => ltt_track1_preprocess
+track1_bunch_hook_ptr => ltt_track1_bunch_hook
 
 ! Initialize MPI
 

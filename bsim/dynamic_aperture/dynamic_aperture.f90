@@ -39,6 +39,12 @@ character(160) :: in_file, lat_file = '', dat_file, gnu_command
 namelist / params / bmad_com, ltt, da_param, set_rf_off, dpz, dat_file, &
             ramping_start_time, lat_file, ramping_on
 
+!
+
+track1_preprocess_ptr => ltt_track1_preprocess
+track1_bunch_hook_ptr => ltt_track1_bunch_hook
+track_many_hook_ptr   => track_many_hook
+
 ! Set inits
 
 bmad_com%auto_bookkeeper = .false.   ! Makes tracking faster

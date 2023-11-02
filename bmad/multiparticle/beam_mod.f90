@@ -218,8 +218,10 @@ character(*), parameter :: r_name = 'track1_bunch'
 
 ! Custom tracking
 
-call track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
-if (finished) return
+if (associated(track1_bunch_hook_ptr)) then
+  call track1_bunch_hook_ptr (bunch, ele, err, centroid, direction, finished, bunch_track)
+  if (finished) return
+endif
 
 !
 

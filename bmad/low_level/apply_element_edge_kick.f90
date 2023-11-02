@@ -94,8 +94,10 @@ endif
 
 ! Custom edge kick?
 
-call apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
-if (finished) return
+if (associated(apply_element_edge_kick_hook_ptr)) then
+  call apply_element_edge_kick_hook_ptr (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
+  if (finished) return
+endif
 
 ! With a solenoid must always apply the fringe kick due to the longitudinal field. 
 ! If not done the matrix calc will not be symplectic.
