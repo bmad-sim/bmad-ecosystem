@@ -852,7 +852,7 @@ do
   call reallocate_beam(beam, n_bunch, save = .true.)
   call reallocate_bunch(beam%bunch(n_bunch), 1000)
   bunch => beam%bunch(n_bunch)
-  bunch = bunch_struct()
+  bunch = bunch_struct(null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, real_garbage$, .false., 0, 0, 0, 0, 0, 0)
 
   p0 = coord_struct()
 
