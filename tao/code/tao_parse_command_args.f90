@@ -53,7 +53,7 @@ space_charge_com = space_charge_common_struct()
 error = .false.
 s%com%command_arg_has_been_executed = .false.
 
-call tao_hook_parse_command_args()
+if (associated(tao_hook_parse_command_args_ptr)) call tao_hook_parse_command_args_ptr()
 if (.not. s%init%parse_cmd_args) return
 
 if (present(cmd_line)) then

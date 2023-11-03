@@ -32,7 +32,7 @@ this_merit =  tao_merit()
 ! update variable values to reflect lattice values
 
 call tao_plot_setup()       ! transfer data to the plotting structures
-call tao_hook_plot_setup()
+if (associated(tao_hook_plot_setup_ptr)) call tao_hook_plot_setup_ptr()
 
 do i = 1, size(s%plot_page%region)
   r => s%plot_page%region(i)

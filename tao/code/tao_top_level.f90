@@ -88,7 +88,8 @@ do
     call tao_cmd_end_calc ()
   else
     ! Command line mode
-    call tao_hook_command (cmd_out, found)
+    found = .false.
+    if (associated(tao_hook_command_ptr)) call tao_hook_command_ptr (cmd_out, found)
     if (.not. found) call tao_command (cmd_out, err, err_is_fatal)
     if (err_is_fatal) exit
     if (err) call tao_abort_command_file()

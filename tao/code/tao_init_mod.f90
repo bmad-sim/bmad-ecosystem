@@ -48,7 +48,7 @@ namelist / tao_params / global, bmad_com, space_charge_com, opti_de_param, &
 
 global = s%global    ! establish defaults
 
-call tao_hook_init_global (init_file, global)
+if (associated(tao_hook_init_global_ptr)) call tao_hook_init_global_ptr(init_file, global)
 
 ! read global structure from tao_params namelist
 ! init_file == '' means there is no lattice file so just use the defaults.
@@ -179,7 +179,7 @@ namelist / tao_beam_init / ix_universe, beam_init, always_reinit, &
 ! Init Beams
 ! Some init that will be needed with lat sigma tracking
 
-call tao_hook_init_beam ()
+if (associated(tao_hook_init_beam_ptr)) call tao_hook_init_beam_ptr()
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)

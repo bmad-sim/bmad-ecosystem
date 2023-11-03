@@ -218,7 +218,7 @@ call tao_init_variables (var_file)
 call tao_init_data (data_file)
 call tao_init_building_wall (building_wall_file)
 
-call tao_hook_init1 (init_tao_file)
+if (associated(tao_hook_init1_ptr)) call tao_hook_init1_ptr (init_tao_file)
 
 ! Seed random number generator
 
@@ -392,7 +392,7 @@ call tao_var_repoint()
 ! Normally you will want to use tao_hook_init1. However, tao_hook_init2 can be used, for example, 
 ! to set model variable values different from design variable values.
 
-call tao_hook_init2 ()     
+if (associated(tao_hook_init2_ptr)) call tao_hook_init2_ptr ()
 
 ! Draw everything
 

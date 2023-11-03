@@ -1,9 +1,10 @@
 !+
 ! Subroutine wall_hit_handler_custom (orb, ele, s)
 !
-! Dummy prototype routine used to customize the action when a particle hits 
+! Prototype routine for customizing the action when a particle hits 
 ! a wall with Runge-Kutta integration in odeint_bmad.
-! To 
+!
+! To use, see the Bmad manual.
 !
 ! Input:
 !   orb   -- coord_struct: coordinates of particle.

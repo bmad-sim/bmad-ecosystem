@@ -70,7 +70,13 @@ do j = 1, s%n_var_used
       var%delta_merit = var%model_value - var%low_lim
     endif
   case default
-    call tao_hook_merit_var (i, j, var)
+    if (.not. associated(tao_hook_merit_var_ptr)) then
+      call out_io (s_abort$, r_name, 'TAO_HOOK_MERIT_VAR_PTR NOT ASSOCIATED WITH A ROUTINE.', &
+                                     'MERIT_TYPE NOT RECOGNIZED FOR VAR: ' // tao_var1_name(var), &
+                                     'MERIT_TYPE: ' // var%merit_type)
+      cycle
+    endif
+    call tao_hook_merit_var_ptr (i, j, var)
   end select
 
   var%merit = var%weight * var%delta_merit**2
@@ -159,7 +165,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     case ('min', 'abs_min')
       if (data(j)%delta_merit > 0) data(j)%delta_merit = 0  ! it's OK to be more
     case default
-      call tao_hook_merit_data (i, j, data(j), ok)
+      if (.not. associated(tao_hook_merit_data_ptr)) then
+        call out_io (s_abort$, r_name, 'TAO_HOOK_MERIT_DATA_PTR NOT ASSOCIATED WITH A ROUTINE.', &
+                                       'MERIT_TYPE: ' // data(j)%merit_type, &
+                                       'WILL MARK DATUM AS DOES NOT EXIST.')
+        data%exists = .false.
+        cycle
+      endif
+
+      call tao_hook_merit_data_ptr (i, j, data(j), ok)
       if (.not. ok) then
         call out_io (s_error$, r_name, 'MERIT_TYPE NOT RECOGNIZED FOR DATA: ' // tao_datum_name(data(j)), &
                                        'MERIT_TYPE: ' // data(j)%merit_type, &

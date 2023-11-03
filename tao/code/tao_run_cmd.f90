@@ -128,7 +128,11 @@ do i = 1, s%global%n_opti_loops
     call tao_geodesic_lm_optimizer (abort)
 
   case ('custom')
-    call tao_hook_optimizer (abort)
+    if (.not. associated(tao_hook_optimizer_ptr)) then
+      call out_io(s_error$, r_name, 'TAO_HOOK_OPTIMIZER_PTR NOT ASSOCIATED!')
+      return
+    endif
+    call tao_hook_optimizer_ptr (abort)
   end select
 
   if (abort) exit

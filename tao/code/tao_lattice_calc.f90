@@ -73,7 +73,7 @@ if (.not. s%global%lattice_calc_on) return
 
 s%com%ix_ref_taylor = -999   ! Reset taylor map
 
-call tao_hook_lattice_calc (calc_ok)
+if (associated(tao_hook_lattice_calc_ptr)) call tao_hook_lattice_calc_ptr (calc_ok)
 
 if (s%global%track_type /= 'single' .and. s%global%track_type /= 'beam') then
   call out_io (s_error$, r_name, 'UNKNOWN TRACK_TYPE: ' // quote(s%global%track_type), 'DEFAULTING TO "single"')
@@ -274,7 +274,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
       ! Custom calc.
 
-      call tao_hook_branch_calc (u, tao_lat, branch)
+      if (associated(tao_hook_branch_calc_ptr)) call tao_hook_branch_calc_ptr (u, tao_lat, branch)
 
     enddo branch_loop
 
@@ -320,7 +320,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-call tao_hook_post_process_data ()
+if (associated(tao_hook_post_process_data_ptr)) call tao_hook_post_process_data_ptr ()
 
 call tao_set_var_useit_opt
 call tao_set_data_useit_opt

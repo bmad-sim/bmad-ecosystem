@@ -83,7 +83,7 @@ do ip = 1, 3
 enddo
 
 ele => lat%ele(4)
-write (1, '(a, 6es10.2)') '"Flexible" REL 1E-15 ', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi
+write (1, '(a, 6es14.6)') '"Flexible" ABS 1E-18 ', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi
 
 !
 
