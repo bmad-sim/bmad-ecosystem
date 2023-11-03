@@ -827,7 +827,7 @@ endif
 ! Hook
 
 call number_template_plots()
-call tao_hook_init_plotting()
+  if (associated(tao_hook_init_plotting_ptr)) call tao_hook_init_plotting_ptr()
 
 ! And finish
 

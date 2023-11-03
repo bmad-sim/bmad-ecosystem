@@ -89,7 +89,7 @@ call output_direct (get = out_dir_state)
 if (opened .and. err_out) call output_direct (iu)  ! tell out_io to write to a file
 
 call tao_show_this (what2, result_id, lines, nl)  
-call tao_hook_show_cmd (what2, result_id, lines, nl)
+if (associated(tao_hook_show_cmd_ptr)) call tao_hook_show_cmd_ptr (what2, result_id, lines, nl)
 
 if (opened) call output_direct (iu)  ! tell out_io to write to a file
 

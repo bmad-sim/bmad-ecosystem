@@ -112,8 +112,10 @@ do i = 1, size(s%plot_page%region)
 
     graph => plot%graph(j)
 
-    call tao_hook_draw_graph (plot, graph, found)
-    if (found) cycle
+    if (associated(tao_hook_draw_graph_ptr)) then
+      call tao_hook_draw_graph_ptr (plot, graph, found)
+      if (found) cycle
+    endif
 
     ! For a non-valid graph or curves print a message
 
@@ -443,7 +445,7 @@ endif
 
 ! Hook routine for more plotting if desired...
 
-call tao_hook_draw_floor_plan (plot, graph)
+if (associated(tao_hook_draw_floor_plan_ptr)) call tao_hook_draw_floor_plan_ptr (plot, graph)
 
 call qp_restore_state
 

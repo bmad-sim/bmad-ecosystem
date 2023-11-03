@@ -524,8 +524,10 @@ endif
 
 ! See if there is a hook for this datum
 
-call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
-if (found) return
+if (associated(tao_hook_evaluate_a_datum_ptr)) then
+  call tao_hook_evaluate_a_datum_ptr (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
+  if (found) return
+endif
 
 ! Set ix_ele, ix_ref, and ix_start. 
 ! Note: To check that a start element was set, need to look at datum%ele_start_name, not ix_start.

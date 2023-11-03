@@ -39,6 +39,7 @@ tao/doc/tao.pdf
 bmad/doc/bmad.pdf
 bsim/**/doc/*.pdf
 util/searchf.pyc
+util/__pycache__
 
 **/doc/*.idx
 **/doc/*.ilg

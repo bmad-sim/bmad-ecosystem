@@ -8,11 +8,18 @@
 \bmad calculations, like particle tracking through a lattice element, can be customized using what
 are called ``\vn{custom}'' and ``\vn{hook}'' routines. The general idea is that a programmer can
 implement custom code which is linked into a program and this custom code will be called at the
-appropriate time by \bmad. Thus, for example, custom code can be created for Runge-Kutta tracking
+appropriate time by \bmad. For example, custom code can be created for Runge-Kutta tracking
 that calculates the electromagnetic field of some complicated electromagnet.
 
-To enable \bmad to be able to call customized code, there are a number of ``\vn{entry} points''
-defined in the \bmad code. At each entry point, a ``\vn{dummy}'' version of a custom and hook
+To enable \bmad to be able to call customized code, there are a number of \vn{function pointers}
+defined in the \bmad code. A function pointer is defined one for each custom or hook routine. By
+default, these function pointers are not associated with any functions.  At certain places in the
+\bmad code, the appropriate function pointer will be checked. If the funtion pointer is associated
+with a routine, that routine will be called.
+
+\etcetc
+
+At each entry point, a ``\vn{dummy}'' version of a custom and hook
 routine is called. For \vn{hook} routines, this dummy version does nothing except to keep the linker
 happy when customized hook routine is not implemented by a program. For \vn{custom} routines, the
 dummy version will issue an error message since it should not have been called. That is, the
