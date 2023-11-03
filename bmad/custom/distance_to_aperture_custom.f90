@@ -4,10 +4,11 @@
 ! Replace this routine with a routine to calculate the percentage distance from the particle to the wall aperture.
 ! Distances are negative if the particle is inside the wall.
 !
-! A valid distance_to_aperture_custom routine is needed only if ele%aperture_type is set to custom$.
+! A distance_to_aperture_custom routine is needed only if ele%aperture_type is set to custom$.
 ! General rule: Your code may NOT modify any argument that is not listed as an output agument below."
 !
 ! This routine is called by distance_to_aperture.
+! To use, see the Bmad manual.
 !
 ! Input:
 !   orbit             -- coord_struct: Particle position.

@@ -1,7 +1,7 @@
 !+
 ! Subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
 !
-! Routine that can be customized for tracking a bunch through a single element.
+! Prototype routine that can be customized for tracking a bunch through a single element.
 !
 ! Input:
 !   bunch          -- Bunch_struct: Starting bunch position.

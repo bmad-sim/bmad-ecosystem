@@ -2,6 +2,7 @@
 ! Subroutine track1_wake_hook (bunch, ele, finished)
 !
 ! Routine that can be customized for tracking through a wake.
+! To use, see the Bmad manual.
 !
 ! Input:
 !   bunch       -- bunch_struct: Bunch of particles.

@@ -2,8 +2,7 @@
 ! Subroutine track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 !
 ! Routine that can be customized to track from one point in the lat to another.
-! This routine is always called by track_many. See the track_many documentation for details.
-! 
+! To use, see the Bmad manual.
 !
 ! Input:
 !   lat              -- lat_struct: Lat to track through.

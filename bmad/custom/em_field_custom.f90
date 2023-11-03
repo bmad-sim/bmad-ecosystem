@@ -3,8 +3,8 @@
 !                                     calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 !
 ! Routine for handling custom (user supplied) EM fields.
-! This routine is called when ele%field_calc = custom$ or when ele is a custom element (ele%key = custom$)
-! In order to be used, this stub file must be modified appropriately. See the Bmad manual for more details.
+! When setup, this routine is called when ele%field_calc = custom$ or when ele is a custom element (ele%key = custom$)
+! See the Bmad manual for more details.
 !
 ! Note: Unlike all other elements, "s_rel" and "here" areguments for a patch element are with respect to 
 ! the exit reference frame of the element. See the Bmad manual for more details.

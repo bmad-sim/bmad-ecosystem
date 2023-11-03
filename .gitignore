@@ -13,6 +13,7 @@ plplot
 xraylib
 gnu_utilities_src
 packages
+__pycache__
 .directoryhash
 
 # Jupyter notebooks
@@ -37,9 +38,8 @@ bmad-doc/tao_examples/csr_beam_tracking/csr_wake.dat
 
 tao/doc/tao.pdf
 bmad/doc/bmad.pdf
-bsim/**/doc/*.pdf
 util/searchf.pyc
-util/__pycache__
+bsim/**/doc/*.pdf
 
 **/doc/*.idx
 **/doc/*.ilg
