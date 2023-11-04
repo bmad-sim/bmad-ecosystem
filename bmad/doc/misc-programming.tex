@@ -15,15 +15,14 @@ routines are available in the \vn{/bmad/custom} directory and are discussed in d
 To enable \bmad to be able to call customized code, \vn{function pointers} are defined, one for each
 custom or hook routine. At certain places in the \bmad code, the appropriate function pointer will
 be checked. If the funtion pointer is associated with a routine, that routine will be called. By
-default, the function pointers are not associated with any functions.
+default, the function pointers are not associated with any functions and the only way there will be
+an association by user code modification.
 
-The function pointers are defined in the file \vn{/bmad/modules/bmad_routine_interface.f90}. The convention
-followed is that the abstract interface name has a \vn{_def} suffix and the function pointer name
-has a \vn{_ptr} suffix. For example, there is a \vn{track1_custom} routine prototype that is given
-in the in the file \vn{/bmad/custom/track1_custom.f90}. In \vn{/bmad/modules/bmad_routine_interface.f90} there
-are two interfaces for this routine. One interface defines the argument list for \vn{track1_custom} and the
-other (abstract) interface, defines the argement list for \vn{track1_custom_def} which is used to define
-the function pointer:
+The function pointers are defined in the file \vn{/bmad/modules/bmad_routine_interface.f90}. The
+convention followed is that for any given custom or hook routine there is a base name, for example,
+\vn{track1_custom}, and in \vn{bmad_routine_interface.f90} there will be an abstract interface which
+with the base name with a \vn{_def} suffix (\vn{track1_custom_def} for this example). Additionally
+the corresponding function pointer uses a \vn{_ptr} suffix and is defined like:
 \begin{example}
   procedure(track1_custom_def), pointer :: track1_custom_ptr => null()
 \end{example}
@@ -32,27 +31,45 @@ To implement custom code for, say, \vn{track1_custom}:
 \begin{itemize}
 %
 \item 
-copy the file \vn{/bmad/custom/track1_custom.f90} to the area where the program is to be compiled.
+Copy the file \vn{/bmad/custom/track1_custom.f90} to the area where the program is to be compiled.
 %
 \item
-Code  desired, 
-
-
-
-\etcetc
-
-
-Note: Custom and Hook entry points are added to \bmad on an as-needed basis. If you have a need that
-is not met by the existing set of entry points, please contact a \bmad maintainer.
-
+Customize file as desired. The name of the routine can be changed if desired as long as that name is used
+consistently throughout the program. In fact, multiple custom
+routines can be created and switched in and out as desired in the program.
+%
+\item
+In the program define an interface for the custom routine like:
+\begin{example}
+  procedure(track1_custom_def) :: track1_custom
+\end{example}
+Note: If the custom routine has been put in a module this will not be needed.
+%
+\item
+Somewhere near the beginning of the program (generally before \vn{bmad_parser} is called), set the
+function pointer to point to your custom routine:
+\begin{example}
+  track_custom_ptr => track1_custom
+\end{example}
+%
+\item
+If needed modify the compile script(s) (typically named something like ``cmake.XXX'') to compile the
+file the custom routine is in.
+%
+\item
+Compile the program using the \vn{mk} command.
+%
+\end{itemize}
 
 While coding a custom routine, it is important to remember that it is {\em not} permissible to
 modify any routine argument that does not appear in the list of output arguments shown in the
 comment section at the top of the file.
 
-Note: Remember to modify the appropriate compile script file (typically named something like
-``cmake.XXX'') so that any routines that you have added to your program area are compiled and
-linked.
+Note: Custom and hook entry points are added to \bmad on an as-needed basis. If you have a need that
+is not met by the existing set of entry points, please contact a \bmad maintainer.
+
+Note: The custom and hook routines in \vn{/bmad/custom/} are not compiled with the \bmad library. Their
+only purpose is to surve as prototypes for code development.
 
 %-----------------------------------------------------------------------------
 \section{Custom Calculations}
