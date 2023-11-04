@@ -47,7 +47,7 @@
 recursive subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, &
                                          calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
 
-use em_field_mod, except_dummy => em_field_custom
+use em_field_mod
 
 implicit none
 

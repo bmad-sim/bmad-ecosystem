@@ -19,8 +19,7 @@
 
 subroutine init_custom (ele, err_flag)
 
-use bmad_struct
-use bmad_interface, except_dummy => init_custom
+use bmad_interface
 
 implicit none
 

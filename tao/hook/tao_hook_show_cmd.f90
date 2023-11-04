@@ -17,7 +17,7 @@
 
 subroutine tao_hook_show_cmd (what, result_id, lines, nl)
 
-use tao_interface, dummy => tao_hook_show_cmd
+use tao_interface
 
 implicit none
 

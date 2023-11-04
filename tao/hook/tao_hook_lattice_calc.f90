@@ -25,7 +25,7 @@
 
 subroutine tao_hook_lattice_calc (calc_ok)
 
-use tao_interface, dummy => tao_hook_lattice_calc
+use tao_interface
 
 implicit none
 

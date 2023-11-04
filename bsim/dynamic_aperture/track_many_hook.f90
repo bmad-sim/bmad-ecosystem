@@ -26,7 +26,7 @@
 
 subroutine track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 
-use da_program_mod, except_dummy => track_many_hook
+use da_program_mod
 
 implicit none
 

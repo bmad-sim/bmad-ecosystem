@@ -16,7 +16,7 @@
 
 subroutine track1_wake_hook (bunch, ele, finished)
 
-use bmad_interface, dummy => track1_wake_hook
+use bmad_interface
 
 implicit none
 

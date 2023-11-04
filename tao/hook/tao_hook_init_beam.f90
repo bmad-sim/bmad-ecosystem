@@ -8,7 +8,7 @@
 
 subroutine tao_hook_init_beam ()
 
-use tao_interface, dummy => tao_hook_init_beam
+use tao_interface
 
 implicit none
 

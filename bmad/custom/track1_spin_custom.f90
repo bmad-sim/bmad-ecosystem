@@ -24,7 +24,7 @@
 
 subroutine track1_spin_custom (start, ele, param, end, err_flag, make_quaternion)
 
-use bmad_interface, except_dummy => track1_spin_custom
+use bmad_interface
 
 implicit none
 

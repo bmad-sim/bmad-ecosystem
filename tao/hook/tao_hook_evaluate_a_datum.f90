@@ -17,7 +17,7 @@
 
 subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
 
-use tao_data_and_eval_mod, dummy => tao_hook_evaluate_a_datum
+use tao_data_and_eval_mod
 
 implicit none
 

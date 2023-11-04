@@ -11,7 +11,7 @@
 
 subroutine tao_hook_draw_floor_plan (plot, graph)
 
-use tao_interface, dummy => tao_hook_draw_floor_plan
+use tao_interface
 
 implicit none
 
