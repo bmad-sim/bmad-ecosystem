@@ -8,42 +8,37 @@
 \bmad calculations, like particle tracking through a lattice element, can be customized using what
 are called ``\vn{custom}'' and ``\vn{hook}'' routines. The general idea is that a programmer can
 implement custom code which is linked into a program and this custom code will be called at the
-appropriate time by \bmad. For example, custom code can be created for Runge-Kutta tracking
-that calculates the electromagnetic field of some complicated electromagnet.
+appropriate time by \bmad. For example, custom code can be created for Runge-Kutta tracking that
+calculates the electromagnetic field of some complicated electromagnet. Prototype custom and hook
+routines are available in the \vn{/bmad/custom} directory and are discussed in detail below.
 
-To enable \bmad to be able to call customized code, there are a number of \vn{function pointers}
-defined in the \bmad code. A function pointer is defined one for each custom or hook routine. By
-default, these function pointers are not associated with any functions.  At certain places in the
-\bmad code, the appropriate function pointer will be checked. If the funtion pointer is associated
-with a routine, that routine will be called.
+To enable \bmad to be able to call customized code, \vn{function pointers} are defined, one for each
+custom or hook routine. At certain places in the \bmad code, the appropriate function pointer will
+be checked. If the funtion pointer is associated with a routine, that routine will be called. By
+default, the function pointers are not associated with any functions.
+
+The function pointers are defined in the file \vn{/bmad/modules/bmad_routine_interface.f90}. The convention
+followed is that the abstract interface name has a \vn{_def} suffix and the function pointer name
+has a \vn{_ptr} suffix. For example, there is a \vn{track1_custom} routine prototype that is given
+in the in the file \vn{/bmad/custom/track1_custom.f90}. In \vn{/bmad/modules/bmad_routine_interface.f90} there
+are two interfaces for this routine. One interface defines the argument list for \vn{track1_custom} and the
+other (abstract) interface, defines the argement list for \vn{track1_custom_def} which is used to define
+the function pointer:
+\begin{example}
+  procedure(track1_custom_def), pointer :: track1_custom_ptr => null()
+\end{example}
+
+To implement custom code for, say, \vn{track1_custom}, copy the file \vn{/bmad/custom/track1_custom.f90}
+to the area where the program is
+
+
 
 \etcetc
 
-At each entry point, a ``\vn{dummy}'' version of a custom and hook
-routine is called. For \vn{hook} routines, this dummy version does nothing except to keep the linker
-happy when customized hook routine is not implemented by a program. For \vn{custom} routines, the
-dummy version will issue an error message since it should not have been called. That is, the
-difference between \vn{custom} and \vn{hook} routines is that the \vn{hook} routine is always called
-at the appropriate time without regard to the type of lattice element under consideration or what
-tracking method is being used. See below for more details.
 
 Note: Custom and Hook entry points are added to \bmad on an as-needed basis. If you have a need that
 is not met by the existing set of entry points, please contact a \bmad maintainer.
 
-Customization is done by copying the appropriate dummy routine to the same area where code files for
-the program to be customized are, modifying the dummy routine to do what you want it to do, and then
-relinking the program.
-
-Important: 
-\begin{itemize}
-\item
-Do not put the non-dummy version of a custom routine into a library that is linked to the
-program. This will generally result in the non-dummy version {\em not} being linked to.
-\item
-Do not modify directly any dummy routine in the \vn{bmad} directory. This is unnecessary
-and it complicates updating your local copy of the \bmad code as the \bmad code is
-developed over time.
-\end{itemize}
 
 While coding a custom routine, it is important to remember that it is {\em not} permissible to
 modify any routine argument that does not appear in the list of output arguments shown in the
@@ -82,10 +77,6 @@ There are eight routines that implement custom calculations:
 \end{example}
 [Use \vn{getf} for more details about the argument lists for these
 routines.]  
-
-The dummy versions of these custom routines, if called, will print an error message and
-stop the program. The exception is the dummy \vn{init_custom} routine which will simply do
-nothing when called.
 
 \index{descrip}
 The \Hyperref{r:init.custom}{init_custom} routine is called by \Hyperref{r:bmad.parser}{bmad_parser}

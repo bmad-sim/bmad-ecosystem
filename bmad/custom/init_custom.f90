@@ -1,16 +1,13 @@
 !+
 ! Subroutine init_custom (ele, err_flag)
 !
-! Dummy routine for initializing custom elements or elements that do custom
+! Prototype routine for initializing custom elements or elements that do custom
 ! calculations. Custom calculations are done if any one of the following
 ! ele_struct components is set to custom$:
 !   ele%tracking_method
 !   ele%mat6_calc_method
 !   ele%field_calc
 !   ele%aperture_type
-!
-! If called, this routine will do nothing.
-! This routine needs to be replaced for custom initialization.
 !
 ! Input:
 !   ele    -- Ele_struct: Element to init.

@@ -2,7 +2,8 @@
 ! Subroutine ele_geometry_hook (floor0, ele, floor, finished, len_scale)
 !
 ! Routine that can be customized to calculate the floor position of an element.
-! This routine is always called by ele_geometry.
+! When setup, this routine is called by ele_geometry.
+! To use, see the Bmad manual.
 !
 ! This routine is useful, for example, to provide a way to calculate the orientation of a support
 ! structure that is, say, on a kinematic mount.

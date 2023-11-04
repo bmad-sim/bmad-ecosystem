@@ -17,13 +17,11 @@ contains
 ! A '.h5' suffix will be appended to the created file if hdf5$ format is used and file_name does not
 ! already have a '.h5' or '.hdf5' suffix.
 !
-! The ASCII format is ASCII::4 except if cols is present. In this case ASCII::5 is used.
-!
 ! Input:
 !   file_name     -- character(*): Name of file.
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
-!   file_format   -- logical, optional: ascii$, or hdf5$ (default).
+!   file_format   -- logical, optional: ascii$, or hdf5$ (default). Experimental: ascii4$. 
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
 !-
 

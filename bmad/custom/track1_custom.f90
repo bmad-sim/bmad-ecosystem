@@ -1,15 +1,13 @@
 !+
 ! Subroutine track1_custom (orbit, ele, param, err_flag, finished, track)
 !
-! Dummy routine for custom tracking. 
-! This routine needs to be replaced for a custom calculation.
-! If not replaced and this routine is called, this routine will generate an error message.
+! Prototype routine for custom tracking. 
 !
 ! Also see:
 !   track1_preprocess
 !   track1_postprocess
 !
-! If this routine takes into account radiation damping and/or excitation when bmad_com%radiation_damping_on 
+! If this routine handles radiation damping and/or excitation when bmad_com%radiation_damping_on 
 ! and/or bmad_com%radiation_fluctuations_on is True, a custom version of track1_preprocess should be 
 ! constructed to set its radiation_included argument to True.
 ! If not, the track1 routine will use track1_radiation to include the radiation effects.
