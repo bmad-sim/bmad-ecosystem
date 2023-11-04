@@ -27,6 +27,8 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
+procedure(track_many_hook_def) :: track_many_hook
+
 real(rp) dpz(20)
 real(rp) :: ramping_start_time = 0
 integer nargs, ios, i, j, n_dpz, nt

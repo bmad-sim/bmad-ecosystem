@@ -7,7 +7,7 @@
 
 subroutine tao_hook_init_global (init_file, global)
 
-use tao_interface, dummy => tao_hook_init_global
+use tao_interface
 
 implicit none
 

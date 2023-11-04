@@ -12,7 +12,7 @@
 
 subroutine tao_hook_init_lattice_post_parse (u)
 
-use tao_interface, dummy => tao_hook_init_lattice_post_parse
+use tao_interface
 
 implicit none
 

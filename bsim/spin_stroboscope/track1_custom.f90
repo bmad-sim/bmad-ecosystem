@@ -37,7 +37,7 @@
 
 subroutine track1_custom (orbit, ele, param, err_flag, finished, track)
 
-use bmad, except_dummy => track1_custom
+use bmad
 
 implicit none
 

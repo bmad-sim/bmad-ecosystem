@@ -19,7 +19,7 @@
 
 subroutine tao_hook_merit_data (i_uni, j_data, data, valid_value_set)
 
-use tao_interface, dummy => tao_hook_merit_data
+use tao_interface
 
 implicit none
 

@@ -13,7 +13,7 @@
 
 subroutine tao_hook_graph_postsetup (plot, graph)
 
-use tao_interface, dummy => tao_hook_graph_postsetup
+use tao_interface
 
 implicit none
 

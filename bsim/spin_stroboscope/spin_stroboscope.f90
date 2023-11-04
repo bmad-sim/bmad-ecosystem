@@ -77,6 +77,8 @@ type (z_global_struct) z_try(24)
 type (fourier_mode_struct) fourier ! Fourier transform for the spin x-axis
 type (spin_results_struct), allocatable :: result(:)
 
+procedure(track1_custom_def) :: track1_custom
+
 real(rp) orbit_start(3), orbit_stop(3), delta(3), xfer_mat(3,3), closed_orb_invar_spin(3), dtune
 real(rp) time, unit_mat(3,3), norm_max, norm, tune2, r, axis(3), ave_invar_spin(3), dphase_long, dphase_transverse
 real(rp) f(3), p_lim, angle, angle0, angle1, angle2, dangle, j_amp(3), old_relaxed_invar_spin(3), old_scatter_min_invar_spin(3)

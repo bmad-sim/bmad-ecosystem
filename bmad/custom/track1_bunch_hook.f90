@@ -24,7 +24,7 @@
 
 subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
 
-use bmad, dummy => track1_bunch_hook
+use bmad
 
 implicit none
 

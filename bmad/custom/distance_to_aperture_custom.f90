@@ -23,7 +23,7 @@
 
 function distance_to_aperture_custom (orbit, particle_at, ele, no_aperture_here) result (dist)
 
-use bmad, dummy => distance_to_aperture_custom
+use bmad
 
 implicit none
 

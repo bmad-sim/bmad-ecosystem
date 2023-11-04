@@ -6,7 +6,7 @@
 
 subroutine tao_hook_init_var () 
 
-use tao_init_variables_mod, dummy => tao_hook_init_var
+use tao_init_variables_mod
 
 implicit none
 

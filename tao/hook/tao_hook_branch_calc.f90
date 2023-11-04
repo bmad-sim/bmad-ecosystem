@@ -11,7 +11,7 @@
 
 subroutine tao_hook_branch_calc (u, tao_lat, branch)
 
-use tao_interface, dummy => tao_hook_branch_calc
+use tao_interface
 
 implicit none
 

@@ -21,8 +21,7 @@
 
 subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
 
-use bmad_struct
-use bmad_interface, except_dummy => make_mat6_custom
+use bmad_interface
 
 implicit none
 

@@ -21,7 +21,7 @@
 
 subroutine tao_hook_command (command_line, found)
 
-use tao_command_mod, dummy => tao_hook_command
+use tao_command_mod
 
 implicit none
 

@@ -24,7 +24,7 @@
 
 subroutine track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 
-use bmad_interface, except_dummy => track_many_hook
+use bmad_interface
 
 implicit none
 

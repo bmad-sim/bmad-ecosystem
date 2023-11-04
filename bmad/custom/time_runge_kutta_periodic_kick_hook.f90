@@ -32,7 +32,7 @@
 
 subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
 
-use bmad, except_dummy => time_runge_kutta_periodic_kick_hook
+use bmad
 
 implicit none
 

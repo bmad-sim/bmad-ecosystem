@@ -246,13 +246,8 @@ ENDIF ()
 # C / C++ Compiler flags
 #-----------------------------------
 
-IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (BASE_C_FLAGS)
-  SET (BASE_CXX_FLAGS)
-ELSE ()
-  SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
-  SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
-ENDIF ()
+SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
+SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
 
 #-----------------------------------                                                                                
 # For non-Linux or non-ifort or 
@@ -264,9 +259,6 @@ ENDIF ()
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
   SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (BASE_C_FLAGS)
-  SET (BASE_CXX_FLAGS)
 ENDIF ()
 
 #--------------------------------------
@@ -412,19 +404,11 @@ ELSE ()
   set (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} ${ACC_GFORTRAN_OPTIMIZATION_FLAG}")
 ENDIF ()
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "HARDWARE-DEVEL")
-  message("Build Target         : ${CMAKE_SYSTEM_NAME}")
-  message("C Compiler           : ${CMAKE_C_COMPILER}")
-  message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
-  message("Linker               : ${CMAKE_LINKER}")
-  set (BASE_C_FLAGS)
-ELSE ()
-  message("Current Directory    : ${CMAKE_CURRENT_SOURCE_DIR}")
-  message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
-  message("C Compiler           : ${CMAKE_C_COMPILER}")
-  message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
-  message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
-ENDIF ()
+message("Current Directory    : ${CMAKE_CURRENT_SOURCE_DIR}")
+message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
+message("C Compiler           : ${CMAKE_C_COMPILER}")
+message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
+message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
 
 IF (DEFINED SHARED_LINK_LIBS)
 message("Shared Libraries     : ${SHARED_LINK_LIBS}")
@@ -494,13 +478,6 @@ foreach(h5dir ${HDF5_Fortran_INCLUDE_DIRS})
     list(APPEND MASTER_INC_DIRS "${h5dir}")
   endif()
 endforeach()
-
-# If building for HARDWARE-DEVEL, remove the include directories which are not needed 
-
-IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (MASTER_INC_DIRS)
-ENDIF ()
-
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist
@@ -575,12 +552,7 @@ ELSE ()
   ENDIF ()
 ENDIF ()
 
-IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (MASTER_LINK_DIRS)
-ENDIF ()
-
 LINK_DIRECTORIES (${MASTER_LINK_DIRS})
-
 
 #-------------------------------------------
 # Collect list of all source files for all
@@ -789,8 +761,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-  LIST(FIND TARGETS ${dep} DEP_SEEN)
-  IF(${DEP_SEEN} EQUAL -1)
+          LIST(FIND TARGETS ${dep} DEP_SEEN)
+          IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.so)
             add_library(${dep} SHARED IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -804,8 +776,8 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.so)
           ENDIF ()
-  ENDIF()
       ENDIF()
+    ENDIF()
 
     endforeach(dep)
 
@@ -815,8 +787,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-  LIST(FIND TARGETS ${dep} DEP_SEEN)
-  IF(${DEP_SEEN} EQUAL -1)
+          LIST(FIND TARGETS ${dep} DEP_SEEN)
+          IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.dylib)
             add_library(${dep} SHARED IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -841,8 +813,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-  LIST(FIND TARGETS ${dep} DEP_SEEN)
-  IF(${DEP_SEEN} EQUAL -1)
+          LIST(FIND TARGETS ${dep} DEP_SEEN)
+          IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
             add_library(${dep} STATIC IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -856,8 +828,8 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
           ENDIF ()
-  ENDIF()
       ENDIF()
+    ENDIF()
 
     endforeach(dep)
 
@@ -1079,21 +1051,12 @@ foreach(exespec ${EXE_SPECS})
     set (EXTRA_SHARED_LINK_LIBS "")
   ENDIF ()
 
-  IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-    foreach(file ${SRC_FILES})
-      set(OBJ_FILES "${OBJ_FILES} CMakeFiles/${EXENAME}-exe.dir/${file}.o")
-    endforeach(file)
-    set (CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${LINK_FLAGS} ${OBJ_FILES} -o ${OUTPUT_BASEDIR}/bin/${EXENAME}.exe")
-    TARGET_LINK_LIBRARIES(${EXENAME}-exe
-      )
-  ELSE ()
-    TARGET_LINK_LIBRARIES(${EXENAME}-exe
-      ${STATIC_FLAG} ${LINK_LIBS} 
-      ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
-      ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
-      ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
-      )
-  ENDIF ()
+  TARGET_LINK_LIBRARIES(${EXENAME}-exe
+    ${STATIC_FLAG} ${LINK_LIBS} 
+    ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
+    ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
+    ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
+    )
 
   SET(CFLAGS)
   SET(FFLAGS)

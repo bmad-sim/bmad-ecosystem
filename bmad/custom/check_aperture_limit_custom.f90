@@ -23,7 +23,7 @@
 
 subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
 
-use bmad_interface, dummy => check_aperture_limit_custom
+use bmad_interface
 
 implicit none
 
