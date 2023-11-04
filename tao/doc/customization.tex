@@ -52,12 +52,13 @@ executable
 \begin{example}
     \vn{ROOT/production/bin/custom_tao}. 
 \end{example}
-Similarly, the command \vn{mkd} will create a debug executable 
+If a debug executable is wanted, the command \vn{mkd} will create one at: 
 \begin{example}
     \vn{ROOT/debug/bin/custom_tao}
 \end{example}
 	\end{enumerate}
-A debug executable only needs to be created if you a debugging the code.
+A debug executable is only needed if you are debugging the code. The debug exe will run much
+slower than the production version.
 
 %----------------------------------------------------------------
 \section{It's All a Matter of Hooks}
@@ -68,11 +69,28 @@ name ``hook'' in them. These files are located in the directory \vn{tao/hook}.  
 these files, copy it from \vn{tao/hook} to \vn{ROOT} and then make modifications to the copy.
 
 The reason for this golden rule is to ensure that, as time goes by, and revisions are made to the
-\tao routines to extend it's usefulness and to eliminate bugs, these changes will have a minimum
+\tao routines to extend \tao's usefulness and to eliminate bugs, these changes will have a minimum
 impact on the specialized routines you write.  What happens if the modification you want to do
 cannot be accomplished by customizing a hook routine? The answer is to contact the \tao programming
 team and we will modify \tao and provide the hooks you need so that you can then do your
 customization.
+
+%----------------------------------------------------------------
+\section{Implementing a Hook Routine in Tao}
+
+Function pointers are used by \tao to call customized hook routines. \tao uses the same system as \bmad
+where an abstract interface with a \vn{_def} suffix in the name is defined along with a function
+pointer with a \vn{_ptr} suffix. See the section ``Custom and Hook Routines'' in the \bmad manual
+for more details. For example, the \vn{tao_hook_command} routine has the function pointer (defined
+in \vn{/tao/code/tao_interface.f90}):
+\begin{example}
+  procedure(tao_hook_command_def), pointer :: tao_hook_command_ptr => null()
+\end{example}
+To use a customized \vn{tao_hook_command} routine, the following can be put in the
+\vn{tao_program.f90} that was copied to your area:
+\begin{example}
+  tao_hook_command_ptr => tao_hook_command
+\end{example}
 
 %----------------------------------------------------------------
 \section{Initializing Hook Routines}
