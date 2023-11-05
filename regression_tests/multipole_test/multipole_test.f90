@@ -12,7 +12,7 @@ real(rp) am1(0:n_pole_maxx), am2(0:n_pole_maxx), bm1(0:n_pole_maxx), bm2(0:n_pol
 real(rp) ae1(0:n_pole_maxx), ae2(0:n_pole_maxx), be1(0:n_pole_maxx), be2(0:n_pole_maxx)
 real(rp) km1(0:n_pole_maxx), tm1(0:n_pole_maxx), km2(0:n_pole_maxx), tm2(0:n_pole_maxx)
 real(rp) ke1(0:n_pole_maxx), te1(0:n_pole_maxx), ke2(0:n_pole_maxx), te2(0:n_pole_maxx)
-real(rp) dtm, dte, fn, tilt
+real(rp) dtm, dte, fn, tilt, max_km, max_ke
 
 integer i, ie, iu, ik, ix_pole_max, include_kicks
 integer, parameter :: inc_kick(2) = [no$, include_kicks$]
@@ -72,17 +72,20 @@ do ie = 1, lat%n_ele_max
     call multipole_ab_to_kt (ae1, be1, ke1, te1)
     call multipole_ab_to_kt (ae2, be2, ke2, te2)
 
-    dtm = 0
-    dte = 0
+    dtm = 0; dte = 0
+    max_km = 0; max_ke = 0
+
     do i = 0, n_pole_maxx
       fn = 2.0_rp * real(i+1, rp)
       call flip_it(i, km1(i), tm1(i));  call flip_it(i, km2(i), tm2(i))
       call flip_it(i, ke1(i), te1(i));  call flip_it(i, ke2(i), te2(i))
+
       if (ele%key == sbend$) then
         tilt = ele%value(ref_tilt$) / twopi
       else
         tilt = ele%value(tilt$) / twopi
       endif
+
       if (use_ele_tilt) then
         if (km1(i) /= 0) dtm = max(dtm, modulo2(tm1(i)-tm2(i)-tilt, 1.0_rp/fn))
         if (ke1(i) /= 0) dte = max(dte, modulo2(te1(i)-te2(i)-tilt, 1.0_rp/fn))
@@ -90,9 +93,12 @@ do ie = 1, lat%n_ele_max
         if (km1(i) /= 0) dtm = max(dtm, modulo2(tm1(i)-tm2(i)+tilt, 1.0_rp/fn))
         if (ke1(i) /= 0) dte = max(dte, modulo2(te1(i)-te2(i)+tilt, 1.0_rp/fn))
       endif
+
+      if (abs(km1(i)) + abs(km2(i)) /= 0) max_km = max(max_km, abs(km1(i)-km2(i)) / (abs(km1(i)) + abs(km2(i))))
+      if (abs(ke1(i)) + abs(ke2(i)) /= 0) max_ke = max(max_ke, abs(ke1(i)-ke2(i)) / (abs(ke1(i)) + abs(ke2(i))))
     enddo
 
-    write (1, '(a, 6es12.4)') '"KT-' // str // trim(ele%name) // '"   ABS 1E-12', maxval(abs(km1-km2)), maxval(abs(ke1-ke2)), dtm, dte
+    write (1, '(a, 6es12.4)') '"KT-' // str // trim(ele%name) // '"   ABS 1E-12', max_km, max_ke, dtm, dte
 
     !
 
