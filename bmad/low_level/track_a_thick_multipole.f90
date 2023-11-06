@@ -157,7 +157,7 @@ E_rel = E_tot / ele%value(p0c$)
 p_factor = (mc2 / ele%value(p0c$))**2 + px**2 + py**2
 if (E_rel**2 < p_factor) then
   orbit = start_orb
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   return
 endif
 

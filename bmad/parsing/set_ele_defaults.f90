@@ -144,6 +144,7 @@ case (em_field$)
   ele%value(fringe_type$) = full$
   ele%value(field_autoscale$) = 1
   ele%value(constant_ref_energy$) = true$
+  ele%value(polarity$) = 1.0
 
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$
@@ -152,6 +153,10 @@ case (floor_shift$)
   ele%value(origin_ele_ref_pt$) = exit_end$
   ele%value(upstream_coord_dir$) = 1
   ele%value(downstream_coord_dir$) = 1
+
+case (foil$)
+  ele%value(num_steps$) = 10
+  ele%value(final_charge$) = real_garbage$
 
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$

@@ -7154,6 +7154,8 @@ case (crab_cavity$)
     else
       ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
     endif
+  else
+    ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
   endif
 
 !------------------
@@ -9916,6 +9918,8 @@ logical err
 
 ! Init custom stuff.
 
+if (.not. associated(init_custom_ptr)) return
+
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
   do i = 1, branch%n_ele_max
@@ -9923,7 +9927,7 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
         ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
         ele%aperture_type == custom_aperture$) then
-      call init_custom (ele, err)
+      call init_custom_ptr (ele, err)
       if (err) bp_com%error_flag = .true.
     endif
   enddo

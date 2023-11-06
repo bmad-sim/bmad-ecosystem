@@ -847,6 +847,16 @@ subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_ord
   logical, optional :: for_layout
 end subroutine
 
+subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (lat_param_struct) :: param
+  type (coord_struct), optional, intent(in) :: orb0
+  type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
+  logical, optional :: taylor_map_includes_offsets, include_damping
+end subroutine
+
 function ele_unique_name (ele, order) result (unique_name)
   import
   implicit none
@@ -1875,11 +1885,12 @@ subroutine reallocate_beam (beam, n_bunch, n_particle, save)
   logical, optional :: save
 end subroutine
 
-subroutine reallocate_bunch (bunch, n_particle)
+subroutine reallocate_bunch (bunch, n_particle, save)
   import
   implicit none
   type (bunch_struct) bunch
   integer n_particle
+  logical, optional :: save
 end subroutine
 
 function relative_mode_flip (ele1, ele2)
@@ -2163,6 +2174,17 @@ function set_tune (phi_a_set, phi_b_set, dk1, eles, branch, orb, print_err) resu
   logical ok
 end function
 
+function set_tune_via_group_knobs (phi_set, branch, group_knobs, orb, print_err) result (ok)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  type (coord_struct), allocatable :: orb(:)
+  character(*) group_knobs(2)
+  real(rp) phi_set(2)
+  logical, optional :: print_err
+  logical ok
+end function
+
 function significant_difference (value1, value2, abs_tol, rel_tol) result (is_different)
   import
   implicit none
@@ -2315,6 +2337,13 @@ subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix,
   integer, optional :: ix_insert
   logical split_done
   logical, optional :: add_suffix, check_sanity, save_null_drift, err_flag, choose_max
+end subroutine
+
+subroutine sprint_spin_taylor_map (ele, start_orbit)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp), optional :: start_orbit(6)
 end subroutine
 
 subroutine start_branch_at (lat, ele_start, move_end_marker, error)
@@ -3204,9 +3233,15 @@ subroutine zero_ele_offsets (ele)
   type (ele_struct) ele
 end subroutine
 
+end interface
+
 ! Custom and hook routines
 
-subroutine apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
+! Hook and custom abstract definitions 
+
+abstract interface
+
+subroutine apply_element_edge_kick_hook_def (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
   import
   implicit none
   type (coord_struct) orb
@@ -3218,7 +3253,7 @@ subroutine apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, fin
   logical finished
 end subroutine
 
-subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
+subroutine check_aperture_limit_custom_def (orb, ele, particle_at, param, err_flag)
   import
   implicit none
   type (coord_struct) :: orb
@@ -3228,7 +3263,7 @@ subroutine check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)
   logical err_flag
 end subroutine
 
-function distance_to_aperture_custom (orbit, particle_at, ele, no_aperture_here) result (dist)
+function distance_to_aperture_custom_def (orbit, particle_at, ele, no_aperture_here) result (dist)
   import
   implicit none
   type (coord_struct) orbit
@@ -3238,16 +3273,16 @@ function distance_to_aperture_custom (orbit, particle_at, ele, no_aperture_here)
   logical no_aperture_here
 end function
 
-subroutine ele_geometry_hook (floor0, ele, floor, finished, len_scale)
+subroutine ele_geometry_hook_def (floor0, ele, floor, finished, len_scale)
   import
   implicit none
   type (ele_struct) ele
   type (floor_position_struct) floor0, floor
   real(rp) len_scale
   logical finished
-end subroutine ele_geometry_hook
+end subroutine
 
-subroutine wall_hit_handler_custom (orb, ele, s)
+subroutine wall_hit_handler_custom_def (orb, ele, s)
   import
   implicit none
   type (coord_struct) :: orb
@@ -3255,7 +3290,7 @@ subroutine wall_hit_handler_custom (orb, ele, s)
   real(rp) s
 end subroutine
 
-recursive subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+recursive subroutine em_field_custom_def (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, &
                                                   calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   import
   implicit none
@@ -3271,7 +3306,7 @@ recursive subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame,
   logical, optional :: calc_dfield, calc_potential, use_overlap
 end subroutine
 
-subroutine ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
+subroutine ele_to_fibre_hook_def (ele, ptc_fibre, param, use_offsets, err_flag)
   import
   implicit none
   type (ele_struct) ele
@@ -3280,24 +3315,7 @@ subroutine ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
   logical use_offsets, err_flag
 end subroutine
 
-subroutine sprint_spin_taylor_map (ele, start_orbit)
-  import
-  implicit none
-  type (ele_struct) ele
-  real(rp), optional :: start_orbit(6)
-end subroutine
-
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  type (lat_param_struct) :: param
-  type (coord_struct), optional, intent(in) :: orb0
-  type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
-  logical, optional :: taylor_map_includes_offsets, include_damping
-end subroutine
-
-subroutine radiation_integrals_custom (lat, ir, orb, rad_int1, err_flag)
+subroutine radiation_integrals_custom_def (lat, ir, orb, rad_int1, err_flag)
   import
   implicit none
   type (lat_struct) lat
@@ -3307,14 +3325,14 @@ subroutine radiation_integrals_custom (lat, ir, orb, rad_int1, err_flag)
   logical err_flag
 end subroutine
 
-subroutine init_custom (ele, err_flag)
+subroutine init_custom_def (ele, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
   logical err_flag
 end subroutine
 
-subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
+subroutine make_mat6_custom_def (ele, param, start_orb, end_orb, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -3323,7 +3341,7 @@ subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
   logical err_flag, finished
 end subroutine
 
-subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
+subroutine time_runge_kutta_periodic_kick_hook_def (orbit, ele, param, stop_time, init_needed)
   import
   type (coord_struct) orbit
   type (ele_struct) ele
@@ -3332,7 +3350,7 @@ subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, in
   integer :: init_needed
 end subroutine
 
-subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
+subroutine track1_bunch_hook_def (bunch, ele, err, centroid, direction, finished, bunch_track)
   import
   implicit none
   type (bunch_struct), target :: bunch
@@ -3343,7 +3361,7 @@ subroutine track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bu
   logical err, finished
 end subroutine
 
-subroutine track1_custom (start_orb, ele, param, err_flag, finished, track)
+subroutine track1_custom_def (start_orb, ele, param, err_flag, finished, track)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -3354,7 +3372,7 @@ subroutine track1_custom (start_orb, ele, param, err_flag, finished, track)
   logical err_flag, finished, radiation_included
 end subroutine
 
-subroutine track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
+subroutine track_many_hook_def (finished, lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
   import
   implicit none
   type (lat_struct), target :: lat
@@ -3366,7 +3384,7 @@ subroutine track_many_hook (finished, lat, orbit, ix_start, ix_end, direction, i
   logical finished
 end subroutine
 
-subroutine track1_postprocess (start_orb, ele, param, end_orb)
+subroutine track1_postprocess_def (start_orb, ele, param, end_orb)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -3375,7 +3393,7 @@ subroutine track1_postprocess (start_orb, ele, param, end_orb)
   type (lat_param_struct) :: param
 end subroutine
 
-subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
+subroutine track1_preprocess_def (start_orb, ele, param, err_flag, finished, radiation_included, track)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -3386,7 +3404,7 @@ subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiati
   logical err_flag, finished, radiation_included
 end subroutine
 
-subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, make_quaternion)
+subroutine track1_spin_custom_def (start_orb, ele, param, end_orb, err_flag, make_quaternion)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -3397,7 +3415,7 @@ subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, make_qu
   logical, optional :: make_quaternion
 end subroutine
 
-subroutine track1_wake_hook (bunch, ele, finished)
+subroutine track1_wake_hook_def (bunch, ele, finished)
   import
   implicit none
   type (bunch_struct) bunch
@@ -3406,6 +3424,27 @@ subroutine track1_wake_hook (bunch, ele, finished)
 end subroutine
 
 end interface
+
+! Function pointers
+
+procedure(apply_element_edge_kick_hook_def), pointer :: apply_element_edge_kick_hook_ptr => null()
+procedure(check_aperture_limit_custom_def), pointer :: check_aperture_limit_custom_ptr => null()
+procedure(distance_to_aperture_custom_def), pointer :: distance_to_aperture_custom_ptr => null()
+procedure(ele_geometry_hook_def), pointer :: ele_geometry_hook_ptr => null()
+procedure(wall_hit_handler_custom_def), pointer :: wall_hit_handler_custom_ptr => null()
+procedure(em_field_custom_def), pointer :: em_field_custom_ptr => null()
+procedure(ele_to_fibre_hook_def), pointer :: ele_to_fibre_hook_ptr => null()
+procedure(radiation_integrals_custom_def), pointer :: radiation_integrals_custom_ptr => null()
+procedure(init_custom_def), pointer :: init_custom_ptr => null()
+procedure(make_mat6_custom_def), pointer :: make_mat6_custom_ptr => null()
+procedure(time_runge_kutta_periodic_kick_hook_def), pointer :: time_runge_kutta_periodic_kick_hook_ptr => null()
+procedure(track1_bunch_hook_def), pointer :: track1_bunch_hook_ptr => null()
+procedure(track1_custom_def), pointer :: track1_custom_ptr => null()
+procedure(track_many_hook_def), pointer :: track_many_hook_ptr => null()
+procedure(track1_postprocess_def), pointer :: track1_postprocess_ptr => null()
+procedure(track1_preprocess_def), pointer :: track1_preprocess_ptr => null()
+procedure(track1_spin_custom_def), pointer :: track1_spin_custom_ptr => null()
+procedure(track1_wake_hook_def), pointer :: track1_wake_hook_ptr => null()
 
 ! This is to suppress the ranlib "has no symbols" message
 integer, private :: private_dummy

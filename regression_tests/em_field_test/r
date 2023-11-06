@@ -1,3 +1,0 @@
-rm output.now
-../../debug/bin/em_field_test lat.bmad
-#cat output.now

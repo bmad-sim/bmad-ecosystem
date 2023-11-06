@@ -87,6 +87,7 @@ if (bmad_com%auto_bookkeeper) then
   if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
 
 else
+  call attributes_need_bookkeeping(ele)
   if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
 
   if (ele%lord_status /= not_a_lord$) then
@@ -361,6 +362,10 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
   if (val(ds_step$) <= 0) then
     if (val(num_steps$) <= 0 .or. abs(val(l$)) == 0) then
       val(ds_step$) = bmad_com%default_ds_step
+      if (ele%key == wiggler$ .or. ele%key == undulator$) call out_io(s_warn$, r_name, &
+                    'Warning! Element: ' // trim(ele%name) // ' which is a ' // key_name(ele%key), &
+                    'is using the bmad_com%default_ds_step since ds_step is not set in the element.', &
+                    'this may be very inaccurate.')
     else
       val(ds_step$) = abs(val(l$)) / val(num_steps$)
     endif

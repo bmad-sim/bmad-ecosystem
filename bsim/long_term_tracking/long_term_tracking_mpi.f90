@@ -11,18 +11,19 @@ type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam, beam2
 type (bunch_struct), pointer :: bunch
 type (coord_struct) orb
+type (coord_struct), pointer :: particle
 
 real(rp) particles_per_thread, now_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size, ix_stage
-integer ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot, seed
+integer ip, ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot, seed
 integer, allocatable :: ix_stop_turn(:), ixp_slave(:)
 
 integer, parameter :: base_tag$  = 1000
 
 logical am_i_done, err_flag, ok, too_many_dead
-logical, allocatable :: stop_here(:)
+logical, allocatable :: stop_here(:), slave_working(:)
 
 character(200) pwd
 character(100) line, path, basename
@@ -30,6 +31,10 @@ character(40) file, str
 character(40), allocatable :: file_list(:)
 character(MPI_MAX_PROCESSOR_NAME) name
 
+!
+
+track1_preprocess_ptr => ltt_track1_preprocess
+track1_bunch_hook_ptr => ltt_track1_bunch_hook
 
 ! Initialize MPI
 
@@ -118,21 +123,132 @@ select case (lttp%simulation_mode)
 case ('CHECK');  call ltt_run_check_mode(lttp, ltt_com)  ! A single turn tracking check
 case ('SINGLE'); call ltt_run_single_mode(lttp, ltt_com) ! Single particle tracking
 case ('STAT');   call ltt_run_stat_mode(lttp, ltt_com)              ! Lattice statistics (radiation integrals, etc.).
-case ('BEAM');   ! Handled below. Only the BEAM simulation mode uses mpi.
-case default;    print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
+case ('BEAM')
+  if (.not. ltt_com%using_mpi) then
+    print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
+    call ltt_init_beam_distribution(lttp, ltt_com, beam)
+    call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam)
+    stop
+  endif
+
+case ('INDIVIDUAL')
+  if (.not. ltt_com%using_mpi) then
+    print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
+    call ltt_run_individual_mode(lttp, ltt_com)
+    stop
+  endif
+
+case default
+  print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
 end select
 
 ! Not using mpi if there is only one thread.
 
-if (.not. ltt_com%using_mpi) then
-  print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
-  call ltt_init_beam_distribution(lttp, ltt_com, beam)
-  call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam)
-  stop
+
+!-----------------------------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------------
+! INDIVIDUAL simulation
+
+if (lttp%simulation_mode == 'INDIVIDUAL') then
+  dat_size = storage_size(beam%bunch(1)%particle(1)) / 8
+
+  if (ltt_com%mpi_rank == master_rank$) then
+    print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
+
+    call ltt_init_beam_distribution(lttp, ltt_com, beam)
+    n_particle = size(beam%bunch(1)%particle)
+
+    allocate (slave_working(num_slaves), ixp_slave(num_slaves))
+    slave_working = .false.
+
+    do ib = 1, size(beam%bunch)
+      do ip = 1, size(beam%bunch(ib)%particle)
+        particle => beam%bunch(ib)%particle(ip)
+
+        if (all(slave_working)) then
+          slave_rank = MPI_ANY_SOURCE
+          call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for data.')
+          call mpi_recv (orb, dat_size, MPI_BYTE, slave_rank, base_tag$+3, MPI_COMM_WORLD, stat, ierr)
+          if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+          slave_rank = stat(MPI_SOURCE)  ! Slave rank
+          nn = ixp_slave(slave_rank)
+          beam%bunch(ib)%particle(nn) = orb
+          slave_working(slave_rank) = .false.
+          call ltt_print_mpi_info (lttp, ltt_com, 'Master: Got data from slave: ' // int_str(slave_rank))
+        endif
+
+        do ix = 1, num_slaves
+          if (.not. slave_working(ix)) exit
+        enddo
+
+        call ltt_print_mpi_info (lttp, ltt_com, 'Master: Tell slave ' // int_str(ix) // ' to be ready to track using Slave')
+        call mpi_send (1, 1, MPI_INTEGER, ix, base_tag$+1, MPI_COMM_WORLD, ierr)
+        if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR #2!', .true.)             ! Tell slave more tracking needed.
+
+        call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting particle ' // int_str(ip) // ' using Slave: ' // int_str(ix))
+        call mpi_send (particle, dat_size, MPI_BYTE, ix, base_tag$+2, MPI_COMM_WORLD, ierr)
+        if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR #3!', .true.)
+
+        ixp_slave(ix) = ip
+        slave_working(ix) = .true.
+      enddo
+    enddo
+
+    ! Finish getting data
+
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Finished broadcasting particle runs. Now collecting final data.')
+    do
+      if (all(.not. slave_working)) exit
+      call mpi_recv (orb, dat_size, MPI_BYTE, slave_rank, base_tag$+3, MPI_COMM_WORLD, stat, ierr)
+      if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+      slave_rank = stat(MPI_SOURCE)  ! Slave rank
+      nn = ixp_slave(slave_rank)
+      beam%bunch(ib)%particle(nn) = orb
+      slave_working(slave_rank) = .false.
+    enddo
+
+    ! Tell slaves we are done.
+
+    do i = 1, num_slaves
+      if (.not. slave_working(i)) cycle
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for init position info.')
+      call mpi_send (0, 1, MPI_INTEGER, ix, base_tag$+2, MPI_COMM_WORLD, ierr)       ! No more tracking.
+    enddo
+
+    ! And write data.
+
+    if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii4$)
+    if (lttp%beam_binary_output_file /= '')  call write_beam_file (lttp%beam_binary_output_file, beam, .true., hdf5$)
+    call mpi_finalize(ierr)
+
+  !---------------------------------------------------------
+  ! INDIVIDUAL Slave
+
+  else
+    call ltt_print_mpi_info (lttp, ltt_com, 'Slave Starting...', .true.)
+    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
+
+    do
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for Master command.')
+      call mpi_recv (nn, 1, MPI_INTEGER, master_rank$, base_tag$+1, MPI_COMM_WORLD, stat, ierr)
+      if (nn == 0) exit
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for particle info...')
+      call mpi_recv (particle, dat_size, MPI_BYTE, master_rank$, base_tag$+2, MPI_COMM_WORLD, stat, ierr)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Starting tracking.')
+      call ltt_run_single_mode(lttp, ltt_com, particle)
+      call mpi_send (particle, dat_size, MPI_BYTE, master_rank$, base_tag$+3, MPI_COMM_WORLD, ierr)
+    enddo
+
+    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Master says all done!')
+    call mpi_finalize(ierr)
+    stop
+  endif
 endif
 
-!-----------------------------------------
-! MPI BEAM simulation
+!-----------------------------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------------
+! BEAM simulation
 
 ! Init beam distribution in master
 
@@ -205,10 +321,8 @@ do i = 1, lttp%n_turns
   if (lttp%debug .and. ltt_com%mpi_rank == master_rank$) print *, 'ix_stop:', n, ix_stop_turn(n)
 enddo
 
-
 !------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-! Master:
+! BEAM Master:
 
 if (ltt_com%mpi_rank == master_rank$) then
   print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
@@ -301,8 +415,7 @@ if (ltt_com%mpi_rank == master_rank$) then
   call mpi_finalize(ierr)
 
 !------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-else  ! Is a slave
+else  ! BEAM slave
 
   call ltt_print_mpi_info (lttp, ltt_com, 'Slave Starting...', .true.)
   call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))

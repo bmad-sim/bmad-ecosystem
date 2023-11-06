@@ -75,7 +75,7 @@
 
 \title{Tune Scan Program}
 \author{}
-\date{David Sagan \\ April 26, 2022}
+\date{David Sagan \\ November 1, 2023}
 \begin{document}
 \maketitle
 
@@ -141,9 +141,9 @@ Example input files are in the directory (relative to the root of a Bmad Distrib
 bsim/tune_scan/example
 \end{code}
 
-When running the MPI version threaded over multiple computers, the details of how to start the process will
-vary depending upon the installation. See your local Guru for details. When running on a single machine, 
-the typical command will look like
+When running the MPI version threaded over multiple computers, the details of how to start the
+process will vary depending upon the installation. See your local Guru for details. When running on
+a single machine, the typical command will look like
 \begin{code}
 mpiexec -n <num_processes> tune_scan_mpi {<master_input_file_name>}
 \end{code}
@@ -171,27 +171,23 @@ Fortran namelist syntax is used for parameter input in the master input file. Th
   ...
 /
 \end{code}
-The tag \vn{"\&<namelist_name>"} starts the namelist where
-\vn{<namelist_name>} is the name of the namelist. The namelist ends
-with the slash \vn{"/"} tag. Anything outside of this is
-ignored. Within the namelist, anything after an exclamation mark
-\vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
-\vn{<var2>}, etc. are variable names. Example:
+The tag \vn{"\&<namelist_name>"} starts the namelist where \vn{<namelist_name>} is the name of the
+namelist. The namelist ends with the slash \vn{"/"} tag. Anything outside of this is ignored. Within
+the namelist, anything after an exclamation mark \vn{"!"} is ignored including the exclamation
+mark. \vn{<var1>}, \vn{<var2>}, etc. are variable names. Example:
 \begin{code}
 &place 
   section = 0.0, "arc_std", "elliptical", 0.045, 0.025 
 /
 \end{code}
-here \vn{place} is the namelist name and \vn{section} is a
-variable name.  Notice that here \vn{section} is a ``structure'' which
-has five components -- a real number, followed by two strings,
+here \vn{place} is the namelist name and \vn{section} is a variable name.  Notice that here
+\vn{section} is a ``structure'' which has five components -- a real number, followed by two strings,
 followed by two real numbers.
 
 Everything is case insensitive except for quoted strings.
 
-Logical values are specified by \vn{True} or \vn{False} or can be
-abbreviated \vn{T} or \vn{F}. Avoid using the dots (periods) that one
-needs in Fortran code.
+Logical values are specified by \vn{True} or \vn{False} or can be abbreviated \vn{T} or
+\vn{F}. Avoid using the dots (periods) that one needs in Fortran code.
 
 %------------------------------------------------------------------
 \Section{Master Input File}
@@ -214,6 +210,7 @@ input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.
 
   ts%use_phase_trombone = F ! Use phase trombone ele to adjust transverse tunes?
   ts%quad_mask = ""         ! Quadrupole mask used with quadrupole variation.
+  ts%group_knobs = "", ""   ! Tune variation can optionally be done using group elements.
 
   ts%Q_z0 = 0.066         ! Q_z range (when RF is on) is [Q_z0, Q_z1].
   ts%Q_z1 = 0.067         ! Units are rad/2pi.
@@ -246,7 +243,16 @@ Name of the Bmad lattice file to use. This name is required.
 \item[ts\%dat_out_file] \Newline
 Data output file name. Default if blank or not present is \vn{tune_scan.dat}.
 %
-\item[ts\%] \Newline
+\item[ts\%group_knobs] \Newline
+If \vn{ts%group_knobs} is set, tune variation can be done by variation of two \vn{group} elements
+whose names are given by \vn{ts%group_knobs}. Example:
+\begin{code}
+  ts%group_knobs = "qtune1", "qtune2"
+\end{code}
+%
+%\item[ts\%test] \Newline
+%If non-blank, instead of a tune scan, a test is run. Currently the only test is is \vn{"TUNE"}
+%which tests how accurately the program is setting the tune.
 %
 \item[ts\%Q_a0, ts\%Q_a1, ts\%dQ_a] \Newline
 \vn{[ts%Q_a0, ts%Q_a1]} is the range of the tune plane grid along the $Q_a$ axis and \vn{ts%dQ_a} is
@@ -275,7 +281,7 @@ made, etc. The range of values for $Q_z$ is set by \vn{[ts%Q_z0, ts%Q_z1]} with 
 \vn{ts%dQ_z} between points.
 %
 \item[ts\%pz0, ts\%pz1, ts\%dpz] \Newline
-Only used when \vn{ts%rf_on} is set to True. In the RF off mode, the phase space $p_z$ of the
+Only used when \vn{ts%rf_on} is set to False. In the RF off mode, the phase space $p_z$ of the
 tracked particle is set to a certain value and a tune plane scan is made. $p_z$ is then changed and
 a new tune plane scan is made, etc. The range of values for $p_z$ is set by \vn{[ts%p_z0, ts%p_z1]}
 with a spacing of \vn{ts%dp_z} between points.
@@ -336,22 +342,30 @@ with the $b$ axis.
   }
 The units are in radians/2$\pi$. Only the fractional part of the tune should be given.
 
-The transverse $(Q_x, Q_y)$ tunes are set by either varying quadrupole strengths in the lattice or
-by varying the phase advance through a \vn{match} element set in phase trombone mode. Which strategy
-is used is determined by the setting of \vn{ts%use_phase_trombone}. If set to True, a \vn{match}
-element in phase trombone mode is added to the lattice and the phase advance in the element is
-adjusted as needed. This gives a ``smooth'' tune variation in the sense that the Twiss parameters do
-not change around the ring. It is somewhat unrealistic though when trying to simulate an actual
-machine. When not using a phase trombone element, lattice tune variation is achieved by varying
-quadrupole strengths. The general algorithm is to exclude any quadrupoles that are tilted and then
-divide the upright quadrupoles into two groups. One group were $\beta_a > \beta_b$ at the quadrupole
-and the other group with $\beta_a < \beta_b$. The $k_1$ quadrupole strength of the quadrupoles of
-each group are varied in unison. The two groups represent two variables which can be used to match
-the two tune conditions. It may be desirable to not vary selected quadrupoles. For example, the
-quadrupoles in an interaction region. 
-
-To exclude quadrupoles from being varied the \vn{ts%quad_mask} string can be set appropriately. See
-the Bmad manual for details about element selection. For example:
+The transverse $(Q_x, Q_y)$ tunes can be veried in one of three ways:
+\begin{description}
+\item 
+If \vn{ts%use_phase_trombone} is set to True, a \vn{match} element in phase trombone mode is added
+to the lattice and the phase advance in the element is adjusted as needed. This gives a ``smooth''
+tune variation in the sense that the Twiss parameters do not change around the ring. It is somewhat
+unrealistic though when trying to simulate an actual machine.
+%
+\item
+If \vn{ts%group_knobs} (which is a vector of two strings) is set to non-blank values, the 
+group elements in the lattice matching the names will be used to vary the tune.
+\begin{code}
+  ts%group_knobs = "qtune1", "qtune2"
+\end{code}
+%
+\item
+If none of the above methods are used, the lattice tune variation is achieved by varying quadrupole
+strengths. The general algorithm is to exclude any quadrupoles that are tilted and then divide the
+upright quadrupoles into two groups. One group were $\beta_a > \beta_b$ at the quadrupole and the
+other group with $\beta_a < \beta_b$. The $k_1$ quadrupole strength of the quadrupoles of each group
+are varied in unison. The two groups represent two variables which can be used to match the two tune
+conditions. It may be desirable to not vary selected quadrupoles. For example, the quadrupoles in an
+interaction region. To exclude quadrupoles from being varied, the \vn{ts%quad_mask} string can be
+set appropriately. See the Bmad manual for details about element selection. For example:
 \begin{code}
 ts%quad_mask = "QT* IP:M34"
 \end{code}
@@ -363,7 +377,7 @@ ts%quad_mask = "* ~qt%"
 In this example all quadrupole elements are vetoed except for quadrupoles whose name begins with
 ``\vn{QT}'' and has three letters. That is, only quadrupoles whose name begins with ``\vn{QT}'' and
 has three letters will be varied.
-
+\end{description}
 
 There are two modes of operation. In the \vn{RF off} mode, \vn{ts%rf_on} is set to False (the
 default). In the \vn{RF on} mode, \vn{ts%rf_on} is set to True. In the \vn{RF off} mode, tune plane
@@ -409,6 +423,10 @@ point. The thirteen columns are:
   amp_a_max, amp_b_max, amp_z_max
                   ! Max amplitude for the three modes.
 \end{code}
+\vn{Amp_a}, \vn{amp_b} and \vn{amp_z} are dimensionless normal mode amplitudes normalized by the
+normal mode emittances.
+
+
 \begin{description}
 \item[ja, jb, jz] \Newline
 Indexes \vn{ja}, \vn{jb}, and \vn{jz} start from zero which corresponds to tunes \vn{ts%Q_a0},

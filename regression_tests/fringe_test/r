@@ -1,3 +1,0 @@
-#rm output.now
-../../debug/bin/fringe_test 
-cat output.now

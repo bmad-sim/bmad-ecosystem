@@ -53,7 +53,7 @@ alternative_lat_file_exists = (s%init%hook_lat_file /= '' .or. s%init%lattice_fi
 
 ! Read lattice info
 
-call tao_hook_init_read_lattice_info (namelist_file)
+if (associated(tao_hook_init_read_lattice_info_ptr)) call tao_hook_init_read_lattice_info_ptr (namelist_file)
 
 if (s%com%init_read_lat_info) then
   ! namelist_file == '' means there is no lattice file so just use the defaults.
@@ -270,7 +270,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Custom stuff
 
-  call tao_hook_init_lattice_post_parse (u)
+  if (associated(tao_hook_init_lattice_post_parse_ptr)) call tao_hook_init_lattice_post_parse_ptr (u)
 
   ! In case there is a match element with match_end = T, propagate the twiss parameters which
   ! makes the beginning Twiss of the match element match the end Twiss of the previous element

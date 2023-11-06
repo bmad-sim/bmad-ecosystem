@@ -21,7 +21,7 @@ ENDIF ()
 
 SET (SRC_DIRS 
   code 
-  custom
+  ### custom  # Using function pointers now
   geometry
   interface
   modules

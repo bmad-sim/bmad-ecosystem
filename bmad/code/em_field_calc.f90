@@ -187,7 +187,12 @@ endif
 ! Custom field calc 
 
 if (ele%field_calc == custom$) then
-  call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+  if (.not. associated(em_field_custom_ptr)) then
+    call out_io (s_error$, r_name, 'FIELD_CALC == CUSTOM INVALID SINCE EM_FIELD_CUSTOM_PTR HAS NOT BEEN SET IN THIS PROGRAM!')
+    orbit%state = lost$
+    return
+  endif
+  call em_field_custom_ptr (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
                                     calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   return
 end if
@@ -329,7 +334,7 @@ case (bmad_standard$)
   !------------------
   ! Drift, et. al. Note that kicks get added at the end for all elements
 
-  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, detector$)
+  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, detector$, thick_multipole$)
 
   !------------------
   ! E_Gun

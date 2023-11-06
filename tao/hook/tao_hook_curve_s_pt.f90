@@ -20,7 +20,7 @@
 
 function tao_hook_curve_s_pt (s_default, ix_now, x1, x2, n_pts, tao_lat, curve) result (s_pt)
 
-use tao_interface, dummy => tao_hook_curve_s_pt
+use tao_interface
 
 implicit none
 

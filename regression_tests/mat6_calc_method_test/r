@@ -1,3 +1,0 @@
-rm output.now
-../../debug/bin/mat6_calc_method_test lat.bmad
-cat output.now

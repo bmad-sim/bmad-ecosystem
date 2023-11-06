@@ -12,11 +12,13 @@ integer, parameter :: results_tag$   = 1002
 
 type ts_params_struct
   character(100) :: lat_file = '', dat_out_file = '', quad_mask = ''
-  real(rp) :: Q_a0 = 0, Q_a1 = 0, dQ_a = 0
-  real(rp) :: Q_b0 = 0, Q_b1 = 0, dQ_b = 0
-  real(rp) :: Q_z0 = 0, Q_z1 = 0, dQ_z = 0
-  real(rp) :: pz0 = 0, pz1 = 0, dpz = 0
-  real(rp) :: a_emit = 0, b_emit = 0, sig_pz
+  character(40) :: group_knobs(2) = ["", ""]
+  character(40) :: test = ""
+  real(rp) :: Q_a0 = real_garbage$, Q_a1 = real_garbage$, dQ_a = real_garbage$
+  real(rp) :: Q_b0 = real_garbage$, Q_b1 = real_garbage$, dQ_b = real_garbage$
+  real(rp) :: Q_z0 = real_garbage$, Q_z1 = real_garbage$, dQ_z = real_garbage$
+  real(rp) :: pz0 = real_garbage$, pz1 = real_garbage$, dpz = real_garbage$
+  real(rp) :: a_emit = 0, b_emit = 0, sig_pz = 0
   real(rp) :: a0_amp = 0, b0_amp = 0, pz0_amp = 0
   real(rp) :: timer_print_dtime = 120
   integer :: n_turn = 0
@@ -61,7 +63,7 @@ type (normal_modes_struct) mode
 type (ele_struct), pointer :: ele
 
 integer n_arg
-logical err
+logical err, rf_on
 
 namelist / params / bmad_com, ts
 
@@ -70,23 +72,57 @@ namelist / params / bmad_com, ts
 
 n_arg = command_argument_count()
 if (n_arg > 1) then
-  print *, 'Usage: tune_scan <input_file>'
-  print *, 'Default: <input_file> = tune_scan.init'
+  print '(a)', 'Usage: tune_scan <input_file>'
+  print '(a)', 'Default: <input_file> = tune_scan.init'
   stop
 endif
 
 ts_com%master_input_file = 'tune_scan.init'
 if (n_arg == 1) call get_command_argument(1, ts_com%master_input_file)
 
+bmad_com%auto_bookkeeper = .false.
+
 open (unit= 1, file = ts_com%master_input_file, status = 'old', action = 'read')
 read(1, nml = params)
 close (1)
 
-ts%Q_z0 = abs(ts%Q_z0)
-ts%Q_z1 = abs(ts%Q_z1)
-ts%dQ_z = abs(ts%dQ_z)
+if (ts%Q_a0 == real_garbage$ .or. ts%Q_a1 == real_garbage$ .or. ts%dQ_a == real_garbage$) then
+  print '(a)', 'Error: One of ts%Q_a0, ts%Q_a1, ts%dQ_a is not set! Stopping here.'
+  stop
+endif
+
+if (ts%Q_b0 == real_garbage$ .or. ts%Q_b1 == real_garbage$ .or. ts%dQ_b == real_garbage$) then
+  print '(a)', 'Error: One of ts%Q_b0, ts%Q_b1, ts%dQ_b is not set! Stopping here.'
+  stop
+endif
+
+if (ts%rf_on) then
+  if (ts%Q_z0 == real_garbage$ .or. ts%Q_z1 == real_garbage$ .or. ts%dQ_z == real_garbage$) then
+    print '(a)', 'Error: One of ts%Q_z0, ts%Q_z1, ts%dQ_z is not set with RF on! Stopping here.'
+    stop
+  endif
+  ts%Q_z0 = abs(ts%Q_z0)
+  ts%Q_z1 = abs(ts%Q_z1)
+  ts%dQ_z = abs(ts%dQ_z)
+
+else
+  if (ts%pz0 == real_garbage$ .or. ts%pz1 == real_garbage$ .or. ts%dpz == real_garbage$) then
+    print '(a)', 'Error: One of ts%pz0, ts%pz1, ts%dpz is not set with RF off! Stopping here.'
+    stop
+  endif
+endif
 
 if (ts%dat_out_file == '') call file_suffixer(ts_com%master_input_file, ts%dat_out_file, 'dat', .true.)
+
+if (ts%group_knobs(1) == '' .neqv. ts%group_knobs(2) == '') then
+  print '(a)', 'Error: Both ts%group_knobs(1) and ts%group_knobs(2) strings must be non-blank or both must be non-blank'
+  stop
+endif
+
+if (ts%use_phase_trombone .and. ts%group_knobs(1) /= '') then
+  print '(a)', 'Error: ts%use_phase_trombone and ts%group_knobs cannot both be used at the same time.'
+  stop
+endif 
 
 !---------------------------------------------
 ! Calculate number of steps to take from range and step size
@@ -123,7 +159,21 @@ global_com%exit_on_error = .false.
 call bmad_parser(ts%lat_file, ts_com%ring, err_flag = err)
 if (err) stop
 
-if (.not. ts%rf_on) call set_on_off(rfcavity$, ts_com%ring, off$)
+rf_on = rf_is_on(ts_com%ring%branch(0))
+if (ts%rf_on .neqv. rf_on) then
+  if (ts%rf_on) then
+    call set_on_off(rfcavity$, ts_com%ring, on$)
+  else
+    call set_on_off(rfcavity$, ts_com%ring, off$)
+  endif
+endif
+
+rf_on = rf_is_on(ts_com%ring%branch(0))
+if (ts%rf_on .neqv. rf_on) then
+  print '(a)', 'Cannot turn RF on. Will stop here.'
+  stop
+endif
+
 if (ts%use_phase_trombone) call insert_phase_trombone(ts_com%ring%branch(0))
 
 allocate(ts_com%closed_orb(0:ts_com%ring%n_ele_max))
@@ -164,7 +214,7 @@ end subroutine ts_init_params
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-recursive subroutine ts_track_particle(ts, ts_com, ja, jb, jz, ts_dat)
+recursive subroutine ts_track_particle(ts, ts_com, jtune, ts_dat)
 
 type (ts_params_struct) ts
 type (ts_com_struct) ts_com
@@ -175,27 +225,31 @@ type (coord_struct), allocatable :: closed_orb(:), orbit(:)
 type (ele_struct), pointer :: ele
 
 real(rp) Jvec0(1:6), Jvec(1:6), init_vec(6), amp(3), r(3), v_mat(4,4)
-integer ja, jb, jz, nt, track_state, status
+integer jtune(3), nt, track_state, status, iqm
 logical ok, error
 
 !
 
 ts_dat = ts_data_struct()
-ts_dat%ix_q = [ja, jb, jz]
+ts_dat%ix_q = jtune
 
-ts_dat%tune(1) = ts_com%int_Qa + ts%Q_a0 + ja*ts%dQ_a
-ts_dat%tune(2) = ts_com%int_Qb + ts%Q_b0 + jb*ts%dQ_b
+ts_dat%tune(1) = ts_com%int_Qa + ts%Q_a0 + jtune(1)*ts%dQ_a
+ts_dat%tune(2) = ts_com%int_Qb + ts%Q_b0 + jtune(2)*ts%dQ_b
 if (ts%rf_on) then
-  ts_dat%tune(3) = -(ts%Q_z0 + jz*ts%dQ_z)
+  ts_dat%tune(3) = -(ts%Q_z0 + jtune(3)*ts%dQ_z)
+  iqm = 3
 else
-  ts_dat%tune(3) = ts%pz0 + jz*ts%dpz
+  ts_dat%tune(3) = ts%pz0 + jtune(3)*ts%dpz
+  iqm = 2
 endif
 
 ring = ts_com%ring              ! Use copy in case tune setting fails, which may garble the lattice
 closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may garble the closed orbit
 ele => ring%ele(0)
 
-ok = set_tune_3d (ring%branch(0), ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on)  ! Tunes in radians.
+ok = set_tune_3d (ring%branch(0), ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on, ts%group_knobs)  ! Tunes in radians.
+if (.not. ok) print '(a, 3f9.4)', 'Cannot set tunes (due to resonance?) for: ', ts_dat%tune(1:iqm)
+
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 
 if (ts%rf_on) then
@@ -247,7 +301,7 @@ do nt = 1, ts%n_turn
     amp = [sqrt(Jvec(1)**2 + Jvec(2)**2)/sqrt(ts_com%a_emit), sqrt(Jvec(3)**2 + Jvec(4)**2)/sqrt(ts_com%b_emit), &
                                                                          sqrt(Jvec(5)**2 + Jvec(6)**2)/ts_com%sig_pz]
     if (error) then
-       print *, "BAD: xyz_to_action returned error."
+       print '(a)', "BAD: xyz_to_action returned error."
     endif
   else
     coords%vec(6) = 0  ! The dispersion has already been subtracted off

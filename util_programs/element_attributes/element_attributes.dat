@@ -1,4 +1,4 @@
- 2023-03-06 15:30:07 
+ 2023-09-29 01:08:46 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
@@ -25,45 +25,47 @@
   23   Solenoid              36   Ecollimator
   24   Patch                 50   Fiducial
   25   Lcavity               49   Floor_Shift
-  26   !Parameter            41   Fork
-  27   Null_Ele              37   Girder
-  28   Beginning_Ele          4   Group
-  29   !Line                 33   Hkicker
-  30   Match                 16   Hybrid
-  31   Monitor               32   Instrument
-  32   Instrument            15   Kicker
-  33   Hkicker               25   Lcavity
-  34   Vkicker               59   Lens
-  35   Rcollimator           14   Marker
-  36   Ecollimator           57   Mask
-  37   Girder                30   Match
-  38   Converter             42   Mirror
-  39   !Particle_Start       31   Monitor
-  40   Photon_Fork           46   Multilayer_Mirror
-  41   Fork                  19   Multipole
-  42   Mirror                27   Null_Ele
-  43   Crystal               17   Octupole
-  44   Pipe                   6   Overlay
-  45   Capillary             24   Patch
-  46   Multilayer_Mirror     40   Photon_Fork
-  47   E_Gun                 53   Photon_Init
-  48   EM_Field              44   Pipe
-  49   Floor_Shift            3   Quadrupole
-  50   Fiducial              64   RF_Bend
-  51   Undulator              9   RFcavity
-  52   Diffraction_Plate     62   Ramper
-  53   Photon_Init           18   Rbend
-  54   Sample                35   Rcollimator
-  55   Detector              56   Sad_Mult
-  56   Sad_Mult              54   Sample
-  57   Mask                   2   Sbend
-  58   AC_Kicker              5   Sextupole
-  59   Lens                  13   Sol_Quad
-  60   !Space_Charge_Com     23   Solenoid
-  61   Crab_Cavity            8   Taylor
-  62   Ramper                51   Undulator
-  63   !PTC_Com              34   Vkicker
-  64   RF_Bend               12   Wiggler
+  26   !Parameter            66   Foil
+  27   Null_Ele              41   Fork
+  28   Beginning_Ele         65   GKicker
+  29   !Line                 37   Girder
+  30   Match                  4   Group
+  31   Monitor               33   HKicker
+  32   Instrument            16   Hybrid
+  33   HKicker               32   Instrument
+  34   VKicker               15   Kicker
+  35   Rcollimator           25   Lcavity
+  36   Ecollimator           59   Lens
+  37   Girder                14   Marker
+  38   Converter             57   Mask
+  39   !Particle_Start       30   Match
+  40   Photon_Fork           42   Mirror
+  41   Fork                  31   Monitor
+  42   Mirror                46   Multilayer_Mirror
+  43   Crystal               19   Multipole
+  44   Pipe                  27   Null_Ele
+  45   Capillary             17   Octupole
+  46   Multilayer_Mirror      6   Overlay
+  47   E_Gun                 24   Patch
+  48   EM_Field              40   Photon_Fork
+  49   Floor_Shift           53   Photon_Init
+  50   Fiducial              44   Pipe
+  51   Undulator              3   Quadrupole
+  52   Diffraction_Plate     64   RF_Bend
+  53   Photon_Init            9   RFcavity
+  54   Sample                62   Ramper
+  55   Detector              18   Rbend
+  56   Sad_Mult              35   Rcollimator
+  57   Mask                  56   Sad_Mult
+  58   AC_Kicker             54   Sample
+  59   Lens                   2   Sbend
+  60   !Space_Charge_Com      5   Sextupole
+  61   Crab_Cavity           13   Sol_Quad
+  62   Ramper                23   Solenoid
+  63   !PTC_Com               8   Taylor
+  64   RF_Bend               51   Undulator
+  65   GKicker               34   VKicker
+  66   Foil                  12   Wiggler
  
  !---------------------------------
  20  !Bmad_Com           
@@ -73,6 +75,9 @@
          1  l                                         [private]
          2  INHERIT_FROM_FORK                       
          6  ix_branch                                 [private]
+         7  SPIN_DN_DPZ_X                           
+         8  SPIN_DN_DPZ_Y                           
+         9  SPIN_DN_DPZ_Z                           
         20  DEFAULT_TRACKING_SPECIES                
         29  CMAT_11                                 
         30  CMAT_12                                 
@@ -192,7 +197,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -261,8 +266,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -371,7 +376,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -406,6 +411,9 @@
  28  Beginning_Ele       
          1  l                                         [private]
          2  INHERIT_FROM_FORK                       
+         7  SPIN_DN_DPZ_X                           
+         8  SPIN_DN_DPZ_Y                           
+         9  SPIN_DN_DPZ_Z                           
         29  CMAT_11                                 
         30  CMAT_12                                 
         31  CMAT_21                                 
@@ -459,7 +467,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -511,7 +519,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -583,8 +591,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -667,6 +675,7 @@
         29  MOSAIC_DIFFRACTION_NUM                  
         30  B_PARAM                                 
         31  REF_CAP_GAMMA                           
+        32  USE_REFLECTIVITY_TABLE                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -685,7 +694,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         65  THICKNESS                               
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
@@ -710,6 +719,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  REFLECTIVITY_TABLE                      
        101  CURVATURE                               
        107  WALL                                    
        108  APERTURE_AT                             
@@ -759,8 +769,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -833,6 +843,7 @@
         28  Y_DISPERSION_ERR                        
         29  X_DISPERSION_CALIB                      
         30  Y_DISPERSION_CALIB                      
+        31  split_id                                  [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -849,7 +860,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -909,7 +920,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -951,11 +962,11 @@
   1  Drift               
          1  L                                       
          2  TILT                                    
-         5  drift_id                                  [private]
         10  fringe_type                               [private]
         11  fringe_at                                 [private]
         13  spin_fringe_on                            [private]
         17  STATIC_LINEAR_MAP                       
+        31  split_id                                  [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -972,8 +983,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1049,8 +1060,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1144,8 +1155,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1244,8 +1255,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1336,8 +1347,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1403,7 +1414,7 @@
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         75  check_sum                                 [private]
         82  ALIAS                                   
         91  MAT6_CALC_METHOD                        
@@ -1437,7 +1448,7 @@
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -1471,6 +1482,61 @@
        133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
+ 66  Foil                
+         1  L                                       
+         2  TILT                                    
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        64  REF_TIME_START                          
+        65  THICKNESS                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        87  APERTURE_TYPE                           
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       105  IS_ON                                   
+       107  WALL                                    
+       108  APERTURE_AT                             
+       112  DESCRIP                                 
+       116  MATERIAL_TYPE                           
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
  41  Fork                
          1  L                                       
          3  DIRECTION                               
@@ -1482,7 +1548,7 @@
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -1511,6 +1577,46 @@
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
        132  REF_SPECIES                             
+       133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
+ 65  GKicker             
+        33  X_KICK                                  
+        34  PX_KICK                                 
+        35  Y_KICK                                  
+        36  PY_KICK                                 
+        37  Z_KICK                                  
+        38  PZ_KICK                                 
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        64  REF_TIME_START                          
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        87  APERTURE_TYPE                           
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       108  APERTURE_AT                             
+       112  DESCRIP                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       127  CREATE_JUMBO_SLAVE                      
        133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
@@ -1562,7 +1668,7 @@
        131  S_POSITION                              
  
  !---------------------------------
- 33  Hkicker             
+ 33  HKicker             
          1  L                                       
          2  TILT                                    
          3  KICK                                    
@@ -1588,8 +1694,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1657,7 +1763,7 @@
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -1713,6 +1819,7 @@
         28  Y_DISPERSION_ERR                        
         29  X_DISPERSION_CALIB                      
         30  Y_DISPERSION_CALIB                      
+        31  split_id                                  [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1733,8 +1840,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1818,8 +1925,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -1931,8 +2038,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -2010,7 +2117,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -2063,6 +2170,7 @@
         28  Y_DISPERSION_ERR                        
         29  X_DISPERSION_CALIB                      
         30  Y_DISPERSION_CALIB                      
+        31  split_id                                  [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2081,7 +2189,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -2139,7 +2247,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2224,7 +2332,7 @@
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -2263,6 +2371,7 @@
          3  REF_TILT                                
          5  GRAZE_ANGLE                             
          7  CRITICAL_ANGLE                          
+        32  USE_REFLECTIVITY_TABLE                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2280,7 +2389,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2303,6 +2412,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  REFLECTIVITY_TABLE                      
        101  CURVATURE                               
        107  WALL                                    
        108  APERTURE_AT                             
@@ -2342,6 +2452,7 @@
         28  Y_DISPERSION_ERR                        
         29  X_DISPERSION_CALIB                      
         30  Y_DISPERSION_CALIB                      
+        31  split_id                                  [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2362,8 +2473,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -2442,7 +2553,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2496,7 +2607,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -2578,8 +2689,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -2675,7 +2786,7 @@
         52  E_TOT_START                             
         53  P0C                                     
         54  E_TOT                                   
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         68  CSR_DS_STEP                             
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2719,7 +2830,7 @@
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -2789,7 +2900,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2806,6 +2917,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  ENERGY_PROBABILITY_CURVE                
        100  PHYSICAL_SOURCE                         
        107  WALL                                    
        108  APERTURE_AT                             
@@ -2844,6 +2956,7 @@
         28  Y_DISPERSION_ERR                        
         29  X_DISPERSION_CALIB                      
         30  Y_DISPERSION_CALIB                      
+        31  split_id                                  [private]
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2864,8 +2977,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -2951,8 +3064,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3019,7 +3132,7 @@
          4  HARMON                                  
          6  G                                       
          7  DG                                        [private]
-         8  RHO                                     
+         9  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -3055,8 +3168,8 @@
         59  Z_OFFSET_TOT                            
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3161,8 +3274,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3239,7 +3352,8 @@
          5  K2                                      
          6  G                                       
          7  DG                                      
-         8  RHO                                     
+         8  G_TOT                                   
+         9  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -3255,7 +3369,6 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
-        27  G_TOT                                   
         28  B_FIELD_TOT                             
         29  L_SAGITTA                               
         30  L_CHORD                                 
@@ -3288,8 +3401,8 @@
         59  Z_OFFSET_TOT                            
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3384,8 +3497,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3441,8 +3554,7 @@
          1  L                                       
          2  TILT                                    
          5  KS                                      
-         8  RHO                                     
-         9  EPS_STEP_SCALE                          
+         9  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -3453,6 +3565,7 @@
         22  FB2                                     
         23  FQ1                                     
         24  FQ2                                     
+        26  EPS_STEP_SCALE                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3472,8 +3585,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3539,7 +3652,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
@@ -3589,7 +3702,8 @@
          5  K2                                      
          6  G                                       
          7  DG                                      
-         8  RHO                                     
+         8  G_TOT                                   
+         9  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -3605,7 +3719,6 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
-        27  G_TOT                                   
         28  B_FIELD_TOT                             
         29  L_SAGITTA                               
         30  L_CHORD                                 
@@ -3638,8 +3751,8 @@
         59  Z_OFFSET_TOT                            
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3731,8 +3844,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3826,8 +3939,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -3921,8 +4034,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -4002,7 +4115,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        64  ref_time_start                            [private]
+        64  REF_TIME_START                          
         69  LORD_PAD1                               
         70  LORD_PAD2                               
         71  X1_LIMIT                                
@@ -4087,8 +4200,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -4149,7 +4262,7 @@
        140  A0                                      
  
  !---------------------------------
- 34  Vkicker             
+ 34  VKicker             
          1  L                                       
          2  TILT                                    
          3  KICK                                    
@@ -4175,8 +4288,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -4275,8 +4388,8 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                    
-        64  ref_time_start                            [private]
+        62  MULTIPASS_REF_ENERGY                      [private]
+        64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
@@ -4339,15 +4452,15 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    55
-     2    53
+     1    56
+     2    54
      3    22
      4    21
-     5    26
+     5    25
      6    25
-     7    20
+     7    22
      8    29
-     9    11
+     9    16
     10    29
     11    31
     12     3
@@ -4364,19 +4477,19 @@
     23    19
     24    23
     25    18
-    26    26
-    27    20
+    26    27
+    27    18
     28    22
     29    26
     30    23
-    31    13
-    32     9
-    33    10
-    34    46
-    35    46
-    36    48
-    37    48
-    38    48
+    31    19
+    32    11
+    33    11
+    34    48
+    35    48
+    36    50
+    37    50
+    38    50
     39    26
     40    27
     41    25
@@ -4388,90 +4501,90 @@
     47    20
     48     5
     49     7
-    50    53
-    51    53
-    52    53
-    53    55
-    54    55
-    55    44
-    56    43
-    57    45
-    58    45
-    59    45
-    60    45
+    50    55
+    51    55
+    52    55
+    53    57
+    54    57
+    55    45
+    56    44
+    57    46
+    58    46
+    59    46
+    60    46
     61     7
     62    28
     63     0
-    64    53
-    65    29
+    64    55
+    65    30
     66    28
     67    28
     68    29
     69    29
     70    35
-    71    50
-    72    50
-    73    50
-    74    50
-    75    58
+    71    52
+    72    52
+    73    52
+    74    52
+    75    60
     76     0
     77     0
     78     0
     79     0
     80     0
     81    11
-    82    59
+    82    61
     83    35
     84    39
     85    36
     86    25
-    87    53
+    87    55
     88    31
     89    39
     90    36
-    91    51
-    92    53
-    93    53
-    94    51
-    95    50
-    96    51
-    97    50
-    98    50
-    99     2
+    91    53
+    92    55
+    93    55
+    94    53
+    95    52
+    96    53
+    97    52
+    98    52
+    99     5
    100    32
    101    10
    102     4
    103    33
    104     3
-   105    45
+   105    46
    106    32
-   107    48
-   108    52
+   107    49
+   108    54
    109     6
    110    28
    111    22
-   112    56
+   112    58
    113    14
    114    27
    115    28
-   116     5
-   117    56
-   118    52
-   119    52
-   120    52
-   121    52
-   122    52
+   116     6
+   117    58
+   118    54
+   119    54
+   120    54
+   121    54
+   122    54
    123    19
    124    19
    125    20
    126    19
-   127    50
-   128    38
-   129    38
-   130    38
-   131    38
+   127    52
+   128    39
+   129    39
+   130    39
+   131    39
    132     6
-   133    52
+   133    54
    134     0
    135     0
    136     0
@@ -4641,8 +4754,8 @@ Index: 1
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -4670,6 +4783,7 @@ Index: 1
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 2
@@ -4700,8 +4814,8 @@ Index: 2
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -4726,6 +4840,7 @@ Index: 2
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 3
@@ -4738,8 +4853,8 @@ Index: 3
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Girder              
     !Particle_Start     
     Photon_Fork         
@@ -4778,7 +4893,6 @@ Index: 4
  
  !---------------------------------
 Index: 5
-    Drift               
     Sbend               
     Sextupole           
     BeamBeam            
@@ -4842,6 +4956,8 @@ Index: 7
     Marker              
     Rbend               
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -4871,6 +4987,8 @@ Index: 8
     Hybrid              
     Rbend               
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -4882,25 +5000,28 @@ Index: 8
     E_Gun               
     Undulator           
     Detector            
-    Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
     Ramper              
-    RF_Bend             
  
  !---------------------------------
 Index: 9
+    Sbend               
     RFcavity            
     ELseparator         
     BeamBeam            
     Wiggler             
+    Rbend               
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Match               
     !Particle_Start     
     Crystal             
     E_Gun               
     Undulator           
     Sad_Mult            
+    RF_Bend             
  
  !---------------------------------
 Index: 10
@@ -4920,8 +5041,8 @@ Index: 10
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     !Particle_Start     
@@ -4954,8 +5075,8 @@ Index: 11
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     !Particle_Start     
@@ -4992,8 +5113,8 @@ Index: 13
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     !Particle_Start     
@@ -5085,8 +5206,8 @@ Index: 17
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -5284,6 +5405,7 @@ Index: 26
     Photon_Init         
     Sample              
     Detector            
+    Sad_Mult            
     Mask                
     AC_Kicker           
     Crab_Cavity         
@@ -5291,11 +5413,9 @@ Index: 26
  
  !---------------------------------
 Index: 27
-    Sbend               
     Custom              
     RFcavity            
     Marker              
-    Rbend               
     Lcavity             
     Match               
     Monitor             
@@ -5394,19 +5514,25 @@ Index: 30
  
  !---------------------------------
 Index: 31
+    Drift               
     RFcavity            
     BeamBeam            
+    Marker              
     Solenoid            
     Lcavity             
     Beginning_Ele       
     !Line               
     Match               
+    Monitor             
+    Instrument          
     Rcollimator         
     Ecollimator         
     Girder              
     Crystal             
+    Pipe                
     Fiducial            
     Photon_Init         
+    Detector            
  
  !---------------------------------
 Index: 32
@@ -5416,6 +5542,8 @@ Index: 32
     !Line               
     Match               
     Girder              
+    Mirror              
+    Crystal             
     Fiducial            
     Photon_Init         
     AC_Kicker           
@@ -5432,6 +5560,7 @@ Index: 33
     Match               
     Multilayer_Mirror   
     RF_Bend             
+    GKicker             
  
  !---------------------------------
 Index: 34
@@ -5456,8 +5585,8 @@ Index: 34
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -5481,6 +5610,8 @@ Index: 34
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 35
@@ -5505,8 +5636,8 @@ Index: 35
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -5530,6 +5661,8 @@ Index: 35
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 36
@@ -5556,8 +5689,8 @@ Index: 36
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -5581,6 +5714,8 @@ Index: 36
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 37
@@ -5607,8 +5742,8 @@ Index: 37
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -5632,6 +5767,8 @@ Index: 37
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 38
@@ -5658,8 +5795,8 @@ Index: 38
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -5683,6 +5820,8 @@ Index: 38
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 39
@@ -5805,8 +5944,8 @@ Index: 43
     !Parameter          
     !Line               
     Match               
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     RF_Bend             
  
  !---------------------------------
@@ -5860,8 +5999,8 @@ Index: 47
     !Parameter          
     !Line               
     Match               
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     EM_Field            
     Undulator           
  
@@ -5911,8 +6050,8 @@ Index: 50
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -5938,6 +6077,8 @@ Index: 50
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 51
@@ -5967,8 +6108,8 @@ Index: 51
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -5994,6 +6135,8 @@ Index: 51
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 52
@@ -6023,8 +6166,8 @@ Index: 52
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6050,6 +6193,8 @@ Index: 52
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 53
@@ -6081,8 +6226,8 @@ Index: 53
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6108,6 +6253,8 @@ Index: 53
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 54
@@ -6139,8 +6286,8 @@ Index: 54
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6166,6 +6313,8 @@ Index: 54
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 55
@@ -6189,8 +6338,8 @@ Index: 55
     !Parameter          
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -6213,6 +6362,7 @@ Index: 55
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 56
@@ -6235,8 +6385,8 @@ Index: 56
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -6259,6 +6409,7 @@ Index: 56
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 57
@@ -6283,8 +6434,8 @@ Index: 57
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -6307,6 +6458,7 @@ Index: 57
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 58
@@ -6331,8 +6483,8 @@ Index: 58
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -6355,6 +6507,7 @@ Index: 58
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 59
@@ -6379,8 +6532,8 @@ Index: 59
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -6403,6 +6556,7 @@ Index: 59
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 60
@@ -6427,8 +6581,8 @@ Index: 60
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -6451,6 +6605,7 @@ Index: 60
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 61
@@ -6480,8 +6635,8 @@ Index: 62
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -6524,8 +6679,8 @@ Index: 64
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6551,6 +6706,8 @@ Index: 64
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 65
@@ -6570,8 +6727,8 @@ Index: 65
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Crystal             
@@ -6583,6 +6740,7 @@ Index: 65
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 66
@@ -6602,8 +6760,8 @@ Index: 66
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -6633,8 +6791,8 @@ Index: 67
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -6665,8 +6823,8 @@ Index: 68
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -6697,8 +6855,8 @@ Index: 69
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -6729,8 +6887,8 @@ Index: 70
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Mirror              
@@ -6774,8 +6932,8 @@ Index: 71
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6800,6 +6958,8 @@ Index: 71
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 72
@@ -6827,8 +6987,8 @@ Index: 72
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6853,6 +7013,8 @@ Index: 72
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 73
@@ -6880,8 +7042,8 @@ Index: 73
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6906,6 +7068,8 @@ Index: 73
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 74
@@ -6933,8 +7097,8 @@ Index: 74
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -6959,6 +7123,8 @@ Index: 74
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 75
@@ -6991,8 +7157,8 @@ Index: 75
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -7020,6 +7186,8 @@ Index: 75
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 76
@@ -7081,8 +7249,8 @@ Index: 82
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -7111,6 +7279,8 @@ Index: 82
     Ramper              
     !PTC_Com            
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 83
@@ -7136,8 +7306,8 @@ Index: 83
     !Line               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7173,8 +7343,8 @@ Index: 84
     !Line               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Mirror              
@@ -7213,8 +7383,8 @@ Index: 85
     !Line               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Mirror              
@@ -7248,8 +7418,8 @@ Index: 86
     !Parameter          
     Beginning_Ele       
     !Line               
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Mirror              
     Crystal             
     Multilayer_Mirror   
@@ -7288,8 +7458,8 @@ Index: 87
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7314,6 +7484,8 @@ Index: 87
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 88
@@ -7334,8 +7506,8 @@ Index: 88
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Crystal             
@@ -7371,8 +7543,8 @@ Index: 89
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Mirror              
@@ -7411,8 +7583,8 @@ Index: 90
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Mirror              
@@ -7456,8 +7628,8 @@ Index: 91
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7483,6 +7655,8 @@ Index: 91
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 92
@@ -7512,8 +7686,8 @@ Index: 92
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7539,6 +7713,8 @@ Index: 92
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 93
@@ -7568,8 +7744,8 @@ Index: 93
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7595,6 +7771,8 @@ Index: 93
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 94
@@ -7622,8 +7800,8 @@ Index: 94
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7649,6 +7827,8 @@ Index: 94
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 95
@@ -7676,8 +7856,8 @@ Index: 95
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7702,6 +7882,8 @@ Index: 95
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 96
@@ -7730,8 +7912,8 @@ Index: 96
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7756,6 +7938,8 @@ Index: 96
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 97
@@ -7783,8 +7967,8 @@ Index: 97
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7809,6 +7993,8 @@ Index: 97
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 98
@@ -7836,8 +8022,8 @@ Index: 98
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -7862,11 +8048,16 @@ Index: 98
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 99
     Beginning_Ele       
     !Line               
+    Mirror              
+    Crystal             
+    Photon_Init         
  
  !---------------------------------
 Index: 100
@@ -7889,8 +8080,8 @@ Index: 100
     !Line               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -7945,8 +8136,8 @@ Index: 103
     !Line               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -7991,8 +8182,8 @@ Index: 105
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -8012,6 +8203,7 @@ Index: 105
     Ramper              
     !PTC_Com            
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 106
@@ -8035,8 +8227,8 @@ Index: 106
     !Line               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -8074,8 +8266,8 @@ Index: 107
     !Line               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8098,6 +8290,7 @@ Index: 107
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 108
@@ -8127,8 +8320,8 @@ Index: 108
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8153,6 +8346,8 @@ Index: 108
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 109
@@ -8180,8 +8375,8 @@ Index: 110
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Photon_Fork         
@@ -8210,8 +8405,8 @@ Index: 111
     AB_multipole        
     Solenoid            
     Lcavity             
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Photon_Fork         
     Fork                
     Undulator           
@@ -8248,8 +8443,8 @@ Index: 112
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -8277,6 +8472,8 @@ Index: 112
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 113
@@ -8290,8 +8487,8 @@ Index: 113
     Octupole            
     Rbend               
     Solenoid            
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Undulator           
     AC_Kicker           
  
@@ -8313,8 +8510,8 @@ Index: 114
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -8344,8 +8541,8 @@ Index: 115
     Lcavity             
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Pipe                
@@ -8363,6 +8560,7 @@ Index: 116
     Crystal             
     Multilayer_Mirror   
     Sample              
+    Foil                
  
  !---------------------------------
 Index: 117
@@ -8393,8 +8591,8 @@ Index: 117
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Girder              
@@ -8422,6 +8620,8 @@ Index: 117
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 118
@@ -8450,8 +8650,8 @@ Index: 118
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8477,6 +8677,8 @@ Index: 118
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 119
@@ -8505,8 +8707,8 @@ Index: 119
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8532,6 +8734,8 @@ Index: 119
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 120
@@ -8560,8 +8764,8 @@ Index: 120
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8587,6 +8791,8 @@ Index: 120
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 121
@@ -8615,8 +8821,8 @@ Index: 121
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8642,6 +8848,8 @@ Index: 121
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 122
@@ -8670,8 +8878,8 @@ Index: 122
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8697,6 +8905,8 @@ Index: 122
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 123
@@ -8712,8 +8922,8 @@ Index: 123
     Rbend               
     Solenoid            
     Lcavity             
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     E_Gun               
     EM_Field            
     Undulator           
@@ -8734,8 +8944,8 @@ Index: 124
     Rbend               
     Solenoid            
     Lcavity             
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     E_Gun               
     EM_Field            
     Undulator           
@@ -8756,8 +8966,8 @@ Index: 125
     Rbend               
     Solenoid            
     Lcavity             
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     E_Gun               
     EM_Field            
     Undulator           
@@ -8779,8 +8989,8 @@ Index: 126
     Rbend               
     Solenoid            
     Lcavity             
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     E_Gun               
     EM_Field            
     Undulator           
@@ -8813,8 +9023,8 @@ Index: 127
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8839,6 +9049,8 @@ Index: 127
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 128
@@ -8864,8 +9076,8 @@ Index: 128
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8880,6 +9092,7 @@ Index: 128
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 129
@@ -8905,8 +9118,8 @@ Index: 129
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8921,6 +9134,7 @@ Index: 129
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 130
@@ -8946,8 +9160,8 @@ Index: 130
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -8962,6 +9176,7 @@ Index: 130
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 131
@@ -8987,8 +9202,8 @@ Index: 131
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -9003,6 +9218,7 @@ Index: 131
     Lens                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 132
@@ -9040,8 +9256,8 @@ Index: 133
     Match               
     Monitor             
     Instrument          
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Rcollimator         
     Ecollimator         
     Converter           
@@ -9067,6 +9283,8 @@ Index: 133
     Lens                
     Crab_Cavity         
     RF_Bend             
+    GKicker             
+    Foil                
  
  !---------------------------------
 Index: 134
@@ -9100,8 +9318,8 @@ Index: 140
     Multipole           
     AB_multipole        
     Solenoid            
-    Hkicker             
-    Vkicker             
+    HKicker             
+    VKicker             
     Mirror              
     Crystal             
     Multilayer_Mirror   

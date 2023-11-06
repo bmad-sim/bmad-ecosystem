@@ -1,6 +1,6 @@
 set (EXENAME dynamic_aperture)
 
-FILE (GLOB SRC_FILES dynamic_aperture/*.f90 custom_tracking/*.f90)
+FILE (GLOB SRC_FILES dynamic_aperture/*.f90)
 
 set (INC_DIRS
 )

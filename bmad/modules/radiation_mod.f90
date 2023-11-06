@@ -78,6 +78,7 @@ real(rp), parameter :: damp_const = 2.0_rp / 3.0_rp
 real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
 
 character(*), parameter :: r_name = 'track1_radiation'
+logical doit
 
 !
 
@@ -85,12 +86,15 @@ if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuati
 if (ele%value(l$) == 0) return
 if (ele%tracking_method == taylor$ .and. ele%mat6_calc_method == taylor$) return
 select case (ele%key)
-case (drift$, taylor$, multipole$, ab_multipole$, mask$, marker$);  return
+case (drift$, pipe$, taylor$, multipole$, ab_multipole$, mask$, marker$);  return
 end select
 
 ! Use stochastic and damp mats
 
-call radiation_map_setup(ele)
+doit = .not. associated(ele%rad_map)
+if (.not. doit) doit = ele%rad_map%stale
+if (doit) call radiation_map_setup(ele)
+if (.not. associated(ele%rad_map)) return
 
 if (edge == start_edge$) then
   rad_map = ele%rad_map%rm0
@@ -112,7 +116,7 @@ endif
 
 if (orbit%vec(6) < -1.0_rp) then
   call out_io (s_warn$, r_name, 'Particle is kaput due to radiation loss!')
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
 endif
 
 ! Sokolov-Ternov Spin flip
@@ -171,6 +175,7 @@ character(*), parameter :: r_name = 'radiation_map_setup'
 if (present(err_flag)) err_flag = .false.
 
 if (ele%value(l$) == 0 .or. ele%key == taylor$) return   ! Does not produce radiation.
+
 if (.not. associated(ele%rad_map)) allocate(ele%rad_map)
 if (.not. ele%rad_map%stale .and. .not. present(ref_orbit_in)) return
 ele%rad_map%stale = .false.

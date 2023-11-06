@@ -267,6 +267,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    if (has_attribute(ele, 'X_PITCH_TOT')) then
+      if (abs(ele%value(x_pitch_tot$)) + abs(ele%value(y_pitch_tot$)) > 0.5*pi) then
+        call out_io (s_fatal$, r_name, &
+              'HAVING |X_PITCH_TOT| + |Y_PITCH_TOT| > PI/2 FOR AN ELEMENT (' // trim(ele%name) // ') DOES NOT MAKE SENSE ', &
+              'SINCE PARTICLES WILL NOT BE MOVING IN THE RIGHT DIRECTION WITHIN THE ELEMENT.')
+        err_flag = .true.
+      endif
+    endif
+
     ! Do not check the extra elements temporarily inserted by bmad_parser2.
 
     select case (ele%key)
@@ -1071,7 +1080,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (l_stat == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0 .and. &
         ele%value(e_tot$) == 0 .and. ele%value(multipass_ref_energy$) == 0) then
       select case (ele%key)
-      case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, rf_bend$, &
+      case (quadrupole$, sextupole$, octupole$, thick_multipole$, solenoid$, sol_quad$, sbend$, rf_bend$, &
             hkicker$, vkicker$, kicker$, elseparator$)
         call out_io (s_fatal$, r_name, &
               'FOR MULTIPASS LORD: ' // ele_full_name(ele, '@N (&#)'), &
@@ -1504,8 +1513,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       ! element is only allowed more than one girder_lord if custom geometry calculation is done.
 
       if (t2_type == girder_lord$) then
-        if (girder_here) then
-          call ele_geometry_hook (floor0, ele, floor, finished, 1.0_rp)
+        if (girder_here .and. associated(ele_geometry_hook_ptr)) then
+          call ele_geometry_hook_ptr (floor0, ele, floor, finished, 1.0_rp)
           if (.not. finished) then
             call out_io (s_fatal$, r_name, &
                     'SLAVE: ' // ele_full_name(ele, '@N (&#)'), &

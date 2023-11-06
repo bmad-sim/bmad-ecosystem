@@ -21,7 +21,7 @@
 
 subroutine tao_hook_command (command_line, found)
 
-use tao_command_mod, dummy => tao_hook_command
+use tao_command_mod
 
 implicit none
 
@@ -143,7 +143,7 @@ case ('pingread')
         return
       endif
 
-      u => s%u(d2(1)%d2%ix_uni)
+      u => s%u(d2(1)%d2%ix_universe)
       lat => u%design%lat
       design_tune_a = lat%ele(lat%n_ele_track)%a%phi / twopi
       design_tune_b = lat%ele(lat%n_ele_track)%b%phi / twopi

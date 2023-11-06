@@ -1,7 +1,8 @@
 !+
 ! Subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
 !
-! Dummy routine for pre-processing at the start of the track1 routine.
+! Prototype routine for pre-processing at the start of the track1 routine.
+! To use, see the Bmad manual.
 !
 ! Also see:
 !   track1_postprocess
@@ -31,7 +32,7 @@
 
 subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
 
-use bmad, except_dummy => track1_preprocess
+use bmad
 
 implicit none
 

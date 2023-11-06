@@ -60,8 +60,10 @@ do i = 1, size(graph%curve)
   call tao_remove_blank_characters(graph%curve(i)%component)
 enddo
 
-call tao_hook_graph_setup (plot, graph, found)
-if (found) return
+if (associated(tao_hook_graph_setup_ptr)) then
+  call tao_hook_graph_setup_ptr (plot, graph, found)
+  if (found) return
+endif
 
 !
 
@@ -116,7 +118,7 @@ if (allocated (graph%curve)) then
   enddo
 endif
 
-call tao_hook_graph_postsetup (plot, graph)
+if (associated(tao_hook_graph_postsetup_ptr)) call tao_hook_graph_postsetup_ptr (plot, graph)
 
 end subroutine tao_graph_setup
 
@@ -2288,7 +2290,8 @@ do ii = 1, size(curve%x_line)
   endif
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
-  s_now =  tao_hook_curve_s_pt (s_now, ii, x1, x2, size(curve%x_line), tao_lat, curve)
+  if (associated(tao_hook_curve_s_pt_ptr))s_now = &
+                        tao_hook_curve_s_pt_ptr (s_now, ii, x1, x2, size(curve%x_line), tao_lat, curve)
 
   if (s_now > branch%ele(n_ele_track)%s) s_now = branch%ele(n_ele_track)%s
   value = 0
@@ -2537,14 +2540,14 @@ case ('apparent_emit', 'norm_apparent_emit')
     if (curve%data_source == 'beam') then
       value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
     else
-      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_branch%modes_ri)
+      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_branch%modes_6d)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('apparent_emit.y', 'norm_apparent_emit.y')
     if (curve%data_source == 'beam') then
       value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
     else
-      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_branch%modes_ri)
+      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_branch%modes_6d)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case default
@@ -2569,14 +2572,14 @@ case ('emit')
     if (curve%data_source == 'beam') then
       value = bunch_params%x%emit
     else
-      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_branch%modes_ri)
+      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_branch%modes_6d)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('emit.y', 'norm_emit.y')
     if (curve%data_source == 'beam') then
       value = bunch_params%y%emit
     else
-      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_branch%modes_ri)
+      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_branch%modes_6d)
     endif
     if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case default

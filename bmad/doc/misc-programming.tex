@@ -8,43 +8,68 @@
 \bmad calculations, like particle tracking through a lattice element, can be customized using what
 are called ``\vn{custom}'' and ``\vn{hook}'' routines. The general idea is that a programmer can
 implement custom code which is linked into a program and this custom code will be called at the
-appropriate time by \bmad. Thus, for example, custom code can be created for Runge-Kutta tracking
-that calculates the electromagnetic field of some complicated electromagnet.
+appropriate time by \bmad. For example, custom code can be created for Runge-Kutta tracking that
+calculates the electromagnetic field of some complicated electromagnet. Prototype custom and hook
+routines are available in the \vn{/bmad/custom} directory and are discussed in detail below.
 
-To enable \bmad to be able to call customized code, there are a number of ``\vn{entry} points''
-defined in the \bmad code. At each entry point, a ``\vn{dummy}'' version of a custom and hook
-routine is called. For \vn{hook} routines, this dummy version does nothing except to keep the linker
-happy when customized hook routine is not implemented by a program. For \vn{custom} routines, the
-dummy version will issue an error message since it should not have been called. That is, the
-difference between \vn{custom} and \vn{hook} routines is that the \vn{hook} routine is always called
-at the appropriate time without regard to the type of lattice element under consideration or what
-tracking method is being used. See below for more details.
+To enable \bmad to be able to call customized code, \vn{function pointers} are defined, one for each
+custom or hook routine. At certain places in the \bmad code, the appropriate function pointer will
+be checked. If the funtion pointer is associated with a routine, that routine will be called. By
+default, the function pointers are not associated with any functions and the only way there will be
+an association by user code modification.
 
-Note: Custom and Hook entry points are added to \bmad on an as-needed basis. If you have a need that
-is not met by the existing set of entry points, please contact a \bmad maintainer.
+The function pointers are defined in the file \vn{/bmad/modules/bmad_routine_interface.f90}. The
+convention followed is that for any given custom or hook routine there is a base name, for example,
+\vn{track1_custom}, and in \vn{bmad_routine_interface.f90} there will be an abstract interface which
+with the base name with a \vn{_def} suffix (\vn{track1_custom_def} for this example). Additionally
+the corresponding function pointer uses a \vn{_ptr} suffix and is defined like:
+\begin{example}
+  procedure(track1_custom_def), pointer :: track1_custom_ptr => null()
+\end{example}
 
-Customization is done by copying the appropriate dummy routine to the same area where code files for
-the program to be customized are, modifying the dummy routine to do what you want it to do, and then
-relinking the program.
-
-Important: 
+To implement custom code for, say, \vn{track1_custom}:
 \begin{itemize}
+%
+\item 
+Copy the file \vn{/bmad/custom/track1_custom.f90} to the area where the program is to be compiled.
+%
 \item
-Do not put the non-dummy version of a custom routine into a library that is linked to the
-program. This will generally result in the non-dummy version {\em not} being linked to.
+Customize file as desired. The name of the routine can be changed if desired as long as that name is used
+consistently throughout the program. In fact, multiple custom
+routines can be created and switched in and out as desired in the program.
+%
 \item
-Do not modify directly any dummy routine in the \vn{bmad} directory. This is unnecessary
-and it complicates updating your local copy of the \bmad code as the \bmad code is
-developed over time.
+In the program define an interface for the custom routine like:
+\begin{example}
+  procedure(track1_custom_def) :: track1_custom
+\end{example}
+Note: If the custom routine has been put in a module this will not be needed.
+%
+\item
+Somewhere near the beginning of the program (generally before \vn{bmad_parser} is called), set the
+function pointer to point to your custom routine:
+\begin{example}
+  track_custom_ptr => track1_custom
+\end{example}
+%
+\item
+If needed modify the compile script(s) (typically named something like ``cmake.XXX'') to compile the
+file the custom routine is in.
+%
+\item
+Compile the program using the \vn{mk} command.
+%
 \end{itemize}
 
 While coding a custom routine, it is important to remember that it is {\em not} permissible to
 modify any routine argument that does not appear in the list of output arguments shown in the
 comment section at the top of the file.
 
-Note: Remember to modify the appropriate compile script file (typically named something like
-``cmake.XXX'') so that any routines that you have added to your program area are compiled and
-linked.
+Note: Custom and hook entry points are added to \bmad on an as-needed basis. If you have a need that
+is not met by the existing set of entry points, please contact a \bmad maintainer.
+
+Note: The custom and hook routines in \vn{/bmad/custom/} are not compiled with the \bmad library. Their
+only purpose is to surve as prototypes for code development.
 
 %-----------------------------------------------------------------------------
 \section{Custom Calculations}
@@ -75,10 +100,6 @@ There are eight routines that implement custom calculations:
 \end{example}
 [Use \vn{getf} for more details about the argument lists for these
 routines.]  
-
-The dummy versions of these custom routines, if called, will print an error message and
-stop the program. The exception is the dummy \vn{init_custom} routine which will simply do
-nothing when called.
 
 \index{descrip}
 The \Hyperref{r:init.custom}{init_custom} routine is called by \Hyperref{r:bmad.parser}{bmad_parser}

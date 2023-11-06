@@ -144,7 +144,7 @@ module S_status
   private track_TREE_G_complexr,track_TREE_G_complexp,track_TREE_probe_complexr,track_TREE_probe_complexp_new
   real(dp),TARGET ::INITIAL_CHARGE=1
   logical :: mcmillan=.false.
-  real(dp) :: radfac=1   ! to fudge radiation (lower it)
+  real(dp) :: radfac=1,flucfac=1   ! to fudge radiation (lower it)
   TYPE B_CYL
      integer firsttime
      integer, POINTER ::  nmul,n_mono   !,nmul_e,n_mono_e
@@ -264,7 +264,7 @@ CONTAINS
     ! if(junk_e) then    
     !  cflucf=cfluc*p%p0c**5
     ! else
-      cflucf=cfluc0*twopii/p%GAMMA0I**5/p%MASS**2
+      cflucf=flucfac*cfluc0*twopii/p%GAMMA0I**5/p%MASS**2
     ! endif
   end function cflucf
 
@@ -1529,6 +1529,8 @@ CONTAINS
     INTEGER,optional :: ND2,NPARA,number_of_clocks
     INTEGER  ND2l,NPARAl,n_acc,no1c,nv,i
     LOGICAL(lp) package
+
+     
      do_damping=.false.
      do_spin=.false.
     if(state%radiation) do_damping=.true.
@@ -1589,7 +1591,7 @@ CONTAINS
    ! endif
     !    write(6,*) NO1,ND1,NP1,NDEL,NDPT1
     !pause 678
-
+     
     CALL INIT(NO1,ND1,NP1+NDEL+2*n_acc,NDPT1,PACKAGE)
     nv=2*nd1+NP1+NDEL+2*n_acc
 
@@ -1611,12 +1613,14 @@ no1c=no1+complex_extra_order
 ND1=ND1+n_acc
     if(use_complex_in_ptc) call c_init(NO1c,nd1,np1+ndel,ndpt1,n_acc,ptc=my_false)  ! PTC false because we will not use the real FPP for acc modulation
     n_rf=n_acc
- 
+  previous_newtpsa=newtpsa
   END  subroutine S_init
 
   subroutine kill_map_cp()
     implicit none
-
+     logical present_newtpsa
+     present_newtpsa=newtpsa
+     newtpsa=previous_newtpsa 
     if(associated(dz_8)) then
       call kill(dz_8)
       deallocate(dz_8)
@@ -1635,7 +1639,7 @@ ND1=ND1+n_acc
       deallocate(dz_c)
       nullify(dz_c)
     endif    
-
+     newtpsa=present_newtpsa
   end subroutine kill_map_cp
 
 

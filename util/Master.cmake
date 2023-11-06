@@ -5,9 +5,6 @@
 #      include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 # Found in CMakeLists.txt files in project directories.
 
-# Update - 15-Jun-2021 - formated line endings to Unix-style 
-# (vs Windows style) as requested by dcs16 in RT#58583.
-
 #-----------------------------------------------------------
 # Set link_directories relative path composition to use new
 # behvaior that appends relative path information to the
@@ -19,6 +16,7 @@ cmake_policy (SET CMP0015 NEW)
 #-----------------------------------------------------------
 # Set CESR_FLAGS depening on OS type
 #-----------------------------------------------------------
+
 IF (${WIN32})
     SET (CESR_FLAGS "-DCESR_WINCVF")
 ELSE ()
@@ -66,35 +64,22 @@ ENDIF ()
 # Import environment variables that influence the build
 # Also disable the inclusion of RPATH for Releases but not Distributions RT#64118
 #-------------------------------------------------------
-set (DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
-IF (${DISTRIBUTION_BUILD})
-  set (FORTRAN_COMPILER $ENV{DIST_F90})
-  set (RELEASE_DIR $ENV{DIST_BASE_DIR})
-	IF (EXISTS ${RELEASE_DIR}/packages)
-    set (PACKAGES_DIR ${RELEASE_DIR}/packages)
-	ELSE ()
-    set (PACKAGES_DIR ${RELEASE_DIR})
-	ENDIF ()
-
-  # Explicitly remove 32-bit Libraries from Linux build PATH for 64-bit builds - RT#43178
-  # Added /lib to further restict 32-bit Linux build PATH - RT#56203
-  IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT "$ENV{ACC_FORCE_32_BIT}" MATCHES "Y")
-    SET (CMAKE_IGNORE_PATH /lib /usr/lib)
-    SET (CMAKE_SYSTEM_IGNORE_PATH /lib /usr/lib)
-  ENDIF ()
-
-ELSE ()
-	SET (CMAKE_SKIP_RPATH TRUE)
-  set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
+set (FORTRAN_COMPILER $ENV{DIST_F90})
+set (RELEASE_DIR $ENV{DIST_BASE_DIR})
+IF (EXISTS ${RELEASE_DIR}/packages)
   set (PACKAGES_DIR ${RELEASE_DIR}/packages)
-
-	IF ("$ENV{ACC_SET_F_COMPILER}" MATCHES "gfortran")
-		SET (FORTRAN_COMPILER "gfortran")
-	ELSE ()
-		SET (FORTRAN_COMPILER "ifort")
-	ENDIF ()
+ELSE ()
+  set (PACKAGES_DIR ${RELEASE_DIR})
 ENDIF ()
+
+# Explicitly remove 32-bit Libraries from Linux build PATH for 64-bit builds - RT#43178
+# Added /lib to further restict 32-bit Linux build PATH - RT#56203
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT "$ENV{ACC_FORCE_32_BIT}" MATCHES "Y")
+  SET (CMAKE_IGNORE_PATH /lib /usr/lib)
+  SET (CMAKE_SYSTEM_IGNORE_PATH /lib /usr/lib)
+ENDIF ()
+
   
 IF (FORTRAN_COMPILER MATCHES "gfortran")
 
@@ -211,14 +196,10 @@ SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (PLOT_LIBRARY_FLAG "-DCESR_PLPLOT")
 
-  IF (${DISTRIBUTION_BUILD})
-    IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
-      SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
-    ELSE ()
-      SET (PLOT_LINK_FLAGS "$ENV{PLOT_LINK_FLAGS}")
-    ENDIF ()
-  ELSE ()
+  IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
     SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
+  ELSE ()
+    SET (PLOT_LINK_FLAGS "$ENV{PLOT_LINK_FLAGS}")
   ENDIF ()
 
   IF (${MSYS})
@@ -265,13 +246,8 @@ ENDIF ()
 # C / C++ Compiler flags
 #-----------------------------------
 
-IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (BASE_C_FLAGS)
-  SET (BASE_CXX_FLAGS)
-ELSE ()
-  SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
-  SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
-ENDIF ()
+SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
+SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated ${CESR_FLAGS} ${PLOT_LIBRARY_FLAG} -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${MPI_COMPILE_FLAGS}")
 
 #-----------------------------------                                                                                
 # For non-Linux or non-ifort or 
@@ -283,9 +259,6 @@ ENDIF ()
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
   SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (BASE_C_FLAGS)
-  SET (BASE_CXX_FLAGS)
 ENDIF ()
 
 #--------------------------------------
@@ -329,12 +302,7 @@ IF ($ENV{ACC_ENABLE_SHARED})
    SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -fPIC")
 ENDIF ()
 
-IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS} ${STDCXX_LINK_FLAGS})
-ELSE ()
-    # Added support for linking SHARED ZMQ libraries, as requested in RT#63682
-    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread ${STDCXX_LINK_FLAGS} -lactivemq-cpp -lzmq ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS}")
-ENDIF ()
 
 if (FORTRAN_COMPILER MATCHES "gfortran")
  list (APPEND ACC_LINK_FLAGS "-ldl")
@@ -347,8 +315,10 @@ ENDIF ()
 
 string (STRIP "${ACC_LINK_FLAGS}" ACC_LINK_FLAGS)
 
-SET (ACC_INC_DIRS ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS} ${MPI_INC_DIRS})
-SET (ACC_LIB_DIRS ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS} ${MPI_LIB_DIRS})
+# Environment variables BMAD_USER_INC_DIRS and BMAD_USER_LIB_DIRS hold include/library directories
+# to search for include/module or libraries respectively. Multiple directories separated by semicolons.
+SET (ACC_INC_DIRS $ENV{BMAD_USER_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS} ${MPI_INC_DIRS})
+SET (ACC_LIB_DIRS $ENV{BMAD_USER_LIB_DIRS} ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS} ${MPI_LIB_DIRS})
 
 
 #--------------------------------------
@@ -434,19 +404,11 @@ ELSE ()
   set (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} ${ACC_GFORTRAN_OPTIMIZATION_FLAG}")
 ENDIF ()
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "HARDWARE-DEVEL")
-  message("Build Target         : ${CMAKE_SYSTEM_NAME}")
-  message("C Compiler           : ${CMAKE_C_COMPILER}")
-  message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
-  message("Linker               : ${CMAKE_LINKER}")
-  set (BASE_C_FLAGS)
-ELSE ()
-	message("Current Directory    : ${CMAKE_CURRENT_SOURCE_DIR}")
-  message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
-  message("C Compiler           : ${CMAKE_C_COMPILER}")
-  message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
-  message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
-ENDIF ()
+message("Current Directory    : ${CMAKE_CURRENT_SOURCE_DIR}")
+message("Linking with release : ${RELEASE_NAME} \(${RELEASE_NAME_TRUE}\)")
+message("C Compiler           : ${CMAKE_C_COMPILER}")
+message("Fortran Compiler     : ${CMAKE_Fortran_COMPILER}")
+message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
 
 IF (DEFINED SHARED_LINK_LIBS)
 message("Shared Libraries     : ${SHARED_LINK_LIBS}")
@@ -508,27 +470,14 @@ SET (MASTER_INC_DIRS
   ${X11_INCLUDE_DIR}
 )
 
-# If not building a distribution, include the include directories which are not part 
-# of the distribution.
-
-IF (${DISTRIBUTION_BUILD})
-ELSE ()
-  SET (MASTER_INC_DIRS
-    ${RELEASE_DIR}/include
-    ${MASTER_INC_DIRS}
-    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include
-    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/root
-    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/activemq-cpp-3.7.0
-    ${PACKAGES_OUTPUT_BASEDIR}/modules
-  )
-ENDIF ()
-
-# If building for HARDWARE-DEVEL, remove the include directories which are not needed 
-
-IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (MASTER_INC_DIRS)
-ENDIF ()
-
+# If we use system HDF5 libraries, search for include directories
+find_package(HDF5 COMPONENTS Fortran)
+foreach(h5dir ${HDF5_Fortran_INCLUDE_DIRS})
+  list(FIND CMAKE_Fortran_IMPLICIT_INCLUDE_DIRECTORIES "${h5dir}" h5found)
+  if (h5found EQUAL -1)
+    list(APPEND MASTER_INC_DIRS "${h5dir}")
+  endif()
+endforeach()
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist
@@ -586,6 +535,13 @@ SET (MASTER_LINK_DIRS
   ${ACC_LIB_DIRS}
 )
 
+foreach(h5dir ${HDF5_Fortran_LIBRARY_DIRS})
+  list(FIND CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES "${h5dir}" h5found)
+  if (h5found EQUAL -1)
+    list(APPEND MASTER_LINK_DIRS "${h5dir}")
+  endif()
+endforeach()
+
 IF (DEBUG)
   IF (IS_DIRECTORY "${PACKAGES_DIR}/debug/lib/root")
     LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
@@ -596,12 +552,7 @@ ELSE ()
   ENDIF ()
 ENDIF ()
 
-IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-  SET (MASTER_LINK_DIRS)
-ENDIF ()
-
 LINK_DIRECTORIES (${MASTER_LINK_DIRS})
-
 
 #-------------------------------------------
 # Collect list of all source files for all
@@ -810,8 +761,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-	LIST(FIND TARGETS ${dep} DEP_SEEN)
-	IF(${DEP_SEEN} EQUAL -1)
+          LIST(FIND TARGETS ${dep} DEP_SEEN)
+          IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.so)
             add_library(${dep} SHARED IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -825,8 +776,8 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.so)
           ENDIF ()
-	ENDIF()
       ENDIF()
+    ENDIF()
 
     endforeach(dep)
 
@@ -836,8 +787,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-	LIST(FIND TARGETS ${dep} DEP_SEEN)
-	IF(${DEP_SEEN} EQUAL -1)
+          LIST(FIND TARGETS ${dep} DEP_SEEN)
+          IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.dylib)
             add_library(${dep} SHARED IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -851,7 +802,7 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.dylib)
           ENDIF ()
-	ENDIF()
+  ENDIF()
       ENDIF()
 
     endforeach(dep)
@@ -862,8 +813,8 @@ foreach(exespec ${EXE_SPECS})
 
       IF(${LIBNAME} MATCHES ${dep})
       ELSE()
-	LIST(FIND TARGETS ${dep} DEP_SEEN)
-	IF(${DEP_SEEN} EQUAL -1)
+          LIST(FIND TARGETS ${dep} DEP_SEEN)
+          IF(${DEP_SEEN} EQUAL -1)
           IF (EXISTS ${OUTPUT_BASEDIR}/lib/lib${dep}.a)
             add_library(${dep} STATIC IMPORTED)
             LIST(APPEND TARGETS ${dep})
@@ -877,8 +828,8 @@ foreach(exespec ${EXE_SPECS})
             LIST(APPEND TARGETS ${dep})
             set_property(TARGET ${dep} PROPERTY IMPORTED_LOCATION ${RELEASE_DIR}/lib/lib${dep}.a)
           ENDIF ()
-	ENDIF()
       ENDIF()
+    ENDIF()
 
     endforeach(dep)
 
@@ -1073,10 +1024,10 @@ foreach(exespec ${EXE_SPECS})
     IF (FORTRAN_COMPILER MATCHES "ifort")
       # Added support for SHARED only library builds, as requested in RT#63875
       IF (ENABLE_SHARED_ONLY)
-	SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
+  SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
       ELSE ()
-	SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
-	SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
+  SET (SHARED_FLAG "-Wl,-Bdynamic -fPIC")
+  SET (STATIC_FLAG "-Wl,-Bstatic -fPIC")
       ENDIF ()
     ENDIF ()
 
@@ -1100,21 +1051,12 @@ foreach(exespec ${EXE_SPECS})
     set (EXTRA_SHARED_LINK_LIBS "")
   ENDIF ()
 
-  IF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
-    foreach(file ${SRC_FILES})
-      set(OBJ_FILES "${OBJ_FILES} CMakeFiles/${EXENAME}-exe.dir/${file}.o")
-    endforeach(file)
-    set (CMAKE_C_LINK_EXECUTABLE "${CMAKE_LINKER} ${LINK_FLAGS} ${OBJ_FILES} -o ${OUTPUT_BASEDIR}/bin/${EXENAME}.exe")
-    TARGET_LINK_LIBRARIES(${EXENAME}-exe
-      )
-  ELSE ()
-    TARGET_LINK_LIBRARIES(${EXENAME}-exe
-      ${STATIC_FLAG} ${LINK_LIBS} 
-      ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
-      ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
-      ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
-      )
-  ENDIF ()
+  TARGET_LINK_LIBRARIES(${EXENAME}-exe
+    ${STATIC_FLAG} ${LINK_LIBS} 
+    ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
+    ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
+    ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
+    )
 
   SET(CFLAGS)
   SET(FFLAGS)

@@ -114,7 +114,13 @@ endif
 select case (mat6_calc_method)
 
 case (custom$)
-  call make_mat6_custom (ele, param, a_start_orb, a_end_orb, err)
+  if (.not. associated(make_mat6_custom_ptr)) then
+    call out_io (s_error$, r_name, 'CUSTOM MAT6_CALC_METHOD OR CUSTOM ELEMENT NEEDS MAKE_MAT6_CUSTOM_PTR SET IN THIS PROGRAM!', &
+                                   'NEEDED FOR ELEMENT: ' // ele%name)
+    a_end_orb%state = lost$
+  endif
+
+  call make_mat6_custom_ptr (ele, param, a_start_orb, a_end_orb, err)
 
 case (taylor$)
   call make_mat6_taylor (ele, param, a_start_orb, a_end_orb, err)

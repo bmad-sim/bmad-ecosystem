@@ -1,0 +1,27 @@
+# Script to make a PR if the push is from DCS.
+
+name: dcs16_push
+
+on:
+  push:
+    branches-ignore: main
+
+#
+
+env:
+  EXTERNAL_DEPS_VERSION: main
+
+# secrets.DCS_PUSH allows the ci.yml workflow to be triggered by this workflow. Documentation at:
+#		https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
+
+jobs:
+  create-pull-request:
+    if: ${{ github.triggering_actor == 'DavidSagan' }}
+
+    runs-on: Ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: gh pr create -B main -H ${{ github.ref_name }} --title "${{ github.event.head_commit.message }}" --body "${{ github.event.head_commit.message }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.DCS_PUSH }}

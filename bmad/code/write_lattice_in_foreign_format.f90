@@ -104,7 +104,7 @@ character(4000) line_out   ! Can be this large for taylor maps.
 character(2) continue_char, eol_char, comment_char, separator_char
 
 logical, optional :: use_matrix_model, include_apertures, err
-logical init_needed, mad_out, err_flag
+logical init_needed, mad_out, err_flag, monopole
 logical parsing, warn_printed, converted, ptc_exact_model
 
 ! SAD translation
@@ -288,9 +288,18 @@ do
   endif
 
   ! If there is a multipole component then put multipole elements at half strength 
-  ! just before and just after the element.
+  ! just before and just after the element. Exception: With Elegant if there is only one multipole for a quad, sextupole, or octupole
 
-  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
+  monopole = .false.
+  if (out_type == 'ELEGANT') then
+    select case (ele%key)
+    case (quadrupole$, sextupole$, octupole$, thick_multipole$)    ! Elegant
+      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
+      if (count(knl /= 0) == 1 .and. all(knl(0:3) == 0)) monopole = .true.
+    end select
+  endif
+
+  if (.not. monopole .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
     call multipole_ele_to_ab (ele, .true., ix_pole_max, ab_ele%a_pole, ab_ele%b_pole)
     if (ix_pole_max > -1) then
       ab_ele%a_pole = ab_ele%a_pole / 2
@@ -649,13 +658,37 @@ do   ! ix_ele = 1e1, ie2
  
   call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
 
-  !------------------------------------
+  !-------------------------------------------------------------------------------------------
   ! ELEGANT conversion
 
   if (out_type == 'ELEGANT') then
 
     bmad_params = ''
     elegant_params = ''
+
+    ! Special case where element is a pure thick N-pole of order greater than octupole.
+    select case (ele%key)
+    case (quadrupole$, sextupole$, octupole$, thick_multipole$)    ! Elegant
+      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
+      if (count(knl /= 0) == 1 .and. all(knl(0:3) == 0)) then
+        n = find_location(knl /= 0, .true.) - 1
+        write (line_out, '(2a)') trim(ele%name) // ': mult'
+        call value_to_line(line_out, knl(n), 'knl', 'R')
+        write (line_out, '(2a, i0)') trim(line_out), ', order = ', n
+        bmad_params(:5) = [character(40):: 'l', 'tilt', 'x_offset', 'y_offset', 'z_offset']
+        elegant_params(:5) = [character(40):: 'l', 'tilt', 'dx', 'dy', 'dz']
+
+        do i = 1, size(bmad_params)
+          if (bmad_params(i) == '') exit
+          call pointer_to_attribute (ele, upcase(bmad_params(i)), .true., a_ptr, err_flag)
+          call value_to_line (line_out, a_ptr%r, elegant_params(i), 'R')
+        enddo
+        call write_line(line_out)
+        cycle
+      endif
+    end select
+
+    !
 
     select case (ele%key)
 
@@ -674,6 +707,11 @@ do   ! ix_ele = 1e1, ie2
 
       bmad_params(:1) = [character(40):: 'l']
       elegant_params(:1) = [character(40):: 'l']
+
+    case (gkicker$)
+      write (line_out, '(2a)') trim(ele%name) // ': malign'
+      bmad_params(:6) = [character(40):: 'x_kick', 'y_kick', 'z_kick', 'px_kick', 'py_kick', 'pz_kick']
+      elegant_params(:6) = [character(40):: 'dx', 'dy', 'dz', 'dxp', 'dyp', 'dp']
 
     case (hkicker$)   ! Elegant
       write (line_out, '(2a)') trim(ele%name) // ': ehkick'
@@ -725,15 +763,13 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:12) = [character(40):: 'l', 'angle', 'e1', 'e2', 'tilt', 'etilt', 'h1', 'h2', 'ykick', 'dx', 'dy', 'dz']
 
     case (quadrupole$)   ! Elegant
-      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
       knl = knl / ele%value(l$)
-
       if (knl(2) == 0) then
         write (line_out, '(2a)') trim(ele%name) // ': kquad'
         if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
       else
         write (line_out, '(2a)') trim(ele%name) // ': kquse'
-        call value_to_line (line_out, knl(2)*cos(3*(tilts(2)-tilts(1)))/2, 'k2', 'R')
+        call value_to_line (line_out, 0.5_rp*knl(2)*cos(3*(tilts(2)-tilts(1))), 'k2', 'R')
       endif
 
       tilt = tilts(1)
@@ -743,9 +779,7 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:1) = [character(40):: 'l']
 
     case (sextupole$)   ! Elegant
-      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
       knl = knl / ele%value(l$)
-
       write (line_out, '(2a)') trim(ele%name) // ': ksext'
       if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) line_out = trim(line_out) // ', malign_method = 2'
       call value_to_line (line_out, knl(2), 'k2', 'R')
@@ -759,9 +793,7 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:1) = [character(40):: 'l']
 
     case (octupole$)   ! Elegant
-      call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, magnetic$, include_kicks$)
       knl = knl / ele%value(l$)
-
       write (line_out, '(2a)') trim(ele%name) // ': koct'
       call value_to_line (line_out, knl(3), 'k3', 'R')
       call value_to_line (line_out, knl(0)*cos(tilts(0)), 'hkick', 'R')
@@ -909,13 +941,13 @@ do   ! ix_ele = 1e1, ie2
       elegant_params(:1) = [character(40):: 'l']
     end select
 
-    !------
+    !--------------------------------------------------------
 
     select case (ele%key)
-    case (sbend$, patch$, drift$)
+    case (sbend$, patch$, drift$)   ! Elegant
       ! Pass
 
-    case (quadrupole$, sextupole$, octupole$, taylor$)
+    case (quadrupole$, sextupole$, octupole$, taylor$)    ! Elegant
       x_pitch = ele%value(x_pitch$)
       y_pitch = ele%value(y_pitch$)
       call floor_angles_to_w_mat(x_pitch, y_pitch, tilt, w_mat)
@@ -943,11 +975,13 @@ do   ! ix_ele = 1e1, ie2
         call out_io (s_warn$, r_name, 'X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
       endif
 
-    case default
+    case default    ! Elegant
       if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
         call out_io (s_warn$, r_name, 'TILT, X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
       endif
     end select
+
+    !--------------------------------------------------------
 
     do i = 1, size(bmad_params)
       if (bmad_params(i) == '') exit
@@ -959,7 +993,7 @@ do   ! ix_ele = 1e1, ie2
     cycle
   endif
 
-  !------------------------------------
+  !-------------------------------------------------------------------------------------------------
   ! OPAL conversion
   
   if (out_type == 'OPAL-T') then

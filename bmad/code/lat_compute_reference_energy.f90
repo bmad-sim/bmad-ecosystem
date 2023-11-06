@@ -543,7 +543,8 @@ if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcav
 if (key == converter$) then
   ele%ref_species = ele%converter%species_out
 elseif (key == foil$) then
-  n = atomic_number(ele0%ref_species)
+  if (ele0%value(final_charge$) == real_garbage$) ele0%value(final_charge$) = atomic_number(ele0%ref_species)
+  n = nint(ele0%value(final_charge$))
   ele%ref_species = set_species_charge(ele0%ref_species, n)
 else
   ele%ref_species = ele0%ref_species

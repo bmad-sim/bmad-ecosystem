@@ -1477,7 +1477,7 @@ if (particle_at == first_track_edge$) then
   ! Drift forward
   call ptc_wedger(edge_angle, 0.0_rp, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_pz_aperture$
+    orb%state = lost_pz$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1485,7 +1485,7 @@ if (particle_at == first_track_edge$) then
   ! Edge kick
   call ptc_fringe_dipoler(X, g_tot, beta0, orb%time_dir*fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_pz_aperture$
+    orb%state = lost_pz$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
@@ -1493,7 +1493,7 @@ if (particle_at == first_track_edge$) then
   ! Backtrack
   call ptc_wedger(-edge_angle, g_tot, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_pz_aperture$
+    orb%state = lost_pz$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1502,7 +1502,7 @@ else if (particle_at == second_track_edge$) then
   ! Backtrack
   call ptc_wedger(-edge_angle, g_tot, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_pz_aperture$
+    orb%state = lost_pz$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1510,7 +1510,7 @@ else if (particle_at == second_track_edge$) then
   ! Edge kick
   call ptc_fringe_dipoler(X, g_tot, beta0, orb%time_dir*fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_pz_aperture$
+    orb%state = lost_pz$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1518,7 +1518,7 @@ else if (particle_at == second_track_edge$) then
   ! Drift forward
   call ptc_wedger(edge_angle, 0.0_rp, beta0, X, err_flag, mat6_int, make_matrix)
   if (err_flag) then
-    orb%state = lost_pz_aperture$
+    orb%state = lost_pz$
     return
   endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
@@ -1601,7 +1601,7 @@ end subroutine vec_bmad_to_ptc
 ! Output:
 !   vec_bmad(6)    -- real(rp): Bmad coordinates.
 !   conversion_mat -- real(rp), optional: Jacobian matrix of PTC -> Bmad conversion map.
-!   state          -- integer, optional: Set to lost_pz_aperture$ if energy is too low. Set to alive$ otherwise.
+!   state          -- integer, optional: Set to lost_pz$ if energy is too low. Set to alive$ otherwise.
 !-
 
 subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat, state)
@@ -1620,7 +1620,7 @@ if (present(state)) state = alive$
 
 factor1 = 1+2*vec_ptc(5)/beta0+vec_ptc(5)**2
 if (factor1 <= 0) then
-  if (present(state)) state = lost_pz_aperture$
+  if (present(state)) state = lost_pz$
   return
 endif
 

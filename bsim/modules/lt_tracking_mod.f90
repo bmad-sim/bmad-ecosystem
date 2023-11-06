@@ -38,7 +38,7 @@ end type
 ! User settable parameters
 
 type ltt_params_struct
-  character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BEAM, STAT
+  character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BEAM, STAT, INDIVIDUAL
   character(20) :: tracking_method = 'BMAD'   ! MAP, PTC, BMAD
   character(100) :: exclude_from_maps = 'beambeam::*'
   character(40) :: ele_start = ''
@@ -153,8 +153,8 @@ type ltt_bunch_data_struct
   type (bunch_params_struct) :: params = bunch_params_struct()
 end type
 
-type (ltt_params_struct), pointer, save :: ltt_params_global   ! Needed for track1_preprocess and track1_bunch_hook
-type (ltt_com_struct),    pointer, save :: ltt_com_global      ! Needed for track1_preprocess and track1_bunch_hook
+type (ltt_params_struct), pointer, save :: ltt_params_global   ! Needed for ltt_track1_preprocess and ltt_track1_bunch_hook
+type (ltt_com_struct),    pointer, save :: ltt_com_global      ! Needed for ltt_track1_preprocess and ltt_track1_bunch_hook
 
 contains
 
@@ -319,7 +319,7 @@ call upcase_string(ltt%simulation_mode)
 
 select case (ltt%simulation_mode)
 case ('BEAM', 'STAT')
-case ('CHECK', 'SINGLE')
+case ('CHECK', 'SINGLE', 'INDIVIDUAL')
   ltt%ramp_update_each_particle = .true.
 case ('BUNCH')
   print '(a)', '"BUNCH" SETTING FOR LTT%SIMULATION_MODE HAS BEEN CHANGED TO "BEAM"'
@@ -961,7 +961,41 @@ end subroutine ltt_run_check_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_single_mode (lttp, ltt_com)
+subroutine ltt_run_individual_mode (lttp, ltt_com)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+type (coord_struct), pointer :: particle
+type (coord_struct) orbit
+
+integer ib, ip
+
+!
+
+call ltt_init_beam_distribution(lttp, ltt_com, beam)
+
+do ib = 1, size(beam%bunch)
+  do ip = 1, size(beam%bunch(ib)%particle)
+    particle => beam%bunch(ib)%particle(ip)
+    call ltt_run_single_mode(lttp, ltt_com, particle)
+  enddo
+enddo
+
+! If using mpi then long_term_tracking_mpi will assemble the beam and call the write routines.
+
+if (.not. ltt_com%using_mpi) then
+  if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii4$)
+  if (lttp%beam_binary_output_file /= '')  call write_beam_file (lttp%beam_binary_output_file, beam, .true., hdf5$)
+endif
+
+end subroutine
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_run_single_mode (lttp, ltt_com, orb_in)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -969,13 +1003,14 @@ type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) :: orbit
+type (coord_struct), optional :: orb_in
 type (ele_struct), pointer :: ele_start, ele0, ele1
 type (probe) prb
 
 real(rp) average(6), sigma(6,6), dt
 integer i, n_sum, iu_part, i_turn, ix_branch
 
-! Run serial in single mode.
+! Run a single particle in single mode.
 
 lat => ltt_com%tracking_lat
 
@@ -990,7 +1025,9 @@ call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
 if (lttp%tracking_method == 'BMAD') call reallocate_coord (orb, lat)
 
-if (ltt_com%beam_init%use_particle_start) then
+if (present(orb_in)) then
+  call init_coord (orbit, orb_in, ele_start, downstream_end$, lat%param%particle)
+elseif (ltt_com%beam_init%use_particle_start) then
   call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, lat%param%particle)
 else
   call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = ltt_com%beam_init%spin)
@@ -1006,14 +1043,19 @@ endif
 
 !
 
-iu_part = lunget()
-if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
-open(iu_part, file = lttp%phase_space_output_file, recl = 300)
-call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
-write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz              pc             p0c            time   |       spin_x       spin_y       spin_z  | Element'
-write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
+if (lttp%simulation_mode == 'INDIVIDUAL') then
+  iu_part = -1
+else
+  iu_part = lunget()
+  if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
+  open(iu_part, file = lttp%phase_space_output_file, recl = 300)
+  call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
+  write (iu_part, '(a)') '## Turn ix_ele |            x              px               y              py               z              pz              pc             p0c            time   |       spin_x       spin_y       spin_z  | Element'
+  write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
+  if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
+endif
 
-if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
+!
 
 do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
   select case (lttp%tracking_method)
@@ -1052,15 +1094,21 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
 
   !
 
+  if (orbit%state /= alive$) then
+    if (lttp%simulation_mode == 'INDIVIDUAL') then
+      orb_in = orbit
+      return
+    endif
+    print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
+    exit
+  endif
+
+  if (lttp%simulation_mode == 'INDIVIDUAL') cycle
+
   if (lttp%particle_output_every_n_turns > 0) then
     if (modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
       write (iu_part, ltt_com%ps_fmt) i_turn, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
     endif
-  endif
-
-  if (orbit%state /= alive$) then
-    print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
-    exit
   endif
 
   if (lttp%averages_output_file /= '') then
@@ -1071,6 +1119,11 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
 
   if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, i_turn, orbit = orbit)
 enddo
+
+if (lttp%simulation_mode == 'INDIVIDUAL') then
+  orb_in = orbit
+  return
+endif
 
 print '(2a)', 'Particle output file: ', trim(lttp%phase_space_output_file)
 close(iu_part)
@@ -1208,6 +1261,7 @@ endif
 do i_turn = ix_start_turn+1, ix_end_turn
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
+    bunch%ix_turn = i_turn
     if (i_turn == lttp%ix_turn_record .and. lttp%ix_particle_record > 0) then
       bunch%particle(lttp%ix_particle_record)%ix_user = 1
     else
@@ -1642,7 +1696,7 @@ type (expression_atom_struct), allocatable, target :: stack(:)
 type (expression_atom_struct), pointer :: st
 
 integer i_turn
-integer i, n, ib, iu, ix, ix1, ix2, is, multi, power, width, digits, n_loc, n_stack
+integer i, n, ib, iu, ix, ix1, ix2, is, multi, power, width, digits, n_loc, n_stack, n_bunch
 
 logical err
 
@@ -1672,10 +1726,12 @@ end select
 !
 
 iu = lunget()
+n_bunch = 0
+if (present(beam)) n_bunch = size(beam%bunch)
 
 if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   open(iu, file = lttp%custom_output_file, recl = 2000)
-  call ltt_write_params_header(lttp, ltt_com, iu, size(beam%bunch))
+  call ltt_write_params_header(lttp, ltt_com, iu, n_bunch)
   line = '#'
   do i = 1, size(lttp%column)
     col => lttp%column(i)
@@ -1696,9 +1752,9 @@ if (present(orbit)) then
   orb_b(1) = orbit
 
 else  ! beam is passed
-  allocate (orb_b(size(beam%bunch)))
+  allocate(orb_b(n_bunch))
 
-  do ib = 1, size(beam%bunch)
+  do ib = 1, n_bunch
     bunch => beam%bunch(ib)
     n = count(bunch%particle%state == alive$)
     orb_b(ib)%t = ltt_bunch_time_sum(bunch, lttp) / n
@@ -2649,7 +2705,9 @@ do
     call track1 (orbit, ele, ele%branch%param, orbit, err_flag = err_flag)
   endif
 
-  if (present(iu_part) .and. lttp%particle_output_every_n_turns < 1) then
+  if (orbit%state /= alive$) return
+
+  if (integer_option(-1, iu_part) > 0 .and. lttp%particle_output_every_n_turns < 1) then
     write (iu_part, ltt_com%ps_fmt) i_turn, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele%name)
   endif
 
@@ -2830,5 +2888,200 @@ if (ltt_com_global%using_mpi) then
 endif
 
 end subroutine ltt_apply_rampers_to_slave
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine ltt_track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
+!
+! This routine handles ramper element bookkeeping.
+!
+! This routine is called by the customized version of track1_bunch_hook that is linked with
+! the long_term_tracking program.
+!
+! Input:
+!   bunch_start   -- Bunch_struct: Starting bunch position.
+!   ele          -- Ele_struct: Element to track through.
+!   centroid(0:) -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                     Hint: Calculate this before bunch tracking by tracking a single particle.
+!   direction    -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!
+! Output:
+!   bunch_end    -- bunch_struct: Ending bunch position.
+!   err         -- Logical: Set true if there is an error. 
+!                    EG: Too many particles lost for a CSR calc.
+!   finished    -- logical: When set True, the standard track1_bunch code will not be called.
+!-
+
+subroutine ltt_track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
+
+type (bunch_struct), target :: bunch
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
+type (bunch_track_struct), optional :: bunch_track
+type (coord_struct), optional :: centroid(0:)
+type (coord_struct), pointer :: orb
+
+real(rp) t, r
+
+integer, optional :: direction
+integer ip, ir, ie, n, iv
+
+logical err, finished
+
+! Rampers are only applied to the element once per bunch. That is, it is assumed 
+! that the ramper control function variation is negligible over the time scale of a bunch passage. 
+! To evaluate multiple times in a bunch passage would, in general, be wrong if using ran() or ran_gauss().
+
+err = .false.
+finished = .false.
+if (.not. ltt_params_global%ramping_on) return 
+if (ltt_params_global%ramp_update_each_particle) return 
+
+n = ltt_com_global%n_ramper_loc
+if (n == 0) return
+
+t = sum(bunch%particle%t, bunch%particle%state == alive$) / &
+           count(bunch%particle%state == alive$) + 0.5_rp * ele%value(delta_ref_time$) + &
+           ltt_params_global%ramping_start_time
+
+do ir = 1, ltt_com_global%n_ramper_loc
+  do iv = 1, size(ltt_com_global%ramper(ir)%ele%control%var)
+    if (ltt_com_global%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
+    ltt_com_global%ramper(ir)%ele%control%var(iv)%value = t
+  enddo
+enddo
+
+n = ltt_com_global%n_ramper_loc
+call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err)
+
+! The beginning element is never tracked through. If there is energy ramping and the user is writing out 
+! p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
+! So adjust the beginning element's p0c and E_tot to keep users happy.
+
+if (ele%ix_ele == 1) then
+  ele0 => pointer_to_next_ele(ele, -1)
+  ele0%value(p0c$) = ele%value(p0c_start$)
+  ele0%value(E_tot$) = ele%value(E_tot_start$)
+endif
+
+! Adjust particle reference energy if needed.
+
+if (bunch%particle(1)%p0c == ele%value(p0c_start$)) return
+
+do ip = 1, size(bunch%particle)
+  orb => bunch%particle(ip)
+  if (orb%state /= alive$) cycle
+  r = orb%p0c / ele%value(p0c_start$)
+  orb%vec(2) = r * orb%vec(2)
+  orb%vec(4) = r * orb%vec(4)
+  orb%vec(6) = r * orb%vec(6) + (orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+  orb%p0c = ele%value(p0c_start$)
+enddo
+
+end subroutine ltt_track1_bunch_hook
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine ltt_track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
+!
+! Routine for pre-processing at the start of the track1 routine.
+!
+! Also see:
+!   track1_postprocess
+!   track1_custom
+!
+! The radiation_included argument should be set to True if this routine (or a modified version of track1_custom)
+! takes into account radiation damping and/or excitation. This will prevent track1 from calling track1_radiation.
+! Note: If symp_lie_bmad is being called by this routine, symp_lie_bmad does take into account radiation effects.
+! 
+! General rule: Your code may NOT modify any argument that is not listed as an output agument below.
+!
+! Input:
+!   start_orb  -- coord_struct: Starting position at the beginning of ele.
+!   ele        -- ele_struct: Element.
+!   param      -- lat_param_struct: Lattice parameters.
+!
+! Output:
+!   start_orb   -- coord_struct: Modified starting position for track1 to use.
+!   err_flag    -- logical: Set true if there is an error. False otherwise.
+!   finished    -- logical: When set True, track1 will halt further processing and use the modified 
+!                     start_orb as the final end position of the particle.
+!   radiation_included
+!               -- logical: Should be set True if radiation damping/excitation is included in the tracking.
+!   track       -- track_struct, optional: Structure holding the track information if the 
+!                    tracking method does tracking step-by-step.
+!-
+
+subroutine ltt_track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
+
+type (coord_struct) :: start_orb
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
+type (lat_param_struct) :: param
+type (track_struct), optional :: track
+
+real(rp) r, t
+integer ir, n, iu, iv
+logical err_flag, finished, radiation_included, is_there
+
+character(*), parameter :: r_name = 'ltt_track1_preprocess'
+
+! Recording a particle track?
+
+err_flag = .false.
+
+if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
+  iu = lunget()
+  if (ele%ix_ele <= 1) then
+    open (iu, file = 'particle_track.dat')
+  else
+    open (iu, file = 'particle_track.dat', access = 'append')
+  endif
+  write (iu, '(i8, 2x, a20, 6es16.8)') ele%ix_ele, ele%name, start_orb%vec
+  close (iu)
+endif
+
+if (.not. ltt_params_global%ramping_on) return
+if (.not. ltt_params_global%ramp_update_each_particle) return 
+
+! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
+
+t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
+
+do ir = 1, ltt_com_global%n_ramper_loc
+  do iv = 1, size(ltt_com_global%ramper(ir)%ele%control%var)
+    if (ltt_com_global%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
+    ltt_com_global%ramper(ir)%ele%control%var(iv)%value = t
+  enddo
+enddo
+
+n = ltt_com_global%n_ramper_loc
+call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err_flag)
+
+! The beginning element (with index 0) is never tracked through. If there is energy ramping and the user is 
+! writing out p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
+! So adjust the beginning element's p0c and E_tot to keep users happy.
+
+if (ele%ix_ele == 1) then
+  ele0 => pointer_to_next_ele(ele, -1)
+  ele0%value(p0c$) = ele%value(p0c_start$)
+  ele0%value(E_tot$) = ele%value(E_tot_start$)
+endif
+
+! Adjust particle reference energy if needed.
+
+if (start_orb%p0c == ele%value(p0c_start$)) return
+
+r = start_orb%p0c / ele%value(p0c_start$)
+start_orb%vec(2) = r * start_orb%vec(2)
+start_orb%vec(4) = r * start_orb%vec(4)
+start_orb%vec(6) = r * start_orb%vec(6) + (start_orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+start_orb%p0c = ele%value(p0c_start$)
+
+end subroutine ltt_track1_preprocess
 
 end module

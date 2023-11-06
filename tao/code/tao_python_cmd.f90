@@ -58,7 +58,7 @@ use tao_data_and_eval_mod, only: tao_evaluate_expression
 use tao_dmerit_mod, only: tao_dmodel_dvar_calc
 use tao_input_struct, only: tao_ele_shape_input, tao_ele_shape_input_to_struct
 use opti_de_mod, only: opti_de_param
-
+use rad_6d_mod, only: emit_6d
 
 implicit none
 
@@ -3724,8 +3724,8 @@ case ('ele:twiss')
 
   nl=incr(nl); write (li(nl), lmt) 'mode_flip;LOGIC;F;', ele%mode_flip
 
-  call twiss_out (ele%a, 'a', can_vary = free)
-  call twiss_out (ele%b, 'b', can_vary = free)
+  call twiss_out (ele%a, '', 'a', can_vary = free)
+  call twiss_out (ele%b, '', 'b', can_vary = free)
   call xy_disp_out (ele%x, 'x', can_vary = free)
   call xy_disp_out (ele%y, 'y', can_vary = free)
 
@@ -4542,6 +4542,7 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'beam_timer_on;LOGIC;T;',                  s%global%beam_timer_on
   nl=incr(nl); write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
   nl=incr(nl); write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
+  nl=incr(nl); write (li(nl), lmt) 'opti_write_var_file;LOGIC;T;',            s%global%opti_write_var_file
   nl=incr(nl); write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
   nl=incr(nl); write (li(nl), lmt) 'optimizer_allow_user_abort;LOGIC;T;',     s%global%optimizer_allow_user_abort
   nl=incr(nl); write (li(nl), lmt) 'rf_on;LOGIC;T;',                          s%global%rf_on
@@ -4593,6 +4594,7 @@ case ('global:optimization')
 
   nl=incr(nl); write (li(nl), amt) 'optimizer;ENUM;T;',                       trim(s%global%optimizer)
   nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    trim(s%global%var_out_file)
+  nl=incr(nl); write (li(nl), lmt) 'opti_write_var_file;LOGIC;T;',            s%global%opti_write_var_file
 
   nl=incr(nl); write (li(nl), lmt) 'derivative_recalc;LOGIC;T;',              s%global%derivative_recalc
   nl=incr(nl); write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design
@@ -6309,7 +6311,7 @@ case ('ring_general')
                                                   pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
   call calc_z_tune(branch)
   call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
-
+  call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, mat6, tao_branch%orbit)
   n = branch%n_ele_track
   time1 = branch%ele(n)%ref_time
   gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
@@ -6321,20 +6323,20 @@ case ('ring_general')
   nl=incr(nl); write (li(nl), rmt) 'Q_spin;REAL;F;',                            branch%param%spin_tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'chrom_a;REAL;F;',                           tao_branch%a%chrom
   nl=incr(nl); write (li(nl), rmt) 'chrom_b;REAL;F;',                           tao_branch%b%chrom
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes_ri%a%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes_ri%b%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes_ri%z%j_damp
-  nl=incr(nl); write (li(nl), rmt) 'emit_a;REAL;F;',                            tao_branch%modes_ri%a%emittance
-  nl=incr(nl); write (li(nl), rmt) 'emit_b;REAL;F;',                            tao_branch%modes_ri%b%emittance
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_a;REAL;F;',                      tao_branch%modes_ri%a%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_b;REAL;F;',                      tao_branch%modes_ri%b%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_z;REAL;F;',                      tao_branch%modes_ri%z%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_a;REAL;F;',                    time1/tao_branch%modes_ri%a%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_b;REAL;F;',                    time1/tao_branch%modes_ri%b%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'damping_time_z;REAL;F;',                    time1/tao_branch%modes_ri%z%alpha_damp
-  nl=incr(nl); write (li(nl), rmt) 'sigE_E;REAL;F;',                            tao_branch%modes_ri%sigE_E
-  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;F;',                             tao_branch%modes_ri%sig_z
-  nl=incr(nl); write (li(nl), rmt) 'energy_loss;REAL;F;',                       tao_branch%modes_ri%e_loss
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes_6d%a%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes_6d%b%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes_6d%z%j_damp
+  nl=incr(nl); write (li(nl), rmt) 'emit_a;REAL;F;',                            tao_branch%modes_6d%a%emittance
+  nl=incr(nl); write (li(nl), rmt) 'emit_b;REAL;F;',                            tao_branch%modes_6d%b%emittance
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_a;REAL;F;',                      tao_branch%modes_6d%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_b;REAL;F;',                      tao_branch%modes_6d%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'alpha_damp_z;REAL;F;',                      tao_branch%modes_6d%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_a;REAL;F;',                    time1/tao_branch%modes_6d%a%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_b;REAL;F;',                    time1/tao_branch%modes_6d%b%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'damping_time_z;REAL;F;',                    time1/tao_branch%modes_6d%z%alpha_damp
+  nl=incr(nl); write (li(nl), rmt) 'sigE_E;REAL;F;',                            tao_branch%modes_6d%sigE_E
+  nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;F;',                             tao_branch%modes_6d%sig_z
+  nl=incr(nl); write (li(nl), rmt) 'energy_loss;REAL;F;',                       tao_branch%modes_6d%e_loss
   nl=incr(nl); write (li(nl), rmt) 'I0;REAL;F;',                                tao_branch%modes_ri%synch_int(0)
   nl=incr(nl); write (li(nl), rmt) 'I1;REAL;F;',                                tao_branch%modes_ri%synch_int(1)
   nl=incr(nl); write (li(nl), rmt) 'I2;REAL;F;',                                tao_branch%modes_ri%synch_int(2)
@@ -6961,10 +6963,7 @@ case ('spin_invariant')
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
-  if (.not. bmad_com%spin_tracking_on) then
-    call tao_spin_tracking_turn_on()
-    call tao_lattice_calc(ok)
-  endif
+  if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on()
 
   orb = tao_lat%tao_branch(ix_branch)%orbit(0)
   n0 = orb%spin
@@ -7059,7 +7058,7 @@ case ('spin_polarization')
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
-  if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc (branch, tao_branch)
+  if (.not. tao_branch%spin%valid) call tao_spin_polarization_calc (branch, tao_branch)
 
   z = anomalous_moment_of(branch%param%particle) * branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
   nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',           z
@@ -7317,8 +7316,8 @@ case ('twiss_at_s')
   ix_branch = ele%ix_branch
 
   call twiss_and_track_at_s (tao_lat%lat, s_pos, this_ele, tao_lat%tao_branch(ix_branch)%orbit, ix_branch = ix_branch)
-  call twiss_out (this_ele%a, 'a')
-  call twiss_out (this_ele%b, 'b')
+  call twiss_out (this_ele%a, '', 'a')
+  call twiss_out (this_ele%b, '', 'b')
   nl=incr(nl); write (li(nl), rmt) 'c_mat11;REAL;F;',            ele%c_mat(1,1)
   nl=incr(nl); write (li(nl), rmt) 'c_mat12;REAL;F;',            ele%c_mat(1,2)
   nl=incr(nl); write (li(nl), rmt) 'c_mat21;REAL;F;',            ele%c_mat(2,1)
@@ -8399,10 +8398,10 @@ end subroutine
 !----------------------------------------------------------------------
 ! contains
 
-subroutine twiss_out (twiss, suffix, emit_out, can_vary)
+subroutine twiss_out (twiss, prefix, suffix, emit_out, can_vary)
 
 type (twiss_struct) twiss
-character(*) suffix
+character(*) prefix, suffix
 character(20) fmt
 character(8) v_str
 logical, optional :: emit_out, can_vary
@@ -8413,20 +8412,20 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es22.14)'
+fmt = '(4a, es22.14)'
 
-nl=incr(nl); write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
-nl=incr(nl); write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
-nl=incr(nl); write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                    twiss%gamma
-nl=incr(nl); write (li(nl), fmt) 'phi_', suffix, v_str,                           twiss%phi
-nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           twiss%eta
-nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          twiss%etap
+nl=incr(nl); write (li(nl), fmt) prefix, 'beta_', suffix, v_str,                twiss%beta
+nl=incr(nl); write (li(nl), fmt) prefix,  'alpha_', suffix, v_str,              twiss%alpha
+nl=incr(nl); write (li(nl), fmt) prefix,  'gamma_', suffix, ';REAL;F;',         twiss%gamma
+nl=incr(nl); write (li(nl), fmt) prefix,  'phi_', suffix, v_str,                twiss%phi
+nl=incr(nl); write (li(nl), fmt) prefix,  'eta_', suffix, v_str,                twiss%eta
+nl=incr(nl); write (li(nl), fmt) prefix,  'etap_', suffix, v_str,               twiss%etap
 
 if (logic_option(.false., emit_out)) then
-  nl=incr(nl); write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                  twiss%sigma
-  nl=incr(nl); write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                twiss%sigma_p
-  nl=incr(nl); write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                   twiss%emit
-  nl=incr(nl); write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',              twiss%norm_emit
+  nl=incr(nl); write (li(nl), fmt) prefix, 'sigma_', suffix, ';REAL;F;',       twiss%sigma
+  nl=incr(nl); write (li(nl), fmt) prefix, 'sigma_p_', suffix, ';REAL;F;',     twiss%sigma_p
+  nl=incr(nl); write (li(nl), fmt) prefix, 'emit_', suffix, ';REAL;F;',        twiss%emit
+  nl=incr(nl); write (li(nl), fmt) prefix, 'norm_emit_', suffix, ';REAL;F;',   twiss%norm_emit
 endif
 
 end subroutine twiss_out
@@ -9057,12 +9056,12 @@ type (bunch_params_struct) bunch_params
 
 !
 
-call twiss_out(bunch_params%x, 'x', .true.)
-call twiss_out(bunch_params%y, 'y', .true.)
-call twiss_out(bunch_params%z, 'z', .true.)
-call twiss_out(bunch_params%a, 'a', .true.)
-call twiss_out(bunch_params%b, 'b', .true.)
-call twiss_out(bunch_params%c, 'c', .true.)
+call twiss_out(bunch_params%x, 'twiss_', 'x', emit_out = .true.)
+call twiss_out(bunch_params%y, 'twiss_', 'y', emit_out = .true.)
+call twiss_out(bunch_params%z, 'twiss_', 'z', emit_out = .true.)
+call twiss_out(bunch_params%a, 'twiss_', 'a', emit_out = .true.)
+call twiss_out(bunch_params%b, 'twiss_', 'b', emit_out = .true.)
+call twiss_out(bunch_params%c, 'twiss_', 'c', emit_out = .true.)
 
 ! Sigma matrix
 do i = 1, 6

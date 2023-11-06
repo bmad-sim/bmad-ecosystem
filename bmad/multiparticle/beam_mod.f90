@@ -197,6 +197,7 @@ subroutine track1_bunch (bunch, ele, err, centroid, direction, bunch_track)
 
 use csr_and_space_charge_mod, only: track1_bunch_csr, track1_bunch_csr3d
 use beam_utils, only: track1_bunch_hom
+use space_charge_mod, only: track_bunch_to_t, track_bunch_to_s
 
 implicit none
 
@@ -217,8 +218,10 @@ character(*), parameter :: r_name = 'track1_bunch'
 
 ! Custom tracking
 
-call track1_bunch_hook (bunch, ele, err, centroid, direction, finished, bunch_track)
-if (finished) return
+if (associated(track1_bunch_hook_ptr)) then
+  call track1_bunch_hook_ptr (bunch, ele, err, centroid, direction, finished, bunch_track)
+  if (finished) return
+endif
 
 !
 
@@ -257,7 +260,8 @@ if (csr_sc_on .and. ele%key /= match$) then
     track1_bunch_space_charge_called = .true.
 
   elseif (ele%csr_method == steady_state_3d$) then
-     call track1_bunch_csr3d(bunch, ele, centroid, err, bunch_track = bunch_track)
+    if (bunch%drift_between_t_and_s) call correct_s_t_tracking_conversion(bunch, ele)
+    call track1_bunch_csr3d(bunch, ele, centroid, err, bunch_track = bunch_track)
      
   else
     if (.not. present(centroid)) then
@@ -265,6 +269,7 @@ if (csr_sc_on .and. ele%key /= match$) then
       if (global_com%exit_on_error) call err_exit
       return
     endif
+    if (bunch%drift_between_t_and_s) call correct_s_t_tracking_conversion(bunch, ele)
     call track1_bunch_csr (bunch, ele, centroid, err, bunch_track = bunch_track)
 
   endif
@@ -273,6 +278,7 @@ if (csr_sc_on .and. ele%key /= match$) then
 ! Non csr / non space-charge tracking
 else
   err = .false.
+  if (bunch%drift_between_t_and_s) call correct_s_t_tracking_conversion(bunch, ele)
   call track1_bunch_hom (bunch, ele, direction, bunch_track = bunch_track)
   bunch%ix_ele = ele%ix_ele
 endif
@@ -304,6 +310,22 @@ if (associated(wake_ele)) then
   endif
 
 endif
+
+!-----------------------------------------------------------------------------------
+contains
+
+subroutine correct_s_t_tracking_conversion(bunch, ele)
+
+type (bunch_struct) bunch
+type (ele_struct) ele
+
+!
+
+call track_bunch_to_t(bunch, bunch%t0, ele%branch)
+bunch%drift_between_t_and_s = .false.
+call track_bunch_to_s(bunch, ele%s_start, ele%branch)
+
+end subroutine correct_s_t_tracking_conversion
 
 end subroutine track1_bunch
 

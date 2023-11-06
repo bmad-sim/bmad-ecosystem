@@ -1,9 +1,10 @@
 !+
 ! Subroutine wall_hit_handler_custom (orb, ele, s)
 !
-! Dummy routine.
-! This routine is called by the Runge-Kutta integrator odeint_bmad when a particle hits a wall.
-! This routine can be replaced by a custom routine to do custom calculations.
+! Prototype routine for customizing the action when a particle hits 
+! a wall with Runge-Kutta integration in odeint_bmad.
+!
+! To use, see the Bmad manual.
 !
 ! Input:
 !   orb   -- coord_struct: coordinates of particle.
@@ -11,12 +12,12 @@
 !   s     -- real(rp): Longitudinal position from start of element.
 !
 ! Output:
-!   Any argument may be modified...
+!   orb   -- coord_struct: coordinates of particle.
 !-
 
 subroutine wall_hit_handler_custom (orb, ele, s)
 
-use bmad_interface, dummy => wall_hit_handler_custom
+use bmad_interface
 
 implicit none
 

@@ -1,5 +1,0 @@
-cd ../../bmad
-mkd
-cd ../regression_tests
-mkd mat6_calc_method_test-exe
-cd mat6_calc_method_test

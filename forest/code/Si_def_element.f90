@@ -2031,68 +2031,68 @@ CONTAINS
 
     if(EL%KIND==kind1) return
 
-    if(associated(EL%ramp)) then
-    
-      if(EL%KIND/=kind15) then
-          do n=1,EL%P%NMUL
-             EL%BN(N)= EL%ramp%table(0)%bn(n)
-             EL%AN(N)= EL%ramp%table(0)%an(n)
-             ELP%BN(N)= ELP%ramp%table(0)%bn(n)
-             ELP%AN(N)= ELP%ramp%table(0)%an(n)
-          enddo  
-      else
-            EL%VOLT=EL%ramp%table(0)%bn(1)*COS(twopi*EL%ramp%table(0)%an(1)*T/clight+EL%ramp%table(0)%bn(2))+EL%ramp%table(0)%an(2)
-           ELP%VOLT=EL%ramp%table(0)%bn(1)*COS(twopi*EL%ramp%table(0)%an(1)*T/clight+EL%ramp%table(0)%bn(2))+EL%ramp%table(0)%an(2)
-         write(6,*) " volt ",el%volt,EL%ramp%table(0)%bn(1)
-      endif
-      
-      if(EL%ramp%table(0)%b_t/=0.0_dp) then
-          if(EL%parent_fibre%PATCH%TIME==0) EL%parent_fibre%PATCH%TIME=2
-          if(EL%parent_fibre%PATCH%TIME==1) EL%parent_fibre%PATCH%TIME=3
-          EL%parent_fibre%PATCH%b_T=EL%ramp%table(0)%b_t
-        else
-          if(EL%parent_fibre%PATCH%TIME==2) EL%parent_fibre%PATCH%TIME=0
-          if(EL%parent_fibre%PATCH%TIME==3) EL%parent_fibre%PATCH%TIME=1
-        EL%parent_fibre%PATCH%b_T=0.0_dp
-      endif
+!    if(associated(EL%ramp)) then
+!    
+!      if(EL%KIND/=kind15) then
+!          do n=1,EL%P%NMUL
+!             EL%BN(N)= EL%ramp%table(0)%bn(n)
+!             EL%AN(N)= EL%ramp%table(0)%an(n)
+!             ELP%BN(N)= ELP%ramp%table(0)%bn(n)
+!             ELP%AN(N)= ELP%ramp%table(0)%an(n)
+!          enddo  
+!      else
+!            EL%VOLT=EL%ramp%table(0)%bn(1)*COS(twopi*EL%ramp%table(0)%an(1)*T/clight+EL%ramp%table(0)%bn(2))+EL%ramp%table(0)%an(2)
+!           ELP%VOLT=EL%ramp%table(0)%bn(1)*COS(twopi*EL%ramp%table(0)%an(1)*T/clight+EL%ramp%table(0)%bn(2))+EL%ramp%table(0)%an(2)
+!         write(6,*) " volt ",el%volt,EL%ramp%table(0)%bn(1)
+!      endif
+!      
+!      if(EL%ramp%table(0)%b_t/=0.0_dp) then
+!          if(EL%parent_fibre%PATCH%TIME==0) EL%parent_fibre%PATCH%TIME=2
+!          if(EL%parent_fibre%PATCH%TIME==1) EL%parent_fibre%PATCH%TIME=3
+!          EL%parent_fibre%PATCH%b_T=EL%ramp%table(0)%b_t
+!        else
+!          if(EL%parent_fibre%PATCH%TIME==2) EL%parent_fibre%PATCH%TIME=0
+!          if(EL%parent_fibre%PATCH%TIME==3) EL%parent_fibre%PATCH%TIME=1
+!        EL%parent_fibre%PATCH%b_T=0.0_dp
+ !     endif
           
-    else
+ !   else
 
       IF(EL%P%NMUL>=1.and.associated(EL%D_BN)) THEN
         if(present(VR))then
           do n=1,EL%P%NMUL
              EL%BN(N)= vR*EL%D0_BN(N)+DVR*EL%D_BN(N) 
              EL%AN(N)= vR*EL%D0_AN(N)+DVR*EL%D_AN(N)
-             ELP%BN(N)= vR*EL%D0_BN(N)+DVR*EL%D_BN(N)
-             ELP%AN(N)= vR*EL%D0_AN(N)+DVR*EL%D_AN(N)
+             ELP%BN(N)= vR*ELp%D0_BN(N)+DVR*ELp%D_BN(N)
+             ELP%AN(N)= vR*ELp%D0_AN(N)+DVR*ELp%D_AN(N)
           enddo
         else
           do n=1,EL%P%NMUL
              EL%BN(N)= vp*EL%D0_BN(N)+DVp*EL%D_BN(N)
              EL%AN(N)= vp*EL%D0_AN(N)+DVp*EL%D_AN(N)
-             ELP%BN(N)= vp*EL%D0_BN(N)+DVp*EL%D_BN(N)
-             ELP%AN(N)= vp*EL%D0_AN(N)+DVp*EL%D_AN(N)
+             ELP%BN(N)= vp*ELp%D0_BN(N)+DVp*ELp%D_BN(N)
+             ELP%AN(N)= vp*ELp%D0_AN(N)+DVp*ELp%D_AN(N)
           enddo
        endif
        
     
-      endif 
+ !     endif 
       if(associated(el%volt)) then
         if(present(VR))then
              EL%volt=  vR*EL%D0_Volt+DVR*EL%D_Volt
-             ELP%volt= vR*EL%D0_Volt+DVR*EL%D_Volt
+             ELP%volt= vR*ELp%D0_Volt+DVR*ELp%D_Volt
         else
              EL%volt=  vp*EL%D0_Volt+DVp*EL%D_Volt
-             ELP%volt= vp*EL%D0_Volt+DVp*EL%D_Volt
+             ELP%volt= vp*ELp%D0_Volt+DVp*ELp%D_Volt
         endif
       endif
       if(associated(el%phas)) then
         if(present(VR))then
              EL%phas=  vR*EL%D0_phas+DVR*EL%D_phas
-             ELP%phas= vR*EL%D0_phas+DVR*EL%D_phas
+             ELP%phas= vR*ELp%D0_phas+DVR*ELp%D_phas
         else
              EL%phas=  vp*EL%D0_phas+DVp*EL%D_phas
-             ELP%phas= vp*EL%D0_phas+DVp*EL%D_phas
+             ELP%phas= vp*ELp%D0_phas+DVp*ELp%D_phas
         endif
       endif
       

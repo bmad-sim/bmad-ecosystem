@@ -1,10 +1,9 @@
 !+
 ! Subroutine track1_spin_custom (start, ele, param, end, err_flag, make_quaternion)
 !
-! Dummy routine for custom spin tracking. 
-! This routine needs to be replaced for a custom calculation.
+! Prototype routine for custom spin tracking. 
 !
-! This routine is called if ele%spin_tracking_method = custom$
+! This routine will be called if ele%spin_tracking_method = custom$
 !
 ! Note: If ele%spin_tracking_method = tracking$, this routine is not called and
 ! spin tracking must be done with the phase space tracking in track1_custom.
@@ -25,7 +24,7 @@
 
 subroutine track1_spin_custom (start, ele, param, end, err_flag, make_quaternion)
 
-use bmad_interface, except_dummy => track1_spin_custom
+use bmad_interface
 
 implicit none
 

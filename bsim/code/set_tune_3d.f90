@@ -1,5 +1,5 @@
 !+
-! function set_tune_3d (branch, target_tunes, use_phase_trombone, quad_mask, z_tune_set, print_err) result (everything_ok)
+! function set_tune_3d (branch, target_tunes, use_phase_trombone, quad_mask, z_tune_set, group_knobs, print_err) result (everything_ok)
 !
 ! Wrapper for set_tune and set_z_tune together.
 !
@@ -10,6 +10,7 @@
 !   use_phase_trombone  -- logical, optional: Default False. If true, use a match element in phase trombone mode to adjust the tunes.
 !                            The match element must be the first element in the lattice. Use insert_phase_trombone to insert one.
 !   z_tune_set          -- logical, optional: Default True. If false, do not try to set the synch tune.
+!   group_knobs(2)      -- character(*), optional: If set non-blank, use these group elements for tuning.
 !   print_err           -- logical, optional: Print error message if there is a problem? Default is True.
 !
 ! Output:
@@ -17,7 +18,7 @@
 !   everything_ok       -- logical: Returns true or false if set was successful.  
 !-
 
-function set_tune_3d (branch, target_tunes, quad_mask, use_phase_trombone, z_tune_set, print_err) result (everything_ok)
+function set_tune_3d (branch, target_tunes, quad_mask, use_phase_trombone, z_tune_set, group_knobs, print_err) result (everything_ok)
 
 use bmad
 
@@ -31,9 +32,9 @@ real(rp) target_tunes(3)
 real(rp), allocatable :: dk1(:)
 integer n, status
 logical, optional :: use_phase_trombone, z_tune_set, print_err
-logical everything_ok, err
+logical everything_ok, err, use_groups
 
-character(*), optional :: quad_mask
+character(*), optional :: quad_mask, group_knobs(2)
 character(*), parameter :: r_name = 'set_tune_3d'
 
 !
@@ -68,15 +69,25 @@ endif
 
 !
 
-allocate(dk1(branch%n_ele_max))
-call choose_quads_for_set_tune(branch, dk1, eles, quad_mask, err)
-if (err) then
-  call out_io (s_error$, r_name, &
-    'CANNOT FIND A QUAD WITH BETA_A < BETA_B AND A QUAD WITH BETA_A > BETA_B (BOTH WITH NO TILT).')
-  return
+use_groups = .false.
+if (present(group_knobs)) use_groups = (group_knobs(1) /= '')
+
+if (use_groups) then
+  everything_ok = set_tune_via_group_knobs(twopi*target_tunes, branch, group_knobs, co, print_err)
+
+else
+  allocate(dk1(branch%n_ele_max))
+  call choose_quads_for_set_tune(branch, dk1, eles, quad_mask, err)
+  if (err) then
+    call out_io (s_error$, r_name, &
+      'CANNOT FIND A QUAD WITH BETA_A < BETA_B AND A QUAD WITH BETA_A > BETA_B (BOTH WITH NO TILT).')
+    return
+  endif
+
+  everything_ok = set_tune(twopi*target_tunes(1), twopi*target_tunes(2), dk1, eles, branch, co, print_err)
 endif
 
-everything_ok = set_tune(twopi*target_tunes(1), twopi*target_tunes(2), dk1, eles, branch, co, print_err)
+!
 
 if (logic_option(.true., z_tune_set)) call set_z_tune(branch, twopi*target_tunes(3))
 

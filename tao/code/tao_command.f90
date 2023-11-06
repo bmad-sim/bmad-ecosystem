@@ -31,6 +31,7 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
+type (tao_plot_struct), pointer :: plt
 
 integer i, j, n, iu, ios, n_word, n_eq, stat
 integer ix, ix_line, ix_cmd, which
@@ -57,7 +58,7 @@ character(16) :: cmd_names_old(6) = [&
     'output       ']
 
 logical quit_tao, err, err_is_fatal, silent, gang, abort, err_flag, ok
-logical include_wall, update, exact, include_this, lord_set, listing
+logical include_wall, update, exact, include_this, lord_set, listing, found
 
 ! blank line => nothing to do
 
@@ -343,8 +344,6 @@ case ('cut_ring')
   u%calc%lattice = .true.
   u%model%lat%particle_start%vec = 0
   call tao_lattice_calc (ok)
-
-  return
 
 !--------------------------------
 ! DERIVATIVE
@@ -831,8 +830,22 @@ case ('single_mode')
     return
   endif
 
+  if (s%global%plot_on) then
+    found = .false.
+    do i = 1, size(s%plot_page%region)
+      if (.not. s%plot_page%region(i)%visible) cycle
+      plt => s%plot_page%region(i)%plot
+      if (.not. allocated(plt%graph)) cycle
+      do j = 1, size(plt%graph)
+        if (plt%graph(j)%type == 'key_table') found = .true.
+      enddo
+    enddo
+    if (.not. found) call out_io(s_blank$, r_name, '[Note: Use the "place" command in line mode if you want to see the key_table.]')
+  endif
+
   s%com%single_mode = .true.
-  call out_io (s_blank$, r_name, 'Entering Single Mode...')
+  call out_io (s_blank$, r_name, 'Entering Single Mode. Waiting for your input...')
+
   return
 
 !--------------------------------

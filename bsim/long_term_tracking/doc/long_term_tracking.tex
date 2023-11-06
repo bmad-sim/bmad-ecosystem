@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ July 10, 2023}
+\date{David Sagan \\ November 2, 2023}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -99,7 +99,7 @@
 \Section{Introduction} 
 \label{s:intro}
 
-The \ltt program is for long term (over many turns) tracking of a particle or a beam in a ring.  The
+The \ltt program is for long term (over many turns) tracking of a particle or a beam in a ring. The
 \ltt program can track spin as well as simulate such things as element misalignments, wake fields,
 higher order mode cavity resonances, energy ramping, beta squeezing, etc. The output of the program
 will be such things as turn-by-turn particle tracks or beam statistics including beam sizes and
@@ -197,10 +197,11 @@ There are a number of simulation ``modes'' which determine what is done by the p
 simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master input file
 (\sref{s:input}).  Possible settings of \vn{ltt%simulation_mode} are:
 \begin{code}
-"CHECK"   ! Quick tracking check.
-"SINGLE"  ! Single particle tracking.
-"BEAM"    ! Beam tracking.
-"STAT"    ! Lattice statistics.
+"CHECK"       ! Quick tracking check.
+"SINGLE"      ! Tracking a single particle.
+"INDIVIDUAL"  ! Tracking a set of particles one at a time.
+"BEAM"        ! Beam (multi-particle) tracking.
+"STAT"        ! Lattice statistics (no tracking done).
 \end{code}
 
 \begin{description}
@@ -231,15 +232,26 @@ turned on.
 
 %
 \item["SINGLE"] \Newline
-In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The starting coordinates are determined
-in the same way as is done with the \vn{"CHECK"} mode.
+In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The starting coordinates are
+determined in the same way as is done with the \vn{"CHECK"} mode.
 
 The name of the data file is set by the \vn{ltt%phase_space_output_file} parameter
 (\sref{s:input}). The particle position will be output every \vn{ltt%particle_output_every_n_turns}
 turns. If this parameter is zero or negative, the position will be outputted at every element.
 %
+\item["INDIVIDUAL"] \Newline
+A set of particles are tracked one-by-one until lost (or until the maximum number of turns set by
+the user is reached). Unlike \vn{"BEAM"} mode, no statistics are recorded. Rather the output is the
+final position of the particles. The \vn{"INDIVIDUAL"} mode is useful for the situation when there
+is ramping (\sref{s:ramp}) and individual are seeing different guide fields due to the time
+separation between particles. Specifically, the \vn{"INDIVIDUAL"} mode is useful for simulating
+resonant slow extraction. The file name for the ending particle positions is set by
+\vn{ltt%phase_space_output_file} for ASCII output and \vn{ltt%beam_binary_output_file} for binary
+output.
+%
 \item["BEAM"] \Newline
-In this mode a particle beam is tracked for \vn{ltt%n_turns} turns.
+In this mode a particle beam is tracked for \vn{ltt%n_turns} turns. Beam statistics are recorded
+periodically as set by the user.
 %
 \item["STAT"] \Newline
 In this mode statistics about the lattice are calculated. No long term tracking is done.
@@ -272,8 +284,8 @@ tracking. However, map tracking can be inaccurate if the map order is too small 
 amplitude is too large.
 
 Only the \vn{BMAD} method is able to handle a machine that is being ramped (\sref{s:ramp}). That is,
-when \vn{ltt%ramping_on} set to True. The program will detect if there is a conflict and issue an error
-message and stop.
+when \vn{ltt%ramping_on} set to True. The program will detect if there is a conflict and issue an
+error message and stop.
 
 %------------------------------------------------------------------
 \Section{Map Tracking}
@@ -423,7 +435,7 @@ the cavity voltage and phase (\vn{phi0}) being varied.
 To simulate noise, use the \vn{ran()} or \vn{ran_gauss()} functions in a slave expression. Example:
 \begin{code}
   quake: ramper = \{*[y_offset]: 1e-5*ran_gauss()\}, var = \{\}
-\end
+\end{code}
 In this case no ramper variable is needed. 
 When a bunch passes through an element, the slave expression \vn{1e-5*ran_gauss()} is evaluated just
 once. That is, it is assumed that the frequency spectrum of the noise falls below 1/\vn{dt_bunch}
@@ -454,11 +466,12 @@ There are two modes that can be selected to determine how ramper elements are ap
 \vn{ltt%ramp_update_each_particle} is set to True, rampers are applied to a given lattice element as
 each particle of the beam passes through the element using the time the particle would pass through
 the center of the element. This is appropriate if ramping is fast on the time scale of a bunch
-passage. If set to False (the default), rampers are applied to a given element only once per beam
-passage using the time of the center of the bunch passing the center of the element. This is
-appropriate for parameters that vary slowly on the time scale of a bunch passage. For example if
-ramping magnet strengths with energy ramping which occurs over many turns, calculating once per beam
-passage should be a good approximation.
+passage or if in \vn{"INDIVIDUAL"} or \vn{"SINGLE"} mode. If set to False, rampers are applied to a
+given element only once per beam passage using the time of the center of the bunch passing the
+center of the element. This is appropriate for parameters that vary slowly on the time scale of a
+bunch passage. For example if ramping magnet strengths with energy ramping which occurs over many
+turns, calculating once per beam passage should be a good approximation. The default setting of
+\vn{ltt%ramp_update_each_particle} is False for \vn{"BEAM"} mode and True for all other modes.
 
 Before a simulation, individual ramper elements may be toggled on or off by setting the element's
 \vn{is_on} attribute in the lattice file: 
@@ -865,9 +878,9 @@ action-angle coordinates. Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}.
 \Sref{s:beam.part.dat} for more details.
 %
 \item[ltt\%averages_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. 
-The \vn{ltt%averages_output_file} parameter sets the prefix used for the file names for the
-\vn{averages}, \vn{sigma} and \vn{emittance} data files (\sref{s:beam.ave.dat}).
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}.  The \vn{ltt%averages_output_file} parameter
+sets the prefix used for the file names for the \vn{averages}, \vn{sigma} and \vn{emittance} data
+files (\sref{s:beam.ave.dat}).
 %
 \item[ltt\%averages_output_every_n_turns] \Newline
 Sets the number of turns between data rows of data files specified by:
@@ -878,13 +891,14 @@ ltt%custom_output_file    \sref{s:beam.cust.dat}
 For particle phase space output, use the \vn{particle_output_every_n_turns} parameter.
 %
 \item[ltt\%beam_binary_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file that
-is created to hold particle positions. This is similar to \vn{ltt%phase_space_output_file} but here
-the file will be a binary file that is portable to other programs and can also be used as input to
-the \ltt program. A beam file will be created every \vn{ltt%beam_output_every_n_turns} turns if this
-quantity is positive. Additionally, a beam file will be produced at the end of tracking. A beam file
-will be given a suffix \vn{.NNNN.h5} where \vn{NNNN} is the turn number. To save disk space, every
-time a new beam file is created, if there is an old beam file it will be deleted. 
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"INDIVIDUAL"}. This parameter sets the
+name of the file that is created to hold particle positions. This is similar to
+\vn{ltt%phase_space_output_file} but here the file will be a binary file that is portable to other
+programs and can also be used as input to the \ltt program. wITH \vn{"BEAM"} mode, a beam file will
+be created every \vn{ltt%beam_output_every_n_turns} turns if this quantity is
+positive. Additionally, a beam file will be produced at the end of tracking. A beam file will be
+given a suffix \vn{.NNNN.h5} where \vn{NNNN} is the turn number. To save disk space, every time a
+new beam file is created, if there is an old beam file it will be deleted.
 
 To translate to ASCII, use the \vn{beam_file_translate_format} program. Documentation is in any Bmad
 Distribution in the file:
@@ -939,7 +953,8 @@ indicates if the particle is alive or dead.
 \item[ltt\%particle_output_every_n_turns] \Newline
 Sets the number of turns between particle position data files. If set to -1 (the default), a file
 will only be generated at the last turn. If set to 0, a file will be generated at the beginning turn
-(turn 0) and at the last turn.
+(turn 0) and at the last turn. With the  \vn{ltt%simulation_mode} set to \vn{"INDIVIDUAL"}, there is
+no periodic output and this parameter will be ignored.
 %
 \item[ltt\%per_particle_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII files
@@ -950,10 +965,11 @@ If the name contains a hash character ``\#'', the suffix is inserted in place of
 instead of at the end.
 %
 \item[ltt\%phase_space_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"SINGLE"}. The name of the ASCII file
-or files that are created to hold the particle positions. A file is created every
-\vn{ltt%particle_output_every_n_turns} turns. See Section~\sref{s:beam.part.dat} for more
-details. If \vn{ltt%phase_space_output_file} is blank, no particle output file is created.
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}, \vn{"INDIVIDUAL"} or \vn{"SINGLE"}. The name
+of the ASCII file or files that are created to hold the particle positions. A file is created every
+\vn{ltt%particle_output_every_n_turns} turns for the \vn{"BEAM"} simulation mode. See
+Section~\sref{s:beam.part.dat} for more details. If \vn{ltt%phase_space_output_file} is blank, no
+particle output file is created.
 %
 \item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are

@@ -118,12 +118,14 @@ endif
 ! "Preprocess" with custom code.
 ! Note: Energy ramping can be done here so track1_preprocess is called before the energy sanity checks below.
 
-finished = .false.
-call track1_preprocess (start2_orb, ele, param, err, finished, radiation_included, track)
-if (err) return
-if (finished) then
-  if (present(err_flag)) err_flag = err
-  return
+if (associated(track1_preprocess_ptr))then
+  finished = .false.
+  call track1_preprocess_ptr (start2_orb, ele, param, err, finished, radiation_included, track)
+  if (err) return
+  if (finished) then
+    if (present(err_flag)) err_flag = err
+    return
+  endif
 endif
 
 ! symp_lie_bmad tracking does include radiation effects
@@ -240,7 +242,13 @@ case (mad$)
   call track1_mad (end_orb, ele, param)
 
 case (custom$)
-  call track1_custom (end_orb, ele, param, err, finished, track)
+  if (.not. associated(track1_custom_ptr)) then
+    call out_io (s_error$, r_name, 'TRACK1_CUSTOM_PTR HAS NOT BEEN SET IN THIS PROGRAM!', &
+                                   'NEEDED FOR CUSTOM ELEMENT OR TRACKING_METHOD = CUSTOM: ' // ele%name)
+    end_orb%state = lost$
+    return
+  endif
+  call track1_custom_ptr (end_orb, ele, param, err, finished, track)
   if (err) return
   if (finished) then
     if (present(err_flag)) err_flag = err
@@ -317,7 +325,7 @@ if (bmad_com%high_energy_space_charge_on .and. do_extra) call track1_high_energy
 
 call check_aperture_limit (end_orb, ele, second_track_edge$, param)
 
-call track1_postprocess (start_orb, ele, param, end_orb)
+if (associated(track1_postprocess_ptr)) call track1_postprocess_ptr (start_orb, ele, param, end_orb)
 
 if (do_save) then
   if (start_orb%direction*start_orb%time_dir == 1) then

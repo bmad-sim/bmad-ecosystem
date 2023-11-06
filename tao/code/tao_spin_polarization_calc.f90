@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
+! Subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic, err_flag)
 !
 ! Routine to calculate the spin equalibrium polarization in a ring along with the polarization rate and
 ! the depolarization rate due to emission of synchrotron radiation photons.
@@ -16,9 +16,10 @@
 !   tao_branch    -- tao_lattice_branch_struct: Calculated is:
 !     %spin%dn_dpz(:) 
 !     %spin
+!   err_flag      -- logical, optional: Set True if there is an error (EG: invalid orbit). False otherwise.
 !-
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
+subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic, err_flag)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
@@ -28,10 +29,10 @@ implicit none
 
 type (branch_struct), target :: branch
 type (tao_lattice_branch_struct), target :: tao_branch
+type (tao_spin_polarization_struct), pointer :: tspin
 type (coord_struct), pointer :: orbit(:)
-type (spin_orbit_map1_struct) :: q_1turn
 type (spin_orbit_map1_struct), pointer :: q1
-type (spin_orbit_map1_struct), target :: q_ele(0:branch%n_ele_track)
+
 type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable :: eles(:)
 
@@ -46,10 +47,18 @@ real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_b
 integer ix1, ix2, n_loc
 integer i, j, k, kk, n, p, ie
 
+logical, optional :: err_flag
 logical valid_value, err
 character(*), optional :: excite_zero(3), ignore_kinetic
 
 !
+
+if (present(err_flag)) err_flag = .true.
+
+if (tao_branch%spin%valid .and. tao_branch%spin_map_valid) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
 
 g_tol  = 1e-4_rp * branch%param%g1_integral / branch%param%total_length
 g2_tol = 1e-4_rp * branch%param%g2_integral / branch%param%total_length
@@ -66,6 +75,13 @@ integral_dn2_partial2 = 0
 
 !
 
+orbit => tao_branch%orbit
+tspin => tao_branch%spin
+if (.not. allocated(tao_branch%spin_ele)) allocate (tao_branch%spin_ele(0:branch%n_ele_track))
+if (branch%param%geometry == closed$ .and. orbit(branch%n_ele_track)%state /= alive$) return
+
+!
+
 call tao_spin_tracking_turn_on()
 
 branch%ele%logic = .true.  ! False => Ignore kinetic term
@@ -77,25 +93,27 @@ if (present(ignore_kinetic)) then
   enddo
 endif
 
-orbit => tao_branch%orbit
-if (.not. allocated(tao_branch%spin_ele)) allocate (tao_branch%spin_ele(0:branch%n_ele_track))
-tao_branch%spin_valid = .true.
+if (.not. tao_branch%spin_map_valid) then
+  if (.not. allocated(tspin%q_ele)) allocate(tspin%q_ele(0:branch%n_ele_track))
+  call spin_concat_linear_maps (err, tspin%q_1turn, branch, 0, branch%n_ele_track, tspin%q_ele, orbit, excite_zero)
+  if (err) return
+  tao_branch%spin_map_valid = .true.
+endif
 
-call spin_concat_linear_maps (err, q_1turn, branch, 0, branch%n_ele_track, q_ele, orbit, excite_zero)
-if (err) return
-
-if (branch%param%geometry == closed$) then
-  tao_branch%spin%tune = 2.0_rp * atan2(norm2(q_1turn%spin_q(1:3,0)), q_1turn%spin_q(0,0))
+if (branch%param%geometry == closed$) then  
+  tspin%tune = 2.0_rp * atan2(norm2(tspin%q_1turn%spin_q(1:3,0)), tspin%q_1turn%spin_q(0,0))
   n0       = 0
+  s_vec    = [0.0_rp, 0.0_rp, 1.0_rp]
   dn_dpz   = 0
   partial  = 0
   partial2 = 0
-
 else
   n0       = branch%lat%particle_start%spin
+  s_vec    = [0.0_rp, 0.0_rp, 1.0_rp]
   dn_dpz   = branch%ele(0)%value(spin_dn_dpz_x$:spin_dn_dpz_z$)
   partial  = 0 ! Not sure this is computable.
   partial2 = 0
+  tao_branch%spin_ele(0)%valid = .true.
   tao_branch%spin_ele(0)%dn_dpz%vec      = dn_dpz
   tao_branch%spin_ele(0)%dn_dpz%partial  = partial
   tao_branch%spin_ele(0)%dn_dpz%partial2 = partial2
@@ -110,29 +128,37 @@ do ie = 0, branch%n_ele_track
   old_n0       = n0
   old_partial  = partial
   old_partial2 = partial2
+  old_s_vec    = s_vec
 
   ele => branch%ele(ie)
 
   if (branch%param%geometry == closed$) then
-    q_1turn = q_ele(ie) * q_1turn * map1_inverse(q_ele(ie))
-    dn_dpz = spin_dn_dpz_from_qmap(q_1turn%orb_mat, q_1turn%spin_q, partial, partial2, err)
+    tspin%q_1turn = tspin%q_ele(ie) * tspin%q_1turn * map1_inverse(tspin%q_ele(ie))
+    dn_dpz = spin_dn_dpz_from_qmap(tspin%q_1turn%orb_mat, tspin%q_1turn%spin_q, partial, partial2, err)
     if (err) exit
+    tao_branch%spin_ele(ie)%valid = .true.
     tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
     tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
     tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
-    n0 = q_1turn%spin_q(1:3, 0)
+    n0 = tspin%q_1turn%spin_q(1:3, 0)
     n0 = n0 / norm2(n0)
     if (ie == 0) cycle
 
   else
     if (ie == 0) cycle
-    dn_dpz   = quat_sym(ele, q_ele(ie)%spin_q, n0) + quat_rotate(q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
-    n0       = quat_rotate(q_ele(ie)%spin_q(:,0), n0)
+    dn_dpz   = quat_sym(ele, tspin%q_ele(ie)%spin_q, n0) + quat_rotate(tspin%q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
+    n0       = quat_rotate(tspin%q_ele(ie)%spin_q(:,0), n0)
     partial  = 0
     partial2 = 0
+    tao_branch%spin_ele(ie)%valid = .true.
     tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
     tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
     tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
+  endif
+
+  if (orbit(ie)%state /= alive$) then
+    err = .true.
+    exit
   endif
 
   del_p  = 1 + orbit(ie)%vec(6)
@@ -173,30 +199,32 @@ enddo
 ! So test that integral_1ns is non-zero.
 
 if (integral_1ns == 0 .or. err) then
-  tao_branch%spin%pol_limit_st          = 0
-  tao_branch%spin%pol_limit_dk          = 0
-  tao_branch%spin%pol_limit_dk_partial  = 0
-  tao_branch%spin%pol_limit_dk_partial2 = 0
-  tao_branch%spin%pol_rate_bks          = 0
-  tao_branch%spin%depol_rate            = 0
-  tao_branch%spin%depol_rate_partial    = 0
-  tao_branch%spin%depol_rate_partial2   = 0
+  tspin%pol_limit_st          = 0
+  tspin%pol_limit_dk          = 0
+  tspin%pol_limit_dk_partial  = 0
+  tspin%pol_limit_dk_partial2 = 0
+  tspin%pol_rate_bks          = 0
+  tspin%depol_rate            = 0
+  tspin%depol_rate_partial    = 0
+  tspin%depol_rate_partial2   = 0
 else
   cm_ratio = charge_to_mass_of(branch%param%particle)
   call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle, gamma = gamma)
   f = f_rate * gamma**5 * cm_ratio**2 / branch%param%total_length
-  tao_branch%spin%pol_limit_st          = abs(f_limit * integral_bn / integral_1ns)
-  tao_branch%spin%pol_limit_dk          = abs(f_limit * (integral_bn - integral_bdn) / (integral_1ns + integral_dn2))
-  tao_branch%spin%pol_limit_dk_partial  = abs(f_limit * (integral_bn - integral_bdn_partial) / (integral_1ns + integral_dn2_partial))
-  tao_branch%spin%pol_limit_dk_partial2 = abs(f_limit * (integral_bn - integral_bdn_partial2) / (integral_1ns + integral_dn2_partial2))
-  tao_branch%spin%pol_rate_bks          = f * integral_1ns
-  tao_branch%spin%depol_rate            = f * integral_dn2
-  tao_branch%spin%depol_rate_partial    = f * integral_dn2_partial
-  tao_branch%spin%depol_rate_partial2   = f * integral_dn2_partial2
-  tao_branch%spin%integral_bn           = integral_bn
-  tao_branch%spin%integral_bdn          = integral_bdn
-  tao_branch%spin%integral_1ns          = integral_1ns
-  tao_branch%spin%integral_dn2          = integral_dn2
+  tspin%pol_limit_st          = abs(f_limit * integral_bn / integral_1ns)
+  tspin%pol_limit_dk          = abs(f_limit * (integral_bn - integral_bdn) / (integral_1ns + integral_dn2))
+  tspin%pol_limit_dk_partial  = abs(f_limit * (integral_bn - integral_bdn_partial) / (integral_1ns + integral_dn2_partial))
+  tspin%pol_limit_dk_partial2 = abs(f_limit * (integral_bn - integral_bdn_partial2) / (integral_1ns + integral_dn2_partial2))
+  tspin%pol_rate_bks          = f * integral_1ns
+  tspin%depol_rate            = f * integral_dn2
+  tspin%depol_rate_partial    = f * integral_dn2_partial
+  tspin%depol_rate_partial2   = f * integral_dn2_partial2
+  tspin%integral_bn           = integral_bn
+  tspin%integral_bdn          = integral_bdn
+  tspin%integral_1ns          = integral_1ns
+  tspin%integral_dn2          = integral_dn2
+  tspin%valid = .true.
+  if (present(err_flag)) err_flag = .false.
 endif
 
 !--------------------------------------

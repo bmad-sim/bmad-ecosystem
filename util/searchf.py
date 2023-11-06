@@ -115,13 +115,6 @@ def print_help_message ():
       code_examples       tao
       forest              util_programs
 
-  Additionally, at Cornell, the following directories are searched:
-      bmadz               genplt
-      bsim_cesr           instr_utils
-      cesr_programs       mpm_utils
-      cesr_utils          mpmnet
-      cesrv               nonlin_bpm
-                          univ_tune_tracker
 ''')
   sys.exit()
 
@@ -622,24 +615,7 @@ def search_all (doc_type):
 
   if len(dir_list) == 0:    # If no -d command line arg
     choose_path (dir_list, root_dir, 'univ_tune_tracker', '/code/tt_acq_sub.f90', '')
-    choose_path (dir_list, root_dir, 'cesr_utils', '/modules/cesr_utils.f90', '')
-    choose_path (dir_list, root_dir, 'mpm_utils', '/code/butout.f90', '')
-    choose_path (dir_list, root_dir, 'bmadz', '/modules/bmadz_struct.f90', '')
-    choose_path (dir_list, root_dir, 'bsim_cesr', '/modules/bsim_cesr_interface.f90', '')
-    choose_path (dir_list, root_dir, 'cesr_programs', '/bmad_to_ing_knob/bmad_to_ing_knob.f90', '')
-    choose_path (dir_list, root_dir, 'cesrv', '/code/cesrv_struct.f90', '')
     choose_path (dir_list, root_dir, 'util_programs', '/mad_to_bmad/madx_to_bmad.py', '')
-    choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
-    choose_path (dir_list, root_dir, 'mpmnet', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'genplt', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'instr_utils', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'rfnet', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'rf', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'timing', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'hard', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'save', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'vac', '/CMakeLists.txt', '')
-    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '/packages/')
     choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '')
     choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
     choose_path (dir_list, root_dir, 'code_examples', '/simple_bmad_program/simple_bmad_program.f90', '')

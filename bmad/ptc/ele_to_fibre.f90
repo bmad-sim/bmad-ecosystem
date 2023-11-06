@@ -328,7 +328,7 @@ case (sextupole$)
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 !------------------------------
-case (octupole$)
+case (octupole$, thick_multipole$)
   ptc_key%magnet = 'octupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
@@ -897,15 +897,14 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even planar_model with field_calc = bmad_standard$
 
-if (.not. associated(ele2%gen_grad_map) .and. ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. &
-                key == wiggler$ .or. key == undulator$)) then
+if (.not. associated(ele2%gen_grad_map) .and. .not. associated(ele2%cylindrical_map) .and. (key == wiggler$ .or. &
+                          key == undulator$ .or. (associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$))) then
 
   
   is_planar_wiggler = ((key == wiggler$ .or. key == undulator$) .and. ele2%field_calc == planar_model$) 
 
   if (associated(ele2%grid_field)) then
-    call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
+    call out_io (s_error$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
     return
   endif
 
@@ -914,18 +913,22 @@ if (.not. associated(ele2%gen_grad_map) .and. ((associated(ele2%cartesian_map) .
       allocate(cm)
       call create_wiggler_cartesian_map(ele2, cm)
     else
-      call out_io (s_fatal$, r_name, 'NOT ABLE TO DO PTC TRACKING FOR NON-PLANAR WIGGLER WITHOUT A CARTESIAN (OR OTHER TYPE OF) MAP.', &
+      call out_io (s_error$, r_name, 'NOT ABLE TO DO PTC TRACKING FOR NON-PLANAR WIGGLER WITHOUT A CARTESIAN (OR OTHER TYPE OF) MAP.', &
                                      'FOR ELEMENT: ' // ele%name)
-      if (global_com%exit_on_error) call err_exit
       return
     endif
   else
     cm => ele2%cartesian_map(1)
   endif
 
+  if (any(abs(cm%ptr%term%kz) < 1e-100_rp)) then
+    call out_io (s_error$, r_name, 'CARTESIAN MAP KZ VALUES MUST BE NON-ZERO (MAKE > 1E-100).', &
+                                   'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
   if (cm%field_type == electric$) then
     call out_io (s_fatal$, r_name, 'PTC IS NOT ABLE TO HANDLE CARTESIAN_MAP WITH ELECTRIC FIELDS. FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
     return
   endif  
 
@@ -1114,6 +1117,6 @@ endif
 
 err_flag = .false.
 
-call ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
+if (associated(ele_to_fibre_hook_ptr)) call ele_to_fibre_hook_ptr (ele, ptc_fibre, param, use_offsets, err_flag)
 
 end subroutine ele_to_fibre

@@ -10,7 +10,7 @@
 
 subroutine tao_hook_post_process_data ()
 
-use tao_interface, dummy => tao_hook_post_process_data
+use tao_interface
 
 implicit none
 

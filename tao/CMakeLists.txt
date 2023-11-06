@@ -14,7 +14,7 @@ SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
 SET (SRC_DIRS
   code 
-  hook
+  ## hook # Now using function pointers
   version
   )
 

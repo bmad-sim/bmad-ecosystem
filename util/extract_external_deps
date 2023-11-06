@@ -1,0 +1,7 @@
+#!/bin/bash
+DEPS=../bmad-external-deps/
+
+for dep in $DEPS/*.tar.gz;
+do
+tar xzvf $dep -C . 
+done

@@ -64,7 +64,9 @@ if (bunch%t0 == real_garbage$) then
   charge = count(bunch%particle%state == alive$)
   if (charge /= 0)  bunch%t0 = sum(bunch%particle%t, bunch%particle%state==alive$) / charge
 endif
+
 call track_bunch_to_t(bunch, bunch%t0, branch)
+bunch%drift_between_t_and_s = .true.   ! From now on do drifting to save time
 t_now = minval(bunch%particle%t, bunch%particle%state==alive$ .or. bunch%particle%state==pre_born$)
 
 ! Convert to t-based coordinates

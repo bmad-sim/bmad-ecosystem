@@ -498,7 +498,7 @@ character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(100) data_type, str
 character(:), allocatable :: e_str
 
-logical found, valid_value, err, taylor_is_complex, use_real_part, term_found
+logical found, valid_value, err, taylor_is_complex, use_real_part, term_found, ok
 logical particle_lost, exterminate, printit
 logical, allocatable :: good(:)
 
@@ -524,8 +524,10 @@ endif
 
 ! See if there is a hook for this datum
 
-call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
-if (found) return
+if (associated(tao_hook_evaluate_a_datum_ptr)) then
+  call tao_hook_evaluate_a_datum_ptr (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
+  if (found) return
+endif
 
 ! Set ix_ele, ix_ref, and ix_start. 
 ! Note: To check that a start element was set, need to look at datum%ele_start_name, not ix_start.
@@ -723,7 +725,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), tao_branch%modes_ri)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(i), tao_branch%modes_6d)
       else
         value_vec(i) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -731,7 +733,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes_6d)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (x_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
       endif
@@ -747,7 +749,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
   case ('apparent_emit.y', 'norm_apparent_emit.y')
     do i = ix_start, ix_ele
       if (data_source == 'lat') then
-        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), tao_branch%modes_ri)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(i), tao_branch%modes_6d)
       else
         value_vec(i) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(i))
       endif
@@ -755,7 +757,7 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
     if (ix_ref > -1) then
       if (data_source == 'lat') then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, apparent_emit$, branch%ele(ix_ref), tao_branch%modes_6d)
         call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
       else
         value_vec(ix_ref) = tao_beam_emit_calc (y_plane$, apparent_emit$, branch%ele(i), bunch_params(ix_ref))
@@ -1300,15 +1302,15 @@ case ('damp.')
   select case (data_type)
 
   case ('damp.j_a')
-    datum_value = tao_branch%modes_ri%a%j_damp
+    datum_value = tao_branch%modes_6d%a%j_damp
     valid_value = .true.
 
   case ('damp.j_b')
-    datum_value = tao_branch%modes_ri%b%j_damp
+    datum_value = tao_branch%modes_6d%b%j_damp
     valid_value = .true.
 
   case ('damp.j_z')
-    datum_value = tao_branch%modes_ri%z%j_damp
+    datum_value = tao_branch%modes_6d%z%j_damp
     valid_value = .true.
 
   case default
@@ -1488,10 +1490,10 @@ case ('emit.', 'norm_emit.')
   case ('emit.x', 'norm_emit.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), tao_branch%modes_ri)
+        value_vec(i) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(i), tao_branch%modes_6d)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
+        value_vec(ix_ref) = tao_lat_emit_calc (x_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes_6d)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
@@ -1503,10 +1505,10 @@ case ('emit.', 'norm_emit.')
   case ('emit.y', 'norm_emit.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_branch%modes_ri)
+        value_vec(i) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(i), tao_branch%modes_6d)
       enddo
       if (ix_ref > -1) then
-        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes_ri)
+        value_vec(ix_ref) = tao_lat_emit_calc (y_plane$, projected_emit$, branch%ele(ix_ref), tao_branch%modes_6d)
       endif
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     elseif (data_source == 'beam') then
@@ -1536,7 +1538,7 @@ case ('emit.', 'norm_emit.')
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
       else
-        datum_value = tao_branch%modes_ri%a%emittance
+        datum_value = tao_branch%modes_6d%a%emittance
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
@@ -1557,7 +1559,7 @@ case ('emit.', 'norm_emit.')
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / gamma
       else
-        datum_value = tao_branch%modes_ri%b%emittance
+        datum_value = tao_branch%modes_6d%b%emittance
         valid_value = .true.
       endif
     elseif (data_source == 'beam') then
@@ -3027,8 +3029,8 @@ case ('spin.')
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     
   case ('spin.depolarization_rate', 'spin.polarization_rate', 'spin.polarization_limit')
-    if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch)
-    valid_value = tao_branch%spin_valid
+    if (.not. tao_branch%spin%valid) call tao_spin_polarization_calc(branch, tao_branch, err_flag = err)
+    valid_value = tao_branch%spin%valid
 
     if (.not. valid_value) then
       call tao_set_invalid (datum, 'ERROR IN SPIN POLARIZAITON CALC.', why_invalid, .false.)
@@ -3060,8 +3062,11 @@ case ('spin_dn_dpz.')
     return
   endif
 
-  if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch)
-  valid_value = tao_branch%spin_valid
+  call tao_spin_polarization_calc(branch, tao_branch)
+
+  valid_value = (tao_branch%spin_ele(ix_start)%valid .and. tao_branch%spin_ele(ix_ele)%valid)
+  if (ix_ref > -1) valid_value = (valid_value .and. tao_branch%spin_ele(ix_ref)%valid)
+
   if (.not. valid_value) then
      call tao_set_invalid (datum, 'ERROR IN SPIN POLARIZAITON CALC.', why_invalid, .false.)
      return
@@ -3148,7 +3153,7 @@ case ('spin_res.')
   endif
 
   j = index('abc', data_type(10:10))
-  if (j == 0 .or. len_trim(data_type) > 11) then
+  if (j == 0) then
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
     return
   endif

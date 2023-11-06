@@ -177,7 +177,7 @@ type (ele_struct), pointer :: slave
 
 integer i
 
-real(rp) dummy
+real(rp) dummy, f
 
 logical, target :: attrib
 logical, pointer :: a_ptr
@@ -185,9 +185,29 @@ logical, optional :: set_dependent
 
 ! Call to set_flags_for_changed_real_attribute will set some generic flags
 
-call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
-
 a_ptr => attrib
+if (associated(a_ptr, ele%field_master)) then
+  f = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+  if (ele%key == multipole$) then
+    if (attrib) then
+      ele%a_pole = ele%a_pole * f
+    else
+      ele%a_pole = ele%a_pole / f
+    endif
+
+  elseif (ele%key == ab_multipole$) then
+    if (attrib) then
+      ele%a_pole = ele%a_pole * f
+      ele%b_pole = ele%b_pole * f
+    else
+      ele%a_pole = ele%a_pole / f
+      ele%b_pole = ele%b_pole / f
+    endif
+  endif
+
+else
+  call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
+endif
 
 ! Set independent stuff in multipass lord
 

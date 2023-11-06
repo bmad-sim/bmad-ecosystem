@@ -1,9 +1,8 @@
 !+
 ! Subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
 !
-! Dummy routine for custom tracking. 
-! This routine needs to be replaced for a custom calculation.
-! If not replaced, and this routine is called, this routine will generate an error message.
+! Prototype routine for custom tracking. 
+! To use, see the Bmad manual.
 !
 ! General rule: Your code may NOT modify any argument that is not listed as
 ! an output agument below."
@@ -22,8 +21,7 @@
 
 subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
 
-use bmad_struct
-use bmad_interface, except_dummy => make_mat6_custom
+use bmad_interface
 
 implicit none
 

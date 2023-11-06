@@ -10,35 +10,35 @@ available in \bmad.
 \centering
 {\tt
 \begin{tabular}{llll} \toprule
-  {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \\ \midrule
-  AB_Multipole      & \ref{s:ab.m}        &  Mask              & \ref{s:mask}     \\
-  AC_Kicker         & \ref{s:ac.kick}     &  Match             & \ref{s:match}    \\ 
-  BeamBeam          & \ref{s:beambeam}    &  Monitor           & \ref{s:monitor}  \\
-  Beginning_Ele     & \ref{s:begin.ele}   &  Multipole         & \ref{s:mult}     \\
-  Converter         & \ref{s:converter}   &  Null_Ele          & \ref{s:null.ele} \\
-  Crab_Cavity       & \ref{s:crab}        &  Octupole          & \ref{s:oct}      \\
-  Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \\
-  Drift             & \ref{s:drift}       &  Photon_Fork       & \ref{s:fork}     \\
-  E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \\
-  Ecollimator       & \ref{s:col}         &  Quadrupole        & \ref{s:quad}     \\
-  ElSeparator       & \ref{s:elsep}       &  Rbend             & \ref{s:bend}     \\
-  EM_Field          & \ref{s:em.field}    &  Rcollimator       & \ref{s:col}      \\
-  Fiducial          & \ref{s:fiducial}    &  RF_bend           & \ref{s:rf.bend}  \\
-  Floor_Shift       & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \\
-  Foil              & \ref{s:foil}        &  Sad_Mult          & \ref{s:sad.mult} \\
-  Fork              & \ref{s:fork}        &  Sbend             & \ref{s:bend}     \\
-  GKicker           & \ref{s:gkicker}     &  Sextupole         & \ref{s:sex}      \\
-  HKicker           & \ref{s:hvkicker}    &  Sol_Quad          & \ref{s:sq}       \\
-  Hybrid            & \ref{s:hybrid}      &  Solenoid          & \ref{s:sol}      \\
-  Instrument        & \ref{s:monitor}     &  Taylor            & \ref{s:taylor}   \\
-  Kicker            & \ref{s:kicker}      &  Undulator         & \ref{s:wiggler}  \\
-  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \\ 
-  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \\
+  {\it Element}     & {\it Section}         & {\it Element}      & {\it Section}      \\ \midrule
+  AB_Multipole      & \ref{s:ab.m}          &  Match             & \ref{s:match}      \\
+  AC_Kicker         & \ref{s:ac.kick}       &  Monitor           & \ref{s:monitor}    \\
+  BeamBeam          & \ref{s:beambeam}      &  Multipole         & \ref{s:mult}       \\
+  Beginning_Ele     & \ref{s:begin.ele}     &  Null_Ele          & \ref{s:null.ele}   \\
+  Converter         & \ref{s:converter}     &  Octupole          & \ref{s:oct}        \\
+  Crab_Cavity       & \ref{s:crab}          &  Patch             & \ref{s:patch}      \\
+  Custom            & \ref{s:custom}        &  Photon_Fork       & \ref{s:fork}       \\
+  Drift             & \ref{s:drift}         &  Pipe              & \ref{s:monitor}    \\
+  E_Gun             & \ref{s:e.gun}         &  Quadrupole        & \ref{s:quad}       \\
+  Ecollimator       & \ref{s:col}           &  Rbend             & \ref{s:bend}       \\
+  ElSeparator       & \ref{s:elsep}         &  Rcollimator       & \ref{s:col}        \\
+  EM_Field          & \ref{s:em.field}      &  RF_bend           & \ref{s:rf.bend}    \\
+  Fiducial          & \ref{s:fiducial}      &  RFcavity          & \ref{s:rfcav}      \\
+  Floor_Shift       & \ref{s:floor.ele}     &  Sad_Mult          & \ref{s:sad.mult}   \\
+  Foil              & \ref{s:foil}          &  Sbend             & \ref{s:bend}       \\
+  Fork              & \ref{s:fork}          &  Sextupole         & \ref{s:sex}        \\
+  GKicker           & \ref{s:gkicker}       &  Sol_Quad          & \ref{s:sq}         \\
+  HKicker           & \ref{s:hvkicker}      &  Solenoid          & \ref{s:sol}        \\
+  Hybrid            & \ref{s:hybrid}        &  Taylor            & \ref{s:taylor}     \\
+  Instrument        & \ref{s:monitor}       &  Thick_Multipole   & \ref{s:thick.mult} \\
+  Kicker            & \ref{s:kicker}        &  Undulator         & \ref{s:wiggler}    \\
+  Lcavity           & \ref{s:lcav}          &  VKicker           & \ref{s:hvkicker}   \\ 
+  Marker            & \ref{s:mark}          &  Wiggler           & \ref{s:wiggler}    \\
+  Mask              & \ref{s:mask}          &                    &                    \\
   \bottomrule
 \end{tabular}
-}
-\caption{Table of element types suitable for use with charged particles. Also see Table~\ref{t:control.classes}}
-\label{t:particle.classes}\center
+} \caption{Table of element types suitable for use with charged particles. Also see
+Table~\ref{t:control.classes}} \label{t:particle.classes}
 \end{table}
 
 \index{MAD}
@@ -75,7 +75,7 @@ use.
 \end{tabular}
 }
 \caption{Table of element types suitable for use with photons. Also see Table~\ref{t:control.classes}}
-\label{t:photon.classes}\center
+\label{t:photon.classes}
 \end{table}
 
 \begin{table}[ht]
@@ -88,10 +88,12 @@ use.
 \end{tabular}
 }
 \caption{Table of controller elements.}
-\label{t:control.classes}\center
+\label{t:control.classes}
 \end{table}
 
 For a listing of element attributes for each type of element, see Chapter~\sref{c:attrib.list}.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{AB_Multipole}
@@ -104,7 +106,7 @@ section~\sref{s:mag.field} for how the multipole coefficients are defined.
 
 General \vn{ab_multipole} attributes are:
 \begin{center}
-\tt 
+\tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & \s               & {\sl Attribute Class}      & \s              \\ \midrule
   a$n$, b$n$ multipoles      & \ref{s:multip}   & Length                     & \ref{s:l}       \\
@@ -135,6 +137,8 @@ Example:
 \begin{example}
   abc: ab_multipole, a2 = 0.034e-2, b3 = 5.7, a11 = 5.6e6/2
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{AC_Kicker}
@@ -253,6 +257,8 @@ where $\omega$ is the characteristic frequency of the field variation, $c$ is th
 and $r$ is the characteristic size of the \vn{ac_kicker} element. That is, the fields at opposite
 ends of the element must be able to ``communicate'' (which happens at the speed of light) in a time
 scale short compared to the time scale of the change in the field.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{BeamBeam}
@@ -417,8 +423,9 @@ Example:
   bbi: beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05, n_particle = 1.3e9
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
-\vskip 0ex plus 10ex
 \section{Beginning_Ele}
 \label{s:begin.ele}
 \index{beginning_ele|hyperbf}
@@ -438,6 +445,8 @@ If the first element after the \vn{beginning_ele} element at the start of a bran
 reflection patch is not needed in this circumstance.
 
 See \sref{s:list.beginning} for a full list of element attributes.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Bends: Rbend and Sbend}
@@ -796,6 +805,7 @@ set by \vn{ptc_field_geometry}. Since \bmad based tracking does not implement \v
 tracking, \bmad and PTC tracking will show marked differences when \vn{ptc_field_geometry} is set to
 \vn{straight}.
 
+\newpage
 
 %-----------------------------------------------------------------
 \section{Capillary}
@@ -836,6 +846,8 @@ to define the chamber wall for other elements (\sref{s:wall}).
 The length of the capillary is a dependent variable and is given by
 the value of \vn{s} of the last wall cross-section
 (\sref{s:wall.capillary}).
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator} 
@@ -904,6 +916,8 @@ Example:
   d21: ecollimator, l = 4.5, x_limit = 0.09, y_limit = 0.05, 
               px_aperture_width2 = 0.3, py_aperture_width = 0.1
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Converter}
@@ -1080,6 +1094,8 @@ of outgoing particles within the momentum and/or angle restricted range is indep
 whether or not there is are restrictions.  A value of zero (the default) for any one of these
 parameters means that that parameter is ignored.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Crab_Cavity}
 \label{s:crab}
@@ -1154,6 +1170,8 @@ fields needed for spin tracking are:
   \int \! E_s &=  \beta \, V \, \, k \, x \, \cos(k \, z + 2 \, \pi \, \phi_0) 
 \end{align}
 where $\beta = v/c$ is the normalized speed of the particle.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Crystal}
@@ -1379,6 +1397,8 @@ spectrometer.
 %\end{equation}
 %where $T$ is the crystal thickness and \vn{nint} is the nearest integer function.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
@@ -1442,6 +1462,8 @@ Example:
 In this example the \vn{descrip} string is being used to specify a
 file that contains parameters for the element.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Detector}
 \label{s:detector}
@@ -1499,6 +1521,8 @@ grid.
 A curved detector can be constructed by setting the appropriate surface curvature parameters
 (\sref{s:surface}). It is assumed that any curvature is only in one dimension ($x$ or $y$). This
 allows a straight forward mapping of the rectangular pixel grid onto the curved surface.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Diffraction_Plate}
@@ -1588,6 +1612,8 @@ Example:
   fresnel: diffraction_plate, wall = \{...\}
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Drift}
 \label{s:drift}
@@ -1620,6 +1646,8 @@ space, use a \vn{pipe} element instead of a \vn{drift} [a wall for a
 drift is not allowed due to the way drifts are treated with
 superposition. That is, drifts ``disappear'' when superimposed
 upon. (\sref{s:super})].
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{E_Gun}
@@ -1726,6 +1754,8 @@ with the file \vn{apex_gun_grid.bmad} being:
     ... \}
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{ELseparator}
 \label{s:elsep}
@@ -1782,6 +1812,8 @@ Examples:
   h_sep2: elsep, l = 4.5, e_field = 1e5, tilt = pi/2
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{EM_Field}
 \label{s:em.field}
@@ -1811,6 +1843,13 @@ See \sref{s:list.em.field} for a full list of element attributes along with a th
 Attributes specific to an \vn{em_field} element are:
 \begin{example}
   constant_ref_energy = <Logical> ! Is the reference energy constant? Default = True.
+  polarity   = <Real>  ! For scaling the field.
+\end{example}
+
+The \vn{polarity} value is used to scale the magnetic field. By
+default, \vn{polarity} has a value of 1.0.  Example:
+\begin{example}
+  wig1: wiggler, l = 1.6, polarity = -1, cartesian_map = \{...\}
 \end{example}
 
 If the \vn{constant_ref_energy} logical is set to \vn{True} (the default), the reference energy
@@ -1821,6 +1860,8 @@ is set to \vn{False}, the reference energy at the exit end is calculated like it
 
 Note: \vn{em_field} elements will be created when elements are superimposed (\sref{s:super}) and there is
 no other suitable element class.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Fiducial}
@@ -1939,6 +1980,8 @@ See \sref{s:ex.collide} for an example where a fiducial element is
 used to position the second ring in a dual ring colliding beam 
 machine.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Floor_Shift}
 \label{s:floor.ele}
@@ -2028,6 +2071,8 @@ Example:
 This offsets the element after the \vn{floor_shift} 3.2 meters from the previous
 element.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Foil}
 \label{s:foil}
@@ -2056,6 +2101,7 @@ Attributes specific to a \vn{foil} element are:
 \begin{example}
   material_type   = <String>    ! Foil material.
   thickness       = <Real>      ! Foil thickness.
+  final_charge    = <Integer>   ! Final charge state
 \end{example}
 
 The \vn{thickness} parameter along with \vn{material_type} is used to calculate the scattering
@@ -2069,13 +2115,16 @@ the interaction occurs over a finite length.
 The 6x6 transfer matrix of a \vn{foil} element is the unit matrix. That is, scattering does
 not affect the transfer matrix.
 
-Currently, particles going through the \vn{foil} are considered to be fully stripped. Additionally,
-energy losses are ignored.
+Particles going through the \vn{foil} are stripped to have a final charge given by \vn{final_charge}.
+
+Energy loss is calculated using the Bethe-Bloch formula.
 
 Example:
 \begin{example}
   septum: foil, material_type = "Cu", thickness = 0.127
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Fork and Photon_Fork}
@@ -2262,6 +2311,8 @@ the reference energy or reference momentum of the downstream branch must be set.
 How to analyze a lattice with multiple branches can be somewhat complex and will vary from program
 to program. For example, some programs will simply ignore everything except the root branch. Hopefully
 any program documentation will clarify the matter.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Girder}
@@ -2464,6 +2515,8 @@ an offset at the center of \vn{q2} of $0.01 = 0.002 * 5$. This, added to the off
 A \vn{girder} that has its \vn{is_on} attribute set to False is considered to be unsifted with
 respect to it's reference frame.
 
+\newpage
+
 %-----------------------------------------------------------------------------
 \section{GKicker}
 \label{s:gkicker}
@@ -2499,6 +2552,8 @@ Example:
 \begin{example}
   gk: gkicker, x_kick = 0.003, pz_kick = 0.12
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------------------
 \section{Group}
@@ -2678,6 +2733,8 @@ If the arithmetical expression used for an \vn{group} contains an element attrib
 taken if that element attribute is changed. This is discussed in \sref{s:arith} and
 \sref{s:go.syntax}.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Hybrid}
 \label{s:hybrid}
@@ -2687,6 +2744,8 @@ A \vn{hybrid} element is an element that is formed by a program by concatenating
 together. \vn{Hybrid} elements are used to reduce the number of elements in a lattice to speed up a
 simulation. In terms of tracking a \vn{hybrid} element is essentially the same as a \vn{taylor}
 element.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Instrument, Monitor, and Pipe}
@@ -2738,6 +2797,8 @@ proper. Example:
   d21: instrum, l = 4.5
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Kickers: Hkicker and Vkicker}
 \label{s:hvkicker}
@@ -2776,6 +2837,8 @@ attributes. Example:
   h_kick: hkicker, l = 4.5, kick = 0.003
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Kicker}
 \label{s:kicker}
@@ -2812,6 +2875,8 @@ Example:
 \begin{example}
   a_kick: kicker, l = 4.5, hkick = 0.003
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Lcavity}
@@ -2975,6 +3040,8 @@ $\beta$ is significantly different from 1 can only be considered as a rough appr
 the only accurate way to simulate a cavity in this situation is by integrating through the actual
 field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Lens}
 \label{s:lens}
@@ -2983,6 +3050,8 @@ field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
 A \vn{lens} is an element for concentrating or dispersing light rays.
 
 This element is under development...
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Marker}
@@ -3018,6 +3087,8 @@ Example:
 \begin{example}
   mm: mark, type = "BPM"
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Mask}
@@ -3108,6 +3179,8 @@ scrapper: mask, mode = transmission, wall = \{
     section = \{type = opaque, r0 = (0, 0.4), v(1) = \{0.1, 0.1\}\}
   \}
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Match}
@@ -3269,7 +3342,7 @@ for the $a$ and $b$ modes respectively.
 If the \vn{phase_trombone} is set True, when running a program, the \bmad bookkeeping code will
 appropriately set the values of \vn{beta_a0}, \vn{beta_a1}, \vn{alpha_b0}, etc. to match the desired
 transfer matrix. The \bmad bookkeeping code will then set \vn{phase_trombone} to False to freeze the
-transfer matrix against change if the parameters in the lattice are varied.
+transfer matrix against variation of any lattice parameters.
 
 When a lattice is read in, the \vn{phase_trombone_input} attribute is set by \bmad to be equal to
 \vn{phase_trombone}. This attribute does not affect any computations and is not settable by the
@@ -3281,6 +3354,8 @@ was in the lattice file.
 A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
 like a \vn{marker} element. That is, the orbit and Twiss parameters are unchanged when tracking
 through a \vn{match} element that is turned off.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Mirror}
@@ -3322,6 +3397,8 @@ bends the reference trajectory in the same direction as a positive
 
 A \vn{mirror} may be offset and pitched (\ref{s:offset}). The incoming
 local reference coordinates are used for these misalignments.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Multipole}
@@ -3365,6 +3442,8 @@ Example:
 \begin{example}
   m1: multipole, k1l = 0.034e-2, t1, k3sl = 4.5, t3 = 0.31*pi
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Multilayer_mirror}
@@ -3436,6 +3515,8 @@ Note: Due to the fact that \vn{multilayer_mirrors} where introduced much later t
 elements, if there is an ambiguity in the name as shown in the above example, an element will be
 considered to be of type \vn{multipole}.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Null_Ele}
 \label{s:null.ele}
@@ -3453,6 +3534,8 @@ This will split all quadrupoles in the lattice in two.
 
 \vn{Null_ele} elements are not generally useful otherwise.
 
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Octupole}
@@ -3501,6 +3584,8 @@ Example:
 \begin{example}
   oct1: octupole, l = 4.5, k3 = 0.003, tilt ! same as tilt = pi/8
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------------------
 \section{Overlay}
@@ -3607,6 +3692,8 @@ in the lattice file. This rule is enforced in order to catch spelling mistakes.
 If the arithmetical expression used for an \vn{overlay} contains an element attribute, care must be
 taken if that element attribute is changed. This is discussed in \sref{s:arith} and
 \sref{s:go.syntax}.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Patch}
@@ -3834,8 +3921,9 @@ fields are present.
 Since the geometry of a \vn{patch} element is complicated, interpolation of the chamber wall in the
 region of a patch follows special rules. See section~\sref{s:wall.vacuum} for more details.
 
+\newpage
+
 %-----------------------------------------------------------------
-\vskip 0ex plus 10ex
 \section{Photon_Init}
 \label{s:photon.init}
 \index{photon_init|hyperbf}
@@ -4062,6 +4150,8 @@ associated physical source, the setting of things like the spatial shape \vn{sig
 See Section~\sref{s:rowland} for an example lattice that can be used to simulate a Rowland circle
 spectrometer using a \vn{photon_init} element.
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Quadrupole}
 \label{s:quad}
@@ -4120,8 +4210,9 @@ Example:
   q03w: quad, l = 0.6, k1 = 0.003, tilt  ! same as tilt = pi/4
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------------------
-\vskip 0ex plus 10ex
 \section{Ramper}
 \label{s:ramper}
 \index{ovlerlay|hyperbf}
@@ -4212,6 +4303,8 @@ be found at:
   util_programs/controller_function_plot
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{RF_bend}
 \label{s:rf.bend}
@@ -4270,6 +4363,8 @@ The geometry of the \vn{rf_bend} is the same as an \vn{sbend}. An \vn{rf_bend} h
 which is equivalent to \vn{e1} and \vn{e2} being zero for an \vn{sbend}. Since the fields are specified
 using a grid field map, there are no fringe attributes to set (for any elements where a grid field is
 used, it is always assumed that the fringe fields are included as part of the grid field).
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{RFcavity}
@@ -4386,6 +4481,8 @@ Example:
   rf1: rfcav, l = 4.5, harmon = 1281, voltage = 5e6
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Sad_Mult}
 \label{s:sad.mult}
@@ -4500,6 +4597,8 @@ Example:
   qs1: sad_mult, l = 0.1, fringe_type = full, b2 = 0.6 / factorial(2)
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Sample}
 \label{s:sample}
@@ -4552,6 +4651,8 @@ Example:
   formula409: sample, x_limit = 10e-3, y_limit = 20e-3, mode = reflection
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Sextupole}
 \label{s:sex}
@@ -4600,6 +4701,8 @@ Example:
   q03w: sext, l = 0.6, k2 = 0.3, tilt  ! same as tilt = pi/6
 \end{example}
 
+\newpage
+
 %-----------------------------------------------------------------
 \section{Sol_Quad}
 \label{s:sq}
@@ -4645,6 +4748,8 @@ Example:
 \begin{example}
   sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5e-9*parameter[p0c]
 \end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Solenoid}
@@ -4712,6 +4817,8 @@ the field is nonzero at the edges of the element places a bound on the accuracy 
 Note that \vn{bmad_standard} tracking will always ignore the setting of \vn{field_calc}. That is,
 with \vn{bmad_standard} tracking the field always extends to the edges of the element and the value
 of \vn{l_soft_edge} is ignored.
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Taylor}
@@ -4938,6 +5045,47 @@ map of a \vn{taylor} element using the \vn{taylor} method is faster than evaluat
 \vn{symp_lie_ptc}. Thus the \vn{taylor} tracking method should always be used with
 \vn{taylor} elements.
 
+\newpage
+
+%-----------------------------------------------------------------
+\section{Thick_Multipole}
+\label{s:thick.mult}
+\index{thick_multipole|hyperbf} 
+
+A \vn{thick_multipole} element is like a \vn{sextupole} or \vn{octupole} element except that the
+\vn{thick_multipole} does not have a \vn{K2} sextupole like parameter nor a \vn{K3} octupole like
+parameter. Rather, \vn{thick_multipoles}, like \vn{sextupole} or \vn{octupole} elements, have
+\vn{a0}, \vn{a1}, \vn{a2}, etc.  and \vn{b0}, \vn{b1}, \vn{b2}, etc. multipoles
+(\sref{s:mag.field}). In terms of tracking, given equivalent multipole values, \vn{thick_multipoles}
+are indistinguishable from \vn{sextupoles} or \vn{octupoles}.  \vn{thick_multipole} elements are
+useful for differentiating elements that only have higher order multipole moments.
+
+General \vn{thick_multipole} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}       & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
+  Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}       & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}       & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}           &                            &                    \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.thick.multipole} for a full list of element attributes along with a their units.
+
+Example:
+\begin{example}
+  tm1: thick_multipole, l = 4.5, tilt, x_pitch = 0.34, a7 = 1.23e3, b8 = 7.54e5
+\end{example}
+
+\newpage
 
 %-----------------------------------------------------------------
 \section{Wiggler and Undulator} 

@@ -1,7 +1,7 @@
 !+
 ! Subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
 !
-! Custom routine to add a kick to a particle at periodic times.
+! Prototype routine to add a kick to a particle at periodic times.
 !
 ! For example, this routine could be used to add the kick due to a passing beam
 ! on a residual gas ion that is being tracked.
@@ -32,7 +32,7 @@
 
 subroutine time_runge_kutta_periodic_kick_hook (orbit, ele, param, stop_time, init_needed)
 
-use bmad, except_dummy => time_runge_kutta_periodic_kick_hook
+use bmad
 
 implicit none
 

@@ -281,7 +281,7 @@ are. The name of this file is given by the out_file parameter with a ".deriv_at_
 attached. The data blocks in this file might look like:
 
 # m    = 3
-# type = sin
+# kind = sin
 # Iz     z_pos    Deriv * r_max^(m+d-1) * (d+m) * m! / ((d/2)! * (d/2+m)!)
   10    0.0200   3.07486025E-01  1.07290432E+00 -2.07656736E-01 -2.59055645E-01 
   11    0.0220   3.32020880E-01  9.37495727E-01 -3.12597302E-01 -2.10447354E-01 

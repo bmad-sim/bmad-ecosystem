@@ -583,7 +583,7 @@ supersede everything else.
 \index{single_mode}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{lattice_calc_on}\index{print_command}\index{default_init_file}\index{derivative_uses_design}
-\index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
+\index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}\index{opti_write_var_file}
 The \vn{tao_global_struct} structure contains \tao global parameters. The components of this structure are:
 \begin{example}
 type tao_global_struct:
@@ -629,6 +629,7 @@ type tao_global_struct:
   only_limit_opt_vars = F          ! Apply limits only if variable is used in optimization?
   opt_with_ref = F                 ! use reference data in optimization?
   opt_with_base = F                ! use base data in optimization?
+  opti_var_write_file = T          ! ``run'' command writes var_out_file
   optimizer_allow_user_abort = T   ! See below.
   optimizer_var_limit_warn = T     ! Warn when vars reach a limit when optimizing?
   plot_on = T                      ! Do plotting?
@@ -827,6 +828,10 @@ The default file name is ``\vn{var\#.out}''. If the file contains a hash (``\#''
 file will be generated for each universe with the universe index substituted for the hash symbol.
 For example, with the default file name, the name of the file for universe 1 will be ``\vn{var1.out}''.
 If the file name is blank, the results will be printed on the screen and no file will be generated.
+%
+  \item{\vn{global%opti_write_var_file}} \Newline
+Normally the optimizer writes to \vn{global%var_out_file}. Setting \vn{global%opti_write_var_file}
+to \texttt{F} prevents this.
 \end{description}
 
 Random number generation in \tao is divided into two categories: Random numbers used for

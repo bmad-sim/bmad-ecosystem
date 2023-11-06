@@ -54,7 +54,7 @@ character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
 ix_pole_max = -1
 
-if (.not. ele%is_on) then
+if (.not. ele%is_on .or. ele%key == pipe$) then
   a = 0;  b = 0
   if (present(b1)) b1 = 0
   return
@@ -431,7 +431,7 @@ case (octupole$)
   const = this_ele%value(k3$) * this_ele%value(l$)
   ref_exp = 3
   
-case (ab_multipole$, sad_mult$) ! multipoles do not scale
+case (ab_multipole$, sad_mult$, thick_multipole$) ! multipoles do not scale
   return
 
 case default

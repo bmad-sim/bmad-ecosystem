@@ -1508,7 +1508,7 @@ end subroutine ptc_layouts_resplit
 !   do_reset -- logical: If True then reset ptc flags.
 !
 ! Output:
-!   state     -- integer: Same as coord_struct%state. alive$, lost$, lost_neg_x_aperture$, etc.
+!   state     -- integer: Same as coord_struct%state. alive$, lost$, lost_neg_x$, etc.
 !   ptc_fibre -- fibre, pointer: Pointer to fibre where particle lost. Nullified if particle alive.
 !-
 

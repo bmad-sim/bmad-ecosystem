@@ -224,6 +224,7 @@ character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
 !-------------------------------------------------------------------------
 
 integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3, one_file$ = 4
+integer, parameter :: ascii4$ = 44    ! For testing purposes.
 
 ! num_ele_attrib$ is size of ele%value(:) array.
 
@@ -280,6 +281,7 @@ type spin_matching_struct
   real(rp) :: M_1turn(8,8) = 0      ! 1-turn matrix
   real(rp) :: M_ele(8,8) = 0        ! Transfer matrix through element.
   real(rp) :: sq_ele(0:3) = 0, sq_1turn(0:3) = 0
+  logical :: valid = .false.
 end type
 
 ! Note: Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
@@ -492,10 +494,20 @@ integer, parameter :: moving_forward$ = -9
 integer, parameter :: pre_born$ = 0    ! EG: before cathode emission. Conforms to OpenPMD standard.
 integer, parameter :: alive$ = 1       ! Conforms to OpenPMD standard.
 integer, parameter :: lost$ = 2
-integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
+integer, parameter :: lost_neg_x$ = 3, lost_pos_x$ = 4  
+integer, parameter :: lost_neg_y$ = 5, lost_pos_y$ = 6
+integer, parameter :: lost_z$ = 7
+integer, parameter :: lost_pz$ = 8  ! Particle "turned around" when not tracking with time_runge_kutta.
+
+integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4   ! old names.
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
-integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
-integer, parameter :: lost_z_aperture$ = 9
+integer, parameter :: lost_z_aperture$ = 7
+integer, parameter :: lost_pz_aperture$ = 8  ! Particle "turned around" when not tracking with time_runge_kutta.
+
+! State_name is not the full list of coord%state possible settings! Missing is not_set$
+character(12), parameter ::state_name(0:8) = [character(12):: 'Pre_Born', 'Alive', 'Lost', 'Lost_Neg_X', &
+                                                 'Lost_Pos_X', 'Lost_Neg_Y', 'Lost_Pos_Y', 'Lost_Pz', 'Lost_Z']
+
 
 real(rp), parameter :: vec0$(6) = 0
 
@@ -527,7 +539,7 @@ type coord_struct                 ! Particle coordinates at a single point
                                   !   May be -1 if element is not associated with a lattice.
   integer :: ix_branch = -1       ! Index of the lattice branch the particle is in.
   integer :: ix_user = -1         ! For general use, not used by Bmad.
-  integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, lost_pz_aperture$, etc.
+  integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, lost_pz$, etc.
   integer :: direction = 1        ! +1 or -1. Sign of longitudinal direction of motion (ds/dt).
                                   !  This is independent of the element orientation.
   integer :: time_dir = 1         ! +1 or -1. Time direction. -1 => Traveling backwards in time.
@@ -1035,18 +1047,21 @@ end type
 type bunch_struct
   type (coord_struct), allocatable :: particle(:)
   integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
-  real(rp) :: charge_tot = 0      ! Total charge in a bunch (Coul).
-  real(rp) :: charge_live = 0     ! Charge of live particles (Coul).
-  real(rp) :: z_center = 0        ! Longitudinal center of bunch (m). Note: Generally, z_center of 
-                                  !   bunch #1 is 0 and z_center of the other bunches is negative.
-  real(rp) :: t_center = 0        ! Center of bunch creation time relative to head bunch.
-  real(rp) :: t0 = real_garbage$  ! Used by track1_bunch_space_charge for tracking so particles have constant t.
-  integer :: ix_ele = 0           ! Nominal element bunch is at. But, EG, dead particles can be someplace else.
-  integer :: ix_bunch = 0         ! Bunch index. Head bunch = 1, etc.
-  integer :: ix_turn = 0          ! Turn index for long term tracking. ix_turn = 0 before end of first turn, etc.
+  real(rp) :: charge_tot = 0       ! Total charge in a bunch (Coul).
+  real(rp) :: charge_live = 0      ! Charge of live particles (Coul).
+  real(rp) :: z_center = 0         ! Longitudinal center of bunch (m). Note: Generally, z_center of 
+                                   !   bunch #1 is 0 and z_center of the other bunches is negative.
+  real(rp) :: t_center = 0         ! Center of bunch creation time relative to head bunch.
+  real(rp) :: t0 = real_garbage$   ! Used by track1_bunch_space_charge for tracking so particles have constant t.
+  logical :: drift_between_t_and_s = .false.
+                                   ! Drift (ignore any fields) instead of tracking to speed up the calculation?
+                                   ! This can only be done under certain circumstances.
+  integer :: ix_ele = 0            ! Nominal element bunch is at. But, EG, dead particles can be someplace else.
+  integer :: ix_bunch = 0          ! Bunch index. Head bunch = 1, etc.
+  integer :: ix_turn = 0           ! Turn index for long term tracking. ix_turn = 0 before end of first turn, etc.
   integer :: n_live = 0
-  integer :: n_good = 0           ! Number of accepted steps when using adaptive step size control.
-  integer :: n_bad = 0            ! Number of rejected steps when using adaptive step size control.
+  integer :: n_good = 0            ! Number of accepted steps when using adaptive step size control.
+  integer :: n_bad = 0             ! Number of rejected steps when using adaptive step size control.
 end type
 
 type beam_struct
@@ -1553,7 +1568,7 @@ integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffra
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, def_space_charge_com$ = 60, crab_cavity$ = 61
 integer, parameter :: ramper$ = 62, def_ptc_com$ = 63, rf_bend$ = 64, gkicker$ = 65, foil$ = 66
-integer, parameter :: n_key$ = 66
+integer, parameter :: thick_multipole$ = 67, n_key$ = 67
 
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1571,7 +1586,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', '!Space_Charge_Com ', &
     'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', 'RF_Bend           ', 'GKicker           ', &
-    'Foil              ']
+    'Foil              ', 'Thick_Multipole   ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1624,7 +1639,7 @@ integer, parameter :: l$ = 1                          ! Assumed unique. Do not a
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
-integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
+integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, final_charge$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
@@ -2416,32 +2431,34 @@ end function next_in_branch
 !
 ! Input:
 !   coord_state -- integer: coord%state value
+!   
 !
 ! Output:
 !   state_str   -- character(16): String representation.
 !-
 
-function coord_state_name (coord_state) result (state_str)
+function coord_state_name (coord_state, one_word) result (state_str)
 
 implicit none
 
 integer coord_state
 character(16) state_str
+logical, optional :: one_word
 
 !
 
 select case (coord_state)
-case (pre_born$);              state_str = 'Pre_Born'
-case (alive$);                 state_str = 'Alive'
-case (lost$);                  state_str = 'Lost'
-case (not_set$);               state_str = 'Not_Set'
-case (lost_neg_x_aperture$);   state_str = 'Hit -X Side'
-case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
-case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
-case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
-case (lost_pz_aperture$);      state_str = 'Hit Energy Aper'
-case (lost_z_aperture$);       state_str = 'Hit Z Side'
-case default;                  state_str = 'UNKNOWN!'
+case (not_set$);     state_str = 'Not_Set'
+case (pre_born$);    state_str = 'Pre_Born'
+case (alive$);       state_str = 'Alive'
+case (lost$);        state_str = 'Lost'
+case (lost_neg_x$);  state_str = 'Lost_Neg_X'
+case (lost_pos_x$);  state_str = 'Lost_Pos_X'
+case (lost_neg_y$);  state_str = 'Lost_Neg_Y'
+case (lost_pos_y$);  state_str = 'Lost_Pos_Y'
+case (lost_pz$);     state_str = 'Lost_Pz'
+case (lost_z$);      state_str = 'Lost_Z'
+case default;        state_str = 'UNKNOWN!'
 end select
 
 end function coord_state_name

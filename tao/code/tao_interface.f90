@@ -351,159 +351,6 @@ subroutine tao_help (what1, what2, lines, n_lines)
   integer, optional :: n_lines
 end subroutine
 
-subroutine tao_hook_branch_calc (u, tao_lat, branch)
-  import
-  implicit none
-  type (tao_universe_struct), target :: u
-  type (tao_lattice_struct), target :: tao_lat
-  type (branch_struct), target :: branch
-end subroutine
- 
-subroutine tao_hook_command (command_line, found)
-  implicit none
-  character(*) command_line
-  logical found
-end subroutine
- 
-function tao_hook_curve_s_pt (s_default, ix_now, x1, x2, n_pts, tao_lat, curve) result (s_pt)
-  import
-  implicit none
-  type (tao_curve_struct) curve
-  type (tao_lattice_struct) tao_lat
-  real(rp) s_default, x1, x2, s_pt
-  integer ix_now, n_pts
-end function
- 
-subroutine tao_hook_draw_floor_plan (plot, graph)
-  import
-  implicit none
-  type (tao_plot_struct) plot
-  type (tao_graph_struct) graph
-end subroutine
- 
-subroutine tao_hook_draw_graph (plot, graph, found)
-  import
-  implicit none
-  type (tao_plot_struct) plot
-  type (tao_graph_struct) graph
-  logical found
-end subroutine
-
-subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
-  import
-  implicit none
-  type (tao_data_struct) datum
-  type (tao_universe_struct), target :: u
-  type (tao_lattice_struct), target :: tao_lat
-  real(rp) datum_value
-  logical found, valid_value
-  character(*), optional :: why_invalid
-end subroutine
-
-subroutine tao_hook_graph_postsetup (plot, graph)
-  import
-  implicit none
-  type (tao_plot_struct) plot
-  type (tao_graph_struct) graph
-end subroutine
- 
-subroutine tao_hook_graph_setup (plot, graph, found)
-  import
-  implicit none
-  type (tao_plot_struct) plot
-  type (tao_graph_struct) graph
-  logical found
-end subroutine
- 
-subroutine tao_hook_init_beam ()
-  implicit none
-end subroutine
-
-subroutine tao_hook_init_data ()
-  implicit none
-end subroutine
-
-subroutine tao_hook_init_global (init_file, global)
-  import
-  implicit none
-  type (tao_global_struct) global
-  character(*) init_file
-end subroutine
- 
-subroutine tao_hook_init_lattice_post_parse (u)
-  import
-  implicit none
-  type (tao_universe_struct) u
-end subroutine
-
-subroutine tao_hook_init_plotting ()
-  import
-  implicit none
-end subroutine
-
-subroutine tao_hook_init_read_lattice_info (lat_file)
-  implicit none
-  character(*) lat_file
-end subroutine
-
-subroutine tao_hook_init1 (init_file_name)
-  implicit none
-  character(*) init_file_name
-end subroutine
-
-subroutine tao_hook_init2 ()
-  implicit none
-end subroutine
-
-subroutine tao_hook_init_var()
-  implicit none
-end subroutine
-
-subroutine tao_hook_lattice_calc (calc_ok)
-  implicit none
-  logical calc_ok
-end subroutine
-
-subroutine tao_hook_merit_data (i_uni, j_data, data, valid_value_set)
-  import
-  implicit none
-  type (tao_data_struct) data
-  integer, intent(in) :: i_uni, j_data
-  logical valid_value_set
-end subroutine
-
-subroutine tao_hook_merit_var (i_uni, j_var, var)
-  import
-  implicit none
-  type (tao_var_struct) var
-  integer, intent(in) :: i_uni, j_var
-end subroutine
-
-subroutine tao_hook_optimizer (abort)
-  implicit none
-  logical abort
-end subroutine
- 
-subroutine tao_hook_parse_command_args()
-  implicit none
-end subroutine
-
-subroutine tao_hook_plot_setup()
-  import
-  implicit none
-end subroutine
-
-subroutine tao_hook_post_process_data ()
-  implicit none
-end subroutine
- 
-subroutine tao_hook_show_cmd (what, result_id, lines, nl)
-  implicit none
-  character(*) what, result_id
-  character(*), allocatable :: lines(:)
-  integer nl
-end subroutine
-
 subroutine tao_init (err_flag)
   implicit none
   logical :: err_flag
@@ -922,12 +769,13 @@ subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele, excite_zero)
   character(*), optional :: excite_zero(3)
 end subroutine
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic)
+subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic, err_flag)
   import
   implicit none
   type (branch_struct), target :: branch
   type (tao_lattice_branch_struct), target :: tao_branch
   character(*), optional :: excite_zero(3), ignore_kinetic
+  logical, optional :: err_flag
 end subroutine
 
 function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)
@@ -1059,6 +907,193 @@ subroutine tao_x_axis_cmd (where, what)
 end subroutine
 
 end interface
+
+!-----------------------------------------------------------------------
+
+abstract interface
+
+subroutine tao_hook_branch_calc_def (u, tao_lat, branch)
+  import
+  implicit none
+  type (tao_universe_struct), target :: u
+  type (tao_lattice_struct), target :: tao_lat
+  type (branch_struct), target :: branch
+end subroutine
+ 
+subroutine tao_hook_command_def (command_line, found)
+  implicit none
+  character(*) command_line
+  logical found
+end subroutine
+ 
+function tao_hook_curve_s_pt_def (s_default, ix_now, x1, x2, n_pts, tao_lat, curve) result (s_pt)
+  import
+  implicit none
+  type (tao_curve_struct) curve
+  type (tao_lattice_struct) tao_lat
+  real(rp) s_default, x1, x2, s_pt
+  integer ix_now, n_pts
+end function
+ 
+subroutine tao_hook_draw_floor_plan_def (plot, graph)
+  import
+  implicit none
+  type (tao_plot_struct) plot
+  type (tao_graph_struct) graph
+end subroutine
+ 
+subroutine tao_hook_draw_graph_def (plot, graph, found)
+  import
+  implicit none
+  type (tao_plot_struct) plot
+  type (tao_graph_struct) graph
+  logical found
+end subroutine
+
+subroutine tao_hook_evaluate_a_datum_def (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
+  import
+  implicit none
+  type (tao_data_struct) datum
+  type (tao_universe_struct), target :: u
+  type (tao_lattice_struct), target :: tao_lat
+  real(rp) datum_value
+  logical found, valid_value
+  character(*), optional :: why_invalid
+end subroutine
+
+subroutine tao_hook_graph_postsetup_def (plot, graph)
+  import
+  implicit none
+  type (tao_plot_struct) plot
+  type (tao_graph_struct) graph
+end subroutine
+ 
+subroutine tao_hook_graph_setup_def (plot, graph, found)
+  import
+  implicit none
+  type (tao_plot_struct) plot
+  type (tao_graph_struct) graph
+  logical found
+end subroutine
+ 
+subroutine tao_hook_init_beam_def ()
+  implicit none
+end subroutine
+
+subroutine tao_hook_init_data_def ()
+  implicit none
+end subroutine
+
+subroutine tao_hook_init_global_def (init_file, global)
+  import
+  implicit none
+  type (tao_global_struct) global
+  character(*) init_file
+end subroutine
+ 
+subroutine tao_hook_init_lattice_post_parse_def (u)
+  import
+  implicit none
+  type (tao_universe_struct) u
+end subroutine
+
+subroutine tao_hook_init_plotting_def ()
+  import
+  implicit none
+end subroutine
+
+subroutine tao_hook_init_read_lattice_info_def (lat_file)
+  implicit none
+  character(*) lat_file
+end subroutine
+
+subroutine tao_hook_init1_def (init_file_name)
+  implicit none
+  character(*) init_file_name
+end subroutine
+
+subroutine tao_hook_init2_def ()
+  implicit none
+end subroutine
+
+subroutine tao_hook_init_var_def()
+  implicit none
+end subroutine
+
+subroutine tao_hook_lattice_calc_def (calc_ok)
+  implicit none
+  logical calc_ok
+end subroutine
+
+subroutine tao_hook_merit_data_def (i_uni, j_data, data, valid_value_set)
+  import
+  implicit none
+  type (tao_data_struct) data
+  integer, intent(in) :: i_uni, j_data
+  logical valid_value_set
+end subroutine
+
+subroutine tao_hook_merit_var_def (i_uni, j_var, var)
+  import
+  implicit none
+  type (tao_var_struct) var
+  integer, intent(in) :: i_uni, j_var
+end subroutine
+
+subroutine tao_hook_optimizer_def (abort)
+  implicit none
+  logical abort
+end subroutine
+ 
+subroutine tao_hook_parse_command_args_def()
+  implicit none
+end subroutine
+
+subroutine tao_hook_plot_setup_def()
+  import
+  implicit none
+end subroutine
+
+subroutine tao_hook_post_process_data_def ()
+  implicit none
+end subroutine
+ 
+subroutine tao_hook_show_cmd_def (what, result_id, lines, nl)
+  implicit none
+  character(*) what, result_id
+  character(*), allocatable :: lines(:)
+  integer nl
+end subroutine
+
+end interface  ! abstract
+
+! Function pointers
+
+procedure(tao_hook_branch_calc_def), pointer :: tao_hook_branch_calc_ptr => null()
+procedure(tao_hook_command_def), pointer :: tao_hook_command_ptr => null()
+procedure(tao_hook_curve_s_pt_def), pointer :: tao_hook_curve_s_pt_ptr => null()
+procedure(tao_hook_draw_floor_plan_def), pointer :: tao_hook_draw_floor_plan_ptr => null()
+procedure(tao_hook_draw_graph_def), pointer :: tao_hook_draw_graph_ptr => null()
+procedure(tao_hook_evaluate_a_datum_def), pointer :: tao_hook_evaluate_a_datum_ptr => null()
+procedure(tao_hook_graph_postsetup_def), pointer :: tao_hook_graph_postsetup_ptr => null()
+procedure(tao_hook_graph_setup_def), pointer :: tao_hook_graph_setup_ptr => null()
+procedure(tao_hook_init_beam_def), pointer :: tao_hook_init_beam_ptr => null()
+procedure(tao_hook_init_data_def), pointer :: tao_hook_init_data_ptr => null()
+procedure(tao_hook_init_global_def), pointer :: tao_hook_init_global_ptr => null()
+procedure(tao_hook_init_lattice_post_parse_def), pointer :: tao_hook_init_lattice_post_parse_ptr => null()
+procedure(tao_hook_init_plotting_def), pointer :: tao_hook_init_plotting_ptr => null()
+procedure(tao_hook_init_read_lattice_info_def), pointer :: tao_hook_init_read_lattice_info_ptr => null()
+procedure(tao_hook_init1_def), pointer :: tao_hook_init1_ptr => null()
+procedure(tao_hook_init2_def), pointer :: tao_hook_init2_ptr => null()
+procedure(tao_hook_init_var_def), pointer :: tao_hook_init_var_ptr => null()
+procedure(tao_hook_lattice_calc_def), pointer :: tao_hook_lattice_calc_ptr => null()
+procedure(tao_hook_merit_data_def), pointer :: tao_hook_merit_data_ptr => null()
+procedure(tao_hook_merit_var_def), pointer :: tao_hook_merit_var_ptr => null()
+procedure(tao_hook_optimizer_def), pointer :: tao_hook_optimizer_ptr => null()
+procedure(tao_hook_parse_command_args_def), pointer :: tao_hook_parse_command_args_ptr => null()
+procedure(tao_hook_plot_setup_def), pointer :: tao_hook_plot_setup_ptr => null()
+procedure(tao_hook_post_process_data_def), pointer :: tao_hook_post_process_data_ptr => null()
+procedure(tao_hook_show_cmd_def), pointer :: tao_hook_show_cmd_ptr => null()
 
 contains
 

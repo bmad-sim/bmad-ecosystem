@@ -178,13 +178,7 @@ endif
 
 if (branch%param%particle /= photon$ .and. s%global%rad_int_calc_on .and. tao_branch%track_state == moving_forward$ .and. &
             (s%com%force_rad_int_calc .or. u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
-  call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                      tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int)
-  if (branch%param%geometry == closed$) then
-    tao_lat%high_e_lat = u%model%lat
-    ele => tao_lat%high_e_lat%branch(ix_branch)%ele(0)
-    call emit_6d(ele, .true., tao_branch%modes_6d, sigma)
-  endif
+  call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit)
 endif
 
 end subroutine tao_single_track
@@ -884,7 +878,7 @@ if (.not. bb%init_starting_distribution) then ! Needed since bb%beam_at_start ma
 endif
 
 if (bb%init_starting_distribution .or. u%beam%always_reinit) then
-  call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, tao_branch%modes_ri)
+  call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, tao_branch%modes_6d)
   if (err) then
     call out_io (s_error$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT PROPERLY SET FOR UNIVERSE: ' // int_str(u%ix_uni))
     return

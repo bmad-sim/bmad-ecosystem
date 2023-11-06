@@ -186,7 +186,7 @@ do n_step = 1, n_step_max
       ds_zbrent = super_zbrent (wall_intersection_func, 0.0_rp, ds_did, 1e-15_rp, ds_tiny, status)
       dist_to_wall = wall_intersection_func(ds_zbrent+ds_tiny, status)
 
-      call wall_hit_handler_custom (orbit, ele, s_body)
+      if (associated(wall_hit_handler_custom_ptr)) call wall_hit_handler_custom_ptr (orbit, ele, s_body)
       if (orbit%state /= alive$) return
       if (ele%aperture_at /= wall_transition$) then
         call out_io (s_error$, r_name, 'CUSTOM CODE IS KEEPING A PARTICLE ALIVE ACCROSS A BOUNDARY!', &
@@ -251,7 +251,7 @@ end do
 ! error in how the field is calculated and we must warn the user of this.
 
 if (sqrt(orbit%vec(2)**2 + orbit%vec(4)**2) > 0.9_rp * (1.0_rp + orbit%vec(6)) .or. orbit%vec(6) < -0.99_rp) then
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
 else
   call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
                                  'AT (X,Y,Z) POSITION FROM ENTRANCE: \3F14.7\ ', &

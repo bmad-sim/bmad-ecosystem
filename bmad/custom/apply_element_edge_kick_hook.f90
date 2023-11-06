@@ -1,10 +1,11 @@
 !+
 ! Subroutine apply_element_edge_kick_hook (orb, s_edge, t_rel, hard_ele, track_ele, param, finished, mat6, make_matrix, rf_time)
 !
-! Routine that can be customized to track through the edge field of an element.
-! This routine is always called by apply_element_edge_kick.
+! Prototype routine that can be customized to track through the edge field of an element.
+! When setup, this routine will be called by apply_element_edge_kick.
+! To use, see the Bmad manual.
 !
-! Note: apply element_edge_kick and this routine may or may not be called depending upon the setting of
+! Note: apply_element_edge_kick and this routine may or may not be called depending upon the setting of
 ! ele%tracking_method. In particular, this routine is *not* called if ele%tracking_method = custom$.
 !
 ! Input:
@@ -24,7 +25,7 @@
 
 subroutine apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, finished, mat6, make_matrix, rf_time)
 
-use fringe_mod, dummy => apply_element_edge_kick_hook
+use fringe_mod
 
 implicit none
 

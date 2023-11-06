@@ -73,7 +73,7 @@ s%n_v1_var_used = 0
 
 if (var_file == '') then
   call tao_setup_key_table ()
-  call tao_hook_init_var()
+  if (associated(tao_hook_init_var_ptr)) call tao_hook_init_var_ptr()
   return
 endif
 
@@ -304,7 +304,7 @@ call tao_limit_calc(limited)
 
 ! Call the hook routine.
 
-call tao_hook_init_var ()
+if (associated(tao_hook_init_var_ptr)) call tao_hook_init_var_ptr()
 
 ! Record the longitudinal position
 

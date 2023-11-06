@@ -18,7 +18,7 @@
 
 subroutine tao_hook_merit_var (i_uni, j_var, var)
 
-use tao_interface, dummy => tao_hook_merit_var
+use tao_interface
 
 implicit none
 

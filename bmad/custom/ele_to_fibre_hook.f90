@@ -2,7 +2,8 @@
 ! Subroutine ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
 !
 ! Routine that can be customized for creating a PTC fibre from a Bmad element.
-! This routine is always called by ele_to_fibre.
+! When setup, this routine is called by ele_to_fibre.
+! To use, see the Bmad manual.
 !
 ! Input:
 !   ele             -- Ele_struct: Bmad element.
@@ -16,7 +17,7 @@
 
 subroutine ele_to_fibre_hook (ele, ptc_fibre, param, use_offsets, err_flag)
 
-use bmad, except_dummy => ele_to_fibre_hook
+use bmad
 use s_family, only: work, suntao, assignment(=)  ! PTC
 
 implicit none

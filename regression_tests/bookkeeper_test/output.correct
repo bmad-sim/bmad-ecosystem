@@ -96,7 +96,7 @@
 "ele32"    ABS 0      33   1   0   0   0   0
 "ele33"    ABS 0      34   3   0  37   1   0
 "ele34"    ABS 0      37   1   0   0   0   0
-"Hybrid" ABS 1e-12     5.036E-14
+"Hybrid" ABS 1e-12     5.038E-14
 "ON_OFF_SAVE"  ABS 0     0.100     0.300     0.400     0.200
 "Q1#1[L]"      ABS 0    1.5000
 "Q1\Q4[L]"      ABS 0    0.5000
@@ -138,16 +138,16 @@
 "GR4[COMMAND]"      ABS 0    8.0000
 "GRN[A]"      ABS 0    0.0100
 "GRN[B]"      ABS 0    2.0000
-"GRN[string]" STR "(tan(a)+b)*(0.1/c_light)^(a+0.2)-a-(1+2)"
+"GRN[string]" STR "(tan(A)+B)*(0.1/c_light)^(A+0.2)-A-(1+2)"
 "Next-1" ABS 0   0
 "Next-2" ABS 0   1
 "Next-3" ABS 0   2
 "Next-4" ABS 0   1
 "Aperture-1"   STR "Alive"
-"Aperture-2"   STR "Hit +X Side"
-"Aperture-3"   STR "Hit -X Side"
-"Aperture-4"   STR "Hit +Y Side"
-"Aperture-5"   STR "Hit -Y Side"
-"Aperture-6"   STR "Hit +Y Side"
-"Aperture-7"   STR "Hit -X Side"
+"Aperture-2"   STR "Lost_Pos_X"
+"Aperture-3"   STR "Lost_Neg_X"
+"Aperture-4"   STR "Lost_Pos_Y"
+"Aperture-5"   STR "Lost_Neg_Y"
+"Aperture-6"   STR "Lost_Pos_Y"
+"Aperture-7"   STR "Lost_Neg_X"
 "N_Quad_Loc" ABS 0   9

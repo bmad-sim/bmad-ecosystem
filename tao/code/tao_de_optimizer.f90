@@ -69,7 +69,7 @@ print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
 
 call tao_set_opt_vars (var_vec, s%global%optimizer_var_limit_warn)
 merit_end = tao_merit ()
-call tao_var_write (s%global%var_out_file)
+if (s%global%opti_write_var_file) call tao_var_write (s%global%var_out_file)
 
 write (line, '(a, es14.6)') 'Merit start:', merit_start
 call out_io (s_blank$, r_name, line)
@@ -151,7 +151,7 @@ endif
 
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
   write (line, '(a, es14.6)') ' So far the minimum is ', merit_min
-  call tao_var_write (s%global%var_out_file)
+  if (s%global%opti_write_var_file) call tao_var_write (s%global%var_out_file)
 
   if (calc_ok) then
     call out_io (s_blank$, r_name, stars, line, stars)

@@ -1,7 +1,7 @@
 !+
 ! Subroutine radiation_integrals_custom (lat, ir, orb, rad_int1, err_flag)
 !
-! Dummy routine for custom elements. Will generate an error if called.
+! Prototype routine for custom elements. 
 ! A valid radiation_integrals_custom is needed only if the 
 ! radiation_integrals routine is being used.
 !
@@ -20,7 +20,7 @@
 
 subroutine radiation_integrals_custom (lat, ir, orb, rad_int1, err_flag)
 
-use bmad_interface, dummy => radiation_integrals_custom
+use bmad_interface
 
 implicit none
 

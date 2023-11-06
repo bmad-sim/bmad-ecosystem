@@ -682,6 +682,7 @@ type tao_global_struct
   logical :: only_limit_opt_vars = .false.            ! Only apply limits to variables used in optimization.
   logical :: opt_with_ref = .false.                   ! Use reference data in optimization?
   logical :: opt_with_base = .false.                  ! Use base data in optimization?
+  logical :: opti_write_var_file = .true.             ! "run" command writes var_out_file
   logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
   logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.
   logical :: plot_on = .true.                         ! Do plotting?
@@ -870,9 +871,10 @@ end type
 
 type tao_spin_ele_struct
   type (tao_spin_dn_dpz_struct) dn_dpz
-  real(rp) orb_eigen_val(6)
-  real(rp) orb_eigen_vec(6,6)             ! (j,:) is j^th vector
-  real(rp) spin_eigen_vec(6,3)            ! (j,:) is j^th vector
+  real(rp) :: orb_eigen_val(6) = 0
+  real(rp) :: orb_eigen_vec(6,6) = 0            ! (j,:) is j^th vector
+  real(rp) :: spin_eigen_vec(6,3) = 0           ! (j,:) is j^th vector
+  logical :: valid = .false.
 end type
 
 type tao_spin_polarization_struct
@@ -889,6 +891,9 @@ type tao_spin_polarization_struct
   real(rp) :: integral_bdn = real_garbage$             ! Integral of g^3 * b_hat * dn/ddelta
   real(rp) :: integral_1ns = real_garbage$             ! Integral of g^3 (1 - 2(n * s_hat)/9)
   real(rp) :: integral_dn2 = real_garbage$             ! Integral of g^3 * 11 (dn/ddelta)^2 / 9
+  logical :: valid = .false.
+  type (spin_orbit_map1_struct) :: q_1turn               ! Save results from spin_concat_linear_maps in tao_spin_polarization.
+  type (spin_orbit_map1_struct), allocatable :: q_ele(:) ! Save results from spin_concat_linear_maps in tao_spin_polarization.
 end type
 
 ! For caching lattice calculations associated with plotting.
@@ -928,7 +933,7 @@ type tao_lattice_branch_struct
   integer :: n_hterms = 0                                     ! Number of distinct res driving terms to evaluate.
   logical has_open_match_element
   logical :: plot_cache_valid = .false.                       ! Valid plotting data cache?
-  logical :: spin_valid = .false.
+  logical :: spin_map_valid = .false.
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in

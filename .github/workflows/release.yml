@@ -43,21 +43,14 @@ jobs:
     #       sudo apt update
     #       sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc
 
-      # Try to check the cache for external dependencies
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          path: ~/external_deps
-          key: ${{ env.EXTERNAL_DEPS_VERSION }}
-
       # In case we don't have it available, check it out
       - name: Checkout External Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
 
       - name: Extract dependencies
         run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           for dep in ~/external_deps/*.tar.gz; \
           do \
             tar xzvf $dep -C $GITHUB_WORKSPACE/; \
@@ -66,7 +59,9 @@ jobs:
       - name: Assemble Tarball
         run: |
           mkdir -p ~/bmad_dist;
-          tar -cjf ~/bmad_dist/bmad_dist.tar.gz -C $GITHUB_WORKSPACE .
+          mkdir ~/bmad_dist_${{ steps.release_name.outputs.version }};
+          cp -r $GITHUB_WORKSPACE/*  ~/bmad_dist_${{ steps.release_name.outputs.version }}/;
+          tar --exclude .git --exclude .github  --exclude .gitignore -czf ~/bmad_dist/bmad_dist.tar.gz -C ~/ bmad_dist_${{ steps.release_name.outputs.version }}
 
 
       - name: Create Release - ${{ steps.release_name.outputs.version }}

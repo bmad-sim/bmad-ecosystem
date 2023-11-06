@@ -655,7 +655,7 @@ endif
 
 if (ele%value(bragg_angle_in$) == 0) then
   call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION! FOR ELEMENT: ' // ele%name)
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -667,7 +667,7 @@ endif
 
 if (ele%value(mosaic_thickness$) == 0) then 
   call out_io (s_error$, r_name, 'A MOSAIC CRYSTAL MUST HAVE A FINITE MOSAIC_THICKNESS PARAMETER. FOR ELEMENT: ' // ele%name)
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -675,7 +675,7 @@ endif
 if (ele%value(mosaic_angle_rms_out_plane$) < 0) then 
   call out_io (s_error$, r_name, 'MOSAIC CRYSTAL WITH MOSAIC_ANGLE_RMS_OUT_PLANE PARAMETER NOT', &
                                  'SET (OR SET NEGATIVE). FOR ELEMENT:' // ele%name)
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -860,7 +860,7 @@ if (orbit_too_large(orbit, param)) return
 
 if (ele%value(bragg_angle_in$) == 0) then
   call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
-  orbit%state = lost_pz_aperture$
+  orbit%state = lost_pz$
   if (global_com%exit_on_error) call err_exit
   return
 endif

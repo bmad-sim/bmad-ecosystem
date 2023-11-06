@@ -1,7 +1,8 @@
 !+
 ! Subroutine track1_postprocess (start_orb, ele, param, end_orb)
 !
-! Dummy routine for post processing after the track1 routine is done.
+! Prototype routine for post processing after the track1 routine is done.
+! To use, see the Bmad manual.
 !
 ! Also see:
 !   track1_preprocess
@@ -22,7 +23,7 @@
 
 subroutine track1_postprocess (start_orb, ele, param, end_orb)
 
-use bmad, except_dummy => track1_postprocess
+use bmad
 
 implicit none
 

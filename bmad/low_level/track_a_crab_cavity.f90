@@ -82,7 +82,7 @@ do i = 1, n_slice
   E_new = E_old + voltage * cos(phase) * k_rf * orbit%vec(1) * orbit%p0c
   call convert_total_energy_to (E_new, orbit%species, beta = orbit%beta, pc = pc, err_flag = err, print_err = .false.)
   if (err) then
-    orbit%state = lost_pz_aperture$
+    orbit%state = lost_pz$
     return
   endif
 

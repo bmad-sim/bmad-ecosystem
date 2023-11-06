@@ -2105,6 +2105,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
+    nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
     nl=nl+1; write(lines(nl), lmt) '  %rad_int_calc_on               = ', s%global%rad_int_calc_on
@@ -4392,10 +4393,7 @@ case ('spin')
 
   !
 
-  if (.not. bmad_com%spin_tracking_on) then
-    call tao_spin_tracking_turn_on
-    call tao_lattice_calc(ok)
-  endif
+  if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on
 
   ! what_to_show = standard
 
@@ -4418,7 +4416,7 @@ case ('spin')
       call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
-      if (tao_branch%spin_valid) then
+      if (tao_branch%spin%valid) then
         if (tao_branch%spin%pol_rate_bks == 0) then
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
         else
@@ -4842,7 +4840,9 @@ case ('taylor_map', 'matrix')
         nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
         return
       endif
+
       call string_trim (what2(ix+1:), what2, ix)
+
       if (n_order > ptc_private%taylor_order_ptc) then
         nl=1; write(lines(nl), '(a, i0)') &
                   'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS ', ptc_private%taylor_order_ptc
@@ -4859,6 +4859,7 @@ case ('taylor_map', 'matrix')
       disp_fmt = 'ELEMENTS'
       ele_name = what2(1:ix)
       call string_trim(what2(ix+1:), what2, ix)
+      if (n_order == -1) n_order = 1
 
     case ('-s')
       by_s = .true.
@@ -4930,9 +4931,9 @@ case ('taylor_map', 'matrix')
       ref_vec = orb%vec
     endif
 
-  ! By element
+  !
 
-  else
+  elseif (disp_fmt /= 'ELEMENTS') then
 
     if (ele1_name == '') then
       ix2 = lat%n_ele_track
@@ -5025,32 +5026,33 @@ case ('taylor_map', 'matrix')
 
     !---------------------------------------
 
-    if (disp_fmt /= 'ELEMENTS' .and. ele2_name == '') then
-      nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
-      nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
-    endif
-
-    if (n_order > 1 .or. print_ptc) then
-      call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), &
-                                                      one_turn = .true., concat_if_possible = s%global%concatenate_maps)
-      if (err) then
-        nl = 1; lines(1) = 'TAYLOR MAP TERM OVERFLOW.'
-        return
+    if (disp_fmt /= 'ELEMENTS') then
+      if (ele2_name == '') then
+        nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
+        nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
       endif
 
-      call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
-      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+      if (n_order > 1 .or. print_ptc) then
+        call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), ix_branch, &
+                                                        one_turn = .true., concat_if_possible = s%global%concatenate_maps)
+        if (err) then
+          nl = 1; lines(1) = 'TAYLOR MAP TERM OVERFLOW.'
+          return
+        endif
 
-    else
-      call transfer_matrix_calc (lat, mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
-      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+        call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
+        ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+
+      else
+        call transfer_matrix_calc (lat, mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
+        ref_vec = u%model%tao_branch(ix_branch)%orbit(ix1)%vec
+      endif
     endif
 
   endif
 
   ! Print results
 
-  ! 
   if (disp_fmt == 'ELEMENTS') THEN
     call tao_locate_elements (ele_name, u%ix_uni, eles, err)
     if (err .or. size(eles) == 0) return
@@ -5060,31 +5062,45 @@ case ('taylor_map', 'matrix')
       select case (ele%key)
       case (group$, overlay$, girder$, ramper$); cycle
       end select
-
-      mat6 = ele%mat6
-      vec0 = ele%vec0
-
-      if (angle_units) then
-        call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
-        call map_to_angle_coords (taylor, taylor)
-        call taylor_to_mat6 (taylor, ref_vec, vec0, mat6)
+      if (i > 1) then
+        nl=nl+1; lines(nl) = ''
       endif
+      nl=nl+1; write (lines(nl), '(4a)') 'Element: ', trim(ele%name), ' ', ele_loc_name(ele, .false., '()')
+      if (size(lines) < nl+400) call re_allocate(lines, 2*size(lines))
 
-      if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
+      if (n_order == 1) then
+        mat6 = ele%mat6
+        vec0 = ele%vec0
 
-      if (fmt /= '') then
-        fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
-      elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
-        fmt2 = '(6es15.7, a, es15.7)'
-      else
-        fmt2 = '(6f15.8, a, es15.7)'
+        if (angle_units) then
+          call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
+          call map_to_angle_coords (taylor, taylor)
+          call taylor_to_mat6 (taylor, ref_vec, vec0, mat6)
+        endif
+
+        if (nl+10 > size(lines)) call re_allocate (lines, 2*nl, .false.)
+
+        if (fmt /= '') then
+          fmt2 = '(6' // trim(fmt) // ', a, ' // trim(fmt) // ')'
+        elseif (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
+          fmt2 = '(6es15.7, a, es15.7)'
+        else
+          fmt2 = '(6f15.8, a, es15.7)'
+        endif
+
+        do j = 1, 6
+          nl=nl+1; write(lines(nl), fmt2, iostat = ios) mat6(j,:), '   : ', vec0(j)
+        enddo
+
+      else  ! n_order /= 1
+        i0 = ele%ix_ele-1
+        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch) 
+        call truncate_taylor_to_order (taylor, n_order, taylor)
+        call type_taylors (taylor, lines = alloc_lines, n_lines = n, out_style = disp_fmt, clean = .true.)
+        do j = 1, n
+          nl=nl+1; lines(nl) = alloc_lines(j)
+        enddo
       endif
-
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; write (lines(nl), '(a, f18.9)') ele_full_name(ele), ele%s
-      do j = 1, 6
-        nl=nl+1; write(lines(nl), fmt2, iostat = ios) mat6(j,:), '   : ', vec0(j)
-      enddo
     enddo
 
   else
@@ -5640,8 +5656,8 @@ case ('universe')
   if (lat%param%geometry == closed$) then
     u%model%high_e_lat = u%model%lat
     ele2 => u%model%high_e_lat%branch(ix_branch)%ele(0)
-    call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat)
-    call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat)
+    call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat, tao_branch%orbit)
+    call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat, tao_branch%orbit)
     if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
                                            (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
       call out_io (s_info$, r_name, &
@@ -5787,14 +5803,14 @@ case ('value')
   line = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '#format'], .true., switch, err, ix, print_err = .false.)
+    call tao_next_switch (what2, [character(20):: '#format'], .true., line2, err, ix, print_err = .false.)
     if (err) return
-    select case (switch)
+    select case (line2)
     case ('#format')
       s_fmt = unquote(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
     case default
-      line = trim(line) // trim(switch)
+      line = trim(line) // trim(line2)
       if (what2 == '') exit
     end select
   enddo
@@ -6079,8 +6095,7 @@ case ('variables')
 
 case ('version')
 
-  nl=nl+1; lines(nl) = 'Version: ' // tao_svn_version
-  nl=nl+1; lines(nl) = 'Date: ' // tao_svn_date
+  nl=nl+1; lines(nl) = 'Date: ' // tao_version_date
 
 !----------------------------------------------------------------------
 ! wake_elements
@@ -6404,6 +6419,7 @@ nl=nl+1; write(lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n
 
 nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', quote(s%global%optimizer)
 nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', quote(s%global%var_out_file)
+nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
 
 nl=nl+1; write(lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
 nl=nl+1; write(lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design

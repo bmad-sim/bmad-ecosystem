@@ -80,7 +80,12 @@ endif
 ! Custom
 
 if (ele%aperture_type == custom_aperture$) then
-  call check_aperture_limit_custom (orb, ele, particle_at, param, err)
+  if (.not. associated(check_aperture_limit_custom_ptr)) then
+    call out_io (s_error$, r_name, 'INVALID CUSTOM_APERTURE SINCE CHECK_APERTURE_LIMIT_CUSTOM_PTR HAS NOT BEEN SET IN THIS PROGRAM!')
+    orb%state = lost$
+    return
+  endif
+  call check_aperture_limit_custom_ptr (orb, ele, particle_at, param, err)
   return
 endif
 
@@ -257,12 +262,12 @@ case (elliptical$)
   endif
 
   if (abs(x_particle / x_width2) > abs(y_particle / y_width2)) then
-    if (x_particle > 0) then; orb%state = lost_pos_x_aperture$
-    else;                     orb%state = lost_neg_x_aperture$
+    if (x_particle > 0) then; orb%state = lost_pos_x$
+    else;                     orb%state = lost_neg_x$
     endif
   else
-    if (y_particle > 0) then; orb%state = lost_pos_y_aperture$
-    else;                     orb%state = lost_neg_y_aperture$
+    if (y_particle > 0) then; orb%state = lost_pos_y$
+    else;                     orb%state = lost_neg_y$
     endif
   endif
 
@@ -272,7 +277,7 @@ case (rectangular$, auto_aperture$)
   if (x1_lim /= 0 .and. x_particle < x1_lim) then
     f = abs((x_particle - x1_lim) / (x2_lim - x1_lim))
     if (f > unstable_factor) then
-      orb%state = lost_neg_x_aperture$
+      orb%state = lost_neg_x$
       unstable_factor = f
     endif
   endif
@@ -280,7 +285,7 @@ case (rectangular$, auto_aperture$)
   if (x2_lim /= 0 .and. x_particle > x2_lim) then
     f = abs((x_particle - x2_lim) / (x2_lim - x1_lim))
     if (f > unstable_factor) then
-      orb%state = lost_pos_x_aperture$
+      orb%state = lost_pos_x$
       unstable_factor = f
     endif
   endif
@@ -288,7 +293,7 @@ case (rectangular$, auto_aperture$)
   if (y1_lim /= 0 .and. y_particle < y1_lim) then
     f = abs((y_particle - y1_lim) / (y2_lim - y1_lim))
     if (f > unstable_factor) then
-      orb%state = lost_neg_y_aperture$
+      orb%state = lost_neg_y$
       unstable_factor = f
     endif
   endif
@@ -296,7 +301,7 @@ case (rectangular$, auto_aperture$)
   if (y2_lim /= 0 .and. y_particle > y2_lim) then
     f = abs((y_particle - y2_lim) / (y2_lim - y1_lim))
     if (f > unstable_factor) then
-      orb%state = lost_pos_y_aperture$
+      orb%state = lost_pos_y$
       unstable_factor = f
     endif
   endif

@@ -11,9 +11,4 @@ use dynamic_aperture_mod
 
 implicit none
 
-!
-
-
-!
-
 end module

@@ -142,9 +142,9 @@ endif
 ! select the element
 
 key = ele%key
-if (associated(ele%cartesian_map)) key = wiggler$
+if (associated(ele%cartesian_map) .and. ele%field_calc == fieldmap$) key = wiggler$
 
-select case (ele%key)
+select case (key)
 
 !------------------------------------------------------------------
 ! Wiggler
@@ -152,6 +152,15 @@ select case (ele%key)
 Case (wiggler$, undulator$)
 
   field_ele => pointer_to_field_ele(ele, 1, z_offset)
+
+  if (associated(field_ele%cylindrical_map) .or. associated(field_ele%gen_grad_map) .or. &
+                                                         associated(field_ele%grid_field)) then
+    call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'CYLINDRICAL, GEN_GRAD OR GRID_FIELD MAP BUT SYMP_LIE_PTC CAN ONLY HANDLE CARTESIAN.')
+    if (global_com%exit_on_error) call err_exit
+    orbit%state = lost$    
+    return
+  endif
+
 
   if (.not. associated(field_ele%cartesian_map)) then  ! Only if wiggler or undulator
     allocate (ct_map)
@@ -161,6 +170,7 @@ Case (wiggler$, undulator$)
     if (size(field_ele%cartesian_map) > 1) then
       call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS MULTIPLE CARTESIAN MAPS. SYMP_LIE_PTC CAN ONLY HANDLE ONE.')
       if (global_com%exit_on_error) call err_exit
+      orbit%state = lost$    
       return
     endif
     ct_map => field_ele%cartesian_map(1)
@@ -169,6 +179,7 @@ Case (wiggler$, undulator$)
   if (ct_map%field_type /= magnetic$) then
     call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'HAS A CARTESIAN MAP THAT IS NOT MAGNETIC. SYMP_LIE_PTC CAN NOT HANDLE THIS.')
     if (global_com%exit_on_error) call err_exit
+    orbit%state = lost$    
     return
   endif
 
@@ -354,8 +365,8 @@ case (solenoid$, quadrupole$, sol_quad$)
 
 case default
 
-  call out_io (s_fatal$, r_name, 'TRACKING NOT YET IMPLEMENTED FOR: ' // key_name(ele%key), &
-                                 'FOR ELEMENT: ', ele%name)
+  call out_io (s_fatal$, r_name, 'TRACKING NOT YET IMPLEMENTED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
+                                 'FOR ELEMENT: ' // ele%name)
 
 end select
 
@@ -417,13 +428,13 @@ call out_io (s_warn$, r_name, &
 
 if (plane == x_plane$) then
   orbit%vec(1) = sign(2 * bmad_com%max_aperture_limit, orbit%vec(1))
-  if (orbit%vec(1) > 0) then ; orbit%state = lost_pos_x_aperture$
-  else;                          orbit%state = lost_neg_x_aperture$
+  if (orbit%vec(1) > 0) then ; orbit%state = lost_pos_x$
+  else;                        orbit%state = lost_neg_x$
   endif
 else
   orbit%vec(3) = sign(2 * bmad_com%max_aperture_limit, orbit%vec(3))
-  if (orbit%vec(3) > 0) then ; orbit%state = lost_pos_y_aperture$
-  else;                          orbit%state = lost_neg_y_aperture$
+  if (orbit%vec(3) > 0) then ; orbit%state = lost_pos_y$
+  else;                        orbit%state = lost_neg_y$
   endif
 endif
 
