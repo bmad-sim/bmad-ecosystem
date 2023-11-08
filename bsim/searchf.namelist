@@ -290,9 +290,6 @@ calc_this_side
 add_this_point
 calc_this_x
 
-File: custom_tracking/track1_preprocess.f90
-track1_preprocess
-
 File: dark_current_tracker/dark_current_mod.f90
 dark_current_mod
 dark_current_param_struct
@@ -334,9 +331,6 @@ long_term_tracking
 
 File: long_term_tracking/long_term_tracking_mpi.f90
 long_term_tracking
-
-File: long_term_tracking/track1_bunch_hook.f90
-track1_bunch_hook
 
 File: modules/adts_mod.f90
 adts_mod
@@ -431,6 +425,8 @@ ltt_track_map
 ltt_print_mpi_info
 ltt_bunch_time_sum
 ltt_apply_rampers_to_slave
+ltt_track1_bunch_hook
+ltt_track1_preprocess
 
 File: modules/moga_struct_mod.f90
 moga_struct_mod

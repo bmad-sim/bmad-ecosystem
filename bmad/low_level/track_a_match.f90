@@ -29,22 +29,9 @@ real(rp), optional :: mat6(6,6)
 
 logical, optional :: make_matrix
 logical, optional :: err_flag
-logical err
+logical err, match_orbit
 
 !
-
-if (is_true(ele%value(match_end_orbit$))) then
-  ele%value(x0$)  = orbit%vec(1)
-  ele%value(px0$) = orbit%vec(2)
-  ele%value(y0$)  = orbit%vec(3)
-  ele%value(py0$) = orbit%vec(4)
-  ele%value(z0$)  = orbit%vec(5)
-  ele%value(pz0$) = orbit%vec(6)
-  orbit%vec = [ele%value(x1$), ele%value(px1$), ele%value(y1$), ele%value(py1$), ele%value(z1$), ele%value(pz1$)]
-  return
-endif
-
-! Until match_end = False, use unit matrix.
 
 call match_ele_to_mat6 (ele, orbit, xmat, vec0, err, include_delta_time = .false.)
 if (err) then
@@ -54,10 +41,8 @@ if (err) then
   return
 endif
 
-if (is_false(ele%value(phase_trombone_input$)) .and. is_false(ele%value(match_end_input$)) .and. is_false(ele%value(match_end_orbit_input$))) then
-  ele%mat6 = xmat
-  ele%vec0 = vec0
-endif
+ele%mat6 = xmat
+ele%vec0 = vec0
 
 !
 

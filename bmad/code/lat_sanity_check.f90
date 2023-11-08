@@ -57,6 +57,7 @@ character(*), parameter :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
 logical good_control(12,12), girder_here, finished, foundit, problem_found
+logical match_twiss, match_phase, match_orbit
 
 ! Check the nametable.
 ! Instead of quiting, lat_sanity_check will repair a broken nametable.
@@ -560,34 +561,32 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! Match element checks
 
     if (ele%key == match$) then
-      if (ele%value(beta_a0$) /= 0 .or. ele%value(beta_b0$) /= 0 .or. &
-              ele%value(alpha_a0$) /= 0 .or. ele%value(alpha_b0$) /= 0 .or. &
-              ele%value(beta_a1$) /= 0 .or. ele%value(beta_b1$) /= 0 .or. &
-              ele%value(alpha_a1$) /= 0 .or. ele%value(alpha_b1$) /= 0 .or. is_true(ele%value(match_end$))) then
+      match_twiss = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == match_twiss$)
+      match_phase = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$)
+      match_orbit = (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$)
 
-        if (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0) then
-          call out_io (s_fatal$, r_name, &
-                        'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                        'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
-          err_flag = .true.
-        endif
-
-        if (is_false(ele%value(match_end$)) .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
-          call out_io (s_fatal$, r_name, &
-                        'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                        'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
-          err_flag = .true.
-        endif
-
-        if ((is_true(ele%value(match_end$)) .or. is_true(ele%value(match_end_orbit$))) .and. ele%value(delta_time$) /= 0) then
-          call out_io (s_fatal$, r_name, &
-                        'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                        'WHICH IS A FINITE DELTA_TIME AND MATCH_END OR MATCH_END_ORBIT IS TRUE.', &
-                        'THIS IS NOT ALLOWED. SPLIT INTO TWO MATCH ELEMENTS IF NEEDED.')
-          err_flag = .true.
-        endif
-
+      if (.not. match_phase .and. ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                      'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
+        err_flag = .true.
       endif
+
+      if (.not. match_twiss .and. .not. match_phase .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                      'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
+        err_flag = .true.
+      endif
+
+      if ((match_twiss .or. match_orbit) .and. ele%value(delta_time$) /= 0) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                      'WHICH IS A FINITE DELTA_TIME AND MATCH_TWISS OR MATCH_ORBIT', &
+                      'IS NOT ALLOWED. SPLIT INTO TWO MATCH ELEMENTS IF NEEDED.')
+        err_flag = .true.
+      endif
+
     endif
 
     ! Zero length cavity is a verboten
@@ -976,14 +975,30 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! match elements with match_end set should only appear in opens
+    ! match elements with  set should only appear in opens
 
-    if (ele%key == match$) then
-      if (is_true(ele%value(match_end$)) .and. lat%param%geometry /= open$) then
+    if (ele%key == match$ .and. lat%param%geometry /= open$) then
+      if (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == match_twiss$) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
                   'WHICH IS A: MATCH ELEMENT', &
-                  'HAS THE MATCH_END ATTRIBUTE SET BUT THIS IS NOT AN OPEN LATTICE!')
+                  'HAS MATRIX = MATCH_TWISS AND RECALC = TRUE BUT THIS IS NOT AN OPEN LATTICE!')
+        err_flag = .true.
+      endif
+
+      if (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                  'WHICH IS A: MATCH ELEMENT', &
+                  'HAS MATRIX = PHASE_TROMBONE AND RECALC = TRUE BUT THIS IS NOT AN OPEN LATTICE!')
+        err_flag = .true.
+      endif
+
+      if (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                  'WHICH IS A: MATCH ELEMENT', &
+                  'HAS KICK0 = MATCH_ORBIT AND RECALC = TRUE BUT THIS IS NOT AN OPEN LATTICE!')
         err_flag = .true.
       endif
     endif

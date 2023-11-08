@@ -69,11 +69,6 @@ if (present(err_flag)) err_flag = .true.
 
 do n = i_start+1, i_end
   ele => branch%ele(n)
-  if (ele%key == match$ .and. is_true(ele%value(phase_trombone$))) then
-    call match_ele_to_mat6(ele, branch%ele(n-1)%map_ref_orb_out, ele%mat6, ele%vec0, err, set_trombone = .true.)
-    ele%value(phase_trombone$) = false$  ! Trombone has been set.
-  endif
-
   call twiss_propagate1 (branch%ele(n-1), ele, err)
   if (err) return
 enddo

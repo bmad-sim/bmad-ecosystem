@@ -3207,59 +3207,129 @@ See \sref{s:list.match} for a full list of element attributes along with a their
 
 Attributes specific to a \vn{match} element are:
 \begin{example}
-  beta_a0, beta_b0   = <Real>                      ! Beginning betas
-  beta_a1, beta_b1   = <Real>                      ! Ending betas
-  alpha_a0, alpha_b0 = <Real>                      ! Beginning alphas
-  alpha_a1, alpha_b1 = <Real>                      ! Ending alphas
-  eta_x0, eta_y0     = <Real>                      ! Beginning etas 
-  eta_x1, eta_y1     = <Real>                      ! Ending etas 
-  etap_x0, etap_y0   = <Real>                      ! Beginning eta' 
-  etap_x1, etap_y1   = <Real>                      ! Ending eta'
-  c11_mat0, c12_mat0, c21_mat0, c22_mat0 = <Real>  ! Beginning coupling.
-  c11_mat1, c12_mat1, c21_mat1, c22_mat1 = <Real>  ! Ending coupling.
-  mode_flip0, mode_flip1 = <T/F>                   ! Mode flip status (\sref{s:coupling}). Default is False.
-  dphi_a, dphi_b     = <Real>                      ! Phase advances
-  x0, px0, y0, py0, z0, pz0 = <Real>               ! Beginning coordinates
-  x1, px1, y1, py1, z1, pz1 = <Real>               ! Ending coordinates
-  delta_time  = <Real>                             ! Change in time.
-  match_end = <T/F>                                ! Twiss matching. Default False.
-  match_end_orbit = <T/F>                          ! Orbit matching. Default False.
-  phase_trombone = <T/F>                           ! Phase shifter. Default False.
-  match_end_input                                  ! Set by Bmad. See below. 
-  match_end_orbit_input                            ! Set by Bmad. See below. 
-  phase_trombone_input                             ! Set by Bmad. See below. 
+  beta_a0, beta_b0   = <Real>            ! Entrance betas
+  beta_a1, beta_b1   = <Real>            ! Exit betas
+  alpha_a0, alpha_b0 = <Real>            ! Entrance alphas
+  alpha_a1, alpha_b1 = <Real>            ! Exit alphas
+  eta_x0, eta_y0     = <Real>            ! Entrance etas 
+  eta_x1, eta_y1     = <Real>            ! Exit etas 
+  etap_x0, etap_y0   = <Real>            ! Entrance eta' 
+  etap_x1, etap_y1   = <Real>            ! Exit eta'
+  c11_mat0, c12_mat0, c21_mat0, c22_mat0 = <Real>  ! Entrance coupling.
+  c11_mat1, c12_mat1, c21_mat1, c22_mat1 = <Real>  ! Exit coupling.
+  mode_flip0, mode_flip1 = <T/F>         ! Mode flip status (\sref{s:coupling}). Default: False.
+  dphi_a, dphi_b            = <Real>     ! Phase advances
+  x0, px0, y0, py0, z0, pz0 = <Real>     ! Entrance coordinates
+  x1, px1, y1, py1, z1, pz1 = <Real>     ! Exit coordinates
+  delta_time                = <Real>     ! Change in time.
+  matrix                    = <Switch>   ! Matrix calculation. Default: standard.
+  kick0                     = <Switch>   ! Zeroth order calc. Default: standard.
+  recalc                    = <Logical>  ! Calculate transfer map? Default is True.
 \end{example}
 
-The transfer map for a \vn{match} element is a linear transformation 
-with a ``kick'':
+The transfer map for a \vn{match} element is a first order transformation:
 \begin{equation}
   r_1 = \Bf M \, r_0 + \Bf V 
 \end{equation}
-where $r_1$ is the output coordinates, and $r_0$ are the input
-coordinates. The matrix $\Bf M$ is the linear part of the map and the
-vector $\Bf V$ is the zeroth order part of the map.
+where $r_1$ is the output coordinates, and $r_0$ are the input coordinates. The matrix $\Bf M$ is
+the linear part of the map and the vector $\Bf V$ is the zeroth order (``kick'') part of the map.
 
 \index{beta_a0}\index{beta_b0}\index{beta_a1}\index{beta_b1}
 \index{eta_x0}\index{etap_x0}\index{eta_y0}\index{etap_y0}
 \index{dphi_a}\index{dphi_b}
 Nomenclature: The parameters \vn{beta_a0}, \vn{alpha_a0}, etc. of the \vn{match} element are called
-the beginning (upstream) ``design'' Twiss parameters. The parameters \vn{beta_a1}, \vn{alpha_a1},
-etc. of the \vn{match} element are called the ending (downstream) ``design'' Twiss
-parameters. Similarly, \vn{c11_mat0}, etc. are the beginning components of the $\bfC$ coupling
-matrix (\sref{s:coupling}).
+the entrance (upstream) ``element'' Twiss parameters. The parameters \vn{beta_a1}, \vn{alpha_a1},
+etc. of the \vn{match} element are called the exit (downstream) ``element'' Twiss
+parameters. Similarly, \vn{c11_mat0}, etc. are the entrance components of the $\bfC$ coupling
+matrix (\sref{s:coupling}) and \vn{c11_mat1} are the exit end element values. These parameters in
+general will be different from the actual computed Twiss and coupling parametersat the ends of the
+\vn{match} element.
 
-The matrix $\Bf M$ is calculated such that if (and only if) the actual (computed) Twiss coupling
-parameters at the beginning \vn{match} element are equal to the beginning design Twiss and coupling
-parameters, then the computed Twiss and coupling parameters at the end of the \vn{match} element
-will be the end design Twiss and coupling parameters and the phase advances (in radians) will be
-\vn{dphi_a} and \vn{dphi_b} (\sref{s:coupling}).
+The \vn{matrix} switch determines how the linear $\Bf M$ matrix is calculated. Possible settings of this
+parameter are:
+\begin{example}
+  match_twiss      ! Element entrance Twiss set to actual Twiss to match exit end values.
+  identity         ! \(\Bf M\) is set to the unit matrix.
+  phase_trombone   ! Element Twiss are set so that \(\Bf M\) produces a pure phase shift.
+  standard         ! Use element values to calc matrix (default).
+\end{example}
+%
+\begin{description} 
+%
+\item[standard] \Newline
+With \vn{matrix} set to \vn{standard} (the default), the matrix $\Bf M$ is calculated such that if
+(and only if) the actual Twiss and coupling parameters at the entrance of the \vn{match} element
+are equal to the element entrance Twiss and coupling parameters, then the computed Twiss and
+coupling parameters at the exit end of the \vn{match} element will be the element end Twiss and coupling
+parameters. Additionally, the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}.
+%
+\item[identity] \Newline
+With \vn{matrix} set to \vn{identity} the transfer matrix will be set to the unit matrix independent
+of the element Twiss and coupling settings.
+%
+\item[match_twiss] \Newline
+The \vn{match_twiss} setting for \vn{matrix} instructs \bmad, when a program is run, to set the
+element entrance Twiss and coupling values to the computed Twiss and coupling values from the exit
+end of the previous element. This ensures that the computed Twiss and coupling at the element's exit end
+will correspond to the element Twiss and coupling values. This is only done if \vn{recalc} is set to
+True (the default). If \vn{recalc} is False, no element Twiss and coupling parameters are modified
+and the transfer matrix is calculated from the element Twiss and coupling parameters the same as the
+\vn{standard} setting.
+
+\vn{match_twiss} with \vn{recalc} set to True can only be used with lattices with an \vn{open}
+geometry (\sref{s:param}) since, for a \vn{closed} lattice, it is not possible to calculate the
+Twiss parameters at the previous element independently of the element end Twiss parameters at the
+\vn{match} element.
+
+When running a program, if a \vn{match} element initially has \vn{matrix} set to \vn{match_twiss} and
+\vn{recalc} is set to True, the \bmad bookkeeping routines will ensure that the \vn{match} element's
+entrance element Twiss parameters are appropriately set as explained above. If \vn{recalc} is now
+toggled to False (which is done automatically, for example, by the \tao program), the entrance Twiss attribute
+values, and hence the transfer matrix for the \vn{match} element, will be frozen. Thereafter,
+variation of any parameter in the lattice that affects the calculated Twiss parameters at the
+entrance of the \vn{match} element will not affect the \vn{match} element's transfer matrix.
+%
+\item[phase_trombone] \Newline
+The \vn{phase_trombone} setting for \vn{matrix} is conceptually similar to the \vn{match_twiss}. The
+difference is that with \vn{phase_trombone}, \bmad will modify both the entrance and exit element
+parameters so that the actual entrance Twiss and coupling equals the actual exit Twiss and coupling
+and there will be a phase advance through the match element that is set by \vn{dphi_a} and
+\vn{dphi_b} for the $a$ and $b$ modes respectively.
+
+Like the \vn{match_twiss} setting, the \vn{recalc} parameter determines if \bmad will modify the element
+parameters.
+\end{description}
+
+Note: With \vn{match_twiss} and \vn{phase_trombone} settings the element's Twiss and coupling parameters
+are modified. With \vn{identity} and \vn{standard} the element parameters are not varied.
+
+Note: There is an old notation with logical parameters \vn{match_end} and \vn{phase_trombone}
+instead of \vn{matrix} and \vn{recalc}.  The correspondence is
+\begin{example}
+  match_end   phase_trombone    matrix           recalc
+  ---------   --------------    --------------   ------
+  False       False             standard         False or True
+  True        False             match_twiss      True
+  False       True              phase_trombone   True
+\end{example}
+The setting of \vn{match_end} and \vn{phase_trombone} both True is not allowed.
 
 \index{x0}\index{px0}\index{y0}\index{py0}\index{z0}\index{pz0}
 \index{x1}\index{px1}\index{y1}\index{py1}\index{z1}\index{pz1}
-The kick term $\Bf V$ is constructed so that if a particle has
-coordinates \vn{(x0, px0, y0, py0, z0, pz0)} before the \vn{match}
-element, the coordinates just after the element will be \vn{(x1, px1,
-y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
+The setting of the \vn{kick0} paramter determines how the zeroth order transfer map vector $\Bf V$ is
+constructed. Possible settings of this parameter are:
+\begin{example}
+  match_orbit    ! Element entrance orbit set to actual orbit to match exit end values.
+  zero           ! Set \(\Bf V\) zero.
+  standard       ! Use element orbit values to calc \(\Bf V\) (default).
+\end{example}
+%
+\begin{description} 
+%
+\item[standard] \Newline
+With \vn{kick0} set to \vn{standard} (the default), the vector $\Bf V$ is set so that if a particle
+enters the \vn{match} element with position \vn{(x0, px0, y0, py0, z0, pz0)} the element position
+at the exit end will be \vn{(x1, px1, y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
 \begin{equation}
   \Bf V = 
     \begin{pmatrix} 
@@ -3269,15 +3339,41 @@ y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
     \text{x0} \\ \text{px0} \\ \text{y0} \\ \text{py0} \\ \text{z0} \\ \text{pz0} 
     \end{pmatrix}
 \end{equation}
+%
+\item[match_orbit] \Newline
+The \vn{match_orbit} setting for \vn{kick0} instructs \bmad, when a program is run, to set the element
+entrance position to the computed orbit from the exit end of the previous element. This ensures that
+the computed orbit at the element's exit end will correspond to the position set in the
+element. This is only done if \vn{recalc} is set to True (the default). If \vn{recalc} is False, no
+element position values are modified and $\Bf V$ is calculated from the element position the same as
+the \vn{standard} setting.
+
+Like the situation with \vn{match_twiss} set with \vn{matrix}, \vn{match_orbit} with \vn{recalc} set
+to True can only be used with lattices with an \vn{open} geometry (\sref{s:param}) since, for a
+\vn{closed} lattice, it is not possible to calculate the Twiss parameters at the previous element
+independently of the element end Twiss parameters at the \vn{match} element.
+
+%
+\item[zero] \Newline
+The \vn{zero} setting for \vn{kick0} sets $\Bf V$ to zero independent of teh element position values.
+%
+\end{description}
+
+Note: With the \vn{match_orbit} setting the element's entrance orbit values will be modified. With
+\vn{zero} and \vn{standard} settings the elements parameters will not be varied by \bmad.
 
 The \vn{delta_time} parameter adds a constant to the particle's time. This will also affect the $z$
 phase space coordinate through \Eq{zbctt} and the transfer map though the element. If
 \vn{delta_time} is zero, the transfer map through the element will be the $\Bf M$ matrix as
 discussed above. With a finite \vn{delta_time}, the transfer map will be different from $\Bf M$.
 The order of operations, is the effect of \vn{delta_time} is applied first and the linear
-transformation above is applied afterwards. Since using \vn{match_end} or \vn{match_end_orbit} with
+transformation above is applied afterwards. Since using \vn{match_twiss} or \vn{match_orbit} with
 a finite \vn{delta_time} can be confusing, such a situation is not allowed. Use two separate
 \vn{match} elements if needed.
+
+A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
+like a \vn{marker} element. That is, the orbit and Twiss parameters are unchanged when tracking
+through a \vn{match} element that is turned off.
 
 \index{l}
 The length attribute \vn{l} is not used in the transfer matrix calculation. The length \vn{l} is
@@ -3285,75 +3381,8 @@ used to compute the time it takes to go through a match element.
 
 Example:
 \begin{example}
-  mm: match, beta_a0 = 12.5, beta_b0 = 3.4, eta_x0 = 1.0, ...
+  mm: match, beta_a1 = 12.5, beta_b1 = 3.4, eta_x1 = 1.0, matrix = match_twiss
 \end{example}
-
-  \begin{description} 
-  \index{open}
-  \index{match_end}\index{match_end_input}
-  \item[match_end, match_end_input] \Newline
-The default value of \vn{match_end} is False. The \vn{match_end} attribute is used for appropriately
-setting the beginning design Twiss parameters from within a program. If the \vn{match_end} attribute
-is set to True, the beginning design Twiss parameters are set to be equal to the actual Twiss
-parameters from the exit end of the previous element. In this case, the actual Twiss parameters at
-the end of the match element will be the design Twiss parameters. The \vn{match_end} attribute may
-only be set to True with lattices with an \vn{open} geometry (\sref{s:param}) since, for a
-\vn{closed} lattice, it is not possible to calculate the Twiss parameters at the previous element
-independently of the design end Twiss parameters at the \vn{match} element.
-
-When running a program, if a \vn{match} element initially has it's \vn{match_end} attribute set to
-True, the \bmad bookkeeping routines will ensure that the \vn{match} element's beginning design
-Twiss parameters are appropriately set as explained above. If \vn{match_end} is now toggled to False
-by the program, the beginning Twiss attribute values, and hence the transfer matrix for the
-\vn{match} element, will be frozen. Thereafter, variation of any parameter in the lattice that
-affects the calculated Twiss parameters at the beginning of the \vn{match} element will not affect the
-\vn{match} element's transfer matrix.
-
-When a lattice is read in, the \vn{match_end_input} attribute is set by \bmad to be equal to
-\vn{match_end}. This attribute does not affect any computations and is not settable by the
-user. This attribute is simply present to tell the user (and \bmad) what the setting of
-\vn{match_end} was in the lattice file.
-%
-  \index{match_end_orbit}\index{match_end_orbit_input}
-  \item[match_end_orbit, match_end_orbit_input] \Newline
-The \vn{match_end_orbit} attribute is similar in operation to the \vn{match_end} attribute. The
-default value of \vn{match_end_orbit} is False. When running a program, if \vn{match_end_orbit} is
-set to True, when any particle is tracked through the \vn{match} element, the \vn{match} element's
-starting coordinate parameters, \vn{(x0, px0, y0, py0, z0, pz0)}, will be set to the particle's
-coordinates at the exit end of the previous element. That is, the particle will always have
-coordinates equal to \vn{(x1, px1, y1, py1, z1, pz1)} at the end of the \vn{match} element.  If
-\vn{match_end_orbit} is now toggled to False by the program, the ending coordinate parameters, and
-hence the $\Bf V$ vector, will become fixed. As with the \vn{match_end} attribute, the
-\vn{match_end_orbit} attribute may only be used with lattices with an \vn{open} geometry
-(\sref{s:param}).
-
-When a lattice is read in, the \vn{match_end_orbit_input} attribute is set by \bmad to be equal to
-\vn{match_end_orbit}. This attribute does not affect any computations and is not settable by the
-user. This attribute is simply present to tell the user (and \bmad) what the setting of
-\vn{match_end_orbit} was in the lattice file.
-%
-  \index{phase_trombone}\index{phase_trombone_input}
-  \item[phase_trombone, phase_trombone_input] \Newline
-The \vn{phase_trombone} parameter is used to create a \vn{match} element with a transfer matrix such
-that the actual ending Twiss parameters are the same as the beginning Twiss parameters except that
-there will be a phase advance through the match element that is set by \vn{dphi_a} and \vn{dphi_b}
-for the $a$ and $b$ modes respectively.
-
-If the \vn{phase_trombone} is set True, when running a program, the \bmad bookkeeping code will
-appropriately set the values of \vn{beta_a0}, \vn{beta_a1}, \vn{alpha_b0}, etc. to match the desired
-transfer matrix. The \bmad bookkeeping code will then set \vn{phase_trombone} to False to freeze the
-transfer matrix against variation of any lattice parameters.
-
-When a lattice is read in, the \vn{phase_trombone_input} attribute is set by \bmad to be equal to
-\vn{phase_trombone}. This attribute does not affect any computations and is not settable by the
-user. This attribute is simply present to tell the user (and \bmad) what the setting of \vn{phase_trombone}
-was in the lattice file.
-
-  \end{description}
-
-A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
-like a \vn{marker} element. That is, the orbit and Twiss parameters are unchanged when tracking
-through a \vn{match} element that is turned off.
 
 \newpage
 
