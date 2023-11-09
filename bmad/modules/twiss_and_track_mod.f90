@@ -29,7 +29,7 @@ use coord_mod
 ! starting conditions.
 ! 
 ! If there is a problem in a closed geometry branch, status argument settings are: in_stop_band$, 
-! unstable$, non_symplectic$,-in_stop_band$, -unstable$, -non_symplectic$,xfer_mat_clac_failure$, 
+! unstable$, non_symplectic$, in_stop_band$, unstable$, non_symplectic$, xfer_mat_clac_failure$, 
 ! twiss_propagate_failure$, or no_closed_orbit$. Note: in_stop_band$, unstable$, and non_symplectic$ 
 ! refer to the 1-turn matrix which is computed with closed lattices. A negative sign is used to 
 ! differentiate an error occuring in the first call to twiss_at_start from the second call to twiss_at_start.
@@ -164,6 +164,7 @@ subroutine twiss_and_track1 (lat, orb, ix_branch, status)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orb(:)
 
 integer i, ix_branch, status, stat
@@ -179,7 +180,7 @@ character(20) :: r_name = 'twiss_and_track1'
 
 branch => lat%branch(ix_branch)
 
-! A match with match_end$ complicates things since in order to track correctly we
+! A match element may complicate things since in order to track correctly we may
 ! need to know the Twiss parameters. This situation is only allowed for open lattices.
 
 if (branch%param%geometry == closed$) then
@@ -199,42 +200,42 @@ if (branch%param%geometry == closed$) then
     return
   endif
 
-else
-  do i = 1, branch%n_ele_track
-    if (branch%ele(i)%key /= match$ .or. branch%ele(i)%value(match_end$) == 0) cycle
-    call twiss_propagate_all (lat, ix_branch)
-    exit
-  enddo
-
-  call track_all (lat, orb, ix_branch, stat)
-
-  if (stat == moving_forward$) then
-    status = ok$
-  else
-    status = -stat
+  call lat_make_mat6 (lat, -1, orb, ix_branch = ix_branch, err_flag = err)
+  if (err) then
+    status = xfer_mat_calc_failure$
+    return
   endif
-endif
 
-! Now we can compute the Twiss parameters.
-
-call lat_make_mat6 (lat, -1, orb, ix_branch = ix_branch, err_flag = err)
-if (err) then
-  status = xfer_mat_calc_failure$
-  return
-endif
-
-if (branch%param%geometry == closed$) then
   call twiss_at_start (lat, status, branch%ix_branch)
   if (status /= ok$) then
     status = -status  ! To differentiate a failure here from the first call to twiss_at_start.
     return
   endif
-endif
 
-call twiss_propagate_all (lat, ix_branch, err)
-if (err) then
-  status = twiss_propagate_failure$
-  return
+  call twiss_propagate_all (lat, ix_branch, err)
+  if (err) then
+    status = twiss_propagate_failure$
+    return
+  endif
+
+! geometry = open
+else
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
+    call make_mat6(ele, branch%param, orb(i-1), orb(i), err_flag)
+    if (err_flag) then
+      status = xfer_mat_calc_failure$
+      return
+    endif
+
+    call twiss_propagate1(branch%ele(i-1), ele, err_flag)
+    if (err_flag) then
+      status = twiss_propagate_failure$
+      return
+    endif
+  enddo
+
+  status = ok$
 endif
 
 end subroutine twiss_and_track1

@@ -249,6 +249,11 @@ str_downcase
 system_command
 string_trim
 virtual_memory_usage
+find_location
+find_location_real
+find_location_int
+find_location_logic
+find_location_str
 
 File: interfaces/sim_utils_struct.f90
 sim_utils_struct
@@ -680,6 +685,12 @@ initfixedwindowls
 destfixedwindowls
 fixedwindowls
 shortfactorial
+
+File: math/find_location.f90
+find_location_real
+find_location_int
+find_location_str
+find_location_logic
 
 File: matrix/cplx_mat_inverse.f90
 cplx_mat_inverse

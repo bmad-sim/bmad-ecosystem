@@ -40,10 +40,18 @@ logical, optional :: err_flag
 
 character(*), parameter :: r_name = 'twiss_propagate1'
 
-!---------------------------------------------------------------------
-! init
+!
 
 if (present(err_flag)) err_flag = .true.
+
+if (ele2%key == match$ .and. is_true(ele2%value(recalc$)) .and. &
+    (nint(ele2%value(matrix$)) == match_twiss$ .or. nint(ele2%value(matrix$)) == phase_trombone$)) then
+  call match_ele_to_mat6(ele2, ele1%map_ref_orb_out, ele2%mat6, ele2%vec0, error, set_trombone = .true.)
+  if (error) return
+endif
+
+!---------------------------------------------------------------------
+! init
 
 if (ele1%a%beta <= 0 .or. ele1%b%beta <= 0) then
 
@@ -63,13 +71,6 @@ endif
 
 ele2%mode_flip = ele1%mode_flip          ! assume no flip
 key2 = ele2%key
-
-!---------------------------------------------------------------------
-! Special match case
-
-if (ele2%key == match$ .and. is_true(ele2%value(match_end$))) then
-  call match_ele_to_mat6 (ele2, ele1%map_ref_orb_out, ele2%mat6, ele2%vec0, error, ele1, .true.)
-endif
 
 !---------------------------------------------------------------------
 ! markers are easy

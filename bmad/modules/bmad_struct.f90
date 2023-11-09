@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 302
+integer, parameter :: bmad_inc_version$ = 303
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1599,6 +1599,13 @@ character(20), parameter :: key_name(n_key$) = [ &
 logical has_hkick_attributes(n_key$)
 logical has_kick_attributes(n_key$)
 
+!
+
+integer, parameter :: standard$ = 1, match_twiss$ = 2, identity$ = 3, phase_trombone$ = 4
+integer, parameter :: match_orbit$ = 2, zero$ = 3
+character(16) :: matrix_name(4) = [character(16):: 'standard', 'match_twiss', 'identity', 'phase_trombone']
+character(12) :: kick0_name(3) = [character(16):: 'standard', 'match_orbit', 'zero']
+
 ! Element attribute name logical definitions
 
 integer, parameter :: val1$=19, val2$=20, val3$=21, val4$=22, val5$=23, &
@@ -1620,9 +1627,7 @@ integer, parameter :: c11_mat1$ = 25, c12_mat1$ = 26, c21_mat1$ = 27, c22_mat1$ 
 
 integer, parameter :: x0$ = 30, px0$ = 31, y0$ = 32, py0$ = 33, z0$ = 34, pz0$ = 35
 integer, parameter :: x1$ = 36, px1$ = 37, y1$ = 38, py1$ = 39, z1$ = 40, pz1$ = 41
-integer, parameter :: phase_trombone_input$ = 42, phase_trombone$ = 43
-integer, parameter :: match_end_input$ = 44, match_end$ = 45
-integer, parameter :: match_end_orbit_input$ = 46, match_end_orbit$ = 47
+integer, parameter :: matrix$ = 42, kick0$ = 43, recalc$ = 44
 integer, parameter :: delta_time$ = 48
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6

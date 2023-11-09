@@ -25,6 +25,7 @@ type (lat_struct) parse_lat
 type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orbit(:)
 
 character(*) namelist_file
@@ -272,7 +273,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   if (associated(tao_hook_init_lattice_post_parse_ptr)) call tao_hook_init_lattice_post_parse_ptr (u)
 
-  ! In case there is a match element with match_end = T, propagate the twiss parameters which
+  ! In case there is a match element with recalc = T, propagate the twiss parameters which
   ! makes the beginning Twiss of the match element match the end Twiss of the previous element
 
   if (u%design%lat%param%geometry == open$) then
@@ -318,15 +319,17 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   u%design%tao_branch(0)%orb0 = u%design%lat%particle_start
   u%base%tao_branch(0)%orb0   = u%base%lat%particle_start
 
-  ! Check for match element with match_end = True
+  ! Check for match element with recalc = True
 
   do ib = 0, ubound(u%design%lat%branch, 1)
     branch => u%design%lat%branch(ib)
     u%model%tao_branch(ib)%has_open_match_element = .false.
     do ie = 1, branch%n_ele_track
-      if (branch%ele(ie)%key /= match$) cycle
-      if (.not. is_true(branch%ele(ie)%value(match_end$)) .and. &
-          .not. is_true(branch%ele(ie)%value(match_end_orbit$))) cycle
+      ele => branch%ele(ie)
+      if (ele%key /= match$) cycle
+      if (.not. is_true(ele%value(recalc$))) cycle
+      if (nint(ele%value(matrix$)) /= match_twiss$ .and. nint(ele%value(matrix$)) /= phase_trombone$ .and. &
+                                        nint(ele%value(kick0$)) /= match_orbit$) cycle  
       u%model%tao_branch(ib)%has_open_match_element = .true.
       exit
     enddo
