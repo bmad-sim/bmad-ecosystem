@@ -405,14 +405,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
     if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
 
-    ! Match element
-
-    if (ele%key == match$) then
-      if (is_true(ele%value(match_end_input$))) line = trim(line) // ', match_end = T'
-      if (is_true(ele%value(match_end_orbit_input$))) line = trim(line) // ', match_end_orbit = T'
-      if (is_true(ele%value(phase_trombone_input$))) line = trim(line) // ', phase_trombone = T'
-    endif
-
     ! AC_Kicker
 
     if (associated(ele%ac_kick)) then

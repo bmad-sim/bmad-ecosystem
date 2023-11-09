@@ -614,7 +614,6 @@ def search_all (doc_type):
   # Setup dir_list list, etc
 
   if len(dir_list) == 0:    # If no -d command line arg
-    choose_path (dir_list, root_dir, 'univ_tune_tracker', '/code/tt_acq_sub.f90', '')
     choose_path (dir_list, root_dir, 'util_programs', '/mad_to_bmad/madx_to_bmad.py', '')
     choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '')
     choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')

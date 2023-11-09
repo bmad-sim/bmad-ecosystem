@@ -704,9 +704,8 @@ endif
 select case (a_name)
 ! attrib_type = is_real$
 ! attrib_type = is_logical$
-case ('PHASE_TROMBONE');                 a_ptr%r => ele%value(phase_trombone$)
-case ('MATCH_END');                      a_ptr%r => ele%value(match_end$)
-case ('MATCH_END_ORBIT');                a_ptr%r => ele%value(match_end_orbit$)
+case ('MATRIX');                         a_ptr%r => ele%value(matrix$)
+case ('KICK0');                          a_ptr%r => ele%value(kick0$)
 case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)
 case ('MODE_FLIP0');                     a_ptr%r => ele%value(mode_flip0$)
 case ('MODE_FLIP1');                     a_ptr%r => ele%value(mode_flip1$)

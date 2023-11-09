@@ -1145,6 +1145,24 @@ bmad_routine_interface
 pointer_to_branch
 pointer_to_branch_given_name
 pointer_to_branch_given_ele
+apply_element_edge_kick_hook_def
+check_aperture_limit_custom_def
+distance_to_aperture_custom_def
+ele_geometry_hook_def
+wall_hit_handler_custom_def
+em_field_custom_def
+ele_to_fibre_hook_def
+radiation_integrals_custom_def
+init_custom_def
+make_mat6_custom_def
+time_runge_kutta_periodic_kick_hook_def
+track1_bunch_hook_def
+track1_custom_def
+track_many_hook_def
+track1_postprocess_def
+track1_preprocess_def
+track1_spin_custom_def
+track1_wake_hook_def
 
 File: modules/changed_attribute_bookkeeper.f90
 changed_attribute_bookkeeper
@@ -1808,6 +1826,7 @@ ascii$
 binary$
 hdf5$
 one_file$
+ascii4$
 num_ele_attrib$
 off$
 on$
@@ -1902,12 +1921,19 @@ moving_forward$
 pre_born$
 alive$
 lost$
+lost_neg_x$
+lost_pos_x$
+lost_neg_y$
+lost_pos_y$
+lost_z$
+lost_pz$
 lost_neg_x_aperture$
 lost_pos_x_aperture$
 lost_neg_y_aperture$
 lost_pos_y_aperture$
-lost_pz_aperture$
 lost_z_aperture$
+lost_pz_aperture$
+state_name
 vec0$
 coord_struct
 coord_array_struct
@@ -2103,8 +2129,15 @@ def_ptc_com$
 rf_bend$
 gkicker$
 foil$
+thick_multipole$
 n_key$
 key_name
+standard$
+match_twiss$
+identity$
+phase_trombone$
+match_orbit$
+zero$
 val1$
 val2$
 val3$
@@ -2150,12 +2183,9 @@ y1$
 py1$
 z1$
 pz1$
-phase_trombone_input$
-phase_trombone$
-match_end_input$
-match_end$
-match_end_orbit_input$
-match_end_orbit$
+matrix$
+kick0$
+recalc$
 delta_time$
 x$
 px$
@@ -2900,6 +2930,7 @@ bunch_init_end_calc
 File: multiparticle/beam_file_io.f90
 beam_file_io
 write_beam_file
+write_ascii4_beam_file
 read_beam_file
 read_beam_ascii4
 

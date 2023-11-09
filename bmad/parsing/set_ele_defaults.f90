@@ -202,6 +202,11 @@ case (mask$)
     allocate(ele%photon)
   endif
 
+case (match$)
+  ele%value(matrix$) = standard$
+  ele%value(kick0$) = standard$
+  ele%value(recalc$) = true$
+
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.

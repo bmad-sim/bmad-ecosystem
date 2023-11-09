@@ -394,29 +394,31 @@ if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
 if (allocated(slave%multipole_cache)) deallocate(slave%multipole_cache)
 
-! A match element with match_end$: Restore initial Twiss parameters (which
+! A match element with recalc = True: Restore initial Twiss parameters (which
 ! are calculated in twiss_propagate1).
 
 if (lord%key == match$) then
-  if (is_true(lord%value(match_end$))) then
-    slave%value(beta_a0$)    = slave_val(beta_a0$)
-    slave%value(beta_b0$)    = slave_val(beta_b0$)
-    slave%value(alpha_a0$)   = slave_val(alpha_a0$)
-    slave%value(alpha_b0$)   = slave_val(alpha_b0$)
-    slave%value(eta_x0$)     = slave_val(eta_x0$)
-    slave%value(eta_y0$)     = slave_val(eta_y0$)
-    slave%value(etap_x0$)    = slave_val(etap_x0$)
-    slave%value(etap_y0$)    = slave_val(etap_y0$)
-    slave%value(c11_mat0$:mode_flip1$) = slave_val(c11_mat0$:mode_flip1$)
-  endif
+  if (is_true(lord%value(recalc$))) then
+    if (nint(lord%value(matrix$)) == match_twiss$) then
+      slave%value(beta_a0$)    = slave_val(beta_a0$)
+      slave%value(beta_b0$)    = slave_val(beta_b0$)
+      slave%value(alpha_a0$)   = slave_val(alpha_a0$)
+      slave%value(alpha_b0$)   = slave_val(alpha_b0$)
+      slave%value(eta_x0$)     = slave_val(eta_x0$)
+      slave%value(eta_y0$)     = slave_val(eta_y0$)
+      slave%value(etap_x0$)    = slave_val(etap_x0$)
+      slave%value(etap_y0$)    = slave_val(etap_y0$)
+      slave%value(c11_mat0$:mode_flip1$) = slave_val(c11_mat0$:mode_flip1$)
+    endif
 
-  if (is_true(lord%value(match_end_orbit$))) then
-    slave%value(x0$)  = slave_val(x0$)
-    slave%value(px0$) = slave_val(px0$)
-    slave%value(y0$)  = slave_val(y0$)
-    slave%value(py0$) = slave_val(py0$)
-    slave%value(z0$)  = slave_val(z0$)
-    slave%value(pz0$) = slave_val(pz0$)
+    if (nint(lord%value(kick0$)) == match_orbit$) then
+      slave%value(x0$)  = slave_val(x0$)
+      slave%value(px0$) = slave_val(px0$)
+      slave%value(y0$)  = slave_val(y0$)
+      slave%value(py0$) = slave_val(py0$)
+      slave%value(z0$)  = slave_val(z0$)
+      slave%value(pz0$) = slave_val(pz0$)
+    endif
   endif
 endif
 

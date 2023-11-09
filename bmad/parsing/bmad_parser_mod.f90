@@ -736,6 +736,24 @@ case ('ELE_END')
   pele%ele_pt = anchor_end$
   err_flag = .false.
   return
+
+case ('MATCH_END')
+  call parser_error('NOTE: MATCH ELEMENT "MATCH_END = T" IS REPLACED BY "MATRIX = MATCH_TWISS."', &
+                    'SEE THE BMAD MANUAL FOR MORE DETAILS. PROGRAM WILL RUN NORMALLY...', level = s_warn$)
+  if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT', ele, delim, delim_found)) return
+  call parser_get_logical (trim(word), logic, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
+  if (logic) ele%value(matrix$) = match_twiss$
+  return
+
+case ('MATCH_END_ORBIT')
+  call parser_error('NOTE: MATCH ELEMENT "MATCH_END_ORBIT = T" IS REPLACED BY "KICK0 = MATCH_ORBIT."', &
+                    'SEE THE BMAD MANUAL FOR MORE DETAILS. PROGRAM WILL RUN NORMALLY...', level = s_warn$)
+  if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT', ele, delim, delim_found)) return
+  call parser_get_logical (trim(word), logic, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
+  if (logic) ele%value(kick0$) = match_orbit$
+  return
+
+
 end select
 
 if (word(1:16) == 'CUSTOM_ATTRIBUTE') then
@@ -1948,6 +1966,10 @@ case ('INTERPOLATION')
   call get_switch (attrib_word, interpolation_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(interpolation$) = ix
 
+case ('KICK0')
+  call get_switch (attrib_word, kick0_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(kick0$) = ix
+
 case ('LATTICE_TYPE')   ! Old style
   call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
                      'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED')
@@ -1972,6 +1994,10 @@ case ('MAT6_CALC_METHOD')
     return
   endif
   ele%mat6_calc_method = switch
+
+case ('MATRIX')
+  call get_switch (attrib_word, matrix_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(matrix$) = ix
 
 case ('MODE')
   call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -7192,12 +7218,6 @@ case (wiggler$, undulator$)
   if (ele%value(l_period$) == 0 .and. ele%value(n_period$) /= 0) then
     ele%value(l_period$) = ele%value(l$) / ele%value(n_period$) 
   endif
-
-!------------------
-case (match$)
-  ele%value(phase_trombone_input$)  = ele%value(phase_trombone$)
-  ele%value(match_end_input$)       = ele%value(match_end$)
-  ele%value(match_end_orbit_input$) = ele%value(match_end_orbit$)
 
 !------------------
 

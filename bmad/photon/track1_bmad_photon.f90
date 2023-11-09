@@ -139,7 +139,7 @@ case (mask$)
 
 case (match$)
 
-  if (is_true(ele%value(match_end_orbit$))) then
+  if (is_true(ele%value(recalc$)) .and. ele%value(kick0$) == match_orbit$ ) then
     ele%value(x0$)  = start_orb%vec(1)
     ele%value(px0$) = start_orb%vec(2)
     ele%value(y0$)  = start_orb%vec(3)

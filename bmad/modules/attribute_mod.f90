@@ -1253,12 +1253,9 @@ call init_attribute_name1 (match$, y1$,                             'Y1')
 call init_attribute_name1 (match$, py1$,                            'PY1')
 call init_attribute_name1 (match$, z1$,                             'Z1')
 call init_attribute_name1 (match$, pz1$,                            'PZ1')
-call init_attribute_name1 (match$, phase_trombone_input$,           'PHASE_TROMBONE_INPUT', dependent$)
-call init_attribute_name1 (match$, phase_trombone$,                 'PHASE_TROMBONE')
-call init_attribute_name1 (match$, match_end_input$,                'MATCH_END_INPUT', dependent$)
-call init_attribute_name1 (match$, match_end$,                      'MATCH_END')
-call init_attribute_name1 (match$, match_end_orbit_input$,          'MATCH_END_ORBIT_INPUT', dependent$)
-call init_attribute_name1 (match$, match_end_orbit$,                'MATCH_END_ORBIT')
+call init_attribute_name1 (match$, matrix$,                         'MATRIX')
+call init_attribute_name1 (match$, kick0$,                          'KICK0')
+call init_attribute_name1 (match$, recalc$,                         'RECALC')
 call init_attribute_name1 (match$, is_on$,                          'IS_ON')
 call init_attribute_name1 (match$, c11_mat0$,                       'C11_MAT0')
 call init_attribute_name1 (match$, c12_mat0$,                       'C12_MAT0')
@@ -1885,16 +1882,16 @@ endif
 !
 
 select case (attrib_name)
-case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', &
+case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
       'AUTOSCALE_AMPLITUDE', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', 'HIGH_ENERGY_SPACE_CHARGE_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
-      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'PHASE_TROMBONE', 'PHASE_TROMBONE_INPUT', &
+      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', &
       'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
 
@@ -1905,7 +1902,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'N_PARTICLE', 'VERTICA
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
-      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
+      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'MATRIX', 'KICK0', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
@@ -2358,13 +2355,15 @@ case ('GRID^TYPE')      ! This is for the Tao "python" command
 
 case ('INTERPOLATION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, interpolation_name, lbound(interpolation_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == cubic$)
-  endif
+  if (present(is_default)) is_default = (ix_attrib_val == cubic$)
 
 case ('KEY')
     call get_this_attrib_name (attrib_val_name, ix_attrib_val, key_name, lbound(key_name, 1))
   if (present(is_default)) is_default = .false.
+
+case ('KICK0')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, kick0_name, lbound(kick0_name, 1))  
+  if (present(is_default)) is_default = (ix_attrib_val == standard$)
 
 case ('LORD_STATUS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, control_name, lbound(control_name, 1))  
@@ -2376,6 +2375,10 @@ case ('MAT6_CALC_METHOD')
     call default_ele(ele, ele2)
     is_default = (ix_attrib_val == ele2%mat6_calc_method)
   endif
+
+case ('MATRIX')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, matrix_name, lbound(matrix_name, 1))  
+  if (present(is_default)) is_default = (ix_attrib_val == standard$)
 
 case ('MODE')
   if (ele%key == diffraction_plate$ .or. ele%key == sample$ .or. ele%key == mask$) then
