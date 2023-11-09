@@ -21,11 +21,35 @@ particle_start[spin_z] = 0.5
 
 m0: match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3,
                             c11_mat0 = 0.1, c12_mat0 = 0.2, c21_mat0 = 0.3, c22_mat0 = 0.4, 
-                            c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1
+                            c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1,
+                            x0 = 0.01, px0 = 0.02, y0 = 0.03, py0 = 0.04, z0 = 0.05, pz0 = 0.06,
+                            x1 = 0.07, px1 = 0.08, y1 = 0.09, py1 = 0.01, z1 = 0.02, pz1 = 0.03
 
-!m1: match, beta_a1 = 20, beta_b1 = 15, matrix = match_twiss
+m1: match, beta_a1 = 20, beta_b1 = 15, matrix = match_twiss, kick0 = match_orbit,
+                      c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1,
+                      x1 = 0.07, px1 = 0.08, y1 = 0.09, py1 = 0.01, z1 = 0.02, pz1 = 0.03
+
+m2: match, matrix = phase_trombone, dphi_a = 1, dphi_b = 2, kick0 = zero,
+                      x1 = 0.07, px1 = 0.08, y1 = 0.09, py1 = 0.01, z1 = 0.02, pz1 = 0.03
+
 
 l0: line = (m0)
-use, l0
+
+l1: line = (m1)
+l1[beta_a]    = 10
+l1[alpha_a]   = -1
+l1[beta_b]    = 20
+l1[alpha_b]   = 1
+l1[geometry] = open
+
+l2: line = (m1)
+l2[beta_a]    = 10
+l2[alpha_a]   = -1
+l2[beta_b]    = 20
+l2[alpha_b]   = 1
+l2[geometry] = open
+
+ 
+use, l0, l1, l2
 
 

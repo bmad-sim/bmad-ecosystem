@@ -17,6 +17,7 @@ girder_test
 hdf5_test
 long_term_tracking_test
 mat6_calc_method_test
+match_test
 mode_flip_test
 mode3_test
 multipass_test
