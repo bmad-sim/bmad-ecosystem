@@ -6006,9 +6006,15 @@ case ('variables')
       n = nl + 3*size(v_ptr%slave) + 100
       if (size(lines) < n) call re_allocate(lines, n)
       do i = 1, size(v_ptr%slave)
-        ele => s%u(v_ptr%slave(i)%ix_uni)%model%lat%branch(v_ptr%slave(i)%ix_branch)%ele(v_ptr%slave(i)%ix_ele)
-        nl=nl+1; write(lines(nl), '(2(a, i0), 2a)')  '%slave(', i, '): Slave Element: ', &
+        if (v_ptr%slave(i)%ix_ele < 0) then  ! Happens for particle_start
+          nl=nl+1; write(lines(nl), '(2(a, i0), 2a)')  '%slave(', i, '): Slave Element: ', &
+                                                          v_ptr%slave(i)%ix_uni, '@', 'PARTICLE_START'
+        else
+          ele => s%u(v_ptr%slave(i)%ix_uni)%model%lat%branch(v_ptr%slave(i)%ix_branch)%ele(v_ptr%slave(i)%ix_ele)
+          nl=nl+1; write(lines(nl), '(2(a, i0), 2a)')  '%slave(', i, '): Slave Element: ', &
                                                           v_ptr%slave(i)%ix_uni, '@', ele_full_name(ele)
+        endif
+
         if (associated (v_ptr%slave(i)%model_value)) then
           nl=nl+1; write(lines(nl), irmt)  '%slave(', i, ')%Model_value: ', &
                                                             v_ptr%slave(i)%model_value

@@ -1411,7 +1411,7 @@ call init_attribute_name1 (crab_cavity$, cartesian_map$,            'CARTESIAN_M
 call init_attribute_name1 (crab_cavity$, cylindrical_map$,          'CYLINDRICAL_MAP')
 call init_attribute_name1 (crab_cavity$, gen_grad_map$,             'GEN_GRAD_MAP')
 call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD')
-call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT')
+call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
 call init_attribute_name1 (crab_cavity$, rf_wavelength$,            'RF_WAVELENGTH', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_clock_harmonic$,        'rf_clock_harminic', private$)
@@ -1898,7 +1898,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', &
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'N_PARTICLE', 'VERTICAL_KICK', 'N_CELL', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
       'MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
-      'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM')
+      'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', 'FINAL_CHARGE')
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &

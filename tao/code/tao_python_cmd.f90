@@ -51,7 +51,7 @@ use twiss_and_track_mod, only: twiss_and_track_at_s
 use wall3d_mod, only: calc_wall_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split
 use tao_init_data_mod, only: tao_point_d1_to_data
-use tao_init_variables_mod, only: tao_point_v1_to_var
+use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
 use tao_c_interface_mod, only: tao_c_interface_com, re_allocate_c_double
 use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
@@ -7532,27 +7532,6 @@ case ('var_create')
   ele_name = upcase(name_arr(2))
   attrib_name = upcase(name_arr(3))
 
-  num_ele = 0
-  do iu = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. picked(iu)) cycle
-    call tao_init_find_elements (s%u(iu), ele_name, eles, attrib_name, found_one)
-    n = size(eles)
-    if (n == 0) cycle
-    call pointer_to_attribute(eles(1)%ele, attrib_name, .true., a_ptr, err, .true.)
-    if (err) return
-    if (.not. associated(a_ptr%r)) then
-      call out_io (s_error$, r_name, 'ELEMENT ATTRIBUTE MUST BE A REAL (NOT AN INTEGER, ETC.)')
-      return
-    endif
-    call re_allocate_eles (eles2, num_ele+n)
-    call re_allocate (index_arr, num_ele+n)
-    do i = num_ele+1, num_ele+n
-      index_arr(i) = iu
-      eles2(i)%ele => eles(i-num_ele)%ele
-    enddo
-    num_ele = num_ele + n
-  enddo
-
   v_ptr%exists      = .true.
   v_ptr%merit_type  = str_val(name_arr(9), 'limit')
   v_ptr%good_var    = .true.
@@ -7567,34 +7546,7 @@ case ('var_create')
   v_ptr%key_bound   = logic_val(name_arr(11), .false., err);   if (err) return
   v_ptr%key_delta   = real_val(name_arr(12), 0.0_rp, err);     if (err) return
 
-  if (num_ele == 0) then
-    v_ptr%model_value => v_ptr%old_value  ! Just to point to somewhere
-    v_ptr%base_value => v_ptr%old_value
-    v_ptr%exists = .false.
-    v_ptr%key_bound = .false.
-    return
-  endif
-
-  v_ptr%model_value => a_ptr%r
-
-  if (allocated(v_ptr%slave)) deallocate (v_ptr%slave)
-  allocate (v_ptr%slave(num_ele))
-
-  do i = 1, num_ele
-    ele => eles2(i)%ele
-    iu = index_arr(i)
-    v_ptr%slave(i)%ix_uni    = iu
-    v_ptr%slave(i)%ix_branch = ele%ix_branch
-    v_ptr%slave(i)%ix_ele    = ele%ix_ele
-    call pointer_to_attribute(ele, attrib_name, .true., a_ptr, err, .true.)
-    v_ptr%slave(i)%model_value => a_ptr%r
-
-    ele => s%u(iu)%base%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
-    call pointer_to_attribute(ele, attrib_name, .true., a_ptr, err, .true.)
-    v_ptr%base_value => a_ptr%r
-    v_ptr%slave(i)%base_value => a_ptr%r
-  enddo
-
+  call tao_var_stuffit2(picked, v_ptr, 'python var_create command')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
