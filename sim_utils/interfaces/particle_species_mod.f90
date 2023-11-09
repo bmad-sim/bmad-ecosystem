@@ -1545,7 +1545,12 @@ if (lb_subatomic <= species_in .and. species_in <= ub_subatomic) then
   return
 endif
 
-species_charged = species_in +  int(z'1000000') * (charge - species_in / int(z'1000000'))
+if (charge < -127 .or. charge > 127) then
+  call out_io (s_error$, r_name, 'CHARGE TO SET TO DOES NOT MAKE SENSE: ' // int_str(charge))
+  return
+endif
+
+species_charged = species_in + int(z'1000000') * (charge - species_in / int(z'1000000'))
 
 end function set_species_charge
 
@@ -1588,7 +1593,8 @@ end function x0_radiation_length
 !+
 ! Function atomic_number(species) result (atomic_num)
 !
-! Routine to return the True if species argument corresponds to an atomic particle or is a proton.
+! Routine to return the atomic number Z if species argument corresponds to an atomic particle or is a proton.
+! Set to zero otherwise.
 !
 ! Input:
 !   species       -- integer: Spicies ID.
