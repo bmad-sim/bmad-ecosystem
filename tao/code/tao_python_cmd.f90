@@ -4542,6 +4542,7 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'beam_timer_on;LOGIC;T;',                  s%global%beam_timer_on
   nl=incr(nl); write (li(nl), lmt) 'var_limits_on;LOGIC;T;',                  s%global%var_limits_on
   nl=incr(nl); write (li(nl), lmt) 'only_limit_opt_vars;LOGIC;T;',            s%global%only_limit_opt_vars
+  nl=incr(nl); write (li(nl), lmt) 'opt_match_auto_recalc;LOGIC;T;',          s%global%opt_match_auto_recalc
   nl=incr(nl); write (li(nl), lmt) 'opti_write_var_file;LOGIC;T;',            s%global%opti_write_var_file
   nl=incr(nl); write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
   nl=incr(nl); write (li(nl), lmt) 'optimizer_allow_user_abort;LOGIC;T;',     s%global%optimizer_allow_user_abort
@@ -4600,6 +4601,7 @@ case ('global:optimization')
   nl=incr(nl); write (li(nl), lmt) 'derivative_uses_design;LOGIC;T;',         s%global%derivative_uses_design
   nl=incr(nl); write (li(nl), lmt) 'opt_with_ref;LOGIC;T;',                   s%global%opt_with_ref
   nl=incr(nl); write (li(nl), lmt) 'opt_with_base;LOGIC;T;',                  s%global%opt_with_base
+  nl=incr(nl); write (li(nl), lmt) 'opt_match_auto_recalc;LOGIC;T;',          s%global%opt_match_auto_recalc
   nl=incr(nl); write (li(nl), lmt) 'optimizer_var_limit_warn;LOGIC;T;',       s%global%optimizer_var_limit_warn
   nl=incr(nl); write (li(nl), lmt) 'optimizer_allow_user_abort;LOGIC;T;',     s%global%optimizer_allow_user_abort
   nl=incr(nl); write (li(nl), lmt) 'svd_retreat_on_merit_increase;LOGIC;T;',  s%global%svd_retreat_on_merit_increase

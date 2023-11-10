@@ -2105,6 +2105,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
+    nl=nl+1; write(lines(nl), lmt) '  %opt_match_auto_recalc         = ', s%global%opt_match_auto_recalc
     nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
@@ -2881,11 +2882,71 @@ case ('lattice')
 
   enddo
 
+  ! Find elements to use
+
+  branch => lat%branch(ix_branch)
+  if (allocated (picked_ele)) deallocate (picked_ele)
+  allocate (picked_ele(0:branch%n_ele_max))
+
+  if (by_s) then
+    ix_s2 = index(attrib0, ':')
+    if (ix_s2 == 0) then
+      nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
+      return
+    endif
+    read (attrib0(1:ix_s2-1), *, iostat = ios1) s1
+    read (attrib0(ix_s2+1:), *, iostat = ios2) s2
+    if (ios1 /= 0 .or. ios2 /= 0) then
+      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
+      return
+    endif
+
+    picked_ele = .false.
+    do ie = 1, branch%n_ele_track
+      select case (where)
+      case ('exit');      s_ele = branch%ele(ie)%s
+      case ('middle');    s_ele = (branch%ele(ie)%s_start + branch%ele(ie)%s) / 2
+      case ('beginning'); s_ele = branch%ele(ie)%s_start
+      end select
+      if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
+    enddo
+
+  elseif (attrib0 == '*' .or. all_lat) then
+    picked_ele = .true.
+
+  elseif (attrib0 /= '') then
+    call tao_locate_elements (attrib0, u%ix_uni, eles, err, lat_type, &
+                  ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = ix_branch)
+    if (err .or. size(eles) == 0) return
+
+    if (ix_branch /= eles(1)%ele%ix_branch) then
+      ix_branch = eles(1)%ele%ix_branch
+      branch => lat%branch(ix_branch)
+      call re_allocate2 (picked_ele, 0, branch%n_ele_max)
+    endif
+
+    picked_ele = .false.
+    do i = 1, size(eles)
+      if (print_lords == yes$ .and. eles(i)%ele%lord_status == not_a_lord$) cycle
+      picked_ele(eles(i)%ele%ix_ele) = .true.
+    enddo
+
+  elseif (what_to_show == 'rad_int' .or. what_to_show == 'sum_rad_int') then
+    picked_ele = .true.
+
+  else
+    picked_ele = .true.
+    if (count(picked_ele) > 300 .and. print_lords == maybe$) then
+      picked_ele(201:) = .false.
+      limited = .true.
+    endif
+
+  endif
+
   !
 
   tao_lat => tao_pointer_to_tao_lat(u, lat_type)
   lat => tao_lat%lat
-  branch => lat%branch(ix_branch)
   model_branch => u%model_branch(ix_branch)
   tao_branch => u%model%tao_branch(ix_branch)
   design_tao_branch => u%design%tao_branch(ix_branch)
@@ -3163,59 +3224,6 @@ case ('lattice')
       col_info(i)%attrib_type = attribute_type(col_info(i)%attrib_name)
     endif
   enddo
-
-  ! Find elements to use
-
-  if (allocated (picked_ele)) deallocate (picked_ele)
-  allocate (picked_ele(0:branch%n_ele_max))
-
-  if (by_s) then
-    ix_s2 = index(attrib0, ':')
-    if (ix_s2 == 0) then
-      nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
-      return
-    endif
-    read (attrib0(1:ix_s2-1), *, iostat = ios1) s1
-    read (attrib0(ix_s2+1:), *, iostat = ios2) s2
-    if (ios1 /= 0 .or. ios2 /= 0) then
-      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
-      return
-    endif
-
-    picked_ele = .false.
-    do ie = 1, branch%n_ele_track
-      select case (where)
-      case ('exit');      s_ele = branch%ele(ie)%s
-      case ('middle');    s_ele = (branch%ele(ie)%s_start + branch%ele(ie)%s) / 2
-      case ('beginning'); s_ele = branch%ele(ie)%s_start
-      end select
-      if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
-    enddo
-
-  elseif (attrib0 == '*' .or. all_lat) then
-    picked_ele = .true.
-
-  elseif (attrib0 /= '') then
-    call tao_locate_elements (attrib0, u%ix_uni, eles, err, lat_type, &
-                  ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = ix_branch)
-    if (err) return
-    picked_ele = .false.
-    do i = 1, size(eles)
-      if (print_lords == yes$ .and. eles(i)%ele%lord_status == not_a_lord$) cycle
-      picked_ele(eles(i)%ele%ix_ele) = .true.
-    enddo
-
-  elseif (what_to_show == 'rad_int' .or. what_to_show == 'sum_rad_int') then
-    picked_ele = .true.
-
-  else
-    picked_ele = .true.
-    if (count(picked_ele) > 300 .and. print_lords == maybe$) then
-      picked_ele(201:) = .false.
-      limited = .true.
-    endif
-
-  endif
 
   !
 
@@ -6425,8 +6433,8 @@ nl=nl+1; write(lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n
 
 nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', quote(s%global%optimizer)
 nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', quote(s%global%var_out_file)
+nl=nl+1; write(lines(nl), lmt) '  %opt_match_auto_recalc         = ', s%global%opt_match_auto_recalc
 nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
-
 nl=nl+1; write(lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
 nl=nl+1; write(lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
 nl=nl+1; write(lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
