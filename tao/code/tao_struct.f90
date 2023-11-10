@@ -682,6 +682,7 @@ type tao_global_struct
   logical :: only_limit_opt_vars = .false.            ! Only apply limits to variables used in optimization.
   logical :: opt_with_ref = .false.                   ! Use reference data in optimization?
   logical :: opt_with_base = .false.                  ! Use base data in optimization?
+  logical :: opt_match_auto_recalc = .false.          ! Set recalc = True for match elements before each cycle?
   logical :: opti_write_var_file = .true.             ! "run" command writes var_out_file
   logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
   logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.

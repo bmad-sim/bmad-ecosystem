@@ -829,6 +829,11 @@ file will be generated for each universe with the universe index substituted for
 For example, with the default file name, the name of the file for universe 1 will be ``\vn{var1.out}''.
 If the file name is blank, the results will be printed on the screen and no file will be generated.
 %
+  \item{\vn{global%opt_match_auto_recalc}} \Newline
+There are some circumstances where having all \vn{match} elements recalc their transfer map in each
+optimization cycle is desirable. Setting \vn{global%opt_match_auto_recalc} to True will do this.
+The default is False.
+%
   \item{\vn{global%opti_write_var_file}} \Newline
 Normally the optimizer writes to \vn{global%var_out_file}. Setting \vn{global%opti_write_var_file}
 to \texttt{F} prevents this.

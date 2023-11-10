@@ -65,6 +65,15 @@ orbit => tao_branch%orbit
 calc_ok = .true.
 tao_branch%track_state = moving_forward$
 
+! 
+
+if (s%global%opt_match_auto_recalc .and. s%com%optimizer_running) then
+  do i = 1, branch%n_ele_max
+    if (branch%ele(i)%key /= match$) cycle
+    branch%ele(i)%value(recalc$) = true$
+  enddo
+endif
+
 ! Track.
 ! By design, Tao turns off radiation fluctuations (but not damping) for single particle tracking.
 
