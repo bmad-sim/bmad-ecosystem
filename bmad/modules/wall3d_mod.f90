@@ -1,6 +1,5 @@
 module wall3d_mod
 
-use pointer_to_ele_mod
 use element_at_s_mod
 
 implicit none

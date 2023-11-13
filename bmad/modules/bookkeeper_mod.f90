@@ -540,7 +540,6 @@ endif
 slave%field_calc = refer_to_lords$
 if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
-if (allocated(slave%multipole_cache)) deallocate(slave%multipole_cache)
 
 ! Bookkeeping for EM_Field slave is mostly independent of the lords.
 ! Exception: If only one lord then treat em_field slave same as other slaves.
@@ -625,10 +624,8 @@ if (n_major_lords < 2) then
       slave0 => pointer_to_slave(lord, ix_order-1)
       slave%map_ref_orb_in = slave0%map_ref_orb_out
       if (allocated(slave%multipole_cache)) then
-        slave%multipole_cache%ix_pole_mag_max = invalid$
-        slave%multipole_cache%ix_pole_elec_max = invalid$
-        slave%multipole_cache%ix_kick_mag_max = invalid$
-        slave%multipole_cache%ix_kick_elec_max = invalid$
+        slave%multipole_cache%mag_valid = .false.
+        slave%multipole_cache%elec_valid = .false.
       endif
       if (associated(slave%rad_map)) slave%rad_map%stale = .true. ! Forces recalc
     endif
@@ -664,6 +661,8 @@ endif
 !-----------------------------------------------------------------------
 ! Multiple super_lords for this super_slave: 
 ! combine the lord elements.
+
+if (allocated(slave%multipole_cache)) deallocate(slave%multipole_cache)
 
 k_x = 0
 k_y = 0
@@ -739,8 +738,8 @@ do j = 1, slave%n_lord
     if (.not. all(slave%map_ref_orb_in%vec == branch%ele(ix_slave-1)%map_ref_orb_out%vec)) then
       slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
       if (allocated(slave%multipole_cache)) then
-        slave%multipole_cache%ix_pole_mag_max = invalid$
-        slave%multipole_cache%ix_pole_elec_max = invalid$
+        slave%multipole_cache%mag_valid = .false.
+        slave%multipole_cache%elec_valid = .false.
       endif
       if (associated(slave%rad_map)) slave%rad_map%stale = .true. ! Forces recalc
     endif
@@ -1280,6 +1279,34 @@ case (lcavity$, rfcavity$, e_gun$)
   value(voltage_tot$) = lord%value(voltage_tot$) * coef
   value(voltage_err$) = lord%value(voltage_err$) * coef
 end select
+
+!
+
+if (allocated(lord%multipole_cache)) then
+  slave%multipole_cache = lord%multipole_cache
+  if (allocated(slave%multipole_cache%a_pole_mag)) then
+    slave%multipole_cache%a_pole_mag = slave%multipole_cache%a_pole_mag * coef
+    slave%multipole_cache%b_pole_mag = slave%multipole_cache%b_pole_mag * coef
+  endif
+
+  if (allocated(slave%multipole_cache%a_kick_mag)) then
+    slave%multipole_cache%a_kick_mag = slave%multipole_cache%a_kick_mag * coef
+    slave%multipole_cache%b_kick_mag = slave%multipole_cache%b_kick_mag * coef
+  endif
+
+  if (allocated(slave%multipole_cache%a_pole_elec)) then
+    slave%multipole_cache%a_pole_elec = slave%multipole_cache%a_pole_elec
+    slave%multipole_cache%b_pole_elec = slave%multipole_cache%b_pole_elec
+  endif
+
+  if (allocated(slave%multipole_cache%a_kick_elec)) then
+    slave%multipole_cache%a_kick_elec = slave%multipole_cache%a_kick_elec
+    slave%multipole_cache%b_kick_elec = slave%multipole_cache%b_kick_elec
+  endif
+
+else
+  if (allocated(slave%multipole_cache)) deallocate(slave%multipole_cache)
+endif
 
 ! s_del is the distance between lord and slave centers
 

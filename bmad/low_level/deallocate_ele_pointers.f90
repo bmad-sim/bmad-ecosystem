@@ -84,7 +84,7 @@ if (associated (ele%photon))                    deallocate (ele%photon)
 if (associated (ele%mode3))                     deallocate (ele%mode3)
 if (associated (ele%wake))                      deallocate (ele%wake)
 if (associated (ele%high_energy_space_charge))  deallocate (ele%high_energy_space_charge)
-if (associated (ele%gen_grad_map))            deallocate (ele%gen_grad_map)
+if (associated (ele%gen_grad_map))              deallocate (ele%gen_grad_map)
 
 if (allocated (ele%multipole_cache))            deallocate (ele%multipole_cache)
 

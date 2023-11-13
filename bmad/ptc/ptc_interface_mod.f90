@@ -9,7 +9,6 @@ module ptc_interface_mod
 
 use taylor_mod
 use attribute_mod
-use pointer_to_ele_mod
 use coord_mod
 use multipole_mod
 
@@ -2837,7 +2836,7 @@ if (ele%key == patch$) then
 !----------------------------------------------------------------------
 ! Not patch nor floor_shift element.
 
-elseif (use_offsets) then
+elseif (use_offsets .and. ele%value(dispatch$) /= no_misalignment$) then
 
   ! Patch elements do not have misalignments
 

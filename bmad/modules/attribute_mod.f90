@@ -661,12 +661,13 @@ do i = 1, n_key$
   if (i == floor_shift$)  cycle
   if (i == patch$)        cycle
 
-  call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
-  call init_attribute_name1 (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
-  call init_attribute_name1 (i, y_offset_tot$,  'Y_OFFSET_TOT', dependent$)
-  call init_attribute_name1 (i, z_offset_tot$,  'Z_OFFSET_TOT', dependent$)
-  call init_attribute_name1 (i, x_pitch_tot$,   'X_PITCH_TOT', dependent$)
-  call init_attribute_name1 (i, y_pitch_tot$,   'Y_PITCH_TOT', dependent$)
+  call init_attribute_name1 (i, tilt_tot$,        'TILT_TOT', dependent$)
+  call init_attribute_name1 (i, x_offset_tot$,    'X_OFFSET_TOT', dependent$)
+  call init_attribute_name1 (i, y_offset_tot$,    'Y_OFFSET_TOT', dependent$)
+  call init_attribute_name1 (i, z_offset_tot$,    'Z_OFFSET_TOT', dependent$)
+  call init_attribute_name1 (i, x_pitch_tot$,     'X_PITCH_TOT', dependent$)
+  call init_attribute_name1 (i, y_pitch_tot$,     'Y_PITCH_TOT', dependent$)
+  call init_attribute_name1 (i, dispatch$,        'dispatch', private$)
 
   if (i == multilayer_mirror$) cycle
   if (i == mirror$)            cycle

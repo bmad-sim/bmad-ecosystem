@@ -57,6 +57,51 @@ interface pointer_to_branch
   end function
 end interface
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele (...)
+!
+! Routine to return a pointer to an element.
+! pointer_to_ele is an overloaded name for:
+!     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+!     Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
+!     Function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
+!     Function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
+!
+! pointer_to_ele4(lat, foreign_ele) is useful when foreign_ele is associated with a separate
+! lattice that has an identical layout. pointer_to_ele4 will then return the corresponding
+! element in lat.
+! 
+! Note that using ele_name to locate an element is potentially dangerous if there
+! are multiple elements that have the same name. Better in this case is to use:
+!   lat_ele_locator
+!
+! Also see:
+!   pointer_to_slave
+!   pointer_to_lord
+!
+! Input:
+!   lat           -- lat_struct: Lattice.
+!   ix_ele        -- integer: Index of element in lat%branch(ix_branch).
+!   ix_branch     -- integer: Index of the lat%branch(:) containing the element.
+!   ix_nametable  -- integer: Nametable index. See above
+!   ele_loc       -- lat_ele_loc_struct: Location identification.
+!   ele_name      -- character(*): Name or index of element.
+!   foreign_ele   -- ele_struct: Lattice element in another lattice.
+!
+! Output:
+!   ele_ptr       -- ele_struct, pointer: Pointer to the element. 
+!-
+
+interface pointer_to_ele
+  module procedure pointer_to_ele1
+  module procedure pointer_to_ele2
+  module procedure pointer_to_ele3
+  module procedure pointer_to_ele4
+end interface
+
 ! 
 
 interface
@@ -1108,6 +1153,12 @@ subroutine init_lat (lat, n, init_beginning_ele)
   logical, optional :: init_beginning_ele
 end subroutine
 
+subroutine init_multipole_cache(ele)
+  import
+  implicit none
+  type (ele_struct) ele
+end subroutine
+
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, always_allocate)
   import
   implicit none
@@ -1487,6 +1538,13 @@ subroutine new_control (lat, ix_ele, ele_name)
   character(*), optional :: ele_name
 end subroutine
 
+function num_field_eles (ele) result (n_field_ele)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer n_field_ele
+end function
+
 function num_lords (slave, lord_type) result (num)
   import
   implicit none
@@ -1658,6 +1716,15 @@ function pointer_to_fibre(ele) result (assoc_fibre)
   implicit none
   type (ele_struct), target :: ele
   type (fibre), pointer :: assoc_fibre
+end function
+
+function pointer_to_field_ele(ele, ix_field_ele, dz_offset) result (field_ele)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (ele_struct), pointer :: field_ele
+  integer ix_field_ele
+  real(rp), optional :: dz_offset
 end function
 
 function pointer_to_girder(ele, ix_slave_back) result (girder)
@@ -3445,7 +3512,138 @@ procedure(track1_preprocess_def), pointer :: track1_preprocess_ptr => null()
 procedure(track1_spin_custom_def), pointer :: track1_spin_custom_ptr => null()
 procedure(track1_wake_hook_def), pointer :: track1_wake_hook_ptr => null()
 
-! This is to suppress the ranlib "has no symbols" message
-integer, private :: private_dummy
+contains
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+!
+! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
+! See pointer_to_ele for more details.
+!-
+
+function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele_ptr
+
+integer :: ix_ele, ib, ixe
+integer, optional :: ix_branch
+
+!
+
+ele_ptr => null()
+
+! ix_ele, ix_branch given
+
+if (present(ix_branch)) then
+  if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) return
+  if (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) return
+  ele_ptr => lat%branch(ix_branch)%ele(ix_ele)
+
+! ix_ele = Nametable index
+
+else
+  if (ix_ele < 0) return
+  ixe = ix_ele
+  do ib = 0, ubound(lat%branch, 1)
+    if (ixe > lat%branch(ib)%n_ele_max) then
+      ixe = ixe - lat%branch(ib)%n_ele_max - 1
+      cycle
+    else
+      ele_ptr => lat%branch(ib)%ele(ixe)
+      return
+    endif
+  enddo
+endif
+
+end function pointer_to_ele1
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
+!
+! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
+! See pointer_to_ele for more details.
+!-
+
+function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele_ptr
+type (lat_ele_loc_struct) ele_loc
+
+!
+
+ele_ptr => null()
+
+if (ele_loc%ix_branch < 0 .or. ele_loc%ix_branch > ubound(lat%branch, 1)) return
+if (ele_loc%ix_ele < 0 .or. ele_loc%ix_ele > lat%branch(ele_loc%ix_branch)%n_ele_max) return
+
+ele_ptr => lat%branch(ele_loc%ix_branch)%ele(ele_loc%ix_ele)
+
+end function pointer_to_ele2
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
+!
+! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
+! See pointer_to_ele for more details.
+!-
+
+function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele_ptr
+type (ele_pointer_struct), allocatable :: eles(:)
+
+integer n_loc
+logical err
+
+character(*) ele_name
+
+!
+
+ele_ptr => null()
+
+call lat_ele_locator (ele_name, lat, eles, n_loc, err)
+if (n_loc == 0) return
+
+ele_ptr => eles(1)%ele
+
+end function pointer_to_ele3
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
+!
+! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
+! See pointer_to_ele for more details.
+!-
+
+function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
+
+type (lat_struct), target :: lat
+type (ele_struct) foreign_ele
+type (ele_struct), pointer :: ele_ptr
+
+!
+
+ele_ptr => lat%branch(foreign_ele%ix_branch)%ele(foreign_ele%ix_ele)
+
+end function pointer_to_ele4
 
 end module

@@ -89,7 +89,7 @@ logical, intent(in) :: set
 logical, optional, intent(in) :: set_tilt, set_spin
 logical, optional, intent(in) :: set_hvkicks
 logical, optional :: make_matrix
-logical set_hv, set_t, set_hv1, set_hv2, set_spn, is_misaligned
+logical set_hv, set_t, set_hv1, set_hv2, set_spn, is_misaligned, do_misalignment
 
 character(*), parameter :: r_name = 'offset_particle'
 
@@ -173,6 +173,7 @@ endif
 
 B_factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
 is_misaligned = .false.
+do_misalignment = (ele%value(dispatch$) /= no_misalignment$)
 key = ele%key
 if (key == rf_bend$) key = sbend$
 
@@ -183,7 +184,7 @@ if (set) then
 
   ! Set: Offset and pitch
 
-  if (has_orientation_attributes(ele)) then
+  if (has_orientation_attributes(ele) .and. do_misalignment) then
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
     z_off = ele%value(z_offset_tot$)
@@ -262,7 +263,7 @@ if (set) then
 
   ! If not misaligned
   else
-    if (key == sbend$ .and. ele%value(ref_tilt$) /= 0) then
+    if (key == sbend$ .and. ele%value(ref_tilt$) /= 0 .and. do_misalignment) then
       call tilt_coords (ele%value(ref_tilt$), orbit%vec, mat6, make_matrix)
       if (set_spn) call rotate_spin([0.0_rp, 0.0_rp, -ele%value(ref_tilt$)], orbit%spin, qrot = spin_qrot)
     endif
@@ -303,7 +304,7 @@ if (set) then
 
   ! Set: Tilt
 
-  if (set_t .and. key /= sbend$ .and. ele%value(tilt_tot$) /= 0) then
+  if (set_t .and. key /= sbend$ .and. ele%value(tilt_tot$) /= 0 .and. do_misalignment) then
     call tilt_coords (ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
     if (set_spn) call rotate_spin([0.0_rp, 0.0_rp, -ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
   endif
@@ -360,7 +361,7 @@ else
 
   ! Unset: Tilt & Roll
 
-  if (set_t .and. key /= sbend$) then
+  if (set_t .and. key /= sbend$ .and. do_misalignment) then
     call tilt_coords (-ele%value(tilt_tot$), orbit%vec, mat6, make_matrix)
     if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(tilt_tot$)], orbit%spin, qrot = spin_qrot)
   endif
@@ -378,7 +379,7 @@ else
 
   ! Unset: Offset and pitch
 
-  if (has_orientation_attributes(ele)) then
+  if (has_orientation_attributes(ele) .and. do_misalignment) then
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
     z_off = ele%value(z_offset_tot$)
@@ -459,7 +460,7 @@ else
 
   ! If not misaligned
   else
-    if (key == sbend$ .and. ele%value(ref_tilt$) /= 0) then
+    if (key == sbend$ .and. ele%value(ref_tilt$) /= 0 .and. do_misalignment) then
       call tilt_coords (-ele%value(ref_tilt$), orbit%vec, mat6, make_matrix)
       if (set_spn) call rotate_spin ([0.0_rp, 0.0_rp, ele%value(ref_tilt$)], orbit%spin, qrot = spin_qrot)
     endif
