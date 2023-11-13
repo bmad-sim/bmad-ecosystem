@@ -518,6 +518,8 @@ read (d_unit, err = 9100, end = 9100) &
         ele%offset_moves_aperture, ele%ix_branch, ele%ref_time, ele%scale_multipoles, &
         ele%bookkeeping_state, ele%ptc_integration_type, ele%ref_species
 
+call init_multipole_cache(ele)
+
 ! Decompress value array
 
 read (d_unit, err = 9110, end = 9110) k_max
@@ -789,7 +791,6 @@ if (ix_s /= 0) then
     read (d_unit, err = 9390, end = 9390) ph%init_energy_prob
     read (d_unit, err = 9390, end = 9390) ph%integrated_init_energy_prob
   endif
-
 endif
 
 if (ix_d /= 0) then

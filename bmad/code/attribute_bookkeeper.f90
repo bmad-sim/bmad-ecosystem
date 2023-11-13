@@ -819,8 +819,8 @@ endif
 if (associated(ele%rad_map)) ele%rad_map%stale = .true.  ! Forces recalc
 
 if (allocated(ele%multipole_cache)) then
-  ele%multipole_cache%ix_pole_mag_max = invalid$ ! Forces recalc
-  ele%multipole_cache%ix_pole_elec_max = invalid$ ! Forces recalc
+  ele%multipole_cache%mag_valid = .false.
+  ele%multipole_cache%elec_valid = .false.
 endif
 
 ! Set old_value = value

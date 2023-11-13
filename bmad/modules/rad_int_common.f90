@@ -5,7 +5,6 @@
 module rad_int_common               
 
 use multipole_mod
-use pointer_to_ele_mod, only: pointer_to_field_ele
 use attribute_mod, only: attribute_index
 
 ! The "cache" is for saving values for g, etc through an element to speed

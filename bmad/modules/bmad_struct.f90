@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 303
+integer, parameter :: bmad_inc_version$ = 305
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -551,6 +551,8 @@ type coord_array_struct
   type (coord_struct), allocatable :: orbit(:)
 end type
 
+real(rp), parameter :: no_misalignment$ = 1.0_rp
+
 ! Coupling structure
 
 type bpm_phase_coupling_struct
@@ -916,16 +918,16 @@ end type
 ! In one simulation 25% of the time was spent constructing multipole arrays.
 
 type multipole_cache_struct
-  real(rp) :: a_pole_mag(0:n_pole_maxx) = real_garbage$, b_pole_mag(0:n_pole_maxx) = real_garbage$
-  ! From non-multipole parameters like k1, k2, hkick, etc.
-  real(rp) :: a_kick_mag(0:3) = real_garbage$, b_kick_mag(0:3) = real_garbage$
-  integer :: ix_pole_mag_max = invalid$
-  integer :: ix_kick_mag_max = invalid$
-  real(rp) :: a_pole_elec(0:n_pole_maxx) = real_garbage$, b_pole_elec(0:n_pole_maxx) = real_garbage$
+  ! a_kick_mag and b_kick_mag are for non-multipole parameters like k1, k2, hkick, etc.
+  real(rp), allocatable :: a_pole_mag(:), b_pole_mag(:)
+  real(rp), allocatable :: a_kick_mag(:), b_kick_mag(:)
+  integer :: ix_pole_mag_max = -1, ix_kick_mag_max = -1
+  logical :: mag_valid = .false.
   ! From elseparator hkick and vkick.
-  real(rp) :: a_kick_elec(0:3) = real_garbage$, b_kick_elec(0:3) = real_garbage$
-  integer :: ix_pole_elec_max = invalid$
-  integer :: ix_kick_elec_max = invalid$
+  real(rp), allocatable :: a_pole_elec(:), b_pole_elec(:)
+  real(rp), allocatable :: a_kick_elec(:), b_kick_elec(:)
+  integer :: ix_pole_elec_max = -1, ix_kick_elec_max = -1
+  logical :: elec_valid = .false.
 end type
 
 ! Radiation damping and stochastic maps
@@ -1723,7 +1725,7 @@ integer, parameter :: z_offset_tot$ = 59
 integer, parameter :: tilt_tot$ = 60, roll_tot$ = 60  ! Important: tilt_tot$ = roll_tot$
 integer, parameter :: ref_tilt_tot$ = 61
 integer, parameter :: multipass_ref_energy$ = 62
-! Slot 63 is free for use
+integer, parameter :: dispatch$ = 63
 integer, parameter :: ref_time_start$ = 64
 integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, 6, or 8.
 integer, parameter :: num_steps$ = 66   ! Assumed unique by set_flags_for_changed_real_attribute
