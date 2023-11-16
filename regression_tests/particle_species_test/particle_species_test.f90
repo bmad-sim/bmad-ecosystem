@@ -11,7 +11,7 @@ character(100) :: lat_name, lat_path, base_name, in_file
 character(30), parameter :: r_name = 'particle_species_test'
 
 
-character(20) :: example_names(1:100)  = ''
+character(20) :: example_names(1:14)  = ''
 
 logical :: verbose
 
@@ -20,8 +20,8 @@ namelist / particle_species_test_params / &
 
 !------------------------------------------
 ! Defaults for namelist
-example_names(1:11) =  [character(20) :: 'Ag+76', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+3', &
-                        '#293Lv-2', '#291Og', '#295Ts', '#400Mc']
+example_names =  [character(20) :: 'Ag+76', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+3', &
+                        '#293Lv-2', '#291Og', '#295Ts', '#400Mc', 'antiAu-79', '#12Fe+++', 'antiI']
 verbose = .false.
 
 ! Read namelist
@@ -38,18 +38,7 @@ endif
 ! 
 print *, 'atomic mass unit (eV): ', atomic_mass_unit
 
-! Decode
-! call print_species(1)
-
-! Encode
-! species = species_id('#2H--')
-! call print_species(species)
-
 open (1, file = 'output.now')
-
-! species = species_id('H2O ')
-! call print_species(species)
-! call write_mass_and_charge(species)
 
 call print_all(example_names, .true.)
 call print_all(atomic_name, .true.)
@@ -121,10 +110,8 @@ logical convert_to_amu
 write(1, *) ''
 
 do i=lbound(p_array, 1), ubound(p_array, 1)
-  if (trim(p_array(i)) =='') cycle ! Skip empty
-  species = species_id(p_array(i))
-  if (verbose) call print_species(species, convert_to_amu)
-  call write_mass_and_charge(species, convert_to_amu)
+  if (trim(p_array(i)) == '') cycle ! Skip empty
+  call write_particle_info(p_array(i), convert_to_amu)
 enddo
 
 end subroutine
@@ -132,39 +119,24 @@ end subroutine
 !---------------------------------------------------------------------------
 ! contains
 
-subroutine print_species(species, convert_to_amu)
+subroutine write_particle_info(name, convert_to_amu)
 
 integer :: species
+character(*) :: name
+character(20) name2
 logical convert_to_amu
 
-write (*, '(a, i0)')    'species: ', species
-write (*, '(a, a)')     'name:    ', species_name(species)
+species = species_id(name)
+name2 = species_name(species)
+
+write (1, '(3a)') quote(trim(name) // ':name'), '  STR  ', quote(name2)
 if (convert_to_amu) then
-  write (*, '(a, f20.5)') 'mass:    ', mass_of(species)/atomic_mass_unit
+  write (1, '(a, a, f16.9)') quote(trim(name) // ':mass'), ' ABS  1E-10 ', mass_of(species) / atomic_mass_unit
 else
-  write (*, '(a, es20.10)') 'mass:    ', mass_of(species)
+  write (1, '(a, a, es20.10)') quote(trim(name) // ':mass'), ' ABS  1E-10 ', mass_of(species)
 endif
-write (*, '(a, i0)')    'charge   ', charge_of(species)
-write (*,*) ''
 
-end subroutine 
-
-!---------------------------------------------------------------------------
-! contains
-
-subroutine write_mass_and_charge(species, convert_to_amu)
-
-integer :: species
-character(20) :: name
-logical convert_to_amu
-
-name = species_name(species)
-if (convert_to_amu) then
-  write (1, '(a, a, f16.9)') '"'//trim(name)//':mass"', ' ABS  1E-10 ', mass_of(species) / atomic_mass_unit
-else
-  write (1, '(a, a, es20.10)') '"'//trim(name)//':mass"', ' ABS  1E-10 ', mass_of(species)
-endif
-write (1, '(a, a, i6)') '"'//trim(name)//':charge"'   , ' ABS  0 ', charge_of(species)
+write (1, '(a, a, i6)') quote(trim(name) // ':charge')   , ' ABS  0 ', charge_of(species)
 
 end subroutine
 

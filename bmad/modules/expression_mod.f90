@@ -453,8 +453,8 @@ else
   ! "my_species" in "mass_of(my_species)" is considered a variable and not a species_const
   if (var_type == species_const$) then
     stack(n_stack)%name = word
-    stack(n_stack)%value = species_id(word)
-    if (species_id(word) == invalid$) stack(n_stack)%type = variable$
+    stack(n_stack)%value = species_id(word, print_err = .false.)
+    if (stack(n_stack)%value == invalid$) stack(n_stack)%type = variable$
   elseif (var_type == variable$) then
     stack(n_stack)%name = upcase(word)
   else
