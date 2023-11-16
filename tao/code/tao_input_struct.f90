@@ -243,6 +243,7 @@ type tao_ele_shape_input
   logical :: draw = .true.           ! Draw the shape?
   logical :: multi = .false.         ! Can be part of a multi-shape.
   integer :: line_width = 1          ! Width of lines used to draw the shape.
+  real(rp) :: offset = 0             ! Vertical offset. 
 end type
 
 contains
@@ -352,6 +353,7 @@ shape_input%label      = shape_struct%label
 shape_input%draw       = shape_struct%draw
 shape_input%multi      = shape_struct%multi
 shape_input%line_width = shape_struct%line_width
+shape_input%offset     = shape_struct%offset
 
 end function tao_ele_shape_struct_to_input
 
@@ -394,6 +396,7 @@ s_st%size       = s_in%size
 s_st%draw       = s_in%draw
 s_st%multi      = s_in%multi
 s_st%line_width = s_in%line_width
+s_st%offset     = s_in%offset
 
 if (s_st%ele_id == 'wall::building') s_st%ele_id = 'building_wall::*'    ! Convert old style to new
 

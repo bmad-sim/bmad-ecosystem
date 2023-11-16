@@ -3420,9 +3420,13 @@ ix = index(component, '%')
 
 if (ix /= 0) then
   select case (component(ix+1:))
-  case ('shape', 'color', 'label', 'ele_name')
+  case ('ele_name', 'name')
+    needs_quotes = .true.
+    component = 'ele_id%' // component(ix+1:)
+  case ('shape', 'color', 'label')
     needs_quotes = .true.
   end select
+
   ! Something like 30*"XXX" does not need quotes
   n = len_trim(value_str)
   if (value_str(n:n) == "'" .or. value_str(n:n) == '"') needs_quotes = .false.

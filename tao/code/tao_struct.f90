@@ -119,6 +119,7 @@ type tao_ele_shape_struct    ! for the element layout plot
   logical :: draw = .true.           ! Draw the shape?
   logical :: multi = .false.         ! Can be part of a multi-shape.
   integer :: line_width = 1          ! Width of lines used to draw the shape.
+  real(rp) :: offset = 0             ! Vertical offset.
   integer :: ix_key = 0              ! Extracted from ele_id. 0 => all classes (quadrupole, etc.)
   character(40) :: name_ele = ''     ! Name of element.
   type (tao_ele_pointer_struct), allocatable :: uni(:)

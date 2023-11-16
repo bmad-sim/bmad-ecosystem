@@ -4032,16 +4032,16 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
-    nl=nl+1; lines(nl) = '                                                                                       Shape   Type    Shape  Multi  Line_'
-    nl=nl+1; lines(nl) = '                  Ele_Name                            Shape           Color             Size  Label     Draw  Shape  Width'
-    nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------           ----  -------  -----  -----  -----'
+    nl=nl+1; lines(nl) = '                                                                                     Shape  Type    Shape  Multi  Line_'
+    nl=nl+1; lines(nl) = '                  Ele_ID                              Shape           Color           Size  Label    Draw  Shape  Width  Offset'
+    nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------         ----  ------  -----  -----  -----  ------'
 
     do i = 1, size(shapes)
       shape => shapes(i)
       if (shape%ele_id == '') cycle
-      nl=nl+1; write(lines(nl), '(a, i0, a, t19, a, t55, a, t71, a, t83, f10.1, 2x, a, t103, l5, l6, i7)') &
+      nl=nl+1; write(lines(nl), '(a, i0, a, t19, a, t55, a, t71, a, t83, f8.1, 2x, a, t102, l5, l6, i7, 2x, f8.1)') &
                 'ele_shape(', i, ') = ', quote(shape%ele_id), quote(shape%shape), quote(shape%color), &
-                shape%size, quote(shape%label), shape%draw, shape%multi, shape%line_width
+                shape%size, quote(shape%label), shape%draw, shape%multi, shape%line_width, shape%offset
     enddo
 
     do i = 1, size(s%plot_page%pattern)
