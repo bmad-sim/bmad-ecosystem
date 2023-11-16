@@ -1480,21 +1480,22 @@ structure there must be a \vn{tao_d1_data} namelist which has the form:
     default_weight         = <real>              ! Merit function weight. Dflt: 0.0
     default_meas           = <real>              ! Default datum "measured" value (\sref{s:opt.main}).
     default_data_source    = "<source>"          ! "lat" (dflt), "data", "var", or "beam". 
+    default_merit_type     = "<merit_type>"      ! Set default for datums.
     ix_min_data            = <integer>           ! Minimum array index.
     ix_max_data            = <integer>           ! Maximum array index.
-    datum(j)%data_source    = "<source>"         ! "lat" (dflt), "data", "var", or "beam". 
-    datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
-    datum(j)%ele_name       = "<ele_name>"       ! Evaluation lattice element name.
-    datum(j)%ele_start_name = "<ele_start_name>" ! Start lattice element name.
-    datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference lattice element name.
-    datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
-    datum(j)%meas           = <real>             ! Datum "measured" value (\sref{s:opt.main}).
-    datum(j)%weight         = <weight>           ! Merit function weight.
-    datum(j)%good_user      = <logical>          ! Use for optimization and plotting?
-    datum(j)%ix_bunch       = <integer>          ! Bunch index. Dflt: 0 = all bunches.
-    datum(j)%eval_point     = "<where>"          ! "beginning", "center", or "end" (dflt).
-    datum(j)%s_offset       = <real>             ! Default: 0.
-    datum(j)%spin_axis      = <struct>           ! For spin G-matix calculations.
+    datum(N)%data_source    = "<source>"         ! "lat" (dflt), "data", "var", or "beam". 
+    datum(N)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
+    datum(N)%ele_name       = "<ele_name>"       ! Evaluation lattice element name.
+    datum(N)%ele_start_name = "<ele_start_name>" ! Start lattice element name.
+    datum(N)%ele_ref_name   = "<ele_ref_name>"   ! Reference lattice element name.
+    datum(N)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
+    datum(N)%meas           = <real>             ! Datum "measured" value (\sref{s:opt.main}).
+    datum(N)%weight         = <weight>           ! Merit function weight.
+    datum(N)%good_user      = <logical>          ! Use for optimization and plotting?
+    datum(N)%ix_bunch       = <integer>          ! Bunch index. Dflt: 0 = all bunches.
+    datum(N)%eval_point     = "<where>"          ! "beginning", "center", or "end" (dflt).
+    datum(N)%s_offset       = <real>             ! Default: 0.
+    datum(N)%spin_axis      = <struct>           ! For spin G-matix calculations.
   /
 \end{example}
 For example:
@@ -1548,32 +1549,14 @@ A given \vn{tao_d1_data} namelist may mix both component-by-component and datum-
 particular, component-by-component format must be used for components that cannot be set by the
 datum-by-datum format.
 
-\vn{ix_min_data} and \vn{ix_max_data} give the bounds for the \vn{datum(N)} structure array that is
-associated with the \vn{d1_data} structure. 
-
-The \vn{datum(j)%ele_name} name may be set to the appropriate element name or may be specified using element
-branch/element index notation (EG: "456", "1>>22", etc.). On input, the datum's \vn{ele_name}
-component (\sref{s:data.anatomy}) will be set to the element name irregardless of the setting in the
-\vn{tao_d1_data} namelist and the \vn{ix_ele} datum component will be set to the element index.
-
-Like \vn{datum(j)%ele_name}, the \vn{%ele_start_name}, and \vn{%ele_ref_name} names may be specifed
-using branch/element index notation and on input the datum's \vn{ele_start_name} and
-\vn{ele_ref_name} will be set to the actual element names with the datum's \vn{ix_ele_start} and
-\vn{ix_ele_ref} set to the appropriate element indexes.
-
-\vn{datum(N)%good_user} is a logical that the user can toggle when running \tao
-(\sref{s:data.anatomy}). The initial default value of \vn{%good_user} is True.
-
-A range of elements can be specified by giving an \vn{ele_start_name} that is not a blank string.
-Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal beta in the range
-between the end of element \vn{B22} to the end of element \vn{Q16_1}. Elements can be specified by
-name (Eg: \vn{Q16_1}) or by longitudinal position using the notation \vn{"S:<s_distance>"}. This
-will match to the element whose longitudinal position at the exit end is closest to
-\vn{<s_distance>}.
-
-\index{data_source}
-\index{default_data_source}
-The \vn{datum(:)%data_source} component specifies where the data is 
+\begin{description}
+%
+\item[d1_data\%name] \Newline
+The name of the \vn{d1_data} array. If \vn{datum(N)%data_type} is not set, the \vn{d1_data%name} is used
+to construct a default data type. See the \vn{datum(N)%data_type} documentation.
+%
+\item[datum(N)\%data_source] \Newline
+The \vn{datum(N)%data_source} component specifies where the data is 
 coming from. Possible values are:
 \begin{example}
   "beam"        ! Value is from multiparticle beam tracking.
@@ -1587,24 +1570,107 @@ the datum calculation. If the \vn{%data_source} is not set, the value of the
 \vn{default_data_source} is used. If both \vn{%data_source} and \vn{default_data_source} are not
 specified, \vn{"lat"} is the default. A \vn{%data_source} of \vn{"data"} or \vn{"var"} establishes
 the default data source for evaluating expressions (see \vn{"expression:"} in \sref{s:data.types}).
+%
+\index{data!data_type}
+\item[datum(N)\%data_type] \Newline
+If \vn{datum(N)%data_type} is not given, and \vni{default_data_type} is not specified, then the
+\vni{d2_data} name and the \vni{d1_data} name are combined for each datum to form the datum's
+\vn{type}. For example, if the \vn{d2_data%name} is \vn{orbit}, and the \vn{d1_data%name} is \vn{x},
+then the \vn{data_type} is \vn{orbit.x}. The \vn{data_type}s recognized by \tao. are given by
+Table~\ref{t:delta.d}. Custom data types not specified in this table must have a corresponding
+definition in \vn{tao_hook_load_data_array.f90}. See Chapter~\ref{c:custom.tao} for details.
+%
+\item[datum(N)\%ele_name] \Newline
+The \vn{datum(N)%ele_name} name may be set to the appropriate element name or may be specified using element
+branch/element index notation (EG: "456", "1>>22", etc.). On input, the datum's \vn{ele_name}
+component (\sref{s:data.anatomy}) will be set to the element name irregardless of the setting in the
+\vn{tao_d1_data} namelist and the \vn{ix_ele} datum component will be set to the element index.
 
 If elements in the \vn{data} array do not exist the corresponding \vn{data%ele_name} should be left
-blank. Lists of names can be reused using the syntax:
-\index{use_same_lat_eles_as}
-\begin{example}
-  use_same_lat_eles_as = "<d1_name>"     ! Reuse previous element list.
-\end{example}
-For example:
-\begin{example}
-  &tao_d1_data
-    ix_d1_data       = 2
-    d1_data%name     = "y"  
-    ...
-    use_same_lat_eles_as = "orbit.x"
-  /
-\end{example}
+blank. 
+%
+\item[datum(N)\%ele_ref_name, datum(N)\%ele_start_name] \Newline
+Like \vn{datum(N)%ele_name}, the \vn{%ele_start_name}, and \vn{%ele_ref_name} names may be specifed
+using branch/element index notation and on input the datum's \vn{ele_start_name} and
+\vn{ele_ref_name} will be set to the actual element names with the datum's \vn{ix_ele_start} and
+\vn{ix_ele_ref} set to the appropriate element indexes.
 
+A range of elements can be specified by giving an \vn{ele_start_name} that is not a blank string.
+Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal beta in the range
+between the end of element \vn{B22} to the end of element \vn{Q16_1}. Elements can be specified by
+name (Eg: \vn{Q16_1}) or by longitudinal position using the notation \vn{"S:<s_distance>"}. This
+will match to the element whose longitudinal position at the exit end is closest to
+\vn{<s_distance>}.
+%
+\item[datum(N)\%eval_point] \Newline
+See \sref{s:data.anatomy} for details.
+%
+\item[datum(N)\%good_user] \Newline
+\vn{datum(N)%good_user} is a logical that the user can toggle when running \tao
+(\sref{s:data.anatomy}). The initial default value of \vn{%good_user} is True.
+%
+\item[datum(N)\%ix_bunch] \Newline
+Index of the particle bunch used for evaluating the datum. Only needed if the datum is indeed
+associated with a bunch.
+%
+\item[datum(N)\%meas] \Newline
+``\vn{Measured}'' datum value used to calculate the datum's contribution to the merit function.
+See \sref{s:del.d} for details.
+%
+\item[datum(N)\%merit_type] \Newline
+Merit type for the datum. See \sref{s:del.d} for details.
+%
+\item[datum(N)\%s_offset] \Newline
+See \sref{s:data.anatomy} for details.
+%
+\index{datum(N)%spin_axis}
+\item[datum(N)\%spin_axis] \Newline
+The \vn{datum(N)%spin_axis} structure defines the coordinate axes at the reference element about
+which the spin $G$-matrix is computed (when the \vn{datum(N)%data_type} is set to
+\vn{spin_g_matrix.$ij$} (\sref{s:data.types})). The \vn{%spin_axis} structure has three components
+\begin{example}
+  spin_axis%l(3)
+  spin_axis%n0(3)
+  spin_axis%m(3) 
+\end{example}
+The chapter on spin in the \bmad manual has information on how these axes are defined. With one
+exception (\sref{s:data.types}) The \vn{n0} axis must be specified. If \vn{l} is also specified,
+\vn{m} will be appropriately calculated such that the axes form a right handed coordinate system. If
+\vn{m} is also specified, \vn{l} will be appropriately calculated. If neither \vn{l} nor \vn{m} is
+specified, \vn{l} and \vn{m} will be calculated somewhat arbitrarily to form a right handed
+coordinate system.
+%
+\index{datum%weight}
+\item[datum(N)\%weight] \Newline
+\vn{datum(N)%weight} gives the weight coefficient for a datum in the merit function. If not present
+then the default weight of \vni{default_weight} is used.
+%
+\item[default_data_source] \Newline
+Set the default for \vn{datum(N)%data_source}.
+%
+\item[default_data_type] \Newline
+Set the default for \vn{datum(N)%data_type}.
+%
+\item[default_data_weight] \Newline
+Set the default for \vn{datum(N)%weight}
+%
+\item[default_meas] \Newline
+Set the default for \vn{datum(N)%meas}
+%
+\item[default_merit_type] \Newline
+Set the default for \vn{datum(N)%merit_type}
+%
+\item[ix_d1_data] \Newline
+The \vn{ix_d1_data} number gives the index in the array of \vn{d1_data} structures within
+a \vn{d2_data} structure the first \vn{\&tao_d1_data} namelist after a \vn{\&tao_d2_data} namelist
+should have \vn{ix_d1_data} set to 1, etc.
+%
+\item[ix_min_data, ix_max_data] \Newline
+\vn{ix_min_data} and \vn{ix_max_data} give the bounds for the \vn{datum(N)} structure array that is
+associated with the \vn{d1_data} structure. 
+%
 \index{search_for_lat_eles}
+\item[search_for_lat_eles] \Newline
 \tao can search for the elements in the lattice to be associated with each data type by using the
 syntax:
 \begin{example}
@@ -1621,34 +1687,24 @@ elements. For example:
 This will search for all non-lord bend lattice elements whose names begins with \vn{"B"} followed by
 any set of characters.  \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be used
 together.
-
-\index{data!data_type}
-If \vn{datum(j)%data_type} is not given, and \vni{default_data_type} is not specified, then the
-\vni{d2_data} name and the \vni{d1_data} name are combined for each datum to form the datum's
-\vn{type}. For example, if the \vn{d2_data} name is \vn{orbit}, and the \vn{d1_data} name is \vn{x},
-then the \vn{data_type} is \vn{orbit.x}. The \vn{data_type}s recognized by \tao. are given by
-Table~\ref{t:delta.d}. Custom data types not specified in this table must have a corresponding
-definition in \vn{tao_hook_load_data_array.f90}. See Chapter~\ref{c:custom.tao} for details.
-
-\index{datum%weight}
-\vn{datum(:)%weight} gives the weight coefficient for a datum in the merit function. If not present
-then the default weight of \vni{default_weight} is used.
-
-\index{datum%spin_axis}
-The \vn{datum(j)%spin_axis} structure defines the coordinate axes at the reference element about
-which the spin $G$-matrix is computed (when the \vn{datum(j)%data_type} is set to
-\vn{spin_g_matrix.$ij$} (\sref{s:data.types})). The \vn{%spin_axis} structure has three components
+%
+\index{use_same_lat_eles_as}
+\item[use_same_lat_eles_as] \Newline
+Lists of names can be reused using the syntax:
 \begin{example}
-  spin_axis%l(3)
-  spin_axis%n0(3)
-  spin_axis%m(3) 
+  use_same_lat_eles_as = "<d1_name>"     ! Reuse previous element list.
 \end{example}
-The chapter on spin in the \bmad manual has information on how these axes are defined. With one
-exception (\sref{s:data.types}) The \vn{n0} axis must be specified. If \vn{l} is also specified,
-\vn{m} will be appropriately calculated such that the axes form a right handed coordinate system. If
-\vn{m} is also specified, \vn{l} will be appropriately calculated. If neither \vn{l} nor \vn{m} is
-specified, \vn{l} and \vn{m} will be calculated somewhat arbitrarily to form a right handed
-coordinate system.
+For example:
+\begin{example}
+  &tao_d1_data
+    ix_d1_data       = 2
+    d1_data%name     = "y"  
+    ...
+    use_same_lat_eles_as = "orbit.x"
+  /
+\end{example}
+%
+\end{description}
 
 %-----------------------------------------------------------------
 \subsection{Old Data Format}
@@ -3223,7 +3279,7 @@ The namelist syntax is the same for both:
   &lat_layout_drawing
     include_default_shapes = <logical>
     ele_shape(N) = "<ele_id>" "<shape>" "<color>" "<size>" "<label>" <draw> 
-                                                                <multi> <line_width>
+                                                          <multi> <line_width> <offset>
   /
 
   &floor_plan_drawing
@@ -3335,6 +3391,8 @@ Use the \vn{show plot} command to view these parameters. Use the
 
 The \vn{<line_width>} parameter is an integer that specifies the width of the lines drawn. The
 default is 1.
+
+The \vn{<offset>} parameter offsets the shape transverse to the reference orbit.
 
 The \vn{<label>} indicates what type of label to print next to the corresponding
 element glyph. Possibilities are:
