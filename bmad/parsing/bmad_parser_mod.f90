@@ -2281,9 +2281,11 @@ case default   ! normal attribute
 
       case ('RF_FREQUENCY')
         if (ele%key == rfcavity$) ele%value(harmon$) = 0
+        ele%value(harmon_master$) = false$
 
       case ('HARMON')
         ele%value(rf_frequency$) = 0
+        ele%value(harmon_master$) = true$
 
       end select       ! attrib_word
 

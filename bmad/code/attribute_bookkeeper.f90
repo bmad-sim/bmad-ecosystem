@@ -426,6 +426,18 @@ case (crab_cavity$)
     val(gradient$) = val(voltage$) / val(l$)
   endif
 
+  if (val(e_tot$) /= 0) then
+    beta = ele%value(p0c$) / ele%value(e_tot$)
+    time = branch%param%total_length / (c_light * beta)
+    if (time /= 0) then
+      if (is_true(val(harmon_master$))) then
+        val(rf_frequency$) = val(harmon$) / time
+      else
+        val(harmon$) = val(rf_frequency$) * time
+      endif
+    endif
+  endif
+
   if (val(rf_frequency$) /= 0) then
     val(rf_wavelength$) = c_light / val(rf_frequency$)
   else
@@ -551,7 +563,7 @@ case (rfcavity$)
     beta = ele%value(p0c$) / ele%value(e_tot$)
     time = branch%param%total_length / (c_light * beta)
     if (time /= 0) then
-      if (ele%value(rf_frequency$) <= 0) then
+      if (is_true(val(harmon_master$))) then
         val(rf_frequency$) = val(harmon$) / time
       else
         val(harmon$) = val(rf_frequency$) * time
@@ -590,7 +602,7 @@ case (rf_bend$)
     beta = ele%value(p0c$) / ele%value(e_tot$)
     time = branch%param%total_length / (c_light * beta)
     if (time /= 0) then
-      if (ele%value(rf_frequency$) <= 0) then
+      if (is_true(val(harmon_master$))) then
         val(rf_frequency$) = val(harmon$) / time
       else
         val(harmon$) = val(rf_frequency$) * time

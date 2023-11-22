@@ -601,10 +601,11 @@ def parse_and_write_element(dlist, write_to_file, command):
         params['tilt'] = '-pi/6'
       params.pop('k2s')
 
-    if 'ktap' in params: 
-      params['k2'] = params['k2'] + ' * (1 + ' + params.pop('ktap') + ')' 
-    else:
-      params['k2'] = ele.name + '[k2] * (1 + ' + params.pop('ktap') + ')' 
+    if 'ktap' in params:
+      if 'k2' in params:
+        params['k2'] = params['k2'] + ' * (1 + ' + params.pop('ktap') + ')' 
+      else:
+        params['k2'] = ele.name + '[k2] * (1 + ' + params.pop('ktap') + ')' 
 
 
   elif ele.madx_base_type == 'octupole':
