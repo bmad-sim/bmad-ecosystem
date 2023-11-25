@@ -195,6 +195,9 @@ do ia = 1, num_ele_attrib$
   attrib2 = ele_attribute_struct()
 
   select case (a_name)
+  case ('LONGITUDINAL_MODE')
+    if (ele%key == rfcavity$) attrib2 = &
+          ele_attribute_struct('RF_BUCKET_LENGTH', dependent$, is_real$, 'm', -1, ele%value(rf_wavelength$) * ele%value(p0c$) / ele%value(E_tot$))
   case ('P0C')
     if (particle == photon$) then
       attrib2 = ele_attribute_struct('REF_WAVELENGTH', dependent$, is_real$, 'm', -1, c_light * h_planck / ele%value(p0c$))
