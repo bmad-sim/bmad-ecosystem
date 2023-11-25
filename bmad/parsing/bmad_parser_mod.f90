@@ -4567,6 +4567,11 @@ do
   endif
 
   name(n_slave) = word
+  if (.not. verify_valid_name(word, len_trim(word), .true., .true.)) then
+    call parser_error ('MALFORMED CONTROLLER SLAVE NAME: ' // word)
+    return
+  endif
+
 
   if (word == '') then
     if (is_control_var_list) then
@@ -4670,40 +4675,49 @@ end subroutine get_overlay_group_names
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function verify_valid_name (name, ix_name, pure_name) result (is_valid)
+! Function verify_valid_name (name, ix_name, pure_name, include_wild) result (is_valid)
 !
 ! Routine to check if a name is well formed. Examples:
-!   "0>>Q0"                           -- Invalid
+!   "0>>Q0"                           -- Invalid (will only be valid after lattice expansion).
 !   "Q1##1"                           -- Invalid (double hash not accepted).
 !   "Q2A_C.\7#"                       -- Pure name (no "[", "]", "(", ")", "%" characters present).
 !   "Q3[GRID_FIELD(1)%FIELD_SCALE]"   -- Valid but not a pure name.
+!   "RFCAVITY::*"                     -- Valid if include_wild = True.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !
 !
 ! Input:
-!   name        -- character(*): Name(1:ix_name) is the string to check.
-!   ix_name     -- integer: Number of characters in the name.
-!   pure_name   -- logical, optional: If tu
+!   name          -- character(*): Name(1:ix_name) is the string to check.
+!   ix_name       -- integer: Number of characters in the name.
+!   pure_name     -- logical, optional: If True, reject names that contain "[", "]", "(", ")", "%" characters.
+!                     Default is False.
+!   include_wild  -- logical, optional: Name can include wild card characters and additionally type prefixes
+!                     like "QUAD::". Default is False.
 !
 ! Output:
-!   is_valid    -- logical: True if name is well formed. False otherwise.   
+!   is_valid      -- logical: True if name is well formed. False otherwise.   
 !-
 
-function verify_valid_name (name, ix_name, pure_name) result (is_valid)
+function verify_valid_name (name, ix_name, pure_name, include_wild) result (is_valid)
 
 implicit none
 
 integer i, ix_name, ix1, ix2
 
 character(*) name
-character(*), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
-character(*), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#%'
-character(*), parameter :: pure_chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_.#'
+character(*), parameter :: p_letters = 'ZZZ\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
+character(*), parameter :: p_valid_chars = 'ZZZ\ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_[]().#%'
+character(*), parameter :: p_pure_chars  = 'ZZZ\ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.#'
+
+character(len(p_letters)) :: letters
+character(len(p_valid_chars)) :: valid_chars
+character(len(p_pure_chars)) :: pure_chars
+
 character(1), parameter :: tab = achar(9)
 
-logical, optional :: pure_name
+logical, optional :: pure_name, include_wild
 logical OK, is_valid
 
 ! Check for blank spaces
@@ -4734,6 +4748,16 @@ endif
 
 ! Check for invalid characters in name.
 ! Example valid: "Q1[GRID_FIELD(1)%FIELD_SCALE]"
+
+letters = p_letters
+valid_chars = p_valid_chars
+pure_chars = p_pure_chars
+
+if (logic_option(.false., include_wild)) then
+  letters(1:3) = '*%:'
+  valid_chars(1:3) = '*%:'
+  pure_chars(1:3) = '*%:'
+endif
 
 OK = .true.
 if (index(letters, name(1:1)) == 0) OK = .false.

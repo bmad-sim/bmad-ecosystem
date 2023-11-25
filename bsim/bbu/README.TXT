@@ -12,8 +12,8 @@ Set Up:
 
 1) Edit the environment variable $PYTHONPATH. 
    Add this line to your .bashrc file (with YOUR username):
-   "export PYTHONPATH=${PYTHONPATH}:/home/USERNAME/nfs/linux_lib/bsim/bbu/python"
-
+   "export PYTHONPATH=${PYTHONPATH}:<path-to-Bmad-release>/bsim/bbu/python"
+   where <path-to-Bmad-release> is the path to the Bmad release directory.
 
 2) In test_run.py, properly set the BBU AND Python parameters.
    The user is expected to understand what most parameters do. 
