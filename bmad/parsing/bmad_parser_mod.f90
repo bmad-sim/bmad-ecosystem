@@ -388,6 +388,8 @@ if (key == sbend$ .or. key == rbend$) then
   if (word == 'B_FIELD_ERR') word = 'DB_FIELD'
 endif
 
+if ((word == 'HARM' .or. word == 'HARMO') .and. has_attribute(ele, 'HARMON')) word = 'HARMON'
+
 if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$ .or. key == def_ptc_com$) then
   name = ele%name
 
