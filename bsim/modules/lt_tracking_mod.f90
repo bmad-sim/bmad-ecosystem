@@ -1822,25 +1822,26 @@ do i = 1, size(lttp%column)
       str = st%name(ix+1:)
     endif
 
+    ! expression_string_to_stack will (unfortunately) upper case names. So we just live with it.
     select case (str)
-    case ('n_turn');      st%value = i_turn
-    case ('x');           st%value = orb%vec(1)
-    case ('px');          st%value = orb%vec(2)
-    case ('y');           st%value = orb%vec(3)
-    case ('py');          st%value = orb%vec(4)
-    case ('z');           st%value = orb%vec(5)
-    case ('pz');          st%value = orb%vec(6)
-    case ('time');
+    case ('N_TURN');      st%value = i_turn
+    case ('X');           st%value = orb%vec(1)
+    case ('PX');          st%value = orb%vec(2)
+    case ('Y');           st%value = orb%vec(3)
+    case ('PY');          st%value = orb%vec(4)
+    case ('Z');           st%value = orb%vec(5)
+    case ('PZ');          st%value = orb%vec(6)
+    case ('TIME');
       if (lttp%use_rf_clock) then
         st%value = orb%t + orb%phase(1)*bmad_private%rf_clock_period
       else
         st%value = orb%t
       endif
-    case ('p0c');         st%value = (1.0_rp + orb%vec(6)) * orb%p0c
-    case ('e_tot');       st%value = (1.0_rp + orb%vec(6)) * orb%p0c / mass_of(orb%species)
-    case ('sx');          st%value = orb%spin(1)
-    case ('sy');          st%value = orb%spin(2)
-    case ('sz');          st%value = orb%spin(3)
+    case ('P0C');         st%value = (1.0_rp + orb%vec(6)) * orb%p0c
+    case ('E_TOT');       st%value = (1.0_rp + orb%vec(6)) * orb%p0c / mass_of(orb%species)
+    case ('SX');          st%value = orb%spin(1)
+    case ('SY');          st%value = orb%spin(2)
+    case ('SZ');          st%value = orb%spin(3)
     case default
     end select
   enddo

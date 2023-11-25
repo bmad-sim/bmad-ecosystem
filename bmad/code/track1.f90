@@ -121,8 +121,7 @@ endif
 if (associated(track1_preprocess_ptr))then
   finished = .false.
   call track1_preprocess_ptr (start2_orb, ele, param, err, finished, radiation_included, track)
-  if (err) return
-  if (finished) then
+  if (finished .or. err) then
     if (present(err_flag)) err_flag = err
     return
   endif
