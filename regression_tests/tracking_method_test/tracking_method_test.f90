@@ -195,12 +195,13 @@ do ib = 0, ubound(lat%branch, 1)
         write (1,fmt) quote(trim(out_str) // '-OD'), 'ABS 1e-10', end_orb%vec - end_ptc%vec
       endif
 
-      if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
+      select case (j)
+      case (bmad_standard$, runge_kutta$, symp_lie_ptc$, time_runge_kutta$, taylor$, symp_lie_bmad$)
         out_str = trim(out_str) // ' dSpin'
         isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
                                                                 end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
         if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
-      endif
+      end select
 
       if (branch%param%particle == photon$) then
         write (1, '(3a, t50, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 2E-07', end_orb%field
