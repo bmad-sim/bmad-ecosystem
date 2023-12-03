@@ -318,15 +318,15 @@ case (bmad_standard$)
     ! The crab cavity is modeled as a TM110 traveling wave mode
     if (ele%value(l$) /= 0) then
       voltage = e_accel_field(ele, voltage$) / ref_charge
-      k_rf = twopi * ele%value(rf_frequency$) / c_light
       if (present(rf_time)) then
         time = rf_time
       else
-        time = particle_rf_time(orbit, ele, .true., s_body)
+        time = particle_rf_time(orbit, ele, .false., s_body)
       endif
       phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
-                      (time - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)) + k_rf * s_body
+                      (time - rf_ref_time_offset(ele) + s_body/c_light) * ele%value(rf_frequency$))
 
+      k_rf = twopi * ele%value(rf_frequency$) / c_light
       field%B(2) = -voltage * sin(phase) / (c_light * ele%value(l$))
       field%E(3) = voltage * k_rf * orbit%beta * orbit%vec(1) * cos(phase) / ele%value(l$)
     endif
