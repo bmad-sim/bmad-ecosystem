@@ -14,7 +14,8 @@
 !   orbit             -- Coord_struct: Particle coordinates
 !   ele               -- ele_struct: Element being tracked through.
 !   reference_active_edge 
-!                     -- logical: If True, and ele is a rfcavity or lcavity, use the active edge as the reference point.
+!                     -- logical: If True, and ele is a rfcavity or lcavity, use the active edge (edge of the
+!                         region with non-zero field) as the reference point.
 !   s_rel             -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
 !                         Needed for relative time tracking when the particle is inside the element. Default is 0.
 !   time_coords       -- logical, optional: Default False. If True then orbit is using time based coordinates.

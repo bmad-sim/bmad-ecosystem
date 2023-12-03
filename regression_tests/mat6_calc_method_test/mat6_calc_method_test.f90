@@ -22,7 +22,7 @@ character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 character(100) line
 
-integer :: i, j, k, ib, nargs, ns
+integer :: i, j, k, ib, nargs, ns, tracking_method
 logical custom_test, err, abs_time
 
 !
@@ -74,6 +74,8 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
+    tracking_method = ele%tracking_method
+
     if (i == branch%n_ele_track .and. ele%name == 'END') cycle
     ns = len_trim(ele%name) + 28
 
@@ -83,14 +85,21 @@ do ib = 0, ubound(lat%branch, 1)
       if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$ .or. j == mad$) cycle
       if (j == auto$) cycle
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
+
       ele%mat6_calc_method = j
+      if (j == bmad_standard$) then
+        ele%tracking_method = bmad_standard$
+      else
+        ele%tracking_method = tracking_method
+      endif
+
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$, branch%param%particle)
       call make_mat6 (ele, branch%param, start_orb, end_orb, err_flag = err)
       call transfer_ele(ele, eles(j), .true.)
       if (custom_test .and. ele%mat6_calc_method == bmad_standard$) then
-        write (1, '(a, 6es16.8)') 'Start track:', start_orb%vec
-        write (1, '(a, 6es16.8)') 'End track:  ', end_orb%vec 
-        write (1, *)
+        print '(a, 6es16.8)', 'Start track:', start_orb%vec
+        print '(a, 6es16.8)', 'End track:  ', end_orb%vec 
+        print *
       endif
     enddo
 
@@ -107,9 +116,9 @@ do ib = 0, ubound(lat%branch, 1)
           if (custom_test) then
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // int_str(k) // '"' 
             if (err) then
-              write (1, '(2a)') final_str(1:ns), '  -------------------------------------- LOST -------------------------------'
+              print '(2a)', final_str(1:ns), '  -------------------------------------- LOST -------------------------------'
             else
-              write (1, fmt1) final_str(1:ns), ele2%mat6(k,:)
+              print fmt1, final_str(1:ns), ele2%mat6(k,:)
             endif
           else
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // int_str(k) // '"' 
@@ -118,14 +127,18 @@ do ib = 0, ubound(lat%branch, 1)
         else if (k == 7) then
           if (custom_test) then
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
-            write (1, fmt1) final_str(1:ns), ele2%vec0
+            print fmt1, final_str(1:ns), ele2%vec0
           else
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
             write (1, fmt1) final_str, tolerance(final_str), ele2%vec0
           endif
         else if (k == 8) then
           final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
-          write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
+          if (custom_test) then
+            print fmt2, final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
+          else
+            write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
+          endif
         end if
       end do
 
@@ -133,23 +146,28 @@ do ib = 0, ubound(lat%branch, 1)
         if (valid_mat6_calc_method(ele, branch%param%particle, bmad_standard$) .and. &
             valid_mat6_calc_method(ele, branch%param%particle, tracking$)) then
           err_mat = abs(eles(bmad_standard$)%mat6 - eles(tracking$)%mat6)
-          write (1, '(a, 2i4, es12.2)')   'Max diff |BS - track|:   ', maxloc(err_mat), maxval(err_mat)
+          print '(a, 2i4, es12.2)',   'Max diff |BS - track|:   ', maxloc(err_mat), maxval(err_mat)
         endif
 
         if (valid_mat6_calc_method(ele, branch%param%particle, bmad_standard$) .and. &
             valid_mat6_calc_method(ele, branch%param%particle, symp_lie_ptc$)) then
           err_mat = abs(eles(bmad_standard$)%mat6 - eles(symp_lie_ptc$)%mat6)
-          write (1, '(a, 2i4, es12.2)')   'Max diff |BS - PTC|:     ', maxloc(err_mat), maxval(err_mat)
+          print '(a, 2i4, es12.2)',   'Max diff |BS - PTC|:     ', maxloc(err_mat), maxval(err_mat)
         endif
 
         if (valid_mat6_calc_method(ele, branch%param%particle, symp_lie_bmad$) .and. &
             valid_mat6_calc_method(ele, branch%param%particle, symp_lie_ptc$)) then
           err_mat = abs(eles(symp_lie_bmad$)%mat6 - eles(symp_lie_ptc$)%mat6)
-          write (1, '(a, 2i4, es12.2)')   'Max diff |SLBmad - PTC|:     ', maxloc(err_mat), maxval(err_mat)
+          print '(a, 2i4, es12.2)',   'Max diff |SLBmad - PTC|:     ', maxloc(err_mat), maxval(err_mat)
         endif
 
       endif
-      write (1,*)
+
+      if (custom_test) then
+        print *
+      else
+        write (1,*)
+      endif
     end do  ! k
 
   end do  ! ele
