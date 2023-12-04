@@ -221,12 +221,7 @@ iamt = '(a, i0, 2x, 9a)'
 ramt = '(a, f0.3, 2x, 9a)'
 
 ix_branch = s%global%default_branch
-u => tao_pointer_to_universe(-1)
-lat => u%model%lat
-branch => lat%branch(ix_branch)
-model_branch => u%model_branch(ix_branch)
-tao_branch => u%model%tao_branch(ix_branch)
-design_tao_branch => u%design%tao_branch(ix_branch)
+call point_to_this_uni(-1, ix_branch, u, lat, branch, model_branch, tao_branch, design_tao_branch)
 
 phase_units = radians_to_angle_units(s%global%phase_units)
 phase_units_str = short_angle_units_name(s%global%phase_units)
@@ -2869,7 +2864,14 @@ case ('lattice')
 
     case ('-universe')
       read (what2(1:ix_s2), *, iostat = ios) ix
-      u => tao_pointer_to_universe(ix)
+      if (ios /= 0) then
+        nl=1; lines(1) = 'CANNOT READ "-universe" ARGUMENT'
+        return
+      endif
+
+      call point_to_this_uni(ix, ix_branch, u, lat, branch, model_branch, tao_branch, design_tao_branch)
+      if (.not. associated(u)) return
+      
       if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
@@ -5255,6 +5257,7 @@ case ('track')
       lat_type = base$
     case ('-branch')
       branch => pointer_to_branch(what2(1:ix_s2), lat)
+      ix_branch = branch%ix_branch
       if (.not. associated(branch)) then
         nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
@@ -5264,20 +5267,18 @@ case ('track')
       lat_type = design$
     case ('-universe')
       read (what2(1:ix_s2), *, iostat = ios) ix
-      u => tao_pointer_to_universe(ix)
-      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+      if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
         return
       endif
+      call point_to_this_uni(ix, ix_branch, u, lat, branch, model_branch, tao_branch, design_tao_branch)
+      if (.not. associated(u)) return
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
     end select
   enddo
 
-  tao_lat => tao_pointer_to_tao_lat (u, lat_type)
-  lat => tao_lat%lat
-  branch => lat%branch(branch%ix_branch)
-  ix_branch = branch%ix_branch
-  tao_branch => tao_lat%tao_branch(ix_branch)
+  !
+
   if (ele_name /= '') then
     call tao_locate_elements (ele_name, u%ix_uni, eles, err, lat_type, multiple_eles_is_err = .true.)
     if (err) return
@@ -6361,6 +6362,33 @@ end select
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 contains
+
+subroutine point_to_this_uni(ix_uni, ix_branch, u, lat, branch, model_branch, tao_branch, design_tao_branch)
+
+type (tao_universe_struct), pointer :: u
+type (tao_lattice_branch_struct), pointer :: tao_branch, design_tao_branch
+type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
+type (tao_model_branch_struct), pointer :: model_branch
+
+integer ix_uni, ix_branch
+
+!
+
+u => tao_pointer_to_universe(ix_uni)
+if (.not. associated(u)) return
+
+lat => u%model%lat
+branch => lat%branch(ix_branch)
+model_branch => u%model_branch(ix_branch)
+tao_branch => u%model%tao_branch(ix_branch)
+design_tao_branch => u%design%tao_branch(ix_branch)
+
+end subroutine point_to_this_uni
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+! contains
 
 subroutine show_ele_data (u, ele, lines, nl)
 
