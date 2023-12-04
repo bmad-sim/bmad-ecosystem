@@ -110,6 +110,15 @@ call offset_photon (ele, orbit, unset$)
 write (1, '(a, 6es20.12)') '"orbit3-photon"  ABS 1E-14', orbit%vec
 write (1, '(a, 6es20.12)') '"length3-photon" ABS 1E-14', orbit%s-branch%ele(1)%s, c_light * orbit%t, orbit%dt_ref*c_light
 
+!
+
+orbit%vec(5) = real_garbage$
+orbit%t = 1e-9_rp
+call init_coord(orbit, orbit, ele, upstream_end$)
+write (1, '(a, 2es20.12)') '"t-set" REL 1E-10', orbit%t, orbit%vec(6)
+
+!
+
 close(1)
 
 !-----------------------------------------------------------------------------
