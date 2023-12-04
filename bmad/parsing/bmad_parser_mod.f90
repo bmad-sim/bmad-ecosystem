@@ -465,6 +465,10 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     a_ptrs(1)%r = value
+
+    ! This is done so init_coord will use %t to set %vec(5) and not vice versa.
+    if (associated(a_ptrs(1)%r, lat%particle_start%t)) lat%particle_start%vec(5) = real_garbage$
+
     if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))              bp_com%extra%max_aperture_limit_set          = .true.
     if (associated(a_ptrs(1)%r, bmad_com%default_ds_step))                 bp_com%extra%default_ds_step_set             = .true.
     if (associated(a_ptrs(1)%r, bmad_com%significant_length))              bp_com%extra%significant_length_set          = .true.
@@ -479,7 +483,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_rel_tol))           bp_com%extra%autoscale_amp_rel_tol_set       = .true.
     if (associated(a_ptrs(1)%r, bmad_com%autoscale_phase_tol))             bp_com%extra%autoscale_phase_tol_set         = .true.
     if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))          bp_com%extra%electric_dipole_moment_set      = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%synch_rad_scale))                 bp_com%extra%synch_rad_scale_set      = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%synch_rad_scale))                 bp_com%extra%synch_rad_scale_set             = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                   bp_com%extra%sad_eps_scale_set               = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                     bp_com%extra%sad_amp_max_set                 = .true.
 

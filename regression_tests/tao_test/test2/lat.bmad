@@ -245,11 +245,11 @@ IN.B1.QUA02: Quadrupole, superimpose, ele_origin = beginning, ref = x__IN.B1.QUA
    L = 0.151, INTEGRATOR_ORDER = 2, DS_STEP = 0.151, field_master = T
 x__IN.B1.EXTRA_TO_MLC: null_ele
 IN.B1.EXTRA_TO_MLC: Pipe, superimpose, ele_origin = beginning,
-   ref = x__IN.B1.EXTRA_TO_MLC, L = 0.219, N_REF_PASS = 1
+   ref = x__IN.B1.EXTRA_TO_MLC, L = 0.219
 IN.B1.BEN03: Sbend, L = 0.32724923474894, G = -0.8, FRINGE_TYPE = Full,
-   E1 = -0.26179938779915, N_REF_PASS = 1, INTEGRATOR_ORDER = 6,
+   E1 = -0.26179938779915, INTEGRATOR_ORDER = 6,
    DS_STEP = 7.6104473197427E-3
-IN.B1.L1_3A: Pipe, L = 0.105, N_REF_PASS = 1
+IN.B1.L1_3A: Pipe, L = 0.105
 IN.B1.BPM03: Marker
 IN.B1.MAR.END: Marker
 MA3QUA01: overlay = {IN.A3.QUA01[B1_GRADIENT]:current*field_int}, var = {CURRENT,
