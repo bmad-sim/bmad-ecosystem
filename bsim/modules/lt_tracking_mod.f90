@@ -1694,9 +1694,11 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (all_pointer_struct) a_ptr
 type (expression_atom_struct), allocatable, target :: stack(:)
 type (expression_atom_struct), pointer :: st
+type (bunch_params_struct) bunch_params
 
 integer i_turn
 integer i, n, ib, iu, ix, ix1, ix2, is, multi, power, width, digits, n_loc, n_stack, n_bunch
+integer n_particle, n_alive, ix_bunch
 
 logical err
 
@@ -1727,11 +1729,19 @@ end select
 
 iu = lunget()
 n_bunch = 0
-if (present(beam)) n_bunch = size(beam%bunch)
+n_particle = 1
+
+if (present(beam)) then
+  n_bunch = size(beam%bunch)
+  n_particle = size(beam%bunch(1)%particle)
+  n_alive = count(beam%bunch(1)%particle%state == alive$)
+else
+  n_alive = count([orbit%state == alive$])
+endif
 
 if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   open(iu, file = lttp%custom_output_file, recl = 2000)
-  call ltt_write_params_header(lttp, ltt_com, iu, n_bunch)
+  call ltt_write_params_header(lttp, ltt_com, iu, n_particle, n_bunch)
   line = '#'
   do i = 1, size(lttp%column)
     col => lttp%column(i)
@@ -1750,21 +1760,8 @@ endif
 if (present(orbit)) then
   allocate (orb_b(1))
   orb_b(1) = orbit
-
 else  ! beam is passed
-  allocate(orb_b(n_bunch))
-
-  do ib = 1, n_bunch
-    bunch => beam%bunch(ib)
-    n = count(bunch%particle%state == alive$)
-    orb_b(ib)%t = ltt_bunch_time_sum(bunch, lttp) / n
-    do i = 1, 6
-      orb_b(ib)%vec(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / n
-    enddo
-    do i = 1, 3
-      orb_b(ib)%spin(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / n
-    enddo
-  enddo
+  ix_bunch = -1
 endif
 
 line = ''
@@ -1813,35 +1810,46 @@ do i = 1, size(lttp%column)
       cycle
     endif
 
+    ib = 1
     ix = index(st%name, '@')
     if (ix == 0) then
-      orb = orb_b(1)
       str = st%name
     elseif (is_integer(st%name(1:ix-1), ib)) then
-      orb = orb_b(ib)
       str = st%name(ix+1:)
     endif
 
+    if (present(orbit)) then
+      orb = orbit
+    else
+      if (ib /= ix_bunch) call calc_bunch_params(beam%bunch(ib), bunch_params, err)
+      ix_bunch = ib
+      orb = bunch_params%centroid
+    endif
+
+    ! expression_string_to_stack will (unfortunately) upper case names. So we just live with it.
     select case (str)
-    case ('n_turn');      st%value = i_turn
-    case ('x');           st%value = orb%vec(1)
-    case ('px');          st%value = orb%vec(2)
-    case ('y');           st%value = orb%vec(3)
-    case ('py');          st%value = orb%vec(4)
-    case ('z');           st%value = orb%vec(5)
-    case ('pz');          st%value = orb%vec(6)
-    case ('time');
+    case ('N_TURN');      st%value = i_turn
+    case ('N_PARTICLE');  st%value = n_particle
+    case ('N_ALIVE');     st%value = n_alive
+    case ('X');           st%value = orb%vec(1)
+    case ('PX');          st%value = orb%vec(2)
+    case ('Y');           st%value = orb%vec(3)
+    case ('PY');          st%value = orb%vec(4)
+    case ('Z');           st%value = orb%vec(5)
+    case ('PZ');          st%value = orb%vec(6)
+    case ('TIME');
       if (lttp%use_rf_clock) then
         st%value = orb%t + orb%phase(1)*bmad_private%rf_clock_period
       else
         st%value = orb%t
       endif
-    case ('p0c');         st%value = (1.0_rp + orb%vec(6)) * orb%p0c
-    case ('e_tot');       st%value = (1.0_rp + orb%vec(6)) * orb%p0c / mass_of(orb%species)
-    case ('sx');          st%value = orb%spin(1)
-    case ('sy');          st%value = orb%spin(2)
-    case ('sz');          st%value = orb%spin(3)
+    case ('P0C');         st%value = (1.0_rp + orb%vec(6)) * orb%p0c
+    case ('E_TOT');       st%value = (1.0_rp + orb%vec(6)) * orb%p0c / mass_of(orb%species)
+    case ('SX');          st%value = orb%spin(1)
+    case ('SY');          st%value = orb%spin(2)
+    case ('SZ');          st%value = orb%spin(3)
     case default
+      print '(2a)', 'Unknown parameter: ', trim(str)
     end select
   enddo
 
@@ -2926,7 +2934,7 @@ type (coord_struct), pointer :: orb
 real(rp) t, r
 
 integer, optional :: direction
-integer ip, ir, ie, n, iv
+integer ip, ir, ie, n, iv, n_alive
 
 logical err, finished
 
@@ -2942,9 +2950,11 @@ if (ltt_params_global%ramp_update_each_particle) return
 n = ltt_com_global%n_ramper_loc
 if (n == 0) return
 
-t = sum(bunch%particle%t, bunch%particle%state == alive$) / &
-           count(bunch%particle%state == alive$) + 0.5_rp * ele%value(delta_ref_time$) + &
-           ltt_params_global%ramping_start_time
+n_alive = count(bunch%particle%state == alive$)
+if (n_alive == 0) return
+
+t = sum(bunch%particle%t, bunch%particle%state == alive$) / n_alive + &
+            0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
 
 do ir = 1, ltt_com_global%n_ramper_loc
   do iv = 1, size(ltt_com_global%ramper(ir)%ele%control%var)

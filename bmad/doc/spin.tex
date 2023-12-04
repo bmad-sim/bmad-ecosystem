@@ -591,18 +591,21 @@ the longitudinal angle with $\theta = 2 \, \pi$ representing one turn in the cir
 In the above equation the phase $\Phi$ is related to the orbital mode tunes $Q$ via
 \begin{equation}
   \Phi = (j_0 + j_x Q_x + j_y Q_y + j_z Q_z) \theta + \Phi_0 \equiv
-  %%% (j_0 + \bfj \cdot \bfQ) \theta + \Phi_0 = 
   \kappa \theta + \Phi_0
 \end{equation}
 with $j_0$, $j_x$, $j_y$, and $j_z$ being integers and $\Phi_0$ being the starting phase. \Eq{stos}
-can be solved by transforming to a coordinate system rotating about the $z$-axis with a rotational
-frequency $\kappa$. This is called the ``\vn{resonance}'' coordinate system or the ``\vn{rotating}''
-coordinate system. In this frame, the spin vector $s_R$ is
+defines $\kappa$. \Eq{stos} can be solved by transforming to a coordinate system rotating about the
+$z$-axis with a rotational frequency $\kappa$. This is called the ``\vn{resonance}'' coordinate
+system or the ``\vn{rotating}'' coordinate system. In this frame, the spin vector $s_R$ is
 \begin{equation}
-  \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \BAR\bfq_z(-\Phi/2), \quad \text{where} \quad
-  \bfq_z(\phi) \equiv \big( \cos (\phi/2) +  \sin (\phi/2) \big) \, \calk
+  \bfs_R = \bfq_z(-\Phi/2) \,\, \bfs \,\, \BAR\bfq_z(-\Phi/2) \\
   \label{rqsq}
 \end{equation}
+where
+\begin{equation}
+  \bfq_z(\phi) \equiv \big( \cos (\phi/2) +  \sin (\phi/2) \big) \, \calk
+\end{equation}
+
 Using \Eq{rqsq} in \Eq{stos} gives
 \begin{equation}
   \frac{d \bfs_R}{d \theta} = \Bf\Omega_R \cross \bfs_R, \qquad
@@ -649,14 +652,10 @@ approximation, the spin will be
   \bfs_R(N,\bfn_0) = (0, -N \cdot 2 \, \pi \, \epsilon_r, 1)
   \label{sr0n}
 \end{equation}
-For the linear approximation to be valid, it must be true that $N \, \epsilon_r \ll 1$. \Eq{sr0n}
-gives a physical interpretation to the resonance strength $\epsilon_r$. The resonance strength is
-the angle (modulo $2 \, \pi$) that a spin is tipped away from $\bfn_0$ in one turn. For a resonance
-to be small, the resonance strength must satisfy
-\begin{equation}
-  \epsilon_r \ll 1
-  \label{r1}
-\end{equation}
+\Eq{sr0n} gives a physical interpretation to the resonance strength $\epsilon_r$. The resonance
+strength is the angle (modulo $2 \, \pi$) that a spin is tipped away from $\bfn_0$ in one turn. The
+linear approximation will be valid for $N$ such that $N \, \epsilon_r \ll 1$. For the linear
+approximation to be valid for any positive $N$, $\epsilon_r$ must satisfy $\epsilon_r \ll 1$.
 
 %-----------------------------------------------------------------   
 \section{Linear Resonance Analysis}
@@ -670,12 +669,12 @@ letting $N$ go to infinity
   \left| \bfs_R(N,\bfn_0) - \bfn_0 \right|
   \label{eN12n}
 \end{equation}
-Here the restriction $N \ll 1 / \epsilon_r$ can be ignored since the spin transport is linearized.
-That is, it is the nonlinear terms in the spin transport which makes the restriction necessary. In
-fact, with linear spin transport, the magnitude of $\bfs_R$ is not constant and at resonance is
-unbounded. \Eq{eN12n} will still be valid even when there are multiple resonances present since
-\Eq{eN12n} must be evaluated on a particular resonance and, it will be seen, the contribution to
-\Eq{eN12n} from non-resonant resonances is zero.
+Here the restriction $N \ll 1 / \epsilon_r$ can be ignored since the analysis below will use the
+linearized spin transport and it is the nonlinear terms in the spin transport which makes the
+restriction necessary. In fact, with linear spin transport, the magnitude of $\bfs_R$ is not
+constant and at resonance is unbounded. \Eq{eN12n} will still be valid even when there are multiple
+resonances present since \Eq{eN12n} must be evaluated on a particular resonance and, it will be
+seen, the contribution to \Eq{eN12n} from non-resonant resonances is zero.
 
 $\bfs_R(N, \bfn_0)$ is the spin after $N$ turns given an initial spin of $\bfn_0$.  $\bfs_R(N,
 \bfn_0)$ can be computed via
@@ -714,26 +713,28 @@ where
   \sum_{j = 0}^{N-1} \, \bfq_0^{-j} \left( \arrowbfq \cdot \bfr_j \right) \bfq_0^{j}
   \label{Z}
 \end{equation}
-To evaluate $\bfZ$, the quantity $\bfq_0^j$ is decomposed into two parts
+To evaluate $\bfZ$, the quantity $\bfq_0^j$ is decomposed into two parts using the fact that $\kappa
+= \nu_0 + \delta$
 \begin{equation}
-  \bfq_0^j = e^{i \pi j \nu_0} \, \bfn_0^\mmin + 
-  e^{-i \pi j \nu_0} \, \bfn_0^\ppls
+  \bfq_0^j = e^{ i \pi j (\nu_0 + \delta) + i \Phi_0} \, \bfn_0^\mmin + 
+             e^{-i \pi j (\nu_0 + \delta) - i \phi_0} \, \bfn_0^\ppls
   \label{q12en}
 \end{equation}
-where $\bfn_0^\mmin \equiv I_-(\bfn_0)$ and $\bfn_0^\ppls \equiv I_+(\bfn_0)$ are given by \Eq{n1in}.
+where $\bfn_0^\mmin \equiv I_-(\bfn_0)$ and $\bfn_0^\ppls \equiv I_+(\bfn_0)$ are
+given by \Eq{n1in}.
 
 For a particular mode $k$ of oscillation, $\bfr_j$ is given by \Eq{x2jv}. The end result will be
-independent of $\phi_0$ in \Eq{x2jv} so without loss of generality, $\phi_0$ will be set to zero.
+independent of $\phi_0$ in \Eq{x2jv} so without loss of generality, $\Phi_0$ will be set to zero.
 Using this along with the above equations gives
 \begin{align}
   \bfZ = \lim_{N \rightarrow \infty} 
     \frac{\sqrt{J}}{2 \pi N} 
     \sum_{j = 0}^{N-1} \Big[
-    &\bfn_0^\ppls (\arrowbfq \cdot \bfv_k)   \bfn_0^\mmin \, e^{ i2\pi j (Q_k + \nu_0)} + 
-     \bfn_0^\mmin (\arrowbfq \cdot \bfv_k^*) \bfn_0^\ppls \, e^{-i2\pi j (Q_k + \nu_0)} + {} 
+    &\bfn_0^\ppls (\arrowbfq \cdot \bfv_k)   \bfn_0^\mmin \, e^{ i2\pi j (Q_k + \nu_0 + \delta)} + 
+     \bfn_0^\mmin (\arrowbfq \cdot \bfv_k^*) \bfn_0^\ppls \, e^{-i2\pi j (Q_k + \nu_0 + \delta)} + {} 
     \nonumber \\[-2ex]
-    &\bfn_0^\mmin (\arrowbfq \cdot \bfv_k)   \bfn_0^\ppls \, e^{ i2\pi j (Q_k - \nu_0)} +
-     \bfn_0^\ppls (\arrowbfq \cdot \bfv_k^*) \bfn_0^\mmin \, e^{-i2\pi j (Q_k - \nu_0)} + {}
+    &\bfn_0^\mmin (\arrowbfq \cdot \bfv_k)   \bfn_0^\ppls \, e^{ i2\pi j (Q_k - \nu_0 - \delta)} +
+     \bfn_0^\ppls (\arrowbfq \cdot \bfv_k^*) \bfn_0^\mmin \, e^{-i2\pi j (Q_k - \nu_0 - \delta)} + {}
     \label{zj2pn} \\
     &\bfn_0^\mmin (\arrowbfq \cdot \bfv_k)   \bfn_0^\mmin \, e^{i2\pi j Q_k} + 
      \bfn_0^\ppls (\arrowbfq \cdot \bfv_k^*) \bfn_0^\ppls \, e^{-i2\pi j Q_k} + \CRNO
@@ -741,7 +742,8 @@ Using this along with the above equations gives
      \bfn_0^\mmin (\arrowbfq \cdot \bfv_k^*) \bfn_0^\mmin \, e^{-i2\pi j Q_k}
    \Big] \nonumber
 \end{align}
-the first two terms on the right hand side of \Eq{zj2pn} will be nonzero only at the sum resonance
+At a resonance, $\delta = 0$. 
+The first two terms on the right hand side of \Eq{zj2pn} will be nonzero only at the sum resonance
 with $Q_k + \nu_0 = p$ for $p$ an integer.  The third and fourth terms will be nonzero only at the
 difference resonance with $Q_k - \nu_0 = p$.  And the last four terms will be nonzero only at an
 integer resonance where $Q_k = p$ which can be ignored since an accelerator can never be operated

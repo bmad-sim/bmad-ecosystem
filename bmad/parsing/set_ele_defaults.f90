@@ -28,15 +28,16 @@ real(rp) g
 !
 
 ele%component_name = ''
+ele%taylor_map_includes_offsets = .true.
 
 ! Some overall defaults.
 
-if (attribute_index(ele, 'FRINGE_AT') /= 0)            ele%value(fringe_at$) = both_ends$
-if (attribute_index(ele, 'FRINGE_TYPE') /= 0)          ele%value(fringe_type$) = none$
-if (attribute_index(ele, 'SPIN_FRINGE_ON') /= 0)       ele%value(spin_fringe_on$) = true$
-if (attribute_index(ele, 'PTC_CANONICAL_COORDS') /= 0) ele%value(ptc_canonical_coords$) = true$
-if (attribute_index(ele, 'MAT6_CALC_METHOD') /= 0)     ele%mat6_calc_method = auto$
-ele%taylor_map_includes_offsets = .true.
+if (has_attribute(ele, 'FRINGE_AT'))            ele%value(fringe_at$) = both_ends$
+if (has_attribute(ele, 'FRINGE_TYPE'))          ele%value(fringe_type$) = none$
+if (has_attribute(ele, 'SPIN_FRINGE_ON'))       ele%value(spin_fringe_on$) = true$
+if (has_attribute(ele, 'PTC_CANONICAL_COORDS')) ele%value(ptc_canonical_coords$) = true$
+if (has_attribute(ele, 'MAT6_CALC_METHOD'))     ele%mat6_calc_method = auto$
+call init_multipole_cache(ele)
 
 ! Other inits.
 

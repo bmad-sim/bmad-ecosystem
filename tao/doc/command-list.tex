@@ -4244,7 +4244,7 @@ Example:
 The \vn{write variable} command writes \tao variable values to a file or files.
 Syntax:
 \begin{example}
-  write variable \{-good_var_only\} \{-tao_format\} \{<file_name>\} 
+  write variable \{-good_opt_only\} \{-tao_format\} \{<file_name>\} 
 \end{example}
 This is useful, for example, for recording changes when a lattice is optimized.
 
@@ -4292,8 +4292,13 @@ command writes a number of files, one for each universe.
 
 The default file name is \vn{var\#.out} where \vn{\#} is replaced by the universe number. 
 
-If the optional \vn{-good_var_only} switch is present, only the information on variables that are
+If the optional \vn{-good_opt_only} switch is present, only the information on variables that are
 currently used in the optimization is written.
+
+Example
+\begin{example}
+  write var -good this_var.dat  ! Write to file "this_var.dat".
+\end{example}
 
 %% write madx --------------------------------------------------------------
 

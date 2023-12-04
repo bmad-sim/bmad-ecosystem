@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_ref, beta_ref
-real(rp) k_rf, dl, beta_old, pz_old, h, pc
+real(rp) k_rf, dl, beta_old, pz_old, h, pc, s_here
 real(rp) mat_2(6,6), E_old, E_new
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -51,8 +51,8 @@ if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  el
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
 
 length = ele%value(l$) * orbit%time_dir
-!n_slice = max(1, nint(length / ele%value(ds_step$))) 
-n_slice = 1
+n_slice = max(1, nint(length / ele%value(ds_step$))) 
+!n_slice = 1
 dl = length / n_slice
 charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation
 voltage = orbit%time_dir * e_accel_field(ele, voltage$, .true.) * charge_dir / (ele%value(p0c$) * n_slice)
@@ -69,8 +69,9 @@ call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
 do i = 1, n_slice
 
-  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
-          (particle_rf_time ( orbit, ele, .false.) - rf_ref_time_offset(ele) ) * ele%value(rf_frequency$))
+  s_here = (i - 0.5_rp) * ele%value(l$) / n_slice
+  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+          (particle_rf_time (orbit, ele, .false., s_here) - rf_ref_time_offset(ele) - s_here/c_light) * ele%value(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
 
@@ -108,7 +109,6 @@ do i = 1, n_slice
   
   if (i == n_slice) exit
   call track_this_drift(orbit, dl, ele, phase, mat6, make_matrix)
-
 enddo
 
 call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)

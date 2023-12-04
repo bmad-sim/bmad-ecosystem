@@ -41,8 +41,10 @@ endif
 
 if (present(ix_ele)) ele%ix_ele = ix_ele
 
-if (present(key)) ele%key = key
-if (present(key)) call set_ele_defaults(ele)
+if (present(key)) then
+  ele%key = key
+  call set_ele_defaults(ele)
+endif
 
 if (present(sub_key)) ele%sub_key = sub_key
 

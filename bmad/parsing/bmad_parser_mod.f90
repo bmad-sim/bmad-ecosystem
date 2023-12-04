@@ -388,6 +388,8 @@ if (key == sbend$ .or. key == rbend$) then
   if (word == 'B_FIELD_ERR') word = 'DB_FIELD'
 endif
 
+if ((word == 'HARM' .or. word == 'HARMO') .and. has_attribute(ele, 'HARMON')) word = 'HARMON'
+
 if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$ .or. key == def_ptc_com$) then
   name = ele%name
 
@@ -463,6 +465,10 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     a_ptrs(1)%r = value
+
+    ! This is done so init_coord will use %t to set %vec(5) and not vice versa.
+    if (associated(a_ptrs(1)%r, lat%particle_start%t)) lat%particle_start%vec(5) = real_garbage$
+
     if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))              bp_com%extra%max_aperture_limit_set          = .true.
     if (associated(a_ptrs(1)%r, bmad_com%default_ds_step))                 bp_com%extra%default_ds_step_set             = .true.
     if (associated(a_ptrs(1)%r, bmad_com%significant_length))              bp_com%extra%significant_length_set          = .true.
@@ -477,7 +483,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     if (associated(a_ptrs(1)%r, bmad_com%autoscale_amp_rel_tol))           bp_com%extra%autoscale_amp_rel_tol_set       = .true.
     if (associated(a_ptrs(1)%r, bmad_com%autoscale_phase_tol))             bp_com%extra%autoscale_phase_tol_set         = .true.
     if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))          bp_com%extra%electric_dipole_moment_set      = .true.
-    if (associated(a_ptrs(1)%r, bmad_com%synch_rad_scale))                 bp_com%extra%synch_rad_scale_set      = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%synch_rad_scale))                 bp_com%extra%synch_rad_scale_set             = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_eps_scale))                   bp_com%extra%sad_eps_scale_set               = .true.
     if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                     bp_com%extra%sad_amp_max_set                 = .true.
 
@@ -2281,9 +2287,11 @@ case default   ! normal attribute
 
       case ('RF_FREQUENCY')
         if (ele%key == rfcavity$) ele%value(harmon$) = 0
+        ele%value(harmon_master$) = false$
 
       case ('HARMON')
         ele%value(rf_frequency$) = 0
+        ele%value(harmon_master$) = true$
 
       end select       ! attrib_word
 
@@ -4565,6 +4573,11 @@ do
   endif
 
   name(n_slave) = word
+  if (.not. verify_valid_name(word, len_trim(word), .true., .true.)) then
+    call parser_error ('MALFORMED CONTROLLER SLAVE NAME: ' // word)
+    return
+  endif
+
 
   if (word == '') then
     if (is_control_var_list) then
@@ -4668,40 +4681,49 @@ end subroutine get_overlay_group_names
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function verify_valid_name (name, ix_name, pure_name) result (is_valid)
+! Function verify_valid_name (name, ix_name, pure_name, include_wild) result (is_valid)
 !
 ! Routine to check if a name is well formed. Examples:
-!   "0>>Q0"                           -- Invalid
+!   "0>>Q0"                           -- Invalid (will only be valid after lattice expansion).
 !   "Q1##1"                           -- Invalid (double hash not accepted).
 !   "Q2A_C.\7#"                       -- Pure name (no "[", "]", "(", ")", "%" characters present).
 !   "Q3[GRID_FIELD(1)%FIELD_SCALE]"   -- Valid but not a pure name.
+!   "RFCAVITY::*"                     -- Valid if include_wild = True.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !
 !
 ! Input:
-!   name        -- character(*): Name(1:ix_name) is the string to check.
-!   ix_name     -- integer: Number of characters in the name.
-!   pure_name   -- logical, optional: If tu
+!   name          -- character(*): Name(1:ix_name) is the string to check.
+!   ix_name       -- integer: Number of characters in the name.
+!   pure_name     -- logical, optional: If True, reject names that contain "[", "]", "(", ")", "%" characters.
+!                     Default is False.
+!   include_wild  -- logical, optional: Name can include wild card characters and additionally type prefixes
+!                     like "QUAD::". Default is False.
 !
 ! Output:
-!   is_valid    -- logical: True if name is well formed. False otherwise.   
+!   is_valid      -- logical: True if name is well formed. False otherwise.   
 !-
 
-function verify_valid_name (name, ix_name, pure_name) result (is_valid)
+function verify_valid_name (name, ix_name, pure_name, include_wild) result (is_valid)
 
 implicit none
 
 integer i, ix_name, ix1, ix2
 
 character(*) name
-character(*), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
-character(*), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#%'
-character(*), parameter :: pure_chars  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_.#'
+character(*), parameter :: p_letters = 'ZZZ\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
+character(*), parameter :: p_valid_chars = 'ZZZ\ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_[]().#%'
+character(*), parameter :: p_pure_chars  = 'ZZZ\ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.#'
+
+character(len(p_letters)) :: letters
+character(len(p_valid_chars)) :: valid_chars
+character(len(p_pure_chars)) :: pure_chars
+
 character(1), parameter :: tab = achar(9)
 
-logical, optional :: pure_name
+logical, optional :: pure_name, include_wild
 logical OK, is_valid
 
 ! Check for blank spaces
@@ -4732,6 +4754,16 @@ endif
 
 ! Check for invalid characters in name.
 ! Example valid: "Q1[GRID_FIELD(1)%FIELD_SCALE]"
+
+letters = p_letters
+valid_chars = p_valid_chars
+pure_chars = p_pure_chars
+
+if (logic_option(.false., include_wild)) then
+  letters(1:3) = '*%:'
+  valid_chars(1:3) = '*%:'
+  pure_chars(1:3) = '*%:'
+endif
 
 OK = .true.
 if (index(letters, name(1:1)) == 0) OK = .false.

@@ -195,6 +195,9 @@ do ia = 1, num_ele_attrib$
   attrib2 = ele_attribute_struct()
 
   select case (a_name)
+  case ('LONGITUDINAL_MODE')
+    if (ele%key == rfcavity$) attrib2 = &
+          ele_attribute_struct('RF_BUCKET_LENGTH', dependent$, is_real$, 'm', -1, ele%value(rf_wavelength$) * ele%value(p0c$) / ele%value(E_tot$))
   case ('P0C')
     if (particle == photon$) then
       attrib2 = ele_attribute_struct('REF_WAVELENGTH', dependent$, is_real$, 'm', -1, c_light * h_planck / ele%value(p0c$))
@@ -429,8 +432,8 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', ct_map%field_scale
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', ct_map%r0
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
-      nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a8, a)') 'Term#', &
-                                    'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family Form'
+      nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
+                                    'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family    Form'
       do j = 1, min(nl2, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)
@@ -1432,7 +1435,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(84) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(41), parameter :: att_name(85) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1443,11 +1446,11 @@ character(41), parameter :: att_name(84) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'X_DISPERSION_CALIB', 'K1X', 'RF_FREQUENCY', 'UPSTREAM_ELE_DIR', 'SIG_X', &
                 'BETA_A0', 'BETA_B0', 'ALPHA_A0', 'ALPHA_B0', 'ETA_X0', 'ETAP_X0', &
                 'ETA_Y0', 'ETAP_Y0', 'KICK0', 'X0', 'PX0', 'Y0', 'PY0', 'Z0', 'PZ0', &
-                'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', &
+                'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'HARMON', &
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK']
 
-character(41), parameter :: att2_name(84) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(41), parameter :: att2_name(85) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
@@ -1458,7 +1461,7 @@ character(41), parameter :: att2_name(84) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'Y_DISPERSION_CALIB', 'K1Y', 'RF_WAVELENGTH', 'DOWNSTREAM_ELE_DIR', 'SIG_Y', &
                 'BETA_A1', 'BETA_B1', 'ALPHA_A1', 'ALPHA_B1', 'ETA_X1', 'ETAP_X1', &
                 'ETA_Y1', 'ETAP_Y1', 'MATRIX', 'X1', 'PX1', 'Y1', 'PY1', 'Z1', 'PZ1', &
-                'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', &
+                'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', 'HARMON_MASTER', &
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', &
                 'X_KICK', 'Y_KICK', 'Z_KICK']
 

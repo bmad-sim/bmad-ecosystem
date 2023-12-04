@@ -661,12 +661,13 @@ do i = 1, n_key$
   if (i == floor_shift$)  cycle
   if (i == patch$)        cycle
 
-  call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
-  call init_attribute_name1 (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
-  call init_attribute_name1 (i, y_offset_tot$,  'Y_OFFSET_TOT', dependent$)
-  call init_attribute_name1 (i, z_offset_tot$,  'Z_OFFSET_TOT', dependent$)
-  call init_attribute_name1 (i, x_pitch_tot$,   'X_PITCH_TOT', dependent$)
-  call init_attribute_name1 (i, y_pitch_tot$,   'Y_PITCH_TOT', dependent$)
+  call init_attribute_name1 (i, tilt_tot$,        'TILT_TOT', dependent$)
+  call init_attribute_name1 (i, x_offset_tot$,    'X_OFFSET_TOT', dependent$)
+  call init_attribute_name1 (i, y_offset_tot$,    'Y_OFFSET_TOT', dependent$)
+  call init_attribute_name1 (i, z_offset_tot$,    'Z_OFFSET_TOT', dependent$)
+  call init_attribute_name1 (i, x_pitch_tot$,     'X_PITCH_TOT', dependent$)
+  call init_attribute_name1 (i, y_pitch_tot$,     'Y_PITCH_TOT', dependent$)
+  call init_attribute_name1 (i, dispatch$,        'dispatch', private$)
 
   if (i == multilayer_mirror$) cycle
   if (i == mirror$)            cycle
@@ -1407,6 +1408,7 @@ call init_attribute_name1 (crab_cavity$, voltage$,                  'VOLTAGE')
 call init_attribute_name1 (crab_cavity$, phi0$,                     'PHI0')
 call init_attribute_name1 (crab_cavity$, phi0_multipass$,           'PHI0_MULTIPASS')
 call init_attribute_name1 (crab_cavity$, harmon$,                   'HARMON')
+call init_attribute_name1 (crab_cavity$, harmon_master$,            'HARMON_MASTER')
 call init_attribute_name1 (crab_cavity$, cartesian_map$,            'CARTESIAN_MAP')
 call init_attribute_name1 (crab_cavity$, cylindrical_map$,          'CYLINDRICAL_MAP')
 call init_attribute_name1 (crab_cavity$, gen_grad_map$,             'GEN_GRAD_MAP')
@@ -1434,6 +1436,7 @@ call init_attribute_name1 (rfcavity$, rf_clock_harmonic$,           'rf_clock_ha
 call init_attribute_name1 (rfcavity$, phi0_multipass$,              'PHI0_MULTIPASS')
 call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)
+call init_attribute_name1 (rfcavity$, harmon_master$,               'HARMON_MASTER')
 call init_attribute_name1 (rfcavity$, coupler_strength$,            'COUPLER_STRENGTH')
 call init_attribute_name1 (rfcavity$, coupler_angle$,               'COUPLER_ANGLE')
 call init_attribute_name1 (rfcavity$, coupler_phase$,               'COUPLER_PHASE')
@@ -1468,6 +1471,7 @@ call init_attribute_name1 (rf_bend$, rf_clock_harmonic$,            'rf_clock_ha
 call init_attribute_name1 (rf_bend$, phi0_multipass$,               'PHI0_MULTIPASS')
 call init_attribute_name1 (rf_bend$, phi0$,                         'PHI0')
 call init_attribute_name1 (rf_bend$, harmon$,                       'HARMON', quasi_free$)
+call init_attribute_name1 (rf_bend$, harmon_master$,                'HARMON_MASTER')
 call init_attribute_name1 (rf_bend$, dg$,                           'DG', private$)
 call init_attribute_name1 (rf_bend$, db_field$,                     'DB_FIELD', private$)
 
@@ -1882,7 +1886,7 @@ endif
 !
 
 select case (attrib_name)
-case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', &
+case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
       'AUTOSCALE_AMPLITUDE', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', 'HIGH_ENERGY_SPACE_CHARGE_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &

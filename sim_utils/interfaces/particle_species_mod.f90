@@ -22,13 +22,15 @@
 !   CC   = Charge (2 Hex digits with range [-127, 127]). Set to 0 for subatomic particles.
 !   PP   = Particle ID (2 Hex digits with range [0, 255]).
 !           if PP = 0                --> Used for subatomic particles.
-!           if 0 < PP < 200 (C8 Hex) --> Atom with PP = # Protons 
+!           if 0 < PP < 199 (C8 Hex) --> Atom with PP = # Protons 
+!           if PP = 199 (C8 Hex)     --> Anti atom.
 !           if PP = 200 (C8 Hex)     --> Molecule of unknown type.
 !           if PP > 200 (C8 Hex)     --> "Named" molecule. See molecular_name array below for a list. 
 !                                        In this case PP = Species ID. EG: nh2$ = 201, etc.
 !   MMMM (4 Hex digits):
 !          For subatomic particles (where CC = PP = 0): Particle integer ID. 
 !          For atoms: Number of nucleons. If zero then number of nucleons is unknown (EG: "C+")
+!          For anti atoms: Split MMMM = Xb13b4YY where Xb13 is number of protons (7 bits) and b4YY = number of nucleons (9bits).
 !          For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 = Use default (only valid for "Named" molecules).
 !
 ! Example external input names:
@@ -72,6 +74,7 @@ integer, parameter :: anti_ref_particle$ = -7
 integer, parameter :: anti_helion$       = -8
 
 integer, parameter :: lb_subatomic = -8, ub_subatomic = 9
+integer, parameter :: anti_atom$ = 199
 
 character(20), parameter:: subatomic_species_name(lb_subatomic:ub_subatomic) = [character(20):: 'Anti_Helion', &
               'Anti_Ref_Particle', 'Anti_Neutron', 'Anti_Deuteron', 'Pion-', 'Muon', 'Antiproton', 'Electron', &
@@ -829,7 +832,7 @@ end function antiparticle
 ! Function species_of (mass, charge) result (species)
 !
 ! Routine to return the integer ID index of a particle species given the mass and charge.
-! Note: Currently this routine only works for subatomic particles.
+! Note: Currently this routine only works for subatomic particles and is used for decoding PTC flat files.
 !
 ! Input:
 !   mass    -- real(rp): Mass of the particle
@@ -858,7 +861,7 @@ end function species_of
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function species_id (name, default) result(species)
+! Function species_id (name, default, print_err) result(species)
 !
 ! Routine to return the integer ID index of a particle species given the name.
 !
@@ -866,23 +869,26 @@ end function species_of
 ! For all other types of particles, the case does matter.
 !
 ! Input:
-!   name    -- character(20): Name of the species.
-!   default -- integer, optional: Default species to use if name is blank or 'ref_species'.
-!               If not present, a blank name is an error.
+!   name        -- character(20): Name of the species.
+!   default     -- integer, optional: Default species to use if name is blank or 'ref_species'.
+!                   If not present, a blank name is an error.
+!   print_err   -- logical, optional: Print error message? Default is True. If False, return species = invalid$,
 !
 ! Output:
-!   species -- integer: Species ID. Will return invalid$ if name is not valid.
+!   species     -- integer: Species ID. Will return invalid$ if name is not valid.
 !                       Will return not_set$ if name is blank
 !-
 
-function species_id (name, default) result(species)
+function species_id (name, default, print_err) result(species)
 
-integer ::  species, charge, i, ix, ix1, ix2, iso, ios, n_nuc
 real(rp) :: mol_mass
 integer, optional :: default
+integer ::  species, charge, i, ix, ix1, ix2, iso, ios, n_nuc
 character(*) :: name
 character(20) :: nam
-character(40), parameter :: r_name = 'species_id'
+character(*), parameter :: r_name = 'species_id'
+logical, optional :: print_err
+logical anti, do_print
 
 ! Init
 
@@ -895,6 +901,7 @@ if (name == '' .or. upcase(name) == 'REF_SPECIES') then
   return
 endif
 
+do_print = logic_option(.true., print_err)
 species = invalid$
 iso = 0
 nam = name
@@ -957,14 +964,18 @@ if (ix > 0) then
   if (n_nuc /= 0) return  ! Isotopic number not allowed with molecules
   ! Only 3+2 digits are allowed
   if (mol_mass*100 > 99999) then
-    call out_io (s_abort$, r_name, 'SPECIFIED MOLECULE MASS TOO LARGE FOR ' // name)
-    if (global_com%exit_on_error) call err_exit
+    if (do_print) then
+      call out_io (s_abort$, r_name, 'SPECIFIED MOLECULE MASS TOO LARGE FOR ' // name)
+      if (global_com%exit_on_error) call err_exit
+    endif
     return
   endif
 
   if (n_nuc /= 0) then
-    call out_io (s_abort$, r_name, 'SPECIFYING THE NUMBER OF NUCLEONS FOR A MOLECULE IS INVALID: ' // name)
-    if (global_com%exit_on_error) call err_exit
+    if (do_print) then
+      call out_io (s_abort$, r_name, 'SPECIFYING THE NUMBER OF NUCLEONS FOR A MOLECULE IS INVALID: ' // name)
+      if (global_com%exit_on_error) call err_exit
+    endif
     return
   endif  
 
@@ -973,7 +984,21 @@ if (ix > 0) then
   return  
 endif
 
-! Is Atom?
+! Is atom or anti-atom
+
+if (mol_mass /= 0) then
+  if (do_print) then
+    call out_io (s_abort$, r_name, 'SPECIFYING A MASS FOR AN ATOM IS INVALID: ' // name)
+    if (global_com%exit_on_error) call err_exit
+  endif
+  return
+endif  
+
+anti = .false.
+if (nam(1:4) == 'anti') then
+  anti = .true.
+  nam = nam(5:)
+endif
 
 select case (nam)
 case ('Uut');  ix = 113
@@ -982,18 +1007,22 @@ case ('Uus');  ix = 117
 case ('Uuo');  ix = 118
 case default
   call match_word(nam, atomic_name, ix, .true., .false.)
-  if (ix > 0) then
-    if (mol_mass /= 0) then
-      call out_io (s_abort$, r_name, 'SPECIFYING A MASS FOR AN ATOM IS INVALID: ' // name)
+  if (ix <= 0) then
+    if (do_print) then
+      call out_io (s_error$, r_name, 'CANNOT DECODE ATOM NAME: ' // name)
       if (global_com%exit_on_error) call err_exit
-      return
-    endif  
-
-    species =  abs(charge * int(z'1000000')) + ix * int(z'10000') + n_nuc
-    if (charge < 0) species = -species
-    return  
+    endif
+    return
   endif
 end select
+
+if (anti) then
+  species = (abs(charge * int(z'1000000')) + anti_atom$ * int(z'10000') + ix * 2 * int(z'100') + n_nuc)
+else
+  species = (abs(charge * int(z'1000000')) + ix * int(z'10000') + n_nuc)
+endif
+
+if (charge < 0) species = -species
 
 !----------------------------------------------------------------------------------------
 contains
@@ -1048,8 +1077,10 @@ if (ix /= 0) then
 endif
 
 if (abs(charge) > 127) then
-  call out_io (s_abort$, r_name, 'CHARGE > 127 not allowed: ' // name)
-  if (global_com%exit_on_error) call err_exit
+  if (do_print) then
+    call out_io (s_abort$, r_name, 'CHARGE > 127 not allowed: ' // name)
+    if (global_com%exit_on_error) call err_exit
+  endif
   return
 endif
 
@@ -1132,9 +1163,17 @@ endif
 mmmm = mod(abs(species), int(z'10000'))
 name = ''
 
-! Atom
+! Atom?
+
 if (pp < 200) then
-  name = atomic_name(pp) 
+  if (pp == anti_atom$) then
+    pp = mmmm / 512
+    mmmm = mmmm - pp * 512
+    name = 'anti' // atomic_name(pp)
+  else
+    name = atomic_name(pp) 
+  endif
+
   ! Isotope?
   if (mmmm > 0) then
     write(extra, '(i0)') mmmm
@@ -1405,6 +1444,7 @@ function mass_of (species) result (mass)
 real(rp) mass
 integer n, ix, species, n_nuc, pp, charge
 character(*), parameter :: r_name = 'mass_of'
+logical anti
 
 ! Subatomic particle
 
@@ -1427,9 +1467,17 @@ endif
 pp = mod(abs(species), int(z'1000000')) / int(z'10000')
 charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
 
-! Atom
+! Atom?
+
 if (pp<200) then
-  n_nuc = mod(abs(species), int(z'10000'))
+  anti = (pp == anti_atom$) 
+  if (anti) then
+    pp = mod(abs(species), int(z'10000')) / 512
+    n_nuc = mod(abs(species), int(z'10000')) - pp * 512
+    charge = -charge
+  else
+    n_nuc = mod(abs(species), int(z'10000'))
+  endif
 
   if (n_nuc == 0) then
     ! Average naturally occuring mass
@@ -1616,6 +1664,7 @@ if (species == proton$) then
 endif
 
 atomic_num = mod(abs(species), int(z'1000000')) / int(z'10000')
+if (atomic_num == anti_atom$) atomic_num = mod(abs(species), int(z'10000')) / 512
 if (atomic_num > 199) atomic_num = 0
 
 end function atomic_number

@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 303
+integer, parameter :: bmad_inc_version$ = 306
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -551,6 +551,8 @@ type coord_array_struct
   type (coord_struct), allocatable :: orbit(:)
 end type
 
+real(rp), parameter :: no_misalignment$ = 1.0_rp
+
 ! Coupling structure
 
 type bpm_phase_coupling_struct
@@ -916,16 +918,16 @@ end type
 ! In one simulation 25% of the time was spent constructing multipole arrays.
 
 type multipole_cache_struct
-  real(rp) :: a_pole_mag(0:n_pole_maxx) = real_garbage$, b_pole_mag(0:n_pole_maxx) = real_garbage$
-  ! From non-multipole parameters like k1, k2, hkick, etc.
-  real(rp) :: a_kick_mag(0:3) = real_garbage$, b_kick_mag(0:3) = real_garbage$
-  integer :: ix_pole_mag_max = invalid$
-  integer :: ix_kick_mag_max = invalid$
-  real(rp) :: a_pole_elec(0:n_pole_maxx) = real_garbage$, b_pole_elec(0:n_pole_maxx) = real_garbage$
+  ! a_kick_mag and b_kick_mag are for non-multipole parameters like k1, k2, hkick, etc.
+  real(rp), allocatable :: a_pole_mag(:), b_pole_mag(:)
+  real(rp), allocatable :: a_kick_mag(:), b_kick_mag(:)
+  integer :: ix_pole_mag_max = -1, ix_kick_mag_max = -1
+  logical :: mag_valid = .false.
   ! From elseparator hkick and vkick.
-  real(rp) :: a_kick_elec(0:3) = real_garbage$, b_kick_elec(0:3) = real_garbage$
-  integer :: ix_pole_elec_max = invalid$
-  integer :: ix_kick_elec_max = invalid$
+  real(rp), allocatable :: a_pole_elec(:), b_pole_elec(:)
+  real(rp), allocatable :: a_kick_elec(:), b_kick_elec(:)
+  integer :: ix_pole_elec_max = -1, ix_kick_elec_max = -1
+  logical :: elec_valid = .false.
 end type
 
 ! Radiation damping and stochastic maps
@@ -1531,7 +1533,7 @@ type lat_struct
   type (ele_struct), pointer ::  ele(:) => null()     ! Array of elements [=> branch(0)].
   type (branch_struct), allocatable :: branch(:)      ! Branch(0:) array
   type (control_struct), allocatable :: control(:)    ! Control list
-  type (coord_struct) particle_start                  ! Starting particle_coords
+  type (coord_struct) particle_start                  ! Starting particle_coords.
   type (beam_init_struct) beam_init                   ! Beam initialization.
   type (pre_tracker_struct) pre_tracker               ! For OPAL/IMPACT-T
   type (nametable_struct) nametable                   ! For quick searching by element name.
@@ -1646,7 +1648,7 @@ integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
 integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, final_charge$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
-integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5
+integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
 integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
@@ -1663,11 +1665,11 @@ integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_p
 integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15, rf_frequency$ = 15
 integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16, rf_wavelength$ = 16
 integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
-integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
-integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
-integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, constant_ref_energy$ = 20
-integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
+! longitudinal_mode$ is near to rf_wavelength$ for type_ele to print rf_bucket_length near rf_wavelength$
+integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, longitudinal_mode$ = 18
+integer, parameter :: sig_e$ = 19, sig_pz$ = 19, autoscale_amplitude$ = 19
+integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, autoscale_phase$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, sig_e2$ = 20
 integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
 integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, cavity_type$ = 22, emit_fraction$ = 22
@@ -1723,7 +1725,7 @@ integer, parameter :: z_offset_tot$ = 59
 integer, parameter :: tilt_tot$ = 60, roll_tot$ = 60  ! Important: tilt_tot$ = roll_tot$
 integer, parameter :: ref_tilt_tot$ = 61
 integer, parameter :: multipass_ref_energy$ = 62
-! Slot 63 is free for use
+integer, parameter :: dispatch$ = 63
 integer, parameter :: ref_time_start$ = 64
 integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, 6, or 8.
 integer, parameter :: num_steps$ = 66   ! Assumed unique by set_flags_for_changed_real_attribute

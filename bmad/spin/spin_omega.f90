@@ -18,7 +18,7 @@
 !                           With phase space coords: sign_z_vel = orbit%direciton * ele%orientation.
 !                           With time RK coords:     sign_z_vel is not used (orbit%vec(6) has the correct sign.)
 !   phase_space_coords -- logical, optional: Is coord in standard phase space coordinates or
-!                           is it time Runge Kutta coords?
+!                           is it time Runge Kutta coords? Default is True.
 !
 ! Output:
 !   omega(3)   -- real(rp): If phase_space_coords: Omega_TBMT/v_z

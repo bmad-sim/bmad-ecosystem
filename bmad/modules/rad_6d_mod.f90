@@ -493,7 +493,7 @@ logical include_opening_angle, save_orb_mat, err_flag
 ! So g will have a factor of (1 + pz) but the equations for the mats was developed for g of the zero pz particle
 
 call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err_flag, pointer_to_next_ele(ele, -1))
-call zero_ele_offsets(runt)
+runt%value(dispatch$) = no_misalignment$
 call track1(orb0, runt, ele%branch%param, orbz)
 call make_mat6(runt, ele%branch%param, orb0, orbz)
 if (save_orb_mat) then

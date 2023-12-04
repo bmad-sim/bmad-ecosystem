@@ -87,6 +87,9 @@ case default
   y2 = y
 endselect
 
+y1 = y1 + e_shape%offset
+y2 = y2 - e_shape%offset
+
 ! label_name
 
 if (e_shape%label == 'name') then

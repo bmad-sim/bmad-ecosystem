@@ -119,6 +119,7 @@ type tao_ele_shape_struct    ! for the element layout plot
   logical :: draw = .true.           ! Draw the shape?
   logical :: multi = .false.         ! Can be part of a multi-shape.
   integer :: line_width = 1          ! Width of lines used to draw the shape.
+  real(rp) :: offset = 0             ! Vertical offset.
   integer :: ix_key = 0              ! Extracted from ele_id. 0 => all classes (quadrupole, etc.)
   character(40) :: name_ele = ''     ! Name of element.
   type (tao_ele_pointer_struct), allocatable :: uni(:)
@@ -682,6 +683,7 @@ type tao_global_struct
   logical :: only_limit_opt_vars = .false.            ! Only apply limits to variables used in optimization.
   logical :: opt_with_ref = .false.                   ! Use reference data in optimization?
   logical :: opt_with_base = .false.                  ! Use base data in optimization?
+  logical :: opt_match_auto_recalc = .false.          ! Set recalc = True for match elements before each cycle?
   logical :: opti_write_var_file = .true.             ! "run" command writes var_out_file
   logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
   logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.
