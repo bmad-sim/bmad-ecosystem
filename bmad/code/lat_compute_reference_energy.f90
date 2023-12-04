@@ -601,7 +601,6 @@ case (lcavity$)
 
   ! Track. With runge_kutta (esp fixed step with only a few steps), a shift in the end energy can cause 
   ! small changes in the tracking. So if there has been a shift in the end energy, track again.
-  
 
   if (do_track) then
     do i = 1, 5
