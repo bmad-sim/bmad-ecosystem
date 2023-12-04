@@ -55,6 +55,9 @@ private reallocate_coord_n, reallocate_coord_lat
 ! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
 ! corresponding to the beginning_ele's value of ele%value(p0c_start$).
 !
+! Note: For non-photons, if orb_in%vec(5) is set to real_garbage$, orb_in%t will be used to set orb%vec(5) instead 
+! of the standard which is to set orb%t from orb%vec(5).
+!
 ! For photons:
 !   orb%vec(5) is set depending upon where the photon is relative to the element.
 !   If orb is a photon, and orb_in is not a photon, photon is launched in same direciton as particle 
@@ -356,20 +359,21 @@ if (present(ele)) then
     call err_exit
   endif
 
-  if (orb%location == downstream_end$ .or. orb%location == inside$ .or. ele%key == beginning_ele$) then
+  if (orb%location == downstream_end$ .or. ele%value(l$) == 0) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
-    if (orb%location == inside$) then
-      orb%s = real_option(ele%s, s_pos)
-    else
-      orb%s = ele%s
-    endif
-  else
+    orb%s = ele%s
+  elseif (orb%location == upstream_end$) then
     p0c = ele%value(p0c_start$)
     e_tot = ele%value(e_tot_start$)
     ref_time = ele%value(ref_time_start$)
     orb%s = ele%s_start
+  else
+    p0c = ele%value(p0c$)
+    e_tot = ele%value(e_tot$)
+    orb%s = real_option(ele%s, s_pos)
+    ref_time = (ele%value(ref_time_start$) * (ele%s - orb%s) + ele%ref_time * (orb%s - ele%s_start)) / ele%value(l$)
   endif
 endif
 
@@ -442,15 +446,15 @@ if (present(ele)) then
 
     ! Do not set %t if %beta = 0 since %t may be a good value.
 
-    if (orb%beta == 0) then
+    if (orb%vec(5) == real_garbage$) then
+      orb%vec(5) = orb%beta * c_light * (ref_time - orb%t)
+
+    elseif (orb%beta == 0) then
       if (orb%vec(5) /= 0) then
         call out_io (s_error$, r_name, 'Z-POSITION IS NONZERO WITH BETA = 0.', &
                                        'THIS IS NONSENSE SO SETTING Z TO ZERO.')
         orb%vec(5) = 0
       endif
-
-    elseif (orb%location == inside$ .and. ele%value(l$) /= 0) then
-      orb%t = (ele%value(ref_time_start$) * (ele%s - orb%s) + ele%ref_time * (orb%s - ele%s_start)) / ele%value(l$)
     else
       orb%t = ref_time - orb%vec(5) / (orb%beta * c_light)
       if (present(t_offset)) orb%t = orb%t + t_offset

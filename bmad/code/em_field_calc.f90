@@ -324,7 +324,7 @@ case (bmad_standard$)
         time = particle_rf_time(orbit, ele, .false., s_body)
       endif
       phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
-                      (time - rf_ref_time_offset(ele) + s_body/c_light) * ele%value(rf_frequency$))
+                      (time - rf_ref_time_offset(ele) - s_body/c_light) * ele%value(rf_frequency$))
 
       k_rf = twopi * ele%value(rf_frequency$) / c_light
       field%B(2) = -voltage * sin(phase) / (c_light * ele%value(l$))
