@@ -239,8 +239,6 @@ $\sigma_z$ is the bunch length, and $E_0$ is the beam energy.
 $L$ is inductance and is a parameter set using {\tt inductance = <float>}.
 Typical values of $L$ are tens of nH.
 
-The parameter {\tt resistance} is no longer used.
-
 %---------------------------------------------------------------------------------
 \section{Methods for determining equilibrium emittances}
 
@@ -384,8 +382,8 @@ where the horizontal, vertical, and longitudinal beam sizes are calculated.
 The {\tt ibs_ring} simulation is designed to generate beam size versus current graphs.
 The current range, in mA, is set by {\tt low_current}, {\tt high_current}, and {\tt delta_current},
 
-{\tt mA_per_bunch} is the highest current and {\tt stop_mA} is the lowest current.
-{\tt delta_mA} is the approximate step size.  The actual step size is adjusted by the simulation
+{\tt high_current} is the highest current and {\tt low_current} is the lowest current.
+{\tt delta_current} is the approximate step size.  The actual step size is adjusted by the simulation
 such that an current range is spanned by equally sized steps.
 
 \section{{\tt ibs_ring} output files}
@@ -415,7 +413,7 @@ IBS growth rate at each element at equilibrium.  Useful in for answering questio
 
 \subsection{{\tt rad_int.out}}
 Beam properties at zero current, determined either by radiation integrals or set
-in parameters file.  Also contains beam properties at high current ({\tt mA_per_bunch}).
+in parameters file.  Also contains beam properties at high current ({\tt high_current}).
 
 \section{Parallelization}
 The {\tt ibs_ring} code has been parallelized with OpenMP.  Enabling OpenMP
@@ -443,27 +441,34 @@ The input parameters are:
 \begin{example}
 \&parameters
   lat_file = <lattice-file-name>
-  ibs_formula = <type>  ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx', or 'kubo'
-  eqb_method = <type>   ! 'der' or 'rlx'
-  use_t6_cache = <logical>
-  clog_to_use = <int>   ! 1=no tail cut, 2=raubenheimer, 3=kubo, 4=kubo w/vertical
-  do_pwd = <logical>
-  inductance = <real>
-  resistance = <real>
-  set_dispersion = <logical> ! applied only for kubo method.
-  eta_set = <real>
-  etap_set = <real>
-  b_emit = <real>
-  a_emit = <real>
-  energy_spread = <real>
-  ratio = <real>
   granularity = <real>   ! -1 for element-by-element.
-  x_view = <int>  ! element lattice index 
-  y_view = <int>  
-  z_view = <int>  
-  mA_per_bunch = <real>  ! highest current
-  stop_mA = <real>       ! lowest current
-  delta_mA = <real>      ! step size
+  ptc_calc = <logical>  ! If true, use PTC for rad. int. calculations.
+  b_emit = <real>  ! Zero current vertical emittance.  Set to -1 for rad int.
+  a_emit = <real>  ! Zero current horizontal emittance.  Set to -1 for rad int.
+  energy_spread = <real>  !Zero current energy spread.  Set to -1 for rad int.
+  fake_3HC = <real> ! If greater than zero, reduce rates by this factor.  
+                    ! IBS rates scale with 1/sigma_z
+  high_current = <real>  ! highest current
+  delta_current = <real> ! step size
+  low_current = <real>   ! lowest current
+  ibs_formula = <type>  ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx', or 'kubo'
+  clog_to_use = <int>   ! 1=no tail cut, 2=raubenheimer, 3=kubo, 4=kubo w/vertical
+  eqb_method = <type>   ! 'der' derivatives or 'rlx' for Wolski's relaxation.  
+                        ! 'der' is default.
+  ratio = <real>  ! "Coupling parameter r" for relaxation eqb_method
+  x_view = <int>  ! ix of element where projection is taken 
+                  ! for horizontal beam size calculation.
+  y_view = <int>  ! ix of element where projection is taken 
+                  ! for vertical beam size calculation.
+  z_view = <int>  ! ix of element where projection is taken 
+                  ! for longitudinal beam size calculation.
+  do_pwd = <logical>  ! Apply potential well distortion to bunch length
+  inductance = <real>  ! A PWD parameter akin to inductance
+  set_dispersion = <logical> ! Assign a vertical dispersion (eta_set and etap_set).
+  eta_set = <real> ! If set_dispersion, then at every element, 
+                   ! set vertical dispersion to eta_set.
+  etap_set = <real> ! If set_dispersion, then at every element, 
+                    ! set vertical dispersion' to etap_set.
 /
 \end{example}
 
@@ -523,11 +528,6 @@ Longitudinal inductance for PWD calc.
 Effects bunch length vs. current.
 
   %------------------------------
-  \item[\vn{resistance}] \Newline
-Resistive inductance for PWD calc.
-Currently not used. 
-
-  %------------------------------
   \item[\vn{set_dispersion}] \Newline
 If true, then apply eta_set and etap_set.
 If false, then do not.
@@ -583,27 +583,18 @@ Index of element where projection is taken for longitudinal beam size
 calculation.
 
   %------------------------------
-  \item[\vn{mA_per_bunch}] \Newline
+  \item[\vn{high_current}] \Newline
 Largest current per bunch in mA.
 
   %------------------------------
-  \item[\vn{stop_mA}] \Newline
+  \item[\vn{low_current}] \Newline
 Smallest current per bunch in mA.
 
   %------------------------------
-  \item[\vn{delta_mA}] \Newline
+  \item[\vn{delta_current}] \Newline
 mA step size.
 
   \end{description}
-
-%------------------------------------------------------------------
-\section{How to Run Multi-Threaded} 
-\label{s:multi}
-
-
-%------------------------------------------------------------------
-\section{Output} 
-\label{s:output}
 
 
 %------------------------------------------------------------------
