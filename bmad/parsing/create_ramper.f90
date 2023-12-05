@@ -75,8 +75,8 @@ do j = 1, n_slave
   r1%slave_name = con0%slave_name
   r1%slave      = con0%slave
   r1%value      = con1%value
-  r1%y_knot     = con1%y_knot
-  r1%stack      = con1%stack
+  if (allocated(con1%y_knot)) r1%y_knot = con1%y_knot
+  if (allocated(con1%stack))  r1%stack  = con1%stack
 
   ! If slave is an overlay, group, or girder, need to mark it as such
   r1%is_controller = .false.
