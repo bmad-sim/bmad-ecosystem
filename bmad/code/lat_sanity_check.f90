@@ -39,6 +39,7 @@ type (wake_sr_mode_struct), pointer :: sr_mode
 type (wake_lr_mode_struct), pointer :: lr
 type (floor_position_struct) floor0, floor
 type (control_struct), pointer :: ctl, ctl1, ctl2
+type (control_ramp1_struct), pointer :: ramp1
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (gen_grad_map_struct), pointer :: gg_map
@@ -1220,19 +1221,19 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
         if (ele%key == ramper$) then
           do i = 1, size(ele%control%ramp)
-            ctl => ele%control%ramp(i)
-            if (allocated(ctl%stack) .and. allocated(ctl%y_knot)) then
+            ramp1 => ele%control%ramp(i)
+            if (allocated(ramp1%stack) .and. allocated(ramp1%y_knot)) then
               call out_io (s_error$, r_name, 'RAMPER LORD: ' // ele_full_name(ele), &
                       'IS CONTROLLING SLAVE WITH BOTH EXPRESSION AND KNOT FUNCTIONS!')
               err_flag = .true.
             endif
 
-            if (allocated(ctl%y_knot)) then
+            if (allocated(ramp1%y_knot)) then
               if (.not. allocated(ele%control%x_knot)) then
                 call out_io (s_error$, r_name, 'RAMPER LORD: ' // ele_full_name(ele), &
                         'HAS SLAVE USING A KNOT FUNCTION BUT X_KNOT IS NOT DEFINED FOR THE LORD!')
                 err_flag = .true.
-              elseif (size(ele%control%x_knot) /= size(ctl%y_knot)) then
+              elseif (size(ele%control%x_knot) /= size(ramp1%y_knot)) then
                 call out_io (s_fatal$, r_name, &
                       'RAMPER LORD: ' // ele_full_name(ele, '@N (&#)'), &
                       'HAS X_KNOT SIZE DIFFERENT FROM Y_KNOT SIZE FOR SLAVE #' // int_str(i))

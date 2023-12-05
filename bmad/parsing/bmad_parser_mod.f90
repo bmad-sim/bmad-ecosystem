@@ -6432,9 +6432,9 @@ main_loop: do n_in = 1, n_ele_max
 
   case (ramper$)
     if (allocated(cs)) deallocate(cs)
-    allocate (cs(size(pele%control)))
-
     nn = size(pele%control)
+    allocate (cs(nn))
+
     do ip = 1, nn
       pc => pele%control(ip)
 
@@ -6463,11 +6463,13 @@ main_loop: do n_in = 1, n_ele_max
 
   case (overlay$, group$)
  
-    ! If a slave name does not match any name in lord_lat then this is an error (to catch typos).
+    ! If a slave name does not match any name in lat and lord_lat then this is an error (to catch typos).
     ! If a slave is defined in lord_lat but not present in lat then the slave is ignored.
     ! If all slave elements are defined in lord_lat, but are not present in lat, then
     ! this lord can be ignored.
     ! Variation used by bmad_parser2: Check for missing slaves in check_lat instead of lord_lat.
+    ! Exception: If slave is overlay or group and is present later in the list of lords to be installed then
+    ! this is an error.
 
     n_slave = 0
 
@@ -6481,15 +6483,24 @@ main_loop: do n_in = 1, n_ele_max
       n_slave = n_slave + n_loc
 
       if (n_loc == 0) then
+        ! Check if slave is in lord list later than this lord
+        do ns = n_in+1, n_ele_max
+          if (lord_lat%ele(ns)%name /= pc%name) cycle
+          call parser_error('LORD ELEMENT: ' // trim(lord%name) // ' CONTROLLS ANOTHER LORD ELEMENT: ' // pc%name, &
+                            'BUT ' // trim(pc%name) // ' IS DEFINED IN THE LATTICE LATER THAN ' // lord%name, &
+                            'THIS IS NOT ALLOWED. SWITCH THE ORDER OF THE LORDS TO RECTIFY.')
+          cycle main_loop
+        enddo
+
         if (present(check_lat)) then
           call lat_ele_locator (pc%name, check_lat, in_eles, n_in_loc, err)
         else
           call lat_ele_locator (pc%name, lord_lat, in_eles, n_in_loc, err)
         endif
 
-        if (n_loc == 0 .and. n_in_loc == 0) then
+        if (n_in_loc == 0) then
           call parser_error ('CANNOT FIND SLAVE ELEMENT FOR ' // trim(upcase(control_name(lord%lord_status))) // &
-                                                   ' ELEMENT: ' // lord%name, 'CANNOT FIND: '// pc%name, pele = pele)
+                                                 ' ELEMENT: ' // lord%name, 'CANNOT FIND: '// pc%name, pele = pele)
           cycle main_loop
         endif
       endif
@@ -10193,6 +10204,8 @@ logical err, var_found
 con0 = con_in  ! In case con_in and con_out actual arguments are the same.
 
 if (allocated(con0%stack)) then
+  if (allocated(con_out%y_knot)) deallocate(con_out%y_knot)
+
   do is = 1, size(con0%stack)
     if (con0%stack(is)%type == end_stack$) exit
   enddo
@@ -10265,6 +10278,7 @@ if (allocated(con0%stack)) then
   enddo
 
 else
+  if (allocated(con_out%stack)) deallocate(con_out%stack)
   con_out%y_knot = con0%y_knot
   if (size(con_out%y_knot) /= size(lord%control%x_knot)) then
     call parser_error ('NUMBER OF Y_SPLINE POINTS CONTROLLING PARAMETER: ' // con_out%attribute, &

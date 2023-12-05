@@ -692,7 +692,7 @@ subroutine create_ramper (lord, contl, err)
   import
   implicit none
   type (ele_struct), target :: lord
-  type (control_struct) contl(:)
+  type (control_struct), target :: contl(:)
   logical err
 end subroutine
 

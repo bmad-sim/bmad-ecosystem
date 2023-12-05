@@ -20,7 +20,7 @@ particle_start[spin_z] = 0
 
 q: quad, l = 1, k1 = 1
 rf: lcav, l = 1, rf_frequency = 1e9, gradient = 1e6
-mm: match, beta_a1 = 1, beta_b1 = 11, match_end = T
+mm: match, beta_a1 = 1, beta_b1 = 11, MATRIX = MATCH_TWISS
 l1: line = (q, rf, mm)
 use, l1
 

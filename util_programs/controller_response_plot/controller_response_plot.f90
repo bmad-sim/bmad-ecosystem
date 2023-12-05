@@ -11,6 +11,7 @@ type (ele_pointer_struct), allocatable, target :: eles(:), rampers(:), rf_eles(:
 type (ele_struct), pointer :: controller, slave
 type (ele_struct) ramp_slave
 type (control_struct), pointer :: ctl
+type (control_ramp1_struct), pointer :: rmp
 type (coord_struct) orbit
 
 real(rp) :: control_var, input_var_min, input_var_max, plot_size(2), text_scale, height, vzero(6) = 0
@@ -211,14 +212,17 @@ else
 
     do j = 1, n_curve
       if (controller%key == ramper$) then
-        ctl => controller%control%ramp(curve_list2(j))
+        rmp => controller%control%ramp(curve_list2(j))
+        if (draw_knot_points .and. i == 0) knots(:,j) = ctl%y_knot
+        table(i,j) = ctl%value
+        attrib_name(j) = trim(ctl%slave_name) // '[' // trim(ctl%attribute) // ']'
+
       else
         slave => pointer_to_slave(controller, curve_list2(j), ctl)
+        if (draw_knot_points .and. i == 0) knots(:,j) = ctl%y_knot
+        table(i,j) = ctl%value
+        attrib_name(j) = trim(ctl%slave_name) // '[' // trim(ctl%attribute) // ']'
       endif
-
-      if (draw_knot_points .and. i == 0) knots(:,j) = ctl%y_knot
-      table(i,j) = ctl%value
-      attrib_name(j) = trim(ctl%slave_name) // '[' // trim(ctl%attribute) // ']'
     enddo
   enddo
 

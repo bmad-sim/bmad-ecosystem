@@ -137,12 +137,15 @@ type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele, slave
 type (control_struct), pointer :: ctl
+type (expression_atom_struct), pointer :: stack(:) 
 
 real(rp) var, var0, value
 real(rp), allocatable :: x(:), y(:)
+real(rp), pointer :: y_knot(:)
+
 integer i, j, ix, ix_slave, n_curve_pts, n_loc
 
-logical err, ok
+logical err, ok, allocated_stack
 
 character(100) err_str
 character(40) name
@@ -198,6 +201,9 @@ do i = 1, size(graph%curve)
       cycle
     endif
     slave => pointer_to_slave (ele, ix_slave, ctl)
+    stack => ctl%stack
+    allocated_stack = allocated(ctl%stack)
+    y_knot => ctl%y_knot
 
   elseif (ele%key == ramper$) then
     if (ix_slave < 1 .or. ix_slave > size(ele%control%ramp)) then
@@ -206,7 +212,9 @@ do i = 1, size(graph%curve)
       curve%valid = .false.
       cycle
     endif
-    ctl => ele%control%ramp(ix_slave)
+    stack => ele%control%ramp(ix_slave)%stack
+    allocated_stack = allocated(ele%control%ramp(ix_slave)%stack)
+    y_knot => ele%control%ramp(ix_slave)%y_knot
 
   else
     call out_io (s_warn$, r_name, 'ELEMENT IS NOT A GROUP, RAMPER, OR OVERLAY: ' // name, &
@@ -220,10 +228,10 @@ do i = 1, size(graph%curve)
   do j = 1, n_curve_pts
     var = graph%x%eval_min + (j - 1) * (graph%x%eval_max - graph%x%eval_min) / n_curve_pts
     ele%control%var(1)%value = var
-    if (allocated(ctl%stack)) then
-      value = expression_stack_value(ctl%stack, err, err_str, ele%control%var, .false.)
+    if (allocated_stack) then
+      value = expression_stack_value(stack, err, err_str, ele%control%var, .false.)
     else
-      call spline_akima_interpolate (ele%control%x_knot, ctl%y_knot, value, ok, value)
+      call spline_akima_interpolate (ele%control%x_knot, y_knot, value, ok, value)
     endif
 
     x(j) = var
