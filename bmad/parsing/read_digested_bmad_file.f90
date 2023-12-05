@@ -39,6 +39,8 @@ type (extra_parsing_info_struct) :: extra
 type (bmad_common_struct) bmad_com_read
 type (space_charge_common_struct) space_charge_com_read
 type (ptc_common_struct) ptc_com_read
+type (control_struct), pointer :: ctl
+
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
@@ -256,8 +258,19 @@ enddo
 ! read the control info, etc
 
 do i = 1, lat%n_control_max
-  call read_this_control_struct (lat%control(i), error)
-  if (error) return
+  ctl => lat%control(i)
+  read (d_unit, err = 9040, end = 9040) n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute, ctl%slave_name
+  if (n > 0) then
+    allocate (ctl%stack(n))
+    do j = 1, n
+      read (d_unit, err = 9045, end = 9045) ctl%stack(j)
+    enddo
+  endif
+
+  if (nk > 0) then
+    allocate (ctl%y_knot(nk))
+    read (d_unit, err = 9045, end = 9045) ctl%y_knot
+  endif
 enddo
 
 do i = 1, lat%n_ic_max
@@ -407,56 +420,52 @@ endif
 close (d_unit)
 return
 
-!--------------------------------------------------------------
-
 9010  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE VERSION.')
 close (d_unit)
 return
-
-!--------------------------------------------------------------
 
 9020  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
 close (d_unit)
 return
 
-!--------------------------------------------------------------
-
 9025  continue
 call out_io(io_err_level, r_name, 'ERROR READING BMAD_COM COMMON BLOCK.')
 close (d_unit)
 return
-
-!--------------------------------------------------------------
 
 9030  continue
  call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE LATTICE GLOBALS.')
 close (d_unit)
 return
 
-!--------------------------------------------------------------
-
 9035  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE GENERAL PARAMETER NAME LIST.')
 close (d_unit)
 return
 
-!--------------------------------------------------------------
+9040  continue
+call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
+error = .true.
+close (d_unit)
+return
+
+9045  continue
+call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
+error = .true.
+close (d_unit)
+return
 
 9050  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE IC.')
 close (d_unit)
 return
 
-!--------------------------------------------------------------
-
 9060  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED PARTICLE_START/BEAM_INIT.')
 close (d_unit)
 return
-
-!--------------------------------------------------------------
 
 9070  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE BRANCH DATA.')
@@ -483,6 +492,7 @@ type (wake_struct), pointer :: wake
 type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
+type (control_ramp1_struct), pointer ::rmp
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_gen, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e, n_angle, n_energy
@@ -549,7 +559,19 @@ if (ix_c /= 0) then
   if (nr > -1) then
     allocate(ele%control%ramp(nr))
     do i = 1, nr
-      call read_this_control_struct(ele%control%ramp(i), err); if (err) return
+      rmp => ele%control%ramp(i)
+      read (d_unit, err = 9040, end = 9040) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave
+      if (n > 0) then
+        allocate (rmp%stack(n))
+        do j = 1, n
+          read (d_unit, err = 9045, end = 9045) rmp%stack(j)
+        enddo
+      endif
+
+      if (nk > 0) then
+        allocate (rmp%y_knot(nk))
+        read (d_unit, err = 9045, end = 9045) rmp%y_knot
+      endif
     enddo
   endif
 endif
@@ -884,6 +906,18 @@ return
 
 !--------------------------------------------------------------
 
+9040  continue
+call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
+error = .true.
+close (d_unit)
+return
+
+9045  continue
+call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
+error = .true.
+close (d_unit)
+return
+
 9100  continue
 call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING ELEMENT # \i0\ ', &
@@ -1094,53 +1128,5 @@ do k = 1, nv
 enddo
 
 end subroutine read_this_wall3d_section
-
-
-!-----------------------------------------------
-! contains
-
-subroutine read_this_control_struct(ctl, error)
-
-type (control_struct) :: ctl
-
-integer n, nk
-logical error
-
-!
-
-error = .false.
-
-read (d_unit, err = 9040, end = 9040) ctl%slave_name, n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute
-if (n > 0) then
-  allocate (ctl%stack(n))
-  do j = 1, n
-    read (d_unit, err = 9045, end = 9045) ctl%stack(j)
-  enddo
-endif
-
-if (nk > 0) then
-  allocate (ctl%y_knot(nk))
-  read (d_unit, err = 9045, end = 9045) ctl%y_knot
-endif
-
-return
-
-!--------------------------------------------------------------
-
-9040  continue
-call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
-error = .true.
-close (d_unit)
-return
-
-!--------------------------------------------------------------
-
-9045  continue
-call out_io(io_err_level, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
-error = .true.
-close (d_unit)
-return
-
-end subroutine read_this_control_struct
 
 end subroutine read_digested_bmad_file

@@ -74,6 +74,7 @@ type (photon_element_struct), pointer :: ph
 type (ele_attribute_struct) attrib, attrib2
 type (lat_param_struct) param
 type (control_struct), pointer :: ctl
+type (control_ramp1_struct), pointer :: rmp
 type (all_pointer_struct) a_ptr
 type (ac_kicker_struct), pointer :: ac
 type (str_index_struct) str_index
@@ -1019,7 +1020,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     do is = 1, ele%n_slave
       slave => pointer_to_slave (ele, is, ctl)
       if (.not. allocated(ctl%stack)) cycle
-      call print_these_constants(nl, li, ctl, print_it, str_index)
+      call print_this_stack(nl, li, ctl%stack, print_it, str_index)
     enddo
   endif
 
@@ -1048,23 +1049,23 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     case (ramper_lord$)
       print_it = .true.
       do ix = 1, size(ele%control%ramp)
-        ctl => ele%control%ramp(ix)
-        if (.not. allocated(ctl%stack)) cycle
-        call print_these_constants(nl, li, ctl, print_it, str_index)
+        rmp => ele%control%ramp(ix)
+        if (.not. allocated(rmp%stack)) cycle
+        call print_this_stack(nl, li, rmp%stack, print_it, str_index)
       enddo
 
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; li(nl) = '   Ele_Name            Attribute         Expression'
       do ix = 1, size(ele%control%ramp)
-        ctl => ele%control%ramp(ix)
+        rmp => ele%control%ramp(ix)
 
-        if (allocated(ctl%stack)) then
-          call split_expression_string (expression_stack_to_string(ctl%stack), 70, 5, li2)
+        if (allocated(rmp%stack)) then
+          call split_expression_string (expression_stack_to_string(rmp%stack), 70, 5, li2)
         else  ! Spline
-          call split_expression_string (knots_to_string(ele%control%x_knot, ctl%y_knot), 70, 5, li2)
+          call split_expression_string (knots_to_string(ele%control%x_knot, rmp%y_knot), 70, 5, li2)
         endif
 
-        nl=nl+1; write (li(nl), '(3x, a20, a18, a, 4x, a)') ctl%slave_name, ctl%attribute, trim(li2(1))
+        nl=nl+1; write (li(nl), '(3x, a20, a18, a, 4x, a)') rmp%slave_name, rmp%attribute, trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do im = 2, size(li2)
           n = 50 + n_char + len(attrib_val_str)
@@ -1586,9 +1587,9 @@ end function cmplx_re_str
 !--------------------------------------------------------------------------
 ! contains
 
-subroutine print_these_constants(nl, li, ctl, print_it, str_index)
+subroutine print_this_stack(nl, li, stack, print_it, str_index)
 
-type (control_struct), pointer :: ctl
+type (expression_atom_struct) :: stack(:) 
 type (str_index_struct) str_index
 
 integer nl
@@ -1597,22 +1598,22 @@ character(200), allocatable, target :: li(:)
 
 !
 
-if (nl + size(ctl%stack) + 100 > size(li)) call re_allocate(li, nl + size(ctl%stack) + 100)
+if (nl + size(stack) + 100 > size(li)) call re_allocate(li, nl + size(stack) + 100)
 
-do im = 1, size(ctl%stack)
-  if (ctl%stack(im)%type == end_stack$) return
-  if (ctl%stack(im)%type /= variable$) cycle
-  if (ctl%stack(im)%name == '') cycle
-  if (any(ctl%stack(im)%name == physical_const_list%name)) cycle
-  call find_index(ctl%stack(im)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+do im = 1, size(stack)
+  if (stack(im)%type == end_stack$) return
+  if (stack(im)%type /= variable$) cycle
+  if (stack(im)%name == '') cycle
+  if (any(stack(im)%name == physical_const_list%name)) cycle
+  call find_index(stack(im)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
   if (.not. (has_been_added)) cycle  ! Avoid duuplicates
   if (print_it) then
     nl=nl+1; li(nl) = 'Named Constants:'
     print_it = .false.
   endif
-  nl=nl+1; write (li(nl), '(8x, 2a, es15.7)') trim(ctl%stack(im)%name), ' = ', ctl%stack(im)%value
+  nl=nl+1; write (li(nl), '(8x, 2a, es15.7)') trim(stack(im)%name), ' = ', stack(im)%value
 enddo
 
-end subroutine print_these_constants
+end subroutine print_this_stack
 
 end subroutine type_ele

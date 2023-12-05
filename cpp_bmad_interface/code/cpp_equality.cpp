@@ -175,6 +175,7 @@ bool operator== (const CPP_photon_reflect_table& x, const CPP_photon_reflect_tab
   is_eq = is_eq && is_all_equal(x.p_reflect, y.p_reflect);
   is_eq = is_eq && (x.max_energy == y.max_energy);
   is_eq = is_eq && is_all_equal(x.p_reflect_scratch, y.p_reflect_scratch);
+  is_eq = is_eq && is_all_equal(x.bragg_angle, y.bragg_angle);
   return is_eq;
 };
 
@@ -867,6 +868,7 @@ bool operator== (const CPP_photon_element& x, const CPP_photon_element& y) {
   is_eq = is_eq && (x.material == y.material);
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.pixel == y.pixel);
+  is_eq = is_eq && (x.reflectivity_table_type == y.reflectivity_table_type);
   is_eq = is_eq && (x.reflectivity_table_sigma == y.reflectivity_table_sigma);
   is_eq = is_eq && (x.reflectivity_table_pi == y.reflectivity_table_pi);
   is_eq = is_eq && is_all_equal(x.init_energy_prob, y.init_energy_prob);
@@ -957,8 +959,8 @@ bool operator== (const CPP_control& x, const CPP_control& y) {
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.slave == y.slave);
   is_eq = is_eq && (x.lord == y.lord);
-  is_eq = is_eq && (x.attribute == y.attribute);
   is_eq = is_eq && (x.slave_name == y.slave_name);
+  is_eq = is_eq && (x.attribute == y.attribute);
   is_eq = is_eq && (x.ix_attrib == y.ix_attrib);
   return is_eq;
 };
@@ -968,7 +970,7 @@ template bool is_all_equal (const CPP_control_MATRIX&, const CPP_control_MATRIX&
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_controller_var1& x, const CPP_controller_var1& y) {
+bool operator== (const CPP_control_var1& x, const CPP_control_var1& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
   is_eq = is_eq && (x.value == y.value);
@@ -976,8 +978,25 @@ bool operator== (const CPP_controller_var1& x, const CPP_controller_var1& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_controller_var1_ARRAY&, const CPP_controller_var1_ARRAY&);
-template bool is_all_equal (const CPP_controller_var1_MATRIX&, const CPP_controller_var1_MATRIX&);
+template bool is_all_equal (const CPP_control_var1_ARRAY&, const CPP_control_var1_ARRAY&);
+template bool is_all_equal (const CPP_control_var1_MATRIX&, const CPP_control_var1_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_control_ramp1& x, const CPP_control_ramp1& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.value == y.value);
+  is_eq = is_eq && is_all_equal(x.y_knot, y.y_knot);
+  is_eq = is_eq && is_all_equal(x.stack, y.stack);
+  is_eq = is_eq && (x.attribute == y.attribute);
+  is_eq = is_eq && (x.slave_name == y.slave_name);
+  is_eq = is_eq && (x.slave == y.slave);
+  is_eq = is_eq && (x.is_controller == y.is_controller);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_control_ramp1_ARRAY&, const CPP_control_ramp1_ARRAY&);
+template bool is_all_equal (const CPP_control_ramp1_MATRIX&, const CPP_control_ramp1_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -1039,7 +1058,6 @@ template bool is_all_equal (const CPP_grid_beam_init_MATRIX&, const CPP_grid_bea
 bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.position_file == y.position_file);
-  is_eq = is_eq && (x.file_name == y.file_name);
   is_eq = is_eq && is_all_equal(x.distribution_type, y.distribution_type);
   is_eq = is_eq && is_all_equal(x.spin, y.spin);
   is_eq = is_eq && is_all_equal(x.ellipse, y.ellipse);
@@ -1066,12 +1084,14 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.sig_pz == y.sig_pz);
   is_eq = is_eq && (x.bunch_charge == y.bunch_charge);
   is_eq = is_eq && (x.n_bunch == y.n_bunch);
+  is_eq = is_eq && (x.ix_turn == y.ix_turn);
   is_eq = is_eq && (x.species == y.species);
   is_eq = is_eq && (x.init_spin == y.init_spin);
   is_eq = is_eq && (x.full_6d_coupling_calc == y.full_6d_coupling_calc);
   is_eq = is_eq && (x.use_particle_start == y.use_particle_start);
   is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
   is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
+  is_eq = is_eq && (x.file_name == y.file_name);
   is_eq = is_eq && (x.sig_e_jitter == y.sig_e_jitter);
   is_eq = is_eq && (x.sig_e == y.sig_e);
   is_eq = is_eq && (x.use_particle_start_for_center == y.use_particle_start_for_center);
@@ -1607,6 +1627,7 @@ bool operator== (const CPP_bunch& x, const CPP_bunch& y) {
   is_eq = is_eq && (x.z_center == y.z_center);
   is_eq = is_eq && (x.t_center == y.t_center);
   is_eq = is_eq && (x.t0 == y.t0);
+  is_eq = is_eq && (x.drift_between_t_and_s == y.drift_between_t_and_s);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_bunch == y.ix_bunch);
   is_eq = is_eq && (x.ix_turn == y.ix_turn);

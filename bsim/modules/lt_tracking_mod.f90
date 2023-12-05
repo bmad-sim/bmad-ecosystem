@@ -2876,7 +2876,8 @@ type (random_state_struct) ran_state_save
 type (random_state_struct), pointer :: ran_state_ptr
 logical err_flag
 
-! Swap out current "radiation" ran state for ramper ran state
+! Swap out current "radiation" ran state for ramper ran state.
+! This is for mpi running.
 
 if (ltt_com_global%using_mpi) then
   ran_state_ptr => pointer_to_ran_state()

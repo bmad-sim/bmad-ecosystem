@@ -44,11 +44,6 @@ bbb[frequencies(1)%amp] = 1.0
 bbb[frequencies(1)%phi] = 0.1
 bbb[frequencies(2)%phi] = 0.2
 
-gang0: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, t = 3, old_t = 3
-gang1: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, gang = false
-
-g_cc: group = {cc}, accordion_edge
-
 sbend0: sbend, r_custom(3) = 4, lr_self_wake_on = F, superimpose = F, offset = 3.2, field_calc = fieldmap,
     grid_field = {
         geometry = xyz,
@@ -121,8 +116,13 @@ parameter[particle] = proton
 aa: quadrupole, l = 1, my_custom = 123, qqq = 3
 bb: aa, l = 2
 
+gang0: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, t = 3, old_t = 3
+gang1: group = {aa[tilt]:1, bb[tilt]:1}, var = {t}, gang = false
+
 b2: sextupole
 cc: sextupole
+g_cc: group = {cc}, accordion_edge
+
 
 xxx = mass_of(parameter[particle])/mass_of(proton)
 ov1: overlay = {aa}, hkick

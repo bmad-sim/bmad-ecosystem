@@ -512,7 +512,16 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine controller_var1_to_f (C, Fp) bind(c)
+  subroutine control_var1_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine control_ramp1_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -1467,12 +1476,12 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine photon_reflect_table_to_c2 (C, z_angle, n1_angle, z_energy, n1_energy, z_int1, &
       n1_int1, z_p_reflect, n1_p_reflect, n2_p_reflect, z_max_energy, z_p_reflect_scratch, &
-      n1_p_reflect_scratch) bind(c)
+      n1_p_reflect_scratch, z_bragg_angle, n1_bragg_angle) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_angle(*), z_energy(*), z_p_reflect(*), z_max_energy, z_p_reflect_scratch(*)
-    integer(c_int), value :: n1_angle, n1_energy, n1_int1, n1_p_reflect, n2_p_reflect, n1_p_reflect_scratch
+    real(c_double) :: z_angle(*), z_energy(*), z_p_reflect(*), z_max_energy, z_p_reflect_scratch(*), z_bragg_angle(*)
+    integer(c_int), value :: n1_angle, n1_energy, n1_int1, n1_p_reflect, n2_p_reflect, n1_p_reflect_scratch, n1_bragg_angle
     type(c_ptr) :: z_int1(*)
   end subroutine
 end interface
@@ -1489,6 +1498,7 @@ integer(c_int) :: n1_int1
 integer(c_int) :: n1_p_reflect
 integer(c_int) :: n2_p_reflect
 integer(c_int) :: n1_p_reflect_scratch
+integer(c_int) :: n1_bragg_angle
 
 !
 
@@ -1525,12 +1535,18 @@ n1_p_reflect_scratch = 0
 if (allocated(F%p_reflect_scratch)) then
   n1_p_reflect_scratch = size(F%p_reflect_scratch, 1)
 endif
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_bragg_angle = 0
+if (allocated(F%bragg_angle)) then
+  n1_bragg_angle = size(F%bragg_angle, 1)
+endif
 
 !! f_side.to_c2_call
 call photon_reflect_table_to_c2 (C, fvec2vec(F%angle, n1_angle), n1_angle, fvec2vec(F%energy, &
     n1_energy), n1_energy, z_int1, n1_int1, mat2vec(F%p_reflect, n1_p_reflect*n2_p_reflect), &
     n1_p_reflect, n2_p_reflect, F%max_energy, fvec2vec(F%p_reflect_scratch, &
-    n1_p_reflect_scratch), n1_p_reflect_scratch)
+    n1_p_reflect_scratch), n1_p_reflect_scratch, fvec2vec(F%bragg_angle, n1_bragg_angle), &
+    n1_bragg_angle)
 
 end subroutine photon_reflect_table_to_c
 
@@ -1552,7 +1568,7 @@ end subroutine photon_reflect_table_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine photon_reflect_table_to_f2 (Fp, z_angle, n1_angle, z_energy, n1_energy, z_int1, &
     n1_int1, z_p_reflect, n1_p_reflect, n2_p_reflect, z_max_energy, z_p_reflect_scratch, &
-    n1_p_reflect_scratch) bind(c)
+    n1_p_reflect_scratch, z_bragg_angle, n1_bragg_angle) bind(c)
 
 
 implicit none
@@ -1561,9 +1577,9 @@ type(c_ptr), value :: Fp
 type(photon_reflect_table_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_angle, z_energy, z_p_reflect, z_p_reflect_scratch
-real(c_double), pointer :: f_angle(:), f_energy(:), f_p_reflect(:), f_p_reflect_scratch(:)
-integer(c_int), value :: n1_angle, n1_energy, n1_int1, n1_p_reflect, n2_p_reflect, n1_p_reflect_scratch
+type(c_ptr), value :: z_angle, z_energy, z_p_reflect, z_p_reflect_scratch, z_bragg_angle
+real(c_double), pointer :: f_angle(:), f_energy(:), f_p_reflect(:), f_p_reflect_scratch(:), f_bragg_angle(:)
+integer(c_int), value :: n1_angle, n1_energy, n1_int1, n1_p_reflect, n2_p_reflect, n1_p_reflect_scratch, n1_bragg_angle
 type(c_ptr) :: z_int1(*)
 real(c_double) :: z_max_energy
 
@@ -1635,6 +1651,19 @@ if (n1_p_reflect_scratch /= 0) then
   F%p_reflect_scratch = f_p_reflect_scratch(1:n1_p_reflect_scratch)
 else
   if (allocated(F%p_reflect_scratch)) deallocate(F%p_reflect_scratch)
+endif
+
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%bragg_angle)) then
+  if (n1_bragg_angle == 0 .or. any(shape(F%bragg_angle) /= [n1_bragg_angle])) deallocate(F%bragg_angle)
+  if (any(lbound(F%bragg_angle) /= 1)) deallocate(F%bragg_angle)
+endif
+if (n1_bragg_angle /= 0) then
+  call c_f_pointer (z_bragg_angle, f_bragg_angle, [n1_bragg_angle])
+  if (.not. allocated(F%bragg_angle)) allocate(F%bragg_angle(n1_bragg_angle))
+  F%bragg_angle = f_bragg_angle(1:n1_bragg_angle)
+else
+  if (allocated(F%bragg_angle)) deallocate(F%bragg_angle)
 endif
 
 
@@ -6005,13 +6034,14 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine photon_element_to_c2 (C, z_curvature, z_target, z_material, z_grid, z_pixel, &
-      z_reflectivity_table_sigma, z_reflectivity_table_pi, z_init_energy_prob, &
-      n1_init_energy_prob, z_integrated_init_energy_prob, n1_integrated_init_energy_prob) &
-      bind(c)
+      z_reflectivity_table_type, z_reflectivity_table_sigma, z_reflectivity_table_pi, &
+      z_init_energy_prob, n1_init_energy_prob, z_integrated_init_energy_prob, &
+      n1_integrated_init_energy_prob) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel, z_reflectivity_table_sigma, z_reflectivity_table_pi
+    integer(c_int) :: z_reflectivity_table_type
     type(c_ptr) :: z_init_energy_prob(*)
     integer(c_int), value :: n1_init_energy_prob, n1_integrated_init_energy_prob
     real(c_double) :: z_integrated_init_energy_prob(*)
@@ -6048,10 +6078,10 @@ endif
 
 !! f_side.to_c2_call
 call photon_element_to_c2 (C, c_loc(F%curvature), c_loc(F%target), c_loc(F%material), &
-    c_loc(F%grid), c_loc(F%pixel), c_loc(F%reflectivity_table_sigma), &
-    c_loc(F%reflectivity_table_pi), z_init_energy_prob, n1_init_energy_prob, &
-    fvec2vec(F%integrated_init_energy_prob, n1_integrated_init_energy_prob), &
-    n1_integrated_init_energy_prob)
+    c_loc(F%grid), c_loc(F%pixel), F%reflectivity_table_type, &
+    c_loc(F%reflectivity_table_sigma), c_loc(F%reflectivity_table_pi), z_init_energy_prob, &
+    n1_init_energy_prob, fvec2vec(F%integrated_init_energy_prob, &
+    n1_integrated_init_energy_prob), n1_integrated_init_energy_prob)
 
 end subroutine photon_element_to_c
 
@@ -6072,8 +6102,9 @@ end subroutine photon_element_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine photon_element_to_f2 (Fp, z_curvature, z_target, z_material, z_grid, z_pixel, &
-    z_reflectivity_table_sigma, z_reflectivity_table_pi, z_init_energy_prob, &
-    n1_init_energy_prob, z_integrated_init_energy_prob, n1_integrated_init_energy_prob) bind(c)
+    z_reflectivity_table_type, z_reflectivity_table_sigma, z_reflectivity_table_pi, &
+    z_init_energy_prob, n1_init_energy_prob, z_integrated_init_energy_prob, &
+    n1_integrated_init_energy_prob) bind(c)
 
 
 implicit none
@@ -6084,6 +6115,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_curvature, z_target, z_material, z_grid, z_pixel, z_reflectivity_table_sigma, z_reflectivity_table_pi
 type(c_ptr), value :: z_integrated_init_energy_prob
+integer(c_int) :: z_reflectivity_table_type
 type(c_ptr) :: z_init_energy_prob(*)
 integer(c_int), value :: n1_init_energy_prob, n1_integrated_init_energy_prob
 real(c_double), pointer :: f_integrated_init_energy_prob(:)
@@ -6100,6 +6132,8 @@ call photon_material_to_f(z_material, c_loc(F%material))
 call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]
 call pixel_detec_to_f(z_pixel, c_loc(F%pixel))
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%reflectivity_table_type = z_reflectivity_table_type
 !! f_side.to_f2_trans[type, 0, NOT]
 call photon_reflect_table_to_f(z_reflectivity_table_sigma, c_loc(F%reflectivity_table_sigma))
 !! f_side.to_f2_trans[type, 0, NOT]
@@ -6569,7 +6603,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine control_to_c2 (C, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, z_slave, &
-      z_lord, z_attribute, z_slave_name, z_ix_attrib) bind(c)
+      z_lord, z_slave_name, z_attribute, z_ix_attrib) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6577,7 +6611,7 @@ interface
     integer(c_int), value :: n1_y_knot, n1_stack
     type(c_ptr) :: z_stack(*)
     type(c_ptr), value :: z_slave, z_lord
-    character(c_char) :: z_attribute(*), z_slave_name(*)
+    character(c_char) :: z_slave_name(*), z_attribute(*)
     integer(c_int) :: z_ix_attrib
   end subroutine
 end interface
@@ -6612,7 +6646,7 @@ endif
 
 !! f_side.to_c2_call
 call control_to_c2 (C, F%value, fvec2vec(F%y_knot, n1_y_knot), n1_y_knot, z_stack, n1_stack, &
-    c_loc(F%slave), c_loc(F%lord), trim(F%attribute) // c_null_char, trim(F%slave_name) // &
+    c_loc(F%slave), c_loc(F%lord), trim(F%slave_name) // c_null_char, trim(F%attribute) // &
     c_null_char, F%ix_attrib)
 
 end subroutine control_to_c
@@ -6634,7 +6668,7 @@ end subroutine control_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine control_to_f2 (Fp, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, z_slave, z_lord, &
-    z_attribute, z_slave_name, z_ix_attrib) bind(c)
+    z_slave_name, z_attribute, z_ix_attrib) bind(c)
 
 
 implicit none
@@ -6648,7 +6682,7 @@ type(c_ptr), value :: z_y_knot, z_slave, z_lord
 real(c_double), pointer :: f_y_knot(:)
 integer(c_int), value :: n1_y_knot, n1_stack
 type(c_ptr) :: z_stack(*)
-character(c_char) :: z_attribute(*), z_slave_name(*)
+character(c_char) :: z_slave_name(*), z_attribute(*)
 integer(c_int) :: z_ix_attrib
 
 call c_f_pointer (Fp, F)
@@ -6687,9 +6721,9 @@ call lat_ele_loc_to_f(z_slave, c_loc(F%slave))
 !! f_side.to_f2_trans[type, 0, NOT]
 call lat_ele_loc_to_f(z_lord, c_loc(F%lord))
 !! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_attribute, F%attribute)
-!! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_slave_name, F%slave_name)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_attribute, F%attribute)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_attrib = z_ix_attrib
 
@@ -6699,24 +6733,24 @@ end subroutine control_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine controller_var1_to_c (Fp, C) bind(c)
+! Subroutine control_var1_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad controller_var1_struct to a C++ CPP_controller_var1 structure
+! Routine to convert a Bmad control_var1_struct to a C++ CPP_control_var1 structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad controller_var1_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad control_var1_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_controller_var1 struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_control_var1 struct.
 !-
 
-subroutine controller_var1_to_c (Fp, C) bind(c)
+subroutine control_var1_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine controller_var1_to_c2 (C, z_name, z_value, z_old_value) bind(c)
+  subroutine control_var1_to_c2 (C, z_name, z_value, z_old_value) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6727,7 +6761,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(controller_var1_struct), pointer :: F
+type(control_var1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -6737,33 +6771,33 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call controller_var1_to_c2 (C, trim(F%name) // c_null_char, F%value, F%old_value)
+call control_var1_to_c2 (C, trim(F%name) // c_null_char, F%value, F%old_value)
 
-end subroutine controller_var1_to_c
+end subroutine control_var1_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine controller_var1_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine control_var1_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_controller_var1 structure to a Bmad controller_var1_struct structure.
-! This routine is called by controller_var1_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_control_var1 structure to a Bmad control_var1_struct structure.
+! This routine is called by control_var1_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the controller_var1_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the control_var1_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad controller_var1_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad control_var1_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine controller_var1_to_f2 (Fp, z_name, z_value, z_old_value) bind(c)
+subroutine control_var1_to_f2 (Fp, z_name, z_value, z_old_value) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(controller_var1_struct), pointer :: F
+type(control_var1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 character(c_char) :: z_name(*)
@@ -6778,7 +6812,153 @@ F%value = z_value
 !! f_side.to_f2_trans[real, 0, NOT]
 F%old_value = z_old_value
 
-end subroutine controller_var1_to_f2
+end subroutine control_var1_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine control_ramp1_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad control_ramp1_struct to a C++ CPP_control_ramp1 structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad control_ramp1_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_control_ramp1 struct.
+!-
+
+subroutine control_ramp1_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine control_ramp1_to_c2 (C, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, &
+      z_attribute, z_slave_name, z_slave, z_is_controller) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_value, z_y_knot(*)
+    integer(c_int), value :: n1_y_knot, n1_stack
+    type(c_ptr) :: z_stack(*)
+    character(c_char) :: z_attribute(*), z_slave_name(*)
+    type(c_ptr), value :: z_slave
+    logical(c_bool) :: z_is_controller
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(control_ramp1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+integer(c_int) :: n1_y_knot
+type(c_ptr), allocatable :: z_stack(:)
+integer(c_int) :: n1_stack
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_y_knot = 0
+if (allocated(F%y_knot)) then
+  n1_y_knot = size(F%y_knot, 1)
+endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_stack = 0
+if (allocated(F%stack)) then
+  n1_stack = size(F%stack); lb1 = lbound(F%stack, 1) - 1
+  allocate (z_stack(n1_stack))
+  do jd1 = 1, n1_stack
+    z_stack(jd1) = c_loc(F%stack(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call control_ramp1_to_c2 (C, F%value, fvec2vec(F%y_knot, n1_y_knot), n1_y_knot, z_stack, &
+    n1_stack, trim(F%attribute) // c_null_char, trim(F%slave_name) // c_null_char, &
+    c_loc(F%slave), c_logic(F%is_controller))
+
+end subroutine control_ramp1_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine control_ramp1_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_control_ramp1 structure to a Bmad control_ramp1_struct structure.
+! This routine is called by control_ramp1_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the control_ramp1_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad control_ramp1_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine control_ramp1_to_f2 (Fp, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, &
+    z_attribute, z_slave_name, z_slave, z_is_controller) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(control_ramp1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_value
+type(c_ptr), value :: z_y_knot, z_slave
+real(c_double), pointer :: f_y_knot(:)
+integer(c_int), value :: n1_y_knot, n1_stack
+type(c_ptr) :: z_stack(*)
+character(c_char) :: z_attribute(*), z_slave_name(*)
+logical(c_bool) :: z_is_controller
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%value = z_value
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%y_knot)) then
+  if (n1_y_knot == 0 .or. any(shape(F%y_knot) /= [n1_y_knot])) deallocate(F%y_knot)
+  if (any(lbound(F%y_knot) /= 1)) deallocate(F%y_knot)
+endif
+if (n1_y_knot /= 0) then
+  call c_f_pointer (z_y_knot, f_y_knot, [n1_y_knot])
+  if (.not. allocated(F%y_knot)) allocate(F%y_knot(n1_y_knot))
+  F%y_knot = f_y_knot(1:n1_y_knot)
+else
+  if (allocated(F%y_knot)) deallocate(F%y_knot)
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_stack == 0) then
+  if (allocated(F%stack)) deallocate(F%stack)
+else
+  if (allocated(F%stack)) then
+    if (n1_stack == 0 .or. any(shape(F%stack) /= [n1_stack])) deallocate(F%stack)
+    if (any(lbound(F%stack) /= 1)) deallocate(F%stack)
+  endif
+  if (.not. allocated(F%stack)) allocate(F%stack(1:n1_stack+1-1))
+  do jd1 = 1, n1_stack
+    call expression_atom_to_f (z_stack(jd1), c_loc(F%stack(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_attribute, F%attribute)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_slave_name, F%slave_name)
+!! f_side.to_f2_trans[type, 0, NOT]
+call lat_ele_loc_to_f(z_slave, c_loc(F%slave))
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%is_controller = f_logic(z_is_controller)
+
+end subroutine control_ramp1_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -6898,7 +7078,7 @@ else
   endif
   if (.not. allocated(F%var)) allocate(F%var(1:n1_var+1-1))
   do jd1 = 1, n1_var
-    call controller_var1_to_f (z_var(jd1), c_loc(F%var(jd1+1-1)))
+    call control_var1_to_f (z_var(jd1), c_loc(F%var(jd1+1-1)))
   enddo
 endif
 
@@ -6912,7 +7092,7 @@ else
   endif
   if (.not. allocated(F%ramp)) allocate(F%ramp(1:n1_ramp+1-1))
   do jd1 = 1, n1_ramp
-    call control_to_f (z_ramp(jd1), c_loc(F%ramp(jd1+1-1)))
+    call control_ramp1_to_f (z_ramp(jd1), c_loc(F%ramp(jd1+1-1)))
   enddo
 endif
 
@@ -7218,23 +7398,23 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine beam_init_to_c2 (C, z_position_file, z_file_name, z_distribution_type, z_spin, &
-      z_ellipse, z_kv, z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, &
-      z_n_particle, z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
+  subroutine beam_init_to_c2 (C, z_position_file, z_distribution_type, z_spin, z_ellipse, z_kv, &
+      z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, z_n_particle, &
+      z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
       z_random_sigma_cutoff, z_a_norm_emit, z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, &
-      z_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_species, &
+      z_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_ix_turn, z_species, &
       z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t, &
-      z_sig_e_jitter, z_sig_e, z_use_particle_start_for_center) bind(c)
+      z_file_name, z_sig_e_jitter, z_sig_e, z_use_particle_start_for_center) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    character(c_char) :: z_position_file(*), z_file_name(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*)
+    character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*), z_file_name(*)
     type(c_ptr) :: z_distribution_type(*), z_ellipse(*), z_grid(*)
     real(c_double) :: z_spin(*), z_center_jitter(*), z_emit_jitter(*), z_sig_z_jitter, z_sig_pz_jitter, z_random_sigma_cutoff, z_a_norm_emit
     real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_dt_bunch, z_sig_z
     real(c_double) :: z_sig_pz, z_bunch_charge, z_sig_e_jitter, z_sig_e
     type(c_ptr), value :: z_kv
-    integer(c_int) :: z_n_particle, z_n_bunch
+    integer(c_int) :: z_n_particle, z_n_bunch, z_ix_turn
     logical(c_bool) :: z_renorm_center, z_renorm_sigma, z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t
     logical(c_bool) :: z_use_particle_start_for_center
   end subroutine
@@ -7269,16 +7449,16 @@ do jd1 = 1, size(F%grid,1); lb1 = lbound(F%grid,1) - 1
 enddo
 
 !! f_side.to_c2_call
-call beam_init_to_c2 (C, trim(F%position_file) // c_null_char, trim(F%file_name) // &
-    c_null_char, z_distribution_type, fvec2vec(F%spin, 3), z_ellipse, c_loc(F%kv), z_grid, &
-    fvec2vec(F%center_jitter, 6), fvec2vec(F%emit_jitter, 2), F%sig_z_jitter, F%sig_pz_jitter, &
-    F%n_particle, c_logic(F%renorm_center), c_logic(F%renorm_sigma), trim(F%random_engine) // &
-    c_null_char, trim(F%random_gauss_converter) // c_null_char, F%random_sigma_cutoff, &
-    F%a_norm_emit, F%b_norm_emit, F%a_emit, F%b_emit, F%dpz_dz, fvec2vec(F%center, 6), &
-    F%dt_bunch, F%sig_z, F%sig_pz, F%bunch_charge, F%n_bunch, trim(F%species) // c_null_char, &
+call beam_init_to_c2 (C, trim(F%position_file) // c_null_char, z_distribution_type, &
+    fvec2vec(F%spin, 3), z_ellipse, c_loc(F%kv), z_grid, fvec2vec(F%center_jitter, 6), &
+    fvec2vec(F%emit_jitter, 2), F%sig_z_jitter, F%sig_pz_jitter, F%n_particle, &
+    c_logic(F%renorm_center), c_logic(F%renorm_sigma), trim(F%random_engine) // c_null_char, &
+    trim(F%random_gauss_converter) // c_null_char, F%random_sigma_cutoff, F%a_norm_emit, &
+    F%b_norm_emit, F%a_emit, F%b_emit, F%dpz_dz, fvec2vec(F%center, 6), F%dt_bunch, F%sig_z, &
+    F%sig_pz, F%bunch_charge, F%n_bunch, F%ix_turn, trim(F%species) // c_null_char, &
     c_logic(F%init_spin), c_logic(F%full_6d_coupling_calc), c_logic(F%use_particle_start), &
-    c_logic(F%use_t_coords), c_logic(F%use_z_as_t), F%sig_e_jitter, F%sig_e, &
-    c_logic(F%use_particle_start_for_center))
+    c_logic(F%use_t_coords), c_logic(F%use_z_as_t), trim(F%file_name) // c_null_char, &
+    F%sig_e_jitter, F%sig_e, c_logic(F%use_particle_start_for_center))
 
 end subroutine beam_init_to_c
 
@@ -7298,13 +7478,13 @@ end subroutine beam_init_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine beam_init_to_f2 (Fp, z_position_file, z_file_name, z_distribution_type, z_spin, &
-    z_ellipse, z_kv, z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, &
-    z_n_particle, z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
+subroutine beam_init_to_f2 (Fp, z_position_file, z_distribution_type, z_spin, z_ellipse, z_kv, &
+    z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, z_n_particle, &
+    z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
     z_random_sigma_cutoff, z_a_norm_emit, z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, &
-    z_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_species, z_init_spin, &
-    z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t, &
-    z_sig_e_jitter, z_sig_e, z_use_particle_start_for_center) bind(c)
+    z_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_ix_turn, z_species, &
+    z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t, &
+    z_file_name, z_sig_e_jitter, z_sig_e, z_use_particle_start_for_center) bind(c)
 
 
 implicit none
@@ -7313,14 +7493,14 @@ type(c_ptr), value :: Fp
 type(beam_init_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-character(c_char) :: z_position_file(*), z_file_name(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*)
+character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*), z_file_name(*)
 type(c_ptr) :: z_distribution_type(*), z_ellipse(*), z_grid(*)
 character(c_char), pointer :: f_distribution_type
 real(c_double) :: z_spin(*), z_center_jitter(*), z_emit_jitter(*), z_sig_z_jitter, z_sig_pz_jitter, z_random_sigma_cutoff, z_a_norm_emit
 real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_dt_bunch, z_sig_z
 real(c_double) :: z_sig_pz, z_bunch_charge, z_sig_e_jitter, z_sig_e
 type(c_ptr), value :: z_kv
-integer(c_int) :: z_n_particle, z_n_bunch
+integer(c_int) :: z_n_particle, z_n_bunch, z_ix_turn
 logical(c_bool) :: z_renorm_center, z_renorm_sigma, z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t
 logical(c_bool) :: z_use_particle_start_for_center
 
@@ -7328,8 +7508,6 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_position_file, F%position_file)
-!! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_file_name, F%file_name)
 !! f_side.to_f2_trans[character, 1, NOT]
 do jd1 = 1, size(F%distribution_type,1); lb1 = lbound(F%distribution_type,1) - 1
   call c_f_pointer (z_distribution_type(jd1), f_distribution_type)
@@ -7390,6 +7568,8 @@ F%sig_pz = z_sig_pz
 F%bunch_charge = z_bunch_charge
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_bunch = z_n_bunch
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_turn = z_ix_turn
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_species, F%species)
 !! f_side.to_f2_trans[logical, 0, NOT]
@@ -7402,6 +7582,8 @@ F%use_particle_start = f_logic(z_use_particle_start)
 F%use_t_coords = f_logic(z_use_t_coords)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%use_z_as_t = f_logic(z_use_z_as_t)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_file_name, F%file_name)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sig_e_jitter = z_sig_e_jitter
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -10512,8 +10694,8 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine bunch_to_c2 (C, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-      z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, &
-      z_n_good, z_n_bad) bind(c)
+      z_charge_live, z_z_center, z_t_center, z_t0, z_drift_between_t_and_s, z_ix_ele, &
+      z_ix_bunch, z_ix_turn, z_n_live, z_n_good, z_n_bad) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -10521,6 +10703,7 @@ interface
     integer(c_int), value :: n1_particle, n1_ix_z
     integer(c_int) :: z_ix_z(*), z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, z_n_good, z_n_bad
     real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center, z_t0
+    logical(c_bool) :: z_drift_between_t_and_s
   end subroutine
 end interface
 
@@ -10554,8 +10737,8 @@ endif
 
 !! f_side.to_c2_call
 call bunch_to_c2 (C, z_particle, n1_particle, fvec2vec(F%ix_z, n1_ix_z), n1_ix_z, F%charge_tot, &
-    F%charge_live, F%z_center, F%t_center, F%t0, F%ix_ele, F%ix_bunch, F%ix_turn, F%n_live, &
-    F%n_good, F%n_bad)
+    F%charge_live, F%z_center, F%t_center, F%t0, c_logic(F%drift_between_t_and_s), F%ix_ele, &
+    F%ix_bunch, F%ix_turn, F%n_live, F%n_good, F%n_bad)
 
 end subroutine bunch_to_c
 
@@ -10576,8 +10759,8 @@ end subroutine bunch_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine bunch_to_f2 (Fp, z_particle, n1_particle, z_ix_z, n1_ix_z, z_charge_tot, &
-    z_charge_live, z_z_center, z_t_center, z_t0, z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, &
-    z_n_good, z_n_bad) bind(c)
+    z_charge_live, z_z_center, z_t_center, z_t0, z_drift_between_t_and_s, z_ix_ele, z_ix_bunch, &
+    z_ix_turn, z_n_live, z_n_good, z_n_bad) bind(c)
 
 
 implicit none
@@ -10591,6 +10774,7 @@ integer(c_int), value :: n1_particle, n1_ix_z
 type(c_ptr), value :: z_ix_z
 integer(c_int), pointer :: f_ix_z(:)
 real(c_double) :: z_charge_tot, z_charge_live, z_z_center, z_t_center, z_t0
+logical(c_bool) :: z_drift_between_t_and_s
 integer(c_int) :: z_ix_ele, z_ix_bunch, z_ix_turn, z_n_live, z_n_good, z_n_bad
 
 call c_f_pointer (Fp, F)
@@ -10632,6 +10816,8 @@ F%z_center = z_z_center
 F%t_center = z_t_center
 !! f_side.to_f2_trans[real, 0, NOT]
 F%t0 = z_t0
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%drift_between_t_and_s = f_logic(z_drift_between_t_and_s)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]

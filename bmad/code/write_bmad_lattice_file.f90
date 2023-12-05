@@ -56,6 +56,7 @@ type (ele_struct), target :: ele_default(n_key$), this_ele
 type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
 type (ele_attribute_struct) info
 type (control_struct), pointer :: ctl, ctl2
+type (control_ramp1_struct), pointer :: rmp
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (multipass_ele_info_struct), pointer :: e_info
@@ -978,12 +979,12 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
     if (ele%key == ramper$) then
       do j = 1, size(ele%control%ramp)
-        ctl => ele%control%ramp(j)
+        rmp => ele%control%ramp(j)
         if (j /= 1) line = trim(line) // ','
-        line = trim(line) // trim(ctl%slave_name) // ' [' // trim(ctl%attribute) // ']'
+        line = trim(line) // trim(rmp%slave_name) // ' [' // trim(rmp%attribute) // ']'
 
-        if (allocated(ctl%stack)) then
-          call split_expression_string(expression_stack_to_string(ctl%stack), 120, -min(len_trim(line), 60), list)
+        if (allocated(rmp%stack)) then
+          call split_expression_string(expression_stack_to_string(rmp%stack), 120, -min(len_trim(line), 60), list)
           write (line, '(3a)') trim(line), ': ', trim(list(1))
           if (size(list) > 1) call write_lat_line(line, iu, .false., .false.)
           do ixs = 2, size(list)
@@ -992,9 +993,9 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
           enddo
         else
           if (j > 1) then
-            if (all(ctl%y_knot == ele%control%ramp(j-1)%y_knot)) cycle
+            if (all(rmp%y_knot == ele%control%ramp(j-1)%y_knot)) cycle
           endif
-          write (line, '(1000a)') trim(line), ':{', (re_str(ctl%y_knot(ix)), ', ', ix = 1, size(ctl%y_knot))
+          write (line, '(1000a)') trim(line), ':{', (re_str(rmp%y_knot(ix)), ', ', ix = 1, size(rmp%y_knot))
           n = len_trim(line)
           line(n:) = '}'
           call write_lat_line(line, iu, .false.)

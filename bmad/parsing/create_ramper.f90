@@ -8,16 +8,16 @@
 ! in lord%control%var(1) with a coefficient given by the single numeric term.
 !
 ! Input:
-!   lord           -- ele_struct: Ramper element.
+!   lord              -- ele_struct: Ramper element.
 !     %control%type
-!   contrl(:)      -- Control_struct: control info. 1 element for each slave.
-!     %stack(:)      -- Arithmetic expression stack for evaluating the controlled parameter value.
-!     %y_knot(:)     -- Knot points for spline or linear interpolation.
-!     %attribute     -- name of attribute to be controlled
-!   err            -- Logical: Set True if an attribute is not free to be controlled.
+!   contrl(:)         -- Control_struct: control info. 1 element for each slave.
+!     %stack(:)         -- Arithmetic expression stack for evaluating the controlled parameter value.
+!     %y_knot(:)        -- Knot points for spline or linear interpolation.
+!     %attribute        -- name of attribute to be controlled.
+!   err               -- Logical: Set True if an attribute is not free to be controlled.
 !
 ! Output:
-!   lord          -- ele_struct: Modified ramper elment
+!   lord              -- ele_struct: Modified ramper elment
 !-
 
 subroutine create_ramper (lord, contrl, err)
@@ -28,12 +28,14 @@ use expression_mod
 implicit none
 
 type (ele_struct), target :: lord
+type (ele_struct), pointer :: slave
 type (lat_struct), pointer :: lat
-type (control_struct)  contrl(:)
-type (control_struct), pointer :: c
+type (control_struct), target :: contrl(:), con1
+type (control_struct), pointer :: con0
+type (control_ramp1_struct), pointer :: r1
 
 integer i, j, is, n, iv
-integer n_slave, ix_attrib
+integer n_slave, ix_attrib, key
 
 character(40) attrib_name
 
@@ -65,17 +67,24 @@ if (allocated(lord%control%ramp)) deallocate (lord%control%ramp)
 allocate(lord%control%ramp(n_slave))
 
 do j = 1, n_slave
-  ix_attrib = contrl(j)%ix_attrib
-  attrib_name = contrl(j)%attribute
+  con0 => contrl(j)
+  call parser_transfer_control_struct(con0, con1, lord, 1)
 
-  !
+  r1 => lord%control%ramp(j)
+  r1%attribute = con0%attribute
+  r1%slave_name = con0%slave_name
+  r1%slave      = con0%slave
+  r1%value      = con1%value
+  r1%y_knot     = con1%y_knot
+  r1%stack      = con1%stack
 
-  c => lord%control%ramp(j)
-  c%ix_attrib = contrl(j)%ix_attrib
-  c%attribute = contrl(j)%attribute
-  c%slave_name = contrl(j)%slave_name
-
-  call parser_transfer_control_struct(contrl(j), c, lord, 1)
+  ! If slave is an overlay, group, or girder, need to mark it as such
+  r1%is_controller = .false.
+  slave => pointer_to_ele(lat, r1%slave)
+  if (associated(slave)) then
+    key = slave%key
+    r1%is_controller = (key == overlay$ .or. key == group$ .or. key == girder$)
+  endif
 enddo
 
 end subroutine

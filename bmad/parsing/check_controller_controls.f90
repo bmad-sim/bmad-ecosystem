@@ -34,18 +34,10 @@ do i = 1, size(contrl)
   c1 => contrl(i)
   do j = i+1, size(contrl)
     c2 => contrl(j)
-    select case (ele_key)
-    case (ramper$)
-      if (c1%slave_name == c2%slave_name .and. c1%attribute == c2%attribute) then
-        call parser_error ('DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
-        return
-      endif
-    case default
-      if (c1%slave == c2%slave .and. c1%attribute == c2%attribute) then
-        call parser_error ('DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
-        return
-      endif
-    end select
+    if (c1%slave == c2%slave .and. c1%attribute == c2%attribute) then
+      call parser_error ('DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
+      return
+    endif
   enddo
 enddo
 

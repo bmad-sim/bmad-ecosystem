@@ -2,7 +2,7 @@
   ltt%lat_file = 'lat.bmad'         ! Lattice file
   ltt%ramping_on = T
   ltt%ramping_start_time = 0
-  ltt%regression_test = T
+  ltt%regression_test = T           ! Output will be regression test compatible. 
 
   ltt%particle_output_file = ''
   ltt%averages_output_file = ''

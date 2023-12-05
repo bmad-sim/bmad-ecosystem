@@ -562,7 +562,7 @@ end subroutine pushit
 !
 ! Input:
 !   expression  -- character(*): Expression string.
-!   var(:)      -- controller_var1_struct, optional: Array of control variables. 
+!   var(:)      -- control_var1_struct, optional: Array of control variables. 
 !                   Used with Bmad controller elements.
 !   use_old     -- logical, optional: Use var%old_value? Must be present if var(:) is present.
 !
@@ -575,7 +575,7 @@ end subroutine pushit
 function expression_value (expression, err_flag, err_str, var, use_old) result (value)
 
 type (expression_atom_struct), allocatable :: stack(:)
-type (controller_var1_struct), optional :: var(:)
+type (control_var1_struct), optional :: var(:)
 
 real(rp) value
 integer i, i2, ix, n_stack
@@ -630,7 +630,7 @@ end function expression_value
 !
 ! Input:
 !   stack(:)    -- expression_atom_struct: Expression to evaluate.
-!   var(:)      -- controller_var1_struct, optional: Array of control variables. 
+!   var(:)      -- control_var1_struct, optional: Array of control variables. 
 !                   Used with Bmad controller elements.
 !   use_old     -- logical, optional: Use var%old_value? Must be present if var(:) is present.
 !
@@ -646,7 +646,7 @@ use random_mod
 
 type (expression_atom_struct) stack(:)
 type (expression_atom_struct) stack2(size(stack))
-type (controller_var1_struct), optional :: var(:)
+type (control_var1_struct), optional :: var(:)
 
 real(rp) value
 integer i, i2, ix

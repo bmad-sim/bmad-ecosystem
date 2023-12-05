@@ -803,6 +803,17 @@ else
     F%p_reflect_scratch(jd1+lb1) = rhs
   enddo
 endif
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%bragg_angle)) deallocate (F%bragg_angle)
+else
+  if (.not. allocated(F%bragg_angle)) allocate (F%bragg_angle(-1:1))
+  do jd1 = 1, size(F%bragg_angle,1); lb1 = lbound(F%bragg_angle,1) - 1
+    rhs = 100 + jd1 + 13 + offset
+    F%bragg_angle(jd1+lb1) = rhs
+  enddo
+endif
 
 end subroutine set_photon_reflect_table_test_pattern
 
@@ -5197,6 +5208,8 @@ call set_photon_material_test_pattern (F%material, ix_patt)
 call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_pixel_detec_test_pattern (F%pixel, ix_patt)
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 6 + offset; F%reflectivity_table_type = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_photon_reflect_table_test_pattern (F%reflectivity_table_sigma, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -5218,7 +5231,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%integrated_init_energy_prob)) allocate (F%integrated_init_energy_prob(-1:1))
   do jd1 = 1, size(F%integrated_init_energy_prob,1); lb1 = lbound(F%integrated_init_energy_prob,1) - 1
-    rhs = 100 + jd1 + 10 + offset
+    rhs = 100 + jd1 + 11 + offset
     F%integrated_init_energy_prob(jd1+lb1) = rhs
   enddo
 endif
@@ -5711,12 +5724,12 @@ call set_lat_ele_loc_test_pattern (F%slave, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_lat_ele_loc_test_pattern (F%lord, ix_patt)
 !! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%attribute)
-  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+8+offset+jd1, 26))
+do jd1 = 1, len(F%slave_name)
+  F%slave_name(jd1:jd1) = char(ichar("a") + modulo(100+8+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%slave_name)
-  F%slave_name(jd1:jd1) = char(ichar("a") + modulo(100+9+offset+jd1, 26))
+do jd1 = 1, len(F%attribute)
+  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+9+offset+jd1, 26))
 enddo
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 10 + offset; F%ix_attrib = rhs
@@ -5727,18 +5740,18 @@ end subroutine set_control_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_controller_var1 (ok)
+subroutine test1_f_control_var1 (ok)
 
 implicit none
 
-type(controller_var1_struct), target :: f_controller_var1, f2_controller_var1
+type(control_var1_struct), target :: f_control_var1, f2_control_var1
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_controller_var1 (c_controller_var1, c_ok) bind(c)
+  subroutine test_c_control_var1 (c_control_var1, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_controller_var1
+    type(c_ptr), value :: c_control_var1
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -5746,58 +5759,58 @@ end interface
 !
 
 ok = .true.
-call set_controller_var1_test_pattern (f2_controller_var1, 1)
+call set_control_var1_test_pattern (f2_control_var1, 1)
 
-call test_c_controller_var1(c_loc(f2_controller_var1), c_ok)
+call test_c_control_var1(c_loc(f2_control_var1), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_controller_var1_test_pattern (f_controller_var1, 4)
-if (f_controller_var1 == f2_controller_var1) then
-  print *, 'controller_var1: C side convert C->F: Good'
+call set_control_var1_test_pattern (f_control_var1, 4)
+if (f_control_var1 == f2_control_var1) then
+  print *, 'control_var1: C side convert C->F: Good'
 else
-  print *, 'controller_var1: C SIDE CONVERT C->F: FAILED!'
+  print *, 'control_var1: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_controller_var1
+end subroutine test1_f_control_var1
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_controller_var1 (c_controller_var1, c_ok) bind(c)
+subroutine test2_f_control_var1 (c_control_var1, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_controller_var1
-type(controller_var1_struct), target :: f_controller_var1, f2_controller_var1
+type(c_ptr), value ::  c_control_var1
+type(control_var1_struct), target :: f_control_var1, f2_control_var1
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call controller_var1_to_f (c_controller_var1, c_loc(f_controller_var1))
+call control_var1_to_f (c_control_var1, c_loc(f_control_var1))
 
-call set_controller_var1_test_pattern (f2_controller_var1, 2)
-if (f_controller_var1 == f2_controller_var1) then
-  print *, 'controller_var1: F side convert C->F: Good'
+call set_control_var1_test_pattern (f2_control_var1, 2)
+if (f_control_var1 == f2_control_var1) then
+  print *, 'control_var1: F side convert C->F: Good'
 else
-  print *, 'controller_var1: F SIDE CONVERT C->F: FAILED!'
+  print *, 'control_var1: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_controller_var1_test_pattern (f2_controller_var1, 3)
-call controller_var1_to_c (c_loc(f2_controller_var1), c_controller_var1)
+call set_control_var1_test_pattern (f2_control_var1, 3)
+call control_var1_to_c (c_loc(f2_control_var1), c_control_var1)
 
-end subroutine test2_f_controller_var1
+end subroutine test2_f_control_var1
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_controller_var1_test_pattern (F, ix_patt)
+subroutine set_control_var1_test_pattern (F, ix_patt)
 
 implicit none
 
-type(controller_var1_struct) F
+type(control_var1_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -5813,7 +5826,126 @@ rhs = 2 + offset; F%value = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 3 + offset; F%old_value = rhs
 
-end subroutine set_controller_var1_test_pattern
+end subroutine set_control_var1_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_control_ramp1 (ok)
+
+implicit none
+
+type(control_ramp1_struct), target :: f_control_ramp1, f2_control_ramp1
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_control_ramp1 (c_control_ramp1, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_control_ramp1
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_control_ramp1_test_pattern (f2_control_ramp1, 1)
+
+call test_c_control_ramp1(c_loc(f2_control_ramp1), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_control_ramp1_test_pattern (f_control_ramp1, 4)
+if (f_control_ramp1 == f2_control_ramp1) then
+  print *, 'control_ramp1: C side convert C->F: Good'
+else
+  print *, 'control_ramp1: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_control_ramp1
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_control_ramp1 (c_control_ramp1, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_control_ramp1
+type(control_ramp1_struct), target :: f_control_ramp1, f2_control_ramp1
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call control_ramp1_to_f (c_control_ramp1, c_loc(f_control_ramp1))
+
+call set_control_ramp1_test_pattern (f2_control_ramp1, 2)
+if (f_control_ramp1 == f2_control_ramp1) then
+  print *, 'control_ramp1: F side convert C->F: Good'
+else
+  print *, 'control_ramp1: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_control_ramp1_test_pattern (f2_control_ramp1, 3)
+call control_ramp1_to_c (c_loc(f2_control_ramp1), c_control_ramp1)
+
+end subroutine test2_f_control_ramp1
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_control_ramp1_test_pattern (F, ix_patt)
+
+implicit none
+
+type(control_ramp1_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%value = rhs
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%y_knot)) deallocate (F%y_knot)
+else
+  if (.not. allocated(F%y_knot)) allocate (F%y_knot(-1:1))
+  do jd1 = 1, size(F%y_knot,1); lb1 = lbound(F%y_knot,1) - 1
+    rhs = 100 + jd1 + 2 + offset
+    F%y_knot(jd1+lb1) = rhs
+  enddo
+endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%stack)) deallocate (F%stack)
+else
+  if (.not. allocated(F%stack)) allocate (F%stack(-1:1))
+  do jd1 = 1, size(F%stack,1); lb1 = lbound(F%stack,1) - 1
+    call set_expression_atom_test_pattern (F%stack(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%attribute)
+  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+6+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%slave_name)
+  F%slave_name(jd1:jd1) = char(ichar("a") + modulo(100+7+offset+jd1, 26))
+enddo
+!! f_side.test_pat[type, 0, NOT]
+call set_lat_ele_loc_test_pattern (F%slave, ix_patt)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 9 + offset; F%is_controller = (modulo(rhs, 2) == 0)
+
+end subroutine set_control_ramp1_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -5903,7 +6035,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%var)) allocate (F%var(-1:1))
   do jd1 = 1, size(F%var,1); lb1 = lbound(F%var,1) - 1
-    call set_controller_var1_test_pattern (F%var(jd1+lb1), ix_patt+jd1)
+    call set_control_var1_test_pattern (F%var(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[type, 1, ALLOC]
@@ -5913,7 +6045,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%ramp)) allocate (F%ramp(-1:1))
   do jd1 = 1, size(F%ramp,1); lb1 = lbound(F%ramp,1) - 1
-    call set_control_test_pattern (F%ramp(jd1+lb1), ix_patt+jd1)
+    call set_control_ramp1_test_pattern (F%ramp(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[real, 1, ALLOC]
@@ -6294,88 +6426,86 @@ offset = 100 * ix_patt
 do jd1 = 1, len(F%position_file)
   F%position_file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
 enddo
-!! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%file_name)
-  F%file_name(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
-enddo
 !! f_side.test_pat[character, 1, NOT]
 do jd1 = lbound(F%distribution_type, 1), ubound(F%distribution_type, 1)
   do jd = 1, len(F%distribution_type(jd1))
-    F%distribution_type(jd1)(jd:jd) = char(ichar("a") + modulo(100+3+offset+10*jd+jd1, 26))
+    F%distribution_type(jd1)(jd:jd) = char(ichar("a") + modulo(100+2+offset+10*jd+jd1, 26))
   enddo
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%spin,1); lb1 = lbound(F%spin,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 3 + offset
   F%spin(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%ellipse,1); lb1 = lbound(F%ellipse,1) - 1
-  rhs = 100 + jd1 + 5 + offset
+  rhs = 100 + jd1 + 4 + offset
   call set_ellipse_beam_init_test_pattern (F%ellipse(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, NOT]
 call set_kv_beam_init_test_pattern (F%kv, ix_patt)
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%grid,1); lb1 = lbound(F%grid,1) - 1
-  rhs = 100 + jd1 + 7 + offset
+  rhs = 100 + jd1 + 6 + offset
   call set_grid_beam_init_test_pattern (F%grid(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%center_jitter,1); lb1 = lbound(F%center_jitter,1) - 1
-  rhs = 100 + jd1 + 8 + offset
+  rhs = 100 + jd1 + 7 + offset
   F%center_jitter(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%emit_jitter,1); lb1 = lbound(F%emit_jitter,1) - 1
-  rhs = 100 + jd1 + 9 + offset
+  rhs = 100 + jd1 + 8 + offset
   F%emit_jitter(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%sig_z_jitter = rhs
+rhs = 9 + offset; F%sig_z_jitter = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%sig_pz_jitter = rhs
+rhs = 10 + offset; F%sig_pz_jitter = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%n_particle = rhs
+rhs = 11 + offset; F%n_particle = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%renorm_center = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%renorm_center = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%renorm_sigma = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%renorm_sigma = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%random_engine)
-  F%random_engine(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
+  F%random_engine(jd1:jd1) = char(ichar("a") + modulo(100+14+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%random_gauss_converter)
-  F%random_gauss_converter(jd1:jd1) = char(ichar("a") + modulo(100+16+offset+jd1, 26))
+  F%random_gauss_converter(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 17 + offset; F%random_sigma_cutoff = rhs
+rhs = 16 + offset; F%random_sigma_cutoff = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 18 + offset; F%a_norm_emit = rhs
+rhs = 17 + offset; F%a_norm_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 19 + offset; F%b_norm_emit = rhs
+rhs = 18 + offset; F%b_norm_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 20 + offset; F%a_emit = rhs
+rhs = 19 + offset; F%a_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 21 + offset; F%b_emit = rhs
+rhs = 20 + offset; F%b_emit = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 22 + offset; F%dpz_dz = rhs
+rhs = 21 + offset; F%dpz_dz = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%center,1); lb1 = lbound(F%center,1) - 1
-  rhs = 100 + jd1 + 23 + offset
+  rhs = 100 + jd1 + 22 + offset
   F%center(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 24 + offset; F%dt_bunch = rhs
+rhs = 23 + offset; F%dt_bunch = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 25 + offset; F%sig_z = rhs
+rhs = 24 + offset; F%sig_z = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 26 + offset; F%sig_pz = rhs
+rhs = 25 + offset; F%sig_pz = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 27 + offset; F%bunch_charge = rhs
+rhs = 26 + offset; F%bunch_charge = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 28 + offset; F%n_bunch = rhs
+rhs = 27 + offset; F%n_bunch = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 28 + offset; F%ix_turn = rhs
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%species)
   F%species(jd1:jd1) = char(ichar("a") + modulo(100+29+offset+jd1, 26))
@@ -6390,12 +6520,16 @@ rhs = 32 + offset; F%use_particle_start = (modulo(rhs, 2) == 0)
 rhs = 33 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 34 + offset; F%use_z_as_t = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file_name)
+  F%file_name(jd1:jd1) = char(ichar("a") + modulo(100+35+offset+jd1, 26))
+enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 35 + offset; F%sig_e_jitter = rhs
+rhs = 36 + offset; F%sig_e_jitter = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 36 + offset; F%sig_e = rhs
+rhs = 37 + offset; F%sig_e = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 37 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
+rhs = 38 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
 
 end subroutine set_beam_init_test_pattern
 
@@ -9155,18 +9289,20 @@ rhs = 7 + offset; F%z_center = rhs
 rhs = 8 + offset; F%t_center = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 9 + offset; F%t0 = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 10 + offset; F%drift_between_t_and_s = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%ix_ele = rhs
+rhs = 11 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%ix_bunch = rhs
+rhs = 12 + offset; F%ix_bunch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%ix_turn = rhs
+rhs = 13 + offset; F%ix_turn = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%n_live = rhs
+rhs = 14 + offset; F%n_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%n_good = rhs
+rhs = 15 + offset; F%n_good = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%n_bad = rhs
+rhs = 16 + offset; F%n_bad = rhs
 
 end subroutine set_bunch_test_pattern
 

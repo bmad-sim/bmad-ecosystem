@@ -48,6 +48,7 @@ type (all_pointer_struct) a_ptr
 type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
 type (control_struct), pointer :: ctl
+type (control_ramp1_struct), pointer :: rmp
 type (taylor_struct), pointer :: tlr
 
 real(rp), pointer :: ptr_attrib, r(:,:,:)
@@ -126,26 +127,43 @@ if (associated (ele%control)) then
     if (a_name(1:1) /= '%') goto 9000
 
     if (ele%key == ramper$) then
-      ctl => ele%control%ramp(n)
+      rmp => ele%control%ramp(n)
+
+      if (allocated(rmp%y_knot)) then
+        if (a_name(1:8) /= '%Y_KNOT(') goto 9300
+        n = get_this_index(a_name, 8, err, 1, size(rmp%y_knot)); if (err) goto 9130
+        a_ptr%r => rmp%y_knot(n)
+        err_flag = .false.
+        return
+      endif
+
+      a_name = a_name(2:)  ! Remove '%'
+      do i = 1, size(rmp%stack)
+        if (upcase(rmp%stack(i)%name) /= a_name) cycle
+        a_ptr%r => rmp%stack(i)%value
+        err_flag = .false.
+        return
+      enddo
+
     else
       slave => pointer_to_slave(ele, n, ctl)
-    endif
 
-    if (allocated(ctl%y_knot)) then
-      if (a_name(1:8) /= '%Y_KNOT(') goto 9300
-      n = get_this_index(a_name, 8, err, 1, size(ctl%y_knot)); if (err) goto 9130
-      a_ptr%r => ctl%y_knot(n)
-      err_flag = .false.
-      return
-    endif
+      if (allocated(ctl%y_knot)) then
+        if (a_name(1:8) /= '%Y_KNOT(') goto 9300
+        n = get_this_index(a_name, 8, err, 1, size(ctl%y_knot)); if (err) goto 9130
+        a_ptr%r => ctl%y_knot(n)
+        err_flag = .false.
+        return
+      endif
 
-    a_name = a_name(2:)  ! Remove '%'
-    do i = 1, size(ctl%stack)
-      if (upcase(ctl%stack(i)%name) /= a_name) cycle
-      a_ptr%r => ctl%stack(i)%value
-      err_flag = .false.
-      return
-    enddo
+      a_name = a_name(2:)  ! Remove '%'
+      do i = 1, size(ctl%stack)
+        if (upcase(ctl%stack(i)%name) /= a_name) cycle
+        a_ptr%r => ctl%stack(i)%value
+        err_flag = .false.
+        return
+      enddo
+    endif
 
     goto 9310
   endif

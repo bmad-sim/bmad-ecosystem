@@ -291,10 +291,15 @@ typedef valarray<CPP_control>          CPP_control_ARRAY;
 typedef valarray<CPP_control_ARRAY>    CPP_control_MATRIX;
 typedef valarray<CPP_control_MATRIX>   CPP_control_TENSOR;
 
-class CPP_controller_var1;
-typedef valarray<CPP_controller_var1>          CPP_controller_var1_ARRAY;
-typedef valarray<CPP_controller_var1_ARRAY>    CPP_controller_var1_MATRIX;
-typedef valarray<CPP_controller_var1_MATRIX>   CPP_controller_var1_TENSOR;
+class CPP_control_var1;
+typedef valarray<CPP_control_var1>          CPP_control_var1_ARRAY;
+typedef valarray<CPP_control_var1_ARRAY>    CPP_control_var1_MATRIX;
+typedef valarray<CPP_control_var1_MATRIX>   CPP_control_var1_TENSOR;
+
+class CPP_control_ramp1;
+typedef valarray<CPP_control_ramp1>          CPP_control_ramp1_ARRAY;
+typedef valarray<CPP_control_ramp1_ARRAY>    CPP_control_ramp1_MATRIX;
+typedef valarray<CPP_control_ramp1_MATRIX>   CPP_control_ramp1_TENSOR;
 
 class CPP_controller;
 typedef valarray<CPP_controller>          CPP_controller_ARRAY;
@@ -668,6 +673,7 @@ public:
   Real_MATRIX p_reflect;
   Real max_energy;
   Real_ARRAY p_reflect_scratch;
+  Real_ARRAY bragg_angle;
 
   CPP_photon_reflect_table() :
     angle(0.0, 0),
@@ -675,7 +681,8 @@ public:
     int1(CPP_interval1_coef_ARRAY(CPP_interval1_coef(), 0)),
     p_reflect(Real_ARRAY(0.0, 0), 0),
     max_energy(-1),
-    p_reflect_scratch(0.0, 0)
+    p_reflect_scratch(0.0, 0),
+    bragg_angle(0.0, 0)
     {}
 
   ~CPP_photon_reflect_table() {
@@ -2130,6 +2137,7 @@ public:
   CPP_photon_material material;
   CPP_surface_grid grid;
   CPP_pixel_detec pixel;
+  Int reflectivity_table_type;
   CPP_photon_reflect_table reflectivity_table_sigma;
   CPP_photon_reflect_table reflectivity_table_pi;
   CPP_spline_ARRAY init_energy_prob;
@@ -2141,6 +2149,7 @@ public:
     material(),
     grid(),
     pixel(),
+    reflectivity_table_type(Bmad::NOT_SET),
     reflectivity_table_sigma(),
     reflectivity_table_pi(),
     init_energy_prob(CPP_spline_ARRAY(CPP_spline(), 0)),
@@ -2315,8 +2324,8 @@ public:
   CPP_expression_atom_ARRAY stack;
   CPP_lat_ele_loc slave;
   CPP_lat_ele_loc lord;
-  string attribute;
   string slave_name;
+  string attribute;
   Int ix_attrib;
 
   CPP_control() :
@@ -2325,8 +2334,8 @@ public:
     stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     slave(),
     lord(),
-    attribute(),
     slave_name(),
+    attribute(),
     ix_attrib(-1)
     {}
 
@@ -2342,31 +2351,67 @@ bool operator== (const CPP_control&, const CPP_control&);
 
 
 //--------------------------------------------------------------------
-// CPP_controller_var1
+// CPP_control_var1
 
-class Opaque_controller_var1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_control_var1_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_controller_var1 {
+class CPP_control_var1 {
 public:
   string name;
   Real value;
   Real old_value;
 
-  CPP_controller_var1() :
+  CPP_control_var1() :
     name(),
     value(0.0),
     old_value(0.0)
     {}
 
-  ~CPP_controller_var1() {
+  ~CPP_control_var1() {
   }
 
 };   // End Class
 
-extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
-extern "C" void controller_var1_to_f (const CPP_controller_var1&, Opaque_controller_var1_class*);
+extern "C" void control_var1_to_c (const Opaque_control_var1_class*, CPP_control_var1&);
+extern "C" void control_var1_to_f (const CPP_control_var1&, Opaque_control_var1_class*);
 
-bool operator== (const CPP_controller_var1&, const CPP_controller_var1&);
+bool operator== (const CPP_control_var1&, const CPP_control_var1&);
+
+
+//--------------------------------------------------------------------
+// CPP_control_ramp1
+
+class Opaque_control_ramp1_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_control_ramp1 {
+public:
+  Real value;
+  Real_ARRAY y_knot;
+  CPP_expression_atom_ARRAY stack;
+  string attribute;
+  string slave_name;
+  CPP_lat_ele_loc slave;
+  Bool is_controller;
+
+  CPP_control_ramp1() :
+    value(0.0),
+    y_knot(0.0, 0),
+    stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
+    attribute(),
+    slave_name(),
+    slave(),
+    is_controller(false)
+    {}
+
+  ~CPP_control_ramp1() {
+  }
+
+};   // End Class
+
+extern "C" void control_ramp1_to_c (const Opaque_control_ramp1_class*, CPP_control_ramp1&);
+extern "C" void control_ramp1_to_f (const CPP_control_ramp1&, Opaque_control_ramp1_class*);
+
+bool operator== (const CPP_control_ramp1&, const CPP_control_ramp1&);
 
 
 //--------------------------------------------------------------------
@@ -2376,13 +2421,13 @@ class Opaque_controller_class {};  // Opaque class for pointers to corresponding
 
 class CPP_controller {
 public:
-  CPP_controller_var1_ARRAY var;
-  CPP_control_ARRAY ramp;
+  CPP_control_var1_ARRAY var;
+  CPP_control_ramp1_ARRAY ramp;
   Real_ARRAY x_knot;
 
   CPP_controller() :
-    var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
-    ramp(CPP_control_ARRAY(CPP_control(), 0)),
+    var(CPP_control_var1_ARRAY(CPP_control_var1(), 0)),
+    ramp(CPP_control_ramp1_ARRAY(CPP_control_ramp1(), 0)),
     x_knot(0.0, 0)
     {}
 
@@ -2495,7 +2540,6 @@ class Opaque_beam_init_class {};  // Opaque class for pointers to corresponding 
 class CPP_beam_init {
 public:
   string position_file;
-  string file_name;
   String_ARRAY distribution_type;
   Real_ARRAY spin;
   CPP_ellipse_beam_init_ARRAY ellipse;
@@ -2522,19 +2566,20 @@ public:
   Real sig_pz;
   Real bunch_charge;
   Int n_bunch;
+  Int ix_turn;
   string species;
   Bool init_spin;
   Bool full_6d_coupling_calc;
   Bool use_particle_start;
   Bool use_t_coords;
   Bool use_z_as_t;
+  string file_name;
   Real sig_e_jitter;
   Real sig_e;
   Bool use_particle_start_for_center;
 
   CPP_beam_init() :
     position_file(),
-    file_name(),
     distribution_type(String_ARRAY(string(), 3)),
     spin(0.0, 3),
     ellipse(CPP_ellipse_beam_init_ARRAY(CPP_ellipse_beam_init(), 3)),
@@ -2561,12 +2606,14 @@ public:
     sig_pz(0.0),
     bunch_charge(0.0),
     n_bunch(0),
+    ix_turn(0),
     species(),
     init_spin(true),
     full_6d_coupling_calc(false),
     use_particle_start(false),
     use_t_coords(false),
     use_z_as_t(false),
+    file_name(),
     sig_e_jitter(0.0),
     sig_e(0.0),
     use_particle_start_for_center(false)
@@ -3650,6 +3697,7 @@ public:
   Real z_center;
   Real t_center;
   Real t0;
+  Bool drift_between_t_and_s;
   Int ix_ele;
   Int ix_bunch;
   Int ix_turn;
@@ -3665,6 +3713,7 @@ public:
     z_center(0.0),
     t_center(0.0),
     t0(Bmad::REAL_GARBAGE),
+    drift_between_t_and_s(false),
     ix_ele(0),
     ix_bunch(0),
     ix_turn(0),

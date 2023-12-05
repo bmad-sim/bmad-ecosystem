@@ -30,6 +30,7 @@ type (lat_struct), target, intent(in) :: lat
 type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct), optional :: extra
 type (wake_struct), pointer :: wake
+type (control_struct), pointer :: ctl
 
 real(rp) value(num_ele_attrib$)
 
@@ -152,7 +153,16 @@ enddo
 ! write the control info, etc
 
 do i = 1, lat%n_control_max
-  call write_this_control_struct(lat%control(i))
+  ctl => lat%control(i)
+  n = 0
+  if (allocated(ctl%stack)) n = size(ctl%stack)
+  nk = 0
+  if (allocated(ctl%y_knot)) nk = size(ctl%y_knot)
+  write (d_unit) n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute, ctl%slave_name
+  do j = 1, n
+    write (d_unit) ctl%stack(j)
+  enddo
+  if (nk /= 0) write (d_unit) ctl%y_knot
 enddo
 
 do i = 1, lat%n_ic_max
@@ -218,6 +228,7 @@ type (ac_kicker_struct), pointer :: ac
 type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
+type (control_ramp1_struct), pointer ::rmp
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
@@ -346,11 +357,22 @@ if (ix_c == 1) then
   if (allocated(ele%control%ramp)) nr = size(ele%control%ramp)
   write (d_unit) n_var, nk, nr
   if (nk > -1) write (d_unit) ele%control%x_knot
+
   do i = 1, n_var
     write (d_unit) ele%control%var(i)
   enddo
+
   do i = 1, nr
-    call write_this_control_struct(ele%control%ramp(i))
+    rmp => ele%control%ramp(i)
+    n = 0
+    if (allocated(rmp%stack)) n = size(rmp%stack)
+    nk = 0
+    if (allocated(rmp%y_knot)) nk = size(rmp%y_knot)
+    write (d_unit) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave
+    do j = 1, n
+      write (d_unit) rmp%stack(j)
+    enddo
+    if (nk /= 0) write (d_unit) rmp%y_knot
   enddo
 endif
 
@@ -669,28 +691,6 @@ do k = 1, nv
 enddo
 
 end subroutine write_this_wall3d_section
-
-!-------------------------------------------------------------------------------------
-! contains
-
-subroutine write_this_control_struct (ctl)
-
-type (control_struct) :: ctl
-integer n, nk, j
-
-!
-
-n = 0
-if (allocated(ctl%stack)) n = size(ctl%stack)
-nk = 0
-if (allocated(ctl%y_knot)) nk = size(ctl%y_knot)
-write (d_unit) ctl%slave_name, n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute
-do j = 1, n
-  write (d_unit) ctl%stack(j)
-enddo
-if (nk /= 0) write (d_unit) ctl%y_knot
-
-end subroutine write_this_control_struct
 
 end subroutine
 

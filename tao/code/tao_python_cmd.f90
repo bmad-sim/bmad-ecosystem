@@ -149,7 +149,7 @@ type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_model_element_struct), pointer :: tao_ele
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (all_pointer_struct) a_ptr
-type (controller_var1_struct), pointer :: cvar
+type (control_var1_struct), pointer :: cvar
 
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy, time1, gamma
