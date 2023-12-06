@@ -44,7 +44,7 @@ character(len(command_line)) cmd_line
 character(*), parameter :: r_name = 'tao_command'
 character(1000) :: cmd_word(12)
 character(200) list, mask
-character(40) gang_str, switch, word, except, branch_str
+character(40) gang_str, switch, word, except, branch_str, what
 character(16) cmd_name, set_word, axis_name
 
 character(16) :: cmd_names(43) = [character(16):: &
@@ -333,6 +333,25 @@ case ('cut_ring')
   u => tao_pointer_to_universe(-1)
   lat => u%model%lat
 
+  what = '-static'
+  n = u%model%lat%n_ele_track
+  if (u%model%tao_branch(0)%orbit(n)%state /= alive$) what = '-particle_start'
+
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err_flag); if (err_flag) goto 9000
+  do i = 1, 5
+    if (cmd_word(i) == '') exit
+    call match_word (cmd_word(i), [character(16):: '-particle_start', '-static', '-zero'], &
+                                                                       ix, .true., matched_name=switch)
+    select case (switch)
+    case ('-particle_start', '-static', '-zero')
+      what = switch
+    case default
+      call out_io (s_error$, r_name, 'Unknown switch: ' // switch, 'Nothing done.')
+      return
+    end select
+  enddo
+
+
   if (lat%param%geometry == closed$) then
     lat%param%geometry = open$
   else
@@ -341,8 +360,12 @@ case ('cut_ring')
 
   call out_io (s_info$, r_name, 'The lattice geometry is now: ' // geometry_name(lat%param%geometry))
 
+  select case (what)
+  case ('-static'); u%model%lat%particle_start = u%model%tao_branch(0)%orbit(0)
+  case ('-zero');   u%model%lat%particle_start%vec = 0
+  end select
+  
   u%calc%lattice = .true.
-  u%model%lat%particle_start%vec = 0
   call tao_lattice_calc (ok)
 
 !--------------------------------
