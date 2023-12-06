@@ -797,12 +797,17 @@ u => s%u(ix_uni)
 
 ! allocate space for var%slave.
 
-ix_slave = size(var%slave) + 1
-var_slave_saved = var%slave
-deallocate (var%slave)  
-allocate (var%slave(ix_slave))
-var%slave(1:ix_slave-1) = var_slave_saved
-var_slave => var%slave(ix_slave)
+if (allocated(var%slave)) then
+  ix_slave = size(var%slave) + 1
+  var_slave_saved = var%slave
+  deallocate (var%slave)  
+  allocate (var%slave(ix_slave))
+  var%slave(1:ix_slave-1) = var_slave_saved
+  var_slave => var%slave(ix_slave)
+else
+  allocate (var%slave(1))
+  var_slave => var%slave(1)
+endif
 
 ! locate attribute
 
