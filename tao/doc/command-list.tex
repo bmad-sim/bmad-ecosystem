@@ -373,11 +373,25 @@ You may have as many \vn{d1_name}s as needed.
 
 Format:
 \begin{example}
-  cut_ring
+  cut_ring \{-particle_start\} \{-static\} \{-zero\} 
 \end{example}
 
-The \vn{cut_ring} command is used to switch the geometry of the viewed \vn{model} lattice from
-\vn{closed} to \vn{open} and vice versa.
+The \vn{cut_ring} command is used to toggle the geometry of the viewed \vn{model} lattice between
+\vn{closed} to \vn{open}.
+
+When the lattice is toggled to an open geometry, the \vn{-particle_start}, \vn{-static} or
+\vn{-zero} options can be used to set the starting orbit. In all cases, the starting orbit is set
+equal to the setting of \vn{particle_start} where \vn{particle_start} can be set in the lattice file
+and/or using \tao's \vn{set particle_start} or \vn{change particle_start} commands. With the
+\vn{-static} option, \vn{particle_start} is set to the same orbit as currently exists for the closed
+orbit. With the \vn{-zero} option, the \vn{particle_start} orbit is set to zero. With the
+\vn{-particle_start} option, the \vn{particle_start} orbit is not modified. The default is
+\vn{-static} except if the closed lattice is unstable (and there is no well defined orbit) in which
+case \vn{-particle_start} is the default.
+
+\begin{example}
+  cut -zero   ! When lattice geometry is toggled open: zero initial orbit.
+\end{example}
 
 %% continue --------------------------------------------------------------
 \section{continue}\index{commands!continue}
