@@ -290,6 +290,13 @@ where $\epsilon_{b0}$ is determined entirely by coupling from the horizontal pla
 
 In the {\tt ibs\_ring} simulation $r_\epsilon$ is set by {\tt ratio}.
 
+The starting point for the relaxation method must be greater than the equilibrium emittances,
+otherwise the solver will encounter non-physical negative emittances.  The starting points
+for the three emittances is obtained by multiplying the radiation integrals emittances by
+the {\tt initial_blow_up} parameter.  {\tt initial_blow_up} is a 3-element array.  Typically,
+these can be set between $3$ and $8$.  Larger values result in a slower simulation, while lower 
+values may fail.
+
 \section{Coulomb Logarithm}
 The IBS growth rates are directly proportional to a quantity that has come to be called
 the Coulomb Logarithm
@@ -455,6 +462,9 @@ The input parameters are:
   clog_to_use = <int>   ! 1=no tail cut, 2=raubenheimer, 3=kubo, 4=kubo w/vertical
   eqb_method = <type>   ! 'der' derivatives or 'rlx' for Wolski's relaxation.  
                         ! 'der' is default.
+  initial_blow_up = <real>, <real>, <real> ! Multiplier for initial emittances for 
+                  ! 'rlx' method.  For the relaxation method, the starting 
+                  ! emittances must be greater than the equilibrium emittances.
   ratio = <real>  ! "Coupling parameter r" for relaxation eqb_method
   x_view = <int>  ! ix of element where projection is taken 
                   ! for horizontal beam size calculation.
@@ -593,6 +603,11 @@ Smallest current per bunch in mA.
   %------------------------------
   \item[\vn{delta_current}] \Newline
 mA step size.
+
+  %------------------------------
+  \item[\vn{initial_blow_up}] \Newline
+Array of 3 numbers used to obtain the starting point for the 'rlx' method.
+
 
   \end{description}
 
