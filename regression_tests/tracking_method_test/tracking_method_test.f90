@@ -19,7 +19,6 @@ logical debug_mode
 !switch_bessel = .false.
 global_com%exit_on_error = .false.
 call ran_engine('quasi')
-call ran(r) ! The first quasi ran is just 0.5
 
 fmt = '(a, t49, a, 7es18.10)'
 track_method = ''
