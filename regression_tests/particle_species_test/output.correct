@@ -1,7 +1,13 @@
  
+"Ag:name"  STR  "Ag"
+"Ag:mass" ABS  1E-10    107.868200000
+"Ag:charge" ABS  0      0
 "Ag+76:name"  STR  "Ag+76"
 "Ag+76:mass" ABS  1E-10    107.826507927
 "Ag+76:charge" ABS  0     76
+"NH3:name"  STR  "NH3"
+"NH3:mass" ABS  1E-10     17.030518791
+"NH3:charge" ABS  0      0
 "NH3--:name"  STR  "NH3--"
 "NH3--:mass" ABS  1E-10     17.031615951
 "NH3--:charge" ABS  0     -2
@@ -32,6 +38,9 @@
 "#400Mc:name"  STR  "#400Mc"
 "#400Mc:mass" ABS  1E-10    400.315880000
 "#400Mc:charge" ABS  0      0
+"antiAu:name"  STR  "antiAu"
+"antiAu:mass" ABS  1E-10    196.966569000
+"antiAu:charge" ABS  0      0
 "antiAu-79:name"  STR  "antiAu-79"
 "antiAu-79:mass" ABS  1E-10    196.923231187
 "antiAu-79:charge" ABS  0    -79
@@ -468,4 +477,4 @@
 "dMag-Deuteron"   ABS 1E-36     1.074762E-39
 "dMag-Proton"   ABS 1E-36    -3.158128E-36
 "dMag-Electron"   ABS 1E-33     2.065054E-33
-"dMag-Muon"   ABS 1E-35     4.863435E-35
+"dMag-Muon"   ABS 1E-35     4.863434E-35
