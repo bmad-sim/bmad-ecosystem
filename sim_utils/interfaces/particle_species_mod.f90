@@ -46,6 +46,7 @@ module particle_species_mod
 
 use output_mod
 use sim_utils_struct
+use sign_of_mod
 
 implicit none
 
@@ -1327,7 +1328,8 @@ if (lb_subatomic <= species .and. species <= ub_subatomic) then
   return
 endif
 
-sp = abs(species - int(z'1000000') * (species / int(z'1000000')))  ! Subtract off charge
+sp = abs(species)
+sp = sp - int(z'1000000') * (sp / int(z'1000000'))  ! Subtract off charge
 
 if (sp == He3$) then
   moment = anomalous_mag_moment_He3
@@ -1415,7 +1417,8 @@ if (abs(species) < 1000) then
 endif
 
 ! |species| > 1000, decode CC PP MMMM
-charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
+! Charge encoded in first two hex digits of species but if negative must avoid two's complement representation.
+charge = sign_of(species) * abs(species) / int(z'1000000')  
 
 end function charge_of
 
@@ -1442,7 +1445,7 @@ end function charge_of
 function mass_of (species) result (mass)
 
 real(rp) mass
-integer n, ix, species, n_nuc, pp, charge
+integer n, ix, species, n_nuc, pp, charge, sp
 character(*), parameter :: r_name = 'mass_of'
 logical anti
 
@@ -1464,19 +1467,20 @@ endif
 
 
 ! |species| > 1000, decode CC PP MMMM
-pp = mod(abs(species), int(z'1000000')) / int(z'10000')
-charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
+sp = abs(species)
+pp = mod(sp, int(z'1000000')) / int(z'10000')
+charge = sign_of(species) * sp / int(z'1000000')  ! Charge encoded in first two hex digits of species.
 
 ! Atom?
 
-if (pp<200) then
+if (pp < 200) then
   anti = (pp == anti_atom$) 
   if (anti) then
-    pp = mod(abs(species), int(z'10000')) / 512
-    n_nuc = mod(abs(species), int(z'10000')) - pp * 512
+    pp = mod(sp, int(z'10000')) / 512
+    n_nuc = mod(sp, int(z'10000')) - pp * 512
     charge = -charge
   else
-    n_nuc = mod(abs(species), int(z'10000'))
+    n_nuc = mod(sp, int(z'10000'))
   endif
 
   if (n_nuc == 0) then
@@ -1521,7 +1525,7 @@ endif
 ! Molecule
 if (pp == 200) then
   ! unknown, mass is specified directly in units of u/100
-  mass = mod(abs(species), int(z'10000')) * atomic_mass_unit / 100
+  mass = mod(sp, int(z'10000')) * atomic_mass_unit / 100
   return
 else
   ! known molecule
@@ -1583,7 +1587,7 @@ end function charge_to_mass_of
 
 function set_species_charge(species_in, charge) result(species_charged)
 
-integer species_in, charge, species_charged
+integer species_in, charge, species_charged, sp
 character(*), parameter :: r_name = 'set_species_charge'
 
 !
@@ -1598,7 +1602,8 @@ if (charge < -127 .or. charge > 127) then
   return
 endif
 
-species_charged = species_in + int(z'1000000') * (charge - species_in / int(z'1000000'))
+sp = abs(species_in)
+species_charged = sign_of(charge) * (sp + int(z'1000000') * (abs(charge) - sp / int(z'1000000')))
 
 end function set_species_charge
 

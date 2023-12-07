@@ -6,6 +6,7 @@ use tpsa
 implicit none
 
 type (lat_struct), target :: lat
+real(rp) r
 
 character(200) :: line(10), line_debug(10)
 character(100) :: lat_file  = 'tracking_method_test.bmad'
@@ -17,6 +18,7 @@ logical debug_mode
 !
 !switch_bessel = .false.
 global_com%exit_on_error = .false.
+call ran_engine('quasi')
 
 fmt = '(a, t49, a, 7es18.10)'
 track_method = ''
@@ -88,6 +90,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
+
     if (ele_o_sign == -1 .and. ele%key == e_gun$) cycle
     if ((ele_o_sign == -1 .or. orb_dir_sign == -1) .and. ele%key == beambeam$) cycle
     if (ele%key == marker$ .and. ele%name == 'END') cycle

@@ -16,6 +16,7 @@
 subroutine lat_sanity_check (lat, err_flag)
 
 use bmad_interface, except_dummy => lat_sanity_check
+use xraylib, dummy => r_e
 
 implicit none
 
@@ -590,7 +591,25 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     endif
 
-    ! Zero length cavity is a verboten
+    ! Foil
+
+    if (ele%key == foil$) then
+      if (atomic_number(ele%ref_species)== 0) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)') // 'HAS REFERENCE SPECIES: ' // species_name(ele%ref_species), &
+                      'WHICH DOES NOT HAVE AN ASSOCIATED ATOMIC NUMBER.')
+        err_flag = .true.
+      endif
+
+      if (ele%value(radiation_length_used$) == real_garbage$) then
+        call out_io(s_fatal$, r_name, &
+            'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), & 
+            'CANNOT HANDLE NON-ATOMIC MATERIAL_TYPE: ' // ele%component_name)
+        err_flag = .true.
+      endif
+    endif
+
+    ! Zero length cavity is verboten
 
     if (ele%key == lcavity$ .and. ele%value(l$) == 0) then
       call out_io (s_fatal$, r_name, &

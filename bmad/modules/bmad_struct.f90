@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 307
+integer, parameter :: bmad_inc_version$ = 308
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1450,7 +1450,7 @@ end type
 type mode_info_struct
   logical :: stable = .false.  ! Is the mode stable?
   real(rp) :: tune   = 0       ! "fractional" tune in radians
-  real(rp) :: emit   = 0       ! Emittance.
+  real(rp) :: emit   = 0       ! Emittance (unnormalized).
   real(rp) :: chrom  = 0       ! Chromaticity.
   real(rp) :: sigma  = 0       ! Beam size.
   real(rp) :: sigmap = 0       ! Beam divergence.
@@ -1655,18 +1655,19 @@ integer, parameter :: radius$ = 3, focal_strength$ = 5
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3
-integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
-integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, final_charge$ = 4
-integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
+integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3, final_charge$ = 3
+integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
+integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4, radiation_length$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5
-integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
+integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5, radiation_length_used$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
-integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
+integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6, density$ = 6
 integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
-integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7, spin_dn_dpz_x$ = 7
+integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7, spin_dn_dpz_x$ = 7, density_used$ = 7
 integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8, spin_dn_dpz_y$ = 8
-integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8, g_tot$ = 8
+integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8, g_tot$ = 8, area_density$ = 8
 integer, parameter :: rho$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9, spin_dn_dpz_z$ = 9
+integer, parameter :: area_density_used$ = 9
 integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
 integer, parameter :: darwin_width_pi$ = 12
@@ -1844,8 +1845,8 @@ character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        '
 ! Note: The b%emittance calc from radiation integrals will include the photon vertical opening angle in the calc.
 
 type anormal_mode_struct
-  real(rp) :: emittance = 0         ! Beam emittance. Includes vertical photon opening angle.
-  real(rp) :: emittance_no_vert = 0 ! Beam emittance without the vertical photon opening angle taken into account.
+  real(rp) :: emittance = 0         ! Beam emittance (unnormalized). Includes vertical photon opening angle.
+  real(rp) :: emittance_no_vert = 0 ! Unnormalized beam emittance without the vertical photon opening angle taken into account.
   real(rp) :: synch_int(4:6) = 0    ! Synchrotron integrals
   real(rp) :: j_damp = 0            ! damping partition number
   real(rp) :: alpha_damp = 0        ! damping per turn

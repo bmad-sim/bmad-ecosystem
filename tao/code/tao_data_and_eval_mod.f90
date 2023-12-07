@@ -476,7 +476,7 @@ type (twiss_struct), pointer :: z0, z1, z2
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
-real(rp) gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
+real(rp) beta_gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE, s_offset
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
@@ -742,8 +742,8 @@ case ('apparent_emit.', 'norm_apparent_emit.')
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
     if (data_type == 'norm_apparent_emit.x') then
-      call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-      datum_value = datum_value * gamma
+      beta_gamma = ele%value(p0c$) /  mass_of(branch%param%particle)
+      datum_value = datum_value * beta_gamma
     endif
 
   case ('apparent_emit.y', 'norm_apparent_emit.y')
@@ -767,8 +767,8 @@ case ('apparent_emit.', 'norm_apparent_emit.')
 
 
     if (data_type == 'norm_apparent_emit.y') then
-      call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-      datum_value = datum_value * gamma
+      beta_gamma = ele%value(p0c$) /  mass_of(branch%param%particle)
+      datum_value = datum_value * beta_gamma
     endif
 
 
@@ -1480,9 +1480,9 @@ case ('element_attrib.')
 case ('emit.', 'norm_emit.')
 
   if (associated(ele)) then
-    call convert_total_energy_to (ele%value(e_tot$), lat%param%particle, gamma = gamma)
+    beta_gamma = ele%value(p0c$) / mass_of(branch%param%particle)
   else
-    gamma = 0
+    beta_gamma = 0
   endif
 
   select case (data_type)
@@ -1500,7 +1500,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%x%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (data_type == 'norm_emit.x') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.x') datum_value = datum_value * beta_gamma
 
   case ('emit.y', 'norm_emit.y')
     if (data_source == 'lat') then
@@ -1515,7 +1515,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%y%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (data_type == 'norm_emit.y') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.y') datum_value = datum_value * beta_gamma
 
   case ('emit.z', 'norm_emit.z')
     if (data_source == 'lat') then
@@ -1524,7 +1524,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%z%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (data_type == 'norm_emit.y') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.y') datum_value = datum_value * beta_gamma
 
   case ('emit.a', 'norm_emit.a')
     if (data_source == 'lat') then
@@ -1536,7 +1536,7 @@ case ('emit.', 'norm_emit.')
         rad_int_branch => tao_lat%rad_int%branch(ix_branch)
         call tao_load_this_datum (rad_int_branch%ele%lin_norm_emit_a, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-        datum_value = datum_value / gamma
+        datum_value = datum_value / beta_gamma
       else
         datum_value = tao_branch%modes_6d%a%emittance
         valid_value = .true.
@@ -1545,7 +1545,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%a%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (data_type == 'norm_emit.a') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.a') datum_value = datum_value * beta_gamma
     
   case ('emit.b', 'norm_emit.b')
     if (data_source == 'lat') then
@@ -1557,7 +1557,7 @@ case ('emit.', 'norm_emit.')
         rad_int_branch => tao_lat%rad_int%branch(ix_branch)
         call tao_load_this_datum (rad_int_branch%ele%lin_norm_emit_b, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-        datum_value = datum_value / gamma
+        datum_value = datum_value / beta_gamma
       else
         datum_value = tao_branch%modes_6d%b%emittance
         valid_value = .true.
@@ -1566,7 +1566,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%b%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (data_type == 'norm_emit.b') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.b') datum_value = datum_value * beta_gamma
 
   case ('emit.c', 'norm_emit.c')
     if (data_source == 'lat') then
@@ -1575,7 +1575,7 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%c%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
 
-    if (data_type == 'norm_emit.y') datum_value = datum_value * gamma
+    if (data_type == 'norm_emit.y') datum_value = datum_value * beta_gamma
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)

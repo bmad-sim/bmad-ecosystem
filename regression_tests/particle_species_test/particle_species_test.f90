@@ -11,7 +11,7 @@ character(100) :: lat_name, lat_path, base_name, in_file
 character(30), parameter :: r_name = 'particle_species_test'
 
 
-character(20) :: example_names(1:14)  = ''
+character(20) :: example_names(1:17)  = ''
 
 logical :: verbose
 
@@ -20,8 +20,8 @@ namelist / particle_species_test_params / &
 
 !------------------------------------------
 ! Defaults for namelist
-example_names =  [character(20) :: 'Ag+76', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+3', &
-                        '#293Lv-2', '#291Og', '#295Ts', '#400Mc', 'antiAu-79', '#12Fe+++', 'antiI']
+example_names =  [character(20) :: 'Ag', 'Ag+76', 'NH3', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+3', &
+                        '#293Lv-2', '#291Og', '#295Ts', '#400Mc', 'antiAu', 'antiAu-79', '#12Fe+++', 'antiI']
 verbose = .false.
 
 ! Read namelist
