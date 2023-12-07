@@ -940,6 +940,12 @@ call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT
 call init_attribute_name1 (foil$, thickness$,                       'THICKNESS')
 call init_attribute_name1 (foil$, material_type$,                   'MATERIAL_TYPE')
 call init_attribute_name1 (foil$, final_charge$,                    'FINAL_CHARGE')
+call init_attribute_name1 (foil$, radiation_length$,                'RADIATION_LENGTH')
+call init_attribute_name1 (foil$, radiation_length_used$,           'RADIATION_LENGTH_USED', dependent$)
+call init_attribute_name1 (foil$, density$,                         'DENSITY')
+call init_attribute_name1 (foil$, density_used$,                    'DENSITY_USED', dependent$)
+call init_attribute_name1 (foil$, area_density$,                    'AREA_DENSITY', quasi_free$)
+call init_attribute_name1 (foil$, area_density_used$,               'AREA_DENSITY_USED', dependent$)
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
@@ -1967,6 +1973,12 @@ character(16) attrib_units
 
 select case (attrib_name)
 
+case ('DENSITY', 'DENSITY_USED')
+  attrib_units = 'kg/m^3'
+
+case ('AREA_DENSITY', 'AREA_DENSITY_USED')
+  attrib_units = 'kg/m^2'
+
 case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', 'ALPHA_B1', &
       'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', &
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
@@ -2002,6 +2014,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
       'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', 'Z_CROSSING', &
+      'RADIATION_LENGTH', 'RADIATION_LENGTH_USED', &
       'X_DISPERSION_ERR', 'Y_DISPERSION_ERR', 'X_DISPERSION_CALIB', 'Y_DISPERSION_CALIB')
   attrib_units = 'm'
 

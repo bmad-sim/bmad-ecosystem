@@ -14,6 +14,7 @@ type (coord_struct) orb
 type (control_struct), pointer :: ctl
 type (nametable_struct) ntab
 type (expression_atom_struct), allocatable :: stack(:)
+  type (ele_pointer_struct), allocatable :: ramper(:)
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(40) :: loc_str(17) = [character(40):: 'qu1-1', 'qu1-5', 'qu2+1', 'qu2+10', &
@@ -45,20 +46,28 @@ if (nargs > 0) then
   stop
 endif
 
-if (nargs == 1)then
-   call get_command_argument(1, lat_file)
-   print *, 'Using ', trim(lat_file)
-   print_extra = .true.
-elseif (nargs > 1) then
-  print *, 'Only one command line arg permitted.'
-  call err_exit
-endif
-
-!-------------
+! if (nargs == 1) then
+!    call get_command_argument(1, lat_file)
+!    print *, 'Using ', trim(lat_file)
+!    print_extra = .true.
+! elseif (nargs > 1) then
+!   print *, 'Only one command line arg permitted.'
+!   call err_exit
+! endif
 
 open (1, file = 'output.now', recl = 200)
 
-!
+!-----------------------------------------
+
+!call bmad_parser('bookkeeper_test3.bmad', lat)
+
+!  call lat_ele_locator ('RAMPER::*', lat, ramper, n_ramper, err)
+
+!do ie = 1, lat%n_ele_track
+!  call apply_rampsers_to_slave(lat%ele(ie), ramper, err_flag)
+!enddo
+
+!-----------------------------------------
 
 call ran_seed_put (1234)
 do i = 1, size(exp_str)

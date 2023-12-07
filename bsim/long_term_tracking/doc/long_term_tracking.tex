@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ November 28, 2023}
+\date{David Sagan \\ December 6, 2023}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -551,7 +551,7 @@ type beam_init_struct
   integer n_particle = 0             ! Num of simulated particles per bunch.
   logical renorm_center = T          ! Renormalize centroid?
   logical renorm_sigma = T           ! Renormalize sigma?
-  real(rp) spin(3) = 0, 0, 0         ! Spin (x, y, z)
+  real spin(3) = 0, 0, 0             ! Spin (x, y, z)
   real a_norm_emit = 0               ! a-mode normalized emittance
   real b_norm_emit = 0               ! b-mode normalized emittance
   real a_emit = 0                    ! a-mode emittance
@@ -571,6 +571,17 @@ type beam_init_struct
                             !   True:  The z coordinate stores the time.
                             !   False: The z coordinate stores the s-position.
 end type
+\end{code}
+
+Note: If not using a position file, if any of the follow \vn{beam_init_struct} components are set
+negative, the value of the component used in constructing a beam will be calculated from the lattice:
+\begin{code}
+a_norm_emit 
+b_norm_emit 
+a_emit
+b_emit
+sig_z
+sig_pz
 \end{code}
 
 %------------------------------------------------------------------

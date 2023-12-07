@@ -25,6 +25,7 @@ subroutine attribute_bookkeeper (ele, force_bookkeeping)
 use s_fitting, only: check_bend
 use bookkeeper_mod, except_dummy => attribute_bookkeeper
 use xraylib_interface, except_dummy2 => attribute_bookkeeper
+use xraylib, dummy => r_e
 use super_recipes_mod, only: super_brent
 use ptc_layout_mod, only: update_ele_from_fibre
 use taylor_mod, only: kill_taylor
@@ -47,7 +48,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, status
+integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, status, material, z_material
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -442,6 +443,31 @@ case (crab_cavity$)
     val(rf_wavelength$) = c_light / val(rf_frequency$)
   else
     val(rf_wavelength$) = 0
+  endif
+
+! Foil
+
+case (foil$)
+
+  material = species_id(ele%component_name)
+
+  if (ele%value(radiation_length$) == 0) then
+    ele%value(radiation_length_used$) = x0_radiation_length(material)
+  else
+    ele%value(radiation_length_used$) = ele%value(radiation_length$)
+  endif
+
+  if (ele%value(density$) == 0) then
+    z_material = atomic_number(material)
+    ele%value(density_used$) = ElementDensity(z_material) * 1e3_rp  ! From xraylib. Convert to kg/m^3
+  else
+    ele%value(density_used$) = ele%value(density$)
+  endif
+
+  if (ele%value(thickness$) == 0) then
+    ele%value(area_density_used$) = ele%value(area_density$)
+  else
+    ele%value(area_density_used$) = ele%value(density_used$) * ele%value(thickness$) 
   endif
 
 ! Crystal
