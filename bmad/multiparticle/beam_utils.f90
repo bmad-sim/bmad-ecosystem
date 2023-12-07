@@ -388,46 +388,40 @@ if (species == not_set$) species = default_tracking_species(param)
 
 b_init = beam_init ! To not modify the input arg.
 
-if (b_init%a_emit < 0) then
+if (b_init%a_emit /= 0 .and. b_init%a_norm_emit /= 0) then
+  call out_io (s_error$, r_name, 'I am confused! Both a_emit and a_norm_emit are set non-zero in the beam_init_struct structure.', &
+                                   'Please set one or the other to zero.')
+  return
+endif
+
+if (b_init%b_emit /= 0 .and. b_init%b_norm_emit /= 0) then
+  call out_io (s_error$, r_name, 'I am confused! Both b_emit and b_norm_emit are set non-zero in the beam_init_struct structure.', &
+                                   'Please set one or the other to zero.')
+  return
+endif
+
+if (b_init%a_emit < 0 .or. b_init%a_norm_emit < 0) then
   if (present(modes)) then
     b_init%a_emit = modes%a%emittance
-  else
-    call out_io (s_warn$, r_name, &
-                    'a_emit is set negative but the calling program has not provided lattice emittance numbers!', &
-                    'Will use a value of zero...')
-    b_init%a_emit = 0
-  endif
-endif
-
-if (b_init%b_emit < 0) then
-  if (present(modes)) then
-    b_init%b_emit = modes%a%emittance
-  else
-    call out_io (s_warn$, r_name, &
-                    'b_emit is set negative but the calling program has not provided lattice emittance numbers!', &
-                    'Will use a value of zero...')
-    b_init%b_emit = 0
-  endif
-endif
-
-if (b_init%a_norm_emit < 0) then
-  if (present(modes)) then
     b_init%a_norm_emit = modes%a%emittance * ele%value(p0c$) / mass_of(species)
   else
     call out_io (s_warn$, r_name, &
-                    'a_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'a_emit and/or a_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
                     'Will use a value of zero...')
+    b_init%a_emit = 0
     b_init%a_norm_emit = 0
   endif
 endif
 
-if (b_init%b_norm_emit < 0) then
+if (b_init%b_emit < 0 .or. b_init%b_norm_emit < 0) then
   if (present(modes)) then
+    b_init%b_emit = modes%b%emittance
     b_init%b_norm_emit = modes%b%emittance * ele%value(p0c$) / mass_of(species)
   else
     call out_io (s_warn$, r_name, &
-                    'b_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'b_emit and/or b_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
                     'Will use a value of zero...')
+    b_init%b_emit = 0
     b_init%b_norm_emit = 0
   endif
 endif
