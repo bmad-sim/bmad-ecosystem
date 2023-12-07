@@ -1133,7 +1133,7 @@ The attributes specific to an \vn{crab_cavity} are
   phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{s:multipass}).
   rf_frequency    = <Real>    ! RF frequency (Hz).
   harmon          = <Real>    ! Harmonic number
-  harmon_master   = <Logic>   ! Is haromin or rf_frequency the dependent var with ref energy changes?
+  harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent var with ref energy changes?
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
 \end{example}
 
@@ -2080,8 +2080,9 @@ element.
 \label{s:foil}
 \index{foil|hyperbf}
 
-A \vn{foil} element represents a planar sheet which strips all the electrons from a particle.
-Additionally, there will be scattering of the trajectory of a particle going through a \vn{foil}.
+A \vn{foil} element represents a planar sheet of material which strips electrons from a particle.
+In conjunction, there will be scattering of the particle trajectory as well as an associated energy
+loss.
 
 General \vn{foil} attributes are:
 \begin{center}
@@ -2101,14 +2102,35 @@ See \sref{s:list.solenoid} for a full list of element attributes along with a th
 
 Attributes specific to a \vn{foil} element are:
 \begin{example}
-  material_type   = <String>    ! Foil material.
-  thickness       = <Real>      ! Foil thickness.
-  final_charge    = <Integer>   ! Final charge state
+  material_type     = <String>    ! Foil material.
+  thickness         = <Real>      ! Material thickness (m).
+  density           = <Real>      ! Input material density (kg/m^3).
+  density_used                    ! Density value used in tracking (kg/m^3). Dependent parameter.
+  radiation_length  = <Real>      ! Input material radiation length (m).
+  radiation_length_used           ! Radiation length used in tracking (m). Dependent parameter.
+  area_density      = <Real>      ! Input material area density (kg/m^2).
+  area_density_used               ! Area density used in tracking (kg/m^2).
+  final_charge      = <Integer>   ! Final charge state
 \end{example}
 
-The \vn{thickness} parameter along with \vn{material_type} is used to calculate the scattering
-sigma. Scattering is simulated to be Gaussian distributed with a sigma given by Eq.~(6) of Lynch and
-Dahl\cite{b:lynch}.
+Scattering is simulated to be Gaussian distributed with a sigma given by Eq.~(6) of Lynch and
+Dahl\cite{b:lynch}. Energy loss is calculated using the Bethe-Bloch formula.
+
+The radiation length used in the scattering calculation is given by the \vn{radiation_length_used}
+parameter.  This value cannot be set directly. Rather, if the \vn{radiation_length} parameter is set
+non-zero, this value will be transferred to \vn{radiation_length_used}. If \vn{radiation_length} is
+zero (the default), the value of \vn{radiation_length_used} will be set by \bmad using the measured
+value from the published literature.
+
+Similarly, the \vn{area_density_used} (density of the material per unit of surface area) value
+needed for the calculation is not set directly but is set in one of two ways depending upon if the
+material \vn{thickness} is non-zero or not. If \vn{thickness} is non-zero, \vn{area_density_used} is
+set by the product of \vn{thickness} and \vn{density_used} while the value of \vn{density_used} is
+set by \bmad to be either the value \vn{density} if the \vn{density} is non-zero or by the measured
+density of the material as given in the published literature. If \vn{thickness} is zero (the
+default), the value of \vn{area_density_used} is set equal to the value of \vn{area_density}. Note that
+the value of \vn{density_used} is only used to set \vn{area_density_used} when \vn{thickness} is non-zero
+and otherwise does not affect the tracking calculation.
 
 In terms of element placement, The length of a \vn{foil} element (\Eq{l00l}) is considered to be
 zero.  This is similar to the \vn{beambeam} element which is also considered to have zero length but
@@ -2119,11 +2141,10 @@ not affect the transfer matrix.
 
 Particles going through the \vn{foil} are stripped to have a final charge given by \vn{final_charge}.
 
-Energy loss is calculated using the Bethe-Bloch formula.
 
 Example:
 \begin{example}
-  septum: foil, material_type = "Cu", thickness = 0.127
+  septum: foil, material_type = "Cu", thickness = 0.127, radiation_length = 
 \end{example}
 
 \newpage
