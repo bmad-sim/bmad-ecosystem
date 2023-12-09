@@ -121,6 +121,7 @@ type ltt_com_struct
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper element locations.
   type (beam_init_struct) beam_init
+  type (beam_init_struct) beam_init_used
   type (random_state_struct) ramper_ran_state
   integer :: n_ramper_loc = 0
   integer, allocatable :: ix_wake_ele(:)     ! List of element indexes where a wake is applied.
@@ -1161,8 +1162,8 @@ call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 !
 
-call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, &
-                                                            modes = ltt_com%modes, print_p0c_shift_warning = .false.)
+call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, ltt_com%modes, &
+                                                    ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
 if (err_flag) stop
 print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
 ltt_com%n_particle = size(beam%bunch(1)%particle)
@@ -1475,7 +1476,10 @@ type (ltt_params_struct) lttp
 type (branch_struct) branch
 type (ltt_com_struct), target :: ltt_com
 type (normal_modes_struct) modes
+type (ele_struct), pointer :: ele_start, ele_stop
+
 real(rp) n_particle, gamma
+logical err
 
 !
 
@@ -1495,10 +1499,12 @@ endif
 gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%ele(0)%ref_species)
 modes = ltt_com%modes
 
-if (ltt_com%beam_init%a_emit > 0) modes%a%emittance = ltt_com%beam_init%a_emit
-if (ltt_com%beam_init%b_emit > 0) modes%b%emittance = ltt_com%beam_init%b_emit
-if (ltt_com%beam_init%a_norm_emit > 0) modes%a%emittance = ltt_com%beam_init%a_norm_emit / gamma
-if (ltt_com%beam_init%b_norm_emit > 0) modes%b%emittance = ltt_com%beam_init%b_norm_emit / gamma
+call ltt_pointer_to_map_ends(lttp, ltt_com%tracking_lat, ele_start, ele_stop)
+ltt_com%beam_init_used = set_emit_from_beam_init(ltt_com%beam_init, ele_start, ele_start%ref_species, ltt_com%modes, err)
+if (err) stop
+
+modes%a%emittance = ltt_com%beam_init_used%a_emit
+modes%b%emittance = ltt_com%beam_init_used%b_emit
 
 if (modes%a%emittance == 0 .or. modes%b%emittance == 0) then
   print *, 'WARNING! No a-mode or b-mode emittance set in beam_init structrue. Cannot compute high energy space charge kick.'

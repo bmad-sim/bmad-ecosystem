@@ -220,7 +220,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
-type (beam_init_struct), pointer :: beam_init
+type (beam_init_struct) beam_init
 type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct) :: bunch_params
 
@@ -247,7 +247,6 @@ if (ie0 == not_set$) return
 
 if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. branch%param%particle == photon$) return
 
-beam_init => u%model_branch(0)%beam%beam_init
 ele => branch%ele(ie0)
 if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave)
 if (.not. associated(ele%mode3)) allocate (ele%mode3)
@@ -264,12 +263,12 @@ elseif (s%global%init_lat_sigma_from_beam) then
   tao_branch%lat_sigma(ie0)%mat = bunch_params%sigma
 
 else
-  call calc_emit_from_beam_init(beam_init, ele, ele%ref_species)
+  beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
   D_mat = 0
-  D_mat(1,1) = ele%a%emit   ! Set by calc_this_emit
-  D_mat(2,2) = ele%a%emit
-  D_mat(3,3) = ele%b%emit
-  D_mat(4,4) = ele%b%emit
+  D_mat(1,1) = beam_init%a_emit   ! Set by calc_this_emit
+  D_mat(2,2) = beam_init%a_emit
+  D_mat(3,3) = beam_init%b_emit
+  D_mat(4,4) = beam_init%b_emit
   D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
   D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
 
@@ -886,7 +885,8 @@ if (.not. bb%init_starting_distribution) then ! Needed since bb%beam_at_start ma
 endif
 
 if (bb%init_starting_distribution .or. u%beam%always_reinit) then
-  call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, tao_branch%modes_6d)
+  bb%beam_init_used%a_emit = real_garbage$  ! Tag to see if structure is set. [May not be if reading from a file.]
+  call init_beam_distribution (ele0, branch%param, bb%beam_init, beam, err, tao_branch%modes_6d, bb%beam_init_used)
   if (err) then
     call out_io (s_error$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT PROPERLY SET FOR UNIVERSE: ' // int_str(u%ix_uni))
     return

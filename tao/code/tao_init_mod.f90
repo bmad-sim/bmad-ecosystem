@@ -191,7 +191,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     u%model_branch(ib)%ele%save_beam_to_file = .false.
 
     if (branch%ix_from_branch < 0) then  ! Root branch
-      bb%beam_init = beam_init_struct()
+      bb%beam_init      = beam_init_struct()
+      bb%beam_init_used = beam_init_struct()
+      bb%beam_init_used%a_emit = real_garbage$  ! Tag to see when structure is set.
       bb%beam_init%position_file = s%init%beam_init_position_file_arg
       bb%track_start    = ''
       bb%track_end      = ''
