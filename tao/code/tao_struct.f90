@@ -965,10 +965,13 @@ type tao_model_element_struct
 end type
 
 ! Beam information for a branch in a universe
+! Note: If emittances (and other values) in beam_init can are set negative, Bmad will use the natural emittance. 
+!   The beam_init_used component is used to hold the emittances used to construct the beam.
 
 type tao_beam_branch_struct
   type (beam_struct) beam_at_start                     ! Initial beam 
-  type (beam_init_struct) :: beam_init                 ! Beam distrubution at beginning of lattice
+  type (beam_init_struct) :: beam_init                 ! User set beam distrubution at track start.
+  type (beam_init_struct) :: beam_init_used            ! beam distribution with emit values set.
   logical :: init_starting_distribution = .true.       ! Init beam
   character(40) :: track_start = ''                    ! Tracking start element.
   character(40) :: track_end = ''

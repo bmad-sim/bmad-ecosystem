@@ -18,7 +18,6 @@ logical debug_mode
 !
 !switch_bessel = .false.
 global_com%exit_on_error = .false.
-call ran_engine('quasi')
 
 fmt = '(a, t49, a, 7es18.10)'
 track_method = ''
@@ -36,6 +35,9 @@ endif
 
 call bmad_parser (lat_file, lat, .false.)
 bmad_com%auto_bookkeeper = .true.
+
+call ran_engine('quasi')
+call ran_uniform(r)
 
 if (debug_mode) then
   if (lat%param%geometry == open$) then

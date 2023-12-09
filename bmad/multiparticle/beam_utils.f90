@@ -159,7 +159,8 @@ end subroutine track1_bunch_hom
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
+! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, beam_init_set, 
+!                                                                     print_p0c_shift_warning, conserve_momentum)
 !
 ! Subroutine to initialize a beam of particles. 
 ! Initialization uses the downstream parameters of ele.
@@ -177,20 +178,23 @@ end subroutine track1_bunch_hom
 ! This is only used for parameters that cannot be negative.
 !
 ! Input:
-!   ele         -- Ele_struct: element to initialize distribution at (downstream end).
-!   param       -- Lat_param_struct: Lattice parameters
-!     %particle      -- Type of particle.
-!   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!   modes       -- normal_modes_struct, optional: Normal mode parameters. See above.
-!   print_p0c_shift_warning   -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
-!   shift_momentum            -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
+!   ele                 -- Ele_struct: element to initialize distribution at (downstream end).
+!   param               -- Lat_param_struct: Lattice parameters
+!     %particle              -- Type of particle.
+!   beam_init           -- beam_init_struct: Use "getf beam_init_struct" for more details.
+!   modes               -- normal_modes_struct, optional: Normal mode parameters. See above.
+!   print_p0c_shift_warning -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
+!   shift_momentum          -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
 !
 ! Output:
-!   beam        -- Beam_struct: Structure with initialized particles.
-!   err_flag    -- logical, optional: Set true if there is an error, false otherwise.
+!   beam                -- Beam_struct: Structure with initialized particles.
+!   err_flag            -- logical, optional: Set true if there is an error, false otherwise.
+!   beam_init_set       -- beam_init_struct: Set to input beam_init with components like %a_emit set what is used in
+!                           constructing the beam (which is different from beam_init%a_emit if this is set negative).
 !-
 
-subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
+subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, beam_init_set, &
+                                                                      print_p0c_shift_warning, conserve_momentum)
  
 use random_mod
 
@@ -199,6 +203,7 @@ implicit none
 type (ele_struct) ele
 type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
+type (beam_init_struct), optional :: beam_init_set
 type (beam_struct), target :: beam
 type (normal_modes_struct), optional :: modes
 type (bunch_struct), pointer :: bunch
@@ -209,7 +214,7 @@ logical, optional :: err_flag
 logical, optional :: print_p0c_shift_warning, conserve_momentum
 logical err_here
 
-character(22) :: r_name = "init_beam_distribution"
+character(*), parameter :: r_name = "init_beam_distribution"
 
 !
 
@@ -244,7 +249,7 @@ call reallocate_beam (beam, max(beam_init%n_bunch, 1), 0)
 
 do i_bunch = 1, size(beam%bunch)
   bunch => beam%bunch(i_bunch)
-  call init_bunch_distribution (ele, param, beam_init, i_bunch-1, bunch, err_here, modes)
+  call init_bunch_distribution (ele, param, beam_init, i_bunch-1, bunch, err_here, modes, beam_init_set)
   if (err_here) return
 enddo
   
@@ -256,7 +261,8 @@ end subroutine init_beam_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
+! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes, beam_init_used,
+!                                                                          print_p0c_shift_warning, conserve_momentum)
 !
 ! Subroutine to initialize a distribution of particles of a bunch.
 ! Initialization uses the downstream parameters of ele.
@@ -288,20 +294,24 @@ end subroutine init_beam_distribution
 ! The closed orbit will shift if, for example, radiation damping is turned on.
 !
 ! Input:
-!   ele         -- Ele_struct: element to initialize distribution at (downstream end).
-!   param       -- Lat_param_struct: Lattice parameters
-!   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!   ix_bunch    -- integer: Bunch index. 0 = bunch generated at time = 0.
-!   modes       -- normal_modes_struct, optional: Normal mode parameters. See above.
-!   print_p0c_shift_warning   -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
-!   shift_momentum            -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
+!   ele                 -- Ele_struct: element to initialize distribution at (downstream end).
+!   param               -- Lat_param_struct: Lattice parameters
+!   beam_init           -- beam_init_struct: Use "getf beam_init_struct" for more details.
+!   ix_bunch            -- integer: Bunch index. 0 = bunch generated at time = 0.
+!   modes               -- normal_modes_struct, optional: Normal mode parameters. See above.
+!   print_p0c_shift_warning -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
+!   shift_momentum          -- logical, optional: Default is True. See hdf5_read_beam doc. Only used when reading hdf5 file.
 !
 ! Output:
-!   bunch        -- bunch_struct: Structure with initialized particles.
-!   err_flag     -- logical, optional: Set True if there is an error. False otherwise.
+!   bunch               -- bunch_struct: Structure with initialized particles.
+!   err_flag            -- logical, optional: Set True if there is an error. False otherwise.
+!   beam_init_used      -- beam_init_struct: Set to input beam_init with components like %a_emit set what is used in
+!                           constructing the beam (which can be different from beam_init%a_emit if this is set negative).
+!                           If reading from a file, beam_init_used will equal beam_init.
 !-
 
-subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes, print_p0c_shift_warning, conserve_momentum)
+subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes, beam_init_used, &
+                                                                                print_p0c_shift_warning, conserve_momentum)
 
 use mode3_mod
 use random_mod
@@ -312,7 +322,9 @@ type (ele_struct) ele
 type (ele_struct) twiss_ele
 type (lat_param_struct) param
 type (beam_struct) beam
-type (beam_init_struct), target :: beam_init, b_init
+type (beam_init_struct), target :: beam_init, beam_init_temp
+type (beam_init_struct), optional, target :: beam_init_used
+type (beam_init_struct), pointer :: b_init
 type (bunch_struct), target :: bunch
 type (coord_struct) p_temp
 type (coord_struct), pointer :: p
@@ -337,33 +349,47 @@ logical, optional :: print_p0c_shift_warning, conserve_momentum
 logical ok, correct_for_coupling(6)
 logical ran_gauss_here, err
 
-! Convert from old format to new.
+!
 
 if (present(err_flag)) err_flag = .true.
 
+if (present(beam_init_used)) then
+  b_init => beam_init_used
+else
+  b_init => beam_init_temp
+endif
+b_init = beam_init
+
+! Old format
+
 if (beam_init%sig_e /= 0) then
   call out_io (s_error$, r_name, '===========================================================', &
-                                 '==== BEAM_INIT%SIG_E IS DEPRECATED! PLEASE DO NOT USE! ====', &
+                                 '==== BEAM_INIT%SIG_E IS DEPRECATED! DO NOT USE!        ====', &
                                  '==== USE BEAM_INIT%SIG_PZ INSTEAD!                     ====', &
+                                 '==== THE BEAM WILL NOT BE INITIALIZED!                 ====', &
                                  '===========================================================')
-  if (beam_init%sig_pz == 0) beam_init%sig_pz = beam_init%sig_e
+  return
 endif
 
 if (beam_init%sig_e_jitter /= 0) then
   call out_io (s_error$, r_name, '==================================================================', &
                                  '==== BEAM_INIT%SIG_E_JITTER IS DEPRECATED! PLEASE DO NOT USE! ====', &
                                  '==== USE BEAM_INIT%SIG_PZ_JITTER INSTEAD!                     ====', &
+                                 '==== THE BEAM WILL NOT BE INITIALIZED!                        ====', &
                                  '==================================================================')
-  if (beam_init%sig_pz_jitter == 0) beam_init%sig_pz_jitter = beam_init%sig_e_jitter
+  return
+endif
+
+if (beam_init%file_name /= '') then
+  call out_io (s_error$, r_name, '==================================================================', &
+                                 '==== BEAM_INIT%SIG_E_JITTER IS DEPRECATED! PLEASE DO NOT USE! ====', &
+                                 '==== USE BEAM_INIT%SIG_PZ_JITTER INSTEAD!                     ====', &
+                                 '==== THE BEAM WILL NOT BE INITIALIZED!                        ====', &
+                                 '==================================================================')
+  return
 endif
 
 ! Read from file?
-
-if (beam_init%file_name /= '') then   ! Old name
-  call out_io (s_warn$, r_name, 'Note: beam_init%file_name has been changed to beam_init%position_file.', 'Please change this in your file.')
-  beam_init%position_file = beam_init%file_name
-  beam_init%file_name = ''
-endif
 
 if (beam_init%position_file /= '') then
   call read_beam_file (beam_init%position_file, beam, beam_init, err, ele, print_p0c_shift_warning, conserve_momentum)
@@ -381,80 +407,12 @@ if (beam_init%position_file /= '') then
   return
 endif
 
-! Use modes info if present
+! Use modes info if present and parameter is set negative.
 
 species = species_id(beam_init%species)
 if (species == not_set$) species = default_tracking_species(param)
 
-b_init = beam_init ! To not modify the input arg.
-
-if (b_init%a_emit /= 0 .and. b_init%a_norm_emit /= 0) then
-  call out_io (s_error$, r_name, 'I am confused! Both a_emit and a_norm_emit are set non-zero in the beam_init_struct structure.', &
-                                   'Please set one or the other to zero.')
-  return
-endif
-
-if (b_init%b_emit /= 0 .and. b_init%b_norm_emit /= 0) then
-  call out_io (s_error$, r_name, 'I am confused! Both b_emit and b_norm_emit are set non-zero in the beam_init_struct structure.', &
-                                   'Please set one or the other to zero.')
-  return
-endif
-
-if (b_init%a_emit < 0 .or. b_init%a_norm_emit < 0) then
-  if (present(modes)) then
-    b_init%a_emit = modes%a%emittance
-    b_init%a_norm_emit = modes%a%emittance * ele%value(p0c$) / mass_of(species)
-  else
-    call out_io (s_warn$, r_name, &
-                    'a_emit and/or a_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
-                    'Will use a value of zero...')
-    b_init%a_emit = 0
-    b_init%a_norm_emit = 0
-  endif
-endif
-
-if (b_init%b_emit < 0 .or. b_init%b_norm_emit < 0) then
-  if (present(modes)) then
-    b_init%b_emit = modes%b%emittance
-    b_init%b_norm_emit = modes%b%emittance * ele%value(p0c$) / mass_of(species)
-  else
-    call out_io (s_warn$, r_name, &
-                    'b_emit and/or b_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
-                    'Will use a value of zero...')
-    b_init%b_emit = 0
-    b_init%b_norm_emit = 0
-  endif
-endif
-
-if (b_init%sig_z < 0) then
-  if (present(modes)) then
-    b_init%sig_z = modes%sig_z
-  else
-    call out_io (s_warn$, r_name, &
-                    'sig_z is set negative but the calling program has not provided lattice emittance numbers!', &
-                    'Will use a value of zero...')
-    b_init%sig_z = 0
-  endif
-endif
-
-if (b_init%sig_pz < 0) then
-  if (present(modes)) then
-    b_init%sig_pz = modes%sigE_E
-  else
-    call out_io (s_warn$, r_name, &
-                    'sig_pz is set negative but the calling program has not provided lattice emittance numbers!', &
-                    'Will use a value of zero...')
-    b_init%sig_pz = 0
-  endif
-endif
-
-! Checking that |b_init%dpz_dz| < mode%sigE_E / mode%sig_z
-
-if (abs(b_init%dPz_dz * b_init%sig_z) > b_init%sig_pz) then
-  call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
+b_init = set_emit_from_beam_init (beam_init, ele, species, modes, err); if (err) return
 
 ! Save and set the random number generator parameters.
 
@@ -474,8 +432,6 @@ else
   call transfer_ele (ele, twiss_ele, .true.)
 endif
 
-call calc_emit_from_beam_init (b_init, twiss_ele, species)
-
 covar = b_init%dPz_dz * b_init%sig_z**2
 twiss_ele%z%emit = sqrt((b_init%sig_z*b_init%sig_pz)**2 - covar**2)
 if (twiss_ele%z%emit == 0 .or. b_init%full_6D_coupling_calc) then
@@ -485,6 +441,9 @@ else
   twiss_ele%z%beta = b_init%sig_z**2 / twiss_ele%z%emit
   twiss_ele%z%alpha = - covar / twiss_ele%z%emit
 endif
+
+twiss_ele%a%emit = b_init%a_emit
+twiss_ele%b%emit = b_init%b_emit
 
 ! Init
 
@@ -599,7 +558,7 @@ end subroutine init_bunch_distribution
 ! Note: This routine is private. Use init_bunch_distribution instead.
 !-
 
-subroutine init_random_distribution (ele, species, beam_init, bunch, err_flag)
+subroutine init_random_distribution (ele, species, beam_init, bunch, err_flag, modes)
  
 use random_mod
 
@@ -608,6 +567,7 @@ implicit none
 type (ele_struct) ele
 type (beam_init_struct) beam_init
 type (bunch_struct), target :: bunch
+type (normal_modes_struct), optional :: modes
 type (coord_struct), allocatable :: p(:)
   
 real(rp) dpz_dz, denom
@@ -710,15 +670,13 @@ endif
 
 ! Compute sigmas
 
-call calc_emit_from_beam_init(beam_init, ele, species)
-
 dpz_dz = beam_init%dpz_dz
   
 call ran_gauss(ran_g) 
-sigma(1) = sqrt(ele%a%emit * ele%a%beta)
-sigma(2) = sqrt(ele%a%emit / ele%a%beta)
-sigma(3) = sqrt(ele%b%emit * ele%b%beta)
-sigma(4) = sqrt(ele%b%emit / ele%b%beta)
+sigma(1) = sqrt(beam_init%a_emit * ele%a%beta)
+sigma(2) = sqrt(beam_init%a_emit / ele%a%beta)
+sigma(3) = sqrt(beam_init%b_emit * ele%b%beta)
+sigma(4) = sqrt(beam_init%b_emit / ele%b%beta)
 if (beam_init%full_6D_coupling_calc) then
   sigma(5) = sqrt(beam_init%sig_z*beam_init%sig_pz)
   sigma(6) = sqrt(beam_init%sig_z*beam_init%sig_pz)
@@ -967,7 +925,7 @@ end subroutine init_ellipse_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, ele, bunch)
+! Subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, twiss_ele, bunch)
 !
 ! Subroutine to initalize a phase space distribution as a set of concentric
 ! ellipses of macroparticles representing a Kapchinsky-Vladimirsky distribution.
@@ -987,13 +945,13 @@ end subroutine init_ellipse_distribution
 !   bunch     -- Bunch_struct: Bunch structure
 !-
 
-subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, ele, bunch)
+subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, twiss_ele, bunch)
 
 implicit none
 
 type (bunch_struct) bunch
 type (kv_beam_init_struct) kv
-type (ele_struct) ele
+type (ele_struct) twiss_ele
 type (coord_struct), allocatable :: p(:)
 
 real(rp) beta1, beta2, alpha1, alpha2, emit1, emit2
@@ -1012,31 +970,31 @@ character(28) :: r_name = 'init_kv_distribution'
 !
 
 if (ix1_plane == 1) then
-  beta1 = ele%a%beta
-  alpha1 = ele%a%alpha
-  emit1 = ele%a%emit
+  beta1 = twiss_ele%a%beta
+  alpha1 = twiss_ele%a%alpha
+  emit1 = twiss_ele%a%emit
 elseif (ix1_plane == 2) then
-  beta1 = ele%b%beta
-  alpha1 = ele%b%alpha
-  emit1 = ele%b%emit
+  beta1 = twiss_ele%b%beta
+  alpha1 = twiss_ele%b%alpha
+  emit1 = twiss_ele%b%emit
 elseif (ix1_plane == 3) then
-  beta1 = ele%z%beta
-  alpha1 = ele%z%alpha
-  emit1 = ele%z%emit
+  beta1 = twiss_ele%z%beta
+  alpha1 = twiss_ele%z%alpha
+  emit1 = twiss_ele%z%emit
 endif
 
 if (ix2_plane == 1) then
-  beta2 = ele%a%beta
-  alpha2 = ele%a%alpha
-  emit2 = ele%a%emit
+  beta2 = twiss_ele%a%beta
+  alpha2 = twiss_ele%a%alpha
+  emit2 = twiss_ele%a%emit
 elseif (ix2_plane == 2) then
-  beta2 = ele%b%beta
-  alpha2 = ele%b%alpha
-  emit2 = ele%b%emit
+  beta2 = twiss_ele%b%beta
+  alpha2 = twiss_ele%b%alpha
+  emit2 = twiss_ele%b%emit
 elseif (ix2_plane == 3) then
-  beta2 = ele%z%beta
-  alpha2 = ele%z%alpha
-  emit2 = ele%z%emit
+  beta2 = twiss_ele%z%beta
+  alpha2 = twiss_ele%z%alpha
+  emit2 = twiss_ele%z%emit
 endif
 
 n_p1 = kv%part_per_phi(1)

@@ -58,7 +58,7 @@ orbit%vec(4) = orbit%vec(4) + rnd(2) * sigma
 
 I_excite = mean_excitation_energy_over_z(z_material) * z_material
 mass_material = mass_of(material) / atomic_mass_unit
-elec_area_density = N_avogadro * ele%value(area_density_used$) * z_material / (1.0e-3_rp * mass_material) ! number_electrons / m^2
+elec_area_density = (1.0e3_rp * N_avogadro) * ele%value(area_density_used$) * z_material / mass_material ! number_electrons / m^2
 
 n_step = nint(ele%value(num_steps$))
 do i = 1, n_step

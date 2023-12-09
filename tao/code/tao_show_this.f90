@@ -144,7 +144,7 @@ real(rp) phase_units, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, d
 real(rp) sig_mat(6,6), sig0_mat(6,6), mat6(6,6), vec0(6), vec_in(6), vec3(3), l_lat
 real(rp) pc, e_tot, value_min, value_here, pz1, phase, zb(2)
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, time1, ds, ref_vec(6), beta
-real(rp) bg, gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
+real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now, n0(3)
 real(rp) pz2, qs, q, x, xi_sum, xi_diff, dn_dpz(3), dn_partial(3,3), dn_partial2(3,3)
 real(rp), allocatable :: value(:)
 
@@ -454,7 +454,6 @@ case ('beam')
 
     beam_init => bb%beam_init
     species = species_id(beam_init%species, default_tracking_species(u%model%lat%branch(0)%param))
-    bg = u%model%lat%branch(0)%ele(0)%value(p0c$) / mass_of(species)   ! beta * gamma
 
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
     nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
@@ -480,16 +479,23 @@ case ('beam')
     if (u%model%lat%branch(0)%param%particle == photon$) then
       nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit
       nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit
+    elseif (bb%beam_init_used%a_emit == real_garbage$) then
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_norm_emit            = ', beam_init%a_norm_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_norm_emit            = ', beam_init%b_norm_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %sig_z                  = ', beam_init%sig_z
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %sig_pz                 = ', beam_init%sig_pz
     else
-      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_norm_emit            = ', beam_init%a_norm_emit, '  ! Equivalent emittance:', beam_init%a_norm_emit / bg
-      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_norm_emit            = ', beam_init%b_norm_emit, '  ! Equivalent emittance:', beam_init%b_norm_emit / bg
-      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit, '  ! Equivalent normalized emittance:', beam_init%a_emit * bg
-      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit, '  ! Equivalent normalized emittance:', beam_init%b_emit * bg
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_norm_emit            = ', beam_init%a_norm_emit, '  ! Value used:', bb%beam_init_used%a_norm_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_norm_emit            = ', beam_init%b_norm_emit, '  ! Value used:', bb%beam_init_used%b_norm_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit,      '  ! Value used:', bb%beam_init_used%a_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit,      '  ! Value used:', bb%beam_init_used%b_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %sig_z                  = ', beam_init%sig_z,       '  ! Value used:', bb%beam_init_used%sig_z
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %sig_pz                 = ', beam_init%sig_pz,      '  ! Value used:', bb%beam_init_used%sig_pz
     endif
     nl=nl+1; write(lines(nl), rmt) '  %dPz_dz                 = ', beam_init%dPz_dz
     nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
-    nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
-    nl=nl+1; write(lines(nl), rmt) '  %sig_pz                 = ', beam_init%sig_pz
     nl=nl+1; write(lines(nl), rmt) '  %emit_jitter            = ', beam_init%emit_jitter
     nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
     nl=nl+1; write(lines(nl), rmt) '  %sig_pz_jitter          = ', beam_init%sig_pz_jitter
