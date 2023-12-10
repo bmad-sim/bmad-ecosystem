@@ -106,7 +106,7 @@ if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI_BCAST TIME
 
 if (ltt_com%mpi_rank == master_rank$) then
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init tracking', .true.)
-  call ltt_init_tracking (lttp, ltt_com)
+  call ltt_init_tracking (lttp, ltt_com, beam)
   call mpi_barrier (MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
   call ltt_print_inital_info (lttp, ltt_com)
@@ -114,7 +114,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 else
   call mpi_barrier (MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
-  call ltt_init_tracking (lttp, ltt_com)
+  call ltt_init_tracking (lttp, ltt_com, beam)
 endif
 
 ! Calculation start.
@@ -126,7 +126,6 @@ case ('STAT');   call ltt_run_stat_mode(lttp, ltt_com)              ! Lattice st
 case ('BEAM')
   if (.not. ltt_com%using_mpi) then
     print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
-    call ltt_init_beam_distribution(lttp, ltt_com, beam)
     call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam)
     stop
   endif
@@ -156,9 +155,7 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
     print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
 
-    call ltt_init_beam_distribution(lttp, ltt_com, beam)
     n_particle = size(beam%bunch(1)%particle)
-
     allocate (slave_working(num_slaves), ixp_slave(num_slaves))
     slave_working = .false.
 
@@ -253,7 +250,6 @@ endif
 ! Init beam distribution in master
 
 if (ltt_com%mpi_rank == master_rank$) then
-  call ltt_init_beam_distribution(lttp, ltt_com, beam)
   n_particle = size(beam%bunch(1)%particle)
 
   do i = 1, num_slaves
