@@ -449,12 +449,13 @@ end subroutine ltt_init_params
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_init_tracking (lttp, ltt_com)
+subroutine ltt_init_tracking (lttp, ltt_com, beam)
 
 use f95_lapack, only: dpotrf_f95
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
+type (beam_struct), optional :: beam
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele_start, ele_stop
@@ -592,6 +593,13 @@ if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
 endif
 
 lttp%ramping_on = ramping_on 
+
+! Beam setup
+
+if (present(beam) .and. (lttp%simulation_mode == 'INDIVIDUAL' .or. lttp%simulation_mode == 'BEAM') .and. &
+                                                  ltt_com%mpi_rank == master_rank$ .or. .not. ltt_com%using_mpi) then
+  call ltt_init_beam_distribution(lttp, ltt_com, beam)
+endif
 
 end subroutine ltt_init_tracking
 
@@ -747,6 +755,7 @@ enddo
 contains
 
 subroutine ltt_print_this_info(iu, print_this)
+type(beam_init_struct), pointer :: bi
 integer iu, species
 real(rp) e_tot, a_gam, t0
 logical print_this
@@ -807,6 +816,16 @@ call ltt_write_line('# bmad_com%radiation_damping_on           = ' // logic_str(
 call ltt_write_line('# bmad_com%radiation_fluctuations_on      = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%spin_tracking_on               = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%sr_wakes_on                    = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
+
+bi => ltt_com%beam_init_used
+if (bi%a_emit /= real_garbage$) then
+  call ltt_write_line('# a_emit                                  = ' // real_str(bi%a_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# b_emit                                  = ' // real_str(bi%b_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# a_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# b_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# sig_z                                   = ' // real_str(bi%sig_z, 6), lttp, iu, print_this)
+  call ltt_write_line('# sig_pz                                  = ' // real_str(bi%sig_pz, 6), lttp, iu, print_this)
+endif
 call ltt_write_line('#--------------------------------------', lttp, iu, print_this)
 
 end subroutine ltt_print_this_info
@@ -1162,6 +1181,7 @@ call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 !
 
+ltt_com%beam_init_used%a_emit = real_garbage$
 call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, ltt_com%modes, &
                                                     ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
 if (err_flag) stop

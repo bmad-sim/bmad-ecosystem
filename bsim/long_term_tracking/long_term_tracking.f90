@@ -21,15 +21,13 @@ track1_bunch_hook_ptr => ltt_track1_bunch_hook
 
 call ltt_read_params(lttp, ltt_com)
 call ltt_init_params(lttp, ltt_com)
-call ltt_init_tracking (lttp, ltt_com)
+call ltt_init_tracking (lttp, ltt_com, beam)
 call ltt_print_inital_info (lttp, ltt_com)
 
 call run_timer ('START')
 
 select case (lttp%simulation_mode)
-case ('BEAM')
-  call ltt_init_beam_distribution(lttp, ltt_com, beam)
-  call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam) ! Beam tracking
+case ('BEAM');       call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam) ! Beam tracking
 case ('CHECK');      call ltt_run_check_mode(lttp, ltt_com)      ! A single turn tracking check
 case ('INDIVIDUAL'); call ltt_run_individual_mode(lttp, ltt_com) ! Particle-by-particle tracking.
 case ('SINGLE');     call ltt_run_single_mode(lttp, ltt_com)     ! Single particle tracking.
