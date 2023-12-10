@@ -172,8 +172,7 @@ if (branch%ele(ix_split)%key == drift$ .and. branch%ele(ix_split)%value(split_id
 endif
 
 ! Insert a new element.
-! Note: Any lat%control()%ix_ele pointing to ix_split will now 
-!  point to ix_split+1.
+! Note: Any lat%control()%ix_ele pointing to ix_split will now point to ix_split+1.
 
 call insert_element (lat, ele, ix_split, ix_branch)
 
@@ -229,14 +228,12 @@ if (ele%key == drift$ .and. ele%n_lord == 0) goto 8000
 ! Also: Redo the control list for the lord elements.
 
 if (ele%slave_status == super_slave$) then
-
   if (ele%n_lord == 0) goto 8000  ! nothing to do for free element
 
   ixc = lat%n_ic_max
   n_ic2 = ixc 
 
   do j = 1, ele%n_lord
-
     ! If lord does not overlap ele1 then adjust padding and do not add
     ! as a lord to ele1
 
@@ -263,7 +260,6 @@ if (ele%slave_status == super_slave$) then
     lat%n_ic_max = n_ic2
 
     if (lord%lord_status == super_lord$) call order_super_lord_slaves (lat, lord%ix_ele)
-
   enddo
 
   ! Remove lord/slave control for ele2 if the lord does not overlap
@@ -277,7 +273,6 @@ if (ele%slave_status == super_slave$) then
   enddo
 
   goto 8000   ! and return
-
 endif   ! split element is a super_slave
 
 ! Here if split element is not a super_slave.

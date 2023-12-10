@@ -1,36 +1,33 @@
-no_digested
+
+t0 = 1e-8
+
+g_q1: group = {Q1[k1]:{0.0, 2.0}}, var = {k1}, x_knot = {0, 2*t0}
+o_b: overlay = {B[hkick]:hk}, var = {hk}
+
+ramp_g_q1: ramper = {g_q1[k1]:time}, var = {time}
+ramp_o_b: ramper = {o_b[hk]:time/t0}, var = {time}
+
+ramp_pc: ramper = {*[p0c]: 1e9 + 1e17*time}, var = {time}
+ramp_volt1: ramper = {rfcavity::*[voltage]:{1e6, 3e6}}, var = {time}, x_knot = {0, 2*t0}
+ramp_phase: ramper = {rfcavity::*[phi0]:{0.0, 0.2}}, var = {time}, x_knot = {0, 2*t0}
+
+
+!---------------------------------------------------
 
 parameter[p0c] = 1e9
-parameter[geometry] = open
-beginning[beta_a] = 10
-beginning[beta_b] = 20
 
-a: quad, l = 1, y_pitch = 0.003, field_overlaps = b
-b: sext, l = 2, type = "A", x_pitch = 0.02, tilt = 0.2
-c: oct, l = 3, type = "", y_pitch = 0.002
-dd: drift, l = 10
+q1: quad, l = 0.5, k1 = 0.6, tilt = 0.05
+q2: quad, l = 0.5, k1 = -0.5
 
-lm: line[multipass] = (a, b, c)
+d: drift, l = 0.3
+b: sbend, l = 3, angle = pi/8, e1 = 0.07, e2 = 0.07
 
-ll: line = (lm, dd, lm)
+rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 1e6
 
-use, ll, mm
+sector: line = (d, q1, d, b, d, q2, d, rf, b)
+ring: line = (sector)
 
-s1: quad, l = 0.1, superimpose, ref = a
-s2: sext, l = 0.1, superimpose, ref = b
+use, ring
 
-z1: overlay = {a[k1]:v1^2+1, b[k2]:v2^3, c[k3]:v1*v2}, var = {v1, v2}
-z2: overlay = {a[k1]:v1+3}, var = {v1, v2}
 
-g1: girder = {a, b, c}, x_pitch = 0.01, y_pitch = 0.02, tilt = pi/2
-g2: girder = {g1}
-
-!-----
-
-wi: wiggler, l = 1, field_calc = planar_model, b_max = 1e-3, n_period = 3
-ma: marker, superimpose, ref = wi
-
-mm: line = (wi)
-mm[geometry] = open
-mm[beta_a] = 1
-mm[beta_b] = 1
+!!no_digested

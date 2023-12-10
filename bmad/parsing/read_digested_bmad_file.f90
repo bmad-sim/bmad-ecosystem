@@ -560,7 +560,7 @@ if (ix_c /= 0) then
     allocate(ele%control%ramp(nr))
     do i = 1, nr
       rmp => ele%control%ramp(i)
-      read (d_unit, err = 9040, end = 9040) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave
+      read (d_unit, err = 9040, end = 9040) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave, rmp%is_controller
       if (n > 0) then
         allocate (rmp%stack(n))
         do j = 1, n

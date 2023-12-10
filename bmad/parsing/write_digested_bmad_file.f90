@@ -368,7 +368,7 @@ if (ix_c == 1) then
     if (allocated(rmp%stack)) n = size(rmp%stack)
     nk = 0
     if (allocated(rmp%y_knot)) nk = size(rmp%y_knot)
-    write (d_unit) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave
+    write (d_unit) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave, rmp%is_controller
     do j = 1, n
       write (d_unit) rmp%stack(j)
     enddo

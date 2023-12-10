@@ -105,9 +105,6 @@ write_bunch_by_bunch_info
 hom_voltage
 logical_to_python
 
-File: code/bsim_interface.f90
-bsim_interface
-
 File: code/count_lines_in_file.f90
 count_lines_in_file_mod
 count_lines_in_file
@@ -118,12 +115,15 @@ insert_phase_trombone
 File: code/longitudinal_beta.f90
 longitudinal_beta
 
-File: code/set_tune_3d.f90
-set_tune_3d
-
 File: code/slice_mod.f90
 slice_mod
 track_s_to_s
+
+File: code/bsim_interface.f90
+bsim_interface
+
+File: code/set_tune_3d.f90
+set_tune_3d
 
 File: code_synrad/break_wall_into_segments.f90
 break_wall_into_segments
@@ -374,6 +374,41 @@ File: modules/linear_aperture_mod.f90
 linear_aperture_mod
 linear_aperture
 
+File: modules/moga_struct_mod.f90
+moga_struct_mod
+mag_struct
+
+File: modules/namelist_da.f90
+namelist_da
+max_de
+
+File: modules/namelist_general.f90
+namelist_general
+
+File: modules/namelist_moga.f90
+namelist_moga
+max_mags
+
+File: modules/pisa_mod.f90
+pisa_mod
+pool_struct
+pop_struct
+breeder_params_struct
+find_empty_pop_slot
+delete_the_dead
+pisa_cfg_parser
+increment_ptr
+name_to_ix
+read_pisa_indexes
+write_pop_pisa
+write_objective_report
+write_constraint_report
+block_on_pisa_status
+poll_state
+write_state
+kangal_breeder
+niave_breeder
+
 File: modules/lt_tracking_mod.f90
 lt_tracking_mod
 master_rank$
@@ -427,41 +462,6 @@ ltt_bunch_time_sum
 ltt_apply_rampers_to_slave
 ltt_track1_bunch_hook
 ltt_track1_preprocess
-
-File: modules/moga_struct_mod.f90
-moga_struct_mod
-mag_struct
-
-File: modules/namelist_da.f90
-namelist_da
-max_de
-
-File: modules/namelist_general.f90
-namelist_general
-
-File: modules/namelist_moga.f90
-namelist_moga
-max_mags
-
-File: modules/pisa_mod.f90
-pisa_mod
-pool_struct
-pop_struct
-breeder_params_struct
-find_empty_pop_slot
-delete_the_dead
-pisa_cfg_parser
-increment_ptr
-name_to_ix
-read_pisa_indexes
-write_pop_pisa
-write_objective_report
-write_constraint_report
-block_on_pisa_status
-poll_state
-write_state
-kangal_breeder
-niave_breeder
 
 File: modules/ts_mod.f90
 ts_mod
