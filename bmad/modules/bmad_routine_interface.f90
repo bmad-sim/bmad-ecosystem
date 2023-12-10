@@ -92,7 +92,7 @@ end interface
 !   foreign_ele   -- ele_struct: Lattice element in another lattice.
 !
 ! Output:
-!   ele_ptr       -- ele_struct, pointer: Pointer to the element. 
+!   ele_ptr       -- ele_struct, pointer: Pointer to the element. Nullified if no match or error.
 !-
 
 interface pointer_to_ele

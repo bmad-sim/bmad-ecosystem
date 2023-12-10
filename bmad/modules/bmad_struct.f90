@@ -1255,7 +1255,7 @@ end type
 !   So %ix_attrib may be -1. Using pointer_to_attribute with %attribute will always work.
 
 type control_struct
-  real(rp) :: value = 0          ! Used by group, overlay, and ramper elements.
+  real(rp) :: value = 0          ! Used by group, and overlay elements.
   real(rp), allocatable :: y_knot(:)
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
@@ -1277,6 +1277,7 @@ type control_ramp1_struct
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   character(40) :: attribute = ''     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
   character(40) :: slave_name = ''    ! Name of slave.
+  ! %slave is only used with controllers and in this case there is only one slave.
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   logical :: is_controller = .false.  ! Is the slave a controller? If so bookkeeping is different.
 end type

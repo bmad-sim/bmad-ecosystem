@@ -14,7 +14,7 @@ type (coord_struct) orb
 type (control_struct), pointer :: ctl
 type (nametable_struct) ntab
 type (expression_atom_struct), allocatable :: stack(:)
-  type (ele_pointer_struct), allocatable :: ramper(:)
+type (ele_pointer_struct), allocatable :: ramper(:)
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(40) :: loc_str(17) = [character(40):: 'qu1-1', 'qu1-5', 'qu2+1', 'qu2+10', &
@@ -59,13 +59,31 @@ open (1, file = 'output.now', recl = 200)
 
 !-----------------------------------------
 
-!call bmad_parser('bookkeeper_test3.bmad', lat)
+call bmad_parser('bookkeeper_test3.bmad', lat)
 
-!  call lat_ele_locator ('RAMPER::*', lat, ramper, n_ramper, err)
+call lat_ele_locator ('RAMPER::*', lat, ramper, n, err)
+do i = 1, n
+  ele => ramper(i)%ele
+  ele%control%var(1)%value = 1.0e-8_rp
+enddo
 
-!do ie = 1, lat%n_ele_track
-!  call apply_rampsers_to_slave(lat%ele(ie), ramper, err_flag)
-!enddo
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  call apply_rampers_to_slave(ele, ramper(1:n), err)
+
+  select case (ele%name)
+  case ('Q1')
+    write (1, '(a, es20.12)') '"Q1-p0c" REL 1E-10', ele%value(p0c$)
+    write (1, '(a, es20.12)') '"Q1-k1" REL 1E-10', ele%value(k1$)
+  case ('RF')
+    write (1, '(a, es20.12)') '"RF-p0c" REL 1E-10', ele%value(p0c$)
+    write (1, '(a, es20.12)') '"RF-volt" REL 1E-10', ele%value(voltage$)
+    write (1, '(a, es20.12)') '"RF-phi0" REL 1E-10', ele%value(phi0$)
+  case ('B')
+    write (1, '(a, es20.12)') '"B-p0c" REL 1E-10', ele%value(p0c$)
+    write (1, '(a, es20.12)') '"B-hkick" REL 1E-10', ele%value(hkick$)
+  end select
+enddo
 
 !-----------------------------------------
 

@@ -3,10 +3,3 @@ ramp_pc: ramper = {*[p0c]: 1e9 + 4e12*time}, var = {time}
 ramp_volt1: ramper = {rfcavity::*[voltage]:{1e6, 2e6}}, var = {time}, x_knot = {0, 2.5e-6}
 
 ramp_phase: ramper = {rfcavity::*[phi0]:{0.0, 0.1}}, var = {time}, x_knot = {0, 2.5e-6}
-
-g_q1: group = {Q1[k1]:{0.0, 100.0}}, var = {k1}, x_knot = {0, 1e-5}
-o_b: overlay = {B[hkick]:hk}, var = {hk}
-
-ramp_g_q1: ramper = {g_q1[k1]:time}, var = {time}
-ramp_o_b: ramper = {o_b[hk]:1e7*time}, var = {time}
-

@@ -1,8 +1,5 @@
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
-! Subroutine get_slave_list (lord, slave_list, n_slave)
+! Subroutine get_slave_list (lord, slaves, n_slave)
 !
 ! Subroutine to get the list of slaves for a lord element.
 !

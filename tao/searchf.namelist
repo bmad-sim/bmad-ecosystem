@@ -553,20 +553,11 @@ tao_setup_key_table
 File: code/tao_shape_init.f90
 tao_shape_init
 
-File: code/tao_show_cmd.f90
-tao_show_cmd
-
-File: code/tao_single_mode.f90
-tao_single_mode
-
 File: code/tao_spin_matrices_calc_needed.f90
 tao_spin_matrices_calc_needed
 
 File: code/tao_spin_matrix_calc.f90
 tao_spin_matrix_calc
-
-File: code/tao_spin_tracking_turn_on.f90
-tao_spin_tracking_turn_on
 
 File: code/tao_split_component.f90
 tao_split_component
@@ -601,9 +592,6 @@ tao_show_constraints
 tao_var_write
 tao_print_vars
 tao_write_lines
-
-File: code/tao_top_level.f90
-tao_top_level
 
 File: code/tao_turn_on_special_calcs_if_needed_for_plotting.f90
 tao_turn_on_special_calcs_if_needed_for_plotting
@@ -662,12 +650,6 @@ tao_x_scale_mod
 tao_x_scale_cmd
 tao_x_scale_plot
 tao_x_scale_graph
-
-File: code/tao_show_this.f90
-tao_show_this
-
-File: code/tao_spin_polarization_calc.f90
-tao_spin_polarization_calc
 
 File: code/tao_struct.f90
 tao_struct
@@ -769,32 +751,23 @@ tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
-File: hook/tao_hook_branch_calc.f90
-tao_hook_branch_calc
+File: code/tao_show_cmd.f90
+tao_show_cmd
 
-File: hook/tao_hook_command.f90
-tao_hook_command
+File: code/tao_single_mode.f90
+tao_single_mode
 
-File: hook/tao_hook_curve_s_pt.f90
-tao_hook_curve_s_pt
+File: code/tao_spin_polarization_calc.f90
+tao_spin_polarization_calc
 
-File: hook/tao_hook_draw_floor_plan.f90
-tao_hook_draw_floor_plan
+File: code/tao_spin_tracking_turn_on.f90
+tao_spin_tracking_turn_on
 
-File: hook/tao_hook_draw_graph.f90
-tao_hook_draw_graph
+File: code/tao_top_level.f90
+tao_top_level
 
-File: hook/tao_hook_evaluate_a_datum.f90
-tao_hook_evaluate_a_datum
-
-File: hook/tao_hook_graph_postsetup.f90
-tao_hook_graph_postsetup
-
-File: hook/tao_hook_graph_setup.f90
-tao_hook_graph_setup
-
-File: hook/tao_hook_init1.f90
-tao_hook_init1
+File: code/tao_show_this.f90
+tao_show_this
 
 File: hook/tao_hook_init2.f90
 tao_hook_init2
@@ -843,6 +816,33 @@ tao_hook_post_process_data
 
 File: hook/tao_hook_show_cmd.f90
 tao_hook_show_cmd
+
+File: hook/tao_hook_branch_calc.f90
+tao_hook_branch_calc
+
+File: hook/tao_hook_command.f90
+tao_hook_command
+
+File: hook/tao_hook_curve_s_pt.f90
+tao_hook_curve_s_pt
+
+File: hook/tao_hook_draw_floor_plan.f90
+tao_hook_draw_floor_plan
+
+File: hook/tao_hook_draw_graph.f90
+tao_hook_draw_graph
+
+File: hook/tao_hook_evaluate_a_datum.f90
+tao_hook_evaluate_a_datum
+
+File: hook/tao_hook_graph_postsetup.f90
+tao_hook_graph_postsetup
+
+File: hook/tao_hook_graph_setup.f90
+tao_hook_graph_setup
+
+File: hook/tao_hook_init1.f90
+tao_hook_init1
 
 File: mpi/tao_mpi_mod.f90
 tao_mpi_mod
