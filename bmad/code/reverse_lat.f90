@@ -88,7 +88,7 @@ do ib = 0, ubound(lat_temp%branch, 1)
       ele_rev%value(upstream_coord_dir$)   = -ele_rev%value(upstream_coord_dir$)
     endif
     ele_rev%ix_ele = ie
-    if (associated(ele_rev%taylor(1)%term)) call kill_taylor(ele_rev%taylor)
+    if (associated(ele_rev%taylor(1)%term) .and. ele_rev%key /= taylor$) call kill_taylor(ele_rev%taylor)
     ! Need to fix this but for now give a warning...
     if (associated(ele_in%wall3d) .and. .not. issued_wall_warning) then
       call out_io (s_warn$, r_name, 'NOTE: THIS ROUTINE DOES NOT YET HANDLE CHAMBER WALLS.')
