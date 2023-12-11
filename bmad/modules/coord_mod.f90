@@ -359,7 +359,7 @@ if (present(ele)) then
     call err_exit
   endif
 
-  if (orb%location == downstream_end$ .or. ele%value(l$) == 0) then
+  if (orb%location == downstream_end$ .or. ele%key == beginning_ele$) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
