@@ -1184,6 +1184,7 @@ call init_attribute_name1 (group$, s_position$,                     'S_POSITION'
 call init_attribute_name1 (group$, x_knot$,                         'X_KNOT')
 call init_attribute_name1 (group$, y_knot$,                         'Y_KNOT')
 call init_attribute_name1 (group$, slave$,                          'SLAVE')
+call init_attribute_name1 (group$, is_on$,                          'IS_ON')
 call init_attribute_name1 (group$, interpolation$,                  'INTERPOLATION')
 
 call init_attribute_name1 (lcavity$, longitudinal_mode$,            'LONGITUDINAL_MODE')
@@ -3036,7 +3037,7 @@ endif
 ! Overlay or group lord check
 
 if (ele%key == overlay$ .or. ele%key == group$) then
-  if (attrib_name == 'IS_ON' .and. ele%key == overlay$) return
+  if (attrib_name == 'IS_ON') return
   if (all(attrib_name /= ele%control%var%name)) then
     call it_is_not_free (free, ele, ix_attrib, does_not_exist$, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
   endif

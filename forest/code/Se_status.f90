@@ -1602,7 +1602,7 @@ CONTAINS
     C_%NPARA=NPARAl
     C_%ND2=ND2l
     C_%npara_fpp=NPARAl
-    C_%SPIN_POS=0
+!    C_%SPIN_POS=0
     C_%NSPIN=0
 
     if(present(nd2)) nd2=nd2l

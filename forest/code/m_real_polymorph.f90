@@ -4626,7 +4626,7 @@ end  function asin_coeff_set
        case(m2)
           call pri(S2%t,i,prec, ind=ind)
        case(m3)
-
+    if (.not. nice_taylor_print) write(i,*) " printing a real polymorph (real_8)"
           if(s2%i>0) then
              write(line,*) s2%r,"  +",s2%s,"  (x_",s2%i,")"
 

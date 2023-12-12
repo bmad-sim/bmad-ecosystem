@@ -4429,6 +4429,7 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Beginning spin:', orb%spin
     else
+      tao_branch%spin_map_valid = .false.
       call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi

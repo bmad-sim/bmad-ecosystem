@@ -277,7 +277,7 @@ module precision_constants
      integer,pointer :: nd2 => null()      ! phase space dimension
      integer,pointer :: np  => null()      ! number of parameters in fpp
      integer,pointer :: nspin => null()       ! number of spin variables (0 or 3)
-     integer,pointer :: SPIN_pos => null()       ! position of spin variables (0 or 3)
+ !    integer,pointer :: SPIN_pos => null()       ! position of spin variables (0 or 3)
      integer,pointer :: ndpt     => null() ! constant energy variable position is different from zero
      integer,pointer ::ndptb  => null()  
      integer,pointer :: NPARA    => null() ! PARAMETER LOCATION IN PTC in fpp
