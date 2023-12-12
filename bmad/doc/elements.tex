@@ -872,7 +872,8 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
   Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}    \\
   Hkick \& Vkick             & \ref{s:kick}     & Symplectify                & \ref{s:symp}     \\
   Integration settings       & \ref{s:integ}    & Field Maps                 & \ref{s:fieldmap} \\
-  Length                     & \ref{s:l}        & Tracking \& transfer map   & \ref{c:methods}  \\
+  Is_on                      & \ref{s:is.on}    & Tracking \& transfer map   & \ref{c:methods}  \\
+  Length                     & \ref{s:l}        &                            &                  \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2596,7 +2597,8 @@ General \vn{group} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Custom Attributes          & \ref{s:cust.att}  & Description strings        & \ref{s:alias}   \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Is_on                      & \ref{s:is.on}   \\ 
+  Description strings        & \ref{s:alias}     &                            &                 \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3730,7 +3732,6 @@ set directly just like if there were no controlling overlays to begin with. Exam
   abc: overlay = \{ ... \}, ...
   abc[is_on] = F
 \end{example}
-Note: \vn{group} elements do not have an \vn{is_on} parameter since this is unnecessary.
 
 A lattice file may contain lines and lattice elements that are not part of the actual finished
 lattice when the lattice is constructed. \vn{Group} elements where {\em none} of its slave elements

@@ -41,6 +41,7 @@ character(20) :: r_name = 'makeup_group_lord'
 
 err_flag = .false.
 moved = .false.   ! have we longitudinally moved an element?
+if (.not. lord%is_on) return
 
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i, control)

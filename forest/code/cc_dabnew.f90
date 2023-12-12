@@ -5737,14 +5737,14 @@ endif
     !
     !
     if(c_nomax.eq.1) then
-       do i=1,c_lnv
+       do i=1,c_lnv !etienneetienne
           j(i)=0
        enddo
        call c_dapek(ina,j,rr)
        cfac = fun(j)
        rr=cfac*rr
        call c_dapok(inc,j,rr)
-       do i=1,c_lnv
+       do i=1,c_nvmax     !c_lnv    2023.12.10
           j(i)=1
           call c_dapek(ina,j,rr)
           cfac = fun(j)

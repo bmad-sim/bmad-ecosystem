@@ -439,7 +439,6 @@ type c_damap
  integer :: n=0 !@1 number of planes allocated
 !  Initial orbit if tpsa =  true
  complex(dp) x0(lnv)
- logical :: tpsa=.false.
 !  Lie map matrix  (Yu's square matrix)
  complex(dp), pointer :: cm(:,:)=> null() 
 !  Moment matrix (transpose of Yu Matrix)  
@@ -449,6 +448,8 @@ type c_damap
  type(c_spinmatrix) s !@1 spin matrix
 end type c_damap
 !2BMAD 
+! logical :: tpsa=.false.
+
  ! real(dp) sm(3,3)
 !  real(dp) damps(3,3)
  ! real(dp) b_kin(3,3),D_spin(3)
@@ -517,7 +518,7 @@ type(c_taylor) c_temp
   complex(dp) s1(3),s2(3),s3(3) !# 3 spin directions
   type(complex_quaternion) q    !# quaternion
   integer n                     !# of dimensions used in x(lnv)
-  complex(dp) x0(lnv)           !# the initial orbit around which the map is computed
+!  complex(dp) x0(lnv)           !# the initial orbit around which the map is computed
  end type c_ray
 
 
