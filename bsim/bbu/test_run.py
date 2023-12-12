@@ -8,7 +8,8 @@ from bbu import bbu_main, find_threshold, drscan, phase_scan  #imports bbu packa
 bbu_par = {  \
 # Make sure the correct lattice is called 
 'lat_filename':"'$DIST_BASE_DIR/bsim/bbu/examples/oneturn_lat.bmad'",
-'bunch_freq': 1.3e9,                # Freq in Hz.
+#'bunch_freq': 1.3e9,                # Freq in Hz.
+'bunch_freq': 299792458/0.5/50.0,                # Freq in Hz.
 'limit_factor': 3,                  # Init_hom_amp * limit_factor = simulation unstable limit  !! Must be >2
 'simulation_turns_max': 30,         # Must be > 10. More turns => more accurate but slower
 'hybridize': '.true.',               # Combine non-HOM elements to speed up simulation?
@@ -39,16 +40,18 @@ py_par = {  \
 
 ############## Parameters for DR_SCAN  mode:   #################################
 
-'ndata_pnts_DR': 3,   # integer >=1 required
+'ndata_pnts_DR': 31,   # integer >=1 required
 
 # For something like the PRSTAB 7, Fig. 3, try startarctime = 4.028E-9, endarctime = 4.725E-9, bunch_freq = 1.3E9
 #'start_dr_arctime': 96.5/1.3e9,  
 #'end_dr_arctime': 100.5/1.3e9,  
-'start_dr_arctime': 4.028E-9,  
-'end_dr_arctime': 4.725E-9,  
+#'start_dr_arctime': 4.028E-9,  
+#'end_dr_arctime': 4.725E-9,  
+'start_dr_arctime': 99.5*0.5/299792458,  
+'end_dr_arctime': 100.5*0.5/299792458,  
 
 
-'plot_drscan': False,   # Create a python plot?
+'plot_drscan': True,   # Create a python plot?
 
 ############## Parameters for PHASE_SCAN  mode:   ##################################
 

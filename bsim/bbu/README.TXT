@@ -3,6 +3,7 @@ BBU program 2017 (edited by William Lou)
 
 The main BBU directory is bsim/bbu/ within the Git repo at <https://github.com/bmad-sim/bmad-ecosystem>
 The BBU code and related files are contained in this directory, except for bsim/code/bbu_track_mod.f90. 
+The compiled BBU Fortran code is at production/bin/bbu by default.
 The latest description of BBU program (in Latex) is under the doc directory.
 
 
@@ -29,16 +30,18 @@ Note: the output files will be stored in the working directory at which python3 
 
 1) DR_SCAN mode:  
        -------------------------------------------------------
-       Command:  python3 .../bsim/bbu/test_run.py 
+       Run this command under $DIST_BASE_DIR/bsim/bbu/examples :
+       
+       python $DIST_BASE_DIR/bsim/bbu/test_run.py 
        -------------------------------------------------------
-       Obtain (Ith v.s. tr/tb) for a lattice with one (thon-lens) cavity and varying arclength
+       Obtain (Ith v.s. tr/tb) for a lattice with one cavity and varying recirculation arclength.
        Can produce the plot for PRSTAB 7 (2004) Fig. 3. (with one dipole HOM assigned, and one-time recirculation)
        This is the simplest mode to test if the BBU program works.
        Output file: thresh_v_trotb.txt
 
 2) THRESHOLD (CURRENT) mode:      
        -------------------------------------------------------------------------
-       Command:  python3 .../bsim/bbu/test_run.py  N  fn  output_dir
+       Command:  python $DIST_BASE_DIR/bsim/bbu/test_run.py  N  fn  output_dir
        -------------------------------------------------------------------------
        For a FIXED lattice with many cavities assigned with (random) HOMs,
        compute the threshold current for N times.
@@ -49,7 +52,7 @@ Note: the output files will be stored in the working directory at which python3 
 
 3) PHASE_SCAN mode:
        -------------------------------------------------------
-       Command:  python3 ~/nfs/linux_lib/bsim/bbu/test_run.py  PHASE
+       Command:  python $DIST_BASE_DIR/bsim/bbu/test_run.py  PHASE
        -------------------------------------------------------
        Obtain (Ith v.s. tr/tb) for a lattice with varying horizontal PHASE ADVANCE.
        Phase is changed via a Taylor element in the lattice, named talylorW.
@@ -59,7 +62,7 @@ Note: the output files will be stored in the working directory at which python3 
 
 4) PHASE_SCAN_XY mode:
        -------------------------------------------------------
-       Command:  python3 ~/nfs/linux_lib/bsim/bbu/test_run.py  PHASE_X  PHASE_Y
+       Command:  python $DIST_BASE_DIR/bsim/bbu/test_run.py  PHASE_X  PHASE_Y
        -------------------------------------------------------
        Obtain (Ith v.s. tr/tb) for a lattice with two free phases (with coupled or decoupled optics)
        Phase advances are changed via a Taylor element in the lattice, named talylorW.
@@ -80,8 +83,6 @@ Important Files:
    1) test_run.py  --- TOP interface file (formerly as run_examp_bbu.py)
                    --- Define all BBU and python parameters ( can be modified by user )
                    --- Create and Clean up the temporary directory
-   2) dummy_run.py --- A temporary copy of test_run.py for parallel Grid jobs. 
-                   --- Should be in sync with test_run.py regularly.  
 
 -> Python package (Call BBU Fortran codes; intermediate calculation, file organization):
 (Location: .../bsim/bbu/python/bbu/*)
@@ -96,10 +97,8 @@ Important Files:
 -> Extra stand-alone programs  
   1) cut_HOM.py  ---  Accepts a directory full of wakefiled data files and a maximum number (N) of desired HOMs per file
                  and creates a new user-specified directory of corresponding files cut to include only the most influential N HOMs
-  2) Grid_submitter.sge --- To submit to a grid for (time-consuming) threshold calculation (specifies the number of jobs)
-                        --- calls mlc.sge files, which specify what to run
-                        --- To clean up the output (and error) messages, run clean_grid_messages.rc
-  3) collect_thresholds.py  --- Summarizes the calculated threshold currents stored in the "bbu_thresholds_*" output files
+
+  2) collect_thresholds.py  --- Summarizes the calculated threshold currents stored in the "bbu_thresholds_*" output files
                                 Usually used after a complete grid submission
                             --- Output: bbu_combined_thresholds.txt
 

@@ -2,5 +2,9 @@ Cavity 1
                  	Frequency	R/Q               	Q      	mode	Polarization_Angle
                  	(Hz)     	Ohm/m^(2n)        	       	    	(Radians/2pi)     
 &long_range_modes
-   lr(1) =       	2e9 	        87851.3            	1.0e4 	1   	0.                
+   !lr(1) =       	2e9 	        87851.3            	1.0e4 	1   	0.                
+   lr(1) =       	1e9 	        43925.66356039646       10000 	1   	0.                
 /                
+
+! Note
+! R/Q is normalized. For dipole HOM, to convert R/Q from (Ohm) to (Ohm/m^2), a factor of k^2 is required, in which k = 2*pi/lambda, and lambda = c_light/frequency_in_Hz. Figure 14 in the 2019 paper has wrong caption. The alue and Q and R/Q were swapped.  

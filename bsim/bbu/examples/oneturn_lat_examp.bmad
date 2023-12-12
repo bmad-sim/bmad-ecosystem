@@ -7,10 +7,10 @@ beginning[BETA_B] = 10
 parameter[particle] = electron  
 parameter[geometry] = open  ! linac is open
 parameter[absolute_time_tracking] = T ! clock not tied to reference particle
-parameter[e_tot] = 100e6  !total energy at start of lattice
-parameter[n_part] = 100
+parameter[e_tot] = 1000e6  !total energy at start of lattice
+parameter[n_part] = 10
 
-cavity1: lcavity, L = 1e-9, RF_FREQUENCY = 1.3E9, voltage = 1
+cavity1: lcavity, L = 1e-10, RF_FREQUENCY = 299792458/0.5, voltage = 1
 !cavity1: lcavity, L = 0, RF_FREQUENCY = 1.3E9, voltage = 1
 
 ! Arc
@@ -18,7 +18,7 @@ arc.m12 =  -10
 arc: Taylor, {1: arc.m12, 0 1 0 0 0 0}
 
 !! The arc length will be overwritten in lat2.lat during DR_scan mode
-arc.time = 3.46154e-9
+arc.time = 100*0.5/299792458
 arc[L] = c_light * arc.time  
 
 linac: LINE[multipass] = (cavity1)
