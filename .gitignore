@@ -93,5 +93,6 @@ regression_tests/twiss_track_test/rad_int_wig_no_cache.dat
 regression_tests/twiss_track_test/twiss.out
 
 *.digested*
+*.mod
 production
 debug

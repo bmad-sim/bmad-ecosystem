@@ -27,7 +27,6 @@
 \usepackage[strings]{underscore}    % to use "_" in text
 \usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
 
-\include{bibliography}
 
 \definecolor{light-gray}{gray}{0.95}
 \lstset{backgroundcolor=\color{light-gray}}
@@ -106,7 +105,7 @@ The \bbu consists of two main parts: the core part written in \texttt{Fortran}, 
 
 %---------------------------------------------------------------------------------
 \subsection{Fortran core}
-The core part determines the stability of a single test current by direct simulation. A train of bunches is tracked though a lattice whose cavity elements can contain HOMs (long-range wakefields). In the program, time ($t$) is measured in “turns” (abbreviated $T$). One turn is the time it
+The core part determines the stability of a single test current by direct simulation. A train of bunches is tracked though a lattice whose cavity elements can contain HOMs (long-range wakefields). In the program, time ($t$) is measured in “turns” (abbreviated $T$). One \texttt{turn} is the time it
 takes a bunch to travel from the beginning of the lattice to the end. At the start of a simulation, $t=0$, and the HOM voltages in the cavities are set to zero. Bunches are then started at
 the beginning of the lattice and tracked through to the end. To minimize computation time, a single particle is used to represent each bunch.
 
@@ -117,21 +116,20 @@ turns simulated (must be $>10$) set by the parameter \texttt{bbu$\_$param\%simul
 \bigbreak
 The main input file for the \texttt{Fortran} core is ``\textcolor{red}{\texttt{bbu.init}}'', which looks like:
 \begin{code}
-bbu_params 
+&bbu_params 
 bbu_param%lat_file_name = `erl.lat'  ! Bmad Lattice file name.
 bbu_param%lat2_filename = `lat2.lat' ! For DR-scan only. 
-bbu_param%simulation_turns_max = 50  !  Maximum simulation turn $n$
+bbu_param%simulation_turns_max = 50  ! Maximum simulation turn $n$
 bbu_param%bunch_freq = 1.3e9      ! Injector bunch frequency (Hz). 
-bbu_param%limit_factor = 3        !  Unstable limit to abort simulation.
-                                  ! The reciprocal is the stable limit.
+bbu_param%limit_factor = 3        ! Unstable limit to abort simulation.
 bbu_param%hybridize = .true.      ! Combine non-HOM elements?
-bbu_param%keep_all_lcavities = F  ! Keep when hybridizing? 
-bbu_param%current = 0.1           ! Test current value (A). 
+bbu_param%keep_all_lcavities = F  ! Keep all lcavities when hybridizing? 
+bbu_param%current = 0.1           ! Injected test current value (A). 
 bbu_param%ran_seed = 100          ! Set specific seed, 0 uses system clock. 
 bbu_param%ran_gauss_sigma_cut = 3 ! Limit ran_gauss values within N$\sigma$ 
 bbu_param%normalize_z_to_rf = F   ! Shift z to be in range [0, rf_wavelength]?
 bbu_param%current_vary%variation_on = F !  Ramp bunch charges up and down?
-bbu_param%current_vary%...              ! Ramping parameters. 
+!bbu_param%current_vary%...              ! Ramping parameters. 
 /
 \end{code}
 
@@ -140,16 +138,18 @@ and ends with the line containing the slash ``/''. Anything outside of this is i
 namelist, anything after an exclamation mark ``!'' is ignored, including the exclamation mark.
  
 Typically \texttt{bbu.init} specifies the essential BBU parameters, but not all of them. All BBU parameters (and their default values) are defined in `\texttt{bsim/code/bbu_track_mod.f90}'. If the user includes extra parameters in \texttt{bbu.init}, the user-defined values will overwrite the default values.
-The primary BBU (\texttt{Fortran}) parameters are described below:
+The main BBU \texttt{Fortran} parameters are described below, in alphabetical order:
 
 \begin{description}
-\item[bunch_freq] \Newline
+\item[bunch_by_bunch_info_file] (string)  \Newline
+If not empty, the BBU program will output orbit information of all bunches at all tracking stages. The file can be large, and is usually for debugging.
+\item[bunch_freq] (float) \Newline
 The injector bunch-to-bunch frequency in Hz.
 %
-\item[current] \Newline
-The test current injected. Since the bunch frequency is also specified, this number actually specifies the (constant) charge of the bunches ($Q = I/f$). Note that if the bunch charge is ramped up and down (See \texttt{current_vary\%variation_on}), this value is NOT the actual time-averaged current. Instead, this value determines the ``reference charge'' ($Q_{ref} = I/f$). The user must compute the actual current based on the specified ramping scheme. 
+\item[current] (float) \Newline
+The injected test current in Ampere. With bunch frequency specified, this number equivalently specifies the charge of the bunches ($Q = I/f$). Note that if the bunch charge is \texttt{ramped} (See \texttt{current_vary\%variation_on}), this value is NOT the actual time-averaged current. Instead, this value determines the ``reference charge'' ($Q_{ref} = I/f$). The user must compute the actual current based on the ramping scheme. 
 %
-\item[current_vary\%variation_on] \Newline
+\item[current_vary\%variation_on] (boolean) \Newline
 If set to True, the injector bunch charges will be ramped up and down linearly (trapezoids in time). The ramping parameters (with \texttt{current_vary} in their name) define the ramping scheme, including \texttt{t_ramp_start}, \texttt{charge_top}, \texttt{charge_bottom}, \texttt{dt_plateau}, \texttt{ramps_period}, and \texttt{dt_ramp} (See Fig. 1). 
 
 \begin{figure}[h]
@@ -160,52 +160,78 @@ If set to True, the injector bunch charges will be ramped up and down linearly (
 
 Note that all the ramping parameters are dimensionless factors which have to be non-negative. That is, the two charge parameters are in unit of $Q_{ref}$ (See \texttt{bbu_param\%current}), and all the time parameters are in unit of 1/\texttt{bunch_freq}. If both \texttt{charge_top} and \texttt{charge_bottom} are set to zero, there is essentially no beam. It's acceptable to set \texttt{charge_bottom} $>$ \texttt{charge_top} to ramp down first then up. Also, it's required that (\texttt{dt_plateau} + 2$\times$\texttt{dt_ramp}) $<$ \texttt{ramps_period}.  
 %
-\item[hybridize] \Newline
-Hybridization is a process of combining all the elements between two cavities into one element (transfer matrix). Tracking through a hybridized element is done using linear transport. This can significantly speed up calculation, but there is a possible loss of accuracy. 
+\item[drscan] (boolean)\Newline
+Obsolete. The dr-scan functionality has been moved to Python shell. The associated Fortran parameters (including \texttt{elname}, \texttt{begdr}, \texttt{enddr}, and \texttt{nstep}) are also obsolete. See the section below on DR-SCAN mode for more details.
+
+\item[ele_track_end] (string) \Newline
+If specified, this is the final element in the lattice the bunches will be tracked to. The associated Fortran variable \texttt{ix_ele_track_end} is for internal use and should not be set by user.
+
+\item[hom_order_cutoff] (integer)\Newline
+If positive, ignore HOMs with order greater than this value. Default is zero. 
+
+\item[hybridize] (boolean) \Newline
+Hybridization is a process of combining all the (non-cavity) elements between any two cavities into one hybridized Taylor element. The default tracking through a hybridized element is a linear transport (see \textbf{use_taylor_for_hybrids}). This can significantly speed up calculation, with possible loss of accuracy. 
 %
-\item[init_particle_offset] \Newline
+\item[init_particle_offset] (float) \Newline
 This is the 1$\sigma$ half width, in meters, of the distribution of the initial transverse coordinates
-for bunches initialized during the first turn period. The default value is 10E-9 (10nm).
+for bunches initialized during the first turn period. The default value is 1E-10, or 10~nm.
 %
-\item[keep_all_cavities] \Newline
-When hybridizing, if this is set to False, then lcavity elements that do not have HOM elements will be hybridized. If lcavity elements without HOMs are
-hybridized, this will speed up the simulation but can possibly lead to inaccurate results.
+\item[keep_all_cavities] (boolean) \Newline
+Relevant only if \textbf{hybridize} is set to True. When hybridizing, if this is set to False, then lcavity elements that do not have HOM elements will also be hybridized. This will further speed up the simulation but can lead to inaccurate results. The recommended setting is True (see \textbf{normalize_z_to_rf}).
 %
-\item[lat_file_name] \Newline
-The lattice file (in Bmad standard format [2]) to be used. In order to simulate BBU, multipass lines which contain lcavity elements must be specified in the lattice. The long range wakes (HOMs) in the lcavity elements are responsible for the BBU instability. See the Bmad manual for more details.
+\item[keep_overlays_and_groups] (boolean) \Newline
+Relevant only if \textbf{hybridize} is set to True. 
 %
-\item[limit_factor] \Newline
+\item[lat_file_name] (string) \Newline
+The lattice file (in Bmad standard format [2]) to be used for BBU simulation. The lattice must include at least one multipass line with at least one lcavity assigned with at least one HOM. See Bmad manual for details on lattice specification.
+%
+\item[limit_factor] (float) \Newline
 This number has to be greater than 2.
 For any intermediate turn $m$ ($10<m<n$), if the ratio $V_{max}(m)/V_{max}(10)$ is above \texttt{limit_factor}, the test current is declared unstable. If $V_{max}(m)/V_{max}(10)$ is below 1/\texttt{limit_factor}, the test current is declared stable. In either case, the program aborts so shorten simulation time.
 %
-\item[lat2_filename] \Newline
-This file is used for DR_scan only, and specifies the varied length for the `arc' element in the lattice. See DR_scan mode in the \texttt{Python} shell section below.
+\item[lat2_filename] (float) \Newline
+This file is used for DR-scan only. It specifies the varied length for the `arc' element in the lattice. See DR-scan mode in the \texttt{Python} shell section below.
 %
-\item[normalize_z_to_rf] \Newline
+\item[normalize_z_to_rf] (boolean)\Newline
 Normally, with \vn{normalize_z_to_rf} set to False (the default), the starting phase space $z$ of a
 particle will reflect the time the bunch that the particle is in is launched. If RF elements are to
 be hybridized, the hybrid transfer map will not work with the large $z$ values. If \vn{normalize_z_to_rf} 
 is set to True, the starting $z$ values will be set to be in the range $[0, \lambda_{rf}]$ where $\lambda_{rf}$ is the
 longest RF wavelength of all the cavities. In this case all the cavities must have commensurate wavelengths.
 %
-\item[ran_seed] \Newline
-Random number seed used by the random number generator. If set to 0, the system clock will be used, and the output results will vary from run to run.
+\item[nrep] (int) \Newline
+Obsolete. 
+
+\item[ran_seed] (integer) \Newline
+Random number seed. If set to 0, the system clock will be used, and the output results will vary from run to run.
 %
-\item[ran_gauss_sigma_cut] \Newline
-Any randomized values in the lattice, such as HOM frequency spread or position jitter are
-limited to a maximum deviation of \texttt{ran_gauss_sigma_cut} rms deviations.
+\item[ran_gauss_sigma_cut] (float) \Newline
+Any randomized value in the lattice, such as initial orbit offset, is limited to a maximum deviation of \texttt{ran_gauss_sigma_cut} rms deviations. This is to prevent extreme values from being chosen, which can be un-physical. A typical value is between 3 to 5. The default value is -1, which means no cutoff.
 %
-\item[simulation_turns_max] \Newline
-The maximum number of turn the program runs up to. Must be greater than 10. A large number will slow down the computation, but a small number can cost accuracy. A typical choice is 50.
+\item[regression] (boolean) \Newline
+Obsolete. The BBU regression test has been moved to be with other regression tests under the bmad-ecosystem. 
+
+\item[simulation_turns_max] (integer) \Newline
+The maximum number of simulation turn the program runs up to when no particle loss is detected. Must be greater than 10. A large number slows down the computation, but increases accuracy. A typical choice is between 50 to 300. 
 %
+\item[stable_orbit_anal] (boolean)\Newline
+If True, write stable_orbit.out and hom_voltage.out (for debugging).
+%
+\item[use_taylor_for_hybrids] (boolean) \Newline
+Relevant only if \textbf{hybridize} is set to True. Use taylor map for hybrids when True, otherwise the tracking method is linear. Default is False.
+%
+\item[write_digested_hybrid_lat] (boolean) \Newline
+For debugging purposes.
+\item[write_voltage_vs_time_dat] (boolean) \Newline
+For debugging purposes. If true, write a (large) output file which contains the maximum_HOM_voltage data at every tracking step. The user can plot the data to visually check the stability of the test current. This is probably the most reliable way to check whether the test current is stable, because the stability behavior can be unclear if total simulation time is too short, or if the no clear divergence or steady-state occurs to the program.
+
 \end{description}
 
 %---------------------------------------------------------------------------------
-\subsection{Python Shell}
-Since the \texttt{Fortran} core program only determines the stability of ONE test current, the user needs to run the \texttt{Python} shell, which calls the core iteratively (with different test currents) to pin down the $I_{th}$. 
-Besides finding the $I_{th}$ of a specific design, the shell can also generate statistics of $I_{th}$ by introducing small variations to either the lattice or the HOM assignments. Each type of variation is considered as a ``simulation mode'' (See Section 3). 
+\subsection{Python Shell/Wrapper}
+Since the \texttt{Fortran} core program only determines the stability of ONE test current, multiple runs of the core (with different test currents) are required to pin down the $I_{th}$. This can be done with the developed Python shell which interacts calls the core program. Besides finding the $I_{th}$ of a specific design, the shell can also generate statistics of $I_{th}$ by introducing small variations to either the lattice or the HOM assignments. Each type of variation is considered as a ``simulation mode'' (See Section below). 
 
-The main file for the \texttt{Python} shell is \textcolor{red}{\texttt{test_run.py}}, in which the user specifies all the BBU (\texttt{Fortran}) parameters and additional \texttt{Python} parameters. Other associated \texttt{Python} codes are under the \texttt{...bsim/bbu/python/} directory. The user should make sure this directory is included in the environment variable \texttt{PYTHONPATH}.
+The main file for the \texttt{Python} shell is \textcolor{red}{\texttt{test_run.py}}, in which the user specifies all the BBU (\texttt{Fortran}) parameters and additional \texttt{Python} parameters. Other associated \texttt{Python} codes are under the \texttt{\$DIST_BASE_DIR/bsim/bbu/python/} directory. The user should make sure this directory is included in the environment variable \texttt{PYTHONPATH}.
 
 The most important \texttt{Python} parameters which are common to all the simulation modes are:
 
@@ -220,19 +246,21 @@ Initial guess of the test current. An educational guess based on the lattice des
 \texttt{Python} shell iteratively calls the  \texttt{Fortran} core to pin down the $I_{th}$. This value determines accuracy of the $I_{th}$ found.
 \end{description}
 
+The existing Python shell has limited functionalities, so users are encouraged to write their own wrapper with external programs for independent BBU studies. For instance, multiple BBU runs with different test currents can be run in parallel. Also, by importing data from the \texttt{write_voltage_vs_time_dat} output, one can write their own function to determine the BBU stability.  
 %---------------------------------------------------------------------------------
 \section{Simulation Modes}
 The user can run different simulation modes by adjust the arguments passed to  \texttt{test_run.py}. The details of each mode and their additional \texttt{Python} parameters are described below. Note that regardless of the mode, original lattice MUST have a valid initial HOM assignment. 
 
 %---------------------------------------------------------------------------------
-\subsection{DR_SCAN mode}
+\subsection{DR-SCAN mode}
 \textcolor{blue}{Number of argument: 0}
 \bigbreak
-Command: \textcolor{blue}{\texttt{python3   .../bsim/bbu/test_run.py}} 
+Run this command under \texttt{ \$DIST_BASE_DIR/bsim/bbu/examples} :
+\\
+\textcolor{blue}{\texttt{python   \$DIST_BASE_DIR/bsim/bbu/test_run.py}} 
 \bigbreak
-Obtain ($I_{th}$ v.s $t_r/t_b$) for a lattice with a varying arc length. ($t_r$ is the recirculation time, and $t_b$ is 1/\texttt{bunch_freq}). The lattice must have an element called ``\texttt{arc}'' of which the length ($t_r \times$ speed of light) is varied.
-This mode produced the plot for PRSTAB 7 (2004) Fig.3 \cite{GeorgBBU}, for which one dipole HOM is assigned to one cavity in a lattice with one recirculation pass (the simplest BBU model).
-This mode is commonly used to test if the simulation agrees with the theory.
+Obtain ($I_{th}$ v.s $t_r/t_b$) for a lattice with a varying arc length. ($t_r$ is the recirculation time, and $t_b$ is 1/\texttt{bunch_freq}). The lattice must have a unique element named ``\texttt{arc}'' of which the length ($t_r \times$ speed of light) is varied.
+This mode produced the plot for Fig.3 in \cite{GeorgBBU} and Fig.14 in \cite{WlouBBU}, for which one dipole HOM is assigned to one cavity in a lattice with one recirculation pass (the simplest BBU model). This mode is commonly used to check if the simulation agrees with the theory, as shown in the two papers.
 \bigbreak
 \texttt{Python} Parameters:
 
@@ -240,9 +268,9 @@ This mode is commonly used to test if the simulation agrees with the theory.
 
 2) \texttt{end_dr_arctime}: $t_r$ (in seconds) of the final data point.
 
-3) \texttt{n_data_pts_DR}: number of data points. Must be a positive integer. If equal to 1, \texttt{end_dr_arctime} is ignored.
+3) \texttt{n_data_pts_DR}: number of data points. Must be a positive integer. If equal to 1, \texttt{end_dr_arctime} is ignored. Decrease this for fast result with fewer evaluation points.
 
-4) \texttt{plot_drscan}: If True, the \texttt{Python} program will produce a plot of ($I_{th}$ v.s $t_r/t_b$). The user must exit the plot to obtain the data. This must be set to False for grid jobs.  
+4) \texttt{plot_drscan}: If True, the \texttt{Python} program will produce a plot of ($I_{th}$ v.s $t_r/t_b$). The user must exit the plot to obtain the data in an output file. This must be set to False for grid job submission.  
 
 \bigbreak
 Output file: \texttt{thresh_v_trotb.txt}
@@ -251,9 +279,9 @@ Output file: \texttt{thresh_v_trotb.txt}
 \subsection{THRESHOLD mode}      
 \textcolor{blue}{Number of argument: 3}
 \bigbreak
-Command: \textcolor{blue}{\texttt{python3 .../bsim/bbu/test_run.py  \text{} N \text{} fn \text{} output_dir }}
+Command: \textcolor{blue}{\texttt{python \$DIST_BASE_DIR/bsim/bbu/test_run.py  \text{} N \text{} fn \text{} output_dir }}
 \bigbreak
-For a FIXED lattice, compute the $I_{th}$ for \texttt{N} times, each time with a (random) set of HOM assignment. It is recommended to set \texttt{N} = 1 and use parallel computation. fn is the string used to distinguish between the simulation runs, and is set to the job number (\texttt{\$JOB_ID}) during grid submission.
+Compute the $I_{th}$ for \texttt{N} times for a fixed lattice, each time with a (random) set of HOM assignment. It is recommended to set \texttt{N} = 1 and use parallel computation. \texttt{fn} is the string used to distinguish between the simulation runs, and can be set to the job number (\texttt{\$JOB_ID}) during grid submission.
 
 \bigbreak
 \texttt{Python} Parameters:
@@ -272,7 +300,7 @@ Output file:  \texttt{bbu_threshold_fn.txt}, which includes $I_{th}$ (if found) 
 \subsection{PHASE_SCAN mode}
 \textcolor{blue}{Number of argument: 1}
 \bigbreak
-Command:  \textcolor{blue}{\texttt{python3 .../bsim/bbu/test_run.py  PHASE}}
+Command:  \textcolor{blue}{\texttt{python \$DIST_BASE_DIR/bsim/bbu/test_run.py  PHASE}}
 
 Obtain ($I_{th}$ v.s. $\phi$) for a lattice with a varying horizontal phase-advance $\phi$. The phase advance is changed via a zero-length first-order \texttt{Taylor} element (See Bmad manual for detail.) named ``taylorW'', which is equivalent to a 2x2 transfer matrix $M(\phi)$ in the horizontal phase space:
 
@@ -366,22 +394,18 @@ Output file: \texttt{thresh_v_phase_PHASE_X_PHASE_Y.txt}
 \subsection{BBU Fortran codes}
 The files with core computation.
 
-1)\texttt{.../bsim/bbu/bbu_program.f90}: Main BBU program.
+1)\texttt{\$DIST_BASE_DIR/bsim/bbu/bbu_program.f90}: Main BBU program.
 
-2)\texttt{.../bsim/code/bbu_track_mod.f90}: BBU tracking and computation modules.
+2)\texttt{\$DIST_BASE_DIR/bsim/code/bbu_track_mod.f90}: BBU tracking and computation modules.
 
 %---------------------------------------------------------------------------------
-\subsection{ Python main user interface}
-The most upper level program.
+\subsection{ Python main user interface }
+The Python wrapper which interacts with the Fortran core.
 
-(Location: \texttt{.../bsim/bbu/})
-
-1) \texttt{test_run.py}: 
+1) \texttt{\$DIST_BASE_DIR/bsim/bbu/test_run.py}: 
 The TOP interface file which defines all BBU \texttt{Fortran} and \texttt{Python} parameters ( to be modified by the user ).
-When run, a temporary directory is created, which contains \texttt{bbu.init} and associated filed to run the \texttt{Fortran} core for multiple times. The directory is cleaned up at the end of the Python program. The user can deliberately terminates the \texttt{Python} program to investigate the temporary files (for debugging).
+When run, a temporary directory is created, which contains \texttt{bbu.init} and associated filed to run the \texttt{Fortran} core for multiple times. The directory is cleaned up at the end of the Python program. The user can deliberately terminate the \texttt{Python} program to investigate the temporary files (for debugging).
 
-2) \texttt{dummy_run.py}: 
-A temporary copy of \texttt{test_run.py} for parallel grid jobs. Should be in sync with \texttt{test_run.py} regularly.  
 
 %---------------------------------------------------------------------------------
 \subsection{Python package}
@@ -395,17 +419,16 @@ These files are for intermediate  organization and communication between \texttt
 
 3) \texttt{drscan.py}: Prepares drscan files (\texttt{lat2.lat}) and plot.
 
-4) \texttt{phase_scan.py}: Prepares phase_scan (or phase_xy_scan) files (\texttt{lat2.lat}) and plot.
+4) \texttt{phase_scan.py}: Prepares phase\_scan (or phase\_xy\_scan) files (\texttt{lat2.lat}) and plot.
 
 %---------------------------------------------------------------------------------
 \subsection{Others}
-Potentially useful files.
+Potentially useful files. 
 
-1) \texttt{cut_HOM.py}: this \texttt{Python} program reads in a directory full of wakefield data files and a maximum number (N) of desired HOMs per file. It then creates a new user-specified directory and stores the corresponding files, each with only the most influential N HOMs. The degree of influence (figure of merit) of the HOMs are defined in the program.
+1) \texttt{collect_thresholds.py}: this \texttt{Python} program summarizes the calculated threshold currents stored in the local "bbu\_thresholds\_*" output files. The output file is bbu\_combined\_thresholds.txt.
 
-2) \texttt{Grid_submitter.sge}: Submit grid job(s) for time-consuming threshold calculation. Calls \texttt{mlc.sge} files, which specify the commands to run.
+2) \texttt{assignHOMs.bmad}: If this file exists in the directory which the user calls \texttt{test_run.py}  (not necessarily the directory where \texttt{test_run.py} locates), the HOM assignment from the original lattice will be over-written, unless the user has specified \texttt{py_par[`random_homs']} to be True.
 
-3) \texttt{assignHOMs.bmad}: If this file exists in the directory which the user calls \texttt{test_run.py}  (not necessarily the directory where \texttt{test_run.py} locates), the HOM assignment from the original lattice will be over-written, unless the user has specified \texttt{py_par[`random_homs']} to be True.
 
 %---------------------------------------------------------------------------------
 \begin{thebibliography}{99}
@@ -418,6 +441,11 @@ David Sagan. {\em The Bmad Reference Manual},\\
 G.H.~Hoffstaetter, I.V.~Bazarov, \emph{Beam-Breakup Instability Theory for Energy Recovery Linacs},
 Phys.~Rev.~ST-AB {\bf 7}, 054401 (2004).
 
+\bibitem{WlouBBU}
+W.~Lou, G.H.~Hoffstaetter, \emph{BBeam breakup current limit in multiturn energy recovery linear accelerators},
+Phys.~Rev.~ST-AB {\bf 22}, 112801 (2019).
+
 \end{thebibliography}
 
 \end{document}
+

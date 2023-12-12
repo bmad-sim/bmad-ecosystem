@@ -157,7 +157,7 @@ def  run_bbu ( temp_curr, py_par, mode ):
     temp_file.close()
     print ('Running BBU with current ', str(temp_curr), '(A)')
 
-    subprocess.call( py_par['bbu_exe'], shell = True)  # Run bbu 
+    subprocess.call( py_par['exec_path'], shell = True)  # Run bbu 
 
   if ( mode == 'drscan' or mode == 'phase_scan' or mode == 'phase_xy_scan'):
     
@@ -173,4 +173,4 @@ def  run_bbu ( temp_curr, py_par, mode ):
     temp_file.close()
 
     print ('Subprocess begins!!!  Running BBU with current ', str(temp_curr), '(A)')
-    subprocess.call( py_par['bbu_exe'], shell = True)  # Run bbu
+    subprocess.call( py_par['exec_path'], shell = True)  # Run bbu

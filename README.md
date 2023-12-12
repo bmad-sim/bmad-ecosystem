@@ -1,15 +1,27 @@
-# bmad-ecosystem repository
-Bmad toolkit (library) for the simulation of charged particles and X-rays in accelerators and storage rings.
+# Bmad-Ecosystem repository
+Bmad toolkit (library) for the simulation of charged particles and X-rays in accelerators and storage rings. This is the primary repository for the various libraries and programs that comprise the Bmad ecosystem. For details, see the Bmad website at [https://www.classe.cornell.edu/bmad/](https://www.classe.cornell.edu/bmad/).
 
-**Bmad web site at: [https://www.classe.cornell.edu/bmad/](https://www.classe.cornell.edu/bmad/)**
+## Bmad Installation
 
-## Bmad Setup
+Bmad can be installed pre-compiled or from source. Detailed unstructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>. 
 
-Two possibilities for setting up Bmad:
-- Use **conda-forge** (a Python package manager). Instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>. 
+### Pre-compiled from conda-forge
 
-Or if you want to compile Bmad directly:
-- Download a **Release** (click on link on right hand side of this page and download the **bmad_dist.tar.gz** file [Ignore the *source code* files.]) and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
+The simplest way to install Bmad is from [conda-forge](https://conda-forge.org). For the regular Bmad (OpenMP enabled), install the latest version using:
+```zsh
+conda install -c conda-forge bmad
+```
+
+For the MPI-enabled code, install the latest version using:
+```zsh
+conda install -c conda-forge bmad="*=mpi_openmpi*"
+```
+
+This will add all of the appropriate executables to the environment's PATH.
+
+### Compile from source
+
+If you want to compile Bmad directly, download a [Release](https://github.com/bmad-sim/bmad-ecosystem/releases) (or click on link on right hand side of this page and download the **bmad_dist.tar.gz** file (ignore the *source code* files) and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
 
 
 ## Developer Setup
