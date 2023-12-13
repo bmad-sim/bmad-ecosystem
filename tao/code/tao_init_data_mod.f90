@@ -623,7 +623,7 @@ do j = n1, n2
 
   dat%exists = tao_data_sanity_check (dat, dat%exists, default_data_type)
   if (tao_chrom_calc_needed(dat%data_type, dat%data_source)) u%calc%chrom_for_data = .true.
-
+  if (tao_one_turn_map_calc_needed(dat%data_type, dat%data_source)) u%calc%one_turn_map = .true.
 enddo
 
 if (.not. any(u%data(n1:n2)%exists) .and. n2 >= n1) then

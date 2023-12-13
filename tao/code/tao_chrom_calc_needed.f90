@@ -9,7 +9,6 @@
 
 function tao_chrom_calc_needed (data_type, data_source) result (do_chrom)
 
-
 implicit none
 
 character(*) data_type, data_source

@@ -477,6 +477,13 @@ function tao_merit (calc_ok) result (this_merit)
   logical, optional :: calc_ok
 end function
 
+function tao_one_turn_map_calc_needed (data_type, data_source) result (do_one_turn_map)
+  import
+  implicit none
+  character(*) data_type, data_source
+  logical do_one_turn_map
+end function
+
 subroutine tao_open_file (file, iunit, file_name, error_severity, binary)
   implicit none
   character(*) file

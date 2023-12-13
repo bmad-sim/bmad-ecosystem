@@ -1984,7 +1984,7 @@ case ('normal.')
 
   ! Do nothing it the map wasn't made
   if (.not. ptc_nf%valid_map) then
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  PTC one-turn map not calculated.', why_invalid)
+    call tao_set_invalid (datum, 'PTC one-turn map not calculated.', why_invalid)
     return
   endif
 
@@ -2019,19 +2019,19 @@ case ('normal.')
       case('a')
         datum_value = abs(temp_cplx)
       case default
-        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', why_invalid, .true.)
+        call tao_set_invalid (datum, 'Data_type not ending in .r, .i, or .a.', why_invalid, .true.)
         valid_value = .false.
         return
       end select
     else
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.  data_type not found in normal_form_struct', why_invalid, .true.)
+      call tao_set_invalid (datum, 'Data_type not found in normal_form_struct', why_invalid, .true.)
       valid_value = .false.
       return
     endif
   else
     i = tao_read_phase_space_index (sub_data_type, iz, .false.)
     if (i == 0) then
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" NOT VALID.', why_invalid, .true.)
+      call tao_set_invalid (datum, 'Bad phase space index.', why_invalid, .true.)
       return
     endif
     ! Point to taylor
@@ -2064,7 +2064,7 @@ case ('normal.')
    
     ! Check for second dot
     if (sub_data_type(iz+1:iz+1) /= '.') then
-     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
+     call tao_set_invalid (datum, 'Missing dot "." in data_type', why_invalid, .true.)
      call out_io (s_error$, r_name, 'data_type: '//trim(data_type) )
      call out_io (s_error$, r_name, 'expect dot: ', sub_data_type(1:iz)//'.######' )
     endif
@@ -5984,7 +5984,8 @@ elseif (.not. datum%err_message_printed) then
   endif
   if (s%com%n_err_messages_printed > s%global%datum_err_messages_max) return
 
-  call out_io (integer_option(s_error$, err_level), r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
+  call out_io (integer_option(s_error$, err_level), r_name, message, &
+                'FOR DATUM: ' // trim(tao_datum_name(datum)) // ' with data_type: ' // datum%data_type)
   if (identified_err_found) then
     call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF DATUM ERROR MESSAGE FOR THIS EVALUATION CYCLE.')
   endif
