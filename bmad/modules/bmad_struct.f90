@@ -1751,8 +1751,6 @@ integer, parameter :: y1_limit$ = 73
 integer, parameter :: y2_limit$ = 74
 integer, parameter :: check_sum$ = 75
 
-integer, parameter :: g_err$ = dg$   ! For backwards compatibility.
-integer, parameter :: B_field_err$ = dB_field$  ! For backwards compatibility
 !!    = 1 + num_ele_attrib$
 
 integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
@@ -1832,6 +1830,9 @@ integer, parameter :: b0_elec$ = 212, b21_elec$ = 233
 integer, parameter :: custom_attribute0$ = b21_elec$
 integer, parameter :: custom_attribute_num$ = 40
 integer, parameter :: num_ele_attrib_extended$ = custom_attribute0$ + custom_attribute_num$
+
+integer, parameter :: g_err$ = dg$   ! For backwards compatibility.
+integer, parameter :: B_field_err$ = dB_field$  ! For backwards compatibility
 
 character(40), parameter :: blank_name$ = ' '
 

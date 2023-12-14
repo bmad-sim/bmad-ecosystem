@@ -462,7 +462,6 @@ SET (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
 SET (MASTER_INC_DIRS
   ${INC_DIRS}
   ${OUTPUT_BASEDIR}/include
-  ${ROOT_INC}
   ${OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/modules
   ${RELEASE_OUTPUT_BASEDIR}/include
@@ -541,16 +540,6 @@ foreach(h5dir ${HDF5_Fortran_LIBRARY_DIRS})
     list(APPEND MASTER_LINK_DIRS "${h5dir}")
   endif()
 endforeach()
-
-IF (DEBUG)
-  IF (IS_DIRECTORY "${PACKAGES_DIR}/debug/lib/root")
-    LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
-  ENDIF ()
-ELSE ()
-  IF (IS_DIRECTORY "${PACKAGES_DIR}/production/lib/root")
-    LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/production/lib/root")
-  ENDIF ()
-ENDIF ()
 
 LINK_DIRECTORIES (${MASTER_LINK_DIRS})
 
