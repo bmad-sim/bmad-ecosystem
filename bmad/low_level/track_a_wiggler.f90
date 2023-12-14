@@ -28,7 +28,7 @@ type (lat_param_struct) :: param
 real(rp), optional :: mat6(6,6)
 real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1x, k1y, k1yy, k1xx, k3l, length, ky2, kz, rel_p, t_start
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) m43, m46, m52, m54, m56, mc2_rel, kmat(6,6), factor
+real(rp) m43, m46, m52, m54, m56, mc2_rel, kmat(6,6), factor, gamma0
 real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), r_step, step_len
 
 integer i, ix_mag_max, ix_elec_max, n_step
@@ -52,7 +52,12 @@ field_ele => pointer_to_field_ele(ele, 1)
 z_start = orbit%vec(5)
 t_start = orbit%t
 
+! ds_step is set for PTC tracking which needs a lot more steps. 
+! Need only one step if there are no multipoles.
+
 n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+if (ix_mag_max  < 0 .and. ix_elec_max < 0) n_step = 1
+
 r_step = real(orbit%time_dir, rp) / n_step
 step_len = ele%value(l$) * r_step
 
@@ -203,5 +208,9 @@ endif
 
 orbit%t = orbit%t + factor / (c_light * orbit%beta * rel_p**2)
 orbit%vec(5) = orbit%vec(5) + factor * (orbit%beta / beta_ref - 1 / rel_p**2)
+if (logic_option(.false., make_matrix)) then
+  gamma0 = ele%value(E_tot$) / mass_of(orbit%species)
+  mat6(5,:) = mat6(5,:) + factor * ((orbit%beta**3/gamma0**2 + 2.0_rp) / rel_p**3) * mat6(6,:)
+endif
 
 end subroutine

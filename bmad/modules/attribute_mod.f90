@@ -946,6 +946,7 @@ call init_attribute_name1 (foil$, density$,                         'DENSITY')
 call init_attribute_name1 (foil$, density_used$,                    'DENSITY_USED', dependent$)
 call init_attribute_name1 (foil$, area_density$,                    'AREA_DENSITY', quasi_free$)
 call init_attribute_name1 (foil$, area_density_used$,               'AREA_DENSITY_USED', dependent$)
+!! call init_attribute_name1 (foil$, probability_final_charge$         'PROBABILITY_FINAL_CHARGE')
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
