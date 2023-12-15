@@ -41,6 +41,11 @@ logical, optional :: make_matrix
 
 character(*), parameter :: r_name = 'track_a_foil'
 
+! On target? If not, there is nothing to be done.
+
+if (orbit%vec(1) < ele%value(x1_edge$) .or. orbit%vec(1) > ele%value(x2_edge$)) return
+if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) return
+
 ! Angle scatter
 
 material = species_id(ele%component_name)

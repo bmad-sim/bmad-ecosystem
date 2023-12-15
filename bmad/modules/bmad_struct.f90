@@ -1660,7 +1660,8 @@ integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$
 integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4, radiation_length$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5
-integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5, radiation_length_used$ = 5
+integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
+integer, parameter :: radiation_length_used$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
 integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6, density$ = 6
 integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
@@ -1684,13 +1685,15 @@ integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, autosc
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, sig_e2$ = 20
 integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
-integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, cavity_type$ = 22, emit_fraction$ = 22
+integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, cavity_type$ = 22
 integer, parameter :: beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
+integer, parameter :: emit_fraction$ = 22, x1_edge$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, E2_probability$ = 23, phi0_max$ = 23
-integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24, direction_particle_start$ = 24
+integer, parameter :: x2_edge$ = 23
+integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24, y1_edge$ = 24
 integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24, px_aperture_width2$ = 24
-integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25, time_dir_particle_start$ = 20
+integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25, y2_edge$ = 25
 integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25, species_strong$ = 25
 integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26

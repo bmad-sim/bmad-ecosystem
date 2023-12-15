@@ -531,19 +531,20 @@ ele_origin                       & ref_time_start [sec]             & x1_limit [
  \label{s:list.foil}
  
  \begin{tabular}{llll} \toprule
-alias                            & final_charge                     & reference                        & x_offset [m]                     \\
-aperture [m]                     & is_on                            & spin_tracking_method             & x_offset_tot [m]                 \\
-aperture_at                      & l [m]                            & superimpose                      & x_pitch [rad]                    \\
-aperture_type                    & mat6_calc_method                 & thickness [m]                    & x_pitch_tot [rad]                \\
-area_density [kg/m$^2$]          & material_type                    & tilt [rad]                       & y1_limit [m]                     \\
-area_density_used [kg/m$^2$]     & offset [m]                       & tilt_tot [rad]                   & y2_limit [m]                     \\
-create_jumbo_slave               & offset_moves_aperture            & tracking_method                  & y_limit [m]                      \\
-delta_ref_time [sec]             & p0c [eV]                         & type                             & y_offset [m]                     \\
-density [kg/m$^3$]               & ptc_integration_type             & wall                             & y_offset_tot [m]                 \\
-density_used [kg/m$^3$]          & radiation_length [m]             & wrap_superimpose                 & y_pitch [rad]                    \\
-descrip                          & radiation_length_used [m]        & x1_limit [m]                     & y_pitch_tot [rad]                \\
-e_tot [eV]                       & ref_origin                       & x2_limit [m]                     & z_offset [m]                     \\
-ele_origin                       & ref_time_start [sec]             & x_limit [m]                      & z_offset_tot [m]                 \\
+alias                            & is_on                            & superimpose                      & x_offset_tot [m]                 \\
+aperture [m]                     & l [m]                            & thickness [m]                    & x_pitch [rad]                    \\
+aperture_at                      & mat6_calc_method                 & tilt [rad]                       & x_pitch_tot [rad]                \\
+aperture_type                    & material_type                    & tilt_tot [rad]                   & y1_edge [m]                      \\
+area_density [kg/m$^2$]          & offset [m]                       & tracking_method                  & y1_limit [m]                     \\
+area_density_used [kg/m$^2$]     & offset_moves_aperture            & type                             & y2_edge [m]                      \\
+create_jumbo_slave               & p0c [eV]                         & wall                             & y2_limit [m]                     \\
+delta_ref_time [sec]             & ptc_integration_type             & wrap_superimpose                 & y_limit [m]                      \\
+density [kg/m$^3$]               & radiation_length [m]             & x1_edge [m]                      & y_offset [m]                     \\
+density_used [kg/m$^3$]          & radiation_length_used [m]        & x1_limit [m]                     & y_offset_tot [m]                 \\
+descrip                          & ref_origin                       & x2_edge [m]                      & y_pitch [rad]                    \\
+e_tot [eV]                       & ref_time_start [sec]             & x2_limit [m]                     & y_pitch_tot [rad]                \\
+ele_origin                       & reference                        & x_limit [m]                      & z_offset [m]                     \\
+final_charge                     & spin_tracking_method             & x_offset [m]                     & z_offset_tot [m]                 \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -606,10 +607,10 @@ dy_origin [m]                    & ref_tilt_tot [rad]               & x_pitch_to
  \label{s:list.group}
  
  \begin{tabular}{llll} \toprule
-accordion_edge [m]               & gang                             & start_edge                       & y_knot                           \\
-alias                            & interpolation                    & type                             &                                  \\
-descrip                          & s_position [m]                   & var                              &                                  \\
-end_edge [m]                     & slave                            & x_knot                           &                                  \\
+accordion_edge [m]               & gang                             & slave                            & x_knot                           \\
+alias                            & interpolation                    & start_edge                       & y_knot                           \\
+descrip                          & is_on                            & type                             &                                  \\
+end_edge [m]                     & s_position [m]                   & var                              &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -997,12 +998,11 @@ geometry                         & machine                          & photon_typ
  \label{s:list.particle.start}
  
  \begin{tabular}{llll} \toprule
-direction                        & field_y                          & sig_pz                           & time_dir                         \\
-e_photon [eV]                    & phase_x [rad]                    & sig_z [m]                        & x [m]                            \\
-emittance_a [m*rad]              & phase_y [rad]                    & spin_x                           & y [m]                            \\
-emittance_b [m*rad]              & px                               & spin_y                           & z [m]                            \\
-emittance_z [m*rad]              & py                               & spin_z                           &                                  \\
-field_x                          & pz                               & t [sec]                          &                                  \\
+e_photon [eV]                    & field_y                          & pz                               & spin_z                           \\
+emittance_a [m*rad]              & phase_x [rad]                    & sig_pz                           & t [sec]                          \\
+emittance_b [m*rad]              & phase_y [rad]                    & sig_z [m]                        & x [m]                            \\
+emittance_z [m*rad]              & px                               & spin_x                           & y [m]                            \\
+field_x                          & py                               & spin_y                           & z [m]                            \\
  \bottomrule
  \end{tabular}
  \vfill

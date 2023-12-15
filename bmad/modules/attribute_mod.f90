@@ -946,6 +946,11 @@ call init_attribute_name1 (foil$, density$,                         'DENSITY')
 call init_attribute_name1 (foil$, density_used$,                    'DENSITY_USED', dependent$)
 call init_attribute_name1 (foil$, area_density$,                    'AREA_DENSITY', quasi_free$)
 call init_attribute_name1 (foil$, area_density_used$,               'AREA_DENSITY_USED', dependent$)
+call init_attribute_name1 (foil$, x1_edge$,                         'X1_EDGE')
+call init_attribute_name1 (foil$, x2_edge$,                         'X2_EDGE')
+call init_attribute_name1 (foil$, y1_edge$,                         'Y1_EDGE')
+call init_attribute_name1 (foil$, y2_edge$,                         'Y2_EDGE')
+
 !! call init_attribute_name1 (foil$, probability_final_charge$         'PROBABILITY_FINAL_CHARGE')
 
 call init_attribute_name1 (lens$, l$,                               'L')
@@ -1011,8 +1016,6 @@ call init_attribute_name1 (def_particle_start$, emittance_b$,               'EMI
 call init_attribute_name1 (def_particle_start$, emittance_z$,               'EMITTANCE_Z')
 call init_attribute_name1 (def_particle_start$, sig_pz$,                    'SIG_PZ')
 call init_attribute_name1 (def_particle_start$, sig_z$,                     'SIG_Z')
-call init_attribute_name1 (def_particle_start$, direction_particle_start$,  'DIRECTION')
-call init_attribute_name1 (def_particle_start$, time_dir_particle_start$,   'TIME_DIR')
 
 call init_attribute_name1 (def_parameter$, ix_branch$,                    'ix_branch', private$)
 call init_attribute_name1 (def_parameter$, e_tot$,                        'E_TOT')
@@ -2016,7 +2019,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
       'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', 'Z_CROSSING', &
-      'RADIATION_LENGTH', 'RADIATION_LENGTH_USED', &
+      'RADIATION_LENGTH', 'RADIATION_LENGTH_USED', 'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', &
       'X_DISPERSION_ERR', 'Y_DISPERSION_ERR', 'X_DISPERSION_CALIB', 'Y_DISPERSION_CALIB')
   attrib_units = 'm'
 

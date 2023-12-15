@@ -232,8 +232,6 @@ case ('PARTICLE_START')
   case (phase_y$);                       ptr_array(1)%r => lat%particle_start%phase(2)
   case (t$);                             ptr_array(1)%r => lat%particle_start%t
   case (e_photon$);                      ptr_array(1)%r => lat%particle_start%p0c
-  case (direction_particle_start$);      ptr_array(1)%i => lat%particle_start%direction
-  case (time_dir_particle_start$);       ptr_array(1)%i => lat%particle_start%time_dir
   case (spin_x$);                        ptr_array(1)%r => lat%particle_start%spin(1)
   case (spin_y$);                        ptr_array(1)%r => lat%particle_start%spin(2)
   case (spin_z$);                        ptr_array(1)%r => lat%particle_start%spin(3)
