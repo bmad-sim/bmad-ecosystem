@@ -158,6 +158,10 @@ case (floor_shift$)
 case (foil$)
   ele%value(num_steps$) = 10
   ele%value(final_charge$) = real_garbage$
+  ele%value(x1_edge$) = -99.0_rp
+  ele%value(y1_edge$) = -99.0_rp
+  ele%value(x2_edge$) =  99.0_rp
+  ele%value(y2_edge$) =  99.0_rp
 
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$

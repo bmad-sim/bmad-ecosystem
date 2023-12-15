@@ -2103,15 +2103,19 @@ See \sref{s:list.solenoid} for a full list of element attributes along with a th
 
 Attributes specific to a \vn{foil} element are:
 \begin{example}
-  material_type     = <String>    ! Foil material.
-  thickness         = <Real>      ! Material thickness (m).
-  density           = <Real>      ! Input material density (kg/m^3).
-  density_used                    ! Density value used in tracking (kg/m^3). Dependent parameter.
-  radiation_length  = <Real>      ! Input material radiation length (m).
-  radiation_length_used           ! Radiation length used in tracking (m). Dependent parameter.
-  area_density      = <Real>      ! Input material area density (kg/m^2).
-  area_density_used               ! Area density used in tracking (kg/m^2).
-  final_charge      = <Integer>   ! Final charge state
+  material_type     = <String>  ! Foil material.
+  thickness         = <Real>    ! Material thickness (m).
+  density           = <Real>    ! Input material density (kg/m^3).
+  density_used                  ! Density value used in tracking (kg/m^3).
+  radiation_length  = <Real>    ! Input material radiation length (m).
+  radiation_length_used         ! Radiation length used in tracking (m).
+  area_density      = <Real>    ! Input material area density (kg/m^2).
+  area_density_used             ! Area density used in tracking (kg/m^2).
+  final_charge      = <Integer> ! Final charge state
+  x1_edge           = <Real>    ! Foil sheet edge in the +x direction. Default: -99 m.
+  x2_edge           = <Real>    ! Foil sheet edge in the -x direction. Default:  99 m.
+  y1_edge           = <Real>    ! Foil sheet edge in the +y direction. Default: -99 m.
+  y2_edge           = <Real>    ! Foil sheet edge in the -y direction. Default:  99 m.
 \end{example}
 
 Scattering is simulated to be Gaussian distributed with a sigma given by Eq.~(6) of Lynch and
@@ -2142,10 +2146,19 @@ not affect the transfer matrix.
 
 Particles going through the \vn{foil} are stripped to have a final charge given by \vn{final_charge}.
 
+The foil has a rectangular shape and particles will only be considered to have hit the foil if:
+\begin{example}
+  x1_edge < x_particle < x2_edge  and
+  y1_edge < y_particle < y2_edge
+\end{example}
+where (x_particle, y_particle) are the coordinates of the particle. Particles that do not hit the
+sheet pass through the element without a change in charge nor a change in trajectory. The default
+for \vn{x1_edge} and \vn{y1_edge} is -99~meters and for \vn{x2_edge} and \vn{y2_edge} the default is
++99~meters.
 
 Example:
 \begin{example}
-  septum: foil, material_type = "Cu", thickness = 0.127, radiation_length = 
+  septum: foil, material_type = "Cu", thickness = 0.127, radiation_length = 12.3, x1_edge = -0.3
 \end{example}
 
 \newpage
@@ -2689,6 +2702,11 @@ lattice ``optimization'' where a program varies a set of lattice parameters to a
 (for example, minimum beta at some point in the lattice, etc.). If the list of parameters to be
 varied contains both group variables and slave attributes, the actual changes to slave attributes
 may be different from what the user expects when the program varies its list of parameters.
+
+During running of a program, If a \vn{group} element has been turned off (\vn{is_on} parameter set
+false), a change to a variable of the group element is saved but the old variable value is not
+updated and slave parameters are not affected. Subsequently, turning on the group element will
+result in the appropriate changes to the slave parameters and the old variable value.
 
 \index{overlay}\index{girder}
 Different \vn{group} elements may control the same slave attribute and a \vn{group} element may
