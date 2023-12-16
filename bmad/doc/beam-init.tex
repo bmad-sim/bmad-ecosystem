@@ -314,7 +314,64 @@ There are two formats for the beam initialization file: ASCII and binary. The bi
 beam position storage is based on the \vn{HDF5} standard. More information is in
 chapter~\sref{c:hdf5}.
 
-The ASCII file format is:
+
+The new ASCII format describes a particle bunch with a \vn{header} section followed by a \vn{table}
+of particle parameters. Multiple bunches that comprise a beam can be specified by multiple header
+section / particle parameter table pairs, one pair for each bunch. An example header section:
+\begin{example}
+\# The header field lines all start with a pound "\#" sign.
+\# Any line in the header field that does not start with a recognized parameter or
+\# does not have an equal sign is ignored.
+\# my_param = 1.23    ! Custom parameters can be defined and will be ignored by Bmad.
+\# species = proton   ! This parameter will be read by Bmad.
+\# spin = 1, 0, 0     !   and this one too.
+\# The last line in the header field starts with "\#!" and defines the table columns.
+\#!   index     x         px       y     py  ... etc...
+\end{example}
+The header section lines all start with a pound ``\#'' sign. The last line in the header section
+must start with ``\#!'' and this line defines the particle parameter table columns. With the
+exception of the last line, all header lines will be ignored except ones that begin with a
+recognized parameter followed by an equal sign. Recognized parameters are the components of the
+\vn{coord_struct}, as documented in \sref{s:coord.struct}, that describes individual particles. In
+addition, the following parameters are recognized:
+\begin{example}
+  charge_tot      ! Total bunch charge (including dead particles).
+  s_position      ! Longitudinal position of bunch. Can be used in place of "s".
+  time            ! Time particles of bunch are at. Can be used in place of "t".
+\end{example}
+These parameters, if present, will be used to set the corresponding particle parameter in all the
+particles of the corresponding bunch. Possible \vn{location} and \vn{state} parameter settings are
+documented in \sref{s:coord.struct}. The string equivalent to any setting is obtained by removing
+the trailing ``\$'' from the variable name. For example, the variable \vn{alive\$} which is a
+possible \vn{state} setting becomes the string \vn{alive}. Note: \vn{charge_tot} (total bunch
+charge) will superceed \vn{charge} (the charge per particle).
+
+The particle parameter table follows the header section. Each row gives the parameters for one
+particle. Not all particle parameters must be specified. If a particular parameter is not present,
+its default value will be used or, if present, the value given in the header section. Column order
+is irrelavent and what determines what particle parameter is associated with a given column is the
+last line of the header section which starts with the characters \vn{\#!}. Except for vector
+parameters, column names correspond to \vn{coord_struct} parameters the same as in the header
+section. For parameters that are vectors, the mapping from column name to parameter is:
+\begin{example}
+  Column Name             Corresponding coord_struct components
+  ----------------------  -----------------------------------------
+  x, px, y, py, z, pz     vec(1), ..., vec(6)
+  spin_x, spin_y, spin_z  spin(1), spin(2), spin(3)
+  field_x, field_y        field(1), field(2)
+  phase_x, phase_y        phase(1), phase(2)
+\end{example}
+Additionally, there can be (but is not required) an \vn{index} column giving the particle index in
+the array of particles of a bunch.  This column is ignored so, for example, values in the first line
+of the table will always be used to set the particle with index 1 independent of the
+value given in the index column. This behavior is implemented so that a beam file can be edited to add
+or remove particles without worrying about reindexing.
+
+%-----------------------------------------------------------------
+\subsection{Old Beam ASCII Format}
+
+There is an old ASCII format that is still accepted by \bmad but is deprecated and should be
+avoided. The format is:
 \begin{example}
   <ix_ele>         ! Lattice element index. This is ignored.
   <n_bunch>        ! Number of bunches.
@@ -407,60 +464,3 @@ When the particle coordinates are read in the centroid will be shifted by the se
 \vn{beam_init%center} (unless \vn{beam_init%use_particle_start} is set True) and
 \vn{beam_init%center_jitter}.
 
-%-----------------------------------------------------------------
-\subsection{New Beam Initialization Format}
-
-2023/11: Note! The above ASCII format is in the process of being replaced. The new ASCII format is
-still undergoing testing so caution must be used when using the new format.
-
-The new ASCII format describes a particle bunch with a \vn{header} section followed by a \vn{table}
-of particle parameters. Multiple bunches that comprise a beam can be specified by multiple header
-section / particle parameter table pairs, one pair for each bunch. An example header section:
-\begin{example}
-\# The header field lines all start with a pound "\#" sign.
-\# Any line in the header field that does not start with a recognized parameter or
-\# does not have an equal sign is ignored.
-\# my_param = 1.23    ! Thus Custom parameters can be set an will be ignored by Bmad.
-\# species = proton   ! This parameter will be read by Bmad.
-\# spin = 1, 0, 0     !   and this one too.
-\# The last line in the header field starts with "\#!" and defines the table columns.
-\#!   index     x         px       y     py  ... etc...
-\end{example}
-The header section lines all start with a pound ``\#'' sign. The last line in the header section
-must start with ``\#!'' and this line defines the particle parameter table columns. With the
-exception of the last line, all header lines will be ignored except ones that begin with a
-recognized parameter followed by an equal sign. Recognized parameters are the components of the
-\vn{coord_struct}, as documented in \sref{s:coord.struct}, that describes individual particles. In
-addition, the following parameters are recognized:
-\begin{example}
-  charge_tot      ! Total bunch charge (including dead particles).
-  s_position      ! Longitudinal position of bunch. Can be used in place of "s".
-  time            ! Time particles of bunch are at. Can be used in place of "t".
-\end{example}
-These parameters, if present, will be used to set the corresponding particle parameter in all the
-particles of the corresponding bunch. Possible \vn{location} and \vn{state} parameter settings are
-documented in \sref{s:coord.struct}. The string equivalent to any setting is obtained by removing
-the trailing ``\$'' from the variable name. For example, the variable \vn{alive\$} which is a
-possible \vn{state} setting becomes the string \vn{alive}. Note: \vn{charge_tot} (total bunch
-charge) will superceed \vn{charge} (the charge per particle).
-
-The particle parameter table follows the header section. Each row gives the parameters for one
-particle. Not all particle parameters must be specified. If a particular parameter is not present,
-its default value will be used or, if present, the value given in the header section. Column order
-is irrelavent and what determines what particle parameter is associated with a given column is the
-last line of the header section which starts with the characters \vn{\#!}. Except for vector
-parameters, column names correspond to \vn{coord_struct} parameters the same as in the header
-section. For parameters that are vectors, the mapping from column name to parameter is:
-\begin{example}
-  Column Name             Corresponding coord_struct components
-  ----------------------  -----------------------------------------
-  x, px, y, py, z, pz     vec(1), ..., vec(6)
-  spin_x, spin_y, spin_z  spin(1), spin(2), spin(3)
-  field_x, field_y        field(1), field(2)
-  phase_x, phase_y        phase(1), phase(2)
-\end{example}
-Additionally, there can be (but is not required) an \vn{index} column giving the particle index in
-the array of particles of a bunch.  This column is ignored so, for example, values in the first line
-of the table will always be used to set the particle with index 1 independent of the
-value given in the index column. This behavior is implemented so that a beam file can be edited to add
-or remove particles without worrying about reindexing.

@@ -2206,9 +2206,6 @@ power_cavity
 zero_sex
 charge_dir
 remove_drifts
-print_frames
-print_frame
-printframes
 universe_max_n
 universe_max_node_n
 read_ptc_rays
@@ -2229,6 +2226,8 @@ fill_hermite_gen
 kill_hermite
 symplectify_for_oleksii
 phase_advance
+alloc_modulation
+kill_modulation
 read_ptc_command77
 gino_ptc_command77
 read_mad_command77
@@ -5348,8 +5347,6 @@ c_etpin
 transform_vector_field_by_map
 c_concat
 c_concat_tpsa
-maketpsa
-makeda
 c_adjoint
 c_adjoint_vec
 c_spinmatrix_spinmatrix
@@ -5386,6 +5383,7 @@ c_bra_v_dm
 powmap
 powmap_inv
 pow_tpsamap
+pow_tpsamapnew
 powmaps
 c_equalmap
 c_map_vec
@@ -5409,7 +5407,6 @@ c_linear_ac_longitudinal
 c_gofix
 c_factor_map
 c_canonise
-c_full_factor_map
 c_full_canonise
 c_identify_resonance
 c_full_factorise
@@ -5576,9 +5573,6 @@ d_field_for_demin
 c_uni_reorder
 d_mod_demin
 check_re
-c_normalf
-c_normalg
-c_normal_usual
 
 File: code/Se_status.f90
 s_status

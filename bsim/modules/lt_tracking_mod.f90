@@ -1005,7 +1005,7 @@ enddo
 ! If using mpi then long_term_tracking_mpi will assemble the beam and call the write routines.
 
 if (.not. ltt_com%using_mpi) then
-  if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii4$)
+  if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii$)
   if (lttp%beam_binary_output_file /= '')  call write_beam_file (lttp%beam_binary_output_file, beam, .true., hdf5$)
 endif
 
