@@ -1934,13 +1934,13 @@ subroutine read_digested_bmad_file (in_file_name, lat, version, err_flag, parser
   character(*), optional, allocatable :: lat_files(:)
 end subroutine
 
-subroutine reallocate_beam (beam, n_bunch, n_particle, save)
+subroutine reallocate_beam (beam, n_bunch, n_particle, extend)
   import
   implicit none
   type (beam_struct) beam
   integer n_bunch
   integer, optional :: n_particle
-  logical, optional :: save
+  logical, optional :: extend
 end subroutine
 
 subroutine reallocate_bunch (bunch, n_particle, save)

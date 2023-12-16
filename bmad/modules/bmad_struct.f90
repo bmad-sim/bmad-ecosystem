@@ -224,7 +224,7 @@ character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
 !-------------------------------------------------------------------------
 
 integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3, one_file$ = 4
-integer, parameter :: ascii4$ = 44    ! For testing purposes.
+integer, parameter :: old_ascii$ = 44    ! For testing purposes.
 
 ! num_ele_attrib$ is size of ele%value(:) array.
 

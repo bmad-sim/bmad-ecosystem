@@ -7,13 +7,13 @@ implicit none
 type (lat_struct) lat
 type (bunch_struct), target :: bunch1, bunch2
 type (coord_struct), pointer :: p
-type (beam_struct) beam
+type (beam_struct) beam, beam2
 type (beam_init_struct) beam_init
 type (ele_struct) ele
 type (grid_field_struct), pointer :: gf1(:), gf0(:)
 
 integer i, j, n_part
-logical error, good1(10), good2(10), g1, g2
+logical error, good1(10), good2(10), g1, g2, ignore_beta
 
 !
 
@@ -73,6 +73,22 @@ write (1, '(a, 10l1, a)') '"Bunch1" STR "', good1, '"'
 write (1, '(a, 10l1, a)') '"Bunch2" STR "', good2, '"'
 
 !---------------------
+! Ascii
+
+call write_beam_file ('bunch.ascii', beam)
+call read_beam_file ('bunch.ascii', beam2, beam_init_struct(), error)
+
+! Ignore beta for bunch2 since using time coords here.
+
+do i = 1, n_part
+  good1(i) = coord_is_equal(beam2%bunch(1)%particle(i), beam%bunch(1)%particle(i))
+  good2(i) = coord_is_equal(beam2%bunch(2)%particle(i), beam%bunch(2)%particle(i), ignore_beta = .true.)  
+enddo
+
+write (1, '(a, 10l1, a)') '"ASCII-Bunch1" STR "', good1, '"'
+write (1, '(a, 10l1, a)') '"ASCII-Bunch2" STR "', good2, '"'
+
+!---------------------
 ! Grid_Field Read/Write
 
 ele%key = sbend$
@@ -97,10 +113,11 @@ close (1)
 !-----------------------------------------
 contains
 
-function coord_is_equal(p1, p2) result (equal)
+function coord_is_equal(p1, p2, ignore_beta) result (equal)
 
 type (coord_struct) p1, p2
 logical equal
+logical, optional :: ignore_beta
 
 equal = is_eq_rv(p1%vec, p2%vec, 'bunch vec')
 equal = equal .and. is_eq_rv(p1%spin, p2%spin, 'bunch spin')
@@ -111,7 +128,9 @@ equal = equal .and. is_eq_r(p1%t, p2%t, 'bunch t')
 equal = equal .and. is_eq_r(p1%charge, p2%charge, 'bunch charge')
 equal = equal .and. is_eq_r(p1%dt_ref, p2%dt_ref, 'bunch dt_ref')
 equal = equal .and. is_eq_r(p1%p0c, p2%p0c, 'bunch p0c')
-equal = equal .and. is_eq_r(p1%beta, p2%beta, 'bunch beta')
+if (.not. logic_option(.false., ignore_beta)) then
+  equal = equal .and. is_eq_r(p1%beta, p2%beta, 'bunch beta')
+endif
 
 equal = equal .and. is_eq_i(p1%ix_ele, p2%ix_ele, 'bunch ix_ele')
 equal = equal .and. is_eq_i(p1%ix_branch, p2%ix_branch, 'bunch ix_branch')
@@ -131,7 +150,9 @@ character(*) who
 logical equal
 
 equal = (abs(r1-r2) <= 1d-15 * (abs(r1) + abs(r2)))
-if (.not. equal) print *, trim(who) // 'Not equal!'
+if (.not. equal) then
+  print *, trim(who) // ' Not equal!'
+endif
 
 end function is_eq_r
 
@@ -144,7 +165,9 @@ character(*) who
 logical equal
 
 equal = all(abs(r1-r2) <= 1d-15 * (abs(r1) + abs(r2)))
-if (.not. equal) print *, trim(who) // 'Not equal!'
+if (.not. equal) then
+  print *, trim(who) // ' Not equal!'
+endif
 
 end function is_eq_rv
 
@@ -157,7 +180,9 @@ character(*) who
 logical equal
 
 equal = (i1 == i2)
-if (.not. equal) print *, trim(who) // 'Not equal!'
+if (.not. equal) then
+  print *, trim(who) // ' Not equal!'
+endif
 
 end function is_eq_i
 
@@ -170,7 +195,9 @@ character(*) who
 logical equal
 
 equal = all(i1 == i2)
-if (.not. equal) print *, trim(who) // 'Not equal!'
+if (.not. equal) then
+  print *, trim(who) // ' Not equal!'
+endif
 
 end function is_eq_iv
 
@@ -183,7 +210,9 @@ character(*) who
 logical equal
 
 equal = (l1 .eqv. l2)
-if (.not. equal) print *, trim(who) // 'Not equal!'
+if (.not. equal) then
+  print *, trim(who) // ' Not equal!'
+endif
 
 end function is_eq_l
 

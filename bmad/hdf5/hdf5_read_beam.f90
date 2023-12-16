@@ -134,7 +134,7 @@ do idx = 0, n_links-1
   if (.not. is_integer(name(it:nn-j))) cycle
   name = trim(name) // sub_dir
   n_bunch = n_bunch + 1
-  call reallocate_beam (beam, n_bunch, save = .true.)
+  call reallocate_beam (beam, n_bunch, 0, extend = .true.)
   call hdf5_read_bunch(z_id, name, beam%bunch(n_bunch), error, pmd_head, ele)
 enddo
 
