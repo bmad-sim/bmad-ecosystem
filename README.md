@@ -1,6 +1,13 @@
 # Bmad-Ecosystem repository
 Bmad toolkit (library) for the simulation of charged particles and X-rays in accelerators and storage rings. This is the primary repository for the various libraries and programs that comprise the Bmad ecosystem. For details, see the Bmad website at [https://www.classe.cornell.edu/bmad/](https://www.classe.cornell.edu/bmad/).
 
+## Manuals
++ [Bmad manual](https://www.classe.cornell.edu/bmad/manual.html)
++ [Tao manual](https://www.classe.cornell.edu/bmad/tao.html)
++ [Bmad & Tao tutorial](https://www.classe.cornell.edu/bmad/tao.html)
++ [Long_term_tracking program manual](https://www.classe.cornell.edu/bmad/other_manuals.html)
++ [Manuals for other Bmad-based programs](https://www.classe.cornell.edu/bmad/other_manuals.html)
+
 ## Bmad Installation
 
 Bmad can be installed pre-compiled or from source. Detailed unstructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>. 
