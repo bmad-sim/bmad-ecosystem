@@ -215,7 +215,7 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
 
     ! And write data.
 
-    if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii4$)
+    if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii$)
     if (lttp%beam_binary_output_file /= '')  call write_beam_file (lttp%beam_binary_output_file, beam, .true., hdf5$)
     call mpi_finalize(ierr)
 
