@@ -41,7 +41,7 @@ logical, optional :: extend
 !
 
 if (n_bunch == 0) then
-  deallocate(beam%bunch)
+  if (allocated(beam%bunch)) deallocate(beam%bunch)
   return
 endif
 
