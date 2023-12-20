@@ -1,0 +1,6 @@
+Cavity 1       
+                 	Frequency	R/Q               	Q      	mode	Polarization_Angle
+                 	(Hz)     	Ohm/m^(2n)        	       	    	(Radians/2pi)     
+&long_range_modes
+   lr(1) =       	4.2e9 	        10000      12000 	1   	0.                
+/                

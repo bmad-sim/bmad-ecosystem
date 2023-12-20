@@ -281,20 +281,23 @@ Output file: \texttt{thresh_v_trotb.txt}
 \bigbreak
 Command: \textcolor{blue}{\texttt{python \$DIST_BASE_DIR/bsim/bbu/test_run.py  \text{} N \text{} fn \text{} output_dir }}
 \bigbreak
-Compute the $I_{th}$ for \texttt{N} times for a fixed lattice, each time with a (random) set of HOM assignment. It is recommended to set \texttt{N} = 1 and use parallel computation. \texttt{fn} is the string used to distinguish between the simulation runs, and can be set to the job number (\texttt{\$JOB_ID}) during grid submission.
+Compute the $I_{th}$ for \texttt{N} times with a fixed lattice, each time with a (random) set of HOM assignment. It is recommended to set \texttt{N} = 1 and use external parallel computation. \texttt{fn} is the string used to distinguish between the simulation runs, and can be set to the job number (\texttt{\$JOB_ID}) during grid submission.
 
 \bigbreak
 \texttt{Python} Parameters:
 
-1) \texttt{random_homs}: If True, the original HOM assignment to the lattice will be over-written by a HOM assignment file  randomly chosen from ``\texttt{hom_dir}''.
+(1) \texttt{random_homs}: If True, the original HOM assignment to the lattice will be over-written by a HOM assignment file  randomly chosen from ``\texttt{hom_dir}''.
 The simulation result ($I_{th}$ found) will be generally different over multiple runs. 
-If False, the program will be seeking a file in the working directory (the directory where the user calls the \texttt{Python} program) named ``\texttt{assignHOMs.bmad}'' in attempt to over-write the original assignment. If ``\texttt{assignHOMs.bmad}'' is not present, the original assignment is intact, but the user will have to manually record the assignment. 
+If False, the program will be seeking a file in the working directory (the directory where the user calls the \texttt{Python} program) named ``\texttt{assignHOMs.bmad}'' in attempt to over-write the original assignment. If ``\texttt{assignHOMs.bmad}'' is not present, the program will bomb.
 
-2) \texttt{hom_dir}:
-The exact path of the HOM assignment files to be randomly assigned. Each file must be named ``\texttt{cavity_I.dat}'', in which \texttt{I} is presumably a positive integer.
+(2) \texttt{hom_dir}:
+The exact path of the HOM assignment files to be randomly assigned. Each file must be named ``\texttt{cavity_I.dat}'', in which \texttt{I} is a positive integer.
 
 \bigbreak
-Output file:  \texttt{bbu_threshold_fn.txt}, which includes $I_{th}$ (if found) and, if overwritten, the HOMs assigned to the cavities.
+Output file:  
+(1) \texttt{bbu_threshold_N_fn.dat}, which includes the $I_{th}$s, if found, for all N runs. If not found, the numbers are the final test currents which is stable for each of the N runs. 
+
+(2) \texttt{HOMassignment_N_fn.dat} which includes the the HOM assignment scheme for all N runs.
 
 %---------------------------------------------------------------------------------
 \subsection{PHASE_SCAN mode}
