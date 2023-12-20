@@ -90,7 +90,8 @@ def prepare_HOM ( py_par ):
   # Get all cavity names from hom_info.txt
   f = open(os.path.join(py_par['temp_dir'], 'hom_info.txt'),'r')     
   # Make sure hom_dir contains ONLY hom data files ended in "dat"
-  hom_files = glob.glob( os.path.join(py_par['hom_dir'], '*dat') ) #hom_dir contains many HOM.dat
+  hom_files = glob.glob( os.path.join( os.path.expandvars(py_par['hom_dir']), '*dat') ) 
+  print('The number of cavity HOM files located:', len(hom_files))
   cav_names = []
   #Skip the first line, which says "cavity_name"
   next(f)
