@@ -73,7 +73,7 @@ py_par = {  \
 
 # If random_homs is False, hom_dir is not used 
 # Make sure hom_dir has the desired HOMs to be RANDOMLY/FIXEDLY assigned
-#'hom_dir': '$DIST_BASE_DIR/bsim/bbu/threshold/HOM_lists_250mm/',
+'hom_dir': '$DIST_BASE_DIR/bsim/bbu/hom/',
 #'hom_dir_number': 125,  # Can be 125,250,500, or 1000 (micrometer). Make sure hom_dir has consistent name!!! 
 'hom_fixed_file_number': -1 # Do not modify 
                             #The 5th argument from user (if given) to assign all cavities with the same HOMs
@@ -84,38 +84,40 @@ py_par = {  \
 
 def main(argv):
   print(time.time())
+  working_dir = os.getcwd() # current directory
+  print('WORKING DIR ',os.getcwd())
+    
 # Decides which mode the program runs based on the number of arguments
   if (len(sys.argv) == 1):
     print('1 argumnet (including python script) given. DR-SCAN mode.')
     bbu_par['lat_filename']= "'$DIST_BASE_DIR/bsim/bbu/examples/oneturn_lat.bmad'"
     mode = 'dr_scan'
-    working_dir = os.getcwd() # current directory
-    print('WORKING DIR ',os.getcwd())
-  
+    
   if (len(sys.argv) == 2):
     print('2 argumnets (including python script) given. PHASE_SCAN mode.')
     mode = 'phase_scan'
     py_par['ONE_phase'] = sys.argv[1]   # If ndata_pnts >=2, ONE_phase is NOT used
     if (py_par['ndata_pnts_PHASE']==1):
       print('Scan for one phase only: ', py_par['ONE_phase'])
-    working_dir = os.getcwd() # current directory
-    print('WORKING DIR ',os.getcwd())
-  
+        
   if (len(sys.argv) == 3):
     print('3 argumnets (including python script) given. PHASE_XY_SCAN mode.')
     mode = 'phase_xy_scan'
     py_par['phase_x'] = sys.argv[1]  
     py_par['phase_y'] = sys.argv[2]  
     print('Scan for the XY phase combination: ', py_par['phase_x'], ', ',py_par['phase_y'])
-    working_dir = os.getcwd() # current directory
-    print('WORKING DIR ',os.getcwd())
+
   
   if (len(sys.argv) >= 4 ):  
     print ('4 or more arguments (including python script) given, threshold (current) mode.')
-    n_run = 1
     n_run = int(sys.argv[1])  # Number of times to run
     f_n  = int(sys.argv[2])  # File number to be saved as 
-    working_dir = sys.argv[3]  # Location to store output files
+    output_dir = sys.argv[3]  # Location to store output files
+ 
+    if not os.path.exists(output_dir):
+       # Create a new output directory because it does not exist
+       os.makedirs(output_dir)
+      
     mode = 'threshold'
     if (len(sys.argv) == 5):  
       #The 5th argument given =  the HOM_file_number in "hom_dir" used to assign the HOMs for all cavities.
@@ -168,45 +170,25 @@ def main(argv):
 
       bbu_main.single_threshold ( py_par )  # This loop runs BBU and fills thresholds.txt over the runs
     
-    # (threshold run(s) end here)
-    # Save "bbu_threshold_fn.txt" and "rand_assign_homs_fn.bmad"(if exist) in the working directory
-    # os.chdir(os.path.dirname(working_dir))
-    os.chdir(os.path.dirname(sys.argv[3]))
-    print('Saving the result (threshold current in A) to the working directory...') 
-    shutil.copyfile(os.path.join(py_par['temp_dir'],'thresholds.txt'), 'bbu_thresholds_'+str(f_n)+'.txt')
-    
-    # This stmt aims to record the HOM assignments, if available  
-    # The assignments are saved with the result (Ith) in bbu_threshold_f_n.txt  
-    if (py_par['random_homs']):
-      print('Saving (random) HOMs assignment in bbu_threshold_f_n.txt')
-      f3 = open(os.path.join(py_par['temp_dir'],'rand_assign_homs_'+str(f_n)+'.bmad'), 'r')
-      contents3 = f3.readlines()
-      f3.close()
-      with open('bbu_thresholds_'+str(f_n)+'.txt', 'a') as myfile3:
-        myfile3.write('\n')
-        #myfile3.write('(Random) HOM assignments stored in rand_assign_homs_'+str(f_n)+'.bmad')
-        myfile3.write('(Random) HOM assigned:')
-        for line3 in contents3:
-          myfile3.write(line3)
-        myfile3.close()
-      #shutil.copyfile(os.path.join(py_par['temp_dir'],'rand_assign_homs_'+str(f_n)+'.bmad'), 'rand_assign_homs_'+str(f_n)+'.bmad')
 
-    else: # Looking for local HOM assignment data.
-      if (not os.path.isfile('assignHOMs.bmad')):
-        print('The file with user-assigned-HOMs information was not found!')
-        print('The user needs to manually record the HOMs assigned!') 
-      #The user needs to make sure the local "assignHOMs.bmad" is indeed the HOMs assigned for simulation
-      else:
-        print('Saving user-assigned-HOM information from local assignHOMs.bmad...')
-        f3 = open('assignHOMs.bmad', 'r')
-        contents3 = f3.readlines()
-        f3.close()
-        with open('bbu_thresholds_'+str(f_n)+'.txt', 'a') as myfile3:
-          myfile3.write('\n')
-          myfile3.write('HOM assignment from "assignHOMs.bmad": ')
-          for line3 in contents3:
-            myfile3.write(line3)
-          myfile3.close()
+    # Save the result ( the final test current attempted ) to the output directory
+    file_to_save = os.path.join(os.path.expandvars(py_par['temp_dir']),'thresholds.txt')
+    assert os.path.isfile(file_to_save), "The result file is MISSING!"
+    file_destination = os.path.join(output_dir, f'bbu_thresholds_N_{n_run}_fn_{f_n}.dat')
+    os.chdir( working_dir )
+    shutil.move( file_to_save, file_destination )
+
+    # Save the HOM assignments, if available, 
+    # The assignments are saved with the result (Ith) in rand_assign_homs_fn.bmad  
+    if (py_par['random_homs']):
+        file_to_save = os.path.join(py_par['temp_dir'],'rand_assign_homs_'+str(f_n)+'.bmad')
+    else:
+        file_to_save = os.path.join(working_dir,'assignHOMs.bmad')
+    assert os.path.isfile(file_to_save), "The HOM file is MISSING!"
+    file_destination = os.path.join(output_dir,  f'HOM_assignment_N_{n_run}_fn_{f_n}.dat')
+    os.chdir( working_dir )
+    shutil.copy( file_to_save, file_destination )
+      
 ################ End of threshold mode #################################
 
   ## for DR scan

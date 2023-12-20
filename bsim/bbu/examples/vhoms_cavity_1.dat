@@ -7,4 +7,4 @@ Cavity 1
 /                
 
 ! Note
-! R/Q is normalized. For dipole HOM, to convert R/Q from (Ohm) to (Ohm/m^2), a factor of k^2 is required, in which k = 2*pi/lambda, and lambda = c_light/frequency_in_Hz. Figure 14 in the 2019 paper has wrong caption. The alue and Q and R/Q were swapped.  
+! R/Q is normalized. For dipole HOM, to convert R/Q from (Ohm) to (Ohm/m^2), a factor of k^2 is required, in which k = 2*pi/lambda, and lambda = c_light/frequency_in_Hz. Figure 14 in the 2019 paper has wrong caption. The value and Q and R/Q were swapped.  
