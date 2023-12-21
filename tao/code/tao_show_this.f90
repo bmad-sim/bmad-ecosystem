@@ -1709,9 +1709,11 @@ case ('element')
   ele2 => ele
   if (ele2%lord_status == super_lord$) ele2 => pointer_to_slave(ele2, ele2%n_slave)
   orb = tao_lat%tao_branch(ele2%ix_branch)%orbit(ele2%ix_ele)
-  if (orb%state /= not_set$) then
+  if (orb%state == not_set$) then
+    nl=nl+1; lines(nl) = 'Tracking: ' // trim(species_name(orb%species)) // ',   State: Orbit not computed.'
+  else
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; write(lines(nl), '(4a)') 'Orbit:  ', trim(species_name(orb%species)), '   State: ', trim(coord_state_name(orb%state))
+    nl=nl+1; write(lines(nl), '(4a)') 'Tracking: ', trim(species_name(orb%species)), ',   State: ', trim(coord_state_name(orb%state))
     if (lat%branch(ele%ix_branch)%param%particle == photon$) then
       fmt  = '(2x, a, 2f15.8, f15.6, f11.6, 7x, a, f11.3)'
       fmt2 = '(2x, a, 2f15.8, a, es16.8)'

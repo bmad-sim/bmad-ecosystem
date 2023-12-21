@@ -112,14 +112,18 @@ if (u%calc%track) then
     if (err) then
       tao_branch%track_state = lost$
       calc_ok = .false.
+      orbit(:)%state = lost$
+
       if (i_dim == 4) then
         orbit(0)%vec(1:5) = 0
       else
         orbit(0)%vec = 0
       endif
+
       do i = 1, ubound(orbit, 1)
         orbit(i)%vec = orbit(0)%vec
       enddo
+
     else
       tao_branch%track_state = moving_forward$
       tao_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.

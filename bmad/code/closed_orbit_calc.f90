@@ -117,7 +117,7 @@ real(rp) del_co(6), t11_inv(6,6), i1_int
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), start_orb_t1(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original, betas(2)
 real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), this(5)
-real(rp), allocatable, target :: on_off_state(:), vec0(:), dvec(:), weight(:), merit_vec(:), dy_da(:,:)
+real(rp), allocatable, target :: on_off_state(:), scatter_state(:), vec0(:), dvec(:), weight(:), merit_vec(:), dy_da(:,:)
 
 integer, optional :: direction, ix_branch, i_dim
 integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
@@ -179,6 +179,8 @@ e_orb => end_orb      ! Used to get around ifort bug
 call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
 original_start_orb = start_orb
 
+call set_on_off (foil$, lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = scatter_state, attribute = 'SCATTER')
+
 !----------------------------------------------------------------------
 ! Further init
 
@@ -212,7 +214,11 @@ case (4, 5)
   if (any(branch%param%t1_no_RF /= 0) .and. dir == 1) then
     coc%t1 = branch%param%t1_no_RF
   else
-    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err); if (err) return
+    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err)
+    if (err) then
+      call end_cleanup(branch, .false.)
+      return
+    endif
     if (dir == 1) branch%param%t1_no_RF = coc%t1
   endif
 
@@ -234,7 +240,11 @@ case (6)
   if (any(branch%param%t1_with_RF /= 0) .and. dir == 1) then
     coc%t1 = branch%param%t1_with_RF
   else
-    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err); if (err) return
+    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err)
+    if (err) then
+      call end_cleanup(branch, .false.)
+      return
+    endif
     if (dir == 1)  branch%param%t1_with_RF = coc%t1
   endif
 
@@ -242,7 +252,7 @@ case (6)
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
                                    'CALCULATION WITH NO RF VOLTAGE!', &
                                    'USING BRANCH: ' // branch_name(branch))
-    bmad_com = bmad_com_saved  ! Restore
+    call end_cleanup(branch, .false.)
     return
   endif
 
@@ -263,10 +273,10 @@ case (6)
 
 case default
   call out_io (s_error$, r_name, 'BAD I_DIM ARGUMENT: \i4\ ', i_dim)
-  bmad_com = bmad_com_saved  ! Restore
+  call end_cleanup(branch, .false.)
   return
 end select
-        
+
 ! Orbit correction = (T-1)^-1 * (orbit_end - orbit_start)
 !                  = t11_inv  * (orbit_end - orbit_start)
 
@@ -344,13 +354,20 @@ do i_loop = 1, i_max
       enddo
       call suggest_lmdif (coc%a_vec, merit_vec, bmad_com%rel_tol_tracking, i_max, at_end)
     enddo
+
     call co_func(coc%a_vec, dvec, dy_da, status)
     if (status /= 0) then
       if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'TRACKING BRANCH: ' // branch_name(branch))
       call end_cleanup(branch, .true.)
       return
     endif
-    call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
+
+    call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err)
+    if (err) then
+      call end_cleanup(branch, .true.)
+      return
+    endif
+
     check_for_z_stability = (n_dim == 6)  ! New t1 matrix needs to be checked for stability.
     a_lambda = -1    ! Reset super_mrqmin
     try_lmdif = .false.
@@ -386,7 +403,12 @@ do i_loop = 1, i_max
   amp_del = abs(dorb)
   if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) then
     if (n_dim == 6) then
-      call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
+      call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err)
+      if (err) then
+        call end_cleanup(branch, .true.)
+        return
+      endif
+
       if (max_z_eigen(coc%t1) < 1.000001_rp) exit
       check_for_z_stability = .true.   ! Is unstable
     else
@@ -414,7 +436,11 @@ do i_loop = 1, i_max
         m(n)%map_ref_orb_out = branch%ele(n)%map_ref_orb_out
       enddo
 
-      call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
+      call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err)
+      if (err) then
+        call end_cleanup(branch, .true.)
+        return
+      endif
       check_for_z_stability = (n_dim == 6)  ! New t1 matrix needs to be checked for stability.
 
       do n = 1, branch%n_ele_max
@@ -427,7 +453,11 @@ do i_loop = 1, i_max
     ! Else try a step by inverting the 1-turn matrix.
     else
       invert_step_tried = .true.
-      call make_t11_inv (err); if (err) return
+      call make_t11_inv (err)
+      if (err) then
+        call end_cleanup(branch, .true.)
+        return
+      endif
 
       del_co(1:n_dim) = matmul(t11_inv(1:n_dim,1:n_dim), dorb(1:n_dim)) 
 
@@ -549,6 +579,8 @@ bmad_com = bmad_com_saved  ! Restore
 if (n_dim == 4 .or. n_dim == 5) then
   call set_on_off (rfcavity$, branch%lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 endif
+
+call set_on_off (foil$, lat, restore_state$, ix_branch = branch%ix_branch, saved_values = scatter_state, attribute = 'SCATTER')
 
 if (logic_option(.false., reset_orb)) closed_orb(0) = original_start_orb
 

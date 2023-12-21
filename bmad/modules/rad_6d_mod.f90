@@ -267,6 +267,12 @@ endif
 
 tol = 1d-4 / branch%param%total_length
 do ie = 1, branch%n_ele_track
+  if (closed_orb(ie)%state /= alive$) then
+    call out_io (s_error$, r_name, 'Closed orbit calculation failing.', &
+                                   'Emittance and other radiation related quantities will not be calculated.')
+    goto 9000
+  endif
+
   call rad1_damp_and_stoc_mats(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), &
                                           rm1(ie), tol * branch%param%g2_integral, tol * branch%param%g3_integral)
 enddo

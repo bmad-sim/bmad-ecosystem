@@ -321,7 +321,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                                   tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
 
-      if (branch%param%geometry == closed$) then
+      if (branch%param%geometry == closed$ .and. tao_branch%track_state == moving_forward$) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
                    tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, ix_branch = ib)
         call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit)

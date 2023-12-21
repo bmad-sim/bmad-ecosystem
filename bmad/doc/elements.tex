@@ -2112,6 +2112,7 @@ Attributes specific to a \vn{foil} element are:
   area_density      = <Real>    ! Input material area density (kg/m^2).
   area_density_used             ! Area density used in tracking (kg/m^2).
   final_charge      = <Integer> ! Final charge state
+  scatter           = <Logic>   ! Is scattering on? Default is True.
   x1_edge           = <Real>    ! Foil sheet edge in the +x direction. Default: -99 m.
   x2_edge           = <Real>    ! Foil sheet edge in the -x direction. Default:  99 m.
   y1_edge           = <Real>    ! Foil sheet edge in the +y direction. Default: -99 m.
@@ -2155,6 +2156,19 @@ where (x_particle, y_particle) are the coordinates of the particle. Particles th
 sheet pass through the element without a change in charge nor a change in trajectory. The default
 for \vn{x1_edge} and \vn{y1_edge} is -99~meters and for \vn{x2_edge} and \vn{y2_edge} the default is
 +99~meters.
+
+By setting the \vn{scatter} parameter to \vn{false} (the default is \vn{true}), the foil will not
+scatter the particle (but there will still be an energy loss). That is, the particle direction of
+motion through the foil is unvaried. The setting of \vn{scatter} does not affect the energy
+loss.\footnote
+  {
+Note that a constant direction of motion implies that $p_x/(1+p_z)$ and $p_y/(1+p_z)$ are constant
+(\Eq{xpa1p}).
+  }
+If a \vn{foil} element is part of a lattice branch with a closed geometry, the closed orbit
+calculation will tempararily set the \vn{scatter} parameter to false since scattering is a random
+process and the closed orbit is not well defined in the presence of any random processes (similarly,
+radiation fluctuations are also turned off for the closed orbit calculation).
 
 Example:
 \begin{example}

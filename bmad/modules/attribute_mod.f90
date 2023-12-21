@@ -937,6 +937,7 @@ call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX'
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 
+call init_attribute_name1 (foil$, scatter$,                         'SCATTER')
 call init_attribute_name1 (foil$, thickness$,                       'THICKNESS')
 call init_attribute_name1 (foil$, material_type$,                   'MATERIAL_TYPE')
 call init_attribute_name1 (foil$, final_charge$,                    'FINAL_CHARGE')
@@ -1903,7 +1904,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', &
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', &

@@ -158,6 +158,7 @@ case (floor_shift$)
 case (foil$)
   ele%value(num_steps$) = 10
   ele%value(final_charge$) = real_garbage$
+  ele%value(scatter$) = true$
   ele%value(x1_edge$) = -99.0_rp
   ele%value(y1_edge$) = -99.0_rp
   ele%value(x2_edge$) =  99.0_rp
