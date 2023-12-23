@@ -40,6 +40,7 @@ call out_io (s_blank$, r_name, [ &
         '  -no_rad_int                          # Do not do any radiation integrals calculations.        ', &
         '  -plot_file <file_name>               # Plotting initialization file                           ', &
         '  -prompt_color <color>                # Set color of prompt string. Default is blue.           ', &
+        '  -reverse                             # Reverse lattice element order?                         ', &
         '  -rf_on                               # Use "--rf_on" to turn off RF (default is now RF on)    ', &
         '  -quiet                               # Suppress terminal output when running a command file?  ', &
         '  -slice_lattice <ele_list>            # Discards elements from lattice that are not in the list', &
