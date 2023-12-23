@@ -2176,6 +2176,7 @@ case ('global')
     call write_this_arg (nl, lines, '  -nostartup', s%init%nostartup_arg)
     call write_this_arg (nl, lines, '  -no_rad_int', s%init%no_rad_int_arg)
     call write_this_arg (nl, lines, '  -plot_file', s%init%plot_file_arg)
+    call write_this_arg (nl, lines, '  -reverse', s%init%reverse_arg)
     call write_this_arg (nl, lines, '  -rf_on', s%init%rf_on_arg)
     call write_this_arg (nl, lines, '  -quiet', s%init%quiet_arg)
     call write_this_arg (nl, lines, '  -slice_lattice', s%init%slice_lattice_arg)
@@ -6629,8 +6630,8 @@ character(*) str, value
 !
 select case (value)
 case ('');                              return
-case ('<present>', 'BLUE', 'all');      nl=nl+1; write(lines(nl), '(2x, a)') str
-case ('<negated>', 'off', 'DEFAULT');   nl=nl+1; write(lines(nl), '(2x, 2a)') '-' // str
+case (present_str, 'BLUE', 'all');      nl=nl+1; write(lines(nl), '(2x, a)') str
+case (negated_str, 'off', 'DEFAULT');   nl=nl+1; write(lines(nl), '(2x, 2a)') '-' // str
 case default;                           nl=nl+1; write(lines(nl), '(2x, a, 2x, a)') str, trim(value)
 end select
 end subroutine write_this_arg

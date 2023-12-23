@@ -126,8 +126,8 @@ character(*) cmd_arg
 logical default, global_val
 !
 select case(cmd_arg)
-case ('<present>');   global_val = .not. default
-case ('<negated>');   global_val = default
+case (present_str);   global_val = .not. default
+case (negated_str);   global_val = default
 end select
 end subroutine set_this_logical_command_arg
 

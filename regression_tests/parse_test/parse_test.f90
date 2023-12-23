@@ -46,7 +46,6 @@ open (1, file = 'output.now')
 
 ! Test if write_bmad_lattice_file can handle multipole elements with a common name but different attributes.
 
-!call bmad_parser ('common_name.bmad', lat)
 call bmad_parser ('common_name.bmad', lat)
 
 call write_bmad_lattice_file ('com2.bmad', lat)

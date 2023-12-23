@@ -134,6 +134,12 @@ Overrides the \vn{plot_file} (\sref{s:init.begin}) specified in the \tao initial
 Sets the prompt string color to Blue. For different colors, use the \vn{set global prompt_color}
 command (\sref{s:set}).
 %
+\item[-reverse]
+Reverses the order of the lattice elements. Equivalent to setting
+\vn{design_lattice(N)%reverse_lattice} to True (\sref{s:init.lat}. If both \vn{-reverse} and 
+\vn{design_lattice(N)%reverse_lattice} are set, they negate each other and the lattice will not
+be reversed.
+%
 \item[-rf_on]
 Leaves \vn{rfcavity} elements on. RF on is currently the default so using \vn{-rf_on} will not do
 anything.  To turn the cavities off, use the negation (see below) \vn{-{}-rf_on}. Note: If you want
@@ -425,9 +431,11 @@ previous universe are used.
 
 If the \vn{%reverse_lattice} logical is present, the lattice will be reversed. That is, the elements
 will be in reversed order. The sign of the charge of the tracked particle will be reversed for
-proper tracking. This is useful for simulating beams that go in the backward direction. Note: If there
-are any electric fields, the orbit in the reversed lattice will not be the reverse of the trajectory
-in the unreversed lattice. Currently, lattice reversal only works if the lattice has a single branch.
+proper tracking. This is useful for simulating beams that go in the backward direction. Note: If
+there are any electric fields, the orbit in the reversed lattice will not be the reverse of the
+trajectory in the unreversed lattice. Currently, lattice reversal only works if the lattice has a
+single branch. Lattice reversal can also be done using the \vn{-reverse} option at startup
+(\sref{s:command.line}).
 
 The \vn{%slice_lattice} parameter specifies a list of elements to be used to pare down the lattice
 so that the only elements that appear in the list are kept in the lattice.  In addition, any lord

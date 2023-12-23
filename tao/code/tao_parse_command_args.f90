@@ -88,7 +88,7 @@ do
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
         '-beam_init_file_name', '-slice_lattice', '-start_branch_at', '-prompt_color', '-beam_init_position_file', &
         '-plot_file', '-external_plotting', '-quiet', '-no_rad_int', '-command', &
-        '-symbol_import', '-building_wall_file'], ix, .true., matched_name=switch)
+        '-symbol_import', '-building_wall_file', '-reverse'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -122,7 +122,7 @@ do
     call get_next_arg (arg0, s%init%data_file_arg, i_arg, n_arg)
 
   case ('-disable_smooth_line_calc')
-    s%init%disable_smooth_line_calc_arg = '<present>'
+    s%init%disable_smooth_line_calc_arg = present_str
 
   case ('-debug')
     s%init%debug_switch = .true.
@@ -149,23 +149,23 @@ do
     s%init%noinit_arg = ''
 
   case ('-log_startup')
-    s%init%log_startup_arg = '<present>'
+    s%init%log_startup_arg = present_str
 
   case ('-no_stopping')
-    s%init%no_stopping_arg = '<present>'
+    s%init%no_stopping_arg = present_str
 
   case ('-noinit')
-    s%init%noinit_arg = '<present>'
+    s%init%noinit_arg = present_str
     s%init%init_file_arg = ''
 
   case ('-noplot')
-    s%init%noplot_arg = '<present>'
+    s%init%noplot_arg = present_str
 
   case ('-nostartup')
-    s%init%nostartup_arg = '<present>'
+    s%init%nostartup_arg = present_str
 
   case ('-no_rad_int')
-    s%init%no_rad_int_arg = '<present>'
+    s%init%no_rad_int_arg = present_str
 
   case ('-plot_file')
     call get_next_arg (arg0, s%init%plot_file_arg, i_arg, n_arg)
@@ -183,8 +183,11 @@ do
   case ('-quiet', '-silent_run')       ! "-silent_run" is old syntax
     s%init%quiet_arg = 'all'
 
+  case ('-reverse')
+    s%init%reverse_arg = present_str
+
   case ('-rf_on')
-    s%init%rf_on_arg = '<present>'
+    s%init%rf_on_arg = present_str
 
   case ('-slice_lattice')
     call get_next_arg (arg0, s%init%slice_lattice_arg, i_arg, n_arg, .true.)
@@ -196,7 +199,7 @@ do
     call get_next_arg (arg0, s%init%startup_file_arg, i_arg, n_arg)
 
   case ('-symbol_import')
-    s%init%symbol_import_arg = '<present>'
+    s%init%symbol_import_arg = present_str
 
   case ('-var_file')
     call get_next_arg (arg0, s%init%var_file_arg, i_arg, n_arg)
@@ -220,22 +223,23 @@ do
   case ('--building_wall_file');                  s%init%building_wall_file_arg = ''
   case ('--command');                             s%init%command_arg = ''
   case ('--data_file');                           s%init%data_file_arg = ''
-  case ('--disable_smooth_line_calc');            s%init%disable_smooth_line_calc_arg = '<negated>'
+  case ('--disable_smooth_line_calc');            s%init%disable_smooth_line_calc_arg = negated_str
   case ('--debug');                               s%init%debug_switch = .false.
   case ('--external_plotting');                   s%init%external_plotting_switch = .false.
   case ('--geometry');                            s%init%geometry_arg = ''
   case ('--hook_init_file');                      s%init%hook_init_file_arg = ''
   case ('--init_file');                           s%init%init_file_arg = ''; s%init%init_file_arg_path = ''
   case ('--lattice_file');                        s%init%lattice_file_arg = ''
-  case ('--log_startup');                         s%init%log_startup_arg = '<negated>'
-  case ('--no_stopping');                         s%init%no_stopping_arg = '<negated>'
+  case ('--log_startup');                         s%init%log_startup_arg = negated_str
+  case ('--no_stopping');                         s%init%no_stopping_arg = negated_str
   case ('--noinit');                              s%init%noinit_arg = ''
-  case ('--noplot');                              s%init%noplot_arg = '<negated>'
+  case ('--noplot');                              s%init%noplot_arg = negated_str
   case ('--nostartup');                           s%init%nostartup_arg = ''
-  case ('--no_rad_int');                          s%init%no_rad_int_arg = '<negated>'
+  case ('--no_rad_int');                          s%init%no_rad_int_arg = negated_str
   case ('--plot_file');                           s%init%plot_file_arg = ''
   case ('--prompt_color', '--color_prompt');      s%init%prompt_color_arg = 'DEFAULT'  ! read_a_line recognizes this.
-  case ('--rf_on');                               s%init%rf_on_arg = '<negated>'
+  case ('--reverse');                             s%init%reverse_arg = negated_str
+  case ('--rf_on');                               s%init%rf_on_arg = negated_str
   case ('--quiet', '--silent_run');               s%init%quiet_arg = 'off'
   case ('--slice_lattice');                       s%init%slice_lattice_arg = ''
   case ('--start_branch_at');                     s%init%start_branch_at_arg = ''

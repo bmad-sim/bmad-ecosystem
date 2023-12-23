@@ -37,6 +37,7 @@ character(24), parameter :: tao_shape_shape_name(13) = [character(24):: 'Box', '
                                     'Asym_VVar:Box', 'Xbox', 'Diamond', 'Bow_Tie', 'RBow_Tie', 'Circle', 'X', &
                                     'Pattern:<pattern-name>', '-']
 
+character(*), parameter :: present_str = '<present>', negated_str = '<negated>'
 character(8), parameter :: tao_shape_label_name(3) = [character(8):: 'name', 's', 'none']
 character(24), parameter :: tao_wave_data_name(27) = [character(40):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
     'eta.x', 'eta.y', 'phase.a', 'phase.b', 'cbar.12', 'cbar.11', 'cbar.22', &
@@ -811,6 +812,7 @@ type tao_init_struct
   character(12) :: no_stopping_arg = ''              ! -no_stopping         command line argument
   character(12) :: noplot_arg = ''                   ! -noplot              command line argument
   character(12) :: no_rad_int_arg = ''               ! -no_rad_int          command line argument
+  character(12) :: reverse_arg = ''                  ! -reverse             command line argument
   character(12) :: debug_arg = ''                    ! -debug               command line argument
   character(12) :: disable_smooth_line_calc_arg = '' ! -disable_smooth_line_calc
   character(12) :: rf_on_arg = ''                    ! -rf_on               command line argument
