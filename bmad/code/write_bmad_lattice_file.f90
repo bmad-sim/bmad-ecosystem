@@ -1330,7 +1330,7 @@ do ib = 0, ubound(lat%branch, 1)
   if (ele0%c_mat(2,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_22]  = ', re_str(ele0%c_mat(2,2))
 
   if (is_false(ele0%value(inherit_from_fork$))) write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
-  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
+  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c_start$))
   if (branch%ix_from_branch >= 0) write (iu, '(2a, l1)') trim(branch%name), '[inherit_from_fork]      = ', is_true(ele0%value(inherit_from_fork$))
 
 enddo
