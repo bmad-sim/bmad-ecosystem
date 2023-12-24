@@ -1,0 +1,13 @@
+set (EXENAME write_bmad_test)
+
+FILE (GLOB SRC_FILES "write_bmad_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad 
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)
