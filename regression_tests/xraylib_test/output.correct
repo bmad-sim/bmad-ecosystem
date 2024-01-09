@@ -10,6 +10,8 @@
 "Fe-E1"   REL 1E-8   6.631752363E+06
 "Fe-E2"   REL 1E-8   6.385322149E+05
 "Fe-E2"   REL 1E-8   3.859369011E+06
+"Fe-Weight"  REL 1E-8   5.585000000E+01
+"Fe-Density" REL 1E-8   7.874000000E+00
 "Compound_Names" STR "OK"
 "Bragg_In"   REL 1E-8    0.4077688908
 "Bragg_Out"  REL 1E-8    0.3688184484

@@ -7,7 +7,7 @@
 ! To use: Compile this file along with any program files.
 !
 ! Note: This module is NOT compiled into the Bmad library.
-! Note: This module is obsolete since xraylib is now part of the Bmad Distribution.
+! Note: This module is OBSOLETE since xraylib is now part of the Bmad Distribution.
 !-
 
 module xraylib
@@ -63,7 +63,7 @@ real(c_double) weight
 weight = 0
 end function
 
-function atomicdensity(n) result (density)
+function elementdensity(n) result (density)
 integer n
 real(c_double) density
 density = 0

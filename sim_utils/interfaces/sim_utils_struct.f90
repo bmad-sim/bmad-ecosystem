@@ -70,6 +70,13 @@ integer, parameter :: not_set$ = -999
 
 character(*), parameter :: invalid_name = 'INVALID!'
 
+! Molecular component
+
+type molecular_component_struct
+  character(2) :: atom = ''
+  integer :: number = 0
+end type
+
 ! 
 
 integer, parameter :: x_axis$ = 1, y_axis$ = 2, z_axis$ = 3

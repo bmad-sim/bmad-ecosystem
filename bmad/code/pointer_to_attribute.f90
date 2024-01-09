@@ -722,7 +722,6 @@ endif
 select case (a_name)
 ! attrib_type = is_real$
 ! attrib_type = is_logical$
-case ('SCATTER');                        a_ptr%r => ele%value(scatter$)
 case ('MATRIX');                         a_ptr%r => ele%value(matrix$)
 case ('KICK0');                          a_ptr%r => ele%value(kick0$)
 case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)
@@ -771,6 +770,7 @@ case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometr
 case ('PTC_FIELD_GEOMETRY');             a_ptr%r => ele%value(ptc_field_geometry$)
 case ('REF_ORBIT_FOLLOWS');              a_ptr%r => ele%value(ref_orbit_follows$)
 case ('REF_COORDS');                     a_ptr%r => ele%value(ref_coords$)
+case ('SCATTER_METHOD');                 a_ptr%r => ele%value(scatter_method$)
 case ('SPACE_CHARGE_METHOD');            a_ptr%i => ele%space_charge_method
 case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
 case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method

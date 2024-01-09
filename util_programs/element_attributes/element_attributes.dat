@@ -1,4 +1,4 @@
- 2023-09-29 01:08:46 
+ 2024-01-05 21:56:35 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
@@ -63,9 +63,10 @@
   61   Crab_Cavity           13   Sol_Quad
   62   Ramper                23   Solenoid
   63   !PTC_Com               8   Taylor
-  64   RF_Bend               51   Undulator
-  65   GKicker               34   VKicker
-  66   Foil                  12   Wiggler
+  64   RF_Bend               67   Thick_Multipole
+  65   GKicker               51   Undulator
+  66   Foil                  34   VKicker
+  67   Thick_Multipole       12   Wiggler
  
  !---------------------------------
  20  !Bmad_Com           
@@ -169,11 +170,9 @@
         13  PHASE_Y                                 
         16  SIG_Z                                   
         19  SIG_PZ                                  
-        20  TIME_DIR                                
         21  SPIN_X                                  
         22  SPIN_Y                                  
         23  SPIN_Z                                  
-        24  DIRECTION                               
         39  EMITTANCE_A                             
         40  EMITTANCE_B                             
         41  EMITTANCE_Z                             
@@ -197,6 +196,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -267,6 +267,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -376,6 +377,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -467,6 +469,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -519,6 +522,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -559,13 +563,14 @@
          1  L                                       
          2  TILT                                    
          4  HARMON                                  
+         5  HARMON_MASTER                           
          6  GRADIENT                                
          8  VOLTAGE                                 
         15  RF_FREQUENCY                            
         16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
-        18  AUTOSCALE_AMPLITUDE                       [private]
-        19  AUTOSCALE_PHASE                           [private]
+        19  AUTOSCALE_AMPLITUDE                       [private]
+        20  AUTOSCALE_PHASE                           [private]
         24  PHI0                                    
         26  PHI0_MULTIPASS                          
         27  PHI0_AUTOSCALE                            [private]
@@ -592,6 +597,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -694,6 +700,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  THICKNESS                               
         70  REF_WAVELENGTH                          
@@ -770,6 +777,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -860,6 +868,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -920,6 +929,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
@@ -984,6 +994,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1061,6 +1072,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1130,9 +1142,10 @@
         15  RF_FREQUENCY                            
         16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
-        18  AUTOSCALE_AMPLITUDE                     
-        19  AUTOSCALE_PHASE                         
-        20  CONSTANT_REF_ENERGY                     
+        18  CONSTANT_REF_ENERGY                     
+        19  AUTOSCALE_AMPLITUDE                     
+        20  AUTOSCALE_PHASE                         
+        21  POLARITY                                
         24  PHI0                                    
         25  PHI0_ERR                                
         27  PHI0_AUTOSCALE                          
@@ -1156,6 +1169,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1227,8 +1241,8 @@
         15  RF_FREQUENCY                            
         16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
-        18  AUTOSCALE_AMPLITUDE                     
-        19  AUTOSCALE_PHASE                         
+        19  AUTOSCALE_AMPLITUDE                     
+        20  AUTOSCALE_PHASE                         
         22  EMIT_FRACTION                           
         24  PHI0                                    
         25  PHI0_ERR                                
@@ -1256,6 +1270,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1348,6 +1363,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1485,6 +1501,18 @@
  66  Foil                
          1  L                                       
          2  TILT                                    
+         3  FINAL_CHARGE                            
+         4  RADIATION_LENGTH                        
+         5  RADIATION_LENGTH_USED                   
+         6  DENSITY                                 
+         7  DENSITY_USED                            
+         8  AREA_DENSITY                            
+         9  AREA_DENSITY_USED                       
+        21  SCATTER                                 
+        22  X1_EDGE                                 
+        23  X2_EDGE                                 
+        24  Y1_EDGE                                 
+        25  Y2_EDGE                                 
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1501,6 +1529,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  THICKNESS                               
         71  X1_LIMIT                                
@@ -1660,6 +1689,7 @@
         83  Y_KNOT                                  
         84  SLAVE                                   
         89  VAR                                     
+       105  IS_ON                                   
        112  DESCRIP                                 
        117  TYPE                                    
        128  ACCORDION_EDGE                          
@@ -1695,6 +1725,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1841,6 +1872,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1926,6 +1958,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -2000,9 +2033,9 @@
         15  RF_FREQUENCY                            
         16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
-        18  AUTOSCALE_AMPLITUDE                     
-        19  AUTOSCALE_PHASE                         
-        20  LONGITUDINAL_MODE                       
+        18  LONGITUDINAL_MODE                       
+        19  AUTOSCALE_AMPLITUDE                     
+        20  AUTOSCALE_PHASE                         
         21  E_LOSS                                  
         22  CAVITY_TYPE                             
         24  PHI0                                    
@@ -2039,6 +2072,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -2117,6 +2151,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2189,6 +2224,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2247,6 +2283,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
@@ -2320,12 +2357,9 @@
         39  PY1                                     
         40  Z1                                      
         41  PZ1                                     
-        42  PHASE_TROMBONE_INPUT                    
-        43  PHASE_TROMBONE                          
-        44  MATCH_END_INPUT                         
-        45  MATCH_END                               
-        46  MATCH_END_ORBIT_INPUT                   
-        47  MATCH_END_ORBIT                         
+        42  MATRIX                                  
+        43  KICK0                                   
+        44  RECALC                                  
         48  DELTA_TIME                              
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
@@ -2389,6 +2423,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
@@ -2474,6 +2509,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -2553,6 +2589,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
@@ -2607,6 +2644,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -2690,6 +2728,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -2900,6 +2939,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         70  REF_WAVELENGTH                          
         71  X1_LIMIT                                
@@ -2978,6 +3018,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3065,6 +3106,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3130,6 +3172,7 @@
          2  ROLL                                    
          3  REF_TILT                                
          4  HARMON                                  
+         5  HARMON_MASTER                           
          6  G                                       
          7  DG                                        [private]
          9  RHO                                     
@@ -3169,6 +3212,7 @@
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3227,6 +3271,7 @@
          1  L                                       
          2  TILT                                    
          4  HARMON                                  
+         5  HARMON_MASTER                           
          6  GRADIENT                                
          7  gradient_err                              [private]
          8  VOLTAGE                                 
@@ -3237,9 +3282,9 @@
         15  RF_FREQUENCY                            
         16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
-        18  AUTOSCALE_AMPLITUDE                     
-        19  AUTOSCALE_PHASE                         
-        20  LONGITUDINAL_MODE                       
+        18  LONGITUDINAL_MODE                       
+        19  AUTOSCALE_AMPLITUDE                     
+        20  AUTOSCALE_PHASE                         
         22  CAVITY_TYPE                             
         23  phi0_max                                  [private]
         24  PHI0                                    
@@ -3275,6 +3320,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3402,6 +3448,7 @@
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3498,6 +3545,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3586,6 +3634,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3652,6 +3701,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         71  X1_LIMIT                                
         72  X2_LIMIT                                
@@ -3752,6 +3802,7 @@
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3845,6 +3896,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3940,6 +3992,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -4035,6 +4088,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -4115,6 +4169,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         69  LORD_PAD1                               
         70  LORD_PAD2                               
@@ -4161,6 +4216,96 @@
        133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
+ 67  Thick_Multipole     
+         1  L                                       
+         2  TILT                                    
+        10  FRINGE_TYPE                             
+        11  FRINGE_AT                               
+        13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
+        47  PTC_CANONICAL_COORDS                    
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
+        64  REF_TIME_START                          
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        86  MULTIPOLES_ON                           
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       111  FIELD_MASTER                            
+       112  DESCRIP                                 
+       113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       123  CARTESIAN_MAP                           
+       124  CYLINDRICAL_MAP                         
+       125  GRID_FIELD                              
+       126  GEN_GRAD_MAP                            
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+       140  A0                                      
+ 
+ !---------------------------------
  51  Undulator           
          1  L                                       
          2  TILT                                    
@@ -4201,6 +4346,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -4289,6 +4435,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -4389,6 +4536,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -4452,31 +4600,31 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    56
-     2    54
-     3    22
-     4    21
-     5    25
-     6    25
-     7    22
-     8    29
-     9    16
-    10    29
-    11    31
+     1    57
+     2    55
+     3    23
+     4    22
+     5    29
+     6    26
+     7    23
+     8    30
+     9    17
+    10    30
+    11    32
     12     3
-    13    29
+    13    30
     14     6
     15    22
     16    23
-    17    30
-    18     7
+    17    31
+    18     5
     19    12
-    20    19
-    21    19
-    22    20
-    23    19
+    20    20
+    21    21
+    22    21
+    23    20
     24    23
-    25    18
+    25    19
     26    27
     27    18
     28    22
@@ -4485,113 +4633,113 @@
     31    19
     32    11
     33    11
-    34    48
-    35    48
-    36    50
-    37    50
-    38    50
-    39    26
-    40    27
-    41    25
-    42    22
+    34    49
+    35    49
+    36    51
+    37    51
+    38    51
+    39    27
+    40    28
+    41    26
+    42    23
     43    10
     44     8
-    45     8
-    46     8
+    45     7
+    46     7
     47    20
     48     5
     49     7
-    50    55
-    51    55
-    52    55
-    53    57
-    54    57
-    55    45
-    56    44
-    57    46
-    58    46
-    59    46
-    60    46
+    50    56
+    51    56
+    52    56
+    53    58
+    54    58
+    55    46
+    56    45
+    57    47
+    58    47
+    59    47
+    60    47
     61     7
-    62    28
-    63     0
-    64    55
-    65    30
-    66    28
-    67    28
-    68    29
-    69    29
-    70    35
-    71    52
-    72    52
-    73    52
-    74    52
-    75    60
+    62    29
+    63    46
+    64    56
+    65    31
+    66    29
+    67    29
+    68    30
+    69    30
+    70    36
+    71    53
+    72    53
+    73    53
+    74    53
+    75    61
     76     0
     77     0
     78     0
     79     0
     80     0
     81    11
-    82    61
-    83    35
-    84    39
-    85    36
-    86    25
-    87    55
-    88    31
-    89    39
-    90    36
-    91    53
-    92    55
-    93    55
-    94    53
-    95    52
-    96    53
-    97    52
-    98    52
+    82    62
+    83    36
+    84    40
+    85    37
+    86    26
+    87    56
+    88    32
+    89    40
+    90    37
+    91    54
+    92    56
+    93    56
+    94    54
+    95    53
+    96    54
+    97    53
+    98    53
     99     5
-   100    32
+   100    33
    101    10
    102     4
-   103    33
+   103    34
    104     3
-   105    46
-   106    32
-   107    49
-   108    54
+   105    48
+   106    33
+   107    50
+   108    55
    109     6
-   110    28
-   111    22
-   112    58
-   113    14
-   114    27
-   115    28
+   110    29
+   111    23
+   112    59
+   113    15
+   114    28
+   115    29
    116     6
-   117    58
-   118    54
-   119    54
-   120    54
-   121    54
-   122    54
-   123    19
-   124    19
-   125    20
-   126    19
-   127    52
-   128    39
-   129    39
-   130    39
-   131    39
+   117    59
+   118    55
+   119    55
+   120    55
+   121    55
+   122    55
+   123    20
+   124    20
+   125    21
+   126    20
+   127    53
+   128    40
+   129    40
+   130    40
+   131    40
    132     6
-   133    54
+   133    55
    134     0
    135     0
    136     0
    137     0
    138     0
    139     0
-   140    23
+   140    24
    141     0
    142     0
    143     0
@@ -4784,6 +4932,7 @@ Index: 1
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 2
@@ -4841,6 +4990,7 @@ Index: 2
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 3
@@ -4866,6 +5016,7 @@ Index: 3
     Detector            
     Lens                
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 4
@@ -4890,11 +5041,13 @@ Index: 4
     Detector            
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 5
     Sbend               
     Sextupole           
+    RFcavity            
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -4918,6 +5071,9 @@ Index: 5
     Detector            
     Sad_Mult            
     Lens                
+    Crab_Cavity         
+    RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 6
@@ -4946,6 +5102,7 @@ Index: 6
     Mask                
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 7
@@ -4971,6 +5128,7 @@ Index: 7
     Undulator           
     Detector            
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 8
@@ -5003,6 +5161,7 @@ Index: 8
     AC_Kicker           
     Crab_Cavity         
     Ramper              
+    Foil                
  
  !---------------------------------
 Index: 9
@@ -5022,6 +5181,7 @@ Index: 9
     Undulator           
     Sad_Mult            
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 10
@@ -5054,6 +5214,7 @@ Index: 10
     Sad_Mult            
     AC_Kicker           
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 11
@@ -5088,6 +5249,7 @@ Index: 11
     Sad_Mult            
     AC_Kicker           
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 12
@@ -5126,6 +5288,7 @@ Index: 13
     Sad_Mult            
     AC_Kicker           
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 14
@@ -5219,16 +5382,15 @@ Index: 17
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 18
     RFcavity            
     Lcavity             
     Match               
-    E_Gun               
     EM_Field            
     Photon_Init         
-    Crab_Cavity         
  
  !---------------------------------
 Index: 19
@@ -5259,13 +5421,14 @@ Index: 20
     Match               
     Monitor             
     Instrument          
-    !Particle_Start     
     Pipe                
     Multilayer_Mirror   
+    E_Gun               
     EM_Field            
     Photon_Init         
     Detector            
     Sad_Mult            
+    Crab_Cavity         
  
  !---------------------------------
 Index: 21
@@ -5284,10 +5447,12 @@ Index: 21
     Crystal             
     Pipe                
     Multilayer_Mirror   
+    EM_Field            
     Undulator           
     Photon_Init         
     Detector            
     Sad_Mult            
+    Foil                
  
  !---------------------------------
 Index: 22
@@ -5311,6 +5476,7 @@ Index: 22
     Photon_Init         
     Detector            
     Sad_Mult            
+    Foil                
  
  !---------------------------------
 Index: 23
@@ -5333,6 +5499,7 @@ Index: 23
     Photon_Init         
     Detector            
     Sad_Mult            
+    Foil                
  
  !---------------------------------
 Index: 24
@@ -5349,7 +5516,6 @@ Index: 24
     Instrument          
     Rcollimator         
     Ecollimator         
-    !Particle_Start     
     Crystal             
     Pipe                
     E_Gun               
@@ -5359,6 +5525,7 @@ Index: 24
     Sad_Mult            
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 25
@@ -5380,6 +5547,7 @@ Index: 25
     EM_Field            
     Photon_Init         
     Detector            
+    Foil                
  
  !---------------------------------
 Index: 26
@@ -5612,6 +5780,7 @@ Index: 34
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 35
@@ -5663,6 +5832,7 @@ Index: 35
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 36
@@ -5716,6 +5886,7 @@ Index: 36
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 37
@@ -5769,6 +5940,7 @@ Index: 37
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 38
@@ -5822,6 +5994,7 @@ Index: 38
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 39
@@ -5851,6 +6024,7 @@ Index: 39
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 40
@@ -5881,6 +6055,7 @@ Index: 40
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 41
@@ -5909,6 +6084,7 @@ Index: 41
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 42
@@ -5934,6 +6110,7 @@ Index: 42
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 43
@@ -5968,7 +6145,6 @@ Index: 45
     Rbend               
     Lcavity             
     !Parameter          
-    Match               
  
  !---------------------------------
 Index: 46
@@ -5979,7 +6155,6 @@ Index: 46
     Lcavity             
     !Parameter          
     !Line               
-    Match               
  
  !---------------------------------
 Index: 47
@@ -5998,11 +6173,11 @@ Index: 47
     Lcavity             
     !Parameter          
     !Line               
-    Match               
     HKicker             
     VKicker             
     EM_Field            
     Undulator           
+    Thick_Multipole     
  
  !---------------------------------
 Index: 48
@@ -6079,6 +6254,7 @@ Index: 50
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 51
@@ -6137,6 +6313,7 @@ Index: 51
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 52
@@ -6195,6 +6372,7 @@ Index: 52
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 53
@@ -6255,6 +6433,7 @@ Index: 53
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 54
@@ -6315,6 +6494,7 @@ Index: 54
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 55
@@ -6363,6 +6543,7 @@ Index: 55
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 56
@@ -6410,6 +6591,7 @@ Index: 56
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 57
@@ -6459,6 +6641,7 @@ Index: 57
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 58
@@ -6508,6 +6691,7 @@ Index: 58
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 59
@@ -6557,6 +6741,7 @@ Index: 59
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 60
@@ -6606,6 +6791,7 @@ Index: 60
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 61
@@ -6647,9 +6833,56 @@ Index: 62
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 63
+    Drift               
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
+    Taylor              
+    RFcavity            
+    ELseparator         
+    BeamBeam            
+    Wiggler             
+    Sol_Quad            
+    Marker              
+    Kicker              
+    Octupole            
+    Rbend               
+    Multipole           
+    AB_multipole        
+    Solenoid            
+    Lcavity             
+    Monitor             
+    Instrument          
+    HKicker             
+    VKicker             
+    Rcollimator         
+    Ecollimator         
+    Converter           
+    Mirror              
+    Crystal             
+    Pipe                
+    Capillary           
+    Multilayer_Mirror   
+    E_Gun               
+    EM_Field            
+    Undulator           
+    Diffraction_Plate   
+    Photon_Init         
+    Sample              
+    Detector            
+    Sad_Mult            
+    Mask                
+    AC_Kicker           
+    Lens                
+    Crab_Cavity         
+    RF_Bend             
+    Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 64
@@ -6708,6 +6941,7 @@ Index: 64
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 65
@@ -6741,6 +6975,7 @@ Index: 65
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 66
@@ -6772,6 +7007,7 @@ Index: 66
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 67
@@ -6803,6 +7039,7 @@ Index: 67
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 68
@@ -6835,6 +7072,7 @@ Index: 68
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 69
@@ -6867,6 +7105,7 @@ Index: 69
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 70
@@ -6905,6 +7144,7 @@ Index: 70
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 71
@@ -6960,6 +7200,7 @@ Index: 71
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 72
@@ -7015,6 +7256,7 @@ Index: 72
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 73
@@ -7070,6 +7312,7 @@ Index: 73
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 74
@@ -7125,6 +7368,7 @@ Index: 74
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 75
@@ -7188,6 +7432,7 @@ Index: 75
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 76
@@ -7281,6 +7526,7 @@ Index: 82
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 83
@@ -7319,6 +7565,7 @@ Index: 83
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 84
@@ -7361,6 +7608,7 @@ Index: 84
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 85
@@ -7400,6 +7648,7 @@ Index: 85
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 86
@@ -7428,6 +7677,7 @@ Index: 86
     Sample              
     Detector            
     AC_Kicker           
+    Thick_Multipole     
  
  !---------------------------------
 Index: 87
@@ -7486,6 +7736,7 @@ Index: 87
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 88
@@ -7520,6 +7771,7 @@ Index: 88
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 89
@@ -7562,6 +7814,7 @@ Index: 89
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 90
@@ -7601,6 +7854,7 @@ Index: 90
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 91
@@ -7657,6 +7911,7 @@ Index: 91
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 92
@@ -7715,6 +7970,7 @@ Index: 92
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 93
@@ -7773,6 +8029,7 @@ Index: 93
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 94
@@ -7829,6 +8086,7 @@ Index: 94
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 95
@@ -7884,6 +8142,7 @@ Index: 95
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 96
@@ -7940,6 +8199,7 @@ Index: 96
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 97
@@ -7995,6 +8255,7 @@ Index: 97
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 98
@@ -8050,6 +8311,7 @@ Index: 98
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 99
@@ -8093,6 +8355,7 @@ Index: 100
     Crab_Cavity         
     !PTC_Com            
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 101
@@ -8149,6 +8412,7 @@ Index: 103
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 104
@@ -8160,6 +8424,7 @@ Index: 104
 Index: 105
     Sbend               
     Quadrupole          
+    Group               
     Sextupole           
     Overlay             
     Custom              
@@ -8204,6 +8469,7 @@ Index: 105
     !PTC_Com            
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 106
@@ -8239,6 +8505,7 @@ Index: 106
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 107
@@ -8291,6 +8558,7 @@ Index: 107
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 108
@@ -8348,6 +8616,7 @@ Index: 108
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 109
@@ -8388,6 +8657,7 @@ Index: 110
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 111
@@ -8413,6 +8683,7 @@ Index: 111
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 112
@@ -8474,6 +8745,7 @@ Index: 112
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 113
@@ -8491,6 +8763,7 @@ Index: 113
     VKicker             
     Undulator           
     AC_Kicker           
+    Thick_Multipole     
  
  !---------------------------------
 Index: 114
@@ -8521,6 +8794,7 @@ Index: 114
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 115
@@ -8552,6 +8826,7 @@ Index: 115
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 116
@@ -8622,6 +8897,7 @@ Index: 117
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 118
@@ -8679,6 +8955,7 @@ Index: 118
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 119
@@ -8736,6 +9013,7 @@ Index: 119
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 120
@@ -8793,6 +9071,7 @@ Index: 120
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 121
@@ -8850,6 +9129,7 @@ Index: 121
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 122
@@ -8907,6 +9187,7 @@ Index: 122
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 123
@@ -8929,6 +9210,7 @@ Index: 123
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    Thick_Multipole     
  
  !---------------------------------
 Index: 124
@@ -8951,6 +9233,7 @@ Index: 124
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    Thick_Multipole     
  
  !---------------------------------
 Index: 125
@@ -8974,6 +9257,7 @@ Index: 125
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Thick_Multipole     
  
  !---------------------------------
 Index: 126
@@ -8996,6 +9280,7 @@ Index: 126
     Undulator           
     AC_Kicker           
     Crab_Cavity         
+    Thick_Multipole     
  
  !---------------------------------
 Index: 127
@@ -9051,6 +9336,7 @@ Index: 127
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 128
@@ -9093,6 +9379,7 @@ Index: 128
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 129
@@ -9135,6 +9422,7 @@ Index: 129
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 130
@@ -9177,6 +9465,7 @@ Index: 130
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 131
@@ -9219,6 +9508,7 @@ Index: 131
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 132
@@ -9285,6 +9575,7 @@ Index: 133
     RF_Bend             
     GKicker             
     Foil                
+    Thick_Multipole     
  
  !---------------------------------
 Index: 134
@@ -9329,3 +9620,4 @@ Index: 140
     Detector            
     Sad_Mult            
     AC_Kicker           
+    Thick_Multipole     

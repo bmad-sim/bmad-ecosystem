@@ -2103,21 +2103,26 @@ See \sref{s:list.solenoid} for a full list of element attributes along with a th
 
 Attributes specific to a \vn{foil} element are:
 \begin{example}
-  material_type     = <String>  ! Foil material.
-  thickness         = <Real>    ! Material thickness (m).
-  density           = <Real>    ! Input material density (kg/m^3).
-  density_used                  ! Density value used in tracking (kg/m^3).
-  radiation_length  = <Real>    ! Input material radiation length (m).
-  radiation_length_used         ! Radiation length used in tracking (m).
-  area_density      = <Real>    ! Input material area density (kg/m^2).
-  area_density_used             ! Area density used in tracking (kg/m^2).
-  final_charge      = <Integer> ! Final charge state
-  scatter           = <Logic>   ! Is scattering on? Default is True.
-  x1_edge           = <Real>    ! Foil sheet edge in the +x direction. Default: -99 m.
-  x2_edge           = <Real>    ! Foil sheet edge in the -x direction. Default:  99 m.
-  y1_edge           = <Real>    ! Foil sheet edge in the +y direction. Default: -99 m.
-  y2_edge           = <Real>    ! Foil sheet edge in the -y direction. Default:  99 m.
+  material_type       = <String>  ! Foil material.
+  thickness           = <Real>    ! Material thickness (m).
+  density             = <Real>    ! Input material density (kg/m^3).
+  density_used                    ! Density value used in tracking (kg/m^3).
+  radiation_length    = <Vector>  ! Input material radiation length (m).
+  radiation_length_used           ! Radiation length used in tracking (m).
+  area_density        = <Vector>  ! Input material area density (kg/m^2).
+  area_density_used               ! Area density used in tracking (kg/m^2).
+  F_factor            = <Real>    ! F scattering factor. Default: 0.95.
+  final_charge        = <Integer> ! Final charge state
+  scatter_test        = <Logic>   ! For testing scattering. Default: False.
+  scatter_method      = <Switch>  ! Scattering algorithm. Default: highland.
+  drel_thickness_dx   = <Real>    ! Wedge slope.
+  x1_edge             = <Real>    ! Foil edge in the +x direction. Default: -99 m.
+  x2_edge             = <Real>    ! Foil edge in the -x direction. Default:  99 m.
+  y1_edge             = <Real>    ! Foil edge in the +y direction. Default: -99 m.
+  y2_edge             = <Real>    ! Foil edge in the -y direction. Default:  99 m.
 \end{example}
+
+The \vn{foil} element has two scattering algorithms.
 
 Scattering is simulated to be Gaussian distributed with a sigma given by Eq.~(6) of Lynch and
 Dahl\cite{b:lynch}. Energy loss is calculated using the Bethe-Bloch formula.
@@ -2172,7 +2177,8 @@ radiation fluctuations are also turned off for the closed orbit calculation).
 
 Example:
 \begin{example}
-  septum: foil, material_type = "Cu", thickness = 0.127, radiation_length = 12.3, x1_edge = -0.3
+  stripper: foil, material_type = "Cu", thickness = 0.127, &
+                                  radiation_length = 12.3, x1_edge = -0.3
 \end{example}
 
 \newpage

@@ -668,6 +668,8 @@ tao_var_merit_type_name
 tao_data_merit_type_name
 tao_optimizer_name
 tao_shape_shape_name
+present_str
+negated_str
 tao_shape_label_name
 tao_wave_data_name
 n_char_show

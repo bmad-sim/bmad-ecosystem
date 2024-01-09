@@ -80,6 +80,7 @@ type (ac_kicker_struct), pointer :: ac
 type (str_index_struct) str_index
 type (rad_map_struct), pointer :: rm0, rm1
 type (photon_reflect_table_struct), pointer :: rt
+type (material_struct), pointer :: matter
 
 integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
@@ -401,6 +402,27 @@ if (ele%ref_species /= not_set$) then
   call encode_2nd_column_parameter (li, nl2, nl, 'REF_SPECIES', str_val = species_name(ele%ref_species))
 endif
 
+! Foil
+
+if (associated(ele%foil)) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Material_type: ' // ele%component_name
+
+    do ix = 1, size(ele%foil%material)
+      matter = ele%foil%material(ix)
+      if (size(ele%foil%material) > 1) then
+        nl=nl+1; li(nl) = ''
+        nl=nl+1; li(nl) = 'Component: ' // species_name(matter%species)
+      endif
+
+      nl=nl+1; write(li(nl), '(3(a, es14.6))') 'Density      =', matter%density, &
+                  'Area_Density      =', matter%area_density,      'Radiation_Length      =', matter%radiation_length
+      nl=nl+1; write(li(nl), '(3(a, es14.6))') 'Density_Used =', matter%density_used, &
+                  'Area_Density_Used =', matter%area_density_used, 'Radiation_Length_Used =', matter%radiation_length_used
+      nl=nl+1; 
+    enddo
+endif
+
 ! Converter
 
 if (associated(ele%converter)) then
@@ -408,7 +430,7 @@ if (associated(ele%converter)) then
   enddo
 endif
 
-! Cartesian map
+! Cartesian map. The type_field logical is useful since field tables can be very large.
 
 if (associated(ele%cartesian_map)) then
   if (integer_option(no$, type_field) == no$) then
@@ -1453,10 +1475,11 @@ character(41), parameter :: att_name(91) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'PZ_APERTURE_WIDTH2', 'Z_APERTURE_WIDTH2', 'CMAT_11', 'CMAT_21', 'X_DISPERSION_ERR', &
                 'X_DISPERSION_CALIB', 'K1X', 'RF_FREQUENCY', 'UPSTREAM_ELE_DIR', 'SIG_X', &
                 'BETA_A0', 'BETA_B0', 'ALPHA_A0', 'ALPHA_B0', 'ETA_X0', 'ETAP_X0', 'X1_EDGE', 'Y1_EDGE', &
-                'ETA_Y0', 'ETAP_Y0', 'KICK0', 'X0', 'PX0', 'Y0', 'PY0', 'Z0', 'PZ0', &
+                'ETA_Y0', 'ETAP_Y0', 'KICK0', 'X0', 'PX0', 'Y0', 'PY0', 'Z0', 'PZ0', 'ATOMIC_WEIGHT', &
                 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'HARMON', 'FINAL_CHARGE', &
-                'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', &
-                'PX_KICK', 'PY_KICK', 'PZ_KICK', 'DENSITY', 'RADIATION_LENGTH', 'AREA_DENSITY']
+                'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
+                'PX_KICK', 'PY_KICK', 'PZ_KICK', &
+                'F_FACTOR']
 
 character(41), parameter :: att2_name(91) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
@@ -1468,10 +1491,11 @@ character(41), parameter :: att2_name(91) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'PZ_APERTURE_CENTER', 'Z_APERTURE_CENTER', 'CMAT_12', 'CMAT_22', 'Y_DISPERSION_ERR', &
                 'Y_DISPERSION_CALIB', 'K1Y', 'RF_WAVELENGTH', 'DOWNSTREAM_ELE_DIR', 'SIG_Y', &
                 'BETA_A1', 'BETA_B1', 'ALPHA_A1', 'ALPHA_B1', 'ETA_X1', 'ETAP_X1', 'X2_EDGE', 'Y2_EDGE', &
-                'ETA_Y1', 'ETAP_Y1', 'MATRIX', 'X1', 'PX1', 'Y1', 'PY1', 'Z1', 'PZ1', &
+                'ETA_Y1', 'ETAP_Y1', 'MATRIX', 'X1', 'PX1', 'Y1', 'PY1', 'Z1', 'PZ1', 'Z_CHARGE', &
                 'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', 'HARMON_MASTER', 'SCATTER', &
-                'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', &
-                'X_KICK', 'Y_KICK', 'Z_KICK', 'DENSITY_USED', 'RADIATION_LENGTH_USED', 'AREA_DENSITY_USED']
+                'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DREL_THICKNESS_DX', &
+                'X_KICK', 'Y_KICK', 'Z_KICK', &
+                'SCATTER_METHOD']
 
 ! Exceptional cases
 
@@ -1496,9 +1520,11 @@ case ('L_SOFT_EDGE', 'L_ACTIVE', 'REF_COORDS')
 end select
 
 ! Is a 2nd column attribute if corresponding first column attribute exists
+! Note: There are rare cases where the corresponding 1st column parameter does not exist for the particular element type.
 
 call match_word (attrib_name, att2_name, ix, .true., .false.)
 if (ix > 0) then
+  if (.not. has_attribute(ele, att_name(ix))) return
   ia = attribute_index(ele, att_name(ix))
   is_2nd_col_attrib = (ia > 0)
   return
@@ -1507,7 +1533,10 @@ endif
 ! If the attribute has a corresponding 2nd column attribute, set ix2_attrib accordingly.
 
 call match_word (attrib_name, att_name, ix, .true., .false.)
-if (ix > 0) ix2_attrib = attribute_index(ele, att2_name(ix))
+if (ix > 0) then
+  if (.not. has_attribute(ele, att2_name(ix))) return
+  ix2_attrib = attribute_index(ele, att2_name(ix))
+endif
 
 end function is_2nd_column_attribute
 

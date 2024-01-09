@@ -344,6 +344,26 @@ else
   if (associated (ele_save%converter)) deallocate(ele_save%converter)
 endif
 
+! %foil
+
+if (associated(ele_in%foil)) then
+  n = size(ele_in%foil%material)
+  ele_out%foil => ele_save%foil   ! reinstate
+  if (associated(ele_out%foil)) then
+    comensurate = .false.
+    if (size(ele_out%foil%material) /= n) deallocate(ele_out%foil)
+  endif
+
+  if (.not. associated(ele_out%foil)) then
+    allocate(ele_out%foil)
+    allocate(ele_out%foil%material(n))
+  endif
+  ele_out%foil = ele_in%foil
+
+else
+  if (associated (ele_save%foil)) deallocate(ele_save%foil)
+endif
+
 ! %taylor
 
 do i = 1, 6

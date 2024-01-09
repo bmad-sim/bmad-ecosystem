@@ -79,6 +79,7 @@ type (ac_kicker_struct), pointer :: ac
 type (expression_atom_struct), pointer :: stack(:)
 type (str_index_struct) str_index
 type (lat_ele_order_struct) order
+type (material_struct), pointer :: material
 
 real(rp) s0, x_lim, y_lim, val, x, y
 
@@ -532,6 +533,48 @@ do ib = 0, ubound(lat%branch, 1)
         line = trim(line) // ', ' // slave%name
       enddo
       line = trim(line) // '}'
+    endif
+
+    ! Foil
+
+    if (associated(ele%foil)) then
+      if (size(ele%foil%material) > 1) then
+        if (any(ele%foil%material%density /= 0)) then
+          line = trim(line) // ', density = ('
+          do n = 1, size(ele%foil%material)
+            if (n == 1) then; line = trim(line) // re_str(ele%foil%material(n)%density)
+            else;             line = trim(line) // ', ' // re_str(ele%foil%material(n)%density)
+            endif
+          enddo
+          line = trim(line) // ')'
+        endif
+
+        if (any(ele%foil%material%area_density /= 0)) then
+          line = trim(line) // ', area_density = ('
+          do n = 1, size(ele%foil%material)
+            if (n == 1) then; line = trim(line) // re_str(ele%foil%material(n)%area_density)
+            else;             line = trim(line) // ', ' // re_str(ele%foil%material(n)%area_density)
+            endif
+          enddo
+          line = trim(line) // ')'
+        endif
+
+        if (any(ele%foil%material%radiation_length /= 0)) then
+          line = trim(line) // ', radiation_length = ('
+          do n = 1, size(ele%foil%material)
+            if (n == 1) then; line = trim(line) // re_str(ele%foil%material(n)%radiation_length)
+            else;             line = trim(line) // ', ' // re_str(ele%foil%material(n)%radiation_length)
+            endif
+          enddo
+          line = trim(line) // ')'
+        endif
+
+      else
+        material => ele%foil%material(1)
+        if (material%density /= 0)          line = trim(line) // ', density = ' // re_str(material%density)
+        if (material%area_density /= 0)     line = trim(line) // ', area_density = ' // re_str(material%area_density)
+        if (material%radiation_length /= 0) line = trim(line) // ', radiation_length = ' // re_str(material%radiation_length)
+      endif
     endif
 
     ! Cartesian_map.

@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 309
+integer, parameter :: bmad_inc_version$ = 310
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -185,6 +185,9 @@ integer, parameter :: include_kicks$ = 1, short$ = 8
 
 integer, parameter :: user_set$ = 0, first_pass$ = 1
 character(12), parameter :: multipass_ref_energy_name(0:1) = [character(12):: 'User_Set', 'First_Pass']
+
+integer, parameter :: highland$ = 2, lynch_dahl$ = 3
+character(12), parameter :: scatter_method_name(3) = [character(12):: 'Off', 'Highland', 'Lynch_Dahl']
 
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
@@ -1234,6 +1237,19 @@ type converter_sub_distribution_struct
   type (converter_direction_out_struct) :: dir_out
 end type
 
+! Foil structure
+
+type material_struct
+  integer :: species = not_set$
+  real(rp) :: density = 0, density_used = 0
+  real(rp) :: area_density = 0, area_density_used = 0
+  real(rp) :: radiation_length = 0, radiation_length_used = 0
+end type
+
+type foil_struct
+  type (material_struct), allocatable :: material(:)
+end type
+
 ! Distribution of outgoing particles for a given thickness.
 
 type converter_distribution_struct
@@ -1325,6 +1341,7 @@ type ele_struct
   type (branch_struct), pointer :: branch => null()                      ! Pointer to branch containing element.
   type (controller_struct), pointer :: control => null()                 ! group & overlay variables.
   type (converter_struct), pointer :: converter => null()                ! EG: Positron converter in linac.
+  type (foil_struct), pointer :: foil => null()
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
   type (floor_position_struct) :: floor = floor_position_struct(vec3_zero$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
@@ -1655,21 +1672,19 @@ integer, parameter :: radius$ = 3, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
-integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3
-integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3, final_charge$ = 3
-integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
-integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4, radiation_length$ = 4
-integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5
-integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
-integer, parameter :: radiation_length_used$ = 5
-integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
-integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6, density$ = 6
-integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
-integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7, spin_dn_dpz_x$ = 7, density_used$ = 7
-integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8, spin_dn_dpz_y$ = 8
-integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8, g_tot$ = 8, area_density$ = 8
+integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3, &
+                      kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3, final_charge$ = 3
+integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, &
+                      critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
+integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5, &
+                      ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
+integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6, &
+                      g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
+integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7, &
+                      gradient_err$ = 7, critical_angle$ = 7, bragg_angle_in$ = 7, spin_dn_dpz_x$ = 7
+integer, parameter :: delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8, k1x$ = 8, spin_dn_dpz_y$ = 8, &
+                      charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8, g_tot$ = 8
 integer, parameter :: rho$ = 9, voltage_err$ = 9, bragg_angle$ = 9, k1y$ = 9, n_particle$ = 9, spin_dn_dpz_z$ = 9
-integer, parameter :: area_density_used$ = 9
 integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
 integer, parameter :: darwin_width_pi$ = 12
@@ -1681,35 +1696,40 @@ integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
 ! longitudinal_mode$ is near to rf_wavelength$ for type_ele to print rf_bucket_length near rf_wavelength$
 integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, longitudinal_mode$ = 18
 integer, parameter :: sig_e$ = 19, sig_pz$ = 19, autoscale_amplitude$ = 19
-integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, autoscale_phase$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, sig_e2$ = 20
-integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21
-integer, parameter :: E_center$ = 21, scatter$ = 21
-integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, cavity_type$ = 22
-integer, parameter :: beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
-integer, parameter :: emit_fraction$ = 22, x1_edge$ = 22
-integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
-integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, E2_probability$ = 23, phi0_max$ = 23
-integer, parameter :: x2_edge$ = 23
-integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24, y1_edge$ = 24
-integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24, px_aperture_width2$ = 24
-integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25, y2_edge$ = 25
-integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25, species_strong$ = 25
-integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26
-integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
-integer, parameter :: eps_step_scale$ = 26, E_tot_strong$ = 26
-integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27
-integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
-integer, parameter :: py_aperture_center$ = 27, x_dispersion_err$ = 27
-integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, b_field_tot$ = 28
-integer, parameter :: y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, rf_clock_harmonic$ = 28
-integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, z_aperture_center$ = 29
-integer, parameter :: cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, x_dispersion_calib$ = 29
-integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
-integer, parameter :: downstream_coord_dir$ = 30, pz_aperture_width2$ = 30, y_dispersion_calib$ = 30, voltage_tot$ = 30
-integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id$ = 31, ref_cap_gamma$ = 31
-integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31
+integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, autoscale_phase$ = 20, &
+                      n_slice$ = 20, y_gain_calib$ = 20, sig_e2$ = 20
+integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21, &
+                      beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, &
+                      E_center$ = 21, scatter_test$ = 21
+integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, cavity_type$ = 22, &
+                      beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22, &
+                      emit_fraction$ = 22, x1_edge$ = 22
+integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23, &
+                      fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, E2_probability$ = 23, phi0_max$ = 23, &
+                      x2_edge$ = 23
+integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24, y1_edge$ = 24, &
+                      alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24, px_aperture_width2$ = 24
+integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25, &
+                      eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25, &
+                      y2_edge$ = 25, species_strong$ = 25
+integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26, &
+                      phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26, &
+                      eps_step_scale$ = 26, E_tot_strong$ = 26, drel_thickness_dx$ = 26, bend_tilt$ = 26
+integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
+                      x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
+                      py_aperture_center$ = 27, x_dispersion_err$ = 27
+integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
+                      y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
+                      rf_clock_harmonic$ = 28, b_field_tot$ = 28, atomic_weight$ = 28
+integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, &
+                      cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, &
+                      x_dispersion_calib$ = 29, z_aperture_center$ = 29, f_factor$ = 29
+integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, &
+                      downstream_coord_dir$ = 30, pz_aperture_width2$ = 30, y_dispersion_calib$ = 30, &
+                      scale_field_to_one$ = 30, voltage_tot$ = 30, scatter_method$ = 30
+integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id$ = 31, ref_cap_gamma$ = 31, &
+                      l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31, &
+                      mean_excitation_energy$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33, x_kick$ = 33
 integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
@@ -1761,13 +1781,17 @@ integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
-integer, parameter :: y_knot$ = 83, eta_y$ = 83
-integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84, slave$ = 84
-integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85, etap_y$ = 85
-integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86
+integer, parameter :: y_knot$ = 83, eta_y$ = 83, density$ = 83
+integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84, slave$ = 84, &
+                      density_used$ = 84
+integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85, etap_y$ = 85, &
+                      area_density$ = 85
+integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86, &
+                      area_density_used$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
-integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88
-integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89
+integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88, radiation_length$ = 88
+integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89, radiation_length_used$ = 89
+
 integer, parameter :: pz_ref$ = 90, space_charge_method$ = 90, p90$ = 90
 integer, parameter :: mat6_calc_method$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92

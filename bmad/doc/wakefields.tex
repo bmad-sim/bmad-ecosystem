@@ -69,14 +69,14 @@ position the above equation is modified:
 With either the longitudinal wake $\WlS$ or the transverse $\WtS$ wake, the wake can be
 approximated as a sum of what are called ``pseudo'' modes $W_i(z)$, $i = 1 \ldots M$:
 \begin{equation}
-  W(z) = A_{amp} \, \sum_{i = 1}^M W_i(z)
-  = A_{amp} \, \sum_{i = 1}^M A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
+  W(z) = A_a \, \sum_{i = 1}^M W_i(z)
+  = A_a \, \sum_{i = 1}^M A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
   \label{wadzk}
 \end{equation}
 This is similar to approximating any function as a sum of Fourier terms. The parameters $(A_i, d_i,
 k_i, \phi_i)$ are chosen by the person constructing the lattice to fit the calculated wake
 potential. Since $z$ is negative for trailing particles, $d_i$ should be positive to get the wake to
-decay exponentially with distance. The dimensionless overall amplitude scale $A_{amp}$ is introduced
+decay exponentially with distance. The dimensionless overall amplitude scale $A_a$ is introduced
 as a convenient way to scale the overall wake. The reason why the pseudo mode approach is used in \bmad is
 due to the fact that, with pseudo modes, the calculation time scales as the number of particles $N$
 while a calculation based upon a table of wake vs $z$ would scale as $N^2$. [The disadvantage is
@@ -93,12 +93,12 @@ The lattice syntax for defining long-range wakes is discussed in \Sref{s:lr.wake
 Following Chao\cite{b:chao} Eq.~2.88, the long--range wakefields are characterized by a set of
 cavity modes. The wake function $W_i$ for the $i$\Th mode is
 \begin{equation}
-  W_i(t) = -c \, A_{amp} \, \left( \frac{R}{Q} \right)_i \,\,
+  W_i(t) = -c \, A_a \, \left( \frac{R}{Q} \right)_i \,\,
   \exp(-d_i \, t) \, \sin (\omega_i \, t + \phi_i)
   \label{wcrq}
 \end{equation}
 The order of the mode $m_i$ does not come into this equation but will appear in equations below.
-The dimensionless overall amplitude scale $A_{amp}$ is introduced as a convenient way to scale the
+The dimensionless overall amplitude scale $A_a$ is introduced as a convenient way to scale the
 amplitude of all the wakes with just one parameter. Normally, for a wake that has a well defined
 mode, The phase factor $\phi_i$ is zero. Finite $\phi_i$ is used for simulations of such things as
 the long-range resistive wall wake. In this case, the resistive wall wake needs to be modeled as the
@@ -166,17 +166,17 @@ which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$, and $b_{\sin}$. For a 
 particle passing through at a time $t_w$ with respect to the reference particle will produce wake
 components
 \begin{alignat}{2}
-  \delta a_{\sin} &\equiv  &c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\sin} &\equiv  &c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
     \CRNO
-  \delta a_{\cos} &\equiv -&c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\cos} &\equiv -&c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
     \label{ac2rq} 
     \\
-  \delta b_{\sin} &\equiv  &c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\sin} &\equiv  &c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
     \CRNO
-  \delta b_{\cos} &\equiv -&c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\cos} &\equiv -&c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
     \nonumber
 \end{alignat}
@@ -219,22 +219,22 @@ longer have the same frequency. In this case, one has to consider a mode's polar
 $\theta_p$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged.  In place of \Eq{ac2rq}, the
 contribution of a particle to a mode is
 \begin{alignat}{2}
-  \delta a_{\sin} &=  & c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\sin} &=  & c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \left[
     \sin(m \theta_w) \, \sin^2(m \theta_p) + 
     \cos(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
     \CRNO
-  \delta a_{\cos} &= -& c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\cos} &= -& c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \left[ 
     \sin(m \theta_w) \, \sin^2(m \theta_p) + 
     \cos(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
     \\
-  \delta b_{\sin} &=  & c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\sin} &=  & c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \cos (\omega \, t_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \theta_p) + 
     \sin(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
     \CRNO
-  \delta b_{\cos} &= -& c \, A_{amp} \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\cos} &= -& c \, A_a \, \left( \frac{R}{Q} \right) \,
     e^{d \, t_w} \, \sin (\omega \, t_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \theta_p) + 
     \sin(m \theta_w) \, \sin(m \theta_p) \, \cos(m\theta_p) \right]
