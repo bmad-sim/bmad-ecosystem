@@ -248,7 +248,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (err) call out_io (s_error$, r_name, 'ERROR SLICING LATTICE FOR UNIVERSE: ' // int_str(i_uni))
     endif
 
-    if (design_lat%reverse_lattice) then
+    if (design_lat%reverse_lattice .neqv. (s%init%reverse_arg == present_str)) then
       lat => u%design%lat
       call reallocate_coord (orbit, lat)
       call init_coord (orbit(0), lat%particle_start, lat%ele(0), downstream_end$)
@@ -261,6 +261,11 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       lat%particle_start%vec(2) = -lat%particle_start%vec(2)
       lat%particle_start%vec(4) = -lat%particle_start%vec(4)
       lat%particle_start%vec(5) = -lat%particle_start%vec(5)
+      if (lat%particle_start%beta == 0) then
+        lat%particle_start%t = lat%ele(0)%ref_time
+      else
+        lat%particle_start%t = lat%ele(0)%ref_time - lat%particle_start%vec(5) / (lat%particle_start%beta * c_light)
+      endif
     endif
   endif
 

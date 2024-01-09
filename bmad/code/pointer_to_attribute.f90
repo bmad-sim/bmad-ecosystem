@@ -722,6 +722,7 @@ endif
 select case (a_name)
 ! attrib_type = is_real$
 ! attrib_type = is_logical$
+case ('SCATTER');                        a_ptr%r => ele%value(scatter$)
 case ('MATRIX');                         a_ptr%r => ele%value(matrix$)
 case ('KICK0');                          a_ptr%r => ele%value(kick0$)
 case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)

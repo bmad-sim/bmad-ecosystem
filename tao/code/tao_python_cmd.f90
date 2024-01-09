@@ -1706,6 +1706,9 @@ case ('data_d2_create')
     i1 = i2 + 1
     i2 = i2 + 1 + ix_max(j) - ix_min(j)
     call tao_point_d1_to_data (d1_ptr, u%data(i1:i2), ix_min(j))
+    ! Load some sensible defaults so they don't need to be set manually
+    u%data(i1:i2)%merit_type = 'target'
+    u%data(i1:i2)%data_source = 'lat'
   enddo
 
 !------------------------------------------------------------------------------------------------

@@ -1248,7 +1248,7 @@ if (has_fringe) then
     else
       value(fringe_at$) = no_end$
     endif
-  elseif (include_downstream_end) then
+  elseif (include_exit) then
     if (ifr == exit_end$ .or. ifr == both_ends$) then
       value(fringe_at$) = exit_end$
     else

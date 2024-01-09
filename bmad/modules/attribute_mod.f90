@@ -937,6 +937,7 @@ call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX'
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 
+call init_attribute_name1 (foil$, scatter$,                         'SCATTER')
 call init_attribute_name1 (foil$, thickness$,                       'THICKNESS')
 call init_attribute_name1 (foil$, material_type$,                   'MATERIAL_TYPE')
 call init_attribute_name1 (foil$, final_charge$,                    'FINAL_CHARGE')
@@ -1903,14 +1904,14 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', &
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', &
       'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
 
-case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'N_PARTICLE', 'VERTICAL_KICK', 'N_CELL', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'VERTICAL_KICK', 'N_CELL', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
       'MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
       'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', 'FINAL_CHARGE')
@@ -1985,7 +1986,7 @@ case ('AREA_DENSITY', 'AREA_DENSITY_USED')
   attrib_units = 'kg/m^2'
 
 case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', 'ALPHA_B1', &
-      'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', &
+      'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'N_PARTICLE', &
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
       'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', 'Y_KNOT', 'SLAVE', &

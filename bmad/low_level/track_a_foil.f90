@@ -32,7 +32,8 @@ type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
-real(rp) xx0, sigma, rnd(2), I_excite, mass_material, dE_dx_tot, E0, E1, pc, p2, elec_area_density
+real(rp) xx0, sigma, rnd(2), I_excite, mass_material, dE_dx_tot, E0, E1, p2, elec_area_density
+real(rp) pc_old, pc_new
 real(rp), parameter :: S2 = 13.6e6_dp, epsilon = 0.088 ! Factor of 1e6 is due to original formula using MeV/c for momentum
 
 integer i, n, material, z_material, z_part, n_step
@@ -50,14 +51,16 @@ if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) 
 
 material = species_id(ele%component_name)
 z_material = atomic_number(material)
-
 z_part = atomic_number(orbit%species)
-xx0 = ele%value(area_density_used$) / ele%value(radiation_length_used$)
-sigma = S2 * z_part * sqrt(xx0) / (orbit%p0c * orbit%beta) * (1.0_rp + epsilon * log10(xx0*z_part**2/orbit%beta**2))
 
-call ran_gauss(rnd)
-orbit%vec(2) = orbit%vec(2) + rnd(1) * sigma
-orbit%vec(4) = orbit%vec(4) + rnd(2) * sigma
+if (is_true(ele%value(scatter$))) then
+  call ran_gauss(rnd)
+  xx0 = ele%value(area_density_used$) / ele%value(radiation_length_used$)
+  sigma = S2 * z_part * sqrt(xx0) / (orbit%p0c * orbit%beta) * (1.0_rp + epsilon * log10(xx0*z_part**2/orbit%beta**2))
+
+  orbit%vec(2) = orbit%vec(2) + rnd(1) * sigma
+  orbit%vec(4) = orbit%vec(4) + rnd(2) * sigma
+endif
 
 ! Energy loss
 
@@ -67,13 +70,16 @@ elec_area_density = (1.0e3_rp * N_avogadro) * ele%value(area_density_used$) * z_
 
 n_step = nint(ele%value(num_steps$))
 do i = 1, n_step
-  p2 = (orbit%p0c * (1.0_rp + orbit%vec(6)) / mass_of(orbit%species))**2  ! beta^2 / (1 - beta^2) term
+  pc_old = orbit%p0c * (1.0_rp + orbit%vec(6))
+  p2 = (pc_old / mass_of(orbit%species))**2  ! beta^2 / (1 - beta^2) term
   dE_dx_tot = -fourpi * mass_of(electron$) * elec_area_density * (z_part * r_e / orbit%beta)**2 * &
               (log(2 * mass_of(electron$) * p2 / I_excite) - orbit%beta**2)
   E0 = orbit%p0c * (1.0_rp + orbit%vec(6)) / orbit%beta
   E1 = E0 + dE_dx_tot / n_step
-  call convert_total_energy_to(E1, orbit%species, beta = orbit%beta, pc = pc)
-  orbit%vec(6) = (pc - orbit%p0c) / orbit%p0c
+  call convert_total_energy_to(E1, orbit%species, beta = orbit%beta, pc = pc_new)
+  orbit%vec(2) = orbit%vec(2) * pc_new / pc_old   ! To keep the angle x' = constant
+  orbit%vec(4) = orbit%vec(4) * pc_new / pc_old   ! To keep the angle y' = constant
+  orbit%vec(6) = (pc_new - orbit%p0c) / orbit%p0c
 enddo
 
 ! Charge

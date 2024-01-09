@@ -144,13 +144,13 @@ function rchomp (rel, plc) result (out)
 implicit none
 
 real(rp) rel
-character(24) out
+character(25) out
 character(8) :: fmt = '(f24.xx)'
 integer it, plc, ix
 
 !
 
-write (fmt(6:7), '(i2.2)') 13-plc  ! 14 digits of accuracy
+write (fmt(6:7), '(i2.2)') 14-plc  ! 15 digits of accuracy
 write (out, fmt) rel
 do it = len(out), 1, -1
   if (out(it:it) == ' ') cycle

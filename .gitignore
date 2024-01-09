@@ -92,6 +92,10 @@ regression_tests/twiss_track_test/rad_int_no_wig_no_cache.dat
 regression_tests/twiss_track_test/rad_int_wig_cache.dat
 regression_tests/twiss_track_test/rad_int_wig_no_cache.dat
 regression_tests/twiss_track_test/twiss.out
+regression_tests/long_term_tracking_test/sim1.dat
+regression_tests/write_bmad_test/em_field1.gen_grad_map
+regression_tests/write_bmad_test/wiggler_map1.cartesian_map
+regression_tests/write_bmad_test/z.bmad
 
 *.digested*
 *.mod

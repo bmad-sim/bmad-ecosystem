@@ -515,6 +515,7 @@ do ib = 0, ubound(lat%branch, 1)
                     trim(array_re_str([x, y], '{}')), end_str
             endif
           enddo
+          if (len_trim(line) > 1000) call write_lat_line(line, iu, .false.)
         enddo
         close (iu2)
 
@@ -662,7 +663,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (associated(ele%wake)) then
       lr => ele%wake%lr
       if (size(lr%mode) /= 0) then
-        line = trim(line) // ', lr_wake = {'
+        line = trim(line) // ', lr_wake = @'
         if (lr%freq_spread /= 0) line = trim(line) // ', freq_spread = ' // re_str(lr%freq_spread)
         if (.not. lr%self_wake_on) line = trim(line) // ', self_wake_on = ' // logic_str(lr%self_wake_on)
         if (lr%amp_scale /= 1) line = trim(line) // ', amp_scale = ' // re_str(lr%amp_scale)
@@ -672,39 +673,58 @@ do ib = 0, ubound(lat%branch, 1)
           lrm => lr%mode(i)
           line = trim(line) // ', mode = {' // re_str(lrm%freq_in) // ', ' // re_str(lrm%R_over_Q) // &
                           ', ' // re_str(lrm%damp) // ', ' // re_str(lrm%phi) // ', ' // int_str(lrm%m)
+
           if (lrm%polarized) then
             line = trim(line) // ', unpolarized'
           else
             line = trim(line) // re_str(lrm%angle)
           endif
+
           if (lrm%b_sin == 0 .and. lrm%b_cos == 0 .and. lrm%a_sin == 0 .and. lrm%a_cos == 0) then
             line = trim(line) // '}'
           else
             line = trim(line) // ', ' // re_str(lrm%b_sin) // ', ' // re_str(lrm%b_cos) // ', ' // &
                                          re_str(lrm%a_sin) // ', ' // re_str(lrm%a_cos) // '}'
           endif
+
+          if (i == 1) then
+            ix = index(line, '@,')
+            line = line(1:ix-1) // '{' //line(ix+2:)
+          endif
+
+          if (len_trim(line) > 1000) call write_lat_line(line, iu, .false.)
         enddo
         line = trim(line) // '}'
-        ix = index(line, '{,')
-        line = line(1:ix) // line(ix+2:)
       endif
 
       sr => ele%wake%sr
       if (size(sr%long) /= 0 .or. size(sr%trans) /= 0) then
-        line = trim(line) // ', sr_wake = {'
+        line = trim(line) // ', sr_wake = @'
         if (sr%z_max /= 0) line = trim(line) // ', z_max = ' // re_str(sr%z_max)
         if (sr%amp_scale /= 1) line = trim(line) // ', amp_scale = ' // re_str(sr%amp_scale)
         if (sr%z_scale /= 1) line = trim(line) // ', z_scale = ' // re_str(sr%z_scale)
+
         do i = 1, size(sr%long)
           srm => sr%long(i)
           line = trim(line) // ', longitudinal = {' // re_str(srm%amp) // ', ' // re_str(srm%damp) // ', ' // re_str(srm%k) // &
                                ', ' // re_str(srm%phi) // ', ' // trim(sr_longitudinal_position_dep_name(srm%position_dependence)) // '}'
+          if (i == 1) then
+            ix = index(line, '@,')
+            if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
+          endif
+          if (len_trim(line) > 1000) call write_lat_line(line, iu, .false.)
         enddo 
+
         do i = 1, size(sr%trans)
           srm => sr%trans(i)
           line = trim(line) // ', transverse = {' // re_str(srm%amp) // ', ' // re_str(srm%damp) // ', ' // re_str(srm%k) // &
                                ', ' // re_str(srm%phi) // ', ' // trim(sr_transverse_polarization_name(srm%polarization)) // &
                                ', ' // trim(sr_transverse_position_dep_name(srm%position_dependence)) // '}'
+          if (len_trim(line) > 1000) call write_lat_line(line, iu, .false.)
+          if (i == 1) then
+            ix = index(line, '@,')
+            if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
+          endif
         enddo
         line = trim(line) // '}'
         ix = index(line, '{,')
@@ -1310,7 +1330,7 @@ do ib = 0, ubound(lat%branch, 1)
   if (ele0%c_mat(2,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_22]  = ', re_str(ele0%c_mat(2,2))
 
   if (is_false(ele0%value(inherit_from_fork$))) write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
-  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
+  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c_start$))
   if (branch%ix_from_branch >= 0) write (iu, '(2a, l1)') trim(branch%name), '[inherit_from_fork]      = ', is_true(ele0%value(inherit_from_fork$))
 
 enddo
