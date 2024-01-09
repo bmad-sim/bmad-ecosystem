@@ -498,7 +498,7 @@ integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_gen, n_grid, ix_ele
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e, n_angle, n_energy
 integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c 
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
-integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc
+integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc, n_foil
 
 logical error, is_alloc_grid, is_alloc_pix, is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
 logical ac_kicker_alloc, rad_map_alloc
@@ -510,7 +510,7 @@ error = .true.
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, rad_map_alloc, &
         ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, idum, n_cus, ix_convert ! idum not used
+        ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_foil, n_cus, ix_convert
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -595,6 +595,16 @@ if (ac_kicker_alloc) then
       read (d_unit, err = 9130, end = 9130) ac%frequency(n)
     enddo
   endif
+endif
+
+! Foil
+
+if (n_foil > 0) then
+  allocate(ele%foil)
+  allocate(ele%foil%material(n_foil))
+  do n = 1, n_foil
+    read (d_unit, err = 9120, end = 9120) ele%foil%material(n)
+  enddo
 endif
 
 ! Converter

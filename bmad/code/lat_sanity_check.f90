@@ -600,13 +600,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                       'WHICH DOES NOT HAVE AN ASSOCIATED ATOMIC NUMBER.')
         err_flag = .true.
       endif
-
-      if (ele%value(radiation_length_used$) == real_garbage$) then
-        call out_io(s_fatal$, r_name, &
-            'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), & 
-            'CANNOT HANDLE NON-ATOMIC MATERIAL_TYPE: ' // ele%component_name)
-        err_flag = .true.
-      endif
     endif
 
     ! Zero length cavity is verboten

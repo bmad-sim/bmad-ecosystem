@@ -86,7 +86,7 @@ type (photon_reflect_table_struct), allocatable :: rt_save(:)
 type (photon_reflect_table_struct), pointer :: rt
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2), vec(1000)
-real(rp), allocatable :: table(:,:)
+real(rp), allocatable :: table(:,:), arr(:)
 real(rp), pointer :: r_ptr
 
 integer i, i2, j, k, n, na, ne, nn, nt, ix_word, how, ix_word1, ix_word2, ios, ix, iy, i_out, ix_coef, switch
@@ -1815,6 +1815,25 @@ endif
 
 select case (attrib_word)
 
+case ('DENSITY', 'AREA_DENSITY', 'RADIATION_LENGTH')
+  ok = parse_real_list2(lat, 'READING: ' // trim(attrib_word) // ' FOR ELEMENT: ' // ele%name, &
+                                                arr, n, delim, delim_found, 10, '(', ',', ')', 0.0_rp)
+  if (.not. ok) return
+  if (allocated(ele%foil%material)) then
+    if (size(ele%foil%material) /= n) then
+      call parser_error('MATERIAL_TYPE, DENSITY, AREA_DENSITY, AND RADIATION_LENGTH MUST ALL BE THE SAME SIZE VECTORS FOR ELE: ' // ele%name)
+      return
+    endif
+  else
+    allocate(ele%foil%material(n))
+  endif
+
+  select case (attrib_word)
+  case ('DENSITY');           ele%foil%material(:)%density = arr
+  case ('AREA_DENSITY');      ele%foil%material(:)%area_density = arr
+  case ('RADIATION_LENGTH');  ele%foil%material(:)%radiation_length = arr
+  end select
+
 case ('REFERENCE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   call get_next_word(pele%ref_name, ix_word,  '=,', delim, delim_found, .true.)
@@ -2060,6 +2079,10 @@ case ('REF_ORBIT_FOLLOWS')
 
 case ('SCALE_MULTIPOLES')
   call parser_get_logical (attrib_word, ele%scale_multipoles, ele%name, delim, delim_found, err_flag); if (err_flag) return
+
+case ('SCATTER_METHOD')
+  call get_switch (attrib_word, scatter_method_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(scatter_method$) = ix
 
 case ('SPATIAL_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -9499,10 +9522,10 @@ end function parse_real_lists
 !-------------------------------------------------------------------------
 !+
 ! Function parse_real_list2 (lat, err_str, real_array, num_found, delim, delim_found, num_expected, 
-!                            open_delim, separator, close_delim, default_value) result (is_ok)
+!                            open_delim, separator, close_delim, default_value, brace_optional) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
-!    open_delim real_1 separator real_2 . . . close_delim
+!    open_brace real_1 separator real_2 . . . close_brace
 ! Example:   "(1.2, 2.3, 4.4, 8.5)"
 !
 ! Also see:
@@ -9514,24 +9537,25 @@ end function parse_real_lists
 !  err_str        -- character(*): Error string to print if there is an error. 
 !  real_array     -- real(rp), allocatable: the array to be read in 
 !
-!   Optional: 
+! Optional: 
 !   num_expected = 10    -- integer, optional: number of expected arguments
 !                             Used to initialize real_array
-!   open_delim   = '('   -- character(1), optional: opening delimeter
+!   open_brace   = '('   -- character(1), optional: opening delimeter.
 !   separator    = ','   -- character(1), optional: separating character
-!   close_delim  = ')'   -- character(1), optional: closing delimeter
-!   default_value = 0.0_rp -- real(rp) : inital assignment of real_array elements
+!   close_brace  = ')'   -- character(1), optional: closing delimeter
+!   default_value = 0.0_rp -- real(rp), optional: inital assignment of real_array elements.
+!   brace_optional = False -- logical, optional: If true then an array with a single value and no braces is accepted.
 !
 ! Output:
 !   is_ok                   -- logical: Set True if everything is ok
 !   real_array(1:num_found) -- real(rp) : Array of values
 !   num_found               -- integer : number of elements
 !   delim                   -- character(1): Delimiter found where the parsing of the input line stops.
-!   delim_found             -- logical: Delimiter found? False if end of input command.
+!   delim_found             -- logical: Stopping delimiter found? False if end of input command.
 !-
 
 function parse_real_list2 (lat, err_str, real_array, num_found, delim, delim_found, num_expected, &
-          open_delim, separator, close_delim, default_value) result (is_ok)
+          open_brace, separator, close_brace, default_value, brace_optional) result (is_ok)
 
 ! Arguments
 
@@ -9546,7 +9570,7 @@ integer, optional :: num_expected
 logical is_ok
 
 character(*) err_str
-character(*), optional :: open_delim, close_delim, separator
+character(*), optional :: open_brace, close_brace, separator
 
 ! Local
 
@@ -9555,10 +9579,11 @@ real(rp) :: default_val, value
 integer num_expect
 integer  ix_word
 
-character(1) delim, op_delim, cl_delim, sep
+character(1) delim, op_brace, cl_brace, sep
 character(40) :: word
 
 logical delim_found, err_flag
+logical, optional :: brace_optional
 
 ! Optional arguments
 
@@ -9566,22 +9591,34 @@ is_ok = .false.
 num_expect = integer_option(10, num_expected)
 default_val = real_option(0.0_rp, default_value)
 
-op_delim = '('
-cl_delim = ')'
+op_brace = '('
+cl_brace = ')'
 sep      = ','
-if (present(open_delim)) op_delim = open_delim
-if (present(close_delim)) cl_delim = close_delim
+if (present(open_brace)) op_brace = open_brace
+if (present(close_brace)) cl_brace = close_brace
 if (present(separator)) sep = separator
 
-! Expect op_delim
-call get_next_word (word, ix_word, op_delim, delim, delim_found)
+! Expect op_brace
+if (logic_option(.true., brace_optional)) then
+  call get_next_word (word, ix_word, op_brace // ',', delim, delim_found)
+  if (delim == ',') then            ! Array with single value
+    num_found = 1
+    call re_allocate(real_array, 1)
+    call parse_evaluate_value ('BAD REAL NUMBER IN: ' // err_str, real_array(1), lat, delim, delim_found, err_flag, string_in = word)
+    is_ok = (.not. err_flag)
+    return
+  endif
+else
+  call get_next_word (word, ix_word, op_brace, delim, delim_found)
+endif
+
 if (word /= '') then
-  call parser_error ('EXPECTED OPENING DELIMITER ' // quote(op_delim) // ' FOR VECTOR FOR: ' // err_str, &
+  call parser_error ('EXPECTED OPENING DELIMITER ' // quote(op_brace) // ' FOR VECTOR FOR: ' // err_str, &
                      'BUT GOT: ' // word)
   return
-elseif (delim /= op_delim) then
+elseif (delim /= op_brace) then
   call parser_error ('BAD OPENING DELIMITER FOR VECTOR FOR: ' // err_str, &
-                     'EXPECTED: ' // quote(op_delim) // ' BUT GOT: ' // delim)
+                     'EXPECTED: ' // quote(op_brace) // ' BUT GOT: ' // delim)
   return
 end if
 
@@ -9594,7 +9631,7 @@ real_array = default_val
 num_found = 0
 
 do 
-  call parse_evaluate_value ('BAD REAL NUMBER IN: ' // err_str, value, lat, delim, delim_found, err_flag, sep // cl_delim)
+  call parse_evaluate_value ('BAD REAL NUMBER IN: ' // err_str, value, lat, delim, delim_found, err_flag, sep // cl_brace)
   if (err_flag) return
   ! real is found
   num_found = num_found + 1
@@ -9607,8 +9644,8 @@ do
   ! Set value
    real_array(num_found) = value
   
-  ! Exit if cl_delim is found
-  if (delim == cl_delim) exit
+  ! Exit if cl_brace is found
+  if (delim == cl_brace) exit
   
   ! Check separator
   if (delim /= sep) then

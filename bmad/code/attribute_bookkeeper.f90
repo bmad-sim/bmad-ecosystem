@@ -29,6 +29,7 @@ use xraylib, dummy => r_e
 use super_recipes_mod, only: super_brent
 use ptc_layout_mod, only: update_ele_from_fibre
 use taylor_mod, only: kill_taylor
+use particle_species_mod
 
 implicit none
 
@@ -40,6 +41,8 @@ type (branch_struct), pointer :: branch
 type (photon_element_struct), pointer :: ph
 type (wake_lr_mode_struct), pointer :: lr
 type (converter_prob_pc_r_struct), pointer :: ppcr
+type (molecular_component_struct), allocatable :: component(:)
+type (material_struct), pointer :: material
 
 real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time, beta
 real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin, ky, kz
@@ -48,7 +51,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, status, material, z_material
+integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, status, z_material
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -449,26 +452,39 @@ case (crab_cavity$)
 
 case (foil$)
 
-  material = species_id(ele%component_name)
-
-  if (ele%value(radiation_length$) == 0) then
-    ele%value(radiation_length_used$) = x0_radiation_length(material)
-  else
-    ele%value(radiation_length_used$) = ele%value(radiation_length$)
+  call molecular_components(ele%component_name, component)
+  n = size(component)
+  if (.not. allocated(ele%foil%material)) allocate(ele%foil%material(n))
+  if (n /= size(ele%foil%material)) then
+    call out_io(s_error$, r_name, 'NUMBER OF COMPONENTS IN: ' // quote(ele%component_name) // ' (' // int_str(n) // &
+                    ') IS NOT THE SAME AS OTHER PARAMETERS.')
+    if (global_com%exit_on_error) call err_exit
+    return
   endif
 
-  if (ele%value(density$) == 0) then
-    z_material = atomic_number(material)
-    ele%value(density_used$) = ElementDensity(z_material) * 1e3_rp  ! From xraylib. Convert to kg/m^3
-  else
-    ele%value(density_used$) = ele%value(density$)
-  endif
+  do ix = 1, n
+    material => ele%foil%material(ix)
+    material%species = species_id(component(ix)%atom)
+    z_material = atomic_number(material%species)
 
-  if (ele%value(thickness$) == 0) then
-    ele%value(area_density_used$) = ele%value(area_density$)
-  else
-    ele%value(area_density_used$) = ele%value(density_used$) * ele%value(thickness$) 
-  endif
+    if (material%radiation_length == 0) then
+      material%radiation_length_used = x0_radiation_length(material%species)
+    else
+      material%radiation_length_used = material%radiation_length
+    endif
+
+    if (material%density == 0) then
+      material%density_used = ElementDensity(z_material) * 1e3_rp  ! From xraylib. Convert to kg/m^3
+    else
+      material%density_used = material%density
+    endif
+
+    if (ele%value(thickness$) == 0) then
+      material%area_density_used = material%area_density
+    else
+      material%area_density_used = material%density_used * ele%value(thickness$)
+    endif
+  enddo
 
 ! Crystal
 

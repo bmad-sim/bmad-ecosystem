@@ -158,11 +158,14 @@ case (floor_shift$)
 case (foil$)
   ele%value(num_steps$) = 10
   ele%value(final_charge$) = real_garbage$
-  ele%value(scatter$) = true$
   ele%value(x1_edge$) = -99.0_rp
   ele%value(y1_edge$) = -99.0_rp
   ele%value(x2_edge$) =  99.0_rp
   ele%value(y2_edge$) =  99.0_rp
+  ele%value(f_factor$)       = 0.95_rp
+  ele%value(scatter_method$) = highland$
+  if (associated(ele%foil)) deallocate(ele%foil)
+  allocate(ele%foil)
 
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$

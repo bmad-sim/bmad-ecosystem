@@ -171,6 +171,7 @@ lf$
 invalid$
 not_set$
 invalid_name
+molecular_component_struct
 x_axis$
 y_axis$
 z_axis$
@@ -342,6 +343,7 @@ atomic_name
 atom_struct
 mean_excitation_energy_over_z
 molecular_name
+molecuar_components
 antiparticle
 species_of
 species_id

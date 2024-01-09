@@ -48,6 +48,9 @@ write (1, '(a, es18.9)') '"Fe-E1"   REL 1E-8', phase_shift
 call photon_absorption_and_phase_shift ('Fe', 2*Energy, absorption, phase_shift, err_flag)
 write (1, '(a, es18.9)') '"Fe-E2"   REL 1E-8', absorption
 write (1, '(a, es18.9)') '"Fe-E2"   REL 1E-8', phase_shift
+n = atomic_number(species_id("Fe"))
+write (1, '(a, es18.9)') '"Fe-Weight"  REL 1E-8', atomicweight(n)
+write (1, '(a, es18.9)') '"Fe-Density" REL 1E-8', elementdensity(n)
 
 !
 

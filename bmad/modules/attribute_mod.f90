@@ -937,7 +937,8 @@ call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX'
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 
-call init_attribute_name1 (foil$, scatter$,                         'SCATTER')
+call init_attribute_name1 (foil$, scatter_method$,                  'SCATTER_METHOD')
+call init_attribute_name1 (foil$, scatter_test$,                    'SCATTER_TEST')
 call init_attribute_name1 (foil$, thickness$,                       'THICKNESS')
 call init_attribute_name1 (foil$, material_type$,                   'MATERIAL_TYPE')
 call init_attribute_name1 (foil$, final_charge$,                    'FINAL_CHARGE')
@@ -951,6 +952,10 @@ call init_attribute_name1 (foil$, x1_edge$,                         'X1_EDGE')
 call init_attribute_name1 (foil$, x2_edge$,                         'X2_EDGE')
 call init_attribute_name1 (foil$, y1_edge$,                         'Y1_EDGE')
 call init_attribute_name1 (foil$, y2_edge$,                         'Y2_EDGE')
+call init_attribute_name1 (foil$, drel_thickness_dx$,               'DREL_THICKNESS_DX')
+call init_attribute_name1 (foil$, atomic_weight$,                   'ATOMIC_WEIGHT')
+call init_attribute_name1 (foil$, f_factor$,                        'F_FACTOR')
+call init_attribute_name1 (foil$, num_steps$,                       'NUM_STEPS')
 
 !! call init_attribute_name1 (foil$, probability_final_charge$         'PROBABILITY_FINAL_CHARGE')
 
@@ -1904,10 +1909,10 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', &
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
-      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', &
+      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'RECALC', &
       'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
 
@@ -1924,7 +1929,8 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
-      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', 'SPECIES_STRONG')
+      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', 'SPECIES_STRONG', &
+      'SCATTER_METHOD')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -2456,6 +2462,10 @@ case ('REF_COORDS')
 
 case ('REF_ORBIT_FOLLOWS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, ref_orbit_follows_name, lbound(ref_orbit_follows_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == bragg_diffracted$)
+
+case ('SCATTER_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, scatter_method_name, lbound(scatter_method_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == bragg_diffracted$)
 
 case ('SECTION^TYPE')    ! This is for the Tao "python" command

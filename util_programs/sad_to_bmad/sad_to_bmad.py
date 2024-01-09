@@ -146,6 +146,9 @@ ele_param_translate = {
     'quad:k1': ['k1', ' / @l@'],
     'sext:k2': ['k2', ' / @l@'],
     'oct:k3': ['k3', ' / @l@'],
+    'sad_mult:k1': ['b1', ' / @l@'],            # In case a SAD quad -> Bmad sad_mult
+    'sad_mult:k2': ['b2', ' / (2 * @l@)'],      # In case a SAD sext -> Bmad sad_mult
+    'sad_mult:k3': ['b3', ' / (6 * @l@)'],      # In case a SAD oct  -> Bmad sad_mult
     'bend:rotate': ['ref_tilt', ' * -1'],
     'bend:drotate': ['roll', ' * -1'],
     'l': 'l',
@@ -531,6 +534,9 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     full_param_name = sad_ele.type + ':' + sad_param_name 
     if sad_param_name in ignore_sad_param: continue
     if full_param_name in ignore_sad_param: continue
+
+    if bmad_ele.type == 'sad_mult' and sad_ele.type != 'mult':    # EG: In a solenoid field, SAD quad -> Bmad sad_mult
+      full_param_name = bmad_ele.type + ':' + sad_param_name 
 
     # Use more specific translation first
 

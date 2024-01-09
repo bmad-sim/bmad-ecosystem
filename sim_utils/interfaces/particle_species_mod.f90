@@ -45,7 +45,6 @@
 module particle_species_mod
 
 use output_mod
-use sim_utils_struct
 use sign_of_mod
 
 implicit none
@@ -798,6 +797,76 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
+! Subroutine molecular_components(molecule, component)
+! 
+! Routine to decompose a molecule into its components.
+! For example: molecule = 'H2O' => component(1) = ('H', 2), component(2) = ('O', 1)
+!
+! Input:
+!   molecule      -- character(*): Molecular name.
+!
+! Output:
+!   component(:)  -- molecular_component_struct, allocatable: Array of components.
+!-
+
+subroutine molecular_components(molecule, component)
+
+implicit none
+
+type (molecular_component_struct), allocatable :: component(:), temp(:)
+
+integer ix, n, leng
+
+character(*) molecule
+character(100) name, num
+
+logical err
+
+!
+
+name = molecule
+n = 0
+ix = index(name, '#') + 1
+if (ix > 1) then  ! Get rid of "#12C" like construct
+  do
+    if (index('1234567890', name(ix:ix)) == 0) exit
+    ix = ix + 1
+  enddo
+endif
+
+if (allocated(component)) deallocate(component)
+allocate(component(100))
+
+do
+  if (name(ix:ix) == '+' .or. name(ix:ix) == '-' .or. name(ix:ix) == ' ') exit
+  n = n + 1
+  if (index('abcdefghijklmnopqrstuvwxyz', name(ix+1:ix+1)) > 0) then
+    component(n)%atom = name(ix:ix+1)
+    ix = ix + 2
+  else
+    component(n)%atom = name(ix:ix)
+    ix = ix + 1
+  endif
+
+  num = ''
+  do 
+    if (index('1234567890', name(ix:ix)) == 0) exit
+    num = trim(num) // name(ix:ix)
+    ix = ix + 1
+  enddo
+  component(n)%number = string_to_int(num, 1, err, .false.)
+enddo
+
+call move_alloc(component, temp)
+allocate(component(n))
+component = temp(1:n)
+
+end subroutine molecular_components
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
 ! Function antiparticle (species) result (anti_species)
 !
 ! Routine to return the antiparticle ID given the particle ID.
@@ -870,7 +939,7 @@ end function species_of
 ! For all other types of particles, the case does matter.
 !
 ! Input:
-!   name        -- character(20): Name of the species.
+!   name        -- character(*): Name of the species.
 !   default     -- integer, optional: Default species to use if name is blank or 'ref_species'.
 !                   If not present, a blank name is an error.
 !   print_err   -- logical, optional: Print error message? Default is True. If False, return species = invalid$,
@@ -1646,25 +1715,25 @@ end function x0_radiation_length
 !+
 ! Function atomic_number(species) result (atomic_num)
 !
-! Routine to return the atomic number Z if species argument corresponds to an atomic particle or is a proton.
-! Set to zero otherwise.
+! Routine to return the atomic number Z if species argument corresponds to an atomic particle or is a proton
+! or the particle charge if a fundamental particle. Set to zero otherwise (for molecules).
 !
 ! Input:
 !   species       -- integer: Spicies ID.
 !
 ! Output:
-!   atomic_num    -- Integer: Atomic index. Set to zero if species is not atomic
+!   atomic_num    -- Integer: Atomic index. Set to zero if a molecule
 !-
 
-elemental function atomic_number(species) result (atomic_num)
+function atomic_number(species) result (atomic_num)
 
 integer, intent(in) :: species
 integer atomic_num
 
 !
 
-if (species == proton$) then
-  atomic_num = 1
+if (is_subatomic_species(species)) then
+  atomic_num = charge_of(species)
   return
 endif
 

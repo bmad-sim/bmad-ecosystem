@@ -30,13 +30,15 @@ implicit none
 type (coord_struct) :: orbit, orb0
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
+type (material_struct), pointer :: material
 
 real(rp), optional :: mat6(6,6)
 real(rp) xx0, sigma, rnd(2), I_excite, mass_material, dE_dx_tot, E0, E1, p2, elec_area_density
-real(rp) pc_old, pc_new
+real(rp) pc_old, pc_new, r_thick, chi2_c, chi2_alpha, nu, f
+real(rp) atomic_mass
 real(rp), parameter :: S2 = 13.6e6_dp, epsilon = 0.088 ! Factor of 1e6 is due to original formula using MeV/c for momentum
 
-integer i, n, material, z_material, z_part, n_step
+integer i, j, ns, n_step, z_material, z_particle
 
 logical, optional :: make_matrix
 
@@ -44,36 +46,78 @@ character(*), parameter :: r_name = 'track_a_foil'
 
 ! On target? If not, there is nothing to be done.
 
+call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+
 if (orbit%vec(1) < ele%value(x1_edge$) .or. orbit%vec(1) > ele%value(x2_edge$)) return
 if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) return
 
-! Angle scatter
+r_thick = 1.0_rp + ele%value(drel_thickness_dx$) * orbit%vec(1)
+z_particle = nint(ele%value(final_charge$))
 
-material = species_id(ele%component_name)
-z_material = atomic_number(material)
-z_part = atomic_number(orbit%species)
-
-if (is_true(ele%value(scatter$))) then
-  call ran_gauss(rnd)
-  xx0 = ele%value(area_density_used$) / ele%value(radiation_length_used$)
-  sigma = S2 * z_part * sqrt(xx0) / (orbit%p0c * orbit%beta) * (1.0_rp + epsilon * log10(xx0*z_part**2/orbit%beta**2))
-
-  orbit%vec(2) = orbit%vec(2) + rnd(1) * sigma
-  orbit%vec(4) = orbit%vec(4) + rnd(2) * sigma
-endif
-
-! Energy loss
-
-I_excite = mean_excitation_energy_over_z(z_material) * z_material
-mass_material = mass_of(material) / atomic_mass_unit
-elec_area_density = (1.0e3_rp * N_avogadro) * ele%value(area_density_used$) * z_material / mass_material ! number_electrons / m^2
+!
 
 n_step = nint(ele%value(num_steps$))
-do i = 1, n_step
+do ns = 1, n_step
   pc_old = orbit%p0c * (1.0_rp + orbit%vec(6))
+
+  ! Angle scatter
+
+  if (nint(ele%value(scatter_method$)) /= off$) then
+    xx0 = 0
+    do i = 1, size(ele%foil%material)
+      material => ele%foil%material(i)
+      z_material = atomic_number(material%species)
+      select case (nint(ele%value(scatter_method$)))
+      case (highland$)
+        ! Lynch-Dahl Eq 10 is used to sum over all components
+        xx0 = xx0 + r_thick * material%area_density_used / material%radiation_length_used
+
+      case (lynch_dahl$)
+        f = ele%value(f_factor$)
+        atomic_mass = mass_of(material%species) / atomic_mass_unit
+        chi2_c = 0.157_rp * (z_material * (z_material + 1) * r_thick * material%area_density_used / atomic_mass) * &
+                                                                           (z_particle / (pc_old * orbit%beta))**2
+        chi2_alpha = 2.007e-5_rp * z_material**(2.0/3.0) * &
+                  (1.0_rp + 3.34 * (z_material * z_particle * fine_structure_constant / orbit%beta)**2) / pc_old**2
+        nu = 0.5_rp * chi2_c / (chi2_alpha * (1 + f))
+        sigma = chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2)
+      end select
+    enddo
+
+    if (is_true(ele%value(scatter_test$))) then
+      rnd = 1
+    else
+      call ran_gauss(rnd)
+    endif
+
+    select case (nint(ele%value(scatter_method$)))
+    case (highland$)
+      sigma = S2 * z_particle * sqrt(xx0) / (pc_old * orbit%beta) * &
+                                          (1.0_rp + epsilon * log10(xx0*z_particle**2/orbit%beta**2))
+    case (lynch_dahl$)
+    end select
+
+    sigma = sigma * pc_old / orbit%p0c
+    orbit%vec(2) = orbit%vec(2) + rnd(1) * sigma
+    orbit%vec(4) = orbit%vec(4) + rnd(2) * sigma
+  endif
+
+  ! Energy loss
+
   p2 = (pc_old / mass_of(orbit%species))**2  ! beta^2 / (1 - beta^2) term
-  dE_dx_tot = -fourpi * mass_of(electron$) * elec_area_density * (z_part * r_e / orbit%beta)**2 * &
+
+  dE_dx_tot = 0
+  do j = 1, size(ele%foil%material)
+    material = ele%foil%material(j)
+    z_material = atomic_number(material%species)
+    I_excite = mean_excitation_energy_over_z(z_material) * z_material
+    mass_material = mass_of(material%species) / atomic_mass_unit
+    ! number_electrons / m^2
+    elec_area_density = (1.0e3_rp * N_avogadro) * r_thick * material%area_density_used * z_material / mass_material
+    dE_dx_tot = dE_dx_tot - fourpi * mass_of(electron$) * elec_area_density * (z_particle * r_e / orbit%beta)**2 * &
               (log(2 * mass_of(electron$) * p2 / I_excite) - orbit%beta**2)
+  enddo
+
   E0 = orbit%p0c * (1.0_rp + orbit%vec(6)) / orbit%beta
   E1 = E0 + dE_dx_tot / n_step
   call convert_total_energy_to(E1, orbit%species, beta = orbit%beta, pc = pc_new)
@@ -84,13 +128,10 @@ enddo
 
 ! Charge
 
-n = nint(ele%value(final_charge$))
-orbit%species = set_species_charge(orbit%species, n)
+orbit%species = set_species_charge(orbit%species, z_particle)
 
 !
 
-if (logic_option(.false., make_matrix)) then
-  call mat_make_unit(mat6)
-endif
+call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 end subroutine track_a_foil
