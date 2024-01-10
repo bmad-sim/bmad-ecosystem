@@ -278,7 +278,43 @@ end subroutine tao_cmd_split
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word, neg_num_not_switch, print_err)
+! Subroutine tao_next_word (line, word)
+!
+! Routine to return the next word in a line.
+!
+! Words are delimited by a space character except if the space is within quotes.
+! Additionally, spaces within brackets "(...)", "{...}", and "[...]" are ignored.
+! Outer quote marks will be removed in the returned word.
+!
+! Input:
+!   line    -- character(*): String to parse.
+!
+! Output:
+!   line    -- character(*): String with first word removed.
+!   word    -- character(*): First word of line.
+!-
+
+subroutine tao_next_word (line, word)
+
+implicit none
+
+integer ix_word
+character(*) line, word
+character(1) delim
+logical delim_found
+
+!
+
+call word_read (line, ' ', word, ix_word, delim, delim_found, line, .true.)
+word = unquote(word)
+
+end subroutine tao_next_word
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, neg_num_not_switch, print_err)
 !
 ! Subroutine look at the next word on the command line and match this word to a list of "switches"
 ! given by the switch_list argument.
@@ -314,10 +350,9 @@ end subroutine tao_cmd_split
 !                       See above for more details.
 !   err             -- logical: Set True if the next word begins with '-' but there is no match
 !                       to anything in switch_list.
-!   ix_word         -- integer: Character length of first word left on line.
 !-
 
-subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word, neg_num_not_switch, print_err)
+subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, neg_num_not_switch, print_err)
 
 implicit none
 
@@ -326,7 +361,7 @@ character(*), parameter :: r_name = 'tao_next_switch'
 logical err
 logical, optional :: neg_num_not_switch
 
-integer i, ix, n, ix_word
+integer i, ix, n
 logical, optional :: print_err
 logical return_next_word
 character(1) quote_mark, switch_start_char
@@ -341,8 +376,8 @@ else
   switch_start_char = ' '
 endif
 
-call string_trim(line, line, ix_word)
-if (ix_word == 0) return
+call string_trim(line, line, ix)
+if (ix == 0) return
 
 ! If quoted string...
 
@@ -352,7 +387,7 @@ if (line(1:1) == "'" .or. line(1:1) == '"') then
     if (line(i:i) /= quote_mark) cycle
     if (line(i-1:i-1) == '\') cycle  ! '
     switch = line(2:i-1)
-    call string_trim(line(i+1:), line, ix_word)
+    call string_trim(line(i+1:), line, ix)
     return
   enddo
 
@@ -363,28 +398,28 @@ endif
 ! If not a switch...
 
 if ((line(1:1) /= switch_start_char .and. switch_start_char /= ' ') .or. &
-          (logic_option(.false., neg_num_not_switch) .and. is_real(line(1:ix_word)))) then
+          (logic_option(.false., neg_num_not_switch) .and. is_real(line(1:ix)))) then
   if (return_next_word) then
-    switch = line(1:ix_word)
-    call string_trim(line(ix_word+1:), line, ix_word)
+    switch = line(1:ix)
+    call string_trim(line(ix+1:), line, ix)
   endif
   return
 endif
 
 ! It is a switch...
 
-call match_word (line(:ix_word), switch_list, n, .true., matched_name=switch)
+call match_word (line(:ix), switch_list, n, .true., matched_name=switch)
 if (n < 1) then
   err = .true.
   if (n == 0) then
-    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // line(:ix_word))
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // line(:ix))
   else
-    call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // line(:ix_word))
+    call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // line(:ix))
   endif
   return
 endif
 
-call string_trim(line(ix_word+1:), line, ix_word)
+call string_trim(line(ix+1:), line, ix)
 
 end subroutine tao_next_switch
 

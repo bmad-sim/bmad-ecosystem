@@ -18,7 +18,7 @@ subroutine tao_command (command_line, err_flag, err_is_fatal)
 
 use tao_set_mod, dummy2 => tao_command
 use tao_change_mod, only: tao_change_var, tao_change_ele, tao_dmodel_dvar_calc, tao_change_tune, tao_change_z_tune
-use tao_command_mod, only: tao_cmd_split, tao_re_execute, tao_next_switch
+use tao_command_mod, only: tao_cmd_split, tao_re_execute, tao_next_switch, tao_next_word
 use tao_data_and_eval_mod, only: tao_to_real
 use tao_scale_mod, only: tao_scale_cmd
 use tao_wave_mod, only: tao_wave_cmd
@@ -659,7 +659,7 @@ case ('set')
     ! "-1" is a universe index and not a switch.
     if (cmd_line(1:1) == '-' .and. cmd_line(1:2) /= '-1') then
       call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-mask', &
-                                    '-branch', '-listing', '-silent'], .true., switch, err_flag, ix)
+                                    '-branch', '-listing', '-silent'], .true., switch, err_flag)
       if (err_flag) return
       select case (switch)
       case ('-update')
@@ -669,11 +669,9 @@ case ('set')
       case ('-lord_no_set')
         lord_set = .false.
       case ('-branch')
-        branch_str = cmd_line(:ix)
-        call string_trim(cmd_line(ix+1:), cmd_line, ix)
+        call tao_next_word(cmd_line, branch_str)
       case ('-mask')
-        mask = cmd_line(:ix)
-        call string_trim(cmd_line(ix+1:), cmd_line, ix)
+        call tao_next_word(cmd_line, mask)
       case ('-silent')
         silent = .true.
       end select
@@ -686,7 +684,7 @@ case ('set')
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag, ix) 
+      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag) 
     if (err_flag) return
     set_word = switch
   enddo

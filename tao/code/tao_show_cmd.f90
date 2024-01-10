@@ -38,7 +38,7 @@ err_out = .true.
 ! See if the results need to be written to a file.
 
 do
-  call tao_next_switch (what2, [character(16):: '-append', '-write', '-noprint', '-no_err_out'], .false., switch, err, ix)
+  call tao_next_switch (what2, [character(16):: '-append', '-write', '-noprint', '-no_err_out'], .false., switch, err)
   if (err) return
   if (switch == '') exit
 
@@ -50,8 +50,7 @@ do
     err_out = .false.
 
   case ('-append', '-write')
-    file_name = what2(:ix)
-    call string_trim(what2(ix+1:), what2, ix)
+    call tao_next_word(what2, file_name)
 
     ix = index(file_name, '*')
     if (ix /= 0) then

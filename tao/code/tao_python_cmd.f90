@@ -49,7 +49,7 @@ use tao_interface, dummy => tao_python_cmd
 use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use wall3d_mod, only: calc_wall_radius
-use tao_command_mod, only: tao_next_switch, tao_cmd_split
+use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
 use tao_c_interface_mod, only: tao_c_interface_com, re_allocate_c_double
@@ -200,7 +200,7 @@ tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 
 do
-  call tao_next_switch (line, [character(8):: '-append ', '-write', '-noprint'], .false., switch, err, ix)
+  call tao_next_switch (line, [character(8):: '-append ', '-write', '-noprint'], .false., switch, err)
   if (err) return
   if (switch == '') exit
 
@@ -209,11 +209,9 @@ do
     doprint = .false.
 
   case ('-append', '-write')
-    call string_trim(line, line, ix)
-    file_name = line(:ix)
-    call string_trim(line(ix+1:), line, ix)
-
+    call tao_next_word(line, file_name)
     iu_write = lunget()
+
     if (switch == '-append') then
       open (iu_write, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 500)
     else
@@ -6446,7 +6444,7 @@ case ('shape_list')
 
 case ('shape_manage')
 
-  call tao_next_switch (line, [character(12):: 'lat_layout', 'floor_plan'], .false., switch, err, ix_line)
+  call tao_next_switch (line, [character(12):: 'lat_layout', 'floor_plan'], .false., switch, err)
   select case (switch)
   case ('lat_layout')
     drawing => s%plot_page%lat_layout
@@ -6460,7 +6458,7 @@ case ('shape_manage')
   n = size(drawing%ele_shape)
   ix = parse_int(line, err, 1, n+1); if (err) return
 
-  call tao_next_switch (line, [character(8):: 'add', 'delete'], .false., switch, err, ix_line)
+  call tao_next_switch (line, [character(8):: 'add', 'delete'], .false., switch, err)
   select case (switch)
   case ('add')
     call move_alloc (drawing%ele_shape, shapes_temp)

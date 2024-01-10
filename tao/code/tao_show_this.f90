@@ -18,7 +18,7 @@ subroutine tao_show_this (what, result_id, lines, nl)
 use tao_top10_mod, dummy => tao_show_this
 use tao_data_and_eval_mod, only: tao_evaluate_expression, tao_evaluate_a_datum
 use tao_c_interface_mod, only: tao_c_interface_com
-use tao_command_mod, only: tao_next_switch
+use tao_command_mod, only: tao_next_switch, tao_next_word
 use tao_version_mod
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
@@ -166,9 +166,9 @@ character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_show
 character(24) :: var_name, blank_str = '', phase_units_str, val_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, rmt3, irmt, iimt
-character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, aname, b_name, param_name, uni_str
+character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, b_name, param_name, uni_str
 character(40) replacement_for_blank, component, s_fmt
-character(60) nam, attrib_list(20), attrib
+character(60) aname, myname, attrib_list(20), attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name, excite_zero(3), veto
 character(200), allocatable :: alloc_lines(:)
@@ -180,7 +180,7 @@ character(20) :: show_what
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type
-integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
+integer ix, ix0, ix1, ix2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic, ix_comb
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
 integer eval_pt, n_count, print_field, nt
@@ -290,29 +290,30 @@ case ('beam')
   zb = -1
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb', '-z'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb', '-z'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
     select case (switch)
 
     case ('-universe')
-      read (what2(1:ix_s2), *, iostat = ios) ix
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
-      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+      if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-lattice', '-comb')
       what_to_show = switch
 
     case ('-z')
-      read (what2(1:ix_s2), *, iostat = ios1) zb(1)
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
-      read (what2(1:ix_s2), *, iostat = ios2) zb(2)
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios1) zb(1)
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios2) zb(2)
+
       if (ios1 /= 0 .or. ios2 /= 0) then
         nl=1; lines(1) = 'CANNOT READ Z VALUES.'
         return
@@ -374,7 +375,7 @@ case ('beam')
   if (ele_name == '') then
     ele => branch%ele(bb%ix_track_start)
   elseif (what_to_show == '-comb') then
-    read (ele_name, *, iostat = ios) ix_s2
+    read (ele_name, *, iostat = ios) ix_comb
     if (ios /= 0) then
       nl=1; lines(1) = 'CANNOT DECODE COMB INDEX: ' // ele_name
       return
@@ -588,12 +589,12 @@ case ('beam')
         return
       endif
 
-      if (ix_s2 < 0 .or. ix_s2 > n) then
+      if (ix_comb < 0 .or. ix_comb > n) then
         nl=nl+1; lines(nl) = 'Comb index out of range: [0, ' // int_str(n) // ']'
         return
       endif
-      bunch_p => tao_branch%bunch_params_comb(1)%pt(ix_s2)
-      nl=nl+1; lines(nl) = 'Bunch parameters at comb index: ' // int_str(ix_s2)
+      bunch_p => tao_branch%bunch_params_comb(1)%pt(ix_comb)
+      nl=nl+1; lines(nl) = 'Bunch parameters at comb index: ' // int_str(ix_comb)
 
     else
       if (zb(1) >= 0) then
@@ -690,19 +691,19 @@ case ('beam')
 case ('branch')
 
   do 
-    call tao_next_switch (what2, ['-universe'], .false., switch, err, ix_s2);  if (err) return
+    call tao_next_switch (what2, ['-universe'], .false., switch, err);  if (err) return
     if (switch == '') exit
 
     select case (switch)
 
     case ('-universe')
-      read (what2(1:ix_s2), *, iostat = ios) ix
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
-      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+      if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // what2)
@@ -798,19 +799,19 @@ case ('chromaticity')
   what_to_show = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-taylor'], .false., switch, err, ix_s2);  if (err) return
+    call tao_next_switch (what2, [character(16):: '-universe', '-taylor'], .false., switch, err);  if (err) return
     if (switch == '') exit
 
     select case (switch)
 
     case ('-universe')
-      read (what2(1:ix_s2), *, iostat = ios) ix
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
-      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+      if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-taylor')
       what_to_show = switch
@@ -945,7 +946,7 @@ case ('curve')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '-symbol', '-line', '-no_header'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-symbol', '-line', '-no_header'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('');           exit
@@ -1438,7 +1439,7 @@ case ('derivative')
   word2 = ''
 
   do
-    call tao_next_switch (what2, ['-derivative_recalc'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, ['-derivative_recalc'], .true., switch, err)
 
     if (err) return
     if (switch == '') exit
@@ -1573,7 +1574,7 @@ case ('element')
     call tao_next_switch (what2, [character(16):: '-taylor', '-em_field', &
                 '-all', '-data', '-design', '-no_slaves', '-wall', '-base', &
                 '-field', '-floor_coords', '-xfer_mat', '-ptc', '-everything', &
-                '-attributes', '-no_super_slaves', '-radiation_kick'], .true., switch, err, ix)
+                '-attributes', '-no_super_slaves', '-radiation_kick'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('');                  exit
@@ -1785,25 +1786,22 @@ case ('emittance')
   what_to_show = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-element', '-xmatrix', '-sigma_matrix'], &
-                                                                     .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-universe', '-element', '-xmatrix', '-sigma_matrix'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
     select case (switch)
 
     case ('-universe')
-      read (what2(1:ix_s2), *, iostat = ios) ix
+      read (aname, *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
-      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+      if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-element')
-      ele_name = what2(:ix_s2)
-      call string_trim (what2(ix_s2+1:), what2, ix_word)
+      call tao_next_word(what2, ele_name)
 
     case ('-xmatrix', '-sigma_matrix')
       what_to_show = switch
@@ -1925,7 +1923,7 @@ case ('field')
 
   do
     call tao_next_switch (what2, [character(16):: '-derivatives', '-grid_pt', '-percent_len', '-absolute_s'], &
-                                                                       .true., switch, err, ix, .true.)
+                                                                       .true., switch, err, .true.)
     if (err) return
     select case (switch)
     case ('');               exit
@@ -2079,7 +2077,7 @@ case ('global')
 
   do
     call tao_next_switch (what2, [character(20):: '-optimization', '-bmad_com', &
-                    '-csr_param', '-space_charge_com', '-ran_state', '-ptc_com', '-internal'], .true., switch, err, ix)
+                    '-csr_param', '-space_charge_com', '-ran_state', '-ptc_com', '-internal'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -2246,9 +2244,9 @@ case ('global')
     if (allocated(lat%custom)) then
       nl=nl+1; lines(nl) = 'Custom lattice parameters defined in lattice file:'
       do i = 1, size(lat%custom)
-        aname = attribute_name(def_parameter$, i+custom_attribute0$)
-        if (aname(1:1) == '!') cycle
-        nl= nl+1; write (lines(nl), rmt) '  parameter[' // trim(aname) // ']: ', lat%custom(i)
+        myname = attribute_name(def_parameter$, i+custom_attribute0$)
+        if (myname(1:1) == '!') cycle
+        nl= nl+1; write (lines(nl), rmt) '  parameter[' // trim(myname) // ']: ', lat%custom(i)
       enddo
     endif
 
@@ -2315,7 +2313,7 @@ case ('graph')
   if (allocated(graph)) deallocate(graph)
 
   do
-    call tao_next_switch (what2, [character(8):: '-debug', '-rms'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(8):: '-debug', '-rms'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('')
@@ -2482,7 +2480,7 @@ case ('history')
   show_all = .false.
 
   do 
-    call tao_next_switch (what2, [character(8):: '-no_num', '-all', '-filed'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(8):: '-no_num', '-all', '-filed'], .true., switch, err)
 
     if (err) return
     if (switch == '') exit
@@ -2577,7 +2575,7 @@ case ('hom')
 
 case ('internal')
 
-  call tao_next_switch (what2, [character(16):: '-python', '-control'], .true., switch, err, ix_s2)
+  call tao_next_switch (what2, [character(16):: '-python', '-control'], .true., switch, err)
   select case (switch)
 
   ! Format: show -python_buffer
@@ -2726,7 +2724,7 @@ case ('lattice')
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
         '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe', '-rms'], &
-            .true., switch, err, ix_s2)
+            .true., switch, err)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -2747,29 +2745,26 @@ case ('lattice')
     case ('-attribute')
       what_to_show = 'attributes'
       n_attrib = n_attrib + 1
-      attrib_list(n_attrib) = what2(1:ix_s2)
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      call tao_next_word(what2, attrib_list(n_attrib))
 
     case ('-base')
       lat_type = base$
 
     case ('-blank_replacement')
-      replacement_for_blank = what2(1:ix_s2)
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      call tao_next_word(what2, replacement_for_blank)
 
     case ('-branch')
-      branch => pointer_to_branch(what2(1:ix_s2), u%model%lat)
+      call tao_next_word(what2, aname)
+      branch => pointer_to_branch(aname, u%model%lat)
       if (.not. associated(branch)) then
-        nl=1; write(lines(1), *) 'Bad branch name or index: ', what2(:ix_s2)  
+        nl=1; write(lines(1), *) 'Bad branch name or index: ', aname
         return
       endif
       ix_branch = branch%ix_branch
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-custom')
       what_to_show = 'custom'
-      file_name = what2(1:ix_s2)
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      call tao_next_word(what2, file_name)
       iu = lunget()
       open (iu, file = file_name, status = 'old', iostat = ios)
       if (ios /= 0) then
@@ -2853,13 +2848,13 @@ case ('lattice')
       all_lat = .true. ! Will only print where radiation integrals is non-zero
 
     case ('-remove_line_if_zero')
+      call tao_next_word(what2, aname)
       n_remove = n_remove + 1
-      read (what2(1:ix_s2), *, iostat = ios) ix_remove(n_remove)
+      read (aname, *, iostat = ios) ix_remove(n_remove)
       if (ios /= 0 .or. ix_remove(n_remove) < 1 .or. ix_remove(n_remove) > size(col)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-remove_line_if_zero" argument'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-s')
       by_s = .true.
@@ -2872,7 +2867,8 @@ case ('lattice')
       endif
 
     case ('-universe')
-      read (what2(1:ix_s2), *, iostat = ios) ix
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ "-universe" ARGUMENT'
         return
@@ -2881,11 +2877,10 @@ case ('lattice')
       call point_to_this_uni(ix, ix_branch, u, lat, branch, model_branch, tao_branch, design_tao_branch)
       if (.not. associated(u)) return
       
-      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+      if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case default
       attrib0 = trim(attrib0) // ' ' // trim(switch)
@@ -2900,13 +2895,13 @@ case ('lattice')
   allocate (picked_ele(0:branch%n_ele_max))
 
   if (by_s) then
-    ix_s2 = index(attrib0, ':')
-    if (ix_s2 == 0) then
+    ix2 = index(attrib0, ':')
+    if (aname == '') then
       nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
-    read (attrib0(1:ix_s2-1), *, iostat = ios1) s1
-    read (attrib0(ix_s2+1:), *, iostat = ios2) s2
+    read (attrib0(1:ix2-1), *, iostat = ios1) s1
+    read (attrib0(ix2+1:), *, iostat = ios2) s2
     if (ios1 /= 0 .or. ios2 /= 0) then
       nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
       return
@@ -3552,8 +3547,8 @@ case ('lattice')
 
       if (name == '#' .or. name == '#index') then
         if (ele%ix_branch /= ix_branch) then
-          aname = ele_loc_name(ele, .true.)
-          line(nc:) = adjustr(aname(1:col(i)%width))
+          myname = ele_loc_name(ele, .true.)
+          line(nc:) = adjustr(myname(1:col(i)%width))
         else
           write (line(nc:), col(i)%format, iostat = ios) ele%ix_ele
         endif
@@ -3568,8 +3563,8 @@ case ('lattice')
         endif
 
       elseif (name /= 'x') then
-        write (nam, '(i0, a, i0)') ix_branch, '>>', ie
-        call str_substitute (name, '#', trim(nam), ignore_escaped = .true.)
+        write (myname, '(i0, a, i0)') ix_branch, '>>', ie
+        call str_substitute (name, '#', trim(myname), ignore_escaped = .true.)
         call str_substitute (name, '\#', '#')
         ix = index(name, 'ele::')
 
@@ -3686,9 +3681,9 @@ case ('lattice')
       write (lines(nl+1)(nc:), col(i)%format) mean 
       write (lines(nl+2)(nc:), col(i)%format) rms
 
-      aname = int_str(n)
-      nc = len_trim(lines(nl+2)) - len_trim(aname) + 1
-      lines(nl+3)(nc:) = aname    ! Right justified
+      myname = int_str(n)
+      nc = len_trim(lines(nl+2)) - len_trim(myname) + 1
+      lines(nl+3)(nc:) = myname    ! Right justified
 
       ds = col_info(i)%int_s
       if (ds /= 0) then
@@ -3808,8 +3803,7 @@ case ('particle')
   ix_p = 1
 
   do
-    call tao_next_switch (what2, [character(16):: '-element', '-particle', '-bunch', '-lost', '-all'], &
-                          .true., switch, err, ix_word)
+    call tao_next_switch (what2, [character(16):: '-element', '-particle', '-bunch', '-lost', '-all'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -3823,8 +3817,7 @@ case ('particle')
       show_all = .true.
 
     case ('-element')
-      ele_name = what2(:ix_word)
-      call string_trim (what2(ix_word+1:), what2, ix_word)
+      call tao_next_word(what2, ele_name)
 
       if (ele_name /= 'init') then
         call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
@@ -3836,20 +3829,20 @@ case ('particle')
       endif
 
     case ('-particle')
-      read (what2(:ix_word), *, iostat = ios) ix_p
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix_p
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ PARTICLE INDEX!'
         return
       endif
-      call string_trim (what2(ix_word+1:), what2, ix_word)
 
     case ('-bunch')
-      read (what2(:ix_word), *, iostat = ios) nb
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) nb
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ BUNCH INDEX!'
         return
       endif
-      call string_trim (what2(ix_word+1:), what2, ix_word)
 
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
@@ -3962,7 +3955,7 @@ case ('plot')
 
   do
     call tao_next_switch (what2, [character(16) :: '-floor_plan', '-lat_layout', '-templates', &
-                                     '-global', '-regions', '-plot_page', '-page'], .true., switch, err, ix)
+                                     '-global', '-regions', '-plot_page', '-page'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('') 
@@ -4183,7 +4176,7 @@ case ('ptc')
   what_to_show = ''
 
   do
-    call tao_next_switch (what2, [character(24):: '-emittance'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(24):: '-emittance'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4217,14 +4210,14 @@ case ('radiation_integrals')
   b_name = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('')
       exit
 
     case ('-branch')
-      b_name = what2(1:ix)
+      call tao_next_word(what2, b_name)
 
     case default
       read (switch, *, iostat = ios) ix_u
@@ -4356,7 +4349,7 @@ case ('spin')
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
-                            '-z_zero', '-ignore_kinetic'], .true., switch, err, ix)
+                            '-z_zero', '-ignore_kinetic'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4364,12 +4357,13 @@ case ('spin')
       exit
     case ('-element')
       what_to_show = 'element'
-      ele_ref_name = upcase(what2(1:ix))
+      call tao_next_word(what2, ele_ref_name)
+      call upcase_string(ele_ref_name)
+
       ele_name = ele_ref_name
-      call string_trim(what2(ix+1:), what2, ix)
       if (what2(1:1) /= '-' .and. what2(1:1) /= ' ') then
-        ele_name = upcase(what2(1:ix))
-        call string_trim(what2(ix+1:), what2, ix)
+        call tao_next_word(what2, ele_name)
+        call upcase_string(ele_name)
       endif
     case ('-flip_n_axis')
       flip = .true.
@@ -4770,7 +4764,7 @@ case ('symbolic_numbers')
   what_to_show = 'tao'
 
   do
-    call tao_next_switch (what2, [character(24):: '-physical_constants', '-lattice_constants'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(24):: '-physical_constants', '-lattice_constants'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('');           exit
@@ -4836,7 +4830,7 @@ case ('taylor_map', 'matrix')
   do
     call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-elements', &
               '-lattice_format', '-universe', '-angle_coordinates', '-number_format', &
-              '-radiation'], .true., switch, err, ix)
+              '-radiation'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -4851,17 +4845,15 @@ case ('taylor_map', 'matrix')
       disp_fmt = 'BMAD'
 
     case ('-number_format')
-      fmt = what2(:ix)
-      call string_trim (what2(ix+1:), what2, ix)
+      call tao_next_word(what2, fmt)
 
     case ('-order')
-      read (what2(:ix), *, iostat = ios) n_order
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) n_order
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
         return
       endif
-
-      call string_trim (what2(ix+1:), what2, ix)
 
       if (n_order > ptc_private%taylor_order_ptc) then
         nl=1; write(lines(nl), '(a, i0)') &
@@ -4877,22 +4869,21 @@ case ('taylor_map', 'matrix')
 
     case ('-elements')
       disp_fmt = 'ELEMENTS'
-      ele_name = what2(1:ix)
-      call string_trim(what2(ix+1:), what2, ix)
+      call tao_next_word(what2, ele_name)
       if (n_order == -1) n_order = 1
 
     case ('-s')
       by_s = .true.
 
     case ('-universe')
-      read (what2(1:ix), *, iostat = ios) ix
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
       if (ix == 0 .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
         return
       endif
       lat => u%model%lat
-      call string_trim(what2(ix+1:), what2, ix)
 
     case default
       if (ele1_name == '') then
@@ -5214,7 +5205,7 @@ case ('track')
     call tao_next_switch (what2, [character(16):: '-e_field', '-b_field', '-velocity', '-momentum', &
                 '-energy', '-position', '-no_label_lines', '-s', '-spin', '-points', '-time', &
                 '-range', '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base', '-element'], &
-                .false., switch, err, ix_s2)
+                .false., switch, err)
 
     if (err) return
     if (switch == '') exit
@@ -5225,8 +5216,7 @@ case ('track')
     case ('-b_field')
       b_field_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
     case ('-element')
-      ele_name = what2(1:ix_s2)
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+      call tao_next_word(what2, ele_name)
     case ('-energy')
       energy_fmt = get_this_track_fmt(what2, 'es15.6', err); if (err) return
     case ('-velocity')
@@ -5242,21 +5232,21 @@ case ('track')
     case ('-no_label_lines')
       print_header_lines = .false.
     case ('-points')
-      read (what2(1:ix_s2), *, iostat = ios) n_print
-      if (ix_s2 == 0 .or. ios /= 0 .or. n_print < 1) then
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) n_print
+      if (aname == '' .or. ios /= 0 .or. n_print < 1) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-points" ARGUMENT'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
     case ('-range')
-      read (what2(1:ix_s2), *, iostat = ios1) s1
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
-      read (what2(1:ix_s2), *, iostat = ios2) s2
-      if (ix_s2 == 0 .or. ios1 /= 0 .or. ios2 /= 0) then
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios1) s1
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios2) s2
+      if (aname == '' .or. ios1 /= 0 .or. ios2 /= 0) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-points" ARGUMENT'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
     case ('-s')
       s_fmt = get_this_track_fmt(what2, s_fmt, err); if (err) return
     case ('-spin')
@@ -5266,24 +5256,24 @@ case ('track')
     case ('-base')
       lat_type = base$
     case ('-branch')
-      branch => pointer_to_branch(what2(1:ix_s2), lat)
+      call tao_next_word(what2, aname)
+      branch => pointer_to_branch(aname, lat)
       ix_branch = branch%ix_branch
       if (.not. associated(branch)) then
         nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
     case ('-design')
       lat_type = design$
     case ('-universe')
-      read (what2(1:ix_s2), *, iostat = ios) ix
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
         return
       endif
       call point_to_this_uni(ix, ix_branch, u, lat, branch, model_branch, tao_branch, design_tao_branch)
       if (.not. associated(u)) return
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
     end select
   enddo
 
@@ -5404,8 +5394,7 @@ case ('twiss_and_orbit')
 
   do 
 
-    call tao_next_switch (what2, [character(16):: '-branch', '-universe', '-design', '-base'], &
-                                                                            .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(16):: '-branch', '-universe', '-design', '-base'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -5414,24 +5403,24 @@ case ('twiss_and_orbit')
       lat_type = base$
 
     case ('-branch')
-      branch => pointer_to_branch(what2(1:ix_s2), lat)
+      call tao_next_word(what2, aname)
+      branch => pointer_to_branch(aname, lat)
       if (.not. associated(branch)) then
         nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-design')
       lat_type = design$
 
     case ('-universe')
-      read (what2(1:ix_s2), *, iostat = ios) ix
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
-      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+      if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
         nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" argument'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case default
       if (what2 /= '') then
@@ -5543,7 +5532,7 @@ case ('universe')
   b_name = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('')
@@ -5822,12 +5811,11 @@ case ('value')
   line = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '#format'], .true., line2, err, ix, print_err = .false.)
+    call tao_next_switch (what2, [character(20):: '#format'], .true., line2, err, print_err = .false.)
     if (err) return
     select case (line2)
     case ('#format')
-      s_fmt = unquote(what2(1:ix))
-      call string_trim(what2(ix+1:), what2, ix)
+      call tao_next_word(what2, s_fmt)
     case default
       line = trim(line) // trim(line2)
       if (what2 == '') exit
@@ -5896,7 +5884,7 @@ case ('variables')
 
   do
     call tao_next_switch (what2, [character(16):: '-bmad_format', '-good_opt_only', & 
-                                                   '-no_label_lines', '-universe'], .true., switch, err, ix_word)
+                                                   '-no_label_lines', '-universe'], .true., switch, err)
     if (err) return
 
     select case (switch)  
@@ -5909,9 +5897,9 @@ case ('variables')
     case ('-no_label_lines')
       print_header_lines = .false.
     case ('-universe')
-      call tao_pick_universe (trim(what2(:ix_word)) // '@',  str, picked_uni, err)
+      call tao_next_word(what2, aname)
+      call tao_pick_universe (trim(aname) // '@',  str, picked_uni, err)
       if (err) return
-      call string_trim (what2(ix_word+1:), what2, ix_word)
       print_by_uni = .true.
     case default
       if (attrib0 /= '') then
@@ -6163,35 +6151,35 @@ case ('wall')
 
   do
     call tao_next_switch (what2, [character(16):: '-section', '-element', &
-                                   '-angle', '-s', '-branch'], .true., switch, err, ix_s2)
+                                   '-angle', '-s', '-branch'], .true., switch, err)
     if (err) return
     if (switch == '') exit
     select case (switch)
 
     case ('-angle')
-      read (what2(1:ix_s2), *, iostat = ios) angle
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) angle
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ ANGLE.'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-branch')
-      branch => pointer_to_branch(what2(1:ix_s2), u%model%lat)
+      call tao_next_word(what2, aname)
+      branch => pointer_to_branch(aname, u%model%lat)
       if (.not. associated(branch)) then
         nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
       ix_branch = branch%ix_branch
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-section')
-      read (what2(1:ix_s2), *, iostat = ios) ix_sec
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix_sec
       if (ios /= 0) then
         nl=1; lines(1) = 'CANNOT READ SECTION INDEX.'
         return
       endif
-      call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case ('-s')
       by_s = .true.
@@ -6243,13 +6231,13 @@ case ('wall')
   !-------
 
   if (by_s) then
-    ix_s2 = index(attrib0, ':')
-    if (ix_s2 == 0) then
+    ix2 = index(attrib0, ':')
+    if (aname == '') then
       nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
-    read (attrib0(1:ix_s2-1), *, iostat = ios1) s1
-    read (attrib0(ix_s2+1:), *, iostat = ios2) s2
+    read (attrib0(1:ix2-1), *, iostat = ios1) s1
+    read (attrib0(ix2+1:), *, iostat = ios2) s2
     if (ios1 /= 0 .or. ios2 /= 0) then
       nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
       return
@@ -6260,13 +6248,13 @@ case ('wall')
     ix1 = ix1 + 1
 
   elseif (attrib0 /= '') then
-    ix_s2 = index(attrib0, ':')
-    if (ix_s2 == 0) then
+    ix2 = index(attrib0, ':')
+    if (aname == '') then
       nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
-    read (attrib0(1:ix_s2-1), *, iostat = ios1) ix1
-    read (attrib0(ix_s2+1:), *, iostat = ios2) ix2
+    read (attrib0(1:ix2-1), *, iostat = ios1) ix1
+    read (attrib0(ix2+1:), *, iostat = ios2) ix2
     if (ios1 /= 0 .or. ios2 /= 0) then
       nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // attrib0
       return
