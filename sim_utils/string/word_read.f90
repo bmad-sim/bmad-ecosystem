@@ -20,6 +20,7 @@
 !     out_str = "b"
 ! Note: If there is no matching end bracket then all characters after the opening bracket will be considered 
 ! interior characters. For example, with "(abc]def", all characters after the "(" are interior characters.
+! Note: brackets inside quotes are ignored.
 !
 ! Input:
 !   in_str          -- character(*): String to be parsed.
@@ -98,8 +99,8 @@ ix2 = 0
 ix_b1 = 0
 ix_b2 = 0
 ix_b3 = 0
-out_of_q1 = .true.
-out_of_q2 = .true.
+out_of_q1 = .true.  ! Not in single quotes.
+out_of_q2 = .true.  ! Not in double quotes
 exterior = .true.
 
 ! loop over all characters
@@ -151,19 +152,22 @@ do i = 1, n_len
   ! Ignore interior?
 
   if (logic_option(.false., ignore_interior)) then
-    select case (ch)
-    case ('(');  ix_b1 = ix_b1 + 1
-    case (')');  ix_b1 = ix_b1 - 1
-    case ('[');  ix_b2 = ix_b2 + 1
-    case (']');  ix_b2 = ix_b2 - 1
-    case ('{');  ix_b3 = ix_b3 + 1
-    case ('}');  ix_b3 = ix_b3 - 1
-    case ("'");  out_of_q1 = .not. out_of_q1
-    case ('"');  out_of_q2 = .not. out_of_q2
-    end select
+    if (out_of_q1 .and. ch == '"') out_of_q2 = .not. out_of_q2
+    if (out_of_q2 .and. ch == "'") out_of_q1 = .not. out_of_q1
+
+    if (out_of_q1 .and. out_of_q2) then
+      select case (ch)
+      case ('(');  ix_b1 = ix_b1 + 1
+      case (')');  ix_b1 = ix_b1 - 1
+      case ('[');  ix_b2 = ix_b2 + 1
+      case (']');  ix_b2 = ix_b2 - 1
+      case ('{');  ix_b3 = ix_b3 + 1
+      case ('}');  ix_b3 = ix_b3 - 1
+      end select
+    endif
+
     exterior = (ix_b1 == 0 .and. ix_b2 == 0 .and. ix_b3 == 0 .and. out_of_q1 .and. out_of_q2)
   endif
-
 enddo
 
 ! here if no delim found

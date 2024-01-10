@@ -10,7 +10,7 @@
 subroutine tao_write_cmd (what)
 
 use tao_interface, dummy => tao_write_cmd
-use tao_command_mod, only: tao_cmd_split, tao_next_switch
+use tao_command_mod, only: tao_cmd_split, tao_next_switch, tao_next_word
 use tao_plot_mod, only: tao_draw_plots
 use tao_top10_mod, only: tao_var_write
 
@@ -52,7 +52,7 @@ character(1) delim
 character(20) action, name, lat_type, which, last_col, b_name
 character(40), allocatable :: z(:)
 character(100) str
-character(200) line, switch, header1, header2
+character(200) line, switch, header1, header2, aname
 character(200) file_name0, file_name, what2
 character(200) :: word(12)
 character(*), parameter :: r_name = 'tao_write_cmd'
@@ -110,7 +110,7 @@ case ('beam')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(16):: '-ascii', '-at', '-hdf5', '-floor_position'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-ascii', '-at', '-hdf5', '-floor_position'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -219,7 +219,7 @@ case ('bmad')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(16):: '-one_file', '-format'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-one_file', '-format'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -227,7 +227,7 @@ case ('bmad')
     case ('-one_file'); file_format = one_file$
     case ('-format')
       ix_word = ix_word + 1
-      call tao_next_switch(word(ix_word), [character(16):: 'one_file', 'binary', 'ascii'], .true., switch, err, ix)
+      call tao_next_switch(word(ix_word), [character(16):: 'one_file', 'binary', 'ascii'], .true., switch, err)
       if (err) return
       select case (switch)
       case ('one_file');   file_format = one_file$
@@ -267,7 +267,7 @@ case ('bunch_comb')
   do 
     ix_word = ix_word + 1
     call tao_next_switch (word(ix_word), [character(16):: '-sigma', '-min_max', &
-             '-universe', '-centroid', '-ix_bunch', '-branch'], .true., switch, err, ix)
+             '-universe', '-centroid', '-ix_bunch', '-branch'], .true., switch, err)
 
     if (err) return
 
@@ -627,7 +627,7 @@ case ('matrix')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit    
     call tao_next_switch (word(ix_word), [character(16):: '-single', '-from_start', '-combined', &
-                      '-universe', '-branch'], .true., switch, err, ix)
+                      '-universe', '-branch'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -704,7 +704,7 @@ case ('namelist')
   do
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
-    call tao_next_switch (word(ix_word), [character(16):: '-data', '-plot', '-variable', '-append'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-data', '-plot', '-variable', '-append'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -1002,7 +1002,7 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), ['-scale'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), ['-scale'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -1058,7 +1058,7 @@ case ('ptc')
   file_name = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-branch', '-all'], .true., switch, err, ix_w2)
+    call tao_next_switch (what2, [character(16):: '-branch', '-all'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -1066,9 +1066,10 @@ case ('ptc')
     case ('-all')
       which = switch
     case ('-branch')
-      branch => pointer_to_branch (what2(1:ix_w2), u%model%lat, blank_branch = s%global%default_branch)
+      call tao_next_word(what2, aname)
+      branch => pointer_to_branch (aname, u%model%lat, blank_branch = s%global%default_branch)
       if (.not. associated(branch)) then
-        call out_io (s_fatal$, r_name, 'Bad branch name or index: ' // what2(:ix_w2))
+        call out_io (s_fatal$, r_name, 'Bad branch name or index: ' // aname)
         return
       endif
     case default
@@ -1110,7 +1111,7 @@ case ('spin_mat8')
   sm => datum%spin_map
 
   do 
-    call tao_next_switch (what2, [character(16):: '-l_axis'], .true., switch, err, ix_w2)
+    call tao_next_switch (what2, [character(16):: '-l_axis'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -1171,7 +1172,7 @@ case ('tao')
   file_name = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-XXX'], .true., switch, err, ix_w2)
+    call tao_next_switch (what2, [character(16):: '-XXX'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -1210,7 +1211,7 @@ case ('variable')
   do 
     ix_word = ix_word + 1
     if (ix_word >= size(word)-1) exit
-    call tao_next_switch (word(ix_word), [character(20):: '-good_opt_only', '-tao_format'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(20):: '-good_opt_only', '-tao_format'], .true., switch, err)
     if (err) return
     select case (switch)
     case (''); exit
