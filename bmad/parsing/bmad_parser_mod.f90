@@ -1817,7 +1817,7 @@ select case (attrib_word)
 
 case ('DENSITY', 'AREA_DENSITY', 'RADIATION_LENGTH')
   ok = parse_real_list2(lat, 'READING: ' // trim(attrib_word) // ' FOR ELEMENT: ' // ele%name, &
-                                                arr, n, delim, delim_found, 10, '(', ',', ')', 0.0_rp)
+                                     arr, n, delim, delim_found, 10, '(', ',', ')', 0.0_rp, .true.)
   if (.not. ok) return
 
   if (allocated(ele%foil%material)) then
@@ -1835,7 +1835,9 @@ case ('DENSITY', 'AREA_DENSITY', 'RADIATION_LENGTH')
   case ('RADIATION_LENGTH');  ele%foil%material(:)%radiation_length = arr
   end select
 
-  if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
+  if (delim == ')') then
+    if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
+  endif
 
 case ('REFERENCE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
@@ -9602,9 +9604,9 @@ if (present(close_brace)) cl_brace = close_brace
 if (present(separator)) sep = separator
 
 ! Expect op_brace
-if (logic_option(.true., brace_optional)) then
-  call get_next_word (word, ix_word, op_brace // ',', delim, delim_found)
-  if (delim == ',') then            ! Array with single value
+if (logic_option(.false., brace_optional)) then
+  call get_next_word (word, ix_word, op_brace // ', ', delim, delim_found)
+  if (delim == ',' .or. delim == ' ') then            ! Array with single value
     num_found = 1
     call re_allocate(real_array, 1)
     call parse_evaluate_value ('BAD REAL NUMBER IN: ' // err_str, real_array(1), lat, delim, delim_found, err_flag, string_in = word)
