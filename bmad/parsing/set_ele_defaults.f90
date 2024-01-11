@@ -162,7 +162,7 @@ case (foil$)
   ele%value(y1_edge$) = -99.0_rp
   ele%value(x2_edge$) =  99.0_rp
   ele%value(y2_edge$) =  99.0_rp
-  ele%value(f_factor$)       = 0.95_rp
+  ele%value(f_factor$)       = 0.98_rp
   ele%value(scatter_method$) = highland$
   if (associated(ele%foil)) deallocate(ele%foil)
   allocate(ele%foil)

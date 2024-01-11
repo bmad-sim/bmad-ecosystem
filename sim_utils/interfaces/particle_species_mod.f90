@@ -1705,7 +1705,7 @@ if (ixa < 1 .or. ixa > size(x0_rad_length)) then
   return
 endif
 
-x0 = x0_rad_length(ixa) * 10.0_rp
+x0 = x0_rad_length(ixa) * 10.0_rp ! Convert to kg/m^2
 
 end function x0_radiation_length
 

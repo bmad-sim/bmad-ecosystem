@@ -34,9 +34,8 @@ type (material_struct), pointer :: material
 
 real(rp), optional :: mat6(6,6)
 real(rp) xx0, sigma, rnd(2), I_excite, mass_material, dE_dx_tot, E0, E1, p2, elec_area_density
-real(rp) pc_old, pc_new, r_thick, chi2_c, chi2_alpha, nu, f
-real(rp) atomic_mass
-real(rp), parameter :: S2 = 13.6e6_dp, epsilon = 0.088 ! Factor of 1e6 is due to original formula using MeV/c for momentum
+real(rp) pc_old, pc_new, r_thick, chi2_c, chi2_alpha, nu, f, ln_chi_alpha_sum, zza, zza_sum, norm_sum
+real(rp) atomic_mass, omega
 
 integer i, j, ns, n_step, z_material, z_particle
 
@@ -53,6 +52,7 @@ if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) 
 
 r_thick = 1.0_rp + ele%value(drel_thickness_dx$) * orbit%vec(1)
 z_particle = nint(ele%value(final_charge$))
+f = ele%value(f_factor$)
 
 !
 
@@ -63,24 +63,22 @@ do ns = 1, n_step
   ! Angle scatter
 
   if (nint(ele%value(scatter_method$)) /= off$) then
-    xx0 = 0
+    xx0 = 0; chi2_c = 0; ln_chi_alpha_sum = 0; zza_sum = 0
+
     do i = 1, size(ele%foil%material)
       material => ele%foil%material(i)
       z_material = atomic_number(material%species)
       select case (nint(ele%value(scatter_method$)))
       case (highland$)
-        ! Lynch-Dahl Eq 10 is used to sum over all components
         xx0 = xx0 + r_thick * material%area_density_used / material%radiation_length_used
 
       case (lynch_dahl$)
-        f = ele%value(f_factor$)
         atomic_mass = mass_of(material%species) / atomic_mass_unit
-        chi2_c = 0.157_rp * (z_material * (z_material + 1) * r_thick * material%area_density_used / atomic_mass) * &
-                                                                           (z_particle / (pc_old * orbit%beta))**2
-        chi2_alpha = 2.007e-5_rp * z_material**(2.0/3.0) * &
-                  (1.0_rp + 3.34 * (z_material * z_particle * fine_structure_constant / orbit%beta)**2) / pc_old**2
-        nu = 0.5_rp * chi2_c / (chi2_alpha * (1 + f))
-        sigma = chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2)
+        zza = z_material * (z_material + 1) * material%area_density_used  / atomic_mass
+        zza_sum = zza_sum + zza
+        chi2_c = chi2_c + 0.157e7_rp * zza * r_thick * (z_particle / (pc_old * orbit%beta))**2
+        ln_chi_alpha_sum = ln_chi_alpha_sum + zza * log(sqrt(2.007e1_rp * z_material**(2.0/3.0) * &
+                (1.0_rp + 3.34_rp * (z_material * z_particle * fine_structure_constant / orbit%beta)**2) / pc_old**2))
       end select
     enddo
 
@@ -92,9 +90,13 @@ do ns = 1, n_step
 
     select case (nint(ele%value(scatter_method$)))
     case (highland$)
-      sigma = S2 * z_particle * sqrt(xx0) / (pc_old * orbit%beta) * &
-                                          (1.0_rp + epsilon * log10(xx0*z_particle**2/orbit%beta**2))
+      sigma = 13.6e6_rp * z_particle * sqrt(xx0) / (pc_old * orbit%beta) * &
+                                          (1.0_rp + 0.038_rp * log(xx0*z_particle**2/orbit%beta**2))
     case (lynch_dahl$)
+      chi2_alpha = (exp(ln_chi_alpha_sum/zza_sum))**2
+      omega = chi2_c / (1.167 * chi2_alpha) 
+      nu = 0.5_rp * omega / (1.167 * (1 + f))
+      sigma = chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2)
     end select
 
     sigma = sigma * pc_old / orbit%p0c
@@ -108,7 +110,7 @@ do ns = 1, n_step
 
   dE_dx_tot = 0
   do j = 1, size(ele%foil%material)
-    material = ele%foil%material(j)
+    material => ele%foil%material(j)
     z_material = atomic_number(material%species)
     I_excite = mean_excitation_energy_over_z(z_material) * z_material
     mass_material = mass_of(material%species) / atomic_mass_unit

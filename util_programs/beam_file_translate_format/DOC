@@ -7,13 +7,37 @@ Beam files are files containing the positions of particles in a beam.
 Beam files are produced, for example, when using the "write beam" command of Tao.
 
 Usage:
-  > beam_file_translate_format <beam_file> <out_format>
+  beam_file_translate_format <beam_file> <out_format> <lat_file>
 
-where
-	<beam_file>  = Name of input beam file.
+where:
+<beam_file>  = Name of input beam file.
 
-And <out_format> is one of:
-  ascii			! ASCII file format
+<out_format> is one of:
+  ascii     ! ASCII file format
   hdf5      ! HDF5 format
+
+<lat_file> Optional lattice file. Possibly needed with hdf5 format input.
+
+-------------------------------------
+
+The input beam file format will be determined by the program. 
+
+If the input beam file name has a .init suffix, the input file is a namelist block out of which a
+beam is formed using a beam_init_struct structure. See the Bmad manual for details about the
+beam_init_struct structure. Example namelist block:
+
+&param
+	lat_file = "lattice-file-name"  !
+	ele_name = "Name-or-index-of-element-to-create-the-beam-at"
+	calculate_emit = False          ! Calculate emittances and other lattice parameters.
+	! beam_init is of type beam_init_struct
+	beam_init%n_particle = 100      ! Number of particles in a bunch.
+	... etc...                      ! Set more beam_init parameters
+/
+
+The twiss parameters at the lattice element are used to shape the distribution of the beam
+particles. If calculate_emit is set to True, emittances are calculated from the lattice and these
+emittance values can be used in place of specifying the emittances by setting the appropriate
+beam_init parameters.
 
 

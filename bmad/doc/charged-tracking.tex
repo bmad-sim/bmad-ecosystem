@@ -843,76 +843,78 @@ the longitudinal component of the edge field. Specifically, the argument of the 
 \label{s:foil.std}
 \index{foil}
 
-A particle going through a \vn{foil} element is scattered (has an angular change in direction of
-propagation), has an energy loss, and the charge of the particle may be affected. The following two
-subsections give the formulas used for scattering and energy loss.
+A particle going through a \vn{foil} element is scattered both in angle and in energy, and the
+charge of the particle may be affected. The following two subsections give the formulas used for
+scattering and energy loss. Currently, the final charge is a fixed number but that may change in the
+future.
 
 %---------------------------------------------------------------------------------
 \subsection{Scattering in a Foil}
 \label{s:foil.scatter}
 
-For the scattering part of the simulation, the user can select between one of two algorithms, both
-of which are given in the paper by Lynch and Dahl\cite{b:lynch}. Both methods scatter using the
-equation
+For the angle scattering, the user can select between one of two algorithms, both
+of which are given in the paper by Peralta and Louro\cite{b:peralta} (also see Lynch and Dahl\cite{b:lynch})
+Both methods vary the phase space $p_x$ and $p_y$ coordinates using:
 \begin{equation}
   (dp_x, dp_y) = \frac{p \, \sigma}{P_0} \, (r_1, r_2)
   \label{dpr1s}
 \end{equation}
-where $dp_x$ and $dp_y$ are the change of the $p_x$ and $p_y$ phase space coordinates, $p$ is the
+where $p$ is the
 particle momentum, $P_0$ is the reference momentum, $r_1$ and $r_2$ are Gaussian random numbers with
 unit sigma and zero mean, and $\sigma$ is the sigma of the angular scattering distribution. The
 factor of $p/P_0$ is due to a translation between change in angle and change in phase space momenta
-(see \Eq{xpa1p}). The actual scattering distribution has $1/\theta^4$ tails ($\theta$ is the
-scattering angle) due to single event large angle scattering (Rutherford scattering). By assuming a
-Gaussian disribution, these tails are not simulated.
+(see \Eq{xpa1p}). 
 
-The \vn{Highland} algorithm uses Eq~(6) of Lynch and Dahl to calculate the scattering sigma:
+The \vn{Highland} algorithm uses Eq.~(32) of Peralta and Louro\cite{b:peralta} to calculate the
+scattering sigma:
 \begin{equation}
-  \sigma = \frac{S_2 \, z}{p \, \beta} \sqrt{\frac{X}{X_0}} \, \left[
-  1 + \epsilon \, \log_{10} \left( \frac{X \, z^2}{X_0 \, \beta^2} \right) \right]
+  \sigma = \frac{(13.6 \cdot 10^6~eV) \, z}{p \, c \, \beta} \sqrt{\frac{X}{X_0}} \, \left[
+  1 + 0.038 \, \ln \left( \frac{X \, z^2}{X_0 \, \beta^2} \right) \right]
   \label{sszpb}
 \end{equation}
-where the constant $S_2$ has a value of $13.6 \cdot 10^6$~{eV}, $X$ is the foil thickness, $X_0$ is
-the material radiation length, $z$ is the particle charge, $\beta$ is the particle relativistic
-beta, and $\epsilon$ is a constant with value 0.88. The form of \Eq{sszpb} is slightly different
-than Lynch and Dahl Eq~(6) due to the use by \bmad of SI units (except for energy which uses units
-of eV). In terms of accuracy, Lynch and Dahl write:
-\begin{quote}
-This form (Highland equation) takes into account the $p$ and $z$ dependence quite well at small
-$Z$, but for large $Z$ and small $X$ the $P$-dependence is not taken into account very well. For
-example, for $10^{-3}$ radiation lengths of lead and $p$ = 0.1 (MeV), it overestimates Moliere
-scattering angle by 25\% for singly charged particles.
-\end{quote}
+where $X_0$ is the material radiation length, $z$ is the particle charge, $\beta$ is the particle
+relativistic beta, $c$ is the speed of light, and $X$ is the foil ``path length'' in kg/m$^2$ equal
+to $\rho \, t$ where $\rho$ is the material density and $t$ is the foil thickness.
 
-The \vn{Lynch_Dahl} algormithm uses Eq~(7) of Lynch and Dahl to calculate the scattering sigma:
+The \vn{Lynch_Dahl} algorithm uses Eq.~(33) of Peralta and Louro:
 \begin{equation}
-  \sigma = \frac{\chi_c^2}{1 + F^2} \left[ \frac{1 + \nu}{\nu} \ln (1 + \nu) - 1 \right]
+  \sigma^2 = \frac{\chi_c^2}{1 + F^2} \left[ \frac{1 + \nu}{\nu} \ln (1 + \nu) - 1 \right]
+  \label{sc1f}
 \end{equation}
-where 
-\begin{equation}
-  \nu = \frac{0.5 \, \chi_c^2}{\chi_\alpha^2 (1 - F)}
-  \label{ncc1f}
-\end{equation}
-with
+where
 \begin{align}
-  \chi_c^2 &= 0.157 \cdot 10^{11} \, \frac{Z (Z+1) X}{A} \left[ \frac{z}{p \, \beta} \right]^2 \\
-  \chi_\alpha &= 2.007 \cdot 10^{-5} \, \frac{Z^{2/3}}{p^2} 
-  \left[1 + 3.34 \cdot 10^6 \,  \left( \frac{Z \, z \, \alpha}{\beta} \right)^2 \right]
+  \nu &= \frac{0.5 \, \Omega}{(1 - F)} \CRNO
+  \Omega &= \frac{\chi_c^2}{1.167 \, \chi_\alpha^2} \CRNO
+  \chi_c^2 &= \left( 1.57 \cdot 10^7 \, eV^2 \, m^2  \right) \, 
+    \frac{Z (Z+1) X}{A} \left[ \frac{z}{p \, \beta} \right]^2 
+  \label{no1f} \\
+  \chi_\alpha &= (20.07 eV^2) \, \frac{Z^{2/3}}{(p \, c)^2} 
+            \left[1 + 3.34 \,  \left( \frac{Z \, z \, \alpha}{\beta} \right)^2 \right] \nonumber
 \end{align}
-and $A$ is the atomic weight, $p$ is the particle momentum, $\alpha$ is the fine structure constant,
-and $F$ is a fit parameter.
-Quoting Lynch and Dahl:
-\begin{quote}
-Much of the difficulty in approximating multiple Coulomb scattering in terms of the radiation length
-(Highland formula) is that the number of radiation lengths is a poor measure of the scattering. We
-can get a much better simple expression for the scattering if we do not use the radiation length. An
-expression that does much better than the previous ones is (and gives the Lynch-Dahl formula)...
+and the $A$ is the atomic weight, $p$ is the particle momentum, $\alpha$ is the fine structure
+constant, and $F$ is a fit parameter representing the percent of the central angular distribution
+that is used.  $F$ is a settable parameter with a default value of 0.98.
 
-...This form (Lynch-Dahl), which is not exact, was motivated from a calculation of the RMS angle of the
-screened Rutherford cross section ... The constant 0.5 in (Eq.~\ref{ncc1f} above) was determined
-empirically. For $F$ anywhere in the range of 90\% to 99.5\% this expression represents Moliere
-scattering to better than 2\%
-\end{quote}
+For compound materials, the value of $X/X_0$ in \Eq{sszpb} is computed from
+\begin{equation}
+  \frac{X}{X_0} = \sum_{i = 1}^N \frac{X_i}{X_{0i}}
+\end{equation}
+where the summation is over all constituents in the material.
+
+Also for compound materials, $\chi_c^2$ in \Eqs{sc1f} and \eq{no1f} is replaced by the sum of the
+constituent $\chi_{ci}^2$, and $\chi_\alpha$ is computed from Lynch and Dahl Eq.~(11)
+\begin{equation}
+  \ln ( \chi_\alpha ) = \left. \sum_{i=1}^N \frac{Z_i (Z_i + 1) X_i}{A_i} \ln(\chi_{\alpha i}) \middle/
+  \sum_{i=1}^N \frac{Z_i (Z_i + 1) X_i}{A_i} \right.
+\end{equation}
+
+The actual scattering distribution has $1/\theta^4$ tails ($\theta$ is the scattering angle) due to
+single event large angle scattering (Rutherford scattering). By assuming a Gaussian distribution,
+these tails are not present in a simulation. It is also important to note that with both the
+\vn{Highland} and \vn{Lynch_Dahl} algorithms, simulating the passage of particles through a single
+foil versus two foils with half the thickness as the single foil will not give exactly the same
+results. This is just a reflection that both algorithms are trying to model an inherently non-Gaussian
+process.
 
 %---------------------------------------------------------------------------------
 \subsection{Energy Loss in a Foil}
@@ -928,6 +930,9 @@ The particle energy loss per unit length $dE/dx$ through a foil is calculated us
 where $n$ is the material electron density, $I$ is the mean excitation energy, $z$ is the particle
 charge, $c$ is the speed of light, $\epsilon_0$ is the vacuum permittivity, $\beta = {v}/{c}$, is
 the normalized velocity, and $e$ and $m_e$ the electron charge and rest mass respectively.
+
+Note that to keep the direction of travel of the particle constant when energy is lost, this implies
+that $p_x/(1+p_z)$ and $p_y/(1+p_z)$ are to be held constant (\Eq{xpa1p}).
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
