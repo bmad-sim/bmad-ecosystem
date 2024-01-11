@@ -1819,6 +1819,7 @@ case ('DENSITY', 'AREA_DENSITY', 'RADIATION_LENGTH')
   ok = parse_real_list2(lat, 'READING: ' // trim(attrib_word) // ' FOR ELEMENT: ' // ele%name, &
                                                 arr, n, delim, delim_found, 10, '(', ',', ')', 0.0_rp)
   if (.not. ok) return
+
   if (allocated(ele%foil%material)) then
     if (size(ele%foil%material) /= n) then
       call parser_error('MATERIAL_TYPE, DENSITY, AREA_DENSITY, AND RADIATION_LENGTH MUST ALL BE THE SAME SIZE VECTORS FOR ELE: ' // ele%name)
@@ -1833,6 +1834,8 @@ case ('DENSITY', 'AREA_DENSITY', 'RADIATION_LENGTH')
   case ('AREA_DENSITY');      ele%foil%material(:)%area_density = arr
   case ('RADIATION_LENGTH');  ele%foil%material(:)%radiation_length = arr
   end select
+
+  if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
 case ('REFERENCE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')

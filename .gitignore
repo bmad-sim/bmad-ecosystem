@@ -101,3 +101,4 @@ regression_tests/write_bmad_test/z.bmad
 *.mod
 production
 debug
+linux_lib

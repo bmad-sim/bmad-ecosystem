@@ -473,16 +473,34 @@ case (foil$)
       material%radiation_length_used = material%radiation_length
     endif
 
+    if (material%density /= 0 .and. material%area_density /= 0) then
+      call out_io(s_error$, r_name, 'SETTING BOTH DENSITY AND AREA_DENSITY IS NOT PERMITTED FOR: ' // ele%name)
+      return
+    endif
+
     if (material%density == 0) then
-      material%density_used = ElementDensity(z_material) * 1e3_rp  ! From xraylib. Convert to kg/m^3
+      if (material%area_density /= 0) then
+        if (ele%value(thickness$) == 0) then
+          material%density_used = 0
+        else
+          material%density_used = material%area_density / ele%value(thickness$)
+        endif
+      else
+        material%density_used = ElementDensity(z_material) * 1e3_rp  ! From xraylib. Convert to kg/m^3
+      endif
     else
       material%density_used = material%density
     endif
 
-    if (ele%value(thickness$) == 0) then
-      material%area_density_used = material%area_density
-    else
+    if (material%area_density == 0) then
       material%area_density_used = material%density_used * ele%value(thickness$)
+    else
+      material%area_density_used = material%area_density
+    endif
+
+    if (material%density == 0 .and. material%area_density == 0 .and. n > 1) then
+      call out_io(s_warn$, r_name, 'Neither foil DENSITY(s) nor AREA_DENSITY(s) set for compound material for: ' // ele%name, &
+                                   'This will produce HIGHLY inaccurate results!')
     endif
   enddo
 

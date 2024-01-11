@@ -2081,7 +2081,7 @@ element.
 \label{s:foil}
 \index{foil|hyperbf}
 
-A \vn{foil} element represents a planar sheet of material which strips electrons from a particle.
+A \vn{foil} element represents a planar sheet of material which can strip electrons from a particle.
 In conjunction, there will be scattering of the particle trajectory as well as an associated energy
 loss.
 
@@ -2111,7 +2111,7 @@ Attributes specific to a \vn{foil} element are:
   radiation_length_used           ! Radiation length used in tracking (m).
   area_density        = <Vector>  ! Input material area density (kg/m^2).
   area_density_used               ! Area density used in tracking (kg/m^2).
-  F_factor            = <Real>    ! F scattering factor. Default: 0.95.
+  F_factor            = <Real>    ! lynch_dahl scattering F factor. Default: 0.98.
   final_charge        = <Integer> ! Final charge state
   scatter_test        = <Logic>   ! For testing scattering. Default: False.
   scatter_method      = <Switch>  ! Scattering algorithm. Default: highland.
@@ -2122,26 +2122,61 @@ Attributes specific to a \vn{foil} element are:
   y2_edge             = <Real>    ! Foil edge in the -y direction. Default:  99 m.
 \end{example}
 
-The \vn{foil} element has two scattering algorithms.
+Scattering is simulated to be Gaussian distributed with a sigma calculated in one of two methods.
+The two scattering algorithms are given in section~\sref{s:foil.scatter}. Which algorithm is used is
+determined by the \vn{scatter_method} parameter which can be set to:
+\begin{example}
+  highland        ! Default
+  lynch_dahl
+  off             ! No scattering
+\end{example}
 
-Scattering is simulated to be Gaussian distributed with a sigma given by Eq.~(6) of Lynch and
-Dahl\cite{b:lynch}. Energy loss is calculated using the Bethe-Bloch formula.
+Additionally, the \vn{scatter_test} logical may be used for testing. If set to True (default is
+False), the random numbers used in \Eq{dpr1s} are set to 1.
+
+Energy loss is calculated using the Bethe-Bloch formula as discussed in section~\sref{s:foil.eloss}.
+
+The \vn{material_type} is the type of material which can be elemental or a compound material.
 
 The radiation length used in the scattering calculation is given by the \vn{radiation_length_used}
-parameter.  This value cannot be set directly. Rather, if the \vn{radiation_length} parameter is set
-non-zero, this value will be transferred to \vn{radiation_length_used}. If \vn{radiation_length} is
-zero (the default), the value of \vn{radiation_length_used} will be set by \bmad using the measured
-value from the published literature.
+parameter. For compound materials, this parameter is a vector with each value of the vector being the
+radiation length of the corresponding component.  \vn{Radiation_length_used} cannot be set
+directly. Rather, if the \vn{radiation_length} parameter is set non-zero, the value (or values for
+a compound material) will be transferred to \vn{radiation_length_used}. If \vn{radiation_length} is
+zero (the default), the value of \vn{radiation_length_used} will be set by \bmad using measured
+values from the published literature.
 
-Similarly, the \vn{area_density_used} (density of the material per unit of surface area) value
-needed for the calculation is not set directly but is set in one of two ways depending upon if the
-material \vn{thickness} is non-zero or not. If \vn{thickness} is non-zero, \vn{area_density_used} is
-set by the product of \vn{thickness} and \vn{density_used} while the value of \vn{density_used} is
-set by \bmad to be either the value \vn{density} if the \vn{density} is non-zero or by the measured
-density of the material as given in the published literature. If \vn{thickness} is zero (the
-default), the value of \vn{area_density_used} is set equal to the value of \vn{area_density}. Note that
-the value of \vn{density_used} is only used to set \vn{area_density_used} when \vn{thickness} is non-zero
-and otherwise does not affect the tracking calculation.
+Similarly, the \vn{area_density_used} (density of the material per unit of surface area) value (or
+values for a compound material) needed for the calculation is not set directly but is set in one of
+two ways depending upon if the material \vn{thickness} is non-zero or not. If \vn{thickness} is
+non-zero, \vn{area_density_used} is set by the product of \vn{thickness} and \vn{density_used} while
+the value of \vn{density_used} is set by \bmad to be either the value \vn{density} if the
+\vn{density} is non-zero or by the measured density of the material as given in the published
+literature. If \vn{thickness} is zero (the default), the value of \vn{area_density_used} is set
+equal to the value of \vn{area_density}. Note that the value of \vn{density_used} is only used to
+set \vn{area_density_used} when \vn{thickness} is non-zero and otherwise does not affect the
+tracking calculation.
+
+Example:
+\begin{example}
+  f1: foil, thickness = 1e-2, material_type = "B4C", 
+          density = (2e3, 1e3), radiation_length = (5.49, 4.26)
+\end{example}
+Here, since \vn{material_type} is set to \vn{B4C}, there are two components: Boron and Carbon. If
+\vn{density}, \vn{area_density}, or \vn{radiation_length} are present, they must have the same
+number of values as material components. Values are set in order so, in the above example, the
+Carbon component has a density of 1e3 and a radiation length of 4.26.\footnote
+  {
+From a computational standpoint it does not matter which parameter is associated with which component.
+  }
+In the case where there is a component material, either \vn{density} or \vn{area_density} needs to
+be set since \bmad is not able to calculate appropriate values in this case. When there is only one
+component, the parentheses may be omitted. Example:
+Example:
+\begin{example}
+  stripper: foil, material_type = "Cu", thickness = 0.127, &
+                                  radiation_length = 12.3, x1_edge = -0.3
+\end{example}
 
 In terms of element placement, The length of a \vn{foil} element (\Eq{l00l}) is considered to be
 zero.  This is similar to the \vn{beambeam} element which is also considered to have zero length but
@@ -2150,7 +2185,9 @@ the interaction occurs over a finite length.
 The 6x6 transfer matrix of a \vn{foil} element is the unit matrix. That is, scattering does
 not affect the transfer matrix.
 
-Particles going through the \vn{foil} are stripped to have a final charge given by \vn{final_charge}.
+Particles going through the \vn{foil} are stripped to have a final charge given by
+\vn{final_charge}.  The default is to fully strip the particle except if the particle has no
+electrons to strip, there will be no change in charge state.
 
 The foil has a rectangular shape and particles will only be considered to have hit the foil if:
 \begin{example}
@@ -2162,24 +2199,18 @@ sheet pass through the element without a change in charge nor a change in trajec
 for \vn{x1_edge} and \vn{y1_edge} is -99~meters and for \vn{x2_edge} and \vn{y2_edge} the default is
 +99~meters.
 
-By setting the \vn{scatter} parameter to \vn{false} (the default is \vn{true}), the foil will not
-scatter the particle (but there will still be an energy loss). That is, the particle direction of
-motion through the foil is unvaried. The setting of \vn{scatter} does not affect the energy
-loss.\footnote
-  {
-Note that a constant direction of motion implies that $p_x/(1+p_z)$ and $p_y/(1+p_z)$ are constant
-(\Eq{xpa1p}).
-  }
+The \vn{drel_thickness_dx} can be used to get a varying foil thickness. The thickness $t$ at a point
+$(x,y)$ on the foil will be
+\begin{equation}
+  t = t_0 (1 + x \, \frac{1}{t_0}\frac{dt}{dx})
+\end{equation}
+where $t_0$ is the thickness given by the \vn{thickness} parameter and $d(t/t_0)/dx$ is given by the
+\vn{drel_thickness_dx} parameter.
+
 If a \vn{foil} element is part of a lattice branch with a closed geometry, the closed orbit
 calculation will tempararily set the \vn{scatter} parameter to false since scattering is a random
 process and the closed orbit is not well defined in the presence of any random processes (similarly,
 radiation fluctuations are also turned off for the closed orbit calculation).
-
-Example:
-\begin{example}
-  stripper: foil, material_type = "Cu", thickness = 0.127, &
-                                  radiation_length = 12.3, x1_edge = -0.3
-\end{example}
 
 \newpage
 

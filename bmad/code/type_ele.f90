@@ -409,17 +409,20 @@ if (associated(ele%foil)) then
     nl=nl+1; li(nl) = 'Material_type: ' // ele%component_name
 
     do ix = 1, size(ele%foil%material)
-      matter = ele%foil%material(ix)
+      matter => ele%foil%material(ix)
       if (size(ele%foil%material) > 1) then
         nl=nl+1; li(nl) = ''
-        nl=nl+1; li(nl) = 'Component: ' // species_name(matter%species)
+        nl=nl+1; write (li(nl), '(a, t24, a, t58, a, t97, a)') '  Component: ' // trim(species_name(matter%species)), &
+                          attribute_units('DENSITY'), attribute_units('AREA_DENSITY'), attribute_units('RADIATION_LENGTH')
+      else
+        nl=nl+1; write (li(nl), '(t24, a, t58, a, t97, a)') &
+                          attribute_units('DENSITY'), attribute_units('AREA_DENSITY'), attribute_units('RADIATION_LENGTH')
       endif
 
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') 'Density      =', matter%density, &
-                  'Area_Density      =', matter%area_density,      'Radiation_Length      =', matter%radiation_length
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') 'Density_Used =', matter%density_used, &
-                  'Area_Density_Used =', matter%area_density_used, 'Radiation_Length_Used =', matter%radiation_length_used
-      nl=nl+1; 
+      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density      =', matter%density, &
+                  '  Area_Density      =', matter%area_density,      '  Radiation_Length      =', matter%radiation_length
+      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density_Used =', matter%density_used, &
+                  '  Area_Density_Used =', matter%area_density_used, '  Radiation_Length_Used =', matter%radiation_length_used
     enddo
 endif
 
