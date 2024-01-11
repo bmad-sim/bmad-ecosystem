@@ -596,8 +596,7 @@ lttp%ramping_on = ramping_on
 
 ! Beam setup
 
-if (present(beam) .and. (lttp%simulation_mode == 'INDIVIDUAL' .or. lttp%simulation_mode == 'BEAM') .and. &
-                                                  ltt_com%mpi_rank == master_rank$ .or. .not. ltt_com%using_mpi) then
+if (present(beam) .and. (lttp%simulation_mode == 'INDIVIDUAL' .or. lttp%simulation_mode == 'BEAM')) then
   call ltt_init_beam_distribution(lttp, ltt_com, beam)
 endif
 
