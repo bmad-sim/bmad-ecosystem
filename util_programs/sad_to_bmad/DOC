@@ -16,6 +16,11 @@ There is an example parameter input file at:
 To translate: Copy util_programs/sad_to_bmad/sad_to_bmad.params to your working directory and
 edit. Documentation for editing this file and running the translation script is in the file itself.
 
+To run use the command:
+	python <path-to-sad-to-bmad-dir>/sad_to_bmad.py <parameter-file> <sad-lattice-file>
+Note: <sad-lattice-file> is optional. The default will be to take the sad lattice file name
+set in the prameter file.
+
 --------------------------------------------------------------------
 --------------------------------------------------------------------
 Notes:
