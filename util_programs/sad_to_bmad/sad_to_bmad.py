@@ -146,9 +146,9 @@ ele_param_translate = {
     'quad:k1': ['k1', ' / @l@'],
     'sext:k2': ['k2', ' / @l@'],
     'oct:k3': ['k3', ' / @l@'],
-    'sad_mult:k1': ['b1', ' / @l@'],            # In case a SAD quad -> Bmad sad_mult
-    'sad_mult:k2': ['b2', ' / (2 * @l@)'],      # In case a SAD sext -> Bmad sad_mult
-    'sad_mult:k3': ['b3', ' / (6 * @l@)'],      # In case a SAD oct  -> Bmad sad_mult
+    'sad_mult:k1': 'b1',                # In case SAD quad -> Bmad sad_mult (when there is a solenoid field)
+    'sad_mult:k2': ['b2', ' / 2'],      # In case SAD sext -> Bmad sad_mult
+    'sad_mult:k3': ['b3', ' / 6'],      # In case SAD oct  -> Bmad sad_mult
     'bend:rotate': ['ref_tilt', ' * -1'],
     'bend:drotate': ['roll', ' * -1'],
     'l': 'l',
