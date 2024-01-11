@@ -124,6 +124,8 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       call this_bookkeeper(lat, ele)
+      call ran_seed_put(999)  ! Make sure one element does not affect the other
+
       if (j == linear$) then
         ele%tracking_method = symp_lie_ptc$
         if (ele%key == ac_kicker$) ele%tracking_method = bmad_standard$

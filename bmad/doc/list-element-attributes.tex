@@ -531,21 +531,22 @@ ele_origin                       & ref_time_start [sec]             & x1_limit [
  \label{s:list.foil}
  
  \begin{tabular}{llll} \toprule
-alias                            & l [m]                            & thickness [m]                    & x_pitch_tot [rad]                \\
-aperture [m]                     & mat6_calc_method                 & tilt [rad]                       & y1_edge [m]                      \\
-aperture_at                      & material_type                    & tilt_tot [rad]                   & y1_limit [m]                     \\
-aperture_type                    & offset [m]                       & tracking_method                  & y2_edge [m]                      \\
-area_density [kg/m$^2$]          & offset_moves_aperture            & type                             & y2_limit [m]                     \\
-area_density_used [kg/m$^2$]     & p0c [eV]                         & wall                             & y_limit [m]                      \\
-create_jumbo_slave               & ptc_integration_type             & wrap_superimpose                 & y_offset [m]                     \\
-delta_ref_time [sec]             & radiation_length [m]             & x1_edge [m]                      & y_offset_tot [m]                 \\
-density [kg/m$^3$]               & radiation_length_used [m]        & x1_limit [m]                     & y_pitch [rad]                    \\
-density_used [kg/m$^3$]          & ref_origin                       & x2_edge [m]                      & y_pitch_tot [rad]                \\
-descrip                          & ref_time_start [sec]             & x2_limit [m]                     & z_offset [m]                     \\
-e_tot [eV]                       & reference                        & x_limit [m]                      & z_offset_tot [m]                 \\
-ele_origin                       & scatter                          & x_offset [m]                     &                                  \\
-final_charge                     & spin_tracking_method             & x_offset_tot [m]                 &                                  \\
-is_on                            & superimpose                      & x_pitch [rad]                    &                                  \\
+alias                            & final_charge                     & scatter_test                     & x_offset_tot [m]                 \\
+aperture [m]                     & is_on                            & spin_tracking_method             & x_pitch [rad]                    \\
+aperture_at                      & l [m]                            & superimpose                      & x_pitch_tot [rad]                \\
+aperture_type                    & mat6_calc_method                 & thickness [m]                    & y1_edge [m]                      \\
+area_density [kg/m$^2$]          & material_type                    & tilt [rad]                       & y1_limit [m]                     \\
+area_density_used [kg/m$^2$]     & num_steps                        & tilt_tot [rad]                   & y2_edge [m]                      \\
+atomic_weight [???]              & offset [m]                       & tracking_method                  & y2_limit [m]                     \\
+create_jumbo_slave               & offset_moves_aperture            & type                             & y_limit [m]                      \\
+delta_ref_time [sec]             & p0c [eV]                         & wall                             & y_offset [m]                     \\
+density [kg/m$^3$]               & ptc_integration_type             & wrap_superimpose                 & y_offset_tot [m]                 \\
+density_used [kg/m$^3$]          & radiation_length [kg/m$^2$]      & x1_edge [m]                      & y_pitch [rad]                    \\
+descrip                          & radiation_length_used [kg/m$^2$] & x1_limit [m]                     & y_pitch_tot [rad]                \\
+drel_thickness_dx [???]          & ref_origin                       & x2_edge [m]                      & z_offset [m]                     \\
+e_tot [eV]                       & ref_time_start [sec]             & x2_limit [m]                     & z_offset_tot [m]                 \\
+ele_origin                       & reference                        & x_limit [m]                      &                                  \\
+f_factor [???]                   & scatter_method                   & x_offset [m]                     &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -862,7 +863,7 @@ beta_b1 [m]                      & eta_y0 [m]                       & py0       
 c11_mat0                         & eta_y1 [m]                       & py1                              & y1_limit [m]                     \\
 c11_mat1                         & etap_x0                          & pz0                              & y2_limit [m]                     \\
 c12_mat0 [m]                     & etap_x1                          & pz1                              & y_limit [m]                      \\
-c12_mat1 [m]                     & etap_y0                          & recalc [???]                     & z0 [m]                           \\
+c12_mat1 [m]                     & etap_y0                          & recalc                           & z0 [m]                           \\
 c21_mat0 [1/m]                   & etap_y1                          & ref_origin                       & z1 [m]                           \\
 c21_mat1 [1/m]                   & is_on                            & ref_time_start [sec]             &                                  \\
 c22_mat0                         & kick0                            & reference                        &                                  \\
