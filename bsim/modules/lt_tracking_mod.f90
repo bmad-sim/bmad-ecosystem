@@ -43,6 +43,7 @@ type ltt_params_struct
   character(100) :: exclude_from_maps = 'beambeam::*'
   character(40) :: ele_start = ''
   character(40) :: ele_stop = ''
+  character(40) :: ele_extract = ''
   character(200) :: lat_file = ''
   character(200) :: beam_binary_output_file = ''
   character(200) :: custom_output_file = ''
@@ -239,25 +240,33 @@ endif
 
 if (ltt%master_output_file /= '') then
   call out_io (s_info$, r_name, &
-        'Note: The master_output_file is no longer created since data in this file is written to other files.')
+        'Note: The master_output_file is no longer created since data in this file is written to other files.', &
+        'Please correct the init file. Will stop here.')
+  stop
 endif
 
 if (ltt%sigma_matrix_output_file /= '') then
   call out_io (s_info$, r_name, &
-        'Note: ltt%sigma_matrix_output_file is no longer used and will be ignored.', &
+        'Note: ltt%sigma_matrix_output_file is no longer used.', &
         '  Essentially now ltt%averages_output_file sets the name of the sigma matrix file.', &
-        '  See manual for details.')
+        '  See manual for details.', &
+        '  Please correct the init file. Will stop here.')
+  stop
 endif
 
 if (ltt%averaging_window /= 1) then
   call out_io (s_info$, r_name, &
-        'Note: ltt%averaging_window is no longer used and will be ignored.', &
+        'Note: ltt%averaging_window is no longer used.', &
         '  Reason: The advantage of averaging over multiple turns was not worth the complications', &
-        '  to the program internal bookkeeping') 
+        '  to the program internal bookkeeping', &
+        'Please correct the init file. Will stop here.')
+  stop
 endif
 
 if (ltt%mpi_runs_per_subprocess /= 4) then
-  call out_io (s_info$, r_name, 'Note: ltt%mpi_runs_per_subprocess is no longer used and will be ignored.')
+  call out_io (s_info$, r_name, 'Note: ltt%mpi_runs_per_subprocess is no longer used.', &
+                                'Please correct the init file. Will stop here.')
+  stop
 endif
 
 if (any(ltt%core_emit_cutoff > 1.00000001_rp .or. &
@@ -268,8 +277,9 @@ endif
 
 if (ltt%particle_output_file /= '') then
   call out_io (s_error$, r_name, 'Note: ltt%particle_output_file replaced by ltt%phase_space_output_file.', &
-                                 ' Also see ltt%action_angle_output_file.')
-  ltt%phase_space_output_file = ltt%particle_output_file
+                                 ' Also see ltt%action_angle_output_file.', &
+                                 'Please correct the init file. Will stop here.')
+  stop
 endif
 
 end subroutine ltt_read_params
