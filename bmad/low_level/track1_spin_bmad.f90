@@ -32,6 +32,8 @@ type (em_field_struct) field
 
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track
 real(rp) voltage, k_rf, phase
+real(rp) fc, dxp, dyp, om(3), quat(0:3)
+
 integer key, dir
 
 character(*), parameter :: r_name = 'track1_spin_bmad'
@@ -39,6 +41,20 @@ character(*), parameter :: r_name = 'track1_spin_bmad'
 ! Spin tracking handled by track_a_patch for patch elements.
 
 if (ele%key == patch$) return
+
+! Beambeam
+
+if (ele%key == beambeam$) then
+  fc = start_orb%p0c / ((1.0_rp + start_orb%beta**2) * charge_of(start_orb%species))
+  dxp = (end_orb%vec(2) - start_orb%vec(2)) * fc
+  dyp = (end_orb%vec(4) - start_orb%vec(4)) * fc
+  field%E = [dxp,  dyp, 0.0_rp]
+  field%B = [dyp, -dxp, 0.0_rp] / c_light
+  om = spin_omega (field, end_orb, +1)
+  quat = omega_to_quat(om)
+  end_orb%spin = quat_rotate(quat, start_orb%spin)
+  return
+endif
 
 ! crab_cavity
 

@@ -146,7 +146,7 @@ do i = 1, n_slice
 
   if (bmad_com%spin_tracking_on) then
     ff = 1.0_rp + orbit%beta**2
-    field%E = [ k0_x, k0_y, 0.0_rp] * (coef * orbit%p0c / (ff * charge_of(orbit%species)))
+    field%E = [k0_x,  k0_y, 0.0_rp] * (coef * orbit%p0c / (ff * charge_of(orbit%species)))
     field%B = [k0_y, -k0_x, 0.0_rp] * (coef * orbit%p0c * orbit%beta / (ff * c_light * charge_of(orbit%species)))
     om = spin_omega (field, orbit, +1)
     quat = omega_to_quat(om)

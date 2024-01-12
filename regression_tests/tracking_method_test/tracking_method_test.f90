@@ -203,7 +203,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       select case (j)
-      case (bmad_standard$, runge_kutta$, symp_lie_ptc$, time_runge_kutta$, taylor$, symp_lie_bmad$)
+      case (bmad_standard$, runge_kutta$, symp_lie_ptc$, time_runge_kutta$, taylor$, symp_lie_bmad$, linear$)
         out_str = trim(out_str) // ' dSpin'
         isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
                                                                 end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
