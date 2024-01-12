@@ -5,6 +5,7 @@
 "AB_MULTIPOLE1: Taylor"                         ABS 2e-14   1.0000000000E-03 -4.9552061312E-02  3.0000000000E-03  1.2965766811E-02  5.0000000000E-03  6.0000000000E-03  0.0000000000E+00
 "AB_MULTIPOLE1: Bmad_Standard dSpin"             ABS 1E-8    -0.025981311   0.004518642   0.011154014       0.000000000
 "AB_MULTIPOLE1: Symp_Lie_PTC dSpin"              ABS 1E-8    -0.025990219   0.004520191   0.011157563       0.000000000
+"AB_MULTIPOLE1: Linear dSpin"                    ABS 1E-8    -0.025981311   0.004518642   0.011154014       0.000000000
 "AB_MULTIPOLE1: Taylor dSpin"                    ABS 1E-8    -0.025990238   0.004520165   0.011157594       0.000000000
  
 "AC_KICKER1: Bmad_Standard"                     ABS 2e-14   2.9536260388E-03  1.1102026016E-02  4.1928776643E-03  4.0000000000E-03  5.4581745090E-03  6.0000000000E-03 -7.9688859678E-18
@@ -13,6 +14,7 @@
 "AC_KICKER1: Time_Runge_Kutta"                  ABS 1e-13   2.9478680843E-03  1.1043818272E-02  4.1928815326E-03  4.0000000000E-03  5.4572016258E-03  6.0000000000E-03  2.5207700510E-17
 "AC_KICKER1: Bmad_Standard dSpin"                ABS 1E-8     0.004521947  -0.000000012  -0.002741120       0.000000000
 "AC_KICKER1: Runge_Kutta dSpin"                  ABS 1E-8     0.004521947  -0.000000012  -0.002741120       0.000000000
+"AC_KICKER1: Linear dSpin"                       ABS 1E-8     0.004521947  -0.000000012  -0.002741120       0.000000000
 "AC_KICKER1: Time_Runge_Kutta dSpin"             ABS 1E-8     0.004493107  -0.000000012  -0.002723460       0.000000000
  
 "AC_KICKER2: Bmad_Standard"                     ABS 2e-14   1.7953685081E-03  2.0000000000E-03  1.0460563477E-02  3.3496844214E-02  5.5521831727E-03  6.0000000000E-03  5.2475385148E-17
@@ -21,6 +23,7 @@
 "AC_KICKER2: Time_Runge_Kutta"                  ABS 1e-13   1.7954383320E-03  2.0000000000E-03  1.1295133728E-02  3.6259218397E-02  5.5170617572E-03  6.0000000004E-03  9.8228716827E-17
 "AC_KICKER2: Bmad_Standard dSpin"                ABS 1E-8    -0.000000026   0.014522109  -0.011971889       0.000000000
 "AC_KICKER2: Runge_Kutta dSpin"                  ABS 1E-8    -0.000000026   0.014521653  -0.011971502       0.000000000
+"AC_KICKER2: Linear dSpin"                       ABS 1E-8    -0.000000026   0.014522109  -0.011971889       0.000000000
 "AC_KICKER2: Time_Runge_Kutta dSpin"             ABS 1E-8    -0.000000028   0.015864470  -0.013115250       0.000000000
  
 "AC_KICKER3: Bmad_Standard"                     ABS 2e-14   1.7952761603E-03  2.0000000000E-03  7.3005840424E-03  1.7623235078E-02  5.5986341131E-03  6.0000000000E-03 -1.9667427409E-16
@@ -33,6 +36,7 @@
 "AC_KICKER3: Bmad_Standard dSpin"                ABS 1E-8    -0.000000012   0.006749836  -0.005475402       0.000000000
 "AC_KICKER3: Symp_Lie_PTC dSpin"                 ABS 1E-8     0.000000044   0.006750457  -0.005475947      -0.000000000
 "AC_KICKER3: Runge_Kutta dSpin"                  ABS 1E-8    -0.000000012   0.006749795  -0.005475368       0.000000000
+"AC_KICKER3: Linear dSpin"                       ABS 1E-8    -0.000000012   0.006749836  -0.005475402       0.000000000
 "AC_KICKER3: Time_Runge_Kutta dSpin"             ABS 1E-8    -0.000000014   0.007990679  -0.006498618       0.000000000
 "AC_KICKER3: Taylor dSpin"                       ABS 1E-8     0.000000044   0.006750457  -0.005475947       0.000000000
  
@@ -43,6 +47,7 @@
 "BEAMBEAM1: Taylor"                             ABS 2e-14   3.4491463974E-04 -2.2953675448E-03  8.6315696078E-03  1.1215096179E-01  4.9910922095E-03  6.0000000000E-03  8.9539852854E-17
 "BEAMBEAM1: Bmad_Standard dSpin"                 ABS 1E-8     0.001490862  -0.000035494  -0.000869101       0.000000000
 "BEAMBEAM1: Symp_Lie_PTC dSpin"                  ABS 1E-8     0.001298031  -0.000019164  -0.000765759       0.000000000
+"BEAMBEAM1: Linear dSpin"                        ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "BEAMBEAM1: Taylor dSpin"                        ABS 1E-8    -0.001745619   0.042994171  -0.036534264      -0.000000000
  
 "CRAB_CAVITY1: Bmad_Standard"                   ABS 2e-14   1.2872792229E-03  8.8625636073E-04  3.7952354044E-03  4.0000000000E-03  5.3094991448E-03  6.0009446774E-03 -9.1994554335E-17
@@ -54,6 +59,7 @@
 "CRAB_CAVITY1: Bmad_Standard dSpin"              ABS 1E-8    -0.000549060   0.000000001   0.000329026       0.000000000
 "CRAB_CAVITY1: Symp_Lie_PTC dSpin"               ABS 1E-8    -0.000549060   0.000000000   0.000329026       0.000000000
 "CRAB_CAVITY1: Runge_Kutta dSpin"                ABS 1E-8    -0.000555003   0.000000001   0.000332583       0.000000000
+"CRAB_CAVITY1: Linear dSpin"                     ABS 1E-8    -0.000549060   0.000000001   0.000329026       0.000000000
 "CRAB_CAVITY1: Time_Runge_Kutta dSpin"           ABS 1E-8    -0.000555003   0.000000001   0.000332583       0.000000000
  
 "DRIFT1: Bmad_Standard"                         ABS 2e-14   9.9464104682E-03  2.0000000000E-03  2.0892820936E-02  4.0000000000E-03  1.1959140544E-02  6.0000000000E-03 -8.0924850154E-16
@@ -66,6 +72,7 @@
 "DRIFT1: Bmad_Standard dSpin"                    ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "DRIFT1: Symp_Lie_PTC dSpin"                     ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "DRIFT1: Runge_Kutta dSpin"                      ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
+"DRIFT1: Linear dSpin"                           ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "DRIFT1: Time_Runge_Kutta dSpin"                 ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "DRIFT1: Taylor dSpin"                           ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
  
@@ -79,6 +86,7 @@
 "ECOLLIMATOR1: Bmad_Standard dSpin"              ABS 1E-8     0.004966742   0.000989526  -0.003811844       0.000000000
 "ECOLLIMATOR1: Symp_Lie_PTC dSpin"               ABS 1E-8     0.004966742   0.000989526  -0.003811844       0.000000000
 "ECOLLIMATOR1: Runge_Kutta dSpin"                ABS 1E-8     0.004966742   0.000989526  -0.003811844       0.000000000
+"ECOLLIMATOR1: Linear dSpin"                     ABS 1E-8     0.004966742   0.000989526  -0.003811844       0.000000000
 "ECOLLIMATOR1: Time_Runge_Kutta dSpin"           ABS 1E-8     0.004966742   0.000989526  -0.003811844       0.000000000
 "ECOLLIMATOR1: Taylor dSpin"                     ABS 1E-8     0.004966742   0.000989526  -0.003811844       0.000000000
  
@@ -92,6 +100,7 @@
 "ELSEPARATOR1: Bmad_Standard dSpin"              ABS 1E-8     0.001418722   0.000138722  -0.000965175      -0.000000000
 "ELSEPARATOR1: Symp_Lie_PTC dSpin"               ABS 1E-8     0.001418724   0.000138723  -0.000965176       0.000000000
 "ELSEPARATOR1: Runge_Kutta dSpin"                ABS 1E-8     0.001418723   0.000138723  -0.000965176      -0.000000000
+"ELSEPARATOR1: Linear dSpin"                     ABS 1E-8     0.001418722   0.000138722  -0.000965175       0.000000000
 "ELSEPARATOR1: Time_Runge_Kutta dSpin"           ABS 1E-8     0.001418723   0.000138723  -0.000965176       0.000000000
 "ELSEPARATOR1: Taylor dSpin"                     ABS 1E-8     0.001418724   0.000138723  -0.000965176       0.000000000
  
@@ -105,6 +114,7 @@
 "ELSEPARATOR2: Bmad_Standard dSpin"              ABS 1E-8    -0.000144600   0.001416422  -0.001049506      -0.000000000
 "ELSEPARATOR2: Symp_Lie_PTC dSpin"               ABS 1E-8    -0.000144600   0.001416424  -0.001049508       0.000000000
 "ELSEPARATOR2: Runge_Kutta dSpin"                ABS 1E-8    -0.000144600   0.001416424  -0.001049508       0.000000000
+"ELSEPARATOR2: Linear dSpin"                     ABS 1E-8    -0.000144600   0.001416422  -0.001049506      -0.000000000
 "ELSEPARATOR2: Time_Runge_Kutta dSpin"           ABS 1E-8    -0.000144600   0.001416424  -0.001049508      -0.000000000
 "ELSEPARATOR2: Taylor dSpin"                     ABS 1E-8    -0.000144600   0.001416424  -0.001049508       0.000000000
  
@@ -147,6 +157,7 @@
 "GKICKER1: Taylor"                              ABS 2e-14   1.1000000000E-02  2.2000000000E-02  3.3000000000E-02  4.4000000000E-02  5.5138553791E-02  6.5913880781E-02 -1.1796119637E-16
 "GKICKER1: Bmad_Standard dSpin"                  ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "GKICKER1: Symp_Lie_PTC dSpin"                   ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
+"GKICKER1: Linear dSpin"                         ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "GKICKER1: Taylor dSpin"                         ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
  
 "HKICKER1: Bmad_Standard"                       ABS 2e-14   2.1073861279E-02  6.9750208264E-03  2.2009415694E-02  4.4991430315E-03  1.1914096954E-02  6.0000000000E-03 -1.1110903864E-15
@@ -159,6 +170,7 @@
 "HKICKER1: Bmad_Standard dSpin"                  ABS 1E-8     0.002476150   0.000246747  -0.001692143      -0.000000000
 "HKICKER1: Symp_Lie_PTC dSpin"                   ABS 1E-8     0.002476150   0.000246747  -0.001692143       0.000000000
 "HKICKER1: Runge_Kutta dSpin"                    ABS 1E-8     0.002476150   0.000246747  -0.001692143       0.000000000
+"HKICKER1: Linear dSpin"                         ABS 1E-8     0.002476150   0.000246747  -0.001692143       0.000000000
 "HKICKER1: Time_Runge_Kutta dSpin"               ABS 1E-8     0.002476150   0.000246747  -0.001692143       0.000000000
 "HKICKER1: Taylor dSpin"                         ABS 1E-8     0.002476150   0.000246747  -0.001692143       0.000000000
  
@@ -172,6 +184,7 @@
 "INSTRUMENT1: Bmad_Standard dSpin"               ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "INSTRUMENT1: Symp_Lie_PTC dSpin"                ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "INSTRUMENT1: Runge_Kutta dSpin"                 ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
+"INSTRUMENT1: Linear dSpin"                      ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "INSTRUMENT1: Time_Runge_Kutta dSpin"            ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "INSTRUMENT1: Taylor dSpin"                      ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
  
@@ -185,6 +198,7 @@
 "KICKER1: Bmad_Standard dSpin"                   ABS 1E-8    -0.000152130   0.001485165  -0.001100293       0.000000000
 "KICKER1: Symp_Lie_PTC dSpin"                    ABS 1E-8    -0.000146183   0.001485751  -0.001104340      -0.000000000
 "KICKER1: Runge_Kutta dSpin"                     ABS 1E-8    -0.000152130   0.001485165  -0.001100293       0.000000000
+"KICKER1: Linear dSpin"                          ABS 1E-8    -0.000152130   0.001485165  -0.001100293       0.000000000
 "KICKER1: Time_Runge_Kutta dSpin"                ABS 1E-8    -0.000152130   0.001485165  -0.001100293       0.000000000
 "KICKER1: Taylor dSpin"                          ABS 1E-8    -0.000146183   0.001485751  -0.001104340       0.000000000
  
@@ -203,6 +217,7 @@
 "MONITOR1: Bmad_Standard dSpin"                  ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "MONITOR1: Symp_Lie_PTC dSpin"                   ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "MONITOR1: Runge_Kutta dSpin"                    ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
+"MONITOR1: Linear dSpin"                         ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "MONITOR1: Time_Runge_Kutta dSpin"               ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "MONITOR1: Taylor dSpin"                         ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
  
@@ -213,6 +228,7 @@
 "MULTIPOLE1: Taylor"                            ABS 2e-14   1.0000000000E-03 -1.0525180817E-03  3.0000000000E-03  5.2928477579E-02  5.0000000000E-03  6.0000000000E-03  0.0000000000E+00
 "MULTIPOLE1: Bmad_Standard dSpin"                ABS 1E-8    -0.001492387   0.023920562  -0.019183443       0.000000000
 "MULTIPOLE1: Symp_Lie_PTC dSpin"                 ABS 1E-8    -0.001492823   0.023927548  -0.019189331       0.000000000
+"MULTIPOLE1: Linear dSpin"                       ABS 1E-8    -0.001492387   0.023920562  -0.019183443       0.000000000
 "MULTIPOLE1: Taylor dSpin"                       ABS 1E-8    -0.001492823   0.023927548  -0.019189331       0.000000000
  
 "OCTUPOLE1: Bmad_Standard"                      ABS 2e-14   1.0061319522E-02  2.8299834693E-03  1.8943295869E-02  3.0764347140E-03  1.1965841728E-02  6.0000000000E-03 -3.4043948216E-15
@@ -225,6 +241,7 @@
 "OCTUPOLE1: Bmad_Standard dSpin"                 ABS 1E-8     0.000396923  -0.000461703   0.000130821      -0.000000000
 "OCTUPOLE1: Symp_Lie_PTC dSpin"                  ABS 1E-8     0.000409465  -0.000466230   0.000126904       0.000000000
 "OCTUPOLE1: Runge_Kutta dSpin"                   ABS 1E-8     0.000410779  -0.000463172   0.000123672       0.000000000
+"OCTUPOLE1: Linear dSpin"                        ABS 1E-8     0.000397360  -0.000458410   0.000127928      -0.000000000
 "OCTUPOLE1: Time_Runge_Kutta dSpin"              ABS 1E-8     0.000410779  -0.000463172   0.000123672       0.000000000
 "OCTUPOLE1: Taylor dSpin"                        ABS 1E-8     0.000672093  -0.000468244  -0.000029332      -0.000000000
  
@@ -251,6 +268,7 @@
 "QUADRUPOLE1: Bmad_Standard dSpin"               ABS 1E-8    -0.002925236   0.016438541  -0.011814046      -0.000000000
 "QUADRUPOLE1: Symp_Lie_PTC dSpin"                ABS 1E-8    -0.002938011   0.016474760  -0.011837170       0.000000000
 "QUADRUPOLE1: Runge_Kutta dSpin"                 ABS 1E-8    -0.002926023   0.016441377  -0.011815986       0.000000000
+"QUADRUPOLE1: Linear dSpin"                      ABS 1E-8    -0.002925737   0.016437163  -0.011812565       0.000000000
 "QUADRUPOLE1: Time_Runge_Kutta dSpin"            ABS 1E-8    -0.002926021   0.016441376  -0.011815986       0.000000000
 "QUADRUPOLE1: Taylor dSpin"                      ABS 1E-8    -0.002938011   0.016474759  -0.011837169      -0.000000000
 "QUADRUPOLE1: Symp_Lie_Bmad dSpin"               ABS 1E-8    -0.002914398   0.016439610  -0.011821553       0.000000000
@@ -266,6 +284,7 @@
 "QUADRUPOLE2: Bmad_Standard dSpin"               ABS 1E-8     0.000811879  -0.017066262   0.012712362       0.000000000
 "QUADRUPOLE2: Symp_Lie_PTC dSpin"                ABS 1E-8     0.000883339  -0.017095788   0.012692482       0.000000000
 "QUADRUPOLE2: Runge_Kutta dSpin"                 ABS 1E-8     0.000811887  -0.017069382   0.012714688       0.000000000
+"QUADRUPOLE2: Linear dSpin"                      ABS 1E-8     0.000811402  -0.017064855   0.012711591       0.000000000
 "QUADRUPOLE2: Time_Runge_Kutta dSpin"            ABS 1E-8     0.000811885  -0.017069381   0.012714688      -0.000000000
 "QUADRUPOLE2: Taylor dSpin"                      ABS 1E-8     0.000883340  -0.017095787   0.012692481       0.000000000
 "QUADRUPOLE2: Symp_Lie_Bmad dSpin"               ABS 1E-8     0.000805709  -0.017071924   0.012720210      -0.000000000
@@ -281,6 +300,7 @@
 "QUADRUPOLE3: Bmad_Standard dSpin"               ABS 1E-8    -0.000088370  -0.000314762   0.000304632       0.000000000
 "QUADRUPOLE3: Symp_Lie_PTC dSpin"                ABS 1E-8    -0.000088296  -0.000314813   0.000304628      -0.000000000
 "QUADRUPOLE3: Runge_Kutta dSpin"                 ABS 1E-8    -0.000088370  -0.000314762   0.000304632       0.000000000
+"QUADRUPOLE3: Linear dSpin"                      ABS 1E-8    -0.000088370  -0.000314762   0.000304632      -0.000000000
 "QUADRUPOLE3: Time_Runge_Kutta dSpin"            ABS 1E-8    -0.000088370  -0.000314762   0.000304632       0.000000000
 "QUADRUPOLE3: Taylor dSpin"                      ABS 1E-8    -0.000088296  -0.000314813   0.000304628       0.000000000
 "QUADRUPOLE3: Symp_Lie_Bmad dSpin"               ABS 1E-8    -0.000088369  -0.000314811   0.000304671      -0.000000000
@@ -296,6 +316,7 @@
 "QUADRUPOLE4: Bmad_Standard dSpin"               ABS 1E-8    -0.002919426   0.016437799  -0.011816948      -0.000000000
 "QUADRUPOLE4: Symp_Lie_PTC dSpin"                ABS 1E-8    -0.002930457   0.016473528  -0.011840715      -0.000000000
 "QUADRUPOLE4: Runge_Kutta dSpin"                 ABS 1E-8    -0.002920212   0.016440635  -0.011818889      -0.000000000
+"QUADRUPOLE4: Linear dSpin"                      ABS 1E-8    -0.002919902   0.016436403  -0.011815468      -0.000000000
 "QUADRUPOLE4: Time_Runge_Kutta dSpin"            ABS 1E-8    -0.002920210   0.016440634  -0.011818889       0.000000000
 "QUADRUPOLE4: Taylor dSpin"                      ABS 1E-8    -0.002930457   0.016473527  -0.011840714       0.000000000
 "QUADRUPOLE4: Symp_Lie_Bmad dSpin"               ABS 1E-8    -0.002908625   0.016438977  -0.011824526       0.000000000
@@ -311,6 +332,7 @@
 "QUADRUPOLE5: Bmad_Standard dSpin"               ABS 1E-8     0.000817833  -0.017066045   0.012708706       0.000000000
 "QUADRUPOLE5: Symp_Lie_PTC dSpin"                ABS 1E-8     0.000891358  -0.017095919   0.012687873       0.000000000
 "QUADRUPOLE5: Runge_Kutta dSpin"                 ABS 1E-8     0.000817842  -0.017069165   0.012711031       0.000000000
+"QUADRUPOLE5: Linear dSpin"                      ABS 1E-8     0.000817357  -0.017064478   0.012707815       0.000000000
 "QUADRUPOLE5: Time_Runge_Kutta dSpin"            ABS 1E-8     0.000817840  -0.017069163   0.012711031       0.000000000
 "QUADRUPOLE5: Taylor dSpin"                      ABS 1E-8     0.000891358  -0.017095918   0.012687872       0.000000000
 "QUADRUPOLE5: Symp_Lie_Bmad dSpin"               ABS 1E-8     0.000811662  -0.017071924   0.012716718      -0.000000000
@@ -325,6 +347,7 @@
 "RCOLLIMATOR1: Bmad_Standard dSpin"              ABS 1E-8     0.000000000   0.000000000  -0.000000000      -0.000000000
 "RCOLLIMATOR1: Symp_Lie_PTC dSpin"               ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "RCOLLIMATOR1: Runge_Kutta dSpin"                ABS 1E-8     0.000000000   0.000000000  -0.000000000      -0.000000000
+"RCOLLIMATOR1: Linear dSpin"                     ABS 1E-8     0.000000000   0.000000000  -0.000000000      -0.000000000
 "RCOLLIMATOR1: Time_Runge_Kutta dSpin"           ABS 1E-8     0.000000000   0.000000000  -0.000000000      -0.000000000
 "RCOLLIMATOR1: Taylor dSpin"                     ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
  
@@ -338,6 +361,7 @@
 "RFCAVITY1: Bmad_Standard dSpin"                 ABS 1E-8    -0.003256697   0.000848498   0.001262300       0.000000000
 "RFCAVITY1: Symp_Lie_PTC dSpin"                  ABS 1E-8    -0.006296715   0.001597613   0.002451727       0.000000000
 "RFCAVITY1: Runge_Kutta dSpin"                   ABS 1E-8    -0.003216472   0.000838179   0.001246738       0.000000000
+"RFCAVITY1: Linear dSpin"                        ABS 1E-8    -0.003370845   0.000879675   0.001304928      -0.000000000
 "RFCAVITY1: Time_Runge_Kutta dSpin"              ABS 1E-8    -0.003216472   0.000838179   0.001246738       0.000000000
 "RFCAVITY1: Taylor dSpin"                        ABS 1E-8    -0.006296840   0.001597476   0.002451909      -0.000000000
  
@@ -351,6 +375,7 @@
 "RFCAVITY2: Bmad_Standard dSpin"                 ABS 1E-8    -0.000437472   0.000044629   0.000226535       0.000000000
 "RFCAVITY2: Symp_Lie_PTC dSpin"                  ABS 1E-8    -0.000955504   0.000274322   0.000352732      -0.000000000
 "RFCAVITY2: Runge_Kutta dSpin"                   ABS 1E-8    -0.000660591   0.000204680   0.000232078       0.000000000
+"RFCAVITY2: Linear dSpin"                        ABS 1E-8    -0.000670388   0.000189716   0.000249912       0.000000000
 "RFCAVITY2: Time_Runge_Kutta dSpin"              ABS 1E-8    -0.000660591   0.000204680   0.000232078       0.000000000
 "RFCAVITY2: Taylor dSpin"                        ABS 1E-8    -0.000955592   0.000274136   0.000352934       0.000000000
  
@@ -364,6 +389,7 @@
 "RFCAVITY3: Bmad_Standard dSpin"                 ABS 1E-8     0.000000000   0.000000000  -0.000000000      -0.000000000
 "RFCAVITY3: Symp_Lie_PTC dSpin"                  ABS 1E-8    -0.007153934   0.000359187   0.003938194       0.000000000
 "RFCAVITY3: Runge_Kutta dSpin"                   ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
+"RFCAVITY3: Linear dSpin"                        ABS 1E-8     0.000000000   0.000000000  -0.000000000      -0.000000000
 "RFCAVITY3: Time_Runge_Kutta dSpin"              ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
 "RFCAVITY3: Taylor dSpin"                        ABS 1E-8    -0.007153945   0.000359174   0.003938210       0.000000000
  
@@ -376,6 +402,7 @@
 "SAD_MULT1: Bmad_Standard dSpin"                 ABS 1E-8     0.019631316  -0.015518910   0.000010113       0.000000000
 "SAD_MULT1: Symp_Lie_PTC dSpin"                  ABS 1E-8     0.019853556  -0.015907470   0.000166604      -0.000000000
 "SAD_MULT1: Runge_Kutta dSpin"                   ABS 1E-8     0.019628876  -0.015521182   0.000013420       0.000000000
+"SAD_MULT1: Linear dSpin"                        ABS 1E-8     0.019631317  -0.015518909   0.000010112      -0.000000000
 "SAD_MULT1: Taylor dSpin"                        ABS 1E-8     0.019853252  -0.015907739   0.000167004       0.000000000
  
 "SAD_MULT2: Bmad_Standard"                      ABS 2e-14   1.0000000000E-03  2.3792416000E-03  3.0000000000E-03  4.2699712000E-03  5.0000000000E-03  6.0000000000E-03  0.0000000000E+00
@@ -387,6 +414,7 @@
 "SAD_MULT2: Bmad_Standard dSpin"                 ABS 1E-8     0.000188880   0.000134458  -0.000220997       0.000000000
 "SAD_MULT2: Symp_Lie_PTC dSpin"                  ABS 1E-8     0.000188880   0.000134458  -0.000220997       0.000000000
 "SAD_MULT2: Runge_Kutta dSpin"                   ABS 1E-8     0.000000000   0.000000000   0.000000000       0.000000000
+"SAD_MULT2: Linear dSpin"                        ABS 1E-8     0.000188880   0.000134458  -0.000220997       0.000000000
 "SAD_MULT2: Taylor dSpin"                        ABS 1E-8     0.000189251   0.000129487  -0.000217240       0.000000000
  
 "SBEND1: Bmad_Standard"                         ABS 2e-14   4.2299388366E-03  8.7220791624E-03  5.9565881037E-03  5.9693051335E-03  5.9356080595E-03  5.9993538758E-03  8.3115162051E-10
@@ -399,6 +427,7 @@
 "SBEND1: Bmad_Standard dSpin"                    ABS 1E-8     0.003728962   0.001079532  -0.003125844       0.000000000
 "SBEND1: Symp_Lie_PTC dSpin"                     ABS 1E-8     0.003737471   0.001073217  -0.003125948       0.000000000
 "SBEND1: Runge_Kutta dSpin"                      ABS 1E-8     0.003729034   0.001079563  -0.003125914       0.000000000
+"SBEND1: Linear dSpin"                           ABS 1E-8     0.003728947   0.001079527  -0.003125831       0.000000000
 "SBEND1: Time_Runge_Kutta dSpin"                 ABS 1E-8     0.003729035   0.001079563  -0.003125914       0.000000000
 "SBEND1: Taylor dSpin"                           ABS 1E-8     0.003737472   0.001073217  -0.003125949       0.000000000
  
@@ -412,6 +441,7 @@
 "RBEND2: Bmad_Standard dSpin"                    ABS 1E-8    -0.001339172  -0.000632909   0.001305931       0.000000000
 "RBEND2: Symp_Lie_PTC dSpin"                     ABS 1E-8    -0.001340611  -0.000631746   0.001305862       0.000000000
 "RBEND2: Runge_Kutta dSpin"                      ABS 1E-8    -0.001339179  -0.000632909   0.001305935       0.000000000
+"RBEND2: Linear dSpin"                           ABS 1E-8    -0.001339171  -0.000632909   0.001305930       0.000000000
 "RBEND2: Time_Runge_Kutta dSpin"                 ABS 1E-8    -0.001339179  -0.000632909   0.001305935       0.000000000
 "RBEND2: Taylor dSpin"                           ABS 1E-8    -0.001340611  -0.000631747   0.001305862       0.000000000
  
@@ -425,6 +455,7 @@
 "SBEND3: Bmad_Standard dSpin"                    ABS 1E-8     0.002830975   0.000599824  -0.002191622       0.000000000
 "SBEND3: Symp_Lie_PTC dSpin"                     ABS 1E-8     0.002837596   0.000594745  -0.002191562      -0.000000000
 "SBEND3: Runge_Kutta dSpin"                      ABS 1E-8     0.002830980   0.000599826  -0.002191627       0.000000000
+"SBEND3: Linear dSpin"                           ABS 1E-8     0.002830962   0.000599818  -0.002191609       0.000000000
 "SBEND3: Time_Runge_Kutta dSpin"                 ABS 1E-8     0.002830981   0.000599826  -0.002191627       0.000000000
 "SBEND3: Taylor dSpin"                           ABS 1E-8     0.002837596   0.000594744  -0.002191561       0.000000000
  
@@ -438,6 +469,7 @@
 "RBEND4: Bmad_Standard dSpin"                    ABS 1E-8     0.002572425   0.000146468  -0.001670057       0.000000000
 "RBEND4: Symp_Lie_PTC dSpin"                     ABS 1E-8     0.002572612   0.000145177  -0.001669135      -0.000000000
 "RBEND4: Runge_Kutta dSpin"                      ABS 1E-8     0.002572426   0.000146466  -0.001670057       0.000000000
+"RBEND4: Linear dSpin"                           ABS 1E-8     0.002572425   0.000146468  -0.001670057       0.000000000
 "RBEND4: Time_Runge_Kutta dSpin"                 ABS 1E-8     0.002572426   0.000146466  -0.001670057       0.000000000
 "RBEND4: Taylor dSpin"                           ABS 1E-8     0.002572612   0.000145177  -0.001669135       0.000000000
  
@@ -451,6 +483,7 @@
 "SBEND5: Bmad_Standard dSpin"                    ABS 1E-8    -0.000444807  -0.000141467   0.000379696       0.000000000
 "SBEND5: Symp_Lie_PTC dSpin"                     ABS 1E-8    -0.000444816  -0.000142014   0.000380138      -0.000000000
 "SBEND5: Runge_Kutta dSpin"                      ABS 1E-8    -0.000444806  -0.000141468   0.000379696       0.000000000
+"SBEND5: Linear dSpin"                           ABS 1E-8    -0.000444807  -0.000141467   0.000379696       0.000000000
 "SBEND5: Time_Runge_Kutta dSpin"                 ABS 1E-8    -0.000444806  -0.000141468   0.000379696       0.000000000
 "SBEND5: Taylor dSpin"                           ABS 1E-8    -0.000444816  -0.000142014   0.000380138      -0.000000000
  
@@ -464,6 +497,7 @@
 "RBEND6: Bmad_Standard dSpin"                    ABS 1E-8     0.002602805   0.000149366  -0.001690831       0.000000000
 "RBEND6: Symp_Lie_PTC dSpin"                     ABS 1E-8     0.002602995   0.000148068  -0.001689904       0.000000000
 "RBEND6: Runge_Kutta dSpin"                      ABS 1E-8     0.002602806   0.000149364  -0.001690831       0.000000000
+"RBEND6: Linear dSpin"                           ABS 1E-8     0.002602805   0.000149366  -0.001690831       0.000000000
 "RBEND6: Time_Runge_Kutta dSpin"                 ABS 1E-8     0.002602806   0.000149364  -0.001690831       0.000000000
 "RBEND6: Taylor dSpin"                           ABS 1E-8     0.002602995   0.000148068  -0.001689904       0.000000000
  
@@ -477,6 +511,7 @@
 "SBEND7: Bmad_Standard dSpin"                    ABS 1E-8    -0.000444802  -0.000141470   0.000379695       0.000000000
 "SBEND7: Symp_Lie_PTC dSpin"                     ABS 1E-8    -0.000444811  -0.000142017   0.000380138       0.000000000
 "SBEND7: Runge_Kutta dSpin"                      ABS 1E-8    -0.000444801  -0.000141471   0.000379696       0.000000000
+"SBEND7: Linear dSpin"                           ABS 1E-8    -0.000444802  -0.000141470   0.000379695       0.000000000
 "SBEND7: Time_Runge_Kutta dSpin"                 ABS 1E-8    -0.000444801  -0.000141471   0.000379696       0.000000000
 "SBEND7: Taylor dSpin"                           ABS 1E-8    -0.000444811  -0.000142017   0.000380138       0.000000000
  
@@ -490,6 +525,7 @@
 "SEXTUPOLE1: Bmad_Standard dSpin"                ABS 1E-8     0.000059645  -0.000347551   0.000242071       0.000000000
 "SEXTUPOLE1: Symp_Lie_PTC dSpin"                 ABS 1E-8     0.000059656  -0.000347552   0.000242065       0.000000000
 "SEXTUPOLE1: Runge_Kutta dSpin"                  ABS 1E-8     0.000059645  -0.000347551   0.000242071       0.000000000
+"SEXTUPOLE1: Linear dSpin"                       ABS 1E-8     0.000059645  -0.000347551   0.000242070       0.000000000
 "SEXTUPOLE1: Time_Runge_Kutta dSpin"             ABS 1E-8     0.000059645  -0.000347551   0.000242071       0.000000000
 "SEXTUPOLE1: Taylor dSpin"                       ABS 1E-8     0.000059656  -0.000347552   0.000242065       0.000000000
  
@@ -504,6 +540,7 @@
 "SOLENOID1: Bmad_Standard dSpin"                 ABS 1E-8    -0.342691051  -0.906915339  -0.008864261       0.000000000
 "SOLENOID1: Symp_Lie_PTC dSpin"                  ABS 1E-8    -0.342704400  -0.906917274  -0.008867419      -0.000000000
 "SOLENOID1: Runge_Kutta dSpin"                   ABS 1E-8    -0.342705790  -0.906914541  -0.008864720       0.000000000
+"SOLENOID1: Linear dSpin"                        ABS 1E-8    -0.342691051  -0.906915339  -0.008864261       0.000000000
 "SOLENOID1: Time_Runge_Kutta dSpin"              ABS 1E-8    -0.342705790  -0.906914542  -0.008864720       0.000000000
 "SOLENOID1: Taylor dSpin"                        ABS 1E-8    -0.342704397  -0.906917274  -0.008867419       0.000000000
 "SOLENOID1: Symp_Lie_Bmad dSpin"                 ABS 1E-8    -0.342680800  -0.906908795  -0.008856617       0.000000000
@@ -519,6 +556,7 @@
 "SOLENOID2: Bmad_Standard dSpin"                 ABS 1E-8     0.000000000  -0.000000000   0.000000000      -0.000000000
 "SOLENOID2: Symp_Lie_PTC dSpin"                  ABS 1E-8     0.000000000  -0.000000000   0.000000000       0.000000000
 "SOLENOID2: Runge_Kutta dSpin"                   ABS 1E-8     0.000000000  -0.000000000   0.000000000      -0.000000000
+"SOLENOID2: Linear dSpin"                        ABS 1E-8     0.000000000  -0.000000000   0.000000000      -0.000000000
 "SOLENOID2: Time_Runge_Kutta dSpin"              ABS 1E-8     0.000000000  -0.000000000   0.000000000      -0.000000000
 "SOLENOID2: Taylor dSpin"                        ABS 1E-8     0.000000000  -0.000000000   0.000000000       0.000000000
 "SOLENOID2: Symp_Lie_Bmad dSpin"                 ABS 1E-8     0.000000000  -0.000000000   0.000000000      -0.000000000
@@ -534,6 +572,7 @@
 "SOL_QUAD1: Bmad_Standard dSpin"                 ABS 1E-8    -0.356122296  -0.891175099   0.005566326      -0.000000000
 "SOL_QUAD1: Symp_Lie_PTC dSpin"                  ABS 1E-8    -0.354019846  -0.889085068   0.007816554       0.000000000
 "SOL_QUAD1: Runge_Kutta dSpin"                   ABS 1E-8    -0.353844601  -0.888927632   0.007986742       0.000000000
+"SOL_QUAD1: Linear dSpin"                        ABS 1E-8    -0.356118624  -0.891334810   0.005411520       0.000000000
 "SOL_QUAD1: Time_Runge_Kutta dSpin"              ABS 1E-8    -0.353844662  -0.888927684   0.007986685       0.000000000
 "SOL_QUAD1: Taylor dSpin"                        ABS 1E-8    -0.354019845  -0.889085094   0.007816529       0.000000000
 "SOL_QUAD1: Symp_Lie_Bmad dSpin"                 ABS 1E-8    -0.356106209  -0.891669983   0.005086845       0.000000000
@@ -549,6 +588,7 @@
 "SOL_QUAD2: Bmad_Standard dSpin"                 ABS 1E-8    -0.342696721  -0.906917946  -0.008867446      -0.000000000
 "SOL_QUAD2: Symp_Lie_PTC dSpin"                  ABS 1E-8    -0.342704209  -0.906917190  -0.008867317       0.000000000
 "SOL_QUAD2: Runge_Kutta dSpin"                   ABS 1E-8    -0.342705599  -0.906914459  -0.008864618       0.000000000
+"SOL_QUAD2: Linear dSpin"                        ABS 1E-8    -0.342690845  -0.906915250  -0.008864152       0.000000000
 "SOL_QUAD2: Time_Runge_Kutta dSpin"              ABS 1E-8    -0.342705599  -0.906914459  -0.008864618       0.000000000
 "SOL_QUAD2: Taylor dSpin"                        ABS 1E-8    -0.342704206  -0.906917191  -0.008867317       0.000000000
 "SOL_QUAD2: Symp_Lie_Bmad dSpin"                 ABS 1E-8    -0.342680593  -0.906908706  -0.008856507       0.000000000
@@ -563,6 +603,7 @@
 "THICK_MULTIPOLE1: Bmad_Standard dSpin"          ABS 1E-8    -0.000213093  -0.000000659   0.000128321       0.000000000
 "THICK_MULTIPOLE1: Symp_Lie_PTC dSpin"           ABS 1E-8    -0.000212866  -0.000000593   0.000128133       0.000000000
 "THICK_MULTIPOLE1: Runge_Kutta dSpin"            ABS 1E-8    -0.000212838  -0.000000635   0.000128149       0.000000000
+"THICK_MULTIPOLE1: Linear dSpin"                 ABS 1E-8    -0.000213093  -0.000000627   0.000128295       0.000000000
 "THICK_MULTIPOLE1: Time_Runge_Kutta dSpin"       ABS 1E-8    -0.000212838  -0.000000635   0.000128149       0.000000000
 "THICK_MULTIPOLE1: Taylor dSpin"                 ABS 1E-8    -0.000211791  -0.000001152   0.000127935       0.000000000
  
@@ -571,6 +612,7 @@
 "TAYLOR1: Linear"                               ABS 2e-14   8.9974024849E-03  2.2760823731E-03  2.8346981557E-03  3.9980996217E-03  4.8641436623E-03  6.0478431988E-03  2.2626215138E-15
 "TAYLOR1: Taylor"                               ABS 2e-14   8.9974024849E-03  2.2760823731E-03  2.8346981557E-03  3.9980996217E-03  4.8641436623E-03  6.0478431988E-03  2.2626215138E-15
 "TAYLOR1: Symp_Lie_PTC dSpin"                    ABS 1E-8     0.365100671  -0.319463086  -0.726174495       0.000000000
+"TAYLOR1: Linear dSpin"                          ABS 1E-8     0.365100671  -0.319463086  -0.726174495       0.000000000
 "TAYLOR1: Taylor dSpin"                          ABS 1E-8     0.365100671  -0.319463086  -0.726174495       0.000000000
  
 "VKICKER1: Bmad_Standard"                       ABS 2e-14   8.8300638515E-03  1.5008329168E-03  3.2020435282E-02  8.9749920989E-03  1.1898633017E-02  6.0000000000E-03  2.0738619155E-15
@@ -583,6 +625,7 @@
 "VKICKER1: Bmad_Standard dSpin"                  ABS 1E-8    -0.000248412   0.002473952  -0.001839681       0.000000000
 "VKICKER1: Symp_Lie_PTC dSpin"                   ABS 1E-8    -0.000248412   0.002473952  -0.001839681      -0.000000000
 "VKICKER1: Runge_Kutta dSpin"                    ABS 1E-8    -0.000248412   0.002473952  -0.001839681       0.000000000
+"VKICKER1: Linear dSpin"                         ABS 1E-8    -0.000248412   0.002473952  -0.001839681      -0.000000000
 "VKICKER1: Time_Runge_Kutta dSpin"               ABS 1E-8    -0.000248412   0.002473952  -0.001839681       0.000000000
 "VKICKER1: Taylor dSpin"                         ABS 1E-8    -0.000248412   0.002473952  -0.001839681       0.000000000
  
@@ -595,6 +638,7 @@
 "WIGGLER_MAP1: Symp_Lie_Bmad"                   ABS 2e-14   6.8581932678E-02  5.0098332556E-02 -4.2693482564E-02 -2.4994200128E-02  7.5461474146E-03  6.0000000000E-03  5.3026159852E-15
 "WIGGLER_MAP1: Symp_Lie_PTC dSpin"               ABS 1E-8     0.026367886  -0.016248812  -0.003795376       0.000000000
 "WIGGLER_MAP1: Runge_Kutta dSpin"                ABS 1E-8     0.026107176  -0.016022686  -0.003798899       0.000000000
+"WIGGLER_MAP1: Linear dSpin"                     ABS 1E-8     0.026307419  -0.015944038  -0.003991446      -0.000000000
 "WIGGLER_MAP1: Time_Runge_Kutta dSpin"           ABS 1E-8     0.026107184  -0.016022673  -0.003798915       0.000000000
 "WIGGLER_MAP1: Taylor dSpin"                     ABS 1E-8     0.026367885  -0.016248817  -0.003795372       0.000000000
 "WIGGLER_MAP1: Symp_Lie_Bmad dSpin"              ABS 1E-8     0.026300732  -0.015933727  -0.003995030       0.000000000
@@ -610,6 +654,7 @@
 "WIGGLER_FLAT1: Bmad_Standard dSpin"             ABS 1E-8     0.000040925  -0.000032606   0.000001527       0.000000000
 "WIGGLER_FLAT1: Symp_Lie_PTC dSpin"              ABS 1E-8    -0.018676975  -0.001861674   0.012194522       0.000000000
 "WIGGLER_FLAT1: Runge_Kutta dSpin"               ABS 1E-8     0.000040933  -0.000032613   0.000001528       0.000000000
+"WIGGLER_FLAT1: Linear dSpin"                    ABS 1E-8     0.000087937  -0.000069435   0.000002773       0.000000000
 "WIGGLER_FLAT1: Time_Runge_Kutta dSpin"          ABS 1E-8     0.000040933  -0.000032614   0.000001528       0.000000000
 "WIGGLER_FLAT1: Taylor dSpin"                    ABS 1E-8    -0.018670931  -0.001861070   0.012190734       0.000000000
 "WIGGLER_FLAT1: Symp_Lie_Bmad dSpin"             ABS 1E-8     0.000087890  -0.000069398   0.000002772       0.000000000
@@ -621,6 +666,7 @@
 "WIGGLER_HELI1: Symp_Lie_Bmad"                  ABS 2e-14  -1.5560960373E-02 -3.6272884777E-02  8.0949879756E-03  6.9306499694E-03  6.2320962825E-03  6.0000000000E-03 -5.0816555824E-15
 "WIGGLER_HELI1: Bmad_Standard dSpin"             ABS 1E-8     0.000050009  -0.000054975   0.000013969       0.000000000
 "WIGGLER_HELI1: Runge_Kutta dSpin"               ABS 1E-8     0.000031399  -0.000040828   0.000013821       0.000000000
+"WIGGLER_HELI1: Linear dSpin"                    ABS 1E-8    -0.000047503   0.000053668  -0.000014438       0.000000000
 "WIGGLER_HELI1: Time_Runge_Kutta dSpin"          ABS 1E-8     0.000031400  -0.000040829   0.000013820       0.000000000
 "WIGGLER_HELI1: Symp_Lie_Bmad dSpin"             ABS 1E-8     0.000084488   0.000272926  -0.000269187      -0.000000000
  
@@ -634,6 +680,7 @@
 "LCAVITY1: Bmad_Standard dSpin"                  ABS 1E-8     0.000178525  -0.000048336  -0.000068485       0.000000000
 "LCAVITY1: Symp_Lie_PTC dSpin"                   ABS 1E-8     0.000306800  -0.000086901  -0.000114674       0.000000000
 "LCAVITY1: Runge_Kutta dSpin"                    ABS 1E-8     0.000178632  -0.000048387  -0.000068509       0.000000000
+"LCAVITY1: Linear dSpin"                         ABS 1E-8     0.000173506  -0.000047006  -0.000066535       0.000000000
 "LCAVITY1: Time_Runge_Kutta dSpin"               ABS 1E-8     0.000178632  -0.000048387  -0.000068509       0.000000000
 "LCAVITY1: Taylor dSpin"                         ABS 1E-8     0.000306800  -0.000086895  -0.000114679       0.000000000
  
@@ -647,6 +694,7 @@
 "LCAVITY2: Bmad_Standard dSpin"                  ABS 1E-8     0.000000177  -0.000000048  -0.000000068       0.000000000
 "LCAVITY2: Symp_Lie_PTC dSpin"                   ABS 1E-8     0.000000311  -0.000000088  -0.000000116       0.000000000
 "LCAVITY2: Runge_Kutta dSpin"                    ABS 1E-8     0.000000177  -0.000000048  -0.000000068      -0.000000000
+"LCAVITY2: Linear dSpin"                         ABS 1E-8     0.000000177  -0.000000048  -0.000000068       0.000000000
 "LCAVITY2: Time_Runge_Kutta dSpin"               ABS 1E-8     0.000000177  -0.000000048  -0.000000068       0.000000000
 "LCAVITY2: Taylor dSpin"                         ABS 1E-8     0.000000311  -0.000000088  -0.000000116       0.000000000
  
@@ -660,6 +708,7 @@
 "LCAVITY3: Bmad_Standard dSpin"                  ABS 1E-8     0.000015523  -0.000009421  -0.000001777       0.000000000
 "LCAVITY3: Symp_Lie_PTC dSpin"                   ABS 1E-8     0.000020818  -0.000012932  -0.000002146       0.000000000
 "LCAVITY3: Runge_Kutta dSpin"                    ABS 1E-8     0.000015457  -0.000009416  -0.000001742       0.000000000
+"LCAVITY3: Linear dSpin"                         ABS 1E-8     0.000015479  -0.000009351  -0.000001807      -0.000000000
 "LCAVITY3: Time_Runge_Kutta dSpin"               ABS 1E-8     0.000015457  -0.000009416  -0.000001742      -0.000000000
 "LCAVITY3: Taylor dSpin"                         ABS 1E-8     0.000020818  -0.000012930  -0.000002147       0.000000000
  
