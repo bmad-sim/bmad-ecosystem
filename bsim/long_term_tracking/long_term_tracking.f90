@@ -22,16 +22,20 @@ track1_bunch_hook_ptr => ltt_track1_bunch_hook
 call ltt_read_params(lttp, ltt_com)
 call ltt_init_params(lttp, ltt_com)
 call ltt_init_tracking (lttp, ltt_com, beam)
-call ltt_print_inital_info (lttp, ltt_com)
+call ltt_write_averages_header (lttp, ltt_com)
 
 call run_timer ('START')
 
 select case (lttp%simulation_mode)
-case ('BEAM');       call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam) ! Beam tracking
 case ('CHECK');      call ltt_run_check_mode(lttp, ltt_com)      ! A single turn tracking check
-case ('INDIVIDUAL'); call ltt_run_individual_mode(lttp, ltt_com) ! Particle-by-particle tracking.
 case ('SINGLE');     call ltt_run_single_mode(lttp, ltt_com)     ! Single particle tracking.
 case ('STAT');       call ltt_run_stat_mode(lttp, ltt_com)       ! Lattice statistics (radiation integrals, etc.).
+case ('BEAM')       
+  call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam) ! Beam tracking
+  call ltt_run_extraction(lttp, ltt_com, beam)
+case ('INDIVIDUAL')
+  call ltt_run_individual_mode(lttp, ltt_com, beam) ! Particle-by-particle tracking.
+  call ltt_run_extraction(lttp, ltt_com, beam)
 case default
   print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
 end select

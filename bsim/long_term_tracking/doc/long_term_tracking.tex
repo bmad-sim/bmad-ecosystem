@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ December 6, 2023}
+\date{David Sagan \\ January 14, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -246,8 +246,8 @@ final position of the particles. The \vn{"INDIVIDUAL"} mode is useful for the si
 is ramping (\sref{s:ramp}) and individual are seeing different guide fields due to the time
 separation between particles. Specifically, the \vn{"INDIVIDUAL"} mode is useful for simulating
 resonant slow extraction. The file name for the ending particle positions is set by
-\vn{ltt%phase_space_output_file} for ASCII output and \vn{ltt%beam_binary_output_file} for binary
-output.
+\vn{ltt%beam_output_file} for a portable beam file output. If \vn{ltt%beam_output_file} has
+a "\vn{.h5}" or "\vn{.hdf5}" suffix, the beam file will have a binary format for minimal file size.
 %
 \item["BEAM"] \Newline
 In this mode a particle beam is tracked for \vn{ltt%n_turns} turns. Beam statistics are recorded
@@ -496,9 +496,65 @@ program will detect if there is a conflict and issue an error message and stop.
 The \vn{ltt%ix_turn_start} parameter can be used to start tracking at any turn. This can be useful if a
 simulation is accidentally interrupted. In this case the beam positions can be saved by setting
 \begin{code}
-  ltt%beam_binary_output_file
+  ltt%beam_output_file
   ltt%beam_output_every_n_turns
 \end{code}
+
+%------------------------------------------------------------------
+\Section{Extraction Simulations}
+\label{s:extract}
+
+An extraction simulation involves tracking particles for some number of turns in a ring and then
+tracking particles through an extraction line. To turn on extraction tracking, the \vn{ltt%extraction_mode}
+must be set to "\vn{ON}". The default value of \vn{ltt%extraction_mode} is blank ("") which disables
+extraction tracking.
+
+Extraction can be used with \vn{ltt%simulation_mode} set to "\vn{BEAM}" or "\vn{INDIVIDUAL}".
+Extraction tracking with "\vn{INDIVIDUAL}" and "\vn{BEAM}" simulation modes are somewhat different.
+
+With the "\vn{BEAM}" simulation mode, the beam is tracked in the ring from its ending point set by
+\vn{ltt%ele_start} until the beam reaches a \vn{fork} element (see the Bmad manual for documentation
+on fork elements). The \vn{ele_start} element may itself be a \vn{fork} element in which case no
+tracking through the ring needs to be done. The beam is switched to the ``forked-to'' lattice branch
+(extraction line) and the tracking is continued to the end of the branch. If the last element in the
+branch is another \vn{fork} element, or if there is a \vn{fork} element just before the end element
+and the end element is a \vn{marker}, the beam will be switched to the forked-to branch of this
+latest fork and the tracking will be continued in a similar fashion until the beam gets to the end
+of a branch without a fork element at the end. Note: Having a beam injected from a line into a
+ring is not currently implemented but is contemplated as a future upgrade.
+
+Averages files (\sref{s:beam.ave.dat}) will be generated for the extraction tracking. Here, instead
+of each line showing averages at a particular turn, each line shows averages at a particular lattice
+element starting from the \vn{septum} for "\vn{INDIVIDUAL}" tracking and starting at the
+\vn{ltt%ele_start} element for "\vn{BEAM}" tracking. The \vn{S_pos} column in the files are the
+distance from the element where the averages are being recorded to the ring \vn{fork}
+element. Distances will be negative for elements in the ring before the fork element. To distinguish
+the averages files for the extraction tracking from the averages files generated from ring tracking,
+the extraction averages files will have a "\vn{extraction-}" prefixed to the name given by
+\vn{ltt%averages_output_file}.
+
+To record the beam distribution along the extraction line, the \vn{ltt%ele_write_at} string may be
+set and at all lattice elements that match to this string, the beam distribution will be output to a
+file. See the section in the Bmad manual ``Matching to Lattice Element Names'' for details of how
+elements are matched to match strings. For example, the string "\vn{q*, marker::*}" will match to
+all elements whose name begins with ``\vn{Q}'' and all \vn{marker} elements. A separate data file is
+generated for the output at different lattice elements with the name of the file of the form
+\begin{code}
+  <branch-index>.<ele-index>_<ele-name>_<ltt%beam_output_file>
+\end{code}
+where \vn{<branch-index>} and \vn{<ele-index>} are the branch and element indexes of the lattice element
+and \vn{<ele-name>} is the element name. If \vn{ltt%beam_output_file} is blank, the name "\vn{beam.h5}"
+will be used
+
+With the "\vn{INDIVIDUAL}" simulation mode, it is assumed that there is a septum and that particles
+that are outside of the aperture set for the septum are to be tracked through the extraction line
+the \vn{ltt%ele_extract} parameter must be set to the name of the septum. Extraction tracking starts
+with particles that have hit the septum having their \vn{state} switched from dead to alive and vice
+versa for the other particles. Tracking from the septum is the same as with "\vn{BEAM}" simulation mode
+tracking from the \vn{ltt%ele_start} point.
+
+Note: With the "\vn{MAP}" tracking method, the \vn{fork} element (and the septum element if needed)
+must be excluded from being in any map sections.
 
 %------------------------------------------------------------------
 \Section{Initial Particle Positions}
@@ -628,17 +684,16 @@ program. The master input file must contain a single namelist (\sref{s:namelist}
 Example:
 \begin{code}
 &params
-  ! Input
-  ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
+  ltt%lat_file   =  "lat.bmad"       ! Bmad lattice file
   ltt%ramping_on = F
   ltt%ramp_update_each_particle = F
-  ltt%ramping_start_time = 0
-
-  ! Simulation parameters
+  ltt%ramping_start_time        = 0
+  ltt%extraction_method         = ""
   ltt%simulation_mode           = "BEAM"
   ltt%tracking_method           = "BMAD"
   ltt%ele_start                 = ""
-  ltt%ele_stop                  = ""      ! Used for "CHECK" simulation_mode 
+  ltt%ele_stop                  = ""      ! Used for "CHECK" simulation_mode.
+  ltt%ele_write_at              = ""      ! Used with extraction lines.
   ltt%n_turns                   = 1000
   ltt%ix_turn_start             = 0
   ltt%ix_turn_end               = -1
@@ -674,7 +729,7 @@ Example:
   ! Output parameters
   ltt%phase_space_output_file = ""
   ltt%action_angle_output_file = ""
-  ltt%beam_binary_output_file = "beam.dat"
+  ltt%beam_output_file = "beam.h5"
   ltt%averages_output_file = "average.dat"
   ltt%custom_output_file = ""
   ltt%per_particle_output_file = ""
@@ -742,6 +797,10 @@ default value for \vn{ltt%dead_cutoff} is 0.99
 \item[ltt\%debug] \Newline
 This parameter is used for debugging the program. This is not of interest to the general user.
 %
+\item[ltt\%ele_extract] \Newline
+Used with extraction tracking in "\vn{INDIVIDUAL}" simulation mode (\sref{s:extract}) to designate
+the septum magnet. 
+%
 \item[ltt\%ele_start] \Newline
 Name or element index of the element to start the tracking. Examples:
 \begin{code}
@@ -757,11 +816,24 @@ Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"} only. \vn{ttl%ele_stop
 point for tracking to be the downstream edge of the element. Also see \vn{ltt%ele_start}. Default
 if not set or set to a blank string is for \vn{ltt%ele_stop} to be equal to \vn{tll%ele_start}.
 %
+\item[ltt\%ele_write_at] \Newline
+List of elements to write beam distributions at when doing extraction tracking (\sref{s:extract}).
+See the section in the Bmad manual ``Matching to Lattice Element Names'' for details of how elements
+are matched to match strings. For example, the string "\vn{q*, marker::*}" will match to all
+elements whose name begins with ``\vn{Q}'' and all \vn{marker} elements.
+%
 \item[ltt\%exclude_from_maps] \Newline
 List of elements to exclude when constructing maps for \vn{SLICK} tracking. These elements will be
 individually tracking. The default value is \vn{"beambeam::*"} which excludes any \vn{beambeam}
 element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
 the format for such lists.
+%
+\item[ltt\%extraction_method] \Newline
+Set extraction method (\sref{s:extract}). Possibilities are
+\begin{code}
+""            No extraction tracking
+"ON"          Do extraction tracking
+\end{code}
 %
 \item[ltt\%ix_turn_start, ltt\%ix_turn_stop] \Newline
 These parameters are used to select the starting (\vn{ltt%ix_turn_start}) and stopping
@@ -891,7 +963,9 @@ action-angle coordinates. Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}.
 \item[ltt\%averages_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}.  The \vn{ltt%averages_output_file} parameter
 sets the prefix used for the file names for the \vn{averages}, \vn{sigma} and \vn{emittance} data
-files (\sref{s:beam.ave.dat}).
+files (\sref{s:beam.ave.dat}). To distinguish the averages files for the extraction tracking
+(\sref{s:extract}) from the averages files generated from ring tracking, the extraction averages
+files will have a "\vn{extraction-}" prefixed to the name given by \vn{ltt%averages_output_file}.
 %
 \item[ltt\%averages_output_every_n_turns] \Newline
 Sets the number of turns between data rows of data files specified by:
@@ -901,21 +975,34 @@ ltt%custom_output_file    \sref{s:beam.cust.dat}
 \end{code}
 For particle phase space output, use the \vn{particle_output_every_n_turns} parameter.
 %
-\item[ltt\%beam_binary_output_file] \Newline
+\item[ltt\%beam_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"INDIVIDUAL"}. This parameter sets the
-name of the file that is created to hold particle positions. This is similar to
-\vn{ltt%phase_space_output_file} but here the file will be a binary file that is portable to other
-programs and can also be used as input to the \ltt program. wITH \vn{"BEAM"} mode, a beam file will
-be created every \vn{ltt%beam_output_every_n_turns} turns if this quantity is
-positive. Additionally, a beam file will be produced at the end of tracking. A beam file will be
-given a suffix \vn{.NNNN.h5} where \vn{NNNN} is the turn number. To save disk space, every time a
-new beam file is created, if there is an old beam file it will be deleted.
+name of the portable file that is created to hold particle positions. The default is
+"\vn{beam.h5}". If \vn{ltt%beam_output_file} is set to a blank string, no beam file will be produced.
 
-To translate to ASCII, use the \vn{beam_file_translate_format} program. Documentation is in any Bmad
-Distribution in the file:
+This is similar to \vn{ltt%phase_space_output_file} but here the file will be
+portable to other programs and can also be used as input to the \ltt program. With \vn{"BEAM"} mode,
+a beam file will be created every \vn{ltt%beam_output_every_n_turns} turns if this quantity is
+positive. Additionally, a beam file will be produced at the end of tracking.
+
+When tracking through a ring, the created beam file name will have the string \vn{-NNNN}, where
+\vn{NNNN} is the turn number, added to \vn{ltt%beam_output_file} just before any file name suffix
+present. To save disk space, every time a new beam file is created, if there is an old beam file it
+will be deleted. When doing extraction tracking, the created_beam file name will have the form
+\begin{code}
+  name = <ix_branch>.<ix_ele>_<ele_name>-lttp%beam_output_file
+\end{code}
+where \vn{<ix_branch>} is the element branch index and \vn{<ix_ele>} is the element index.
+
+If \vn{ltt%beam_output_file} has a "\vn{.h5}" or "\vn{.hdf5}" suffix, the beam file will have a
+binary format for minimal file size.  Otherwise the format is ASCII. To translate existing files
+between binary and ASCII, use the \vn{beam_file_translate_format} program. Documentation is in any
+Bmad Distribution in the file:
 \begin{code}
   util_programs/beam_file_translate_format/DOC
 \end{code}
+
+Beam output
 
 To use a beam file that has been generated on a previous run with a new run set \vn{beam_init%file_name}
 to the name of the beam file.
@@ -1194,7 +1281,7 @@ Be aware when reading the literature that there are two definitions of kurtosis 
 difference being whether three is subtracted off or not.
   }
 a beam with a Gaussian distribution will have zero kurtosis. A positive kurtosis indicates more
-particle in the tail than a standard Gaussian and a negative kurtosis indicates less particles.
+particles in the tail compared to the standard Gaussian and a negative kurtosis indicates less particles.
 
 It is important to keep in mind that the value of the kurtosis says nothing about the distribution
 of particles near the center of the bunch. This is illustrated in Fig.~\ref{f:gauss}. This figure
@@ -1204,7 +1291,7 @@ has been constructed to have the same sigma equal to one. The Gaussian curve has
 expected and the other two have a kurtosis equal to 2 due to each having a tail that varies as
 $1/x^6$ for $|x|$ large. Despite the two non-Gaussian curves having the same kurtosis, the shape of
 the distributions in the core region are quite different with one being peaked in the center
-relative to the Gaussian and the other being flattened relative to the Gaussian. To characterize the
+relative to the Gaussian and the other being flattened. To characterize the
 core, there is the core emittance (\sref{s:core}).
 
 %------------------------------------------------------------------
@@ -1331,6 +1418,13 @@ Skewness $\kappa_3$ is defined by
   i = x, y, \text{or}, z
 \end{equation}
 And kurtosis $\kappa_4$ is covered in Section~\ref{s:kurtosis}.
+
+The columns for averages files generated for elements in an extraction line (\sref{s:extract}) are
+slightly different. The \vn{Turn} column (first column) is replaced by \vn{S_pos} which is the
+distance from the element where the averages are being recorded to the ring \vn{fork}
+element. Distances will be negative for elements in the ring before the fork element. Additionally,
+there will be two additional columns at the end showing the element location (in the form
+``branch-index>>ele-index'') and the element name.
 
 %------------------------------------------------------------------
 \subsection{Beam Custom Data Output}

@@ -386,7 +386,7 @@ the \vn{from_branch} that forks to the beginning of the
 \vn{to_branch}. Appropriate code is:
 \begin{example}
   type (lat_struct), target :: lat   ! Lattice 
-  type (branch_struct) :: to_branch  ! Given downstream branch
+  type (branch_struct) :: to_branch  ! Given forked-to branch
   type (branch_struct), pointer  :: from_branch ! Base branch
   type (ele_struct), pointer :: fork_ele
   type (coord_struct), allocatable :: from_orbit(:), to_orbit(:)
@@ -417,7 +417,7 @@ element, called \vn{to_ele} in the \vn{to_branch} that is connected to
 \vn{fork_ele} need not be the starting element of \vn{to_branch}.
 \begin{example}
   type (lat_struct), target :: lat   ! Lattice 
-  type (branch_struct), pointer :: to_branch  ! downstream branch
+  type (branch_struct), pointer :: to_branch  ! forked-to branch
   type (ele_struct), pointer :: to_ele
   type (coord_struct), allocatable :: from_orbit(:), to_orbit(:)
   integer ib_to, ie_to
