@@ -109,7 +109,7 @@ if (ltt_com%mpi_rank == master_rank$) then
   call ltt_init_tracking (lttp, ltt_com, beam)
   call mpi_barrier (MPI_COMM_WORLD, ierr)
   if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
-  call ltt_print_inital_info (lttp, ltt_com)
+  call ltt_write_averages_header (lttp, ltt_com)
 
 else
   call mpi_barrier (MPI_COMM_WORLD, ierr)
@@ -127,13 +127,15 @@ case ('BEAM')
   if (.not. ltt_com%using_mpi) then
     print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
     call ltt_run_beam_mode(lttp, ltt_com, lttp%ix_turn_start, lttp%ix_turn_stop, beam)
+    call ltt_run_extraction(lttp, ltt_com, beam)
     stop
   endif
 
 case ('INDIVIDUAL')
   if (.not. ltt_com%using_mpi) then
     print '(a, i0)', 'Number of threads is one! (Need to use mpirun or mpiexec if on a single machine.)'
-    call ltt_run_individual_mode(lttp, ltt_com)
+    call ltt_run_individual_mode(lttp, ltt_com, beam)
+    call ltt_run_extraction(lttp, ltt_com, beam)
     stop
   endif
 
@@ -141,12 +143,9 @@ case default
   print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
 end select
 
-! Not using mpi if there is only one thread.
-
-
 !-----------------------------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------------------------
-! INDIVIDUAL simulation
+! MPI INDIVIDUAL simulation.
 
 if (lttp%simulation_mode == 'INDIVIDUAL') then
   dat_size = storage_size(beam%bunch(1)%particle(1)) / 8
@@ -216,7 +215,14 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
     ! And write data.
 
     if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii$)
-    if (lttp%beam_binary_output_file /= '')  call write_beam_file (lttp%beam_binary_output_file, beam, .true., hdf5$)
+    if (lttp%beam_output_file /= '')         call write_beam_file (lttp%beam_output_file, beam, .true.)
+
+    ! Extraction line tracking if needed
+
+    call ltt_run_extraction(lttp, ltt_com, beam)
+
+    ! And done.
+
     call mpi_finalize(ierr)
 
   !---------------------------------------------------------
@@ -245,7 +251,7 @@ endif
 
 !-----------------------------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------------------------
-! BEAM simulation
+! MPI BEAM simulation
 
 ! Init beam distribution in master
 
@@ -399,8 +405,12 @@ if (ltt_com%mpi_rank == master_rank$) then
     call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
     call ltt_write_averages_data (lttp, i_turn, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
-    call ltt_write_beam_binary_file(lttp, ltt_com, i_turn, beam)
+    call ltt_write_beam_file(lttp, ltt_com, i_turn, beam)
   enddo
+
+  ! Extraction
+
+  call ltt_run_extraction(lttp, ltt_com, beam)
 
   ! And end
 
@@ -408,6 +418,7 @@ if (ltt_com%mpi_rank == master_rank$) then
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: Final Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
   call run_timer ('ABS', now_time)
   call ltt_write_line('# tracking_time = ' // real_str((now_time-ltt_com%time_start)/60, 4, 2), lttp, 0)
+
   call mpi_finalize(ierr)
 
 !------------------------------------------------------------------------------------------

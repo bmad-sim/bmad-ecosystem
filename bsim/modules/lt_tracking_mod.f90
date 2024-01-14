@@ -40,12 +40,14 @@ end type
 type ltt_params_struct
   character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BEAM, STAT, INDIVIDUAL
   character(20) :: tracking_method = 'BMAD'   ! MAP, PTC, BMAD
+  character(20) :: extraction_method = ''     ! or ON
   character(100) :: exclude_from_maps = 'beambeam::*'
   character(40) :: ele_start = ''
   character(40) :: ele_stop = ''
   character(40) :: ele_extract = ''
+  character(100) :: ele_write_at = ''
   character(200) :: lat_file = ''
-  character(200) :: beam_binary_output_file = ''
+  character(200) :: beam_output_file = 'beam.h5'
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: map_ascii_output_file = ''
@@ -92,6 +94,7 @@ type ltt_params_struct
   character(200) :: sigma_matrix_output_file = ''  ! No longer used
   character(200) :: master_output_file = ''        ! No longer used
   character(200) :: particle_output_file = ''      ! Replaced by phase_space_output_file
+  character(200) :: beam_binary_output_file = ''   ! No longer used
   integer :: averaging_window = 1                  ! No longer used
   integer :: mpi_runs_per_subprocess = 4           ! No longer used
   logical :: split_bends_for_radiation = .false.   ! No longer used
@@ -141,7 +144,7 @@ type ltt_com_struct
   logical :: using_mpi = .false.
   logical :: track_bypass = .false.            ! Used by DA program
   character(200) :: master_input_file = ''
-  character(200) :: last_beam_binary_output_file = ''
+  character(200) :: last_beam_output_file = ''
   character(40) :: ps_fmt = '(2i7, 9es16.8, 3x, 3f13.9, 4x, a)'
 end type
 
@@ -227,16 +230,23 @@ open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close(1)
 
-!
+! Flag the setting of parameters that have been deprecated
 
-if (ltt%split_bends_for_radiation) then
-  print *, '"ltt%split_bends_for_radiation" has been renamed "ltt%split_bends_for_stochastic_rad".'
-  print *, 'And the manual has been updated to correctly describe what this parameter does.'
-  print *, 'Please change in the init file! Stopping here.'
+if (ltt%beam_binary_output_file /= '') then
+  call out_io (s_info$, r_name, &
+        '"ltt%beam_binary_output_file" has been replaced by "ltt%beam_output_file". ', &
+        'Beam file names with ".h5" or ".hdf5" suffix will be binary and otherwise will have an ASCII format.', &
+        'Please change your init file! Stopping here.')
   stop
 endif
 
-! Flag the setting of parameters that have been deprecated
+if (ltt%split_bends_for_radiation) then
+  call out_io (s_info$, r_name, &
+        '"ltt%split_bends_for_radiation" has been renamed "ltt%split_bends_for_stochastic_rad".', &
+        'And the manual has been updated to correctly describe what this parameter does.', &
+        'Please change in the init file! Stopping here.')
+  stop
+endif
 
 if (ltt%master_output_file /= '') then
   call out_io (s_info$, r_name, &
@@ -347,6 +357,16 @@ if (ltt%simulation_mode /= 'CHECK') then
     stop
   end select
 endif
+
+!
+
+call upcase_string(ltt%extraction_method)
+select case (ltt%extraction_method)
+case ('', 'ON')
+case default
+  print '(a)', 'UNKNOWN LTT%EXTRACTION_METHOD: ' // ltt%extraction_method
+  stop
+end select
 
 ! Start/stop turn indexes
 
@@ -616,7 +636,7 @@ end subroutine ltt_init_tracking
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_print_per_particle_file_header(lttp, ltt_com, beam)
+subroutine ltt_write_per_particle_file_header(lttp, ltt_com, beam)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -624,7 +644,7 @@ type (beam_struct), target :: beam
 
 integer ib, ip, iu, np
 character(200) file
-character(*), parameter :: r_name = 'ltt_print_per_particle_file_header'
+character(*), parameter :: r_name = 'ltt_write_per_particle_file_header'
 !
 
 if (lttp%per_particle_output_file == '') return
@@ -647,7 +667,7 @@ do ib = 1, size(beam%bunch)
   enddo
 enddo
 
-end subroutine ltt_print_per_particle_file_header
+end subroutine ltt_write_per_particle_file_header
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -686,31 +706,45 @@ end function ltt_per_particle_file_name
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_print_inital_info (lttp, ltt_com)
+subroutine ltt_write_averages_header (lttp, ltt_com, extracting)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (branch_struct), pointer :: branch
+
 integer i, ix, iu, nb, ib
-character(200) :: file_name
+logical, optional :: extracting
+
+character(8) t_str
+character(200) :: file_in, file_name
 character(2000) :: line1, line2
 
-! Print some info.
+!
 
 nb = max(1, ltt_com%beam_init%n_bunch)
 iu = lunget()
 if (lttp%averages_output_file == '') return
 
+if (logic_option(.false., extracting)) then
+  t_str = 'S_pos'
+  file_in = 'extraction-' // lttp%averages_output_file
+else
+  t_str = 'Turn'
+  file_in = lttp%averages_output_file
+endif
+
+!
+
 do ib = 0, nb
   if (ib == 0 .and. nb == 1) cycle  ! ib = zero is for all bunch averages if there is more than one bunch
-  call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  call ltt_averages_file_name(file_in, 'ave', ib, nb, file_name)
   open(iu, file = file_name, recl = 400)
 
-  call ltt_print_this_info(iu, .false.)
+  call ltt_write_this_info(iu, .false.)
 
-  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', '1', '2', '3', '4', '5', '6', '7', &
+  write (iu, '(a2, a8, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', '1', '2', '3', '4', '5', '6', '7', &
                   '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'
-  write (iu, '(a2, a7, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', 'Turn', 'N_live', 'Time', 'Polarization', &
+  write (iu, '(a2, a8, a9, 2a14, 3a14, 2x, 8a14, 2x, 6a14)') '##', trim(t_str), 'N_live', 'Time', 'Polarization', &
                    '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<pc>', '<p0c>', &
                    'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
 
@@ -718,15 +752,15 @@ do ib = 0, nb
 
   !
 
-  call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  call ltt_averages_file_name(file_in, 'sigma', ib, nb, file_name)
   open(iu, file = file_name, recl = 400)
 
-  call ltt_print_this_info(iu, .false.)
+  call ltt_write_this_info(iu, .false.)
 
-  write (iu, '(a2, a7, a9, a12, 2x, 21a14)') '##', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
+  write (iu, '(a2, a8, a9, a12, 2x, 21a14)') '##', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', &
                   '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24'
 
-  write (iu, '(a2, a7, a9, a12, 2x, 21a14)') '##', 'Turn', 'N_live', 'Time', &
+  write (iu, '(a2, a8, a9, a12, 2x, 21a14)') '##', trim(t_str), 'N_live', 'Time', &
     '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
     '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
 
@@ -734,15 +768,15 @@ do ib = 0, nb
 
   !
 
-  call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  call ltt_averages_file_name(file_in, 'emit', ib, nb, file_name)
   open(iu, file = file_name, recl = 2000)
 
-  call ltt_print_this_info(iu, .false.)
+  call ltt_write_this_info(iu, .false.)
 
-  write (line1, '(a2, a7, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '##', '1', '2', '3', &
+  write (line1, '(a2, a8, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '##', '1', '2', '3', &
                 '4', '5', '6', '7', '8', '9', '10', '11', '12', '  |'
 
-  write (line2, '(a2, a7, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '##', 'Turn', 'N_live', 'Time', &
+  write (line2, '(a2, a8, a10, a12, 2x, 3a14, 2x, 3a14, 2x, 3a14, a)') '##', trim(t_str), 'N_live', 'Time', &
                 'Emit_a', 'Emit_b', 'Emit_c', 'Kurtosis_x', 'Kurtosis_y', 'Kurtosis_z', 'Skew_x', 'Skew_y', 'Skew_z', '  |'
 
 
@@ -763,11 +797,11 @@ enddo
 !------------------------------------------------
 contains
 
-subroutine ltt_print_this_info(iu, print_this)
+subroutine ltt_write_this_info(iu, write_this)
 type(beam_init_struct), pointer :: bi
 integer iu, species
 real(rp) e_tot, a_gam, t0
-logical print_this
+logical write_this
 
 !
 
@@ -776,86 +810,101 @@ species = branch%ele(0)%ref_species
 e_tot = branch%ele(0)%value(e_tot$)
 a_gam = anomalous_moment_of(species) * e_tot / mass_of(species)
 t0 = branch%ele(branch%n_ele_track)%ref_time
-call ltt_write_line('# e_tot                                   = ' // real_str(e_tot, 6), lttp, iu, print_this)
-call ltt_write_line('# t_1turn                                 = ' // real_str(t0, 6), lttp, iu, print_this)
-call ltt_write_line('# anom_moment_times_gamma                 = ' // real_str(a_gam, 6), lttp, iu, print_this)
-call ltt_write_line('# master_input_file                       = ' // quote(ltt_com%master_input_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%lat_file                            = ' // quote(lttp%lat_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%averages_output_file                = ' // quote(lttp%averages_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%beam_binary_output_file             = ' // quote(lttp%beam_binary_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%custom_output_file                  = ' // quote(lttp%custom_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%per_particle_output_file            = ' // quote(lttp%per_particle_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%phase_space_output_file             = ' // quote(lttp%phase_space_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%action_angle_output_file            = ' // quote(lttp%action_angle_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%map_file_prefix                     = ' // quote(lttp%map_file_prefix), lttp, iu, print_this)
-call ltt_write_line('# ltt%simulation_mode                     = ' // quote(lttp%simulation_mode), lttp, iu, print_this)
-call ltt_write_line('# ltt%tracking_method                     = ' // quote(lttp%tracking_method), lttp, iu, print_this)
-call ltt_write_line('# ltt%ele_start                           = ' // quote(lttp%ele_start), lttp, iu, print_this)
-call ltt_write_line('# ltt%ele_stop                            = ' // quote(lttp%ele_stop), lttp, iu, print_this)
+call ltt_write_line('# e_tot                                   = ' // real_str(e_tot, 6), lttp, iu, write_this)
+call ltt_write_line('# t_1turn                                 = ' // real_str(t0, 6), lttp, iu, write_this)
+call ltt_write_line('# anom_moment_times_gamma                 = ' // real_str(a_gam, 6), lttp, iu, write_this)
+call ltt_write_line('# master_input_file                       = ' // quote(ltt_com%master_input_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%lat_file                            = ' // quote(lttp%lat_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%averages_output_file                = ' // quote(lttp%averages_output_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%beam_output_file                    = ' // quote(lttp%beam_output_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%custom_output_file                  = ' // quote(lttp%custom_output_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%per_particle_output_file            = ' // quote(lttp%per_particle_output_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%phase_space_output_file             = ' // quote(lttp%phase_space_output_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%action_angle_output_file            = ' // quote(lttp%action_angle_output_file), lttp, iu, write_this)
+call ltt_write_line('# ltt%map_file_prefix                     = ' // quote(lttp%map_file_prefix), lttp, iu, write_this)
+call ltt_write_line('# ltt%simulation_mode                     = ' // quote(lttp%simulation_mode), lttp, iu, write_this)
+call ltt_write_line('# ltt%tracking_method                     = ' // quote(lttp%tracking_method), lttp, iu, write_this)
+call ltt_write_line('# ltt%ele_start                           = ' // quote(lttp%ele_start), lttp, iu, write_this)
+
+call ltt_write_line('# ltt%extraction_method                   = ' // quote(lttp%extraction_method), lttp, iu, write_this)
+if (lttp%extraction_method /= '') then
+  call ltt_write_line('# ltt%ele_extract                         = ' // quote(lttp%ele_extract), lttp, iu, write_this)
+  call ltt_write_line('# ltt%ele_write_at                        = ' // quote(lttp%ele_write_at), lttp, iu, write_this)
+endif
+
+if (lttp%simulation_mode == 'CHECK') then
+  call ltt_write_line('# ltt%ele_stop                            = ' // quote(lttp%ele_stop), lttp, iu, write_this)
+endif
+
 if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
-  call ltt_write_line('# ltt%map_order                           = ' // int_str(lttp%map_order), lttp, iu, print_this)
-  call ltt_write_line('# ltt%exclude_from_maps                   = ' // quote(lttp%exclude_from_maps), lttp, iu, print_this)
-  call ltt_write_line('# ltt%symplectic_map_tracking             = ' // logic_str(lttp%symplectic_map_tracking), lttp, iu, print_this)
-  call ltt_write_line('# Number_of_maps                          = ' // int_str(ltt_com%num_maps), lttp, iu, print_this)
+  call ltt_write_line('# ltt%map_order                           = ' // int_str(lttp%map_order), lttp, iu, write_this)
+  call ltt_write_line('# ltt%exclude_from_maps                   = ' // quote(lttp%exclude_from_maps), lttp, iu, write_this)
+  call ltt_write_line('# ltt%symplectic_map_tracking             = ' // logic_str(lttp%symplectic_map_tracking), lttp, iu, write_this)
+  call ltt_write_line('# Number_of_maps                          = ' // int_str(ltt_com%num_maps), lttp, iu, write_this)
 endif
-call ltt_write_line('# ltt%split_bends_for_stochastic_rad      = ' // logic_str(lttp%split_bends_for_stochastic_rad), lttp, iu, print_this)
-call ltt_write_line('# ltt%core_emit_combined_calc             = ' // logic_str(lttp%core_emit_combined_calc), lttp, iu, print_this)
-call ltt_write_line('# ltt%use_rf_clock                        = ' // logic_str(lttp%use_rf_clock), lttp, iu, print_this)
-call ltt_write_line('# ltt%action_angle_calc_uses_1turn_matrix = ' // logic_str(lttp%action_angle_calc_uses_1turn_matrix), lttp, iu, print_this)
+
+call ltt_write_line('# ltt%split_bends_for_stochastic_rad      = ' // logic_str(lttp%split_bends_for_stochastic_rad), lttp, iu, write_this)
+call ltt_write_line('# ltt%core_emit_combined_calc             = ' // logic_str(lttp%core_emit_combined_calc), lttp, iu, write_this)
+call ltt_write_line('# ltt%use_rf_clock                        = ' // logic_str(lttp%use_rf_clock), lttp, iu, write_this)
+call ltt_write_line('# ltt%action_angle_calc_uses_1turn_matrix = ' // logic_str(lttp%action_angle_calc_uses_1turn_matrix), lttp, iu, write_this)
+
 if (bmad_com%sr_wakes_on) then
-  call ltt_write_line('# Number_of_wake_elements                 = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, print_this)
+  call ltt_write_line('# Number_of_wake_elements                 = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, write_this)
 endif
-call ltt_write_line('# ltt%random_sigma_cut                    = ' // real_str(lttp%random_sigma_cut, 6), lttp, iu, print_this)
-call ltt_write_line('# ltt%n_turns                             = ' // int_str(lttp%n_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lttp%ix_turn_start), lttp, iu, print_this)
-call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
-call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
-call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
-call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
-call ltt_write_line('# ltt%set_beambeam_z_crossing             = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
-call ltt_write_line('# ltt%random_seed                         = ' // int_str(lttp%random_seed), lttp, iu, print_this)
+
+call ltt_write_line('# ltt%random_sigma_cut                    = ' // real_str(lttp%random_sigma_cut, 6), lttp, iu, write_this)
+call ltt_write_line('# ltt%n_turns                             = ' // int_str(lttp%n_turns), lttp, iu, write_this)
+call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lttp%ix_turn_start), lttp, iu, write_this)
+call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, write_this)
+call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, write_this)
+call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, write_this)
+call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, write_this)
+call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, write_this)
+call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, write_this)
+call ltt_write_line('# ltt%set_beambeam_z_crossing             = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, write_this)
+call ltt_write_line('# ltt%random_seed                         = ' // int_str(lttp%random_seed), lttp, iu, write_this)
+
 if (lttp%random_seed == 0) then
-  call ltt_write_line('# random_seed_actual                      = ' // int_str(ltt_com%random_seed_actual), lttp, iu, print_this)
+  call ltt_write_line('# random_seed_actual                      = ' // int_str(ltt_com%random_seed_actual), lttp, iu, write_this)
 endif
-call ltt_write_line('# ltt%rfcavity_on                         = ' // logic_str(lttp%rfcavity_on), lttp, iu, print_this)
-call ltt_write_line('# is_RF_on                                = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?', lttp, iu, print_this)
-call ltt_write_line('# bmad_com%radiation_damping_on           = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%radiation_fluctuations_on      = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%spin_tracking_on               = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%sr_wakes_on                    = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
+
+call ltt_write_line('# ltt%rfcavity_on                         = ' // logic_str(lttp%rfcavity_on), lttp, iu, write_this)
+call ltt_write_line('# is_RF_on                                = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?', lttp, iu, write_this)
+call ltt_write_line('# bmad_com%radiation_damping_on           = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, write_this)
+call ltt_write_line('# bmad_com%radiation_fluctuations_on      = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, write_this)
+call ltt_write_line('# bmad_com%spin_tracking_on               = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, write_this)
+call ltt_write_line('# bmad_com%sr_wakes_on                    = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, write_this)
 
 bi => ltt_com%beam_init_used
 if (bi%a_emit /= real_garbage$) then
-  call ltt_write_line('# a_emit                                  = ' // real_str(bi%a_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# b_emit                                  = ' // real_str(bi%b_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# a_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# b_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# sig_z                                   = ' // real_str(bi%sig_z, 6), lttp, iu, print_this)
-  call ltt_write_line('# sig_pz                                  = ' // real_str(bi%sig_pz, 6), lttp, iu, print_this)
+  call ltt_write_line('# a_emit                                  = ' // real_str(bi%a_emit, 6), lttp, iu, write_this)
+  call ltt_write_line('# b_emit                                  = ' // real_str(bi%b_emit, 6), lttp, iu, write_this)
+  call ltt_write_line('# a_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, write_this)
+  call ltt_write_line('# b_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, write_this)
+  call ltt_write_line('# sig_z                                   = ' // real_str(bi%sig_z, 6), lttp, iu, write_this)
+  call ltt_write_line('# sig_pz                                  = ' // real_str(bi%sig_pz, 6), lttp, iu, write_this)
 endif
-call ltt_write_line('#--------------------------------------', lttp, iu, print_this)
+call ltt_write_line('#--------------------------------------', lttp, iu, write_this)
 
-end subroutine ltt_print_this_info
+end subroutine ltt_write_this_info
 
-end subroutine ltt_print_inital_info
+end subroutine ltt_write_averages_header
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_line (line, lttp, iu, print_this)
+subroutine ltt_write_line (line, lttp, iu, write_this)
 
 type (ltt_params_struct), optional :: lttp
 integer :: iu
 integer iv
-logical, optional :: print_this
+logical, optional :: write_this
 character(*) line
 
 !
 
-if (logic_option(.true., print_this)) print '(a)', trim(line)
+if (logic_option(.true., write_this)) print '(a)', trim(line)
 if (iu /= 0) write (iu, '(a)') trim(line)
 
 end subroutine ltt_write_line
@@ -989,8 +1038,10 @@ end subroutine ltt_run_check_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
+! Note: When running with MPI, the slaves will call ltt_run_single_mode directly.
+! That is, this routine is not called when using MPI.
 
-subroutine ltt_run_individual_mode (lttp, ltt_com)
+subroutine ltt_run_individual_mode (lttp, ltt_com, beam)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -1011,14 +1062,187 @@ do ib = 1, size(beam%bunch)
   enddo
 enddo
 
-! If using mpi then long_term_tracking_mpi will assemble the beam and call the write routines.
+!
 
-if (.not. ltt_com%using_mpi) then
-  if (lttp%per_particle_output_file /= '') call write_beam_file (lttp%per_particle_output_file, beam, .true., ascii$)
-  if (lttp%beam_binary_output_file /= '')  call write_beam_file (lttp%beam_binary_output_file, beam, .true., hdf5$)
+if (lttp%phase_space_output_file /= '') call write_beam_file (lttp%phase_space_output_file, beam, .true., ascii$)
+if (lttp%beam_output_file /= '') call write_beam_file (lttp%beam_output_file, beam, .true.)
+
+end subroutine ltt_run_individual_mode
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_run_extraction (lttp, ltt_com, beam)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+type (branch_struct), pointer :: branch
+type (coord_struct), pointer :: p
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: septum, fork, ele
+type (lat_struct), pointer :: lat
+
+real(rp) s_pos
+integer ib, ip, ii, nt, n_loc
+logical err
+
+!
+
+if (lttp%extraction_method == '') return   ! No extraction wanted
+
+lat => ltt_com%tracking_lat
+branch => lat%branch(ltt_com%ix_branch)
+
+! With INDIVIDUAL mode, only particles that have hit the septum aperture are to be
+! tracked through the extraction line.
+
+if (lttp%simulation_mode == 'INDIVIDUAL') then
+  call lat_ele_locator(lttp%ele_extract, lat, eles, n_loc, err, .true.)
+  if (n_loc == 0) then
+    print '(a)', 'CANNOT FIND LTT%ELE_EXTRACT ELEMENT: ' // quote(lttp%ele_extract)
+    stop
+  endif
+
+  if (n_loc > 1) then
+    print '(a)', 'MULTIPLE ELEMENTS MATCH LTT%ELE_EXTRACT NAME'
+    stop
+  endif
+
+  septum => eles(1)%ele
+
+  if (septum%ix_branch /= ltt_com%ix_branch) then
+    print '(a)', 'SEPTUM ELEMENT NOT IN RING TRACKING BRANCH!'
+    stop
+  endif
+
+  ! Particles that have hit the aperture at the septum are resurrected and vice versa.
+
+  do ib = 1, size(beam%bunch)
+    bunch => beam%bunch(ib)
+    do ip = 1, size(bunch%particle)
+      p => bunch%particle(ip)
+      if (p%state /= alive$ .and. p%ix_ele == septum%ix_ele) then
+        p%state = alive$
+        if (p%location == upstream_end$) then
+          call track1(p, septum, branch%param, p)
+          if (p%state == alive$) then  ! Passed through septum wall from outside to inside!
+            p%state = lost$           
+          else
+            p%state = alive$
+          endif
+
+        else
+          if (septum%aperture_at == both_ends$) p%state = lost$  ! particle went through septum wall
+        endif
+
+      elseif (p%state == alive$) then   ! Did not make it to the septum.
+        p%state = lost$
+      endif
+    enddo
+  enddo
+
+  ele => septum  ! Starting point for extraction tracking
+
+! Else with bunch mode just start tracking from where we left off
+else
+  call ltt_pointer_to_map_ends(lttp, lat, ele)  ! ele => starting point for extraction tracking
+  if (ele%key == fork$) ele => pointer_to_next_ele(ele, -1)
 endif
 
-end subroutine
+! What places to print at?
+
+call lat_ele_locator(lttp%ele_write_at, lat, eles, n_loc, err, .true.)
+
+! Find where fork is so relative s-positions can be calculated
+
+fork => pointer_to_next_ele(ele, skip_beginning = .true.)
+do ii = 1, branch%n_ele_track
+  if (fork%key == fork$) exit
+  fork => pointer_to_next_ele(fork, skip_beginning = .true.)
+enddo
+
+! Track to the fork
+
+call ltt_write_averages_header (lttp, ltt_com, .true.)
+
+do ii = 1, branch%n_ele_track
+  call ltt_extraction_write(lttp, ltt_com, beam, ele, eles(1:n_loc), ele%s - fork%s)
+  ele => pointer_to_next_ele(ele, skip_beginning = .true.)
+  if (ele%key == fork$) exit
+  call track1_bunch(bunch, ele, err)
+enddo
+
+if (ii > branch%n_ele_track) then
+  print '(a)', 'NO FORK ELEMENT IN TRACKING BRANCH!'
+  stop
+endif
+
+! Extraction branch.
+
+s_pos = 0
+
+fork_loop: do   ! Loop in case extraction branch forks at the end to yet another branch, etc.
+  branch => lat%branch(nint(ele%value(ix_to_branch$)))
+  ele => branch%ele(nint(ele%value(ix_to_element$)))   ! Starting point in extraction branch.
+  nt = branch%n_ele_track
+
+  do
+    call ltt_extraction_write(lttp, ltt_com, beam, ele, eles(1:n_loc), s_pos)
+    if (ele%ix_ele == nt) exit fork_loop
+
+    ele => pointer_to_next_ele(ele)
+    if (ele%key == fork$ .and. (ele%ix_ele == nt .or. &
+                (ele%ix_ele == nt-1 .and. branch%ele(nt)%key == marker$))) cycle fork_loop  ! Fork to new branch
+    call track1_bunch(bunch, ele, err)
+    s_pos = s_pos + ele%value(l$)
+  enddo
+enddo fork_loop
+
+end subroutine ltt_run_extraction
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_extraction_write (lttp, ltt_com, beam, ele, eles, s_pos)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+type (branch_struct), pointer :: branch
+type (coord_struct), pointer :: p
+type (ele_pointer_struct) :: eles(:)
+type (ele_struct), pointer :: septum, ele
+
+real(rp) s_pos
+integer i, ix
+logical found
+character(200) file
+
+! Always add to averages file
+
+call ltt_write_averages_data (lttp, 0, beam, s_pos, ele)
+
+! Beam files
+
+found = .false.
+do i = 1, size(eles)
+  if (associated(eles(i)%ele, ele)) found = .true.
+enddo
+if (.not. found) return
+
+!
+
+if (lttp%beam_output_file == '') return
+file = int_str(ele%ix_branch) //  '.' // int_str(ele%ix_ele) // '_' // trim(ele%name) // '-' // trim(lttp%beam_output_file)
+call fullfilename(file, file)
+call write_beam_file (file, beam, .true.)
+
+end subroutine ltt_extraction_write
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1154,7 +1378,7 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
   return
 endif
 
-print '(2a)', 'Particle output file: ', trim(lttp%phase_space_output_file)
+print '(2a)', 'Phase_space output file: ', trim(lttp%phase_space_output_file)
 close(iu_part)
 
 if (lttp%averages_output_file /= '') then
@@ -1263,7 +1487,7 @@ time1 = time0
 ix_branch = ltt_com%ix_branch
 branch => lat%branch(ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
-call ltt_print_per_particle_file_header(lttp, ltt_com, beam)
+call ltt_write_per_particle_file_header(lttp, ltt_com, beam)
 
 if (ltt_com%using_mpi) then
   prefix_str = 'Thread ' // int_str(ltt_com%mpi_rank) // ':'
@@ -1364,7 +1588,7 @@ do i_turn = ix_start_turn+1, ix_end_turn
     call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
     call ltt_write_averages_data(lttp, i_turn, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
-    call ltt_write_beam_binary_file(lttp, ltt_com, i_turn, beam)
+    call ltt_write_beam_file(lttp, ltt_com, i_turn, beam)
   endif
 end do
 
@@ -1908,34 +2132,42 @@ end subroutine ltt_write_custom
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_beam_binary_file (lttp, ltt_com, i_turn, beam)
+subroutine ltt_write_beam_file (lttp, ltt_com, i_turn, beam)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
 
-integer i_turn, iu, ios, nt
+integer i_turn, iu, ios, nt, ix
 character(200) file
 
 !
 
-if (lttp%beam_binary_output_file == '') return
+if (lttp%beam_output_file == '') return
 nt = lttp%beam_output_every_n_turns 
 if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
 
-file = trim(lttp%beam_binary_output_file) // '.' // int_str(i_turn) // '.h5'
+file = lttp%beam_output_file
+ix = str_last_in_set(file, '.')
+if (ix == 0) then
+  file = trim(file) // '-' // int_str(i_turn)
+else
+  file = file(:ix-1) // '-' // int_str(i_turn) // file(ix:)
+endif
+
+call fullfilename(file, file)
 
 call write_beam_file (file, beam)
 
-if (ltt_com%last_beam_binary_output_file /= '') then
+if (ltt_com%last_beam_output_file /= '') then
   iu = lunget()
-  open(iu, file = ltt_com%last_beam_binary_output_file, status = 'old')
+  open(iu, file = ltt_com%last_beam_output_file, status = 'old')
   close(iu, status = 'delete')
 endif
 
-ltt_com%last_beam_binary_output_file = file
+ltt_com%last_beam_output_file = file
 
-end subroutine ltt_write_beam_binary_file
+end subroutine ltt_write_beam_file
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -2230,19 +2462,24 @@ end subroutine ltt_averages_file_name
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_averages_data (lttp, ix_turn, beam)
+subroutine ltt_write_averages_data (lttp, ix_turn, beam, s_pos, ele)
 
 type (ltt_params_struct) lttp
 type (ltt_bunch_data_struct) bd
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
+type (ele_struct), optional :: ele
 
+real(rp), optional :: s_pos
 integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib
 logical error
-character(200) :: file_name
+
+character(10) t_str
+character(50) e_str
+character(200) :: file, file_name
 character(2000) :: line
 
-!
+! s_pos and ele are present in extraction tracking.
 
 if (lttp%averages_output_file == '') return
 
@@ -2252,6 +2489,16 @@ case (0);     if (modulo(ix_turn, lttp%n_turns) /= 0) return
 case default; if (modulo(ix_turn, lttp%averages_output_every_n_turns) /= 0) return
 end select
 
+if (present(s_pos)) then
+  write (t_str, '(f10.6)') s_pos
+  e_str = '  ' // ele_full_name(ele, '!# @N')
+  file = 'extraction-' // lttp%averages_output_file
+else
+  write (t_str, '(i10)') ix_turn
+  e_str = ''
+  file = lttp%averages_output_file
+endif
+
 nb = size(beam%bunch)
 do ib = 1, nb
   bunch => beam%bunch(ib)
@@ -2259,23 +2506,23 @@ do ib = 1, nb
 
   call ltt_calc_bunch_data(lttp, ix_turn, bunch, bd)
 
-  call ltt_averages_file_name(lttp%averages_output_file, 'ave', ib, nb, file_name)
+  call ltt_averages_file_name(file, 'ave', ib, nb, file_name)
   iu1 = lunget(); open(iu1, file = file_name, recl = 400, access = 'append')
-  call ltt_averages_file_name(lttp%averages_output_file, 'sigma', ib, nb, file_name)
+  call ltt_averages_file_name(file, 'sigma', ib, nb, file_name)
   iu2 = lunget(); open(iu2, file = file_name, recl = 400, access = 'append')
-  call ltt_averages_file_name(lttp%averages_output_file, 'emit', ib, nb, file_name)
+  call ltt_averages_file_name(file, 'emit', ib, nb, file_name)
   iu3 = lunget(); open(iu3, file = file_name, recl = 2000, access = 'append')
 
   !
 
-  write (iu1, '(i9, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 8es14.6, 2x, 6es14.6)') ix_turn, nint(bd%n_live), &
+  write (iu1, '(a, i9, es14.6, f14.9, 2x, 3f14.9, 2x, 8es14.6, 2x, 6es14.6, a)') t_str, nint(bd%n_live), &
                    bd%params%t, norm2(bd%params%centroid%spin), bd%params%centroid%spin, bd%params%centroid%vec, &
-                   (1.0_rp+bd%params%centroid%vec(6))*bd%params%centroid%p0c, bd%params%centroid%p0c, bd%sig1
+                   (1.0_rp+bd%params%centroid%vec(6))*bd%params%centroid%p0c, bd%params%centroid%p0c, bd%sig1, trim(e_str)
 
-  write (iu2, '(i9, i9, es14.6, 2x, 22es14.6)') ix_turn, nint(bd%n_live), bd%params%t, (bd%sigma_vec(k), k = 1, 21)
+  write (iu2, '(a, i9, es14.6, 2x, 21es14.6, a)') t_str, nint(bd%n_live), bd%params%t, (bd%sigma_vec(k), k = 1, 21), trim(e_str)
 
-  write (line, '(i9, i9, es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6)') ix_turn, nint(bd%n_live), &
-                             bd%params%t, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew
+  write (line, '(a, i9, es14.6, 2x, 3es14.6, 2x, 3es14.6, 2x, 3es14.6, a)') t_str, nint(bd%n_live), &
+                             bd%params%t, bd%params%a%emit, bd%params%b%emit, bd%params%c%emit, bd%kurt, bd%skew, trim(e_str)
 
   do i = 1, core_max$
     if (lttp%core_emit_cutoff(i) <= 0) exit

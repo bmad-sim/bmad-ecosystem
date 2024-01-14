@@ -5,7 +5,7 @@
 
   ltt%phase_space_output_file = 'ps.dat'
   ltt%averages_output_file = '#.dat'
-  ltt%beam_binary_output_file = ''
+  ltt%beam_output_file = ''
   ltt%averages_output_every_n_turns = 1
 
   ltt%simulation_mode = 'CHECK'

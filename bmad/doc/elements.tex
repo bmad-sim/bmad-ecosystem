@@ -2237,11 +2237,11 @@ A \vn{fork} or \vn{photon_fork} element marks the start of an alternative \vn{br
 Collectively \vn{fork} and \vn{photon_fork} elements are called forking elements. An example
 geometry is shown in \fig{f:x.fork}.  The \vn{branch} containing a forking element is called the
 ``\vn{base} \vn{branch}''. The \vn{branch} that the forking element points to is called the
-``\vn{downstream} \vn{branch}''.
+``\vn{forked-to} \vn{branch}''.
 
 The only difference between \vn{fork} and \vn{photon_fork} is that the default particle type for the
-downstream branch forked from a \vn{fork} element is the same particle type as the base branch. The
-default particle type for the downstream branch from a \vn{photon_fork} element is a photon. The actual
+forked-to branch forked from a \vn{fork} element is the same particle type as the base branch. The
+default particle type for the forked-to branch from a \vn{photon_fork} element is a photon. The actual
 particle associated with a branch can be set by setting the \vn{particle} attribute of the forking
 element.
 
@@ -2276,7 +2276,7 @@ reference orbit as needed. Example:
 \begin{example}
   from_line: line = (... A, PB, B, ...)  ! Defines base branch
   pb: photon_fork, to_line = x_line
-  x_line: line = (X_PATCH, X1, X2, ...)     ! Defines downstream branch
+  x_line: line = (X_PATCH, X1, X2, ...)     ! Defines forked-to branch
   x_line[p0c] = 1e3                         ! Photon reference momentum   
   x_patch: patch, x_offset = 0.01
   use, from_line
@@ -2289,7 +2289,7 @@ Forking elements have zero length and, like \vn{marker} elements, the position o
 through a forking element does not change.
 
 Forking elements do not have orientational attributes like \vn{x_pitch} and \vn{tilt}
-(\ref{s:offset}). If the orientation of the downstream branch needs to be modified, this can be
+(\ref{s:offset}). If the orientation of the forked-to branch needs to be modified, this can be
 accomplished using a \vn{patch} element at the beginning of the line.
 
 \index{is_on}
@@ -2331,7 +2331,7 @@ by \bmad.
 
 \index{beginning_ele}\index{fiducial}\index{fork}\index{photon_fork}
 \index{marker}\index{to_element}
-The \vn{to_element} attribute for a forking element is used to designate the element of the downstream
+The \vn{to_element} attribute for a forking element is used to designate the element of the forked-to
 branch that the forking element connects to. To keep things conceptually simple, the \vn{to_element}
 must be a ``marker-like'' element which has zero length and unit transfer matrix. Possible
 \vn{to_element} types are:
@@ -2341,17 +2341,17 @@ must be a ``marker-like'' element which has zero length and unit transfer matrix
   fork and photon_fork
   marker
 \end{example}
-When the \vn{to_element} is not specified, the default is to connect to the beginning of the downstream
+When the \vn{to_element} is not specified, the default is to connect to the beginning of the forked-to
 branch if \vn{direction} is 1 and to connect to the end of the downstream branch if \vn{direction} is
--1. In this case, there is never a problem connecting to the beginning of the downstream branch since
+-1. In this case, there is never a problem connecting to the beginning of the forked-to branch since
 all branches have a \vn{beginning_ele} element at the beginning. When connecting to the end of the
-downstream branch the last element in the downstream branch must be a marker-like element. Note that, by
+forked-to branch the last element in the forked-to branch must be a marker-like element. Note that, by
 default, a marker element is placed at the end of all branches (\sref{s:branch.construct})
 
 The default reference particle type of a branch line will be a \vn{photon} is using a
 \vn{photon_fork} or will be the same type of particle as the base branch if a \vn{fork} element is
 used. If the reference particle of a branch line is different from the reference particle in the
-base branch, the reference energy (or reference momentum) of a downstream branch line needs to be set
+base branch, the reference energy (or reference momentum) of a forked-to branch line needs to be set
 using line parameter statements (\sref{s:beginning}). If the reference particle of a branch line is
 the same as the reference particle in the base branch, the reference energy will default to the
 reference energy of the base branch if the reference energy is not set for the branch.
@@ -2376,10 +2376,10 @@ created from the same line already exists. This is useful, for example, when a c
 off from the main line and then branches back to it.
 
 When a lattice is expanded (\sref{s:expand}), the branches defined by the \vn{use} statement
-(\sref{s:use}) are searched for fork elements that branch to new downstream branches. If found, the
+(\sref{s:use}) are searched for fork elements that branch to new forked-to branches. If found, the
 appropriate branches are instantiated and the process repeated until there are no more branches to
-be instantiated. This process does {\em not} go in reverse. That is the lines defined in a lattice
-file are not searched for fork elements that have downstream instantiated branches. For example, if, in
+be instantiated. This process does {\em not} go in reverse. That is, the lines defined in a lattice
+file are not searched for fork elements that have forked-to instantiated branches. For example, if, in
 the above example, the use statement was:
 \begin{example}
   use, x_line
@@ -2387,15 +2387,15 @@ the above example, the use statement was:
 then only the \vn{x_line} would be instantiated and the lines \vn{inj} and \vn{ring} would be
 ignored.
 
-If the downstream branch and base branch both have the same reference particle, and if the element
-forked into is the beginning element, the reference energy and momentum of the downstream branch will be
+If the forked-to branch and base branch both have the same reference particle, and if the element
+forked into is the beginning element, the reference energy and momentum of the forked-to branch will be
 set to the reference energy and momentum at the fork element. In this case, neither the reference
-energy nor reference momentum of the downstream branch should be set. If it is desired to have the
-reference energy/momentum of the downstream branch different from what is inherited from the fork
-element, a patch element (\sref{s:patch}) can be used at the beginning of the downstream branch. In all
+energy nor reference momentum of the forked-to branch should be set. If it is desired to have the
+reference energy/momentum of the forked-to branch different from what is inherited from the fork
+element, a patch element (\sref{s:patch}) can be used at the beginning of the forked-to branch. In all
 other cases, where either the two branches have different reference particles or the fork connects
 to something other than the beginning element, there is no energy/momentum inheritance and either
-the reference energy or reference momentum of the downstream branch must be set.
+the reference energy or reference momentum of the forked-to branch must be set.
 
 How to analyze a lattice with multiple branches can be somewhat complex and will vary from program
 to program. For example, some programs will simply ignore everything except the root branch. Hopefully
@@ -2412,22 +2412,19 @@ any program documentation will clarify the matter.
   \centering
   \includegraphics{girder.pdf}
   \caption[Girder example.] {
-Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.
-$\calO_A$ is the reference frame at the upstream end of element \vn{A}
-(\sref{s:ref.construct}), $\calO_C$ is the reference frame at the
-downstream end of element \vn{C}, and $\calO_G$ is the default
-\vn{origin} reference frame of the girder. $r_{CA}$ is the vector from
-$\calO_A$ to $\calO_C$. The length \vn{l} of the girder is the
-difference in $s$ between points $\calO_C$ and $\calO_A$.
+Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.  $\calO_A$ is the reference
+frame at the upstream end of element \vn{A} (\sref{s:ref.construct}), $\calO_C$ is the reference
+frame at the downstream end of element \vn{C}, and $\calO_G$ is the default \vn{origin} reference
+frame of the girder. $r_{CA}$ is the vector from $\calO_A$ to $\calO_C$. The length \vn{l} of the
+girder is the difference in $s$ between points $\calO_C$ and $\calO_A$.
   }
   \label{f:girder}
 \end{figure}
 
-A \vn{girder} is a support structure that orients the elements that
-are attached to it in space. A girder can be used to simulate any
-rigid support structure and there are no restrictions on how the lattice
-elements that are supported are oriented with respect to one another.
-Thus, for example, optical tables can be simulated.
+A \vn{girder} is a support structure that orients the elements that are attached to it in space. A
+girder can be used to simulate any rigid support structure and there are no restrictions on how the
+lattice elements that are supported are oriented with respect to one another.  Thus, for example,
+optical tables can be simulated.
 
 General \vn{girder} attributes are:
 \begin{center}
