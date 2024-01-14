@@ -70,8 +70,8 @@ Note: The procedure for
 [creating a PR](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) 
 when using a fork is somewhat different than when using a clone.
 
-## Milestones (list started 2024)
+## Major Milestones (list started 2024)
 
-2024/01 Added extraction line tracking to the long_term_tracking program.
-2024/01 Added *INDIVIDUAL* mode to long_term_tracking_program for resonant extraction simulations.
-2024/01 Added *foil* lattice element for simulating things like charge stripping, emittance smoothing.
++ 2024/01 Added extraction line tracking to the long_term_tracking program.
++ 2024/01 Added *INDIVIDUAL* mode to the long_term_tracking program for resonant extraction simulations.
++ 2024/01 Added *foil* lattice element for simulating things like charge stripping, emittance smoothing, etc.
