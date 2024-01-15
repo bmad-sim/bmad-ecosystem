@@ -22,11 +22,12 @@ implicit none
 
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: ref_ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
-real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_ref, beta_ref
-real(rp) k_rf, dl, beta_old, pz_old, h, pc, s_here
+real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_length, beta_ref
+real(rp) k_rf, dl, beta_old, pz_old, h, pc, s_here, dt_ref
 real(rp) mat_2(6,6), E_old, E_new
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -43,6 +44,10 @@ character(*), parameter :: r_name = 'track_a_crab_cavity'
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
+ref_ele => ele
+if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord(ele, 1)
+dt_ref = ele%s_start - ref_ele%s_start
+
 !
 
 call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
@@ -57,7 +62,7 @@ dl = length / n_slice
 charge_dir = rel_tracking_charge_to_mass(orbit, param%particle) * ele%orientation
 voltage = orbit%time_dir * e_accel_field(ele, voltage$, .true.) * charge_dir / (ele%value(p0c$) * n_slice)
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
-dt_ref = length / (c_light * beta_ref)
+dt_length = length / (c_light * beta_ref)
 k_rf = twopi * ele%value(rf_frequency$) / c_light
 h = mass_of(orbit%species)/ele%value(p0c$)
 
@@ -69,10 +74,13 @@ call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
 do i = 1, n_slice
 
+  ! Note: particle_rf_time is referenced to the lord element if ele is a super or slice slave.
+  ! Thus we need dt_ref.
   s_here = (i - 0.5_rp) * ele%value(l$) / n_slice
   phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
-          (particle_rf_time (orbit, ele, .false., s_here) - rf_ref_time_offset(ele) - s_here/c_light) * ele%value(rf_frequency$))
-  if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
+          (particle_rf_time (orbit, ele, .false., s_here) - rf_ref_time_offset(ele) - &
+          (s_here+dt_ref)/(orbit%beta * c_light)) * ele%value(rf_frequency$))
+  if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_length
   phase = phase0
 
   orbit%vec(2) = orbit%vec(2) + voltage * sin(phase)
