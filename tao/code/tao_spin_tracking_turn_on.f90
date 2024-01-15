@@ -6,7 +6,7 @@
 
 subroutine tao_spin_tracking_turn_on()
 
-use tao_struct
+use tao_interface, dummy => tao_spin_tracking_turn_on
 implicit none
 
 logical ok
