@@ -465,18 +465,16 @@ expansion the string \vn{rbend::*} will match to all bend elements that were def
 before expansion.
 
 %---------------------------------------------------------------------------
-\section{Lattice Element Attributes}
+\section{Lattice Element Parameters}
 \label{s:lat.attribs}
 \index{element attributes|hyperbf}
 
-Any lattice element has various attributes like its name, its length,
-its strength, etc. The values of element attributes can be
-specified when the element is defined. For example:
+Any lattice element has various attributes like its name, its length, its strength, etc. The values
+of element attributes can be specified when the element is defined. For example:
 \begin{example}
   b01w: sbend, l = 6.0, rho = 89.0 ! Define an element with attributes.
 \end{example}
-After an element's definition, an individual attribute may be referred
-to using the syntax
+After an element's definition, most attributes may be referred to using the syntax
 \begin{example}
   class::element_name[attribute_name]
 \end{example}
@@ -486,6 +484,9 @@ Examples:
   sbend::b0%[dg]                ! DG attribute of sbend elements whose name
                                 !   has three characters starting with "B0"
 \end{example}
+Some element ``nested'' parameters have a more complicated syntax and are listed at the 
+end of this section.
+
 Element attributes can be set or used in an algebraic expression:
 \begin{example}
   b01w[roll] = 6.5                  ! Set an attribute value.
@@ -541,8 +542,6 @@ syntax as discussed in Section~\sref{s:ele.match}. Example:
   b2>>si_cryst##2[tilt] = 0.1 ! Tilt the 2nd instance of "si_cryst" in branch "b2" 
   5:32[x_limit] = 0.3         ! Sets elements with indexes 5 through 32 in branch 0.
 \end{example}
-
-\newpage
 
 %---------------------------------------------------------------------------
 \section{Custom Element Attributes}

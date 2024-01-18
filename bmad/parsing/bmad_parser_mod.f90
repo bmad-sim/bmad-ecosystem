@@ -2207,20 +2207,20 @@ case default   ! normal attribute
       j = ix_attrib - a0_elec$ - 6 * (i - 1)
       ele%mat6(i,j) = value
     elseif (is_attribute(ix_attrib, multipole$) .and. attrib_word(1:4) /= 'CURV') then  
-        if (.not. associated(ele%a_pole)) call multipole_init (ele, magnetic$)
-        if (ix_attrib >= b0$) then
-          ele%b_pole(ix_attrib-b0$) = value
-        else
-          ele%a_pole(ix_attrib-a0$) = value
-        endif
+      if (.not. associated(ele%a_pole)) call multipole_init (ele, magnetic$)
+      if (ix_attrib >= b0$) then
+        ele%b_pole(ix_attrib-b0$) = value
+      else
+        ele%a_pole(ix_attrib-a0$) = value
+      endif
     ! Electric multipole attribute
     elseif (is_attribute(ix_attrib, elec_multipole$)) then
-        if (.not. associated(ele%a_pole_elec)) call multipole_init (ele, electric$)
-        if (ix_attrib >= b0_elec$) then
-          ele%b_pole_elec(ix_attrib-b0_elec$) = value
-        else
-          ele%a_pole_elec(ix_attrib-a0_elec$) = value
-        endif
+      if (.not. associated(ele%a_pole_elec)) call multipole_init (ele, electric$)
+      if (ix_attrib >= b0_elec$) then
+        ele%b_pole_elec(ix_attrib-b0_elec$) = value
+      else
+        ele%a_pole_elec(ix_attrib-a0_elec$) = value
+      endif
     !
     elseif (attrib_word == 'RAN_SEED') then
       bp_com%extra%ran_seed = nint(value)

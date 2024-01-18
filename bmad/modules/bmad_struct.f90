@@ -6,6 +6,7 @@ module bmad_struct
 
 use random_mod
 use spline_mod
+use sim_utils
 use cubic_interpolation_mod
 
 use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
