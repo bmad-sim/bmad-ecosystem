@@ -348,10 +348,11 @@ function is_increasing_sequence (array, strict) result (is_increasing)
   logical is_increasing
 end function
 
-function is_integer (string, int) result (valid)
+function is_integer (string, int, delims, ix_word) result (valid)
   implicit none
   character(*) string
-  integer, optional :: int
+  integer, optional :: int, ix_word
+  character(*), optional :: delims
   logical valid
 end function
 
