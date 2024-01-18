@@ -41,6 +41,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave
 type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (cartesian_map_struct), pointer :: ct_map
+type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (gen_grad_map_struct), pointer :: gg_map
@@ -54,7 +55,7 @@ type (taylor_struct), pointer :: tlr
 real(rp), pointer :: ptr_attrib, r(:,:,:)
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr_mode, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, j, ivec(3), ixs, i0
+integer ix_d, n, ios, n_lr_mode, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i, j, ivec(3), ixs, i0, nt
 integer expn(6)
 integer lb0(3), ub0(3), lb(3), ub(3)
 character(*) attrib_name
@@ -238,14 +239,14 @@ if (a_name(1:3) == 'LR(' .or. a_name(1:13) == 'LR_WAKE%MODE(') then
     deallocate (lr_mode)
   endif
 
-  select case (a_name(ix_d+2:))
-  case ('FREQ_IN');         a_ptr%r => ele%wake%lr%mode(n)%freq_in
-  case ('FREQ');            a_ptr%r => ele%wake%lr%mode(n)%freq
-  case ('R_OVER_Q');        a_ptr%r => ele%wake%lr%mode(n)%r_over_q
-  case ('DAMP');            a_ptr%r => ele%wake%lr%mode(n)%damp
-  case ('PHI');             a_ptr%r => ele%wake%lr%mode(n)%phi
-  case ('POLAR_ANGLE');     a_ptr%r => ele%wake%lr%mode(n)%angle
-  case ('POLARIZED');       a_ptr%l => ele%wake%lr%mode(n)%polarized
+  select case (a_name)
+  case ('%FREQ_IN');         a_ptr%r => ele%wake%lr%mode(n)%freq_in
+  case ('%FREQ');            a_ptr%r => ele%wake%lr%mode(n)%freq
+  case ('%R_OVER_Q');        a_ptr%r => ele%wake%lr%mode(n)%r_over_q
+  case ('%DAMP');            a_ptr%r => ele%wake%lr%mode(n)%damp
+  case ('%PHI');             a_ptr%r => ele%wake%lr%mode(n)%phi
+  case ('%POLAR_ANGLE');     a_ptr%r => ele%wake%lr%mode(n)%angle
+  case ('%POLARIZED');       a_ptr%l => ele%wake%lr%mode(n)%polarized
   case default; goto 9000
   end select    
 
@@ -262,14 +263,31 @@ if (a_name(1:14) == 'CARTESIAN_MAP(') then
   if (err) goto 9140
   ct_map => ele%cartesian_map(n_cc)
 
-  select case (a_name)
-  case ('%FIELD_SCALE');      a_ptr%r => ct_map%field_scale
-  case ('%R0(1)');            a_ptr%r => ct_map%r0(1)
-  case ('%R0(2)');            a_ptr%r => ct_map%r0(2)
-  case ('%R0(3)');            a_ptr%r => ct_map%r0(3)
-  case ('%MASTER_PARAMETER'); a_ptr%i => ct_map%master_parameter
-  case default;           goto 9000
-  end select
+  if (a_name(1:3) == '%T(' .or. a_name(1:6) == '%TERM(') then
+    nt = get_this_index(a_name, index(a_name, '('), err, 1, size(ct_map%ptr%term))
+    if (err) goto 9140
+    ct_term => ct_map%ptr%term(nt)
+    select case (a_name)
+    case ('%A');            a_ptr%r => ct_term%coef
+    case ('%KX', '%K_X');   a_ptr%r => ct_term%kx
+    case ('%KY', '%K_Y');   a_ptr%r => ct_term%ky
+    case ('%KZ', '%K_Z');   a_ptr%r => ct_term%kz
+    case ('%X0', '%X_0');   a_ptr%r => ct_term%x0
+    case ('%Y0', '%Y_0');   a_ptr%r => ct_term%y0
+    case ('%PHI_Z');        a_ptr%r => ct_term%phi_z
+    case default;           goto 9000
+    end select
+
+  else
+    select case (a_name)
+    case ('%FIELD_SCALE');      a_ptr%r => ct_map%field_scale
+    case ('%R0(1)');            a_ptr%r => ct_map%r0(1)
+    case ('%R0(2)');            a_ptr%r => ct_map%r0(2)
+    case ('%R0(3)');            a_ptr%r => ct_map%r0(3)
+    case ('%MASTER_PARAMETER'); a_ptr%i => ct_map%master_parameter
+    case default;           goto 9000
+    end select
+  endif
 
   err_flag = .false.
   return
@@ -365,20 +383,20 @@ if (a_name(1:12) == 'WALL%SECTION') then
   n_cc = get_this_index(a_name, 13, err, 1, size(ele%wall3d(1)%section))
   if (err) goto 9130
 
-  if (a_name == 'S') then
+  if (a_name == '%S') then
     if (n_cc == 1) goto 9210  ! must have s = 0
     a_ptr%r => ele%wall3d(1)%section(n_cc)%s
     err_flag = .false.
     return
   endif
 
-  if (a_name(1:11) == 'WALL%DR_DS') then
+  if (a_name == '%DR_DS') then
     a_ptr%r => ele%wall3d(1)%section(n_cc)%dr_ds
     err_flag = .false.
     return
   endif
 
-  if (a_name(1:1) == 'V') then
+  if (a_name(1:2) == '%V') then
     n_v = get_this_index(a_name, 2, err, 1, size(ele%wall3d(1)%section(n_cc)%v))
     if (err) goto 9130
 
@@ -943,6 +961,7 @@ logical err
 !
 
 err = .true.
+ixc = int_garbage$
 
 if (name(ix_name:ix_name) /= '(') return
 name = name(ix_name+1:)
