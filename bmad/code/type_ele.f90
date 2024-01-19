@@ -462,8 +462,8 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', ct_map%field_scale
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', ct_map%r0
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
-      nl=nl+1; write (li(nl), '(5x, a, 6x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
-                                    'Coef', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family    Form'
+      nl=nl+1; write (li(nl), '(5x, a, 9x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
+                                    'A', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family    Form'
       do j = 1, min(nl2, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)

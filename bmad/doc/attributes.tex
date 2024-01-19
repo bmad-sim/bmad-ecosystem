@@ -2334,6 +2334,8 @@ The possible settings of \vn{<family>} are explained in Sec.~\sref{s:cart.map.ph
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with other field
 map types.
 
+See Sec.~\sref{s:attrib.non} for the syntax of setting Cartesian map components.
+
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
 \begin{itemize}
 %
@@ -2446,6 +2448,8 @@ Example:
     e_coef_re = (...),       e_coef_im = (...),
     b_coef_re = (...),       b_coef_im = (...)\}, field_calc = fieldmap
 \end{example}
+
+See Sec.~\sref{s:attrib.non} for the syntax of setting Cylindrical map components.
 
 Note: When using PTC based tracking (\sref{c:methods}), the following restrictions apply:
 \begin{Itemize}
@@ -2659,6 +2663,8 @@ Grid fields may stored in \vn{HDF5} binary format which may then be called using
   qq: quadrupole, grid_field = call::my_grid.h5, ...
 \end{example}
 
+See Sec.~\sref{s:attrib.non} for the syntax of setting \vn{grid_field} components.
+
 %-----------------------------------------------------------------
 \subsection{Gen_Grad_Map}
 \label{s:gen.grad.map}
@@ -2723,6 +2729,8 @@ number of derivatives.
 Like \vn{grid_field}s, the edges of a \vn{gen_grad_map}, can be defined to be outside of the edges
 of the element. These areas will be ignored while tracking unless field overlap is defined
 (\sref{s:overlap})).
+
+See Sec.~\sref{s:attrib.non} for the syntax of setting \vn{gen_grad_map} components.
 
 To use with PTC dependent tracking methods (\sref{s:integ}) there are a number of restrictions:
   \begin{itemize}

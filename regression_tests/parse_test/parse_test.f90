@@ -218,6 +218,9 @@ write (1, '(a, 3(2x, a))') '"myramp1-var" STR',  quote(cl%var(1)%name), quote(cl
 write (1, '(a, 4f6.1)')    '"myramp1-knot" ABS 1e-15',  cl%x_knot(:), cl%ramp(1)%y_knot(:)
 write (1, '(a, 2x, a)')    '"myramp1-exp" STR',  quote(expression_stack_to_string(cl%ramp(2)%stack))
 
+call lat_ele_locator('m2', lat, eles, n_loc)
+call pointer_to_attribute(eles(1)%ele, 'wall%section(2)%v(1)%x', .true., a_ptr, err)
+
 call lat_ele_locator('myramp2', lat, eles, n_loc)
 cl => eles(1)%ele%control
 write (1, '(a, 3(2x, a))') '"myramp2-var" STR',  quote(cl%var(1)%name), quote(cl%ramp(1)%attribute), quote(cl%ramp(1)%slave_name)
