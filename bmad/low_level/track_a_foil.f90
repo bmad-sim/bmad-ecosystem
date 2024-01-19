@@ -69,7 +69,6 @@ do ns = 1, n_step
       material => ele%foil%material(i)
       z_material = atomic_number(material%species)
       select case (nint(ele%value(scatter_method$)))
-
       case (highland$)
         xx0 = xx0 + r_thick * material%area_density_used / material%radiation_length_used
 
@@ -79,8 +78,7 @@ do ns = 1, n_step
         zza_sum = zza_sum + zza
         chi2_c = chi2_c + 0.157e11_rp * zza * r_thick * (z_particle / (pc_old * orbit%beta))**2
         ln_chi_alpha_sum = ln_chi_alpha_sum + zza * log(sqrt(2.007e7_rp * z_material**(2.0/3.0) * &
-             (1.0_rp + 3.34_rp * (z_material * z_particle * fine_structure_constant / orbit%beta)**2) / pc_old**2))
-
+                (1.0_rp + 3.34_rp * (z_material * z_particle * fine_structure_constant / orbit%beta)**2) / pc_old**2))
       end select
     enddo
 
@@ -91,24 +89,19 @@ do ns = 1, n_step
     endif
 
     select case (nint(ele%value(scatter_method$)))
-
     case (highland$)
       sigma = 13.6e6_rp * z_particle * sqrt(xx0) / (pc_old * orbit%beta) * &
-           (1.0_rp + 0.038_rp * log(xx0*z_particle**2/orbit%beta**2))
-
+                                          (1.0_rp + 0.038_rp * log(xx0*z_particle**2/orbit%beta**2))
     case (lynch_dahl$)
-       chi2_alpha = (exp(ln_chi_alpha_sum/zza_sum))**2
-       omega = chi2_c / (1.167 * chi2_alpha) 
-       nu = 0.5_rp * omega / (1 - f)
-       sigma = ( chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2) )**(0.5_rp)
-      
+      chi2_alpha = (exp(ln_chi_alpha_sum/zza_sum))**2
+      omega = chi2_c / (1.167 * chi2_alpha) 
+      nu = 0.5_rp * omega / (1 - f)
+      sigma = (chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2))**(0.5_rp)
     end select
     
     sigma = sigma * pc_old / orbit%p0c
-    
     orbit%vec(2) = orbit%vec(2) + rnd(1) * sigma
     orbit%vec(4) = orbit%vec(4) + rnd(2) * sigma
-    
   endif
 
   ! Energy loss
