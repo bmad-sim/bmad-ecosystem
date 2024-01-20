@@ -76,8 +76,8 @@ do ns = 1, n_step
         atomic_mass = mass_of(material%species) / atomic_mass_unit
         zza = z_material * (z_material + 1) * material%area_density_used  / atomic_mass
         zza_sum = zza_sum + zza
-        chi2_c = chi2_c + 0.157e7_rp * zza * r_thick * (z_particle / (pc_old * orbit%beta))**2
-        ln_chi_alpha_sum = ln_chi_alpha_sum + zza * log(sqrt(2.007e1_rp * z_material**(2.0/3.0) * &
+        chi2_c = chi2_c + 0.157e11_rp * zza * r_thick * (z_particle / (pc_old * orbit%beta))**2
+        ln_chi_alpha_sum = ln_chi_alpha_sum + zza * log(sqrt(2.007e7_rp * z_material**(2.0/3.0) * &
                 (1.0_rp + 3.34_rp * (z_material * z_particle * fine_structure_constant / orbit%beta)**2) / pc_old**2))
       end select
     enddo
@@ -95,10 +95,10 @@ do ns = 1, n_step
     case (lynch_dahl$)
       chi2_alpha = (exp(ln_chi_alpha_sum/zza_sum))**2
       omega = chi2_c / (1.167 * chi2_alpha) 
-      nu = 0.5_rp * omega / (1.167 * (1 + f))
-      sigma = chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2)
+      nu = 0.5_rp * omega / (1 - f)
+      sigma = (chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2))**(0.5_rp)
     end select
-
+    
     sigma = sigma * pc_old / orbit%p0c
     orbit%vec(2) = orbit%vec(2) + rnd(1) * sigma
     orbit%vec(4) = orbit%vec(4) + rnd(2) * sigma
