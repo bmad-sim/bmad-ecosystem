@@ -96,7 +96,7 @@ do ns = 1, n_step
       chi2_alpha = (exp(ln_chi_alpha_sum/zza_sum))**2
       omega = chi2_c / (1.167 * chi2_alpha) 
       nu = 0.5_rp * omega / (1 - f)
-      sigma = (chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2))**(0.5_rp)
+      sigma = sqrt(chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2))
     end select
     
     sigma = sigma * pc_old / orbit%p0c

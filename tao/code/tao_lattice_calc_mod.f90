@@ -739,10 +739,18 @@ if (i_br_from > -1) then
   from_ele => branch_from%ele(i_ele_from)
   ele0 => branch%ele(0)
   ! Note: reference energy set by lat_compute_ref_energy_and_time
-  if (is_true(ele0%value(inherit_from_fork$)) .and. branch%ix_to_ele == 0) call transfer_twiss(from_ele, ele0)
+  if (branch%ix_to_ele == 0) then
+    if (is_true(ele0%value(inherit_from_fork$))) then
+      call transfer_twiss(from_ele, ele0)
+    elseif (ele0%a%beta == 0) then
+      call out_io(s_info$, r_name, 'Twiss not set for: ' // ele_full_name(ele0), &
+                                   'Using Twiss from fork element: ' // ele_full_name(from_ele))
+      call transfer_twiss(from_ele, ele0)
+    endif
+  endif
   orb_out => model%tao_branch(ix_branch)%orbit(0)
   call init_coord (orb_out, model%tao_branch(i_br_from)%orbit(i_ele_from), ele0, &
-                  downstream_end$, default_tracking_species(branch%param), 1, ele0%value(E_tot$))
+                     downstream_end$, default_tracking_species(branch%param), 1, ele0%value(E_tot$))
   if (nint(from_ele%value(direction$)) == -1) then
     if (orb_out%species == photon$) then
       orb_out%vec(2:6:2) = -orb_out%vec(2:6:2)
