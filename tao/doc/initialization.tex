@@ -918,18 +918,26 @@ See the \bmad manual for more details.
 The \vn{space_charge_common_struct} holds global variables for space charge, including coherent
 synchrotron radiation (CSR), calculations. 
 \begin{example}
-  type space_charge_common_struct:
-    real(rp) ds_track_step = 0          ! Tracking step size
-    real(rp) beam_chamber_height = 0    ! Used in shielding calculation.
-    real(rp) sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
+\begin{example}
+  type space_charge_common_struct 
+    ds_track_step = 0                   ! Tracking step size
+    dt_track_step = 0                   ! Time based space charge step
+    beam_chamber_height = 0             ! Used in shielding calculation.
+    cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
+    rel_tol_tracking = 1d-8
+    abs_tol_tracking = 1d-10            
+    lsc_sigma_cutoff = 0.1              ! Cutoff for the lsc calc. If a bin sigma
                                         !  is < cutoff * sigma_ave then ignore.
-    integer n_bin = 0                   ! Number of bins used
-    integer particle_bin_span = 2       ! Longitudinal particle length / dz_bin
-    integer n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
-    integer sc_min_in_bin = 10          ! Min number of particles in a bin for sigmas to be valid.
-    logical print_taylor_warning = True ! Print warning if Taylor element is present?
-    logical diagnostic_output_file = "" ! Write CSR wake if file name is not blank.
-    logical lsc_kick_transverse_dependence = F
+    particle_sigma_cutoff = -1          ! Veto particles that are far from the bench with 3D SC.
+    n_bin = 0                           ! Number of bins used
+    particle_bin_span = 2               ! Longitudinal particle length / dz_bin
+    n_shield_images = 0                 ! Chamber wall shielding. 0 = no shielding.
+    sc_min_in_bin = 10                  ! Min number of particle needed to compute sigmas.
+    space_charge_mesh_size = [32,32,64] ! Mesh size with fft_3d space charge calc.
+    csr_3d_mesh_size = [32,32,64]       ! Mesh size for 3D CSR calc.
+    print_taylor_warning = T            ! Print Taylor element warning?
+    diagnostic_output_file = ""         ! Wake file name
+  end type
 \end{example}
 It is important to note that space charge / CSR calculations also depend upon settings in the
 \vn{bmad_common_struct} structure as well as individual lattice element parameters.  See the \bmad

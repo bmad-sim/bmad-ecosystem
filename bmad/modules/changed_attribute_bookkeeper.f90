@@ -329,6 +329,13 @@ a_ptr => attrib
 if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_limit$)) .or. &
     associated(a_ptr, ele%value(y1_limit$)) .or. associated(a_ptr, ele%value(y2_limit$))) return
 
+! Associated taylor map
+
+if (ele%key /= taylor$ .and. associated(ele%taylor(1)%term)) then
+  call kill_taylor (ele%taylor)
+  call kill_taylor (ele%spin_taylor)
+endif
+
 ! delta_ref_time change
 
 if (associated(a_ptr, ele%value(delta_ref_time$))) then

@@ -40,7 +40,7 @@ initialize a beam. The parameters of this structure, shown with their default va
     integer n_particle = 0             ! Number of simulated particles per bunch.
     logical renorm_center = T          ! Renormalize centroid?
     logical renorm_sigma = T           ! Renormalize sigma?
-    real(rp) spin(3) = 0, 0, 0         ! Spin (x, y, z)
+    real spin(3) = 0, 0, 0             ! Spin (x, y, z)
     real a_norm_emit = 0               ! a-mode normalized emittance (= \(\beta\,\gamma\,\epsilon_{unnorm}\))
     real b_norm_emit = 0               ! b-mode normalized emittance (= \(\beta\,\gamma\,\epsilon_{unnorm}\))
     real a_emit = 0                    ! a-mode unnormalized emittance (= \(\epsilon_{norm}/\beta\gamma\))
@@ -164,7 +164,7 @@ Each component of this array looks like
   type ellipse_beam_init_struct
     integer part_per_ellipse  ! number of particles per ellipse.
     integer n_ellipse         ! number of ellipses.
-    real(rp) sigma_cutoff     ! sigma cutoff of the representation.
+    real sigma_cutoff         ! sigma cutoff of the representation.
   end type
 \end{example}
 %
@@ -176,10 +176,10 @@ are:
   type grid_beam_init_struct
     integer n_x        ! number of columns.
     integer n_px       ! number of rows.
-    real(rp) x_min     ! Lower x limit.
-    real(rp) x_max     ! Upper x limit.
-    real(rp) px_min    ! Lower px limit.
-    real(rp) px_max    ! Upper px limit.
+    real x_min         ! Lower x limit.
+    real x_max         ! Upper x limit.
+    real px_min        ! Lower px limit.
+    real px_max        ! Upper px limit.
   end type
 \end{example}
 %
@@ -191,7 +191,7 @@ are:
   type kv_beam_init_struct
     integer part_per_phi(2)    ! number of particles per angle variable.
     integer n_I2               ! number of I2
-    real(rp) A                 ! A = I1/e
+    real A                     ! A = I1/e
   end type
 \end{example}
 %

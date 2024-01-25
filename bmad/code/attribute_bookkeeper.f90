@@ -28,7 +28,6 @@ use xraylib_interface, except_dummy2 => attribute_bookkeeper
 use xraylib, dummy => r_e
 use super_recipes_mod, only: super_brent
 use ptc_layout_mod, only: update_ele_from_fibre
-use taylor_mod, only: kill_taylor
 use particle_species_mod
 
 implicit none
