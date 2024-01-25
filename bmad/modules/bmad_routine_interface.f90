@@ -1191,6 +1191,12 @@ subroutine kill_ptc_layouts (lat)
   type (lat_struct), target :: lat
 end subroutine
 
+subroutine kill_taylor (bmad_taylor)
+  import
+  implicit none
+  type (taylor_struct) :: bmad_taylor(:)
+end subroutine
+
 function knot_interpolate (x_knot, y_knot, x_pt, interpolation, err_flag) result (y_pt)
   import
   implicit none
