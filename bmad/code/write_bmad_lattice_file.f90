@@ -771,7 +771,7 @@ do ib = 0, ubound(lat%branch, 1)
         enddo
         line = trim(line) // '}'
         ix = index(line, '{,')
-        line = line(1:ix) // line(ix+2:)
+        if (ix /= 0) line = line(1:ix) // line(ix+2:)
       endif
 
       call write_lat_line (line, iu, .false.)
