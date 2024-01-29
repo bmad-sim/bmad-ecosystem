@@ -15,20 +15,20 @@
   clog_to_use = 4   ! 1=no tail cut, 2=raubenheimer, 3=bane, 4=kubo
 
   set_dispersion = .true.
-  eta_set = 0.010  !sets vertical dispersion that is plugged into IBS formulas.
-  etap_set = 0.002  !sets vertical dispersion prime that is plugged in to IBS formulas.
+  eta_set = 0.010  ! (m) sets vertical dispersion that is plugged into IBS formulas.
+  etap_set = 0.002  ! (1) sets vertical dispersion prime that is plugged in to IBS formulas.
 
   do_pwd = .false. 
-  inductance = 25.9E-9
+  inductance = 25.9E-9 ! (arb.) PWD quantity akin to induction
 
   ptc_calc = .false.  !use ptc to calculate emittances
-  a_emit = 3.8E-9  !negative value to use radiation integrals
-  b_emit = 17.90E-12  ! 16.9E-12  !negative value to use radiation integrals
-  energy_spread = -1   !negative value to use radiation integrals
+  a_emit = 3.8E-9  ! (m*rad) negative value to use radiation integrals
+  b_emit = 17.90E-12  ! (m*rad) negative value to use radiation integrals
+  energy_spread = -1   ! (rel.) negative value to use radiation integrals
 
-  high_current = 8.0   !highest current
-  delta_current = 0.40  !step size
-  low_current = 0.01  !lowest current
+  high_current = 8.0   ! (mA) highest current
+  delta_current = 0.40  ! (mA) step size
+  low_current = 0.01  ! (mA) lowest current
 
 	initial_blow_up = 4, 4, 4
 

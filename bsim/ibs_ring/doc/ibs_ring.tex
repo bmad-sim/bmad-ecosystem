@@ -450,14 +450,14 @@ The input parameters are:
   lat_file = <lattice-file-name>
   granularity = <real>   ! -1 for element-by-element.
   ptc_calc = <logical>  ! If true, use PTC for rad. int. calculations.
-  b_emit = <real>  ! Zero current vertical emittance.  Set to -1 for rad int.
-  a_emit = <real>  ! Zero current horizontal emittance.  Set to -1 for rad int.
-  energy_spread = <real>  !Zero current energy spread.  Set to -1 for rad int.
+  b_emit = <real>  ! (m*rad) Zero current vertical emittance.  Set to -1 for rad int.
+  a_emit = <real>  ! (m*rad) Zero current horizontal emittance.  Set to -1 for rad int.
+  energy_spread = <real>  ! (rel.) Zero current energy spread.  Set to -1 for rad int.
   fake_3HC = <real> ! If greater than zero, reduce rates by this factor.  
                     ! IBS rates scale with 1/sigma_z
-  high_current = <real>  ! highest current
-  delta_current = <real> ! step size
-  low_current = <real>   ! lowest current
+  high_current = <real>  ! (mA) highest current
+  delta_current = <real> ! (mA) step size
+  low_current = <real>   ! (mA) lowest current
   ibs_formula = <type>  ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx', or 'kubo'
   clog_to_use = <int>   ! 1=no tail cut, 2=raubenheimer, 3=kubo, 4=kubo w/vertical
   eqb_method = <type>   ! 'der' derivatives or 'rlx' for Wolski's relaxation.  
@@ -473,11 +473,11 @@ The input parameters are:
   z_view = <int>  ! ix of element where projection is taken 
                   ! for longitudinal beam size calculation.
   do_pwd = <logical>  ! Apply potential well distortion to bunch length
-  inductance = <real>  ! A PWD parameter akin to inductance
+  inductance = <real>  ! (arb.) A PWD parameter akin to inductance
   set_dispersion = <logical> ! Assign a vertical dispersion (eta_set and etap_set).
-  eta_set = <real> ! If set_dispersion, then at every element, 
+  eta_set = <real> ! (m) If set_dispersion, then at every element, 
                    ! set vertical dispersion to eta_set.
-  etap_set = <real> ! If set_dispersion, then at every element, 
+  etap_set = <real> ! (1) If set_dispersion, then at every element, 
                     ! set vertical dispersion' to etap_set.
 /
 \end{example}
