@@ -170,10 +170,10 @@ open(stdoutlun,file='properties.out')
 
 do i=6,stdoutlun,stdoutlun-6
   write(i,*) "Beam parameters from radiation calculation:"
-  write(i,*) "   emit_a      : ", mode%a%emittance
-  write(i,*) "   emit_b      : ", mode%b%emittance
-  write(i,*) "   sigmaE_E    : ", mode%sigE_E
-  write(i,*) "   sigma_z     : ", mode%sig_z
+  write(i,*) "   emit_a (m*rad)  : ", mode%a%emittance
+  write(i,*) "   emit_b (m*rad)  : ", mode%b%emittance
+  write(i,*) "   sigmaE_E (rel.) : ", mode%sigE_E
+  write(i,*) "   sigma_z (m)     : ", mode%sig_z
   write(i,*)
 enddo
 
@@ -196,10 +196,10 @@ if(do_pwd) call set_pwd_ele(lat, mode, inductance)
 
 do i=6,stdoutlun,stdoutlun-6
   write(i,*) "User-adjusted beam parameters at zero current:"
-  write(i,*) "   emit_a      : ", mode%a%emittance
-  write(i,*) "   emit_b      : ", mode%b%emittance
-  write(i,*) "   sigmaE_E    : ", mode%sigE_E
-  write(i,*) "   sigma_z     : ", mode%sig_z
+  write(i,*) "   emit_a (m*rad)  : ", mode%a%emittance
+  write(i,*) "   emit_b (m*rad)  : ", mode%b%emittance
+  write(i,*) "   sigmaE_E (rel.) : ", mode%sigE_E
+  write(i,*) "   sigma_z (m)     : ", mode%sig_z
   write(i,*)
 enddo
 
@@ -210,10 +210,10 @@ if(do_pwd) call set_pwd_ele(lat, mode, inductance)
 mode%z%emittance = mode%sigE_E * mode%sig_z
 do i=6,stdoutlun,stdoutlun-6
   write(i,*) "Beam parameters at full current with PWD, but without IBS:"
-  write(i,*) "   emit_a      : ", mode%a%emittance
-  write(i,*) "   emit_b      : ", mode%b%emittance
-  write(i,*) "   sigmaE_E    : ", mode%sigE_E
-  write(i,*) "   sigma_z     : ", mode%sig_z
+  write(i,*) "   emit_a (m*rad)  : ", mode%a%emittance
+  write(i,*) "   emit_b (m*rad)  : ", mode%b%emittance
+  write(i,*) "   sigmaE_E (rel.) : ", mode%sigE_E
+  write(i,*) "   sigma_z (m)     : ", mode%sig_z
   write(i,*)
 enddo
 
@@ -240,10 +240,10 @@ endif
 
 do i=6,stdoutlun,stdoutlun-6
   write(i,*) "Beam parameters at full current with PWD and IBS:"
-  write(i,*) "   emit_a      : ", mode%a%emittance
-  write(i,*) "   emit_b      : ", mode%b%emittance
-  write(i,*) "   sigmaE_E    : ", mode%sigE_E
-  write(i,*) "   sigma_z     : ", mode%sig_z
+  write(i,*) "   emit_a (m*rad)  : ", mode%a%emittance
+  write(i,*) "   emit_b (m*rad)  : ", mode%b%emittance
+  write(i,*) "   sigmaE_E (rel.) : ", mode%sigE_E
+  write(i,*) "   sigma_z (m)     : ", mode%sig_z
   write(i,*)
 enddo
 
@@ -271,6 +271,7 @@ ALLOCATE(ibs_data(1:n_steps))
 rateslun = lunget()
 open(rateslun,file='ibs_rates0.out')
 write(rateslun,'(4a14)') "#s", "invTz", "invTa", "invTb"
+write(rateslun,'(4a14)') "# (m)", "(1/s)", "(1/s)", "(1/s)" 
 write(rateslun,'(a)') "# Element-by-element rates at start of simulation at full current."
 lat%param%n_part = high_current * lat%param%total_length / e_charge / abs(charge_of(lat%param%particle)) / c_light
 call ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
@@ -324,8 +325,9 @@ open(emitlun, file='emittance.dat',status='replace')
 write(emitlun,'(A,I0,"   ",A)') "# sigma_x calculated at ", x_view, lat%ele(x_view)%name
 write(emitlun,'(A,I0,"   ",A)') "# sigma_y calculated at ", y_view, lat%ele(y_view)%name
 write(emitlun,'(A,I0,"   ",A)') "# sigma_z calculated at ", z_view, lat%ele(z_view)%name
-write(emitlun,'(A)') "                                                                                              -------------Values from sigma matrix-------------"
+write(emitlun,'(94X,A)') "-------------Values from sigma matrix-------------"
 write(emitlun,'(A14,7A18)') "# current", "emit_a", "emit_b", "sigE/E", "sig z", "sigma_x", "sigma_y", "sigmz_z"
+write(emitlun,'(A14,7A18)') "#     (A)", "(m*rad)", "(m*rad)", "(rel.)", "(m)", "(m)", "(m)", "(m)"
 do i=1,n_steps
   write(emitlun,"(es18.8,'   ',es15.8,'   ',es15.8,'   ',es15.8,'   'es15.8,'   ',es15.8,'   ',es15.8,'   ',es15.8)") ibs_data(i)
 enddo
@@ -353,8 +355,11 @@ scalinglun = lunget()
 open(scalinglun,file='ibs_scaling.out')
 write(rateslun,'(a)') "# Element-by-element rates at equilibrium at full current"
 write(rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tz"
+write(rateslun,'(4a14)') "# (m)", "(1/s)", "(1/s)", "(1/s)" 
 write(int_rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tz"
+write(int_rateslun,'(4a14)') "# (m)", "(1/s)", "(1/s)", "(1/s)" 
 write(scalinglun,'(5a14)') "# s", "inv_Ta", "inv_Tb", "Ha", "Hb"
+write(scalinglun,'(5a14)') "# (m)", "(1/s)", "(1/s)", "(m)", "(m)"
 
 
 inv_Ta_int = 0.0d0
