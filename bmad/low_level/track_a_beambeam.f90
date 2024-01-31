@@ -38,11 +38,12 @@ type (em_field_struct) field
 type (strong_beam_struct) sbb
 
 real(rp), optional :: mat6(6,6)
-real(rp) sig_x, sig_y, ff, ds_slice
+real(rp) sigma(2), dsigma_ds(2), ff, ds_slice
 real(rp) k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del, s0
-real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, dx, dy, dcoef, z
+real(rp) xmat(6,6), del_s, x_rel, y_rel, ratio, bbi_const, dx, dy, dcoef, z, d
+real(rp) om(3), quat(0:3), beta_strong, s_body_save, p_rel
+real(rp) f_factor, new_beta, px_old, py_old, e_factor, dpx_dx, dpx_dy, dpy_dx, dpy_dy, ds_dz
 real(rp), allocatable :: z_slice(:)
-real(rp) om(3), quat(0:3), beta_strong, s_body_save
 real(rp), target :: slice_center(3), s_body, s_lab
 real(rp), pointer :: center_ptr(:), s_body_ptr, s_lab_ptr ! To get around ifort bug.
 
@@ -62,7 +63,7 @@ orb_ptr => orbit
 
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
-del = 0.001
+del = 0.0001
 if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
   if (strong_beam_strength(ele) == 0) return
   call out_io (s_error$, r_name, 'STRONG BEAM SIGMAS NOT SET FOR BEAMBEAM ELEMENT: ' // ele%name, &
@@ -105,49 +106,80 @@ do i = 1, n_slice
 
   !
 
-  call strong_beam_sigma_calc (ele, s_lab, sig_x, sig_y, bbi_const)
+  call strong_beam_sigma_calc (ele, s_lab, sigma, bbi_const, dsigma_ds)
 
   dx = orbit%vec(1) - slice_center(1)
   dy = orbit%vec(3) - slice_center(2)
-  x_pos = dx / sig_x
-  y_pos = dy / sig_y
+  x_rel = dx / sigma(1)
+  y_rel = dy / sigma(2)
+  px_old = orbit%vec(2)
+  py_old = orbit%vec(4)
+  p_rel = 1.0_rp + orbit%vec(6)
 
   if (present(track)) then
-    sbb = strong_beam_struct(i, slice_center(1), slice_center(2), sig_x, sig_y, dx, dy)
+    sbb = strong_beam_struct(i, slice_center(1), slice_center(2), sigma(1), sigma(2), dx, dy)
     call save_a_step(track, ele, param, .true., orbit, s_body, strong_beam = sbb)
   endif
 
-  ratio = sig_y / sig_x
-  call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
+  ratio = sigma(2) / sigma(1)
+  call bbi_kick (x_rel, y_rel, ratio, k0_x, k0_y)
 
   coef = orbit%time_dir * bbi_const / n_slice
-  orbit%vec(2) = orbit%vec(2) + k0_x * coef
-  orbit%vec(4) = orbit%vec(4) + k0_y * coef
+  k0_x = k0_x * coef; k0_y = k0_y * coef
+
+  call bbi_kick (x_rel-del, y_rel, ratio, k_xx1, k_yx1)
+  call bbi_kick (x_rel, y_rel-del, ratio, k_xy1, k_yy1)
+  call bbi_kick (x_rel+del, y_rel, ratio, k_xx2, k_yx2)
+  call bbi_kick (x_rel, y_rel+del, ratio, k_xy2, k_yy2)
+
+  dcoef = orbit%time_dir * bbi_const / (ele%value(n_slice$) * del)
+  dpx_dx = dcoef * (k_xx2 - k_xx1) / (2 * sigma(1))
+  dpx_dy = dcoef * (k_xy2 - k_xy1) / (2 * sigma(2))
+  dpy_dx = dcoef * (k_yx2 - k_yx1) / (2 * sigma(1))
+  dpy_dy = dcoef * (k_yy2 - k_yy1) / (2 * sigma(2))
+
+  e_factor = 0.25_rp / p_rel
+  orbit%vec(6) = orbit%vec(6) + e_factor * (k0_x * (k0_x + 2 * px_old) + k0_y * (k0_y + 2 * py_old)) + &
+                        0.5_rp * (dpx_dx * dsigma_ds(1) * sigma(1) + dpy_dy * dsigma_ds(2) * sigma(2))
+  call convert_pc_to(orbit%p0c * (1 + orbit%vec(6)), orbit%species, beta = new_beta)
+  orbit%vec(5) = orbit%vec(5) * new_beta / orbit%beta
+  orbit%beta = new_beta
+
+  orbit%vec(2) = px_old + k0_x
+  orbit%vec(4) = py_old + k0_y
 
   if (present(track)) then
     call save_a_step(track, ele, param, .true., orbit, s_body, strong_beam = sbb)
   endif
 
   if (logic_option(.false., make_matrix)) then
-    call bbi_kick (x_pos-del, y_pos, ratio, k_xx1, k_yx1)
-    call bbi_kick (x_pos, y_pos-del, ratio, k_xy1, k_yy1)
-    call bbi_kick (x_pos+del, y_pos, ratio, k_xx2, k_yx2)
-    call bbi_kick (x_pos, y_pos+del, ratio, k_xy2, k_yy2)
+    call mat_make_unit(xmat)
+    ds_dz = 0.5_rp    ! Change in collision point with change in z
 
-    dcoef = orbit%time_dir * bbi_const / (ele%value(n_slice$) * del)
-    mat21 = dcoef * (k_xx2 - k_xx1) / (2 * sig_x)
-    mat23 = dcoef * (k_xy2 - k_xy1) / (2 * sig_y)
-    mat41 = dcoef * (k_yx2 - k_yx1) / (2 * sig_x)
-    mat43 = dcoef * (k_yy2 - k_yy1) / (2 * sig_y)
+    xmat(2,1) = dpx_dx
+    xmat(2,3) = dpx_dy
+    xmat(4,1) = dpy_dx
+    xmat(4,3) = dpy_dy
 
-    mat6(2,:) = mat6(2,:) + mat21 * mat6(1,:) + mat23 * mat6(3,:)
-    mat6(4,:) = mat6(4,:) + mat41 * mat6(1,:) + mat43 * mat6(3,:)
+    xmat(1,5) = -ds_dz * k0_x / p_rel
+    xmat(2,5) =  ds_dz * (px_old * dpx_dx + py_old * dpx_dy) / p_rel
+    xmat(3,5) = -ds_dz * k0_y / p_rel
+    xmat(4,5) =  ds_dz * (px_old * dpy_dx + py_old * dpy_dy) / p_rel
+    xmat(6,5) =  e_factor * 2.0_rp * (xmat(2,5) * (k0_x + px_old) + xmat(4,5) * (k0_y + py_old))
+
+    xmat(6,1) = e_factor * dpx_dx * 2.0_rp * (k0_x + px_old)
+    xmat(6,2) = e_factor * 2.0_rp * k0_x
+    xmat(6,3) = e_factor * dpy_dy * 2.0_rp * (k0_y + py_old)
+    xmat(6,4) = e_factor * 2.0_rp * k0_y
+    xmat(6,6) = 1.0_rp - e_factor * (k0_x * (k0_x + 2 * px_old) + k0_y * (k0_y + 2 * py_old)) / p_rel
+
+    mat6 = matmul(xmat, mat6)
   endif
 
   if (bmad_com%spin_tracking_on) then
     ff = 1.0_rp + orbit%beta**2
-    field%E = [k0_x,  k0_y, 0.0_rp] * (coef * orbit%p0c / (ff * charge_of(orbit%species)))
-    field%B = [k0_y, -k0_x, 0.0_rp] * (coef * orbit%p0c * orbit%beta / (ff * c_light * charge_of(orbit%species)))
+    field%E = [k0_x,  k0_y, 0.0_rp] * (orbit%p0c / (ff * charge_of(orbit%species)))
+    field%B = [k0_y, -k0_x, 0.0_rp] * (orbit%p0c * orbit%beta / (ff * c_light * charge_of(orbit%species)))
     om = spin_omega (field, orbit, +1)
     quat = omega_to_quat(om)
     orbit%spin = quat_rotate(quat, orbit%spin)

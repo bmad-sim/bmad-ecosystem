@@ -367,10 +367,11 @@ Propagate backwards through the solenoid field to end up with the particle longi
   %
 \end{enumerate}
 
-There is an energy kick due to the motion of the strong beam. This is similar to the gravatational
-slingshot in orbital mechanics. The energy kick is simply calculated using conservation of
-4-momentum of the tracked particle and the strong beam where the mass of the strong beam is assumed
-to be large compared to the mass of the tracked particle.\footnote
+There is an energy kick due to the motion of the strong beam. There are two parts to this $dp_z =
+dp_{z,s} + dp_{z,h}$. One part, $dp_{z,s}$, is similar to the gravatational slingshot in orbital
+mechanics. The slingshot energy kick is simply calculated using conservation of 4-momentum of the
+tracked particle and the strong beam where the mass of the strong beam is assumed to be large
+compared to the mass of the tracked particle.\footnote
   {
 This assumption breaks down if a tracked particle is deflected due to a single scattering event with
 a particle of the strong beam.  But particle-particle scattering is outside of the assumption of a
@@ -386,18 +387,25 @@ beam velocities, and $\theta_{w1}$ and $\theta_{w2}$ are angles of the weak part
 respect to the strong beam motion before and after the interaction. Converting to phase space
 coordinates, the momentum kick $dp_z$ is
 \begin{equation}
-  dp_z = \frac{1}{2 \, \beta_w \, (1/\beta_w + 1/\beta_s) \, (1 + p_z)} 
+  dp_{z,s} = \frac{1}{2 \, \beta_w \, (1/\beta_w + 1/\beta_s) \, (1 + p_z)} 
     \left( dp_x \, (dp_x - 2p_{x1}) + dp_y \, (dp_y - 2p_{y1}) \right)
+    \label{dpz12}
 \end{equation}
 where $dp_x$ and $dp_y$ are the transverse kicks and $p_{x1}$ and $p_{y1}$ are the initial phase
 space momenta.
 
-There is an added term to the energy kick when the strong beam's cross-section is changing due to
-the hourglass effect.
+The other part of the energy kick, $dp_{z,h}$, happens when the strong beam's cross-section is changing due to
+the hourglass effect. The hourglass longitudinal kick relative to the transverse kicks can derived using
+Eq.~(5) of Sagan \cite{b:beamion}. In the relativistic limit the result is
+\begin{equation}
+  dp_{z,h} = \frac{\sigma_x}{2} \, \frac{d\sigma_x}{ds} \, \frac{dp_x}{dx} + 
+             \frac{\sigma_y}{2} \, \frac{d\sigma_y}{ds} \, \frac{dp_y}{dy}
+  \label{dpzsx}
+\end{equation}
+where $\sigma_x$ and $\sigma_y$ are the strong beam sizes, and the factor of two is due to the
+relative velocity ($2c$) between the beams.
 
-
-
-\newpage
+\newpage  % If newpage is removed, the footnote get put on the next page!!
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
