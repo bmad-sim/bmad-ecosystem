@@ -837,13 +837,13 @@ type (coord_struct) p0
 
 real(rp) charge_tot
 
-integer iu, ic, ip, np, ix, ios, n_particle, n_bunch, n_col
+integer iu, ic, ip, np, ix, ios, n_particle, n_bunch, n_col, n_line
 
 character(*) file_name
 character(*), parameter :: r_name = 'read_beam_ascii'
-character(20) col(30)
+character(20) col(30), acol
 character(200) full_name
-character(600) line, str
+character(600) line, str, line_saved
 
 logical err_flag, err, valid, beta_found
 
@@ -852,6 +852,7 @@ logical err_flag, err, valid, beta_found
 n_bunch = 0
 err_flag = .true.
 err = .false.
+n_line = 0
 
 call fullfilename(file_name, full_name, valid)
 if (.not. valid) then
@@ -878,8 +879,10 @@ do
   ! Read bunch header
   header_loop: do
     read (iu, '(a)', iostat = ios) line
+    n_line = n_line + 1
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'CANNOT READ BUNCH HEADER IN FILE: ' // file_name)
+      call out_io (s_error$, r_name, 'CANNOT READ BUNCH HEADER IN FILE: ' // file_name, &
+                                     'LINE NUMBER ' // int_str(n_line))
       return
     endif
 
@@ -897,7 +900,9 @@ do
     endif
 
     if (line(1:1) /= '#') then
-      call out_io (s_error$, r_name, 'CANNOT DECODE HEADER LINE: ' // line, 'FOR FILE: ' // file_name)
+      call out_io (s_error$, r_name, 'FIRST CHARACTER IN HEADER LINE NOT A "#" CHARACTER: ' // quote(line(1:20)) // '...', &
+                                     'IN FILE: ' // file_name, & 
+                                     'LINE NUMBER ' // int_str(n_line))
       return
     endif
 
@@ -905,39 +910,36 @@ do
     call string_trim(line(2:), line, ix)
 
     select case (downcase(line(:ix)))
-    case ('charge_tot');  bunch%charge_tot   = read_param(line)
+    case ('charge_tot');  bunch%charge_tot = read_param(line, n_line, err); if (err) return
 
     case ('location')
-      str = read_string(line)
-      call read_switch(line(:ix), p0%location, str, err)
-      if (err) return
+      str = read_string(line, n_line, err); if (err) return
+      call read_switch(line(:ix), p0%location, str, n_line, err); if (err) return
 
     case ('state')
-      str = unquote(read_string(line))
-      call read_switch(line(:ix), p0%state, str, err)
-      if (err) return
+      str = unquote(read_string(line, n_line, err)); if (err) return
+      call read_switch(line(:ix), p0%state, str, n_line, err); if (err) return
 
     case ('species')
-      str = unquote(read_string(line))
-      call read_switch(line(:ix), p0%species, str, err)
-      if (err) return
+      str = unquote(read_string(line, n_line, err)); if (err) return
+      call read_switch(line(:ix), p0%species, str, n_line, err); if (err) return
 
-    case ('r');                p0%r           = read_param(line)
-    case ('s', 's_position');  p0%s           = read_param(line)
-    case ('t', 'time');        p0%t           = read_param(line)
-    case ('p0c');              p0%p0c         = read_param(line)
-    case ('charge');           p0%charge      = read_param(line)
-    case ('dt_ref');           p0%dt_ref      = read_param(line)
-    case ('e_potential');      p0%E_potential = read_param(line)
-    case ('beta');             p0%beta        = read_param(line); beta_found = .true.
-    case ('spin');             call read_params(line, p0%spin)
-    case ('field');            call read_params(line, p0%field)
-    case ('phase');            call read_params(line, p0%phase)
-    case ('time_dir');         p0%time_dir    = nint(read_param(line))
-    case ('direction');        p0%direction   = nint(read_param(line))
-    case ('ix_ele');           p0%ix_ele      = nint(read_param(line))
-    case ('ix_branch');        p0%ix_branch   = nint(read_param(line))
-    case ('ix_user');          p0%ix_user     = nint(read_param(line))
+    case ('r');                p0%r           = read_param(line, n_line, err); if (err) return
+    case ('s', 's_position');  p0%s           = read_param(line, n_line, err); if (err) return
+    case ('t', 'time');        p0%t           = read_param(line, n_line, err); if (err) return
+    case ('p0c');              p0%p0c         = read_param(line, n_line, err); if (err) return
+    case ('charge');           p0%charge      = read_param(line, n_line, err); if (err) return
+    case ('dt_ref');           p0%dt_ref      = read_param(line, n_line, err); if (err) return
+    case ('e_potential');      p0%E_potential = read_param(line, n_line, err); if (err) return
+    case ('beta');             p0%beta        = read_param(line, n_line, err); if (err) return; beta_found = .true.
+    case ('spin');             call read_params(line, n_line, p0%spin, err); if (err) return
+    case ('field');            call read_params(line, n_line, p0%field, err); if (err) return
+    case ('phase');            call read_params(line, n_line, p0%phase, err); if (err) return
+    case ('time_dir');         p0%time_dir    = nint(read_param(line, n_line, err)); if (err) return
+    case ('direction');        p0%direction   = nint(read_param(line, n_line, err)); if (err) return
+    case ('ix_ele');           p0%ix_ele      = nint(read_param(line, n_line, err)); if (err) return
+    case ('ix_branch');        p0%ix_branch   = nint(read_param(line, n_line, err)); if (err) return
+    case ('ix_user');          p0%ix_user     = nint(read_param(line, n_line, err)); if (err) return
     end select
   enddo header_loop
 
@@ -946,8 +948,9 @@ do
   ip = 0
   do 
     read (iu, '(a)', iostat = ios, end = 8000) line
+    n_line = n_line + 1
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'CANNOT READ BEAM FILE TABLE IN FILE: ' // file_name)
+      call out_io (s_error$, r_name, 'CANNOT READ BEAM FILE TABLE IN FILE: ' // file_name, 'AT LINE NUMBER: ' // int_str(n_line))
       return
     endif
 
@@ -966,40 +969,50 @@ do
 
     call string_trim(line, line, ix)
     do ic = 1, n_col
-      select case (downcase(col(ic)))
-      case ('x');                call read_component(p%vec(1), line, ix, err); if (err) return
-      case ('px');               call read_component(p%vec(2), line, ix, err); if (err) return
-      case ('y');                call read_component(p%vec(3), line, ix, err); if (err) return
-      case ('py');               call read_component(p%vec(4), line, ix, err); if (err) return
-      case ('z');                call read_component(p%vec(5), line, ix, err); if (err) return
-      case ('pz');               call read_component(p%vec(6), line, ix, err); if (err) return
-      case ('spin_x');           call read_component(p%spin(1), line, ix, err); if (err) return
-      case ('spin_y');           call read_component(p%spin(2), line, ix, err); if (err) return
-      case ('spin_z');           call read_component(p%spin(3), line, ix, err); if (err) return
-      case ('field_x');          call read_component(p%field(1), line, ix, err); if (err) return
-      case ('field_y');          call read_component(p%field(2), line, ix, err); if (err) return
-      case ('phase_x');          call read_component(p%phase(1), line, ix, err); if (err) return
-      case ('phase_y');          call read_component(p%phase(2), line, ix, err); if (err) return
-      case ('s', 's_position');  call read_component(p%s, line, ix, err); if (err) return
-      case ('t', 'time');        call read_component(p%t, line, ix, err); if (err) return
-      case ('charge');           call read_component(p%charge, line, ix, err); if (err) return
-      case ('dt_ref');           call read_component(p%dt_ref, line, ix, err); if (err) return
-      case ('r');                call read_component(p%r, line, ix, err); if (err) return
-      case ('p0c');              call read_component(p%p0c, line, ix, err); if (err) return
-      case ('E_potential');      call read_component(p%E_potential, line, ix, err); if (err) return
-      case ('beta');             call read_component(p%beta, line, ix, err); if (err) return; beta_found = .true.
-      case ('ix_ele');           call read_component_int(p%ix_ele, line, ix, err); if (err) return
-      case ('ix_branch');        call read_component_int(p%ix_branch, line, ix, err); if (err) return
-      case ('ix_user');          call read_component_int(p%ix_user, line, ix, err); if (err) return
-      case ('direction');        call read_component_int(p%direction, line, ix, err); if (err) return
-      case ('time_dir');         call read_component_int(p%time_dir, line, ix, err); if (err) return
-      case ('state');            call read_switch(col(ic), p%state, line, err, ix); if (err) return
-      case ('species');          call read_switch(col(ic), p%species, line, err, ix); if (err) return
-      case ('location');         call read_switch(col(ic), p%location, line, err, ix); if (err) return
-      case ('index');            call string_trim(line(ix+1:), line, ix)     ! Ignore value
+      acol = col(ic)
+      select case (downcase(acol))
+      case ('x');                call read_component(acol, p%vec(1), line, n_line, ix, err); if (err) return
+      case ('px');               call read_component(acol, p%vec(2), line, n_line, ix, err); if (err) return
+      case ('y');                call read_component(acol, p%vec(3), line, n_line, ix, err); if (err) return
+      case ('py');               call read_component(acol, p%vec(4), line, n_line, ix, err); if (err) return
+      case ('z');                call read_component(acol, p%vec(5), line, n_line, ix, err); if (err) return
+      case ('pz');               call read_component(acol, p%vec(6), line, n_line, ix, err); if (err) return
+      case ('spin_x');           call read_component(acol, p%spin(1), line, n_line, ix, err); if (err) return
+      case ('spin_y');           call read_component(acol, p%spin(2), line, n_line, ix, err); if (err) return
+      case ('spin_z');           call read_component(acol, p%spin(3), line, n_line, ix, err); if (err) return
+      case ('field_x');          call read_component(acol, p%field(1), line, n_line, ix, err); if (err) return
+      case ('field_y');          call read_component(acol, p%field(2), line, n_line, ix, err); if (err) return
+      case ('phase_x');          call read_component(acol, p%phase(1), line, n_line, ix, err); if (err) return
+      case ('phase_y');          call read_component(acol, p%phase(2), line, n_line, ix, err); if (err) return
+      case ('s', 's_position');  call read_component(acol, p%s, line, n_line, ix, err); if (err) return
+      case ('t', 'time');        call read_component(acol, p%t, line, n_line, ix, err); if (err) return
+      case ('charge');           call read_component(acol, p%charge, line, n_line, ix, err); if (err) return
+      case ('dt_ref');           call read_component(acol, p%dt_ref, line, n_line, ix, err); if (err) return
+      case ('r');                call read_component(acol, p%r, line, n_line, ix, err); if (err) return
+      case ('p0c');              call read_component(acol, p%p0c, line, n_line, ix, err); if (err) return
+      case ('E_potential');      call read_component(acol, p%E_potential, line, n_line, ix, err); if (err) return
+      case ('beta');             call read_component(acol, p%beta, line, n_line, ix, err); if (err) return; beta_found = .true.
+      case ('ix_ele');           call read_component_int(acol, p%ix_ele, line, n_line, ix, err); if (err) return
+      case ('ix_branch');        call read_component_int(acol, p%ix_branch, line, n_line, ix, err); if (err) return
+      case ('ix_user');          call read_component_int(acol, p%ix_user, line, n_line, ix, err); if (err) return
+      case ('direction');        call read_component_int(acol, p%direction, line, n_line, ix, err); if (err) return
+      case ('time_dir');         call read_component_int(acol, p%time_dir, line, n_line, ix, err); if (err) return
+      case ('state');            call read_switch(acol, p%state, line, n_line, err, ix); if (err) return
+      case ('species');          call read_switch(acol, p%species, line, n_line, err, ix); if (err) return
+      case ('location');         call read_switch(acol, p%location, line, n_line, err, ix); if (err) return
+      case ('index')
+        ! Value is not used but check that it is an integer
+        if (.not. is_integer(line(:ix))) then
+          call out_io (s_error$, r_name, 'INDEX COLUMN ENTRY IS NOT AN INTEGER: ' // quote(line(:ix)), 'IN FILE: ' // file_name, &
+                                         'AT LINE NUMBER: ' // int_str(n_line))
+          return
+        endif
+        call string_trim(line(ix+1:), line, ix)     ! Ignore value
       case default
         err = .true.
-        call out_io(s_error$, r_name, 'COLUMN NAME NOT RECOGNIZED: ' // col(ic))
+        call out_io(s_error$, r_name, 'COLUMN NAME NOT RECOGNIZED: ' // col(ic), &
+                                      'IN FILE: ' // file_name, &
+                                      'AT LINE NUMBER: ' // int_str(n_line))
         return
       end select
     enddo
@@ -1079,11 +1092,11 @@ end subroutine bunch_finalizer
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine read_switch(who, switch, line, err, ix_in)
+subroutine read_switch(who, switch, str, n_line, err, ix_in)
 
-integer switch, ix
+integer switch, n_line, ix
 integer, optional :: ix_in
-character(*) who, line
+character(*) who, str
 logical err
 
 !
@@ -1091,34 +1104,41 @@ logical err
 if (present(ix_in)) then
   ix = ix_in
 else
-  call string_trim(line, line, ix)
+  call string_trim(str, str, ix)
 endif
 
 if (ix == 0) err = .true.
 
 select case (who)
 case ('location')
-  call match_word(line(:ix), location_name(1:), switch)
+  call match_word(str(:ix), location_name(1:), switch)
   if (switch <= 0) then
-    call out_io (s_error$, r_name, 'LOCATION NAME NOT RECOGNIZED: ' // line)
+    call out_io (s_error$, r_name, 'LOCATION NAME NOT RECOGNIZED: ' // quote(str(1:ix)), &
+                                   'IN FILE: ' // file_name, 'AT LINE: ' // int_str(n_line))
     return
   endif
 
 case ('state')
-  call match_word(line(:ix), state_name, switch)
+  call match_word(str(:ix), state_name, switch)
   if (switch <= 0) then
-    call out_io (s_error$, r_name, 'PARTICLE STATE NAME NOT RECOGNIZED: ' // line)
+    call out_io (s_error$, r_name, 'PARTICLE STATE NAME NOT RECOGNIZED: ' // quote(str(1:ix)), &
+                                   'IN FILE: ' // file_name, 'AT LINE: ' // int_str(n_line))
     return
   endif
   switch = switch - 1   ! Since state_name is zero based.
 
 case ('species')
-  switch = species_id(line(:ix), positron$)
+  switch = species_id(str(:ix), positron$)
   if (switch == invalid$) err = .true.
+  if (err) then
+    call out_io (s_error$, r_name, 'SPECIES NAME NOT RECOGNIZED: ' // quote(str(1:ix)), &
+                                   'IN FILE: ' // file_name, 'AT LINE: ' // int_str(n_line))
+    return
+  endif
 end select
 
 if (present(ix_in)) then
-  call string_trim(line(ix+1:), line, ix)
+  call string_trim(str(ix+1:), str, ix)
   ix_in = ix
 endif
 
@@ -1127,19 +1147,30 @@ end subroutine read_switch
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine read_component(component, line, ix, err)
+subroutine read_component(name, component, line, n_line, ix, err)
 
 real(rp) component
-integer ix
-character(*) line
+integer n_line, ix
+character(*) name, line
 logical err
 
 !
 
-if (ix == 0) err = .true.
-if (err) return
+if (ix == 0) then
+  err = .true.
+  call out_io (s_error$, r_name, 'LINE ENDED BEFORE COLUMN: ' // trim(name) // ' AT LINE NUMBER: ' // int_str(n_line), &
+                                 'IN FILE: ' // file_name)
+  return
+endif
+
 read (line, *, iostat = ios) component
 err = (ios /= 0)
+if (err) then
+  call out_io (s_error$, r_name, 'ERROR READING REAL NUMBER: ' // quote(line(1:ix)), &
+                                 'IN FILE: ' // file_name, 'IN COLUMN: ' // trim(name) // ' AT LINE NUMBER: ' // int_str(n_line))
+  return
+endif
+
 call string_trim(line(ix+1:), line, ix)
 
 end subroutine read_component
@@ -1147,19 +1178,28 @@ end subroutine read_component
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine read_component_int(component, line, ix, err)
+subroutine read_component_int(name, component, line, n_line, ix, err)
 
 integer component
-integer ix
-character(*) line
+integer n_line, ix
+character(*) name, line
 logical err
 
 !
 
-if (ix == 0) err = .true.
-if (err) return
+if (ix == 0) then
+  err = .true.
+  call out_io (s_error$, r_name, 'LINE ENDED BEFORE COLUMN: ' // trim(name) // &
+                                 ' AT LINE NUMBER: ' // int_str(n_line), 'IN FILE: ' // file_name)
+  return
+endif
+
 read (line, *, iostat = ios) component
-err = (ios /= 0)
+if (err) then
+  call out_io (s_error$, r_name, 'ERROR READING INTEGER NUMBER: ' // quote(line(1:ix)), &
+                                 'IN FILE: ' // file_name, 'IN COLUMN: ' // trim(name) // ' AT LINE NUMBER: ' // int_str(n_line))
+  return
+endif
 call string_trim(line(ix+1:), line, ix)
 
 end subroutine read_component_int
@@ -1167,17 +1207,20 @@ end subroutine read_component_int
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-function read_param(line) result (param)
+function read_param(line, n_line, err) result (param)
 character(*) line
 real(rp) param
-integer ix, ios
+integer n_line, ix, ios
+logical err
 
 !
 
 ix = index(line, '=')
 read(line(ix+1:), *, iostat = ios) param
-if (ios /= 0 .or. ix == 0) then
-  call out_io (s_error$, r_name, 'ERROR READING BEAM FILE PARAMETER!')
+err = (ios /= 0 .or. ix == 0) 
+if (err) then
+  call out_io (s_error$, r_name, 'ERROR PARSING PARAMETER: ' // line, &
+                                 'IN FILE: ' // file_name, 'AT LINE NUMBER: ' // int_str(n_line))
 endif
 
 end function read_param
@@ -1185,17 +1228,20 @@ end function read_param
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine read_params(line, param)
+subroutine read_params(line, n_line, param, err)
 character(*) line
 real(rp) param(:)
-integer ix, ios
+integer n_line, ix, ios
+logical err
 
 !
 
 ix = index(line, '=')
 read(line(ix+1:), *, iostat = ios) param
-if (ios /= 0 .or. ix == 0) then
-  call out_io (s_error$, r_name, 'ERROR READING BEAM FILE PARAMETER!')
+err = (ios /= 0 .or. ix == 0) 
+if (err) then
+  call out_io (s_error$, r_name, 'ERROR PARSING PARAMETER: ' // line, &
+                                 'IN FILE: ' // file_name, 'AT LINE NUMBER: ' // int_str(n_line))
 endif
 
 end subroutine read_params
@@ -1203,18 +1249,21 @@ end subroutine read_params
 !---------------------------------------------------------------------------------------------------
 ! contains
 
-function read_string(line) result (str)
+function read_string(line, n_line, err) result (str)
 character(*) line
 character(200) str
-integer ix, ios
+integer n_line, ix, ios
+logical err
 
 !
 
 ix = index(line, '=')
-if (ix == 0) then
-  call out_io (s_error$, r_name, 'ERROR READING BEAM FILE PARAMETER!')
-  return
+err = (ix == 0)
+if (err) then
+  call out_io (s_error$, r_name, 'ERROR PARSING PARAMETER: ' // line, &
+                                 'IN FILE: ' // file_name, 'AT LINE NUMBER: ' // int_str(n_line))
 endif
+
 str = unquote(trim(line(ix+1:)))
 
 end function read_string

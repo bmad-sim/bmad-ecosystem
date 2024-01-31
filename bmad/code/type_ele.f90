@@ -86,7 +86,7 @@ integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
 integer ia, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
-integer id1, id2, id3, ne, na
+integer id1, id2, id3, ne, na, nn
 
 real(rp) coef, val, L_mis(3), S_mis(3,3) 
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -955,8 +955,25 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   enddo
 
   if (has_it) then
+
+    nn = 10
+    na = 12
+    nt = 12
+
+    do im = 1, ele%n_lord
+      lord => pointer_to_lord (ele, im, ctl)
+      nn = max(nn, len_trim(lord%name)+2)
+      select case (lord%lord_status)
+      case (super_lord$, multipass_lord$, girder_lord$)
+      case default
+        na = max(na, len_trim(ctl%attribute)+2)
+        if (.not. lord%is_on) nt = 18
+      end select
+    enddo
+
+    str1 = ''
     nl=nl+1; li(nl) = 'Controller Lord(s):'
-    nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type            Expression'
+    nl=nl+1; write (li(nl), '(9a)') '   Index   Name',  str1(:nn-4), 'Attribute', str1(:na-9), 'Lord_Type', str1(:nt-9), 'Expression'
 
     do im = 1, ele%n_lord
       lord => pointer_to_lord (ele, im, ctl)
@@ -975,13 +992,13 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
           call split_expression_string (knots_to_string(lord%control%x_knot, ctl%y_knot), 70, 5, li2)
         endif
         a_name = ctl%attribute
-        if (lord%lord_status == overlay_lord$ .and. .not. lord%is_on) str1 = 'Overlay [IS_ON = F]'
+        if (.not. lord%is_on) str1 = trim(str1) // ' [Is off]'
       end select
 
       if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
-      nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a21, a)') lord%ix_ele, lord%name, a_name, str1, trim(li2(1))
+      nl=nl+1; write (li(nl), '(i8, 3x, 4a)') lord%ix_ele, lord%name(:nn), a_name(:na), str1(:nt), trim(li2(1))
       do j = 2, size(li2)
-        nl=nl+1; li(nl) = ''; li(nl)(84:) = trim(li2(j))
+        nl=nl+1; li(nl) = ''; li(nl)(17+nn+na+nt:) = trim(li2(j))
       enddo
     enddo
   endif
