@@ -167,8 +167,8 @@ type (ele_struct), target, intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
 type (high_energy_space_charge_struct), pointer :: sc
 
-real(rp) x, y, x_rel, y_rel, kx_rot, ky_rot
-real(rp) kx, ky, kick_const
+real(rp) x, y, x_rel, y_rel, kx, ky
+real(rp) nk(2), dnk(2,2), kick_const
 
 ! Init
 
@@ -181,15 +181,15 @@ sc => ele%high_energy_space_charge
 x = orbit%vec(1) - sc%closed_orb%vec(1)
 y = orbit%vec(3) - sc%closed_orb%vec(3)
 
-x_rel =  (x * sc%cos_phi + y * sc%sin_phi) / sc%sig_x
-y_rel = (-x * sc%sin_phi + y * sc%cos_phi) / sc%sig_y
+x_rel =  x * sc%cos_phi + y * sc%sin_phi 
+y_rel = -x * sc%sin_phi + y * sc%cos_phi
 
-call bbi_kick (x_rel, y_rel, sc%sig_y/sc%sig_x, kx_rot, ky_rot)
+call bbi_kick (x_rel, y_rel, [sc%sig_y, sc%sig_x], nk, dnk)
 
 ! Transform the kick back to the lab coords and apply.
 
-kx = kx_rot * sc%cos_phi - ky_rot * sc%sin_phi
-ky = kx_rot * sc%sin_phi + ky_rot * sc%cos_phi
+kx = nk(1) * sc%cos_phi - nk(2) * sc%sin_phi
+ky = nk(1) * sc%sin_phi + nk(2) * sc%cos_phi
 
 kick_const = sc%kick_const * exp(-0.5 * (orbit%vec(5)/sc%sig_z)**2) / (1 + orbit%vec(6))**3
 

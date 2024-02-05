@@ -548,33 +548,16 @@ syntax as discussed in Section~\sref{s:ele.match}. Example:
 
 This section lists parameters that have a ``nonstandard'' syntax (not in the form
 ``\vn{ename[parameter]''}'').  In the following, ``\vn{ename}'' is an element name, and ``\vn{N}'',
-``\vn{N1}'', ``\vn{N2}'', ``\vn{N3}'' and ``\vn{M}'' are integers.
+``\vn{N1}'', ``\vn{N2}'', ``\vn{N3}'' and ``\vn{M}'' along with \vn{<out>}, \vn{<n1>}, and \vn{<n2>} are
+integers.
 
-Controller knot points (\sref{s:go.syntax}):
+AC_kicker (\sref{s:ac.kick}):
 \begin{example}
-  ename[x_knot(N)]                        -- N^th x_knot point.
-  ename[slave(M)%y_knot(N)]               -- N^th y_knot point for M^th slave.
-\end{example}
-
-Custom attributes (\sref{s:cust.att}):
-\begin{example}
-  ename[r_custom(N1, N2, N3)]
-  ename[r_custom(N1, N2)]                 -- Equivalent to ename[r_custom(N1, N2,  0)]
-  ename[r_custom(N1)]                     -- Equivalent to ename[r_custom(N1,  0,  0)]
-\end{example}
-
-Long range wake (\sref{s:lr.wake.syntax}):
-\begin{example}
-  ename[lr_wake%amp_scale]
-  ename[lr_wake%time_scale]
-  ename[lr_wake%freq_spread
-  ename[lr_wake%mode(N)%freq_in]       
-  ename[lr_wake%mode(N)%freq]     
-  ename[lr_wake%mode(N)%r_over_q]  
-  ename[lr_wake%mode(N)%damp]       
-  ename[lr_wake%mode(N)%phi]       
-  ename[lr_wake%mode(N)%polar_angle]
-  ename[lr_wake%mode(N)%polarized] 
+  ename[amp_vs_time(N)%time]
+  ename[amp_vs_time(N)%amp] 
+  ename[frequencies(N)%freq]
+  ename[frequencies(N)%amp] 
+  ename[frequencies(N)%phi] 
 \end{example}
 
 Cartesian map (\sref{s:cart.map}):
@@ -591,6 +574,19 @@ Cartesian map (\sref{s:cart.map}):
   ename[cartesian_map(N)%t(M)%x0]
   ename[cartesian_map(N)%t(M)%y0]
   ename[cartesian_map(N)%t(M)%phi_z]
+\end{example}
+
+Controller knot points (\sref{s:go.syntax}):
+\begin{example}
+  ename[x_knot(N)]                        -- N^th x_knot point.
+  ename[slave(M)%y_knot(N)]               -- N^th y_knot point for M^th slave.
+\end{example}
+
+Custom attributes (\sref{s:cust.att}):
+\begin{example}
+  ename[r_custom(N1, N2, N3)]
+  ename[r_custom(N1, N2)]                 -- Equivalent to ename[r_custom(N1, N2,  0)]
+  ename[r_custom(N1)]                     -- Equivalent to ename[r_custom(N1,  0,  0)]
 \end{example}
 
 Cylindrical map (\sref{s:cylind.map}):
@@ -632,24 +628,18 @@ Grid_field (\sref{s:grid.field}):
   ename[grid_field(N)%master_parameter]
 \end{example}
 
-Wall for vacuum chambers and masks (\sref{s:wall}):
+Long range wake (\sref{s:lr.wake.syntax}):
 \begin{example}
-  ename[wall%section(N)%s
-  ename[wall%section(N)%wall%dr_ds
-  ename[wall%section(N)%v(M)%x
-  ename[wall%section(N)%v(M)%y
-  ename[wall%section(N)%v(M)%radius_x
-  ename[wall%section(N)%v(M)%radius_y
-  ename[wall%section(N)%v(M)%tilt
-\end{example}
-
-AC_kicker (\sref{s:ac.kick}):
-\begin{example}
-  ename[amp_vs_time(N)%time]
-  ename[amp_vs_time(N)%amp] 
-  ename[frequencies(N)%freq]
-  ename[frequencies(N)%amp] 
-  ename[frequencies(N)%phi] 
+  ename[lr_wake%amp_scale]
+  ename[lr_wake%time_scale]
+  ename[lr_wake%freq_spread
+  ename[lr_wake%mode(N)%freq_in]       
+  ename[lr_wake%mode(N)%freq]     
+  ename[lr_wake%mode(N)%r_over_q]  
+  ename[lr_wake%mode(N)%damp]       
+  ename[lr_wake%mode(N)%phi]       
+  ename[lr_wake%mode(N)%polar_angle]
+  ename[lr_wake%mode(N)%polarized] 
 \end{example}
 
 Surface curvature (\sref{s:surface}):
@@ -659,6 +649,26 @@ Surface curvature (\sref{s:surface}):
   ename[curvature%elliptical_y]
   ename[curvature%elliptical_z]
   ename[curvature%x(N1)y(N2)]
+\end{example}
+
+Taylor terms (\sref{s:taylor}):
+\begin{example}
+  ename[tt<out><n1><n2>...]      ! Orbital terms. EG: rot[tt13] -> M13 matrix term
+  ename[ttS0<n1><n2><n3>...]     ! S0 spin quaternion terms.
+  ename[ttSx<n1><n2><n3>...]     ! Sx spin quaternion terms.
+  ename[ttSy<n1><n2><n3>...]     ! Sy spin quaternion terms.
+  ename[ttSz<n1><n2><n3>...]     ! Sz spin quaternion terms.
+\end{example}
+
+Wall for vacuum chambers and masks (\sref{s:wall}):
+\begin{example}
+  ename[wall%section(N)%s]
+  ename[wall%section(N)%wall%dr_ds]
+  ename[wall%section(N)%v(M)%x]
+  ename[wall%section(N)%v(M)%y]
+  ename[wall%section(N)%v(M)%radius_x]
+  ename[wall%section(N)%v(M)%radius_y]
+  ename[wall%section(N)%v(M)%tilt]
 \end{example}
 
 %---------------------------------------------------------------------------

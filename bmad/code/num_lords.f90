@@ -6,7 +6,7 @@
 ! Input:
 !   slave     -- ele_struct: Slave element.
 !   lord_type -- integer: Type of lord. super_lord$, multipass_lord$, girder_lord$, 
-!                   group_lord$, overlay_lord$, and control_lord$ (= group + overlay)
+!                   group_lord$, overlay_lord$, and governor$ (= group + overlay + control + girder)
 !
 ! Output:
 !   num       -- integer: Number of lords of the given type.
@@ -28,8 +28,10 @@ integer i
 num = 0
 do i = 1, slave%n_lord
   lord => pointer_to_lord(slave, i)
-  if (lord_type == control_lord$) then
-    if (lord%lord_status == group_lord$ .or. lord%lord_status == control_lord$) num = num + 1
+  if (lord_type == governor$) then
+    select case (lord%lord_status)
+    case (group_lord$, overlay_lord$, control_lord$, girder_lord$); num = num + 1
+    end select
   else
     if (lord%lord_status == lord_type) num = num + 1
   endif

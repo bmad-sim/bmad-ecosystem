@@ -28,10 +28,9 @@ type (coord_struct) orbit
 type (twiss_struct) a_twiss, b_twiss
 
 real(rp) r_beam(2), n_beam_part, sig_ee, kick(3)
-real(rp) r, scale, kx, ky, kxx, kyy, x, y, ion_weight, sig_x, sig_y
+real(rp) scale, k(2), dk(2,2), x, y, ion_weight, sig_x, sig_y
 
 real(rp), parameter :: factor = r_p * c_light / twopi  ! 7.3e-11
-real(rp), parameter :: delta = 1d-2                    ! offset in units of sigma
 
 character(*), parameter :: r_name = 'ion_kick'
 
@@ -51,18 +50,15 @@ if (sig_x == 0) sig_x = sqrt(a_twiss%emit * a_twiss%beta + (a_twiss%eta*sig_ee)*
 sig_y = a_twiss%sigma
 if (sig_y == 0) sig_y = sqrt(b_twiss%emit * b_twiss%beta + (b_twiss%eta*sig_ee)**2)
 
-r = sig_y/sig_x
 scale = factor * n_beam_part  / ((sig_x + sig_y) * ion_weight)
-x = (orbit%vec(1) - r_beam(1)) / sig_x
-y = (orbit%vec(3) - r_beam(2)) / sig_y
+x = orbit%vec(1) - r_beam(1)
+y = orbit%vec(3) - r_beam(2)
 
-call bbi_kick (x + delta, y, r, kxx, ky)
-call bbi_kick (x, y + delta, r, kx, kyy)
-call bbi_kick (x, y, r, kx, ky)
+call bbi_kick (x, y, [sig_x, sig_y], k, dk)
 
-kick(1) = scale * kx
-kick(2) = scale * ky
-kick(3) = scale * ((-a_twiss%alpha * a_twiss%emit + a_twiss%eta * a_twiss%etap * sig_ee**2) * (kxx-kx) / (delta*sig_x) + &
-                   (-b_twiss%alpha * b_twiss%emit + b_twiss%eta * b_twiss%etap * sig_ee**2) * (kyy-ky) / (delta*sig_y))
+kick(1) = scale * k(1)
+kick(2) = scale * k(2)
+kick(3) = scale * (-a_twiss%alpha * a_twiss%emit + a_twiss%eta * a_twiss%etap * sig_ee**2) * dk(1,1) + &
+                  (-b_twiss%alpha * b_twiss%emit + b_twiss%eta * b_twiss%etap * sig_ee**2) * dk(2,2)
 
 end subroutine
