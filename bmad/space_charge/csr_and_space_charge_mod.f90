@@ -1292,7 +1292,7 @@ type (coord_struct), target :: particle(:)
 type (coord_struct), pointer :: p
 type (csr_bunch_slice_struct), pointer :: slice
 
-real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0, dpx, dpy, x, y, f_tot
+real(rp) zp, r1, r0, dz, dpz, nk(2), dnk(2,2), f0, f, beta0, dpx, dpy, x, y, f_tot
 real(rp) Evec(3), factor, pz0
 integer i, n, i0, i_del, ip
 
@@ -1361,18 +1361,18 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
     ! Interpolate between slices. If one of the slices does not have 
 
     slice => csr%slice(i0)
-    call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
+    call bbi_kick (p%vec(1)-slice%x0, p%vec(3)-slice%y0, [slice%sig_x, slice%sig_y], nk, dnk)
     f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
-    dpx = -kx * f
-    dpy = -ky * f
+    dpx = -nk(1) * f
+    dpy = -nk(2) * f
 
     slice => csr%slice(i0+1)
-    call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
+    call bbi_kick (p%vec(1)-slice%x0, p%vec(3)-slice%y0, [slice%sig_x, slice%sig_y], nk, dnk)
     f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
     ! The kick is negative of the bbi kick. That is, the kick is outward.
-    dpx = dpx - kx * f   
-    dpy = dpy - ky * f
+    dpx = dpx - nk(1) * f   
+    dpy = dpy - nk(2) * f
 
     if (slice%sig_x == 0 .or. slice%sig_y == 0) call err_exit
 
