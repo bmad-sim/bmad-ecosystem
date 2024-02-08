@@ -1876,6 +1876,9 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
   call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
+case('MODULATOR', 'KICKER')
+  call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
+
 case ('REF_ORBIT')
   if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
@@ -3723,6 +3726,10 @@ case ('SR_WAKE_FILE')
   call parser_read_old_format_sr_wake (ele, type_name)
 case ('TYPE')
   ele%type = type_name
+case ('MODULATOR')
+  pele%names(1) = type_name
+case ('KICKER')
+  pele%names(2) = type_name
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_STRING_ATTRIBUTE_SET: I NEED HELP!')
   if (global_com%exit_on_error) call err_exit
@@ -6557,6 +6564,14 @@ main_loop: do n_in = 1, n_ele_max
         if (err_flag) exit
       enddo
     endif
+
+  !-----------------------------------------------------
+  ! feedback
+
+  case (feedback$)
+    call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
+    lat%ele(ix_lord) = lord
+    call create_feedback(lat%ele(ix_lord), pele%names(1), pele%names(2), err_flag)
 
   !-----------------------------------------------------
   ! girder

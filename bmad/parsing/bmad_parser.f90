@@ -743,8 +743,9 @@ parsing_loop: do
                     'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       cycle parsing_loop
     endif
-
   endif
+
+  if (key == feedback$) in_lat%ele(n_max)%lord_status = control_lord$
 
   ! Now loop over all attributes...
 

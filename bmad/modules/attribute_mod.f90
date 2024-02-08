@@ -588,7 +588,7 @@ do i = 1, n_key$
   if (i == overlay$)  cycle
   if (i == girder$)   cycle
   if (i == ramper$)   cycle
-  if (i == cooler$)   cycle
+  if (i == feedback$)   cycle
 
   call init_attribute_name1 (i, superimpose$,        'SUPERIMPOSE')
   call init_attribute_name1 (i, super_offset$,       'OFFSET')
@@ -919,6 +919,9 @@ call init_attribute_name1 (beginning_ele$, spin_dn_dpz_z$,               'SPIN_D
 call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
+
+call init_attribute_name1 (feedback$, modulator$,                          'MODULATOR')
+call init_attribute_name1 (feedback$, kicker$,                             'KICKER')
 
 attrib_array(def_line$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (def_line$, particle$,                    'PARTICLE')
@@ -1939,7 +1942,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
      'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME', &
-     'MACHINE', 'START_EDGE')
+     'MACHINE', 'START_EDGE', 'MODULATOR', 'KICKER')
   attrib_type = is_string$
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GEN_GRAD_MAP', 'GRID_FIELD', 'REF_ORBIT', &

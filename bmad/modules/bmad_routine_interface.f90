@@ -620,6 +620,14 @@ subroutine convert_bend_exact_multipole (g, out_type, an, bn)
   integer out_type
 end subroutine
 
+subroutine create_feedback(lord, modulator, kicker, err)
+  import
+  implicit none
+  type (ele_struct), target :: lord
+  character(*) modulator, kicker
+  logical err
+end subroutine
+
 recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
                        param, include_upstream_end, include_downstream_end, err_flag, old_slice, orb_in)
   import
@@ -638,13 +646,6 @@ subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
   type (lat_struct) lat
   character(*) lord_name, slave_name
   logical err_flag
-end subroutine
-
-subroutine create_wiggler_cartesian_map (ele, cart_map)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (cartesian_map_struct), target :: cart_map
 end subroutine
 
 subroutine create_girder (lat, ix_ele, con, init_ele, err_flag)
@@ -694,6 +695,13 @@ subroutine create_unique_ele_names (lat, key, suffix)
   type (lat_struct), target :: lat
   integer key
   character(*) suffix
+end subroutine
+
+subroutine create_wiggler_cartesian_map (ele, cart_map)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (cartesian_map_struct), target :: cart_map
 end subroutine
 
 subroutine crystal_attribute_bookkeeper (ele)
