@@ -177,7 +177,7 @@ character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND',
 
 
 type twiss_struct
-  real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
+  real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0, deta_ds = 0
   real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
 end type
 
@@ -1600,7 +1600,7 @@ integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffra
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, def_space_charge_com$ = 60, crab_cavity$ = 61
 integer, parameter :: ramper$ = 62, def_ptc_com$ = 63, rf_bend$ = 64, gkicker$ = 65, foil$ = 66
-integer, parameter :: thick_multipole$ = 67, modulator$ = 68, cooler$ = 69, n_key$ = 69
+integer, parameter :: thick_multipole$ = 67, modulator$ = 68, feedback$ = 69, n_key$ = 69
 
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1618,7 +1618,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', '!Space_Charge_Com ', &
     'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', 'RF_Bend           ', 'GKicker           ', &
-    'Foil              ', 'Thick_Multipole   ', 'Modulator         ', 'Cooler            ']
+    'Foil              ', 'Thick_Multipole   ', 'Modulator         ', 'Feedback          ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
