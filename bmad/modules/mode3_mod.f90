@@ -127,7 +127,7 @@ end subroutine t6_to_B123
 !
 !-
 
-subroutine normal_mode3_calc (t6, tune, B, HV, above_transition)
+subroutine normal_mode3_calc (t6, tune, B, HV, above_transition, abz_tunes)
 
 real(rp) t6(6,6)
 real(rp) tune(3)
@@ -142,9 +142,9 @@ logical err_flag
 
 character(*), parameter :: r_name = 'normal_mode3_calc'
 
-!
+real(rp), optional :: abz_tunes(3)
 
-call make_N(t6, N, err_flag, tunes_out=tune)
+call make_N(t6, N, err_flag, abz_tunes, tunes_out=tune)
 if ( err_flag ) then
   call out_io (s_error$, r_name, "Error received from make_N.")
   tune = 0.0d0

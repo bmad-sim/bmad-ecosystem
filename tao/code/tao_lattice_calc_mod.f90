@@ -228,7 +228,7 @@ type (beam_init_struct) beam_init
 type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct) :: bunch_params
 
-real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6), t1(6,6)
+real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6), t1(6,6), abz_tunes(3)
 
 integer ix_branch
 integer i, n, ie0, ibf, ief
@@ -280,7 +280,10 @@ else
 
   if (branch%param%geometry == closed$ .and. t1(6,5) /= 0) then
     branch%param%t1_with_RF = t1
-    call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
+    abz_tunes(1) = branch%a%tune
+    abz_tunes(2) = branch%b%tune
+    abz_tunes(3) = branch%z%tune
+    call make_N (branch%param%t1_with_RF, N_mat, err, abz_tunes, tunes_out = tune3)
     if (err) then
       call mat_type (branch%param%t1_with_RF, &
             header = 'SINGULAR ONE-TURN MATRIX WITH RF. WILL NOT BE ABLE TO COMPUTE SIGMAS.', &

@@ -331,7 +331,7 @@ type (coord_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
 type (normal_modes_struct), optional :: modes
 
-real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6)
+real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6), abz_tunes(3)
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
 real(rp) old_cutoff
 real(rp) tunes(1:3), g6mat(6,6), g6inv(6,6), v6mat(6,6), t6(6,6)
@@ -491,7 +491,11 @@ endif
 
 if (b_init%full_6D_coupling_calc) then
   call transfer_matrix_calc(ele%branch%lat, t6, ix1=ele%ix_ele, one_turn=.true.)
-  call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true.)
+  call calc_z_tune(ele%branch)
+  abz_tunes(1) = mod(ele%branch%ele(ele%branch%n_ele_track)%a%phi,twopi)
+  abz_tunes(2) = mod(ele%branch%ele(ele%branch%n_ele_track)%b%phi,twopi)
+  abz_tunes(3) = ele%branch%z%tune
+  call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true., abz_tunes)
   call mat_inverse(G6mat, G6inv, ok)
   do i = 1, size(bunch%particle)
     p => bunch%particle(i)
