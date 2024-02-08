@@ -114,17 +114,34 @@ vec(1) = m6(1,6) + (m6(1,2) * orb0(2) + m6(1,4) * orb0(4))
 vec(2) = m6(2,6) + (m6(2,2) * orb0(2) + m6(2,4) * orb0(4) - orb0(2))
 vec(3) = m6(3,6) + (m6(3,2) * orb0(2) + m6(3,4) * orb0(4))
 vec(4) = m6(4,6) + (m6(4,2) * orb0(2) + m6(4,4) * orb0(4) - orb0(4))
+
 eta_vec = matmul(mat4, vec)
 
-eta_vec(2) = eta_vec(2)
-eta_vec(4) = eta_vec(4)
+ele%x%eta     = eta_vec(1)
+ele%x%deta_ds = eta_vec(2)
+ele%y%eta     = eta_vec(3)
+ele%y%deta_ds = eta_vec(4)
 
-ele%x%eta  = eta_vec(1)
-ele%x%etap = eta_vec(2)
-ele%y%eta  = eta_vec(3)
-ele%y%etap = eta_vec(4)
-ele%z%eta  = 0
-ele%z%etap = 1
+ele%z%eta     = 0
+ele%z%deta_ds = 1
+
+eta_vec = matmul(mat_symp_conj(v), eta_vec)
+ele%a%eta     = eta_vec(1)
+ele%a%deta_ds = eta_vec(2)
+ele%b%eta     = eta_vec(3)
+ele%b%deta_ds = eta_vec(4)
+
+!
+
+eta_vec = matmul(mat4, mat6(1:4,6))
+
+ele%x%eta   = eta_vec(1)
+ele%x%etap  = eta_vec(2)
+ele%y%eta   = eta_vec(3)
+ele%y%etap  = eta_vec(4)
+
+ele%z%eta     = 0
+ele%z%etap    = 1
 
 eta_vec = matmul(mat_symp_conj(v), eta_vec)
 ele%a%eta  = eta_vec(1)

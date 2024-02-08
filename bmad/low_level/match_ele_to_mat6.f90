@@ -109,29 +109,33 @@ endif
 
 err_flag = .false.
 
-ele0%a%beta   = v(beta_a0$)
-ele0%a%alpha  = v(alpha_a0$)
-ele0%a%phi    = 0
-ele0%x%eta    = v(eta_x0$)
-ele0%x%etap   = v(etap_x0$)
+ele0%a%beta     = v(beta_a0$)
+ele0%a%alpha    = v(alpha_a0$)
+ele0%a%phi      = 0
+ele0%x%eta      = v(eta_x0$)
+ele0%x%etap     = v(etap_x0$)
+ele0%x%deta_ds  = v(etap_x0$)
 
-ele0%b%beta   = v(beta_b0$)
-ele0%b%alpha  = v(alpha_b0$)
-ele0%b%phi    = 0
-ele0%y%eta    = v(eta_y0$)
-ele0%y%etap   = v(etap_y0$)
+ele0%b%beta     = v(beta_b0$)
+ele0%b%alpha    = v(alpha_b0$)
+ele0%b%phi      = 0
+ele0%y%eta      = v(eta_y0$)
+ele0%y%etap     = v(etap_y0$)
+ele0%y%deta_ds  = v(etap_y0$)
 
-ele1%a%beta   = v(beta_a1$)
-ele1%a%alpha  = v(alpha_a1$)
-ele1%a%phi    = v(dphi_a$)
-ele1%x%eta    = v(eta_x1$)
-ele1%x%etap   = v(etap_x1$)
+ele1%a%beta     = v(beta_a1$)
+ele1%a%alpha    = v(alpha_a1$)
+ele1%a%phi      = v(dphi_a$)
+ele1%x%eta      = v(eta_x1$)
+ele1%x%etap     = v(etap_x1$)
+ele1%x%deta_ds  = v(etap_x1$)
 
-ele1%b%beta   = v(beta_b1$)
-ele1%b%alpha  = v(alpha_b1$)
-ele1%b%phi    = v(dphi_b$)
-ele1%y%eta    = v(eta_y1$)
-ele1%y%etap   = v(etap_y1$)
+ele1%b%beta     = v(beta_b1$)
+ele1%b%alpha    = v(alpha_b1$)
+ele1%b%phi      = v(dphi_b$)
+ele1%y%eta      = v(eta_y1$)
+ele1%y%etap     = v(etap_y1$)
+ele1%y%deta_ds  = v(etap_y1$)
 
 ele0%c_mat(1,:) = [v(c11_mat0$), v(c12_mat0$)]
 ele0%c_mat(2,:) = [v(c21_mat0$), v(c22_mat0$)]

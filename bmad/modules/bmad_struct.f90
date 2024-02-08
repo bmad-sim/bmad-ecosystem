@@ -824,7 +824,7 @@ type high_energy_space_charge_struct
 end type    
 
 type xy_disp_struct
-  real(rp) :: eta = 0, etap = 0, sigma = 0
+  real(rp) :: eta = 0, etap = 0, deta_ds = 0, sigma = 0
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.

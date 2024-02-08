@@ -5,10 +5,10 @@
 ! If the lines argument is not present, the element information is printed to the terminal.
 !
 ! The compact form looks like:
-!           Beta     Alpha     Gamma       Phi        Eta       Etap
-!            (m)       (-)     (1/m)     (rad)        (m)        (-)
-!  X:    29.8929    -2.953     0.325   11.9116     1.4442     0.1347
-!  Y:     1.3982     0.015     0.715   11.6300    -0.0006     0.0033     
+!           Beta     Alpha     Gamma       Phi        Eta       Etap    dEta/ds
+!            (m)       (-)     (1/m)     (rad)        (m)        (-)        (-)
+!  X:    29.8929    -2.953     0.325   11.9116     1.4442     0.1347     0.1347
+!  Y:     1.3982     0.015     0.715   11.6300    -0.0006     0.0033     0.0033
 !
 ! The default verbose form looks like:
 !                          A              B            Cbar                        C_mat
@@ -18,6 +18,7 @@
 !  Phi (rad)        0.00000000     0.00000000            X              Y              Z
 !  Eta (m)         -0.00212550     0.00142557    -0.00212346     0.00144302     0.00000000
 !  Etap            -0.03500656    -0.00125557    -0.03513890    -0.00102335     1.00000000
+!  dEta/ds         -0.03500656    -0.00125557    -0.03513890    -0.00102335     1.00000000
 !  Sigma            0.00034547     0.00005437     0.00034547     0.00005437
 !
 ! Input:
@@ -88,11 +89,11 @@ end select
 if (logic_option (.false., compact_format)) then
   write (li(1), '(10x, a)')  &
             'Beta     Alpha     Gamma       Phi        Eta       Etap'
-  li(2) = trim(str) // '        (m)        (-)'
+  li(2) = trim(str) // '        (m)        (-)        (-)'
   write (li(3), fmt) ' X:', ele%a%beta,  &
-          ele%a%alpha, ele%a%gamma, coef*ele%a%phi, ele%a%eta, ele%a%etap
+          ele%a%alpha, ele%a%gamma, coef*ele%a%phi, ele%a%eta, ele%a%etap, ele%a%deta_ds
   write (li(4), fmt) ' Y:', ele%b%beta,  &
-          ele%b%alpha, ele%b%gamma, coef*ele%b%phi, ele%b%eta, ele%b%etap
+          ele%b%alpha, ele%b%gamma, coef*ele%b%phi, ele%b%eta, ele%b%etap, ele%b%deta_ds
   nl = 4
 
 else
@@ -104,7 +105,8 @@ else
   write (li(5), '(2x, a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
   write (li(6), '(2x, a12, 5a)')               'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
   write (li(7), '(2x, a12, 5a)')               'Etap        ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
-  nl = 7
+  write (li(8), '(2x, a12, 5a)')               'dEta/ds     ', v(ele%a%deta_ds), v(ele%b%deta_ds), v(ele%x%deta_ds), v(ele%y%deta_ds), v(ele%z%deta_ds)
+  nl = 8
   if (ele%a%sigma /= 0 .or. ele%b%sigma /= 0) then
     nl=nl+1; write (li(nl), '(2x, a12, 5a)')   'Sigma       ', v(ele%a%sigma), v(ele%b%sigma), v(ele%x%sigma), v(ele%y%sigma)
   endif

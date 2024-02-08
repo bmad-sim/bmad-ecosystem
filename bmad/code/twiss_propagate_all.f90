@@ -63,6 +63,11 @@ ele%a%etap = eta_vec(2)
 ele%b%eta  = eta_vec(3)
 ele%b%etap = eta_vec(4)
 
+ele%x%deta_ds = ele%x%etap
+ele%y%deta_ds = ele%y%etap
+ele%a%deta_ds = eta_vec(2)
+ele%b%deta_ds = eta_vec(4)
+
 ! Propagate twiss
 
 if (present(err_flag)) err_flag = .true.
