@@ -10,11 +10,13 @@
 !   str_out -- Character(*): String with all letters converted to lower case.
 !-
 
-function downcase(str_in) result (str_out)
+elemental function downcase(str_in) result (str_out)
+
+use sim_utils_interface, only: str_downcase
 
 implicit none
 
-character(*) str_in
+character(*), intent(in) :: str_in
 character(len(str_in)) str_out
 
 !

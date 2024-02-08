@@ -201,6 +201,12 @@ case (monitor$)
     is_valid = .true.
   end select
 
+case (modulator$)
+  select case (mat6_calc_method)
+  case (auto$, bmad_standard$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 case (multipole$)
   select case (mat6_calc_method)
   case (auto$, bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
