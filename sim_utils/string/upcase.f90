@@ -13,11 +13,13 @@
 !   str_out -- Character(*): String with all letters converted to upper case.
 !-
 
-function upcase(str_in) result (str_out)
+elemental function upcase(str_in) result (str_out)
+
+use sim_utils_interface, only: str_upcase
 
 implicit none
 
-character(*) str_in
+character(*), intent(in) :: str_in
 character(len(str_in)) str_out
 
 !

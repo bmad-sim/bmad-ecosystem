@@ -202,6 +202,12 @@ case (match$)
     is_valid = .true.
   end select
 
+case (modulator$)
+  select case (method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+
 case (monitor$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)

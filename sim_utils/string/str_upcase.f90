@@ -10,12 +10,15 @@
 !   destination -- Character(*): Upper cased string.
 !-
 
-subroutine str_upcase(dst, src)
+elemental subroutine str_upcase(dst, src)
 
 implicit none
 
-character*(*) dst,src
+character(*), intent(out) :: dst
+character(*), intent(in) :: src
 integer i,s,dlen,slen
+
+!
 
 dlen=len(dst)
 slen=len(src)
