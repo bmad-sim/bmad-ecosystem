@@ -251,10 +251,10 @@ function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
   real(rp) frac1
 end function
 
-subroutine bbi_kick (x, y, r, kx, ky)
+subroutine bbi_kick (x, y, sigma, nk, dnk)
   import
   implicit none
-  real(rp) x, y, r, kx, ky
+  real(rp) x, y, sigma(2), nk(2), dnk(2,2)
 end subroutine
 
 subroutine bbi_slice_calc (ele, n_slice, z_slice)
@@ -2434,11 +2434,11 @@ function stream_ele_end (physical_end, ele_orientation) result (stream_end)
   integer stream_end, ele_orientation, physical_end
 end function
 
-subroutine strong_beam_sigma_calc (ele, s_pos, sig_x, sig_y, bbi_const)
+subroutine strong_beam_sigma_calc (ele, s_pos, sigma, bbi_const, dsigma_ds)
   import
   implicit none
   type (ele_struct) ele
-  real(rp) s_pos, bbi_const, sig_x, sig_y
+  real(rp) s_pos, bbi_const, sigma(2), dsigma_ds(2)
 end subroutine
 
 function strong_beam_strength (ele) result (strength)

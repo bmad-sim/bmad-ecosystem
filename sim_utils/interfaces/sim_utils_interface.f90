@@ -197,6 +197,12 @@ function factorial(n) result (fact)
   integer n
 end function
 
+subroutine faddeeva_function(z, w, dw)
+  import
+  implicit none
+  real(rp) z(2), w(2), dw(2,2)
+end subroutine
+
 subroutine fff_sub(line, error)
   implicit none
   character(*) line

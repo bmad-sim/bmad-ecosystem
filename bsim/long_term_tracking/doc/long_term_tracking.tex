@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ January 14, 2024}
+\date{David Sagan \\ January 29, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -113,12 +113,15 @@ Linacs, as well as modeling photons in x-ray beam lines.
 \Section{Running the Long Term Tracking Program} 
 \label{s:run}
 
-The \ltt program comes with the ``Bmad Distribution'' which is a package which contains the Bmad
-toolkit library along with a number of Bmad based programs. See the Bmad web site for more details.
-
-See the documentation for setting up the Bmad environment variables at
+The \ltt program comes with the \vn{bmad-ecosystem} repository on GitHub
 \begin{code}
-  https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
+https://github.com/bmad-sim/bmad-ecosystem
+\end{code}
+which contains the Bmad library along with a number of Bmad based programs. 
+Details for setting up Bmad can be found there.
+Further documentation is at the Bmad web site at
+\begin{code}
+https://www.classe.cornell.edu/bmad/
 \end{code}
 
 The \ltt program comes in two versions: 
@@ -150,7 +153,7 @@ in \sref{s:input}.
 
 Example input files are in the directory (relative to the root of a Distribution):
 \begin{code}
-bsim/long_term_tracking/example
+bsim/long_term_tracking/examples
 \end{code}
 
 When running the MPI version threaded over multiple computers, the details of how to start the process will

@@ -75,7 +75,7 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice during parsing.
 
   select case (lord%lord_status)
-  case (super_lord$, overlay_lord$, group_lord$, control_lord$)
+  case (super_lord$, overlay_lord$, group_lord$)
     slave => pointer_to_slave(lord, 1)
     lord%s_start = slave%s_start + lord%value(lord_pad1$)
     slave => pointer_to_slave(lord, lord%n_slave)
@@ -86,11 +86,10 @@ do n = lat%n_ele_track+1, lat%n_ele_max
     lord%s = slave%s
     lord%value(l$) = slave%s - slave0%s
     if (lord%value(l$) < 0) lord%value(l$) = lord%value(l$) + slave0%branch%param%total_length
-  case default ! multipass_lord elements do not have an s-position.
+  case default ! multipass_lord and control_lord elements do not have an s-position.
     lord%s_start = 0
     lord%s = 0
   end select
-
 enddo
 
 end subroutine

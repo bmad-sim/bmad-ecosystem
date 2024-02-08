@@ -5944,11 +5944,14 @@ end subroutine
 Subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
 
 type (tao_data_struct) datum
+type (tao_universe_struct), pointer :: u
 
 logical, optional :: exterminate
-logical identified_err_found
+logical identified_err_found, found
+
 integer, optional :: err_level
 integer i
+
 character(*) message
 character(*), optional :: why_invalid
 character(*), parameter :: r_name = 'tao_set_invalid'
@@ -5986,6 +5989,18 @@ elseif (.not. datum%err_message_printed) then
 
   call out_io (integer_option(s_error$, err_level), r_name, message, &
                 'FOR DATUM: ' // trim(tao_datum_name(datum)) // ' with data_type: ' // datum%data_type)
+
+  if (index(upcase(message), 'UNSTABLE') /= 0) then
+    u => tao_pointer_to_universe(datum%ix_uni)
+    found = .false.
+    do i = 1, size(u%data)
+      if (u%data(i)%data_type(1:8) == 'unstable') found = .true.
+    enddo
+    if (.not. found) call out_io(s_info$, r_name, &
+              'NO unstable.orbit, unstable.ring, nor unstable.eigen FOR THE UNIVERSE WITH THE PROBLEM EXISTS.', &
+              'YOU MIGHT WANT TO CONSIDER ADDING SUCH A DATUM.')
+  endif
+
   if (identified_err_found) then
     call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF DATUM ERROR MESSAGE FOR THIS EVALUATION CYCLE.')
   endif

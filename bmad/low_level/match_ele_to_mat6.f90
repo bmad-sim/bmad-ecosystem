@@ -105,9 +105,6 @@ if (do_trombone) then
   v(c11_mat1$:c22_mat1$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
 endif
 
-
-
-
 ! Error Check. Negative beta can be caused via twiss_propagate1 with a non-symplectic transfer matrix.
 
 err_flag = .false.
