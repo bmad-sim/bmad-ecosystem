@@ -1876,7 +1876,7 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
   call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
-case('MODULATOR', 'KICKER')
+case('PICKUP', 'KICKER')
   call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
 case ('REF_ORBIT')
@@ -3726,7 +3726,7 @@ case ('SR_WAKE_FILE')
   call parser_read_old_format_sr_wake (ele, type_name)
 case ('TYPE')
   ele%type = type_name
-case ('MODULATOR')
+case ('PICKUP')
   pele%names(1) = type_name
 case ('KICKER')
   pele%names(2) = type_name

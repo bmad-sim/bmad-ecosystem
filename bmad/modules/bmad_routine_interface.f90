@@ -620,11 +620,11 @@ subroutine convert_bend_exact_multipole (g, out_type, an, bn)
   integer out_type
 end subroutine
 
-subroutine create_feedback(lord, modulator, kicker, err)
+subroutine create_feedback(lord, pickup, kicker, err)
   import
   implicit none
   type (ele_struct), target :: lord
-  character(*) modulator, kicker
+  character(*) pickup, kicker
   logical err
 end subroutine
 

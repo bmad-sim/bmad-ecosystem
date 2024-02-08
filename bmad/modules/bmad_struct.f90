@@ -1779,7 +1779,7 @@ integer, parameter :: check_sum$ = 75
 
 !!    = 1 + num_ele_attrib$
 
-integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
+integer, parameter :: spherical_curvature$ = 81, distribution$ = 81, pickup$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
