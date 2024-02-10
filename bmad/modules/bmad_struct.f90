@@ -824,7 +824,7 @@ type high_energy_space_charge_struct
 end type    
 
 type xy_disp_struct
-  real(rp) :: eta = 0, etap = 0, sigma = 0
+  real(rp) :: eta = 0, etap = 0, deta_ds = 0, sigma = 0
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.
@@ -1779,7 +1779,7 @@ integer, parameter :: check_sum$ = 75
 
 !!    = 1 + num_ele_attrib$
 
-integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
+integer, parameter :: spherical_curvature$ = 81, distribution$ = 81, pickup$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83

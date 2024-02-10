@@ -193,7 +193,7 @@ endif
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-eta1_vec = [ele1%x%eta, ele1%x%etap * rel_p1, ele1%y%eta, ele1%y%etap * rel_p1, ele1%z%eta, 1.0_rp]
+eta1_vec = [ele1%x%eta, ele1%x%deta_ds * rel_p1, ele1%y%eta, ele1%y%deta_ds * rel_p1, ele1%z%eta, 1.0_rp]
 
 ! For a circular ring, defining the dependence of z on pz is problematical.
 ! With the RF off, z is not periodic so dz/dpz is dependent upon turn number.
@@ -231,6 +231,26 @@ endif
 eta_vec(2) = eta_vec(2) / rel_p2
 eta_vec(4) = eta_vec(4) / rel_p2
 
+ele2%x%eta     = eta_vec(1)
+ele2%x%deta_ds = eta_vec(2)
+ele2%y%eta     = eta_vec(3)
+ele2%y%deta_ds = eta_vec(4)
+ele2%z%eta     = eta_vec(5)
+ele2%z%deta_ds = ele1%z%deta_ds * dpz2_dpz1
+
+call make_v_mats (ele2, v_mat, v_inv_mat)
+eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
+
+ele2%a%eta     = eta_vec(1)
+ele2%a%deta_ds = eta_vec(2)
+ele2%b%eta     = eta_vec(3)
+ele2%b%deta_ds = eta_vec(4)
+
+!
+
+eta1_vec = [ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap, ele1%z%eta, 1.0_rp]
+eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
+
 ele2%x%eta  = eta_vec(1)
 ele2%x%etap = eta_vec(2)
 ele2%y%eta  = eta_vec(3)
@@ -245,6 +265,8 @@ ele2%a%eta  = eta_vec(1)
 ele2%a%etap = eta_vec(2)
 ele2%b%eta  = eta_vec(3)
 ele2%b%etap = eta_vec(4)
+
+!
 
 if (present(err_flag)) err_flag = .false.
 

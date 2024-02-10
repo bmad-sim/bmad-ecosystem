@@ -34,7 +34,8 @@ The projected horizontal and vertical dispersions in an \vn{ele_struct} are cont
 \begin{example}
   type xy_disp_struct
     real(rp) eta     ! Projected dispersion 
-    real(rp) etap    ! Projected dispersion derivative.
+    real(rp) etap    ! Projected dispersion derivative \(dp_x/dp_z\) or \(dp_y/dp_z\).
+    real(rp) deta_ds ! Projected dispersion derivative \(d\eta_x/ds\) or \(d\eta_y/ds\).
   end type 
 \end{example}
 

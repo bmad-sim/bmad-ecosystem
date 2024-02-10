@@ -140,19 +140,21 @@ subroutine zero_ave (ave)
 
 type (ele_struct) ave
 
-ave%s          = 0;   ave%s_start    = 0
-ave%a%phi      = 0;   ave%b%phi      = 0
-ave%a%alpha    = 0;   ave%b%alpha    = 0
-ave%a%beta     = 0;   ave%b%beta     = 0
-ave%a%gamma    = 0;   ave%b%gamma    = 0
-ave%a%eta      = 0;   ave%b%eta      = 0
-ave%a%etap     = 0;   ave%b%etap     = 0
-ave%a%sigma    = 0;   ave%b%sigma    = 0
-ave%x%eta      = 0;   ave%y%eta      = 0
-ave%x%etap     = 0;   ave%y%etap     = 0
-ave%c_mat      = 0
-ave%gamma_c    = 0                                            
-ave%value(l$)  = 0
+ave%s         = 0;   ave%s_start   = 0
+ave%a%phi     = 0;   ave%b%phi     = 0
+ave%a%alpha   = 0;   ave%b%alpha   = 0
+ave%a%beta    = 0;   ave%b%beta    = 0
+ave%a%gamma   = 0;   ave%b%gamma   = 0
+ave%a%eta     = 0;   ave%b%eta     = 0
+ave%a%etap    = 0;   ave%b%etap    = 0
+ave%a%deta_ds = 0;   ave%b%deta_ds = 0
+ave%a%sigma   = 0;   ave%b%sigma   = 0
+ave%x%eta     = 0;   ave%y%eta     = 0
+ave%x%etap    = 0;   ave%y%etap    = 0
+ave%x%deta_ds = 0;   ave%y%deta_ds = 0
+ave%c_mat     = 0
+ave%gamma_c   = 0                                            
+ave%value(l$) = 0
 
 end subroutine
 
@@ -166,29 +168,33 @@ real(rp) r
 
 !
 
-ave%s          = ave%s          + r * ele1%s          
-ave%s_start    = ave%s_start    + r * ele1%s_start
-ave%c_mat      = ave%c_mat      + r * ele1%c_mat      
-ave%gamma_c    = ave%gamma_c    + r * ele1%gamma_c    
-ave%a%phi      = ave%a%phi      + r * ele1%a%phi      
-ave%a%alpha    = ave%a%alpha    + r * ele1%a%alpha    
-ave%a%beta     = ave%a%beta     + r * ele1%a%beta     
-ave%a%gamma    = ave%a%gamma    + r * ele1%a%gamma    
-ave%a%eta      = ave%a%eta      + r * ele1%a%eta      
-ave%a%etap     = ave%a%etap     + r * ele1%a%etap     
-ave%a%sigma    = ave%a%sigma    + r * ele1%a%sigma    
-ave%x%eta      = ave%x%eta      + r * ele1%x%eta  
-ave%x%etap     = ave%x%etap     + r * ele1%x%etap 
-ave%b%phi      = ave%b%phi      + r * ele1%b%phi      
-ave%b%alpha    = ave%b%alpha    + r * ele1%b%alpha    
-ave%b%beta     = ave%b%beta     + r * ele1%b%beta     
-ave%b%gamma    = ave%b%gamma    + r * ele1%b%gamma    
-ave%b%eta      = ave%b%eta      + r * ele1%b%eta      
-ave%b%etap     = ave%b%etap     + r * ele1%b%etap     
-ave%b%sigma    = ave%b%sigma    + r * ele1%b%sigma    
-ave%y%eta      = ave%y%eta      + r * ele1%y%eta  
-ave%y%etap     = ave%y%etap     + r * ele1%y%etap 
-ave%value(l$)  = ave%value(l$)  + ele1%value(l$) 
+ave%s         = ave%s         + r * ele1%s          
+ave%s_start   = ave%s_start   + r * ele1%s_start
+ave%c_mat     = ave%c_mat     + r * ele1%c_mat      
+ave%gamma_c   = ave%gamma_c   + r * ele1%gamma_c    
+ave%a%phi     = ave%a%phi     + r * ele1%a%phi      
+ave%a%alpha   = ave%a%alpha   + r * ele1%a%alpha    
+ave%a%beta    = ave%a%beta    + r * ele1%a%beta     
+ave%a%gamma   = ave%a%gamma   + r * ele1%a%gamma    
+ave%a%eta     = ave%a%eta     + r * ele1%a%eta      
+ave%a%etap    = ave%a%etap    + r * ele1%a%etap     
+ave%a%deta_ds = ave%a%deta_ds + r * ele1%a%deta_ds     
+ave%a%sigma   = ave%a%sigma   + r * ele1%a%sigma    
+ave%x%eta     = ave%x%eta     + r * ele1%x%eta  
+ave%x%etap    = ave%x%etap    + r * ele1%x%etap 
+ave%x%deta_ds = ave%x%deta_ds + r * ele1%x%deta_ds 
+ave%b%phi     = ave%b%phi     + r * ele1%b%phi      
+ave%b%alpha   = ave%b%alpha   + r * ele1%b%alpha    
+ave%b%beta    = ave%b%beta    + r * ele1%b%beta     
+ave%b%gamma   = ave%b%gamma   + r * ele1%b%gamma    
+ave%b%eta     = ave%b%eta     + r * ele1%b%eta      
+ave%b%etap    = ave%b%etap    + r * ele1%b%etap     
+ave%b%deta_ds = ave%b%deta_ds + r * ele1%b%deta_ds     
+ave%b%sigma   = ave%b%sigma   + r * ele1%b%sigma    
+ave%y%eta     = ave%y%eta     + r * ele1%y%eta  
+ave%y%etap    = ave%y%etap    + r * ele1%y%etap 
+ave%y%deta_ds = ave%y%deta_ds + r * ele1%y%deta_ds 
+ave%value(l$) = ave%value(l$) + ele1%value(l$) 
 
 end subroutine
 

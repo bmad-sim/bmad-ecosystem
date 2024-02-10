@@ -1087,6 +1087,18 @@ for more details.
 Damping partition numbers.
 
   %----------------------
+  \item[deta_ds.a, deta_ds.b] \Newline \hlabel{deta_ds.a}
+Normal mode dispersion derivative with respect to $s$ -- $d\eta_a/ds$ and $d\eta_b/ds$.
+Also see \vn{etap.a} and \vn{etap.b}. These datums are useful when optimizing to mimimize
+the dispersion in a region.
+
+  %----------------------
+  \item[deta_ds.x, deta_ds.y] \Newline \hlabel{deta_ds.x}
+Horizontal and vertical dispersion derivative with respect to $s$ -- $d\eta_x/ds$ and $d\eta_y/ds$.
+Also see \vn{etap.x} and \vn{etap.y}. These datums are useful when optimizing to mimimize
+the dispersion in a region.
+
+  %----------------------
   \item[dpx_dx, dpy_dy, etc.] \Newline \hlabel{dpx.dx}
 Bunch sigma matrix ratios, <x px> / <$x^2$> \& Etc.
 
@@ -1172,20 +1184,22 @@ See also the \vn{norm_emit.}, \vn{apparent_emit.}, and
 \vn{norm_apparent_emit.} data types.
 
   %----------------------
-  \item[eta.x, .y, .z] \Newline \hlabel{eta.x}
-Horizontal, vertical, and longitudinal dispersion.
-
-  %----------------------
   \item[eta.a, .b] \Newline \hlabel{eta.a}
 Normal mode dispersion.
 
   %----------------------
-  \item[etap.x, .y] \Newline \hlabel{etap.x}
-Horizontal and vertical, dispersion derivative.
+  \item[eta.x, .y, .z] \Newline \hlabel{eta.x}
+Horizontal, vertical, and longitudinal dispersion.
 
   %----------------------
   \item[etap.a, .b] \Newline \hlabel{etap.a}
-Normal mode dispersion derivative.
+Normal mode dispersion derivative $dp_a/dp_z$ and $dp_b/dp_z$.
+Also see \vn{deta_ds.a} and \vn{deta_ds.b}.
+
+  %----------------------
+  \item[etap.x, .y] \Newline \hlabel{etap.x}
+Horizontal and vertical dispersion derivative $dp_x/dp_z$ and $dp_y/dp_z$.
+Also see \vn{deta_ds.x} and \vn{deta_ds.y}.
 
   %----------------------
   \item[expression: <arithmetic_expression>] \Newline \hlabel{expression}
