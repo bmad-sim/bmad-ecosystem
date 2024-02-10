@@ -2264,6 +2264,18 @@ case default   ! normal attribute
         coef = 1 - determinant(ele%c_mat)
         if (coef >= 0) ele%gamma_c = sqrt(coef)
 
+      case ('ETAP_A'); ele%a%deta_ds = ele%a%etap
+      case ('ETAP_B'); ele%b%deta_ds = ele%b%etap
+      case ('ETAP_X'); ele%x%deta_ds = ele%x%etap
+      case ('ETAP_Y'); ele%y%deta_ds = ele%y%etap
+      case ('ETAP_Z'); ele%z%deta_ds = ele%z%etap
+
+      case ('DETA_A_DS'); ele%a%etap = ele%a%deta_ds
+      case ('DETA_B_DS'); ele%b%etap = ele%b%deta_ds
+      case ('DETA_X_DS'); ele%x%etap = ele%x%deta_ds
+      case ('DETA_Y_DS'); ele%y%etap = ele%y%deta_ds
+      case ('DETA_Z_DS'); ele%z%etap = ele%z%deta_ds
+
       case ('E_TOT')
         if (ele%key == def_parameter$) then
           lat%ele(0)%value(e_tot$) = value

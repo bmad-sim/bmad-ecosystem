@@ -109,6 +109,7 @@ if (where /= anchor_end$) then
   case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position', &
         'beta_a', 'beta_b', 'alpha_a', 'alpha_b', 'gamma_a', 'gamma_b', 'phi_a', 'phi_b', &
         'eta_a', 'eta_b', 'eta_x', 'eta_y', 'eta_z', 'etap_a', 'etap_b', 'etap_x', 'etap_y', 'etap_z', &
+        'deta_a_ds', 'deta_b_ds', 'deta_x_ds', 'deta_y_ds', 'deta_z_ds', &
         'cmat_11', 'cmat_12', 'cmat_21', 'cmat_22', 'cmat.11', 'cmat.12', 'cmat.21', 'cmat.22', &
         'cbar_11', 'cbar_12', 'cbar_21', 'cbar_22', 'cbar.11', 'cbar.12', 'cbar.21', 'cbar.22', &
         'orbit_x', 'orbit.x', 'orbit_px', 'orbit.px', 'orbit_y', 'orbit.y', 'orbit_py', 'orbit.py', &

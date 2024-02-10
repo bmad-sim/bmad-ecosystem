@@ -56,6 +56,7 @@ if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
 if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
 
 call make_v_mats (ele, v_inv_mat = v_inv_mat)
+
 eta_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
 eta_vec = matmul (v_inv_mat, eta_vec)
 ele%a%eta  = eta_vec(1)
@@ -63,9 +64,11 @@ ele%a%etap = eta_vec(2)
 ele%b%eta  = eta_vec(3)
 ele%b%etap = eta_vec(4)
 
-ele%x%deta_ds = ele%x%etap
-ele%y%deta_ds = ele%y%etap
+eta_vec = [ele%x%eta, ele%x%deta_ds, ele%y%eta, ele%y%deta_ds]
+eta_vec = matmul (v_inv_mat, eta_vec)
+ele%a%eta     = eta_vec(1)
 ele%a%deta_ds = eta_vec(2)
+ele%b%eta     = eta_vec(3)
 ele%b%deta_ds = eta_vec(4)
 
 ! Propagate twiss
