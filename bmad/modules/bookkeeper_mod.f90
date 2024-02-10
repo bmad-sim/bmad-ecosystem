@@ -1421,6 +1421,7 @@ slave%scale_multipoles            = lord%scale_multipoles
 slave%is_on                       = lord%is_on
 slave%csr_method                  = lord%csr_method
 slave%space_charge_method         = lord%space_charge_method
+slave%aperture_type               = lord%aperture_type
 
 if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
 if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
