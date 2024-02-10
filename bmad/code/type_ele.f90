@@ -231,7 +231,7 @@ do ia = 1, num_ele_attrib$
 
   line = ''
   call write_this_attribute (attrib, ia, n_att, line(3:))
-  call write_this_attribute (attrib2, ia, 28, line(n_att+33:))
+  call write_this_attribute (attrib2, attrib2%ix_attrib, 28, line(n_att+33:))
   nl=nl+1; li(nl) = line
 enddo
 
