@@ -297,13 +297,15 @@ beam energy at the beginning of the first lattice branch.
   beginning[spin_dn_dpz_x] = <Real>   ! Spin dn/dpz x-coordinate
   beginning[spin_dn_dpz_y] = <Real>   ! Spin dn/dpz y-coordinate
   beginning[spin_dn_dpz_z] = <Real>   ! Spin dn/dpz z-coordinate
-
 \end{example}
 \index{e_tot}
 The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma factor) will be kept consistent
 with the values set. If not set the default values are all zero.  \vn{beginning[e_tot]} and
 \vn{parameter[e_tot]} are equivalent and one or the other may be set but not both. Similarly,
 \vn{beginning[p0c]} and \vn{parameter[p0c]} are equivalent.
+
+Setting \vn{etap_x} or \vn{etap_y} sets both types of dispersion derivatives (\sref{s:dispersion}). That
+is, setting \vn{etap_x} sets both \vn{etap_x} and \vn{deta_x_ds} and similarly for \vn{etap_y}.
 
 \index{x_position}\index{y_position}\index{z_position}
 \index{theta_position}\index{phi_position}\index{psi_position}
