@@ -920,7 +920,7 @@ call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
 
-call init_attribute_name1 (feedback$, pickup$,                             'MODULATOR')
+call init_attribute_name1 (feedback$, pickup$,                             'PICKUP')
 call init_attribute_name1 (feedback$, kicker$,                             'KICKER')
 
 attrib_array(def_line$, :) = attrib_array(beginning_ele$, :)
