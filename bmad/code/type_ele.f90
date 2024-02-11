@@ -463,13 +463,14 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', ct_map%field_scale
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', ct_map%r0
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
-      nl=nl+1; write (li(nl), '(5x, a, 9x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
+      nl=nl+1; write (li(nl), '(3x, a, 13x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
                                     'A', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family    Form'
       do j = 1, min(nl2, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)
-        nl=nl+1; write (li(nl), '(i8, 4f12.6, 3f14.6, 3x, a, 2x, a)') j, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, &
-                         ct_term%y0, ct_term%phi_z, cartesian_map_family_name(ct_term%family), trim(cartesian_map_form_name(ct_term%form))
+        nl=nl+1; write (li(nl), '(i8, 1x, a13, 3f12.6, 3f14.6, 3x, a, 2x, a)') j, adjustr(real_to_string(ct_term%coef, 13, 7)), &
+                        ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, ct_term%y0, ct_term%phi_z, &
+                        cartesian_map_family_name(ct_term%family), trim(cartesian_map_form_name(ct_term%form))
       enddo
       if (size(ct_map%ptr%term) > nl2) then
         nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(ct_map%ptr%term), ')' 

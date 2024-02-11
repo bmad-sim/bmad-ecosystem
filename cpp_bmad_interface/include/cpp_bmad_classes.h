@@ -1590,11 +1590,13 @@ class CPP_xy_disp {
 public:
   Real eta;
   Real etap;
+  Real deta_ds;
   Real sigma;
 
   CPP_xy_disp() :
     eta(0.0),
     etap(0.0),
+    deta_ds(0.0),
     sigma(0.0)
     {}
 
@@ -1622,6 +1624,7 @@ public:
   Real phi;
   Real eta;
   Real etap;
+  Real deta_ds;
   Real sigma;
   Real sigma_p;
   Real emit;
@@ -1634,6 +1637,7 @@ public:
     phi(0.0),
     eta(0.0),
     etap(0.0),
+    deta_ds(0.0),
     sigma(0.0),
     sigma_p(0.0),
     emit(0.0),
@@ -2561,6 +2565,7 @@ public:
   Real b_emit;
   Real dpz_dz;
   Real_ARRAY center;
+  Real t_center;
   Real dt_bunch;
   Real sig_z;
   Real sig_pz;
@@ -2568,15 +2573,10 @@ public:
   Int n_bunch;
   Int ix_turn;
   string species;
-  Bool init_spin;
   Bool full_6d_coupling_calc;
   Bool use_particle_start;
   Bool use_t_coords;
   Bool use_z_as_t;
-  string file_name;
-  Real sig_e_jitter;
-  Real sig_e;
-  Bool use_particle_start_for_center;
 
   CPP_beam_init() :
     position_file(),
@@ -2601,6 +2601,7 @@ public:
     b_emit(0.0),
     dpz_dz(0.0),
     center(0.0, 6),
+    t_center(0.0),
     dt_bunch(0.0),
     sig_z(0.0),
     sig_pz(0.0),
@@ -2608,15 +2609,10 @@ public:
     n_bunch(0),
     ix_turn(0),
     species(),
-    init_spin(true),
     full_6d_coupling_calc(false),
     use_particle_start(false),
     use_t_coords(false),
-    use_z_as_t(false),
-    file_name(),
-    sig_e_jitter(0.0),
-    sig_e(0.0),
-    use_particle_start_for_center(false)
+    use_z_as_t(false)
     {}
 
   ~CPP_beam_init() {

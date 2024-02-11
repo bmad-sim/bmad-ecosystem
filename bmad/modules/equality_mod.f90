@@ -1053,6 +1053,8 @@ is_eq = is_eq .and. (f1%eta == f2%eta)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%etap == f2%etap)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%deta_ds == f2%deta_ds)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sigma == f2%sigma)
 
 end function eq_xy_disp
@@ -1082,6 +1084,8 @@ is_eq = is_eq .and. (f1%phi == f2%phi)
 is_eq = is_eq .and. (f1%eta == f2%eta)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%etap == f2%etap)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%deta_ds == f2%deta_ds)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sigma == f2%sigma)
 !! f_side.equality_test[real, 0, NOT]
@@ -1944,6 +1948,8 @@ is_eq = is_eq .and. (f1%dpz_dz == f2%dpz_dz)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%center == f2%center)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%t_center == f2%t_center)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dt_bunch == f2%dt_bunch)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sig_z == f2%sig_z)
@@ -1958,8 +1964,6 @@ is_eq = is_eq .and. (f1%ix_turn == f2%ix_turn)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%species == f2%species)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%init_spin .eqv. f2%init_spin)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%full_6d_coupling_calc .eqv. f2%full_6d_coupling_calc)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_particle_start .eqv. f2%use_particle_start)
@@ -1967,14 +1971,6 @@ is_eq = is_eq .and. (f1%use_particle_start .eqv. f2%use_particle_start)
 is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_z_as_t .eqv. f2%use_z_as_t)
-!! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%file_name == f2%file_name)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%sig_e_jitter == f2%sig_e_jitter)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%sig_e == f2%sig_e)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%use_particle_start_for_center .eqv. f2%use_particle_start_for_center)
 
 end function eq_beam_init
 
