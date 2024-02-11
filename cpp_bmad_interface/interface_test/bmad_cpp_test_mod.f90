@@ -3559,7 +3559,9 @@ rhs = 1 + offset; F%eta = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 2 + offset; F%etap = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%sigma = rhs
+rhs = 3 + offset; F%deta_ds = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%sigma = rhs
 
 end subroutine set_xy_disp_test_pattern
 
@@ -3657,13 +3659,15 @@ rhs = 5 + offset; F%eta = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 6 + offset; F%etap = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%sigma = rhs
+rhs = 7 + offset; F%deta_ds = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%sigma_p = rhs
+rhs = 8 + offset; F%sigma = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%emit = rhs
+rhs = 9 + offset; F%sigma_p = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%norm_emit = rhs
+rhs = 10 + offset; F%emit = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 11 + offset; F%norm_emit = rhs
 
 end subroutine set_twiss_test_pattern
 
@@ -6495,23 +6499,23 @@ do jd1 = 1, size(F%center,1); lb1 = lbound(F%center,1) - 1
   F%center(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 23 + offset; F%dt_bunch = rhs
+rhs = 23 + offset; F%t_center = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 24 + offset; F%sig_z = rhs
+rhs = 24 + offset; F%dt_bunch = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 25 + offset; F%sig_pz = rhs
+rhs = 25 + offset; F%sig_z = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 26 + offset; F%bunch_charge = rhs
+rhs = 26 + offset; F%sig_pz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 27 + offset; F%bunch_charge = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 27 + offset; F%n_bunch = rhs
+rhs = 28 + offset; F%n_bunch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 28 + offset; F%ix_turn = rhs
+rhs = 29 + offset; F%ix_turn = rhs
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%species)
-  F%species(jd1:jd1) = char(ichar("a") + modulo(100+29+offset+jd1, 26))
+  F%species(jd1:jd1) = char(ichar("a") + modulo(100+30+offset+jd1, 26))
 enddo
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%init_spin = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 31 + offset; F%full_6d_coupling_calc = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -6520,16 +6524,6 @@ rhs = 32 + offset; F%use_particle_start = (modulo(rhs, 2) == 0)
 rhs = 33 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 34 + offset; F%use_z_as_t = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%file_name)
-  F%file_name(jd1:jd1) = char(ichar("a") + modulo(100+35+offset+jd1, 26))
-enddo
-!! f_side.test_pat[real, 0, NOT]
-rhs = 36 + offset; F%sig_e_jitter = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 37 + offset; F%sig_e = rhs
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 38 + offset; F%use_particle_start_for_center = (modulo(rhs, 2) == 0)
 
 end subroutine set_beam_init_test_pattern
 

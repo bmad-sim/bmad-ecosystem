@@ -4418,11 +4418,11 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine xy_disp_to_c2 (C, z_eta, z_etap, z_sigma) bind(c)
+  subroutine xy_disp_to_c2 (C, z_eta, z_etap, z_deta_ds, z_sigma) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_eta, z_etap, z_sigma
+    real(c_double) :: z_eta, z_etap, z_deta_ds, z_sigma
   end subroutine
 end interface
 
@@ -4438,7 +4438,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call xy_disp_to_c2 (C, F%eta, F%etap, F%sigma)
+call xy_disp_to_c2 (C, F%eta, F%etap, F%deta_ds, F%sigma)
 
 end subroutine xy_disp_to_c
 
@@ -4458,7 +4458,7 @@ end subroutine xy_disp_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine xy_disp_to_f2 (Fp, z_eta, z_etap, z_sigma) bind(c)
+subroutine xy_disp_to_f2 (Fp, z_eta, z_etap, z_deta_ds, z_sigma) bind(c)
 
 
 implicit none
@@ -4467,7 +4467,7 @@ type(c_ptr), value :: Fp
 type(xy_disp_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_eta, z_etap, z_sigma
+real(c_double) :: z_eta, z_etap, z_deta_ds, z_sigma
 
 call c_f_pointer (Fp, F)
 
@@ -4475,6 +4475,8 @@ call c_f_pointer (Fp, F)
 F%eta = z_eta
 !! f_side.to_f2_trans[real, 0, NOT]
 F%etap = z_etap
+!! f_side.to_f2_trans[real, 0, NOT]
+F%deta_ds = z_deta_ds
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sigma = z_sigma
 
@@ -4501,13 +4503,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine twiss_to_c2 (C, z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_sigma, &
-      z_sigma_p, z_emit, z_norm_emit) bind(c)
+  subroutine twiss_to_c2 (C, z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_deta_ds, &
+      z_sigma, z_sigma_p, z_emit, z_norm_emit) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_sigma
-    real(c_double) :: z_sigma_p, z_emit, z_norm_emit
+    real(c_double) :: z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_deta_ds
+    real(c_double) :: z_sigma, z_sigma_p, z_emit, z_norm_emit
   end subroutine
 end interface
 
@@ -4523,8 +4525,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call twiss_to_c2 (C, F%beta, F%alpha, F%gamma, F%phi, F%eta, F%etap, F%sigma, F%sigma_p, &
-    F%emit, F%norm_emit)
+call twiss_to_c2 (C, F%beta, F%alpha, F%gamma, F%phi, F%eta, F%etap, F%deta_ds, F%sigma, &
+    F%sigma_p, F%emit, F%norm_emit)
 
 end subroutine twiss_to_c
 
@@ -4544,8 +4546,8 @@ end subroutine twiss_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine twiss_to_f2 (Fp, z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_sigma, z_sigma_p, &
-    z_emit, z_norm_emit) bind(c)
+subroutine twiss_to_f2 (Fp, z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_deta_ds, z_sigma, &
+    z_sigma_p, z_emit, z_norm_emit) bind(c)
 
 
 implicit none
@@ -4554,8 +4556,8 @@ type(c_ptr), value :: Fp
 type(twiss_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_sigma
-real(c_double) :: z_sigma_p, z_emit, z_norm_emit
+real(c_double) :: z_beta, z_alpha, z_gamma, z_phi, z_eta, z_etap, z_deta_ds
+real(c_double) :: z_sigma, z_sigma_p, z_emit, z_norm_emit
 
 call c_f_pointer (Fp, F)
 
@@ -4571,6 +4573,8 @@ F%phi = z_phi
 F%eta = z_eta
 !! f_side.to_f2_trans[real, 0, NOT]
 F%etap = z_etap
+!! f_side.to_f2_trans[real, 0, NOT]
+F%deta_ds = z_deta_ds
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sigma = z_sigma
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -7402,21 +7406,20 @@ interface
       z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, z_n_particle, &
       z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
       z_random_sigma_cutoff, z_a_norm_emit, z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, &
-      z_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_ix_turn, z_species, &
-      z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t, &
-      z_file_name, z_sig_e_jitter, z_sig_e, z_use_particle_start_for_center) bind(c)
+      z_center, z_t_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, &
+      z_ix_turn, z_species, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, &
+      z_use_z_as_t) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*), z_file_name(*)
+    character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*)
     type(c_ptr) :: z_distribution_type(*), z_ellipse(*), z_grid(*)
     real(c_double) :: z_spin(*), z_center_jitter(*), z_emit_jitter(*), z_sig_z_jitter, z_sig_pz_jitter, z_random_sigma_cutoff, z_a_norm_emit
-    real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_dt_bunch, z_sig_z
-    real(c_double) :: z_sig_pz, z_bunch_charge, z_sig_e_jitter, z_sig_e
+    real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_t_center, z_dt_bunch
+    real(c_double) :: z_sig_z, z_sig_pz, z_bunch_charge
     type(c_ptr), value :: z_kv
     integer(c_int) :: z_n_particle, z_n_bunch, z_ix_turn
-    logical(c_bool) :: z_renorm_center, z_renorm_sigma, z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t
-    logical(c_bool) :: z_use_particle_start_for_center
+    logical(c_bool) :: z_renorm_center, z_renorm_sigma, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t
   end subroutine
 end interface
 
@@ -7454,11 +7457,10 @@ call beam_init_to_c2 (C, trim(F%position_file) // c_null_char, z_distribution_ty
     fvec2vec(F%emit_jitter, 2), F%sig_z_jitter, F%sig_pz_jitter, F%n_particle, &
     c_logic(F%renorm_center), c_logic(F%renorm_sigma), trim(F%random_engine) // c_null_char, &
     trim(F%random_gauss_converter) // c_null_char, F%random_sigma_cutoff, F%a_norm_emit, &
-    F%b_norm_emit, F%a_emit, F%b_emit, F%dpz_dz, fvec2vec(F%center, 6), F%dt_bunch, F%sig_z, &
-    F%sig_pz, F%bunch_charge, F%n_bunch, F%ix_turn, trim(F%species) // c_null_char, &
-    c_logic(F%init_spin), c_logic(F%full_6d_coupling_calc), c_logic(F%use_particle_start), &
-    c_logic(F%use_t_coords), c_logic(F%use_z_as_t), trim(F%file_name) // c_null_char, &
-    F%sig_e_jitter, F%sig_e, c_logic(F%use_particle_start_for_center))
+    F%b_norm_emit, F%a_emit, F%b_emit, F%dpz_dz, fvec2vec(F%center, 6), F%t_center, F%dt_bunch, &
+    F%sig_z, F%sig_pz, F%bunch_charge, F%n_bunch, F%ix_turn, trim(F%species) // c_null_char, &
+    c_logic(F%full_6d_coupling_calc), c_logic(F%use_particle_start), c_logic(F%use_t_coords), &
+    c_logic(F%use_z_as_t))
 
 end subroutine beam_init_to_c
 
@@ -7482,9 +7484,9 @@ subroutine beam_init_to_f2 (Fp, z_position_file, z_distribution_type, z_spin, z_
     z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, z_n_particle, &
     z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
     z_random_sigma_cutoff, z_a_norm_emit, z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, &
-    z_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_ix_turn, z_species, &
-    z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t, &
-    z_file_name, z_sig_e_jitter, z_sig_e, z_use_particle_start_for_center) bind(c)
+    z_center, z_t_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_ix_turn, &
+    z_species, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t) &
+    bind(c)
 
 
 implicit none
@@ -7493,16 +7495,15 @@ type(c_ptr), value :: Fp
 type(beam_init_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*), z_file_name(*)
+character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*)
 type(c_ptr) :: z_distribution_type(*), z_ellipse(*), z_grid(*)
 character(c_char), pointer :: f_distribution_type
 real(c_double) :: z_spin(*), z_center_jitter(*), z_emit_jitter(*), z_sig_z_jitter, z_sig_pz_jitter, z_random_sigma_cutoff, z_a_norm_emit
-real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_dt_bunch, z_sig_z
-real(c_double) :: z_sig_pz, z_bunch_charge, z_sig_e_jitter, z_sig_e
+real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_t_center, z_dt_bunch
+real(c_double) :: z_sig_z, z_sig_pz, z_bunch_charge
 type(c_ptr), value :: z_kv
 integer(c_int) :: z_n_particle, z_n_bunch, z_ix_turn
-logical(c_bool) :: z_renorm_center, z_renorm_sigma, z_init_spin, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t
-logical(c_bool) :: z_use_particle_start_for_center
+logical(c_bool) :: z_renorm_center, z_renorm_sigma, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t
 
 call c_f_pointer (Fp, F)
 
@@ -7559,6 +7560,8 @@ F%dpz_dz = z_dpz_dz
 !! f_side.to_f2_trans[real, 1, NOT]
 F%center = z_center(1:6)
 !! f_side.to_f2_trans[real, 0, NOT]
+F%t_center = z_t_center
+!! f_side.to_f2_trans[real, 0, NOT]
 F%dt_bunch = z_dt_bunch
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sig_z = z_sig_z
@@ -7573,8 +7576,6 @@ F%ix_turn = z_ix_turn
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_species, F%species)
 !! f_side.to_f2_trans[logical, 0, NOT]
-F%init_spin = f_logic(z_init_spin)
-!! f_side.to_f2_trans[logical, 0, NOT]
 F%full_6d_coupling_calc = f_logic(z_full_6d_coupling_calc)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%use_particle_start = f_logic(z_use_particle_start)
@@ -7582,14 +7583,6 @@ F%use_particle_start = f_logic(z_use_particle_start)
 F%use_t_coords = f_logic(z_use_t_coords)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%use_z_as_t = f_logic(z_use_z_as_t)
-!! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_file_name, F%file_name)
-!! f_side.to_f2_trans[real, 0, NOT]
-F%sig_e_jitter = z_sig_e_jitter
-!! f_side.to_f2_trans[real, 0, NOT]
-F%sig_e = z_sig_e
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%use_particle_start_for_center = f_logic(z_use_particle_start_for_center)
 
 end subroutine beam_init_to_f2
 

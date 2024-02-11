@@ -1439,23 +1439,25 @@ extern "C" void high_energy_space_charge_to_c2 (CPP_high_energy_space_charge& C,
 extern "C" void xy_disp_to_c (const Opaque_xy_disp_class*, CPP_xy_disp&);
 
 // c_side.to_f2_arg
-extern "C" void xy_disp_to_f2 (Opaque_xy_disp_class*, c_Real&, c_Real&, c_Real&);
+extern "C" void xy_disp_to_f2 (Opaque_xy_disp_class*, c_Real&, c_Real&, c_Real&, c_Real&);
 
 extern "C" void xy_disp_to_f (const CPP_xy_disp& C, Opaque_xy_disp_class* F) {
 
   // c_side.to_f2_call
-  xy_disp_to_f2 (F, C.eta, C.etap, C.sigma);
+  xy_disp_to_f2 (F, C.eta, C.etap, C.deta_ds, C.sigma);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void xy_disp_to_c2 (CPP_xy_disp& C, c_Real& z_eta, c_Real& z_etap, c_Real& z_sigma)
-    {
+extern "C" void xy_disp_to_c2 (CPP_xy_disp& C, c_Real& z_eta, c_Real& z_etap, c_Real&
+    z_deta_ds, c_Real& z_sigma) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.eta = z_eta;
   // c_side.to_c2_set[real, 0, NOT]
   C.etap = z_etap;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.deta_ds = z_deta_ds;
   // c_side.to_c2_set[real, 0, NOT]
   C.sigma = z_sigma;
 }
@@ -1468,20 +1470,20 @@ extern "C" void twiss_to_c (const Opaque_twiss_class*, CPP_twiss&);
 
 // c_side.to_f2_arg
 extern "C" void twiss_to_f2 (Opaque_twiss_class*, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
 extern "C" void twiss_to_f (const CPP_twiss& C, Opaque_twiss_class* F) {
 
   // c_side.to_f2_call
-  twiss_to_f2 (F, C.beta, C.alpha, C.gamma, C.phi, C.eta, C.etap, C.sigma, C.sigma_p, C.emit,
-      C.norm_emit);
+  twiss_to_f2 (F, C.beta, C.alpha, C.gamma, C.phi, C.eta, C.etap, C.deta_ds, C.sigma,
+      C.sigma_p, C.emit, C.norm_emit);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void twiss_to_c2 (CPP_twiss& C, c_Real& z_beta, c_Real& z_alpha, c_Real& z_gamma,
-    c_Real& z_phi, c_Real& z_eta, c_Real& z_etap, c_Real& z_sigma, c_Real& z_sigma_p, c_Real&
-    z_emit, c_Real& z_norm_emit) {
+    c_Real& z_phi, c_Real& z_eta, c_Real& z_etap, c_Real& z_deta_ds, c_Real& z_sigma, c_Real&
+    z_sigma_p, c_Real& z_emit, c_Real& z_norm_emit) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.beta = z_beta;
@@ -1495,6 +1497,8 @@ extern "C" void twiss_to_c2 (CPP_twiss& C, c_Real& z_beta, c_Real& z_alpha, c_Re
   C.eta = z_eta;
   // c_side.to_c2_set[real, 0, NOT]
   C.etap = z_etap;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.deta_ds = z_deta_ds;
   // c_side.to_c2_set[real, 0, NOT]
   C.sigma = z_sigma;
   // c_side.to_c2_set[real, 0, NOT]
@@ -2658,9 +2662,8 @@ extern "C" void beam_init_to_c (const Opaque_beam_init_class*, CPP_beam_init&);
 extern "C" void beam_init_to_f2 (Opaque_beam_init_class*, c_Char, c_Char*, c_RealArr, const
     CPP_ellipse_beam_init**, const CPP_kv_beam_init&, const CPP_grid_beam_init**, c_RealArr,
     c_RealArr, c_Real&, c_Real&, c_Int&, c_Bool&, c_Bool&, c_Char, c_Char, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
-    c_Int&, c_Char, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Char, c_Real&, c_Real&,
-    c_Bool&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
+    c_Int&, c_Int&, c_Char, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* F) {
   // c_side.to_f_setup[character, 1, NOT]
@@ -2678,10 +2681,9 @@ extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* 
       C.kv, z_grid, &C.center_jitter[0], &C.emit_jitter[0], C.sig_z_jitter, C.sig_pz_jitter,
       C.n_particle, C.renorm_center, C.renorm_sigma, C.random_engine.c_str(),
       C.random_gauss_converter.c_str(), C.random_sigma_cutoff, C.a_norm_emit, C.b_norm_emit,
-      C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.dt_bunch, C.sig_z, C.sig_pz,
-      C.bunch_charge, C.n_bunch, C.ix_turn, C.species.c_str(), C.init_spin,
-      C.full_6d_coupling_calc, C.use_particle_start, C.use_t_coords, C.use_z_as_t,
-      C.file_name.c_str(), C.sig_e_jitter, C.sig_e, C.use_particle_start_for_center);
+      C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.t_center, C.dt_bunch, C.sig_z, C.sig_pz,
+      C.bunch_charge, C.n_bunch, C.ix_turn, C.species.c_str(), C.full_6d_coupling_calc,
+      C.use_particle_start, C.use_t_coords, C.use_z_as_t);
 
 }
 
@@ -2693,11 +2695,10 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
     z_sig_pz_jitter, c_Int& z_n_particle, c_Bool& z_renorm_center, c_Bool& z_renorm_sigma,
     c_Char z_random_engine, c_Char z_random_gauss_converter, c_Real& z_random_sigma_cutoff,
     c_Real& z_a_norm_emit, c_Real& z_b_norm_emit, c_Real& z_a_emit, c_Real& z_b_emit, c_Real&
-    z_dpz_dz, c_RealArr z_center, c_Real& z_dt_bunch, c_Real& z_sig_z, c_Real& z_sig_pz,
-    c_Real& z_bunch_charge, c_Int& z_n_bunch, c_Int& z_ix_turn, c_Char z_species, c_Bool&
-    z_init_spin, c_Bool& z_full_6d_coupling_calc, c_Bool& z_use_particle_start, c_Bool&
-    z_use_t_coords, c_Bool& z_use_z_as_t, c_Char z_file_name, c_Real& z_sig_e_jitter, c_Real&
-    z_sig_e, c_Bool& z_use_particle_start_for_center) {
+    z_dpz_dz, c_RealArr z_center, c_Real& z_t_center, c_Real& z_dt_bunch, c_Real& z_sig_z,
+    c_Real& z_sig_pz, c_Real& z_bunch_charge, c_Int& z_n_bunch, c_Int& z_ix_turn, c_Char
+    z_species, c_Bool& z_full_6d_coupling_calc, c_Bool& z_use_particle_start, c_Bool&
+    z_use_t_coords, c_Bool& z_use_z_as_t) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.position_file = z_position_file;
@@ -2744,6 +2745,8 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   // c_side.to_c2_set[real, 1, NOT]
   C.center << z_center;
   // c_side.to_c2_set[real, 0, NOT]
+  C.t_center = z_t_center;
+  // c_side.to_c2_set[real, 0, NOT]
   C.dt_bunch = z_dt_bunch;
   // c_side.to_c2_set[real, 0, NOT]
   C.sig_z = z_sig_z;
@@ -2758,8 +2761,6 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   // c_side.to_c2_set[character, 0, NOT]
   C.species = z_species;
   // c_side.to_c2_set[logical, 0, NOT]
-  C.init_spin = z_init_spin;
-  // c_side.to_c2_set[logical, 0, NOT]
   C.full_6d_coupling_calc = z_full_6d_coupling_calc;
   // c_side.to_c2_set[logical, 0, NOT]
   C.use_particle_start = z_use_particle_start;
@@ -2767,14 +2768,6 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   C.use_t_coords = z_use_t_coords;
   // c_side.to_c2_set[logical, 0, NOT]
   C.use_z_as_t = z_use_z_as_t;
-  // c_side.to_c2_set[character, 0, NOT]
-  C.file_name = z_file_name;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.sig_e_jitter = z_sig_e_jitter;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.sig_e = z_sig_e;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.use_particle_start_for_center = z_use_particle_start_for_center;
 }
 
 //--------------------------------------------------------------------

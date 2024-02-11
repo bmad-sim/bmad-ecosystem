@@ -382,7 +382,6 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
   nl=incr(nl); write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
   nl=incr(nl); write (li(nl), amt) 'species;SPECIES;T;',                       trim(beam_init%species)
-  nl=incr(nl); write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=incr(nl); write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
   nl=incr(nl); write (li(nl), lmt) 'use_particle_start;LOGIC;T;',              beam_init%use_particle_start
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
