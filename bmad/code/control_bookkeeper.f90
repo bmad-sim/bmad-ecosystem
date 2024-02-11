@@ -168,6 +168,7 @@ endif
 ! Recursively call this routine on the slaves
 
 do i = 1, ele%n_slave
+  if (ele%lord_status == control_lord$) cycle
   if (err_flag) return
   slave => pointer_to_slave (ele, i)
   call control_bookkeeper1 (lat, slave, force_bookkeeping, err_flag)

@@ -1562,6 +1562,7 @@ on_an_offset_girder = .false.
 do i = 1, slave%n_lord
   lord => pointer_to_lord(slave, i, control)
 
+  if (lord%lord_status == control_lord$) cycle
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%key == group$) cycle
 

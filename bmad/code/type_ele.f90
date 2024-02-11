@@ -164,7 +164,7 @@ if (ele%sub_key /= 0) then
   nl=nl+1; write (li(nl), '(2a)') 'Sub Key: ', sub_key_name(ele%sub_key)
 endif
 
-if (ele%key /= girder$ .and. ele%key /= ramper$) then
+if (ele%key /= girder$ .and. ele%key /= ramper$ .and. ele%lord_status /= control_lord$) then
   nl=nl+1; write (li(nl), '(2(a, f14.6))')  'S_start, S:',  ele%s_start, ',', ele%s
   nl=nl+1; write (li(nl), '(2(a, es14.6))') 'Ref_time_start, Ref_time:', ele%value(ref_time_start$), ',', ele%ref_time
 endif
@@ -394,7 +394,8 @@ if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
   call encode_2nd_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
 endif
 
-if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$ .and. ele%key /= ramper$) then
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. &
+          ele%key /= girder$ .and. ele%key /= ramper$ .and. ele%lord_status /= control_lord$) then
   call encode_2nd_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
 endif
 
@@ -981,7 +982,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$)
         cycle
-      case (girder_lord$)
+      case (girder_lord$, control_lord$)
         call re_allocate (li2, 1)
         li2(1) = ''
         a_name = ''
@@ -1083,7 +1084,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     select case (ele%lord_status)
 
-    case (multipass_lord$, super_lord$, girder_lord$)
+    case (multipass_lord$, super_lord$, girder_lord$, control_lord$)
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
       do im = 1, ele%n_slave
