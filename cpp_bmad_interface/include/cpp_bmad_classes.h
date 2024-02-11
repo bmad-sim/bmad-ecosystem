@@ -2565,7 +2565,7 @@ public:
   Real b_emit;
   Real dpz_dz;
   Real_ARRAY center;
-  Real t_center;
+  Real t_offset;
   Real dt_bunch;
   Real sig_z;
   Real sig_pz;
@@ -2601,7 +2601,7 @@ public:
     b_emit(0.0),
     dpz_dz(0.0),
     center(0.0, 6),
-    t_center(0.0),
+    t_offset(0.0),
     dt_bunch(0.0),
     sig_z(0.0),
     sig_pz(0.0),

@@ -2681,7 +2681,7 @@ extern "C" void beam_init_to_f (const CPP_beam_init& C, Opaque_beam_init_class* 
       C.kv, z_grid, &C.center_jitter[0], &C.emit_jitter[0], C.sig_z_jitter, C.sig_pz_jitter,
       C.n_particle, C.renorm_center, C.renorm_sigma, C.random_engine.c_str(),
       C.random_gauss_converter.c_str(), C.random_sigma_cutoff, C.a_norm_emit, C.b_norm_emit,
-      C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.t_center, C.dt_bunch, C.sig_z, C.sig_pz,
+      C.a_emit, C.b_emit, C.dpz_dz, &C.center[0], C.t_offset, C.dt_bunch, C.sig_z, C.sig_pz,
       C.bunch_charge, C.n_bunch, C.ix_turn, C.species.c_str(), C.full_6d_coupling_calc,
       C.use_particle_start, C.use_t_coords, C.use_z_as_t);
 
@@ -2695,7 +2695,7 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
     z_sig_pz_jitter, c_Int& z_n_particle, c_Bool& z_renorm_center, c_Bool& z_renorm_sigma,
     c_Char z_random_engine, c_Char z_random_gauss_converter, c_Real& z_random_sigma_cutoff,
     c_Real& z_a_norm_emit, c_Real& z_b_norm_emit, c_Real& z_a_emit, c_Real& z_b_emit, c_Real&
-    z_dpz_dz, c_RealArr z_center, c_Real& z_t_center, c_Real& z_dt_bunch, c_Real& z_sig_z,
+    z_dpz_dz, c_RealArr z_center, c_Real& z_t_offset, c_Real& z_dt_bunch, c_Real& z_sig_z,
     c_Real& z_sig_pz, c_Real& z_bunch_charge, c_Int& z_n_bunch, c_Int& z_ix_turn, c_Char
     z_species, c_Bool& z_full_6d_coupling_calc, c_Bool& z_use_particle_start, c_Bool&
     z_use_t_coords, c_Bool& z_use_z_as_t) {
@@ -2745,7 +2745,7 @@ extern "C" void beam_init_to_c2 (CPP_beam_init& C, c_Char z_position_file, c_Cha
   // c_side.to_c2_set[real, 1, NOT]
   C.center << z_center;
   // c_side.to_c2_set[real, 0, NOT]
-  C.t_center = z_t_center;
+  C.t_offset = z_t_offset;
   // c_side.to_c2_set[real, 0, NOT]
   C.dt_bunch = z_dt_bunch;
   // c_side.to_c2_set[real, 0, NOT]

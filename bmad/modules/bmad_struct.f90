@@ -1121,7 +1121,7 @@ type beam_init_struct
   real(rp) :: b_emit = 0                     ! b-mode emittance
   real(rp) :: dPz_dz = 0                     ! Correlation of Pz with long position.
   real(rp) :: center(6) = 0                  ! Bench phase space center offset relative to reference.
-  real(rp) :: t_center = 0                   ! Time center offset
+  real(rp) :: t_offset = 0                   ! Time center offset
   real(rp) :: dt_bunch = 0                   ! Time between bunches.
   real(rp) :: sig_z = 0                      ! Z sigma in m.
   real(rp) :: sig_pz = 0                     ! pz sigma

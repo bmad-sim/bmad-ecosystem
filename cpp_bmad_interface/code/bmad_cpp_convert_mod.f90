@@ -7406,7 +7406,7 @@ interface
       z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, z_n_particle, &
       z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
       z_random_sigma_cutoff, z_a_norm_emit, z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, &
-      z_center, z_t_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, &
+      z_center, z_t_offset, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, &
       z_ix_turn, z_species, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, &
       z_use_z_as_t) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
@@ -7415,7 +7415,7 @@ interface
     character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_converter(*), z_species(*)
     type(c_ptr) :: z_distribution_type(*), z_ellipse(*), z_grid(*)
     real(c_double) :: z_spin(*), z_center_jitter(*), z_emit_jitter(*), z_sig_z_jitter, z_sig_pz_jitter, z_random_sigma_cutoff, z_a_norm_emit
-    real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_t_center, z_dt_bunch
+    real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_t_offset, z_dt_bunch
     real(c_double) :: z_sig_z, z_sig_pz, z_bunch_charge
     type(c_ptr), value :: z_kv
     integer(c_int) :: z_n_particle, z_n_bunch, z_ix_turn
@@ -7457,7 +7457,7 @@ call beam_init_to_c2 (C, trim(F%position_file) // c_null_char, z_distribution_ty
     fvec2vec(F%emit_jitter, 2), F%sig_z_jitter, F%sig_pz_jitter, F%n_particle, &
     c_logic(F%renorm_center), c_logic(F%renorm_sigma), trim(F%random_engine) // c_null_char, &
     trim(F%random_gauss_converter) // c_null_char, F%random_sigma_cutoff, F%a_norm_emit, &
-    F%b_norm_emit, F%a_emit, F%b_emit, F%dpz_dz, fvec2vec(F%center, 6), F%t_center, F%dt_bunch, &
+    F%b_norm_emit, F%a_emit, F%b_emit, F%dpz_dz, fvec2vec(F%center, 6), F%t_offset, F%dt_bunch, &
     F%sig_z, F%sig_pz, F%bunch_charge, F%n_bunch, F%ix_turn, trim(F%species) // c_null_char, &
     c_logic(F%full_6d_coupling_calc), c_logic(F%use_particle_start), c_logic(F%use_t_coords), &
     c_logic(F%use_z_as_t))
@@ -7484,7 +7484,7 @@ subroutine beam_init_to_f2 (Fp, z_position_file, z_distribution_type, z_spin, z_
     z_grid, z_center_jitter, z_emit_jitter, z_sig_z_jitter, z_sig_pz_jitter, z_n_particle, &
     z_renorm_center, z_renorm_sigma, z_random_engine, z_random_gauss_converter, &
     z_random_sigma_cutoff, z_a_norm_emit, z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, &
-    z_center, z_t_center, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_ix_turn, &
+    z_center, z_t_offset, z_dt_bunch, z_sig_z, z_sig_pz, z_bunch_charge, z_n_bunch, z_ix_turn, &
     z_species, z_full_6d_coupling_calc, z_use_particle_start, z_use_t_coords, z_use_z_as_t) &
     bind(c)
 
@@ -7499,7 +7499,7 @@ character(c_char) :: z_position_file(*), z_random_engine(*), z_random_gauss_conv
 type(c_ptr) :: z_distribution_type(*), z_ellipse(*), z_grid(*)
 character(c_char), pointer :: f_distribution_type
 real(c_double) :: z_spin(*), z_center_jitter(*), z_emit_jitter(*), z_sig_z_jitter, z_sig_pz_jitter, z_random_sigma_cutoff, z_a_norm_emit
-real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_t_center, z_dt_bunch
+real(c_double) :: z_b_norm_emit, z_a_emit, z_b_emit, z_dpz_dz, z_center(*), z_t_offset, z_dt_bunch
 real(c_double) :: z_sig_z, z_sig_pz, z_bunch_charge
 type(c_ptr), value :: z_kv
 integer(c_int) :: z_n_particle, z_n_bunch, z_ix_turn
@@ -7560,7 +7560,7 @@ F%dpz_dz = z_dpz_dz
 !! f_side.to_f2_trans[real, 1, NOT]
 F%center = z_center(1:6)
 !! f_side.to_f2_trans[real, 0, NOT]
-F%t_center = z_t_center
+F%t_offset = z_t_offset
 !! f_side.to_f2_trans[real, 0, NOT]
 F%dt_bunch = z_dt_bunch
 !! f_side.to_f2_trans[real, 0, NOT]

@@ -6499,7 +6499,7 @@ do jd1 = 1, size(F%center,1); lb1 = lbound(F%center,1) - 1
   F%center(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 23 + offset; F%t_center = rhs
+rhs = 23 + offset; F%t_offset = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 24 + offset; F%dt_bunch = rhs
 !! f_side.test_pat[real, 0, NOT]

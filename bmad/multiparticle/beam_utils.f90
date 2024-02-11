@@ -1893,14 +1893,14 @@ if (.not. h5_file) then
     if (beam_init%use_t_coords) then
       if (beam_init%use_z_as_t) then
         ! Fixed s, particles distributed in time using vec(5)
-        p%t = p%vec(5) + beam_init%t_center
+        p%t = p%vec(5) + beam_init%t_offset
         p%location = downstream_end$
         p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
         
       else
         ! Fixed time, particles distributed in space using vec(5)
         p%s = p%vec(5)
-        p%t = ref_time + bunch%t_center + beam_init%t_center
+        p%t = ref_time + bunch%t_center + beam_init%t_offset
         p%location = inside$
       endif
 
@@ -1916,7 +1916,7 @@ if (.not. h5_file) then
     ! Usual s-coordinates
     else
       call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
-      p%t = ref_time - p%vec(5) / (p%beta * c_light) + beam_init%t_center
+      p%t = ref_time - p%vec(5) / (p%beta * c_light) + beam_init%t_offset
       if (from_file .and. p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
       ! If from a file then no vec6 shift needed.
       call init_coord (p, p, ele, downstream_end$, p%species, shift_vec6 = .not. from_file)
