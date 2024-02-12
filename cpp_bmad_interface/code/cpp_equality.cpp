@@ -1081,7 +1081,7 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.b_emit == y.b_emit);
   is_eq = is_eq && (x.dpz_dz == y.dpz_dz);
   is_eq = is_eq && is_all_equal(x.center, y.center);
-  is_eq = is_eq && (x.t_center == y.t_center);
+  is_eq = is_eq && (x.t_offset == y.t_offset);
   is_eq = is_eq && (x.dt_bunch == y.dt_bunch);
   is_eq = is_eq && (x.sig_z == y.sig_z);
   is_eq = is_eq && (x.sig_pz == y.sig_pz);

@@ -185,6 +185,8 @@ namelist / params / bmad_com, beam_init, ltt
 ltt_params_global => ltt
 ltt_com_global => ltt_com
 ltt_com%master_input_file = ''
+ltt%ix_turn_start = int_garbage$
+beam_init%ix_turn = int_garbage$
 
 ! Parse command line
 
@@ -218,8 +220,19 @@ open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close(1)
 
+if (ltt%ix_turn_start /= int_garbage$ .and. beam_init%ix_turn /= int_garbage$) then
+  print *, 'ltt_com%ix_turn_start and beam_init%ix_turn are the same thing and cannot both be set. Set one or the other.'
+  stop
+elseif (beam_init%ix_turn /= int_garbage$) then
+  ltt%ix_turn_start = beam_init%ix_turn
+elseif (ltt%ix_turn_start /= int_garbage$) then
+  beam_init%ix_turn = ltt%ix_turn_start
+else
+  ltt%ix_turn_start = 0
+  beam_init%ix_turn = 0
+endif
+
 ltt_com%beam_init = beam_init
-ltt_com%beam_init%ix_turn = ltt%ix_turn_start
 
 call bmad_parser (ltt%lat_file, ltt_com%lat)
 
@@ -1278,12 +1291,14 @@ call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
 if (lttp%tracking_method == 'BMAD') call reallocate_coord (orb, lat)
 
+dt = ltt_com%beam_init%ix_turn * (branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time)
 if (present(orb_in)) then
-  call init_coord (orbit, orb_in, ele_start, downstream_end$, lat%param%particle)
+  call init_coord (orbit, orb_in, ele_start, downstream_end$, lat%param%particle, t_offset = dt)
 elseif (ltt_com%beam_init%use_particle_start) then
-  call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, lat%param%particle)
+  call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, lat%param%particle, t_offset = dt)
 else
-  call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = ltt_com%beam_init%spin)
+  call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, &
+                                lat%param%particle, t_offset = dt, spin = ltt_com%beam_init%spin)
 endif
 
 if (lttp%add_closed_orbit_to_init_position) then

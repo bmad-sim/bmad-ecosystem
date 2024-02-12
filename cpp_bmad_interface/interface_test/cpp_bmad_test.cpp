@@ -4353,7 +4353,7 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   for (unsigned int i = 0; i < C.center.size(); i++)
     {int rhs = 101 + i + 22 + offset; C.center[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 23 + offset; C.t_center = rhs;
+  rhs = 23 + offset; C.t_offset = rhs;
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 24 + offset; C.dt_bunch = rhs;

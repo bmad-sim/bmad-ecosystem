@@ -1948,7 +1948,7 @@ is_eq = is_eq .and. (f1%dpz_dz == f2%dpz_dz)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%center == f2%center)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%t_center == f2%t_center)
+is_eq = is_eq .and. (f1%t_offset == f2%t_offset)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dt_bunch == f2%dt_bunch)
 !! f_side.equality_test[real, 0, NOT]
