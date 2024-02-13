@@ -5,6 +5,7 @@
 ! at the entrance and exit ends of a match element. 
 !
 ! Note: ele%taylor%term will be deallocated if the xfer map has changed.
+! Note: If the Twiss parameters have not been calculated, the unit matrix is returned.
 !
 ! Input:
 !   ele                 -- ele_struct: Match element.
@@ -40,6 +41,8 @@ logical :: err_flag, setit, do_trombone, do_twiss, do_orbit
 logical, optional :: include_delta_time, set_trombone
 
 ! Init
+
+err_flag = .false.
 
 m_val = nint(ele%value(matrix$))
 k_val = nint(ele%value(kick0$))
@@ -106,8 +109,6 @@ if (do_trombone) then
 endif
 
 ! Error Check. Negative beta can be caused via twiss_propagate1 with a non-symplectic transfer matrix.
-
-err_flag = .false.
 
 ele0%a%beta     = v(beta_a0$)
 ele0%a%alpha    = v(alpha_a0$)

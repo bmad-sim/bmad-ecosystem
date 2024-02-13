@@ -368,7 +368,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
   nl=incr(nl); write (li(nl), rmt) 'sig_pz_jitter;REAL;T;',                    beam_init%sig_pz_jitter
   nl=incr(nl); write (li(nl), amt) 'center_jitter;REAL_ARR;T',                 (';', re_str(beam_init%center_jitter(k), 8), k = 1, 6)
-  nl=incr(nl); write (li(nl), amt) 'emit_jitter;REAL_ARR;T',                   (';', re_str(beam_init%emit_jitter(k), 8), k = 1, 6)
+  nl=incr(nl); write (li(nl), amt) 'emit_jitter;REAL_ARR;T',                   (';', re_str(beam_init%emit_jitter(k), 8), k = 1, 2)
   nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
   nl=incr(nl); write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
   nl=incr(nl); write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma

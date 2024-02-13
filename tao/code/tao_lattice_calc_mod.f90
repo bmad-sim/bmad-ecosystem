@@ -176,9 +176,17 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
         calc_ok = .false.
         return
       endif
-    endif
+      call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+      if (tao_branch%has_open_match_element) then
+        do n = 1, branch%n_ele_track
+          ele => branch%ele(n)
+          if (ele%key == match$) ele%value(recalc$) = false$
+        enddo
+      endif
 
-    call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+    else
+      call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+    endif
 
   else
     branch%param%stable = .false.
