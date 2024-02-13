@@ -164,9 +164,10 @@ endif
 ! good_control specifies what elements can control what other elements.
 
 good_control = .false.
-good_control(group_lord$, [minor_slave$, multipass_slave$, super_slave$]) = .true.
-good_control(overlay_lord$, [minor_slave$, multipass_slave$, super_slave$]) = .true.
-good_control(girder_lord$, [minor_slave$, multipass_slave$]) = .true.
+good_control(group_lord$, [minor_slave$, multipass_slave$]) = .true.
+good_control(overlay_lord$, [minor_slave$, multipass_slave$]) = .true.
+good_control(control_lord$, [minor_slave$]) = .true.
+good_control(girder_lord$, [minor_slave$]) = .true.
 good_control(super_lord$, [super_slave$]) = .true.
 good_control(multipass_lord$, [multipass_slave$]) = .true.
 
@@ -332,7 +333,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! Tracking methods check
 
-    if (.not. any(ele%key == [group$, overlay$, girder$, ramper$, null_ele$])) then
+    if (.not. any(ele%key == [group$, overlay$, girder$, ramper$, null_ele$]) .and. ele%lord_status /= control_lord$) then
       if (ele%tracking_method < 1 .or. ele%tracking_method > ubound(tracking_method_name, 1)) then
         call out_io (s_fatal$, r_name, &
                         'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
@@ -567,7 +568,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       match_phase = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$)
       match_orbit = (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$)
 
-      if (.not. match_phase .and. ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0) then
+      if (.not. match_phase .and. (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0)) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
                       'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
@@ -999,13 +1000,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
-      if (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'WHICH IS A: MATCH ELEMENT', &
-                  'HAS MATRIX = PHASE_TROMBONE AND RECALC = TRUE BUT THIS IS NOT AN OPEN LATTICE!')
-        err_flag = .true.
-      endif
+      !if (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$) then
+      !  call out_io (s_fatal$, r_name, &
+      !            'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+      !            'WHICH IS A: MATCH ELEMENT', &
+      !            'HAS MATRIX = PHASE_TROMBONE AND RECALC = TRUE BUT THIS IS NOT AN OPEN LATTICE!')
+      !  err_flag = .true.
+      !endif
 
       if (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$) then
         call out_io (s_fatal$, r_name, &
@@ -1153,7 +1154,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     endif
 
     if (.not. any( [not_a_lord$, girder_lord$, super_lord$, overlay_lord$, group_lord$, &
-                      multipass_lord$, ramper_lord$] == l_stat)) then
+                      multipass_lord$, ramper_lord$, control_lord$] == l_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
                 'HAS UNKNOWN LORD_STATUS INDEX: \i0\ ', i_array = [l_stat] )

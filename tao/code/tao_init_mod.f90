@@ -268,31 +268,22 @@ do
   ! Convert old style to current style
 
   if (beam0_file /= '') then
-    beam_init%position_file = beam0_file
-    call out_io (s_important$, r_name, &
-          'Note: Parameter beam0_file in the tao_beam_init structure has been replaced by beam_init%position_file.', &
-          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
+    call out_io (s_error$, r_name, &
+          'Parameter beam0_file in the tao_beam_init structure has been replaced by beam_init%position_file.', &
+          'PLEASE MODIFY YOUR INPUT FILE.')
   endif
 
   if (beam_position0_file /= '') then
     beam_init%position_file = beam_position0_file
-    call out_io (s_important$, r_name, &
-          'Note: Parameter beam_position0_file in the tao_beam_init structure has been replaced by beam_init%position_file.', &
-          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
+    call out_io (s_error$, r_name, &
+          'Parameter beam_position0_file in the tao_beam_init structure has been replaced by beam_init%position_file.', &
+          'PLEASE MODIFY YOUR INPUT FILE.')
   endif
 
   if (beam_init_file_name /= '') then
-    beam_init%position_file = beam_init_file_name
-    call out_io (s_important$, r_name, &
-          'Note: Parameter beam_init_file_name in the tao_beam_init structure has been replaced by beam_init%position_file.', &
-          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
-  endif
-
-  if (beam_init%file_name /= '') then
-    beam_init%position_file = beam_init%position_file
-    call out_io (s_important$, r_name, &
-          'Note: Parameter beam_init%file_name in the tao_beam_init structure has been replaced by beam_init%position_file.', &
-          'PLEASE MODIFY YOUR INPUT FILE. This is just a warning. Tao will run normally...')
+    call out_io (s_error$, r_name, &
+          'Parameter beam_init_file_name in the tao_beam_init structure has been replaced by beam_init%position_file.', &
+          'PLEASE MODIFY YOUR INPUT FILE.')
   endif
 
   if (beam_saved_at /= '')        saved_at        = beam_saved_at
@@ -304,11 +295,6 @@ do
   !
 
   if (s%init%beam_init_position_file_arg /= '') beam_init%position_file = s%init%beam_init_position_file_arg
-
-  if (beam_init%sig_e /= 0 .and. beam_init%sig_pz /= 0) then   ! sig_e is superceeded by sig_pz
-    beam_init%sig_pz = beam_init%sig_e
-    beam_init%sig_e = 0
-  endif
 
   ! init
 

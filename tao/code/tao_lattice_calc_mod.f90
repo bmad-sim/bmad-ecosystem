@@ -52,7 +52,7 @@ character(80) :: lines(10)
 character(*), parameter :: r_name = "tao_single_track"
 
 logical, optional :: print_err
-logical calc_ok, err, radiation_fluctuations_on
+logical calc_ok, err, radiation_fluctuations_on, mode_flip
 
 !
 
@@ -161,7 +161,6 @@ if (u%calc%track) then
   endif
 
   bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-
 endif
 
 ! Twiss
@@ -176,9 +175,24 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
         calc_ok = .false.
         return
       endif
+      call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+      if (tao_branch%has_open_match_element) then
+        do n = 1, branch%n_ele_track
+          ele => branch%ele(n)
+          if (ele%key == match$) ele%value(recalc$) = false$
+        enddo
+      endif
+
+    else
+      call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
     endif
 
-    call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+    mode_flip = any(branch%ele(1:branch%n_ele_track)%mode_flip)
+    if (mode_flip .and. .not. tao_branch%mode_flip_here) then
+      call out_io(s_warn$, r_name, '*Mode flip* detected! Care must be used in interpreting Twiss parameter!', &
+                                   'See the Bmad manual on linear optics for more information.')
+    endif
+    tao_branch%mode_flip_here = mode_flip
 
   else
     branch%param%stable = .false.
@@ -228,7 +242,7 @@ type (beam_init_struct) beam_init
 type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct) :: bunch_params
 
-real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6), t1(6,6)
+real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6), t1(6,6), abz_tunes(3)
 
 integer ix_branch
 integer i, n, ie0, ibf, ief
@@ -280,7 +294,10 @@ else
 
   if (branch%param%geometry == closed$ .and. t1(6,5) /= 0) then
     branch%param%t1_with_RF = t1
-    call make_N (branch%param%t1_with_RF, N_mat, err, tunes_out = tune3)
+    abz_tunes(1) = branch%a%tune
+    abz_tunes(2) = branch%b%tune
+    abz_tunes(3) = branch%z%tune
+    call make_N (branch%param%t1_with_RF, N_mat, err, abz_tunes, tunes_out = tune3)
     if (err) then
       call mat_type (branch%param%t1_with_RF, &
             header = 'SINGULAR ONE-TURN MATRIX WITH RF. WILL NOT BE ABLE TO COMPUTE SIGMAS.', &

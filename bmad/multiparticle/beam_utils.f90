@@ -222,12 +222,6 @@ if (present(err_flag)) err_flag = .true.
 
 ! Init from file
 
-if (beam_init%file_name /= '') then   ! Old name
-  call out_io (s_warn$, r_name, 'Note: beam_init%file_name has been changed to beam_init%position_file.', 'Please change this in your file.')
-  beam_init%position_file = beam_init%file_name
-  beam_init%file_name = ''
-endif
-
 if (beam_init%position_file /= '') then
   call read_beam_file (beam_init%position_file, beam, beam_init, err_here, ele, print_p0c_shift_warning, conserve_momentum)
   if (err_here) then
@@ -331,7 +325,7 @@ type (coord_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
 type (normal_modes_struct), optional :: modes
 
-real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6)
+real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6), abz_tunes(3)
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
 real(rp) old_cutoff
 real(rp) tunes(1:3), g6mat(6,6), g6inv(6,6), v6mat(6,6), t6(6,6)
@@ -359,35 +353,6 @@ else
   b_init => beam_init_temp
 endif
 b_init = beam_init
-
-! Old format
-
-if (beam_init%sig_e /= 0) then
-  call out_io (s_error$, r_name, '===========================================================', &
-                                 '==== BEAM_INIT%SIG_E IS DEPRECATED! DO NOT USE!        ====', &
-                                 '==== USE BEAM_INIT%SIG_PZ INSTEAD!                     ====', &
-                                 '==== THE BEAM WILL NOT BE INITIALIZED!                 ====', &
-                                 '===========================================================')
-  return
-endif
-
-if (beam_init%sig_e_jitter /= 0) then
-  call out_io (s_error$, r_name, '==================================================================', &
-                                 '==== BEAM_INIT%SIG_E_JITTER IS DEPRECATED! PLEASE DO NOT USE! ====', &
-                                 '==== USE BEAM_INIT%SIG_PZ_JITTER INSTEAD!                     ====', &
-                                 '==== THE BEAM WILL NOT BE INITIALIZED!                        ====', &
-                                 '==================================================================')
-  return
-endif
-
-if (beam_init%file_name /= '') then
-  call out_io (s_error$, r_name, '==================================================================', &
-                                 '==== BEAM_INIT%SIG_E_JITTER IS DEPRECATED! PLEASE DO NOT USE! ====', &
-                                 '==== USE BEAM_INIT%SIG_PZ_JITTER INSTEAD!                     ====', &
-                                 '==== THE BEAM WILL NOT BE INITIALIZED!                        ====', &
-                                 '==================================================================')
-  return
-endif
 
 ! Read from file?
 
@@ -491,7 +456,11 @@ endif
 
 if (b_init%full_6D_coupling_calc) then
   call transfer_matrix_calc(ele%branch%lat, t6, ix1=ele%ix_ele, one_turn=.true.)
-  call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true.)
+  call calc_z_tune(ele%branch)
+  abz_tunes(1) = mod(ele%branch%ele(ele%branch%n_ele_track)%a%phi,twopi)
+  abz_tunes(2) = mod(ele%branch%ele(ele%branch%n_ele_track)%b%phi,twopi)
+  abz_tunes(3) = ele%branch%z%tune
+  call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true., abz_tunes)
   call mat_inverse(G6mat, G6inv, ok)
   do i = 1, size(bunch%particle)
     p => bunch%particle(i)
@@ -1159,15 +1128,7 @@ real(rp) spin(3)
 integer i
 character(*), parameter :: r_name = 'init_spin_distribution'
 
-! Note: %use_particle_start_for_center is old deprecated name for %use_particle_start.
-
-if (beam_init%use_particle_start_for_center) then
-  call out_io (s_error$, r_name, '===================================================================================', &
-                                 '==== BEAM_INIT%USE_PARTICLE_START_FOR_CENTER IS DEPRECATED! PLEASE DO NOT USE! ====', &
-                                 '==== USE BEAM_INIT%USE_PARTICLE_START INSTEAD!                                 ====', &
-                                 '===================================================================================')
-  beam_init%use_particle_start = beam_init%use_particle_start_for_center
-endif
+!
 
 if (beam_init%use_particle_start) then
   if (.not. associated (ele%branch)) then
@@ -1895,7 +1856,6 @@ logical from_file, h5_file
 call ran_gauss(ran_vec)
 center = beam_init%center_jitter * ran_vec
 
-if (beam_init%use_particle_start_for_center) beam_init%use_particle_start = beam_init%use_particle_start_for_center
 if (beam_init%use_particle_start) then
   if (.not. associated (ele%branch)) then
     call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START = T.')
@@ -1931,17 +1891,16 @@ if (.not. h5_file) then
     ! Time coordinates. HDF5 files have full particle information so time conversion is ignored.
 
     if (beam_init%use_t_coords) then
-      
       if (beam_init%use_z_as_t) then
         ! Fixed s, particles distributed in time using vec(5)
-        p%t = p%vec(5)
+        p%t = p%vec(5) + beam_init%t_offset
         p%location = downstream_end$
         p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
         
       else
         ! Fixed time, particles distributed in space using vec(5)
         p%s = p%vec(5)
-        p%t = ref_time + bunch%t_center
+        p%t = ref_time + bunch%t_center + beam_init%t_offset
         p%location = inside$
       endif
 
@@ -1957,7 +1916,7 @@ if (.not. h5_file) then
     ! Usual s-coordinates
     else
       call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
-      p%t = ref_time - p%vec(5) / (p%beta * c_light)
+      p%t = ref_time - p%vec(5) / (p%beta * c_light) + beam_init%t_offset
       if (from_file .and. p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
       ! If from a file then no vec6 shift needed.
       call init_coord (p, p, ele, downstream_end$, p%species, shift_vec6 = .not. from_file)

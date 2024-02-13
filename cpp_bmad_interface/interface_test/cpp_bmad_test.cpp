@@ -2345,7 +2345,10 @@ void set_CPP_xy_disp_test_pattern (CPP_xy_disp& C, int ix_patt) {
   rhs = 2 + offset; C.etap = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.sigma = rhs;
+  rhs = 3 + offset; C.deta_ds = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.sigma = rhs;
 
 
 }
@@ -2414,16 +2417,19 @@ void set_CPP_twiss_test_pattern (CPP_twiss& C, int ix_patt) {
   rhs = 6 + offset; C.etap = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.sigma = rhs;
+  rhs = 7 + offset; C.deta_ds = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.sigma_p = rhs;
+  rhs = 8 + offset; C.sigma = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.emit = rhs;
+  rhs = 9 + offset; C.sigma_p = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.norm_emit = rhs;
+  rhs = 10 + offset; C.emit = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 11 + offset; C.norm_emit = rhs;
 
 
 }
@@ -4347,30 +4353,30 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   for (unsigned int i = 0; i < C.center.size(); i++)
     {int rhs = 101 + i + 22 + offset; C.center[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 23 + offset; C.dt_bunch = rhs;
+  rhs = 23 + offset; C.t_offset = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 24 + offset; C.sig_z = rhs;
+  rhs = 24 + offset; C.dt_bunch = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 25 + offset; C.sig_pz = rhs;
+  rhs = 25 + offset; C.sig_z = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 26 + offset; C.bunch_charge = rhs;
+  rhs = 26 + offset; C.sig_pz = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 27 + offset; C.bunch_charge = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 27 + offset; C.n_bunch = rhs;
+  rhs = 28 + offset; C.n_bunch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.ix_turn = rhs;
+  rhs = 29 + offset; C.ix_turn = rhs;
 
   // c_side.test_pat[character, 0, NOT]
   C.species.resize(16);
   for (unsigned int i = 0; i < C.species.size(); i++)
-    {int rhs = 101 + i + 29 + offset; C.species[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.init_spin = (rhs % 2 == 0);
-
+    {int rhs = 101 + i + 30 + offset; C.species[i] = 'a' + rhs % 26;}
   // c_side.test_pat[logical, 0, NOT]
   rhs = 31 + offset; C.full_6d_coupling_calc = (rhs % 2 == 0);
 
@@ -4382,19 +4388,6 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 34 + offset; C.use_z_as_t = (rhs % 2 == 0);
-
-  // c_side.test_pat[character, 0, NOT]
-  C.file_name.resize(200);
-  for (unsigned int i = 0; i < C.file_name.size(); i++)
-    {int rhs = 101 + i + 35 + offset; C.file_name[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 36 + offset; C.sig_e_jitter = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 37 + offset; C.sig_e = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.use_particle_start_for_center = (rhs % 2 == 0);
 
 
 }

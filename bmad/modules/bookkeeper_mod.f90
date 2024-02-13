@@ -1421,6 +1421,7 @@ slave%scale_multipoles            = lord%scale_multipoles
 slave%is_on                       = lord%is_on
 slave%csr_method                  = lord%csr_method
 slave%space_charge_method         = lord%space_charge_method
+slave%aperture_type               = lord%aperture_type
 
 if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
 if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
@@ -1561,6 +1562,7 @@ on_an_offset_girder = .false.
 do i = 1, slave%n_lord
   lord => pointer_to_lord(slave, i, control)
 
+  if (lord%lord_status == control_lord$) cycle
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%key == group$) cycle
 

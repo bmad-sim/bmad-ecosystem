@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 310
+integer, parameter :: bmad_inc_version$ = 311
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -177,7 +177,7 @@ character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND',
 
 
 type twiss_struct
-  real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
+  real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0, deta_ds = 0
   real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
 end type
 
@@ -824,7 +824,7 @@ type high_energy_space_charge_struct
 end type    
 
 type xy_disp_struct
-  real(rp) :: eta = 0, etap = 0, sigma = 0
+  real(rp) :: eta = 0, etap = 0, deta_ds = 0, sigma = 0
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.
@@ -1120,7 +1120,8 @@ type beam_init_struct
   real(rp) :: a_emit = 0                     ! a-mode emittance
   real(rp) :: b_emit = 0                     ! b-mode emittance
   real(rp) :: dPz_dz = 0                     ! Correlation of Pz with long position.
-  real(rp) :: center(6) = 0                  ! Bench center offset relative to reference.
+  real(rp) :: center(6) = 0                  ! Bench phase space center offset relative to reference.
+  real(rp) :: t_offset = 0                   ! Time center offset
   real(rp) :: dt_bunch = 0                   ! Time between bunches.
   real(rp) :: sig_z = 0                      ! Z sigma in m.
   real(rp) :: sig_pz = 0                     ! pz sigma
@@ -1128,7 +1129,6 @@ type beam_init_struct
   integer :: n_bunch = 0                     ! Number of bunches.
   integer :: ix_turn = 0                     ! Turn index used to adjust particles time if needed.
   character(16) :: species = ""              ! "positron", etc. "" => use referece particle.
-  logical :: init_spin     = .true.          ! Not used. Deprecated.
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.
   logical :: use_particle_start = .false.    ! Use lat%particle_start instead of beam_init%center, %spin?
@@ -1136,10 +1136,6 @@ type beam_init_struct
   logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
                                              !   If true,  z describes the t distribution 
                                              !   If false, z describes the s distribution
-  character(200) :: file_name = ''           ! OLD NAME FOR POSITION_FILE. DO NOT USE.
-  real(rp) :: sig_e_jitter     = 0.0         ! DEPRECATED. DO NOT USE. Replaced by sig_pz_jitter.
-  real(rp) :: sig_e = 0                      ! DEPRECATED. DO NOT USE. Replaced by sig_pz.
-  logical :: use_particle_start_for_center = .false. ! DEPRECATED. DO NOT USE. Replaced by use_particle_start.
 end type
 
 
@@ -1600,7 +1596,7 @@ integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffra
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, def_space_charge_com$ = 60, crab_cavity$ = 61
 integer, parameter :: ramper$ = 62, def_ptc_com$ = 63, rf_bend$ = 64, gkicker$ = 65, foil$ = 66
-integer, parameter :: thick_multipole$ = 67, n_key$ = 67
+integer, parameter :: thick_multipole$ = 67, modulator$ = 68, feedback$ = 69, n_key$ = 69
 
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1618,7 +1614,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', '!Space_Charge_Com ', &
     'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', 'RF_Bend           ', 'GKicker           ', &
-    'Foil              ', 'Thick_Multipole   ']
+    'Foil              ', 'Thick_Multipole   ', 'Modulator         ', 'Feedback          ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1779,7 +1775,7 @@ integer, parameter :: check_sum$ = 75
 
 !!    = 1 + num_ele_attrib$
 
-integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
+integer, parameter :: spherical_curvature$ = 81, distribution$ = 81, pickup$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83

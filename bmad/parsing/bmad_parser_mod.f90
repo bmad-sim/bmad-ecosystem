@@ -1876,6 +1876,9 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
   call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
+case('PICKUP', 'KICKER')
+  call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
+
 case ('REF_ORBIT')
   if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
@@ -2260,6 +2263,18 @@ case default   ! normal attribute
       case ('CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22')
         coef = 1 - determinant(ele%c_mat)
         if (coef >= 0) ele%gamma_c = sqrt(coef)
+
+      case ('ETAP_A'); ele%a%deta_ds = ele%a%etap
+      case ('ETAP_B'); ele%b%deta_ds = ele%b%etap
+      case ('ETAP_X'); ele%x%deta_ds = ele%x%etap
+      case ('ETAP_Y'); ele%y%deta_ds = ele%y%etap
+      case ('ETAP_Z'); ele%z%deta_ds = ele%z%etap
+
+      case ('DETA_A_DS'); ele%a%etap = ele%a%deta_ds
+      case ('DETA_B_DS'); ele%b%etap = ele%b%deta_ds
+      case ('DETA_X_DS'); ele%x%etap = ele%x%deta_ds
+      case ('DETA_Y_DS'); ele%y%etap = ele%y%deta_ds
+      case ('DETA_Z_DS'); ele%z%etap = ele%z%deta_ds
 
       case ('E_TOT')
         if (ele%key == def_parameter$) then
@@ -3723,6 +3738,10 @@ case ('SR_WAKE_FILE')
   call parser_read_old_format_sr_wake (ele, type_name)
 case ('TYPE')
   ele%type = type_name
+case ('PICKUP')
+  pele%names(1) = type_name
+case ('KICKER')
+  pele%names(2) = type_name
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_STRING_ATTRIBUTE_SET: I NEED HELP!')
   if (global_com%exit_on_error) call err_exit
@@ -6557,6 +6576,14 @@ main_loop: do n_in = 1, n_ele_max
         if (err_flag) exit
       enddo
     endif
+
+  !-----------------------------------------------------
+  ! feedback
+
+  case (feedback$)
+    call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
+    lat%ele(ix_lord) = lord
+    call create_feedback(lat%ele(ix_lord), pele%names(1), pele%names(2), err_flag)
 
   !-----------------------------------------------------
   ! girder

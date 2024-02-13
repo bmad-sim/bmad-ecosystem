@@ -620,6 +620,14 @@ subroutine convert_bend_exact_multipole (g, out_type, an, bn)
   integer out_type
 end subroutine
 
+subroutine create_feedback(lord, pickup, kicker, err)
+  import
+  implicit none
+  type (ele_struct), target :: lord
+  character(*) pickup, kicker
+  logical err
+end subroutine
+
 recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
                        param, include_upstream_end, include_downstream_end, err_flag, old_slice, orb_in)
   import
@@ -638,13 +646,6 @@ subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
   type (lat_struct) lat
   character(*) lord_name, slave_name
   logical err_flag
-end subroutine
-
-subroutine create_wiggler_cartesian_map (ele, cart_map)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (cartesian_map_struct), target :: cart_map
 end subroutine
 
 subroutine create_girder (lat, ix_ele, con, init_ele, err_flag)
@@ -694,6 +695,13 @@ subroutine create_unique_ele_names (lat, key, suffix)
   type (lat_struct), target :: lat
   integer key
   character(*) suffix
+end subroutine
+
+subroutine create_wiggler_cartesian_map (ele, cart_map)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (cartesian_map_struct), target :: cart_map
 end subroutine
 
 subroutine crystal_attribute_bookkeeper (ele)
@@ -2589,6 +2597,16 @@ subroutine track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
   logical, optional :: make_matrix, err_flag
 end subroutine
 
+subroutine track_a_modulator (orbit, ele, param, err_flag, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct), target :: ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix, err_flag
+end subroutine
+
 subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, track_spin, mat6, make_matrix)
   import
   implicit none
@@ -3071,12 +3089,12 @@ subroutine twiss_propagate1 (ele1, ele2, err)
   logical, optional :: err
 end subroutine
 
-subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero_uncalculated)
+subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end)
   import
   implicit none
   type (lat_struct), target :: lat
   integer, optional :: ix_branch, ie_start, ie_end
-  logical, optional :: err_flag, zero_uncalculated
+  logical, optional :: err_flag
 end subroutine
 
 subroutine twiss_to_1_turn_mat (twiss, phi, mat2)

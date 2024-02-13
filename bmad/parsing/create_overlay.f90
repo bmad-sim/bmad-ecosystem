@@ -132,14 +132,13 @@ lat%n_control_max = nc2
 ! Free elements convert to minor slaves.
 
 do i = 1, lord%n_slave
-
   slave => pointer_to_slave(lord, i)
   if (slave%slave_status == free$) slave%slave_status = minor_slave$
 
   ! You cannot overlay super_slaves 
 
   if (slave%slave_status == super_slave$) then
-    call parser_error ('ILLEGAL OVERLAY ON ' // slave%name, ' BY: ' // lord%name)
+    call parser_error ('AN OVERLAY ' // lord%name // ' IS NOT ALLOWED TO CONTROL A SUPER_SLAVE: ' // slave%name)
     return
   endif
 

@@ -1321,6 +1321,50 @@ case ('damp.')
 
 !-----------
 
+case ('deta_ds.')
+
+  select case (data_type)
+
+  case ('deta_ds.a')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%a%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
+      valid_value = .true.
+    else
+      call tao_load_this_datum (branch%ele(:)%a%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('deta_ds.b')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%b%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
+      valid_value = .true.
+    else
+      call tao_load_this_datum (branch%ele(:)%b%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('deta_ds.x')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%x%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
+      valid_value = .true.
+    else
+      call tao_load_this_datum (branch%ele(:)%x%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case ('deta_ds.y')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%y%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
+      valid_value = .true.
+    else
+      call tao_load_this_datum (branch%ele(:)%y%deta_ds, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    endif
+
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
+    return
+
+  end select
+
+!-----------
+
 case ('dpx_dx') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then

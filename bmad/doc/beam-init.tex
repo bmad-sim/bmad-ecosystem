@@ -31,7 +31,8 @@ initialize a beam. The parameters of this structure, shown with their default va
     logical use_particle_start = F     ! Use particle_start instead of %center and %spin?
     character random_engine            ! "pseudo" (default) or "quasi". 
     character random_gauss_converter   ! "exact" (default) or "quick". 
-    real center(6) = 0                 ! Bench center offset.
+    real center(6) = 0                 ! Bench phase space center offset.
+    real t_offset = 0                  ! Time offset.
     real center_jitter(6) = 0          ! Bunch center rms jitter
     real emit_jitter(2)   = 0          ! %RMS a and b-mode emittance jitter
     real sig_z_jitter     = 0          ! bunch length RMS jitter 
@@ -51,6 +52,7 @@ initialize a beam. The parameters of this structure, shown with their default va
     real sig_pz = 0                    ! pz sigma.
     real bunch_charge = 0              ! Charge in a bunch.
     integer n_bunch = 0                ! Number of bunches.
+    integer ix_turn = 0                ! Turn index.
     character species = ""             ! Species. Default is reference particle.
     logical full_6D_coupling_calc = F  ! Use 6x6 1-turn matrix to match distribution?  
     logical use_t_coords = F  ! If true, the distributions will be 
@@ -91,8 +93,7 @@ center position offset. See the description of \vn{%use_particle_start} below fo
 %
 \item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_pz_jitter] \Newline
 These components can be used to provide a bunch-to-bunch random variation in the emittance and bunch
-center. Note: The old, deprecated, name for \vn{%sig_pz_jitter} is \vn{%sig_e_jitter}. This deprecated
-name is currently accepted. 
+center.
 %
 \item[\%distribution_type(3)] \Newline
 The \vn{%distribution_type(:)} array determines what algorithms are used to generate
@@ -145,11 +146,6 @@ other distributions instead of multiplying. For example:
 Here the number of particle is $300 \times 600$. Notice that when \vn{RAN_GAUSS} is mixed with other
 distributions, the value of \vn{beam_init%n_particle} is ignored.
 %
-\item[\%full_6D_coupling_calc] \Newline
-If set \vn{True}, coupling between the transverse and longitudinal modes is taken into
-account when calculating the beam distribution. 
-The default \vn{False} decouples the transverse and longitudinal calculations.
-%
 \item[\%dPz_dz] \Newline
 Correlation between $p_z$ and $z$ phase space coordinates. 
 %
@@ -168,6 +164,11 @@ Each component of this array looks like
   end type
 \end{example}
 %
+\item[\%full_6D_coupling_calc] \Newline
+If set \vn{True}, coupling between the transverse and longitudinal modes is taken into
+account when calculating the beam distribution. 
+The default \vn{False} decouples the transverse and longitudinal calculations.
+%
 \item[\%grid(3)] \Newline
 The \vn{%grid} component of the \vn{beam_init_struct} sets the parameters 
 for a uniformly spaced grid of particles. The components of \vn{%grid}
@@ -182,6 +183,18 @@ are:
     real px_max        ! Upper px limit.
   end type
 \end{example}
+%
+\item[\%ix_turn] \Newline
+Turn index. This affects how particle time is calculated. Particle time is calculated from phase
+space $z$ and $t_0$ via \Eq{zbctt}. $t_0$ is the reference time at the lattice element that the beam
+is initialized at (\sref{s:ref.energy}). For simulations where the beam is circulating in a ring
+over many turns, it may be desired to initialize the beam appropriate for some turn after the first
+turn. That is, set the particle time with the reference time $t_{0n}$ associated with the $n$\Th
+(set by \vn{ix_turn}) turn at which the beam is being initialized at
+\begin{equation}
+  t_{0n} = t_0 + n \, t_{rev} 
+\end{equation}
+where $t_{rev}$ is the revolution time.
 %
 \item[\%KV] \Newline
 The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the 
@@ -233,8 +246,7 @@ particles generated.
 %
 \item[\%sig_pz, \%sig_z] \Newline
 Longitudinal sigmas. \vn{%sig_pz} is the fractional energy spread dE/E.  This, along with
-\vn{%dPz_dz} determine the longitudinal profile. Note: The old, deprecated, name for \vn{%sig_pz} is
-\vn{%sig_e}. This deprecated name is currently accepted.
+\vn{%dPz_dz} determine the longitudinal profile.
 
 When simulating a ring, if any of these parameters is set negative, and if the \bmad based program
 being run has enabled it, the value of the parameter will be set the value as calculated from the
@@ -268,8 +280,7 @@ by:
 See \sref{s:beam.start} for details about the \vn{particle_start} structure. Using the
 \vn{particle_start} structure allows setting center and spin values in the lattice file rather than
 the setting of \vn{%center} and \vn{%spin} in the \vn{beam_init_struct}. In this case, \vn{%center}
-is a dependent parameter and will be set to the value of \vn{particle_start}. Note: Old deprecated
-name for \vn{%use_particle_start} is is \vn{%use_particle_start_for_center}
+is a dependent parameter and will be set to the value of \vn{particle_start}.
 %
 \item[\%use_t_coords, \%use_z_as_t] \Newline
 The problem with handling particle distributions at low energies is that when a particle's velocity

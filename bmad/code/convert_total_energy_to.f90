@@ -42,7 +42,7 @@ if (E_tot < mc2 .or. E_tot == 0) then
   if (logic_option(.true., print_err)) then
     call out_io (s_abort$, r_name, 'ERROR: TOTAL ENERGY IS LESS THAN REST MASS: \es10.2\ ', E_tot)
   endif
-  if (global_com%exit_on_error) call err_exit
+  if (global_com%exit_on_error .and. .not. present(err_flag)) call err_exit
   return
 endif
 

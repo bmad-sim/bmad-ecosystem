@@ -35,17 +35,17 @@ type (ele_struct) ele1, ele2
 real(rp) orb1(6), orb2(6)
 real(rp) m(6,6), v_mat(4,4), v_inv_mat(4,4), det
 real(rp) rel_p1, rel_p2, eta1(4), eta2(4)
-character(20) :: r_name = 'transfer_mat_from_twiss'
+character(*), parameter :: r_name = 'transfer_mat_from_twiss'
 
 ! Error check
 
 if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
-  call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele1%name)
+  call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT1: ' // ele1%name)
   if (global_com%exit_on_error) call err_exit
 endif
 
 if (ele2%a%beta == 0 .or. ele2%b%beta == 0) then
-  call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele2%name)
+  call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT2: ' // ele2%name)
   if (global_com%exit_on_error) call err_exit
 endif
 

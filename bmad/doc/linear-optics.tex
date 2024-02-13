@@ -382,21 +382,38 @@ must be positive real. This fixes the overall phase of the eigenvectors.
 \label{s:dispersion}
 \index{dispersion|hyperbf}
 
-The dispersion ($\eta$) and the dispersion derivative ($\eta'$) are defined by the equations
-\begin{align}
-  \eta_x(s) &\equiv \left. \frac{dx}{dp_z} \right|_s \comma \qquad
-    \eta'_x(s) \equiv \left. \frac{d\eta_x}{ds} \right|_s
-    = \left. \frac{dx'}{dp_z} \right|_s \CRNO
-  \eta_y(s) &\equiv \left. \frac{dy}{dp_z} \right|_s \comma \qquad
-    \eta'_y(s) \equiv \left. \frac{d\eta_y}{ds} \right|_s
-    = \left. \frac{dy'}{dp_z} \right|_s \\
-  \eta_z(s) &\equiv \left. \frac{dz}{dp_z} \right|_s \nonumber
-\end{align}
+The dispersion $\eta$ is defined in the standard way
+\begin{equation}
+  \text{eta_x} = \eta_x(s) \equiv \left. \frac{dx}{dp_z} \right|_s \comma \qquad
+  \text{eta_y} = \eta_y(s) \equiv \left. \frac{dy}{dp_z} \right|_s
+  \label{eedxdpz}
+\end{equation}
 
-Given the dispersion at a given point, the dispersion at some other point is calculated as follows:
-Let $\Bf r = (x, p_x, y, p_y, z, p_z)$ be the reference orbit, around which the dispersion is to be
-calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order components of the transfer map
-between two points labeled 1 and 2:
+There are two dispersion derivatives that Bmad uses. One dispersion derivative corresponds to
+the definition used by the MAD and SAD programs
+\begin{equation}
+  \text{etap_x} = \equiv \left. \frac{dp_x}{dp_z} \right|_s \comma \qquad 
+  \text{etap_y} = \equiv \left. \frac{dp_y}{dp_z} \right|_s \comma \qquad 
+\end{equation}
+This dispersion derivative is useful when constructing particle bunch distributions and for
+various calculations like for calculating radiation integrals.
+
+The one drawback with the above dispersion derivative definition is that it is not always simply
+related to the longitudinal derivative of the dispersion $d\eta/ds$. This becomes a factor when
+designing lattices where, if some section of the lattice needs to be dispersion free, it is
+convienient to be able to optimize $d\eta/ds$ to zero. For this reason, $d\eta/ds$ is calculated
+by \bmad
+\begin{equation}
+  \text{deta_x_ds} \equiv \left. \frac{d\eta_x}{ds} \right|_s
+    = \left. \frac{dx'}{dp_z} \right|_s \CRNO
+  \text{deta_y_ds} \equiv \left. \frac{d\eta_y}{ds} \right|_s
+    = \left. \frac{dy'}{dp_z} \right|_s 
+\end{equation}
+
+For $d\eta/ds$, given the dispersion at a given point, the dispersion at some other point is
+calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$ be the reference orbit, around which
+the dispersion is to be calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order components
+of the transfer map between two points labeled 1 and 2:
 \begin{equation}
   \Bf r_2 = \bfM \, \Bf r_1 + \bfV
   \label{rmrv}
@@ -405,7 +422,7 @@ Define the dispersion vector $\bfeta$ by
 \begin{equation}
   \bfeta = 
   \left( 
-    \eta_x, \eta'_x \, (1 + p_z), \eta_y, \eta'_y \, (1 + p_z), \eta_z, 1
+    \eta_x, d\eta_x/ds \, (1 + p_z), d\eta_y/ds, \eta'_y \, (1 + p_z), \eta_z, 1
   \right)
 \end{equation}
 Differentiating \Eq{rmrv} with respect to energy, the dispersion at point 2 in terms of the
@@ -470,3 +487,5 @@ the merit of reflecting what one would measure if the starting energy of the bea
 local dispersion, on the other hand, reflects the correlations between the particle energy and
 particle position within a beam.
 
+To calulate the normal mode dispersions, \Eq{avx} is used to transform from laboratory to normal mode
+coordinates.

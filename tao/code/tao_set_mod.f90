@@ -1096,7 +1096,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     enddo
 
   case default
-    call out_io (s_warn$, r_name, 'PARAMETER NOT RECOGNIZED: ' // who2)
+    call out_io (s_error$, r_name, 'PARAMETER NOT RECOGNIZED: ' // who2, &
+                                   '[DID YOU WANT "SET BEAM_INIT" INSTEAD OF "SET BEAM"?]')
     return
   end select
 enddo
@@ -2999,9 +3000,10 @@ endif
 ! And set_ele_attribute cannot handle the situation where there is an array of set values.
 ! How to handle this depends upon what type of attribute it is.
 
-! If a real attribute then use tao_evaluate_expression to evaluate
+! If a real attribute then use tao_evaluate_expression to evaluate.
+! If attribute_type returns int_garbage$ then assume attribute is a controller variable which are always real.
 
-if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
+if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(attribute)) == int_garbage$) then
   ! Important to use "size(eles)" as 2nd arg instead of "0" since if value is something like "ran()" then
   ! want a an array of set_val values with each value different.
   call tao_evaluate_expression (value, size(eles), .false., set_val, err)
@@ -3015,8 +3017,8 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
 
   n_set = 0
   do i = 1, size(eles)
-    call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
-    if (err) return
+    call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, err_print_flag = .false.)
+    if (err) cycle
     if (.not. associated(a_ptr%r)) then
       call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
       return

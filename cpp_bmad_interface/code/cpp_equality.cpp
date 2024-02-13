@@ -609,6 +609,7 @@ bool operator== (const CPP_xy_disp& x, const CPP_xy_disp& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.eta == y.eta);
   is_eq = is_eq && (x.etap == y.etap);
+  is_eq = is_eq && (x.deta_ds == y.deta_ds);
   is_eq = is_eq && (x.sigma == y.sigma);
   return is_eq;
 };
@@ -626,6 +627,7 @@ bool operator== (const CPP_twiss& x, const CPP_twiss& y) {
   is_eq = is_eq && (x.phi == y.phi);
   is_eq = is_eq && (x.eta == y.eta);
   is_eq = is_eq && (x.etap == y.etap);
+  is_eq = is_eq && (x.deta_ds == y.deta_ds);
   is_eq = is_eq && (x.sigma == y.sigma);
   is_eq = is_eq && (x.sigma_p == y.sigma_p);
   is_eq = is_eq && (x.emit == y.emit);
@@ -1079,6 +1081,7 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.b_emit == y.b_emit);
   is_eq = is_eq && (x.dpz_dz == y.dpz_dz);
   is_eq = is_eq && is_all_equal(x.center, y.center);
+  is_eq = is_eq && (x.t_offset == y.t_offset);
   is_eq = is_eq && (x.dt_bunch == y.dt_bunch);
   is_eq = is_eq && (x.sig_z == y.sig_z);
   is_eq = is_eq && (x.sig_pz == y.sig_pz);
@@ -1086,15 +1089,10 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.n_bunch == y.n_bunch);
   is_eq = is_eq && (x.ix_turn == y.ix_turn);
   is_eq = is_eq && (x.species == y.species);
-  is_eq = is_eq && (x.init_spin == y.init_spin);
   is_eq = is_eq && (x.full_6d_coupling_calc == y.full_6d_coupling_calc);
   is_eq = is_eq && (x.use_particle_start == y.use_particle_start);
   is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
   is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
-  is_eq = is_eq && (x.file_name == y.file_name);
-  is_eq = is_eq && (x.sig_e_jitter == y.sig_e_jitter);
-  is_eq = is_eq && (x.sig_e == y.sig_e);
-  is_eq = is_eq && (x.use_particle_start_for_center == y.use_particle_start_for_center);
   return is_eq;
 };
 

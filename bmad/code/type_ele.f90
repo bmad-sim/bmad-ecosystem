@@ -164,7 +164,7 @@ if (ele%sub_key /= 0) then
   nl=nl+1; write (li(nl), '(2a)') 'Sub Key: ', sub_key_name(ele%sub_key)
 endif
 
-if (ele%key /= girder$ .and. ele%key /= ramper$) then
+if (ele%key /= girder$ .and. ele%key /= ramper$ .and. ele%lord_status /= control_lord$) then
   nl=nl+1; write (li(nl), '(2(a, f14.6))')  'S_start, S:',  ele%s_start, ',', ele%s
   nl=nl+1; write (li(nl), '(2(a, es14.6))') 'Ref_time_start, Ref_time:', ele%value(ref_time_start$), ',', ele%ref_time
 endif
@@ -231,7 +231,7 @@ do ia = 1, num_ele_attrib$
 
   line = ''
   call write_this_attribute (attrib, ia, n_att, line(3:))
-  call write_this_attribute (attrib2, ia, 28, line(n_att+33:))
+  call write_this_attribute (attrib2, attrib2%ix_attrib, 28, line(n_att+33:))
   nl=nl+1; li(nl) = line
 enddo
 
@@ -394,7 +394,8 @@ if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
   call encode_2nd_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
 endif
 
-if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$ .and. ele%key /= ramper$) then
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. &
+          ele%key /= girder$ .and. ele%key /= ramper$ .and. ele%lord_status /= control_lord$) then
   call encode_2nd_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
 endif
 
@@ -462,13 +463,14 @@ if (associated(ele%cartesian_map)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:      ', ct_map%field_scale
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '    r0:               ', ct_map%r0
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:           ', ct_map%ptr%n_link
-      nl=nl+1; write (li(nl), '(5x, a, 9x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
+      nl=nl+1; write (li(nl), '(3x, a, 13x, a, 3(9x, a), 2(12x, a), 9x, a, 3x, a)') 'Term#', &
                                     'A', 'K_x', 'K_y', 'K_z', 'x0', 'y0', 'phi_z', 'Family    Form'
       do j = 1, min(nl2, size(ct_map%ptr%term))
         if (nl+1 > size(li)) call re_allocate(li, 2 * nl, .false.)
         ct_term => ct_map%ptr%term(j)
-        nl=nl+1; write (li(nl), '(i8, 4f12.6, 3f14.6, 3x, a, 2x, a)') j, ct_term%coef, ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, &
-                         ct_term%y0, ct_term%phi_z, cartesian_map_family_name(ct_term%family), trim(cartesian_map_form_name(ct_term%form))
+        nl=nl+1; write (li(nl), '(i8, 1x, a13, 3f12.6, 3f14.6, 3x, a, 2x, a)') j, adjustr(real_to_string(ct_term%coef, 13, 7)), &
+                        ct_term%kx, ct_term%ky, ct_term%kz, ct_term%x0, ct_term%y0, ct_term%phi_z, &
+                        cartesian_map_family_name(ct_term%family), trim(cartesian_map_form_name(ct_term%form))
       enddo
       if (size(ct_map%ptr%term) > nl2) then
         nl=nl+1; write (li(nl), '(a, i0, a)') '     .... etc ... (#Terms = ', size(ct_map%ptr%term), ')' 
@@ -981,7 +983,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$)
         cycle
-      case (girder_lord$)
+      case (girder_lord$, control_lord$)
         call re_allocate (li2, 1)
         li2(1) = ''
         a_name = ''
@@ -1083,7 +1085,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     select case (ele%lord_status)
 
-    case (multipass_lord$, super_lord$, girder_lord$)
+    case (multipass_lord$, super_lord$, girder_lord$, control_lord$)
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
       do im = 1, ele%n_slave
@@ -1485,7 +1487,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(91) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(41), parameter :: att_name(93) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1498,10 +1500,10 @@ character(41), parameter :: att_name(91) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'ETA_Y0', 'ETAP_Y0', 'KICK0', 'X0', 'PX0', 'Y0', 'PY0', 'Z0', 'PZ0', 'ATOMIC_WEIGHT', &
                 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'HARMON', 'FINAL_CHARGE', &
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
-                'PX_KICK', 'PY_KICK', 'PZ_KICK', &
+                'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', &
                 'F_FACTOR']
 
-character(41), parameter :: att2_name(91) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(41), parameter :: att2_name(93) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
@@ -1514,7 +1516,7 @@ character(41), parameter :: att2_name(91) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'ETA_Y1', 'ETAP_Y1', 'MATRIX', 'X1', 'PX1', 'Y1', 'PY1', 'Z1', 'PZ1', 'Z_CHARGE', &
                 'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', 'HARMON_MASTER', 'SCATTER', &
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DREL_THICKNESS_DX', &
-                'X_KICK', 'Y_KICK', 'Z_KICK', &
+                'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', &
                 'SCATTER_METHOD']
 
 ! Exceptional cases
@@ -1522,11 +1524,30 @@ character(41), parameter :: att2_name(91) = [character(40):: 'X_PITCH_TOT', 'Y_P
 ix2_attrib = -1
 is_2nd_col_attrib = .false.
 
+select case (ele%key)
+case (patch$)
+  select case (attrib_name)
+  case ('X_PITCH')
+    ix2_attrib = y_pitch$
+    return
+  case ('Y_PITCH')
+    is_2nd_col_attrib = .true.
+    return
+  case ('X_OFFSET')
+    ix2_attrib = y_pitch$
+    return
+  case ('Y_OFFSET')
+    is_2nd_col_attrib = .true.
+    return
+  end select
+end select
+
+
 select case (attrib_name)
 case ('L')
   is_2nd_col_attrib = .false.
   if (ele%key == patch$) then
-    ix2_attrib = ref_coords$
+    ix2_attrib = user_sets_length$
   elseif (has_attribute(ele, 'L_ACTIVE')) then
     ix2_attrib = l_active$
   elseif (has_attribute(ele, 'L_SOFT_EDGE')) then
@@ -1534,7 +1555,7 @@ case ('L')
   endif
   return
 
-case ('L_SOFT_EDGE', 'L_ACTIVE', 'REF_COORDS')
+case ('L_SOFT_EDGE', 'L_ACTIVE', 'USER_SETS_LENGTH')
   is_2nd_col_attrib = .true.
   return
 end select

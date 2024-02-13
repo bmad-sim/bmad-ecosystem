@@ -179,9 +179,9 @@ subroutine downcase_string(string)
   character(*) string
 end subroutine
 
-function downcase(str_in) result (str_out)
+elemental function downcase(str_in) result (str_out)
   implicit none
-  character(*) str_in
+  character(*), intent(in) :: str_in
   character(len(str_in)) str_out
 end function
 
@@ -904,9 +904,9 @@ subroutine type_this_file(filename)
   character(*) filename
 end subroutine
 
-function upcase(str_in) result (str_out)
+elemental function upcase(str_in) result (str_out)
   implicit none
-  character(*) str_in
+  character(*), intent(in) :: str_in
   character(len(str_in)) str_out
 end function
 
@@ -944,14 +944,16 @@ recursive function str_match_wild(str, pat) result (a_match)
   logical a_match
 end function str_match_wild
 
-subroutine str_upcase(dst, src)
+elemental subroutine str_upcase(dst, src)
   implicit none
-  character(*) dst, src
+  character(*), intent(out) :: dst
+  character(*), intent(in) :: src
 end subroutine str_upcase
 
-subroutine str_downcase(dst, src)
+elemental subroutine str_downcase(dst, src)
   implicit none
-  character(*) dst, src
+  character(*), intent(out) :: dst
+  character(*), intent(in) :: src
 end subroutine str_downcase
 
 subroutine system_command (line, err_flag)

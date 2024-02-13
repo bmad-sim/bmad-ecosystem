@@ -508,11 +508,11 @@ case ('beam')
     nl=nl+1; write(lines(nl), f3mt)'  %random_sigma_cutoff    = ', beam_init%random_sigma_cutoff
     fmt = '(a, i1, a, es16.8)'
     do i = 1, 3
-      if (beam_init%distribution_type(i) == 'ELLIPSE') then
+      if (upcase(beam_init%distribution_type(i)) == 'ELLIPSE') then
         nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%part_per_ellipse  = ', beam_init%ellipse(i)%part_per_ellipse
         nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%n_ellipse         = ', beam_init%ellipse(i)%n_ellipse
         nl=nl+1; write(lines(nl), irmt) '  %ellipse(', i, ')%sigma_cutoff      = ', beam_init%ellipse(i)%sigma_cutoff
-      elseif (beam_init%distribution_type(i) == 'GRID') then
+      elseif (upcase(beam_init%distribution_type(i)) == 'GRID') then
         nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_x            = ', beam_init%grid(i)%n_x
         nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_px           = ', beam_init%grid(i)%n_px
         nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%x_min          = ', beam_init%grid(i)%x_min
@@ -521,7 +521,7 @@ case ('beam')
         nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%px_max         = ', beam_init%grid(i)%px_max
       endif
     enddo
-    if (any(beam_init%distribution_type == 'KV')) then
+    if (any(upcase(beam_init%distribution_type) == 'KV')) then
       nl=nl+1; write(lines(nl), imt) '  %kv%part_per_phi(1:2) = ', beam_init%kv%part_per_phi
       nl=nl+1; write(lines(nl), imt) '  %kv%n_i2              = ', beam_init%kv%n_i2
       nl=nl+1; write(lines(nl), rmt) '  %kv%a                 = ', beam_init%kv%a

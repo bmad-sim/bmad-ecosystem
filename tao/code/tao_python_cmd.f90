@@ -26,6 +26,7 @@
 !   SPECIES     ! Species name string. EG: "H2SO4++"
 !   ELE_PARAM   ! Lattice element parameter string. EG "K1"
 !   STR         ! String that does not fall into one of the above string categories.
+!   STR_ARR     ! String array
 !   STRUCT      ! Structure. In this case {component_value} is of the form:
 !                   {name1};{type1};{value1};{name2};{type2};{value2};...
 !   COMPONENT   ! For curve component parameters.
@@ -362,9 +363,12 @@ case ('beam_init')
   u => point_to_uni(line, .false., err); if (err) return
   beam_init => u%model_branch(0)%beam%beam_init
 
+!!  nl=incr(nl); write (li(nl), amt) 'distribution_type;STR_ARR;T',           (';', trim(beam_init%distribution_type(k)), k = 1, 3)
   nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    trim(beam_init%position_file)
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
   nl=incr(nl); write (li(nl), rmt) 'sig_pz_jitter;REAL;T;',                    beam_init%sig_pz_jitter
+  nl=incr(nl); write (li(nl), amt) 'center_jitter;REAL_ARR;T',                 (';', re_str(beam_init%center_jitter(k), 8), k = 1, 6)
+  nl=incr(nl); write (li(nl), amt) 'emit_jitter;REAL_ARR;T',                   (';', re_str(beam_init%emit_jitter(k), 8), k = 1, 2)
   nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
   nl=incr(nl); write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
   nl=incr(nl); write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
@@ -377,12 +381,15 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'b_emit;REAL;T;',                           beam_init%b_emit
   nl=incr(nl); write (li(nl), rmt) 'dpz_dz;REAL;T;',                           beam_init%dPz_dz
   nl=incr(nl); write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
+  nl=incr(nl); write (li(nl), rmt) 't_offset;REAL;T;',                         beam_init%t_offset
+  nl=incr(nl); write (li(nl), amt) 'center;REAL_ARR;T',                        (';', re_str(beam_init%center(k), 8), k = 1, 6)
+  nl=incr(nl); write (li(nl), amt) 'spin;REAL_ARR;T',                           (';', re_str(beam_init%spin(k), 10), k = 1, 3)
   nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
   nl=incr(nl); write (li(nl), rmt) 'sig_pz;REAL;T;',                           beam_init%sig_pz
   nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
   nl=incr(nl); write (li(nl), imt) 'n_bunch;INT;T;',                           beam_init%n_bunch
+  nl=incr(nl); write (li(nl), imt) 'ix_turn;INT;T;',                           beam_init%ix_turn
   nl=incr(nl); write (li(nl), amt) 'species;SPECIES;T;',                       trim(beam_init%species)
-  nl=incr(nl); write (li(nl), lmt) 'init_spin;LOGIC;T;',                       beam_init%init_spin
   nl=incr(nl); write (li(nl), lmt) 'full_6d_coupling_calc;LOGIC;T;',           beam_init%full_6D_coupling_calc
   nl=incr(nl); write (li(nl), lmt) 'use_particle_start;LOGIC;T;',              beam_init%use_particle_start
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
@@ -412,7 +419,7 @@ case ('beam_init')
 case ('bmad_com')
 
   nl=incr(nl); write (li(nl), rmt) 'max_aperture_limit;REAL;T;',                 bmad_com%max_aperture_limit
-  nl=incr(nl); write (li(nl), amt) 'd_orb;REAL_ARR;T',                               (';', re_str(bmad_com%d_orb(k), 6), k = 1, 6)
+  nl=incr(nl); write (li(nl), amt) 'd_orb;REAL_ARR;T',                           (';', re_str(bmad_com%d_orb(k), 6), k = 1, 6)
   nl=incr(nl); write (li(nl), rmt) 'default_ds_step;REAL;T;',                    bmad_com%default_ds_step
   nl=incr(nl); write (li(nl), rmt) 'significant_length;REAL;T;',                 bmad_com%significant_length
   nl=incr(nl); write (li(nl), rmt) 'rel_tol_tracking;REAL;T;',                   bmad_com%rel_tol_tracking

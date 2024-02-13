@@ -133,6 +133,13 @@ case (match$)
   call track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
 
 !-----------------------------------------------
+! modulator
+
+case (modulator$)
+  call track_a_modulator(orbit, ele, param, err_flag, mat6, make_matrix)
+
+
+!-----------------------------------------------
 ! multipole, ab_multipole
 
 case (multipole$, ab_multipole$) 

@@ -119,32 +119,28 @@ end subroutine t6_to_B123
 !  mat(6,6)            -- real(rp): 1-turn transfer matrix
 !  above_transition    -- logical, optional:  If present and false, then z-mode assumes positive slip factor.
 !                                             Else negative slip factor assumed.
+!  abz_tunes(3)        -- real(rp), optional: Tunes to order eigensystem by.
 !
 ! Output:
 !  tune(3)             -- real(rp): Tunes of the 3 normal modes (radians)
 !  B(6,6)              -- real(rp): B is block diagonal and related to the normal mode Twiss parameters.
 !  HV(6,6)             -- real(rp): Transforms from normal mode coordinates to canonical coordinates: x = H.V.a
-!
 !-
 
-subroutine normal_mode3_calc (t6, tune, B, HV, above_transition)
+subroutine normal_mode3_calc (t6, tune, B, HV, above_transition, abz_tunes)
 
-real(rp) t6(6,6)
-real(rp) tune(3)
-real(rp) B(6,6)
-real(rp) HV(6,6)
+real(rp) t6(6,6), tune(3), B(6,6), HV(6,6)
+real(rp), optional :: abz_tunes(3)
+real(rp) N(6,6), V(6,6), H(6,6)
+
 logical, optional :: above_transition
-
-real(rp) N(6,6)
-real(rp) V(6,6)
-real(rp) H(6,6)
 logical err_flag
 
 character(*), parameter :: r_name = 'normal_mode3_calc'
 
 !
 
-call make_N(t6, N, err_flag, tunes_out=tune)
+call make_N(t6, N, err_flag, abz_tunes, tunes_out=tune)
 if ( err_flag ) then
   call out_io (s_error$, r_name, "Error received from make_N.")
   tune = 0.0d0
@@ -346,9 +342,7 @@ character(*), parameter :: r_name = 'xyz_to_action'
 
 !
 
-abz_tunes(1) = ring%a%tune
-abz_tunes(2) = ring%b%tune
-abz_tunes(3) = ring%z%tune
+abz_tunes = [ring%a%tune, ring%b%tune, ring%z%tune]
 
 select type(where)
 type is (integer)
@@ -420,9 +414,7 @@ character(*), parameter :: r_name = 'action_to_xyz'
 
 !
 
-abz_tunes(1) = ring%a%tune
-abz_tunes(2) = ring%b%tune
-abz_tunes(3) = ring%z%tune
+abz_tunes = [ring%a%tune, ring%b%tune, ring%z%tune]
 
 call transfer_matrix_calc (ring, t6, ix1=ix, one_turn=.true.)
 call make_N(t6, N, err_flag, abz_tunes)

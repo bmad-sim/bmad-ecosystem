@@ -938,6 +938,7 @@ type tao_lattice_branch_struct
   logical has_open_match_element
   logical :: plot_cache_valid = .false.                       ! Valid plotting data cache?
   logical :: spin_map_valid = .false.
+  logical :: mode_flip_here = .false.                         ! Twiss parameter mode flip seen?
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in

@@ -22,7 +22,9 @@ type (ele_struct) ele
 !
 
 call init_ele (ele, match$)
-ele%value(phase_trombone$) = true$
+ele%value(matrix$) = phase_trombone$
+ele%name = 'INSERTED_PHASE_TROMBONE'
 call insert_element (branch%lat, ele, 1, branch%ix_branch)
+call lattice_bookkeeper(branch%lat)
 
 end subroutine
