@@ -52,7 +52,7 @@ character(80) :: lines(10)
 character(*), parameter :: r_name = "tao_single_track"
 
 logical, optional :: print_err
-logical calc_ok, err, radiation_fluctuations_on
+logical calc_ok, err, radiation_fluctuations_on, mode_flip
 
 !
 
@@ -161,7 +161,6 @@ if (u%calc%track) then
   endif
 
   bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-
 endif
 
 ! Twiss
@@ -187,6 +186,13 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
     else
       call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
     endif
+
+    mode_flip = any(branch%ele(1:branch%n_ele_track)%mode_flip)
+    if (mode_flip .and. .not. tao_branch%mode_flip_here) then
+      call out_io(s_warn$, r_name, '*Mode flip* detected! Care must be used in interpreting Twiss parameter!', &
+                                   'See the Bmad manual on linear optics for more information.')
+    endif
+    tao_branch%mode_flip_here = mode_flip
 
   else
     branch%param%stable = .false.

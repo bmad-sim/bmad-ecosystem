@@ -3089,12 +3089,12 @@ subroutine twiss_propagate1 (ele1, ele2, err)
   logical, optional :: err
 end subroutine
 
-subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero_uncalculated)
+subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end)
   import
   implicit none
   type (lat_struct), target :: lat
   integer, optional :: ix_branch, ie_start, ie_end
-  logical, optional :: err_flag, zero_uncalculated
+  logical, optional :: err_flag
 end subroutine
 
 subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
