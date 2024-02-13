@@ -3310,7 +3310,7 @@ Attributes specific to a \vn{match} element are:
   c11_mat0, c12_mat0, c21_mat0, c22_mat0 = <Real>  ! Entrance coupling.
   c11_mat1, c12_mat1, c21_mat1, c22_mat1 = <Real>  ! Exit coupling.
   mode_flip0, mode_flip1 = <T/F>         ! Mode flip status (\sref{s:coupling}). Default: False.
-  dphi_a, dphi_b            = <Real>     ! Phase advances
+  dphi_a, dphi_b            = <Real>     ! Phase advances (radians).
   x0, px0, y0, py0, z0, pz0 = <Real>     ! Entrance coordinates
   x1, px1, y1, py1, z1, pz1 = <Real>     ! Exit coordinates
   delta_time                = <Real>     ! Change in time.
@@ -3341,8 +3341,8 @@ The \vn{matrix} switch determines how the linear $\Bf M$ matrix is calculated. P
 parameter are:
 \begin{example}
   match_twiss      ! Element entrance Twiss set to actual Twiss to match exit end values.
-  identity         ! \(\Bf M\) is set to the unit matrix.
-  phase_trombone   ! Element Twiss are set so that \(\Bf M\) produces a pure phase shift.
+  identity         ! \(\Bf{M}\) is set to the unit matrix.
+  phase_trombone   ! Element Twiss are set so that \(\Bf{M}\) produces a pure phase shift.
   standard         ! Use element values to calc matrix (default).
 \end{example}
 %

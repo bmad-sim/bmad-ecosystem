@@ -52,7 +52,7 @@ integer i, nl
 real(rp) coef, cbar(2,2)
 
 character(*), optional :: lines(:)
-character(200) li(8)
+character(200) li(9)
 character(80) fmt, str, freq_str
 
 logical, optional :: compact_format

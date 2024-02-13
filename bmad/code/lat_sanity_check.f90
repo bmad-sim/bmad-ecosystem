@@ -568,7 +568,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       match_phase = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$)
       match_orbit = (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$)
 
-      if (.not. match_phase .and. ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0) then
+      if (.not. match_phase .and. (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0)) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
                       'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
@@ -1000,13 +1000,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
-      if (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'WHICH IS A: MATCH ELEMENT', &
-                  'HAS MATRIX = PHASE_TROMBONE AND RECALC = TRUE BUT THIS IS NOT AN OPEN LATTICE!')
-        err_flag = .true.
-      endif
+      !if (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$) then
+      !  call out_io (s_fatal$, r_name, &
+      !            'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+      !            'WHICH IS A: MATCH ELEMENT', &
+      !            'HAS MATRIX = PHASE_TROMBONE AND RECALC = TRUE BUT THIS IS NOT AN OPEN LATTICE!')
+      !  err_flag = .true.
+      !endif
 
       if (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$) then
         call out_io (s_fatal$, r_name, &
