@@ -41,7 +41,8 @@ if ((short_type == 'unstable' .and. data_type /= 'unstable.orbit') .or. short_ty
               data_type(1:18) == 'spin.polarization_' .or. data_type == 'spin.depolarization_rate' .or. &
               data_type == 'chrom.a' .or. data_type == 'chrom.b' .or. short_type == 'chrom_ptc' .or. &
               data_type(1:12) == 'chrom.dtune.' .or. short_type == 'slip_factor_ptc' .or. &
-              short_type == 'srdt' .or. short_type == 'damp' .or. short_type == 'tune') then
+              short_type == 'srdt' .or. short_type == 'damp' .or. short_type == 'tune' .or. &
+              short_type == 'momentum_compaction_ptc') then
   has_associated_ele = no$
 
 elseif (data_type == 'emit.a' .or. data_type == 'norm_emit.a' .or. data_type == 'emit.b' .or. &

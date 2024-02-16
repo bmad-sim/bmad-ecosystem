@@ -201,12 +201,6 @@ case (monitor$)
     is_valid = .true.
   end select
 
-case (modulator$)
-  select case (mat6_calc_method)
-  case (auto$, bmad_standard$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
 case (multipole$)
   select case (mat6_calc_method)
   case (auto$, bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
@@ -225,6 +219,12 @@ case (octupole$, thick_multipole$)
 case (patch$)
   select case (mat6_calc_method)
   case (auto$, bmad_standard$, symp_lie_ptc$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (pickup$)
+  select case (mat6_calc_method)
+  case (auto$, bmad_standard$, tracking$, custom$)
     is_valid = .true.
   end select
 

@@ -86,12 +86,14 @@ elseif (has_associated_ele == no$) then
     return
   endif
 
-else    ! has_associated_ele = yes$. Also invalid data_types here.
+else    ! has_associated_ele = yes$
   if (datum%ele_name == '') then
     datum%why_invalid = 'NO LATTICE ELEMENT ASSOCIATED WITH DATUM.'
     ! Datum is invalid but this is do not generate an error message since having "gaps" in the d1 array is a common situation.
     if (print_err .and. datum%data_type /= default_data_type .and. datum%data_type /= '') then
-      call out_io (s_error$, r_name, 'DATA_SOURCE NOT SET FOR DATUM: ' // tao_datum_name(datum))
+      call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
+                                     'OF TYPE: ' // d_type, &
+                                     'MUST HAVE AN ASSOCIATED ELEMENT.')
     endif
     return
   endif

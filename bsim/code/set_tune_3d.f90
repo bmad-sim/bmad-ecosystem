@@ -28,9 +28,10 @@ type(branch_struct), target :: branch
 type (ele_struct), pointer :: ele
 type(coord_struct), allocatable :: co(:)
 type (ele_pointer_struct), allocatable :: eles(:)
-real(rp) target_tunes(3)
+
+real(rp) target_tunes(3), dQ_a, dQ_b, dQ_max
 real(rp), allocatable :: dk1(:)
-integer n, status
+integer n, status, i
 logical, optional :: use_phase_trombone, z_tune_set, print_err
 logical everything_ok, err, use_groups
 
@@ -39,7 +40,8 @@ character(*), parameter :: r_name = 'set_tune_3d'
 
 !
 
-everything_ok = .false.
+everything_ok = .true.
+dQ_max = 0.0001
 
 if (all(target_tunes < 1)) then
   call out_io (s_fatal$, r_name, 'Only fractional tunes given for target_tunes!', &
@@ -57,13 +59,23 @@ if (abs(target_tunes(3)) < 1.e-12) target_tunes(3) = branch%z%tune / twopi
 ! Phase trombone
 
 if (logic_option(.false., use_phase_trombone)) then
-  call twiss_and_track(branch%lat, co, status, branch%ix_branch)
   ele => branch%ele(1)
   n = branch%n_ele_track
-  ele%value(dphi_a$) = twopi*target_tunes(1) - branch%ele(n)%a%phi
-  ele%value(dphi_b$) = twopi*target_tunes(1) - branch%ele(n)%b%phi
-  call make_mat6(ele, branch%param, co(0))
-  call twiss_and_track(branch%lat, co, status, branch%ix_branch)
+  do i = 1, 20
+    call twiss_and_track(branch%lat, co, status, branch%ix_branch)
+    if (status == ok$) then
+      dQ_a = target_tunes(1) - branch%ele(n)%a%phi/twopi
+      dQ_b = target_tunes(2) - branch%ele(n)%b%phi/twopi
+    else
+      dQ_a = 0.01   ! Try to get off this resonance
+      dQ_b = 0.01
+    endif
+    if (abs(dQ_a) <= dQ_max .and. abs(dQ_b) <= dQ_max) return
+    ele%value(dphi_a$) = ele%value(dphi_a$) + twopi * dQ_a
+    ele%value(dphi_b$) = ele%value(dphi_b$) + twopi * dQ_b
+    call make_mat6(ele, branch%param, co(0))
+  enddo
+  everything_ok = .false.
   return
 endif
 

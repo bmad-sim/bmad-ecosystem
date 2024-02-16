@@ -133,13 +133,6 @@ case (match$)
   call track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
 
 !-----------------------------------------------
-! modulator
-
-case (modulator$)
-  call track_a_modulator(orbit, ele, param, err_flag, mat6, make_matrix)
-
-
-!-----------------------------------------------
 ! multipole, ab_multipole
 
 case (multipole$, ab_multipole$) 
@@ -180,6 +173,12 @@ case (octupole$, thick_multipole$)
 
 case (patch$)
   call track_a_patch (ele, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+!-----------------------------------------------
+! pickup
+
+case (pickup$)
+  call track_a_pickup(orbit, ele, param, err_flag, mat6, make_matrix)
 
 !-----------------------------------------------
 ! quadrupole
