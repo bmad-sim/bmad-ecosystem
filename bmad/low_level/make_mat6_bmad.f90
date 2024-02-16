@@ -67,7 +67,7 @@ select case (key)
 case (ab_multipole$, crab_cavity$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, &
       rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$, &
       elseparator$, rfcavity$, lcavity$, match$, multipole$, octupole$, thick_multipole$, sextupole$, &
-      sol_quad$, solenoid$, taylor$, wiggler$, undulator$, ac_kicker$, gkicker$, foil$, modulator$)
+      sol_quad$, solenoid$, taylor$, wiggler$, undulator$, ac_kicker$, gkicker$, foil$, pickup$)
   tm = ele%tracking_method
   field_ele => pointer_to_field_ele(ele, 1)
   if (ele%tracking_method == linear$) ele%tracking_method = bmad_standard$

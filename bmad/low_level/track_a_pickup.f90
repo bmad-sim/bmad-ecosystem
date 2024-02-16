@@ -1,11 +1,11 @@
 !+
-! Subroutine track_a_modulator (orbit, ele, param, err_flag, mat6, make_matrix)
+! Subroutine track_a_pickup (orbit, ele, param, err_flag, mat6, make_matrix)
 !
-! Bmad_standard tracking through a modulator element.
+! Bmad_standard tracking through a pickup element.
 !
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
-!   ele         -- ele_struct: Modulator element.
+!   ele         -- ele_struct: Pickup element.
 !   param       -- lat_param_struct: Lattice parameters.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
@@ -14,9 +14,9 @@
 !   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
 !-
 
-subroutine track_a_modulator (orbit, ele, param, err_flag, mat6, make_matrix)
+subroutine track_a_pickup (orbit, ele, param, err_flag, mat6, make_matrix)
 
-use equal_mod, except_dummy => track_a_modulator
+use equal_mod, except_dummy => track_a_pickup
 
 implicit none
 

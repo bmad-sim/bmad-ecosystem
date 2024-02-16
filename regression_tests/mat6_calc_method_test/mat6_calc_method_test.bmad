@@ -33,9 +33,9 @@ gkicker1:          gkicker, x_kick = 0.01, px_kick = 0.02, y_kick = 0.03, py_kic
 hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 instrument1:       instrument, l = 4.5, num_steps = 10
 kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
+lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
-lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, 
+lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, 
                             coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, cavity_type = traveling_wave
 lcavity1_abs_time: lcavity1  ! Will use absolute time tracking  
 lcavity2_abs_time: lcavity2  ! Will use absolute time tracking  
