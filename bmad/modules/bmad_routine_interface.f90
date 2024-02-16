@@ -2597,7 +2597,7 @@ subroutine track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
   logical, optional :: make_matrix, err_flag
 end subroutine
 
-subroutine track_a_modulator (orbit, ele, param, err_flag, mat6, make_matrix)
+subroutine track_a_pickup (orbit, ele, param, err_flag, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit

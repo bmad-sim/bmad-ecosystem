@@ -692,7 +692,7 @@ do i = 1, n_key$
 
   if (i == converter$)         cycle
   if (i == foil$)              cycle
-  if (i == modulator$)         cycle
+  if (i == pickup$)            cycle
 
   call init_attribute_name1 (i, symplectify$,          'SYMPLECTIFY')
   call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')
@@ -920,8 +920,10 @@ call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
 
-call init_attribute_name1 (feedback$, pickup$,                             'PICKUP')
-call init_attribute_name1 (feedback$, kicker$,                             'KICKER')
+call init_attribute_name1 (feedback$, input_from$,                       'INPUT_FROM')
+call init_attribute_name1 (feedback$, output_to$,                        'OUTPUT_TO')
+call init_attribute_name1 (feedback$, cec_param$,                        'CEC_PARAM')
+call init_attribute_name1 (feedback$, turns_per_step$,                   'TURNS_PER_STEP')
 
 attrib_array(def_line$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (def_line$, particle$,                    'PARTICLE')
@@ -1290,8 +1292,8 @@ call init_attribute_name1 (match$, c21_mat1$,                       'C21_MAT1')
 call init_attribute_name1 (match$, c22_mat1$,                       'C22_MAT1')
 call init_attribute_name1 (match$, mode_flip1$,                     'MODE_FLIP1')
 
-call init_attribute_name1 (modulator$, num_steps$,                  'NUM_STEPS')
-call init_attribute_name1 (modulator$, ds_step$,                    'DS_STEP')
+call init_attribute_name1 (pickup$, num_steps$,                     'NUM_STEPS')
+call init_attribute_name1 (pickup$, ds_step$,                       'DS_STEP')
 
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
@@ -1926,7 +1928,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'VERTICAL_KICK', 'N_CELL', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
       'MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
-      'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', 'FINAL_CHARGE')
+      'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', 'FINAL_CHARGE', 'TURNS_PER_STEP')
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
@@ -1936,18 +1938,19 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
-      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', 'SPECIES_STRONG', &
-      'SCATTER_METHOD')
+      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', &
+      'SPECIES_STRONG', 'SCATTER_METHOD')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
      'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME', &
-     'MACHINE', 'START_EDGE', 'MODULATOR', 'KICKER')
+     'MACHINE', 'START_EDGE', 'INPUT_FROM', 'OUTPUT_TO')
   attrib_type = is_string$
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GEN_GRAD_MAP', 'GRID_FIELD', 'REF_ORBIT', &
-      'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TERM', 'ENERGY_PROBABILITY_CURVE', &
-      'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE', 'CURVATURE', 'REFLECTIVITY_TABLE')
+      'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TERM', &
+      'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE', 'CURVATURE', &
+      'ENERGY_PROBABILITY_CURVE', 'REFLECTIVITY_TABLE', 'CEC_PARAM')
   attrib_type = is_struct$
 
 case default
