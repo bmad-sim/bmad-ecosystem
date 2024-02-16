@@ -1433,7 +1433,7 @@ implicit none
 
 type (bunch_params_struct) bunch_params
 
-real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), f_emit
+real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), f_emit, cut
 real(rp), optional :: n_mat(6,6)
 
 complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
@@ -1473,8 +1473,11 @@ sigma_s(:,4) =  sigma_mat(:,3)
 sigma_s(:,5) = -sigma_mat(:,6)
 sigma_s(:,6) =  sigma_mat(:,5)
 
+! If z or pz has zero sigmas then just do the transverse 
+
 dim = 6
-if (abs(sigma_mat(6,6)) < 1e-20_rp * maxval(abs(sigma_mat))) dim = 4  ! No energy oscillations.
+cut = 1e-20_rp * maxval(abs(sigma_mat))
+if (abs(sigma_mat(5,5)) < cut .or. abs(sigma_mat(6,6)) < cut) dim = 4  ! No energy oscillations.
 
 call mat_eigen (sigma_s(1:dim,1:dim), eigen_val(1:dim), eigen_vec(1:dim,1:dim), error, print_err)
 if (error) return

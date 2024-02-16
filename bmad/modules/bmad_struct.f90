@@ -1334,6 +1334,7 @@ type controller_struct
   type (control_var1_struct), allocatable :: var(:)
   type (control_ramp1_struct), allocatable :: ramp(:)             ! For ramper elements
   real(rp), allocatable :: x_knot(:)
+  type (ecooling_struct), allocatable ::ecool
 end type
 
 
