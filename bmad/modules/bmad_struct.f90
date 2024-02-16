@@ -1264,6 +1264,37 @@ type converter_struct
   type (converter_distribution_struct), allocatable :: dist(:)  ! Distribution at various thicknesses 
 end type
 
+! Structs for coherent electron cooling
+
+type ecooling_wake_struct
+  real(rp), allocatable :: s(:)
+  real(rp), allocatable :: A(:)
+  real(rp), allocatable :: k(:)
+  real(rp), allocatable :: lambda(:)
+end type 
+
+type ecooling_diffusion_struct
+  real(rp), allocatable :: s(:)
+  real(rp), allocatable :: A(:)
+  real(rp), allocatable :: k(:)
+  real(rp), allocatable :: lambda(:)
+  real(rp), allocatable :: D_h(:)
+  real(rp), allocatable :: D_e11(:)
+  real(rp), allocatable :: D_e12(:)
+  real(rp), allocatable :: D_e22(:)
+end type
+
+type ecooling_struct
+  real(rp) :: Ie_peak = 0             ! Peak electron current.
+  real(rp) :: sigma_ze = 0            ! Electron bunch length.
+  real(rp) :: supergaussian_order = 0 ! Order of supergaussian used to model the longitudinal 
+                                      !   electron bunch distribution
+  real(rp) :: off_E_reduction = 0     ! How much to reduce the wake for off-energy protons
+  real(rp) :: phi_avg = 0             ! Average phase advance of electrons through a single amplifier straight
+  type (ecooling_wake_struct) :: xm, ym
+  type (ecooling_wake_struct) :: xk, yk
+end type
+
 ! Struct for element to element control.
 ! Note: Unlike the old days, not all attributes have an associated index. 
 !   So %ix_attrib may be -1. Using pointer_to_attribute with %attribute will always work.
