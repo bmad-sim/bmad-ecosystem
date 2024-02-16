@@ -9,7 +9,7 @@ PARAMETER[geometry] = open
 PARAMETER[p0c] = 180806.1746
 !PARAMETER[e_tot] = 5e6
 
-cavity2: lcavity, l = 1.5, rf_frequency = 1.3e9, gradient = 1e5
+cavity2: lcavity, l = 1.5, rf_frequency = 1.3e9, gradient = 1e5, num_steps = 1
 
 lat: line = (cavity2)
 

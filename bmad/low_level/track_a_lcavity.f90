@@ -39,8 +39,8 @@ type (em_field_struct) field
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, coef, k2
 real(rp) alpha, sin_a, cos_a, r_mat(2,2), dph, E_ref_end, E_end
-real(rp) phase, cos_phi, sin_phi, gradient_net, E_start, e_ratio, voltage_max, sqrt_8, f, k1
-real(rp) dE_start, dE_end, dE, beta_start, beta_end, sqrt_beta12, dsqrt_beta12(6), f_ave, pc_start_ref
+real(rp) phase, cos_phi, sin_phi, E_start, voltage_max, sqrt_8, f, k1
+real(rp) dE_start, dE_end, beta_start, beta_end, sqrt_beta12, dsqrt_beta12(6), f_ave, pc_start_ref
 real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds, r_step, step_len
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
@@ -91,7 +91,9 @@ endif
 gradient_ref = (E_ref_end - E_ref_start)
 mc2 = mass_of(orbit%species)
 
-pc_start = p0c_start * (1 + orbit%vec(6))
+call reference_energy_correction(ele, orbit, first_track_edge$, mat6, make_matrix)
+
+pc_start = p0c_end * (1 + orbit%vec(6))
 beta_start = orbit%beta
 E_start = pc_start / beta_start 
 
@@ -100,7 +102,7 @@ E_start = pc_start / beta_start
 if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, first_track_edge$)) then
   ds = bmad_com%significant_length / 10  ! Make sure inside field region
   call em_field_calc (ele, param, ds, orbit, .true., field, logic_option(.false., make_matrix))
-  f = charge_of(orbit%species) / (2 * p0c_start)
+  f = charge_of(orbit%species) / (2 * p0c_end)
 
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit(kmat)
@@ -187,8 +189,6 @@ enddo
 
 !
 
-call reference_energy_correction(ele, orbit, downstream_end$, mat6, make_matrix)
-
 if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, second_track_edge$)) then
   ds = bmad_com%significant_length / 10  ! Make sure inside field region
   call em_field_calc (ele, param, length - ds, orbit, .true., field, logic_option(.false., make_matrix))
@@ -266,7 +266,7 @@ end function phase_func
 subroutine track_this_lcavity (rf_phase, step_len, orbit, make_matrix)
 
 type (coord_struct) orbit
-real(rp) rf_phase, step_len, dp_dg, rel_p
+real(rp) rf_phase, step_len, dp_dg, rel_p, dE, gradient_net, E_ratio
 logical, optional :: make_matrix
 
 !
@@ -524,17 +524,17 @@ endif
 ! 
 
 orbit%vec(5) = orbit%vec(5) - (dp_dg - step_len * (E_ref_start + E_ref_end) / (p0c_end + p0c_start))
-orbit%vec(6) = (pc_end - p0c_start) / p0c_start
+orbit%vec(6) = (pc_end - p0c_end) / p0c_end
 
 ! Convert back from (x', y', c(t_ref-t), E) coords
 
 if (logic_option(.false., make_matrix)) then
-  rel_p = pc_end / p0c_start
-  mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (p0c_start * beta_end)
-  mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (p0c_start * beta_end)
+  rel_p = pc_end / p0c_end
+  mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (p0c_end * beta_end)
+  mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (p0c_end * beta_end)
 
   m2(1,:) = [beta_end, orbit%vec(5) * mc2**2 / (pc_end * E_end**2)]
-  m2(2,:) = [0.0_rp, 1 / (p0c_start * beta_end)]
+  m2(2,:) = [0.0_rp, 1 / (p0c_end * beta_end)]
 
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 endif
