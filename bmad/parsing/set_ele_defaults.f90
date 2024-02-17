@@ -77,6 +77,7 @@ case (converter$)
 
 case (crab_cavity$)
   ele%value(field_autoscale$) = 1
+  ele%value(num_steps$) = 10
 
 case (crystal$)
   ele%value(is_mosaic$) = false$
@@ -183,6 +184,8 @@ case (lcavity$)
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
   ele%value(longitudinal_mode$) = 0
+  ! So to not affect the changeover when the step loop was finally implemented in 2/2024
+  ele%value(num_steps$) = 1       
 
 case (def_line$)
   g = real_garbage$
@@ -270,6 +273,7 @@ case (photon_init$)
 case (rf_bend$)
   ele%tracking_method = runge_kutta$
   ele%field_calc = fieldmap$
+  ele%value(num_steps$) = 10
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
@@ -291,6 +295,7 @@ case (rfcavity$)
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
   ele%value(longitudinal_mode$) = 0
+  ele%value(num_steps$) = 10
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1

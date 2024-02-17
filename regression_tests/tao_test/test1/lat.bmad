@@ -1235,7 +1235,7 @@ LA.PIP03: Pipe, type = "NBPIPE", L = 0.0837307,  DS_STEP = 0.01,
    aperture = 0.055
 LA.CAV01: Lcavity, descrip = "3DMODEL=7103-210_STL/7103-210_bare.blend", L = 1,
    RF_FREQUENCY = 1.3E9, GRADIENT = 6.0036572657929E6, PHI0 = -5.5555555555556E-3,
-   N_CELL = 7
+   N_CELL = 7, num_steps = 10
 LA.PIP04: Pipe, type = "NBPIPE", L = 0.0837307,  DS_STEP = 0.01,
    aperture = 0.055
 LA.PIP05: Pipe, type = "CUPIPE", L = 0.0615,  DS_STEP = 0.01,

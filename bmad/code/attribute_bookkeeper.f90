@@ -353,11 +353,6 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
           val(ds_step$) = abs(val(l$)) / val(num_steps$)
         endif
 
-      case (lcavity$, rfcavity$, crab_cavity$, rf_bend$)
-        if (val(l$) /= 0) then
-          val(num_steps$) = 10
-          val(ds_step$) = abs(val(l$)) / val(num_steps$)
-        endif
       end select
     endif
   endif
