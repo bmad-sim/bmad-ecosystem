@@ -28,7 +28,6 @@ set (EXE_SPECS
   cmake_files/cmake.particle_track_example
   cmake_files/cmake.simple_bmad_program
   cmake_files/cmake.plot_example
-  cmake_files/cmake.tune_tracker
   cmake_files/cmake.ptc_spin_orbital_normal_form
   cmake_files/cmake.spin_matching
 )
