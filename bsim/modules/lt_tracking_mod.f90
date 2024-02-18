@@ -124,6 +124,7 @@ type ltt_com_struct
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper element locations.
+  type (ele_struct), pointer :: ele_start_ptr            ! Pointer to start ele in original (not tracking) lattice.
   type (beam_init_struct) beam_init
   type (beam_init_struct) beam_init_used
   type (random_state_struct) ramper_ran_state
@@ -322,7 +323,7 @@ type (ele_struct), pointer :: ele
 type (controller_struct), pointer :: cr
 
 real(rp) dummy
-integer ir, i, n, n_loc, iv, it, is
+integer i, n, n_loc, ir, iv, it, is
 character(*), parameter :: r_name = 'ltt_init_params'
 logical err, found
 
@@ -410,11 +411,13 @@ if (ltt%ele_start /= '') then
   endif
   branch => pointer_to_branch(eles(1)%ele)
   ltt_com%ix_branch = branch%ix_branch
-  eles(1)%ele%type = '@START_ELE'
+  ltt_com%ele_start_ptr => eles(1)%ele
 else
   ltt_com%ix_branch = 0
+  ltt_com%ele_start_ptr => lat%branch(0)%ele(0)
 endif
 
+ltt_com%ele_start_ptr%type = '@START_ELE'
 branch => lat%branch(ltt_com%ix_branch)
 
 if (ltt%simulation_mode == 'CHECK') then
@@ -501,10 +504,10 @@ type (ltt_com_struct), target :: ltt_com
 type (beam_struct), optional :: beam
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele, ele_start, ele_stop
+type (ele_struct), pointer :: ele
 type (rad_map_ele_struct), pointer :: ri
 
-real(rp) closed_orb(6), f_tol
+real(rp) closed_orb(6), f_tol, time
 
 integer i, iv, n, ix_branch, ib, n_slice, ie, ir, info, n_rf_included, n_rf_excluded
 
@@ -521,17 +524,18 @@ lat => ltt_com%tracking_lat
 branch => lat%branch(ltt_com%ix_branch)
 
 ramping_on = lttp%ramping_on
+
 if (lttp%ramping_on) then
+  ! Using the simulation starting time for setting the ramper time to calculate the closed orbit is somewhat arbitrary.
   n = ltt_com%n_ramper_loc
-  do ir = 1, n
-    do iv = 1, size(ltt_com%ramper(ir)%ele%control%var)
-      if (ltt_com%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
-      ltt_com%ramper(ir)%ele%control%var(iv)%value = lttp%ramping_start_time
-    enddo
-  enddo
+  ele => ltt_com%ele_start_ptr
+  time = 0.5_rp * (ele%ref_time + ele%value(ref_time_start$)) + &
+           lttp%ix_turn_start * (branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time) + &
+           ltt_params_global%ramping_start_time
 
   do ie = 0, branch%n_ele_max
-    call apply_rampers_to_slave (branch%ele(ie), ltt_com%ramper(1:n), err)
+    call ltt_apply_time_to_rampers (ltt_com, branch%ele(ie), time)
+    call ltt_apply_rampers_to_slave (branch%ele(ie), ltt_com%ramper(1:n), err)
   enddo
 
   lttp%ramping_on = .false.
@@ -560,7 +564,7 @@ if (lttp%use_rf_clock) then
   endif
   call out_io(s_info$, r_name, 'RF clock setup done. ')
   if (.not. bmad_com%absolute_time_tracking) call out_io (s_warn$, r_name, 'Absolute time tracking not in use!!', &
-                                                                      'The RF clock will not be active!!')
+                                                                           'The RF clock will not be active!!')
 endif
 
 !
@@ -958,11 +962,7 @@ ix_branch = ltt_com%ix_branch
 ix_start = ele_start%ix_ele
 ix_stop  = ele_stop%ix_ele
 
-if (ltt_com%beam_init%use_particle_start) then
-  call init_coord (orb_init, ltt_com%lat%particle_start, ele_start, downstream_end$)
-else
-  call init_coord (orb_init, ltt_com%beam_init%center, ele_start, downstream_end$, spin = ltt_com%beam_init%spin)
-endif
+call ltt_init_coord(lttp, ltt_com, orb_init, ele_start)
 
 if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + ltt_com%bmad_closed_orb(ix_start)%vec
 
@@ -1247,7 +1247,7 @@ character(200) file
 
 ! Always add to averages file
 
-call ltt_write_averages_data (lttp, 0, beam, s_pos, ele)
+call ltt_write_averages_data (lttp, -1, beam, s_pos, ele)
 
 ! Beam files
 
@@ -1284,7 +1284,7 @@ type (coord_struct), optional :: orb_in
 type (ele_struct), pointer :: ele_start, ele0, ele1
 type (probe) prb
 
-real(rp) average(6), sigma(6,6), dt
+real(rp) average(6), sigma(6,6)
 integer i, n_sum, iu_part, i_turn, ix_branch
 integer, optional :: ix_bunch, ix_particle
 
@@ -1305,31 +1305,16 @@ if (lttp%tracking_method == 'BMAD') call reallocate_coord (orb, lat)
 
 if (present(orb_in)) then
   orbit = orb_in
-
 else
-  dt = ltt_com%beam_init%ix_turn * (branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time)
-  if (ltt_com%beam_init%use_particle_start) then
-    call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, lat%param%particle, t_offset = dt)
-  else
-    call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, &
-                                  lat%param%particle, t_offset = dt, spin = ltt_com%beam_init%spin)
-  endif
-
-  if (lttp%add_closed_orbit_to_init_position) then
-    select case (lttp%tracking_method)
-    case ('MAP');     orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
-    case ('BMAD');    orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
-    case ('PTC');     orbit%vec = orbit%vec + ltt_com%ptc_closed_orb
-    end select
-  endif
+  call ltt_init_coord(lttp, ltt_com, orbit, ele_start)
 endif
 
 !
 
 if (lttp%simulation_mode == 'INDIVIDUAL') then
   iu_part = -1
-  if (lttp%per_particle_output_file /= '') call ltt_per_particle_file_write1(orbit, lttp, &
-                                                                 0, ix_bunch, ix_particle, size(beam%bunch), size(beam%bunch(ix_bunch)%particle))
+  if (lttp%per_particle_output_file /= '') call ltt_per_particle_file_write1(orbit, lttp, lttp%ix_turn_start, &
+                                             ix_bunch, ix_particle, size(beam%bunch), size(beam%bunch(ix_bunch)%particle))
 else
   iu_part = lunget()
   if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
@@ -1337,15 +1322,15 @@ else
   call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
   write (iu_part, '(2a)') '## Turn ix_ele |            x              px               y              py               z              pz', &
                                        '              pc             p0c            time   |       spin_x       spin_y       spin_z  | Element'
-  write (iu_part, ltt_com%ps_fmt) 0, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
-  if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, 0, orbit = orbit)
+  write (iu_part, ltt_com%ps_fmt) lttp%ix_turn_start, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, &
+                                                                      orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
+  if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, lttp%ix_turn_start, orbit = orbit)
 endif
 
 !
 
-do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
+do i_turn = lttp%ix_turn_start, lttp%ix_turn_stop-1
   select case (lttp%tracking_method)
-
   case ('BMAD')
     call ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_start, orbit, i_turn, iu_part)
 
@@ -1362,7 +1347,7 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
                                                      orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
 
       if (lttp%particle_output_every_n_turns < 1) then
-        write (iu_part, ltt_com%ps_fmt) i_turn, ele1%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele1%name)
+        write (iu_part, ltt_com%ps_fmt) i_turn+1, ele1%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele1%name)
       endif
 
       if (orbit%state /= alive$) exit
@@ -1381,7 +1366,7 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
   !
 
   if (lttp%simulation_mode == 'INDIVIDUAL' .and. lttp%per_particle_output_file /= '') then
-    call ltt_per_particle_file_write1(orbit, lttp, i_turn, ix_bunch, ix_particle, size(beam%bunch), size(beam%bunch(ix_bunch)%particle))
+    call ltt_per_particle_file_write1(orbit, lttp, i_turn+1, ix_bunch, ix_particle, size(beam%bunch), size(beam%bunch(ix_bunch)%particle))
   endif
 
   if (orbit%state /= alive$) then
@@ -1396,8 +1381,8 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
   if (lttp%simulation_mode == 'INDIVIDUAL') cycle
 
   if (lttp%particle_output_every_n_turns > 0) then
-    if (modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
-      write (iu_part, ltt_com%ps_fmt) i_turn, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
+    if (modulo(i_turn+1, lttp%particle_output_every_n_turns) == 0) then
+      write (iu_part, ltt_com%ps_fmt) i_turn+1, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
     endif
   endif
 
@@ -1407,7 +1392,7 @@ do i_turn = lttp%ix_turn_start+1, lttp%ix_turn_stop
     n_sum = n_sum + 1
   endif
 
-  if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, i_turn, orbit = orbit)
+  if (lttp%custom_output_file /= '') call ltt_write_custom (lttp, ltt_com, i_turn+1, orbit = orbit)
 enddo
 
 if (lttp%simulation_mode == 'INDIVIDUAL') then
@@ -1437,38 +1422,71 @@ type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele_start
 type (coord_struct), pointer :: p
+type (random_state_struct) ran_state
+type (branch_struct), pointer :: branch
 
-integer ix_branch, ie, ib, n
+real(rp) dt_branch, time, n_alive
+integer ie, ib, n
 logical err_flag
 
-! Init
+! Important to apply the rampers to the starting element to get the correct ref momentum.
+! But there is a chicken and egg problem here since the ramper time is determined from the beam.
+! So do the init twice when rampers are on
 
 lat => ltt_com%tracking_lat
-call run_timer('ABS', ltt_com%time_start)
-
-ix_branch = ltt_com%ix_branch
+branch => lat%branch(ltt_com%ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
+
+call run_timer('ABS', ltt_com%time_start)
 
 !
 
 ltt_com%beam_init_used%a_emit = real_garbage$
+ltt_com%beam_init%ix_turn = lttp%ix_turn_start
+
+if (lttp%ramping_on) then
+  n = ltt_com%n_ramper_loc
+  time = 0.5_rp * (ele_start%ref_time + ele_start%value(ref_time_start$)) + &
+           lttp%ix_turn_start * (branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time) + &
+           ltt_params_global%ramping_start_time
+  call ltt_apply_time_to_rampers (ltt_com, ele_start, time)
+  call ltt_apply_rampers_to_slave (ele_start, ltt_com%ramper(1:n), err_flag)
+  call ran_default_state(get_state = ran_state)
+endif
+
+
 call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, ltt_com%modes, &
-                                                    ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
+                                                   ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
+bunch => beam%bunch(1)
 if (err_flag) stop
-print '(a, i8)',   'n_particle:                    ', size(beam%bunch(1)%particle)
-ltt_com%n_particle = size(beam%bunch(1)%particle)
+print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
+ltt_com%n_particle = size(bunch%particle)
 
 !
 
-if (bmad_com%spin_tracking_on .and. all(ltt_com%beam_init%spin == 0) .and. all(beam%bunch(1)%particle%spin(1) == 0) .and. &
-                            all(beam%bunch(1)%particle%spin(2) == 0) .and. all(beam%bunch(1)%particle%spin(3) == 0)) then
+if (lttp%ramping_on) then
+  n_alive = count(bunch%particle%state == alive$)
+  time = sum(bunch%particle%t, bunch%particle%state == alive$) / n_alive + &
+              0.5_rp * ele_start%value(delta_ref_time$) + ltt_params_global%ramping_start_time
+  call ltt_apply_time_to_rampers (ltt_com, ele_start, time)
+  call ltt_apply_rampers_to_slave (ele_start, ltt_com%ramper(1:n), err_flag)
+  call ran_default_state(set_state = ran_state)
+  call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, ltt_com%modes, &
+                                                     ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
+  bunch => beam%bunch(1)
+endif
+
+!
+
+if (bmad_com%spin_tracking_on .and. all(ltt_com%beam_init%spin == 0) .and. all(bunch%particle%spin(1) == 0) .and. &
+                            all(bunch%particle%spin(2) == 0) .and. all(bunch%particle%spin(3) == 0)) then
   ie = ele_start%ix_ele
   do ib = 1, size(beam%bunch)
     forall (n = 1:3) beam%bunch(ib)%particle%spin(n) = ltt_com%bmad_closed_orb(ie)%spin(n)
   enddo
 endif
 
-call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch))
+call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 
 do ib = 1, size(beam%bunch)
   bunch => beam%bunch(ib)
@@ -1542,22 +1560,17 @@ n_live_old = n_part_tot
 ! If using mpi then beam data will be written out by the master thread.
 
 if (ix_start_turn == 0 .and. .not. ltt_com%using_mpi) then
-  call ltt_write_particle_data (lttp, ltt_com, 0, beam)
-  call ltt_write_averages_data(lttp, 0, beam)
-  call ltt_write_custom (lttp, ltt_com, 0, beam = beam)
+  call ltt_write_particle_data (lttp, ltt_com, ix_start_turn, beam)
+  call ltt_write_averages_data(lttp, ix_start_turn, beam)
+  call ltt_write_custom (lttp, ltt_com, ix_start_turn, beam = beam)
 endif
 
 !
 
-do i_turn = ix_start_turn+1, ix_end_turn
+do i_turn = ix_start_turn, ix_end_turn-1
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
-    bunch%ix_turn = i_turn
-    if (i_turn == lttp%ix_turn_record .and. lttp%ix_particle_record > 0) then
-      bunch%particle(lttp%ix_particle_record)%ix_user = 1
-    else
-      bunch%particle%ix_user = -1
-    endif
+    bunch%ix_turn = i_turn   ! Turn index before tracking this turn
 
     select case (lttp%tracking_method)
     case ('MAP')
@@ -1594,12 +1607,19 @@ do i_turn = ix_start_turn+1, ix_end_turn
       stop
     end select
 
+    bunch%ix_turn = i_turn + 1  ! Turn index after tracking this turn
     bunch%n_live = count(bunch%particle%state == alive$)
+
+    if (i_turn+1 == lttp%ix_turn_record .and. lttp%ix_particle_record > 0) then
+      bunch%particle(lttp%ix_particle_record)%ix_user = 1
+    else
+      bunch%particle%ix_user = -1
+    endif
   enddo
 
   n_live = sum(beam%bunch%n_live)
   if (n_live_old - n_live >= n_print_dead_loss) then
-    print '(2a, i0, a, i0)', trim(prefix_str), ' Cumulative number dead on turn ', i_turn, ': ', n_part_tot - n_live
+    print '(2a, i0, a, i0)', trim(prefix_str), ' Cumulative number dead at end of turn ', i_turn, ': ', n_part_tot - n_live
     n_live_old = n_live
   endif
 
@@ -1615,17 +1635,17 @@ do i_turn = ix_start_turn+1, ix_end_turn
 
   call run_timer('ABS', time_now)
   if (time_now-time1 > lttp%timer_print_dtime .and. .not. ltt_com%using_mpi) then
-    print '(2a, f10.2, a, i0)', trim(prefix_str), ' Ellapsed time (min): ', (time_now-time0)/60, ', At turn: ', i_turn
+    print '(2a, f10.2, a, i0)', trim(prefix_str), ' Ellapsed time (min): ', (time_now-time0)/60, ', At end of turn: ', i_turn
     time1 = time_now
   endif
 
   ! If using mpi then long_term_tracking_mpi will assemble the beam and call the write routines.
 
   if (.not. ltt_com%using_mpi) then
-    call ltt_write_particle_data (lttp, ltt_com, i_turn, beam)
-    call ltt_write_averages_data(lttp, i_turn, beam)
-    call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
-    call ltt_write_beam_file(lttp, ltt_com, i_turn, beam)
+    call ltt_write_particle_data (lttp, ltt_com, i_turn+1, beam)
+    call ltt_write_averages_data(lttp, i_turn+1, beam)
+    call ltt_write_custom (lttp, ltt_com, i_turn+1, beam = beam)
+    call ltt_write_beam_file(lttp, ltt_com, i_turn+1, beam)
   endif
 end do
 
@@ -3033,16 +3053,18 @@ type (ele_struct), target :: ele_start, ele_stop
 type (ele_struct), pointer :: ele
 
 integer, optional :: i_turn, iu_part
-integer i
+integer i, it
 logical err_flag, rad_fluct
 
 !
 
 if (lttp%split_bends_for_stochastic_rad) rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
 ele => ele_start
+it = i_turn
 
 do
   ele => pointer_to_next_ele(ele)
+  if (ele%ix_ele == 0) it = it + 1
   if (ele%name == 'RADIATION_POINT') then
     call ltt_track1_radiation_center(orbit, ele, .false., rad_fluct)
   else
@@ -3052,7 +3074,7 @@ do
   if (orbit%state /= alive$) return
 
   if (integer_option(-1, iu_part) > 0 .and. lttp%particle_output_every_n_turns < 1) then
-    write (iu_part, ltt_com%ps_fmt) i_turn, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele%name)
+    write (iu_part, ltt_com%ps_fmt) it, ele%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele%name)
   endif
 
   if (ele%ix_ele == ele_stop%ix_ele) exit
@@ -3147,7 +3169,6 @@ do i = 1, ubound(ltt_com%sec, 1)
   endif
 
   if (orbit%state /= alive$) return
-
 enddo
 
 end subroutine ltt_track_map
@@ -3293,14 +3314,7 @@ if (n_alive == 0) return
 t = sum(bunch%particle%t, bunch%particle%state == alive$) / n_alive + &
             0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
 
-do ir = 1, ltt_com_global%n_ramper_loc
-  do iv = 1, size(ltt_com_global%ramper(ir)%ele%control%var)
-    if (ltt_com_global%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
-    ltt_com_global%ramper(ir)%ele%control%var(iv)%value = t
-  enddo
-enddo
-
-n = ltt_com_global%n_ramper_loc
+call ltt_apply_time_to_rampers(ltt_com_global, ele, t)
 call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err)
 
 ! The beginning element is never tracked through. If there is energy ramping and the user is writing out 
@@ -3372,7 +3386,7 @@ type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
 real(rp) r, t
-integer ir, n, iu, iv
+integer n, iu
 logical err_flag, finished, radiation_included, is_there
 
 character(*), parameter :: r_name = 'ltt_track1_preprocess'
@@ -3398,13 +3412,7 @@ if (.not. ltt_params_global%ramp_update_each_particle) return
 ! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 
 t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
-
-do ir = 1, ltt_com_global%n_ramper_loc
-  do iv = 1, size(ltt_com_global%ramper(ir)%ele%control%var)
-    if (ltt_com_global%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
-    ltt_com_global%ramper(ir)%ele%control%var(iv)%value = t
-  enddo
-enddo
+call ltt_apply_time_to_rampers(ltt_com_global, ele, t)
 
 n = ltt_com_global%n_ramper_loc
 call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err_flag)
@@ -3430,5 +3438,94 @@ start_orb%vec(6) = r * start_orb%vec(6) + (start_orb%p0c - ele%value(p0c_start$)
 start_orb%p0c = ele%value(p0c_start$)
 
 end subroutine ltt_track1_preprocess
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine ltt_apply_time_to_rampers(ltt_com, ele, time)
+!
+! Routine to apply the time to ramper elements
+!-
+
+subroutine ltt_apply_time_to_rampers(ltt_com, ele, time)
+
+type (ltt_com_struct), target :: ltt_com
+type (ele_struct) ele
+real(rp) time
+integer ir, iv
+
+!
+
+do ir = 1, ltt_com%n_ramper_loc
+  do iv = 1, size(ltt_com%ramper(ir)%ele%control%var)
+    if (ltt_com%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
+    ltt_com%ramper(ir)%ele%control%var(iv)%value = time
+  enddo
+enddo
+
+end subroutine ltt_apply_time_to_rampers
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+!-
+
+subroutine ltt_init_coord (lttp, ltt_com, orbit, ele_start)
+
+type (ltt_params_struct), target :: lttp
+type (ltt_com_struct), target :: ltt_com
+type (coord_struct) orbit
+type (ele_struct) ele_start
+type (branch_struct), pointer :: branch
+type (random_state_struct) ran_state
+
+real(rp) dt, time
+integer n
+logical err_flag
+
+!
+
+branch => ltt_com%tracking_lat%branch(ele_start%ix_branch)
+dt = lttp%ix_turn_start * (branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time)
+
+if (ltt_com%beam_init%use_particle_start) then
+  call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, branch%param%particle, t_offset = dt)
+else
+  call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, &
+                                branch%param%particle, t_offset = dt, spin = ltt_com%beam_init%spin)
+endif
+
+if (lttp%ramping_on) then
+  n = ltt_com%n_ramper_loc
+  time = orbit%t + 0.5_rp * ele_start%value(delta_ref_time$) + ltt_params_global%ramping_start_time
+  call ltt_apply_time_to_rampers (ltt_com, ele_start, time)
+  call ltt_apply_rampers_to_slave (ele_start, ltt_com%ramper(1:n), err_flag)
+  call ran_default_state(set_state = ran_state)
+
+  if (ltt_com%beam_init%use_particle_start) then
+    call init_coord (orbit, ltt_com%lat%particle_start, ele_start, downstream_end$, branch%param%particle, t_offset = dt)
+  else
+    call init_coord (orbit, ltt_com%beam_init%center, ele_start, downstream_end$, &
+                                  branch%param%particle, t_offset = dt, spin = ltt_com%beam_init%spin)
+  endif
+endif
+
+
+
+if (lttp%add_closed_orbit_to_init_position) then
+  if (lttp%simulation_mode == 'CHECK') then
+    orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
+  else
+    select case (lttp%tracking_method)
+    case ('MAP');     orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
+    case ('BMAD');    orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
+    case ('PTC');     orbit%vec = orbit%vec + ltt_com%ptc_closed_orb
+    end select
+  endif
+endif
+
+end subroutine ltt_init_coord
 
 end module
