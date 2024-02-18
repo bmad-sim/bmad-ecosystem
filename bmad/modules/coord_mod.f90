@@ -458,6 +458,9 @@ if (present(ele)) then
     else
       orb%t = ref_time - orb%vec(5) / (orb%beta * c_light)
       if (present(t_offset)) orb%t = orb%t + t_offset
+      if (orb%ix_turn /= 0 .and. associated(ele%branch)) then
+        orb%t = orb%t + orb%ix_turn * (ele%branch%ele(ele%branch%n_ele_track)%ref_time - ele%branch%ele(0)%ref_time)
+      endif
     endif
   endif
 
