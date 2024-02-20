@@ -86,7 +86,7 @@ else
   s_stop_fwd = ele%value(l$)
 endif
 
-ds_safe = bmad_com%significant_length / 100
+ds_safe = 0.01_rp * bmad_com%significant_length
 dt_next = t_dir * bmad_com%init_ds_adaptive_tracking / c_light  ! Init time step.
 if (ele%tracking_method == fixed_step_time_runge_kutta$) then
   if (ele%value(ds_step$) == 0) then
@@ -294,7 +294,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   if (stop_time_limited) then
     dt_next = dt_next_save
     if (associated(time_runge_kutta_periodic_kick_hook_ptr)) then
-      if (abs(orb%t - stop_time) < bmad_com%significant_length / c_light / 2) then
+      if (abs(orb%t - stop_time) < 0.5_rp * bmad_com%significant_length / c_light) then
         call time_runge_kutta_periodic_kick_hook_ptr (orb, ele, param, stop_time, false_int$)
       endif
     endif
@@ -444,7 +444,7 @@ do
       orb%state = lost$
       return
     endif
-    dt_temp = dt / 10
+    dt_temp = 0.1_rp * dt
     if (ele%tracking_method == fixed_step_time_runge_kutta$) exit  ! No adaptive step sizing.
 
   elseif (ele%tracking_method == fixed_step_time_runge_kutta$) then
@@ -458,7 +458,7 @@ do
     r_scaled_tot = r_scal(:) * rel_tol + abs_scale * abs_tol
     r_scaled_err = abs(r_err(:)/r_scaled_tot(:))
     err_max = maxval(r_scaled_err)
-    if (err_max <=  1.0) exit
+    if (err_max <=  1.0_rp) exit
     dt_temp = safety * dt * (err_max**p_shrink)
   endif
 
@@ -680,7 +680,7 @@ character(28), parameter :: r_name = 'em_field_kick_vector_time'
 ! This will not affect any results since the integrator will always appropriately interpolate to the edge.
 
 s_pos = orbit%vec(5)
-s_tiny = bmad_com%significant_length / 100
+s_tiny = 0.01_rp * bmad_com%significant_length
 
 if (ele%key == patch$) then
 else
@@ -744,7 +744,7 @@ if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   dvec_dt(5) = vel(3) / h
   dvec_dt(6) = dvec_dt(6) - orbit%vec(6) * vel(1) * ele%value(g$) / h
 else
-  h = 1
+  h = 1.0_rp
 endif
 
 ! The effective reference velocity is different from the velocity of the reference particle for wigglers where the 

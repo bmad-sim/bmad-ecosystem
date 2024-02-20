@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 311
+integer, parameter :: bmad_inc_version$ = 313
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -543,6 +543,7 @@ type coord_struct                 ! Particle coordinates at a single point
   integer :: ix_ele = -1          ! Index of the lattice element the particle is in.
                                   !   May be -1 if element is not associated with a lattice.
   integer :: ix_branch = -1       ! Index of the lattice branch the particle is in.
+  integer :: ix_turn = 0          ! Turn index for multiturn tracking.
   integer :: ix_user = -1         ! For general use, not used by Bmad.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, lost_pz$, etc.
   integer :: direction = 1        ! +1 or -1. Sign of longitudinal direction of motion (ds/dt).
@@ -1334,6 +1335,7 @@ type controller_struct
   type (control_var1_struct), allocatable :: var(:)
   type (control_ramp1_struct), allocatable :: ramp(:)             ! For ramper elements
   real(rp), allocatable :: x_knot(:)
+  type (ecooling_struct), allocatable ::ecool
 end type
 
 

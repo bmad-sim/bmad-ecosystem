@@ -4666,6 +4666,15 @@ do
     endif
   endif
 
+  ! Forgive extra comma before "}" as in "{... q01[k1]:v,}, var = ..."
+  if (delim == ',') then
+    call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+    if (bp_com%parse_line(1:1) == '}') then
+      delim = '}'
+      bp_com%parse_line = bp_com%parse_line(2:)
+    endif
+  endif
+
   if (delim == '}') then
     call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
     exit

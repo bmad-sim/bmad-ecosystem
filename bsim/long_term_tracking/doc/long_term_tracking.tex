@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ January 29, 2024}
+\date{David Sagan \\ February 17, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -495,13 +495,16 @@ ltt%ramping_start_time
 When ramping, the \vn{ltt%simulation_mode} (\sref{s:track.methods}) must be set to "\vn{BMAD}". The
 program will detect if there is a conflict and issue an error message and stop.
 
-
 The \vn{ltt%ix_turn_start} parameter can be used to start tracking at any turn. This can be useful if a
 simulation is accidentally interrupted. In this case the beam positions can be saved by setting
 \begin{code}
   ltt%beam_output_file
   ltt%beam_output_every_n_turns
 \end{code}
+
+With ramping, the concept of the closed orbit (possibly needed to initialize particle positions) is
+not well defined. To calculate the closed orbit, the \ltt program will first apply the ramping
+elements to all the lattice elements using the starting time.
 
 %------------------------------------------------------------------
 \Section{Extraction Simulations}
