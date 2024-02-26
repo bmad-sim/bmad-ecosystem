@@ -139,7 +139,7 @@ do ie = n1, n2
     endif
   endif
 
-  q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, .false., ref_orb - ele%spin_taylor_ref_orb_in)
+  q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, .false., ref_orb - ele%spin_taylor_ref_orb_in, ele%is_on)
 
   ! Orbital map
 

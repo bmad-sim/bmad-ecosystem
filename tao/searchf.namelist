@@ -62,6 +62,7 @@ tao_command_mod
 tao_cmd_history_record
 tao_re_execute
 tao_cmd_split
+tao_next_word
 tao_next_switch
 
 File: code/tao_constraint_type_name.f90
@@ -498,46 +499,6 @@ tao_set_data_useit_opt
 File: code/tao_set_flags_for_changed_attribute.f90
 tao_set_flags_for_changed_attribute
 
-File: code/tao_set_mod.f90
-tao_set_mod
-tao_set_tune_cmd
-tao_set_z_tune_cmd
-tao_set_calculate_cmd
-tao_set_key_cmd
-tao_set_ran_state_cmd
-tao_set_lattice_cmd
-tao_set_global_cmd
-tao_set_space_charge_com_cmd
-tao_set_bmad_com_cmd
-tao_set_ptc_com_cmd
-tao_set_geodesic_lm_cmd
-tao_set_opti_de_param_cmd
-tao_set_wave_cmd
-tao_set_beam_cmd
-tao_set_beam_init_cmd
-tao_set_particle_start_cmd
-tao_set_plot_page_cmd
-tao_set_curve_cmd
-tao_set_plot_cmd
-tao_set_region_cmd
-tao_set_graph_cmd
-tao_set_var_cmd
-tao_set_branch_cmd
-tao_set_data_cmd
-tao_set_default_cmd
-tao_set_dynamic_aperture_cmd
-tao_set_universe_cmd
-tao_set_elements_cmd
-tao_set_logical_value
-tao_set_integer_value
-tao_set_switch_value
-tao_set_real_value
-tao_set_drawing_cmd
-tao_set_symbolic_number_cmd
-tao_set_qp_rect_struct
-tao_set_qp_axis_struct
-tao_set_qp_point_struct
-
 File: code/tao_set_opt_vars.f90
 tao_set_opt_vars
 
@@ -639,9 +600,6 @@ tao_cbar_wave_anal
 tao_wave_fit
 ele_at_curve_point
 
-File: code/tao_write_cmd.f90
-tao_write_cmd
-
 File: code/tao_x_axis_cmd.f90
 tao_x_axis_cmd
 
@@ -650,6 +608,12 @@ tao_x_scale_mod
 tao_x_scale_cmd
 tao_x_scale_plot
 tao_x_scale_graph
+
+File: code/tao_spin_tracking_turn_on.f90
+tao_spin_tracking_turn_on
+
+File: code/tao_write_cmd.f90
+tao_write_cmd
 
 File: code/tao_struct.f90
 tao_struct
@@ -753,26 +717,63 @@ tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
-File: code/tao_show_cmd.f90
-tao_show_cmd
-
 File: code/tao_single_mode.f90
 tao_single_mode
 
 File: code/tao_spin_polarization_calc.f90
 tao_spin_polarization_calc
 
-File: code/tao_spin_tracking_turn_on.f90
-tao_spin_tracking_turn_on
-
 File: code/tao_top_level.f90
 tao_top_level
 
-File: code/tao_show_this.f90
-tao_show_this
-
 File: code/tao_one_turn_map_calc_needed.f90
 tao_one_turn_map_calc_needed
+
+File: code/tao_show_cmd.f90
+tao_show_cmd
+
+File: code/tao_set_mod.f90
+tao_set_mod
+tao_set_tune_cmd
+tao_set_z_tune_cmd
+tao_set_calculate_cmd
+tao_set_key_cmd
+tao_set_ran_state_cmd
+tao_set_lattice_cmd
+tao_set_global_cmd
+tao_set_space_charge_com_cmd
+tao_set_bmad_com_cmd
+tao_set_ptc_com_cmd
+tao_set_geodesic_lm_cmd
+tao_set_opti_de_param_cmd
+tao_set_wave_cmd
+tao_set_beam_cmd
+tao_set_beam_init_cmd
+tao_set_particle_start_cmd
+tao_set_plot_page_cmd
+tao_set_curve_cmd
+tao_set_plot_cmd
+tao_set_region_cmd
+tao_set_graph_cmd
+tao_set_var_cmd
+tao_set_branch_cmd
+tao_set_data_cmd
+tao_set_default_cmd
+tao_set_dynamic_aperture_cmd
+tao_set_universe_cmd
+tao_set_elements_cmd
+tao_set_logical_value
+tao_set_integer_value
+tao_set_switch_value
+tao_set_real_value
+tao_set_drawing_cmd
+tao_set_symbolic_number_cmd
+tao_set_qp_rect_struct
+tao_set_qp_axis_struct
+tao_set_qp_point_struct
+
+File: code/tao_show_this.f90
+tao_show_this
 
 File: hook/tao_hook_init2.f90
 tao_hook_init2

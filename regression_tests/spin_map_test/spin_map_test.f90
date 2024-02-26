@@ -77,7 +77,7 @@ do ib = 0, ubound(lat%branch, 1)
       call make_mat6 (ele, branch%param, start_orb, end_orb, err)
       if (.not. associated(ele%spin_taylor(1)%term)) cycle
 
-      ele%spin_q = spin_taylor_to_linear(ele%spin_taylor, .true., start_orb%vec-ele%spin_taylor_ref_orb_in)
+      ele%spin_q = spin_taylor_to_linear(ele%spin_taylor, .true., start_orb%vec-ele%spin_taylor_ref_orb_in, ele%is_on)
       iq = iq + 1
       spin_q(iq)%q = ele%spin_q
 

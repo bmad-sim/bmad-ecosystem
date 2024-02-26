@@ -155,59 +155,56 @@ named_number_struct
 File: interfaces/sim_utils.f90
 sim_utils
 
-File: interfaces/sim_utils_struct.f90
-sim_utils_struct
-var_length_string_struct
-str_index_struct
-nametable_struct
-all_pointer_struct
-i_imaginary
-i_imag
-int_garbage$
-real_garbage$
-null_name$
-str_garbage$
-lf$
-invalid$
-not_set$
-invalid_name
-molecular_component_struct
-x_axis$
-y_axis$
-z_axis$
-true$
-false$
-true_int$
-false_int$
-yes$
-no$
-maybe$
-provisional$
-rl_prompt_start_ignore
-rl_prompt_end_ignore
-black_color
-red_color
-green_color
-yellow_color
-blue_color
-magenta_color
-cyan_color
-gray_color
-dark_gray_color
-peach_color
-light_green_color
-light_yellow_color
-light_blue_color
-pink_color
-aqua_color
-white_color
-blink_color
-bold_color
-reset_color
-int_logic
-is_true
-is_false
-value_of_all_ptr
+File: interfaces/particle_species_mod.f90
+particle_species_mod
+pion_0$
+helion$
+ref_particle$
+neutron$
+deuteron$
+pion_plus$
+antimuon$
+proton$
+positron$
+photon$
+electron$
+antiproton$
+muon$
+pion_minus$
+anti_deuteron$
+anti_neutron$
+anti_ref_particle$
+anti_helion$
+lb_subatomic
+ub_subatomic
+anti_atom$
+subatomic_species_name
+openpmd_subatomic_species_name
+charge_of_subatomic
+mass_of_subatomic
+anomalous_moment_of_subatomic
+antiparticle_of_subatomic
+spin_of_subatomic
+atomic_name
+atom_struct
+mean_excitation_energy_over_z
+molecular_name
+molecular_components
+antiparticle
+species_of
+species_id
+species_name
+species_id_from_openpmd
+openpmd_species_name
+anomalous_moment_of
+spin_of
+charge_of
+mass_of
+charge_to_mass_of
+set_species_charge
+x0_radiation_length
+atomic_number
+is_subatomic_species
 
 File: interfaces/sim_utils_interface.f90
 sim_utils_interface
@@ -309,56 +306,59 @@ find_location_int
 find_location_logic
 find_location_str
 
-File: interfaces/particle_species_mod.f90
-particle_species_mod
-pion_0$
-helion$
-ref_particle$
-neutron$
-deuteron$
-pion_plus$
-antimuon$
-proton$
-positron$
-photon$
-electron$
-antiproton$
-muon$
-pion_minus$
-anti_deuteron$
-anti_neutron$
-anti_ref_particle$
-anti_helion$
-lb_subatomic
-ub_subatomic
-anti_atom$
-subatomic_species_name
-openpmd_subatomic_species_name
-charge_of_subatomic
-mass_of_subatomic
-anomalous_moment_of_subatomic
-antiparticle_of_subatomic
-spin_of_subatomic
-atomic_name
-atom_struct
-mean_excitation_energy_over_z
-molecular_name
-molecuar_components
-antiparticle
-species_of
-species_id
-species_name
-species_id_from_openpmd
-openpmd_species_name
-anomalous_moment_of
-spin_of
-charge_of
-mass_of
-charge_to_mass_of
-set_species_charge
-x0_radiation_length
-atomic_number
-is_subatomic_species
+File: interfaces/sim_utils_struct.f90
+sim_utils_struct
+var_length_string_struct
+str_index_struct
+nametable_struct
+all_pointer_struct
+i_imaginary
+i_imag
+int_garbage$
+real_garbage$
+null_name$
+str_garbage$
+lf$
+invalid$
+not_set$
+invalid_name
+molecular_component_struct
+x_axis$
+y_axis$
+z_axis$
+true$
+false$
+true_int$
+false_int$
+yes$
+no$
+maybe$
+provisional$
+rl_prompt_start_ignore
+rl_prompt_end_ignore
+black_color
+red_color
+green_color
+yellow_color
+blue_color
+magenta_color
+cyan_color
+gray_color
+dark_gray_color
+peach_color
+light_green_color
+light_yellow_color
+light_blue_color
+pink_color
+aqua_color
+white_color
+blink_color
+bold_color
+reset_color
+int_logic
+is_true
+is_false
+value_of_all_ptr
 
 File: io/command_line_mod.f90
 command_line_mod
@@ -1303,6 +1303,9 @@ sinhx_x
 File: special_functions/sqrt_one.f90
 sqrt_one
 
+File: special_functions/faddeeva_function.f90
+faddeeva_function
+
 File: string/all_pointer_to_string.f90
 all_pointer_to_string
 
@@ -1317,9 +1320,6 @@ djb_str_hash
 
 File: string/doubleup_quotes.f90
 doubleup_quotes
-
-File: string/downcase.f90
-downcase
 
 File: string/downcase_string.f90
 downcase_string
@@ -1354,9 +1354,6 @@ int_str
 
 File: string/is_alphabetic.f90
 is_alphabetic
-
-File: string/is_integer.f90
-is_integer
 
 File: string/is_logical.f90
 is_logical
@@ -1441,9 +1438,6 @@ reals_to_string
 File: string/reals_to_table_row.f90
 reals_to_table_row
 
-File: string/str_downcase.f90
-str_downcase
-
 File: string/str_first_in_set.f90
 str_first_in_set
 
@@ -1464,9 +1458,6 @@ str_set
 
 File: string/str_substitute.f90
 str_substitute
-
-File: string/str_upcase.f90
-str_upcase
 
 File: string/string_to_int.f90
 string_to_int
@@ -1489,9 +1480,6 @@ to_str
 File: string/unquote.f90
 unquote
 
-File: string/upcase.f90
-upcase
-
 File: string/upcase_string.f90
 upcase_string
 
@@ -1501,6 +1489,21 @@ all_equal_var_str
 
 File: string/word_len.f90
 word_len
+
+File: string/downcase.f90
+downcase
+
+File: string/is_integer.f90
+is_integer
+
+File: string/str_downcase.f90
+str_downcase
+
+File: string/str_upcase.f90
+str_upcase
+
+File: string/upcase.f90
+upcase
 
 File: string/word_read.f90
 word_read

@@ -47,6 +47,7 @@ type (gen_grad_map_struct), pointer :: gg_map
 type (gen_grad1_struct), pointer :: gg
 type (em_taylor_struct), target :: em_taylor(3)
 type (em_taylor_term_struct), pointer :: tm
+type (taylor_struct) spin_taylor(0:3)
 type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key, key2
 type (work) energy_work
@@ -1005,11 +1006,18 @@ if (key == taylor$ .or. key == match$) then
   call taylor_to_real_8 (ele%taylor, beta0, beta1, ptc_re8, ref0, ref1)
   ptc_c_damap = ptc_re8
 
-  if (associated(ele%spin_taylor(1)%term)) then
+  if (associated(ele%spin_taylor(1)%term) .and. ele%is_on) then
     do j = 0, 3
       ptc_taylor = ele%spin_taylor(j)
       ptc_c_damap%q%x(j) = ptc_taylor
     enddo
+  else
+    call taylor_make_quaternion_unit(spin_taylor)
+    do j = 0, 3
+      ptc_taylor = ele%spin_taylor(j)
+      ptc_c_damap%q%x(j) = ptc_taylor
+    enddo
+    call kill_taylor(spin_taylor)
   endif
 
   call kill (ptc_taylor)
