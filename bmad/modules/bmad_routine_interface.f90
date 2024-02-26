@@ -2379,11 +2379,11 @@ subroutine spin_quat_resonance_strengths (orb_evec, spin_q, xi_sum, xi_diff)
   complex(rp) orb_evec(6)
 end subroutine
 
-function spin_taylor_to_linear (spin_taylor, normalize, dref_orb) result (spin_map1)
+function spin_taylor_to_linear (spin_taylor, normalize, dref_orb, is_on) result (spin_map1)
   import
   implicit none
   type (taylor_struct), target :: spin_taylor(0:3)
-  logical normalize
+  logical normalize, is_on
   real(rp) dref_orb(6), spin_map1(0:3,0:6)
 end function
 

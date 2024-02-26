@@ -28,6 +28,11 @@ character(*), parameter :: r_name = 'track1_spin_taylor'
 
 !
 
+if (.not. ele%is_on) then
+  end_orb%spin = start_orb%spin
+  return
+endif
+
 if (.not. associated(ele%spin_taylor(0)%term)) then
   if (ele%spin_tracking_method == sprint$) then
     call sprint_spin_taylor_map(ele)
