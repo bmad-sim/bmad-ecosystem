@@ -1103,9 +1103,14 @@ case ('chrom.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
   if (branch%param%geometry == open$) then
-    call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.', why_invalid)
-    return
-  elseif (.not. tao_lat%chrom_calc_ok) then
+    select case (data_type)
+    case ('chrom.dtune.a', 'chrom.a', 'chrom.dtune.b', 'chrom.b')
+      call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.', why_invalid)
+      return
+    end select
+  endif
+
+  if (.not. tao_lat%chrom_calc_ok) then
     call tao_set_invalid (datum, 'Chrom calc failed.', why_invalid)
     return
   elseif (.not. allocated(tao_lat%low_E_lat%branch)) then
