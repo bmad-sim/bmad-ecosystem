@@ -1,5 +1,5 @@
 !+
-! Function spin_taylor_to_linear (spin_taylor, normalize, dref_orb) result (spin_map1)
+! Function spin_taylor_to_linear (spin_taylor, normalize, dref_orb, is_on) result (spin_map1)
 !
 ! Routine to truncate a Taylor spin map to order 1.
 !
@@ -10,12 +10,13 @@
 !   spin_taylor(0:3)    -- taylor_struct: Taylor spin map.
 !   normalize           -- logical: If True, normalize the linear map.
 !   dref_orb(6)         -- real(rp): Change in Reference orbit: output_map1_ref - input_taylor_ref.
+!   is_on               -- logical: Is map turned on? If not spin_map1 will be the unit map.
 !
 ! Output:
 !   spin_map1(0:3,0:6)  -- real(rp): First order spin map.
 !-
 
-function spin_taylor_to_linear (spin_taylor, normalize, dref_orb) result (spin_map1)
+function spin_taylor_to_linear (spin_taylor, normalize, dref_orb, is_on) result (spin_map1)
 
 use bmad_routine_interface, dummy => spin_taylor_to_linear
 
@@ -29,11 +30,18 @@ real(rp) dref_orb(6), spin_map1(0:3,0:6)
 real(rp) t(6), t_out, prod, f_norm
 
 integer i, j, k, l, n, p
-logical normalize
+logical normalize, is_on
 
 !
 
 spin_map1 = 0
+
+if (.not. is_on) then
+  spin_map1(0,0) = 1.0_rp
+  return
+endif
+
+!
 
 if (all(dref_orb == 0)) then
   do i = 0, 3

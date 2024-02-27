@@ -1723,7 +1723,7 @@ case ('element')
       nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3), orb%vec(4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
       nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5), orb%vec(6)
 
-      if (associated(ele%photon)) then
+      if (associated(ele%photon) .and. orb%state == alive$) then
         call to_surface_coords(orb, ele, orb2)
         nl=nl+1; lines(nl) = ''
         nl=nl+1; write(lines(nl), '(2x, a, 3f15.8)') 'Surface (x,y,z) [mm]:', orb2%vec(1:5:2)

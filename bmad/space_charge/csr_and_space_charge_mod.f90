@@ -23,7 +23,7 @@ type csr_ele_info_struct
   type (ele_struct), pointer :: ele            ! lattice element
   type (coord_struct) orbit0, orbit1           ! centroid orbit at entrance/exit ends
   type (floor_position_struct) floor0, floor1  ! Floor position of centroid at entrance/exit ends
-  type (floor_position_struct) e_floor0, e_floor1  ! Floor position of element ref coords at entrance/exit ends
+  type (floor_position_struct) ref_floor0, ref_floor1  ! Floor position of element ref coords at entrance/exit ends
   type (spline_struct) spline                  ! Spline for centroid orbit. spline%x = distance along chord.
                                                !   The spline is zero at the ends by construction.
   real(rp) theta_chord                         ! Reference angle of chord in z-x plane
@@ -220,8 +220,8 @@ do i = 0, n
   eleinfo => csr%eleinfo(i)
   eleinfo%ele => branch%ele(i)  ! Pointer to the P' element
   s_ele => eleinfo%ele
-  eleinfo%e_floor1 = branch%ele(i)%floor
-  eleinfo%e_floor1%r(2) = 0  ! Make sure in horizontal plane
+  eleinfo%ref_floor1 = branch%ele(i)%floor
+  eleinfo%ref_floor1%r(2) = 0  ! Make sure in horizontal plane
 
   eleinfo%orbit1 = centroid(i)
   vec = eleinfo%orbit1%vec
@@ -232,11 +232,11 @@ do i = 0, n
   eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / (1.0_rp + 1d-14 + vec(6)))
 
   if (i == 0) then
-    eleinfo%e_floor0 = csr%eleinfo(i)%e_floor1
+    eleinfo%ref_floor0 = csr%eleinfo(i)%ref_floor1
     eleinfo%floor0   = csr%eleinfo(i)%floor1
     eleinfo%orbit0   = csr%eleinfo(i)%orbit1
   else
-    eleinfo%e_floor0 = csr%eleinfo(i-1)%e_floor1
+    eleinfo%ref_floor0 = csr%eleinfo(i-1)%ref_floor1
     eleinfo%floor0   = csr%eleinfo(i-1)%floor1
     eleinfo%orbit0   = csr%eleinfo(i-1)%orbit1
   endif
@@ -1491,7 +1491,7 @@ end function dspline_len
 !   eleinfo     -- csr_ele_info_struct: Element info
 !
 ! Output:
-!   s_chord   -- real(rp): s-posijtion along centroid chord.
+!   s_chord   -- real(rp): s-position along centroid chord.
 !-
 
 function s_ref_to_s_chord (s_ref, eleinfo) result (s_chord)
@@ -1509,9 +1509,9 @@ ele => eleinfo%ele
 g = ele%value(g$)
 
 if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. abs(g) > 1d-5) then
-  dtheta = eleinfo%floor0%theta - eleinfo%e_floor0%theta
-  dr = eleinfo%e_floor0%r - eleinfo%floor0%r
-  t = eleinfo%e_floor0%theta + pi/2
+  dtheta = eleinfo%floor0%theta - eleinfo%ref_floor0%theta
+  dr = eleinfo%ref_floor0%r - eleinfo%floor0%r
+  t = eleinfo%ref_floor0%theta + pi/2
   x = dr(1) * cos(t) + dr(3) * sin(t)
   s_chord = abs(ele%value(rho$)) * atan2(s_ref * cos(dtheta), abs(ele%value(rho$) + x + s_ref * sin(dtheta)))
 

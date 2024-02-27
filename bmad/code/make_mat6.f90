@@ -193,7 +193,7 @@ if (bmad_com%spin_tracking_on) then
   endif
 
   if (associated(ele%spin_taylor(0)%term)) then
-    ele%spin_q = spin_taylor_to_linear (ele%spin_taylor, .true., a_start_orb%vec-ele%spin_taylor_ref_orb_in)
+    ele%spin_q = spin_taylor_to_linear (ele%spin_taylor, .true., a_start_orb%vec-ele%spin_taylor_ref_orb_in, ele%is_on)
   endif
 endif
 

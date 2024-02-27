@@ -55,6 +55,3 @@ spin_phase_advance_isf
 
 File: spin_matching/spin_matching.f90
 spin_matching
-
-File: tune_tracker/TT_example.f90
-tune_tracker_driver
