@@ -496,8 +496,8 @@ fringe_at                        & phi0_autoscale [rad/2pi]         & voltage_er
  \label{s:list.feedback}
  
  \begin{tabular}{llll} \toprule
-alias                            & kicker                           & type                             &                                  \\
-descrip                          & modulator                        &                                  &                                  \\
+alias                            & descrip                          & output_to                        & type                             \\
+cec_param                        & input_from                       & turns_per_step                   &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -907,27 +907,6 @@ elliptical_curvature_y [1/m]     & reflectivity_table               & x_offset [
  \vfill
  
  %---------------------------------
- \section{Modulator Element Attributes}
- \label{s:list.modulator}
- 
- \begin{tabular}{llll} \toprule
-alias                            & mat6_calc_method                 & tilt_tot [rad]                   & y1_limit [m]                     \\
-aperture [m]                     & num_steps                        & tracking_method                  & y2_limit [m]                     \\
-aperture_at                      & offset [m]                       & type                             & y_limit [m]                      \\
-aperture_type                    & offset_moves_aperture            & wall                             & y_offset [m]                     \\
-create_jumbo_slave               & p0c [eV]                         & wrap_superimpose                 & y_offset_tot [m]                 \\
-delta_ref_time [sec]             & ptc_integration_type             & x1_limit [m]                     & y_pitch [rad]                    \\
-descrip                          & ref_origin                       & x2_limit [m]                     & y_pitch_tot [rad]                \\
-ds_step [m]                      & ref_time_start [sec]             & x_limit [m]                      & z_offset [m]                     \\
-e_tot [eV]                       & reference                        & x_offset [m]                     & z_offset_tot [m]                 \\
-ele_origin                       & spin_tracking_method             & x_offset_tot [m]                 &                                  \\
-is_on                            & superimpose                      & x_pitch [rad]                    &                                  \\
-l [m]                            & tilt [rad]                       & x_pitch_tot [rad]                &                                  \\
- \bottomrule
- \end{tabular}
- \vfill
- 
- %---------------------------------
  \section{Multilayer_Mirror Element Attributes}
  \label{s:list.multilayer.mirror}
  
@@ -1084,6 +1063,27 @@ e_field_x [V/m]                  & reference                        & type      
 e_field_y [V/m]                  & scale_field_to_one               & velocity_distribution            & y_pitch_tot [rad]                \\
 e_tot [eV]                       & sig_e [eV]                       & wall                             & z_offset [m]                     \\
 ele_origin                       & sig_e2 [eV]                      & wrap_superimpose                 & z_offset_tot [m]                 \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
+ \section{Pickup Element Attributes}
+ \label{s:list.pickup}
+ 
+ \begin{tabular}{llll} \toprule
+alias                            & mat6_calc_method                 & tilt_tot [rad]                   & y1_limit [m]                     \\
+aperture [m]                     & num_steps                        & tracking_method                  & y2_limit [m]                     \\
+aperture_at                      & offset [m]                       & type                             & y_limit [m]                      \\
+aperture_type                    & offset_moves_aperture            & wall                             & y_offset [m]                     \\
+create_jumbo_slave               & p0c [eV]                         & wrap_superimpose                 & y_offset_tot [m]                 \\
+delta_ref_time [sec]             & ptc_integration_type             & x1_limit [m]                     & y_pitch [rad]                    \\
+descrip                          & ref_origin                       & x2_limit [m]                     & y_pitch_tot [rad]                \\
+ds_step [m]                      & ref_time_start [sec]             & x_limit [m]                      & z_offset [m]                     \\
+e_tot [eV]                       & reference                        & x_offset [m]                     & z_offset_tot [m]                 \\
+ele_origin                       & spin_tracking_method             & x_offset_tot [m]                 &                                  \\
+is_on                            & superimpose                      & x_pitch [rad]                    &                                  \\
+l [m]                            & tilt [rad]                       & x_pitch_tot [rad]                &                                  \\
  \bottomrule
  \end{tabular}
  \vfill

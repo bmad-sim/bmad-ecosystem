@@ -265,6 +265,8 @@ character(*) :: instr
     case("WIGGLER_HELI1: Time_Runge_Kutta")            ; tolerance = 'ABS 2e-13'
 
     case("LCAVITY1-Anti_D: Runge_Kutta")               ; tolerance = 'ABS 2e-13'
+    case("LCAVITY3-Anti_D: Time_Runge_Kutta")          ; tolerance = 'ABS 4e-13'
+    case("LCAVITY3-Anti_OD: Time_Runge_Kutta")         ; tolerance = 'ABS 4e-13'
     case("RBEND4-Anti_D: Bmad_Standard")               ; tolerance = 'ABS 4e-13'
     case("RBEND4-Anti_OD: Bmad_Standard")              ; tolerance = 'ABS 4e-13'
     case("RBEND4-Anti_O: Bmad_Standard")               ; tolerance = 'ABS 4e-13'

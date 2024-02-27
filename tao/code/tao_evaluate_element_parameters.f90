@@ -173,7 +173,7 @@ integer n_tot, where, ib, ixe
 character(*) parameter, component
 logical err
 
-!
+! Note: ele may be from the wrong component lattice so do not use directly.
 
 n_tot = n_tot + 1
 ixe = ele%ix_ele
