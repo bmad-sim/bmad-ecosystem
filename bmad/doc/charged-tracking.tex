@@ -1047,23 +1047,23 @@ to simulate such particles is by integrating through the actual field [Cf.~Runge
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$
 \begin{align}
-  c \, \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} \CRNO
-  &= \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
-  &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
+  c \, \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} 
+    = \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \CRNO
+  &= \frac{c \, P_2 - c \, P_1}{G} = \frac{E_2 + E_1}{P_2 + P_1} \, \frac{L}{c}
 \end{align}
-where it has been assumed that the accelerating gradient $G$ is constant through the cavity. In this
-equation $\beta = v / c$, $E$ is the energy, and $P_{z1}$ and $P_{z2}$ are the entrance and exit
-momenta. Using \Eq{zbctt}, the change in $z$ is thus
+where $L$ is the accelerating length and it has been assumed that the accelerating gradient $G$ is
+constant through the cavity and retarding due to the particle's finite transverse momentum is
+ignored. In this equation $\beta = v / c$, $E$ is the energy, and $P$ is the momentum. The change in
+$z$ is thus
 \begin{equation}
   z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
-  \beta_2 \, 
+  \frac{\beta_2 \, L}{c} \, 
   \left(
-  \frac{c \, P_{z2} - c \, P_{z1}}{G} - 
-  \frac{c \, \Pbar_{z2} - c \, \Pbar_{z1}}{\BAR G}
+  \frac{E_2 + E_1}{P_2 + P_1} - 
+  \frac{\Ebar_2 + \Ebar_1}{\Pbar_2 + \Pbar_1}
   \right)
 \end{equation}
-where $\Pbar$ and $\BAR G$ are the momentum and gradient of the
-reference particle.
+where $\Pbar$ and $\Ebar$ are the momentum and energy of the reference particle.
 
 Note that the above transport equations are only symplectic on-axis There are second order terms in
 the transverse coordinates that are missing. To obtain a proper symplectic matrix, the

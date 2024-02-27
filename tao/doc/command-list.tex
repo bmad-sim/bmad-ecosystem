@@ -1288,11 +1288,12 @@ logical or integer) attributes.
 
 Examples:
 \begin{example}
-  set ele rfcav::* is_on = F        ! Turn off all rfcavity elements the viewed universe.
-  set ele *@rfcav::* is_on = F      ! Turn off all rfcavity elements in all universes.
-  set ele A:B track_method = linear ! Set tracking_method for all elements between 
-                                    !   elements A and B
-  set ele q10w k1 = 0.7             ! Set element q10w k1 of the viewed universe.
+  set ele rfcav::* is_on = F         ! Turn off all rfcavity elements the viewed universe.
+  set ele *@rfcav::* is_on = F       ! Turn off all rfcavity elements in all universes.
+  set ele A:B track_method = linear  ! Set tracking_method for all elements between 
+                                     !   elements A and B
+  set ele q10w k1 = 0.7              ! Set element q10w k1 of the viewed universe.
+  set ele Q* k1 = ele::Q*[k1]|design ! Set model to design values.
 \end{example}
 
 %% set floor_plan --------------------------------------------------------------
