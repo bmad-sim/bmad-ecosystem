@@ -478,7 +478,7 @@ real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) beta_gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE, s_offset
-real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
+real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb, g2
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
 real(rp), allocatable :: value_vec(:)
 real(rp), allocatable :: expression_value_vec(:)
@@ -1963,6 +1963,8 @@ case ('momentum_compaction')
     ele_ref => lat%branch(branch%ix_branch)%ele(ix_ref)
   endif
 
+  g2 = (mass_of(ele_ref%ref_species) / ele_ref%value(E_tot$))**2   ! 1/gamma^2
+
   orb0 => orbit(ix_ref)
   call make_v_mats (ele_ref, v_mat, v_inv_mat)
   eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
@@ -1978,7 +1980,7 @@ case ('momentum_compaction')
     if (s_len == 0) then
       value_vec(i) = 0
     else
-      value_vec(i) = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / s_len
+      value_vec(i) = g2 - (sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / s_len
     endif
     if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
   enddo
