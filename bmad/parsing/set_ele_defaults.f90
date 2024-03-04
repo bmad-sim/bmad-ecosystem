@@ -61,11 +61,6 @@ case (beginning_ele$)
   ele%value(inherit_from_fork$) = real_garbage$
   call mat_make_unit (ele%mat6)
 
-case (fork$, photon_fork$)
-  ele%value(direction$) = 1
-  ele%ref_species = not_set$   ! Used when element is after a converter
-  ele%value(new_branch$) = true$
-
 case (capillary$)
   ele%offset_moves_aperture = .true.
 
@@ -97,6 +92,19 @@ case (custom$)
   ele%field_calc       = custom$
 
 case (def_particle_start$)
+
+case (def_line$)
+  g = real_garbage$
+  ele%value = g
+  ele%s     = g
+  ele%ref_time = g
+  ele%a = twiss_struct(g, g, g, g, g, g, g, g, g, g)
+  ele%b = twiss_struct(g, g, g, g, g, g, g, g, g, g)
+  ele%z = twiss_struct(g, g, g, g, g, g, g, g, g, g)
+  ele%x = xy_disp_struct(g,g,g)
+  ele%y = xy_disp_struct(g,g,g)
+  ele%floor = floor_position_struct([g,g,g], mat3_unit$, g,g,g)
+  ele%value(inherit_from_fork$) = g
 
 case (def_mad_beam$)
   ele%ref_species = not_set$
@@ -148,6 +156,8 @@ case (em_field$)
   ele%value(constant_ref_energy$) = true$
   ele%value(polarity$) = 1.0
 
+case (feedback$)
+
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$
 
@@ -168,6 +178,11 @@ case (foil$)
   if (associated(ele%foil)) deallocate(ele%foil)
   allocate(ele%foil)
 
+case (fork$, photon_fork$)
+  ele%value(direction$) = 1
+  ele%ref_species = not_set$   ! Used when element is after a converter
+  ele%value(new_branch$) = true$
+
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
 
@@ -186,19 +201,6 @@ case (lcavity$)
   ele%value(longitudinal_mode$) = 0
   ! So to not affect the changeover when the step loop was finally implemented in 2/2024
   ele%value(num_steps$) = 1       
-
-case (def_line$)
-  g = real_garbage$
-  ele%value = g
-  ele%s     = g
-  ele%ref_time = g
-  ele%a = twiss_struct(g, g, g, g, g, g, g, g, g, g)
-  ele%b = twiss_struct(g, g, g, g, g, g, g, g, g, g)
-  ele%z = twiss_struct(g, g, g, g, g, g, g, g, g, g)
-  ele%x = xy_disp_struct(g,g,g)
-  ele%y = xy_disp_struct(g,g,g)
-  ele%floor = floor_position_struct([g,g,g], mat3_unit$, g,g,g)
-  ele%value(inherit_from_fork$) = g
 
 case (marker$)
   ele%ref_species = not_set$    ! Used when element is after a converter

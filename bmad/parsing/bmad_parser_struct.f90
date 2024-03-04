@@ -89,7 +89,8 @@ type parser_ele_struct
   character(40) :: ref_name = ''
   integer :: ix_super_ref_multipass = 0        ! Multipass index for superimpose reference element.
   character(40) :: ele_name = ''               ! For fork element or superimpose statement.
-  character(40) :: names(2)                    ! Currently just used by feedback element.
+  character(40), allocatable :: names1(:)      ! Currently just used by feedback element.
+  character(40), allocatable :: names2(:)      ! Currently just used by feedback element.
   character(200) :: lat_file = ''              ! File where element was defined.
   real(rp) :: offset = 0
   integer ix_line_in_file    ! Line in file where element was defined.

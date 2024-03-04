@@ -1086,13 +1086,24 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     select case (ele%lord_status)
 
     case (multipass_lord$, super_lord$, girder_lord$, control_lord$)
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
-      do im = 1, ele%n_slave
-        slave => pointer_to_slave (ele, im)
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
-                    trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
-      enddo
+      if (ele%key == feedback$) then
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
+        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Ele_Type                 Slave_Type      S'
+        do im = 1, ele%n_slave
+          slave => pointer_to_slave (ele, im, ctl)
+          nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, a6, f14.6)') trim(ele_loc_name(slave)), &
+                                      slave%name(1:n_char), key_name(slave%key), ctl%attribute, slave%s
+        enddo
+
+      else
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
+        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
+        do im = 1, ele%n_slave
+          slave => pointer_to_slave (ele, im)
+          nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
+                      trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
+        enddo
+      endif
 
     case (ramper_lord$)
       print_it = .true.

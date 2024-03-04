@@ -920,10 +920,8 @@ call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
 
-call init_attribute_name1 (feedback$, input_from$,                       'INPUT_FROM')
-call init_attribute_name1 (feedback$, output_to$,                        'OUTPUT_TO')
-call init_attribute_name1 (feedback$, cec_param$,                        'CEC_PARAM')
-call init_attribute_name1 (feedback$, turns_per_step$,                   'TURNS_PER_STEP')
+call init_attribute_name1 (feedback$, input_ele$,                        'INPUT_ELE')
+call init_attribute_name1 (feedback$, output_ele$,                       'OUTPUT_ELE')
 
 attrib_array(def_line$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (def_line$, particle$,                    'PARTICLE')
@@ -1928,7 +1926,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'VERTICAL_KICK', 'N_CELL', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
       'MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
-      'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', 'FINAL_CHARGE', 'TURNS_PER_STEP')
+      'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', 'FINAL_CHARGE')
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
@@ -1944,13 +1942,13 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
      'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE', 'NAME', &
-     'MACHINE', 'START_EDGE', 'INPUT_FROM', 'OUTPUT_TO')
+     'MACHINE', 'START_EDGE', 'INPUT_ELE', 'OUTPUT_ELE')
   attrib_type = is_string$
 
 case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GEN_GRAD_MAP', 'GRID_FIELD', 'REF_ORBIT', &
       'SUPERIMPOSE', 'H_MISALIGN', 'DISPLACEMENT', 'SEGMENTED', 'PIXEL', 'TERM', &
       'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE', 'CURVATURE', &
-      'ENERGY_PROBABILITY_CURVE', 'REFLECTIVITY_TABLE', 'CEC_PARAM')
+      'ENERGY_PROBABILITY_CURVE', 'REFLECTIVITY_TABLE')
   attrib_type = is_struct$
 
 case default

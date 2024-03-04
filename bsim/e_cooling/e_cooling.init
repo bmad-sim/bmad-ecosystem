@@ -1,0 +1,5 @@
+&params
+	lat_file = '$small'
+  wake_and_diffusion_file = 'ec'
+/
+
