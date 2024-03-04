@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ February 17, 2024}
+\date{David Sagan \\ February 26, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -511,9 +511,9 @@ elements to all the lattice elements using the starting time.
 \label{s:extract}
 
 An extraction simulation involves tracking particles for some number of turns in a ring and then
-tracking particles through an extraction line. To turn on extraction tracking, the \vn{ltt%extraction_mode}
-must be set to "\vn{ON}". The default value of \vn{ltt%extraction_mode} is blank ("") which disables
-extraction tracking.
+tracking particles through an extraction line. To turn on extraction tracking, the
+\vn{ltt%extraction_method} must be set to "\vn{ON}". The default value of \vn{ltt%extraction_method}
+is blank ("") which disables extraction tracking.
 
 Extraction can be used with \vn{ltt%simulation_mode} set to "\vn{BEAM}" or "\vn{INDIVIDUAL}".
 Extraction tracking with "\vn{INDIVIDUAL}" and "\vn{BEAM}" simulation modes are somewhat different.
@@ -556,8 +556,9 @@ With the "\vn{INDIVIDUAL}" simulation mode, it is assumed that there is a septum
 that are outside of the aperture set for the septum are to be tracked through the extraction line
 the \vn{ltt%ele_extract} parameter must be set to the name of the septum. Extraction tracking starts
 with particles that have hit the septum having their \vn{state} switched from dead to alive and vice
-versa for the other particles. Tracking from the septum is the same as with "\vn{BEAM}" simulation mode
-tracking from the \vn{ltt%ele_start} point.
+versa for the other particles. Tracking from the septum is the same as with "\vn{BEAM}" simulation
+mode except for the "\vn{BEAM}" mode tracking the starting point for the extraction tracking is from
+the \vn{ltt%ele_start} point.
 
 Note: With the "\vn{MAP}" tracking method, the \vn{fork} element (and the septum element if needed)
 must be excluded from being in any map sections.
