@@ -16,6 +16,8 @@ set (SRC_DIRS
 set (EXE_SPECS
   #cmake_files/cmake.ansga2
   #cmake_files/cmake.aspea2
+
+  cmake_files/cmake.e_cooling
   cmake_files/cmake.long_term_tracking
   cmake_files/cmake.tune_scan
   cmake_files/cmake.dark_current_tracker

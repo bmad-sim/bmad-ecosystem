@@ -1,0 +1,16 @@
+set (EXENAME e_cooling)
+
+set (SRC_FILES
+  e_cooling/e_cooling.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

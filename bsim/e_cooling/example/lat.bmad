@@ -1,0 +1,26 @@
+beginning[e_tot] = 1e10
+    
+parameter[particle] = electron
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+beginning[alpha_a] = 0 
+beginning[alpha_b] = 0
+
+particle_start[x]  = 0.1
+particle_start[px] = 0.001
+particle_start[y]  = 0.002
+particle_start[py] = 0.003
+particle_start[z]  = 0.1
+particle_start[pz] = 0
+
+
+p1: quadrupole, l = 1
+k1: quadrupole, l = 1
+
+cool: feedback, input = p1, output = k1, alias = abc
+
+ln: line = (p1, k1)
+use, ln
+
+no_digested

@@ -1,0 +1,114 @@
+\documentclass[letterpaper,11pt]{article}
+%\usepackage{parskip}
+\usepackage[left=1in,top=.75in,bottom=1in,right=1in,nohead]{geometry}
+\usepackage{url}
+%\usepackage{units}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{amssymb}
+%\usepackage{multirow}
+\usepackage{color}
+\usepackage{textcomp}
+\newcommand\txt[1]{{\text{#1}}}
+\newcommand{\vn}{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+%\usepackage{setspace}
+%\usepackage[super]{natbib}
+\renewcommand{\figurename}{FIG.}
+\renewcommand*{\thefootnote}{\fnsymbol{footnote}}
+%\usepackage[labelsep=period]{caption}
+%\bibliographystyle{plain}
+\renewcommand{\thesection}{\Roman{section}.} 
+\title{Coherent Electron Cooling Element in BMAD}
+\author{William Bergan}
+\date{\today}
+\begin{document}
+\maketitle
+%\section{Motivation for the Theory}
+%\doublespacing
+
+
+
+\section{Physics Background}
+
+In coherent electron cooling (CeC), each turn, each hadron receives a longitudinal momentum kick based on its longitudinal delay in traveling between two straight sections, called the modulator and kicker, as well as on its transverse coordinates in each. The source of this feedback is an electron beam having the same relativistic gamma as the hadrons which copropagates with them in both the modulator and kicker sections. In the modulator, the electrons receive energy kicks from the hadrons. In between the modulator and kicker, the electrons traverse an amplification section where their initial energy modulations are amplified and turned into density modulations. In the kicker, the density-modulated electron beam provides energy kicks to the hadrons. More details can be obtained in \cite{cite:stupakovorig}, \cite{cite:stupakovamp}, and \cite{cite:stupakov3d}.
+
+Although the details of the electron-hadron interaction and the electron amplification can be complex, the relevant physics can be reduced to a knowledge of a wake function, which gives the momentum kick provided by the electrons to a test hadron at a location $(x_k, y_k, z_0+\Delta z)$ in the kicker due to a single hadron in the modulator with coordinates $(x_m, y_m, z_0)$. Each turn, a given hadron will receive a coherent kick due to its own wake, as well as an incoherent, diffusive kick due to the wakes of the other nearby hadrons and initial noise in the electron beam.
+
+
+\subsection{Coherent Kick}
+Based on \cite{cite:nagaitsev}, the coherent hadron self-wake is approximated as a function of the form
+
+\noindent
+$A\sin(\kappa \Delta z)e^{-\Delta z^2/2\lambda^2}$, with $A$, $\kappa$, and $\lambda$ dependent on the hadron's transverse coordinates in the modulator and kicker. For simplicity, we assume that these fit parameters are separable in the relevant coordinates, so that, $A = A_{xm}(x_m) A_{ym}(y_m) A_{xk}(x_k) A_{yk}(y_k)$, and similar for $\kappa$ and $\lambda$, where $A_{xm}$, $A_{ym}$, etc are all independent, 1-dimensional functions of the specified coordinate. We note that, in general, the hadron will undergo transverse motion within the modulator and kicker, so that the fit parameters are written
+
+\begin{align}\label{eqtn:cec_wake_avg}
+	A &= \langle A_{xm}(x_m) A_{ym}(y_m) \rangle \langle A_{xk}(x_k) A_{yk}(y_k)\rangle \\\nonumber
+	\kappa &= \langle \kappa_{xm}(x_m) \kappa_{ym}(y_m)\rangle  \langle \kappa_{xk}(x_k) \kappa_{yk}(y_k)\rangle \\\nonumber
+	\lambda &= \langle \lambda_{xm}(x_m) \lambda_{ym}(y_m)\rangle  \langle \lambda_{xk}(x_k) \lambda_{yk}(y_k)\rangle 
+\end{align}
+\noindent
+where the averages are done over longitudinal coordinates in the modulator and in the kicker, as appropriate \cite{cite:napac2022}. In all cases, the kick is applied to the hadron at the center of the kicker element.
+
+The electron current will vary along the length of the bunch. Based on the current-dependence of Eqtn. 26 and 29 of \cite{cite:stupakovamp} for the case of two amplifier straights, we reduce the amplitude of the wake function by a factor $\frac{I^2(z)}{I^2_0}\frac{\sin^2\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^2(\phi_0)}$, where $I(z)$ is the electron current at a given hadron's longitudinal coordinate, $I_0$ is the peak electron current, and $\phi_0$ is the phase advance of plasma oscillations in each amplifier straight at the mean wake wavenumber.
+
+A hadron which does not have the design momentum will slip relative to the electrons in the modulator and kicker, smearing out the wake. This effect is approximated by reducing the wake amplitude by a factor $\frac{\sin(R\delta L_m/2\gamma^2)}{R\delta L_m/2\gamma^2} \frac{\sin(R\delta L_k/2\gamma^2)}{R\delta L_k/2\gamma^2}$, where $\delta$ is the hadron's fractional momentum offset, $L_m$ and $L_k$ are the modulator and kicker lengths, respectively, $\gamma$ is the shared relativistic gamma of the hadron and electron beams, and $R$ is an empirically-determined reduction-scale parameter.
+
+\subsection{Diffusive Kick}
+The diffusive kick is separated into two parts: a kick due to noise in the hadron beam and a kick due to noise in the electron beam, with Poisson noise assumed in both cases. The electron diffusion is separated into three terms in order to account for the fact that electron noise enters in as both a raw density perturbation as well as an energy kick to nearby electrons, plus a cross-term \cite{cite:ipac2021}.
+
+Labeling these diffusion coefficients by $D_h$, $D_{e11}$, $D_{e12}$, and $D_{e22}$, we give each hadron a momentum kick each turn in the kicker drawn from a Gaussian distribution with mean $0$ and mean squared value $D_h\lambda_h + (D_{e11} + D_{e12} + D_{e22})\lambda_e$, where $\lambda_h$ and $\lambda_e$ are the longitudinal hadron and electron densities at the location of the kick. As in the case with the fit parameters, these are assumed separable and written as functions of the hadron's transverse coordinates averaged over the kicker, so that 
+
+\begin{align}\label{eqtn:cec_diff_avg}
+	D_h &= \langle D_{h,x}(x_k) D_{h,y}(y_k)\rangle\\\nonumber
+	D_{e11} &= \langle D_{e11,x}(x_k) D_{e11,y}(y_k)\rangle\\\nonumber
+	D_{e12} &= \langle D_{e12,x}(x_k) D_{e12,y}(y_k)\rangle\\\nonumber
+	D_{e22} &= \langle D_{e22,x}(x_k) D_{e22,y}(y_k)\rangle
+\end{align}
+
+Similar to above, we also apply current rescaling as 
+
+\begin{align}
+	D_h &\rightarrow D_h(x_k) \frac{I^4(z)}{I_0^4}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}\\\nonumber
+	D_{e11} &\rightarrow D_{e11}\frac{I^4(z)}{I_0^4}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}\\\nonumber
+	D_{e12} &\rightarrow D_{e12}\frac{I^3(z)}{I_0^3}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}\\\nonumber
+	D_{e22} &\rightarrow D_{e22}\frac{I^2(z)}{I_0^2}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}
+\end{align}
+
+The forms here are due to the fact that the mean squared kicks are typically proportional to the square of the wake function, and so the correction factors should be the squares of the wake correction factor. The exceptions come from the fact that one of the electron wakes is missing a factor of electron current, as seen in Eqtn. 4 of \cite{cite:ipac2021}.
+
+
+\section{Programming Necessities}
+
+The \vn{cec_system} element has two slave elements: \vn{cec_modulator} and \vn{cec_kicker}. These represent the physical modulator and kicker elements of a CeC system, while the lord \vn{cec_system} element serves to pass information about the beam between them.
+
+\vn{cec_system} takes two arguments: \vn{turns_per_step} (a positive integer) and \vn{cec_param_file} (a string).
+
+\vn{turns_per_step} tells us how many real turns to simulate with each step through the cooler. If this is set to 1, each hadron traveling through the system will receive its nominal cooling and diffusive kicks. However, for \vn{turns_per_step}$ = N > 1$, the cooling kick will be increased by a factor of $N$ and the incoherent diffusive kick will be increased by a factor of $\sqrt{N}$, since noise adds in quadrature. This will statistically simulate the effect of many passes through the cooler, allowing for fast simulations.
+
+\vn{cec_param_file} specifies the filename which contains detailed information about the CeC wake function, diffusion coefficients, electron current distribution, etc. The format of the file is TO BE DECIDED.
+
+\vn{cec_modulator} and \vn{cec_kicker} each take as arguments \vn{l} (a real number) and \vn{num_steps} (a positive integer).
+
+\vn{l} is the length of the element. Note that altering this will NOT affect the wake and diffusion coefficients, since those are specified in \vn{cec_param_file}.
+
+\vn{num_steps} tells us how many discrete steps to take when performing the s-average described in Eqtn. \ref{eqtn:cec_wake_avg} and \ref{eqtn:cec_diff_avg}.
+
+\begin{thebibliography}{9}   % Use for  10-99  references
+        \bibitem{cite:stupakovorig}
+		G. Stupakov, ``Cooling rate for microbunched electron cooling without amplification'', Phys. Rev. Accel. Beams 21, 114402 (2018).
+        \bibitem{cite:stupakovamp}
+		G. Stupakov and P. Baxevanis, ``Microbunched electron cooling with amplification cascades'', Phys. Rev. Accel. Beams 22, 034401 (2019).
+        \bibitem{cite:stupakov3d}
+		P. Baxevanis and G. Stupakov, ``Transverse dynamics considerations for microbunched electron cooling'', Phys. Rev. Accel. Beams 22, 081003 (2019).
+	\bibitem{cite:nagaitsev}
+		 S. Nagaitsev, V. Lebedev, G. Stupakov, E. Wang, and W. Bergan, ``Cooling and diffusion rates in coherent electron  cooling concepts'', technote FERMILAB-CONF-21-054-AD, 2021.
+	\bibitem{cite:napac2022}
+                W. F. Bergan and G. Stupakov, ``Effects of Transverse Dependence of Kicks in Simulations of Microbunched Electron Cooling'', in Proceedings of NAPAC 2021 (Albuquerque, NM, USA, 2022) pp. 780-783, WEPA67.
+	\bibitem{cite:ipac2021}
+                W. F. Bergan, P. Baxevanis, M. Blaskiewicz, E. Wang, and G. Stupakov, ``Design of an MBEC Cooler for the EIC'', in Proceedings of IPAC'21 (Campinas, Brazil, 2021) pp. 1819-1822, TUPAB179.
+\end{thebibliography}
+
+
+\end{document}
