@@ -5263,7 +5263,7 @@ else
     ! Error if datum associated with the expression is evaluated before the datum evaluated here.
     if (present(datum) .and. .not. err_flag) then
       ! Only check if this is a user defined datum (not temp datum used for plotting).
-      if (datum%ix_uni > 0 .and. datum%ix_data > 0 .and. d_array(1)%d%data_type(1:11) == 'expression:') then
+      if (datum%ix_uni > 0 .and. datum%ix_data > 0 .and. substr(d_array(1)%d%data_type,1,11) == 'expression:') then
         if (datum%ix_uni < d_array(1)%d%ix_uni .or. (datum%ix_uni == d_array(1)%d%ix_uni .and. datum%ix_data < d_array(1)%d%ix_data)) then
           err_flag = .true.
           if (print_err) call out_io (s_error$, r_name, 'THE EXPRESSION ASSOCIATED WITH DATUM: ' // tao_datum_name(datum), &
@@ -6045,7 +6045,7 @@ elseif (.not. datum%err_message_printed) then
     u => tao_pointer_to_universe(datum%ix_uni)
     found = .false.
     do i = 1, size(u%data)
-      if (u%data(i)%data_type(1:8) == 'unstable') found = .true.
+      if (substr(u%data(i)%data_type,1,8) == 'unstable') found = .true.
     enddo
     if (.not. found) call out_io(s_info$, r_name, &
               'NO unstable.orbit, unstable.ring, nor unstable.eigen FOR THE UNIVERSE WITH THE PROBLEM EXISTS.', &
