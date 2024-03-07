@@ -344,7 +344,6 @@ enddo
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
-  if (u%design_same_as_previous) cycle
 
   do ib = 0, ubound(u%model%lat%branch, 1)
     branch => u%model%lat%branch(ib)
