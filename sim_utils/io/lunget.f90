@@ -18,7 +18,7 @@ use output_mod, dummy => lunget
 implicit none
 
 logical op
-integer lun, i
+integer i
 character(*), parameter :: r_name = 'lunget'
 
 
@@ -26,11 +26,10 @@ character(*), parameter :: r_name = 'lunget'
 
 lunget=0                ! happy compiler
 
-do i=30,60
-  lun = i
-  inquire(lun,opened=op)
-  if(.not.op) then
-    lunget=i
+do i = 30, 60
+  inquire(unit = i, opened = op)
+  if(.not. op) then
+    lunget = i
     return
   endif
 enddo
