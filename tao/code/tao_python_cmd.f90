@@ -6370,6 +6370,7 @@ case ('ring_general')
   nl=incr(nl); write (li(nl), rmt) 'I5_a;REAL;F;',                              tao_branch%modes_ri%a%synch_int(5)
   nl=incr(nl); write (li(nl), rmt) 'I5_b;REAL;F;',                              tao_branch%modes_ri%b%synch_int(5)
   nl=incr(nl); write (li(nl), rmt) 'I6_g2_b;REAL;F;',                           tao_branch%modes_ri%b%synch_int(6) / gamma**2
+  nl=incr(nl); write (li(nl), lmt) 'twiss_valid;LOGIC;F;'                       tao_branch%twiss_valid
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------

@@ -499,13 +499,14 @@ character(100) data_type, str
 character(:), allocatable :: e_str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, term_found, ok
-logical particle_lost, exterminate, printit
+logical particle_lost, exterminate, printit, twiss_at_ele
 logical, allocatable :: good(:)
 
 ! If does not exist
 
 valid_value = .false.
 datum%why_invalid = ''
+twiss_at_ele = .true.
 
 if (.not. datum%exists) then
   datum_value = real_garbage$
@@ -548,7 +549,10 @@ ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, valid
 if (.not. valid_value) return
 ix_ele = -1
 ix_branch = datum%ix_branch
-if (associated(ele)) ix_ele = tao_tracking_ele_index(ele, datum, ix_branch)
+if (associated(ele)) then
+  ix_ele = tao_tracking_ele_index(ele, datum, ix_branch)
+  if (ele%a%beta == 0) twiss_at_ele = .false.
+endif
 
 ele_ref => tao_pointer_to_datum_ele (lat, datum%ele_ref_name, datum%ix_ele_ref, datum, valid_value, why_invalid)
 if (.not. valid_value) return
@@ -617,6 +621,18 @@ if (index(head_data_type, 'stable') == 0 .and. head_data_type /= 'expression:') 
       return
     endif
   endif
+endif
+
+!
+
+if (.not. twiss_at_ele .or. (.not. tao_branch%twiss_valid .and. data_source == 'lat')) then
+  select case (head_data_type)
+  case ('alpha.', 'apparent_emit.', 'norm_apparent_emit.', 'beta.', 'bpm_eta.', 'bpm_phase.', 'cbar.', 'chrom.', &
+        'chrom_ptc.', 'curly_h.', 'damp.', 'deta_ds.', 'emit.', 'norm_emit.', 'eta.', 'etap.', 'gamma.', &
+        'phase.', 'phase_frac.', 'phase_frac_diff', 'ping_a.', 'ping_b.', 'rad_int.', 'srdt.', 'tune.')
+    call tao_set_invalid (datum, 'UNSTABLE 1-TURN MATRIX', why_invalid)
+    return
+  end select
 endif
 
 ! ele_ref must not be specified for some data types. Check this.
@@ -1062,11 +1078,6 @@ case ('c_mat.', 'cmat.')
 !-----------
 
 case ('cbar.')
-
-  if (ele%a%beta == 0) then ! Can happen if the lattice is unstable.
-    call tao_set_invalid (datum, 'UNSTABLE LATTICE', why_invalid)
-    return
-  endif
 
   select case (data_type)
 

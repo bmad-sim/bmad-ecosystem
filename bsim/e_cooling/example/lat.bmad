@@ -18,9 +18,7 @@ particle_start[pz] = 0
 p1: quadrupole, l = 1
 k1: quadrupole, l = 1
 
-cool: feedback, input = p1, output = k1, alias = abc
+cool: feedback, input = p1, output = k1
 
 ln: line = (p1, k1)
 use, ln
-
-no_digested

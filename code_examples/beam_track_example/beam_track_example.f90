@@ -13,6 +13,7 @@ program beam_track_example
 
 use bmad
 use beam_mod
+use beam_file_io
 
 implicit none
 
@@ -23,8 +24,6 @@ type (beam_init_struct) beam_init
 type (coord_struct), pointer :: particle
 
 integer :: n_arg, i, j, ran_seed
-integer ::  nmlfile = 1
-integer ::  outfile = 2
 logical :: err
 
 character(100) in_filename, lat_filename, outfile_name
@@ -51,11 +50,11 @@ beam_init%n_particle = 1
 beam_init%n_bunch = 1
 ran_seed = 0
 
-!read input file
+! read input file
 print *, 'Opening: ', trim(in_filename)
-open (nmlfile, file = in_filename, status = "old")
-read (nmlfile, nml = beam_track_params)
-close (nmlfile)
+open (1, file = in_filename, status = "old")
+read (1, nml = beam_track_params)
+close (1)
 
 print *, '--------------------------------------'
 write (*, '(a, a)') 'lattice:      ', lat_filename
@@ -64,24 +63,24 @@ write (*, '(a, i8)') 'n_bunch    = ', beam_init%n_bunch
 write (*, '(a, i8)') 'ran_seed   = ', ran_seed
 print *, '--------------------------------------'
 
-!Parse Lattice
+! Parse Lattice
 call ran_seed_put (ran_seed)
 call bmad_parser (lat_filename, lat)
 
-!Initialize beam
+! Initialize beam
 ele1 => lat%ele(0) !start element
 
 call init_beam_distribution (ele1, lat%param, beam_init, beam)
 
-!For example, set the macrocharge of all particles
+! For example, set the macrocharge of all particles
 do i = 1, beam_init%n_bunch
 	do j = 1, beam_init%n_particle
 		beam%bunch(i)%particle(j)%charge = 0.0_rp
 	end do 
 end do
 
-!Alternatively, call reallocate_beam, which just builds the beam_struct
-!call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
+! Alternatively, call reallocate_beam, which just builds the beam_struct
+! call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
 
 
 !Track particles to end of lattice
@@ -89,19 +88,9 @@ ele2 => lat%ele(lat%n_ele_track)
 call track_beam(lat, beam, ele1, ele2, err)
 
 !------------------------------------------
-!Write to file
+! Write to file
 
-open(outfile, file = outfile_name)
-
-write (outfile, '(a)')  "! End coordinates of all particles"
-write (outfile, '(a)')  '! Bunch Particle          X          Px          Y          Py           Z          Pz      State' 
-do i = 1, beam_init%n_bunch
-  do j = 1, size(beam%bunch(i)%particle)
-    particle => beam%bunch(i)%particle(j)
-	  write (outfile, '(i7, i9, 6es12.3, 4x, a)') i, j, particle%vec, coord_state_name(particle%state)
-  enddo
-end do
-close(outfile)
+call write_beam_file(outfile_name, beam, lat = lat)
 print *, "Written: ", trim(outfile_name)
 	
 	
