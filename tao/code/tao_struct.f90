@@ -923,22 +923,24 @@ type tao_lattice_branch_struct
   type (tao_lat_mode_struct) a, b
   type (tao_spin_polarization_struct) spin
   type (summation_rdt_struct) srdt
-  type (coord_struct) orb0                                    ! For saving beginning orbit
-  type (normal_modes_struct) modes_ri                         ! Synchrotron integrals stuff
-  type (normal_modes_struct) modes_6d                         ! 6D radiation matrices.
+  type (coord_struct) orb0                                ! For saving beginning orbit
+  type (normal_modes_struct) modes_ri                     ! Synchrotron integrals stuff
+  type (normal_modes_struct) modes_6d                     ! 6D radiation matrices.
   type (ptc_normal_form_struct) ptc_normal_form
   type (bmad_normal_form_struct) bmad_normal_form
   real(rp) :: cache_x_min = 0, cache_x_max = 0
-  real(rp) :: comb_ds_save = -1                               ! Master parameter for %bunch_params_comb(:)%ds_save
-  real(rp) :: comb_max_ds_save = -1                           ! Master parameter for %bunch_params_comb(:)%max_ds_save
+  real(rp) :: comb_ds_save = -1                           ! Master parameter for %bunch_params_comb(:)%ds_save
+  real(rp) :: comb_max_ds_save = -1                       ! Master parameter for %bunch_params_comb(:)%max_ds_save
   integer track_state
   integer :: cache_n_pts = 0
-  integer ix_rad_int_cache                                    ! Radiation integrals cache index.
-  integer :: n_hterms = 0                                     ! Number of distinct res driving terms to evaluate.
-  logical has_open_match_element
-  logical :: plot_cache_valid = .false.                       ! Valid plotting data cache?
+  integer ix_rad_int_cache                                ! Radiation integrals cache index.
+  integer :: n_hterms = 0                                 ! Number of distinct res driving terms to evaluate.
+  logical :: has_open_match_element = .false.
+  logical :: plot_cache_valid = .false.                   ! Valid plotting data cache?
   logical :: spin_map_valid = .false.
-  logical :: mode_flip_here = .false.                         ! Twiss parameter mode flip seen?
+  logical :: twiss_valid = .true.                         ! Invalid EG with unstable 1-turn matrix with a closed branch.
+                                                          !   With open branch: twiss_valid = T even if some Twiss (and orbit) is invalid.
+  logical :: mode_flip_here = .false.                     ! Twiss parameter mode flip seen?
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in

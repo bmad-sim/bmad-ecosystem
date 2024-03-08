@@ -64,6 +64,7 @@ orbit => tao_branch%orbit
 
 calc_ok = .true.
 tao_branch%track_state = moving_forward$
+tao_branch%twiss_valid = .true.
 
 ! 
 
@@ -171,10 +172,19 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
 
     if (branch%param%geometry == closed$) then
       call twiss_at_start (lat, status, branch%ix_branch, print_err)
-      if (status /= ok$) then
+      tao_branch%twiss_valid = (status == ok$)
+
+      if (.not. tao_branch%twiss_valid) then
+        do n = 0, branch%n_ele_track
+          branch%ele(n)%a = twiss_struct()
+          branch%ele(n)%b = twiss_struct()
+          branch%ele(n)%x = xy_disp_struct()
+          branch%ele(n)%y = xy_disp_struct()
+        enddo
         calc_ok = .false.
         return
       endif
+
       call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
       if (tao_branch%has_open_match_element) then
         do n = 1, branch%n_ele_track

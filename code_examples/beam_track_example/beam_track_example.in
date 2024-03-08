@@ -1,6 +1,6 @@
 &beam_track_params
 	lat_filename = 'lat.bmad'
-	outfile_name = 'beam.dat'
+	outfile_name = 'beam.dat'   ! Use .h5 suffix if you want an HDF5 binary file
 	beam_init%n_particle = 10
 	beam_init%n_bunch = 2
 	beam_init%a_emit = 1e-6
