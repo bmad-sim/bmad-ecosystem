@@ -1,8 +1,6 @@
 set (EXENAME e_cooling)
 
-set (SRC_FILES
-  e_cooling/e_cooling.f90
-)
+FILE (GLOB SRC_FILES e_cooling/*.f90)
 
 set (INC_DIRS
 )
