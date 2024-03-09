@@ -983,7 +983,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$)
         cycle
-      case (girder_lord$, control_lord$)
+      case (control_lord$)
+        call re_allocate (li2, 1)
+        li2(1) = trim(ctl%attribute) // ' Slave'
+        a_name = ''
+      case (girder_lord$)
         call re_allocate (li2, 1)
         li2(1) = ''
         a_name = ''
@@ -1088,7 +1092,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     case (multipass_lord$, super_lord$, girder_lord$, control_lord$)
       if (ele%key == feedback$) then
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Ele_Type                 Slave_Type      S'
+        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Ele_Type           Slave_Type      S'
         do im = 1, ele%n_slave
           slave => pointer_to_slave (ele, im, ctl)
           nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, a6, f14.6)') trim(ele_loc_name(slave)), &
