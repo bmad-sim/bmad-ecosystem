@@ -10,7 +10,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
+! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat, alive_only)
 !
 ! Routine to write a beam file.
 !
@@ -23,9 +23,10 @@ contains
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: ascii$, or hdf5$ (default). old_ascii$ (deprecated) is still accepted.
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
+!   alive_only    -- logical, optional: Only write live (includes pre_born) particles to the file? Default is False.
 !-
 
-subroutine write_beam_file (file_name, beam, new_file, file_format, lat)
+subroutine write_beam_file (file_name, beam, new_file, file_format, lat, alive_only)
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -39,7 +40,7 @@ character(*) file_name
 character(200) full_name
 character(*), parameter :: r_name = 'write_beam_file'
 
-logical, optional :: new_file
+logical, optional :: new_file, alive_only
 logical error, append
 
 !
@@ -56,7 +57,7 @@ else
 endif
 
 if (format == ascii$) then
-  call write_ascii_beam_file(full_name, beam, new_file)
+  call write_ascii_beam_file(full_name, beam, new_file, alive_only)
   return
 endif
 
@@ -69,7 +70,7 @@ if (integer_option(hdf5$, format) == hdf5$) then
   if (full_name(n-2:n) /= '.h5' .and. full_name(n-4:n) /= '.hdf5') full_name = trim(full_name) // '.h5'
 
   append = .not. logic_option(.true., new_file)
-  call hdf5_write_beam(full_name, beam%bunch, append, error, lat)
+  call hdf5_write_beam(full_name, beam%bunch, append, error, lat, alive_only)
   return
 endif
 
@@ -108,7 +109,7 @@ end subroutine write_beam_file
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_ascii_beam_file (file_name, beam, new_file)
+! Subroutine write_ascii_beam_file (file_name, beam, new_file, alive_only)
 !
 ! Routine to write a beam file in ASCII format (version 4).
 !
@@ -116,9 +117,10 @@ end subroutine write_beam_file
 !   file_name     -- character(*): Name of file.
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
+!   alive_only    -- logical, optional: Only write live (includes pre_born) particles to the file? Default is False.
 !-
 
-subroutine write_ascii_beam_file (file_name, beam, new_file)
+subroutine write_ascii_beam_file (file_name, beam, new_file, alive_only)
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -133,7 +135,7 @@ character(600) line
 character(12) colvec(20), cfmt(20)
 character(*), parameter :: r_name = 'write_ascii_beam_file'
 
-logical, optional :: new_file
+logical, optional :: new_file, alive_only
 logical error, append, dt_ref0
 logical spin0, field0, phase0, ix_branch0, loc0, dir0, tdir0, charge0, species0, s0, t0, p0c0
 
@@ -156,6 +158,7 @@ tdir0 = .true.; charge0 = .true.; species0 = .true.; s0 = .true.; t0 = .true.; p
 do ib = 1, size(beam%bunch)
   bunch => beam%bunch(ib)
   p => bunch%particle(1)
+  if (logic_option(alive_only, .false.) .and. p%state /= alive$ .and. p%state /= pre_born$) cycle
   if (any(bunch%particle%spin(1) /= 0))              spin0 = .false.
   if (any(bunch%particle%spin(2) /= 0))              spin0 = .false.
   if (any(bunch%particle%spin(3) /= 0))              spin0 = .false.
@@ -243,6 +246,7 @@ do ib = 1, size(beam%bunch)
 
   do ip = 1, size(bunch%particle)
     p => bunch%particle(ip)
+    if (logic_option(alive_only, .false.) .and. p%state /= alive$ .and. p%state /= pre_born$) cycle
     line = ''
     do ic = 1, size(colvec)
       col = colvec(ic)

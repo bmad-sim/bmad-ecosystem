@@ -322,6 +322,12 @@ function branch_name(branch) result (name)
   character(40) name
 end function
 
+subroutine remove_dead_from_bunch(bunch_in, bunch_out)
+  import
+  implicit none
+  type (bunch_struct) bunch_in, bunch_out
+end subroutine
+
 function c_multi (n, m, no_n_fact, c_full) result (c_out)
   import
   implicit none
@@ -1084,12 +1090,13 @@ subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header, 
   character(*) file_name
 end subroutine
 
-subroutine hdf5_write_beam (file_name, bunches, append, error, lat)
+subroutine hdf5_write_beam (file_name, bunches, append, error, lat, alive_only)
   import
   implicit none
   type (bunch_struct), target :: bunches(:)
   type (lat_struct), optional :: lat
   logical error, append
+  logical, optional :: alive_only
   character(*) file_name
 end subroutine
 
