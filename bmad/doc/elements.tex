@@ -1874,10 +1874,8 @@ there is no other suitable element class.
 A \vn{feedback} element is a lord element with two types of slaves called the \vn{input} slaves and
 \vn{output} slaves.  The feedback element gathers information about particle trajectories from the
 input slaves and uses this to either adjust beam trajectories in the output slaves and/or adjust
-parameters in the output slaves. A feedback element could be used to, for example, simulate RF feedback
-systems or beam position feedback.
-
-NOTE! The \vn{feedback} element is currently under development and is not yet useable.
+parameters in the output slaves. A feedback element could be used, for example, to simulate RF feedback
+systems or beam position feedback, or cooling of a proton beam by a beam of electrons.
 
 General \vn{feedback} element attributes are:
 \begin{center}
@@ -1891,8 +1889,47 @@ General \vn{feedback} element attributes are:
 \toffset
 See \sref{s:list.feedback} for a full list of element attributes along with a their units.
 
+NOTE! 2024/3 The \vn{feedback} element is currently under development so changes can be expected in the future.
 
+Attributes specific to a \vn{feedback} element are:
+\begin{example}
+  input_ele  = <list>   ! Lattice element(s) feedback element gets information from
+  output_ele = <list>   ! Lattice elements(s) where the feedback element can influence
+                        !   particle trajectories or element parameters.
+\end{example}
 
+The \vn{input_ele} parameter defines a list of lattice elements that specify, when tracking particles,
+where the \vn{feedback} element will monitor particle trajectories. The \vn{output_ele} parameter
+defines a list of lattice elements that specify the points at which the \vn{feedback} element can
+either modify particle trajectories and/or modify lattice element parameters.
+
+The \vn{<list>} of lattice elements uses the standard \bmad name matching conventions as given in
+\sref{s:ele.match}. If commas are used in the \vn{<list>}, the list must be enclosed in curly
+backets \vn{\{...\}} to avoid ambiguities. Curly brackets are optional when commas are not
+used. Examples:
+\begin{example}
+  fff: feedback, input_ele = bpm5, 
+                  output_ele = kicker3      ! Single input and output elements.
+  fe2: feedback, input_ele = \{bpm5\}, 
+                  output_ele = rfcavity::*  ! Output to all RF cavities.
+  g7: feedback, input_ele = \{mon1, mon2\}, 
+                  output_ele = type::IRQ    ! Match to element's type field.
+\end{example}
+
+The set of \vn{input_ele} and \vn{output_ele} elements will be \vn{minor_slave} slaves of the
+\vn{control_lord} \vn{feedback} element. Like other lord elements (\vn{group}s, \vn{overlay}s,
+etc.), particles are never tracked through a \vn{feedback} element itself.
+
+Since feedback systems vary greatly in how they work, a generic feedback element is not currently
+planned (but could be in the future as more experience is gained developing feedback simulation
+code).  This being the case, a program must be specifically setup to handle feedback elements. In
+particular, feedback elements in a lattice will not affect any calculation when using the \vn{Tao}
+program (but \vn{Tao} can still be used to inspect feedback elements and their slaves).
+
+Currently, the only program that handles \vn{feedback} elements is the \vn{e_cooling} program that
+is located in the \vn{bsim} directory of a \vn{Bmad} Release (and this program is currently under
+development and not ready for doing simulations). A feedback aware program will handle the task
+of feedback related parameter setup so the program documentation should be consulted for specifics.
 
 \newpage
 

@@ -1108,8 +1108,9 @@ type (ele_struct), pointer :: septum, fork, ele
 type (lat_struct), pointer :: lat
 
 real(rp) s_pos
-integer ib, ip, ii, nt, n_loc
+integer ib, ip, ii, nt, n_loc, physical_end
 logical err
+character(200) file
 
 !
 
@@ -1117,6 +1118,11 @@ if (lttp%extraction_method == '') return   ! No extraction wanted
 
 lat => ltt_com%tracking_lat
 branch => lat%branch(ltt_com%ix_branch)
+
+if (lttp%beam_output_file /= '') then
+  file = 'extraction-start-' // trim(lttp%beam_output_file)
+  call write_beam_file (file, beam, .true.)
+endif
 
 ! With INDIVIDUAL mode, only particles that have hit the septum aperture are to be
 ! tracked through the extraction line.
@@ -1148,12 +1154,20 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
       p => bunch%particle(ip)
       if (p%state /= alive$ .and. p%ix_ele == septum%ix_ele) then
         p%state = alive$
+
         if (p%location == upstream_end$) then
+          bmad_com%aperture_limit_on = .false.   ! Otherwise particle rehits upstream aperture.
           call track1(p, septum, branch%param, p)
-          if (p%state == alive$) then  ! Passed through septum wall from outside to inside!
-            p%state = lost$           
-          else
-            p%state = alive$
+          bmad_com%aperture_limit_on = .true.
+
+          physical_end = physical_ele_end (second_track_edge$, p, septum%orientation)
+          if (at_this_ele_end (physical_end, septum%aperture_at)) then
+            call check_aperture_limit(p, septum, second_track_edge$, branch%param)
+            if (p%state == alive$) then  ! Passed through septum wall from outside to inside!
+              p%state = lost$           
+            else
+              p%state = alive$
+            endif
           endif
 
         else
@@ -1184,6 +1198,12 @@ fork => pointer_to_next_ele(ele, skip_beginning = .true.)
 do ii = 1, branch%n_ele_track
   if (fork%key == fork$) exit
   fork => pointer_to_next_ele(fork, skip_beginning = .true.)
+enddo
+
+!
+
+do ib = 1, size(beam%bunch)
+  call remove_dead_from_bunch(beam%bunch(ib), beam%bunch(ib))
 enddo
 
 ! Track to the fork
@@ -1330,6 +1350,8 @@ endif
 !
 
 do i_turn = lttp%ix_turn_start, lttp%ix_turn_stop-1
+  orbit%ix_turn = i_turn
+
   select case (lttp%tracking_method)
   case ('BMAD')
     call ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_start, orbit, i_turn, iu_part)

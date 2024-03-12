@@ -82,6 +82,16 @@ if (logic_option(.true., init_to_edge)) then
   endif
 endif
 
+! Set ix_ele. If the element is a slice_slave then the appropriate ix_ele is given by the lord.
+
+if (ele%slave_status == slice_slave$) then
+  start2_orb%ix_ele    = ele%lord%ix_ele
+  start2_orb%ix_branch = ele%lord%ix_branch
+else
+  start2_orb%ix_ele    = ele%ix_ele
+  start2_orb%ix_branch = ele%ix_branch
+endif
+
 ! For historical reasons, the calling routine may not have correctly 
 ! initialized the starting orbit. If so, we do an init here.
 ! Time Runge-Kutta is tricky so do not attempt to do a set.
@@ -279,16 +289,6 @@ endif
 if (orbit_too_large (end_orb, param)) then
   if (present(err_flag)) err_flag = .false.
   return
-endif
-
-! Set ix_ele. If the element is a slice_slave then the appropriate ix_ele is given by the lord.
-
-if (ele%slave_status == slice_slave$) then
-  end_orb%ix_ele    = ele%lord%ix_ele
-  end_orb%ix_branch = ele%lord%ix_branch
-else
-  end_orb%ix_ele    = ele%ix_ele
-  end_orb%ix_branch = ele%ix_branch
 endif
 
 if (.not. time_RK_tracking) then
