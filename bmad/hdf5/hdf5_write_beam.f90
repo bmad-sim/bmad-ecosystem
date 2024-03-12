@@ -1,5 +1,5 @@
 !+
-! Subroutine hdf5_write_beam (file_name, bunches, append, error, lat)
+! Subroutine hdf5_write_beam (file_name, bunches, append, error, lat, alive_only)
 !
 ! Routine to write particle positions of a beam to an HDF5 binary file.
 ! See also hdf5_read_beam.
@@ -11,12 +11,13 @@
 !                       use "beam%bunch" if you have beam_struct instance.
 !   append        -- logical: If True then append if the file already exists.
 !   lat           -- lat_struct, optional: If present, lattice info will be saved in file.
+!   alive_only    -- logical, optional: Only write live (includes pre_born) particles to the file? Default is False.
 !
 ! Output:
 !   error         -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine hdf5_write_beam (file_name, bunches, append, error, lat)
+subroutine hdf5_write_beam (file_name, bunches, append, error, lat, alive_only)
 
 use hdf5_openpmd_mod
 use bmad_interface, dummy => hdf5_write_beam
@@ -25,6 +26,7 @@ implicit none
 
 type (bunch_struct), target :: bunches(:)
 type (bunch_struct), pointer :: bunch
+type (bunch_struct), target :: abunch
 type (coord_struct), pointer :: p(:)
 type (lat_struct), optional :: lat
 
@@ -40,6 +42,7 @@ character(20) date_time, root_path, bunch_path, particle_path, fmt
 character(100) this_path
 character(*), parameter :: r_name = 'hdf5_write_beam'
 
+logical, optional :: alive_only
 logical append, error, err
 
 ! Open a new file using default properties.
@@ -87,7 +90,12 @@ n = log10(1.000001 * size(bunches)) + 1
 
 ib2 = 0
 do ib = 1, size(bunches)
-  bunch => bunches(ib)
+  if (logic_option(alive_only, .false.)) then
+    call remove_dead_from_bunch(bunches(ib), abunch)
+    bunch => abunch
+  else
+    bunch => bunches(ib)
+  endif
   p => bunch%particle
 
   call re_allocate (p0c, size(p))
