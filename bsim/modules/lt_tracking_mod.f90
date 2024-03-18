@@ -67,6 +67,7 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: beam_output_every_n_turns = -1
   integer :: random_seed = 0
+  integer :: output_only_last_turns = -1
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
   real(rp) :: core_emit_cutoff(core_max$) = [0.5_rp, (-1.0_rp, i_loop = 2, core_max$)]
   real(rp) :: ramping_start_time = 0
@@ -76,6 +77,7 @@ type ltt_params_struct
   real(rp) :: dead_cutoff = 1
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
+  logical :: output_combined_bunches = .true.
   logical :: action_angle_calc_uses_1turn_matrix = .false.
   logical :: core_emit_combined_calc = .true.
   logical :: only_live_particles_out = .true.
@@ -886,7 +888,9 @@ call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lt
 call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%output_only_last_turns              = ' // int_str(lttp%output_only_last_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
+call ltt_write_line('# ltt%output_combined_bunches             = ' // logic_str(lttp%output_combined_bunches), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%set_beambeam_z_crossing             = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
@@ -1307,6 +1311,7 @@ type (probe) prb
 real(rp) average(6), sigma(6,6)
 integer i, n_sum, iu_part, i_turn, ix_branch
 integer, optional :: ix_bunch, ix_particle
+logical do_write
 
 ! Run a single particle in single mode.
 
@@ -1368,10 +1373,6 @@ do i_turn = lttp%ix_turn_start, lttp%ix_turn_stop-1
       if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2) .or. &
                                                      orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
 
-      if (lttp%particle_output_every_n_turns < 1) then
-        write (iu_part, ltt_com%ps_fmt) i_turn+1, ele1%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele1%name)
-      endif
-
       if (orbit%state /= alive$) exit
       if (ele1%ix_ele == ele_start%ix_ele) exit
       ele0 => ele1
@@ -1402,7 +1403,8 @@ do i_turn = lttp%ix_turn_start, lttp%ix_turn_stop-1
 
   if (lttp%simulation_mode == 'INDIVIDUAL') cycle
 
-  if (lttp%particle_output_every_n_turns > 0) then
+  do_write = (lttp%output_only_last_turns < 1 .or. lttp%n_turns - i_turn > lttp%output_only_last_turns)
+  if (lttp%particle_output_every_n_turns > 0 .and. do_write) then
     if (modulo(i_turn+1, lttp%particle_output_every_n_turns) == 0) then
       write (iu_part, ltt_com%ps_fmt) i_turn+1, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
     endif
@@ -1874,6 +1876,9 @@ character(200) file
 
 !
 
+if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                        lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
+
 select case (lttp%particle_output_every_n_turns)
 case (-1);    if (i_turn /= lttp%n_turns) return
 case (0);     if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
@@ -2066,6 +2071,9 @@ character(4) code
 
 if (lttp%custom_output_file == '') return
 
+if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                       lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
+
 select case (lttp%averages_output_every_n_turns)
 ! Stats only for end.
 case (-1)
@@ -2240,7 +2248,10 @@ character(200) file
 !
 
 if (lttp%beam_output_file == '') return
-nt = lttp%beam_output_every_n_turns 
+
+nt = lttp%beam_output_every_n_turns
+if (nt > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                        lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
 if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
 
 file = lttp%beam_output_file
@@ -2291,6 +2302,7 @@ write (iu,  '(a, i8)')   '# particle_output_every_n_turns       = ', lttp%partic
 write (iu,  '(a, i8)')   '# averages_output_every_n_turns       = ', lttp%averages_output_every_n_turns
 write (iu,  '(a, i0)')   '# random_seed                         = ', lttp%random_seed
 write (iu,  '(a, i0)')   '# random_seed_actual                  = ', ltt_com%random_seed_actual
+write (iu,  '(a, l1)')   '# output_only_last_turns              = ', lttp%output_only_last_turns
 write (iu,  '(a, l1)')   '# Radiation_Damping_on                = ', bmad_com%radiation_damping_on
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on           = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on                    = ', bmad_com%spin_tracking_on
@@ -2564,10 +2576,11 @@ type (ltt_params_struct) lttp
 type (ltt_bunch_data_struct) bd
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
+type (bunch_struct), target :: bunch0
 type (ele_struct), optional :: ele
 
 real(rp), optional :: s_pos
-integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib
+integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib, n
 logical error
 
 character(10) t_str
@@ -2578,6 +2591,9 @@ character(2000) :: line
 ! s_pos and ele are present in extraction tracking.
 
 if (lttp%averages_output_file == '') return
+
+if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                        lttp%n_turns - ix_turn >= lttp%output_only_last_turns) return
 
 select case (lttp%averages_output_every_n_turns)
 case (-1);    if (ix_turn /= lttp%n_turns) return
@@ -2596,9 +2612,24 @@ else
 endif
 
 nb = size(beam%bunch)
-do ib = 1, nb
-  bunch => beam%bunch(ib)
-  if (bunch%n_live == 0) exit
+do ib = 0, nb
+
+  if (ib == 0) then
+    if (.not. lttp%output_combined_bunches .or. nb == 1) cycle
+    n = 0
+    do ix = 1, nb
+      n = n + size(beam%bunch(ix)%particle)
+    enddo
+    allocate(bunch0%particle(n))
+    bunch => bunch0
+    n = 0
+    do ix = 1, nb
+      bunch%particle(n+1:n+size(beam%bunch(ix)%particle)) = beam%bunch(ix)%particle
+    enddo
+  else
+    bunch => beam%bunch(ib)
+    if (bunch%n_live == 0) exit
+  endif
 
   call ltt_calc_bunch_data(lttp, ix_turn, bunch, bd)
 
