@@ -72,6 +72,7 @@ integer :: m6lim =10
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 real(dp) :: faclim =1
 integer  :: old_integrator_init =1
+logical :: default_fractional_tune_positive=.true.,negative_synchrotron_tune=.true.
 
 TYPE sub_taylor
      INTEGER j(lnv)
@@ -515,10 +516,10 @@ type(c_taylor) c_temp
 
  TYPE c_ray
   complex(dp) x(lnv)            !# orbital and/or magnet modulation clocks
-  complex(dp) s1(3),s2(3),s3(3) !# 3 spin directions
   type(complex_quaternion) q    !# quaternion
   integer n                     !# of dimensions used in x(lnv)
-!  complex(dp) x0(lnv)           !# the initial orbit around which the map is computed
+!  Obsolescent
+  complex(dp) s1(3),s2(3),s3(3) !# 3 spin directions
  end type c_ray
 
 

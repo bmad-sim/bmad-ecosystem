@@ -28,6 +28,7 @@
   ! integer,private,parameter::nmax=400,lsw=1
   ! real(dp),private,parameter::tiny=c_1d_20
   character(120),private :: line
+public  nda_dab
 
 
 
