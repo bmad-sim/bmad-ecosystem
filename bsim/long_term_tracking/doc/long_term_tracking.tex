@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ February 26, 2024}
+\date{David Sagan \\ March 18, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -500,6 +500,7 @@ simulation is accidentally interrupted. In this case the beam positions can be s
 \begin{code}
   ltt%beam_output_file
   ltt%beam_output_every_n_turns
+  ltt%output_only_last_turns
 \end{code}
 
 With ramping, the concept of the closed orbit (possibly needed to initialize particle positions) is
@@ -743,6 +744,8 @@ Example:
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
   ltt%beam_output_every_n_turns = 200
+  ltt%output_only_last_turns = -1
+  ltt%output_combined_bunches = T
   ltt%only_live_particles_out = T
   ltt%core_emit_cutoff   = 0.2, 0.5
   ltt%core_emit_combined_calc = T
@@ -981,6 +984,7 @@ ltt%averages_output_file  \sref{s:beam.ave.dat}
 ltt%custom_output_file    \sref{s:beam.cust.dat}
 \end{code}
 For particle phase space output, use the \vn{particle_output_every_n_turns} parameter.
+Also see the \vn{ltt%ouput_only_last_turns} parameter.
 %
 \item[ltt\%beam_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"} or \vn{"INDIVIDUAL"}. This parameter sets the
@@ -1008,8 +1012,6 @@ Bmad Distribution in the file:
 \begin{code}
   util_programs/beam_file_translate_format/DOC
 \end{code}
-
-Beam output
 
 To use a beam file that has been generated on a previous run with a new run set \vn{beam_init%file_name}
 to the name of the beam file.
@@ -1055,11 +1057,22 @@ If this parameter is True (the default), the \vn{ltt%particles_output_file} file
 dead particles. If set to False, all particles will be recorded. Note: The last column of this file
 indicates if the particle is alive or dead.
 %
+\item[ltt\%output_combined_bunches] \Newline
+If this logical is True (the default), and there is more than one bunch begin tracked, the output of
+bunch averages will include averages for all the bunches combined. This can be useful when running,
+for example, merger simulations were multiple bunches are merged together.
+%
+\item[ltt\%output_only_last_turns] \Newline
+By setting this parameter positive to some value $N$, output will only be generated for the last $N$
+turns.  This is convenient when only the output at the tail end of the simulation is important. The
+default value is -1 which means that this parameter is ignored.
+%
 \item[ltt\%particle_output_every_n_turns] \Newline
 Sets the number of turns between particle position data files. If set to -1 (the default), a file
 will only be generated at the last turn. If set to 0, a file will be generated at the beginning turn
 (turn 0) and at the last turn. With the  \vn{ltt%simulation_mode} set to \vn{"INDIVIDUAL"}, there is
 no periodic output and this parameter will be ignored.
+Also see the \vn{ltt%output_only_last_turns} parameter.
 %
 \item[ltt\%per_particle_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII files
@@ -1390,11 +1403,11 @@ Sig_x, Sig_px, Sig_y,
 \end{code}
 
 The \vn{sigma} file with the \vn{.sigma} suffix will contain the following columns:
-\begin{code}[mathescape=true]
+\begin{code}
 Turn                          -- Turn number
 N_live                        -- Number of live particles
 Time                          -- Time from start
-Sigma_Matrix                  -- Sigma matrix (21 columns)
+Sigma_Matrix                  -- Bunch sigma matrix (21 columns)
 \end{code}
 The 6x6 sigma matrix $\boldsymbol{\Sigma}$ is a measure of the beam size defined by
 \begin{equation}

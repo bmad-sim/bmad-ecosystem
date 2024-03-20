@@ -46,9 +46,9 @@ module lielib_yang_berz
   integer,private :: nt_pos,npt_pos
   integer time_plane
   real(dp), private :: stmem(ndim)
-  logical(lp) :: courant_snyder=.true.
-  logical(lp) :: check_krein=.true.
-  real(dp) :: size_krein=1.e-10_dp
+  logical(lp),private :: courant_snyder=.true.
+  logical(lp),private :: check_krein=.true.
+  real(dp),private :: size_krein=1.e-10_dp
 
   real(dp),dimension(ndim2)::rr_eigen,ri_eigen
 contains

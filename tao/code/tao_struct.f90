@@ -96,7 +96,7 @@ end type
 
 type tao_eval_stack1_struct
   integer :: type = 0                 
-  character(60) :: name = ''
+  character(120) :: name = ''
   real(rp) :: scale = 1               ! Scale factor for ping data
   real(rp), allocatable :: value(:)
   type (tao_expression_info_struct), allocatable :: info(:)

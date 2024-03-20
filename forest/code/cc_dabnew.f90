@@ -28,8 +28,9 @@ module c_dabnew
   logical(lp) c_stable_da,C_watch_user,C_check_stable
   real(dp), private :: eps=1.d-38,epsprint=1.d-38
 !real(dp),public :: eps_clean=0
-  public c_print_c_nda_dab_c_lda
+  public c_print_c_nda_dab_c_lda 
 complex(dp), private :: i_=(0.0_dp,1.0_dp)
+public  c_nda_dab
 
  
 
