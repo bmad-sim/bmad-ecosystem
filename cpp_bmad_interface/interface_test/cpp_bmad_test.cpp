@@ -665,22 +665,25 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   rhs = 14 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.ix_user = rhs;
+  rhs = 15 + offset; C.ix_turn = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.state = rhs;
+  rhs = 16 + offset; C.ix_user = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 17 + offset; C.direction = rhs;
+  rhs = 17 + offset; C.state = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 18 + offset; C.time_dir = rhs;
+  rhs = 18 + offset; C.direction = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 19 + offset; C.species = rhs;
+  rhs = 19 + offset; C.time_dir = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 20 + offset; C.location = rhs;
+  rhs = 20 + offset; C.species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 21 + offset; C.location = rhs;
 
 
 }

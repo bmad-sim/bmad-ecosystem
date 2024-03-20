@@ -336,6 +336,8 @@ is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_turn == f2%ix_turn)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_user == f2%ix_user)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%state == f2%state)
