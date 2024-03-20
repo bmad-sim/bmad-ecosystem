@@ -1051,17 +1051,19 @@ rhs = 13 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 14 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%ix_user = rhs
+rhs = 15 + offset; F%ix_turn = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 16 + offset; F%state = rhs
+rhs = 16 + offset; F%ix_user = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 17 + offset; F%direction = rhs
+rhs = 17 + offset; F%state = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 18 + offset; F%time_dir = rhs
+rhs = 18 + offset; F%direction = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 19 + offset; F%species = rhs
+rhs = 19 + offset; F%time_dir = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 20 + offset; F%location = rhs
+rhs = 20 + offset; F%species = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 21 + offset; F%location = rhs
 
 end subroutine set_coord_test_pattern
 
