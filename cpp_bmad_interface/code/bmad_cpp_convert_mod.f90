@@ -1819,15 +1819,15 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine coord_to_c2 (C, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_dt_ref, &
-      z_r, z_p0c, z_e_potential, z_beta, z_ix_ele, z_ix_branch, z_ix_user, z_state, &
+      z_r, z_p0c, z_e_potential, z_beta, z_ix_ele, z_ix_branch, z_ix_turn, z_ix_user, z_state, &
       z_direction, z_time_dir, z_species, z_location) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_vec(*), z_s, z_t, z_spin(*), z_field(*), z_phase(*), z_charge
     real(c_double) :: z_dt_ref, z_r, z_p0c, z_e_potential, z_beta
-    integer(c_int) :: z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, z_time_dir, z_species
-    integer(c_int) :: z_location
+    integer(c_int) :: z_ix_ele, z_ix_branch, z_ix_turn, z_ix_user, z_state, z_direction, z_time_dir
+    integer(c_int) :: z_species, z_location
   end subroutine
 end interface
 
@@ -1845,7 +1845,7 @@ call c_f_pointer (Fp, F)
 !! f_side.to_c2_call
 call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, F%t, fvec2vec(F%spin, 3), fvec2vec(F%field, 2), &
     fvec2vec(F%phase, 2), F%charge, F%dt_ref, F%r, F%p0c, F%e_potential, F%beta, F%ix_ele, &
-    F%ix_branch, F%ix_user, F%state, F%direction, F%time_dir, F%species, F%location)
+    F%ix_branch, F%ix_turn, F%ix_user, F%state, F%direction, F%time_dir, F%species, F%location)
 
 end subroutine coord_to_c
 
@@ -1866,8 +1866,8 @@ end subroutine coord_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine coord_to_f2 (Fp, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_dt_ref, z_r, &
-    z_p0c, z_e_potential, z_beta, z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, &
-    z_time_dir, z_species, z_location) bind(c)
+    z_p0c, z_e_potential, z_beta, z_ix_ele, z_ix_branch, z_ix_turn, z_ix_user, z_state, &
+    z_direction, z_time_dir, z_species, z_location) bind(c)
 
 
 implicit none
@@ -1878,8 +1878,8 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_vec(*), z_s, z_t, z_spin(*), z_field(*), z_phase(*), z_charge
 real(c_double) :: z_dt_ref, z_r, z_p0c, z_e_potential, z_beta
-integer(c_int) :: z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, z_time_dir, z_species
-integer(c_int) :: z_location
+integer(c_int) :: z_ix_ele, z_ix_branch, z_ix_turn, z_ix_user, z_state, z_direction, z_time_dir
+integer(c_int) :: z_species, z_location
 
 call c_f_pointer (Fp, F)
 
@@ -1911,6 +1911,8 @@ F%beta = z_beta
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_branch = z_ix_branch
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_turn = z_ix_turn
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_user = z_ix_user
 !! f_side.to_f2_trans[integer, 0, NOT]

@@ -1169,7 +1169,6 @@ endif
 
 bunch1%charge_tot  = bunch2%charge_tot
 bunch1%charge_live = bunch2%charge_live
-bunch1%z_center    = bunch2%z_center
 bunch1%t_center    = bunch2%t_center
 bunch1%ix_ele      = bunch2%ix_ele
 bunch1%ix_bunch    = bunch2%ix_bunch

@@ -408,14 +408,14 @@ extern "C" void coord_to_c (const Opaque_coord_class*, CPP_coord&);
 // c_side.to_f2_arg
 extern "C" void coord_to_f2 (Opaque_coord_class*, c_RealArr, c_Real&, c_Real&, c_RealArr,
     c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 
   // c_side.to_f2_call
   coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge,
-      C.dt_ref, C.r, C.p0c, C.e_potential, C.beta, C.ix_ele, C.ix_branch, C.ix_user, C.state,
-      C.direction, C.time_dir, C.species, C.location);
+      C.dt_ref, C.r, C.p0c, C.e_potential, C.beta, C.ix_ele, C.ix_branch, C.ix_turn, C.ix_user,
+      C.state, C.direction, C.time_dir, C.species, C.location);
 
 }
 
@@ -423,8 +423,8 @@ extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t, c_RealArr
     z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_dt_ref, c_Real&
     z_r, c_Real& z_p0c, c_Real& z_e_potential, c_Real& z_beta, c_Int& z_ix_ele, c_Int&
-    z_ix_branch, c_Int& z_ix_user, c_Int& z_state, c_Int& z_direction, c_Int& z_time_dir,
-    c_Int& z_species, c_Int& z_location) {
+    z_ix_branch, c_Int& z_ix_turn, c_Int& z_ix_user, c_Int& z_state, c_Int& z_direction, c_Int&
+    z_time_dir, c_Int& z_species, c_Int& z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -454,6 +454,8 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_branch = z_ix_branch;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_turn = z_ix_turn;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_user = z_ix_user;
   // c_side.to_c2_set[integer, 0, NOT]

@@ -1057,9 +1057,9 @@ type bunch_struct
   integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
   real(rp) :: charge_tot = 0       ! Total charge in a bunch (Coul).
   real(rp) :: charge_live = 0      ! Charge of live particles (Coul).
-  real(rp) :: z_center = 0         ! Longitudinal center of bunch (m). Note: Generally, z_center of 
+  real(rp) :: z_center = 0         ! Longitudinal center of bunch at creation time. Note: Generally, z_center of 
                                    !   bunch #1 is 0 and z_center of the other bunches is negative.
-  real(rp) :: t_center = 0         ! Center of bunch creation time relative to head bunch.
+  real(rp) :: t_center = 0         ! Center of bunch at creation time relative to head bunch.
   real(rp) :: t0 = real_garbage$   ! Used by track1_bunch_space_charge for tracking so particles have constant t.
   logical :: drift_between_t_and_s = .false.
                                    ! Drift (ignore any fields) instead of tracking to speed up the calculation?
