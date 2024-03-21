@@ -240,11 +240,13 @@ if (ele%space_charge_method == cathode_fft_3d$) then
   if (ele%csr_method /= off$) then
     call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, CSR EFFECTS CANNOT BE HANDLED SO', &
                                    'CSR_METHOD NEEDS TO BE SET TO OFF. FOR LATTICE ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
   endif
 
   if (ele%tracking_method /= time_runge_kutta$ .and. ele%tracking_method /= fixed_step_time_runge_kutta$) then
     call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, THE TRACKING_METHOD SHOULD BE SET TO', &
                                    'TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA. FOR LATTICE ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
   endif
 endif
 
@@ -255,6 +257,7 @@ if (csr_sc_on .and. ele%key /= match$) then
     if (ele%csr_method /= off$) then
       call out_io (s_error$, r_name, 'CSR_METHOD IS NOT OFF FOR LATTICE ELEMENT: ' // ele%name, &
                     'THIS IS INCOMPATIBLE WITH TRACKING_METHOD SET TO TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA.')
+      if (global_com%exit_on_error) call err_exit
     endif
     call track1_bunch_space_charge (bunch, ele, err, bunch_track = bunch_track)
     track1_bunch_space_charge_called = .true.
