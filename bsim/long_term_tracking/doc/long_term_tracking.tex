@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ March 18, 2024}
+\date{David Sagan \\ March 21, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -752,6 +752,7 @@ Example:
   ltt%print_on_dead_loss = -1
   ltt%map_file_prefix = "ltt"
   ltt%map_ascii_output_file = ""
+  ltt%print_info_messages = T
 
   ltt%column(1) = "n_turn", "N_turn", "i7"
   ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
@@ -958,7 +959,7 @@ frequencies that are not commensurate with the RF clock will use the standard cl
 \end{description}
 
 %----------------------------------------------------
-\subsection{Output File Parameters}
+\subsection{Output Parameters}
 \label{s:out.files}
 
 Parameters in the master input file that affect the output are:
@@ -1088,6 +1089,10 @@ of the ASCII file or files that are created to hold the particle positions. A fi
 \vn{ltt%particle_output_every_n_turns} turns for the \vn{"BEAM"} simulation mode. See
 Section~\sref{s:beam.part.dat} for more details. If \vn{ltt%phase_space_output_file} is blank, no
 particle output file is created.
+%
+\item[ltt\%print_info_messages] \Newline
+If set False (default is True), informational messages will be suppressed. This can be handy when running
+the program multiple times using batch processing.
 %
 \item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are

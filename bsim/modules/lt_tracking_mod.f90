@@ -91,6 +91,7 @@ type ltt_params_struct
   logical :: debug = .false.
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
   logical :: set_beambeam_z_crossing = .false.
+  logical :: print_info_messages = .true.          ! Informational messages printed?
 
   !
   character(200) :: sigma_matrix_output_file = ''  ! No longer used
@@ -216,12 +217,14 @@ if (ltt_com%master_input_file == '') ltt_com%master_input_file = 'long_term_trac
 ! Read parameters
 
 if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
-  print '(2a)', 'Initialization file: ', trim(ltt_com%master_input_file)
+  call out_io (s_blank$, r_name, 'Initialization file: ' // trim(ltt_com%master_input_file))
 endif
 
 open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close(1)
+
+if (.not. ltt%print_info_messages) call output_direct (-1, .false., s_blank$, s_success$) ! Do not print
 
 if (ltt%ix_turn_start /= int_garbage$ .and. beam_init%ix_turn /= int_garbage$) then
   print *, 'ltt_com%ix_turn_start and beam_init%ix_turn are the same thing and cannot both be set. Set one or the other.'
@@ -931,10 +934,11 @@ integer :: iu
 integer iv
 logical, optional :: print_this
 character(*) line
+character(*), parameter :: r_name = 'ltt_write_line'
 
 !
 
-if (logic_option(.true., print_this)) print '(a)', trim(line)
+if (logic_option(.true., print_this)) call out_io(s_blank$, r_name, trim(line))
 if (iu /= 0) write (iu, '(a)') trim(line)
 
 end subroutine ltt_write_line
@@ -1312,6 +1316,7 @@ real(rp) average(6), sigma(6,6)
 integer i, n_sum, iu_part, i_turn, ix_branch
 integer, optional :: ix_bunch, ix_particle
 logical do_write
+character(*), parameter :: r_name = 'ltt_run_single_mode'
 
 ! Run a single particle in single mode.
 
@@ -1452,6 +1457,7 @@ type (branch_struct), pointer :: branch
 real(rp) dt_branch, time, n_alive
 integer ie, ib, n
 logical err_flag
+character(*), parameter :: r_name = 'ltt_init_beam_distribution'
 
 ! Important to apply the rampers to the starting element to get the correct ref momentum.
 ! But there is a chicken and egg problem here since the ramper time is determined from the beam.
@@ -1483,7 +1489,7 @@ call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_
                                                    ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
 bunch => beam%bunch(1)
 if (err_flag) stop
-print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
+call out_io (s_blank$, r_name, 'n_particle: ' // int_str(size(bunch%particle)))
 ltt_com%n_particle = size(bunch%particle)
 
 !
@@ -1556,6 +1562,7 @@ logical err_flag
 
 character(16) prefix_str
 character(200) file_name
+character(*), parameter :: r_name = 'ltt_run_beam_mode'
 
 ! Init
 
@@ -1659,7 +1666,8 @@ do i_turn = ix_start_turn, ix_end_turn-1
 
   call run_timer('ABS', time_now)
   if (time_now-time1 > lttp%timer_print_dtime .and. .not. ltt_com%using_mpi) then
-    print '(2a, f10.2, a, i0)', trim(prefix_str), ' Ellapsed time (min): ', (time_now-time0)/60, ', At end of turn: ', i_turn
+    call out_io (s_blank$, r_name, trim(prefix_str) // ' Ellapsed time (min): ' // &
+                                real_str((time_now-time0)/60, 10, 2) // ', At end of turn: ' // int_str(i_turn))
     time1 = time_now
   endif
 
