@@ -8,7 +8,7 @@ use re_allocate_mod
 
 ! Message levels: Status level flags for messages.
 
-integer, parameter :: s_nooutput$  = -2 ! No message printed.
+integer, parameter :: s_nooutput$  = -2 ! No message printed. Used to override a status level variable.
 integer, parameter :: s_blank$     = -1 ! Information message. The routine name is not printed.
 integer, parameter :: s_info$      = 0  ! Informational message.
 integer, parameter :: s_dinfo$     = 1  ! Info message (w/timestamp).
@@ -86,7 +86,7 @@ private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 !
 ! Input:
 !   level              -- Integer: Status level flags for messages.
-!       s_nooutput$      -- No output is produced.
+!       s_nooutput$      -- No output is produced. Used to override a status level variable.
 !       s_blank$         -- Informational message. No tag line is inserted in the output.
 !       s_info$          -- Informational message. (no timestamp)
 !       s_dinfo$         -- Info message (w/timestamp).
