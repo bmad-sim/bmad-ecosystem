@@ -1335,6 +1335,10 @@ do   ! ix_ele = 1e1, ie2
     call value_to_line (line_out, val(gradient$)*val(l$)/1d6, 'deltae', 'R')
     call value_to_line (line_out, val(rf_frequency$)/1d6, 'freq', 'R')
     call value_to_line (line_out, val(phi0$)+val(phi0_multipass$), 'phi0', 'R')
+    if (out_type == 'MAD-8' .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+      line_out = trim(line_out) // ', swave'
+    endif
+
 
   ! solenoid MAD
 

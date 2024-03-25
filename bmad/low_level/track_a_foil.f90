@@ -51,6 +51,14 @@ if (orbit%vec(1) < ele%value(x1_edge$) .or. orbit%vec(1) > ele%value(x2_edge$)) 
 if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) return
 
 r_thick = 1.0_rp + ele%value(drel_thickness_dx$) * orbit%vec(1)
+if (r_thick < 0) then
+  call out_io (s_error$, r_name, 'FOIL THICKNESS AT PARTICLE POSITION IS NEGATIVE FOR: ' // ele%name, &
+                                 'CHECK YOUR SETTING OF DREL_THICKNESS_DX.', &
+                                 'WILL MARK PARTICLE AS LOST.')
+  orbit%state = lost$
+  return
+endif
+
 z_particle = nint(ele%value(final_charge$))
 f = ele%value(f_factor$)
 

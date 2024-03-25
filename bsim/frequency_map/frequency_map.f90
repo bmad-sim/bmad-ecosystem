@@ -259,7 +259,7 @@ do i = 1, Npts
      WRITE(out_file,'(2A,I6.6,A)') trim(out_file_prefix),".e",int(start_coord%vec(6)*1000),".fm"
   endif
   open(unit=13, file=out_file)
-  write(*,'(a,6es10.3)') "Coordinates: ", start_coord%vec(:)
+  write(*,'(a,6es10.3)') "Offset from closed orbit: ", start_coord%vec(:)
   orb(0)%vec = co(0)%vec + start_coord%vec
 
   do j=1,n_turn
@@ -271,7 +271,7 @@ do i = 1, Npts
       print '(a, i8, 2a)', "Particle lost in turn ", j, ',  At element: ', trim(ring%ele(n)%name)
       print '(a, 6f12.6)', 'Orbit at entrance to element particle lost at: ', orb(n-1)%vec
       exit
-    elseif ((z_cut) .and. (abs(orb(0)%vec(5)) > 0.25*(c_light/rf_frequency))) then 
+    elseif ((z_cut) .and. (abs(orb(0)%vec(5)-co(0)%vec(5)) > 0.25*(c_light/rf_frequency))) then 
       print '(a, i8)', "Particle outside of RF bucket in turn ", j
       print '(a, f12.6, a, f12.6)', 'z_position: ', orb(0)%vec(5), ',  RF wavelength: ', c_light/rf_frequency
       exit
