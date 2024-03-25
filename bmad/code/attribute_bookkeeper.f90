@@ -446,6 +446,11 @@ case (crab_cavity$)
 
 case (foil$)
 
+  if (ele%value(thickness$) < 0) then
+    call out_io(s_error$, r_name, 'FOIL THICKNESS IS LESS THAN ZERO FOR: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+  endif
+
   call molecular_components(ele%component_name, component)
   n = size(component)
   if (.not. allocated(ele%foil%material)) allocate(ele%foil%material(n))
