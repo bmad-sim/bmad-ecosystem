@@ -3245,9 +3245,12 @@ type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 
 real(rp) time_now
+logical, optional :: do_print
+
 character(*) line
 character(20) time_str
-logical, optional :: do_print
+character(200) str
+character(*), parameter :: r_name = 'ltt_print_mpi_info'
 
 !
 
@@ -3255,9 +3258,10 @@ if (.not. logic_option(lttp%debug, do_print)) return
 
 call run_timer ('ABS', time_now)
 call date_and_time_stamp (time_str)
-print '(a, f8.2, 2a, 2x, i0, 2a)', 'dTime:', (time_now-ltt_com%time_start)/60, &
+write(str, '(a, f8.2, 2a, 2x, i0, 2a)') 'dTime:', (time_now-ltt_com%time_start)/60, &
                                         ' Now: ', time_str, ltt_com%mpi_rank, ': ', trim(line)
 
+call out_io(s_blank$, r_name, str)
 end subroutine ltt_print_mpi_info
 
 !-------------------------------------------------------------------------------------------
