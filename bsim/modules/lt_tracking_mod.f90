@@ -216,15 +216,16 @@ if (ltt_com%master_input_file == '') ltt_com%master_input_file = 'long_term_trac
 
 ! Read parameters
 
-if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
-  call out_io (s_blank$, r_name, 'Initialization file: ' // trim(ltt_com%master_input_file))
-endif
-
 open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close(1)
 
 if (.not. ltt%print_info_messages) call output_direct (-1, .false., s_blank$, s_success$) ! Do not print
+if (.not. ltt%print_info_messages) call output_direct (-1, .false., s_important$, s_important$) ! Do not print
+
+if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
+  call out_io (s_blank$, r_name, 'Initialization file: ' // trim(ltt_com%master_input_file))
+endif
 
 if (ltt%ix_turn_start /= int_garbage$ .and. beam_init%ix_turn /= int_garbage$) then
   print *, 'ltt_com%ix_turn_start and beam_init%ix_turn are the same thing and cannot both be set. Set one or the other.'
