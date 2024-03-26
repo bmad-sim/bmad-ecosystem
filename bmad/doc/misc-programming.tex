@@ -39,10 +39,11 @@ consistently throughout the program. In fact, multiple custom
 routines can be created and switched in and out as desired in the program.
 %
 \item
-In the program define an interface for the custom routine like:
+In the program, define an interface for the custom routine like:
 \begin{example}
   procedure(track1_custom_def) :: track1_custom
 \end{example}
+This procedure statement must go in the declaration section above the executable section of the code.
 Note: If the custom routine has been put in a module this will not be needed.
 %
 \item

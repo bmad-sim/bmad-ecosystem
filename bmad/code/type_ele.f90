@@ -84,7 +84,7 @@ type (material_struct), pointer :: matter
 
 integer, optional, intent(in) :: type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
-integer ia, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
+integer ia, ie, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
 integer id1, id2, id3, ne, na, nn
 
@@ -983,7 +983,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$)
         cycle
-      case (girder_lord$, control_lord$)
+      case (control_lord$)
+        call re_allocate (li2, 1)
+        li2(1) = trim(ctl%attribute) // ' Slave'
+        a_name = ''
+      case (girder_lord$)
         call re_allocate (li2, 1)
         li2(1) = ''
         a_name = ''
@@ -1086,13 +1090,24 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     select case (ele%lord_status)
 
     case (multipass_lord$, super_lord$, girder_lord$, control_lord$)
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
-      do im = 1, ele%n_slave
-        slave => pointer_to_slave (ele, im)
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
-                    trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
-      enddo
+      if (ele%key == feedback$) then
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
+        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Ele_Type           Slave_Type      S'
+        do im = 1, ele%n_slave
+          slave => pointer_to_slave (ele, im, ctl)
+          nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, a6, f14.6)') trim(ele_loc_name(slave)), &
+                                      slave%name(1:n_char), key_name(slave%key), ctl%attribute, slave%s
+        enddo
+
+      else
+        nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
+        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
+        do im = 1, ele%n_slave
+          slave => pointer_to_slave (ele, im)
+          nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
+                      trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
+        enddo
+      endif
 
     case (ramper_lord$)
       print_it = .true.
@@ -1372,36 +1387,47 @@ endif
 ! Elements not associated with a lattice do not have floor coords.
 
 if (logic_option(.false., type_floor_coords) .and. associated(ele%branch)) then
-  ele0 => pointer_to_next_ele(ele, -1)
-
-  select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$)
-    call ele_geometry (ele0%floor, ele, floor2, 0.5_rp)
-    floor = ele_geometry_with_misalignments (ele, 0.5_rp)
-
-    nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Global Floor Coords at Surface of Element:'
-    nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
-    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', floor2%r, floor2%theta, floor2%phi, floor2%psi, '! Position without misalignments'
-    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
-  end select
+  if (ele%lord_status == multipass_lord$) then
+    nl=nl+1; write (li(nl), '(27x, a)')         'X           Y           Z       Theta         Phi         Psi'
+    do ie = 1, ele%n_slave
+      slave => pointer_to_slave(ele, ie)
+      floor = slave%floor
+      nl=nl+1; write (li(nl), '(a, i2, 6f12.5, 3x, a)') 'Multipass Slave', ie, floor%r, floor%theta, floor%phi, floor%psi, '! Position without misalignments'
+    enddo
 
   !
+  else
+    ele0 => pointer_to_next_ele(ele, -1)
 
-  floor = ele_geometry_with_misalignments (ele)
+    select case (ele%key)
+    case (crystal$, mirror$, multilayer_mirror$)
+      call ele_geometry (ele0%floor, ele, floor2, 0.5_rp)
+      floor = ele_geometry_with_misalignments (ele, 0.5_rp)
 
-  nl=nl+1; li(nl) = ''
-  nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
-  nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
-  nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
-  nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; li(nl) = 'Global Floor Coords at Surface of Element:'
+      nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', floor2%r, floor2%theta, floor2%phi, floor2%psi, '! Position without misalignments'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+    end select
 
-  ! Note: If ele is a multipass_lord then ele0 does not exist
+    !
 
-  if (associated(ele0) .and. (ele%ix_ele /= 0 .or. branch%param%geometry == closed$)) then
-    f0 = ele0%floor
-    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
-                                                                                                       '! Delta with respect to last element'  
+    floor = ele_geometry_with_misalignments (ele)
+
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
+    nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
+    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+
+    !
+
+    if (associated(ele0) .and. (ele%ix_ele /= 0 .or. branch%param%geometry == closed$)) then
+      f0 = ele0%floor
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
+                                                                                                         '! Delta with respect to last element'  
+    endif
   endif
 endif
 

@@ -478,7 +478,7 @@ real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) beta_gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE, s_offset
-real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb
+real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb, g2
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
 real(rp), allocatable :: value_vec(:)
 real(rp), allocatable :: expression_value_vec(:)
@@ -499,13 +499,14 @@ character(100) data_type, str
 character(:), allocatable :: e_str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, term_found, ok
-logical particle_lost, exterminate, printit
+logical particle_lost, exterminate, printit, twiss_at_ele
 logical, allocatable :: good(:)
 
 ! If does not exist
 
 valid_value = .false.
 datum%why_invalid = ''
+twiss_at_ele = .true.
 
 if (.not. datum%exists) then
   datum_value = real_garbage$
@@ -548,7 +549,10 @@ ele => tao_pointer_to_datum_ele (lat, datum%ele_name, datum%ix_ele, datum, valid
 if (.not. valid_value) return
 ix_ele = -1
 ix_branch = datum%ix_branch
-if (associated(ele)) ix_ele = tao_tracking_ele_index(ele, datum, ix_branch)
+if (associated(ele)) then
+  ix_ele = tao_tracking_ele_index(ele, datum, ix_branch)
+  if (ele%a%beta == 0) twiss_at_ele = .false.
+endif
 
 ele_ref => tao_pointer_to_datum_ele (lat, datum%ele_ref_name, datum%ix_ele_ref, datum, valid_value, why_invalid)
 if (.not. valid_value) return
@@ -617,6 +621,18 @@ if (index(head_data_type, 'stable') == 0 .and. head_data_type /= 'expression:') 
       return
     endif
   endif
+endif
+
+!
+
+if (.not. twiss_at_ele .or. (.not. tao_branch%twiss_valid .and. data_source == 'lat')) then
+  select case (head_data_type)
+  case ('alpha.', 'apparent_emit.', 'norm_apparent_emit.', 'beta.', 'bpm_eta.', 'bpm_phase.', 'cbar.', 'chrom.', &
+        'chrom_ptc.', 'curly_h.', 'damp.', 'deta_ds.', 'emit.', 'norm_emit.', 'eta.', 'etap.', 'gamma.', &
+        'phase.', 'phase_frac.', 'phase_frac_diff', 'ping_a.', 'ping_b.', 'rad_int.', 'srdt.', 'tune.')
+    call tao_set_invalid (datum, 'UNSTABLE 1-TURN MATRIX', why_invalid)
+    return
+  end select
 endif
 
 ! ele_ref must not be specified for some data types. Check this.
@@ -1062,11 +1078,6 @@ case ('c_mat.', 'cmat.')
 !-----------
 
 case ('cbar.')
-
-  if (ele%a%beta == 0) then ! Can happen if the lattice is unstable.
-    call tao_set_invalid (datum, 'UNSTABLE LATTICE', why_invalid)
-    return
-  endif
 
   select case (data_type)
 
@@ -1963,6 +1974,8 @@ case ('momentum_compaction')
     ele_ref => lat%branch(branch%ix_branch)%ele(ix_ref)
   endif
 
+  g2 = (mass_of(ele_ref%ref_species) / ele_ref%value(E_tot$))**2   ! 1/gamma^2
+
   orb0 => orbit(ix_ref)
   call make_v_mats (ele_ref, v_mat, v_inv_mat)
   eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
@@ -1978,7 +1991,7 @@ case ('momentum_compaction')
     if (s_len == 0) then
       value_vec(i) = 0
     else
-      value_vec(i) = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / s_len
+      value_vec(i) = g2 - (sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / s_len
     endif
     if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
   enddo
@@ -5090,8 +5103,7 @@ character(*), optional :: dflt_dat_or_var_index
 
 character(1) delim
 character(16) s_str, source
-character(60) name
-character(200) str2, word2
+character(200) name, str2, word2
 character(*), parameter :: r_name = 'tao_param_value_routine'
 
 logical use_good_user, err_flag, print_err, print_error, delim_found, valid_value, exterminate
@@ -5261,7 +5273,7 @@ else
     ! Error if datum associated with the expression is evaluated before the datum evaluated here.
     if (present(datum) .and. .not. err_flag) then
       ! Only check if this is a user defined datum (not temp datum used for plotting).
-      if (datum%ix_uni > 0 .and. datum%ix_data > 0 .and. d_array(1)%d%data_type(1:11) == 'expression:') then
+      if (datum%ix_uni > 0 .and. datum%ix_data > 0 .and. substr(d_array(1)%d%data_type,1,11) == 'expression:') then
         if (datum%ix_uni < d_array(1)%d%ix_uni .or. (datum%ix_uni == d_array(1)%d%ix_uni .and. datum%ix_data < d_array(1)%d%ix_data)) then
           err_flag = .true.
           if (print_err) call out_io (s_error$, r_name, 'THE EXPRESSION ASSOCIATED WITH DATUM: ' // tao_datum_name(datum), &
@@ -6043,7 +6055,7 @@ elseif (.not. datum%err_message_printed) then
     u => tao_pointer_to_universe(datum%ix_uni)
     found = .false.
     do i = 1, size(u%data)
-      if (u%data(i)%data_type(1:8) == 'unstable') found = .true.
+      if (substr(u%data(i)%data_type,1,8) == 'unstable') found = .true.
     enddo
     if (.not. found) call out_io(s_info$, r_name, &
               'NO unstable.orbit, unstable.ring, nor unstable.eigen FOR THE UNIVERSE WITH THE PROBLEM EXISTS.', &

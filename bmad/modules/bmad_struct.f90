@@ -1057,9 +1057,9 @@ type bunch_struct
   integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
   real(rp) :: charge_tot = 0       ! Total charge in a bunch (Coul).
   real(rp) :: charge_live = 0      ! Charge of live particles (Coul).
-  real(rp) :: z_center = 0         ! Longitudinal center of bunch (m). Note: Generally, z_center of 
+  real(rp) :: z_center = 0         ! Longitudinal center of bunch at creation time. Note: Generally, z_center of 
                                    !   bunch #1 is 0 and z_center of the other bunches is negative.
-  real(rp) :: t_center = 0         ! Center of bunch creation time relative to head bunch.
+  real(rp) :: t_center = 0         ! Center of bunch at creation time relative to head bunch.
   real(rp) :: t0 = real_garbage$   ! Used by track1_bunch_space_charge for tracking so particles have constant t.
   logical :: drift_between_t_and_s = .false.
                                    ! Drift (ignore any fields) instead of tracking to speed up the calculation?
@@ -1265,37 +1265,6 @@ type converter_struct
   type (converter_distribution_struct), allocatable :: dist(:)  ! Distribution at various thicknesses 
 end type
 
-! Structs for coherent electron cooling
-
-type ecooling_wake_struct
-  real(rp), allocatable :: s(:)
-  real(rp), allocatable :: A(:)
-  real(rp), allocatable :: k(:)
-  real(rp), allocatable :: lambda(:)
-end type 
-
-type ecooling_diffusion_struct
-  real(rp), allocatable :: s(:)
-  real(rp), allocatable :: A(:)
-  real(rp), allocatable :: k(:)
-  real(rp), allocatable :: lambda(:)
-  real(rp), allocatable :: D_h(:)
-  real(rp), allocatable :: D_e11(:)
-  real(rp), allocatable :: D_e12(:)
-  real(rp), allocatable :: D_e22(:)
-end type
-
-type ecooling_struct
-  real(rp) :: Ie_peak = 0             ! Peak electron current.
-  real(rp) :: sigma_ze = 0            ! Electron bunch length.
-  real(rp) :: supergaussian_order = 0 ! Order of supergaussian used to model the longitudinal 
-                                      !   electron bunch distribution
-  real(rp) :: off_E_reduction = 0     ! How much to reduce the wake for off-energy protons
-  real(rp) :: phi_avg = 0             ! Average phase advance of electrons through a single amplifier straight
-  type (ecooling_wake_struct) :: xm, ym
-  type (ecooling_wake_struct) :: xk, yk
-end type
-
 ! Struct for element to element control.
 ! Note: Unlike the old days, not all attributes have an associated index. 
 !   So %ix_attrib may be -1. Using pointer_to_attribute with %attribute will always work.
@@ -1308,6 +1277,7 @@ type control_struct
   type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
   character(40) :: slave_name = ''   ! Name of slave.
   character(40) :: attribute = ''    ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
+                                     !   Set to "INPUT" or "OUTPUT" for feedback slaves.
   integer :: ix_attrib = -1          ! Index of attribute controlled. See note above!
 end type
 
@@ -1335,7 +1305,6 @@ type controller_struct
   type (control_var1_struct), allocatable :: var(:)
   type (control_ramp1_struct), allocatable :: ramp(:)             ! For ramper elements
   real(rp), allocatable :: x_knot(:)
-  type (ecooling_struct), allocatable ::ecool
 end type
 
 
@@ -1705,7 +1674,7 @@ integer, parameter :: l$ = 1                          ! Assumed unique. Do not a
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3, &
                       kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3, final_charge$ = 3
-integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, turns_per_step$ = 4, &
+integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, &
                       critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5, &
                       ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
@@ -1812,13 +1781,13 @@ integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
-integer, parameter :: y_knot$ = 83, eta_y$ = 83, density$ = 83, cec_param$ = 83
+integer, parameter :: y_knot$ = 83, eta_y$ = 83, density$ = 83
 integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84, slave$ = 84, &
                       density_used$ = 84
 integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85, etap_y$ = 85, &
-                      area_density$ = 85, input_from$ = 85
+                      area_density$ = 85, input_ele$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86, &
-                      area_density_used$ = 86, output_to$ = 86
+                      area_density_used$ = 86, output_ele$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88, radiation_length$ = 88
 integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89, radiation_length_used$ = 89

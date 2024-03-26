@@ -236,15 +236,19 @@ endif
 
 track1_bunch_space_charge_called = .false.
 
-if (ele%space_charge_method == cathode_fft_3d$) then
+if (ele%space_charge_method == cathode_fft_3d$ .or. ele%space_charge_method == fft_3d$) then
   if (ele%csr_method /= off$) then
     call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, CSR EFFECTS CANNOT BE HANDLED SO', &
-                                   'CSR_METHOD NEEDS TO BE SET TO OFF. FOR LATTICE ELEMENT: ' // ele%name)
+                                   'CSR_METHOD NEEDS TO BE SET TO OFF. FOR LATTICE ELEMENT: ' // ele%name, &
+                                   'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
+    goto 9000  ! Mark all particles as lost and return
   endif
 
   if (ele%tracking_method /= time_runge_kutta$ .and. ele%tracking_method /= fixed_step_time_runge_kutta$) then
     call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, THE TRACKING_METHOD SHOULD BE SET TO', &
-                                   'TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA. FOR LATTICE ELEMENT: ' // ele%name)
+                                   'TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA. FOR LATTICE ELEMENT: ' // ele%name, &
+                                   'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
+    goto 9000  ! Mark all particles as lost and return
   endif
 endif
 
@@ -254,7 +258,9 @@ if (csr_sc_on .and. ele%key /= match$) then
   if (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$) then
     if (ele%csr_method /= off$) then
       call out_io (s_error$, r_name, 'CSR_METHOD IS NOT OFF FOR LATTICE ELEMENT: ' // ele%name, &
-                    'THIS IS INCOMPATIBLE WITH TRACKING_METHOD SET TO TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA.')
+                    'THIS IS INCOMPATIBLE WITH TRACKING_METHOD SET TO TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA.', &
+                    'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
+      goto 9000  ! Mark all particles as lost and return
     endif
     call track1_bunch_space_charge (bunch, ele, err, bunch_track = bunch_track)
     track1_bunch_space_charge_called = .true.
@@ -310,6 +316,16 @@ if (associated(wake_ele)) then
   endif
 
 endif
+
+return
+
+!-----------------------------------------------------------------------------------
+! Mark all particles as lost and return
+
+9000 continue
+bunch%particle%state = lost$
+err = .true.
+return
 
 !-----------------------------------------------------------------------------------
 contains

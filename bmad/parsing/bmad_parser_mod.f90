@@ -1809,6 +1809,7 @@ if (delim /= '=')  then
   return
 endif
 
+!----------------------------------------------------------------------------------
 ! get the value of the attribute.
 ! Stuff like TYPE, ALIAS, and DESCRIP attributes are special because their "values"
 ! are character strings
@@ -1876,8 +1877,13 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
   call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
 
-case('INPUT_FROM', 'OUTPUT_TO')
-  call bmad_parser_string_attribute_set (ele, attrib_word, delim, delim_found, pele = pele)
+case('INPUT_ELE')
+  if (.not. allocated(pele%names2)) allocate(pele%names2(0))
+  call get_overlay_group_names(ele, lat, pele, delim, delim_found, .true., err_flag, pele%names1); if (err_flag) return
+
+case('OUTPUT_ELE')
+  if (.not. allocated(pele%names1)) allocate(pele%names1(0))
+  call get_overlay_group_names(ele, lat, pele, delim, delim_found, .true., err_flag, pele%names2); if (err_flag) return
 
 case ('REF_ORBIT')
   if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true., delim, delim_found)) return
@@ -3738,10 +3744,6 @@ case ('SR_WAKE_FILE')
   call parser_read_old_format_sr_wake (ele, type_name)
 case ('TYPE')
   ele%type = type_name
-case ('INPUT_FROM')
-  pele%names(1) = type_name
-case ('OUTPUT_TO')
-  pele%names(2) = type_name
 case default
   call parser_error ('INTERNAL ERROR IN BMAD_PARSER_STRING_ATTRIBUTE_SET: I NEED HELP!')
   if (global_com%exit_on_error) call err_exit
@@ -4516,7 +4518,7 @@ end subroutine get_list_of_names
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list)
+! Subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list, err_flag, names)
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
@@ -4526,7 +4528,7 @@ end subroutine get_list_of_names
 !                                     If False then parsing "group/overlay/girder = {...}" list.
 !-
       
-subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list, err_flag)
+subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, is_control_var_list, err_flag, names_out)
 
 implicit none
 
@@ -4544,7 +4546,8 @@ type (my_knot_struct), allocatable :: knot(:), ktemp(:)
 real(rp) value
 
 integer ix_word, ix, n_slave, i, j, k, n, i_last
-                           
+
+character(*), allocatable, optional :: names_out(:)  ! Only used for feedback elements
 character(1) delim
 character(40) word_in, word
 character(40), allocatable :: name(:), attrib_name(:)
@@ -4560,8 +4563,14 @@ allocate (name(40), attrib_name(40), expression(40), knot(40))
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
 if (delim /= '{' .or. ix_word /= 0) then
-  call parser_error  ('BAD SYNTAX FOR ' // trim(upcase(control_name(ele%lord_status))), &
-                      'EXPECTING A "{" AFTER "=")', 'FOR ELEMENT: ' // ele%name)
+  if (ele%key == feedback$) then   ! For feedback elements "{ }" brackets are optional.
+    call re_allocate(names_out, 1)
+    names_out = word_in
+    err_flag = .false.
+  else
+    call parser_error  ('BAD SYNTAX FOR ' // trim(upcase(control_name(ele%lord_status))), &
+                        'EXPECTING A "{" AFTER "=")', 'FOR ELEMENT: ' // ele%name)
+  endif
   return
 endif
 
@@ -4684,6 +4693,15 @@ do
   endif
                         
 enddo
+
+!
+
+if (ele%key == feedback$) then
+  call re_allocate(names_out, n_slave)
+  names_out = name(1:n_slave)
+  err_flag = .false.
+  return
+endif
 
 !
 
@@ -6592,7 +6610,7 @@ main_loop: do n_in = 1, n_ele_max
   case (feedback$)
     call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
     lat%ele(ix_lord) = lord
-    call create_feedback(lat%ele(ix_lord), pele%names(1), pele%names(2), err_flag)
+    call create_feedback(lat%ele(ix_lord), pele%names1, pele%names2, err_flag)
 
   !-----------------------------------------------------
   ! girder

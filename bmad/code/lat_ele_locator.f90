@@ -302,7 +302,7 @@ do
   branch => lat%branch(ele_end%ix_branch)
   ib = branch%ix_branch
 
-  call re_allocate_eles(eles2, branch%n_ele_track, .false.)
+  call re_allocate_eles(eles2, branch%n_ele_track+1, .false.)
   n_loc2 = 0
   if (ele_start%ix_ele > ele_end%ix_ele) then
     do i = ele_start%ix_ele, branch%n_ele_track

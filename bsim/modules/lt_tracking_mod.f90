@@ -67,6 +67,7 @@ type ltt_params_struct
   integer :: averages_output_every_n_turns = -1
   integer :: beam_output_every_n_turns = -1
   integer :: random_seed = 0
+  integer :: output_only_last_turns = -1
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
   real(rp) :: core_emit_cutoff(core_max$) = [0.5_rp, (-1.0_rp, i_loop = 2, core_max$)]
   real(rp) :: ramping_start_time = 0
@@ -76,6 +77,7 @@ type ltt_params_struct
   real(rp) :: dead_cutoff = 1
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
+  logical :: output_combined_bunches = .true.
   logical :: action_angle_calc_uses_1turn_matrix = .false.
   logical :: core_emit_combined_calc = .true.
   logical :: only_live_particles_out = .true.
@@ -89,6 +91,7 @@ type ltt_params_struct
   logical :: debug = .false.
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
   logical :: set_beambeam_z_crossing = .false.
+  logical :: print_info_messages = .true.          ! Informational messages printed?
 
   !
   character(200) :: sigma_matrix_output_file = ''  ! No longer used
@@ -213,13 +216,16 @@ if (ltt_com%master_input_file == '') ltt_com%master_input_file = 'long_term_trac
 
 ! Read parameters
 
-if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
-  print '(2a)', 'Initialization file: ', trim(ltt_com%master_input_file)
-endif
-
 open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close(1)
+
+if (.not. ltt%print_info_messages) call output_direct (-1, .false., s_blank$, s_success$) ! Do not print
+if (.not. ltt%print_info_messages) call output_direct (-1, .false., s_important$, s_important$) ! Do not print
+
+if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
+  call out_io (s_blank$, r_name, 'Initialization file: ' // trim(ltt_com%master_input_file))
+endif
 
 if (ltt%ix_turn_start /= int_garbage$ .and. beam_init%ix_turn /= int_garbage$) then
   print *, 'ltt_com%ix_turn_start and beam_init%ix_turn are the same thing and cannot both be set. Set one or the other.'
@@ -886,7 +892,9 @@ call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lt
 call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%output_only_last_turns              = ' // int_str(lttp%output_only_last_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
+call ltt_write_line('# ltt%output_combined_bunches             = ' // logic_str(lttp%output_combined_bunches), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%set_beambeam_z_crossing             = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
@@ -927,10 +935,11 @@ integer :: iu
 integer iv
 logical, optional :: print_this
 character(*) line
+character(*), parameter :: r_name = 'ltt_write_line'
 
 !
 
-if (logic_option(.true., print_this)) print '(a)', trim(line)
+if (logic_option(.true., print_this)) call out_io(s_blank$, r_name, trim(line))
 if (iu /= 0) write (iu, '(a)') trim(line)
 
 end subroutine ltt_write_line
@@ -1108,8 +1117,9 @@ type (ele_struct), pointer :: septum, fork, ele
 type (lat_struct), pointer :: lat
 
 real(rp) s_pos
-integer ib, ip, ii, nt, n_loc
+integer ib, ip, ii, nt, n_loc, physical_end
 logical err
+character(200) file
 
 !
 
@@ -1117,6 +1127,11 @@ if (lttp%extraction_method == '') return   ! No extraction wanted
 
 lat => ltt_com%tracking_lat
 branch => lat%branch(ltt_com%ix_branch)
+
+if (lttp%beam_output_file /= '') then
+  file = 'extraction-start-' // trim(lttp%beam_output_file)
+  call write_beam_file (file, beam, .true.)
+endif
 
 ! With INDIVIDUAL mode, only particles that have hit the septum aperture are to be
 ! tracked through the extraction line.
@@ -1148,12 +1163,20 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
       p => bunch%particle(ip)
       if (p%state /= alive$ .and. p%ix_ele == septum%ix_ele) then
         p%state = alive$
+
         if (p%location == upstream_end$) then
+          bmad_com%aperture_limit_on = .false.   ! Otherwise particle rehits upstream aperture.
           call track1(p, septum, branch%param, p)
-          if (p%state == alive$) then  ! Passed through septum wall from outside to inside!
-            p%state = lost$           
-          else
-            p%state = alive$
+          bmad_com%aperture_limit_on = .true.
+
+          physical_end = physical_ele_end (second_track_edge$, p, septum%orientation)
+          if (at_this_ele_end (physical_end, septum%aperture_at)) then
+            call check_aperture_limit(p, septum, second_track_edge$, branch%param)
+            if (p%state == alive$) then  ! Passed through septum wall from outside to inside!
+              p%state = lost$           
+            else
+              p%state = alive$
+            endif
           endif
 
         else
@@ -1184,6 +1207,12 @@ fork => pointer_to_next_ele(ele, skip_beginning = .true.)
 do ii = 1, branch%n_ele_track
   if (fork%key == fork$) exit
   fork => pointer_to_next_ele(fork, skip_beginning = .true.)
+enddo
+
+!
+
+do ib = 1, size(beam%bunch)
+  call remove_dead_from_bunch(beam%bunch(ib), beam%bunch(ib))
 enddo
 
 ! Track to the fork
@@ -1287,6 +1316,8 @@ type (probe) prb
 real(rp) average(6), sigma(6,6)
 integer i, n_sum, iu_part, i_turn, ix_branch
 integer, optional :: ix_bunch, ix_particle
+logical do_write
+character(*), parameter :: r_name = 'ltt_run_single_mode'
 
 ! Run a single particle in single mode.
 
@@ -1330,6 +1361,8 @@ endif
 !
 
 do i_turn = lttp%ix_turn_start, lttp%ix_turn_stop-1
+  orbit%ix_turn = i_turn
+
   select case (lttp%tracking_method)
   case ('BMAD')
     call ltt_track_bmad_single (lttp, ltt_com, ele_start, ele_start, orbit, i_turn, iu_part)
@@ -1345,10 +1378,6 @@ do i_turn = lttp%ix_turn_start, lttp%ix_turn_stop-1
       orbit%spin = quat_rotate(prb%q%x, orbit%spin)
       if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2) .or. &
                                                      orbit_too_large(orbit) .or. prb%u) orbit%state = lost$
-
-      if (lttp%particle_output_every_n_turns < 1) then
-        write (iu_part, ltt_com%ps_fmt) i_turn+1, ele1%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele1%name)
-      endif
 
       if (orbit%state /= alive$) exit
       if (ele1%ix_ele == ele_start%ix_ele) exit
@@ -1380,7 +1409,8 @@ do i_turn = lttp%ix_turn_start, lttp%ix_turn_stop-1
 
   if (lttp%simulation_mode == 'INDIVIDUAL') cycle
 
-  if (lttp%particle_output_every_n_turns > 0) then
+  do_write = (lttp%output_only_last_turns < 1 .or. lttp%n_turns - i_turn > lttp%output_only_last_turns)
+  if (lttp%particle_output_every_n_turns > 0 .and. do_write) then
     if (modulo(i_turn+1, lttp%particle_output_every_n_turns) == 0) then
       write (iu_part, ltt_com%ps_fmt) i_turn+1, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, orbit%p0c, orbit%t, orbit%spin, trim(ele_start%name)
     endif
@@ -1428,6 +1458,7 @@ type (branch_struct), pointer :: branch
 real(rp) dt_branch, time, n_alive
 integer ie, ib, n
 logical err_flag
+character(*), parameter :: r_name = 'ltt_init_beam_distribution'
 
 ! Important to apply the rampers to the starting element to get the correct ref momentum.
 ! But there is a chicken and egg problem here since the ramper time is determined from the beam.
@@ -1459,7 +1490,7 @@ call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_
                                                    ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
 bunch => beam%bunch(1)
 if (err_flag) stop
-print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
+call out_io (s_blank$, r_name, 'n_particle: ' // int_str(size(bunch%particle)))
 ltt_com%n_particle = size(bunch%particle)
 
 !
@@ -1532,6 +1563,7 @@ logical err_flag
 
 character(16) prefix_str
 character(200) file_name
+character(*), parameter :: r_name = 'ltt_run_beam_mode'
 
 ! Init
 
@@ -1635,7 +1667,8 @@ do i_turn = ix_start_turn, ix_end_turn-1
 
   call run_timer('ABS', time_now)
   if (time_now-time1 > lttp%timer_print_dtime .and. .not. ltt_com%using_mpi) then
-    print '(2a, f10.2, a, i0)', trim(prefix_str), ' Ellapsed time (min): ', (time_now-time0)/60, ', At end of turn: ', i_turn
+    call out_io (s_blank$, r_name, trim(prefix_str) // ' Ellapsed time (min): ' // &
+                                real_str((time_now-time0)/60, 10, 2) // ', At end of turn: ' // int_str(i_turn))
     time1 = time_now
   endif
 
@@ -1852,6 +1885,9 @@ character(200) file
 
 !
 
+if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                        lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
+
 select case (lttp%particle_output_every_n_turns)
 case (-1);    if (i_turn /= lttp%n_turns) return
 case (0);     if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
@@ -2044,6 +2080,9 @@ character(4) code
 
 if (lttp%custom_output_file == '') return
 
+if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                       lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
+
 select case (lttp%averages_output_every_n_turns)
 ! Stats only for end.
 case (-1)
@@ -2218,7 +2257,10 @@ character(200) file
 !
 
 if (lttp%beam_output_file == '') return
-nt = lttp%beam_output_every_n_turns 
+
+nt = lttp%beam_output_every_n_turns
+if (nt > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                        lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
 if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
 
 file = lttp%beam_output_file
@@ -2269,6 +2311,7 @@ write (iu,  '(a, i8)')   '# particle_output_every_n_turns       = ', lttp%partic
 write (iu,  '(a, i8)')   '# averages_output_every_n_turns       = ', lttp%averages_output_every_n_turns
 write (iu,  '(a, i0)')   '# random_seed                         = ', lttp%random_seed
 write (iu,  '(a, i0)')   '# random_seed_actual                  = ', ltt_com%random_seed_actual
+write (iu,  '(a, l1)')   '# output_only_last_turns              = ', lttp%output_only_last_turns
 write (iu,  '(a, l1)')   '# Radiation_Damping_on                = ', bmad_com%radiation_damping_on
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on           = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on                    = ', bmad_com%spin_tracking_on
@@ -2542,10 +2585,11 @@ type (ltt_params_struct) lttp
 type (ltt_bunch_data_struct) bd
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
+type (bunch_struct), target :: bunch0
 type (ele_struct), optional :: ele
 
 real(rp), optional :: s_pos
-integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib
+integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib, n
 logical error
 
 character(10) t_str
@@ -2556,6 +2600,9 @@ character(2000) :: line
 ! s_pos and ele are present in extraction tracking.
 
 if (lttp%averages_output_file == '') return
+
+if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                        lttp%n_turns - ix_turn >= lttp%output_only_last_turns) return
 
 select case (lttp%averages_output_every_n_turns)
 case (-1);    if (ix_turn /= lttp%n_turns) return
@@ -2574,9 +2621,24 @@ else
 endif
 
 nb = size(beam%bunch)
-do ib = 1, nb
-  bunch => beam%bunch(ib)
-  if (bunch%n_live == 0) exit
+do ib = 0, nb
+
+  if (ib == 0) then
+    if (.not. lttp%output_combined_bunches .or. nb == 1) cycle
+    n = 0
+    do ix = 1, nb
+      n = n + size(beam%bunch(ix)%particle)
+    enddo
+    allocate(bunch0%particle(n))
+    bunch => bunch0
+    n = 0
+    do ix = 1, nb
+      bunch%particle(n+1:n+size(beam%bunch(ix)%particle)) = beam%bunch(ix)%particle
+    enddo
+  else
+    bunch => beam%bunch(ib)
+    if (bunch%n_live == 0) exit
+  endif
 
   call ltt_calc_bunch_data(lttp, ix_turn, bunch, bd)
 
@@ -3183,9 +3245,12 @@ type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 
 real(rp) time_now
+logical, optional :: do_print
+
 character(*) line
 character(20) time_str
-logical, optional :: do_print
+character(200) str
+character(*), parameter :: r_name = 'ltt_print_mpi_info'
 
 !
 
@@ -3193,9 +3258,10 @@ if (.not. logic_option(lttp%debug, do_print)) return
 
 call run_timer ('ABS', time_now)
 call date_and_time_stamp (time_str)
-print '(a, f8.2, 2a, 2x, i0, 2a)', 'dTime:', (time_now-ltt_com%time_start)/60, &
+write(str, '(a, f8.2, 2a, 2x, i0, 2a)') 'dTime:', (time_now-ltt_com%time_start)/60, &
                                         ' Now: ', time_str, ltt_com%mpi_rank, ': ', trim(line)
 
+call out_io(s_blank$, r_name, str)
 end subroutine ltt_print_mpi_info
 
 !-------------------------------------------------------------------------------------------

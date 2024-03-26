@@ -42,6 +42,8 @@ subroutine tao_open_file (file_name, iunit, full_file_name, error_severity, bina
   ! open file
 
   iunit = lunget()
+  if (iunit == 0) return
+
   call fullfilename(file_name, full_file_name)
 
   if (logic_option(.false., binary)) then

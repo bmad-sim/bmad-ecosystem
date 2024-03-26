@@ -54,22 +54,32 @@ endif
 
 if (datum%merit_type == '') then
   datum%why_invalid = 'MERIT_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum)
-  if (print_err) call out_io (s_error$, r_name, 'MERIT_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum))
+  if (print_err) call out_io (s_error$, r_name, datum%why_invalid)
   return
 endif
 
 if (d_type == '') then
   datum%why_invalid = 'DATA_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum)
-  if (print_err) call out_io (s_error$, r_name, 'DATA_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum))
+  if (print_err) call out_io (s_error$, r_name, datum%why_invalid)
   return
 endif
 
 if (datum%data_source == '') then
   datum%why_invalid = 'DATA_SOURCE NOT SET FOR DATUM: ' // tao_datum_name(datum)
-  if (print_err) call out_io (s_error$, r_name, 'DATA_SOURCE NOT SET FOR DATUM: ' // tao_datum_name(datum))
+  if (print_err) call out_io (s_error$, r_name, datum%why_invalid)
   return
 endif
 
+!
+
+if (d_type(1:11) /= 'expression:') then
+  if (str_first_in_set(datum%data_type, '@[]|') /= 0) then
+    datum%why_invalid = 'MALFORMED DATA_TYPE (MISSING "expression:" PREFIX?)'
+    if (print_err) call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
+                                                  'HAS A MALFORMED DATA_TYPE (MISSING "expression:" PREFIX?): ' // quote(datum%data_type))
+    return
+  endif
+endif
 
 !
 
