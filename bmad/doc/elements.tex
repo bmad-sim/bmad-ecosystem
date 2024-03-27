@@ -4647,6 +4647,14 @@ Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off b
 
 Note: Zero phase for $\phi_\REF$ corresponds to the stable fixed point above transition.
 
+Note: \vn{Phi0} is not to be confused with the synchronous phase. The synchronous phase is the phase
+of the particle as it passes through the cavity with respect to the RF waveform. The synchronous
+phase is not something that is set by the User but rather is established by the balance between the
+energy gain of the particle as it goes through the cavities in the ring versus the energy lost to
+synchrotron radiation. In fact, for a ring with a single cavity, the synchronous phase is independent
+of \vn{phi0}. Changing \vn{phi0} in such a situation will result in the closed orbit phase space $z$ to
+vary in lock step.
+
 If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by
 \begin{example}
   rf_frequency = harmon * c_light * beta0 / L_lattice 
