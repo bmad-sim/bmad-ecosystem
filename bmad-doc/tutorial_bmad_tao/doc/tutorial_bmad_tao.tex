@@ -78,7 +78,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ June 29, 2023}
+\date{David Sagan and Chris Mayes \\ March 26, 2024}
 
 \begin{document}
 
@@ -2520,10 +2520,10 @@ set var quad_tilt[1]|model = 0.1
 set var quad_tilt[2]|model = -0.05
 set var steering[1]|model = 1.2e-4  
 set var steering[2]|model = 0.9e-4
-show value 1@orbit.x|model + 5e-5*ran_gauss() -form es12.4  ! Add 50um noise
-show value 1@orbit.y|model + 5e-5*ran_gauss() -form es12.4
-show value 2@orbit.x|model + 5e-5*ran_gauss() -form es12.4
-show value 2@orbit.y|model + 5e-5*ran_gauss() -form es12.4
+show value 1@orbit.x|model + 5e-5*ran_gauss() #form es12.4  ! Add 50um noise
+show value 1@orbit.y|model + 5e-5*ran_gauss() #form es12.4
+show value 2@orbit.x|model + 5e-5*ran_gauss() #form es12.4
+show value 2@orbit.y|model + 5e-5*ran_gauss() #form es12.4
 \end{code}
 This file represents the state of the machine at the time the orbit measurements are made.  The
 results of running this script was, with a little bit of reformatting, been put in the file
