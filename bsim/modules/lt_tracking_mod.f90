@@ -2589,7 +2589,7 @@ type (bunch_struct), target :: bunch0
 type (ele_struct), optional :: ele
 
 real(rp), optional :: s_pos
-integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib, n
+integer i, ix_turn, k, nb, iu1, iu2, iu3, ix, ib, n, n1
 logical error
 
 character(10) t_str
@@ -2633,7 +2633,9 @@ do ib = 0, nb
     bunch => bunch0
     n = 0
     do ix = 1, nb
-      bunch%particle(n+1:n+size(beam%bunch(ix)%particle)) = beam%bunch(ix)%particle
+      n1 = size(beam%bunch(ix)%particle)
+      bunch%particle(n+1:n+n1) = beam%bunch(ix)%particle
+      n = n + n1
     enddo
   else
     bunch => beam%bunch(ib)
