@@ -2148,6 +2148,17 @@ element.
 \label{s:foil}
 \index{foil|hyperbf}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{foil.pdf}
+  \caption[Foil geometry.]
+{Foil geometry. Parameters \vn{thickness}, \vn{drel_thickness_dx}, \vn{x1_edge}, \vn{x2_edge},
+\vn{y1_edge}, and \vn{y2_edge} determine the foil geometry in body coordinates (see \fig{f:coords}).
+Orientation parameters like \vn{x_offset} (\sref{s:offset}) orient the foil with respect to
+laboratory coordinates but do not change the foil shape.}
+  \label{f:foil}
+\end{figure}
+
 A \vn{foil} element represents a planar sheet of material which can strip electrons from a particle.
 In conjunction, there will be scattering of the particle trajectory as well as an associated energy
 loss.
@@ -2261,13 +2272,15 @@ The foil has a rectangular shape and particles will only be considered to have h
   x1_edge < x_particle < x2_edge  and
   y1_edge < y_particle < y2_edge
 \end{example}
-where (x_particle, y_particle) are the coordinates of the particle. Particles that do not hit the
-sheet pass through the element without a change in charge nor a change in trajectory. The default
+where (x_particle, y_particle) are the coordinates of the particle in the element body (not the
+laboratory) coordinate system (\fig{f:coords}). See \fig{f:foil}. Particles that do not hit the
+foil pass through the element without a change in charge nor a change in trajectory. The default
 for \vn{x1_edge} and \vn{y1_edge} is -99~meters and for \vn{x2_edge} and \vn{y2_edge} the default is
 +99~meters.
 
-The \vn{drel_thickness_dx} can be used to get a varying foil thickness. The thickness $t$ at a point
-$(x,y)$ on the foil will be
+The \vn{drel_thickness_dx} parameter can be used to get a varying foil thickness. 
+The thickness $t$ at a point
+$(x,y)$ on the foil (in element body coordinates) will be
 \begin{equation}
   t = t_0 (1 + x \, \frac{1}{t_0}\frac{dt}{dx})
 \end{equation}
@@ -4633,6 +4646,14 @@ Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off b
 \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
 
 Note: Zero phase for $\phi_\REF$ corresponds to the stable fixed point above transition.
+
+Note: \vn{Phi0} is not to be confused with the synchronous phase. The synchronous phase is the phase
+of the particle as it passes through the cavity with respect to the RF waveform. The synchronous
+phase is not something that is set by the User but rather is established by the balance between the
+energy gain of the particle as it goes through the cavities in the ring versus the energy lost to
+synchrotron radiation. In fact, for a ring with a single cavity, the synchronous phase is independent
+of \vn{phi0}. Changing \vn{phi0} in such a situation will result in the closed orbit phase space $z$ to
+vary in lock step.
 
 If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by
 \begin{example}
