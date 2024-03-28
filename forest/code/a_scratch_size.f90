@@ -257,7 +257,7 @@ module precision_constants
   real(dp), pointer:: reel(:),finds(:,:,:)  => null(),finds1(:)  => null()
   complex(dp), pointer:: reelc(:)  => null()
    integer :: ipric=0,ipric2=0
- 
+  logical :: quadruple =.false.
   INTERFACE read
      MODULE PROCEDURE read_d
      MODULE PROCEDURE read_int
@@ -436,11 +436,17 @@ contains
     IMPLICIT NONE
     integer i ,id 
     real(dp) a,b,b8,s21,ak
-
+ 
     YOSK(4)=0.0_dp
-    YOSK(3)=0.78451361047756e0_dp
-    YOSK(2)=0.235573213359357e0_dp
-    YOSK(1)=-1.17767998417887e0_dp
+    if(quadruple) then
+     YOSK(3)=0.784513610477557263819497633866351e0_dp
+     YOSK(2)=0.235573213359358133684793182978535e0_dp
+     YOSK(1)=-1.17767998417887100694641568096432e0_dp
+    else
+     YOSK(3)=0.78451361047756e0_dp
+     YOSK(2)=0.235573213359357e0_dp
+     YOSK(1)=-1.17767998417887e0_dp
+    endif
     YOSK(0)=1.0_dp-2.0_dp*(YOSK(1)+YOSK(2)+YOSK(3))
 
     do i=4,1,-1
