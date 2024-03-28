@@ -143,10 +143,12 @@ type ltt_com_struct
   logical :: debug = .false.
   integer :: n_particle      ! Num particles per bunch. Needed with MPI.
   integer :: mpi_rank = master_rank$
-  integer :: mpi_run_index = 0                 ! Run index
-  integer :: mpi_ix0_particle = 0              ! Index of first particle
+  integer :: mpi_run_index = 0                    ! Run index
+  integer :: mpi_ix0_particle = 0                 ! Index of first particle
   logical :: using_mpi = .false.
-  logical :: track_bypass = .false.            ! Used by DA program
+  logical :: track_bypass = .false.               ! Used by DA program
+  logical :: ltt_tracking_happening_now = .false. ! Toggled True by program after all pre-tracking 
+                                                  !   done (like the closed orbit calc). 
   character(200) :: master_input_file = ''
   character(200) :: last_beam_output_file = ''
   character(40) :: ps_fmt = '(2i7, 9es16.8, 3x, 3f13.9, 4x, a)'
@@ -189,6 +191,7 @@ namelist / params / bmad_com, beam_init, ltt
 ltt_params_global => ltt
 ltt_com_global => ltt_com
 ltt_com%master_input_file = ''
+ltt_com%ltt_tracking_happening_now = .false.
 ltt%ix_turn_start = int_garbage$
 beam_init%ix_turn = int_garbage$
 
@@ -964,6 +967,7 @@ integer ix_branch, ix_start, ix_stop
 ! Run serial in check mode.
 
 bmad_com%radiation_fluctuations_on = .false.
+ltt_com%ltt_tracking_happening_now = .true.    ! Start of main tracking
 lat => ltt_com%tracking_lat
 
 call ltt_pointer_to_map_ends(lttp, lat, ele_start, ele_stop)
@@ -1084,6 +1088,7 @@ integer ib, ip
 
 !
 
+ltt_com%ltt_tracking_happening_now = .true.    ! Start of main tracking
 call ltt_write_per_particle_file_header(lttp, ltt_com, beam)
 
 do ib = 1, size(beam%bunch)
@@ -1321,6 +1326,7 @@ character(*), parameter :: r_name = 'ltt_run_single_mode'
 
 ! Run a single particle in single mode.
 
+ltt_com%ltt_tracking_happening_now = .true.    ! Start of main tracking
 lat => ltt_com%tracking_lat
 
 n_sum = 0
@@ -1567,6 +1573,7 @@ character(*), parameter :: r_name = 'ltt_run_beam_mode'
 
 ! Init
 
+ltt_com%ltt_tracking_happening_now = .true.    ! Start of main tracking
 lat => ltt_com%tracking_lat
 time0 = ltt_com%time_start
 time1 = time0
@@ -3124,7 +3131,7 @@ logical err_flag, rad_fluct
 
 if (lttp%split_bends_for_stochastic_rad) rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
 ele => ele_start
-it = i_turn
+it = integer_option(0, i_turn)
 
 do
   ele => pointer_to_next_ele(ele)
