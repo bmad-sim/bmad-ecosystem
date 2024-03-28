@@ -64,7 +64,8 @@ MODULE S_DEF_KIND
   PRIVATE PUSH_NSMI_R,PUSH_NSMI_D
   PRIVATE PUSH_SSMI_R,PUSH_SSMI_D
 
-  PRIVATE GETANBNR,GETANBNP,ZEROR_teapot,ZEROP_teapot,ALLOCTEAPOT,KILLTEAPOT
+!  PRIVATE GETANBNR,GETANBNP 
+  PRIVATE ZEROR_teapot,ZEROP_teapot,ALLOCTEAPOT,KILLTEAPOT
   PRIVATE GETAEBER,GETAEBEP
   PRIVATE SPROTR,SPROTP,SPROT
   PRIVATE SseCR,SseCP,Ssec
@@ -10475,108 +10476,115 @@ integer :: kkk=0
 !!!! *************************************************************** !!!!
 !!!! *           Beginning of the teapot element                   * !!!!
 !!!! *************************************************************** !!!!
-  SUBROUTINE GETANBNR(EL)
-    IMPLICIT NONE
-    TYPE(TEAPOT),INTENT(INOUT):: EL
-    INTEGER I,J,K,POW,nmul
+!  SUBROUTINE GETANBNR(EL)
+!    IMPLICIT NONE
+!    TYPE(TEAPOT),INTENT(INOUT):: EL
+!    INTEGER I,J,K,POW,nmul
+!
+!    !    nmul=EL%P%NMUL
+!    !    IF(EL%P%NMUL> SECTOR_NMUL) THEN
+!
+!    nmul=SECTOR_NMUL_max
+!
+!    !    ENDIF
+!
+!    DO I=1,S_B_from_V%N_MONO
+!       EL%BF_X(I)=0.0_dp
+!       EL%BF_Y(I)=0.0_dp
+!    ENDDO
+!    DO I=1,NMUL
+!       DO J=1,S_B_from_V%N_MONO
+!          K=S_B_from_V%I(J)+S_B_from_V%J(J)
+!          POW=K+1-I
+!          IF(K+1>=I) THEN
+!
+!
+!           EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_B%A_Y(I,J)+EL%BN(I)*S_B%B_Y(I,J))*EL%P%B0**POW
+!             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B_from_V%A_X(I,J)+EL%BN(I)*S_B_from_V%B_X(I,J))*EL%P%B0**POW
+!             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_B_from_V%A_Y(I,J)+EL%BN(I)*S_B_from_V%B_Y(I,J))*EL%P%B0**POW
+!
+!          ENDIF
+!       ENDDO
+!    ENDDO
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!    DO I=1,S_B_from_V%N_MONO
+!       EL%VM(I)=0.0_dp
+!    ENDDO
+!
+!    DO I=1,NMUL
+!       DO J=1,S_B_from_V%N_MONO
+!          K=S_B_from_V%i(J)+S_B_from_V%j(J)
+!          POW=K-I      !+1
+!          IF(K>=I) THEN   ! changed
+!
+!             EL%VM(J)=EL%VM(J)+(EL%An(I)*S_B_from_V%VA(I,J)+EL%Bn(I)*S_B_from_V%VB(I,J))*EL%P%B0**POW
+!
+!          ENDIF
+!       ENDDO
+!    ENDDO
+!
+!
+!
+!
+!  END SUBROUTINE GETANBNR
 
-    !    nmul=EL%P%NMUL
-    !    IF(EL%P%NMUL> SECTOR_NMUL) THEN
-
-    nmul=SECTOR_NMUL_max
-
-    !    ENDIF
-
-    DO I=1,S_B_from_V%N_MONO
-       EL%BF_X(I)=0.0_dp
-       EL%BF_Y(I)=0.0_dp
-    ENDDO
-    DO I=1,NMUL
-       DO J=1,S_B_from_V%N_MONO
-          K=S_B_from_V%I(J)+S_B_from_V%J(J)
-          POW=K+1-I
-          IF(K+1>=I) THEN
-
-
-!             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B%A_X(I,J)+EL%BN(I)*S_B%B_X(I,J))*EL%P%B0**POW
+!  SUBROUTINE GETANBNP(EL)
+!    IMPLICIT NONE
+!    TYPE(TEAPOTP),INTENT(INOUT):: EL
+!    INTEGER I,J,K,POW,nmul
+!
+!    !    nmul=EL%P%NMUL
+!    !    IF(EL%P%NMUL> SECTOR_NMUL) THEN
+!
+!    nmul=SECTOR_NMUL_max
+!
+!    !    ENDIF
+!
+!    DO I=1,S_B_from_V%N_MONO
+!       EL%BF_X(I)=0.0_dp
+!       EL%BF_Y(I)=0.0_dp
+!    ENDDO
+!    DO I=1,NMUL
+!       DO J=1,S_B_from_V%N_MONO
+!          K=S_B_from_V%I(J)+S_B_from_V%J(J)
+!          POW=K+1-I
+!          IF(K+1>=I) THEN
+!
 !             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_B%A_Y(I,J)+EL%BN(I)*S_B%B_Y(I,J))*EL%P%B0**POW
-             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B_from_V%A_X(I,J)+EL%BN(I)*S_B_from_V%B_X(I,J))*EL%P%B0**POW
-             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_B_from_V%A_Y(I,J)+EL%BN(I)*S_B_from_V%B_Y(I,J))*EL%P%B0**POW
-
-          ENDIF
-       ENDDO
-    ENDDO
-
-    DO I=1,S_B_from_V%N_MONO
-       EL%VM(I)=0.0_dp
-    ENDDO
-
-    DO I=1,NMUL
-       DO J=1,S_B_from_V%N_MONO
-          K=S_B_from_V%i(J)+S_B_from_V%j(J)
-          POW=K-I      !+1
-          IF(K>=I) THEN   ! changed
-
-             EL%VM(J)=EL%VM(J)+(EL%An(I)*S_B_from_V%VA(I,J)+EL%Bn(I)*S_B_from_V%VB(I,J))*EL%P%B0**POW
-
-          ENDIF
-       ENDDO
-    ENDDO
-
-
+!             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B_from_V%A_X(I,J)+EL%BN(I)*S_B_from_V%B_X(I,J))*EL%P%B0**POW
+!             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_B_from_V%A_Y(I,J)+EL%BN(I)*S_B_from_V%B_Y(I,J))*EL%P%B0**POW
+!
+!          ENDIF
+!       ENDDO
+!    ENDDO
+!
+!    DO I=1,S_B_from_V%N_MONO
+!       EL%VM(I)=0.0_dp
+!    ENDDO
+!
+!    DO I=1,NMUL
+!       DO J=1,S_B_from_V%N_MONO
+!          K=S_B_from_V%i(J)+S_B_from_V%j(J)
+!          POW=K-I      !+1
+!          IF(K>=I) THEN   ! changed
+!
+!             EL%VM(J)=EL%VM(J)+(EL%An(I)*S_B_from_V%VA(I,J)+EL%Bn(I)*S_B_from_V%VB(I,J))*EL%P%B0**POW
+!
+!          ENDIF
+!       ENDDO
+!    ENDDO
 
 
-  END SUBROUTINE GETANBNR
-
-  SUBROUTINE GETANBNP(EL)
-    IMPLICIT NONE
-    TYPE(TEAPOTP),INTENT(INOUT):: EL
-    INTEGER I,J,K,POW,nmul
-
-    !    nmul=EL%P%NMUL
-    !    IF(EL%P%NMUL> SECTOR_NMUL) THEN
-
-    nmul=SECTOR_NMUL_max
-
-    !    ENDIF
-
-    DO I=1,S_B_from_V%N_MONO
-       EL%BF_X(I)=0.0_dp
-       EL%BF_Y(I)=0.0_dp
-    ENDDO
-    DO I=1,NMUL
-       DO J=1,S_B_from_V%N_MONO
-          K=S_B_from_V%I(J)+S_B_from_V%J(J)
-          POW=K+1-I
-          IF(K+1>=I) THEN
-
-!             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B%A_X(I,J)+EL%BN(I)*S_B%B_X(I,J))*EL%P%B0**POW
-!             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_B%A_Y(I,J)+EL%BN(I)*S_B%B_Y(I,J))*EL%P%B0**POW
-             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B_from_V%A_X(I,J)+EL%BN(I)*S_B_from_V%B_X(I,J))*EL%P%B0**POW
-             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_B_from_V%A_Y(I,J)+EL%BN(I)*S_B_from_V%B_Y(I,J))*EL%P%B0**POW
-
-          ENDIF
-       ENDDO
-    ENDDO
-
-    DO I=1,S_B_from_V%N_MONO
-       EL%VM(I)=0.0_dp
-    ENDDO
-
-    DO I=1,NMUL
-       DO J=1,S_B_from_V%N_MONO
-          K=S_B_from_V%i(J)+S_B_from_V%j(J)
-          POW=K-I      !+1
-          IF(K>=I) THEN   ! changed
-
-             EL%VM(J)=EL%VM(J)+(EL%An(I)*S_B_from_V%VA(I,J)+EL%Bn(I)*S_B_from_V%VB(I,J))*EL%P%B0**POW
-
-          ENDIF
-       ENDDO
-    ENDDO
-
-
-  END SUBROUTINE GETANBNP
+!  END SUBROUTINE GETANBNP
 
  SUBROUTINE GETAEBER(EL)
     IMPLICIT NONE
@@ -10585,7 +10593,7 @@ integer :: kkk=0
 
     !    nmul=EL%P%NMUL
     !    IF(EL%P%NMUL> SECTOR_NMUL) THEN
-
+! Lu kick
     nmul=SECTOR_NMUL_max
 
     !    ENDIF
@@ -10883,6 +10891,7 @@ integer :: kkk=0
     logical(lp) kic
     INTEGER J,M,A,K
 !VM is the scalar potential of the magnetic field!!!!!
+!    LU kick
     kic=my_false
     if(present(kick)) kic=kick
 
@@ -23040,7 +23049,7 @@ call kill(vm,phi,z)
   end subroutine radiate_2_prober
 
 
-  subroutine radiate_2_probep(c,DS,FAC,p,b2,dlds,XP,k,POS,E,B)
+  subroutine radiate_2_probep(c,DS,FAC,p,b2,dlds,XP,k,POS,E,B,stoch)
     implicit none
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENTP), POINTER::EL
@@ -23051,7 +23060,7 @@ call kill(vm,phi,z)
     REAL(DP), INTENT(IN) :: FAC
     TYPE(REAL_8), intent(in):: B2,dlds
     TYPE(REAL_8) st,z,x(6),av(3)
- 
+    logical stoch
     real(dp) b30,x1,x3,denf,denf0,denv
     type(damap) xpmap
  
@@ -23086,7 +23095,7 @@ call kill(vm,phi,z)
 !write(6,*) "denf ",denf
 !write(6,*) "FAC,DS,L ",FAC,DS%r,c%parent_fibre%mag%L
 
- 
+ if(stoch) then
        call alloc(xpmap)
 
        xpmap%v(1)=x(1)
@@ -23120,7 +23129,7 @@ call kill(vm,phi,z)
         c%delta_rad_in=(denf)/2+c%delta_rad_in
         c%delta_rad_out=denf/2+c%delta_rad_out
        endif
-
+endif
     call alloc(st)
 
     if(k%TIME) then
@@ -23539,7 +23548,7 @@ call kill(vm,phi,z)
     call alloc(sf)
     do i=1,3
      do j=1,3
-      s(i,j)=0.d0
+      s(i,j)=0.e0_dp
      enddo
     enddo
 
@@ -28027,8 +28036,8 @@ endif
        DK1=EL%L*FK1/EL%P%NST
        DK2=EL%L*FK2/EL%P%NST
        if(k%spin.or.k%radiation) then
-           DK1h=EL%L*FK1/EL%P%NST/2.0_DP
-           DK2h=EL%L*FK2/EL%P%NST/2.0_DP
+           DK1h=DK1/2.0_DP
+           DK2h=DK2/2.0_DP
        endif
 
        CALL SSECH1(EL,D1,DD1,p%X,k)
@@ -28067,7 +28076,7 @@ endif
        ENDDO
        if(k%spin.or.k%radiation) then
         do I =1,4
-           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+           DKH(I)=DK(I)/2.d0
         enddo
        endif
 
@@ -28306,7 +28315,7 @@ endif
        if(k%spin.or.k%radiation) then
        CALL ALLOC(DKH,4); 
         do I =1,4
-           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2
         enddo
        endif
 
@@ -29693,7 +29702,7 @@ endif
        if(k%spin.or.k%radiation) then
        CALL ALLOC(DKH,4); 
         do I =1,4
-           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2
         enddo
        endif
           DO J=4,2,-1
@@ -29838,7 +29847,7 @@ CALL alloc(NDKH)
        if(k%spin.or.k%radiation) then
        CALL ALLOC(DKH,4); 
         do I =1,4
-           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2
         enddo
        endif
 
@@ -30185,7 +30194,7 @@ CALL alloc(NDKH)
        if(k%spin.or.k%radiation) then
        CALL ALLOC(DKH,4); 
         do I =1,4
-           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2
         enddo
        endif
        !       DO I=1,B%N
@@ -30612,8 +30621,6 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,pos,zw)
   end subroutine radiate_envelope
 
 
-
-
 SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw)
     type(probe), INTENT(INOUT) :: p
     TYPE(fibre),pointer ::  f
@@ -30629,14 +30636,17 @@ SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw)
      f=> c%parent_fibre
      pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
      before=.true.
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
 
     if((k%radiation.or.k%envelope)) then
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
+
        call radiate_2_probe(c,DS,FAC,P,b2,dlds,k,pos)
 !       call radiate_2(c,DS,FAC,P,b2,dlds,before,k,pos)
     endif
 
-   if(k%spin) then   
+   if(k%spin) then 
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
+  
    do i=1,3
      om(i)=om(i)*ds/2.0_dp
     enddo
@@ -30651,6 +30661,8 @@ SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw)
     endif
 
  end SUBROUTINE RAD_SPIN_qua_PROBER
+
+
 
 SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds,zw)
     type(probe_8), INTENT(INOUT) :: p
@@ -30671,13 +30683,16 @@ SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds,zw)
      CALL alloc(B);CALL alloc(XP);CALL alloc(XPA);CALL alloc(ed);
      CALL alloc(OM);CALL alloc(B2);CALL alloc(DLDS); 
 
-    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
     if((k%radiation.or.k%envelope)) then
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
+
      !  call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
-       call radiate_2_probe(c,DS,FAC,P,b2,dlds,XP,k,pos,Ed,B)
+       call radiate_2_probe(c,DS,FAC,P,b2,dlds,XP,k,pos,Ed,B,k%envelope)
 
     endif
    if(k%spin) then 
+    CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
+
    do i=1,3
      om(i)=om(i)*ds/2.0_dp
     enddo
@@ -30687,7 +30702,7 @@ SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds,zw)
    endif
     if((k%radiation.or.k%envelope)) then
  !      call radiate_2(c,DS,FAC,P,b2,dlds,XP,before,k,pos,Ed,B)
-        call radiate_2_probe(c,DS,FAC,P,b2,dlds,XP,k,pos,Ed,B)
+        call radiate_2_probe(c,DS,FAC,P,b2,dlds,XP,k,pos,Ed,B,k%envelope)
 
     endif
      CALL KILL(B);CALL KILL(XP);CALL KILL(XPA);CALL KILL(ed);
@@ -30864,7 +30879,7 @@ end SUBROUTINE kick_stochastic_after
        if(k%spin.or.k%radiation) then
        CALL ALLOC(DKH,4); 
         do I =1,4
-           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2.d0
+           DKH(I)=EL%L*YOSK(I)/EL%P%NST/2
         enddo
        endif
        !       DO I=1,B%N

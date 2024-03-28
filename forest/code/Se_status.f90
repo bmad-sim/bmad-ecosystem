@@ -9951,7 +9951,11 @@ endif
 
        kick_x= -(f.d.1)  ! magnetic field
        kick_y= -(f.d.2)
-
+write(6,*) k
+call  print(kick_x)
+pause 1
+call  print(kick_y)
+pause 2
        call clean_taylor(kick_x,kick_x,1.0e-6_dp)
        call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
