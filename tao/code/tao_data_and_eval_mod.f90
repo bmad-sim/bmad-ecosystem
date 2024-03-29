@@ -222,6 +222,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
           if (associated(dflt_ele_start)) then
             datum%ix_ele = dflt_ele_start%ix_ele + j - 1
             if (datum%ix_ele > dflt_ele%branch%n_ele_track) datum%ix_ele = datum%ix_ele - dflt_ele%branch%n_ele_track + 1
+            this_ele => dflt_ele%branch%ele(datum%ix_ele)
           endif
         endif
 
