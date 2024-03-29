@@ -12,8 +12,8 @@ use coord_mod
 ! Routine to calculate the twiss parameters, transport matrices and orbit.
 !
 ! This routine is an overloaded name for:
-!   twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start)
-!   twiss_and_track_all (lat, orb_array, status)
+!   twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start, print_err)
+!   twiss_and_track_all (lat, orb_array, status, print_err)
 !
 ! The essential difference between these two procedures is that
 ! twiss_and_track_branch only does the main branch while twiss_and_track_all
@@ -49,6 +49,7 @@ use coord_mod
 !   ix_branch           -- Integer, optional: Branch to track.
 !   use_particle_start  -- logical, optional: If True, use lat%particle_start instead of orb(0)
 !                            as the initial coords for open geometry lattices. Default is False.
+!   print_err           -- logical, optional: Default is True. If False, suppress error messages.
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
@@ -73,7 +74,7 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start)
+! Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start, print_err)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
@@ -81,7 +82,7 @@ contains
 ! See twiss_and_track for more details.
 !-
 
-subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start)
+subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start, print_err)
 
 implicit none
 
@@ -92,7 +93,7 @@ type (coord_struct), allocatable :: orb(:)
 integer, optional :: status, ix_branch
 integer ib, status2
 
-logical, optional :: use_particle_start
+logical, optional :: use_particle_start, print_err
 
 !
 
@@ -100,7 +101,7 @@ ib = integer_option(0, ix_branch)
 call reallocate_coord (orb, lat%branch(ib)%n_ele_max)
 if (logic_option(.false., use_particle_start)) &
                     call init_coord (orb(0), lat%particle_start, lat%branch(ib)%ele(0), downstream_end$)
-call twiss_and_track1 (lat, orb, ib, status2)
+call twiss_and_track1 (lat, orb, ib, status2, print_err)
 if (present(status)) status = status2
 
 end subroutine twiss_and_track_branch
@@ -109,7 +110,7 @@ end subroutine twiss_and_track_branch
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_all (lat, orb_array, status)
+! Subroutine twiss_and_track_all (lat, orb_array, status, print_err)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 ! Note: photon branches are currently ignored.
@@ -118,7 +119,7 @@ end subroutine twiss_and_track_branch
 ! See twiss_and_track for more details.
 !-
 
-subroutine twiss_and_track_all (lat, orb_array, status)
+subroutine twiss_and_track_all (lat, orb_array, status, print_err)
 
 implicit none
 
@@ -128,6 +129,7 @@ type (coord_array_struct), allocatable :: orb_array(:)
 
 integer, optional :: status
 integer i, status2
+logical, optional :: print_err
 
 !
 
@@ -140,7 +142,7 @@ do i = 0, ubound(lat%branch, 1)
     orb_array(i)%orbit(0) = orb_array(branch%ix_from_branch)%orbit(branch%ix_from_ele)
     call transfer_twiss (lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele), branch%ele(0))
   endif
-  call twiss_and_track1 (lat, orb_array(i)%orbit, i, status2)
+  call twiss_and_track1 (lat, orb_array(i)%orbit, i, status2, print_err)
   if (present(status)) status = status2
   if (status2 /= ok$) return
 enddo 
@@ -151,7 +153,7 @@ end subroutine twiss_and_track_all
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track1 (lat, ix_branch, orb, status)
+! Subroutine twiss_and_track1 (lat, ix_branch, orb, status, print_err)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
@@ -160,7 +162,7 @@ end subroutine twiss_and_track_all
 !   twiss_and_track_all
 !-
 
-subroutine twiss_and_track1 (lat, orb, ix_branch, status)
+subroutine twiss_and_track1 (lat, orb, ix_branch, status, print_err)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
@@ -169,6 +171,7 @@ type (coord_struct), allocatable :: orb(:)
 
 integer i, ix_branch, status, stat
 
+logical, optional :: print_err
 logical err_flag, err
 
 character(20) :: r_name = 'twiss_and_track1'
@@ -190,9 +193,9 @@ if (branch%param%geometry == closed$) then
   call twiss_at_start (lat, status, ix_branch, .false.)
 
   if (rf_is_on(branch)) then
-    call closed_orbit_calc (lat, orb, 6, 1, ix_branch, err_flag = err)
+    call closed_orbit_calc (lat, orb, 6, 1, ix_branch, err, print_err)
   else
-    call closed_orbit_calc (lat, orb, 4, 1, ix_branch, err_flag = err)
+    call closed_orbit_calc (lat, orb, 4, 1, ix_branch, err, print_err)
   endif
 
   if (err) then
@@ -206,7 +209,7 @@ if (branch%param%geometry == closed$) then
     return
   endif
 
-  call twiss_at_start (lat, status, branch%ix_branch)
+  call twiss_at_start (lat, status, branch%ix_branch, print_err)
   if (status /= ok$) then
     status = -status  ! To differentiate a failure here from the first call to twiss_at_start.
     return

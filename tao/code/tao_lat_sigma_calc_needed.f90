@@ -19,6 +19,12 @@ logical do_lat_sigma
 
 do_lat_sigma = .false.
 
+if (len(data_type) > 11) then
+  if (data_type(1:11) == 'expression:') then
+    if (index(data_type, 'sigma.') /= 0) do_lat_sigma = .true.
+  endif
+endif
+
 if (data_source /= 'lat') return
 if (len(data_type) < 6) return
 if (data_type(1:6)  == 'sigma.') do_lat_sigma = .true. 

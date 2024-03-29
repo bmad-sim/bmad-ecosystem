@@ -2226,12 +2226,12 @@ subroutine set_status_flags (bookkeeping_state, stat)
   integer stat
 end subroutine
 
-subroutine set_z_tune (branch, z_tune, ok)
+subroutine set_z_tune (branch, z_tune, ok, print_err)
   import
   implicit none
   type (branch_struct), target :: branch
   real(rp) :: z_tune
-  logical, optional :: ok
+  logical, optional :: ok, print_err
 end subroutine
 
 subroutine set_on (key, lat, on_switch, orb)

@@ -375,7 +375,7 @@ do n_search = 1, 1000000
   ! check to see if there is an aperture
 
   if (x1 > 1.0 .or. y1 > 1.0) then
-    call out_io(s_error$, r_name, 'DA exceeds 1 meter ... giving up.')
+    call out_io(s_error$, r_name, 'DA exceeds 1 meter ... giving up (set an aperture in the lattice file to avoid this).')
     if (global_com%exit_on_error) call err_exit
   endif
 

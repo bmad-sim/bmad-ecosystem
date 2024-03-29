@@ -1077,13 +1077,13 @@ angz= R(3)
 if(mengyu) angy=-angy
 !!!! Etienne stupid sign conventions
 rx(1,1:3)=[1,0,0]
-rx(2,1:3)=[0.d0,cos(angx),sin(angx)]
-rx(3,1:3)=[0.d0,-sin(angx), cos(angx)]
-ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+rx(2,1:3)=[0.e0_dp,cos(angx),sin(angx)]
+rx(3,1:3)=[0.e0_dp,-sin(angx), cos(angx)]
+ry(1,1:3)=[cos(angy),0.e0_dp,sin(angy)]
 ry(2,1:3)=[0,1,0]
-ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
-rz(1,1:3)=[cos(angz),sin(angz),0.d0]
-rz(2,1:3)=[-sin(angz), cos(angz),0.d0]
+ry(3,1:3)=[-sin(angy),0.e0_dp,cos(angy)]
+rz(1,1:3)=[cos(angz),sin(angz),0.e0_dp]
+rz(2,1:3)=[-sin(angz), cos(angz),0.e0_dp]
 rz(3,1:3)=[0,0,1]
 
 
@@ -1099,16 +1099,16 @@ endif
 
  
 rx(1,1:3)=[1,0,0]
-rx(2,1:3)=[0.d0,cos(angx),sin(angx)]
-rx(3,1:3)=[0.d0,-sin(angx), cos(angx)]
+rx(2,1:3)=[0.e0_dp,cos(angx),sin(angx)]
+rx(3,1:3)=[0.e0_dp,-sin(angx), cos(angx)]
  
 S_IJ=Rx(1,1)*rot_arr(3,1)+Rx(1,2)*rot_arr(3,2)+Rx(1,3)*rot_arr(3,3)
 S_JJ=Rx(3,1)*rot_arr(3,1)+Rx(3,2)*rot_arr(3,2)+Rx(3,3)*rot_arr(3,3)
  
     angy=atan2(-S_IJ,S_JJ);
-ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+ry(1,1:3)=[cos(angy),0.e0_dp,sin(angy)]
 ry(2,1:3)=[0,1,0]
-ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
+ry(3,1:3)=[-sin(angy),0.e0_dp,cos(angy)]
 rot_=matmul(ry,rx)
 
 S_IJ=rot_(2,1)*rot_arr(1,1)+rot_(2,2)*rot_arr(1,2)+rot_(2,3)*rot_arr(1,3)
@@ -1152,13 +1152,13 @@ angz= R(3)
 
 !!!! Etienne stupid sign conventions
 rx(1,1:3)=[1,0,0]
-rx(2,1:3)=[0.d0,cos(angx),sin(angx)]
-rx(3,1:3)=[0.d0,-sin(angx), cos(angx)]
-ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+rx(2,1:3)=[0.e0_dp,cos(angx),sin(angx)]
+rx(3,1:3)=[0.e0_dp,-sin(angx), cos(angx)]
+ry(1,1:3)=[cos(angy),0.e0_dp,sin(angy)]
 ry(2,1:3)=[0,1,0]
-ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
-rz(1,1:3)=[cos(angz),sin(angz),0.d0]
-rz(2,1:3)=[-sin(angz), cos(angz),0.d0]
+ry(3,1:3)=[-sin(angy),0.e0_dp,cos(angy)]
+rz(1,1:3)=[cos(angz),sin(angz),0.e0_dp]
+rz(2,1:3)=[-sin(angz), cos(angz),0.e0_dp]
 rz(3,1:3)=[0,0,1]
 
 
@@ -1169,17 +1169,17 @@ t=tra
 
 endif
     angz=atan2(rot_arr(1,2),rot_arr(1,1));
-rz(1,1:3)=[cos(angz),sin(angz),0.d0]
-rz(2,1:3)=[-sin(angz), cos(angz),0.d0]
+rz(1,1:3)=[cos(angz),sin(angz),0.e0_dp]
+rz(2,1:3)=[-sin(angz), cos(angz),0.e0_dp]
 rz(3,1:3)=[0,0,1]
 
 S_IJ=Rz(1,1)*rot_arr(3,1)+Rz(1,2)*rot_arr(3,2)+Rz(1,3)*rot_arr(3,3)
 S_JJ=Rz(3,1)*rot_arr(3,1)+Rz(3,2)*rot_arr(3,2)+Rz(3,3)*rot_arr(3,3)
  
     angy=atan2(-S_IJ,S_JJ);
-ry(1,1:3)=[cos(angy),0.d0,sin(angy)]
+ry(1,1:3)=[cos(angy),0.e0_dp,sin(angy)]
 ry(2,1:3)=[0,1,0]
-ry(3,1:3)=[-sin(angy),0.d0,cos(angy)]
+ry(3,1:3)=[-sin(angy),0.e0_dp,cos(angy)]
 rot_=matmul(ry,rz)
 
 S_IJ=rot_(2,1)*rot_arr(3,1)+rot_(2,2)*rot_arr(3,2)+rot_(2,3)*rot_arr(3,3)
