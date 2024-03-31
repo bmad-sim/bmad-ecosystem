@@ -175,9 +175,9 @@ This is used in place of the dipole hard edge fringe kick given in \sref{s:fring
 The linear dipole hard edge fringe model is adapted from MAD\cite{b:maduser} and only includes linear
 terms. The fringe transport is
 \begin{align}
-  \Delta p_x &= g_\tot \, \tan(e) \CRNO
+  \Delta p_x &= g_\tot \, \tan(e) \cdot x \CRNO
   \Delta p_y &= -g_\tot \, \tan \left( e - 
-    \frac{2 \, f_{int} \, h_{gap} \, g_\tot \, (1 + \sin^2(e))}{\cos(e)} \right)
+    \frac{2 \, f_{int} \, h_{gap} \, g_\tot \, (1 + \sin^2(e))}{\cos(e)} \right) \cdot y
 \end{align}
 where $g_\tot = g + dg$ is the actual field and $e$ is \vn{e1} if the particle is entering the
 dipole and \vn{e2} if the particle is exiting the dipole.

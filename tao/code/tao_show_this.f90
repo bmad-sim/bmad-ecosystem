@@ -244,7 +244,7 @@ if (ix_word > 3 .and. index('space_charge_com', what2(:ix_word)) == 1) what2 = '
 if (ix_word > 2 .and. index('floor_plan', what2(:ix_word)) == 1)       what2 = 'plot -floor_plan ' // what2(ix_word+1:)
 
 call match_word (what2, [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
-        'chromaticity', 'constraints', 'control', 'curve', 'data', &
+        'chromaticity', 'constraints', 'control', 'curve', 'data', 'debug', &
         'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', &
         'history', 'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', &
         'optimizer', 'orbit', 'particle', 'plot', 'ptc', 'radiation_integrals', 'spin', 'string', &
@@ -1430,6 +1430,15 @@ case ('data')
   endif
 
 !----------------------------------------------------------------------
+! debug
+! Temp code used for debugging. Also see 'internal'
+
+case ('debug')
+
+  print *, 'Absolute_time_tracking: ', bmad_com%absolute_time_tracking
+  print *, 'E_tot: ', lat%ele(1)%value(E_tot$)
+
+!----------------------------------------------------------------------
 ! derivative
 
 case ('derivative')
@@ -2571,7 +2580,7 @@ case ('hom')
 
 !----------------------------------------------------------------------
 ! Internal
-! Used for debugging purposes
+! Used for debugging purposes. See also 'debug' which is for "temparary" code.
 
 case ('internal')
 
