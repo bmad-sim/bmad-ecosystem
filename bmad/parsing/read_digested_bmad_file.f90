@@ -140,8 +140,9 @@ do i = 1, n_files
     digested_prefix_in = fname_read(1:j1-j)
     digested_prefix_out = full_digested_file(1:j2-j)
     if (.not. is_match) then
-      if (.not. err_found) call out_io(s_info$, r_name, ' NOTE: MOVED DIGESTED FILE.')
-      err_found = .true.
+      call out_io(s_info$, r_name, ' NOTE: MOVED DIGESTED FILE.')
+      close (d_unit)
+      return
     endif
     cycle
   endif
@@ -167,8 +168,9 @@ do i = 1, n_files
   inquire (file = fname_versionless, exist = found_it, name = fname_full)
   call simplify_path (fname_full, fname_full)
   if (.not. found_it .or. fname_read /= fname_full .or. .not. is_match) then
-    if (.not. err_found) call out_io(s_info$, r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
-    err_found = .true.
+    call out_io(s_info$, r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
+    close (d_unit)
+    return
   endif
 enddo
 

@@ -14,6 +14,13 @@ logical do_calc
 !
 
 do_calc = .false.
+
+if (len(data_type) > 11) then
+  if (data_type(1:11) == 'expression:') then
+    if (index(data_type, 'spin_g_matrix.') /= 0) do_calc = .true.
+  endif
+endif
+
 if (len(data_type) < 14) return
 if (data_type(1:14)  == 'spin_g_matrix.') do_calc = .true. 
 

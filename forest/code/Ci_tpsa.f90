@@ -97,7 +97,7 @@ private GETdiff_universal
 
 !integer,private,parameter::ndd=6
 private c_concat_vector_field_ray,CUTORDERVEC,kill_c_vector_field_fourier,alloc_c_vector_field_fourier
-private complex_mul_vec,equal_c_vector_field_fourier,c_IdentityEQUALVECfourier
+private complex_mul_vec,equal_c_vector_field_fourier,c_IdentityEQUALVECfourier,c_taylor_mul_vec
 private c_add_map,c_sub_map,c_read_spinor,flatten_c_factored_lie_r,c_EQUALcray,c_read_quaternion
 integer :: n_fourier=12,n_extra=0
 logical :: remove_tune_shift=.false.
@@ -347,6 +347,7 @@ logical :: old_phase_calculation=.false.
      MODULE PROCEDURE c_trxquaternion    !# c_quaternion=  c_quaternion * c_damap 
      MODULE PROCEDURE real_mul_vec  ! real(dp)*vf  G=rF  → F.grad
      MODULE PROCEDURE complex_mul_vec  !# complex(dp)*vf G=cF
+     MODULE PROCEDURE c_taylor_mul_vec  !# c_taylor*vf G=cF
      MODULE PROCEDURE real_mul_map     !# real(dp)*c_damap B=rA
      MODULE PROCEDURE complex_mul_map     !# real(dp)*c_damap B=rA
 ! Vector fields
@@ -12055,187 +12056,6 @@ subroutine c_linear_ac_longitudinal(xy,a1,ac)
 
   end subroutine c_linear_ac_longitudinal
 
- subroutine c_gofix_old(xy,a1)
-!#restricted:  normal 
-!# The routine c_gofix computes a1 such that 
-!# "call c_gofix(m,a1)" produces
-!# m0=a1**(-1)*xy*a1 to order "order_gofix" around the parameter dependent fixed point.
-!# order_gofix is defaulted to 1.
-!# dosymp is defaulted to true since 2023.4.21. 
-!# dosymp should be true if order_gofix > 1 (if c_gofix is used on its own).
-!# c_canonise will take care of a1 if needed to higher order.
-
-    implicit none
-    integer i,j,ndloc
-    type(c_damap), intent(inout) ::  xy,a1 
-    type(c_damap) w,v,rel,x
-    type(c_taylor) t1
-    real(dp), allocatable :: mt(:,:),mv(:)
-    integer, allocatable :: je(:)
-
-    
-  !  ndct=iabs(ndpt-ndptb)  ! 1 if coasting, otherwise 0
-  !  ndc2t=2*ndct  ! 2 if coasting, otherwise 0
-  !  nd2t=nd2-2*rf-ndc2t   !  size of harmonic oscillators minus modulated clocks
-  !  ndt=nd2t/2        ! ndt number of harmonic oscillators minus modulated clocks
-  !  nd2harm=nd2t+2*rf  !!!!  total dimension of harmonic phase space
-  !  ndharm=ndt+rf  !!!! total number of harmonic planes
-!   write(6,*) " nd2,ndct,ndc2t,nd2t,ndt,nd2harm,rf,ndpt "
-!   write(6,'(8(1x,i4))') nd2,ndct,ndc2t,nd2t,ndt,nd2harm,rf,ndpt
-
-  if(.not.c_stable_da) return
-
-     ndloc=0
-                 
-
-    ! COMPUTATION OF A1 AND A1I USING DAINV
-    rel%n=nv; w%n=nv; v%n=nv;x%n=nv
-    call alloc(rel);call alloc(w);call alloc(v);call alloc(x);
-    call alloc(t1);
-
-    rel=1
-    v=1
- 
-
-    x=xy
-
-    do i=1,nd2  
-     if(i/=ndpt.and.i/=ndptb) then
-        v%v(i)=x%v(i)-rel%v(i)    !   V= X-1  where X is the map
-       else
-        if(mod(i,2)==0) ndloc=i/2  ! degree of freedom of coasting plane
-      endif
-    enddo
- 
-    v=v.cut.(order_gofix+1)
- 
- 
-
-    w=v**(-1)    !  W= (Map-1)**-1   
-
- 
-
-    x=0
-    x%s=1    ! spin part is identity
-    x%q=1.0_dp 
-    do i=nd2+1,nv
-     x%v(i)=1.0e0_dp.cmono.i  !  Identity in all the parameter planes
-    enddo
-    if(ndpt/=0) x%v(ndpt)=1.0e0_dp.cmono.ndpt !  If coasting, then energy is a parameter
- 
-    a1=v
- 
-
-    v=w*x  ! v contains the fixed point, for example v(1)= eta_x * x_pt + ...
-         
- 
-    a1=v
- 
-   ! however a1 is not a  transformation, we must add the identity (done at the end) 
-  ! also we must add some stuff to time to make it symplectic if coasting
-  ! because the Lie operator which produces v(1)= eta_x * x_pt + ...
-  ! is, within a sign, eta_x * x_pt * p_x-eta_x_prime * x_pt * x-...  which affects time
-if(ndpt/=0) then
-if(dosymp) then
-      ! if(ndpt/=0) then 
-         t1=0
-         do i=1,nd
-           if(i/=ndloc) then
-            x%v(2*i)  =(-1)**(2*i-1)*(a1%v(2*i-1))
-            x%v(2*i-1)=(-1)**(2*i  )*(a1%v(2*i))
-            v%v(2*i)=   x%v(2*i).d.ndpt
-            v%v(2*i-1)= x%v(2*i-1).d.ndpt
-
-          endif
-         enddo
-         do i=1,nd
-           if(i/=ndloc) then
-             t1=-(1.0_dp.cmono.(2*i-1))*v%v(2*i-1)+t1  ! first order
-             t1=-(1.0_dp.cmono.(2*i))*v%v(2*i)+t1      ! first order
-             t1=-0.5_dp*(x%v(2*i-1)*v%v(2*i)-x%v(2*i)*v%v(2*i-1))+t1  ! second order
-! because  eta_x * x_pt * p_x-eta_x_prime * x_pt * x-...  is linear in the transverse
-!          there are NO terms higher than second order
-           endif
-         enddo
-         t1=(-1)**ndpt*t1
-         a1%v(ndptb)=(1.0_dp.cmono.ndptb)+t1 !!! effect on  time added to identity map in the time-energy plane
-         a1%v(ndpt)=1.0_dp.cmono.ndpt
-      !  endif
-!!!! end of the coasting beam gymnastic !!!!!!!!!!!!!!
-
-!!! identity is added to a1 except coasting plane (already there) !!! 
-    do i=1,nd2 
-     if(i/=ndptb.and.i/=ndpt) a1%v(i)=(1.0e0_dp.cmono.i)+a1%v(i)
-    enddo
-allocate(je(nv))
-je=0
-do i=1,no
-je(ndpt)=i
-a1%v(ndptb)=a1%v(ndptb)-((a1%v(ndptb).sub.je).cmono.je)
-enddo
-deallocate(je)
- 
-
-else
-
-!  v=1
-  v=xy
-
- allocate(mt(nd2t,nd2t),mv(nd2t)); allocate(je(nv));
-
-  mt=0.0_dp
- do i=1,nd2t
-  do j=1,nd2t
-   je=0
-   je(j)=1
-   mt(i,j)=v%v(i).sub.je
-  enddo
- enddo
-
-  mt=-transpose(mt)
-
-  do i=1,nd2t
-     mt(i,i)=1.0_dp+mt(i,i)
-  enddo
-  call matinv(mt,mt,nd2t,nd2t,i)
-
-
-
- mv=0.0_dp
-  do i=1,nd2t
-   je=0
-    je(i)=1
-    mv(i)=-xy%v(ndptb).sub.je
-  enddo
-
- mv=matmul(mt,mv)
-
-    do i=1,nd2 
-     if(i/=ndpt) then 
-       a1%v(i)=(1.0e0_dp.cmono.i)+a1%v(i)  ! ndpt is already identity
-     endif
-    enddo 
-
-    do i=1,nd2t 
-     a1%v(ndptb)=a1%v(ndptb)+mv(i)*(1.0e0_dp.cmono.i)
-    enddo
- deallocate(mt,mv);deallocate(je);
-! endif ! npdt/=0
- endif       
-
-else ! npdt=0
- 
-    do i=1,nd2 
-       a1%v(i)=(1e0_dp.cmono.i)+a1%v(i)  ! ndpt is already identity
-    enddo 
- 
-endif
- 
- 
-    call kill(t1);
-    call kill(v);call kill(w);call kill(rel);call kill(x);
-    return
-  end subroutine c_gofix_old
 
  subroutine c_gofix(xy,a1)
 !#restricted:  normal 
@@ -12736,7 +12556,7 @@ end subroutine c_full_factorise
   type(c_damap), intent(inout) :: m_in,m_out,as
   type(quaternion) q0,q1,e_y,q3,qs
   real(dp) alpha,cosalpha,sinalpha,tone
-
+  type(c_damap) id
  
 q0=m_in%q.sub.0
  
@@ -12803,11 +12623,21 @@ if(tone<0) then
 endif
 
 as%q=q3   
+tone=AS%q%x(0)
+if(tone<0) then
+ call alloc(id)
+  id=1
+  id%q%x(0)=-1.0e0_dp
+  AS=id*AS
+  call kill(id)
+endif
         m_out=c_simil(AS,m_in,-1)
 q0=m_out%q
 
 alpha=2*atan2(q0%x(2),q0%x(0))
  
+
+
  end  subroutine c_normal_spin_linear_quaternion
 
  
@@ -13793,6 +13623,43 @@ endif
     c_master=localmaster
 
   END FUNCTION complex_mul_vec 
+
+    FUNCTION c_taylor_mul_vec( r,S1 )
+    implicit none
+    TYPE (c_vector_field) c_taylor_mul_vec
+    type(c_taylor),intent(in):: r
+    TYPE (c_vector_field), INTENT (IN) :: S1
+    integer localmaster,i
+
+    IF(.NOT.C_STABLE_DA) then
+     c_taylor_mul_vec%v%i=0
+     RETURN
+     endif
+    localmaster=c_master
+
+    !    call check(s1)
+    c_taylor_mul_vec%n=s1%n
+    call c_ass_vector_field(c_taylor_mul_vec)
+    
+    do i=1,s1%n
+     c_taylor_mul_vec%v(i)=r*s1%v(i)
+    enddo
+
+ 
+
+    do i=0,3
+     c_taylor_mul_vec%q%x(i)=r*s1%q%x(i)
+    enddo
+
+  
+
+    c_taylor_mul_vec%nrmax=s1%nrmax
+    c_taylor_mul_vec%eps=s1%eps
+
+    c_master=localmaster
+
+  END FUNCTION c_taylor_mul_vec 
+
 
     FUNCTION map_mul_vec_q( A,S1 )
     implicit none
@@ -16703,38 +16570,24 @@ subroutine extract_linear_from_normalised(m,a1,phi1,f1,f2,integer_part,dospin)
        call alloc(t)
         t(2)=b1%q%x(2)
         t(1)=b1%q%x(0)
-        f1%q%x(2)=atan2(t(2),t(1))
+        v=integer_part(nd2/2+1)
+        v=v*pi   ! half angle
+        f1%q%x(2)=atan2(t(2),t(1)) -spin_def_tune*v
        call kill(t)
       endif
  
-!write(6,*)" change tune "
-!read(5,*) i
-!if(i==1) then
-!     do i=1,nd2t/2
-!       je=0
-!       je(2*i-1)=1
-!        v=f1%v(2*i-1).sub.je
-!        dd=aimag(v)
-!!       if(dd>0) then
-!          f1%v(2*i-1)= f1%v(2*i-1)-i_*(twopi.cmono.je)
-!       je=0
-!       je(2*i)=1
-!!          f1%v(2*i)= f1%v(2*i)+i_*(twopi.cmono.je)
-!      endif
-!     enddo
-!
-!endif
+
 
      do i=1,nd2t/2
       f1%v(2*i-1)=-(i_*twopi*integer_part(i).cmono.(2*i-1))+ f1%v(2*i-1)
       f1%v(2*i)=(i_*twopi*integer_part(i).cmono.(2*i))+ f1%v(2*i)
      enddo
-
-if(dos) then
-      f2=c_logf_spin(a1)
-else
-      f2=log(a1)
-endif
+ 
+!if(dos) then
+      f2=ln(a1)
+!else
+!      f2=log(a1)
+!endif
 
      f2=to_phasor()*f2  !transform_vector_field_by_map(f2,to_phasor())     
      f1=to_phasor()*f1 !transform_vector_field_by_map(f1,to_phasor())
@@ -17702,7 +17555,7 @@ subroutine exp_vector_field_fourier(F,H,K,nlin)
     s3=H ; t=H ; dhs=dF_dt;
     fac=1.0_dp;    fac1=1.0_dp;
 
-    if(nl/=0) write(6,*) "Priting Iterations for convergence check "
+    if(nl/=0) write(6,*) "Printing Iterations for convergence check "
     do i=1,no+nl   ! extra terms for cheap convergence
      fac=1.0_dp/i
      
@@ -17889,9 +17742,201 @@ end subroutine mulc_vector_field_fourier
 
   END SUBROUTINE c_evaluate_vector_field_fourier
 
-  subroutine normalise_vector_field_fourier(H,F,K,F1,epsi)
+  subroutine normalise_vector_field_fourier(H,Fc,K,F1,epsi,dospin)
     implicit none
-    TYPE (c_vector_field_fourier), INTENT (INout) :: H,F,K
+    TYPE (c_vector_field_fourier), INTENT (INout) :: H,Fc,K
+    TYPE (c_vector_field_fourier),optional, INTENT (INout) :: F1
+    TYPE (c_taylor) temp
+    TYPE (c_quaternion) qtemp,qtempf
+
+    integer ki,n,m,j,l,o,nl,i1,kr,i
+    complex(dp), allocatable :: eg(:)
+    real(dp), allocatable :: nu(:)
+    integer, allocatable :: je(:)
+    complex(dp) v,lam
+    logical(lp) removeit,dos
+    type(c_vector_field_fourier) ht,H1
+    real(dp),optional :: epsi
+    logical,optional :: dospin
+    real(dp) nus(-1:1),eps
+    integer jq
+
+   dos=.false.
+    if(present(dospin)) dos=dospin
+     
+     IF(.NOT.C_STABLE_DA) then
+     RETURN
+     endif
+     call alloc(temp)
+     call alloc(qtemp)
+     call alloc(qtempf)
+     call alloc(ht)
+     call alloc(h1)
+ 
+     Fc=0
+     H1=H
+     ht=H
+     n=H%f(0)%n
+     i1=2
+     if(present(F1)) i1=1
+       allocate(eg(n),je(nv)); 
+       allocate(nu(n/2)); 
+       eg=0.0_dp
+       je=0
+      do ki=1,n
+       if(coast(ki)) then
+        eg(ki)=0
+       else
+        je=0
+        je(ki)=1
+        eg(ki)=H%f(0)%v(ki).sub.je   ! (1)
+        if(mod(ki,2)==0) nu(ki/2)=aimag(eg(ki))
+       endif  
+      enddo
+      if(dos) then
+       nus(1)=-2*spin_def_tune*H%f(0)%q%x(2)
+       nus(0)=0
+       nus(-1)=2*spin_def_tune*H%f(0)%q%x(2)
+      endif
+    i1=2 ;if(present(F1)) i1=1 ;nl=0; nl=n_extra;
+
+    do o=i1,no+1
+
+        ht=H1
+       IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
+
+    do m=-n_fourier,n_fourier
+    
+      do ki=1,n    ! do-looping over size of a vector field (6 for example for BMAD)
+          temp=ht%f(m)%v(ki).sub.o
+
+       j=1
+        do while(.true.) 
+     !     temp=ht%f(m)%v(ki).sub.o
+          call  c_cycle(temp,j,v ,je); if(j==0) exit;
+!patrice
+
+     if(m/=0) then
+        removeit=.true.
+        if(present(epsi)) then
+          !     call check_resonance(ki,n,je,kr,mr,removeit)
+               call check_resonance_ham(ki,n,je,nu,removeit,m,epsi,nus,0)
+ 
+        endif
+     else
+       eps=0.0_dp
+     !   if(present(epsi)) then
+!               call check_resonance_ham(ki,n,je,nu,removeit,m,epsi)
+! 
+!        else
+ !!!!!!         call check_kernel(ki,n,je,removeit)
+                call check_resonance_ham(ki,n,je,nu,removeit,m,eps,nus,0)
+
+!        endif
+     endif
+           if(removeit) then
+             lam=-i_*m                  ! (3a)
+             je(ki)=je(ki)-1
+               do l=1,n 
+               if(coast(l)) cycle 
+                 lam=lam-eg(l)*je(l)    ! (3b)
+               enddo
+             je(ki)=je(ki)+1
+              Fc%f(m)%v(ki)=Fc%f(m)%v(ki)-(v.cmono.je)/lam  ! (4)
+            endif
+
+        enddo  ! over monomials
+       enddo  ! over vector index
+
+!write(6,*)  " o - 1, m ",o-1,m
+          qtemp=ht%f(m)%q.sub.(o-1) 
+            qtempf=0.0_dp
+          call c_q0_to_qr(qtemp,qtempF)
+ 
+
+    !  Fc%f(m)%q=0.0_dp
+      do ki=1,3 !,-1   ! do-looping over quaterion 0,3
+       if(ki==1) jq=1
+       if(ki==2) jq=0
+       if(ki==3) jq=-1
+    
+       j=1
+          temp=qtempF%x(ki)
+
+
+
+ !eeeeeeeeeeeeeeeeeee
+
+        do while(.true.) 
+!          temp=qtemp%x(ki).sub.o
+          call  c_cycle(temp,j,v ,je); if(j==0) exit;
+!patrice
+
+     if(m/=0) then
+        removeit=.true.
+        if(present(epsi)) then
+          !     call check_resonance(ki,n,je,kr,mr,removeit)
+               call check_resonance_ham(0,n,je,nu,removeit,m,epsi,nus,jq)
+
+        endif
+     else
+ 
+       eps=0.0_dp
+ 
+                call check_resonance_ham(0,n,je,nu,removeit,m,eps,nus,jq)
+
+
+     endif
+!if(removeit) then
+!write(6,*) " ki,jq ",ki,jq
+!write(6,*) je
+!write(6,*) nu,nus
+
+!endif
+!pause 12341
+
+           if(removeit) then
+             lam=-i_*m                  ! (3a)
+        !     je(ki)=je(ki)-1
+               do l=1,n 
+               if(coast(l)) cycle 
+                 lam=lam-eg(l)*je(l)    ! (3b)
+               enddo
+       !      je(ki)=je(ki)+1
+             lam=lam+jq*nus(jq)*i_
+              Fc%f(m)%q%x(ki)=Fc%f(m)%q%x(ki)-(v.cmono.je)/lam  ! (4)
+            endif
+
+        enddo  ! over monomials
+
+     enddo
+          call c_qr_to_q0(Fc%f(m)%q,Fc%f(m)%q)
+ 
+ 
+
+      enddo ! over fourier mode
+
+   !   IF(o==1) THEN   
+    !    call exp_vector_field_fourier(Fc,Ht,H1,nlin=nl)  ! (5)
+    !    F1=Fc; Fc=0;NL=0;
+    !  ENDIF
+    enddo  ! over order o
+     ht=H1
+       call exp_vector_field_fourier(Fc,Ht,Ht)   ! (6)
+     K=ht
+
+   deallocate(eg,je,nu)
+   call kill(temp)
+   call kill(qtemp)
+   call kill(ht)
+   call kill(h1)
+   call kill(qtempf)
+end  subroutine normalise_vector_field_fourier
+
+
+  subroutine normalise_vector_field_fourier_old(H,Fc,K,F1,epsi)
+    implicit none
+    TYPE (c_vector_field_fourier), INTENT (INout) :: H,Fc,K
     TYPE (c_vector_field_fourier),optional, INTENT (INout) :: F1
     TYPE (c_taylor) temp
 
@@ -17912,7 +17957,7 @@ end subroutine mulc_vector_field_fourier
      call alloc(ht)
      call alloc(h1)
  
-     F=0
+     Fc=0
      H1=H
      ht=H
      n=H%f(0)%n
@@ -17938,7 +17983,7 @@ end subroutine mulc_vector_field_fourier
     do o=i1,no
 
         ht=H1
-       IF(O>1) call exp_vector_field_fourier(F,Ht,Ht)   ! (2)
+       IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
 
     do m=-n_fourier,n_fourier
     
@@ -17954,7 +17999,7 @@ end subroutine mulc_vector_field_fourier
         removeit=.true.
         if(present(epsi)) then
           !     call check_resonance(ki,n,je,kr,mr,removeit)
-               call check_resonance_ham(ki,n,je,nu,removeit,m,epsi)
+               call check_resonance_ham_old(ki,n,je,nu,removeit,m,epsi)
  
         endif
      else
@@ -17974,19 +18019,19 @@ end subroutine mulc_vector_field_fourier
                  lam=lam-eg(l)*je(l)    ! (3b)
                enddo
              je(ki)=je(ki)+1
-              F%f(m)%v(ki)=F%f(m)%v(ki)-(v.cmono.je)/lam  ! (4)
+              Fc%f(m)%v(ki)=Fc%f(m)%v(ki)-(v.cmono.je)/lam  ! (4)
             endif
 
         enddo  ! over monomials
        enddo  ! over vector index
       enddo ! over fourier mode
       IF(o==1) THEN   
-        call exp_vector_field_fourier(F,Ht,H1,nlin=nl)  ! (5)
-        F1=F; F=0;NL=0;
+        call exp_vector_field_fourier(Fc,Ht,H1,nlin=nl)  ! (5)
+        F1=Fc; Fc=0;NL=0;
       ENDIF
     enddo  ! over order o
      ht=H1
-       call exp_vector_field_fourier(F,Ht,Ht)   ! (6)
+       call exp_vector_field_fourier(Fc,Ht,Ht)   ! (6)
      K=ht
 
    deallocate(eg,je,nu)
@@ -17994,9 +18039,9 @@ end subroutine mulc_vector_field_fourier
    call kill(ht)
    call kill(h1)
  
-end  subroutine normalise_vector_field_fourier
+end  subroutine normalise_vector_field_fourier_old
 
-    subroutine check_resonance_ham(k,n,je,nu,removeit,ktheta,epsi)
+    subroutine check_resonance_ham_old(k,n,je,nu,removeit,ktheta,epsi)
 !#internal: normal
 !# This routine identifies terms in an orbital vector field that
 !# are left per user's request.
@@ -18034,7 +18079,48 @@ end  subroutine normalise_vector_field_fourier
       endif
   !  je(k)=je(k)+1
 
+    end subroutine check_resonance_ham_old
+
+    subroutine check_resonance_ham(k,n,je,nu,removeit,ktheta,epsi,nus,jq)
+!#internal: normal
+!# This routine identifies terms in an orbital vector field that
+!# are left per user's request.
+!# This is used if a resonance family is to be left in the map.
+!# See Sec.5.4 of Springer book.
+
+    implicit none
+    logical(lp) removeit
+    integer i,k,n,je(:),j ,jj,ktheta,mr(ndim),jq
+    real(dp) nu(:),epsi,t1,nus(-1:1)
+  
+    !           call check_resonance_ham(k,n,je,nu,removeit,lr,epsi)
+   
+    removeit=my_true
+    t1=0;    
+   ! je(k)=je(k)-1
+    do i=1,n,2
+       if(coast(i)) cycle 
+     j=(i+1)/2
+       jj=0
+      if(k==i) jj=1
+      if(k==i+1) jj=-1
+       mr(j)=(je(i+1)-je(i)+jj)
+      t1=t1+ nu(i)*(je(i+1)-je(i)+jj)+nus(jq)
+     enddo
+       t1=t1-ktheta
+ 
+    
+      t1=abs(t1)
+ 
+      if(t1<=epsi) then 
+       write(6,*) "not removed ",ktheta,k
+       write(6,*) mr(1:c_%nd)
+       removeit=my_false
+      endif
+  !  je(k)=je(k)+1
+
     end subroutine check_resonance_ham
+
 
  subroutine normalise_vector_field_fourier_factored(H)
     implicit none
@@ -19530,7 +19616,7 @@ n%H_l=ci_phasor()*n%H_l
 !!! Reverse-Dragt-Finn order for Lie map
 N_nl=N_cut_2**(-1)*nf
  
-n%H_nl=c_logf_spin(N_nl)
+n%H_nl=ln(N_nl)
 
 n%H_l=c_phasor()*n%H_l
 n%H_nl=c_phasor()*n%H_nl

@@ -735,14 +735,24 @@ case (sbend$, rf_bend$)
         ele%value(g$) = 1 / ele%value(rho$)
         if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
       endif
-    elseif (associated(a_ptr, ele%value(b_field$))) then
-      if (dep2_set) ele%value(g$) = ele%value(b_field$) / p0c_factor
-    elseif (associated(a_ptr, ele%value(db_field$))) then
-      if (dep2_set) ele%value(dg$) = ele%value(db_field$) / p0c_factor
-    elseif (associated(a_ptr, ele%value(g$))) then
-      if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
-    elseif (associated(a_ptr, ele%value(dg$))) then
-      if (dep2_set) ele%value(db_field$) = ele%value(dg$) * p0c_factor 
+    elseif (dep2_set) then
+      if (associated(a_ptr, ele%value(b_field$))) then
+        ele%value(g$) = ele%value(b_field$) / p0c_factor
+      elseif (associated(a_ptr, ele%value(db_field$))) then
+        ele%value(dg$) = ele%value(db_field$) / p0c_factor
+      elseif (associated(a_ptr, ele%value(g$))) then
+        ele%value(b_field$) = ele%value(g$) * p0c_factor 
+      elseif (associated(a_ptr, ele%value(dg$))) then
+        ele%value(db_field$) = ele%value(dg$) * p0c_factor
+      elseif (associated(a_ptr, ele%value(k1$))) then
+        ele%value(b1_gradient$) = ele%value(k1$) * p0c_factor
+      elseif (associated(a_ptr, ele%value(b1_gradient$))) then
+        ele%value(k1$) = ele%value(b1_gradient$) / p0c_factor
+      elseif (associated(a_ptr, ele%value(k2$))) then
+        ele%value(b2_gradient$) = ele%value(k2$) * p0c_factor
+      elseif (associated(a_ptr, ele%value(b2_gradient$))) then
+        ele%value(k2$) = ele%value(b2_gradient$) / p0c_factor
+      endif
     endif
 
     ele%value(g_tot$) = ele%value(g$) + ele%value(dg$)
