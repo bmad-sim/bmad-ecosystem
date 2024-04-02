@@ -236,7 +236,7 @@ endif
 
 track1_bunch_space_charge_called = .false.
 
-if (ele%space_charge_method == cathode_fft_3d$ .or. ele%space_charge_method == fft_3d$) then
+if (ele%space_charge_method == cathode_fft_3d$) then
   if (ele%csr_method /= off$) then
     call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, CSR EFFECTS CANNOT BE HANDLED SO', &
                                    'CSR_METHOD NEEDS TO BE SET TO OFF. FOR LATTICE ELEMENT: ' // ele%name, &
