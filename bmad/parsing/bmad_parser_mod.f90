@@ -9667,9 +9667,9 @@ if (logic_option(.false., brace_optional)) then
     is_ok = (.not. err_flag)
     return
   endif
-else
-  call get_next_word (word, ix_word, op_brace, delim, delim_found)
 endif
+
+call get_next_word (word, ix_word, op_brace, delim, delim_found)
 
 if (word /= '') then
   call parser_error ('EXPECTED OPENING DELIMITER ' // quote(op_brace) // ' FOR VECTOR FOR: ' // err_str, &
