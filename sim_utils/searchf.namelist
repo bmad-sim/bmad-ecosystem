@@ -379,9 +379,6 @@ read_a_line
 readline_read_history
 readline_write_history
 
-File: io/lunget.f90
-lunget
-
 File: io/out_io_called.f90
 out_io_called
 
@@ -390,6 +387,20 @@ out_io_end
 
 File: io/out_io_line.f90
 out_io_line
+
+File: io/read_line.c
+read_line_
+read_history_
+write_history_
+
+File: io/system_command.f90
+system_command
+
+File: io/ttychr.f90
+ttychr
+
+File: io/lunget.f90
+lunget
 
 File: io/output_mod.f90
 output_mod
@@ -426,17 +437,6 @@ out_io_print_and_capture_setup
 out_io_buffer_reset
 out_io_buffer_num_lines
 out_io_buffer_get_line
-
-File: io/read_line.c
-read_line_
-read_history_
-write_history_
-
-File: io/system_command.f90
-system_command
-
-File: io/ttychr.f90
-ttychr
 
 File: math/all_phase_fft.f90
 all_phase_fft

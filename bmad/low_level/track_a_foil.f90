@@ -35,7 +35,7 @@ type (material_struct), pointer :: material
 real(rp), optional :: mat6(6,6)
 real(rp) xx0, sigma, rnd(2), I_excite, mass_material, dE_dx_tot, E0, E1, p2, elec_area_density
 real(rp) pc_old, pc_new, r_thick, chi2_c, chi2_alpha, nu, f, ln_chi_alpha_sum, zza, zza_sum, norm_sum
-real(rp) atomic_mass, omega
+real(rp) atomic_mass, omega, arg
 
 integer i, j, ns, n_step, z_material, z_particle
 
@@ -104,7 +104,8 @@ do ns = 1, n_step
       chi2_alpha = (exp(ln_chi_alpha_sum/zza_sum))**2
       omega = chi2_c / (1.167 * chi2_alpha) 
       nu = 0.5_rp * omega / (1 - f)
-      sigma = sqrt(chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2))
+      arg = chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2)
+      sigma = sqrt(max(0.0_rp, arg))
     end select
     
     sigma = sigma * pc_old / orbit%p0c
