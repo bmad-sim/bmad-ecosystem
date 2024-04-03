@@ -593,3 +593,17 @@ tune_scan_mpi
 
 File: wall_generator/wall_generator.f90
 wall_generator
+
+File: e_cooling/e_cooling.f90
+e_cooling
+
+File: e_cooling/e_cooling_mod.f90
+e_cooling_mod
+e_cooling_wake_struct
+e_cooling_diffusion_struct
+e_cooling_wd_struct
+e_cooling_param_struct
+e_cooling_common_struct
+
+File: e_cooling/track1_bunch_hook.f90
+track1_bunch_hook

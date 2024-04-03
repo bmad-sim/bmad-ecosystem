@@ -514,9 +514,6 @@ tao_setup_key_table
 File: code/tao_shape_init.f90
 tao_shape_init
 
-File: code/tao_spin_matrices_calc_needed.f90
-tao_spin_matrices_calc_needed
-
 File: code/tao_spin_matrix_calc.f90
 tao_spin_matrix_calc
 
@@ -716,6 +713,9 @@ tao_super_universe_struct
 tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
+
+File: code/tao_spin_matrices_calc_needed.f90
+tao_spin_matrices_calc_needed
 
 File: code/tao_single_mode.f90
 tao_single_mode

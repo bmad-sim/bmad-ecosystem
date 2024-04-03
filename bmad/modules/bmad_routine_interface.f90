@@ -2175,14 +2175,14 @@ recursive subroutine set_lords_status_stale (ele, stat_group, control_bookkeepin
   integer, optional :: flag
 end subroutine
 
-subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute, set_val)
   import
   implicit none
   type (lat_struct), target :: lat
   type (coord_struct), optional :: orb(0:)
   real(rp), optional, allocatable :: saved_values(:)
   integer :: key, switch
-  integer, optional :: ix_branch
+  integer, optional :: ix_branch, set_val
   logical, optional :: use_ref_orb
   character(*), optional :: attribute
 end subroutine
