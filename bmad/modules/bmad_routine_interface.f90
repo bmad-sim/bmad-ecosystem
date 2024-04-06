@@ -3310,6 +3310,13 @@ subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_or
   logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
 
+subroutine write_lattice_in_julia (file_name, lat)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) file_name
+end subroutine
+
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
   import
   implicit none

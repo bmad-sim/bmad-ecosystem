@@ -1541,7 +1541,7 @@ character(41), parameter :: att2_name(95) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'BETA_A1', 'BETA_B1', 'ALPHA_A1', 'ALPHA_B1', 'ETA_X1', 'ETAP_X1', 'X2_EDGE', 'Y2_EDGE', &
                 'ETA_Y1', 'ETAP_Y1', 'MATRIX', 'X1', 'PX1', 'Y1', 'PY1', 'Z1', 'PZ1', 'Z_CHARGE', &
                 'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', 'HARMON_MASTER', 'SCATTER', &
-                'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DREL_THICKNESS_DX', &
+                'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DTHICKNESS_DX', &
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
                 'SCATTER_METHOD']
 

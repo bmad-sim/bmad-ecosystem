@@ -1714,7 +1714,7 @@ integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_
                       y2_edge$ = 25, species_strong$ = 25
 integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26, &
                       phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26, &
-                      eps_step_scale$ = 26, E_tot_strong$ = 26, drel_thickness_dx$ = 26, bend_tilt$ = 26
+                      eps_step_scale$ = 26, E_tot_strong$ = 26, dthickness_dx$ = 26, bend_tilt$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
                       x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
                       py_aperture_center$ = 27, x_dispersion_err$ = 27
