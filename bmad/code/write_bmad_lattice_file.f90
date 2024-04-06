@@ -30,20 +30,6 @@ use expression_mod, only: end_stack$, variable$, split_expression_string, expres
 
 implicit none
 
-type multipass_region_ele_struct
-  integer ix_region
-  logical region_start_pt
-  logical region_stop_pt
-end type
-
-type multipass_region_branch_struct
-  type (multipass_region_ele_struct), allocatable :: ele(:)
-end type
-
-type multipass_region_lat_struct
-  type (multipass_region_branch_struct), allocatable :: branch(:)
-end type
-
 type (multipass_region_lat_struct), target :: mult_lat
 type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
 
@@ -316,7 +302,7 @@ do i = 1, lat%n_control_max
     if (stack(j)%name == '') cycle
     if (any(stack(j)%name == physical_const_list%name)) cycle
     call find_index(stack(j)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
-    if (.not. (has_been_added)) cycle  ! Avoid duuplicates
+    if (.not. (has_been_added)) cycle  ! Avoid duplicates
     write (iu, '(3a)') trim(stack(j)%name), ' = ', re_str(stack(j)%value)
   enddo
 enddo
@@ -1149,94 +1135,12 @@ write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, '(a)') '! Lattice lines'
 write (iu, '(a)')
 
-! Multipass stuff...
+call multipass_region_info(lat, mult_lat, m_info)
 
-allocate (mult_lat%branch(0:ubound(lat%branch, 1)))
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  allocate (mult_lat%branch(ib)%ele(branch%n_ele_max))
-  mult_lat%branch(ib)%ele(:)%ix_region = 0
-  mult_lat%branch(ib)%ele(:)%region_start_pt = .false.
-  mult_lat%branch(ib)%ele(:)%region_stop_pt   = .false.
-enddo
-
-call multipass_all_info (lat, m_info)
+! Each 1st pass region is now a valid multipass line.
+! Write out this info.
 
 if (size(m_info%lord) /= 0) then
-
-  ! Go through and mark all 1st pass regions
-  ! In theory the original lattice file could have something like:
-  !   lat: line = (..., m1, m2, ..., m1, -m2, ...)
-  ! where m1 and m2 are multipass lines. The first pass region (m1, m2) looks 
-  ! like this is one big region but the later (m1, -m2) signals that this 
-  ! is not so.
-  ! We thus go through all the first pass regions and compare them to the
-  ! corresponding higher pass regions. If we find two elements that are contiguous
-  ! in the first pass region but not contiguous in some higher pass region, 
-  ! we need to break the first pass region into two.
-
-  ix_r = 0
-  do ib = 0, ubound(lat%branch, 1)
-    branch => lat%branch(ib)
-    mult_ele => mult_lat%branch(ib)%ele
-
-    in_multi_region = .false.
-
-    do ie = 1, branch%n_ele_track
-      ele => branch%ele(ie)
-      e_info => m_info%branch(ib)%ele(ie)
-      ix_pass = e_info%ix_pass
-
-      if (ix_pass /= 1) then  ! Not a first pass region
-        if (in_multi_region) mult_ele(ie-1)%region_stop_pt = .true.
-        in_multi_region = .false.
-        cycle
-      endif
-
-      ! If start of a new region...
-      if (.not. in_multi_region) then  
-        ix_r = ix_r + 1
-        mult_ele(ie)%ix_region = ix_r
-        mult_ele(ie)%region_start_pt = .true.
-        in_multi_region = .true.
-        ix_lord = e_info%ix_lord(1)
-        ix_super = e_info%ix_super(1)
-        ss1 => m_info%lord(ix_lord)%slave(:,ix_super)
-        cycle
-      endif
-      ix_lord = e_info%ix_lord(1)
-      ix_super = e_info%ix_super(1)
-      ss2 => m_info%lord(ix_lord)%slave(:, ix_super)
-
-      need_new_region = .false.
-      if (size(ss1) /= size(ss2)) then
-        need_new_region = .true.
-      else
-        do ix_pass = 2, size(ss1)
-          if (abs(ss1(ix_pass)%ele%ix_ele - ss2(ix_pass)%ele%ix_ele) == 1) cycle
-          ! not contiguous then need a new region
-          need_new_region = .true.
-          exit
-        enddo
-      endif
-
-      if (need_new_region) then
-        ix_r = ix_r + 1
-        mult_ele(ie-1)%region_stop_pt = .true.
-        mult_ele(ie)%region_start_pt = .true.
-      endif
-
-      ss1 => ss2
-      mult_ele(ie)%ix_region = ix_r
-    enddo
-
-  enddo
-
-  if (in_multi_region) mult_ele(branch%n_ele_track)%region_stop_pt = .true.
-
-  ! Each 1st pass region is now a valid multipass line.
-  ! Write out this info.
-
   write (iu, '(a)')
   write (iu, '(a)') '!-------------------------------------------------------'
 
@@ -1279,7 +1183,6 @@ if (size(m_info%lord) /= 0) then
     endif
 
   enddo  ! ib branch loop
-
 endif
 
 ! Lines for all the branches.
@@ -1555,31 +1458,6 @@ if (param_now == param_default) return
 write (iu, '(2a, i0)') param_name, ' = ', param_now
 
 end subroutine write_if_int_param_changed
-
-!--------------------------------------------------------------------------------
-! contains
-
-subroutine add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
-
-type (ele_struct), target :: ele
-type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
-
-integer, allocatable :: an_indexx(:)
-integer n_names, ix_match
-logical has_been_added
-character(40), allocatable :: names(:)
-
-!
-
-if (size(names) < n_names + 1) then
-  call re_allocate(names, 2*size(names))
-  call re_allocate(an_indexx, 2*size(names))
-  call re_allocate_eles(named_eles, 2*size(names), .true.)
-endif
-call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
-if (has_been_added) named_eles(n_names)%ele => ele
-
-end subroutine add_this_name_to_list
 
 !--------------------------------------------------------------------------------
 ! contains
