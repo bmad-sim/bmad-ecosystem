@@ -82,8 +82,6 @@ n_names = 0
 n = lat%n_ele_max
 allocate (names(n), an_indexx(n), named_eles(n))
 
-write (iu, '(a)') '@eles begin'
-
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   ele_loop: do ie = 0, branch%n_ele_max
@@ -101,7 +99,7 @@ do ib = 0, ubound(lat%branch, 1)
       lord => pointer_to_lord(ele, 1)
       slave => pointer_to_slave(lord, 1)
       slave2 => pointer_to_slave(lord, lord%n_slave)
-      write (iu, '(2(a, i0), 2a)') 'slave_drift_', ib, '_', ele%ix_ele, ': drift, l = ', re_str(ele%value(l$))
+      write (iu, '(2(a, i0), 2a)') '@ele slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
       cycle
     endif
 
@@ -114,7 +112,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Write element def
 
-    line = trim(downcase(ele%name)) // ' = ' // trim(julia_name(ele%key)) // '('
+    line = '@ele ' // trim(downcase(ele%name)) // ' = ' // trim(julia_name(ele%key)) // '('
 
     if (ele%field_master) write (line, '(3a)') trim(line), ', field_master = ', jbool(ele%field_master)
     if (.not. ele%is_on) write (line, '(3a)') trim(line), ', is_on = ', jbool(ele%is_on)
@@ -288,7 +286,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo ele_loop
 enddo
 
-write (iu, '(a)') 'end'
+write (iu, '(a)')
 
 !------------------------------------------------------------------------------------------------------
 ! Write branch lines
@@ -352,7 +350,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   in_multi_region = .false.
   do ie = 0, branch%n_ele_track
-    e_info => m_info%branch(ib)%ele(ie)
+    e_info => m_info%branch(ib)%ele(max(1,ie))
     ele => branch%ele(max(1,ie))
     if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
 
@@ -387,13 +385,13 @@ do ib = 0, ubound(lat%branch, 1)
 
   enddo
 
-  line = line(:len_trim(line)-1) // '], geometry = ' // geometry_name(branch%param%geometry) // ')'
+  line = line(:len_trim(line)-1) // '], geometry = ' // trim(downcase(geometry_name(branch%param%geometry))) // ')'
   call write_lat_line (line, iu, .true., julia = .true.)
 enddo
 
-! Use line
+! Define lat
 
-line = 'lat = expand(quote(downcase(lat%use_name)), ['
+line = 'lat = expand(' // quote(downcase(lat%use_name)) // ', ['
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   if (branch%ix_from_branch > -1) cycle
@@ -402,8 +400,10 @@ do ib = 0, ubound(lat%branch, 1)
   line = trim(line) // ', ' // name
 enddo
 
+ix = index(line, '[, ')
+line = line(:ix) // trim(line(ix+3:)) // '])'
 write (iu, '(a)')
-write (iu, '(a)') trim(line) // '])'
+write (iu, '(a)') trim(line)
 
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
