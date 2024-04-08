@@ -133,7 +133,7 @@ end subroutine multipass_region_info
 !-------------------------------------------------------
 !-------------------------------------------------------
 
-subroutine write_line_element (line, iu, ele, lat, julia)
+subroutine write_line_element (line, iu, ele, lat)
 
 implicit none
 
@@ -145,7 +145,6 @@ character(*) line
 character(40) lord_name
 
 integer iu, ix
-logical, optional :: julia
 
 !
 
@@ -153,26 +152,18 @@ if (ele%slave_status == super_slave$) then
   if (ele%orientation == 1) then
     write (line, '(a, 2(a, i0), a)') trim(line), ' slave_drift_', ele%ix_branch, '_', ele%ix_ele, ','
   else
-    if (logic_option(.false., julia)) then
-      write (line, '(a, 2(a, i0), a)') trim(line), ' reverse(slave_drift_', ele%ix_branch, '_', ele%ix_ele, '),'
-    else
-      write (line, '(a, 2(a, i0), a)') trim(line), ' --slave_drift_', ele%ix_branch, '_', ele%ix_ele, ','
-    endif
+    write (line, '(a, 2(a, i0), a)') trim(line), ' --slave_drift_', ele%ix_branch, '_', ele%ix_ele, ','
   endif
 
 elseif (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)
-  write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
+  write (line, '(4a)') trim(line), ' ', trim(downcase(lord%name)), ','
 
 else
   if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
+    write (line, '(4a)') trim(line), ' ', trim(downcase(ele%name)), ','
   else
-    if (logic_option(.false., julia)) then
-      write (line, '(4a)') trim(line), ' reverse(', trim(ele%name), '),'
-    else
-      write (line, '(4a)') trim(line), ' --', trim(ele%name), ','
-    endif
+    write (line, '(4a)') trim(line), ' --', trim(ele%name), ','
   endif
 endif
 
@@ -318,13 +309,14 @@ end function rchomp
 !   do_split      -- logical, optional: Split line if overlength? Default is True.
 !                      False is used when line has already been split for expressions since
 !                      the expression splitting routine does a much better job of it.
+!   julia         -- logical, optional: Default False. If True then do not include "&" line continuation
 !
 ! Output:
 !   line          -- character(*): part of the string not written. 
 !                       If end_is_neigh = T then line will be blank.
 !-
 
-subroutine write_lat_line (line, iu, end_is_neigh, do_split)
+subroutine write_lat_line (line, iu, end_is_neigh, do_split, julia)
 
 implicit none
 
@@ -333,7 +325,7 @@ integer i, iu, n
 integer, parameter :: max_char = 105
 logical end_is_neigh
 logical, save :: init = .true.
-logical, optional :: do_split
+logical, optional :: do_split, julia
 
 !
 
@@ -345,7 +337,11 @@ if (.not. logic_option(.true., do_split)) then
   elseif (index(',[{(=', line(n:n)) /= 0) then
     call write_this (line)
   else
-    call write_this (trim(line) // ' &')
+    if (logic_option(.false., julia)) then
+      call write_this (trim(line))
+    else
+      call write_this (trim(line) // ' &')
+    endif
   endif
 
   line = ''
@@ -385,7 +381,11 @@ outer_loop: do
     return
   endif
 
-  call write_this (trim(line) // ' &')
+  if (logic_option(.false., julia)) then
+    call write_this (trim(line))
+  else
+    call write_this (trim(line) // ' &')
+  endif
   line = ''
   return
 
