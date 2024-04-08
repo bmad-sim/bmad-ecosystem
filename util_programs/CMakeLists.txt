@@ -13,6 +13,7 @@ set (EXE_SPECS
   cmake_files/cmake.bmad_to_blender
   cmake_files/cmake.bmad_to_csrtrack
   cmake_files/cmake.bmad_to_gpt
+  cmake_files/cmake.bmad_to_julia
   cmake_files/cmake.bmad_to_mad_sad_elegant
   cmake_files/cmake.bmad_to_merlin
   cmake_files/cmake.bmad_to_slicktrack

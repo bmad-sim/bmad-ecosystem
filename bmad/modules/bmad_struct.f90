@@ -1603,14 +1603,14 @@ integer, parameter :: thick_multipole$ = 67, pickup$ = 68, feedback$ = 69, n_key
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
 character(20), parameter :: key_name(n_key$) = [ &
-    'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
-    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFcavity          ', 'ELseparator       ', &
+    'Drift             ', 'SBend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
+    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFCavity          ', 'ELSeparator       ', &
     'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
-    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', '!Bmad_Com         ', &
+    'Hybrid            ', 'Octupole          ', 'RBend             ', 'Multipole         ', '!Bmad_Com         ', &
     '!Mad_Beam         ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
     '!Parameter        ', 'Null_Ele          ', 'Beginning_Ele     ', '!Line             ', 'Match             ', &
-    'Monitor           ', 'Instrument        ', 'HKicker           ', 'VKicker           ', 'Rcollimator       ', &
-    'Ecollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
+    'Monitor           ', 'Instrument        ', 'HKicker           ', 'VKicker           ', 'RCollimator       ', &
+    'ECollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
