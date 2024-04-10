@@ -206,7 +206,12 @@ func_check_macports () {
     fi
 
     if ( [ `uname` == "Darwin" ] ) ; then
-      if ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
+      if [ -n "$CC" ]
+      then
+	  echo "User specified CC=$CC"
+	  [ -n "$CXX" ] && echo "User specified CXX=$CXX"
+	  [ -n "$FC" ] && echo "User specified FC=$FC"
+      elif ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
           export VER=$(uname -r | cut -d. -f1)
           export GCC_PATH=$(type gcc | cut -d" " -f3)
           if ( [ "${GCC_PATH}" != "/usr/local/bin/gcc" ] ) ; then
