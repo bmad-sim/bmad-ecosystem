@@ -56,10 +56,144 @@ endif
 read (1, nml = wake_and_diffusion)
 close(1)
 
-do i = 1, size(ec%wd%xm)
-  if (ec%wd%xm(i)%s == real_garbage$) exit
+do i = 1, size(ec%wd%xm%s)
+  if (ec%wd%xm%s(i) == real_garbage$) exit
 enddo
 ec%wd%n_size_array = i - 1
+
+! Make splines
+! First, fill in the information in the splines
+do i = 1, ec%wd%n_size_array
+  ec%wd%xm%A_spl(i)%x0 = ec%wd%xm%s(i)
+  ec%wd%xm%k_spl(i)%x0 = ec%wd%xm%s(i)
+  ec%wd%xm%lambda_spl(i)%x0 = ec%wd%xm%s(i)
+
+  ec%wd%xm%A_spl(i)%y0 = ec%wd%xm%A(i)
+  ec%wd%xm%k_spl(i)%y0 = ec%wd%xm%k(i)
+  ec%wd%xm%lambda_spl(i)%y0 = ec%wd%xm%lambda(i)
+
+
+  ec%wd%ym%A_spl(i)%x0 = ec%wd%ym%s(i)
+  ec%wd%ym%k_spl(i)%x0 = ec%wd%ym%s(i)
+  ec%wd%ym%lambda_spl(i)%x0 = ec%wd%ym%s(i)
+
+  ec%wd%ym%A_spl(i)%y0 = ec%wd%ym%A(i)
+  ec%wd%ym%k_spl(i)%y0 = ec%wd%ym%k(i)
+  ec%wd%ym%lambda_spl(i)%y0 = ec%wd%ym%lambda(i)
+
+
+  ec%wd%xk%A_spl(i)%x0 = ec%wd%xk%s(i)
+  ec%wd%xk%k_spl(i)%x0 = ec%wd%xk%s(i)
+  ec%wd%xk%lambda_spl(i)%x0 = ec%wd%xk%s(i)
+  ec%wd%xk%D_h_spl(i)%x0 = ec%wd%xk%s(i)
+  ec%wd%xk%D_e11_spl(i)%x0 = ec%wd%xk%s(i)
+  ec%wd%xk%D_e12_spl(i)%x0 = ec%wd%xk%s(i)
+  ec%wd%xk%D_e22_spl(i)%x0 = ec%wd%xk%s(i)
+
+  ec%wd%xk%A_spl(i)%y0 = ec%wd%xk%A(i)
+  ec%wd%xk%k_spl(i)%y0 = ec%wd%xk%k(i)
+  ec%wd%xk%lambda_spl(i)%y0 = ec%wd%xk%lambda(i)
+  ec%wd%xk%D_h_spl(i)%y0 = ec%wd%xk%D_h(i)
+  ec%wd%xk%D_e11_spl(i)%y0 = ec%wd%xk%D_e11(i)
+  ec%wd%xk%D_e12_spl(i)%y0 = ec%wd%xk%D_e12(i)
+  ec%wd%xk%D_e22_spl(i)%y0 = ec%wd%xk%D_e22(i)
+
+
+  ec%wd%yk%A_spl(i)%x0 = ec%wd%yk%s(i)
+  ec%wd%yk%k_spl(i)%x0 = ec%wd%yk%s(i)
+  ec%wd%yk%lambda_spl(i)%x0 = ec%wd%yk%s(i)
+  ec%wd%yk%D_h_spl(i)%x0 = ec%wd%yk%s(i)
+  ec%wd%yk%D_e11_spl(i)%x0 = ec%wd%yk%s(i)
+  ec%wd%yk%D_e12_spl(i)%x0 = ec%wd%yk%s(i)
+  ec%wd%yk%D_e22_spl(i)%x0 = ec%wd%yk%s(i)
+
+  ec%wd%yk%A_spl(i)%y0 = ec%wd%yk%A(i)
+  ec%wd%yk%k_spl(i)%y0 = ec%wd%yk%k(i)
+  ec%wd%yk%lambda_spl(i)%y0 = ec%wd%yk%lambda(i)
+  ec%wd%yk%D_h_spl(i)%y0 = ec%wd%yk%D_h(i)
+  ec%wd%yk%D_e11_spl(i)%y0 = ec%wd%yk%D_e11(i)
+  ec%wd%yk%D_e12_spl(i)%y0 = ec%wd%yk%D_e12(i)
+  ec%wd%yk%D_e22_spl(i)%y0 = ec%wd%yk%D_e22(i)
+enddo
+
+! Fill rest with zeros, and make x0 locations equally spaced.
+do i = ec%wd%n_size_array, size(ec%wd%xm%s)
+  ec%wd%xm%A_spl(i)%x0 = 2*ec%wd%xm%A_spl(i-1)%x0 - ec%wd%xm%A_spl(i-2)%x0
+  ec%wd%xm%k_spl(i)%x0 = 2*ec%wd%xm%k_spl(i-1)%x0 - ec%wd%xm%k_spl(i-2)%x0
+  ec%wd%xm%lambda_spl(i)%x0 = 2*ec%wd%xm%lambda_spl(i-1)%x0 - ec%wd%xm%lambda_spl(i-2)%x0
+
+  ec%wd%xm%A_spl(i)%y0 = 0
+  ec%wd%xm%k_spl(i)%y0 = 0
+  ec%wd%xm%lambda_spl(i)%y0 = 0
+
+
+  ec%wd%ym%A_spl(i)%x0 = 2*ec%wd%ym%A_spl(i-1)%x0 - ec%wd%ym%A_spl(i-2)%x0
+  ec%wd%ym%k_spl(i)%x0 = 2*ec%wd%ym%k_spl(i-1)%x0 - ec%wd%ym%k_spl(i-2)%x0
+  ec%wd%ym%lambda_spl(i)%x0 = 2*ec%wd%ym%lambda_spl(i-1)%x0 - ec%wd%ym%lambda_spl(i-2)%x0
+
+  ec%wd%ym%A_spl(i)%y0 = 0
+  ec%wd%ym%k_spl(i)%y0 = 0
+  ec%wd%ym%lambda_spl(i)%y0 = 0
+
+
+  ec%wd%xk%A_spl(i)%x0 = 2*ec%wd%xk%A_spl(i-1)%x0 - ec%wd%xk%A_spl(i-2)%x0
+  ec%wd%xk%k_spl(i)%x0 = 2*ec%wd%xk%k_spl(i-1)%x0 - ec%wd%xk%k_spl(i-2)%x0
+  ec%wd%xk%lambda_spl(i)%x0 = 2*ec%wd%xk%lambda_spl(i-1)%x0 - ec%wd%xk%lambda_spl(i-2)%x0
+  ec%wd%xk%D_h_spl(i)%x0 = 2*ec%wd%xk%D_h_spl(i-1)%x0 - ec%wd%xk%D_h_spl(i-2)%x0
+  ec%wd%xk%D_e11_spl(i)%x0 = 2*ec%wd%xk%D_e11_spl(i-1)%x0 - ec%wd%xk%D_e11_spl(i-2)%x0
+  ec%wd%xk%D_e12_spl(i)%x0 = 2*ec%wd%xk%D_e12_spl(i-1)%x0 - ec%wd%xk%D_e12_spl(i-2)%x0
+  ec%wd%xk%D_e22_spl(i)%x0 = 2*ec%wd%xk%D_e22_spl(i-1)%x0 - ec%wd%xk%D_e22_spl(i-2)%x0
+
+  ec%wd%xk%A_spl(i)%y0 = 0
+  ec%wd%xk%k_spl(i)%y0 = 0
+  ec%wd%xk%lambda_spl(i)%y0 = 0
+  ec%wd%xk%D_h_spl(i)%y0 = 0
+  ec%wd%xk%D_e11_spl(i)%y0 = 0
+  ec%wd%xk%D_e12_spl(i)%y0 = 0
+  ec%wd%xk%D_e22_spl(i)%y0 = 0
+
+
+  ec%wd%yk%A_spl(i)%x0 = 2*ec%wd%yk%A_spl(i-1)%x0 - ec%wd%yk%A_spl(i-2)%x0
+  ec%wd%yk%k_spl(i)%x0 = 2*ec%wd%yk%k_spl(i-1)%x0 - ec%wd%yk%k_spl(i-2)%x0
+  ec%wd%yk%lambda_spl(i)%x0 = 2*ec%wd%yk%lambda_spl(i-1)%x0 - ec%wd%yk%lambda_spl(i-2)%x0
+  ec%wd%yk%D_h_spl(i)%x0 = 2*ec%wd%yk%D_h_spl(i-1)%x0 - ec%wd%yk%D_h_spl(i-2)%x0
+  ec%wd%yk%D_e11_spl(i)%x0 = 2*ec%wd%yk%D_e11_spl(i-1)%x0 - ec%wd%yk%D_e11_spl(i-2)%x0
+  ec%wd%yk%D_e12_spl(i)%x0 = 2*ec%wd%yk%D_e12_spl(i-1)%x0 - ec%wd%yk%D_e12_spl(i-2)%x0
+  ec%wd%yk%D_e22_spl(i)%x0 = 2*ec%wd%yk%D_e22_spl(i-1)%x0 - ec%wd%yk%D_e22_spl(i-2)%x0
+
+  ec%wd%yk%A_spl(i)%y0 = 0
+  ec%wd%yk%k_spl(i)%y0 = 0
+  ec%wd%yk%lambda_spl(i)%y0 = 0
+  ec%wd%yk%D_h_spl(i)%y0 = 0
+  ec%wd%yk%D_e11_spl(i)%y0 = 0
+  ec%wd%yk%D_e12_spl(i)%y0 = 0
+  ec%wd%yk%D_e22_spl(i)%y0 = 0
+enddo
+
+! Now actually do the interpolation.
+call spline_akima(ec%wd%xm%A_spl, err_flag)
+call spline_akima(ec%wd%xm%k_spl, err_flag)
+call spline_akima(ec%wd%xm%lambda_spl, err_flag)
+
+call spline_akima(ec%wd%ym%A_spl, err_flag)
+call spline_akima(ec%wd%ym%k_spl, err_flag)
+call spline_akima(ec%wd%ym%lambda_spl, err_flag)
+
+call spline_akima(ec%wd%xk%A_spl, err_flag)
+call spline_akima(ec%wd%xk%k_spl, err_flag)
+call spline_akima(ec%wd%xk%lambda_spl, err_flag)
+call spline_akima(ec%wd%xk%D_h_spl, err_flag)
+call spline_akima(ec%wd%xk%D_e11_spl, err_flag)
+call spline_akima(ec%wd%xk%D_e12_spl, err_flag)
+call spline_akima(ec%wd%xk%D_e22_spl, err_flag)
+
+call spline_akima(ec%wd%yk%A_spl, err_flag)
+call spline_akima(ec%wd%yk%k_spl, err_flag)
+call spline_akima(ec%wd%yk%lambda_spl, err_flag)
+call spline_akima(ec%wd%yk%D_h_spl, err_flag)
+call spline_akima(ec%wd%yk%D_e11_spl, err_flag)
+call spline_akima(ec%wd%yk%D_e12_spl, err_flag)
+call spline_akima(ec%wd%yk%D_e22_spl, err_flag)
 
 ! Parse lattice
 
@@ -96,10 +230,12 @@ enddo
 ! Print end distribution
 
 print *
-print *, 'Final beam distribution:'
+print *, 'Final (partial) beam distribution:'
 do ib = 1, size(bunch%particle)
   p => bunch%particle(ib)
-  print '(i6, 6es12.4)', ib, p%vec
+  if(ib < 10) then
+    print '(i6, 6es16.8)', ib, p%vec
+  endif
 enddo
 
 end program
