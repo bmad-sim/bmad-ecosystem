@@ -53,9 +53,6 @@ enddo
 
 ! Mark element as an ramper lord
 
-call check_controller_controls (ramper$, contrl, lord%name, err)
-if (err) return
-
 lord%lord_status = ramper_lord$
 lord%key = ramper$
 

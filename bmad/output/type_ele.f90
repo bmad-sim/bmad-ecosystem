@@ -1189,7 +1189,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
       do j = 1, lord%n_slave_field
         has_it = .true.
-        slave => pointer_to_slave(ele, ele%n_slave+im)
+        slave => pointer_to_slave(ele, im, lord_type = field_lord$)
         nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
                       trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
       enddo
@@ -1197,7 +1197,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   else
     do im = 1, ele%n_slave_field
       has_it = .true.
-      slave => pointer_to_slave(ele, ele%n_slave+im)
+      slave => pointer_to_slave(ele, im, lord_type = field_lord$)
       nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
                     trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
     enddo
