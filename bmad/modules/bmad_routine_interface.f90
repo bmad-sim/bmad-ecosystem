@@ -1758,15 +1758,14 @@ subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, a_ptr, e
   logical, optional :: err_print_flag
 end subroutine
 
-function pointer_to_lord (slave, ix_lord, control, ix_slave_back, field_overlap_ptr, ix_control, ix_ic) result (lord_ptr)
+function pointer_to_lord (slave, ix_lord, control, ix_slave_back, lord_type, ix_control, ix_ic) result (lord_ptr)
   import
   implicit none
   type (ele_struct), target :: slave
   type (control_struct), pointer, optional :: control
   type (ele_struct), pointer :: lord_ptr
   integer ix_lord
-  integer, optional :: ix_slave_back, ix_control, ix_ic
-  logical, optional :: field_overlap_ptr
+  integer, optional :: ix_slave_back, lord_type, ix_control, ix_ic
 end function
 
 function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)

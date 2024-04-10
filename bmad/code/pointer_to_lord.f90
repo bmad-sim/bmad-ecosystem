@@ -1,13 +1,13 @@
 !+
-! Function pointer_to_lord (slave, ix_lord, control, ix_slave_back, field_overlap_ptr, ix_control, ix_ic) result (lord_ptr)
+! Function pointer_to_lord (slave, ix_lord, control, ix_slave_back, lord_type, ix_control, ix_ic) result (lord_ptr)
 !
 ! Function to point to a lord of a slave.
 !
-! If field_overlap_ptr = False (default), the range for ix_lord is:
+! If lord_type = all$ (the default), the range for ix_lord is:
 !   1 to slave%n_lord                                 for "regular" lords.
 !   slave%n_lord+1 to slave%n_lord+slave%n_lord_field for field overlap lords.
 !
-! If field_overlap_ptr = True, only the field overlap lords may be accessed and the range for ix_lord is:
+! If lord_type = field_lord$, only the field overlap lords may be accessed and the range for ix_lord is:
 !   1 to slave%n_lord_field  
 !
 ! If slave arg is a slice_slave with control chain:
@@ -21,10 +21,10 @@
 !   num_lords
 !
 ! Input:
-!   slave              -- ele_struct: Slave element.
-!   ix_lord            -- integer: Index of the lord.
-!   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
-!                           Default is False.
+!   slave            -- ele_struct: Slave element.
+!   ix_lord          -- integer: Index of the lord.
+!   lord_type        -- integer, optional: See above.
+!
 !
 ! Output:
 !   lord_ptr        -- ele_struct, pointer: Pointer to the lord.
@@ -37,7 +37,7 @@
 !   ix_ic           -- integer, optional: Index of the lat%ic(:) element associated with the control argument.
 !-
 
-function pointer_to_lord (slave, ix_lord, control, ix_slave_back, field_overlap_ptr, ix_control, ix_ic) result (lord_ptr)
+function pointer_to_lord (slave, ix_lord, control, ix_slave_back, lord_type, ix_control, ix_ic) result (lord_ptr)
 
 use equal_mod, except_dummy => pointer_to_lord
 
@@ -49,10 +49,9 @@ type (control_struct), pointer :: ctl
 type (ele_struct), pointer :: lord_ptr
 type (lat_struct), pointer :: lat
 
-integer, optional :: ix_slave_back, ix_control, ix_ic
+integer, optional :: ix_slave_back, lord_type, ix_control, ix_ic
 integer i, ix_lord, icon, ixl
 
-logical, optional :: field_overlap_ptr
 character(*), parameter :: r_name = 'pointer_to_lord'
 
 ! Case where there is no lord
@@ -63,7 +62,7 @@ if (present(ix_control)) ix_control = -1
 if (present(ix_ic)) ix_ic = -1
 
 ixl = ix_lord
-if (logic_option(.false., field_overlap_ptr)) ixl = ixl + slave%n_lord
+if (integer_option(all$, lord_type) == field_lord$) ixl = ixl + slave%n_lord
 
 if (ixl > slave%n_lord+slave%n_lord_field .or. ix_lord < 1) then
   nullify(lord_ptr)

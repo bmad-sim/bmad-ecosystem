@@ -6440,7 +6440,7 @@ end subroutine allocate_plat
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_add_lord (lord_lat, n_ele_max, plat, lat, check_lat)
+! Subroutine parser_add_lords (lord_lat, n_ele_max, plat, lat, check_lat)
 !
 ! Subroutine to add overlay, group, and girder lords to the lattice.
 ! For overlays and groups: If multiple elements have the same name then 
@@ -6461,7 +6461,7 @@ end subroutine allocate_plat
 !                   not found. 
 !-
 
-subroutine parser_add_lord (lord_lat, n_ele_max, plat, lat, check_lat)
+subroutine parser_add_lords (lord_lat, n_ele_max, plat, lat, check_lat)
 
 implicit none
 
@@ -6508,6 +6508,7 @@ main_loop: do n_in = 1, n_ele_max
     if (allocated(cs)) deallocate(cs)
     nn = size(pele%control)
     allocate (cs(nn))
+    n_slave = 0
 
     do ip = 1, nn
       pc => pele%control(ip)
@@ -6519,20 +6520,45 @@ main_loop: do n_in = 1, n_ele_max
         cs(ip)%stack = pc%stack(1:pc%n_stk)
       endif
 
-      ! Note: It is not possible to check attrib_name for a misspelling since the ramper may control
-      ! an overlay or group variable that has a non-standard variable name.
       attrib_name = pc%attrib_name
       if (attrib_name == blank_name$) attrib_name = pele%default_attrib
       cs(ip)%ix_attrib = attribute_index(0, attrib_name)
       cs(ip)%attribute = attrib_name
       cs(ip)%slave_name = pc%name
+
+      call lat_ele_locator (pc%name, lat, in_eles, n_loc, err)
+      if (n_loc == 0) then
+        if (present(check_lat)) then
+          call lat_ele_locator (pc%name, check_lat, in_eles, n_in_loc, err)
+        else
+          call lat_ele_locator (pc%name, lord_lat, in_eles, n_in_loc, err)
+        endif
+
+        if (n_in_loc == 0) then
+          call parser_error ('CANNOT FIND SLAVE ELEMENT FOR ' // trim(upcase(control_name(lord%lord_status))) // &
+                                                 ' ELEMENT: ' // lord%name, 'CANNOT FIND: '// pc%name, pele = pele)
+          cycle main_loop
+        endif
+
+        do k = 1, n_in_loc
+          if (all(in_eles(k)%ele%key /= [overlay$, group$, girder$, ramper$])) cycle 
+          call parser_error('LORD ELEMENT: ' // trim(lord%name) // ' CONTROLS ANOTHER LORD ELEMENT: ' // pc%name, &
+                            'BUT ' // trim(pc%name) // ' IS DEFINED IN THE LATTICE LATER THAN ' // lord%name, &
+                            'THIS IS NOT ALLOWED. SWITCH THE ORDER OF THE LORDS TO RECTIFY.')
+          cycle main_loop
+        enddo
+      else
+        n_slave = n_slave + 1
+        cs(n_slave) = cs(ip)
+      endif
     enddo
+
+    if (n_slave == 0) cycle main_loop
 
     ! Create the ramper
 
     call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
     lat%ele(ix_lord) = lord
-
     call create_ramper (lat%ele(ix_lord), cs(1:nn), err)
 
   case (overlay$, group$)
@@ -6560,7 +6586,7 @@ main_loop: do n_in = 1, n_ele_max
         ! Check if slave is in lord list later than this lord
         do ns = n_in+1, n_ele_max
           if (lord_lat%ele(ns)%name /= pc%name) cycle
-          call parser_error('LORD ELEMENT: ' // trim(lord%name) // ' CONTROLLS ANOTHER LORD ELEMENT: ' // pc%name, &
+          call parser_error('LORD ELEMENT: ' // trim(lord%name) // ' CONTROLS ANOTHER LORD ELEMENT: ' // pc%name, &
                             'BUT ' // trim(pc%name) // ' IS DEFINED IN THE LATTICE LATER THAN ' // lord%name, &
                             'THIS IS NOT ALLOWED. SWITCH THE ORDER OF THE LORDS TO RECTIFY.')
           cycle main_loop
@@ -6986,7 +7012,7 @@ err_flag = .false.
 
 end subroutine make_this_overlay_group_lord
 
-end subroutine parser_add_lord
+end subroutine parser_add_lords
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

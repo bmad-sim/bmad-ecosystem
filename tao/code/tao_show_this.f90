@@ -2638,7 +2638,7 @@ case ('internal')
     if (ele%n_slave + ele%n_slave_field /= 0) then 
       nl=nl+1; lines(nl) = 'Slaves: Type       %ic  %cntrl  back   Slave                         Param          Expression'
       do i = 1, ele%n_slave + ele%n_slave_field
-        slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
+        slave => pointer_to_slave (ele, i, contl, all$, j, i_con, i_ic)
         if (i <= ele%n_slave) then
           nl=nl+1; write (lines(nl), fmt) control_name(ele%lord_status), i_ic, i_con, j, &
                       trim(slave%name) // ' ' // trim(ele_loc_name(slave, .true., '()')), &
@@ -2653,7 +2653,7 @@ case ('internal')
     if (ele%n_lord + ele%n_lord_field /= 0) then 
       nl=nl+1; lines(nl) = 'Lords:  Type       %ic  %cntrl  back   Lord                          Param          Attrib_Value  Expssn_val  Expression'
       do i = 1, ele%n_lord + ele%n_lord_field
-        lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
+        lord => pointer_to_lord (ele, i, contl, j, all$, i_con, i_ic)
         if (i <= ele%n_lord) then
           call pointer_to_attribute(ele, contl%attribute, .false., a_ptr, err_flag)
           if (associated(a_ptr%r)) then

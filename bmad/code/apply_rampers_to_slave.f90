@@ -41,7 +41,7 @@ lat => ramper(1)%ele%branch%lat
 ! Bookkeeping for ramper controlling ramper.
 
 do ix = 1, size(ramper)
-  ramper(ix)%ele%select = .false.
+  ramper(ix)%ele%select = .false.   ! Bookkeeping has not yet been done.
 enddo
 
 do ix = 1, size(ramper)
@@ -117,9 +117,11 @@ type (control_ramp1_struct), pointer :: r1
 
 integer ir, is
 
-!
+! Nothing to do if bookkeeping has been done.
 
-if (this_ramp%select) return
+if (this_ramp%select) return 
+
+! Ramper lord bookkeeping
 
 do ir = 1, this_ramp%n_lord
   lord => pointer_to_lord(this_ramp, ir)
@@ -127,9 +129,12 @@ do ir = 1, this_ramp%n_lord
   call this_ramper_bookkeeper(this_ramp, ramper, lat)
 enddo
 
+! Ramper slave bookkeeping
+
 if (this_ramp%is_on) then
   do is = 1, size(this_ramp%control%ramp)
     r1 => this_ramp%control%ramp(is)
+    ! No bookkeeping needed if the slave name has wild card characters.
     if (index(r1%slave_name, '*') /= 0 .or. index(r1%slave_name,'%') /= 0) cycle
     do ir = 1, size(ramper)
       if (ramper(ir)%ele%name /= r1%slave_name) cycle
@@ -139,7 +144,9 @@ if (this_ramp%is_on) then
   enddo
 endif
 
-this_ramp%select = .true.
+! And bookkeeping has been done
+
+this_ramp%select = .true.   
 
 end subroutine this_ramper_bookkeeper
 

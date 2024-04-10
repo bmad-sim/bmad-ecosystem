@@ -129,7 +129,7 @@ integer, parameter :: minor_slave$ = 1, super_slave$ = 2, free$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12, ramper_lord$ = 13
-integer, parameter :: governor$ = 14   ! Union of overlay and group lords.
+integer, parameter :: governor$ = 14, field_lord$ = 15    ! governor$ = Union of overlay and group lords.
 
 character(20), parameter :: control_name(13) = [character(20):: &
             'Minor_Slave', 'Super_Slave', 'Free', 'Group_Lord', &
@@ -1394,8 +1394,9 @@ type ele_struct
   integer :: n_slave_field = 0                    ! Number of field slaves of this element.
   integer :: ix1_slave = 0                        ! Pointer index to this element's slaves.
   integer :: slave_status = free$                 ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
-  integer :: n_lord = 0                           ! Number of lords (except field lords).
+  integer :: n_lord = 0                           ! Number of lords (except field overlap and ramper lords).
   integer :: n_lord_field = 0                     ! Number of field lords of this element.
+  !! integer :: n_lord_ramper = 0                    ! Number of ramper lords.
   integer :: ic1_lord = 0                         ! Pointer index to this element's lords.
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
   integer :: ixx = 0, iyy = 0, izz = 0            ! Index for Bmad internal use.
@@ -2559,16 +2560,16 @@ end function is_attribute
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
+! Function pointer_to_slave (lord, ix_slave, control, lord_type, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
 ! Note: Ramper lords do not have any associated slaves (slaves are assigned dynamically at run time).
 !
-! If field_overlap_ptr = False (default), the range for ix_slave is:
+! If lord_type = all$ (the default) the range for ix_slave is:
 !   1 to lord%n_slave                                 for "regular" slaves.
 !   lord%n_slave+1 to lord%n_slave+lord%n_slave_field for field overlap slaves.
 !
-! If field_overlap_ptr = True, only the field overlap slaves may be accessed and the range for ix_slave is:
+! If lord_type = field_lord$, only the field overlap slaves may be accessed and the range for ix_slave is:
 !   1 to lord%n_slave_field  
 !
 ! Also see:
@@ -2577,10 +2578,9 @@ end function is_attribute
 !   num_lords
 !
 ! Input:
-!   lord               -- ele_struct: Lord element
-!   ix_slave           -- integer: Index of the slave in the list of slaves controled by the lord.. 
-!   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
-!                           Default is False.
+!   lord             -- ele_struct: Lord element
+!   ix_slave         -- integer: Index of the slave in the list of slaves controled by the lord.. 
+!   lord_type        -- integer, optional: See above.
 !
 ! Output:
 !   slave_ptr      -- ele_struct, pointer: Pointer to the slave.
@@ -2593,7 +2593,7 @@ end function is_attribute
 !   ix_ic          -- integer, optional: Index of the lat%ic(:) element associated with the control argument.
 !-
 
-function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
+function pointer_to_slave (lord, ix_slave, control, lord_type, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 
 implicit none
 
@@ -2603,9 +2603,8 @@ type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
 type (lat_struct), pointer :: lat
 
-integer, optional :: ix_lord_back, ix_control, ix_ic
+integer, optional :: ix_lord_back, lord_type, ix_control, ix_ic
 integer i, ix, ix_slave, icon, ixs
-logical, optional :: field_overlap_ptr
 
 !
 
@@ -2614,7 +2613,7 @@ if (present(ix_control)) ix_control = -1
 if (present(ix_ic)) ix_ic = -1
 if (present(ix_lord_back)) ix_lord_back = -1
 
-if (logic_option(.false., field_overlap_ptr)) ixs = ixs + lord%n_slave
+if (integer_option(all$, lord_type) == field_lord$) ixs = ixs + lord%n_slave
 
 if (ixs > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
   nullify(slave_ptr)
