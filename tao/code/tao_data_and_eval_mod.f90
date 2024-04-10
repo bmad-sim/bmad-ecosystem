@@ -222,6 +222,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
           if (associated(dflt_ele_start)) then
             datum%ix_ele = dflt_ele_start%ix_ele + j - 1
             if (datum%ix_ele > dflt_ele%branch%n_ele_track) datum%ix_ele = datum%ix_ele - dflt_ele%branch%n_ele_track + 1
+            this_ele => dflt_ele%branch%ele(datum%ix_ele)
           endif
         endif
 
@@ -5103,8 +5104,7 @@ character(*), optional :: dflt_dat_or_var_index
 
 character(1) delim
 character(16) s_str, source
-character(60) name
-character(200) str2, word2
+character(200) name, str2, word2
 character(*), parameter :: r_name = 'tao_param_value_routine'
 
 logical use_good_user, err_flag, print_err, print_error, delim_found, valid_value, exterminate

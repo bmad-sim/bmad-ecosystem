@@ -1848,7 +1848,7 @@ type (ele_struct) ele
 type (coord_struct), pointer :: p
 type (branch_struct), pointer :: branch
 
-real(rp) center(6), ran_vec(6), old_charge, pz_min, t_offset
+real(rp) center(6), ran_vec(6), old_charge, pz_min, t_offset, dz, dz_tot
 integer ix_bunch, i, n
 character(*), parameter :: r_name = 'bunch_init_end_calc'
 logical from_file, h5_file
@@ -1939,13 +1939,19 @@ endif
 !
 
 bunch%t_center           = ix_bunch * beam_init%dt_bunch
-bunch%z_center           = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
 bunch%particle(:)%t      = bunch%particle(:)%t + bunch%t_center
-bunch%particle(:)%vec(5) = bunch%particle(:)%vec(5) + bunch%z_center
 bunch%n_live             = size(bunch%particle)
 bunch%charge_live        = sum(bunch%particle%charge)
 bunch%ix_bunch           = ix_bunch
 
+dz_tot = 0
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  dz = -bunch%t_center * c_light * p%beta
+  p%vec(5) = p%vec(5) + dz
+  dz_tot = dz_tot + dz
+enddo
+bunch%z_center = dz_tot / bunch%n_live
 
 ! If from a file, scale the particle charge.
 

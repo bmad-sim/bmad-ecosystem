@@ -101,6 +101,6 @@ endif
 
 !
 
-if (logic_option(.true., z_tune_set)) call set_z_tune(branch, twopi*target_tunes(3))
+if (logic_option(.true., z_tune_set)) call set_z_tune(branch, twopi*target_tunes(3), print_err = print_err)
 
 end function set_tune_3d

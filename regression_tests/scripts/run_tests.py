@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import math
+from distutils.spawn import find_executable
 
 num_tests = 0
 num_failures = 0
@@ -131,7 +132,12 @@ for test_dir in test_dir_list:
 
   # Remove output.now
 
-  os.system('rm output.now')
+  if os.path.exists('output.now'):
+    os.system('rm -f output.now')
+#  if pathlib.Path('output.now'.exists('output.now'):
+#     os.system('rm output.now')
+#  else:
+#    print ('did not find output.now')
 
   # Run process and make sure output.now has been created
 
@@ -140,8 +146,12 @@ for test_dir in test_dir_list:
 
   # run.py
   if os.path.exists('run.py'):
-    print_all ('     Found run.py. Running this script.')
-    os.system('python run.py ' + bin_dir)
+    if find_executable('python3'):
+      print_all ('     Found run.py. Running this script with python3.')        
+      os.system('python3 run.py ' + bin_dir)
+    else:
+      print_all ('     Found run.py. Running this script with python(2.#).')
+      os.system('python run.py ' + bin_dir)
 
   else:
     program = bin_dir + program

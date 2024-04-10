@@ -4,7 +4,130 @@ use element_modeling_mod
 use binary_parser_mod
 use multipole_mod
 
+type multipass_region_ele_struct
+  integer ix_region
+  logical region_start_pt
+  logical region_stop_pt
+end type
+
+type multipass_region_branch_struct
+  type (multipass_region_ele_struct), allocatable :: ele(:)
+end type
+
+type multipass_region_lat_struct
+  type (multipass_region_branch_struct), allocatable :: branch(:)
+end type
+
 contains
+
+!-------------------------------------------------------
+!-------------------------------------------------------
+!-------------------------------------------------------
+! Create the information on multipass regions.
+
+subroutine multipass_region_info(lat, mult_lat, m_info)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
+type (multipass_region_lat_struct), target :: mult_lat
+type (multipass_all_info_struct), target :: m_info
+
+type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
+type (multipass_ele_info_struct), pointer :: e_info
+type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
+
+integer ib, ix_r, ie, ix_pass, ix_lord, ix_super
+logical in_multi_region, need_new_region
+
+!
+
+allocate (mult_lat%branch(0:ubound(lat%branch, 1)))
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  allocate (mult_lat%branch(ib)%ele(branch%n_ele_max))
+  mult_lat%branch(ib)%ele(:)%ix_region = 0
+  mult_lat%branch(ib)%ele(:)%region_start_pt = .false.
+  mult_lat%branch(ib)%ele(:)%region_stop_pt   = .false.
+enddo
+
+call multipass_all_info (lat, m_info)
+
+if (size(m_info%lord) == 0) return
+
+! Go through and mark all 1st pass regions
+! In theory the original lattice file could have something like:
+!   lat: line = (..., m1, m2, ..., m1, -m2, ...)
+! where m1 and m2 are multipass lines. The first pass region (m1, m2) looks 
+! like this is one big region but the later (m1, -m2) signals that this 
+! is not so.
+! We thus go through all the first pass regions and compare them to the
+! corresponding higher pass regions. If we find two elements that are contiguous
+! in the first pass region but not contiguous in some higher pass region, 
+! we need to break the first pass region into two.
+
+ix_r = 0
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  mult_ele => mult_lat%branch(ib)%ele
+
+  in_multi_region = .false.
+
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    e_info => m_info%branch(ib)%ele(ie)
+    ix_pass = e_info%ix_pass
+
+    if (ix_pass /= 1) then  ! Not a first pass region
+      if (in_multi_region) mult_ele(ie-1)%region_stop_pt = .true.
+      in_multi_region = .false.
+      cycle
+    endif
+
+    ! If start of a new region...
+    if (.not. in_multi_region) then  
+      ix_r = ix_r + 1
+      mult_ele(ie)%ix_region = ix_r
+      mult_ele(ie)%region_start_pt = .true.
+      in_multi_region = .true.
+      ix_lord = e_info%ix_lord(1)
+      ix_super = e_info%ix_super(1)
+      ss1 => m_info%lord(ix_lord)%slave(:,ix_super)
+      cycle
+    endif
+    ix_lord = e_info%ix_lord(1)
+    ix_super = e_info%ix_super(1)
+    ss2 => m_info%lord(ix_lord)%slave(:, ix_super)
+
+    need_new_region = .false.
+    if (size(ss1) /= size(ss2)) then
+      need_new_region = .true.
+    else
+      do ix_pass = 2, size(ss1)
+        if (abs(ss1(ix_pass)%ele%ix_ele - ss2(ix_pass)%ele%ix_ele) == 1) cycle
+        ! not contiguous then need a new region
+        need_new_region = .true.
+        exit
+      enddo
+    endif
+
+    if (need_new_region) then
+      ix_r = ix_r + 1
+      mult_ele(ie-1)%region_stop_pt = .true.
+      mult_ele(ie)%region_start_pt = .true.
+    endif
+
+    ss1 => ss2
+    mult_ele(ie)%ix_region = ix_r
+  enddo
+
+enddo
+
+if (in_multi_region) mult_ele(branch%n_ele_track)%region_stop_pt = .true.
+
+end subroutine multipass_region_info
 
 !-------------------------------------------------------
 !-------------------------------------------------------
@@ -34,11 +157,11 @@ if (ele%slave_status == super_slave$) then
 
 elseif (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)
-  write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
+  write (line, '(4a)') trim(line), ' ', trim(downcase(lord%name)), ','
 
 else
   if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
+    write (line, '(4a)') trim(line), ' ', trim(downcase(ele%name)), ','
   else
     write (line, '(4a)') trim(line), ' --', trim(ele%name), ','
   endif
@@ -186,13 +309,14 @@ end function rchomp
 !   do_split      -- logical, optional: Split line if overlength? Default is True.
 !                      False is used when line has already been split for expressions since
 !                      the expression splitting routine does a much better job of it.
+!   julia         -- logical, optional: Default False. If True then do not include "&" line continuation
 !
 ! Output:
 !   line          -- character(*): part of the string not written. 
 !                       If end_is_neigh = T then line will be blank.
 !-
 
-subroutine write_lat_line (line, iu, end_is_neigh, do_split)
+subroutine write_lat_line (line, iu, end_is_neigh, do_split, julia)
 
 implicit none
 
@@ -201,7 +325,7 @@ integer i, iu, n
 integer, parameter :: max_char = 105
 logical end_is_neigh
 logical, save :: init = .true.
-logical, optional :: do_split
+logical, optional :: do_split, julia
 
 !
 
@@ -213,7 +337,11 @@ if (.not. logic_option(.true., do_split)) then
   elseif (index(',[{(=', line(n:n)) /= 0) then
     call write_this (line)
   else
-    call write_this (trim(line) // ' &')
+    if (logic_option(.false., julia)) then
+      call write_this (trim(line))
+    else
+      call write_this (trim(line) // ' &')
+    endif
   endif
 
   line = ''
@@ -253,7 +381,11 @@ outer_loop: do
     return
   endif
 
-  call write_this (trim(line) // ' &')
+  if (logic_option(.false., julia)) then
+    call write_this (trim(line))
+  else
+    call write_this (trim(line) // ' &')
+  endif
   line = ''
   return
 
@@ -1285,6 +1417,31 @@ end subroutine write_line
 
 end subroutine write_lat_in_sad_format
 
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+subroutine add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
+
+type (ele_struct), target :: ele
+type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
+
+integer, allocatable :: an_indexx(:)
+integer n_names, ix_match
+logical has_been_added
+character(40), allocatable :: names(:)
+
+!
+
+if (size(names) < n_names + 1) then
+  call re_allocate(names, 2*size(names))
+  call re_allocate(an_indexx, 2*size(names))
+  call re_allocate_eles(named_eles, 2*size(names), .true.)
+endif
+call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
+if (has_been_added) named_eles(n_names)%ele => ele
+
+end subroutine add_this_name_to_list
 
 end module
 

@@ -601,6 +601,16 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                       'WHICH DOES NOT HAVE AN ASSOCIATED ATOMIC NUMBER.')
         err_flag = .true.
       endif
+
+      if (ele%value(thickness$) == 0 .and. ele%value(dthickness_dx$) /= 0) then
+        do i = 1, size(ele%foil%material)
+          if (ele%foil%material(i)%area_density /= 0) then
+            call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele_full_name(ele, '@N (&#)') // &
+                                            'HAS ZERO THICKNESS, NON-ZERO DTHICKNESS_DX, AND AREA_DENSITY NON-ZERO.')
+            err_flag = .true.
+          endif
+        enddo
+      endif
     endif
 
     ! Zero length cavity is verboten

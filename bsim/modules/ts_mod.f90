@@ -246,9 +246,9 @@ endif
 ring = ts_com%ring              ! Use copy in case tune setting fails, which may garble the lattice
 closed_orb = ts_com%closed_orb  ! Use copy in case tune setting fails, which may garble the closed orbit
 ele => ring%ele(0)
-
-ok = set_tune_3d (ring%branch(0), ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on, ts%group_knobs)  ! Tunes in radians.
-if (.not. ok) print '(a, 3f9.4)', 'Cannot set tunes (due to resonance?) for: ', ts_dat%tune(1:iqm)
+! Note: Tunes in radians.
+ok = set_tune_3d (ring%branch(0), ts_dat%tune, ts%quad_mask, ts%use_phase_trombone, ts%rf_on, ts%group_knobs, .false.)
+if (.not. ok) print '(a, 3f9.4)', 'Note: Cannot set tunes (this is normal when close to a resonance) at: ', ts_dat%tune(1:iqm)
 
 if (.not. ok) return    ! Tunes could not be set, probably on a resonance.
 

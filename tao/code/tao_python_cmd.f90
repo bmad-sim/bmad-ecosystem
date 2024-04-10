@@ -2691,38 +2691,7 @@ case ('ele:floor')
       return
     endif
 
-    n = 1
-    if (ele%lord_status == multipass_lord$) n = ele%n_slave
-
-    do ie = 1, n
-      if (ele%lord_status == multipass_lord$) then
-        ele1 => pointer_to_slave(ele, ie)
-        ele0 => pointer_to_next_ele(ele1, -1)
-        name1(1:2) = [character(20):: 'Reference-Slave' // int_str(ie), 'Actual-Slave' // int_str(ie)]
-      else
-        ele1 => ele
-        if (ele%ix_ele == 0) then
-          ele0 => ele
-        else
-          ele0 => pointer_to_next_ele(ele, -1)
-        endif
-        name1(1:2) = [character(12):: 'Reference', 'Actual']
-      endif
-
-
-      select case (loc)
-      case (1)
-        call write_this_floor(ele0%floor, name1(1), can_vary)
-        call write_this_floor(ele_geometry_with_misalignments (ele1, 0.0_rp), name1(2), .false.)
-      case (2)
-        call ele_geometry(ele0%floor, ele1, floor, 0.5_rp)
-        call write_this_floor(floor, name1(1), can_vary)
-        call write_this_floor(ele_geometry_with_misalignments (ele1, 0.5_rp), name1(2), .false.)
-      case (3)
-        call write_this_floor(ele1%floor, name1(1), can_vary)
-        call write_this_floor(ele_geometry_with_misalignments (ele1), name1(2), .false.)
-      end select
-    enddo
+    call write_this_ele_floor(ele, loc, can_vary, '')
   end select
 
 !------------------------------------------------------------------------------------------------
@@ -9115,5 +9084,51 @@ nl=incr(nl); write (li(nl), rmt2) trim(name) // ';REAL_ARR;', can_vary, (';', fl
 nl=incr(nl); write (li(nl), rmt2) trim(name) // '-W;REAL_ARR;', .false., ((';', floor%w(i,j), i = 1, 3), j = 1, 3)
 
 end subroutine write_this_floor
+
+!----------------------------------------------------------------------
+! contains
+
+recursive subroutine write_this_ele_floor(ele, loc, can_vary, suffix)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
+
+integer n, ie, loc
+logical can_vary
+character(*) suffix
+
+!
+
+
+if (ele%lord_status /= super_lord$ .and. ele%lord_status /= girder_lord$ .and. ele%n_slave > 0) then
+  do ie = 1, ele%n_slave
+    ele0 => pointer_to_slave(ele, ie)
+    call write_this_ele_floor(ele0, loc, can_vary, '-Slave' // int_str(ie))
+  enddo
+  return
+endif
+
+!
+
+if (ele%ix_ele == 0) then
+  ele0 => ele
+else
+  ele0 => pointer_to_next_ele(ele, -1)
+endif
+
+select case (loc)
+case (1)
+  call write_this_floor(ele0%floor, 'Reference' // suffix, can_vary)
+  call write_this_floor(ele_geometry_with_misalignments (ele, 0.0_rp), 'Actual' // suffix, .false.)
+case (2)
+  call ele_geometry(ele0%floor, ele, floor, 0.5_rp)
+  call write_this_floor(floor, 'Reference' // suffix, can_vary)
+  call write_this_floor(ele_geometry_with_misalignments (ele, 0.5_rp), 'Actual' // suffix, .false.)
+case (3)
+  call write_this_floor(ele%floor, 'Reference' // suffix, can_vary)
+  call write_this_floor(ele_geometry_with_misalignments (ele), 'Actual' // suffix, .false.)
+end select
+
+end subroutine write_this_ele_floor
 
 end subroutine tao_python_cmd

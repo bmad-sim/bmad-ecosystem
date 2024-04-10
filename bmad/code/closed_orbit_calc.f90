@@ -179,7 +179,8 @@ e_orb => end_orb      ! Used to get around ifort bug
 call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
 original_start_orb = start_orb
 
-call set_on_off (foil$, lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = scatter_state, attribute = 'SCATTER')
+call set_on_off (foil$, lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = scatter_state, &
+                                                                      attribute = 'SCATTER_METHOD', set_val = off$)
 
 !----------------------------------------------------------------------
 ! Further init
@@ -580,7 +581,7 @@ if (n_dim == 4 .or. n_dim == 5) then
   call set_on_off (rfcavity$, branch%lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 endif
 
-call set_on_off (foil$, lat, restore_state$, ix_branch = branch%ix_branch, saved_values = scatter_state, attribute = 'SCATTER')
+call set_on_off (foil$, lat, restore_state$, ix_branch = branch%ix_branch, saved_values = scatter_state, attribute = 'SCATTER_METHOD')
 
 if (logic_option(.false., reset_orb)) closed_orb(0) = original_start_orb
 

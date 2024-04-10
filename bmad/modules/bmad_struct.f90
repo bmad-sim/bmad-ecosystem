@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 314
+integer, parameter :: bmad_inc_version$ = 315
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1057,9 +1057,9 @@ type bunch_struct
   integer, allocatable :: ix_z(:)  ! bunch%ix_z(1) is index of head particle, etc.
   real(rp) :: charge_tot = 0       ! Total charge in a bunch (Coul).
   real(rp) :: charge_live = 0      ! Charge of live particles (Coul).
-  real(rp) :: z_center = 0         ! Longitudinal center of bunch (m). Note: Generally, z_center of 
+  real(rp) :: z_center = 0         ! Longitudinal center of bunch at creation time. Note: Generally, z_center of 
                                    !   bunch #1 is 0 and z_center of the other bunches is negative.
-  real(rp) :: t_center = 0         ! Center of bunch creation time relative to head bunch.
+  real(rp) :: t_center = 0         ! Center of bunch at creation time relative to head bunch.
   real(rp) :: t0 = real_garbage$   ! Used by track1_bunch_space_charge for tracking so particles have constant t.
   logical :: drift_between_t_and_s = .false.
                                    ! Drift (ignore any fields) instead of tracking to speed up the calculation?
@@ -1603,14 +1603,14 @@ integer, parameter :: thick_multipole$ = 67, pickup$ = 68, feedback$ = 69, n_key
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
 character(20), parameter :: key_name(n_key$) = [ &
-    'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
-    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFcavity          ', 'ELseparator       ', &
+    'Drift             ', 'SBend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
+    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFCavity          ', 'ELSeparator       ', &
     'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
-    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', '!Bmad_Com         ', &
+    'Hybrid            ', 'Octupole          ', 'RBend             ', 'Multipole         ', '!Bmad_Com         ', &
     '!Mad_Beam         ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
     '!Parameter        ', 'Null_Ele          ', 'Beginning_Ele     ', '!Line             ', 'Match             ', &
-    'Monitor           ', 'Instrument        ', 'HKicker           ', 'VKicker           ', 'Rcollimator       ', &
-    'Ecollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
+    'Monitor           ', 'Instrument        ', 'HKicker           ', 'VKicker           ', 'RCollimator       ', &
+    'ECollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
@@ -1714,7 +1714,7 @@ integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_
                       y2_edge$ = 25, species_strong$ = 25
 integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26, &
                       phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26, &
-                      eps_step_scale$ = 26, E_tot_strong$ = 26, drel_thickness_dx$ = 26, bend_tilt$ = 26
+                      eps_step_scale$ = 26, E_tot_strong$ = 26, dthickness_dx$ = 26, bend_tilt$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
                       x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
                       py_aperture_center$ = 27, x_dispersion_err$ = 27

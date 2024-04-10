@@ -283,7 +283,7 @@ type (coord_struct) orbit
 type (internal_state_struct) iss
 real(rp) rf_phase, cdt, rel_p, dE, gradient_net, E_ratio, cos_phi, sin_phi, dcos_phi
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
-real(rp) dz_factor
+real(rp) dz_factor, kmat(6,6)
 logical, optional :: make_matrix
 
 !
@@ -465,8 +465,16 @@ else
                  orbit%vec(4) * z22 * dc_plu * dalpha_dE1 + &
                  orbit%vec(4) * c_plu * (iss%E_end - iss%E_start) / iss%E_end**2
 
+    if (abs(dE) <  1d-4*(iss%pc_end+iss%pc_start)) then
+      kmat(5,5) = 1 - iss%step_len * (-mc2**2 * kmat(6,5) / (2 * iss%pc_start**3) + mc2**2 * dE * kmat(6,5) * iss%E_start / iss%pc_start**5)
+      kmat(5,6) = -iss%step_len * (-dbeta1_dE1 / iss%beta_start**2 + 2 * mc2**2 * dE / iss%pc_start**4 + &
+                      (mc2 * dE)**2 / (2 * iss%pc_start**5) - 5 * (mc2 * dE)**2 / (2 * iss%pc_start**5))
+    else
+      kmat(5,5) = 1 - kmat(6,5) / (iss%beta_end * gradient_net) + kmat(6,5) * (iss%pc_end - iss%pc_start) / (gradient_net**2 * iss%step_len)
+      kmat(5,6) = -1 / (iss%beta_end * gradient_net) + 1 / (iss%beta_start * gradient_net)
+    endif
+
     ! Correction to z for finite x', y'
-    ! Note: Corrections to kmat(5,5) and kmat(5,6) are ignored since these are small (quadratic in the transvers coords).
 
     c_plu = sqrt_2 * cos_phi * cos_a + sin_a
 

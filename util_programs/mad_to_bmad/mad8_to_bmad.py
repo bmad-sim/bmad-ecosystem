@@ -145,7 +145,9 @@ bmad_param_name = {
     'e ':       'e_field',
     'xsize':    'x_limit',
     'ysize':    'y_limit',
-    'lrad':      'l',  }
+    'lrad':     'l',
+    'swave':    'cavity_type',
+}
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -301,29 +303,13 @@ def parameter_dictionary(word_lst):
     if len(word_lst) == 0: return pdict
 
     if 'tilt' in word_lst:
-      ix = word_lst.index('tilt')
-      if len(word_lst) > ix + 1 and word_lst[ix+1] == ',':
-        pdict['tilt'] = ''
-        word_lst.pop(ix+1)
-        word_lst.pop(ix)
-      elif len(word_lst) == ix + 1 and word_lst[ix-1] == ',':
-        pdict['tilt'] = ''
-        word_lst.pop(ix)
-        word_lst.pop(ix-1)
-      elif len(word_lst) > ix + 1 and word_lst[ix+1] == '=':
-        if ',' in word_lst[ix+1:]:
-          ixe = word_lst.index(',', ix+1)
-          pdict['tilt'] = ' '.join(word_lst[ix+2:ixe])
-          word_lst = word_lst[:ix] + word_lst[ixe+1:]
-        else:
-          pdict['tilt'] = ' '.join(word_lst[ix+2:])
-          word_lst = word_lst[:ix]
-          if ix > 0 and word_lst[-1] == ',': word_lst.pop()
-      else:
-        print ('PROBLEM PARSING "TILT" IN PARAMETER LIST: ' + ''.join(orig_word_lst))
-        return dict
+      word_lst = mad_defaulting_parameter_to_dict('tilt', word_lst, orig_word_lst, pdict)
       continue
 
+    if 'swave' in word_lst:
+      word_lst = mad_defaulting_parameter_to_dict('swave', word_lst, orig_word_lst, pdict)
+      continue
+      
     if word_lst[1] != '=':
       print ('PROBLEM PARSING PARAMETER LIST: ' + ''.join(orig_word_lst))
       return pdict
@@ -336,6 +322,34 @@ def parameter_dictionary(word_lst):
     else:
       pdict[word_lst[0]] = ''.join(word_lst[2:])
       return pdict
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+# A "defaulting parameter" is a parameter that may have a default value. For example: param = 'tilt'.
+
+def mad_defaulting_parameter_to_dict(param, word_lst, orig_word_lst, pdict):
+  ix = word_lst.index(param)
+  if len(word_lst) > ix + 1 and word_lst[ix+1] == ',':
+    pdict[param] = ''
+    word_lst.pop(ix+1)
+    word_lst.pop(ix)
+  elif len(word_lst) == ix + 1 and word_lst[ix-1] == ',':
+    pdict[param] = ''
+    word_lst.pop(ix)
+    word_lst.pop(ix-1)
+  elif len(word_lst) > ix + 1 and word_lst[ix+1] == '=':
+    if ',' in word_lst[ix+1:]:
+      ixe = word_lst.index(',', ix+1)
+      pdict[param] = ' '.join(word_lst[ix+2:ixe])
+      word_lst = word_lst[:ix] + word_lst[ixe+1:]
+    else:
+      pdict[param] = ' '.join(word_lst[ix+2:])
+      word_lst = word_lst[:ix]
+      if ix > 0 and word_lst[-1] == ',': word_lst.pop()
+  else:
+    print ('PROBLEM PARSING "' + param + '" IN PARAMETER LIST: ' + ''.join(orig_word_lst))
+
+  return word_lst
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -517,6 +531,15 @@ def parse_element(dlist, write_to_file):
   elif ele.mad8_base_type == 'octupole':
     if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/8'
 
+  elif ele.mad8_base_type == 'lcavity':
+    if 'swave' not in params: params['swave'] = '.F.'
+
+  #
+
+  if 'swave' in params:
+    if params['swave'] == '': params['swave'] = '.T.'
+    if   params['swave'].upper() in ['.YES.', '.TRUE.', '.T.', '.ON.']:  params['swave'] = 'standing_wave' 
+    elif params['swave'].upper() in ['.NO.', '.FALSE.', '.F.', '.OFF.']: params['swave'] = 'traveling_wave' 
 
   #
 

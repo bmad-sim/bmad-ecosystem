@@ -1,5 +1,5 @@
 !+
-! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
+! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute, set_val)
 !
 ! Routine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a lattice. 
 ! An element that is turned off acts like a drift.
@@ -31,7 +31,7 @@
 !                       Must be present if needed (EG if switch = restore_state$, etc.).
 !   attribute       -- character(*), optional: Attribute to turn on/off. Eg: 'K2', 'MULTIPOLE_ON', etc.
 !                       Default is 'IS_ON'. Must be upper case.
-!                   
+!   set_val         -- integer, optional: Value to set to. Overrides normal set value.
 !
 ! Output:
 !   lat             -- lat_struct: Modified lattice.
@@ -39,7 +39,7 @@
 !                       Must be present if needed (EG if switch = off_and_save$, etc.).
 !-
 
-subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute, set_val)
 
 use changed_attribute_bookkeeper, dummy => set_on_off
 
@@ -55,7 +55,7 @@ real(rp), optional, allocatable :: saved_values(:)
 real(rp) old_state
 
 integer :: key, switch
-integer, optional :: ix_branch
+integer, optional :: ix_branch, set_val
 integer i, ib, n_set, n_save_old
 
 logical, optional :: use_ref_orb
@@ -181,16 +181,19 @@ contains
 subroutine set_value_of (a_ptr, val)
 
 type (all_pointer_struct) a_ptr
-real(rp) val
+real(rp) val, val2
 
 !
 
+val2 = val
+if (present(set_val)) val2 = set_val
+
 if (associated(a_ptr%r)) then
-  a_ptr%r = val
+  a_ptr%r = val2
 elseif (associated(a_ptr%i)) then
-  a_ptr%i = nint(val)
+  a_ptr%i = nint(val2)
 else
-  a_ptr%l = is_true(val)
+  a_ptr%l = is_true(val2)
 endif
 
 end subroutine set_value_of

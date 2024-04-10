@@ -2,7 +2,7 @@
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
 !        use_matrix_model, include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
 !
-! Subroutine to write a Elegant, MAD-8, MAD-X, OPAL, SAD, or XSIF lattice file using the 
+! Subroutine to write a Elegant, MAD-8, MAD-X, OPAL, SAD, JULIA, or XSIF lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
 ! [XSIF is a variant of MAD8 used by SLAC.]
 !
@@ -29,7 +29,7 @@
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
 !
 ! Input:
-!   out_type          -- character(*): Either 'ELEGANT', 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.
+!   out_type          -- character(*): Either 'ELEGANT', 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T', 'JULIA'.
 !   out_file_name     -- character(*): Name of the mad output lattice file.
 !   lat               -- lat_struct: Holds the lattice information.
 !   ref_orbit(0:)     -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
@@ -106,6 +106,14 @@ character(2) continue_char, eol_char, comment_char, separator_char
 logical, optional :: use_matrix_model, include_apertures, err
 logical init_needed, mad_out, err_flag, monopole
 logical parsing, warn_printed, converted, ptc_exact_model
+
+! Julia translation
+
+if (out_type == 'JULIA') then
+  call write_lattice_in_julia (out_file_name, lat)
+  if (present(converted_lat)) converted_lat = lat
+  return
+endif
 
 ! SAD translation
 
@@ -1335,6 +1343,10 @@ do   ! ix_ele = 1e1, ie2
     call value_to_line (line_out, val(gradient$)*val(l$)/1d6, 'deltae', 'R')
     call value_to_line (line_out, val(rf_frequency$)/1d6, 'freq', 'R')
     call value_to_line (line_out, val(phi0$)+val(phi0_multipass$), 'phi0', 'R')
+    if (out_type == 'MAD-8' .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+      line_out = trim(line_out) // ', swave'
+    endif
+
 
   ! solenoid MAD
 

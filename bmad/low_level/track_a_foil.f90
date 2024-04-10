@@ -34,8 +34,8 @@ type (material_struct), pointer :: material
 
 real(rp), optional :: mat6(6,6)
 real(rp) xx0, sigma, rnd(2), I_excite, mass_material, dE_dx_tot, E0, E1, p2, elec_area_density
-real(rp) pc_old, pc_new, r_thick, chi2_c, chi2_alpha, nu, f, ln_chi_alpha_sum, zza, zza_sum, norm_sum
-real(rp) atomic_mass, omega
+real(rp) pc_old, pc_new, chi2_c, chi2_alpha, nu, f, ln_chi_alpha_sum, zza, zza_sum, norm_sum
+real(rp) atomic_mass, omega, arg, area_density
 
 integer i, j, ns, n_step, z_material, z_particle
 
@@ -50,7 +50,6 @@ call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make
 if (orbit%vec(1) < ele%value(x1_edge$) .or. orbit%vec(1) > ele%value(x2_edge$)) return
 if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) return
 
-r_thick = 1.0_rp + ele%value(drel_thickness_dx$) * orbit%vec(1)
 z_particle = nint(ele%value(final_charge$))
 f = ele%value(f_factor$)
 
@@ -67,16 +66,19 @@ do ns = 1, n_step
 
     do i = 1, size(ele%foil%material)
       material => ele%foil%material(i)
+      area_density = this_area_density(material, ele%value(thickness$), ele%value(dthickness_dx$), orbit)
+      if (orbit%state == lost$) return
       z_material = atomic_number(material%species)
+
       select case (nint(ele%value(scatter_method$)))
       case (highland$)
-        xx0 = xx0 + r_thick * material%area_density_used / material%radiation_length_used
+        xx0 = xx0 + area_density / material%radiation_length_used
 
       case (lynch_dahl$)
         atomic_mass = mass_of(material%species) / atomic_mass_unit
-        zza = z_material * (z_material + 1) * material%area_density_used  / atomic_mass
+        zza = z_material * (z_material + 1) * area_density / atomic_mass
         zza_sum = zza_sum + zza
-        chi2_c = chi2_c + 0.157e11_rp * zza * r_thick * (z_particle / (pc_old * orbit%beta))**2
+        chi2_c = chi2_c + 0.157e11_rp * zza * (z_particle / (pc_old * orbit%beta))**2
         ln_chi_alpha_sum = ln_chi_alpha_sum + zza * log(sqrt(2.007e7_rp * z_material**(2.0/3.0) * &
                 (1.0_rp + 3.34_rp * (z_material * z_particle * fine_structure_constant / orbit%beta)**2) / pc_old**2))
       end select
@@ -96,7 +98,8 @@ do ns = 1, n_step
       chi2_alpha = (exp(ln_chi_alpha_sum/zza_sum))**2
       omega = chi2_c / (1.167 * chi2_alpha) 
       nu = 0.5_rp * omega / (1 - f)
-      sigma = sqrt(chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2))
+      arg = chi2_c * ((1 + nu) * log(1 + nu) / nu - 1) / (1 + f**2)
+      sigma = sqrt(max(0.0_rp, arg))
     end select
     
     sigma = sigma * pc_old / orbit%p0c
@@ -111,11 +114,13 @@ do ns = 1, n_step
   dE_dx_tot = 0
   do j = 1, size(ele%foil%material)
     material => ele%foil%material(j)
+    area_density = this_area_density(material, ele%value(thickness$), ele%value(dthickness_dx$), orbit)
+    if (orbit%state == lost$) return
     z_material = atomic_number(material%species)
     I_excite = mean_excitation_energy_over_z(z_material) * z_material
     mass_material = mass_of(material%species) / atomic_mass_unit
     ! number_electrons / m^2
-    elec_area_density = (1.0e3_rp * N_avogadro) * r_thick * material%area_density_used * z_material / mass_material
+    elec_area_density = (1.0e3_rp * N_avogadro) * area_density * z_material / mass_material
     dE_dx_tot = dE_dx_tot - fourpi * mass_of(electron$) * elec_area_density * (z_particle * r_e / orbit%beta)**2 * &
               (log(2 * mass_of(electron$) * p2 / I_excite) - orbit%beta**2)
   enddo
@@ -135,5 +140,33 @@ orbit%species = set_species_charge(orbit%species, z_particle)
 !
 
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+
+!------------------------------------------------------------------------------------------------------
+contains
+
+function this_area_density(material, thickness, dthickness_dx, orbit) result (area_density)
+
+type (material_struct), pointer :: material
+type (coord_struct) orbit
+
+real(rp) thickness, dthickness_dx, area_density
+
+!
+
+if (thickness == 0 .and. dthickness_dx == 0) then
+  area_density = material%area_density_used
+else
+  area_density = material%density_used * (thickness + dthickness_dx * orbit%vec(1))
+endif
+
+if (area_density < 0) then
+  call out_io (s_error$, r_name, 'FOIL THICKNESS AT PARTICLE POSITION IS NEGATIVE FOR: ' // ele%name, &
+                                 'CHECK YOUR SETTING OF THICKNESS AND DTHICKNESS_DX.', &
+                                 'WILL MARK PARTICLE AS LOST.')
+  orbit%state = lost$
+  return
+endif
+
+end function this_area_density
 
 end subroutine track_a_foil

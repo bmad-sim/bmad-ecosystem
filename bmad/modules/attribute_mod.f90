@@ -1043,7 +1043,7 @@ call init_attribute_name1 (foil$, x1_edge$,                         'X1_EDGE')
 call init_attribute_name1 (foil$, x2_edge$,                         'X2_EDGE')
 call init_attribute_name1 (foil$, y1_edge$,                         'Y1_EDGE')
 call init_attribute_name1 (foil$, y2_edge$,                         'Y2_EDGE')
-call init_attribute_name1 (foil$, drel_thickness_dx$,               'DREL_THICKNESS_DX')
+call init_attribute_name1 (foil$, dthickness_dx$,                   'DTHICKNESS_DX')
 call init_attribute_name1 (foil$, atomic_weight$,                   'ATOMIC_WEIGHT')
 call init_attribute_name1 (foil$, f_factor$,                        'F_FACTOR')
 call init_attribute_name1 (foil$, num_steps$,                       'NUM_STEPS')
@@ -2474,7 +2474,7 @@ case ('REF_ORBIT_FOLLOWS')
 
 case ('SCATTER_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, scatter_method_name, lbound(scatter_method_name, 1))
-  if (present(is_default)) is_default = (ix_attrib_val == bragg_diffracted$)
+  if (present(is_default)) is_default = (ix_attrib_val == highland$)
 
 case ('SECTION^TYPE')    ! This is for the Tao "python" command
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, wall3d_section_type_name, lbound(wall3d_section_type_name, 1))  

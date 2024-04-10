@@ -9636,7 +9636,7 @@ character(*), optional :: open_brace, close_brace, separator
 real(rp) :: default_val, value
 
 integer num_expect
-integer  ix_word
+integer ix_word, ix
 
 character(1) delim, op_brace, cl_brace, sep
 character(40) :: word
@@ -9659,17 +9659,17 @@ if (present(separator)) sep = separator
 
 ! Expect op_brace
 if (logic_option(.false., brace_optional)) then
-  call get_next_word (word, ix_word, op_brace // ', ', delim, delim_found)
-  if (delim == ',' .or. delim == ' ') then            ! Array with single value
+  call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+  if (bp_com%parse_line(1:1) /= op_brace) then
     num_found = 1
     call re_allocate(real_array, 1)
-    call parse_evaluate_value ('BAD REAL NUMBER IN: ' // err_str, real_array(1), lat, delim, delim_found, err_flag, string_in = word)
+    call parse_evaluate_value ('BAD REAL NUMBER IN: ' // err_str, real_array(1), lat, delim, delim_found, err_flag)
     is_ok = (.not. err_flag)
     return
   endif
-else
-  call get_next_word (word, ix_word, op_brace, delim, delim_found)
 endif
+
+call get_next_word (word, ix_word, op_brace, delim, delim_found)
 
 if (word /= '') then
   call parser_error ('EXPECTED OPENING DELIMITER ' // quote(op_brace) // ' FOR VECTOR FOR: ' // err_str, &

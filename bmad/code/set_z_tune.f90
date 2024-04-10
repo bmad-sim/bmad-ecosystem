@@ -1,21 +1,21 @@
 !+
-! Subroutine set_z_tune (branch, z_tune, ok)
+! Subroutine set_z_tune (branch, z_tune, ok, print_err)
 !
 ! Subroutine to set the longitudinal tune by scalling the RF voltages
 ! in the RF cavities. Note: RF cavity elements that are set OFF will not
 ! have their voltages varied.
 !
 ! Input:
-!   branch    -- branch_struct:
-!   z_tune    -- real(rp): Longitudinal tune in radians (must be negative above transition). 
+!   branch      -- branch_struct:
+!   z_tune      -- real(rp): Longitudinal tune in radians (must be negative above transition). 
+!   print_err   -- logical, optional: Default is True. If False, suppress error messages
 !
 ! Output:
-!   branch
+!   branch      -- branch_struct:
 !     %ele(i_rf)%value(voltage$) -- Voltage on the cavity.
 !     %z%tune                    -- equal to z_tune.
-!   ok                           -- logical.  If present, returns true or false if set was
-!                                             successful.  If not present, set_z_tune will
-!                                             bomb if tune could not be set.
+!   ok          -- logical, optional:  If present, returns true or false if set was successful.
+!                     If not present, set_z_tune will bomb if tune could not be set.
 !
 ! Notes:
 !   1) The calculation assumes that Q_z < 1.
@@ -24,7 +24,7 @@
 !      the longitudinal tune is negative above transition.
 !-
 
-subroutine set_z_tune (branch, z_tune, ok)
+subroutine set_z_tune (branch, z_tune, ok, print_err)
 
 use bmad_interface, dummy => set_z_tune
 use expression_mod, only: linear_coef
@@ -41,7 +41,7 @@ type (coord_struct), allocatable :: orbit(:)
 real(rp) Qz_rel_tol, Qz_abs_tol
 real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, dz_tune, coef
 real(rp) :: z_tune
-logical, optional :: ok
+logical, optional :: ok, print_err
 
 integer i, j, k, ix, is, status
 integer :: loop_max = 10
@@ -231,7 +231,7 @@ do i = 1, n_rf
 enddo
 call lattice_bookkeeper(branch%lat)
 
-call twiss_and_track(branch%lat, orbit, status, branch%ix_branch)
+call twiss_and_track(branch%lat, orbit, status, branch%ix_branch, print_err = print_err)
 if (status == ok$) status = 0
 
 do i = 1, n_rf

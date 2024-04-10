@@ -27,9 +27,9 @@ endif
 if (.not. debug_mode) then
   inquire (file = '../../util_programs/sad_to_bmad/sad_to_bmad.py', exist = exist)
   if (exist) then
-    call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
+    call system_command ('python3 ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
   else
-    call system_command ('python $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
+    call system_command ('python3 $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_ptc.params')
   endif
 endif
 
@@ -48,9 +48,9 @@ write (1, '(a, 2es16.8)') '"Alphas-PTC" ABS 1E-8', ele%a%alpha, ele%b%alpha
 if (.not. debug_mode) then
   inquire (file = '../../util_programs/sad_to_bmad/sad_to_bmad.py', exist = exist)
   if (exist) then
-    call system_command ('python ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
+    call system_command ('python3 ../../util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
   else
-    call system_command ('python $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
+    call system_command ('python3 $ACC_ROOT_DIR/util_programs/sad_to_bmad/sad_to_bmad.py sad_to_bmad_bmad.params')
   endif
 endif
 

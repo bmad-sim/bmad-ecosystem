@@ -753,6 +753,7 @@ public:
   Real beta;
   Int ix_ele;
   Int ix_branch;
+  Int ix_turn;
   Int ix_user;
   Int state;
   Int direction;
@@ -775,6 +776,7 @@ public:
     beta(-1),
     ix_ele(-1),
     ix_branch(-1),
+    ix_turn(0),
     ix_user(-1),
     state(Bmad::NOT_SET),
     direction(1),

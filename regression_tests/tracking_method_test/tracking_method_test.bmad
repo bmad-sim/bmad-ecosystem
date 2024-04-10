@@ -33,8 +33,8 @@ em_field1:         em_field, l = 1.4, call::gg.bmad
 em_field2:         em_field1, integrator_order = 6
 fiducial1:         fiducial, dx_origin = 0.1, dy_origin = 0.2, dz_origin = 0.3, dtheta_origin = 0.01, dphi_origin = 0.02, dpsi_origin = 0.4
 foil1:             foil, material_type = "Cu", thickness = 1e-4
-foil2:             foil, material_type = "B4C", thickness = 1e-4, density = (2.37e3, 2e3), radiation_length = (5.26868, 4.26983)
-foil3:             foil, material_type = "C", thickness = 1e-4, density = 2.37e3
+foil2:             foil, material_type = "B4C", thickness = 1e-4, density = (2.37e3, 2e3), radiation_length = (5.26868, 4.26983), dthickness_dx = 0.01
+foil3:             foil, material_type = "C", thickness = 0, area_density = 2.37e-1, scatter_method = lynch_dahl
 floor_shift1:      floor_shift, x_offset = 0.1, y_offset = 0.2, z_offset = 0.3, x_pitch = 0.01, y_pitch = 0.02, tilt = 0.4
 gkicker1:          gkicker, x_kick = 0.01, px_kick = 0.02, y_kick = 0.03, py_kick = 0.04, z_kick = 0.05, pz_kick = 0.06
 hkicker1:          hkicker, l = 4.5, kick = 0.005, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1

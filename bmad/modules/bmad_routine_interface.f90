@@ -2175,14 +2175,14 @@ recursive subroutine set_lords_status_stale (ele, stat_group, control_bookkeepin
   integer, optional :: flag
 end subroutine
 
-subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute, set_val)
   import
   implicit none
   type (lat_struct), target :: lat
   type (coord_struct), optional :: orb(0:)
   real(rp), optional, allocatable :: saved_values(:)
   integer :: key, switch
-  integer, optional :: ix_branch
+  integer, optional :: ix_branch, set_val
   logical, optional :: use_ref_orb
   character(*), optional :: attribute
 end subroutine
@@ -2226,12 +2226,12 @@ subroutine set_status_flags (bookkeeping_state, stat)
   integer stat
 end subroutine
 
-subroutine set_z_tune (branch, z_tune, ok)
+subroutine set_z_tune (branch, z_tune, ok, print_err)
   import
   implicit none
   type (branch_struct), target :: branch
   real(rp) :: z_tune
-  logical, optional :: ok
+  logical, optional :: ok, print_err
 end subroutine
 
 subroutine set_on (key, lat, on_switch, orb)
@@ -3308,6 +3308,14 @@ subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_or
   integer, optional :: ix_start, ix_end, ix_branch
   character(*) out_type, out_file_name
   logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_julia (bmad_name, lat, julia_name)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) bmad_name
+  character(*), optional :: julia_name
 end subroutine
 
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)

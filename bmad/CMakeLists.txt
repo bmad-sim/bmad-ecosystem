@@ -26,6 +26,7 @@ SET (SRC_DIRS
   interface
   modules
   multiparticle
+  output
   ptc
   photon
   parsing

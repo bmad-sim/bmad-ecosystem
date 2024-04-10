@@ -829,15 +829,6 @@ endif
           ENDIF
 
 
-       case('CHECKKREIN')
-          WRITE(6,*) "OLD CHECK_KREIN ",check_krein
-          READ(MF,*) check_krein
-          WRITE(6,*) "NEW CHECK_KREIN ",CHECK_KREIN
-
-       case('KREINSIZE')
-          WRITE(6,*) "OLD KREIN SIZE PARAMETER ",size_krein
-          READ(MF,*) size_krein
-          WRITE(6,*) "NEW KREIN SIZE PARAMETER",size_krein
 
        case('ABSOLUTEAPERTURE')
           WRITE(6,*) "OLD C_%ABSOLUTE_APERTURE ",C_%ABSOLUTE_APERTURE
@@ -4533,6 +4524,7 @@ type(c_normal_form) n
 type(integration_node), pointer :: t
 real(dp) phase(3), spin_tune(2),damping(3)
 integer i
+use_quaternion=.true.
 
 f=>my_ering%start
 do i=1,my_start-1
