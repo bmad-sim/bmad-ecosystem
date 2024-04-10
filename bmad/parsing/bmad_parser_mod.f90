@@ -6440,7 +6440,7 @@ end subroutine allocate_plat
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_add_lord (lord_lat, n_ele_max, plat, lat, check_lat)
+! Subroutine parser_add_lords (lord_lat, n_ele_max, plat, lat, check_lat)
 !
 ! Subroutine to add overlay, group, and girder lords to the lattice.
 ! For overlays and groups: If multiple elements have the same name then 
@@ -6461,7 +6461,7 @@ end subroutine allocate_plat
 !                   not found. 
 !-
 
-subroutine parser_add_lord (lord_lat, n_ele_max, plat, lat, check_lat)
+subroutine parser_add_lords (lord_lat, n_ele_max, plat, lat, check_lat)
 
 implicit none
 
@@ -6508,6 +6508,7 @@ main_loop: do n_in = 1, n_ele_max
     if (allocated(cs)) deallocate(cs)
     nn = size(pele%control)
     allocate (cs(nn))
+    n_slave = 0
 
     do ip = 1, nn
       pc => pele%control(ip)
@@ -6539,21 +6540,25 @@ main_loop: do n_in = 1, n_ele_max
           cycle main_loop
         endif
 
-        do nn = 1, n_in_loc
-          if (all(in_eles(nn)%ele%key /= [overlay$, group$, girder$, ramper$])) cycle 
+        do k = 1, n_in_loc
+          if (all(in_eles(k)%ele%key /= [overlay$, group$, girder$, ramper$])) cycle 
           call parser_error('LORD ELEMENT: ' // trim(lord%name) // ' CONTROLS ANOTHER LORD ELEMENT: ' // pc%name, &
                             'BUT ' // trim(pc%name) // ' IS DEFINED IN THE LATTICE LATER THAN ' // lord%name, &
                             'THIS IS NOT ALLOWED. SWITCH THE ORDER OF THE LORDS TO RECTIFY.')
           cycle main_loop
         enddo
+      else
+        n_slave = n_slave + 1
+        cs(n_slave) = cs(ip)
       endif
     enddo
+
+    if (n_slave == 0) cycle main_loop
 
     ! Create the ramper
 
     call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
     lat%ele(ix_lord) = lord
-
     call create_ramper (lat%ele(ix_lord), cs(1:nn), err)
 
   case (overlay$, group$)
@@ -7007,7 +7012,7 @@ err_flag = .false.
 
 end subroutine make_this_overlay_group_lord
 
-end subroutine parser_add_lord
+end subroutine parser_add_lords
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

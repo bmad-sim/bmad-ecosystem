@@ -34,7 +34,7 @@ parameter[custom_attribute1] = quadrupole::my_custom
 myramp1: ramper = {rfcavity::*[phi0]:{0, 1}, rfcavity::r*[voltage]:1e6*(1+ran_gauss())}, var = {abc}, x_knot = {0, 2}
 myramp2: ramper = {q*[x_offset]:ran()/twopi}, var = {}
 
-rf: rfcavity, l = 1
+rf: rfcavity, l = 1, rf_frequency = 1e9, tracking_method = bmad_standard
 
 aaa: ac_kicker, l = 0.3, hkick = 0.01, amp_vs_time = {(-1e-8, 0.0), (1e-8, 0.7)}
 aaa[amp_vs_time(1)%amp] = 1.0
@@ -183,6 +183,14 @@ group_line: line = (m_end1, qa, qb, m_end2)
 group_line[particle] = electron
 group_line[p0c] = 1e9
 
+!
+
+z_line: line = (rf)
+z_line[geometry] = open
+z_line[beta_a] = 10
+z_line[beta_b] = 10
+z_line[live_branch] = F
+
 ! Group using element not in constructed lattice is ok
 
 zzz: quad
@@ -203,3 +211,4 @@ aa[k1] = 2
 a*[tracking_method] = symp_lie_bmad
 aa[num_steps] = 7
 !!zz: overlay = {aa[x_offset]:1}, var = {xx}, xx = ov1[hkick]
+

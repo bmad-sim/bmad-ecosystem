@@ -725,7 +725,7 @@ parsing_loop: do
     call parser2_add_superimpose (lat, lat2%ele(1), plat%ele(ixx), parse_lat)
 
   elseif (key == overlay$ .or. key == group$ .or. key == girder$ .or. key == ramper$) then
-    call parser_add_lord (lat2, 1, plat, lat, parse_lat)
+    call parser_add_lords (lat2, 1, plat, lat, parse_lat)
 
   else
     call parser_error ('ERROR FOR ELEMENT: ' // word_1, &
