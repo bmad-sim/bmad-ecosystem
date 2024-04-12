@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 315
+integer, parameter :: bmad_inc_version$ = 316
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1288,7 +1288,6 @@ type control_var1_struct
 end type
 
 type control_ramp1_struct
-  real(rp) :: value = 0
   real(rp), allocatable :: y_knot(:)
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   character(40) :: attribute = ''     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
@@ -1301,9 +1300,15 @@ end type
 integer, parameter :: cubic$ = 3
 character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'null_name$', 'Cubic', 'Linear']
 
+type ramper_lord_struct
+  integer :: ix_ele = 0       ! Lord index
+  integer :: ix_con = 0       ! Index in lord%control%ramp(:) array
+end type
+
 type controller_struct
   type (control_var1_struct), allocatable :: var(:)
-  type (control_ramp1_struct), allocatable :: ramp(:)             ! For ramper elements
+  type (control_ramp1_struct), allocatable :: ramp(:)            ! For ramper lord elements
+  type (ramper_lord_struct), allocatable :: ramper_lord(:)       ! Ramper lord info for this slave
   real(rp), allocatable :: x_knot(:)
 end type
 
@@ -1313,7 +1318,7 @@ end type
 ! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
 !     run scripts to regenerate cpp_bmad_interface library.
-!     Modify:
+!     Modify (this is not a complete list):
 !       read_digested_bmad_file
 !       write_digested_bmad_file
 !       parsing routines to read in modified/new parameters...
@@ -1390,13 +1395,13 @@ type ele_struct
   integer :: ix_ele = -1                          ! Index in branch ele(0:) array. Set to ix_slice_slave$ = -2 for slice_slave$ elements.
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array. Note: lat%ele => lat%branch(0).
   integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
-  integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
+  integer :: n_slave = 0                          ! Number of slaves (except field overlap slaves) of this element.
   integer :: n_slave_field = 0                    ! Number of field slaves of this element.
   integer :: ix1_slave = 0                        ! Pointer index to this element's slaves.
   integer :: slave_status = free$                 ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
   integer :: n_lord = 0                           ! Number of lords (except field overlap and ramper lords).
   integer :: n_lord_field = 0                     ! Number of field lords of this element.
-  !! integer :: n_lord_ramper = 0                    ! Number of ramper lords.
+  integer :: n_lord_ramper = 0                    ! Number of ramper lords.
   integer :: ic1_lord = 0                         ! Pointer index to this element's lords.
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
   integer :: ixx = 0, iyy = 0, izz = 0            ! Index for Bmad internal use.
@@ -1577,6 +1582,7 @@ type lat_struct
   integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
   integer :: creation_hash = 0                        ! Set by bmad_parser. creation_hash will vary if 
                                                       !   any of the lattice files are modified.
+  logical :: ramper_slave_bookkeeping_done = .false.
 end type
 
 character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']

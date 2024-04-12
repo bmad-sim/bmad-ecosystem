@@ -69,7 +69,7 @@ enddo
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
-  call apply_rampers_to_slave(ele, ramper(1:n), err)
+  call apply_rampers_to_slave(ele, err)
 
   select case (ele%name)
   case ('Q1')

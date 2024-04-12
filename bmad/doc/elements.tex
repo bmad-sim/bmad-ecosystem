@@ -4491,9 +4491,10 @@ The \vn{ramp_rf} ramper in the above example varies the \vn{voltage} and \vn{pha
 attributes of all elements that match to \vn{rfcavity::*}. That is, all \vn{rfcavity} elements. Here
 mathematical expressions are used instead of knot points.
 
-\vn{Ramper} elements can control the variables of other controller element but in this case it is
-not permitted to use wild card characters. That is, in the above example, ``\vn{*}'' will not match
-to any controller elements.
+\vn{Ramper} elements can control the variables of other controller element except \vn{rampers} are
+not allowed to control \vn{rampers}. When a \vn{ramper} controls variables in other controller
+elements it is not permitted to use wild card characters. That is, in the above example, ``\vn{*}''
+will not match to any controller elements.
 
 Unlike \vn{group} or \vn{overlay} elements, it is not permitted for different \vn{ramper} elements
 to control the same parameter of a given slave element. Additionally, parameters that \vn{ramper}

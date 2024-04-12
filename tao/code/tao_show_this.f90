@@ -179,7 +179,7 @@ character(1), parameter :: abc_name(1:3) = ['A', 'B', 'C']
 character(20) :: show_what
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
-integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type
+integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type, print_control
 integer ix, ix0, ix1, ix2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic, ix_comb
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
@@ -190,7 +190,7 @@ logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc
-logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
+logical print_ptc, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -1568,6 +1568,7 @@ case ('element')
   print_taylor = .false.
   print_field = no$
   print_attributes = .false.
+  print_control = short$
   print_data = .false.
   print_wall = .false.
   print_rad  = .false.
@@ -1609,6 +1610,7 @@ case ('element')
       if (print_field == no$) print_field = short$
       print_wall = .true.
       print_rad  = .true.
+      print_control = all$
     case default
       if (attrib0 /= '') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
@@ -1707,7 +1709,7 @@ case ('element')
 
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
-  call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, twiss_out, .true., .true., &
+  call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, twiss_out, print_control, .true., &
             print_floor, print_field, print_wall, print_rad, lines = alloc_lines, n_lines = n)
   if (size(s%u) > 1) alloc_lines(1) = trim(alloc_lines(1)) // ',   Universe: ' // int_str(ix_u)
 

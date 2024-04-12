@@ -7,15 +7,14 @@ use quick_plot
 implicit none
 
 type (lat_struct) lat
-type (ele_pointer_struct), allocatable, target :: eles(:), rampers(:), rf_eles(:)
+type (ele_pointer_struct), allocatable, target :: eles(:), rf_eles(:)
 type (ele_struct), pointer :: controller, slave
-type (ele_struct) ramp_slave
 type (control_struct), pointer :: ctl
 type (control_ramp1_struct), pointer :: rmp
 type (coord_struct) orbit
 
 real(rp) :: control_var, input_var_min, input_var_max, plot_size(2), text_scale, height, vzero(6) = 0
-real(rp) curve_min, curve_max, z, dz, volt_old, pot
+real(rp) curve_min, curve_max, z, dz, volt_old, pot, value
 real(rp), allocatable :: table(:,:), knots(:,:)
 
 integer, allocatable :: ramper_list(:), curve_list2(:)
@@ -63,10 +62,6 @@ if (n_control_loc == 0) then
   print '(2a)', 'CANNOT FIND CONTROLLER: ', trim(controller_name)
   stop
 endif
-
-ramp_slave%key = int_garbage$   ! Signals routines to skip some inconvienient bookkeeping.
-call lat_ele_locator ('RAMPER::*', lat, rampers, n_ramp_loc)
-
 
 ! Vary RF
 
@@ -191,31 +186,32 @@ else
 
   ! Make table and plot
 
+  call re_allocate(attrib_name, n_curve)
+
   do i = 0, input_var_n_points-1
     control_var = input_var_min + i * (input_var_max - input_var_min) / max(1, input_var_n_points-1)
     controller%control%var(ix_var)%value = control_var
     table(i,0) = control_var
 
     select case (controller%key)
-    case (ramper$)
-      call apply_rampers_to_slave (ramp_slave, rampers, err_flag)
+
     case (overlay$)
-    do j = 1, n_curve
-      slave => pointer_to_slave(controller, curve_list2(j))
-      call makeup_control_slave(lat, slave, err_flag)
-    enddo
+      do j = 1, n_curve
+        slave => pointer_to_slave(controller, curve_list2(j))
+        call makeup_control_slave(lat, slave, err_flag)
+      enddo
+
     case (group$)
       call makeup_group_lord (lat, controller, err_flag)
     end select
 
-    call re_allocate(attrib_name, n_curve)
-
     do j = 1, n_curve
       if (controller%key == ramper$) then
         rmp => controller%control%ramp(curve_list2(j))
-        if (draw_knot_points .and. i == 0) knots(:,j) = ctl%y_knot
-        table(i,j) = ctl%value
-        attrib_name(j) = trim(ctl%slave_name) // '[' // trim(ctl%attribute) // ']'
+        value = ramper_value(controller, rmp, err_flag)
+        if (draw_knot_points .and. i == 0) knots(:,j) = rmp%y_knot
+        table(i,j) = value
+        attrib_name(j) = trim(rmp%slave_name) // '[' // trim(rmp%attribute) // ']'
 
       else
         slave => pointer_to_slave(controller, curve_list2(j), ctl)

@@ -70,7 +70,6 @@ do j = 1, n_slave
   r1 => lord%control%ramp(j)
   r1%attribute = con0%attribute
   r1%slave_name = con0%slave_name
-  r1%value      = con1%value
   if (allocated(con1%y_knot)) r1%y_knot = con1%y_knot
   if (allocated(con1%stack))  r1%stack  = con1%stack
 

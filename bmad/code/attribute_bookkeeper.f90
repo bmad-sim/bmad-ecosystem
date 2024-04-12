@@ -389,7 +389,7 @@ case (beambeam$)
   else
     if (val(sig_x$) == 0 .or. val(sig_y$) == 0) then
       call out_io(s_error$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!' // ele%name)
-      call type_ele(ele, .true., 0, .false., 0, .false.)
+      call type_ele(ele, .true., 0, .false., 0)
       return
     endif
 

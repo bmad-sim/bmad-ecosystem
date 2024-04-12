@@ -3801,6 +3801,60 @@ extern "C" void test_c_wall3d (Opaque_wall3d_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_ramper_lord (CPP_ramper_lord&, bool&);
+
+void set_CPP_ramper_lord_test_pattern (CPP_ramper_lord& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.ix_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.ix_con = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_ramper_lord (Opaque_ramper_lord_class* F, bool& c_ok) {
+
+  CPP_ramper_lord C, C2;
+
+  c_ok = true;
+
+  ramper_lord_to_c (F, C);
+  set_CPP_ramper_lord_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " ramper_lord: C side convert F->C: Good" << endl;
+  } else {
+    cout << " ramper_lord: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_ramper_lord_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_ramper_lord (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_ramper_lord_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " ramper_lord: F side convert F->C: Good" << endl;
+  } else {
+    cout << " ramper_lord: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_ramper_lord_test_pattern (C2, 4);
+  ramper_lord_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_control (CPP_control&, bool&);
 
 void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
@@ -3949,16 +4003,13 @@ void set_CPP_control_ramp1_test_pattern (CPP_control_ramp1& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.value = rhs;
-
   // c_side.test_pat[real, 1, ALLOC]
   if (ix_patt < 3) 
     C.y_knot.resize(0);
   else {
     C.y_knot.resize(3);
     for (unsigned int i = 0; i < C.y_knot.size(); i++)
-      {int rhs = 101 + i + 2 + offset; C.y_knot[i] = rhs;}  }
+      {int rhs = 101 + i + 1 + offset; C.y_knot[i] = rhs;}  }
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
@@ -3971,16 +4022,16 @@ void set_CPP_control_ramp1_test_pattern (CPP_control_ramp1& C, int ix_patt) {
   // c_side.test_pat[character, 0, NOT]
   C.attribute.resize(40);
   for (unsigned int i = 0; i < C.attribute.size(); i++)
-    {int rhs = 101 + i + 6 + offset; C.attribute[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 5 + offset; C.attribute[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
   C.slave_name.resize(40);
   for (unsigned int i = 0; i < C.slave_name.size(); i++)
-    {int rhs = 101 + i + 7 + offset; C.slave_name[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 6 + offset; C.slave_name[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 0, NOT]
   set_CPP_lat_ele_loc_test_pattern(C.slave, ix_patt);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 9 + offset; C.is_controller = (rhs % 2 == 0);
+  rhs = 8 + offset; C.is_controller = (rhs % 2 == 0);
 
 
 }
@@ -4046,13 +4097,21 @@ void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
     for (unsigned int i = 0; i < C.ramp.size(); i++)  {set_CPP_control_ramp1_test_pattern(C.ramp[i], ix_patt+i+1);}
   }
 
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.ramper_lord.resize(0);
+  else {
+    C.ramper_lord.resize(3);
+    for (unsigned int i = 0; i < C.ramper_lord.size(); i++)  {set_CPP_ramper_lord_test_pattern(C.ramper_lord[i], ix_patt+i+1);}
+  }
+
   // c_side.test_pat[real, 1, ALLOC]
   if (ix_patt < 3) 
     C.x_knot.resize(0);
   else {
     C.x_knot.resize(3);
     for (unsigned int i = 0; i < C.x_knot.size(); i++)
-      {int rhs = 101 + i + 5 + offset; C.x_knot[i] = rhs;}  }
+      {int rhs = 101 + i + 7 + offset; C.x_knot[i] = rhs;}  }
 
 
 }
@@ -5932,85 +5991,88 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 79 + offset; C.n_lord_field = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 80 + offset; C.ic1_lord = rhs;
+  rhs = 80 + offset; C.n_lord_ramper = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 81 + offset; C.ix_pointer = rhs;
+  rhs = 81 + offset; C.ic1_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 82 + offset; C.ixx = rhs;
+  rhs = 82 + offset; C.ix_pointer = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 83 + offset; C.iyy = rhs;
+  rhs = 83 + offset; C.ixx = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 84 + offset; C.izz = rhs;
+  rhs = 84 + offset; C.iyy = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 85 + offset; C.mat6_calc_method = rhs;
+  rhs = 85 + offset; C.izz = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 86 + offset; C.tracking_method = rhs;
+  rhs = 86 + offset; C.mat6_calc_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 87 + offset; C.spin_tracking_method = rhs;
+  rhs = 87 + offset; C.tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 88 + offset; C.csr_method = rhs;
+  rhs = 88 + offset; C.spin_tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 89 + offset; C.space_charge_method = rhs;
+  rhs = 89 + offset; C.csr_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 90 + offset; C.ptc_integration_type = rhs;
+  rhs = 90 + offset; C.space_charge_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 91 + offset; C.field_calc = rhs;
+  rhs = 91 + offset; C.ptc_integration_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 92 + offset; C.aperture_at = rhs;
+  rhs = 92 + offset; C.field_calc = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 93 + offset; C.aperture_type = rhs;
+  rhs = 93 + offset; C.aperture_at = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 94 + offset; C.ref_species = rhs;
+  rhs = 94 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 95 + offset; C.orientation = rhs;
+  rhs = 95 + offset; C.ref_species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 96 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 96 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 97 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 97 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 98 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 98 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 99 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 99 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 100 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 100 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 101 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 101 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 102 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 102 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 103 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 103 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 104 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 104 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 105 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 105 + offset; C.select = (rhs % 2 == 0);
+  rhs = 106 + offset; C.select = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 106 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 107 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }
@@ -6431,6 +6493,9 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 42 + offset; C.creation_hash = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 43 + offset; C.ramper_slave_bookkeeping_done = (rhs % 2 == 0);
 
 
 }

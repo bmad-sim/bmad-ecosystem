@@ -73,6 +73,8 @@ if (present(err_flag)) err_flag = .true.
 !   * Recompute ref energy for cases where a flexible patch has changed its geometry and this
 !       affects the reference energy due to the presence of lcavity elements.
 
+call ramper_slave_setup(lat)
+
 do i = 1, 3
   call control_bookkeeper (lat, err_flag = err);     if (err) return
   call lat_geometry (lat)

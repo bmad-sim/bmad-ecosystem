@@ -22,8 +22,11 @@
 !                          = radians$  => Print Twiss, phi in radians (Default).
 !                          = degrees$  => Print Twiss, phi in degrees.
 !                          = cycles$   => Print Twiss, phi in radians/2pi.
-!   type_control      -- logical, optional: Print control status? Default is True.
+!   type_control      -- integer, optional: Print control status? 
 !                           If ele%branch%lat is not associated cannot print status info.
+!                           = no$      => One line of info.
+!                           = short$   => Almost all info except long knot point lists are truncated (default).
+!                           = all$     => Everything.
 !   type_wake         -- logical, optional: If True then print the long-range and 
 !                          short-range wakes information. If False then just print
 !                          how many terms the wake has. Default is True.
@@ -31,7 +34,7 @@
 !   type_floor_coords -- logical, optional: Default is False. If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !   type_field        -- integer, optional: Print field maps?
-!                           = no$      => One line of info.
+!                           = no$      => One line of info (default).
 !                           = short$   => Header info. No tables.
 !                           = all$     => Everything.
 !   type_wall         -- logical, optional: Default is False. If True, print wall info. 
@@ -82,7 +85,7 @@ type (rad_map_struct), pointer :: rm0, rm1
 type (photon_reflect_table_struct), pointer :: rt
 type (material_struct), pointer :: matter
 
-integer, optional, intent(in) :: type_mat6, twiss_out, type_field
+integer, optional, intent(in) :: type_control, type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
 integer ia, ie, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
@@ -106,7 +109,7 @@ character(8) angle, index_str
 character(*), parameter :: r_name = 'type_ele'
 
 logical, optional, intent(in) :: type_taylor, type_wake
-logical, optional, intent(in) :: type_control, type_zero_attrib
+logical, optional, intent(in) :: type_zero_attrib
 logical, optional, intent(in) :: type_floor_coords, type_wall, type_rad_kick
 logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, z1, z2
 
@@ -903,7 +906,7 @@ endif
 ! For slaves who are overlay_lords then the attribute_name is obtained by
 !   looking at the overlay_lord's 1st slave (slave of slave of the input ele).
 
-if (associated(lat) .and. logic_option(.true., type_control)) then
+if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
   ! Print info on element's lords
 
   if (li(nl) /= '') then
@@ -1037,7 +1040,36 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     enddo
   endif
 
-  if (.not. has_it) nl=nl - 3
+  if (.not. has_it) nl = nl - 3
+
+  !
+
+  if (ele%n_lord_ramper /= 0) then
+    nl=nl+1; li(nl) = ' '
+    nl=nl+1; li(nl) = 'Ramper Lords:'
+    nl=nl+1; li(nl) = '   Ramper_Name               Attribute         Expression/Knot Points'
+    do ix = 1, ele%n_lord_ramper
+      lord => pointer_to_lord(ele, ix, lord_type = ramper_lord$, ix_control = ic)
+      rmp => lord%control%ramp(ic)
+      if (allocated(rmp%stack)) then
+        call split_expression_string (expression_stack_to_string(rmp%stack), 80, 5, li2)
+      else  ! Spline
+        call split_expression_string (knots_to_string(lord%control%x_knot, rmp%y_knot), 80, 5, li2, '),')
+      endif
+
+      nl=nl+1; write (li(nl), '(3x, a, t30, a18, a, 4x, a)') ele_full_name(lord), rmp%attribute, trim(li2(1))
+      if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
+      do im = 2, size(li2)
+        n = 50
+        if (im == 3 .and. integer_option(short$, type_control) /= all$) then
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im)) // ' ... etc.'
+          exit
+        else
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im))
+        endif
+      enddo
+    enddo
+  endif
 
   ! Print info on elements slaves.
 
@@ -1118,20 +1150,20 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
 
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      nl=nl+1; li(nl) = '   Ele_Name            Attribute         Expression'
+      nl=nl+1; li(nl) = '   Ele_Name            Attribute         Expression/Knot Points'
       do ix = 1, size(ele%control%ramp)
         rmp => ele%control%ramp(ix)
 
         if (allocated(rmp%stack)) then
-          call split_expression_string (expression_stack_to_string(rmp%stack), 70, 5, li2)
+          call split_expression_string (expression_stack_to_string(rmp%stack), 80, 5, li2)
         else  ! Spline
-          call split_expression_string (knots_to_string(ele%control%x_knot, rmp%y_knot), 70, 5, li2)
+          call split_expression_string (knots_to_string(ele%control%x_knot, rmp%y_knot), 80, 5, li2, '),')
         endif
 
         nl=nl+1; write (li(nl), '(3x, a20, a18, a, 4x, a)') rmp%slave_name, rmp%attribute, trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do im = 2, size(li2)
-          n = 50 + n_char + len(attrib_val_str)
+          n = 40
           nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im))
         enddo
       enddo

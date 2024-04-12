@@ -45,6 +45,7 @@ lat_temp = lat_in
 call kill_ptc_layouts(lat_rev)    ! Cleanup lat_rev
 call allocate_branch_array(lat_rev, ubound(lat_temp%branch, 1))
 call transfer_lat_parameters (lat_temp, lat_rev)
+lat_rev%ramper_slave_bookkeeping_done = .false.
 issued_wall_warning = .false.
 
 !

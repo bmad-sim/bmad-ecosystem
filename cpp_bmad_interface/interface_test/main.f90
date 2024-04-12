@@ -62,6 +62,7 @@ call test1_f_photon_element(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d_vertex(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d_section(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d(ok); if (.not. ok) all_ok = .false.
+call test1_f_ramper_lord(ok); if (.not. ok) all_ok = .false.
 call test1_f_control(ok); if (.not. ok) all_ok = .false.
 call test1_f_control_var1(ok); if (.not. ok) all_ok = .false.
 call test1_f_control_ramp1(ok); if (.not. ok) all_ok = .false.

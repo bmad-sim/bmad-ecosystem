@@ -71,6 +71,7 @@ character(*), parameter :: r_name = "split_lat"
 
 if (present(err_flag)) err_flag = .true.
 
+lat%ramper_slave_bookkeeping_done = .false.
 branch => lat%branch(ix_branch)
 ds_fudge = bmad_com%significant_length
 

@@ -8,14 +8,14 @@ angle_to_canonical_coords
 File: code/apply_all_rampers.f90
 apply_all_rampers
 
-File: code/apply_rampers_to_slave.f90
-apply_rampers_to_slave
+File: code/em_field_calc.f90
+em_field_calc
 
 File: code/at_this_ele_end.f90
 at_this_ele_end
 
-File: code/attribute_bookkeeper.f90
-attribute_bookkeeper
+File: code/lat_sanity_check.f90
+lat_sanity_check
 
 File: code/attribute_set_bookkeeping.f90
 attribute_set_bookkeeping
@@ -69,8 +69,8 @@ closed_orbit_from_tracking
 File: code/combine_consecutive_elements.f90
 combine_consecutive_elements
 
-File: code/lat_sanity_check.f90
-lat_sanity_check
+File: code/attribute_bookkeeper.f90
+attribute_bookkeeper
 
 File: code/convert_coords.f90
 convert_coords
@@ -129,9 +129,6 @@ ele_value_has_changed
 File: code/element_slice_iterator.f90
 element_slice_iterator
 
-File: code/em_field_calc.f90
-em_field_calc
-
 File: code/equivalent_taylor_attributes.f90
 equivalent_taylor_attributes
 
@@ -172,8 +169,8 @@ lat_ele_locator
 File: code/lat_make_mat6.f90
 lat_make_mat6
 
-File: code/type_twiss.f90
-type_twiss
+File: code/pointer_to_lord.f90
+pointer_to_lord
 
 File: code/lattice_bookkeeper.f90
 lattice_bookkeeper
@@ -181,8 +178,8 @@ lattice_bookkeeper
 File: code/lord_edge_aligned.f90
 lord_edge_aligned
 
-File: code/type_ele.f90
-type_ele
+File: code/apply_rampers_to_slave.f90
+apply_rampers_to_slave
 
 File: code/make_g_mats.f90
 make_g_mats
@@ -256,9 +253,6 @@ pointer_to_ele_multipole
 File: code/pointer_to_girder.f90
 pointer_to_girder
 
-File: code/pointer_to_lord.f90
-pointer_to_lord
-
 File: code/pointer_to_multipass_lord.f90
 pointer_to_multipass_lord
 
@@ -316,9 +310,6 @@ set_ele_status_stale
 File: code/set_fringe_on_off.f90
 set_fringe_on_off
 
-File: code/set_on_off.f90
-set_on_off
-
 File: code/set_orbit_to_zero.f90
 set_orbit_to_zero
 
@@ -373,9 +364,6 @@ twiss_at_start
 File: code/twiss_from_tracking.f90
 twiss_from_tracking
 
-File: code/type_coord.f90
-type_coord
-
 File: code/valid_field_calc.f90
 valid_field_calc
 
@@ -393,6 +381,12 @@ zero_ele_offsets
 
 File: code/track1.f90
 track1
+
+File: code/set_on_off.f90
+set_on_off
+
+File: code/pointer_to_ramper.f90
+pointer_to_lord
 
 File: code/set_tune.f90
 set_tune
@@ -431,17 +425,11 @@ File: code/twiss_propagate1.f90
 twiss_propagate1
 twiss1_propagate
 
-File: code/write_bmad_lattice_file.f90
-write_bmad_lattice_file
-
 File: code/transfer_mat_from_twiss.f90
 transfer_mat_from_twiss
 
 File: code/valid_mat6_calc_method.f90
 valid_mat6_calc_method
-
-File: code/write_lattice_in_foreign_format.f90
-write_lattice_in_foreign_format
 
 File: custom/apply_element_edge_kick_hook.f90
 apply_element_edge_kick_hook
@@ -1149,6 +1137,9 @@ add_lattice_control_structs
 File: low_level/track_a_pickup.f90
 track_a_pickup
 
+File: low_level/ramper_slave_setup.f90
+ramper_slave_setup
+
 File: modules/bmad.f90
 bmad
 
@@ -1273,17 +1264,6 @@ mat6_from_s_to_s
 transfer_this_mat
 concat_transfer_mat
 
-File: modules/write_lat_file_mod.f90
-write_lat_file_mod
-write_line_element
-re_str
-array_re_str
-cmplx_re_str
-rchomp
-write_lat_line
-value_to_line
-write_lat_in_sad_format
-
 File: modules/equal_mod.f90
 equal_mod
 assignment
@@ -1324,6 +1304,50 @@ complex_taylors_equal_complex_taylors
 init_complex_taylor_series
 bunch_equal_bunch
 beam_equal_beam
+
+File: modules/attribute_mod.f90
+attribute_mod
+does_not_exist$
+is_free$
+quasi_free$
+dependent$
+private$
+overlay_slave$
+field_master_dependent$
+ele_attribute_struct
+attribute_free
+procedure
+procedure
+procedure
+attribute_index
+procedure
+procedure
+attribute_name
+procedure
+procedure
+attribute_index1
+attribute_index2
+attribute_name1
+attribute_name2
+attribute_info
+init_attribute_name_array
+init_short_attrib_array
+init_attribute_name1
+has_orientation_attributes
+attribute_type
+attribute_units
+string_attrib
+switch_attrib_value_name
+n_attrib_string_max_len
+has_attribute
+custom_attribute_ubound_index
+set_custom_attribute_name
+custom_ele_attrib_name_list
+attribute_free1
+attribute_free2
+attribute_free3
+check_this_attribute_free
+field_attribute_free
 
 File: modules/bmad_struct.f90
 bmad_struct
@@ -1387,6 +1411,7 @@ slice_slave$
 control_lord$
 ramper_lord$
 governor$
+field_lord$
 control_name
 set$
 unset$
@@ -1667,6 +1692,7 @@ control_var1_struct
 control_ramp1_struct
 cubic$
 interpolation_name
+ramper_lord_struct
 controller_struct
 ele_struct
 lat_param_struct
@@ -2003,7 +2029,7 @@ origin_ele_ref_pt$
 mosaic_angle_rms_in_plane$
 eps_step_scale$
 E_tot_strong$
-drel_thickness_dx$
+dthickness_dx$
 bend_tilt$
 etap_x_out$
 phi0_autoscale$
@@ -2455,39 +2481,6 @@ rad_damp_and_stoc_mats
 rad1_damp_and_stoc_mats
 rad_g_integrals
 
-File: modules/bmad_routine_interface.f90
-bmad_routine_interface
-pointer_to_branch
-pointer_to_branch_given_name
-pointer_to_branch_given_ele
-pointer_to_ele
-procedure
-procedure
-procedure
-procedure
-apply_element_edge_kick_hook_def
-check_aperture_limit_custom_def
-distance_to_aperture_custom_def
-ele_geometry_hook_def
-wall_hit_handler_custom_def
-em_field_custom_def
-ele_to_fibre_hook_def
-radiation_integrals_custom_def
-init_custom_def
-make_mat6_custom_def
-time_runge_kutta_periodic_kick_hook_def
-track1_bunch_hook_def
-track1_custom_def
-track_many_hook_def
-track1_postprocess_def
-track1_preprocess_def
-track1_spin_custom_def
-track1_wake_hook_def
-pointer_to_ele1
-pointer_to_ele2
-pointer_to_ele3
-pointer_to_ele4
-
 File: modules/changed_attribute_bookkeeper.f90
 changed_attribute_bookkeeper
 set_flags_for_changed_attribute
@@ -2603,50 +2596,6 @@ compute_slave_coupler
 makeup_control_slave
 aperture_bookkeeper
 attributes_need_bookkeeping
-
-File: modules/attribute_mod.f90
-attribute_mod
-does_not_exist$
-is_free$
-quasi_free$
-dependent$
-private$
-overlay_slave$
-field_master_dependent$
-ele_attribute_struct
-attribute_free
-procedure
-procedure
-procedure
-attribute_index
-procedure
-procedure
-attribute_name
-procedure
-procedure
-attribute_index1
-attribute_index2
-attribute_name1
-attribute_name2
-attribute_info
-init_attribute_name_array
-init_short_attrib_array
-init_attribute_name1
-has_orientation_attributes
-attribute_type
-attribute_units
-string_attrib
-switch_attrib_value_name
-n_attrib_string_max_len
-has_attribute
-custom_attribute_ubound_index
-set_custom_attribute_name
-custom_ele_attrib_name_list
-attribute_free1
-attribute_free2
-attribute_free3
-check_this_attribute_free
-field_attribute_free
 
 File: modules/dynamic_aperture_mod.f90
 dynamic_aperture_mod
@@ -2806,6 +2755,39 @@ twiss_and_track_branch
 twiss_and_track_all
 twiss_and_track1
 twiss_and_track_at_s
+
+File: modules/bmad_routine_interface.f90
+bmad_routine_interface
+pointer_to_branch
+pointer_to_branch_given_name
+pointer_to_branch_given_ele
+pointer_to_ele
+procedure
+procedure
+procedure
+procedure
+apply_element_edge_kick_hook_def
+check_aperture_limit_custom_def
+distance_to_aperture_custom_def
+ele_geometry_hook_def
+wall_hit_handler_custom_def
+em_field_custom_def
+ele_to_fibre_hook_def
+radiation_integrals_custom_def
+init_custom_def
+make_mat6_custom_def
+time_runge_kutta_periodic_kick_hook_def
+track1_bunch_hook_def
+track1_custom_def
+track_many_hook_def
+track1_postprocess_def
+track1_preprocess_def
+track1_spin_custom_def
+track1_wake_hook_def
+pointer_to_ele1
+pointer_to_ele2
+pointer_to_ele3
+pointer_to_ele4
 
 File: multiparticle/envelope_mod.f90
 envelope_mod
@@ -2979,9 +2961,6 @@ write_binary_grid_field
 read_binary_grid_field
 open_binary_file
 
-File: parsing/bmad_parser2.f90
-bmad_parser2
-
 File: parsing/converter_distribution_parser.f90
 converter_distribution_parser
 
@@ -2997,14 +2976,8 @@ create_group
 File: parsing/init_bmad_parser_common.f90
 init_bmad_parser_common
 
-File: parsing/bmad_parser.f90
-bmad_parser
-
 File: parsing/check_controller_controls.f90
 check_controller_controls
-
-File: parsing/create_ramper.f90
-create_ramper
 
 File: parsing/write_digested_bmad_file.f90
 write_digested_bmad_file
@@ -3040,6 +3013,15 @@ create_feedback
 File: parsing/set_ele_defaults.f90
 set_ele_defaults
 
+File: parsing/read_digested_bmad_file.f90
+read_digested_bmad_file
+
+File: parsing/bmad_parser.f90
+bmad_parser
+
+File: parsing/bmad_parser2.f90
+bmad_parser2
+
 File: parsing/bmad_parser_mod.f90
 bmad_parser_mod
 parser_set_attribute
@@ -3073,7 +3055,7 @@ check_for_superimpose_problem
 get_sequence_args
 parse_line_or_list
 allocate_plat
-parser_add_lord
+parser_add_lords
 drift_and_pipe_track_methods_adjustment
 settable_dep_var_bookkeeping
 form_digested_bmad_file_name
@@ -3107,8 +3089,8 @@ parser_fast_integer_read
 parser_fast_complex_read
 parser_fast_real_read
 
-File: parsing/read_digested_bmad_file.f90
-read_digested_bmad_file
+File: parsing/create_ramper.f90
+create_ramper
 
 File: photon/capillary_mod.f90
 capillary_mod
@@ -3548,3 +3530,37 @@ spin_concat_linear_maps
 
 File: spin/spin_taylor_to_linear.f90
 spin_taylor_to_linear
+
+File: output/type_coord.f90
+type_coord
+
+File: output/type_twiss.f90
+type_twiss
+
+File: output/write_lat_file_mod.f90
+write_lat_file_mod
+multipass_region_ele_struct
+multipass_region_branch_struct
+multipass_region_lat_struct
+multipass_region_info
+write_line_element
+re_str
+array_re_str
+cmplx_re_str
+rchomp
+write_lat_line
+value_to_line
+write_lat_in_sad_format
+add_this_name_to_list
+
+File: output/write_lattice_in_foreign_format.f90
+write_lattice_in_foreign_format
+
+File: output/write_lattice_in_julia.f90
+write_lattice_in_julia
+
+File: output/type_ele.f90
+type_ele
+
+File: output/write_bmad_lattice_file.f90
+write_bmad_lattice_file
