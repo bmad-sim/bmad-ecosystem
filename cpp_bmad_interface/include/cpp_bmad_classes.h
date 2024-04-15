@@ -2332,13 +2332,16 @@ class CPP_ramper_lord {
 public:
   Int ix_ele;
   Int ix_con;
+  Real* attrib_ptr;
 
   CPP_ramper_lord() :
     ix_ele(0),
-    ix_con(0)
+    ix_con(0),
+    attrib_ptr(NULL)
     {}
 
   ~CPP_ramper_lord() {
+    delete attrib_ptr;
   }
 
 };   // End Class
@@ -2426,7 +2429,6 @@ public:
   CPP_expression_atom_ARRAY stack;
   string attribute;
   string slave_name;
-  CPP_lat_ele_loc slave;
   Bool is_controller;
 
   CPP_control_ramp1() :
@@ -2434,7 +2436,6 @@ public:
     stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     attribute(),
     slave_name(),
-    slave(),
     is_controller(false)
     {}
 

@@ -1703,6 +1703,11 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_con == f2%ix_con)
+!! f_side.equality_test[real, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%attrib_ptr) .eqv. associated(f2%attrib_ptr))
+if (.not. is_eq) return
+if (associated(f1%attrib_ptr)) is_eq = (f1%attrib_ptr == f2%attrib_ptr)
 
 end function eq_ramper_lord
 
@@ -1797,8 +1802,6 @@ if (allocated(f1%stack)) is_eq = all(f1%stack == f2%stack)
 is_eq = is_eq .and. (f1%attribute == f2%attribute)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%slave_name == f2%slave_name)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%slave == f2%slave)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%is_controller .eqv. f2%is_controller)
 

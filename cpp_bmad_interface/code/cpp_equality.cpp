@@ -959,6 +959,9 @@ bool operator== (const CPP_ramper_lord& x, const CPP_ramper_lord& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_con == y.ix_con);
+  is_eq = is_eq && ((x.attrib_ptr == NULL) == (y.attrib_ptr == NULL));
+  if (!is_eq) return false;
+  if (x.attrib_ptr != NULL) is_eq = (*x.attrib_ptr == *y.attrib_ptr);
   return is_eq;
 };
 
@@ -1004,7 +1007,6 @@ bool operator== (const CPP_control_ramp1& x, const CPP_control_ramp1& y) {
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.attribute == y.attribute);
   is_eq = is_eq && (x.slave_name == y.slave_name);
-  is_eq = is_eq && (x.slave == y.slave);
   is_eq = is_eq && (x.is_controller == y.is_controller);
   return is_eq;
 };

@@ -645,6 +645,7 @@ type tao_global_struct
   real(rp) :: dmerit_stop_value = 0              ! Fractional Merit change below which an optimizer will stop.
   real(rp) :: random_sigma_cutoff = -1           ! Cut-off in sigmas.
   real(rp) :: delta_e_chrom = 0                  ! Delta E used from chrom calc.
+  real(rp) :: dead_cutoff = 0.99                 ! Percentage of dead particles at which beam tracking is stopped.
   integer :: default_universe = 1                ! Default universe to work with.
   integer :: default_branch = 0                  ! Default lattice branch to work with.
   integer :: n_opti_cycles = 20                  ! Number of optimization cycles

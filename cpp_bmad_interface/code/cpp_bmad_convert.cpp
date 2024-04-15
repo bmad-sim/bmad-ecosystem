@@ -2358,22 +2358,33 @@ extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Char z_name, c_Int& z_type, c_Int
 extern "C" void ramper_lord_to_c (const Opaque_ramper_lord_class*, CPP_ramper_lord&);
 
 // c_side.to_f2_arg
-extern "C" void ramper_lord_to_f2 (Opaque_ramper_lord_class*, c_Int&, c_Int&);
+extern "C" void ramper_lord_to_f2 (Opaque_ramper_lord_class*, c_Int&, c_Int&, c_RealArr, Int);
 
 extern "C" void ramper_lord_to_f (const CPP_ramper_lord& C, Opaque_ramper_lord_class* F) {
+  // c_side.to_f_setup[real, 0, PTR]
+  unsigned int n_attrib_ptr = 0; if (C.attrib_ptr != NULL) n_attrib_ptr = 1;
 
   // c_side.to_f2_call
-  ramper_lord_to_f2 (F, C.ix_ele, C.ix_con);
+  ramper_lord_to_f2 (F, C.ix_ele, C.ix_con, C.attrib_ptr, n_attrib_ptr);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void ramper_lord_to_c2 (CPP_ramper_lord& C, c_Int& z_ix_ele, c_Int& z_ix_con) {
+extern "C" void ramper_lord_to_c2 (CPP_ramper_lord& C, c_Int& z_ix_ele, c_Int& z_ix_con,
+    c_RealArr z_attrib_ptr, Int n_attrib_ptr) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_con = z_ix_con;
+  // c_side.to_c2_set[real, 0, PTR]
+  if (n_attrib_ptr == 0)
+    delete C.attrib_ptr;
+  else {
+    C.attrib_ptr = new Real;
+    *C.attrib_ptr = *z_attrib_ptr;
+  }
+
 }
 
 //--------------------------------------------------------------------
@@ -2475,7 +2486,7 @@ extern "C" void control_ramp1_to_c (const Opaque_control_ramp1_class*, CPP_contr
 
 // c_side.to_f2_arg
 extern "C" void control_ramp1_to_f2 (Opaque_control_ramp1_class*, c_RealArr, Int, const
-    CPP_expression_atom**, Int, c_Char, c_Char, const CPP_lat_ele_loc&, c_Bool&);
+    CPP_expression_atom**, Int, c_Char, c_Char, c_Bool&);
 
 extern "C" void control_ramp1_to_f (const CPP_control_ramp1& C, Opaque_control_ramp1_class* F) {
   // c_side.to_f_setup[real, 1, ALLOC]
@@ -2494,7 +2505,7 @@ extern "C" void control_ramp1_to_f (const CPP_control_ramp1& C, Opaque_control_r
 
   // c_side.to_f2_call
   control_ramp1_to_f2 (F, z_y_knot, n1_y_knot, z_stack, n1_stack, C.attribute.c_str(),
-      C.slave_name.c_str(), C.slave, C.is_controller);
+      C.slave_name.c_str(), C.is_controller);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_stack;
@@ -2503,7 +2514,7 @@ extern "C" void control_ramp1_to_f (const CPP_control_ramp1& C, Opaque_control_r
 // c_side.to_c2_arg
 extern "C" void control_ramp1_to_c2 (CPP_control_ramp1& C, c_RealArr z_y_knot, Int n1_y_knot,
     Opaque_expression_atom_class** z_stack, Int n1_stack, c_Char z_attribute, c_Char
-    z_slave_name, const Opaque_lat_ele_loc_class* z_slave, c_Bool& z_is_controller) {
+    z_slave_name, c_Bool& z_is_controller) {
 
   // c_side.to_c2_set[real, 1, ALLOC]
 
@@ -2518,8 +2529,6 @@ extern "C" void control_ramp1_to_c2 (CPP_control_ramp1& C, c_RealArr z_y_knot, I
   C.attribute = z_attribute;
   // c_side.to_c2_set[character, 0, NOT]
   C.slave_name = z_slave_name;
-  // c_side.to_c2_set[type, 0, NOT]
-  lat_ele_loc_to_c(z_slave, C.slave);
   // c_side.to_c2_set[logical, 0, NOT]
   C.is_controller = z_is_controller;
 }

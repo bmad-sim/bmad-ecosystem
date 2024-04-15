@@ -1292,8 +1292,6 @@ type control_ramp1_struct
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   character(40) :: attribute = ''     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
   character(40) :: slave_name = ''    ! Name of slave.
-  ! %slave is only used with controllers and in this case there is only one slave.
-  type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   logical :: is_controller = .false.  ! Is the slave a controller? If so bookkeeping is different.
 end type
 
@@ -1303,6 +1301,7 @@ character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, '
 type ramper_lord_struct
   integer :: ix_ele = 0       ! Lord index
   integer :: ix_con = 0       ! Index in lord%control%ramp(:) array
+  real(rp), pointer :: attrib_ptr => null()    ! Pointer to attribute in this element.
 end type
 
 type controller_struct

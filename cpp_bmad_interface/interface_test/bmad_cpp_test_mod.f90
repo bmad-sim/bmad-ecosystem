@@ -5706,6 +5706,14 @@ offset = 100 * ix_patt
 rhs = 1 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 2 + offset; F%ix_con = rhs
+!! f_side.test_pat[real, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%attrib_ptr)) deallocate (F%attrib_ptr)
+else
+  if (.not. associated(F%attrib_ptr)) allocate (F%attrib_ptr)
+  rhs = 3 + offset
+  F%attrib_ptr = rhs
+endif
 
 end subroutine set_ramper_lord_test_pattern
 
@@ -6032,10 +6040,8 @@ enddo
 do jd1 = 1, len(F%slave_name)
   F%slave_name(jd1:jd1) = char(ichar("a") + modulo(100+6+offset+jd1, 26))
 enddo
-!! f_side.test_pat[type, 0, NOT]
-call set_lat_ele_loc_test_pattern (F%slave, ix_patt)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 8 + offset; F%is_controller = (modulo(rhs, 2) == 0)
+rhs = 7 + offset; F%is_controller = (modulo(rhs, 2) == 0)
 
 end subroutine set_control_ramp1_test_pattern
 

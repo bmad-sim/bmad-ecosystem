@@ -431,7 +431,7 @@ integer, allocatable :: ix_ele(:)
 
 character(*), parameter :: r_name = "tao_beam_track"
 
-logical calc_ok, print_err, err, lost, new_beam_file, can_save
+logical calc_ok, print_err, err, new_beam_file, can_save
 logical comb_calc_on, csr_sc_on, radiation_on
 
 ! Initialize 
@@ -450,7 +450,6 @@ lat => tao_lat%lat
 
 tao_branch%track_state = moving_forward$  ! Needed by tao_evaluate_a_datum
 ix_track = moving_forward$
-lost = .false.
 calc_ok = .true.
 new_beam_file = .true.
 
@@ -599,11 +598,13 @@ do
     n_lost_old = n_lost
   endif
 
-  if (tao_no_beam_left(beam, branch%param%particle) .and. .not. lost) then
+  if (tao_too_many_particles_lost(beam)) then
     ix_track = ie
-    lost = .true.
     call out_io (s_warn$, r_name, &
-            'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name))
+            'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name), &
+            'PERCENTAGE OF DEAD PARTICLES OVER GLOBAL%DEAD_CUTOFF OF: ' // real_str(s%global%dead_cutoff, 6, 4), &
+            'WILL STOP TRACKING AT ELEMENT: ' // ele_full_name(ele))
+    exit
   endif
 
   ! Calc bunch params
@@ -699,36 +700,33 @@ end subroutine tao_beam_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-function tao_no_beam_left (beam, particle) result (no_beam)
+function tao_too_many_particles_lost (beam) result (no_beam)
 
 implicit none
 
 type (beam_struct), target :: beam
 type (coord_struct), pointer :: p(:)
 
-real(rp) charge_tot
-integer n_bunch, particle
+real(rp) charge_tot, n_dead
+integer ib, n_bunch
 logical no_beam
-character(*), parameter :: r_name = "tao_no_beam_left"
+character(*), parameter :: r_name = "tao_too_many_particles_lost"
 
-!
-
-no_beam = .false.
-
-n_bunch = s%global%bunch_to_plot
-p =>beam%bunch(n_bunch)%particle(:)
-no_beam = .not. any(p%state == alive$ .or. p%state == pre_born$)
-
+! Cutoff is if in any bunch the number lost is above global%dead_cutoff
 ! Note: Previously having no charge or field triggered no beam left. 
 ! It was decided that this case was acceptible.
 
-!if (particle == photon$) then
-!  if (sum(p%field(1)**2) + sum(p%field(2)**2) == 0 .or. no_beam) no_beam = .true.
-!else
-!  if (sum(p%charge) == 0 .or. no_beam) no_beam = .true.
-!endif
+no_beam = .false.
 
-end function tao_no_beam_left
+do ib = 1, size(beam%bunch)
+  p => beam%bunch(ib)%particle(:)
+  n_dead = count(p%state /= alive$ .and. p%state /= pre_born$)
+  if (n_dead * (1.0000001_rp) < size(p) * s%global%dead_cutoff) cycle
+  no_beam = .true.
+  return
+enddo
+
+end function tao_too_many_particles_lost
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -935,8 +933,9 @@ if (bb%init_starting_distribution .or. u%beam%always_reinit) then
     call out_io (s_warn$, r_name, 'Total beam charge is zero. Set beam_init%bunch_charge to change this.')
   endif
 
-  if (tao_no_beam_left(beam, branch%param%particle)) then
+  if (tao_too_many_particles_lost(beam)) then
     call out_io (s_warn$, r_name, 'NOT ENOUGH PARTICLES FOR BEAM INITIALIZATION IN BRANCH ' // int_str(ix_branch), &
+                                  'PERCENTAGE OF DEAD PARTICLES OVER GLOBAL%DEAD_CUTOFF OF: ' // real_str(s%global%dead_cutoff, 6, 4), &
                                   'NO BEAM TRACKING WILL BE DONE.')
     return
   endif

@@ -12,6 +12,7 @@ type (ele_struct) a_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
 type (control_struct), pointer :: ctl
+type (control_ramp1_struct), pointer :: ramp(:)
 type (nametable_struct) ntab
 type (expression_atom_struct), allocatable :: stack(:)
 type (ele_pointer_struct), allocatable :: ramper(:)
@@ -31,7 +32,7 @@ character(100) str, err_str
 
 real(rp), allocatable :: save(:)
 real(rp) m1(6,6), m2(6,6), r0(6), vec1(6), vec2(6), val
-integer :: i, j, k, n, ie, nargs, n_loc, n_stack
+integer :: i, j, k, n, ie, ix, nargs, n_loc, n_stack
 logical print_extra, err
 
 !
@@ -59,7 +60,7 @@ open (1, file = 'output.now', recl = 200)
 
 !-----------------------------------------
 
-call bmad_parser('bookkeeper_test3.bmad', lat)
+call bmad_parser('ramper.bmad', lat)
 
 call lat_ele_locator ('RAMPER::*', lat, ramper, n, err)
 do i = 1, n
@@ -67,22 +68,31 @@ do i = 1, n
   ele%control%var(1)%value = 1.0e-8_rp
 enddo
 
-do i = 1, lat%n_ele_track
+do i = 1, lat%n_ele_max
   ele => lat%ele(i)
   call apply_rampers_to_slave(ele, err)
 
+  if (ele%key == ramper$) then
+    ramp => ele%control%ramp
+    write (1, '(2a, 9es14.6)') quote(trim(ele%name) // '-val'), ' REL 1E-6', (ramper_value(ele, ramp(ix), err), ix = 1, size(ramp))
+  else
+    write (1, '(2a, i4)') quote(trim(ele%name) // '-n_ramp'), ' ABS 0', ele%n_lord_ramper
+  endif
+
   select case (ele%name)
-  case ('Q1')
-    write (1, '(a, es20.12)') '"Q1-p0c" REL 1E-10', ele%value(p0c$)
-    write (1, '(a, es20.12)') '"Q1-k1" REL 1E-10', ele%value(k1$)
-  case ('RF')
-    write (1, '(a, es20.12)') '"RF-p0c" REL 1E-10', ele%value(p0c$)
-    write (1, '(a, es20.12)') '"RF-volt" REL 1E-10', ele%value(voltage$)
-    write (1, '(a, es20.12)') '"RF-phi0" REL 1E-10', ele%value(phi0$)
-  case ('B')
-    write (1, '(a, es20.12)') '"B-p0c" REL 1E-10', ele%value(p0c$)
-    write (1, '(a, es20.12)') '"B-hkick" REL 1E-10', ele%value(hkick$)
+  case ('Q1', 'Q1\1', 'Q1\2', 'Q1\1#1', 'Q1\1#2', 'Q1\2#1', 'Q1\2#2')
+    write (1, '(3a, es20.12)') '"', trim(ele%name), '-p0c" REL 1E-10', ele%value(p0c$)
+    write (1, '(3a, es20.12)') '"', trim(ele%name), '-k1" REL 1E-10', ele%value(k1$)
+  case ('RF', 'RF\1', 'RF\2')
+    write (1, '(3a, es20.12)') '"', trim(ele%name), '-p0c" REL 1E-10', ele%value(p0c$)
+    write (1, '(3a, es20.12)') '"', trim(ele%name), '-volt" REL 1E-10', ele%value(voltage$)
+    write (1, '(3a, es20.12)') '"', trim(ele%name), '-phi0" REL 1E-10', ele%value(phi0$)
+  case ('B', 'B\1', 'B\2')
+    write (1, '(3a, es20.12)') '"', trim(ele%name), '-p0c" REL 1E-10', ele%value(p0c$)
+    write (1, '(3a, es20.12)') '"', trim(ele%name), '-hkick" REL 1E-10', ele%value(hkick$)
   end select
+
+
 enddo
 
 !-----------------------------------------

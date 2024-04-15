@@ -6617,11 +6617,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine ramper_lord_to_c2 (C, z_ix_ele, z_ix_con) bind(c)
+  subroutine ramper_lord_to_c2 (C, z_ix_ele, z_ix_con, z_attrib_ptr, n_attrib_ptr) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_ix_ele, z_ix_con
+    real(c_double) :: z_attrib_ptr
+    integer(c_int), value :: n_attrib_ptr
   end subroutine
 end interface
 
@@ -6630,14 +6632,18 @@ type(c_ptr), value :: C
 type(ramper_lord_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
+integer(c_int) :: n_attrib_ptr
 
 !
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_c_trans[real, 0, PTR]
+n_attrib_ptr = 0
+if (associated(F%attrib_ptr)) n_attrib_ptr = 1
 
 !! f_side.to_c2_call
-call ramper_lord_to_c2 (C, F%ix_ele, F%ix_con)
+call ramper_lord_to_c2 (C, F%ix_ele, F%ix_con, F%attrib_ptr, n_attrib_ptr)
 
 end subroutine ramper_lord_to_c
 
@@ -6657,7 +6663,7 @@ end subroutine ramper_lord_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine ramper_lord_to_f2 (Fp, z_ix_ele, z_ix_con) bind(c)
+subroutine ramper_lord_to_f2 (Fp, z_ix_ele, z_ix_con, z_attrib_ptr, n_attrib_ptr) bind(c)
 
 
 implicit none
@@ -6667,6 +6673,9 @@ type(ramper_lord_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_ix_ele, z_ix_con
+type(c_ptr), value :: z_attrib_ptr
+real(c_double), pointer :: f_attrib_ptr
+integer(c_int), value :: n_attrib_ptr
 
 call c_f_pointer (Fp, F)
 
@@ -6674,6 +6683,15 @@ call c_f_pointer (Fp, F)
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_con = z_ix_con
+!! f_side.to_f2_trans[real, 0, PTR]
+if (n_attrib_ptr == 0) then                                                                                  
+  if (associated(F%attrib_ptr)) deallocate(F%attrib_ptr)                                                           
+else                                                                                                   
+  call c_f_pointer (z_attrib_ptr, f_attrib_ptr)                                                                    
+  if (.not. associated(F%attrib_ptr)) allocate(F%attrib_ptr)                                                       
+  F%attrib_ptr = f_attrib_ptr
+endif                                                                                                  
+
 
 end subroutine ramper_lord_to_f2
 
@@ -6932,7 +6950,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine control_ramp1_to_c2 (C, z_y_knot, n1_y_knot, z_stack, n1_stack, z_attribute, &
-      z_slave_name, z_slave, z_is_controller) bind(c)
+      z_slave_name, z_is_controller) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6940,7 +6958,6 @@ interface
     integer(c_int), value :: n1_y_knot, n1_stack
     type(c_ptr) :: z_stack(*)
     character(c_char) :: z_attribute(*), z_slave_name(*)
-    type(c_ptr), value :: z_slave
     logical(c_bool) :: z_is_controller
   end subroutine
 end interface
@@ -6975,7 +6992,7 @@ endif
 
 !! f_side.to_c2_call
 call control_ramp1_to_c2 (C, fvec2vec(F%y_knot, n1_y_knot), n1_y_knot, z_stack, n1_stack, &
-    trim(F%attribute) // c_null_char, trim(F%slave_name) // c_null_char, c_loc(F%slave), &
+    trim(F%attribute) // c_null_char, trim(F%slave_name) // c_null_char, &
     c_logic(F%is_controller))
 
 end subroutine control_ramp1_to_c
@@ -6997,7 +7014,7 @@ end subroutine control_ramp1_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine control_ramp1_to_f2 (Fp, z_y_knot, n1_y_knot, z_stack, n1_stack, z_attribute, &
-    z_slave_name, z_slave, z_is_controller) bind(c)
+    z_slave_name, z_is_controller) bind(c)
 
 
 implicit none
@@ -7006,7 +7023,7 @@ type(c_ptr), value :: Fp
 type(control_ramp1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_y_knot, z_slave
+type(c_ptr), value :: z_y_knot
 real(c_double), pointer :: f_y_knot(:)
 integer(c_int), value :: n1_y_knot, n1_stack
 type(c_ptr) :: z_stack(*)
@@ -7046,8 +7063,6 @@ endif
 call to_f_str(z_attribute, F%attribute)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_slave_name, F%slave_name)
-!! f_side.to_f2_trans[type, 0, NOT]
-call lat_ele_loc_to_f(z_slave, c_loc(F%slave))
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%is_controller = f_logic(z_is_controller)
 

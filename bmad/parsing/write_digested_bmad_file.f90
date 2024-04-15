@@ -92,7 +92,7 @@ enddo
 
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
-
+! Note: Set lat%ramper_slave_bookkeeping_done = False since ramper pointer not in digested file.
 n_custom = -1
 if (allocated(lat%custom)) n_custom = size(lat%custom)
 n_print = -1
@@ -100,7 +100,7 @@ if (allocated(lat%print_str)) n_print = size(lat%print_str)
 write (d_unit) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 write (d_unit) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
-write (d_unit) lat%input_taylor_order, lat%photon_type, lat%ramper_slave_bookkeeping_done
+write (d_unit) lat%input_taylor_order, lat%photon_type, .false.
 write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom, n_print
 
 ! Global custom
@@ -371,7 +371,7 @@ if (ix_c == 1) then
     if (allocated(rmp%stack)) n = size(rmp%stack)
     nk = 0
     if (allocated(rmp%y_knot)) nk = size(rmp%y_knot)
-    write (d_unit) rmp%slave_name, n, nk, rmp%attribute, rmp%slave, rmp%is_controller
+    write (d_unit) rmp%slave_name, n, nk, rmp%attribute, rmp%is_controller
     do j = 1, n
       write (d_unit) rmp%stack(j)
     enddo

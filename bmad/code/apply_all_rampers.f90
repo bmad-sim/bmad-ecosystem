@@ -34,7 +34,7 @@ if (ie == lat%n_ele_max+1) return
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  do ie = 0, branch%n_ele_max
+  do ie = 0, branch%n_ele_track
     call apply_rampers_to_slave(branch%ele(ie), err_flag)
     if (err_flag) return
   enddo

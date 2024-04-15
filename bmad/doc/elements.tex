@@ -4496,9 +4496,10 @@ not allowed to control \vn{rampers}. When a \vn{ramper} controls variables in ot
 elements it is not permitted to use wild card characters. That is, in the above example, ``\vn{*}''
 will not match to any controller elements.
 
-Unlike \vn{group} or \vn{overlay} elements, it is not permitted for different \vn{ramper} elements
-to control the same parameter of a given slave element. Additionally, parameters that \vn{ramper}
-elements control must not be controlled by any \vn{overlay}.
+Do to the way bookkeeping is done for ramper elmeents, and unlike \vn{group} or \vn{overlay}
+elements, it is not permitted for different \vn{ramper} elements to control the same parameter of a
+given slave element. Additionally, parameters that \vn{ramper} elements control must not be
+controlled by any \vn{overlay} (but a \vn{ramper} can control an \vn{overlay}).
 
 Note: There is a program to plot controller response curves bundled with the \bmad software
 (\sref{s:tao.intro}) called \vn{controller_function_plot}. Documentation on this can

@@ -91,7 +91,7 @@ integer ia, ie, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_stat
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
 integer id1, id2, id3, ne, na, nn
 
-real(rp) coef, val, L_mis(3), S_mis(3,3) 
+real(rp) coef, val, L_mis(3), S_mis(3,3), value
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
@@ -1047,7 +1047,7 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
   if (ele%n_lord_ramper /= 0) then
     nl=nl+1; li(nl) = ' '
     nl=nl+1; li(nl) = 'Ramper Lords:'
-    nl=nl+1; li(nl) = '   Ramper_Name               Attribute         Expression/Knot Points'
+    nl=nl+1; li(nl) = '   Ramper_Name               Attribute           Value                Expression/Knot Points'
     do ix = 1, ele%n_lord_ramper
       lord => pointer_to_lord(ele, ix, lord_type = ramper_lord$, ix_control = ic)
       rmp => lord%control%ramp(ic)
@@ -1056,11 +1056,12 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
       else  ! Spline
         call split_expression_string (knots_to_string(lord%control%x_knot, rmp%y_knot), 80, 5, li2, '),')
       endif
+      value = ramper_value(lord, rmp, err_flag)
 
-      nl=nl+1; write (li(nl), '(3x, a, t30, a18, a, 4x, a)') ele_full_name(lord), rmp%attribute, trim(li2(1))
+      nl=nl+1; write (li(nl), '(3x, a, t30, a18, es20.12, 4x, a)') ele_full_name(lord), rmp%attribute, value, trim(li2(1))
       if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
       do im = 2, size(li2)
-        n = 50
+        n = 70
         if (im == 3 .and. integer_option(short$, type_control) /= all$) then
           nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im)) // ' ... etc.'
           exit
@@ -1150,7 +1151,7 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
       enddo
 
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      nl=nl+1; li(nl) = '   Ele_Name            Attribute         Expression/Knot Points'
+      nl=nl+1; li(nl) = '   Ele_Name            Attribute           Value                  Expression/Knot Points'
       do ix = 1, size(ele%control%ramp)
         rmp => ele%control%ramp(ix)
 
@@ -1159,11 +1160,12 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
         else  ! Spline
           call split_expression_string (knots_to_string(ele%control%x_knot, rmp%y_knot), 80, 5, li2, '),')
         endif
+        value = ramper_value(ele, rmp, err_flag)
 
-        nl=nl+1; write (li(nl), '(3x, a20, a18, a, 4x, a)') rmp%slave_name, rmp%attribute, trim(li2(1))
+        nl=nl+1; write (li(nl), '(3x, a20, a18, es20.12, 4x, a)') rmp%slave_name, rmp%attribute, value, trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do im = 2, size(li2)
-          n = 40
+          n = 65
           nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im))
         enddo
       enddo
@@ -1175,7 +1177,7 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Value of the controlled attribute, Expression_Val = Value calculated by this Group element.]'
       endif
 
-      nl=nl+1; li(nl) = ' Ele_Loc   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression'
+      nl=nl+1; li(nl) = ' Ele_Loc   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression/Knot Points'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
 
@@ -1191,13 +1193,13 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
         write (str1, '(es12.4)') ctl%value
 
         if (allocated(ctl%stack)) then
-          call split_expression_string (str1(1:17) // expression_stack_to_string(ctl%stack), 70, 5, li2)
+          call split_expression_string (expression_stack_to_string(ctl%stack), 70, 5, li2)
         else  ! Spline
           call split_expression_string (knots_to_string(ele%control%x_knot, ctl%y_knot), 70, 5, li2)
         endif
 
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), &
-                                  slave%name(1:n_char), ctl%attribute, attrib_val_str, trim(li2(1))
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, 2a, 4x, a)') trim(ele_loc_name(slave)), &
+                                  slave%name(1:n_char), ctl%attribute, attrib_val_str, str1(1:17), trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do im = 2, size(li2)
           n = 50 + n_char + len(attrib_val_str)
@@ -1247,14 +1249,16 @@ if (associated(branch) .and. ele%lord_status == not_a_lord$) then
   endif
 endif
 
-if (integer_option(radians$, twiss_out) /= 0 .and. ele%a%beta /= 0) then
-  nl=nl+1; li(nl) = ''
-  nl=nl+1; li(nl) = 'Twiss at end of element:'
-  call type_twiss (ele, twiss_out, .false., li(nl+1:), nl2)
-  nl=nl + nl2
-else
-  nl=nl+1; li(nl) = ''
-  nl=nl+1; li(nl) = 'Twiss: Not computed at element'  
+if (ele%key /= ramper$ .and. ele%key /= girder$) then
+  if (integer_option(radians$, twiss_out) /= 0 .and. ele%a%beta /= 0) then
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Twiss at end of element:'
+    call type_twiss (ele, twiss_out, .false., li(nl+1:), nl2)
+    nl=nl + nl2
+  else
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Twiss: Not computed at element'  
+  endif
 endif
 
 l_status = ele%lord_status
@@ -1678,28 +1682,6 @@ case (is_switch$)
 end select
 
 end subroutine write_this_attribute
-
-!--------------------------------------------------------------------------
-! contains
-
-function knots_to_string (x_knot, y_knot) result (str)
-
-real(rp) x_knot(:), y_knot(:)
-integer ik
-character(:), allocatable :: str
-
-!
-
-allocate (character(1) :: str)
-str = ''
-
-do ik = 1, size(x_knot)
-  str = str // ', (' // real_str(x_knot(ik),12) // ', ' // real_str(y_knot(ik),12) // ')'
-enddo
-
-str = str(3:)
-
-end function knots_to_string
 
 !--------------------------------------------------------------------------
 ! contains

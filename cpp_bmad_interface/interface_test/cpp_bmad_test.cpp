@@ -3813,6 +3813,14 @@ void set_CPP_ramper_lord_test_pattern (CPP_ramper_lord& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 2 + offset; C.ix_con = rhs;
 
+  // c_side.test_pat[real, 0, PTR]
+  if (ix_patt < 3) 
+    C.attrib_ptr = NULL;
+  else {
+    C.attrib_ptr = new Real;
+    rhs = 3 + offset; (*C.attrib_ptr) = rhs;
+  }
+
 
 }
 
@@ -4027,11 +4035,8 @@ void set_CPP_control_ramp1_test_pattern (CPP_control_ramp1& C, int ix_patt) {
   C.slave_name.resize(40);
   for (unsigned int i = 0; i < C.slave_name.size(); i++)
     {int rhs = 101 + i + 6 + offset; C.slave_name[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_lat_ele_loc_test_pattern(C.slave, ix_patt);
-
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 8 + offset; C.is_controller = (rhs % 2 == 0);
+  rhs = 7 + offset; C.is_controller = (rhs % 2 == 0);
 
 
 }

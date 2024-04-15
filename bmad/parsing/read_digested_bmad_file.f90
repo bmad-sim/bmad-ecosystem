@@ -409,6 +409,7 @@ if (.not. err_found) then
 endif
 
 call create_lat_ele_nametable (lat, lat%nametable)
+call ramper_slave_setup(lat, .true.)
 
 return
 
@@ -562,7 +563,7 @@ if (ix_c /= 0) then
     allocate(ele%control%ramp(nr))
     do i = 1, nr
       rmp => ele%control%ramp(i)
-      read (d_unit, err = 9040, end = 9040) rmp%slave_name, n, nk, rmp%attribute, rmp%slave, rmp%is_controller
+      read (d_unit, err = 9040, end = 9040) rmp%slave_name, n, nk, rmp%attribute, rmp%is_controller
       if (n > 0) then
         allocate (rmp%stack(n))
         do j = 1, n
@@ -580,6 +581,9 @@ if (ix_c /= 0) then
   if (nix > -1) then
     allocate(ele%control%ramper_lord(nix))
     read (d_unit, err = 9120, end = 9120) ele%control%ramper_lord
+    do i = 1, nix
+      ele%control%ramper_lord(nix)%attrib_ptr => null()
+    enddo
   endif
 endif
 

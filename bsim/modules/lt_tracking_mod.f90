@@ -3308,7 +3308,12 @@ real(rp) time
 integer ir, iv
 logical err_flag
 
-! Apply time
+! An element may be affected by ramping via a lord of the element.
+! So it is only safe to not do any bookkeeping if the element has no rampers or lords.
+
+if (slave%n_lord_ramper == 0 .and. slave%n_lord == 0) return
+
+! Set rampers.
 
 lat => ltt_com%tracking_lat
 do ir = lat%n_ele_track+1, lat%n_ele_max

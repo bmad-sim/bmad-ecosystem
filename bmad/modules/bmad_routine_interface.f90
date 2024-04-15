@@ -204,7 +204,7 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine apply_rampers_to_slave (slave, err_flag)
+recursive subroutine apply_rampers_to_slave (slave, err_flag)
   import
   implicit none
   type (ele_struct), target :: slave
@@ -321,10 +321,11 @@ function branch_name(branch) result (name)
   character(40) name
 end function
 
-subroutine ramper_slave_setup(lat)
+subroutine ramper_slave_setup(lat, do_setup)
   import
   implicit none
   type (lat_struct) lat
+  logical, optional :: do_setup
 end subroutine
 
 function ramper_value (ramper, r1, err_flag) result (value)
@@ -1232,6 +1233,13 @@ function knot_interpolate (x_knot, y_knot, x_pt, interpolation, err_flag) result
   real(rp) x_knot(:), y_knot(:), x_pt, y_pt
   integer interpolation
   logical err_flag
+end function
+
+function knots_to_string (x_knot, y_knot) result (str)
+  import
+  implicit none
+  real(rp) x_knot(:), y_knot(:)
+  character(:), allocatable :: str
 end function
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
