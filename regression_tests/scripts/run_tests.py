@@ -9,7 +9,7 @@ import os
 import sys
 import time
 import math
-from distutils.spawn import find_executable
+from shutil import which
 
 num_tests = 0
 num_failures = 0
@@ -146,7 +146,7 @@ for test_dir in test_dir_list:
 
   # run.py
   if os.path.exists('run.py'):
-    if find_executable('python3'):
+    if which('python3'):
       print_all ('     Found run.py. Running this script with python3.')        
       os.system('python3 run.py ' + bin_dir)
     else:

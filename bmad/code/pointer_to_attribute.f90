@@ -100,7 +100,7 @@ endif
 !--------------------
 ! If a controller with a defined list of variables
 
-if (associated (ele%control)) then
+if (ele%key == ramper$ .or. ele%key == overlay$ .or. ele%key == group$) then
 
   if (len(a_name) > 4) then
     if (a_name(1:4) == 'OLD_') then
