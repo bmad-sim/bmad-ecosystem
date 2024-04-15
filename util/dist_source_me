@@ -366,14 +366,14 @@ func_add_bmad_path () {
     else
         export LD_LIBRARY_PATH=${BMAD_LIB_PROD_PATH}:${BMAD_LIB_DEBUG_PATH}
 
-        # Configure DYLD_LIBRARY_PATH for Mac OS X
+        # Configure DYLD_FALLBACK_LIBRARY_PATH for Mac OS X
         if [ "${DIST_OS}" == "Darwin" ] ; then
 
             if ( [ "${DIST_F90_REQUEST}" == "ifort" ] && [ -d /opt/intel/lib ] ) ; then
-                export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/lib
+                export DYLD_FALLBACK_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/lib
 
             elif [ -d /opt/local/lib ] ; then
-                export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+                export DYLD_FALLBACK_LIBRARY_PATH=${LD_LIBRARY_PATH}
             fi
         fi
     fi
