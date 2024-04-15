@@ -4,15 +4,20 @@
 ! Routine for determining the eigenvectors and eigenvalues of a matrix.
 ! For complex conjugate pairs, the eigenvectors are normalized so that (v_j^*) * S * (v_j) = I for j odd.
 !
+! The resulting eigenvectors are filled as the rows of the eigen_vec matrix, with 
+! each row corresponding to that index in the eigen_val vector of eigenvalues.
+!
 ! When the eigenvalues are complex conjugate pairs, the eigenvectors and eigenvalues
 ! are grouped so that the conjugate pairs are in slots (1,2), (3,4), etc.
 !
-! Also: For complex conjugate pairs (j, j+1), j = 1, 3, or 5, the odd numbered 
-! eigenvector/eigenvalues will be such that the product (v{j}^*) (v{j+1}) has 
-! positive imaginary part where v{j} is the j^th component of the eigenvector.
-! This ensures that the odd numbered eigenvector/eigenvalues are associated
-! with the tune and the even numbered ones have the negative of the tune.
-! See the Bmad manual for more details.
+! Also: For complex conjugate pairs (j, j+1), j = 1, 3, or 5, the eigenvectors will be 
+! multiplied by a phase factor so that in the weakly-coupled case the the product (v{j}^*) (v{j+1}) 
+! has positive imaginary part where v{j} is the j^th component of the eigenvector. This gives 
+! the eigenvectors a simple form in the weakly-coupled case, and ensures that the odd numbered 
+! eigenvector/eigenvalues are associated with the tune and the even numbered ones have the negative 
+! of the tune. In cases with a lot of coupling, there is no simple way to define the positive or 
+! negative tune, and multiplying by this phase factor is harmless. See the "Tunes From One-Turn Matrix Eigen Analysis" 
+! section in the Bmad manual for more details.
 !
 ! Also: the eigenvectors will be sorted so that:
 !   Eigenvectors (1,2) will have the largest "horizontal" components corresponding to vec(1:2), 
@@ -141,18 +146,31 @@ do ii = 1, nn
     eigen_vec(j-1, :) = cmplx(vec(:, i-1), -vec(:, i))
     eigen_vec(j, :)   = cmplx(vec(:, i-1),  vec(:, i))
 
+    ! Calculate the normalizing factor to make (v_j^*) * S * (v_j) = I for j odd and -I for j even
     k = j - 1
     fnorm = 0
     do jj = 1, n, 2
       fnorm = fnorm + 2 * aimag(conjg(eigen_vec(k, jj)) * eigen_vec(k,jj+1))
     enddo
 
+    ! If fnorm is negative, flip the complex-conjugate eigenvectors/eigenvalues
+    ! This is necessary to make (v_j^*) * S * (v_j) = I for j odd and -I for j even.
     if (fnorm < 0) then  ! flip
       eigen_vec(k:k+1, :) = eigen_vec(k+1:k:-1, :)
       eigen_val(k:k+1)    = eigen_val(k+1:k:-1)
       fnorm = -fnorm
     endif
 
+    ! Here it is assumed the eigenmodes are weakly coupled, so that we can add a phase 
+    ! factor to the eigenvectors to make them "pretty"; e.g. for no coupling, this step 
+    ! makes the x-eigenmode have the form:
+    ! 
+    !    lambda_x1 = exp(I*theta_x)     v_x1 = 1/sqrt(2)*(1, I , 0, 0, 0, 0)
+    !    lambda_x2 = exp(-I*theta_x)    v_x2 = 1/sqrt(2)*(1, -I, 0, 0, 0, 0)
+    !
+    ! where the x-component of the eigenvector is fully real. For highly-coupled modes, this 
+    ! step is not useful. See the "Tunes From One-Turn Matrix Eigen Analysis" section in the 
+    ! manual for more details.
     if (abs(eigen_vec(k,k)) == 0) then
       sgn = 1.0_rp / sqrt(fnorm)
     else
