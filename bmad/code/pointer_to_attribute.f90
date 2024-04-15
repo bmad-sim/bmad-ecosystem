@@ -99,8 +99,9 @@ endif
 
 !--------------------
 ! If a controller with a defined list of variables
+! Note: ele%control or ele%control%var may not be allocated during parsing.
 
-if (ele%key == ramper$ .or. ele%key == overlay$ .or. ele%key == group$) then
+if ((ele%key == ramper$ .or. ele%key == overlay$ .or. ele%key == group$) .and. associated(ele%control)) then
 
   if (len(a_name) > 4) then
     if (a_name(1:4) == 'OLD_') then
