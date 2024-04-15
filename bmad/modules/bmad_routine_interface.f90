@@ -324,7 +324,7 @@ end function
 subroutine ramper_slave_setup(lat, do_setup)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   logical, optional :: do_setup
 end subroutine
 

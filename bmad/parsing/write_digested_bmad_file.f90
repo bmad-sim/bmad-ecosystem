@@ -378,7 +378,10 @@ if (ix_c == 1) then
     if (nk /= 0) write (d_unit) rmp%y_knot
   enddo
 
-  if (ix_r > -1) write (d_unit) ele%control%ramper_lord
+  if (ix_r > -1) then
+    write (d_unit) ele%control%ramper_lord%ix_ele
+    write (d_unit) ele%control%ramper_lord%ix_con
+  endif
 endif
 
 ! AC_kicker

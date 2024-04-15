@@ -580,7 +580,8 @@ if (ix_c /= 0) then
 
   if (nix > -1) then
     allocate(ele%control%ramper_lord(nix))
-    read (d_unit, err = 9120, end = 9120) ele%control%ramper_lord
+    read (d_unit, err = 9120, end = 9120) ele%control%ramper_lord%ix_ele
+    read (d_unit, err = 9120, end = 9120) ele%control%ramper_lord%ix_con
     do i = 1, nix
       ele%control%ramper_lord(nix)%attrib_ptr => null()
     enddo
