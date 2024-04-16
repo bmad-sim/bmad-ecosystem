@@ -188,3 +188,6 @@ sad_to_bmad_postprocess
 
 File: wake_fit/wake_fit.f90
 wake_fit
+
+File: bmad_to_julia/bmad_to_julia.f90
+bmad_to_julia

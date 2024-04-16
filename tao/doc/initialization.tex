@@ -598,6 +598,7 @@ type tao_global_struct:
   lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
   de_var_to_population_factor = 5 
+  dead_cutoff = 0.99               ! Dead particle cutoff for stopping beam tracking.
   lmdif_eps = 1e-12                ! Tolerance for lmdif optimizer.
   lmdif_negligible_merit = 1d-30   ! lmdif stops if merit is smaller.
   svd_cutoff = 1e-5                ! SVD singular value cutoff limit.
@@ -670,6 +671,9 @@ Sets the maximum number of error messages per cycle generated when evaluating al
 ``cycle'', which generally happens after most commands or every optimization cycle, consists of the
 reevaluation of lattice parameters and subsequent datum evaluations. Limiting the number of error
 messages is useful when many essentially similar error messages are being generated.
+%
+  \item{\vn{global%dead_cutoff}} \Newline
+Percentage of dead particles at which beam tracking is stopped.
 %
   \item{\vn{global%derivative_recalc}} \Newline
 The \vn{global%derivative_recalc} logical determines whether the derivative matrix is

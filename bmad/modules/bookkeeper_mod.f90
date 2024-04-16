@@ -1619,7 +1619,7 @@ do i = 1, slave%n_lord
 
   if (lord%key /= overlay$) then
     call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY \i\ ', ix_slave)
-    call type_ele (slave, .true., 0, .false., 0, .true.)
+    call type_ele (slave, .true., 0, .false., 0)
     if (global_com%exit_on_error) call err_exit
   endif     
 

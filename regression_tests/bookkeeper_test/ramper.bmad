@@ -1,0 +1,38 @@
+
+t0 = 1e-8
+
+g_q1: group = {Q1[hkick]:{0.0, 0.02}}, var = {gvar}, x_knot = {0, 2*t0}                    ! 1e-8 -> 1.0
+o_b: overlay = {B[hkick]:1e-5*hk}, var = {hk}                                             ! 1 -> 1e-5
+
+ramp_o_b: ramper = {o_b[hk]:time/t0, g_q1[gvar]:time}, var = {time}                       ! 1.0, 1e-8
+ramp_pc: ramper = {*[p0c]: 1e9 + 1e17*time}, var = {time}                                 ! 2e9
+ramp_volt1: ramper = {rfcavity::*[voltage]:{1e6, 3e6}}, var = {time}, x_knot = {0, 2*t0}  ! 2e6
+ramp_phase: ramper = {rfcavity::*[phi0]:{0.0, 0.2}, rf*\1[phi0_multipass]}, var = {time}, x_knot = {0, 2*t0}     ! 0.1
+
+! This element will generate an error message.
+! ramp_t: ramper = {ramp_phase[time]:{0.0, 0.2}}, var = {time}, x_knot = {0, 2*t0}
+
+
+!---------------------------------------------------
+
+parameter[p0c] = 1e9
+
+m1: marker, superimpose, ref = q1, offset = -0.4
+
+q1: quad, l = 1.0, k1 = 0.6, tilt = 0.05  ! k1 -> 1.6 = 0.6 + 1.0
+q2: quad, l = 0.5, k1 = -0.5
+
+b: sbend, l = 3, angle = 1e-4, e1 = 1e-5, e2 = 1e-5   ! hkick = 1e-5
+
+rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 1e6
+
+sector: line[multipass] = (q1, b, q2, rf, b)
+ring: line = (2*sector)
+
+use, ring
+
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+no_digested

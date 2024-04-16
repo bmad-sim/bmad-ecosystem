@@ -286,6 +286,11 @@ typedef valarray<CPP_wall3d>          CPP_wall3d_ARRAY;
 typedef valarray<CPP_wall3d_ARRAY>    CPP_wall3d_MATRIX;
 typedef valarray<CPP_wall3d_MATRIX>   CPP_wall3d_TENSOR;
 
+class CPP_ramper_lord;
+typedef valarray<CPP_ramper_lord>          CPP_ramper_lord_ARRAY;
+typedef valarray<CPP_ramper_lord_ARRAY>    CPP_ramper_lord_MATRIX;
+typedef valarray<CPP_ramper_lord_MATRIX>   CPP_ramper_lord_TENSOR;
+
 class CPP_control;
 typedef valarray<CPP_control>          CPP_control_ARRAY;
 typedef valarray<CPP_control_ARRAY>    CPP_control_MATRIX;
@@ -2319,6 +2324,35 @@ bool operator== (const CPP_wall3d&, const CPP_wall3d&);
 
 
 //--------------------------------------------------------------------
+// CPP_ramper_lord
+
+class Opaque_ramper_lord_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ramper_lord {
+public:
+  Int ix_ele;
+  Int ix_con;
+  Real* attrib_ptr;
+
+  CPP_ramper_lord() :
+    ix_ele(0),
+    ix_con(0),
+    attrib_ptr(NULL)
+    {}
+
+  ~CPP_ramper_lord() {
+    delete attrib_ptr;
+  }
+
+};   // End Class
+
+extern "C" void ramper_lord_to_c (const Opaque_ramper_lord_class*, CPP_ramper_lord&);
+extern "C" void ramper_lord_to_f (const CPP_ramper_lord&, Opaque_ramper_lord_class*);
+
+bool operator== (const CPP_ramper_lord&, const CPP_ramper_lord&);
+
+
+//--------------------------------------------------------------------
 // CPP_control
 
 class Opaque_control_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -2391,21 +2425,17 @@ class Opaque_control_ramp1_class {};  // Opaque class for pointers to correspond
 
 class CPP_control_ramp1 {
 public:
-  Real value;
   Real_ARRAY y_knot;
   CPP_expression_atom_ARRAY stack;
   string attribute;
   string slave_name;
-  CPP_lat_ele_loc slave;
   Bool is_controller;
 
   CPP_control_ramp1() :
-    value(0.0),
     y_knot(0.0, 0),
     stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
     attribute(),
     slave_name(),
-    slave(),
     is_controller(false)
     {}
 
@@ -2429,11 +2459,13 @@ class CPP_controller {
 public:
   CPP_control_var1_ARRAY var;
   CPP_control_ramp1_ARRAY ramp;
+  CPP_ramper_lord_ARRAY ramper_lord;
   Real_ARRAY x_knot;
 
   CPP_controller() :
     var(CPP_control_var1_ARRAY(CPP_control_var1(), 0)),
     ramp(CPP_control_ramp1_ARRAY(CPP_control_ramp1(), 0)),
+    ramper_lord(CPP_ramper_lord_ARRAY(CPP_ramper_lord(), 0)),
     x_knot(0.0, 0)
     {}
 
@@ -3335,6 +3367,7 @@ public:
   Int slave_status;
   Int n_lord;
   Int n_lord_field;
+  Int n_lord_ramper;
   Int ic1_lord;
   Int ix_pointer;
   Int ixx;
@@ -3444,6 +3477,7 @@ public:
     slave_status(Bmad::FREE),
     n_lord(0),
     n_lord_field(0),
+    n_lord_ramper(0),
     ic1_lord(0),
     ix_pointer(0),
     ixx(0),
@@ -3631,6 +3665,7 @@ public:
   Int_ARRAY ic;
   Int photon_type;
   Int creation_hash;
+  Bool ramper_slave_bookkeeping_done;
 
   CPP_lat() :
     use_name(),
@@ -3661,7 +3696,8 @@ public:
     input_taylor_order(0),
     ic(0, 0),
     photon_type(Bmad::INCOHERENT),
-    creation_hash(0)
+    creation_hash(0),
+    ramper_slave_bookkeeping_done(false)
     {}
 
   ~CPP_lat() {

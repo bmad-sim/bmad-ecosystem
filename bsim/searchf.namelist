@@ -483,7 +483,6 @@ ltt_bunch_time_sum
 ltt_apply_rampers_to_slave
 ltt_track1_bunch_hook
 ltt_track1_preprocess
-ltt_apply_time_to_rampers
 ltt_init_coord
 
 File: moga/moga.f90

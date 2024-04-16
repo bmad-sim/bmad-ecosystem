@@ -204,11 +204,10 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine apply_rampers_to_slave (slave, ramper, err_flag)
+recursive subroutine apply_rampers_to_slave (slave, err_flag)
   import
   implicit none
   type (ele_struct), target :: slave
-  type (ele_pointer_struct), target :: ramper(:)
   logical err_flag
 end subroutine
 
@@ -320,6 +319,22 @@ function branch_name(branch) result (name)
   implicit none
   type (branch_struct), target :: branch
   character(40) name
+end function
+
+subroutine ramper_slave_setup(lat, do_setup)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  logical, optional :: do_setup
+end subroutine
+
+function ramper_value (ramper, r1, err_flag) result (value)
+  import
+  implicit none
+  type (ele_struct) ramper
+  type (control_ramp1_struct) r1
+  real(rp) value
+  logical err_flag
 end function
 
 subroutine remove_dead_from_bunch(bunch_in, bunch_out)
@@ -1218,6 +1233,13 @@ function knot_interpolate (x_knot, y_knot, x_pt, interpolation, err_flag) result
   real(rp) x_knot(:), y_knot(:), x_pt, y_pt
   integer interpolation
   logical err_flag
+end function
+
+function knots_to_string (x_knot, y_knot) result (str)
+  import
+  implicit none
+  real(rp) x_knot(:), y_knot(:)
+  character(:), allocatable :: str
 end function
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
@@ -3123,8 +3145,8 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, t
   type (ele_struct), target :: ele
   integer, optional, intent(in) :: type_mat6
   integer, optional, intent(out) :: n_lines
-  integer, optional, intent(in) :: twiss_out, type_field
-  logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
+  integer, optional, intent(in) :: twiss_out, type_field, type_control
+  logical, optional, intent(in) :: type_taylor, type_floor_coords
   logical, optional, intent(in) :: type_zero_attrib, type_wake, type_wall, type_rad_kick
   character(*), optional, allocatable :: lines(:)
 end subroutine

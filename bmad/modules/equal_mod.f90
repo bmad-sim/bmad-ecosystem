@@ -285,23 +285,27 @@ else
 endif
 
 ! %control
+! Note: control%var will not be allocated for ramper slaves.
 
 if (associated(ele_in%control)) then
-  n1 = size(ele_in%control%var)
+  n1 = -1
+  if (allocated(ele_in%control%var)) n1 = size(ele_in%control%var)
   n2 = -1
   if (allocated(ele_in%control%ramp)) n2 = size(ele_in%control%ramp)
 
   ele_out%control => ele_save%control   ! reinstate
 
   if (associated(ele_out%control)) then
-    if (size(ele_out%control%var) /= n1)  deallocate(ele_out%control%var)
+    if (allocated(ele_out%control%var)) then
+      if (size(ele_out%control%var) /= n1)  deallocate(ele_out%control%var)
+    endif
     if (allocated(ele_out%control%ramp)) then
       if (size(ele_out%control%ramp) /= n2) deallocate(ele_out%control%ramp)
     endif
   endif
 
   if (.not. associated(ele_out%control)) allocate(ele_out%control)
-  if (.not. allocated(ele_out%control%var)) allocate(ele_out%control%var(n1))
+  if (.not. allocated(ele_out%control%var) .and. n1 > -1) allocate(ele_out%control%var(n1))
   if (.not. allocated(ele_out%control%ramp) .and. n2 > -1) allocate(ele_out%control%ramp(n2))
 
   ele_out%control = ele_in%control
@@ -586,6 +590,8 @@ nullify(lat_out%ele_init%branch)
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)
+call ramper_slave_setup(lat_out, .true.)
+
 
 end subroutine lat_equal_lat
 

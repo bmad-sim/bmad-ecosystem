@@ -1942,6 +1942,7 @@ Format:
   show plot ...                ! Show plot info \sref{s:show.plot}.
   show ptc ...                 ! Show PTC calculated parameters \sref{s:show.ptc}.
   show radiation_integrals ... ! Show synchrotron radiation integrals \sref{s:show.rad.int}.
+  show rampers                 ! Show ramper lord and slave information \sref{s:show.ramp}.
   show spin ...                ! Show information on spin simulations \sref{s:show.spin}.
   show string ...              ! Print a string \sref{s:show.string}.
   show symbolic_numbers ...    ! Show symbolic constants \sref{s:show.symbolic}.
@@ -2977,6 +2978,29 @@ from the values shown by the \vn{show universe} command since the \vn{show unive
 computation that derives from the transport matrices with included radiation effects. Differences
 between the two are due to differing approximations as explained in the \bmad manual (See the
 chapter on \vn{Synchrotron Radiation}).
+
+%% show rampers --------------------------------------------------------------
+
+\subsection{show rampers}
+\label{s:show.ramp}
+
+Syntax:
+\begin{example}
+  show rampers \{-universe <ix_uni>\} \{-energy_show\}
+\end{example}
+
+Shows information on ramper lords and slaves.
+
+The \vn{-universe} switch can be used to choose which universe to use.
+
+By default, slave listings will omit references to energy ramp control (control of \vn{p0c} or \vn{E_tot}.
+The reason for this is that typically all elements will be involved in energy ramping and this would make
+the listing very long. To explicitly display the energy ramp control, use the \vn{-energy_show} switch.
+
+Examples:
+\begin{example}
+  show ramp -energy_show  ! Show includes energy ramp info.
+\end{example}
 
 %% show spin --------------------------------------------------------------
 

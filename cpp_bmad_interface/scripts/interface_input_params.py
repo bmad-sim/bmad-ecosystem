@@ -73,6 +73,7 @@ struct_list = [
     'wall3d_vertex_struct',
     'wall3d_section_struct',
     'wall3d_struct',
+    'ramper_lord_struct',
     'control_struct',
     'control_var1_struct',
     'control_ramp1_struct',

@@ -44,7 +44,7 @@ print *
 print *, '!---------------------------------------------------------'
 print *, '! Information on element: CLEO_SOL'
 print *
-call type_ele (cleo, .false., 0, .false., 0, .true.)
+call type_ele (cleo, .false., 0, .false., 0)
 
 deallocate (eles)
 

@@ -93,6 +93,7 @@ character(20) :: r_name = "add_superimpose"
 ! Check for negative length
 
 err_flag = .true.
+lat%ramper_slave_bookkeeping_done = .false.
 l_super = super_ele_in%value(l$)
 
 if (l_super < 0) then

@@ -75,6 +75,7 @@ logical err_flag, found_one
 
 ! Some init
 
+lat%ramper_slave_bookkeeping_done = .false.
 control = 0
 ic = 0
 control_to_ic = 0

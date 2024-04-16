@@ -143,7 +143,7 @@ if (present(old_slice) .and. .not. rad_map_stale .and. .not. include_upstream_en
   case (sbend$, quadrupole$, sextupole$, octupole$, thick_multipole$)
     if (associated(sliced_ele%rad_map)) sliced_ele%rad_map%stale = .false.
   end select
-endif  
+endif
 
 ! For a sliced taylor element the %taylor%term components point to the lord components. 
 ! The routine deallocate_ele_pointers will only nullify and never deallocate these components of a slice_slave.
