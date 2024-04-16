@@ -167,12 +167,12 @@ for test_dir in test_dir_list:
   # Look for output
 
   if not os.path.isfile('output.now'):
-    print_all ('     !!! Program failed to create "output.now" file', True, True, True)
+    print_all ('    ' + subdir + ': !!! Program failed to create "output.now" file', True, True, True)
     os.chdir('..')
     continue
 
   if not os.path.isfile('output.correct'):
-    print_all ('     !!! No "output.correct" file', True, True, True)
+    print_all ('    ' + subdir + ': !!! No "output.correct" file', True, True, True)
     os.chdir('..')
     continue
 
@@ -213,16 +213,16 @@ for test_dir in test_dir_list:
     correct_split = correct_line.split('"', 2)
     
     if now_split[0] != '' or len(now_split) != 3:
-      print_all ('     Cannot parse line from "output.now": ' + now_line, True, True, True)
+      print_all ('    ' + subdir + ': Cannot parse line from "output.now": ' + now_line, True, True, True)
       break
 
     if correct_split[0] != '' or len(correct_split) != 3:
-      print_all ('     Cannot parse line from "output.correct": ' + correct_line, True, True, True)
+      print_all ('    ' + subdir + ': Cannot parse line from "output.correct": ' + correct_line, True, True, True)
       break
 
     if now_split[1] != correct_split[1]:
-      print_all ('     Identification string for a line in "output.now":    ' + now_split[1], False, True, True)
-      print_all ('     Does not match corresponding ID in "output.correct": ' + correct_split[1], True, True, True)
+      print_all ('    ' + subdir + ': Identification string for a line in "output.now":    ' + now_split[1], False, True, True)
+      print_all ('    ' + subdir + ': Does not match corresponding ID in "output.correct": ' + correct_split[1], True, True, True)
 
     now_end = now_split[2].strip().split()
 
@@ -236,25 +236,25 @@ for test_dir in test_dir_list:
       correct2_split = correct_split[2].split('"')[1:]
 
       if len(now2_split) < 2:
-        print_all ('     Bad line line "output.now": ' + now_line, True, True, True)
+        print_all ('    ' + subdir + ': Bad line line "output.now": ' + now_line, True, True, True)
         break
 
       now2_split.pop(0)    # Get rid of STR item.
 
       if len(now2_split) != len(correct2_split):
-        print_all ('     Number of components in "output.now" line: ' + now_line, False, True, True)
-        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, True, True)
+        print_all ('    ' + subdir + ': Number of components in "output.now" line: ' + now_line, False, True, True)
+        print_all ('    ' + subdir + ': Does not match number in "output.correct:  ' + correct_line, True, True, True)
         break
 
       for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
         if now1 != correct1:
           print_all ('')
           if len(now2_split) == 2:     # Will always have blank item in list.
-            print_all ('     Regression test failed:', color = True)
+            print_all ('    ' + subdir + ': Regression test failed:', color = True)
           else:
-            print_all ('     Regression test failed for datum number: ' + str(ix+1), color = True)
-          print_all ('          Line from "output.now": ' + now_line, color = True)
-          print_all ('          Line from "output.correct": ' + correct_line, color = True)
+            print_all ('    ' + subdir + ': Regression test failed for datum number: ' + str(ix+1), color = True)
+          print_all ('    ' + subdir + ':      Line from "output.now": ' + now_line, color = True)
+          print_all ('    ' + subdir + ':      Line from "output.correct": ' + correct_line, color = True)
           num_local_failures += 1
           break
 
@@ -266,15 +266,15 @@ for test_dir in test_dir_list:
       correct2_split = correct_split[2].strip().split()[2:]   # [2:] -> Throw away EG: "ABS 2E-7"
       
       if len(now2_split) < 3:
-        print_all ('     Bad line in "output.now": ' + now_line, True, True, True)
+        print_all ('    ' + subdir + ': Bad line in "output.now": ' + now_line, True, True, True)
         break
 
       tol_type = now2_split.pop(0)           # Pop REL or ABS item.
       tol_val  = float(now2_split.pop(0))    # Pop tollerance
 
       if len(now2_split) != len(correct2_split):
-        print_all ('     Number of components in "output.now" line: ' + now_line, False, True, True)
-        print_all ('     Does not match number in "output.correct:  ' + correct_line, True, True, True)
+        print_all ('    ' + subdir + ': Number of components in "output.now" line: ' + now_line, False, True, True)
+        print_all ('    ' + subdir + ': Does not match number in "output.correct:  ' + correct_line, True, True, True)
         break
 
       bad_at = -1
@@ -308,14 +308,14 @@ for test_dir in test_dir_list:
       if bad_at > -1:
         print_all ('')
         if now_end[0] == 'STR':
-          print_all ('     Regression test failed for: "' + now_split[1] + '"', color = True)
+          print_all ('    ' + subdir + ': Regression test failed for: "' + now_split[1] + '"', color = True)
         else:
-          print_all ('     Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1], color = True)
+          print_all ('    ' + subdir + ': Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1], color = True)
         if len(now2_split) != 1: 
-          print_all ('     Regression test failed for datum number: ' + str(bad_at+1), color = True)
-        print_all ('        Data from "output.now":     ' + str(now2_split), color = True)
-        print_all ('        Data from "output.correct": ' + str(correct2_split), color = True)
-        print_all ('        Diff: ' + str(bad_diff_val) + '  Diff/Val: ' + str(abs(bad_diff_val) / bad_abs_val), color = True)
+          print_all ('    ' + subdir + ': Regression test failed for datum number: ' + str(bad_at+1), color = True)
+        print_all ('    ' + subdir + ':    Data from "output.now":     ' + str(now2_split), color = True)
+        print_all ('    ' + subdir + ':    Data from "output.correct": ' + str(correct2_split), color = True)
+        print_all ('    ' + subdir + ':    Diff: ' + str(bad_diff_val) + '  Diff/Val: ' + str(abs(bad_diff_val) / bad_abs_val), color = True)
         num_local_failures += 1
 
     #----------------------------------------------

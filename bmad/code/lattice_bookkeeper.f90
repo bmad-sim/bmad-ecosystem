@@ -37,8 +37,8 @@ type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 type (bookkeeping_state_struct), pointer :: stat
 
-real(rp) dval(num_ele_attrib$)
-integer i, j
+real(rp) dval(num_ele_attrib$), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+integer i, j, ix
 
 logical, optional :: err_flag
 logical found, err, auto_saved
@@ -84,6 +84,18 @@ enddo
 
 call ptc_bookkeeper (lat)
 
+! Make sure the multipole cache is initialized
+
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+  do j = 0, branch%n_ele_max
+    ele => branch%ele(j)
+    if (.not. allocated(ele%multipole_cache)) cycle
+    if (.not. ele%multipole_cache%mag_valid) call multipole_ele_to_ab(ele, .false., ix, a_pole, b_pole)
+    if (.not. ele%multipole_cache%elec_valid) call multipole_ele_to_ab(ele, .false., ix, a_pole, b_pole, electric$)
+  enddo
+enddo
+
 ! See if all status flags have been properly reset.
 ! Exception is mat6 flag since the bookkeeping routines do not touch this.
 
@@ -97,7 +109,6 @@ endif
 call reset_status_flags_to_ok(stat)
 
 do i = 0, ubound(lat%branch, 1)
-
   branch => lat%branch(i)
   stat => branch%param%bookkeeping_state
   if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
