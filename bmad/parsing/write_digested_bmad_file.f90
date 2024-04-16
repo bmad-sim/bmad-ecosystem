@@ -352,8 +352,8 @@ write (d_unit) ix_value(1:k), value(1:k)
 ! Control vars
 
 if (ix_c == 1) then
-  nk = -1; nr = -1; ix_r = -1
-  n_var = size(ele%control%var)
+  n_var = -1; nk = -1; nr = -1; ix_r = -1
+  if (allocated(ele%control%var)) n_var = size(ele%control%var)
   if (allocated(ele%control%x_knot)) nk = size(ele%control%x_knot)
   if (allocated(ele%control%ramp)) nr = size(ele%control%ramp)
   if (allocated(ele%control%ramper_lord)) ix_r = size(ele%control%ramper_lord)
