@@ -602,7 +602,7 @@ do
     ix_track = ie
     call out_io (s_warn$, r_name, &
             'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name), &
-            'PERCENTAGE OF DEAD PARTICLES OVER GLOBAL%DEAD_CUTOFF OF: ' // real_str(s%global%dead_cutoff, 6, 4), &
+            'PERCENTAGE OF DEAD PARTICLES OVER GLOBAL%BEAM_DEAD_CUTOFF OF: ' // real_str(s%global%beam_dead_cutoff, 6, 4), &
             'WILL STOP TRACKING AT ELEMENT: ' // ele_full_name(ele))
     exit
   endif
@@ -712,7 +712,7 @@ integer ib, n_bunch
 logical no_beam
 character(*), parameter :: r_name = "tao_too_many_particles_lost"
 
-! Cutoff is if in any bunch the number lost is above global%dead_cutoff
+! Cutoff is if in any bunch the number lost is above global%beam_dead_cutoff
 ! Note: Previously having no charge or field triggered no beam left. 
 ! It was decided that this case was acceptible.
 
@@ -721,7 +721,7 @@ no_beam = .false.
 do ib = 1, size(beam%bunch)
   p => beam%bunch(ib)%particle(:)
   n_dead = count(p%state /= alive$ .and. p%state /= pre_born$)
-  if (n_dead * (1.0000001_rp) < size(p) * s%global%dead_cutoff) cycle
+  if (n_dead * (1.0000001_rp) < size(p) * s%global%beam_dead_cutoff) cycle
   no_beam = .true.
   return
 enddo
@@ -935,7 +935,7 @@ if (bb%init_starting_distribution .or. u%beam%always_reinit) then
 
   if (tao_too_many_particles_lost(beam)) then
     call out_io (s_warn$, r_name, 'NOT ENOUGH PARTICLES FOR BEAM INITIALIZATION IN BRANCH ' // int_str(ix_branch), &
-                                  'PERCENTAGE OF DEAD PARTICLES OVER GLOBAL%DEAD_CUTOFF OF: ' // real_str(s%global%dead_cutoff, 6, 4), &
+                                  'PERCENTAGE OF DEAD PARTICLES OVER GLOBAL%BEAM_DEAD_CUTOFF OF: ' // real_str(s%global%beam_dead_cutoff, 6, 4), &
                                   'NO BEAM TRACKING WILL BE DONE.')
     return
   endif

@@ -435,7 +435,7 @@ case ('beam')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', quote(s%global%track_type)
     nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on        = ', s%global%beam_timer_on
-    nl=nl+1; write(lines(nl), rmt) 'global%dead_cutoff          = ', s%global%dead_cutoff
+    nl=nl+1; write(lines(nl), rmt) 'global%beam_dead_cutoff     = ', s%global%beam_dead_cutoff
 
     fmt = '(3a, i0, a)'
     nl=nl+1; lines(nl) = ''
@@ -2115,7 +2115,7 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
     nl=nl+1; write(lines(nl), imt) '  %datum_err_messages_max        = ', s%global%datum_err_messages_max
     nl=nl+1; write(lines(nl), lmt) '  %concatenate_maps              = ', s%global%concatenate_maps
-    nl=nl+1; write(lines(nl), rmt) '  %deat_cutoff                   = ', s%global%dead_cutoff
+    nl=nl+1; write(lines(nl), rmt) '  %beam_dead_cutoff              = ', s%global%beam_dead_cutoff
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
