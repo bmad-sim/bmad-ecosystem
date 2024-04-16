@@ -19,15 +19,23 @@ Types of entries:
 
 
 
-- 2024-03-
+- 2024-02-
 
-- 2024-03-
+- 2024-02-
 
-- 2024-03-
+- 2024-02-12 Fixed: Reinstated phase_trombone in closed geometry lattice.
 
-- 2024-03-
+- 2024-02-13 Fixed: Phase trombone tune set.
 
-- 2024-03-
+- 2024-02-16 Fixed: Eigen anal from sigma matrix.
+
+- 2024-02-18 Fixed: Now long_term_tracking with energy ramping will properly init particles.
+
+- 2024-02-25 Fixed: Now chrom.w_a, etc. datums can be used with open lattice. 
+
+- 2024-02-25 Fixed: Spin tracking will not respect element is_on = False setting.
+
+- 2024-02-26 Fixed: Correction to `track_a_lcavity` ref time calc.
 
 - 2024-03-06 Fixed: Tao now checks for call file infinite loop.
 
@@ -41,11 +49,11 @@ Types of entries:
 
 - 2024-03-20 Fixed: Particle z-calc with beam init and multiple bunches. 
 
-- 2024-03-21 Added: ltt%print_info_messages parameter for long_term_tracking.
+- 2024-03-21 Added: `ltt%print_info_messages` parameter for long_term_tracking.
 
 - 2024-03-22 Fixed: Test of particle outside of RF bucket ignoring closed orbit z.
 
-- 2024-03-23 Added: SWAVE parameter to translation between Bmad and MAD8.
+- 2024-03-23 Added: `SWAVE` parameter to translation between Bmad and MAD8.
 
 - 2024-03-25 Fixed: Added negative thickness error checking for foil element.
 
@@ -55,7 +63,7 @@ Types of entries:
 
 - 2024-03-27 Added: "Bunch0" combined bunch for averages output in long_term_tracking.
 
-- 2024-03-27 Added: Added ltt_com%ltt_tracking_happening_now in long_term_tracking for use in custom code.
+- 2024-03-27 Added: Added `ltt_com%ltt_tracking_happening_now` in long_term_tracking for use in custom code.
 
 - 2024-03-28 Fixed: Fix expression eval when there is an evaluation range in Tao.
 
@@ -78,3 +86,4 @@ The new bookkeeping is more efficient in terms of computation time.
 turned off initially, the cache is not use. Track1_bunch_csr turns it on for speed but
 then tracking with OMP gives a race condition when the cache gets initialized during tracking.
 
+- 2024-04-16 Added: New Tao global: `global%beam_dead_cutoff`

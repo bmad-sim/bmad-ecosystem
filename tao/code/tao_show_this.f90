@@ -4382,8 +4382,9 @@ case ('rampers')
   do ie = lat%n_ele_track+1, lat%n_ele_max
     lord => lat%ele(ie)
     if (lord%key /= ramper$) cycle
-    nl=nl+1; write(lines(nl), '(2a)') 'Ramper: ', ele_full_name(lord)
     cntr => lord%control
+    if (nl + size(cntr%ramp) + 20 > size(lines)) call re_allocate (lines, 2*(nl + size(cntr%ramp)), .false.)
+    nl=nl+1; write(lines(nl), '(2a)') 'Ramper: ', ele_full_name(lord)
     do ix = 1, size(cntr%ramp)
       rmp => cntr%ramp(ix)
       if (allocated(rmp%stack)) then
@@ -4415,6 +4416,7 @@ case ('rampers')
         endif
       endif
 
+      if (nl + ele%n_lord_ramper + 20 > size(lines)) call re_allocate (lines, 2*nl, .false.)
       nl=nl+1; write(lines(nl), '(2a, 4x, a)') 'Slave: ', ele_full_name(ele), key_name(ele%key)
       cntr => ele%control
       do ix = 1, ele%n_lord_ramper
