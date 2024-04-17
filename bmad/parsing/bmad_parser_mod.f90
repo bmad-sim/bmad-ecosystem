@@ -3452,7 +3452,12 @@ if (ix1 == 0) then
       endif
     enddo
 
-    call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', level = s_warn$)
+    if (bp_com%undefined_vars_evaluate_to_zero) then
+      call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', level = s_warn$)
+    else
+      call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+      return
+    endif
     value = 0
     err_flag = .false.
     ! To prevent multiple error messages define this variable.
