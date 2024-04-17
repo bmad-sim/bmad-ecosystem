@@ -201,9 +201,9 @@ for test_dir in test_dir_list:
     if len(now_line) == 0 or len(correct_line) == 0: 
       print_all ('')
       if len(now_line) != 0:
-        print_all ('     Confusion! End of "output.correct" reached before End of "output.now"', True, True, True)
+        print_all ('    ' + subdir + ': Confusion! End of "output.correct" reached before End of "output.now"', True, True, True)
       if len(correct_line) != 0:
-        print_all ('     Confusion! End of "output.now" reached before End of "output.correct"', True, True, True)
+        print_all ('    ' + subdir + ': Confusion! End of "output.now" reached before End of "output.correct"', True, True, True)
       break
 
     now_line = now_line.strip()
@@ -253,8 +253,9 @@ for test_dir in test_dir_list:
             print_all ('    ' + subdir + ': Regression test failed:', color = True)
           else:
             print_all ('    ' + subdir + ': Regression test failed for datum number: ' + str(ix+1), color = True)
-          print_all ('    ' + subdir + ':      Line from "output.now": ' + now_line, color = True)
-          print_all ('    ' + subdir + ':      Line from "output.correct": ' + correct_line, color = True)
+
+          print_all ('          Line from "output.now": ' + now_line, color = True)
+          print_all ('          Line from "output.correct": ' + correct_line, color = True)
           num_local_failures += 1
           break
 
@@ -311,11 +312,13 @@ for test_dir in test_dir_list:
           print_all ('    ' + subdir + ': Regression test failed for: "' + now_split[1] + '"', color = True)
         else:
           print_all ('    ' + subdir + ': Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1], color = True)
+
         if len(now2_split) != 1: 
-          print_all ('    ' + subdir + ': Regression test failed for datum number: ' + str(bad_at+1), color = True)
-        print_all ('    ' + subdir + ':    Data from "output.now":     ' + str(now2_split), color = True)
-        print_all ('    ' + subdir + ':    Data from "output.correct": ' + str(correct2_split), color = True)
-        print_all ('    ' + subdir + ':    Diff: ' + str(bad_diff_val) + '  Diff/Val: ' + str(abs(bad_diff_val) / bad_abs_val), color = True)
+          print_all ('     Regression test failed for datum number: ' + str(bad_at+1), color = True)
+
+        print_all ('        Data from "output.now":     ' + str(now2_split), color = True)
+        print_all ('        Data from "output.correct": ' + str(correct2_split), color = True)
+        print_all ('        Diff: ' + str(bad_diff_val) + '  Diff/Val: ' + str(abs(bad_diff_val) / bad_abs_val), color = True)
         num_local_failures += 1
 
     #----------------------------------------------
@@ -328,7 +331,7 @@ for test_dir in test_dir_list:
 
   #------------------
 
-  print_all ('     Number of tests:        ' + str(num_local_tests))
+  print_all ('    ' + subdir + ': Number of tests:        ' + str(num_local_tests))
   print_all ('     Number of failed tests: ' + str(num_local_failures), False, color = (num_local_failures != 0))
   print_all ('     Duration of test (sec): ' + str(time.time() - time0_test))
   print_all ('     Maximum allowed failed tests: ' + str(max_fail))
@@ -345,7 +348,7 @@ for test_dir in test_dir_list:
   
 #------------------------------------------------------------
 
-
+print_all ('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 print_all ('Total number of tests:           ' + str(num_tests))
 print_all ('Total number of failed tests:    ' + str(num_failures), color = (num_failures != 0))
 print_all ('Number of Program flow failures: ' + str(num_flow_failures), color = (num_flow_failures != 0))

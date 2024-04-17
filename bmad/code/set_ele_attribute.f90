@@ -46,7 +46,7 @@ type (bp_common_struct) bp_save
 integer i, ix
 
 logical, optional :: err_print_flag, set_lords
-logical err_flag, delim_found, print_save, file_input_save, is_slaved_field_attribute
+logical err_flag, delim_found, is_slaved_field_attribute
 
 character(*) set_string
 character(100) string
@@ -81,15 +81,17 @@ end select
 
 if (.not. allocated(bp_com2%const)) call init_bmad_parser_common
 
-print_save = bp_com%print_err
-file_input_save = bp_com%input_from_file
+bp_save = bp_com
 
 call init_bmad_parser_common  ! init variable list
+
 bp_com%input_from_file = .false.
 bp_com%parser_name = r_name
 bp_com%parse_line = string
 bp_com%current_file => current_file
 bp_com%print_err = logic_option(.true., err_print_flag)
+bp_com%undefined_vars_evaluate_to_zero = .false.
+
 current_file%full_name = ''
 
 if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
@@ -109,8 +111,7 @@ else
   if (.not. err_flag) call attribute_set_bookkeeping (ele, a_name, err_flag)
 endif
 
-bp_com%input_from_file = file_input_save
-bp_com%print_err       = print_save
+bp_com = bp_save
 
 end subroutine set_ele_attribute
 
