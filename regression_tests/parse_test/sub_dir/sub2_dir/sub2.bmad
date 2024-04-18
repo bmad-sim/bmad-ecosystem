@@ -1,3 +1,3 @@
 print, 'In sub_dir/sub2_dir/sub2.bmad'
-use, ll, phot, tag_line, group_line
+use, ll, phot, tag_line, group_line, z_line
 

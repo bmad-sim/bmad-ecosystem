@@ -5625,6 +5625,102 @@ end subroutine set_wall3d_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_ramper_lord (ok)
+
+implicit none
+
+type(ramper_lord_struct), target :: f_ramper_lord, f2_ramper_lord
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_ramper_lord (c_ramper_lord, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_ramper_lord
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_ramper_lord_test_pattern (f2_ramper_lord, 1)
+
+call test_c_ramper_lord(c_loc(f2_ramper_lord), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_ramper_lord_test_pattern (f_ramper_lord, 4)
+if (f_ramper_lord == f2_ramper_lord) then
+  print *, 'ramper_lord: C side convert C->F: Good'
+else
+  print *, 'ramper_lord: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_ramper_lord
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_ramper_lord (c_ramper_lord, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_ramper_lord
+type(ramper_lord_struct), target :: f_ramper_lord, f2_ramper_lord
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call ramper_lord_to_f (c_ramper_lord, c_loc(f_ramper_lord))
+
+call set_ramper_lord_test_pattern (f2_ramper_lord, 2)
+if (f_ramper_lord == f2_ramper_lord) then
+  print *, 'ramper_lord: F side convert C->F: Good'
+else
+  print *, 'ramper_lord: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_ramper_lord_test_pattern (f2_ramper_lord, 3)
+call ramper_lord_to_c (c_loc(f2_ramper_lord), c_ramper_lord)
+
+end subroutine test2_f_ramper_lord
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_ramper_lord_test_pattern (F, ix_patt)
+
+implicit none
+
+type(ramper_lord_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%ix_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%ix_con = rhs
+!! f_side.test_pat[real, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%attrib_ptr)) deallocate (F%attrib_ptr)
+else
+  if (.not. associated(F%attrib_ptr)) allocate (F%attrib_ptr)
+  rhs = 3 + offset
+  F%attrib_ptr = rhs
+endif
+
+end subroutine set_ramper_lord_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_control (ok)
 
 implicit none
@@ -5915,8 +6011,6 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%value = rhs
 !! f_side.test_pat[real, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -5924,7 +6018,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%y_knot)) allocate (F%y_knot(-1:1))
   do jd1 = 1, size(F%y_knot,1); lb1 = lbound(F%y_knot,1) - 1
-    rhs = 100 + jd1 + 2 + offset
+    rhs = 100 + jd1 + 1 + offset
     F%y_knot(jd1+lb1) = rhs
   enddo
 endif
@@ -5940,16 +6034,14 @@ else
 endif
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%attribute)
-  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+6+offset+jd1, 26))
+  F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+5+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%slave_name)
-  F%slave_name(jd1:jd1) = char(ichar("a") + modulo(100+7+offset+jd1, 26))
+  F%slave_name(jd1:jd1) = char(ichar("a") + modulo(100+6+offset+jd1, 26))
 enddo
-!! f_side.test_pat[type, 0, NOT]
-call set_lat_ele_loc_test_pattern (F%slave, ix_patt)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 9 + offset; F%is_controller = (modulo(rhs, 2) == 0)
+rhs = 7 + offset; F%is_controller = (modulo(rhs, 2) == 0)
 
 end subroutine set_control_ramp1_test_pattern
 
@@ -6054,6 +6146,16 @@ else
     call set_control_ramp1_test_pattern (F%ramp(jd1+lb1), ix_patt+jd1)
   enddo
 endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%ramper_lord)) deallocate (F%ramper_lord)
+else
+  if (.not. allocated(F%ramper_lord)) allocate (F%ramper_lord(-1:1))
+  do jd1 = 1, size(F%ramper_lord,1); lb1 = lbound(F%ramper_lord,1) - 1
+    call set_ramper_lord_test_pattern (F%ramper_lord(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
 !! f_side.test_pat[real, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -6061,7 +6163,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%x_knot)) allocate (F%x_knot(-1:1))
   do jd1 = 1, size(F%x_knot,1); lb1 = lbound(F%x_knot,1) - 1
-    rhs = 100 + jd1 + 5 + offset
+    rhs = 100 + jd1 + 7 + offset
     F%x_knot(jd1+lb1) = rhs
   enddo
 endif
@@ -8556,59 +8658,61 @@ rhs = 78 + offset; F%n_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 79 + offset; F%n_lord_field = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 80 + offset; F%ic1_lord = rhs
+rhs = 80 + offset; F%n_lord_ramper = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 81 + offset; F%ix_pointer = rhs
+rhs = 81 + offset; F%ic1_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 82 + offset; F%ixx = rhs
+rhs = 82 + offset; F%ix_pointer = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 83 + offset; F%iyy = rhs
+rhs = 83 + offset; F%ixx = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 84 + offset; F%izz = rhs
+rhs = 84 + offset; F%iyy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 85 + offset; F%mat6_calc_method = rhs
+rhs = 85 + offset; F%izz = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 86 + offset; F%tracking_method = rhs
+rhs = 86 + offset; F%mat6_calc_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 87 + offset; F%spin_tracking_method = rhs
+rhs = 87 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 88 + offset; F%csr_method = rhs
+rhs = 88 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 89 + offset; F%space_charge_method = rhs
+rhs = 89 + offset; F%csr_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 90 + offset; F%ptc_integration_type = rhs
+rhs = 90 + offset; F%space_charge_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 91 + offset; F%field_calc = rhs
+rhs = 91 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 92 + offset; F%aperture_at = rhs
+rhs = 92 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 93 + offset; F%aperture_type = rhs
+rhs = 93 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 94 + offset; F%ref_species = rhs
+rhs = 94 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 95 + offset; F%orientation = rhs
+rhs = 95 + offset; F%ref_species = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 96 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 96 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 97 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 97 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 98 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 98 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 99 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 99 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 100 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 100 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 101 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 101 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 102 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 102 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 103 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 103 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 104 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 104 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 105 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 105 + offset; F%select = (modulo(rhs, 2) == 0)
+rhs = 106 + offset; F%select = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 106 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 107 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
@@ -9170,6 +9274,8 @@ endif
 rhs = 41 + offset; F%photon_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 42 + offset; F%creation_hash = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 43 + offset; F%ramper_slave_bookkeeping_done = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

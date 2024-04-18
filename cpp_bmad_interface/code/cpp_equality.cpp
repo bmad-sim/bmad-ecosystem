@@ -955,6 +955,21 @@ template bool is_all_equal (const CPP_wall3d_MATRIX&, const CPP_wall3d_MATRIX&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_ramper_lord& x, const CPP_ramper_lord& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ix_ele == y.ix_ele);
+  is_eq = is_eq && (x.ix_con == y.ix_con);
+  is_eq = is_eq && ((x.attrib_ptr == NULL) == (y.attrib_ptr == NULL));
+  if (!is_eq) return false;
+  if (x.attrib_ptr != NULL) is_eq = (*x.attrib_ptr == *y.attrib_ptr);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_ramper_lord_ARRAY&, const CPP_ramper_lord_ARRAY&);
+template bool is_all_equal (const CPP_ramper_lord_MATRIX&, const CPP_ramper_lord_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_control& x, const CPP_control& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.value == y.value);
@@ -988,12 +1003,10 @@ template bool is_all_equal (const CPP_control_var1_MATRIX&, const CPP_control_va
 
 bool operator== (const CPP_control_ramp1& x, const CPP_control_ramp1& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.value == y.value);
   is_eq = is_eq && is_all_equal(x.y_knot, y.y_knot);
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.attribute == y.attribute);
   is_eq = is_eq && (x.slave_name == y.slave_name);
-  is_eq = is_eq && (x.slave == y.slave);
   is_eq = is_eq && (x.is_controller == y.is_controller);
   return is_eq;
 };
@@ -1007,6 +1020,7 @@ bool operator== (const CPP_controller& x, const CPP_controller& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.var, y.var);
   is_eq = is_eq && is_all_equal(x.ramp, y.ramp);
+  is_eq = is_eq && is_all_equal(x.ramper_lord, y.ramper_lord);
   is_eq = is_eq && is_all_equal(x.x_knot, y.x_knot);
   return is_eq;
 };
@@ -1484,6 +1498,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.slave_status == y.slave_status);
   is_eq = is_eq && (x.n_lord == y.n_lord);
   is_eq = is_eq && (x.n_lord_field == y.n_lord_field);
+  is_eq = is_eq && (x.n_lord_ramper == y.n_lord_ramper);
   is_eq = is_eq && (x.ic1_lord == y.ic1_lord);
   is_eq = is_eq && (x.ix_pointer == y.ix_pointer);
   is_eq = is_eq && (x.ixx == y.ixx);
@@ -1609,6 +1624,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.ic, y.ic);
   is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.creation_hash == y.creation_hash);
+  is_eq = is_eq && (x.ramper_slave_bookkeeping_done == y.ramper_slave_bookkeeping_done);
   return is_eq;
 };
 

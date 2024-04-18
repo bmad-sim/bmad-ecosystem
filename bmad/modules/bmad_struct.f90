@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 315
+integer, parameter :: bmad_inc_version$ = 316
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -129,7 +129,7 @@ integer, parameter :: minor_slave$ = 1, super_slave$ = 2, free$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12, ramper_lord$ = 13
-integer, parameter :: governor$ = 14   ! Union of overlay and group lords.
+integer, parameter :: governor$ = 14, field_lord$ = 15    ! governor$ = Union of overlay and group lords.
 
 character(20), parameter :: control_name(13) = [character(20):: &
             'Minor_Slave', 'Super_Slave', 'Free', 'Group_Lord', &
@@ -1288,22 +1288,26 @@ type control_var1_struct
 end type
 
 type control_ramp1_struct
-  real(rp) :: value = 0
   real(rp), allocatable :: y_knot(:)
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   character(40) :: attribute = ''     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
   character(40) :: slave_name = ''    ! Name of slave.
-  ! %slave is only used with controllers and in this case there is only one slave.
-  type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   logical :: is_controller = .false.  ! Is the slave a controller? If so bookkeeping is different.
 end type
 
 integer, parameter :: cubic$ = 3
 character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'null_name$', 'Cubic', 'Linear']
 
+type ramper_lord_struct
+  integer :: ix_ele = 0       ! Lord index
+  integer :: ix_con = 0       ! Index in lord%control%ramp(:) array
+  real(rp), pointer :: attrib_ptr => null()    ! Pointer to attribute in this element.
+end type
+
 type controller_struct
   type (control_var1_struct), allocatable :: var(:)
-  type (control_ramp1_struct), allocatable :: ramp(:)             ! For ramper elements
+  type (control_ramp1_struct), allocatable :: ramp(:)            ! For ramper lord elements
+  type (ramper_lord_struct), allocatable :: ramper_lord(:)       ! Ramper lord info for this slave
   real(rp), allocatable :: x_knot(:)
 end type
 
@@ -1313,7 +1317,7 @@ end type
 ! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
 !     run scripts to regenerate cpp_bmad_interface library.
-!     Modify:
+!     Modify (this is not a complete list):
 !       read_digested_bmad_file
 !       write_digested_bmad_file
 !       parsing routines to read in modified/new parameters...
@@ -1390,12 +1394,13 @@ type ele_struct
   integer :: ix_ele = -1                          ! Index in branch ele(0:) array. Set to ix_slice_slave$ = -2 for slice_slave$ elements.
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array. Note: lat%ele => lat%branch(0).
   integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
-  integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
+  integer :: n_slave = 0                          ! Number of slaves (except field overlap slaves) of this element.
   integer :: n_slave_field = 0                    ! Number of field slaves of this element.
   integer :: ix1_slave = 0                        ! Pointer index to this element's slaves.
   integer :: slave_status = free$                 ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
-  integer :: n_lord = 0                           ! Number of lords (except field lords).
+  integer :: n_lord = 0                           ! Number of lords (except field overlap and ramper lords).
   integer :: n_lord_field = 0                     ! Number of field lords of this element.
+  integer :: n_lord_ramper = 0                    ! Number of ramper lords.
   integer :: ic1_lord = 0                         ! Pointer index to this element's lords.
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
   integer :: ixx = 0, iyy = 0, izz = 0            ! Index for Bmad internal use.
@@ -1576,6 +1581,7 @@ type lat_struct
   integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
   integer :: creation_hash = 0                        ! Set by bmad_parser. creation_hash will vary if 
                                                       !   any of the lattice files are modified.
+  logical :: ramper_slave_bookkeeping_done = .false.
 end type
 
 character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
@@ -2559,16 +2565,16 @@ end function is_attribute
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
+! Function pointer_to_slave (lord, ix_slave, control, lord_type, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
 ! Note: Ramper lords do not have any associated slaves (slaves are assigned dynamically at run time).
 !
-! If field_overlap_ptr = False (default), the range for ix_slave is:
+! If lord_type = all$ (the default) the range for ix_slave is:
 !   1 to lord%n_slave                                 for "regular" slaves.
 !   lord%n_slave+1 to lord%n_slave+lord%n_slave_field for field overlap slaves.
 !
-! If field_overlap_ptr = True, only the field overlap slaves may be accessed and the range for ix_slave is:
+! If lord_type = field_lord$, only the field overlap slaves may be accessed and the range for ix_slave is:
 !   1 to lord%n_slave_field  
 !
 ! Also see:
@@ -2577,10 +2583,9 @@ end function is_attribute
 !   num_lords
 !
 ! Input:
-!   lord               -- ele_struct: Lord element
-!   ix_slave           -- integer: Index of the slave in the list of slaves controled by the lord.. 
-!   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
-!                           Default is False.
+!   lord             -- ele_struct: Lord element
+!   ix_slave         -- integer: Index of the slave in the list of slaves controled by the lord.. 
+!   lord_type        -- integer, optional: See above.
 !
 ! Output:
 !   slave_ptr      -- ele_struct, pointer: Pointer to the slave.
@@ -2593,7 +2598,7 @@ end function is_attribute
 !   ix_ic          -- integer, optional: Index of the lat%ic(:) element associated with the control argument.
 !-
 
-function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
+function pointer_to_slave (lord, ix_slave, control, lord_type, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 
 implicit none
 
@@ -2603,9 +2608,8 @@ type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
 type (lat_struct), pointer :: lat
 
-integer, optional :: ix_lord_back, ix_control, ix_ic
+integer, optional :: ix_lord_back, lord_type, ix_control, ix_ic
 integer i, ix, ix_slave, icon, ixs
-logical, optional :: field_overlap_ptr
 
 !
 
@@ -2614,7 +2618,7 @@ if (present(ix_control)) ix_control = -1
 if (present(ix_ic)) ix_ic = -1
 if (present(ix_lord_back)) ix_lord_back = -1
 
-if (logic_option(.false., field_overlap_ptr)) ixs = ixs + lord%n_slave
+if (integer_option(all$, lord_type) == field_lord$) ixs = ixs + lord%n_slave
 
 if (ixs > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
   nullify(slave_ptr)

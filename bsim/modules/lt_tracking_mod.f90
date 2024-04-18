@@ -126,7 +126,6 @@ type ltt_com_struct
   type (coord_struct), allocatable :: bmad_closed_orb(:)
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
-  type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper element locations.
   type (ele_struct), pointer :: ele_start_ptr            ! Pointer to start ele in original (not tracking) lattice.
   type (beam_init_struct) beam_init
   type (beam_init_struct) beam_init_used
@@ -330,6 +329,7 @@ type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (controller_struct), pointer :: cr
+type (ele_pointer_struct), allocatable :: ramper(:)
 
 real(rp) dummy
 integer i, n, n_loc, ir, iv, it, is
@@ -452,14 +452,14 @@ if (ltt%ramping_on) then
     print *, 'NOTE: ltt%tracking_method MUST BE SET TO "BMAD" IF LTT%RAMPING_ON IS SET TO TRUE.'
   endif
 
-  call lat_ele_locator ('RAMPER::*', lat, ltt_com%ramper, ltt_com%n_ramper_loc, err)
+  call lat_ele_locator ('RAMPER::*', lat, ramper, ltt_com%n_ramper_loc, err)
   if (ltt_com%n_ramper_loc == 0) then
     print '(2a)', 'Warning! NO RAMPER ELEMENTS FOUND IN LATTICE.'
     stop
   endif
 
   do i = 1, ltt_com%n_ramper_loc
-    ele => ltt_com%ramper(i)%ele
+    ele => ramper(i)%ele
     cr => ele%control
     found = .false.
 
@@ -536,15 +536,13 @@ ramping_on = lttp%ramping_on
 
 if (lttp%ramping_on) then
   ! Using the simulation starting time for setting the ramper time to calculate the closed orbit is somewhat arbitrary.
-  n = ltt_com%n_ramper_loc
   ele => ltt_com%ele_start_ptr
   time = 0.5_rp * (ele%ref_time + ele%value(ref_time_start$)) + &
            lttp%ix_turn_start * (branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time) + &
            ltt_params_global%ramping_start_time
 
   do ie = 0, branch%n_ele_max
-    call ltt_apply_time_to_rampers (ltt_com, branch%ele(ie), time)
-    call ltt_apply_rampers_to_slave (branch%ele(ie), ltt_com%ramper(1:n), err)
+    call ltt_apply_rampers_to_slave (ltt_com, branch%ele(ie), time, err)
   enddo
 
   lttp%ramping_on = .false.
@@ -1482,12 +1480,10 @@ ltt_com%beam_init_used%a_emit = real_garbage$
 ltt_com%beam_init%ix_turn = lttp%ix_turn_start
 
 if (lttp%ramping_on) then
-  n = ltt_com%n_ramper_loc
   time = 0.5_rp * (ele_start%ref_time + ele_start%value(ref_time_start$)) + &
            lttp%ix_turn_start * (branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time) + &
            ltt_params_global%ramping_start_time
-  call ltt_apply_time_to_rampers (ltt_com, ele_start, time)
-  call ltt_apply_rampers_to_slave (ele_start, ltt_com%ramper(1:n), err_flag)
+  call ltt_apply_rampers_to_slave (ltt_com, ele_start, time, err_flag)
   call ran_default_state(get_state = ran_state)
 endif
 
@@ -1505,8 +1501,7 @@ if (lttp%ramping_on) then
   n_alive = count(bunch%particle%state == alive$)
   time = sum(bunch%particle%t, bunch%particle%state == alive$) / n_alive + &
               0.5_rp * ele_start%value(delta_ref_time$) + ltt_params_global%ramping_start_time
-  call ltt_apply_time_to_rampers (ltt_com, ele_start, time)
-  call ltt_apply_rampers_to_slave (ele_start, ltt_com%ramper(1:n), err_flag)
+  call ltt_apply_rampers_to_slave (ltt_com, ele_start, time, err_flag)
   call ran_default_state(set_state = ran_state)
   call init_beam_distribution (ele_start, lat%param, ltt_com%beam_init, beam, err_flag, ltt_com%modes, &
                                                      ltt_com%beam_init_used, print_p0c_shift_warning = .false.)
@@ -3300,13 +3295,35 @@ end function ltt_bunch_time_sum
 
 ! See documentation in long_term_tracking_mpi.f90 for why this routine is needed.
 
-subroutine ltt_apply_rampers_to_slave (slave, ramper, err_flag)
+subroutine ltt_apply_rampers_to_slave (ltt_com, slave, time, err_flag)
 
+type (ltt_com_struct), target :: ltt_com
 type (ele_struct), target :: slave
-type (ele_pointer_struct), target :: ramper(:)
+type (ele_struct), pointer :: ramper
 type (random_state_struct) ran_state_save
 type (random_state_struct), pointer :: ran_state_ptr
+type (lat_struct), pointer :: lat
+
+real(rp) time
+integer ir, iv
 logical err_flag
+
+! An element may be affected by ramping via a lord of the element.
+! So it is only safe to not do any bookkeeping if the element has no rampers or lords.
+
+if (slave%n_lord_ramper == 0 .and. slave%n_lord == 0) return
+
+! Set rampers.
+
+lat => ltt_com%tracking_lat
+do ir = lat%n_ele_track+1, lat%n_ele_max
+  ramper => lat%ele(ir)
+  if (ramper%key /= ramper$) cycle
+  do iv = 1, size(ramper%control%var)
+    if (ramper%control%var(iv)%name /= 'TIME') cycle
+    ramper%control%var(iv)%value = time
+  enddo
+enddo
 
 ! Swap out current "radiation" ran state for ramper ran state.
 ! This is for mpi running.
@@ -3319,7 +3336,7 @@ endif
 
 ! Apply rampers
 
-call apply_rampers_to_slave (slave, ramper, err_flag)
+call apply_rampers_to_slave (slave, err_flag)
 
 ! Swap out ramper ran state for radiation ran state
 
@@ -3389,8 +3406,7 @@ if (n_alive == 0) return
 t = sum(bunch%particle%t, bunch%particle%state == alive$) / n_alive + &
             0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
 
-call ltt_apply_time_to_rampers(ltt_com_global, ele, t)
-call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err)
+call ltt_apply_rampers_to_slave (ltt_com_global, ele, t, err)
 
 ! The beginning element is never tracked through. If there is energy ramping and the user is writing out 
 ! p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
@@ -3487,10 +3503,7 @@ if (.not. ltt_params_global%ramp_update_each_particle) return
 ! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 
 t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
-call ltt_apply_time_to_rampers(ltt_com_global, ele, t)
-
-n = ltt_com_global%n_ramper_loc
-call ltt_apply_rampers_to_slave (ele, ltt_com_global%ramper(1:n), err_flag)
+call ltt_apply_rampers_to_slave (ltt_com_global, ele, t, err_flag)
 
 ! The beginning element (with index 0) is never tracked through. If there is energy ramping and the user is 
 ! writing out p0c or E_tot from the beginning element, the user may be confused since these values will not change. 
@@ -3513,33 +3526,6 @@ start_orb%vec(6) = r * start_orb%vec(6) + (start_orb%p0c - ele%value(p0c_start$)
 start_orb%p0c = ele%value(p0c_start$)
 
 end subroutine ltt_track1_preprocess
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!+
-! Subroutine ltt_apply_time_to_rampers(ltt_com, ele, time)
-!
-! Routine to apply the time to ramper elements
-!-
-
-subroutine ltt_apply_time_to_rampers(ltt_com, ele, time)
-
-type (ltt_com_struct), target :: ltt_com
-type (ele_struct) ele
-real(rp) time
-integer ir, iv
-
-!
-
-do ir = 1, ltt_com%n_ramper_loc
-  do iv = 1, size(ltt_com%ramper(ir)%ele%control%var)
-    if (ltt_com%ramper(ir)%ele%control%var(iv)%name /= 'TIME') cycle
-    ltt_com%ramper(ir)%ele%control%var(iv)%value = time
-  enddo
-enddo
-
-end subroutine ltt_apply_time_to_rampers
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -3573,10 +3559,8 @@ else
 endif
 
 if (lttp%ramping_on) then
-  n = ltt_com%n_ramper_loc
   time = orbit%t + 0.5_rp * ele_start%value(delta_ref_time$) + ltt_params_global%ramping_start_time
-  call ltt_apply_time_to_rampers (ltt_com, ele_start, time)
-  call ltt_apply_rampers_to_slave (ele_start, ltt_com%ramper(1:n), err_flag)
+  call ltt_apply_rampers_to_slave (ltt_com, ele_start, time, err_flag)
   call ran_default_state(set_state = ran_state)
 
   if (ltt_com%beam_init%use_particle_start) then

@@ -53,9 +53,6 @@ enddo
 
 ! Mark element as an ramper lord
 
-call check_controller_controls (ramper$, contrl, lord%name, err)
-if (err) return
-
 lord%lord_status = ramper_lord$
 lord%key = ramper$
 
@@ -73,18 +70,8 @@ do j = 1, n_slave
   r1 => lord%control%ramp(j)
   r1%attribute = con0%attribute
   r1%slave_name = con0%slave_name
-  r1%value      = con1%value
   if (allocated(con1%y_knot)) r1%y_knot = con1%y_knot
   if (allocated(con1%stack))  r1%stack  = con1%stack
-
-  ! If slave is an overlay, group, or girder, need to mark it as such
-  r1%is_controller = .false.
-  slave => pointer_to_ele(lat, r1%slave_name)
-  if (associated(slave)) then
-    key = slave%key
-    r1%is_controller = (key == overlay$ .or. key == group$ .or. key == girder$)
-    if (r1%is_controller) r1%slave = ele_loc(slave)
-  endif
 enddo
 
 end subroutine

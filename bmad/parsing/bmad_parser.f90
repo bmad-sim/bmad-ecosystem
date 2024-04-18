@@ -1135,7 +1135,7 @@ enddo
 
 ! Now put in the overlay, girder, and group elements
 
-call parser_add_lord (in_lat, n_max, plat, lat)
+call parser_add_lords (in_lat, n_max, plat, lat)
 
 ! fork element to element bookkeeping
 

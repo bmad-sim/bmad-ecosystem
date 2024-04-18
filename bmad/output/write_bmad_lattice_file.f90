@@ -512,10 +512,10 @@ do ib = 0, ubound(lat%branch, 1)
     ! field overlap
 
     if (ele%n_slave_field /= 0) then
-      slave => pointer_to_slave (ele, 1, field_overlap_ptr = .true.)
+      slave => pointer_to_slave (ele, 1, lord_type = field_lord$)
       line = trim(line) // ', field_overlaps = {' // slave%name
       do n = 2, ele%n_slave_field
-        slave => pointer_to_slave (ele, n, field_overlap_ptr = .true.)
+        slave => pointer_to_slave (ele, n, lord_type = field_lord$)
         line = trim(line) // ', ' // slave%name
       enddo
       line = trim(line) // '}'

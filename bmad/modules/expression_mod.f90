@@ -1049,12 +1049,13 @@ end function expression_stack_to_string
 !   width     -- integer: Maximum width of split expression.
 !   indent    -- integer: If positive: Number of spaces to indent for every line after the first.
 !                         If negative: No indentation but first line is shortened by |indent|.
+!   break_str -- character(*), optional: If present, only break lines at places where this string is.
 !
 ! Output:
 !   lines(:)  -- character(*), allocatable: Split expression.
 !-
 
-subroutine split_expression_string (expr, width, indent, lines)
+subroutine split_expression_string (expr, width, indent, lines, break_str)
 
 integer width, indent
 integer nn, n0, nl, ind, ww, i_split, large, i, j
@@ -1064,6 +1065,7 @@ real(rp) score
 
 character(*) expr
 character(*), allocatable :: lines(:)
+character(*), optional :: break_str
 character(len(expr)) ex
 character(width), allocatable :: li(:)
 character(1) ch, ch0
@@ -1083,22 +1085,36 @@ do
   nn = len_trim(ex)
   ww = width - ind
   if (nn <= ww) then
-    li(nl) = ex
+    if (nl == 1) then
+      li(nl) = ex
+    else
+      li(nl)(ind+1:) = ex
+    endif
     exit
   endif
 
   i_split = ww
-  score = 0
-  do j = ww, 2, -1
-    ch = ex(j:j)
-    ch0 = ex(j-1:j-1)
-    i = index(ch_split, ch)
-    if (i == 0) cycle
-    if ((ch == '-' .or. ch == '+') .and. (ch0 == 'e' .or. ch0 == 'E' .or. index(ch_split, ch0) /= 0)) cycle
-    if (j * weight(i) < score) cycle
-    i_split = j
-    score = j * weight(i)
-  enddo
+  if (present(break_str)) then
+    nn = len(break_str)
+    do j = ww, 2, -1
+      if (ex(j-nn+1:j) /= break_str) cycle
+      i_split = j
+      exit
+    enddo
+
+  else
+    score = 0
+    do j = ww, 2, -1
+      ch = ex(j:j)
+      ch0 = ex(j-1:j-1)
+      i = index(ch_split, ch)
+      if (i == 0) cycle
+      if ((ch == '-' .or. ch == '+') .and. (ch0 == 'e' .or. ch0 == 'E' .or. index(ch_split, ch0) /= 0)) cycle
+      if (j * weight(i) < score) cycle
+      i_split = j
+      score = j * weight(i)
+    enddo
+  endif
 
   if (nl == 1) then
     li(nl) = ex(1:i_split)
