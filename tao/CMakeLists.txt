@@ -7,11 +7,6 @@ SET (CREATE_SHARED true)
 
 SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
-## Profiler flags - Note: This	is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
-# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# SET (FFLAGS "-pg")  # For profiling
-# SET (CFLAGS "-pg")
-
 SET (SRC_DIRS
   code 
   ## hook # Now using function pointers

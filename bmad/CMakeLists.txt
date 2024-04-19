@@ -9,6 +9,7 @@ SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
 # If this is a conda build, xraylib is contained
 # one level deeper in the include folder
+
 IF ($ENV{ACC_CONDA_BUILD})
   SET (INC_DIRS
     $ENV{ACC_CONDA_PATH}/include/xraylib/
@@ -35,15 +36,6 @@ SET (SRC_DIRS
   space_charge
   spin
   )
-
-# For profiling... - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
-# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# SET (FFLAGS "-pg") 
-# SET (CFLAGS "-pg")
-
-# For SHARED support - Note: should now be set automatically by Master.cmake
-# SET (FFLAGS "-fPIC")
-# SET (LINK_FLAGS "-fPIC")
 
 SET (SHARED_DEPS
   sim_utils

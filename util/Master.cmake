@@ -362,22 +362,6 @@ ELSE ()
 ENDIF ()
 
 
-#------------------------------------------
-# Honor requests for compiling with 
-# profiling made via environment variable.
-#------------------------------------------
-IF ($ENV{ACC_ENABLE_PROFILING})
-  SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -pg")
-  SET (ACC_LINK_FLAGS "${ACC_LINK_FLAGS} -pg")
-  SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-  SET (BASE_C_FLAGS "${BASE_C_FLAGS} -pg")
-  SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -pg")
-  IF ($ENV{ACC_ENABLE_SHARED})
-    SET (CMAKE_SHARED_LINKER_FLAGS "-pg ${CMAKE_SHARED_LINKER_FLAGS}")
-  ENDIF () 
-ENDIF ()
-
-
 #-----------------------------------------
 # Print some friendly build information
 # and according to the build type, set
