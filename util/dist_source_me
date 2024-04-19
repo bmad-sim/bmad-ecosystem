@@ -398,9 +398,8 @@ func_macos_gcc () {
 	    [ "$mac_package" = macports ] && port=y
 	    if [ -z "$brew" ] && [ -z "$port" ]
 	    then
-	       echo "You have both HomeBrew and MacPorts installed" 1>&2
-	       echo "You must set BMAD_MAC_PACKAGE to either 'homebrew' or 'macports'" 1>&2
-	       exit 1
+	       echo "You have both HomeBrew and MacPorts installed" >> ${DIST_SETUP_LOG}
+	       echo "You must set BMAD_MAC_PACKAGE to either 'homebrew' or 'macports'" >> ${DIST_SETUP_LOG}
 	    fi
 	    unset mac_package
 	fi
@@ -411,8 +410,7 @@ func_macos_gcc () {
 		export CC=gcc
 		export CXX=g++
 	    else
-		echo "You need to install gcc under MacPorts" 1>&2
-		exit 1
+		echo "You need to install gcc under MacPorts" >> ${DIST_SETUP_LOG}
 	    fi
 	elif [ "$brew" ]
 	then
@@ -430,13 +428,11 @@ func_macos_gcc () {
 		export CC=gcc-$v
 		export CXX=g++-$v
 	    else
-		echo You need to install gcc on HomeBrew 1>&2
-		exit 1
+		echo You need to install gcc on HomeBrew >> ${DIST_SETUP_LOG}
 	    fi
 	    unset v
 	else
-	    echo You need to install HomeBrew or MacPorts 1>&2
-	    exit 1
+	    echo You need to install HomeBrew or MacPorts >> ${DIST_SETUP_LOG}
 	fi
     fi
 }
