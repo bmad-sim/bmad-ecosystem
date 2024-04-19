@@ -7,9 +7,4 @@ project(ACC)
 
 set(EXE_SPECS cmake.test)
 
-## Profiler flags - Note: This	is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
-# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# SET (FFLAGS "-pg")  # For profiling
-# SET (CFLAGS "-pg")
-
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
