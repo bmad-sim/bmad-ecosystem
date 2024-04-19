@@ -660,7 +660,7 @@ namelist / params / local_space_charge_com
 
 select case (who)
 case ('diagnostic_output_file')
-  space_charge_com%diagnostic_output_file = value_str
+  space_charge_com%diagnostic_output_file = unquote(value_str)
   return
 
 case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff')

@@ -212,7 +212,7 @@ type (bunch_track_struct), optional :: bunch_track
 integer, optional :: direction
 integer i, j, n, im, ix_pass, ixs, ix, n_links
 
-logical csr_sc_on, err, finished, track1_bunch_space_charge_called
+logical csr_sc_on, err, finished, sc_fft_on, time_rk_tracking, track1_bunch_space_charge_called
 
 character(*), parameter :: r_name = 'track1_bunch'
 
@@ -233,35 +233,33 @@ endif
 
 !------------------------------------------------
 ! Tracking
+! Essentially track1_bunch_space_charge is only called when: 
+!       csr_method = off, space_charge_method = fft/cathode_fft, and track_method = time_RK
+! Otherwise call track1_bunch_csr (except when csr_method = steady_state).
 
 track1_bunch_space_charge_called = .false.
+csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
+sc_fft_on = (ele%space_charge_method == cathode_fft_3d$ .or. ele%space_charge_method == fft_3d$)
+time_rk_tracking = (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$)
 
-if (ele%space_charge_method == cathode_fft_3d$) then
-  if (ele%csr_method /= off$) then
-    call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, CSR EFFECTS CANNOT BE HANDLED SO', &
-                                   'CSR_METHOD NEEDS TO BE SET TO OFF. FOR LATTICE ELEMENT: ' // ele%name, &
-                                   'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
-    goto 9000  ! Mark all particles as lost and return
-  endif
-
-  if (ele%tracking_method /= time_runge_kutta$ .and. ele%tracking_method /= fixed_step_time_runge_kutta$) then
-    call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, THE TRACKING_METHOD SHOULD BE SET TO', &
-                                   'TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA. FOR LATTICE ELEMENT: ' // ele%name, &
-                                   'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
-    goto 9000  ! Mark all particles as lost and return
-  endif
+if (csr_sc_on .and. ele%space_charge_method == cathode_fft_3d$ .and. ele%csr_method /= off$) then
+  call out_io (s_error$, r_name, 'WITH SPACE_CHARGE_METHOD SET TO CATHODE_FFT_3D, CSR EFFECTS CANNOT BE HANDLED SO', &
+                                 'CSR_METHOD NEEDS TO BE SET TO OFF. FOR LATTICE ELEMENT: ' // ele%name, &
+                                 'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
+  goto 9000  ! Mark all particles as lost and return
 endif
 
-csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
+if (ele%csr_method /= off$ .and. time_rk_tracking) then
+  call out_io (s_error$, r_name, 'CSR_METHOD IS NOT OFF FOR LATTICE ELEMENT: ' // ele%name, &
+                'THIS IS INCOMPATIBLE WITH TRACKING_METHOD SET TO TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA.', &
+                'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
+  goto 9000  ! Mark all particles as lost and return
+endif
+
+! 
 
 if (csr_sc_on .and. ele%key /= match$) then
-  if (ele%tracking_method == time_runge_kutta$ .or. ele%tracking_method == fixed_step_time_runge_kutta$) then
-    if (ele%csr_method /= off$) then
-      call out_io (s_error$, r_name, 'CSR_METHOD IS NOT OFF FOR LATTICE ELEMENT: ' // ele%name, &
-                    'THIS IS INCOMPATIBLE WITH TRACKING_METHOD SET TO TIME_RUNGE_KUTTA OR FIXED_STEP_TIME_RUNGE_KUTTA.', &
-                    'ALL PARTICLES OF THE BUNCH WILL BE MARKED AS LOST.')
-      goto 9000  ! Mark all particles as lost and return
-    endif
+  if (ele%csr_method == off$ .and. sc_fft_on .and. time_rk_tracking) then 
     call track1_bunch_space_charge (bunch, ele, err, bunch_track = bunch_track)
     track1_bunch_space_charge_called = .true.
 
