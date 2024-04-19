@@ -48,9 +48,4 @@ if($ENV{ACC_ENABLE_MPI})
   list(APPEND EXE_SPECS "cmake_files/cmake.tune_scan_mpi")
 endif()
 
-## Profiler flags - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
-# set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# set (FFLAGS "-pg")  # For profiling
-# set (CFLAGS "-pg")
-
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
