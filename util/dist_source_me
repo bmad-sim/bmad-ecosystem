@@ -424,7 +424,7 @@ func_macos_gcc () {
 		[ "$vv" -gt "$v" ] && v="$v"
 	    done
 	    unset p
-	    unest g
+	    unset g
 	    if [ "$v" != 0 ]
 	    then
 		export CC=gcc-$v
