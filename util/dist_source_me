@@ -421,7 +421,7 @@ func_macos_gcc () {
 	    for g in $p[0-9]*
 	    do
 		vv=${g##$p}
-		[ "$vv" -gt "$v" ] && v="$v"
+		[ "$vv" -gt "$v" ] && v="$vv"
 	    done
 	    unset p
 	    unset g
