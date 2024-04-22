@@ -78,7 +78,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ March 26, 2024}
+\date{David Sagan and Chris Mayes \\ April 19, 2024}
 
 \begin{document}
 
@@ -810,7 +810,7 @@ This will dump lattice information to a file named \vn{abc.dat}.
 To show the elements in the lattice use the \vn{show lattice} subcommand:
 \begin{code}
 Tao> show lat
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 # Index  name      key                      s       l    beta     phi ...  
 #                                                           a       a ...
      0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000 ...
@@ -820,10 +820,11 @@ Tao> show lat
      4  END       Marker                1.600   0.000    3.50   0.217 ...
 # Index  name      key                      s       l    beta     phi ...  
 #                                                           a       a ...
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 \end{code}
-The \vn{s} column shows the longitudinal position from the beginning of the lattice
-(\sref{s:coord.sys}) and the \vn{l} column shows the length of the elements.
+The \vn{s} column is the longitudinal position of the downstream edge of the element. If not not set
+in the lattice otherwise, the beginning of the lattice is at $s = 0$ (\sref{s:coord.sys}). The
+\vn{l} column shows the length of the elements.
 
 Comparing the output of the \vn{show lattice} command to the \vn{simple.bmad} lattice file, notice
 that \bmad adds two extra elements to the lattice. A zero length beginning element called
@@ -855,7 +856,7 @@ The default is to show the parameters at the exit end of the elements.
 For example, the \vn{-attribute} switch makes it easy to make a custom table of element attributes:
 \begin{code}  
 Tao> show lat -no_tail_lines -attrib b1_gradient 
- Values shown are for the Exit End of each Element:
+ Values shown are for the Downstream End of each Element:
  Index  name      key                      s       l          b1
                                                         gradient
       0  BEGINNING Beginning_Ele        0.000     ---         ---
@@ -971,7 +972,7 @@ Element names with wild cards can also be used with the \vn{show lattice} comman
 \begin{code}
 Tao> show lat q%1*
 
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 # Index  name   key                   s       l    beta     phi ...  
 #                                                     a       a
     10  Q01W Quadrupole            3.874   0.950   66.94   0.173  
@@ -981,7 +982,7 @@ Tao> show lat q%1*
    ... etc...
 # Index  name   key                   s       l    beta     phi ...  
 #                                                     a       a
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 \end{code}
 
 Note: When \vn{rbend} (rectangular bend) elements are read in, internally they are converted to
@@ -5022,7 +5023,7 @@ After Dat#    Norm_Kick     s-pos   ele@kick                    phi
 This shows a quadrupole error at about \vn{s} = 684~meters. Nearby elements are:
 \begin{code}
 Tao> show lat -s 681:687
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 # Index  name           key                       s       l  
 #                                                            
     946  D404#2         Drift               682.171   1.684  ...

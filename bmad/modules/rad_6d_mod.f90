@@ -501,6 +501,7 @@ logical include_opening_angle, save_orb_mat, err_flag
 
 call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err_flag, pointer_to_next_ele(ele, -1))
 runt%value(dispatch$) = no_misalignment$
+runt%old_value(dispatch$) = no_misalignment$   ! So no bookkeeping is done.
 call track1(orb0, runt, ele%branch%param, orbz)
 call make_mat6(runt, ele%branch%param, orb0, orbz)
 if (save_orb_mat) then

@@ -36,8 +36,6 @@ if (nargs > 0) then
   call get_command_argument(1, lat_file)
   print *, 'Using ', trim(lat_file)
 
-  bmad_com%auto_bookkeeper = .false.
-
   call bmad_parser(lat_file, lat, make_mats6 = .false.)
   stop
 endif
