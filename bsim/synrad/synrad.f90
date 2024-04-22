@@ -82,8 +82,8 @@ wall_offset = 0.045
 sr_param%i_beam = 0.1
 sr_param%epsilon_y = 10e-12
 sr_param%n_slice = 20
-forward_beam = "POSITRON"
-backward_beam = "ELECTRON"
+forward_beam = ""
+backward_beam = ""
 use_ele_ix = 0
 use_ele_ix2 = 0
 
@@ -147,7 +147,8 @@ if (beam_direction == 0 .or. beam_direction == 1) then
 endif
 
 if (beam_direction == 0 .or. beam_direction == -1) then
-  call synch_calc (-1, backward_beam, back_power, synrad_mode) 
+  print *, 'Backwards tracking code needs to be updated. Please contact code maintainer if you want this.'
+  !! call synch_calc (-1, backward_beam, back_power, synrad_mode) 
 endif
 
 ! write out results
@@ -213,7 +214,9 @@ type (ele_power_struct), allocatable :: power(:)
 integer direction
 character(*) beam_type
 
-!
+! Note: This is old code that does not work for backwards tracking.
+! What is needed is to propagate the particle backwards.
+! So twiss_and_track should be modified to handle backwards tracking.
 
 if (beam_type == 'ELECTRON') then
   branch%param%particle = electron$

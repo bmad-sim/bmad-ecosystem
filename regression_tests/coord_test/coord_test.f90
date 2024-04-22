@@ -142,6 +142,7 @@ orb2 = orb1
 ele%orientation = orient
 ele2 = ele; call zero_ele_offsets(ele2)
 name = trim(ele%name) // ':O:' // int_str(orient) // ':D:' // int_str(dir)
+call attribute_bookkeeper(ele2, .true.)
 
 if (debug_mode) print *
 call write_orbit(trim(name) // ':Drift-Start', orb1)
@@ -153,7 +154,7 @@ call offset_particle (ele, unset$, orb1, s_out = s_out)
 call write_orbit(trim(name) // ':Drift-Out  ', orb1, s_out)
 if (ele2%key == sbend$) then
   ele2%value(ref_tilt$) = ele%value(ref_tilt$)
-  ele2%value(ref_tilt_tot$) = ele%value(ref_tilt_tot$)
+  call attribute_bookkeeper(ele2, .true.)
 endif
 call track1(orb2, ele2, lat%param, orb2)
 if (debug_mode) print '(a, 6f13.8, 4x, 2f13.8)', trim(name) // ':NoMis-Track:', orb2%vec, orb2%t*c_light

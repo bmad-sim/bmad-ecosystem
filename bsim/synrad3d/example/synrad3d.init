@@ -1,6 +1,6 @@
 &synrad3d_parameters
   lattice_file     = 'bmad_L9A18A000-_MOVEREC.lat                        ' 
-  wall_file        = 'synrad3d.wall'                          ! File specifying the vacuum chamber wall
+  wall_file        = 'synrad3d.wall3d'                          ! File specifying the vacuum chamber wall
   dat_file         = 'synrad3d.dat'                            ! For output
   reflect_file = ''            ! If not blank then create a photon reflections data file.
   lat_ele_file = 'lat_ele.dat' ! If not blank then create a lattice element data file.

@@ -230,8 +230,10 @@ if (.not. include_downstream_end) sliced_ele%time_ref_orb_out%location = inside$
 ! Solution is to just set the end ref energy to what it should be.
 
 if (include_downstream_end) then
-  sliced_ele%value(p0c$)      = ele_in%value(p0c$)
-  sliced_ele%value(e_tot$)    = ele_in%value(e_tot$)
+  sliced_ele%value(p0c$)        = ele_in%value(p0c$)
+  sliced_ele%value(e_tot$)      = ele_in%value(e_tot$)
+  sliced_ele%old_value(p0c$)    = ele_in%value(p0c$)
+  sliced_ele%old_value(e_tot$)  = ele_in%value(e_tot$)
 endif
 
 ! Round off can throw off the beginning ref energy. 

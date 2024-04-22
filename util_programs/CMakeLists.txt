@@ -7,7 +7,6 @@ set (EXE_SPECS
   cmake_files/cmake.beam_file_translate_format
   cmake_files/cmake.controller_response_plot
   cmake_files/cmake.ptc_flat_file_to_bmad
-  cmake_files/cmake.make_a_matching_knob
   cmake_files/cmake.wake_fit
   cmake_files/cmake.bmad_to_astra
   cmake_files/cmake.bmad_to_blender

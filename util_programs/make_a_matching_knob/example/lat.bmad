@@ -1,4 +1,0 @@
-call, file = dc12a_alt3.bmad 
-call, file = knob.bmad 
-g1[a] = 0.02
-g1[b] = 0.02
