@@ -22,7 +22,6 @@ set (EXE_SPECS
   cmake_files/cmake.tune_scan
   cmake_files/cmake.dark_current_tracker
   cmake_files/cmake.envelope_ibs
-  cmake_files/cmake.srdt_lsq_soln
   cmake_files/cmake.frequency_map
   cmake_files/cmake.bbu
   cmake_files/cmake.dynamic_aperture

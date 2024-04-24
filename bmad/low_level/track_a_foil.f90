@@ -47,8 +47,8 @@ character(*), parameter :: r_name = 'track_a_foil'
 
 call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-if (orbit%vec(1) < ele%value(x1_edge$) .or. orbit%vec(1) > ele%value(x2_edge$)) return
-if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) return
+if (orbit%vec(1) < ele%value(x1_edge$) .or. orbit%vec(1) > ele%value(x2_edge$)) goto 8000  ! Offset back and return
+if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) goto 8000  ! Offset back and return
 
 z_particle = nint(ele%value(final_charge$))
 f = ele%value(f_factor$)
@@ -139,6 +139,7 @@ orbit%species = set_species_charge(orbit%species, z_particle)
 
 !
 
+8000 continue
 call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 !------------------------------------------------------------------------------------------------------

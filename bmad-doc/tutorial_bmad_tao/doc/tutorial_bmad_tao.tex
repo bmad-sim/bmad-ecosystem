@@ -1887,8 +1887,8 @@ of associated \vn{variables} does not all have to be of a single type.
 
 If you want to have one \tao \vn{variable} control a set of parameters, construct an \vn{overlay} or
 \vn{group} element (\sref{s:control}) and then have the \tao variable control the overlay or
-group. For example, the following overlay gangs the \vn{k1} parameters of elements \vn{Q1} and
-\vn{Q3} together:
+group. For example, the following overlay defined in the lattice file gangs the \vn{k1} parameters
+of elements \vn{Q1} and \vn{Q3} together:
 \begin{code}
 ps1: overlay = {Q1, Q3}, var = {k1}, k1 = 0.8
 \end{code}

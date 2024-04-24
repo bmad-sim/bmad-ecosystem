@@ -639,7 +639,7 @@ The term ``lattice bookkeeping'' refers to the updating of the appropriate param
 given parameter in the lattice is changed. For example, if the accelerating gradient of an
 \vn{lcavity} element is modified, the reference energy parameter of all elements downstream of the
 \vn{lcavity} will need to be changed and this can also alter the transfer maps of the \vn{lcavity}
-and downstream elements. \bmad divides the lattice bookkeeping into ``core'' part and everything
+and downstream elements. \bmad divides the lattice bookkeeping into a ``core'' part and everything
 else. The core part itself is divided into five parts:
   \begin{description}
   \item[Attribute bookkeeping] \Newline
@@ -660,6 +660,63 @@ This refers to the reference energy assigned to each element (\sref{s:ref.energy
 \vn{ele%value(E_tot\$)} and \vn{ele%value(p0c\$)}
   \end{description}
 
+Lattice elements have a \vn{bookkeeper_status} component which is of type \vn{bookkeeper_status_struct}
+which looks like
+\begin{example}
+  type bookkeeper_status_struct
+    integer attributes      ! Intra element dependent attribute status
+    integer control         ! Lord/slave bookkeeping status
+    integer floor_position  ! Global (floor) geometry status
+    integer length          ! Longitudinal position status
+    integer ref_energy      ! Reference energy status
+    integer mat6            ! Linear transfer map status
+    integer rad_int         ! Radiation integrals cache status
+  end type
+\end{example}
+All components of this structure give the status of some lattice bookkeeping aspect. The first five
+components of this structure correspond to the five core bookkeeping parts discussed above. The
+other two components are discussed below.
+
+Possible values for the status components are
+\begin{example}
+  super_ok\$
+  ok\$
+  stale\$
+\end{example}
+The \vn{set_flags_for_changed_attribute} routine sets the appropriate status components of an
+element to \vn{stale\$} which marks that element for the appropriate bookkeeping. When the
+bookkeeping is done by \vn{lattice_bookkeeper}, the \vn{stale\$} status components are set to
+\vn{ok\$}. The \vn{super_ok\$} value is reserved for use by any program that needs to do its own
+custom bookkeeping. How this works is as follows: The \bmad bookkeeping routines will never convert
+a status component with value \vn{super_ok\$} to \vn{ok\$} without first doing some needed
+bookkeeping. Thus if a program sets a status component to \vn{super_ok\$} and then later on finds
+that the status component is set to \vn{ok\$}, the program knows that bookkeeping has been done. An
+example will make this clear. Suppose a program needs to keep track of a collection of high order
+transfer maps between various points in a lattice. Suppose that the constant calculation of these
+maps would slow the program done so it is desired to recalculate a given map only when necessary. To
+implement this, the program could set the \vn{ele%status%mat6} attribute of all the element to
+\vn{super_ok\$} when the maps are calculated. If the program subsequently finds a
+\vn{ele%status%mat6} attribute of an element set to \vn{ok\$} it knows that it should recalculate
+any transfer maps that span that element.
+
+It is guaranteed that when \vn{lattice_bookkeeper} is run, all five core status components will not
+be \vn{stale\$}.  The routines used by \vn{lattice_bookkeeper} are:
+\begin{example}
+  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}      ! Intra-element attributes
+  \Hyperref{r:control.bookkeeper}{control_bookkeeper}        ! Lord/slave control
+  \Hyperref{r:s.calc}{s_calc}                    ! Longitudinal element s-position
+  \Hyperref{r:lat.geometry}{lat_geometry}              ! Global (floor) positions.
+  \Hyperref{r:lat.compute.ref.energy.and.time}{lat_compute_ref_energy_and_time}  ! Reference energy 
+\end{example}
+In general, these routines should not be called directly since the correct way to do things is not
+always straight forward. See the code for \vn{lattice_bookkeeper} for more details.
+
+After the core bookkeeping is done, a program can call \Hyperref{r:lat.make.mat6}{lat_make_mat6} to
+remake the transfer matrices.  \vn{lat_make_mat6} will remake the transfer matrices if either the
+\vn{ele%status%mat6} flag is \vn{stale\$} or the reference orbit around which the existing transfer
+matrix was computed has shifted.  \vn{lat_make_mat6} will set the \vn{ele%status%mat6} flag to
+\vn{ok\$} for all elements whose transfer matrices are recomputed.
+
 %----------------------------------------------------------------------------
 \section{Intelligent Bookkeeping}
 \label{s:intelligent.book}
@@ -678,16 +735,20 @@ the parameter:
 \begin{example}
   bmad_com%auto_bookkeeper = .false.
 \end{example}
-To keep things back compatible with
-existing programs, the automatic bookkeeping system was set as the default. However, given the fact that the
-automatic bookkeeping system has known deficiencies, and given the overhead with maintaining two
-bookkeeping systems, the current plan is to start phasing out the automatic bookkeeping system
-sometime in the not-so-far future. Thus old programs should be converted to the new system and all
-new programs should use the new bookkeeping system.
+To keep things back compatible with existing programs, the automatic bookkeeping system was set as
+the default. However, given the fact that the automatic bookkeeping system has known deficiencies,
+and given the overhead with maintaining two bookkeeping systems, the automatic bookkeeping system
+has been retired and old programs needed to be upgraded if needed. Rule: A program that does not
+``directly modify'' element attributes does not have to modified. Modification of element attributes
+via \bmad routines (for example, using the \vn{set_on_off} routine) is ``indirect''. A direct modification
+is something like the following appearing in the program:
+\begin{example}
+  lat%ele(ie)%value(hkick$) = ...
+\end{example}
 
 \index{bmad_common_struct!auto_bookkeeper}
 To use intelligent bookkeeping, a program must set the global \vn{bmad_com%auto_bookkeepper} to
-false. This must be done once at the start of the program before \vn{bmad_parser} is called. 
+false. This only needs to be done once at the start of the program before \vn{bmad_parser} is called. 
 If lattice parameters are not modified in the program, this is the only thing that needs to
 be done.
 
@@ -715,64 +776,10 @@ The \vn{attribute} argument may be either real, integer, or logical.
 
 \index{ele!\%status}
 \index{bookkeeper_status_struct}
-The \vn{set_flags_for_changed_attribute} routine sets flags in the \vn{ele%status} structure. This
-structure is of type \vn{bookkeeper_status_struct} and looks like
-\begin{example}
-  type bookkeeper_status_struct
-    integer attributes      ! Intra element dependent attribute status
-    integer control         ! Lord/slave bookkeeping status
-    integer floor_position  ! Global (floor) geometry status
-    integer length          ! Longitudinal position status
-    integer ref_energy      ! Reference energy status
-    integer mat6            ! Linear transfer map status
-    integer rad_int         ! Radiation integrals cache status
-  end type
-\end{example}
-All components of this structure give the status of some lattice
-bookkeeping aspect. The first five components of this structure
-correspond to the five core bookkeeping parts discussed above. The
-other two components are discussed below.
+The \vn{set_flags_for_changed_attribute} routine sets flags in the \vn{ele%status} structure
+\sref{s:lat.book}.
 
-Possible values for the status components are
-\begin{example}
-  super_ok\$
-  ok\$
-  stale\$
-\end{example}
-The \vn{set_flags_for_changed_attribute} routine sets the appropriate status components of an
-element to \vn{stale\$} which marks that element for the appropriate bookkeeping. When the
-bookkeeping is done by \vn{lattice_bookkeeper}, the \vn{stale\$} status components are set to
-\vn{ok\$}. The \vn{super_ok\$} value is reserved for use by any program that needs to do its own
-custom bookkeeping. How this works is as follows: The \bmad bookkeeping routines will never convert
-a status component with value \vn{super_ok\$} to \vn{ok\$} without first doing some needed
-bookkeeping. Thus if a program sets a status component to \vn{super_ok\$} and then later on finds
-that the status component is set to \vn{ok\$}, the program knows that bookkeeping has been done. An
-example will make this clear. Suppose a program needs to keep track of a collection of high order
-transfer maps between various points in a lattice. Suppose that the constant calculation of these
-maps would slow the program done so it is desired to recalculate a given map only when necessary. To
-implement this, the program could set the \vn{ele%status%mat6} attribute of all the element to
-\vn{super_ok\$} when the maps are calculated. If the program subsequently finds a
-\vn{ele%status%mat6} attribute of an element set to \vn{ok\$} it knows that it should recalculate
-any transfer maps that span that element.
-
-It is guaranteed that when \vn{lattice_bookkeeper} is run,
-all five core status components will not be \vn{stale\$}.
-The routines used by \vn{lattice_bookkeeper} are:
-\begin{example}
-  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}      ! Intra-element attributes
-  \Hyperref{r:control.bookkeeper}{control_bookkeeper}        ! Lord/slave control
-  \Hyperref{r:s.calc}{s_calc}                    ! Longitudinal element s-position
-  \Hyperref{r:lat.geometry}{lat_geometry}              ! Global (floor) positions.
-  \Hyperref{r:lat.compute.ref.energy.and.time}{lat_compute_ref_energy_and_time}  ! Reference energy 
-\end{example}
-In general, these routines should not be called directly since the correct way to do things is not
-always straight forward. See the code for \vn{lattice_bookkeeper} for more details.
-
-After the core bookkeeping is done, a program can call \Hyperref{r:lat.make.mat6}{lat_make_mat6} to
-remake the transfer matrices.  \vn{lat_make_mat6} will remake the transfer matrices if either the
-\vn{ele%status%mat6} flag is \vn{stale\$} or the reference orbit around which the existing transfer
-matrix was computed has shifted.  \vn{lat_make_mat6} will set the \vn{ele%status%mat6} flag to
-\vn{ok\$} for all elements whose transfer matrices are recomputed.
+\isittrue???
 
 %----------------------------------------------------------------------------
 \section{particle_start Component}
