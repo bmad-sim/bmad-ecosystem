@@ -181,13 +181,3 @@ export ACC_CONDA_BUILD="N"
 # environment.
 #-----------------------------------------------------------
 export ACC_CONDA_PATH="${CONDA_PREFIX}"
-
-
-#-----------------------------------------------------------
-# By default this flag is on.
-# When ACC_USE_MACPORTS is set to "Y", this will enable the 
-# MacPorts path (/opt/local/) to be added to library search path.
-# This option is only valid for MacOS (Darwin).
-#-----------------------------------------------------------
-export ACC_USE_MACPORTS="Y"
-
