@@ -15,7 +15,7 @@ set space_charge_com n_shield_images = 0
 set space_charge_com ds_track_step = 0.01
 set space_charge_com n_bin = 40
 set space_charge_com particle_bin_span = 2
-
+set space_charge_com lsc_sigma_cutoff = 0.1 ! Cutoff for the lsc calc. If a bin sigma is < cutoff * sigma_ave then ignore.
 set space_charge_com%diagnostic_output_file  = "wake.txt"
 
 set ele * csr_method = 1_dim
