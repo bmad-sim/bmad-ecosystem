@@ -3283,9 +3283,9 @@ case ('lattice')
 
   else
     select case (where)
-    case ('exit');      line1 = '# Values shown are for the Exit End of each Element:'
+    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element:'
     case ('middle');    line1 = '# Values shown are for the Center of each Element:'
-    case ('beginning'); line1 = '# Values shown are for the Beginning of each Element:'
+    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element:'
     end select
 
     if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)

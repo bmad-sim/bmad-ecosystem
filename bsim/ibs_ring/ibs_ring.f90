@@ -51,7 +51,7 @@ logical error, do_pwd
 logical :: ptc_calc
 logical set_dispersion
 
-character(50) in_file
+character(200) in_file
 character(4) :: ibs_formula
 character(3)::  eqb_method
 character(130) lat_file
@@ -104,7 +104,7 @@ namelist /parameters/ &
   eta_set, &         ! Sets vertical dispersion at every element to this fixed value.
   etap_set           ! Sets vertical dispersion prime at every element to this fixes value.
 
-call load_parameters_file()
+call load_parameters_file(in_file)
 if(do_pwd) then
   write(*,*) "PWD is currently disabled pending calculation improvements."
   do_pwd = .false.
@@ -411,7 +411,9 @@ contains
 !-----------------------------------------------------------
 ! contains
 
-  subroutine load_parameters_file()
+  subroutine load_parameters_file(in_file)
+    character(*) in_file
+
     !-Set bogus values for namelist parameters, so we can check that they were
     !-set by the .in file.
     lat_file      = ''
@@ -439,7 +441,8 @@ contains
     do_pwd = .false.
 
     dotinlun = LUNGET()
-    call getarg(1,in_file)
+    in_file = 'ibs_ring.in'
+    if (command_argument_count() > 0) call get_command_argument(1, in_file)
     open(dotinlun,file=in_file,status='old')
     read(dotinlun,nml=parameters)
     close(dotinlun)

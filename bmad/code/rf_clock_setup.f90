@@ -131,6 +131,7 @@ do irf = 1, n_rf
       ele%ac_kick%frequency(n)%rf_clock_harmonic = nint(rf_ele(irf)%rf_freq * bmad_private%rf_clock_period)
     else
       ele%value(rf_clock_harmonic$) = nint(rf_ele(irf)%rf_freq * bmad_private%rf_clock_period)
+      ele%old_value(rf_clock_harmonic$) = ele%value(rf_clock_harmonic$)  ! To indicate no bookkeeping needed.
     endif
   else
     call out_io (s_warn$, r_name, '  Cavity not using RF clock: ' // ele%name)

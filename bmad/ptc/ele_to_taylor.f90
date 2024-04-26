@@ -100,8 +100,6 @@ if (err_flag) return
 call alloc(ptc_cdamap)
 call alloc(ptc_probe8)
 
-call attribute_bookkeeper (ele, .true.)
-
 ! Initial map
 
 if (present(orb0)) then

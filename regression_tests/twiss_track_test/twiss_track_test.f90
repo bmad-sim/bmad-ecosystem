@@ -24,8 +24,6 @@ character(200), allocatable :: lines(:)
 
 open (2, file = 'output.now', recl = 200)
 
-bmad_com%auto_bookkeeper = .false.
-
 lat_file = "bmad_L9A18A000-_MOVEREC.lat"
 call bmad_parser (lat_file, lat2)
 call write_digested_bmad_file ('digested.file', lat2)

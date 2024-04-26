@@ -10,7 +10,13 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2024-04-24 Fixed: Foil tracking when there is an offset.
 
+- 2024-04-23 Changed: HomeBrew and MacPorts now automatically detected.
+
+- 2024-04-19 Removed: Gprof references in compile scripts.
+
+- 2024-04-19 Changed: Tweak to speed up offset_particle when there are no offsets.
 
 - 2024-04-16 Fixed: `set_ele_attribute` routine will now set err_flag True on error with unknown variable in expression.
 

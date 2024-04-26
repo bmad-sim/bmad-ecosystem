@@ -632,14 +632,14 @@ component of the \vn{slice_slave} will be set to point to the element being slic
 
 %----------------------------------------------------------------------------
 \section{Lattice Bookkeeping}
-\label{s:lat.bookkeeping}
+\label{s:lat.book}
 
 \index{reference energy}
 The term ``lattice bookkeeping'' refers to the updating of the appropriate parameter values when a
 given parameter in the lattice is changed. For example, if the accelerating gradient of an
 \vn{lcavity} element is modified, the reference energy parameter of all elements downstream of the
 \vn{lcavity} will need to be changed and this can also alter the transfer maps of the \vn{lcavity}
-and downstream elements. \bmad divides the lattice bookkeeping into ``core'' part and everything
+and downstream elements. \bmad divides the lattice bookkeeping into a ``core'' part and everything
 else. The core part itself is divided into five parts:
   \begin{description}
   \item[Attribute bookkeeping] \Newline
@@ -660,51 +660,8 @@ This refers to the reference energy assigned to each element (\sref{s:ref.energy
 \vn{ele%value(E_tot\$)} and \vn{ele%value(p0c\$)}
   \end{description}
 
-\index{bookkeeping!automatic}
-\index{bookkeeping!intelligent}
-Historically, as the concept of lattice bookkeeping was being developed, to be back compatible with
-existing programs, calls to bookkeeping routines were added to calculational routines such as the
-tracking routine \Hyperref{r:track1}{track1} and the routine for calculating the linear transfer map
-\Hyperref{r:make.mat6}{make_mat6}.  This ``automatic'' bookkeeping system is inefficient since there
-is no good way to keep track of what element attributes have been modified which leads to redundant
-bookkeeping calculations. Eventually, as \bmad developed and became more complicated, it was found
-that the unnecessary bookkeeping load was generally causing a significant slowdown in program
-execution time --- even in programs where no element attributes were changed. To avoid this, an
-``intelligent'' bookkeeping system was developed. In order to be back compatible with existing
-programs, the automatic bookkeeping system is the default. However, given the fact that the
-automatic bookkeeping system has known deficiencies, and given the overhead with maintaining two
-bookkeeping systems, the current plan is to start phasing out the automatic bookkeeping system
-sometime in the not-so-far future. Thus old programs should be converted to the new system and all
-new programs should use the new bookkeeping system.
-
-\index{bmad_common_struct!auto_bookkeeper}
-To use intelligent bookkeeping, a program must set the global \vn{bmad_com%auto_bookkeepper} to
-false. This is done once at the start of the program. When a set of attributes needs to be modified,
-the \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute} routine must be
-called for each element attribute that is set. After all the attributes have been set,
-\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is called to do the core bookkeeping. Example
-\begin{example}
-  type (lat_struct) lat
-  ...
-  bmad_com%auto_bookkeeper = .false.    ! Only needs to be done once.
-  ...
-  lat%ele(i)%value(gradient$) = 1.05e6  ! Change, say, the gradient of an RFCavity
-  call set_flags_for_changed_attribute (lat%ele(i), lat%ele(i)%value(gradient$))
-
-  ... Set attributes of other elements ...
-
-  call lattice_bookkeeper (lat)         ! Do once after all attribute sets done.
-\end{example}
-The argument list for \vn{set_flags_for_changed_attribute} is 
-\begin{example}
-  set_flags_for_changed_attribute (ele, attribute)
-\end{example}
-The \vn{attribute} argument may be either real, integer, or logical.
-
-\index{ele!\%status}
-\index{bookkeeper_status_struct}
-The \vn{set_flags_for_changed_attribute} routine sets flags in the \vn{ele%status} structure. This
-structure is of type \vn{bookkeeper_status_struct} and looks like
+Lattice elements have a \vn{bookkeeper_status} component which is of type \vn{bookkeeper_status_struct}
+which looks like
 \begin{example}
   type bookkeeper_status_struct
     integer attributes      ! Intra element dependent attribute status
@@ -716,9 +673,8 @@ structure is of type \vn{bookkeeper_status_struct} and looks like
     integer rad_int         ! Radiation integrals cache status
   end type
 \end{example}
-All components of this structure give the status of some lattice
-bookkeeping aspect. The first five components of this structure
-correspond to the five core bookkeeping parts discussed above. The
+All components of this structure give the status of some lattice bookkeeping aspect. The first five
+components of this structure correspond to the five core bookkeeping parts discussed above. The
 other two components are discussed below.
 
 Possible values for the status components are
@@ -743,9 +699,8 @@ implement this, the program could set the \vn{ele%status%mat6} attribute of all 
 \vn{ele%status%mat6} attribute of an element set to \vn{ok\$} it knows that it should recalculate
 any transfer maps that span that element.
 
-It is guaranteed that when \vn{lattice_bookkeeper} is run,
-all five core status components will not be \vn{stale\$}.
-The routines used by \vn{lattice_bookkeeper} are:
+It is guaranteed that when \vn{lattice_bookkeeper} is run, all five core status components will not
+be \vn{stale\$}.  The routines used by \vn{lattice_bookkeeper} are:
 \begin{example}
   \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}      ! Intra-element attributes
   \Hyperref{r:control.bookkeeper}{control_bookkeeper}        ! Lord/slave control
@@ -761,6 +716,70 @@ remake the transfer matrices.  \vn{lat_make_mat6} will remake the transfer matri
 \vn{ele%status%mat6} flag is \vn{stale\$} or the reference orbit around which the existing transfer
 matrix was computed has shifted.  \vn{lat_make_mat6} will set the \vn{ele%status%mat6} flag to
 \vn{ok\$} for all elements whose transfer matrices are recomputed.
+
+%----------------------------------------------------------------------------
+\section{Intelligent Bookkeeping}
+\label{s:intelligent.book}
+\index{bookkeeping!automatic}
+\index{bookkeeping!intelligent}
+Historically, as the code for lattice bookkeeping (\sref{s:lat.book}) was being developed
+calls to bookkeeping routines were added to calculational
+routines such as the tracking routine \Hyperref{r:track1}{track1} and the routine for calculating
+the linear transfer map \Hyperref{r:make.mat6}{make_mat6}.  This ``automatic'' bookkeeping system is
+inefficient since there is no good way to keep track of what element attributes have been modified
+which leads to redundant bookkeeping calculations. Eventually, as \bmad developed and became more
+complicated, it was found that the unnecessary bookkeeping load was generally causing a significant
+slowdown in program execution time --- even in programs where no element attributes were changed. To
+avoid this, an ``intelligent'' bookkeeping system was developed which could be switched on by setting
+the parameter:
+\begin{example}
+  bmad_com%auto_bookkeeper = .false.
+\end{example}
+To keep things back compatible with existing programs, the automatic bookkeeping system was set as
+the default. However, given the fact that the automatic bookkeeping system has known deficiencies,
+and given the overhead with maintaining two bookkeeping systems, the automatic bookkeeping system
+has been retired and old programs needed to be upgraded if needed. Rule: A program that does not
+``directly modify'' element attributes does not have to modified. Modification of element attributes
+via \bmad routines (for example, using the \vn{set_on_off} routine) is ``indirect''. A direct modification
+is something like the following appearing in the program:
+\begin{example}
+  lat%ele(ie)%value(hkick$) = ...
+\end{example}
+
+\index{bmad_common_struct!auto_bookkeeper}
+To use intelligent bookkeeping, a program must set the global \vn{bmad_com%auto_bookkeepper} to
+false. This only needs to be done once at the start of the program before \vn{bmad_parser} is called. 
+If lattice parameters are not modified in the program, this is the only thing that needs to
+be done.
+
+When a set of attributes needs to be modified, the
+\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute} routine must be called
+for each element attribute that is set. After all the attributes have been set,
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is called to do the core bookkeeping. Example
+\begin{example}
+  type (lat_struct) lat
+  ...
+  bmad_com%auto_bookkeeper = .false.    ! Done once. Put this before the call to bmad_parser.
+  ...
+  lat%ele(i)%value(gradient$) = 1.05e6  ! Change, say, the gradient of an RFCavity
+  call set_flags_for_changed_attribute (lat%ele(i), lat%ele(i)%value(gradient$))
+
+  ... Set attributes of other elements ...
+
+  call lattice_bookkeeper (lat)         ! Do once after all attribute sets done.
+\end{example}
+The argument list for \vn{set_flags_for_changed_attribute} is 
+\begin{example}
+  set_flags_for_changed_attribute (ele, attribute)
+\end{example}
+The \vn{attribute} argument may be either real, integer, or logical.
+
+\index{ele!\%status}
+\index{bookkeeper_status_struct}
+The \vn{set_flags_for_changed_attribute} routine sets flags in the \vn{ele%status} structure
+\sref{s:lat.book}.
+
+\isittrue???
 
 %----------------------------------------------------------------------------
 \section{particle_start Component}

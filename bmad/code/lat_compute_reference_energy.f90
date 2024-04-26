@@ -104,6 +104,10 @@ do ib = 0, ubound(lat%branch, 1)
         call convert_pc_to (begin_ele%value(p0c$), begin_ele%ref_species, e_tot = begin_ele%value(e_tot$))
       elseif (begin_ele%value(e_tot$) >= mass_of(begin_ele%ref_species)) then
         call convert_total_energy_to (begin_ele%value(e_tot$), begin_ele%ref_species, pc = begin_ele%value(p0c$))
+        ! Only here when reading in a lattice. Want to make sure that when E_tot is computed from p0c (which will
+        ! happen when this routine is called again after lattice parsing), there is no shift due to round-off errors.
+        ! This can confuse the bookkeeping routines.
+        call convert_pc_to (begin_ele%value(p0c$), begin_ele%ref_species, e_tot = begin_ele%value(e_tot$))
       elseif (branch%ix_from_branch < 0 .and. branch%ix_branch > 0 .and. &
                               lat%param%particle == begin_ele%ref_species) then ! A root branch.
         begin_ele%value(e_tot$) = lat%ele(0)%value(e_tot$)
