@@ -749,7 +749,7 @@ case ('bunch_params')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {ix_bunch} is the bunch index.
-!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state"
+!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state", "ix_ele"
 !
 ! For example, if {coordinate} = "px", the phase space px coordinate of each particle
 ! of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
@@ -8310,7 +8310,9 @@ case ('p0c')
 case ('state')
   call reallocate_c_integer_scratch(n)
   tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%state
-
+case ('ix_ele')
+  call reallocate_c_integer_scratch(n)
+  tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%ix_ele
 case default
   call invalid ('coordinate not "x", "px", etc. ')
   return
