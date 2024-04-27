@@ -522,7 +522,7 @@ real(rp), parameter :: vec0$(6) = 0
 ! encopassing lord element.
 
 type coord_struct                 ! Particle coordinates at a single point
-  real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
+  real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz). Generally phase space for charged particles. See Bmad manual.
   real(rp) :: s = 0               ! Longitudinal position 
   real(rp) :: t = 0               ! Absolute time (not relative to reference). If bmad_private%rf_clock_frequency is
                                   ! set, %t will be the RF clock time in the range [0, 1/rf_clock_freq] 
