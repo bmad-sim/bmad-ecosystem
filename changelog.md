@@ -10,6 +10,8 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2024-04-24 Removed: srdt_lsq_soln program since it is not supported and Tao has this functionality.
+
 - 2024-04-24 Fixed: Foil tracking when there is an offset.
 
 - 2024-04-23 Changed: HomeBrew and MacPorts now automatically detected.

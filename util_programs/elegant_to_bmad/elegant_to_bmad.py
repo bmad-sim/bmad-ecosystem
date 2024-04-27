@@ -623,7 +623,6 @@ def parse_element(dlist):
       bparam = bmad_param(eparam, ele.name)
       if bparam == '?': continue
       if ele.bmad_type == 'drift' and bparam != 'l': continue
-    endif
 
     #
 
