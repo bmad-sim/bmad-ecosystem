@@ -122,7 +122,8 @@ endif
 ! Sokolov-Ternov Spin flip
 ! The equation is not correct
 
-!if (bmad_com%spin_tracking_on .and. bmad_com%spin_sokolov_ternov_flipping_on) then
+if (bmad_com%spin_tracking_on .and. bmad_com%spin_sokolov_ternov_flipping_on) then
+  call out_io (s_warn$, r_name, 'Sokolov-Ternov not yet implemented.')
 !  norm = norm2(orbit%spin)
 !  if (norm /= 0) then
 !    spin_norm = orbit%spin / norm
@@ -134,7 +135,7 @@ endif
 !          (int_g3 - c1_spin * int_g3 * (spin_norm(3))**2 + c2_spin * int_g2 * dot_product([g_y, -g_x], spin_norm(1:2))) 
 !    if (this_ran < p_spin) orbit%spin = -orbit%spin  ! spin flip
 !  endif
-!endif
+endif
 
 end subroutine track1_radiation 
 
