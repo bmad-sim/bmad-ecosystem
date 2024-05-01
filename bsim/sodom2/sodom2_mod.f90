@@ -76,7 +76,6 @@ contains
 subroutine sodom2_read_params(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
-type (lat_struct), pointer :: parse_lat
 integer i, ix
 character(200) arg
 character(40) m_name
@@ -118,8 +117,7 @@ open (1, file = sodom2_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close (1)
 
-call bmad_parser (lat_file=sodom2%lat_file, lat=sodom2_com%lat,parse_lat=parse_lat)
-!call bmad_parser2(lat_file=sodom2%lat_file, lat=sodom2_com%lat, parse_lat=parse_lat
+call bmad_parser (lat_file=sodom2%lat_file, lat=sodom2_com%lat)
 
 ! Check:
 if (sodom2%J(1) < 0 .and. sodom2%J(2) < 0 .and. sodom2%J(3) < 0) then
