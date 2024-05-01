@@ -315,7 +315,7 @@ def search_f90 (file_name, search_com):
       comments = []
       continue
 
-    # match to subroutine, function, etc.
+    # match to subroutine, function, etc. --------
 
     if routine_here(line2, routine_name):
       if re_match_str.match(routine_name[0]) and 'routine'.startswith(search_com.search_only_for):
@@ -328,10 +328,7 @@ def search_f90 (file_name, search_com):
         elif search_com.doc_type == 'FULL':
           print ('\nFile: ' + file_name)
           for com in comments: print (com.rstrip())
-          while True:
-            print (line.rstrip())
-            if line.rstrip()[-1] != '&': break
-            line = f90_file.readline()
+          for aline in line_list: print (aline.rstrip())
         else:
           print ('\nFile: ' + file_name)
           print ('    ' + line.rstrip())
