@@ -223,7 +223,7 @@ if (g_frame) then
       !Write lines with E and B fields. Use w_mat to rotate the field vectors into the global frame
       do point_id = 0, track%n_pt
         orb = particle_in_global_frame(track%pt(point_id)%orb, branch, w_mat_out = w_mat)
-        write (outfile, '(15es19.10E3)') &
+        write (outfile, '(15es26.17E3)') &
         orb%vec(1:6),&
         orb%t, &
         orb%charge, &
