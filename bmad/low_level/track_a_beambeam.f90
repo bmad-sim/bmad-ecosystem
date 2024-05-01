@@ -62,7 +62,7 @@ orb_ptr => orbit
 
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
-if (ele%value(sig_x$) == 0 .or. ele%value(sig_x$) == 0) then
+if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
   if (strong_beam_strength(ele) == 0) return
   call out_io (s_error$, r_name, 'STRONG BEAM SIGMAS NOT SET FOR BEAMBEAM ELEMENT: ' // ele%name, &
                                  'PARTICLE WILL BE MARKED AS LOST.')

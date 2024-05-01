@@ -317,7 +317,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_inject_particle (u, tao_lat, ib)
     call tao_single_track (tao_lat, this_calc_ok, ib)
 
-    if (branch%param%particle /= photon$) then
+    if (branch%param%particle /= photon$ .and. this_calc_ok) then
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                                   tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
 
