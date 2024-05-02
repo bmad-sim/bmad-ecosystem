@@ -13,9 +13,10 @@
 !
 ! {type} is the type of the parameter and is one of:
 !   INT         ! Integer number
+!   INT_ARR     ! Integer array.
 !   REAL        ! Real number
-!   COMPLEX     ! Complex number (Re;Im)
 !   REAL_ARR    ! Real array
+!   COMPLEX     ! Complex number (Re;Im)
 !   LOGIC       ! Logical: "T" or "F".
 !   INUM        ! Integer whose allowed values can be obtained using the "python inum" command.
 !   ENUM        ! String whose allowed values can be obtained using the "python enum" command.
@@ -6792,8 +6793,8 @@ case ('space_charge_com')
   nl=incr(nl); write(li(nl), rmt) 'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
   nl=incr(nl); write(li(nl), rmt) 'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
 
-  nl=incr(nl); write(li(nl), imt) 'space_charge_mesh_size;INT;T;',            space_charge_com%space_charge_mesh_size
-  nl=incr(nl); write(li(nl), imt) 'csr3d_mesh_size;INT;T;',                   space_charge_com%csr3d_mesh_size
+  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'space_charge_mesh_size;INT_ARR;T', (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',       (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
   nl=incr(nl); write(li(nl), imt) 'n_bin;INT;T;',                             space_charge_com%n_bin
   nl=incr(nl); write(li(nl), imt) 'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
   nl=incr(nl); write(li(nl), imt) 'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
