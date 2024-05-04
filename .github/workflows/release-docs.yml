@@ -2,7 +2,7 @@ name: Bmad Ecosystem - Release Documentation
 
 on:
   release:
-    types: [published]
+    types: [created]
 
 permissions:
   contents: write
