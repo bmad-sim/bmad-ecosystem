@@ -123,5 +123,5 @@ jobs:
       - name: Upload Release Assets - Bmad & Tao Manual
         run: |
           gh release upload ${{ steps.release_name.outputs.version }} ${GITHUB_WORKSPACE}/tao/doc/bmad.pdf ${GITHUB_WORKSPACE}/tao/doc/tao.pdf
-          env:
+        env:
           GITHUB_TOKEN: ${{ github.TOKEN }}
