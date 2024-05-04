@@ -463,7 +463,10 @@ case ('beam')
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
     nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
     nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
+    nl=nl+1; write(lines(nl), lmt) '  %full_6D_coupling_calc  = ', beam_init%full_6d_coupling_calc
     nl=nl+1; write(lines(nl), lmt) '  %use_particle_start     = ', beam_init%use_particle_start
+    nl=nl+1; write(lines(nl), lmt) '  %use_t_coords           = ', beam_init%use_t_coords
+    nl=nl+1; write(lines(nl), lmt) '  %use_z_as_t             = ', beam_init%use_z_as_t
     if (beam_init%use_particle_start) then
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Note: Will use particle_start instead'
       nl=nl+1; write(lines(nl), '(a, 3es16.8, 3x, a)') '  %spin                   = ', beam_init%spin,   '! Note: Will use particle_start instead'
@@ -474,11 +477,13 @@ case ('beam')
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[z]       = ', u%model%lat%particle_start%vec(5)
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[pz]      = ', u%model%lat%particle_start%vec(6)
     else
-      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
       nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
+      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
+      nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
     endif
-    nl=nl+1; write(lines(nl), rmt)  '  %center_jitter          = ', beam_init%center_jitter
+    nl=nl+1; write(lines(nl), rmt)  '  %t_offset               = ', beam_init%t_offset
     nl=nl+1; write(lines(nl), imt)  '  %n_particle             = ', beam_init%n_particle
+    nl=nl+1; write(lines(nl), imt)  '  %ix_turn                = ', beam_init%ix_turn
     nl=nl+1; write(lines(nl), imt2) '  %n_bunch                = ', beam_init%n_bunch, '! Note: 0 => Create one bunch if not reading from a file'
     nl=nl+1; write(lines(nl), rmt)  '  %bunch_charge           = ', beam_init%bunch_charge
     if (u%model%lat%branch(0)%param%particle == photon$) then

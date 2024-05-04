@@ -1211,6 +1211,9 @@ else
   case ('position_file')
     write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
 
+  case ('center_jitter', 'center', 'spin')
+    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
+
   case default
     ! If tao_evaluate_expression fails then the root cause may be that the User is trying
     ! something like "set beam_init beam_saved_at = END" so the basic problem is that beam_saved_at
