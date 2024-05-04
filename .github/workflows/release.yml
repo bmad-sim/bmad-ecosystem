@@ -102,3 +102,26 @@ jobs:
           footer: ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Install dependencies for manual build
+        run: |
+          sudo apt update
+          sudo apt install texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra texlive-full texlive-science
+
+      - name: Build Bmad PDF Manual for Release - ${{ steps.release_name.outputs.version }}
+        run: |
+          cd ${GITHUB_WORKSPACE}/bmad/doc/
+          pdflatex bmad.tex
+          ./makeindex.pl
+
+      - name: Build Tao PDF Manual for Release - ${{ steps.release_name.outputs.version }}
+        run: |
+          cd ${GITHUB_WORKSPACE}/tao/doc/
+          pdflatex tao.tex
+          ./makeindex.pl
+
+      - name: Upload Release Assets - Bmad & Tao Manual
+        run: |
+          gh release upload ${{ steps.release_name.outputs.version }} ${GITHUB_WORKSPACE}/tao/doc/bmad.pdf ${GITHUB_WORKSPACE}/tao/doc/tao.pdf
+          env:
+          GITHUB_TOKEN: ${{ github.TOKEN }}
