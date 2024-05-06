@@ -1181,11 +1181,11 @@ subroutine init_multipole_cache(ele)
   type (ele_struct) ele
 end subroutine
 
-subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, always_allocate)
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_sr_time, n_lr_mode, always_allocate)
   import
   implicit none
   type (wake_struct), pointer :: wake
-  integer n_sr_long, n_sr_trans, n_lr_mode
+  integer n_sr_long, n_sr_trans, n_sr_time, n_lr_mode
   logical, optional :: always_allocate
 end subroutine
 

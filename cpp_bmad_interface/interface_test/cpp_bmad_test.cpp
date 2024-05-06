@@ -919,6 +919,68 @@ extern "C" void test_c_expression_atom (Opaque_expression_atom_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_wake_sr_time (CPP_wake_sr_time&, bool&);
+
+void set_CPP_wake_sr_time_test_pattern (CPP_wake_sr_time& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.wake.resize(0);
+  else {
+    C.wake.resize(3);
+    for (unsigned int i = 0; i < C.wake.size(); i++)  {set_CPP_spline_test_pattern(C.wake[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.plane = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 4 + offset; C.position_dependence = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_wake_sr_time (Opaque_wake_sr_time_class* F, bool& c_ok) {
+
+  CPP_wake_sr_time C, C2;
+
+  c_ok = true;
+
+  wake_sr_time_to_c (F, C);
+  set_CPP_wake_sr_time_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " wake_sr_time: C side convert F->C: Good" << endl;
+  } else {
+    cout << " wake_sr_time: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wake_sr_time_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_wake_sr_time (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_wake_sr_time_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " wake_sr_time: F side convert F->C: Good" << endl;
+  } else {
+    cout << " wake_sr_time: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wake_sr_time_test_pattern (C2, 4);
+  wake_sr_time_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_wake_sr_mode (CPP_wake_sr_mode&, bool&);
 
 void set_CPP_wake_sr_mode_test_pattern (CPP_wake_sr_mode& C, int ix_patt) {
@@ -1009,6 +1071,14 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
     {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
+    C.time.resize(0);
+  else {
+    C.time.resize(3);
+    for (unsigned int i = 0; i < C.time.size(); i++)  {set_CPP_wake_sr_time_test_pattern(C.time[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
     C.long_wake.resize(0);
   else {
     C.long_wake.resize(3);
@@ -1024,22 +1094,22 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.z_ref_long = rhs;
+  rhs = 8 + offset; C.z_ref_long = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.z_ref_trans = rhs;
+  rhs = 9 + offset; C.z_ref_trans = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.z_max = rhs;
+  rhs = 10 + offset; C.z_max = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.amp_scale = rhs;
+  rhs = 11 + offset; C.amp_scale = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.z_scale = rhs;
+  rhs = 12 + offset; C.z_scale = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.scale_with_length = (rhs % 2 == 0);
+  rhs = 13 + offset; C.scale_with_length = (rhs % 2 == 0);
 
 
 }

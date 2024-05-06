@@ -231,7 +231,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
+integer ix_sr_long, ix_sr_trans, ix_sr_time, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert, n_energy, n_angle, n_foil
 
@@ -240,7 +240,7 @@ logical write_wake, mode3
 !
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
-ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; ix_st = -1
+ix_sr_long = 0; ix_sr_trans = 0; ix_sr_time, ix_lr_mode = 0; ix_st = -1
 mode3 = .false.; ix_wall3d = 0; ix_convert = 0; ix_c = 0
 n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0; n_foil = 0
 
@@ -281,6 +281,7 @@ if (associated(wake)) then
   if (write_wake) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
+    if (allocated(wake%sr%time))      ix_sr_time    = size(wake%sr%time)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))

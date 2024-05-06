@@ -134,6 +134,15 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine wake_sr_time_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine wake_sr_mode_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -2234,6 +2243,116 @@ end subroutine expression_atom_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine wake_sr_time_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad wake_sr_time_struct to a C++ CPP_wake_sr_time structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad wake_sr_time_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_wake_sr_time struct.
+!-
+
+subroutine wake_sr_time_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine wake_sr_time_to_c2 (C, z_wake, n1_wake, z_plane, z_position_dependence) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    type(c_ptr) :: z_wake(*)
+    integer(c_int), value :: n1_wake
+    integer(c_int) :: z_plane, z_position_dependence
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(wake_sr_time_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_wake(:)
+integer(c_int) :: n1_wake
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_wake = 0
+if (allocated(F%wake)) then
+  n1_wake = size(F%wake); lb1 = lbound(F%wake, 1) - 1
+  allocate (z_wake(n1_wake))
+  do jd1 = 1, n1_wake
+    z_wake(jd1) = c_loc(F%wake(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call wake_sr_time_to_c2 (C, z_wake, n1_wake, F%plane, F%position_dependence)
+
+end subroutine wake_sr_time_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wake_sr_time_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_wake_sr_time structure to a Bmad wake_sr_time_struct structure.
+! This routine is called by wake_sr_time_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the wake_sr_time_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad wake_sr_time_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine wake_sr_time_to_f2 (Fp, z_wake, n1_wake, z_plane, z_position_dependence) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(wake_sr_time_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+type(c_ptr) :: z_wake(*)
+integer(c_int), value :: n1_wake
+integer(c_int) :: z_plane, z_position_dependence
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_wake == 0) then
+  if (allocated(F%wake)) deallocate(F%wake)
+else
+  if (allocated(F%wake)) then
+    if (n1_wake == 0 .or. any(shape(F%wake) /= [n1_wake])) deallocate(F%wake)
+    if (any(lbound(F%wake) /= 1)) deallocate(F%wake)
+  endif
+  if (.not. allocated(F%wake)) allocate(F%wake(1:n1_wake+1-1))
+  do jd1 = 1, n1_wake
+    call spline_to_f (z_wake(jd1), c_loc(F%wake(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%plane = z_plane
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%position_dependence = z_position_dependence
+
+end subroutine wake_sr_time_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine wake_sr_mode_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad wake_sr_mode_struct to a C++ CPP_wake_sr_mode structure
@@ -2355,14 +2474,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_sr_to_c2 (C, z_file, z_long, n1_long, z_trans, n1_trans, z_z_ref_long, &
-      z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
+  subroutine wake_sr_to_c2 (C, z_file, z_time, n1_time, z_long, n1_long, z_trans, n1_trans, &
+      z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
-    type(c_ptr) :: z_long(*), z_trans(*)
-    integer(c_int), value :: n1_long, n1_trans
+    type(c_ptr) :: z_time(*), z_long(*), z_trans(*)
+    integer(c_int), value :: n1_time, n1_long, n1_trans
     real(c_double) :: z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale
     logical(c_bool) :: z_scale_with_length
   end subroutine
@@ -2373,6 +2493,8 @@ type(c_ptr), value :: C
 type(wake_sr_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
+type(c_ptr), allocatable :: z_time(:)
+integer(c_int) :: n1_time
 type(c_ptr), allocatable :: z_long(:)
 integer(c_int) :: n1_long
 type(c_ptr), allocatable :: z_trans(:)
@@ -2382,6 +2504,15 @@ integer(c_int) :: n1_trans
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_time = 0
+if (allocated(F%time)) then
+  n1_time = size(F%time); lb1 = lbound(F%time, 1) - 1
+  allocate (z_time(n1_time))
+  do jd1 = 1, n1_time
+    z_time(jd1) = c_loc(F%time(jd1+lb1))
+  enddo
+endif
 !! f_side.to_c_trans[type, 1, ALLOC]
  n1_long = 0
 if (allocated(F%long)) then
@@ -2402,8 +2533,9 @@ if (allocated(F%trans)) then
 endif
 
 !! f_side.to_c2_call
-call wake_sr_to_c2 (C, trim(F%file) // c_null_char, z_long, n1_long, z_trans, n1_trans, &
-    F%z_ref_long, F%z_ref_trans, F%z_max, F%amp_scale, F%z_scale, c_logic(F%scale_with_length))
+call wake_sr_to_c2 (C, trim(F%file) // c_null_char, z_time, n1_time, z_long, n1_long, z_trans, &
+    n1_trans, F%z_ref_long, F%z_ref_trans, F%z_max, F%amp_scale, F%z_scale, &
+    c_logic(F%scale_with_length))
 
 end subroutine wake_sr_to_c
 
@@ -2423,8 +2555,8 @@ end subroutine wake_sr_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_sr_to_f2 (Fp, z_file, z_long, n1_long, z_trans, n1_trans, z_z_ref_long, &
-    z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
+subroutine wake_sr_to_f2 (Fp, z_file, z_time, n1_time, z_long, n1_long, z_trans, n1_trans, &
+    z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
 
 
 implicit none
@@ -2434,8 +2566,8 @@ type(wake_sr_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 character(c_char) :: z_file(*)
-type(c_ptr) :: z_long(*), z_trans(*)
-integer(c_int), value :: n1_long, n1_trans
+type(c_ptr) :: z_time(*), z_long(*), z_trans(*)
+integer(c_int), value :: n1_time, n1_long, n1_trans
 real(c_double) :: z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale
 logical(c_bool) :: z_scale_with_length
 
@@ -2443,6 +2575,20 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_file, F%file)
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_time == 0) then
+  if (allocated(F%time)) deallocate(F%time)
+else
+  if (allocated(F%time)) then
+    if (n1_time == 0 .or. any(shape(F%time) /= [n1_time])) deallocate(F%time)
+    if (any(lbound(F%time) /= 1)) deallocate(F%time)
+  endif
+  if (.not. allocated(F%time)) allocate(F%time(1:n1_time+1-1))
+  do jd1 = 1, n1_time
+    call wake_sr_time_to_f (z_time(jd1), c_loc(F%time(jd1+1-1)))
+  enddo
+endif
+
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_long == 0) then
   if (allocated(F%long)) deallocate(F%long)

@@ -12,7 +12,8 @@ implicit none
 
 ! Given a spline s and some point x_eval, y_spline is:
 !   y_spline = Sum: s%coef(i) * dx**i, i = [0:3]
-! where dx = x_eval - s%x0 
+! where dx = x_eval - s%x0
+! Since (currently) there is no smoothing, y0 = coef(0).
 
 type spline_struct
   real(rp) :: x0 = 0, y0 = 0     ! Point at start of spline

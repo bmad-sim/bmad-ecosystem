@@ -21,6 +21,7 @@ call test1_f_coord(ok); if (.not. ok) all_ok = .false.
 call test1_f_coord_array(ok); if (.not. ok) all_ok = .false.
 call test1_f_bpm_phase_coupling(ok); if (.not. ok) all_ok = .false.
 call test1_f_expression_atom(ok); if (.not. ok) all_ok = .false.
+call test1_f_wake_sr_time(ok); if (.not. ok) all_ok = .false.
 call test1_f_wake_sr_mode(ok); if (.not. ok) all_ok = .false.
 call test1_f_wake_sr(ok); if (.not. ok) all_ok = .false.
 call test1_f_wake_lr_mode(ok); if (.not. ok) all_ok = .false.

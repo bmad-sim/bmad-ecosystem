@@ -50,7 +50,7 @@ bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.log
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.out
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.pdf
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
-bmad-doc/tao_examples/csr_beam_tracking/csr_wake.dat
+bmad-doc/tao_examples/csr_beam_tracking/*.dat
 
 tao/doc/tao.pdf
 bmad/doc/bmad.pdf

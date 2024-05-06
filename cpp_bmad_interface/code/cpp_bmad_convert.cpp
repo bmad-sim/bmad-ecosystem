@@ -580,6 +580,46 @@ extern "C" void expression_atom_to_c2 (CPP_expression_atom& C, c_Char z_name, c_
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_wake_sr_time
+
+extern "C" void wake_sr_time_to_c (const Opaque_wake_sr_time_class*, CPP_wake_sr_time&);
+
+// c_side.to_f2_arg
+extern "C" void wake_sr_time_to_f2 (Opaque_wake_sr_time_class*, const CPP_spline**, Int,
+    c_Int&, c_Int&);
+
+extern "C" void wake_sr_time_to_f (const CPP_wake_sr_time& C, Opaque_wake_sr_time_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_wake = C.wake.size();
+  const CPP_spline** z_wake = NULL;
+  if (n1_wake != 0) {
+    z_wake = new const CPP_spline*[n1_wake];
+    for (int i = 0; i < n1_wake; i++) z_wake[i] = &C.wake[i];
+  }
+
+  // c_side.to_f2_call
+  wake_sr_time_to_f2 (F, z_wake, n1_wake, C.plane, C.position_dependence);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_wake;
+}
+
+// c_side.to_c2_arg
+extern "C" void wake_sr_time_to_c2 (CPP_wake_sr_time& C, Opaque_spline_class** z_wake, Int
+    n1_wake, c_Int& z_plane, c_Int& z_position_dependence) {
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.wake.resize(n1_wake);
+  for (int i = 0; i < n1_wake; i++) spline_to_c(z_wake[i], C.wake[i]);
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.plane = z_plane;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.position_dependence = z_position_dependence;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_wake_sr_mode
 
 extern "C" void wake_sr_mode_to_c (const Opaque_wake_sr_mode_class*, CPP_wake_sr_mode&);
@@ -630,10 +670,18 @@ extern "C" void wake_sr_mode_to_c2 (CPP_wake_sr_mode& C, c_Real& z_amp, c_Real& 
 extern "C" void wake_sr_to_c (const Opaque_wake_sr_class*, CPP_wake_sr&);
 
 // c_side.to_f2_arg
-extern "C" void wake_sr_to_f2 (Opaque_wake_sr_class*, c_Char, const CPP_wake_sr_mode**, Int,
-    const CPP_wake_sr_mode**, Int, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Bool&);
+extern "C" void wake_sr_to_f2 (Opaque_wake_sr_class*, c_Char, const CPP_wake_sr_time**, Int,
+    const CPP_wake_sr_mode**, Int, const CPP_wake_sr_mode**, Int, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Bool&);
 
 extern "C" void wake_sr_to_f (const CPP_wake_sr& C, Opaque_wake_sr_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_time = C.time.size();
+  const CPP_wake_sr_time** z_time = NULL;
+  if (n1_time != 0) {
+    z_time = new const CPP_wake_sr_time*[n1_time];
+    for (int i = 0; i < n1_time; i++) z_time[i] = &C.time[i];
+  }
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_long_wake = C.long_wake.size();
   const CPP_wake_sr_mode** z_long_wake = NULL;
@@ -650,9 +698,12 @@ extern "C" void wake_sr_to_f (const CPP_wake_sr& C, Opaque_wake_sr_class* F) {
   }
 
   // c_side.to_f2_call
-  wake_sr_to_f2 (F, C.file.c_str(), z_long_wake, n1_long_wake, z_trans_wake, n1_trans_wake,
-      C.z_ref_long, C.z_ref_trans, C.z_max, C.amp_scale, C.z_scale, C.scale_with_length);
+  wake_sr_to_f2 (F, C.file.c_str(), z_time, n1_time, z_long_wake, n1_long_wake, z_trans_wake,
+      n1_trans_wake, C.z_ref_long, C.z_ref_trans, C.z_max, C.amp_scale, C.z_scale,
+      C.scale_with_length);
 
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_time;
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_long_wake;
   // c_side.to_f_cleanup[type, 1, ALLOC]
@@ -660,13 +711,18 @@ extern "C" void wake_sr_to_f (const CPP_wake_sr& C, Opaque_wake_sr_class* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void wake_sr_to_c2 (CPP_wake_sr& C, c_Char z_file, Opaque_wake_sr_mode_class**
-    z_long_wake, Int n1_long_wake, Opaque_wake_sr_mode_class** z_trans_wake, Int n1_trans_wake,
-    c_Real& z_z_ref_long, c_Real& z_z_ref_trans, c_Real& z_z_max, c_Real& z_amp_scale, c_Real&
-    z_z_scale, c_Bool& z_scale_with_length) {
+extern "C" void wake_sr_to_c2 (CPP_wake_sr& C, c_Char z_file, Opaque_wake_sr_time_class**
+    z_time, Int n1_time, Opaque_wake_sr_mode_class** z_long_wake, Int n1_long_wake,
+    Opaque_wake_sr_mode_class** z_trans_wake, Int n1_trans_wake, c_Real& z_z_ref_long, c_Real&
+    z_z_ref_trans, c_Real& z_z_max, c_Real& z_amp_scale, c_Real& z_z_scale, c_Bool&
+    z_scale_with_length) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.file = z_file;
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.time.resize(n1_time);
+  for (int i = 0; i < n1_time; i++) wake_sr_time_to_c(z_time[i], C.time[i]);
+
   // c_side.to_c2_set[type, 1, ALLOC]
   C.long_wake.resize(n1_long_wake);
   for (int i = 0; i < n1_long_wake; i++) wake_sr_mode_to_c(z_long_wake[i], C.long_wake[i]);
