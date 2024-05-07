@@ -601,11 +601,11 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
 end type
 
 type wake_sr_time_struct
-  type(spline_struct), allocatable :: wake(:)     ! Wake vs time.
-  real(rp), allocatable :: w_sum(:)               ! Running sum used when tracking.                 
-  integer :: plane = not_set$                     ! x$, y$, xy$, z$.
-  integer :: position_dependence = not_set$       ! Transverse: leading$, trailing$, none$
-                                                  ! Longitudinal: x_leading$, ..., y_trailing$, none$
+  type(spline_struct), allocatable :: wake(:)          ! Wake vs time.
+  type(spline_struct), allocatable :: w1(:), w2(:)     ! Running sums used when tracking.                 
+  integer :: plane = not_set$                          ! x$, y$, xy$, z$.
+  integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
+                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
 end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct

@@ -121,7 +121,7 @@ real(rp) omega, f_exp, ff, c_dt, s_dt, kx, ky, vec(6)
 real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin, t_cut
 real(rp) da_sin, da_cos, db_sin, db_cos
 
-integer n_mode, i, j, k, i0, n, species_charge
+integer n_mode, i, j, k, i0, n
 
 ! Check to see if we need to do any calc
 
@@ -179,7 +179,7 @@ do i = 1, size(ele%wake%lr%mode)
 
   omega = twopi * mode%freq
   f_exp = mode%damp
-  ff0 = ele%wake%lr%amp_scale * particle%charge * mode%r_over_q
+  ff0 = ele%wake%lr%amp_scale * abs(particle%charge) * mode%r_over_q
 
   if (mode%polarized) then
     c_a = cos(twopi*mode%angle)
@@ -192,7 +192,6 @@ do i = 1, size(ele%wake%lr%mode)
 
   do k = 1, size(bunch%particle)
     particle => bunch%particle(bunch%ix_z(k))
-    species_charge = charge_of(particle%species)
     if (particle%state /= alive$) cycle
 
     dt = ele%wake%lr%time_scale * (particle%t - ele%wake%lr%t_ref)
@@ -220,7 +219,7 @@ do i = 1, size(ele%wake%lr%mode)
         w_skew = -ky
       endif
 
-      particle%vec(6) = particle%vec(6) + (w_norm * kx0 + w_skew * ky0) * cos(twopi * mode%phi) * ff0 * particle%charge * species_charge
+      particle%vec(6) = particle%vec(6) + (w_norm * kx0 + w_skew * ky0) * cos(twopi * mode%phi) * ff0 * particle%charge
     endif
 
     ! Longitudinal non-self-wake kick
@@ -520,10 +519,10 @@ if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$)
 do i = 1, size(ele%wake%sr%time)
   srt => ele%wake%sr%time(i)
 
-  select case (srt%plane == z$)
+  !--------------------------------------------
+  select case (srt%plane == z$)  ! Longitudinal
     ! Kick particle from existing wake.
-
-    call spline_evaluate(srt%w_sum, orbit%vec(5), ok, w_norm)
+    call spline_evaluate(srt%w1, orbit%vec(5), ok, w_norm)
 
     select case (srt%position_dependence)
     case (none$, x_leading$, y_leading$)
@@ -535,16 +534,55 @@ do i = 1, size(ele%wake%sr%time)
     end select
 
     ! Self kick
+    w_norm = 0.5_rp * f0 * srt%w(1)%y0
+
+    select case (srt%position_dependence)
+    case (none$)
+      orbit%vec(6) = orbit%vec(6) - w_norm 
+    case (x_leading$, x_trailing$)
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(1) * w_norm
+    case (y_leading$, y_trailing$)
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(3) * w_norm
+    end select
+
 
     ! Add to wake
 
+    select case (mode%position_dependence)
+    case (none$, x_trailing$, y_trailing$)
+      f_add = f0
+    case (x_leading$)
+      f_add = f0 * orbit%vec(1)
+    case (y_leading$)
+      f_add = f0 * orbit%vec(3)
+    end select
 
-
+  !-------------------------
   case default  ! Transverse
 
     ! Kick particle from existing wake.
+    call spline_evaluate(srt%w1, orbit%vec(5), ok, w_norm)
+
+    if (srt%plane /= y$) then
+      if (srt%position_dependence == trailing$) then
+        orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
+      else  ! leading
+        orbit%vec(2) = orbit%vec(2) - w_norm
+      endif
+    endif
+
+    ! Y-axis kick
+
+    if (srt%plane /= x$) then
+      if (srt%position_dependence == trailing$) then
+        orbit%vec(4) = orbit%vec(4) - w_norm * orbit%vec(3)
+      else  leading
+        orbit%vec(4) = orbit%vec(4) - w_norm
+      endif
+    endif
 
     ! Add to wake
+    if (mode%position_dependence == leading$) then
 
   end select
 
