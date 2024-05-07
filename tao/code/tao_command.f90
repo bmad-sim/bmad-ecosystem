@@ -364,7 +364,8 @@ case ('cut_ring')
   case ('-static'); u%model%lat%particle_start = u%model%tao_branch(0)%orbit(0)
   case ('-zero');   u%model%lat%particle_start%vec = 0
   end select
-  
+  u%model%tao_branch(0)%orb0 = u%model%lat%particle_start
+
   u%calc%lattice = .true.
   call tao_lattice_calc (ok)
 
