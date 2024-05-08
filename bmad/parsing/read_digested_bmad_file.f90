@@ -881,17 +881,23 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_sr_z /= 0 .or. ix_lr_mode /= 0
     call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode)
     wake => ele%wake
     read (d_unit, err = 9800, end = 9800) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+
     do i = 1, size(wake%sr%long)
       read (d_unit, err = 9800, end = 9800) wake%sr%long(i)
     enddo
+
     do i = 1, size(wake%sr%trans)
       read (d_unit, err = 9800, end = 9800) wake%sr%trans(i)
     enddo
+
     do i = 1, size(wake%sr%z)
-      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)
+      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, n
+      allocate(wake%sr%z(i)%w(n))
+      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%w
     enddo
 
     read (d_unit, err = 9800, end = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+
     do i = 1, size(wake%lr%mode)
       read (d_unit, err = 9800, end = 9800) wake%lr%mode(i)
     enddo

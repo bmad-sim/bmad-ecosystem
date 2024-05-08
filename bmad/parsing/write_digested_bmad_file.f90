@@ -281,7 +281,7 @@ if (associated(wake)) then
   if (write_wake) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
-    if (allocated(wake%sr%z))      ix_sr_z    = size(wake%sr%z)
+    if (allocated(wake%sr%z))         ix_sr_z       = size(wake%sr%z)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
@@ -631,13 +631,22 @@ enddo
 
 if (associated(wake) .and. write_wake) then
   write (d_unit) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+
   do i = 1, size(wake%sr%long)
     write (d_unit) wake%sr%long(i)
   enddo
+
   do i = 1, size(wake%sr%trans)
     write (d_unit) wake%sr%trans(i)
   enddo
+
+  do i = 1, size(wake%sr%z)
+    write (d_unit) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, size(wake%sr%z(i)%w)
+    write (d_unit) wake%sr%z(i)%w
+  enddo
+
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+
   do i = 1, size(wake%lr%mode)
     write (d_unit) wake%lr%mode(i)
   enddo
