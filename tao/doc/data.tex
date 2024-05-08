@@ -1089,13 +1089,13 @@ Damping partition numbers.
   %----------------------
   \item[deta_ds.a, deta_ds.b] \Newline \hlabel{deta.ds.a}
 Normal mode dispersion derivative with respect to $s$ -- $d\eta_a/ds$ and $d\eta_b/ds$.
-Also see \vn{etap.a} and \vn{etap.b}. These datums are useful when optimizing to mimimize
+Also see \vn{etap.a} and \vn{etap.b}. These datums are useful when optimizing to minimize
 the dispersion in a region.
 
   %----------------------
   \item[deta_ds.x, deta_ds.y] \Newline \hlabel{deta.ds.x}
 Horizontal and vertical dispersion derivative with respect to $s$ -- $d\eta_x/ds$ and $d\eta_y/ds$.
-Also see \vn{etap.x} and \vn{etap.y}. These datums are useful when optimizing to mimimize
+Also see \vn{etap.x} and \vn{etap.y}. These datums are useful when optimizing to minimize
 the dispersion in a region.
 
   %----------------------
@@ -1975,6 +1975,15 @@ turn in a branch. This being the case, the geometry of the branch is not pertine
 \vn{unstable.orbit} is value as shown above for a single particle in an open branch but here averaged
 over all particles in the bunch. In this case, if \vn{ele_name} is not specified, it is taken to be
 the bunch tracking end point (which may not be the end of the branch).
+
+One potential hindrance to optimization occurs if no apertures are set and the default aperture set by
+\vn{bmad_com%max_aperture_limit} of 100~meters is used. In this case, the orbit can become so convoluted
+with the orbit oscillating with large amplitude, that it is hard for the optimizer to find a stable
+solution. The fix is either to set individual apertures or \vn{bmad_com%max_aperture_limit} to 
+prevent the large orbit oscillations. Apertures of 0.1~meter or less are generally advised.
+
+
+  %-----------------------
 
 \begin{figure}
   \centering

@@ -580,6 +580,73 @@ extern "C" void expression_atom_to_c2 (CPP_expression_atom& C, c_Char z_name, c_
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_wake_sr_z
+
+extern "C" void wake_sr_z_to_c (const Opaque_wake_sr_z_class*, CPP_wake_sr_z&);
+
+// c_side.to_f2_arg
+extern "C" void wake_sr_z_to_f2 (Opaque_wake_sr_z_class*, const CPP_spline**, Int, const
+    CPP_spline**, Int, const CPP_spline**, Int, c_Int&, c_Int&);
+
+extern "C" void wake_sr_z_to_f (const CPP_wake_sr_z& C, Opaque_wake_sr_z_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_w = C.w.size();
+  const CPP_spline** z_w = NULL;
+  if (n1_w != 0) {
+    z_w = new const CPP_spline*[n1_w];
+    for (int i = 0; i < n1_w; i++) z_w[i] = &C.w[i];
+  }
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_w1 = C.w1.size();
+  const CPP_spline** z_w1 = NULL;
+  if (n1_w1 != 0) {
+    z_w1 = new const CPP_spline*[n1_w1];
+    for (int i = 0; i < n1_w1; i++) z_w1[i] = &C.w1[i];
+  }
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_w2 = C.w2.size();
+  const CPP_spline** z_w2 = NULL;
+  if (n1_w2 != 0) {
+    z_w2 = new const CPP_spline*[n1_w2];
+    for (int i = 0; i < n1_w2; i++) z_w2[i] = &C.w2[i];
+  }
+
+  // c_side.to_f2_call
+  wake_sr_z_to_f2 (F, z_w, n1_w, z_w1, n1_w1, z_w2, n1_w2, C.plane, C.position_dependence);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_w;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_w1;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_w2;
+}
+
+// c_side.to_c2_arg
+extern "C" void wake_sr_z_to_c2 (CPP_wake_sr_z& C, Opaque_spline_class** z_w, Int n1_w,
+    Opaque_spline_class** z_w1, Int n1_w1, Opaque_spline_class** z_w2, Int n1_w2, c_Int&
+    z_plane, c_Int& z_position_dependence) {
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.w.resize(n1_w);
+  for (int i = 0; i < n1_w; i++) spline_to_c(z_w[i], C.w[i]);
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.w1.resize(n1_w1);
+  for (int i = 0; i < n1_w1; i++) spline_to_c(z_w1[i], C.w1[i]);
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.w2.resize(n1_w2);
+  for (int i = 0; i < n1_w2; i++) spline_to_c(z_w2[i], C.w2[i]);
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.plane = z_plane;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.position_dependence = z_position_dependence;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_wake_sr_mode
 
 extern "C" void wake_sr_mode_to_c (const Opaque_wake_sr_mode_class*, CPP_wake_sr_mode&);
@@ -630,10 +697,18 @@ extern "C" void wake_sr_mode_to_c2 (CPP_wake_sr_mode& C, c_Real& z_amp, c_Real& 
 extern "C" void wake_sr_to_c (const Opaque_wake_sr_class*, CPP_wake_sr&);
 
 // c_side.to_f2_arg
-extern "C" void wake_sr_to_f2 (Opaque_wake_sr_class*, c_Char, const CPP_wake_sr_mode**, Int,
-    const CPP_wake_sr_mode**, Int, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Bool&);
+extern "C" void wake_sr_to_f2 (Opaque_wake_sr_class*, c_Char, const CPP_wake_sr_z**, Int, const
+    CPP_wake_sr_mode**, Int, const CPP_wake_sr_mode**, Int, c_Real&, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Bool&);
 
 extern "C" void wake_sr_to_f (const CPP_wake_sr& C, Opaque_wake_sr_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_z = C.z.size();
+  const CPP_wake_sr_z** z_z = NULL;
+  if (n1_z != 0) {
+    z_z = new const CPP_wake_sr_z*[n1_z];
+    for (int i = 0; i < n1_z; i++) z_z[i] = &C.z[i];
+  }
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_long_wake = C.long_wake.size();
   const CPP_wake_sr_mode** z_long_wake = NULL;
@@ -650,9 +725,12 @@ extern "C" void wake_sr_to_f (const CPP_wake_sr& C, Opaque_wake_sr_class* F) {
   }
 
   // c_side.to_f2_call
-  wake_sr_to_f2 (F, C.file.c_str(), z_long_wake, n1_long_wake, z_trans_wake, n1_trans_wake,
-      C.z_ref_long, C.z_ref_trans, C.z_max, C.amp_scale, C.z_scale, C.scale_with_length);
+  wake_sr_to_f2 (F, C.file.c_str(), z_z, n1_z, z_long_wake, n1_long_wake, z_trans_wake,
+      n1_trans_wake, C.z_ref_long, C.z_ref_trans, C.z_max, C.amp_scale, C.z_scale,
+      C.scale_with_length);
 
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_z;
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_long_wake;
   // c_side.to_f_cleanup[type, 1, ALLOC]
@@ -660,13 +738,18 @@ extern "C" void wake_sr_to_f (const CPP_wake_sr& C, Opaque_wake_sr_class* F) {
 }
 
 // c_side.to_c2_arg
-extern "C" void wake_sr_to_c2 (CPP_wake_sr& C, c_Char z_file, Opaque_wake_sr_mode_class**
-    z_long_wake, Int n1_long_wake, Opaque_wake_sr_mode_class** z_trans_wake, Int n1_trans_wake,
-    c_Real& z_z_ref_long, c_Real& z_z_ref_trans, c_Real& z_z_max, c_Real& z_amp_scale, c_Real&
-    z_z_scale, c_Bool& z_scale_with_length) {
+extern "C" void wake_sr_to_c2 (CPP_wake_sr& C, c_Char z_file, Opaque_wake_sr_z_class** z_z, Int
+    n1_z, Opaque_wake_sr_mode_class** z_long_wake, Int n1_long_wake,
+    Opaque_wake_sr_mode_class** z_trans_wake, Int n1_trans_wake, c_Real& z_z_ref_long, c_Real&
+    z_z_ref_trans, c_Real& z_z_max, c_Real& z_amp_scale, c_Real& z_z_scale, c_Bool&
+    z_scale_with_length) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.file = z_file;
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.z.resize(n1_z);
+  for (int i = 0; i < n1_z; i++) wake_sr_z_to_c(z_z[i], C.z[i]);
+
   // c_side.to_c2_set[type, 1, ALLOC]
   C.long_wake.resize(n1_long_wake);
   for (int i = 0; i < n1_long_wake; i++) wake_sr_mode_to_c(z_long_wake[i], C.long_wake[i]);

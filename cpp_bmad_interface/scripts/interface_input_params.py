@@ -32,6 +32,7 @@ struct_list = [
     'coord_array_struct',
     'bpm_phase_coupling_struct',
     'expression_atom_struct',
+    'wake_sr_z_struct',
     'wake_sr_mode_struct',
     'wake_sr_struct',
     'wake_lr_mode_struct',
