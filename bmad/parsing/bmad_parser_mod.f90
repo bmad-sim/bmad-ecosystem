@@ -3786,7 +3786,7 @@ type (wake_sr_z_struct), pointer :: srt
 type (wake_sr_struct), pointer :: wake_sr
 
 real(rp), allocatable :: table(:,:)
-integer i, itrans, ilong, itime, ipt, ix_word
+integer i, itrans, ilong, iz, ipt, ix_word
 
 logical delim_found, err_flag, err
 
@@ -3811,7 +3811,7 @@ err_flag = .true.
 
 itrans = 0
 ilong = 0
-itime = 0
+iz = 0
 
 do
   call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
@@ -3842,8 +3842,8 @@ do
     itrans = itrans + 1
     srm => trans(itrans)
   case ('TIME')
-    itime = itime + 1
-    srt => time(itime)
+    iz = iz + 1
+    srt => time(iz)
   case default
     call parser_error ('UNKNOWN SR_WAKE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
     return
@@ -3907,8 +3907,8 @@ enddo
 
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
-allocate (ele%wake%sr%z(itime))
-ele%wake%sr%z = time(1:itime)
+allocate (ele%wake%sr%z(iz))
+ele%wake%sr%z = time(1:iz)
 
 allocate (ele%wake%sr%long(ilong))
 ele%wake%sr%long = long(1:ilong)
@@ -4099,9 +4099,10 @@ namelist / long_range_modes / lr
 
 ! Init
 
-if (.not. associated(ele%wake)) allocate (ele%wake)
+if (.not. associated(ele%wake))         allocate (ele%wake)
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
+if (.not. allocated(ele%wake%sr%z))     allocate (ele%wake%sr%z(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 ! get data
@@ -4216,6 +4217,8 @@ if (.not. associated(ele%wake))   allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
 if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
+if (allocated(ele%wake%sr%z))     deallocate (ele%wake%sr%z)
+allocate(ele%wake%sr%z(0))
 
 ! Open file
 

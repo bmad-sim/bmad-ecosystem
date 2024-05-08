@@ -659,7 +659,7 @@ if (associated(ele%rad_map)) then
   write (d_unit) ele%rad_map%rm1, ele%rad_map%stale
 endif
 
-end subroutine
+end subroutine write_this_ele
 
 !-------------------------------------------------------------------------------------
 ! contains
@@ -689,7 +689,7 @@ else
   write (d_unit) 0
 endif
 
-end subroutine
+end subroutine write_this_wall3d
 
 !-------------------------------------------------------------------------------------
 ! contains
@@ -718,5 +718,5 @@ enddo
 
 end subroutine write_this_wall3d_section
 
-end subroutine
+end subroutine write_digested_bmad_file
 

@@ -1667,7 +1667,8 @@ if (lb_subatomic <= species_in .and. species_in <= ub_subatomic) then
 endif
 
 if (charge < -127 .or. charge > 127) then
-  call out_io (s_error$, r_name, 'CHARGE TO SET TO DOES NOT MAKE SENSE: ' // int_str(charge))
+  call out_io (s_error$, r_name, 'CHARGE TO SET TO IS TOO LARGE: ' // int_str(charge))
+  species_charged = species_in
   return
 endif
 
