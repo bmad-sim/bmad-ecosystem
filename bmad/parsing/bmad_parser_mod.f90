@@ -3781,12 +3781,12 @@ type (ele_struct) ele
 type (lat_struct), pointer :: lat
 type (wake_sr_mode_struct), target :: trans(100), long(100)
 type (wake_sr_mode_struct), pointer :: srm
-type (wake_sr_time_struct), target :: time(100)
-type (wake_sr_time_struct), pointer :: srt
+type (wake_sr_z_struct), target :: time(100)
+type (wake_sr_z_struct), pointer :: srt
 type (wake_sr_struct), pointer :: wake_sr
 
 real(rp), allocatable :: table(:,:)
-integer itrans, ilong, itime, ipt, ix_word
+integer i, itrans, ilong, itime, ipt, ix_word
 
 logical delim_found, err_flag, err
 
@@ -3798,13 +3798,13 @@ character(1) delim
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
-if (allocated(ele%wake%sr%time)) deallocate (ele%wake%sr%time)
+if (allocated(ele%wake%sr%z)) deallocate (ele%wake%sr%z)
 
 lat => ele%branch%lat
 wake_sr => ele%wake%sr
 trans = wake_sr_mode_struct()
 long = wake_sr_mode_struct()
-time = wake_sr_time_struct()
+time = wake_sr_z_struct()
 err_flag = .true.
 
 ! get data
@@ -3860,16 +3860,17 @@ do
       select case (attrib_name)
       case ('W')
         if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE TIME W DEFINITION', ele, delim, delim_found)) return
-        if (.not. parse_real_matrix(lat, ele, traim(ele%name) // 'SR_WAKE TIME W LIST', table, 3, delim, delim_found)) return
+        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE TIME W LIST', table, 3, delim, delim_found)) return
         ipt = size(table, 1)
         call reallocate_spline(srt%w, ipt)
-        call reallocate_spline(srt%w_sum, ipt)
+        call reallocate_spline(srt%w1, ipt)
+        call reallocate_spline(srt%w2, ipt)
         do i = 1, ipt-1
           srt%w(i) = create_a_spline(table(i,1:2), table(i+1,1:2), table(i,3), table(i+1,3))
         enddo
 
       case ('PLANE')
-        call get_switch ('SR_WAKE TIME PLANE', sr_time_plane_name, srt%plane, err, ele, delim, delim_found); if (err) return
+        call get_switch ('SR_WAKE TIME PLANE', sr_z_plane_name, srt%plane, err, ele, delim, delim_found); if (err) return
       case ('POSITION_DEPENDENCE')
         call get_switch ('SR_WAKE TIME POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srt%position_dependence, err_flag, ele, delim, delim_found)
         if (err_flag) return
@@ -3906,8 +3907,8 @@ enddo
 
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
-allocate (ele%wake%sr%time(itime))
-ele%wake%sr%time = time(1:itime)
+allocate (ele%wake%sr%z(itime))
+ele%wake%sr%z = time(1:itime)
 
 allocate (ele%wake%sr%long(ilong))
 ele%wake%sr%long = long(1:ilong)
@@ -3956,7 +3957,7 @@ character(1) delim
 ! Init
 
 if (.not. associated(ele%wake)) allocate (ele%wake)
-if (.not. allocated(ele%wake%sr%time))  allocate (ele%wake%sr%time(0))
+if (.not. allocated(ele%wake%sr%z))  allocate (ele%wake%sr%z(0))
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)

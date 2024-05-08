@@ -584,7 +584,7 @@ integer, parameter :: x_leading$ = 2, y_leading$ = 3, x_trailing$ = 4, y_trailin
 character(8), parameter :: sr_transverse_position_dep_name(3) = [character(8):: 'none', 'leading', 'trailing']
 character(12), parameter :: sr_longitudinal_position_dep_name(5) = &
                 [character(12):: 'none', 'x_leading', 'y_leading', 'x_trailing', 'y_trailing']
-character(8), parameter :: sr_time_plane_name(5) = [character(8):: 'X', 'XY', 'Y', null_name$, 'Z']
+character(8), parameter :: sr_z_plane_name(5) = [character(8):: 'X', 'XY', 'Y', null_name$, 'Z']
 
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
@@ -600,8 +600,8 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
                                              ! Longitudinal: x_leading$, ..., y_trailing$, none$
 end type
 
-type wake_sr_time_struct
-  type(spline_struct), allocatable :: wake(:)          ! Wake vs time.
+type wake_sr_z_struct
+  type(spline_struct), allocatable :: w(:)             ! Wake vs time.
   type(spline_struct), allocatable :: w1(:), w2(:)     ! Running sums used when tracking.                 
   integer :: plane = not_set$                          ! x$, y$, xy$, z$.
   integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
@@ -610,7 +610,7 @@ end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
   character(200) :: file = ''
-  type (wake_sr_time_struct), allocatable :: time(:)
+  type (wake_sr_z_struct), allocatable :: z(:)
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
   real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.

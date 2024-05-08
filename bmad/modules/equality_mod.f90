@@ -16,7 +16,7 @@ use bmad_struct
 interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_ac_kicker_time, eq_ac_kicker_freq
   module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord
-  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_time, eq_wake_sr_mode
+  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z, eq_wake_sr_mode
   module procedure eq_wake_sr, eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake
   module procedure eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1
   module procedure eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map
@@ -435,28 +435,40 @@ end function eq_expression_atom
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_wake_sr_time (f1, f2) result (is_eq)
+elemental function eq_wake_sr_z (f1, f2) result (is_eq)
 
 implicit none
 
-type(wake_sr_time_struct), intent(in) :: f1, f2
+type(wake_sr_z_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%wake) .eqv. allocated(f2%wake))
+is_eq = is_eq .and. (allocated(f1%w) .eqv. allocated(f2%w))
 if (.not. is_eq) return
-if (allocated(f1%wake)) is_eq = all(shape(f1%wake) == shape(f2%wake))
+if (allocated(f1%w)) is_eq = all(shape(f1%w) == shape(f2%w))
 if (.not. is_eq) return
-if (allocated(f1%wake)) is_eq = all(f1%wake == f2%wake)
+if (allocated(f1%w)) is_eq = all(f1%w == f2%w)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w1) .eqv. allocated(f2%w1))
+if (.not. is_eq) return
+if (allocated(f1%w1)) is_eq = all(shape(f1%w1) == shape(f2%w1))
+if (.not. is_eq) return
+if (allocated(f1%w1)) is_eq = all(f1%w1 == f2%w1)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w2) .eqv. allocated(f2%w2))
+if (.not. is_eq) return
+if (allocated(f1%w2)) is_eq = all(shape(f1%w2) == shape(f2%w2))
+if (.not. is_eq) return
+if (allocated(f1%w2)) is_eq = all(f1%w2 == f2%w2)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%plane == f2%plane)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%position_dependence == f2%position_dependence)
 
-end function eq_wake_sr_time
+end function eq_wake_sr_z
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -510,11 +522,11 @@ is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%time) .eqv. allocated(f2%time))
+is_eq = is_eq .and. (allocated(f1%z) .eqv. allocated(f2%z))
 if (.not. is_eq) return
-if (allocated(f1%time)) is_eq = all(shape(f1%time) == shape(f2%time))
+if (allocated(f1%z)) is_eq = all(shape(f1%z) == shape(f2%z))
 if (.not. is_eq) return
-if (allocated(f1%time)) is_eq = all(f1%time == f2%time)
+if (allocated(f1%z)) is_eq = all(f1%z == f2%z)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%long) .eqv. allocated(f2%long))
 if (.not. is_eq) return

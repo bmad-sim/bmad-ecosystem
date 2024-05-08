@@ -81,10 +81,10 @@ typedef valarray<CPP_expression_atom>          CPP_expression_atom_ARRAY;
 typedef valarray<CPP_expression_atom_ARRAY>    CPP_expression_atom_MATRIX;
 typedef valarray<CPP_expression_atom_MATRIX>   CPP_expression_atom_TENSOR;
 
-class CPP_wake_sr_time;
-typedef valarray<CPP_wake_sr_time>          CPP_wake_sr_time_ARRAY;
-typedef valarray<CPP_wake_sr_time_ARRAY>    CPP_wake_sr_time_MATRIX;
-typedef valarray<CPP_wake_sr_time_MATRIX>   CPP_wake_sr_time_TENSOR;
+class CPP_wake_sr_z;
+typedef valarray<CPP_wake_sr_z>          CPP_wake_sr_z_ARRAY;
+typedef valarray<CPP_wake_sr_z_ARRAY>    CPP_wake_sr_z_MATRIX;
+typedef valarray<CPP_wake_sr_z_MATRIX>   CPP_wake_sr_z_TENSOR;
 
 class CPP_wake_sr_mode;
 typedef valarray<CPP_wake_sr_mode>          CPP_wake_sr_mode_ARRAY;
@@ -901,31 +901,35 @@ bool operator== (const CPP_expression_atom&, const CPP_expression_atom&);
 
 
 //--------------------------------------------------------------------
-// CPP_wake_sr_time
+// CPP_wake_sr_z
 
-class Opaque_wake_sr_time_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_sr_z_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_wake_sr_time {
+class CPP_wake_sr_z {
 public:
-  CPP_spline_ARRAY wake;
+  CPP_spline_ARRAY w;
+  CPP_spline_ARRAY w1;
+  CPP_spline_ARRAY w2;
   Int plane;
   Int position_dependence;
 
-  CPP_wake_sr_time() :
-    wake(CPP_spline_ARRAY(CPP_spline(), 0)),
+  CPP_wake_sr_z() :
+    w(CPP_spline_ARRAY(CPP_spline(), 0)),
+    w1(CPP_spline_ARRAY(CPP_spline(), 0)),
+    w2(CPP_spline_ARRAY(CPP_spline(), 0)),
     plane(Bmad::NOT_SET),
     position_dependence(Bmad::NOT_SET)
     {}
 
-  ~CPP_wake_sr_time() {
+  ~CPP_wake_sr_z() {
   }
 
 };   // End Class
 
-extern "C" void wake_sr_time_to_c (const Opaque_wake_sr_time_class*, CPP_wake_sr_time&);
-extern "C" void wake_sr_time_to_f (const CPP_wake_sr_time&, Opaque_wake_sr_time_class*);
+extern "C" void wake_sr_z_to_c (const Opaque_wake_sr_z_class*, CPP_wake_sr_z&);
+extern "C" void wake_sr_z_to_f (const CPP_wake_sr_z&, Opaque_wake_sr_z_class*);
 
-bool operator== (const CPP_wake_sr_time&, const CPP_wake_sr_time&);
+bool operator== (const CPP_wake_sr_z&, const CPP_wake_sr_z&);
 
 
 //--------------------------------------------------------------------
@@ -978,7 +982,7 @@ class Opaque_wake_sr_class {};  // Opaque class for pointers to corresponding fo
 class CPP_wake_sr {
 public:
   string file;
-  CPP_wake_sr_time_ARRAY time;
+  CPP_wake_sr_z_ARRAY z;
   CPP_wake_sr_mode_ARRAY long_wake;
   CPP_wake_sr_mode_ARRAY trans_wake;
   Real z_ref_long;
@@ -990,7 +994,7 @@ public:
 
   CPP_wake_sr() :
     file(),
-    time(CPP_wake_sr_time_ARRAY(CPP_wake_sr_time(), 0)),
+    z(CPP_wake_sr_z_ARRAY(CPP_wake_sr_z(), 0)),
     long_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
     trans_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
     z_ref_long(0.0),

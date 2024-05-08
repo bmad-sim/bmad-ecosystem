@@ -179,7 +179,6 @@ do i = 1, size(ele%wake%lr%mode)
 
   omega = twopi * mode%freq
   f_exp = mode%damp
-  ff0 = ele%wake%lr%amp_scale * abs(particle%charge) * mode%r_over_q
 
   if (mode%polarized) then
     c_a = cos(twopi*mode%angle)
@@ -193,6 +192,7 @@ do i = 1, size(ele%wake%lr%mode)
   do k = 1, size(bunch%particle)
     particle => bunch%particle(bunch%ix_z(k))
     if (particle%state /= alive$) cycle
+    ff0 = ele%wake%lr%amp_scale * abs(particle%charge) * mode%r_over_q
 
     dt = ele%wake%lr%time_scale * (particle%t - ele%wake%lr%t_ref)
     dt_phase = dt
@@ -219,7 +219,7 @@ do i = 1, size(ele%wake%lr%mode)
         w_skew = -ky
       endif
 
-      particle%vec(6) = particle%vec(6) + (w_norm * kx0 + w_skew * ky0) * cos(twopi * mode%phi) * ff0 * particle%charge
+      particle%vec(6) = particle%vec(6) + (w_norm * kx0 + w_skew * ky0) * cos(twopi * mode%phi)
     endif
 
     ! Longitudinal non-self-wake kick
@@ -270,6 +270,7 @@ do i = 1, size(ele%wake%lr%mode)
   mode%b_cos = mode%b_cos + db_cos
   mode%a_sin = mode%a_sin + da_sin
   mode%a_cos = mode%a_cos + da_cos
+
 enddo  ! Wake modes
 
 end subroutine track1_lr_wake
@@ -481,7 +482,7 @@ end subroutine sr_transverse_wake_particle
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr_time_wake_particle (ele, orbit, ix_particle)
+! Subroutine sr_z_wake_particle (ele, orbit, ix_particle)
 !
 ! Subroutine to apply the short-range time wake kick to a particle and then add 
 ! to the existing time wake the contribution from the particle.
@@ -496,15 +497,17 @@ end subroutine sr_transverse_wake_particle
 !   orbit   -- Coord_struct: Ending particle coords.
 !+
 
-subroutine sr_time_wake_particle (ele, orbit, ix_particle)
+subroutine sr_z_wake_particle (ele, orbit, ix_particle)
+
+use spline_mod
 
 type (ele_struct), target :: ele
-type (wake_sr_time_struct), pointer :: srt
+type (wake_sr_z_struct), pointer :: srt
 type (coord_struct) orbit
 
-real(rp) x, f0, ff, w_norm, w_skew
-real(rp), parameter :: one_sixth = 1.0_rp / 6.0_rp
-integer ix_particle, i, j
+real(rp) x, f0, ff, f_add, w_norm, w_skew, dz
+integer ix_particle, i, j, ix
+logical ok
 
 !
 
@@ -516,11 +519,12 @@ if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$)
 
 ! Loop over wakes
 
-do i = 1, size(ele%wake%sr%time)
-  srt => ele%wake%sr%time(i)
+do i = 1, size(ele%wake%sr%z)
+  srt => ele%wake%sr%z(i)
 
   !--------------------------------------------
-  select case (srt%plane == z$)  ! Longitudinal
+  select case (srt%plane)
+  case (z$)  ! Longitudinal
     ! Kick particle from existing wake.
     call spline_evaluate(srt%w1, orbit%vec(5), ok, w_norm)
 
@@ -548,7 +552,7 @@ do i = 1, size(ele%wake%sr%time)
 
     ! Add to wake
 
-    select case (mode%position_dependence)
+    select case (srt%position_dependence)
     case (none$, x_trailing$, y_trailing$)
       f_add = f0
     case (x_leading$)
@@ -576,54 +580,50 @@ do i = 1, size(ele%wake%sr%time)
     if (srt%plane /= x$) then
       if (srt%position_dependence == trailing$) then
         orbit%vec(4) = orbit%vec(4) - w_norm * orbit%vec(3)
-      else  leading
+      else  ! leading
         orbit%vec(4) = orbit%vec(4) - w_norm
       endif
     endif
 
     ! Add to wake
-    if (mode%position_dependence == leading$) then
+    if (srt%position_dependence == leading$) then
+    endif
 
   end select
 
 
-And polarizaiton..
-
   if (ix_particle == 1) then
-    srt%w_sum%x0      = srt%w%x0 + orbit%vec(5)
-    srt%w_sum%x1      = srt%w%x1 + orbit%vec(5)
-    srt%w_sum%y0      = srt%w%y0
-    srt%w_sum%coef    = srt%w%coef
+    srt%w1     = srt%w
+    srt%w1%x0  = srt%w%x0 + orbit%vec(5)
+    srt%w1%x1  = srt%w%x1 + orbit%vec(5)
 
   else
-    do j = 1, size(srt%w_sum)
+    do j = 1, size(srt%w1)
       ! First shift existing wake
       x = srt%w(j)%x0 + orbit%vec(5)
-      ok = bracket_index_for_spline(srt%w_sum%x0, x, ix)
+      ok = bracket_index_for_spline(srt%w1%x0, x, ix)
       if (ok) then
-        srt%w_sum(j)%y0 = spline1(srt%w_sum(ix), x)
-        srt%w_sum(j)%coef(0) = srt%w_sum(j)%y0
-        srt%w_sum(j)%coef(1) = spline1(srt%w_sum(j), x, 1)
-        srt%w_sum(j)%coef(2) = 0.5_rp * spline1(srt%w_sum(j), x, 2)
-        srt%w_sum(j)%coef(3) = srt%w_sum%coef(3)
+        srt%w1(j)%y0 = spline1(srt%w1(ix), x)
+        srt%w1(j)%coef(0) = srt%w1(j)%y0
+        srt%w1(j)%coef(1) = spline1(srt%w1(j), x, 1)
+        srt%w1(j)%coef(2) = 0.5_rp * spline1(srt%w1(j), x, 2)
+        srt%w1(j)%coef(3) = srt%w1(j)%coef(3)
       else
-        srt%w_sum(j)%y0 = 0
-        srt%w_sum(j)%coef = 0
+        srt%w1(j)%y0 = 0
+        srt%w1(j)%coef = 0
       endif
 
       ! Now add new wake
-      srt%w_sum(j)%x0      = srt%w%x0 + orbit%vec(5)
-      srt%w_sum(j)%x1      = srt%w%x1 + orbit%vec(5)
-      srt%w_sum(j)%y0      = srt%w_sum(j)%y0 + srt%w%y0
-      srt%w_sum(j)%coef    = srt%w_sum(j)%coef + srt%w%coef
+      srt%w1(j)%x0      = srt%w(j)%x0 + orbit%vec(5)
+      srt%w1(j)%x1      = srt%w(j)%x1 + orbit%vec(5)
+      srt%w1(j)%y0      = srt%w1(j)%y0 + srt%w(j)%y0
+      srt%w1(j)%coef    = srt%w1(j)%coef + srt%w(j)%coef
     enddo
-  endif
-
   endif
 
 enddo
 
-end subroutine sr_time_wake_particle
+end subroutine sr_z_wake_particle
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -734,7 +734,7 @@ type (bunch_struct), target :: bunch
 type (ele_struct) ele
 type (coord_struct), pointer :: particle
 type (coord_struct), pointer :: p(:)
-type (wake_sr_time_struct), pointer :: srt
+type (wake_sr_z_struct), pointer :: srt
 
 real(rp) sr02
 integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start, n_live
@@ -782,7 +782,7 @@ do j = 1, n_live
   particle => p(bunch%ix_z(j))  ! Particle to kick
   call sr_longitudinal_wake_particle (ele, particle)
   call sr_transverse_wake_particle (ele, particle)
-  call sr_time_wake_particle(ele, particle, j)
+  call sr_z_wake_particle(ele, particle, j)
 enddo
 
 end subroutine track1_sr_wake

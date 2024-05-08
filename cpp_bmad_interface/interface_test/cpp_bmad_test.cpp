@@ -919,62 +919,78 @@ extern "C" void test_c_expression_atom (Opaque_expression_atom_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_wake_sr_time (CPP_wake_sr_time&, bool&);
+extern "C" void test2_f_wake_sr_z (CPP_wake_sr_z&, bool&);
 
-void set_CPP_wake_sr_time_test_pattern (CPP_wake_sr_time& C, int ix_patt) {
+void set_CPP_wake_sr_z_test_pattern (CPP_wake_sr_z& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.wake.resize(0);
+    C.w.resize(0);
   else {
-    C.wake.resize(3);
-    for (unsigned int i = 0; i < C.wake.size(); i++)  {set_CPP_spline_test_pattern(C.wake[i], ix_patt+i+1);}
+    C.w.resize(3);
+    for (unsigned int i = 0; i < C.w.size(); i++)  {set_CPP_spline_test_pattern(C.w[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.w1.resize(0);
+  else {
+    C.w1.resize(3);
+    for (unsigned int i = 0; i < C.w1.size(); i++)  {set_CPP_spline_test_pattern(C.w1[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.w2.resize(0);
+  else {
+    C.w2.resize(3);
+    for (unsigned int i = 0; i < C.w2.size(); i++)  {set_CPP_spline_test_pattern(C.w2[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.plane = rhs;
+  rhs = 7 + offset; C.plane = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.position_dependence = rhs;
+  rhs = 8 + offset; C.position_dependence = rhs;
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wake_sr_time (Opaque_wake_sr_time_class* F, bool& c_ok) {
+extern "C" void test_c_wake_sr_z (Opaque_wake_sr_z_class* F, bool& c_ok) {
 
-  CPP_wake_sr_time C, C2;
+  CPP_wake_sr_z C, C2;
 
   c_ok = true;
 
-  wake_sr_time_to_c (F, C);
-  set_CPP_wake_sr_time_test_pattern (C2, 1);
+  wake_sr_z_to_c (F, C);
+  set_CPP_wake_sr_z_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " wake_sr_time: C side convert F->C: Good" << endl;
+    cout << " wake_sr_z: C side convert F->C: Good" << endl;
   } else {
-    cout << " wake_sr_time: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_sr_z: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_sr_time_test_pattern (C2, 2);
+  set_CPP_wake_sr_z_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_wake_sr_time (C2, c_ok2);
+  test2_f_wake_sr_z (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_wake_sr_time_test_pattern (C, 3);
+  set_CPP_wake_sr_z_test_pattern (C, 3);
   if (C == C2) {
-    cout << " wake_sr_time: F side convert F->C: Good" << endl;
+    cout << " wake_sr_z: F side convert F->C: Good" << endl;
   } else {
-    cout << " wake_sr_time: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_sr_z: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_sr_time_test_pattern (C2, 4);
-  wake_sr_time_to_f (C2, F);
+  set_CPP_wake_sr_z_test_pattern (C2, 4);
+  wake_sr_z_to_f (C2, F);
 
 }
 
@@ -1071,10 +1087,10 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
     {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.time.resize(0);
+    C.z.resize(0);
   else {
-    C.time.resize(3);
-    for (unsigned int i = 0; i < C.time.size(); i++)  {set_CPP_wake_sr_time_test_pattern(C.time[i], ix_patt+i+1);}
+    C.z.resize(3);
+    for (unsigned int i = 0; i < C.z.size(); i++)  {set_CPP_wake_sr_z_test_pattern(C.z[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 1, ALLOC]
