@@ -276,6 +276,21 @@ template bool is_all_equal (const CPP_expression_atom_MATRIX&, const CPP_express
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_wake_sr_z& x, const CPP_wake_sr_z& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.w, y.w);
+  is_eq = is_eq && is_all_equal(x.w1, y.w1);
+  is_eq = is_eq && is_all_equal(x.w2, y.w2);
+  is_eq = is_eq && (x.plane == y.plane);
+  is_eq = is_eq && (x.position_dependence == y.position_dependence);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_wake_sr_z_ARRAY&, const CPP_wake_sr_z_ARRAY&);
+template bool is_all_equal (const CPP_wake_sr_z_MATRIX&, const CPP_wake_sr_z_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_wake_sr_mode& x, const CPP_wake_sr_mode& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.amp == y.amp);
@@ -299,6 +314,7 @@ template bool is_all_equal (const CPP_wake_sr_mode_MATRIX&, const CPP_wake_sr_mo
 bool operator== (const CPP_wake_sr& x, const CPP_wake_sr& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && is_all_equal(x.z, y.z);
   is_eq = is_eq && is_all_equal(x.long_wake, y.long_wake);
   is_eq = is_eq && is_all_equal(x.trans_wake, y.trans_wake);
   is_eq = is_eq && (x.z_ref_long == y.z_ref_long);

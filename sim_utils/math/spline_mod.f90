@@ -12,7 +12,8 @@ implicit none
 
 ! Given a spline s and some point x_eval, y_spline is:
 !   y_spline = Sum: s%coef(i) * dx**i, i = [0:3]
-! where dx = x_eval - s%x0 
+! where dx = x_eval - s%x0
+! Since (currently) there is no smoothing, y0 = coef(0).
 
 type spline_struct
   real(rp) :: x0 = 0, y0 = 0     ! Point at start of spline
@@ -20,7 +21,7 @@ type spline_struct
   real(rp) :: coef(0:3) = 0      ! coefficients for cubic spline
 end type
 
-private akima_spline_coef23_calc, akima_spline_slope_calc, bracket_index_for_spline
+private akima_spline_coef23_calc, akima_spline_slope_calc
 
 contains
 
@@ -305,7 +306,15 @@ end subroutine spline_evaluate
 !+
 ! Function bracket_index_for_spline (x_knot, x, ix0) result (ok)
 !
-! Routine for internal use only.
+! Routine to find which interval to use for evaluating a spline.
+!
+! Input:
+!   x_knot(:)       -- real(rp): Array of x values.
+!   x               -- real(rp): Evaluation point.
+!
+! Output:
+!   ix0             -- integer: If ok = True, x is in the interval [x_knot(ix0), x_knot(ix0+1)]
+!   ok              -- logical: True if x is in the range spanned by x_knot(:). False otherwise.
 !-
 
 function bracket_index_for_spline (x_knot, x, ix0) result (ok)

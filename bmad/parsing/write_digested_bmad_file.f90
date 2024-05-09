@@ -231,7 +231,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
+integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert, n_energy, n_angle, n_foil
 
@@ -240,7 +240,7 @@ logical write_wake, mode3
 !
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
-ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; ix_st = -1
+ix_sr_long = 0; ix_sr_trans = 0; ix_sr_z = 0; ix_lr_mode = 0; ix_st = -1
 mode3 = .false.; ix_wall3d = 0; ix_convert = 0; ix_c = 0
 n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0; n_foil = 0
 
@@ -281,6 +281,7 @@ if (associated(wake)) then
   if (write_wake) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
+    if (allocated(wake%sr%z))         ix_sr_z       = size(wake%sr%z)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
@@ -318,7 +319,7 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), associated(ele%rad_map), &
-          ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+          ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, ix_sr_z, &
           ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_foil, n_cus, ix_convert
 
 write (d_unit) &
@@ -630,13 +631,22 @@ enddo
 
 if (associated(wake) .and. write_wake) then
   write (d_unit) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+
   do i = 1, size(wake%sr%long)
     write (d_unit) wake%sr%long(i)
   enddo
+
   do i = 1, size(wake%sr%trans)
     write (d_unit) wake%sr%trans(i)
   enddo
+
+  do i = 1, size(wake%sr%z)
+    write (d_unit) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, size(wake%sr%z(i)%w)
+    write (d_unit) wake%sr%z(i)%w
+  enddo
+
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+
   do i = 1, size(wake%lr%mode)
     write (d_unit) wake%lr%mode(i)
   enddo
@@ -649,7 +659,7 @@ if (associated(ele%rad_map)) then
   write (d_unit) ele%rad_map%rm1, ele%rad_map%stale
 endif
 
-end subroutine
+end subroutine write_this_ele
 
 !-------------------------------------------------------------------------------------
 ! contains
@@ -679,7 +689,7 @@ else
   write (d_unit) 0
 endif
 
-end subroutine
+end subroutine write_this_wall3d
 
 !-------------------------------------------------------------------------------------
 ! contains
@@ -708,5 +718,5 @@ enddo
 
 end subroutine write_this_wall3d_section
 
-end subroutine
+end subroutine write_digested_bmad_file
 

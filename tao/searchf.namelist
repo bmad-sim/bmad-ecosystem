@@ -346,7 +346,7 @@ tao_lattice_calc_mod
 tao_single_track
 tao_lat_sigma_track
 tao_beam_track
-tao_no_beam_left
+tao_too_many_particles_lost
 tao_inject_particle
 tao_inject_beam
 
@@ -372,6 +372,9 @@ tao_mark_lattice_ele
 
 File: code/tao_merit.f90
 tao_merit
+
+File: code/tao_one_turn_map_calc_needed.f90
+tao_one_turn_map_calc_needed
 
 File: code/tao_open_file.f90
 tao_open_file
@@ -514,8 +517,17 @@ tao_setup_key_table
 File: code/tao_shape_init.f90
 tao_shape_init
 
+File: code/tao_show_cmd.f90
+tao_show_cmd
+
 File: code/tao_spin_matrix_calc.f90
 tao_spin_matrix_calc
+
+File: code/tao_spin_polarization_calc.f90
+tao_spin_polarization_calc
+
+File: code/tao_spin_tracking_turn_on.f90
+tao_spin_tracking_turn_on
 
 File: code/tao_split_component.f90
 tao_split_component
@@ -550,6 +562,9 @@ tao_show_constraints
 tao_var_write
 tao_print_vars
 tao_write_lines
+
+File: code/tao_top_level.f90
+tao_top_level
 
 File: code/tao_turn_on_special_calcs_if_needed_for_plotting.f90
 tao_turn_on_special_calcs_if_needed_for_plotting
@@ -597,6 +612,9 @@ tao_cbar_wave_anal
 tao_wave_fit
 ele_at_curve_point
 
+File: code/tao_write_cmd.f90
+tao_write_cmd
+
 File: code/tao_x_axis_cmd.f90
 tao_x_axis_cmd
 
@@ -606,11 +624,54 @@ tao_x_scale_cmd
 tao_x_scale_plot
 tao_x_scale_graph
 
-File: code/tao_spin_tracking_turn_on.f90
-tao_spin_tracking_turn_on
+File: code/tao_set_mod.f90
+tao_set_mod
+tao_set_tune_cmd
+tao_set_z_tune_cmd
+tao_set_calculate_cmd
+tao_set_key_cmd
+tao_set_ran_state_cmd
+tao_set_lattice_cmd
+tao_set_global_cmd
+tao_set_space_charge_com_cmd
+tao_set_bmad_com_cmd
+tao_set_ptc_com_cmd
+tao_set_geodesic_lm_cmd
+tao_set_opti_de_param_cmd
+tao_set_wave_cmd
+tao_set_beam_cmd
+tao_set_beam_init_cmd
+tao_set_particle_start_cmd
+tao_set_plot_page_cmd
+tao_set_curve_cmd
+tao_set_plot_cmd
+tao_set_region_cmd
+tao_set_graph_cmd
+tao_set_var_cmd
+tao_set_branch_cmd
+tao_set_data_cmd
+tao_set_default_cmd
+tao_set_dynamic_aperture_cmd
+tao_set_universe_cmd
+tao_set_elements_cmd
+tao_set_logical_value
+tao_set_integer_value
+tao_set_switch_value
+tao_set_real_value
+tao_set_drawing_cmd
+tao_set_symbolic_number_cmd
+tao_set_qp_rect_struct
+tao_set_qp_axis_struct
+tao_set_qp_point_struct
 
-File: code/tao_write_cmd.f90
-tao_write_cmd
+File: code/tao_show_this.f90
+tao_show_this
+
+File: code/tao_single_mode.f90
+tao_single_mode
+
+File: code/tao_spin_matrices_calc_needed.f90
+tao_spin_matrices_calc_needed
 
 File: code/tao_struct.f90
 tao_struct
@@ -714,66 +775,32 @@ tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
-File: code/tao_spin_matrices_calc_needed.f90
-tao_spin_matrices_calc_needed
+File: hook/tao_hook_branch_calc.f90
+tao_hook_branch_calc
 
-File: code/tao_single_mode.f90
-tao_single_mode
+File: hook/tao_hook_command.f90
+tao_hook_command
 
-File: code/tao_spin_polarization_calc.f90
-tao_spin_polarization_calc
+File: hook/tao_hook_curve_s_pt.f90
+tao_hook_curve_s_pt
 
-File: code/tao_top_level.f90
-tao_top_level
+File: hook/tao_hook_draw_floor_plan.f90
+tao_hook_draw_floor_plan
 
-File: code/tao_one_turn_map_calc_needed.f90
-tao_one_turn_map_calc_needed
+File: hook/tao_hook_draw_graph.f90
+tao_hook_draw_graph
 
-File: code/tao_show_cmd.f90
-tao_show_cmd
+File: hook/tao_hook_evaluate_a_datum.f90
+tao_hook_evaluate_a_datum
 
-File: code/tao_set_mod.f90
-tao_set_mod
-tao_set_tune_cmd
-tao_set_z_tune_cmd
-tao_set_calculate_cmd
-tao_set_key_cmd
-tao_set_ran_state_cmd
-tao_set_lattice_cmd
-tao_set_global_cmd
-tao_set_space_charge_com_cmd
-tao_set_bmad_com_cmd
-tao_set_ptc_com_cmd
-tao_set_geodesic_lm_cmd
-tao_set_opti_de_param_cmd
-tao_set_wave_cmd
-tao_set_beam_cmd
-tao_set_beam_init_cmd
-tao_set_particle_start_cmd
-tao_set_plot_page_cmd
-tao_set_curve_cmd
-tao_set_plot_cmd
-tao_set_region_cmd
-tao_set_graph_cmd
-tao_set_var_cmd
-tao_set_branch_cmd
-tao_set_data_cmd
-tao_set_default_cmd
-tao_set_dynamic_aperture_cmd
-tao_set_universe_cmd
-tao_set_elements_cmd
-tao_set_logical_value
-tao_set_integer_value
-tao_set_switch_value
-tao_set_real_value
-tao_set_drawing_cmd
-tao_set_symbolic_number_cmd
-tao_set_qp_rect_struct
-tao_set_qp_axis_struct
-tao_set_qp_point_struct
+File: hook/tao_hook_graph_postsetup.f90
+tao_hook_graph_postsetup
 
-File: code/tao_show_this.f90
-tao_show_this
+File: hook/tao_hook_graph_setup.f90
+tao_hook_graph_setup
+
+File: hook/tao_hook_init1.f90
+tao_hook_init1
 
 File: hook/tao_hook_init2.f90
 tao_hook_init2
@@ -822,33 +849,6 @@ tao_hook_post_process_data
 
 File: hook/tao_hook_show_cmd.f90
 tao_hook_show_cmd
-
-File: hook/tao_hook_branch_calc.f90
-tao_hook_branch_calc
-
-File: hook/tao_hook_command.f90
-tao_hook_command
-
-File: hook/tao_hook_curve_s_pt.f90
-tao_hook_curve_s_pt
-
-File: hook/tao_hook_draw_floor_plan.f90
-tao_hook_draw_floor_plan
-
-File: hook/tao_hook_draw_graph.f90
-tao_hook_draw_graph
-
-File: hook/tao_hook_evaluate_a_datum.f90
-tao_hook_evaluate_a_datum
-
-File: hook/tao_hook_graph_postsetup.f90
-tao_hook_graph_postsetup
-
-File: hook/tao_hook_graph_setup.f90
-tao_hook_graph_setup
-
-File: hook/tao_hook_init1.f90
-tao_hook_init1
 
 File: mpi/tao_mpi_mod.f90
 tao_mpi_mod

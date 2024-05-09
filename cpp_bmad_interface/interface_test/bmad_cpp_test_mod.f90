@@ -1361,6 +1361,124 @@ end subroutine set_expression_atom_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_wake_sr_z (ok)
+
+implicit none
+
+type(wake_sr_z_struct), target :: f_wake_sr_z, f2_wake_sr_z
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_wake_sr_z (c_wake_sr_z, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_wake_sr_z
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_wake_sr_z_test_pattern (f2_wake_sr_z, 1)
+
+call test_c_wake_sr_z(c_loc(f2_wake_sr_z), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_wake_sr_z_test_pattern (f_wake_sr_z, 4)
+if (f_wake_sr_z == f2_wake_sr_z) then
+  print *, 'wake_sr_z: C side convert C->F: Good'
+else
+  print *, 'wake_sr_z: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_wake_sr_z
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_wake_sr_z (c_wake_sr_z, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_wake_sr_z
+type(wake_sr_z_struct), target :: f_wake_sr_z, f2_wake_sr_z
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call wake_sr_z_to_f (c_wake_sr_z, c_loc(f_wake_sr_z))
+
+call set_wake_sr_z_test_pattern (f2_wake_sr_z, 2)
+if (f_wake_sr_z == f2_wake_sr_z) then
+  print *, 'wake_sr_z: F side convert C->F: Good'
+else
+  print *, 'wake_sr_z: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_wake_sr_z_test_pattern (f2_wake_sr_z, 3)
+call wake_sr_z_to_c (c_loc(f2_wake_sr_z), c_wake_sr_z)
+
+end subroutine test2_f_wake_sr_z
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_wake_sr_z_test_pattern (F, ix_patt)
+
+implicit none
+
+type(wake_sr_z_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%w)) deallocate (F%w)
+else
+  if (.not. allocated(F%w)) allocate (F%w(-1:1))
+  do jd1 = 1, size(F%w,1); lb1 = lbound(F%w,1) - 1
+    call set_spline_test_pattern (F%w(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%w1)) deallocate (F%w1)
+else
+  if (.not. allocated(F%w1)) allocate (F%w1(-1:1))
+  do jd1 = 1, size(F%w1,1); lb1 = lbound(F%w1,1) - 1
+    call set_spline_test_pattern (F%w1(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%w2)) deallocate (F%w2)
+else
+  if (.not. allocated(F%w2)) allocate (F%w2(-1:1))
+  do jd1 = 1, size(F%w2,1); lb1 = lbound(F%w2,1) - 1
+    call set_spline_test_pattern (F%w2(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 7 + offset; F%plane = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%position_dependence = rhs
+
+end subroutine set_wake_sr_z_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_wake_sr_mode (ok)
 
 implicit none
@@ -1549,6 +1667,16 @@ enddo
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
+  if (allocated(F%z)) deallocate (F%z)
+else
+  if (.not. allocated(F%z)) allocate (F%z(-1:1))
+  do jd1 = 1, size(F%z,1); lb1 = lbound(F%z,1) - 1
+    call set_wake_sr_z_test_pattern (F%z(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
   if (allocated(F%long)) deallocate (F%long)
 else
   if (.not. allocated(F%long)) allocate (F%long(-1:1))
@@ -1567,17 +1695,17 @@ else
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%z_ref_long = rhs
+rhs = 8 + offset; F%z_ref_long = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%z_ref_trans = rhs
+rhs = 9 + offset; F%z_ref_trans = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%z_max = rhs
+rhs = 10 + offset; F%z_max = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%amp_scale = rhs
+rhs = 11 + offset; F%amp_scale = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%z_scale = rhs
+rhs = 12 + offset; F%z_scale = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%scale_with_length = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%scale_with_length = (modulo(rhs, 2) == 0)
 
 end subroutine set_wake_sr_test_pattern
 

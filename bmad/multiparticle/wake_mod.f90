@@ -117,8 +117,8 @@ type (coord_struct), pointer :: particle
 type (wake_lr_mode_struct), pointer :: mode
 
 real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
-real(rp) omega, f_exp, ff, c_dt, s_dt, kx, ky, kick_self, vec(6)
-real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin, charge, t_cut
+real(rp) omega, f_exp, ff, c_dt, s_dt, kx, ky, vec(6)
+real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin, t_cut
 real(rp) da_sin, da_cos, db_sin, db_cos
 
 integer n_mode, i, j, k, i0, n
@@ -187,16 +187,14 @@ do i = 1, size(ele%wake%lr%mode)
 
   !
 
-  kick_self = 0
   da_sin = 0; da_cos = 0; db_sin = 0; db_cos = 0
 
   do k = 1, size(bunch%particle)
-    particle => bunch%particle(k)
+    particle => bunch%particle(bunch%ix_z(k))
     if (particle%state /= alive$) cycle
-
-    dt = ele%wake%lr%time_scale * (particle%t - ele%wake%lr%t_ref)
     ff0 = ele%wake%lr%amp_scale * abs(particle%charge) * mode%r_over_q
 
+    dt = ele%wake%lr%time_scale * (particle%t - ele%wake%lr%t_ref)
     dt_phase = dt
     if (mode%freq_in < 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
 
@@ -205,7 +203,7 @@ do i = 1, size(ele%wake%lr%mode)
 
     call ab_multipole_kick (0.0_rp, 1.0_rp, mode%m, particle%species, +1, particle, kx0, ky0)
 
-    ! Accumulate longitudinal self-wake
+    ! longitudinal self-wake
 
     if (ele%wake%lr%self_wake_on) then
       ff = ff0 * omega / (2 * ele%value(p0c$))
@@ -221,7 +219,7 @@ do i = 1, size(ele%wake%lr%mode)
         w_skew = -ky
       endif
 
-      kick_self = kick_self + (w_norm * kx0 + w_skew * ky0) * cos(twopi * mode%phi)
+      particle%vec(6) = particle%vec(6) + (w_norm * kx0 + w_skew * ky0) * cos(twopi * mode%phi)
     endif
 
     ! Longitudinal non-self-wake kick
@@ -273,15 +271,6 @@ do i = 1, size(ele%wake%lr%mode)
   mode%a_sin = mode%a_sin + da_sin
   mode%a_cos = mode%a_cos + da_cos
 
-  ! Longitudinal self-wake kick. 
-
-  if (ele%wake%lr%self_wake_on) then
-    do k = 1, size(bunch%particle)
-      particle => bunch%particle(k)
-      particle%vec(6) = particle%vec(6) + kick_self
-    enddo
-  endif
-
 enddo  ! Wake modes
 
 end subroutine track1_lr_wake
@@ -311,7 +300,7 @@ type (wake_sr_mode_struct), pointer :: mode
 type (coord_struct) orbit
 
 integer i
-real(rp) arg, ff, c, s, dz, exp_factor, w_norm
+real(rp) arg, f0, ff, c, s, dz, exp_factor, w_norm
 
 !
 
@@ -319,26 +308,23 @@ if (ele%wake%sr%amp_scale == 0) return
 dz = ele%wake%sr%z_scale * (orbit%vec(5) - ele%wake%sr%z_ref_long) ! Should be negative
 ele%wake%sr%z_ref_long = orbit%vec(5)
 
-! Check if we have to do any calculations
+f0 = ele%wake%sr%amp_scale * abs(orbit%charge) / ele%value(p0c$)
+if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$) 
+
+! Loop over wakes
 
 do i = 1, size(ele%wake%sr%long)
 
   mode => ele%wake%sr%long(i)
+  ff = f0 * mode%amp
 
-  ! Kick particle
+  ! Kick particle from existing wake
 
   exp_factor = exp(dz * mode%damp)
 
   arg = ele%wake%sr%z_scale * orbit%vec(5) * mode%k
   c = cos (arg)
   s = sin (arg)
-
-  if (ele%wake%sr%scale_with_length) then
-    ff = ele%wake%sr%amp_scale * abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
-  else
-    ff = ele%wake%sr%amp_scale * abs(orbit%charge) * mode%amp / ele%value(p0c$)
-  endif
-
   w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
 
   select case (mode%position_dependence)
@@ -392,7 +378,7 @@ end subroutine sr_longitudinal_wake_particle
 ! Subroutine sr_transverse_wake_particle (ele, orbit)
 !
 ! Subroutine to apply the short-range wake transverse component of the kick to a particle and then add 
-! to the existing transverse wale the contribution from the particle.
+! to the existing transverse wake the contribution from the particle.
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
@@ -410,7 +396,7 @@ type (wake_sr_mode_struct), pointer :: mode
 type (coord_struct) orbit
 
 integer i
-real(rp) arg, ff, c, s, dz, exp_factor, w_norm, w_skew
+real(rp) arg, f0, ff, c, s, dz, exp_factor, w_norm, w_skew
 
 !
 
@@ -418,11 +404,15 @@ if (ele%wake%sr%amp_scale == 0) return
 dz = ele%wake%sr%z_scale * (orbit%vec(5) - ele%wake%sr%z_ref_trans) ! Should be negative
 ele%wake%sr%z_ref_trans = orbit%vec(5)
 
-! Add to wake
+f0 = ele%wake%sr%amp_scale * abs(orbit%charge) / ele%value(p0c$)
+if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$) 
+
+! Loop over all wakes
 
 do i = 1, size(ele%wake%sr%trans)
 
   mode => ele%wake%sr%trans(i)
+  ff = f0 * mode%amp
 
   ! Kick particle...
 
@@ -456,13 +446,7 @@ do i = 1, size(ele%wake%sr%trans)
 
   ! Add to wake...
 
-  if (ele%wake%sr%scale_with_length) then
-    ff = ele%wake%sr%amp_scale * abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
-  else
-    ff = ele%wake%sr%amp_scale * abs(orbit%charge) * mode%amp / ele%value(p0c$)
-  endif
-
-  arg =  twopi * mode%phi - ele%wake%sr%z_scale * orbit%vec(5) * mode%k
+  arg = twopi * mode%phi - ele%wake%sr%z_scale * orbit%vec(5) * mode%k
   c = cos (arg)
   s = sin (arg)
 
@@ -493,6 +477,153 @@ do i = 1, size(ele%wake%sr%trans)
 enddo
 
 end subroutine sr_transverse_wake_particle
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine sr_z_wake_particle (ele, orbit, ix_particle)
+!
+! Subroutine to apply the short-range time wake kick to a particle and then add 
+! to the existing time wake the contribution from the particle.
+!
+! Input:
+!   ele     -- Ele_struct: Element with wakes.
+!   orbit   -- Coord_struct: Starting particle coords.
+!   ix_particle -- integer: Time ordered index of particle. ix_particle = 1 for first particle, etc.
+!
+! Output:
+!   ele     -- Ele_struct: Element with wakes.
+!   orbit   -- Coord_struct: Ending particle coords.
+!+
+
+subroutine sr_z_wake_particle (ele, orbit, ix_particle)
+
+use spline_mod
+
+type (ele_struct), target :: ele
+type (wake_sr_z_struct), pointer :: srt
+type (coord_struct) orbit
+
+real(rp) x, f0, ff, f_add, w_norm, w_skew, dz
+integer ix_particle, i, j, ix
+logical ok
+
+!
+
+if (ele%wake%sr%amp_scale == 0) return
+dz = ele%wake%sr%z_scale * (orbit%vec(5) - ele%wake%sr%z_ref_trans) ! Should be negative
+
+f0 = ele%wake%sr%amp_scale * abs(orbit%charge) / ele%value(p0c$)
+if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$) 
+
+! Loop over wakes
+
+do i = 1, size(ele%wake%sr%z)
+  srt => ele%wake%sr%z(i)
+
+  !--------------------------------------------
+  select case (srt%plane)
+  case (z$)  ! Longitudinal
+    ! Kick particle from existing wake.
+    call spline_evaluate(srt%w1, orbit%vec(5), ok, w_norm)
+
+    select case (srt%position_dependence)
+    case (none$, x_leading$, y_leading$)
+      orbit%vec(6) = orbit%vec(6) - w_norm
+    case (x_trailing$)
+      orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(1)
+    case (y_trailing$)
+      orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(3)
+    end select
+
+    ! Self kick
+    w_norm = 0.5_rp * f0 * srt%w(1)%y0
+
+    select case (srt%position_dependence)
+    case (none$)
+      orbit%vec(6) = orbit%vec(6) - w_norm 
+    case (x_leading$, x_trailing$)
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(1) * w_norm
+    case (y_leading$, y_trailing$)
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(3) * w_norm
+    end select
+
+
+    ! Add to wake
+
+    select case (srt%position_dependence)
+    case (none$, x_trailing$, y_trailing$)
+      f_add = f0
+    case (x_leading$)
+      f_add = f0 * orbit%vec(1)
+    case (y_leading$)
+      f_add = f0 * orbit%vec(3)
+    end select
+
+  !-------------------------
+  case default  ! Transverse
+
+    ! Kick particle from existing wake.
+    call spline_evaluate(srt%w1, orbit%vec(5), ok, w_norm)
+
+    if (srt%plane /= y$) then
+      if (srt%position_dependence == trailing$) then
+        orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
+      else  ! leading
+        orbit%vec(2) = orbit%vec(2) - w_norm
+      endif
+    endif
+
+    ! Y-axis kick
+
+    if (srt%plane /= x$) then
+      if (srt%position_dependence == trailing$) then
+        orbit%vec(4) = orbit%vec(4) - w_norm * orbit%vec(3)
+      else  ! leading
+        orbit%vec(4) = orbit%vec(4) - w_norm
+      endif
+    endif
+
+    ! Add to wake
+    if (srt%position_dependence == leading$) then
+    endif
+
+  end select
+
+
+  if (ix_particle == 1) then
+    srt%w1     = srt%w
+    srt%w1%x0  = srt%w%x0 + orbit%vec(5)
+    srt%w1%x1  = srt%w%x1 + orbit%vec(5)
+
+  else
+    do j = 1, size(srt%w1)
+      ! First shift existing wake
+      x = srt%w(j)%x0 + orbit%vec(5)
+      ok = bracket_index_for_spline(srt%w1%x0, x, ix)
+      if (ok) then
+        srt%w1(j)%y0 = spline1(srt%w1(ix), x)
+        srt%w1(j)%coef(0) = srt%w1(j)%y0
+        srt%w1(j)%coef(1) = spline1(srt%w1(j), x, 1)
+        srt%w1(j)%coef(2) = 0.5_rp * spline1(srt%w1(j), x, 2)
+        srt%w1(j)%coef(3) = srt%w1(j)%coef(3)
+      else
+        srt%w1(j)%y0 = 0
+        srt%w1(j)%coef = 0
+      endif
+
+      ! Now add new wake
+      srt%w1(j)%x0      = srt%w(j)%x0 + orbit%vec(5)
+      srt%w1(j)%x1      = srt%w(j)%x1 + orbit%vec(5)
+      srt%w1(j)%y0      = srt%w1(j)%y0 + srt%w(j)%y0
+      srt%w1(j)%coef    = srt%w1(j)%coef + srt%w(j)%coef
+    enddo
+  endif
+
+enddo
+
+end subroutine sr_z_wake_particle
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -603,6 +734,7 @@ type (bunch_struct), target :: bunch
 type (ele_struct) ele
 type (coord_struct), pointer :: particle
 type (coord_struct), pointer :: p(:)
+type (wake_sr_z_struct), pointer :: srt
 
 real(rp) sr02
 integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start, n_live
@@ -614,7 +746,6 @@ character(16) :: r_name = 'track1_sr_wake'
 
 if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
-if (size(ele%wake%sr%long) == 0 .and. size(ele%wake%sr%trans) == 0) return
 
 n_live = bunch%n_live
 if (n_live == 0) return    ! No one left alive.
@@ -631,7 +762,7 @@ if (ele%wake%sr%z_max > 0 .and. p(i1)%vec(5) - p(i2)%vec(5) > ele%wake%sr%z_max)
   if (global_com%exit_on_error) call err_exit
 endif
 
-!
+! Mode wakes
 
 ele%wake%sr%long%b_sin = 0
 ele%wake%sr%long%b_cos = 0
@@ -645,12 +776,13 @@ ele%wake%sr%trans%a_sin = 0
 ele%wake%sr%trans%a_cos = 0
 ele%wake%sr%z_ref_trans = p(i1)%vec(5)
 
-! Loop over all particles in the bunch and apply the wake
+! Loop over all particles in the bunch and apply the mode wakes
 
 do j = 1, n_live
   particle => p(bunch%ix_z(j))  ! Particle to kick
   call sr_longitudinal_wake_particle (ele, particle)
   call sr_transverse_wake_particle (ele, particle)
+  call sr_z_wake_particle(ele, particle, j)
 enddo
 
 end subroutine track1_sr_wake
