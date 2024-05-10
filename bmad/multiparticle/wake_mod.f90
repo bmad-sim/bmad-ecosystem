@@ -502,10 +502,10 @@ subroutine sr_z_wake_particle (ele, orbit, ix_particle)
 use spline_mod
 
 type (ele_struct), target :: ele
-type (wake_sr_z_struct), pointer :: srt
+type (wake_sr_z_struct), pointer :: srz
 type (coord_struct) orbit
 
-real(rp) x, f0, ff, f_add, w_norm, w_skew, dz
+real(rp) x, f0, ff, f_add, kick, dz
 integer ix_particle, i, j, ix
 logical ok
 
@@ -520,108 +520,135 @@ if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$)
 ! Loop over wakes
 
 do i = 1, size(ele%wake%sr%z)
-  srt => ele%wake%sr%z(i)
+  srz => ele%wake%sr%z(i)
 
   !--------------------------------------------
-  select case (srt%plane)
+  select case (srz%plane)
   case (z$)  ! Longitudinal
     ! Kick particle from existing wake.
-    call spline_evaluate(srt%w1, orbit%vec(5), ok, w_norm)
+    call spline_evaluate(srz%w_sum1, orbit%vec(5), ok, kick)
 
-    select case (srt%position_dependence)
+    select case (srz%position_dependence)
     case (none$, x_leading$, y_leading$)
-      orbit%vec(6) = orbit%vec(6) - w_norm
+      orbit%vec(6) = orbit%vec(6) - kick
     case (x_trailing$)
-      orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(1)
+      orbit%vec(6) = orbit%vec(6) - kick * orbit%vec(1)
     case (y_trailing$)
-      orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(3)
+      orbit%vec(6) = orbit%vec(6) - kick * orbit%vec(3)
     end select
 
     ! Self kick
-    w_norm = 0.5_rp * f0 * srt%w(1)%y0
+    call spline_evaluate(srz%w, orbit%vec(5), ok, kick)
+    kick = 0.5_rp * f0 * kick
 
-    select case (srt%position_dependence)
+    select case (srz%position_dependence)
     case (none$)
-      orbit%vec(6) = orbit%vec(6) - w_norm 
+      orbit%vec(6) = orbit%vec(6) - kick 
     case (x_leading$, x_trailing$)
-      orbit%vec(6) = orbit%vec(6) - orbit%vec(1) * w_norm
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(1) * kick
     case (y_leading$, y_trailing$)
-      orbit%vec(6) = orbit%vec(6) - orbit%vec(3) * w_norm
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(3) * kick
     end select
 
 
     ! Add to wake
 
-    select case (srt%position_dependence)
+    select case (srz%position_dependence)
     case (none$, x_trailing$, y_trailing$)
-      f_add = f0
+      call add_to_this_wake(srz%w_sum1, f0, orbit%vec(5), srz%w, ix_particle)
     case (x_leading$)
-      f_add = f0 * orbit%vec(1)
+      call add_to_this_wake(srz%w_sum1, f0, orbit%vec(5)*orbit%vec(1), srz%w, ix_particle)
     case (y_leading$)
-      f_add = f0 * orbit%vec(3)
+      call add_to_this_wake(srz%w_sum1, f0, orbit%vec(5)*orbit%vec(3), srz%w, ix_particle)
     end select
 
   !-------------------------
   case default  ! Transverse
 
-    ! Kick particle from existing wake.
-    call spline_evaluate(srt%w1, orbit%vec(5), ok, w_norm)
+    ! Kick particle from existing wake and add to wake.
+    ! X-axis kick
 
-    if (srt%plane /= y$) then
-      if (srt%position_dependence == trailing$) then
-        orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
-      else  ! leading
-        orbit%vec(2) = orbit%vec(2) - w_norm
-      endif
+    if (srz%plane /= y$) then
+      call spline_evaluate(srz%w_sum1, orbit%vec(5), ok, kick)
+      select case (srz%position_dependence)
+      case (trailing$)
+        orbit%vec(2) = orbit%vec(2) - kick * orbit%vec(1)
+        call add_to_this_wake(srz%w_sum1, f0, orbit%vec(5), srz%w, ix_particle)
+      case (leading$)
+        orbit%vec(2) = orbit%vec(2) - kick
+        call add_to_this_wake(srz%w_sum1, f0*orbit%vec(1), orbit%vec(5), srz%w, ix_particle)
+      case (none$)
+        orbit%vec(2) = orbit%vec(2) - kick
+        call add_to_this_wake(srz%w_sum1, f0, orbit%vec(5), srz%w, ix_particle)
+      end select
     endif
 
     ! Y-axis kick
 
-    if (srt%plane /= x$) then
-      if (srt%position_dependence == trailing$) then
-        orbit%vec(4) = orbit%vec(4) - w_norm * orbit%vec(3)
-      else  ! leading
-        orbit%vec(4) = orbit%vec(4) - w_norm
-      endif
+    if (srz%plane /= x$) then
+      call spline_evaluate(srz%w_sum2, orbit%vec(5), ok, kick)
+      select case (srz%position_dependence)
+      case (trailing$)
+        orbit%vec(4) = orbit%vec(4) - kick * orbit%vec(3)
+        call add_to_this_wake(srz%w_sum2, f0, orbit%vec(5), srz%w, ix_particle)
+      case (leading$)
+        orbit%vec(4) = orbit%vec(4) - kick
+        call add_to_this_wake(srz%w_sum2, f0*orbit%vec(3), orbit%vec(5), srz%w, ix_particle)
+      case (none$)
+        orbit%vec(4) = orbit%vec(4) - kick
+        call add_to_this_wake(srz%w_sum2, f0, orbit%vec(5), srz%w, ix_particle)
+      end select
     endif
 
     ! Add to wake
-    if (srt%position_dependence == leading$) then
+    if (srz%position_dependence == leading$) then
     endif
 
   end select
 
-
-  if (ix_particle == 1) then
-    srt%w1     = srt%w
-    srt%w1%x0  = srt%w%x0 + orbit%vec(5)
-    srt%w1%x1  = srt%w%x1 + orbit%vec(5)
-
-  else
-    do j = 1, size(srt%w1)
-      ! First shift existing wake
-      x = srt%w(j)%x0 + orbit%vec(5)
-      ok = bracket_index_for_spline(srt%w1%x0, x, ix)
-      if (ok) then
-        srt%w1(j)%y0 = spline1(srt%w1(ix), x)
-        srt%w1(j)%coef(0) = srt%w1(j)%y0
-        srt%w1(j)%coef(1) = spline1(srt%w1(j), x, 1)
-        srt%w1(j)%coef(2) = 0.5_rp * spline1(srt%w1(j), x, 2)
-        srt%w1(j)%coef(3) = srt%w1(j)%coef(3)
-      else
-        srt%w1(j)%y0 = 0
-        srt%w1(j)%coef = 0
-      endif
-
-      ! Now add new wake
-      srt%w1(j)%x0      = srt%w(j)%x0 + orbit%vec(5)
-      srt%w1(j)%x1      = srt%w(j)%x1 + orbit%vec(5)
-      srt%w1(j)%y0      = srt%w1(j)%y0 + srt%w(j)%y0
-      srt%w1(j)%coef    = srt%w1(j)%coef + srt%w(j)%coef
-    enddo
-  endif
-
 enddo
+
+!--------------------------------------------------------------------------
+contains
+
+subroutine add_to_this_wake (w_sum, f_add, z_orbit, w, ix_particle)
+
+type (spline_struct) :: w_sum(:), w(:)
+real(rp) f_add, z_orbit, x
+integer ix_particle, n, j, ix
+
+!
+if (ix_particle == 1) then
+  w_sum     = w
+  w_sum%x0  = w%x0 + z_orbit
+  w_sum%x1  = w%x1 + z_orbit
+
+else
+  n = size(w)
+  do j = 1, size(w_sum)
+    ! First shift existing wake
+    x = w(j)%x0 + z_orbit
+    ok = bracket_index_for_spline(w_sum%x0, x, ix, strict = .true., print_err = .false.)
+    if (ok) then
+      w_sum(j)%y0 = spline1(w_sum(ix), x)
+      w_sum(j)%coef(0) = w_sum(j)%y0
+      w_sum(j)%coef(1) = spline1(w_sum(j), x, 1)
+      w_sum(j)%coef(2) = 0.5_rp * spline1(w_sum(j), x, 2)
+      w_sum(j)%coef(3) = w_sum(j)%coef(3)
+    else
+      w_sum(j)%y0 = 0
+      w_sum(j)%coef = 0
+    endif
+
+    ! Now add new wake
+    w_sum(j)%x0      = w(j)%x0 + z_orbit
+    w_sum(j)%x1      = w(j)%x1 + z_orbit
+    w_sum(j)%y0      = w_sum(j)%y0 + w(j)%y0
+    w_sum(j)%coef    = w_sum(j)%coef + w(j)%coef
+  enddo
+endif
+
+end subroutine add_to_this_wake 
 
 end subroutine sr_z_wake_particle
 
@@ -734,7 +761,6 @@ type (bunch_struct), target :: bunch
 type (ele_struct) ele
 type (coord_struct), pointer :: particle
 type (coord_struct), pointer :: p(:)
-type (wake_sr_z_struct), pointer :: srt
 
 real(rp) sr02
 integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start, n_live

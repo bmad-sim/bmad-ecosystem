@@ -1451,21 +1451,21 @@ endif
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%w1)) deallocate (F%w1)
+  if (allocated(F%w_sum1)) deallocate (F%w_sum1)
 else
-  if (.not. allocated(F%w1)) allocate (F%w1(-1:1))
-  do jd1 = 1, size(F%w1,1); lb1 = lbound(F%w1,1) - 1
-    call set_spline_test_pattern (F%w1(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%w_sum1)) allocate (F%w_sum1(-1:1))
+  do jd1 = 1, size(F%w_sum1,1); lb1 = lbound(F%w_sum1,1) - 1
+    call set_spline_test_pattern (F%w_sum1(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%w2)) deallocate (F%w2)
+  if (allocated(F%w_sum2)) deallocate (F%w_sum2)
 else
-  if (.not. allocated(F%w2)) allocate (F%w2(-1:1))
-  do jd1 = 1, size(F%w2,1); lb1 = lbound(F%w2,1) - 1
-    call set_spline_test_pattern (F%w2(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%w_sum2)) allocate (F%w_sum2(-1:1))
+  do jd1 = 1, size(F%w_sum2,1); lb1 = lbound(F%w_sum2,1) - 1
+    call set_spline_test_pattern (F%w_sum2(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]

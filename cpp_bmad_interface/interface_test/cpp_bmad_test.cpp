@@ -935,18 +935,18 @@ void set_CPP_wake_sr_z_test_pattern (CPP_wake_sr_z& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.w1.resize(0);
+    C.w_sum1.resize(0);
   else {
-    C.w1.resize(3);
-    for (unsigned int i = 0; i < C.w1.size(); i++)  {set_CPP_spline_test_pattern(C.w1[i], ix_patt+i+1);}
+    C.w_sum1.resize(3);
+    for (unsigned int i = 0; i < C.w_sum1.size(); i++)  {set_CPP_spline_test_pattern(C.w_sum1[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.w2.resize(0);
+    C.w_sum2.resize(0);
   else {
-    C.w2.resize(3);
-    for (unsigned int i = 0; i < C.w2.size(); i++)  {set_CPP_spline_test_pattern(C.w2[i], ix_patt+i+1);}
+    C.w_sum2.resize(3);
+    for (unsigned int i = 0; i < C.w_sum2.size(); i++)  {set_CPP_spline_test_pattern(C.w_sum2[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[integer, 0, NOT]

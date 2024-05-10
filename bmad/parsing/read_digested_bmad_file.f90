@@ -892,7 +892,7 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_sr_z /= 0 .or. ix_lr_mode /= 0
 
     do i = 1, size(wake%sr%z)
       read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, n
-      allocate(wake%sr%z(i)%w(n))
+      allocate(wake%sr%z(i)%w(n), wake%sr%z(i)%w_sum1(n), wake%sr%z(i)%w_sum2(n))
       read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%w
     enddo
 

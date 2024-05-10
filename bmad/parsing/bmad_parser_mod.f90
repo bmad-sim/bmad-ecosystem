@@ -3863,8 +3863,8 @@ do
         if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE TIME W LIST', table, 3, delim, delim_found)) return
         ipt = size(table, 1)
         call reallocate_spline(srt%w, ipt)
-        call reallocate_spline(srt%w1, ipt)
-        call reallocate_spline(srt%w2, ipt)
+        call reallocate_spline(srt%w_sum1, ipt)
+        call reallocate_spline(srt%w_sum2, ipt)
         do i = 1, ipt-1
           srt%w(i) = create_a_spline(table(i,1:2), table(i+1,1:2), table(i,3), table(i+1,3))
         enddo
