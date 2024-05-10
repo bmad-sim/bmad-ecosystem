@@ -304,48 +304,74 @@ end subroutine spline_evaluate
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Function bracket_index_for_spline (x_knot, x, ix0) result (ok)
+! Function bracket_index_for_spline (x_knot, x, ix0, strict, print_err) result (ok)
 !
 ! Routine to find which interval to use for evaluating a spline.
+! If strict = False (default), x is in range if
+!       x_knot(1) - (x_knot(2) - x_knot(1)) < x < x_knot(n) + (x_knot(n) - x_knot(n-1))
+! If stric = True, x is in range if
+!       x_knot(1) <= x <= x_knot(n)
+! where n = size(x_knot)
 !
 ! Input:
 !   x_knot(:)       -- real(rp): Array of x values.
 !   x               -- real(rp): Evaluation point.
+!   strict          -- logical, optional: Default is False. Determines acceptible range.
+!   print_err       -- logical, optional: Default is True. Print error message if out of range?
 !
 ! Output:
 !   ix0             -- integer: If ok = True, x is in the interval [x_knot(ix0), x_knot(ix0+1)]
-!   ok              -- logical: True if x is in the range spanned by x_knot(:). False otherwise.
+!   ok              -- logical: True if x is in range. False otherwise.
 !-
 
-function bracket_index_for_spline (x_knot, x, ix0) result (ok)
+function bracket_index_for_spline (x_knot, x, ix0, strict, print_err) result (ok)
 
 real(rp) x_knot(:), x
-
-integer ix0, ix_max
+integer ix0, n
 logical ok
+logical, optional :: strict, print_err
 
 character(*), parameter :: r_name = 'bracket_index_for_spline'
 
 !
 
 ok = .false.
-ix_max = size(x_knot)
+n = size(x_knot)
 
-if (x < x_knot(1) - (x_knot(2) - x_knot(1))) then
-  call out_io (s_error$, r_name, 'X EVALUATION POINT (\es12.4\) IS MUCH LESS THAN LOWER BOUND OF SPLINE INTERVAL (\es12.4\)', &
-                                 r_array = [x, x_knot(1)])
-  return
-endif
-                              
-if (x > x_knot(ix_max) + (x_knot(ix_max) - x_knot(ix_max-1))) then
-  call out_io (s_error$, r_name, 'X EVALUATION POINT (\es12.4\) IS MUCH GREATER THAN UPPER BOUND OF SPLINE INTERVAL (\es12.4\) ', &
-                                 r_array = [x, x_knot(ix_max)])
-  return
+if (logic_option(.false., strict)) then
+  if (x < x_knot(1)) then
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, &
+            'X EVALUATION POINT (\es12.4\) IS LESS THAN LOWER BOUND OF SPLINE INTERVAL (\es12.4\)', &
+            r_array = [x, x_knot(1)])
+    return
+  endif
+                                
+  if (x > x_knot(n)) then
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, &
+            'X EVALUATION POINT (\es12.4\) IS GREATER THAN UPPER BOUND OF SPLINE INTERVAL (\es12.4\) ', &
+            r_array = [x, x_knot(n)])
+    return
+  endif
+
+else
+  if (x < x_knot(1) - (x_knot(2) - x_knot(1))) then
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, &
+            'X EVALUATION POINT (\es12.4\) IS MUCH LESS THAN LOWER BOUND OF SPLINE INTERVAL (\es12.4\)', &
+            r_array = [x, x_knot(1)])
+    return
+  endif
+                                
+  if (x > x_knot(n) + (x_knot(n) - x_knot(n-1))) then
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, &
+            'X EVALUATION POINT (\es12.4\) IS MUCH GREATER THAN UPPER BOUND OF SPLINE INTERVAL (\es12.4\) ', &
+            r_array = [x, x_knot(n)])
+    return
+  endif
 endif
 
 ix0 = bracket_index (x, x_knot, 1)
 if (ix0 == 0) ix0 = 1
-if (ix0 == ix_max) ix0 = ix_max - 1
+if (ix0 == n) ix0 = n - 1
 
 ok = .true.
 

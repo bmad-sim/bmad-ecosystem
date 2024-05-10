@@ -908,15 +908,15 @@ class Opaque_wake_sr_z_class {};  // Opaque class for pointers to corresponding 
 class CPP_wake_sr_z {
 public:
   CPP_spline_ARRAY w;
-  CPP_spline_ARRAY w1;
-  CPP_spline_ARRAY w2;
+  CPP_spline_ARRAY w_sum1;
+  CPP_spline_ARRAY w_sum2;
   Int plane;
   Int position_dependence;
 
   CPP_wake_sr_z() :
     w(CPP_spline_ARRAY(CPP_spline(), 0)),
-    w1(CPP_spline_ARRAY(CPP_spline(), 0)),
-    w2(CPP_spline_ARRAY(CPP_spline(), 0)),
+    w_sum1(CPP_spline_ARRAY(CPP_spline(), 0)),
+    w_sum2(CPP_spline_ARRAY(CPP_spline(), 0)),
     plane(Bmad::NOT_SET),
     position_dependence(Bmad::NOT_SET)
     {}

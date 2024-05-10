@@ -2260,13 +2260,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_sr_z_to_c2 (C, z_w, n1_w, z_w1, n1_w1, z_w2, n1_w2, z_plane, &
+  subroutine wake_sr_z_to_c2 (C, z_w, n1_w, z_w_sum1, n1_w_sum1, z_w_sum2, n1_w_sum2, z_plane, &
       z_position_dependence) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr) :: z_w(*), z_w1(*), z_w2(*)
-    integer(c_int), value :: n1_w, n1_w1, n1_w2
+    type(c_ptr) :: z_w(*), z_w_sum1(*), z_w_sum2(*)
+    integer(c_int), value :: n1_w, n1_w_sum1, n1_w_sum2
     integer(c_int) :: z_plane, z_position_dependence
   end subroutine
 end interface
@@ -2278,10 +2278,10 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_w(:)
 integer(c_int) :: n1_w
-type(c_ptr), allocatable :: z_w1(:)
-integer(c_int) :: n1_w1
-type(c_ptr), allocatable :: z_w2(:)
-integer(c_int) :: n1_w2
+type(c_ptr), allocatable :: z_w_sum1(:)
+integer(c_int) :: n1_w_sum1
+type(c_ptr), allocatable :: z_w_sum2(:)
+integer(c_int) :: n1_w_sum2
 
 !
 
@@ -2297,26 +2297,27 @@ if (allocated(F%w)) then
   enddo
 endif
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_w1 = 0
-if (allocated(F%w1)) then
-  n1_w1 = size(F%w1); lb1 = lbound(F%w1, 1) - 1
-  allocate (z_w1(n1_w1))
-  do jd1 = 1, n1_w1
-    z_w1(jd1) = c_loc(F%w1(jd1+lb1))
+ n1_w_sum1 = 0
+if (allocated(F%w_sum1)) then
+  n1_w_sum1 = size(F%w_sum1); lb1 = lbound(F%w_sum1, 1) - 1
+  allocate (z_w_sum1(n1_w_sum1))
+  do jd1 = 1, n1_w_sum1
+    z_w_sum1(jd1) = c_loc(F%w_sum1(jd1+lb1))
   enddo
 endif
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_w2 = 0
-if (allocated(F%w2)) then
-  n1_w2 = size(F%w2); lb1 = lbound(F%w2, 1) - 1
-  allocate (z_w2(n1_w2))
-  do jd1 = 1, n1_w2
-    z_w2(jd1) = c_loc(F%w2(jd1+lb1))
+ n1_w_sum2 = 0
+if (allocated(F%w_sum2)) then
+  n1_w_sum2 = size(F%w_sum2); lb1 = lbound(F%w_sum2, 1) - 1
+  allocate (z_w_sum2(n1_w_sum2))
+  do jd1 = 1, n1_w_sum2
+    z_w_sum2(jd1) = c_loc(F%w_sum2(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
-call wake_sr_z_to_c2 (C, z_w, n1_w, z_w1, n1_w1, z_w2, n1_w2, F%plane, F%position_dependence)
+call wake_sr_z_to_c2 (C, z_w, n1_w, z_w_sum1, n1_w_sum1, z_w_sum2, n1_w_sum2, F%plane, &
+    F%position_dependence)
 
 end subroutine wake_sr_z_to_c
 
@@ -2336,7 +2337,7 @@ end subroutine wake_sr_z_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_sr_z_to_f2 (Fp, z_w, n1_w, z_w1, n1_w1, z_w2, n1_w2, z_plane, &
+subroutine wake_sr_z_to_f2 (Fp, z_w, n1_w, z_w_sum1, n1_w_sum1, z_w_sum2, n1_w_sum2, z_plane, &
     z_position_dependence) bind(c)
 
 
@@ -2346,8 +2347,8 @@ type(c_ptr), value :: Fp
 type(wake_sr_z_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr) :: z_w(*), z_w1(*), z_w2(*)
-integer(c_int), value :: n1_w, n1_w1, n1_w2
+type(c_ptr) :: z_w(*), z_w_sum1(*), z_w_sum2(*)
+integer(c_int), value :: n1_w, n1_w_sum1, n1_w_sum2
 integer(c_int) :: z_plane, z_position_dependence
 
 call c_f_pointer (Fp, F)
@@ -2367,30 +2368,30 @@ else
 endif
 
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_w1 == 0) then
-  if (allocated(F%w1)) deallocate(F%w1)
+if (n1_w_sum1 == 0) then
+  if (allocated(F%w_sum1)) deallocate(F%w_sum1)
 else
-  if (allocated(F%w1)) then
-    if (n1_w1 == 0 .or. any(shape(F%w1) /= [n1_w1])) deallocate(F%w1)
-    if (any(lbound(F%w1) /= 1)) deallocate(F%w1)
+  if (allocated(F%w_sum1)) then
+    if (n1_w_sum1 == 0 .or. any(shape(F%w_sum1) /= [n1_w_sum1])) deallocate(F%w_sum1)
+    if (any(lbound(F%w_sum1) /= 1)) deallocate(F%w_sum1)
   endif
-  if (.not. allocated(F%w1)) allocate(F%w1(1:n1_w1+1-1))
-  do jd1 = 1, n1_w1
-    call spline_to_f (z_w1(jd1), c_loc(F%w1(jd1+1-1)))
+  if (.not. allocated(F%w_sum1)) allocate(F%w_sum1(1:n1_w_sum1+1-1))
+  do jd1 = 1, n1_w_sum1
+    call spline_to_f (z_w_sum1(jd1), c_loc(F%w_sum1(jd1+1-1)))
   enddo
 endif
 
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_w2 == 0) then
-  if (allocated(F%w2)) deallocate(F%w2)
+if (n1_w_sum2 == 0) then
+  if (allocated(F%w_sum2)) deallocate(F%w_sum2)
 else
-  if (allocated(F%w2)) then
-    if (n1_w2 == 0 .or. any(shape(F%w2) /= [n1_w2])) deallocate(F%w2)
-    if (any(lbound(F%w2) /= 1)) deallocate(F%w2)
+  if (allocated(F%w_sum2)) then
+    if (n1_w_sum2 == 0 .or. any(shape(F%w_sum2) /= [n1_w_sum2])) deallocate(F%w_sum2)
+    if (any(lbound(F%w_sum2) /= 1)) deallocate(F%w_sum2)
   endif
-  if (.not. allocated(F%w2)) allocate(F%w2(1:n1_w2+1-1))
-  do jd1 = 1, n1_w2
-    call spline_to_f (z_w2(jd1), c_loc(F%w2(jd1+1-1)))
+  if (.not. allocated(F%w_sum2)) allocate(F%w_sum2(1:n1_w_sum2+1-1))
+  do jd1 = 1, n1_w_sum2
+    call spline_to_f (z_w_sum2(jd1), c_loc(F%w_sum2(jd1+1-1)))
   enddo
 endif
 
