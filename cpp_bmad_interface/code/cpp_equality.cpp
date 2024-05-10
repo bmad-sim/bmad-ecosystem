@@ -279,8 +279,8 @@ template bool is_all_equal (const CPP_expression_atom_MATRIX&, const CPP_express
 bool operator== (const CPP_wake_sr_z& x, const CPP_wake_sr_z& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.w, y.w);
-  is_eq = is_eq && is_all_equal(x.w1, y.w1);
-  is_eq = is_eq && is_all_equal(x.w2, y.w2);
+  is_eq = is_eq && is_all_equal(x.w_sum1, y.w_sum1);
+  is_eq = is_eq && is_all_equal(x.w_sum2, y.w_sum2);
   is_eq = is_eq && (x.plane == y.plane);
   is_eq = is_eq && (x.position_dependence == y.position_dependence);
   return is_eq;

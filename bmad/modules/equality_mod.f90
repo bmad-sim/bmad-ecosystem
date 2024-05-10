@@ -452,17 +452,17 @@ if (allocated(f1%w)) is_eq = all(shape(f1%w) == shape(f2%w))
 if (.not. is_eq) return
 if (allocated(f1%w)) is_eq = all(f1%w == f2%w)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w1) .eqv. allocated(f2%w1))
+is_eq = is_eq .and. (allocated(f1%w_sum1) .eqv. allocated(f2%w_sum1))
 if (.not. is_eq) return
-if (allocated(f1%w1)) is_eq = all(shape(f1%w1) == shape(f2%w1))
+if (allocated(f1%w_sum1)) is_eq = all(shape(f1%w_sum1) == shape(f2%w_sum1))
 if (.not. is_eq) return
-if (allocated(f1%w1)) is_eq = all(f1%w1 == f2%w1)
+if (allocated(f1%w_sum1)) is_eq = all(f1%w_sum1 == f2%w_sum1)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w2) .eqv. allocated(f2%w2))
+is_eq = is_eq .and. (allocated(f1%w_sum2) .eqv. allocated(f2%w_sum2))
 if (.not. is_eq) return
-if (allocated(f1%w2)) is_eq = all(shape(f1%w2) == shape(f2%w2))
+if (allocated(f1%w_sum2)) is_eq = all(shape(f1%w_sum2) == shape(f2%w_sum2))
 if (.not. is_eq) return
-if (allocated(f1%w2)) is_eq = all(f1%w2 == f2%w2)
+if (allocated(f1%w_sum2)) is_eq = all(f1%w_sum2 == f2%w_sum2)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%plane == f2%plane)
 !! f_side.equality_test[integer, 0, NOT]

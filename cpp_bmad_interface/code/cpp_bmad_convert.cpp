@@ -597,47 +597,48 @@ extern "C" void wake_sr_z_to_f (const CPP_wake_sr_z& C, Opaque_wake_sr_z_class* 
     for (int i = 0; i < n1_w; i++) z_w[i] = &C.w[i];
   }
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_w1 = C.w1.size();
-  const CPP_spline** z_w1 = NULL;
-  if (n1_w1 != 0) {
-    z_w1 = new const CPP_spline*[n1_w1];
-    for (int i = 0; i < n1_w1; i++) z_w1[i] = &C.w1[i];
+  int n1_w_sum1 = C.w_sum1.size();
+  const CPP_spline** z_w_sum1 = NULL;
+  if (n1_w_sum1 != 0) {
+    z_w_sum1 = new const CPP_spline*[n1_w_sum1];
+    for (int i = 0; i < n1_w_sum1; i++) z_w_sum1[i] = &C.w_sum1[i];
   }
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_w2 = C.w2.size();
-  const CPP_spline** z_w2 = NULL;
-  if (n1_w2 != 0) {
-    z_w2 = new const CPP_spline*[n1_w2];
-    for (int i = 0; i < n1_w2; i++) z_w2[i] = &C.w2[i];
+  int n1_w_sum2 = C.w_sum2.size();
+  const CPP_spline** z_w_sum2 = NULL;
+  if (n1_w_sum2 != 0) {
+    z_w_sum2 = new const CPP_spline*[n1_w_sum2];
+    for (int i = 0; i < n1_w_sum2; i++) z_w_sum2[i] = &C.w_sum2[i];
   }
 
   // c_side.to_f2_call
-  wake_sr_z_to_f2 (F, z_w, n1_w, z_w1, n1_w1, z_w2, n1_w2, C.plane, C.position_dependence);
+  wake_sr_z_to_f2 (F, z_w, n1_w, z_w_sum1, n1_w_sum1, z_w_sum2, n1_w_sum2, C.plane,
+      C.position_dependence);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_w;
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_w1;
+ delete[] z_w_sum1;
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_w2;
+ delete[] z_w_sum2;
 }
 
 // c_side.to_c2_arg
 extern "C" void wake_sr_z_to_c2 (CPP_wake_sr_z& C, Opaque_spline_class** z_w, Int n1_w,
-    Opaque_spline_class** z_w1, Int n1_w1, Opaque_spline_class** z_w2, Int n1_w2, c_Int&
-    z_plane, c_Int& z_position_dependence) {
+    Opaque_spline_class** z_w_sum1, Int n1_w_sum1, Opaque_spline_class** z_w_sum2, Int
+    n1_w_sum2, c_Int& z_plane, c_Int& z_position_dependence) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.w.resize(n1_w);
   for (int i = 0; i < n1_w; i++) spline_to_c(z_w[i], C.w[i]);
 
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.w1.resize(n1_w1);
-  for (int i = 0; i < n1_w1; i++) spline_to_c(z_w1[i], C.w1[i]);
+  C.w_sum1.resize(n1_w_sum1);
+  for (int i = 0; i < n1_w_sum1; i++) spline_to_c(z_w_sum1[i], C.w_sum1[i]);
 
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.w2.resize(n1_w2);
-  for (int i = 0; i < n1_w2; i++) spline_to_c(z_w2[i], C.w2[i]);
+  C.w_sum2.resize(n1_w_sum2);
+  for (int i = 0; i < n1_w_sum2; i++) spline_to_c(z_w_sum2[i], C.w_sum2[i]);
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.plane = z_plane;

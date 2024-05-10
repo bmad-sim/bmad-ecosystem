@@ -8,6 +8,7 @@ set (EXE_SPECS
   cmake_files/cmake.controller_response_plot
   cmake_files/cmake.ptc_flat_file_to_bmad
   cmake_files/cmake.wake_fit
+  cmake_files/cmake.wake_plot
   cmake_files/cmake.bmad_to_astra
   cmake_files/cmake.bmad_to_blender
   cmake_files/cmake.bmad_to_csrtrack
