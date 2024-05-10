@@ -1,3 +1,19 @@
 &params
-
-  lat_file
+  lat_file = "wake.bmad"      ! Bmad lattice file.
+  wake_ele_name = "p1"        ! Lattice element with wakes.
+  who = "sr"                  ! What wake type to use.
+  m_order = 0                 ! Order of LR wake to use. 0 => all orders.
+  ix_wake = 0                 ! Index of wake to use. 0 => Ignore this parameter.
+  xy_leading = 1, 0           ! (x, y) position of leading particle that produces a wake.
+  xy_trailing = 1, 0          ! (x, y) position of trailing witness particle that samples the bunch.
+  leading_charge = 1          ! Leading particle charge. Only used when plotting the wake kicks.
+  
+  plot_type = "wake"          ! "wake" or "kick"
+  make_plot = True            ! Open a plotting window.
+  postscript_file = ""        ! If not blank, write wake to a file.
+  plot_limit = -1e-2          ! Limit of plot range. 
+  n_points = 1001             ! Number of plot points
+  draw_knot_points = False    ! Draw symbols at SR z-dependent wake knot points?
+  text_scale = 1.2            ! Scale for drawing text.
+  plot_size = 500, 400        ! (width, height) plot size in pixels.
+/

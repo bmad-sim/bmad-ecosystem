@@ -20,9 +20,9 @@ SR --> Short range wake
 Simulation
 ----------
 
-The wake is simulated with a leading particle that excites a wake and a trailing particle that gets
-a kick. The charge on the trailing particle is negligible compared with the charge on the leading
-particle so the longitudinal self-wake of the trailing particle is negligible.
+The wake is simulated with a leading particle that excites a wake and a trailing "witness" particle
+that gets a kick. The charge on the trailing particle is negligible compared with the charge on the
+leading particle so the longitudinal self-wake of the trailing particle is negligible.
 
 The wake kicks are the change in phase space px, py, and pz due to the wake.
 The only difference between plotting the wakes versus the kicks is an overall scale factor.
@@ -66,7 +66,7 @@ lat_file: Bmad lattice file containing the element with the wakes.
 
 wake_ele_name: Wake element identifier. Can be name or element index. Must match to a unique element.
 
-who: What to plot. Possibilities are:
+who: What wake type to use. Possibilities are:
         "lr"				-- Long range wakes.
         "sr"				-- Short range wakes.
         "sr-mode"   -- Short range pseudo-mode wakes. Z-position wakes are ignored.
@@ -83,9 +83,9 @@ there is a single list of wakes.  plot only the wake with the index correspondin
 (ix_wake = 1 --> Only use first wake in list, etc).  Default is zero which means ignore ix_order. If
 non-zero, overrides any setting of m_order.
 
-xy_leading: (x, y) transverse position of the leading particle.
+xy_leading: (x, y) transverse position of the leading particle that produces the wake.
 
-xy_trailing: (x, y) transverse position of the trailing particle.
+xy_trailing: (x, y) transverse position of the trailing witness particle that samples the wake.
 
 leading_charge: Charge of the leading bunch. Only used when plotting kicks.
 
@@ -109,10 +109,9 @@ corresponding to the spline knot points of the Z-position wakes.
 
 text_scale: Scale for drawing text. Default is 1.2
 
+plot_size: (width, height) of plot page in pixels (72 pixels = 1 inch).
+
 x_axis_label:
 
 y_axis_label:
 
-text_scale
-
-plot_size: (width, height) of plot page
