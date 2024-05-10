@@ -1,0 +1,118 @@
+Program: wake_plot
+==================
+
+Program to plot wakes or wake kicks for wakes in a given lattice element.
+See the Bmad manual for details on how wakes are parameterized.
+
+Plotted will be the longitudinal and transverse wakes.
+For LR wakes the dependent variable is time. For SR wakes the dependent variable is z-position.
+An optional postscript file can also be created.
+
+
+=================================================================================================
+Nomenclature:
+-------------
+
+LR --> Long range wake
+SR --> Short range wake
+
+=================================================================================================
+Simulation
+----------
+
+The wake is simulated with a leading particle that excites a wake and a trailing particle that gets
+a kick. The charge on the trailing particle is negligible compared with the charge on the leading
+particle so the longitudinal self-wake of the trailing particle is negligible.
+
+The wake kicks are the change in phase space px, py, and pz due to the wake.
+The only difference between plotting the wakes versus the kicks is an overall scale factor.
+
+Note: For some types of wakes the wake will be zero if xy_leading or xy_trailing are zero.
+
+
+=================================================================================================
+Running the Program
+-------------------
+
+To run program
+  wake_plot <input_file>
+where <input_file> is the name of the input file.
+The default input file name is "wake_plot.init".
+
+The program code and example input file can be found in the directory in the bmad-ecosystem repository at:
+  util_program/wake_plot
+
+
+=================================================================================================
+Input file syntax
+-----------------
+
+An input file uses Fortan namelist syntax. Parameters are read from a namelist named "params"
+which looks like:
+
+  &params
+		lat_file = "lat.bmad"
+    ... etc...
+  /
+
+See the example input file in the bmad-ecosystem repo.
+
+
+=================================================================================================
+Non-Plotting Input Prameters:
+-----------------------------
+
+lat_file: Bmad lattice file containing the element with the wakes.
+
+wake_ele_name: Wake element identifier. Can be name or element index. Must match to a unique element.
+
+who: What to plot. Possibilities are:
+        "lr"				-- Long range wakes.
+        "sr"				-- Short range wakes.
+        "sr-mode"   -- Short range pseudo-mode wakes. Z-position wakes are ignored.
+        "sr-long"   -- Short range longitudinal pseudo-mode wake. Only used with ix_wake non-zero.
+        "sr-trans"  -- Short range transverse pseudo-mode wake. Only used with ix_wake non-zero.
+        "sr-z"			-- Short range Z-position wakes. Pseudo-mode wakes are ignored.
+When multiple modes are present, the sum of the wakes is plotted.
+
+m_order: Mode order to plot. Only used with LR wakes. m_order = 1 => dipole wakes, etc. 
+Ignored if ix_wake is nonzero. Must be set if there is more than one wake and ix_wake = 0.
+
+ix_wake: Wake index to plot. Only used with who set to "lr", "sr-long", "sr-trans", or "sr-z" where
+there is a single list of wakes.  plot only the wake with the index corresponding to ix_wake
+(ix_wake = 1 --> Only use first wake in list, etc).  Default is zero which means ignore ix_order. If
+non-zero, overrides any setting of m_order.
+
+xy_leading: (x, y) transverse position of the leading particle.
+
+xy_trailing: (x, y) transverse position of the trailing particle.
+
+leading_charge: Charge of the leading bunch. Only used when plotting kicks.
+
+=================================================================================================
+Plotting Input Parameters:
+--------------------------
+
+plot_type: Can be set to "wake" to plot the wake or "kick" to plot the kick
+
+make_plot: If False, do not make a plot (used if only a postscript file is wanted.
+
+postscript_file: If non-blank, Make a postscript file.
+
+Plot_limit: For LR plots, the wake is plotted over a time range [0, plot_limit]. For SR plots,
+the wake is plotted over a z range [plot_limit, 0] where plot_limit should be negative in this case.
+
+n_points: Number of data points to use in drawing the wake.
+
+draw_knot_points: Only used with SR wakes. If True, draw symbols on the wake curves at the z-positions
+corresponding to the spline knot points of the Z-position wakes.
+
+text_scale: Scale for drawing text. Default is 1.2
+
+x_axis_label:
+
+y_axis_label:
+
+text_scale
+
+plot_size: (width, height) of plot page
