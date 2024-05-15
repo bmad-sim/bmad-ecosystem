@@ -127,10 +127,6 @@ converter_test
 File: element_attributes/element_attributes.f90
 element_attributes
 
-File: f77_to_f90/f77_to_f90.f90
-f77_to_f90
-convert1
-
 File: generalized_gradient_fit/generalized_gradient_fit.f90
 generalized_gradient_fit
 
@@ -160,9 +156,6 @@ test
 File: mais_ripken/mais_ripken.f90
 coupling_convert_et2rip
 
-File: make_a_matching_knob/make_a_matching_knob.f90
-make_a_matching_knob
-
 File: photon_init_plot/photon_init_plot.f90
 photon_init_plot
 
@@ -188,3 +181,6 @@ sad_to_bmad_postprocess
 
 File: wake_fit/wake_fit.f90
 wake_fit
+
+File: bmad_to_julia/bmad_to_julia.f90
+bmad_to_julia

@@ -16,22 +16,22 @@ use bmad_struct
 interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_ac_kicker_time, eq_ac_kicker_freq
   module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord
-  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_mode, eq_wake_sr
-  module procedure eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
-  module procedure eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
-  module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
-  module procedure eq_grid_field_pt, eq_grid_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
-  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_map, eq_rad_map_ele
-  module procedure eq_gen_grad1, eq_gen_grad_map, eq_surface_grid_pt, eq_surface_grid, eq_target_point
-  module procedure eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_pt, eq_pixel_detec
-  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control
-  module procedure eq_control_var1, eq_control_ramp1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init
-  module procedure eq_grid_beam_init, eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker
-  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_strong_beam
-  module procedure eq_track_point, eq_track, eq_space_charge_common, eq_bmad_common, eq_rad_int1
-  module procedure eq_rad_int_branch, eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor
-  module procedure eq_branch, eq_lat, eq_bunch, eq_bunch_params, eq_beam
-  module procedure eq_aperture_point, eq_aperture_param, eq_aperture_scan
+  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z, eq_wake_sr_mode
+  module procedure eq_wake_sr, eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake
+  module procedure eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1
+  module procedure eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map
+  module procedure eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_floor_position, eq_high_energy_space_charge
+  module procedure eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_map
+  module procedure eq_rad_map_ele, eq_gen_grad1, eq_gen_grad_map, eq_surface_grid_pt, eq_surface_grid
+  module procedure eq_target_point, eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_pt
+  module procedure eq_pixel_detec, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
+  module procedure eq_ramper_lord, eq_control, eq_control_var1, eq_control_ramp1, eq_controller
+  module procedure eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init, eq_lat_param
+  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
+  module procedure eq_em_field, eq_strong_beam, eq_track_point, eq_track, eq_space_charge_common
+  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele
+  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat, eq_bunch
+  module procedure eq_bunch_params, eq_beam, eq_aperture_point, eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -435,6 +435,44 @@ end function eq_expression_atom
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_wake_sr_z (f1, f2) result (is_eq)
+
+implicit none
+
+type(wake_sr_z_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w) .eqv. allocated(f2%w))
+if (.not. is_eq) return
+if (allocated(f1%w)) is_eq = all(shape(f1%w) == shape(f2%w))
+if (.not. is_eq) return
+if (allocated(f1%w)) is_eq = all(f1%w == f2%w)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w_sum1) .eqv. allocated(f2%w_sum1))
+if (.not. is_eq) return
+if (allocated(f1%w_sum1)) is_eq = all(shape(f1%w_sum1) == shape(f2%w_sum1))
+if (.not. is_eq) return
+if (allocated(f1%w_sum1)) is_eq = all(f1%w_sum1 == f2%w_sum1)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w_sum2) .eqv. allocated(f2%w_sum2))
+if (.not. is_eq) return
+if (allocated(f1%w_sum2)) is_eq = all(shape(f1%w_sum2) == shape(f2%w_sum2))
+if (.not. is_eq) return
+if (allocated(f1%w_sum2)) is_eq = all(f1%w_sum2 == f2%w_sum2)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%plane == f2%plane)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%position_dependence == f2%position_dependence)
+
+end function eq_wake_sr_z
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_wake_sr_mode (f1, f2) result (is_eq)
 
 implicit none
@@ -483,6 +521,12 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%z) .eqv. allocated(f2%z))
+if (.not. is_eq) return
+if (allocated(f1%z)) is_eq = all(shape(f1%z) == shape(f2%z))
+if (.not. is_eq) return
+if (allocated(f1%z)) is_eq = all(f1%z == f2%z)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%long) .eqv. allocated(f2%long))
 if (.not. is_eq) return
@@ -1689,6 +1733,31 @@ end function eq_wall3d
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_ramper_lord (f1, f2) result (is_eq)
+
+implicit none
+
+type(ramper_lord_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_con == f2%ix_con)
+!! f_side.equality_test[real, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%attrib_ptr) .eqv. associated(f2%attrib_ptr))
+if (.not. is_eq) return
+if (associated(f1%attrib_ptr)) is_eq = (f1%attrib_ptr == f2%attrib_ptr)
+
+end function eq_ramper_lord
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_control (f1, f2) result (is_eq)
 
 implicit none
@@ -1761,8 +1830,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%value == f2%value)
 !! f_side.equality_test[real, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%y_knot) .eqv. allocated(f2%y_knot))
 if (.not. is_eq) return
@@ -1779,8 +1846,6 @@ if (allocated(f1%stack)) is_eq = all(f1%stack == f2%stack)
 is_eq = is_eq .and. (f1%attribute == f2%attribute)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%slave_name == f2%slave_name)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%slave == f2%slave)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%is_controller .eqv. f2%is_controller)
 
@@ -1811,6 +1876,12 @@ if (.not. is_eq) return
 if (allocated(f1%ramp)) is_eq = all(shape(f1%ramp) == shape(f2%ramp))
 if (.not. is_eq) return
 if (allocated(f1%ramp)) is_eq = all(f1%ramp == f2%ramp)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%ramper_lord) .eqv. allocated(f2%ramper_lord))
+if (.not. is_eq) return
+if (allocated(f1%ramper_lord)) is_eq = all(shape(f1%ramper_lord) == shape(f2%ramper_lord))
+if (.not. is_eq) return
+if (allocated(f1%ramper_lord)) is_eq = all(f1%ramper_lord == f2%ramper_lord)
 !! f_side.equality_test[real, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%x_knot) .eqv. allocated(f2%x_knot))
 if (.not. is_eq) return
@@ -2738,6 +2809,8 @@ is_eq = is_eq .and. (f1%n_lord == f2%n_lord)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_lord_field == f2%n_lord_field)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_lord_ramper == f2%n_lord_ramper)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ic1_lord == f2%ic1_lord)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_pointer == f2%ix_pointer)
@@ -3005,6 +3078,8 @@ if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
 is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%creation_hash == f2%creation_hash)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%ramper_slave_bookkeeping_done .eqv. f2%ramper_slave_bookkeeping_done)
 
 end function eq_lat
 

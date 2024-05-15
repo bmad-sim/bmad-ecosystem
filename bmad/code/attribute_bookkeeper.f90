@@ -13,6 +13,7 @@
 !                  -- Logical, optional: If present and True then force
 !                       attribute bookkeeping to be done independent of
 !                       the state of ele%bookkeeping_stat%attributes.
+!                       This will also cause attribute_bookkeeper to assume intelligent bookkeeping.
 ! Output:
 !   ele            -- Ele_struct: Element with self-consistant attributes.
 !
@@ -29,6 +30,7 @@ use xraylib, dummy => r_e
 use super_recipes_mod, only: super_brent
 use ptc_layout_mod, only: update_ele_from_fibre
 use particle_species_mod
+use bmad_parser_struct, only: bp_com
 
 implicit none
 
@@ -85,10 +87,20 @@ end select
 
 ! 
 
-if (bmad_com%auto_bookkeeper) then
+if (bmad_com%auto_bookkeeper .and. .not. logic_option(.false., force_bookkeeping)) then
   call attributes_need_bookkeeping(ele, dval)
-  if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
+  if (ele%bookkeeping_state%attributes /= stale$) return
 
+  if (.false. .and. bp_com%parser_name == '') then   ! If not parsing should not be here
+    call out_io (s_error$, r_name, &
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+      '!!!!! Setting bmad_com%auto_bookkeeper = .false. will, in the near future, be mandated for all !!!!!', &
+      '!!!!! Bmad programs that modify lattice parameters.                                            !!!!!', &
+      '!!!!! See the "Intelligent Bookkeeping" section in the Bmad manual.                            !!!!!', &
+      '!!!!! Contact the maintainer of this program with this information.                            !!!!!', &
+      '!!!!! This program will run now but in the future this will change.                            !!!!!', &
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+  endif
 else
   call attributes_need_bookkeeping(ele)
   if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
@@ -389,7 +401,7 @@ case (beambeam$)
   else
     if (val(sig_x$) == 0 .or. val(sig_y$) == 0) then
       call out_io(s_error$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!' // ele%name)
-      call type_ele(ele, .true., 0, .false., 0, .false.)
+      call type_ele(ele, .true., 0, .false., 0)
       return
     endif
 
@@ -445,11 +457,6 @@ case (crab_cavity$)
 ! Foil
 
 case (foil$)
-
-  if (ele%value(thickness$) < 0) then
-    call out_io(s_error$, r_name, 'FOIL THICKNESS IS LESS THAN ZERO FOR: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-  endif
 
   call molecular_components(ele%component_name, component)
   n = size(component)

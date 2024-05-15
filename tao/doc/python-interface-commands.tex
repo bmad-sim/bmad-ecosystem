@@ -137,7 +137,7 @@ Where:
   {ele_id} is an element name or index.
   {which} is one of: "model", "base" or "design"
   {ix_bunch} is the bunch index.
-  {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state"
+  {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state", "ix_ele"
 
 For example, if {coordinate} = "px", the phase space px coordinate of each particle
 of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
@@ -677,8 +677,10 @@ This gives element number 7 in branch 1 of universe 3.
 \label{p:ele:floor}
 
 
-Output element floor coordinates. The output gives two lines. "Reference" is
-without element misalignments and "Actual" is with misalignments.
+Output element floor coordinates. The output gives four lines. "Reference" is
+without element misalignments and "Actual" is with misalignments. The lines with "-W"
+give the W matrix. The exception is that if ele is a multipass_lord, there will be 4*N
+lines where N is the number of slaves.
 
 \begin{example}
    python ele:floor \{ele_id\}|\{which\} \{where\}

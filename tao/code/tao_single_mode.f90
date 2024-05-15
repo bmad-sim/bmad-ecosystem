@@ -494,7 +494,7 @@ case ('/')
       write (*, *) '!---------------------------------------------------'
       write (*, *) '! Branch Index: ', eles(i)%ele%ix_branch
       write (*, *) '! Element Index:', eles(i)%ele%ix_ele
-      call type_ele (eles(i)%ele, .false., 6, .true., radians$, .true.)
+      call type_ele (eles(i)%ele, .false., 6, .true., radians$)
     enddo
 
     if (size(eles) == 0) write (*, *) 'Element not found.'

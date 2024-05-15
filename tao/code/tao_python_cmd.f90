@@ -13,9 +13,10 @@
 !
 ! {type} is the type of the parameter and is one of:
 !   INT         ! Integer number
+!   INT_ARR     ! Integer array.
 !   REAL        ! Real number
-!   COMPLEX     ! Complex number (Re;Im)
 !   REAL_ARR    ! Real array
+!   COMPLEX     ! Complex number (Re;Im)
 !   LOGIC       ! Logical: "T" or "F".
 !   INUM        ! Integer whose allowed values can be obtained using the "python inum" command.
 !   ENUM        ! String whose allowed values can be obtained using the "python enum" command.
@@ -749,7 +750,7 @@ case ('bunch_params')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {ix_bunch} is the bunch index.
-!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state"
+!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state", "ix_ele"
 !
 ! For example, if {coordinate} = "px", the phase space px coordinate of each particle
 ! of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
@@ -6792,8 +6793,8 @@ case ('space_charge_com')
   nl=incr(nl); write(li(nl), rmt) 'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
   nl=incr(nl); write(li(nl), rmt) 'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
 
-  nl=incr(nl); write(li(nl), imt) 'space_charge_mesh_size;INT;T;',            space_charge_com%space_charge_mesh_size
-  nl=incr(nl); write(li(nl), imt) 'csr3d_mesh_size;INT;T;',                   space_charge_com%csr3d_mesh_size
+  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'space_charge_mesh_size;INT_ARR;T', (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',       (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
   nl=incr(nl); write(li(nl), imt) 'n_bin;INT;T;',                             space_charge_com%n_bin
   nl=incr(nl); write(li(nl), imt) 'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
   nl=incr(nl); write(li(nl), imt) 'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
@@ -8310,7 +8311,9 @@ case ('p0c')
 case ('state')
   call reallocate_c_integer_scratch(n)
   tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%state
-
+case ('ix_ele')
+  call reallocate_c_integer_scratch(n)
+  tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%ix_ele
 case default
   call invalid ('coordinate not "x", "px", etc. ')
   return

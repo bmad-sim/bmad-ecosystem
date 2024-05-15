@@ -19,6 +19,22 @@ __pycache__
 # Jupyter notebooks
 .ipynb_checkpoints
 
+bsim/dark_current_tracker/test/drift/ReferenceParticles.out
+bsim/dark_current_tracker/test/drift/ReferenceParticles.tally
+bsim/dynamic_aperture/example/da.dat
+bsim/envelope_ibs/test/one_turn_mat_from_slices.diag
+bsim/ibs_ring/test/ibs_rates0.out
+bsim/ibs_ring/test/properties.out
+bsim/sodom2/example/n_axis.out
+bsim/sodom2/example/sodom2.out
+bsim/synrad3d/example/lat_ele.dat
+bsim/synrad3d/example/synrad3d.dat
+lux/examples/bent_crystal/lux.photon1
+lux/examples/bent_crystal/spherical.det_pix
+lux/examples/bent_crystal/spherical.det_pix.x
+lux/examples/bent_crystal/spherical.det_pix.y
+lux/examples/bent_crystal/track.dat
+
 bmad-doc/tutorial_bmad_tao/doc/2www.pl
 bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.aux
 bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.bbl
@@ -34,7 +50,7 @@ bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.log
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.out
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.pdf
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
-bmad-doc/tao_examples/csr_beam_tracking/csr_wake.dat
+bmad-doc/tao_examples/csr_beam_tracking/*.dat
 
 tao/doc/tao.pdf
 bmad/doc/bmad.pdf

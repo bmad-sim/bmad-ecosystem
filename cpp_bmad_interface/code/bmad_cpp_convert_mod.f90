@@ -134,6 +134,15 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine wake_sr_z_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine wake_sr_mode_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -495,6 +504,15 @@ end interface
 
 interface 
   subroutine wall3d_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine ramper_lord_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -2225,6 +2243,169 @@ end subroutine expression_atom_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine wake_sr_z_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad wake_sr_z_struct to a C++ CPP_wake_sr_z structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad wake_sr_z_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_wake_sr_z struct.
+!-
+
+subroutine wake_sr_z_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine wake_sr_z_to_c2 (C, z_w, n1_w, z_w_sum1, n1_w_sum1, z_w_sum2, n1_w_sum2, z_plane, &
+      z_position_dependence) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    type(c_ptr) :: z_w(*), z_w_sum1(*), z_w_sum2(*)
+    integer(c_int), value :: n1_w, n1_w_sum1, n1_w_sum2
+    integer(c_int) :: z_plane, z_position_dependence
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(wake_sr_z_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_w(:)
+integer(c_int) :: n1_w
+type(c_ptr), allocatable :: z_w_sum1(:)
+integer(c_int) :: n1_w_sum1
+type(c_ptr), allocatable :: z_w_sum2(:)
+integer(c_int) :: n1_w_sum2
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_w = 0
+if (allocated(F%w)) then
+  n1_w = size(F%w); lb1 = lbound(F%w, 1) - 1
+  allocate (z_w(n1_w))
+  do jd1 = 1, n1_w
+    z_w(jd1) = c_loc(F%w(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_w_sum1 = 0
+if (allocated(F%w_sum1)) then
+  n1_w_sum1 = size(F%w_sum1); lb1 = lbound(F%w_sum1, 1) - 1
+  allocate (z_w_sum1(n1_w_sum1))
+  do jd1 = 1, n1_w_sum1
+    z_w_sum1(jd1) = c_loc(F%w_sum1(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_w_sum2 = 0
+if (allocated(F%w_sum2)) then
+  n1_w_sum2 = size(F%w_sum2); lb1 = lbound(F%w_sum2, 1) - 1
+  allocate (z_w_sum2(n1_w_sum2))
+  do jd1 = 1, n1_w_sum2
+    z_w_sum2(jd1) = c_loc(F%w_sum2(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call wake_sr_z_to_c2 (C, z_w, n1_w, z_w_sum1, n1_w_sum1, z_w_sum2, n1_w_sum2, F%plane, &
+    F%position_dependence)
+
+end subroutine wake_sr_z_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine wake_sr_z_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_wake_sr_z structure to a Bmad wake_sr_z_struct structure.
+! This routine is called by wake_sr_z_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the wake_sr_z_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad wake_sr_z_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine wake_sr_z_to_f2 (Fp, z_w, n1_w, z_w_sum1, n1_w_sum1, z_w_sum2, n1_w_sum2, z_plane, &
+    z_position_dependence) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(wake_sr_z_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+type(c_ptr) :: z_w(*), z_w_sum1(*), z_w_sum2(*)
+integer(c_int), value :: n1_w, n1_w_sum1, n1_w_sum2
+integer(c_int) :: z_plane, z_position_dependence
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_w == 0) then
+  if (allocated(F%w)) deallocate(F%w)
+else
+  if (allocated(F%w)) then
+    if (n1_w == 0 .or. any(shape(F%w) /= [n1_w])) deallocate(F%w)
+    if (any(lbound(F%w) /= 1)) deallocate(F%w)
+  endif
+  if (.not. allocated(F%w)) allocate(F%w(1:n1_w+1-1))
+  do jd1 = 1, n1_w
+    call spline_to_f (z_w(jd1), c_loc(F%w(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_w_sum1 == 0) then
+  if (allocated(F%w_sum1)) deallocate(F%w_sum1)
+else
+  if (allocated(F%w_sum1)) then
+    if (n1_w_sum1 == 0 .or. any(shape(F%w_sum1) /= [n1_w_sum1])) deallocate(F%w_sum1)
+    if (any(lbound(F%w_sum1) /= 1)) deallocate(F%w_sum1)
+  endif
+  if (.not. allocated(F%w_sum1)) allocate(F%w_sum1(1:n1_w_sum1+1-1))
+  do jd1 = 1, n1_w_sum1
+    call spline_to_f (z_w_sum1(jd1), c_loc(F%w_sum1(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_w_sum2 == 0) then
+  if (allocated(F%w_sum2)) deallocate(F%w_sum2)
+else
+  if (allocated(F%w_sum2)) then
+    if (n1_w_sum2 == 0 .or. any(shape(F%w_sum2) /= [n1_w_sum2])) deallocate(F%w_sum2)
+    if (any(lbound(F%w_sum2) /= 1)) deallocate(F%w_sum2)
+  endif
+  if (.not. allocated(F%w_sum2)) allocate(F%w_sum2(1:n1_w_sum2+1-1))
+  do jd1 = 1, n1_w_sum2
+    call spline_to_f (z_w_sum2(jd1), c_loc(F%w_sum2(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%plane = z_plane
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%position_dependence = z_position_dependence
+
+end subroutine wake_sr_z_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine wake_sr_mode_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad wake_sr_mode_struct to a C++ CPP_wake_sr_mode structure
@@ -2346,14 +2527,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_sr_to_c2 (C, z_file, z_long, n1_long, z_trans, n1_trans, z_z_ref_long, &
-      z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
+  subroutine wake_sr_to_c2 (C, z_file, z_z, n1_z, z_long, n1_long, z_trans, n1_trans, &
+      z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
-    type(c_ptr) :: z_long(*), z_trans(*)
-    integer(c_int), value :: n1_long, n1_trans
+    type(c_ptr) :: z_z(*), z_long(*), z_trans(*)
+    integer(c_int), value :: n1_z, n1_long, n1_trans
     real(c_double) :: z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale
     logical(c_bool) :: z_scale_with_length
   end subroutine
@@ -2364,6 +2546,8 @@ type(c_ptr), value :: C
 type(wake_sr_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
+type(c_ptr), allocatable :: z_z(:)
+integer(c_int) :: n1_z
 type(c_ptr), allocatable :: z_long(:)
 integer(c_int) :: n1_long
 type(c_ptr), allocatable :: z_trans(:)
@@ -2373,6 +2557,15 @@ integer(c_int) :: n1_trans
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_z = 0
+if (allocated(F%z)) then
+  n1_z = size(F%z); lb1 = lbound(F%z, 1) - 1
+  allocate (z_z(n1_z))
+  do jd1 = 1, n1_z
+    z_z(jd1) = c_loc(F%z(jd1+lb1))
+  enddo
+endif
 !! f_side.to_c_trans[type, 1, ALLOC]
  n1_long = 0
 if (allocated(F%long)) then
@@ -2393,8 +2586,9 @@ if (allocated(F%trans)) then
 endif
 
 !! f_side.to_c2_call
-call wake_sr_to_c2 (C, trim(F%file) // c_null_char, z_long, n1_long, z_trans, n1_trans, &
-    F%z_ref_long, F%z_ref_trans, F%z_max, F%amp_scale, F%z_scale, c_logic(F%scale_with_length))
+call wake_sr_to_c2 (C, trim(F%file) // c_null_char, z_z, n1_z, z_long, n1_long, z_trans, &
+    n1_trans, F%z_ref_long, F%z_ref_trans, F%z_max, F%amp_scale, F%z_scale, &
+    c_logic(F%scale_with_length))
 
 end subroutine wake_sr_to_c
 
@@ -2414,8 +2608,8 @@ end subroutine wake_sr_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_sr_to_f2 (Fp, z_file, z_long, n1_long, z_trans, n1_trans, z_z_ref_long, &
-    z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
+subroutine wake_sr_to_f2 (Fp, z_file, z_z, n1_z, z_long, n1_long, z_trans, n1_trans, &
+    z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
 
 
 implicit none
@@ -2425,8 +2619,8 @@ type(wake_sr_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 character(c_char) :: z_file(*)
-type(c_ptr) :: z_long(*), z_trans(*)
-integer(c_int), value :: n1_long, n1_trans
+type(c_ptr) :: z_z(*), z_long(*), z_trans(*)
+integer(c_int), value :: n1_z, n1_long, n1_trans
 real(c_double) :: z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale
 logical(c_bool) :: z_scale_with_length
 
@@ -2434,6 +2628,20 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_file, F%file)
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_z == 0) then
+  if (allocated(F%z)) deallocate(F%z)
+else
+  if (allocated(F%z)) then
+    if (n1_z == 0 .or. any(shape(F%z) /= [n1_z])) deallocate(F%z)
+    if (any(lbound(F%z) /= 1)) deallocate(F%z)
+  endif
+  if (.not. allocated(F%z)) allocate(F%z(1:n1_z+1-1))
+  do jd1 = 1, n1_z
+    call wake_sr_z_to_f (z_z(jd1), c_loc(F%z(jd1+1-1)))
+  enddo
+endif
+
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_long == 0) then
   if (allocated(F%long)) deallocate(F%long)
@@ -6591,6 +6799,105 @@ end subroutine wall3d_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine ramper_lord_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad ramper_lord_struct to a C++ CPP_ramper_lord structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad ramper_lord_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_ramper_lord struct.
+!-
+
+subroutine ramper_lord_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine ramper_lord_to_c2 (C, z_ix_ele, z_ix_con, z_attrib_ptr, n_attrib_ptr) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int) :: z_ix_ele, z_ix_con
+    real(c_double) :: z_attrib_ptr
+    integer(c_int), value :: n_attrib_ptr
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(ramper_lord_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+integer(c_int) :: n_attrib_ptr
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[real, 0, PTR]
+n_attrib_ptr = 0
+if (associated(F%attrib_ptr)) n_attrib_ptr = 1
+
+!! f_side.to_c2_call
+call ramper_lord_to_c2 (C, F%ix_ele, F%ix_con, F%attrib_ptr, n_attrib_ptr)
+
+end subroutine ramper_lord_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine ramper_lord_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_ramper_lord structure to a Bmad ramper_lord_struct structure.
+! This routine is called by ramper_lord_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the ramper_lord_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad ramper_lord_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine ramper_lord_to_f2 (Fp, z_ix_ele, z_ix_con, z_attrib_ptr, n_attrib_ptr) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(ramper_lord_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_ix_ele, z_ix_con
+type(c_ptr), value :: z_attrib_ptr
+real(c_double), pointer :: f_attrib_ptr
+integer(c_int), value :: n_attrib_ptr
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_ele = z_ix_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_con = z_ix_con
+!! f_side.to_f2_trans[real, 0, PTR]
+if (n_attrib_ptr == 0) then                                                                                  
+  if (associated(F%attrib_ptr)) deallocate(F%attrib_ptr)                                                           
+else                                                                                                   
+  call c_f_pointer (z_attrib_ptr, f_attrib_ptr)                                                                    
+  if (.not. associated(F%attrib_ptr)) allocate(F%attrib_ptr)                                                       
+  F%attrib_ptr = f_attrib_ptr
+endif                                                                                                  
+
+
+end subroutine ramper_lord_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine control_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad control_struct to a C++ CPP_control structure
@@ -6841,16 +7148,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine control_ramp1_to_c2 (C, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, &
-      z_attribute, z_slave_name, z_slave, z_is_controller) bind(c)
+  subroutine control_ramp1_to_c2 (C, z_y_knot, n1_y_knot, z_stack, n1_stack, z_attribute, &
+      z_slave_name, z_is_controller) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_value, z_y_knot(*)
+    real(c_double) :: z_y_knot(*)
     integer(c_int), value :: n1_y_knot, n1_stack
     type(c_ptr) :: z_stack(*)
     character(c_char) :: z_attribute(*), z_slave_name(*)
-    type(c_ptr), value :: z_slave
     logical(c_bool) :: z_is_controller
   end subroutine
 end interface
@@ -6884,9 +7190,9 @@ if (allocated(F%stack)) then
 endif
 
 !! f_side.to_c2_call
-call control_ramp1_to_c2 (C, F%value, fvec2vec(F%y_knot, n1_y_knot), n1_y_knot, z_stack, &
-    n1_stack, trim(F%attribute) // c_null_char, trim(F%slave_name) // c_null_char, &
-    c_loc(F%slave), c_logic(F%is_controller))
+call control_ramp1_to_c2 (C, fvec2vec(F%y_knot, n1_y_knot), n1_y_knot, z_stack, n1_stack, &
+    trim(F%attribute) // c_null_char, trim(F%slave_name) // c_null_char, &
+    c_logic(F%is_controller))
 
 end subroutine control_ramp1_to_c
 
@@ -6906,8 +7212,8 @@ end subroutine control_ramp1_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine control_ramp1_to_f2 (Fp, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, &
-    z_attribute, z_slave_name, z_slave, z_is_controller) bind(c)
+subroutine control_ramp1_to_f2 (Fp, z_y_knot, n1_y_knot, z_stack, n1_stack, z_attribute, &
+    z_slave_name, z_is_controller) bind(c)
 
 
 implicit none
@@ -6916,8 +7222,7 @@ type(c_ptr), value :: Fp
 type(control_ramp1_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_value
-type(c_ptr), value :: z_y_knot, z_slave
+type(c_ptr), value :: z_y_knot
 real(c_double), pointer :: f_y_knot(:)
 integer(c_int), value :: n1_y_knot, n1_stack
 type(c_ptr) :: z_stack(*)
@@ -6926,8 +7231,6 @@ logical(c_bool) :: z_is_controller
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[real, 0, NOT]
-F%value = z_value
 !! f_side.to_f2_trans[real, 1, ALLOC]
 if (allocated(F%y_knot)) then
   if (n1_y_knot == 0 .or. any(shape(F%y_knot) /= [n1_y_knot])) deallocate(F%y_knot)
@@ -6959,8 +7262,6 @@ endif
 call to_f_str(z_attribute, F%attribute)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_slave_name, F%slave_name)
-!! f_side.to_f2_trans[type, 0, NOT]
-call lat_ele_loc_to_f(z_slave, c_loc(F%slave))
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%is_controller = f_logic(z_is_controller)
 
@@ -6987,12 +7288,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine controller_to_c2 (C, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) bind(c)
+  subroutine controller_to_c2 (C, z_var, n1_var, z_ramp, n1_ramp, z_ramper_lord, &
+      n1_ramper_lord, z_x_knot, n1_x_knot) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr) :: z_var(*), z_ramp(*)
-    integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
+    type(c_ptr) :: z_var(*), z_ramp(*), z_ramper_lord(*)
+    integer(c_int), value :: n1_var, n1_ramp, n1_ramper_lord, n1_x_knot
     real(c_double) :: z_x_knot(*)
   end subroutine
 end interface
@@ -7006,6 +7308,8 @@ type(c_ptr), allocatable :: z_var(:)
 integer(c_int) :: n1_var
 type(c_ptr), allocatable :: z_ramp(:)
 integer(c_int) :: n1_ramp
+type(c_ptr), allocatable :: z_ramper_lord(:)
+integer(c_int) :: n1_ramper_lord
 integer(c_int) :: n1_x_knot
 
 !
@@ -7030,6 +7334,15 @@ if (allocated(F%ramp)) then
     z_ramp(jd1) = c_loc(F%ramp(jd1+lb1))
   enddo
 endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_ramper_lord = 0
+if (allocated(F%ramper_lord)) then
+  n1_ramper_lord = size(F%ramper_lord); lb1 = lbound(F%ramper_lord, 1) - 1
+  allocate (z_ramper_lord(n1_ramper_lord))
+  do jd1 = 1, n1_ramper_lord
+    z_ramper_lord(jd1) = c_loc(F%ramper_lord(jd1+lb1))
+  enddo
+endif
 !! f_side.to_c_trans[real, 1, ALLOC]
 n1_x_knot = 0
 if (allocated(F%x_knot)) then
@@ -7037,8 +7350,8 @@ if (allocated(F%x_knot)) then
 endif
 
 !! f_side.to_c2_call
-call controller_to_c2 (C, z_var, n1_var, z_ramp, n1_ramp, fvec2vec(F%x_knot, n1_x_knot), &
-    n1_x_knot)
+call controller_to_c2 (C, z_var, n1_var, z_ramp, n1_ramp, z_ramper_lord, n1_ramper_lord, &
+    fvec2vec(F%x_knot, n1_x_knot), n1_x_knot)
 
 end subroutine controller_to_c
 
@@ -7058,7 +7371,8 @@ end subroutine controller_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine controller_to_f2 (Fp, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) bind(c)
+subroutine controller_to_f2 (Fp, z_var, n1_var, z_ramp, n1_ramp, z_ramper_lord, n1_ramper_lord, &
+    z_x_knot, n1_x_knot) bind(c)
 
 
 implicit none
@@ -7067,8 +7381,8 @@ type(c_ptr), value :: Fp
 type(controller_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr) :: z_var(*), z_ramp(*)
-integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
+type(c_ptr) :: z_var(*), z_ramp(*), z_ramper_lord(*)
+integer(c_int), value :: n1_var, n1_ramp, n1_ramper_lord, n1_x_knot
 type(c_ptr), value :: z_x_knot
 real(c_double), pointer :: f_x_knot(:)
 
@@ -7099,6 +7413,20 @@ else
   if (.not. allocated(F%ramp)) allocate(F%ramp(1:n1_ramp+1-1))
   do jd1 = 1, n1_ramp
     call control_ramp1_to_f (z_ramp(jd1), c_loc(F%ramp(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_ramper_lord == 0) then
+  if (allocated(F%ramper_lord)) deallocate(F%ramper_lord)
+else
+  if (allocated(F%ramper_lord)) then
+    if (n1_ramper_lord == 0 .or. any(shape(F%ramper_lord) /= [n1_ramper_lord])) deallocate(F%ramper_lord)
+    if (any(lbound(F%ramper_lord) /= 1)) deallocate(F%ramper_lord)
+  endif
+  if (.not. allocated(F%ramper_lord)) allocate(F%ramper_lord(1:n1_ramper_lord+1-1))
+  do jd1 = 1, n1_ramper_lord
+    call ramper_lord_to_f (z_ramper_lord(jd1), c_loc(F%ramper_lord(jd1+1-1)))
   enddo
 endif
 
@@ -9294,12 +9622,13 @@ interface
       z_s_start, z_s, z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, &
       n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, &
       n3_r, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, &
-      z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, &
-      z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, &
-      z_csr_method, z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
-      z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, &
-      z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, &
-      z_is_on, z_logic, z_bmad_logic, z_select, z_offset_moves_aperture) bind(c)
+      z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_n_lord_ramper, z_ic1_lord, &
+      z_ix_pointer, z_ixx, z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, &
+      z_spin_tracking_method, z_csr_method, z_space_charge_method, z_ptc_integration_type, &
+      z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation, &
+      z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, &
+      z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, z_bmad_logic, z_select, &
+      z_offset_moves_aperture) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -9315,9 +9644,9 @@ interface
     real(c_double) :: z_gamma_c, z_s_start, z_s, z_ref_time, z_a_pole(*), z_b_pole(*), z_a_pole_elec(*)
     real(c_double) :: z_b_pole_elec(*), z_custom(*), z_r(*)
     integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
-    integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
-    integer(c_int) :: z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method
-    integer(c_int) :: z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
+    integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_n_lord_ramper, z_ic1_lord, z_ix_pointer
+    integer(c_int) :: z_ixx, z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method
+    integer(c_int) :: z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
     logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
     logical(c_bool) :: z_logic, z_bmad_logic, z_select, z_offset_moves_aperture
   end subroutine
@@ -9494,8 +9823,8 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     n1_a_pole_elec, fvec2vec(F%b_pole_elec, n1_b_pole_elec), n1_b_pole_elec, fvec2vec(F%custom, &
     n1_custom), n1_custom, tensor2vec(F%r, n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, F%key, F%sub_key, &
     F%ix_ele, F%ix_branch, F%lord_status, F%n_slave, F%n_slave_field, F%ix1_slave, &
-    F%slave_status, F%n_lord, F%n_lord_field, F%ic1_lord, F%ix_pointer, F%ixx, F%iyy, F%izz, &
-    F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, F%csr_method, &
+    F%slave_status, F%n_lord, F%n_lord_field, F%n_lord_ramper, F%ic1_lord, F%ix_pointer, F%ixx, &
+    F%iyy, F%izz, F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, F%csr_method, &
     F%space_charge_method, F%ptc_integration_type, F%field_calc, F%aperture_at, &
     F%aperture_type, F%ref_species, F%orientation, c_logic(F%symplectify), &
     c_logic(F%mode_flip), c_logic(F%multipoles_on), c_logic(F%scale_multipoles), &
@@ -9532,8 +9861,8 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, &
     z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, z_key, &
     z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field, z_ix1_slave, &
-    z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, z_izz, &
-    z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
+    z_slave_status, z_n_lord, z_n_lord_field, z_n_lord_ramper, z_ic1_lord, z_ix_pointer, z_ixx, &
+    z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
     z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
     z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
     z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, &
@@ -9567,9 +9896,9 @@ real(c_double) :: z_gamma_c, z_s_start, z_s, z_ref_time
 type(wake_struct), pointer :: f_wake
 real(c_double), pointer :: f_a_pole(:), f_b_pole(:), f_a_pole_elec(:), f_b_pole_elec(:), f_custom(:), f_r(:)
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
-integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
-integer(c_int) :: z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method
-integer(c_int) :: z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
+integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_n_lord_ramper, z_ic1_lord, z_ix_pointer
+integer(c_int) :: z_ixx, z_iyy, z_izz, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method
+integer(c_int) :: z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
 logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
 logical(c_bool) :: z_logic, z_bmad_logic, z_select, z_offset_moves_aperture
 
@@ -9869,6 +10198,8 @@ F%slave_status = z_slave_status
 F%n_lord = z_n_lord
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_lord_field = z_n_lord_field
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_lord_ramper = z_n_lord_ramper
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ic1_lord = z_ic1_lord
 !! f_side.to_f2_trans[integer, 0, NOT]
@@ -10306,7 +10637,8 @@ interface
       z_param, n_param, z_lord_state, z_ele_init, z_ele, n1_ele, z_branch, n1_branch, &
       z_control, n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, &
       z_version, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, &
-      z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash) bind(c)
+      z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
+      z_ramper_slave_bookkeeping_done) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -10319,6 +10651,7 @@ interface
     real(c_double) :: z_custom(*)
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
     integer(c_int) :: z_photon_type, z_creation_hash
+    logical(c_bool) :: z_ramper_slave_bookkeeping_done
   end subroutine
 end interface
 
@@ -10436,7 +10769,7 @@ call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_ch
     c_loc(F%particle_start), c_loc(F%beam_init), c_loc(F%pre_tracker), fvec2vec(F%custom, &
     n1_custom), n1_custom, F%version, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, &
     F%n_control_max, F%n_ic_max, F%input_taylor_order, fvec2vec(F%ic, n1_ic), n1_ic, &
-    F%photon_type, F%creation_hash)
+    F%photon_type, F%creation_hash, c_logic(F%ramper_slave_bookkeeping_done))
 
 end subroutine lat_to_c
 
@@ -10461,7 +10794,8 @@ subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_machine, z_input_file_name, z
     n_param, z_lord_state, z_ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, &
     n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, z_version, &
     z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, z_n_ic_max, &
-    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash) bind(c)
+    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
+    z_ramper_slave_bookkeeping_done) bind(c)
 
 
 implicit none
@@ -10482,6 +10816,7 @@ type(lat_param_struct), pointer :: f_param
 real(c_double), pointer :: f_custom(:)
 integer(c_int) :: z_version, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type, z_creation_hash
 integer(c_int), pointer :: f_n_ele_track, f_n_ele_max, f_ic(:)
+logical(c_bool) :: z_ramper_slave_bookkeeping_done
 
 call c_f_pointer (Fp, F)
 
@@ -10664,6 +10999,8 @@ endif
 F%photon_type = z_photon_type
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%creation_hash = z_creation_hash
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%ramper_slave_bookkeeping_done = f_logic(z_ramper_slave_bookkeeping_done)
 
 end subroutine lat_to_f2
 

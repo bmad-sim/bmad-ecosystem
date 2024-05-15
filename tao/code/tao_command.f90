@@ -334,8 +334,6 @@ case ('cut_ring')
   lat => u%model%lat
 
   what = '-static'
-  n = u%model%lat%n_ele_track
-  if (u%model%tao_branch(0)%orbit(n)%state /= alive$) what = '-particle_start'
 
   call tao_cmd_split (cmd_line, 5, cmd_word, .true., err_flag); if (err_flag) goto 9000
   do i = 1, 5
@@ -361,10 +359,14 @@ case ('cut_ring')
   call out_io (s_info$, r_name, 'The lattice geometry is now: ' // geometry_name(lat%param%geometry))
 
   select case (what)
-  case ('-static'); u%model%lat%particle_start = u%model%tao_branch(0)%orbit(0)
+  case ('-static')
+    if (u%model%tao_branch(0)%orbit(0)%state == alive$) then
+      u%model%lat%particle_start = u%model%tao_branch(0)%orbit(0)
+    endif
   case ('-zero');   u%model%lat%particle_start%vec = 0
   end select
-  
+  u%model%tao_branch(0)%orb0 = u%model%lat%particle_start
+
   u%calc%lattice = .true.
   call tao_lattice_calc (ok)
 

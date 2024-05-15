@@ -204,11 +204,10 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine apply_rampers_to_slave (slave, ramper, err_flag)
+recursive subroutine apply_rampers_to_slave (slave, err_flag)
   import
   implicit none
   type (ele_struct), target :: slave
-  type (ele_pointer_struct), target :: ramper(:)
   logical err_flag
 end subroutine
 
@@ -320,6 +319,22 @@ function branch_name(branch) result (name)
   implicit none
   type (branch_struct), target :: branch
   character(40) name
+end function
+
+subroutine ramper_slave_setup(lat, do_setup)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  logical, optional :: do_setup
+end subroutine
+
+function ramper_value (ramper, r1, err_flag) result (value)
+  import
+  implicit none
+  type (ele_struct) ramper
+  type (control_ramp1_struct) r1
+  real(rp) value
+  logical err_flag
 end function
 
 subroutine remove_dead_from_bunch(bunch_in, bunch_out)
@@ -1166,11 +1181,11 @@ subroutine init_multipole_cache(ele)
   type (ele_struct) ele
 end subroutine
 
-subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, always_allocate)
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, always_allocate)
   import
   implicit none
   type (wake_struct), pointer :: wake
-  integer n_sr_long, n_sr_trans, n_lr_mode
+  integer n_sr_long, n_sr_trans, n_sr_z, n_lr_mode
   logical, optional :: always_allocate
 end subroutine
 
@@ -1218,6 +1233,13 @@ function knot_interpolate (x_knot, y_knot, x_pt, interpolation, err_flag) result
   real(rp) x_knot(:), y_knot(:), x_pt, y_pt
   integer interpolation
   logical err_flag
+end function
+
+function knots_to_string (x_knot, y_knot) result (str)
+  import
+  implicit none
+  real(rp) x_knot(:), y_knot(:)
+  character(:), allocatable :: str
 end function
 
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
@@ -1758,15 +1780,14 @@ subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, a_ptr, e
   logical, optional :: err_print_flag
 end subroutine
 
-function pointer_to_lord (slave, ix_lord, control, ix_slave_back, field_overlap_ptr, ix_control, ix_ic) result (lord_ptr)
+function pointer_to_lord (slave, ix_lord, control, ix_slave_back, lord_type, ix_control, ix_ic) result (lord_ptr)
   import
   implicit none
   type (ele_struct), target :: slave
   type (control_struct), pointer, optional :: control
   type (ele_struct), pointer :: lord_ptr
   integer ix_lord
-  integer, optional :: ix_slave_back, ix_control, ix_ic
-  logical, optional :: field_overlap_ptr
+  integer, optional :: ix_slave_back, lord_type, ix_control, ix_ic
 end function
 
 function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)
@@ -2175,14 +2196,14 @@ recursive subroutine set_lords_status_stale (ele, stat_group, control_bookkeepin
   integer, optional :: flag
 end subroutine
 
-subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute, set_val)
   import
   implicit none
   type (lat_struct), target :: lat
   type (coord_struct), optional :: orb(0:)
   real(rp), optional, allocatable :: saved_values(:)
   integer :: key, switch
-  integer, optional :: ix_branch
+  integer, optional :: ix_branch, set_val
   logical, optional :: use_ref_orb
   character(*), optional :: attribute
 end subroutine
@@ -3124,8 +3145,8 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, t
   type (ele_struct), target :: ele
   integer, optional, intent(in) :: type_mat6
   integer, optional, intent(out) :: n_lines
-  integer, optional, intent(in) :: twiss_out, type_field
-  logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
+  integer, optional, intent(in) :: twiss_out, type_field, type_control
+  logical, optional, intent(in) :: type_taylor, type_floor_coords
   logical, optional, intent(in) :: type_zero_attrib, type_wake, type_wall, type_rad_kick
   character(*), optional, allocatable :: lines(:)
 end subroutine
@@ -3308,6 +3329,14 @@ subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_or
   integer, optional :: ix_start, ix_end, ix_branch
   character(*) out_type, out_file_name
   logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_julia (bmad_name, lat, julia_name)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) bmad_name
+  character(*), optional :: julia_name
 end subroutine
 
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)

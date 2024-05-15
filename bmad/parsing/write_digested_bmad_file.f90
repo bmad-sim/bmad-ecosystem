@@ -92,7 +92,7 @@ enddo
 
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
-
+! Note: Set lat%ramper_slave_bookkeeping_done = False since ramper pointer not in digested file.
 n_custom = -1
 if (allocated(lat%custom)) n_custom = size(lat%custom)
 n_print = -1
@@ -100,7 +100,7 @@ if (allocated(lat%print_str)) n_print = size(lat%print_str)
 write (d_unit) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 write (d_unit) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
-write (d_unit) lat%input_taylor_order, lat%photon_type
+write (d_unit) lat%input_taylor_order, lat%photon_type, .false.
 write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom, n_print
 
 ! Global custom
@@ -231,7 +231,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
+integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert, n_energy, n_angle, n_foil
 
@@ -240,7 +240,7 @@ logical write_wake, mode3
 !
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
-ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; ix_st = -1
+ix_sr_long = 0; ix_sr_trans = 0; ix_sr_z = 0; ix_lr_mode = 0; ix_st = -1
 mode3 = .false.; ix_wall3d = 0; ix_convert = 0; ix_c = 0
 n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0; n_foil = 0
 
@@ -281,6 +281,7 @@ if (associated(wake)) then
   if (write_wake) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
+    if (allocated(wake%sr%z))         ix_sr_z       = size(wake%sr%z)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
@@ -318,7 +319,7 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), associated(ele%rad_map), &
-          ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+          ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, ix_sr_z, &
           ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_foil, n_cus, ix_convert
 
 write (d_unit) &
@@ -326,7 +327,7 @@ write (d_unit) &
         ele%a, ele%b, ele%z, ele%vec0, ele%mat6, ele%spin_q, &
         ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
         ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
-        ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
+        ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, ele%n_lord_ramper, &
         ele%ic1_lord, ele%ix_pointer, ele%ixx, &
         ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
         ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
@@ -352,11 +353,13 @@ write (d_unit) ix_value(1:k), value(1:k)
 ! Control vars
 
 if (ix_c == 1) then
-  nk = -1; nr = -1
-  n_var = size(ele%control%var)
+  n_var = -1; nk = -1; nr = -1; ix_r = -1
+  if (allocated(ele%control%var)) n_var = size(ele%control%var)
   if (allocated(ele%control%x_knot)) nk = size(ele%control%x_knot)
   if (allocated(ele%control%ramp)) nr = size(ele%control%ramp)
-  write (d_unit) n_var, nk, nr
+  if (allocated(ele%control%ramper_lord)) ix_r = size(ele%control%ramper_lord)
+  write (d_unit) n_var, nk, nr, ix_r
+
   if (nk > -1) write (d_unit) ele%control%x_knot
 
   do i = 1, n_var
@@ -369,12 +372,17 @@ if (ix_c == 1) then
     if (allocated(rmp%stack)) n = size(rmp%stack)
     nk = 0
     if (allocated(rmp%y_knot)) nk = size(rmp%y_knot)
-    write (d_unit) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave, rmp%is_controller
+    write (d_unit) rmp%slave_name, n, nk, rmp%attribute, rmp%is_controller
     do j = 1, n
       write (d_unit) rmp%stack(j)
     enddo
     if (nk /= 0) write (d_unit) rmp%y_knot
   enddo
+
+  if (ix_r > -1) then
+    write (d_unit) ele%control%ramper_lord%ix_ele
+    write (d_unit) ele%control%ramper_lord%ix_con
+  endif
 endif
 
 ! AC_kicker
@@ -623,13 +631,22 @@ enddo
 
 if (associated(wake) .and. write_wake) then
   write (d_unit) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+
   do i = 1, size(wake%sr%long)
     write (d_unit) wake%sr%long(i)
   enddo
+
   do i = 1, size(wake%sr%trans)
     write (d_unit) wake%sr%trans(i)
   enddo
+
+  do i = 1, size(wake%sr%z)
+    write (d_unit) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, size(wake%sr%z(i)%w)
+    write (d_unit) wake%sr%z(i)%w
+  enddo
+
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+
   do i = 1, size(wake%lr%mode)
     write (d_unit) wake%lr%mode(i)
   enddo
@@ -642,7 +659,7 @@ if (associated(ele%rad_map)) then
   write (d_unit) ele%rad_map%rm1, ele%rad_map%stale
 endif
 
-end subroutine
+end subroutine write_this_ele
 
 !-------------------------------------------------------------------------------------
 ! contains
@@ -672,7 +689,7 @@ else
   write (d_unit) 0
 endif
 
-end subroutine
+end subroutine write_this_wall3d
 
 !-------------------------------------------------------------------------------------
 ! contains
@@ -701,5 +718,5 @@ enddo
 
 end subroutine write_this_wall3d_section
 
-end subroutine
+end subroutine write_digested_bmad_file
 

@@ -32,11 +32,6 @@ SET (SRC_DIRS
   special_functions
   )
 
-## Profiler flags - Note: This  is not compatible with the -fPIC flag, so -pg can't be set for the SHARED build.
-# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# SET (FFLAGS "-pg")  
-# SET (CFLAGS "-pg")
-
 SET (SHARED_DEPS
   ${PLOT_LINK_LIBS}
   $ENV{ACC_BMAD_LINK_LIBS}

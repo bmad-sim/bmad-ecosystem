@@ -151,7 +151,7 @@ if (lttp%simulation_mode == 'INDIVIDUAL') then
   dat_size = storage_size(beam%bunch(1)%particle(1)) / 8
 
   if (ltt_com%mpi_rank == master_rank$) then
-    print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+    call ltt_print_mpi_info (lttp, ltt_com, 'Number of processes (including Master): ' // int_str(mpi_n_proc))
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
 
     n_particle = size(beam%bunch(1)%particle)
@@ -327,7 +327,7 @@ enddo
 ! BEAM Master:
 
 if (ltt_com%mpi_rank == master_rank$) then
-  print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+  call ltt_print_mpi_info (lttp, ltt_com, 'Number of processes (including Master): ' // int_str(mpi_n_proc))
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial Ramper Ran State: ' // int_str(ltt_com%ramper_ran_state%ix))
   call reallocate_beam(beam2, max(1, ltt_com%beam_init%n_bunch), ixp_slave(0))
 

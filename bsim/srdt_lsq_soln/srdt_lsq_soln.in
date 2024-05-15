@@ -1,8 +1,0 @@
-&srdt_lsq
-  lat_file = 'bmad.lat'
-  chrom_x = 1.0
-  chrom_y = 1.0
-  gen_slices = 30
-  sxt_slices = 60
-  var_names = 'sextupole::SEX_*'
-/

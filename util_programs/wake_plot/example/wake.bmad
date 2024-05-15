@@ -1,0 +1,31 @@
+no_digested
+parameter[e_tot]    = 1e9
+parameter[particle] = ELECTRON        
+parameter[geometry] = open
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+beginning[alpha_a] = 1
+beginning[alpha_b] = -1
+
+particle_start[z] = -0.001
+
+p1: pipe, L = 1, sr_wake = {amp_scale = 1.2, z_scale = 0.9, scale_with_length = T, z_max = 1.2,
+  longitudinal =  {-8266.6e2,   26.6,   46089.2,  1.578966/twopi,  x_trailing},
+  longitudinal =  { 1764.0e2,   19.7,  -9746.59,  3.661213/twopi,  y_leading},
+  longitudinal =  {-4155.1e2,   16.8,  -73.1528,  3.66933/twopi,   none},
+  longitudinal =  { 7248.9e2,   11.2,  -1672.137, 3.071617/twopi,  none},
+  transverse   =  {-8266.6e10,   26.6,   46089.2,  1.578966/twopi, none, leading},
+  transverse   =  { 1764.0e11,   19.7,  -9746.59,  3.661213/twopi, y_axis,  trailing},
+  transverse   =  {-4155.1e12,   16.8,  -73.1528,  3.66933/twopi,  none,    leading} }
+
+p1[sr_wake%scale_with_length] = T
+
+p2: pipe, L = 1
+p2[lr_wake_file] = 'long_range.wake'
+
+
+l1: line = (p1, p2)
+
+use, l1
+

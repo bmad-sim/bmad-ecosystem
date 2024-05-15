@@ -276,8 +276,9 @@ if (set) then
   ! When drifting the reference particle does not move! That is, the reference time is the time the 
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
-  if (drift_to /= no$ .and. orbit%state == alive$) then
-    call track_a_drift (orbit, s_target - s_body, mat6, make_matrix, ele%orientation, include_ref_motion = .false., time = time)
+  ds = s_target - s_body
+  if (abs(ds) > 1d-14 .and. drift_to /= no$ .and. orbit%state == alive$) then
+    call track_a_drift (orbit, ds, mat6, make_matrix, ele%orientation, include_ref_motion = .false., time = time)
   endif
 
   !
@@ -473,8 +474,9 @@ else
   ! When drifting the reference particle does not move! That is, the reference time is the time the 
   ! referece particle reaches the *nominal* edge of the element and this is independent of any misalignments.
 
-  if (drift_to /= no$ .and. orbit%state == alive$) then
-    call track_a_drift (orbit, s_target-s_lab, mat6, make_matrix, +1, include_ref_motion = .false., time = time)
+  ds = s_target - s_lab
+  if (abs(ds) > 1d-14 .and. drift_to /= no$ .and. orbit%state == alive$) then
+    call track_a_drift (orbit, ds, mat6, make_matrix, +1, include_ref_motion = .false., time = time)
   endif
 
   !

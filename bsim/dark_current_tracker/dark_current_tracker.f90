@@ -42,7 +42,7 @@ type (dark_current_param_struct) :: dc_param
 type (dark_current_param_struct), allocatable :: omp_dc_param(:)
 type (dark_current_tally_struct), allocatable :: tally(:)
 
-character(100) :: in_file, lat_name, lat2_name, lat_path, base_name, particle_file_name, monitor_file_name, outfile_name
+character(2000) :: in_file, lat_name, lat2_name, lat_path, base_name, particle_file_name, monitor_file_name, outfile_name
 character(400) :: element_monitor_list
 real(rp) :: e_tot, max_charge, min_charge_ratio, dt_save
 real(rp) :: color
@@ -147,6 +147,14 @@ print *, 'particle_file_name: ', trim(dc_param%particle_file_name)
 
 ! Force saving tracks with plot
 if (dc_param%plot_on) dc_param%save_tracks = .true.
+
+
+if ((.not. save_tracks) .and. save_field) then
+  call out_io (s_warn$, r_name, 'WARNING: save_field only allowed with save_tracks. Disabling save_field')
+  !print *, 'WARNING: save_field only allowed with save_tracks. Disabling save_field'
+   dc_param%save_field = .false.
+   save_field = .false.
+endif
 
 
 if (rel_tol_adaptive_tracking /= bmad_com%rel_tol_adaptive_tracking) then

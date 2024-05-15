@@ -412,20 +412,6 @@ write_state
 kangal_breeder
 niave_breeder
 
-File: modules/ts_mod.f90
-ts_mod
-master_rank$
-job_tag$
-have_data_tag$
-results_tag$
-ts_params_struct
-ts_com_struct
-ts_data_struct
-ts_init_params
-ts_track_particle
-ts_write_results
-ts_print_mpi_info
-
 File: modules/lt_tracking_mod.f90
 lt_tracking_mod
 master_rank$
@@ -483,8 +469,21 @@ ltt_bunch_time_sum
 ltt_apply_rampers_to_slave
 ltt_track1_bunch_hook
 ltt_track1_preprocess
-ltt_apply_time_to_rampers
 ltt_init_coord
+
+File: modules/ts_mod.f90
+ts_mod
+master_rank$
+job_tag$
+have_data_tag$
+results_tag$
+ts_params_struct
+ts_com_struct
+ts_data_struct
+ts_init_params
+ts_track_particle
+ts_write_results
+ts_print_mpi_info
 
 File: moga/moga.f90
 moga
@@ -523,16 +522,13 @@ spin_stroboscope
 File: spin_stroboscope/track1_custom.f90
 track1_custom
 
-File: srdt_lsq_soln/srdt_lsq_soln.f90
-srdt_lsq_soln
-
-File: synrad/synrad.f90
-synrad
-
 File: synrad/synrad_plot_mod.f90
 synrad_plot_mod
 plot_param_struct
 synrad_plot_sx
+
+File: synrad/synrad.f90
+synrad
 
 File: synrad3d/synrad3d.f90
 synrad3d
@@ -593,3 +589,17 @@ tune_scan_mpi
 
 File: wall_generator/wall_generator.f90
 wall_generator
+
+File: e_cooling/e_cooling.f90
+e_cooling
+
+File: e_cooling/e_cooling_mod.f90
+e_cooling_mod
+e_cooling_wake_struct
+e_cooling_diffusion_struct
+e_cooling_wd_struct
+e_cooling_param_struct
+e_cooling_common_struct
+
+File: e_cooling/track1_bunch_hook.f90
+track1_bunch_hook

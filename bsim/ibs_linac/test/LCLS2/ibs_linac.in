@@ -2,7 +2,7 @@
  lat_name = 'LCLS2_soft.lat'
 
  use_beam = T
- beam_init%file_name = 'injector_end_10k_LaserHeated.bbunch'
+ beam_init%position_file = 'injector_end_10k_LaserHeated.bbunch'
  beam_init%distribution_type(1) = 'FILE'
 
  initial_slice_energy_spread_eV = 10e3

@@ -1130,10 +1130,10 @@ call set_ele_status_stale (slave, attribute_group$)
 
 if (slave%field_master) then
   slave%field_master = .false.   ! So attribute_bookkeeper will do the right thing.
-  call attribute_bookkeeper (slave)
+  call attribute_bookkeeper (slave, .true.)
   slave%field_master = .true.
 else
-  call attribute_bookkeeper (slave)
+  call attribute_bookkeeper (slave, .true.)
 endif
 
 end subroutine makeup_super_slave
@@ -1473,8 +1473,7 @@ if (slave%key == lcavity$) then
   slave%value(e_loss$) = lord%value(e_loss$) * coef
 endif
 
-slave%bookkeeping_state%attributes = stale$
-call attribute_bookkeeper (slave)
+call attribute_bookkeeper (slave, .true.)
 
 err_flag = .false.
 
@@ -1619,7 +1618,7 @@ do i = 1, slave%n_lord
 
   if (lord%key /= overlay$) then
     call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY \i\ ', ix_slave)
-    call type_ele (slave, .true., 0, .false., 0, .true.)
+    call type_ele (slave, .true., 0, .false., 0)
     if (global_com%exit_on_error) call err_exit
   endif     
 

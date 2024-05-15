@@ -52,6 +52,7 @@ character(*), parameter :: r_name = 'slice_lattice'
 !
 
 error = .true.
+lat%ramper_slave_bookkeeping_done = .false.
 
 call lat_ele_locator (ele_list, lat, eles, n_loc, err, above_ubound_is_err = .false.)
 if (err) return

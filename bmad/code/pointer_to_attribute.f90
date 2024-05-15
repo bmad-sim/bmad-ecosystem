@@ -99,8 +99,9 @@ endif
 
 !--------------------
 ! If a controller with a defined list of variables
+! Note: ele%control or ele%control%var may not be allocated during parsing.
 
-if (associated (ele%control)) then
+if ((ele%key == ramper$ .or. ele%key == overlay$ .or. ele%key == group$) .and. associated(ele%control)) then
 
   if (len(a_name) > 4) then
     if (a_name(1:4) == 'OLD_') then
@@ -218,7 +219,7 @@ endif
 if (a_name(1:3) == 'LR(' .or. a_name(1:13) == 'LR_WAKE%MODE(') then
   if (.not. associated (ele%wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%wake, 0, 0, n)
+    call init_wake (ele%wake, 0, 0, 0, n)
   endif
 
   if (a_name(1:3) == 'LR(') then
@@ -516,7 +517,7 @@ case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SC
       'SR_WAKE%SCALE_WITH_LENGTH', 'SR_WAKE%AMP_SCALE', 'SR_WAKE%Z_SCALE')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%wake, 0, 0, 0, .true.)
+    call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
   select case (a_name)
   case ('LR_SELF_WAKE_ON', 'LR_WAKE%SELF_WAKE_ON')

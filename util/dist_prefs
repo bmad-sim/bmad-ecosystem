@@ -156,17 +156,6 @@ export ACC_ENABLE_FPIC="Y"
 
 
 #-----------------------------------------------------------
-# By default the gprof profiling flag "-pg" is off.
-# Setting the variable ACC_ENABLE_PROFILING here to "Y"
-# will enable the "-pg" flag to be added for compiling and 
-# linking all libraries and executables.
-#
-# NOTE - WILL NOT WORK ON macOS WITH XCODE 11.
-#-----------------------------------------------------------
-export ACC_ENABLE_PROFILING="N"
-
-
-#-----------------------------------------------------------
 # Setting the variable ACC_SET_GMAKE_JOBS here to an 
 # interger value will set gmake to execute that number of 
 # recipes or "jobs" at once, effectively running parallel 
@@ -192,13 +181,3 @@ export ACC_CONDA_BUILD="N"
 # environment.
 #-----------------------------------------------------------
 export ACC_CONDA_PATH="${CONDA_PREFIX}"
-
-
-#-----------------------------------------------------------
-# By default this flag is on.
-# When ACC_USE_MACPORTS is set to "Y", this will enable the 
-# MacPorts path (/opt/local/) to be added to library search path.
-# This option is only valid for MacOS (Darwin).
-#-----------------------------------------------------------
-export ACC_USE_MACPORTS="Y"
-

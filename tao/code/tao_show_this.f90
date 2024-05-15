@@ -30,7 +30,7 @@ use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, ki
 use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=)
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 use photon_target_mod, only: to_surface_coords
-use expression_mod, only: expression_stack_to_string
+use expression_mod, only: expression_stack_to_string, split_expression_string
 use beam_utils, only: calc_bunch_params_z_slice
 
 implicit none
@@ -71,6 +71,9 @@ type (ele_struct), pointer :: ele, ele1, ele2, slave, lord, ele_ref
 type (ele_struct), target :: ele3, ele0
 type (em_field_struct) field, field0, field1
 type (control_struct), pointer :: contl
+type (controller_struct), pointer :: cntr
+type (control_ramp1_struct), pointer :: rmp
+type (ramper_lord_struct), pointer :: rml
 type (bunch_struct), pointer :: bunch
 type (wake_struct), pointer :: wake
 type (wake_lr_mode_struct), pointer :: lr_mode
@@ -179,7 +182,7 @@ character(1), parameter :: abc_name(1:3) = ['A', 'B', 'C']
 character(20) :: show_what
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
-integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type
+integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type, print_control
 integer ix, ix0, ix1, ix2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic, ix_comb
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
@@ -187,10 +190,10 @@ integer eval_pt, n_count, print_field, nt
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
-logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip
+logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip, show_energy
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc
-logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
+logical print_ptc, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -247,7 +250,7 @@ call match_word (what2, [character(20):: 'alias', 'beam', 'branch', 'building_wa
         'chromaticity', 'constraints', 'control', 'curve', 'data', 'debug', &
         'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', &
         'history', 'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', &
-        'optimizer', 'orbit', 'particle', 'plot', 'ptc', 'radiation_integrals', 'spin', 'string', &
+        'optimizer', 'orbit', 'particle', 'plot', 'ptc', 'radiation_integrals', 'rampers', 'spin', 'string', &
         'symbolic_numbers', 'taylor_map',  'top10', &
         'track', 'tune', 'twiss_and_orbit', 'universe', 'use', 'value', 'variables', 'version', &
         'wake_elements', 'wall', 'wave'], ix, matched_name = show_what)
@@ -290,7 +293,7 @@ case ('beam')
   zb = -1
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb', '-z'], .true., switch, err)
+    call tao_next_switch (what2, [character(16):: '-universe'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -432,6 +435,7 @@ case ('beam')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', quote(s%global%track_type)
     nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on        = ', s%global%beam_timer_on
+    nl=nl+1; write(lines(nl), rmt) 'global%beam_dead_cutoff     = ', s%global%beam_dead_cutoff
 
     fmt = '(3a, i0, a)'
     nl=nl+1; lines(nl) = ''
@@ -459,7 +463,10 @@ case ('beam')
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
     nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
     nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
+    nl=nl+1; write(lines(nl), lmt) '  %full_6D_coupling_calc  = ', beam_init%full_6d_coupling_calc
     nl=nl+1; write(lines(nl), lmt) '  %use_particle_start     = ', beam_init%use_particle_start
+    nl=nl+1; write(lines(nl), lmt) '  %use_t_coords           = ', beam_init%use_t_coords
+    nl=nl+1; write(lines(nl), lmt) '  %use_z_as_t             = ', beam_init%use_z_as_t
     if (beam_init%use_particle_start) then
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Note: Will use particle_start instead'
       nl=nl+1; write(lines(nl), '(a, 3es16.8, 3x, a)') '  %spin                   = ', beam_init%spin,   '! Note: Will use particle_start instead'
@@ -470,11 +477,13 @@ case ('beam')
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[z]       = ', u%model%lat%particle_start%vec(5)
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[pz]      = ', u%model%lat%particle_start%vec(6)
     else
-      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
       nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
+      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
+      nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
     endif
-    nl=nl+1; write(lines(nl), rmt)  '  %center_jitter          = ', beam_init%center_jitter
+    nl=nl+1; write(lines(nl), rmt)  '  %t_offset               = ', beam_init%t_offset
     nl=nl+1; write(lines(nl), imt)  '  %n_particle             = ', beam_init%n_particle
+    nl=nl+1; write(lines(nl), imt)  '  %ix_turn                = ', beam_init%ix_turn
     nl=nl+1; write(lines(nl), imt2) '  %n_bunch                = ', beam_init%n_bunch, '! Note: 0 => Create one bunch if not reading from a file'
     nl=nl+1; write(lines(nl), rmt)  '  %bunch_charge           = ', beam_init%bunch_charge
     if (u%model%lat%branch(0)%param%particle == photon$) then
@@ -1568,6 +1577,7 @@ case ('element')
   print_taylor = .false.
   print_field = no$
   print_attributes = .false.
+  print_control = short$
   print_data = .false.
   print_wall = .false.
   print_rad  = .false.
@@ -1609,6 +1619,7 @@ case ('element')
       if (print_field == no$) print_field = short$
       print_wall = .true.
       print_rad  = .true.
+      print_control = all$
     case default
       if (attrib0 /= '') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
@@ -1707,7 +1718,7 @@ case ('element')
 
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
-  call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, twiss_out, .true., .true., &
+  call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, twiss_out, print_control, .true., &
             print_floor, print_field, print_wall, print_rad, lines = alloc_lines, n_lines = n)
   if (size(s%u) > 1) alloc_lines(1) = trim(alloc_lines(1)) // ',   Universe: ' // int_str(ix_u)
 
@@ -1716,57 +1727,59 @@ case ('element')
   nl = nl + n
 
   stat = ele%lord_status
-  ele2 => ele
-  if (ele2%lord_status == super_lord$) ele2 => pointer_to_slave(ele2, ele2%n_slave)
-  orb = tao_lat%tao_branch(ele2%ix_branch)%orbit(ele2%ix_ele)
-  if (orb%state == not_set$) then
-    nl=nl+1; lines(nl) = 'Tracking: ' // trim(species_name(orb%species)) // ',   State: Orbit not computed.'
-  else
-    nl=nl+1; lines(nl) = ' '
-    nl=nl+1; write(lines(nl), '(4a)') 'Tracking: ', trim(species_name(orb%species)), ',   State: ', trim(coord_state_name(orb%state))
-    if (lat%branch(ele%ix_branch)%param%particle == photon$) then
-      fmt  = '(2x, a, 2f15.8, f15.6, f11.6, 7x, a, f11.3)'
-      fmt2 = '(2x, a, 2f15.8, a, es16.8)'
-      nl=nl+1; lines(nl) = '         Position[mm]            V/C      Intensity      Phase  '
-      nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1), orb%vec(2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
-      nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3), orb%vec(4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
-      nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5), orb%vec(6)
-
-      if (associated(ele%photon) .and. orb%state == alive$) then
-        call to_surface_coords(orb, ele, orb2)
-        nl=nl+1; lines(nl) = ''
-        nl=nl+1; write(lines(nl), '(2x, a, 3f15.8)') 'Surface (x,y,z) [mm]:', orb2%vec(1:5:2)
-      endif
-
+  if (stat /= ramper_lord$ .and. stat /= girder_lord$) then
+    ele2 => ele
+    if (ele2%lord_status == super_lord$) ele2 => pointer_to_slave(ele2, ele2%n_slave)
+    orb = tao_lat%tao_branch(ele2%ix_branch)%orbit(ele2%ix_ele)
+    if (orb%state == not_set$) then
+      nl=nl+1; lines(nl) = 'Tracking: ' // trim(species_name(orb%species)) // ',   State: Orbit not computed.'
     else
-      z = (ele%ref_time - orb%t) * orb%beta * c_light
-      dt = orb%t - ele%ref_time
-      pc = orb%p0c * (1 + orb%vec(6))
-      call convert_pc_to (pc, orb%species, e_tot = e_tot) 
-      nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]        Spin   |'
-      if (bmad_com%spin_tracking_on) then
-        fmt  = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, es12.5)'
-        fmt2 = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, f12.9)'
-        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), real_to_string(orb%spin(1), 12, 4, 8), '  | t_particle [sec]:      ', orb%t, 'E_tot:', e_tot
-        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), real_to_string(orb%spin(2), 12, 4, 8), '  | t_part-t_ref [sec]:    ', dt,    'PC:   ', pc
-        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), real_to_string(orb%spin(3), 12, 4, 8), '  | (t_ref-t_part)*Vel [m]:', z,     'Beta: ', orb%beta
-      else
-        fmt  = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, es12.5)'
-        fmt2 = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, f12.9)'
-        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), '  | t_particle [sec]:      ', orb%t, 'E_tot:', e_tot
-        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), '  | t_part-t_ref [sec]:    ', dt,    'PC:   ', pc
-        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), '  | (t_ref-t_part)*Vel [m]:', z,     'Beta: ', orb%beta
-      endif
-      if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
-        if (ele%key == rfcavity$) then
-          phase = ele%value(phi0$) + ele%value(phi0_multipass$) - &
-                (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
-        else
-          phase = ele%value(phi0_err$) + ele%value(phi0$) + ele%value(phi0_multipass$) + &
-                (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
+      nl=nl+1; lines(nl) = ' '
+      nl=nl+1; write(lines(nl), '(4a)') 'Tracking: ', trim(species_name(orb%species)), ',   State: ', trim(coord_state_name(orb%state))
+      if (lat%branch(ele%ix_branch)%param%particle == photon$) then
+        fmt  = '(2x, a, 2f15.8, f15.6, f11.6, 7x, a, f11.3)'
+        fmt2 = '(2x, a, 2f15.8, a, es16.8)'
+        nl=nl+1; lines(nl) = '         Position[mm]            V/C      Intensity      Phase  '
+        nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1), orb%vec(2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
+        nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3), orb%vec(4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
+        nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5), orb%vec(6)
+
+        if (associated(ele%photon) .and. orb%state == alive$) then
+          call to_surface_coords(orb, ele, orb2)
+          nl=nl+1; lines(nl) = ''
+          nl=nl+1; write(lines(nl), '(2x, a, 3f15.8)') 'Surface (x,y,z) [mm]:', orb2%vec(1:5:2)
         endif
-        if (ele%tracking_method /= bmad_standard$) phase = phase + ele%value(phi0_autoscale$)
-        nl=nl+1; write(lines(nl), '(2x, 2a)') 'Particle Phase relative to RF Phase (rad/2pi): ', real_str(phase, 9, 6)
+
+      else
+        z = (ele%ref_time - orb%t) * orb%beta * c_light
+        dt = orb%t - ele%ref_time
+        pc = orb%p0c * (1 + orb%vec(6))
+        call convert_pc_to (pc, orb%species, e_tot = e_tot) 
+        nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]        Spin   |'
+        if (bmad_com%spin_tracking_on) then
+          fmt  = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, es12.5)'
+          fmt2 = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, f12.9)'
+          nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), real_to_string(orb%spin(1), 12, 4, 8), '  | t_particle [sec]:      ', orb%t, 'E_tot:', e_tot
+          nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), real_to_string(orb%spin(2), 12, 4, 8), '  | t_part-t_ref [sec]:    ', dt,    'PC:   ', pc
+          nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), real_to_string(orb%spin(3), 12, 4, 8), '  | (t_ref-t_part)*Vel [m]:', z,     'Beta: ', orb%beta
+        else
+          fmt  = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, es12.5)'
+          fmt2 = '(2x, a, 2f15.8, 13x, a, es16.8, 2x, a, f12.9)'
+          nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1:2), '  | t_particle [sec]:      ', orb%t, 'E_tot:', e_tot
+          nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), '  | t_part-t_ref [sec]:    ', dt,    'PC:   ', pc
+          nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), '  | (t_ref-t_part)*Vel [m]:', z,     'Beta: ', orb%beta
+        endif
+        if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
+          if (ele%key == rfcavity$) then
+            phase = ele%value(phi0$) + ele%value(phi0_multipass$) - &
+                  (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
+          else
+            phase = ele%value(phi0_err$) + ele%value(phi0$) + ele%value(phi0_multipass$) + &
+                  (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
+          endif
+          if (ele%tracking_method /= bmad_standard$) phase = phase + ele%value(phi0_autoscale$)
+          nl=nl+1; write(lines(nl), '(2x, 2a)') 'Particle Phase relative to RF Phase (rad/2pi): ', real_str(phase, 9, 6)
+        endif
       endif
     endif
   endif
@@ -2107,6 +2120,7 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
     nl=nl+1; write(lines(nl), imt) '  %datum_err_messages_max        = ', s%global%datum_err_messages_max
     nl=nl+1; write(lines(nl), lmt) '  %concatenate_maps              = ', s%global%concatenate_maps
+    nl=nl+1; write(lines(nl), rmt) '  %beam_dead_cutoff              = ', s%global%beam_dead_cutoff
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
@@ -2638,7 +2652,7 @@ case ('internal')
     if (ele%n_slave + ele%n_slave_field /= 0) then 
       nl=nl+1; lines(nl) = 'Slaves: Type       %ic  %cntrl  back   Slave                         Param          Expression'
       do i = 1, ele%n_slave + ele%n_slave_field
-        slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
+        slave => pointer_to_slave (ele, i, contl, all$, j, i_con, i_ic)
         if (i <= ele%n_slave) then
           nl=nl+1; write (lines(nl), fmt) control_name(ele%lord_status), i_ic, i_con, j, &
                       trim(slave%name) // ' ' // trim(ele_loc_name(slave, .true., '()')), &
@@ -2653,7 +2667,7 @@ case ('internal')
     if (ele%n_lord + ele%n_lord_field /= 0) then 
       nl=nl+1; lines(nl) = 'Lords:  Type       %ic  %cntrl  back   Lord                          Param          Attrib_Value  Expssn_val  Expression'
       do i = 1, ele%n_lord + ele%n_lord_field
-        lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
+        lord => pointer_to_lord (ele, i, contl, j, all$, i_con, i_ic)
         if (i <= ele%n_lord) then
           call pointer_to_attribute(ele, contl%attribute, .false., a_ptr, err_flag)
           if (associated(a_ptr%r)) then
@@ -3274,9 +3288,9 @@ case ('lattice')
 
   else
     select case (where)
-    case ('exit');      line1 = '# Values shown are for the Exit End of each Element:'
+    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element:'
     case ('middle');    line1 = '# Values shown are for the Center of each Element:'
-    case ('beginning'); line1 = '# Values shown are for the Beginning of each Element:'
+    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element:'
     end select
 
     if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)
@@ -4339,6 +4353,94 @@ case ('radiation_integrals')
     nl=nl+1; write(lines(nl), fmt) 'I3*gamma^7', mode_m%lin%i3_e7, mode_d%lin%i3_e7, '! Linac Radiation Integral'
   endif
 
+
+!----------------------------------------------------------------------
+! rampers
+
+case ('rampers')
+
+  show_energy = .false.
+
+  do 
+    call tao_next_switch (what2, [character(16):: '-universe', '-energy_show'], .true., switch, err)
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+
+    case ('-universe')
+      call tao_next_word(what2, aname)
+      read (aname, *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
+        return
+      endif
+
+    case ('-energy_show')
+      show_energy = .true.
+    end select
+  enddo
+
+  lat => u%model%lat
+
+  do ie = lat%n_ele_track+1, lat%n_ele_max
+    lord => lat%ele(ie)
+    if (lord%key /= ramper$) cycle
+    cntr => lord%control
+    if (nl + size(cntr%ramp) + 20 > size(lines)) call re_allocate (lines, 2*(nl + size(cntr%ramp)), .false.)
+    nl=nl+1; write(lines(nl), '(2a)') 'Ramper: ', ele_full_name(lord)
+    do ix = 1, size(cntr%ramp)
+      rmp => cntr%ramp(ix)
+      if (allocated(rmp%stack)) then
+        call split_expression_string (expression_stack_to_string(rmp%stack), 100, 5, alloc_lines)
+      else  ! Spline
+        call split_expression_string (knots_to_string(lord%control%x_knot, rmp%y_knot), 100, 5, alloc_lines, '),')
+      endif
+      value_here = ramper_value(lord, rmp, err_flag)
+      nl=nl+1; write (lines(nl), '(4x, 4a, t34, es20.12, 4x, a)') trim(rmp%slave_name), '[', trim(rmp%attribute), ']', value_here, trim(alloc_lines(1))
+      if (size(alloc_lines) > 1) then
+        lines(nl) = trim(lines(nl)) // ' ...'
+      endif
+    enddo
+    nl=nl+1; lines(nl) = ''
+  enddo
+
+  n_count = 0
+
+  do ib = 0, ubound(lat%branch, 1)
+    do ie = 0, lat%branch(ib)%n_ele_max
+      ele => lat%branch(ib)%ele(ie)
+      if (ele%n_lord_ramper == 0) cycle
+      if (ele%n_lord_ramper == 1 .and. .not. show_energy) then
+        rml => ele%control%ramper_lord(1)
+        rmp => lat%ele(rml%ix_ele)%control%ramp(rml%ix_con)
+        if (rmp%attribute == 'P0C' .or. rmp%attribute == 'E_TOT') then
+          n_count = n_count + 1
+          cycle
+        endif
+      endif
+
+      if (nl + ele%n_lord_ramper + 20 > size(lines)) call re_allocate (lines, 2*nl, .false.)
+      nl=nl+1; write(lines(nl), '(2a, 4x, a)') 'Slave: ', ele_full_name(ele), key_name(ele%key)
+      cntr => ele%control
+      do ix = 1, ele%n_lord_ramper
+        rml => cntr%ramper_lord(ix)
+        lord => lat%ele(rml%ix_ele)
+        rmp => lord%control%ramp(rml%ix_con)
+        if (rmp%attribute == 'P0C' .or. rmp%attribute == 'E_TOT') then
+          n_count = n_count + 1
+          if (.not. show_energy) cycle
+        endif
+        nl=nl+1; write(lines(nl), '(4x, a, t40, a)') ele_full_name(lord), rmp%attribute
+      enddo
+      nl=nl+1; lines(nl) = ''
+    enddo
+  enddo
+
+  if (.not. show_energy) then
+    nl=nl+1; lines(nl) = 'Number of elements with energy ramping: ' // int_str(n_count)
+  endif
 
 !----------------------------------------------------------------------
 ! spin

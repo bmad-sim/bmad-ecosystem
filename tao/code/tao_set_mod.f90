@@ -660,7 +660,7 @@ namelist / params / local_space_charge_com
 
 select case (who)
 case ('diagnostic_output_file')
-  space_charge_com%diagnostic_output_file = value_str
+  space_charge_com%diagnostic_output_file = unquote(value_str)
   return
 
 case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff')
@@ -1210,6 +1210,9 @@ else
 
   case ('position_file')
     write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+
+  case ('center_jitter', 'center', 'spin')
+    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
 
   case default
     ! If tao_evaluate_expression fails then the root cause may be that the User is trying
@@ -3001,9 +3004,9 @@ endif
 ! How to handle this depends upon what type of attribute it is.
 
 ! If a real attribute then use tao_evaluate_expression to evaluate.
-! If attribute_type returns int_garbage$ then assume attribute is a controller variable which are always real.
+! If attribute_type returns invalid_name$ then assume attribute is a controller variable which are always real.
 
-if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(attribute)) == int_garbage$) then
+if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(attribute)) == invalid_name$) then
   ! Important to use "size(eles)" as 2nd arg instead of "0" since if value is something like "ran()" then
   ! want a an array of set_val values with each value different.
   call tao_evaluate_expression (value, size(eles), .false., set_val, err)

@@ -203,6 +203,11 @@ def search_f90 (file_name, search_com):
       comments.append(line)
       continue
 
+    line_list = [line2]
+    while line2.rstrip()[-1] == '&':
+      aline = f90_file.readline()
+      line_list.append(aline)
+      line2 = line2.rstrip()[:-1] + aline
 
     # In the header section of a module
 
@@ -232,6 +237,7 @@ def search_f90 (file_name, search_com):
 
     if in_module_header:
       if re_parameter.search(line2) and 'parameter'.startswith(search_com.search_only_for):
+
         chunks = re_parameter.split(line2)[1].split(',')
         for chunk in chunks:
           chunk_match = re_parameter1.match(chunk)
@@ -242,18 +248,21 @@ def search_f90 (file_name, search_com):
               search_com.namelist_file.write(chunk_match.group(1) + '\n')
             elif search_com.doc_type != 'RAW':
               param = chunk_match.group(1)
-              if re_match_str.match(param) or \
-                 (param[-1] == '$' and re_match_str.match(param[:-1])):
+              if re_match_str.match(param) or (param[-1] == '$' and re_match_str.match(param[:-1])):
                 search_com.found_one = True
                 found_one_in_this_file = True
                 if not have_printed_file_name:
                   print ('\nFile: ' + file_name)
                   have_printed_file_name = True
-                print ('    ' + line.rstrip())
-                while line.rstrip()[-1] == '&':
-                  line = f90_file.readline()
-                  print ('    ' + line.rstrip())                
+                for bline in line_list:
+                  print ('    ' + bline.rstrip())             
                 break
+              # endif
+            # endif
+          # endif
+        # endfor
+      # endif
+    # endif
 
     # Add to comment block if a comment
 
@@ -306,7 +315,7 @@ def search_f90 (file_name, search_com):
       comments = []
       continue
 
-    # match to subroutine, function, etc.
+    # match to subroutine, function, etc. --------
 
     if routine_here(line2, routine_name):
       if re_match_str.match(routine_name[0]) and 'routine'.startswith(search_com.search_only_for):
@@ -319,10 +328,7 @@ def search_f90 (file_name, search_com):
         elif search_com.doc_type == 'FULL':
           print ('\nFile: ' + file_name)
           for com in comments: print (com.rstrip())
-          while True:
-            print (line.rstrip())
-            if line.rstrip()[-1] != '&': break
-            line = f90_file.readline()
+          for aline in line_list: print (aline.rstrip())
         else:
           print ('\nFile: ' + file_name)
           print ('    ' + line.rstrip())

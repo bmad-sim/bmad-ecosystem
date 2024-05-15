@@ -382,12 +382,15 @@ The \vn{cut_ring} command is used to toggle the geometry of the viewed \vn{model
 When the lattice is toggled to an open geometry, the \vn{-particle_start}, \vn{-static} or
 \vn{-zero} options can be used to set the starting orbit. In all cases, the starting orbit is set
 equal to the setting of \vn{particle_start} where \vn{particle_start} can be set in the lattice file
-and/or using \tao's \vn{set particle_start} or \vn{change particle_start} commands. With the
-\vn{-static} option, \vn{particle_start} is set to the same orbit as currently exists for the closed
-orbit. With the \vn{-zero} option, the \vn{particle_start} orbit is set to zero. With the
-\vn{-particle_start} option, the \vn{particle_start} orbit is not modified. The default is
-\vn{-static} except if the closed lattice is unstable (and there is no well defined orbit) in which
-case \vn{-particle_start} is the default.
+and/or using \tao's \vn{set particle_start} or \vn{change particle_start} commands. 
+
+With the \vn{-static} option (the default), \vn{particle_start} is set to the same orbit as
+currently exists for the closed orbit. The exception is if no closed orbit is found. In this case,
+\vn{particle_start} is not modified (same as with the \vn{particle_start} option).
+
+With the \vn{-zero} option, the \vn{particle_start} orbit is set to zero. 
+
+With the \vn{-particle_start} option, the \vn{particle_start} orbit is not modified.
 
 \begin{example}
   cut -zero   ! When lattice geometry is toggled open: zero initial orbit.
@@ -1942,6 +1945,7 @@ Format:
   show plot ...                ! Show plot info \sref{s:show.plot}.
   show ptc ...                 ! Show PTC calculated parameters \sref{s:show.ptc}.
   show radiation_integrals ... ! Show synchrotron radiation integrals \sref{s:show.rad.int}.
+  show rampers                 ! Show ramper lord and slave information \sref{s:show.ramp}.
   show spin ...                ! Show information on spin simulations \sref{s:show.spin}.
   show string ...              ! Print a string \sref{s:show.string}.
   show symbolic_numbers ...    ! Show symbolic constants \sref{s:show.symbolic}.
@@ -1955,7 +1959,7 @@ Format:
   show value ...               ! Show value of an expression \sref{s:show.value}.
   show variables ...           ! Show optimization variable info \sref{s:show.variables}.
   show version                 ! Show Tao version.
-  show wake_elements           ! Show wake info \sref{s:show.wake_elements}.
+  show wake_elements           ! Show wake info \sref{s:show.wake}.
   show wall ...                ! Show vacuum chamber wall info \sref{s:show.wall}.
   show wave                    ! Show wave analysis info \sref{s:show.wave}.
 \end{example}
@@ -2978,6 +2982,29 @@ computation that derives from the transport matrices with included radiation eff
 between the two are due to differing approximations as explained in the \bmad manual (See the
 chapter on \vn{Synchrotron Radiation}).
 
+%% show rampers --------------------------------------------------------------
+
+\subsection{show rampers}
+\label{s:show.ramp}
+
+Syntax:
+\begin{example}
+  show rampers \{-universe <ix_uni>\} \{-energy_show\}
+\end{example}
+
+Shows information on ramper lords and slaves.
+
+The \vn{-universe} switch can be used to choose which universe to use.
+
+By default, slave listings will omit references to energy ramp control (control of \vn{p0c} or \vn{E_tot}.
+The reason for this is that typically all elements will be involved in energy ramping and this would make
+the listing very long. To explicitly display the energy ramp control, use the \vn{-energy_show} switch.
+
+Examples:
+\begin{example}
+  show ramp -energy_show  ! Show includes energy ramp info.
+\end{example}
+
 %% show spin --------------------------------------------------------------
 
 \subsection{show spin}
@@ -3493,7 +3520,7 @@ your local \bmad guru for details.\footnote
 %% show wake_elements --------------------------------------------------------------
 
 \subsection{show wake_elements}
-\label{s:show.wake_elements}
+\label{s:show.wake}
 
 Syntax:
 \begin{example}

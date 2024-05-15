@@ -595,6 +595,7 @@ supersede everything else.
 The \vn{tao_global_struct} structure contains \tao global parameters. The components of this structure are:
 \begin{example}
 type tao_global_struct:
+  beam_dead_cutoff = 0.99          ! Dead particle cutoff for stopping beam tracking.
   lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
   de_var_to_population_factor = 5 
@@ -655,6 +656,9 @@ using ``\vn{global}'' as the instance name. All global parameters can be changed
 value using the \vn{set} command (\sref{s:set}).
 
   \begin{description}
+  \item{\vn{global%beam_dead_cutoff}} \Newline
+Percentage of dead particles at which beam tracking is stopped.
+%
   \item{\vn{global%concatenate_maps}} \Newline
 When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps} =
 False, is to use Differential Algebra (DA) to integrate the map from the starting point to the

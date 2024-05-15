@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 315
+integer, parameter :: bmad_inc_version$ = 317
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -129,7 +129,7 @@ integer, parameter :: minor_slave$ = 1, super_slave$ = 2, free$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12, ramper_lord$ = 13
-integer, parameter :: governor$ = 14   ! Union of overlay and group lords.
+integer, parameter :: governor$ = 14, field_lord$ = 15    ! governor$ = Union of overlay and group lords.
 
 character(20), parameter :: control_name(13) = [character(20):: &
             'Minor_Slave', 'Super_Slave', 'Free', 'Group_Lord', &
@@ -522,7 +522,7 @@ real(rp), parameter :: vec0$(6) = 0
 ! encopassing lord element.
 
 type coord_struct                 ! Particle coordinates at a single point
-  real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
+  real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz). Generally phase space for charged particles. See Bmad manual.
   real(rp) :: s = 0               ! Longitudinal position 
   real(rp) :: t = 0               ! Absolute time (not relative to reference). If bmad_private%rf_clock_frequency is
                                   ! set, %t will be the RF clock time in the range [0, 1/rf_clock_freq] 
@@ -576,7 +576,7 @@ end type
 
 ! Wakefield structs...
 
-integer, parameter :: x_polarization$ = 2, y_polarization$ = 3
+integer, parameter :: x_polarization$ = 2, y_polarization$ = 3, xy$ = 2
 character(8), parameter :: sr_transverse_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axis']
 
 integer, parameter :: leading$ = 2, trailing$ = 3
@@ -584,6 +584,7 @@ integer, parameter :: x_leading$ = 2, y_leading$ = 3, x_trailing$ = 4, y_trailin
 character(8), parameter :: sr_transverse_position_dep_name(3) = [character(8):: 'none', 'leading', 'trailing']
 character(12), parameter :: sr_longitudinal_position_dep_name(5) = &
                 [character(12):: 'none', 'x_leading', 'y_leading', 'x_trailing', 'y_trailing']
+character(8), parameter :: sr_z_plane_name(5) = [character(8):: 'X', 'XY', 'Y', null_name$, 'Z']
 
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
@@ -595,12 +596,21 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
   real(rp) :: a_sin = 0     ! skew (y) sin-like component of the wake
   real(rp) :: a_cos = 0     ! skew (y) cos-like component of the wake
   integer :: polarization = none$            ! Transverse: none$, x_axis$, y_axis$. Not used for longitudinal.
-  integer :: position_dependence = not_set$  ! Transverse: leading$, trailing, none$
+  integer :: position_dependence = not_set$  ! Transverse: leading$, trailing$, none$
                                              ! Longitudinal: x_leading$, ..., y_trailing$, none$
+end type
+
+type wake_sr_z_struct
+  type(spline_struct), allocatable :: w(:)                  ! Wake vs time.
+  type(spline_struct), allocatable :: w_sum1(:), w_sum2(:)  ! Running sums used when tracking.                 
+  integer :: plane = not_set$                          ! x$, y$, xy$, z$.
+  integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
+                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
 end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
   character(200) :: file = ''
+  type (wake_sr_z_struct), allocatable :: z(:)
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
   real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.
@@ -644,7 +654,7 @@ end type
 !
 
 type wake_struct
-  type (wake_sr_struct) :: sr = wake_sr_struct('', null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
+  type (wake_sr_struct) :: sr = wake_sr_struct('', null(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
   type (wake_lr_struct) :: lr = wake_lr_struct('', null(), 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Long-range wake
 end type
 
@@ -1288,22 +1298,26 @@ type control_var1_struct
 end type
 
 type control_ramp1_struct
-  real(rp) :: value = 0
   real(rp), allocatable :: y_knot(:)
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   character(40) :: attribute = ''     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
   character(40) :: slave_name = ''    ! Name of slave.
-  ! %slave is only used with controllers and in this case there is only one slave.
-  type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   logical :: is_controller = .false.  ! Is the slave a controller? If so bookkeeping is different.
 end type
 
 integer, parameter :: cubic$ = 3
 character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'null_name$', 'Cubic', 'Linear']
 
+type ramper_lord_struct
+  integer :: ix_ele = 0       ! Lord index
+  integer :: ix_con = 0       ! Index in lord%control%ramp(:) array
+  real(rp), pointer :: attrib_ptr => null()    ! Pointer to attribute in this element.
+end type
+
 type controller_struct
   type (control_var1_struct), allocatable :: var(:)
-  type (control_ramp1_struct), allocatable :: ramp(:)             ! For ramper elements
+  type (control_ramp1_struct), allocatable :: ramp(:)            ! For ramper lord elements
+  type (ramper_lord_struct), allocatable :: ramper_lord(:)       ! Ramper lord info for this slave
   real(rp), allocatable :: x_knot(:)
 end type
 
@@ -1313,7 +1327,7 @@ end type
 ! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
 !     run scripts to regenerate cpp_bmad_interface library.
-!     Modify:
+!     Modify (this is not a complete list):
 !       read_digested_bmad_file
 !       write_digested_bmad_file
 !       parsing routines to read in modified/new parameters...
@@ -1390,12 +1404,13 @@ type ele_struct
   integer :: ix_ele = -1                          ! Index in branch ele(0:) array. Set to ix_slice_slave$ = -2 for slice_slave$ elements.
   integer :: ix_branch = 0                        ! Index in lat%branch(:) array. Note: lat%ele => lat%branch(0).
   integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
-  integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
+  integer :: n_slave = 0                          ! Number of slaves (except field overlap slaves) of this element.
   integer :: n_slave_field = 0                    ! Number of field slaves of this element.
   integer :: ix1_slave = 0                        ! Pointer index to this element's slaves.
   integer :: slave_status = free$                 ! Type of slave element this is. multipass_slave$, slice_slave$, etc.
-  integer :: n_lord = 0                           ! Number of lords (except field lords).
+  integer :: n_lord = 0                           ! Number of lords (except field overlap and ramper lords).
   integer :: n_lord_field = 0                     ! Number of field lords of this element.
+  integer :: n_lord_ramper = 0                    ! Number of ramper lords.
   integer :: ic1_lord = 0                         ! Pointer index to this element's lords.
   integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
   integer :: ixx = 0, iyy = 0, izz = 0            ! Index for Bmad internal use.
@@ -1576,6 +1591,7 @@ type lat_struct
   integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
   integer :: creation_hash = 0                        ! Set by bmad_parser. creation_hash will vary if 
                                                       !   any of the lattice files are modified.
+  logical :: ramper_slave_bookkeeping_done = .false.
 end type
 
 character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
@@ -1603,14 +1619,14 @@ integer, parameter :: thick_multipole$ = 67, pickup$ = 68, feedback$ = 69, n_key
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
 character(20), parameter :: key_name(n_key$) = [ &
-    'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
-    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFcavity          ', 'ELseparator       ', &
+    'Drift             ', 'SBend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
+    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFCavity          ', 'ELSeparator       ', &
     'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
-    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', '!Bmad_Com         ', &
+    'Hybrid            ', 'Octupole          ', 'RBend             ', 'Multipole         ', '!Bmad_Com         ', &
     '!Mad_Beam         ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
     '!Parameter        ', 'Null_Ele          ', 'Beginning_Ele     ', '!Line             ', 'Match             ', &
-    'Monitor           ', 'Instrument        ', 'HKicker           ', 'VKicker           ', 'Rcollimator       ', &
-    'Ecollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
+    'Monitor           ', 'Instrument        ', 'HKicker           ', 'VKicker           ', 'RCollimator       ', &
+    'ECollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
@@ -1714,7 +1730,7 @@ integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_
                       y2_edge$ = 25, species_strong$ = 25
 integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26, &
                       phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26, &
-                      eps_step_scale$ = 26, E_tot_strong$ = 26, drel_thickness_dx$ = 26, bend_tilt$ = 26
+                      eps_step_scale$ = 26, E_tot_strong$ = 26, dthickness_dx$ = 26, bend_tilt$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
                       x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
                       py_aperture_center$ = 27, x_dispersion_err$ = 27
@@ -2559,16 +2575,16 @@ end function is_attribute
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
+! Function pointer_to_slave (lord, ix_slave, control, lord_type, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
 ! Note: Ramper lords do not have any associated slaves (slaves are assigned dynamically at run time).
 !
-! If field_overlap_ptr = False (default), the range for ix_slave is:
+! If lord_type = all$ (the default) the range for ix_slave is:
 !   1 to lord%n_slave                                 for "regular" slaves.
 !   lord%n_slave+1 to lord%n_slave+lord%n_slave_field for field overlap slaves.
 !
-! If field_overlap_ptr = True, only the field overlap slaves may be accessed and the range for ix_slave is:
+! If lord_type = field_lord$, only the field overlap slaves may be accessed and the range for ix_slave is:
 !   1 to lord%n_slave_field  
 !
 ! Also see:
@@ -2577,10 +2593,9 @@ end function is_attribute
 !   num_lords
 !
 ! Input:
-!   lord               -- ele_struct: Lord element
-!   ix_slave           -- integer: Index of the slave in the list of slaves controled by the lord.. 
-!   field_overlap_ptr  -- logical, optional: Slave pointed to restricted to be a field overlap slave?
-!                           Default is False.
+!   lord             -- ele_struct: Lord element
+!   ix_slave         -- integer: Index of the slave in the list of slaves controled by the lord.. 
+!   lord_type        -- integer, optional: See above.
 !
 ! Output:
 !   slave_ptr      -- ele_struct, pointer: Pointer to the slave.
@@ -2593,7 +2608,7 @@ end function is_attribute
 !   ix_ic          -- integer, optional: Index of the lat%ic(:) element associated with the control argument.
 !-
 
-function pointer_to_slave (lord, ix_slave, control, field_overlap_ptr, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
+function pointer_to_slave (lord, ix_slave, control, lord_type, ix_lord_back, ix_control, ix_ic) result (slave_ptr)
 
 implicit none
 
@@ -2603,9 +2618,8 @@ type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
 type (lat_struct), pointer :: lat
 
-integer, optional :: ix_lord_back, ix_control, ix_ic
+integer, optional :: ix_lord_back, lord_type, ix_control, ix_ic
 integer i, ix, ix_slave, icon, ixs
-logical, optional :: field_overlap_ptr
 
 !
 
@@ -2614,7 +2628,7 @@ if (present(ix_control)) ix_control = -1
 if (present(ix_ic)) ix_ic = -1
 if (present(ix_lord_back)) ix_lord_back = -1
 
-if (logic_option(.false., field_overlap_ptr)) ixs = ixs + lord%n_slave
+if (integer_option(all$, lord_type) == field_lord$) ixs = ixs + lord%n_slave
 
 if (ixs > lord%n_slave+lord%n_slave_field .or. ix_slave < 1) then
   nullify(slave_ptr)

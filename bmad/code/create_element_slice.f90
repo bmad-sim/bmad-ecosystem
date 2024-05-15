@@ -143,7 +143,7 @@ if (present(old_slice) .and. .not. rad_map_stale .and. .not. include_upstream_en
   case (sbend$, quadrupole$, sextupole$, octupole$, thick_multipole$)
     if (associated(sliced_ele%rad_map)) sliced_ele%rad_map%stale = .false.
   end select
-endif  
+endif
 
 ! For a sliced taylor element the %taylor%term components point to the lord components. 
 ! The routine deallocate_ele_pointers will only nullify and never deallocate these components of a slice_slave.
@@ -230,8 +230,10 @@ if (.not. include_downstream_end) sliced_ele%time_ref_orb_out%location = inside$
 ! Solution is to just set the end ref energy to what it should be.
 
 if (include_downstream_end) then
-  sliced_ele%value(p0c$)      = ele_in%value(p0c$)
-  sliced_ele%value(e_tot$)    = ele_in%value(e_tot$)
+  sliced_ele%value(p0c$)        = ele_in%value(p0c$)
+  sliced_ele%value(e_tot$)      = ele_in%value(e_tot$)
+  sliced_ele%old_value(p0c$)    = ele_in%value(p0c$)
+  sliced_ele%old_value(e_tot$)  = ele_in%value(e_tot$)
 endif
 
 ! Round off can throw off the beginning ref energy. 

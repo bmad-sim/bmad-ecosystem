@@ -144,6 +144,7 @@ type bp_common_struct
   character(n_parse_line) :: rest_of_line = ''         ! Line after semicolon saved until current statement is completely parsed.
   character(n_parse_line) :: next_chunk = ''      ! Line waiting to be appended to the parse_line.
   character(1) :: last_char_in_parse_line =  ''   ! Needed for long lines read in pieces.
+  ! parser_name is used by routines to tell if parsing is being done or not.
   character(40) :: parser_name = ''               ! Blank means not in bmad_parser nor bmad_parser2.
   character(100) :: last_word = ''                ! Last word to be parsed
   logical :: bmad_parser_calling = .false.        ! used for expand_lattice
@@ -157,6 +158,9 @@ type bp_common_struct
   logical :: input_from_file = .true.             ! Input is from a lattice file?
   logical :: inline_call_active = .false.
   logical :: print_err = .true.                   ! Print error messages?
+  ! For compatibility with translated MAD files, treat undefined vars as having zero value.
+  ! Note: When using the parser code for local evaluations (done by Tao), do not wnat this.
+  logical :: undefined_vars_evaluate_to_zero = .true.
   logical :: use_local_lat_file = .false.
   logical :: used_line_set_by_calling_routine = .false.
   logical :: calc_reference_orbit = .false.

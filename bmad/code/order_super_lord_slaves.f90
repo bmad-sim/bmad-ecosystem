@@ -1,7 +1,7 @@
 !+
 ! Subroutine order_super_lord_slaves (lat, ix_lord)
 !
-! Subroutine to make the slave elements of a super_lord in order.
+! Subroutine to properly order the slave element array of a super_lord
 !
 ! Input:
 !   lat    -- lat_struct: Lat.

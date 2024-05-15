@@ -79,7 +79,7 @@ end type
 
 ! 
 
-integer, parameter :: x_axis$ = 1, y_axis$ = 2, z_axis$ = 3
+integer, parameter :: x_axis$ = 1, y_axis$ = 2, z_axis$ = 3, xy_axis$ = 4
 
 ! True and false
 

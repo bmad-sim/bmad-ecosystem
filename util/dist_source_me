@@ -366,14 +366,14 @@ func_add_bmad_path () {
     else
         export LD_LIBRARY_PATH=${BMAD_LIB_PROD_PATH}:${BMAD_LIB_DEBUG_PATH}
 
-        # Configure DYLD_LIBRARY_PATH for Mac OS X
+        # Configure DYLD_FALLBACK_LIBRARY_PATH for Mac OS X
         if [ "${DIST_OS}" == "Darwin" ] ; then
 
             if ( [ "${DIST_F90_REQUEST}" == "ifort" ] && [ -d /opt/intel/lib ] ) ; then
-                export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/lib
+                export DYLD_FALLBACK_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/lib
 
             elif [ -d /opt/local/lib ] ; then
-                export DYLD_LIBRARY_PATH=${LD_LIBRARY_PATH}
+                export DYLD_FALLBACK_LIBRARY_PATH=${LD_LIBRARY_PATH}
             fi
         fi
     fi
@@ -381,26 +381,59 @@ func_add_bmad_path () {
 
 
 
-#-----------------------------------------------------------------
-# Function to set CC and CXX to the MacPorts gcc/g++, under macOS.
-# Addresses issue with Conda support Patch (RT#59013).  
-# Issue was raised in RT#61171 by cmayes@stanford.edu
-#-----------------------------------------------------------------
-func_use_MacPorts_gcc () {
+func_macos_gcc () {
 
-    case "${ACC_USE_MACPORTS}" in
-    "Y" | "y" | "1" )
-            USE_MACPORTS=1
-            ;;
-    esac
-
-    if [ "$(uname)" == "Darwin" ] ; then
-        if ( [[ "${USE_MACPORTS}" ]] ) ; then
-            if [ -e /opt/local/bin/gcc ] ; then
-                export CC=gcc
-                export CXX=g++
-            fi
-        fi
+    if [ "$(uname)" = "Darwin" ] && [ -z "$CC" ]
+    then
+	brew=
+	port=
+	command -v brew > /dev/null && brew=y
+	command -v port > /dev/null && port=y
+	if [ "$brew" ] && [ "$port" ]
+	then
+	    brew=
+	    port=
+	    mac_package=$(echo $BMAD_MAC_PACKAGE | tr '[:upper:]' '[:lower:]')
+	    [ "$mac_package" = homebrew ] && brew=y
+	    [ "$mac_package" = macports ] && port=y
+	    if [ -z "$brew" ] && [ -z "$port" ]
+	    then
+	       echo "You have both HomeBrew and MacPorts installed" >> ${DIST_SETUP_LOG}
+	       echo "You must set BMAD_MAC_PACKAGE to either 'homebrew' or 'macports'" >> ${DIST_SETUP_LOG}
+	    fi
+	    unset mac_package
+	fi
+	if [ "$port" ]
+	then
+	    if [ -x /opt/local/bin/gcc ]
+	    then
+		export CC=gcc
+		export CXX=g++
+	    else
+		echo "You need to install gcc under MacPorts" >> ${DIST_SETUP_LOG}
+	    fi
+	elif [ "$brew" ]
+	then
+	    p=/opt/homebrew/bin/gcc-
+	    v=0
+	    for g in $p[0-9]*
+	    do
+		vv=${g##$p}
+		[ "$vv" -gt "$v" ] && v="$vv"
+	    done
+	    unset p
+	    unset g
+	    if [ "$v" != 0 ]
+	    then
+		export CC=gcc-$v
+		export CXX=g++-$v
+	    else
+		echo You need to install gcc on HomeBrew >> ${DIST_SETUP_LOG}
+	    fi
+	    unset v
+	else
+	    echo You need to install HomeBrew or MacPorts >> ${DIST_SETUP_LOG}
+	fi
     fi
 }
 
@@ -459,7 +492,7 @@ if ( [ "${CWD_DIR_CHECK}" == "Y" ] && [[ ! ${CWD} -ef ${DIST_BASE_DIR} ]]) ; the
     func_add_bmad_path
     if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
     func_check_fortran_version
-    func_use_MacPorts_gcc
+    func_macos_gcc
     fi
 
 elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
@@ -471,7 +504,7 @@ elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
     func_add_bmad_path
     if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
         func_check_fortran_version
-        func_use_MacPorts_gcc
+        func_macos_gcc
     fi
 
 else

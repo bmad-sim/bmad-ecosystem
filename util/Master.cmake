@@ -230,12 +230,6 @@ ENDIF ()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT $ENV{ACC_PLOT_PACKAGE} MATCHES "none")
   SET (ACC_PLOT_LIB_DIRS /usr/lib64)
-ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT $ENV{ACC_CONDA_BUILD} MATCHES "Y") # See: RT 60204
-  IF ($ENV{ACC_USE_MACPORTS} MATCHES "Y")
-    SET (ACC_PLOT_LIB_DIRS /opt/local/lib /opt/X11/lib)
-  ELSE ()
-    SET (ACC_PLOT_LIB_DIRS /opt/X11/lib)
-  ENDIF ()
 ENDIF ()
 
 IF (${CMAKE_Fortran_COMPILER} STREQUAL "ifort" AND "$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")
@@ -315,6 +309,46 @@ ENDIF ()
 
 string (STRIP "${ACC_LINK_FLAGS}" ACC_LINK_FLAGS)
 
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT $ENV{ACC_CONDA_BUILD} MATCHES "Y")
+  find_program(BREW "brew")
+  find_program(PORT "port")
+  set(DO_BREW "NO")
+  set(DO_PORT "NO")
+  if (NOT BREW STREQUAL "BREW-NOTFOUND")
+    set(DO_BREW "YES")
+  endif()
+  if (NOT PORT STREQUAL "PORT-NOTFOUND")
+    set(DO_PORT "YES")
+  endif()
+  if (DO_BREW AND DO_PORT)
+    set(DO_BREW "NO")
+    set(DO_PORT "NO")
+    if (DEFINED ENV{BMAD_MAC_PACKAGE})
+      string(TOLOWER "$ENV{BMAD_MAC_PACKAGE}" MAC_PACKAGE)
+      if (MAC_PACKAGE STREQUAL "macports")
+	set (DO_PORT "YES")
+      elseif (MAC_PACKAGE STREQUAL "homebrew")
+	set (DO_BREW "YES")
+      endif ()
+    endif()
+    if (NOT (DO_BREW OR DO_PORT))
+      message(FATAL_ERROR
+	"Both HomeBrew and Macports are installed.\n"
+	"Set BMAD_MAC_PACKAGE to either \"macports\" or \"homebrew\" to choose which to use")
+    endif()
+  endif()
+  if (DO_BREW)
+    # Assuming an ARM mac here, path is different for an x86 Mac
+    set(ACC_INC_DIRS ${ACC_INC_DIRS} /opt/homebrew/include /opt/homebrew/opt/readline/include)
+    set(ACC_LIB_DIRS ${ACC_LIB_DIRS} /opt/homebrew/lib /opt/homebrew/opt/readline/lib)
+  elseif (DO_PORT)
+    set(ACC_INC_DIRS ${ACC_INC_DIRS} /opt/local/include)
+    set(ACC_LIB_DIRS ${ACC_LIB_DIRS} /opt/local/lib)
+  else()
+    message(FATAL_ERROR "This is MacOS, but neither HomeBrew nor MacPorts is installed")
+  endif()
+ENDIF()
+
 # Environment variables BMAD_USER_INC_DIRS and BMAD_USER_LIB_DIRS hold include/library directories
 # to search for include/module or libraries respectively. Multiple directories separated by semicolons.
 SET (ACC_INC_DIRS $ENV{BMAD_USER_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS} ${MPI_INC_DIRS})
@@ -359,22 +393,6 @@ IF ($ENV{ACC_BUILD_TEST_EXES})
   SET(BUILD_TEST_EXES 1)
 ELSE ()
   SET(BUILD_TEST_EXES 0)
-ENDIF ()
-
-
-#------------------------------------------
-# Honor requests for compiling with 
-# profiling made via environment variable.
-#------------------------------------------
-IF ($ENV{ACC_ENABLE_PROFILING})
-  SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -pg")
-  SET (ACC_LINK_FLAGS "${ACC_LINK_FLAGS} -pg")
-  SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-  SET (BASE_C_FLAGS "${BASE_C_FLAGS} -pg")
-  SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -pg")
-  IF ($ENV{ACC_ENABLE_SHARED})
-    SET (CMAKE_SHARED_LINKER_FLAGS "-pg ${CMAKE_SHARED_LINKER_FLAGS}")
-  ENDIF () 
 ENDIF ()
 
 

@@ -180,7 +180,7 @@ enddo
 read (d_unit, err = 9030, end = 9030) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 read (d_unit, err = 9030, end = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 read (d_unit, err = 9030, end = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
-read (d_unit, err = 9030, end = 9030) lat%input_taylor_order, lat%photon_type
+read (d_unit, err = 9030, end = 9030) lat%input_taylor_order, lat%photon_type, lat%ramper_slave_bookkeeping_done
 read (d_unit, err = 9070, end = 9070) n_branch, lat%pre_tracker, n_custom, n_print
 
 ! Different compilers (EG ifort and gfortran) will produce different binary formats. 
@@ -409,6 +409,7 @@ if (.not. err_found) then
 endif
 
 call create_lat_ele_nametable (lat, lat%nametable)
+call ramper_slave_setup(lat, .true.)
 
 return
 
@@ -498,8 +499,8 @@ type (control_ramp1_struct), pointer ::rmp
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_gen, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e, n_angle, n_energy
-integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c 
-integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
+integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c, nix
+integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc, n_foil
 
 logical error, is_alloc_grid, is_alloc_pix, is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
@@ -511,7 +512,7 @@ error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, rad_map_alloc, &
-        ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+        ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, ix_sr_z, &
         ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_foil, n_cus, ix_convert
 
 read (d_unit, err = 9100, end = 9100) &
@@ -519,7 +520,7 @@ read (d_unit, err = 9100, end = 9100) &
         ele%a, ele%b, ele%z, ele%vec0, ele%mat6, ele%spin_q, &
         ele%c_mat, ele%gamma_c, ele%s_start, ele%s, ele%key, ele%floor, &
         ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
-        ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, &
+        ele%n_slave, ele%n_slave_field, ele%ix1_slave, ele%n_lord, ele%n_lord_field, ele%n_lord_ramper, &
         ele%ic1_lord, ele%ix_pointer, ele%ixx, &
         ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
         ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
@@ -544,7 +545,7 @@ enddo
 
 if (ix_c /= 0) then
   allocate (ele%control)
-  read (d_unit, err = 9120, end = 9120) n_var, nk, nr
+  read (d_unit, err = 9120, end = 9120) n_var, nk, nr, nix
 
   if (nk > -1) then
     allocate(ele%control%x_knot(nk))
@@ -562,7 +563,7 @@ if (ix_c /= 0) then
     allocate(ele%control%ramp(nr))
     do i = 1, nr
       rmp => ele%control%ramp(i)
-      read (d_unit, err = 9040, end = 9040) rmp%slave_name, n, nk, rmp%value, rmp%attribute, rmp%slave, rmp%is_controller
+      read (d_unit, err = 9040, end = 9040) rmp%slave_name, n, nk, rmp%attribute, rmp%is_controller
       if (n > 0) then
         allocate (rmp%stack(n))
         do j = 1, n
@@ -574,6 +575,15 @@ if (ix_c /= 0) then
         allocate (rmp%y_knot(nk))
         read (d_unit, err = 9045, end = 9045) rmp%y_knot
       endif
+    enddo
+  endif
+
+  if (nix > -1) then
+    allocate(ele%control%ramper_lord(nix))
+    read (d_unit, err = 9120, end = 9120) ele%control%ramper_lord%ix_ele
+    read (d_unit, err = 9120, end = 9120) ele%control%ramper_lord%ix_con
+    do i = 1, nix
+      ele%control%ramper_lord(nix)%attrib_ptr => null()
     enddo
   endif
 endif
@@ -863,21 +873,31 @@ enddo
 ! If ix_lr_mode is negative then it is a pointer to a previously read wake. 
 ! See write_digested_bmad_file.
 
-if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0) then
+if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_sr_z /= 0 .or. ix_lr_mode /= 0) then
   if (ix_lr_mode < 0) then
     call transfer_wake (ele%branch%ele(abs(ix_lr_mode))%wake, ele%wake)
 
   else
-    call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr_mode)
+    call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode)
     wake => ele%wake
     read (d_unit, err = 9800, end = 9800) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+
     do i = 1, size(wake%sr%long)
       read (d_unit, err = 9800, end = 9800) wake%sr%long(i)
     enddo
+
     do i = 1, size(wake%sr%trans)
       read (d_unit, err = 9800, end = 9800) wake%sr%trans(i)
     enddo
+
+    do i = 1, size(wake%sr%z)
+      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, n
+      allocate(wake%sr%z(i)%w(n), wake%sr%z(i)%w_sum1(n), wake%sr%z(i)%w_sum2(n))
+      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%w
+    enddo
+
     read (d_unit, err = 9800, end = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+
     do i = 1, size(wake%lr%mode)
       read (d_unit, err = 9800, end = 9800) wake%lr%mode(i)
     enddo

@@ -1444,7 +1444,7 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
 
   lord_orb = lab_orb
   do i = 1, ele%n_lord_field
-    lord => pointer_to_lord(ele, i, field_overlap_ptr = .true.)
+    lord => pointer_to_lord(ele, i, lord_type = field_lord$)
     lord_position = coords_floor_to_local_curvilinear (global_position, lord, status, w_lord_mat)
     lord_orb%vec(1) = lord_position%r(1)
     lord_orb%vec(3) = lord_position%r(2)
