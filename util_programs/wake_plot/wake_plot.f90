@@ -15,7 +15,7 @@ type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: p1, p2
 
-real(rp) :: plot_min, plot_max, plot_limit, plot_size(2), text_scale, zero6(6) = 0, vec(6)
+real(rp) :: plot_min, plot_max, plot_limit, plot_size(2), text_scale, zero6(6) = 0, vec2(6)
 real(rp) xy_leading(2), xy_trailing(2), leading_charge, z
 real(rp), allocatable :: time(:), wx(:), wy(:), wz(:), z_knot(:), wx_knot(:), wy_knot(:), wz_knot(:)
 
@@ -42,7 +42,7 @@ n_points = 1001
 make_plot = .true.
 postscript_file = ''
 draw_knot_points = .true.
-text_scale = 1.2
+text_scale = 1.0
 ix_wake = 0
 m_order = 0
 
@@ -87,7 +87,7 @@ call init_coord(p2, zero6, wake_ele, upstream_end$)
 
 p1%vec(1:3:2) = xy_leading
 p2%vec(1:3:2) = xy_trailing
-vec = p2%vec
+vec2 = p2%vec
 
 if (plot_type == 'wake') then
   p1%charge = 1
@@ -130,7 +130,7 @@ case ('lr')
 
   do i = 1, n_points
     z = plot_min + (plot_max - plot_min) * (i - 1.0_rp) / (n_points - 1.0_rp)
-    p2%vec = vec
+    p2%vec = vec2
     p2%vec(5) = z
     time(i) = z
     call zero_lr_wakes_in_lat(lat)
@@ -170,7 +170,7 @@ case ('sr')
 
   do i = 1, n_points
     z = plot_min + (plot_max - plot_min) * (i - 1.0_rp) / (n_points - 1.0_rp)
-    p2%vec = vec
+    p2%vec = vec2
     p2%vec(5) = z
     time(i) = z
     call track1_sr_wake(bunch, wake_ele)
@@ -186,6 +186,8 @@ case ('sr')
       do ik = 1, size(sr%z(iz)%w)
         z = sr%z(iz)%w(ik)%x0
         if (any(z_knot == z)) cycle
+        p2%vec = vec2
+        p2%vec(5) = z
         call track1_sr_wake(bunch, wake_ele)
         n = n + 1
         call re_allocate(z_knot, n)
@@ -217,7 +219,7 @@ type (qp_symbol_struct), allocatable :: symbol(:)
 
 real(rp) height
 character(*) who
-character(16) :: color(6) = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
+character(16) :: what_str, x_axis_str
 integer j, k, n, id
 
 !
@@ -229,6 +231,16 @@ elseif (plot_size(1) > plot_size(2)) then
 else
   call qp_open_page ('PS', id, plot_size(1), plot_size(2), 'POINTS', plot_file = postscript_file)
 endif
+
+select case (plot_type)
+case ('wake'); what_str = 'Wake'
+case ('kick'); what_str = 'Kick'
+end select
+
+select case (who)
+case ('lr');  x_axis_str = 'Time'
+case default; x_axis_str = 'Z'
+end select
 
 call qp_get_text_attrib ('AXIS_NUMBERS', height)
 call qp_set_text_attrib ('AXIS_NUMBERS', text_scale*height)
@@ -245,7 +257,7 @@ call qp_calc_and_set_axis ('X', plot_min, plot_max, 4, 8, 'ZERO_AT_END')
 
 call qp_set_box (1, 3, 1, 3)
 call qp_calc_and_set_axis ('Y', minval(wx), maxval(wx), 4, 8, 'GENERAL')
-call qp_draw_axes (x_axis_label, y_axis_label)
+call qp_draw_axes (x_axis_str, what_str)
 
 call qp_draw_data (time, wx, .true., 0)
 if (draw_knot_points) then
@@ -256,7 +268,7 @@ endif
 
 call qp_set_box (1, 2, 1, 3)
 call qp_calc_and_set_axis ('Y', minval(wy), maxval(wy), 4, 8, 'GENERAL')
-call qp_draw_axes (x_axis_label, y_axis_label)
+call qp_draw_axes (x_axis_str, what_str)
 
 call qp_draw_data (time, wy, .true., 0)
 if (draw_knot_points) then
@@ -267,7 +279,7 @@ endif
 
 call qp_set_box (1, 1, 1, 3)
 call qp_calc_and_set_axis ('Y', minval(wz), maxval(wz), 4, 8, 'GENERAL')
-call qp_draw_axes (x_axis_label, y_axis_label)
+call qp_draw_axes (x_axis_str, what_str)
 
 call qp_draw_data (time, wz, .true., 0)
 if (draw_knot_points) then
