@@ -323,12 +323,20 @@ SUBROUTINE binary_search(lost,delta_m,accuracy,reset) !updates delta_m according
       accuracy = ABS(last_high-last_low)/MIN(ABS(last_high),ABS(last_low))
     ENDIF
 
-    ! Check for extreme values.  If the aperture is larger then 100%, record 100% and move on.
+    ! Check for extreme values.  
+    ! If the aperture is larger then 100%, record 100% and move on.
     IF(ABS(delta_m) .gt. 1.0) THEN
       accuracy = 0.0
       !The next two lines result in 1.0 being recorded as the aperture for this location.
       last_high = 1.1_rp
       last_low = 0.9_rp
+    ENDIF
+    ! If the aperture is smaller then 1e-6, record 0% and move on.
+    IF(ABS(delta_m) .lt. 1.0e-6) THEN
+      accuracy = 0.0
+      !The next two lines result in 1e-6 being recorded as the aperture for this location.
+      last_high = 2.0d-6
+      last_low = 0.0d0
     ENDIF
   ENDIF
 END SUBROUTINE binary_search
