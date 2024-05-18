@@ -42,21 +42,27 @@ slave%sub_key = 0
 ! * If one element is a drift then slave%key = key of other element.
 ! * Control elements, etc. cannot be superimposed.
 
+
 select case (key1)
-case (drift$)
+case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$); return
+end select
+
+select case (key2)
+case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$); return
+end select
+
+select case (key1)
+case (drift$, pipe$)
   slave%key = key2
+  if (key1 == pipe$ .and. key2 == drift$) slave%key = pipe$
   slave%sub_key = lord2%sub_key
-  return
-case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$)
   return
 end select
 
 select case (key2)
-case (drift$)
+case (drift$, pipe$)
   slave%key = key1
   slave%sub_key = lord1%sub_key
-  return
-case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$)
   return
 end select
 
@@ -101,20 +107,6 @@ if (key1 == key2) then
   case default
     slave%key = key1
   end select
-  return
-endif
-
-! If one element is a pipe then slave%key = key of other element.
-
-if (any(key1 == [pipe$])) then
-  slave%key = key2
-  slave%sub_key = lord2%sub_key
-  return
-endif
-
-if (any(key2 == [pipe$])) then
-  slave%key = key1
-  slave%sub_key = lord1%sub_key
   return
 endif
 

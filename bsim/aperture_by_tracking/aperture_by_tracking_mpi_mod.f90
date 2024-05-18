@@ -112,8 +112,8 @@ SUBROUTINE mympi_initialize(master)
     CALL mpi_comm_size(MPI_COMM_WORLD,cluster_size,mpierr)
     nslave=cluster_size-1
     IF(nslave .eq. 0) THEN
-      WRITE(*,*) "ERROR: no slaves found in cluster.  At least two nodes"
-      WRITE(*,*) "must be available to run this program."
+      WRITE(*,*) "ERROR: this code must be run with mpi with at least 2 nodes."
+      WRITE(*,*) "try the following: mpirun -n 2 aperture_by_tracking aperture_by_tracking.in"
       STOP
     ENDIF
   ENDIF
