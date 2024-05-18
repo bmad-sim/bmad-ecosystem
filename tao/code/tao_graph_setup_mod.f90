@@ -449,7 +449,7 @@ integer n_curve_pts
 logical err, same_uni
 
 character(40) name
-character(40) :: r_name = 'tao_graph_phase_space_setup'
+character(*), parameter :: r_name = 'tao_graph_phase_space_setup'
 
 ! Set up the graph suffix
 
@@ -504,6 +504,24 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 
+  if (curve%ix_ele_ref_track < 0) then
+    call out_io (s_error$, r_name, 'CURVE REFERENCE ELEMENT IS NOT AN ELEMENT THAT IS TRACKED THROUGH: ' // curve%ele_ref_name, &
+                                   'FOR CURVE: ' // tao_curve_name(curve))
+  endif
+
+  ib = tao_branch_index(curve%ix_branch)
+  select case (curve%component)
+  case('model', '')
+    ele => u%model%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+  case('design')
+    ele => u%design%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+  case('base')
+    ele => u%base%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+  case default
+    call out_io (s_error$, r_name, 'IF THE CURVE COMPONENT IS SET, IT MUST BE SET TO ONE OF: "model", "design", OR "base".', &
+                                   'FOR CURVE: ' // tao_curve_name(curve))
+  end select
+
   ! fill the curve data arrays
 
   if (allocated (curve%ix_symb) .and. curve%data_source /= 'multi_turn_orbit' .and. &
@@ -522,7 +540,6 @@ do k = 1, size(graph%curve)
 
     ib = tao_branch_index(curve%ix_branch)
     beam => u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam
-    ele => u%model%lat%branch(ib)%ele(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then
       call out_io (s_warn$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
