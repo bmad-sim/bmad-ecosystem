@@ -29,14 +29,14 @@ type (branch_struct), pointer :: branch
 
 procedure(track_many_hook_def) :: track_many_hook
 
-real(rp) dpz(20)
+real(rp) dpz(20), vec(6)
 real(rp) :: ramping_start_time = 0
 integer nargs, ios, i, j, n_dpz, nt
 
 logical :: ramping_on = .false., set_rf_off = .false.
 logical err
 
-character(160) :: in_file, lat_file = '', dat_file, gnu_command
+character(200) :: in_file, lat_file = '', dat_file, gnu_command, line
 
 namelist / params / bmad_com, ltt, da_param, set_rf_off, dpz, dat_file, &
             ramping_start_time, lat_file, ramping_on
@@ -184,15 +184,26 @@ call dynamic_aperture_scan (aperture_scan, da_param, dpz(1:n_dpz), ltt_com%track
 do i = 1, n_dpz
   da => aperture_scan(i)
 
+  nt = 10
+  do j = 1, da_param%n_angle
+    nt = max(nt, len_trim(branch%ele(da%point(j)%ix_ele)%name)+3)
+  enddo
+
   write (1, *)
   write (1, *)
   write (1, '(a, f10.6, a)') '"dpz =', dpz(i), '"'
-  write (1, '(a, f10.6, a)') '"x_ref_orb =', da%ref_orb%vec(1), '"'
+  write (1, '(a, f10.6, a)') '"x_ref_orb =', da%ref_orb%vec(1), '"   # (x, y) below is with respect to the reference orbit.'
   write (1, '(a, f10.6, a)') '"y_ref_orb =', da%ref_orb%vec(3), '"'
+  line = '#      x         y     turn_lost   where_lost   lost_at'
+  line(48+nt:) = '|  Init_orbit (includes ref orb)'
+  write (1, '(a)') trim(line)
   do j = 1, da_param%n_angle
     da_point => da%point(j)
-    write (1, '(2f11.6, i7, 6x, a, 3x, a)') da_point%x, da_point%y, da_point%i_turn, &
+    write (line, '(2f11.6, i7, 6x, a13, a)') da_point%x, da_point%y, da_point%i_turn, &
                               coord_state_name(da_point%plane), trim(branch%ele(da_point%ix_ele)%name)
+    vec = da%ref_orb%vec + [da_point%x, 0.0_rp, da_point%y, 0.0_rp, 0.0_rp, 0.0_rp]
+    write (line(48+nt:), '(6es14.6)') vec
+    write (1, '(a)') trim(line)
   enddo
 enddo
 
