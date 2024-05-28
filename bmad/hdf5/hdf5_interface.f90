@@ -313,7 +313,7 @@ integer h5_err
 
 character(*) :: attrib_name
 character(*), optional :: err_str
-character(*), allocatable :: strings(:)
+character(*), allocatable, target :: strings(:)
 character(*), parameter :: r_name = 'hdf5_read_attribute_string_rank1'
 logical error, print_error
 
