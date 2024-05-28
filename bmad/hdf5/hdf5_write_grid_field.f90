@@ -121,7 +121,7 @@ do igf = 1, size(g_field)
     call H5Gcreate_f(b2_id, 'magneticField/', b3_id, h5_err)
     call hdf5_write_attribute_string(b3_id, 'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_tesla, component_name, gptr%B(i), err)
+      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_tesla, gptr%B(i), err)
     enddo
     call H5Gclose_f(b3_id, h5_err)
   endif
@@ -130,7 +130,7 @@ do igf = 1, size(g_field)
     call H5Gcreate_f(b2_id, 'electricField/', b3_id, h5_err)
     call hdf5_write_attribute_string(b3_id, 'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_V_per_m, component_name, gptr%E(i), err)
+      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_V_per_m, gptr%E(i), err)
     enddo
     call H5Gclose_f(b3_id, h5_err)
   endif

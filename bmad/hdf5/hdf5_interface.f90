@@ -1415,7 +1415,7 @@ end subroutine hdf5_write_dataset_real_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_write_dataset_real_rank2(root_id, dataset_name, value, axislabels, error)
+! Subroutine hdf5_write_dataset_real_rank2(root_id, dataset_name, value, error)
 !
 ! Routine to create a dataset with a matrix of real values.
 ! Overloaded by: interface hdf5_write_dataset_real
