@@ -1,6 +1,7 @@
 program hdf5_test
 
 use beam_mod
+use hdf5_interface
 
 implicit none
 
@@ -13,11 +14,30 @@ type (ele_struct) ele
 type (grid_field_struct), pointer :: gf1(:), gf0(:)
 
 integer i, j, n_part
+integer h5_err
+integer(HID_T) f_id, r_id
+
 logical error, good1(10), good2(10), g1, g2, ignore_beta
+
+character(8), allocatable :: strs(:)
 
 !
 
 open (1, file = 'output.now', recl = 200)
+
+!---------------------
+! General Write/Read
+
+call hdf5_open_file ('general.h5', 'WRITE', f_id, error)
+call H5Gcreate_f(f_id, '/data', r_id, h5_err) 
+
+call hdf5_write_attribute_string(r_id, 'attrib_name', [character(8):: 'Val1', 'Bval2', 'X'], error)
+call hdf5_read_attribute_string(r_id, 'attrib_name', strs, error, .true.)
+
+call H5Gclose_f(r_id, h5_err)
+call H5fclose_f(f_id, h5_err)
+
+write (1, '(a, 10a8)') '"Strs" STR', (quote(strs(i)), i = 1, size(strs))
 
 !---------------------
 ! Beam Read/Write
@@ -107,6 +127,14 @@ call hdf5_read_grid_field  ('grid_field.h5', ele, gf1, error)
 
 write (1, '(a, l1, a)') '"Grid1" STR "', grid_field_is_equal (gf0(1), gf1(1)), '"'
 write (1, '(a, l1, a)') '"Grid2" STR "', grid_field_is_equal (gf0(2), gf1(2)), '"'
+
+!---------------------
+! Old Grid_Field Read
+
+call hdf5_read_grid_field  ('grid_field_old.h5', ele, gf1, error)
+
+write (1, '(a, l1, a)') '"Old_Grid1" STR "', grid_field_is_equal (gf0(1), gf1(1)), '"'
+write (1, '(a, l1, a)') '"Old_Grid2" STR "', grid_field_is_equal (gf0(2), gf1(2)), '"'
 
 close (1)
 

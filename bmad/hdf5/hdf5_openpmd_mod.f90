@@ -44,6 +44,9 @@ type(pmd_unit_struct), parameter :: unit_eV_per_c   = pmd_unit_struct('eV/c', e_
 type(pmd_unit_struct), parameter :: unit_Tesla      = pmd_unit_struct('Tesla', 1.0_rp, dim_tesla)
 type(pmd_unit_struct), parameter :: unit_hbar       = pmd_unit_struct('hbar', e_charge * h_bar_planck, dim_hbar)
 
+character(6), parameter :: xyz_axislabels(3) = [character(8):: 'x', 'y', 'z']        
+character(6), parameter :: rthetaz_axislabels(3) = [character(8):: 'r', 'theta', 'z']
+
 ! 
 
 interface pmd_write_int_to_dataset
@@ -197,7 +200,7 @@ end subroutine pmd_write_int_to_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 2.
 !
@@ -206,19 +209,21 @@ end subroutine pmd_write_int_to_dataset_rank1
 !   dataset_name        -- character(*): Name of the dataset.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
+!   axislabels(:)       -- character(*), optional: Axis labels
 !   array(:,:)          -- integer: Array to hold the data. Must be of the correct size.
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 
 type (pmd_unit_struct) unit
 integer array(:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(2)
 character(*) dataset_name, bmad_name
+character(*), optional :: axislabels(:)
 logical error
 
 !
@@ -239,7 +244,7 @@ call H5LTmake_dataset_int_f(root_id, dataset_name, 2, v_shape, array, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 
 end subroutine pmd_write_int_to_dataset_rank2
 
@@ -247,7 +252,7 @@ end subroutine pmd_write_int_to_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 3.
 !
@@ -256,19 +261,21 @@ end subroutine pmd_write_int_to_dataset_rank2
 !   dataset_name        -- character(*): Name of the dataset.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
+!   axislabels(:)       -- character(*), optional: Axis labels
 !   array(:,:,:)        -- integer: Array to hold the data. Must be of the correct size.
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 
 type (pmd_unit_struct) unit
 integer array(:,:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(3)
 character(*) dataset_name, bmad_name
+character(*), optional :: axislabels(:)
 logical error
 
 !
@@ -289,7 +296,7 @@ call H5LTmake_dataset_int_f(root_id, dataset_name, 3, v_shape, array, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 
 end subroutine pmd_write_int_to_dataset_rank3
 
@@ -391,7 +398,7 @@ end subroutine pmd_write_real_to_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 2.
 !
@@ -400,19 +407,21 @@ end subroutine pmd_write_real_to_dataset_rank1
 !   dataset_name        -- character(*): Name of the dataset.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
+!   axislabels(:)       -- character(*), optional: Axis labels
 !   array(:,:)          -- real(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 
 type (pmd_unit_struct) unit
 real(rp) array(:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(2)
 character(*) dataset_name, bmad_name
+character(*), optional :: axislabels(:)
 logical error
 
 !
@@ -433,7 +442,7 @@ call H5LTmake_dataset_double_f(root_id, dataset_name, 2, v_shape, array, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 
 end subroutine pmd_write_real_to_dataset_rank2
 
@@ -441,7 +450,7 @@ end subroutine pmd_write_real_to_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 3.
 !
@@ -450,19 +459,21 @@ end subroutine pmd_write_real_to_dataset_rank2
 !   dataset_name        -- character(*): Name of the dataset.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
+!   axislabels(:)       -- character(*), optional: Axis labels
 !   array(:,:,:)        -- real(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, axislabels, array, error)
 
 type (pmd_unit_struct) unit
 real(rp) array(:,:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(3)
 character(*) dataset_name, bmad_name
+character(*), optional :: axislabels(:)
 logical error
 
 !
@@ -483,7 +494,7 @@ call H5LTmake_dataset_double_f(root_id, dataset_name, 3, v_shape, array, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 
 end subroutine pmd_write_real_to_dataset_rank3
 
@@ -586,7 +597,7 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, axislabels, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 2.
 !
@@ -596,13 +607,14 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
+!   axislabels(:)       -- character(*), optional: Axis labels
 !   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, axislabels, array, error)
 
 type (pmd_unit_struct) unit
 complex(rp), target :: array(:,:), cc(size(array,1),size(array,2))
@@ -610,6 +622,7 @@ integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(2)
 character(*) dataset_name, bmad_name
+character(*), optional :: axislabels(:)
 logical error, err
 
 ! 
@@ -624,13 +637,12 @@ logical error, err
 dims = shape(array)
 call H5Screate_simple_f(2, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
 call H5Sclose_f(dspace_id, h5_err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 
 end subroutine pmd_write_complex_to_dataset_rank2
 
@@ -638,7 +650,7 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, axislabels, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 3.
 !
@@ -648,13 +660,14 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
+!   axislabels(:)       -- character(*), optional: Axis labels
 !   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, axislabels, array, error)
 
 type (pmd_unit_struct) unit
 complex(rp), target :: array(:,:,:), cc(size(array,1),size(array,2),size(array,3))
@@ -662,6 +675,7 @@ integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(3)
 character(*) dataset_name, bmad_name
+character(*), optional :: axislabels(:)
 logical err, error
 
 ! 
@@ -676,13 +690,12 @@ logical err, error
 dims = shape(array)
 call H5Screate_simple_f(3, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
 call H5Sclose_f(dspace_id, h5_err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 
 end subroutine pmd_write_complex_to_dataset_rank3
 
@@ -784,7 +797,7 @@ end subroutine my_H5LTset_attribute_complex
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+! Subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 !
 ! Routine to write the data units and conversion factors to a dataset.
 !
@@ -793,23 +806,29 @@ end subroutine my_H5LTset_attribute_complex
 !   dataset_name        -- character(*): Name of the dataset.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
+!   axislabels(:)       -- character(*), optional: Axis labels
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error, axislabels)
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id
-integer h5_err
+integer h5_err, n
 logical error
+character(*), optional :: axislabels(:)
 character(*) dataset_name, bmad_name
 
 if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, h5_err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_size_t, h5_err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_size_t, h5_err)
 call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, h5_err)
+!if (present(axislabels)) then
+!  n = size(axislabels)
+!  call hdf5_write_attribute_string(root_id, 'axisLabels', axislabels(n:1:-1), error)
+!endif
 
 end subroutine pmd_write_units_to_dataset 
 
@@ -886,7 +905,7 @@ end subroutine pmd_read_int_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, axislabels, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 2.
 !
@@ -894,6 +913,7 @@ end subroutine pmd_read_int_dataset_rank1
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   axislabels(:)       -- character(*): Axis labels.
 !   array(:,:)          -- integer: Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -901,7 +921,7 @@ end subroutine pmd_read_int_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, axislabels, array, error)
 
 type (hdf5_info_struct) info
 type (pmd_unit_struct) unit
@@ -914,6 +934,7 @@ integer h5_err, array(:,:), c_val
 logical error, err
 
 character(*) name
+character(*) axislabels(:)
 character(*), parameter :: r_name = 'pmd_read_int_dataset_rank2'
 
 !
@@ -936,7 +957,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_int(root_id, name, array, err)
+  call hdf5_read_dataset_int(root_id, name, axislabels, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
@@ -955,7 +976,7 @@ end subroutine pmd_read_int_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, axislabels, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 3.
 !
@@ -963,6 +984,7 @@ end subroutine pmd_read_int_dataset_rank2
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   axislabels(:)       -- character(*): Axis labels.
 !   array(:,:,:)        -- integer: Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -970,7 +992,7 @@ end subroutine pmd_read_int_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, axislabels, array, error)
 
 type (hdf5_info_struct) info
 type (pmd_unit_struct) unit
@@ -983,6 +1005,7 @@ integer h5_err, array(:,:,:), c_val
 logical error, err
 
 character(*) name
+character(*) axislabels(:)
 character(*), parameter :: r_name = 'pmd_read_int_dataset_rank3'
 
 !
@@ -1005,7 +1028,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_int(root_id, name, array, err)
+  call hdf5_read_dataset_int(root_id, name, axislabels, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
@@ -1094,7 +1117,7 @@ end subroutine pmd_read_real_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, axislabels, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 2.
 !
@@ -1102,6 +1125,7 @@ end subroutine pmd_read_real_dataset_rank1
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   axislabels(:)       -- character(*): Axis labels.
 !   array(:,:)          -- real(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1109,7 +1133,7 @@ end subroutine pmd_read_real_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, axislabels, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1122,6 +1146,7 @@ integer h5_err
 logical error, err
 
 character(*) name
+character(*) axislabels(:)
 character(*), parameter :: r_name = 'pmd_read_real_dataset_rank2'
 
 !
@@ -1144,7 +1169,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_real(root_id, name, array, err)
+  call hdf5_read_dataset_real(root_id, name, axislabels, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
@@ -1163,7 +1188,7 @@ end subroutine pmd_read_real_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, axislabels, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 3.
 !
@@ -1171,6 +1196,7 @@ end subroutine pmd_read_real_dataset_rank2
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   axislabels(:)       -- character(*): Axis labels.
 !   array(:,:,:)        -- real(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1178,7 +1204,7 @@ end subroutine pmd_read_real_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, axislabels, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1191,6 +1217,7 @@ integer h5_err
 logical error, err
 
 character(*) name
+character(*), optional :: axislabels(:)
 character(*), parameter :: r_name = 'pmd_read_real_dataset_rank3'
 
 !
@@ -1213,7 +1240,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_real(root_id, name, array, err)
+  call hdf5_read_dataset_real(root_id, name, axislabels, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
@@ -1306,7 +1333,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, array, error)
+! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, axislabels, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 2.
 !
@@ -1314,6 +1341,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   axislabels(:)       -- character(*): Axis labels.
 !   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1321,7 +1349,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, array, error)
+subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, axislabels, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1337,6 +1365,7 @@ type(c_ptr) :: f_ptr
 logical error, err
 
 character(*) name
+character(*) axislabels(:)
 character(1) d_ord
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank2'
 
@@ -1349,9 +1378,9 @@ info = hdf5_object_info(root_id, name, error, .true.)
 if (info%data_class_type /= H5T_COMPOUND_F) then
   allocate (re(size(array,1), size(array,2)), im(size(array,1), size(array,2)))
 
-  call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call h5gopen_f(root_id, name, z_id, h5_err); if (h5_err == -1) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, axislabels, re, err); if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, axislabels, im, err); if (err) return
   call h5gclose_f(z_id, h5_err)
 
   array = cmplx(re, im, rp)
@@ -1361,7 +1390,7 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-call hdf5_read_dataorder(root_id, name, d_ord)
+call hdf5_read_dataorder(root_id, name, axislabels, d_ord)
 if (d_ord == 'C') then
   allocate (cc(size(array,2), size(array,1)))
 else
@@ -1395,7 +1424,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, array, error)
+! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, axislabels, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 3.
 !
@@ -1403,6 +1432,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   axislabels(:)       -- character(*): Axis labels.
 !   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1410,7 +1440,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, array, error)
+subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, axislabels, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1426,6 +1456,7 @@ type(c_ptr) :: f_ptr
 logical error, err
 
 character(*) name
+character(*) axislabels(:)
 character(1) d_ord
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
@@ -1439,8 +1470,8 @@ if (info%data_class_type /= H5T_COMPOUND_F) then
   allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
 
   call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, axislabels, re, err);      if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, axislabels, im, err);      if (err) return
   call h5gclose_f(z_id, h5_err)
 
   array = cmplx(re, im, rp)
@@ -1450,7 +1481,7 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-call hdf5_read_dataorder(root_id, name, d_ord)
+call hdf5_read_dataorder(root_id, name, axislabels, d_ord)
 if (d_ord == 'C') then
   allocate (cc(size(array,3), size(array,2), size(array,1)))
 else

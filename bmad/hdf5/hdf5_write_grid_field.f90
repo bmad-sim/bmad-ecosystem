@@ -65,12 +65,12 @@ do igf = 1, size(g_field)
   gptr => gf%ptr%pt
   select case (gf%geometry)
   case (xyz$)
-    component_name = [character(6):: 'x', 'y', 'z']
+    component_name = xyz_axislabels
     indx = [1, 2, 3]
     call hdf5_write_attribute_string(b2_id,  'gridGeometry', 'rectangular', err)
 
   case (rotationally_symmetric_rz$)
-    component_name = [character(6):: 'r', 'theta', 'z']
+    component_name = rthetaz_axislabels
     indx = [1, 3, 2]
     allocate(gpt(lbound(gptr, 1):ubound(gptr, 1), lbound(gptr, 3):ubound(gptr, 3), lbound(gptr, 2):ubound(gptr, 2)))
     gptr => gpt
@@ -81,8 +81,6 @@ do igf = 1, size(g_field)
     enddo
     call hdf5_write_attribute_string(b2_id, 'gridGeometry', 'cylindrical', err)
   end select
-
-  call hdf5_write_attribute_string(b2_id, 'axisLabels', component_name, err)
 
   im = gf%master_parameter 
   if (im == 0) then
@@ -121,16 +119,18 @@ do igf = 1, size(g_field)
 
   if (gf%field_type == magnetic$ .or. gf%field_type == mixed$) then
     call H5Gcreate_f(b2_id, 'magneticField/', b3_id, h5_err)
+    call hdf5_write_attribute_string(b3_id, 'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_tesla, gptr%B(i), err)
+      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_tesla, component_name, gptr%B(i), err)
     enddo
     call H5Gclose_f(b3_id, h5_err)
   endif
 
   if (gf%field_type == electric$ .or. gf%field_type == mixed$) then
     call H5Gcreate_f(b2_id, 'electricField/', b3_id, h5_err)
+    call hdf5_write_attribute_string(b3_id, 'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_V_per_m, gptr%E(i), err)
+      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_V_per_m, component_name, gptr%E(i), err)
     enddo
     call H5Gclose_f(b3_id, h5_err)
   endif
