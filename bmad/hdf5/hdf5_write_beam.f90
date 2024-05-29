@@ -38,7 +38,7 @@ integer i, n, ib, ix, h5_err, h_err, ib2
 integer, allocatable :: ivec(:)
 
 character(*) file_name
-character(20) date_time, root_path, bunch_path, particle_path, fmt
+character(26) date_time, root_path, bunch_path, particle_path, fmt
 character(100) this_bunch_path
 character(*), parameter :: r_name = 'hdf5_write_beam'
 
