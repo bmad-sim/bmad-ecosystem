@@ -326,7 +326,7 @@ err = .true.
 
 det = determinant (mat2)
 
-if (det == 0 .or. twiss1%beta == 0) return
+if (det == 0 .or. twiss1%beta == 0 .or. twiss1%beta > 1d100) return  ! Limit max beta to prevent numerical overflow.
 
 m11 = mat2(1,1)
 m12 = mat2(1,2)

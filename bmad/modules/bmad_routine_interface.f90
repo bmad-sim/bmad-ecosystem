@@ -2247,6 +2247,16 @@ subroutine set_status_flags (bookkeeping_state, stat)
   integer stat
 end subroutine
 
+subroutine set_twiss(branch, twiss_ele, ix_ele, err_flag, print_err)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  type (ele_struct) twiss_ele
+  integer ix_ele
+  logical err_flag
+  logical, optional :: print_err
+end subroutine
+
 subroutine set_z_tune (branch, z_tune, ok, print_err)
   import
   implicit none

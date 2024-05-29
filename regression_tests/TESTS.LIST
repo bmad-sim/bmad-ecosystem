@@ -7,6 +7,7 @@ beam_test
 bbu_test   
 bookkeeper_test
 ! cathode_sc_test
+cesr_test
 closed_orbit_test
 coord_test
 csr_and_space_charge_test
@@ -42,7 +43,7 @@ tao_test
 taylor_test
 time_runge_kutta_test
 tracking_method_test
-twiss_track_test
+twiss_test
 wake_test
 wall3d_test
 write_bmad_test

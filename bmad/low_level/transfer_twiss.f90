@@ -1,7 +1,7 @@
 !+
 ! Subroutine transfer_twiss (ele_in, ele_out, reverse)
 !
-! Routine to transfer the twiss parameters from one element to another.
+! Routine to transfer the Twiss, coupling, and dispersion parameters from one element to another.
 !
 !
 ! Input:
