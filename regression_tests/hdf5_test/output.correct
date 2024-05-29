@@ -9,9 +9,11 @@
 "Bunch1-int"    ABS      1    -1     1     2
 "Bunch1" STR "TTTTTTTTTT"
 "Bunch2" STR "TTTTTTTTTT"
+"Old-Bunch1" STR "TTTTTTTTTT"
+"Old-Bunch2" STR "TTTTTTTTTT"
 "ASCII-Bunch1" STR "TTTTTTTTTT"
 "ASCII-Bunch2" STR "TTTTTTTTTT"
 "Grid1" STR "T"
 "Grid2" STR "T"
-"Old_Grid1" STR "T"
-"Old_Grid2" STR "T"
+"Old-Grid1" STR "T"
+"Old-Grid2" STR "T"
