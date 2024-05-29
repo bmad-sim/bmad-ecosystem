@@ -3781,8 +3781,8 @@ type (ele_struct) ele
 type (lat_struct), pointer :: lat
 type (wake_sr_mode_struct), target :: trans(100), long(100)
 type (wake_sr_mode_struct), pointer :: srm
-type (wake_sr_z_struct), target :: time(100)
-type (wake_sr_z_struct), pointer :: srt
+type (wake_sr_z_struct), target :: z_wake(100)
+type (wake_sr_z_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
 real(rp), allocatable :: table(:,:)
@@ -3804,7 +3804,7 @@ lat => ele%branch%lat
 wake_sr => ele%wake%sr
 trans = wake_sr_mode_struct()
 long = wake_sr_mode_struct()
-time = wake_sr_z_struct()
+z_wake = wake_sr_z_struct(null(), null(), null(), not_set$, not_set$)
 err_flag = .true.
 
 ! get data
@@ -3841,9 +3841,9 @@ do
   case ('TRANSVERSE')
     itrans = itrans + 1
     srm => trans(itrans)
-  case ('TIME')
+  case ('Z')
     iz = iz + 1
-    srt => time(iz)
+    srz => z_wake(iz)
   case default
     call parser_error ('UNKNOWN SR_WAKE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
     return
@@ -3852,30 +3852,30 @@ do
   if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
   err_str = trim(ele%name) // ' SR_WAKE ' // attrib_name
 
-  if (attrib_name == 'TIME') then
+  if (attrib_name == 'Z') then
     do
       call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
-      if (.not. expect_this ('=', .true., .false., 'IN SR_WAKE TIME DEFINITION', ele, delim, delim_found)) return
+      if (.not. expect_this ('=', .true., .false., 'IN SR_WAKE Z DEFINITION', ele, delim, delim_found)) return
 
       select case (attrib_name)
       case ('W')
-        if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE TIME W DEFINITION', ele, delim, delim_found)) return
-        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE TIME W LIST', table, 3, delim, delim_found)) return
+        if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z W DEFINITION', ele, delim, delim_found)) return
+        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z W LIST', table, 3, delim, delim_found)) return
         ipt = size(table, 1)
-        call reallocate_spline(srt%w, ipt)
-        call reallocate_spline(srt%w_sum1, ipt)
-        call reallocate_spline(srt%w_sum2, ipt)
+        call reallocate_spline(srz%w, ipt)
+        call reallocate_spline(srz%w_sum1, ipt)
+        call reallocate_spline(srz%w_sum2, ipt)
         do i = 1, ipt-1
-          srt%w(i) = create_a_spline(table(i,1:2), table(i+1,1:2), table(i,3), table(i+1,3))
+          srz%w(i) = create_a_spline(table(i,1:2), table(i+1,1:2), table(i,3), table(i+1,3))
         enddo
 
       case ('PLANE')
-        call get_switch ('SR_WAKE TIME PLANE', sr_z_plane_name, srt%plane, err, ele, delim, delim_found); if (err) return
+        call get_switch ('SR_WAKE Z PLANE', sr_z_plane_name, srz%plane, err, ele, delim, delim_found); if (err) return
       case ('POSITION_DEPENDENCE')
-        call get_switch ('SR_WAKE TIME POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srt%position_dependence, err_flag, ele, delim, delim_found)
+        call get_switch ('SR_WAKE Z POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srz%position_dependence, err_flag, ele, delim, delim_found)
         if (err_flag) return
       case default
-        call parser_error ('UNKNOWN SR_WAKE TIME COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+        call parser_error ('UNKNOWN SR_WAKE Z COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
         return
       end select
     enddo
@@ -3908,7 +3908,7 @@ enddo
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
 allocate (ele%wake%sr%z(iz))
-ele%wake%sr%z = time(1:iz)
+ele%wake%sr%z = z_wake(1:iz)
 
 allocate (ele%wake%sr%long(ilong))
 ele%wake%sr%long = long(1:ilong)
