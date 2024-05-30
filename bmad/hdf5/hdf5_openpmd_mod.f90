@@ -2,6 +2,8 @@ module hdf5_openpmd_mod
 
 use hdf5_interface
 
+implicit none
+
 ! Common units
 
 type pmd_unit_struct
@@ -1389,7 +1391,7 @@ call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
 call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
 call hdf5_close_object(z_id, info)
 
-if (data_ord == 'C') then
+if (data_order == 'C') then
   do i = 1, size(array,1)
     array(i,:) = cc(:,i)
   enddo
