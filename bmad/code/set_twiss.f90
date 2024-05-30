@@ -16,7 +16,7 @@
 
 subroutine set_twiss(branch, twiss_ele, ix_ele, err_flag, print_err)
 
-use bmad
+use bmad, dummy => set_twiss
 
 implicit none
 
