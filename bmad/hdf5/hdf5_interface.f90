@@ -1615,54 +1615,36 @@ end subroutine hdf5_write_dataset_int_rank3
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_read_dataorder(root_id, object_name, axislabels, d_ord)
+! Subroutine hdf5_read_dataorder(root_id, object_name, d_ord)
 !
-! Routine to read the axisLabels (or old gridDataOrder) attribute for arrays with dimension higher than 1.
+! Routine to read *old* gridDataOrder attribute for arrays with dimension higher than 1.
 !
 ! Input:
+!   d_ord         -- character(*): Default order if gridDataOrder is not found.
 !   root_id       -- integer(hid_t): ID of the group the object is to be put in.
 !   object_name   -- character(*): Name of the object containing the data.
-!   axislabels(:) -- character(*): Logical axis labels.
 !
 ! Output:
-!   d_ord         -- character(*): gridDataOrder value. Set to:
-!                     ''    If neither gridDataOrder nor axisLabes attributes exist.
+!   d_ord         -- character(*): gridDataOrder value. Only set if gridDataOrder not found.
 !                     'C'   C/C++ ordering.
 !                     'F'   Fortran ordering.
 !-
 
-subroutine hdf5_read_dataorder(root_id, object_name, axislabels, d_ord)
+subroutine hdf5_read_dataorder(root_id, object_name, d_ord)
 
 type (hdf5_info_struct) info
 integer(hid_t) root_id, z_id
 integer n
 character(*) object_name, d_ord
-character(*) :: axislabels(:)
 character(16), allocatable :: physical_labels(:)
 logical error
 
-! First check for old-style gridDataOrder 
+! gridDataOrder 
 
-d_ord = ''
 info = hdf5_object_info (root_id, object_name, error, .true.);  if (error) return
 z_id = hdf5_open_object (root_id, object_name, info, error, .true.);  if (error) return
 call hdf5_read_attribute_string(z_id, 'gridDataOrder', d_ord, error, .false.)
 call hdf5_close_object(z_id, info)
-if (d_ord /= '') return
-
-! Now check for axislabels
-
-call hdf5_read_attribute_string(root_id, 'axisLabels', physical_labels, error, .false.); if (error) return
-n = size(axislabels)
-if (size(physical_labels) /= n) return
-
-if (all(physical_labels == axislabels)) then
-  d_ord = 'C'
-  return
-endif
-
-if (all(physical_labels == axislabels(n:1:-1))) d_ord = 'F'
-return
 
 end subroutine hdf5_read_dataorder
 
@@ -1755,23 +1737,22 @@ END SUBROUTINE hdf5_read_dataset_real_rank1
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_double_kind_8_rank2
 
-SUBROUTINE hdf5_read_dataset_real_rank2(loc_id, dset_name, axislabels, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_real_rank2(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
-  character(*) axislabels(:)
   REAL(KIND=8), INTENT(INout), TARGET :: buf(:,:)
   REAL(KIND=8), target, allocatable :: temp_buf(:,:)
   INTEGER :: h5_err, i
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
   logical error
-  character(1) d_ord
+  character(*) data_order
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_real_rank2'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, axislabels, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2)))
@@ -1783,7 +1764,7 @@ SUBROUTINE hdf5_read_dataset_real_rank2(loc_id, dset_name, axislabels, buf, erro
   error = (h5_err < 0)
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1)
       buf(i,:) = temp_buf(:,i)
     enddo
@@ -1795,23 +1776,22 @@ END SUBROUTINE hdf5_read_dataset_real_rank2
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_double_kind_8_rank3
 
-SUBROUTINE hdf5_read_dataset_real_rank3(loc_id, dset_name, axislabels, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_real_rank3(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
-  character(*) axislabels(:)
+  character(*) data_order
   REAL(KIND=8), INTENT(INout), TARGET :: buf(:, :, :)
   REAL(KIND=8), target, allocatable :: temp_buf(:, :, :)
   INTEGER :: h5_err, i, j
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
   logical error
-  character(1) d_ord
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_real_rank3'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, axislabels, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf, 3), size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2), size(buf, 3)))
@@ -1824,7 +1804,7 @@ SUBROUTINE hdf5_read_dataset_real_rank3(loc_id, dset_name, axislabels, buf, erro
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
   buf = temp_buf
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1);  do j = 1, size(buf,2)
       buf(i,j,:) = temp_buf(:,j,i)
     enddo;  enddo
@@ -1888,11 +1868,11 @@ END SUBROUTINE hdf5_read_dataset_int_rank1
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_int_kind_4_rank2
 
-SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, axislabels, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
-  character(*) axislabels(:)
+  character(*) data_order
   INTEGER(KIND=4), INTENT(INout), TARGET :: buf(:,:)
   INTEGER(KIND=4), target, allocatable :: temp_buf(:,:)
   INTEGER :: h5_err, i
@@ -1900,12 +1880,11 @@ SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, axislabels, buf, error
   INTEGER(size_t) :: namelen
   INTEGER(hid_t) :: type_id
   logical error
-  character(1) d_ord
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_int_rank2'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, axislabels, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2)))
@@ -1919,7 +1898,7 @@ SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, axislabels, buf, error
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
   buf = temp_buf
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1)
       buf(i,:) = temp_buf(:,i)
     enddo
@@ -1931,11 +1910,11 @@ END SUBROUTINE hdf5_read_dataset_int_rank2
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_int_kind_4_rank3
 
-SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, axislabels, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
-  character(*) axislabels(:)
+  character(*) data_order
   INTEGER(KIND=4), INTENT(INout), TARGET :: buf(:,:,:)
   INTEGER(KIND=4), target, allocatable :: temp_buf(:,:,:)
   INTEGER :: h5_err, i, j
@@ -1943,12 +1922,11 @@ SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, axislabels, buf, error
   INTEGER(size_t) :: namelen
   INTEGER(hid_t) :: type_id
   logical error
-  character(1) d_ord
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_int_rank3'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, axislabels, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf, 3), size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2), size(buf, 3)))
@@ -1962,7 +1940,7 @@ SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, axislabels, buf, error
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
   buf = temp_buf
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1);  do j = 1, size(buf,2)
       buf(i,j,:) = temp_buf(:,j,i)
     enddo;  enddo

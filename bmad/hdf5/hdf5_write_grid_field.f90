@@ -101,6 +101,7 @@ do igf = 1, size(g_field)
     endif
   endif
 
+  call hdf5_write_attribute_string(b2_id,  'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
   call hdf5_write_attribute_string(b2_id,  'eleAnchorPt',          downcase(anchor_pt_name(gf%ele_anchor_pt)), err)
   call hdf5_write_attribute_real(b2_id,    'gridOriginOffset',     gf%r0, err)
   call hdf5_write_attribute_real(b2_id,    'gridSpacing',          gf%dr(indx), err)
@@ -119,7 +120,6 @@ do igf = 1, size(g_field)
 
   if (gf%field_type == magnetic$ .or. gf%field_type == mixed$) then
     call H5Gcreate_f(b2_id, 'magneticField/', b3_id, h5_err)
-    call hdf5_write_attribute_string(b3_id, 'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
     do i = 1, 3
       call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_tesla, gptr%B(i), err)
     enddo
@@ -128,7 +128,6 @@ do igf = 1, size(g_field)
 
   if (gf%field_type == electric$ .or. gf%field_type == mixed$) then
     call H5Gcreate_f(b2_id, 'electricField/', b3_id, h5_err)
-    call hdf5_write_attribute_string(b3_id, 'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
     do i = 1, 3
       call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_V_per_m, gptr%E(i), err)
     enddo

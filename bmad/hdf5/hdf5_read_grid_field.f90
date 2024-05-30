@@ -143,7 +143,10 @@ integer indx(3), lb(3), g_size(3), ub(3)
 integer(hid_t) root_id, z_id
 
 character(40) name
-character(8) component_name(3), B_name(3), E_name(3)
+character(16), allocatable :: data_labels(:)
+character(8) logical_labels(3), B_name(3), E_name(3)
+character(1) data_order
+
 logical err_flag, error, b_field_here, e_field_here
 
 !
@@ -194,6 +197,8 @@ call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr, error, .true.);   
 call hdf5_read_attribute_real (root_id, 'gridCurvatureRadius', rho, error, .false.)
 if (error) call hdf5_read_attribute_real (root_id, 'curvedRefFrame', rho, error, .false.)  ! Old style
 
+!
+
 ub = lb + g_size - 1
 gf%curved_ref_frame = (rho /= 0)
 gf%dr = gf%dr(indx)
@@ -205,19 +210,44 @@ gf%ptr%file = file_name
 
 select case (gf%geometry)
 case (xyz$)
-  component_name = xyz_axislabels
+  logical_labels = xyz_axislabels
   B_name = [character(6):: 'Bx', 'By', 'Bz']     ! Old style
   E_name = [character(6):: 'Ex', 'Ey', 'Ez']     ! Old style
   allocate (gf%ptr%pt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
   gptr => gf%ptr%pt
 case (rotationally_symmetric_rz$)
-  component_name = rthetaz_axislabels
+  logical_labels = rthetaz_axislabels
   B_name = [character(6):: 'Br', 'Btheta', 'Bz']       ! Old style
   E_name = [character(6):: 'Er', 'Etheta', 'Ez']       ! Old style
   allocate(gf%ptr%pt(lb(1):ub(1), lb(3):ub(3), lb(2):ub(2)))
   allocate (gpt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
   gptr => gpt
 end select
+
+! Now check for axislabels
+
+data_order = ''
+call hdf5_read_attribute_string(root_id, 'axisLabels', data_labels, error, .false.)
+
+if (.not. error) then
+  if (size(logical_labels) /= 3) then
+    call out_io (s_fatal$, r_name, 'GRID LABELS HAVE SIZE NOT EQUAL TO THREE: ' // int_str(size(logical_labels)))
+    return
+  endif
+
+  if (all(logical_labels == data_labels)) then
+    data_order = 'C'
+  elseif (all(logical_labels == data_labels(3:1:-1))) then
+    data_order = 'F'
+  else
+    call out_io (s_fatal$, r_name, 'GRID LABELS IN FILE NOT CORRECT. GOT: ' // &
+            quote(data_labels(1)) // ', ' // quote(data_labels(2)) // ', ' // quote(data_labels(3)), &
+            'EXPECTED: ' // quote(logical_labels(1)) // ', ' // quote(logical_labels(2)) // ', ' // quote(logical_labels(3)))
+    return
+  endif
+endif
+
+!
 
 b_field_here = .false.
 e_field_here = .false.
@@ -226,8 +256,8 @@ if (hdf5_exists(root_id, 'magneticField', error, .false.)) then
   b_field_here = .true.
   z_id = hdf5_open_group(root_id, 'magneticField', err, .true.);  if (err) return
   do i = 1, 3
-    if (hdf5_exists(z_id, component_name(i), err, .false.)) then
-      call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, component_name, gptr%B(i), error)
+    if (hdf5_exists(z_id, logical_labels(i), err, .false.)) then
+      call pmd_read_complex_dataset(z_id, trim(logical_labels(i)), complex_t, 1.0_rp, data_order, gptr%B(i), error)
     else
       gptr%B(i) = 0
     endif
@@ -240,8 +270,8 @@ if (hdf5_exists(root_id, 'electricField', error, .false.)) then
   e_field_here = .true.
   z_id = hdf5_open_group(root_id, 'electricField', err, .true.);  if (err) return
   do i = 1, 3
-    if (hdf5_exists(z_id, component_name(i), err, .false.)) then
-      call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, component_name, gptr%E(i), error)
+    if (hdf5_exists(z_id, logical_labels(i), err, .false.)) then
+      call pmd_read_complex_dataset(z_id, trim(logical_labels(i)), complex_t, 1.0_rp, data_order, gptr%E(i), error)
     else
       gptr%E(i) = 0
     endif
@@ -254,13 +284,13 @@ endif
 
 do i = 1, 3
   if (hdf5_exists(root_id, B_name(i), error, .false.)) then
-    call pmd_read_complex_dataset(root_id, trim(B_name(i)), complex_t, 1.0_rp, component_name, gptr%B(i), error)
+    call pmd_read_complex_dataset(root_id, trim(B_name(i)), complex_t, 1.0_rp, data_order, gptr%B(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(2))%B(i) = gptr(:,lb(2),:)%B(i)
     b_field_here = .true.
   endif
 
   if (hdf5_exists(root_id, E_name(i), error, .false.)) then
-    call pmd_read_complex_dataset(root_id, trim(E_name(i)), complex_t, 1.0_rp, component_name, gptr%E(i), error)
+    call pmd_read_complex_dataset(root_id, trim(E_name(i)), complex_t, 1.0_rp, data_order, gptr%E(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,lb(2))%E(i) = gptr(:,lb(2),:)%E(i)
     e_field_here = .true.
   endif
