@@ -32,13 +32,38 @@ real(rp) :: mat6(6,6)
 real(rp) v_mat(4,4), v_inv_mat(4,4), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
+real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p2
 real(rp) det_factor, deriv_rel, gamma2_c, df
 
 logical error
 logical, optional :: err_flag
 
 character(*), parameter :: r_name = 'twiss_propagate1'
+
+! Beginning element bookkeeping
+
+if (ele1%key == beginning_ele$) then
+  ele1%map_ref_orb_out = ele2%map_ref_orb_in
+  rel_p1 = 1 + ele1%map_ref_orb_out%vec(6)
+
+  if (ele1%x%etap == real_garbage$ .and. ele1%x%deta_ds == real_garbage$) then  ! Not set so use default
+    ele1%x%etap = 0
+    ele1%x%deta_ds = 0
+  elseif (ele1%x%etap == real_garbage$) then
+    ele1%x%etap = ele1%x%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(2) / rel_p1
+  elseif (ele1%x%deta_ds == real_garbage$) then
+    ele1%x%deta_ds = ele1%x%etap / rel_p1 - ele1%map_ref_orb_out%vec(2) / rel_p1**2
+  endif
+
+  if (ele1%y%etap == real_garbage$ .and. ele1%y%deta_ds == real_garbage$) then  ! Not set so use default
+    ele1%y%etap = 0
+    ele1%y%deta_ds = 0
+  elseif (ele1%y%etap == real_garbage$) then
+    ele1%y%etap = ele1%y%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(4) / rel_p1
+  elseif (ele1%y%deta_ds == real_garbage$) then
+    ele1%y%deta_ds = ele1%y%etap / rel_p1 - ele1%map_ref_orb_out%vec(4) / rel_p1**2
+  endif
+endif
 
 !
 
@@ -219,52 +244,36 @@ else
   else
     dpz2_dpz1 = 1 / rel_p2
   endif
-  deriv_rel = dpz2_dpz1 * rel_p1
-  eta_vec(1) = (mat6(1,2) * orb%vec(2) + mat6(1,4) * orb%vec(4)) / deriv_rel
-  eta_vec(2) = (mat6(2,2) * orb%vec(2) + mat6(2,4) * orb%vec(4)) / deriv_rel - orb_out%vec(2) / rel_p2
-  eta_vec(3) = (mat6(3,2) * orb%vec(2) + mat6(3,4) * orb%vec(4)) / deriv_rel
-  eta_vec(4) = (mat6(4,2) * orb%vec(2) + mat6(4,4) * orb%vec(4)) / deriv_rel - orb_out%vec(4) / rel_p2
-  eta_vec(5) = (mat6(5,2) * orb%vec(2) + mat6(5,4) * orb%vec(4)) / deriv_rel
-  eta_vec(1:5) = eta_vec(1:5) + matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 endif
-
-eta_vec(2) = eta_vec(2) / rel_p2
-eta_vec(4) = eta_vec(4) / rel_p2
-
-ele2%x%eta     = eta_vec(1)
-ele2%x%deta_ds = eta_vec(2)
-ele2%y%eta     = eta_vec(3)
-ele2%y%deta_ds = eta_vec(4)
-ele2%z%eta     = eta_vec(5)
-ele2%z%deta_ds = ele1%z%deta_ds * dpz2_dpz1
-
-call make_v_mats (ele2, v_mat, v_inv_mat)
-eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
-
-ele2%a%eta     = eta_vec(1)
-ele2%a%deta_ds = eta_vec(2)
-ele2%b%eta     = eta_vec(3)
-ele2%b%deta_ds = eta_vec(4)
 
 !
 
 eta1_vec = [ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap, ele1%z%eta, 1.0_rp]
 eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 
-ele2%x%eta  = eta_vec(1)
-ele2%x%etap = eta_vec(2)
-ele2%y%eta  = eta_vec(3)
-ele2%y%etap = eta_vec(4)
-ele2%z%eta  = eta_vec(5)
-ele2%z%etap = ele1%z%etap * dpz2_dpz1
+ele2%x%eta     = eta_vec(1)
+ele2%x%etap    = eta_vec(2)
+ele2%x%deta_ds = eta_vec(2) / rel_p2 - orb_out%vec(2) / rel_p2**2
+
+ele2%y%eta     = eta_vec(3)
+ele2%y%etap    = eta_vec(4)
+ele2%y%deta_ds = eta_vec(4) / rel_p2 - orb_out%vec(4) / rel_p2**2
+
+ele2%z%eta     = eta_vec(5)
+ele2%z%etap    = ele1%z%etap * dpz2_dpz1
+ele2%z%deta_ds = ele1%z%deta_ds * dpz2_dpz1
 
 call make_v_mats (ele2, v_mat, v_inv_mat)
 eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
+vec(1:4) = matmul(v_inv_mat, orb_out%vec(1:4))
 
-ele2%a%eta  = eta_vec(1)
-ele2%a%etap = eta_vec(2)
-ele2%b%eta  = eta_vec(3)
-ele2%b%etap = eta_vec(4)
+ele2%a%eta     = eta_vec(1)
+ele2%a%etap    = eta_vec(2)
+ele2%a%deta_ds = eta_vec(2) / rel_p2 - vec(2) / rel_p2**2
+
+ele2%b%eta     = eta_vec(3)
+ele2%b%etap    = eta_vec(4)
+ele2%b%deta_ds = eta_vec(4) / rel_p2 - vec(4) / rel_p2**2
 
 !
 

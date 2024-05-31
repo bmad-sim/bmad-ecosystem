@@ -100,7 +100,7 @@ defines the \bmad structures and defines the interfaces (argument lists) for the
 subroutines. In particular, the \vn{lat} variable (line 5), which is of type \vn{lat_struct}
 (\sref{s:lat.struct}), holds all of the lattice information: The list of elements, their attributes,
 etc.  The manditory setting of \vn{bmad_com%auto_bookkeeper} to \vn{False} in line 13 enables the
-``intelligent'' bookkeeping of lattice attributes as discussed in \sref{s:lat.bookkeeping}).  The
+``intelligent'' bookkeeping of lattice attributes as discussed in \sref{s:lat.book}).  The
 call to \Hyperref{r:bmad.parser}{bmad_parser} (line 17) causes the lattice file \vn{lat.bmad} to be
 parsed and the lattice information is stored the \vn{lat} variable. Note: To get a listing of the
 \vn{lat_struct} components or to find out more about \vn{bmad_parser} use the \vn{getf} command as
@@ -118,7 +118,7 @@ Line 22 changes the \vn{ks} solenoid strength of \vn{cleo}. Since an element att
 changed, the call to \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
 in line 23 is needed for \bmad to inform \bmad that this attribute has changed and the call to
 \Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} does the necessary lattice bookkeeping
-(\sref{s:lat.bookkeeping}).
+(\sref{s:lat.book}).
 
 The call to \Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 25 recalculates the linear transfer
 matrix for the \vn{CLEO_SOL} element.

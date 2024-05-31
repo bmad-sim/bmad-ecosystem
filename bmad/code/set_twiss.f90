@@ -62,18 +62,20 @@ endif
 
 !
 
-call transfer_twiss(twiss_ele, ele0, reverse = .true.)
+call transfer_twiss(twiss_ele, ele0)
 
 call transfer_matrix_calc(branch%lat, ele1%mat6, ele1%vec0, 0, ix_ele, branch%ix_branch)
 call mat_inverse(ele1%mat6, ele1%mat6)
-ele1%key = lcavity$
+ele1%key = quadrupole$
+ele1%map_ref_orb_in = branch%ele(ix_ele)%map_ref_orb_out
+ele1%map_ref_orb_out = branch%ele(1)%map_ref_orb_in
 call twiss_propagate1(ele0, ele1, err_flag)
 if (err_flag) then
   if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CANNOT BACK PROPAGATE TWISS.')
   return
 endif
 
-call transfer_twiss(ele1, branch%ele(0), reverse = .true.)
+call transfer_twiss(ele1, branch%ele(0))
 call twiss_propagate_all(branch%lat, branch%ix_branch, err_flag)
 
 end subroutine set_twiss
