@@ -187,9 +187,9 @@ character(200) file_name, all_who, tail_str
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) who, max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(40), allocatable :: str_arr(:)
-character(20), allocatable :: name_list(:)
-character(20) cmd, which, v_str, head, tail
-character(20) switch, color, shape_shape
+character(40), allocatable :: name_list(:)
+character(40) cmd, which, v_str, head, tail
+character(40) switch, color, shape_shape
 character(1) :: mode(3) = ['a', 'b', 'c']
 character(*), parameter :: r_name = 'tao_python_cmd'
 
@@ -8279,7 +8279,7 @@ end subroutine orbit_out
 
 subroutine coord_out(bunch, coordinate)
 type (bunch_struct) :: bunch
-character(20) coordinate
+character(40) coordinate
 integer :: i_vec, n
 
 ! Allocate scratch
@@ -8351,7 +8351,7 @@ subroutine twiss_out (twiss, prefix, suffix, emit_out, can_vary)
 
 type (twiss_struct) twiss
 character(*) prefix, suffix
-character(20) fmt
+character(40) fmt
 character(8) v_str
 logical, optional :: emit_out, can_vary
 
@@ -8386,7 +8386,7 @@ subroutine xy_disp_out (xy_disp, suffix, can_vary)
 ! Similar to twiss_out
 type (xy_disp_struct) xy_disp
 character(*) suffix
-character(20) fmt
+character(40) fmt
 character(8) v_str
 logical, optional ::  can_vary
 
@@ -8594,7 +8594,7 @@ function re_str(r, n_signif) result (str)
 real(rp) r
 integer n_signif
 character(:), allocatable :: str
-character(20) string
+character(40) string
 
 string = real_to_string(r, 20, n_signif = n_signif)
 allocate (character(len_trim(adjustl(string))):: str)
