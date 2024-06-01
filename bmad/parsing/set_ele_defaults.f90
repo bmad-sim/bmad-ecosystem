@@ -59,10 +59,7 @@ case (beginning_ele$)
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
   ele%value(inherit_from_fork$) = real_garbage$
-  ele%x%etap    = real_garbage$
-  ele%x%deta_ds = real_garbage$
-  ele%y%etap    = real_garbage$
-  ele%y%deta_ds = real_garbage$
+  ele%value(deta_ds_master$) = false$
   call mat_make_unit (ele%mat6)
 
 case (capillary$)
@@ -224,6 +221,7 @@ case (match$)
   ele%value(matrix$) = standard$
   ele%value(kick0$) = standard$
   ele%value(recalc$) = true$
+  ele%value(deta_ds_master$) = false$
 
 case (mirror$)
   ele%aperture_at = surface$

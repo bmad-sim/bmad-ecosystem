@@ -280,7 +280,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
-real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor, ff
+real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor, ff, rel_p1
 real(rp), target :: unknown_attrib
 
 integer i
@@ -506,8 +506,23 @@ case (beginning_ele$)
     endif
   endif
 
-  if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
-      associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. coupling_change) then
+  if (associated(a_ptr, ele%x%deta_ds) .or. associated(a_ptr, ele%y%deta_ds)) then
+    ele%value(deta_ds_master$) = true$
+    rel_p1 = 1 + ele%map_ref_orb_out%vec(6)
+    ele%x%etap = ele%x%deta_ds * rel_p1 + ele%map_ref_orb_out%vec(2) / rel_p1
+    ele%y%etap = ele%y%deta_ds * rel_p1 + ele%map_ref_orb_out%vec(4) / rel_p1
+    coupling_change = .true.
+  endif
+
+  if (associated(a_ptr, ele%x%etap) .or. associated(a_ptr, ele%y%etap)) then
+    ele%value(deta_ds_master$) = false$
+    rel_p1 = 1 + ele%map_ref_orb_out%vec(6)
+    ele%x%deta_ds = ele%x%etap / rel_p1 - ele%map_ref_orb_out%vec(2) / rel_p1**2
+    ele%y%deta_ds = ele%y%etap / rel_p1 - ele%map_ref_orb_out%vec(4) / rel_p1**2
+    coupling_change = .true.
+  endif
+
+  if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%y%eta) .or. coupling_change) then
     if (dep_set) then
       call make_v_mats (ele, v_mat, v_inv_mat)
       eta_xy_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]

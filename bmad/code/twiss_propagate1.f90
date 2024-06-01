@@ -46,21 +46,11 @@ if (ele1%key == beginning_ele$) then
   ele1%map_ref_orb_out = ele2%map_ref_orb_in
   rel_p1 = 1 + ele1%map_ref_orb_out%vec(6)
 
-  if (ele1%x%etap == real_garbage$ .and. ele1%x%deta_ds == real_garbage$) then  ! Not set so use default
-    ele1%x%etap = 0
-    ele1%x%deta_ds = 0
-  elseif (ele1%x%etap == real_garbage$) then
+  if (is_true(ele1%value(deta_ds_master$))) then
     ele1%x%etap = ele1%x%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(2) / rel_p1
+    ele1%y%etap = ele1%y%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(4) / rel_p1
   elseif (ele1%x%deta_ds == real_garbage$) then
     ele1%x%deta_ds = ele1%x%etap / rel_p1 - ele1%map_ref_orb_out%vec(2) / rel_p1**2
-  endif
-
-  if (ele1%y%etap == real_garbage$ .and. ele1%y%deta_ds == real_garbage$) then  ! Not set so use default
-    ele1%y%etap = 0
-    ele1%y%deta_ds = 0
-  elseif (ele1%y%etap == real_garbage$) then
-    ele1%y%etap = ele1%y%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(4) / rel_p1
-  elseif (ele1%y%deta_ds == real_garbage$) then
     ele1%y%deta_ds = ele1%y%etap / rel_p1 - ele1%map_ref_orb_out%vec(4) / rel_p1**2
   endif
 endif
