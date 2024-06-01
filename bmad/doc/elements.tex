@@ -2154,8 +2154,9 @@ element.
   \caption[Foil geometry.]
 {Foil geometry. Parameters \vn{thickness}, \vn{dthickness_dx}, \vn{x1_edge}, \vn{x2_edge},
 \vn{y1_edge}, and \vn{y2_edge} determine the foil geometry in body coordinates (see \fig{f:coords}).
-Orientation parameters like \vn{x_offset} (\sref{s:offset}) orient the foil with respect to
-laboratory coordinates but do not change the foil shape.}
+For the drawing, \vn{x1_edge} is negative (the associated edge is to the left of $x = 0$) and the
+\vn{x2_edge} is positive.  Orientation parameters like \vn{x_offset} (\sref{s:offset}) orient the
+foil with respect to laboratory coordinates but do not change the foil shape.}
   \label{f:foil}
 \end{figure}
 
@@ -2194,10 +2195,10 @@ Attributes specific to a \vn{foil} element are:
   scatter_test        = <Logic>   ! For testing scattering. Default: False.
   scatter_method      = <Switch>  ! Scattering algorithm. Default: highland.
   dthickness_dx       = <Real>    ! Wedge slope when the foil is wedge shaped.
-  x1_edge             = <Real>    ! Foil edge in the +x direction. Default: -99 m.
-  x2_edge             = <Real>    ! Foil edge in the -x direction. Default:  99 m.
-  y1_edge             = <Real>    ! Foil edge in the +y direction. Default: -99 m.
-  y2_edge             = <Real>    ! Foil edge in the -y direction. Default:  99 m.
+  x1_edge             = <Real>    ! Foil edge in the x-direction. Default: -99 m.
+  x2_edge             = <Real>    ! Foil edge in the x-direction. Default:  99 m.
+  y1_edge             = <Real>    ! Foil edge in the y-direction. Default: -99 m.
+  y2_edge             = <Real>    ! Foil edge in the y-direction. Default:  99 m.
 \end{example}
 
 Scattering is simulated to be Gaussian distributed with a sigma calculated in one of two methods.
