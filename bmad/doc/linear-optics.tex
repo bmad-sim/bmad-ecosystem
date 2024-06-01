@@ -389,22 +389,21 @@ The dispersion $\eta$ is defined in the standard way
   \label{eedxdpz}
 \end{equation}
 
-There are two dispersion derivatives that Bmad uses. One dispersion derivative corresponds to
-the definition used by the MAD and SAD programs
+The associated momentum dispersion is:
 \begin{equation}
   \text{etap_x} = \equiv \left. \frac{dp_x}{dp_z} \right|_s \comma \qquad 
   \text{etap_y} = \equiv \left. \frac{dp_y}{dp_z} \right|_s \comma \qquad 
 \end{equation}
-This dispersion derivative is useful when constructing particle bunch distributions and for
+The momentum dispersion is useful when constructing particle bunch distributions and for
 various calculations like for calculating radiation integrals.
 
 To calulate the normal mode dispersions, \Eq{avx} is used to transform from laboratory to normal mode
 coordinates.
 
-The one drawback with the above dispersion derivative definition is that it is not always simply
-related to the longitudinal derivative of the dispersion $d\eta/ds$. This becomes a factor when
-designing lattices where, if some section of the lattice needs to be dispersion free, it is
-convienient to be able to optimize $d\eta/ds$ to zero. $d\eta_{x,y}/ds$ is calculated from $dp_{x,y}/dp_z$ via
+The one drawback with the momentum dispersion is that it is not always simply related to the
+derivative of the dispersion $d\eta/ds$. This becomes a factor when designing lattices where, if
+some section of the lattice needs to be dispersion free, it is convienient to be able to optimize
+$d\eta/ds$ to zero. The dispersion derivative is related to the momentum dispersion by
 \begin{align}
   \text{deta_x_ds} &\equiv \frac{d\eta_x}{ds}
     = \frac{d}{dp_z} \left( \frac{dx}{ds} \right)
