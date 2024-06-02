@@ -287,8 +287,10 @@ beam energy at the beginning of the first lattice branch.
   beginning[e_tot]         = <Real>  ! Reference total energy in eV.
   beginning[eta_x]         = <Real>  ! x-axis dispersion
   beginning[eta_y]         = <Real>  ! y-axis dispersion
-  beginning[etap_x]        = <Real>  ! x-axis dispersion derivative.
-  beginning[etap_y]        = <Real>  ! y-axis dispersion derivative.
+  beginning[etap_x]        = <Real>  ! x-axis momentum dispersion.
+  beginning[etap_y]        = <Real>  ! y-axis momentum dispersion.
+  beginning[deta_x_ds]     = <Real>  ! x-axis dispersion derivative.
+  beginning[deta_y_ds]     = <Real>  ! y-axis dispersion derivative.
   beginning[p0c]           = <Real>  ! Reference momentum in eV.
   beginning[phi_a]         = <Real>  ! "a" mode phase.
   beginning[phi_b]         = <Real>  ! "b" mode phase.
@@ -304,8 +306,15 @@ with the values set. If not set the default values are all zero.  \vn{beginning[
 \vn{parameter[e_tot]} are equivalent and one or the other may be set but not both. Similarly,
 \vn{beginning[p0c]} and \vn{parameter[p0c]} are equivalent.
 
-Setting \vn{etap_x} or \vn{etap_y} sets both types of dispersion derivatives (\sref{s:dispersion}). That
-is, setting \vn{etap_x} sets both \vn{etap_x} and \vn{deta_x_ds} and similarly for \vn{etap_y}.
+Setting either momentum dispersion \vn{etap_x} or \vn{etap_y} also sets the corresponding dispersion
+derivative \vn{deta_x_ds} or \vn{deta_y_ds} (\sref{s:dispersion}). If a momentum dispersion is set
+in the lattice file, or during program running the dispersion derivatives are ``slaved'' to the
+momentum dispersion. That is, if the reference phase space momentum $p_z$ changes, the momentum
+dispersions will be keept constant and the dispersion derivatives will be calculated from
+\Eq{dexds}. Similarly, if a dispersion derivative is set in the lattice file or during program
+running, the momentum dispersions are slaved to the dispersion derivative. Which is slaved to which is
+determined by the last derivative set. If no derivatives are set, the dispersion derivatives are slaved
+to the momentum dispersions.
 
 \index{x_position}\index{y_position}\index{z_position}
 \index{theta_position}\index{phi_position}\index{psi_position}
