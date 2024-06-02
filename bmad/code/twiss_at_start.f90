@@ -49,7 +49,7 @@ logical saved_state
 
 character(200), allocatable :: lines(:)
 
-! init one turn. T0 is the transverse part of the matrix
+! Init one turn. T0 is the transverse part of the matrix
 
 call mat_make_unit (t0_4)       ! form unit matrix
 eta_vec = 0

@@ -226,11 +226,9 @@ if (key2 == rfcavity$) eta1_vec(5) = 0
 
 if (rel_p1 == 0) then
   dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
-  eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 else
   if (key2 == rfcavity$ .or. key2 == lcavity$) then
     dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
-    dpz2_dpz1 = dpz2_dpz1 + (mat6(6,2) * orb%vec(2) + mat6(6,4) * orb%vec(4)) / rel_p1
   else
     dpz2_dpz1 = 1 / rel_p2
   endif
