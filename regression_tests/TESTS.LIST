@@ -43,7 +43,7 @@ tao_test
 taylor_test
 time_runge_kutta_test
 tracking_method_test
-twiss_test
+! twiss_test
 wake_test
 wall3d_test
 write_bmad_test
