@@ -20,7 +20,8 @@ the three normal modes (\sref{s:coupling}) are contained in the \vn{ele%a}, \vn{
     real(rp) gamma        ! Twiss gamma function
     real(rp) phi          ! Normal mode Phase advance
     real(rp) eta          ! Normal mode dispersion
-    real(rp) etap         ! Normal mode dispersion derivative
+    real(rp) etap         ! Normal mode momentum dispersion.
+    real(rp) deta_ds      ! Dispersion derivative
     real(rp) sigma        ! Normal mode beam size
     real(rp) sigma_p      ! Normal mode beam size derivative
     real(rp) emit         ! Geometric emittance
@@ -34,10 +35,11 @@ The projected horizontal and vertical dispersions in an \vn{ele_struct} are cont
 \begin{example}
   type xy_disp_struct
     real(rp) eta     ! Projected dispersion 
-    real(rp) etap    ! Projected dispersion derivative \(dp_x/dp_z\) or \(dp_y/dp_z\).
+    real(rp) etap    ! Projected momentum dispersion
     real(rp) deta_ds ! Projected dispersion derivative \(d\eta_x/ds\) or \(d\eta_y/ds\).
   end type 
 \end{example}
+Section~\sref{s:dispersion} discussed the relationship between \vn{etap} and \vn{deta_ds}.
 
 \index{ele_struct!\%emit}\index{ele_struct!\%norm_emit}
 \index{ele_struct!\%sigma}\index{ele_struct!\%sigma_p}
