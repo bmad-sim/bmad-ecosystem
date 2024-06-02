@@ -232,6 +232,7 @@ do ib = 1, size(bunches)
   call pmd_write_int_to_dataset(b2_id, 'locationInElement', 'location', unit_1, ivec, err)
 
   call H5Gclose_f(b2_id, h5_err)
+  call H5Gclose_f(b1_id, h5_err)
   call H5Gclose_f(b_id, h5_err)
 enddo
 
