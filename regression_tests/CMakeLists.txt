@@ -9,6 +9,7 @@ set (EXE_SPECS
   cmake_files/cmake.backwards_time_track_test
   cmake_files/cmake.beam_test
   cmake_files/cmake.bbu_test
+  cmake_files/cmake.cesr_test
   cmake_files/cmake.closed_orbit_test
   cmake_files/cmake.coord_test
   cmake_files/cmake.csr_and_space_charge
@@ -47,7 +48,7 @@ set (EXE_SPECS
   cmake_files/cmake.taylor_test
   cmake_files/cmake.time_runge_kutta_test
   cmake_files/cmake.tracking_method_test
-  cmake_files/cmake.twiss_track_test
+  cmake_files/cmake.twiss_test
   cmake_files/cmake.wake_test
   cmake_files/cmake.wall3d_test
   cmake_files/cmake.write_bmad_test

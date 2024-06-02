@@ -1,6 +1,6 @@
-set (EXENAME twiss_track_test)
+set (EXENAME cesr_test)
 
-FILE (GLOB SRC_FILES "twiss_track_test/*.f90")
+FILE (GLOB SRC_FILES "cesr_test/*.f90")
 
 set (INC_DIRS
 )

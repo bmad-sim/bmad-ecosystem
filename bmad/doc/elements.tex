@@ -2154,8 +2154,9 @@ element.
   \caption[Foil geometry.]
 {Foil geometry. Parameters \vn{thickness}, \vn{dthickness_dx}, \vn{x1_edge}, \vn{x2_edge},
 \vn{y1_edge}, and \vn{y2_edge} determine the foil geometry in body coordinates (see \fig{f:coords}).
-Orientation parameters like \vn{x_offset} (\sref{s:offset}) orient the foil with respect to
-laboratory coordinates but do not change the foil shape.}
+For the drawing, \vn{x1_edge} is negative (the associated edge is to the left of $x = 0$) and the
+\vn{x2_edge} is positive.  Orientation parameters like \vn{x_offset} (\sref{s:offset}) orient the
+foil with respect to laboratory coordinates but do not change the foil shape.}
   \label{f:foil}
 \end{figure}
 
@@ -2194,10 +2195,10 @@ Attributes specific to a \vn{foil} element are:
   scatter_test        = <Logic>   ! For testing scattering. Default: False.
   scatter_method      = <Switch>  ! Scattering algorithm. Default: highland.
   dthickness_dx       = <Real>    ! Wedge slope when the foil is wedge shaped.
-  x1_edge             = <Real>    ! Foil edge in the +x direction. Default: -99 m.
-  x2_edge             = <Real>    ! Foil edge in the -x direction. Default:  99 m.
-  y1_edge             = <Real>    ! Foil edge in the +y direction. Default: -99 m.
-  y2_edge             = <Real>    ! Foil edge in the -y direction. Default:  99 m.
+  x1_edge             = <Real>    ! Foil edge in the x-direction. Default: -99 m.
+  x2_edge             = <Real>    ! Foil edge in the x-direction. Default:  99 m.
+  y1_edge             = <Real>    ! Foil edge in the y-direction. Default: -99 m.
+  y2_edge             = <Real>    ! Foil edge in the y-direction. Default:  99 m.
 \end{example}
 
 Scattering is simulated to be Gaussian distributed with a sigma calculated in one of two methods.
@@ -3388,7 +3389,7 @@ Attributes specific to a \vn{match} element are:
   alpha_a1, alpha_b1 = <Real>            ! Exit alphas
   eta_x0, eta_y0     = <Real>            ! Entrance etas 
   eta_x1, eta_y1     = <Real>            ! Exit etas 
-  etap_x0, etap_y0   = <Real>            ! Entrance eta' 
+  etap_x0, etap_y0   = <Real>            ! Entrance momentum dispersion
   etap_x1, etap_y1   = <Real>            ! Exit eta'
   c11_mat0, c12_mat0, c21_mat0, c22_mat0 = <Real>  ! Entrance coupling.
   c11_mat1, c12_mat1, c21_mat1, c22_mat1 = <Real>  ! Exit coupling.

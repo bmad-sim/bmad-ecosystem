@@ -919,6 +919,7 @@ call init_attribute_name1 (beginning_ele$, spin_dn_dpz_z$,               'SPIN_D
 call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
+call init_attribute_name1 (beginning_ele$, deta_ds_master$,              'deta_ds_master', private$)
 
 call init_attribute_name1 (feedback$, input_ele$,                        'INPUT_ELE')
 call init_attribute_name1 (feedback$, output_ele$,                       'OUTPUT_ELE')
@@ -1919,7 +1920,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
-      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'RECALC', &
+      'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'RECALC', 'DETA_DS_MASTER', &
       'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
 

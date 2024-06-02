@@ -1,0 +1,41 @@
+beginning[e_tot] = 1e6
+parameter[ran_seed] = 1000
+
+parameter[particle] = electron
+parameter[geometry] = open
+bmad_com[spin_tracking_on] = T
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+beginning[alpha_a] = 0 
+beginning[alpha_b] = 0
+
+beginning[eta_x] = 0.1
+beginning[etap_x] = 0.2
+beginning[eta_y] = 0.1
+beginning[etap_y] = 0.2
+
+beginning[cmat_11] = 0.1
+beginning[cmat_12] = 0.2
+beginning[cmat_21] = 0.3
+beginning[cmat_22] = 0.4
+
+particle_start[x]  = 0.001
+particle_start[px] = 0.002
+particle_start[y]  = 0.003
+particle_start[py] = 0.004
+particle_start[z]  = 0.1
+particle_start[pz] = 0.5
+particle_start[spin_x] = 1
+particle_start[spin_y] = 2
+particle_start[spin_z] = 3
+
+a: quadrupole, l = 1, k1 = 0.3, tilt = 1
+z: quadrupole, l = 1, k1 = 0.1, tilt = 2
+
+ln: line = (a, z)
+use, ln
+
+
+no_digested
+

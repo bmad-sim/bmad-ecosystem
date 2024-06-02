@@ -720,10 +720,10 @@ describes in detail these data types.
   \pref{element.attrib}   & element_attrib.<attr_name>          & lattice element attribute                 & lat         & No  \\ \hline
   \pref{emit.a}           & emit.a, .b, .c                      & Emittance                                 & lat, beam   & No  \\ \hline
   \pref{emit.x}           & emit.x, .y, .z                      & Projected emittance                       & lat, beam   & No  \\ \hline
-  \pref{eta.x}            & eta.x, .y, .z                       & Dispersion                                & lat, beam   & Yes \\ \hline 
-  \pref{eta.a}            & eta.a, .b                           & Normal-mode dispersion                    & lat, beam   & Yes \\ \hline 
-  \pref{etap.x}           & etap.x, .y                          & Momentum derivative                       & lat, beam   & Yes \\ \hline 
-  \pref{etap.a}           & etap.a, .b                          & Momentum derivative                       & lat, beam   & Yes \\ \hline 
+  \pref{eta.x}            & eta.x, .y, .z                       & Dispersions                               & lat, beam   & Yes \\ \hline 
+  \pref{eta.a}            & eta.a, .b                           & Normal-mode dispersions                   & lat, beam   & Yes \\ \hline 
+  \pref{etap.x}           & etap.x, .y                          & Momentum dispersions                      & lat, beam   & Yes \\ \hline 
+  \pref{etap.a}           & etap.a, .b                          & Momentum dispersions                      & lat, beam   & Yes \\ \hline 
   \pref{expression}       & expression:<expression>             & See text above                            & lat         & No  \\ \hline 
   \pref{floor}            & \begin{tabular}{@{}l}   
                               floor.x, .y, .z, \\             
@@ -1018,7 +1018,7 @@ Chromaticities will be calculated even if the geometry of the lattice branch has
 
   %----------------------
   \item[chrom.detap.x, .detap.y] \Newline \hlabel{chrom.detap}
-The chromatic dispersion derivatives $\partial\eta'_{x,y}/\partial\delta$. Unlike the standard
+The chromatic momentum dispersion derivatives $\partial\eta'_{x,y}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 

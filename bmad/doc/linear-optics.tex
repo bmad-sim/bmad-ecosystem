@@ -389,103 +389,44 @@ The dispersion $\eta$ is defined in the standard way
   \label{eedxdpz}
 \end{equation}
 
-There are two dispersion derivatives that Bmad uses. One dispersion derivative corresponds to
-the definition used by the MAD and SAD programs
+The associated momentum dispersion is:
 \begin{equation}
   \text{etap_x} = \equiv \left. \frac{dp_x}{dp_z} \right|_s \comma \qquad 
   \text{etap_y} = \equiv \left. \frac{dp_y}{dp_z} \right|_s \comma \qquad 
 \end{equation}
-This dispersion derivative is useful when constructing particle bunch distributions and for
+The momentum dispersion is useful when constructing particle bunch distributions and for
 various calculations like for calculating radiation integrals.
 
-The one drawback with the above dispersion derivative definition is that it is not always simply
-related to the longitudinal derivative of the dispersion $d\eta/ds$. This becomes a factor when
-designing lattices where, if some section of the lattice needs to be dispersion free, it is
-convienient to be able to optimize $d\eta/ds$ to zero. For this reason, $d\eta/ds$ is calculated
-by \bmad
-\begin{equation}
-  \text{deta_x_ds} \equiv \left. \frac{d\eta_x}{ds} \right|_s
-    = \left. \frac{dx'}{dp_z} \right|_s \CRNO
-  \text{deta_y_ds} \equiv \left. \frac{d\eta_y}{ds} \right|_s
-    = \left. \frac{dy'}{dp_z} \right|_s 
-\end{equation}
+To calulate the normal mode dispersions, \Eq{avx} is used to transform from laboratory to normal mode
+coordinates.
 
-For $d\eta/ds$, given the dispersion at a given point, the dispersion at some other point is
-calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$ be the reference orbit, around which
-the dispersion is to be calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order components
-of the transfer map between two points labeled 1 and 2:
-\begin{equation}
-  \Bf r_2 = \bfM \, \Bf r_1 + \bfV
-  \label{rmrv}
-\end{equation}
-Define the dispersion vector $\bfeta$ by
-\begin{equation}
-  \bfeta = 
-  \left( 
-    \eta_x, d\eta_x/ds \, (1 + p_z), d\eta_y/ds, \eta'_y \, (1 + p_z), \eta_z, 1
-  \right)
-\end{equation}
-Differentiating \Eq{rmrv} with respect to energy, the dispersion at point 2 in terms of the
-dispersion at point 1 is
-\begin{equation}
-  \bfeta_2 = \left[ \frac{dp_{z2}}{dp_{z1}} \right]^{-1} \, 
-    \left[ \bfM \, \bfeta_1 \right] + \bfV_\eta 
-    \label{eppmev}
-\end{equation}
-where
-\begin{equation}
-  \bfV_\eta = \left[ \frac{dp_{z2}}{dp_{z1}} \right]^{-1} \, 
-  \frac{1}{1 + p_{z1}}
-  \left(
-  \begin{array}{c}
-    M_{12} \, p_{x1} + M_{14} \, p_{y1} \\
-    M_{22} \, p_{x1} + M_{24} \, p_{y1} \\
-    M_{32} \, p_{x1} + M_{34} \, p_{y1} \\
-    M_{42} \, p_{x1} + M_{44} \, p_{y1} \\
-    M_{52} \, p_{x1} + M_{54} \, p_{y1} \\
-    M_{62} \, p_{x1} + M_{64} \, p_{y1} \\
-  \end{array}
-  \right)
-  -
-  \left(
-  \begin{array}{c}
-    0 \\
-    \frac{p_{x2}}{1 + p_{z2}} \\
-    0 \\
-    \frac{p_{y2}}{1 + p_{z2}} \\
-    0 \\
-    0 
-  \end{array}
-  \right)
-\end{equation}
-The sixth row of the matrix equation gives $dp_{z1}/dp_{z2}$. 
-Explicitly
-\begin{equation}
-  \frac{dp_{z2}}{dp_{z1}} =
-  \sum_{i=1}^6 M_{6i} \, \eta_{1i} + 
-  \frac{M_{62} \, p_{x1} + M_{64} \, p_{y1}}{1 + p_{z1}}
-\end{equation}
-For everything except \vn{RFcavity} and \vn{Lcavity} elements, 
-$dp_{z2}/dp_{z1}$ is 1.
+The one drawback with the momentum dispersion is that it is not always simply related to the
+derivative of the dispersion $d\eta/ds$. This becomes a factor when designing lattices where, if
+some section of the lattice needs to be dispersion free, it is convienient to be able to optimize
+$d\eta/ds$ to zero. The dispersion derivative is related to the momentum dispersion by
+\begin{align}
+  \text{deta_x_ds} &\equiv \frac{d\eta_x}{ds}
+    = \frac{d}{dp_z} \left( \frac{dx}{ds} \right)
+    = \frac{d}{dp_z} \left( \frac{p_x}{1 + p_z} \right)
+    = \frac{1}{1 + p_z} \, \frac{dp_x}{dp_z} - \frac{p_x}{(1 + p_z)^2}  \CRNO
+  \text{deta_y_ds} &\equiv \frac{d\eta_y}{ds}
+    = \frac{d}{dp_z} \left( \frac{dy}{ds} \right)
+    = \frac{d}{dp_z} \left( \frac{p_y}{1 + p_z} \right)
+    = \frac{1}{1 + p_z} \, \frac{dp_y}{dp_z} - \frac{p_y}{(1 + p_z)^2}
+  \label{dexds}
+\end{align}
 
 For a non-circular machine, there are two ways one can imagine defining the dispersion: Either with
 respect to changes in energy at the beginning of the machine or with respect to the local change in
 energy at the point of measurement. The former definition will be called ``non-local dispersion''
-and the latter definition will be called ``local dispersion''. For a circular machine, local
-dispersion is always used.  The dispersion defined in the above equations, which is what \bmad uses
-in calculations, is the local dispersion. The non-local dispersion $\wt\bfeta(s_1)$ at some point
+and the latter definition will be called ``local dispersion'' which what 
+\bmad calculates. The non-local dispersion $\wt\bfeta(s_1)$ at some point
 $s_1$ is related to the local dispersion $\bfeta(s_1)$ via
 \begin{equation}
   \wt\bfeta(s_1) = \frac{dp_{z1}}{dp_{z0}} \, \bfeta(s_1)
 \end{equation}
-where $s_0$ is the beginning of the machine.
+where $s_0$ is the $s$-position at the beginning of the machine. The non-local dispersion has the
+merit of reflecting what one would measure if the starting energy of the beam is varied. The local
+dispersion, on the other hand, reflects the correlations between the particle energy and particle
+position within a beam.
 
-For a non-circular machine, there are advantages and disadvantages to using either local or
-non-local dispersion. Local dispersion has the problem that $dp_{z2}/dp_{z1}$ in \Eq{eppmev} may go
-through zero at a point producing infinite dispersions at that point. The non-local dispersion has
-the merit of reflecting what one would measure if the starting energy of the beam is varied. The
-local dispersion, on the other hand, reflects the correlations between the particle energy and
-particle position within a beam.
-
-To calulate the normal mode dispersions, \Eq{avx} is used to transform from laboratory to normal mode
-coordinates.
