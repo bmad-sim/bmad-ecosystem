@@ -21,8 +21,8 @@ use bmad, dummy => set_twiss
 implicit none
 
 type (branch_struct), target :: branch
-type (ele_struct) twiss_ele, t_ele, ele0, ele1
-type (ele_struct), pointer :: b_ele
+type (ele_struct) twiss_ele, ele0, ele1
+type (ele_struct), pointer :: ele
 
 real(rp) xmat(6,6), xvec(6)
 
@@ -54,28 +54,23 @@ endif
 
 !
 
-if (ix_ele == 0) then
-  call transfer_twiss(twiss_ele, branch%ele(0))
-  call twiss_propagate_all(branch%lat, branch%ix_branch, err_flag)
-  return
-endif
-
-!
-
 call transfer_twiss(twiss_ele, ele0)
+do ie = ix_ele, 1, -1
+  ele => branch%ele(ie)
+  call mat_inverse(ele%mat6, ele1%mat6)
+  ele1%key = ele%key
+  ele1%map_ref_orb_in = ele%map_ref_orb_out
+  ele1%map_ref_orb_out = ele%map_ref_orb_in
+  call twiss_propagate1(ele0, ele1, err_flag)
+  if (err_flag) then
+    if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CANNOT BACK PROPAGATE TWISS.')
+    return
+  endif
+  call transfer_twiss(ele1, ele0)
+enddo
 
-call transfer_matrix_calc(branch%lat, ele1%mat6, ele1%vec0, 0, ix_ele, branch%ix_branch)
-call mat_inverse(ele1%mat6, ele1%mat6)
-ele1%key = quadrupole$
-ele1%map_ref_orb_in = branch%ele(ix_ele)%map_ref_orb_out
-ele1%map_ref_orb_out = branch%ele(1)%map_ref_orb_in
-call twiss_propagate1(ele0, ele1, err_flag)
-if (err_flag) then
-  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CANNOT BACK PROPAGATE TWISS.')
-  return
-endif
+call transfer_twiss(ele0, branch%ele(0))
 
-call transfer_twiss(ele1, branch%ele(0))
 call twiss_propagate_all(branch%lat, branch%ix_branch, err_flag)
 
 end subroutine set_twiss

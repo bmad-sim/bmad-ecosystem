@@ -7,34 +7,50 @@ bmad_com[spin_tracking_on] = T
 
 beginning[beta_a] = 10
 beginning[beta_b] = 10
-beginning[alpha_a] = 0 
-beginning[alpha_b] = 0
+beginning[alpha_a] = +0.1
+beginning[alpha_b] = -0.2
 
 beginning[eta_x] = 0.1
 beginning[etap_x] = 0.2
 beginning[eta_y] = 0.1
 beginning[etap_y] = 0.2
 
-beginning[cmat_11] = 0.1
-beginning[cmat_12] = 0.2
-beginning[cmat_21] = 0.3
-beginning[cmat_22] = 0.4
+!beginning[cmat_11] = 0.1
+!beginning[cmat_12] = 0.2
+!beginning[cmat_21] = 0.3
+!beginning[cmat_22] = 0.4
 
-particle_start[x]  = 0.001
+!particle_start[x]  = 0.001
 particle_start[px] = 0.002
-particle_start[y]  = 0.003
-particle_start[py] = 0.004
-particle_start[z]  = 0.1
-particle_start[pz] = 0.5
-particle_start[spin_x] = 1
-particle_start[spin_y] = 2
-particle_start[spin_z] = 3
+!particle_start[y]  = 0.003
+!particle_start[py] = 0.004
+!particle_start[z]  = 0.1
+!particle_start[pz] = 0.5
 
 a: quadrupole, l = 1, k1 = 0.3, tilt = 1
 z: quadrupole, l = 1, k1 = 0.1, tilt = 2
 
 ln: line = (a, z)
-use, ln
+
+!-------------------------
+
+rf1: rfcavity, l = 1, rf_frequency = 1e9, tracking_method = bmad_standard, voltage = 1e10, phi0 = pi/2
+eg: e_gun, l = 1, tracking_method = runge_kutta, voltage = 0e5
+z2: quadrupole, l = 0, k1 = 0.1, tilt = 2
+
+lneg: line = (rf1, z2)
+lneg[geometry] = open
+lneg[particle] = electron
+lneg[p0c] = 1e11
+lneg[beta_a] = 10
+lneg[beta_b] = 10
+lneg[alpha_a] = +0.1
+lneg[alpha_b] = -0.2
+
+
+!-------------------------
+
+use, lneg
 
 
 no_digested
