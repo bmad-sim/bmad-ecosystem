@@ -47,9 +47,9 @@ character(20) :: r_name = 'twiss_from_mat6'
 
 stable = .false.
 m6 = mat6
+rel_p = 1 + orb0(6)
 
 if (bmad_private%normalize_twiss) then
-  rel_p = 1 + orb0(6)
   m6(1:5:2, 2:6:2) = m6(1:5:2, 2:6:2) * rel_p
   m6(2:6:2, 1:5:2) = m6(2:6:2, 1:5:2) / rel_p
 endif
@@ -110,43 +110,30 @@ mat4 = -mat4
 forall (i = 1:4) mat4(i,i) = mat4(i,i) + 1
 call mat_inverse (mat4, mat4)
 
-vec(1) = m6(1,6) + (m6(1,2) * orb0(2) + m6(1,4) * orb0(4))
-vec(2) = m6(2,6) + (m6(2,2) * orb0(2) + m6(2,4) * orb0(4) - orb0(2))
-vec(3) = m6(3,6) + (m6(3,2) * orb0(2) + m6(3,4) * orb0(4))
-vec(4) = m6(4,6) + (m6(4,2) * orb0(2) + m6(4,4) * orb0(4) - orb0(4))
-
-eta_vec = matmul(mat4, vec)
-
-ele%x%eta     = eta_vec(1)
-ele%x%deta_ds = eta_vec(2)
-ele%y%eta     = eta_vec(3)
-ele%y%deta_ds = eta_vec(4)
-
-ele%z%eta     = 0
-ele%z%deta_ds = 1
-
-eta_vec = matmul(mat_symp_conj(v), eta_vec)
-ele%a%eta     = eta_vec(1)
-ele%a%deta_ds = eta_vec(2)
-ele%b%eta     = eta_vec(3)
-ele%b%deta_ds = eta_vec(4)
-
-!
-
 eta_vec = matmul(mat4, mat6(1:4,6))
 
-ele%x%eta   = eta_vec(1)
-ele%x%etap  = eta_vec(2)
-ele%y%eta   = eta_vec(3)
-ele%y%etap  = eta_vec(4)
+ele%x%eta     = eta_vec(1)
+ele%x%etap    = eta_vec(2)
+ele%x%deta_ds = ele%x%etap / rel_p - orb0(2) / rel_p**2 
+
+ele%y%eta     = eta_vec(3)
+ele%y%etap    = eta_vec(4)
+ele%y%deta_ds = eta_vec(4) / rel_p - orb0(4) / rel_p*2
+
+eta_vec = matmul(mat_symp_conj(v), eta_vec)
+vec = matmul(mat_symp_conj(v), orb0)
+
+ele%a%eta     = eta_vec(1)
+ele%a%etap    = eta_vec(2)
+ele%a%deta_ds = ele%a%etap / rel_p - vec(2) / rel_p**2 
+
+ele%b%eta     = eta_vec(3)
+ele%b%etap    = eta_vec(4)
+ele%b%deta_ds = eta_vec(4) / rel_p - vec(4) / rel_p*2
+
 
 ele%z%eta     = 0
 ele%z%etap    = 1
-
-eta_vec = matmul(mat_symp_conj(v), eta_vec)
-ele%a%eta  = eta_vec(1)
-ele%a%etap = eta_vec(2)
-ele%b%eta  = eta_vec(3)
-ele%b%etap = eta_vec(4)
+ele%z%deta_ds = 1
 
 end subroutine
