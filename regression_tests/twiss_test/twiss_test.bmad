@@ -10,48 +10,100 @@ beginning[beta_b] = 10
 beginning[alpha_a] = +0.1
 beginning[alpha_b] = -0.2
 
+
+!-------------------------
+
+beginning[eta_x] = 0.
+beginning[etap_x] = 0.
+beginning[eta_y] = 0.
+beginning[etap_y] = -0.
+beginning[eta_z] = 0.
+
+beginning[cmat_11] = 0.
+beginning[cmat_12] = 0.
+beginning[cmat_21] = 0.
+beginning[cmat_22] = 0.
+
+particle_start[x]  = 0.00
+particle_start[px] = 0.00
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.
+particle_start[pz] = 0.
+
+
+!-------------------------
+
 beginning[eta_x] = 0.1
 beginning[etap_x] = 0.2
-beginning[eta_y] = 0.1
-beginning[etap_y] = 0.2
+beginning[eta_y] = 0.3
+beginning[etap_y] = -0.2
+beginning[eta_z] = 0.2
 
-!beginning[cmat_11] = 0.1
-!beginning[cmat_12] = 0.2
-!beginning[cmat_21] = 0.3
-!beginning[cmat_22] = 0.4
+beginning[cmat_11] = 0.1
+beginning[cmat_12] = 0.2
+beginning[cmat_21] = 0.3
+beginning[cmat_22] = 0.4
 
-!particle_start[x]  = 0.001
+particle_start[x]  = 0.001
 particle_start[px] = 0.002
-!particle_start[y]  = 0.003
-!particle_start[py] = 0.004
-!particle_start[z]  = 0.1
-!particle_start[pz] = 0.5
+particle_start[y]  = 0.003
+particle_start[py] = 0.004
+particle_start[z]  = 0.1
+particle_start[pz] = 0.5
+
+!-------------------------
+
+beginning[eta_x] = 0.
+beginning[etap_x] = 0.
+beginning[eta_y] = 0.
+beginning[etap_y] = -0.
+beginning[eta_z] = 0.
+
+beginning[cmat_11] = 0.
+beginning[cmat_12] = 0.
+beginning[cmat_21] = 0.
+beginning[cmat_22] = 0.
+
+particle_start[x]  = 0.001
+particle_start[px] = 0.00
+particle_start[y]  = 0.00
+particle_start[py] = 0.00
+particle_start[z]  = 0.
+particle_start[pz] = 0
+
+
+!-------------------------
 
 a: quadrupole, l = 1, k1 = 0.3, tilt = 1
-z: quadrupole, l = 1, k1 = 0.1, tilt = 2
+z: quadrupole, l = 1, k1 = -0.1, tilt = 2
 
-ln: line = (a, z)
+ln0: line = (a, z)
 
 !-------------------------
 
-rf1: rfcavity, l = 1, rf_frequency = 1e9, tracking_method = bmad_standard, voltage = 1e10, phi0 = pi/2
+rf1: rfcavity, l = 1, rf_frequency = 1e9, tracking_method = runge_kutta, voltage = 4e10, phi0 = 0.3
 eg: e_gun, l = 1, tracking_method = runge_kutta, voltage = 0e5
-z2: quadrupole, l = 0, k1 = 0.1, tilt = 2
+z2: quadrupole, l = 1, k1 = 0.1, tilt = 2
 
-lneg: line = (rf1, z2)
-lneg[geometry] = open
-lneg[particle] = electron
-lneg[p0c] = 1e11
-lneg[beta_a] = 10
-lneg[beta_b] = 10
-lneg[alpha_a] = +0.1
-lneg[alpha_b] = -0.2
+lnrf: line = (rf1, z2)
+lnrf[geometry] = open
+lnrf[particle] = electron
+lnrf[p0c] = 1e11
+lnrf[beta_a] = 10
+lnrf[beta_b] = 10
+lnrf[alpha_a] = +0.1
+lnrf[alpha_b] = -0.2
 
 
 !-------------------------
 
-use, lneg
+use, lnrf
 
 
 no_digested
 
+! To Do:
+!   e_gun
+!   electric multipole
+!   lcavity
