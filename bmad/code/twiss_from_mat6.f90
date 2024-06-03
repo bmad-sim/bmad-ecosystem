@@ -115,8 +115,14 @@ ele%y%eta     = eta_vec(3)
 ele%y%etap    = eta_vec(4)
 ele%y%deta_ds = eta_vec(4) / rel_p - orb0(4) / rel_p*2
 
+ele%z%eta     = 0
+ele%z%etap    = 1
+ele%z%deta_ds = 1
+
+!
+
 eta_vec = matmul(mat_symp_conj(v), eta_vec)
-vec = matmul(mat_symp_conj(v), orb0)
+vec = matmul(mat_symp_conj(v), orb0(1:4))
 
 ele%a%eta     = eta_vec(1)
 ele%a%etap    = eta_vec(2)
@@ -125,10 +131,5 @@ ele%a%deta_ds = ele%a%etap / rel_p - vec(2) / rel_p**2
 ele%b%eta     = eta_vec(3)
 ele%b%etap    = eta_vec(4)
 ele%b%deta_ds = eta_vec(4) / rel_p - vec(4) / rel_p*2
-
-
-ele%z%eta     = 0
-ele%z%etap    = 1
-ele%z%deta_ds = 1
 
 end subroutine
