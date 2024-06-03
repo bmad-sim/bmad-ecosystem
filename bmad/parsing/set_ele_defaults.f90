@@ -60,6 +60,8 @@ case (beginning_ele$)
   ele%value(p0c$) = -1
   ele%value(inherit_from_fork$) = real_garbage$
   ele%value(deta_ds_master$) = false$
+  ele%z%etap = 1
+  ele%z%deta_ds = 1
   call mat_make_unit (ele%mat6)
 
 case (capillary$)

@@ -49,11 +49,6 @@ stable = .false.
 m6 = mat6
 rel_p = 1 + orb0(6)
 
-if (bmad_private%normalize_twiss) then
-  m6(1:5:2, 2:6:2) = m6(1:5:2, 2:6:2) * rel_p
-  m6(2:6:2, 1:5:2) = m6(2:6:2, 1:5:2) / rel_p
-endif
-
 mat4 = m6(1:4, 1:4)
 
 if (maxval(abs(mat4)) > 1d10) then

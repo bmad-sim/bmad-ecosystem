@@ -2241,7 +2241,6 @@ type (bmad_common_struct), save, target :: bmad_com
 
 type bmad_private_struct
   real(rp) :: rf_clock_period = 0     ! The RF clock is used by the long_term_tracking program to avoid time round-off errors.
-  logical :: normalize_twiss = .false.  ! Experimental: Normalize Twiss calc by the ref pz about which the 1-turn matrix is calculated?
 end type
 
 type (bmad_private_struct), save, target :: bmad_private

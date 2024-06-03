@@ -3,6 +3,7 @@
 !
 ! Routine to transfer the Twiss, coupling, and dispersion parameters from one element to another.
 !
+! Note: %mat_ref_orb_out is not transferred.  
 !
 ! Input:
 !   ele_in   -- ele_struct: Element with existing Twiss parameters.
