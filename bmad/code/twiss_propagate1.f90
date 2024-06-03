@@ -25,14 +25,15 @@ implicit none
 type (ele_struct), target :: ele1, ele2
 type (twiss_struct) twiss_a
 type (lat_param_struct) param
-type (coord_struct), pointer :: orb, orb_out
-integer key2
+type (coord_struct), pointer :: orb_in, orb_out
+
+integer key2, geometry
 
 real(rp) :: mat6(6,6)
 real(rp) v_mat(4,4), v_inv_mat(4,4), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p2
+real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p21, rel_p2
 real(rp) det_factor, deriv_rel, gamma2_c, df
 
 logical error
@@ -64,6 +65,9 @@ if (ele2%key == match$ .and. is_true(ele2%value(recalc$)) .and. &
   call match_ele_to_mat6(ele2, ele1%map_ref_orb_out, ele2%mat6, ele2%vec0, error, set_trombone = .true.)
   if (error) return
 endif
+
+geometry = open$
+if (associated(ele1%branch)) geometry = ele1%branch%param%geometry
 
 !---------------------------------------------------------------------
 ! init
@@ -98,16 +102,12 @@ endif
 
 !
 
-orb  => ele2%map_ref_orb_in
+orb_in  => ele2%map_ref_orb_in
 orb_out => ele2%map_ref_orb_out
-rel_p1 = 1 + orb%vec(6)               ! reference energy 
+rel_p1 = 1 + orb_in%vec(6)    ! Map reference momentum
 rel_p2 = 1 + orb_out%vec(6)
 
 mat6 = ele2%mat6
-if (ele2%key /= e_gun$) then   ! Energy change normalization is not applied to an e-gun
-  rel_p2 = rel_p2 / rel_p1
-  rel_p1 = 1
-endif
 
 !---------------------------------------------------------------------
 ! det_factor is a renormalization factor to handle non-symplectic errors.
@@ -204,17 +204,16 @@ endif
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-eta1_vec = [ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap, ele1%z%eta, 1.0_rp]
-
 ! For a circular ring, defining the dependence of z on pz is problematical.
 ! With the RF off, z is not periodic so dz/dpz is dependent upon turn number.
 ! With the RF on, dz/dpz, along with the other dispersion components, is not well defined.
-! This being the case, eta1_vec(5) is just treated as zero for an rfcavity.
+! This being the case, eta1_vec(5) is just treated as zero for a closed branch
 
-if (key2 == rfcavity$) eta1_vec(5) = 0
+eta1_vec = [ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap, ele1%z%eta, 1.0_rp]
+if (geometry == closed$) eta1_vec(5) = 0
 
 ! Must avoid 0/0 divide at zero reference momentum. 
-! If rel_p1 = 0 then total momentum is zero and orb%vec(2) and orb%vec(4) must be zero.
+! If rel_p1 = 0 then total momentum is zero and orb_in%vec(2) and orb_in%vec(4) must be zero.
 
 ! Also for elements with a static electric field, pz should include the potential energy and so the 
 ! mat6(6,:) terms should be all zero. However Bmad is not using proper canonical coords so the
@@ -226,7 +225,7 @@ else
   if (key2 == rfcavity$ .or. key2 == lcavity$) then
     dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
   else
-    dpz2_dpz1 = 1 / rel_p2
+    dpz2_dpz1 = rel_p1 / rel_p2
   endif
 endif
 
@@ -242,9 +241,15 @@ ele2%y%eta     = eta_vec(3)
 ele2%y%etap    = eta_vec(4)
 ele2%y%deta_ds = eta_vec(4) / rel_p2 - orb_out%vec(4) / rel_p2**2
 
-ele2%z%eta     = eta_vec(5)
-ele2%z%etap    = ele1%z%etap * dpz2_dpz1
-ele2%z%deta_ds = ele1%z%deta_ds * dpz2_dpz1
+if (geometry == closed$) then
+  ele2%z%eta     = 0
+  ele2%z%etap    = 1
+  ele2%z%deta_ds = 1
+else
+  ele2%z%eta     = eta_vec(5)
+  ele2%z%etap    = ele1%z%etap * dpz2_dpz1
+  ele2%z%deta_ds = ele1%z%deta_ds * dpz2_dpz1
+endif
 
 call make_v_mats (ele2, v_mat, v_inv_mat)
 eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
