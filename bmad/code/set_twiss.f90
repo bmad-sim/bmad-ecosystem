@@ -7,8 +7,11 @@
 ! It is OK for twiss_ele to be an element in the branch (this routine makes a copy to be safe).
 !
 ! Since the the reference orbit at twiss_ele may be different from the reference orbit at the target ele,
-! it is not possible, in general, to match both etap and deta_ds. Which is matched is set by match_deta_ds
-
+! it is not possible, in general, to match both etap and deta_ds. Which is matched is set by match_deta_ds.
+!
+! Additionally, It is not possible to simultaneously match both (x,y) deta_ds and (a,b) normal mode deta_ds.
+! This routine matches (x,y) deta_ds only (when match_deta_ds = True).
+!
 ! Input:
 !   branch        -- branch_struct: Branch to modify.
 !   twiss_ele     -- ele_struct: Element with desired Twiss parameters.

@@ -40,7 +40,7 @@ do ib = 0, ubound(lat%branch, 1)
   call init_coord(orb1(0), orb0(0)%vec + dpz * eta_vec, ele0, downstream_end$)
   call track_all(lat, orb1, ib)
 
-  dorb = (orb1(n)%vec - orb0(n)%vec) / dpz
+  dorb = (orb1(n)%vec - orb0(n)%vec) / (orb1(n)%vec(6) - orb0(n)%vec(6))
   elen => branch%ele(n)
   eta_vec = [elen%x%eta, elen%x%etap, elen%y%eta, elen%y%etap, elen%z%eta, 1.0_rp] 
 
@@ -51,6 +51,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (1, '(2a, es14.6)') quote(b_str // '-dMax-Fwd'), ' ABS 1e-7', max_diff
 
   ! Check of set_twiss by setting Twiss at ele n-2 with the Twiss at ele n-1.
+  ! Note: (a,b) %deta_ds are not matched to.
 
   call transfer_twiss(branch%ele(n-1), t_ele)
   call set_twiss(branch, t_ele, n-2, .true., err)
@@ -65,7 +66,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (1, '(2a, 3es14.6)') quote(b_str // '-a-Twiss'), ' REL 1e-7', tt%beta, tt%alpha, tt%gamma
   write (1, '(2a, 3es14.6)') quote(b_str // '-a-dTwiss'), ' ABS 1E-14', dt%beta, dt%alpha, dt%gamma
   write (1, '(2a, 3es14.6)') quote(b_str // '-a-Disp'),  ' REL 1e-7', tt%eta, tt%etap, tt%deta_ds
-  write (1, '(2a, 3es14.6)') quote(b_str // '-a-dDisp'),  ' ABS 1E-14', dt%eta, dt%etap, dt%deta_ds
+  write (1, '(2a, 3es14.6)') quote(b_str // '-a-dDisp'),  ' ABS 1E-14', dt%eta, dt%etap ! , dt%deta_ds
 
   tt = t_ele%b
   dt = twiss_diff(t_ele%b, ds_ele%b, elen%b, max_diff)
@@ -73,7 +74,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (1, '(2a, 3es14.6)') quote(b_str // '-b-Twiss'), ' REL 1e-7', tt%beta, tt%alpha, tt%gamma
   write (1, '(2a, 3es14.6)') quote(b_str // '-b-dTwiss'), ' ABS 1E-14', dt%beta, dt%alpha, dt%gamma
   write (1, '(2a, 3es14.6)') quote(b_str // '-b-Disp'),  ' REL 1e-7', tt%eta, tt%etap, tt%deta_ds
-  write (1, '(2a, 3es14.6)') quote(b_str // '-b-dDisp'),  ' ABS 1E-14', dt%eta, dt%etap, dt%deta_ds
+  write (1, '(2a, 3es14.6)') quote(b_str // '-b-dDisp'),  ' ABS 1E-14', dt%eta, dt%etap ! , dt%deta_ds
 
   tt = t_ele%z
   dt = twiss_diff(t_ele%z, ds_ele%z, elen%z, max_diff)
@@ -131,7 +132,7 @@ twiss_d%emit      = twiss1%emit - twiss2%emit
 twiss_d%norm_emit = twiss1%norm_emit - twiss2%norm_emit
 
 max_diff = max(max_diff, abs(twiss_d%beta), abs(twiss_d%alpha), abs(twiss_d%gamma), &
-                    abs(twiss_d%eta), abs(twiss_d%etap), abs(twiss_d%deta_ds))
+                    abs(twiss_d%eta), abs(twiss_d%etap))  ! , abs(twiss_d%deta_ds))
 
 end function twiss_diff
 

@@ -219,17 +219,11 @@ if (geometry == closed$) eta1_vec(5) = 0
 ! mat6(6,:) terms should be all zero. However Bmad is not using proper canonical coords so the
 ! mat6(6,:) terms are forced to zero.
 
-if (rel_p1 == 0) then
-  dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
+if (rel_p1 == 0 .or. key2 == rfcavity$ .or. key2 == lcavity$) then
+  dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec)
 else
-  if (key2 == rfcavity$ .or. key2 == lcavity$) then
-    dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
-  else
-    dpz2_dpz1 = rel_p1 / rel_p2
-  endif
+  dpz2_dpz1 = rel_p1 / rel_p2
 endif
-
-!
 
 eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 
@@ -243,13 +237,12 @@ ele2%y%deta_ds = eta_vec(4) / rel_p2 - orb_out%vec(4) / rel_p2**2
 
 if (geometry == closed$) then
   ele2%z%eta     = 0
-  ele2%z%etap    = 1
-  ele2%z%deta_ds = 1
 else
   ele2%z%eta     = eta_vec(5)
-  ele2%z%etap    = ele1%z%etap * dpz2_dpz1
-  ele2%z%deta_ds = ele1%z%deta_ds * dpz2_dpz1
 endif
+
+ele2%z%etap    = 1
+ele2%z%deta_ds = 1
 
 call make_v_mats (ele2, v_mat, v_inv_mat)
 eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
