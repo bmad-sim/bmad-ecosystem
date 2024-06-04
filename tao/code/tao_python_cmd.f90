@@ -766,9 +766,9 @@ case ('bunch_params')
 ! Returns
 ! -------
 ! real_array
-!   if coordinate != 'state'
+!   if coordinate in ['x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c']
 ! integer_array
-!   if coordinate == 'state'
+!   if coordinate in ['state', 'ix_ele']
 !
 ! Examples
 ! --------
