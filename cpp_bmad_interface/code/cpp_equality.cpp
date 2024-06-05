@@ -1640,7 +1640,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.ic, y.ic);
   is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.creation_hash == y.creation_hash);
-  is_eq = is_eq && (x.ramper_slave_bookkeeping_done == y.ramper_slave_bookkeeping_done);
+  is_eq = is_eq && (x.ramper_slave_bookkeeping == y.ramper_slave_bookkeeping);
   return is_eq;
 };
 

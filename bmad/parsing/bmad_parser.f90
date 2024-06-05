@@ -1299,7 +1299,10 @@ character(200) name
 
 !
 
-if (present(parse_lat) .and. .not. bp_com%error_flag) parse_lat = lat0
+if (present(parse_lat) .and. .not. bp_com%error_flag) then
+  lat0%ramper_slave_bookkeeping = super_ok$    ! Prevents generation of warnings when ramper_slave_setup is called in next line. 
+  parse_lat = lat0
+endif
 
 ! Calculate the creation hash which can be used by programs to verify that the lattice has not been changed since
 ! the last time the lattice was read in.

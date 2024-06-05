@@ -1,18 +1,19 @@
 !+
-! Subroutine ramper_slave_setup (lat, do_setup)
+! Subroutine ramper_slave_setup (lat, force_setup)
 !
 ! Routine to setup slave%controller%ix_ramper_lord(:) array.
 !
 ! Input:
-!   lat       -- lat_struct: Lattice to be setup.
-!   do_setup  -- logical, optional: Default False. 
-!                   If True, do the setup irregardless of setting of lat%ramper_slave_bookkeeping_done
+!   lat         -- lat_struct: Lattice to be setup.
+!   force_setup -- logical, optional: Default False. 
+!                   If True, do the setup even if lat%ramper_slave_bookkeeping = ok$.
+!                   But the setup will never be done if lat%ramper_slave_bookkeeping = super_ok$.
 !
 ! Output:
-!   lat       -- lat_struct: Lattice with ramper slaves setup.
+!   lat         -- lat_struct: Lattice with ramper slaves setup.
 !-
 
-subroutine ramper_slave_setup (lat, do_setup)
+subroutine ramper_slave_setup (lat, force_setup)
 
 use bmad_routine_interface, dummy => ramper_slave_setup
 use attribute_mod, only: attribute_free
@@ -24,14 +25,15 @@ type (control_ramp1_struct), pointer :: r1
 type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ib, ie, ir, iv, n_loc, n_slave
-logical, optional :: do_setup
+logical, optional :: force_setup
 logical err
 character(*), parameter :: r_name = 'ramper_slave_setup'
 
 ! Clean 
 
 err = .false.
-if (lat%ramper_slave_bookkeeping_done .and. .not. logic_option(.false., do_setup)) return
+if (lat%ramper_slave_bookkeeping == ok$ .and. .not. logic_option(.false., force_setup)) return
+if (lat%ramper_slave_bookkeeping == super_ok$) return 
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -48,6 +50,7 @@ do ir = lat%n_ele_track+1, lat%n_ele_max
     r1 => lord%control%ramp(iv)
     call lat_ele_locator(r1%slave_name, lat, eles, n_loc, err)
     if (err) return
+    n_slave = n_slave + n_loc
     do ie = 1, n_loc
       call set_this_slave(eles(ie)%ele, lord, iv, r1, lat, n_slave, err)
       if (err) return
@@ -60,7 +63,7 @@ do ir = lat%n_ele_track+1, lat%n_ele_max
   endif
 enddo
 
-lat%ramper_slave_bookkeeping_done = .true.
+lat%ramper_slave_bookkeeping = ok$
 
 !----------------------------------------------------------------------------------
 contains

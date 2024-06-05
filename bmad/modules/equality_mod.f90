@@ -3078,8 +3078,8 @@ if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
 is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%creation_hash == f2%creation_hash)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%ramper_slave_bookkeeping_done .eqv. f2%ramper_slave_bookkeeping_done)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ramper_slave_bookkeeping == f2%ramper_slave_bookkeeping)
 
 end function eq_lat
 

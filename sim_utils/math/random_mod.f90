@@ -127,7 +127,7 @@ contains
 ! Note: The index_quasi argument is used internally for the quasi-random number generator.
 !-
 
-subroutine ran_gauss_scalar (harvest, ran_state, sigma_cut, index_quasi, sigma_cut_used)
+subroutine ran_gauss_scalar (harvest, ran_state, sigma_cut, index_quasi)
 
 implicit none
 
@@ -136,7 +136,6 @@ type (random_state_struct), pointer :: r_state
 
 real(rp), intent(out) :: harvest
 real(rp), optional :: sigma_cut
-real(rp), optional :: sigma_cut_used
 real(rp) a(2), v1, v2, r, sig_cut, fac
 real(rp), parameter :: sigma_max = 8
 
@@ -198,7 +197,6 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
 
   ix = bracket_index(r, erf_array, 0)
   harvest = (ix + (r - erf_array(ix)) / (erf_array(ix+1) - erf_array(ix))) * ss / n_pts_per_sigma
-  if (present(sigma_cut_used)) sigma_cut_used = sig_cut
   return
 endif
 
@@ -210,7 +208,7 @@ do
   if (r_state%number_stored) then
     r_state%number_stored = .false.
     harvest = r_state%h_saved
-    if (sig_cut < 0 .or. abs(harvest) < sig_cut) exit
+    if (sig_cut <= 0 .or. abs(harvest) < sig_cut) exit
   endif
 
   ! else we generate a number
@@ -228,10 +226,8 @@ do
   r_state%number_stored = .true.
 
   harvest = v1 * r
-  if (abs(harvest) < sig_cut) exit
+  if (sig_cut <= 0 .or. abs(harvest) < sig_cut) exit
 enddo
-
-if (present(sigma_cut_used)) sigma_cut_used = sig_cut
 
 end subroutine ran_gauss_scalar
 
@@ -253,17 +249,12 @@ type (random_state_struct), optional, target :: ran_state
 
 real(rp), optional :: sigma_cut
 real(rp), intent(out) :: harvest(:)
-real(rp) sigma_cut_actual
 integer i
 
 !
 
-do
-  do i = 1, size(harvest)
-    call ran_gauss_scalar (harvest(i), ran_state, sigma_cut, i, sigma_cut_actual)
-  enddo
-
-  if (sum(harvest*harvest) < sigma_cut_actual**2) return
+do i = 1, size(harvest)
+  call ran_gauss_scalar (harvest(i), ran_state, sigma_cut, i)
 enddo
 
 end subroutine ran_gauss_vector

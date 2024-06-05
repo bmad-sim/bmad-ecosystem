@@ -3704,7 +3704,7 @@ public:
   Int_ARRAY ic;
   Int photon_type;
   Int creation_hash;
-  Bool ramper_slave_bookkeeping_done;
+  Int ramper_slave_bookkeeping;
 
   CPP_lat() :
     use_name(),
@@ -3736,7 +3736,7 @@ public:
     ic(0, 0),
     photon_type(Bmad::INCOHERENT),
     creation_hash(0),
-    ramper_slave_bookkeeping_done(false)
+    ramper_slave_bookkeeping(Bmad::STALE)
     {}
 
   ~CPP_lat() {

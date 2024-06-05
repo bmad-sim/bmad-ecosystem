@@ -10638,7 +10638,7 @@ interface
       z_control, n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, &
       z_version, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, &
       z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
-      z_ramper_slave_bookkeeping_done) bind(c)
+      z_ramper_slave_bookkeeping) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -10650,8 +10650,7 @@ interface
     type(c_ptr), value :: z_beam_init, z_pre_tracker
     real(c_double) :: z_custom(*)
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
-    integer(c_int) :: z_photon_type, z_creation_hash
-    logical(c_bool) :: z_ramper_slave_bookkeeping_done
+    integer(c_int) :: z_photon_type, z_creation_hash, z_ramper_slave_bookkeeping
   end subroutine
 end interface
 
@@ -10769,7 +10768,7 @@ call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_ch
     c_loc(F%particle_start), c_loc(F%beam_init), c_loc(F%pre_tracker), fvec2vec(F%custom, &
     n1_custom), n1_custom, F%version, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, &
     F%n_control_max, F%n_ic_max, F%input_taylor_order, fvec2vec(F%ic, n1_ic), n1_ic, &
-    F%photon_type, F%creation_hash, c_logic(F%ramper_slave_bookkeeping_done))
+    F%photon_type, F%creation_hash, F%ramper_slave_bookkeeping)
 
 end subroutine lat_to_c
 
@@ -10795,7 +10794,7 @@ subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_machine, z_input_file_name, z
     n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, z_version, &
     z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, z_n_ic_max, &
     z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
-    z_ramper_slave_bookkeeping_done) bind(c)
+    z_ramper_slave_bookkeeping) bind(c)
 
 
 implicit none
@@ -10814,9 +10813,8 @@ type(c_ptr), value :: z_beam_init, z_pre_tracker, z_custom, z_n_ele_track, z_n_e
 type(mode_info_struct), pointer :: f_a, f_b, f_z
 type(lat_param_struct), pointer :: f_param
 real(c_double), pointer :: f_custom(:)
-integer(c_int) :: z_version, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type, z_creation_hash
+integer(c_int) :: z_version, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type, z_creation_hash, z_ramper_slave_bookkeeping
 integer(c_int), pointer :: f_n_ele_track, f_n_ele_max, f_ic(:)
-logical(c_bool) :: z_ramper_slave_bookkeeping_done
 
 call c_f_pointer (Fp, F)
 
@@ -10999,8 +10997,8 @@ endif
 F%photon_type = z_photon_type
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%creation_hash = z_creation_hash
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%ramper_slave_bookkeeping_done = f_logic(z_ramper_slave_bookkeeping_done)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ramper_slave_bookkeeping = z_ramper_slave_bookkeeping
 
 end subroutine lat_to_f2
 

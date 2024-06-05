@@ -9402,8 +9402,8 @@ endif
 rhs = 41 + offset; F%photon_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 42 + offset; F%creation_hash = rhs
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 43 + offset; F%ramper_slave_bookkeeping_done = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 43 + offset; F%ramper_slave_bookkeeping = rhs
 
 end subroutine set_lat_test_pattern
 

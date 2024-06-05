@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 318
+integer, parameter :: bmad_inc_version$ = 319
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1591,7 +1591,7 @@ type lat_struct
   integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
   integer :: creation_hash = 0                        ! Set by bmad_parser. creation_hash will vary if 
                                                       !   any of the lattice files are modified.
-  logical :: ramper_slave_bookkeeping_done = .false.
+  integer :: ramper_slave_bookkeeping = stale$
 end type
 
 character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']

@@ -6585,8 +6585,8 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 42 + offset; C.creation_hash = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 43 + offset; C.ramper_slave_bookkeeping_done = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 43 + offset; C.ramper_slave_bookkeeping = rhs;
 
 
 }
