@@ -191,18 +191,19 @@ do i = 1, n_dpz
 
   write (1, *)
   write (1, *)
-  write (1, '(a, f10.6, a)') '"dpz =', dpz(i), '"'
-  write (1, '(a, f10.6, a)') '"x_ref_orb =', da%ref_orb%vec(1), '"   # (x, y) below is with respect to the reference orbit.'
-  write (1, '(a, f10.6, a)') '"y_ref_orb =', da%ref_orb%vec(3), '"'
-  line = '#      x         y     turn_lost   where_lost   lost_at'
-  line(48+nt:) = '|  Init_orbit (includes ref orb)'
+  write (1, '(a, f14.9, a)') '"dpz =', dpz(i), '"'
+  write (1, '(a, f14.9, a)') '"x_ref_orb =', da%ref_orb%vec(1), '"   # (x, y) below is with respect to the reference orbit.'
+  write (1, '(a, f14.9, a)') '"y_ref_orb =', da%ref_orb%vec(3), '"'
+  write (1, '(a, 6(f14.9, a))') '# ref_orb = (', (da%ref_orb%vec(j), ',', j = 1, 5), da%ref_orb%vec(6), ')'
+  line = '#         x            y     turn_lost   where_lost   lost_at'
+  line(54+nt:) = '|  Init_orbit (includes ref orb)'
   write (1, '(a)') trim(line)
   do j = 1, da_param%n_angle
     da_point => da%point(j)
-    write (line, '(2f11.6, i7, 6x, a13, a)') da_point%x, da_point%y, da_point%i_turn, &
+    write (line, '(2f14.9, i7, 6x, a13, a)') da_point%x, da_point%y, da_point%i_turn, &
                               coord_state_name(da_point%plane), trim(branch%ele(da_point%ix_ele)%name)
     vec = da%ref_orb%vec + [da_point%x, 0.0_rp, da_point%y, 0.0_rp, 0.0_rp, 0.0_rp]
-    write (line(48+nt:), '(6es14.6)') vec
+    write (line(54+nt:), '(6f14.9)') vec
     write (1, '(a)') trim(line)
   enddo
 enddo
