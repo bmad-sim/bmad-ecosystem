@@ -47,7 +47,7 @@ if (nargs > 0) then
   stop
 endif
 
-! if (nargs == 1) then
+! if (nargs == 1) then 
 !    call get_command_argument(1, lat_file)
 !    print *, 'Using ', trim(lat_file)
 !    print_extra = .true.
