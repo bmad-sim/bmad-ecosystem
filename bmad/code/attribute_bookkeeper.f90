@@ -703,6 +703,13 @@ case (rf_bend$)
     val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
   endif
 
+  select case (nint(val(fiducial_pt$)))
+  case (none_pt$, center_pt$)
+    val(l_rectangular$) = val(l_chord$)
+  case default
+    val(l_rectangular$) = sinc(val(angle$)) * val(l$)
+  end select
+
   if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
     call set_ele_status_stale (ele, floor_position_group$)
   endif
@@ -741,6 +748,13 @@ case (sbend$)
     val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
     val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
   endif
+
+  select case (nint(val(fiducial_pt$)))
+  case (none_pt$, center_pt$)
+    val(l_rectangular$) = val(l_chord$)
+  case default
+    val(l_rectangular$) = sinc(val(angle$)) * val(l$)
+  end select
 
   if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
     call set_ele_status_stale (ele, floor_position_group$)

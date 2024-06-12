@@ -1487,7 +1487,10 @@ call init_attribute_name1 (rf_bend$, roll_tot$,                     'ROLL_TOT', 
 call init_attribute_name1 (rf_bend$, rho$,                          'RHO', quasi_free$)
 call init_attribute_name1 (rf_bend$, l_chord$,                      'L_CHORD', quasi_free$)
 call init_attribute_name1 (rf_bend$, l_sagitta$,                    'L_SAGITTA', dependent$)
+call init_attribute_name1 (rf_bend$, l_rectangular$,                'L_RECTANGULAR', dependent$)
+call init_attribute_name1 (rf_bend$, fiducial_pt$,                  'FIDUCIAL_PT')
 call init_attribute_name1 (rf_bend$, b_field$,                      'B_FIELD', quasi_free$)
+call init_attribute_name1 (rf_bend$, init_needed$                   'init_needed', private$)
 call init_attribute_name1 (rf_bend$, field_master$,                 'FIELD_MASTER')
 call init_attribute_name1 (rf_bend$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (rf_bend$, rf_frequency$,                 'RF_FREQUENCY', quasi_free$)
@@ -1518,8 +1521,11 @@ call init_attribute_name1 (sbend$, hgapx$,                          'HGAPX')
 call init_attribute_name1 (sbend$, fint$,                           'FINT')
 call init_attribute_name1 (sbend$, fintx$,                          'FINTX')
 call init_attribute_name1 (sbend$, rho$,                            'RHO', quasi_free$)
+call init_attribute_name1 (sbend$, init_needed$                     'init_needed', private$)
 call init_attribute_name1 (sbend$, l_chord$,                        'L_CHORD', quasi_free$)
 call init_attribute_name1 (sbend$, l_sagitta$,                      'L_SAGITTA', dependent$)
+call init_attribute_name1 (sbend$, l_rectangular$,                  'L_RECTANGULAR', dependent$)
+call init_attribute_name1 (sbend$, fiducial_pt$,                    'FIDUCIAL_PT')
 call init_attribute_name1 (sbend$, ptc_fringe_geometry$,            'PTC_FRINGE_GEOMETRY')
 call init_attribute_name1 (sbend$, b_field$,                        'B_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, db_field$,                       'DB_FIELD', quasi_free$)
@@ -1938,7 +1944,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
       'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', &
-      'SPECIES_STRONG', 'SCATTER_METHOD')
+      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -2035,7 +2041,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
       'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', 'Z_CROSSING', &
-      'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', &
+      'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', 'L_RECTANGULAR', &
       'X_DISPERSION_ERR', 'Y_DISPERSION_ERR', 'X_DISPERSION_CALIB', 'Y_DISPERSION_CALIB')
   attrib_units = 'm'
 

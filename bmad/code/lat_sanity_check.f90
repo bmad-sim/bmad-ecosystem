@@ -409,6 +409,19 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    ! bend
+
+    if (ele%key == sbend$) then
+      select case (nint(ele%value(fiducial_pt$)))
+      case (none_pt$, entrance_end$, center_pt$, exit_end$)
+      case default
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                      'HAS A BAD FIDUCIAL_PT VALUE: ' // int_str(nint(ele%value(fiducial_pt$))))
+        err_flag = .true.
+      end select
+    end if
+
     ! ac_kicker needs to have the time variation defined.
 
     if (ele%key == ac_kicker$) then

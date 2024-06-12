@@ -277,9 +277,13 @@ case (photon_init$)
   endif
 
 case (rf_bend$)
+  ele%value(fintx$) = real_garbage$
+  ele%value(hgapx$) = real_garbage$
   ele%tracking_method = runge_kutta$
   ele%field_calc = fieldmap$
   ele%value(num_steps$) = 10
+  ele%value(fiducial_pt$) = none_pt$
+  ele%value(init_needed$) = true$
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
@@ -288,6 +292,8 @@ case (rbend$, sbend$)
   ele%value(ptc_fringe_geometry$) = x_invariant$
   ele%value(exact_multipoles$) = off$
   ele%value(ptc_field_geometry$) = sector$
+  ele%value(fiducial_pt$) = none_pt$
+  ele%value(init_needed$) = true$
 
 case (rcollimator$)
   ele%offset_moves_aperture = .true.

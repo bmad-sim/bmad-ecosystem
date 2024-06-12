@@ -1593,7 +1593,7 @@ character(41), parameter :: att2_name(95) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
-                'L_SAGITTA', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
+                'L_RECTANGULAR', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
                 'GRADIENT', 'GRADIENT_TOT', 'PHI0_MULTIPASS', 'CAVITY_TYPE', 'Y_GAIN_ERR', 'Y_GAIN_CALIB', 'Y_OFFSET_CALIB', &
                 'BETA_B', 'ALPHA_B', 'CRAB_X3', 'CRAB_X4', 'CRAB_X5', 'PX_APERTURE_CENTER', 'PY_APERTURE_CENTER', &
                 'PZ_APERTURE_CENTER', 'Z_APERTURE_CENTER', 'CMAT_12', 'CMAT_22', 'Y_DISPERSION_ERR', &
@@ -1632,13 +1632,17 @@ end select
 select case (attrib_name)
 case ('L')
   is_2nd_col_attrib = .false.
+
   if (ele%key == patch$) then
     ix2_attrib = user_sets_length$
+  elseif (ele%key == sbend$) then
+    ix2_attrib = l_sagitta$
   elseif (has_attribute(ele, 'L_ACTIVE')) then
     ix2_attrib = l_active$
   elseif (has_attribute(ele, 'L_SOFT_EDGE')) then
     ix2_attrib = l_soft_edge$
   endif
+
   return
 
 case ('L_SOFT_EDGE', 'L_ACTIVE', 'USER_SETS_LENGTH')
