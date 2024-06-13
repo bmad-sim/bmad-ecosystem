@@ -1573,7 +1573,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(95) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(41), parameter :: att_name(96) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1587,13 +1587,13 @@ character(41), parameter :: att_name(95) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'HARMON', 'FINAL_CHARGE', &
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
-                'F_FACTOR']
+                'F_FACTOR', 'EXACT_MULTIPOLES']
 
-character(41), parameter :: att2_name(95) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(41), parameter :: att2_name(96) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
-                'L_SAGITTA', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
+                'L_RECTANGLE', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
                 'GRADIENT', 'GRADIENT_TOT', 'PHI0_MULTIPASS', 'CAVITY_TYPE', 'Y_GAIN_ERR', 'Y_GAIN_CALIB', 'Y_OFFSET_CALIB', &
                 'BETA_B', 'ALPHA_B', 'CRAB_X3', 'CRAB_X4', 'CRAB_X5', 'PX_APERTURE_CENTER', 'PY_APERTURE_CENTER', &
                 'PZ_APERTURE_CENTER', 'Z_APERTURE_CENTER', 'CMAT_12', 'CMAT_22', 'Y_DISPERSION_ERR', &
@@ -1603,7 +1603,7 @@ character(41), parameter :: att2_name(95) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', 'HARMON_MASTER', 'SCATTER', &
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DTHICKNESS_DX', &
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
-                'SCATTER_METHOD']
+                'SCATTER_METHOD', 'FIDUCIAL_PT']
 
 ! Exceptional cases
 
@@ -1632,16 +1632,20 @@ end select
 select case (attrib_name)
 case ('L')
   is_2nd_col_attrib = .false.
+
   if (ele%key == patch$) then
     ix2_attrib = user_sets_length$
+  elseif (ele%key == sbend$) then
+    ix2_attrib = l_sagitta$
   elseif (has_attribute(ele, 'L_ACTIVE')) then
     ix2_attrib = l_active$
   elseif (has_attribute(ele, 'L_SOFT_EDGE')) then
     ix2_attrib = l_soft_edge$
   endif
+
   return
 
-case ('L_SOFT_EDGE', 'L_ACTIVE', 'USER_SETS_LENGTH')
+case ('L_SOFT_EDGE', 'L_ACTIVE', 'L_SAGITTA', 'USER_SETS_LENGTH')
   is_2nd_col_attrib = .true.
   return
 end select
@@ -1664,6 +1668,10 @@ if (ix > 0) then
   if (.not. has_attribute(ele, att2_name(ix))) return
   ix2_attrib = attribute_index(ele, att2_name(ix))
 endif
+
+! Temp until bend fiducial_pt code finished
+
+if (ix2_attrib == fiducial_pt$ .or. ix2_attrib == l_rectangle$) ix2_attrib = -1
 
 end function is_2nd_column_attribute
 

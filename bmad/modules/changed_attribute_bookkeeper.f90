@@ -43,7 +43,8 @@ implicit none
 !   logic_attrib  -- logical; Attribute that has been changed.
 !                      For example: ele%is_on.
 !   all_attrib    -- all_pointer_struct: Pointer to attribute.
-!   set_dependent -- logical, optional: If False then dependent variable bookkeeping will not be done.
+!   set_dependent -- logical, optional: If False then dependent parameter bookkeeping will not be done.
+!                     False is used, for example, during parsing when dependent bookkeepin is not wanted.
 !                     Default is True. Do not set False unless you know what you are doing.
 !
 ! Output:
@@ -281,7 +282,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
 real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor, ff, rel_p1
-real(rp), target :: unknown_attrib
+real(rp), target :: unknown_attrib, dangle
 
 integer i
 
@@ -294,6 +295,7 @@ logical, optional :: set_dependent
 branch => pointer_to_branch(ele)
 dep_set = logic_option(.true., set_dependent)
 dep2_set = (dep_set .and. ele%value(p0c$) /= 0 .and. charge_of(branch%param%particle, 0) /= 0)
+p0c_factor = 0
 if (dep2_set) p0c_factor = ele%value(p0c$) / (c_light * charge_of(branch%param%particle))
 
 ! If a lord then set the control flag stale
@@ -742,29 +744,73 @@ case (sbend$, rf_bend$)
   if (dep_set) then
     if (associated(a_ptr, ele%value(angle$))) then
       if (ele%value(l$) /= 0) then
-        ele%value(g$) = ele%value(angle$) / ele%value(l$)
+        dangle = ele%value(angle$) - ele%value(g$) * ele%value(l$)
+        select case (nint(ele%value(fiducial_pt$)))
+        case (none_pt$)
+          ele%value(g$) = ele%value(angle$) / ele%value(l$)
+        case (center_pt$)
+          ele%value(g$) = ele%value(angle$) / ele%value(l$)
+          ele%value(e1$) = ele%value(e1$) + 0.5_rp * dangle
+          ele%value(e2$) = ele%value(e2$) + 0.5_rp * dangle
+        case (entrance_end$)
+          ele%value(g$) = sin(ele%value(angle$)) / ele%value(l_rectangle$)
+          ele%value(e2$) = ele%value(e2$) + dangle
+        case (exit_end$)
+          ele%value(g$) = sin(ele%value(angle$)) / ele%value(l_rectangle$)
+          ele%value(e1$) = ele%value(e1$) + dangle
+        end select
         if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor
       endif
+
+    elseif (associated(a_ptr, ele%value(l_rectangle$))) then
+      select case (nint(ele%value(fiducial_pt$)))
+      case (none_pt$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(0.5_rp * ele%value(l_rectangle$) * ele%value(g$))
+      case (center_pt$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(0.5_rp * ele%value(l_rectangle$) * ele%value(g$))
+        dangle = ele%value(l$) * ele%value(g$) - ele%value(angle$)
+        ele%value(e1$) = ele%value(e1$) + 0.5_rp * dangle
+        ele%value(e2$) = ele%value(e2$) + 0.5_rp * dangle
+      case (entrance_end$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(ele%value(l_rectangle$) * ele%value(g$))
+        dangle = ele%value(l$) * ele%value(g$) - ele%value(angle$)
+        ele%value(e2$) = ele%value(e2$) + dangle
+      case (exit_end$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(ele%value(l_rectangle$) * ele%value(g$))
+        dangle = ele%value(l$) * ele%value(g$) - ele%value(angle$)
+        ele%value(e1$) = ele%value(e1$) + dangle
+      end select
+
     elseif (associated(a_ptr, ele%value(rho$))) then
       if (ele%value(rho$) /= 0) then
-        ele%value(g$) = 1 / ele%value(rho$)
-        if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
+        ele%value(g$) = 1.0_rp / ele%value(rho$)
+        call bend_fiducial_calc(ele, dep2_set, p0c_factor)
       endif
+
+    elseif (associated(a_ptr, ele%value(g$))) then
+      ele%value(b_field$) = ele%value(g$) * p0c_factor 
+      call bend_fiducial_calc(ele, dep2_set, p0c_factor)
+
     elseif (dep2_set) then
       if (associated(a_ptr, ele%value(b_field$))) then
         ele%value(g$) = ele%value(b_field$) / p0c_factor
+        call bend_fiducial_calc(ele, dep2_set, p0c_factor)
+
       elseif (associated(a_ptr, ele%value(db_field$))) then
         ele%value(dg$) = ele%value(db_field$) / p0c_factor
-      elseif (associated(a_ptr, ele%value(g$))) then
-        ele%value(b_field$) = ele%value(g$) * p0c_factor 
+
       elseif (associated(a_ptr, ele%value(dg$))) then
         ele%value(db_field$) = ele%value(dg$) * p0c_factor
+
       elseif (associated(a_ptr, ele%value(k1$))) then
         ele%value(b1_gradient$) = ele%value(k1$) * p0c_factor
+
       elseif (associated(a_ptr, ele%value(b1_gradient$))) then
         ele%value(k1$) = ele%value(b1_gradient$) / p0c_factor
+
       elseif (associated(a_ptr, ele%value(k2$))) then
         ele%value(b2_gradient$) = ele%value(k2$) * p0c_factor
+
       elseif (associated(a_ptr, ele%value(b2_gradient$))) then
         ele%value(k2$) = ele%value(b2_gradient$) / p0c_factor
       endif
@@ -812,6 +858,35 @@ case (solenoid$)
   endif
 
 end select
+
+!--------------------------------------------------------------
+contains
+
+subroutine bend_fiducial_calc(ele, dep2_set, p0c_factor)
+
+type (ele_struct) ele
+real(rp) p0c_factor, dangle
+logical dep2_set
+
+! There has been a change in g so need to calculate shifts in L, e1, and e2
+
+dangle = ele%value(g$) * ele%value(l$) - ele%value(angle$)
+
+select case (nint(ele%value(fiducial_pt$)))
+case (none_pt$)
+case (center_pt$)
+  ele%value(e1$) = ele%value(e1$) + 0.5_rp * dangle
+  ele%value(e1$) = ele%value(e1$) + 0.5_rp * dangle
+case (entrance_end$)
+  ele%value(e2$) = ele%value(e2$) + dangle
+case (exit_end$)
+  ele%value(e1$) = ele%value(e1$) + dangle
+end select
+
+if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
+
+
+end subroutine bend_fiducial_calc
 
 end subroutine set_flags_for_changed_real_attribute
 

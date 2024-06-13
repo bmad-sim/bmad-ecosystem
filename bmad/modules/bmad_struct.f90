@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 319
+integer, parameter :: bmad_inc_version$ = 320
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -350,6 +350,7 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
 
+integer, parameter :: none_pt$ = 4
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4, no_aperture$ = 4, nowhere$ = 4
 integer, parameter :: continuous$ = 5, surface$ = 6, wall_transition$ = 7
 
@@ -357,6 +358,9 @@ integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
 integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_between$ = 13 ! Must be different from upstream_end$, downstream_end$
+
+character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
+      'Entrance_end', 'Exit_End', 'Center', 'None']
 
 character(16), parameter :: aperture_at_name(0:7) = [ &
       'GARBAGE!       ', 'Entrance_End   ', 'Exit_End       ', 'Both_Ends      ', &
@@ -1733,7 +1737,7 @@ integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, 
                       eps_step_scale$ = 26, E_tot_strong$ = 26, dthickness_dx$ = 26, bend_tilt$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
                       x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
-                      py_aperture_center$ = 27, x_dispersion_err$ = 27
+                      py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
                       rf_clock_harmonic$ = 28, b_field_tot$ = 28, atomic_weight$ = 28
@@ -1745,8 +1749,8 @@ integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord
                       scale_field_to_one$ = 30, voltage_tot$ = 30, scatter_method$ = 30
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id$ = 31, ref_cap_gamma$ = 31, &
                       l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31, &
-                      mean_excitation_energy$ = 31
-integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32
+                      mean_excitation_energy$ = 31, fiducial_pt$ = 31
+integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32, init_needed$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33, x_kick$ = 33
 integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
 integer, parameter :: y_pitch$ = 35, y_kick$ = 35
