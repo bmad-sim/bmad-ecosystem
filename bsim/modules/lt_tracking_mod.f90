@@ -92,6 +92,14 @@ type ltt_params_struct
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
   logical :: set_beambeam_z_crossing = .false.
   logical :: print_info_messages = .true.          ! Informational messages printed?
+  !
+  character(200) :: sigma_matrix_output_file = ''  ! No longer used
+  character(200) :: master_output_file = ''        ! No longer used
+  character(200) :: particle_output_file = ''      ! Replaced by phase_space_output_file
+  character(200) :: beam_binary_output_file = ''   ! No longer used
+  integer :: averaging_window = 1                  ! No longer used
+  integer :: mpi_runs_per_subprocess = 4           ! No longer used
+  logical :: split_bends_for_radiation = .false.   ! No longer used
 end type
 
 ! A section structure is either:
@@ -243,11 +251,65 @@ open(1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close(1)
 
-! Error check.
+! Flag the setting of parameters that have been deprecated
+
+if (ltt%beam_binary_output_file /= '') then
+  call out_io (s_info$, r_name, &
+        '"ltt%beam_binary_output_file" has been replaced by "ltt%beam_output_file". ', &
+        'Beam file names with ".h5" or ".hdf5" suffix will be binary and otherwise will have an ASCII format.', &
+        'Please change your init file! Stopping here.')
+  stop
+endif
+
+if (ltt%split_bends_for_radiation) then
+  call out_io (s_info$, r_name, &
+        '"ltt%split_bends_for_radiation" has been renamed "ltt%split_bends_for_stochastic_rad".', &
+        'And the manual has been updated to correctly describe what this parameter does.', &
+        'Please change in the init file! Stopping here.')
+  stop
+endif
+
+if (ltt%master_output_file /= '') then
+  call out_io (s_info$, r_name, &
+        'Note: The master_output_file is no longer created since data in this file is written to other files.', &
+        'Please correct the init file. Will stop here.')
+  stop
+endif
+
+if (ltt%sigma_matrix_output_file /= '') then
+  call out_io (s_info$, r_name, &
+        'Note: ltt%sigma_matrix_output_file is no longer used.', &
+        '  Essentially now ltt%averages_output_file sets the name of the sigma matrix file.', &
+        '  See manual for details.', &
+        '  Please correct the init file. Will stop here.')
+  stop
+endif
+
+if (ltt%averaging_window /= 1) then
+  call out_io (s_info$, r_name, &
+        'Note: ltt%averaging_window is no longer used.', &
+        '  Reason: The advantage of averaging over multiple turns was not worth the complications', &
+        '  to the program internal bookkeeping', &
+        'Please correct the init file. Will stop here.')
+  stop
+endif
+
+if (ltt%mpi_runs_per_subprocess /= 4) then
+  call out_io (s_info$, r_name, 'Note: ltt%mpi_runs_per_subprocess is no longer used.', &
+                                'Please correct the init file. Will stop here.')
+  stop
+endif
 
 if (any(ltt%core_emit_cutoff > 1.00000001_rp .or. &
               (ltt%core_emit_cutoff < 0 .and. ltt%core_emit_cutoff /= -1.0_rp))) then
   call out_io (s_fatal$, r_name, 'ltt%core_emit_cutoff MUST BE GREATER THAN ZERO AND LESS THAN OR EQUAL TO ONE. STOPPING HERE.')
+  stop
+endif
+
+if (ltt%particle_output_file /= '') then
+  call out_io (s_error$, r_name, 'Note: ltt%particle_output_file replaced by ltt%phase_space_output_file.', &
+                                 ' Also see ltt%action_angle_output_file.', &
+                                 'Please correct the init file. Will stop here.')
   stop
 endif
 
