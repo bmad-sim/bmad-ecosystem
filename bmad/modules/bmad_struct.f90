@@ -1737,7 +1737,7 @@ integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, 
                       eps_step_scale$ = 26, E_tot_strong$ = 26, dthickness_dx$ = 26, bend_tilt$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
                       x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
-                      py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangular$ = 27
+                      py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
                       rf_clock_harmonic$ = 28, b_field_tot$ = 28, atomic_weight$ = 28

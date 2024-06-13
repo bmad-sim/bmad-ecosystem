@@ -511,11 +511,13 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   l                  = <Real>   ! "Length" of bend. See below.
   l_arc              = <Real>   ! Arc length. For \vn{rbend}s only. 
   l_chord            = <Real>   ! Chord length. See \sref{s:l}.
+  l_rectangle        = <Real>   ! "Rectangular" length.
   l_sagitta                     ! Sagittal length. Dependent param (\sref{s:depend}).
-  ptc_field_geometry  = <Switch> ! See below.
+  ptc_field_geometry  = <Switch> ! See below. Default is \vn{sector}.
   ptc_fringe_geometry = <Switch> ! \Sref{s:fringe.type}
   rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
   roll               = <Real>   ! See \ref{s:offset}.
+  fiducial_pt        = <switch> ! See below. Default is \vn{none}.
   field_master       = <T/F>    ! See \ref{s:field.master}.
 \end{example}
 

@@ -5951,11 +5951,11 @@ subroutine compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 implicit none
 
 type (ele_struct), target :: ref_ele, super_ele
-type (ele_struct), pointer :: slave
+type (ele_struct), pointer :: slave, ele
 type (parser_ele_struct) pele
 type (branch_struct), pointer :: branch
 
-integer i, ix, ix_insert, ele_pt, ref_pt
+integer i, ie, ix, nt, ix_insert, ele_pt, ref_pt, offset_dir, ix_ref
 
 real(rp) s_ref_begin, s_ref_end, s0, len_tiny
 logical reflected_or_reversed
@@ -5974,6 +5974,7 @@ if (reflected_or_reversed) then
 else
   super_ele%s = pele%offset
 endif
+offset_dir = sign_of(super_ele%s)
 
 ele_pt = pele%ele_pt
 if (reflected_or_reversed) then
@@ -6003,6 +6004,14 @@ case (overlay$, group$, girder$)
     slave => pointer_to_slave(ref_ele, i)
     s_ref_begin = min(s_ref_begin, slave%s_start)
     s_ref_end = max(s_ref_end, slave%s)
+
+    if (i == 1) then
+      ix_ref = slave%ix_ele
+    elseif (offset_dir == 1) then
+      ix_ref = min(ix_ref, slave%ix_ele)
+    else
+      ix_ref = max(ix_ref, slave%ix_ele)
+    endif
   enddo
 case (ramper$)
   call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON RAMPER' // pele%ref_name)
@@ -6010,6 +6019,7 @@ case (ramper$)
 case default
   s_ref_begin = ref_ele%s_start
   s_ref_end = ref_ele%s
+  ix_ref = ref_ele%ix_ele
 end select
 
 ! Now compute the s position at the end of the element and put it in ele%s.
@@ -6034,11 +6044,67 @@ else
   if (global_com%exit_on_error) call err_exit
 endif
 
+! Check that there are no problems with bends of not yet determined length
+
+branch => pointer_to_branch(ref_ele)
+nt = branch%n_ele_track
+
+if (offset_dir == 1) then
+  do ie = ix_ref, nt
+    ele => branch%ele(ie)
+    if (ele%s_start > super_ele%s) exit
+    if (bend_length_has_been_set(ele)) cycle
+    call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                       'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                       'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+    return
+  enddo
+
+  if (super_ele%s > branch%ele(nt)%s) then
+    do ie = 1, ix_ref
+      ele => branch%ele(ie)
+      if (ele%s_start + branch%param%total_length > super_ele%s) exit
+      if (bend_length_has_been_set(ele)) cycle
+      call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                         'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                         'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+      return
+    enddo
+  endif
+
+else
+  do ie = ix_ref, 1, -1
+    ele => branch%ele(ie)
+    if (ele%s < super_ele%s_start) exit
+    if (bend_length_has_been_set(ele)) cycle
+    call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                       'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                       'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+    return
+  enddo
+
+  if (super_ele%s < 0) then
+    do ie = nt, ix_ref
+      ele => branch%ele(ie)
+      if (ele%s < super_ele%s_start) exit
+      if (bend_length_has_been_set(ele)) cycle
+      call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                         'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                         'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+      return
+    enddo
+  endif
+
+endif
+
 ! A superimpose can wrap around the beginning or the end of the lattice. 
 ! This is done independent of the geometry. The reason why this is geometry 
 ! independent is that it is sometimes convenient to treat a closed lattice as open.
 
-branch => pointer_to_branch(ref_ele)
 s0 = branch%ele(0)%s
 
 if (pele%wrap_superimpose) then
@@ -6113,6 +6179,14 @@ real(rp) eps
 logical err_flag, wrap
 integer ix1, ix2
 
+!
+
+if (.not. bend_length_has_been_set(super_ele)) then
+  call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                     'IS A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                     'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+  return
+endif
 
 ! Check for out-of-bounds.
 ! If wrap = False then out-of-bounds is not an error.
@@ -7160,7 +7234,7 @@ type (branch_struct), pointer :: branch
 type (surface_grid_struct), pointer :: grid
 type (surface_grid_pt_struct), pointer :: pt
 
-real(rp) a, rr, v_inv_mat(4,4), eta_vec(4)
+real(rp) a, rr, v_inv_mat(4,4), eta_vec(4), factor
 
 integer n, i, j, i0, i1, j0, j1
 logical kick_set, length_set, set_done, err_flag
@@ -7265,17 +7339,14 @@ case (beginning_ele$)
 case (sbend$, rbend$, rf_bend$) 
 
   b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(db_field$) /= 0)
-  g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
-  if ((ele%value(angle$) /= 0 .or. ele%value(rho$) /= 0 .or. g_set) .and. &
-                                      .not. b_field_set) ele%value(b_field$) = real_garbage$
-
-  if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
+  if (b_field_set .and. (ele%value(p0c$) == 0 .or. ele%ref_species == not_set$)) return
+  ele%value(init_needed$) = false$
 
   ! Only one of b_field, g, or rho may be set.
-  ! B_field may not be set for an rbend since, in this case, L is not computable (we don't know the ref energy).
 
-  if (b_field_set .and. ele%key == rbend$) call parser_error &
-          ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
+  g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
+
+  if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
 
   if (b_field_set .and. g_set) call parser_error &
           ('BOTH G (OR DG) AND B_FIELD (OR DB_FIELD) SET FOR A BEND: ' // ele%name)
@@ -7286,6 +7357,22 @@ case (sbend$, rbend$, rf_bend$)
   if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
             call parser_error ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
 
+  if (ele%value(l$) /= 0 .and. ele%value(l_rectangle$) /= 0) &
+            call parser_error ('BOTH L AND L_rectangle SPECIFIED FOR BEND: ' // ele%name)
+
+  if (ele%value(l_chord$) /= 0 .and. ele%value(l_rectangle$) /= 0) &
+            call parser_error ('BOTH L AND L_rectangle SPECIFIED FOR BEND: ' // ele%name)
+
+  !
+
+  if (b_field_set) then
+    factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+    ele%value(g$)  = ele%value(B_field$) / factor
+    ele%value(dg$) = ele%value(dB_field$) / factor
+  else
+    factor = 0
+  endif
+
   ! if rho is set then this gives g
 
   if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(g$) /= 0) &
@@ -7293,19 +7380,37 @@ case (sbend$, rbend$, rf_bend$)
   if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(rho$) /= 0) &
                       call parser_error ('ANGLE, RHO, AND L ARE ALL SPECIFIED FOR BEND: ' // ele%name)
 
-  if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
+  if (ele%value(rho$) /= 0) ele%value(g$) = 1.0_rp / ele%value(rho$)
 
   ! If g and angle are set then this determines l
 
   if (ele%value(g$) /= 0 .and. ele%value(angle$) /= 0) ele%value(l$) = ele%value(angle$) / ele%value(g$)
 
-  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0 .and. ele%value(l_chord$) == 0 .and. ele%value(l_rectangular$) == 0) then
+  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0 .and. ele%value(l_chord$) == 0 .and. ele%value(l_rectangle$) == 0) then
     call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
   endif
 
-  ! Convert an rbend to an sbend
 
-  if (ele%key == rbend$) then
+  if (ele%value(l_rectangle$) /= 0) then
+    select case (nint(ele%value(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      if (ele%value(angle$) == 0) then
+        ele%value(angle$) = 2.0_rp * asin(ele%value(g$) * 0.5_rp * ele%value(l_rectangle$))
+      else
+        ele%value(g$) = 2.0_rp * sin(0.5_rp * ele%value(angle$)) / ele%value(l_rectangle$)
+      endif
+      ele%value(l$) = 0.5_rp * ele%value(l_rectangle$) / sinc(0.5_rp * ele%value(angle$))
+
+    case (entrance_end$, exit_end$)
+      if (ele%value(angle$) == 0) then
+        ele%value(angle$) = asin(ele%value(g$) * ele%value(l_rectangle$))
+      else
+        ele%value(g$) = sin(ele%value(angle$)) / ele%value(l_rectangle$)
+      endif
+      ele%value(l$) = ele%value(l_rectangle$) / sinc(ele%value(angle$))
+    end select
+
+  elseif (ele%key == rbend$) then
     ! Note: L must be zero if g and angle have both been specified and are non-zero.
     if (ele%value(l$) == 0 .and. ele%value(l_chord$) /= 0) then
       if (ele%value(angle$) /= 0) then
@@ -7316,7 +7421,7 @@ case (sbend$, rbend$, rf_bend$)
           call parser_error ('G * L FOR RBEND IS TOO LARGE TO BE PHYSICAL! ' // ele%name)
           return
         endif
-        a = 2 * asin(a)
+        a = 2.0_rp * asin(a)
         ele%value(l$) = ele%value(l_chord$) * a / (2.0_rp * sin(0.5_rp*a))
       else  ! g and angle are zero.
         ele%value(l$) = ele%value(l_chord$)
@@ -7328,13 +7433,36 @@ case (sbend$, rbend$, rf_bend$)
     elseif (ele%value(g$) /= 0) then
       ele%value(angle$) = ele%value(g$) * ele%value(l$) 
     endif
+  endif
+
+  ! Convert an rbend to an sbend
+
+  if (ele%key == rbend$) then
+    select case (nint(ele%value(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      if (ele%value(e1$) == real_garbage$) ele%value(e1$) = 0
+      if (ele%value(e2$) == real_garbage$) ele%value(e2$) = 0
+    case (entrance_end$)
+      if (ele%value(e1$) == real_garbage$) ele%value(e1$) = -0.5_rp * ele%value(angle$)
+      if (ele%value(e2$) == real_garbage$) ele%value(e2$) =  0.5_rp * ele%value(angle$)
+    case (exit_end$)
+      if (ele%value(e1$) == real_garbage$) ele%value(e1$) =  0.5_rp * ele%value(angle$)
+      if (ele%value(e2$) == real_garbage$) ele%value(e2$) = -0.5_rp * ele%value(angle$)
+    end select
 
     ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
     ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
     ele%key = sbend$
+
+  else
+    if (ele%value(e1$) == real_garbage$) ele%value(e1$) = 0
+    if (ele%value(e2$) == real_garbage$) ele%value(e2$) = 0
   endif
 
   ! 
+
+  ele%value(B_field$)  = factor * ele%value(g$)
+  ele%value(dB_field$) = factor * ele%value(dg$)
 
   if (ele%value(angle$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$) 
 
