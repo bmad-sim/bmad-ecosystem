@@ -4,9 +4,8 @@
   ltt%ramping_start_time = 0
   ltt%regression_test = T
 
-  ltt%particle_output_file = ''
+  ltt%phase_space_output_file = ''
   ltt%averages_output_file = ''
-  ltt%sigma_matrix_output_file = ''
   ltt%custom_output_file = ''
 
   ltt%simulation_mode = 'BEAM'
@@ -14,7 +13,6 @@
   ltt%n_turns = 10
   ltt%rfcavity_on = T
   ltt%map_order = 2
-  ltt%split_bends_for_radiation = F
   ltt%random_seed = 1234                       ! Random number seed. 0 => use system clock.
   ltt%add_closed_orbit_to_init_position = T
   ltt%ptc_aperture = 0.1, 0.1           ! Apertures when tracking_method = "MAP" or "PTC"

@@ -709,7 +709,7 @@ The normalized and unnormalized (\sref{s:field.master}) quadrupole strength. See
   \item[k2, b2_gradient] \Newline
 The normalized and unnormalized (\sref{s:field.master}) sextupole strength. See \Eqs{bbb} and \eq{kqlbp}.
   %
-  \index{l}\index{l_chord}\index{l_arc}\index{l_sagitta}
+  \index{l}\index{l_chord}\index{l_arc}\index{l_sagitta}\index{l_rectangle}
   \item[l, l_arc, l_chord, l_sagitta]  \Newline
 For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord length and not the arc length as
 it is for an \vn{sbend}.  After reading in a lattice, \bmad will internally convert all \vn{rbend}s
@@ -722,6 +722,9 @@ For \vn{sbend} elements, \vn{l_chord} will be set to the calculated chord length
 bends, the \vn{l_sagitta} parameter will be set to the sagitta length (The sagitta is the distance
 from the midpoint of the arc to the midpoint of the chord). \vn{l_sagitta} can be negative and will have
 the same sign as the \vn{g} parameter.
+
+The \vn{l_rectangle} parameter is the ``rectangular'' length. See the documentation on the \vn{fiducial_pt}
+parameter above.
   %
   \index{ref_tilt}
   \item[ref_tilt] \Newline

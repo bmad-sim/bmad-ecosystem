@@ -92,7 +92,6 @@ type ltt_params_struct
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
   logical :: set_beambeam_z_crossing = .false.
   logical :: print_info_messages = .true.          ! Informational messages printed?
-
   !
   character(200) :: sigma_matrix_output_file = ''  ! No longer used
   character(200) :: master_output_file = ''        ! No longer used
@@ -149,7 +148,7 @@ type ltt_com_struct
   logical :: ltt_tracking_happening_now = .false. ! Toggled True by program after all pre-tracking 
                                                   !   done (like the closed orbit calc). 
   character(200) :: master_input_file = ''
-  character(200) :: last_beam_output_file = ''
+!!  character(200) :: last_beam_output_file = ''
   character(40) :: ps_fmt = '(2i7, 9es16.8, 3x, 3f13.9, 4x, a)'
 end type
 
@@ -891,6 +890,7 @@ call ltt_write_line('# ltt%random_sigma_cut                    = ' // real_str(l
 call ltt_write_line('# ltt%n_turns                             = ' // int_str(lttp%n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lttp%ix_turn_start), lttp, iu, print_this)
 call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
+call ltt_write_line('# ltt%beam_output_every_n_turns           = ' // int_str(lttp%beam_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%output_only_last_turns              = ' // int_str(lttp%output_only_last_turns), lttp, iu, print_this)
@@ -1098,8 +1098,8 @@ enddo
 
 !
 
-if (lttp%phase_space_output_file /= '') call write_beam_file (lttp%phase_space_output_file, beam, .true., ascii$)
-if (lttp%beam_output_file /= '') call write_beam_file (lttp%beam_output_file, beam, .true.)
+call ltt_write_particle_data (lttp, ltt_com, lttp%n_turns, beam)
+if (lttp%beam_output_file /= '') call write_beam_file (lttp%beam_output_file, beam, .true.) ! Not ltt_write_beam_file
 
 end subroutine ltt_run_individual_mode
 
@@ -1133,7 +1133,7 @@ branch => lat%branch(ltt_com%ix_branch)
 
 if (lttp%beam_output_file /= '') then
   file = 'extraction-start-' // trim(lttp%beam_output_file)
-  call write_beam_file (file, beam, .true.)
+  call write_beam_file (file, beam, .true.)  ! Note: Not ltt_write_beam_file
 endif
 
 ! With INDIVIDUAL mode, only particles that have hit the septum aperture are to be
@@ -2253,7 +2253,7 @@ type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
 
-integer i_turn, iu, ios, nt, ix
+integer i_turn, iu, ios, nt, ix, n
 character(200) file
 
 !
@@ -2267,23 +2267,24 @@ if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
 
 file = lttp%beam_output_file
 ix = str_last_in_set(file, '.')
+n = int(log10(lttp%n_turns + 0.1_rp)) + 1
 if (ix == 0) then
-  file = trim(file) // '-' // int_str(i_turn)
+  file = trim(file) // '-' // int_str(i_turn, n)
 else
-  file = file(:ix-1) // '-' // int_str(i_turn) // file(ix:)
+  file = file(:ix-1) // '-' // int_str(i_turn, n) // file(ix:)
 endif
 
 call fullfilename(file, file)
 
 call write_beam_file (file, beam)
 
-if (ltt_com%last_beam_output_file /= '') then
-  iu = lunget()
-  open(iu, file = ltt_com%last_beam_output_file, status = 'old')
-  close(iu, status = 'delete')
-endif
+!if (ltt_com%last_beam_output_file /= '') then
+!  iu = lunget()
+!  open(iu, file = ltt_com%last_beam_output_file, status = 'old')
+!  close(iu, status = 'delete')
+!endif
 
-ltt_com%last_beam_output_file = file
+!ltt_com%last_beam_output_file = file
 
 end subroutine ltt_write_beam_file
 
@@ -2603,7 +2604,7 @@ character(2000) :: line
 
 if (lttp%averages_output_file == '') return
 
-if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+if (lttp%averages_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
                                         lttp%n_turns - ix_turn >= lttp%output_only_last_turns) return
 
 select case (lttp%averages_output_every_n_turns)
@@ -2691,9 +2692,9 @@ integer i, n_sum
 
 !
 
-if (lttp%sigma_matrix_output_file == '') return
+if (lttp%averages_output_file == '') return
 
-open(1, file = lttp%sigma_matrix_output_file)
+open(1, file = lttp%averages_output_file)
 
 if (n_sum == 0) then
   write (1, '(a)') '# NO DATA TO AVERAGE OVER!'
@@ -2715,7 +2716,7 @@ enddo
 
 close(1)
 
-print '(2a)', 'Sigma matrix data file: ', trim(lttp%sigma_matrix_output_file)
+print '(2a)', 'Sigma matrix data file: ', trim(lttp%averages_output_file)
 
 end subroutine ltt_write_single_mode_sigma_file
 
