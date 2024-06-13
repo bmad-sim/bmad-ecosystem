@@ -1036,7 +1036,7 @@ enddo
 
 !
 
-call write_particle_data (lttp, ltt_com, lttp%n_turn, beam)
+call ltt_write_particle_data (lttp, ltt_com, lttp%n_turns, beam)
 if (lttp%beam_output_file /= '') call write_beam_file (lttp%beam_output_file, beam, .true.) ! Not ltt_write_beam_file
 
 end subroutine ltt_run_individual_mode
