@@ -756,7 +756,8 @@ transformation on \vn{rbend}s:
 
 The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified for
 an element \bmad will calculate the appropriate value for the third.  After reading in a lattice,
-\vn{angle} is considered a dependent variable (\sref{s:depend}).
+\vn{angle} is considered the dependent variable so if \vn{l} or \vn{g} is veried, the value of
+\vn{angle} will be set to \vn{g * l}. if \vn{theta} is varied, \vn{l} will be set accordingly.
 
 Since internally all \vn{rbend}s are converted to \vn{sbend}s, if one wants to vary the \vn{g}
 attribute of a bend and still keep the bend rectangular, an overlay (\sref{s:overlay}) can be

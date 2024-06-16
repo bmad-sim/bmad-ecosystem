@@ -1671,7 +1671,7 @@ endif
 
 ! Temp until bend fiducial_pt code finished
 
-if (ix2_attrib == fiducial_pt$ .or. ix2_attrib == l_rectangle$) ix2_attrib = -1
+!! if (ix2_attrib == fiducial_pt$ .or. ix2_attrib == l_rectangle$) ix2_attrib = -1
 
 end function is_2nd_column_attribute
 

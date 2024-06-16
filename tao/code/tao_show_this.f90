@@ -4059,8 +4059,8 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
-    nl=nl+1; lines(nl) = '                                                                                     Shape  Type    Shape  Multi  Line_'
-    nl=nl+1; lines(nl) = '                  Ele_ID                              Shape           Color           Size  Label    Draw  Shape  Width  Offset'
+    nl=nl+1; lines(nl) = '                                                                                                                  Line_'
+    nl=nl+1; lines(nl) = '                  Ele_ID                              Shape           Color           Size  Label    Draw  Multi  Width  Offset'
     nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------         ----  ------  -----  -----  -----  ------'
 
     do i = 1, size(shapes)

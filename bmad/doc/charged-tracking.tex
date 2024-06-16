@@ -594,6 +594,83 @@ and
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
+\section{Bend: Fiducial Point Calculations}
+\label{s:bend.fiducial}
+
+
+When the \vn{fiducial_pt} switch for a bend is set to something other than \vn{none}, changing one
+of \vn{rho}, \vn{g}, \vn{b_field} or \vn{angle} in a program (that is, changing after the lattice
+has been read in and the bend parameters calculated) involves adjustment to the other three
+parameters along with adjustment to \vn{e1}, \vn{e2}, \vn{l}, \vn{l_chord}, and
+\vn{l_rectangle}. This is done to keep the shape of the bend is invarient. Invariance is not
+maintained with variation of any other parameter besides \vn{rho}, \vn{g}, \vn{b_field} and
+\vn{angle}. For example, if \vn{e1} is varied the bend shape will vary.
+
+\begin{figure}[tb]
+  \centering
+  \hfill
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics{bend-vary1.pdf}
+    \caption{
+With \vn{fiducial_pt} set to \vn{entrance_end}, $\bfr_1$ is the fiducial point at the entrance
+end.  $\bfr_2$ is the initial exit point and $\bfr'_2$ is the exit point when one of \vn{rho},
+\vn{g}, \vn{b_field}, or \vn{angle} is varied. By construction, the entrance point $\bfr_1$ and the
+slope of the reference curve at $\bfr_1$ is invariant with the reference curve before (dashed line)
+and after (solid line) being tangent to $\bfs_1$ where $\bfs_1$ being the perpendicular to $\bfx_1$.
+    }
+    \label{f:bend.fid1}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics{bend-vary2.pdf}
+    \caption{
+With \vn{fiducial_pt} set to \vn{center}, $\bfr_c$ is the fiducial point at the center. $\bfr_1$ and
+$\bfr_2$ are the entrance and exit points before  and $\bfr'_1$ and $\bfr'_2$ are the
+the entrance and exit points after variation of one of \vn{rho}, \vn{g}, \vn{b_field} or
+\vn{angle}. By construction, the reference curve always goes through $\bfr_c$ and the tangent
+of the reference curve at $\bfr_c$ is invariant.}
+    \label{f:bend.fid2}
+  \end{subfigure}
+  \hfill
+  \caption{
+Geometry with \vn{fiducial_pt} set to (a) \vn{entrance_end} and (b) \vn{center}. $\rho$ 
+is the bending radius and $\alpha$ is the bending angle before variation.
+  }
+  \label{f:bend.fid}
+\end{figure}
+
+\fig{f:bend.fid} shows the situation when the \vn{fiducial_pt} is set to either \vn{entrance_end} or
+\vn{center} (the situation for the \vn{exit_end} setting is analogous to the \vn{entrance_end}
+setting and so is not discussed). For any one of the \vn{fiducial_pt} settings discussed there are
+essentially two cases. One case is direct variation of the bend field via variation of \vn{rho},
+\vn{g}, or \vn{b_field}. This is called ``\vn{g}-variation''. The other type of variation is
+variation of \vn{angle}. This is called ``angle-variation''. The discussion below shows how, with
+\vn{g}-variation, \vn{l}, \vn{e1}, and \vn{e2} are calculated. With \vn{angle}-variation, \vn{l},
+\vn{g}, \vn{e1}, and \vn{e2} need to be calculated. Once \vn{l} and \vn{g} are know, the other
+parameters \vn{l_chord}, \vn{l_rectangle}, \vn{l_sagitta} (and \vn{angle} for the \vn{g}-variation
+case) can be readily computed.
+
+The \vn{entrance_end} analysis is as follows (\fig{f:bend.fid1}). The entrance end coordinates
+around the point $\bfr_1$ are held fixed and as as a result \vn{e1} does not vary. $\bfr_2$ is the
+exit point before variation and $\bfr_3$ is the exit point after.  The position of $\bfr_3$ is
+calculated by first calculating the position of $\bfr_1$ in a coordinate system centered at $\bfr_2$
+and with axes parallel to the $(\bfs_1, \bfx_1)$ axes of the coordinate system at $\bfr_1$
+\begin{equation}
+  \bar\bfr_1 = \left( -l_{rectangle}, 1 - \rho \, \cos(\alpha) \right)
+\end{equation}
+Where the bar denotes that the coordinates are in the $(\bfs_1, \bfx_1)$ system.
+The coodinates of $\bfr_1$ are not transformed to the $(\bfe_s, \bfe_x)$ coordinate system
+with origin at $\bfr_2$ and with $\bfe_x$ along the bend edge and $\bfe_s$ perpendicular to $\bfe_x$
+as shown in the figure
+\begin{equation}
+  \bfr_1 = \bfR(\alpha - e_2) \, \bar\bfr_1
+\end{equation}
+where $\bfR(\theta)$ is the rotation matrix by with a rotation angle of $\theta$.
+The angle of 
+
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Converter Tracking}
 \label{s:converter.track}
 \index{converter} 

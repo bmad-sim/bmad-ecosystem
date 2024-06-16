@@ -1972,6 +1972,10 @@ case ('EXACT_MULTIPOLES')
   call get_switch (attrib_word, exact_multipoles_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(exact_multipoles$) = ix
 
+case ('FIDUCIAL_PT')
+  call get_switch (attrib_word, fiducial_pt_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(fiducial_pt$) = ix
+
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found); if (err_flag) return
 
