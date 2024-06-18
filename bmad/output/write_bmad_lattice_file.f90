@@ -67,7 +67,7 @@ type (str_index_struct) str_index
 type (lat_ele_order_struct) order
 type (material_struct), pointer :: material
 
-real(rp) s0, x_lim, y_lim, val, x, y
+real(rp) s0, x_lim, y_lim, val, x, y, fid
 
 character(*) bmad_file
 character(4000) line
@@ -774,8 +774,9 @@ do ib = 0, ubound(lat%branch, 1)
     if (y_lim /=0 .and. ele%value(y2_limit$) == y_lim) y_lim_good = .true.
 
     !----------------------------------------------------------------------------
-    ! Print the element attributes.
+    ! Write the element attributes.
 
+    fid = nint(ele%value(fiducial_pt$))
     attribute_loop: do j = 1, num_ele_attrib$
       attrib = attribute_info(ele, j)
       val = ele%value(j)
@@ -783,6 +784,9 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%key == sbend$) then
         if (j == fintx$ .and. ele%value(fintx$) == ele%value(fint$)) cycle
         if (j == hgapx$ .and. ele%value(hgapx$) == ele%value(hgap$)) cycle
+
+        if (j == l$ .and. (fid == entrance_end$ .or. fid == entrance_end$)) cycle
+        if (j == l_rectangle$ .and. (fid == none_pt$ .or. fid == center_pt$)) cycle
       endif
       if (j == check_sum$) cycle
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle

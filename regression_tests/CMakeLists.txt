@@ -8,6 +8,7 @@ set (EXE_SPECS
   cmake_files/cmake.autoscale_test
   cmake_files/cmake.backwards_time_track_test
   cmake_files/cmake.beam_test
+  cmake_files/cmake.bend_test
   cmake_files/cmake.bbu_test
   cmake_files/cmake.cesr_test
   cmake_files/cmake.closed_orbit_test

@@ -3428,7 +3428,7 @@ if (ix /= 0) then
   case ('ele_name', 'name')
     needs_quotes = .true.
     component = 'ele_id%' // component(ix+1:)
-  case ('shape', 'color', 'label')
+  case ('shape', 'color', 'label', 'ele_id')
     needs_quotes = .true.
   end select
 
