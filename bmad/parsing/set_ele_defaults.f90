@@ -292,8 +292,6 @@ case (rbend$, sbend$)
   ele%value(ptc_field_geometry$) = sector$
   ele%value(fiducial_pt$) = none_pt$
   ele%value(init_needed$) = true$
-  ele%value(e1$) = real_garbage$
-  ele%value(e2$) = real_garbage$
 
 case (rcollimator$)
   ele%offset_moves_aperture = .true.

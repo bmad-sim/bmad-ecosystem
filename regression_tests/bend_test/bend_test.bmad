@@ -1,10 +1,9 @@
 f = 1
 beginning[e_tot] = 1e6*f
-parameter[ran_seed] = 1000
+parameter[no_end_marker] = T
 
 parameter[particle] = electron
 parameter[geometry] = open
-bmad_com[spin_tracking_on] = T
 
 beginning[beta_a] = 10
 beginning[beta_b] = 10
@@ -12,11 +11,10 @@ beginning[alpha_a] = 0
 beginning[alpha_b] = 0
 beginning[etap_x] = 0.001
 
-b: rbend, l = 2.0, fiducial_pt = entrance_end
+b: rbend, l_rectangle = 2.0, angle = -0.1, fiducial_pt = entrance_end, e2 = -0
 
 ln: line = (b)
 use, ln
-
 
 no_digested
 

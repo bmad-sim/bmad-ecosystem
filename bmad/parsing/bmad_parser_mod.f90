@@ -7444,23 +7444,15 @@ case (sbend$, rbend$, rf_bend$)
   if (ele%key == rbend$) then
     select case (nint(ele%value(fiducial_pt$)))
     case (none_pt$, center_pt$)
-      if (ele%value(e1$) == real_garbage$) ele%value(e1$) = 0
-      if (ele%value(e2$) == real_garbage$) ele%value(e2$) = 0
+      ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
+      ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
     case (entrance_end$)
-      if (ele%value(e1$) == real_garbage$) ele%value(e1$) = -0.5_rp * ele%value(angle$)
-      if (ele%value(e2$) == real_garbage$) ele%value(e2$) =  0.5_rp * ele%value(angle$)
+      ele%value(e2$) = ele%value(e2$) + ele%value(angle$)
     case (exit_end$)
-      if (ele%value(e1$) == real_garbage$) ele%value(e1$) =  0.5_rp * ele%value(angle$)
-      if (ele%value(e2$) == real_garbage$) ele%value(e2$) = -0.5_rp * ele%value(angle$)
+      ele%value(e1$) = ele%value(e1$) + ele%value(angle$)
     end select
 
-    ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
-    ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
     ele%key = sbend$
-
-  else
-    if (ele%value(e1$) == real_garbage$) ele%value(e1$) = 0
-    if (ele%value(e2$) == real_garbage$) ele%value(e2$) = 0
   endif
 
   ! 

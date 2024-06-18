@@ -876,26 +876,34 @@ end subroutine bend_g_fiducial_calc
 !--------------------------------------------------------------
 ! contains
 
-subroutine bend_g_fiducial_calc2(ele, factor, e_edge, len_out)
+subroutine bend_g_fiducial_calc2(ele, factor, e_edge, len_out, angle0_in)
 
 type (ele_struct) ele
-real(rp) factor, e_edge, len_out, g0, angle1, alpha, beta, r1(2), l_rect, length
+real(rp) factor, e_edge, len_out, g0, angle0, rp2x, r1(2), theta1, l_rect, length, a, b, c
+real(rp), optional :: angle0_in
 
 !
 
 g0 = ele%value(l$) * ele%value(angle$)  ! Old g
-angle1 = factor * (ele%value(angle$) - e_edge)
+if (present(angle0_in)) then
+  angle0 = angle0_in                    ! Old angle
+else
+  angle0 = factor * ele%value(angle$)   ! Old angle
+endif
+theta1 = angle0 - e_edge
 
-r1 = factor * [-ele%value(l_rectangle$), sinc(g0*ele%value(l$)) * ele%value(l$)]
-r1 = rot_2d(r1, angle1 - 0.5_rp * pi)
-  
-beta = 2 * r1(2) * sin(angle1) - g0 * r1(2)**2
-alpha = beta / (sqrt(cos(angle1)**2 + g0*beta) + cos(angle1))
+r1 = factor * [-ele%value(l_rectangle$), -cos_one(angle0) * ele%value(l$)]
+r1 = rot_2d(r1, theta1)
 
-l_rect = factor * l_rect + alpha * cos(angle1)
-length = asinc(ele%value(g$) * l_rect) * l_rect)
+a = ele%value(g$)
+b = 2.0_rp * cos(theta1)
+c = ele%value(g$) * r1(1)**2 + 2.0_rp * r1(1) * sin(theta1)
+rp2x = r1(2) - 2.0_rp * c / (b + sqrt(b*b - 4.0_rp*a*c))
 
-e_edge = e_edge + length * ele%value(g$) - factor * ele%value(angle$))
+l_rect = factor * ele%value(l_rectangle$) + rp2x * sin(theta1)
+length = asinc(ele%value(g$) * l_rect) * l_rect
+
+e_edge = e_edge + length * ele%value(g$) - angle0
 len_out = length
 
 end subroutine bend_g_fiducial_calc2
@@ -906,7 +914,7 @@ end subroutine bend_g_fiducial_calc2
 subroutine bend_angle_fiducial_calc(ele, dep2_set, p0c_factor)
 
 type (ele_struct) ele
-real(rp) p0c_factor, angle0
+real(rp) p0c_factor, angle0, len1, len2
 logical dep2_set
 
 ! There has been a change in angle (and not any other parameters) so need to calculate shifts in L, e1, and e2
@@ -918,17 +926,16 @@ case (none_pt$)
   ele%value(g$) = ele%value(angle$) / ele%value(l$)
 
 case (center_pt$)
-  angle0 = ele%value(l$) * ele%value(g$)
-  ele%value(e1$) = ele%value(e1$) + 0.5_rp * (ele%value(angle$) - angle0)
-  ele%value(e1$) = ele%value(e1$) + 0.5_rp * (ele%value(angle$) - angle0)
-  ele%value(g$) = 2.0_rp * sin(0.5_rp * ele%value(angle$)) / ele%value(l_rectangle$)
-  ele%value(l$) = ele%value(angle$) * ele%value(g$)
+  call bend_angle_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len1)
+  call bend_angle_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len2)
+  ele%value(l$) = len1 + len2
+  ele%value(g$) = ele%value(angle$) / ele%value(l$)
 
 case (entrance_end$)
-  call bend_angle_fiducial_calc2(ele, ele%value(e2$))
+  call bend_angle_fiducial_calc2(ele, 1.0_rp, ele%value(e2$), ele%value(l$))
 
 case (exit_end$)
-  call bend_angle_fiducial_calc2(ele, ele%value(e1$))
+  call bend_angle_fiducial_calc2(ele, 1.0_rp, ele%value(e1$), ele%value(l$))
 end select
 
 if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
@@ -938,24 +945,22 @@ end subroutine bend_angle_fiducial_calc
 !--------------------------------------------------------------
 ! contains
 
-subroutine bend_angle_fiducial_calc2(ele, e_edge)
+subroutine bend_angle_fiducial_calc2(ele, factor, e_edge, len_out)
 
 type (ele_struct) ele
-real(rp) e_edge, p0c_factor, angle0, angle1, alpha, beta, r1(2), l_rect, length
+real(rp) factor, e_edge, angle0, theta1, r1(2), len_out
 
-!
+! fiducial_pt = center is not considered here.
 
-angle0 = ele%value(g$) * ele%value(l$)
-angle1 = ele%value(angle$) - e_edge
+angle0 = factor * ele%value(g$) * ele%value(l$)   ! Old angle
+theta1 = angle0 - e_edge
 
-r1 = [-ele%value(l_rectangle$), sinc(angle0) * ele%value(l$)]
-r1 = rot_2d(r1, angle1 - 0.5_rp * pi)
+r1 = factor * [-ele%value(l_rectangle$), -cos_one(angle0) * ele%value(l$)]
+r1 = rot_2d(r1, theta1)
 
+ele%value(g$) = -(sin(theta1) + sin(ele%value(angle$) - theta1)) / r1(1)
 
-ele%value(g$) = (sin(angle1) + sin(angle0 - angle1)) / r1(2)
-ele%value(l$) = ele%value(g$) * ele%value(angle$)
-
-e_edge = e_edge + ele%value(angle$) - angle0
+call bend_g_fiducial_calc2(ele, factor, e_edge, len_out, angle0)
 
 end subroutine bend_angle_fiducial_calc2
 

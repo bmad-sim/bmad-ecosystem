@@ -526,7 +526,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   \hfill
   \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics{rbend-coords.pdf}
-    \caption{Rbend}
+    \caption{Rbend (with \vn{fiducial_pt} set to \vn{none} or \vn{center}).}
     \label{f:rbend}
   \end{subfigure}
   \hfill
@@ -543,13 +543,18 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   \end{subfigure}
   \hfill
   \caption[Coordinate systems for rbend and sbend elements.]
-{Coordinate systems for (a) normal (non-reversed)\vn{rbend}, (b) normal \vn{sbend}, and (c)
+  { 
+Coordinate systems for (a) normal (non-reversed)\vn{rbend}, (b) normal \vn{sbend}, and (c)
 \vn{reversed sbend} elements. The bends are viewed from ``above'' (viewed from positive $y$).
 Normal bends have \vn{g}, \vn{angle}, and \vn{rho} all positive. Reversed bends have \vn{g},
-\vn{angle}, and \vn{rho} all negative. For (a) and (b), as drawn, \vn{e1} and \vn{e2} are both
-positive. For (c), as drawn, \vn{e1} and \vn{e2} are both negative. In all cases, \vn{L} is
-positive. Notice that for reversed bends, the $x$-axis points towards the center of the bend while
-for normal bends the $x$-axis points towards the outside.}
+\vn{angle}, and \vn{rho} all negative. For (a) and (b), as drawn, the \vn{e1} and \vn{e2} face
+angles are both positive. For (c), as drawn, \vn{e1} and \vn{e2} are both negative. In all cases,
+\vn{L} is positive. Notice that for reversed bends, the $x$-axis points towards the center of the
+bend while for normal bends the $x$-axis points towards the outside. Note: The geometry of the face
+angles for \vn{rbend}s as shown in \fig{f:rbend} is modified if \vn{fiducial_pt} is set to
+\vn{entrance_end} or \vn{exit_end}. See below for details.
+
+  }
   \label{f:bend}
 \end{figure}
 
@@ -575,8 +580,10 @@ See the discussion of \vn{g} and \vn{dg} below for more details.
 The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is \vn{e2}. Zero
 \vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet (\fig{f:rbend}). Zero \vn{e1}
 and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet (\fig{f:sbend}).  An \vn{sbend} with
-an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see
-above).  This formula holds for both positive and negative angles.
+an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} = 0. 
+This formula holds for both positive and negative angles. The geometry of the face
+angles for \vn{rbend}s as shown in \fig{f:rbend} is modified if \vn{fiducial_pt} is set to
+\vn{entrance_end} or \vn{exit_end}. See below for details.
 
 Note: The correspondence between \vn{e1} and \vn{e2} and the corresponding parameters used in the
 SAD program \cite{b:sad} is:

@@ -35,10 +35,10 @@ do ie = 1, lat%n_ele_track
     call lattice_bookkeeper(lat)
 
     pa(1:3) = [ele%value(ix_param(1)), ele%value(ix_param(2)), ele%value(ix_param(3)) / f] 
-    write (1, '(a, i0, 3a, 4f16.10)') '"', ie, '-p1-', trim(attribute_name(ele, np)), '" ABS 1E-10', pa(1:3)
+    write (1, '(a, i0, 3a, 4f16.10)') '"', ie, '-', trim(attribute_name(ele, np)), ':g-ang-field" ABS 1E-10', pa(1:3)
 
     pa = [ele%value(ix_param(4)), ele%value(ix_param(5)), ele%value(e1$), ele%value(e2$)] 
-    write (1, '(a, i0, 3a, 4f16.10)') '"', ie, '-p2-', trim(attribute_name(ele, np)), '" ABS 1E-10', pa
+    write (1, '(a, i0, 3a, 4f16.10)') '"', ie, '-', trim(attribute_name(ele, np)), ':l-lr-e1/2"   ABS 1E-10', pa
   enddo
 enddo
 
