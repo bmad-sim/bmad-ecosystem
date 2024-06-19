@@ -77,11 +77,17 @@ if (s%com%init_read_lat_info) then
   if (namelist_file /= '') then
     read (iu, nml = tao_design_lattice, iostat = ios)
     if (ios > 0 .or. (ios < 0 .and. .not. alternative_lat_file_exists)) then
-      call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
-      rewind (iu)
-      do
-        read (iu, nml = tao_design_lattice)  ! force printing of error message
-      enddo
+      if (ios < 0) then
+        call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST NOT FOUND.', &
+                                       'I NEED TO READ THIS NAMELIST TO KNOW THE LATTICE FILE NAME!')
+        return
+      else
+        call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
+        rewind (iu)
+        do
+          read (iu, nml = tao_design_lattice)  ! force printing of error message
+        enddo
+      endif
     endif
     close (iu)
   endif
