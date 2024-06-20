@@ -59,12 +59,13 @@ function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
   real(rp) emit
 end function
 
-function tao_beam_track_endpoint (ele_id, lat, branch_str, where) result (ele)
+function tao_beam_track_endpoint (ele_id, lat, branch_str, where, u) result (ele)
   import
   implicit none
   type (ele_struct), pointer :: ele
   type (lat_struct), target :: lat
   character(*) ele_id, where, branch_str
+  type (tao_universe_struct) u
 end function
 
 function tao_branch_index (ix_branch) result (ix_this)

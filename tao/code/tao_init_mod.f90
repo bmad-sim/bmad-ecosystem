@@ -347,12 +347,8 @@ character(*), parameter :: r_name = 'tao_init_beam_in_universe'
 
 u%beam%track_beam_in_universe = .true.
 
-if (track_start == '') then
-  ele => u%model%lat%branch(0)%ele(0)
-else
-  ele => tao_beam_track_endpoint (track_start, u%model%lat, '', 'TRACK_START')
-  if (.not. associated(ele)) return
-endif
+ele => tao_beam_track_endpoint (track_start, u%model%lat, '', 'TRACK_START', u)
+if (.not. associated(ele)) return
 
 bb => u%model_branch(ele%ix_branch)%beam
 bb%ix_track_start = ele%ix_ele
@@ -368,20 +364,10 @@ tao_branch%comb_ds_save = comb_ds_save
 bb%track_end = track_end
 branch => u%model%lat%branch(ele%ix_branch)
 
-if (track_end == '') then
-  if (branch%param%geometry == open$) then
-    bb%ix_track_end = branch%n_ele_track
-  else
-    bb%ix_track_end = bb%ix_track_start - 1
-    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
-  endif
-
-else
-  bb%ix_track_end = not_set$
-  ele => tao_beam_track_endpoint (track_end, u%model%lat, int_str(ele%ix_branch), 'TRACK_END')
-  if (.not. associated(ele)) return
-  bb%ix_track_end = ele%ix_ele
-endif
+bb%ix_track_end = not_set$
+ele => tao_beam_track_endpoint (track_end, u%model%lat, int_str(ele%ix_branch), 'TRACK_END', u)
+if (.not. associated(ele)) return
+bb%ix_track_end = ele%ix_ele
 
 ! Find where to save the beam at.
 ! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
