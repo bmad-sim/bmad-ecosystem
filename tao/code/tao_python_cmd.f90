@@ -295,17 +295,19 @@ select case (command)
 ! Notes
 ! -----
 ! Command syntax:
-!   python beam {ix_uni}
+!   python beam {ix_uni}@{ix_branch}
 !
 ! Where:
 !   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 !
 ! Note: To set beam_init parameters use the "set beam" command.
 !
 ! Parameters
 ! ----------
 ! ix_uni : optional
-!    
+! ix_branch : ""
+!
 ! Returns
 ! -------
 ! string_list 
@@ -316,17 +318,29 @@ select case (command)
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ix_uni: 1
+!    ix_branch: 0
 
 case ('beam')
 
   u => point_to_uni(line, .false., err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'always_reinit;LOGIC;T;',           u%beam%always_reinit
-  nl=incr(nl); write (li(nl), amt) 'track_start;STR;T;',               trim(u%model_branch(0)%beam%track_start)
-  nl=incr(nl); write (li(nl), amt) 'track_end;STR;T;',                 trim(u%model_branch(0)%beam%track_end)
+  nl=incr(nl); write (li(nl), lmt) 'track_beam_in_universe;LOGIC;T;',  u%beam%track_beam_in_universe
   nl=incr(nl); write (li(nl), amt) 'saved_at;STR;T;',                  trim(u%beam%saved_at)
   nl=incr(nl); write (li(nl), amt) 'dump_at;STR;T;',                   trim(u%beam%dump_at)
   nl=incr(nl); write (li(nl), amt) 'dump_file;STR;T;',                 trim(u%beam%dump_file)
+  nl=incr(nl); write (li(nl), amt) 'track_start;STR;T;',               trim(u%model_branch(ix_branch)%beam%track_start)
+  nl=incr(nl); write (li(nl), amt) 'track_end;STR;T;',                 trim(u%model_branch(ix_branch)%beam%track_end)
+  nl=incr(nl); write (li(nl), rmt) 'comb_ds_save;REAL;T;',             u%model%tao_branch(ix_branch)%comb_ds_save
+  nl=incr(nl); write (li(nl), rmt) 'comb_max_ds_save;REAL;T;',         u%model%tao_branch(ix_branch)%comb_max_ds_save
+  if (allocated(u%model%tao_branch(ix_branch)%bunch_params_comb)) then
+    nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  u%model%tao_branch(ix_branch)%bunch_params_comb(1)%ds_save
+    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              u%model%tao_branch(ix_branch)%bunch_params_comb(1)%max_ds_save
+  else
+    nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  -1.0_rp
+    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              -1.0_rp
+  endif
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -337,16 +351,18 @@ case ('beam')
 ! Notes
 ! -----
 ! Command syntax:
-!   python beam_init {ix_uni}
+!   python beam_init {ix_uni}@{ix_branch}
 !
 ! Where:
 !   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 !
 ! Note: To set beam_init parameters use the "set beam_init" command
 !
 ! Parameters
 ! ----------
 ! ix_uni : optional
+! ix_branch : ""
 !
 ! Returns
 ! -------
@@ -358,11 +374,13 @@ case ('beam')
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ix_uni: 1
+!    ix_branch: 0
 
 case ('beam_init')
 
   u => point_to_uni(line, .false., err); if (err) return
-  beam_init => u%model_branch(0)%beam%beam_init
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
+  beam_init => u%model_branch(ix_branch)%beam%beam_init
 
 !!  nl=incr(nl); write (li(nl), amt) 'distribution_type;STR_ARR;T',           (';', trim(beam_init%distribution_type(k)), k = 1, 3)
   nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    trim(beam_init%position_file)
@@ -4722,7 +4740,8 @@ case ('inum')
 
   case ('ix_bunch')
     u => point_to_uni(head, .false., err);  if (err) return
-    do i = 0, u%model_branch(0)%beam%beam_init%n_bunch
+    ix_branch = parse_branch(line, u, .false., err); if (err) return
+    do i = 0, u%model_branch(ix_branch)%beam%beam_init%n_bunch
       nl=incr(nl); write (li(nl), '(i0)') i
     enddo
 
