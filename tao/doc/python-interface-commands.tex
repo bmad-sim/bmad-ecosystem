@@ -9,11 +9,12 @@
 Output beam parameters that are not in the beam_init structure.
 
 \begin{example}
-   python beam \{ix_uni\}
+   python beam \{ix_uni\}@\{ix_branch\}
 \end{example}
 \begin{verbatim}
 Where:
   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 
 Note: To set beam_init parameters use the "set beam" command.
 \end{verbatim}
@@ -27,11 +28,12 @@ Note: To set beam_init parameters use the "set beam" command.
 Output beam_init parameters.
 
 \begin{example}
-   python beam_init \{ix_uni\}
+   python beam_init \{ix_uni\}@\{ix_branch\}
 \end{example}
 \begin{verbatim}
 Where:
   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 
 Note: To set beam_init parameters use the "set beam_init" command
 \end{verbatim}
