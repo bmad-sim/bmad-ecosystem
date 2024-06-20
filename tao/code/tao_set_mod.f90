@@ -1047,7 +1047,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     u%beam%dump_file = value_str
 
   case ('dump_at', 'beam_dump_at')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .true.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD DUMP_AT STRING: ' // value_str)
       return
@@ -1065,7 +1065,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     enddo
 
   case ('saved_at', 'beam_saved_at')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .true.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD SAVED_AT STRING: ' // value_str)
       return
