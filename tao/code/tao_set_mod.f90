@@ -1003,7 +1003,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   select case (switch)
   case ('beginning')
-    ele => tao_beam_track_endpoint (value_str, u%model%lat, '', 'BEGGINING')
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, '', 'BEGGINING', u)
     if (.not. associated(ele)) return
     beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
@@ -1026,7 +1026,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
 
   case ('track_start', 'beam_track_start', 'track_end', 'beam_track_end')
-    ele => tao_beam_track_endpoint (value_str, u%model%lat, branch_str, switch)
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, branch_str, upcase(switch), u)
     if (.not. associated(ele)) return
 
     bb => u%model_branch(ele%ix_branch)%beam
