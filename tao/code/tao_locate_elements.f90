@@ -57,6 +57,7 @@ print_lev = integer_option(s_error$, print_err)
 call re_allocate_eles (eles, 0, exact = .true.)
 
 call str_upcase (ele_name, ele_list)
+ele_name = unquote(ele_name)
 call string_trim (ele_name, ele_name, ix)
 
 if (ix == 0 .and. logic_option(.false., ignore_blank)) then
