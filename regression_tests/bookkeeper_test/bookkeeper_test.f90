@@ -60,6 +60,7 @@ open (1, file = 'output.now', recl = 200)
 
 !-----------------------------------------
 
+bmad_com%auto_bookkeeper = .false.
 call bmad_parser('ramper.bmad', lat)
 
 call lat_ele_locator ('ramper::*', lat, ramper, n, err)

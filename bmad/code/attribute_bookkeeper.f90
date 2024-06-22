@@ -93,9 +93,9 @@ if (bmad_com%auto_bookkeeper .and. .not. logic_option(.false., force_bookkeeping
   if (ele%bookkeeping_state%attributes /= stale$) return
 
   if (.false. .and. bp_com%parser_name == '') then   ! If not parsing should not be here
-    call out_io (s_error$, r_name, &
+    call out_io (s_warn$, r_name, &
       '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-      '!!!!! Setting bmad_com%auto_bookkeeper = .false. will, in the near future, be mandated for all !!!!!', &
+      '!!!!! Using intelligent bookkeeping will, in the near future, be mandated for all              !!!!!', &
       '!!!!! Bmad programs that modify lattice parameters.                                            !!!!!', &
       '!!!!! See the "Intelligent Bookkeeping" section in the Bmad manual.                            !!!!!', &
       '!!!!! Contact the maintainer of this program with this information.                            !!!!!', &

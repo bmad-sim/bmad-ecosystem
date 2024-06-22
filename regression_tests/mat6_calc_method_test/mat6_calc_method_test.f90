@@ -46,6 +46,7 @@ endif
 
 !
 
+bmad_com%auto_bookkeeper = .false.
 bmad_com%spin_tracking_on = .true.
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
 abs_time = bmad_com%absolute_time_tracking

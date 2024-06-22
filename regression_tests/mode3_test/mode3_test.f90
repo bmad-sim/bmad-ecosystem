@@ -42,6 +42,7 @@ write(20,' (a,3es17.8)') '"make_N:ord_by_tune_tunes"        REL   1.0E-6 ', tune
 
 !
 
+bmad_com%auto_bookkeeper = .false.
 call bmad_parser ('small_ring.bmad', lat)
 call twiss_and_track(lat, orbit)
 call choose_quads_for_set_tune(lat%branch(0), dk1, eles)

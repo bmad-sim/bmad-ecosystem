@@ -110,6 +110,7 @@ do j = 1, 100
 
   if (status < 0) then
     call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!')
+    call this_bookkeeping()
     return
   endif
 
@@ -127,6 +128,7 @@ do j = 1, 100
     else
       lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + k2_vec(2))
     endif
+    call this_bookkeeping()
     return
   endif
 enddo
@@ -134,8 +136,25 @@ enddo
 call out_io (s_error$, r_name, 'CANNOT ADJUST SEXTUPOLES TO GET DESIRED CHROMATICITIES!')
 err_flag = .true.
 
-!------------------------------------------------------
+!-------------------------------------------------------
 contains
+
+subroutine this_bookkeeping()
+
+do i = 1, size(ix_x_sex)
+  ele => lat%ele(ix_x_sex(i))
+  call set_flags_for_changed_attribute(ele, ele%value(k2$))
+enddo
+
+do i = 1, size(ix_y_sex)
+  ele => lat%ele(ix_y_sex(i))
+  call set_flags_for_changed_attribute(ele, ele%value(k2$))
+enddo
+
+end subroutine this_bookkeeping
+
+!------------------------------------------------------
+! contains
 
 subroutine chrom_func (a_try, y_fit, dy_da, status)
 
@@ -161,7 +180,9 @@ else
   lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
 endif
 
+call this_bookkeeping()
 call chrom_calc(lat, delta_e, chrom_x0, chrom_y0)
+
 y_fit = [chrom_x0, chrom_y0]
 
 if (all_x_zero) then
@@ -176,7 +197,9 @@ else
   lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
 endif
 
+call this_bookkeeping()
 call chrom_calc(lat, delta_e, chrom_x, chrom_y)
+
 dy_da(1,1) = (chrom_x - chrom_x0) / delta
 dy_da(2,1) = (chrom_y - chrom_y0) / delta
 
@@ -192,7 +215,9 @@ else
   lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2) + delta)
 endif
 
+call this_bookkeeping()
 call chrom_calc(lat, delta_e, chrom_x, chrom_y)
+
 dy_da(1,2) = (chrom_x - chrom_x0) / delta
 dy_da(2,2) = (chrom_y - chrom_y0) / delta
 

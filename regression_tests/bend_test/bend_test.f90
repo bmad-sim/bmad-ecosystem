@@ -8,23 +8,42 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (ele_struct) ele0
 
-real(rp) dparam(5), pa(4), f
-integer ie, ip, iz, ix_param(5), np
+real(rp) dparam(3), vals(4), f, dg, dangle
+integer ie, ip, iz, ix_param(3), np, nargs
+character(40) str
+character(200) lat_file
+
+namelist / params / dg, dangle
+
+!
+
+lat_file = 'bend_test.bmad'
+nargs = command_argument_count()
+if (nargs > 0) then
+  call get_command_argument(1, lat_file)
+endif
 
 !
 
 open (1, file = 'output.now', recl = 200)
 
 bmad_com%auto_bookkeeper = .false.
-call bmad_parser('bend_test.bmad', lat)
+call bmad_parser(lat_file, lat)
+
+open (2, file = lat_file)
+read (2, nml = params)
+close (2)
+
+!
 
 f = lat%ele(0)%value(p0c$) / c_light
-dparam = [0.01_rp, 0.1_rp, 0.1_rp * f, 0.1_rp, 0.1_rp]
-ix_param = [g$, angle$, b_field$, l$, l_rectangle$]
+dparam = [dg, dangle, dg * f]
+ix_param = [g$, angle$, b_field$]
 
 
 do ie = 1, lat%n_ele_track
   ele0 = lat%ele(ie)
+  if (ie > 1) write (1, *)
 
   do ip = 1, size(ix_param)
     ele => lat%ele(ie)
@@ -33,12 +52,13 @@ do ie = 1, lat%n_ele_track
     ele%value(np) = ele%value(np) + dparam(ip)
     call set_flags_for_changed_attribute(ele, ele%value(np))
     call lattice_bookkeeper(lat)
+    str = '"' // int_str(ie) // '-' // trim(ele%name) // '-' // trim(attribute_name(ele, np))
 
-    pa(1:3) = [ele%value(ix_param(1)), ele%value(ix_param(2)), ele%value(ix_param(3)) / f] 
-    write (1, '(a, i0, 3a, 4f16.10)') '"', ie, '-', trim(attribute_name(ele, np)), ':g-ang-field" ABS 1E-10', pa(1:3)
+    vals(1:3) = [ele%value(g$), ele%value(angle$), ele%value(b_field$) / f] 
+    write (1, '(2a, 4f16.10)') trim(str), '  g-ang-field" ABS 1E-10', vals(1:3)
 
-    pa = [ele%value(ix_param(4)), ele%value(ix_param(5)), ele%value(e1$), ele%value(e2$)] 
-    write (1, '(a, i0, 3a, 4f16.10)') '"', ie, '-', trim(attribute_name(ele, np)), ':l-lr-e1/2"   ABS 1E-10', pa
+    vals = [ele%value(l$), ele%value(l_rectangle$), ele%value(e1$), ele%value(e2$)] 
+    write (1, '(2a, 4f16.10)') trim(str), '  l-lr-e1/2"   ABS 1E-10', vals
   enddo
 enddo
 

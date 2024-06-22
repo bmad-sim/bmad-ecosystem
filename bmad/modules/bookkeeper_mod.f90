@@ -1908,6 +1908,7 @@ integer i
 select case (ele%key)
 case (overlay$, group$, hybrid$)
   ele%bookkeeping_state%attributes = ok$
+  if (present(dval)) dval = 0
   return
 end select
 
