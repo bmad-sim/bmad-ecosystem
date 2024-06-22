@@ -69,8 +69,10 @@ do ib = 0, ubound(lat%branch, 1)
     if (begin_ele%value(inherit_from_fork$) == real_garbage$) then  ! Happens first time this routine is called from bmad_parser. 
       begin_ele%value(inherit_from_fork$) = false$
       if (associated(fork_ele)) then
-        if (begin_ele%ref_species == fork_ele%ref_species .or. begin_ele%ref_species == not_set$) &
-                                                                           begin_ele%value(inherit_from_fork$) = true$
+        if (begin_ele%ref_species == fork_ele%ref_species .or. begin_ele%ref_species == not_set$) then
+          begin_ele%value(inherit_from_fork$) = true$
+          begin_ele%old_value(inherit_from_fork$) = true$
+        endif
       endif
     endif
 
@@ -138,6 +140,10 @@ do ib = 0, ubound(lat%branch, 1)
       begin_ele%value(ref_time_start$) = begin_ele%ref_time
     endif
 
+    begin_ele%old_value(e_tot$) = begin_ele%value(e_tot$)
+    begin_ele%old_value(e_tot_start$) = begin_ele%value(e_tot_start$)
+    begin_ele%old_value(p0c$) = begin_ele%value(p0c$)
+    begin_ele%old_value(p0c_start$) = begin_ele%value(p0c_start$)
     begin_ele%bookkeeping_state%ref_energy = ok$
 
     !

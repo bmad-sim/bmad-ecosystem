@@ -29,6 +29,7 @@ subroutine lattice_bookkeeper (lat, err_flag)
 
 use bookkeeper_mod, dummy => lattice_bookkeeper
 use precision_constants, only: e_muon  ! PTC
+use bmad_parser_struct, only: bp_com
 
 implicit none
 
@@ -60,6 +61,17 @@ if (auto_saved) then
     do j = 0, branch%n_ele_max
       call set_ele_status_stale (branch%ele(j), all_groups$, .false.) 
       call attributes_need_bookkeeping(branch%ele(j), dval)
+
+      if (any(dval /= 0) .and. bp_com%parser_name == '') then  ! If not parsing then error
+        call out_io (s_warn$, r_name, &
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+          '!!!!! Using intelligent bookkeeping will, in the near future, be mandated for all              !!!!!', &
+          '!!!!! Bmad programs that modify lattice parameters.                                            !!!!!', &
+          '!!!!! See the "Intelligent Bookkeeping" section in the Bmad manual.                            !!!!!', &
+          '!!!!! Contact the maintainer of this program with this information.                            !!!!!', &
+          '!!!!! This program will run now but in the future this will change.                            !!!!!', &
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+      endif
     enddo
   enddo
 endif

@@ -73,6 +73,7 @@ bsim/**/doc/*.pdf
 regression_tests/*/output.now
 regression_tests/*/lat.bmad
 regression_tests/*/r
+regression_tests/*/rr
 regression_tests/*/rt
 regression_tests/*/m
 regression_tests/bbu_test/bunch_vec.txt

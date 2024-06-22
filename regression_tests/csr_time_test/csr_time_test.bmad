@@ -1,0 +1,43 @@
+
+
+
+
+BEGINNING[beta_a]  =   0.3145469848
+BEGINNING[alpha_a] =  -2.2075642140
+BEGINNING[beta_b]  = 0.3438568976
+BEGINNING[alpha_b] =  1.9751085275
+BEGINNING[eta_x]   =  -0.0065229769 
+BEGINNING[etap_x]  =   0.0671001523
+
+parameter[geometry] = open
+PARAMETER[particle] = electron
+parameter[e_tot] = 42e6
+parameter[absolute_time_tracking] = F
+
+
+
+!--- Pipes
+dft00b: drift, L = 0.06
+dft01:  drift, L = 0.07
+dft02a: drift, L = 0.06
+dft02:  drift, L = 0.12  ! Only used in straight cells
+
+Qd: QUAD, fringe_type = full, field_master = T
+Qd01: Qd
+Qd02: Qd
+
+! Scott solution 2016 May 9
+Qd01[B1_GRADIENT] = -10.620985849931532
+Qd02[B1_GRADIENT] =  10.016651755070429
+Qd01[X_OFFSET] = -7.1820899274544639e-03
+Qd02[X_OFFSET] =  20.131871679706329e-03
+
+Qd01[L] = .133
+Qd02[L] = .122
+
+Ben01: sbend, L = Qd01[L], b_field = .17, b1_gradient = Qd01[b1_gradient]
+Ben02: sbend, L = Qd02[L], b_field = -0.28, b1_gradient = Qd02[b1_gradient]
+
+cell: line = (dft00b, Ben01, dft01, Ben02, dft02a)
+ln: line = (100*cell)
+use, ln
