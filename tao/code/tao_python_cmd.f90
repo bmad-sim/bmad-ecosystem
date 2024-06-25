@@ -322,7 +322,7 @@ select case (command)
 
 case ('beam')
 
-  u => point_to_uni(line, .false., err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
   ix_branch = parse_branch(line, u, .false., err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'always_reinit;LOGIC;T;',           u%beam%always_reinit
@@ -378,7 +378,7 @@ case ('beam')
 
 case ('beam_init')
 
-  u => point_to_uni(line, .false., err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
   ix_branch = parse_branch(line, u, .false., err); if (err) return
   beam_init => u%model_branch(ix_branch)%beam%beam_init
 
