@@ -7199,7 +7199,7 @@ case ('spin_resonance')
 case ('super_universe')
 
   nl=incr(nl); write (li(nl), imt) 'n_universe;INT;F;',                ubound(s%u, 1)
-  nl=incr(nl); write (li(nl), imt) 'n_v1_var_used;INT;F',              s%n_v1_var_used
+  nl=incr(nl); write (li(nl), imt) 'n_v1_var_used;INT;F;',             s%n_v1_var_used
   nl=incr(nl); write (li(nl), imt) 'n_var_used;INT;F;',                s%n_var_used
 
 !------------------------------------------------------------------------------------------------
