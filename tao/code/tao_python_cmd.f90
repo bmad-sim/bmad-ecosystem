@@ -247,10 +247,11 @@ call match_word (cmd, [character(40) :: &
           'ele:twiss', 'ele:wake', 'ele:wall3d', 'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
           'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'matrix', 'merit', 'orbit_at_s', &
-          'place_buffer', 'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
-          'plot_template_manage', 'plot_graph_manage', 'plot_curve_manage', &
-          'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'ptc_com', 'ring_general', &
+          'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
+          'plot_curve', 'plot_curve_manage', 'plot_graph', 'plot_graph_manage', 'plot_histogram', &
+          'plot_lat_layout', 'plot_line', 'plot_list', &
+          'plot_symbol', 'plot_template_manage', 'plot_transfer', 'plot1', &
+          'ptc_com', 'ring_general', &
           'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', &
           'shape_pattern_point_manage', 'shape_set', 'show', 'space_charge_com', 'species_to_int', 'species_to_str', &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
@@ -5392,6 +5393,197 @@ case ('plot_curve')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% plot_graph
+!
+! Output graph info.
+!
+! Notes
+! -----
+! Command syntax:
+!   python plot_graph {graph_name}
+!
+! {graph_name} is in the form:
+!   {p_name}.{g_name}
+! where
+!   {p_name} is the plot region name if from a region or the plot name if a template plot.
+!   This name is obtained from the python plot_list command.
+!   {g_name} is the graph name obtained from the python plot1 command.
+! 
+! Parameters
+! ----------
+! graph_name
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
+!  args:
+!    graph_name: beta.g
+
+case ('plot_graph')
+
+  call tao_find_plots (err, line, 'BOTH', graph = graphs, only_visible = .false.)
+
+  if (err .or. size(graphs) /= 1) then
+    call invalid ('Bad graph name')
+    return
+  endif
+
+  g => graphs(1)%g
+
+  if (g%type == 'floor_plan') then
+    call tao_set_floor_plan_axis_label (g, g%x, x_ax, 'X')
+    call tao_set_floor_plan_axis_label (g, g%y, y_ax, 'Y')
+  else
+    x_ax = g%x
+    y_ax = g%y
+  endif
+
+  n = 0
+  if (allocated(g%curve)) n = size(g%curve)
+
+  nl=incr(nl); write (li(nl), imt) 'num_curves;INT;T;',                       n
+  do i = 1, n
+    nl=incr(nl); write (li(nl), vamt) 'curve[', i, '];STR;T;',                g%curve(i)%name
+  enddo
+
+  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                               trim(g%name)
+  nl=incr(nl); write (li(nl), amt) 'graph^type;ENUM;T;',                        trim(g%type)
+  nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                              trim(g%title)
+  nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                       trim(g%title_suffix)
+  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                        trim(g%why_invalid)
+  nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',               g%x_axis_scale_factor
+  nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',                 g%symbol_size_scale
+  nl=incr(nl); write (li(nl), jmt) g%ix_universe, '^ix_branch;INUM;T;',         g%ix_branch
+  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                       g%ix_universe
+  nl=incr(nl); write (li(nl), lmt) 'clip;LOGIC;T;',                             g%clip
+  nl=incr(nl); write (li(nl), lmt) 'is_valid;LOGIC;F;',                         g%is_valid
+  nl=incr(nl); write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                     g%y2_mirrors_y
+  nl=incr(nl); write (li(nl), lmt) 'limited;LOGIC;F;',                          g%limited
+  nl=incr(nl); write (li(nl), lmt) 'draw_axes;LOGIC;T;',                        g%draw_axes
+  nl=incr(nl); write (li(nl), lmt) 'draw_curve_legend;LOGIC;T;',                g%draw_curve_legend
+  nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                        g%draw_grid
+  nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
+
+  fp => g%floor_plan
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.view;ENUM;T;',                   fp%view
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.rotation;REAL;T;',               to_str(fp%rotation, 6)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.flip_label_side;LOGIC;T;',       logic_str(fp%flip_label_side)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.size_is_absolute;LOGIC;T;',      logic_str(fp%size_is_absolute)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.draw_building_wall;LOGIC;T;',    logic_str(fp%draw_building_wall)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.draw_only_first_pass;LOGIC;T;',  logic_str(fp%draw_only_first_pass)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.correct_distortion;LOGIC;T;',    logic_str(fp%correct_distortion)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_scale;REAL;T;',            to_str(fp%orbit_scale, 4)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_color;ENUM;T;',            trim(fp%orbit_color)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_lattice;ENUM;T;',          trim(fp%orbit_lattice)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_width;INT;T;',             int_str(fp%orbit_width)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_pattern;ENUM;T;',          trim(fp%orbit_pattern)
+
+  nl=incr(nl); write (li(nl), amt) 'x.label;STR;T;',                            trim(x_ax%label)
+  nl=incr(nl); write (li(nl), amt) 'x.label_color;ENUM;T;',                     trim(x_ax%label_color)
+  nl=incr(nl); write (li(nl), amt) 'x.label_offset;REAL;T;',                    to_str(x_ax%label_offset,6)
+  nl=incr(nl); write (li(nl), amt) 'x.max;REAL;T;',                             to_str(x_ax%max,6)
+  nl=incr(nl); write (li(nl), amt) 'x.min;REAL;T;',                             to_str(x_ax%min,6)
+  nl=incr(nl); write (li(nl), amt) 'x.axis^type;ENUM;T;',                       trim(x_ax%type)
+  nl=incr(nl); write (li(nl), amt) 'x.bounds;ENUM;T;',                          trim(x_ax%bounds)
+  nl=incr(nl); write (li(nl), amt) 'x.number_offset;REAL;T;',                   to_str(x_ax%number_offset,6)
+  nl=incr(nl); write (li(nl), imt) 'x.major_div_nominal;INT;T;',                x_ax%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'x.minor_div;INT;T;',                        x_ax%minor_div
+  nl=incr(nl); write (li(nl), imt) 'x.minor_div_max;INT;T;',                    x_ax%minor_div_max
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_label;LOGIC;T;',                     x_ax%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_numbers;LOGIC;T;',                   x_ax%draw_numbers
+  nl=incr(nl); write (li(nl), imt) 'x.tick_side;INUM;T;',                       x_ax%tick_side
+  nl=incr(nl); write (li(nl), imt) 'x.number_side;INUM;T;',                     x_ax%number_side
+  nl=incr(nl); write (li(nl), amt) 'x.major_tick_len;REAL;T;',                  to_str(x_ax%major_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'x.minor_tick_len;REAL;T;',                  to_str(x_ax%minor_tick_len,6)
+
+  nl=incr(nl); write (li(nl), amt) 'y.label;STR;T;',                            trim(y_ax%label)
+  nl=incr(nl); write (li(nl), amt) 'y.label_color;ENUM;T;',                     trim(y_ax%label_color)
+  nl=incr(nl); write (li(nl), amt) 'y.label_offset;REAL;T;',                    to_str(y_ax%label_offset,6)
+  nl=incr(nl); write (li(nl), amt) 'y.max;REAL;T;',                             to_str(y_ax%max,6)
+  nl=incr(nl); write (li(nl), amt) 'y.min;REAL;T;',                             to_str(y_ax%min,6)
+  nl=incr(nl); write (li(nl), amt) 'y.axis^type;ENUM;T;',                       trim(y_ax%type)
+  nl=incr(nl); write (li(nl), amt) 'y.bounds;ENUM;T;',                          trim(y_ax%bounds)
+  nl=incr(nl); write (li(nl), amt) 'y.number_offset;REAL;T;',                   to_str(y_ax%number_offset,6)
+  nl=incr(nl); write (li(nl), imt) 'y.major_div_nominal;INT;T;',                y_ax%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'y.minor_div;INT;T;',                        y_ax%minor_div
+  nl=incr(nl); write (li(nl), imt) 'y.minor_div_max;INT;T;',                    y_ax%minor_div_max
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_label;LOGIC;T;',                     y_ax%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_numbers;LOGIC;T;',                   y_ax%draw_numbers
+  nl=incr(nl); write (li(nl), imt) 'y.tick_side;INUM;T;',                       y_ax%tick_side
+  nl=incr(nl); write (li(nl), imt) 'y.number_side;INUM;T;',                     y_ax%number_side
+  nl=incr(nl); write (li(nl), amt) 'y.major_tick_len;REAL;T;',                  to_str(y_ax%major_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'y.minor_tick_len;REAL;T;',                  to_str(y_ax%minor_tick_len,6)
+
+  nl=incr(nl); write (li(nl), amt) 'y2.label;STR;T;',                           trim(g%y2%label)
+  nl=incr(nl); write (li(nl), amt) 'y2.label_color;ENUM;T;',                    trim(g%y2%label_color)
+  nl=incr(nl); write (li(nl), amt) 'y2.label_offset;REAL;T;',                   to_str(g%y2%label_offset,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.max;REAL;T;',                            to_str(g%y2%max,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.min;REAL;T;',                            to_str(g%y2%min,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.axis^type;ENUM;T;',                      trim(g%y2%type)
+  nl=incr(nl); write (li(nl), amt) 'y2.bounds;ENUM;T;',                         trim(g%y2%bounds)
+  nl=incr(nl); write (li(nl), amt) 'y2.number_offset;REAL;T;',                  to_str(g%y2%number_offset,6)
+  nl=incr(nl); write (li(nl), imt) 'y2.major_div_nominal;INT;T;',               g%y2%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'y2.minor_div;INT;T;',                       g%y2%minor_div
+  nl=incr(nl); write (li(nl), imt) 'y2.minor_div_max;INT;T;',                   g%y2%minor_div_max
+  nl=incr(nl); write (li(nl), lmt) 'y2.draw_label;LOGIC;T;',                    g%y2%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'y2.draw_numbers;LOGIC;T;',                  g%y2%draw_numbers
+  nl=incr(nl); write (li(nl), imt) 'y2.tick_side;INUM;T;',                      g%y2%tick_side
+  nl=incr(nl); write (li(nl), imt) 'y2.number_side;INUM;T;',                    g%y2%number_side
+  nl=incr(nl); write (li(nl), amt) 'y2.major_tick_len;REAL;T;',                 to_str(g%y2%major_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.minor_tick_len;REAL;T;',                 to_str(g%y2%minor_tick_len,6)
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% plot_histogram
+!
+! Output plot histogram info.
+!
+! Notes
+! -----
+! Command syntax:
+!   python plot_histogram {curve_name}
+! 
+! Parameters
+! ----------
+! curve_name
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
+!  args:
+!    curve_name: r33.g.x
+
+case ('plot_histogram')
+
+  call tao_find_plots (err, line, 'BOTH', curve = curves, only_visible = .false.)
+
+  if (err .or. size(curves) /= 1) then
+    call invalid ('Bad curve name')
+    return
+  endif
+
+  c => curves(1)%c
+
+  nl=incr(nl); write (li(nl), lmt) 'density_normalized;LOGIC;T;',          c%hist%density_normalized
+  nl=incr(nl); write (li(nl), lmt) 'weight_by_charge;LOGIC;T;',            c%hist%weight_by_charge
+  nl=incr(nl); write (li(nl), rmt) 'minimum;REAL;T;',                      c%hist%minimum
+  nl=incr(nl); write (li(nl), rmt) 'maximum;REAL;T;',                      c%hist%maximum
+  nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        c%hist%width
+  nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       c%hist%center
+  nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       c%hist%number
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% plot_lat_layout
 !
 ! Output plot Lat_layout info
@@ -5495,182 +5687,6 @@ case ('plot_list')
   else
     call invalid ('Expect "r" or "t"')
   endif
-
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-!%% plot_graph
-!
-! Output graph info.
-!
-! Notes
-! -----
-! Command syntax:
-!   python plot_graph {graph_name}
-!
-! {graph_name} is in the form:
-!   {p_name}.{g_name}
-! where
-!   {p_name} is the plot region name if from a region or the plot name if a template plot.
-!   This name is obtained from the python plot_list command.
-!   {g_name} is the graph name obtained from the python plot1 command.
-! 
-! Parameters
-! ----------
-! graph_name
-!
-! Returns
-! -------
-! string_list
-!
-! Examples
-! --------
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
-!  args:
-!    graph_name: beta.g
-
-case ('plot_graph')
-
-  call tao_find_plots (err, line, 'BOTH', graph = graphs, only_visible = .false.)
-
-  if (err .or. size(graphs) /= 1) then
-    call invalid ('Bad graph name')
-    return
-  endif
-
-  g => graphs(1)%g
-
-  if (g%type == 'floor_plan') then
-    call tao_set_floor_plan_axis_label (g, g%x, x_ax, 'X')
-    call tao_set_floor_plan_axis_label (g, g%y, y_ax, 'Y')
-  else
-    x_ax = g%x
-    y_ax = g%y
-  endif
-
-  n = 0
-  if (allocated(g%curve)) n = size(g%curve)
-
-  nl=incr(nl); write (li(nl), imt) 'num_curves;INT;T;',                       n
-  do i = 1, n
-    nl=incr(nl); write (li(nl), vamt) 'curve[', i, '];STR;T;',                g%curve(i)%name
-  enddo
-
-  nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                               trim(g%name)
-  nl=incr(nl); write (li(nl), amt) 'graph^type;ENUM;T;',                        trim(g%type)
-  nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                              trim(g%title)
-  nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                       trim(g%title_suffix)
-  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                        trim(g%why_invalid)
-  nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',               g%x_axis_scale_factor
-  nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',                 g%symbol_size_scale
-  nl=incr(nl); write (li(nl), jmt) g%ix_universe, '^ix_branch;INUM;T;',         g%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                       g%ix_universe
-  nl=incr(nl); write (li(nl), lmt) 'clip;LOGIC;T;',                             g%clip
-  nl=incr(nl); write (li(nl), lmt) 'is_valid;LOGIC;F;',                         g%is_valid
-  nl=incr(nl); write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                     g%y2_mirrors_y
-  nl=incr(nl); write (li(nl), lmt) 'limited;LOGIC;F;',                          g%limited
-  nl=incr(nl); write (li(nl), lmt) 'draw_axes;LOGIC;T;',                        g%draw_axes
-  nl=incr(nl); write (li(nl), lmt) 'draw_curve_legend;LOGIC;T;',                g%draw_curve_legend
-  nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                        g%draw_grid
-  nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
-
-  fp => g%floor_plan
-  nl=incr(nl); write (li(nl), '(50a)') 'floor_plan;STRUCT;T', ';view;ENUM;', fp%view, &
-      ';rotation;REAL;', to_str(fp%rotation, 6), ';flip_label_side;LOGIC;', logic_str(fp%flip_label_side), &
-      ';size_is_absolute;LOGIC;', logic_str(fp%size_is_absolute), ';draw_building_wall;LOGIC;', logic_str(fp%draw_building_wall), &
-      ';draw_only_first_pass;LOGIC;', logic_str(fp%draw_only_first_pass), ';correct_distortion;LOGIC;', logic_str(fp%correct_distortion), &
-      ';orbit_scale;REAL;', to_str(fp%orbit_scale, 4), ';orbit_color;ENUM;', trim(fp%orbit_color), &
-      ';orbit_lattice;ENUM;', trim(fp%orbit_lattice), &
-      ';orbit_width;INT;', int_str(fp%orbit_width), ';orbit_pattern;ENUM;', trim(fp%orbit_pattern)
-  
-
-  if (s%global%external_plotting) then
-    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                            ';max;REAL;', to_str(x_ax%max,6), ';min;REAL;', to_str(x_ax%min,6), &
-                            ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers
-    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                            ';max;REAL;', to_str(y_ax%max,6), ';min;REAL;', to_str(y_ax%min,6), &
-                            ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers
-    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                            ';max;REAL;', to_str(g%y2%max,6), ';min;REAL;', to_str(g%y2%min,6), &
-                            ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers
-  else
-    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                    ';label_color;ENUM;', trim(x_ax%label_color), ';label_offset;REAL;', to_str(x_ax%label_offset,6), &
-                    ';max;REAL;', to_str(x_ax%max,6), ';min;REAL;', to_str(x_ax%min,6), &
-                    ';axis^type;ENUM;', trim(x_ax%type), ';bounds;ENUM;', trim(x_ax%bounds), &
-                    ';number_offset;REAL;', to_str(x_ax%number_offset,6), ';major_div_nominal;INT;', x_ax%major_div_nominal, &
-                    ';minor_div;INT;', x_ax%minor_div, ';minor_div_max;INT;', x_ax%minor_div_max, &
-                    ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers, &
-                    ';tick_side;INUM;', x_ax%tick_side, ';number_side;INUM;', x_ax%number_side, &
-                    ';major_tick_len;REAL;', to_str(x_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(x_ax%minor_tick_len,6)
-
-    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                    ';label_color;ENUM;', trim(y_ax%label_color), ';label_offset;REAL;', to_str(y_ax%label_offset,6), &
-                    ';max;REAL;', to_str(y_ax%max,6), ';min;REAL;', to_str(y_ax%min,6), &
-                    ';axis^type;ENUM;', trim(y_ax%type), ';bounds;ENUM;', trim(y_ax%bounds), &
-                    ';number_offset;REAL;', to_str(y_ax%number_offset,6), ';major_div_nominal;INT;', y_ax%major_div_nominal, &
-                    ';minor_div;INT;', y_ax%minor_div, ';minor_div_max;INT;', y_ax%minor_div_max, &
-                    ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers, &
-                    ';tick_side;INUM;', y_ax%tick_side, ';number_side;INUM;', y_ax%number_side, &
-                    ';major_tick_len;REAL;', to_str(y_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(y_ax%minor_tick_len,6)
-
-    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                    ';label_color;ENUM;', trim(g%y2%label_color), ';label_offset;REAL;', to_str(g%y2%label_offset,6), &
-                    ';max;REAL;', to_str(g%y2%max,6), ';min;REAL;', to_str(g%y2%min,6), &
-                    ';axis^type;ENUM;', trim(g%y2%type), ';bounds;ENUM;', trim(g%y2%bounds), &
-                    ';number_offset;REAL;', to_str(g%y2%number_offset,6), ';major_div_nominal;INT;', g%y2%major_div_nominal, &
-                    ';minor_div;INT;', g%y2%minor_div, ';minor_div_max;INT;', g%y2%minor_div_max, &
-                    ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers, &
-                    ';tick_side;INUM;', g%y2%tick_side, ';number_side;INUM;', g%y2%number_side, &
-                    ';major_tick_len;REAL;', to_str(g%y2%major_tick_len,6), ';minor_tick_len;REAL;', to_str(g%y2%minor_tick_len,6)
-
-  endif
-
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-!%% plot_histogram
-!
-! Output plot histogram info.
-!
-! Notes
-! -----
-! Command syntax:
-!   python plot_histogram {curve_name}
-! 
-! Parameters
-! ----------
-! curve_name
-!
-! Returns
-! -------
-! string_list
-!
-! Examples
-! --------
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/tao.init_optics_matching
-!  args:
-!    curve_name: r33.g.x
-
-case ('plot_histogram')
-
-  call tao_find_plots (err, line, 'BOTH', curve = curves, only_visible = .false.)
-
-  if (err .or. size(curves) /= 1) then
-    call invalid ('Bad curve name')
-    return
-  endif
-
-  c => curves(1)%c
-
-  nl=incr(nl); write (li(nl), lmt) 'density_normalized;LOGIC;T;',          c%hist%density_normalized
-  nl=incr(nl); write (li(nl), lmt) 'weight_by_charge;LOGIC;T;',            c%hist%weight_by_charge
-  nl=incr(nl); write (li(nl), rmt) 'minimum;REAL;T;',                      c%hist%minimum
-  nl=incr(nl); write (li(nl), rmt) 'maximum;REAL;T;',                      c%hist%maximum
-  nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        c%hist%width
-  nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       c%hist%center
-  nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       c%hist%number
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -7199,7 +7215,7 @@ case ('spin_resonance')
 case ('super_universe')
 
   nl=incr(nl); write (li(nl), imt) 'n_universe;INT;F;',                ubound(s%u, 1)
-  nl=incr(nl); write (li(nl), imt) 'n_v1_var_used;INT;F',              s%n_v1_var_used
+  nl=incr(nl); write (li(nl), imt) 'n_v1_var_used;INT;F;',             s%n_v1_var_used
   nl=incr(nl); write (li(nl), imt) 'n_var_used;INT;F;',                s%n_var_used
 
 !------------------------------------------------------------------------------------------------
