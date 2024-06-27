@@ -19,7 +19,7 @@ module c_dabnew
   public c_dacsu,c_dasuc,c_dacmu,c_dadal1,c_dapri,c_dapri77,c_darea,c_darea77,c_daeps
   public c_dacdi,c_dadic,c_count_da,c_mtree,c_dafun,c_DAABS,c_dadiv,c_take,c_datrunc,c_dader,c_datra
   public c_daran,c_dacfu,c_matinv,c_dapek0,c_dapok0,c_dacct,c_dainv,c_etcom,c_danot
-  public c_print_eps,c_lda_used,c_dapint
+  public c_print_eps,c_lda_used,c_dapint,c_real_imag
   integer,private,parameter:: lsw=1
   integer :: c_lda_max_used=0
   ! integer,private,parameter::nmax=400,lsw=1
@@ -925,8 +925,10 @@ endif
              ind=c_nda_dab
              if(c_nda_dab.gt.c_lda) then
                 write(6,'(a53)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,20'
+                write(6,*) " try c_lda_used=c_lda_used*N   where is N is an integer greater than 1 "
+                write(6,*) " put c_lda_used=c_lda_used*N  in your program  before you initialize FPP or PTC "
                 !    ipause=mypauses(10,line)
-                call dadeb !(31,'ERR DAALL ',1)
+ !               call dadeb !(31,'ERR DAALL ',1)
                 stop 111
              endif
           endif
@@ -2282,6 +2284,93 @@ endif
     c_idall(inb) = ib - ipob + 1
     return
   end subroutine c_dacop
+
+  subroutine c_real_imag(ina,inb,i)
+    implicit none
+    !     *************************
+    !
+    !     THIS SUBROUTINE COPIES THE DA VECTOR A TO THE DA VECTOR B
+    !
+    !-----------------------------------------------------------------------------
+    !
+    !      call dainf(ina,inoa,inva,ipoa,ilma,illa)
+    !      call dainf(inb,inob,invb,ipob,ilmb,illb)
+    !
+    !      CALL DACHK(INA,INOA,INVA, '          ',-1,-1,INB,INOB,INVB)
+    !-----------------------------------------------------------------------------
+    !
+    integer ia,ib,illa,ina,inb,ipoa,ipob,i
+     
+if(i==1) then
+ if(newtpsa) then
+       c_cc(c_idapo(inb):c_idapo(inb)+c_nmmax-1)=real(c_cc(c_idapo(ina):c_idapo(ina)+c_nmmax-1))
+    return
+endif
+
+
+    if((.not.c_stable_da)) then
+       if(C_watch_user) then
+          write(6,*) "big problem in dabnew ", sqrt(crash)
+       endif
+       return
+    endif
+    ipob = c_idapo(inb)
+    ipoa = c_idapo(ina)
+    illa = c_idall(ina)
+    ib = ipob - 1
+    !
+    !      iif = 0
+    !      if(c_nomax.eq.1.or.inva.eq.0) iif = 1
+    do ia = ipoa,ipoa+illa-1
+       !
+       if(c_nomax.gt.1) then
+          if(c_ieo(c_ia1(c_i_1(ia))+c_ia2(c_i_2(ia))).gt.c_nocut) goto 99
+       endif
+       ib = ib + 1
+       c_cc(ib) = real(c_cc(ia))
+       c_i_1(ib) = c_i_1(ia)
+       c_i_2(ib) = c_i_2(ia)
+       !
+99    continue
+    enddo
+else
+ if(newtpsa) then
+       c_cc(c_idapo(inb):c_idapo(inb)+c_nmmax-1)=aimag(c_cc(c_idapo(ina):c_idapo(ina)+c_nmmax-1))
+    return
+endif
+
+
+    if((.not.c_stable_da)) then
+       if(C_watch_user) then
+          write(6,*) "big problem in dabnew ", sqrt(crash)
+       endif
+       return
+    endif
+    ipob = c_idapo(inb)
+    ipoa = c_idapo(ina)
+    illa = c_idall(ina)
+    ib = ipob - 1
+    !
+    !      iif = 0
+    !      if(c_nomax.eq.1.or.inva.eq.0) iif = 1
+    do ia = ipoa,ipoa+illa-1
+       !
+       if(c_nomax.gt.1) then
+          if(c_ieo(c_ia1(c_i_1(ia))+c_ia2(c_i_2(ia))).gt.c_nocut) goto 100
+       endif
+       ib = ib + 1
+       c_cc(ib) = aimag(c_cc(ia))
+       c_i_1(ib) = c_i_1(ia)
+       c_i_2(ib) = c_i_2(ia)
+       !
+100    continue
+    enddo
+
+endif
+    !
+    c_idall(inb) = ib - ipob + 1
+    return
+  end subroutine c_real_imag
 
   subroutine c_daadd(ina,inb,inc)
     implicit none
