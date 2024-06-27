@@ -585,9 +585,9 @@ private arcsin_xr,arcsin_xp
      MODULE PROCEDURE dexpt
   END INTERFACE
 
-  INTERFACE invqq
-     MODULE PROCEDURE invq
-  END INTERFACE
+ ! INTERFACE invqq
+  !eeeee   MODULE PROCEDURE invq
+ ! END INTERFACE
 
   INTERFACE dexp
      MODULE PROCEDURE dexpt
@@ -5073,7 +5073,9 @@ end  function asin_coeff_set
     I1=LBOUND(S1,DIM=1)
     I2=LBOUND(S2,DIM=1)
     do i=I1,UBOUND(S1,DIM=1)
+     if(LBOUND(S2,DIM=1)<=I-I1+I2.and.UBOUND(S2,DIM=1)>=I-I1+I2) then
        S2(I-I1+I2)=S1(I)
+     endif
     ENDDO
 
   end SUBROUTINE  EQUAL1D
@@ -5127,7 +5129,8 @@ end  function asin_coeff_set
       do i=0,3
         s2%x(i)=0.0_dp
       enddo
-        s2%x(1)=s1
+ !      s2%x(1)=s1    error 2024.04.04
+        s2%x(0)=s1
 
  end   SUBROUTINE  EQUALq_r
 
