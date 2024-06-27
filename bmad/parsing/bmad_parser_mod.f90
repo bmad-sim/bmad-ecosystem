@@ -1177,7 +1177,8 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
   if (attrib_word == 'SURFACE') then
     if (ele%key == detector$) name = 'PIXEL'
   elseif (attrib_word /= 'PIXEL') then
-    call match_word (attrib_word, surface_grid_type_name(1:), ph%grid%type)
+    who = surface_grid_type_name(1, name_list)
+    call match_word (attrib_word, name_list, ph%grid%type)
   endif
 
   if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
@@ -1226,9 +1227,7 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
 
     select case (word)
     case ('TYPE')   ! This is old style.
-      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ph%grid%type, err_flag2, ele, delim, delim_found)
-      if (err_flag2) return
-      bp_com%parse_line = delim // bp_com%parse_line
+      call parser_error('OLD STYLE GRID TYPE SYNTAX NO LONGER ACCEPTED. PLEASE CORRECT.')
 
     case ('ACTIVE')
       call parser_get_logical (word, ph%grid%active, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
