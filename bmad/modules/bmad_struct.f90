@@ -989,8 +989,6 @@ type surface_grid_struct
 end type
 
 integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
-character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARBAGE!', &
-                                                  'Segmented', 'H_Misalign', 'Displacement']
 
 ! Photon statistics at a detector
 
@@ -2525,10 +2523,54 @@ case (lost_neg_y$);  state_str = 'Lost_Neg_Y'
 case (lost_pos_y$);  state_str = 'Lost_Pos_Y'
 case (lost_pz$);     state_str = 'Lost_Pz'
 case (lost_z$);      state_str = 'Lost_Z'
-case default;        state_str = 'UNKNOWN!'
+case default;        state_str = null_name$
 end select
 
 end function coord_state_name
+
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Function surface_grid_type_name(grid_type, name_list) result (type_str)
+!
+! Routine to return the string representation of ele%photon%grid%type.
+!
+! Input:
+!   grid_type     -- integer: ele%photon%grid%type value.
+!
+! Output:
+!   type_str      -- character(16): String rep.
+!   name_list(:)  -- character(*), optional, allocatable: List of possible names.
+!-
+
+function surface_grid_type_name(grid_type, name_list) result (type_str)
+
+implicit none
+
+integer grid_type
+character(16) :: type_str
+character(*), optional, allocatable :: name_list(:)
+
+!
+
+select case (grid_type)
+case (not_set$);        type_str = 'Not_set'
+case (segmented$);      type_str = 'Segmented'
+case (h_misalign$);     type_str = 'H_Misalign'
+case (displacement$);   type_str = 'Displacement'
+case default;           type_str = null_name$
+end select
+
+if (present(name_list)) then
+  if (allocated(name_list)) deallocate(name_list)
+  allocate(name_list(4))
+  ! Important: name_list order matches integer values segmented$ = 1, etc.
+  name_list = [character(16):: 'Segmented', 'H_Misalign', 'Displacement', 'Not_set']
+endif
+
+end function surface_grid_type_name
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
