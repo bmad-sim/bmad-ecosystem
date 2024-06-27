@@ -7400,7 +7400,9 @@ case ('universe')
 ! Notes
 ! -----
 ! Command syntax:
-!   python var {var} slaves
+!   python var {var} {slaves}
+!
+! Note: use "python var_general" to get a list of variables.
 ! 
 ! Parameters
 ! ----------
