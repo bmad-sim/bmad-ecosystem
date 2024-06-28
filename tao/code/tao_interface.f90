@@ -453,14 +453,14 @@ subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
 end subroutine
 
 subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
-                                       print_err, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
+                                       err_stat_level, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
   import
   implicit none
   character(*) ele_list
   integer ix_universe
   type (ele_pointer_struct), allocatable :: eles(:)
   logical err
-  integer, optional :: lat_type, print_err, ix_dflt_branch
+  integer, optional :: lat_type, err_stat_level, ix_dflt_branch
   logical, optional :: ignore_blank, above_ubound_is_err, multiple_eles_is_err
 end subroutine
 

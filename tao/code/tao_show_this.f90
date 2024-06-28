@@ -103,7 +103,7 @@ type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
-type (complex_taylor_struct) bmad_ctaylor
+type (complex_taylor_struct) bmad_ctaylor, ctaylor(3)
 type (rad_map_ele_struct), pointer :: ri
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_expression_info_struct), allocatable :: info(:)
@@ -4463,7 +4463,7 @@ case ('spin')
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
-                            '-z_zero', '-ignore_kinetic'], .true., switch, err)
+                            '-z_zero', '-ignore_kinetic', '-isf'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4481,6 +4481,8 @@ case ('spin')
       endif
     case ('-flip_n_axis')
       flip = .true.
+    case ('-isf')
+      what_to_show = 'isf'
     case ('-n_axis')
       read (what2, *, iostat = ios) sm%axis_input%n0
       if (ios /= 0) then
@@ -4522,6 +4524,25 @@ case ('spin')
 
   if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on
 
+  !
+
+  if (what_to_show == 'isf') then
+    if (branch%param%geometry == open$) then
+      nl=nl+1; lines(nl) = 'No ISF for an open lattice!'
+      return
+    endif
+
+    tao_branch%spin_map_valid = .false.
+    if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+    ptc_nf  => tao_branch%ptc_normal_form
+    do i = 1, 3
+      ctaylor(i) = ptc_nf%isf%x(i)
+    enddo
+    call type_complex_taylors(ctaylor)
+    return
+  endif
+
   ! what_to_show = standard
 
   r = anomalous_moment_of(branch%param%particle) * branch%ele(1)%value(e_tot$) / mass_of(branch%param%particle)
@@ -4543,24 +4564,6 @@ case ('spin')
       tao_branch%spin_map_valid = .false.
       call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
       if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
-
-      !
-
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
-
-      ptc_nf  => tao_branch%ptc_normal_form
-      do i = 0, ptc_private%taylor_order_ptc-1
-        expo = [0, 0, 0, 0, 0, i]
-        z1 = real(ptc_nf%phase(1) .sub. expo)
-        z2 = real(ptc_nf%phase(2) .sub. expo)
-        s0 = real(ptc_nf%spin_tune .sub. expo)
-        if (i == 0) then
-          nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
-        else
-          nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
-        endif
-      enddo
 
       !
 

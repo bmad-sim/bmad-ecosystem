@@ -3555,7 +3555,7 @@ case ('ele:photon')
     nl=incr(nl); write (li(nl), lmt) 'has#pixel;LOGIC;F;',  (allocated(ele%photon%pixel%pt))
     nl=incr(nl); write (li(nl), lmt) 'has#material;LOGIC;F;', &
                            (attribute_name(ele, material_type$) == 'MATERIAL_TYPE' .or. ele%key == crystal$)
-    nl=incr(nl); write (li(nl), amt) 'grid#type;LOGIC;F;',  trim(surface_grid_type_name(ele%photon%grid%type))
+    nl=incr(nl); write (li(nl), amt) 'grid#type;ENUM;F;',  trim(surface_grid_type_name(ele%photon%grid%type))
 
   case ('material')
     if (ele%key == multilayer_mirror$) then

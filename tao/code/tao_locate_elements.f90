@@ -1,6 +1,6 @@
 !+
 ! Subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, 
-!                                                           print_err, ix_dflt_branch, multiple_eles_is_err) 
+!                                                           err_stat_level, ix_dflt_branch, multiple_eles_is_err) 
 !
 ! Subroutine to find the lattice elements in the lattice
 ! corresponding to the ele_list argument. 
@@ -15,7 +15,7 @@
 !   lat_type       -- integer, optional: model$ (default), design$, or base$.
 !   ignore_blank   -- logical, optional: If present and true then do nothing if
 !                     ele_list is blank. otherwise treated as an error.
-!   print_err      -- integer, optional: Status level for error messages. If not present,
+!   err_stat_level -- integer, optional: Status level for error messages. If not present,
 !                       print with level s_error$. Use s_nooutput$ to prevent printing.
 !   ix_dflt_branch -- integer, optional: If present and positive then use this as the branch index 
 !                       for elements specified using an integer index (EG: "43").
@@ -29,7 +29,7 @@
 !-
 
 subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
-                                           print_err, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
+                                           err_stat_level, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
 
 use tao_interface, dummy => tao_locate_elements
 
@@ -39,7 +39,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_lattice_struct), pointer :: tao_lat
 type (ele_pointer_struct), allocatable :: eles(:)
 
-integer, optional :: lat_type, ix_dflt_branch, print_err
+integer, optional :: lat_type, ix_dflt_branch, err_stat_level
 integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc, print_lev
 
 character(*) ele_list
@@ -52,7 +52,7 @@ logical, optional :: ignore_blank, above_ubound_is_err, multiple_eles_is_err
 ! 
 
 err = .true.
-print_lev = integer_option(s_error$, print_err)
+print_lev = integer_option(s_error$, err_stat_level)
 
 call re_allocate_eles (eles, 0, exact = .true.)
 
