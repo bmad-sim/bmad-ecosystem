@@ -846,6 +846,7 @@ case ('chromaticity')
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
 
+  nl=nl+1; lines(nl) = '  Note: Calculation is done with RF off.'
   nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
 
   do i = 0, ptc_private%taylor_order_ptc-1
@@ -855,6 +856,8 @@ case ('chromaticity')
     s0 = real(ptc_nf%spin_tune .sub. expo)
     if (i == 0) then
       nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
+    elseif (i == 1 .and. .not. bmad_com%spin_tracking_on) then
+      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! Spin tracking off so spin tune not calculated'
     else
       nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
     endif
@@ -4539,6 +4542,28 @@ case ('spin')
     else
       tao_branch%spin_map_valid = .false.
       call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
+      if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+      !
+
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
+
+      ptc_nf  => tao_branch%ptc_normal_form
+      do i = 0, ptc_private%taylor_order_ptc-1
+        expo = [0, 0, 0, 0, 0, i]
+        z1 = real(ptc_nf%phase(1) .sub. expo)
+        z2 = real(ptc_nf%phase(2) .sub. expo)
+        s0 = real(ptc_nf%spin_tune .sub. expo)
+        if (i == 0) then
+          nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
+        else
+          nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
+        endif
+      enddo
+
+      !
+
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
       if (tao_branch%spin%valid) then

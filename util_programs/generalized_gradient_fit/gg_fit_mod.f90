@@ -73,7 +73,6 @@ real(rp) :: del_grid(3), del_meters(3), r0_grid(3), r0_meters(3), field_scale, l
 real(rp) :: z_min = real_garbage$, z_max = real_garbage$, core_weight = 1, outer_plane_weight = 1
 real(rp) :: lmdif_eps = 1d-12
 
-real(rp), allocatable :: var_vec(:), merit_vec(:), dB_dvar_vec(:,:)
 real(rp) merit
 
 logical printit
@@ -414,6 +413,7 @@ type (super_mrqmin_storage_struct) storage
 type (gg1_struct), pointer :: gg
 
 real(rp), allocatable :: vec0(:), weight(:), zero_vec(:), xy(:,:)
+real(rp), allocatable :: var_vec(:), merit_vec(:), dB_dvar_vec(:,:)
 real(rp) merit0, x, y, v, chisq, a_lambda, r2, r2_max, p_wgt
 
 integer i, iloop, im, id, n_gg, n, ig, nx, ny, n3
@@ -454,7 +454,6 @@ allocate (gg1(n_gg), xy(Nx_min:Nx_max, Ny_min:Ny_max))
 
 n_var = 0
 n_gg = 0
-zero_vec = 0
 
 do im = 1, size(m_cos)
   if (m_cos(im) /= -1) then
@@ -512,11 +511,12 @@ enddo
 !
 
 allocate (merit_vec(n_merit), dB_dvar_vec(n_merit, n_var), zero_vec(n_merit))
-
 allocate (fit(iz_min:iz_max))
 allocate (var_vec(n_var), vec0(n_var), weight(n_merit))
+
 vec0 = 0
 var_vec = 0
+zero_vec = 0
 
 r2_max = max(abs(Nx_min*del_meters(1) + r0_meters(1)), abs(Nx_max*del_meters(1) + r0_meters(1)))**2 + &
          max(abs(Ny_min*del_meters(2) + r0_meters(2)), abs(Ny_max*del_meters(2) + r0_meters(2)))**2
