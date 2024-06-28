@@ -263,7 +263,8 @@ end function
 !   out_type       -- character(*), optional: Determins the string to be used for the output type column.
 !                       '' (default)  -> '1', '2', '3', etc.
 !                       'PHASE'       -> 'X', 'Px, 'Y', 'Py', 'Z', 'Pz'
-!                       'SPIN'        -> 'S1', 'Sx', 'Sy', 'Sz' (quaternion representation)
+!                       'SPIN'        -> 'S1', 'Sx', 'Sy', 'Sz'  ! If size = 4: quaternion representation
+!                       'SPIN'        -> 'Sx', 'Sy', 'Sz'  ! If size = 3: 
 !                       'NONE'        -> No out column
 !                       Anything else -> Use this for the output column.
 !   clean          -- logical, optional: If True then do not include terms whose coefficients
@@ -352,7 +353,11 @@ else
     case ('PHASE')
       if (i <=6) out_str = ' ' // phase_out(i) // ':'
     case ('SPIN')
-      if (i <=4) out_str = ' ' // spin_out(i) // ':'
+      if (nt == 4) then 
+        out_str = ' ' // spin_out(i) // ':'
+      elseif (nt == 3) then
+        out_str = ' ' // spin_out(i+1) // ':'
+      endif
     case default
       out_str = o_type // ':'
     end select
