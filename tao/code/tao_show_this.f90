@@ -4539,7 +4539,8 @@ case ('spin')
     do i = 1, 3
       ctaylor(i) = ptc_nf%isf%x(i)
     enddo
-    call type_complex_taylors(ctaylor)
+
+    call type_complex_taylors(ctaylor, out_type = 'SPIN')
     return
   endif
 
