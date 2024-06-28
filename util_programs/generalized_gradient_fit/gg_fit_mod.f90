@@ -1022,7 +1022,7 @@ do ig = 1, size(gg1)
   write (1, '(3a)')       '      kind = ', sincos_name(gg%sincos), ','
   write (1, '(a, i2)')    '      derivs = {'
 
-  write (fmt, '(a, i0, a)') '(f15.4, a, ', size(gg%deriv,2), 'es20.12, a)' 
+  write (fmt, '(a, i0, a)') '(f15.6, a, ', size(gg%deriv,2), 'es20.12, a)' 
   do iz = iz_min, iz_max-1
     write (1, fmt) iz*del_meters(3), ':', gg%deriv(iz,:), ','
   enddo
