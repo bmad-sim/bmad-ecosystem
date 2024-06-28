@@ -328,18 +328,22 @@ else
 
   select case (o_type)
   case ('PHASE')
-    nl=nl+1; write (li(nl), '(a)') ' Out      Re Coef             Im Coef         Exponents          Order      Reference'
+    nl=nl+1; write (li(nl), '(a)') ' Out      Real Coef           Imag Coef        Exponents          Order      Reference'
     nl=nl+1; li(nl) =              ' --------------------------------------------------------------------------------------------------------'
   case ('NONE')
     nl=nl+1; write (li(nl), '(a)') '       Re Coef             Im Coef         Exponents          Order'
     nl=nl+1; li(nl) =              '   ----------------------------------------------------------------'
     fmt1 = '(' // fmt1(5:);  fmt2 = '(' // fmt2(5:)
   case default
-    nl=nl+1; write (li(nl), '(a)') ' Out      Re Coef             Im Coef         Exponents          Order'
-    nl=nl+1; li(nl) =              ' ---------------------------------------------------------------------'
+    nl=nl+1; write (li(nl), '(a)') ' Out      Real Coef           Imag Coef        Exponents          Order'
+    nl=nl+1; li(nl) =              ' ----------------------------------------------------------------------'
   end select
 
   do i = 1, nt
+
+    if (i > 1) then
+      nl=nl+1; li(nl) = ' ----------------------------------------------------------------------'
+    endif
 
     out_str = ' ??:'
     select case(o_type)

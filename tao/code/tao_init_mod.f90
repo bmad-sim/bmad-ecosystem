@@ -386,13 +386,13 @@ if (u%beam%saved_at /= '') then
 endif
 
 if (u%beam%dump_at /= '') then
-  call tao_locate_elements (u%beam%dump_at, u%ix_uni, eles, err, ignore_blank = .false.)
+  call tao_locate_elements (u%beam%dump_at, u%ix_uni, eles, err, ignore_blank = .false., err_stat_level = s_warn$)
   if (err) then
     call out_io (s_warn$, r_name, 'BAD "dump_at" ELEMENT: ' // u%beam%dump_at)
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
-      if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_lord)
+      if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave) ! Downstream end of lord
       u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
     enddo
   endif
