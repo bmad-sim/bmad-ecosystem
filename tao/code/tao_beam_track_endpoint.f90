@@ -57,7 +57,7 @@ if (ele_id == '') then
     else
       ie = u%model_branch(branch%ix_branch)%beam%ix_track_start - 1
       if (ie == -1) then
-        ele => branch%ele(0)
+        ele => branch%ele(branch%n_ele_track)
       else
         ele => branch%ele(ie)
       endif
