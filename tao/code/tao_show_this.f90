@@ -103,7 +103,7 @@ type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
-type (complex_taylor_struct) bmad_ctaylor
+type (complex_taylor_struct) bmad_ctaylor, ctaylor(3)
 type (rad_map_ele_struct), pointer :: ri
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_expression_info_struct), allocatable :: info(:)
@@ -446,8 +446,8 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt)  'dump_file         = ', quote(u%beam%dump_file)
     nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: -1 => Use (latice branch length)/plot_page%n_curve_pts'
 !!!!    nl=nl+1; write(lines(nl), rmt) 'comb_max_ds_save  = ', tao_branch%bunch_params_comb(1)%max_ds_save
-    nl=nl+1; write(lines(nl), fmt)  'track_start       = ', quote(bb%track_start)
-    nl=nl+1; write(lines(nl), fmt)  'track_end         = ', quote(bb%track_end)
+    nl=nl+1; write(lines(nl), amt)  'track_start       = ', quote(bb%track_start), '  ! ', ele_full_name(branch%ele(bb%ix_track_start))
+    nl=nl+1; write(lines(nl), amt)  'track_end         = ', quote(bb%track_end),   '  ! ', ele_full_name(branch%ele(bb%ix_track_end))
 
     beam => u%model_branch(0)%ele(bb%ix_track_start)%beam
     if (allocated(beam%bunch)) then
@@ -463,7 +463,10 @@ case ('beam')
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
     nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
     nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
+    nl=nl+1; write(lines(nl), lmt) '  %full_6D_coupling_calc  = ', beam_init%full_6d_coupling_calc
     nl=nl+1; write(lines(nl), lmt) '  %use_particle_start     = ', beam_init%use_particle_start
+    nl=nl+1; write(lines(nl), lmt) '  %use_t_coords           = ', beam_init%use_t_coords
+    nl=nl+1; write(lines(nl), lmt) '  %use_z_as_t             = ', beam_init%use_z_as_t
     if (beam_init%use_particle_start) then
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Note: Will use particle_start instead'
       nl=nl+1; write(lines(nl), '(a, 3es16.8, 3x, a)') '  %spin                   = ', beam_init%spin,   '! Note: Will use particle_start instead'
@@ -474,11 +477,13 @@ case ('beam')
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[z]       = ', u%model%lat%particle_start%vec(5)
       nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[pz]      = ', u%model%lat%particle_start%vec(6)
     else
-      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
       nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
+      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
+      nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
     endif
-    nl=nl+1; write(lines(nl), rmt)  '  %center_jitter          = ', beam_init%center_jitter
+    nl=nl+1; write(lines(nl), rmt)  '  %t_offset               = ', beam_init%t_offset
     nl=nl+1; write(lines(nl), imt)  '  %n_particle             = ', beam_init%n_particle
+    nl=nl+1; write(lines(nl), imt)  '  %ix_turn                = ', beam_init%ix_turn
     nl=nl+1; write(lines(nl), imt2) '  %n_bunch                = ', beam_init%n_bunch, '! Note: 0 => Create one bunch if not reading from a file'
     nl=nl+1; write(lines(nl), rmt)  '  %bunch_charge           = ', beam_init%bunch_charge
     if (u%model%lat%branch(0)%param%particle == photon$) then
@@ -841,6 +846,7 @@ case ('chromaticity')
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
 
+  nl=nl+1; lines(nl) = '  Note: Calculation is done with RF off.'
   nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
 
   do i = 0, ptc_private%taylor_order_ptc-1
@@ -850,6 +856,8 @@ case ('chromaticity')
     s0 = real(ptc_nf%spin_tune .sub. expo)
     if (i == 0) then
       nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
+    elseif (i == 1 .and. .not. bmad_com%spin_tracking_on) then
+      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! Spin tracking off so spin tune not calculated'
     else
       nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
     endif
@@ -3283,9 +3291,9 @@ case ('lattice')
 
   else
     select case (where)
-    case ('exit');      line1 = '# Values shown are for the Exit End of each Element:'
+    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element:'
     case ('middle');    line1 = '# Values shown are for the Center of each Element:'
-    case ('beginning'); line1 = '# Values shown are for the Beginning of each Element:'
+    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element:'
     end select
 
     if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)
@@ -4054,8 +4062,8 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
-    nl=nl+1; lines(nl) = '                                                                                     Shape  Type    Shape  Multi  Line_'
-    nl=nl+1; lines(nl) = '                  Ele_ID                              Shape           Color           Size  Label    Draw  Shape  Width  Offset'
+    nl=nl+1; lines(nl) = '                                                                                                                  Line_'
+    nl=nl+1; lines(nl) = '                  Ele_ID                              Shape           Color           Size  Label    Draw  Multi  Width  Offset'
     nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------         ----  ------  -----  -----  -----  ------'
 
     do i = 1, size(shapes)
@@ -4455,7 +4463,7 @@ case ('spin')
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
-                            '-z_zero', '-ignore_kinetic'], .true., switch, err)
+                            '-z_zero', '-ignore_kinetic', '-isf'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4473,6 +4481,8 @@ case ('spin')
       endif
     case ('-flip_n_axis')
       flip = .true.
+    case ('-isf')
+      what_to_show = 'isf'
     case ('-n_axis')
       read (what2, *, iostat = ios) sm%axis_input%n0
       if (ios /= 0) then
@@ -4514,6 +4524,26 @@ case ('spin')
 
   if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on
 
+  !
+
+  if (what_to_show == 'isf') then
+    if (branch%param%geometry == open$) then
+      nl=nl+1; lines(nl) = 'No ISF for an open lattice!'
+      return
+    endif
+
+    tao_branch%spin_map_valid = .false.
+    if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+    ptc_nf  => tao_branch%ptc_normal_form
+    do i = 1, 3
+      ctaylor(i) = ptc_nf%isf%x(i)
+    enddo
+
+    call type_complex_taylors(ctaylor, out_type = 'SPIN')
+    return
+  endif
+
   ! what_to_show = standard
 
   r = anomalous_moment_of(branch%param%particle) * branch%ele(1)%value(e_tot$) / mass_of(branch%param%particle)
@@ -4534,6 +4564,10 @@ case ('spin')
     else
       tao_branch%spin_map_valid = .false.
       call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
+      if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+      !
+
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
       if (tao_branch%spin%valid) then

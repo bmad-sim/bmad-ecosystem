@@ -665,6 +665,15 @@ function probability_funct(x) result (prob)
   real(rp) x
 end function
 
+function quadratic_roots(coefs) result (root)
+
+use precision_def, only: rp
+  import
+  implicit none
+  real(rp) coefs(3)
+  complex(rp) root(2)
+end function
+
 subroutine query_string (query_str, upcase, return_str, ix, ios)
   implicit none
   character(*) return_str

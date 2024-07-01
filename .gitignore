@@ -19,6 +19,22 @@ __pycache__
 # Jupyter notebooks
 .ipynb_checkpoints
 
+bsim/dark_current_tracker/test/drift/ReferenceParticles.out
+bsim/dark_current_tracker/test/drift/ReferenceParticles.tally
+bsim/dynamic_aperture/example/da.dat
+bsim/envelope_ibs/test/one_turn_mat_from_slices.diag
+bsim/ibs_ring/test/ibs_rates0.out
+bsim/ibs_ring/test/properties.out
+bsim/sodom2/example/n_axis.out
+bsim/sodom2/example/sodom2.out
+bsim/synrad3d/example/lat_ele.dat
+bsim/synrad3d/example/synrad3d.dat
+lux/examples/bent_crystal/lux.photon1
+lux/examples/bent_crystal/spherical.det_pix
+lux/examples/bent_crystal/spherical.det_pix.x
+lux/examples/bent_crystal/spherical.det_pix.y
+lux/examples/bent_crystal/track.dat
+
 bmad-doc/tutorial_bmad_tao/doc/2www.pl
 bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.aux
 bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.bbl
@@ -34,7 +50,7 @@ bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.log
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.out
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.pdf
 bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
-bmad-doc/tao_examples/csr_beam_tracking/csr_wake.dat
+bmad-doc/tao_examples/csr_beam_tracking/*.dat
 
 tao/doc/tao.pdf
 bmad/doc/bmad.pdf
@@ -57,6 +73,7 @@ bsim/**/doc/*.pdf
 regression_tests/*/output.now
 regression_tests/*/lat.bmad
 regression_tests/*/r
+regression_tests/*/rr
 regression_tests/*/rt
 regression_tests/*/m
 regression_tests/bbu_test/bunch_vec.txt
@@ -86,12 +103,12 @@ regression_tests/parse_test/z.bmad
 regression_tests/parse_test/z2.bmad
 regression_tests/regression.results
 regression_tests/sad_test/sler_1689.bmad
-regression_tests/twiss_track_test/digested.file
-regression_tests/twiss_track_test/rad_int_no_wig_cache.dat
-regression_tests/twiss_track_test/rad_int_no_wig_no_cache.dat
-regression_tests/twiss_track_test/rad_int_wig_cache.dat
-regression_tests/twiss_track_test/rad_int_wig_no_cache.dat
-regression_tests/twiss_track_test/twiss.out
+regression_tests/cesr_test/digested.file
+regression_tests/cesr_test/rad_int_no_wig_cache.dat
+regression_tests/cesr_test/rad_int_no_wig_no_cache.dat
+regression_tests/cesr_test/rad_int_wig_cache.dat
+regression_tests/cesr_test/rad_int_wig_no_cache.dat
+regression_tests/cesr_test/twiss.out
 regression_tests/long_term_tracking_test/sim1.dat
 regression_tests/long_term_tracking_test/beam-10.h5
 regression_tests/write_bmad_test/em_field1.gen_grad_map

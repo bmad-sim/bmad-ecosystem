@@ -157,11 +157,11 @@ if (ele%slave_status == super_slave$) then
 
 elseif (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)
-  write (line, '(4a)') trim(line), ' ', trim(downcase(lord%name)), ','
+  write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
 
 else
   if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(downcase(ele%name)), ','
+    write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
   else
     write (line, '(4a)') trim(line), ' --', trim(ele%name), ','
   endif

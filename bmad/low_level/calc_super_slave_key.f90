@@ -39,26 +39,33 @@ key2 = lord2%key
 slave%key = -1  ! Default if no superimpose possible
 slave%sub_key = 0
 
-! * If one element is a drift then slave%key = key of other element.
-! * Control elements, etc. cannot be superimposed.
+! If one element is a drift then slave%key = key of other element.
+! Control elements, naturally zero length elements, etc. cannot be superimposed upon
 
 select case (key1)
-case (drift$)
+case (overlay$, group$, ramper$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$); return
+end select
+
+select case (key2)
+case (overlay$, group$, ramper$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$); return
+end select
+
+select case (key1)
+case (drift$, pipe$)
   slave%key = key2
+  if (key1 == pipe$ .and. key2 == drift$) slave%key = pipe$
   slave%sub_key = lord2%sub_key
-  return
-case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$)
   return
 end select
 
 select case (key2)
-case (drift$)
+case (drift$, pipe$)
   slave%key = key1
   slave%sub_key = lord1%sub_key
   return
-case (overlay$, group$, girder$, taylor$, match$, patch$, fiducial$, floor_shift$, multipole$, ab_multipole$, sbend$, rf_bend$)
-  return
 end select
+
+if (key1 == sbend$ .or. key1 == rf_bend$ .or. key2 == sbend$ .or. key2 == rf_bend$) return
 
 ! If there are misalignments then no superposition is possible
 
@@ -83,8 +90,6 @@ endif
 
 if (key1 == key2) then
   select case (key1)
-  case (sbend$)
-    ! Bad
   case (rfcavity$, wiggler$, undulator$)
     slave%key = em_field$
     slave%value(constant_ref_energy$) = true$
@@ -101,20 +106,6 @@ if (key1 == key2) then
   case default
     slave%key = key1
   end select
-  return
-endif
-
-! If one element is a pipe then slave%key = key of other element.
-
-if (any(key1 == [pipe$])) then
-  slave%key = key2
-  slave%sub_key = lord2%sub_key
-  return
-endif
-
-if (any(key2 == [pipe$])) then
-  slave%key = key1
-  slave%sub_key = lord1%sub_key
   return
 endif
 

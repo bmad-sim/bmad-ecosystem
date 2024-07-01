@@ -275,6 +275,13 @@ subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field
   logical, optional :: calc_dfield, calc_potential
 end subroutine
 
+function bend_length_has_been_set(ele) result (is_set)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical is_set
+end function
+
 function bend_shift (position1, g, delta_s, w_mat, ref_tilt) result(position2)
   import
   implicit none
@@ -1181,11 +1188,11 @@ subroutine init_multipole_cache(ele)
   type (ele_struct) ele
 end subroutine
 
-subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, always_allocate)
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, always_allocate)
   import
   implicit none
   type (wake_struct), pointer :: wake
-  integer n_sr_long, n_sr_trans, n_lr_mode
+  integer n_sr_long, n_sr_trans, n_sr_z, n_lr_mode
   logical, optional :: always_allocate
 end subroutine
 
@@ -2245,6 +2252,16 @@ subroutine set_status_flags (bookkeeping_state, stat)
   implicit none
   type (bookkeeping_state_struct) bookkeeping_state
   integer stat
+end subroutine
+
+subroutine set_twiss(branch, twiss_ele, ix_ele, match_deta_ds, err_flag, print_err)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  type (ele_struct) twiss_ele
+  integer ix_ele
+  logical match_deta_ds, err_flag
+  logical, optional :: print_err
 end subroutine
 
 subroutine set_z_tune (branch, z_tune, ok, print_err)

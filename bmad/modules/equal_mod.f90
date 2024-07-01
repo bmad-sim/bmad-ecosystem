@@ -590,7 +590,9 @@ nullify(lat_out%ele_init%branch)
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)
-call ramper_slave_setup(lat_out, .true.)
+
+! super_ok$ is used to signal this routine to not do any ramper bookkeeping.
+if (lat_in%ramper_slave_bookkeeping /= super_ok$) call ramper_slave_setup(lat_out, .true.)
 
 
 end subroutine lat_equal_lat

@@ -24449,7 +24449,7 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
  if(compute_stoch_kick) then 
   ct%delta_rad_in=denf+ct%delta_rad_in 
   ct%delta_rad_out=denf+ct%delta_rad_out 
-  endif
+ endif
 
     do   j=1,ne
        g(j)=h*f(j)

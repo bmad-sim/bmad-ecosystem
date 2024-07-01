@@ -807,7 +807,7 @@ endif
 
 if (attrib_word == 'AMP_VS_TIME') then
   ac => ele%ac_kick
-  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, delim, delim_found)) return
+  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%amp_vs_time(n))
@@ -825,7 +825,7 @@ endif
 
 if (attrib_word == 'FREQUENCIES') then
   ac => ele%ac_kick
-  if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, delim, delim_found)) return
+  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%frequency(n))
@@ -1177,7 +1177,8 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
   if (attrib_word == 'SURFACE') then
     if (ele%key == detector$) name = 'PIXEL'
   elseif (attrib_word /= 'PIXEL') then
-    call match_word (attrib_word, surface_grid_type_name(1:), ph%grid%type)
+    who = surface_grid_type_name(1, name_list)
+    call match_word (attrib_word, name_list, ph%grid%type)
   endif
 
   if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
@@ -1226,9 +1227,7 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
 
     select case (word)
     case ('TYPE')   ! This is old style.
-      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ph%grid%type, err_flag2, ele, delim, delim_found)
-      if (err_flag2) return
-      bp_com%parse_line = delim // bp_com%parse_line
+      call parser_error('OLD STYLE GRID TYPE SYNTAX NO LONGER ACCEPTED. PLEASE CORRECT.')
 
     case ('ACTIVE')
       call parser_get_logical (word, ph%grid%active, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
@@ -1376,11 +1375,11 @@ end select
 !-------------------------------
 
 if (attrib_word == 'SR_WAKE') then
-  if (.not. expect_this ('=', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
   ! ele1[sr_wake] = ele2[sr_wake] construct.
   if (delim == '[') then
-    ele2 => parser_find_ele_for_attrib_transfer ('SR_WAKE', word); if (err_flag) return
+    ele2 => parser_find_ele_for_attrib_transfer (attrib_word, word); if (err_flag) return
     if (.not. associated(ele%wake)) allocate (ele%wake)
     if (.not. associated(ele2%wake)) then
       call parser_error ('SR_WAKE NOT DEFINED FOR: ' // ele2%name)
@@ -1390,7 +1389,7 @@ if (attrib_word == 'SR_WAKE') then
   ! "ele1[sr_wake] = call::..." or "ele1: ..., sr_wake = {...}, ..." construct.
   else
     if (word /= 'CALL::') then
-      if (.not. expect_this ('{', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+      if (.not. expect_this ('{', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
     endif
     call parser_read_sr_wake (ele, delim, delim_found, err_flag)
   endif
@@ -1972,6 +1971,10 @@ case ('EXACT_MULTIPOLES')
   call get_switch (attrib_word, exact_multipoles_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(exact_multipoles$) = ix
 
+case ('FIDUCIAL_PT')
+  call get_switch (attrib_word, fiducial_pt_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(fiducial_pt$) = ix
+
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found); if (err_flag) return
 
@@ -2270,17 +2273,17 @@ case default   ! normal attribute
         coef = 1 - determinant(ele%c_mat)
         if (coef >= 0) ele%gamma_c = sqrt(coef)
 
-      case ('ETAP_A'); ele%a%deta_ds = ele%a%etap
-      case ('ETAP_B'); ele%b%deta_ds = ele%b%etap
-      case ('ETAP_X'); ele%x%deta_ds = ele%x%etap
-      case ('ETAP_Y'); ele%y%deta_ds = ele%y%etap
-      case ('ETAP_Z'); ele%z%deta_ds = ele%z%etap
+      case ('ETAP_A'); ele%value(deta_ds_master$) = false$
+      case ('ETAP_B'); ele%value(deta_ds_master$) = false$
+      case ('ETAP_X'); ele%value(deta_ds_master$) = false$
+      case ('ETAP_Y'); ele%value(deta_ds_master$) = false$
+      case ('ETAP_Z'); ele%value(deta_ds_master$) = false$
 
-      case ('DETA_A_DS'); ele%a%etap = ele%a%deta_ds
-      case ('DETA_B_DS'); ele%b%etap = ele%b%deta_ds
-      case ('DETA_X_DS'); ele%x%etap = ele%x%deta_ds
-      case ('DETA_Y_DS'); ele%y%etap = ele%y%deta_ds
-      case ('DETA_Z_DS'); ele%z%etap = ele%z%deta_ds
+      case ('DETA_A_DS'); ele%value(deta_ds_master$) = true$
+      case ('DETA_B_DS'); ele%value(deta_ds_master$) = true$
+      case ('DETA_X_DS'); ele%value(deta_ds_master$) = true$
+      case ('DETA_Y_DS'); ele%value(deta_ds_master$) = true$
+      case ('DETA_Z_DS'); ele%value(deta_ds_master$) = true$
 
       case ('E_TOT')
         if (ele%key == def_parameter$) then
@@ -3762,7 +3765,7 @@ end subroutine bmad_parser_string_attribute_set
 !+
 ! Subroutine parser_read_sr_wake (ele, delim, delim_found, err_flag)
 !
-! Subroutine to read in a short-range wake field from an external file.
+! Subroutine to read in a short-range wake field.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 !
 ! Input:
@@ -3781,11 +3784,14 @@ type (ele_struct) ele
 type (lat_struct), pointer :: lat
 type (wake_sr_mode_struct), target :: trans(100), long(100)
 type (wake_sr_mode_struct), pointer :: srm
+type (wake_sr_z_struct), target :: z_wake(100)
+type (wake_sr_z_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
-integer itrans, ilong, ix_word, which
+real(rp), allocatable :: table(:,:)
+integer i, itrans, ilong, iz, ipt, ix_word
 
-logical delim_found, err_flag
+logical delim_found, err_flag, err
 
 character(40) err_str, word, attrib_name
 character(1) delim
@@ -3795,18 +3801,20 @@ character(1) delim
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
-if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
+if (allocated(ele%wake%sr%z)) deallocate (ele%wake%sr%z)
 
 lat => ele%branch%lat
 wake_sr => ele%wake%sr
 trans = wake_sr_mode_struct()
 long = wake_sr_mode_struct()
+z_wake = wake_sr_z_struct(null(), null(), null(), not_set$, not_set$)
 err_flag = .true.
 
 ! get data
 
 itrans = 0
 ilong = 0
+iz = 0
 
 do
   call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
@@ -3833,29 +3841,64 @@ do
   case ('LONGITUDINAL')
     ilong = ilong + 1
     srm => long(ilong)
-    which = longitudinal_mode$
   case ('TRANSVERSE')
     itrans = itrans + 1
     srm => trans(itrans)
-    which = -1  ! Not longitudinal. That is, transverse.
+  case ('Z')
+    iz = iz + 1
+    srz => z_wake(iz)
   case default
     call parser_error ('UNKNOWN SR_WAKE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
     return
   end select
 
   if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
-
   err_str = trim(ele%name) // ' SR_WAKE ' // attrib_name
-  call parse_evaluate_value (err_str, srm%amp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-  call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-  call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-  call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-  if (which == longitudinal_mode$) then
-    call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
+
+  if (attrib_name == 'Z') then
+    do
+      call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+      if (.not. expect_this ('=', .true., .false., 'IN SR_WAKE Z DEFINITION', ele, delim, delim_found)) return
+
+      select case (attrib_name)
+      case ('W')
+        if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z W DEFINITION', ele, delim, delim_found)) return
+        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z W LIST', table, 3, delim, delim_found)) return
+        ipt = size(table, 1)
+        call reallocate_spline(srz%w, ipt)
+        call reallocate_spline(srz%w_sum1, ipt)
+        call reallocate_spline(srz%w_sum2, ipt)
+        do i = 1, ipt-1
+          srz%w(i) = create_a_spline(table(i,1:2), table(i+1,1:2), table(i,3), table(i+1,3))
+        enddo
+
+      case ('PLANE')
+        call get_switch ('SR_WAKE Z PLANE', sr_z_plane_name, srz%plane, err, ele, delim, delim_found); if (err) return
+      case ('POSITION_DEPENDENCE')
+        call get_switch ('SR_WAKE Z POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srz%position_dependence, err_flag, ele, delim, delim_found)
+        if (err_flag) return
+      case default
+        call parser_error ('UNKNOWN SR_WAKE Z COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+        return
+      end select
+    enddo
+
+    if (.not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+    if (delim == '}') exit
+
   else
-    call get_switch ('POLARIZATION', sr_transverse_polarization_name, srm%polarization, err_flag, ele, delim, delim_found)
-    if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
-    call get_switch ('POSITION_DEPENDENCE', sr_transverse_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
+    call parse_evaluate_value (err_str, srm%amp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+    call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+    call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+    call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+    if (attrib_name == 'LONGITUDINAL') then
+      call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
+    elseif (attrib_name == 'TRANSVERSE') then
+      call get_switch ('POLARIZATION', sr_transverse_polarization_name, srm%polarization, err_flag, ele, delim, delim_found)
+      if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
+      call get_switch ('POSITION_DEPENDENCE', sr_transverse_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
+    endif
   endif
 
   if (.not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
@@ -3866,6 +3909,9 @@ enddo
 !
 
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
+
+allocate (ele%wake%sr%z(iz))
+ele%wake%sr%z = z_wake(1:iz)
 
 allocate (ele%wake%sr%long(ilong))
 ele%wake%sr%long = long(1:ilong)
@@ -3914,6 +3960,7 @@ character(1) delim
 ! Init
 
 if (.not. associated(ele%wake)) allocate (ele%wake)
+if (.not. allocated(ele%wake%sr%z))  allocate (ele%wake%sr%z(0))
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
@@ -4055,9 +4102,10 @@ namelist / long_range_modes / lr
 
 ! Init
 
-if (.not. associated(ele%wake)) allocate (ele%wake)
+if (.not. associated(ele%wake))         allocate (ele%wake)
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
+if (.not. allocated(ele%wake%sr%z))     allocate (ele%wake%sr%z(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 ! get data
@@ -4172,6 +4220,8 @@ if (.not. associated(ele%wake))   allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
 if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
+if (allocated(ele%wake%sr%z))     deallocate (ele%wake%sr%z)
+allocate(ele%wake%sr%z(0))
 
 ! Open file
 
@@ -5904,11 +5954,11 @@ subroutine compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 implicit none
 
 type (ele_struct), target :: ref_ele, super_ele
-type (ele_struct), pointer :: slave
+type (ele_struct), pointer :: slave, ele
 type (parser_ele_struct) pele
 type (branch_struct), pointer :: branch
 
-integer i, ix, ix_insert, ele_pt, ref_pt
+integer i, ie, ix, nt, ix_insert, ele_pt, ref_pt, offset_dir, ix_ref
 
 real(rp) s_ref_begin, s_ref_end, s0, len_tiny
 logical reflected_or_reversed
@@ -5927,6 +5977,7 @@ if (reflected_or_reversed) then
 else
   super_ele%s = pele%offset
 endif
+offset_dir = sign_of(super_ele%s)
 
 ele_pt = pele%ele_pt
 if (reflected_or_reversed) then
@@ -5956,6 +6007,14 @@ case (overlay$, group$, girder$)
     slave => pointer_to_slave(ref_ele, i)
     s_ref_begin = min(s_ref_begin, slave%s_start)
     s_ref_end = max(s_ref_end, slave%s)
+
+    if (i == 1) then
+      ix_ref = slave%ix_ele
+    elseif (offset_dir == 1) then
+      ix_ref = min(ix_ref, slave%ix_ele)
+    else
+      ix_ref = max(ix_ref, slave%ix_ele)
+    endif
   enddo
 case (ramper$)
   call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON RAMPER' // pele%ref_name)
@@ -5963,6 +6022,7 @@ case (ramper$)
 case default
   s_ref_begin = ref_ele%s_start
   s_ref_end = ref_ele%s
+  ix_ref = ref_ele%ix_ele
 end select
 
 ! Now compute the s position at the end of the element and put it in ele%s.
@@ -5987,11 +6047,67 @@ else
   if (global_com%exit_on_error) call err_exit
 endif
 
+! Check that there are no problems with bends of not yet determined length
+
+branch => pointer_to_branch(ref_ele)
+nt = branch%n_ele_track
+
+if (offset_dir == 1) then
+  do ie = ix_ref, nt
+    ele => branch%ele(ie)
+    if (ele%s_start > super_ele%s) exit
+    if (bend_length_has_been_set(ele)) cycle
+    call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                       'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                       'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+    return
+  enddo
+
+  if (super_ele%s > branch%ele(nt)%s) then
+    do ie = 1, ix_ref
+      ele => branch%ele(ie)
+      if (ele%s_start + branch%param%total_length > super_ele%s) exit
+      if (bend_length_has_been_set(ele)) cycle
+      call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                         'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                         'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+      return
+    enddo
+  endif
+
+else
+  do ie = ix_ref, 1, -1
+    ele => branch%ele(ie)
+    if (ele%s < super_ele%s_start) exit
+    if (bend_length_has_been_set(ele)) cycle
+    call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                       'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                       'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+    return
+  enddo
+
+  if (super_ele%s < 0) then
+    do ie = nt, ix_ref
+      ele => branch%ele(ie)
+      if (ele%s < super_ele%s_start) exit
+      if (bend_length_has_been_set(ele)) cycle
+      call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                         'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                         'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+      return
+    enddo
+  endif
+
+endif
+
 ! A superimpose can wrap around the beginning or the end of the lattice. 
 ! This is done independent of the geometry. The reason why this is geometry 
 ! independent is that it is sometimes convenient to treat a closed lattice as open.
 
-branch => pointer_to_branch(ref_ele)
 s0 = branch%ele(0)%s
 
 if (pele%wrap_superimpose) then
@@ -6066,6 +6182,14 @@ real(rp) eps
 logical err_flag, wrap
 integer ix1, ix2
 
+!
+
+if (.not. bend_length_has_been_set(super_ele)) then
+  call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                     'IS A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                     'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+  return
+endif
 
 ! Check for out-of-bounds.
 ! If wrap = False then out-of-bounds is not an error.
@@ -7113,7 +7237,7 @@ type (branch_struct), pointer :: branch
 type (surface_grid_struct), pointer :: grid
 type (surface_grid_pt_struct), pointer :: pt
 
-real(rp) a, rr, v_inv_mat(4,4), eta_vec(4)
+real(rp) a, rr, v_inv_mat(4,4), eta_vec(4), factor
 
 integer n, i, j, i0, i1, j0, j1
 logical kick_set, length_set, set_done, err_flag
@@ -7218,17 +7342,14 @@ case (beginning_ele$)
 case (sbend$, rbend$, rf_bend$) 
 
   b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(db_field$) /= 0)
-  g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
-  if ((ele%value(angle$) /= 0 .or. ele%value(rho$) /= 0 .or. g_set) .and. &
-                                      .not. b_field_set) ele%value(b_field$) = real_garbage$
-
-  if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
+  if (b_field_set .and. (ele%value(p0c$) == 0 .or. ele%ref_species == not_set$)) return
+  ele%value(init_needed$) = false$
 
   ! Only one of b_field, g, or rho may be set.
-  ! B_field may not be set for an rbend since, in this case, L is not computable (we don't know the ref energy).
 
-  if (b_field_set .and. ele%key == rbend$) call parser_error &
-          ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
+  g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
+
+  if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
 
   if (b_field_set .and. g_set) call parser_error &
           ('BOTH G (OR DG) AND B_FIELD (OR DB_FIELD) SET FOR A BEND: ' // ele%name)
@@ -7239,6 +7360,22 @@ case (sbend$, rbend$, rf_bend$)
   if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
             call parser_error ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
 
+  if (ele%value(l$) /= 0 .and. ele%value(l_rectangle$) /= 0) &
+            call parser_error ('BOTH L AND L_rectangle SPECIFIED FOR BEND: ' // ele%name)
+
+  if (ele%value(l_chord$) /= 0 .and. ele%value(l_rectangle$) /= 0) &
+            call parser_error ('BOTH L AND L_rectangle SPECIFIED FOR BEND: ' // ele%name)
+
+  !
+
+  if (b_field_set) then
+    factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+    ele%value(g$)  = ele%value(B_field$) / factor
+    ele%value(dg$) = ele%value(dB_field$) / factor
+  else
+    factor = 0
+  endif
+
   ! if rho is set then this gives g
 
   if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(g$) /= 0) &
@@ -7246,19 +7383,37 @@ case (sbend$, rbend$, rf_bend$)
   if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(rho$) /= 0) &
                       call parser_error ('ANGLE, RHO, AND L ARE ALL SPECIFIED FOR BEND: ' // ele%name)
 
-  if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
+  if (ele%value(rho$) /= 0) ele%value(g$) = 1.0_rp / ele%value(rho$)
 
   ! If g and angle are set then this determines l
 
   if (ele%value(g$) /= 0 .and. ele%value(angle$) /= 0) ele%value(l$) = ele%value(angle$) / ele%value(g$)
 
-  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0 .and. ele%value(l_chord$) == 0) then
+  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0 .and. ele%value(l_chord$) == 0 .and. ele%value(l_rectangle$) == 0) then
     call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
   endif
 
-  ! Convert an rbend to an sbend
 
-  if (ele%key == rbend$) then
+  if (ele%value(l_rectangle$) /= 0) then
+    select case (nint(ele%value(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      if (ele%value(angle$) == 0) then
+        ele%value(angle$) = 2.0_rp * asin(ele%value(g$) * 0.5_rp * ele%value(l_rectangle$))
+      else
+        ele%value(g$) = 2.0_rp * sin(0.5_rp * ele%value(angle$)) / ele%value(l_rectangle$)
+      endif
+      ele%value(l$) = 0.5_rp * ele%value(l_rectangle$) / sinc(0.5_rp * ele%value(angle$))
+
+    case (entrance_end$, exit_end$)
+      if (ele%value(angle$) == 0) then
+        ele%value(angle$) = asin(ele%value(g$) * ele%value(l_rectangle$))
+      else
+        ele%value(g$) = sin(ele%value(angle$)) / ele%value(l_rectangle$)
+      endif
+      ele%value(l$) = ele%value(l_rectangle$) / sinc(ele%value(angle$))
+    end select
+
+  elseif (ele%key == rbend$) then
     ! Note: L must be zero if g and angle have both been specified and are non-zero.
     if (ele%value(l$) == 0 .and. ele%value(l_chord$) /= 0) then
       if (ele%value(angle$) /= 0) then
@@ -7269,7 +7424,7 @@ case (sbend$, rbend$, rf_bend$)
           call parser_error ('G * L FOR RBEND IS TOO LARGE TO BE PHYSICAL! ' // ele%name)
           return
         endif
-        a = 2 * asin(a)
+        a = 2.0_rp * asin(a)
         ele%value(l$) = ele%value(l_chord$) * a / (2.0_rp * sin(0.5_rp*a))
       else  ! g and angle are zero.
         ele%value(l$) = ele%value(l_chord$)
@@ -7281,13 +7436,28 @@ case (sbend$, rbend$, rf_bend$)
     elseif (ele%value(g$) /= 0) then
       ele%value(angle$) = ele%value(g$) * ele%value(l$) 
     endif
+  endif
 
-    ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
-    ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
+  ! Convert an rbend to an sbend
+
+  if (ele%key == rbend$) then
+    select case (nint(ele%value(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
+      ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
+    case (entrance_end$)
+      ele%value(e2$) = ele%value(e2$) + ele%value(angle$)
+    case (exit_end$)
+      ele%value(e1$) = ele%value(e1$) + ele%value(angle$)
+    end select
+
     ele%key = sbend$
   endif
 
   ! 
+
+  ele%value(B_field$)  = factor * ele%value(g$)
+  ele%value(dB_field$) = factor * ele%value(dg$)
 
   if (ele%value(angle$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$) 
 
@@ -9492,7 +9662,7 @@ end function parse_integer_list2
 ! Example:   "(1.2, 2.3, 4.4, 8.5)"
 ! 
 ! Similar to parse_real_list2 except does not use allocatable array.
-! Also see: parse_real_lists.
+! Also see: parse_real_matrix.
 !
 ! Input:
 !   lat           -- lat_struct: Lattice
@@ -9551,19 +9721,28 @@ end function parse_real_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_real_lists (lat, err_str, table, size2, delim, delim_found) result (is_ok)
+! Function parse_real_matrix (lat, err_str, table, size2, delim, delim_found) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
 !    {(re_11, re_12, ..., re_1<size2>), (re_21, re_22, ...), ...} 
 ! And re_IJ is put in table(I,J).
 ! size2 is the size of the inner array.
 ! The size of the outer array can be anything.
-! 
-! Similar to parse_real_list2 except does not use allocatable array.
-! Also see: parse_real_lists.
+!
+! Input:
+!   lat           -- lat_struct: 
+!   ele           -- ele_struct:
+!   table(:,:)    -- real(rp), allocatable:
+!   size2         -- integer: If table not allocated, allocate 2nd dimension to size2
+!
+! Output:
+!   err_str       -- character(*): Used with error messages.
+!   delim         -- chaacter(1): Delimitor found.
+!   delim_found   -- logical: Is there a delimitor?
+!   is_ok         -- logical: True if everything is OK.
 !-
 
-function parse_real_lists (lat, ele, err_str, table, size2, delim, delim_found) result (is_ok)
+function parse_real_matrix (lat, ele, err_str, table, size2, delim, delim_found) result (is_ok)
 
 implicit none
 
@@ -9605,7 +9784,7 @@ call re_allocate2d(table, nn, size2)
 
 is_ok = .true.
 
-end function parse_real_lists
+end function parse_real_matrix
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -9620,7 +9799,7 @@ end function parse_real_lists
 !
 ! Also see:
 !   pase_real_list
-!   parse_real_lists.
+!   parse_real_matrix.
 !
 ! Input:
 !  lat            -- lat_struct: lattice

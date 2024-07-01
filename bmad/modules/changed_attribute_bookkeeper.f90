@@ -43,7 +43,8 @@ implicit none
 !   logic_attrib  -- logical; Attribute that has been changed.
 !                      For example: ele%is_on.
 !   all_attrib    -- all_pointer_struct: Pointer to attribute.
-!   set_dependent -- logical, optional: If False then dependent variable bookkeeping will not be done.
+!   set_dependent -- logical, optional: If False then dependent parameter bookkeeping will not be done.
+!                     False is used, for example, during parsing when dependent bookkeepin is not wanted.
 !                     Default is True. Do not set False unless you know what you are doing.
 !
 ! Output:
@@ -280,8 +281,8 @@ type (cylindrical_map_struct), pointer :: cl_map
 
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
-real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor, ff
-real(rp), target :: unknown_attrib
+real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor, ff, rel_p1
+real(rp), target :: unknown_attrib, dangle
 
 integer i
 
@@ -294,6 +295,7 @@ logical, optional :: set_dependent
 branch => pointer_to_branch(ele)
 dep_set = logic_option(.true., set_dependent)
 dep2_set = (dep_set .and. ele%value(p0c$) /= 0 .and. charge_of(branch%param%particle, 0) /= 0)
+p0c_factor = 0
 if (dep2_set) p0c_factor = ele%value(p0c$) / (c_light * charge_of(branch%param%particle))
 
 ! If a lord then set the control flag stale
@@ -506,8 +508,23 @@ case (beginning_ele$)
     endif
   endif
 
-  if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
-      associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. coupling_change) then
+  if (associated(a_ptr, ele%x%deta_ds) .or. associated(a_ptr, ele%y%deta_ds)) then
+    ele%value(deta_ds_master$) = true$
+    rel_p1 = 1 + ele%map_ref_orb_out%vec(6)
+    ele%x%etap = ele%x%deta_ds * rel_p1 + ele%map_ref_orb_out%vec(2) / rel_p1
+    ele%y%etap = ele%y%deta_ds * rel_p1 + ele%map_ref_orb_out%vec(4) / rel_p1
+    coupling_change = .true.
+  endif
+
+  if (associated(a_ptr, ele%x%etap) .or. associated(a_ptr, ele%y%etap)) then
+    ele%value(deta_ds_master$) = false$
+    rel_p1 = 1 + ele%map_ref_orb_out%vec(6)
+    ele%x%deta_ds = ele%x%etap / rel_p1 - ele%map_ref_orb_out%vec(2) / rel_p1**2
+    ele%y%deta_ds = ele%y%etap / rel_p1 - ele%map_ref_orb_out%vec(4) / rel_p1**2
+    coupling_change = .true.
+  endif
+
+  if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%y%eta) .or. coupling_change) then
     if (dep_set) then
       call make_v_mats (ele, v_mat, v_inv_mat)
       eta_xy_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
@@ -726,30 +743,57 @@ case (sbend$, rf_bend$)
   ! is independent of the setting for %field_master.
   if (dep_set) then
     if (associated(a_ptr, ele%value(angle$))) then
-      if (ele%value(l$) /= 0) then
-        ele%value(g$) = ele%value(angle$) / ele%value(l$)
-        if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor
-      endif
+      call bend_angle_fiducial_calc(ele, dep2_set, p0c_factor)
+
+    elseif (associated(a_ptr, ele%value(l_rectangle$))) then
+      select case (nint(ele%value(fiducial_pt$)))
+      case (none_pt$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(0.5_rp * ele%value(l_rectangle$) * ele%value(g$))
+      case (center_pt$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(0.5_rp * ele%value(l_rectangle$) * ele%value(g$))
+        dangle = ele%value(l$) * ele%value(g$) - ele%value(angle$)
+        ele%value(e1$) = ele%value(e1$) + 0.5_rp * dangle
+        ele%value(e2$) = ele%value(e2$) + 0.5_rp * dangle
+      case (entrance_end$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(ele%value(l_rectangle$) * ele%value(g$))
+        dangle = ele%value(l$) * ele%value(g$) - ele%value(angle$)
+        ele%value(e2$) = ele%value(e2$) + dangle
+      case (exit_end$)
+        ele%value(l$) = ele%value(l_rectangle$) * asinc(ele%value(l_rectangle$) * ele%value(g$))
+        dangle = ele%value(l$) * ele%value(g$) - ele%value(angle$)
+        ele%value(e1$) = ele%value(e1$) + dangle
+      end select
+
     elseif (associated(a_ptr, ele%value(rho$))) then
       if (ele%value(rho$) /= 0) then
-        ele%value(g$) = 1 / ele%value(rho$)
-        if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
+        ele%value(g$) = 1.0_rp / ele%value(rho$)
+        call bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
       endif
+
+    elseif (associated(a_ptr, ele%value(g$))) then
+      ele%value(b_field$) = ele%value(g$) * p0c_factor 
+      call bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
+
     elseif (dep2_set) then
       if (associated(a_ptr, ele%value(b_field$))) then
         ele%value(g$) = ele%value(b_field$) / p0c_factor
+        call bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
+
       elseif (associated(a_ptr, ele%value(db_field$))) then
         ele%value(dg$) = ele%value(db_field$) / p0c_factor
-      elseif (associated(a_ptr, ele%value(g$))) then
-        ele%value(b_field$) = ele%value(g$) * p0c_factor 
+
       elseif (associated(a_ptr, ele%value(dg$))) then
         ele%value(db_field$) = ele%value(dg$) * p0c_factor
+
       elseif (associated(a_ptr, ele%value(k1$))) then
         ele%value(b1_gradient$) = ele%value(k1$) * p0c_factor
+
       elseif (associated(a_ptr, ele%value(b1_gradient$))) then
         ele%value(k1$) = ele%value(b1_gradient$) / p0c_factor
+
       elseif (associated(a_ptr, ele%value(k2$))) then
         ele%value(b2_gradient$) = ele%value(k2$) * p0c_factor
+
       elseif (associated(a_ptr, ele%value(b2_gradient$))) then
         ele%value(k2$) = ele%value(b2_gradient$) / p0c_factor
       endif
@@ -797,6 +841,128 @@ case (solenoid$)
   endif
 
 end select
+
+!--------------------------------------------------------------
+contains
+
+subroutine bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
+
+type (ele_struct) ele
+real(rp) p0c_factor, len1, len2
+logical dep2_set
+
+! There has been a change in g (and not any other parameters) so need to calculate shifts in L, e1, and e2
+
+select case (nint(ele%value(fiducial_pt$)))
+case (none_pt$)
+
+case (center_pt$)
+  call bend_g_fiducial_calc2(ele, 0.5_rp, ele%value(e1$), len1)
+  call bend_g_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len2)
+  ele%value(l$) = len1 + len2
+
+
+case (entrance_end$)
+  call bend_g_fiducial_calc2(ele, 1.0_rp, ele%value(e2$), ele%value(l$))
+
+case (exit_end$)
+  call bend_g_fiducial_calc2(ele, 1.0_rp, ele%value(e1$), ele%value(l$))
+end select
+
+if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
+
+end subroutine bend_g_fiducial_calc
+
+!--------------------------------------------------------------
+! contains
+
+subroutine bend_g_fiducial_calc2(ele, factor, e_edge, len_out, angle0_in)
+
+type (ele_struct) ele
+real(rp) factor, e_edge, len_out, g0, angle0, rp2x, r1(2), theta1, l_rect, length, a, b, c
+real(rp), optional :: angle0_in
+
+!
+
+g0 = ele%value(l$) * ele%value(angle$)  ! Old g
+if (present(angle0_in)) then
+  angle0 = angle0_in                    ! Old angle
+else
+  angle0 = factor * ele%value(angle$)   ! Old angle
+endif
+theta1 = angle0 - e_edge
+
+r1 = factor * [-ele%value(l_rectangle$), -cos_one(angle0) * ele%value(l$)]
+r1 = rot_2d(r1, theta1)
+
+a = ele%value(g$)
+b = 2.0_rp * cos(theta1)
+c = ele%value(g$) * r1(1)**2 + 2.0_rp * r1(1) * sin(theta1)
+rp2x = r1(2) - 2.0_rp * c / (b + sqrt(b*b - 4.0_rp*a*c))
+
+l_rect = factor * ele%value(l_rectangle$) + rp2x * sin(theta1)
+length = asinc(ele%value(g$) * l_rect) * l_rect
+
+e_edge = e_edge + length * ele%value(g$) - angle0
+len_out = length
+
+end subroutine bend_g_fiducial_calc2
+
+!--------------------------------------------------------------
+! contains
+
+subroutine bend_angle_fiducial_calc(ele, dep2_set, p0c_factor)
+
+type (ele_struct) ele
+real(rp) p0c_factor, angle0, len1, len2
+logical dep2_set
+
+! There has been a change in angle (and not any other parameters) so need to calculate shifts in L, e1, and e2
+
+if (ele%value(l$) == 0) return
+
+select case (nint(ele%value(fiducial_pt$)))
+case (none_pt$)
+  ele%value(g$) = ele%value(angle$) / ele%value(l$)
+
+case (center_pt$)
+  call bend_angle_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len1)
+  call bend_angle_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len2)
+  ele%value(l$) = len1 + len2
+  ele%value(g$) = ele%value(angle$) / ele%value(l$)
+
+case (entrance_end$)
+  call bend_angle_fiducial_calc2(ele, 1.0_rp, ele%value(e2$), ele%value(l$))
+
+case (exit_end$)
+  call bend_angle_fiducial_calc2(ele, 1.0_rp, ele%value(e1$), ele%value(l$))
+end select
+
+if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
+
+end subroutine bend_angle_fiducial_calc
+
+!--------------------------------------------------------------
+! contains
+
+subroutine bend_angle_fiducial_calc2(ele, factor, e_edge, len_out)
+
+type (ele_struct) ele
+real(rp) factor, e_edge, angle0, theta1, r1(2), len_out
+
+! fiducial_pt = center is not considered here.
+
+angle0 = factor * ele%value(g$) * ele%value(l$)   ! Old angle
+theta1 = angle0 - e_edge
+
+r1 = factor * [-ele%value(l_rectangle$), -cos_one(angle0) * ele%value(l$)]
+r1 = rot_2d(r1, theta1)
+
+ele%value(g$) = -(sin(theta1) + sin(ele%value(angle$) - theta1)) / r1(1)
+
+call bend_g_fiducial_calc2(ele, factor, e_edge, len_out, angle0)
+
+end subroutine bend_angle_fiducial_calc2
 
 end subroutine set_flags_for_changed_real_attribute
 

@@ -4,7 +4,7 @@
   ltt%lat_file = 'chess_arc_pretzel_20150106.lat'
   ltt%rfcavity_on = F
 
-  dpz = 0, 0.005, 0.01
+  pz = 0, 0.005, 0.01
   da_param%min_angle = 0  
   da_param%max_angle = 3.1415926
   da_param%abs_accuracy = 1e-5

@@ -144,6 +144,7 @@ type bp_common_struct
   character(n_parse_line) :: rest_of_line = ''         ! Line after semicolon saved until current statement is completely parsed.
   character(n_parse_line) :: next_chunk = ''      ! Line waiting to be appended to the parse_line.
   character(1) :: last_char_in_parse_line =  ''   ! Needed for long lines read in pieces.
+  ! parser_name is used by routines to tell if parsing is being done or not.
   character(40) :: parser_name = ''               ! Blank means not in bmad_parser nor bmad_parser2.
   character(100) :: last_word = ''                ! Last word to be parsed
   logical :: bmad_parser_calling = .false.        ! used for expand_lattice

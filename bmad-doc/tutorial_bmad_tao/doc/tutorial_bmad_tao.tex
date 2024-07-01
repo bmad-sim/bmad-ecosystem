@@ -35,6 +35,7 @@
 \usepackage[strings]{underscore}    % to use "_" in text
 \usepackage[nottoc,numbib]{tocbibind}   % Makes "References" section show in table of contents
 \usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
+\usepackage{marginnote}
 
 %----------------------------------------------------------------
 
@@ -78,7 +79,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ March 26, 2024}
+\date{David Sagan and Chris Mayes \\ June 7, 2024}
 
 \begin{document}
 
@@ -112,14 +113,17 @@ you are familiar with the basics of Unix and how to use a command line interface
 \label{s:overview}
 
 \begin{description}
+%
+\marginnote{\footnotesize\hspace*{-0.4in}\parbox{0.95in}{
+Only the first letter of \bmad is capitalized. the rest is lower case.
+}}[0.1in]
+%
 \item[Bmad] \Newline
-\bmad is an open-source software library (aka toolkit) for simulating charged particles and
-X-rays. \bmad is not a program itself but is used by programs for doing calculations. The advantage
-of \bmad over a stand-alone simulation program is that when new types of simulations need to be
-developed, \bmad can be used to cut down on the time needed to develop such programs with the added
-benefit that the number of programming errors will be reduced.
-
-Note: Only the first letter of \bmad is capitalized. the rest is lower case.
+\bmad is an ecosystem of toolkits (software libraries) and programs for the simulation of charged
+particles and X-rays. At the heart of this ecosystem is the open source \bmad toolkit which can be
+used to construct simulation programs in less time and with fewer bugs than can be done from
+scratch. There is some ambiguity here since the name \bmad can refer to the entire ecosystem in
+general or the \bmad toolkit in particular. Generally the context will make things clear.
 
 Over the years, \bmad has been used for a wide range of charged-particle and X-ray simulations. This
 includes:
@@ -132,12 +136,10 @@ Coherent Synchrotron Radiation (CSR)            Frequency map analysis
 \end{code}
 %
 \item[Tao] \Newline
-The disadvantage of \bmad is that, as a toolkit, one cannot perform any calculations without first
-developing a program. To get around this, the \tao program was developed.  \tao is a general purpose
-simulation program, based upon \bmad. \tao can be used to view lattices, do Twiss and orbit
-calculations, nonlinear optimization on lattices, etc., etc.  Additionally, \tao's object oriented
-design makes it relatively easy to extend it. For example, it can be used for orbit flattening in an
-online machine control system.
+\tao is a general purpose simulation program, based upon the \bmad toolkit. \tao can be used to view
+lattices, do Twiss and orbit calculations, nonlinear optimization on lattices, etc., etc.
+Additionally, \tao's object oriented design makes it relatively easy to extend it. For example, it
+can be used for orbit flattening in an online machine control system.
   \end{description}
 
 %------------------------------------------------------------------------------
@@ -497,6 +499,12 @@ After initialization, there should be a ``\vn{Tao>}'' prompt where you can type 
 \subsection{Tao: Online Help}
 
 When \tao is running, to get a list of Tao commands, use the \vn{help} command:
+%
+\marginnote[\footnotesize\hspace*{-0.6in}\parbox{0.95in}{
+For brevity's sake, ``\vn{... etc...}'' is used when the output has been truncated. Also the output shown
+is sometimes modified to fit the printed page.
+}]{}[1.0in]
+%
 \begin{code}
 Tao> help
 
@@ -510,12 +518,8 @@ Available commands:
   derivative                        set
   end_file                          show
   exit                              single_mode
-  flatten                           spawn
 ... etc...
 \end{code}
-
-Note: For brevity's sake, ``\vn{... etc...}'' is used when the output has been truncated. Also the output shown
-is sometimes modified to fit the printed page.
 
 \tao commands are documented in the ``\vn{Tao Commands}'' (\extref{T-c:command}) chapter of the \tao
 manual.  When running \tao, this same documentation can be displayed using the ``\vn{help
@@ -667,6 +671,11 @@ you start \tao?
 \Section{Introduction to Bmad Lattices}
 \label{s:bmad.intro}
 
+\marginnote[\footnotesize\hspace*{-0.6in}\parbox{0.95in}{
+Part I of the \bmad manual covers lattice syntax. Refer to that for information 
+not covered here.
+}]{}[0.3in]
+%
 The basis of any \bmad based simulation is a lattice file. The following is a
 simple example:
 \begin{code}
@@ -685,8 +694,6 @@ q: quadrupole, L = 0.6, k1 = 0.23
 lat: line = (d, b, q)       ! List of lattice elements
 use, lat                    ! Line used to construct the lattice
 \end{code}
-Note: Part I of the \bmad manual covers lattice syntax so please refer to that for information that
-is not covered here.
 
 Some comments on the above lattice:
   \begin{description}
@@ -810,7 +817,7 @@ This will dump lattice information to a file named \vn{abc.dat}.
 To show the elements in the lattice use the \vn{show lattice} subcommand:
 \begin{code}
 Tao> show lat
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 # Index  name      key                      s       l    beta     phi ...  
 #                                                           a       a ...
      0  BEGINNING Beginning_Ele         0.000     ---   10.00   0.000 ...
@@ -820,10 +827,11 @@ Tao> show lat
      4  END       Marker                1.600   0.000    3.50   0.217 ...
 # Index  name      key                      s       l    beta     phi ...  
 #                                                           a       a ...
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 \end{code}
-The \vn{s} column shows the longitudinal position from the beginning of the lattice
-(\sref{s:coord.sys}) and the \vn{l} column shows the length of the elements.
+The \vn{s} column is the longitudinal position of the downstream edge of the element. If not not set
+in the lattice otherwise, the beginning of the lattice is at $s = 0$ (\sref{s:coord.sys}). The
+\vn{l} column shows the length of the elements.
 
 Comparing the output of the \vn{show lattice} command to the \vn{simple.bmad} lattice file, notice
 that \bmad adds two extra elements to the lattice. A zero length beginning element called
@@ -855,7 +863,7 @@ The default is to show the parameters at the exit end of the elements.
 For example, the \vn{-attribute} switch makes it easy to make a custom table of element attributes:
 \begin{code}  
 Tao> show lat -no_tail_lines -attrib b1_gradient 
- Values shown are for the Exit End of each Element:
+ Values shown are for the Downstream End of each Element:
  Index  name      key                      s       l          b1
                                                         gradient
       0  BEGINNING Beginning_Ele        0.000     ---         ---
@@ -915,7 +923,10 @@ Orbit:  Electron   State: Alive
   Y:       0.00000000     0.00000000               | t_part-t_ref [sec]: ...
   Z:       0.02055389     0.00000000               | (t_ref-t_part)*Vel  ...
 \end{code}
-Note: By default, only non-zero attributes are shown. Use the -all option to see all the attributes.
+%
+\marginnote{\footnotesize\hspace*{-0.6in}\parbox{0.95in}{
+By default, only non-zero attributes are shown. Use the -all option to see all the attributes.
+}}[-3.7in]
 
 \newpage
 
@@ -971,7 +982,7 @@ Element names with wild cards can also be used with the \vn{show lattice} comman
 \begin{code}
 Tao> show lat q%1*
 
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 # Index  name   key                   s       l    beta     phi ...  
 #                                                     a       a
     10  Q01W Quadrupole            3.874   0.950   66.94   0.173  
@@ -981,7 +992,7 @@ Tao> show lat q%1*
    ... etc...
 # Index  name   key                   s       l    beta     phi ...  
 #                                                     a       a
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 \end{code}
 
 Note: When \vn{rbend} (rectangular bend) elements are read in, internally they are converted to
@@ -1178,7 +1189,7 @@ Tao> place r22 none    ! Clear a region
 Tao> place * none      ! Clear all regions
 \end{code}
 
-Note: Plots of the same type can be placed in multiple regions. For example, there could be multiple
+Plots of the same type can be placed in multiple regions. For example, there could be multiple
 orbit plots displayed with each plot, say, having differing x-axis scaling.
 
 %----------------------------------------------------------
@@ -1886,8 +1897,8 @@ of associated \vn{variables} does not all have to be of a single type.
 
 If you want to have one \tao \vn{variable} control a set of parameters, construct an \vn{overlay} or
 \vn{group} element (\sref{s:control}) and then have the \tao variable control the overlay or
-group. For example, the following overlay gangs the \vn{k1} parameters of elements \vn{Q1} and
-\vn{Q3} together:
+group. For example, the following overlay defined in the lattice file gangs the \vn{k1} parameters
+of elements \vn{Q1} and \vn{Q3} together:
 \begin{code}
 ps1: overlay = {Q1, Q3}, var = {k1}, k1 = 0.8
 \end{code}
@@ -2047,7 +2058,7 @@ call, file = lat.bmad
 call, file = var1.out
 \end{code}
 
-Note: At any time to print in Bmad format the variable values used in the optimization use the command:
+To print in Bmad format the variable values used in the optimization use the command:
 \begin{code}
 show var -bmad -good
 \end{code}
@@ -5022,7 +5033,7 @@ After Dat#    Norm_Kick     s-pos   ele@kick                    phi
 This shows a quadrupole error at about \vn{s} = 684~meters. Nearby elements are:
 \begin{code}
 Tao> show lat -s 681:687
-# Values shown are for the Exit End of each Element:
+# Values shown are for the Downstream End of each Element:
 # Index  name           key                       s       l  
 #                                                            
     946  D404#2         Drift               682.171   1.684  ...

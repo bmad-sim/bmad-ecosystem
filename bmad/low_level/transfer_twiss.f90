@@ -1,8 +1,9 @@
 !+
 ! Subroutine transfer_twiss (ele_in, ele_out, reverse)
 !
-! Routine to transfer the twiss parameters from one element to another.
+! Routine to transfer the Twiss, coupling, and dispersion parameters from one element to another.
 !
+! Note: %map_ref_orb_out is transferred.
 !
 ! Input:
 !   ele_in   -- ele_struct: Element with existing Twiss parameters.
@@ -32,6 +33,7 @@ ele_out%z         = ele_in%z
 ele_out%c_mat     = ele_in%c_mat
 ele_out%gamma_c   = ele_in%gamma_c
 ele_out%mode_flip = ele_in%mode_flip
+ele_out%map_ref_orb_out = ele_in%map_ref_orb_out
 
 if (logic_option(.false., reverse)) then
   ele_out%x%etap    = -ele_in%x%etap

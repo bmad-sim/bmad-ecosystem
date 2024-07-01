@@ -223,7 +223,7 @@ if (g_frame) then
       !Write lines with E and B fields. Use w_mat to rotate the field vectors into the global frame
       do point_id = 0, track%n_pt
         orb = particle_in_global_frame(track%pt(point_id)%orb, branch, w_mat_out = w_mat)
-        write (outfile, '(15es19.10E3)') &
+        write (outfile, '(15es26.17E3)') &
         orb%vec(1:6),&
         orb%t, &
         orb%charge, &
@@ -254,28 +254,30 @@ else
 !s-coordinates. This is very similar to the above loops.
   if (w_field) then
     if (w_header) then
-      write (outfile, '(15a19)') 'x', 'cp_x', 'y', 'cp_y', 's', 'cp_s', 't', 'charge', 'hit_angle', 'E_x', 'E_y', 'E_s', 'B_x', 'B_y', 'B_s' 
-      write (outfile, '(15a19)') 'm', 'eV',   'm', 'eV',   'm', 'eV',   's', 'C',      'rad',       'V/m', 'V/m', 'V/m', 'T', 'T', 'T'      
+      write (outfile, '(16a19)') 'x', 'px/p0', 'y', 'py/p0', 's', 'delta', 't', 'charge', 'hit_angle', 'p0c', 'E_x', 'E_y', 'E_s', 'B_x', 'B_y', 'B_s' 
+      write (outfile, '(16a19)') 'm', 'rad',   'm', 'rad',   'm', 'rad',   's', 'C',      'rad',      'eV',  'V/m', 'V/m', 'V/m', 'T', 'T', 'T'      
     endif
     if (w_track) then 
       !Write raw orb data with E and B fields. 
+      ! Note! Bmad units. 
       do point_id = 0, track%n_pt
         orb = track%pt(point_id)%orb
-        write (outfile, '(15es19.10E3)') &
+        write (outfile, '(16es19.10E3)') &
         orb%vec(1:4),&
         orb%s, &
         orb%vec(6), &
         orb%t, &
         orb%charge, &
         orb%phase(2), & 
+        orb%p0c, &
         track%pt(point_id)%field%E(1:3), & 
         track%pt(point_id)%field%B(1:3)
       end do
     endif
   else ! No field    
     if (w_header) then
-      write (outfile, '(9a19)') 'x', 'cp_x', 'y', 'cp_y', 's', 'cp_s',  't', 'charge', 'hit_angle' 
-      write (outfile, '(9a19)') 'm', 'eV',   'm', 'eV',   'm', 'eV',    's', 'C',      'rad'  
+      write (outfile, '(10a19)') 'x', 'px/p0', 'y', 'py/p0', 's', 'delta', 't', 'charge', 'hit_angle', 'p0c'
+      write (outfile, '(10a19)')  'm', 'rad',   'm', 'rad',   'm', 'rad',   's', 'C',      'rad',      'eV'
     endif
     if (w_track) then 
       !Write raw orb data
@@ -287,7 +289,8 @@ else
         orb%vec(6), &
         orb%t, &
         orb%charge, &        
-        orb%phase(2)
+        orb%phase(2), &
+        orb%p0c
       end do
     endif
   endif

@@ -59,12 +59,13 @@ function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
   real(rp) emit
 end function
 
-function tao_beam_track_endpoint (ele_id, lat, branch_str, where) result (ele)
+function tao_beam_track_endpoint (ele_id, lat, branch_str, where, u) result (ele)
   import
   implicit none
   type (ele_struct), pointer :: ele
   type (lat_struct), target :: lat
   character(*) ele_id, where, branch_str
+  type (tao_universe_struct) u
 end function
 
 function tao_branch_index (ix_branch) result (ix_this)
@@ -452,14 +453,14 @@ subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
 end subroutine
 
 subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
-                                       print_err, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
+                                       err_stat_level, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
   import
   implicit none
   character(*) ele_list
   integer ix_universe
   type (ele_pointer_struct), allocatable :: eles(:)
   logical err
-  integer, optional :: lat_type, print_err, ix_dflt_branch
+  integer, optional :: lat_type, err_stat_level, ix_dflt_branch
   logical, optional :: ignore_blank, above_ubound_is_err, multiple_eles_is_err
 end subroutine
 

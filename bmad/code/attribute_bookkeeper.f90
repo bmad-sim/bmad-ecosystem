@@ -13,6 +13,7 @@
 !                  -- Logical, optional: If present and True then force
 !                       attribute bookkeeping to be done independent of
 !                       the state of ele%bookkeeping_stat%attributes.
+!                       This will also cause attribute_bookkeeper to assume intelligent bookkeeping.
 ! Output:
 !   ele            -- Ele_struct: Element with self-consistant attributes.
 !
@@ -29,6 +30,8 @@ use xraylib, dummy => r_e
 use super_recipes_mod, only: super_brent
 use ptc_layout_mod, only: update_ele_from_fibre
 use particle_species_mod
+use bmad_parser_struct, only: bp_com
+use bmad_parser_mod, only: settable_dep_var_bookkeeping
 
 implicit none
 
@@ -55,7 +58,7 @@ integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, sta
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 logical, optional :: force_bookkeeping
-logical err_flag, set_l
+logical err_flag, set_l, field_bookkeeping_doable
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical :: v_mask(num_ele_attrib$), vv_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 logical :: dval_change(num_ele_attrib$)
@@ -85,10 +88,20 @@ end select
 
 ! 
 
-if (bmad_com%auto_bookkeeper) then
+if (bmad_com%auto_bookkeeper .and. .not. logic_option(.false., force_bookkeeping)) then
   call attributes_need_bookkeeping(ele, dval)
-  if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
+  if (ele%bookkeeping_state%attributes /= stale$) return
 
+  if (.false. .and. bp_com%parser_name == '') then   ! If not parsing should not be here
+    call out_io (s_warn$, r_name, &
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+      '!!!!! Using intelligent bookkeeping will, in the near future, be mandated for all              !!!!!', &
+      '!!!!! Bmad programs that modify lattice parameters.                                            !!!!!', &
+      '!!!!! See the "Intelligent Bookkeeping" section in the Bmad manual.                            !!!!!', &
+      '!!!!! Contact the maintainer of this program with this information.                            !!!!!', &
+      '!!!!! This program will run now but in the future this will change.                            !!!!!', &
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+  endif
 else
   call attributes_need_bookkeeping(ele)
   if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
@@ -171,7 +184,9 @@ endif
 
 ! Field_master...
 
-if (val(p0c$) /= 0 .and. particle /= not_set$) then
+field_bookkeeping_doable = (val(p0c$) /= 0 .and. particle /= not_set$)
+
+if (field_bookkeeping_doable) then
   if (ele%field_master) then
 
     factor = charge_of(particle) * c_light / val(p0c$)
@@ -193,17 +208,12 @@ if (val(p0c$) /= 0 .and. particle /= not_set$) then
       val(ks$) = factor * val(Bs_field$)
       val(k1$) = factor * val(B1_gradient$)
     case (rf_bend$)
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(g$)     = factor * val(B_field$)
     case (sbend$)
-      ! Case where angle/g/rho is set along with b1_gradient (or similar).
-      ! In this case settable_dep_var_bookkeeping has set B_field$ to real_garbage$
-      if (val(B_field$) == real_garbage$) then
-        val(B_field$)     = factor * val(g$)
-        val(dB_field$)    = factor * val(dg$)
-      else
-        val(g$)     = factor * val(B_field$)
-        val(dg$)    = factor * val(dB_field$)
-      endif
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
+      val(g$)     = factor * val(B_field$)
+      val(dg$)    = factor * val(dB_field$)
       val(k1$)    = factor * val(B1_gradient$)
       val(k2$)    = factor * val(B2_gradient$)
     case (hkicker$, vkicker$)
@@ -240,8 +250,10 @@ if (val(p0c$) /= 0 .and. particle /= not_set$) then
       val(Bs_field$)    = factor * val(ks$)
       val(B1_gradient$) = factor * val(k1$)
     case (rf_bend$)
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(B_field$)     = factor * val(g$)
     case (sbend$)
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(B_field$)     = factor * val(g$)
       val(dB_field$)    = factor * val(dg$)
       val(B1_gradient$) = factor * val(k1$)
@@ -679,20 +691,29 @@ case (rf_bend$)
     endif
   endif
 
-  val(angle$) = val(l$) * val(g$)
+  if (field_bookkeeping_doable) then
+    val(angle$) = val(l$) * val(g$)
 
-  if (val(g$) == 0) then
-    val(rho$) = 0
-    val(l_chord$) = val(l$)
-    val(l_sagitta$) = 0
-  else
-    val(rho$) = 1 / val(g$)
-    val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
-    val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
-  endif
+    if (val(g$) == 0) then
+      val(rho$) = 0
+      val(l_chord$) = val(l$)
+      val(l_sagitta$) = 0
+    else
+      val(rho$) = 1 / val(g$)
+      val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
+      val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
+    endif
 
-  if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
-    call set_ele_status_stale (ele, floor_position_group$)
+    select case (nint(val(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      val(l_rectangle$) = val(l_chord$)
+    case default
+      val(l_rectangle$) = sinc(val(angle$)) * val(l$)
+    end select
+
+    if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
+      call set_ele_status_stale (ele, floor_position_group$)
+    endif
   endif
 
 ! sad_mult
@@ -718,24 +739,33 @@ case (sad_mult$)
 
 case (sbend$)
 
-  val(angle$) = val(l$) * val(g$)
+  if (field_bookkeeping_doable) then
+    val(angle$) = val(l$) * val(g$)
 
-  if (val(g$) == 0) then
-    val(rho$) = 0
-    val(l_chord$) = val(l$)
-    val(l_sagitta$) = 0
-  else
-    val(rho$) = 1 / val(g$)
-    val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
-    val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
+    if (val(g$) == 0) then
+      val(rho$) = 0
+      val(l_chord$) = val(l$)
+      val(l_sagitta$) = 0
+    else
+      val(rho$) = 1 / val(g$)
+      val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
+      val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
+    endif
+
+    select case (nint(val(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      val(l_rectangle$) = val(l_chord$)
+    case default
+      val(l_rectangle$) = sinc(val(angle$)) * val(l$)
+    end select
+
+    if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
+      call set_ele_status_stale (ele, floor_position_group$)
+    endif
+
+    val(g_tot$)       = val(g$)       + val(dg$)
+    val(b_field_tot$) = val(b_field$) + val(db_field$)
   endif
-
-  if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
-    call set_ele_status_stale (ele, floor_position_group$)
-  endif
-
-  val(g_tot$)       = val(g$)       + val(dg$)
-  val(b_field_tot$) = val(b_field$) + val(db_field$)
 
 ! Sol_quad
 

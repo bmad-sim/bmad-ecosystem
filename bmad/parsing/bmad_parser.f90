@@ -89,7 +89,7 @@ logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 call cpu_time(bp_com%time0)
 call init_bmad()
 auto_bookkeeper_saved = bmad_com%auto_bookkeeper
-bmad_com%auto_bookkeeper = .true.  
+bmad_com%auto_bookkeeper = .false.  
 
 if (present(err_flag)) err_flag = .true.
 bp_com = bp_common_struct()
@@ -104,6 +104,7 @@ if (lat_file == '') then
     call out_io (s_fatal$, r_name, 'BMAD_PARSER FINISHED. EXITING ON ERRORS')
     stop
   endif
+  bp_com%parser_name = ''
   return
 endif
 
@@ -1298,7 +1299,10 @@ character(200) name
 
 !
 
-if (present(parse_lat) .and. .not. bp_com%error_flag) parse_lat = lat0
+if (present(parse_lat) .and. .not. bp_com%error_flag) then
+  lat0%ramper_slave_bookkeeping = super_ok$    ! Prevents generation of warnings when ramper_slave_setup is called in next line. 
+  parse_lat = lat0
+endif
 
 ! Calculate the creation hash which can be used by programs to verify that the lattice has not been changed since
 ! the last time the lattice was read in.

@@ -492,7 +492,7 @@ See \sref{s:list.bend} for a full list of element attributes along with a their 
 \index{hgap}\index{hgapx}\index{roll}\index{k1}\index{exact_multipoles}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
-  angle              = <Real>   ! Design bend angle. Settable dependent var (\sref{s:depend}).
+  angle              = <Real>   ! Design bend angle. Dependent var (\sref{s:depend}).
   b_field            = <Real>   ! Design field strength (= P_0 g / q) (\sref{s:depend}).
   db_field           = <Real>   ! Actual - Design bending field difference (\sref{s:depend}).
   b_field_tot                   ! Net field = b_field + db_field. Dependent param (\sref{s:depend}).
@@ -511,11 +511,13 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   l                  = <Real>   ! "Length" of bend. See below.
   l_arc              = <Real>   ! Arc length. For \vn{rbend}s only. 
   l_chord            = <Real>   ! Chord length. See \sref{s:l}.
+  l_rectangle        = <Real>   ! "Rectangular" length.
   l_sagitta                     ! Sagittal length. Dependent param (\sref{s:depend}).
-  ptc_field_geometry  = <Switch> ! See below.
+  ptc_field_geometry  = <Switch> ! See below. Default is \vn{sector}.
   ptc_fringe_geometry = <Switch> ! \Sref{s:fringe.type}
-  rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
+  rho                = <Real>   ! Design bend radius. Dependent param (\sref{s:depend}).
   roll               = <Real>   ! See \ref{s:offset}.
+  fiducial_pt        = <switch> ! See below. Default is \vn{none}.
   field_master       = <T/F>    ! See \ref{s:field.master}.
 \end{example}
 
@@ -523,31 +525,32 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   \centering
   \hfill
   \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics{rbend-coords.pdf}
+    \includegraphics[width=1.05\textwidth]{rbend-coords.pdf}
     \caption{Rbend}
     \label{f:rbend}
   \end{subfigure}
-  \hfill
   \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics{sbend-coords.pdf}
+    \includegraphics[width=1.05\textwidth]{sbend-coords.pdf}
     \caption{Sbend}
     \label{f:sbend}
   \end{subfigure}
-  \hfill
   \begin{subfigure}[b]{0.32\textwidth}
-    \includegraphics{sbend-rev.pdf}
+    \includegraphics[width=1.05\textwidth]{sbend-rev.pdf}
     \caption{Reversed sbend}
     \label{f:sbend.rev}
   \end{subfigure}
   \hfill
   \caption[Coordinate systems for rbend and sbend elements.]
-{Coordinate systems for (a) normal (non-reversed)\vn{rbend}, (b) normal \vn{sbend}, and (c)
+  { 
+Coordinate systems for (a) normal (non-reversed)\vn{rbend}, (b) normal \vn{sbend}, and (c)
 \vn{reversed sbend} elements. The bends are viewed from ``above'' (viewed from positive $y$).
 Normal bends have \vn{g}, \vn{angle}, and \vn{rho} all positive. Reversed bends have \vn{g},
-\vn{angle}, and \vn{rho} all negative. For (a) and (b), as drawn, \vn{e1} and \vn{e2} are both
-positive. For (c), as drawn, \vn{e1} and \vn{e2} are both negative. In all cases, \vn{L} is
-positive. Notice that for reversed bends, the $x$-axis points towards the center of the bend while
-for normal bends the $x$-axis points towards the outside.}
+\vn{angle}, and \vn{rho} all negative. The face angles \vn{e1} and \vn{e2} are drawn for
+\vn{reference_pt} set to \vn{none} or \vn{center}. For (a) and (b), as drawn, the \vn{e1} and \vn{e2} face
+angles are both positive. For (c), as drawn, \vn{e1} and \vn{e2} are both negative. In all cases,
+\vn{L} is positive. Notice that for reversed bends, the $x$-axis points towards the center of the
+bend while for normal bends the $x$-axis points towards the outside.
+  }
   \label{f:bend}
 \end{figure}
 
@@ -571,10 +574,19 @@ See the discussion of \vn{g} and \vn{dg} below for more details.
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
 The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is \vn{e2}. Zero
-\vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet (\fig{f:rbend}). Zero \vn{e1}
-and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet (\fig{f:sbend}).  An \vn{sbend} with
-an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see
-above).  This formula holds for both positive and negative angles.
+\vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet (\fig{f:rbend}). Zero \vn{e1} and
+\vn{e2} for an \vn{sbend} gives a wedge shaped magnet (\fig{f:sbend}).  An \vn{sbend} with an
+\vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} = 0.  This
+formula holds for both positive and negative angles. For \vn{rbend} elements, the above discussion
+is true if \vn{fiducial_pt} is set to \vn{none} or \vn{center}. If \vn{fiducial_pt} is set to
+\vn{entrance_end}, then the face angles are measured with respect to the entrace coordinates $(s_1
+x_1)$.
+If the \vn{fiducial_pt} is set to \vn{exit_end}, the face angles are measured with respect to
+the exit coordinates $(s_2, x_2)$. Thus
+\begin{example}
+  e1(f_pt=none) = e1(f_pt=entrance_end) - angle/2 = e1(f_pt=exit_end) + angle/2
+  e2(f_pt=none) = e2(f_pt=entrance_end) + angle/2 = e2(f_pt=exit_end) - angle/2
+\end{example}
 
 Note: The correspondence between \vn{e1} and \vn{e2} and the corresponding parameters used in the
 SAD program \cite{b:sad} is:
@@ -665,6 +677,31 @@ $C_0$ and $C_1$ then
   C_1 = \frac{1}{2 \,H_{gap} \, F_{int}}
 \end{equation}
   %
+  \item[fiducial_pt] \Newline
+The \vn{fiducial_pt} parameter sets a fiducial point which can be used to keep the shape of the bend
+constant when, in a program, the parameters \vn{rho}, \vn{g}, \vn{b_field} or \vn{angle} are varied.
+Varying these parameters typically happens when doing machine design. Using a fiducial point can be
+helpful when designing a machine usin bend magnets that already exist.
+
+The \vn{fiducial_pt} parameter
+has four possible settings:
+\begin{example}
+  none          ! No fiducial point (default).
+  entrance_end  ! The entrance point is the fiducial point.
+  center        ! The center of the reference curve is the fiducial point.
+  exit_end      ! The exit point is the fiducial point.
+\end{example}
+With \vn{fiducial_pt} set to \vn{none} (the default). The bend shape is not held constant. With the
+other three settings, the bend shape will be help constant as discussed in \sref{s:bend.fiducial}.
+With \vn{fiducial_pt} set to \vn{entrance_end}, the reference trajectory at the entrance end is held
+fixed in both position and orientation with respect to the bend face and \vn{g}, \vn{l} and \vn{e2},
+along with the other depdendent parameters, are adjusted to both give the desired change in what was
+varied (which is one of \vn{rho}, \vn{g}, \vn{b_field} or \vn{angle}) and to keep the shape of the
+bend unchanged. See \fig{f:bend.fid1}. Similarly, if \vn{fiducial_pt} is set to \vn{center}, the
+center of the reference trajectory is held fixed in both position and orientation and if
+\vn{fiducial_pt} is set to \vn{exit_end}, the exit point is held fixed in both position and
+orientation.
+  %
   \index{g}\index{rho}\index{dg}
   \item[g, dg, rho] \Newline
 The design bending radius which determines the reference coordinate system is \vn{rho} (see
@@ -707,7 +744,7 @@ The normalized and unnormalized (\sref{s:field.master}) quadrupole strength. See
   \item[k2, b2_gradient] \Newline
 The normalized and unnormalized (\sref{s:field.master}) sextupole strength. See \Eqs{bbb} and \eq{kqlbp}.
   %
-  \index{l}\index{l_chord}\index{l_arc}\index{l_sagitta}
+  \index{l}\index{l_chord}\index{l_arc}\index{l_sagitta}\index{l_rectangle}
   \item[l, l_arc, l_chord, l_sagitta]  \Newline
 For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord length and not the arc length as
 it is for an \vn{sbend}.  After reading in a lattice, \bmad will internally convert all \vn{rbend}s
@@ -720,6 +757,16 @@ For \vn{sbend} elements, \vn{l_chord} will be set to the calculated chord length
 bends, the \vn{l_sagitta} parameter will be set to the sagitta length (The sagitta is the distance
 from the midpoint of the arc to the midpoint of the chord). \vn{l_sagitta} can be negative and will have
 the same sign as the \vn{g} parameter.
+
+The \vn{l_rectangle} parameter is the ``rectangular'' length. See the documentation on the \vn{fiducial_pt}
+parameter above.
+  %
+  item[l_rectangle] \Newline
+The ``rectangular length'' is the distance between the entrance and exit points along the $s$ axis
+defined by the setting of \vn{fiducial_pt}. \fig{f:rbend} shows \vn{l_rectangle} for
+\vn{fiducial_pt} set to \vn{entrance_end}. If \vn{fiducial_pt} is set to \vn{none} or \vn{center},
+\vn{l_rectangle} is the same as the chord length. If \vn{fiducial_pt} is set to \vn{entrance_end}
+or \vn{exit_end} the rectangular length will be $\rho \sin\alpha$.
   %
   \index{ref_tilt}
   \item[ref_tilt] \Newline
@@ -751,7 +798,8 @@ transformation on \vn{rbend}s:
 
 The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified for
 an element \bmad will calculate the appropriate value for the third.  After reading in a lattice,
-\vn{angle} is considered a dependent variable (\sref{s:depend}).
+\vn{angle} is considered the dependent variable so if \vn{l} or \vn{g} is veried, the value of
+\vn{angle} will be set to \vn{g * l}. if \vn{theta} is varied, \vn{l} will be set accordingly.
 
 Since internally all \vn{rbend}s are converted to \vn{sbend}s, if one wants to vary the \vn{g}
 attribute of a bend and still keep the bend rectangular, an overlay (\sref{s:overlay}) can be
@@ -952,7 +1000,7 @@ The attributes specific to an \vn{converter} are
   angle_out_max   = <Real>      ! Maximum outgoing angle.
   species_out     = <SpeciesID> ! Output species.
   p0c             = <Real>      ! Output ref momentum.
-  E_tot           = <Real>      ! Output ref energy. Settable dependent var (\sref{s:depend}).
+  E_tot           = <Real>      ! Output ref energy. Dependent var (\sref{s:depend}).
 \end{example}
 
 The species of the outgoing particles is specified by the \vn{species_out} parameter
@@ -2154,8 +2202,9 @@ element.
   \caption[Foil geometry.]
 {Foil geometry. Parameters \vn{thickness}, \vn{dthickness_dx}, \vn{x1_edge}, \vn{x2_edge},
 \vn{y1_edge}, and \vn{y2_edge} determine the foil geometry in body coordinates (see \fig{f:coords}).
-Orientation parameters like \vn{x_offset} (\sref{s:offset}) orient the foil with respect to
-laboratory coordinates but do not change the foil shape.}
+For the drawing, \vn{x1_edge} is negative (the associated edge is to the left of $x = 0$) and the
+\vn{x2_edge} is positive.  Orientation parameters like \vn{x_offset} (\sref{s:offset}) orient the
+foil with respect to laboratory coordinates but do not change the foil shape.}
   \label{f:foil}
 \end{figure}
 
@@ -2194,10 +2243,10 @@ Attributes specific to a \vn{foil} element are:
   scatter_test        = <Logic>   ! For testing scattering. Default: False.
   scatter_method      = <Switch>  ! Scattering algorithm. Default: highland.
   dthickness_dx       = <Real>    ! Wedge slope when the foil is wedge shaped.
-  x1_edge             = <Real>    ! Foil edge in the +x direction. Default: -99 m.
-  x2_edge             = <Real>    ! Foil edge in the -x direction. Default:  99 m.
-  y1_edge             = <Real>    ! Foil edge in the +y direction. Default: -99 m.
-  y2_edge             = <Real>    ! Foil edge in the -y direction. Default:  99 m.
+  x1_edge             = <Real>    ! Foil edge in the x-direction. Default: -99 m.
+  x2_edge             = <Real>    ! Foil edge in the x-direction. Default:  99 m.
+  y1_edge             = <Real>    ! Foil edge in the y-direction. Default: -99 m.
+  y2_edge             = <Real>    ! Foil edge in the y-direction. Default:  99 m.
 \end{example}
 
 Scattering is simulated to be Gaussian distributed with a sigma calculated in one of two methods.
@@ -3388,7 +3437,7 @@ Attributes specific to a \vn{match} element are:
   alpha_a1, alpha_b1 = <Real>            ! Exit alphas
   eta_x0, eta_y0     = <Real>            ! Entrance etas 
   eta_x1, eta_y1     = <Real>            ! Exit etas 
-  etap_x0, etap_y0   = <Real>            ! Entrance eta' 
+  etap_x0, etap_y0   = <Real>            ! Entrance momentum dispersion
   etap_x1, etap_y1   = <Real>            ! Exit eta'
   c11_mat0, c12_mat0, c21_mat0, c22_mat0 = <Real>  ! Entrance coupling.
   c11_mat1, c12_mat1, c21_mat1, c22_mat1 = <Real>  ! Exit coupling.
@@ -4542,14 +4591,14 @@ See \sref{s:list.rf.bend} for a full list of element attributes along with a the
 Attributes specific to an \vn{rf_bend} are:
 \begin{example}
   ! Bend-like attributes:
-  angle              = <Real>   ! Design bend angle. Settable dependent var (\sref{s:depend}).
+  angle              = <Real>   ! Design bend angle. Dependent var (\sref{s:depend}).
   b_field            = <Real>   ! Design field strength (= P_0 g / q) (\sref{s:depend}).
   g                  = <Real>   ! Design bend strength (= 1/rho).
   l                  = <Real>   ! "Length" of bend. See below.
   l_arc              = <Real>   ! Arc length. For \vn{rbend}s only. 
   l_chord            = <Real>   ! Chord length. See \sref{s:l}.
   l_sagitta                     ! Sagittal length. Dependent param (\sref{s:depend}).
-  rho                = <Real>   ! Design bend radius. Settable dependent param (\sref{s:depend}).
+  rho                = <Real>   ! Design bend radius. Dependent param (\sref{s:depend}).
   roll               = <Real>   ! See \ref{s:offset}.
   field_master       = <T/F>    ! See \ref{s:field.master}.
 
@@ -5351,7 +5400,7 @@ Attributes specific to wiggler and undulator elements are:
 \begin{example}
   b_max      = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline.
   l_period   = <Real>  ! Length over which field vector returns to the same orientation.
-  n_period   = <Real>  ! The number of periods. Settable dependent attribute (\sref{s:depend}).
+  n_period   = <Real>  ! The number of periods. Dependent attribute (\sref{s:depend}).
   l_pole     = <Real>  ! Wiggler pole length. DEPRECATED. USE L_PERIOD INSTEAD.
   n_pole     = <Real>  ! The number of poles. DEPRECATED. USE N_PERIOD INSTEAD.
   polarity   = <Real>  ! For scaling the field.

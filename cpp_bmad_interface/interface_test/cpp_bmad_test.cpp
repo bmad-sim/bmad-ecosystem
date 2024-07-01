@@ -919,6 +919,84 @@ extern "C" void test_c_expression_atom (Opaque_expression_atom_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_wake_sr_z (CPP_wake_sr_z&, bool&);
+
+void set_CPP_wake_sr_z_test_pattern (CPP_wake_sr_z& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.w.resize(0);
+  else {
+    C.w.resize(3);
+    for (unsigned int i = 0; i < C.w.size(); i++)  {set_CPP_spline_test_pattern(C.w[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.w_sum1.resize(0);
+  else {
+    C.w_sum1.resize(3);
+    for (unsigned int i = 0; i < C.w_sum1.size(); i++)  {set_CPP_spline_test_pattern(C.w_sum1[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.w_sum2.resize(0);
+  else {
+    C.w_sum2.resize(3);
+    for (unsigned int i = 0; i < C.w_sum2.size(); i++)  {set_CPP_spline_test_pattern(C.w_sum2[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 7 + offset; C.plane = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.position_dependence = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_wake_sr_z (Opaque_wake_sr_z_class* F, bool& c_ok) {
+
+  CPP_wake_sr_z C, C2;
+
+  c_ok = true;
+
+  wake_sr_z_to_c (F, C);
+  set_CPP_wake_sr_z_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " wake_sr_z: C side convert F->C: Good" << endl;
+  } else {
+    cout << " wake_sr_z: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wake_sr_z_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_wake_sr_z (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_wake_sr_z_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " wake_sr_z: F side convert F->C: Good" << endl;
+  } else {
+    cout << " wake_sr_z: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wake_sr_z_test_pattern (C2, 4);
+  wake_sr_z_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_wake_sr_mode (CPP_wake_sr_mode&, bool&);
 
 void set_CPP_wake_sr_mode_test_pattern (CPP_wake_sr_mode& C, int ix_patt) {
@@ -1009,6 +1087,14 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
     {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
+    C.z.resize(0);
+  else {
+    C.z.resize(3);
+    for (unsigned int i = 0; i < C.z.size(); i++)  {set_CPP_wake_sr_z_test_pattern(C.z[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
     C.long_wake.resize(0);
   else {
     C.long_wake.resize(3);
@@ -1024,22 +1110,22 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.z_ref_long = rhs;
+  rhs = 8 + offset; C.z_ref_long = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.z_ref_trans = rhs;
+  rhs = 9 + offset; C.z_ref_trans = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.z_max = rhs;
+  rhs = 10 + offset; C.z_max = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.amp_scale = rhs;
+  rhs = 11 + offset; C.amp_scale = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.z_scale = rhs;
+  rhs = 12 + offset; C.z_scale = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.scale_with_length = (rhs % 2 == 0);
+  rhs = 13 + offset; C.scale_with_length = (rhs % 2 == 0);
 
 
 }
@@ -6499,8 +6585,8 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 42 + offset; C.creation_hash = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 43 + offset; C.ramper_slave_bookkeeping_done = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 43 + offset; C.ramper_slave_bookkeeping = rhs;
 
 
 }

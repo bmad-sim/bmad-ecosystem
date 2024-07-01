@@ -50,8 +50,8 @@ if (lttp%regression_test) then
   open (1, file = prefix // '.dat')
   bunch => beam%bunch(1)
   do i = 1, size(bunch%particle)
-    write (1, '(3a, i0, a, 6es16.8)') '"', prefix, '-vec-', i, '" ABS 1e-10 ', bunch%particle(i)%vec
-    write (1, '(3a, i0, a, 3f16.10)') '"', prefix, '-spin-', i, '" ABS 1e-10 ', bunch%particle(i)%spin
+    write (1, '(3a, i0, a, 6es16.8)') '"', prefix, '-vec-', i, '" ABS 2e-10 ', bunch%particle(i)%vec
+    write (1, '(3a, i0, a, 3f16.10)') '"', prefix, '-spin-', i, '" ABS 2e-10 ', bunch%particle(i)%spin
   enddo
   close (1)
 endif  

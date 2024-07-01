@@ -9,11 +9,12 @@
 Output beam parameters that are not in the beam_init structure.
 
 \begin{example}
-   python beam \{ix_uni\}
+   python beam \{ix_uni\}@\{ix_branch\}
 \end{example}
 \begin{verbatim}
 Where:
   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 
 Note: To set beam_init parameters use the "set beam" command.
 \end{verbatim}
@@ -27,11 +28,12 @@ Note: To set beam_init parameters use the "set beam" command.
 Output beam_init parameters.
 
 \begin{example}
-   python beam_init \{ix_uni\}
+   python beam_init \{ix_uni\}@\{ix_branch\}
 \end{example}
 \begin{verbatim}
 Where:
   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 
 Note: To set beam_init parameters use the "set beam_init" command
 \end{verbatim}
@@ -137,7 +139,7 @@ Where:
   {ele_id} is an element name or index.
   {which} is one of: "model", "base" or "design"
   {ix_bunch} is the bunch index.
-  {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state"
+  {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state", "ix_ele"
 
 For example, if {coordinate} = "px", the phase space px coordinate of each particle
 of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
@@ -1439,39 +1441,6 @@ Output curve information for a plot.
 
 \end{verbatim}
 
-%% python plot_lat_layout ------------------------------------
-\subsection{python plot_lat_layout}
-\index{python!plot_lat_layout}
-\label{p:plot.lat.layout}
-
-
-Output plot Lat_layout info
-
-\begin{example}
-   python plot_lat_layout \{ix_uni\}@\{ix_branch\}
-\end{example}
-\begin{verbatim}
-Note: The returned list of element positions is not ordered in increasing
-      longitudinal position.
-\end{verbatim}
-
-%% python plot_list ------------------------------------
-\subsection{python plot_list}
-\index{python!plot_list}
-\label{p:plot.list}
-
-
-Output list of plot templates or plot regions.
-
-\begin{example}
-   python plot_list \{r_or_g\}
-\end{example}
-\begin{verbatim}
-where "{r/g}" is:
-  "r"      ! list regions of the form ix;region_name;plot_name;visible;x1;x2;y1;y2
-  "t"      ! list template plots of the form ix;name
-\end{verbatim}
-
 %% python plot_graph ------------------------------------
 \subsection{python plot_graph}
 \index{python!plot_graph}
@@ -1505,6 +1474,39 @@ Output plot histogram info.
 \end{example}
 \begin{verbatim}
 
+\end{verbatim}
+
+%% python plot_lat_layout ------------------------------------
+\subsection{python plot_lat_layout}
+\index{python!plot_lat_layout}
+\label{p:plot.lat.layout}
+
+
+Output plot Lat_layout info
+
+\begin{example}
+   python plot_lat_layout \{ix_uni\}@\{ix_branch\}
+\end{example}
+\begin{verbatim}
+Note: The returned list of element positions is not ordered in increasing
+      longitudinal position.
+\end{verbatim}
+
+%% python plot_list ------------------------------------
+\subsection{python plot_list}
+\index{python!plot_list}
+\label{p:plot.list}
+
+
+Output list of plot templates or plot regions.
+
+\begin{example}
+   python plot_list \{r_or_g\}
+\end{example}
+\begin{verbatim}
+where "{r/g}" is:
+  "r"      ! list regions of the form ix;region_name;plot_name;visible;x1;x2;y1;y2
+  "t"      ! list template plots of the form ix;name
 \end{verbatim}
 
 %% python plot_template_manage ------------------------------------
@@ -2026,10 +2028,10 @@ Use "python global" to get the number of universes.
 Output parameters of a given variable.
 
 \begin{example}
-   python var \{var\} slaves
+   python var \{var\} \{slaves\}
 \end{example}
 \begin{verbatim}
-
+Note: use "python var_general" to get a list of variables.
 \end{verbatim}
 
 %% python var_create ------------------------------------

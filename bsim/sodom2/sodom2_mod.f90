@@ -76,7 +76,6 @@ contains
 subroutine sodom2_read_params(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
-type (lat_struct) :: parse_lat
 integer i, ix
 character(200) arg
 character(40) m_name
@@ -118,8 +117,7 @@ open (1, file = sodom2_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close (1)
 
-call bmad_parser (lat_file=sodom2%lat_file, lat=sodom2_com%lat,parse_lat=parse_lat)
-!call bmad_parser2(lat_file=sodom2%lat_file, lat=sodom2_com%lat, parse_lat=parse_lat
+call bmad_parser (lat_file=sodom2%lat_file, lat=sodom2_com%lat)
 
 ! Check:
 if (sodom2%J(1) < 0 .and. sodom2%J(2) < 0 .and. sodom2%J(3) < 0) then
@@ -164,7 +162,7 @@ subroutine sodom2_init_params(sodom2, sodom2_com)
 
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
-type (lat_struct) :: lat
+type (lat_struct), pointer :: lat
 type (ele_pointer_struct), allocatable :: eles(:)
 integer N
 
@@ -172,7 +170,7 @@ integer n_loc, i
 logical err
 logical :: J(3) = .false.
 
-lat = sodom2_com%lat
+lat => sodom2_com%lat
 bmad_com%auto_bookkeeper = .false.
 bmad_com%spin_tracking_on = .true.
 
@@ -249,7 +247,7 @@ subroutine sodom2_init_bunch(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
 type (bunch_struct) :: bunch
-type (lat_struct) :: lat
+type (lat_struct), pointer :: lat
 type (coord_struct) :: closed_orbit
 
 real(rp) m(6,6), vec0(6), vec(6)
@@ -294,7 +292,7 @@ Q(5:6,5:6) = Q2
 
 
 N = sodom2_com%n(1)*sodom2_com%n(2)*sodom2_com%n(3)
-lat = sodom2_com%lat
+lat => sodom2_com%lat
 ! allocate memory for bunch
 call reallocate_bunch(bunch, 3*N)
 
@@ -788,7 +786,7 @@ end subroutine sodom2_write_particles
 subroutine sodom2_check_n(sodom2, sodom2_com)
 type (sodom2_params_struct), target :: sodom2
 type (sodom2_com_struct), target :: sodom2_com
-type (lat_struct) :: lat
+type (lat_struct), pointer :: lat
 type (bunch_struct) :: bunch
 real(rp) :: vec(6) = 0
 real(rp) :: jvec(6) = 0
@@ -816,7 +814,7 @@ n3pts = sodom2%check_n_pts(3)
 
 n_mat = sodom2_com%n_mat
 
-lat = sodom2_com%lat
+lat => sodom2_com%lat
 
 if (n1pts*n2pts*n3pts == 0) then
   print '(a)', " Skipping n-axis check..."

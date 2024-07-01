@@ -49,33 +49,6 @@ For electric and magnetic field strength parameters, the \vn{field_master} param
 (\sref{s:field.master}) can be used to determine if the be normalized or unnormalized, values are
 dependent or independent.
 
-\index{lattice!expansion}\index{harmon}\index{delta_e}\index{gradient}
-\index{rho}\index{g}\index{angle}\index{rf_frequency}
-No attempt should be made to set or vary within a program dependent attributes. It should be
-remarked that this is not an iron clad rule.  If a program properly bypasses \bmad's attribute
-bookkeeping routine then anything is possible. In a lattice file, before lattice expansion
-(\sref{s:expand}), \bmad allows the setting of a select group of dependent attributes if the
-appropriate independent attributes are not set. The list of settable dependent variables is given in
-Table~\ref{t:dep.except}.  After reading in the lattice \bmad will set the appropriate independent
-variable based upon the value of the dependent variable. \vn{harmon} is the exception in that it
-will never be set by the bookkeeping routine.
-\index{lcavity}\index{rbend}
-\index{sbend}\index{rfcavity}
-\begin{table}[ht]
-\centering {
-\begin{tabular}{lll} \toprule
-{\em Element}                  & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \\ \midrule
-  \vn{Lcavity}                 & \vn{voltage}       & \vn{gradient}      \\
-  \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}             \\
-  \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}, or \vn{l}  \\
-  \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}        \\
-  \vn{Wiggler} (periodic type) & \vn{n_pole}        & \vn{l_pole}        \\ \bottomrule
-\end{tabular}
-}
-\caption {Dependent variables that can be set in a primary lattice file.}
-\label{t:dep.except}
-\end{table}
-
 %-----------------------------------------------------------------
 \section{Field_Master and Normalized Vs. Unnormalized Field Strengths}
 \label{s:field.master}
@@ -1934,8 +1907,9 @@ opaque sections associated with a given clear section is not important.
 \index{sbend}
 The length attributes are
 \begin{example}
-  l       = <Real>  ! 
-  l_chord = <Real>  ! Chord length of a bend. Dependent attribute.
+  l           = <Real>  ! 
+  l_chord     = <Real>  ! Chord length of a bend. Dependent attribute.
+  l_rectangle = <Real>  ! Rectangular length. See \sref{s:bend}
 \end{example}
 The length \vn{l} is the path length of the reference particle. The one exception is for an
 \vn{rbend}, the length \vn{l} set in the lattice file is the chord length

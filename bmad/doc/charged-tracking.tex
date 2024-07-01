@@ -368,7 +368,7 @@ Propagate backwards through the solenoid field to end up with the particle longi
 \end{enumerate}
 
 There is an energy kick due to the motion of the strong beam. There are two parts to this $dp_z =
-dp_{z,s} + dp_{z,h}$. One part, $dp_{z,s}$, is similar to the gravatational slingshot in orbital
+dp_{z,s} + dp_{z,h}$. One part, $dp_{z,s}$, is similar to the gravitational slingshot in orbital
 mechanics. The slingshot energy kick is simply calculated using conservation of 4-momentum of the
 tracked particle and the strong beam where the mass of the strong beam is assumed to be large
 compared to the mass of the tracked particle.\footnote
@@ -591,6 +591,145 @@ and
   m_{522} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_x \, s_x) & \qqquad
   m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
 \end{alignat}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Bend: Fiducial Point Calculations}
+\label{s:bend.fiducial}
+
+
+When the \vn{fiducial_pt} switch for a bend is set to something other than \vn{none}, changing one
+of \vn{rho}, \vn{g}, \vn{b_field} or \vn{angle} in a program (that is, changing after the lattice
+has been read in and the bend parameters calculated) involves adjustment to the other three
+parameters along with adjustment to \vn{e1}, \vn{e2}, \vn{l}, \vn{l_chord}, and
+\vn{l_rectangle}. This is done to keep the shape of the bend invariant. Invariance is not maintained
+with variation of any other parameter (EG variation of \vn{e1}).
+
+\begin{figure}[tb]
+  \centering
+  \hfill
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics{bend-vary1.pdf}
+    \caption{
+With \vn{fiducial_pt} set to \vn{entrance_end}, $\bfr_1$ is the fiducial point at the entrance
+end.  By construction, the entrance point $\bfr_1$ and the
+slope of the reference curve at $\bfr_1$ is invariant with the reference curve before (dashed line)
+and after (solid line) being tangent to $\bfs_1$ where $\bfs_1$ being the perpendicular to $\bfx_1$.
+    }
+    \label{f:bend.fid1}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics{bend-vary2.pdf}
+    \caption{
+With \vn{fiducial_pt} set to \vn{center}, $\bfr_c$ is the fiducial point at the center. By
+construction, the reference curve always goes through $\bfr_c$ and the tangent of the reference
+curve at $\bfr_c$ is invariant.}
+    \label{f:bend.fid2}
+  \end{subfigure}
+  \hfill
+  \caption{
+Geometry with \vn{fiducial_pt} set to (a) \vn{entrance_end} and (b) \vn{center}. In both cases,
+$\bfr_1$ and $\bfr_2$ are the entrance and exit reference points before and $\bfr'_1$ and $\bfr_2$
+are the entrance and exit points after variation of one of \vn{rho}, \vn{g}, \vn{b_field}, or
+\vn{angle}.  Similarly, $\rho$ and $\alpha$ are the bending radius and bending angle before
+variation while $\rho'$ and $\alpha'$ are the bending radius afterwards.  Finally, $e_1$ $e_2$
+are the face angles and rectangular length before variation, and $L'_r$ and $\bfr'_0$ are the
+rectangular length and center of curvature after variation.
+  }
+  \label{f:bend.fid}
+\end{figure}
+
+\fig{f:bend.fid} shows the situation when the \vn{fiducial_pt} is set to either \vn{entrance_end} or
+\vn{center} (the situation for the \vn{exit_end} setting is analogous to the \vn{entrance_end}
+setting and so is not discussed). For any one of the \vn{fiducial_pt} settings discussed there are
+essentially two cases. One case is direct variation of the bend field via variation of \vn{rho},
+\vn{g}, or \vn{b_field}. This is called ``\vn{g}-variation''. The other type of variation is
+variation of \vn{angle}. This is called ``angle-variation''. The discussion below shows how, with
+\vn{g}-variation, \vn{l}, \vn{e1}, and \vn{e2} are calculated. With \vn{angle}-variation, \vn{l},
+\vn{g}, \vn{e1}, and \vn{e2} need to be calculated. Once \vn{l} and \vn{g} are know, the other
+parameters \vn{l_chord}, \vn{l_rectangle}, \vn{l_sagitta} (and \vn{angle} for the \vn{g}-variation
+case) can be readily computed.
+
+The \vn{entrance_end} analysis is as follows (\fig{f:bend.fid1}). The entrance end coordinates
+around the point $\bfr_1$ are held fixed and as as a result $\bfr'_1 = \bfr_1$ and \vn{e1} does not
+vary as well. $\bfr_2$ is the exit point before variation and $\bfr_3$ is the exit point after. The
+position of $\bfr_3$ is calculated by first calculating the position of $\bfr_1$ in a coordinate
+system centered at $\bfr_2$ and with axes parallel to the $(\bfs_1, \bfx_1)$ axes of the coordinate
+system at $\bfr_1$
+\begin{equation}
+  \bar\bfr_1 = \left( -l_{\text{rectangle}}, \rho \, (1 - \cos\alpha) \right)
+\end{equation}
+Where the bar denotes that the coordinates are in the $(\bfs_1, \bfx_1)$ system.
+The coordinates of $\bfr_1$ in the $(\bfe_s, \bfe_x)$ coordinate system
+with origin at $\bfr_2$ and with $\bfe_x$ along the bend edge and $\bfe_s$ perpendicular to $\bfe_x$
+is a rotation $\bfR(\theta)$ 
+\begin{equation}
+  \bfr_1 = \bfR(\alpha - e_2) \, \bar\bfr_1
+\end{equation}
+The angle $\theta_1$ of the vector $\bfs_1$, which is the invariant tangent of the reference curve
+at the point $\bfr_1$, in the $(\bfe_s, \bfe_x)$ coordinate system (which is used from here on) is
+\begin{equation}
+  \theta_1 = \alpha - e_1
+\end{equation}
+The center of curvature after variation $\bfr'_0$ is 
+\begin{equation}
+  \bfr'_0 = \bfr_1 + \rho' \, \left( \sin\theta_1, -\cos\theta_1 \right)
+\end{equation}
+The reference trajectory after variation $\bfr'$ is a circular arc subject to the condition
+\begin{equation}
+  \left| \bfr' - \bfr'_0 \right| = \rho'^2
+  \label{rr0r}
+\end{equation}
+With \vn{g}-variation, the value of $\rho'$ is set (perhaps indirectly) by the User. To find the
+point $\bfr'_2$, it is noted that in the $(e_s, e_x)$ coordinate system,  the $s$
+coordinate of $\bfr'_2$, $r'_{2s}$ is zero.
+so using this in\Eq{rr0r} and throwing away the unphysical root gives for the $x$ coordinate
+\begin{equation}
+  r'_{2x} = r_{1x} + \frac{2 \, c}{-b - \sqrt{b^2-4 \, a \, c}}
+\end{equation}
+where
+\begin{align}
+  a &= g' \CRNO
+  b &= 2 \, \cos\theta_1 \\
+  c &= g' \, r_{1s}^2 + 2 \, r_{1s} \, \sin\theta_1 \nonumber
+\end{align}
+where $g' = 1 / \rho'$.
+The rectangular length after variation $L'_r$ is then
+\begin{equation}
+  L'_r = L_r + r'_{2x} * \sin\theta_1
+\end{equation}
+where $L_r$ is the rectangular length before variation.
+Finally, the length $L'$ after variation is
+\begin{equation}
+  L' = \text{asinc} \left( g' \, L'_r \right) \, L'_r
+\end{equation}
+where $\text{asinc}$ is the function
+\begin{equation}
+  \text{asinc}(\theta) = \frac{\sin^{-1}(\theta)}{\theta}
+\end{equation}
+
+For \vn{fiducial_pt} set to \vn{entrance_end} and with \vn{angle}-variation, $\alpha'$ is know and
+$g'$ can be computed via
+\begin{equation}
+  g' = \frac{\sin(\alpha' - \theta_1) + \sin(\theta_1)}{r_{1s}}
+  \label{gatt}
+\end{equation}
+With this, all other parameters can be created. In both \vn{angle}-variation and \vn{g}-variation the new
+face angle $e'_2$ is given by
+\begin{equation}
+  e'_2 = e_2 + \alpha' - \alpha
+\end{equation}
+
+For \vn{fiducial_pt} set to \vn{center}, The center point $\bfr_c$ (see \fig{f:bend.fid2}) is held
+constant.  Here the \vn{g}-variation analysis is similar to the \vn{g}-variation analysis with
+\vn{fiducial_pt} set to \vn{entrance_end} (or \vn{exit_end} except in this case the reference orbit
+to the right and left of $bfr_c$ are analyzed separately and the two lengths for each piece are
+added together. For \vn{angle}-variation, the only situation where it is possible to keep $\bfr_c$
+fixed while varying the angle is when \vn{e1} and \vn{e2} are equal. In this instance, the
+calculation is again similar to the \vn{angle}-variation analysis with the \vn{fiducial_pt} set to
+either end. If \vn{e1} and \vn{e2} are not equal, a calculation is done that gives the desired angle
+but the center point will shift.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

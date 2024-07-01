@@ -69,8 +69,10 @@ do ib = 0, ubound(lat%branch, 1)
     if (begin_ele%value(inherit_from_fork$) == real_garbage$) then  ! Happens first time this routine is called from bmad_parser. 
       begin_ele%value(inherit_from_fork$) = false$
       if (associated(fork_ele)) then
-        if (begin_ele%ref_species == fork_ele%ref_species .or. begin_ele%ref_species == not_set$) &
-                                                                           begin_ele%value(inherit_from_fork$) = true$
+        if (begin_ele%ref_species == fork_ele%ref_species .or. begin_ele%ref_species == not_set$) then
+          begin_ele%value(inherit_from_fork$) = true$
+          begin_ele%old_value(inherit_from_fork$) = true$
+        endif
       endif
     endif
 
@@ -104,6 +106,10 @@ do ib = 0, ubound(lat%branch, 1)
         call convert_pc_to (begin_ele%value(p0c$), begin_ele%ref_species, e_tot = begin_ele%value(e_tot$))
       elseif (begin_ele%value(e_tot$) >= mass_of(begin_ele%ref_species)) then
         call convert_total_energy_to (begin_ele%value(e_tot$), begin_ele%ref_species, pc = begin_ele%value(p0c$))
+        ! Only here when reading in a lattice. Want to make sure that when E_tot is computed from p0c (which will
+        ! happen when this routine is called again after lattice parsing), there is no shift due to round-off errors.
+        ! This can confuse the bookkeeping routines.
+        call convert_pc_to (begin_ele%value(p0c$), begin_ele%ref_species, e_tot = begin_ele%value(e_tot$))
       elseif (branch%ix_from_branch < 0 .and. branch%ix_branch > 0 .and. &
                               lat%param%particle == begin_ele%ref_species) then ! A root branch.
         begin_ele%value(e_tot$) = lat%ele(0)%value(e_tot$)
@@ -134,6 +140,10 @@ do ib = 0, ubound(lat%branch, 1)
       begin_ele%value(ref_time_start$) = begin_ele%ref_time
     endif
 
+    begin_ele%old_value(e_tot$) = begin_ele%value(e_tot$)
+    begin_ele%old_value(e_tot_start$) = begin_ele%value(e_tot_start$)
+    begin_ele%old_value(p0c$) = begin_ele%value(p0c$)
+    begin_ele%old_value(p0c_start$) = begin_ele%value(p0c_start$)
     begin_ele%bookkeeping_state%ref_energy = ok$
 
     !
