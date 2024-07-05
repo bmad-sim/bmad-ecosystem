@@ -887,13 +887,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
-      if (ph%grid%type == h_misalign$ .and. ele%value(b_param$) > 0) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS GRID TYPE H_MISALIGN BUT THIS IS NOT IMPLEMENTED FOR LAUE DIFFRACTION!')
-        err_flag = .true.
-      endif
-
       g = ph%curvature%spherical + ph%curvature%elliptical
       if ((g(1) /= 0 .or. g(2) /= 0) .and. g(3) == 0) then
         call out_io (s_warn$, r_name, &
