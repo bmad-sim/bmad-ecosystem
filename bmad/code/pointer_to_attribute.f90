@@ -72,7 +72,7 @@ err_flag = .true.
 out_of_bounds = .false.
 branch => pointer_to_branch(ele)
 
-nullify (a_ptr%r, a_ptr%i, a_ptr%l)
+nullify (a_ptr%r, a_ptr%i, a_ptr%l, a_ptr%r1, a_ptr%i1)
 
 do_print = logic_option (.true., err_print_flag)
 call str_upcase (a_name, attrib_name)
@@ -282,6 +282,7 @@ if (a_name(1:14) == 'CARTESIAN_MAP(') then
   else
     select case (a_name)
     case ('%FIELD_SCALE');      a_ptr%r => ct_map%field_scale
+    case ('%R0');               a_ptr%r1 => ct_map%r0
     case ('%R0(1)');            a_ptr%r => ct_map%r0(1)
     case ('%R0(2)');            a_ptr%r => ct_map%r0(2)
     case ('%R0(3)');            a_ptr%r => ct_map%r0(3)
@@ -309,6 +310,7 @@ if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
   case ('%THETA0_AZIMUTH');   a_ptr%r => cl_map%theta0_azimuth
   case ('%FIELD_SCALE');      a_ptr%r => cl_map%field_scale
   case ('%DZ');               a_ptr%r => cl_map%dz
+  case ('%R0');               a_ptr%r1 => cl_map%r0
   case ('%R0(1)');            a_ptr%r => cl_map%r0(1)
   case ('%R0(2)');            a_ptr%r => cl_map%r0(2)
   case ('%R0(3)');            a_ptr%r => cl_map%r0(3)
@@ -536,16 +538,19 @@ case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SC
     a_ptr%l => ele%wake%sr%scale_with_length
   end select
 
-case ('H_MISALIGN%ACTIVE', 'DISPLACEMENT%ACTIVE', 'SEGMENTED%ACTIVE')
-  a_ptr%l => ele%photon%grid%active
-case ('SPHERICAL_CURVATURE')     ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%spherical
-case ('ELLIPTICAL_CURVATURE_X')  ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%elliptical(1)
-case ('ELLIPTICAL_CURVATURE_Y')  ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%elliptical(2)
-case ('ELLIPTICAL_CURVATURE_Z')  ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%elliptical(3)
+case ('H_MISALIGN%ACTIVE');     a_ptr%l => ele%photon%h_misalign%active
+case ('DISPLACEMENT%ACTIVE');   a_ptr%l => ele%photon%displacement%active
+case ('SEGMENTED%ACTIVE');      a_ptr%l => ele%photon%segmented%active
+
+case ('H_MISALIGN%DR');         a_ptr%r1 => ele%photon%h_misalign%dr
+case ('DISPLACEMENT%DR');       a_ptr%r1 => ele%photon%displacement%dr
+case ('SEGMENTED%DR');          a_ptr%r1 => ele%photon%segmented%dr
+case ('PIXEL%DR');              a_ptr%r1 => ele%photon%pixel%dr
+
+case ('H_MISALIGN%R0');         a_ptr%r1 => ele%photon%h_misalign%r0
+case ('DISPLACEMENT%R0');       a_ptr%r1 => ele%photon%displacement%r0
+case ('SEGMENTED%R0');          a_ptr%r1 => ele%photon%segmented%r0
+case ('PIXEL%R0');              a_ptr%r1 => ele%photon%pixel%r0
 end select
 
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then  ! Deprecated syntax
@@ -607,7 +612,8 @@ if (a_name(1:5) == 'VEC0_') then
   goto 9000 ! Error message and return
 endif
 
-if (associated(a_ptr%r) .or. associated(a_ptr%l) .or. associated(a_ptr%i)) then
+if (associated(a_ptr%r) .or. associated(a_ptr%l) .or. associated(a_ptr%i) .or. &
+    associated(a_ptr%r1) .or. associated(a_ptr%i1)) then
   err_flag = .false.
   return
 endif
@@ -812,7 +818,8 @@ case ('UPSTREAM_ELE_DIR')
 case ('DOWNSTREAM_ELE_DIR')
 end select
 
-if (associated(a_ptr%r) .or. associated(a_ptr%i) .or. associated(a_ptr%l)) then
+if (associated(a_ptr%r) .or. associated(a_ptr%i) .or. associated(a_ptr%l) .or. &
+    associated(a_ptr%r1) .or. associated(a_ptr%i1)) then
   err_flag = .false.
 else
   goto 9000

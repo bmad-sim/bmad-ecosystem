@@ -19,6 +19,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (photon_element_struct), pointer :: ph
+type (surface_displacement_struct), pointer :: disp
 type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) dr(2), r0(2), x, y, z, del_r(2), z0x, z0y, z1x, z1y
@@ -99,12 +100,15 @@ endif
 
 ph => ele%photon
 
-if (any(ph%grid%dr /= 0)) then
-  if (all(r0 == real_garbage$)) r0 =  ph%grid%r0
-  if (all(dr == real_garbage$)) dr =  ph%grid%dr
-  if (allocated(ph%grid%pt)) then
-    if (all(ix_bounds == int_garbage$)) ix_bounds = [lbound(ph%grid%pt,1), ubound(ph%grid%pt,1)]
-    if (all(iy_bounds == int_garbage$)) iy_bounds = [lbound(ph%grid%pt,2), ubound(ph%grid%pt,2)]
+!
+
+disp => ph%displacement
+if (allocated(disp%pt)) then
+  if (all(r0 == real_garbage$)) r0 =  disp%r0
+  if (all(dr == real_garbage$)) dr =  disp%dr
+  if (allocated(disp%pt)) then
+    if (all(ix_bounds == int_garbage$)) ix_bounds = [lbound(disp%pt,1), ubound(disp%pt,1)]
+    if (all(iy_bounds == int_garbage$)) iy_bounds = [lbound(disp%pt,2), ubound(disp%pt,2)]
   endif
 endif
 
