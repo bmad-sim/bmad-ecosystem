@@ -199,100 +199,6 @@ end subroutine set_spin_polar_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_surface_orientation (ok)
-
-implicit none
-
-type(surface_orientation_struct), target :: f_surface_orientation, f2_surface_orientation
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_surface_orientation (c_surface_orientation, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_surface_orientation
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_surface_orientation_test_pattern (f2_surface_orientation, 1)
-
-call test_c_surface_orientation(c_loc(f2_surface_orientation), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_surface_orientation_test_pattern (f_surface_orientation, 4)
-if (f_surface_orientation == f2_surface_orientation) then
-  print *, 'surface_orientation: C side convert C->F: Good'
-else
-  print *, 'surface_orientation: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_surface_orientation
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_surface_orientation (c_surface_orientation, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_surface_orientation
-type(surface_orientation_struct), target :: f_surface_orientation, f2_surface_orientation
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call surface_orientation_to_f (c_surface_orientation, c_loc(f_surface_orientation))
-
-call set_surface_orientation_test_pattern (f2_surface_orientation, 2)
-if (f_surface_orientation == f2_surface_orientation) then
-  print *, 'surface_orientation: F side convert C->F: Good'
-else
-  print *, 'surface_orientation: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_surface_orientation_test_pattern (f2_surface_orientation, 3)
-call surface_orientation_to_c (c_loc(f2_surface_orientation), c_surface_orientation)
-
-end subroutine test2_f_surface_orientation
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_surface_orientation_test_pattern (F, ix_patt)
-
-implicit none
-
-type(surface_orientation_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%dz_dx = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%dz_dy = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%dz_dx_rms = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%dz_dy_rms = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%dz2_dxdy = rhs
-
-end subroutine set_surface_orientation_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_ac_kicker_time (ok)
 
 implicit none
@@ -4428,18 +4334,18 @@ end subroutine set_gen_grad_map_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_surface_grid_pt (ok)
+subroutine test1_f_surface_segmented_pt (ok)
 
 implicit none
 
-type(surface_grid_pt_struct), target :: f_surface_grid_pt, f2_surface_grid_pt
+type(surface_segmented_pt_struct), target :: f_surface_segmented_pt, f2_surface_segmented_pt
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_surface_grid_pt (c_surface_grid_pt, c_ok) bind(c)
+  subroutine test_c_surface_segmented_pt (c_surface_segmented_pt, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_surface_grid_pt
+    type(c_ptr), value :: c_surface_segmented_pt
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -4447,97 +4353,93 @@ end interface
 !
 
 ok = .true.
-call set_surface_grid_pt_test_pattern (f2_surface_grid_pt, 1)
+call set_surface_segmented_pt_test_pattern (f2_surface_segmented_pt, 1)
 
-call test_c_surface_grid_pt(c_loc(f2_surface_grid_pt), c_ok)
+call test_c_surface_segmented_pt(c_loc(f2_surface_segmented_pt), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_surface_grid_pt_test_pattern (f_surface_grid_pt, 4)
-if (f_surface_grid_pt == f2_surface_grid_pt) then
-  print *, 'surface_grid_pt: C side convert C->F: Good'
+call set_surface_segmented_pt_test_pattern (f_surface_segmented_pt, 4)
+if (f_surface_segmented_pt == f2_surface_segmented_pt) then
+  print *, 'surface_segmented_pt: C side convert C->F: Good'
 else
-  print *, 'surface_grid_pt: C SIDE CONVERT C->F: FAILED!'
+  print *, 'surface_segmented_pt: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_surface_grid_pt
+end subroutine test1_f_surface_segmented_pt
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_surface_grid_pt (c_surface_grid_pt, c_ok) bind(c)
+subroutine test2_f_surface_segmented_pt (c_surface_segmented_pt, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_surface_grid_pt
-type(surface_grid_pt_struct), target :: f_surface_grid_pt, f2_surface_grid_pt
+type(c_ptr), value ::  c_surface_segmented_pt
+type(surface_segmented_pt_struct), target :: f_surface_segmented_pt, f2_surface_segmented_pt
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call surface_grid_pt_to_f (c_surface_grid_pt, c_loc(f_surface_grid_pt))
+call surface_segmented_pt_to_f (c_surface_segmented_pt, c_loc(f_surface_segmented_pt))
 
-call set_surface_grid_pt_test_pattern (f2_surface_grid_pt, 2)
-if (f_surface_grid_pt == f2_surface_grid_pt) then
-  print *, 'surface_grid_pt: F side convert C->F: Good'
+call set_surface_segmented_pt_test_pattern (f2_surface_segmented_pt, 2)
+if (f_surface_segmented_pt == f2_surface_segmented_pt) then
+  print *, 'surface_segmented_pt: F side convert C->F: Good'
 else
-  print *, 'surface_grid_pt: F SIDE CONVERT C->F: FAILED!'
+  print *, 'surface_segmented_pt: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_surface_grid_pt_test_pattern (f2_surface_grid_pt, 3)
-call surface_grid_pt_to_c (c_loc(f2_surface_grid_pt), c_surface_grid_pt)
+call set_surface_segmented_pt_test_pattern (f2_surface_segmented_pt, 3)
+call surface_segmented_pt_to_c (c_loc(f2_surface_segmented_pt), c_surface_segmented_pt)
 
-end subroutine test2_f_surface_grid_pt
+end subroutine test2_f_surface_segmented_pt
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_surface_grid_pt_test_pattern (F, ix_patt)
+subroutine set_surface_segmented_pt_test_pattern (F, ix_patt)
 
 implicit none
 
-type(surface_grid_pt_struct) F
+type(surface_segmented_pt_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[type, 0, NOT]
-call set_surface_orientation_test_pattern (F%orientation, ix_patt)
 !! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%z0 = rhs
+rhs = 1 + offset; F%x0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%x0 = rhs
+rhs = 2 + offset; F%y0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%y0 = rhs
+rhs = 3 + offset; F%z0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%dz_dx = rhs
+rhs = 4 + offset; F%dz_dx = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%dz_dy = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%d2z_dxdy = rhs
+rhs = 5 + offset; F%dz_dy = rhs
 
-end subroutine set_surface_grid_pt_test_pattern
+end subroutine set_surface_segmented_pt_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_surface_grid (ok)
+subroutine test1_f_surface_segmented (ok)
 
 implicit none
 
-type(surface_grid_struct), target :: f_surface_grid, f2_surface_grid
+type(surface_segmented_struct), target :: f_surface_segmented, f2_surface_segmented
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_surface_grid (c_surface_grid, c_ok) bind(c)
+  subroutine test_c_surface_segmented (c_surface_segmented, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_surface_grid
+    type(c_ptr), value :: c_surface_segmented
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -4545,58 +4447,58 @@ end interface
 !
 
 ok = .true.
-call set_surface_grid_test_pattern (f2_surface_grid, 1)
+call set_surface_segmented_test_pattern (f2_surface_segmented, 1)
 
-call test_c_surface_grid(c_loc(f2_surface_grid), c_ok)
+call test_c_surface_segmented(c_loc(f2_surface_segmented), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_surface_grid_test_pattern (f_surface_grid, 4)
-if (f_surface_grid == f2_surface_grid) then
-  print *, 'surface_grid: C side convert C->F: Good'
+call set_surface_segmented_test_pattern (f_surface_segmented, 4)
+if (f_surface_segmented == f2_surface_segmented) then
+  print *, 'surface_segmented: C side convert C->F: Good'
 else
-  print *, 'surface_grid: C SIDE CONVERT C->F: FAILED!'
+  print *, 'surface_segmented: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_surface_grid
+end subroutine test1_f_surface_segmented
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_surface_grid (c_surface_grid, c_ok) bind(c)
+subroutine test2_f_surface_segmented (c_surface_segmented, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_surface_grid
-type(surface_grid_struct), target :: f_surface_grid, f2_surface_grid
+type(c_ptr), value ::  c_surface_segmented
+type(surface_segmented_struct), target :: f_surface_segmented, f2_surface_segmented
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call surface_grid_to_f (c_surface_grid, c_loc(f_surface_grid))
+call surface_segmented_to_f (c_surface_segmented, c_loc(f_surface_segmented))
 
-call set_surface_grid_test_pattern (f2_surface_grid, 2)
-if (f_surface_grid == f2_surface_grid) then
-  print *, 'surface_grid: F side convert C->F: Good'
+call set_surface_segmented_test_pattern (f2_surface_segmented, 2)
+if (f_surface_segmented == f2_surface_segmented) then
+  print *, 'surface_segmented: F side convert C->F: Good'
 else
-  print *, 'surface_grid: F SIDE CONVERT C->F: FAILED!'
+  print *, 'surface_segmented: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_surface_grid_test_pattern (f2_surface_grid, 3)
-call surface_grid_to_c (c_loc(f2_surface_grid), c_surface_grid)
+call set_surface_segmented_test_pattern (f2_surface_segmented, 3)
+call surface_segmented_to_c (c_loc(f2_surface_segmented), c_surface_segmented)
 
-end subroutine test2_f_surface_grid
+end subroutine test2_f_surface_segmented
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_surface_grid_test_pattern (F, ix_patt)
+subroutine set_surface_segmented_test_pattern (F, ix_patt)
 
 implicit none
 
-type(surface_grid_struct) F
+type(surface_segmented_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -4605,16 +4507,14 @@ offset = 100 * ix_patt
 
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 1 + offset; F%active = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%type = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%dr,1); lb1 = lbound(F%dr,1) - 1
-  rhs = 100 + jd1 + 3 + offset
+  rhs = 100 + jd1 + 2 + offset
   F%dr(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
-  rhs = 100 + jd1 + 4 + offset
+  rhs = 100 + jd1 + 3 + offset
   F%r0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[type, 2, ALLOC]
@@ -4625,12 +4525,420 @@ else
   if (.not. allocated(F%pt)) allocate (F%pt(-1:1, 2))
   do jd1 = 1, size(F%pt,1); lb1 = lbound(F%pt,1) - 1
   do jd2 = 1, size(F%pt,2); lb2 = lbound(F%pt,2) - 1
-    call set_surface_grid_pt_test_pattern (F%pt(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)
+    call set_surface_segmented_pt_test_pattern (F%pt(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)
   enddo
   enddo
 endif
 
-end subroutine set_surface_grid_test_pattern
+end subroutine set_surface_segmented_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_surface_h_misalign_pt (ok)
+
+implicit none
+
+type(surface_h_misalign_pt_struct), target :: f_surface_h_misalign_pt, f2_surface_h_misalign_pt
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_surface_h_misalign_pt (c_surface_h_misalign_pt, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_surface_h_misalign_pt
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_surface_h_misalign_pt_test_pattern (f2_surface_h_misalign_pt, 1)
+
+call test_c_surface_h_misalign_pt(c_loc(f2_surface_h_misalign_pt), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_surface_h_misalign_pt_test_pattern (f_surface_h_misalign_pt, 4)
+if (f_surface_h_misalign_pt == f2_surface_h_misalign_pt) then
+  print *, 'surface_h_misalign_pt: C side convert C->F: Good'
+else
+  print *, 'surface_h_misalign_pt: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_surface_h_misalign_pt
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_surface_h_misalign_pt (c_surface_h_misalign_pt, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_surface_h_misalign_pt
+type(surface_h_misalign_pt_struct), target :: f_surface_h_misalign_pt, f2_surface_h_misalign_pt
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call surface_h_misalign_pt_to_f (c_surface_h_misalign_pt, c_loc(f_surface_h_misalign_pt))
+
+call set_surface_h_misalign_pt_test_pattern (f2_surface_h_misalign_pt, 2)
+if (f_surface_h_misalign_pt == f2_surface_h_misalign_pt) then
+  print *, 'surface_h_misalign_pt: F side convert C->F: Good'
+else
+  print *, 'surface_h_misalign_pt: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_surface_h_misalign_pt_test_pattern (f2_surface_h_misalign_pt, 3)
+call surface_h_misalign_pt_to_c (c_loc(f2_surface_h_misalign_pt), c_surface_h_misalign_pt)
+
+end subroutine test2_f_surface_h_misalign_pt
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_surface_h_misalign_pt_test_pattern (F, ix_patt)
+
+implicit none
+
+type(surface_h_misalign_pt_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%rot_y = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%rot_t = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%rot_y_rms = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%rot_t_rms = rhs
+
+end subroutine set_surface_h_misalign_pt_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_surface_h_misalign (ok)
+
+implicit none
+
+type(surface_h_misalign_struct), target :: f_surface_h_misalign, f2_surface_h_misalign
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_surface_h_misalign (c_surface_h_misalign, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_surface_h_misalign
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_surface_h_misalign_test_pattern (f2_surface_h_misalign, 1)
+
+call test_c_surface_h_misalign(c_loc(f2_surface_h_misalign), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_surface_h_misalign_test_pattern (f_surface_h_misalign, 4)
+if (f_surface_h_misalign == f2_surface_h_misalign) then
+  print *, 'surface_h_misalign: C side convert C->F: Good'
+else
+  print *, 'surface_h_misalign: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_surface_h_misalign
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_surface_h_misalign (c_surface_h_misalign, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_surface_h_misalign
+type(surface_h_misalign_struct), target :: f_surface_h_misalign, f2_surface_h_misalign
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call surface_h_misalign_to_f (c_surface_h_misalign, c_loc(f_surface_h_misalign))
+
+call set_surface_h_misalign_test_pattern (f2_surface_h_misalign, 2)
+if (f_surface_h_misalign == f2_surface_h_misalign) then
+  print *, 'surface_h_misalign: F side convert C->F: Good'
+else
+  print *, 'surface_h_misalign: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_surface_h_misalign_test_pattern (f2_surface_h_misalign, 3)
+call surface_h_misalign_to_c (c_loc(f2_surface_h_misalign), c_surface_h_misalign)
+
+end subroutine test2_f_surface_h_misalign
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_surface_h_misalign_test_pattern (F, ix_patt)
+
+implicit none
+
+type(surface_h_misalign_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 1 + offset; F%active = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%dr,1); lb1 = lbound(F%dr,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  F%dr(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
+  rhs = 100 + jd1 + 3 + offset
+  F%r0(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[type, 2, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%pt)) deallocate (F%pt)
+else
+  if (.not. allocated(F%pt)) allocate (F%pt(-1:1, 2))
+  do jd1 = 1, size(F%pt,1); lb1 = lbound(F%pt,1) - 1
+  do jd2 = 1, size(F%pt,2); lb2 = lbound(F%pt,2) - 1
+    call set_surface_h_misalign_pt_test_pattern (F%pt(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)
+  enddo
+  enddo
+endif
+
+end subroutine set_surface_h_misalign_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_surface_displacement_pt (ok)
+
+implicit none
+
+type(surface_displacement_pt_struct), target :: f_surface_displacement_pt, f2_surface_displacement_pt
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_surface_displacement_pt (c_surface_displacement_pt, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_surface_displacement_pt
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_surface_displacement_pt_test_pattern (f2_surface_displacement_pt, 1)
+
+call test_c_surface_displacement_pt(c_loc(f2_surface_displacement_pt), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_surface_displacement_pt_test_pattern (f_surface_displacement_pt, 4)
+if (f_surface_displacement_pt == f2_surface_displacement_pt) then
+  print *, 'surface_displacement_pt: C side convert C->F: Good'
+else
+  print *, 'surface_displacement_pt: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_surface_displacement_pt
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_surface_displacement_pt (c_surface_displacement_pt, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_surface_displacement_pt
+type(surface_displacement_pt_struct), target :: f_surface_displacement_pt, f2_surface_displacement_pt
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call surface_displacement_pt_to_f (c_surface_displacement_pt, c_loc(f_surface_displacement_pt))
+
+call set_surface_displacement_pt_test_pattern (f2_surface_displacement_pt, 2)
+if (f_surface_displacement_pt == f2_surface_displacement_pt) then
+  print *, 'surface_displacement_pt: F side convert C->F: Good'
+else
+  print *, 'surface_displacement_pt: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_surface_displacement_pt_test_pattern (f2_surface_displacement_pt, 3)
+call surface_displacement_pt_to_c (c_loc(f2_surface_displacement_pt), c_surface_displacement_pt)
+
+end subroutine test2_f_surface_displacement_pt
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_surface_displacement_pt_test_pattern (F, ix_patt)
+
+implicit none
+
+type(surface_displacement_pt_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%z0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%dz_dx = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%dz_dy = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%d2z_dxdy = rhs
+
+end subroutine set_surface_displacement_pt_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_surface_displacement (ok)
+
+implicit none
+
+type(surface_displacement_struct), target :: f_surface_displacement, f2_surface_displacement
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_surface_displacement (c_surface_displacement, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_surface_displacement
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_surface_displacement_test_pattern (f2_surface_displacement, 1)
+
+call test_c_surface_displacement(c_loc(f2_surface_displacement), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_surface_displacement_test_pattern (f_surface_displacement, 4)
+if (f_surface_displacement == f2_surface_displacement) then
+  print *, 'surface_displacement: C side convert C->F: Good'
+else
+  print *, 'surface_displacement: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_surface_displacement
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_surface_displacement (c_surface_displacement, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_surface_displacement
+type(surface_displacement_struct), target :: f_surface_displacement, f2_surface_displacement
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call surface_displacement_to_f (c_surface_displacement, c_loc(f_surface_displacement))
+
+call set_surface_displacement_test_pattern (f2_surface_displacement, 2)
+if (f_surface_displacement == f2_surface_displacement) then
+  print *, 'surface_displacement: F side convert C->F: Good'
+else
+  print *, 'surface_displacement: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_surface_displacement_test_pattern (f2_surface_displacement, 3)
+call surface_displacement_to_c (c_loc(f2_surface_displacement), c_surface_displacement)
+
+end subroutine test2_f_surface_displacement
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_surface_displacement_test_pattern (F, ix_patt)
+
+implicit none
+
+type(surface_displacement_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 1 + offset; F%active = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%dr,1); lb1 = lbound(F%dr,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  F%dr(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
+  rhs = 100 + jd1 + 3 + offset
+  F%r0(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[type, 2, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%pt)) deallocate (F%pt)
+else
+  if (.not. allocated(F%pt)) allocate (F%pt(-1:1, 2))
+  do jd1 = 1, size(F%pt,1); lb1 = lbound(F%pt,1) - 1
+  do jd2 = 1, size(F%pt,2); lb2 = lbound(F%pt,2) - 1
+    call set_surface_displacement_pt_test_pattern (F%pt(jd1+lb1,jd2+lb2), ix_patt+jd1+2*jd2)
+  enddo
+  enddo
+endif
+
+end subroutine set_surface_displacement_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -5339,11 +5647,15 @@ call set_photon_target_test_pattern (F%target, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_photon_material_test_pattern (F%material, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
-call set_surface_grid_test_pattern (F%grid, ix_patt)
+call set_surface_segmented_test_pattern (F%segmented, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_surface_h_misalign_test_pattern (F%h_misalign, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_surface_displacement_test_pattern (F%displacement, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_pixel_detec_test_pattern (F%pixel, ix_patt)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%reflectivity_table_type = rhs
+rhs = 8 + offset; F%reflectivity_table_type = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_photon_reflect_table_test_pattern (F%reflectivity_table_sigma, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -5365,7 +5677,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%integrated_init_energy_prob)) allocate (F%integrated_init_energy_prob(-1:1))
   do jd1 = 1, size(F%integrated_init_energy_prob,1); lb1 = lbound(F%integrated_init_energy_prob,1) - 1
-    rhs = 100 + jd1 + 11 + offset
+    rhs = 100 + jd1 + 13 + offset
     F%integrated_init_energy_prob(jd1+lb1) = rhs
   enddo
 endif

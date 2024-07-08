@@ -2397,10 +2397,6 @@ case ('GEOMETRY')
 case ('GRID_FIELD^GEOMETRY')      ! This is for the Tao "python" command
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, grid_field_geometry_name, lbound(grid_field_geometry_name, 1), name_list)
 
-case ('GRID^TYPE')      ! This is for the Tao "python" command
-  attrib_val_name = surface_grid_type_name(ix_attrib_val, name_list)
-  if (present(is_default)) is_default = .false.
-
 case ('INTERPOLATION')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, interpolation_name, lbound(interpolation_name, 1), name_list)
   if (present(is_default)) is_default = (ix_attrib_val == cubic$)

@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 320
+integer, parameter :: bmad_inc_version$ = 321
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -966,29 +966,44 @@ type rad_map_ele_struct
   logical :: stale = .true.
 end type
 
-! Structure for surfaces of detectors, mirrors, crystals, etc.
-! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
+! Segmented grid
 
-type surface_orientation_struct
-  real(rp) :: dz_dx = 0, dz_dy = 0, dz_dx_rms = 0, dz_dy_rms = 0, dz2_dxdy = 0
-end type
-
-type surface_grid_pt_struct
-  type (surface_orientation_struct) :: orientation = surface_orientation_struct()
-  real(rp) :: z0 = 0                         ! Height at center
-  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+type surface_segmented_pt_struct
+  real(rp) :: x0 = 0, y0 = 0, z0 = 0         ! Position at center
   real(rp) :: dz_dx = 0, dz_dy = 0           ! Slope at center
-  real(rp) :: d2z_dxdy = 0                   ! d2z/dxdy at center
 end type
 
-type surface_grid_struct
-  logical :: active = .true.
-  integer :: type = not_set$   ! or displacement$, segmented$, h_misalign$
+type surface_segmented_struct
+  logical :: active = .false.
   real(rp) :: dr(2) = 0, r0(2) = 0
-  type (surface_grid_pt_struct), allocatable :: pt(:,:) 
+  type (surface_segmented_pt_struct), allocatable :: pt(:,:) 
 end type
 
-integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
+! H_misalign grid
+
+type surface_h_misalign_pt_struct
+  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+  real(rp) :: rot_y = 0, rot_t = 0, rot_y_rms = 0, rot_t_rms = 0  ! rot_t = x-rotation for Bragg and z-rotation for Laue.
+end type
+
+type surface_h_misalign_struct
+  logical :: active = .false.
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_h_misalign_pt_struct), allocatable :: pt(:,:) 
+end type
+
+! displacement grid
+
+type surface_displacement_pt_struct
+  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+  real(rp) :: z0 = 0, dz_dx = 0, dz_dy = 0, d2z_dxdy = 0
+end type
+
+type surface_displacement_struct
+  logical :: active = .false.
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_displacement_pt_struct), allocatable :: pt(:,:) 
+end type
 
 ! Photon statistics at a detector
 
@@ -1052,7 +1067,9 @@ type photon_element_struct
   type (surface_curvature_struct) :: curvature = surface_curvature_struct()
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
-  type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
+  type (surface_segmented_struct) :: segmented = surface_segmented_struct(.false., 0, 0, null())
+  type (surface_h_misalign_struct) :: h_misalign = surface_h_misalign_struct(.false., 0, 0, null())
+  type (surface_displacement_struct) :: displacement = surface_displacement_struct(.false., 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
   integer :: reflectivity_table_type = not_set$
   type (photon_reflect_table_struct) reflectivity_table_sigma  ! If polarization is ignored use sigma table.
@@ -2528,50 +2545,6 @@ case default;        state_str = null_name$
 end select
 
 end function coord_state_name
-
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+ 
-! Function surface_grid_type_name(grid_type, name_list) result (type_str)
-!
-! Routine to return the string representation of ele%photon%grid%type.
-!
-! Input:
-!   grid_type     -- integer: ele%photon%grid%type value.
-!
-! Output:
-!   type_str      -- character(16): String rep.
-!   name_list(:)  -- character(*), optional, allocatable: List of possible names.
-!-
-
-function surface_grid_type_name(grid_type, name_list) result (type_str)
-
-implicit none
-
-integer grid_type
-character(16) :: type_str
-character(*), optional, allocatable :: name_list(:)
-
-!
-
-select case (grid_type)
-case (not_set$);        type_str = 'Not_set'
-case (segmented$);      type_str = 'Segmented'
-case (h_misalign$);     type_str = 'H_Misalign'
-case (displacement$);   type_str = 'Displacement'
-case default;           type_str = null_name$
-end select
-
-if (present(name_list)) then
-  if (allocated(name_list)) deallocate(name_list)
-  allocate(name_list(4))
-  ! Important: name_list order matches integer values segmented$ = 1, etc.
-  name_list = [character(16):: 'Segmented', 'H_Misalign', 'Displacement', 'Not_set']
-endif
-
-end function surface_grid_type_name
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

@@ -1808,13 +1808,16 @@ end subroutine makeup_control_slave
 subroutine aperture_bookkeeper (ele)
 
 type (ele_struct), target :: ele
-type (surface_grid_struct), pointer :: grid
+type (surface_displacement_struct), pointer :: displacement
+type (surface_h_misalign_struct), pointer :: h_misalign
+type (surface_segmented_struct), pointer :: segmented
 type (pixel_detec_struct), pointer :: pixel
 type (wall3d_section_struct), pointer :: sec
 
 real(rp) angle, r_wall, dr_dtheta, x, y
 
 integer i, j
+logical is_set
 
 character(*), parameter :: r_name = 'aperture_bookkeeper'
 
@@ -1853,21 +1856,49 @@ case default
     return
   endif
 
+  is_set = .false.
+  ele%value(x1_limit$) = -1e30
+  ele%value(y1_limit$) = -1e30
+  ele%value(x2_limit$) = -1d30
+  ele%value(y2_limit$) = -1d30
+
   if (allocated(ele%photon%pixel%pt)) then
     pixel => ele%photon%pixel
-    ele%value(x1_limit$) = -(pixel%r0(1) + (lbound(pixel%pt, 1) - 0.5) * pixel%dr(1))
-    ele%value(y1_limit$) = -(pixel%r0(2) + (lbound(pixel%pt, 2) - 0.5) * pixel%dr(2))
-    ele%value(x2_limit$) =  (pixel%r0(1) + (ubound(pixel%pt, 1) + 0.5) * pixel%dr(1))
-    ele%value(y2_limit$) =  (pixel%r0(2) + (ubound(pixel%pt, 2) + 0.5) * pixel%dr(2))
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(pixel%r0(1) + (lbound(pixel%pt, 1) - 0.5) * pixel%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(pixel%r0(2) + (lbound(pixel%pt, 2) - 0.5) * pixel%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (pixel%r0(1) + (ubound(pixel%pt, 1) + 0.5) * pixel%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (pixel%r0(2) + (ubound(pixel%pt, 2) + 0.5) * pixel%dr(2)))
+    is_set = .true.
+  endif
 
-  elseif (allocated(ele%photon%grid%pt)) then
-    grid => ele%photon%grid
-    ele%value(x1_limit$) = -(grid%r0(1) + (lbound(grid%pt, 1) - 0.5) * grid%dr(1))
-    ele%value(y1_limit$) = -(grid%r0(2) + (lbound(grid%pt, 2) - 0.5) * grid%dr(2))
-    ele%value(x2_limit$) =  (grid%r0(1) + (ubound(grid%pt, 1) + 0.5) * grid%dr(1))
-    ele%value(y2_limit$) =  (grid%r0(2) + (ubound(grid%pt, 2) + 0.5) * grid%dr(2))
+  if (allocated(ele%photon%segmented%pt)) then
+    segmented => ele%photon%segmented
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(segmented%r0(1) + (lbound(segmented%pt, 1) - 0.5) * segmented%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(segmented%r0(2) + (lbound(segmented%pt, 2) - 0.5) * segmented%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (segmented%r0(1) + (ubound(segmented%pt, 1) + 0.5) * segmented%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (segmented%r0(2) + (ubound(segmented%pt, 2) + 0.5) * segmented%dr(2)))
+    is_set = .true.
+  endif
 
-  else
+  if (allocated(ele%photon%h_misalign%pt)) then
+    h_misalign => ele%photon%h_misalign
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(h_misalign%r0(1) + (lbound(h_misalign%pt, 1) - 0.5) * h_misalign%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(h_misalign%r0(2) + (lbound(h_misalign%pt, 2) - 0.5) * h_misalign%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (h_misalign%r0(1) + (ubound(h_misalign%pt, 1) + 0.5) * h_misalign%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (h_misalign%r0(2) + (ubound(h_misalign%pt, 2) + 0.5) * h_misalign%dr(2)))
+    is_set = .true.
+  endif
+
+  if (allocated(ele%photon%displacement%pt)) then
+    displacement => ele%photon%displacement
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(displacement%r0(1) + (lbound(displacement%pt, 1) - 0.5) * displacement%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(displacement%r0(2) + (lbound(displacement%pt, 2) - 0.5) * displacement%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (displacement%r0(1) + (ubound(displacement%pt, 1) + 0.5) * displacement%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (displacement%r0(2) + (ubound(displacement%pt, 2) + 0.5) * displacement%dr(2)))
+    is_set = .true.
+  endif
+
+  if (.not. is_set) then
     call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "SURFACE" BUT', &
                                    'NO GRID IS DEFINED: ' // ele%name)
     return

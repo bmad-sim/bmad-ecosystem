@@ -866,27 +866,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         endif
       endif
 
-      if (all (ph%grid%type /= [not_set$, segmented$, h_misalign$, displacement$])) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS AN INVALID GRID%TYPE SETTING: \i0\ ', i_array = [ph%grid%type])
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type /= not_set$ .and. any (ph%grid%dr == 0)) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS A ZERO DR VALUE BUT THE GRID TYPE IS NOT OFF. \2f10.2\ ', r_array = ph%grid%dr)
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type /= not_set$ .and. .not. allocated(ph%grid%pt)) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS NO GRID IS DEFINED!')
-        err_flag = .true.
-      endif
-
       g = ph%curvature%spherical + ph%curvature%elliptical
       if ((g(1) /= 0 .or. g(2) /= 0) .and. g(3) == 0) then
         call out_io (s_warn$, r_name, &

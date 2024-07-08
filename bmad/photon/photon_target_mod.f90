@@ -31,12 +31,12 @@ subroutine photon_target_setup (ele)
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ap_ele
 type (photon_target_struct), pointer :: target
-type (surface_grid_struct), pointer :: gr
+type (photon_element_struct), pointer :: ph
 type (branch_struct), pointer :: branch
 
 real(rp), pointer :: val(:)
 real(rp) z, x_lim(2), y_lim(2)
-logical :: is_bending_element, follow_fork, grid_defined, err_flag
+logical :: is_bending_element, follow_fork, err_flag
 character(*), parameter :: r_name = 'photon_target_setup'
 
 ! Init
@@ -81,23 +81,41 @@ enddo
 ! Get aperture corners...
 ! Target info is stored in ele%photon%target so allocate ele%photon if needed.
 
-grid_defined = .false.
-if (associated(ap_ele%photon)) then
-  gr => ap_ele%photon%grid
-  grid_defined = (gr%dr(1) /= 0 .or. gr%dr(2) /= 0)
-endif
-
-! If a grid has been defined use that as the target
-
 val => ap_ele%value
+x_lim = [-val(x1_limit$), val(x2_limit$)]
+y_lim = [-val(y1_limit$), val(y2_limit$)]
 
-if (grid_defined) then
-  x_lim = gr%r0(1) + gr%dr(1) * [lbound(gr%pt,1)-0.5_rp, ubound(gr%pt,1)+0.5_rp]
-  y_lim = gr%r0(2) + gr%dr(2) * [lbound(gr%pt,2)-0.5_rp, ubound(gr%pt,2)+0.5_rp]
-else
-  x_lim = [-val(x1_limit$), val(x2_limit$)]
-  y_lim = [-val(y1_limit$), val(y2_limit$)]
+if (associated(ap_ele%photon)) then
+  ph => ap_ele%photon
+  if (allocated(ph%displacement%pt)) then
+    x_lim(1) = min(x_lim(1), ph%displacement%r0(1) + ph%displacement%dr(1) * lbound(ph%displacement%pt,1)-0.5_rp)
+    x_lim(2) = max(x_lim(2), ph%displacement%r0(1) + ph%displacement%dr(1) * ubound(ph%displacement%pt,1)+0.5_rp)
+    y_lim(1) = min(y_lim(1), ph%displacement%r0(2) + ph%displacement%dr(2) * lbound(ph%displacement%pt,2)-0.5_rp)
+    y_lim(2) = max(y_lim(2), ph%displacement%r0(2) + ph%displacement%dr(2) * ubound(ph%displacement%pt,2)+0.5_rp)
+  endif
 endif
+
+if (associated(ap_ele%photon)) then
+  ph => ap_ele%photon
+  if (allocated(ph%h_misalign%pt)) then
+    x_lim(1) = min(x_lim(1), ph%h_misalign%r0(1) + ph%h_misalign%dr(1) * lbound(ph%h_misalign%pt,1)-0.5_rp)
+    x_lim(2) = max(x_lim(2), ph%h_misalign%r0(1) + ph%h_misalign%dr(1) * ubound(ph%h_misalign%pt,1)+0.5_rp)
+    y_lim(1) = min(y_lim(1), ph%h_misalign%r0(2) + ph%h_misalign%dr(2) * lbound(ph%h_misalign%pt,2)-0.5_rp)
+    y_lim(2) = max(y_lim(2), ph%h_misalign%r0(2) + ph%h_misalign%dr(2) * ubound(ph%h_misalign%pt,2)+0.5_rp)
+  endif
+endif
+
+if (associated(ap_ele%photon)) then
+  ph => ap_ele%photon
+  if (allocated(ph%segmented%pt)) then
+    x_lim(1) = min(x_lim(1), ph%segmented%r0(1) + ph%segmented%dr(1) * lbound(ph%segmented%pt,1)-0.5_rp)
+    x_lim(2) = max(x_lim(2), ph%segmented%r0(1) + ph%segmented%dr(1) * ubound(ph%segmented%pt,1)+0.5_rp)
+    y_lim(1) = min(y_lim(1), ph%segmented%r0(2) + ph%segmented%dr(2) * lbound(ph%segmented%pt,2)-0.5_rp)
+    y_lim(2) = max(y_lim(2), ph%segmented%r0(2) + ph%segmented%dr(2) * ubound(ph%segmented%pt,2)+0.5_rp)
+  endif
+endif
+
+! 
 
 target%type = rectangular$
 target%ele_loc = lat_ele_loc_struct(ap_ele%ix_ele, ap_ele%ix_branch)

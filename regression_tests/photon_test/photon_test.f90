@@ -45,6 +45,27 @@ write (1, '(a, 2f16.10)') '"reflect_table-field" ABS 2E-8', orb_end%field
 
 !
 
+ele => lat%ele(3)
+call track1(orb_start, ele, lat%param, orb_end)
+write (1, '(a, 6es16.8)') '"h_misalign-bragg-vec"   ABS 1E-10', orb_end%vec
+write (1, '(a, 2f16.10)') '"h_misalign-bragg-field" ABS 2E-8', orb_end%field
+
+!
+
+ele => lat%ele(4)
+call track1(orb_start, ele, lat%param, orb_end)
+write (1, '(a, 6es16.8)') '"h_misalign-laue-vec"   ABS 1E-10', orb_end%vec
+write (1, '(a, 2f16.10)') '"h_misalign-laue-field" ABS 2E-8', orb_end%field
+
+!
+
+ele => lat%ele(5)
+call track1(orb_start, ele, lat%param, orb_end)
+write (1, '(a, 6es16.8)') '"displacement-vec"   ABS 1E-10', orb_end%vec
+write (1, '(a, 2f16.10)') '"displacement-field" ABS 2E-8', orb_end%field
+
+!
+
 call bmad_parser ('mask.bmad', lat)
 do i = 1, size(start)
   vec = [0, 0, 0, 0, 0, 1]

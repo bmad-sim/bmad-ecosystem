@@ -1311,8 +1311,6 @@ in \Sref{s:detector}. Here the other three types of grids are explained. These a
   H_Misalign         ! Misalignment of crystal H vector
   Segmented          ! Surface is a matrix of flat rectangles
 \end{example}
-Note: Currently there is the restriction that a maximum of one grid (excluding the \vn{pixel} grid)
-can be defined for any given element.
 
 All grids have the following common parameters:
 \begin{example}
@@ -1325,7 +1323,7 @@ All grids have the following common parameters:
 
 Example:
 \begin{example}
-  ccd: crystal, n_misalign = \{
+  ccd: crystal, h_misalign = \{
             r0 = (0.0, 0.01), dr = (0.005, 0.005),
             ix_bounds = (1, 57), iy_bounds = (-30, 10),
             pt(1,-30) = (0.001, -0.002, 0, 0), 
@@ -1378,23 +1376,32 @@ The general syntax for a \vn{h_misalign} grid:
       iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
       r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
       dr = (<dx>, <dy>)                  ! Spacing between grid points.
-      pt(<i>,<j>) = (<dz_dx>, <dz_dy>, <dz_dx_rms>, <dz_dy_rms>)
+      pt(<i>,<j>) = (<rot_y, <rot_x>, <rot_y_rms>, <rot_x_rms>)  ! For Bragg diffraction
+      pt(<i>,<j>) = (<rot_y, <rot_z>, <rot_y_rms>, <rot_z_rms>)  ! For Laue diffraction
           \}
 \end{example}
 
 An \vn{h_misalign} grid is used with crystals only. With \vn{H_Misalign}, the grid defines
-misalignment of the $H$ vector which is the normal to the diffracting planes of the crystal
+misalignment of the $\bfH$ vector which is the normal to the diffracting planes of the crystal
 (\sref{s:crystal.tracking}).  When using \vn{H_Misalign}, each \vn{pt(i,j)} component gives the
-misalignment of $H$ for the region around the point. For an individual photon, the misalignment of $H$
-will be
+angular misalignment of $\bfH$ for the region around the point. for Bragg diffraction where $\bfH$
+is oriented approximately along the $-z$-axis, the
+misalignment of $\bfH$ is characterized by rotations about the $y$-axis and $x$-axis
 \begin{example}
-  dz/dx_tot = <dz/dx> + r1 * <dz/dx_rms>
-  dz/dy_tot = <dz/dy> + r2 * <dz/dy_rms>
+  rot_y_tot = <rot_y> + r2 * <rot_y_rms>
+  rot_x_tot = <rot_x> + r1 * <rot_x_rms>
 \end{example}
-where \vn{dz/dx_tot} and \vn{dz/dy_tot} are the rotational misalignment (\sref{s:offset}) used
-in the calculation, the quantities in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
+where \vn{rot_x_tot} and \vn{rot_y_tot} are the rotational misalignment (in radians) of $\bfH$
+around the $y$-axis and $x$-axis respectively. The small angle approximation is used, That is, it is
+assumed that both \vn{rot_x_tot} and \vn{rot_y_tot} are small compared to one. 
+the quantities in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
 \vn{r2} are Gaussian distributed random numbers with unit rms. These random numbers are regenerated
 for each photon.
+
+For Laure diffraction, since the $\bfH$ vector is approximately aligned with the $-x$-axis, the
+misalignment is characterized by rotations about the $y$-axis and $z$-axis. Notice that for both
+Bragg and Laue diffraction, the rotation around the $y$-axis misaligns (approximately) $\bfH$ in the
+plane of the diffraction.
 %
 \item[Segmented grid] \Newline
 The general syntax for a \vn{segmented} grid:

@@ -26,11 +26,6 @@ typedef valarray<CPP_spin_polar>          CPP_spin_polar_ARRAY;
 typedef valarray<CPP_spin_polar_ARRAY>    CPP_spin_polar_MATRIX;
 typedef valarray<CPP_spin_polar_MATRIX>   CPP_spin_polar_TENSOR;
 
-class CPP_surface_orientation;
-typedef valarray<CPP_surface_orientation>          CPP_surface_orientation_ARRAY;
-typedef valarray<CPP_surface_orientation_ARRAY>    CPP_surface_orientation_MATRIX;
-typedef valarray<CPP_surface_orientation_MATRIX>   CPP_surface_orientation_TENSOR;
-
 class CPP_ac_kicker_time;
 typedef valarray<CPP_ac_kicker_time>          CPP_ac_kicker_time_ARRAY;
 typedef valarray<CPP_ac_kicker_time_ARRAY>    CPP_ac_kicker_time_MATRIX;
@@ -231,15 +226,35 @@ typedef valarray<CPP_gen_grad_map>          CPP_gen_grad_map_ARRAY;
 typedef valarray<CPP_gen_grad_map_ARRAY>    CPP_gen_grad_map_MATRIX;
 typedef valarray<CPP_gen_grad_map_MATRIX>   CPP_gen_grad_map_TENSOR;
 
-class CPP_surface_grid_pt;
-typedef valarray<CPP_surface_grid_pt>          CPP_surface_grid_pt_ARRAY;
-typedef valarray<CPP_surface_grid_pt_ARRAY>    CPP_surface_grid_pt_MATRIX;
-typedef valarray<CPP_surface_grid_pt_MATRIX>   CPP_surface_grid_pt_TENSOR;
+class CPP_surface_segmented_pt;
+typedef valarray<CPP_surface_segmented_pt>          CPP_surface_segmented_pt_ARRAY;
+typedef valarray<CPP_surface_segmented_pt_ARRAY>    CPP_surface_segmented_pt_MATRIX;
+typedef valarray<CPP_surface_segmented_pt_MATRIX>   CPP_surface_segmented_pt_TENSOR;
 
-class CPP_surface_grid;
-typedef valarray<CPP_surface_grid>          CPP_surface_grid_ARRAY;
-typedef valarray<CPP_surface_grid_ARRAY>    CPP_surface_grid_MATRIX;
-typedef valarray<CPP_surface_grid_MATRIX>   CPP_surface_grid_TENSOR;
+class CPP_surface_segmented;
+typedef valarray<CPP_surface_segmented>          CPP_surface_segmented_ARRAY;
+typedef valarray<CPP_surface_segmented_ARRAY>    CPP_surface_segmented_MATRIX;
+typedef valarray<CPP_surface_segmented_MATRIX>   CPP_surface_segmented_TENSOR;
+
+class CPP_surface_h_misalign_pt;
+typedef valarray<CPP_surface_h_misalign_pt>          CPP_surface_h_misalign_pt_ARRAY;
+typedef valarray<CPP_surface_h_misalign_pt_ARRAY>    CPP_surface_h_misalign_pt_MATRIX;
+typedef valarray<CPP_surface_h_misalign_pt_MATRIX>   CPP_surface_h_misalign_pt_TENSOR;
+
+class CPP_surface_h_misalign;
+typedef valarray<CPP_surface_h_misalign>          CPP_surface_h_misalign_ARRAY;
+typedef valarray<CPP_surface_h_misalign_ARRAY>    CPP_surface_h_misalign_MATRIX;
+typedef valarray<CPP_surface_h_misalign_MATRIX>   CPP_surface_h_misalign_TENSOR;
+
+class CPP_surface_displacement_pt;
+typedef valarray<CPP_surface_displacement_pt>          CPP_surface_displacement_pt_ARRAY;
+typedef valarray<CPP_surface_displacement_pt_ARRAY>    CPP_surface_displacement_pt_MATRIX;
+typedef valarray<CPP_surface_displacement_pt_MATRIX>   CPP_surface_displacement_pt_TENSOR;
+
+class CPP_surface_displacement;
+typedef valarray<CPP_surface_displacement>          CPP_surface_displacement_ARRAY;
+typedef valarray<CPP_surface_displacement_ARRAY>    CPP_surface_displacement_MATRIX;
+typedef valarray<CPP_surface_displacement_MATRIX>   CPP_surface_displacement_TENSOR;
 
 class CPP_target_point;
 typedef valarray<CPP_target_point>          CPP_target_point_ARRAY;
@@ -524,38 +539,6 @@ extern "C" void spin_polar_to_c (const Opaque_spin_polar_class*, CPP_spin_polar&
 extern "C" void spin_polar_to_f (const CPP_spin_polar&, Opaque_spin_polar_class*);
 
 bool operator== (const CPP_spin_polar&, const CPP_spin_polar&);
-
-
-//--------------------------------------------------------------------
-// CPP_surface_orientation
-
-class Opaque_surface_orientation_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_surface_orientation {
-public:
-  Real dz_dx;
-  Real dz_dy;
-  Real dz_dx_rms;
-  Real dz_dy_rms;
-  Real dz2_dxdy;
-
-  CPP_surface_orientation() :
-    dz_dx(0.0),
-    dz_dy(0.0),
-    dz_dx_rms(0.0),
-    dz_dy_rms(0.0),
-    dz2_dxdy(0.0)
-    {}
-
-  ~CPP_surface_orientation() {
-  }
-
-};   // End Class
-
-extern "C" void surface_orientation_to_c (const Opaque_surface_orientation_class*, CPP_surface_orientation&);
-extern "C" void surface_orientation_to_f (const CPP_surface_orientation&, Opaque_surface_orientation_class*);
-
-bool operator== (const CPP_surface_orientation&, const CPP_surface_orientation&);
 
 
 //--------------------------------------------------------------------
@@ -1908,71 +1891,193 @@ bool operator== (const CPP_gen_grad_map&, const CPP_gen_grad_map&);
 
 
 //--------------------------------------------------------------------
-// CPP_surface_grid_pt
+// CPP_surface_segmented_pt
 
-class Opaque_surface_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_surface_segmented_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_surface_grid_pt {
+class CPP_surface_segmented_pt {
 public:
-  CPP_surface_orientation orientation;
-  Real z0;
   Real x0;
   Real y0;
+  Real z0;
+  Real dz_dx;
+  Real dz_dy;
+
+  CPP_surface_segmented_pt() :
+    x0(0.0),
+    y0(0.0),
+    z0(0.0),
+    dz_dx(0.0),
+    dz_dy(0.0)
+    {}
+
+  ~CPP_surface_segmented_pt() {
+  }
+
+};   // End Class
+
+extern "C" void surface_segmented_pt_to_c (const Opaque_surface_segmented_pt_class*, CPP_surface_segmented_pt&);
+extern "C" void surface_segmented_pt_to_f (const CPP_surface_segmented_pt&, Opaque_surface_segmented_pt_class*);
+
+bool operator== (const CPP_surface_segmented_pt&, const CPP_surface_segmented_pt&);
+
+
+//--------------------------------------------------------------------
+// CPP_surface_segmented
+
+class Opaque_surface_segmented_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_surface_segmented {
+public:
+  Bool active;
+  Real_ARRAY dr;
+  Real_ARRAY r0;
+  CPP_surface_segmented_pt_MATRIX pt;
+
+  CPP_surface_segmented() :
+    active(false),
+    dr(0.0, 2),
+    r0(0.0, 2),
+    pt(CPP_surface_segmented_pt_ARRAY(CPP_surface_segmented_pt(), 0), 0)
+    {}
+
+  ~CPP_surface_segmented() {
+  }
+
+};   // End Class
+
+extern "C" void surface_segmented_to_c (const Opaque_surface_segmented_class*, CPP_surface_segmented&);
+extern "C" void surface_segmented_to_f (const CPP_surface_segmented&, Opaque_surface_segmented_class*);
+
+bool operator== (const CPP_surface_segmented&, const CPP_surface_segmented&);
+
+
+//--------------------------------------------------------------------
+// CPP_surface_h_misalign_pt
+
+class Opaque_surface_h_misalign_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_surface_h_misalign_pt {
+public:
+  Real x0;
+  Real y0;
+  Real rot_y;
+  Real rot_t;
+  Real rot_y_rms;
+  Real rot_t_rms;
+
+  CPP_surface_h_misalign_pt() :
+    x0(0.0),
+    y0(0.0),
+    rot_y(0.0),
+    rot_t(0.0),
+    rot_y_rms(0.0),
+    rot_t_rms(0.0)
+    {}
+
+  ~CPP_surface_h_misalign_pt() {
+  }
+
+};   // End Class
+
+extern "C" void surface_h_misalign_pt_to_c (const Opaque_surface_h_misalign_pt_class*, CPP_surface_h_misalign_pt&);
+extern "C" void surface_h_misalign_pt_to_f (const CPP_surface_h_misalign_pt&, Opaque_surface_h_misalign_pt_class*);
+
+bool operator== (const CPP_surface_h_misalign_pt&, const CPP_surface_h_misalign_pt&);
+
+
+//--------------------------------------------------------------------
+// CPP_surface_h_misalign
+
+class Opaque_surface_h_misalign_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_surface_h_misalign {
+public:
+  Bool active;
+  Real_ARRAY dr;
+  Real_ARRAY r0;
+  CPP_surface_h_misalign_pt_MATRIX pt;
+
+  CPP_surface_h_misalign() :
+    active(false),
+    dr(0.0, 2),
+    r0(0.0, 2),
+    pt(CPP_surface_h_misalign_pt_ARRAY(CPP_surface_h_misalign_pt(), 0), 0)
+    {}
+
+  ~CPP_surface_h_misalign() {
+  }
+
+};   // End Class
+
+extern "C" void surface_h_misalign_to_c (const Opaque_surface_h_misalign_class*, CPP_surface_h_misalign&);
+extern "C" void surface_h_misalign_to_f (const CPP_surface_h_misalign&, Opaque_surface_h_misalign_class*);
+
+bool operator== (const CPP_surface_h_misalign&, const CPP_surface_h_misalign&);
+
+
+//--------------------------------------------------------------------
+// CPP_surface_displacement_pt
+
+class Opaque_surface_displacement_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_surface_displacement_pt {
+public:
+  Real x0;
+  Real y0;
+  Real z0;
   Real dz_dx;
   Real dz_dy;
   Real d2z_dxdy;
 
-  CPP_surface_grid_pt() :
-    orientation(),
-    z0(0.0),
+  CPP_surface_displacement_pt() :
     x0(0.0),
     y0(0.0),
+    z0(0.0),
     dz_dx(0.0),
     dz_dy(0.0),
     d2z_dxdy(0.0)
     {}
 
-  ~CPP_surface_grid_pt() {
+  ~CPP_surface_displacement_pt() {
   }
 
 };   // End Class
 
-extern "C" void surface_grid_pt_to_c (const Opaque_surface_grid_pt_class*, CPP_surface_grid_pt&);
-extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt&, Opaque_surface_grid_pt_class*);
+extern "C" void surface_displacement_pt_to_c (const Opaque_surface_displacement_pt_class*, CPP_surface_displacement_pt&);
+extern "C" void surface_displacement_pt_to_f (const CPP_surface_displacement_pt&, Opaque_surface_displacement_pt_class*);
 
-bool operator== (const CPP_surface_grid_pt&, const CPP_surface_grid_pt&);
+bool operator== (const CPP_surface_displacement_pt&, const CPP_surface_displacement_pt&);
 
 
 //--------------------------------------------------------------------
-// CPP_surface_grid
+// CPP_surface_displacement
 
-class Opaque_surface_grid_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_surface_displacement_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_surface_grid {
+class CPP_surface_displacement {
 public:
   Bool active;
-  Int type;
   Real_ARRAY dr;
   Real_ARRAY r0;
-  CPP_surface_grid_pt_MATRIX pt;
+  CPP_surface_displacement_pt_MATRIX pt;
 
-  CPP_surface_grid() :
-    active(true),
-    type(Bmad::NOT_SET),
+  CPP_surface_displacement() :
+    active(false),
     dr(0.0, 2),
     r0(0.0, 2),
-    pt(CPP_surface_grid_pt_ARRAY(CPP_surface_grid_pt(), 0), 0)
+    pt(CPP_surface_displacement_pt_ARRAY(CPP_surface_displacement_pt(), 0), 0)
     {}
 
-  ~CPP_surface_grid() {
+  ~CPP_surface_displacement() {
   }
 
 };   // End Class
 
-extern "C" void surface_grid_to_c (const Opaque_surface_grid_class*, CPP_surface_grid&);
-extern "C" void surface_grid_to_f (const CPP_surface_grid&, Opaque_surface_grid_class*);
+extern "C" void surface_displacement_to_c (const Opaque_surface_displacement_class*, CPP_surface_displacement&);
+extern "C" void surface_displacement_to_f (const CPP_surface_displacement&, Opaque_surface_displacement_class*);
 
-bool operator== (const CPP_surface_grid&, const CPP_surface_grid&);
+bool operator== (const CPP_surface_displacement&, const CPP_surface_displacement&);
 
 
 //--------------------------------------------------------------------
@@ -2185,7 +2290,9 @@ public:
   CPP_surface_curvature curvature;
   CPP_photon_target target;
   CPP_photon_material material;
-  CPP_surface_grid grid;
+  CPP_surface_segmented segmented;
+  CPP_surface_h_misalign h_misalign;
+  CPP_surface_displacement displacement;
   CPP_pixel_detec pixel;
   Int reflectivity_table_type;
   CPP_photon_reflect_table reflectivity_table_sigma;
@@ -2197,7 +2304,9 @@ public:
     curvature(),
     target(),
     material(),
-    grid(),
+    segmented(),
+    h_misalign(),
+    displacement(),
     pixel(),
     reflectivity_table_type(Bmad::NOT_SET),
     reflectivity_table_sigma(),
