@@ -21,13 +21,13 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (beam_init_struct) beam_init
 procedure (track1_bunch_hook_def) :: track1_bunch_hook
 
-integer i, ie, ib, n_loc, status
+integer i, ie, ib, n_loc, n, n_turns, status
 logical err_flag
 character(200) master_input_file
 
 !
 
-namelist / params / ec, bmad_com, beam_init
+namelist / params / ec, bmad_com, beam_init, n_turns
 namelist / wake_and_diffusion / ec
 
 !
@@ -61,6 +61,7 @@ do i = 1, size(ec%wd%xm%s)
 enddo
 ec%wd%n_size_array = i - 1
 
+! TODO: make this a subroutine to be cleaner
 ! Make splines
 ! First, fill in the information in the splines
 do i = 1, ec%wd%n_size_array
@@ -223,8 +224,10 @@ ec_com%output_ele => pointer_to_slave(ec_com%cool_ele, 2)
 call init_beam_distribution(branch%ele(0), ec_com%lat%param, ec%beam_init, beam, err_flag)
 bunch => beam%bunch(1)  ! Only track 1 bunch
 
-do ie = 1, branch%n_ele_track
-  call track1_bunch(beam%bunch(1), branch%ele(ie), err_flag)
+do n = 1, n_turns
+  do ie = 1, branch%n_ele_track
+    call track1_bunch(beam%bunch(1), branch%ele(ie), err_flag)
+  enddo
 enddo
 
 ! Print end distribution

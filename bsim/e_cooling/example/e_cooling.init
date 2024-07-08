@@ -2,4 +2,5 @@
   ec%lat_file = 'lat.bmad'
   ec%wake_and_diffusion_file = 'wd.params'
   beam_init%position_file = 'beam.init'
+  n_turns = 10
 /
