@@ -524,6 +524,15 @@ logical err, map_file_exists, ramping_on
 character(40) start_name, stop_name
 character(*), parameter :: r_name = 'ltt_init_tracking'
 
+!
+
+if (lttp%split_bends_for_stochastic_rad .and. lttp%ramping_on) then
+  call out_io (s_fatal$, r_name, 'LTT%SPLIT_BENDS_FOR_STOCHASTIC_RAD NOT COMPATIBLE WITH RAMPING.')
+  stop
+endif
+
+
+
 ! Apply rampers and then turn off ramper use for twiss_and_track since rampers simulating 
 ! noise (using random numbers) will drive the closed orbit calc crazy.
 

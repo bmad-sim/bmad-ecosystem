@@ -327,7 +327,7 @@ case ('beam')
   ix_branch = parse_branch(line, u, .false., err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'always_reinit;LOGIC;T;',           u%beam%always_reinit
-  nl=incr(nl); write (li(nl), lmt) 'track_beam_in_universe;LOGIC;T;',  u%beam%track_beam_in_universe
+  nl=incr(nl); write (li(nl), lmt) 'track_beam_in_universe;LOGIC;F;',  u%beam%track_beam_in_universe
   nl=incr(nl); write (li(nl), amt) 'saved_at;STR;T;',                  trim(u%beam%saved_at)
   nl=incr(nl); write (li(nl), amt) 'dump_at;STR;T;',                   trim(u%beam%dump_at)
   nl=incr(nl); write (li(nl), amt) 'dump_file;STR;T;',                 trim(u%beam%dump_file)
