@@ -165,7 +165,7 @@ def order_var_def_list():
       new_def_list.insert(0, ['! Duplicate: ' + vdef[0], vdef[1]])
     else:
       new_def_list.insert(0, vdef)
-      exp_list = re.split('\+|-|\*|/|\(|\)|\^|,', vdef[1])
+      exp_list = re.split(r'\+|-|\*|/|\(|\)|\^|,', vdef[1])
       dependent_list[vdef[0]] = list(x.split() for x in exp_list)
 
   common.var_def_list = new_def_list
