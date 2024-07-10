@@ -854,7 +854,7 @@ case ('chromaticity')
     z1 =  real(ptc_nf%phase(1) .sub. expo)
     z2 =  real(ptc_nf%phase(2) .sub. expo)
     if (i == 0) then
-      nl=nl+1; write (lines(nl), '(i3, 2es18.7, a)') i, z1, z2 '  ! 0th order are the tunes'
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7, a)') i, z1, z2, '  ! 0th order are the tunes'
     else
       nl=nl+1; write (lines(nl), '(i3, 2es18.7)') i, z1, z2
     endif
@@ -4552,7 +4552,7 @@ case ('spin')
     ptc_nf  => tao_branch%ptc_normal_form
     ctaylor1 = ptc_nf%spin_tune
 
-    call type_complex_taylors(ctaylor1, out_type = 'NONE')
+    call type_complex_taylors([ctaylor1], out_type = 'NONE')
     return   
   endif
 
