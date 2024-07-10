@@ -759,7 +759,7 @@ def parse_command(command, dlist):
 
     common.var_name_list.append(dlist[0])
     name = dlist[0]
-    value = bmad_expression(''.join(dlist[2:]), dlist[0])
+    value = bmad_expression(''.join(dlist[2:]), '')
     if '[' in value or not common.prepend_vars:    # Involves an element parameter
       f_out.write(f'{name} = {value}\n')
     else:
