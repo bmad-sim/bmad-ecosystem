@@ -749,6 +749,7 @@ type (coord_struct) pos
 type (coord_struct), pointer :: orb_out, orb_in
 type (branch_struct), pointer :: branch, branch_from
 
+real(rp) e_photon
 integer ix_branch, i_ele_from, i_br_from
 
 character(*), parameter :: r_name = "tao_inject_particle"
@@ -798,7 +799,14 @@ else
   orb_in => branch%lat%particle_start
 endif
 
-call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
+e_photon = 0
+if (branch%ele(0)%ref_species == photon$) then
+  e_photon = branch%ele(0)%value(p0c$) * (1.0_rp + orb_in%vec(6))
+  if (orb_in%p0c /= 0) e_photon = orb_in%p0c
+endif
+
+call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, &
+                    default_tracking_species(branch%param), 1, e_photon = e_photon)
 
 end subroutine tao_inject_particle
 
