@@ -1348,7 +1348,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     a_ptr(1)%r = set_val(1)
   endif
 
-  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START')
+  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START', who = who2)
 enddo
 
 end subroutine tao_set_particle_start_cmd

@@ -1521,11 +1521,19 @@ or universes to apply the set command to.
 For photons, \vn{<coordinate>} may also be:
 \begin{example}
   field_x, field_y, phase_x, phase_y
+  e_photon
 \end{example}
 The \vn{*} coordinate denotes the phase space vector $(x, p_x, y, p_y, z, p_z)$.  For closed
 lattices only the \vn{pz} parameter is applicable. For lattices that have an \vn{e_gun} (which
 necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must be
 varied instead of \vn{pz}.
+
+For photons, the photon energy can be set by setting \vn{e_photon} which sets the photon energy in
+eV or by setting \vn{pz} which sets the relative difference between the photon energy and the
+reference energy:
+\begin{example}
+  photon_energy = reference_energy * (1 + pz)
+\end{example}
 
 To see the values for \vn{particle_start} use the command \vn{show element 0}.
 
