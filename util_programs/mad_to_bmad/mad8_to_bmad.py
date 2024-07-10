@@ -760,6 +760,13 @@ def parse_command(command, dlist):
     common.var_name_list.append(dlist[0])
     name = dlist[0]
     value = bmad_expression(''.join(dlist[2:]), '')
+
+    for param in ele_inv_param_factor:   # Converting something like "z[volt] = xxx" to "z[voltage] = xxx * 1e6"
+      str = '[' + param + ']'
+      if str not in name: continue
+      if param in bmad_param_name: name = name.replace(param, bmad_param_name[param])
+      value = add_parens(value) + ele_inv_param_factor[param]
+
     if '[' in value or not common.prepend_vars:    # Involves an element parameter
       f_out.write(f'{name} = {value}\n')
     else:
