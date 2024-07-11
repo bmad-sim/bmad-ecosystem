@@ -2108,8 +2108,8 @@ is momentum compaction and phase slip and derivatives.
 If no universe is given, the current default universe (\sref{s:universe}) is used.
 
 The \vn{-taylor} switch will show the Taylor series for the three normal mode tunes as functions 
-of the phase space coordinates. The computation uses complex series. The imaginary part should be 
-zero (or very small).
+of the phase space coordinates. The computation uses complex series. The imaginary part should 
+be zero (or very small).
 
 
 %% show constraints --------------------------------------------------------------
@@ -3068,9 +3068,9 @@ for the three components of the spin $(S_x, S_y, S_z)$. The independent variable
 phase space coordinates $(x, p_x, y, p_y, z, p_z)$.
 
 The \vn{-spin_tune} switch, if present, will print the amplitude-dependent spin tune. The output will 
-be a Taylor series in the phasor's basis, i.e. $x_{\pm k} = \sqrt{J_k}\exp{\pm i\phi_k}$. For example 
-the monomial ``[1 1 0 0 0 0]'' corresponds to $J_a$, and ``[1 1 2 2 3 3]'' corresponds to 
-$J_aJ_b^2J_c^3$.
+be a Taylor series in the phasor's basis, i.e. $x_k = sqrt(J_k)*exp(i*phi_k)$. For example the 
+monomial ``[1 1 0 0 0 0]'' corresponds to $J_a$, and if RF is on then ``[1 1 2 2 3 3]'' corresponds 
+to $J_a*J_b^2*J_c^3$.
 
 The \vn{-x_zero}, \vn{-y_zero}, and \vn{-z_zero} options are for testing if supressing certain terms
 in the linear part of the spin transport map for a set of elements selected by the user will
