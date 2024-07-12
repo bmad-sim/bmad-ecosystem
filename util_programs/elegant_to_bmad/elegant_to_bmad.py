@@ -603,7 +603,7 @@ def parse_element(dlist):
 
     # Malign -> Gkicker
 
-    if ele.bmad_type == 'malign':
+    if elegant_type == 'malign':
       if eparam == 'dx': 
         bparam = 'x_kick'
       elif eparam == 'dy':
