@@ -317,6 +317,7 @@ from the closed orbit\cite{b:barber99}
   P_{bks} = \pm \frac{8}{5 \, \sqrt{3}}
   \frac{\displaystyle \oint ds \, g^3 \, \what\bfb \dotproduct \bfn_0}
   {\displaystyle \oint ds \, g^3 \left( 1 - \frac{2}{9} (\bfn_0 \dotproduct \what\bfs)^2 \right)}
+  \label{pbks}
 \end{equation}
 where $g = 1/\rho$ is the bending strength ($\rho$ is the bending radius), $\what\bfs$ is the unit
 vector in the direction of motion, and $\what\bfb$ is defined to be
@@ -413,6 +414,31 @@ vertical direction and $\partial\bfn/\partial\delta$ will be perpendicular to th
 \end{equation}
 where $\tau_{dep}^{-1}$ is calculated via particle tacking and the other quantities are calculated by
 integrals over the closed orbit ignoring beam size effects.
+
+%-----------------------------------------------------------------   
+\section{Bmad Tune and $n_0$ convention}
+\label{s:spin.tune}
+
+As mentioned above, at any point in a ring the direction of the closed orbit invariant spin $\bfn_0$
+is ambiguous since, if $\bfn_0$ is a valid invariant spin direction, then so is $-\bfn_0$. The same
+is true of the spin tune $\nu_0$ and if $\nu_0$ is the spin tune associated with $\bfn_0$, $-\nu_0$
+is the spin tune associated with $-\bfn_0$. This ambiguity complicates various calculations. For
+example, to do the integral in \Eq{pbks}, it is necessary to make sure that the direction of
+$\bfn_0(s_1)$, the invariant spin at $s_1$, must be consistent with the direction of the invariant
+spin at $s_2$, $\bfn_0(s_2)$. That is, the two must be related via
+\begin{equation}
+  \bfn_0(s_2) = \bfq_{21} \, \bfn_0(s_1) \, \BAR\bfq_{21}
+  \label{n0qn0q}
+\end{equation}
+where $\bfq_{21}$ is the closed orbit spin transport quaternion from $s_1$ to $s_2$. The tune must
+also be computed consistent with the choice of invariant spin direction. This is important when
+calculating sum and difference resonance strengths (\Eqs{x12pq1} and \eq{x12pq2}).
+
+To ensure a consistent invariant spin direction, \Eq{n0qn0q} is used when calculating integrals
+involving $\bfn_0$. To ensure a consistent tune, \bmad uses the following convention that the spin
+tune will always be in the range $[0, \pi]$, and the direction of $\bfn_0$ will be chosen to be
+consistent with this choice in tune (it is left as an exercise for the reader to prove that there
+will always be exactly one spin tune in the range $[0, \pi]$.
 
 %-----------------------------------------------------------------   
 \section{Linear \texorpdfstring{$\partial\bfn/\partial\delta$}{dn/dpz} Calculation}

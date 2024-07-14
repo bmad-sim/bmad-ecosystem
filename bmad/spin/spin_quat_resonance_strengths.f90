@@ -22,15 +22,22 @@ use sim_utils
 
 implicit none
 
-real(rp) spin_q(0:3,0:6), xi_sum, xi_diff, nn0(3)
+real(rp) spin_q(0:3,0:6), xi_sum, xi_diff, nn0(3), anorm
 complex(rp) orb_evec(6), qv(0:3), qv2(0:3), np(0:3), nm(0:3)
 
 integer k
 
 !
 
-nn0 = spin_q(1:3,0)
-nn0 = nn0 / norm2(nn0)
+nn0 = spin_q(1:3,0) 
+anorm = norm2(nn0)
+if (anorm == 0) then
+  xi_sum = 0
+  xi_diff = 0
+  return
+endif
+
+nn0 = sign_of(spin_q(0,0)) * nn0 / norm2(nn0)
 
 np(0) = 0.5_rp
 np(1:3) = i_imag * nn0 / 2

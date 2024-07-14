@@ -6,6 +6,7 @@ set (INC_DIRS
 )
 
 set (LINK_LIBS
+  tao
   bmad 
   sim_utils
   ${ACC_BMAD_LINK_LIBS}
