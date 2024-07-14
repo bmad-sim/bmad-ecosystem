@@ -4575,62 +4575,62 @@ case ('spin')
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
         else
           r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                   ', tao_branch%spin%pol_limit_st
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DK:                   ', tao_branch%spin%pol_limit_dk
-          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (a,b,c-modes):    ', tao_branch%spin%pol_limit_dk_partial
-          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (bc,ac,ab-modes): ', tao_branch%spin%pol_limit_dk_partial2
+          nl=nl+1; write(lines(nl), '(a, f12.8)')  'Polarization Limit ST:                   ', tao_branch%spin%pol_limit_st
+          nl=nl+1; write(lines(nl), '(a, f12.8)')  'Polarization Limit DK:                   ', tao_branch%spin%pol_limit_dk
+          nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Polarization Limits DK (a,b,c-modes):    ', tao_branch%spin%pol_limit_dk_partial
+          nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Polarization Limits DK (bc,ac,ab-modes): ', tao_branch%spin%pol_limit_dk_partial2
 
           if (tao_branch%spin%pol_rate_bks == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): plarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')    'Polarization Time BKS (minutes, turns): plarization rate is zero!'
           else
             x = 1.0_rp / tao_branch%spin%pol_rate_bks
             nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): ', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (1.0_rp / tao_branch%spin%depol_rate == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')    'Depolarization Time (minutes, turns):   Depolarization rate is zero!'
           else
             x = 1.0_rp / tao_branch%spin%depol_rate
             nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   ', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial(1) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (a-mode) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial(1)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial(2) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (b-mode) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial(2)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial(3) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (c-mode) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial(3)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial2(1) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b&c modes) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (b&c modes) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial2(1)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b&c modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial2(2) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&c modes) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (a&c modes) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial2(2)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&c modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial2(3) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&b modes) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (a&b modes) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial2(3)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&b modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
