@@ -611,9 +611,6 @@ do j = n1, n2
 
   if (tao_rad_int_calc_needed(dat%data_type, dat%data_source)) then
     u%calc%rad_int_for_data = .true. 
-    if (dat%ix_branch /= 0) then
-      call out_io (s_error$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
-    endif
   endif
 
   if (tao_lat_sigma_calc_needed(dat%data_type, dat%data_source)) u%calc%lat_sigma_for_data = .true. 

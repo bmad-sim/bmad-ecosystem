@@ -1008,8 +1008,8 @@ end type
 ! Keep data and plotting separate since when optimizing will only do a calc if the data needs it
 
 type tao_universe_calc_struct
-  logical :: rad_int_for_data = .false.           ! Do the radiation integrals need to be computed for
   integer :: srdt_for_data = 0                    ! 0 = false, 1 = 1st order, 2 = 1st & 2nd order
+  logical :: rad_int_for_data = .false.           ! Do the radiation integrals need to be computed for
   logical :: rad_int_for_plotting = .false.       !   data or plotting?
   logical :: chrom_for_data = .false.             ! Does the chromaticity need to be computed for
   logical :: chrom_for_plotting = .false.         !   data or plotting? 
