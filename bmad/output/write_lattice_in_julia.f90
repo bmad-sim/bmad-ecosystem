@@ -119,7 +119,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ie == 0) then
       line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
-      line = trim(line) // ', species_ref = ' // trim(species_name(ele%ref_species))
+      line = trim(line) // ', species_ref = ' // trim(openpmd_species_name(ele%ref_species))
       if (ele%a%beta /= 0) line = trim(line) // ', twiss.a.beta = ' // re_str(ele%a%beta)
       if (ele%b%beta /= 0) line = trim(line) // ', twiss.b.beta = ' // re_str(ele%b%beta)
       if (ele%a%alpha /= 0) line = trim(line) // ', twiss.a.alpha = ' // re_str(ele%a%alpha)

@@ -2,23 +2,29 @@ program spin_general_test
 
 use bmad
 use pointer_lattice, only: c_linear_map, operator(*), assignment(=)
+use tao_interface
 
 implicit none
 
 type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (ele_struct) t_ele
 type (coord_struct) orb0, orb_start, orb_end, orb1, orb2
 type (spin_orbit_map1_struct) map1, inv_map1
+type (tao_lattice_branch_struct), target :: tao_branch
+type (tao_spin_map_struct) :: sm
 
 real(rp) spin_a(3), spin_b(3), spin0(3), dr(6), a_quat(0:3), n_vec(3)
-real(rp) mat6(6,6), smap(0:3,0:6), n0(3), q0(0:3), q1(0:3), t, q, xi_sum, xi_diff
+real(rp) mat6(6,6), smap(0:3,0:6), q0(0:3), q1(0:3), t, q, vec(6)
+real(rp) xi_sum, xi_diff, n0(3)
 
 complex(rp) orb_eval(6), orb_evec(6,6), spin_evec(6,3)
-integer i, j, nargs
+integer i, j, nargs, n_eigen
+logical print_extra, err, err_flag
 
 character(40) :: lat_file = 'spin_general_test.bmad'
-logical print_extra, err, err_flag
+character(100) excite_zero(3)
 
 namelist / param / dr
 
@@ -185,6 +191,54 @@ orb_start = orb0
 ele%spin_tracking_method = symp_lie_ptc$
 call track1 (orb_start, lat%ele(2), lat%param, orb_end)
 write (1, '(a, 3f12.8)') '"PTC-Taylor" ABS 1e-10  ', orb_end%spin
+
+!---------------------------------
+
+call bmad_parser('small_ring.bmad', lat)
+branch => lat%branch(0)
+call closed_orbit_calc(lat, tao_branch%orbit, 6)
+
+excite_zero = ''
+call tao_spin_polarization_calc (branch, tao_branch, excite_zero, '')
+call spin_concat_linear_maps(err, sm%map1, branch, 0, 0, orbit = tao_branch%orbit, excite_zero = excite_zero)
+
+call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, orb_eval, orb_evec, n0, spin_evec, err)
+call spin_quat_resonance_strengths(orb_evec(j,:), sm%map1%spin_q, xi_sum, xi_diff)
+
+write(1, '(a, f12.8)')   '"Polarization Limit ST" ABS 1e-8                   ', tao_branch%spin%pol_limit_st
+write(1, '(a, f12.8)')   '"Polarization Limit DK" ABS 1e-8                   ', tao_branch%spin%pol_limit_dk
+write(1, '(a, 3f12.8)')  '"Polarization Limits DK (a,b,c-modes)" ABS 1e-8    ', tao_branch%spin%pol_limit_dk_partial
+write(1, '(a, 3f12.8)')  '"Polarization Limits DK (bc,ac,ab-modes)" ABS 1e-8 ', tao_branch%spin%pol_limit_dk_partial2
+
+write(1, '(a, es16.8)')  '"Polarization Rate BKS" REL 1e-8       ', tao_branch%spin%pol_rate_bks
+write(1, '(a, es16.8)')  '"Depolarization Rate" REL 1e-8         ', tao_branch%spin%depol_rate
+write(1, '(a, 3es16.8)') '"Depolarization Rate Partial" REL 1e-8 ', tao_branch%spin%depol_rate_partial
+write(1, '(a, 3es16.8)') '"Depolarization Rate Partial2" REL 1e-8', tao_branch%spin%depol_rate_partial2
+
+write(1, '(a, es16.8)')  '"Integral g^3 * b_hat * n_0" REL 1e-8         ', tao_branch%spin%integral_bn
+write(1, '(a, es16.8)')  '"Integral g^3 * b_hat * dn/ddelta" REL 1e-8   ', tao_branch%spin%integral_bdn
+write(1, '(a, es16.8)')  '"Integral g^3 (1 - 2(n * s_hat)/9)" REL 1e-8  ', tao_branch%spin%integral_1ns
+write(1, '(a, es16.8)')  '"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1e-8', tao_branch%spin%integral_dn2
+
+do i = 1, 6
+  vec = abs(orb_evec(i, :))
+  select case (i)
+  case (1, 2); vec(1:4) = vec([1,2,5,6])
+  case (3, 4); vec(1:4) = vec([1,2,5,6])
+  case (5, 6); vec(1:4) = vec([1,2,5,6])
+  end select
+  write (1, '(a, 6f12.6)')  '"orb-evec-' // int_str(i) // '" ABS 1e-8', vec(1:4)
+  write (1, '(a, 3es16.8)') '"spin-re-evec-' // int_str(i) // '" REL 1e-8',  real(spin_evec(i, 1:3:2), 8)
+  write (1, '(a, 3es16.8)') '"spin-im-evec-' // int_str(i) // '" REL 1e-8',  aimag(spin_evec(i, 1:3:2))
+enddo
+
+do i = 1, 3
+  j = 2 * i - 1
+  call spin_quat_resonance_strengths(orb_evec(j,:), sm%map1%spin_q, xi_sum, xi_diff)
+  write (1, '(a, f13.7, 2(f17.7, es13.5))') '"Res-Strength-' // int_str(i) // '" REL 1e-8', xi_sum, xi_diff
+enddo
+
+!----------------------------
 
 close (1)
 
