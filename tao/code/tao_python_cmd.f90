@@ -139,6 +139,7 @@ type (tao_shape_pattern_point_struct), allocatable :: pat_pt_temp(:)
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), allocatable :: shapes_temp(:)
 type (tao_ele_shape_struct), pointer :: shape
+type (tao_ele_shape_struct) :: ashape
 type (tao_ele_shape_input) shape_input
 type (photon_element_struct), pointer :: ph
 type (qp_axis_struct) x_ax, y_ax
@@ -4267,57 +4268,44 @@ case ('floor_plan')
   u => tao_pointer_to_universe(g%ix_universe, .true.)
   lat => u%model%lat
 
-  do ib = 0, ubound(lat%branch, 1)
-    branch => lat%branch(ib)
-    do i = 1, branch%n_ele_max
-      ele => branch%ele(i)
-      if (ele%slave_status == super_slave$) cycle
-      if (ele%lord_status == multipass_lord$) cycle
-      if (ele%key == overlay$) cycle
-      if (ele%key == group$) cycle
-      if (ele%key == girder$) cycle
+  do i = 1, size(g%floor_list)
+    ele => pointer_to_ele(lat, g%floor_list(i)%ele_loc)
+    ashape = g%floor_list(i)%shape
+    if (ashape%shape == null_name$) then
+      y1 = 0
+      y2 = 0
+      color = ''
+      label_name = ''
+      shape_shape = ''
+      line_width = 0
+    else
+      color = ashape%color
+      shape_shape = ashape%shape
+      line_width = ashape%line_width
+    endif
 
-      ix_shape_min = 1
-      first_time = .true.
-      do
-        call tao_ele_shape_info (g%ix_universe, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
-        if (associated(shape)) then
-          color = shape%color
-          shape_shape = shape%shape
-          line_width = shape%line_width
-        else
-          if (.not. first_time) exit
-          y1 = 0
-          y2 = 0
-          color = ''
-          label_name = ''
-          shape_shape = ''
-          line_width = 0
-        endif
-        first_time = .false.
+    call find_element_ends(ele, ele1, ele2)
+    floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+    floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
 
-        call find_element_ends(ele, ele1, ele2)
-        floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-        floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-
-        floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
-        floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-        call tao_floor_to_screen_coords (g, floor1, end1)
-        call tao_floor_to_screen_coords (g, floor2, end2)
-        if (ele%key == sbend$) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') ib, ';', i, ';', &
-                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
-                      ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
-        else
-          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') ib, ';', i, ';', &
-                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
-        endif
-      enddo
-    enddo
+    floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
+    floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+    call tao_floor_to_screen_coords (g, floor1, end1)
+    call tao_floor_to_screen_coords (g, floor2, end2)
+    if (ele%key == sbend$) then
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') &
+                  ele%ix_branch, ';', ele%ix_ele, ';', &
+                  trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+                  end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+                  line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
+                  ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
+    else
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') &
+                  ele%ix_branch, ';', ele%ix_ele, ';', &
+                  trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+                  end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+                  line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
+    endif
   enddo
 
 !------------------------------------------------------------------------------------------------
