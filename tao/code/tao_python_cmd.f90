@@ -107,7 +107,7 @@ type (bunch_params_struct), pointer :: bunch_p
 type (bunch_track_struct), pointer :: bunch_params_comb(:)
 type (bunch_track_struct), pointer :: comb1
 type (ele_pointer_struct), allocatable :: eles(:), eles2(:)
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch2
 type (tao_model_branch_struct), pointer :: model_branch
 type (random_state_struct) ran_state
 type (ele_attribute_struct) attrib
@@ -4256,7 +4256,7 @@ case ('enum')
 
 case ('floor_plan')
 
-  call tao_find_plots (err, line, 'BOTH', graph = graphs, only_visible = .false.)
+  call tao_find_plots (err, line, 'BOTH', graph = graphs, blank_means_all = .true., only_visible = .false.)
 
   if (err .or. size(graphs) /= 1) then
     call invalid ('Bad graph name')
@@ -5616,7 +5616,8 @@ case ('plot_lat_layout')
 
   u => point_to_uni(line, .true., err); if (err) return
   ix_branch = parse_branch(line, u, .false., err); if (err) return
-  branch => u%model%lat%branch(ix_branch)
+  lat => u%model%lat
+  branch => lat%branch(ix_branch)
 
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
@@ -5625,12 +5626,32 @@ case ('plot_lat_layout')
     ix_shape_min = 1
     do
       call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
-      y1 = y1 * s%plot_page%lat_layout_shape_scale
-      y2 = y2 * s%plot_page%lat_layout_shape_scale
       if (.not. associated(shape)) exit
       if (.not. shape%draw) cycle
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es22.14), (a, i0), 2a, 2(a, es10.2), 4a)') i, ';', ele%s_start, ';', ele%s, ';', &
-                shape%line_width, ';', trim(shape%shape), ';', y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
+      y1 = y1 * s%plot_page%lat_layout_shape_scale
+      y2 = y2 * s%plot_page%lat_layout_shape_scale
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es22.14, a), (i0, a), 2a, 2(es10.2, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
+                ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', trim(shape%shape), ';', &
+                y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
+    enddo
+  enddo
+
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    ele => lat%ele(i)
+    if (ele%lord_status == multipass_lord$) cycle
+    branch2 => pointer_to_branch(ele)
+    if (branch2%ix_branch /= branch%ix_branch) cycle
+
+    ix_shape_min = 1
+    do
+      call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
+      if (.not. associated(shape)) exit
+      if (.not. shape%draw) cycle
+      y1 = y1 * s%plot_page%lat_layout_shape_scale
+      y2 = y2 * s%plot_page%lat_layout_shape_scale
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es22.14, a), (i0, a), 2a, 2(es10.2, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
+                ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', trim(shape%shape), ';', &
+                y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
     enddo
   enddo
 
