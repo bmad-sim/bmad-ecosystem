@@ -434,13 +434,15 @@ endif
 
 ! Draw for a particular universe
 
+if (allocated(graph%floor_list)) deallocate(graph%floor_list)
+
 if (graph%ix_universe == -2) then
   do isu = 1, size(s%u)
-    call draw_this_floor_plan(isu)
+    call draw_this_floor_plan(isu, plot, graph)
   enddo
 else
   isu = tao_universe_index(graph%ix_universe)
-  call draw_this_floor_plan(isu)
+  call draw_this_floor_plan(isu, plot, graph)
 endif
 
 ! Hook routine for more plotting if desired...
@@ -452,8 +454,10 @@ call qp_restore_state
 !-------------------------------------------------------------
 contains
 
-subroutine draw_this_floor_plan(isu)
+subroutine draw_this_floor_plan(isu, plot, graph)
 
+type (tao_plot_struct) :: plot
+type (tao_graph_struct) :: graph
 type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_lattice_struct), pointer :: tao_lat
 type (tao_building_wall_point_struct) pt0, pt1
@@ -661,6 +665,7 @@ type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here, orb_start, orb_end
 type (tao_shape_pattern_struct), pointer :: pat
+type (tao_floor_plan_ele), allocatable :: floor_ele(:)
 
 integer, parameter :: n_bend_extra = 40, l1 = -n_bend_extra, l2 = 200 + n_bend_extra
 integer i, j, k, n_bend, n, ix, ic, n_mid, min1_bend, min2_bend, max1_bend, max2_bend
@@ -692,6 +697,26 @@ logical is_bend, can_test
 
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
+
+if (.not. allocated(graph%floor_list)) then
+  allocate(graph%floor_list(1))
+  n = 1
+else
+  n = size(graph%floor_list) + 1
+  call move_alloc(graph%floor_list, floor_ele)
+  allocate(graph%floor_list(n))
+  graph%floor_list(:n-1) = floor_ele
+endif
+
+graph%floor_list(n)%ele_loc = ele_loc(ele)
+
+if (associated(ele_shape)) then
+  graph%floor_list(n)%shape = ele_shape
+else
+  graph%floor_list(n)%shape%shape = null_name$
+endif
+
+!
 
 orbit => tao_lat%tao_branch(ele1%ix_branch)%orbit
 
