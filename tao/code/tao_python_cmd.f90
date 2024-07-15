@@ -4268,6 +4268,10 @@ case ('floor_plan')
   u => tao_pointer_to_universe(g%ix_universe, .true.)
   lat => u%model%lat
 
+  if (.not. allocated(g%floor_list)) then
+    call invalid ('Floor plan drawing not yet setup for this graph.')
+  endif
+
   do i = 1, size(g%floor_list)
     ele => pointer_to_ele(lat, g%floor_list(i)%ele_loc)
     ashape = g%floor_list(i)%shape
