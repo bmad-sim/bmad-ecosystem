@@ -46,7 +46,7 @@ jobs:
       # In case we don't have it available, check it out
       - name: Checkout External Packages
         run: |
-          git clone --depth 1 --branch ${{ env.EXTERNAL_PACKAGES_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_packages
+          git clone --depth 1 --branch ${{ env.EXTERNAL_PACKAGES_VERSION }} https://github.com/bmad-sim/bmad-external-packages.git ~/external_packages
 
       - name: Move External packages
         run: |
