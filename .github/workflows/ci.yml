@@ -70,7 +70,7 @@ jobs:
           for dep in ~/external_packages/*; \
           do if [ $dep != "README.md" ]; \
             then cp -r $dep $GITHUB_WORKSPACE/; \
-						fi; \
+            fi; \
           done
 
       #
