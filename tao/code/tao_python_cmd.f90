@@ -4270,6 +4270,7 @@ case ('floor_plan')
 
   if (.not. allocated(g%floor_list)) then
     call invalid ('Floor plan drawing not yet setup for this graph.')
+    return
   endif
 
   do i = 1, size(g%floor_list)
