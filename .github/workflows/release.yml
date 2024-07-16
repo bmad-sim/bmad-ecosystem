@@ -51,10 +51,10 @@ jobs:
       - name: Move External packages
         run: |
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
-          for dep in ~/external_packages/* ; \
-          do if [ $dep != "README.md" ] ; \
-            then cp -r $dep $GITHUB_WORKSPACE/ ; \
-						fi ; \
+          for dep in ~/external_packages/*; \
+          do if [ $dep != "README.md" ]; \
+            then cp -r $dep $GITHUB_WORKSPACE/; \
+						fi; \
           done
 
       - name: Assemble Tarball
