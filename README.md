@@ -33,17 +33,19 @@ If you want to compile Bmad directly, download a [Release](https://github.com/bm
 
 ## Developer Setup
 
-Developers should clone this repository, as well as its external dependencies:
+Developers should clone this repository, as well as its external packages:
 
 ```bash
 git clone https://github.com/bmad-sim/bmad-ecosystem.git
-git clone https://github.com/bmad-sim/bmad-external-deps.git
+git clone https://github.com/bmad-sim/bmad-external-packages.git
 ```
 
-The external dependencies repository is simply a set of compressed files. A simple bash script is provided to extract these into the `bmad-ecosystem`:
+The external packages repository is simply a set of libraries needed by Bmad.
+
 ```bash
 cd bmad-ecosystem
-bash util/extract_external_deps
+rm ../bmad-external-packages/README.md   # Do not copy this file
+cp -r ../bmad-external-packages .
 ```
 
 To build everything:
