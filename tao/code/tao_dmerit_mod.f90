@@ -100,7 +100,7 @@ do j = 1, s%n_var_used
   s%var(j)%ix_dVar = nv
 enddo
 
-if (.not. reinit) then
+if (.not. reinit .or. .not. s%global%derivative_recalc) then
   return
 endif
 
