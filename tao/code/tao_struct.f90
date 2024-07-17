@@ -230,11 +230,6 @@ end type
 
 ! This is used with floor_plan drawings.
 
-type tao_floor_plan_ele
-  type (lat_ele_loc_struct) :: ele_loc
-  type (tao_ele_shape_struct) :: shape
-end type
-
 type tao_floor_plan_struct
   character(2) :: view = 'zx'                ! or 'xz'.
   real(rp) :: rotation = 0                   ! Rotation of floor plan plot: 1.0 -> 360^deg
@@ -265,7 +260,6 @@ type tao_graph_struct
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p => null() ! pointer to parent plot
   type (tao_floor_plan_struct) :: floor_plan = tao_floor_plan_struct()
-  type (tao_floor_plan_ele), allocatable :: floor_list(:)           ! Store what is drawn. Used by "python floor_plan" command.
   type (qp_point_struct) :: text_legend_origin = qp_point_struct()
   type (qp_point_struct) :: curve_legend_origin = qp_point_struct()
   type (qp_axis_struct) :: x = qp_axis_struct()              ! X-axis parameters.

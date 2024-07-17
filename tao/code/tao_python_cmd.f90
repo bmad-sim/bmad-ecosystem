@@ -139,7 +139,6 @@ type (tao_shape_pattern_point_struct), allocatable :: pat_pt_temp(:)
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), allocatable :: shapes_temp(:)
 type (tao_ele_shape_struct), pointer :: shape
-type (tao_ele_shape_struct) :: ashape
 type (tao_ele_shape_input) shape_input
 type (photon_element_struct), pointer :: ph
 type (qp_axis_struct) x_ax, y_ax
@@ -4265,53 +4264,15 @@ case ('floor_plan')
   endif
 
   g => graphs(1)%g
-  u => tao_pointer_to_universe(g%ix_universe, .true.)
-  lat => u%model%lat
 
-  if (.not. allocated(g%floor_list)) then
-    call invalid ('Floor plan drawing not yet setup for this graph.')
-    return
+  if (g%ix_universe == -2) then
+    do iu = 1, size(s%u)
+      call this_floor_plan(iu, g)
+    enddo
+  else
+    iu = tao_universe_index(g%ix_universe)
+    call this_floor_plan(iu, g)
   endif
-
-  do i = 1, size(g%floor_list)
-    ele => pointer_to_ele(lat, g%floor_list(i)%ele_loc)
-    ashape = g%floor_list(i)%shape
-    if (ashape%shape == null_name$) then
-      y1 = 0
-      y2 = 0
-      color = ''
-      label_name = ''
-      shape_shape = ''
-      line_width = 0
-    else
-      color = ashape%color
-      shape_shape = ashape%shape
-      line_width = ashape%line_width
-    endif
-
-    call find_element_ends(ele, ele1, ele2)
-    floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-    floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-
-    floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
-    floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-    call tao_floor_to_screen_coords (g, floor1, end1)
-    call tao_floor_to_screen_coords (g, floor2, end2)
-    if (ele%key == sbend$) then
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') &
-                  ele%ix_branch, ';', ele%ix_ele, ';', &
-                  trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                  end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                  line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
-                  ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
-    else
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') &
-                  ele%ix_branch, ';', ele%ix_ele, ';', &
-                  trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                  end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                  line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
-    endif
-  enddo
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -9183,5 +9144,117 @@ case (3)
 end select
 
 end subroutine write_this_ele_floor
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine this_floor_plan (iu, graph)
+
+type (tao_graph_struct) :: graph
+type (lat_struct), pointer :: lat
+type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele, slave
+
+real(rp) y1, y2
+integer iu, n, i, j, ix_shape_min, ix_pass, n_links
+character(40) label_name
+
+!
+
+lat => s%u(iu)%model%lat
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  branch%ele%logic = .false.  ! Used to mark as drawn.
+  do i = 0, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%slave_status == super_slave$) cycle
+
+    ix_shape_min = 1
+    do
+      call tao_ele_shape_info(iu, ele, s%plot_page%floor_plan%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
+      if (.not. associated(ele_shape) .and. (ele%key == overlay$ .or. &
+                                             ele%key == group$ .or. ele%key == girder$)) exit   ! Nothing to draw
+
+      if (graph%floor_plan%draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
+        call multipass_chain (ele, ix_pass, n_links)
+        if (ix_pass > 1) exit
+      endif
+
+      if (ele%lord_status == multipass_lord$) then
+        do j = 1, ele%n_slave
+          if (graph%floor_plan%draw_only_first_pass .and. j > 1) exit
+          slave => pointer_to_slave(ele, j)
+          ele_shape2 => tao_pointer_to_ele_shape (iu, slave, s%plot_page%floor_plan%ele_shape)
+          if (associated(ele_shape2)) cycle ! Already drawn. Do not draw twice
+          call this_floor_plan2 (graph, slave, ele_shape, label_name, y1, y2)
+        enddo
+      else
+        call this_floor_plan2 (graph, ele, ele_shape, label_name, y1, y2)
+      endif
+      if (.not. associated(ele_shape)) exit
+      if (.not. ele_shape%multi) exit
+    enddo
+
+  enddo
+enddo
+
+end subroutine this_floor_plan
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine this_floor_plan2 (graph, ele, ashape, label_name, y1, y2)
+
+type (tao_graph_struct) :: graph
+type (ele_struct) ele
+type (tao_ele_shape_struct), pointer :: ashape
+type (ele_struct), pointer :: ele1, ele2
+type (floor_position_struct) floor, floor1, floor2
+
+real(rp) y1, y2
+integer line_width
+character(40) color, label_name, shape_shape
+
+!
+
+call find_element_ends (ele, ele1, ele2)
+if (.not. associated(ele1)) return
+
+if (.not. associated(ashape)) then
+  color = ''
+  label_name = ''
+  shape_shape = ''
+  line_width = 0
+else
+  color = ashape%color
+  shape_shape = ashape%shape
+  line_width = ashape%line_width
+endif
+
+floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+
+floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
+floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+call tao_floor_to_screen_coords (graph, floor1, end1)
+call tao_floor_to_screen_coords (graph, floor2, end2)
+if (ele%key == sbend$) then
+  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') &
+              ele%ix_branch, ';', ele%ix_ele, ';', &
+              trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+              end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+              line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
+              ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
+else
+  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') &
+              ele%ix_branch, ';', ele%ix_ele, ';', &
+              trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+              end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+              line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
+endif
+
+end subroutine this_floor_plan2
 
 end subroutine tao_python_cmd
