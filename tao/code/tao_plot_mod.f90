@@ -434,8 +434,6 @@ endif
 
 ! Draw for a particular universe
 
-if (allocated(graph%floor_list)) deallocate(graph%floor_list)
-
 if (graph%ix_universe == -2) then
   do isu = 1, size(s%u)
     call draw_this_floor_plan(isu, plot, graph)
@@ -492,6 +490,7 @@ end select
 lat => tao_lat%lat
 
 ! loop over all elements in the lattice. 
+! If the logic of this loop is changed, a corresponding change must be made for the "python floor_plan" code.
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
@@ -665,7 +664,6 @@ type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here, orb_start, orb_end
 type (tao_shape_pattern_struct), pointer :: pat
-type (tao_floor_plan_ele), allocatable :: floor_ele(:)
 
 integer, parameter :: n_bend_extra = 40, l1 = -n_bend_extra, l2 = 200 + n_bend_extra
 integer i, j, k, n_bend, n, ix, ic, n_mid, min1_bend, min2_bend, max1_bend, max2_bend
@@ -697,24 +695,6 @@ logical is_bend, can_test
 
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
-
-if (.not. allocated(graph%floor_list)) then
-  allocate(graph%floor_list(1))
-  n = 1
-else
-  n = size(graph%floor_list) + 1
-  call move_alloc(graph%floor_list, floor_ele)
-  allocate(graph%floor_list(n))
-  graph%floor_list(:n-1) = floor_ele
-endif
-
-graph%floor_list(n)%ele_loc = ele_loc(ele)
-
-if (associated(ele_shape)) then
-  graph%floor_list(n)%shape = ele_shape
-else
-  graph%floor_list(n)%shape%shape = null_name$
-endif
 
 !
 
