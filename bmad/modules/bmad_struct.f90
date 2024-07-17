@@ -9,7 +9,7 @@ use spline_mod
 use sim_utils
 use cubic_interpolation_mod
 
-use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
+use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state, c_quaternion
 
 private next_in_branch
 
@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 319
+integer, parameter :: bmad_inc_version$ = 321
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -350,6 +350,7 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
 
+integer, parameter :: none_pt$ = 4
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4, no_aperture$ = 4, nowhere$ = 4
 integer, parameter :: continuous$ = 5, surface$ = 6, wall_transition$ = 7
 
@@ -357,6 +358,9 @@ integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
 integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_between$ = 13 ! Must be different from upstream_end$, downstream_end$
+
+character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
+      'Entrance_end', 'Exit_End', 'Center', 'None']
 
 character(16), parameter :: aperture_at_name(0:7) = [ &
       'GARBAGE!       ', 'Entrance_End   ', 'Exit_End       ', 'Both_Ends      ', &
@@ -962,31 +966,44 @@ type rad_map_ele_struct
   logical :: stale = .true.
 end type
 
-! Structure for surfaces of detectors, mirrors, crystals, etc.
-! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
+! Segmented grid
 
-type surface_orientation_struct
-  real(rp) :: dz_dx = 0, dz_dy = 0, dz_dx_rms = 0, dz_dy_rms = 0, dz2_dxdy = 0
-end type
-
-type surface_grid_pt_struct
-  type (surface_orientation_struct) :: orientation = surface_orientation_struct()
-  real(rp) :: z0 = 0                         ! Height at center
-  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+type surface_segmented_pt_struct
+  real(rp) :: x0 = 0, y0 = 0, z0 = 0         ! Position at center
   real(rp) :: dz_dx = 0, dz_dy = 0           ! Slope at center
-  real(rp) :: d2z_dxdy = 0                   ! d2z/dxdy at center
 end type
 
-type surface_grid_struct
-  logical :: active = .true.
-  integer :: type = not_set$   ! or displacement$, segmented$, h_misalign$
+type surface_segmented_struct
+  logical :: active = .false.
   real(rp) :: dr(2) = 0, r0(2) = 0
-  type (surface_grid_pt_struct), allocatable :: pt(:,:) 
+  type (surface_segmented_pt_struct), allocatable :: pt(:,:) 
 end type
 
-integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
-character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARBAGE!', &
-                                                  'Segmented', 'H_Misalign', 'Displacement']
+! H_misalign grid
+
+type surface_h_misalign_pt_struct
+  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+  real(rp) :: rot_y = 0, rot_t = 0, rot_y_rms = 0, rot_t_rms = 0  ! rot_t = x-rotation for Bragg and z-rotation for Laue.
+end type
+
+type surface_h_misalign_struct
+  logical :: active = .false.
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_h_misalign_pt_struct), allocatable :: pt(:,:) 
+end type
+
+! displacement grid
+
+type surface_displacement_pt_struct
+  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+  real(rp) :: z0 = 0, dz_dx = 0, dz_dy = 0, d2z_dxdy = 0
+end type
+
+type surface_displacement_struct
+  logical :: active = .false.
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_displacement_pt_struct), allocatable :: pt(:,:) 
+end type
 
 ! Photon statistics at a detector
 
@@ -1050,7 +1067,9 @@ type photon_element_struct
   type (surface_curvature_struct) :: curvature = surface_curvature_struct()
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
-  type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
+  type (surface_segmented_struct) :: segmented = surface_segmented_struct(.false., 0, 0, null())
+  type (surface_h_misalign_struct) :: h_misalign = surface_h_misalign_struct(.false., 0, 0, null())
+  type (surface_displacement_struct) :: displacement = surface_displacement_struct(.false., 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
   integer :: reflectivity_table_type = not_set$
   type (photon_reflect_table_struct) reflectivity_table_sigma  ! If polarization is ignored use sigma table.
@@ -1519,7 +1538,8 @@ type ptc_normal_form_struct
   type (c_normal_form) normal_form           ! Complex normal form
   type (c_taylor) phase(3)                   ! Phase/chromaticity maps
   type (c_taylor) path_length                ! Path length map. Gives momentum compaction.
-  type (c_taylor) spin_tune                  ! Spin map
+  type (c_taylor) spin_tune                  ! Amplitude dependent spin tune 
+  type (c_quaternion) isf                    ! Invariant spin field in (x, px, ...) space.
   type (internal_state) state                ! PTC state
   logical :: valid_map = .false.
 end type
@@ -1733,7 +1753,7 @@ integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, 
                       eps_step_scale$ = 26, E_tot_strong$ = 26, dthickness_dx$ = 26, bend_tilt$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
                       x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
-                      py_aperture_center$ = 27, x_dispersion_err$ = 27
+                      py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
                       rf_clock_harmonic$ = 28, b_field_tot$ = 28, atomic_weight$ = 28
@@ -1745,8 +1765,8 @@ integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord
                       scale_field_to_one$ = 30, voltage_tot$ = 30, scatter_method$ = 30
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id$ = 31, ref_cap_gamma$ = 31, &
                       l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31, &
-                      mean_excitation_energy$ = 31
-integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32
+                      mean_excitation_energy$ = 31, fiducial_pt$ = 31
+integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32, init_needed$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33, x_kick$ = 33
 integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
 integer, parameter :: y_pitch$ = 35, y_kick$ = 35
@@ -2521,7 +2541,7 @@ case (lost_neg_y$);  state_str = 'Lost_Neg_Y'
 case (lost_pos_y$);  state_str = 'Lost_Pos_Y'
 case (lost_pz$);     state_str = 'Lost_Pz'
 case (lost_z$);      state_str = 'Lost_Z'
-case default;        state_str = 'UNKNOWN!'
+case default;        state_str = null_name$
 end select
 
 end function coord_state_name

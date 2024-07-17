@@ -1003,7 +1003,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   select case (switch)
   case ('beginning')
-    ele => tao_beam_track_endpoint (value_str, u%model%lat, '', 'BEGGINING')
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, '', 'BEGGINING', u)
     if (.not. associated(ele)) return
     beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
@@ -1026,7 +1026,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
 
   case ('track_start', 'beam_track_start', 'track_end', 'beam_track_end')
-    ele => tao_beam_track_endpoint (value_str, u%model%lat, branch_str, switch)
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, branch_str, upcase(switch), u)
     if (.not. associated(ele)) return
 
     bb => u%model_branch(ele%ix_branch)%beam
@@ -1047,7 +1047,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     u%beam%dump_file = value_str
 
   case ('dump_at', 'beam_dump_at')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .true.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD DUMP_AT STRING: ' // value_str)
       return
@@ -1065,7 +1065,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     enddo
 
   case ('saved_at', 'beam_saved_at')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .true.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD SAVED_AT STRING: ' // value_str)
       return
@@ -1348,7 +1348,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     a_ptr(1)%r = set_val(1)
   endif
 
-  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START')
+  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START', who = who2)
 enddo
 
 end subroutine tao_set_particle_start_cmd
@@ -3428,7 +3428,7 @@ if (ix /= 0) then
   case ('ele_name', 'name')
     needs_quotes = .true.
     component = 'ele_id%' // component(ix+1:)
-  case ('shape', 'color', 'label')
+  case ('shape', 'color', 'label', 'ele_id')
     needs_quotes = .true.
   end select
 

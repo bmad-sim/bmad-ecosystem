@@ -26,7 +26,40 @@
 "Spin-Res-2" ABS 1E-9  1.943274E-01  4.581804E-01  1.462823E-01
 "Spin-Res-3" ABS 1E-9 -1.742571E-02  1.404553E-02  1.579951E-02
 "dPTC-Quad"   ABS 0      0.000049048   0.000000000  -0.000029432
-"dBmad-Quad"  ABS 0      0.000049048   0.000000000  -0.000029432
+"dBmad-Quad"  ABS 0      0.000049048  -0.000000000  -0.000029432
 "dRot"   ABS 1e-10     2.93E-01  4.13E-01  4.94E-01
 "Taylor-Taylor" ABS 1e-10   -0.50000000  0.40000000  0.30000000
 "PTC-Taylor" ABS 1e-10   -0.50000000  0.40000000  0.30000000
+"Polarization Limit ST" ABS 1e-8                     0.00000000
+"Polarization Limit DK" ABS 1e-8                     0.00000000
+"Polarization Limits DK (a,b,c-modes)" ABS 1e-8      0.00000000  0.00000000  0.00000000
+"Polarization Limits DK (bc,ac,ab-modes)" ABS 1e-8   0.00000000  0.00000000  0.00000000
+"Polarization Rate BKS" REL 1e-8         1.44802509E-05
+"Depolarization Rate" REL 1e-8           5.69044334E-04
+"Depolarization Rate Partial" REL 1e-8   5.10277794E-04  4.10236457E-06  1.04048639E-06
+"Depolarization Rate Partial2" REL 1e-8  1.81658388E-06  5.06163317E-04  5.76485078E-04
+"Integral g^3 * b_hat * n_0" REL 1e-8           0.00000000E+00
+"Integral g^3 * b_hat * dn/ddelta" REL 1e-8     2.71191375E-18
+"Integral g^3 (1 - 2(n * s_hat)/9)" REL 1e-8    1.34575854E-02
+"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1e-8  5.28855663E-01
+"orb-evec-1" ABS 1e-8    2.406797    0.399089    0.703623    0.002991
+"spin-re-evec-1" REL 1e-8 -4.68985050E+00  4.22193710E-01
+"spin-im-evec-1" REL 1e-8  4.03529761E-01  4.90355786E+00
+"orb-evec-2" ABS 1e-8    2.406797    0.399089    0.703623    0.002991
+"spin-re-evec-2" REL 1e-8 -4.68985050E+00  4.22193710E-01
+"spin-im-evec-2" REL 1e-8 -4.03529761E-01 -4.90355786E+00
+"orb-evec-3" ABS 1e-8    0.487345    0.059887    0.251203    0.001242
+"spin-re-evec-3" REL 1e-8  1.21103352E+00 -7.14952982E-01
+"spin-im-evec-3" REL 1e-8  1.75457148E-02 -2.99685682E-02
+"orb-evec-4" ABS 1e-8    0.487345    0.059887    0.251203    0.001242
+"spin-re-evec-4" REL 1e-8  1.21103352E+00 -7.14952982E-01
+"spin-im-evec-4" REL 1e-8 -1.75457148E-02  2.99685682E-02
+"orb-evec-5" ABS 1e-8    0.559385    0.081892    3.237229    0.155199
+"spin-re-evec-5" REL 1e-8  2.97259086E-04 -2.79231130E-03
+"spin-im-evec-5" REL 1e-8 -2.16290507E-02  5.17073042E-02
+"orb-evec-6" ABS 1e-8    0.559385    0.081892    3.237229    0.155199
+"spin-re-evec-6" REL 1e-8  2.97259086E-04 -2.79231130E-03
+"spin-im-evec-6" REL 1e-8  2.16290507E-02 -5.17073042E-02
+"Res-Strength-1" REL 1e-8    0.0665726        0.0392010
+"Res-Strength-2" REL 1e-8    0.4413666        0.1248851
+"Res-Strength-3" REL 1e-8    0.0130688        0.0146930

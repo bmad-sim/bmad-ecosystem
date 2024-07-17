@@ -161,7 +161,7 @@ type (ele_struct) ele_save
 type (nametable_struct), pointer :: nt
 type (converter_sub_distribution_struct), pointer :: sd_in, sd_out
 
-integer i, j, n, n1, n2, ub(2), ub1
+integer i, j, n, n1, n2, lb(2), ub(2), ub1
 logical update_nametable, comensurate
 
 ! 1) Save ele_out pointers in ele_save
@@ -259,22 +259,46 @@ if (associated(ele_in%photon)) then
   ele_out%photon => ele_save%photon  ! reinstate
   if (.not. associated(ele_out%photon)) allocate(ele_out%photon)
 
-  if (allocated (ele_in%photon%grid%pt)) then
-    ub = ubound(ele_in%photon%grid%pt)
-    if (allocated (ele_out%photon%grid%pt)) then
-      if (any(ub /= ubound(ele_out%photon%grid%pt))) deallocate (ele_out%photon%grid%pt)
+  if (allocated (ele_in%photon%segmented%pt)) then
+    lb = lbound(ele_in%photon%segmented%pt)
+    ub = ubound(ele_in%photon%segmented%pt)
+    if (allocated (ele_out%photon%segmented%pt)) then
+      if (any(ub /= ubound(ele_out%photon%segmented%pt))) deallocate (ele_out%photon%segmented%pt)
     endif
-    if (.not. allocated (ele_out%photon%grid%pt)) allocate (ele_out%photon%grid%pt(0:ub(1), 0:ub(2)))
+    if (.not. allocated (ele_out%photon%segmented%pt)) allocate (ele_out%photon%segmented%pt(lb(1):ub(1), lb(2):ub(2)))
   else
-    if (allocated(ele_out%photon%grid%pt)) deallocate (ele_out%photon%grid%pt)
+    if (allocated(ele_out%photon%segmented%pt)) deallocate (ele_out%photon%segmented%pt)
+  endif
+
+  if (allocated (ele_in%photon%displacement%pt)) then
+    lb = lbound(ele_in%photon%displacement%pt)
+    ub = ubound(ele_in%photon%displacement%pt)
+    if (allocated (ele_out%photon%displacement%pt)) then
+      if (any(ub /= ubound(ele_out%photon%displacement%pt))) deallocate (ele_out%photon%displacement%pt)
+    endif
+    if (.not. allocated (ele_out%photon%displacement%pt)) allocate (ele_out%photon%displacement%pt(lb(1):ub(1), lb(2):ub(2)))
+  else
+    if (allocated(ele_out%photon%displacement%pt)) deallocate (ele_out%photon%displacement%pt)
+  endif
+
+  if (allocated (ele_in%photon%h_misalign%pt)) then
+    lb = lbound(ele_in%photon%h_misalign%pt)
+    ub = ubound(ele_in%photon%h_misalign%pt)
+    if (allocated (ele_out%photon%h_misalign%pt)) then
+      if (any(ub /= ubound(ele_out%photon%h_misalign%pt))) deallocate (ele_out%photon%h_misalign%pt)
+    endif
+    if (.not. allocated (ele_out%photon%h_misalign%pt)) allocate (ele_out%photon%h_misalign%pt(lb(1):ub(1), lb(2):ub(2)))
+  else
+    if (allocated(ele_out%photon%h_misalign%pt)) deallocate (ele_out%photon%h_misalign%pt)
   endif
 
   if (allocated (ele_in%photon%pixel%pt)) then
+    lb = lbound(ele_in%photon%pixel%pt)
     ub = ubound(ele_in%photon%pixel%pt)
     if (allocated (ele_out%photon%pixel%pt)) then
       if (any(ub /= ubound(ele_out%photon%pixel%pt))) deallocate (ele_out%photon%pixel%pt)
     endif
-    if (.not. allocated (ele_out%photon%pixel%pt)) allocate (ele_out%photon%pixel%pt(0:ub(1), 0:ub(2)))
+    if (.not. allocated (ele_out%photon%pixel%pt)) allocate (ele_out%photon%pixel%pt(lb(1):ub(1), lb(2):ub(2)))
   else
     if (allocated(ele_out%photon%pixel%pt)) deallocate (ele_out%photon%pixel%pt)
   endif

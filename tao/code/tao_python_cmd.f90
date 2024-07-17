@@ -107,7 +107,7 @@ type (bunch_params_struct), pointer :: bunch_p
 type (bunch_track_struct), pointer :: bunch_params_comb(:)
 type (bunch_track_struct), pointer :: comb1
 type (ele_pointer_struct), allocatable :: eles(:), eles2(:)
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch2
 type (tao_model_branch_struct), pointer :: model_branch
 type (random_state_struct) ran_state
 type (ele_attribute_struct) attrib
@@ -247,10 +247,11 @@ call match_word (cmd, [character(40) :: &
           'ele:twiss', 'ele:wake', 'ele:wall3d', 'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
           'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
           'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'matrix', 'merit', 'orbit_at_s', &
-          'place_buffer', 'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
-          'plot_template_manage', 'plot_graph_manage', 'plot_curve_manage', &
-          'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'ptc_com', 'ring_general', &
+          'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
+          'plot_curve', 'plot_curve_manage', 'plot_graph', 'plot_graph_manage', 'plot_histogram', &
+          'plot_lat_layout', 'plot_line', 'plot_list', &
+          'plot_symbol', 'plot_template_manage', 'plot_transfer', 'plot1', &
+          'ptc_com', 'ring_general', &
           'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', &
           'shape_pattern_point_manage', 'shape_set', 'show', 'space_charge_com', 'species_to_int', 'species_to_str', &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
@@ -295,17 +296,19 @@ select case (command)
 ! Notes
 ! -----
 ! Command syntax:
-!   python beam {ix_uni}
+!   python beam {ix_uni}@{ix_branch}
 !
 ! Where:
 !   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 !
 ! Note: To set beam_init parameters use the "set beam" command.
 !
 ! Parameters
 ! ----------
 ! ix_uni : optional
-!    
+! ix_branch : ""
+!
 ! Returns
 ! -------
 ! string_list 
@@ -316,17 +319,29 @@ select case (command)
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ix_uni: 1
+!    ix_branch: 0
 
 case ('beam')
 
-  u => point_to_uni(line, .false., err); if (err) return
+  u => point_to_uni(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'always_reinit;LOGIC;T;',           u%beam%always_reinit
-  nl=incr(nl); write (li(nl), amt) 'track_start;STR;T;',               trim(u%model_branch(0)%beam%track_start)
-  nl=incr(nl); write (li(nl), amt) 'track_end;STR;T;',                 trim(u%model_branch(0)%beam%track_end)
+  nl=incr(nl); write (li(nl), lmt) 'track_beam_in_universe;LOGIC;F;',  u%beam%track_beam_in_universe
   nl=incr(nl); write (li(nl), amt) 'saved_at;STR;T;',                  trim(u%beam%saved_at)
   nl=incr(nl); write (li(nl), amt) 'dump_at;STR;T;',                   trim(u%beam%dump_at)
   nl=incr(nl); write (li(nl), amt) 'dump_file;STR;T;',                 trim(u%beam%dump_file)
+  nl=incr(nl); write (li(nl), amt) 'track_start;STR;T;',               trim(u%model_branch(ix_branch)%beam%track_start)
+  nl=incr(nl); write (li(nl), amt) 'track_end;STR;T;',                 trim(u%model_branch(ix_branch)%beam%track_end)
+  nl=incr(nl); write (li(nl), rmt) 'comb_ds_save;REAL;T;',             u%model%tao_branch(ix_branch)%comb_ds_save
+  nl=incr(nl); write (li(nl), rmt) 'comb_max_ds_save;REAL;T;',         u%model%tao_branch(ix_branch)%comb_max_ds_save
+  if (allocated(u%model%tao_branch(ix_branch)%bunch_params_comb)) then
+    nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  u%model%tao_branch(ix_branch)%bunch_params_comb(1)%ds_save
+    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              u%model%tao_branch(ix_branch)%bunch_params_comb(1)%max_ds_save
+  else
+    nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  -1.0_rp
+    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              -1.0_rp
+  endif
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -337,16 +352,18 @@ case ('beam')
 ! Notes
 ! -----
 ! Command syntax:
-!   python beam_init {ix_uni}
+!   python beam_init {ix_uni}@{ix_branch}
 !
 ! Where:
 !   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
 !
 ! Note: To set beam_init parameters use the "set beam_init" command
 !
 ! Parameters
 ! ----------
 ! ix_uni : optional
+! ix_branch : ""
 !
 ! Returns
 ! -------
@@ -358,11 +375,13 @@ case ('beam')
 !  init: -init $ACC_ROOT_DIR/regression_tests/python_test/csr_beam_tracking/tao.init
 !  args:
 !    ix_uni: 1
+!    ix_branch: 0
 
 case ('beam_init')
 
-  u => point_to_uni(line, .false., err); if (err) return
-  beam_init => u%model_branch(0)%beam%beam_init
+  u => point_to_uni(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
+  beam_init => u%model_branch(ix_branch)%beam%beam_init
 
 !!  nl=incr(nl); write (li(nl), amt) 'distribution_type;STR_ARR;T',           (';', trim(beam_init%distribution_type(k)), k = 1, 3)
   nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    trim(beam_init%position_file)
@@ -3526,7 +3545,7 @@ case ('ele:photon')
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%photon)) then
-    call invalid ('photon not allocated')
+    call invalid ('photon structure not allocated for element.')
     return
   endif
 
@@ -3534,7 +3553,6 @@ case ('ele:photon')
   select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), lmt) 'has#pixel;LOGIC;F;',  (allocated(ele%photon%pixel%pt))
-    nl=incr(nl); write (li(nl), lmt) 'grid#type;LOGIC;F;',  surface_grid_type_name(ele%photon%grid%type)
     nl=incr(nl); write (li(nl), lmt) 'has#material;LOGIC;F;', &
                            (attribute_name(ele, material_type$) == 'MATERIAL_TYPE' .or. ele%key == crystal$)
 
@@ -4238,7 +4256,7 @@ case ('enum')
 
 case ('floor_plan')
 
-  call tao_find_plots (err, line, 'BOTH', graph = graphs, only_visible = .false.)
+  call tao_find_plots (err, line, 'BOTH', graph = graphs, blank_means_all = .true., only_visible = .false.)
 
   if (err .or. size(graphs) /= 1) then
     call invalid ('Bad graph name')
@@ -4246,61 +4264,15 @@ case ('floor_plan')
   endif
 
   g => graphs(1)%g
-  u => tao_pointer_to_universe(g%ix_universe, .true.)
-  lat => u%model%lat
 
-  do ib = 0, ubound(lat%branch, 1)
-    branch => lat%branch(ib)
-    do i = 1, branch%n_ele_max
-      ele => branch%ele(i)
-      if (ele%slave_status == super_slave$) cycle
-      if (ele%lord_status == multipass_lord$) cycle
-      if (ele%key == overlay$) cycle
-      if (ele%key == group$) cycle
-      if (ele%key == girder$) cycle
-
-      ix_shape_min = 1
-      first_time = .true.
-      do
-        call tao_ele_shape_info (g%ix_universe, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
-        if (associated(shape)) then
-          color = shape%color
-          shape_shape = shape%shape
-          line_width = shape%line_width
-        else
-          if (.not. first_time) exit
-          y1 = 0
-          y2 = 0
-          color = ''
-          label_name = ''
-          shape_shape = ''
-          line_width = 0
-        endif
-        first_time = .false.
-
-        call find_element_ends(ele, ele1, ele2)
-        floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-        floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-
-        floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
-        floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-        call tao_floor_to_screen_coords (g, floor1, end1)
-        call tao_floor_to_screen_coords (g, floor2, end2)
-        if (ele%key == sbend$) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') ib, ';', i, ';', &
-                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
-                      ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
-        else
-          nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') ib, ';', i, ';', &
-                      trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
-                      end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-                      line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
-        endif
-      enddo
+  if (g%ix_universe == -2) then
+    do iu = 1, size(s%u)
+      call this_floor_plan(iu, g)
     enddo
-  enddo
+  else
+    iu = tao_universe_index(g%ix_universe)
+    call this_floor_plan(iu, g)
+  endif
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -4722,7 +4694,8 @@ case ('inum')
 
   case ('ix_bunch')
     u => point_to_uni(head, .false., err);  if (err) return
-    do i = 0, u%model_branch(0)%beam%beam_init%n_bunch
+    ix_branch = parse_branch(line, u, .false., err); if (err) return
+    do i = 0, u%model_branch(ix_branch)%beam%beam_init%n_bunch
       nl=incr(nl); write (li(nl), '(i0)') i
     enddo
 
@@ -5373,112 +5346,6 @@ case ('plot_curve')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
-!%% plot_lat_layout
-!
-! Output plot Lat_layout info
-!
-! Notes
-! -----
-! Command syntax:
-!   python plot_lat_layout {ix_uni}@{ix_branch}
-!
-! Note: The returned list of element positions is not ordered in increasing
-!       longitudinal position.
-! 
-! Parameters
-! ----------
-! ix_uni: 1
-! ix_branch: 0
-!
-! Returns
-! -------
-! string_list
-!
-! Examples
-! --------
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!    ix_uni: 1
-!    ix_branch: 0 
-
-case ('plot_lat_layout')
-
-  u => point_to_uni(line, .true., err); if (err) return
-  ix_branch = parse_branch(line, u, .false., err); if (err) return
-  branch => u%model%lat%branch(ix_branch)
-
-  do i = 1, branch%n_ele_track
-    ele => branch%ele(i)
-    if (ele%slave_status == super_slave$) cycle
-
-    ix_shape_min = 1
-    do
-      call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
-      y1 = y1 * s%plot_page%lat_layout_shape_scale
-      y2 = y2 * s%plot_page%lat_layout_shape_scale
-      if (.not. associated(shape)) exit
-      if (.not. shape%draw) cycle
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es22.14), (a, i0), 2a, 2(a, es10.2), 4a)') i, ';', ele%s_start, ';', ele%s, ';', &
-                shape%line_width, ';', trim(shape%shape), ';', y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
-    enddo
-  enddo
-
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
-!%% plot_list
-!
-! Output list of plot templates or plot regions.
-!
-! Notes
-! -----
-! Command syntax:
-!   python plot_list {r_or_g}
-!
-! where "{r/g}" is:
-!   "r"      ! list regions of the form ix;region_name;plot_name;visible;x1;x2;y1;y2
-!   "t"      ! list template plots of the form ix;name
-! 
-! Parameters
-! ----------
-! r_or_g
-!
-! Returns
-! -------
-! string_list
-!
-! Examples
-! --------
-! Example: 1
-!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
-!  args:
-!    r_or_g: r
-
-
-case ('plot_list')
-  if (line == 't') then
-    do i = 1, size(s%plot_page%template)
-      p => s%plot_page%template(i)
-      if (p%phantom) cycle
-      if (p%name == '') cycle
-      if (p%name == 'scratch') cycle
-      nl=incr(nl); write (li(nl), '(i0, 2a)') i, ';', trim(p%name)
-    enddo
-
-  elseif (line == 'r') then
-    do i = 1, size(s%plot_page%region)
-      pr => s%plot_page%region(i)
-      if (pr%name == '') cycle
-      nl=incr(nl); write (li(nl), '(i0, 5a, l1, 8a)') i, ';', trim(pr%name), ';', trim(pr%plot%name), ';', pr%visible, ';', &
-                      re_str(pr%location(1), 4), ';', re_str(pr%location(2), 4), ';', re_str(pr%location(3), 4), ';', re_str(pr%location(4), 4)
-    enddo
-
-  else
-    call invalid ('Expect "r" or "t"')
-  endif
-
-!------------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------------
 !%% plot_graph
 !
 ! Output graph info.
@@ -5556,57 +5423,72 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
   fp => g%floor_plan
-  nl=incr(nl); write (li(nl), '(50a)') 'floor_plan;STRUCT;T', ';view;ENUM;', fp%view, &
-      ';rotation;REAL;', to_str(fp%rotation, 6), ';flip_label_side;LOGIC;', logic_str(fp%flip_label_side), &
-      ';size_is_absolute;LOGIC;', logic_str(fp%size_is_absolute), ';draw_building_wall;LOGIC;', logic_str(fp%draw_building_wall), &
-      ';draw_only_first_pass;LOGIC;', logic_str(fp%draw_only_first_pass), ';correct_distortion;LOGIC;', logic_str(fp%correct_distortion), &
-      ';orbit_scale;REAL;', to_str(fp%orbit_scale, 4), ';orbit_color;ENUM;', trim(fp%orbit_color), &
-      ';orbit_lattice;ENUM;', trim(fp%orbit_lattice), &
-      ';orbit_width;INT;', int_str(fp%orbit_width), ';orbit_pattern;ENUM;', trim(fp%orbit_pattern)
-  
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.view;ENUM;T;',                   fp%view
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.rotation;REAL;T;',               to_str(fp%rotation, 6)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.flip_label_side;LOGIC;T;',       logic_str(fp%flip_label_side)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.size_is_absolute;LOGIC;T;',      logic_str(fp%size_is_absolute)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.draw_building_wall;LOGIC;T;',    logic_str(fp%draw_building_wall)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.draw_only_first_pass;LOGIC;T;',  logic_str(fp%draw_only_first_pass)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.correct_distortion;LOGIC;T;',    logic_str(fp%correct_distortion)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_scale;REAL;T;',            to_str(fp%orbit_scale, 4)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_color;ENUM;T;',            trim(fp%orbit_color)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_lattice;ENUM;T;',          trim(fp%orbit_lattice)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_width;INT;T;',             int_str(fp%orbit_width)
+  nl=incr(nl); write (li(nl), amt) 'floor_plan.orbit_pattern;ENUM;T;',          trim(fp%orbit_pattern)
 
-  if (s%global%external_plotting) then
-    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                            ';max;REAL;', to_str(x_ax%max,6), ';min;REAL;', to_str(x_ax%min,6), &
-                            ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers
-    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                            ';max;REAL;', to_str(y_ax%max,6), ';min;REAL;', to_str(y_ax%min,6), &
-                            ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers
-    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                            ';max;REAL;', to_str(g%y2%max,6), ';min;REAL;', to_str(g%y2%min,6), &
-                            ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers
-  else
-    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                    ';label_color;ENUM;', trim(x_ax%label_color), ';label_offset;REAL;', to_str(x_ax%label_offset,6), &
-                    ';max;REAL;', to_str(x_ax%max,6), ';min;REAL;', to_str(x_ax%min,6), &
-                    ';axis^type;ENUM;', trim(x_ax%type), ';bounds;ENUM;', trim(x_ax%bounds), &
-                    ';number_offset;REAL;', to_str(x_ax%number_offset,6), ';major_div_nominal;INT;', x_ax%major_div_nominal, &
-                    ';minor_div;INT;', x_ax%minor_div, ';minor_div_max;INT;', x_ax%minor_div_max, &
-                    ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers, &
-                    ';tick_side;INUM;', x_ax%tick_side, ';number_side;INUM;', x_ax%number_side, &
-                    ';major_tick_len;REAL;', to_str(x_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(x_ax%minor_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'x.label;STR;T;',                            trim(x_ax%label)
+  nl=incr(nl); write (li(nl), amt) 'x.label_color;ENUM;T;',                     trim(x_ax%label_color)
+  nl=incr(nl); write (li(nl), amt) 'x.label_offset;REAL;T;',                    to_str(x_ax%label_offset,6)
+  nl=incr(nl); write (li(nl), amt) 'x.max;REAL;T;',                             to_str(x_ax%max,6)
+  nl=incr(nl); write (li(nl), amt) 'x.min;REAL;T;',                             to_str(x_ax%min,6)
+  nl=incr(nl); write (li(nl), amt) 'x.axis^type;ENUM;T;',                       trim(x_ax%type)
+  nl=incr(nl); write (li(nl), amt) 'x.bounds;ENUM;T;',                          trim(x_ax%bounds)
+  nl=incr(nl); write (li(nl), amt) 'x.number_offset;REAL;T;',                   to_str(x_ax%number_offset,6)
+  nl=incr(nl); write (li(nl), imt) 'x.major_div_nominal;INT;T;',                x_ax%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'x.minor_div;INT;T;',                        x_ax%minor_div
+  nl=incr(nl); write (li(nl), imt) 'x.minor_div_max;INT;T;',                    x_ax%minor_div_max
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_label;LOGIC;T;',                     x_ax%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'x.draw_numbers;LOGIC;T;',                   x_ax%draw_numbers
+  nl=incr(nl); write (li(nl), imt) 'x.tick_side;INUM;T;',                       x_ax%tick_side
+  nl=incr(nl); write (li(nl), imt) 'x.number_side;INUM;T;',                     x_ax%number_side
+  nl=incr(nl); write (li(nl), amt) 'x.major_tick_len;REAL;T;',                  to_str(x_ax%major_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'x.minor_tick_len;REAL;T;',                  to_str(x_ax%minor_tick_len,6)
 
-    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                    ';label_color;ENUM;', trim(y_ax%label_color), ';label_offset;REAL;', to_str(y_ax%label_offset,6), &
-                    ';max;REAL;', to_str(y_ax%max,6), ';min;REAL;', to_str(y_ax%min,6), &
-                    ';axis^type;ENUM;', trim(y_ax%type), ';bounds;ENUM;', trim(y_ax%bounds), &
-                    ';number_offset;REAL;', to_str(y_ax%number_offset,6), ';major_div_nominal;INT;', y_ax%major_div_nominal, &
-                    ';minor_div;INT;', y_ax%minor_div, ';minor_div_max;INT;', y_ax%minor_div_max, &
-                    ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers, &
-                    ';tick_side;INUM;', y_ax%tick_side, ';number_side;INUM;', y_ax%number_side, &
-                    ';major_tick_len;REAL;', to_str(y_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(y_ax%minor_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'y.label;STR;T;',                            trim(y_ax%label)
+  nl=incr(nl); write (li(nl), amt) 'y.label_color;ENUM;T;',                     trim(y_ax%label_color)
+  nl=incr(nl); write (li(nl), amt) 'y.label_offset;REAL;T;',                    to_str(y_ax%label_offset,6)
+  nl=incr(nl); write (li(nl), amt) 'y.max;REAL;T;',                             to_str(y_ax%max,6)
+  nl=incr(nl); write (li(nl), amt) 'y.min;REAL;T;',                             to_str(y_ax%min,6)
+  nl=incr(nl); write (li(nl), amt) 'y.axis^type;ENUM;T;',                       trim(y_ax%type)
+  nl=incr(nl); write (li(nl), amt) 'y.bounds;ENUM;T;',                          trim(y_ax%bounds)
+  nl=incr(nl); write (li(nl), amt) 'y.number_offset;REAL;T;',                   to_str(y_ax%number_offset,6)
+  nl=incr(nl); write (li(nl), imt) 'y.major_div_nominal;INT;T;',                y_ax%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'y.minor_div;INT;T;',                        y_ax%minor_div
+  nl=incr(nl); write (li(nl), imt) 'y.minor_div_max;INT;T;',                    y_ax%minor_div_max
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_label;LOGIC;T;',                     y_ax%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'y.draw_numbers;LOGIC;T;',                   y_ax%draw_numbers
+  nl=incr(nl); write (li(nl), imt) 'y.tick_side;INUM;T;',                       y_ax%tick_side
+  nl=incr(nl); write (li(nl), imt) 'y.number_side;INUM;T;',                     y_ax%number_side
+  nl=incr(nl); write (li(nl), amt) 'y.major_tick_len;REAL;T;',                  to_str(y_ax%major_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'y.minor_tick_len;REAL;T;',                  to_str(y_ax%minor_tick_len,6)
 
-    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                    ';label_color;ENUM;', trim(g%y2%label_color), ';label_offset;REAL;', to_str(g%y2%label_offset,6), &
-                    ';max;REAL;', to_str(g%y2%max,6), ';min;REAL;', to_str(g%y2%min,6), &
-                    ';axis^type;ENUM;', trim(g%y2%type), ';bounds;ENUM;', trim(g%y2%bounds), &
-                    ';number_offset;REAL;', to_str(g%y2%number_offset,6), ';major_div_nominal;INT;', g%y2%major_div_nominal, &
-                    ';minor_div;INT;', g%y2%minor_div, ';minor_div_max;INT;', g%y2%minor_div_max, &
-                    ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers, &
-                    ';tick_side;INUM;', g%y2%tick_side, ';number_side;INUM;', g%y2%number_side, &
-                    ';major_tick_len;REAL;', to_str(g%y2%major_tick_len,6), ';minor_tick_len;REAL;', to_str(g%y2%minor_tick_len,6)
-
-  endif
+  nl=incr(nl); write (li(nl), amt) 'y2.label;STR;T;',                           trim(g%y2%label)
+  nl=incr(nl); write (li(nl), amt) 'y2.label_color;ENUM;T;',                    trim(g%y2%label_color)
+  nl=incr(nl); write (li(nl), amt) 'y2.label_offset;REAL;T;',                   to_str(g%y2%label_offset,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.max;REAL;T;',                            to_str(g%y2%max,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.min;REAL;T;',                            to_str(g%y2%min,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.axis^type;ENUM;T;',                      trim(g%y2%type)
+  nl=incr(nl); write (li(nl), amt) 'y2.bounds;ENUM;T;',                         trim(g%y2%bounds)
+  nl=incr(nl); write (li(nl), amt) 'y2.number_offset;REAL;T;',                  to_str(g%y2%number_offset,6)
+  nl=incr(nl); write (li(nl), imt) 'y2.major_div_nominal;INT;T;',               g%y2%major_div_nominal
+  nl=incr(nl); write (li(nl), imt) 'y2.minor_div;INT;T;',                       g%y2%minor_div
+  nl=incr(nl); write (li(nl), imt) 'y2.minor_div_max;INT;T;',                   g%y2%minor_div_max
+  nl=incr(nl); write (li(nl), lmt) 'y2.draw_label;LOGIC;T;',                    g%y2%draw_label
+  nl=incr(nl); write (li(nl), lmt) 'y2.draw_numbers;LOGIC;T;',                  g%y2%draw_numbers
+  nl=incr(nl); write (li(nl), imt) 'y2.tick_side;INUM;T;',                      g%y2%tick_side
+  nl=incr(nl); write (li(nl), imt) 'y2.number_side;INUM;T;',                    g%y2%number_side
+  nl=incr(nl); write (li(nl), amt) 'y2.major_tick_len;REAL;T;',                 to_str(g%y2%major_tick_len,6)
+  nl=incr(nl); write (li(nl), amt) 'y2.minor_tick_len;REAL;T;',                 to_str(g%y2%minor_tick_len,6)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -5652,6 +5534,133 @@ case ('plot_histogram')
   nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        c%hist%width
   nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       c%hist%center
   nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       c%hist%number
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% plot_lat_layout
+!
+! Output plot Lat_layout info
+!
+! Notes
+! -----
+! Command syntax:
+!   python plot_lat_layout {ix_uni}@{ix_branch}
+!
+! Note: The returned list of element positions is not ordered in increasing
+!       longitudinal position.
+! 
+! Parameters
+! ----------
+! ix_uni: 1
+! ix_branch: 0
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!    ix_uni: 1
+!    ix_branch: 0 
+
+case ('plot_lat_layout')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
+  lat => u%model%lat
+  branch => lat%branch(ix_branch)
+
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
+    if (ele%slave_status == super_slave$) cycle
+
+    ix_shape_min = 1
+    do
+      call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
+      if (.not. associated(shape)) exit
+      if (.not. shape%draw) cycle
+      y1 = y1 * s%plot_page%lat_layout_shape_scale
+      y2 = y2 * s%plot_page%lat_layout_shape_scale
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es22.14, a), (i0, a), 2a, 2(es10.2, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
+                ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', trim(shape%shape), ';', &
+                y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
+    enddo
+  enddo
+
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    ele => lat%ele(i)
+    if (ele%lord_status == multipass_lord$) cycle
+    branch2 => pointer_to_branch(ele)
+    if (branch2%ix_branch /= branch%ix_branch) cycle
+
+    ix_shape_min = 1
+    do
+      call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
+      if (.not. associated(shape)) exit
+      if (.not. shape%draw) cycle
+      y1 = y1 * s%plot_page%lat_layout_shape_scale
+      y2 = y2 * s%plot_page%lat_layout_shape_scale
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es22.14, a), (i0, a), 2a, 2(es10.2, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
+                ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', trim(shape%shape), ';', &
+                y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
+    enddo
+  enddo
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% plot_list
+!
+! Output list of plot templates or plot regions.
+!
+! Notes
+! -----
+! Command syntax:
+!   python plot_list {r_or_g}
+!
+! where "{r/g}" is:
+!   "r"      ! list regions of the form ix;region_name;plot_name;visible;x1;x2;y1;y2
+!   "t"      ! list template plots of the form ix;name
+! 
+! Parameters
+! ----------
+! r_or_g
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/python_test/cesr/tao.init
+!  args:
+!    r_or_g: r
+
+
+case ('plot_list')
+  if (line == 't') then
+    do i = 1, size(s%plot_page%template)
+      p => s%plot_page%template(i)
+      if (p%phantom) cycle
+      if (p%name == '') cycle
+      if (p%name == 'scratch') cycle
+      nl=incr(nl); write (li(nl), '(i0, 2a)') i, ';', trim(p%name)
+    enddo
+
+  elseif (line == 'r') then
+    do i = 1, size(s%plot_page%region)
+      pr => s%plot_page%region(i)
+      if (pr%name == '') cycle
+      nl=incr(nl); write (li(nl), '(i0, 5a, l1, 8a)') i, ';', trim(pr%name), ';', trim(pr%plot%name), ';', pr%visible, ';', &
+                      re_str(pr%location(1), 4), ';', re_str(pr%location(2), 4), ';', re_str(pr%location(3), 4), ';', re_str(pr%location(4), 4)
+    enddo
+
+  else
+    call invalid ('Expect "r" or "t"')
+  endif
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -7180,7 +7189,7 @@ case ('spin_resonance')
 case ('super_universe')
 
   nl=incr(nl); write (li(nl), imt) 'n_universe;INT;F;',                ubound(s%u, 1)
-  nl=incr(nl); write (li(nl), imt) 'n_v1_var_used;INT;F',              s%n_v1_var_used
+  nl=incr(nl); write (li(nl), imt) 'n_v1_var_used;INT;F;',             s%n_v1_var_used
   nl=incr(nl); write (li(nl), imt) 'n_var_used;INT;F;',                s%n_var_used
 
 !------------------------------------------------------------------------------------------------
@@ -7365,7 +7374,9 @@ case ('universe')
 ! Notes
 ! -----
 ! Command syntax:
-!   python var {var} slaves
+!   python var {var} {slaves}
+!
+! Note: use "python var_general" to get a list of variables.
 ! 
 ! Parameters
 ! ----------
@@ -9133,5 +9144,117 @@ case (3)
 end select
 
 end subroutine write_this_ele_floor
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine this_floor_plan (iu, graph)
+
+type (tao_graph_struct) :: graph
+type (lat_struct), pointer :: lat
+type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele, slave
+
+real(rp) y1, y2
+integer iu, n, i, j, ix_shape_min, ix_pass, n_links
+character(40) label_name
+
+!
+
+lat => s%u(iu)%model%lat
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  branch%ele%logic = .false.  ! Used to mark as drawn.
+  do i = 0, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%slave_status == super_slave$) cycle
+
+    ix_shape_min = 1
+    do
+      call tao_ele_shape_info(iu, ele, s%plot_page%floor_plan%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
+      if (.not. associated(ele_shape) .and. (ele%key == overlay$ .or. &
+                                             ele%key == group$ .or. ele%key == girder$)) exit   ! Nothing to draw
+
+      if (graph%floor_plan%draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
+        call multipass_chain (ele, ix_pass, n_links)
+        if (ix_pass > 1) exit
+      endif
+
+      if (ele%lord_status == multipass_lord$) then
+        do j = 1, ele%n_slave
+          if (graph%floor_plan%draw_only_first_pass .and. j > 1) exit
+          slave => pointer_to_slave(ele, j)
+          ele_shape2 => tao_pointer_to_ele_shape (iu, slave, s%plot_page%floor_plan%ele_shape)
+          if (associated(ele_shape2)) cycle ! Already drawn. Do not draw twice
+          call this_floor_plan2 (graph, slave, ele_shape, label_name, y1, y2)
+        enddo
+      else
+        call this_floor_plan2 (graph, ele, ele_shape, label_name, y1, y2)
+      endif
+      if (.not. associated(ele_shape)) exit
+      if (.not. ele_shape%multi) exit
+    enddo
+
+  enddo
+enddo
+
+end subroutine this_floor_plan
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine this_floor_plan2 (graph, ele, ashape, label_name, y1, y2)
+
+type (tao_graph_struct) :: graph
+type (ele_struct) ele
+type (tao_ele_shape_struct), pointer :: ashape
+type (ele_struct), pointer :: ele1, ele2
+type (floor_position_struct) floor, floor1, floor2
+
+real(rp) y1, y2
+integer line_width
+character(40) color, label_name, shape_shape
+
+!
+
+call find_element_ends (ele, ele1, ele2)
+if (.not. associated(ele1)) return
+
+if (.not. associated(ashape)) then
+  color = ''
+  label_name = ''
+  shape_shape = ''
+  line_width = 0
+else
+  color = ashape%color
+  shape_shape = ashape%shape
+  line_width = ashape%line_width
+endif
+
+floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+
+floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
+floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+call tao_floor_to_screen_coords (graph, floor1, end1)
+call tao_floor_to_screen_coords (graph, floor2, end2)
+if (ele%key == sbend$) then
+  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') &
+              ele%ix_branch, ';', ele%ix_ele, ';', &
+              trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+              end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+              line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
+              ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
+else
+  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') &
+              ele%ix_branch, ';', ele%ix_ele, ';', &
+              trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
+              end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
+              line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
+endif
+
+end subroutine this_floor_plan2
 
 end subroutine tao_python_cmd

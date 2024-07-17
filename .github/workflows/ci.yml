@@ -21,12 +21,12 @@ on:
   ##   types:
   ##     - "published"
 
-# Configuration for the version of external dependencies
+# Configuration for the version of external packages
 # We do this so we can cache them and avoid checking out that big
 # repository at all times.
 
 env:
-  EXTERNAL_DEPS_VERSION: main
+  EXTERNAL_PACKAGES_VERSION: main
 
 #
 jobs:
@@ -60,16 +60,17 @@ jobs:
       # libcairo2-dev libpango1.0-dev libxt-dev libx11-dev -y
 
       # In case we don't have it available, check it out
-      - name: Checkout External Dependencies
+      - name: Checkout External Packages
         run: |
-          git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
+          git clone --depth 1 --branch ${{ env.EXTERNAL_PACKAGES_VERSION }} https://github.com/bmad-sim/bmad-external-packages.git ~/external_packages
 
       #
-      - name: Extract dependencies
+      - name: Move External Packages
         run: |
-          for dep in ~/external_deps/*.tar.gz; \
-          do \
-            tar xzvf $dep -C $GITHUB_WORKSPACE/; \
+          for dep in ~/external_packages/*; \
+          do if [ $dep != "README.md" ]; \
+            then cp -r $dep $GITHUB_WORKSPACE/; \
+            fi; \
           done
 
       #

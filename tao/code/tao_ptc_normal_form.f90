@@ -43,6 +43,7 @@ if (ptc_nf%valid_map) then
   call kill(ptc_nf%phase)
   call kill(ptc_nf%spin_tune)
   call kill(ptc_nf%path_length)
+  call kill(ptc_nf%isf)
   ptc_nf%valid_map = .false.
 endif
 
@@ -63,6 +64,7 @@ call alloc(ptc_nf%normal_form)
 call alloc(ptc_nf%phase)
 call alloc(ptc_nf%spin_tune)
 call alloc(ptc_nf%path_length)
+call alloc(ptc_nf%isf)
 call alloc(beta)
 call alloc(c_da)
 call alloc(c_tay)
@@ -79,6 +81,12 @@ c_da = 1
 beta = c_da%v(6)
 beta = (1 + beta) / sqrt((1+beta)**2 + mm**2)
 ptc_nf%path_length = (branch%param%total_length - ptc_nf%phase(3)) * beta / beta0
+
+c_da%q%x = 0.0d0
+c_da%q%x(2) = 1.0d0
+c_da = ptc_nf%normal_form%atot*c_da*ptc_nf%normal_form%atot**(-1)
+ptc_nf%isf = c_da%q
+
 
 ! this_rf_on = rf_is_on(branch)
 ! call normal_form_taylors(normal_form%m, this_rf_on, dhdj = normal_form%dhdj, &

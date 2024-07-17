@@ -111,25 +111,23 @@ do ib = 0, ubound(lat%branch, 1)
     if (.not. has_been_added) cycle
 
     ! Write element def
+    ! The beginning element for all branches has the same name so use a unique name here.
 
+    if (ie == 0) ele%name = 'begin' // int_str(ib+1)
+    if (ie == branch%n_ele_track .and. ele%name == 'END') ele%name = 'end' // int_str(ib+1)
     line = '@ele ' // trim(downcase(ele%name)) // ' = ' // trim(julia_name(ele%key)) // '('
 
-    if (ele%field_master) write (line, '(3a)') trim(line), ', field_master = ', jbool(ele%field_master)
-    if (.not. ele%is_on) write (line, '(3a)') trim(line), ', is_on = ', jbool(ele%is_on)
-
-    !
-
-    if (ele%key == beginning_ele$) then
-      line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$)) 
-      line = trim(line) // ', species_ref = ' // re_str(ele%value(p0c$)) 
-      if (ele%a%beta /= 0) line = trim(line) // ', twiss.a.beta = ' // re_str(ele%a%beta) 
-      if (ele%b%beta /= 0) line = trim(line) // ', twiss.b.beta = ' // re_str(ele%b%beta) 
-      if (ele%a%alpha /= 0) line = trim(line) // ', twiss.a.alpha = ' // re_str(ele%a%alpha) 
-      if (ele%b%alpha /= 0) line = trim(line) // ', twiss.b.alpha = ' // re_str(ele%b%alpha) 
-      if (ele%x%eta /= 0) line = trim(line) // ', twiss.x.eta = ' // re_str(ele%x%eta) 
-      if (ele%y%eta /= 0) line = trim(line) // ', twiss.y.eta = ' // re_str(ele%y%eta) 
-      if (ele%x%etap /= 0) line = trim(line) // ', twiss.x.etap = ' // re_str(ele%x%etap) 
-      if (ele%y%etap /= 0) line = trim(line) // ', twiss.y.etap = ' // re_str(ele%y%etap) 
+    if (ie == 0) then
+      line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
+      line = trim(line) // ', species_ref = ' // trim(openpmd_species_name(ele%ref_species))
+      if (ele%a%beta /= 0) line = trim(line) // ', twiss.a.beta = ' // re_str(ele%a%beta)
+      if (ele%b%beta /= 0) line = trim(line) // ', twiss.b.beta = ' // re_str(ele%b%beta)
+      if (ele%a%alpha /= 0) line = trim(line) // ', twiss.a.alpha = ' // re_str(ele%a%alpha)
+      if (ele%b%alpha /= 0) line = trim(line) // ', twiss.b.alpha = ' // re_str(ele%b%alpha)
+      if (ele%x%eta /= 0) line = trim(line) // ', twiss.x.eta = ' // re_str(ele%x%eta)
+      if (ele%y%eta /= 0) line = trim(line) // ', twiss.y.eta = ' // re_str(ele%y%eta)
+      if (ele%x%etap /= 0) line = trim(line) // ', twiss.x.etap = ' // re_str(ele%x%etap)
+      if (ele%y%etap /= 0) line = trim(line) // ', twiss.y.etap = ' // re_str(ele%y%etap)
       if (any(ele%c_mat /= 0)) line = trim(line) // ', twiss.c_mat = [' // re_str(ele%c_mat(1,1)) // ', ' // re_str(ele%c_mat(1,2)) // &
                                                                    '; ' // re_str(ele%c_mat(2,1)) // ', ' // re_str(ele%c_mat(2,2)) // ']'
       orb => lat%particle_start
@@ -137,7 +135,11 @@ do ib = 0, ubound(lat%branch, 1)
                         re_str(orb%vec(3)) // ', ' // re_str(orb%vec(4)) // ', ' // re_str(orb%vec(5)) // ', ' // re_str(orb%vec(6)) // ']'
       if (any(orb%spin /= 0)) line = trim(line) // ', particle.spin = [' // &
                                              re_str(orb%spin(1)) // ', ' // re_str(orb%spin(2)) // ', ' //re_str(orb%spin(3)) // ']'
+
     endif
+
+    if (ele%field_master) write (line, '(3a)') trim(line), ', field_master = ', jbool(ele%field_master)
+    if (.not. ele%is_on) write (line, '(3a)') trim(line), ', is_on = ', jbool(ele%is_on)
 
     !
 
@@ -299,7 +301,7 @@ do ib = 0, ubound(lat%branch, 1)
   mult_ele => mult_lat%branch(ib)%ele
   in_multi_region = .false.
 
-  do ie = 1, branch%n_ele_track
+  do ie = 0, branch%n_ele_track
     ele => branch%ele(ie)
     ix_pass = m_info%branch(ib)%ele(ie)%ix_pass
     if (ix_pass /= 1) cycle 
@@ -346,13 +348,13 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(a)')
   name = downcase(branch%name)
   if (name == '') name = 'lat_line'
-  line = trim(name) // ' = beamline(' // quote(name) // ', ['
+  line = trim(name) // ' = beamline(' // quote(name) // ', [' // trim(branch%ele(0)%name) // ','
 
   in_multi_region = .false.
-  do ie = 0, branch%n_ele_track
-    e_info => m_info%branch(ib)%ele(max(1,ie))
-    ele => branch%ele(max(1,ie))
-    if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+
+    e_info => m_info%branch(ib)%ele(ie)
 
     if (.not. e_info%multipass) then
       call write_julia_element (line, iu, ele, lat)

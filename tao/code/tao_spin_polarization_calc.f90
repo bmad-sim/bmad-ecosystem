@@ -132,6 +132,8 @@ do ie = 0, branch%n_ele_track
 
   ele => branch%ele(ie)
 
+  n0       = quat_rotate(tspin%q_ele(ie)%spin_q(:,0), n0)
+
   if (branch%param%geometry == closed$) then
     tspin%q_1turn = tspin%q_ele(ie) * tspin%q_1turn * map1_inverse(tspin%q_ele(ie))
     dn_dpz = spin_dn_dpz_from_qmap(tspin%q_1turn%orb_mat, tspin%q_1turn%spin_q, partial, partial2, err)
@@ -140,14 +142,11 @@ do ie = 0, branch%n_ele_track
     tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
     tao_branch%spin_ele(ie)%dn_dpz%partial  = partial
     tao_branch%spin_ele(ie)%dn_dpz%partial2 = partial2
-    n0 = tspin%q_1turn%spin_q(1:3, 0)
-    n0 = n0 / norm2(n0)
     if (ie == 0) cycle
 
   else
     if (ie == 0) cycle
     dn_dpz   = quat_sym(ele, tspin%q_ele(ie)%spin_q, n0) + quat_rotate(tspin%q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
-    n0       = quat_rotate(tspin%q_ele(ie)%spin_q(:,0), n0)
     partial  = 0
     partial2 = 0
     tao_branch%spin_ele(ie)%valid = .true.

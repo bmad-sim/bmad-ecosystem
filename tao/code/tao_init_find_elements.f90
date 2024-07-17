@@ -67,7 +67,7 @@ enddo
 
 ! Find elements
 
-call tao_locate_elements (string, u%ix_uni, eles, err, print_err = s_nooutput$)
+call tao_locate_elements (string, u%ix_uni, eles, err, err_stat_level = s_nooutput$)
 if (size(eles) > 0 .and. present(found_one)) found_one = .true.
 
 warn_given = .false.

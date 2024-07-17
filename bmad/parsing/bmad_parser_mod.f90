@@ -87,7 +87,7 @@ type (photon_reflect_table_struct), pointer :: rt
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2), vec(1000)
 real(rp), allocatable :: table(:,:), arr(:)
-real(rp), pointer :: r_ptr
+real(rp), pointer :: r_ptr, r1_ptr(:)
 
 integer i, i2, j, k, n, na, ne, nn, nt, ix_word, how, ix_word1, ix_word2, ios, ix, iy, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_ptr, i_term, ib, ie, im
@@ -1170,15 +1170,8 @@ case ('REFLECTIVITY_TABLE')
 
 !
 
-case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
+case ('PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
   ph => ele%photon
-
-  name = attrib_word
-  if (attrib_word == 'SURFACE') then
-    if (ele%key == detector$) name = 'PIXEL'
-  elseif (attrib_word /= 'PIXEL') then
-    call match_word (attrib_word, surface_grid_type_name(1:), ph%grid%type)
-  endif
 
   if (.not. expect_this ('=', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
@@ -1192,11 +1185,12 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
       return
     endif
 
-    if (attrib_word == 'PIXEL') then
-      ph%pixel = ele2%photon%pixel
-    else
-      ph%grid = ele2%photon%grid
-    endif
+    select case (attrib_word)
+    case ('PIXEL');         ph%pixel        = ele2%photon%pixel
+    case ('DISPLACEMENT');  ph%displacement = ele2%photon%displacement
+    case ('H_MISALIGN');    ph%h_misalign   = ele2%photon%h_misalign
+    case ('SEGMENTED');     ph%segmented    = ele2%photon%segmented
+    end select
 
     return
   endif
@@ -1204,18 +1198,6 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
   !
 
   if (.not. expect_this ('{', .true., .true., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-
-  if (attrib_word == 'SURFACE') then   ! Old style
-!!!    call parser_error ('Old style "SURFACE" construct. Please change this (see Bmad manual).', level = s_warn$)
-    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-    ! Expect "GRID = {" 
-    if (word /= 'GRID') then
-      call parser_error ('EXPECT "GRID" AFTER "SURFACE" BUT GOT: ' // word, 'FOR: ' // ele%name)
-      return
-    endif
-    if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"', ele, delim, delim_found)) return
-  endif
-
   ix_bounds = int_garbage$; iy_bounds = int_garbage$
 
   do
@@ -1224,31 +1206,19 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
       if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN ' // trim(attrib_word) // ' CONSTRUCT', ele, delim, delim_found)) return
     endif
 
+    who = trim(attrib_word) // '%' //trim(word)
+
     select case (word)
-    case ('TYPE')   ! This is old style.
-      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ph%grid%type, err_flag2, ele, delim, delim_found)
-      if (err_flag2) return
-      bp_com%parse_line = delim // bp_com%parse_line
-
     case ('ACTIVE')
-      call parser_get_logical (word, ph%grid%active, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
+      call pointer_to_attribute(ele, who, .false., a_ptr, err_flag2)
+      call parser_get_logical (word, a_ptr%l, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
 
-    case ('DR')
-      if (name == 'PIXEL') then
-        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', ph%pixel%dr, .true., delim, delim_found)) return
-      else
-        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', ph%grid%dr, .true., delim, delim_found)) return
-      endif
-
-    case ('R0')
-      if (name == 'PIXEL') then
-        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', ph%pixel%r0, .true., delim, delim_found)) return
-      else
-        if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', ph%grid%r0, .true., delim, delim_found)) return
-      endif
+    case ('DR', 'R0')
+      call pointer_to_attribute(ele, who, .false., a_ptr, err_flag2)
+      if (.not. parse_real_list (lat, trim(ele%name) // ' ' // who, a_ptr%r1, .true., delim, delim_found)) return
 
     case ('IX_BOUNDS', 'IY_BOUNDS')
-      if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), lat, i_vec, .true., delim, delim_found)) return
+      if (.not. parse_integer_list (trim(ele%name) // who, lat, i_vec, .true., delim, delim_found)) return
       if (word == 'IX_BOUNDS') ix_bounds = i_vec
       if (word == 'IY_BOUNDS') iy_bounds = i_vec
 
@@ -1259,60 +1229,82 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
           return
         endif
 
-        if (name == 'PIXEL') then
+        select case (attrib_word)
+        case ('PIXEL')
           if (allocated (ph%pixel%pt)) deallocate (ph%pixel%pt)
           allocate (ph%pixel%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
-        else
-          if (allocated (ph%grid%pt)) deallocate (ph%grid%pt)
-          allocate (ph%grid%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
-        endif
+        case ('DISPLACEMENT')
+          if (allocated (ph%displacement%pt)) deallocate (ph%displacement%pt)
+          allocate (ph%displacement%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
+          ph%displacement%active = .true.
+        case ('H_MISALIGN')
+          if (allocated (ph%h_misalign%pt)) deallocate (ph%h_misalign%pt)
+          allocate (ph%h_misalign%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
+          ph%h_misalign%active = .true.
+        case ('SEGMENTED')
+          if (allocated (ph%segmented%pt)) deallocate (ph%segmented%pt)
+          allocate (ph%segmented%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
+          ph%segmented%active = .true.
+        end select
       endif
 
     case ('PT')
       bp_com%parse_line = delim // bp_com%parse_line
-      if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, i_vec, .true., delim, delim_found)) return
+      if (.not. parse_integer_list (trim(ele%name) // ' ' // trim(attrib_word) // ' PT', lat, i_vec, .true., delim, delim_found)) return
 
-      if (.not. allocated(ph%grid%pt)) then
-        call parser_error ('IX_BOUNDS OR IY_BOUNDS MISSING WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
-        return
-      endif
+      select case (attrib_word)
+      case ('H_MISALIGN')
+        if (.not. allocated(ph%h_misalign%pt)) then
+          call parser_error ('IX_BOUNDS OR IY_BOUNDS MISSING WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
+          return
+        endif
 
-      if (any(i_vec < lbound(ph%grid%pt)) .or. any(i_vec > ubound(ph%grid%pt))) then
-        call parser_error ('PT(I,J) INDEX OUT OF BOUNDS WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
-        return
-      endif
+        if (any(i_vec < lbound(ph%h_misalign%pt)) .or. any(i_vec > ubound(ph%h_misalign%pt))) then
+          call parser_error ('PT(I,J) INDEX OUT OF BOUNDS WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
+          return
+        endif
 
-      if (.not. expect_this ('=', .false., .false., 'IN GRID PT', ele, delim, delim_found)) return
+        if (.not. expect_this ('=', .false., .false., 'IN H_MISALIGN PT', ele, delim, delim_found)) return
 
-      if (ph%grid%type == h_misalign$) then
         if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .true., delim, delim_found)) return
-        ph%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+        ph%h_misalign%pt(i_vec(1), i_vec(2)) = surface_h_misalign_pt_struct(0.0_rp, 0.0_rp, r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
-      elseif (ph%grid%type == displacement$) then
+      case ('DISPLACEMENT')
+        if (.not. allocated(ph%displacement%pt)) then
+          call parser_error ('IX_BOUNDS OR IY_BOUNDS MISSING WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
+          return
+        endif
+
+        if (any(i_vec < lbound(ph%displacement%pt)) .or. any(i_vec > ubound(ph%displacement%pt))) then
+          call parser_error ('PT(I,J) INDEX OUT OF BOUNDS WHEN CONSTRUCTING: ' // attrib_word, 'FOR: ' // ele%name)
+          return
+        endif
+
+        if (.not. expect_this ('=', .false., .false., 'IN GRID PT', ele, delim, delim_found)) return
+
         r_vec(1:4) = real_garbage$
         if (.not. parse_real_list (lat, trim(ele%name) // 'IN GRID PT', r_vec(1:4), .false., delim, delim_found, num_found = n)) return
         if (n /= 1 .and. n /= 3 .and. n /= 4) then
-          call parser_error ('NUMBER OF PT(I,J) VALUES NOT 1, 3, NOR 4 FOR SURFACE GRID OF: ' // ele%name)
+          call parser_error ('NUMBER OF PT(I,J) VALUES NOT 1, 3, NOR 4 FOR SURFACE DISPLACEMENT OF: ' // ele%name)
           return
         endif
-        ph%grid%pt(i_vec(1), i_vec(2))%z0 = r_vec(1)
-        ph%grid%pt(i_vec(1), i_vec(2))%dz_dx = r_vec(2)
-        ph%grid%pt(i_vec(1), i_vec(2))%dz_dy = r_vec(3)
-        ph%grid%pt(i_vec(1), i_vec(2))%d2z_dxdy = r_vec(4)
-      elseif (ph%grid%type == not_set$) then
-        call parser_error ('THE SURFACE GRID TYPE MUST BE SET BEFORE SETTING A TABLE OF SURFACE GRID "PT" POINTS.', &
-                           'FOR: ' // ele%name)
+        ph%displacement%pt(i_vec(1), i_vec(2))%z0 = r_vec(1)
+        ph%displacement%pt(i_vec(1), i_vec(2))%dz_dx = r_vec(2)
+        ph%displacement%pt(i_vec(1), i_vec(2))%dz_dy = r_vec(3)
+        ph%displacement%pt(i_vec(1), i_vec(2))%d2z_dxdy = r_vec(4)
+
+      case default
+        call parser_error ('A TABLE OF SURFACE DISPLACEMENT "PT" POINTS IS NOT ALLOWED IF THE DISPLACEMENT TYPE IS', &
+                           'SOMETHING OTHER THAN "DISPLACEMENT" OR "H_MISALIGN" FOR: ' // ele%name)
         return
-      else
-        call parser_error ('A TABLE OF SURFACE GRID "PT" POINTS IS NOT ALLOWED IF THE GRID TYPE IS', &
-                           'SOMETHING OTHER THAN "OFFSET" OR "H_MISALIGN" FOR: ' // ele%name)
-        return
-      endif
+      end select
 
     case default
-      call parser_error ('GRID COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
+      call parser_error (trim(attrib_word) // ' COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
       return
     end select
+
+    !
 
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
@@ -1322,12 +1314,7 @@ case ('SURFACE', 'PIXEL', 'DISPLACEMENT', 'H_MISALIGN', 'SEGMENTED')
       bp_com%parse_line = bp_com%parse_line(2:)
     endif
 
-    if (delim == '}') then
-      if (attrib_word == 'SURFACE') then
-        if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
-      endif
-      exit
-    endif
+    if (delim == '}') exit
   enddo
 
   if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
@@ -1971,6 +1958,10 @@ case ('ENERGY_DISTRIBUTION')
 case ('EXACT_MULTIPOLES')
   call get_switch (attrib_word, exact_multipoles_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(exact_multipoles$) = ix
+
+case ('FIDUCIAL_PT')
+  call get_switch (attrib_word, fiducial_pt_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(fiducial_pt$) = ix
 
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -5951,11 +5942,11 @@ subroutine compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 implicit none
 
 type (ele_struct), target :: ref_ele, super_ele
-type (ele_struct), pointer :: slave
+type (ele_struct), pointer :: slave, ele
 type (parser_ele_struct) pele
 type (branch_struct), pointer :: branch
 
-integer i, ix, ix_insert, ele_pt, ref_pt
+integer i, ie, ix, nt, ix_insert, ele_pt, ref_pt, offset_dir, ix_ref
 
 real(rp) s_ref_begin, s_ref_end, s0, len_tiny
 logical reflected_or_reversed
@@ -5974,6 +5965,7 @@ if (reflected_or_reversed) then
 else
   super_ele%s = pele%offset
 endif
+offset_dir = sign_of(super_ele%s)
 
 ele_pt = pele%ele_pt
 if (reflected_or_reversed) then
@@ -6003,6 +5995,14 @@ case (overlay$, group$, girder$)
     slave => pointer_to_slave(ref_ele, i)
     s_ref_begin = min(s_ref_begin, slave%s_start)
     s_ref_end = max(s_ref_end, slave%s)
+
+    if (i == 1) then
+      ix_ref = slave%ix_ele
+    elseif (offset_dir == 1) then
+      ix_ref = min(ix_ref, slave%ix_ele)
+    else
+      ix_ref = max(ix_ref, slave%ix_ele)
+    endif
   enddo
 case (ramper$)
   call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON RAMPER' // pele%ref_name)
@@ -6010,6 +6010,7 @@ case (ramper$)
 case default
   s_ref_begin = ref_ele%s_start
   s_ref_end = ref_ele%s
+  ix_ref = ref_ele%ix_ele
 end select
 
 ! Now compute the s position at the end of the element and put it in ele%s.
@@ -6034,11 +6035,67 @@ else
   if (global_com%exit_on_error) call err_exit
 endif
 
+! Check that there are no problems with bends of not yet determined length
+
+branch => pointer_to_branch(ref_ele)
+nt = branch%n_ele_track
+
+if (offset_dir == 1) then
+  do ie = ix_ref, nt
+    ele => branch%ele(ie)
+    if (ele%s_start > super_ele%s) exit
+    if (bend_length_has_been_set(ele)) cycle
+    call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                       'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                       'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+    return
+  enddo
+
+  if (super_ele%s > branch%ele(nt)%s) then
+    do ie = 1, ix_ref
+      ele => branch%ele(ie)
+      if (ele%s_start + branch%param%total_length > super_ele%s) exit
+      if (bend_length_has_been_set(ele)) cycle
+      call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                         'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                         'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+      return
+    enddo
+  endif
+
+else
+  do ie = ix_ref, 1, -1
+    ele => branch%ele(ie)
+    if (ele%s < super_ele%s_start) exit
+    if (bend_length_has_been_set(ele)) cycle
+    call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                       'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                       'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+    return
+  enddo
+
+  if (super_ele%s < 0) then
+    do ie = nt, ix_ref
+      ele => branch%ele(ie)
+      if (ele%s < super_ele%s_start) exit
+      if (bend_length_has_been_set(ele)) cycle
+      call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                         'HAS PLACEMENT THAT IS DETERMINED BY A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                         'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+
+      return
+    enddo
+  endif
+
+endif
+
 ! A superimpose can wrap around the beginning or the end of the lattice. 
 ! This is done independent of the geometry. The reason why this is geometry 
 ! independent is that it is sometimes convenient to treat a closed lattice as open.
 
-branch => pointer_to_branch(ref_ele)
 s0 = branch%ele(0)%s
 
 if (pele%wrap_superimpose) then
@@ -6113,6 +6170,14 @@ real(rp) eps
 logical err_flag, wrap
 integer ix1, ix2
 
+!
+
+if (.not. bend_length_has_been_set(super_ele)) then
+  call parser_error ('ELEMENT TO SUPERIMPOSE: ' // super_ele%name, &
+                     'IS A BEND ELEMENT WHICH DOES NOT YET HAVE A DEFINITE LENGTH.', &
+                     'SEE THE BMAD MANUAL SECTION ON "BENDS: RBEND AND SBEND")')
+  return
+endif
 
 ! Check for out-of-bounds.
 ! If wrap = False then out-of-bounds is not an error.
@@ -7157,10 +7222,12 @@ implicit none
 
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
-type (surface_grid_struct), pointer :: grid
-type (surface_grid_pt_struct), pointer :: pt
+type (surface_segmented_struct), pointer :: seg
+type (surface_segmented_pt_struct), pointer :: spt
+type (surface_displacement_struct), pointer :: disp
+type (surface_displacement_pt_struct), pointer :: dpt
 
-real(rp) a, rr, v_inv_mat(4,4), eta_vec(4)
+real(rp) a, rr, v_inv_mat(4,4), eta_vec(4), factor
 
 integer n, i, j, i0, i1, j0, j1
 logical kick_set, length_set, set_done, err_flag
@@ -7181,43 +7248,43 @@ endif
 ! Surface init
 
 if (associated(ele%photon)) then
-  grid => ele%photon%grid
-  select case (grid%type)
-  case (segmented$)
-    do i = lbound(grid%pt, 1), ubound(grid%pt, 1)
-    do j = lbound(grid%pt, 2), ubound(grid%pt, 2)
+  if (allocated(ele%photon%segmented%pt)) then
+    seg => ele%photon%segmented
+    do i = lbound(seg%pt, 1), ubound(seg%pt, 1)
+    do j = lbound(seg%pt, 2), ubound(seg%pt, 2)
       call init_surface_segment (ele%photon, i, j)
     enddo
     enddo
+  endif
 
-  case (displacement$)
-    do i = lbound(grid%pt, 1), ubound(grid%pt, 1)
-    do j = lbound(grid%pt, 2), ubound(grid%pt, 2)
-      pt => grid%pt(i,j)
+  if (allocated(ele%photon%displacement%pt)) then
+    disp => ele%photon%displacement
+    do i = lbound(disp%pt, 1), ubound(disp%pt, 1)
+    do j = lbound(disp%pt, 2), ubound(disp%pt, 2)
+      dpt => disp%pt(i,j)
 
-      pt%x0 = i * grid%dr(1) + grid%r0(1)
-      pt%y0 = j * grid%dr(2) + grid%r0(2)
+      dpt%x0 = i * disp%dr(1) + disp%r0(1)
+      dpt%y0 = j * disp%dr(2) + disp%r0(2)
 
       i0 = i - 1; i1 = i + 1
       j0 = j - 1; j1 = j + 1
-      if (i == lbound(grid%pt, 1)) i0 = i
-      if (i == ubound(grid%pt, 1)) i1 = i
-      if (j == lbound(grid%pt, 2)) j0 = j
-      if (j == ubound(grid%pt, 2)) j1 = j
+      if (i == lbound(disp%pt, 1)) i0 = i
+      if (i == ubound(disp%pt, 1)) i1 = i
+      if (j == lbound(disp%pt, 2)) j0 = j
+      if (j == ubound(disp%pt, 2)) j1 = j
       
-      if (pt%dz_dx == real_garbage$) then
-        pt%dz_dx = (grid%pt(i1,j)%z0 - grid%pt(i0,j)%z0) / ((i1-i0)*grid%dr(1))
-        pt%dz_dy = (grid%pt(i,j1)%z0 - grid%pt(i,j0)%z0) / ((j1-j0)*grid%dr(2))
+      if (dpt%dz_dx == real_garbage$) then
+        dpt%dz_dx = (disp%pt(i1,j)%z0 - disp%pt(i0,j)%z0) / ((i1-i0)*disp%dr(1))
+        dpt%dz_dy = (disp%pt(i,j1)%z0 - disp%pt(i,j0)%z0) / ((j1-j0)*disp%dr(2))
       endif
 
-      if (pt%d2z_dxdy == real_garbage$) then
-        pt%d2z_dxdy = (grid%pt(i1,j1)%z0 - grid%pt(i1,j0)%z0 - grid%pt(i0,j1)%z0 + grid%pt(i0,j0)%z0) / &
-                                                            ((i1-i0)*grid%dr(1)*(j1-j0)*grid%dr(2))
+      if (dpt%d2z_dxdy == real_garbage$) then
+        dpt%d2z_dxdy = (disp%pt(i1,j1)%z0 - disp%pt(i1,j0)%z0 - disp%pt(i0,j1)%z0 + disp%pt(i0,j0)%z0) / &
+                                                            ((i1-i0)*disp%dr(1)*(j1-j0)*disp%dr(2))
       endif
     enddo
     enddo
-
-  end select
+  endif
 endif
 
 ! Aperture init
@@ -7265,17 +7332,14 @@ case (beginning_ele$)
 case (sbend$, rbend$, rf_bend$) 
 
   b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(db_field$) /= 0)
-  g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
-  if ((ele%value(angle$) /= 0 .or. ele%value(rho$) /= 0 .or. g_set) .and. &
-                                      .not. b_field_set) ele%value(b_field$) = real_garbage$
-
-  if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
+  if (b_field_set .and. (ele%value(p0c$) == 0 .or. ele%ref_species == not_set$)) return
+  ele%value(init_needed$) = false$
 
   ! Only one of b_field, g, or rho may be set.
-  ! B_field may not be set for an rbend since, in this case, L is not computable (we don't know the ref energy).
 
-  if (b_field_set .and. ele%key == rbend$) call parser_error &
-          ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
+  g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
+
+  if (ele%key /= rf_bend$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
 
   if (b_field_set .and. g_set) call parser_error &
           ('BOTH G (OR DG) AND B_FIELD (OR DB_FIELD) SET FOR A BEND: ' // ele%name)
@@ -7286,6 +7350,22 @@ case (sbend$, rbend$, rf_bend$)
   if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
             call parser_error ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
 
+  if (ele%value(l$) /= 0 .and. ele%value(l_rectangle$) /= 0) &
+            call parser_error ('BOTH L AND L_rectangle SPECIFIED FOR BEND: ' // ele%name)
+
+  if (ele%value(l_chord$) /= 0 .and. ele%value(l_rectangle$) /= 0) &
+            call parser_error ('BOTH L AND L_rectangle SPECIFIED FOR BEND: ' // ele%name)
+
+  !
+
+  if (b_field_set) then
+    factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+    ele%value(g$)  = ele%value(B_field$) / factor
+    ele%value(dg$) = ele%value(dB_field$) / factor
+  else
+    factor = 0
+  endif
+
   ! if rho is set then this gives g
 
   if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(g$) /= 0) &
@@ -7293,19 +7373,37 @@ case (sbend$, rbend$, rf_bend$)
   if (ele%value(l$) /= 0 .and. ele%value(angle$) /= 0 .and. ele%value(rho$) /= 0) &
                       call parser_error ('ANGLE, RHO, AND L ARE ALL SPECIFIED FOR BEND: ' // ele%name)
 
-  if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
+  if (ele%value(rho$) /= 0) ele%value(g$) = 1.0_rp / ele%value(rho$)
 
   ! If g and angle are set then this determines l
 
   if (ele%value(g$) /= 0 .and. ele%value(angle$) /= 0) ele%value(l$) = ele%value(angle$) / ele%value(g$)
 
-  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0 .and. ele%value(l_chord$) == 0) then
+  if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0 .and. ele%value(l_chord$) == 0 .and. ele%value(l_rectangle$) == 0) then
     call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
   endif
 
-  ! Convert an rbend to an sbend
 
-  if (ele%key == rbend$) then
+  if (ele%value(l_rectangle$) /= 0) then
+    select case (nint(ele%value(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      if (ele%value(angle$) == 0) then
+        ele%value(angle$) = 2.0_rp * asin(ele%value(g$) * 0.5_rp * ele%value(l_rectangle$))
+      else
+        ele%value(g$) = 2.0_rp * sin(0.5_rp * ele%value(angle$)) / ele%value(l_rectangle$)
+      endif
+      ele%value(l$) = 0.5_rp * ele%value(l_rectangle$) / sinc(0.5_rp * ele%value(angle$))
+
+    case (entrance_end$, exit_end$)
+      if (ele%value(angle$) == 0) then
+        ele%value(angle$) = asin(ele%value(g$) * ele%value(l_rectangle$))
+      else
+        ele%value(g$) = sin(ele%value(angle$)) / ele%value(l_rectangle$)
+      endif
+      ele%value(l$) = ele%value(l_rectangle$) / sinc(ele%value(angle$))
+    end select
+
+  elseif (ele%key == rbend$) then
     ! Note: L must be zero if g and angle have both been specified and are non-zero.
     if (ele%value(l$) == 0 .and. ele%value(l_chord$) /= 0) then
       if (ele%value(angle$) /= 0) then
@@ -7316,7 +7414,7 @@ case (sbend$, rbend$, rf_bend$)
           call parser_error ('G * L FOR RBEND IS TOO LARGE TO BE PHYSICAL! ' // ele%name)
           return
         endif
-        a = 2 * asin(a)
+        a = 2.0_rp * asin(a)
         ele%value(l$) = ele%value(l_chord$) * a / (2.0_rp * sin(0.5_rp*a))
       else  ! g and angle are zero.
         ele%value(l$) = ele%value(l_chord$)
@@ -7328,13 +7426,28 @@ case (sbend$, rbend$, rf_bend$)
     elseif (ele%value(g$) /= 0) then
       ele%value(angle$) = ele%value(g$) * ele%value(l$) 
     endif
+  endif
 
-    ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
-    ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
+  ! Convert an rbend to an sbend
+
+  if (ele%key == rbend$) then
+    select case (nint(ele%value(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      ele%value(e1$) = ele%value(e1$) + 0.5_rp * ele%value(angle$)
+      ele%value(e2$) = ele%value(e2$) + 0.5_rp * ele%value(angle$)
+    case (entrance_end$)
+      ele%value(e2$) = ele%value(e2$) + ele%value(angle$)
+    case (exit_end$)
+      ele%value(e1$) = ele%value(e1$) + ele%value(angle$)
+    end select
+
     ele%key = sbend$
   endif
 
   ! 
+
+  ele%value(B_field$)  = factor * ele%value(g$)
+  ele%value(dB_field$) = factor * ele%value(dg$)
 
   if (ele%value(angle$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$) 
 
@@ -10270,27 +10383,29 @@ end subroutine parse_superimpose_command
 !+
 ! Subroutine init_surface_segment (phot, ix, iy)
 !
-! Routine to init the componentes in ele%photon%grid%pt(ix,iy) for use with segmented surface calculations.
+! Routine to init the componentes in ele%photon%segmented%pt(ix,iy) for use with segmented surface calculations.
 !
 ! Input:
-!   phot    -- photon_element_struct: Surface structure.
+!   phot    -- Surface structure.
 !   ix, iy  -- integer: index of grid point to init.
 !-
 
 subroutine init_surface_segment (phot, ix, iy)
 
 type (photon_element_struct), target :: phot
-type (surface_grid_pt_struct), pointer :: pt
+type (surface_segmented_struct), pointer :: seg
+type (surface_segmented_pt_struct), pointer :: pt
 
 real(rp) zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3), gs
 integer ix, iy
 
 !
 
-pt => phot%grid%pt(ix, iy)
+seg => phot%segmented
+pt => seg%pt(ix, iy)
 
-x0 = ix * phot%grid%dr(1) + phot%grid%r0(1)
-y0 = iy * phot%grid%dr(2) + phot%grid%r0(2)
+x0 = ix * seg%dr(1) + seg%r0(1)
+y0 = iy * seg%dr(2) + seg%r0(2)
 
 pt%x0 = x0
 pt%y0 = y0
@@ -10337,8 +10452,8 @@ endif
 ! Correct for fact that segment is supported at the corners of the segment and the segment is flat.
 ! This correction only affects z0 and not the slopes
 
-dx = phot%grid%dr(1) / 2
-dy = phot%grid%dr(2) / 2
+dx = seg%dr(1) / 2
+dy = seg%dr(2) / 2
 coef_xx = coef_xx * dx**2
 coef_xy = coef_xy * dx * dy
 coef_yy = coef_yy * dy**2

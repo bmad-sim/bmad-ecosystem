@@ -347,12 +347,8 @@ character(*), parameter :: r_name = 'tao_init_beam_in_universe'
 
 u%beam%track_beam_in_universe = .true.
 
-if (track_start == '') then
-  ele => u%model%lat%branch(0)%ele(0)
-else
-  ele => tao_beam_track_endpoint (track_start, u%model%lat, '', 'TRACK_START')
-  if (.not. associated(ele)) return
-endif
+ele => tao_beam_track_endpoint (track_start, u%model%lat, '', 'TRACK_START', u)
+if (.not. associated(ele)) return
 
 bb => u%model_branch(ele%ix_branch)%beam
 bb%ix_track_start = ele%ix_ele
@@ -368,20 +364,10 @@ tao_branch%comb_ds_save = comb_ds_save
 bb%track_end = track_end
 branch => u%model%lat%branch(ele%ix_branch)
 
-if (track_end == '') then
-  if (branch%param%geometry == open$) then
-    bb%ix_track_end = branch%n_ele_track
-  else
-    bb%ix_track_end = bb%ix_track_start - 1
-    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
-  endif
-
-else
-  bb%ix_track_end = not_set$
-  ele => tao_beam_track_endpoint (track_end, u%model%lat, int_str(ele%ix_branch), 'TRACK_END')
-  if (.not. associated(ele)) return
-  bb%ix_track_end = ele%ix_ele
-endif
+bb%ix_track_end = not_set$
+ele => tao_beam_track_endpoint (track_end, u%model%lat, int_str(ele%ix_branch), 'TRACK_END', u)
+if (.not. associated(ele)) return
+bb%ix_track_end = ele%ix_ele
 
 ! Find where to save the beam at.
 ! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
@@ -400,13 +386,13 @@ if (u%beam%saved_at /= '') then
 endif
 
 if (u%beam%dump_at /= '') then
-  call tao_locate_elements (u%beam%dump_at, u%ix_uni, eles, err, ignore_blank = .false.)
+  call tao_locate_elements (u%beam%dump_at, u%ix_uni, eles, err, ignore_blank = .false., err_stat_level = s_warn$)
   if (err) then
     call out_io (s_warn$, r_name, 'BAD "dump_at" ELEMENT: ' // u%beam%dump_at)
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
-      if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_lord)
+      if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave) ! Downstream end of lord
       u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
     enddo
   endif

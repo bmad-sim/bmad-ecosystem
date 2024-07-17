@@ -1521,11 +1521,19 @@ or universes to apply the set command to.
 For photons, \vn{<coordinate>} may also be:
 \begin{example}
   field_x, field_y, phase_x, phase_y
+  e_photon
 \end{example}
 The \vn{*} coordinate denotes the phase space vector $(x, p_x, y, p_y, z, p_z)$.  For closed
 lattices only the \vn{pz} parameter is applicable. For lattices that have an \vn{e_gun} (which
 necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must be
 varied instead of \vn{pz}.
+
+For photons, the photon energy can be set by setting \vn{e_photon} which sets the photon energy in
+eV or by setting \vn{pz} which sets the relative difference between the photon energy and the
+reference energy:
+\begin{example}
+  photon_energy = reference_energy * (1 + pz)
+\end{example}
 
 To see the values for \vn{particle_start} use the command \vn{show element 0}.
 
@@ -3013,8 +3021,8 @@ Examples:
 Syntax:
 \begin{example}
   show spin \{-element \{<ref_ele_name>\} <ele_name>\} \{-flip_n_axis\} \{-g_map\}
-                  \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
-                  \{-ignore_kinetic <ele_list>\}
+                  \{-ignore_kinetic <ele_list>\} \{-isf\}
+                  \{-l_axis <lx>, <ly>, <lz>\} \{-n_axis <nx>, <ny>, <nz>\} 
                   \{-x_zero <ele_list>\} \{-y_zero <ele_list>\} \{-z_zero <ele_list>\}
 \end{example}
 
@@ -3062,6 +3070,10 @@ See the Bmad manual section on the linear spin/orbit resonance analysis for more
 with a script.
 
 The \vn{-flip_n_axis} switch, if present, will flip the direction of the displayed $n$-axis. 
+
+The \vn{-isf} switch, if present, will print the invariant spin field which are three taylor series
+for the three components of the spin $(S_x, S_y, S_z)$. The independent variables are the six orbital
+phase space coordinates $(x, p_x, y, p_y, z, p_z)$.
 
 The \vn{-x_zero}, \vn{-y_zero}, and \vn{-z_zero} options are for testing if supressing certain terms
 in the linear part of the spin transport map for a set of elements selected by the user will

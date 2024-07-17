@@ -409,6 +409,19 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    ! bend
+
+    if (ele%key == sbend$) then
+      select case (nint(ele%value(fiducial_pt$)))
+      case (none_pt$, entrance_end$, center_pt$, exit_end$)
+      case default
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                      'HAS A BAD FIDUCIAL_PT VALUE: ' // int_str(nint(ele%value(fiducial_pt$))))
+        err_flag = .true.
+      end select
+    end if
+
     ! ac_kicker needs to have the time variation defined.
 
     if (ele%key == ac_kicker$) then
@@ -851,34 +864,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                     'HAS DEFINES A POLARIZATION REFLECTIVITY TABLE WITH ENERGY ARRAY NOT STRICTLY INCREASING.')
           err_flag = .true.
         endif
-      endif
-
-      if (all (ph%grid%type /= [not_set$, segmented$, h_misalign$, displacement$])) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS AN INVALID GRID%TYPE SETTING: \i0\ ', i_array = [ph%grid%type])
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type /= not_set$ .and. any (ph%grid%dr == 0)) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS A ZERO DR VALUE BUT THE GRID TYPE IS NOT OFF. \2f10.2\ ', r_array = ph%grid%dr)
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type /= not_set$ .and. .not. allocated(ph%grid%pt)) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS NO GRID IS DEFINED!')
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type == h_misalign$ .and. ele%value(b_param$) > 0) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS GRID TYPE H_MISALIGN BUT THIS IS NOT IMPLEMENTED FOR LAUE DIFFRACTION!')
-        err_flag = .true.
       endif
 
       g = ph%curvature%spherical + ph%curvature%elliptical

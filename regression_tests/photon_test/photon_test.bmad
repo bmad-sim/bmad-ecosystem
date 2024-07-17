@@ -1,16 +1,71 @@
-pinit: photon_init, energy_distribution = curve, 
-          energy_probability_curve = {call::init_e_prob.bmad},
-          sig_x = 1e-5, sig_y = 1e-6, spatial_distribution = uniform, E_center_relative_to_ref = False
+cst2: crystal, b_param = -0.6, crystal_type = "Ge(111)", 
+  h_misalign = {
+    ix_bounds = (-1, 1),
+    iy_bounds = (-2, 0),
+    r0 = (0.01, 0.02),
+    dr = (0.02, 0.03),
+    pt(-1, -2) = (0.0010, 0.0020, 0.0030, 0.0040),
+    pt(-1, -1) = (0.0011, 0.0021, 0.0031, 0.0041),
+    pt(-1,  0) = (0.0012, 0.0022, 0.0032, 0.0042),
+    pt( 0, -2) = (0.0012, 0.0022, 0.0032, 0.0042),
+    pt( 0, -1) = (0.0013, 0.0023, 0.0033, 0.0043),
+    pt( 0,  0) = (0.0014, 0.0024, 0.0034, 0.0044),
+    pt( 1, -2) = (0.0014, 0.0024, 0.0034, 0.0044),
+    pt( 1, -1) = (0.0015, 0.0025, 0.0035, 0.0045),
+    pt( 1,  0) = (0.0016, 0.0026, 0.0036, 0.0046),
+  }
 
-cst: crystal, b_param = -0.6, crystal_type = "Si(620)", use_reflectivity_table = T,
-          reflectivity_table = {polarization = sigma, call::reflect_pi.bmad}, 
-          reflectivity_table = {polarization = pi, call::reflect_pi.bmad}
+cst3: crystal, b_param =  0.6, crystal_type = "Ge(111)", 
+  h_misalign = {
+    ix_bounds = (-1, 1),
+    iy_bounds = (-2, 0),
+    r0 = (0.01, 0.02),
+    dr = (0.02, 0.03),
+    pt(-1, -2) = (0.0010, 0.0020, 0.0030, 0.0040),
+    pt(-1, -1) = (0.0011, 0.0021, 0.0031, 0.0041),
+    pt(-1,  0) = (0.0012, 0.0022, 0.0032, 0.0042),
+    pt( 0, -2) = (0.0012, 0.0022, 0.0032, 0.0042),
+    pt( 0, -1) = (0.0013, 0.0023, 0.0033, 0.0043),
+    pt( 0,  0) = (0.0014, 0.0024, 0.0034, 0.0044),
+    pt( 1, -2) = (0.0014, 0.0024, 0.0034, 0.0044),
+    pt( 1, -1) = (0.0015, 0.0025, 0.0035, 0.0045),
+    pt( 1,  0) = (0.0016, 0.0026, 0.0036, 0.0046),
+  }
+
+cst4: crystal, b_param = -0.6, crystal_type = "Ge(111)", 
+  displacement = {
+    ix_bounds = (-1, 1),
+    iy_bounds = (-2, 0),
+    r0 = (0.01, 0.02),
+    dr = (0.02, 0.03),
+    pt(-1, -2) = (0.0010),
+    pt(-1, -1) = (0.0011),
+    pt(-1,  0) = (0.0012),
+    pt( 0, -2) = (0.0012),
+    pt( 0, -1) = (0.0013),
+    pt( 0,  0) = (0.0014),
+    pt( 1, -2) = (0.0014),
+    pt( 1, -1) = (0.0015),
+    pt( 1,  0) = (0.0016),
+  }
+
 
 parameter[geometry] = open
 parameter[particle] = photon
 beginning[e_tot] = 7.25e3
 
-xr: line = (pinit, cst)
+pinit: photon_init, energy_distribution = curve, 
+          energy_probability_curve = {call::init_e_prob.bmad},
+          sig_x = 1e-5, sig_y = 1e-6, spatial_distribution = uniform, E_center_relative_to_ref = False
+
+cst1: crystal, b_param = -0.6, crystal_type = "Si(620)", use_reflectivity_table = T,
+          reflectivity_table = {polarization = sigma, call::reflect_pi.bmad}, 
+          reflectivity_table = {polarization = pi, call::reflect_pi.bmad}
+
+xr: line = (pinit, cst1, cst2, cst3, cst4)
 use, xr
 no_digested
 parameter[ran_seed] = 123456
+
+
+end_file

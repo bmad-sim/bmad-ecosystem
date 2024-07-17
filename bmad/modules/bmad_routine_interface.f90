@@ -275,6 +275,13 @@ subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field
   logical, optional :: calc_dfield, calc_potential
 end subroutine
 
+function bend_length_has_been_set(ele) result (is_set)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical is_set
+end function
+
 function bend_shift (position1, g, delta_s, w_mat, ref_tilt) result(position2)
   import
   implicit none

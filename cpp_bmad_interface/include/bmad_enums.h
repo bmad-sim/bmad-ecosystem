@@ -23,7 +23,8 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 290;
+  const int BMAD_INC_VERSION = 321;
+  const int NONE = 1;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -38,12 +39,13 @@ namespace Bmad {
   const int SECTOR = 1, STRAIGHT = 2;
   const int FIELDMAP = 2, PLANAR_MODEL = 3, REFER_TO_LORDS = 4, NO_FIELD = 5;
   const int HELICAL_MODEL = 6, SOFT_EDGE = 8;
-  const int UNIFORM = 1, GAUSSIAN = 2, SPHERICAL = 3;
+  const int UNIFORM = 1, GAUSSIAN = 2, SPHERICAL = 3, CURVE = 4;
   const int IX_SLICE_SLAVE = -2;
   const int MINOR_SLAVE = 1, SUPER_SLAVE = 2, FREE = 3;
   const int GROUP_LORD = 4, SUPER_LORD = 5, OVERLAY_LORD = 6;
   const int GIRDER_LORD = 7, MULTIPASS_LORD = 8, MULTIPASS_SLAVE = 9;
   const int NOT_A_LORD = 10, SLICE_SLAVE = 11, CONTROL_LORD = 12, RAMPER_LORD = 13;
+  const int GOVERNOR = 14, FIELD_LORD = 15;
   const int AUTO_APERTURE = 1, RECTANGULAR = 2, ELLIPTICAL = 3, WALL3D = 5, CUSTOM_APERTURE = 7;
   const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
   const int SAD_FULL = 5, LINEAR_EDGE = 6, BASIC_BEND = 7;
@@ -55,11 +57,12 @@ namespace Bmad {
   const int XFER_MAT_CALC_FAILURE = 7, TWISS_PROPAGATE_FAILURE = 8, NO_CLOSED_ORBIT = 9;
   const int INCLUDE_KICKS = 1, SHORT = 8;
   const int USER_SET = 0, FIRST_PASS = 1;
+  const int HIGHLAND = 2, LYNCH_DAHL = 3;
   const int INCOHERENT = 1, COHERENT = 2;
   const int ASCII = 1, BINARY = 2, HDF5 = 3, ONE_FILE = 4;
+  const int OLD_ASCII = 44;
   const int NUM_ELE_ATTRIB = 75;
   const int OFF = 1, ON = 2;
-  const int NONE = 1;
   const int SAVE_STATE = 3, RESTORE_STATE = 4, OFF_AND_SAVE = 5;
   const int HORIZONTALLY_PURE = 2, VERTICALLY_PURE = 3;
   const int ONE_DIM = 2, STEADY_STATE_3D = 3;
@@ -68,11 +71,12 @@ namespace Bmad {
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int REFLECTION = 1, TRANSMISSION = 2;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
+  const int NONE_PT = 4;
   const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3, NO_END = 4, NO_APERTURE = 4, NOWHERE = 4;
   const int CONTINUOUS = 5, SURFACE = 6, WALL_TRANSITION = 7;
-  const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12, IN_BETWEEN = 13;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3, START_END = 99;
+  const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12, IN_BETWEEN = 13;
   const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, WALL_START = 9, WALL_END = 10;
   const int ABSOLUTE = 1, RELATIVE = 2, SHIFTED_TO_RELATIVE = 3;
   const int CHAMBER_WALL = 1, MASK_PLATE = 2;
@@ -82,11 +86,16 @@ namespace Bmad {
   const int PRE_BORN = 0;
   const int ALIVE = 1;
   const int LOST = 2;
+  const int LOST_NEG_X = 3, LOST_POS_X = 4;
+  const int LOST_NEG_Y = 5, LOST_POS_Y = 6;
+  const int LOST_Z = 7;
+  const int LOST_PZ = 8;
   const int LOST_NEG_X_APERTURE = 3, LOST_POS_X_APERTURE = 4;
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
-  const int LOST_PZ_APERTURE = 7;
-  const int LOST_Z_APERTURE = 9;
-  const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
+  const int LOST_Z_APERTURE = 7;
+  const int LOST_PZ_APERTURE = 8;
+  const double NO_MISALIGNMENT = 1.0;
+  const int X_POLARIZATION = 2, Y_POLARIZATION = 3, XY = 2;
   const int LEADING = 2, TRAILING = 3;
   const int X_LEADING = 2, Y_LEADING = 3, X_TRAILING = 4, Y_TRAILING = 5;
   const int FAMILY_Y = 1, FAMILY_X = 2, FAMILY_QU = 3, FAMILY_SQ = 4;
@@ -95,7 +104,7 @@ namespace Bmad {
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
   const int RAD_INT_GROUP = 7, ALL_GROUPS = 8, S_AND_FLOOR_POSITION_GROUP = 9;
-  const int SEGMENTED = 1, H_MISALIGN = 2, DISPLACEMENT = 3;
+  const int POLARIZED = 1, UNPOLARIZED = 2;
   const int CUBIC = 3;
   const int OPAL = 1, IMPACTT = 2;
   const int DRIFT = 1, SBEND = 2, QUADRUPOLE = 3, GROUP = 4, SEXTUPOLE = 5;
@@ -111,8 +120,10 @@ namespace Bmad {
   const int FLOOR_SHIFT = 49, FIDUCIAL = 50, UNDULATOR = 51, DIFFRACTION_PLATE = 52;
   const int PHOTON_INIT = 53, SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, MASK = 57;
   const int AC_KICKER = 58, LENS = 59, DEF_SPACE_CHARGE_COM = 60, CRAB_CAVITY = 61;
-  const int RAMPER = 62, DEF_PTC_COM = 63;
-  const int N_KEY = 63;
+  const int RAMPER = 62, DEF_PTC_COM = 63, RF_BEND = 64, GKICKER = 65, FOIL = 66;
+  const int THICK_MULTIPOLE = 67, PICKUP = 68, FEEDBACK = 69, N_KEY = 69;
+  const int STANDARD = 1, MATCH_TWISS = 2, IDENTITY = 3, PHASE_TROMBONE = 4;
+  const int MATCH_ORBIT = 2, ZERO = 3;
   const int VAL1=19, VAL2=20, VAL3=21, VAL4=22, VAL5=23, 
             VAL6=24, VAL7=25, VAL8=26, VAL9=27, VAL10=28, VAL11=29, 
             VAL12=30;
@@ -125,9 +136,7 @@ namespace Bmad {
   const int C11_MAT1 = 25, C12_MAT1 = 26, C21_MAT1 = 27, C22_MAT1 = 28, MODE_FLIP1 = 29;
   const int X0 = 30, PX0 = 31, Y0 = 32, PY0 = 33, Z0 = 34, PZ0 = 35;
   const int X1 = 36, PX1 = 37, Y1 = 38, PY1 = 39, Z1 = 40, PZ1 = 41;
-  const int PHASE_TROMBONE_INPUT = 42, PHASE_TROMBONE = 43;
-  const int MATCH_END_INPUT = 44, MATCH_END = 45;
-  const int MATCH_END_ORBIT_INPUT = 46, MATCH_END_ORBIT = 47;
+  const int MATRIX = 42, KICK0 = 43, RECALC = 44;
   const int DELTA_TIME = 48;
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
@@ -138,64 +147,70 @@ namespace Bmad {
   const int RADIUS = 3, FOCAL_STRENGTH = 5;
   const int L = 1;
   const int TILT = 2, ROLL = 2, N_PART = 2, INHERIT_FROM_FORK = 2;
-  const int REF_TILT = 3, RF_FREQUENCY = 3, DIRECTION = 3, REPETITION_FREQUENCY = 3;
-  const int KICK = 3, X_GAIN_ERR = 3, TAYLOR_ORDER = 3, R_SOLENOID = 3;
-  const int RF_FREQUENCY_ERR = 4, K1 = 4, KX = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
-  const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDS = 4;
-  const int GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5, DRIFT_ID = 5, RF_WAVELENGTH = 5;
-  const int KS = 5, FLEXIBLE = 5, CRUNCH = 5, REF_ORBIT_FOLLOWS = 5, PC_OUT_MIN = 5;
-  const int GRADIENT = 6, K3 = 6, NOISE = 6, NEW_BRANCH = 6, IX_BRANCH = 6, G_MAX = 6;
-  const int G = 6, SYMMETRY = 6, FIELD_SCALE_FACTOR = 6, PC_OUT_MAX = 6;
-  const int DG = 7, BBI_CONST = 7, OSC_AMPLITUDE = 7, IX_TO_BRANCH = 7, ANGLE_OUT_MAX = 7;
-  const int GRADIENT_ERR = 7, CRITICAL_ANGLE = 7, BRAGG_ANGLE_IN = 7;
-  const int RHO = 8, DELTA_E_REF = 8, INTERPOLATION = 8, BRAGG_ANGLE_OUT = 8, K1X = 8;
-  const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8, VOLTAGE = 8;
-  const int EPS_STEP_SCALE = 9, VOLTAGE_ERR = 9, BRAGG_ANGLE = 9, K1Y = 9, N_PARTICLE = 9;
+  const int REF_TILT = 3, DIRECTION = 3, REPETITION_FREQUENCY = 3, DETA_DS_MASTER = 3, 
+                        KICK = 3, X_GAIN_ERR = 3, TAYLOR_ORDER = 3, R_SOLENOID = 3, FINAL_CHARGE = 3;
+  const int K1 = 4, KX = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4, 
+                        CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDS = 4, DT_MAX = 4;
+  const int GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5, GRADIENT_TOT = 5, HARMON_MASTER = 5, 
+                        KS = 5, FLEXIBLE = 5, CRUNCH = 5, REF_ORBIT_FOLLOWS = 5, PC_OUT_MIN = 5;
+  const int GRADIENT = 6, K3 = 6, NOISE = 6, NEW_BRANCH = 6, IX_BRANCH = 6, G_MAX = 6, 
+                        G = 6, SYMMETRY = 6, FIELD_SCALE_FACTOR = 6, PC_OUT_MAX = 6;
+  const int DG = 7, BBI_CONST = 7, OSC_AMPLITUDE = 7, IX_TO_BRANCH = 7, ANGLE_OUT_MAX = 7, 
+                        GRADIENT_ERR = 7, CRITICAL_ANGLE = 7, BRAGG_ANGLE_IN = 7, SPIN_DN_DPZ_X = 7;
+  const int DELTA_E_REF = 8, INTERPOLATION = 8, BRAGG_ANGLE_OUT = 8, K1X = 8, SPIN_DN_DPZ_Y = 8, 
+                        CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8, VOLTAGE = 8, G_TOT = 8;
+  const int RHO = 9, VOLTAGE_ERR = 9, BRAGG_ANGLE = 9, K1Y = 9, N_PARTICLE = 9, SPIN_DN_DPZ_Z = 9;
   const int FRINGE_TYPE = 10, DBRAGG_ANGLE_DE = 10;
   const int FRINGE_AT = 11, GANG = 11, DARWIN_WIDTH_SIGMA = 11;
   const int DARWIN_WIDTH_PI = 12;
   const int SPIN_FRINGE_ON = 13, PENDELLOSUNG_PERIOD_SIGMA = 13;
   const int SIG_X = 14, EXACT_MULTIPOLES = 14, PENDELLOSUNG_PERIOD_PI = 14;
-  const int SIG_Y = 15, GRAZE_ANGLE_IN = 15, R0_ELEC = 15;
-  const int SIG_Z = 16, GRAZE_ANGLE_OUT = 16, R0_MAG = 16;
+  const int SIG_Y = 15, GRAZE_ANGLE_IN = 15, R0_ELEC = 15, RF_FREQUENCY = 15;
+  const int SIG_Z = 16, GRAZE_ANGLE_OUT = 16, R0_MAG = 16, RF_WAVELENGTH = 16;
   const int SIG_VX = 17, STATIC_LINEAR_MAP = 17;
-  const int SIG_VY = 18, AUTOSCALE_AMPLITUDE = 18;
-  const int SIG_E = 19, AUTOSCALE_PHASE = 19, SIG_PZ = 19;
-  const int D1_THICKNESS = 20, DEFAULT_TRACKING_SPECIES = 20, DIRECTION_PARTICLE_START = 20;
-  const int N_SLICE = 20, Y_GAIN_CALIB = 20, CONSTANT_REF_ENERGY = 20;
-  const int LONGITUDINAL_MODE = 20, SIG_E2 = 20;
-  const int FB1 = 21, POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
-  const int BETA_A_STRONG = 21, BETA_A_OUT = 21, E_LOSS = 21, GAP = 21, SPIN_X = 21, E_CENTER = 21;
-  const int FB2 = 22, X_OFFSET_CALIB = 22, V1_UNITCELL = 22, PSI_ANGLE = 22, DT_MAX = 22;
-  const int PHI0_MAX = 22, BETA_B_STRONG = 22, BETA_B_OUT = 22, SPIN_Y = 22, E2_CENTER = 22, N_PERIOD = 22;
-  const int Y_OFFSET_CALIB = 23, V_UNITCELL = 23, V2_UNITCELL = 23, SPIN_Z = 23, L_PERIOD = 23;
-  const int FQ1 = 23, ALPHA_A_STRONG = 23, ALPHA_A_OUT = 23, CAVITY_TYPE = 23, E2_PROBABILITY = 23;
-  const int EMIT_FRACTION = 23;
-  const int FQ2 = 24, PHI0 = 24, TILT_CALIB = 24, E_CENTER_RELATIVE_TO_REF = 24;
-  const int ALPHA_B_STRONG = 24, ALPHA_B_OUT = 24, IS_MOSAIC = 24, PX_APERTURE_WIDTH2 = 24;
-  const int PHI0_ERR = 25, CURRENT = 25, MOSAIC_THICKNESS = 25, PX_APERTURE_CENTER = 25;
-  const int ETA_X_OUT = 25, QUAD_TILT = 25, DE_ETA_MEAS = 25, SPATIAL_DISTRIBUTION = 25, SPECIES_STRONG = 25;
-  const int ETA_Y_OUT = 26, BEND_TILT = 26, MODE = 26, VELOCITY_DISTRIBUTION = 26, PY_APERTURE_WIDTH2 = 26;
-  const int PHI0_MULTIPASS = 26, N_SAMPLE = 26, ORIGIN_ELE_REF_PT = 26, MOSAIC_ANGLE_RMS_IN_PLANE = 26;
-  const int E_TOT_STRONG = 26;
-  const int ETAP_X_OUT = 27, PHI0_AUTOSCALE = 27, DX_ORIGIN = 27, ENERGY_DISTRIBUTION = 27;
-  const int X_QUAD = 27, DS_PHOTON_SLICE = 27, MOSAIC_ANGLE_RMS_OUT_PLANE = 27;
-  const int PY_APERTURE_CENTER = 27, X_DISPERSION_ERR = 27;
-  const int ETAP_Y_OUT = 28, DY_ORIGIN = 28, Y_QUAD = 28, E_FIELD_X = 28;
-  const int Y_DISPERSION_ERR = 28, Z_APERTURE_WIDTH2 = 28, USER_SETS_LENGTH = 28, RF_CLOCK_HARMONIC = 28;
-  const int UPSTREAM_COORD_DIR = 29, DZ_ORIGIN = 29, MOSAIC_DIFFRACTION_NUM = 29, Z_APERTURE_CENTER = 29;
-  const int CMAT_11 = 29, FIELD_AUTOSCALE = 29, L_SAGITTA = 29, E_FIELD_Y = 29, X_DISPERSION_CALIB = 29;
-  const int CMAT_12 = 30, DTHETA_ORIGIN = 30, B_PARAM = 30, L_CHORD = 30, SCALE_FIELD_TO_ONE = 30;
-  const int DOWNSTREAM_COORD_DIR = 30, PZ_APERTURE_WIDTH2 = 30, Y_DISPERSION_CALIB = 30;
-  const int CMAT_21 = 31, L_ACTIVE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31;
-  const int L_SOFT_EDGE = 31, TRANSVERSE_SIGMA_CUT = 31, PZ_APERTURE_CENTER = 31;
-  const int CMAT_22 = 32, DPSI_ORIGIN = 32, T_OFFSET = 32, DS_SLICE = 32;
-  const int ANGLE = 33, N_CELL = 33, MODE_FLIP = 33, Z_CROSSING = 33;
-  const int X_PITCH = 34;
-  const int Y_PITCH = 35;
-  const int X_OFFSET = 36;
-  const int Y_OFFSET = 37;
-  const int Z_OFFSET = 38;
+  const int SIG_VY = 18, CONSTANT_REF_ENERGY = 18, LONGITUDINAL_MODE = 18;
+  const int SIG_E = 19, SIG_PZ = 19, AUTOSCALE_AMPLITUDE = 19;
+  const int D1_THICKNESS = 20, DEFAULT_TRACKING_SPECIES = 20, AUTOSCALE_PHASE = 20, 
+                        N_SLICE = 20, Y_GAIN_CALIB = 20, SIG_E2 = 20;
+  const int FB1 = 21, POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21, 
+                        BETA_A_STRONG = 21, BETA_A_OUT = 21, E_LOSS = 21, GAP = 21, SPIN_X = 21, 
+                        E_CENTER = 21, SCATTER_TEST = 21;
+  const int FB2 = 22, X_OFFSET_CALIB = 22, V1_UNITCELL = 22, PSI_ANGLE = 22, CAVITY_TYPE = 22, 
+                        BETA_B_STRONG = 22, BETA_B_OUT = 22, SPIN_Y = 22, E2_CENTER = 22, N_PERIOD = 22, 
+                        EMIT_FRACTION = 22, X1_EDGE = 22;
+  const int Y_OFFSET_CALIB = 23, V_UNITCELL = 23, V2_UNITCELL = 23, SPIN_Z = 23, L_PERIOD = 23, 
+                        FQ1 = 23, ALPHA_A_STRONG = 23, ALPHA_A_OUT = 23, E2_PROBABILITY = 23, PHI0_MAX = 23, 
+                        X2_EDGE = 23;
+  const int FQ2 = 24, PHI0 = 24, TILT_CALIB = 24, E_CENTER_RELATIVE_TO_REF = 24, Y1_EDGE = 24, 
+                        ALPHA_B_STRONG = 24, ALPHA_B_OUT = 24, IS_MOSAIC = 24, PX_APERTURE_WIDTH2 = 24;
+  const int PHI0_ERR = 25, CURRENT = 25, MOSAIC_THICKNESS = 25, PX_APERTURE_CENTER = 25, 
+                        ETA_X_OUT = 25, QUAD_TILT = 25, DE_ETA_MEAS = 25, SPATIAL_DISTRIBUTION = 25, 
+                        Y2_EDGE = 25, SPECIES_STRONG = 25;
+  const int ETA_Y_OUT = 26, MODE = 26, VELOCITY_DISTRIBUTION = 26, PY_APERTURE_WIDTH2 = 26, 
+                        PHI0_MULTIPASS = 26, N_SAMPLE = 26, ORIGIN_ELE_REF_PT = 26, MOSAIC_ANGLE_RMS_IN_PLANE = 26, 
+                        EPS_STEP_SCALE = 26, E_TOT_STRONG = 26, DTHICKNESS_DX = 26, BEND_TILT = 26;
+  const int ETAP_X_OUT = 27, PHI0_AUTOSCALE = 27, DX_ORIGIN = 27, ENERGY_DISTRIBUTION = 27, 
+                        X_QUAD = 27, DS_PHOTON_SLICE = 27, MOSAIC_ANGLE_RMS_OUT_PLANE = 27, 
+                        PY_APERTURE_CENTER = 27, X_DISPERSION_ERR = 27, L_RECTANGLE = 27;
+  const int ETAP_Y_OUT = 28, DY_ORIGIN = 28, Y_QUAD = 28, E_FIELD_X = 28, 
+                        Y_DISPERSION_ERR = 28, Z_APERTURE_WIDTH2 = 28, USER_SETS_LENGTH = 28, 
+                        RF_CLOCK_HARMONIC = 28, B_FIELD_TOT = 28, ATOMIC_WEIGHT = 28;
+  const int UPSTREAM_COORD_DIR = 29, DZ_ORIGIN = 29, MOSAIC_DIFFRACTION_NUM = 29, 
+                        CMAT_11 = 29, FIELD_AUTOSCALE = 29, L_SAGITTA = 29, E_FIELD_Y = 29, 
+                        X_DISPERSION_CALIB = 29, Z_APERTURE_CENTER = 29, F_FACTOR = 29;
+  const int CMAT_12 = 30, DTHETA_ORIGIN = 30, B_PARAM = 30, L_CHORD = 30, 
+                        DOWNSTREAM_COORD_DIR = 30, PZ_APERTURE_WIDTH2 = 30, Y_DISPERSION_CALIB = 30, 
+                        SCALE_FIELD_TO_ONE = 30, VOLTAGE_TOT = 30, SCATTER_METHOD = 30;
+  const int CMAT_21 = 31, L_ACTIVE = 31, DPHI_ORIGIN = 31, SPLIT_ID = 31, REF_CAP_GAMMA = 31, 
+                        L_SOFT_EDGE = 31, TRANSVERSE_SIGMA_CUT = 31, PZ_APERTURE_CENTER = 31, 
+                        MEAN_EXCITATION_ENERGY = 31, FIDUCIAL_PT = 31;
+  const int CMAT_22 = 32, DPSI_ORIGIN = 32, T_OFFSET = 32, DS_SLICE = 32, USE_REFLECTIVITY_TABLE = 32, INIT_NEEDED = 32;
+  const int ANGLE = 33, N_CELL = 33, MODE_FLIP = 33, Z_CROSSING = 33, X_KICK = 33;
+  const int X_PITCH = 34, PX_KICK = 34;
+  const int Y_PITCH = 35, Y_KICK = 35;
+  const int X_OFFSET = 36, PY_KICK = 36;
+  const int Y_OFFSET = 37, Z_KICK = 37;
+  const int Z_OFFSET = 38, PZ_KICK = 38;
   const int HKICK = 39, D_SPACING = 39, X_OFFSET_MULT = 39, EMITTANCE_A = 39, CRAB_X1 = 39;
   const int VKICK = 40, Y_OFFSET_MULT = 40, P0C_REF_INIT = 40, EMITTANCE_B = 40, CRAB_X2 = 40;
   const int BL_HKICK = 41, E_TOT_REF_INIT = 41, EMITTANCE_Z = 41, CRAB_X3 = 41;
@@ -220,6 +235,7 @@ namespace Bmad {
   const int TILT_TOT = 60, ROLL_TOT = 60;
   const int REF_TILT_TOT = 61;
   const int MULTIPASS_REF_ENERGY = 62;
+  const int DISPATCH = 63;
   const int REF_TIME_START = 64;
   const int THICKNESS = 65, INTEGRATOR_ORDER = 65;
   const int NUM_STEPS = 66;
@@ -232,19 +248,20 @@ namespace Bmad {
   const int Y1_LIMIT = 73;
   const int Y2_LIMIT = 74;
   const int CHECK_SUM = 75;
-  const int G_ERR = DG;
-  const int B_FIELD_ERR = DB_FIELD;
   const int SPHERICAL_CURVATURE = 81, DISTRIBUTION = 81;
   const int TT = 81, X_KNOT = 81;
   const int ALIAS  = 82, MAX_FRINGE_ORDER = 82, ETA_X = 82;
   const int ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83, X_REF = 83, SPECIES_OUT = 83;
-  const int Y_KNOT = 83, ETA_Y = 83;
-  const int LR_WAKE_FILE = 84, PX_REF = 84, ELLIPTICAL_CURVATURE_X = 84, ETAP_X = 84, SLAVE = 84;
-  const int LR_FREQ_SPREAD = 85, Y_REF = 85, ELLIPTICAL_CURVATURE_Y = 85, ETAP_Y = 85;
-  const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86, PY_REF = 86, ELLIPTICAL_CURVATURE_Z = 86;
+  const int Y_KNOT = 83, ETA_Y = 83, DENSITY = 83;
+  const int LR_WAKE_FILE = 84, PX_REF = 84, ELLIPTICAL_CURVATURE_X = 84, ETAP_X = 84, SLAVE = 84, 
+                        DENSITY_USED = 84;
+  const int LR_FREQ_SPREAD = 85, Y_REF = 85, ELLIPTICAL_CURVATURE_Y = 85, ETAP_Y = 85, 
+                        AREA_DENSITY = 85, INPUT_ELE = 85;
+  const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86, PY_REF = 86, ELLIPTICAL_CURVATURE_Z = 86, 
+                        AREA_DENSITY_USED = 86, OUTPUT_ELE = 86;
   const int APERTURE_TYPE = 87, ETA_Z = 87, MACHINE = 87;
-  const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, PIXEL = 88, P88 = 88;
-  const int CSR_METHOD = 89, VAR = 89, Z_REF = 89, P89 = 89;
+  const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, PIXEL = 88, P88 = 88, RADIATION_LENGTH = 88;
+  const int CSR_METHOD = 89, VAR = 89, Z_REF = 89, P89 = 89, RADIATION_LENGTH_USED = 89;
   const int PZ_REF = 90, SPACE_CHARGE_METHOD = 90, P90 = 90;
   const int MAT6_CALC_METHOD = 91;
   const int TRACKING_METHOD  = 92, S_LONG = 92;
@@ -254,7 +271,7 @@ namespace Bmad {
   const int X_LIMIT = 96, ABSOLUTE_TIME_TRACKING = 96, ETA_B = 96;
   const int Y_LIMIT = 97, ETAP_B = 97;
   const int OFFSET_MOVES_APERTURE = 98;
-  const int APERTURE_LIMIT_ON = 99, ALPHA_A = 99;
+  const int APERTURE_LIMIT_ON = 99, ALPHA_A = 99, REFLECTIVITY_TABLE = 99, ENERGY_PROBABILITY_CURVE = 99;
   const int EXACT_MISALIGN = 100, PHYSICAL_SOURCE = 100;
   const int SR_WAKE_FILE = 100, ALPHA_B = 100;
   const int TERM = 101, FREQUENCIES = 101, OLD_INTEGRATOR = 101, CURVATURE = 101;
@@ -300,6 +317,8 @@ namespace Bmad {
   const int CUSTOM_ATTRIBUTE0 = B21_ELEC;
   const int CUSTOM_ATTRIBUTE_NUM = 40;
   const int NUM_ELE_ATTRIB_EXTENDED = CUSTOM_ATTRIBUTE0 + CUSTOM_ATTRIBUTE_NUM;
+  const int G_ERR = DG;
+  const int B_FIELD_ERR = DB_FIELD;
   const int OPEN = 1, CLOSED = 2;
   const int BENDS = 201;
   const int WIGGLERS = 202;
@@ -323,6 +342,7 @@ namespace Bmad {
   const int SINC = 36, CONSTANT = 37, COMMA = 38, RMS = 39, AVERAGE = 40, SUM = 41, L_FUNC_PARENS = 42;
   const int ARG_COUNT = 43, ANTIPARTICLE = 44, COT = 45, SEC = 46, CSC = 47, SIGN = 48;
   const int SINH = 49, COSH = 50, TANH = 51, COTH = 52, ASINH = 53, ACOSH = 54, ATANH = 55, ACOTH = 56;
+  const int MIN = 57, MAX = 58, MODULO = 59;
   const int S_NOOUTPUT  = -2;
   const int S_BLANK     = -1;
   const int S_INFO      = 0;
@@ -343,6 +363,7 @@ namespace Bmad {
   const double M_PROTON   = 0.93827208816E9;
   const double M_NEUTRON  = 0.93956542052E9;
   const double M_MUON     = 105.6583755E6;
+  const double M_HELION   = 2.808391607035771E9;
   const double E_MASS = 1E-9 * M_ELECTRON;
   const double P_MASS   = 1E-9 * M_PROTON;
   const double M_PION_0 = 134.9766E6;
@@ -365,9 +386,10 @@ namespace Bmad {
   const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.14298726925E0;
   const double ANOMALOUS_MAG_MOMENT_NEUTRON  = -1.91304273E0;
   const double ANOMALOUS_MAG_MOMENT_HE3      = -4.184153686E0;
-  const int PION_0            = +8;
+  const int PION_0            = +9;
+  const int HELION            = +8;
   const int REF_PARTICLE      = +7;
-  const int NEUTRON            = +6;
+  const int NEUTRON           = +6;
   const int DEUTERON          = +5;
   const int PION_PLUS         = +4;
   const int ANTIMUON          = +3;
@@ -379,14 +401,16 @@ namespace Bmad {
   const int MUON              = -3;
   const int PION_MINUS        = -4;
   const int ANTI_DEUTERON     = -5;
-  const int ANTI_NEUTRON       = -6;
+  const int ANTI_NEUTRON      = -6;
   const int ANTI_REF_PARTICLE = -7;
-  const int LBOUND_SUBATOMIC = -7, UBOUND_SUBATOMIC = 8;
+  const int ANTI_HELION       = -8;
+  const int LB_SUBATOMIC = -8, UB_SUBATOMIC = 9;
+  const int ANTI_ATOM = 199;
   const int INT_GARBAGE = -987654;
   const double REAL_GARBAGE = -987654.3;
   const int INVALID = -666;
   const int NOT_SET = -999;
-  const int X_AXIS = 1, Y_AXIS = 2, Z_AXIS = 3;
+  const int X_AXIS = 1, Y_AXIS = 2, Z_AXIS = 3, XY_AXIS = 4;
   const double TRUE = 1, FALSE = 0;
   const int TRUE_INT = 1, FALSE_INT = 0;
   const int YES = 1, NO = 0, MAYBE = 2, PROVISIONAL = 3;

@@ -38,10 +38,13 @@ Although the details of the electron-hadron interaction and the electron amplifi
 
 
 \subsection{Coherent Kick}
-Based on \cite{cite:nagaitsev}, the coherent hadron self-wake is approximated as a function of the form
+Based on \cite{cite:nagaitsev}, the coherent hadron self-wake is approximated as a function of the form 
 
+\begin{align}\label{eqtn:cec_wake_form}
+	w(\Delta z) = A\sin(\kappa \Delta z)e^{-\Delta z^2/2\lambda^2}
+\end{align}
 \noindent
-$A\sin(\kappa \Delta z)e^{-\Delta z^2/2\lambda^2}$, with $A$, $\kappa$, and $\lambda$ dependent on the hadron's transverse coordinates in the modulator and kicker. For simplicity, we assume that these fit parameters are separable in the relevant coordinates, so that, $A = A_{xm}(x_m) A_{ym}(y_m) A_{xk}(x_k) A_{yk}(y_k)$, and similar for $\kappa$ and $\lambda$, where $A_{xm}$, $A_{ym}$, etc are all independent, 1-dimensional functions of the specified coordinate. We note that, in general, the hadron will undergo transverse motion within the modulator and kicker, so that the fit parameters are written
+with $A$, $\kappa$, and $\lambda$ dependent on the hadron's transverse coordinates in the modulator and kicker. For simplicity, we assume that these fit parameters are separable in the relevant coordinates, so that $A = A_{xm}(x_m) A_{ym}(y_m) A_{xk}(x_k) A_{yk}(y_k)$, and similar for $\kappa$ and $\lambda$, where $A_{xm}$, $A_{ym}$, etc are all independent, 1-dimensional functions of the specified coordinate. We note that, in general, the hadron will undergo transverse motion within the modulator and kicker, so that the fit parameters are written
 
 \begin{align}\label{eqtn:cec_wake_avg}
 	A &= \langle A_{xm}(x_m) A_{ym}(y_m) \rangle \langle A_{xk}(x_k) A_{yk}(y_k)\rangle \\\nonumber
@@ -56,9 +59,14 @@ The electron current will vary along the length of the bunch. Based on the curre
 A hadron which does not have the design momentum will slip relative to the electrons in the modulator and kicker, smearing out the wake. This effect is approximated by reducing the wake amplitude by a factor $\frac{\sin(R\delta L_m/2\gamma^2)}{R\delta L_m/2\gamma^2} \frac{\sin(R\delta L_k/2\gamma^2)}{R\delta L_k/2\gamma^2}$, where $\delta$ is the hadron's fractional momentum offset, $L_m$ and $L_k$ are the modulator and kicker lengths, respectively, $\gamma$ is the shared relativistic gamma of the hadron and electron beams, and $R$ is an empirically-determined reduction-scale parameter.
 
 \subsection{Diffusive Kick}
-The diffusive kick is separated into two parts: a kick due to noise in the hadron beam and a kick due to noise in the electron beam, with Poisson noise assumed in both cases. The electron diffusion is separated into three terms in order to account for the fact that electron noise enters in as both a raw density perturbation as well as an energy kick to nearby electrons, plus a cross-term \cite{cite:ipac2021}.
+The diffusive kick is separated into two parts: a kick due to noise in the hadron beam and a kick due to noise in the electron beam, with Poisson noise assumed in both cases. The electron diffusion is separated into three terms in order to account for the fact that electron noise enters in as both a raw density perturbation as well as an energy kick to nearby electrons, plus a cross-term \cite{cite:ipac2021} \cite{cite:e_noise_arxiv}.
 
-Labeling these diffusion coefficients by $D_h$, $D_{e11}$, $D_{e12}$, and $D_{e22}$, we give each hadron a momentum kick each turn in the kicker drawn from a Gaussian distribution with mean $0$ and mean squared value $D_h\lambda_h + (D_{e11} + D_{e12} + D_{e22})\lambda_e$, where $\lambda_h$ and $\lambda_e$ are the longitudinal hadron and electron densities at the location of the kick. As in the case with the fit parameters, these are assumed separable and written as functions of the hadron's transverse coordinates averaged over the kicker, so that 
+Labeling these diffusion coefficients by $D_h$, $D_{e11}$, $D_{e12}$, and $D_{e22}$, we give each hadron a momentum kick each turn in the kicker drawn from a Gaussian distribution with mean $0$ and mean squared value 
+\begin{align}\label{eqtn:cec_diff}
+	\sigma_{\Delta\delta}^2 = D_h\lambda_h + (D_{e11} + D_{e12} + D_{e22})\lambda_e
+\end{align}
+\noindent
+where $\lambda_h$ and $\lambda_e$ are the longitudinal hadron and electron densities at the location of the kick. As in the case with the fit parameters, the diffusion coefficients are assumed separable and written as functions of the hadron's transverse coordinates averaged over the kicker, so that 
 
 \begin{align}\label{eqtn:cec_diff_avg}
 	D_h &= \langle D_{h,x}(x_k) D_{h,y}(y_k)\rangle\\\nonumber
@@ -67,35 +75,35 @@ Labeling these diffusion coefficients by $D_h$, $D_{e11}$, $D_{e12}$, and $D_{e2
 	D_{e22} &= \langle D_{e22,x}(x_k) D_{e22,y}(y_k)\rangle
 \end{align}
 
-Similar to above, we also apply current rescaling as 
+Similar to above, we also apply current rescalings as 
 
 \begin{align}
-	D_h &\rightarrow D_h(x_k) \frac{I^4(z)}{I_0^4}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}\\\nonumber
+	D_h &\rightarrow D_h \frac{I^4(z)}{I_0^4}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}\\\nonumber
 	D_{e11} &\rightarrow D_{e11}\frac{I^4(z)}{I_0^4}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}\\\nonumber
 	D_{e12} &\rightarrow D_{e12}\frac{I^3(z)}{I_0^3}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}\\\nonumber
 	D_{e22} &\rightarrow D_{e22}\frac{I^2(z)}{I_0^2}\frac{\sin^4\big(\phi_0\sqrt{I(z)/I_0}\big)}{\sin^4(\phi_0)}
 \end{align}
 
-The forms here are due to the fact that the mean squared kicks are typically proportional to the square of the wake function, and so the correction factors should be the squares of the wake correction factor. The exceptions come from the fact that one of the electron wakes is missing a factor of electron current, as seen in Eqtn. 4 of \cite{cite:ipac2021}.
+The forms here are due to the fact that the mean squared kicks are typically proportional to the square of the wake function, and so the correction factors should be the squares of the wake correction factor. The exceptions come from the fact that one of the electron wakes is missing a factor of electron current, as seen in Eqtn. 4 of \cite{cite:ipac2021} and Eqtn. 15 of \cite{cite:e_noise_arxiv}.
 
 
 \section{Programming Necessities}
 
-THIS SECTION IS OUT OF DATE AND SHOULD BE UPDATED!!!???!!!
+The \vn{e_cooling} module tracks a given initial distribution of particles through a lattice a specified number of times and gives the instantaneous cooling rates turn-by-turn.
 
-The \vn{cec_system} element has two slave elements: \vn{cec_modulator} and \vn{cec_kicker}. These represent the physical modulator and kicker elements of a CeC system, while the lord \vn{cec_system} element serves to pass information about the beam between them.
+The master input file (\vn{e_cooling.init}) specifies the \vn{lat_file}, the \vn{position_file}, and the \vn{wake_and_diffusion_file}. It also specifies \vn{n_turns}, which tells the program how many times to simulate the beam's passage through the cooler. As discussed below, this may not correspond to the number of turns in the physical machine.
 
-\vn{cec_system} takes two arguments: \vn{turns_per_step} (a positive integer) and \vn{cec_param_file} (a string).
+The \vn{lat_file} is the usual lattice file, with some feedback element included. If desiring to simulate more than one turn, the particle distribution from the end will be transported back to the beginning each turn. A \vn{feedback} element is specified with two salve elements, labeled as the \vn{input} and \vn{output}. The kick to the particles occurs in the \vn{output} element, using measurements obtained at both \vn{input} and \vn{output} elements. These two elements represent the physical modulator and kicker elements. Each of these takes as arguments \vn{l} (a real number) and \vn{num_steps} (a positive integer). \vn{l} is the length of the element (in meters). Note that altering this will NOT affect the wake and diffusion coefficients, since those are specified in the \vn{wake_and_diffusion_file}, discussed below. \vn{num_steps} tells us how many discrete steps to take when performing the s-averages described in Eqtn. \ref{eqtn:cec_wake_avg} and \ref{eqtn:cec_diff_avg}.
+
+The \vn{position_file} specifies the initial properties of the hadron beam, and in particular the phase-space coordinates of all simulated particles.
+
+The \vn{wake_and_diffusion_file} contains details of the wake and diffusion functions. These include \vn{ie_peak}, the peak electron current (in Amps); \vn{sigma_ze}, the equivalent electron Gaussian bunch length; \vn{supergaussian_order}, the order of the supergaussian function with which we model the electron bunch; \vn{off_E_reduction}, which tells us how much to reduce the wake for an off-energy hadron; \vn{phi_avg}, the average plasma phase advance in the CeC amplifiers; \vn{turns_per_step}, the number of physical turns to simulate in each timestep; \vn{p_per_bunch}, the number of hadrons in the bunch; \vn{num_sigmas} the number of standard deviations in the hadron bunch length to use when longitudinally binning the hadrons (necessary for calculating diffusion); and \vn{frac_sigmas}, the number of bins to put in each standard deviation of the hadron bunch for this longitudinal binning. More details on some of these parameters are below.
+
+Most of \vn{wake_and_diffusion_file} is spent giving details of the evolution of the wake and diffusion parameters off-axis. The \vn{xm}, \vn{ym}, \vn{xk}, and \vn{yk} arrays specify the coefficients as functions of the hadron's horizontal (x) or vertical (y) offsets in the modulator (m) or kicker (k). \vn{s} gives the relevant offset in meters. \vn{A}, \vn{k}, and \vn{lambda} give the fit functions for the wake discussed in Eqtn. \ref{eqtn:cec_wake_form} and Eqtn. \ref{eqtn:cec_wake_avg}. \vn{D_h}, \vn{D_e11}, \vn{D_e12}, and \vn{D_e22} give the diffusion coefficients discussed in Eqtn. \ref{eqtn:cec_diff} and \ref{eqtn:cec_diff_avg}. These will be interpolated.
+
+We assume that the electron beam has a supergaussian distribution, so that the current as a function of $z$ position is $I(z) = I_0 e^{-(z^2/2\sigma^2)^N}$, where $I_0$ is the peak current, $N$ is the supergaussian order, and $\sigma$ is some falloff parameter. We specify the equivalent Gaussian bunch length, $\sigma_{ze}$, defined so that $I_0 = \frac{Qc}{\sqrt{2\pi}\sigma_{ze}}$, where $Q$ is the electron bunch charge and $c$ is the speed of light. This is related the the parameter $\sigma$ by $\sigma = \frac{N\sqrt{\pi}}{\Gamma(1/2N)}\sigma_{ze}$. Neither of these is the RMS bunch length.
 
 \vn{turns_per_step} tells us how many real turns to simulate with each step through the cooler. If this is set to 1, each hadron traveling through the system will receive its nominal cooling and diffusive kicks. However, for \vn{turns_per_step}$ = N > 1$, the cooling kick will be increased by a factor of $N$ and the incoherent diffusive kick will be increased by a factor of $\sqrt{N}$, since noise adds in quadrature. This will statistically simulate the effect of many passes through the cooler, allowing for fast simulations.
-
-\vn{cec_param_file} specifies the filename which contains detailed information about the CeC wake function, diffusion coefficients, electron current distribution, etc. The format of the file is TO BE DECIDED.
-
-\vn{cec_modulator} and \vn{cec_kicker} each take as arguments \vn{l} (a real number) and \vn{num_steps} (a positive integer).
-
-\vn{l} is the length of the element. Note that altering this will NOT affect the wake and diffusion coefficients, since those are specified in \vn{cec_param_file}.
-
-\vn{num_steps} tells us how many discrete steps to take when performing the s-average described in Eqtn. \ref{eqtn:cec_wake_avg} and \ref{eqtn:cec_diff_avg}.
 
 \begin{thebibliography}{9}   % Use for  10-99  references
         \bibitem{cite:stupakovorig}
@@ -110,6 +118,10 @@ The \vn{cec_system} element has two slave elements: \vn{cec_modulator} and \vn{c
                 W. F. Bergan and G. Stupakov, ``Effects of Transverse Dependence of Kicks in Simulations of Microbunched Electron Cooling'', in Proceedings of NAPAC 2021 (Albuquerque, NM, USA, 2022) pp. 780-783, WEPA67.
 	\bibitem{cite:ipac2021}
                 W. F. Bergan, P. Baxevanis, M. Blaskiewicz, E. Wang, and G. Stupakov, ``Design of an MBEC Cooler for the EIC'', in Proceedings of IPAC'21 (Campinas, Brazil, 2021) pp. 1819-1822, TUPAB179.
+	\bibitem{cite:e_noise_arxiv}
+		W. F. Bergan, ``Electron diffusion in microbunched electron cooling'', arXiv:2403.17721, 2024.
+
+
 \end{thebibliography}
 
 

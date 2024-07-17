@@ -35,7 +35,7 @@ logical curved
 
 !
 
-curved = (phot_ele%curvature%has_curvature .or. (phot_ele%grid%type == displacement$ .and. phot_ele%grid%active))
+curved = (phot_ele%curvature%has_curvature .or. (phot_ele%displacement%active))
 
 end function has_curvature
 
@@ -97,7 +97,7 @@ function z_at_surface (ele, x, y, err_flag, extend_grid, dz_dxy) result (z)
 
 type (ele_struct), target :: ele
 type (photon_element_struct), pointer :: ph
-type (surface_grid_pt_struct), pointer :: pt
+type (surface_segmented_pt_struct), pointer :: seg_pt
 
 real(rp) x, y, z, g(3), gs, f, dz_dx, dz_dy, xx, yy
 real(rp), optional :: dz_dxy(2)
@@ -111,18 +111,22 @@ logical, optional :: extend_grid
 ph => ele%photon
 err_flag = .true.
 z = 0
+if (present(dz_dxy)) dz_dxy = 0
 
-if (ph%grid%type == segmented$  .and. ph%grid%active) then
-  pt => pointer_to_surface_grid_pt(ele, .true., x, y, ix, iy, extend_grid, xx, yy)
-  if (.not. associated(pt)) return
-  z = pt%z0 - (xx - pt%x0) * pt%dz_dx - (yy - pt%y0) * pt%dz_dy
-  if (present(dz_dxy)) dz_dxy = [pt%dz_dx, pt%dz_dy]
+! Segmented
+
+if (ph%segmented%active) then
+  seg_pt => pointer_to_surface_segmented_pt(ele, .true., x, y, ix, iy, extend_grid, xx, yy)
+  if (.not. associated(seg_pt)) return
+  z = seg_pt%z0 - (xx - seg_pt%x0) * seg_pt%dz_dx - (yy - seg_pt%y0) * seg_pt%dz_dy
+  if (present(dz_dxy)) dz_dxy = [seg_pt%dz_dx, seg_pt%dz_dy]
+
+
+! Displacement
 
 else
-  if (ph%grid%type == displacement$) then
+  if (ph%displacement%active) then
     call surface_grid_displacement (ele, x, y, err_flag, z, dz_dxy, extend_grid); if (err_flag) return
-  else
-    if (present(dz_dxy)) dz_dxy = 0
   endif
 
   do ix = 0, ubound(ph%curvature%xy, 1)
@@ -153,111 +157,11 @@ else
   endif
 endif
 
+!
+
 err_flag = .false.
 
 end function z_at_surface
-
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!+
-! Function pointer_to_surface_grid_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
-!
-! Routine to point to the grid point struct associated with point (x,y).
-!
-! Note: If nearest = True, the grid boundary is a length dr/2 from the boundary grid points.
-!
-! Input:
-!   ele         -- ele_struct: Element containing the grid
-!   nearest     -- logical: If True, return pointer to nearest grid point. 
-!                           If False, return pointer to the grid point lower and left of (x,y).
-!   x, y        -- real(rp): Photon position.
-!   extend_grid -- logical, optional: If (x,y) past grid pretend (x,y) is at grid boundary.
-!                   Default is False.
-!
-! Output:
-!   ix, iy      -- integer, optional: Grid point index.
-!   pt          -- grid_point_struct: Pointer to grid point. 
-!                   Will not be associated if (x,y) outside the grid.
-!   xx, yy      -- real(rp), optional: Set equal to (x, y) except if (x,y) is outside of the grid.
-!                   In this case, (xx, yy) will be set to be on the nearest grid boundary point.
-!-
-
-function pointer_to_surface_grid_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
-
-type (ele_struct), target :: ele
-type (surface_grid_struct), pointer :: grid
-type (surface_grid_pt_struct), pointer :: pt
-
-real(rp) x, y, xh, yh, ff
-real(rp), optional :: xx, yy
-
-integer, optional :: ix, iy
-integer kx, ky, nx0, ny0, nx1, ny1
-
-logical, optional :: extend_grid
-logical nearest, outside
-
-character(*), parameter :: r_name = 'pointer_to_surface_grid_pt'
-
-!
-
-grid => ele%photon%grid
-
-if (nearest) then
-  ff = 0.5_rp
-else
-  ff = 0
-endif
-
-nx0 = lbound(grid%pt, 1);  nx1 = ubound(grid%pt, 1)
-ny0 = lbound(grid%pt, 2);  ny1 = ubound(grid%pt, 2)
-
-if (x < grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)) then
-  xh = grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)
-elseif (x > grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)) then
-  xh = grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)
-else
-  xh = x
-endif
-
-if (y < grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)) then
-  yh = grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)
-elseif (y > grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)) then
-  yh = grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)
-else
-  yh = y
-endif
-
-if (present(xx)) xx = xh
-if (present(yy)) yy = yh
-
-outside = (x /= xh .or. y /= yh)
-
-if (.not. logic_option(.false., extend_grid) .and. outside) then
-  call out_io (s_info$, r_name, 'Photon position: (\2f12.8\) is outside of grid for: ' // ele%name, r_array = [x, y])
-  pt => null()
-  return
-endif
-
-if (nearest) then
-  kx = nint((xh - grid%r0(1)) / grid%dr(1))
-  ky = nint((yh - grid%r0(2)) / grid%dr(2))
-  kx = min(max(kx, nx0), nx1)   ! Can happen due to roundoff
-  ky = min(max(ky, ny0), ny1)   ! Can happen due to roundoff
-else
-  kx = floor((xh - grid%r0(1)) / grid%dr(1))
-  ky = floor((yh - grid%r0(2)) / grid%dr(2))
-  kx = min(max(kx, nx0), nx1-1)   ! Can happen due to roundoff
-  ky = min(max(ky, ny0), ny1-1)   ! Can happen due to roundoff
-endif
-
-pt => grid%pt(kx, ky)
-
-if (present(ix)) ix = kx
-if (present(iy)) iy = ky
-
-end function pointer_to_surface_grid_pt
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -285,7 +189,7 @@ use super_recipes_mod
 
 type (ele_struct), target :: ele
 type (photon_element_struct), pointer :: ph
-type (surface_grid_pt_struct), pointer :: pt00, pt01, pt10, pt11
+type (surface_displacement_pt_struct), pointer :: pt00, pt01, pt10, pt11
 
 real(rp) x, y
 real(rp), optional :: dz_dxy(2)
@@ -298,7 +202,7 @@ logical, optional :: extend_grid
 
 ph => ele%photon
 
-if (.not. ph%grid%active) then
+if (.not. ph%displacement%active) then
   z = 0
   if (present(dz_dxy)) dz_dxy = 0
   err_flag = .false.
@@ -308,12 +212,12 @@ endif
 !
 
 err_flag = .true.
-pt00 => pointer_to_surface_grid_pt(ele, .false., x, y, ix, iy, extend_grid, xx, yy)
+pt00 => pointer_to_surface_displacement_pt(ele, .false., x, y, ix, iy, extend_grid, xx, yy)
 if (.not. associated(pt00)) return
 
-pt01 => ph%grid%pt(ix,iy+1)
-pt10 => ph%grid%pt(ix+1,iy)
-pt11 => ph%grid%pt(ix+1,iy+1)
+pt01 => ph%displacement%pt(ix,iy+1)
+pt10 => ph%displacement%pt(ix+1,iy)
+pt11 => ph%displacement%pt(ix+1,iy+1)
 
 call super_bicubic_interpolation([pt00%z0, pt10%z0, pt11%z0, pt01%z0], [pt00%dz_dx, pt10%dz_dx, pt11%dz_dx, pt01%dz_dx], &
         [pt00%dz_dy, pt10%dz_dy, pt11%dz_dy, pt01%dz_dy], [pt00%d2z_dxdy, pt10%d2z_dxdy, pt11%d2z_dxdy, pt01%d2z_dxdy], &
@@ -551,6 +455,208 @@ endif
 
 end subroutine crystal_diffraction_field_calc
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function pointer_to_surface_segmented_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
+!
+! Routine to point to the grid point struct associated with point (x,y).
+!
+! Note: If nearest = True, the grid boundary is a length dr/2 from the boundary grid points.
+!
+! Input:
+!   ele         -- ele_struct: Element containing the grid
+!   nearest     -- logical: If True, return pointer to nearest grid point. 
+!                           If False, return pointer to the grid point lower and left of (x,y).
+!   x, y        -- real(rp): Photon position.
+!   extend_grid -- logical, optional: If (x,y) past grid pretend (x,y) is at grid boundary.
+!                   Default is False.
+!
+! Output:
+!   ix, iy      -- integer, optional: Grid point index.
+!   pt          -- grid_point_struct: Pointer to grid point. 
+!                   Will not be associated if (x,y) outside the grid.
+!   xx, yy      -- real(rp), optional: Set equal to (x, y) except if (x,y) is outside of the grid.
+!                   In this case, (xx, yy) will be set to be on the nearest grid boundary point.
+!-
 
+function pointer_to_surface_segmented_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
+
+type (ele_struct), target :: ele
+type (surface_segmented_struct), pointer :: grid
+type (surface_segmented_pt_struct), pointer :: pt
+
+real(rp) x, y, xh, yh, ff
+real(rp), optional :: xx, yy
+
+integer, optional :: ix, iy
+integer kx, ky, nx0, ny0, nx1, ny1
+
+logical, optional :: extend_grid
+logical nearest, outside
+
+character(*), parameter :: r_name = 'pointer_to_surface_segmented_pt'
+
+!
+
+grid => ele%photon%segmented
+
+if (nearest) then
+  ff = 0.5_rp
+else
+  ff = 0
+endif
+
+nx0 = lbound(grid%pt, 1);  nx1 = ubound(grid%pt, 1)
+ny0 = lbound(grid%pt, 2);  ny1 = ubound(grid%pt, 2)
+
+if (x < grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)) then
+  xh = grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)
+elseif (x > grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)) then
+  xh = grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)
+else
+  xh = x
+endif
+
+if (y < grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)) then
+  yh = grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)
+elseif (y > grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)) then
+  yh = grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)
+else
+  yh = y
+endif
+
+if (present(xx)) xx = xh
+if (present(yy)) yy = yh
+
+outside = (x /= xh .or. y /= yh)
+
+if (.not. logic_option(.false., extend_grid) .and. outside) then
+  call out_io (s_info$, r_name, 'Photon position: (\2f12.8\) is outside of grid for: ' // ele%name, r_array = [x, y])
+  pt => null()
+  return
+endif
+
+if (nearest) then
+  kx = nint((xh - grid%r0(1)) / grid%dr(1))
+  ky = nint((yh - grid%r0(2)) / grid%dr(2))
+  kx = min(max(kx, nx0), nx1)   ! Can happen due to roundoff
+  ky = min(max(ky, ny0), ny1)   ! Can happen due to roundoff
+else
+  kx = floor((xh - grid%r0(1)) / grid%dr(1))
+  ky = floor((yh - grid%r0(2)) / grid%dr(2))
+  kx = min(max(kx, nx0), nx1-1)   ! Can happen due to roundoff
+  ky = min(max(ky, ny0), ny1-1)   ! Can happen due to roundoff
+endif
+
+pt => grid%pt(kx, ky)
+
+if (present(ix)) ix = kx
+if (present(iy)) iy = ky
+
+end function pointer_to_surface_segmented_pt
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function pointer_to_surface_displacement_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
+!
+! Routine to point to the grid point struct associated with point (x,y).
+!
+! Note: If nearest = True, the grid boundary is a length dr/2 from the boundary grid points.
+!
+! Input:
+!   ele         -- ele_struct: Element containing the grid
+!   nearest     -- logical: If True, return pointer to nearest grid point. 
+!                           If False, return pointer to the grid point lower and left of (x,y).
+!   x, y        -- real(rp): Photon position.
+!   extend_grid -- logical, optional: If (x,y) past grid pretend (x,y) is at grid boundary.
+!                   Default is False.
+!
+! Output:
+!   ix, iy      -- integer, optional: Grid point index.
+!   pt          -- grid_point_struct: Pointer to grid point. 
+!                   Will not be associated if (x,y) outside the grid.
+!   xx, yy      -- real(rp), optional: Set equal to (x, y) except if (x,y) is outside of the grid.
+!                   In this case, (xx, yy) will be set to be on the nearest grid boundary point.
+!-
+
+function pointer_to_surface_displacement_pt (ele, nearest, x, y, ix, iy, extend_grid, xx, yy) result (pt)
+
+type (ele_struct), target :: ele
+type (surface_displacement_struct), pointer :: grid
+type (surface_displacement_pt_struct), pointer :: pt
+
+real(rp) x, y, xh, yh, ff
+real(rp), optional :: xx, yy
+
+integer, optional :: ix, iy
+integer kx, ky, nx0, ny0, nx1, ny1
+
+logical, optional :: extend_grid
+logical nearest, outside
+
+character(*), parameter :: r_name = 'pointer_to_surface_displacement_pt'
+
+!
+
+grid => ele%photon%displacement
+
+if (nearest) then
+  ff = 0.5_rp
+else
+  ff = 0
+endif
+
+nx0 = lbound(grid%pt, 1);  nx1 = ubound(grid%pt, 1)
+ny0 = lbound(grid%pt, 2);  ny1 = ubound(grid%pt, 2)
+
+if (x < grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)) then
+  xh = grid%pt(nx0,ny0)%x0 - ff * grid%dr(1)
+elseif (x > grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)) then
+  xh = grid%pt(nx1,ny1)%x0 + ff * grid%dr(1)
+else
+  xh = x
+endif
+
+if (y < grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)) then
+  yh = grid%pt(nx0,ny0)%y0 - ff * grid%dr(2)
+elseif (y > grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)) then
+  yh = grid%pt(nx1,ny1)%y0 + ff * grid%dr(2)
+else
+  yh = y
+endif
+
+if (present(xx)) xx = xh
+if (present(yy)) yy = yh
+
+outside = (x /= xh .or. y /= yh)
+
+if (.not. logic_option(.false., extend_grid) .and. outside) then
+  call out_io (s_info$, r_name, 'Photon position: (\2f12.8\) is outside of grid for: ' // ele%name, r_array = [x, y])
+  pt => null()
+  return
+endif
+
+if (nearest) then
+  kx = nint((xh - grid%r0(1)) / grid%dr(1))
+  ky = nint((yh - grid%r0(2)) / grid%dr(2))
+  kx = min(max(kx, nx0), nx1)   ! Can happen due to roundoff
+  ky = min(max(ky, ny0), ny1)   ! Can happen due to roundoff
+else
+  kx = floor((xh - grid%r0(1)) / grid%dr(1))
+  ky = floor((yh - grid%r0(2)) / grid%dr(2))
+  kx = min(max(kx, nx0), nx1-1)   ! Can happen due to roundoff
+  ky = min(max(ky, ny0), ny1-1)   ! Can happen due to roundoff
+endif
+
+pt => grid%pt(kx, ky)
+
+if (present(ix)) ix = kx
+if (present(iy)) iy = ky
+
+end function pointer_to_surface_displacement_pt
 
 end module

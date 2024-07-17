@@ -218,7 +218,6 @@ type (ele_struct), pointer :: ele2
 type (wake_struct), pointer :: wake
 type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), pointer :: prt
-type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
 type (gen_grad_map_struct), pointer :: gg_map
@@ -558,15 +557,36 @@ endif
 
 if (associated (ele%photon)) then
   ph => ele%photon
-  write (d_unit) ph%target, ph%material, ph%curvature, ph%grid%active, ph%grid%type, &
-    ph%grid%dr, ph%grid%r0, allocated(ph%grid%pt), ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt), &
-    allocated(ph%reflectivity_table_sigma%angle), allocated(ph%reflectivity_table_pi%angle), allocated(ph%init_energy_prob)
+  write (d_unit) ph%target, ph%material, ph%curvature, &
+    ph%displacement%active, ph%displacement%dr, ph%displacement%r0, allocated(ph%displacement%pt), &
+    ph%h_misalign%active, ph%h_misalign%dr, ph%h_misalign%r0, allocated(ph%h_misalign%pt), &
+    ph%segmented%active, ph%segmented%dr, ph%segmented%r0, allocated(ph%segmented%pt), &
+    ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt), &
+    allocated(ph%init_energy_prob), allocated(ph%reflectivity_table_sigma%angle), allocated(ph%reflectivity_table_pi%angle)
 
-  if (allocated(ph%grid%pt)) then
-    write (d_unit) lbound(ph%grid%pt), ubound(ph%grid%pt)
-    do i = lbound(ph%grid%pt, 1), ubound(ph%grid%pt, 1)
-    do j = lbound(ph%grid%pt, 2), ubound(ph%grid%pt, 2)
-      write (d_unit) ph%grid%pt(i,j)
+  if (allocated(ph%displacement%pt)) then
+    write (d_unit) lbound(ph%displacement%pt), ubound(ph%displacement%pt)
+    do i = lbound(ph%displacement%pt, 1), ubound(ph%displacement%pt, 1)
+    do j = lbound(ph%displacement%pt, 2), ubound(ph%displacement%pt, 2)
+      write (d_unit) ph%displacement%pt(i,j)
+    enddo
+    enddo
+  endif
+
+  if (allocated(ph%segmented%pt)) then
+    write (d_unit) lbound(ph%segmented%pt), ubound(ph%segmented%pt)
+    do i = lbound(ph%segmented%pt, 1), ubound(ph%segmented%pt, 1)
+    do j = lbound(ph%segmented%pt, 2), ubound(ph%segmented%pt, 2)
+      write (d_unit) ph%segmented%pt(i,j)
+    enddo
+    enddo
+  endif
+
+  if (allocated(ph%h_misalign%pt)) then
+    write (d_unit) lbound(ph%h_misalign%pt), ubound(ph%h_misalign%pt)
+    do i = lbound(ph%h_misalign%pt, 1), ubound(ph%h_misalign%pt, 1)
+    do j = lbound(ph%h_misalign%pt, 2), ubound(ph%h_misalign%pt, 2)
+      write (d_unit) ph%h_misalign%pt(i,j)
     enddo
     enddo
   endif

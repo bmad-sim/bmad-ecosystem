@@ -103,7 +103,7 @@ type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
-type (complex_taylor_struct) bmad_ctaylor
+type (complex_taylor_struct) bmad_ctaylor, ctaylor(3)
 type (rad_map_ele_struct), pointer :: ri
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_expression_info_struct), allocatable :: info(:)
@@ -446,8 +446,8 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt)  'dump_file         = ', quote(u%beam%dump_file)
     nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: -1 => Use (latice branch length)/plot_page%n_curve_pts'
 !!!!    nl=nl+1; write(lines(nl), rmt) 'comb_max_ds_save  = ', tao_branch%bunch_params_comb(1)%max_ds_save
-    nl=nl+1; write(lines(nl), fmt)  'track_start       = ', quote(bb%track_start)
-    nl=nl+1; write(lines(nl), fmt)  'track_end         = ', quote(bb%track_end)
+    nl=nl+1; write(lines(nl), amt)  'track_start       = ', quote(bb%track_start), '  ! ', ele_full_name(branch%ele(bb%ix_track_start))
+    nl=nl+1; write(lines(nl), amt)  'track_end         = ', quote(bb%track_end),   '  ! ', ele_full_name(branch%ele(bb%ix_track_end))
 
     beam => u%model_branch(0)%ele(bb%ix_track_start)%beam
     if (allocated(beam%bunch)) then
@@ -846,6 +846,7 @@ case ('chromaticity')
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
 
+  nl=nl+1; lines(nl) = '  Note: Calculation is done with RF off.'
   nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
 
   do i = 0, ptc_private%taylor_order_ptc-1
@@ -855,6 +856,8 @@ case ('chromaticity')
     s0 = real(ptc_nf%spin_tune .sub. expo)
     if (i == 0) then
       nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
+    elseif (i == 1 .and. .not. bmad_com%spin_tracking_on) then
+      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! Spin tracking off so spin tune not calculated'
     else
       nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
     endif
@@ -4059,8 +4062,8 @@ case ('plot')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
-    nl=nl+1; lines(nl) = '                                                                                     Shape  Type    Shape  Multi  Line_'
-    nl=nl+1; lines(nl) = '                  Ele_ID                              Shape           Color           Size  Label    Draw  Shape  Width  Offset'
+    nl=nl+1; lines(nl) = '                                                                                                                  Line_'
+    nl=nl+1; lines(nl) = '                  Ele_ID                              Shape           Color           Size  Label    Draw  Multi  Width  Offset'
     nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------         ----  ------  -----  -----  -----  ------'
 
     do i = 1, size(shapes)
@@ -4460,7 +4463,7 @@ case ('spin')
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
-                            '-z_zero', '-ignore_kinetic'], .true., switch, err)
+                            '-z_zero', '-ignore_kinetic', '-isf'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4478,6 +4481,8 @@ case ('spin')
       endif
     case ('-flip_n_axis')
       flip = .true.
+    case ('-isf')
+      what_to_show = 'isf'
     case ('-n_axis')
       read (what2, *, iostat = ios) sm%axis_input%n0
       if (ios /= 0) then
@@ -4519,6 +4524,26 @@ case ('spin')
 
   if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on
 
+  !
+
+  if (what_to_show == 'isf') then
+    if (branch%param%geometry == open$) then
+      nl=nl+1; lines(nl) = 'No ISF for an open lattice!'
+      return
+    endif
+
+    tao_branch%spin_map_valid = .false.
+    if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+    ptc_nf  => tao_branch%ptc_normal_form
+    do i = 1, 3
+      ctaylor(i) = ptc_nf%isf%x(i)
+    enddo
+
+    call type_complex_taylors(ctaylor, out_type = 'SPIN')
+    return
+  endif
+
   ! what_to_show = standard
 
   r = anomalous_moment_of(branch%param%particle) * branch%ele(1)%value(e_tot$) / mass_of(branch%param%particle)
@@ -4539,6 +4564,10 @@ case ('spin')
     else
       tao_branch%spin_map_valid = .false.
       call tao_spin_polarization_calc (branch, tao_branch, excite_zero, veto)
+      if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+      !
+
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, es18.7)') 'spin_tune: ', tao_branch%spin%tune / twopi
       if (tao_branch%spin%valid) then
@@ -4546,62 +4575,62 @@ case ('spin')
           nl=nl+1; lines(nl) = 'No bends or other radiation producing lattice elements detected!'
         else
           r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit ST:                   ', tao_branch%spin%pol_limit_st
-          nl=nl+1; write(lines(nl), '(a, f12.8, es12.4)')  'Polarization Limit DK:                   ', tao_branch%spin%pol_limit_dk
-          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (a,b,c-modes):    ', tao_branch%spin%pol_limit_dk_partial
-          nl=nl+1; write(lines(nl), '(a, f12.8, 3es12.4)') 'Polarization Limits DK (bc,ac,ab-modes): ', tao_branch%spin%pol_limit_dk_partial2
+          nl=nl+1; write(lines(nl), '(a, f12.8)')  'Polarization Limit ST:                   ', tao_branch%spin%pol_limit_st
+          nl=nl+1; write(lines(nl), '(a, f12.8)')  'Polarization Limit DK:                   ', tao_branch%spin%pol_limit_dk
+          nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Polarization Limits DK (a,b,c-modes):    ', tao_branch%spin%pol_limit_dk_partial
+          nl=nl+1; write(lines(nl), '(a, 3f12.8)') 'Polarization Limits DK (bc,ac,ab-modes): ', tao_branch%spin%pol_limit_dk_partial2
 
           if (tao_branch%spin%pol_rate_bks == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): plarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')    'Polarization Time BKS (minutes, turns): plarization rate is zero!'
           else
             x = 1.0_rp / tao_branch%spin%pol_rate_bks
             nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Polarization Time BKS (minutes, turns): ', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (1.0_rp / tao_branch%spin%depol_rate == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')    'Depolarization Time (minutes, turns):   Depolarization rate is zero!'
           else
             x = 1.0_rp / tao_branch%spin%depol_rate
             nl=nl+1; write(lines(nl), '(a, a12, es12.4)')    'Depolarization Time (minutes, turns):   ', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial(1) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (a-mode) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial(1)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a-mode) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial(2) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (b-mode) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial(2)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b-mode) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial(3) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (c-mode) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial(3)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (c-mode) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial2(1) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b&c modes) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (b&c modes) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial2(1)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (b&c modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial2(2) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&c modes) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (a&c modes) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial2(2)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&c modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x
           endif
 
           if (tao_branch%spin%depol_rate_partial2(3) == 0) then
-            nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&b modes) (minutes, turns): Depolarization rate is zero!'
+            nl=nl+1; write(lines(nl), '(a)')   'Depolarization Time (a&b modes) (minutes, turns): Depolarization rate is zero!'
           else
             x = 1 / tao_branch%spin%depol_rate_partial2(3)
             nl=nl+1; write(lines(nl), '(a, a12, 3es12.4)')   'Depolarization Time (a&b modes) (minutes, turns):', real_str(x/60.0_rp, 3), r*x

@@ -100,21 +100,6 @@ template bool is_all_equal (const CPP_spin_polar_MATRIX&, const CPP_spin_polar_M
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_surface_orientation& x, const CPP_surface_orientation& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.dz_dx == y.dz_dx);
-  is_eq = is_eq && (x.dz_dy == y.dz_dy);
-  is_eq = is_eq && (x.dz_dx_rms == y.dz_dx_rms);
-  is_eq = is_eq && (x.dz_dy_rms == y.dz_dy_rms);
-  is_eq = is_eq && (x.dz2_dxdy == y.dz2_dxdy);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_surface_orientation_ARRAY&, const CPP_surface_orientation_ARRAY&);
-template bool is_all_equal (const CPP_surface_orientation_MATRIX&, const CPP_surface_orientation_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_ac_kicker_time& x, const CPP_ac_kicker_time& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.amp == y.amp);
@@ -754,35 +739,92 @@ template bool is_all_equal (const CPP_gen_grad_map_MATRIX&, const CPP_gen_grad_m
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
+bool operator== (const CPP_surface_segmented_pt& x, const CPP_surface_segmented_pt& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.orientation == y.orientation);
-  is_eq = is_eq && (x.z0 == y.z0);
   is_eq = is_eq && (x.x0 == y.x0);
   is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.z0 == y.z0);
   is_eq = is_eq && (x.dz_dx == y.dz_dx);
   is_eq = is_eq && (x.dz_dy == y.dz_dy);
-  is_eq = is_eq && (x.d2z_dxdy == y.d2z_dxdy);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_surface_grid_pt_ARRAY&, const CPP_surface_grid_pt_ARRAY&);
-template bool is_all_equal (const CPP_surface_grid_pt_MATRIX&, const CPP_surface_grid_pt_MATRIX&);
+template bool is_all_equal (const CPP_surface_segmented_pt_ARRAY&, const CPP_surface_segmented_pt_ARRAY&);
+template bool is_all_equal (const CPP_surface_segmented_pt_MATRIX&, const CPP_surface_segmented_pt_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_surface_grid& x, const CPP_surface_grid& y) {
+bool operator== (const CPP_surface_segmented& x, const CPP_surface_segmented& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.active == y.active);
-  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && is_all_equal(x.pt, y.pt);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_surface_grid_ARRAY&, const CPP_surface_grid_ARRAY&);
-template bool is_all_equal (const CPP_surface_grid_MATRIX&, const CPP_surface_grid_MATRIX&);
+template bool is_all_equal (const CPP_surface_segmented_ARRAY&, const CPP_surface_segmented_ARRAY&);
+template bool is_all_equal (const CPP_surface_segmented_MATRIX&, const CPP_surface_segmented_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_surface_h_misalign_pt& x, const CPP_surface_h_misalign_pt& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.rot_y == y.rot_y);
+  is_eq = is_eq && (x.rot_t == y.rot_t);
+  is_eq = is_eq && (x.rot_y_rms == y.rot_y_rms);
+  is_eq = is_eq && (x.rot_t_rms == y.rot_t_rms);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_surface_h_misalign_pt_ARRAY&, const CPP_surface_h_misalign_pt_ARRAY&);
+template bool is_all_equal (const CPP_surface_h_misalign_pt_MATRIX&, const CPP_surface_h_misalign_pt_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_surface_h_misalign& x, const CPP_surface_h_misalign& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.active == y.active);
+  is_eq = is_eq && is_all_equal(x.dr, y.dr);
+  is_eq = is_eq && is_all_equal(x.r0, y.r0);
+  is_eq = is_eq && is_all_equal(x.pt, y.pt);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_surface_h_misalign_ARRAY&, const CPP_surface_h_misalign_ARRAY&);
+template bool is_all_equal (const CPP_surface_h_misalign_MATRIX&, const CPP_surface_h_misalign_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_surface_displacement_pt& x, const CPP_surface_displacement_pt& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.z0 == y.z0);
+  is_eq = is_eq && (x.dz_dx == y.dz_dx);
+  is_eq = is_eq && (x.dz_dy == y.dz_dy);
+  is_eq = is_eq && (x.d2z_dxdy == y.d2z_dxdy);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_surface_displacement_pt_ARRAY&, const CPP_surface_displacement_pt_ARRAY&);
+template bool is_all_equal (const CPP_surface_displacement_pt_MATRIX&, const CPP_surface_displacement_pt_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_surface_displacement& x, const CPP_surface_displacement& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.active == y.active);
+  is_eq = is_eq && is_all_equal(x.dr, y.dr);
+  is_eq = is_eq && is_all_equal(x.r0, y.r0);
+  is_eq = is_eq && is_all_equal(x.pt, y.pt);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_surface_displacement_ARRAY&, const CPP_surface_displacement_ARRAY&);
+template bool is_all_equal (const CPP_surface_displacement_MATRIX&, const CPP_surface_displacement_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -885,7 +927,9 @@ bool operator== (const CPP_photon_element& x, const CPP_photon_element& y) {
   is_eq = is_eq && (x.curvature == y.curvature);
   is_eq = is_eq && (x.target == y.target);
   is_eq = is_eq && (x.material == y.material);
-  is_eq = is_eq && (x.grid == y.grid);
+  is_eq = is_eq && (x.segmented == y.segmented);
+  is_eq = is_eq && (x.h_misalign == y.h_misalign);
+  is_eq = is_eq && (x.displacement == y.displacement);
   is_eq = is_eq && (x.pixel == y.pixel);
   is_eq = is_eq && (x.reflectivity_table_type == y.reflectivity_table_type);
   is_eq = is_eq && (x.reflectivity_table_sigma == y.reflectivity_table_sigma);
