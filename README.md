@@ -45,7 +45,7 @@ The external packages repository is simply a set of libraries needed by Bmad.
 ```bash
 cd bmad-ecosystem
 rm ../bmad-external-packages/README.md   # Do not copy this file
-cp -r ../bmad-external-packages .
+cp -r ../bmad-external-packages/\* .
 ```
 
 To build everything:
