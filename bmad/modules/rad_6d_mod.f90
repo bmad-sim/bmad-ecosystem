@@ -274,7 +274,8 @@ do ie = 1, branch%n_ele_track
   endif
 
   call rad1_damp_and_stoc_mats(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), &
-                                          rm1(ie), tol * branch%param%g2_integral, tol * branch%param%g3_integral)
+                                          rm1(ie), tol * branch%param%g2_integral, tol * branch%param%g3_integral, err_flag)
+  if (err_flag) goto 9000
 enddo
 
 !
@@ -317,7 +318,7 @@ end subroutine rad_damp_and_stoc_mats
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !+
-! Subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol)
+! Subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol, err_flag)
 !
 ! Routine to calculate the damping and stochastic matrices for a given lattice element.
 !
@@ -333,9 +334,10 @@ end subroutine rad_damp_and_stoc_mats
 ! Output:
 !   rad_map               -- rad_map_strct: Damping and stochastic matrices.
 !     %stoc_mat             -- Variance matrix.
+!   err_flag              -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol)
+subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol, err_flag)
 
 use super_recipes_mod, only: super_polint
 
@@ -364,7 +366,7 @@ real(rp), parameter :: cd = 2.0_rp / 3.0_rp, cf = 55.0_rp * h_bar_planck * c_lig
 integer j, j1, i1, i2, n, j_min_test, ll, n_pts
 integer :: j_max = 10
 
-logical include_opening_angle, save_orb_mat
+logical include_opening_angle, err_flag, err, save_orb_mat
 
 ! No radiation cases
 
@@ -380,6 +382,7 @@ if (orb_out%vec(2) == orb_in%vec(2) .and. orb_out%vec(4) == orb_in%vec(4) .and. 
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
+err_flag = .true.
 
 ! Offsets and fringes at upstream end.
 
@@ -430,7 +433,9 @@ do j = 1, j_max
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
     save_orb_mat = (j == 1 .and. n == 1)  ! Save if z-position at end of element
-    call calc_rad_at_pt(ele, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, stoc_var_mat1, save_orb_mat, orb_end, mat_end)
+    call calc_rad_at_pt(ele, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, stoc_var_mat1, &
+                                                                        save_orb_mat, orb_end, mat_end, err)
+    if (err) return
     damp_vec_sum = damp_vec_sum + damp_vec1 
     damp_dmat_sum = damp_dmat_sum + damp_dmat1 
     stoc_var_mat_sum = stoc_var_mat_sum + stoc_var_mat1 
@@ -480,11 +485,13 @@ stoc_var_mat1    = matmul(matmul(mat0_inv, stoc_var_mat1), transpose(mat0_inv))
 rad_map%stoc_mat = matmul(matmul(ele%mat6, stoc_var_mat1), transpose(ele%mat6))
 
 bmad_com = bmad_com_save
+err_flag = .false.
 
 !---------------------------------------------------------------------------------
 contains
 
-subroutine calc_rad_at_pt (ele, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, stoc_var_mat1, save_orb_mat, orb_save, mat_save)
+subroutine calc_rad_at_pt (ele, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, &
+                        stoc_var_mat1, save_orb_mat, orb_save, mat_save, err)
 
 type (ele_struct) ele, runt
 type (coord_struct) orb0, orbz, orb_save  ! Orbit at start, orbit at z.
@@ -494,12 +501,13 @@ real(rp) mb(6,6), mb_inv(6,6), kf, kv, rel_p, v(6), mat_save(6,6)
 
 integer i, j
 
-logical include_opening_angle, save_orb_mat, err_flag
+logical include_opening_angle, save_orb_mat, err
 
 ! Note: g from g_bending_strength_from_em_field is g of the particle and not the zero pz particle.
 ! So g will have a factor of (1 + pz) but the equations for the mats was developed for g of the zero pz particle
 
-call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err_flag, pointer_to_next_ele(ele, -1))
+call create_element_slice (runt, ele, z_pos, 0.0_rp, ele%branch%param, .false., .false., err, pointer_to_next_ele(ele, -1))
+if (err) return
 runt%value(dispatch$) = no_misalignment$
 runt%old_value(dispatch$) = no_misalignment$   ! So no bookkeeping is done.
 call track1(orb0, runt, ele%branch%param, orbz)
@@ -507,6 +515,11 @@ call make_mat6(runt, ele%branch%param, orb0, orbz)
 if (save_orb_mat) then
   orb_save = orbz
   mat_save = runt%mat6
+endif
+
+if (orbz%state /= alive$) then
+  err = .true.
+  return
 endif
 
 mb = mat_symp_conj(runt%mat6)   ! matrix from z_pos back to 0

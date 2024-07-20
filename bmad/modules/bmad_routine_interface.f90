@@ -2543,6 +2543,13 @@ subroutine tilt_mat6 (mat6, tilt)
   real(rp) tilt, mat6(6,6)
 end subroutine
 
+subroutine to_surface_coords (lab_orbit, ele, surface_orbit)
+  import
+  implicit none
+  type (coord_struct) lab_orbit, surface_orbit
+  type (ele_struct) ele
+end subroutine
+
 subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
   import
   implicit none
@@ -2912,13 +2919,14 @@ subroutine track1_time_runge_kutta (orbit, ele, param, err_flag, track, t_end, d
   type (track_struct), optional :: track
 end subroutine
 
-subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map)
+subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
   type (rad_map_struct) rad_map
   real(rp) tollerance
   integer ref_edge
+  logical err_flag
 end subroutine
 
 subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)

@@ -655,7 +655,7 @@ type tao_global_struct
   integer :: random_seed = -1                    ! Use system clock by default
   integer :: n_top10_merit = 10                  ! Number of top merit constraints to print.
   integer :: srdt_gen_n_slices = 10              ! Number times to slice elements for summation RDT calculation
-  integer :: datum_err_messages_max = 10         ! Maximum number of error messages per cycle.
+  integer :: datum_err_messages_max = 10         ! Maximum number of error messages per call to lattice_calc.
   integer :: srdt_sxt_n_slices = 20              ! Number times to slice sextupoles for summation RDT calculation
   logical :: srdt_use_cache = .true.             ! Create cache for SRDT calculations.  Can use lots of memory if srdt_*_n_slices large.
   character(12) :: quiet = 'off'                 ! "all", or "output". Print I/O when running a command file?

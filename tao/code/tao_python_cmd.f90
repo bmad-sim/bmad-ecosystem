@@ -7150,7 +7150,6 @@ case ('spin_resonance')
   sm => datum%spin_map
   call tao_spin_matrix_calc (datum, u, ele, ele)
   call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen, err)
-  if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
   qs = branch%param%spin_tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',   qs
@@ -7163,6 +7162,7 @@ case ('spin_resonance')
     nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_diff;REAL;F;', re_str(modulo2(qs-q, 0.5_rp), 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_sum;REAL;F;', re_str(xi_sum, 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_diff;REAL;F;', re_str(xi_diff, 6)
+    nl=incr(nl); write (li(nl), rmt) 'n0;REAL;F;', n0(1), ';', n0(2), ';', n0(3)
   enddo
 
 !------------------------------------------------------------------------------------------------

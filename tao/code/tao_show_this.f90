@@ -6583,6 +6583,7 @@ character(200), allocatable :: alloc_lines(:)
 !
 
 nl=nl+1; lines(nl) = 'Global optimization parameters (use "set global" to change):'
+nl=nl+1; write(lines(nl), imt) '  %datum_err_messages_max        = ', s%global%datum_err_messages_max
 nl=nl+1; write(lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
 nl=nl+1; write(lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
 nl=nl+1; write(lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
