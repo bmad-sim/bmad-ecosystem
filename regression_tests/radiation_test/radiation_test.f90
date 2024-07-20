@@ -46,12 +46,12 @@ do i = 1, 6
 enddo
 
 ele => lat%ele(1)
-call radiation_map_setup(ele)
+call radiation_map_setup(ele, err)
 call write_rad_map (ele%rad_map%rm0, trim(ele%name) // '-rm0')
 call write_rad_map (ele%rad_map%rm1, trim(ele%name) // '-rm1')
 
 ele => lat%ele(2)
-call radiation_map_setup(ele)
+call radiation_map_setup(ele, err)
 call write_rad_map (ele%rad_map%rm0, trim(ele%name) // '-rm0')
 call write_rad_map (ele%rad_map%rm1, trim(ele%name) // '-rm1')
 

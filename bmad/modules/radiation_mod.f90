@@ -55,6 +55,7 @@ end subroutine release_rad_int_cache
 !
 ! Output:
 !   orbit     -- coord_struct: Particle position after radiation has been applied.
+!                 orbit%state set to lost$ or lost_pz$ if there is an error.
 !-
 
 subroutine track1_radiation (orbit, ele, edge)
@@ -78,7 +79,7 @@ real(rp), parameter :: damp_const = 2.0_rp / 3.0_rp
 real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
 
 character(*), parameter :: r_name = 'track1_radiation'
-logical doit
+logical doit, err
 
 !
 
@@ -91,10 +92,15 @@ end select
 
 ! Use stochastic and damp mats
 
+err = .false.
 doit = .not. associated(ele%rad_map)
 if (.not. doit) doit = ele%rad_map%stale
-if (doit) call radiation_map_setup(ele)
-if (.not. associated(ele%rad_map)) return
+if (doit) call radiation_map_setup(ele, err)
+
+if (.not. associated(ele%rad_map) .or. err) then
+  orbit%state = lost$
+  return
+endif
 
 if (edge == start_edge$) then
   rad_map = ele%rad_map%rm0
@@ -143,7 +149,7 @@ end subroutine track1_radiation
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine radiation_map_setup (ele, ref_orbit_in, err_flag)
+! Subroutine radiation_map_setup (ele, err_flag, ref_orbit_in)
 !
 ! Routine to calculate the radiation kick for a lattice element.
 !
@@ -153,10 +159,10 @@ end subroutine track1_radiation
 !
 ! Output:
 !   ele       -- ele_struct: Element with map calculated.
-!   err_flag  -- logical, optional: Set True if there is an error. False otherwise.
+!   err_flag  -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine radiation_map_setup (ele, ref_orbit_in, err_flag)
+subroutine radiation_map_setup (ele, err_flag, ref_orbit_in)
 
 use rad_6d_mod
 
@@ -166,14 +172,14 @@ type (coord_struct) orb1, orb2, ref_orb_in, ref_orb_out
 type (branch_struct), pointer :: branch
 real(rp) tol, m_inv(6,6)
 integer i, edge, info
-logical, optional :: err_flag
+logical err_flag
 logical err, rad_damp_on
 
 character(*), parameter :: r_name = 'radiation_map_setup'
 
 !
 
-if (present(err_flag)) err_flag = .false.
+err_flag = .false.
 
 if (ele%value(l$) == 0 .or. ele%key == taylor$) return   ! Does not produce radiation.
 
@@ -191,7 +197,7 @@ if (present(ref_orbit_in)) then
   ref_orb_in = ref_orbit_in
   call track1(ref_orb_in, ele, branch%param, ref_orb_out)
   if (ref_orb_out%state /= alive$) then
-    if (present(err_flag)) err_flag = .true.
+    err_flag = .true.
     call out_io (s_error$, r_name, 'Reference particle lost while tracking through: ' // ele_full_name(ele))
     return
   endif
@@ -215,16 +221,19 @@ bmad_com%radiation_damping_on = .false.
 ! Mats for first half of element
 
 call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.0_rp, ele%branch%param, .true., .false., err, pointer_to_next_ele(ele, -1))
+if (err) goto 8000
 call make_mat6 (runt, branch%param, ref_orb_in, orb1)
-call tracking_rad_map_setup (runt, 1e-4_rp, upstream_end$, ele%rad_map%rm0)
+call tracking_rad_map_setup (runt, 1e-4_rp, upstream_end$, ele%rad_map%rm0, err);  if (err) goto 8000
 
 ! Mats for second half of element
 
 call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.5_rp*ele%value(l$), ele%branch%param, .false., .true., err, runt)
+if (err) goto 8000
 call make_mat6 (runt, branch%param, orb1, orb2)
 runt%map_ref_orb_out = ref_orb_out  ! Important if test above is done.
-call tracking_rad_map_setup (runt, 1e-4_rp, downstream_end$, ele%rad_map%rm1)
+call tracking_rad_map_setup (runt, 1e-4_rp, downstream_end$, ele%rad_map%rm1, err);  if (err) goto 8000
 
+8000 continue
 bmad_com%radiation_damping_on = rad_damp_on
 
 end subroutine radiation_map_setup

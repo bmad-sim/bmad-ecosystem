@@ -590,8 +590,8 @@ if (lttp%split_bends_for_stochastic_rad) then
     if (ele%name /= 'RADIATION_POINT') cycle
     if (.not. associated(ele%rad_map)) allocate (ele%rad_map)
     ri => ele%rad_map
-    call tracking_rad_map_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
-    call tracking_rad_map_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1)
+    call tracking_rad_map_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0, err)
+    call tracking_rad_map_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1, err)
 
     ! Combine matrices for quicker evaluation
     ri%rm1%stoc_mat = matmul(ri%rm0%stoc_mat, transpose(ri%rm0%stoc_mat)) + matmul(ri%rm1%stoc_mat, transpose(ri%rm1%stoc_mat))

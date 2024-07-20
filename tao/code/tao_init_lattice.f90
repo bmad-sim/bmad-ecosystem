@@ -1,16 +1,16 @@
 !+
-! Subroutine tao_init_lattice (namelist_file, err_flag)
+! Subroutine tao_init_lattice (init_lat_file, err_flag)
 !
 ! Subroutine to initialize the design lattices.
 !
 ! Input:
-!   namelist_file  -- character(*): Name of file containing lattice file info.
+!   init_lat_file -- character(*): Name of file containing lattice file info.
 !
 ! Output:
 !    %u(:)%design -- Initialized design lattices.
 !-
 
-subroutine tao_init_lattice (namelist_file, err_flag)
+subroutine tao_init_lattice (init_lat_file, err_flag)
 
 use tao_interface, except => tao_init_lattice
 use tao_input_struct
@@ -28,7 +28,7 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orbit(:)
 
-character(*) namelist_file
+character(*) init_lat_file
 character(200) full_input_name
 character(100) unique_name_suffix, suffix
 character(40) name
@@ -54,16 +54,17 @@ alternative_lat_file_exists = (s%init%hook_lat_file /= '' .or. s%init%lattice_fi
 
 ! Read lattice info
 
-if (associated(tao_hook_init_read_lattice_info_ptr)) call tao_hook_init_read_lattice_info_ptr (namelist_file)
+if (associated(tao_hook_init_read_lattice_info_ptr)) call tao_hook_init_read_lattice_info_ptr (init_lat_file)
 
 if (s%com%init_read_lat_info) then
-  ! namelist_file == '' means there is no lattice file so just use the defaults.
+  ! init_lat_file == '' means there is no lattice file so just use the defaults.
 
-  if (namelist_file /= '') then
-    call tao_open_file (namelist_file, iu, full_input_name, s_fatal$)
-    call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // namelist_file)
+  if (init_lat_file /= '') then
+    call tao_open_file (init_lat_file, iu, full_input_name, s_fatal$)
+    call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // init_lat_file)
     if (iu == 0) then
-      call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INFO FILE. WILL EXIT HERE...')
+      call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INITIALIZATION FILE: ' // init_lat_file, &
+                                     'WILL EXIT HERE...')
       return
     endif
   endif
@@ -74,15 +75,15 @@ if (s%com%init_read_lat_info) then
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''
 
-  if (namelist_file /= '') then
+  if (init_lat_file /= '') then
     read (iu, nml = tao_design_lattice, iostat = ios)
     if (ios > 0 .or. (ios < 0 .and. .not. alternative_lat_file_exists)) then
       if (ios < 0) then
-        call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST NOT FOUND.', &
+        call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST NOT FOUND IN FILE: ' // init_lat_file, &
                                        'I NEED TO READ THIS NAMELIST TO KNOW THE LATTICE FILE NAME!')
         return
       else
-        call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
+        call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR IN FILE: ' // init_lat_file)
         rewind (iu)
         do
           read (iu, nml = tao_design_lattice)  ! force printing of error message
@@ -123,7 +124,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   if (design_lat%use_element_range(1) /= '') then
     design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
-    call out_io (s_warn$, r_name, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
+    call out_io (s_warn$, r_name, 'In the tao_design_lattice namelist in the init file: ' // init_lat_file, &
                 '"design_lattice(i_uni)%use_element_range" is now "design_lattice(i_uni)%slice_lattice".', &
                 'Please modify your file.')
   endif
