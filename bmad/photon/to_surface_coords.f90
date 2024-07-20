@@ -14,7 +14,7 @@
 
 subroutine to_surface_coords (lab_orbit, ele, surface_orbit)
 
-use photon_utils_mod
+use photon_utils_mod, dummy => to_surface_coords
 use super_recipes_mod, only: super_qromb
 
 implicit none
