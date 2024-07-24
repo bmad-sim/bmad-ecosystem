@@ -7162,7 +7162,7 @@ case ('spin_resonance')
     nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_diff;REAL;F;', re_str(modulo2(qs-q, 0.5_rp), 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_sum;REAL;F;', re_str(xi_sum, 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_diff;REAL;F;', re_str(xi_diff, 6)
-    nl=incr(nl); write (li(nl), rmt) 'n0;REAL;F;', n0(1), ';', n0(2), ';', n0(3)
+    nl=incr(nl); write (li(nl), rmt) 'n0;REAL_ARR;F;', n0(1), ';', n0(2), ';', n0(3)
   enddo
 
 !------------------------------------------------------------------------------------------------
