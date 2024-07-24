@@ -60,10 +60,15 @@ if (present(rot_mat)) call mat_make_unit(rot_mat)
 if (set) then
 
   if (bmad_com%debug) then
+    if (ele%ix_ele == 1) then
+      print *
+      print *
+    endif
+    print '(a)', '!-------------------------------------------------------------------'
     print '(a, 6es20.12)', 'Starting tracking of ' // ele_full_name(ele) // ' from end of previous element.'
     print '(a, 6es20.12)', '  Photon energy: ', orbit%p0c
-    print '(a, 6es20.12)', '  orbit (x, y, z):   ', orbit%vec(1:5:2)
-    print '(a, 6es20.12)', '  orbit (Vx, Vy, Vz):', orbit%vec(2:6:2)
+    print '(a, 6es20.12)', '  orbit (x, y, z):          ', orbit%vec(1:5:2)
+    print '(a, 6es20.12)', '  orbit (Vx/c, Vy/c, Vz/c): ', orbit%vec(2:6:2)
   endif
 
   vec6_0 = vec(6)
@@ -326,8 +331,8 @@ else
   if (bmad_com%debug) then
     print '(a, 6es20.12)', 'End of tracking of ' // ele_full_name(ele)
     print '(a, 6es20.12)', '  Photon energy: ', orbit%p0c
-    print '(a, 6es20.12)', '  orbit (x, y, z):   ', orbit%vec(1:5:2)
-    print '(a, 6es20.12)', '  orbit (Vx, Vy, Vz):', orbit%vec(2:6:2)
+    print '(a, 6es20.12)', '  orbit (x, y, z):          ', orbit%vec(1:5:2)
+    print '(a, 6es20.12)', '  orbit (Vx/c, Vy/c, Vz/c): ', orbit%vec(2:6:2)
   endif
 
 endif
