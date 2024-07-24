@@ -1,0 +1,50 @@
+! (1): Because we are going backward, FLIP SIGN OF BEGINNING ALPHAS!
+! (2): Define IPR_inverse line (going backwards)
+! (3): Use IPR_inverse line
+! This time we will save the var1.out file (renamed as IPR.out) from the optimization
+
+parameter[geometry] = open       
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+! (1): Because we are going backward, FLIP SIGN OF BEGINNING ALPHAS!
+beginning[beta_a]    = 27.2059882001124
+beginning[alpha_a]   = 2.40249036572077
+beginning[beta_b]    = 4.96091411452631
+beginning[alpha_b]   = -0.484605557132712
+
+
+!-------------------------------------------------------
+QFSS: Quadrupole, L = 0.5, K1 = 0.351957452649287, DS_STEP = 0.05
+D1: Drift, L = 0.609
+DB: Drift, L = 5.855
+D2: Drift, L = 1.241
+QDSS: Quadrupole, L = 0.5, K1 = -0.351957452649287, DS_STEP = 0.05
+
+QEF1: Quadrupole, L = 0.5, K1 = 0.351957452649287
+QEF2: Quadrupole, L = 0.5, K1 = -0.351957452649287
+DEF1: Drift, L = 20.46
+QEF3: Quadrupole, L = 1.6, K1 = 0.351957452649287
+DEF2: Drift, L = 3.76
+QEF4: Quadrupole, L = 1.2, K1 = -0.351957452649287
+DEF3: Drift, L = 5.8 
+
+IP6: marker
+
+DER3: Drift, L = 5.3
+QER4: Quadrupole, L = 1.8, K1=-0.351957452649287
+DER2: Drift, L = 0.5
+QER3: Quadrupole, L = 1.4, K1=0.351957452649287
+DER1: Drift, L = 23.82
+QER2: Quadrupole, L = 0.5, K1 = 0.351957452649287
+QER1: Quadrupole, L = 0.5, K1 =-0.351957452649287
+
+IPF: line = ( QEF1, D1, DB, D2, QEF2, D1, DB, D2, DEF1, QEF3, DEF2, QEF4, DEF3, IP6)
+IPR: line = (IP6, DER3, QER4, DER2, QER3, DER1, QER2, D2, DB, D1, QER1, D2, DB, D1)
+
+! (2): Define IPR_inverse line (going backwards)
+IPR_inverse: line = (-IPR)
+
+! (3): Use IPR_inverse line
+use, IPR_inverse

@@ -1,0 +1,44 @@
+parameter[geometry] = Open            
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+beginning[beta_a]    = 27.2059882001124
+beginning[alpha_a]   = -2.40249036572077
+beginning[beta_b]    = 4.96091411452631
+beginning[alpha_b]   = 0.484605557132712
+
+
+!-------------------------------------------------------
+
+QEF1: Quadrupole, L = 0.5, K1 = 0.472771266311092
+D1: Drift, L = 0.609
+DB: Drift, L = 5.855
+D2: Drift, L = 1.241
+QEF2: Quadrupole, L = 0.5, K1 = -0.112382775182896
+DEF1: Drift, L = 20.46
+QEF3: Quadrupole, L = 1.6, K1 = 0.109225406228901
+DEF2: Drift, L = 3.76
+QEF4: Quadrupole, L = 1.2, K1 = -0.22417037885855
+DEF3: Drift, L = 5.8
+IP6: Marker
+DER3: Drift, L = 5.3
+QER4: Quadrupole, L = 1.8, K1 = -0.237106026895982
+DER2: Drift, L = 0.5
+QER3: Quadrupole, L = 1.4, K1 = 0.235216011329213
+DER1: Drift, L = 23.82
+QER2: Quadrupole, L = 0.5, K1 = -9.91959187109746E-3
+QER1: Quadrupole, L = 0.5, K1 = -0.380938440181242
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+
+IP: line = ( qef1, d1, db, d2, qef2, d1, db, d2, def1, qef3, def2, qef4, def3, ip6, ip6, der3, qer4,
+   der2, qer3, der1, qer2, d2, db, d1, qer1, d2, db, d1)
+
+use, IP

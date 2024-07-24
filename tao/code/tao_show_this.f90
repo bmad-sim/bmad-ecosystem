@@ -1456,8 +1456,8 @@ case ('debug')
 case ('derivative')
 
   do_calc = .false.
-  word1 = ''
-  word2 = ''
+  word1 = ''    ! data
+  word2 = ''    ! variables
 
   do
     call tao_next_switch (what2, ['-derivative_recalc'], .true., switch, err)
@@ -1481,7 +1481,7 @@ case ('derivative')
     end select
   enddo
 
-  if (word1 == '') word1 = '*'
+  if (word1 == '') word1 = '*@*'
   if (word2 == '') word2 = '*'
 
   call tao_find_data (err, word1, d_array = d_array);  if (err) return

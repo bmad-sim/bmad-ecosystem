@@ -1,0 +1,40 @@
+&tao_plot_page
+	plot_page%size = 400, 400
+	plot_page%text_height = 8
+	plot_page%n_curve_pts = 5000
+/
+
+&tao_params
+	global%n_opti_cycles = 100
+	global%n_opti_loops = 100
+/
+
+&tao_d2_data
+  	d2_data%name = 'w'
+  	n_d1_data = 1
+/
+&tao_d1_data
+	ix_d1_data = 1
+	datum(1) = 'chrom.w.a' '' '' 'END_7' 'target' 0 100
+	datum(2) = 'chrom.w.b' '' '' 'END_7' 'target' 0 100
+	datum(3) = 'chrom.w.a' '' '' 'IP6##1'   'target' 0 100
+	datum(4) = 'chrom.w.b' '' '' 'IP6##1'   'target' 0 100
+/
+
+! Two families per plane in arcs adjacent to IP
+! Phases into IP
+
+&tao_var
+	v1_var%name = 'sextupoles'
+	var(1:4)%ele_name = "OF_5", "OD_5", "OF_7", "OD_7"
+	default_step = 1e-4
+	default_attribute = 'x'
+/
+
+
+&tao_var
+	v1_var%name = 'phases'
+	var(1:4)%ele_name = "TROMBONES", "TROMBONES", "TROMBONES", "TROMBONES"
+	default_step = 1e-6
+	var(1:4)%attribute = 'x1', 'x2', 'y1', 'y2'
+/

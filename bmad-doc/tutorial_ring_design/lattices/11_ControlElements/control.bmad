@@ -1,0 +1,16 @@
+! File name: control.bmad
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[particle] = muon
+parameter[p0c] = 1e9
+parameter[geometry] = open
+
+q: quadrupole, l = 1
+b: sbend, l = 1
+ll: line = (q, b)
+use, ll
+
+ov1: overlay = {q[k1]: a+b^2, b[g]: 0.1*a+tan(b)}, var = {a, b}, a = 0.02
+ov2: overlay = {q[k1]: 0.7,	q[x_offset]: 0.1*hh}, var = {hh}, hh = 0.01
+gr1: group = {b[k1]: 0.4*sqrt(z)}, var = {z}

@@ -1,0 +1,44 @@
+! (1): Start with the fodoAR.bmad file for periodic betas in arc reverse cells
+! (2): Set geometry to open
+! (3): Define half bend and quads for dispersion suppression (strengths TBD)
+! (4): Define the new line for half bends
+ 
+parameter[geometry] = open     ! (2): Set geometry to open  
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+beginning[beta_a]    = 30.6276899615611
+beginning[alpha_a]   = -2.4028257772189
+beginning[eta_x]     = 0.586359929961733
+beginning[etap_x]    = 0.0469886311069574
+beginning[beta_b]    = 5.54895892160188
+beginning[alpha_b]   = 0.47688813370475
+
+
+!-------------------------------------------------------
+
+QF: Quadrupole, L = 0.5, K1 = 0.312808574467162, DS_STEP = 0.05
+D2: Drift, L = 1.241
+B: SBend, L = 6.86016190935103, G = 3.46929776000413E-3, E1 = 0.0118999721726886, E2 = 0.0118999721726886
+D1: Drift, L = 0.609
+QD: Quadrupole, L = 0.5, K1 = -0.312643401293818, DS_STEP = 0.05
+
+! (3): Define half bend and quads for dispersion suppression (strengths TBD)
+BH: rbend, L = 6.86, angle=pi/132/2
+QFR1: Quadrupole, L = 0.5, K1 = 0.3
+QDR1: Quadrupole, L = 0.5, K1 = -0.3
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+FODOAR: line = ( qf, d2, b, d1, qd, d2, b, d1)
+
+! (4): Define the new line for half bends
+DISPSUPR: line = (QF, D2, BH, D1, QD, D2, BH, D1, QFR1, D2, BH, D1, QDR1, D2, BH, D1)
+
+use, DISPSUPR

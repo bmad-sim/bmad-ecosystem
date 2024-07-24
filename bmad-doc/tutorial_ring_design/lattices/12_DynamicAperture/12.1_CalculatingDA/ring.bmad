@@ -1,0 +1,325 @@
+parameter[geometry] = closed
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+!beginning[beta_a]    = 27.205988200112
+!beginning[alpha_a]   = -2.4024903657208
+!beginning[beta_b]    = 4.9609141145263
+!beginning[alpha_b]   = 0.48460555713271
+
+bmad_com[radiation_damping_on]=T
+
+! at IP6 
+beginning[beta_a] = 0.60000000000067211
+beginning[beta_b] = 0.06000000000006148
+beginning[alpha_a] = 0.00000000000086674
+beginning[alpha_b] = -0.0000000000001492
+beginning[eta_a] = -0.0000000000000165
+beginning[etap_a] = 0.0000000000000044
+
+!-------------------------------------------------------
+
+QFSS: Quadrupole, L = 0.5, K1 = 0.35195745264929, DS_STEP = 0.05
+D1: Drift, L = 0.609
+DB: Drift, L = 5.855
+D2: Drift, L = 1.241
+QDSS: Quadrupole, L = 0.5, K1 = -0.35195745264929, DS_STEP = 0.05
+
+QF: Quadrupole, L = 0.5, K1 = 0.31280857446716, DS_STEP = 0.05
+B: Sbend, L = 6.860161909351, G = 3.4692977600041E-3, E1 = 0.011899972172689, E2 = 0.011899972172689
+QD: Quadrupole, L = 0.5, K1 = -0.31264340129382, DS_STEP = 0.05
+
+QFF_1: Quadrupole, L = 0.5, K1 = 0.31278884904032, DS_STEP = 0.05
+QDF_1: Quadrupole, L = 0.5, K1 = -0.3124352130057, DS_STEP = 0.05
+BH: Sbend, L = 6.8600404768362, G = 1.7346795857649E-3, E1 = 5.9499860863443E-3, E2 = 5.9499860863443E-3
+QFF_2: Quadrupole, L = 0.5, K1 = 0.35687810258615, DS_STEP = 0.05
+QDF_2: Quadrupole, L = 0.5, K1 = -0.35274834124136, DS_STEP = 0.05
+QFF_3: Quadrupole, L = 0.5, K1 = 0.37886629208439, DS_STEP = 0.05
+QDF_3: Quadrupole, L = 0.5, K1 = -0.36125385461145, DS_STEP = 0.05
+
+QFR_1: Quadrupole, L = 0.5, K1 = 0.31279043710515, DS_STEP = 0.05
+QDR_1: Quadrupole, L = 0.5, K1 = -0.31247608883043, DS_STEP = 0.05
+QFR_2: Quadrupole, L = 0.5, K1 = 0.35687547283755, DS_STEP = 0.05
+QDR_2: Quadrupole, L = 0.5, K1 = -0.3527343740122, DS_STEP = 0.05
+QFR_3: Quadrupole, L = 0.5, K1 = 0.37886852327304, DS_STEP = 0.05
+QDR_3: Quadrupole, L = 0.5, K1 = -0.36119302226937, DS_STEP = 0.05
+
+! Define forward (upstream) interaction region drifts and quads:
+QEF_1: Quadrupole, L = 0.5, K1 = 0.47277126631107, DS_STEP = 0.05
+QEF_2: Quadrupole, L = 0.5, K1 = -0.11238277518307, DS_STEP = 0.05
+QEF_3: Quadrupole, L = 1.6, K1 = 0.1092254062289, DS_STEP = 1.6
+QEF_4: Quadrupole, L = 1.2, K1 = -0.22417037885855, DS_STEP = 1.2
+DEF1: Drift, L = 20.46
+DEF2: Drift, L = 3.76
+DEF3: Drift, L = 5.8 
+IP6: marker
+
+! Define reverse (downstream) interaction region drifts and quads:
+DER3: Drift, L = 5.3
+DER2: Drift, L = 0.5
+DER1: Drift, L = 23.82
+QER_1: Quadrupole, L = 0.5, K1 = -0.38093844018158, DS_STEP = 0.05
+QER_2: Quadrupole, L = 0.5, K1 = -9.9195918709847E-3, DS_STEP = 0.05
+QER_3: Quadrupole, L = 1.4, K1 = 0.23521601132921, DS_STEP = 0.058333333333333
+QER_4: Quadrupole, L = 1.8, K1 = -0.23710602689598, DS_STEP = 0.058064516129032
+
+QFF_2T: Quadrupole, L = 0.5, K1 = 0.35929188660973, DS_STEP = 0.05
+QDF_2T: Quadrupole, L = 0.5, K1 = -0.36019887802592, DS_STEP = 0.05
+QFF_3T: Quadrupole, L = 0.5, K1 = 0.37024270268272, DS_STEP = 0.05
+QDF_3T: Quadrupole, L = 0.5, K1 = -0.38674822237638, DS_STEP = 0.05
+QFSST: Quadrupole, L = 0.5, K1 = 0.33172055286931, DS_STEP = 0.05
+QDSST: Quadrupole, L = 0.5, K1 = -0.38704378508484, DS_STEP = 0.05
+
+QFR_2T8: Quadrupole, L = 0.5, K1 = 0.35687547283755, DS_STEP = 0.05
+QDR_2T8: Quadrupole, L = 0.5, K1 = -0.3527343740122, DS_STEP = 0.05
+QFR_3T8: Quadrupole, L = 0.5, K1 = 0.37886852327304, DS_STEP = 0.05
+QDR_3T8: Quadrupole, L = 0.5, K1 = -0.36119302226937, DS_STEP = 0.05
+QFSST8: Quadrupole, L = 0.5, K1 = 0.35195745264929, DS_STEP = 0.05
+QDSST8: Quadrupole, L = 0.5, K1 = -0.35195745264929, DS_STEP = 0.05
+
+SFSS: Sextupole, L = 0.584, k2 = 0.
+SDSS: Sextupole, L = 0.584, k2 = -0.
+
+D2S: Drift, L = 0.501
+D3S: Drift, L = 0.156
+
+! Define sextupole families
+! 1 o'clock arc:
+SF1_1: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD1_1: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+SF1_2: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD1_2: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+
+OF1: Overlay = {SF1_1[k2]:1.15979949416850370E+000 + x, SF1_2[k2]:1.15979949416850370E+000 - x}, VAR = {x}
+OD1: Overlay = {SD1_1[k2]:-2.36138572518649603E+000 + x, SD1_2[k2]:-2.36138572518649603E+000 - x}, VAR = {x}
+
+
+! 3 o'clock arc:
+SF3_1: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD3_1: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+SF3_2: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD3_2: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+
+OF3: Overlay = {SF3_1[k2]:1.15979949416850370E+000 + x, SF3_2[k2]:1.15979949416850370E+000 - x}, VAR = {x}
+OD3: Overlay = {SD3_1[k2]:-2.36138572518649603E+000 + x, SD3_2[k2]:-2.36138572518649603E+000 - x}, VAR = {x}
+
+! 5 o'clock arc:
+SF5_1: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD5_1: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+SF5_2: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD5_2: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+
+OF5: Overlay = {SF5_1[k2]:1.15979949416850370E+000 + x, SF5_2[k2]:1.15979949416850370E+000 - x, }, VAR = {x}
+OD5: Overlay = {SD5_1[k2]:-2.36138572518649603E+000 + x, SD5_2[k2]:-2.36138572518649603E+000 - x}, VAR = {x}
+
+! 7 o'clock arc:
+SF7_1: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD7_1: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+SF7_2: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD7_2: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+
+OF7: Overlay = {SF7_1[k2]:1.15979949416850370E+000 + x, SF7_2[k2]:1.15979949416850370E+000 - x}, VAR = {x}
+OD7: Overlay = {SD7_1[k2]:-2.36138572518649603E+000 + x, SD7_2[k2]:-2.36138572518649603E+000 - x}, VAR = {x}
+
+! 9 o'clock arc:
+SF9_1: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD9_1: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+SF9_2: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD9_2: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+
+OF9: Overlay = {SF9_1[k2]:1.15979949416850370E+000 + x, SF9_2[k2]:1.15979949416850370E+000 - x}, VAR = {x}
+OD9: Overlay = {SD9_1[k2]:-2.36138572518649603E+000 + x, SD9_2[k2]:-2.36138572518649603E+000 - x}, VAR = {x}
+
+! 11 o'clock arc:
+SF11_1: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD11_1: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+SF11_2: Sextupole, L = 0.584, k2 = 1.15979949416850370E+000
+SD11_2: Sextupole, L = 0.584, k2 = -2.36138572518649603E+000
+
+OF11: Overlay = {SF11_1[k2]:1.15979949416850370E+000 + x, SF11_2[k2]:1.15979949416850370E+000 - x}, VAR = {x}
+OD11: Overlay = {SD11_1[k2]:-2.36138572518649603E+000 + x, SD11_2[k2]:-2.36138572518649603E+000 - x}, VAR = {x}
+
+D1C: Drift, L = 0.064
+D2C: Drift, L = 0.345 !0.609 - 0.064 - 0.2
+CH: hkicker, L = 0.2 ! horizontal kickers where horizontal betas larger
+CV: vkicker, L = 0.2 ! vertical kickers where vertical betas larger
+
+BPM: marker
+
+! In ESR: 2 RF cavities in between each quad with equal 30 cm drifts
+! For our lattice, ((1.241+5.855+0.609)-2*3.41)/3
+RF0: RFCavity, L = 3.41, harmon = 7560, voltage=3.5579437E+06 !68.0/18.0 * 1e6
+DRF: Drift, L = ((1.241+5.855+0.609)-2*3.41)/3 ! = 0.295
+FODORF: line = ( QFSS, DRF, RF0, DRF, RF0, DRF, QDSS, DRF, RF0, DRF, RF0, DRF)
+
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+! Straight section forward FoDo:
+FODOSSF: line = ( QFSS, D1C, CH, D2C, DB, BPM, D2S, SDSS, D3S, QDSS, D1C, CV, D2C, DB, BPM, D2S, SFSS, D3S)
+
+! 1 o'clock arc forward 2*FoDo:
+FODOA1F: line = ( QF, D1C, CH, D2C, B, BPM, D2S, SD1_1, D3S, QD, D1C, CV, D2C, B, BPM, D2S, SF1_1, D3S, QF, D1C, CH, D2C, B, BPM, D2S, SD1_2, D3S, QD, D1C, CV, D2C, B, BPM, D2S, SF1_2, D3S)
+
+! 3 o'clock arc reverse 2*FoDo:
+FODOA3R: line = (QF, D3S, SF3_1, D2S, B, BPM, D2C, CV, D1C, QD, D3S, SD3_1, D2S, B, BPM, D2C, CH, D1C, QF, D3S, SF3_2, D2S, B, BPM, D2C, CV, D1C, QD, D3S, SD3_2, D2S, B, BPM, D2C, CH, D1C)
+
+! 5 o'clock arc forward 2*FoDo:
+FODOA5F: line = ( QF, D1C, CH, D2C, B, BPM, D2S, SD5_1, D3S, QD, D1C, CV, D2C, B, BPM, D2S, SF5_1, D3S, QF, D1C, CH, D2C, B, BPM, D2S, SD5_2, D3S, QD, D1C, CV, D2C, B, BPM, D2S, SF5_2, D3S)
+
+! 7 o'clock arc reverse 2*FoDo:
+FODOA7R: line = (QF, D3S, SF7_1, D2S, B, BPM, D2C, CV, D1C, QD, D3S, SD7_1, D2S, B, BPM, D2C, CH, D1C, QF, D3S, SF7_2, D2S, B, BPM, D2C, CV, D1C, QD, D3S, SD7_2, D2S, B, BPM, D2C, CH, D1C)
+
+! 9 o'clock arc forward 2*FoDo:
+FODOA9F: line = ( QF, D1C, CH, D2C, B, BPM, D2S, SD9_1, D3S, QD, D1C, CV, D2C, B, BPM, D2S, SF9_1, D3S, QF, D1C, CH, D2C, B, BPM, D2S, SD9_2, D3S, QD, D1C, CV, D2C, B, BPM, D2S, SF9_2, D3S)
+
+! 11 o'clock arc reverse 2*FoDo:
+FODOA11R: line = (QF, D3S, SF11_1, D2S, B, BPM, D2C, CV, D1C, QD, D3S, SD11_1, D2S, B, BPM, D2C, CH, D1C, QF, D3S, SF11_2, D2S, B, BPM, D2C, CV, D1C, QD, D3S, SD11_2, D2S, B, BPM, D2C, CH, D1C)
+
+! Straight section reverse FoDo:
+FODOSSR: line = (QFSS, D3S, SFSS, D2S, DB, BPM, D2C, CV, D1C, QDSS, D3S, SDSS, D2S, DB, BPM, D2C, CH, D1C)
+
+!-------------------------------------------------------
+! Special lines
+
+IPR: line = ( DER3, QER_4, DER2, QER_3, DER1, QER_2, D2, DB, BPM, D1, QER_1, D2, DB, BPM, D1)
+
+IPF: line = ( QEF_1, D1, DB, BPM, D2, QEF_2, D1, DB, BPM, D2, DEF1, QEF_3, DEF2, QEF_4, DEF3, IP6)
+
+! Forward and Reverse FoDos in SS of tune cell:
+FODOSSTF: line = ( QFSST, D1C, CH, D2C, DB, BPM, D2, QDSST, D1C, CV, D2C, DB, BPM, D2)
+FODOSSTR: line = ( QFSST, D2, DB, BPM, D2C, CV, D1C, QDSST, D2, DB, BPM, D2C, CH, D1C)
+
+! Tune cell forward matching to straight section quads:
+FODOMTF: line = (QFF_2T, D1C, CH, D2C, DB, BPM, D2, QDF_2T, D1C, CV, D2C, DB, BPM, D2, QFF_3T, D1C, CH, D2C, DB, BPM, D2, QDF_3T, D1C, CV, D2C, DB, BPM, D2)
+
+! Tune cell matching reverse straight section to dispersion "creator":
+FODOMTR: line = ( QFSST, D2, DB, BPM, D2C, CV, D1C, QDF_3T, D2, DB, BPM, D2C, CH, D1C,  QFF_3T, D2, DB, BPM, D2C, CV, D1C, QDF_2T, D2, DB, BPM, D2C, CH, D1C)
+
+! Tune cell modified dispersion "creator" to steal one quad from:
+FODOHTR: line = ( QFF_2T, D2, BH, BPM, D2C, CV, D1C, QDF_1, D2, BH, BPM, D2C, CH, D1C, QFF_1, D2, BH, BPM, D2C, CV, D1C, QD, D2, BH, BPM, D2C, CH, D1C)
+
+! Define tune cell sections:
+ARC_TO_TUNECELLF: line = (FODOH2F, FODOMTF)
+TUNECELL_TO_ARCR: line = (FODOMTR, FODOHTR)
+
+! Forward and Reverse FoDos in SS of tune cell 8 in 8 o'clock arc:
+FODOSST8F: line = ( QFSST8, D1, DB, D2, QDSST8, D1, DB, D2)
+FODOSST8R: line = ( QFSST8, D2, DB, D1, QDSST8, D2, DB, D1)
+
+! Tune cell 8 reverse matching to straight section quads:
+FODOMT8R: line = (QFR_2T8, D2, DB, D1, QDR_2T8, D2, DB, D1,  QFR_3T8, D2, DB, D1, QDR_3T8, D2, DB, D1)
+
+! Tune cell 8 matching forward straight section to dispersion "creator":
+FODOMT8F: line = (QFSST8, D1, DB, D2, QDR_3T8, D1, DB, D2, QFR_3T8, D1, DB, D2, QDR_2T8, D1, DB, D2)
+
+! Tune cell 8 modified dispersion "creator" to steal one quad from:
+FODOHT8F: line = (QFR_2T8, D1, BH, D2, QDR_1, D1, BH, D2, QFR_1, D1, BH, D2, QD, D1, BH, D2)
+
+! Define tune cell sections:
+ARC_TO_TUNECELL8R: line = (FODOH2R, FODOMT8R)
+TUNECELL8_TO_ARCF: line = (FODOMT8F, FODOHT8F)
+
+!-------------------------------------------------------
+! ARC_TO_SSF
+
+! Dispersion suppressor:
+FODOH2F: line = ( QF, D1C, CH, D2C, BH, BPM, D2, QD, D1C, CV, D2C, BH, BPM, D2, QFF_1, D1C, CH, D2C, BH, BPM, D2, QDF_1, D1C, CV, D2C, BH, BPM, D2)
+
+! Match dispersion suppressor to SS:
+FODOM2F: line = (QFF_2, D1C, CH, D2C, DB, BPM, D2, QDF_2, D1C, CV, D2C, DB, BPM, D2, QFF_3, D1C, CH, D2C, DB, BPM, D2, QDF_3, D1C, CV, D2C, DB, BPM, D2)
+
+ARC_TO_SSF: line = (FODOH2F, FODOM2F)
+
+!-------------------------------------------------------
+! SS_TO_ARCF
+
+! Straight section to dispersion "creator"
+FODOM1F: line = (QFSS, D1C, CH, D2C, DB, BPM, D2, QDR_3, D1C, CV, D2C, DB, BPM, D2, QFR_3, D1C, CH, D2C, DB, BPM, D2, QDR_2, D1C, CV, D2C, DB, BPM, D2) 
+
+! Dispersion "creator"
+FODOH1F: line = (QFR_2, D1C, CH, D2C, BH, BPM, D2, QDR_1, D1C, CV, D2C, BH, BPM, D2, QFR_1, D1C, CH, D2C, BH, BPM, D2, QD, D1C, CV, D2C, BH, BPM, D2)
+
+SS_TO_ARCF: line = (FODOM1F, FODOH1F)
+
+!-------------------------------------------------------
+
+! SEXTANTF: line = (4*FODOSSF, SS_TO_ARCF, 20*FODOAF, ARC_TO_SSF, 4*FODOSSF)
+
+!-------------------------------------------------------
+! ARC_TO_SSR 
+
+! Dispersion suppressor:
+FODOH2R: line = (QF, D2, BH, BPM, D2C, CV, D1C, QD, D2, BH, BPM, D2C, CH, D1C, QFR_1, D2, BH, BPM, D2C, CV, D1C, QDR_1, D2, BH, BPM, D2C, CH, D1C)
+
+! Match dispersion suppressor to SS:
+FODOM2R: line = (QFR_2, D2, DB, BPM, D2C, CV, D1C, QDR_2, D2, DB, BPM, D2C, CH, D1C,  QFR_3, D2, DB, BPM, D2C, CV, D1C, QDR_3, D2, DB, BPM, D2C, CH, D1C)
+
+ARC_TO_SSR: line = (FODOH2R, FODOM2R)
+
+!-------------------------------------------------------
+! SS_TO_ARCR 
+
+! SS to dispersion "creator":
+FODOM1R: line = ( QFSS, D2, DB, BPM, D2C, CV, D1C, QDF_3, D2, DB, BPM, D2C, CH, D1C,  QFF_3, D2, DB, BPM, D2C, CV, D1C, QDF_2, D2, DB, BPM, D2C, CH, D1C)
+
+! Dispersion "creator":
+FODOH1R: line = ( QFF_2, D2, BH, BPM, D2C, CV, D1C, QDF_1, D2, BH, BPM, D2C, CH, D1C, QFF_1, D2, BH, BPM, D2C, CV, D1C, QD, D2, BH, BPM, D2C, CH, D1C)
+
+SS_TO_ARCR: line = (FODOM1R, FODOH1R)
+
+!-------------------------------------------------------
+
+! SEXTANTR: line = (4*FODOSSR, SS_TO_ARCR, 20*FODOAR, ARC_TO_SSR, 4*FODOSSR)
+
+!-------------------------------------------------------
+! Build the ring:
+start: marker
+
+SEXTANT1: line = (start, 4*FODOSSF, SS_TO_ARCF, 10*FODOA1F, ARC_TO_TUNECELLF, 4*FODOSSTF)
+
+SEXTANT3: line = (4*FODOSSTR, TUNECELL_TO_ARCR, 10*FODOA3R, ARC_TO_TUNECELL8R, 4*FODOSST8R)
+SEXTANT5: line = (4*FODOSST8F, TUNECELL8_TO_ARCF, 10*FODOA5F, ARC_TO_SSF, 1*FODOSSF, IPF)
+
+SEXTANT7: line = (IPR, 1*FODOSSR, SS_TO_ARCR, 10*FODOA7R, ARC_TO_TUNECELL8R, 4*FODOSST8R)
+SEXTANT9: line = (4*FODOSST8F, TUNECELL8_TO_ARCF, 10*FODOA9F, ARC_TO_SSF, 2*FODOSSF, 2*FODORF)
+SEXTANT11: line = (2*FODORF, 2*FODOSSR, SS_TO_ARCR, 10*FODOA11R, ARC_TO_SSR, 4*FODOSSR)
+
+RING: line = (SEXTANT1, SEXTANT3, SEXTANT5, SEXTANT7, SEXTANT9, SEXTANT11)
+ring_inv: line = (-RING)
+
+use, RING
+
+expand_lattice
+start_branch_at IP6
+
+ QFSST8[K1] =  3.55171310984972344E-001
+ QDSST8[K1] = -3.64423968546758015E-001
+ QFR_2T8[K1] =  3.56974850583871683E-001
+ QDR_2T8[K1] = -3.54100544589534161E-001
+ QFR_3T8[K1] =  3.80473711523010738E-001
+ QDR_3T8[K1] = -3.68830171332955814E-001
+
+ QFSST[K1] =  3.24647590341795078E-001
+ QDSST[K1] = -3.63482369886292955E-001
+ QFF_2T[K1] =  3.59305977223252471E-001
+ QDF_2T[K1] = -3.53800598348860851E-001
+ QFF_3T[K1] =  3.67231551860705940E-001
+ QDF_3T[K1] = -3.68459213532794094E-001
+
+ OF7[X] =  1.76252360350968411E-002
+ OF9[X] =  1.62812604965716812E-001
+ OD7[X] = -8.41514967014722393E-001
+ OD9[X] = -1.02583621378654333E+000
+
+ OF5[X] =  4.90029980918167629E-001
+ OF3[X] =  1.39911079383972514E-001
+ OD5[X] =  1.20599978500591565E+000
+ OD3[X] = -5.99569883679358817E-001
+ 
