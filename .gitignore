@@ -41,6 +41,9 @@ bmad/doc/bmad.pdf
 util/searchf.pyc
 bsim/**/doc/*.pdf
 
+bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
+bmad-doc/tutorial_ring_design/doc/tutorial_ring_design.pdf
+
 **/doc/*.aux
 **/doc/*.bbl
 **/doc/*.blg
