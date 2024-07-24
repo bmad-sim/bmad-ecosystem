@@ -1,0 +1,32 @@
+&tao_plot_page
+	plot_page%size = 400, 400
+	plot_page%text_height = 8
+	plot_page%n_curve_pts = 5000
+
+&tao_params
+	global%n_opti_cycles = 100
+	global%n_opti_loops = 100
+/
+
+
+&tao_d2_data
+  	d2_data%name = 'betas'
+  	n_d1_data = 1
+/
+
+! Use the first four quads in SS to match to periodic betas in SS
+&tao_d1_data
+	ix_d1_data = 1
+	datum(1) = 'beta.a' '' '' 'end' 'target' 27.2059882001124 10
+	datum(2) = 'alpha.a' '' '' 'end' 'target' -2.40249036572077 10
+	datum(3) = 'beta.b' '' '' 'end' 'target' 4.96091411452631 10
+	datum(4) = 'alpha.b' '' '' 'end' 'target' 0.484605557132712 10
+/
+
+&tao_var
+	v1_var%name = 'quads'
+	var(1:4)%ele_name = "QFR2", "QDR2", "QFR3", "QDR3",
+	default_step = 1e-6
+	default_attribute = 'k1'
+/
+

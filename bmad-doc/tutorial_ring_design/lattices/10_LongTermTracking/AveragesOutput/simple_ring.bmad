@@ -1,0 +1,15 @@
+parameter[p0c] = 1.3e10
+bmad_com[radiation_damping_on] = T
+
+q1: quad, l = 0.45, k1 = 1, tilt = 0.01  ! Tilt to give some coupling.                                                                                                                                                                                                                                                           
+q2: quad, l = 0.55, k1 = -1
+
+d: drift, l = 0.3
+b: sbend, l = 0.5, angle = 0.01
+
+rf: rfcavity, l = 0.1, rf_frequency = 500e6, voltage = 1e8
+
+sector: line = (d, q1, d, b, d, q2, d, rf, b)
+ring: line = (10*sector)
+
+use, ring

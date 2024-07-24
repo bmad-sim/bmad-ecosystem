@@ -1,0 +1,16 @@
+# This is the header section
+# You can define parameters for all particles in the bunch
+# species = electron
+# charge  = 1.6e-19
+# state   = alive
+# Or custom parameters not used by Bmad like
+# version = 1.0.0
+
+#! x   px   y   py   z     pz    
+   0   0    0   0    0     0     
+   0   0    0   0    0.1   0     
+   0   0    0   0    0.15  0     
+   0   0    0   0    0     -0.01 
+   0   0    0   0    0     0.015 
+   0   0    0   0    0     0.02  
+   0   0    0   0    0     0.03  

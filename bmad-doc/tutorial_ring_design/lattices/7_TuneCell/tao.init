@@ -1,0 +1,39 @@
+&tao_plot_page
+	plot_page%size = 400, 400
+	plot_page%text_height = 8
+	plot_page%n_curve_pts = 5000
+/
+
+&tao_d2_data
+  	d2_data%name = 'tune_cell'
+  	n_d1_data = 1
+/
+
+&tao_d1_data
+	ix_d1_data = 1
+
+	! Require periodic betas in center FoDo cells of 2 o'clock tune cell
+	datum(1) = 'expression: lat::beta.a[QFSS_2##4] - lat::beta.a[QFSS_2##5]' '' '0' 'end' 'target' 0 10
+	datum(2) = 'expression: lat::beta.b[QFSS_2##4] - lat::beta.b[QFSS_2##5]' '' '0' 'end' 'target' 0 10
+	datum(3) = 'expression: lat::alpha.a[QFSS_2##4] - lat::alpha.a[QFSS_2##5]' '' '0' 'end' 'target' 0 10
+	datum(4) = 'expression: lat::alpha.b[QFSS_2##4] - lat::alpha.b[QFSS_2##5]' '' '0' 'end' 'target' 0 10
+
+	! Match betas to dispersion creator after tune cell
+	datum(5) = 'beta.a' '' '' 'QFF2_2##2' 'target' 30.6104309489717465  10
+	datum(6) = 'beta.b' '' '' 'QFF2_2##2' 'target'  5.56679467017438689 10
+	datum(7) = 'alpha.a' '' '' 'QFF2_2##2' 'target' 2.40115683012980607 100
+	datum(8) = 'alpha.b' '' '' 'QFF2_2##2' 'target'   -.47804044385806721 100
+
+	! require phase advance to be the nearest desired fractional tunes (54.08, 54.14)
+	datum(9) = 'phase.a' '' '' 'end' 'target' 339.79466141227203 10
+	datum(10) = 'phase.b' '' '' 'end' 'target' 340.17165253070283 10
+
+/
+
+&tao_var
+	v1_var%name = 'quads'
+	var(1:6)%ele_name = "QFSS_2", "QDSS_2", "QFF2_2", "QDF2_2", "QFF3_2", "QDF3_2"
+	default_step = 1e-4
+	default_attribute = 'k1'
+/
+

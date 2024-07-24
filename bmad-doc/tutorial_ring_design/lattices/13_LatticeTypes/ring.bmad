@@ -1,0 +1,239 @@
+! (1): Define chromatic sextupoles (2 families per plane in each arc, strengths TBD)
+! (2): Define harmonic sextupoles for SS
+! (3): Split long drift (D2) into two shorter drifts (D2S1 and D2S2) to fit sextupoles
+! (4): While we're at it, define horizontal/vertical corrector coils and split D1 into D1C1 and D1C2 to fit coils
+! (5): Define FoDos for each arc and the SSs including sextupoles and correctors
+! (6): Use Find + Replace to in text editor to add coils near remaining quads, e.g.
+!      "D1, BH, D2" and "D1, DB, D2" -> "D1C1, 
+
+
+parameter[geometry] = closed            
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+!-------------------------------------------------------
+QF: Quadrupole, L = 0.5, K1 = 0.312808574467162, DS_STEP = 0.05
+D1: Drift, L = 0.609
+BH: SBend, L = 6.86004047683621, G = 1.73467958576489E-3, E1 = 5.94998608634431E-3,
+   E2 = 5.94998608634431E-3
+D2: Drift, L = 1.241
+QD: Quadrupole, L = 0.5, K1 = -0.312643401293818, DS_STEP = 0.05
+B: SBend, L = 6.86016190935103, G = 3.46929776000413E-3, E1 = 0.0118999721726886, E2 = 0.0118999721726886
+
+QFSS: Quadrupole, L = 0.5, K1 = 0.351957452649287, DS_STEP = 0.05
+DB: Drift, L = 5.855
+QDSS: Quadrupole, L = 0.5, K1 = -0.351957452649287, DS_STEP = 0.05
+
+QFF1: Quadrupole, L = 0.5, K1 = 0.312788849040316, DS_STEP = 0.05
+QDF1: Quadrupole, L = 0.5, K1 = -0.312435213005613, DS_STEP = 0.05
+QFF2: Quadrupole, L = 0.5, K1 = 0.356878102586152, DS_STEP = 0.05
+QDF2: Quadrupole, L = 0.5, K1 = -0.352748341241363, DS_STEP = 0.05
+QFF3: Quadrupole, L = 0.5, K1 = 0.378866292084376, DS_STEP = 0.05
+QDF3: Quadrupole, L = 0.5, K1 = -0.361253854611549, DS_STEP = 0.05
+
+QFR1: Quadrupole, L = 0.5, K1 = 0.31279043710515, DS_STEP = 0.05
+QDR1: Quadrupole, L = 0.5, K1 = -0.312476088830373, DS_STEP = 0.05
+QFR2: Quadrupole, L = 0.5, K1 = 0.356875472837547, DS_STEP = 0.05
+QDR2: Quadrupole, L = 0.5, K1 = -0.352734374012209, DS_STEP = 0.05
+QFR3: Quadrupole, L = 0.5, K1 = 0.378868523273032, DS_STEP = 0.05
+QDR3: Quadrupole, L = 0.5, K1 = -0.361193022269439, DS_STEP = 0.05
+
+QEF1: Quadrupole, L = 0.5, K1 = 0.472771266311092
+QEF2: Quadrupole, L = 0.5, K1 = -0.112382775182896
+DEF1: Drift, L = 20.46
+QEF3: Quadrupole, L = 1.6, K1 = 0.109225406228901
+DEF2: Drift, L = 3.76
+QEF4: Quadrupole, L = 1.2, K1 = -0.22417037885855
+DEF3: Drift, L = 5.8
+IP6: Marker
+DER3: Drift, L = 5.3
+QER4: Quadrupole, L = 1.8, K1 = -0.237106026895982
+DER2: Drift, L = 0.5
+QER3: Quadrupole, L = 1.4, K1 = 0.235216011329213
+DER1: Drift, L = 23.82
+QER2: Quadrupole, L = 0.5, K1 = -9.91959187109746E-3
+QER1: Quadrupole, L = 0.5, K1 = -0.380938440181242
+
+QFSS_2: Quadrupole, L = 0.5, K1 = 0.351957452649287, DS_STEP = 0.05
+QDSS_2: Quadrupole, L = 0.5, K1 = -0.351957452649287, DS_STEP = 0.05
+QFF1_2: Quadrupole, L = 0.5, K1 = 0.312788849040316, DS_STEP = 0.05
+QDF1_2: Quadrupole, L = 0.5, K1 = -0.312435213005613, DS_STEP = 0.05
+QFF2_2: Quadrupole, L = 0.5, K1 = 0.356878102586152, DS_STEP = 0.05
+QDF2_2: Quadrupole, L = 0.5, K1 = -0.352748341241363, DS_STEP = 0.05
+QFF3_2: Quadrupole, L = 0.5, K1 = 0.378866292084376, DS_STEP = 0.05
+QDF3_2: Quadrupole, L = 0.5, K1 = -0.361253854611549, DS_STEP = 0.05
+
+RF0: RFCavity, L = 4.017, harmon = 7560, voltage=68.0/18.0 * 1e6
+DRF: Drift, L = ((1.241+5.855+0.609)-2*4.017)/3
+
+! (1): Define chromatic sextupoles (2 families per plane in each arc, strengths TBD)
+! 1 o'clock arc:
+SF1_1: Sextupole, L = 0.584, k2 = 2
+SD1_1: Sextupole, L = 0.584, k2 = -2
+SF2_1: Sextupole, L = 0.584, k2 = 2
+SD2_1: Sextupole, L = 0.584, k2 = -2
+
+! 3 o'clock arc:
+SF1_3: Sextupole, L = 0.584, k2 = 2
+SD1_3: Sextupole, L = 0.584, k2 = -2
+SF2_3: Sextupole, L = 0.584, k2 = 2
+SD2_3: Sextupole, L = 0.584, k2 = -2
+
+! 5 o'clock arc:
+SF1_5: Sextupole, L = 0.584, k2 = 2
+SD1_5: Sextupole, L = 0.584, k2 = -2
+SF2_5: Sextupole, L = 0.584, k2 = 2
+SD2_5: Sextupole, L = 0.584, k2 = -2
+
+! 7 o'clock arc:
+SF1_7: Sextupole, L = 0.584, k2 = 2
+SD1_7: Sextupole, L = 0.584, k2 = -2
+SF2_7: Sextupole, L = 0.584, k2 = 2
+SD2_7: Sextupole, L = 0.584, k2 = -2
+
+! 9 o'clock arc:
+SF1_9: Sextupole, L = 0.584, k2 = 2
+SD1_9: Sextupole, L = 0.584, k2 = -2
+SF2_9: Sextupole, L = 0.584, k2 = 2
+SD2_9: Sextupole, L = 0.584, k2 = -2
+
+! 11 o'clock arc:
+SF1_11: Sextupole, L = 0.584, k2 = 2
+SD1_11: Sextupole, L = 0.584, k2 = -2
+SF2_11: Sextupole, L = 0.584, k2 = 2
+SD2_11: Sextupole, L = 0.584, k2 = -2
+
+! (2): Define harmonic sextupoles for SS
+SFSS: Sextupole, L = 0.584, k2 = 0.
+SDSS: Sextupole, L = 0.584, k2 = -0.
+
+! (3): Split long drift (D2) into two shorter drifts (D2S1 and D2S2) to fit sextupoles
+D2S1: Drift, L = 0.501
+D2S2: Drift, L = 0.156
+
+! (4): While we're at it, define horizontal/vertical corrector coils and split D1 into D1C1 and D1C2 to fit coils
+D1C1: Drift, L = 0.064
+D1C2: Drift, L = 0.345 !0.609 - 0.064 - 0.2
+CH: hkicker, L = 0.2
+CV: vkicker, L = 0.2
+
+!-------------------------------------------------------
+
+! (5): Define FoDos for each arc and SS including sextupoles and correctors
+
+! Straight section forward FoDo:
+FODOSSF: line = ( QFSS, D1C1, CH, D1C2, DB, D2S1, SDSS, D2S2, QDSS, D1C1, CV, D1C2, DB, D2S1, SFSS, D2S2)
+
+! Straight section reverse FoDo:
+FODOSSR: line = ( QFSS, D2S2, SFSS, D2S1, DB, D1C2, CV, D1C1, QDSS, D2S2, SFSS, D2S1, DB, D1C2, CH, D1C1)
+
+! 1 o'clock arc forward 2*FoDo:
+FODOAF_1: line = (QF, D1C1, CH, D1C2, B, D2S1, SD1_1, D2S2, QD, D1C1, CV, D1C2, B, D2S1, SF1_1, D2S2,    QF, D1C1, CH, D1C2, B, D2S1, SD2_1, D2S2, QD, D1C1, CV, D1C2, B, D2S1, SF2_1, D2S2)
+
+! 5 o'clock arc forward 2*FoDo:
+FODOAF_5: line = (QF, D1C1, CH, D1C2, B, D2S1, SD1_5, D2S2, QD, D1C1, CV, D1C2, B, D2S1, SF1_5, D2S2,    QF, D1C1, CH, D1C2, B, D2S1, SD2_5, D2S2, QD, D1C1, CV, D1C2, B, D2S1, SF2_5, D2S2)
+
+! 9 o'clock arc forward 2*FoDo:
+FODOAF_9: line = (QF, D1C1, CH, D1C2, B, D2S1, SD1_9, D2S2, QD, D1C1, CV, D1C2, B, D2S1, SF1_9, D2S2,    QF, D1C1, CH, D1C2, B, D2S1, SD2_9, D2S2, QD, D1C1, CV, D1C2, B, D2S1, SF2_9, D2S2)
+
+
+! 3 o'clock arc reverse 2*FoDo:
+FODOAR_3: line = (QF, D2S2, SF1_3, D2S1, B, D1C2, CV, D1C1, QD, D2S2, SD1_3, D2S1, B, D1C2, CH, D1C1,    QF, D2S2, SF2_3, D2S1, B, D1C2, CV, D1C1, QD, D2S2, SD2_3, D2S1, B, D1C2, CH, D1C1)
+
+! 7 o'clock arc reverse 2*FoDo:
+FODOAR_7: line = (QF, D2S2, SF1_7, D2S1, B, D1C2, CV, D1C1, QD, D2S2, SD1_7, D2S1, B, D1C2, CH, D1C1,    QF, D2S2, SF2_7, D2S1, B, D1C2, CV, D1C1, QD, D2S2, SD2_7, D2S1, B, D1C2, CH, D1C1)
+
+! 11 o'clock arc reverse 2*FoDo:
+FODOAR_11: line = (QF, D2S2, SF1_11, D2S1, B, D1C2, CV, D1C1, QD, D2S2, SD1_11, D2S1, B, D1C2, CH, D1C1,    QF, D2S2, SF2_11, D2S1, B, D1C2, CV, D1C1, QD, D2S2, SD2_11, D2S1, B, D1C2, CH, D1C1)
+
+!-------------------------------------------------------
+
+! Forward dispersion suppressor:
+DISPSUPF: line = (QF, D1, BH, D2, QD, D1, BH, D2, QFF1, D1, BH, D2, QDF1, D1, BH, D2)
+
+! Match forward dispersion suppressor to SS:
+MSSF: line = ( QFF2, D1, DB, D2, QDF2, D1, DB, D2,  QFF3, D1, DB, D2, QDF3, D1, DB, D2)
+
+ARC_TO_SSF: line = (DISPSUPF, MSSF)
+
+! Reverse dispersion suppressor:
+DISPSUPR: line = ( QF, D2, BH, D1, QD, D2, BH, D1, QFR1, D2, BH, D1, QDR1, D2, BH, D1)
+
+! Match reverse dispersion suppressor to SS:
+MSSR: line = ( QFR2, D2, DB, D1, QDR2, D2, DB, D1,  QFR3, D2, DB, D1, QDR3, D2, DB, D1)
+
+ARC_TO_SSR: line = (DISPSUPR, MSSR)
+
+
+!-------------------------------------------------------
+
+! Match forward straight section to dispersion "creator" (use QFR)
+MDCF: line = (QFSS, D1, DB, D2, QDR3, D1, DB, D2, QFR3, D1, DB, D2, QDR2, D1, DB, D2) 
+
+! Forward dispersion "creator" (use QFR)
+DISPCREF: line = (QFR2, D1, BH, D2, QDR1, D1, BH, D2, QFR1, D1, BH, D2, QD, D1, BH, D2)
+
+SS_TO_ARCF: line = (MDCF, DISPCREF)
+
+! Match reverse straight section to dispersion "creator" (use QFF)
+MDCR: line = ( QFSS, D2, DB, D1, QDF3, D2, DB, D1,  QFF3, D2, DB, D1, QDF2, D2, DB, D1)
+
+! Reverse dispersion "creator" (use QFF)
+DISPCRER: line = ( QFF2, D2, BH, D1, QDF1, D2, BH, D1, QFF1, D2, BH, D1, QD, D2, BH, D1)
+
+SS_TO_ARCR: line = (MDCR, DISPCRER)
+
+!-------------------------------------------------------
+
+IPF: line = ( QEF1, D1, DB, D2, QEF2, D1, DB, D2, DEF1, QEF3, DEF2, QEF4, DEF3, IP6)
+IPR: line = (IP6, DER3, QER4, DER2, QER3, DER1, QER2, D2, DB, D1, QER1, D2, DB, D1)
+
+!-------------------------------------------------------
+
+! Straight section forward FoDo:
+FODOSSF_2: line = ( QFSS_2, D1, DB, D2, QDSS_2, D1, DB, D2)
+
+! Straight section reverse FoDo:
+FODOSSR_2: line = ( QFSS_2, D2, DB, D1, QDSS_2, D2, DB, D1)
+
+! Match forward dispersion suppressor to SS:
+MSSF_2: line = ( QFF2_2, D1, DB, D2, QDF2_2, D1, DB, D2,  QFF3_2, D1, DB, D2, QDF3_2, D1, DB, D2)
+
+! Match reverse straight section to dispersion "creator" (use QFF)
+MDCR_2: line = ( QFSS_2, D2, DB, D1, QDF3_2, D2, DB, D1,  QFF3_2, D2, DB, D1, QDF2_2, D2, DB, D1)
+
+! Reverse dispersion "creator" to steal 1 quad from (use QFF)
+DISPCRER_2: line = ( QFF2_2, D2, BH, D1, QDF1_2, D2, BH, D1, QFF1_2, D2, BH, D1, QD, D2, BH, D1)
+
+
+ARC_TO_SSF_2: line = (DISPSUPF, MSSF_2)
+SS_TO_ARCR_2: line = (MDCR_2, DISPCRER_2)
+
+!-------------------------------------------------------
+
+FODORF: line = ( QFSS, DRF, RF0, DRF, RF0, DRF, QDSS, DRF, RF0, DRF, RF0, DRF)
+
+!-------------------------------------------------------
+
+
+SEXTANT1:  line = (4*FODOSSF, SS_TO_ARCF, 10*FODOAF_1, ARC_TO_SSF_2, 4*FODOSSF_2)
+SEXTANT3:  line = (4*FODOSSR_2, SS_TO_ARCR_2, 10*FODOAR_3, ARC_TO_SSR, 4*FODOSSR)
+SEXTANT5:  line = (4*FODOSSF, SS_TO_ARCF, 10*FODOAF_5, ARC_TO_SSF, 1*FODOSSF, IPF)
+SEXTANT7:  line = (IPR, 1*FODOSSR, SS_TO_ARCR, 10*FODOAR_7, ARC_TO_SSR, 4*FODOSSR)
+SEXTANT9:  line = (4*FODOSSF, SS_TO_ARCF, 10*FODOAF_9, ARC_TO_SSF, 2*FODOSSF, 2*FODORF)
+SEXTANT11: line = (2*FODORF, 2*FODOSSR, SS_TO_ARCR, 10*FODOAR_11, ARC_TO_SSR, 4*FODOSSR)
+
+RING: line = (SEXTANT1, SEXTANT3, SEXTANT5, SEXTANT7, SEXTANT9, SEXTANT11)
+
+use, RING
+
+
+ QFSS_2[K1] =  3.31720552869361862E-001
+ QDSS_2[K1] = -3.87043785085147363E-001
+ QFF2_2[K1] =  3.59291886609595879E-001
+ QDF2_2[K1] = -3.60198878025568769E-001
+ QFF3_2[K1] =  3.70242702682682556E-001
+ QDF3_2[K1] = -3.86748222376103012E-001
+
+RF0[voltage] = 3557943.69553301670
