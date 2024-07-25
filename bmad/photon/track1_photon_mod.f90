@@ -897,6 +897,7 @@ if (ele%photon%h_misalign%active) call crystal_h_misalign (ele, orbit, h_norm)
 h_bar = h_norm * cp%wavelength / ele%value(d_spacing$)  ! H-vector B&C Eq (1) normalized by the wavelength.
 
 ! cp%new_vvec is the normalized outgoing wavevector outside the crystal
+! See B&C Eq (27) and paragraph after equation as well as Fig 10.
 
 cp%old_vvec = orbit%vec(2:6:2)             ! Incomming K-vector (real part) normalized by the wavelength                
 cp%new_vvec = orbit%vec(2:6:2) + h_bar     ! Outgoing K-vector (real part) normalized by the wavelength
