@@ -18,6 +18,8 @@
 \usepackage{lipsum}   
 \usepackage{etoolbox}
 
+%
+
 \usepackage{fixme}
 \usepackage{index}
 \usepackage{xr}
@@ -76,12 +78,12 @@
 \date{
 \parbox{2in}{\today \\
 \rule[3pt]{1.8in}{2pt} \\
-Matt Signorelli \\ 
-Ningdong Wang \\ 
-Jonathan Unger \\
-Daria Kuzovkova \\
 Georg Hoffstaetter de Torquat \\
-David Sagan
+Daria Kuzovkova \\
+David Sagan \\
+Matt Signorelli \\ 
+Jonathan Unger \\
+Ningdong Wang
 }}
 
 \begin{document}
@@ -1104,6 +1106,8 @@ frame of the next (just like LEGO blocks). Given a line constructed as:
 The result could look as shown in Figure~\ref{f:leggo}. The reference trajectory is shown in
 red.
 
+\newpage
+
 %----------------------------------------------------------
 \subsection{Laboratory Coordinates Relative to Global Coordinates}
 \label{s:lab.rel.glob}
@@ -1136,6 +1140,98 @@ $\psi$ all being zero.
 For a machine that lies in the horizontal plane, the $\phi(s)$ and $\psi(s)$ angles are zero for all
 \vn{s}.
 \end{itemize}
+
+\newpage
+
+%----------------------------------------------------------
+\subsection{Element Misalignments}
+\label{s:ele.mis}
+
+\begin{figure}[tb]
+  \centering
+  \begin{subfigure}[t]{0.62\textwidth}
+    \includegraphics[width=\textwidth]{figures/pitch.pdf}
+    \caption{Effect of x_offset and x_pitch on a straight line element}
+    \label{f:pitch}
+  \end{subfigure}
+  \hfil
+  \begin{subfigure}[t]{0.33\textwidth}
+    \includegraphics[width=\textwidth]{figures/tilt.pdf}
+    \caption{Effect of a tilt on a straight line element.}
+    \label{f:tilt}
+  \end{subfigure}
+  \caption{}
+\end{figure}
+
+Once the \vn{reference} coordinate system is established, the position of any physical element
+can be shifted (``misaligned''). [Note: \vn{Patch} and \vn{floor_shift} elements cannot be misaligned.]
+For straight elements, the element attributes that determine any misalignment are:
+\begin{description}
+\item[x_offset, y_offset, z_offset] \Newline
+The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes offset the element in the \vn{x}, \vn{y},
+and \vn{z} directions respectively. See Figure~\ref{f:pitch}.
+%
+\item[x_pitch, y_pitch] \Newline
+The \vn{x_pitch} and \vn{y_pitch} attributes rotate the element. A \vn{x_pitch} of $\pi/2$ would rotate the
+element around the +\vn{y}-axis so that the body +\vn{z}-axis is aligned with the local
++\vn{x}-axis. Similarly, a \vn{y_pitch} of $\pi/2$ would rotate the element around the -\vn{x}-axis so
+that the body +\vn{z}-axis is aligned with the local +\vn{y}-axis. See Figure~\ref{f:pitch}.
+%
+\item[tilt] \Newline
+A \vn{tilt} rotates the element around the +\vn{z}-axis as shown in Figure~\ref{f:tilt}
+\end{description}
+
+Note: The above only applies to straight elements. Patch like elements are explained below. For a
+discussion of misalignments for bend type elements see the \bmad manual.
+
+\begin{code}
+! Lattice File: misalign.bmad
+beginning[beta_a] = 10.   ! m  a-mode beta function
+beginning[beta_b] = 10.   ! m  b-mode beta function
+beginning[e_tot] = 10e6   ! eV
+parameter[geometry] = open  ! or closed
+q: quadrupole, L = 1, x_offset = 0.1, x_pitch = 0.04
+lat: line = (q)   ! List of lattice elements
+use, lat          ! Line used to construct the lattice
+\end{code}
+
+Start \tao with the lattice file \vn{misalign.bmad}. The
+misalignment can be viewed using the \vn{-floor} option with the \vn{show element } command:
+\begin{code} 
+Tao> show ele q -floor
+
+ Element #                1
+ Element Name: Q
+... etc...
+
+ Attribute values [Only non-zero/non-default values shown]:
+    1  L               =  1.0000E+00 m
+   13  SPIN_FRINGE_ON  =  T (1)
+   31  L_HARD_EDGE     =  1.0000E+00 m
+   34  X_PITCH         =  4.0000E-02       55  X_PITCH_TOT   =  4.0000E-02
+   36  X_OFFSET        =  1.0000E-01 m     57  X_OFFSET_TOT  =  1.0000E-01 m
+... etc...
+
+Global Floor Coords at End of Element:
+                X        Y        Z    Theta  
+Reference  0.00000  0.00000  1.00000  0.00000 ... ! Without misalignments
+Actual     0.11999  0.00000  0.99960  0.04000 ... ! With misalignments
+... etc...
+\end{code}
+
+In the ``\vn{Global Floor Coords}'' section, the \vn{Reference} row shows the nominal position of
+the \vn{exit} end of the element without misalignments. [Due to space constraints the \vn{phi} and
+\vn{psi} columns are not shown. They are zero in this case.] The \vn{Actual} row shows the position
+of the physical element at the \vn{exit} end.
+
+Associated with each misalignment attribute there is a corresponding attribute with a ``\vn{_tot}''
+suffix. The difference is that an attribute like \vn{x_offset} is the misalignment with respect to
+any \vn{girder} that may be supporting it while the corresponding
+\vn{x_offset_tot} is the total misalignment of the lattice element with respect to the element's
+nominal position. Another difference is that misalignments attributes are set by the user while the
+corresponding \vn{_tot} attributes are calculated by \bmad. If there is no \vn{girder} support, the
+\vn{_tot} attributes will be the same as the misalignment attributes as it is in this case so
+\vn{x_pitch} is equal to \vn{x_pitch_tot}, etc.
 
 %----------------------------------------------------------
 \subsection{Patch Elements}
@@ -1942,14 +2038,14 @@ RF0[voltage] = your_voltage
 Modify the \vn{lcavity} in the \vn{cavity.bmad} to have a small length (so the transit time is
 small), and set the beginning momentum small enough so the relativistic beta is significantly than
 one. Starting the particle with a finite $z$, calculate the ending $z$ after the cavity and verity
-that the cange in $z$ is consistent with the equation for $z$ given in \sref{s:phase.space.sub}.
+that the change in $z$ is consistent with what Bmad calculates.
 %
 \item
 \vn{Lcavity} elements have an attribute \vn{phi0_err} which varies the RF phase that a particle sees
 but does not change the reference energy. Add a finite \vn{phi0_err} to the \vn{cavity} element and
 verify that the reference energy does not change but that the phase space \vn{pz} of the particle
-(which is the normalized momentum deviation from the reference \sref{s:phase.space.sub}) does
-change. With the \vn{cavity.bmad} lattice, there is a range of values for \vn{phi0_err} where the
+does change. 
+ With the \vn{cavity.bmad} lattice, there is a range of values for \vn{phi0_err} where the
 cavity will decellerate the particle enough so that the particle will turn around and not make
 it through the cavity. Approximately what is this range?
 %
@@ -2919,7 +3015,7 @@ Note: Do not confuse \tao alias commands with the alias string component of a la
 \section{Orbit Correction}
 \label{s:orbit}
 
-While operating accelerators, the beam's orbit is measured with Beam Position Monitors (BPMs). The accelerator is designed with ideal BPM readings in mind; often these are 0. And after extended operational experience, operators often learn good readings for all BPMs, often referred to as golden orbits. It then becomes important to change the beam's trajectory to obtain these desired BPM readings.
+While operating accelerators, the beam's orbit is measured with Beam Position Monitors (BPMs). The accelerator is designed with ideal BPM readings in mind, which are often 0. After extended operational experience, operators learn good readings for all BPMs that are referred to as golden orbits. It then becomes important to change the beam's trajectory to obtain the desired BPM readings.
 
 %------------------------------------------------------------------------------
 \subsection{Example: Adding Corrector Coils and BPMs}
@@ -2932,7 +3028,7 @@ While operating accelerators, the beam's orbit is measured with Beam Position Mo
 \end{figure}
 
 \begin{enumerate}[leftmargin=*]
-\item Let's start with the \vn{ring0.bmad} lattice. We will place corrector coils in the middle of D1 drifts 6.4 cm away from quadrupoles. This is downstream from the quadrupoles in the forward arcs and upstream in the reverse arcs. Define horizontal and vertical corrector coils and appropriate drift spaces as follows:
+\item Start with the \vn{ring0.bmad} lattice. Place corrector coils in the middle of D1 drifts 6.4 cm away from quadrupoles. This is downstream from the quadrupoles in the forward arcs and upstream in the reverse arcs. Define horizontal and vertical corrector coils and appropriate drift spaces as follows:
 \begin{code}
 ! (1): Define horizontal/vertical corrector coils and 
         split D1 into D1C1 and D1C2 to fit coils
@@ -2941,9 +3037,11 @@ D1C2: Drift, L = 0.345 !0.609 - 0.064 - 0.2
 CH: hkicker, L = 0.2
 CV: vkicker, L = 0.2
 \end{code}
-\item Add corrector coils near quadrupoles. We will add horizontal kickers near focusing quadrupoles and vertical kickers near defocusing quadrupoles. In both forward and reverse geometry, we will add correctors in the D1 drift, which means the correctors are after quadrupoles in the forward geometry and before quadrupoles in the reverse geometry. 
+\item Add corrector coils near quadrupoles. Then, add horizontal kickers near focusing quadrupoles and vertical kickers near defocusing quadrupoles. 
 
-Because we have used D1 drifts repeatedly throughout the ring, adding correctors manually is a tedious task. The easiest approach is to use regular expressions in Find and Replace. The recipe is the following: 
+After adding the kicker, correctors in the D1 drift have to be added. This means placing the correctors after quadrupoles in the forward geometry and before quadrupoles in the reverse geometry. 
+
+Because we have used D1 drifts repeatedly throughout the ring, adding correctors manually is a tedious task. The easiest approach is to use \vn{regular expressions} in Find and Replace. The recipe is the following: 
 \begin{code}
 1. In the forward arcs for drifts after focusing quadrupoles:
     Replace (QF[^,\n]*,[^,\n]*)D1 with \1D1C1, CH, D1C2 for 
@@ -2981,7 +3079,7 @@ Then insert the BPMs after dipoles by searching and replacing \vn{B,} with \vn{B
 \begin{code}
 bmad_com[radiation_damping_on] = T 
 \end{code}
-in the lattice file, or equivalently run
+in the \vn{ring0.bmad} file, or equivalently run
 \begin{code}
 set bmad_com radiation_damping_on = T
 \end{code}
@@ -3082,105 +3180,20 @@ veto data orbit.y
 Run the optimizer and check if the orbit is fixed. Write the lattice with optimized kicker strengths into a new file \vn{ring.bmad}.
 \end{enumerate}
 
-%----------------------------------------------------------
-\subsection{Element Misalignments}
-\label{s:ele.mis}
-
-\begin{figure}[tb]
-  \centering
-  \begin{subfigure}[t]{0.62\textwidth}
-    \includegraphics[width=\textwidth]{figures/pitch.pdf}
-    \caption{Effect of x_offset and x_pitch on a straight line element}
-    \label{f:pitch}
-  \end{subfigure}
-  \hfil
-  \begin{subfigure}[t]{0.33\textwidth}
-    \includegraphics[width=\textwidth]{figures/tilt.pdf}
-    \caption{Effect of a tilt on a straight line element.}
-    \label{f:tilt}
-  \end{subfigure}
-  \caption{}
-\end{figure}
-
-Once the \vn{reference} coordinate system is established, the position of any physical element
-can be shifted (``misaligned''). [Note: \vn{Patch} and \vn{floor_shift} elements cannot be misaligned.]
-For straight elements, the element attributes that determine any misalignment are:
-\begin{description}
-\item[x_offset, y_offset, z_offset] \Newline
-The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes offset the element in the \vn{x}, \vn{y},
-and \vn{z} directions respectively. See Figure~\ref{f:pitch}.
-%
-\item[x_pitch, y_pitch] \Newline
-The \vn{x_pitch} and \vn{y_pitch} attributes rotate the element. A \vn{x_pitch} of $\pi/2$ would rotate the
-element around the +\vn{y}-axis so that the body +\vn{z}-axis is aligned with the local
-+\vn{x}-axis. Similarly, a \vn{y_pitch} of $\pi/2$ would rotate the element around the -\vn{x}-axis so
-that the body +\vn{z}-axis is aligned with the local +\vn{y}-axis. See Figure~\ref{f:pitch}.
-%
-\item[tilt] \Newline
-A \vn{tilt} rotates the element around the +\vn{z}-axis as shown in Figure~\ref{f:tilt}
-\end{description}
-
-Note: The above only applies to straight elements. Patch like elements are explained below. For a
-discussion of misalignments for bend type elements see the \bmad manual.
-
-\subsubsection{Example:}
-\begin{code}
-! Lattice File: misalign.bmad
-beginning[beta_a] = 10.   ! m  a-mode beta function
-beginning[beta_b] = 10.   ! m  b-mode beta function
-beginning[e_tot] = 10e6   ! eV
-parameter[geometry] = open  ! or closed
-q: quadrupole, L = 1, x_offset = 0.1, x_pitch = 0.04
-lat: line = (q)   ! List of lattice elements
-use, lat          ! Line used to construct the lattice
-\end{code}
-
-Start \tao with the lattice file \vn{misalign.bmad}. The
-misalignment can be viewed using the \vn{-floor} option with the \vn{show element } command:
-\begin{code} 
-Tao> show ele q -floor
-
- Element #                1
- Element Name: Q
-... etc...
-
- Attribute values [Only non-zero/non-default values shown]:
-    1  L               =  1.0000E+00 m
-   13  SPIN_FRINGE_ON  =  T (1)
-   31  L_HARD_EDGE     =  1.0000E+00 m
-   34  X_PITCH         =  4.0000E-02       55  X_PITCH_TOT   =  4.0000E-02
-   36  X_OFFSET        =  1.0000E-01 m     57  X_OFFSET_TOT  =  1.0000E-01 m
-... etc...
-
-Global Floor Coords at End of Element:
-                X        Y        Z    Theta  
-Reference  0.00000  0.00000  1.00000  0.00000 ... ! Without misalignments
-Actual     0.11999  0.00000  0.99960  0.04000 ... ! With misalignments
-... etc...
-\end{code}
-
-In the ``\vn{Global Floor Coords}'' section, the \vn{Reference} row shows the nominal position of
-the \vn{exit} end of the element without misalignments. [Due to space constraints the \vn{phi} and
-\vn{psi} columns are not shown. They are zero in this case.] The \vn{Actual} row shows the position
-of the physical element at the \vn{exit} end.
-
-Associated with each misalignment attribute there is a corresponding attribute with a ``\vn{_tot}''
-suffix. The difference is that an attribute like \vn{x_offset} is the misalignment with respect to
-any \vn{girder} (\sref{s:girder}) that may be supporting it while the corresponding
-\vn{x_offset_tot} is the total misalignment of the lattice element with respect to the element's
-nominal position. Another difference is that misalignments attributes are set by the user while the
-corresponding \vn{_tot} attributes are calculated by \bmad. If there is no \vn{girder} support, the
-\vn{_tot} attributes will be the same as the misalignment attributes as it is in this case so
-\vn{x_pitch} is equal to \vn{x_pitch_tot}, etc.
-
 %------------------------------------------------------------------------------
 \subsection{Example: Orbit Correction with Quadrupole Misalignments}
 \begin{enumerate}[leftmargin=*]
 \item Let's start from \vn{ring.bmad} that we created in chapter~\sref{s:sawtooth}. Add random offsets to all quadrupoles in the lattice. We can first assume that x-offsets of quadrupoles follow a Gaussian distribution of $\sigma=10\unit{\mu m}$ with a $3\sigma$ cutoff. You can do this with \tao command "\vn{set ele quadrupole::* x_offset = 1e-5*ran_gauss(3)}". The \vn{ran_gauss(sig_cut)} command returns an array of Gaussian distributed random variables with unit RMS truncated at sig\_cut.
-
-\item Correct the orbit using the same optimization process. You can reuse the \vn{tao.init} we wrote previously.
-
-\item If the misalignment amplitude is large, it is likely that the orbit becomes unstable and the optimizer will have a hard time finding a solution. \vn{unstable.lattice} datum is used to handle these situations, which will be zero if the particle lives and positive if there is particle loss. 
+%
+\item Correct the orbit using the same optimization process. You can reuse the \vn{tao.init} we wrote for example \sref{s:sawtooth}.
+%
+\item If the misalignment amplitude is large, the orbit could become unstable and the optimizer will have a hard time finding a solution. Try larger misalignments of $\sigma=100\unit{\mu m}$ with "\vn{set ele quadrupole::* x_offset = 1e-5*ran_gauss(3)} and correct the orbit. This will likely fail and you'll see many error messages.
+%
+\item One approach to avoid unstable orbits is correcting the orbit with an open lattice first. Reinitialize \tao to start fresh from the beginning. Use command \vn{cut} to change the lattice geometry from closed to open. \tao now uses the single-turn orbit instead, so it won't complain even if the closed orbit is unstable. 
+%
+\item We can now run the optimizer and correct the single-turn orbit as close to 0 as possible. After the single-turn orbit is corrected, use command \vn{cut} again to change the lattice geometry back to closed and \tao will calculate the periodic orbit. Since the orbit excursions are now much smaller, the periodic orbit should be far away from the unstable region. Run the optimizer again to correct the periodic orbit to 0.
+%
+\item \vn{unstable.lattice} is a special datum that can be used in an optimization to avoid unstable solutions. For lattices with a closed geometry,  it is 0 if the ring is stable. If the closed orbit 
 \begin{code}
 &tao_d2_data
   	d2_data%name = 'unstable'
@@ -3194,12 +3207,16 @@ corresponding \vn{_tot} attributes are calculated by \bmad. If there is no \vn{g
 /
 \end{code}
 
-\item With the addition of \vn{unstable.lattice} datum, run the optimization to correct the orbit
 \end{enumerate}
 
+\subsection{Exercises}
 
-\subsection{Exercise}
-Use 4 horizontal/vertical kickers around the IP (CH/V_104 to CH/V_107) to make the orbit exactly 0 at the IP without affecting the rest of the ring.
+\begin{enumerate}[leftmargin=*]
+%
+\item {\bf Zero orbit at IP:}
+Use 4 horizontal/vertical kickers around the IP (CH/V_104 to CH/V_107, 8 total kickers) to make the orbit exactly 0 at the IP without affecting the rest of the ring.
+%
+\end{enumerate}
 
 \newpage
 
