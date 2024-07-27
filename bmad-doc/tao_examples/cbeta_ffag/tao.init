@@ -170,7 +170,7 @@
 
 !--- Correctors
 &tao_var
-    v1_var%name = "fa.correctors.x"
+    v1_var%name = "fa_correctors_x"
   default_universe = 'gang'
   default_attribute = "BL_HKICK"
   default_weight = 1e9
@@ -181,7 +181,7 @@
   search_for_lat_eles = "KICKER::FA*"
 /
 &tao_var
-    v1_var%name = "fa.correctors.y"
+    v1_var%name = "fa_correctors_y"
   default_universe = 'gang'
   default_attribute = "BL_VKICK"
   default_weight = 1e9
@@ -192,7 +192,7 @@
   search_for_lat_eles = "KICKER::FA*"
 /
 &tao_var
-    v1_var%name = "za.correctors.x"
+    v1_var%name = "za_correctors_x"
   default_universe = 'gang'
   default_attribute = "BL_HKICK"
   default_weight = 1e9
@@ -203,7 +203,7 @@
   search_for_lat_eles = "KICKER::ZA*"
 /
 &tao_var
-    v1_var%name = "za.correctors.y"
+    v1_var%name = "za_correctors_y"
   default_universe = 'gang'
   default_attribute = "BL_VKICK"
   default_weight = 1e9
@@ -215,7 +215,7 @@
 /
 
 &tao_var
-    v1_var%name = "quad.correctors.x"
+    v1_var%name = "quad_correctors_x"
   default_universe = 'gang'
   default_attribute = "BL_HKICK"
   default_weight = 1e9
@@ -226,7 +226,7 @@
   search_for_lat_eles = "QUAD::*"
 /
 &tao_var
-    v1_var%name = "quad.correctors.y"
+    v1_var%name = "quad_correctors_y"
   default_universe = 'gang'
   default_attribute = "BL_VKICK"
   default_weight = 1e9

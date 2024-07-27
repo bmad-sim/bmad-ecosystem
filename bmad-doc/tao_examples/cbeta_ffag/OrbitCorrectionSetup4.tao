@@ -36,16 +36,16 @@ set dat *@extra_orbit.y[*]|meas=0
 use dat *@orbit
 use dat *@extra_orbit
 
-use var fa.correctors.x
-use var fa.correctors.y
-use var za.correctors.x
-use var za.correctors.y
+use var fa_correctors_x
+use var fa_correctors_y
+use var za_correctors_x
+use var za_correctors_y
 
-!use var fa.correctors.x[1:-2:2]
-!use var za.correctors.x[1:-2:2]
-!use var fa.correctors.y[2:-1:2]
+!use var fa_correctors_x[1:-2:2]
+!use var za_correctors_x[1:-2:2]
+!use var fa_correctors_y[2:-1:2]
 
-!use var quad.correctors.x
+!use var quad_correctors_x
 
 set global derivative_recalc = F 
 set global derivative_uses_design = T
