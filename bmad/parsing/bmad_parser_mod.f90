@@ -2931,7 +2931,6 @@ integer ix_start, ix, n, ios, nn
 character(*) action
 character(n_parse_line) :: line
 character(1) quote_mark, last_char
-character(1), parameter :: tab = achar(9)
 
 logical :: end_of_file, flush_this, has_blank
 logical, optional :: err_flag
@@ -2977,8 +2976,9 @@ do
       ! With advance = 'no' an ios = 0 means that a full line has *not* been read.
       read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_chunk, &
                                                             advance = 'no') bp_com%next_chunk
+      
       if (bp_com%ios_next_chunk == iostat_eor) then
-        ! Nothing to do
+        call detab(bp_com%next_chunk)
       else
         bp_com%next_chunk = ''
       endif
@@ -3008,6 +3008,8 @@ do
     elseif (bp_com%ios_next_chunk /= 0) then
       bp_com%next_chunk = ''
     endif
+
+    call detab(bp_com%next_chunk)
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
   endif
 

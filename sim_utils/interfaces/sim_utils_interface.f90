@@ -134,6 +134,11 @@ subroutine date_and_time_stamp (string, numeric_month, include_zone)
   logical, optional :: numeric_month, include_zone
 end subroutine
 
+subroutine detab(str)
+  implicit none
+  character(*) str
+end subroutine
+
 function determinant (mat) result (det)
   import
   implicit none

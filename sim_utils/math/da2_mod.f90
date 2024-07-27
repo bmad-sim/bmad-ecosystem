@@ -117,7 +117,7 @@ character(*), parameter :: r_name = 'da2_inverse'
 n = ubound(ta, 1)
 
 if (ta(0,0) == 0) then
-  call out_io (s_fatal$, r_name, 'INVERSE OF TAYLOR SERIES WITH CONSTANT TERM ZERO IS NOT POSSIBLE')
+  call out_io (s_error$, r_name, 'INVERSE OF TAYLOR SERIES WITH CONSTANT TERM ZERO IS NOT POSSIBLE')
   if (global_com%exit_on_error) call err_exit
   return
 endif
