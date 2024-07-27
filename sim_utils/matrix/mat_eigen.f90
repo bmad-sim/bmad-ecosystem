@@ -66,7 +66,7 @@ mat2 = mat
 call la_geev(mat2, eval_r, eval_i, vr = vec, info = ier)
 error = (ier /= 0)
 if (error) then
-  if (logic_option(.true., print_err)) call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", ier)
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, "la_geev returned error: \i0\ ", ier)
   eigen_val = 0.0d0
   eigen_vec = 0.0d0
   return

@@ -12,7 +12,7 @@
 
 function mat_symp_conj_i(mat) result (mat_conj)
 
-use output_mod, only: rp, out_io, s_fatal$, global_com
+use output_mod, only: rp, out_io, s_error$, global_com
 
 implicit none
 
@@ -29,7 +29,7 @@ character(*), parameter :: r_name = 'mat_symp_conj'
 nn = size(mat, 1)
 
 if (mod(nn, 2) /= 0 .or. nn /= size(mat, 2)) then
-  call out_io (s_fatal$, r_name, 'ARRAY SIZE IS NOT EVEN!')
+  call out_io (s_error$, r_name, 'ARRAY SIZE IS NOT EVEN!')
   if (global_com%exit_on_error) call err_exit
 endif
 

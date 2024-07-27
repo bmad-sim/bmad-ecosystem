@@ -16,7 +16,7 @@
 
 subroutine fft_1d (arr, isign)
 
-use output_mod, only: out_io, rp, global_com, s_fatal$, real_garbage$
+use output_mod, only: out_io, rp, global_com, s_error$, real_garbage$
 use, intrinsic :: iso_c_binding
 
 implicit none
@@ -35,7 +35,7 @@ case (1)
 case (-1)
   call dfftw_plan_dft_1d(plan, size(arr), arr, arr, FFTW_FORWARD, FFTW_ESTIMATE)
 case default
-  call out_io(s_fatal$, r_name, 'BAD ISIGN ARGUMENT.')
+  call out_io(s_error$, r_name, 'BAD ISIGN ARGUMENT.')
   if (global_com%exit_on_error) call err_exit
   arr = real_garbage$
   return

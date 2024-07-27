@@ -477,7 +477,7 @@ A = mat  !LA_GEEV destroys the contents of its first argument.
 CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
 eval = cmplx(eval_r, eval_i, rp)
 if ( i_error /= 0 ) THEN
-  call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
+  call out_io (s_error$, r_name, "la_geev returned error: \i0\ ", i_error)
   if (global_com%exit_on_error) call err_exit
   eval = 0.0d0
   evec = 0.0d0
@@ -731,7 +731,7 @@ err_flag = .true.
 tz1 = count(abs(mat_tunes(1:3)) < 0.0001)
 tz2 = count(abs(abz(1:3)) < 0.0001)
 if (tz1 > 1 .or. tz1 /= tz2) then
-  call out_io (s_fatal$, r_name, "tunes is not fully populated.")
+  call out_io (s_error$, r_name, "tunes is not fully populated.")
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -753,7 +753,7 @@ val(5) = max(dtune(1,3), dtune(2,1), dtune(3,2))
 val(6) = max(dtune(1,3), dtune(2,2), dtune(3,1))
 
 if (minval(val, 1) > 0.1) then
-  call out_io (s_fatal$, r_name, "Unable to match input tunes with calculated tunes.", &
+  call out_io (s_error$, r_name, "Unable to match input tunes with calculated tunes.", &
            'Input tunes:      \3f14.5\ ', &
            'Calculated tunes: \3f14.5\ ', r_array = [abz(1:3)/twopi, mat_tunes(1:3)/twopi])
   return

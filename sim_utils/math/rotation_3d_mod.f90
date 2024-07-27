@@ -192,7 +192,7 @@ endif
 norm = norm2(axis)
 if (norm == 0) then
   w_mat = 0
-  call out_io (s_fatal$, r_name, 'ZERO AXIS LENGTH WITH NON-ZERO ROTATION!')
+  call out_io (s_error$, r_name, 'ZERO AXIS LENGTH WITH NON-ZERO ROTATION!')
   if (global_com%exit_on_error) call err_exit
   return
 endif

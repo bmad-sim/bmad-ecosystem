@@ -119,7 +119,7 @@ dx = r1(1) - r0(1)
 dy = r1(2) - r0(2)
 
 if (dx == 0) then
-  call out_io (s_fatal$, r_name, 'X DISTANCE BETWEEN POINTS IS ZERO.')
+  call out_io (s_error$, r_name, 'X DISTANCE BETWEEN POINTS IS ZERO.')
   if (global_com%exit_on_error) call err_exit
   return
 endif

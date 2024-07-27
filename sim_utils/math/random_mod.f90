@@ -736,7 +736,7 @@ do j = 1, sobseq_maxbit
 end do
 
 if (j > sobseq_maxbit) then
-  call out_io (s_fatal$, r_name, 'SOBSEQ_MAXBIT TOO SMALL')
+  call out_io (s_error$, r_name, 'SOBSEQ_MAXBIT TOO SMALL')
   if (global_com%exit_on_error) call err_exit
   return
 endif
