@@ -1,7 +1,8 @@
 !+
 ! Subroutine bbi_slice_calc (ele, n_slice, z_slice)
 !
-! Routine to compute the longitudinal positions of the slices of a beambeam element.
+! Routine to compute the longitudinal positions of the slices of a beambeam element in the
+! beambeam element frame of referece. 
 !
 ! Input:
 !   ele        -- ele_struct: beambeam element
@@ -24,17 +25,17 @@ integer :: i, n_slice
 real(rp) z_slice(:), y
 real(rp) :: z_norm
 
-!
+! Since calc is in beambeam element frame of reference, z_slice is independent of ele%value(z_offset$).
 
 z_slice = 0  
 
 if (n_slice == 1) then
-  z_slice(1) = ele%value(z_offset$)
+  z_slice(1) = 0
 elseif (n_slice > 1) then
   do i = 1, n_slice
     y = (i - 0.5) / n_slice - 0.5
     z_norm = inverse(probability_funct, y, -5.0_rp, 5.0_rp, 1.0e-5_rp)
-    z_slice(i) = ele%value(sig_z$) * z_norm + ele%value(z_offset$)
+    z_slice(i) = ele%value(sig_z$) * z_norm
   enddo
 else
   print *, 'ERROR IN BBI_SLICE_CALC: N_SLICE IS NEGATIVE:', n_slice

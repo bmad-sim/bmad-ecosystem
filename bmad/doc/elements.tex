@@ -314,7 +314,8 @@ Attributes specific to a \vn{beambeam} element are:
   ks             = <Real>    ! Solenoid strength.
   bs_field       = <Real>    ! Solenoid field strength.
   field_master   = <T/F>     ! Is ks or bs_field value the master (\sref{s:field.master})?
-  z_crossing     = <Real>    ! Weak particle phase space z when strong beam center reaches element.
+  s_beta_ref     = <Real>    ! Reference position of strong beam Twiss.
+  z_crossing     = <Real>    ! Weak particle phase space z when strong beam center reaches IP.
   repetition_frequency = <Real>  ! Strong beam repetition rate.
 \end{example}
 
@@ -347,13 +348,14 @@ element instead.
 
 \index{sig_x}\index{sig_y}
 \index{beta_a_strong}\index{beta_b_strong}\index{alpha_a_strong}\index{alpha_b_strong}
-\vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam at $s_0$ which is the
-$s$-position where the \vn{beambeam} element is located.  For calculating the sigmas of any given
-slice, \vn{sig_x} and \vn{sig_y} are extrapolated using the Twiss parameters at $s_0$. The Twiss
-parameters at $s_0$ are set by \vn{beta_a_strong}, \vn{beta_b_strong}, \vn{alpha_a_strong}, and
-\vn{alpha_b_strong}.  If \vn{beta_a_strong} is zero (the default), the $a$-mode Twiss parameters as
-calculated from the lattice is used. Similarly, if \vn{beta_b_strong} is zero (the default), the
-$b$-mode Twiss parameters as calculated from the lattice is used.
+The strong beam Twiss parameters \vn{beta_a_strong}, \vn{beta_b_strong}, \vn{alpha_a_strong}, and
+\vn{alpha_b_strong} are the Twiss parameters of the strong beam at the $s$-position given by
+\vn{s_twiss_ref}. Additionally, \vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam
+at this point. \vn{S_beta_ref} is measured relative to the position of the\vn{beambeam} element.  If
+\vn{beta_a_strong} is zero (the default), the $a$-mode Twiss parameters as calculated from the
+lattice is used. Similarly, if \vn{beta_b_strong} is zero (the default), the $b$-mode Twiss
+parameters as calculated from the lattice is used.  To calculate the sigmas of any given slice,
+\vn{sig_x} and \vn{sig_y} are extrapolated using the Twiss parameters at \vn{s_twiss_ref}.
 
 \index{x_offset}\index{y_offset}\index{z_offset}
 \index{x_pitch}\index{y_pitch}\index{tilt}
@@ -405,11 +407,12 @@ The \vn{species_strong} and \vn{E_tot_strong} give the particle species and part
 strong beam. This is only relevant if the velocity of the strong beam is not equal to the velocity
 of the weak beam.
 
-The \vn{z_crossing} parameter sets when in time the center of the strong beam is at the plane of the
-beambeam element. For example, if tracking is done with radiation damping on, the closed orbit will
-have a finite phase space $z$ value at the \vn{beambeam} element. To have the weak beam and strong beam
-centers cross the plane of the \vn{beambeam} element at the same time, the value of \vn{z_crossing} should
-be set to the value of the weak beam $z$.
+The \vn{z_crossing} parameter sets where the center of the strong beam is relative to the plane of the
+beambeam element (the IP) at the time when a weak particle with $z = 0$ is at the IP. For example,
+if tracking is done with radiation damping on, the (weak beam) closed orbit will have a finite phase
+space $z$ value at the \vn{beambeam} element. To have the weak beam and strong beam centers cross
+the plane of the \vn{beambeam} element at the same time, the value of \vn{z_crossing} should be set
+to the value of the weak beam closed orbit $z$ at the IP.
 
 When with absolute time tracking (\sref{s:rf.time}) is in use, the \vn{repetition_frequency}
 parameter (along with the \vn{z_crossing} parameter) is used to calculate the time that the strong

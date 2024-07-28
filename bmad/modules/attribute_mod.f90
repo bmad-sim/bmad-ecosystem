@@ -879,6 +879,7 @@ call init_attribute_name1 (beambeam$, crab_x4$,                     'CRAB_X4')
 call init_attribute_name1 (beambeam$, crab_x5$,                     'CRAB_X5')
 call init_attribute_name1 (beambeam$, crab_tilt$,                   'CRAB_TILT')
 call init_attribute_name1 (beambeam$, z_crossing$,                  'Z_CROSSING')
+call init_attribute_name1 (beambeam$, s_twiss_ref$,                 'S_TWISS_REF')
 call init_attribute_name1 (beambeam$, repetition_frequency$,        'REPETITION_FREQUENCY')
 call init_attribute_name1 (beambeam$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
 call init_attribute_name1 (beambeam$, species_strong$,              'SPECIES_STRONG')
@@ -2041,7 +2042,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
       'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', 'Z_CROSSING', &
-      'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', 'L_RECTANGLE', &
+      'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', 'L_RECTANGLE', 'S_TWISS_REF', &
       'X_DISPERSION_ERR', 'Y_DISPERSION_ERR', 'X_DISPERSION_CALIB', 'Y_DISPERSION_CALIB')
   attrib_units = 'm'
 
