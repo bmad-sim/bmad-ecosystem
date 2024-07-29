@@ -1,0 +1,30 @@
+parameter[geometry] = Closed
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+beginning[beta_a]    = 27.2059882001124
+beginning[alpha_a]   = -2.40249036572077
+beginning[beta_b]    = 4.96091411452631
+beginning[alpha_b]   = 0.484605557132712
+
+
+!-------------------------------------------------------
+
+QFSS: Quadrupole, L = 0.5, K1 = 0.351957452649287, DS_STEP = 0.05
+D1: Drift, L = 0.609
+DB: Drift, L = 5.855
+D2: Drift, L = 1.241
+QDSS: Quadrupole, L = 0.5, K1 = -0.351957452649287, DS_STEP = 0.05
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+
+FODOSSF: line = ( qfss, d1, db, d2, qdss, d1, db, d2)
+
+use, FODOSSF
