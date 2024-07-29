@@ -3075,7 +3075,7 @@ Then insert the BPMs after dipoles by searching and replacing \vn{B,} with \vn{B
 \end{figure}
 
 \begin{enumerate}[leftmargin=*]
-\item Turn on radiation damping with
+\item Sawtooth orbits are caused by synchrotron radiation energy loss in the ring. This energy loss leads to the particle energy variation along the ring, which causes the horizontal closed orbit to have a sawtooth shape. To produce this shape in Tao, turn on radiation damping with
 \begin{code}
 bmad_com[radiation_damping_on] = T 
 \end{code}
@@ -3083,7 +3083,7 @@ in the \vn{ring0.bmad} file, or equivalently run
 \begin{code}
 set bmad_com radiation_damping_on = T
 \end{code}
-in \tao. It turns on the deterministic average synchrotron radiation energy loss in the ring. This energy loss leads to the particle energy variation along the ring. It also causes the horizontal closed orbit to have a sawtooth shape. You should see this sawtooth orbit in \tao. Let's explore two methods to correct the sawtooth orbit.
+in \tao. It turns on the deterministic average synchrotron radiation energy loss in the ring. Let's explore two methods to correct the sawtooth orbit.
 \item The \vn{taper} command adjusts magnet strengths to eliminate the transverse orbital and Twiss changes due to the radiation damping induced sawtooth effect. The \vn{taper} scales magnet strengths based on local closed orbit momentum deviation and identical elements are changed independently. Tapering is not applied to strengths controlled by an \vn{overlay} element.
 
 Now run \vn{taper} in \tao and check the resulting orbit.
@@ -3193,7 +3193,7 @@ Run the optimizer and check if the orbit is fixed. Write the lattice with optimi
 %
 \item We can now run the optimizer and correct the single-turn orbit as close to 0 as possible. After the single-turn orbit is corrected, use command \vn{cut} again to change the lattice geometry back to closed and \tao will calculate the periodic orbit. Since the orbit excursions are now much smaller, the periodic orbit should be far away from the unstable region. Run the optimizer again to correct the periodic orbit to 0.
 %
-\item \vn{unstable.lattice} is a special datum that can be used in an optimization to avoid unstable solutions. For lattices with a closed geometry,  it is 0 if the ring is stable. If the closed orbit 
+\item \vn{unstable.lattice} is a special datum that can be used in an optimization to avoid unstable solutions. For lattices with a closed geometry,  it is 0 if the ring is stable. If the closed orbit is unstable, its value will be positive. This helps the optimizer find a solution in the stable region. You can declare it in \vn{tao.init} as follows:
 \begin{code}
 &tao_d2_data
   	d2_data%name = 'unstable'
