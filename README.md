@@ -28,12 +28,16 @@ This will add all of the appropriate executables to the environment's PATH.
 
 ### Compile from source
 
-If you want to compile Bmad directly, download a [Release](https://github.com/bmad-sim/bmad-ecosystem/releases) (or click on link on right hand side of this page and download the **bmad_dist.tar.gz** file (ignore the *source code* files) and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
+If you want to compile Bmad directly,
+download a [Release](https://github.com/bmad-sim/bmad-ecosystem/releases) 
+(or click on link on right hand side of this page and download the **bmad_dist.tar.gz** file.
+ignore the *source code* files)) 
+and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
 
 
-## Developer Setup
+## Developer Setup (for people involved in Bmad development)
 
-Developers should clone this repository, as well as its external packages:
+Developers should clone this repository, as well as the external packages repository:
 
 ```bash
 git clone https://github.com/bmad-sim/bmad-ecosystem.git
@@ -48,7 +52,9 @@ rm ../bmad-external-packages/README.md   # Do not copy this file
 cp -r ../bmad-external-packages/* .
 ```
 
-To build everything:
+If this is the first time,
+follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
+Otherwise if the environment has been setup, to build do:
 ```bash
 cd bmad-ecosystem
 source util/dist_source_me

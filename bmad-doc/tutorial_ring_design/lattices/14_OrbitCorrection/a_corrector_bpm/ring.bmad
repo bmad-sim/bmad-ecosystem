@@ -161,11 +161,13 @@ CV: vkicker, L = 0.2
 !    Replace (QD[^,\n]*,[^,\n]*)D1 with \1D1C1, CV, D1C2
 !
 !3. In the reverse arcs for drifts before focusing quadrupoles:
-!    Replace (D1)([^,\n]*,[^,\n]*QF), with D1C2, CH, D1C1\2 
+!    Replace (D1C2, CH, D1C1)([^,\n]*,[^,\n]*QF)
+!    with D1C2, CH, D1C1\2 
 !4. In the reverse arcs for drifts before defocusing quadrupoles:
-!    Replace (D1)([^,\n]*,[^,\n]*QD), with D1C2, CV, D1C1\2
+!    Replace (D1C2, CH, D1C1)([^,\n]*,[^,\n]*QD) 
+!    with D1C2, CV, D1C1\2
 !5. In the reverse arcs for drifts at the end of a cell:
-!    Replace D1) with D1C2, CH, D1C1) 
+!    Replace D1C2, CH, D1C1) with D1C2, CH, D1C1) 
 
 ! (3) Define and add BPMs
 BPM: marker
@@ -173,45 +175,45 @@ BPM: marker
 
 
 ! Straight section forward FoDo:
-FODOSSF: line = ( QFSS, D1, DB, D2S1, SDSS, D2S2, QDSS, D1, DB, D2S1, SFSS, D2S2)
+FODOSSF: line = ( \1D1C1, CH, D1C2, DB, BPM, D2S1, SDSS, D2S2, \1D1C1, CV, D1C2, DB, BPM, D2S1, SFSS, D2S2)
 
 ! Straight section reverse FoDo:
-FODOSSR: line = ( QFSS, D2S2, SFSS, D2S1, DB, D1, QDSS, D2S2, SFSS, D2S1, DB, D1)
+FODOSSR: line = ( QFSS, D2S2, SFSS, D2S1, DB, BPM, D1C2, CV, D1C1\2SS, D2S2, SFSS, D2S1, DB, BPM, D1C2, CH, D1C1)
 
 ! 1 o'clock arc forward 2*FoDo:
-FODOAF_1: line = (QF, D1, B, D2S1, SD1_1, D2S2, QD, D1, B, D2S1, SF1_1, D2S2,    QF, D1, B, D2S1, SD2_1, D2S2, QD, D1, B, D2S1, SF2_1, D2S2)
+FODOAF_1: line = (\1D1C1, CH, D1C2, B, BPM, D2S1, SD1_1, D2S2, \1D1C1, CV, D1C2, B, BPM, D2S1, SF1_1, D2S2,    \1D1C1, CH, D1C2, B, BPM, D2S1, SD2_1, D2S2, \1D1C1, CV, D1C2, B, BPM, D2S1, SF2_1, D2S2)
 
 ! 5 o'clock arc forward 2*FoDo:
-FODOAF_5: line = (QF, D1, B, D2S1, SD1_5, D2S2, QD, D1, B, D2S1, SF1_5, D2S2,    QF, D1, B, D2S1, SD2_5, D2S2, QD, D1, B, D2S1, SF2_5, D2S2)
+FODOAF_5: line = (\1D1C1, CH, D1C2, B, BPM, D2S1, SD1_5, D2S2, \1D1C1, CV, D1C2, B, BPM, D2S1, SF1_5, D2S2,    \1D1C1, CH, D1C2, B, BPM, D2S1, SD2_5, D2S2, \1D1C1, CV, D1C2, B, BPM, D2S1, SF2_5, D2S2)
 
 ! 9 o'clock arc forward 2*FoDo:
-FODOAF_9: line = (QF, D1, B, D2S1, SD1_9, D2S2, QD, D1, B, D2S1, SF1_9, D2S2,    QF, D1, B, D2S1, SD2_9, D2S2, QD, D1, B, D2S1, SF2_9, D2S2)
+FODOAF_9: line = (\1D1C1, CH, D1C2, B, BPM, D2S1, SD1_9, D2S2, \1D1C1, CV, D1C2, B, BPM, D2S1, SF1_9, D2S2,    \1D1C1, CH, D1C2, B, BPM, D2S1, SD2_9, D2S2, \1D1C1, CV, D1C2, B, BPM, D2S1, SF2_9, D2S2)
 
 
 ! 3 o'clock arc reverse 2*FoDo:
-FODOAR_3: line = (QF, D2S2, SF1_3, D2S1, B, D1, QD, D2S2, SD1_3, D2S1, B, D1,    QF, D2S2, SF2_3, D2S1, B, D1, QD, D2S2, SD2_3, D2S1, B, D1)
+FODOAR_3: line = (QF, D2S2, SF1_3, D2S1, B, BPM, D1C2, CV, D1C1\2, D2S2, SD1_3, D2S1, B, BPM, D1C2, CH, D1C1\2, D2S2, SF2_3, D2S1, B, BPM, D1C2, CV, D1C1\2, D2S2, SD2_3, D2S1, B, BPM, D1C2, CH, D1C1)
 
 ! 7 o'clock arc reverse 2*FoDo:
-FODOAR_7: line = (QF, D2S2, SF1_7, D2S1, B, D1, QD, D2S2, SD1_7, D2S1, B, D1,    QF, D2S2, SF2_7, D2S1, B, D1, QD, D2S2, SD2_7, D2S1, B, D1)
+FODOAR_7: line = (QF, D2S2, SF1_7, D2S1, B, BPM, D1C2, CV, D1C1\2, D2S2, SD1_7, D2S1, B, BPM, D1C2, CH, D1C1\2, D2S2, SF2_7, D2S1, B, BPM, D1C2, CV, D1C1\2, D2S2, SD2_7, D2S1, B, BPM, D1C2, CH, D1C1)
 
 ! 11 o'clock arc reverse 2*FoDo:
-FODOAR_11: line = (QF, D2S2, SF1_11, D2S1, B, D1, QD, D2S2, SD1_11, D2S1, B, D1,    QF, D2S2, SF2_11, D2S1, B, D1, QD, D2S2, SD2_11, D2S1, B, D1)
+FODOAR_11: line = (QF, D2S2, SF1_11, D2S1, B, BPM, D1C2, CV, D1C1\2, D2S2, SD1_11, D2S1, B, BPM, D1C2, CH, D1C1\2, D2S2, SF2_11, D2S1, B, BPM, D1C2, CV, D1C1\2, D2S2, SD2_11, D2S1, B, BPM, D1C2, CH, D1C1)
 
 !-------------------------------------------------------
 
 ! Forward dispersion suppressor:
-DISPSUPF: line = (QF, D1, BH, D2, QD, D1, BH, D2, QFF1, D1, BH, D2, QDF1, D1, BH, D2)
+DISPSUPF: line = (\1D1C1, CH, D1C2, BH, BPM, D2, \1D1C1, CV, D1C2, BH, BPM, D2, \1D1C1, CH, D1C2, BH, BPM, D2, \1D1C1, CV, D1C2, BH, BPM, D2)
 
 ! Match forward dispersion suppressor to SS:
-MSSF: line = ( QFF2, D1, DB, D2, QDF2, D1, DB, D2,  QFF3, D1, DB, D2, QDF3, D1, DB, D2)
+MSSF: line = ( \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2,  \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2)
 
 ARC_TO_SSF: line = (DISPSUPF, MSSF)
 
 ! Reverse dispersion suppressor:
-DISPSUPR: line = ( QF, D2, BH, D1, QD, D2, BH, D1, QFR1, D2, BH, D1, QDR1, D2, BH, D1)
+DISPSUPR: line = ( QF, D2, BH, BPM, D1C2, CV, D1C1\2, D2, BH, BPM, D1C2, CH, D1C1\2R1, D2, BH, BPM, D1C2, CV, D1C1\2R1, D2, BH, BPM, D1C2, CH, D1C1)
 
 ! Match reverse dispersion suppressor to SS:
-MSSR: line = ( QFR2, D2, DB, D1, QDR2, D2, DB, D1,  QFR3, D2, DB, D1, QDR3, D2, DB, D1)
+MSSR: line = ( QFR2, D2, DB, BPM, D1C2, CV, D1C1\2R2, D2, DB, BPM, D1C2, CH, D1C1\2R3, D2, DB, BPM, D1C2, CV, D1C1\2R3, D2, DB, BPM, D1C2, CH, D1C1)
 
 ARC_TO_SSR: line = (DISPSUPR, MSSR)
 
@@ -219,49 +221,49 @@ ARC_TO_SSR: line = (DISPSUPR, MSSR)
 !-------------------------------------------------------
 
 ! Match forward straight section to dispersion "creator" (use QFR)
-MDCF: line = (QFSS, D1, DB, D2, QDR3, D1, DB, D2, QFR3, D1, DB, D2, QDR2, D1, DB, D2) 
+MDCF: line = (\1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2, \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2) 
 
 ! Forward dispersion "creator" (use QFR)
-DISPCREF: line = (QFR2, D1, BH, D2, QDR1, D1, BH, D2, QFR1, D1, BH, D2, QD, D1, BH, D2)
+DISPCREF: line = (\1D1C1, CH, D1C2, BH, BPM, D2, \1D1C1, CV, D1C2, BH, BPM, D2, \1D1C1, CH, D1C2, BH, BPM, D2, \1D1C1, CV, D1C2, BH, BPM, D2)
 
 SS_TO_ARCF: line = (MDCF, DISPCREF)
 
 ! Match reverse straight section to dispersion "creator" (use QFF)
-MDCR: line = ( QFSS, D2, DB, D1, QDF3, D2, DB, D1,  QFF3, D2, DB, D1, QDF2, D2, DB, D1)
+MDCR: line = ( QFSS, D2, DB, BPM, D1C2, CV, D1C1\2F3, D2, DB, BPM, D1C2, CH, D1C1\2F3, D2, DB, BPM, D1C2, CV, D1C1\2F2, D2, DB, BPM, D1C2, CH, D1C1)
 
 ! Reverse dispersion "creator" (use QFF)
-DISPCRER: line = ( QFF2, D2, BH, D1, QDF1, D2, BH, D1, QFF1, D2, BH, D1, QD, D2, BH, D1)
+DISPCRER: line = ( QFF2, D2, BH, BPM, D1C2, CV, D1C1\2F1, D2, BH, BPM, D1C2, CH, D1C1\2F1, D2, BH, BPM, D1C2, CV, D1C1\2, D2, BH, BPM, D1C2, CH, D1C1)
 
 SS_TO_ARCR: line = (MDCR, DISPCRER)
 
 !-------------------------------------------------------
 
-IPF: line = ( QEF1, D1, DB, D2, QEF2, D1, DB, D2, DEF1, QEF3, DEF2, QEF4, DEF3, IP6)
-IPR: line = (IP6, DER3, QER4, DER2, QER3, DER1, QER2, D2, DB, D1, QER1, D2, DB, D1)
+IPF: line = ( QEF1, D1, DB, BPM, D2, QEF2, D1, DB, BPM, D2, DEF1, QEF3, DEF2, QEF4, DEF3, IP6)
+IPR: line = (IP6, DER3, QER4, DER2, QER3, DER1, QER2, D2, DB, BPM, D1, QER1, D2, DB, BPM, D1C2, CH, D1C1)
 
 !-------------------------------------------------------
 
 ! Straight section forward FoDo:
-FODOSSF_2: line = ( QFSS_2, D1, DB, D2, QDSS_2, D1, DB, D2)
+FODOSSF_2: line = ( \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2)
 
 ! Straight section reverse FoDo:
-FODOSSR_2: line = ( QFSS_2, D2, DB, D1, QDSS_2, D2, DB, D1)
+FODOSSR_2: line = ( QFSS_2, D2, DB, BPM, D1C2, CV, D1C1\2SS_2, D2, DB, BPM, D1C2, CH, D1C1)
 
 ! Match forward dispersion suppressor to SS:
-MSSF_2: line = ( QFF2_2, D1, DB, D2, QDF2_2, D1, DB, D2,  QFF3_2, D1, DB, D2, QDF3_2, D1, DB, D2)
+MSSF_2: line = ( \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2,  \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2)
 
 ! Match forward dispersion suppressor to SS:
-MSSF_6: line = ( QFF2_6, D1, DB, D2, QDF2_6, D1, DB, D2,  QFF3_6, D1, DB, D2, QDF3_6, D1, DB, D2)
+MSSF_6: line = ( \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2,  \1D1C1, CH, D1C2, DB, BPM, D2, \1D1C1, CV, D1C2, DB, BPM, D2)
 
 ! Match reverse straight section to dispersion "creator" (use QFF)
-MDCR_2: line = ( QFSS_2, D2, DB, D1, QDF3_2, D2, DB, D1,  QFF3_2, D2, DB, D1, QDF2_2, D2, DB, D1)
+MDCR_2: line = ( QFSS_2, D2, DB, BPM, D1C2, CV, D1C1\2F3_2, D2, DB, BPM, D1C2, CH, D1C1\2F3_2, D2, DB, BPM, D1C2, CV, D1C1\2F2_2, D2, DB, BPM, D1C2, CH, D1C1)
 
 ! Match reverse straight section to dispersion "creator" (use QFF)
-MDCR_6: line = ( QFSS, D2, DB, D1, QDR3_6, D2, DB, D1,  QFR3_6, D2, DB, D1, QDR2_6, D2, DB, D1)
+MDCR_6: line = ( QFSS, D2, DB, BPM, D1C2, CV, D1C1\2R3_6, D2, DB, BPM, D1C2, CH, D1C1\2R3_6, D2, DB, BPM, D1C2, CV, D1C1\2R2_6, D2, DB, BPM, D1C2, CH, D1C1)
 
 
 ! Reverse dispersion "creator" to steal 1 quad from (use QFF)
-DISPCRER_2: line = ( QFF2_2, D2, BH, D1, QDF1_2, D2, BH, D1, QFF1_2, D2, BH, D1, QD, D2, BH, D1)
+DISPCRER_2: line = ( QFF2_2, D2, BH, BPM, D1C2, CV, D1C1\2F1_2, D2, BH, BPM, D1C2, CH, D1C1\2F1_2, D2, BH, BPM, D1C2, CV, D1C1\2, D2, BH, BPM, D1C2, CH, D1C1)
 
 
 ARC_TO_SSF_2: line = (DISPSUPF, MSSF_2)
