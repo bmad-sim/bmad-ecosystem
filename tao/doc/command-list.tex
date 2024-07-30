@@ -2115,9 +2115,9 @@ is momentum compaction and phase slip and derivatives.
 
 If no universe is given, the current default universe (\sref{s:universe}) is used.
 
-The \vn{-taylor} switch will show the Taylor series for the three normal mode tunes and spin tune
-as functions of the phase space coordinates. The computation uses complex series. The imaginary part
-should be zero (or very small). The spin Taylor series is only computed when spin tracking is on.
+The \vn{-taylor} switch will show the Taylor series for the three normal mode tunes as functions 
+of the phase space coordinates. The computation uses complex series. The imaginary part should 
+be zero (or very small).
 
 
 %% show constraints --------------------------------------------------------------
@@ -3021,7 +3021,7 @@ Examples:
 Syntax:
 \begin{example}
   show spin \{-element \{<ref_ele_name>\} <ele_name>\} \{-flip_n_axis\} \{-g_map\}
-                  \{-ignore_kinetic <ele_list>\} \{-isf\}
+                  \{-ignore_kinetic <ele_list>\} \{-isf\} \{-spin_tune\}
                   \{-l_axis <lx>, <ly>, <lz>\} \{-n_axis <nx>, <ny>, <nz>\} 
                   \{-x_zero <ele_list>\} \{-y_zero <ele_list>\} \{-z_zero <ele_list>\}
 \end{example}
@@ -3074,6 +3074,11 @@ The \vn{-flip_n_axis} switch, if present, will flip the direction of the display
 The \vn{-isf} switch, if present, will print the invariant spin field which are three taylor series
 for the three components of the spin $(S_x, S_y, S_z)$. The independent variables are the six orbital
 phase space coordinates $(x, p_x, y, p_y, z, p_z)$.
+
+The \vn{-spin_tune} switch, if present, will print the amplitude-dependent spin tune. The output will 
+be a Taylor series in the phasor's basis, i.e. $x_k = sqrt(J_k)*exp(i*phi_k)$. For example the 
+monomial ``[1 1 0 0 0 0]'' corresponds to $J_a$, and if RF is on then ``[1 1 2 2 3 3]'' corresponds 
+to $J_a*J_b^2*J_c^3$.
 
 The \vn{-x_zero}, \vn{-y_zero}, and \vn{-z_zero} options are for testing if supressing certain terms
 in the linear part of the spin transport map for a set of elements selected by the user will

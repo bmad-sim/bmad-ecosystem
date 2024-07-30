@@ -103,7 +103,7 @@ type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
-type (complex_taylor_struct) bmad_ctaylor, ctaylor(3)
+type (complex_taylor_struct) bmad_ctaylor, ctaylor(3), ctaylor1
 type (rad_map_ele_struct), pointer :: ri
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_expression_info_struct), allocatable :: info(:)
@@ -847,19 +847,16 @@ case ('chromaticity')
   ptc_nf  => tao_branch%ptc_normal_form
 
   nl=nl+1; lines(nl) = '  Note: Calculation is done with RF off.'
-  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
+  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N'
 
   do i = 0, ptc_private%taylor_order_ptc-1
     expo = [0, 0, 0, 0, 0, i]
     z1 =  real(ptc_nf%phase(1) .sub. expo)
     z2 =  real(ptc_nf%phase(2) .sub. expo)
-    s0 = real(ptc_nf%spin_tune .sub. expo)
     if (i == 0) then
-      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
-    elseif (i == 1 .and. .not. bmad_com%spin_tracking_on) then
-      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! Spin tracking off so spin tune not calculated'
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7, a)') i, z1, z2, '  ! 0th order are the tunes'
     else
-      nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7)') i, z1, z2
     endif
   enddo
 
@@ -878,12 +875,9 @@ case ('chromaticity')
   if (what_to_show == '-taylor') then
     call alloc(ptc_ctaylor)
 
-    do i = 1, 4
-      if (i == 4) then
-        ptc_ctaylor = ptc_nf%spin_tune * ci_phasor() * ptc_nf%normal_form%atot**(-1)
-      else
-        ptc_ctaylor = ptc_nf%phase(i) * ci_phasor() * ptc_nf%normal_form%atot**(-1)
-      endif
+    do i = 1, 3
+        ! ptc_ctaylor = ptc_nf%spin_tune * ci_phasor() * ptc_nf%normal_form%atot**(-1)
+      ptc_ctaylor = ptc_nf%phase(i) * ci_phasor() * ptc_nf%normal_form%atot**(-1)
       bmad_ctaylor = ptc_ctaylor
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Taylor series: ' // trim(mode(i)) // ' tune'
@@ -892,9 +886,9 @@ case ('chromaticity')
       lines(nl+1:nl+n) = alloc_lines(1:n)
       nl = nl + n
 
-      if (i == 4 .and. .not. associated(bmad_ctaylor%term) .and. .not. bmad_com%spin_tracking_on) then
-        nl=nl+1; lines(nl) = 'Spin tracking is turned on with: "set bmad_com spin_tracking_on = T".'
-      endif
+      !if (i == 4 .and. .not. associated(bmad_ctaylor%term) .and. .not. bmad_com%spin_tracking_on) then
+      !  nl=nl+1; lines(nl) = 'Spin tracking is turned on with: "set bmad_com spin_tracking_on = T".'
+      !endif
     enddo
 
     call kill(ptc_ctaylor)
@@ -4463,7 +4457,7 @@ case ('spin')
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
-                            '-z_zero', '-ignore_kinetic', '-isf'], .true., switch, err)
+                            '-z_zero', '-ignore_kinetic', '-isf', '-spin_tune'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4483,6 +4477,8 @@ case ('spin')
       flip = .true.
     case ('-isf')
       what_to_show = 'isf'
+    case ('-spin_tune')
+      what_to_show = 'spin_tune'
     case ('-n_axis')
       read (what2, *, iostat = ios) sm%axis_input%n0
       if (ios /= 0) then
@@ -4542,6 +4538,22 @@ case ('spin')
 
     call type_complex_taylors(ctaylor, out_type = 'SPIN')
     return
+  endif
+  
+  if (what_to_show == 'spin_tune') then
+    if (branch%param%geometry == open$) then
+      nl=nl+1; lines(nl) = 'No spin tune for an open lattice!'
+      return
+    endif
+
+    tao_branch%spin_map_valid = .false.
+    if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+    ptc_nf  => tao_branch%ptc_normal_form
+    ctaylor1 = ptc_nf%spin_tune
+
+    call type_complex_taylors([ctaylor1], out_type = 'NONE')
+    return   
   endif
 
   ! what_to_show = standard
