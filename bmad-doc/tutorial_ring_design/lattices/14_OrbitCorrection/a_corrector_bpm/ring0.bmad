@@ -156,18 +156,20 @@ CV: vkicker, L = 0.2
 ! (2) Add corrector coils near quadrupoles using Find and Replace with regular expressions.
 ! Recipe:
 !1. In the forward arcs for drifts after focusing quadrupoles:
-!    Replace (QF[^,\n]*,[^,\n]*)D1 with \1D1C1, CH, D1C2 for 
+!    Replace (QF[^,\n]*,[^,\n]*)D1 
+!    with \1D1C1, CH, D1C2 for 
 !2. In the forward arcs for drifts after defocusing quadrupoles:
-!    Replace (QD[^,\n]*,[^,\n]*)D1 with \1D1C1, CV, D1C2
+!    Replace (QD[^,\n]*,[^,\n]*)D1 
+!    with \1D1C1, CV, D1C2
 !
 !3. In the reverse arcs for drifts before focusing quadrupoles:
-!    Replace (D1C2, CH, D1C1)([^,\n]*,[^,\n]*QF)
+!    Replace (D1)([^,\n]*,[^,\n]*QF)
 !    with D1C2, CH, D1C1\2 
 !4. In the reverse arcs for drifts before defocusing quadrupoles:
-!    Replace (D1C2, CH, D1C1)([^,\n]*,[^,\n]*QD) 
+!    Replace (D1)([^,\n]*,[^,\n]*QD) 
 !    with D1C2, CV, D1C1\2
 !5. In the reverse arcs for drifts at the end of a cell:
-!    Replace D1C2, CH, D1C1) with D1C2, CH, D1C1) 
+!    Replace D1) with D1C2, CH, D1C1) 
 
 ! (3) Define and add BPMs
 BPM: marker
