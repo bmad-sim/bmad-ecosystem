@@ -414,7 +414,7 @@ func_macos_gcc () {
 	    fi
 	elif [ "$brew" ]
 	then
-	    p=/opt/homebrew/bin/gcc-
+	    p=$(brew --prefix)/bin/gcc-
 	    v=0
 	    for g in $p[0-9]*
 	    do
