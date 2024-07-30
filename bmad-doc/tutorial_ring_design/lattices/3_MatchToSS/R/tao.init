@@ -2,6 +2,8 @@
 	plot_page%size = 400, 400
 	plot_page%text_height = 8
 	plot_page%n_curve_pts = 5000
+/
+
 
 &tao_params
 	global%n_opti_cycles = 100
