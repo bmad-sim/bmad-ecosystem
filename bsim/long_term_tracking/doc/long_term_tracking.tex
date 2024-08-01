@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ June 13, 2024}
+\date{David Sagan \\ August 1, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -590,7 +590,7 @@ manual. Like the other modes, if the \vn{ltt%add_closed_orbit_to_init_position} 
 \vn{True}, the closed orbit position is added to the initial particle positions. To read in a file
 with beam particle positions, set the \vn{beam_init} structure appropriately. Example:
 \begin{code}
-beam_init%file_name = 'beam_particle_file.init'
+beam_init%position_file = 'beam_particle_file.init'
 \end{code}
 
 In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start}.
@@ -1013,7 +1013,7 @@ Bmad Distribution in the file:
   util_programs/beam_file_translate_format/DOC
 \end{code}
 
-To use a beam file that has been generated on a previous run with a new run set \vn{beam_init%file_name}
+To use a beam file that has been generated on a previous run with a new run set \vn{beam_init%position_file}
 to the name of the beam file.
 %
 \item[ltt\%column(:)] \Newline

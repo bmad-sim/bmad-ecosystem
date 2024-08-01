@@ -1752,7 +1752,7 @@ case ('element')
         dt = orb%t - ele%ref_time
         pc = orb%p0c * (1 + orb%vec(6))
         call convert_pc_to (pc, orb%species, e_tot = e_tot) 
-        nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]        Spin   |'
+        nl=nl+1; lines(nl) = '         Position[mm] Momentum[1E-3]        Spin   |'
         if (bmad_com%spin_tracking_on) then
           fmt  = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, es12.5)'
           fmt2 = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, f12.9)'
