@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Script for processing the Mathematica output for exact bend multipoles into Fortran form.
 # The output is a temporary that must be cut and pasted as appropriate.
