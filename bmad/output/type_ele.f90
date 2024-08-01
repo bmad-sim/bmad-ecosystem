@@ -1130,7 +1130,8 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
                       a_name(1:n_att), '  =', ele%control%var(im)%value, &
                       'OLD_', a_name(1:n_att), '  =', ele%control%var(im)%old_value
       enddo
-    else  ! overlay_lord or ramper_lord
+
+    elseif (allocated(ele%control%var)) then  ! overlay_lord or ramper_lord. A ramper slave does not have this allocated.
       do im = 1, size(ele%control%var)
         nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  im, ele%control%var(im)%name, '  =', ele%control%var(im)%value
       enddo
