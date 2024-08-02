@@ -350,7 +350,7 @@ type tao_plot_page_struct
   real(rp) :: floor_plan_text_scale  = 1.0  ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0
   real(rp) :: lat_layout_text_scale  = 1.0  ! Scale used = lat_layout_text_scale * legend_text_scale
-  integer :: n_curve_pts = 401              ! Default number of points for plotting a smooth curve.
+  integer :: n_curve_pts = 4001             ! Default number of points for plotting a smooth curve.
   integer :: id_window = -1                 ! X window id number.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
   logical :: draw_graph_title_suffix = .true.  ! Draw the graph title suffix?
@@ -646,6 +646,7 @@ type tao_global_struct
   real(rp) :: dmerit_stop_value = 0              ! Fractional Merit change below which an optimizer will stop.
   real(rp) :: random_sigma_cutoff = -1           ! Cut-off in sigmas.
   real(rp) :: delta_e_chrom = 0                  ! Delta E used from chrom calc.
+  real(rp) :: max_plot_time = 5                  ! If plotting time (seconds) exceeds this than a message is generated.
   integer :: default_universe = 1                ! Default universe to work with.
   integer :: default_branch = 0                  ! Default lattice branch to work with.
   integer :: n_opti_cycles = 20                  ! Number of optimization cycles
