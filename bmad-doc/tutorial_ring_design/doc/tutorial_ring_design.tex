@@ -2299,7 +2299,7 @@ shorthand notation and the actual formula used is \vn{0.7*hh}.  Note: When this 
 is used, only one control variable (in this case \vn{hh}) may be used by the overlay.
 \item
 The initial values for control variables may be set when defining the control element. For example,
-\vn{hh} of \vn{ov2} is set to 0.2. Control variables default to a value of zero.
+\vn{hh} of \vn{ov2} is set to 0.01. Control variables default to a value of zero.
 \end{itemize}
 
 %----------------------------------------------------------
@@ -3037,9 +3037,7 @@ D1C2: Drift, L = 0.345 !0.609 - 0.064 - 0.2
 CH: hkicker, L = 0.2
 CV: vkicker, L = 0.2
 \end{code}
-\item Add corrector coils near quadrupoles. Then, add horizontal kickers near focusing quadrupoles and vertical kickers near defocusing quadrupoles. 
-
-After adding the kicker, correctors in the D1 drift have to be added. This means placing the correctors after quadrupoles in the forward geometry and before quadrupoles in the reverse geometry. 
+\item Then, add horizontal kickers near focusing quadrupoles and vertical kickers near defocusing quadrupoles. Correctors are added in the D1 drifts. This means placing the correctors after quadrupoles in the forward geometry and before quadrupoles in the reverse geometry. 
 
 Because we have used D1 drifts repeatedly throughout the ring, adding correctors manually is a tedious task. The easiest approach is to use \vn{regular expressions} in Find and Replace. The recipe is the following: 
 \begin{code}
@@ -3187,7 +3185,7 @@ Run the optimizer and check if the orbit is fixed. Write the lattice with optimi
 %
 \item Correct the orbit using the same optimization process. You can reuse the \vn{tao.init} we wrote for example \sref{s:sawtooth}.
 %
-\item If the misalignment amplitude is large, the orbit could become unstable and the optimizer will have a hard time finding a solution. Try larger misalignments of $\sigma=100\unit{\mu m}$ with "\vn{set ele quadrupole::* x_offset = 1e-5*ran_gauss(3)} and correct the orbit. This will likely fail and you'll see many error messages.
+\item If the misalignment amplitude is large, the orbit could become unstable and the optimizer will have a hard time finding a solution. Try larger misalignments of $\sigma=100\unit{\mu m}$ with "\vn{set ele quadrupole::* x_offset = 1e-4*ran_gauss(3)} and correct the orbit. This will likely fail and you'll see many error messages.
 %
 \item One approach to avoid unstable orbits is correcting the orbit with an open lattice first. Reinitialize \tao to start fresh from the beginning. Use command \vn{cut} to change the lattice geometry from closed to open. \tao now uses the single-turn orbit instead, so it won't complain even if the closed orbit is unstable. 
 %
@@ -3217,6 +3215,113 @@ Run the optimizer and check if the orbit is fixed. Write the lattice with optimi
 Use 4 horizontal/vertical kickers around the IP (CH/V\_104 to CH/V\_107, 8 total kickers) to make the orbit exactly 0 at the IP without affecting the rest of the ring.
 %
 \end{enumerate}
+
+\newpage
+
+\section{Spin Tracking with Ramping}
+\subsection{Introduction}
+\bmad is one of the most powerful modern accelerator physics libraries for polarization analyses and spin-tracking simulations. The most important tools of polarization analysis, such as the invariant spin field, the amplitude-dependent spin tune, and spin-orbit resonance strengths, can be computed using \bmad. The invariant spin field (ISF) and the amplitude-dependent spin tune (ADST) can be computed in \bmad using normal form via \tao, K. Yokoya's SODOM-2 algorithm via \sodom, or stroboscopic averaging via \spinstrob, but these applications will not be covered in this brief introduction. In this chapter, we will ramp our storage ring energy through a spin-orbit resonance, calculate the polarization transmission, and use it to verify the resonance strength computed by \tao using the Froissart-Stora formula.
+
+In a perfectly-flat ring (a ring in which the only magnetic fields encountered on the closed orbit are vertical), the closed-orbit spin tune is $\nu_0=G\gamma$, where $G=(g-2)/2$ is the anomalous gyromagnetic $g$-factor and $\gamma$ is the reference gamma. We will ramp our ring through the $\nu_0=60-Q_y \approx 51.81$ resonance. 
+
+\subsection*{Example: Ramping Through a Spin-Orbit Resonance}
+\begin{enumerate}[leftmargin=*]
+\item Start with the \vn{spin_lat.bmad} file, located in \vn{lattices/15_SpinTracking}. It is a FODO ring based on the layout of the AGS.
+
+\item Let's define a \vn{ramper} element which ramps $G\gamma$ from $51.71$ to $51.82$ in $5000$ turns. To ramp the \vn{e_tot} attribute for all elements in such a time, we need to obtain the revolution time, which is done by calling \vn{show uni} and looking for the
+\vn{Lattice branch transit time}. For our ring, this is $2.67024$ microseconds. Thus, our \vn{ramper} element is
+
+\begin{code}
+rampe: ramper = {*[e_tot] : 51.71 / anomalous_moment_of(proton) * m_proton + 
+(.2/5000/anomalous_moment_of(proton) * m_proton) / (2.67024e-6)*time}, var = {time} 
+\end{code}
+
+We can define this element anywhere in the lattice file to initiate the ramping.
+
+\item Create a \vn{long_term_tracking.init} file, containing the following:
+\begin{code}
+&params
+  ltt%lat_file = 'spin_lat.bmad'    
+  ltt%ele_start = '0'                   
+  ltt%ele_stop = ''                     
+  ltt%phase_space_output_file = 'tracking.dat'
+  ltt%averages_output_file = 'ramp.dat'
+  ltt%averages_output_every_n_turns = 1
+  ltt%particle_output_every_n_turns = 1
+
+  ltt%ramping_on = T
+  ltt%ramp_update_each_particle = T
+  ltt%simulation_mode = 'SINGLE'
+  ltt%tracking_method = 'BMAD'   
+  ltt%n_turns = 5000                      
+  ltt%rfcavity_on = T
+  ltt%split_bends_for_stochastic_rad = F
+  ltt%random_seed = 0                      
+  ltt%add_closed_orbit_to_init_position = T
+
+  bmad_com%spin_tracking_on = T         
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F 
+
+  beam_init%n_particle = 1
+  beam_init%spin = 0, 1, 0             
+  beam_init%center = 0, 0, 1e-5, 0, 2.66, 1.15e-5 
+/
+/
+\end{code}
+
+\item Plot $S_y$ versus turn number with the following \textit{gnuplot} command:
+\begin{code}
+plot 'tracking.dat' u 1:13
+\end{code}
+Observe the asymptotic value of $S_y$ as the number of turns increases.
+
+\item Load Tao, and set the energy such that $G\gamma=51.81$ with the command
+\begin{code}
+set ele * e_tot = 51.81 / anomalous_moment_of(proton) * mass_of(proton)
+\end{code}
+Then use the command \vn{show spin -ele 0}
+to observe the resonance strength. We are working with a B-mode (vertical) resonance, and whether $\text{frac}(Q_s+Q)$ or $\text{frac}(Q_s-Q)$ is smaller tells you whether to use \vn{Xi_sum} or \vn{Xi_diff}. The correct resonance strength corresponds to whichever $\text{frac}(\dots)$ expression is closer to zero. The resonance strength given by \tao is normalized, so we have to multiply by $\sqrt{J_y}$ to find the true resonance strength. We can obtain $J_y$ using the equation 
+\begin{equation}
+y(s)=\sqrt{2J_y\beta_y(s)}\cos[\Phi_y(s)],
+\end{equation}
+along with the command \vn{show twiss}.
+
+\item We can find what the asymptotic value of $S_y$ should have been using the Froissart-Stora formula:
+\begin{equation}
+S_y(\theta\to\infty) = 2\exp\left(-\frac{\pi\epsilon^2}{2\tilde{\alpha}}\right)-1.
+\end{equation}
+Here, $\theta$ is the machine azimuth, $\epsilon$ is the resonance strength, and 
+\begin{equation}
+\tilde{\alpha} = \frac{\mathrm{d}}{\mathrm{d}\theta}G\gamma = \frac{1}{2\pi} \times [\text{Change in }G\gamma\text{ per turn}].
+\end{equation}
+Compare the result of the Froissart-Stora formula to the result obtained from tracking.
+
+\end{enumerate}
+
+\subsection{Exercises}
+\begin{enumerate}[leftmargin=*]
+\item The AGS has two special spin rotators known as partial Siberian snakes. Add the partial Siberian snakes to \vn{spin_lat.bmad}. They are represented by elements called CSNK (cold snake) and WSNK (warm snake), which are markers in the lattice we have provided to you. We will represent the ideal (point-like) Siberian snakes using \vn{Taylor} elements. Here is the example syntax:
+\begin{code}
+CSNK: Taylor, {S1: q_0|}, {Sx: q_1|}, {Sy: q_2|}, {Sz: q_3|}
+\end{code}
+In this case, the \vn{Taylor} element produces an instantaneous rotation represented by the unit quaternion $(q_0,q_1,q_2,q_3)$. Recall that the unit quaternion $(\cos(\vartheta/2),\sin(\vartheta/2)\vec{e})$ produces a rotation by angle $\vartheta$ around the unit vector $\vec{e}$. The cold snake has a rotation angle of $18.3^\circ$, and the warm snake has a rotation angle of $10.57^\circ$. Both snakes rotate the spin around the longitudinal axis.
+
+Play around with the \vn{show spin} command at different energies, and verify that the spin tune is \emph{not} $G\gamma$. Why is this the case?
+
+\item If you have done the previous exercise, comment out the \vn{Taylor} elements and return the snakes to markers for this exercise. Use the script \vn{DepolTao.py} to plot the resonance spectrum in the range $G\gamma = 30$ to $G\gamma =60$. It is run using the following syntax:
+\begin{code}
+python DepolTao.py <lat_file> <output_file> <plot_file> <particle> <SPRINT>
+<min Ggamma> <max Ggamma> <J_y>
+\end{code}
+For this case, set <SPRINT> to T. This boolean flag can take the values T or F, and if T, the spin tracking mode is set to SPRINT. SPRINT tracking is fast, but can be inaccurate when magnets are misaligned or there are strong nonlinearities.
+
+What do you observe about the spectrum? Can you explain any of its features? \emph{Hint: look at the structure of the lattice.}
+\end{enumerate}
+
+
+
+
 
 \newpage
 
