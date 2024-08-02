@@ -1372,6 +1372,14 @@ spin_x, spin_y, spin_z  -- Spin vector
 state                   -- Particle state (alive, etc.)
 \end{code}
 
+If \vn{ltt%action_angle_calc_uses_1turn_matrix} is 
+set \vn{False} (the default), the conversion matrix ($\bfN^{-1}$ matrix) from $(x, p_x, y, p_y,
+z, p_z)$ phase space coordinates to action-angle coordinates is calculated from the beam sigma
+matrix as described by Wolski\cite{b:wolski}. That is, the conversion to action-angle coordinates is
+affected by lattice nonlinearities and $\bfN^{-1}$ will vary from turn-to-turn. If set to \vn{True},
+the conversion matrix is calculated from the 1-turn matrix calculated from the lattice independent of
+the beam distribution.
+
 %------------------------------------------------------------------
 \subsection{Beam Averages Data Output}
 \label{s:beam.ave.dat}
