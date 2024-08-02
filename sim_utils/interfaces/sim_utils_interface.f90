@@ -772,8 +772,7 @@ function real_str(r_num, n_signif, n_decimal) result (str)
   import
   implicit none
   real(rp) r_num
-  integer n_signif
-  integer, optional :: n_decimal
+  integer, optional :: n_signif, n_decimal
   character(:), allocatable :: str
 end function
 
