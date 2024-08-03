@@ -3513,7 +3513,7 @@ if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
 endif
 
 if (.not. ltt_params_global%ramping_on) return
-if (.not. ltt_params_global%ramp_update_each_particle .and. ltt_params_global%simulation_mod == 'BEAM') return 
+if (.not. ltt_params_global%ramp_update_each_particle .and. ltt_params_global%simulation_mode == 'BEAM') return 
 
 ! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 
