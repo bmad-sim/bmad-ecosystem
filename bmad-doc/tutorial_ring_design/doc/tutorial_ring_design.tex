@@ -3005,7 +3005,7 @@ Figure~\ref{f:base}. The bottom plot of the orbit difference between \vn{model} 
 \item {\bf Alias command:} To save on typing, alias commands may be defined. Define an alias command called \vn{setit} so that typing ``\vn{setit 1e-6}'' is equivalent to ``\vn{set ele q vkick = 1e-6}''. Hint: Look in the manual or type ``\vn{help alias}'' to get more information on setting and using alias commands.
 Note: Do not confuse \tao alias commands with the alias string component of a lattice element.
 %
-\item {\bf Adjust the tune using \vn{set tune}:} The tune of the lattice can also be set by using the \vn{set tune} command in \tao, which scales together all focusing quadrupoles and all defocusing quadrupoles to set the horizontal and vertical tunes. Using a lattice with the ring you have constrcted, use \vn{set tune -mask *,~QF,~QD 0.08 0.14} to set the tune of the ring. Plot the difference between the model and design lattices to see how much ``beta-beating'' there is around the ring.
+\item {\bf Adjust the tune using \vn{set tune}:} The tune of the lattice can also be set by using the \vn{set tune} command in \tao, which scales together all focusing quadrupoles and all defocusing quadrupoles to set the horizontal and vertical tunes. Using a lattice with the ring you have constrcted, use \vn{set tune -mask *,$\sim$QF,$\sim$QD 0.08 0.14} to set the tune of the ring. Plot the difference between the model and design lattices to see how much ``beta-beating'' there is around the ring.
 %
 \end{enumerate}
 
