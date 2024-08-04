@@ -79,7 +79,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ July 18, 2024}
+\date{David Sagan and Chris Mayes \\ August 3, 2024}
 
 \begin{document}
 
@@ -2788,13 +2788,16 @@ changing the default universe.
 %----------------------------------------------------------
 \subsection{Overview}
 
-Control elements are elements that control the parameters of other elements. There are three types
-of control elements: \vn{groups}, \vn{overlays}, and \vn{girders}. \vn{Groups} and
+Control elements are elements that control the parameters of other elements. There are four types
+of control elements: \vn{groups}, \vn{overlays}, \vn{girders}, and \vn{rampers}. \vn{Groups} and
 \vn{overlays} are convenient to do such things as simulate control room "knobs". For example a power
 supply that powers a chain of magnets. \vn{Girder} elements (\sref{s:girder})
-are used for simulating lattice element support structures.
+are used for simulating lattice element support structures. And \vn{ramper} elements are used to
+vary lattice parameters over many turns which is useful for long term (that is multi-turn) tracking.
+\vn{Ramper} elements are not covered in this tutorial and the interested reader is referred to the \bmad
+manual for more details. 
 
-Note: \vn{Group}, \vn{overlay}, and \vn{girder} elements are known as ``\vn{minor} \vn{lords}'' since they
+Note: Control elements are known as ``\vn{minor} \vn{lords}'' since they
 only control a subset of an element's attributes. The other type of \vn{lord} elements, \vn{multipass} lords
 (\sref{s:multipass}) and \vn{superposition} lords (\sref{s:super}) are called ``\vn{major lords}''.
 

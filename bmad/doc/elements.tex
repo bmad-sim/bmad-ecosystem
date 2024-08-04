@@ -4545,7 +4545,18 @@ not allowed to control \vn{rampers}. When a \vn{ramper} controls variables in ot
 elements it is not permitted to use wild card characters. That is, in the above example, ``\vn{*}''
 will not match to any controller elements.
 
-Do to the way bookkeeping is done for ramper elmeents, and unlike \vn{group} or \vn{overlay}
+If a slave name contains wild card characters, for a given lattice element that the slave name
+matches to, it is not required that the controlled attribute be a valid attribute of the element. In
+the case where the controlled attribute is not valid for a given lattice element, no attributes of
+the given lattice element are varied when and the ramper is varied. For example:
+\begin{example}
+  rz: ramper = \{*[k1]: ...
+\end{example}
+In this example the \vn{k1} attribute of all those elements that have a \vn{k1} attribute will be
+controlled but something like a \vn{sextupole} element which does not have a \vn{k1} attribute will
+not be controlled.
+
+Due to the way bookkeeping is done for ramper elmeents, and unlike \vn{group} or \vn{overlay}
 elements, it is not permitted for different \vn{ramper} elements to control the same parameter of a
 given slave element. Additionally, parameters that \vn{ramper} elements control must not be
 controlled by any \vn{overlay} (but a \vn{ramper} can control an \vn{overlay}).
