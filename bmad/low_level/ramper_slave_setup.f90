@@ -26,7 +26,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ib, ie, ir, iv, n_loc, n_slave
 logical, optional :: force_setup
-logical err
+logical err, attrib_matched
 character(*), parameter :: r_name = 'ramper_slave_setup'
 
 ! Clean 
@@ -51,10 +51,17 @@ do ir = lat%n_ele_track+1, lat%n_ele_max
     call lat_ele_locator(r1%slave_name, lat, eles, n_loc, err)
     if (err) return
     n_slave = n_slave + n_loc
+    attrib_matched = .false.
     do ie = 1, n_loc
-      call set_this_slave(eles(ie)%ele, lord, iv, r1, lat, n_slave, err)
+      call set_this_slave(eles(ie)%ele, lord, iv, r1, lat, n_slave, attrib_matched, err)
       if (err) return
     enddo
+    if (.not. attrib_matched) then
+      call out_io (s_error$, r_name, 'Ramper: ' // lord%name, &
+                                     'Cannot find any slave elements with name: ' // r1%slave_name, &
+                                     'that has the attribute: ' // r1%attribute)
+      return
+    endif
   enddo
 
   if (n_slave == 0) then
@@ -68,7 +75,7 @@ lat%ramper_slave_bookkeeping = ok$
 !----------------------------------------------------------------------------------
 contains
 
-recursive subroutine set_this_slave (slave, lord, ix_control, r1, lat, n_slave, err_flag)
+recursive subroutine set_this_slave (slave, lord, ix_control, r1, lat, n_slave, attrib_matched, err_flag)
 
 type (ele_struct), target :: slave, lord
 type (ele_struct), pointer :: slave2
@@ -79,7 +86,7 @@ type (ramper_lord_struct), pointer :: r0
 type (all_pointer_struct) a_ptr
 
 integer ix_control, is, n_slave
-logical err_flag, err, has_wild, free, energy_ramp
+logical attrib_matched, err_flag, err, has_wild, free, energy_ramp
 
 ! If the slave name has wild card characters, do not match to controllers.
 
@@ -122,7 +129,6 @@ endif
 
 ! Is free
 
-
 free = attribute_free(slave, r1%attribute, .false.)
 
 if (.not. free .and. .not. energy_ramp) then
@@ -154,6 +160,8 @@ else
     n_slave = n_slave + 1
   endif
 endif
+
+attrib_matched = .true.
 
 end subroutine set_this_slave
 

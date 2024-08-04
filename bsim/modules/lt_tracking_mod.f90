@@ -47,7 +47,7 @@ type ltt_params_struct
   character(40) :: ele_extract = ''
   character(100) :: ele_write_at = ''
   character(200) :: lat_file = ''
-  character(200) :: beam_output_file = 'beam.h5'
+  character(200) :: beam_output_file = ''
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: map_ascii_output_file = ''
