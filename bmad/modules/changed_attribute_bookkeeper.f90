@@ -129,32 +129,32 @@ end select
 
 ! Set independent stuff in multipass lord
 
-if (ele%lord_status == multipass_lord$) then 
-
+if (ele%lord_status == multipass_lord$) then
   do i = 1, ele%n_slave
     slave => pointer_to_slave(ele, i)
   
     if (associated(a_ptr, ele%aperture_at)) then
       slave%aperture_at = a_ptr
+    elseif (associated(a_ptr, ele%ptc_integration_type)) then
+      slave%ptc_integration_type = a_ptr
     elseif (associated(a_ptr, ele%aperture_type)) then
-      ele%aperture_type = a_ptr
+      slave%aperture_type = a_ptr
     elseif (associated(a_ptr, ele%mat6_calc_method)) then
-      ele%mat6_calc_method = a_ptr
+      slave%mat6_calc_method = a_ptr
     elseif (associated(a_ptr, ele%tracking_method)) then
-      ele%tracking_method = a_ptr
+      slave%tracking_method = a_ptr
     elseif (associated(a_ptr, ele%spin_tracking_method)) then
-      ele%spin_tracking_method = a_ptr
+      slave%spin_tracking_method = a_ptr
     elseif (associated(a_ptr, ele%field_calc)) then
-      ele%field_calc = a_ptr
+      slave%field_calc = a_ptr
     elseif (associated(a_ptr, ele%csr_method)) then
-      ele%csr_method = a_ptr
+      slave%csr_method = a_ptr
     elseif (associated(a_ptr, ele%space_charge_method)) then
-      ele%space_charge_method = a_ptr
+      slave%space_charge_method = a_ptr
     else
       exit
     endif
   enddo
-
 endif
 
 end subroutine set_flags_for_changed_integer_attribute

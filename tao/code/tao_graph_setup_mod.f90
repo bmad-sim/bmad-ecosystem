@@ -1257,10 +1257,11 @@ type (tao_var_struct), pointer :: v_ptr
 type (ele_struct), pointer :: ele, ele1, ele2, slave
 type (branch_struct), pointer :: branch
 type (tao_curve_array_struct), allocatable :: curves(:)
+type (all_pointer_struct) var_ptr
 
 real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx, limit, len_branch
 real(rp), allocatable :: value_arr(:), x_arr(:), y_arr(:)
-real(rp), pointer :: var_ptr
+
 
 integer ii, k, m, n, n_dat, n2_dat, ib, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2, n_curve_pts, ix_slave
@@ -1405,6 +1406,7 @@ case ('plot_x_axis_var')
   call re_allocate (curve%y_symb, n_curve_pts)
   call re_allocate (curve%x_line, n_curve_pts)
   call re_allocate (curve%y_line, n_curve_pts)
+  var_ptr = all_pointer_struct()
 
   if (plot%x_axis_type == 'lat') then
 
@@ -1429,7 +1431,7 @@ case ('plot_x_axis_var')
       call tao_set_curve_invalid (curve, 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // curve%data_type_x)
       return
     endif
-    var_ptr => scratch%attribs(1)%r
+    var_ptr%r => scratch%attribs(1)%r
 
   else  ! x_axis_type == 'var'
     call tao_find_var (err, curve%data_type_x, v_array = scratch%var_array)
@@ -1437,18 +1439,18 @@ case ('plot_x_axis_var')
       call tao_set_curve_invalid (curve, 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // curve%data_type_x)
       return
     endif
-    var_ptr => scratch%var_array(1)%v%model_value
+    var_ptr%r => scratch%var_array(1)%v%model_value
   endif
 
   ! Get datum values as a function of the variable
 
-  val0 = var_ptr
+  val0 = var_ptr%r
 
   j = 0
   do i = 1, n_curve_pts 
     val = graph%x%eval_min + (graph%x%eval_max - graph%x%eval_min) * (i - 1.0_rp) / (n_curve_pts - 1)
     if (plot%x_axis_type == 'lat')then
-      var_ptr = val
+      var_ptr%r = val
       call tao_set_flags_for_changed_attribute (u, name(1:ix1-1), scratch%eles(1)%ele, var_ptr)
       s%u(ix_uni)%calc%lattice = .true.
     else
@@ -1483,7 +1485,7 @@ case ('plot_x_axis_var')
   ! Reset
 
   if (plot%x_axis_type == 'lat')then
-    var_ptr = val0
+    var_ptr%r = val0
     call tao_set_flags_for_changed_attribute (u, name(1:ix1-1), scratch%eles(1)%ele, var_ptr)
     s%u(ix_uni)%calc%lattice = .true.
   else

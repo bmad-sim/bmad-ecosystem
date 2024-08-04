@@ -58,7 +58,7 @@ character(16) :: cmd_names_old(6) = [&
     'output       ']
 
 logical quit_tao, err, err_is_fatal, silent, gang, abort, err_flag, ok
-logical include_wall, update, exact, include_this, lord_set, listing, found
+logical include_wall, update, exact, include_this, listing, found
 
 ! blank line => nothing to do
 
@@ -650,7 +650,6 @@ case ('scale')
 
 case ('set')
   update = .false.
-  lord_set = .true.
   set_word = ''
   branch_str = ''
   mask = ''
@@ -669,7 +668,7 @@ case ('set')
       case ('-listing')
         listing = .true.
       case ('-lord_no_set')
-        lord_set = .false.
+        call out_io (s_warn$, r_name, 'Note: The "-lord_no_set" no longer exists. This set will be ignored.')
       case ('-branch')
         call tao_next_word(cmd_line, branch_str)
       case ('-mask')
@@ -788,7 +787,7 @@ case ('set')
   case ('dynamic_aperture')
     call tao_set_dynamic_aperture_cmd (cmd_word(1), cmd_word(3))
   case ('element')
-    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4), update, lord_set)
+    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4), update)
   case ('floor_plan')
     call tao_set_drawing_cmd (s%plot_page%floor_plan, cmd_word(1), cmd_word(3))
   case ('geodesic_lm')

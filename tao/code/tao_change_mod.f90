@@ -346,7 +346,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     delta = m_ptr(i)%r - old_value(i)
 
-    call tao_set_flags_for_changed_attribute(u, e_name, eles(i)%ele, m_ptr(i)%r, who = a_name)
+    call tao_set_flags_for_changed_attribute(u, e_name, eles(i)%ele, m_ptr(i), who = a_name)
 
     max_val = max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) 
     str = real_num_fortran_format(max_val, 14, 2)

@@ -1261,21 +1261,11 @@ Examples:
 
 Format:
 \begin{example}
-  set \{-update\} \{-lord_no_set\} element <element_list> <attribute> = <value>
+  set \{-update\} element <element_list> <attribute> = <value>
 \end{example}
 
 The \vn{set element} command sets the attributes of an element. Use the \vn{show element}
 command to view the attributes of an element.
-
-The \vn{-lord_no_set} switch, if present, will prevent the set of the corresponding attribute in a
-\vn{super_lord} or \vn{multipass_lord} of a slave element that appears in \vn{element_list}. For
-example:
-\begin{example}
-  set ele -lord quad::A:B field_calc = True
-\end{example}
-In this example the element list is all quadrupole in the region between elements \vn{A} and \vn{B}
-in the lattice. The presence of the \vn{-lord_no_set} switch means that any \vn{super_slave} or
-\vn{multipass_slave} quadrupole in that region will be ignored.
 
 The \vn{-update} switch, if present, suppresses \tao from printing error messages if a ``variable
 slave value mismatch'' is detected (\sref{s:var.mismatch}). Independent of whether \vn{-update} is

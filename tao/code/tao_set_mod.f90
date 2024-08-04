@@ -2956,7 +2956,7 @@ end subroutine tao_set_universe_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_elements_cmd (ele_list, attribute, value, update, lord_set)
+! Subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
 !
 ! Sets element parameters.
 !
@@ -2966,13 +2966,14 @@ end subroutine tao_set_universe_cmd
 !   value      -- Character(*): Value to set.
 !-
 
-subroutine tao_set_elements_cmd (ele_list, attribute, value, update, lord_set)
+subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
 
 use attribute_mod, only: attribute_type
 
 implicit none
 
 type (ele_pointer_struct), allocatable :: eles(:), v_eles(:)
+type (ele_struct), pointer :: ele, lord
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct) a_ptr
 type (tao_lattice_struct), pointer :: tao_lat
@@ -2989,6 +2990,8 @@ logical is_on, err, mat6_toggle
 
 ! Find elements
 
+lord_set = .true.
+
 call tao_locate_all_elements (ele_list, eles, err)
 if (err) return
 if (size(eles) == 0) then
@@ -3003,12 +3006,17 @@ endif
 ! And set_ele_attribute cannot handle the situation where there is an array of set values.
 ! How to handle this depends upon what type of attribute it is.
 
+! Another complication is that something like:
+!     set ele A:B k1 = 0.1
+! Here if there are super slave elements in the range A:B we want to set the lord.
+! Exception: phi0_multipass.
+
 ! If a real attribute then use tao_evaluate_expression to evaluate.
 ! If attribute_type returns invalid_name$ then assume attribute is a controller variable which are always real.
 
 if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(attribute)) == invalid_name$) then
   ! Important to use "size(eles)" as 2nd arg instead of "0" since if value is something like "ran()" then
-  ! want a an array of set_val values with each value different.
+  ! want an array of set_val values with each value different.
   call tao_evaluate_expression (value, size(eles), .false., set_val, err)
   if (err) return
 
@@ -3020,21 +3028,32 @@ if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(att
 
   n_set = 0
   do i = 1, size(eles)
-    call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, err_print_flag = .false.)
+    ele => eles(i)%ele
+
+    call pointer_to_attribute(ele, attribute, .true., a_ptr, err, err_print_flag = .false.)
     if (err) cycle
     if (.not. associated(a_ptr%r)) then
       call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
       return
     endif
 
-    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .false.)
-    if (.not. err) n_set = n_set + 1
-    call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), eles(i)%ele%name, eles(i)%ele, a_ptr%r)
+    if (ele%slave_status == super_slave$) then
+      do j = 1, ele%n_lord
+        lord => pointer_to_lord(ele, j)
+        call set_ele_real_attribute (lord, attribute, set_val(i), err, .false.)
+        if (.not. err) n_set = n_set + 1
+        call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), lord%name, lord, a_ptr)
+      enddo
+    else
+      call set_ele_real_attribute (ele, attribute, set_val(i), err, .false.)
+      if (.not. err) n_set = n_set + 1
+      call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), ele%name, ele, a_ptr)
+    endif
   enddo
 
   if (n_set == 0) then
     i = size(eles)
-    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .true.)
+    call set_ele_real_attribute (ele, attribute, set_val(i), err, .true.)
     call out_io (s_error$, r_name, 'NOTHING SET.')
   endif
 
@@ -3047,10 +3066,11 @@ if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(att
   call tao_var_check(eles, attribute, update)
 
   return
+endif
 
 ! If there is a "ele::" construct in the value string...
 
-elseif (index(value, 'ele::') /= 0) then
+if (index(value, 'ele::') /= 0) then
 
   val_str = value
   u => tao_pointer_to_universe(val_str)
@@ -3108,7 +3128,8 @@ n_set = 0
 do i = 1, size(eles)
   u => s%u(eles(i)%id)
   call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false., lord_set)
-  call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele)
+  call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
+  call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele, a_ptr)
   if (.not. err) n_set = n_set + 1
 enddo
 
