@@ -9,6 +9,8 @@ module pointer_lattice
   type(layout),pointer :: my_ering => null(), my_fring => null()
   type(internal_state),pointer :: my_estate => null()
   type(c_universal_taylor), pointer :: my_euni_1(:) => null(),my_euni_2(:) => null()
+real(dp), pointer ::  my_evr(:,:)=> null(),my_evo(:,:)=> null(),my_evi1(:)=> null(),my_evi2(:) => null(), my_emr=> null()
+
   type(probe), pointer :: my_eprobe => null()
   type(c_ray) my_eray
 !  type(internal_state),pointer :: my_old_state
