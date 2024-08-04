@@ -22,8 +22,8 @@
 !   set_string      -- character(*): Attribute and value for set.
 !   err_print_flag  -- logical, optional: If present and False then suppress printing 
 !                        of an error message if attribute is, for example, not free.
-!   set_lords       -- logical, optional: Default False. If True, set the super_lord(s) or multipass_lord
-!                        if the element is a super_slave or multipass_slave.
+!   set_lords       -- logical, optional: Default False. If True, set the super_lord(s)
+!                        if the element is a super_slave.
 !
 ! Output:
 !   ele      -- ele_struct: Element with attribute set.
@@ -94,7 +94,7 @@ bp_com%undefined_vars_evaluate_to_zero = .false.
 
 current_file%full_name = ''
 
-if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+if (logic_option(.false., set_lords) .and. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(ele, 1)

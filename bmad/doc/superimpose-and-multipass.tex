@@ -525,6 +525,19 @@ the recirculating beam, absolute time tracking should be used and the length of 
 cavity back to itself needs to be properly adjusted to get the desired phase advance. See the discussion
 in section~\sref{s:rf.time}.
 
+``Intrinsic'' attributes are attributes that must, to make sense physically, be the same for all
+slaves of a given multipass lord. The element length is one such example.  The following
+non-intrinsic attributes can be set in a multipass slave and will not affect the corresponding
+attributes in the lord or the other slaves of the lord:
+\begin{example}
+  csr_ds_step           num_steps            
+  csr_method            ptc_integration_type 
+  ds_step               spin_tracking_method 
+  field_calc            space_charge_method  
+  integrator_order      tracking_method      
+  mat6_calc_method    
+\end{example}
+
 Multiple elements of the same name in a multipass line are considered 
 physically distinct. Example:
 \begin{example}
