@@ -164,9 +164,10 @@ real(rp), allocatable :: dt(:), tot_mom(:), mom_x_off(:), mom_y_off(:), mom_z_of
 real(rp), allocatable :: pos_x_off(:), pos_y_off(:), pos_z_off(:)
 
 integer(hid_t), value :: root_id
-integer(hid_t) g_id, g2_id, a_id
+integer(hid_t) g_id, g1_id, g2_id, g3_id, a_id
 integer(hsize_t) idx
-integer n, stat, h5_stat, ia, ip, species, h5_err, n_links
+integer(size_t) g_size
+integer n, stat, h5_stat, ia, ip, species, h5_err, storage_type, n_links, max_corder
 integer, allocatable :: charge_state(:)
 
 character(*) bunch_obj_name
@@ -175,14 +176,41 @@ character(100) g_name, a_name, name, c_name
 
 logical error, momentum_warning_printed
 
+! Get number of particles and init.
+! Old style: Beam info tree is in g1_id directory.
+! New style: Beam info tree is in subdirectory
 ! General note: There is no way to check names for misspellings since any name may just be an extension standard.
 
 g_id = hdf5_open_group(root_id, bunch_obj_name, error, .true.);  if (error) return
-g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error) return
+g1_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error) return
+g2_id = g1_id    ! Assume old style
 
-! Get number of particles and init.
+call hdf5_read_attribute_int(g1_id, 'numParticles', n, error, .false.)
 
-call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.);  if (error) return
+if (error) then   ! Is new style.
+  call H5Gget_info_f (g1_id, storage_type, n_links, max_corder, h5_err)
+  do idx = 0, n_links-1
+    call H5Lget_name_by_idx_f (g1_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, g_size)
+    call to_f_str(c_name, name)
+    call H5Oget_info_by_name_f(g1_id, name, infobuf, h5_stat)
+    if (infobuf%type /= H5O_TYPE_GROUP_F) cycle    ! Ignore non-group elements.
+    g3_id = hdf5_open_group(g1_id, name, error, .false.)
+    call hdf5_read_attribute_int(g3_id, 'numParticles', n, error, .false.)
+    if (error) then
+      call H5Gclose_f(g3_id, h5_err)
+      cycle
+    endif
+    g2_id = g3_id
+    exit
+  enddo
+
+  if (g2_id == g1_id) then ! Not found
+    call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.)  ! Generate error message
+    return
+  endif
+endif
+
+!
 
 allocate (dt(n), charge_state(n), tot_mom(n), mom_x_off(n), mom_y_off(n), mom_z_off(n))
 allocate (pos_x_off(n), pos_y_off(n), pos_z_off(n))
@@ -323,7 +351,8 @@ enddo
 ! g_id = g2_id when pmd_head%particlesPath = "./". In this case both refer to the same group.
 
 if (g2_id /= root_id) call H5Gclose_f(g2_id, h5_err)
-if (g_id /= g2_id) call H5Gclose_f(g_id, h5_err)
+if (g_id /= g2_id)    call H5Gclose_f(g_id, h5_err)
+if (g1_id /= g2_id)   call H5Gclose_f(g1_id, h5_err)
 
 if (error) then
   call out_io (s_error$, r_name, 'ERROR READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
