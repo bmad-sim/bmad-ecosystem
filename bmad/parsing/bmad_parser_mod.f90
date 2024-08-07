@@ -2931,7 +2931,6 @@ integer ix_start, ix, n, ios, nn
 character(*) action
 character(n_parse_line) :: line
 character(1) quote_mark, last_char
-character(1), parameter :: tab = achar(9)
 
 logical :: end_of_file, flush_this, has_blank
 logical, optional :: err_flag
@@ -2977,8 +2976,9 @@ do
       ! With advance = 'no' an ios = 0 means that a full line has *not* been read.
       read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_chunk, &
                                                             advance = 'no') bp_com%next_chunk
+      
       if (bp_com%ios_next_chunk == iostat_eor) then
-        ! Nothing to do
+        call detab(bp_com%next_chunk)
       else
         bp_com%next_chunk = ''
       endif
@@ -3008,6 +3008,8 @@ do
     elseif (bp_com%ios_next_chunk /= 0) then
       bp_com%next_chunk = ''
     endif
+
+    call detab(bp_com%next_chunk)
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
   endif
 
@@ -6619,6 +6621,15 @@ main_loop: do n_in = 1, n_ele_max
   !-----------------------------------------------------
   ! overlays, groups, and rampers
 
+  ! If a slave name does not match any name in lat and lord_lat then this is an error (to catch typos).
+  ! If a slave is defined in lord_lat but not present in lat then the slave is ignored.
+  ! If all slave elements are defined in lord_lat, but are not present in lat, then
+  ! this lord can be ignored.
+  ! Variation used by bmad_parser2: Check for missing slaves in check_lat instead of lord_lat.
+  ! Exception: If slave is overlay or group and is present later in the list of lords to be installed then
+  ! this is an error.
+  ! For rampers check that if there is a match then parameter matches a valid slave element.
+
   select case (lord%key)
 
   case (ramper$)
@@ -6679,16 +6690,7 @@ main_loop: do n_in = 1, n_ele_max
     call create_ramper (lat%ele(ix_lord), cs(1:nn), err)
 
   case (overlay$, group$)
- 
-    ! If a slave name does not match any name in lat and lord_lat then this is an error (to catch typos).
-    ! If a slave is defined in lord_lat but not present in lat then the slave is ignored.
-    ! If all slave elements are defined in lord_lat, but are not present in lat, then
-    ! this lord can be ignored.
-    ! Variation used by bmad_parser2: Check for missing slaves in check_lat instead of lord_lat.
-    ! Exception: If slave is overlay or group and is present later in the list of lords to be installed then
-    ! this is an error.
-
-    n_slave = 0
+     n_slave = 0
 
     if (allocated(m_eles)) deallocate (m_eles)
     allocate (m_eles(size(pele%control)))

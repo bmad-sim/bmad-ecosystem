@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Script to convert phase data from Cesrv output "show phase" to Tao format.
 # Input to this script should be the output of "show phase" including the two header lines but 

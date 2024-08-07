@@ -103,7 +103,7 @@ type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (strong_beam_struct), pointer :: sb
 type (c_taylor) ptc_ctaylor
-type (complex_taylor_struct) bmad_ctaylor, ctaylor(3)
+type (complex_taylor_struct) bmad_ctaylor, ctaylor(3), ctaylor1
 type (rad_map_ele_struct), pointer :: ri
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_expression_info_struct), allocatable :: info(:)
@@ -847,19 +847,16 @@ case ('chromaticity')
   ptc_nf  => tao_branch%ptc_normal_form
 
   nl=nl+1; lines(nl) = '  Note: Calculation is done with RF off.'
-  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   spin_tune_ptc.N'
+  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N'
 
   do i = 0, ptc_private%taylor_order_ptc-1
     expo = [0, 0, 0, 0, 0, i]
     z1 =  real(ptc_nf%phase(1) .sub. expo)
     z2 =  real(ptc_nf%phase(2) .sub. expo)
-    s0 = real(ptc_nf%spin_tune .sub. expo)
     if (i == 0) then
-      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! 0th order are the tunes'
-    elseif (i == 1 .and. .not. bmad_com%spin_tracking_on) then
-      nl=nl+1; write (lines(nl), '(i3, 3es18.7, a)') i, z1, z2, s0, '  ! Spin tracking off so spin tune not calculated'
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7, a)') i, z1, z2, '  ! 0th order are the tunes'
     else
-      nl=nl+1; write (lines(nl), '(i3, 3es18.7)') i, z1, z2, s0
+      nl=nl+1; write (lines(nl), '(i3, 2es18.7)') i, z1, z2
     endif
   enddo
 
@@ -878,12 +875,9 @@ case ('chromaticity')
   if (what_to_show == '-taylor') then
     call alloc(ptc_ctaylor)
 
-    do i = 1, 4
-      if (i == 4) then
-        ptc_ctaylor = ptc_nf%spin_tune * ci_phasor() * ptc_nf%normal_form%atot**(-1)
-      else
-        ptc_ctaylor = ptc_nf%phase(i) * ci_phasor() * ptc_nf%normal_form%atot**(-1)
-      endif
+    do i = 1, 3
+        ! ptc_ctaylor = ptc_nf%spin_tune * ci_phasor() * ptc_nf%normal_form%atot**(-1)
+      ptc_ctaylor = ptc_nf%phase(i) * ci_phasor() * ptc_nf%normal_form%atot**(-1)
       bmad_ctaylor = ptc_ctaylor
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Taylor series: ' // trim(mode(i)) // ' tune'
@@ -892,9 +886,9 @@ case ('chromaticity')
       lines(nl+1:nl+n) = alloc_lines(1:n)
       nl = nl + n
 
-      if (i == 4 .and. .not. associated(bmad_ctaylor%term) .and. .not. bmad_com%spin_tracking_on) then
-        nl=nl+1; lines(nl) = 'Spin tracking is turned on with: "set bmad_com spin_tracking_on = T".'
-      endif
+      !if (i == 4 .and. .not. associated(bmad_ctaylor%term) .and. .not. bmad_com%spin_tracking_on) then
+      !  nl=nl+1; lines(nl) = 'Spin tracking is turned on with: "set bmad_com spin_tracking_on = T".'
+      !endif
     enddo
 
     call kill(ptc_ctaylor)
@@ -1456,8 +1450,8 @@ case ('debug')
 case ('derivative')
 
   do_calc = .false.
-  word1 = ''
-  word2 = ''
+  word1 = ''    ! data
+  word2 = ''    ! variables
 
   do
     call tao_next_switch (what2, ['-derivative_recalc'], .true., switch, err)
@@ -1481,7 +1475,7 @@ case ('derivative')
     end select
   enddo
 
-  if (word1 == '') word1 = '*'
+  if (word1 == '') word1 = '*@*'
   if (word2 == '') word2 = '*'
 
   call tao_find_data (err, word1, d_array = d_array);  if (err) return
@@ -1758,7 +1752,7 @@ case ('element')
         dt = orb%t - ele%ref_time
         pc = orb%p0c * (1 + orb%vec(6))
         call convert_pc_to (pc, orb%species, e_tot = e_tot) 
-        nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]        Spin   |'
+        nl=nl+1; lines(nl) = '         Position[mm] Momentum[1E-3]        Spin   |'
         if (bmad_com%spin_tracking_on) then
           fmt  = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, es12.5)'
           fmt2 = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, f12.9)'
@@ -2131,6 +2125,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
+    nl=nl+1; write(lines(nl), rmt) '  %max_plot_time                 = ', s%global%max_plot_time
     nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
     nl=nl+1; write(lines(nl), lmt) '  %opt_match_auto_recalc         = ', s%global%opt_match_auto_recalc
     nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
@@ -3291,9 +3286,9 @@ case ('lattice')
 
   else
     select case (where)
-    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element:'
-    case ('middle');    line1 = '# Values shown are for the Center of each Element:'
-    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element:'
+    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element (Girder at ref point):'
+    case ('middle');    line1 = '# Values shown are for the Center of each Element (Girder at ref point):'
+    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element (Girder at ref point):'
     end select
 
     if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)
@@ -4463,7 +4458,7 @@ case ('spin')
   do
     call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
                             '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
-                            '-z_zero', '-ignore_kinetic', '-isf'], .true., switch, err)
+                            '-z_zero', '-ignore_kinetic', '-isf', '-spin_tune'], .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4483,6 +4478,8 @@ case ('spin')
       flip = .true.
     case ('-isf')
       what_to_show = 'isf'
+    case ('-spin_tune')
+      what_to_show = 'spin_tune'
     case ('-n_axis')
       read (what2, *, iostat = ios) sm%axis_input%n0
       if (ios /= 0) then
@@ -4542,6 +4539,22 @@ case ('spin')
 
     call type_complex_taylors(ctaylor, out_type = 'SPIN')
     return
+  endif
+  
+  if (what_to_show == 'spin_tune') then
+    if (branch%param%geometry == open$) then
+      nl=nl+1; lines(nl) = 'No spin tune for an open lattice!'
+      return
+    endif
+
+    tao_branch%spin_map_valid = .false.
+    if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, branch%ix_branch)
+
+    ptc_nf  => tao_branch%ptc_normal_form
+    ctaylor1 = ptc_nf%spin_tune
+
+    call type_complex_taylors([ctaylor1], out_type = 'NONE')
+    return   
   endif
 
   ! what_to_show = standard
@@ -5247,7 +5260,7 @@ case ('taylor_map', 'matrix')
         i0 = ele%ix_ele-1
         call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch) 
         call truncate_taylor_to_order (taylor, n_order, taylor)
-        call type_taylors (taylor, lines = alloc_lines, n_lines = n, out_style = disp_fmt, clean = .true.)
+        call type_taylors (taylor, lines = alloc_lines, n_lines = n, clean = .true.)
         do j = 1, n
           nl=nl+1; lines(nl) = alloc_lines(j)
         enddo
@@ -5258,12 +5271,12 @@ case ('taylor_map', 'matrix')
     if (n_order > 1) then
       if (angle_units) call map_to_angle_coords (taylor, taylor)
       if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
-      call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
+      call type_taylors (taylor, lines = lines, n_lines = nl, clean = .true.)
       if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
 
     elseif (disp_fmt == 'BMAD') then
       call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
-      call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
+      call type_taylors (taylor, lines = lines, n_lines = nl, clean = .true.)
 
     else
       if (angle_units) then
@@ -6583,6 +6596,7 @@ character(200), allocatable :: alloc_lines(:)
 !
 
 nl=nl+1; lines(nl) = 'Global optimization parameters (use "set global" to change):'
+nl=nl+1; write(lines(nl), imt) '  %datum_err_messages_max        = ', s%global%datum_err_messages_max
 nl=nl+1; write(lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
 nl=nl+1; write(lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
 nl=nl+1; write(lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit

@@ -5,6 +5,7 @@
   ltt%ele_start = ''                   ! Where to start in the lattice
   ltt%ele_stop = ''                     ! Where to start in the lattice
 
+  ltt%beam_output_file = 'beam.h5'
   ltt%phase_space_output_file = ''
   ltt%averages_output_file = 'out'
   ltt%custom_output_file = 'custom.dat'

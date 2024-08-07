@@ -1,7 +1,6 @@
 *~
 PGPLOT
 fftw
-fftw
 fgsl
 gsl
 hdf5 
@@ -35,21 +34,6 @@ lux/examples/bent_crystal/spherical.det_pix.x
 lux/examples/bent_crystal/spherical.det_pix.y
 lux/examples/bent_crystal/track.dat
 
-bmad-doc/tutorial_bmad_tao/doc/2www.pl
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.aux
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.bbl
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.blg
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.log
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.out
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.toc
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.aux
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.bbl
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.blg
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.log
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.out
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.pdf
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
 bmad-doc/tao_examples/csr_beam_tracking/*.dat
 
 tao/doc/tao.pdf
@@ -57,6 +41,12 @@ bmad/doc/bmad.pdf
 util/searchf.pyc
 bsim/**/doc/*.pdf
 
+bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
+bmad-doc/tutorial_ring_design/doc/tutorial_ring_design.pdf
+
+**/doc/*.aux
+**/doc/*.bbl
+**/doc/*.blg
 **/doc/*.idx
 **/doc/*.ilg
 **/doc/*.ind
@@ -67,8 +57,9 @@ bsim/**/doc/*.pdf
 **/doc/*.rdx
 **/doc/*.rnd
 **/doc/*.toc
-**/doc/*.aux
 **/2www.pl
+
+**/doit
 
 regression_tests/*/output.now
 regression_tests/*/lat.bmad
@@ -120,3 +111,4 @@ regression_tests/write_bmad_test/z.bmad
 production
 debug
 linux_lib
+

@@ -30,7 +30,7 @@ character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name, full_file_name
 character(*), optional, allocatable :: lines(:)
 
-logical blank_line_before, in_example, has_subbed, python_search
+logical blank_line_before, in_example, has_subbed, pipe_search
 
 ! This help system depends upon parsing one of three files:
 !       tao/doc/single-mode.tex
@@ -42,11 +42,11 @@ logical blank_line_before, in_example, has_subbed, python_search
 ! Help depends upon if we are in single mode or not.
 ! Determine what file to open and starting tag.
 
-python_search = .false.
+pipe_search = .false.
 
 if (index('python', trim(what1)) == 1 .and. what2 /= '') then
   file_name = '$TAO_DIR/code/tao_python_cmd.f90'
-  python_search = .true.
+  pipe_search = .true.
 elseif (s%com%single_mode) then
   file_name = '$TAO_DIR/doc/single-mode.tex'
 else
@@ -55,7 +55,7 @@ endif
 
 call fullfilename (file_name, full_file_name)
 
-if (python_search) then
+if (pipe_search) then
   start_tag = '!%% ' // what2
 elseif (what1 == '' .or. what1 == 'help-list') then
   start_tag = '%% command_table'
@@ -77,7 +77,7 @@ endif
 
 ! Python search
 
-if (python_search) then
+if (pipe_search) then
   n = len_trim(start_tag)
   ! Find start of desired comment block
   do

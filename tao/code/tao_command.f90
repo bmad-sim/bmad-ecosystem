@@ -47,9 +47,9 @@ character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str, what
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(43) = [character(16):: &
+character(16) :: cmd_names(44) = [character(16):: &
                       'alias', 'call', 'change', 'clear', 'clip', 'continue', 'create', 'cut_ring', 'derivative', &
-                      'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'place', &
+                      'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'pipe', 'place', &
                       'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'reinitialize', 'reset', &
                       'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
                       'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale']
@@ -58,7 +58,7 @@ character(16) :: cmd_names_old(6) = [&
     'output       ']
 
 logical quit_tao, err, err_is_fatal, silent, gang, abort, err_flag, ok
-logical include_wall, update, exact, include_this, lord_set, listing, found
+logical include_wall, update, exact, include_this, listing, found
 
 ! blank line => nothing to do
 
@@ -266,7 +266,7 @@ case ('create')
       integer, dimension(4) :: id
       integer :: jd,nd,ns
       character(:), allocatable :: ds
-      character((len_trim(cmd_word(3))*11)/7+21+len_trim(cmd_word(2))) :: py_cmd
+      character((len_trim(cmd_word(3))*11)/7+21+len_trim(cmd_word(2))) :: pipe_cmd
       type (tao_d2_data_array_struct), dimension(:), allocatable :: d2_array
 
       ! Check if the data exists
@@ -293,28 +293,28 @@ case ('create')
       end do
       if (id(2).eq.0.or.id(2).ne.id(3).or.id(3).ne.id(4)) go to 70000
       nd = id(2)
-      ! Start constructing the python command
-      write(py_cmd,'(a,i0)') 'data_d2_create '//trim(cmd_word(2))//'^^', nd
+      ! Start constructing the pipe command
+      write(pipe_cmd,'(a,i0)') 'data_d2_create '//trim(cmd_word(2))//'^^', nd
       ! Parse the arrays
       id(1)=1
       jd = 1
       do jd=1,nd
          id(2) = index(ds(id(1):),'[') + id(1) - 1
          if (id(2).le.id(1).or.id(2).eq.ns) go to 70000
-         py_cmd = trim(py_cmd)//'^^'//trim(adjustl(ds(id(1):id(2)-1)))
+         pipe_cmd = trim(pipe_cmd)//'^^'//trim(adjustl(ds(id(1):id(2)-1)))
          id(3) = scan(ds(id(2)+1:),':') + id(2)
          if (id(3).le.id(2)+1.or.id(3).eq.ns) go to 70000
          if (.not.is_integer(ds(id(2)+1:id(3)-1))) go to 70000
-         py_cmd = trim(py_cmd)//'^^'//trim(adjustl(ds(id(2)+1:id(3)-1)))
+         pipe_cmd = trim(pipe_cmd)//'^^'//trim(adjustl(ds(id(2)+1:id(3)-1)))
          id(4) = scan(ds(id(3)+1:),']') + id(3)
          if (id(4).le.id(3)+1) go to 70000
          if (.not.is_integer(ds(id(3)+1:id(4)-1))) go to 70000
-         py_cmd = trim(py_cmd)//'^^'//trim(adjustl(ds(id(3)+1:id(4)-1)))
+         pipe_cmd = trim(pipe_cmd)//'^^'//trim(adjustl(ds(id(3)+1:id(4)-1)))
          if (id(4).eq.ns) exit
          if (ds(id(4)+1:id(4)+1).ne.' ') go to 70000
          id(1) = verify(ds(id(4)+1:),' ') + id(4)
       end do
-      call tao_python_cmd(py_cmd)
+      call tao_python_cmd(pipe_cmd)
     end block
     return
     70000 call out_io(s_error$, r_name, 'Correct form is "create data d2_name x[i:j] ..."')
@@ -462,6 +462,14 @@ case ('pause')
   return
 
 !--------------------------------
+! PIPE / PYTHON
+
+case ('pipe', 'python')
+
+  call tao_python_cmd (cmd_line)
+  return
+
+!--------------------------------
 ! PLACE
 
 case ('place')
@@ -496,14 +504,6 @@ case ('ptc')
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err_flag); if (err_flag) goto 9000
 
   call tao_ptc_cmd (cmd_word(1), cmd_word(2))
-  return
-
-!--------------------------------
-! PYTHON
-
-case ('python')
-
-  call tao_python_cmd (cmd_line)
   return
 
 !--------------------------------
@@ -650,7 +650,6 @@ case ('scale')
 
 case ('set')
   update = .false.
-  lord_set = .true.
   set_word = ''
   branch_str = ''
   mask = ''
@@ -669,7 +668,7 @@ case ('set')
       case ('-listing')
         listing = .true.
       case ('-lord_no_set')
-        lord_set = .false.
+        call out_io (s_warn$, r_name, 'Note: The "-lord_no_set" no longer exists. This set will be ignored.')
       case ('-branch')
         call tao_next_word(cmd_line, branch_str)
       case ('-mask')
@@ -788,7 +787,7 @@ case ('set')
   case ('dynamic_aperture')
     call tao_set_dynamic_aperture_cmd (cmd_word(1), cmd_word(3))
   case ('element')
-    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4), update, lord_set)
+    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4), update)
   case ('floor_plan')
     call tao_set_drawing_cmd (s%plot_page%floor_plan, cmd_word(1), cmd_word(3))
   case ('geodesic_lm')

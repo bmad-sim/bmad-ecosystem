@@ -527,7 +527,7 @@ do
       csr_sc_on = (bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$))
       if (csr_sc_on .or. .not. comb_calc_on .or. n_slice == 1) then
         if (radiation_on) then
-          call radiation_map_setup(ele, bunch_params%centroid, err)
+          call radiation_map_setup(ele, err, bunch_params%centroid)
           if (err) then
             call out_io (s_error$, r_name, 'RADIATION MAP SETUP WHILE BEAM TRACKING ERROR THROUGH ELEMENT: ' // ele_full_name(ele), &
                                            'STOPPING BEAM TRACKING.')
@@ -548,7 +548,7 @@ do
 
         if (radiation_on) then
           call calc_bunch_params(beam%bunch(s%global%bunch_to_plot), bunch_params, err)
-          call radiation_map_setup(slice_ele, bunch_params%centroid)
+          call radiation_map_setup(slice_ele, err, bunch_params%centroid)
         endif
 
         do i = 1, size(beam%bunch)

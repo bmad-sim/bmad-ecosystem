@@ -1,4 +1,5 @@
-!The Full Polymorphic Package
+!The Full Polymorphic Packageg
+
 !Copyright (C) Etienne Forest
 !    ndct=iabs(ndpt-ndptb)  ! 1 if coasting, otherwise 0
 !    ndc2t=2*ndct  ! 2 if coasting, otherwise 0
@@ -461,7 +462,7 @@ logical :: new_cycle=.true.
      MODULE PROCEDURE GETORDERVEC
      MODULE PROCEDURE GETORDERquaternion! same as above for quaternion (negative not accepted)
      MODULE PROCEDURE GETORDERSPINMATRIX ! same FOR SPIN MATRICES (negative not accepted)
-     MODULE PROCEDURE c_get_coeff
+     MODULE PROCEDURE c_get_coeff 
   END INTERFACE
 
   INTERFACE OPERATOR (.index.)
@@ -9987,7 +9988,7 @@ endif
     c_spinor_cmap_tpsa=0
 
      do i=1,3
-          c_spinor_cmap_tpsa%v(i)=s1%v(i)*s2
+          c_spinor_cmap_tpsa%v(i)=s1%v(i).o.s2
      enddo
      
           if(complex_extra_order==1.and.special_extra_order_1) c_spinor_cmap_tpsa=c_spinor_cmap_tpsa.cut.no
@@ -12261,18 +12262,18 @@ subroutine c_canonise(at,a_cs,a0,a1,a2,phase,irot)
 end subroutine c_canonise
 
 !  redundant 
-!subroutine c_full_factor_map(U,Q,U_0,U_1,U_2) 
+subroutine c_full_factor_map_old(U,Q,U_0,U_1,U_2) 
 !#general: manipulation
 !# U = Q o U_0 o U_1 o U_2 
-!     implicit none
-!    type(c_damap) , intent(inout) :: U,Q,U_0,U_1,U_2
-!    type(c_damap) a
-!    call alloc(a)
-!    qphase=.false.
-!    call c_full_canonise(U,a,Q,U_0,U_1,U_2,irot=0) 
-!    qphase=qphasedef
-!    call kill(a)
-!end subroutine c_full_factor_map   
+     implicit none
+    type(c_damap) , intent(inout) :: U,Q,U_0,U_1,U_2
+    type(c_damap) a
+    call alloc(a)
+    qphase=.false.
+    call c_full_canonise(U,a,Q,U_0,U_1,U_2,irot=0) 
+    qphase=qphasedef
+    call kill(a)
+end subroutine c_full_factor_map_old   
 
 subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin,irot) 
 !#general: manipulation
@@ -12454,7 +12455,7 @@ end subroutine c_identify_resonance
 
 subroutine c_full_factorise(at,as,a0,a1,a2,dir) 
 !#general: manipulation
-!# a_t = a_0 o a_1 o a_2 o a_s  for dir=1
+!# a_t =  a_s o a_0 o a_1 o a_2    for dir=1
     implicit none
     type(c_damap) , intent(inout) :: at 
     type(c_damap) , optional, intent(inout) :: as,a2,a1,a0
@@ -14838,13 +14839,14 @@ function c_vector_field_quaternion(h,ds) ! spin routine
  
     c_master=localmaster
   end   function c_exp_spinmatrix
-
-  function c_exp_quaternion(h_axis,ds) ! spin routine
+ 
+  function c_exp_quaternion(h_axis,ds,n) ! spin routine
     implicit none
     TYPE(c_quaternion) c_exp_quaternion
     TYPE(c_quaternion),optional, INTENT(INout) :: DS
     TYPE(c_quaternion), INTENT(IN) :: h_axis
-    integer  nmax
+    integer  nmax,nnmax
+    integer , optional ::n
     integer i,localmaster,k
     TYPE(c_quaternion) dh,dhn,dr,dst
     real(dp) eps,norm1,norm2
@@ -14862,7 +14864,8 @@ function c_vector_field_quaternion(h,ds) ! spin routine
     check=.true.
     eps=1.d-5
     nmax=1000
-
+    nnmax=nmax
+    if(present(n)) nnmax=n
     call alloc(dh)
     call alloc(dhn)
     call alloc(dr)
@@ -14875,7 +14878,7 @@ function c_vector_field_quaternion(h,ds) ! spin routine
     dhn=1.0_dp
     c=1.0_dp
     norm1=mybig
-    do i=1,nmax
+    do i=1,min(nmax,nnmax)
        dhn=dhn*dh
        c=1.0_dp/i
        dhn=c*dhn
@@ -21271,7 +21274,7 @@ call kill(t,t_tot)
     implicit none
     type(c_universal_taylor) :: ut
     integer, optional :: iunit, ind
-    integer                :: i,ii,inde
+    integer                :: i,ii,inde,no1,nomax
     logical, optional :: print_abs
     logical abst
     integer iunit0
@@ -21281,7 +21284,14 @@ call kill(t,t_tot)
     iunit0=6
     abst=.false.
      prec0=0
-
+nomax=0
+   do i=1,ut%n
+   no1=0
+    do ii=1,ut%nv
+     no1=no1+iabs(ut%J(i,ii))
+    enddo
+     if(no1>nomax) nomax=no1
+   enddo
     if(present(prec)) prec0=prec
     if(present(print_abs)) abst=print_abs
     if(present(iunit)) iunit0=iunit
@@ -21297,7 +21307,7 @@ call kill(t,t_tot)
        if (inde < 2) write (iunit, '(a)') 'Out  Order  Coef                                             Exponents'
        write (iunit, '(a)')               '-----------------------------------------------------------------------------------'
     else
-      write(iunit0,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
+      write(iunit0,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR NO_max =',nomax,', NV =',ut%nv,', INA = unita',&
            '*********************************************'
       if(ut%n /= 0) then
          write(iunit0,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
@@ -21319,16 +21329,16 @@ call kill(t,t_tot)
 
      if (nice_taylor_print) then
        if (inde > 0) then
-         write(iunit, '(i3,a,i6,2(1x,g23.16),1x,100(1x,i2))') inde, ':', sum(ut%j(i,:)), v, (ut%j(i,ii),ii=1,ut%nv)
+         write(iunit, '(i3,a,i6,2(1x,g23.16),1x,100(2x,i2))') inde, ':', sum(ut%j(i,:)), v, (ut%j(i,ii),ii=1,ut%nv)
        else
-         write(iunit, '(4x,i6,2(1x,g23.16),1x,100(1x,i2))') sum(ut%j(i,:)), v, (ut%j(i,ii),ii=1,ut%nv)
+         write(iunit, '(4x,i6,2(1x,g23.16),1x,100(2x,i2))') sum(ut%j(i,:)), v, (ut%j(i,ii),ii=1,ut%nv)
        endif
      elseif(abst) then
        xr=sqrt(real(ut%c(i))**2+aimag(ut%c(i))**2)
        write(iunit0,'(I6,2X,(G21.14,1x,G21.14,3x,G21.14),I5,4X,18(2I2,1X))') i,v,xr,   &
        sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      else
-       write(iunit0,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(2I2,1X))') i,v,sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+       write(iunit0,'(I6,2X,(G21.14,1x,G21.14),I5,4X,18(I2,2X))') i,v,sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
      endif
        if( .not. print77) then
           write(iunit0,*)  ut%c(i)
@@ -22154,6 +22164,33 @@ if(present(mres)) then
 
     end subroutine check_kernel_spin1
 
+subroutine gramschmidt(v)
+use gauss_dis
+implicit none
+real(dp) w,v(:,:)
+!complex(dp) w,v(:,:)
+integer n,k,i
+
+n=size(v,1)
+
+v(1,1:n)=v(1,1:n)/sqrt(dot_product(v(1,1:n),v(1,1:n)))
+
+do k=2,n
+
+do i=1,n
+v(k,i)=RANF()
+enddo
+
+do i=1,k-1
+v(k,1:n)= v(k,1:n)-dot_product(v(i,1:n),v(k,1:n))*v(i,1:n)
+enddo
+v(k,1:n)=( 1.0_dp/sqrt(dot_product(v(k,1:n),v(k,1:n)))    )*v(k,1:n)
+
+enddo  !k
+end subroutine gramschmidt
+
+
+
 subroutine c_normal(xyso3,n,dospin,no_used,rot,phase,nu_spin,canonize)
 !#general:  normal
 !# This routine normalises the map xy
@@ -22677,7 +22714,7 @@ endif
 if(use_quaternion)then
 qnr=nr
  AS=1 ; 
-AS%q=exp(qnr)
+AS%q=exp(qnr,n=c_%no)
 else
       AS=1 ; AS%s=exp(nr)*AS%s 
 endif
@@ -23792,8 +23829,12 @@ endif
       
       !!! tune is taken from egspin(1) or egspin(3)   spin_def_tune= +/- 1
        n%spin_tune=aimag(log(egspin(2+spin_def_tune))/twopi)  
- 
-  
+    
+     if(n%spin_tune <0.and.n%positive) n%spin_tune=n%spin_tune+1.0_dp
+     if(n%spin_tune <-0.5_dp.and.(.not.n%positive)) n%spin_tune=n%spin_tune+1.0_dp
+     if(n%spin_tune> 0.5_dp.and.(.not.n%positive)) n%spin_tune=n%spin_tune-1.0_dp
+
+
  
       ! because  exp(a L_y) x = x- a z + O(a**2)
        ri=ri**(-1) ! exp(-alpha_0 L_y)   (3)
@@ -24065,8 +24106,10 @@ if(present(phase)) then
  endif
 endif
 
-if(present(nu_spin))  nu_spin=-spin_def_tune*n%h%q%x(2)/pi
- 
+  if(present(nu_spin)) then
+    nu_spin=-spin_def_tune*n%h%q%x(2)/pi
+    nu_spin=nu_spin-(nu_spin.sub.'0')+n%spin_tune
+  endif 
 endif
 
 

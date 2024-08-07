@@ -1,5 +1,5 @@
 !+
-! Subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map)
+! Subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map, err_flag)
 !
 ! Routine to setup the radiation damping and excitation matrices for an element.
 ! These matrices can then be used when tracking to simulate radiation effects.
@@ -13,9 +13,10 @@
 !
 ! Output:
 !   rad_map     -- rad_map_struct: Structure holding the matrices.
+!   err_flag    -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map)
+subroutine tracking_rad_map_setup (ele, tollerance, ref_edge, rad_map, err_flag)
 
 use rad_6d_mod, dummy => tracking_rad_map_setup
 use f95_lapack, only: dpotrf_f95
@@ -33,9 +34,11 @@ real(rp) tol, m_inv(6,6)
 integer ref_edge
 integer i, info
 
-logical err
+logical err_flag, err
 
 !
+
+err_flag = .true.
 
 branch => pointer_to_branch(ele)
 tol = tollerance / branch%param%total_length
@@ -49,7 +52,8 @@ if (orb0%vec(2) == orb1%vec(2) .and. orb0%vec(4) == orb1%vec(4) .and. &
 !
 
 call rad1_damp_and_stoc_mats (ele, .true., orb0, orb1, rad_map, &
-                                                  tol*branch%param%g2_integral, tol*branch%param%g3_integral)
+                                              tol*branch%param%g2_integral, tol*branch%param%g3_integral, err)
+if (err) return
 
 select case (ref_edge)
 case (upstream_end$)
@@ -67,12 +71,15 @@ end select
 
 call dpotrf_f95 (rad_map%stoc_mat, 'L', info = info)
 if (info /= 0) then
-  rad_map%stoc_mat = 0  ! Cholesky failed
+  rad_map%stoc_mat = 0  ! Cholesky failed.
+  err_flag = .false.    ! But this is OK.
   return
 endif
 
 do i = 2, 6
   rad_map%stoc_mat(1:i-1, i) = 0
 enddo
+
+err_flag = .false.
 
 end subroutine

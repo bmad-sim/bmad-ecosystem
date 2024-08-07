@@ -131,6 +131,7 @@ if (n_map > 1) then
 endif
 
 use_taylor = (n_map == 0 .and. (key == wiggler$ .or. key == undulator$) .and. ele%field_calc == helical_model$)
+use_taylor = use_taylor .or. (ele%tracking_method == taylor$ .and. associated(ele%spin_taylor(1)%term))
 if (use_taylor) key = match$
 
 ! 
@@ -209,7 +210,8 @@ ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_s
 !
 
 if (key == sbend$ .and. val(l$) == 0) key = kicker$
-if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$) key = wiggler$
+if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$ .and. &
+                                                              .not. use_taylor) key = wiggler$
 
 select case (key)
 
@@ -898,8 +900,8 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even planar_model with field_calc = bmad_standard$
 
-if (.not. associated(ele2%gen_grad_map) .and. .not. associated(ele2%cylindrical_map) .and. (key == wiggler$ .or. &
-                          key == undulator$ .or. (associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$))) then
+if (.not. use_taylor .and. .not. associated(ele2%gen_grad_map) .and. .not. associated(ele2%cylindrical_map) .and. &
+      (key == wiggler$ .or. key == undulator$ .or. (associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$))) then
 
   
   is_planar_wiggler = ((key == wiggler$ .or. key == undulator$) .and. ele2%field_calc == planar_model$) 

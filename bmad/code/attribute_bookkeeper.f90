@@ -711,7 +711,7 @@ case (rf_bend$)
       val(l_rectangle$) = sinc(val(angle$)) * val(l$)
     end select
 
-    if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
+    if (ele_value_has_changed(ele, [g$, rho$], [1e-10_rp, 1e-10_rp], .false.)) then
       call set_ele_status_stale (ele, floor_position_group$)
     endif
   endif
@@ -759,7 +759,7 @@ case (sbend$)
       val(l_rectangle$) = sinc(val(angle$)) * val(l$)
     end select
 
-    if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
+    if (ele_value_has_changed(ele, [g$, rho$], [1e-10_rp, 1e-10_rp], .false.)) then
       call set_ele_status_stale (ele, floor_position_group$)
     endif
 

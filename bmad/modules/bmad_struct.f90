@@ -1166,6 +1166,7 @@ type beam_init_struct
   logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
                                              !   If true,  z describes the t distribution 
                                              !   If false, z describes the s distribution
+  character(200) :: file_name = ''           ! OLD!! DO NOT USE!!
 end type
 
 

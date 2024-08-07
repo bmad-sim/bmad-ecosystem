@@ -2547,8 +2547,9 @@ any program documentation will clarify the matter.
 Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.  $\calO_A$ is the reference
 frame at the upstream end of element \vn{A} (\sref{s:ref.construct}), $\calO_C$ is the reference
 frame at the downstream end of element \vn{C}, and $\calO_G$ is the default \vn{origin} reference
-frame of the girder. $r_{CA}$ is the vector from $\calO_A$ to $\calO_C$. The length \vn{l} of the
-girder is the difference in $s$ between points $\calO_C$ and $\calO_A$.
+frame of the girder if the \vn{origin_ele} parameter is not set. $\bfr_{CA}$ is the vector from
+$\calO_A$ to $\calO_C$. The length \vn{l} of the girder is set to be the difference in $s$ between
+points $\calO_C$ and $\calO_A$.
   }
   \label{f:girder}
 \end{figure}
@@ -2657,7 +2658,11 @@ For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements, setting \vn{
 to \vn{center} results in the reference frame being the frame of the surface (cf.~\fig{f:surface}).
 
 To specify that the global coordinates (\sref{s:global}) are to be used for a girder set
-\vn{origin_ele} to \vn{global_coordinates}. Typically this is the same as using the \vn{beginning}
+\vn{origin_ele} to
+\begin{example}
+  global_coordinates
+\end{example}
+Typically this is the same as using the \vn{beginning}
 element (\sref{s:begin.ele}) as the \vn{origin_ele} except when the \vn{beginning} element is offset
 or reoriented (\sref{s:beginning}).
 
@@ -2667,10 +2672,9 @@ first element in the list of supported elements. In this example it is the upstr
 \vn{A} as shown in the figure. Let $\calO_C$ be the downstream end of the last element in the list
 of supported elements. In this example this is the downstream end of element \vn{C}. The origin of
 the \vn{girder}'s reference frame, marked $\calO_G$ in the figure, will be half way along the vector
-$r_{CA}$ from the origin of $\calO_A$ to the origin of $\calO_B$.  The orientation of $\calO_G$ is
-constructed by rotating the $\calO_A$ coordinate system along an axis in $\calO_A$'s $x$-$y$ plane
-such that $\calO_A$'s $z$ axis ends up parallel with $r_{CA}$. In the example above, the rotation
-axis will be along $\calO_A$'s $y$-axis.
+$r_{CA}$ from the origin of $\calO_A$ to the origin of $\calO_B$. The orientation of $\calO_G$ is
+constructed by rotating the $\calO_A$ coordinates about an axis perpendicular to the $z$-axis of
+$\calO_A$ and $\bfr_{CA}$ such that the $z$-axis of $\calO_G$ is parallel with $r_{CA}$.
 
 Once the \vn{origin} reference frame is established, the reference frame of the girder can be offset
 from the \vn{origin} frame using the parameters
@@ -4545,7 +4549,18 @@ not allowed to control \vn{rampers}. When a \vn{ramper} controls variables in ot
 elements it is not permitted to use wild card characters. That is, in the above example, ``\vn{*}''
 will not match to any controller elements.
 
-Do to the way bookkeeping is done for ramper elmeents, and unlike \vn{group} or \vn{overlay}
+If a slave name contains wild card characters, for a given lattice element that the slave name
+matches to, it is not required that the controlled attribute be a valid attribute of the element. In
+the case where the controlled attribute is not valid for a given lattice element, no attributes of
+the given lattice element are varied when and the ramper is varied. For example:
+\begin{example}
+  rz: ramper = \{*[k1]: ...
+\end{example}
+In this example the \vn{k1} attribute of all those elements that have a \vn{k1} attribute will be
+controlled but something like a \vn{sextupole} element which does not have a \vn{k1} attribute will
+not be controlled.
+
+Due to the way bookkeeping is done for ramper elmeents, and unlike \vn{group} or \vn{overlay}
 elements, it is not permitted for different \vn{ramper} elements to control the same parameter of a
 given slave element. Additionally, parameters that \vn{ramper} elements control must not be
 controlled by any \vn{overlay} (but a \vn{ramper} can control an \vn{overlay}).

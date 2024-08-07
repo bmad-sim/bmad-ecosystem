@@ -1,0 +1,31 @@
+
+!------------------------------------------------------------------------
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1) = "ring.bmad"
+  design_lattice(1)%dynamic_aperture_calc = T
+/
+
+!------------------------------------------------------------------------
+
+&tao_params
+ global%plot_on = T
+ global%rf_on = T
+/
+
+
+&tao_dynamic_aperture
+ ix_universe = 1
+ ellipse_scale = 10
+ pz = 0.00, 0.002, 0.004, 0.006, 0.008, 0.010
+ da_param%n_angle = 5
+ da_param%n_turn = 1000
+ da_param%abs_accuracy = 1e-4
+ da_param%min_angle = 0
+ da_param%max_angle = 3.14159
+ a_emit = 2E-08
+ b_emit = 1E-08
+/
+
+

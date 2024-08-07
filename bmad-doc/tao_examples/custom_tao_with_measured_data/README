@@ -1,6 +1,11 @@
 Example of How to Create a Customized Version of Tao 
 ---------------------------------------------------
 
+This example uses real data from the Fermilab Recycler NOvA Ring curtesy of Meiqin Xiao.
+Paper:
+	Linear Modelling and Lattice Correction from Betatron Phase Measurements at the Fermilab Recycler NOvA Ring
+	Meiqin Xiao(Fermilab), Kyle Hazelwood(Fermilab), Ming-Jen Yang(Fermilab), R. Ainsword(Fermilab)
+
 Directory:
 	tao/examples/custom_tao_with_measured_data
 

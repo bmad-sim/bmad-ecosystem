@@ -338,9 +338,10 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT $ENV{ACC_CONDA_BUILD} MATCHES 
     endif()
   endif()
   if (DO_BREW)
-    # Assuming an ARM mac here, path is different for an x86 Mac
-    set(ACC_INC_DIRS ${ACC_INC_DIRS} /opt/homebrew/include /opt/homebrew/opt/readline/include)
-    set(ACC_LIB_DIRS ${ACC_LIB_DIRS} /opt/homebrew/lib /opt/homebrew/opt/readline/lib)
+    execute_process(COMMAND "brew" "--prefix" OUTPUT_VARIABLE HOMEBREW_PREFIX)
+    string(STRIP "${HOMEBREW_PREFIX}" HOMEBREW_PREFIX)
+    set(ACC_INC_DIRS ${ACC_INC_DIRS} "${HOMEBREW_PREFIX}/include" "${HOMEBREW_PREFIX}/opt/readline/include")
+    set(ACC_LIB_DIRS ${ACC_LIB_DIRS} "${HOMEBREW_PREFIX}/lib" "${HOMEBREW_PREFIX}/opt/readline/lib")
   elseif (DO_PORT)
     set(ACC_INC_DIRS ${ACC_INC_DIRS} /opt/local/include)
     set(ACC_LIB_DIRS ${ACC_LIB_DIRS} /opt/local/lib)

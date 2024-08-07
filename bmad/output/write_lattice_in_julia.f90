@@ -119,17 +119,17 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ie == 0) then
       line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
-      line = trim(line) // ', species_ref = ' // trim(openpmd_species_name(ele%ref_species))
-      if (ele%a%beta /= 0) line = trim(line) // ', twiss.a.beta = ' // re_str(ele%a%beta)
-      if (ele%b%beta /= 0) line = trim(line) // ', twiss.b.beta = ' // re_str(ele%b%beta)
-      if (ele%a%alpha /= 0) line = trim(line) // ', twiss.a.alpha = ' // re_str(ele%a%alpha)
-      if (ele%b%alpha /= 0) line = trim(line) // ', twiss.b.alpha = ' // re_str(ele%b%alpha)
-      if (ele%x%eta /= 0) line = trim(line) // ', twiss.x.eta = ' // re_str(ele%x%eta)
-      if (ele%y%eta /= 0) line = trim(line) // ', twiss.y.eta = ' // re_str(ele%y%eta)
-      if (ele%x%etap /= 0) line = trim(line) // ', twiss.x.etap = ' // re_str(ele%x%etap)
-      if (ele%y%etap /= 0) line = trim(line) // ', twiss.y.etap = ' // re_str(ele%y%etap)
-      if (any(ele%c_mat /= 0)) line = trim(line) // ', twiss.c_mat = [' // re_str(ele%c_mat(1,1)) // ', ' // re_str(ele%c_mat(1,2)) // &
-                                                                   '; ' // re_str(ele%c_mat(2,1)) // ', ' // re_str(ele%c_mat(2,2)) // ']'
+      line = trim(line) // ', species_ref = species(' // quote(openpmd_species_name(ele%ref_species)) // ')'
+      if (ele%a%beta /= 0) line = trim(line) // ', beta_a = ' // re_str(ele%a%beta)
+      if (ele%b%beta /= 0) line = trim(line) // ', beta_b = ' // re_str(ele%b%beta)
+      if (ele%a%alpha /= 0) line = trim(line) // ', alpha_a = ' // re_str(ele%a%alpha)
+      if (ele%b%alpha /= 0) line = trim(line) // ', alpha_b = ' // re_str(ele%b%alpha)
+      if (ele%x%eta /= 0) line = trim(line) // ', eta_x = ' // re_str(ele%x%eta)
+      if (ele%y%eta /= 0) line = trim(line) // ', eta_y = ' // re_str(ele%y%eta)
+      if (ele%x%etap /= 0) line = trim(line) // ', etap_x = ' // re_str(ele%x%etap)
+      if (ele%y%etap /= 0) line = trim(line) // ', etap_y = ' // re_str(ele%y%etap)
+      !! if (any(ele%c_mat /= 0)) line = trim(line) // ', c_mat = [' // re_str(ele%c_mat(1,1)) // ', ' // re_str(ele%c_mat(1,2)) // &
+      !!                                                             '; ' // re_str(ele%c_mat(2,1)) // ', ' // re_str(ele%c_mat(2,2)) // ']'
       orb => lat%particle_start
       if (any(orb%vec /= 0)) line = trim(line) // ', particle.orbit = [' // re_str(orb%vec(1)) // ', ' // re_str(orb%vec(2)) // ', ' // &
                         re_str(orb%vec(3)) // ', ' // re_str(orb%vec(4)) // ', ' // re_str(orb%vec(5)) // ', ' // re_str(orb%vec(6)) // ']'
@@ -236,14 +236,14 @@ do ib = 0, ubound(lat%branch, 1)
     !
 
     if (ele%key == lcavity$) then
-      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
+      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', frequency = ' // re_str(ele%value(rf_frequency$))
       if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage_ref = ' // re_str(ele%value(voltage$))
       if (ele%value(voltage_err$) /= 0)  line = trim(line) // ', voltage_err = ' // re_str(ele%value(voltage_err$))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phase_ref = ' // re_str(ele%value(phi0$))
       if (ele%value(phi0_err$) /= 0)  line = trim(line) // ', phase_err = ' // re_str(ele%value(phi0_err$))
 
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
-      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
+      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', frequency = ' // re_str(ele%value(rf_frequency$))
       if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phase = ' // re_str(ele%value(phi0$))
     endif

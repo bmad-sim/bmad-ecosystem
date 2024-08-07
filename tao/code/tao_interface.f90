@@ -709,7 +709,7 @@ subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr, w
   implicit none
   type (tao_universe_struct), target :: u
   type (ele_struct), pointer, optional :: ele_ptr
-  real(rp), pointer, optional :: val_ptr
+  type (all_pointer_struct), optional :: val_ptr
   character(*) ele_name
   character(*), optional :: who
 end subroutine

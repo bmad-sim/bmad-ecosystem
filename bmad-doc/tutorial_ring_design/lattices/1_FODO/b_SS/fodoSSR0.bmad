@@ -1,0 +1,7 @@
+call, file = fodoSSF0.bmad
+
+FODOSSR: line = ( QFSS, D2, DB, D1, QDSS, D2, DB, D1)
+use, FODOSSR
+
+! To create a fodoSSR.bmad file with optimized quad strengths, copy this file and 
+! change call to call fodoSSF.bmad.

@@ -79,7 +79,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ June 7, 2024}
+\date{David Sagan and Chris Mayes \\ August 3, 2024}
 
 \begin{document}
 
@@ -159,17 +159,21 @@ further reading of the manuals).
 \Section{Orientation}
 \label{s:orientation}
 
+%------------------------------------------------------------------------------
+\subsection{Web Site}
+
 The \bmad web site is at:
 \begin{display}
   \url{\detokenize{www.classe.cornell.edu/bmad/}}
 \end{display}
+Here you will find documentation on the \bmad toolkit and associated programs as well as
+installation instructions.
 
 %------------------------------------------------------------------------------
 \subsection{Prerequisites}
 
-\bmad and \tao are generally used with Linux or Mac OS-X. Historically, while \bmad could be built
-under Windows, running \tao was problematical due to graphics issues. As present, these graphics issues have
-been resolved.
+\bmad and \tao can be run under Linux, Mac OS-X, or Windows running Windows Subsystem for Linux 2 (WSL2)
+which allows running in a Linux environment on Windows.
 
 Except when using a Python interface, \tao is accessed through the command line.  Therefore you will
 need to run a terminal program to be able to run \tao.
@@ -236,12 +240,8 @@ is a quick way to tell if there is a problem.
 \subsection{Releases}
 \label{s:dist}
 
-A (GitHub) \vn{Release} is a set of files, including \bmad and \tao source files, which are used to
-build the \bmad, the \tao program, and various other simulation programs. A \vn{CLASSE Release} is like a
-GitHub \vn{Release} except that it is created on the Linux computer system at CLASSE (Cornell's
-Laboratory for Accelerator-based Sciences and Education). More information can be obtained from the
-\bmad web site. For the purpose of this tutorial, it is assumed that you are dealing with a
-GitHub \vn{Release}.
+A \vn{Release}, hosted on GitHub, is a set of files, including \bmad and \tao source files, which
+are used to build the \bmad, the \tao program, and various other simulation programs.
 
 The directories in a Release are:
 \begin{lstlisting}[mathescape]
@@ -2788,13 +2788,16 @@ changing the default universe.
 %----------------------------------------------------------
 \subsection{Overview}
 
-Control elements are elements that control the parameters of other elements. There are three types
-of control elements: \vn{groups}, \vn{overlays}, and \vn{girders}. \vn{Groups} and
+Control elements are elements that control the parameters of other elements. There are four types
+of control elements: \vn{groups}, \vn{overlays}, \vn{girders}, and \vn{rampers}. \vn{Groups} and
 \vn{overlays} are convenient to do such things as simulate control room "knobs". For example a power
 supply that powers a chain of magnets. \vn{Girder} elements (\sref{s:girder})
-are used for simulating lattice element support structures.
+are used for simulating lattice element support structures. And \vn{ramper} elements are used to
+vary lattice parameters over many turns which is useful for long term (that is multi-turn) tracking.
+\vn{Ramper} elements are not covered in this tutorial and the interested reader is referred to the \bmad
+manual for more details. 
 
-Note: \vn{Group}, \vn{overlay}, and \vn{girder} elements are known as ``\vn{minor} \vn{lords}'' since they
+Note: Control elements are known as ``\vn{minor} \vn{lords}'' since they
 only control a subset of an element's attributes. The other type of \vn{lord} elements, \vn{multipass} lords
 (\sref{s:multipass}) and \vn{superposition} lords (\sref{s:super}) are called ``\vn{major lords}''.
 
@@ -2844,7 +2847,7 @@ shorthand notation and the actual formula used is \vn{0.7*hh}.  Note: When this 
 is used, only one control variable (in this case \vn{hh}) may be used by the overlay.
 \item
 The initial values for control variables may be set when defining the control element. For example,
-\vn{hh} of \vn{ov2} is set to 0.2. Control variables default to a value of zero.
+\vn{hh} of \vn{ov2} is set to 0.01. Control variables default to a value of zero.
 \end{itemize}
 
 %----------------------------------------------------------
@@ -3639,7 +3642,7 @@ the reference momentum as discussed in the ``\vn{Magnetostatic Multipole Fields}
 
 For lattices with an \vn{open} geometry (\sref{s:lat.geom}), the reference energy/momentum at the
 beginning of the lattice is what is set in the lattice file. The reference energy/momentum for a
-downsteam element inherits the reference energy/momentum of the element just upstream. The exception
+downstream element inherits the reference energy/momentum of the element just upstream. The exception
 is for \vn{Lcavity} elements, which represent an RF cavity, where the reference energy/momentum at
 the exit end of the \vn{lcavity} is set so that a particle entering the cavity with zero phase space
 coordinates leaves with zero phase space coordinates and in particular phase space \vn{pz} will be
@@ -3728,8 +3731,8 @@ starting one. Here, the \vn{pz} coordinate at the end of the element is nonzero.
 \item 
 Modify the \vn{lcavity} in the \vn{cavity.bmad} to have a small length (so the transit time is
 small), and set the beginning momentum small enough so the relativistic beta is significantly than
-one. Starting the particle with a finite $z$, calculate the ending $z$ after the cavity and verity
-that the cange in $z$ is consistent with the equation for $z$ given in \sref{s:phase.space.sub}.
+one. Starting the particle with a finite $z$, calculate the ending $z$ after the cavity and verify
+that the range in $z$ is consistent with the equation for $z$ given in \sref{s:phase.space.sub}.
 %
 \item
 \vn{Lcavity} elements have an attribute \vn{phi0_err} which varies the RF phase that a particle sees
@@ -3737,7 +3740,7 @@ but does not change the reference energy. Add a finite \vn{phi0_err} to the \vn{
 verify that the reference energy does not change but that the phase space \vn{pz} of the particle
 (which is the normalized momentum deviation from the reference \sref{s:phase.space.sub}) does
 change. With the \vn{cavity.bmad} lattice, there is a range of values for \vn{phi0_err} where the
-cavity will decellerate the particle enough so that the particle will turn around and not make
+cavity will decelerate the particle enough so that the particle will turn around and not make
 it through the cavity. Approximately what is this range?
 \end{enumerate}
 
@@ -3981,7 +3984,7 @@ method. (\sref{s:methods}). See the \bmad manual for more details.
 
 \begin{enumerate}[label=\thesection.\arabic{enumi}]
 \item
-Create a lattice with a sextupole superimpsed in the middle of a quadrupole. Make the length of the 
+Create a lattice with a sextupole superimposed in the middle of a quadrupole. Make the length of the 
 sextupole shorter than the length of the quadrupole. Make a second lattice similar to the first but
 this time use \vn{jumbo} superposition. Compare both lattices.
 \end{enumerate}
@@ -5285,8 +5288,8 @@ set curve r23.g.y data_type = orbit.x
 set curve r23.g.y legend_text = "X"
 set curve r23.g.y component = design
 \end{code}
-Note: By default, orbit plots have a non-blank legend_text which is why the legend_text needs to be changed.
-What happens if, instead of setting to ``X'', the legend_text is set to a blank string?
+Note: By default, orbit plots have a non-blank \vn{legend_text} which is why the \vn{legend_text} needs to be changed.
+What happens if, instead of setting to ``X'', the \vn{legend_text} is set to a blank string?
 %
 \item
 \begin{code}
@@ -5326,7 +5329,7 @@ end_orbit = beginning_measured_orbit + orbit_change
           = actual_measured + (design_orbit - model_orbit)
           = actual_measured + (design_orbit - 
                      (actual_measured - (golden_orbit - design_orbit)))
-          = gloden_orbit
+          = golden_orbit
 \end{code}
 %
 \item

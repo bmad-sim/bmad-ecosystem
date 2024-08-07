@@ -5500,7 +5500,7 @@ mps638au: multipole, type = "RGF036_U_SHIM", k1l = k1lendsfu+k1lfromk2lfendu, k2
         ffac*larcmag*dir*arck2f-0.1021426e-2*dir, k3l = 0.1297873
 mps638ad: multipole, type = "RGF036_D_SHIM", k1l = -0.221980598e-3, k2l =  &
         0.01609515*dir-0.1021426e-2*dir, k3l = 0.1297873
-	
+
 mp638bn: multipole, type = "SGF073_N_BODY", k3l = -0.017814, k4l = 4.4084*dir
 mp638bs: multipole, type = "SGF073_S_BODY", k1l = 0.24e-4, t1 = 0.785398163397, k2l =  &
         -0.366e-3*dir, t2 = 0.523598775598, k3l = 0.022904, t3 = 0.392699081699, k4l =  &

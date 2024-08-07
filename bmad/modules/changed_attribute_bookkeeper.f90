@@ -129,32 +129,32 @@ end select
 
 ! Set independent stuff in multipass lord
 
-if (ele%lord_status == multipass_lord$) then 
-
+if (ele%lord_status == multipass_lord$) then
   do i = 1, ele%n_slave
     slave => pointer_to_slave(ele, i)
   
     if (associated(a_ptr, ele%aperture_at)) then
       slave%aperture_at = a_ptr
+    elseif (associated(a_ptr, ele%ptc_integration_type)) then
+      slave%ptc_integration_type = a_ptr
     elseif (associated(a_ptr, ele%aperture_type)) then
-      ele%aperture_type = a_ptr
+      slave%aperture_type = a_ptr
     elseif (associated(a_ptr, ele%mat6_calc_method)) then
-      ele%mat6_calc_method = a_ptr
+      slave%mat6_calc_method = a_ptr
     elseif (associated(a_ptr, ele%tracking_method)) then
-      ele%tracking_method = a_ptr
+      slave%tracking_method = a_ptr
     elseif (associated(a_ptr, ele%spin_tracking_method)) then
-      ele%spin_tracking_method = a_ptr
+      slave%spin_tracking_method = a_ptr
     elseif (associated(a_ptr, ele%field_calc)) then
-      ele%field_calc = a_ptr
+      slave%field_calc = a_ptr
     elseif (associated(a_ptr, ele%csr_method)) then
-      ele%csr_method = a_ptr
+      slave%csr_method = a_ptr
     elseif (associated(a_ptr, ele%space_charge_method)) then
-      ele%space_charge_method = a_ptr
+      slave%space_charge_method = a_ptr
     else
       exit
     endif
   enddo
-
 endif
 
 end subroutine set_flags_for_changed_integer_attribute
@@ -743,7 +743,7 @@ case (sbend$, rf_bend$)
   ! is independent of the setting for %field_master.
   if (dep_set) then
     if (associated(a_ptr, ele%value(angle$))) then
-      call bend_angle_fiducial_calc(ele, dep2_set, p0c_factor)
+      call bend_angle_fiducial(ele, dep2_set, p0c_factor)
 
     elseif (associated(a_ptr, ele%value(l_rectangle$))) then
       select case (nint(ele%value(fiducial_pt$)))
@@ -767,17 +767,17 @@ case (sbend$, rf_bend$)
     elseif (associated(a_ptr, ele%value(rho$))) then
       if (ele%value(rho$) /= 0) then
         ele%value(g$) = 1.0_rp / ele%value(rho$)
-        call bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
+        call bend_g_fiducial(ele, dep2_set, p0c_factor)
       endif
 
     elseif (associated(a_ptr, ele%value(g$))) then
       ele%value(b_field$) = ele%value(g$) * p0c_factor 
-      call bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
+      call bend_g_fiducial(ele, dep2_set, p0c_factor)
 
     elseif (dep2_set) then
       if (associated(a_ptr, ele%value(b_field$))) then
         ele%value(g$) = ele%value(b_field$) / p0c_factor
-        call bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
+        call bend_g_fiducial(ele, dep2_set, p0c_factor)
 
       elseif (associated(a_ptr, ele%value(db_field$))) then
         ele%value(dg$) = ele%value(db_field$) / p0c_factor
@@ -845,7 +845,7 @@ end select
 !--------------------------------------------------------------
 contains
 
-subroutine bend_g_fiducial_calc(ele, dep2_set, p0c_factor)
+subroutine bend_g_fiducial(ele, dep2_set, p0c_factor)
 
 type (ele_struct) ele
 real(rp) p0c_factor, len1, len2
@@ -857,26 +857,26 @@ select case (nint(ele%value(fiducial_pt$)))
 case (none_pt$)
 
 case (center_pt$)
-  call bend_g_fiducial_calc2(ele, 0.5_rp, ele%value(e1$), len1)
-  call bend_g_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len2)
+  call bend_g_fiducial2(ele, 0.5_rp, ele%value(e1$), len1)
+  call bend_g_fiducial2(ele, 0.5_rp, ele%value(e2$), len2)
   ele%value(l$) = len1 + len2
 
 
 case (entrance_end$)
-  call bend_g_fiducial_calc2(ele, 1.0_rp, ele%value(e2$), ele%value(l$))
+  call bend_g_fiducial2(ele, 1.0_rp, ele%value(e2$), ele%value(l$))
 
 case (exit_end$)
-  call bend_g_fiducial_calc2(ele, 1.0_rp, ele%value(e1$), ele%value(l$))
+  call bend_g_fiducial2(ele, 1.0_rp, ele%value(e1$), ele%value(l$))
 end select
 
 if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
 
-end subroutine bend_g_fiducial_calc
+end subroutine bend_g_fiducial
 
 !--------------------------------------------------------------
 ! contains
 
-subroutine bend_g_fiducial_calc2(ele, factor, e_edge, len_out, angle0_in)
+subroutine bend_g_fiducial2(ele, factor, e_edge, len_out, angle0_in)
 
 type (ele_struct) ele
 real(rp) factor, e_edge, len_out, g0, angle0, rp2x, r1(2), theta1, l_rect, length, a, b, c
@@ -906,12 +906,12 @@ length = asinc(ele%value(g$) * l_rect) * l_rect
 e_edge = e_edge + length * ele%value(g$) - angle0
 len_out = length
 
-end subroutine bend_g_fiducial_calc2
+end subroutine bend_g_fiducial2
 
 !--------------------------------------------------------------
 ! contains
 
-subroutine bend_angle_fiducial_calc(ele, dep2_set, p0c_factor)
+subroutine bend_angle_fiducial(ele, dep2_set, p0c_factor)
 
 type (ele_struct) ele
 real(rp) p0c_factor, angle0, len1, len2
@@ -926,26 +926,26 @@ case (none_pt$)
   ele%value(g$) = ele%value(angle$) / ele%value(l$)
 
 case (center_pt$)
-  call bend_angle_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len1)
-  call bend_angle_fiducial_calc2(ele, 0.5_rp, ele%value(e2$), len2)
+  call bend_angle_fiducial2(ele, 0.5_rp, ele%value(e2$), len1)
+  call bend_angle_fiducial2(ele, 0.5_rp, ele%value(e2$), len2)
   ele%value(l$) = len1 + len2
   ele%value(g$) = ele%value(angle$) / ele%value(l$)
 
 case (entrance_end$)
-  call bend_angle_fiducial_calc2(ele, 1.0_rp, ele%value(e2$), ele%value(l$))
+  call bend_angle_fiducial2(ele, 1.0_rp, ele%value(e2$), ele%value(l$))
 
 case (exit_end$)
-  call bend_angle_fiducial_calc2(ele, 1.0_rp, ele%value(e1$), ele%value(l$))
+  call bend_angle_fiducial2(ele, 1.0_rp, ele%value(e1$), ele%value(l$))
 end select
 
 if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
 
-end subroutine bend_angle_fiducial_calc
+end subroutine bend_angle_fiducial
 
 !--------------------------------------------------------------
 ! contains
 
-subroutine bend_angle_fiducial_calc2(ele, factor, e_edge, len_out)
+subroutine bend_angle_fiducial2(ele, factor, e_edge, len_out)
 
 type (ele_struct) ele
 real(rp) factor, e_edge, angle0, theta1, r1(2), len_out
@@ -960,9 +960,9 @@ r1 = rot_2d(r1, theta1)
 
 ele%value(g$) = -(sin(theta1) + sin(ele%value(angle$) - theta1)) / r1(1)
 
-call bend_g_fiducial_calc2(ele, factor, e_edge, len_out, angle0)
+call bend_g_fiducial2(ele, factor, e_edge, len_out, angle0)
 
-end subroutine bend_angle_fiducial_calc2
+end subroutine bend_angle_fiducial2
 
 end subroutine set_flags_for_changed_real_attribute
 

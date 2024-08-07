@@ -66,7 +66,7 @@ call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
-  if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele)
+  if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
   !$OMP parallel do if (thread_safe)
   do j = 1, size(bunch%particle)
     if (bunch%particle(j)%state /= alive$) cycle
@@ -84,7 +84,7 @@ endif
 ! For zero length elements just track the element.
 
 if (ele%value(l$) == 0) then
-  if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele)
+  if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
   !$OMP parallel do if (thread_safe)
   do j = 1, size(bunch%particle)
     if (bunch%particle(j)%state /= alive$) cycle
@@ -108,7 +108,7 @@ else
 
   if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele, branch%param)
 
-  if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(half_ele)
+  if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(half_ele, err_flag)
   !$OMP parallel do if (thread_safe)
   do j = 1, size(bunch%particle)
     if (bunch%particle(j)%state /= alive$) cycle
@@ -142,7 +142,7 @@ else
   call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, branch%param, .true., .false., err_flag)
 endif
 
-if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele)
+if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
 !$OMP parallel do if (thread_safe)
 do j = 1, size(bunch%particle)
   if (bunch%particle(j)%state /= alive$) cycle
@@ -219,6 +219,11 @@ character(*), parameter :: r_name = "init_beam_distribution"
 !
 
 if (present(err_flag)) err_flag = .true.
+
+if (beam_init%file_name /= '') then
+  call out_io(s_abort$, r_name, '"BEAM_INIT%FILE_NAME" SHOULD BE "BEAM_INIT%POSITION_FILE". PLEASE CHANGE.')
+  return
+endif
 
 ! Init from file
 

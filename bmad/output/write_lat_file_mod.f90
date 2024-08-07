@@ -47,7 +47,7 @@ logical in_multi_region, need_new_region
 allocate (mult_lat%branch(0:ubound(lat%branch, 1)))
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  allocate (mult_lat%branch(ib)%ele(branch%n_ele_max))
+  allocate (mult_lat%branch(ib)%ele(0:branch%n_ele_max))
   mult_lat%branch(ib)%ele(:)%ix_region = 0
   mult_lat%branch(ib)%ele(:)%region_start_pt = .false.
   mult_lat%branch(ib)%ele(:)%region_stop_pt   = .false.

@@ -7150,7 +7150,6 @@ case ('spin_resonance')
   sm => datum%spin_map
   call tao_spin_matrix_calc (datum, u, ele, ele)
   call spin_mat_to_eigen (sm%map1%orb_mat, sm%map1%spin_q, eval, evec, n0, n_eigen, err)
-  if (dot_product(n0, sm%axis0%n0) < 0) n_eigen = -n_eigen
 
   qs = branch%param%spin_tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'spin_tune;REAL;F;',   qs
@@ -7163,6 +7162,7 @@ case ('spin_resonance')
     nl=incr(nl); write (li(nl), amt) 'dq_', mode(i), '_diff;REAL;F;', re_str(modulo2(qs-q, 0.5_rp), 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_sum;REAL;F;', re_str(xi_sum, 6)
     nl=incr(nl); write (li(nl), amt) 'xi_res_', mode(i), '_diff;REAL;F;', re_str(xi_diff, 6)
+    nl=incr(nl); write (li(nl), rmt) 'n0;REAL_ARR;F;', n0(1), ';', n0(2), ';', n0(3)
   enddo
 
 !------------------------------------------------------------------------------------------------
@@ -9213,7 +9213,7 @@ type (tao_ele_shape_struct), pointer :: ashape
 type (ele_struct), pointer :: ele1, ele2
 type (floor_position_struct) floor, floor1, floor2
 
-real(rp) y1, y2
+real(rp) y1, y2, off1, off2
 integer line_width
 character(40) color, label_name, shape_shape
 
@@ -9233,26 +9233,31 @@ else
   line_width = ashape%line_width
 endif
 
+off1 = y1 * s%plot_page%floor_plan_shape_scale
+off2 = y2 * s%plot_page%floor_plan_shape_scale
+
 floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
 floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
 
 floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
 floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+
 call tao_floor_to_screen_coords (graph, floor1, end1)
 call tao_floor_to_screen_coords (graph, floor2, end2)
+
 if (ele%key == sbend$) then
   nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') &
               ele%ix_branch, ';', ele%ix_ele, ';', &
               trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
               end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-              line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name), ';', &
+              line_width, ';', trim(shape_shape), ';', off1, ';', off2, ';', trim(color), ';', trim(label_name), ';', &
               ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
 else
   nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') &
               ele%ix_branch, ';', ele%ix_ele, ';', &
               trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
               end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
-              line_width, ';', trim(shape_shape), ';', y1, ';', y2, ';', trim(color), ';', trim(label_name)
+              line_width, ';', trim(shape_shape), ';', off1, ';', off2, ';', trim(color), ';', trim(label_name)
 endif
 
 end subroutine this_floor_plan2

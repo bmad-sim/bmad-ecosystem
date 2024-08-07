@@ -854,7 +854,7 @@ else
 endif
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
-  call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!, \es12.4\ at \es12.4\ and \es12.4\ at \es12.4\ ', &
+  call out_io (s_error$, r_name, 'ROOT NOT BRACKETED!, \es12.4\ at \es12.4\ and \es12.4\ at \es12.4\ ', &
                   r_array = [fa, a, fb, b])
   x_zero = 1d100
   status = -1
@@ -925,7 +925,7 @@ do iter = 1,ITMAX
   fb = func(b, status); if (status /= 0) return
 end do
 
-call out_io (s_fatal$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
+call out_io (s_error$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
 status = -2
 x_zero = b
 
