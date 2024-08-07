@@ -1506,24 +1506,36 @@ if (logic_option(.false., type_floor_coords) .and. associated(ele%branch)) then
       nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
       nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', floor2%r, floor2%theta, floor2%phi, floor2%psi, '! Position without misalignments'
       nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+
+    case (girder$)
+      floor = ele_geometry_with_misalignments (ele)
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; li(nl) = 'Global Floor Coords at Reference Point:'
+      nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
     end select
 
     !
 
-    floor = ele_geometry_with_misalignments (ele)
+    select case (ele%key)
+    case (girder$)
+    case default
+      floor = ele_geometry_with_misalignments (ele)
 
-    nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
-    nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
-    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
-    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
+      nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+    end select
 
     !
 
     if (associated(ele0) .and. (ele%ix_ele /= 0 .or. branch%param%geometry == closed$)) then
       f0 = ele0%floor
       nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
-                                                                                                         '! Delta with respect to last element'  
+                                                                                                         '! Delta of reference with respect to last element'  
     endif
   endif
 endif

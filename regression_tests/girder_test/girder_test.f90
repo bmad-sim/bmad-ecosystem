@@ -11,11 +11,12 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: girder, slave, slave2, slave3
 type (floor_position_struct), pointer :: floor
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), mat3(3,3)
-integer i, ig, j, k, nargs
+integer i, ib, ig, j, k, nargs
 
 character(40) fmt
 character(100) lat_file

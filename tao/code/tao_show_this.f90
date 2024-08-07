@@ -3286,9 +3286,9 @@ case ('lattice')
 
   else
     select case (where)
-    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element:'
-    case ('middle');    line1 = '# Values shown are for the Center of each Element:'
-    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element:'
+    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element (Girder at ref point):'
+    case ('middle');    line1 = '# Values shown are for the Center of each Element (Girder at ref point):'
+    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element (Girder at ref point):'
     end select
 
     if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)
@@ -5260,7 +5260,7 @@ case ('taylor_map', 'matrix')
         i0 = ele%ix_ele-1
         call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch) 
         call truncate_taylor_to_order (taylor, n_order, taylor)
-        call type_taylors (taylor, lines = alloc_lines, n_lines = n, out_style = disp_fmt, clean = .true.)
+        call type_taylors (taylor, lines = alloc_lines, n_lines = n, clean = .true.)
         do j = 1, n
           nl=nl+1; lines(nl) = alloc_lines(j)
         enddo
@@ -5271,12 +5271,12 @@ case ('taylor_map', 'matrix')
     if (n_order > 1) then
       if (angle_units) call map_to_angle_coords (taylor, taylor)
       if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
-      call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
+      call type_taylors (taylor, lines = lines, n_lines = nl, clean = .true.)
       if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
 
     elseif (disp_fmt == 'BMAD') then
       call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
-      call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
+      call type_taylors (taylor, lines = lines, n_lines = nl, clean = .true.)
 
     else
       if (angle_units) then
