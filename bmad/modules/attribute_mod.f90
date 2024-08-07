@@ -3114,12 +3114,12 @@ endif
 
 if (ele%slave_status == multipass_slave$) then
   select case (a_name)
-  case ('CSR_METHOD', 'SPACE_CHARGE_METHOD', 'DESCRIP', 'ALIAS', 'TYPE');     return
+  case ('CSR_METHOD', 'SPACE_CHARGE_METHOD', 'DESCRIP', 'ALIAS', 'TYPE', 'TRACKING_METHOD', &
+        'MAT6_CALC_METHOD', 'SPIN_TRACKING_METHOD', 'FIELD_CALC', 'PHI0_MULTIPASS', 'PTC_INTEGRATION_TYPE', &
+        'INTEGRATOR_ORDER', 'DS_STEP', 'CSR_DS_STEP', 'NUM_STEPS'); return
   end select
 
   select case (ele%key)
-  case (lcavity$, rfcavity$) 
-    if (ix_attrib == phi0_multipass$) return
   case (patch$)
     lord => pointer_to_lord(ele, 1)
   end select

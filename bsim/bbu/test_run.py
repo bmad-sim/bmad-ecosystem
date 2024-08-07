@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os, sys, shutil, glob, tempfile, time
 from bbu import bbu_main, find_threshold, drscan, phase_scan  #imports bbu package in user python path
 

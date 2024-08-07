@@ -220,6 +220,11 @@ character(*), parameter :: r_name = "init_beam_distribution"
 
 if (present(err_flag)) err_flag = .true.
 
+if (beam_init%file_name /= '') then
+  call out_io(s_abort$, r_name, '"BEAM_INIT%FILE_NAME" SHOULD BE "BEAM_INIT%POSITION_FILE". PLEASE CHANGE.')
+  return
+endif
+
 ! Init from file
 
 if (beam_init%position_file /= '') then

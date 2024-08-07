@@ -120,7 +120,7 @@ D2S2: Drift, L = 0.156
 FODOSSF: line = ( QFSS, D1, DB, D2S1, SDSS, D2S2, QDSS, D1, DB, D2S1, SFSS, D2S2)
 
 ! Straight section reverse FoDo:
-FODOSSR: line = ( QFSS, D2S2, SFSS, D2S1, DB, D1, QDSS, D2S2, SFSS, D2S1, DB, D1)
+FODOSSR: line = ( QFSS, D2S2, SFSS, D2S1, DB, D1, QDSS, D2S2, SDSS, D2S1, DB, D1)
 
 ! 1 o'clock arc forward 2*FoDo:
 FODOAF_1: line = (QF, D1, B, D2S1, SD1_1, D2S2, QD, D1, B, D2S1, SF1_1, D2S2,    QF, D1, B, D2S1, SD2_1, D2S2, QD, D1, B, D2S1, SF2_1, D2S2)

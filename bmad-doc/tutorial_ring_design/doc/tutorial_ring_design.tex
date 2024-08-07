@@ -78,6 +78,7 @@
 \date{
 \parbox{2in}{\today \\
 \rule[3pt]{1.8in}{2pt} \\
+Joe Devlin \\
 Georg Hoffstaetter de Torquat \\
 Daria Kuzovkova \\
 David Sagan \\
@@ -1654,13 +1655,13 @@ The appropriate datums are
 \begin{code}
 ! Require periodic betas in center FoDo cells of 2 o'clock tune cell
 datum(1) = 'expression: lat::beta.a[QFSS_2##4] - lat::beta.a[QFSS_2##5]' 
-                                                  '' '0' 'end' 'target' 0 10
+                                                  '' '' '' 'target' 0 10
 datum(2) = 'expression: lat::beta.b[QFSS_2##4] - lat::beta.b[QFSS_2##5]' 
-                                                  '' '0' 'end' 'target' 0 10
+                                                  '' '' '' 'target' 0 10
 datum(3) = 'expression: lat::alpha.a[QFSS_2##4] - lat::alpha.a[QFSS_2##5]' 
-                                                   '' '0' 'end' 'target' 0 10
+                                                   '' '' '' 'target' 0 10
 datum(4) = 'expression: lat::alpha.b[QFSS_2##4] - lat::alpha.b[QFSS_2##5]' 
-                                                   '' '0' 'end' 'target' 0 10
+                                                   '' '' '' 'target' 0 10
 \end{code}
 
 The syntax \vn{lat::beta.a[QFSS_2\#\#4]} evaluates to the value of the \vn{a}-mode beta function at the fourth lattice element named \vn{QFSS_2}.
@@ -1835,10 +1836,10 @@ Tao> show lat -spin -orbit
       Values at End of Element:
  Index  name      key           ...           orbit  ...          spin 
                                 ...               x  ...             x 
-     0  BEGINNING Beginning_Ele ...    0.000000E+00  ...  0.000000E+00 
-     1  B         Sbend         ...    5.027722E-03  ... -1.414516E-01 
-     2  Q         Quadrupole    ...   -1.599068E-02  ... -7.350543E-02 
-     3  END       Marker        ...   -1.599068E-02  ... -7.350543E-02 
+     0  BEGINNING Beginning_Ele ...    0.000000E+00  ...  1.000000E+00 
+     1  B         Sbend         ...    2.888946E-02  ...  9.886413E-01 
+     2  Q         Quadrupole    ...   -1.847740E-02  ...  9.768026E-01 
+     3  END       Marker        ...   -1.847740E-02  ...  9.768026E-01 
 \end{code}
 
 or the \vn{show element} command
@@ -1863,7 +1864,7 @@ Orbit:  Positron   State: Alive
 
 \begin{enumerate}[leftmargin=*]
 \item {\bf Phase Space:} Construct a lattice with a single drift of 2 meters length.
-Set the particle species to be protons with a reference energy of $10^12$~eV (so the approximation
+Set the particle species to be protons with a reference energy of $10^{12}$~eV (so the approximation
 that the particle velocity is speed of light can be made), and
 Set the initial particle position to have $p_x = 0.2$, $p_z = 1$ with all other coordinates
 zero. Calculate from first principles what the phase space coordinates will be at the end of the
@@ -1988,7 +1989,7 @@ starting one. Here, the \vn{pz} coordinate at the end of the element is nonzero.
 
 The example files for this section can be found at \vn{/lattices/9_RF/AddingRF/}
 
-In a real machine, electrons emit synchrotron radiation as they bend around the ring, so we need to replenish the energy with an RF system. Let’s put RF cavities in the 10 o’clock straight section of our ring. We will design a special FODO cellwith RF cavities \vn{FODORF} and replace 4 FODO cells in the 10 o’clock straight section. 
+In a real machine, electrons emit synchrotron radiation as they bend around the ring, so we need to replenish the energy with an RF system. Let’s put RF cavities in the 10 o’clock straight section of our ring. We will design a special FODO cell with RF cavities \vn{FODORF} and replace 4 FODO cells in the 10 o’clock straight section. 
 
 In the ESR, there are two RF cavities of length $4.017 \textrm{m}$ between each quadrupole with equal drift spaces between each element. We will follow these dimensions as shown in Fig.~\ref{f:fodorf}.
 
@@ -2015,7 +2016,7 @@ DRF: Drift, L = ((1.241+5.855+0.609)-2*4.017)/3
 FODORF: line = (QFSS, DRF, RF0, DRF, RF0, DRF, QDSS, DRF, RF0, DRF, RF0, DRF)
     \end{code}
     
-    \item Replace 4 FODO cells in the 10 o'clock section with \vn{FODORF} by modifying \vn{SEXTANT9} and \vn{SEXTANT9}:
+    \item Replace 4 FODO cells in the 10 o'clock section with \vn{FODORF} by modifying \vn{SEXTANT9} and \vn{SEXTANT11}:
     \begin{code}
 SEXTANT9:  line = (4*FODOSSF, SS_TO_ARCF, 20*FODOAF, 
                               ARC_TO_SSF, 2*FODOSSF, 2*FODORF)
@@ -2036,7 +2037,7 @@ RF0[voltage] = your_voltage
 %
 \item 
 Modify the \vn{lcavity} in the \vn{cavity.bmad} to have a small length (so the transit time is
-small), and set the beginning momentum small enough so the relativistic beta is significantly than
+small), and set the beginning momentum small enough so the relativistic beta is significantly less than
 one. Starting the particle with a finite $z$, calculate the ending $z$ after the cavity and verity
 that the change in $z$ is consistent with what Bmad calculates.
 %
@@ -2299,7 +2300,7 @@ shorthand notation and the actual formula used is \vn{0.7*hh}.  Note: When this 
 is used, only one control variable (in this case \vn{hh}) may be used by the overlay.
 \item
 The initial values for control variables may be set when defining the control element. For example,
-\vn{hh} of \vn{ov2} is set to 0.2. Control variables default to a value of zero.
+\vn{hh} of \vn{ov2} is set to 0.01. Control variables default to a value of zero.
 \end{itemize}
 
 %----------------------------------------------------------
@@ -3004,7 +3005,7 @@ Figure~\ref{f:base}. The bottom plot of the orbit difference between \vn{model} 
 \item {\bf Alias command:} To save on typing, alias commands may be defined. Define an alias command called \vn{setit} so that typing ``\vn{setit 1e-6}'' is equivalent to ``\vn{set ele q vkick = 1e-6}''. Hint: Look in the manual or type ``\vn{help alias}'' to get more information on setting and using alias commands.
 Note: Do not confuse \tao alias commands with the alias string component of a lattice element.
 %
-\item {\bf Adjust the tune using \vn{set tune}:} The tune of the lattice can also be set by using the \vn{set tune} command in \tao, which scales together all focusing quadrupoles and all defocusing quadrupoles to set the horizontal and vertical tunes. Using a lattice with the ring you have constrcted, use \vn{set tune -mask *,~QF,~QD 0.08 0.14} to set the tune of the ring. Plot the difference between the model and design lattices to see how much ``beta-beating'' there is around the ring.
+\item {\bf Adjust the tune using \vn{set tune}:} The tune of the lattice can also be set by using the \vn{set tune} command in \tao, which scales together all focusing quadrupoles and all defocusing quadrupoles to set the horizontal and vertical tunes. Using a lattice with the ring you have constrcted, use \vn{set tune -mask *,$\sim$QF,$\sim$QD 0.08 0.14} to set the tune of the ring. Plot the difference between the model and design lattices to see how much ``beta-beating'' there is around the ring.
 %
 \end{enumerate}
 
@@ -3037,9 +3038,7 @@ D1C2: Drift, L = 0.345 !0.609 - 0.064 - 0.2
 CH: hkicker, L = 0.2
 CV: vkicker, L = 0.2
 \end{code}
-\item Add corrector coils near quadrupoles. Then, add horizontal kickers near focusing quadrupoles and vertical kickers near defocusing quadrupoles. 
-
-After adding the kicker, correctors in the D1 drift have to be added. This means placing the correctors after quadrupoles in the forward geometry and before quadrupoles in the reverse geometry. 
+\item Then, add horizontal kickers near focusing quadrupoles and vertical kickers near defocusing quadrupoles. Correctors are added in the D1 drifts. This means placing the correctors after quadrupoles in the forward geometry and before quadrupoles in the reverse geometry. 
 
 Because we have used D1 drifts repeatedly throughout the ring, adding correctors manually is a tedious task. The easiest approach is to use \vn{regular expressions} in Find and Replace. The recipe is the following: 
 \begin{code}
@@ -3060,7 +3059,7 @@ In some text editors, you may need to use \$1 and \$2 instead of \textbackslash 
 ! (3) Define and add BPMs
 BPM: marker
 \end{code}
-Then insert the BPMs after dipoles by searching and replacing \vn{B,} with \vn{B, BPM,} (including the commas) and repeat for \vn{HB} and \vn{DB}.
+Then insert the BPMs after dipoles by searching and replacing \vn{B,} with \vn{B, BPM,} (including the commas) and repeat for \vn{BH}.
 \end{enumerate}
 
 %------------------------------------------------------------------------------
@@ -3075,7 +3074,7 @@ Then insert the BPMs after dipoles by searching and replacing \vn{B,} with \vn{B
 \end{figure}
 
 \begin{enumerate}[leftmargin=*]
-\item Turn on radiation damping with
+\item Sawtooth orbits are caused by synchrotron radiation energy loss in the ring. This energy loss leads to the particle energy variation along the ring, which causes the horizontal closed orbit to have a sawtooth shape. To produce this shape in Tao, turn on radiation damping with
 \begin{code}
 bmad_com[radiation_damping_on] = T 
 \end{code}
@@ -3083,7 +3082,7 @@ in the \vn{ring0.bmad} file, or equivalently run
 \begin{code}
 set bmad_com radiation_damping_on = T
 \end{code}
-in \tao. It turns on the deterministic average synchrotron radiation energy loss in the ring. This energy loss leads to the particle energy variation along the ring. It also causes the horizontal closed orbit to have a sawtooth shape. You should see this sawtooth orbit in \tao. Let's explore two methods to correct the sawtooth orbit.
+in \tao. It turns on the deterministic average synchrotron radiation energy loss in the ring. Let's explore two methods to correct the sawtooth orbit.
 \item The \vn{taper} command adjusts magnet strengths to eliminate the transverse orbital and Twiss changes due to the radiation damping induced sawtooth effect. The \vn{taper} scales magnet strengths based on local closed orbit momentum deviation and identical elements are changed independently. Tapering is not applied to strengths controlled by an \vn{overlay} element.
 
 Now run \vn{taper} in \tao and check the resulting orbit.
@@ -3187,13 +3186,13 @@ Run the optimizer and check if the orbit is fixed. Write the lattice with optimi
 %
 \item Correct the orbit using the same optimization process. You can reuse the \vn{tao.init} we wrote for example \sref{s:sawtooth}.
 %
-\item If the misalignment amplitude is large, the orbit could become unstable and the optimizer will have a hard time finding a solution. Try larger misalignments of $\sigma=100\unit{\mu m}$ with "\vn{set ele quadrupole::* x_offset = 1e-5*ran_gauss(3)} and correct the orbit. This will likely fail and you'll see many error messages.
+\item If the misalignment amplitude is large, the orbit could become unstable and the optimizer will have a hard time finding a solution. Try larger misalignments of $\sigma=100\unit{\mu m}$ with "\vn{set ele quadrupole::* x_offset = 1e-4*ran_gauss(3)} and correct the orbit. This will likely fail and you'll see many error messages.
 %
 \item One approach to avoid unstable orbits is correcting the orbit with an open lattice first. Reinitialize \tao to start fresh from the beginning. Use command \vn{cut} to change the lattice geometry from closed to open. \tao now uses the single-turn orbit instead, so it won't complain even if the closed orbit is unstable. 
 %
 \item We can now run the optimizer and correct the single-turn orbit as close to 0 as possible. After the single-turn orbit is corrected, use command \vn{cut} again to change the lattice geometry back to closed and \tao will calculate the periodic orbit. Since the orbit excursions are now much smaller, the periodic orbit should be far away from the unstable region. Run the optimizer again to correct the periodic orbit to 0.
 %
-\item \vn{unstable.lattice} is a special datum that can be used in an optimization to avoid unstable solutions. For lattices with a closed geometry,  it is 0 if the ring is stable. If the closed orbit 
+\item \vn{unstable.lattice} is a special datum that can be used in an optimization to avoid unstable solutions. For lattices with a closed geometry,  it is 0 if the ring is stable. If the closed orbit is unstable, its value will be positive. This helps the optimizer find a solution in the stable region. You can declare it in \vn{tao.init} as follows:
 \begin{code}
 &tao_d2_data
   	d2_data%name = 'unstable'
@@ -3214,31 +3213,118 @@ Run the optimizer and check if the orbit is fixed. Write the lattice with optimi
 \begin{enumerate}[leftmargin=*]
 %
 \item {\bf Zero orbit at IP:}
-Use 4 horizontal/vertical kickers around the IP (CH/V_104 to CH/V_107, 8 total kickers) to make the orbit exactly 0 at the IP without affecting the rest of the ring.
+Use 4 horizontal/vertical kickers around the IP (CH/V\_104 to CH/V\_107, 8 total kickers) to make the orbit exactly 0 at the IP without affecting the rest of the ring.
 %
 \end{enumerate}
 
 \newpage
 
-%------------------------------------------------------------------------------
-%------------------------------------------------------------------------------
-%\section{Tracking with Ramping and Spin Tracking}
+\section{Spin Tracking with Ramping}
+\subsection{Introduction}
+\bmad is one of the most powerful modern accelerator physics libraries for polarization analyses and spin-tracking simulations. The most important tools of polarization analysis, such as the invariant spin field, the amplitude-dependent spin tune, and spin-orbit resonance strengths, can be computed using \bmad. The invariant spin field (ISF) and the amplitude-dependent spin tune (ADST) can be computed in \bmad using normal form via \tao, K. Yokoya's SODOM-2 algorithm via \sodom, or stroboscopic averaging via \spinstrob, but these applications will not be covered in this brief introduction. In this chapter, we will ramp our storage ring energy through a spin-orbit resonance, calculate the polarization transmission, and use it to verify the resonance strength computed by \tao using the Froissart-Stora formula.
 
-%------------------------------------------------------------------------------
-%\subsection{Tracking with Ramping}
-%The ESR will not be used to accelerate, however to show what ramping in Bmad might look like we include this section.
+In a perfectly-flat ring (a ring in which the only magnetic fields encountered on the closed orbit are vertical), the closed-orbit spin tune is $\nu_0=G\gamma$, where $G=(g-2)/2$ is the anomalous gyromagnetic $g$-factor and $\gamma$ is the reference gamma. We will ramp our ring through the $\nu_0=60-Q_y \approx 51.81$ resonance. 
 
-%------------------------------------------------------------------------------
-%\subsection{Adding Siberian Snakes}
-%Taylor element overview
+\subsection*{Example: Ramping Through a Spin-Orbit Resonance}
+\begin{enumerate}[leftmargin=*]
+\item Start with the \vn{spin_lat.bmad} file, located in \vn{lattices/15_SpinTracking}. It is a FODO ring based on the layout of the AGS.
+
+\item Let's define a \vn{ramper} element which ramps $G\gamma$ from $51.71$ to $51.82$ in $5000$ turns. To ramp the \vn{e_tot} attribute for all elements in such a time, we need to obtain the revolution time, which is done by calling \vn{show uni} and looking for the
+\vn{Lattice branch transit time}. For our ring, this is $2.67024$ microseconds. Thus, our \vn{ramper} element is
+
+\begin{code}
+rampe: ramper = {*[e_tot] : 51.71 / anomalous_moment_of(proton) * m_proton + 
+(.2/5000/anomalous_moment_of(proton) * m_proton) / (2.67024e-6)*time}, var = {time} 
+\end{code}
+
+We can define this element anywhere in the lattice file to initiate the ramping.
+
+\item Create a \vn{long_term_tracking.init} file, containing the following:
+\begin{code}
+&params
+  ltt%lat_file = 'spin_lat.bmad'    
+  ltt%ele_start = '0'                   
+  ltt%ele_stop = ''                     
+  ltt%phase_space_output_file = 'tracking.dat'
+  ltt%averages_output_file = 'ramp.dat'
+  ltt%averages_output_every_n_turns = 1
+  ltt%particle_output_every_n_turns = 1
+
+  ltt%ramping_on = T
+  ltt%ramp_update_each_particle = T
+  ltt%simulation_mode = 'SINGLE'
+  ltt%tracking_method = 'BMAD'   
+  ltt%n_turns = 5000                      
+  ltt%rfcavity_on = T
+  ltt%split_bends_for_stochastic_rad = F
+  ltt%random_seed = 0                      
+  ltt%add_closed_orbit_to_init_position = T
+
+  bmad_com%spin_tracking_on = T         
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F 
+
+  beam_init%n_particle = 1
+  beam_init%spin = 0, 1, 0             
+  beam_init%center = 0, 0, 1e-5, 0, 2.66, 1.15e-5 
+/
+/
+\end{code}
+
+\item Plot $S_y$ versus turn number with the following \textit{gnuplot} command:
+\begin{code}
+plot 'tracking.dat' u 1:13
+\end{code}
+Observe the asymptotic value of $S_y$ as the number of turns increases.
+
+\item Load Tao, and set the energy such that $G\gamma=51.81$ with the command
+\begin{code}
+set ele * e_tot = 51.81 / anomalous_moment_of(proton) * mass_of(proton)
+\end{code}
+Then use the command \vn{show spin -ele 0}
+to observe the resonance strength. We are working with a B-mode (vertical) resonance, and whether $\text{frac}(Q_s+Q)$ or $\text{frac}(Q_s-Q)$ is smaller tells you whether to use \vn{Xi_sum} or \vn{Xi_diff}. The correct resonance strength corresponds to whichever $\text{frac}(\dots)$ expression is closer to zero. The resonance strength given by \tao is normalized, so we have to multiply by $\sqrt{J_y}$ to find the true resonance strength. We can obtain $J_y$ using the equation 
+\begin{equation}
+y(s)=\sqrt{2J_y\beta_y(s)}\cos[\Phi_y(s)],
+\end{equation}
+along with the command \vn{show twiss}.
+
+\item We can find what the asymptotic value of $S_y$ should have been using the Froissart-Stora formula:
+\begin{equation}
+S_y(\theta\to\infty) = 2\exp\left(-\frac{\pi\epsilon^2}{2\tilde{\alpha}}\right)-1.
+\end{equation}
+Here, $\theta$ is the machine azimuth, $\epsilon$ is the resonance strength, and 
+\begin{equation}
+\tilde{\alpha} = \frac{\mathrm{d}}{\mathrm{d}\theta}G\gamma = \frac{1}{2\pi} \times [\text{Change in }G\gamma\text{ per turn}].
+\end{equation}
+Compare the result of the Froissart-Stora formula to the result obtained from tracking.
+
+\end{enumerate}
+
+\subsection{Exercises}
+\begin{enumerate}[leftmargin=*]
+\item The AGS has two special spin rotators known as partial Siberian snakes. Add the partial Siberian snakes to \vn{spin_lat.bmad}. They are represented by elements called CSNK (cold snake) and WSNK (warm snake), which are markers in the lattice we have provided to you. We will represent the ideal (point-like) Siberian snakes using \vn{Taylor} elements. Here is the example syntax:
+\begin{code}
+CSNK: Taylor, {S1: q_0|}, {Sx: q_1|}, {Sy: q_2|}, {Sz: q_3|}
+\end{code}
+In this case, the \vn{Taylor} element produces an instantaneous rotation represented by the unit quaternion $(q_0,q_1,q_2,q_3)$. Recall that the unit quaternion $(\cos(\vartheta/2),\sin(\vartheta/2)\vec{e})$ produces a rotation by angle $\vartheta$ around the unit vector $\vec{e}$. The cold snake has a rotation angle of $18.3^\circ$, and the warm snake has a rotation angle of $10.57^\circ$. Both snakes rotate the spin around the longitudinal axis.
+
+Play around with the \vn{show spin} command at different energies, and verify that the spin tune is \emph{not} $G\gamma$. Why is this the case?
+
+\item If you have done the previous exercise, comment out the \vn{Taylor} elements and return the snakes to markers for this exercise. Use the script \vn{DepolTao.py} to plot the resonance spectrum in the range $G\gamma = 30$ to $G\gamma =60$. It is run using the following syntax:
+\begin{code}
+python DepolTao.py <lat_file> <output_file> <plot_file> <particle> <SPRINT>
+<min Ggamma> <max Ggamma> <J_y>
+\end{code}
+For this case, set <SPRINT> to T. This boolean flag can take the values T or F, and if T, the spin tracking mode is set to SPRINT. SPRINT tracking is fast, but can be inaccurate when magnets are misaligned or there are strong nonlinearities.
+
+What do you observe about the spectrum? Can you explain any of its features? \emph{Hint: look at the structure of the lattice.}
+\end{enumerate}
 
 
 
-%------------------------------------------------------------------------------
-%\subsection{Invariant Spin Field Calculations}
-%\sodom $\rightarrow$ \ltt
 
-%\newpage
+
+\newpage
 
 %------------------------------------------------------------------------------
 %------------------------------------------------------------------------------

@@ -9,7 +9,8 @@
 !   ele_name -- character(*): Associated "element" of the changed parameter.
 !   ele_ptr  -- ele_struct, pointer, optional: Pointer to the element. 
 !                 May be null, for example, if ele_name = "PARTICLE_START".
-!   val_ptr  -- real(rp):, pointer, optional: Pointer to the attribute that was changed.
+!   val_ptr  -- all_pointer_struct: optional: Pointer to the attribute that was changed.
+!                 Must be present if ele_ptr is present.
 !   who      -- character(*), optional: Name of changed attribute. Only used with PARTICLE_START.
 !-
 
@@ -23,8 +24,8 @@ implicit none
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer, optional :: ele_ptr
 type (lat_struct), pointer :: lat
+type (all_pointer_struct), optional :: val_ptr
 
-real(rp), pointer, optional :: val_ptr
 integer ib, ie, n_loc, ix_branch
 logical err
 
@@ -57,7 +58,7 @@ if (present(ele_ptr)) then
     else
       if (ele_ptr%ix_ele <= u%model_branch(ix_branch)%beam%ix_track_start) &
                                u%model_branch(ix_branch)%beam%init_starting_distribution = .true.
-      if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
+      call set_flags_for_changed_attribute (ele_ptr, val_ptr)
     endif
   endif
 endif

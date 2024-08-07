@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #+
 # Script to convert from Elegant lattice format to Bmad lattice format.

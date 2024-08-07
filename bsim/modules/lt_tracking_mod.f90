@@ -47,7 +47,7 @@ type ltt_params_struct
   character(40) :: ele_extract = ''
   character(100) :: ele_write_at = ''
   character(200) :: lat_file = ''
-  character(200) :: beam_output_file = 'beam.h5'
+  character(200) :: beam_output_file = ''
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: map_ascii_output_file = ''
@@ -3492,6 +3492,11 @@ logical err_flag, finished, radiation_included, is_there
 
 character(*), parameter :: r_name = 'ltt_track1_preprocess'
 
+! This routine may be called by bmad_parser (via ele_compute_ref_energy_and_time) which is 
+! before LTT ramping has been setup. To avoid problems, return if setup has not been done.
+
+if (.not. associated(ltt_com_global%tracking_lat%ele)) return
+
 ! Recording a particle track?
 
 err_flag = .false.
@@ -3508,7 +3513,7 @@ if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
 endif
 
 if (.not. ltt_params_global%ramping_on) return
-if (.not. ltt_params_global%ramp_update_each_particle) return 
+if (.not. ltt_params_global%ramp_update_each_particle .and. ltt_params_global%simulation_mode == 'BEAM') return 
 
 ! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 

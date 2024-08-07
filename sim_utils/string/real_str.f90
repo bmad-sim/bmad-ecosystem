@@ -8,7 +8,7 @@
 !
 ! Input:
 !   r_num     -- real(rp): Real number
-!   n_signif  -- integer: Number of significant places.
+!   n_signif  -- integer, optional: Number of significant places. If not present, n_decimal must be present.
 !   n_decimal -- integer, optional: If present, maximum number of places after the decimal point.
 !
 ! Output:
@@ -22,13 +22,14 @@ use sim_utils_interface, dummy => real_str
 implicit none
 
 real(rp) r_num
-integer n_signif
-integer, optional :: n_decimal
+integer, optional :: n_signif, n_decimal
 character(:), allocatable :: str
 character(20) string
 
 if (present(n_decimal)) then
-  if (abs(r_num) > 10.0_rp**(n_signif - n_decimal)) then
+  if (.not. present(n_signif)) then
+    write (string, '(f20.' // int_str(n_decimal) // ')') r_num
+  elseif (abs(r_num) > 10.0_rp**(n_signif - n_decimal)) then
     write (string, '(f20.' // int_str(n_decimal) // ')') r_num
   else
     string = real_to_string(r_num, 20, n_signif = n_signif)

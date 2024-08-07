@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Note: Run this script in the cpp_bmad_interface directory.
 
