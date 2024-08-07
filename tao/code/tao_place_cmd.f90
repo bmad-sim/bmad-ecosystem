@@ -41,7 +41,7 @@ character(*) who, where
 character(*), parameter :: r_name = 'tao_place_cmd'
 
 ! If external plotting is being done then just save the arguments and the GUI
-! can query for the info via a python command.
+! can query for the info via a pipe command.
 
 if (s%global%external_plotting .and. .not. logic_option(.false., no_buffer)) then
   if (allocated (s%com%plot_place_buffer)) then

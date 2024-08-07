@@ -583,6 +583,12 @@ subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni, explicit_u
   logical, optional :: explicit_uni, pure_uni
 end subroutine
  
+subroutine tao_pipe_cmd (input_str)
+  import
+  implicit none
+  character(*) input_str
+end subroutine
+
 subroutine tao_place_cmd (where, who, no_buffer)
   implicit none
   character(*) who
