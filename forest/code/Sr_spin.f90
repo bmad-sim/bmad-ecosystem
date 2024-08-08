@@ -1104,6 +1104,7 @@ endif
 
         xs%u=my_false
         XS=X
+        xs%q=1.0_dp
          CALL TRACK_PROBE(r,xs,K, fibre1,fibre2,node1,node2)
        X=XS%X
     endif
@@ -1149,6 +1150,7 @@ endif
 
         xs%u=my_false
         XS%X=X
+        xs%q=1.0_dp
          CALL TRACK_PROBE(r,xs,K, fibre1,fibre2,node1,node2)
         X=XS%X
         call kill(xs)
@@ -1171,6 +1173,7 @@ endif
 
     xs%u=my_false
     XS=X
+    xs%q=1.0_dp
     !   if(present(t)) THEN
     !       ALLOCATE(xs%lost_node)
     !       t=>xs%lost_node
@@ -1203,6 +1206,8 @@ endif
     call alloc(xs)
     xs%u=my_false
     XS%X=X
+    xs%q=1.0_dp
+
     !  if(present(t)) THEN
     !       ALLOCATE(xs%lost_node)
     !       t=>xs%lost_node

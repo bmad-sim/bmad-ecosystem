@@ -4659,20 +4659,19 @@ Tao> set global track_type = single
 \label{s:python}
 
 When there is a need to extract data from \tao for external processing, \tao has a command called
-\vn{python} (not to be confused with the \vn{Python} program) which can be used to output data in a
+\vn{pipe} which can be used to output data in a
 form suitable for easy parsing. Additionally, there is a package called \vn{PyTao} which can be used
-to interface \tao to \vn{Python}. The former is discussed in \Sref{s:python.cmd} and the latter is
+to interface \tao to \vn{Python}. The former is discussed in \Sref{s:pipe.cmd} and the latter is
 discussed in \Sref{s:pytao}.
 
 %------------------------------------------------------------------------------
-\subsection{Tao's Python Command}
-\label{s:python.cmd}
+\subsection{Tao's Pipe Command}
+\label{s:pipe.cmd}
 
-\tao's \vn{python} command is used to output data in a form that is suitable for easy parsing by an
-external program. Despite its name, the output of the \vn{python} command is not \vn{Python} specific.
-Example:
+\tao's \vn{pipe} command is used to output data in a form that is suitable for easy parsing by an
+external program.  Example:
 \begin{code}
-Tao> python ring_general
+Tao> pipe ring_general
 \end{code}
 This command is used with lattices with a closed geometry to output information on the lattice.
 The output of this command looks like:
@@ -4689,16 +4688,16 @@ J_damp_a;REAL;F;  1.01125472391567E+00
 \end{code}
 The output here has some of the same information as the output of the \vn{show universe} command
 except that it is easier to parse being comma delimited list. The other advantage of using the
-\vn{python} command is that the output is generally stable over time as the \tao program is
-developed to ensure that external code that interfaces to the \vn{python} command does not break.
+\vn{pipe} command is that the output is generally stable over time as the \tao program is
+developed to ensure that external code that interfaces to the \vn{pipe} command does not break.
 This is in contrast to the \vn{show} command whose output is formatted to be human readable and whose
 output format may change on a whim.
 
-The general form of the \vn{python} command is:
+The general form of the \vn{pipe} command is:
 \begin{code}
-  python <subcommand> <arguments>
+  pipe <subcommand> <arguments>
 \end{code}
-The \vn{python} command has a number of \vn{subcommands} (over 100) that are listed in the \tao
+The \vn{pipe} command has a number of \vn{subcommands} (over 100) that are listed in the \tao
 manual. The sub-commands can be divided into two categories. One category are the ``\vn{action}''
 subcommands which allow for control of \tao such as creating variables and data for use in an
 optimization. The other category are the ``\vn{output}'' subcommands which output information from
@@ -4741,7 +4740,7 @@ The \vn{Python} \vn{PyTao} package interfaces \tao with \vn{Python}.  With \vn{P
 to
 \begin{itemize}
 \item
-Parse \vn{python} command output into a \vn{Python} structure for easy access.
+Parse \vn{pipe} command output into a \vn{Python} structure for easy access.
 \item
 Run \tao as a subprocess of \vn{Python}
 \end{itemize}
@@ -4762,9 +4761,9 @@ be found on the Web. There are several ways to install PyTao. To install via \vn
   pip install PyTao
 \end{code}
 
-As an example of how \vn{PyTao} can parse the \vn{python} command output, run \tao with the commands
+As an example of how \vn{PyTao} can parse the \vn{pipe} command output, run \tao with the commands
 \begin{code}
-Tao> python -write bmad_com.out bmad_com
+Tao> pipe -write bmad_com.out bmad_com
 
 max_aperture_limit;REAL;T;  1.00000000000000E+03
 d_orb;REAL_ARR;T;1E-05;1E-05;1E-05;1E-05;1E-05;1E-05

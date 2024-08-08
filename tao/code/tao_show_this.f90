@@ -1,7 +1,7 @@
 !+
 ! Subroutine tao_show_this (what, result_id, lines, nl)
 !
-! Routine called by tao_show_cmd and tao_python_cmd. 
+! Routine called by tao_show_cmd and tao_pipe_cmd. 
 ! This routine is not meant for general use.
 !
 ! Input:
@@ -193,7 +193,7 @@ logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip, show_energy
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc
-logical print_ptc, called_from_python_cmd, print_eigen, show_mat, show_q, print_rms
+logical print_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -2596,12 +2596,12 @@ case ('hom')
 
 case ('internal')
 
-  call tao_next_switch (what2, [character(16):: '-python', '-control'], .true., switch, err)
+  call tao_next_switch (what2, [character(16):: '-pipe', '-control'], .true., switch, err)
   select case (switch)
 
-  ! Format: show -python_buffer
-  ! This is useful for debugging the real and integer array passing which is used in the python interface.
-  case ('-python')
+  ! Format: show -pipe_buffer
+  ! This is useful for debugging the real and integer array passing which is used in the pipe interface.
+  case ('-pipe')
 
     nl=nl+1; write (lines(nl), imt) 'N_real: ', tao_c_interface_com%n_real
 
@@ -2730,7 +2730,7 @@ case ('lattice')
   n_attrib = 0
   attrib0 = ''
   undef_uses_column_format = .false.
-  called_from_python_cmd = .false.
+  called_from_pipe_cmd = .false.
   print_rms = .false.
 
   column(:) = old_show_lat_column_struct()
@@ -2741,7 +2741,7 @@ case ('lattice')
   do
     call tao_next_switch (what2, [character(32):: &
         '-branch', '-blank_replacement', '-lords', '-center', '-middle', &
-        '-tracking_elements', '-0undef', '-beginning', &
+        '-tracking_elements', '-0undef', '-beginning', 'pipe', &
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
         '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe', '-rms'], &
@@ -2853,8 +2853,8 @@ case ('lattice')
       case default;           what_to_show = 'orbit'
       end select
 
-    case ('-python')
-      called_from_python_cmd = .true.
+    case ('-pipe', '-python')
+      called_from_pipe_cmd = .true.
       print_tail_lines = .false.
 
     case ('-radiation_integrals')
@@ -3278,7 +3278,7 @@ case ('lattice')
 
   !
 
-  if (called_from_python_cmd) then
+  if (called_from_pipe_cmd) then
     line1 = ''
     line2 = ''
     line3 = ''
@@ -3355,15 +3355,15 @@ case ('lattice')
         i2 = index(name, '[')
         name = name(1:i2-1)
       elseif  (name == '#' .or. name == '#index') then
-        call set_this_show_lat_header (line2, line3, 'Index', 'I', called_from_python_cmd, ix2-5)
+        call set_this_show_lat_header (line2, line3, 'Index', 'I', called_from_pipe_cmd, ix2-5)
         ix1 = ix2
         cycle    
       elseif  (name == '#branch') then
-        call set_this_show_lat_header (line2, line3, 'Branch', 'I', called_from_python_cmd, ix2-5)
+        call set_this_show_lat_header (line2, line3, 'Branch', 'I', called_from_pipe_cmd, ix2-5)
         ix1 = ix2
         cycle    
       elseif  (name == '#branch>>index') then
-        call set_this_show_lat_header (line2, line3, 'Brnch>>Indx', 'I', called_from_python_cmd, ix2-5)
+        call set_this_show_lat_header (line2, line3, 'Brnch>>Indx', 'I', called_from_pipe_cmd, ix2-5)
         ix1 = ix2
         cycle    
       elseif (name == 'x') then
@@ -3377,8 +3377,8 @@ case ('lattice')
       if (ix == 0) ix = index(name, '_')
       n = len_trim(name)
 
-      if (called_from_python_cmd) then
-        call set_this_show_lat_header (line2, line3, name, col(i)%format, called_from_python_cmd)
+      if (called_from_pipe_cmd) then
+        call set_this_show_lat_header (line2, line3, name, col(i)%format, called_from_pipe_cmd)
 
       elseif (index(col(i)%format, 'A') /= 0) then
         line2(ix1:) = name
@@ -3415,9 +3415,9 @@ case ('lattice')
 
       ix = index(name, '|')
 
-      if (called_from_python_cmd) then
+      if (called_from_pipe_cmd) then
         if (ix /= 0) name(ix:ix) = '_'
-        call set_this_show_lat_header (line2, line3, name, col(i)%format, called_from_python_cmd)
+        call set_this_show_lat_header (line2, line3, name, col(i)%format, called_from_pipe_cmd)
 
       elseif (ix == 0) then
         if (index(col(i)%format, 'A') /= 0) then
@@ -3447,7 +3447,7 @@ case ('lattice')
   ! Collect lines
 
   if (print_header_lines) then
-    if (called_from_python_cmd) then
+    if (called_from_pipe_cmd) then
       nl=nl+1; lines(nl) = line2
       nl=nl+1; lines(nl) = line3
     else
@@ -3495,7 +3495,7 @@ case ('lattice')
 
       j = max(i-1, 1)
       if (i > 1 .and. col(j)%name /= '') then
-        if (called_from_python_cmd) then
+        if (called_from_pipe_cmd) then
           if (col(j)%name /= 'x') then
             do i0 = nc, nc+col(j)%width
               if (line(i0:i0) /= ' ') exit
@@ -3660,7 +3660,7 @@ case ('lattice')
     enddo  ! column loop
 
     if (n_remove > 0 .and. n_zeros_found == n_remove) cycle
-    if (called_from_python_cmd) line(nc-1:nc-1) = ' '  ! Remove final ';'
+    if (called_from_pipe_cmd) line(nc-1:nc-1) = ' '  ! Remove final ';'
     s_last = s_now
 
     nl=nl+1; lines(nl) = line
@@ -6782,15 +6782,15 @@ end subroutine write_this_arg
 !------------------------------------------------------------------------------------------
 ! contains
 
-subroutine set_this_show_lat_header (line2, line3, who, fmt, called_from_python_cmd, ix)
+subroutine set_this_show_lat_header (line2, line3, who, fmt, called_from_pipe_cmd, ix)
 
 character(*) line2, line3, who, fmt
 integer, optional :: ix
-logical called_from_python_cmd
+logical called_from_pipe_cmd
 
 !
 
-if (called_from_python_cmd) then
+if (called_from_pipe_cmd) then
   if (line2 /= '') then
     line2 = trim(line2) // ';'
     line3 = trim(line3) // ';'

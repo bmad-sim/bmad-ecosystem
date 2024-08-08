@@ -314,7 +314,7 @@ case ('create')
          if (ds(id(4)+1:id(4)+1).ne.' ') go to 70000
          id(1) = verify(ds(id(4)+1:),' ') + id(4)
       end do
-      call tao_python_cmd(pipe_cmd)
+      call tao_pipe_cmd(pipe_cmd)
     end block
     return
     70000 call out_io(s_error$, r_name, 'Correct form is "create data d2_name x[i:j] ..."')
@@ -466,7 +466,7 @@ case ('pause')
 
 case ('pipe', 'python')
 
-  call tao_python_cmd (cmd_line)
+  call tao_pipe_cmd (cmd_line)
   return
 
 !--------------------------------

@@ -1,20 +1,17 @@
-\chapter{Python/Tao Interface}
+\chapter{Python Interface to Tao}
 \index{python interface}
 \label{c:python}
 
-It is sometimes convenient to interface \tao to an external program.\footnote
-  { 
-Commonly the external program is \vn{Python}. 
-  }
-For example, to analyze Tao generated data in an external program. Another application is to
-interface \tao to an online control system environment. In this case, \tao can be used for such
-things as flattening orbits.
+It is sometimes convenient to interface \tao to a scripting language like Python or interface to
+some external program.  Applications include analyzing Tao generated data or 
+to interface \tao to an online control system environment.
 
-To aid in interfacing, \tao has the \vn{python} command (\sref{s:python.python}).\footnote
+To aid in interfacing, \tao has the \vn{pipe} command (\sref{s:pipe}).\footnote
   {
-Dispite its name, \tao's \vn{python} command can be used with any external program. 
+Formally this command was called \vn{python} but the name was changed to avoid confusion with
+the scripting language Python.
   }
-The \vn{python} command defaines a standardized syntax with which to communicate with \tao.
+The \vn{pipe} command defaines a standardized syntax with which to communicate with \tao.
 
 Another aid is the \vn{PyTao} package which is an interface layer to be used between \tao and
 \vn{Python}. See \sref{s:pytao} for more details.
@@ -37,6 +34,8 @@ Documentation for setup and using PyTao is at:
 \end{example}
 See the \vn{PyTao} documentation for installation instructions, examples, etc. In this chapter, some
 simple examples will be given.
+
+The \vn{PyTao} package uses \tao's \vn{pipe} command to ease integration with \vn{Python}.
 
 There are two ways to interface with Python/PyTao. One way is using the Python \vn{ctypes}
 library. The other way is using the \vn{pexpect} module. A Web search will point to documentation on
@@ -71,17 +70,17 @@ Example Python session:
 %--------------------------------------------------------------------------
 \subsection{Python/PyTao Interface Via Ctypes}
 
-A \vn{ctypes} based python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided by
+A \vn{ctypes} based Python module \vn{pytao.py} for interfacing \tao to \vn{Python} is provided by
 \vn{PyTao} (\sref{s:pytao}) in the directory \vn{pytao/tao_pexpect}.
 
 A test driver script named \vn{pytao_example.py} is in the same directory. See the documentation in
 both of these files for further information.
 
 %--------------------------------------------------------------------------
-\section{Tao's Python Command}
-\label{s:python.python}
+\section{Tao's Pipe Command}
+\label{s:pipe}
 
-\tao's \vn{python} (\sref{s:python}) command was developed to:
+\tao's \vn{pipe} (\sref{s:pipe}) command was developed to:
 %
 \begin{itemize}
 \item 
@@ -92,36 +91,34 @@ interfacing \tao to external programs especially scripting languages like \vn{Py
 Act as an intermediate layer for the control of \tao by such things as machine online control
 programs or the planned graphical user interface for \tao.
 \end{itemize}
-Dispite its name, \tao's \vn{python} command can be used with any external program. However, the
-\vn{PyTao} package has code that uses the \vn{python} command to ease integration with \vn{Python}.
 
-Using the \vn{python} command to control \tao will not be covered here. The interested reader is
+Using the \vn{pipe} command to control \tao will not be covered here. The interested reader is
 invited to read the sections of this manual on the coding of \tao and look at the \tao code itself
 (which is heavily documented).
 
-Using the \vn{python} command is far superior to using the \vn{show} command when interfacing to an
-external program. For one, the \vn{python} command is formatted for ease of parsing. Another reason
-to use the \vn{python} command is that, as \tao is developed over time, the output format of the
-\vn{python} command is much more stable than output from the \vn{show} command.\footnote
+Using the \vn{pipe} command is far superior to using the \vn{show} command when interfacing to an
+external program. For one, the \vn{pipe} command is formatted for ease of parsing. Another reason
+to use the \vn{pipe} command is that, as \tao is developed over time, the output format of the
+\vn{pipe} command is much more stable than output from the \vn{show} command.\footnote
   {
-The output of the \vn{python} command will change when \tao's or \bmad's internal structures are
+The output of the \vn{pipe} command will change when \tao's or \bmad's internal structures are
 modified. This is in contrast to the \vn{show} command whose output is formated to be human readible
 and whose output format may change on a whim.
   }
-Thus the risk of User developed interface code breaking is much reduced by using the \vn{python} command.
+Thus the risk of User developed interface code breaking is much reduced by using the \vn{pipe} command.
 
-The general form of the \vn{python} command is:
+The general form of the \vn{pipe} command is:
 \begin{example}
-  python <subcommand> <arguments>
+  pipe <subcommand> <arguments>
 \end{example}
-The \vn{python} command has a number of \vn{subcommands} (over 100) that are listed in
-\Sref{s:python.sub}. The sub-commands can be divided into two categories. One category are the
+The \vn{pipe} command has a number of \vn{subcommands} (over 100) that are listed in
+\Sref{s:pipe.sub}. The sub-commands can be divided into two categories. One category are the
 ``\vn{action}'' subcommands which allow the user to control \tao (for example, creating variables
 and data for use in an optimization). The other category are the ``\vn{output}'' subcommands which
 output information from \tao.
 
-The output of the \vn{python} command are semi-colon delimited lists. Example: With the
-\vn{python global} the output looks like:
+The output of the \vn{pipe} command are semi-colon delimited lists. Example: With the
+\vn{pipe global} the output looks like:
 \begin{example}
   lm_opt_deriv_reinit;REAL;T; -1.0000000000000000E+00
   de_lm_step_ratio;REAL;T;  1.0000000000000000E+00
@@ -149,9 +146,9 @@ The fields are:
         REAL_ARR      Real array
         LOGIC         Logical: "T" or "F".
         INUM          Integer whose allowed values can be obtained 
-                        using the "python inum" command.
+                        using the "pipe inum" command.
         ENUM          String whose allowed values can be obtained 
-                        using the "python enum" command.
+                        using the "pipe enum" command.
         FILE          Name of file.
         CRYSTAL       Crystal name string. EG: "Si(111)"
         DAT_TYPE      Data type string. EG: "orbit.x"
@@ -187,7 +184,7 @@ regions and it would be potentially disruptive if a user tired to place plots (w
 inadvertently happen when running command files). To avoid this, with \vn{-external_plotting} set,
 the \vn{place} command will not do any placement but rather save the \vn{place} arguments (which is
 the name of a template plot and a region name) to a buffer which then can be read out by the
-external code using the \vn{python place_buffer} command. The external code may then decide how to
+external code using the \vn{pipe place_buffer} command. The external code may then decide how to
 proceed. The external code is able to bypass the buffering and perform placements by using
 \vn{place} with the \vn{-no_buffer} switch (\sref{s:place}). Notice: \tao never processes place
 command information put in the buffer. It is up to the external code to decide on a course of action.
@@ -195,17 +192,17 @@ command information put in the buffer. It is up to the external code to decide o
 Normally when \tao is not displaying the plot page when the \vn{-noplot} option is used, \tao will,
 to save time, not calculate the points needed for plotting curves. The exception is if
 \vn{-external_plotting} is turned on. In this case, to make plot references unambiguous, plot can be
-referred to by their index number. The plot index number can be viewed using the \vn{python
+referred to by their index number. The plot index number can be viewed using the \vn{pipe
 plot_list} command. Template plots can be referenced using the syntax ``\vn{@Tnnn}'' where \vn{nnn}
 is the index number. For example, \vn{@T3} referrers to the template plot with index 3. Similarly,
 the displayed plots (plots that are associated with plot regions) can be referred to using the
 syntax ``\vn{@Rnnn}''.
 
 %--------------------------------------------------------------------------
-\section{Python subcommands}
-\label{s:python.sub}
+\section{Pipe subcommands}
+\label{s:pipe.sub}
 
-The \vn{python} command has the following subcommands:
+The \vn{pipe} command has the following subcommands:
 
-\input{python-interface-commands.tex}
+\input{pipe-interface-commands.tex}
 

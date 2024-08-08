@@ -490,7 +490,7 @@ end select
 lat => tao_lat%lat
 
 ! loop over all elements in the lattice. 
-! If the logic of this loop is changed, a corresponding change must be made for the "python floor_plan" code.
+! If the logic of this loop is changed, a corresponding change must be made for the "pipe floor_plan" code.
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
