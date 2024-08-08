@@ -66,10 +66,11 @@ possible
   help          & \sref{s:help}     & veto          & \sref{s:veto}     \\ 
   ls            & \sref{s:ls}       & view          & \sref{s:view}     \\
   pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\
-  place         & \sref{s:place}    & write         & \sref{s:write}    \\ 
-  ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ 
-  python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ 
-  quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\
+  pipe          & \sref{s:pipe}     & write         & \sref{s:write}    \\
+  place         & \sref{s:place}    & x_axis        & \sref{s:x.axis}   \\ 
+  ptc           & \sref{s:ptc}      & x_scale       & \sref{s:x.scale}  \\ 
+  python        & \sref{s:python}   & xy_scale      & \sref{s:xy.scale} \\ 
+  quit          & \sref{s:quit}     &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -79,7 +80,7 @@ possible
 When running \tao, use the \vn{help} (\sref{s:help}) command to show documentation on any command.
 For example, \vn{help plot} will show documentation on the \vn{plot} command.
 
-%% Marker: "help" will not display anything after this  -----------
+%% Marker: "help" (with no arguments) will not display anything after this line -----------
 
 \vfil
 \break
@@ -552,6 +553,62 @@ Example:
                !   command is issued.
 \end{example}
 
+%% pipe -----------------------------------------------------------
+\section{pipe}\index{commands!pipe}
+\label{s:pipe}
+
+The \vn{pipe} command is like the \vn{show} command in that the \vn{pipe} command prints
+information to the terminal. The difference is that the output from the \vn{show} command is meant
+for viewing by the user while the output of the \vn{pipe} command is meant for easy
+parsing. Format:
+\begin{example}
+  pipe \{-append <file_name>\} \{-noprint\} <subcommand> <arguments>
+  pipe \{-write <file_name>\} \{-noprint\} <subcommand> <arguments>
+\end{example}
+
+The \vn{pipe} command has \vn{-append} and \vn{-write} optional arguments which can be used to
+write the results to a file. The \vn{pipe -append} command will appended to the output file. The
+\vn{pipe -write} command will first erase the contents of the output file. Example:
+\begin{example}
+  pipe -write d2.dat data_d2    ! Write to file "d2.dat"
+\end{example}
+
+The \vn{-noprint} option suppresses printing and is useful when writing large amounts of data to a
+file.  The \vn{pipe} command can be used to pass information to a parent process when \tao is run
+as a subprocess.  The parent process may be any scripting program like Pipe, Perl, Tcl, etc.  In
+particular, see the \vn{Python Interface} chapter (\sref{c:python}) for details on how to run
+\tao as a Python subprocess.
+
+In terms of long term maintainability, the advantage of using the \vn{pipe} command in the scripts
+over the \vn{show} command comes from the fact that the output syntax of \vn{show} commands can (and
+does) change.
+
+Note to programmers: For debugging, the \vn{show internal -pipe} command will show the \vn{c_real}
+and \vn{c_integer} arrays.
+
+List of possible \vn{<what_to_print>} choices:
+\begin{example}
+  beam, beam_init, branch1, bunch_comb, bunch_params, bunch1, bmad_com, 
+  building_wall_list, building_wall_graph, building_wall_point, 
+  building_wall_section, constraints, da_params, da_aperture, data, 
+  data_d2_create, data_d2_destroy, data_d_array, data_d1_array,
+  data_d2, data_d2_array, data_set_design_value, data_parameter,
+  datum_create, datum_has_ele, derivative, ele:ac_kicker, ele:cartesian_map,
+  ele:chamber_wall, ele:control_var, ele:cylindrical_map, ele:elec_multipoles,
+  ele:floor, ele:gen_grad_map, ele:grid_field, ele:gen_attribs, ele:head, ele:lord_slave, 
+  ele:mat6, ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, 
+  ele:spin_taylor, ele:taylor, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
+  evaluate, floor_plan, floor_orbit, global, help, inum, lat_branch_list,
+  lat_calc_done, lat_ele_list, lat_list, lat_param_units, matrix, merit, orbit_at_s,
+  place_buffer, plot_curve, plot_graph, plot_histogram, plot_lat_layout, plot_line,
+  plot_plot_manage, plot_graph_manage, plot_curve_manage, plot_list, plot_symbol,
+  plot_transfer, plot1, ptc_com, ring_general, shape_list, shape_manage,
+  shape_pattern_list, shape_pattern_manage, shape_pattern_point_manage, shape_set,
+  show, species_to_int, species_to_str, spin_invariant, spin_polarization, 
+  spin_resonance, super_universe, twiss_at_s, universe, var_v1_create, var_v1_destroy, 
+  var_create, var_general, var_v1_array, var_v_array, var, wave
+\end{example}
+
 %% place --------------------------------------------------------------
 \section{place}\index{commands!place}
 \label{s:place}
@@ -617,67 +674,13 @@ Examples:
   ptc init
 \end{example}
 
+
 %% python -----------------------------------------------------------
 \section{python}\index{commands!python}
 \label{s:python}
 
-The \vn{python} command is like the \vn{show} command in that the \vn{python} command prints
-information to the terminal. The difference is that the output from the \vn{show} command is meant
-for viewing by the user while the output of the \vn{python} command is meant for easy
-parsing. Format:
-\begin{example}
-  python \{-append <file_name>\} \{-noprint\} <subcommand> <arguments>
-  python \{-write <file_name>\} \{-noprint\} <subcommand> <arguments>
-\end{example}
-
-The \vn{python} command has \vn{-append} and \vn{-write} optional arguments which can be used to
-write the results to a file. The \vn{python -append} command will appended to the output file. The
-\vn{python -write} command will first erase the contents of the output file. Example:
-\begin{example}
-  python -write d2.dat data_d2    ! Write to file "d2.dat"
-\end{example}
-
-The \vn{-noprint} option suppresses printing and is useful when writing large amounts of data to a
-file.  The \vn{python} command can be used to pass information to a parent process when \tao is run
-as a subprocess.  The parent process may be any scripting program like Python, Perl, Tcl, etc.  In
-particular, see the \vn{Python/GUI Interface} chapter (\sref{c:python}) for details on how to run
-\tao as a Python subprocess.
-
-In terms of long term maintainability, the advantage of using the \vn{python} command in the scripts
-over the \vn{show} command comes from the fact that the output syntax of \vn{show} commands can (and
-does) change.
-
-For further documentation on the python command and interfacing to python is in the \vn{Python/GUI
-Interface} chapter (\sref{c:python}).
-
-Documentation on interfacing Python scripts to \tao's python command is given in the \vn{Tao Python
-Command} section (\sref{s:python.python}).
-
-Note to programmers: For debugging, the \vn{show internal -python} command will show the \vn{c_real}
-and \vn{c_integer} arrays.
-
-List of possible \vn{<what_to_print>} choices:
-\begin{example}
-  beam, beam_init, branch1, bunch_comb, bunch_params, bunch1, bmad_com, 
-  building_wall_list, building_wall_graph, building_wall_point, 
-  building_wall_section, constraints, da_params, da_aperture, data, 
-  data_d2_create, data_d2_destroy, data_d_array, data_d1_array,
-  data_d2, data_d2_array, data_set_design_value, data_parameter,
-  datum_create, datum_has_ele, derivative, ele:ac_kicker, ele:cartesian_map,
-  ele:chamber_wall, ele:control_var, ele:cylindrical_map, ele:elec_multipoles,
-  ele:floor, ele:gen_grad_map, ele:grid_field, ele:gen_attribs, ele:head, ele:lord_slave, 
-  ele:mat6, ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, 
-  ele:spin_taylor, ele:taylor, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
-  evaluate, floor_plan, floor_orbit, global, help, inum, lat_branch_list,
-  lat_calc_done, lat_ele_list, lat_list, lat_param_units, matrix, merit, orbit_at_s,
-  place_buffer, plot_curve, plot_graph, plot_histogram, plot_lat_layout, plot_line,
-  plot_plot_manage, plot_graph_manage, plot_curve_manage, plot_list, plot_symbol,
-  plot_transfer, plot1, ptc_com, ring_general, shape_list, shape_manage,
-  shape_pattern_list, shape_pattern_manage, shape_pattern_point_manage, shape_set,
-  show, species_to_int, species_to_str, spin_invariant, spin_polarization, 
-  spin_resonance, super_universe, twiss_at_s, universe, var_v1_create, var_v1_destroy, 
-  var_create, var_general, var_v1_array, var_v_array, var, wave
-\end{example}
+\vn{Python} is the old name for the \vn{pipe} command. For backwards compatibility,
+the old name is still accepted.
 
 %% quit --------------------------------------------------------------
 \section{quit}\index{commands!quit}
@@ -1190,7 +1193,7 @@ that \vn{cannot} be set is:
 \end{example}
 
 The \vn{-silent} switch, if present, prevents \tao from issuing an error message if \tao detects a
-malformed datum. This is useful when creating datums from scratch (via \vn{python data_d2_create})
+malformed datum. This is useful when creating datums from scratch (via \vn{pipe data_d2_create})
 or when modifying multiple datum parameters, like a datum's \vn{data_type} and \vn{data_source},
 where it is known that the datum will be in a malformed state before the final set.
 
@@ -1987,7 +1990,7 @@ computed), the error messages are reproduced in the file. If this behavior is no
 The \vn{-append}, \vn{-write}, \vn{-noprint}, and \vn{-no_err_out} switches must be placed before
 \vn{<subcommand>}.
 
-Note: When running \tao as a subprocess, use the \vn{python} command (\sref{s:python})
+Note: When running \tao as a subprocess, use the \vn{pipe} command (\sref{s:pipe})
 instead of the \vn{show} command for communicating with the parent process.
 
 % Use the command:
@@ -2033,7 +2036,7 @@ If the \vn{-comb} is present, \vn{<element_id>} should be an integer which is th
 of longitudinally equally spaced points where the beam parameters are evaluated at.  Note:
 \vn{comb_ds_save} (\sref{s:tao.global.struct}) is used to set the spacing between points.  If
 \vn{<element_id>} is not present, information about all the comb points is output. Also see the
-\vn{write bunch_comb} (\sref{s:write.bunch.comb}) and \vn{python bunch_comb} (\sref{p:bunch.comb})
+\vn{write bunch_comb} (\sref{s:write.bunch.comb}) and \vn{pipe bunch_comb} (\sref{p:bunch.comb})
 commands.
 
 The \vn{-z <z1> <z2>} option shows bunch parameters for a slice of the beam. The slice boundaries
@@ -2536,7 +2539,7 @@ Syntax:
       \{-blank_replacement <string>\}  \{-branch <name_or_index>\} \{-center\}
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-no_tail_lines\} \{-orbit\} 
-      \{-python\} \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} 
+      \{-pipe\} \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} 
       \{-rms\} \{-s <s1>:<s2>\} \{-spin\} \{-sum_radiation_integrals\} \{-tracking_elements\} 
       \{-undef0\} \{-universe <uni_index>\} \{<element_list>\} 
 \end{example}
@@ -2712,9 +2715,9 @@ lattices with an open geometry. Use \vn{set particle_start} to vary the starting
 case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed. If used
 with the \vn{-floor_coords} option, the orbit in floor coordinates will be shown.
 %
-\item[-python] \Newline
-The \vn{-python} switch gives a comma delimited table as output. This switch is used with the
-\vn{python} command (\sref{s:python}).
+\item[-pipe] \Newline
+The \vn{-pipe} switch gives a comma delimited table as output. This switch is used with the
+\vn{pipe} command (\sref{s:pipe}).
 %
 \item[-radiation_integrals] \Newline
 The \vn{-radiation_integrals} switch, if present, will display the radiation integrals for each
@@ -3056,7 +3059,7 @@ of column 5 is small compared to one.
 \end{Itemize}
 \vskip -1.0ex
 See the Bmad manual section on the linear spin/orbit resonance analysis for more details. The
-\vn{python spin_resonance} command can be used to extract resonance values when using running \tao
+\vn{pipe spin_resonance} command can be used to extract resonance values when using running \tao
 with a script.
 
 The \vn{-flip_n_axis} switch, if present, will flip the direction of the displayed $n$-axis. 
@@ -3971,7 +3974,7 @@ HDF5. The other three field description types are always stored using ASCII file
 
 The \vn{write bunch_comb} command writes to a file bunch parameters (bunch sigma matrix, etc.) at
 the ``comb'' points where these aggragrate bunch parameters are saved (\sref{s:beam.init}). Also see
-the \vn{show beam -comb} (\sref{s:show.beam} and \vn{python bunch_comb} (\sref{p:bunch.comb})
+the \vn{show beam -comb} (\sref{s:show.beam} and \vn{pipe bunch_comb} (\sref{p:bunch.comb})
 commands. Syntax:
 \begin{example}
     write bunch_comb \{-branch <ix_branch> \} \{-centroid\} \{-ix_bunch <ix_bunch>\} 

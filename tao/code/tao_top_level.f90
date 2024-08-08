@@ -10,7 +10,7 @@
 !
 ! Input:
 !   command    -- character(*), optional: Tao command string. If present, getting user 
-!                   input from the terminal is bypassed. This is used when interfacing to python.
+!                   input from the terminal is bypassed. This is used when interfacing to Python.
 !                                          
 ! Output:
 !   errcode    -- integer, optional: Return error code: 0 => OK, Not 0 => Err.

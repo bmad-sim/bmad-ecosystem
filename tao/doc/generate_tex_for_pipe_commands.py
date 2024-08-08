@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# # Generate documentation for Tao python commands.
-# This will auto-generate documentation for the tao python commands. 
+# # Generate documentation for Tao pipe commands.
+# This will auto-generate documentation for the tao pipe commands. 
 # It extracts a formatted comment above each case statement.
 
 # Note: To run tests, do the following:
-#   1) python generate_tex_for_python_commands.py   # Run this file
+#   1) python generate_tex_for_pipe_commands.py   # Run this file
 #   2) cd to pytao directory
 #   3) python generate_interface_commands.py
 #   4) python run_tests.py
@@ -16,12 +16,12 @@ import os
 import re
 from string import Formatter
 
-#F90_FILE = os.path.join(os.environ['ACC_ROOT_DIR'], 'tao/code/tao_python_cmd.f90')
-#F90_FILE = 'tao_python_cmd.f90'
-F90_FILE = '../code/tao_python_cmd.f90'
+#F90_FILE = os.path.join(os.environ['ACC_ROOT_DIR'], 'tao/code/tao_pipe_cmd.f90')
+#F90_FILE = 'tao_pipe_cmd.f90'
+F90_FILE = '../code/tao_pipe_cmd.f90'
 
-TEXFILE = 'python-interface-commands.tex'
-JSONFILE =  'python-interface-commands.json'
+TEXFILE = 'pipe-interface-commands.tex'
+JSONFILE =  'pipe-interface-commands.json'
 
 assert os.path.exists(F90_FILE)
 LINES = open(F90_FILE).readlines()
@@ -90,9 +90,9 @@ with open(TEXFILE, 'w') as f:
         cmd = doc["command"]
         cmd2 = cmd.replace('_', '.')
         f.write(f'''
-%% python {cmd} ------------------------------------
-\\subsection{{python {cmd}}}
-\\index{{python!{cmd}}}
+%% pipe {cmd} ------------------------------------
+\\subsection{{pipe {cmd}}}
+\\index{{pipe!{cmd}}}
 \\label{{p:{cmd2}}}
 
 ''')
