@@ -3128,7 +3128,7 @@ n_set = 0
 do i = 1, size(eles)
   u => s%u(eles(i)%id)
   call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false., lord_set)
-  call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
+  call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, .false.)
   call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele, a_ptr)
   if (.not. err) n_set = n_set + 1
 enddo
