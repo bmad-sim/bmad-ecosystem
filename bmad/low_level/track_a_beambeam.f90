@@ -41,7 +41,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) sigma(2), dsigma_ds(2), ff, ds_slice
 real(rp) xmat(6,6), del_s, bbi_const, dx, dy, dcoef, z, d, coef, ds
 real(rp) om(3), quat(0:3), beta_strong, s_body_save, p_rel, nk(2), dnk(2,2)
-real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz, zoff
+real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz, s0
 real(rp), allocatable :: z_slice(:)
 real(rp), target :: slice_center(3), s_body, s_lab
 real(rp), pointer :: center_ptr(:), s_body_ptr, s_lab_ptr ! To get around ifort bug.
@@ -59,7 +59,6 @@ center_ptr => slice_center
 s_body_ptr => s_body
 s_lab_ptr => s_lab
 orb_ptr => orbit
-zoff = ele%value(z_offset$)
 
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
@@ -86,7 +85,6 @@ n_slice = max(1, nint(ele%value(n_slice$)))
 allocate(z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
 if (orbit%time_dir == -1) z_slice = z_slice(n_slice:1:-1)
-zoff = ele%value(z_offset$) * orbit%beta / (orbit%beta + beta_strong)
 
 do i = 1, n_slice
   z = z_slice(i)        ! Distance along strong beam axis. Positive z_slice is the tail of the strong beam.
@@ -95,8 +93,9 @@ do i = 1, n_slice
   final_calc = .false.; make_mat = .false.
   s_body_save = s_body
   orb_save = orbit
-  ds = abs(slice_center(3) - s_body)
-  s_lab = super_zbrent(at_slice_func, zoff-ds, zoff+ds, 1e-12_rp, 1e-12_rp, status)
+  s0 = 0.5_rp * (orbit%vec(5) + ele%value(z_offset_tot$) - ele%value(z_crossing$) + slice_center(3))
+  ds = abs(s_body - 0.5_rp * slice_center(3)) + 0.5_rp * abs(orbit%vec(5) - ele%value(z_crossing$) - ele%value(z_offset$))
+  s_lab = super_zbrent(at_slice_func, s0-ds, s0+ds, 1e-12_rp, 1e-12_rp, status)
 
   final_calc = .true.; make_mat = logic_option(.false., make_matrix)
   s_body = s_body_save
