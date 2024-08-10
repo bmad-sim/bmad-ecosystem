@@ -12609,116 +12609,166 @@ subroutine c_identify_resonance(j,n,c)
 
 end subroutine c_identify_resonance
 
-subroutine c_full_factorise(at,as,a0,a1,a2,dir) 
+subroutine c_full_factorise(a,as,a0,a1,a2,dir) 
 !#general: manipulation
 !# a_t =  a_s o a_0 o a_1 o a_2    for dir=1
     implicit none
-    type(c_damap) , intent(inout) :: at 
+    type(c_damap) , intent(inout) :: a
     type(c_damap) , optional, intent(inout) :: as,a2,a1,a0
     integer,optional :: dir
 
-    type(c_damap) att,a0t,a1t,a2t,ast
+    type(c_damap) att,a0t,a1t,a2t,ast,at
     type(c_taylor) p
-    integer i,kspin,ii
+    type(c_universal_taylor) u
+    type(c_vector_field) fv
+    integer i,kspin,ii,j,n,idir
     real(dp) norm
+    complex(dp) value
+    integer, allocatable :: je(:)
 
-
+    call alloc(at)
     call alloc(att)
     call alloc(a0t)
     call alloc(a1t)
     call alloc(a2t)    
     call alloc(ast)
+    call alloc(fv)
+    call alloc(p)
  
+at=a
+idir=1
+if(present(dir)) idir=dir
+if(idir==-1) at=a**(-1)
  
-    ii=1
-    if(present(dir)) ii=dir
-  !  at= (a,s) =  (a,I) o  (I,s)
-
-if(.false.) then
- if(use_quaternion) then
-   call c_full_norm_quaternion(at%q,kspin,norm)
-      if(kspin==-1) then
-         att=at
-         att%s=1
-         att%q=1.0_dp
-         ast=1
-         ast%s=at%s 
-      else
-       att=at
-       ast=1
-      endif
- else
-    call c_full_norm_spin(at%s,kspin,norm)  
- ! storing the spin because the code is careless (sets it to zero)   
-      if(kspin==-1) then
-         att=at
-         att%s=1
-         att%q=1.0_dp
-         ast=1
-         ast%s=at%s 
-      else
-       att=at
-       ast=1
-      endif
-  endif
-!  at= (a,s) =  (att,I) o  (I,ats)
-
-     ! att%s=0    
-    !  att%q=0   ! new 2023,12,09
-
+as=1
+a2t=at
+a2t%q=1.0_dp
+if(use_quaternion) then
+as%q=at%q*a2t**(-1)
+else
+ as%s=at%s*a2t**(-1)
 endif
-att=at
- 
-    call extract_only_a0(att,a0t)
+
+
+att=as**(-1)*at
 
  
+   a1t=1
+   do i=1,c_%nd2t
+    a1t%v(i)=0.0_dp
+   enddo
+
+a0t=1
+   do i=1,c_%nd2t
+        a0t%v(i)=att%v(i)*a1t 
+    if(c_%ndpt/=0) fv%v(i)=a0t%v(i)
+        a0t%v(i)=a0t%v(i) + (1.0_dp.cmono.i)
+   enddo
+
+
+
+if(c_%ndpt/=0) then
+call get_field_c_universal_taylor(fv,U)
+ 
+fv=0
+ 
+do i=1,c_%nd2t/2
+ fv%v(2*i-1)=-(u.d.(2*i))
+ fv%v(2*i)  = (u.d.(2*i-1))
+enddo
+ fv%v(c_%ndptb)  =  (-1)**c_%ndptb*(u.d.(c_%ndpt)) 
+ a0=exp(fv)
+    call kill(u)
+
+allocate(je(c_%nd2))
+ je=0
+ !a0%v(c_%ndptb)=a0%v(c_%ndptb) (at%v(c_%ndptb).par.je)
+deallocate(je)
+
+ else
+ a0=a0t
+endif   !!!!!!!!!!!! end c_%ndpt/=0
+
+ 
+ 
+
+ att=a0**(-1)*att
+ 
+ 
+if(c_%ndpt/=0) then
+ allocate(je(c_%nd2t))
+  ast=1
+  je=0
+  p=(att%v(c_%ndptb).par.je)-(1.0_dp.cmono.c_%ndptb)
+
+  ast%v(c_%ndptb)=ast%v(c_%ndptb) + p
+ deallocate(je)
+
+!!! extra iteration for parameters to vanish from time-like variable
+ a0=ast*a0
+ att=a0**(-1)*as**(-1)*at   
+ endif
+
+ !!!!!!!!!!!!!   linear part 
+ 
+allocate(je(c_%nd2t))
+a1%q=1.0_dp
+do i=1,c_%nd2t 
+ do j=1,c_%nd2t 
+ je=0
+ je(j)=1
+ a1%v(i)=(att%v(i).par.je)*(1.0_dp.cmono.j) + a1%v(i)
+ enddo
+enddo
+
+deallocate(je)
+
+!!!!!!!!! removing the quadratic orbital part in the time-like variable
+if(c_%ndpt/=0) then
+
+a1%v(c_%ndpt)=1.0_dp.cmono.c_%ndpt
+ 
+allocate(je(c_%nv))
+
+    call c_taylor_cycle(att%v(c_%ndptb),size=n)
+
+    do i=1,n
+       call c_taylor_cycle(att%v(c_%ndptb),ii=i,value=value,j=je)
+       ii=0
+       do j=1,c_%nd2t 
+        ii=ii+je(j)
+       enddo
+       if(ii==2) a1%v(c_%ndptb)=a1%v(c_%ndptb)+(value.cmono.je)
+   enddo
     
-    call extract_only_a1(att,a1t)
+
+deallocate(je)
+
+  
+ a1%v(c_%ndptb)=a1%v(c_%ndptb)+(1.0_dp.cmono.c_%ndptb)
+endif
+ a2=a1**(-1)*att
+
  
 
-    a2t=att
+if(idir==-1) then
+ as=as**(-1)
+ a0=a0**(-1)
+ a1=a1**(-1)
+ a2=a2**(-1)
+endif
 
-
-
-    a0t%s=1
-    a1t%s=1
-    a2t%s=1
-    a0t%q=1.0_dp
-    a1t%q=1.0_dp
-    a2t%q=1.0_dp
-
-
-    if(ii==-1) then
-     att=a0t*a1t*a2t
-     ast=att*ast*att**(-1)
-     a1t=a0t*a1t*a0t**(-1)
-     a2t=a0t*a2t*a0t**(-1)
-     a2t=a1t*a2t*a1t**(-1)
-    else
-        att=a0t*a1t*a2t  
-        ast=at*att**(-1)
-    endif
-
-
-    if(present(a0)) a0=a0t
- 
-    if(present(a1)) a1=a1t
-
-    if(present(a2)) a2=a2t
-
-    if(present(as)) then 
-     as%q=ast%q
-     do i=1,as%n
-      as%v(i)=1.0_dp.cmono.i
-     enddo
-    endif
-
+    
+    call kill(p)
     call kill(att)
     call kill(a0t)
     call kill(a1t)
     call kill(a2t)
     call kill(ast)
- 
+    call kill(fv)
+    call kill(at)
+
+
  
 end subroutine c_full_factorise
 
@@ -14077,6 +14127,11 @@ mtemp=((1.d0/coe)*(h*mtemp))
      do j=1,mtemp%n
        r=full_abs(mtemp%v(j))+r
      enddo
+!!!! added in 2024.8.10
+     do j=0,3
+       r=full_abs(mtemp%q%x(j))+r
+     enddo
+!!!! added in 2024.8.10
 
        if(more) then
           if(r.gt.h%eps) then
@@ -15094,8 +15149,7 @@ function c_vector_field_quaternion(h,ds) ! spin routine
 
     call c_ass_quaternion(c_exp_vectorfield_on_quaternion)
 
-
-
+ 
 
     check=.true.
     eps=1.d-10
