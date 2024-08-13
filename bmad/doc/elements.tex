@@ -3492,7 +3492,9 @@ With \vn{matrix} set to \vn{standard} (the default), the matrix $\Bf M$ is calcu
 (and only if) the actual Twiss and coupling parameters at the entrance of the \vn{match} element
 are equal to the element entrance Twiss and coupling parameters, then the computed Twiss and
 coupling parameters at the exit end of the \vn{match} element will be the element end Twiss and coupling
-parameters. Additionally, the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}.
+parameters. Additionally, the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}. Exception:
+If \vn{beta_a0}, \vn{beta_b0}, \vn{beta_a1}, and \vn{beta_b1} are all zero, the matrix will be set to the
+identity.
 %
 \item[identity] \Newline
 With \vn{matrix} set to \vn{identity} the transfer matrix will be set to the unit matrix independent
