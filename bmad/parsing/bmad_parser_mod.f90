@@ -6012,7 +6012,12 @@ case (ramper$)
 case default
   s_ref_begin = ref_ele%s_start
   s_ref_end = ref_ele%s
-  ix_ref = ref_ele%ix_ele
+  if (ref_ele%n_slave > 0) then
+    slave => pointer_to_slave(ref_ele, 1)
+    ix_ref = slave%ix_ele
+  else
+    ix_ref = ref_ele%ix_ele
+  endif
 end select
 
 ! Now compute the s position at the end of the element and put it in ele%s.
