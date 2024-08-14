@@ -293,6 +293,20 @@ direction). This makes the integer part of the spin tune ambiguous.
 Additionally, if $\bfn_0$ is a valid closed orbit spin field then so is $-\bfn_0$ and the spin tune
 associated with $-\bfn_0$ is the negative of the spin tune associated with $\bfn_0$.
 
+Since the direction of $\bfn_0$ is arbitrary, \bmad uses the following convention: The range of the
+spin tune is choisen to be $[0, \pi]$. From the 1-turn spin transport quaternian $\bfq$ (\Eqs{qqqqq} and
+\eq{qt2ui}), the equation to calculate the tune is
+\begin{equation}
+  \theta = 2 \cdot \text{atan2}\left( \bigl| (q_x, q_y, q_z) \bigr|, |q_0| \right)
+\end{equation}
+where $\text{atan2}$ is the standard arc tangent function.
+With this, $\bfn_0$ is given by
+\begin{equation}
+  \bfn_0 = \frac{\sign(q_0)}{\left| (q_x, q_y, q_z) \right|} \, ( q_x, q_y, q_z )
+\end{equation}
+where $\sign$ is the sign function. With this, the calculation of the tune and $\bfn_0$ is
+independent of whether $\bfq$ or $-\bfq$ is used.
+
 %-----------------------------------------------------------------   
 \section{Polarization Limits and Polarization/Depolarization Rates}
 \label{s:spin.pol}

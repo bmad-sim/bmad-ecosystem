@@ -308,7 +308,7 @@ do i_loop = 1, i_max
   weight(1:n_dim) = 1 / (abs(coc%a_vec) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
   weight(1:4) = weight(1:4) * [1/sqrt(betas(1)), sqrt(betas(1)), 1/sqrt(betas(2)), sqrt(betas(2))]
 
-  call super_mrqmin (vec0, weight, coc%a_vec, chisq, co_func, storage, a_lambda, status)
+  call super_mrqmin (vec0, weight, coc%a_vec, chisq, co_func, storage, a_lambda, status, print_err = .false.)
   ! If super_mrqmin rejects a trial step then will need to reset closed_orb.
   if (chisq < old_chisq .and. status /= 1 .and. end_orb%state /= not_set$) then
     co_best = closed_orb
@@ -382,7 +382,8 @@ do i_loop = 1, i_max
   if (a_lambda < 1d-10) a_lambda = 1d-10
 
   if (status < 0) then  
-    if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'TRACKING BRANCH: ' // branch_name(branch))
+    if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'ABORTING CLOSED ORBIT SEARCH.', &
+                                                'TRACKING BRANCH: ' // branch_name(branch))
     call end_cleanup(branch, .true.)
     return
   endif
