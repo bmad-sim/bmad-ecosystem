@@ -1,0 +1,361 @@
+!------------------------------------------------------------------------
+&tao_start
+ startup_file = "tao_NESplit.startup"
+ building_wall_file = "Wall_Splitters.in"
+ plot_file = "Plot_Splitters.plot"
+/
+
+&tao_params
+  !global%optimizer = "lmdif" ! Set the default optimizer.
+  !global%n_opti_cycles = 10000
+/
+
+
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes = 6
+  design_lattice(1)%file = "NESplitter_test.bmad@Pass9"
+  design_lattice(2)%file = "NESplitter_test.bmad@Pass11"
+  design_lattice(3)%file = "NESplitter_test.bmad@Pass13"
+  design_lattice(4)%file = "NESplitter_test.bmad@Pass15"
+  design_lattice(5)%file = "NESplitter_test.bmad@Pass17"
+  design_lattice(6)%file = "NESplitter_test.bmad@Pass19"
+/
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!! Optimization and Matching !!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+&tao_d2_data
+  d2_data%name = "Optics"
+  universe = "*"
+  n_d1_data = 1
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = "Twiss"
+!  default_weight = 1
+!
+! FORMATING: data_type  ele_ref_name  ele_start_name  ele_name  merit_type  meas  weight
+!
+!  datum(1) = 'time'     ''  ''  'END'  'target'    3.171460504127120E-07         1e15
+! Pass 9 (Universe 1)
+  datum(1)  = 'expression: 1@lat::beta.a[END]'    ''  ''    'END'   'target'      4.157333736              1e10
+  datum(2)  = 'expression: 1@lat::beta.b[END]'    ''  ''    'END'   'target'      6.515073                 1e10
+  datum(3)  = 'expression: 1@lat::alpha.a[END]'   ''  ''    'END'   'target'      3.04889196               1e6
+  datum(4)  = 'expression: 1@lat::alpha.b[END]'   ''  ''    'END'   'target'     -3.189578693              1e6
+  datum(5)  = 'expression: 1@lat::eta.a[END]'     ''  ''    'END'   'target'      0.027206798              1e8
+  datum(6)  = 'expression: 1@lat::etap.a[END]'    ''  ''    'END'   'target'     -0.019785466              1e8
+  datum(7)  = 'expression: 1@lat::eta.a[FQ93U]'   ''  ''    'END'   'max'         0                        1e5
+  datum(8)  = 'expression: 1@lat::r.56[END]'      ''  ''    'END'   'target'     -0.07088624737396850      1e15
+  datum(9)  = 'beta.a'                            ''  'BEGINNING'   'END'        'max'    700              1
+  datum(10)  = 'beta.b'                            ''  'BEGINNING'   'END'        'max'    700              1
+! Pass 11 (Universe 2)
+  datum(11)  = 'expression: 2@lat::beta.a[END]'    ''  ''    'END'   'target'      2.950639952              1e10
+  datum(12)  = 'expression: 2@lat::beta.b[END]'    ''  ''    'END'   'target'      6.476822737              1e10
+  datum(13)  = 'expression: 2@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.821532231               1e6
+  datum(14)  = 'expression: 2@lat::alpha.b[END]'   ''  ''    'END'   'target'     -3.036570249              1e6
+  datum(15)  = 'expression: 2@lat::eta.a[END]'     ''  ''    'END'   'target'      0.045664986              1e8
+  datum(16)  = 'expression: 2@lat::etap.a[END]'    ''  ''    'END'   'target'     -0.026443609              1e8
+  datum(17)  = 'expression: 2@lat::eta.a[FQ113U]'  ''  ''    'END'   'max'         0                        1e5
+  datum(18)  = 'expression: 2@lat::r.56[END]'      ''  ''    'END'   'target'     0.04469355483068570      1e15
+  datum(19)  = 'beta.a'                            ''  'BEGINNING'   'END'        'max'    700              1
+  datum(20)  = 'beta.b'                            ''  'BEGINNING'   'END'        'max'    700              1
+! Pass 13 (Universe 3)
+  datum(21)  = 'expression: 3@lat::beta.a[END]'    ''  ''    'END'   'target'      2.71803647              1e10
+  datum(22)  = 'expression: 3@lat::beta.b[END]'    ''  ''    'END'   'target'      6.994837777             1e10
+  datum(23)  = 'expression: 3@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.538790455             1e6
+  datum(24)  = 'expression: 3@lat::alpha.b[END]'   ''  ''    'END'   'target'     -3.206276641             1e6
+  datum(25)  = 'expression: 3@lat::eta.a[END]'     ''  ''    'END'   'target'      0.06083579              1e8
+  datum(26)  = 'expression: 3@lat::etap.a[END]'    ''  ''    'END'   'target'     -0.030907715             1e8
+  datum(27)  = 'expression: 3@lat::eta.a[FQ133U]'   ''  ''    'END'   'max'         0                      1e5
+  datum(28)  = 'expression: 3@lat::r.56[END]'      ''  ''    'END'   'target'     0.12809078447794500      1e15
+  datum(29)  = 'beta.a'                            ''  'BEGINNING'   'END'        'max'    700              1
+  datum(30)  = 'beta.b'                            ''  'BEGINNING'   'END'        'max'    700              1
+! Pass 15 (Universe 4)
+  datum(41)  = 'expression: 4@lat::beta.a[END]'    ''  ''    'END'   'target'      2.602261459              1e10
+  datum(42)  = 'expression: 4@lat::beta.b[END]'    ''  ''    'END'   'target'      8.035017157              1e10
+  datum(43)  = 'expression: 4@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.399486722              1e6
+  datum(44)  = 'expression: 4@lat::alpha.b[END]'   ''  ''    'END'   'target'     -3.635941727              1e6
+  datum(45)  = 'expression: 4@lat::eta.a[END]'     ''  ''    'END'   'target'      0.073482886              1e8
+  datum(46)  = 'expression: 4@lat::etap.a[END]'    ''  ''    'END'   'target'     -0.033616812              1e8
+  datum(47)  = 'expression: 4@lat::eta.a[FQ153U]'   ''  ''    'END'   'max'         0                        1e5
+  datum(48)  = 'expression: 4@lat::r.56[END]'      ''  ''    'END'   'target'     0.19190020990116400       1e15
+  datum(49)  = 'beta.a'                            ''  'BEGINNING'   'END'        'max'    700              1
+  datum(50)  = 'beta.b'                            ''  'BEGINNING'   'END'        'max'    700              1
+! Pass 17 (Universe 5)
+  datum(51)  = 'expression: 5@lat::beta.a[END]'    ''  ''    'END'   'target'      2.521264544              1e10
+  datum(52)  = 'expression: 5@lat::beta.b[END]'    ''  ''    'END'   'target'      10.13187579              1e10
+  datum(53)  = 'expression: 5@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.311090363              1e6
+  datum(54)  = 'expression: 5@lat::alpha.b[END]'   ''  ''    'END'   'target'     -4.54922692               1e6
+  datum(55)  = 'expression: 5@lat::eta.a[END]'     ''  ''    'END'   'target'      0.084146831              1e8
+  datum(56)  = 'expression: 5@lat::etap.a[END]'    ''  ''    'END'   'target'     -0.03490141               1e8
+  datum(57)  = 'expression: 5@lat::eta.a[FQ173U]'   ''  ''    'END'   'max'         0                        1e5
+  datum(58)  = 'expression: 5@lat::r.56[END]'      ''  ''    'END'   'target'     0.24232813077498400      1e15
+  datum(59)  = 'beta.a'                            ''  'BEGINNING'   'END'        'max'    700              1
+  datum(60)  = 'beta.b'                            ''  'BEGINNING'   'END'        'max'    700              1
+! Pass 19 (Universe 6)
+  datum(61)  = 'expression: 6@lat::beta.a[END]'    ''  ''    'END'   'target'      2.455243969              1e10
+  datum(62)  = 'expression: 6@lat::beta.b[END]'    ''  ''    'END'   'target'      16.84037442              1e10
+  datum(63)  = 'expression: 6@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.247075017              1e6
+  datum(64)  = 'expression: 6@lat::alpha.b[END]'   ''  ''    'END'   'target'     -7.524476631              1e6
+  datum(65)  = 'expression: 6@lat::eta.a[END]'     ''  ''    'END'   'target'      0.093225906              1e8
+  datum(66)  = 'expression: 6@lat::etap.a[END]'    ''  ''    'END'   'target'     -0.035015344              1e8
+  datum(67)  = 'expression: 6@lat::eta.a[FQ193U]'   ''  ''   'END'   'max'         0                        1e5
+  datum(68)  = 'expression: 6@lat::r.56[END]'      ''  ''    'END'   'target'     0.28081076003767700      1e15
+  datum(69)  = 'beta.a'                            ''  'BEGINNING'   'END'        'max'    700              1
+  datum(70)  = 'beta.b'                            ''  'BEGINNING'   'END'        'max'    700              1
+!
+!  datum(5)  = 'expression: 2@lat::beta.a[END]'    ''  ''    'END'   'target'      2.950639952              1e5
+!  datum(6)  = 'expression: 2@lat::beta.b[END]'    ''  ''    'END'   'target'      6.476822737              1e5
+!  datum(7)  = 'expression: 2@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.821532231              1e5
+!  datum(8)  = 'expression: 2@lat::alpha.b[END]'   ''  ''    'END'   'target'     -3.036570249              1e5
+!  datum(9)  = 'expression: 3@lat::beta.a[END]'    ''  ''    'END'   'target'      2.71803647               1e5
+!  datum(10) = 'expression: 3@lat::beta.b[END]'    ''  ''    'END'   'target'      6.994837777              1e5
+!  datum(11) = 'expression: 3@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.538790455              1e5
+!  datum(12) = 'expression: 3@lat::alpha.b[END]'   ''  ''    'END'   'target'     -3.206276641              1e5
+!  datum(13) = 'expression: 4@lat::beta.a[END]'    ''  ''    'END'   'target'      2.602261459              1e5
+!  datum(14) = 'expression: 4@lat::beta.b[END]'    ''  ''    'END'   'target'      8.035017157              1e5
+!  datum(15) = 'expression: 4@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.399486722              1e5
+!  datum(16) = 'expression: 4@lat::alpha.b[END]'   ''  ''    'END'   'target'     -3.635941727              1e5
+!  datum(17) = 'expression: 5@lat::beta.a[END]'    ''  ''    'END'   'target'      2.521264544              1e5
+!  datum(18) = 'expression: 5@lat::beta.b[END]'    ''  ''    'END'   'target'      10.13187579              1e5
+!  datum(19) = 'expression: 5@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.311090363              1e5
+!  datum(20) = 'expression: 5@lat::alpha.b[END]'   ''  ''    'END'   'target'     -4.54922692               1e5
+!  datum(21) = 'expression: 6@lat::beta.a[END]'    ''  ''    'END'   'target'      2.455243969              1e5
+!  datum(22) = 'expression: 6@lat::beta.b[END]'    ''  ''    'END'   'target'      16.84037442              1e5
+!  datum(23) = 'expression: 6@lat::alpha.a[END]'   ''  ''    'END'   'target'      1.247075017              1e5
+!  datum(24) = 'expression: 6@lat::alpha.b[END]'   ''  ''    'END'   'target'     -7.524476631              1e5
+/
+! datum(2) = 'etap.x'    ''  ''  'END'  'target'    0           1e4
+!  datum(1) = 'orbit.x'   ''  ''  'END'  'target'    0           1
+!  datum(2) = 'orbit.px'   ''  ''  'END'  'target'    0          1
+! datum(5) = 'alpha.a'   ''  ''  'END'  'abs_max'    0.01           1 
+! datum(6) = 'alpha.b'   ''  ''  'END'  'abs_max'    0.01           1 
+! datum(7) = 'orbit.x'   ''  'BEGINNING'  'END'  'abs_max'    0.03           1e1
+! datum(8) = 'eta.x'   ''  'BEGINNING'  'END'  'abs_max'    0.12           1
+! datum(9) = 'beta.a'   ''  'BEGINNING'  'END'  'max'    50           1
+! datum(10) = 'beta.b'   ''  'BEGINNING'  'END'  'max'    50           1
+! datum(11) = 'unstable.orbit'     ''  ''  'END'  'target'    0           1e8
+!  datum(3) = 'expression: 1@ele::35[floor.x] - 2@ele::35[floor.x]'  ''  ''  'END'  'target'    0.0           1
+!  datum(4) = 'expression: 1@ele::35[floor.z] - 2@ele::35[floor.z]'  ''  ''  'END'  'target'    0.0           1
+! datum(2) = 'expression: 5@ele::end[orbit_px]'  ''  ''  'END'  'target'    0.0           1
+! datum(3) = 'expression: 1@ele::end[orbit_x] + 5@ele::end[orbit_x]' '' '' 'END'   'target'  0   1e1
+!/
+
+!!!!!!!!!!!!!!!!!!!!
+! Pass 9 Variables !
+!!!!!!!!!!!!!!!!!!!!
+
+&tao_var
+  v1_var%name = 'Twiss_P9_FirstFive'
+  default_universe = '1'
+  var(1:5)%ele_name = 'm9Q1' 'm9Q2' 'm9Q3' 'm9Q4' 'm9Q5'
+  var(1:5)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1'
+  var(1:5)%step =       1e-5        1e-5        1e-5        1e-5        1e-5
+  var(1:5)%low_lim =   -0.60       -0.60       -0.60       -0.60       -0.60
+  var(1:5)%high_lim =   0.60        0.60        0.60        0.60        0.60
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P9_MiddleSeven'
+  default_universe = '1'
+  var(1:7)%ele_name = 'm9Q6' 'm9Q7' 'm9Q8' 'm9Q9' 'm9Q10' 'm9Q11' 'm9Q12' 
+  var(1:7)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1' 'k1' 'k1' 
+  var(1:7)%step =      1e-5        1e-5         1e-5         1e-5       1e-5       1e-5       1e-5 
+  var(1:7)%low_lim =   -0.60       -0.60       -0.60        -0.60       -0.60      -0.60      -0.60  
+  var(1:7)%high_lim =   0.60        0.60        0.60        0.60        0.60        0.60        0.60
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P9_FinalEight'
+  default_universe = '1'
+  var(1:8)%ele_name = 'm9Q13' 'm9Q14' 'm9Q15' 'm9Q16' 'm9Q17' 'm9Q18' 'm9Q19' 'm9Q20'
+  var(1:8)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1' 'k1' 'k1' 'k1'
+  var(1:8)%step = 1e-5 1e-5 1e-5 1e-5 1e-5 1e-5 1e-5 1e-5
+  var(1:8)%low_lim = -0.60 -0.60 -0.60 -0.60 -0.60 -0.60 -0.60 -0.60
+  var(1:8)%high_lim = 0.60 0.60 0.60 0.60 0.60 0.60 0.60 0.60
+/
+
+!!!!!!!!!!!!!!!!!!!!!
+! Pass 11 Variables !
+!!!!!!!!!!!!!!!!!!!!!
+
+&tao_var
+  v1_var%name = 'Twiss_P11_FirstFour'
+  default_universe = '2'
+  var(1:4)%ele_name = 'm11Q1' 'm11Q2' 'm11Q3' 'm11Q4' 
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1' 
+  var(1:4)%step =       1e-5        1e-5        1e-5        1e-5      
+  var(1:4)%low_lim =   -0.60       -0.60       -0.60       -0.60   
+  var(1:4)%high_lim =   0.60        0.60        0.60        0.60    
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P11_MiddleFour'
+  default_universe = '2'
+  var(1:4)%ele_name = 'm11Q5' 'm11Q6' 'm11Q7' 'm11Q8'
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1' 
+  var(1:4)%step =      1e-5        1e-5         1e-5         1e-5     
+  var(1:4)%low_lim =   -0.60       -0.60       -0.60        -0.60    
+  var(1:4)%high_lim =   0.60        0.60        0.60        0.60     
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P11_FinalSix'
+  default_universe = '2'
+  var(1:6)%ele_name = 'm11Q9' 'm11Q10' 'm11Q11' 'm11Q12' 'm11Q13' 'm11Q14' 
+  var(1:6)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1' 'k1' 
+  var(1:6)%step = 1e-5 1e-5 1e-5 1e-5 1e-5 1e-5 
+  var(1:6)%low_lim = -0.60 -0.60 -0.60 -0.60 -0.60 -0.60 
+  var(1:6)%high_lim = 0.60 0.60 0.60 0.60 0.60 0.60 
+/
+
+!!!!!!!!!!!!!!!!!!!!!
+! Pass 13 Variables !
+!!!!!!!!!!!!!!!!!!!!!
+
+&tao_var
+  v1_var%name = 'Twiss_P13_FirstFour'
+  default_universe = '3'
+  var(1:4)%ele_name = 'm13Q1' 'm13Q2' 'm13Q3' 'm13Q4' 
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1' 
+  var(1:4)%step =       1e-5        1e-5        1e-5        1e-5      
+  var(1:4)%low_lim =   -0.60       -0.60       -0.60       -0.60   
+  var(1:4)%high_lim =   0.60        0.60        0.60        0.60    
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P13_MiddleFour'
+  default_universe = '3'
+  var(1:4)%ele_name = 'm13Q5' 'm13Q6' 'm13Q7' 'm13Q8'
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1' 
+  var(1:4)%step =      1e-5        1e-5         1e-5         1e-5     
+  var(1:4)%low_lim =   -0.60       -0.60       -0.60        -0.60    
+  var(1:4)%high_lim =   0.60        0.60        0.60        0.60     
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P13_FinalFour'
+  default_universe = '3'
+  var(1:4)%ele_name = 'm13Q9' 'm13Q10' 'm13Q11' 'm13Q12'
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1' 
+  var(1:4)%step = 1e-5 1e-5 1e-5 1e-5 
+  var(1:4)%low_lim = -0.60 -0.60 -0.60 -0.60 
+  var(1:4)%high_lim = 0.60 0.60 0.60 0.60 
+/
+
+!!!!!!!!!!!!!!!!!!!!!
+! Pass 15 Variables !
+!!!!!!!!!!!!!!!!!!!!!
+
+&tao_var
+  v1_var%name = 'Twiss_P15_FirstThree'
+  default_universe = '4'
+  var(1:3)%ele_name = 'm15Q1' 'm15Q2' 'm15Q3' 
+  var(1:3)%attribute = 'k1' 'k1' 'k1'  
+  var(1:3)%step =       1e-5        1e-5        1e-5          
+  var(1:3)%low_lim =   -0.60       -0.60       -0.60       
+  var(1:3)%high_lim =   0.60        0.60        0.60         
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P15_MiddleFour'
+  default_universe = '4'
+  var(1:4)%ele_name = 'm15Q4' 'm15Q5' 'm15Q6' 'm15Q7'
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1' 
+  var(1:4)%step =      1e-5        1e-5         1e-5         1e-5     
+  var(1:4)%low_lim =   -0.60       -0.60       -0.60        -0.60    
+  var(1:4)%high_lim =   0.60        0.60        0.60        0.60     
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P15_FinalThree'
+  default_universe = '4'
+  var(1:3)%ele_name = 'm15Q8' 'm15Q9' 'm15Q10'  
+  var(1:3)%attribute = 'k1' 'k1' 'k1' 
+  var(1:3)%step = 1e-5 1e-5 1e-5 
+  var(1:3)%low_lim = -0.60 -0.60 -0.60  
+  var(1:3)%high_lim = 0.60 0.60 0.60 
+/
+
+!!!!!!!!!!!!!!!!!!!!!
+! Pass 17 Variables !
+!!!!!!!!!!!!!!!!!!!!!
+
+&tao_var
+  v1_var%name = 'Twiss_P17_FirstSix'
+  default_universe = '5'
+  var(1:6)%ele_name = 'm17Q1' 'm17Q2' 'm17Q3' 'm17Q4' 'm17Q5' 'm17Q6'
+  var(1:6)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1' 'k1' 
+  var(1:6)%step =       1e-5        1e-5        1e-5        1e-5          1e-5        1e-5   
+  var(1:6)%low_lim =   -0.60       -0.60       -0.60       -0.60         -0.60       -0.60
+  var(1:6)%high_lim =   0.60        0.60        0.60        0.60          0.60        0.60   
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P17_MiddleFour'
+  default_universe = '5'
+  var(1:4)%ele_name = 'm17Q7' 'm17Q8' 'm17Q9' 'm17Q10'
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1' 
+  var(1:4)%step =      1e-5        1e-5         1e-5         1e-5     
+  var(1:4)%low_lim =   -0.60       -0.60       -0.60        -0.60    
+  var(1:4)%high_lim =   0.60        0.60        0.60        0.60     
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P17_FinalFour'
+  default_universe = '5'
+  var(1:4)%ele_name = 'm17Q11' 'm17Q12' 'm17Q13' 'm17Q14' 
+  var(1:4)%attribute = 'k1' 'k1' 'k1' 'k1'  
+  var(1:4)%step = 1e-5 1e-5 1e-5 1e-5 
+  var(1:4)%low_lim = -0.60 -0.60 -0.60 -0.60  
+  var(1:4)%high_lim = 0.60 0.60 0.60 0.60 
+/
+
+!!!!!!!!!!!!!!!!!!!!!
+! Pass 19 Variables !
+!!!!!!!!!!!!!!!!!!!!!
+
+&tao_var
+  v1_var%name = 'Twiss_P19_FirstFive'
+  default_universe = '6'
+  var(1:5)%ele_name = 'm19Q1' 'm19Q2' 'm19Q3' 'm19Q4' 'm19Q5' 
+  var(1:5)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1'  
+  var(1:5)%step =       1e-5        1e-5        1e-5        1e-5          1e-5         
+  var(1:5)%low_lim =   -0.60       -0.60       -0.60       -0.60         -0.60      
+  var(1:5)%high_lim =   0.60        0.60        0.60        0.60          0.60        
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P19_MiddleFive'
+  default_universe = '6'
+  var(1:5)%ele_name = 'm19Q6' 'm19Q7' 'm19Q8' 'm19Q9' 'm19Q10'
+  var(1:5)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1' 
+  var(1:5)%step =      1e-5        1e-5         1e-5         1e-5         1e-5     
+  var(1:5)%low_lim =   -0.60       -0.60       -0.60        -0.60        -0.60    
+  var(1:5)%high_lim =   0.60        0.60        0.60         0.60         0.60      
+/
+
+&tao_var
+  v1_var%name = 'Twiss_P19_FinalFive'
+  default_universe = '6'
+  var(1:5)%ele_name = 'm19Q11' 'm19Q12' 'm19Q13' 'm19Q14' 'm19Q15' 
+  var(1:5)%attribute = 'k1' 'k1' 'k1' 'k1' 'k1'  
+  var(1:5)%step = 1e-5 1e-5 1e-5 1e-5 1e-5 
+  var(1:5)%low_lim = -0.60 -0.60 -0.60 -0.60 -0.60  
+  var(1:5)%high_lim = 0.60 0.60 0.60 0.60 0.60 
+/
+
+!&tao_params
+! global%blank_line_between_commands = f
+! global%draw_curve_off_scale_warn = f
+! global%history_file = '.history_tao'
+! global%lmdif_negligible_merit = 1e-60
+! global%n_opti_cycles = 512
+! global%symbol_import = t
+! global%var_limits_on = f
+!/
+
