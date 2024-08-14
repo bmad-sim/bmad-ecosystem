@@ -19,7 +19,7 @@ private sign_of_real, sign_of_int
 !
 ! Output:
 !   num_sign      -- integer or real(rp): +1 if num is positive, -1 if num is negative,
-!                     and 0 or +1 if num is zero depending upon setting of zer_is_zero.
+!                     and 0 or +1 if num is zero depending upon setting of zero_is_zero.
 !-
 
 interface sign_of

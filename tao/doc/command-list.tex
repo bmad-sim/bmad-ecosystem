@@ -164,7 +164,7 @@ command file to speed up execution time:
   set global lattice_calc_on = F   ! Stop lattice calculations (\sref{s:lat.calc}).
   set global plot_on = F           ! Halt replotting 
 or
-  set calc -on                     ! Same as the two lines above.
+  set calc off                     ! Same as the two lines above.
 \end{example}
 When using the \vn{-no_calc} option, at the end of the command file the \vn{lattice_calc_on} and
 \vn{plot_on} logicals will be toggled back to their initial values.
@@ -1130,7 +1130,7 @@ Examples:
 \begin{example}
   set calc on    ! Sets lattice calc and plot_on to True
   set calc off   ! Sets lattice calc and plot_on to False
-  set call       ! Toggles lattice_calc and sets plot_on to
+  set calc       ! Toggles lattice_calc and sets plot_on to
                  !  the same value as lattice_calc.
 \end{example}
 
