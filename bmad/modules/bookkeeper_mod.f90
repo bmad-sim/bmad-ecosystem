@@ -538,7 +538,10 @@ if (slave%slave_status /= super_slave$) then
   return
 endif
 
-slave%field_calc = refer_to_lords$
+slave%field_calc    = refer_to_lords$
+slave%aperture_at   = lord_defined$
+slave%aperture_type = lord_defined$
+
 if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
 
@@ -611,7 +614,6 @@ do j = 1, slave%n_lord
 enddo
 
 if (n_major_lords < 2) then
-
   lord => pointer_to_lord (slave, ix_lord, ix_slave_back = ix_order)
   old_value = slave%value
 
@@ -655,8 +657,8 @@ if (n_major_lords < 2) then
   enddo
 
   if (any(slave%value /= old_value)) call set_ele_status_stale (slave, attribute_group$)
-  return
 
+  return
 endif
 
 !-----------------------------------------------------------------------
@@ -694,10 +696,10 @@ value(ref_time_start$)   = slave%value(ref_time_start$)
 value(fringe_at$)        = no_end$
 value(fringe_type$)      = none$
 value(integrator_order$) = 0
-slave%value(x1_limit$:y2_limit$) = 0  ! check_aperture_limits knows to look at the lords for apertures.
 
-slave%aperture_at = no_end$
-slave%is_on = .false.
+slave%value(x1_limit$:y2_limit$) = 0  ! check_aperture_limits knows to look at the lords for apertures.
+slave%is_on                      = .false.
+
 s_slave = slave%s - value(l$)/2  ! center of slave
 
 ! A "major" element is something other than a pipe, monitor, etc.
@@ -1148,16 +1150,16 @@ end subroutine makeup_super_slave
 ! Note: Reference energy and times are not computed in this routine.
 !
 ! Input:
-!   slave  -- Ele_struct: Slave element.
-!   lord   -- Ele_struct: Lord element.
-!   offset -- Real(rp): offset of entrance end of slave from entrance end of the lord.
-!   param  -- Lat_param_struct: lattice paramters.
-!   include_upstream_end -- Logical: Slave contains the lord's entrance end?
-!   include_downstream_end     -- Logical: Slave contains the lord's exit end?
+!   slave                   -- Ele_struct: Slave element.
+!   lord                    -- Ele_struct: Lord element.
+!   offset                  -- Real(rp): offset of entrance end of slave from entrance end of the lord.
+!   param                   -- Lat_param_struct: lattice paramters.
+!   include_upstream_end    -- Logical: Slave contains the lord's entrance end?
+!   include_downstream_end  -- Logical: Slave contains the lord's exit end?
 !
 ! Output:
-!   slave    -- Ele_struct: Slave element with appropriate values set.
-!   err_flag -- Logical: Set true if there is an error. False otherwise.
+!   slave                   -- Ele_struct: Slave element with appropriate values set.
+!   err_flag                -- Logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end, include_downstream_end, err_flag)
@@ -1421,10 +1423,28 @@ slave%scale_multipoles            = lord%scale_multipoles
 slave%is_on                       = lord%is_on
 slave%csr_method                  = lord%csr_method
 slave%space_charge_method         = lord%space_charge_method
-slave%aperture_type               = lord%aperture_type
 
 if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
 if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
+
+! The slave can have more than one lord here if the other lords are pipes.
+
+if (slave%n_lord == 1) then
+  slave%aperture_type               = lord%aperture_type
+  slave%aperture_at                 = no_aperture$
+
+  select case (lord%aperture_at)
+  case (continuous$, wall_transition$, surface$)
+    slave%aperture_at = lord%aperture_at
+  case (entrance_end$)
+    if (include_entrance) slave%aperture_at = entrance_end$
+  case (exit_end$)
+    if (include_exit) slave%aperture_at = exit_end$
+  case (both_ends$)
+    if (include_entrance) slave%aperture_at = entrance_end$
+    if (include_exit) slave%aperture_at = exit_end$
+  end select
+endif
 
 ! wiggler fields and electro-magnetic fields
 
