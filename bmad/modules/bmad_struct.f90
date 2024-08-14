@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 321
+integer, parameter :: bmad_inc_version$ = 322
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -142,9 +142,11 @@ logical, parameter :: set$ = .true., unset$ = .false.
 ! when the lattice file is parsed. Auto is only available for Mask, Detector and Diffraction_plate elements.
 
 integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, wall3d$ = 5, custom_aperture$ = 7
-character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
-                                     'Surface    ', 'Wall3D     ', 'garbage!   ', 'Custom     ']
+integer, parameter :: lord_defined$ = 8
+
+character(16), parameter :: aperture_type_name(0:8) = [character(16):: &
+                               'garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
+                               'Surface    ', 'Wall3D     ', 'garbage!   ', 'Custom     ', 'Lord_Defined']
 
 ! fringe_type
 ! non-bend fringe type names are in the range fringe_type(1:n_non_bend_fringe_type$)
@@ -362,9 +364,9 @@ integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_betwee
 character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
       'Entrance_end', 'Exit_End', 'Center', 'None']
 
-character(16), parameter :: aperture_at_name(0:7) = [ &
+character(16), parameter :: aperture_at_name(0:8) = [character(16):: &
       'GARBAGE!       ', 'Entrance_End   ', 'Exit_End       ', 'Both_Ends      ', &
-      'No_Aperture    ', 'Continuous     ', 'Surface        ', 'Wall_Transition']
+      'No_Aperture    ', 'Continuous     ', 'Surface        ', 'Wall_Transition', 'Lord_Defined']
 
 character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &

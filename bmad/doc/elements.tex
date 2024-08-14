@@ -3455,6 +3455,7 @@ Attributes specific to a \vn{match} element are:
   delta_time                = <Real>     ! Change in time.
   matrix                    = <Switch>   ! Matrix calculation. Default: standard.
   kick0                     = <Switch>   ! Zeroth order calc. Default: standard.
+  spin_tracking             = <Switch>   ! Spin tracking done?
   recalc                    = <Logical>  ! Calculate transfer map? Default is True.
 \end{example}
 
@@ -3603,6 +3604,19 @@ The order of operations, is the effect of \vn{delta_time} is applied first and t
 transformation above is applied afterwards. Since using \vn{match_twiss} or \vn{match_orbit} with
 a finite \vn{delta_time} can be confusing, such a situation is not allowed. Use two separate
 \vn{match} elements if needed.
+
+The settings of \vn{spin_tracking} are:
+\begin{example}
+  off         ! Spin is invariant through a match element.
+  on          ! Spin is tracked assuming not bends.
+\end{example}
+With a setting of \vn{on}, it is assumed that the orbital transfer matrix is due solely to transverse
+magnetic fields so that the integrated spin rotation (\Eqs{orpt}, \eq{pqlbp1}, and \eq{pqlbp2}) can
+be related to the orbital transport via
+\begin{equation}
+  \int {\pmb\Omega}_{BMT} = \frac{\beta}{1 + p_z} \, (1 + a \gamma) \, (-\Delta p_y, \Delta p_x, 0)
+\end{equation} 
+
 
 A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
 like a \vn{marker} element. That is, the orbit and Twiss parameters are unchanged when tracking
