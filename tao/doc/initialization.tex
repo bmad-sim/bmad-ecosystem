@@ -642,7 +642,7 @@ type tao_global_struct:
   optimizer_allow_user_abort = T   ! See below.
   optimizer_var_limit_warn = T     ! Warn when vars reach a limit when optimizing?
   plot_on = T                      ! Do plotting?
-  quiet = "off"                    ! Print to the terminal when using a command file?
+  quiet = "off"                    ! Suppress informational output to terminal.
   rf_on = F                        ! RF cavities on?
   svd_retreat_on_merit_increase = T    
   single_step = F                  ! Single step through a command file?
@@ -750,6 +750,7 @@ For use with command files. May be set to one of:
 \begin{example}
   off     ! Normal verbose output
   all     ! Suppress command echo and other output.
+  ALL     ! Suppress command echo and other output.
   output  ! Suppress output except for command echo.
 \end{example}
 If set to \vn{all}, output to the terminal during command file running will be suppressed (except
