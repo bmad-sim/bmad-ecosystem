@@ -1744,7 +1744,10 @@ case ('etap.')
 
 case ('expression:', 'expression.')
 
-  write (dflt_dat_index, '(i0)') datum%ix_d1
+  ! Something like "expression:max(data::orbit.x|model)" needs dflt_dat_indx = "*"
+  !! write (dflt_dat_index, '(i0)') datum%ix_d1    ???? why was this used previously?
+  dflt_dat_index = '*'
+
   e_str = datum%data_type(12:)
   do
     ix = index(e_str, 'ele::#[')
@@ -4540,8 +4543,8 @@ endif
 
 ! if phrase is blank then return 0.0
 
-call string_trim (phrase, phrase, ios)
-if (ios == 0) then
+call string_trim (phrase, phrase, ix)
+if (ix == 0) then
   call out_io (s_warn$, r_name, "Expression is blank")
   call re_allocate (value, max(1, n_size))
   value = 0.0

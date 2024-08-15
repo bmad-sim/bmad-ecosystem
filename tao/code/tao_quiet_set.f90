@@ -22,13 +22,23 @@ character(*), parameter :: r_name = 'tao_quiet_set'
 
 if (set == '') then
   name = 'all'
+
+elseif (set == 'cmd-file-end') then
+  if (s%global%quiet == 'All') then
+    name = 'off'
+  else
+    name = s%global%quiet
+  endif
+
 else
-  call match_word (set, [character(12):: 'output', 'off', 'all'], ix, .false., .true., name)
+  call match_word (set, [character(12):: 'off', 'all', 'ALL'], ix, .false., .true., name)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'BAD "quiet" COMMAND ARGUMENT: ' // set)
     return
   endif
 endif
+
+!
 
 if (s%global%quiet == 'off') call output_direct(get = out_dir_save)
 s%global%quiet = name

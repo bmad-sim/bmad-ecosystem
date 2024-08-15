@@ -173,9 +173,9 @@ To suppress the output when running a command file use the command:
 \begin{example}
   set global quiet = all
 \end{example}
-Note: quiet mode is automatically turned off at the end when a command file exits back to the
-terminal level. See the \vn{Tao_global_struct Structure} section (\sref{s:tao.global.struct}) for
-more details.
+Note: the \vn{all} setting is automatically switched to \vn{off} at the end when a command file
+exits back to the terminal level. To prevent this reset, set to \vn{ALL} instead. See the
+\vn{Tao_global_struct Structure} section (\sref{s:tao.global.struct}) for more details.
 
 Examples:
 \begin{example}
@@ -1200,8 +1200,8 @@ where it is known that the datum will be in a malformed state before the final s
 Examples:
 \begin{example}
   set data *|ref = *|meas              ! Set ref data = measured in current universe.
-  set data 2@orbit.x|base = 2@orbit.x|model 
-                                       ! Set the base orbit.x in universe 2 to model
+  set data 2@orbit.x|ref = 2@orbit.x|model 
+                                       ! Set the ref orbit.x in universe 2 to model.
   set data beta.x[10]|weight = 1e-5    ! Set weight of datum.
   set -silent d[1]|data_type = beta.a  ! Set type_type.
 \end{example}

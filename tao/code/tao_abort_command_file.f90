@@ -15,7 +15,7 @@ character(40) :: r_name = 'tao_abort_command_file'
 
 !
 
-call tao_quiet_set('off')
+call tao_quiet_set('cmd-file-end')
 
 do i = s%com%cmd_file_level, 1, -1
   if (s%com%cmd_file(i)%paused .or. s%global%single_step) return
