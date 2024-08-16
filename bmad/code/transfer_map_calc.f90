@@ -111,7 +111,7 @@ enddo
 
 if (i1 < i2) then 
   do i = i1+1, i2
-    call add_on_to_map (t_map, branch%ele(i))
+    call add_on_to_map (t_map, branch%ele(i), err_flag)
     if (err_flag) return
   enddo
 
@@ -119,11 +119,11 @@ if (i1 < i2) then
 
 elseif (branch%param%geometry == closed$) then
   do i = i1+1, branch%n_ele_track
-    call add_on_to_map (t_map, branch%ele(i))
+    call add_on_to_map (t_map, branch%ele(i), err_flag)
     if (err_flag) return
   enddo
   do i = 1, i2
-    call add_on_to_map (t_map, branch%ele(i))
+    call add_on_to_map (t_map, branch%ele(i), err_flag)
     if (err_flag) return
   enddo
 
@@ -133,7 +133,7 @@ else
 
   if (unit_start_this) then
     do i = i2+1, i1
-      call add_on_to_map (t_map, branch%ele(i))
+      call add_on_to_map (t_map, branch%ele(i), err_flag)
       if (err_flag) return
     enddo
     call taylor_inverse (t_map, t_map)
@@ -141,7 +141,7 @@ else
   else
     call taylor_make_unit (a_map)
     do i = i2+1, i1
-      call add_on_to_map (a_map, branch%ele(i))
+      call add_on_to_map (a_map, branch%ele(i), err_flag)
       if (err_flag) return
     enddo
     call taylor_inverse (a_map, a_map)
@@ -154,19 +154,22 @@ endif
 !--------------------------------------------------------
 contains
 
-subroutine add_on_to_map (map, ele)
+subroutine add_on_to_map (map, ele, err_flag)
 
 type (taylor_struct) :: map(:)
 type (ele_struct) ele
 integer i, k
+logical err_flag
 
 !
 
 if (logic_option(.false., concat_if_possible) .and. associated(ele%taylor(1)%term)) then
-  call concat_ele_taylor (map, ele, map)
+  call concat_ele_taylor (map, ele, map, err_flag)
 else
-  call taylor_propagate1 (map, ele, branch%param, orb0)
+  call taylor_propagate1 (map, ele, branch%param, err_flag, orb0)
 endif
+
+if (err_flag) return
 
 ! Check for overflow
 ! Map term overflow defined by |term| > 10^(20*n) where n = sum(term_exponents)

@@ -442,6 +442,7 @@ case default
   call out_io (s_fatal$, r_name, 'CONVERSION TO PTC NOT IMPLEMENTED FOR ELEMENTS OF TYPE ' // trim(key_name(ele%key)), &
                                  'FOR ELEMENT: ' // trim(ele%name))
   if (global_com%exit_on_error) call err_exit
+  return
 end select
 
 !------------------------------
