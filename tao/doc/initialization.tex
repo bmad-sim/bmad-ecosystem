@@ -524,11 +524,15 @@ namelist. Example:
 \end{example}
 There may be multiple \vn{symbolic_number} namelists and each namelist defines one and only one
 symbolic number. In this example, there are two namelists defining two numbers \vn{aaa} and
-\vn{my_const}. Notice that the value of a symbolic number may be an expression. This is unlike any
-other namelist in \tao where expressions will generate an error. Expressions for symbolic numbers
-are immediately evaluated.
+\vn{my_const}. 
 
-Once defined, symbolic constants may be used in expressions. For example:
+The parsing of the \vn{symbolic_number} namelist is handled differently from other namelists and
+here the value of a symbolic number may be an expression. This is unlike any other namelist in \tao
+where expressions will generate an error. Expressions for symbolic numbers are immediately
+evaluated. Note: Division can be used in expressions except that a division slash ``\vn{/}'' may
+not be at the end of a line when an expression encompasses more than one line.
+
+Once defined, symbolic constants may be used in expressions embedded in strings. For example:
 \begin{example}
   &tao_d1_data
     ...
