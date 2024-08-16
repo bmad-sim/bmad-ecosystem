@@ -30,8 +30,11 @@ elseif (set == 'cmd-file-end') then
     name = s%global%quiet
   endif
 
+elseif (set == 'ALL') then
+  name = set
+
 else
-  call match_word (set, [character(12):: 'off', 'all', 'ALL'], ix, .false., .true., name)
+  call match_word (set, [character(12):: 'off', 'all'], ix, .false., .true., name)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'BAD "quiet" COMMAND ARGUMENT: ' // set)
     return
