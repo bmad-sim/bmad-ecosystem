@@ -5107,7 +5107,8 @@ character(*), optional :: dflt_dat_or_var_index
 
 character(1) delim
 character(16) s_str, source
-character(200) name, str2, word2
+character(200) name
+character(len(str)) :: str2, word2
 character(*), parameter :: r_name = 'tao_param_value_routine'
 
 logical use_good_user, err_flag, print_err, print_error, delim_found, valid_value, exterminate
