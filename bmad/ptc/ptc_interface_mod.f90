@@ -2095,7 +2095,7 @@ end subroutine concat_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine concat_ele_taylor (taylor1, ele, taylor3)
+! Subroutine concat_ele_taylor (taylor1, ele, taylor3, err_flag)
 !
 ! Routine to concatinate two taylor maps:
 !   taylor3[x] = ele_taylor(taylor1[x])
@@ -2105,14 +2105,15 @@ end subroutine concat_taylor
 ! Also see: concat_taylor
 !
 ! Input:
-!   taylor1(6) -- Taylor_struct: Taylor map.
-!   ele        -- ele_struct: Element containing a Taylor map.
+!   taylor1(6)  -- Taylor_struct: Taylor map.
+!   ele         -- ele_struct: Element containing a Taylor map.
 !
 ! Output
-!   taylor3(6) -- Taylor_struct: Concatinated map
+!   taylor3(6)  -- Taylor_struct: Concatinated map
+!   err_flag    -- logical: Set True if there is an error. False otherwise.
 !-
 
-Subroutine concat_ele_taylor (taylor1, ele, taylor3)
+Subroutine concat_ele_taylor (taylor1, ele, taylor3, err_flag)
 
 use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=), real_8, fibre
 
@@ -2127,8 +2128,11 @@ type (fibre), pointer :: fib
 real(rp) beta0, beta1, tilt
 real(8) x_dp(6)
 logical err_flag
+character(*), parameter :: r_name = 'concat_ele_taylor'
 
 ! Match elements are not implemented in PTC so just use the matrix.
+
+err_flag = .false.
 
 if (ele%key == match$) then
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
@@ -2154,6 +2158,10 @@ call ptc_set_taylor_order_if_needed()
 
 param%particle = positron$  ! Actually this does not matter to the calculation
 call ele_to_fibre (ele, fib, param, .true., err_flag)
+if (err_flag) then
+  call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
+  return
+endif
 
 ! Init
 
@@ -2410,7 +2418,7 @@ end subroutine real_8_to_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_propagate1 (bmad_taylor, ele, param, ref_in)
+! Subroutine taylor_propagate1 (bmad_taylor, ele, param, err_flag, ref_in)
 !
 ! Subroutine to track (symplectic integration) a taylor map through an element.
 ! The alternative routine, if ele has a taylor map, is concat_taylor.
@@ -2427,10 +2435,11 @@ end subroutine real_8_to_taylor
 !                         if the direction of propagation is backwards.
 !
 ! Output:
-!   bmad_taylor(6)  -- Taylor_struct: Map through element
+!   bmad_taylor(6)  -- Taylor_struct: Map through element.
+!   err_flag        -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine taylor_propagate1 (bmad_taylor, ele, param, ref_in)
+subroutine taylor_propagate1 (bmad_taylor, ele, param, err_flag, ref_in)
 
 use s_tracking
 use mad_like, only: real_8, fibre, ptc_track => track
@@ -2448,11 +2457,12 @@ type (coord_struct), optional :: ref_in
 
 real(rp) beta0, beta1, m2_rel
 logical err_flag
+character(*), parameter :: r_name = 'taylor_propagate1'
 
 ! If the element is a taylor then just concat since this is faster.
 
 if (ele%key == taylor$) then
-  call concat_ele_taylor (bmad_taylor, ele, bmad_taylor)
+  call concat_ele_taylor (bmad_taylor, ele, bmad_taylor, err_flag)
   return
 endif
 
@@ -2471,6 +2481,11 @@ ptc_tlr = bmad_taylor
 ! track the map
 
 call ele_to_fibre (ele, ptc_fibre, param, .true., err_flag, ref_in = ref_in)
+if (err_flag) then
+  call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
+  return
+endif
+
 call track_probe_x (ptc_tlr, ptc_private%base_state, fibre1 = bmadl%start)
 
 ! transfer ptc map back to bmad map
