@@ -198,7 +198,7 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
     endif
 
     mode_flip = any(branch%ele(1:branch%n_ele_track)%mode_flip)
-    if (mode_flip .and. .not. tao_branch%mode_flip_here) then
+    if (mode_flip .and. .not. tao_branch%mode_flip_here .and. .not. s%com%optimizer_running) then
       call out_io(s_warn$, r_name, '*Mode flip* detected! Care must be used in interpreting Twiss parameter!', &
                                    'See the Bmad manual on linear optics for more information.')
     endif

@@ -169,13 +169,16 @@ or
 When using the \vn{-no_calc} option, at the end of the command file the \vn{lattice_calc_on} and
 \vn{plot_on} logicals will be toggled back to their initial values.
 
-To suppress the output when running a command file use the command:
+To suppress all the output when running a command file use the command:
 \begin{example}
-  set global quiet = all
+  set global quiet = all       ! Suppress everything except errors
+  set global quiet = warnings  ! Suppress just warnings.
 \end{example}
-Note: the \vn{all} setting is automatically switched to \vn{off} at the end when a command file
-exits back to the terminal level. To prevent this reset, set to \vn{ALL} instead. See the
-\vn{Tao_global_struct Structure} section (\sref{s:tao.global.struct}) for more details.
+Note: the \vn{all} setting (but not the \vn{warnings} setting) is automatically switched to \vn{off}
+at the end when a command file exits back to the terminal level. To prevent this reset, set to
+\vn{ALL} instead. See the \vn{Tao_global_struct Structure} section (\sref{s:tao.global.struct}) for
+more details.
+
 
 Examples:
 \begin{example}
