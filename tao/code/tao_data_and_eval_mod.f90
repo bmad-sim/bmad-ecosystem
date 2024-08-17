@@ -4508,7 +4508,7 @@ type (expression_func_struct) func(0:20)
 
 integer, optional :: dflt_uni, dflt_eval_point
 integer, allocatable :: op(:)
-integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2, ix3, ix4, n_func
+integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2, ix3, ix4, ix5, n_func
 integer ix_word, i_delim, i2, ix, ix_word2
 
 real(rp), allocatable :: value(:)
@@ -4654,16 +4654,27 @@ parsing_loop: do
   ! If delim = "*" then see if this is being used as a wildcard
   ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]", "var::*d|model"
   ! If so, we have split in the wrong place and we need to correct this. 
-  ! Something like "3*[1,2]" or "3*.42" does not get split.
+  ! Something like "emit*data::mf.xm|model", "3*[1,2]" or "3*.42" does not get split.
 
   do
+    if (delim /= '*') exit
+
+    
+
     ix0 = index(word, '::')
+    ix4 = index(word, '|')
+
     ix1 = index(phrase, '[')
     ix2 = index(phrase, ']')
     ix3 = index(phrase, '|')
-    ix4 = index(word, '|')
+    ix5 = index(phrase, '::')
+    if (ix5 > 0) then   ! "*" in "emit*data::mf.xm|model" is not wild
+      if (ix1 > ix5) ix1 = 0   ! Ignore if after
+      if (ix2 > ix5) ix2 = 0
+      if (ix3 > ix5) ix3 = 0
+    endif
 
-    if (delim /= '*' .or. (phrase(1:1) == '[' .and. ((ix0 == 0) .eqv. (ix4 == 0)))) exit
+    if (phrase(1:1) == '[' .and. ((ix0 == 0) .eqv. (ix4 == 0))) exit
 
     ! If in "[...*...]" construct is wild
     wild = .false.
