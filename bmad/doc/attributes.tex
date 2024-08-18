@@ -393,7 +393,7 @@ The attributes that define the reference energy and momentum at an element are:
 \end{example}
 The energy and momentum are defined at the exit end of the element.  For ultra--relativistic
 particles, and for photons, these two values are the same (\sref{s:phase.space}). Except for
-multipass elements (\sref{s:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes and,
+multipass elements (\sref{c:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes and,
 except for multipass elements, any setting of \vn{e_tot} and \vn{p0c} in the lattice input file is
 an error. The value of \vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be the same
 as the previous element except for \vn{e_gun}, \vn{lcavity}, \vn{converter}, and \vn{patch}
@@ -450,7 +450,7 @@ line name of the branch (\sref{s:beginning}). For example:
 \end{example}
 
 For \vn{multipass} elements, the reference energy may be set by specifying one of \vn{e_tot},
-\vn{p0c}, as described in \sref{s:multipass}.
+\vn{p0c}, as described in \sref{c:multipass}.
 
 For photons, the reference wavelength, \vn{ref_wavelength} is also a dependent attribute calculated
 from the reference energy.
@@ -2803,7 +2803,7 @@ Thus the following is equivalent to the above example:
   b1: sbend, l = 2.3, field_overlaps = q1, field_overlaps = s2
 \end{example}
 
-Note: When the field overlaps elements that are superimposed (\sref{s:super}), the overlapped 
+Note: When the field overlaps elements that are superimposed (\sref{c:super}), the overlapped 
 elements must be the \vn{super_lord} elements and never the slaved elements.
 
 The field, when \vn{field_calc} (\sref{s:integ}) is set to \vn{bmad_standard}, never extends beyond
