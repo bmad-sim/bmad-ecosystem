@@ -1,25 +1,15 @@
-\chapter{Superposition, and Multipass}
-\label{c:super.multi}
+\chapter{Superposition}
+\label{c:super}
 
-\index{superposition}\index{multipass}
-This chapter covers two concepts: \vn{superposition} (\sref{s:super}) and \vn{multipass}
-(\sref{s:multipass}) \vn{Superposition} is used when elements overlap spatially.  \vn{Multipass} is
-used when an element is ``shared'' between branches such as the interaction region shared by two
-storage rings, or when a beam goes through the same physical element in a branch multiple times as
-in an energy recovery linac.
-
-In both cases, \vn{lord} and \vn{slave} elements (\sref{s:lord.slave}) are constructed by \bmad to
-hold the necessary information. In both cases, the \vn{lord} elements will represent the
-``physical'' element while the \vn{slave} elements will embody the ``beam path''.
+\index{superposition}
+This chapter covers the concept of \vn{superposition}.  \vn{Superposition} is used when elements
+overlap spatially.  With \vn{superposition}, \vn{lord} and \vn{slave} elements (\sref{s:lord.slave})
+are constructed by \bmad to hold the necessary information. The \vn{lord} elements will represent
+the ``physical'' element while the \vn{slave} elements will embody the ``beam path''.
 
 %-----------------------------------------------------------------------------
-\section{Superposition}
-\label{s:super}
-\index{superimpose|hyperbf}
-
-%-----------------------------------------------------------------------------
-\subsection{Superposition Fundamentals}
-\label{s:super.fund}
+\section{Superposition Fundamentals}
+\label{c:super.fund}
 
   \begin{figure}[tb]
   \centering 
@@ -321,8 +311,8 @@ Superposition with \vn{line reflection} (\sref{s:lines.wo.arg}) works the same w
 The \vn{no_superposition} statement (\sref{s:no.sup}) can be used to turn off superpositioning
 
 %-----------------------------------------------------------------------------
-\subsection{Superposition and Sub-Lines}
-\label{s:super.sub.line}
+\section{Superposition and Sub-Lines}
+\label{c:super.sub.line}
 
 Sometimes it is convenient to do simulations with only part of a lattice. The rule for how
 superpositions are handled in this case is illustrated in the following example. Consider a lattice
@@ -359,7 +349,7 @@ superposition of \vn{m1} is referenced to the beginning of \vn{sub2} which is no
 beginning of \vn{full}.
 
 %-----------------------------------------------------------------------------
-\subsection{Jumbo Super_Slaves}
+\section{Jumbo Super_Slaves}
 \label{s:jumbo.slave}
 
 The problem with the way \vn{super_slave} elements are created as discussed above is that edge
@@ -367,7 +357,7 @@ effects will not be dealt with properly when elements with non-zero fields are m
 is important, especially at low energy, a possible remedy is to instruct \bmad to construct
 ``\vn{jumbo}'' super_slave elements. The general idea is to create one large \vn{super_slave} for
 any set of overlapping elements. Returning to the superposition example at the start of
-Section~\sref{s:super}, If the superposition of solenoid \vn{S} is modified to be
+Section~\sref{c:super}, If the superposition of solenoid \vn{S} is modified to be
 \begin{example}
   S: solenoid, l = 8, superimpose, ref = Q, ele_origin = beginning, 
                create_jumbo_slave = T
@@ -416,8 +406,8 @@ Another possible way to handle overlapping fields is to use the \vn{field_overla
 attribute as discussed in \sref{s:overlap}.
 
 %-----------------------------------------------------------------------------
-\subsection{Changing Element Lengths when there is Superposition}
-\label{s:super.length}
+\section{Changing Element Lengths when there is Superposition}
+\label{c:super.length}
 
 When a program is running, if \vn{group} (\sref{s:group}) or \vn{overlay} (\sref{s:overlay})
 elements are used to vary the length of elements that are involved in superimposition, the results
@@ -429,7 +419,7 @@ mirrors what the effect of changing the lengths in the lattice file.
 
 Second, even if a lattice has not been mangled, an algorithm for varying lengths that is based on
 the superimpose information in the lattice file could lead to unexpected results. To see this
-consider the first example in Section~\sref{s:super}. If the length of \vn{S} is varied in the
+consider the first example in Section~\sref{c:super}. If the length of \vn{S} is varied in the
 lattice file, the upstream edge of \vn{S} will remain fixed at the center of \vn{Q} which means that
 the length of the \vn{super_slave} element \vn{Q{\#}1} will be invariant. On the other hand, if
 element \vn{S} is defined by
@@ -444,7 +434,7 @@ what should happen if a length were changed.
 
 To avoid confusion, \bmad uses a simple algorithm for varying the lengths of elements involved in
 superposition: The rule is that the length of the most downstream \vn{super_slave} is varied.  With
-the first example in Section~\sref{s:super}, the \vn{group} \vn{G} varying the length of \vn{Q}
+the first example in Section~\sref{c:super}, the \vn{group} \vn{G} varying the length of \vn{Q}
 defined by:
 \begin{example}
   G: group = \{Q\}, var = \{l\}
@@ -466,12 +456,12 @@ downstream edge of \vn{Q}:
 
 %-----------------------------------------------------------------------------
 \section{Multipass}
-\label{s:multipass}
+\label{c:multipass}
 \index{multipass|hyperbf}
 
 %-----------------------------------------------------------------------------
-\subsection{Multipass Fundamentals}
-\label{s:multipass.fund}
+\section{Multipass Fundamentals}
+\label{c:multipass.fund}
 
 \vn{Multipass} lines are a way to handle the bookkeeping when different elements being tracked
 through represent the same physical element. For example, consider the case where dual ring colliding
@@ -649,7 +639,7 @@ multipass lord are not constrained by \bmad to be the same. It is up to the latt
 sure that the physical positions of the slaves makes sense (that is, are the same).
 
 %-----------------------------------------------------------------------------
-\subsection{The Reference Energy in a Multipass Line}
+\section{The Reference Energy in a Multipass Line}
 \label{s:ref.e.multi}
 
 \index{lcavity}

@@ -187,7 +187,7 @@ gives a solenoid with the same length as the drift. Since this is a ``new'' elem
 came from.  Next, since the \vn{CLEO_SOL} element happens to only cover part of the \vn{Q00W}
 quadrupole, \vn{bmad_parser} breaks the quadrupole into two pieces. The piece that is inside the
 solenoid is a \vn{sol_quad} and the piece outside the solenoid is a regular quadrupole. See
-\sref{s:super} for more details. Since the center of the \vn{CLEO_SOL} is at $s = 0$, half of it
+\sref{c:super} for more details. Since the center of the \vn{CLEO_SOL} is at $s = 0$, half of it
 extends to negative $s$. In this situation, \vn{bmad_parser} will wrap this half back and
 superimpose it on the elements at the end of the lattice list near $s = s_{lat}$ where $s_{lat}$ is
 the length of the lattice.  As explained in Chapter~\ref{c:lat.struct}, the lattice list that is

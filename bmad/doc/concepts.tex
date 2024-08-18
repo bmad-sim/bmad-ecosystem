@@ -71,7 +71,7 @@ A lattice may contain multiple \vn{root} \vn{branches}. For example, a pair of i
 rings will generally have two \vn{root} branches, one for each ring. The \vn{use} statement
 (\sref{s:use}) in a lattice file will list the \vn{root} \vn{branches} of a lattice. To connect
 together lattice elements that are physically shared between branches, for example, the interaction
-region in colliding beam machines, \vn{multipass} lines (\sref{s:multipass}) can be used.
+region in colliding beam machines, \vn{multipass} lines (\sref{c:multipass}) can be used.
 
 The root branches of a lattice are defined by the \vn{use} (\sref{s:use}) statement. To further
 define such things as dump lines, x-ray beam lines, transfer lines, etc., that branch off from a
@@ -139,7 +139,7 @@ attributes of other elements which are their slaves.
 The other class of \vn{lord} elements embody the separation of the physical element from the track
 that a particle takes when it passes through the element. There are two types
 
-An example will make this clear.  \vn{Superposition} (\sref{s:super}) is the ability to overlap
+An example will make this clear.  \vn{Superposition} (\sref{c:super}) is the ability to overlap
 lattice elements spatially. \fig{f:super.ip} shows an example which is a greatly simplified version
 of the IR region of Cornell's CESR storage ring when CESR was an e+/e-- collider. As shown in
 \fig{f:super.ip}A, two quadrupoles named \vn{q1w} and \vn{q1e} are partially inside and partially
@@ -163,7 +163,7 @@ example, as shown in \fig{f:super.ip}B, the first IR element in the tracking sec
 that represents the part of \vn{q1e} outside of the solenoid. The next element is a combination
 solenoid/quadrupole, called a \vn{sol_quad}, that represents the part of \vn{q1e} inside \vn{cleo},
 etc.  The other branch section that Bmad creates is called the \vn{lord section} This section
-contain the undivided ``physical'' \vn{super_lord} elements (\sref{s:super}) which, in this case are
+contain the undivided ``physical'' \vn{super_lord} elements (\sref{c:super}) which, in this case are
 \vn{q1e}, \vn{q1w}, and \vn{cleo}. Pointers are created between the lords and their \vn{super_slave}
 elements in the tracking section so that changes in parameters of the lord elements can be
 transferred to their corresponding slaves.
@@ -173,7 +173,7 @@ there is a separation between the physical (lord) element and the (slave) elemen
 particles through comes when a particle passes through the same physical element multiple times such
 as in an Energy Recovery Linac or where different beams pass through the same element such as in an
 interaction region. In this case, \vn{multipass_lords} representing the physical elements and
-\vn{multipass_slaves} elements which are used for tracking can be defined (\sref{s:multipass}).
+\vn{multipass_slaves} elements which are used for tracking can be defined (\sref{c:multipass}).
 Superposition and multipass can be combined in situations where there are overlapping fields in
 elements where the particle passes through
 
@@ -189,14 +189,14 @@ this since these status attributes are handled automatically by \bmad.  The poss
 A \vn{girder_lord} element is a \vn{girder} element  (\sref{s:girder}). 
   \item[multipass_lord]\Newline
 \vn{multipass_lord} elements are created when
-multipass lines are present (\sref{s:multipass}). 
+multipass lines are present (\sref{c:multipass}). 
   \item[overlay_lord]\Newline 
 An \vn{overlay_lord} is an \vn{overlay} element (\sref{s:overlay}). 
   \item[group_lord]\Newline 
 A \vn{group_lord} is a \vn{group} element (\sref{s:group}).
   \item[super_lord]\Newline 
 A \vn{super_lord} element is created when elements are
-superimposed on top of other elements (\sref{s:super}).
+superimposed on top of other elements (\sref{c:super}).
   \item[not_a_lord]\Newline
 This element does not control anything.
   \end{description}
@@ -216,14 +216,14 @@ The possible \vn{slave_status} settings are
   \begin{description}
   \item[multipass_slave]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
-(\sref{s:multipass}).
+(\sref{c:multipass}).
   \item[slice_slave]\Newline
 A \vn{slice_slave} element represents a longitudinal slice of another element.
 Slice elements are not part of the lattice but rather are created on-the-fly
 when, for example, a program needs to track part way through an element.
   \item[super_slave]\Newline 
 A \vn{super_slave} element is an element in the tracking part of the branch that 
-has one or more \vn{super_lord} lords (\sref{s:super}).
+has one or more \vn{super_lord} lords (\sref{c:super}).
   \item[minor_slave]\Newline
 \vn{minor_slave} elements are elements that are not \vn{slice_slave}s and are only controlled
 by \vn{minor} lords (\vn{overlay_lord}s, \vn{group_lord}s, or \vn{girder_lord}s).
@@ -242,5 +242,5 @@ separate the physical element, which PTC calls an \vn{element} from the particle
 call a \vn{fibre}.  [Actually, PTC has two structures for the physical element, \vn{element} and
 \vn{elementp}. The latter being the ``polymorph'' version.] This \vn{element} and \vn{fibre}
 combination corresponds to \bmad \vn{multipass_lord} and \vn{multipass_slave} elements. PTC does not
-handle overlapping fields as \bmad does with \vn{superposition} (\sref{s:super}).
+handle overlapping fields as \bmad does with \vn{superposition} (\sref{c:super}).
 
