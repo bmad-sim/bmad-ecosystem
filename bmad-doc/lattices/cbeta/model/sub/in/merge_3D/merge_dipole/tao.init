@@ -1,0 +1,59 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = '/home/cem52/erl/CERL/lattice_devel/Phase1C/tao/tao_plot.init' 
+  startup_file = '/home/cem52/erl/CERL/lattice_devel/Phase1C/tao/tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes =1
+  design_lattice(1)%file = "lat.bmad"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = .true.
+ global%track_type = 'single'
+global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  !global%random_engine = 'quasi'
+ ! global%floor_plan_rotation = 0.5
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+  /
+  
+  
+  
+!------------------------------------------------------------------------
+
+
+&tao_d2_data
+        d2_data%name = 'f1'
+        universe = 1
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'r56'
+        datum( 1) =  'r56_compaction'     'BEGINNING' '' 'END'   'target'   0
+/
+
+
+
+&tao_var
+	v1_var%name = ff
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 2
+	var(1:2)%ele_name  = 'L0_dipole',  'L0_dipole'
+    var(1:2)%attribute = 'field_factor', 'x_offset'
+    default_key_delta = 1e-2
+    default_key_bound = T
+/

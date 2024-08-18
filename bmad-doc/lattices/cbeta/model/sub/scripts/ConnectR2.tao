@@ -1,0 +1,32 @@
+vv
+vd
+place top floor
+place middle orbit
+x-s all 160 170
+sc
+x-s floor 6 16
+sc floor 8 14
+sc top 11.5 13
+x-s top 10 15
+
+! Connect
+use dat connect.2[1,2,4]  
+
+! or Pathlength
+use dat time.total[2]
+use dat pathlength.2 
+
+use var connect.2[1,3]
+use var pathlength.2[2:]
+
+alias setpathlength set dat time.total[2]|meas = time.total[1]|model + 1/3e8 * [[1]]
+setpathlength 0.0424888
+
+
+
+
+
+
+vk
+set var connect.2|key_bound=T
+set var pathlength.2|key_bound=T

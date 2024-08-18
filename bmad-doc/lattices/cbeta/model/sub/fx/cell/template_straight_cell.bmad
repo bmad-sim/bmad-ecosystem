@@ -1,0 +1,43 @@
+
+!--- FX cell ZZ
+
+
+
+
+!--- Pipes
+FX.PipX1: FF.Pip01, L = FF.Pip01[L] + FF.stretch
+FX.PipX2: FF.Pip02, L = FF.Pip02[L] + FF.stretch
+FX.BlkZZ: FF.Blk01
+
+!--- Quads
+FX.QuaX1: FF.QF, superimpose, ref = FX.PipX1, ele_origin = end, ref_origin=end, offset = -FF.quad_padding - FF.stretch
+FX.QuaX2: FF.QD, superimpose, ref = FX.PipX2, ele_origin = beginning, ref_origin=beginning, offset = FF.quad_padding + FF.stretch
+
+FX.QuaX1[x_offset] = 0 
+FX.QuaX2[x_offset] = 0 
+
+!--- Patches
+
+!FX.patchX1: FF.patch1
+!FX.patchX2: FF.patch2
+
+
+!--- Markers
+
+FX.CELLZZ.Mar.BEG: marker
+
+!FX.QuaX1.Mar.MID: marker, superimpose, ref = FX.QuaX1
+!FX.QuaX2.Mar.MID: marker, superimpose, ref = FX.QuaX2
+
+! - - -  Lines 
+
+FX.cellZZ: line = (
+ FX.CELLZZ.Mar.BEG,
+ FX.PipX1, 
+ !FX.patchX1, 
+ FX.BlkZZ, 
+ !FX.patchX2, 
+ FX.PipX2)
+
+ 
+

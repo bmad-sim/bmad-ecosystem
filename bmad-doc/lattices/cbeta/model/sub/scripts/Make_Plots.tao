@@ -1,0 +1,64 @@
+place * none
+place top beta
+place middle eta
+place bottom layout
+x-a all s
+sc
+sc top 0 100
+sc middle -.5 2
+sc layout -2 2
+output ps-l plots/optics_4pass.ps
+
+x-s all 10 100
+output ps-l plots/optics_4pass_1.ps
+x-s all 90 180
+output ps-l plots/optics_4pass_2.ps
+x-s all 170 260
+output ps-l plots/optics_4pass_3.ps
+x-s all 250 340
+output ps-l plots/optics_4pass_4.ps
+x-s all 330 420
+output ps-l plots/optics_4pass_5.ps
+x-s all 410 500
+output ps-l plots/optics_4pass_6.ps
+x-s all 490 580
+output ps-l plots/optics_4pass_7.ps
+
+
+place top sigmaxy
+place middle sigmaz
+x-a all s
+sc top 0 2000
+sc middle 0 6
+sc layout -2 2
+
+output ps-l plots/beam_4pass.ps
+           
+
+x-s all 10 100
+output ps-l plots/beam_4pass_1.ps
+x-s all 90 180
+output ps-l plots/beam_4pass_2.ps
+x-s all 170 260
+output ps-l plots/beam_4pass_3.ps
+x-s all 250 340
+output ps-l plots/beam_4pass_4.ps
+x-s all 330 420
+output ps-l plots/beam_4pass_5.ps
+x-s all 410 500
+output ps-l plots/beam_4pass_6.ps
+x-s all 490 580
+output ps-l plots/beam_4pass_7.ps
+
+place top emittancexy
+place middle sigmapz
+x-s all 0 600
+sc top 0 .8
+sc middle 0 20
+sc layout -2 2
+output ps-l plots/emittance.ps
+
+
+
+
+

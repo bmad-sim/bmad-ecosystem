@@ -1,0 +1,4 @@
+call, file = fa.lat.bmad
+call, file = cell/beam_start1.bmad
+!!beam_start[x] = -9.9736120154759762e-03
+!!beam_start[px] = +2.5326159590977029e-02

@@ -1,0 +1,42 @@
+place * none
+place top2 bunch_duration
+place middle2 bunch_energy_spread
+place bottom layout
+x-a all s
+
+sc layout -2 2
+
+output ps-l plots/beam_size_zpz.ps
+           
+
+x-s all 10 100
+sc
+output ps-l plots/beam_size_zpz_1.ps
+x-s all 90 180
+sc
+output ps-l plots/beam_size_zpz_2.ps
+x-s all 170 260
+sc
+output ps-l plots/beam_size_zpz_3.ps
+x-s all 250 340
+sc
+output ps-l plots/beam_size_zpz_4.ps
+x-s all 330 420
+sc
+output ps-l plots/beam_size_zpz_5.ps
+x-s all 410 500
+sc
+output ps-l plots/beam_size_zpz_6.ps
+x-s all 490 580
+sc
+output ps-l plots/beam_size_zpz_7.ps
+
+x-s all 565 585
+sc
+output ps-l plots/beam_size_zpz_8.ps
+
+
+
+
+
+

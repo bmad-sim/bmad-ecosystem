@@ -1,0 +1,78 @@
+
+
+!IN.a3
+! Shortened telescope, up through the bend
+
+IN.A3.Pip01.aperture = 0.034798/2
+IN.A3.Pip01: PIPE, L = 0.64
+
+IN.A3.Pip01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.A3.Pip01.aperture }},
+	section = { s = IN.A3.Pip01[L],
+	  v(1) = {0, 0, IN.A3.Pip01.aperture}}}
+
+IN.A3.qua01: QUADRUPOLE, L = 0.239, superimpose, ref = IN.A3.Pip01, ref_center, ele_center
+
+IN.A3.Ben01.aperture = 0.034798/2
+IN.A3.Ben01.Pad01: PIPE, L = 0.1, aperture = IN.A3.Ben01.aperture
+IN.A3.Ben01:       SBEND, L = 0.254, aperture = IN.A3.Ben01.aperture
+IN.A3.Ben01_off:   SBEND, L = 0.254, aperture = IN.A3.Ben01.aperture, angle = -0.001*pi/180
+IN.A3.Ben01.Pad02: PIPE, L = 0.1754, aperture = IN.A3.Ben01.aperture
+
+IN.A3.Ben01.Pad01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.A3.Ben01.Pad01[aperture]}},
+	section = { s = IN.A3.Ben01.Pad01[L],
+	  v(1) = {0, 0, IN.A3.Ben01.Pad01[aperture]}}}
+
+IN.A3.Ben01[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.A3.Ben01[aperture]}},
+	section = { s = IN.A3.Ben01[L],
+	  v(1) = {0, 0, IN.A3.Ben01[aperture]}}}
+
+IN.A3.Ben01_off[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.A3.Ben01_off[aperture]}},
+	section = { s = IN.A3.Ben01_off[L],
+	  v(1) = {0, 0, IN.A3.Ben01_off[aperture]}}}
+
+IN.A3.Ben01.Pad02[wall] = {
+	section = { s = 0,
+	  v(1) = {0, 0, IN.A3.Ben01.Pad02[aperture]}},
+	section = { s = IN.A3.Ben01.Pad02[L],
+	  v(1) = {0, 0, IN.A3.Ben01.Pad02[aperture]}}}
+
+
+!--- Offsets
+IN.A3.qua01[offset] =0
+
+
+
+!--- Aliases
+IN.A3.Qua01[alias] = MA3QUA01
+IN.A3.Ben01[alias] = MA3DPA01
+
+!--- Markers
+in.A3.Mar.BEG: Marker
+in.A3.Mar.END: Marker
+
+
+!--- Line
+in.A3: LINE = (IN.A3.Mar.BEG, &
+   	       IN.A3.Pip01,
+  IN.A3.Ben01.Pad01,
+  IN.A3.Ben01_off,
+  IN.A3.Ben01.Pad02,
+	       IN.A3.Mar.END)
+
+in.A3_to_C1: LINE = (IN.A3.Mar.BEG, &
+   	       IN.A3.Pip01,
+  IN.A3.Ben01.Pad01,
+  IN.A3.Ben01,
+  !IN.A3.Ben01.Pad02,
+	       IN.A3.Mar.END)
+
+
+

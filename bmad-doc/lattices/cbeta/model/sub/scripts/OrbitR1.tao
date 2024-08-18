@@ -1,0 +1,8 @@
+vv
+vd
+use dat rxorbit.1
+!use var fb.correctors.x[2,4]
+use var fb.offsets.x[2,4]
+
+!use var fb.correctors.x[1:-1:2]
+osvd

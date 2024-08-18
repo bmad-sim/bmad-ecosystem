@@ -1,0 +1,33 @@
+call ../SetMultiOrbit.tao
+place middle layout
+place bottom var_offsets
+x-a all s
+sc
+sc floor -22 22
+set uni * on
+vv
+vd
+use dat 1@o1[1:]
+use dat 2@o2[2:]
+use dat 3@o3[2:]
+use dat 4@o4[2:]
+
+use dat end.betas
+alias sb set dat end.betas[1,2]|meas = [[1]]
+sb 40
+
+!use dat 1@fa.etas
+!use dat 1@fa.floor
+
+use var offsets[1,2]
+!set var L[12]|model = 0
+!use var L
+!set var L|key_bound = T
+
+alias weight set dat 1@o1[2]|weight = [[1]]
+
+vk
+
+
+ode
+sde 10

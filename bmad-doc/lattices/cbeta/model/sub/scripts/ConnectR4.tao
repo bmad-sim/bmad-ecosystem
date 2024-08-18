@@ -1,0 +1,40 @@
+vv
+vd
+place top floor
+place middle orbit
+x-s all 325 335
+sc
+x-s floor 6 18
+sc floor 10 14
+x-s top -2 3
+sc top -1 0
+
+plotoff
+
+
+use dat connect.4[1,2,4]  
+!use dat pathlength.4
+
+use var connect.4
+!use var pathlength.4
+
+set dat rxfloor.thetas[4]|meas = rxfloor.thetas[1]|model - 18.8495559215388 ! 3 pi
+!use dat rxfloor.thetas[4]
+
+! or Pathlength
+use var connect.4[2,3]
+!set var connect.4[3]|low_lim = 1.6056791E-01
+
+use dat pathlength.4
+use var pathlength.4
+
+
+!alias setpathlength set dat time.total[4]|meas = time.total[1]|model + 1/3e8 *
+!setpathlength 0.003
+
+vk
+set var connect.4|key_bound=T
+set var pathlength.4|key_bound=T
+
+
+ploton

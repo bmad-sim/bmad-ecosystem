@@ -1,0 +1,90 @@
+place * none
+
+beamoff
+
+place r11 xphase
+place r12 xphase
+place r21 zphase
+place r22 zphase
+
+
+set curve r11.x.c1 ele_ref_name = la.demer.mar.beg\1
+set curve r21.z.c1 ele_ref_name = la.demer.mar.beg\1
+set curve r12.x.c1 ele_ref_name = la.mar.beg\2
+set curve r22.z.c1 ele_ref_name = la.mar.beg\2
+
+x-s r11 -4 4
+x-s r12 -4 4
+sc r11 -.3 .3
+sc r12 -.3 .3
+
+sc r21 -10 10
+sc r22 -10 10
+
+
+output gif-l -scale 1 plots/xz_phase_space_pass_1.png
+
+set curve r11.x.c1 ele_ref_name = la.mar.end\2
+set curve r21.z.c1 ele_ref_name = la.mar.end\2
+set curve r12.x.c1 ele_ref_name = la.mar.beg\3
+set curve r22.z.c1 ele_ref_name = la.mar.beg\3
+
+output gif-l -scale 1 plots/xz_phase_space_pass_2.png
+
+set curve r11.x.c1 ele_ref_name = la.mar.end\3
+set curve r21.z.c1 ele_ref_name = la.mar.end\3
+set curve r12.x.c1 ele_ref_name = la.mar.beg\4
+set curve r22.z.c1 ele_ref_name = la.mar.beg\4
+
+output gif-l -scale 1 plots/xz_phase_space_pass_3.png
+
+set curve r11.x.c1 ele_ref_name = la.mar.end\4
+set curve r21.z.c1 ele_ref_name = la.mar.end\4
+set curve r12.x.c1 ele_ref_name = la.mar.beg\5
+set curve r22.z.c1 ele_ref_name = la.mar.beg\5
+
+output gif-l -scale 1 plots/xz_phase_space_pass_4.png
+
+set curve r11.x.c1 ele_ref_name = la.mar.end\5
+set curve r21.z.c1 ele_ref_name = la.mar.end\5
+set curve r12.x.c1 ele_ref_name = la.mar.beg\6
+set curve r22.z.c1 ele_ref_name = la.mar.beg\6
+
+output gif-l -scale 1 plots/xz_phase_space_pass_5.png
+
+set curve r11.x.c1 ele_ref_name = la.mar.end\6
+set curve r21.z.c1 ele_ref_name = la.mar.end\6
+set curve r12.x.c1 ele_ref_name = la.mar.beg\7
+set curve r22.z.c1 ele_ref_name = la.mar.beg\7
+
+output gif-l -scale 1 plots/xz_phase_space_pass_6.png
+
+set curve r11.x.c1 ele_ref_name = la.mar.end\7
+set curve r21.z.c1 ele_ref_name = la.mar.end\7
+set curve r12.x.c1 ele_ref_name = la.mar.beg\8
+set curve r22.z.c1 ele_ref_name = la.mar.beg\8
+output gif-l -scale 1 plots/xz_phase_space_pass_7.png
+
+set curve r11.x.c1 ele_ref_name = la.mar.end\8
+set curve r21.z.c1 ele_ref_name = la.mar.end\8
+set curve r12.x.c1 ele_ref_name = du.mar.face
+set curve r22.z.c1 ele_ref_name = du.mar.face
+sc
+output gif-l -scale 1 plots/xz_phase_space_pass_dump.png
+
+
+
+set curve r11.x.c1 ele_ref_name = la.mar.beg\8
+set curve r21.z.c1 ele_ref_name = la.mar.beg\8
+set curve r12.x.c1 ele_ref_name = la.mar.end\8
+set curve r22.z.c1 ele_ref_name = la.mar.end\8
+
+x-s r11 -5 5
+x-s r12 -5 5
+sc
+
+output gif-l -scale 1 plots/xz_phase_space_pass_linac_pass_8.png
+
+
+
+

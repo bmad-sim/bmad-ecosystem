@@ -1,0 +1,24 @@
+no_digested
+beginning[beta_a ] = 1.0
+beginning[alpha_a] = 0
+beginning[beta_b ] = 1.0
+beginning[alpha_b] = 0.0
+
+PARAMETER[LATTICE_TYPE] = LINEAR_LATTICE
+
+PARAMETER[E_TOT] = 10E6
+
+CALL, FILE = in.buncher.bmad
+
+IN.Mar.BEG: MARKER
+IN.Mar.END: MARKER
+
+
+in.buncher[ds_step] = 0.001
+in.buncher[voltage] = 50e3
+
+d0: drift, L = 0.1
+
+test_line : line = (in.Mar.BEG, d0, in.buncher, in.Mar.END)
+
+USE, test_line

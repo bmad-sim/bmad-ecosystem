@@ -1,0 +1,8 @@
+
+
+
+S4.CoV_50mm: vkicker,  L = 0.050
+S4.CoV_100mm: vkicker, L = 0.100
+
+S4.CoV01: S4.CoV_50mm, superimpose, ref = mS4dip01, ref_origin = end, ele_origin = beginning,  offset = 0.05
+

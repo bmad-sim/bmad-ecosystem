@@ -1,0 +1,6 @@
+To run Tao use one of:
+	> tao -lat erl_0pass.lat.bmad
+	> tao -lat erl_1pass.lat.bmad
+	> tao -lat erl_2pass.lat.bmad
+	> tao -lat erl_3pass.lat.bmad
+	> tao -lat erl_4pass.lat.bmad

@@ -1,0 +1,130 @@
+!--- Bends
+in.merge.ben: sbend, fringe_type = full, L = 1.25 *15*pi/180
+
+indpa.fixlater.sym  : sbend, fringe_type=full, l=0.253667345272870548
+
+ma3dpa01: indpa.asym, e1 = 0, e2 = indpa.angle, g = indpa.angle/indpa.asym[l]
+mb1dpa01: indpa.fixlater.sym, e1 = -indpa.angle/2, e2 = -indpa.angle/2, g = -indpa.angle/indpa.fixlater.sym[l]
+mb1dpa02: indpa.asym, e1 = indpa.angle, e2 = 0, g = indpa.angle/indpa.asym[l]
+
+ma3dpa01[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole.blend"
+!ma3dpa01[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole_sliced.blend"
+mb1dpa01[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole.blend"
+mb1dpa02[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole.blend"
+!mb1dpa01[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole_sliced.blend"
+!mb1dpa02[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole_sliced.blend"
+
+!--- Pipes
+in.merge.pip: pipe
+in.merge.pip00: in.merge.pip
+in.merge.pip01: in.merge.pip
+in.merge.pip02: in.merge.pip
+
+IN.MERGE.PIP00[L] = +3.59017924362797086E-002
+IN.MERGE.PIP01[L] = +9.72904321770518887E-001
+IN.MERGE.PIP02[L] = +9.72904321770518887E-001
+
+in.merge.match042 : match
+in.merge.match078 : match
+in.merge.match114 : match
+in.merge.match150 : match
+in.merge.match042.multi: line[multipass]=(in.merge.match042)
+in.merge.match078.multi: line[multipass]=(in.merge.match078)
+in.merge.match114.multi: line[multipass]=(in.merge.match114)
+
+IN.MERGE.MATCH042[X0] = +4.6740473966632818e-03
+IN.MERGE.MATCH042[X1] = +4.6611235181792917e-03
+IN.MERGE.MATCH042[PX0] = +3.6945406133709641e-02
+IN.MERGE.MATCH042[PX1] = +3.6842539333564940e-02
+IN.MERGE.MATCH042[Z1] = +6.5737820885702902e-06
+IN.MERGE.MATCH078[X0] = +2.5161653072713164e-03
+IN.MERGE.MATCH078[X1] = +2.5090987565615313e-03
+IN.MERGE.MATCH078[PX0] = +1.9893229702981300e-02
+IN.MERGE.MATCH078[PX1] = +1.9837247756245339e-02
+IN.MERGE.MATCH078[Z1] = +1.9021069267433077e-06
+IN.MERGE.MATCH114[X0] = +1.7214933373668842e-03
+IN.MERGE.MATCH114[X1] = +1.7166423419605452e-03
+IN.MERGE.MATCH114[PX0] = +1.3611089665670642e-02
+IN.MERGE.MATCH114[PX1] = +1.3572698811624467e-02
+IN.MERGE.MATCH114[Z1] = +8.9006498393828792e-07
+IN.MERGE.MATCH150[X0] = +1.3083085353823710e-03
+IN.MERGE.MATCH150[X1] = +1.3046172609419034e-03
+IN.MERGE.MATCH150[PX0] = +1.0344409034384152e-02
+IN.MERGE.MATCH150[PX1] = +1.0315207323464319e-02
+IN.MERGE.MATCH150[Z1] = +5.1401677980678073e-07
+
+!--- Quads
+mb1qub01: QUADRUPOLE, L=0.1510, superimpose, ref = IN.merge.pip01, ref_origin=end, ele_origin=center, offset=-144e-3, field_master=T
+mb1qub02: QUADRUPOLE, L=0.1510, superimpose, ref = IN.merge.pip02, ref_origin=beginning, ele_origin=center, offset=144e-3, field_master=T
+mb1qub01[descrip] = "3DMODEL=7107-037_Short_Quad_STL/7107-037_Short_Quad_bare.blend"
+mb1qub02[descrip] = "3DMODEL=7107-037_Short_Quad_STL/7107-037_Short_Quad_bare.blend"
+mb1qub01[descrip] = "3DMODEL=7107-037_Short_Quad_STL/7107-037_Short_Quad_sliced.blend"
+mb1qub02[descrip] = "3DMODEL=7107-037_Short_Quad_STL/7107-037_Short_Quad_sliced.blend"
+mb1cor01: kicker, l=0.1016, superimpose, ref = IN.merge.pip02, ref_origin=beginning, ele_origin=center, offset=736e-3, field_master=T
+ib1syr01: instrument, superimpose, ref = IN.merge.pip01, ref_origin=end, ele_origin=center, offset=-314e-3
+ib1bpc01: instrument, superimpose, ref = IN.merge.pip01, ref_origin=end, ele_origin=center, offset=-202e-3
+ib1bpc02: instrument, superimpose, ref = IN.merge.pip02, ref_origin=beginning, ele_origin=center, offset=202e-3
+
+MB1QUB01[B1_GRADIENT] =  -7.14033786375993E-02
+MB1QUB02[B1_GRADIENT] =  -7.14033786375993E-02
+
+!--- Markers
+in.merge.mar.beg: marker
+in.merge.mar.end: marker
+
+in.merge.part1: line = (in.merge.mar.beg,
+in.merge.pip00,
+ma3dpa01,
+in.merge.pip01,
+mb1dpa01,
+in.merge.pip02)
+
+in.merge.part2: line[multipass] = (
+mb1dpa02,
+in.merge.mar.end)                  
+
+in.merge: line = (in.merge.part1, in.merge.part2)
+
+
+
+
+!--- Mirror merge
+in.mirror.mar.beg: marker
+in.mirror.mar.end: marker
+
+in.mirror.ben01: in.merge.ben, angle =  -indpa.angle, e1 = 0, e2 = -indpa.angle
+in.mirror.ben02: in.merge.ben, angle =  indpa.angle, e1 = indpa.angle/2, e2 = indpa.angle/2
+in.mirror.ben03: in.merge.ben, angle =  -indpa.angle, e1 = -indpa.angle, e2 = 0
+
+in.mirror.pip: pipe
+in.mirror.pip01: in.merge.pip, L = in.merge.pip01[L]
+in.mirror.pip02: in.merge.pip, L = in.merge.pip02[L]
+in.mirror.pip03: in.merge.pip, L = 4
+
+IN.mirror.Qua01: QUADRUPOLE, L=0.1510, superimpose, ref = IN.mirror.pip01, ref_origin=end, ele_origin=end
+IN.mirror.Qua02: QUADRUPOLE, L=0.1510, superimpose, ref = IN.mirror.pip02, ref_origin=beginning, ele_origin=beginning
+
+IN.mirror.Qua01[offset] =  -.0722
+IN.mirror.Qua02[offset] =   .0722
+
+in.mirror.qua01[descrip] = "3DMODEL=7107-037_Short_Quad_STL/7107-037_Short_Quad_bare.blend"
+in.mirror.qua02[descrip] = "3DMODEL=7107-037_Short_Quad_STL/7107-037_Short_Quad_bare.blend"
+
+in.mirror.ben02[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole.blend"
+in.mirror.ben03[descrip] = "3DMODEL=7107-033_2_piece_dipole_STL/7107-033_2_piece_dipole.blend"
+
+!---Beam Stop
+IN.mirror.Dum01: INSTRUMENT, TYPE = "BEAMSTOP", L = 0.5, APERTURE = 0.3
+
+in.mirror_merge: line = (in.mirror.mar.beg,
+in.mirror.ben01,
+in.mirror.pip01,
+in.mirror.ben02,
+in.mirror.pip02,
+in.mirror.ben03,
+in.mirror.pip03,
+IN.mirror.Dum01,
+in.mirror.mar.end)   
+
+in.mirror_merge[geometry] = open
+in.mirror_merge[particle] = electron

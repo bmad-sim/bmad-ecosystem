@@ -1,0 +1,244 @@
+
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  -10
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = -10
+
+
+parameter[geometry] = open
+
+PARAMETER[particle] = electron
+
+parameter[e_tot] = 6e6
+
+parameter[absolute_time_tracking] = F
+
+
+r1_middle_angle = 3.49065849E-01
+!r1_middle_angle = 0
+
+beginning[z_position] = 15
+beginning[x_position] = 15.16
+beginning[theta_position] = -15*pi/180   -r1_middle_angle
+
+beginning[z_position] = 15     - 2.87609450627946082E+01 + 2.52749003999999964E+01
+beginning[x_position] = 15.16  -1.47992847079917400E+01 + 1.26108399999999996E+01
+beginning[theta_position] = -15*pi/180
+
+
+call, file = ../erl.param.bmad
+
+call, file = ../in/merge/in.merge.bmad
+mb1qub01[b1_gradient] = -7.8548111E-02
+mb1qub02[b1_gradient] = -7.8548111E-02
+ 
+call, file = ../fx/cell/cell.bmad 
+
+! FFAG with reverse merge settings
+call, file = ../fx/fx.bmad
+!call, file = ../fx/fa.X.bmad
+!call, file = ../fx/fb.X.bmad
+ 
+call, file = ../sx/sx.bmad
+call, file = ../sx/s1.acc.bmad
+call, file = ../sx/s2.acc.bmad
+call, file = ../sx/s3.acc.bmad
+call, file = ../sx/s4.rec.bmad
+
+call, file =rx.bmad
+
+FB.match1: match, match_end = T, match_end_orbit = T
+FB.match2: FB.match1
+FB.match3: FB.match1
+FB.match4: FB.match1
+
+! marker for matching
+!FFAG.cellmatch: marker, superimpose, ref = FB.BEN02
+
+
+! Linac
+LA.fakecavity: lcavity, L=1, rf_frequency=global_rf_frequency, voltage = 70e6
+!LA: line[multipass] = (LA.fakecavity)
+call, file = ../la/la.bmad
+call, file = ../la/la.X.bmad
+
+
+
+
+LA.match1: match, match_end = T
+LA.match1[beta_a1] = 12.5
+LA.match1[beta_b1] = 12.5
+LA.match1[alpha_a1] = -1
+LA.match1[alpha_b1] = -1
+LA.match2: LA.match1, alpha_a1=1, alpha_b1=1
+LA.match3: LA.match1, alpha_a1=1, alpha_b1=1
+LA.match4: LA.match1, alpha_a1=1, alpha_b1=1
+
+LA.match0: match, match_end=T, match_end_orbit = T, beta_a1=12.5, beta_b1=12.5, alpha_a1=1, alpha_b1=1
+LA.match0[x1] = 0
+LA.match0[px1] = 0
+LA.match0[y1] = 0
+LA.match0[py1] = 0
+LA.match0[z1] = 0
+LA.match0[pz1] = 0
+
+
+! Time patches
+return1.time_patch: patch
+return2.time_patch: patch
+return3.time_patch: patch
+return4.time_patch: patch
+
+! recirculate patches
+r0: patch
+RETURN1: patch
+RETURN2: patch
+RETURN3: patch
+RETURN4: patch
+
+! from the full model
+Mar.BEG: marker
+Mar.END: marker
+recirculate: floor_shift, origin_ele = Mar.BEG
+recirculate[x_offset] =  -3.12297219E+00
+recirculate[z_offset] =  -1.08364041E+01
+recirculate[x_pitch] =   -5.49778714E+00
+ 
+
+magic: match, beta_a1 = 1, beta_b1 = 1, match_end = T
+
+!r3_dummy: pipe, L = 2
+!r4_dummy: pipe, L = 2
+
+
+!lat: line = (Mar.BEG,
+!!LA.match0, 
+!magic,
+!LA, LA.match1,
+!R1,  pEref.1, FA.short, 1*fa.cell03, pErefReverse.1,
+!RETURN1, recirculate, LA.match0,  LA, 
+!R2, pEref.2, FA.short, 1*fa.cell03, pErefReverse.2,
+!RETURN2, recirculate, LA.match0,  LA,
+!R3, pEref.3, FA.short, 1*fa.cell03, pErefReverse.3,
+!RETURN3, recirculate, LA.match0,  LA,
+!R4, pEref.4, FA.short, 1*fa.cell03, pErefReverse.4,
+!Mar.END)
+!
+
+lat: line = (in.merge.part1, IN.MERGE.part2, Mar.BEG,
+LA,
+recirculate,
+FB.match1, FB.end,
+
+R1,
+R1_connect, IN.MERGE.part2, return1.time_patch, 
+LA, recirculate,
+
+RETURN2, FB.match2, FB.end, 
+R2,
+R1_connect, IN.MERGE.part2, return2.time_patch, 
+LA, recirculate,
+  
+FB.match3, FB.end, 
+R3,
+R1_connect, IN.MERGE.part2, return3.time_patch, 
+LA, recirculate,
+
+FB.match4, FB.end,
+R4,
+R1_connect, IN.MERGE.part2, return4.time_patch, 
+LA, recirculate,
+  
+Mar.END)
+
+! Start of FB cell
+! from beam_start1.bmad
+! from beam_start1.bmad
+FB.MATCH1[x1]  =    -0.0124713169
+FB.MATCH1[px1] =    -0.1168463822
+FB.MATCH1[beta_a1]  =     0.3290782276
+FB.MATCH1[alpha_a1] =    -2.3948441799
+FB.MATCH1[beta_b1]  =     0.2966191403
+FB.MATCH1[alpha_b1] =     1.9019867580
+FB.MATCH1[eta_x1]  =    -0.0106555975
+FB.MATCH1[etap_x1] =     0.0756076448
+! from beam_start2.bmad
+FB.MATCH2[x1]  =    -0.0129130978
+FB.MATCH2[px1] =    -0.0627299166
+FB.MATCH2[beta_a1]  =     0.4195138164
+FB.MATCH2[alpha_a1] =    -1.1263008725
+FB.MATCH2[beta_b1]  =     0.5516893238
+FB.MATCH2[alpha_b1] =     1.4407512848
+FB.MATCH2[eta_x1]  =     0.0150318328
+FB.MATCH2[etap_x1] =     0.0993427156
+! from beam_start3.bmad
+FB.MATCH3[x1]  =     0.0001426265
+FB.MATCH3[px1] =    -0.0215290295
+FB.MATCH3[beta_a1]  =     0.5935333301
+FB.MATCH3[alpha_a1] =    -1.0256978179
+FB.MATCH3[beta_b1]  =     1.0477123971
+FB.MATCH3[alpha_b1] =     1.7653598296
+FB.MATCH3[eta_x1]  =     0.0593811278
+FB.MATCH3[etap_x1] =     0.1187403229
+! from beam_start4.bmad
+FB.MATCH4[x1]  =     0.0231971525
+FB.MATCH4[px1] =     0.0125458965
+FB.MATCH4[beta_a1]  =     0.7315621406
+FB.MATCH4[alpha_a1] =    -0.9597368789
+FB.MATCH4[beta_b1]  =     1.8424417286
+FB.MATCH4[alpha_b1] =     2.3080870503
+FB.MATCH4[eta_x1]  =     0.1093565968
+FB.MATCH4[etap_x1] =     0.1257615145
+ 
+ 
+call, file = r1.acc.bmad
+
+call, file = r2.acc.bmad
+call, file = r3.acc.bmad
+call, file = r4.rec.bmad  
+
+! Helper overlays
+
+! R2
+O_R2.Pip03: overlay = {R2.Pip06, R2.Pip09}, L 
+O_R2.Pip03[L] =  R2.Pip06[L]
+
+O_R2.Pip04: overlay = {R2.Pip07, R2.Pip08}, L 
+O_R2.Pip04[L] =  R2.Pip07[L]
+
+!O_mR2dip72: overlay = {mR2dip08, mR2dip03}, g
+!O_mR2dip72[g] = mR2dip08[g]
+!O_mR2dip63: overlay = {mR2dip07, mR2dip04}, g
+!O_mR2dip63[g] = mR2dip07[g]
+
+
+! R3 
+
+O_R3.Pip02: overlay = {R3.Pip02, R3.Pip03}, L 
+O_R3.Pip02[L] = R3.Pip02[L]
+O_R3.Pip03: overlay = {R3.Pip04, R3.Pip05}, L 
+O_R3.Pip03[L] = R3.Pip04[L]
+O_R3.Pip04: overlay = {R3.Pip06, R3.Pip07}, L 
+O_R3.Pip04[L] = R3.Pip06[L]
+!O_mR3dip02: overlay = {mR3dip02, mR3dip03}, g
+!O_mR3dip02[g] = mR3dip02[g]
+ 
+! R4
+O_R4.Pip03: overlay = {R4.Pip04, R4.Pip05}, L
+O_R4.Pip03[L] = R4.Pip04[L]
+
+
+
+!O_mR2dip34: overlay = {mR2dip05, mR2dip06}, g
+!O_mR2dip34[g] = mS2dip05[g]
+!O_R2.Pip35: overlay = {R2.Pip06, R2.Pip09}, L
+!O_R2.Pip35[L] = S2.Pip06[L]
+
+
+
+*[ds_step] = .01
+
+!beginning[theta_position] = -15*pi/180 
+use,  lat
+
+
