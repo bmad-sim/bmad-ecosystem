@@ -1,0 +1,54 @@
+no_digested
+beginning[beta_a ] = 1.0
+beginning[alpha_a] = 0
+beginning[beta_b ] = 1.0
+beginning[alpha_b] = 0.0
+
+parameter[particle] = electron
+PARAMETER[geometry] = open
+
+PARAMETER[E_TOT] = 10E6
+
+standard_cavity2_delta_e = 1e6
+standard_rfc_phi0 = 0.0
+standard_rfc_rf_frequency = global_rf_frequency
+
+CALL, FILE = in.cavity2.bmad
+
+in.cavity2[grid_field] = call::in.cavity2_grid.bmad
+in.cavity2[tracking_method] = runge_kutta
+
+CALL, FILE = in.cavity2_reverse.bmad
+
+CRMOD.PIPE_CU:     DRIFT, type = "CUPIPE"
+
+CRMOD.Pip01: CRMOD.PIPE_CU, L = 0.060978,  aperture = .078/2, 
+    wall = { section = { s = 0, v(1) = {0, 0, CRMOD.Pip01[aperture]}},
+             section = { s = CRMOD.Pip01[L], v(1) = {0, 0, CRMOD.Pip01[aperture]}}}
+
+CRMOD.Pip02: CRMOD.PIPE_CU, L = 0.00547,  aperture = .106/2, 
+    wall = { section = { s = 0, v(1) = {0, 0, CRMOD.Pip02[aperture]}},
+             section = { s = CRMOD.Pip02[L], v(1) = {0, 0, CRMOD.Pip02[aperture]}}}
+
+CRMOD.Rfc01: line = (in.cavity2)
+
+
+!CRMOD.Rfc01_reverse: line = (in.cavity2_reverse)
+
+CRMOD.Mar.BEG: MARKER
+CRMOD.Mar.END: MARKER
+
+
+!CRMOD.Rfc01[ds_step] = 0.001
+
+test_line : line = (CRMOD.Mar.BEG, CRMOD.Pip01, CRMOD.Rfc01, CRMOD.Pip02, CRMOD.Mar.END)
+
+!test_line : line = (CRMOD.Rfc01, CRMOD.Pip02, CRMOD.Mar.END)
+
+!test_line : line = (CRMOD.Mar.BEG, CRMOD.Rfc01, CRMOD.Mar.END)
+
+!test_line : line = (CRMOD.Mar.BEG, CRMOD.Rfc01_reverse, CRMOD.Mar.END)
+
+*[ds_step] = 1e-3
+
+USE, test_line

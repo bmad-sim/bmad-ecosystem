@@ -1,0 +1,55 @@
+Electrostatic problem, Cylindrical Electrode
+Voltage = 500,000 kV on the inner conductor
+
+
+&reg kprob=0,    ! Poisson or Pandira problem
+conv=0.10
+xjfact=0.0,      ! Electrostatic problem
+
+dx=	.2,
+dy=	.2,
+rx=2.,ry=2.,	
+xreg1=	20.,
+xreg2=	83.,
+xreg3=	88.,
+
+!yreg4=	-150.,
+!yreg3=	-173.9,
+!yreg2=	-176.9,
+!yreg1=	-179.9,
+
+icylin=1,        ! Cylindrical symmetry
+nbsup=1,         ! Neumann boundary condition at upper edge
+nbslo=1,         ! Neumann boundary condition at lower edge
+nbsrt=0,         ! Dirichlet boundary condition at right edge
+nbslf=1          ! Neumann boundary condition at left edge
+!ktop=31,         ! Logical coordinate limit in X for interpolation
+!ltop=43         ! Logical coordinate limit in Y for interpolation
+		!	
+&
+&po	x=00.00,	y=-236.40 &		!	Upper-righthand edge
+&po	x=229.02,	y=-236.40 &		!	Upper-lefthand edge
+&po	x=229.02,	y=-151.70 &		!	Lower-right chamber boundaries
+&po nt=4, radius=81.79,	x=147.22,	y=-69.91 &			
+&po	x=79.77,	y=-69.91 &		!	Flap bend point
+&po	x=37.57,	y=-69.91 &			
+&po nt=4, radius=8.00,	x=29.57,	y=-77.91 &		!	
+&po	x=29.57,	y=-89.77 &			
+&po nt=5, radius=5.00,	x=27.46,	y=-94.30 &		!	
+&po	x=17.81,	y=-98.80 &			
+&po nt=5, radius=12.79,	x=12.41,	y=-100.00 &		!	Ap. curve
+&po nt=5, radius=1.59,	x=12.41,	y=-96.83 &		!	Temp. assuming flap edge is pointy
+&po nt=4, radius=9.61,	x=16.47,	y=-95.92 &		!	
+&po	x=26.00,	y=-91.48 &			
+&po	x=26.00,	y=00.00 &		!	terminating boundary
+&po	x=00.00,	y=00.00 &		!	
+&po	x=00.00,	y=-236.40 &		!	 
+				!	 
+&reg mat=0,voltage=-500000.0,ibound=-1 &				
+&po	x=00.00,	y=-150.00 &		!	cathode beam axis position
+&po	x=10.82,	y=-150.00 &		!	edge of cathode
+&po	x=32.46,	y=-139.91 &		!	"cone to curve"
+&po nt=5, radius=36.40,	x=84.25,	y=-172.90 &		!	Toroidal connection
+&po	x=84.25,	y=-236.40 &		!	
+&po	x=00.00,	y=-236.40 &			
+&po	x=00.00,	y=-150.00 &			

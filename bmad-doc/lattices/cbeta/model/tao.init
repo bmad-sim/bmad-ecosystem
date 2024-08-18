@@ -1,0 +1,4 @@
+&tao_start
+ plot_file = 'tao_plot.init'
+ startup_file = 'tao.startup'
+/

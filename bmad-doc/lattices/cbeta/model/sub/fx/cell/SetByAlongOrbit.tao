@@ -1,0 +1,21 @@
+
+
+place * none
+place bottom layout
+
+
+place top2 multiorbit4
+set curve multiorbit4.orbit.c1 ix_universe = 1
+set curve multiorbit4.orbit.c2 ix_universe = 2
+set curve multiorbit4.orbit.c3 ix_universe = 3
+set curve multiorbit4.orbit.c4 ix_universe = 4
+
+place middle2 multiby4
+set curve multiby4.by.c1 ix_universe = 1
+set curve multiby4.by.c2 ix_universe = 2
+set curve multiby4.by.c3 ix_universe = 3
+set curve multiby4.by.c4 ix_universe = 4
+x-a all s
+sc
+
+

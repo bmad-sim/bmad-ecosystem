@@ -1,0 +1,45 @@
+place * none
+place top2 bunch_size_x
+place middle2 bunch_size_x
+place bottom layout
+x-a all s
+
+sc layout -2 2
+
+sc top2 -8 8
+sc middle2 -8 8
+
+output ps-l plots/beam_size_xy.ps
+           
+
+x-s all 10 100
+!sc
+output ps-l plots/beam_size_xy_1.ps
+x-s all 90 180
+!sc
+output ps-l plots/beam_size_xy_2.ps
+x-s all 170 260
+!sc
+output ps-l plots/beam_size_xy_3.ps
+x-s all 250 340
+!sc
+output ps-l plots/beam_size_xy_4.ps
+x-s all 330 420
+!sc
+output ps-l plots/beam_size_xy_5.ps
+x-s all 410 500
+!sc
+output ps-l plots/beam_size_xy_6.ps
+x-s all 490 580
+!sc
+output ps-l plots/beam_size_xy_7.ps
+
+x-s all 565 585
+sc
+output ps-l plots/beam_size_xy_8.ps
+
+
+
+
+
+

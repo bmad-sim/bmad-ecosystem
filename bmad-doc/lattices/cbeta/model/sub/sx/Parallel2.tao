@@ -1,0 +1,41 @@
+x-s floor 10 15
+sc
+!sc floor 4 8
+
+vv
+vd
+
+set dat floor.thetas[2]|meas = floor.thetas[1]|model
+set dat floor.z[2]|meas = floor.z[1]|model 
+
+
+set dat harmonic.part1[2]|meas = 0
+!set dat time.part1[2]|meas = time.part1[1]|model + (0+0.3) /4 /1.3e9 ! 
+
+! Try to make same length!!
+set dat time.part1[2]|meas = time.part1[1]|model  - (-0.0849777)/4/3e8 !FFAG compensation
+
+! For angles
+!use dat floor.thetas[2]
+!use var parallel2[1]
+
+! For long straight alignment with separation
+!use dat floor.thetas[2]
+!use dat floor.z[2]
+!use dat floor.delta_x[2]
+!use var parallel2[1,2,3]
+
+! For timing
+use dat floor.thetas[2]
+!use dat harmonic.part1[2]
+use dat time.part1[2]
+use dat floor.z[2]
+use var parallel2[5,7]
+
+
+olmdif
+run
+sho var -good -bmad
+
+
+

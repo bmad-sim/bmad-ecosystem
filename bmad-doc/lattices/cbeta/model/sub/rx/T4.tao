@@ -1,0 +1,18 @@
+place floor r56_compaction
+sr56 R1.demer.mar.beg\4
+vv
+vd
+x-s all  84 94
+sc
+use dat betas.4
+use dat endtwiss.4[1:6]
+
+use var q4
+
+set var q4|low_lim = -5
+set var q4|high_lim = 5
+
+vk
+set var q4|key_bound = T
+
+alias Write show -append r4.X.bmad var -good -bmad

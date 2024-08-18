@@ -1,0 +1,8 @@
+x-s all 22 30
+vv
+vd
+use dat du.twiss[5,6]
+use dat du.betas
+
+use var q
+olmdif

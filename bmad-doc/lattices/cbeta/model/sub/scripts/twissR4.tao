@@ -1,0 +1,10 @@
+vv
+vd
+x-s all 315 335
+use dat twiss.la5[1:6]
+use var q.r4
+olmdif
+
+
+
+alias Write show -append rx/r4.X.bmad var -good -bmad

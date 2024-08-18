@@ -784,12 +784,10 @@ do j = 1, slave%n_lord
     if (n_major_lords > 0) then
  
      if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-        call out_io(s_abort$, r_name, &
+        call out_io(s_error$, r_name, &
               'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
               'Conflicting methods are: ' // trim(mat6_calc_method_name(lord%mat6_calc_method)) // ',  ' // & 
               mat6_calc_method_name(slave%mat6_calc_method))
-        if (global_com%exit_on_error) call err_exit
-        err_flag = .true.
       endif
 
       if (slave%tracking_method /= lord%tracking_method) then
@@ -802,12 +800,10 @@ do j = 1, slave%n_lord
         elseif (slave%tracking_method == time_runge_kutta$ .and. lord%tracking_method == fixed_step_time_runge_kutta$) then
           slave%tracking_method = fixed_step_time_runge_kutta$
         else
-          call out_io(s_abort$, r_name, &
+          call out_io(s_error$, r_name, &
              'TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
              'Conflicting methods are: ' // trim(tracking_method_name(lord%tracking_method)) // ',  ' // & 
              tracking_method_name(slave%tracking_method))
-          if (global_com%exit_on_error) call err_exit
-          err_flag = .true.
         endif
       endif
 
@@ -815,18 +811,14 @@ do j = 1, slave%n_lord
       if (slave%space_charge_method == off$) slave%space_charge_method = lord%space_charge_method
 
       if (slave%taylor_map_includes_offsets .neqv. lord%taylor_map_includes_offsets) then
-        call out_io(s_abort$, r_name, &
+        call out_io(s_error$, r_name, &
             'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
-        if (global_com%exit_on_error) call err_exit
-        err_flag = .true.
       endif
 
       if ((is_first .or. is_last) .and. has_attribute (lord, 'FRINGE_TYPE')) then
        if (value(fringe_type$) /= lord%value(fringe_type$)) then
-         call out_io(s_abort$, r_name, &
+         call out_io(s_error$, r_name, &
             'FRINGE_TYPE DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
-         if (global_com%exit_on_error) call err_exit
-         err_flag = .true.
        endif
 
      endif

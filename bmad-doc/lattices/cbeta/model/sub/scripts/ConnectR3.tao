@@ -1,0 +1,35 @@
+vv
+vd
+place top floor
+place middle orbit
+x-s all 235 245
+sc
+x-s floor 6 18
+sc floor 8 14
+x-s top 11 15
+sc top 12 13
+plotoff
+
+use dat connect.3[1,2,4,5]  
+!use dat pathlength.3
+
+use var connect.3
+use var pathlength.3[1:3]
+!use var pathlength.3[4] ! Sliding joints only
+
+
+
+
+use dat pathlength.3
+
+
+
+
+alias setpathlength set dat time.total[3]|meas = time.total[1]|model + 1/3e8 *
+!setpathlength 0.003
+
+vk
+set var connect.3|key_bound=T
+!set var pathlength.3|key_bound=T
+
+ploton

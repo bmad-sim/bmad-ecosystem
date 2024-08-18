@@ -1,0 +1,31 @@
+set glo lattice_calc_on = f
+set glo plot_on = f
+
+set ele MA3DPA01 G_ERR = (ele::MA3DPA01[G]+ele::MA3DPA01[G_ERR]|base)*lat::momentum[IN.E_TOT]/ele::IN.E_TOT[P0C] - ele::MA3DPA01[G]
+set ele MB1DPA01 G_ERR = (ele::MB1DPA01[G]+ele::MB1DPA01[G_ERR]|base)*lat::momentum[IN.E_TOT]/ele::IN.E_TOT[P0C] - ele::MB1DPA01[G]
+set ele MB1DPA02 G_ERR = (ele::MB1DPA02[G]+ele::MB1DPA02[G_ERR]|base)*lat::momentum[IN.E_TOT]/ele::IN.E_TOT[P0C] - ele::MB1DPA02[G]
+
+set ele MB1QUB01 B1_GRADIENT = ele::MB1QUB01[B1_GRADIENT]|base*lat::momentum[IN.E_TOT]/ele::IN.E_TOT[P0C]
+set ele MB1QUB02 B1_GRADIENT = ele::MB1QUB02[B1_GRADIENT]|base*lat::momentum[IN.E_TOT]/ele::IN.E_TOT[P0C]
+
+set ele MD1DIP01 G_ERR = (ele::MD1DIP01[G]+ele::MD1DIP01[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MD1DIP01[G]
+set ele MS1DPB01 G_ERR = (ele::MS1DPB01[G]+ele::MS1DPB01[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DPB01[G]
+set ele MS1DIP02 G_ERR = (ele::MS1DIP02[G]+ele::MS1DIP02[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DIP02[G]
+set ele MS1DIP03 G_ERR = (ele::MS1DIP03[G]+ele::MS1DIP03[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DIP03[G]
+set ele MS1DIP04 G_ERR = (ele::MS1DIP04[G]+ele::MS1DIP04[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DIP04[G]
+set ele MS1DIP05 G_ERR = (ele::MS1DIP05[G]+ele::MS1DIP05[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DIP05[G]
+set ele MS1DIP06 G_ERR = (ele::MS1DIP06[G]+ele::MS1DIP06[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DIP06[G]
+set ele MS1DIP07 G_ERR = (ele::MS1DIP07[G]+ele::MS1DIP07[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DIP07[G]
+set ele MS1DPB08 G_ERR = (ele::MS1DPB08[G]+ele::MS1DPB08[G_ERR]|base)*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C] - ele::MS1DPB08[G]
+
+set ele MS1QUA01 B1_GRADIENT = ele::MS1QUA01[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+set ele MS1QUA02 B1_GRADIENT = ele::MS1QUA02[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+set ele MS1QUA03 B1_GRADIENT = ele::MS1QUA03[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+set ele MS1QUA04 B1_GRADIENT = ele::MS1QUA04[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+set ele MS1QUA05 B1_GRADIENT = ele::MS1QUA05[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+set ele MS1QUA06 B1_GRADIENT = ele::MS1QUA06[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+set ele MS1QUA07 B1_GRADIENT = ele::MS1QUA07[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+set ele MS1QUA08 B1_GRADIENT = ele::MS1QUA08[B1_GRADIENT]|base*lat::momentum[SETENERGY042]/ele::SETENERGY042[P0C]
+
+set glo lattice_calc_on = t
+set glo plot_on = t

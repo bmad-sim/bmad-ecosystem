@@ -1,0 +1,5 @@
+IFASCR0A : instrument, superimpose, ref=MFAQUD00, offset=-128.71e-3-2.53e-3, x_offset=-12.44e-3
+IFASCR0B : instrument, superimpose, ref=MFAQUD04, offset=199.65e-3
+ib1bpc03[offset] = -0.155
+id1syx01: instrument, superimpose, ref=la.mar.end_vessel, offset=0.313945
+id1bpc01[offset] = 0.056370

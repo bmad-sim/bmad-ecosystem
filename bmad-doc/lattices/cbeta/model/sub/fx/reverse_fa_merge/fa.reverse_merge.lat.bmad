@@ -1,0 +1,120 @@
+
+BEGINNING[BETA_A]  = 40
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 40
+BEGINNING[ALPHA_B] = 0
+
+parameter[geometry] = open
+PARAMETER[particle] = electron
+
+call, file = ../cell/reverse_beam_start1.bmad
+
+!parameter[ptc_exact_model]  = T
+
+!parameter[absolute_time_tracking] = T
+
+call, file = ../cell/cell.bmad
+call, file = ../fx.bmad
+call, file = ../../sx/sx.bmad
+
+!*[tracking_method] = symp_lie_ptc
+!*[mat6_calc_method] = symp_lie_ptc
+
+!*[tracking_method] = time_runge_kutta
+!*[mat6_calc_method] = tracking
+
+Mar.BEG: marker
+Mar.END: marker
+
+extend: drift, L = 0.5
+
+ppx: patch
+!spacer: drift
+
+spacer: overlay = {FA.Blk01, FA.Blk02}, L
+spacer[L]= FA.Blk01[L]
+
+FA.cell01mod: line = (
+ FA.CELL01.Mar.BEG,
+ FA.Pip01,
+ FA.patch01,
+ FA.Blk01,
+ FA.patch02,
+ FA.Pip02)
+
+lat: line = (Mar.BEG,
+-FA.CELL02,
+-FA.CELL01,
+-FA.CELL00,
+-S1_TAIL,
+Mar.END,
+extend)
+
+ 
+!pp1: overlay = {
+!  FA.patch01,
+!  FA.patch02}, x_pitch
+!pp2: overlay = {
+!  FA.patch03,
+! FA.patch04}, x_pitch
+!pp1[x_pitch] = ff.angle/4
+!pp2[x_pitch] = ff.angle/4
+
+!pp2[x_pitch] =  ff.angle/4
+!ppx[x_pitch] =  ff.angle/2
+
+
+! Need to reverse the superpositions
+
+!FA.Qua01[superimpose] = F
+
+
+FA.Qua00[ele_origin] = beginning
+FA.Qua00[ref_origin] = beginning
+FA.Qua00[offset] = FF.quad_padding
+
+FA.Qua02[ele_origin] = end
+FA.Qua01[ele_origin] = beginning
+FA.Qua02[ref_origin] = end
+FA.Qua01[ref_origin] = beginning
+FA.Qua02[offset] = -FF.quad_padding 
+FA.Qua01[offset] =  FF.quad_padding
+
+FA.Qua04[ele_origin] = end
+FA.Qua03[ele_origin] = beginning
+FA.Qua04[ref_origin] = end
+FA.Qua03[ref_origin] = beginning
+FA.Qua04[offset] = -FF.quad_padding
+FA.Qua03[offset] =  FF.quad_padding
+
+FA.Qua06[ele_origin] = end
+FA.Qua05[ele_origin] = beginning
+FA.Qua06[ref_origin] = end
+FA.Qua05[ref_origin] = beginning
+FA.Qua06[offset] = -FF.quad_padding
+FA.Qua05[offset] =  FF.quad_padding
+
+!FA.Qua01[offset] = 0.12 - (0.042 + 2*FF.quad_padding)
+
+!O_geometry: overlay = {
+!FA.patch01[x_pitch]: f * FF.angle/2, 
+!FA.patch02[x_pitch]: f * FF.angle/2, 
+!FA.PATCH03[x_pitch]: (1-f) * FF.angle/2,
+!FA.PATCH04[x_pitch]: (1-f) * FF.angle/2 }, var = {f}
+!O_geometry[f] = .5
+ 
+call, file = settings.bmad
+
+
+
+!lat: line = (fa.merge)
+
+
+*[aperture] = 0.10
+
+*[ds_step] = .01
+
+use, lat
+
+
+

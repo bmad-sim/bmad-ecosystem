@@ -1,0 +1,18 @@
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[geometry] = open
+
+beginning[e_tot] = 6e6
+
+
+call, file = in.merge.bmad
+
+
+d1: drift, L = 5
+L1: line = (in.mirror_merge, d1)
+f1: fork, to_line = L1
+
+lat: line = (f1, in.merge)
+
+use, lat

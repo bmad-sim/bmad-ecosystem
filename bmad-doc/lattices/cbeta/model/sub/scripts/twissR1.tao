@@ -1,0 +1,11 @@
+plotoff
+vv
+vd
+use dat twiss.la2
+use var q.r1
+olmdif
+ploton
+
+
+
+alias Write show -append rx/r1.X.bmad var -good -bmad

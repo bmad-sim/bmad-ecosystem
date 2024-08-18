@@ -1,0 +1,73 @@
+
+BEGINNING[BETA_A]  = 40
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 40
+BEGINNING[ALPHA_B] = 0
+
+parameter[geometry] = open
+PARAMETER[particle] = electron
+
+call, file = ../cell/beam_start1.bmad
+
+!parameter[ptc_exact_model]  = T
+
+!parameter[absolute_time_tracking] = T
+
+call, file = ../cell/cell.bmad
+call, file = ../fx.bmad
+call, file = ../../sx/sx.bmad
+call, file = ../../rx/rx.bmad
+
+
+Mar.BEG: marker
+Mar.END: marker
+
+pp: overlay = {FB.PATCH31, FB.PATCH32, FB.patch33, FB.patch34}, x_pitch
+pp[X_PITCH] = FF.angle/4
+
+
+
+extend: pipe, L = 0.3
+
+block_length: overlay = {FB.BLK16, FB.Blk17}, L
+block_length[L] = FB.BLK16[L]
+
+
+
+lat: line = (Mar.BEG,
+!FB.CELL14,
+!FB.CELL15,
+FB.CELL16,
+FB.cell17half,
+R1.Gat01,
+Mar.END,
+extend)
+ 
+!FB.QUA31[X_OFFSET] =   2.15247154477061E-03
+!FB.QUA32[X_OFFSET] =   2.44290545457531E-02
+!PP[X_PITCH] =  -2.33791341031967E-02
+
+
+!FB.QUA31[X_OFFSET] =  -2.57743419743844E-03
+!FB.QUA32[X_OFFSET] =   1.05784385955636E-02
+!FB.QUA33[X_OFFSET] =  -9.08990167330232E-03
+
+! Simple
+!FB.QUA31[X_OFFSET] =   2.70051851955853E-03
+!FB.QUA32[X_OFFSET] =   2.32417456941952E-02
+
+!call, file = use_fieldmaps.bmad
+ 
+
+
+call, file = settings.bmad
+
+
+*[aperture] = 0.10
+
+*[ds_step] = .01
+
+use, lat
+
+
+

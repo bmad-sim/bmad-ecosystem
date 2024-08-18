@@ -1,0 +1,9 @@
+
+
+vv
+vd
+use dat demerge.3
+use var p3
+olmdif
+run
+show var -bmad -good

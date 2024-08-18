@@ -1,0 +1,14 @@
+call, file = crmod/la.crmod.wall.bmad
+
+
+LA.PAD01[wall] = { 
+	section = { s = 0,
+	  v(1) = {0, 0, LA.CRMOD.aperture2}},
+	section = { s = LA.PAD01[L],
+	  v(1) = {0, 0, LA.PAD01[aperture]}}}
+LA.PAD02[wall] = { 
+	section = { s = 0,
+	  v(1) = {0, 0, LA.PAD02[aperture]}},
+	section = { s = LA.PAD02[L],
+	  v(1) = {0, 0, LA.PAD02[aperture]}}}
+
