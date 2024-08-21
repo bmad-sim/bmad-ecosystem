@@ -1,0 +1,30 @@
+call, file=erl.param.bmad
+
+parameter[lattice]  = "CBETA 1-pass"
+
+parameter[geometry] = open
+
+PARAMETER[particle] = Electron
+
+parameter[absolute_time_tracking] = T
+
+call, file = beginning/beginning_in_merge.bmad
+
+BEGINNING[BETA_A] =   1.94299529399234E+01
+BEGINNING[ALPHA_A] =   3.84315489360508E-01
+BEGINNING[BETA_B] =   1.73932531624011E+00
+BEGINNING[ALPHA_B] =  -1.05390020188673E-01
+
+ 
+! Main call
+call, file = erl.bmad
+call, file = sx/s1.fat.bmad
+call, file = la/la.042.bmad
+call, file = fat/fat-8q.bmad
+h4 : hkicker, l=lr_hdip4, field_master=t
+ms1dh401 : h4, superimpose, ref=ms1qua01, offset = -0.325
+ms1dh402 : h4, superimpose, ref=ms1qua08, offset = 0.490
+call, file = fx/fa.bpms.bmad
+call, file = fat/fat-scr.bmad
+*[ds_step] = .01
+use, cbeta_fat

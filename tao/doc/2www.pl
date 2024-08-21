@@ -14,7 +14,7 @@ while (<FC>) {
 close (FC);
 if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 
-`python generate_tex_for_python_commands.py`;
+`python3 generate_tex_for_pipe_commands.py`;
 `pdflatex tao`;
 
 $file = "tao_template.html";
@@ -45,4 +45,4 @@ close (F_OUT);
 
 `mv basic_tao.html /nfs/classe/www/html/bmad/`;
 `cp tao.pdf /nfs/classe/www/html/bmad/tao-manual-$rev.pdf`;
-`python3 generate_tex_for_python_commands.py`
+`python3 generate_tex_for_pipe_commands.py`

@@ -482,30 +482,11 @@ if (who == 'phase_units') then
 endif
 
 if (who == 'silent_run') then  ! Old style syntax
-  call out_io (s_error$, r_name, 'The "set global silent_run" command has been replaced by "set global quiet =  <logic>"')
-
-  if (s%com%cmd_file_level == 0) then
-    call out_io (s_error$, r_name, 'The "set global silent_run" command can only be used in command files.')
-    return
-  endif
-
-  call match_word (value_str, [character(8):: 'true', 'false'], ix)
-  if (ix == 1) then
-    call tao_quiet_set('all')
-  elseif (ix == 2) then
-    call tao_quiet_set('off')
-  else
-    call out_io (s_error$, r_name, 'BAD "silent_run" VALUE: ' // value_str)
-  endif
+  call out_io (s_error$, r_name, 'The "set global silent_run" command has been replaced by "set global quiet = <switch>". Nothing done!')
   return
 endif
 
 if (who == 'quiet') then
-  if (s%com%cmd_file_level == 0) then
-    call out_io (s_error$, r_name, 'The "set global quiet" command can only be used in command files.')
-    return
-  endif
-
   call tao_quiet_set (value_str)
   return
 endif
@@ -2369,7 +2350,8 @@ character(20) component
 character(*), parameter :: r_name = 'tao_set_data_cmd'
 character(100) :: why_invalid, tmpstr
 character, allocatable :: s_save(:)
-
+character(16), parameter :: datum_char_params(6) = [character(16):: 'ele_name', 'ele_start_name', &
+                                    'ele_ref_name', 'data_type', 'merit_type', 'data_source']  
 logical, optional :: silent
 logical err, l1
 
@@ -2509,9 +2491,10 @@ elseif (size(s_dat) /= 0) then
 
   allocate (s_save(size(s_dat)))  ! Used to save old values in case of error
 
-  ! If value_string has "|" then it must be a datum array
+  ! If value_string has "|XXX" at the end and XXX is a datum string parameter then it must be a datum array.
 
-  if (index(value_str, '|') /= 0) then
+  ix = index(value_str, '|') 
+  if (ix /= 0 .and. any(value_str(ix+1:) == datum_char_params)) then
     call tao_find_data (err, value_str, str_array=s_value)
     if (size(s_value) /= size(s_dat) .and. size(s_value) /= 1) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
@@ -3128,7 +3111,7 @@ n_set = 0
 do i = 1, size(eles)
   u => s%u(eles(i)%id)
   call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false., lord_set)
-  call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err)
+  call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, .false.)
   call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele, a_ptr)
   if (.not. err) n_set = n_set + 1
 enddo

@@ -1,0 +1,36 @@
+ M13Q1[K1] = -5.59569282597191853E-001
+ M13Q2[K1] = -1.21126563764767714E-001
+ M13Q3[K1] =  5.26804381216987583E-001
+ M13Q4[K1] = -3.75672605846068430E-001
+ M13Q5[K1] = -1.94022420429192349E-001
+ M13Q6[K1] =  2.63884794160444802E-001
+ M13Q7[K1] =  3.32628373812919598E-001
+ M13Q8[K1] =  5.99999999999999978E-001
+ M13Q9[K1] = -5.47911514020409274E-001
+ M13Q10[K1] =  4.49379297227433250E-001
+ M13Q11[K1] =  5.82861759771785559E-001
+ M13Q12[K1] = -5.99993720887488591E-001
+ 
+ end_file
+ 
+ 
+ ! Top 10
+ 
+ Constraints                           Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ 3@Optics[26]            3@lat::etap.a[END] <target>                   -3.0908E-02   9.3643E-02  1.551E+06
+ 3@Optics[24]            3@lat::alpha.b[END] <target>                  -3.2063E+00  -2.2045E+00  1.003E+06
+ 3@Optics[23]            3@lat::alpha.a[END] <target>                   1.5388E+00   1.1993E+00  1.152E+05
+ 3@Optics[30]            beta.b <max>            BEGINNING   END        7.0000E+02   7.2508E+02  6.292E+04  M13Q4
+ 3@Optics[25]            3@lat::eta.a[END] <target>                     6.0836E-02   4.8292E-02  1.573E+04
+ 3@Optics[29]            beta.a <max>            BEGINNING   END        7.0000E+02   7.0047E+02  2.218E+01  M13Q10
+ 3@Optics[22]            3@lat::beta.b[END] <target>                    6.9948E+00   6.9948E+00  4.581E-02
+ 3@Optics[21]            3@lat::beta.a[END] <target>                    2.7180E+00   2.7180E+00  7.619E-03
+ 3@Optics[28]            3@lat::r.56[END] <target>                      1.2809E-01   1.2809E-01  2.311E-03
+ Twiss_P13_FirstFour[1]  3@M13Q1[K1]                         34.16     -6.0000E-01  -5.5957E-01  0.000E+00
+ Constraints                           Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ 
+  figure of merit: 2.748656E+06
+ 
+ List of non-zero contributors to the Merit Function:
+ Name                                          Merit           Sigma [= sqrt(Chi^2/N)]
+ Optics.Twiss                                  2.7487E+06      8.3702E+00

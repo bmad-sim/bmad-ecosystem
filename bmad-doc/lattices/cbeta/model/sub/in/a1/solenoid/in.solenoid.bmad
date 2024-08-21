@@ -1,0 +1,10 @@
+!Note that the original superfish grid had a maximum on-axis field of:
+! 0.008353829 T
+
+in.solenoid: SOLENOID, 
+ L = 0.6,
+ field_calc = fieldmap,
+ mat6_calc_method = tracking,
+ tracking_method=fixed_step_runge_kutta, ds_step=2e-3,
+ field_master = T,
+ grid_field = call::in.solenoid_grid.bmad

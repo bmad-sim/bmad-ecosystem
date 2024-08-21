@@ -1,0 +1,1198 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = '../../tao/tao_plot.init'
+  startup_file = '../../tao/tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes =1
+ ! unique_name_suffix="*::_?"
+  design_lattice(1)%file = "rx.lat.bmad"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = .true.
+ global%track_type = 'single'
+!global%track_type = 'beam'
+global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  !global%random_engine = 'quasi'
+ ! global%floor_plan_rotation = 0.5
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+  /
+
+
+!------------------------Data--------------------------------------------
+!------------------------------------------------------------------------
+
+
+&tao_d2_data
+        d2_data%name = "rxfloor" 
+        universe = 1
+        n_d1_data = 3
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'fbcell16beg' 
+        datum( 1) =  'floor.x'         'Mar.BEG' '' 'FB.CELL16.MAR.BEG\1 '   'target'   0
+        datum( 2) =  'floor.z'         'Mar.BEG' '' 'FB.CELL16.MAR.BEG\1'   'target'   0
+        datum( 3) =  'floor.theta'     'Mar.BEG' '' 'FB.CELL16.MAR.BEG\1'   'target'   0 
+/
+
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '1' 
+        datum( 1) =  'floor.x'         'Mar.BEG' '' 'mR1dip01\1 '   'target'   0
+        datum( 2) =  'floor.z'         'Mar.BEG' '' 'mR1dip01\1'   'target'   0
+        datum( 3) =  'floor.theta'     'Mar.BEG' '' 'mR1dip01\1'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = 'thetas'
+        datum( 1) =  'floor.theta'     '' '' 'R1.Mar.MID'   'target'   0
+        datum( 2) =  'floor.theta'     '' '' 'R2.Mar.MID'   'target'   0
+        datum( 3) =  'floor.theta'     '' '' 'R3.Mar.MID'   'target'   0
+        datum( 4) =  'floor.theta'     '' '' 'R4.Mar.MID'   'target'   0
+/
+
+! FFAG orbit matching
+
+&tao_d2_data
+        d2_data%name = "o1" 
+        universe = 1
+        n_d1_data = 1
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = "end"
+        datum( 1) =  "orbit.x"     ''  '' 'FFAG.CELLMATCH\1'   'target'  -12.84980126e-3 
+        datum( 2) =  "orbit.px"     '' '' 'FFAG.CELLMATCH\1'   'target'  -35.17271455e-3
+/
+
+&tao_d2_data
+        d2_data%name = "o2" 
+        universe = 1
+        n_d1_data = 1
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = "end"
+        datum( 1) =  "orbit.x"     '' ''  'FFAG.CELLMATCH\2'   'target'   -14.37409846e-3
+        datum( 2) =  "orbit.px"     '' '' 'FFAG.CELLMATCH\2'  'target'   -32.31803777e-3   
+/
+
+&tao_d2_data
+        d2_data%name = "o3" 
+        universe = 1
+        n_d1_data = 1
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = "end"
+        datum( 1) =  "orbit.x"     ''  '' 'FFAG.CELLMATCH\3'   'target'    -3.55245840e-3
+        datum( 2) =  "orbit.px"     '' '' 'FFAG.CELLMATCH\3'  'target'     -7.48489480e-3  
+/
+
+&tao_d2_data
+        d2_data%name = "o4" 
+        universe = 1
+        n_d1_data = 1
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = "end"
+        datum( 1) =  "orbit.x"     '' ''  'FFAG.CELLMATCH\4'   'target'    17.45570050e-3
+        datum( 2) =  "orbit.px"     '' '' 'FFAG.CELLMATCH\4'  'target'     35.80969120e-3   
+/
+
+
+&tao_d2_data
+        d2_data%name = "time" 
+        universe = 1
+        n_d1_data = 2
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1e8
+        d1_data%name = 'total'
+        datum( 1) = 'time'    'R1.DEMER.Mar.BEG\1'  '' 'R1.MERGE.Mar.END\1'   'target'  3.53784228E-08  
+        datum( 2) = 'time'    'R1.DEMER.Mar.BEG\2'  '' 'R1.MERGE.Mar.END\2'   'target'  3.40504292E-08
+        datum( 3) = 'time'    'R1.DEMER.Mar.BEG\3'  '' 'R1.MERGE.Mar.END\3'   'target'  0
+        datum( 4) = 'time'    'R1.DEMER.Mar.BEG\4'  '' 'R1.MERGE.Mar.END\4'   'target'  0
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1e8
+        d1_data%name = 'part1'
+        datum( 1) = 'time'    'R1.DEMER.Mar.BEG\1'  '' 'R1.Mar.Mid'   'target'  0
+        datum( 2) = 'time'    'R1.DEMER.Mar.BEG\2'  '' 'R2.Mar.Mid'   'target'  0
+        datum( 3) = 'time'    'R1.DEMER.Mar.BEG\3'  '' 'R3.Mar.Mid'   'target'  0
+        datum( 4) = 'time'    'R1.DEMER.Mar.BEG\4'  '' 'R4.Mar.Mid'   'target'  0
+/
+
+&tao_d2_data
+        d2_data%name = 'harmonic'
+        universe = 1
+        n_d1_data = 2
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1e5
+        d1_data%name = 'delta'
+        datum( 1)%data_type = 'expression: data::time.total[1]*1.3e9'
+        datum( 2)%data_type = 'expression: (data::time.total[2]- data::time.total[1])*1.3e9' 
+        datum( 3)%data_type = 'expression: (data::time.total[3]- data::time.total[1])*1.3e9' 
+        datum( 4)%data_type = 'expression: (data::time.total[4]- data::time.total[1])*1.3e9' 
+      
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = 'part1'
+        datum( 1)%data_type = 'expression: data::time.part1[1]*1.3e9'
+        datum( 2)%data_type = 'expression: 2*(data::time.part1[2]- data::time.part1[1])*1.3e9' 
+        datum( 3)%data_type = 'expression: 2*(data::time.part1[3]- data::time.part1[1])*1.3e9' 
+        datum( 4)%data_type = 'expression: 2*(data::time.part1[4]- data::time.part1[1])*1.3e9' 
+/
+
+&tao_d2_data
+        d2_data%name = 'path'
+        universe = 1
+        n_d1_data = 2
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1e5
+        d1_data%name = 'delta'
+        datum( 1)%data_type = 'expression: data::time.total[1]*3e8'
+        datum( 2)%data_type = 'expression: (data::time.total[2]- data::time.total[1])*3e8' 
+        datum( 3)%data_type = 'expression: (data::time.total[3]- data::time.total[1])*3e8' 
+        datum( 4)%data_type = 'expression: (data::time.total[4]- data::time.total[1])*3e8' 
+      
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = 'part1'
+        datum( 1)%data_type = 'expression: data::time.part1[1]*3e8'
+        datum( 2)%data_type = 'expression: (data::time.part1[2]- data::time.part1[1])*3e8' 
+        datum( 3)%data_type = 'expression: (data::time.part1[3]- data::time.part1[1])*3e8' 
+        datum( 4)%data_type = 'expression: (data::time.part1[4]- data::time.part1[1])*3e8' 
+/
+
+
+
+
+&tao_d2_data
+        d2_data%name = 'connect'
+        universe = 1
+        n_d1_data = 4
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     '' '' 'IN.MERGE.MAR.END\2 '   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'IN.MERGE.MAR.END\2 '   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'IN.MERGE.MAR.END\2 '   'target'   0   ! Vary time patch
+        datum( 4) =  'element_attrib.L'           '' '' 'R1.MERGE_PATCH\1'   'target'   0   !
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'orbit.x'     '' '' 'IN.MERGE.MAR.END\3 '   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'IN.MERGE.MAR.END\3 '   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'IN.MERGE.MAR.END\3 '   'target'   0   ! Vary time patch
+        datum( 4) =  'element_attrib.L'           '' '' 'R2.MERGE_PATCH'   'target'   0   !
+        datum( 5) =  'unstable.orbit'  '' '' '' 'target' 0 1e15
+       ! datum( 5) =  'rel_floor.theta'    'LA.MAR.BEG\1' '' 'R2.MAR.END '   'target'   0.4014257279586958 ! 23 deg
+        
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'orbit.x'     '' '' 'IN.MERGE.MAR.END\4 '   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'IN.MERGE.MAR.END\4 '   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'IN.MERGE.MAR.END\4 '   'target'   0   ! Vary time patch
+        datum( 4) =  'element_attrib.L'           '' '' 'R3.MERGE_PATCH1'   'target'   0   !
+        datum( 5) =  'unstable.orbit'  '' '' ''   'target'   0   1e15
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'orbit.x'     '' '' 'IN.MERGE.MAR.END\5 '   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'IN.MERGE.MAR.END\5 '   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'IN.MERGE.MAR.END\5 '   'target'   0   ! Vary time patch
+        datum( 4) =  'element_attrib.L'           '' '' 'R4.MERGE_PATCH1'   'target'   0   ! 
+/
+
+
+
+! recirculation matching (set orbit back to zero)
+&tao_d2_data
+        d2_data%name = "recirculate" 
+        universe = 1
+        n_d1_data = 4
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     '' '' 'return1'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'return1'   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'return1'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'orbit.x'     '' '' 'return2'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'return2'   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'return2'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'orbit.x'     '' '' 'return3'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'return3'   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'return3'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'orbit.x'     '' '' 'return4'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'return4'   'target'   0 
+        datum( 3) =  'orbit.z'     '' '' 'return4'   'target'   0 
+/
+
+
+! Demerge patch 
+&tao_d2_data
+        d2_data%name = "demerge" 
+        universe = 1
+        n_d1_data = 4
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     '' '' 'R1.align_patch\1'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R1.align_patch\1'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'orbit.x'     '' '' 'R2.demerge_patch'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R2.demerge_patch'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'orbit.x'     '' '' 'R3.demerge_patch'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R3.demerge_patch'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'orbit.x'     '' '' 'R4.demerge_patch'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R4.demerge_patch'   'target'   0 
+/
+
+! Demerge patch 
+&tao_d2_data
+        d2_data%name = "merge" 
+        universe = 1
+        n_d1_data = 4
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     '' '' 'R1.Merge.Mar.END\1'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R1.Merge.Mar.END\1'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'orbit.x'     '' '' 'R1.Merge.Mar.END\2'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R1.Merge.Mar.END\2'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'orbit.x'     '' '' 'R1.Merge.Mar.END\3'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R1.Merge.Mar.END\3'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'orbit.x'     '' '' 'R1.Merge.Mar.END\4'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'R1.Merge.Mar.END\4'   'target'   0 
+/
+
+
+
+&tao_d2_data
+        d2_data%name = "floor" 
+        universe = 1
+        n_d1_data = 8
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'thetas'
+        datum( 1) =  'floor.theta'     '' '' 'R1.Mar.MID'   'target'   0
+        datum( 2) =  'floor.theta'     '' '' 'R2.Mar.MID'   'target'   0
+        datum( 3) =  'floor.theta'     '' '' 'R3.Mar.MID'   'target'   0
+        datum( 4) =  'floor.theta'     '' '' 'R4.Mar.MID'   'target'   0
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = 'x'
+        datum( 1) =  'floor.x'     '' '' 'R1.Mar.MID'   'target'   3.3
+        datum( 2) =  'floor.x'     '' '' 'R2.Mar.MID'   'target'   3.3
+        datum( 3) =  'floor.x'     '' '' 'R3.Mar.MID'   'target'   3.3
+        datum( 4) =  'floor.x'     '' '' 'R4.Mar.MID'   'target'   3.3
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = 'z'
+        datum( 1) =  'floor.z'     '' '' 'R1.Mar.MID'   'target'   3.3
+        datum( 2) =  'floor.z'     '' '' 'R2.Mar.MID'   'target'   3.3
+        datum( 3) =  'floor.z'     '' '' 'R3.Mar.MID'   'target'   3.3
+        datum( 4) =  'floor.z'     '' '' 'R4.Mar.MID'   'target'   3.3
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = 'delta_x'
+        datum( 1) =  'floor.x'     '' '' 'R1.Mar.PARALLEL'   'target'   3.3
+        datum( 2) =  'floor.x'     'R1.Mar.PARALLEL' '' 'R2.Mar.PARALLEL'   'target'  0.3
+        datum( 3) =  'floor.x'     'R2.Mar.PARALLEL' '' 'R3.Mar.PARALLEL'   'target'  0.25
+        datum( 4) =  'floor.x'     'R3.Mar.PARALLEL' '' 'R4.Mar.PARALLEL'   'target'  0.25
+/
+&tao_d1_data
+        ix_d1_data = 5
+        default_weight = 1
+        d1_data%name = 'fbcell02'
+        datum( 1) =  'floor.x'         'Mar.BEG' '' 'FB.MATCH1  '   'target'   0
+        datum( 2) =  'floor.z'         'Mar.BEG' '' 'FB.MATCH1  '   'target'   0
+        datum( 3) =  'floor.theta'     'Mar.BEG' '' 'FB.MATCH1  '   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 6
+        default_weight = 1
+        d1_data%name = 'r2'
+        datum( 1) =  'floor.z'     'R1.Pip03' '' 'R2.Pip04'   'max'   -.22
+        datum( 2) =  'floor.x'     'R1.Pip03' '' 'R2.Pip04'   'min'  .15
+/
+&tao_d1_data
+        ix_d1_data = 7
+        default_weight = 1
+        d1_data%name = 'r3'
+        datum( 1) =  'floor.z'     'R2.Pip04' '' 'R3.Pip02'   'max'   -.2
+        datum( 2) =  'floor.x'     'R2.Pip04' '' 'R3.Pip02'   'min'  .10
+/
+&tao_d1_data
+        ix_d1_data = 8
+        default_weight = 1
+        d1_data%name = 'r1merge'
+        datum( 1) =  'floor.x'         'Mar.BEG' '' 'R1.Merge.Mar.BEG\1  '   'target'   0
+        datum( 2) =  'floor.z'         'Mar.BEG' '' 'R1.Merge.Mar.BEG\1 '   'target'   0
+        datum( 3) =  'floor.theta'     'Mar.BEG' '' 'R1.Merge.Mar.BEG\1 '   'target'   0 
+/
+
+
+
+
+&tao_d2_data
+        d2_data%name = "recovery" 
+        universe = 1
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'pass1'
+        ! All set by hand based on the 1-pass acceleration lattice. Keep geometry the same. 
+        datum( 1) =  'floor.x'        'R1.Mar.BEG' '' 'R1.Mar.END'   'target'    3.76985696E-08
+        datum( 2) =  'floor.z'        'R1.Mar.BEG' '' 'R1.Mar.END'   'target'    7.27630266E+00
+        datum( 3) =  'floor.theta'    'R1.Mar.BEG' '' 'R1.Mar.END'   'target'   3.49065850E-01
+        !datum( 4)%data_type = 'expression: ((data::time.total[1]*1.3e9) -4.41717952E+01  )' 
+        !datum( 4)%meas = -0.25
+/
+
+
+
+
+! - twiss
+
+&tao_d2_data
+        d2_data%name = "mid"  
+        universe = 1
+        n_d1_data = 4
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'alpha.a'      '' '' 'R1.Mar.MID'   'target' 0   1e1
+        datum( 2) =  'alpha.b'      '' '' 'R1.Mar.MID'   'target' 0   1e1
+        datum( 3) =  'etap.x'       '' '' 'R1.Mar.MID'   'target' 0   1e1
+        datum( 4) =  'r56_compaction'       'R1.Demer.Mar.BEG\1' '' 'R1.Mar.MID'   'target' 0   1e2
+        datum( 5) =  'beta.a'       ''    'R1.Demer.Mar.BEG\1' 'R1.Mar.MID'   'max' 150   1e2
+        datum( 6) =  'beta.b'       ''    'R1.Demer.Mar.BEG\1' 'R1.Mar.MID'   'max' 150   1e2
+        datum( 7) =  'eta.x'       ''    'R1.Demer.Mar.BEG\1' 'R1.Mar.MID'   'abs_max' 1   1e2
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\1' '' 'R1.Mar.MID'   'max' 0   1e2
+        datum( 9) =  'eta.x'       ''    ''  'R1.Mar.ETA0'   'target' 0   1e2
+        datum(10) =  'etap.x'       ''    ''  'R1.Mar.ETA0'   'target' 0   1e2
+
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'alpha.a'      '' '' 'R2.Mar.MID'   'target' 0   1e1
+        datum( 2) =  'alpha.b'      '' '' 'R2.Mar.MID'   'target' 0   1e1
+        datum( 3) =  'etap.x'       '' '' 'R2.Mar.MID'   'target' 0   1e1
+        datum( 4) =  'r56_compaction'       'R1.Demer.Mar.BEG\2' '' 'R2.Mar.MID'   'target' 0   1e2
+        datum( 5) =  'beta.a'       ''    'R1.Demer.Mar.BEG\2' 'R2.Mar.MID'   'max' 150   1e2
+        datum( 6) =  'beta.b'       ''    'R1.Demer.Mar.BEG\2' 'R2.Mar.MID'   'max' 150   1e2
+        datum( 7) =  'eta.x'       ''    'R1.Demer.Mar.BEG\2' 'R2.Mar.MID'   'abs_max' 1   1e2
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\2' '' 'R2.Mar.MID'   'max' 0   1e2
+        datum( 9) =  'eta.x'       ''    ''  'R2.Mar.ETA0'   'target' 0   1e2
+        datum(10) =  'etap.x'       ''    ''  'R2.Mar.ETA0'   'target' 0   1e2
+
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'alpha.a'      '' '' 'R3.Mar.MID'   'target' 0   1e1
+        datum( 2) =  'alpha.b'      '' '' 'R3.Mar.MID'   'target' 0   1e1
+        datum( 3) =  'etap.x'       '' '' 'R3.Mar.MID'   'target' 0   1e1
+        datum( 4) =  'r56_compaction'       'R1.Demer.Mar.BEG\3' '' 'R3.Mar.MID'   'target' 0   1e2
+        datum( 5) =  'beta.a'       ''    'R1.Demer.Mar.BEG\3' 'R3.Mar.MID'   'max' 150   1e2
+        datum( 6) =  'beta.b'       ''    'R1.Demer.Mar.BEG\3' 'R3.Mar.MID'   'max' 150   1e2
+        datum( 7) =  'eta.x'       ''    'R1.Demer.Mar.BEG\3' 'R3.Mar.MID'   'abs_max' 1   1e2
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\3' '' 'R3.Mar.MID'   'max' 0   1e2
+        datum( 9) =  'eta.x'       ''    ''  'R3.Mar.ETA0'   'target' 0   1e2
+        datum(10) =  'etap.x'       ''    ''  'R3.Mar.ETA0'   'target' 0   1e2
+
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'alpha.a'      '' '' 'R4.Mar.MID'   'target' 0   1e1
+        datum( 2) =  'alpha.b'      '' '' 'R4.Mar.MID'   'target' 0   1e1
+        datum( 3) =  'etap.x'       '' '' 'R4.Mar.MID'   'target' 0   1e1
+        datum( 4) =  'r56_compaction'       'R1.Demer.Mar.BEG\4' '' 'R4.Mar.MID'   'target' 0   1e2
+        datum( 5) =  'beta.a'       ''    'R1.Demer.Mar.BEG\4' 'R4.Mar.MID'   'max' 150   1e2
+        datum( 6) =  'beta.b'       ''    'R1.Demer.Mar.BEG\4' 'R4.Mar.MID'   'max' 150   1e2
+        datum( 7) =  'eta.x'       ''    'R1.Demer.Mar.BEG\4'  'R4.Mar.MID'   'abs_max' 1   1e2
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\4' '' 'R4.Mar.MID'   'max' 0   1e2
+        datum( 9) =  'eta.x'       ''    ''  'R4.Mar.ETA0'   'target' 0   1e2
+        datum(10) =  'etap.x'       ''    ''  'R4.Mar.ETA0'   'target' 0   1e2
+
+/
+ 
+&tao_d2_data
+        d2_data%name = "betas"  
+        universe = 1
+        n_d1_data = 4
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  "beta.a"      '' 'R1.Mar.BEG' 'R1.Merge.Mar.END\1'   'max'  100  
+        datum( 2) =  "beta.b"      '' 'R1.Mar.BEG' 'R1.Merge.Mar.END\1'   'max'  100 
+
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  "beta.a"      '' 'R2.Mar.BEG' 'R1.Merge.Mar.END\2'   'max'  100
+        datum( 2) =  "beta.b"      '' 'R2.Mar.BEG' 'R1.Merge.Mar.END\2'   'max'  100 
+
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  "beta.a"      '' 'R3.Mar.BEG' 'R1.Merge.Mar.END\3'  'max'  100
+        datum( 2) =  "beta.b"      '' 'R3.Mar.BEG' 'R1.Merge.Mar.END\3'  'max'  100 
+
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  "beta.a"      '' 'R4.Mar.BEG' 'R1.Merge.Mar.END\4'   'max' 100
+        datum( 2) =  "beta.b"      '' 'R4.Mar.BEG' 'R1.Merge.Mar.END\4'   'max' 100 
+
+/
+
+
+
+&tao_d2_data
+        d2_data%name = "etas"  
+        universe = 1
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1e2
+        d1_data%name = '1'
+        datum( 1) =  "eta.x"      '' 'R1.Mar.BEG' 'R1.Mar.END'   'abs_max'  1
+
+/
+
+
+! - twiss
+
+&tao_d2_data
+        d2_data%name = 'cellmatch'
+        universe = 1
+        n_d1_data = 4
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'beta.a'     '' '' 'FFAG.CELLMATCH\1'   'target'     0.73308733      1e1
+        datum( 2) =  'alpha.a'    '' '' 'FFAG.CELLMATCH\1'   'target'    -2.22840430   1e2
+        datum( 3) =  'beta.b'     '' '' 'FFAG.CELLMATCH\1'   'target'  0.58448198       1e1
+        datum( 4) =  'alpha.b'    '' '' 'FFAG.CELLMATCH\1'   'target'  1.74133711      1e2
+        datum( 5) =  'eta.x'      '' '' 'FFAG.CELLMATCH\1'   'target'   -0.02324719  1e3
+        datum( 6) =  'etap.x'     '' '' 'FFAG.CELLMATCH\1'   'target'      0.13302083     1e3
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\1' '' 'R1.Merge.Mar.END\1'  'max' 0.   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\1' '' 'R1.Merge.Mar.END\1'  'target' -.126781881   1e3
+        datum( 9) =  'eta.x'      '' 'R1.Mar.BEG' 'FFAG.CELLMATCH\1'   'max' 1.5   1e4
+        datum(10) =  'eta.x'      '' 'R1.Mar.BEG' 'FFAG.CELLMATCH\1'   'min' -.1   1e4
+
+/
+
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'beta.a'     '' '' 'FFAG.CELLMATCH\2'   'target'   0.48672365    1e1
+        datum( 2) =  'alpha.a'    '' '' 'FFAG.CELLMATCH\2'   'target'      -0.99584824     1e2
+        datum( 3) =  'beta.b'     '' '' 'FFAG.CELLMATCH\2'   'target'    0.55707580    1e1
+        datum( 4) =  'alpha.b'    '' '' 'FFAG.CELLMATCH\2'   'target'     1.11679212    1e2
+        datum( 5) =  'eta.x'      '' '' 'FFAG.CELLMATCH\2'   'target'    0.01315121    1e1
+        datum( 6) =  'etap.x'     '' '' 'FFAG.CELLMATCH\2'   'target'    0.09639717  1e2
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\2' '' 'R1.Merge.Mar.END\2'  'max' 0.25   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\2' '' 'R1.Merge.Mar.END\2'  'target' -.00351074809   1e3
+
+/
+
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'beta.a'     '' '' 'FFAG.CELLMATCH\3'   'target'     0.47116447   1e1
+        datum( 2) =  'alpha.a'    '' '' 'FFAG.CELLMATCH\3'   'target'      -0.89608471     1e2
+        datum( 3) =  'beta.b'     '' '' 'FFAG.CELLMATCH\3'   'target'  0.66246663    1e1
+        datum( 4) =  'alpha.b'    '' '' 'FFAG.CELLMATCH\3'   'target'   1.23358734    1e2
+        datum( 5) =  'eta.x'      '' '' 'FFAG.CELLMATCH\3'   'target'    0.04248362     5e1
+        datum( 6) =  'etap.x'     '' '' 'FFAG.CELLMATCH\3'   'target'    0.08099414    5e2
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\3' '' 'R1.Merge.Mar.END\3'  'max' 0.25   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\3' '' 'R1.Merge.Mar.END\3'  'target' .0675821734   1e3
+
+/
+
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'beta.a'     '' '' 'FFAG.CELLMATCH\4'   'target'      0.44975733     1e1
+        datum( 2) =  'alpha.a'    '' '' 'FFAG.CELLMATCH\4'   'target'     -0.84542285   1e2
+        datum( 3) =  'beta.b'     '' '' 'FFAG.CELLMATCH\4'   'target'      0.78952057       1e1
+        datum( 4) =  'alpha.b'    '' '' 'FFAG.CELLMATCH\4'   'target'      1.42649742    1e2
+        datum( 5) =  'eta.x'      '' '' 'FFAG.CELLMATCH\4'   'target'     0.06447216        1e1
+        datum( 6) =  'etap.x'     '' '' 'FFAG.CELLMATCH\4'   'target'     0.06864136    1e2
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\4' '' 'R1.Merge.Mar.END\4'  'max' 0.2   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\4' '' 'R1.Merge.Mar.END\4'  'target' .105461681  1e3
+
+/
+
+
+
+&tao_d2_data
+        d2_data%name = "r56" 
+        universe = 1
+        n_d1_data = 4
+/
+
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'r56_compaction'     'LA.Mar.End\1'        '' 'LA.MAR.BEG\2'   'target'   0
+        datum( 2) =  'r56_compaction'     'LA.Mar.End\1'        '' 'R1.MERGE.MAR.END\1'   'target'   0
+        datum( 3) =  'r56_compaction'     'R1.MERGE.MAR.END\1'  '' 'LA.MAR.BEG\2'   'target'   0
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'r56_compaction'     'LA.Mar.End\2'        '' 'LA.MAR.BEG\3'   'target'   0
+        datum( 2) =  'r56_compaction'     'LA.Mar.End\2'        '' 'R1.MERGE.MAR.END\2'   'target'   0
+        datum( 3) =  'r56_compaction'     'R1.MERGE.MAR.END\2'  '' 'LA.MAR.BEG\3'   'target'   0
+/
+
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'r56_compaction'     'LA.Mar.End\3'        '' 'LA.MAR.BEG\4'   'target'   0
+        datum( 2) =  'r56_compaction'     'LA.Mar.End\3'        '' 'R1.MERGE.MAR.END\3'   'target'   0
+        datum( 3) =  'r56_compaction'     'R1.MERGE.MAR.END\3'  '' 'LA.MAR.BEG\4'   'target'   0
+/
+
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'r56_compaction'     'LA.Mar.End\4'        '' 'END'   'target'   0
+        datum( 2) =  'r56_compaction'     'LA.Mar.End\4'        '' 'R1.MERGE.MAR.END\4'   'target'   0
+        datum( 3) =  'r56_compaction'     'R1.MERGE.MAR.END\4'  '' 'END'   'target'   0
+/
+
+
+
+
+! - twiss
+
+&tao_d2_data
+        d2_data%name = 'endtwiss'
+        universe = 1
+        n_d1_data = 4
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'beta.a'     '' '' 'LA.MAR.END\2'   'target'  12.5   1e1
+        datum( 2) =  'alpha.a'    '' '' 'LA.MAR.END\2'   'target'  -1     1e2
+        datum( 3) =  'beta.b'     '' '' 'LA.MAR.END\2'   'target'  12.5   1e1
+        datum( 4) =  'alpha.b'    '' '' 'LA.MAR.END\2'   'target'  -1     1e2
+        datum( 5) =  'eta.x'      '' '' 'LA.MAR.BEG\2'   'target'  0   1e1
+        datum( 6) =  'etap.x'     '' '' 'LA.MAR.BEG\2'   'target'  0     1e2                
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\1' '' 'R1.Merge.Mar.END\1'  'max' 0   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\1' '' 'R1.Merge.Mar.END\1'  'target' -0.0996765   1e3
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = '2'
+        datum( 1) =  'beta.a'     '' '' 'LA.MAR.END\3'   'target'  12.5   1e1
+        datum( 2) =  'alpha.a'    '' '' 'LA.MAR.END\3'   'target'  -1     1e2
+        datum( 3) =  'beta.b'     '' '' 'LA.MAR.END\3'   'target'  12.5   1e1
+        datum( 4) =  'alpha.b'    '' '' 'LA.MAR.END\3'   'target'  -1     1e2
+        datum( 5) =  'eta.x'      '' '' 'LA.MAR.BEG\3'   'target'  0   1e1
+        datum( 6) =  'etap.x'     '' '' 'LA.MAR.BEG\3'   'target'  0     1e2                
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\2' '' 'R1.Merge.Mar.END\2'  'max' 0   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\2' '' 'R1.Merge.Mar.END\2'  'target' -0.0202868   1e3
+
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = '3'
+        datum( 1) =  'beta.a'     '' '' 'LA.MAR.END\4'   'target'  12.5   1e1
+        datum( 2) =  'alpha.a'    '' '' 'LA.MAR.END\4'   'target'  -1     1e2
+        datum( 3) =  'beta.b'     '' '' 'LA.MAR.END\4'   'target'  12.5   1e1
+        datum( 4) =  'alpha.b'    '' '' 'LA.MAR.END\4'   'target'  -1     1e2
+        datum( 5) =  'eta.x'      '' '' 'LA.MAR.BEG\4'   'target'  0   1e1 
+        datum( 6) =  'etap.x'     '' '' 'LA.MAR.BEG\4'   'target'  0     1e2                
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\3' '' 'R1.Merge.Mar.END\3'  'max' 0.25   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\3' '' 'R1.Merge.Mar.END\3'  'target' 0.107895   1e3
+/
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = '4'
+        datum( 1) =  'beta.a'     '' '' 'LA.MAR.BEG\5'   'target'  12.5   1e1
+        datum( 2) =  'alpha.a'    '' '' 'LA.MAR.BEG\5'   'target'  1     1e2
+        datum( 3) =  'beta.b'     '' '' 'LA.MAR.BEG\5'   'target'  12.5   1e1
+        datum( 4) =  'alpha.b'    '' '' 'LA.MAR.BEG\5'   'target'  1     1e2
+        datum( 5) =  'eta.x'      '' '' 'LA.MAR.BEG\5'   'target'  0   1e1
+        datum( 6) =  'etap.x'     '' '' 'LA.MAR.BEG\5'   'target'  0     1e2                
+        datum( 7) =  'r56_compaction'       'R1.Demer.Mar.BEG\4' '' 'R1.Merge.Mar.END\4'  'max' 0.30   1e3
+        datum( 8) =  'r56_compaction'       'R1.Demer.Mar.BEG\4' '' 'R1.Merge.Mar.END\4'  'target' 0.254821   1e3
+
+/
+
+
+&tao_d2_data
+        d2_data%name = 'timing'
+        universe = 1
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'return'
+        datum( 1) =  'orbit.z'     '' '' 'LA.Mar.BEG\2 '   'target'   0   ! Vary time patch
+        datum( 2) =  'orbit.z'     '' '' 'LA.Mar.BEG\3 '   'target'   0   ! Vary time patch
+        datum( 3) =  'orbit.z'     '' '' 'LA.Mar.BEG\4 '   'target'   0   ! Vary time patch
+        datum( 4) =  'orbit.z'     '' '' 'LA.Mar.BEG\5 '   'target'   0   ! Vary time patch                                                 
+/
+
+!-----------Variables--------------
+
+
+&tao_var
+	v1_var%name = 'magic'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 6
+	var(1:6)%ele_name  = 'magic',  'magic',  'magic',  'magic',  'magic',  'magic'
+    var(1:6)%attribute = 'beta_a1', 'alpha_a1', 'beta_b1', 'alpha_b1', 'eta_x1', 'etap_x1'
+/
+
+
+&tao_var
+	v1_var%name = 'connect.1'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	var(1:)%ele_name  = 'O_R1.Pip3', 'O_mR1dip36', 'O_mR1dip45', 'O_R1.Pip4', 'R1.Pip01', 'mR1dip99'
+  var(1:)%attribute =  'L', 'g', 'g', 'L', 'L', 'g'
+  var(1:)%low_lim  = 0.2, -2.2, -2.2, 0.01, 0, -1
+  var(1:)%high_lim  = 1.2, 2.2, 2.2, 0.5, 10, 1
+   default_key_delta = 1e-2
+  ! default_key_bound = T
+/
+
+
+&tao_var
+	v1_var%name = 'connect.2'
+	default_step = 1e-4
+	default_universe = '1'
+  default_key_delta = 1e-2
+	ix_min_var = 1
+	!var(1:)%ele_name  =  'o.mR2dip03', 'R2.Pip03',  'R2.Pip04', 'mR2dip01', 'o.mR2dip08'
+  !var(1:)%attribute =  'angle', 'L', 'L', 'g', 'angle'
+  var(1:)%ele_name  =  'o.mR2dip03', 'O_R2.Pip03',  'O_R2.Pip04', 'R2.Pip11', 'o.mR2dip07', 'o.mR2dip08'
+  var(1:)%attribute =  'angle', 'L', 'L', 'L', 'angle', 'angle'
+  
+/
+&tao_var
+	v1_var%name = 'pathlength.2'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	var(1:)%ele_name  =  'O_mR2dip34', 'O_R2.Pip35', 'O_R2.Pip4'
+  var(1:)%attribute =  'g', 'L', 'L'
+  var(1:)%low_lim = -100, 0, 0
+   default_key_delta = 1e-2
+  ! default_key_bound = T
+/
+
+
+&tao_var
+	v1_var%name = 'connect.3'
+	default_step = 1e-4
+	default_universe = '1'
+  default_key_delta = 1e-2
+	ix_min_var = 1
+	var(1:)%ele_name  =  'o.mR3dip01',  'o.mR3dip04', 'R3.Pip01', 'O_R3.Pip02',  'O_R3.Pip03', 'O_R3.Pip04'
+  var(1:)%attribute =  'angle', 'angle', 'L', 'L', 'L', 'L'
+/
+
+
+&tao_var 
+	v1_var%name = 'pathlength.3'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	var(1:)%ele_name  =  'O_mR3dip02', 'o.mR3dip04', 'O_R3.Pip02', 'O_R3.Sli'
+  var(1:)%attribute =  'g', 'angle', 'L', 'delta'
+   default_key_delta = 1e-2
+  ! default_key_bound = T 
+/
+
+
+
+&tao_var
+	v1_var%name = 'connect.4'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	var(1:)%ele_name  =  'o.mR4dip02', 'o.mR4dip05', 'R4.Pip03', 'R4.Pip06', 'O_R4.Pip03'
+  var(1:)%attribute =  'angle', 'angle', 'L', 'L', 'L'
+  var(1:)%low_lim = -10, -10, 0, 0, 0
+   default_key_delta = 1e-2
+/
+&tao_var
+	v1_var%name = 'pathlength.4'
+	default_step = 1e-4 
+	default_universe = '1'
+	ix_min_var = 1
+	var(1:)%ele_name  =  'O_R4.Sli' !, 'o.mR4dip03', 'o.mR4dip04',  'o.mR4dip06', 'R4.Pip04', 
+  var(1:)%attribute =  'delta' !, 'angle', 'angle', 'angle', 'L'
+   default_key_delta = 1e-2
+  ! default_key_bound = T 
+/
+ 
+ 
+
+&tao_var
+	v1_var%name = 'q1'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'b1_gradient'
+	default_low_lim = -50
+	default_high_lim = 50
+    default_key_delta = 1e-2
+	ix_min_var = 1
+	!ix_max_var = 2
+	search_for_lat_eles = '-no_slaves quad::R1.Qua*'
+   default_key_bound = T	
+/
+
+
+&tao_var
+	v1_var%name = 'q2'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'b1_gradient'
+	default_low_lim = -20
+	default_high_lim = 20
+	default_key_delta = 1e-2
+	ix_min_var = 1
+	!ix_max_var = 2
+	search_for_lat_eles = '-no_slaves quad::R2.Qua*'
+ !	default_key_bound = T
+/
+
+&tao_var
+	v1_var%name = 'q3'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'b1_gradient'
+	default_key_delta = 1e-2
+	!default_low_lim = -20
+	!default_high_lim = 20
+	ix_min_var = 1
+	!ix_max_var = 2
+	search_for_lat_eles = '-no_slaves quad::R3.Qua*'
+ !default_key_bound = T
+
+/
+
+&tao_var
+	v1_var%name = 'q4'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'b1_gradient'
+	default_key_delta = 1e-2
+	default_low_lim = -100
+	default_high_lim = 100
+	ix_min_var = 1
+	!ix_max_var = 2
+	search_for_lat_eles = '-no_slaves quad::R4.Qua*'
+ !	default_key_bound = T
+	
+/
+
+
+!&tao_var
+	v1_var%name = 'parallel0'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 4
+	var(1:4)%ele_name  = 'o.mR1dip03', 'o.mR2dip04','o.mR3dip01', 'o.mR4dip01'
+    var(1:4)%attribute = 'angle', 'angle', 'angle', 'angle'
+   default_key_delta = 1e-2
+ !    default_key_bound = T
+/
+
+
+!&tao_var
+	v1_var%name = 'parallel1'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 7
+	var(1:7)%ele_name  = 'R1.Pip02', 'o.mR1dip02', 'R1.Pip03', 'o.mR1dip03', 'R1.Pip03','o.mR1dip04',  'R1.Pip06'
+    var(1:7)%attribute = 'L', 'angle', 'L', 'angle', 'L', 'angle', 'L'
+   default_key_delta = 1e-2
+  ! default_key_bound = T
+/
+
+!&tao_var
+	v1_var%name = 'parallel2'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 7
+	var(1:7)%ele_name  = 'R2.Pip03', 'o.mR2dip03', 'R2.Pip04', 'o.mR2dip04', 'R2.Pip02','o.mR2dip05',  'R2.Pip07'
+    var(1:7)%attribute = 'L', 'angle', 'L', 'angle', 'L', 'angle', 'L'
+   default_key_delta = 1e-2
+  ! default_key_bound = T
+/
+
+
+!&tao_var
+	v1_var%name = 'parallel3'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 5
+	var(1:5)%ele_name  ='R3.Pip01', 'o.mR3dip01', 'R3.Pip02','o.mR3dip02', 'R3.Pip04'
+    var(1:5)%attribute = 'L', 'angle', 'L', 'angle', 'L'
+   default_key_delta = 1e-2
+  !default_key_bound = T
+/
+
+!&tao_var
+	v1_var%name = 'parallel4'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 4
+	var(1:4)%ele_name  = 'o.mR4dip01', 'R4.Pip02','o.mR4dip03', 'R4.Pip04'
+    var(1:4)%attribute = 'angle', 'L', 'angle', 'L'
+   default_key_delta = 1e-2
+ !  default_key_bound = T
+/
+
+
+!&tao_var
+	v1_var%name = 'parallelangles'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 4
+	var(1:4)%ele_name  = 'o.mR1dip04', 'o.mR2dip04','o.mR3dip01', 'o.mR4dip01'
+    var(1:4)%attribute = 'angle', 'angle', 'angle', 'angle'
+   default_key_delta = 1e-2
+  !  default_key_bound = T
+/
+
+
+&tao_var
+	v1_var%name = 'floor1'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 2
+	var(1:2)%ele_name  = 'FA.align_patch', 'FA.align_patch'
+    var(1:2)%attribute = 'x_offset', 'x_pitch'
+/
+
+
+!&tao_var
+	v1_var%name = 'floor2'
+	default_step = 1e-4
+	default_universe = '1'
+	!default_low_lim = 0.01
+	default_key_delta = 1e-2
+	ix_min_var = 1
+	ix_max_var = 5
+	var(1:5)%ele_name ='o.mR2dip07', 'o.mR2dip08', 'R2.Pip11', 'R2.Pip12', 'R2.Pip08'
+	var(1:5)%attribute = 'angle', 'angle', 'L', 'L', 'L'
+   ! default_key_bound = T
+
+	
+/
+!&tao_var
+	v1_var%name = 'floor3'
+	default_step = 1e-4
+	default_universe = '1'
+	default_key_delta = 1e-2
+	!default_low_lim = 0.01
+	ix_min_var = 1
+	ix_max_var = 5
+	var(1:5)%ele_name ='o.mR3dip03', 'o.mR3dip04', 'R3.Pip04', 'R3.Pip08', 'R3.Pip05'
+	var(1:5)%attribute = 'angle', 'angle', 'L', 'L', 'L'
+ ! default_key_bound = T
+
+	
+/
+!&tao_var
+	v1_var%name = 'floor4'
+	default_step = 1e-4
+	default_universe = '1'
+	default_key_delta = 1e-2
+	!default_low_lim = 0.01
+	ix_min_var = 1
+	ix_max_var = 4
+	var(1:4)%ele_name ='o.mR4dip04', 'o.mR4dip06', 'R4.Pip05', 'R4.PIP04'
+	var(1:4)%attribute = 'angle', 'angle', 'L', 'L'
+ !default_key_bound = T
+
+	
+/
+
+&tao_var
+	v1_var%name = 'return1'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 3
+	var(1)%ele_name  = 'return1'
+    var(1)%attribute = 'x_offset'
+    var(2)%ele_name  = 'return1'
+    var(2)%attribute = 'x_pitch'
+	var(3)%ele_name  = 'return1'
+    var(3)%attribute = 't_offset'
+/
+&tao_var
+	v1_var%name = 'return2'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 3
+	var(1)%ele_name  = 'return2'
+    var(1)%attribute = 'x_offset'
+    var(2)%ele_name  = 'return2'
+    var(2)%attribute = 'x_pitch'
+	var(3)%ele_name  = 'return2'
+    var(3)%attribute = 't_offset'
+/
+&tao_var
+	v1_var%name = 'return3'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 3
+	var(1)%ele_name  = 'return3'
+    var(1)%attribute = 'x_offset'
+    var(2)%ele_name  = 'return3'
+    var(2)%attribute = 'x_pitch'
+	var(3)%ele_name  = 'return3'
+    var(3)%attribute = 't_offset'
+/
+&tao_var
+	v1_var%name = 'return4'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 3
+	var(1)%ele_name  = 'return4'
+    var(1)%attribute = 'x_offset'
+    var(2)%ele_name  = 'return4'
+    var(2)%attribute = 'x_pitch'
+	var(3)%ele_name  = 'return4'
+    var(3)%attribute = 't_offset'
+/
+
+
+&tao_var
+	v1_var%name = 'timing'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 't_offset'
+	default_low_lim = -50
+	default_high_lim = 50
+    default_key_delta = 1e-2
+	ix_min_var = 1
+	!ix_max_var = 2
+	search_for_lat_eles = 'patch::return*time_patch'
+!default_key_bound = T
+	
+/
+
+
+
+&tao_var
+	v1_var%name = 'recovery1'
+	default_step = 1e-4
+	default_universe = '1'
+	default_key_delta = 1e-3
+	ix_min_var = 1
+	var(1:)%ele_name  = 'O_mR1dip61', 'O_mR1dip62','O_R1.Pip61', 'O_R1.Pip62' 
+  var(1:)%attribute = 'g', 'g', 'L', 'L' 
+  var(1:)%low_lim  = 0, -3, 0.1, 0.1
+  var(1:)%high_lim = 3, 0,  2, 2
+  ! default_key_delta = 1e-2 
+/
+
+&tao_var
+	v1_var%name = 'p1'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 2
+	var(1:2)%ele_name  = 'R1.align_patch',  'R1.align_patch'
+    var(1:2)%attribute = 'x_offset', 'x_pitch'
+    var(1:)%key_delta = 1e-3
+/
+
+&tao_var
+	v1_var%name = 'p2'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 2
+	var(1:2)%ele_name  = 'R2.demerge_patch',  'R2.demerge_patch'
+    var(1:2)%attribute = 'x_offset', 'x_pitch'
+/
+&tao_var
+	v1_var%name = 'p3'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 2
+	var(1:2)%ele_name  = 'R3.demerge_patch',  'R3.demerge_patch'
+    var(1:2)%attribute = 'x_offset', 'x_pitch'
+/
+&tao_var
+	v1_var%name = 'p4'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 2
+	var(1:2)%ele_name  = 'R4.demerge_patch',  'R4.demerge_patch'
+    var(1:2)%attribute = 'x_offset', 'x_pitch'
+/
+
+
+
+

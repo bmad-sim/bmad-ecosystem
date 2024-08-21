@@ -1,0 +1,29 @@
+vv
+vd
+place top energy
+place middle orbit
+x-s all 70 90
+x-a top s
+sc
+x-s floor 8 18
+sc floor 12 16
+sc top 0 80
+
+use dat connect.1[1,2]  
+use dat pathlength.1
+use dat stability
+
+set dat pathlength.1[1]|meas = 6e6
+
+!use dat harmonic.pass[1]
+set dat harmonic.pass[1]|meas = 332.5
+
+
+
+use var connect.1[1,2,3]
+!use var connect.1[1,2,3,4]
+!use var pathlength.1
+
+vk
+set var connect.1|key_bound=T
+!set var pathlength.1|key_bound=T

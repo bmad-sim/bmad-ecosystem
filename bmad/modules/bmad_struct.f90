@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 321
+integer, parameter :: bmad_inc_version$ = 322
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -142,9 +142,11 @@ logical, parameter :: set$ = .true., unset$ = .false.
 ! when the lattice file is parsed. Auto is only available for Mask, Detector and Diffraction_plate elements.
 
 integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, wall3d$ = 5, custom_aperture$ = 7
-character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
-                                     'Surface    ', 'Wall3D     ', 'garbage!   ', 'Custom     ']
+integer, parameter :: lord_defined$ = 8
+
+character(16), parameter :: aperture_type_name(0:8) = [character(16):: &
+                               'garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
+                               'Surface    ', 'Wall3D     ', 'garbage!   ', 'Custom     ', 'Lord_Defined']
 
 ! fringe_type
 ! non-bend fringe type names are in the range fringe_type(1:n_non_bend_fringe_type$)
@@ -362,9 +364,9 @@ integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_betwee
 character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
       'Entrance_end', 'Exit_End', 'Center', 'None']
 
-character(16), parameter :: aperture_at_name(0:7) = [ &
+character(16), parameter :: aperture_at_name(0:8) = [character(16):: &
       'GARBAGE!       ', 'Entrance_End   ', 'Exit_End       ', 'Both_Ends      ', &
-      'No_Aperture    ', 'Continuous     ', 'Surface        ', 'Wall_Transition']
+      'No_Aperture    ', 'Continuous     ', 'Surface        ', 'Wall_Transition', 'Lord_Defined']
 
 character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
@@ -1711,7 +1713,7 @@ integer, parameter :: l$ = 1                          ! Assumed unique. Do not a
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3, deta_ds_master$ = 3, &
                       kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3, final_charge$ = 3
-integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, &
+integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, s_twiss_ref$ = 4, &
                       critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5, &
                       ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5

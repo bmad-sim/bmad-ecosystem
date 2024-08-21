@@ -1,0 +1,4 @@
+place floor zphase
+szpz fa.merge.mar.beg\1
+call scripts/Activate_CSR.tao
+newcsr

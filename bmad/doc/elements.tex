@@ -112,7 +112,7 @@ General \vn{ab_multipole} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}   & Length                     & \ref{s:l}       \\
   Aperture limits            & \ref{s:limit}    & Offsets \& tilt            & \ref{s:offset}  \\
   Chamber wall               & \ref{s:wall}     & Reference energy           & \ref{s:energy}  \\ 
-  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att} & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}    & Tracking \& transfer map   & \ref{c:methods} \\
   Is_on                      & \ref{s:is.on}    &                            &                 \\
   \bottomrule
@@ -126,7 +126,7 @@ The length \vn{l} is a fictitious length that is used for synchrotron radiation 
 affects the longitudinal position of the next element but does not affect any tracking or transfer
 map calculations.  The \vn{x_pitch} and \vn{y_pitch} attributes are not used in tracking.
 
-When an \vn{ab_multipole} is superimposed (\sref{s:super}) on a lattice, it is treated as a zero
+When an \vn{ab_multipole} is superimposed (\sref{c:super}) on a lattice, it is treated as a zero
 length element and in this case it is an error for the length of the \vn{ab_multipole} to be set to
 a nonzero value.
 
@@ -157,7 +157,7 @@ General \vn{ac_kicker} attributes are:
   Custom Attributes          & \ref{s:cust.att}  & Mag \& Elec multipoles     & \ref{s:multip}  \\
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Field Maps                 & \ref{s:fieldmap}  & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}   \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
@@ -279,7 +279,7 @@ General \vn{beambeam} attributes are:
   Aperture limits            & \ref{s:limit}    & Is_on                      & \ref{s:is.on}   \\
   Chamber wall               & \ref{s:wall}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Custom Attributes          & \ref{s:cust.att} & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}    & Superposition              & \ref{c:super}   \\
   Is_on                      & \ref{s:is.on}    & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
@@ -314,7 +314,8 @@ Attributes specific to a \vn{beambeam} element are:
   ks             = <Real>    ! Solenoid strength.
   bs_field       = <Real>    ! Solenoid field strength.
   field_master   = <T/F>     ! Is ks or bs_field value the master (\sref{s:field.master})?
-  z_crossing     = <Real>    ! Weak particle phase space z when strong beam center reaches element.
+  s_beta_ref     = <Real>    ! Reference position of strong beam Twiss.
+  z_crossing     = <Real>    ! Weak particle phase space z when strong beam center reaches IP.
   repetition_frequency = <Real>  ! Strong beam repetition rate.
 \end{example}
 
@@ -347,13 +348,14 @@ element instead.
 
 \index{sig_x}\index{sig_y}
 \index{beta_a_strong}\index{beta_b_strong}\index{alpha_a_strong}\index{alpha_b_strong}
-\vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam at $s_0$ which is the
-$s$-position where the \vn{beambeam} element is located.  For calculating the sigmas of any given
-slice, \vn{sig_x} and \vn{sig_y} are extrapolated using the Twiss parameters at $s_0$. The Twiss
-parameters at $s_0$ are set by \vn{beta_a_strong}, \vn{beta_b_strong}, \vn{alpha_a_strong}, and
-\vn{alpha_b_strong}.  If \vn{beta_a_strong} is zero (the default), the $a$-mode Twiss parameters as
-calculated from the lattice is used. Similarly, if \vn{beta_b_strong} is zero (the default), the
-$b$-mode Twiss parameters as calculated from the lattice is used.
+The strong beam Twiss parameters \vn{beta_a_strong}, \vn{beta_b_strong}, \vn{alpha_a_strong}, and
+\vn{alpha_b_strong} are the Twiss parameters of the strong beam at the $s$-position given by
+\vn{s_twiss_ref}. Additionally, \vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam
+at this point. \vn{S_beta_ref} is measured relative to the position of the\vn{beambeam} element.  If
+\vn{beta_a_strong} is zero (the default), the $a$-mode Twiss parameters as calculated from the
+lattice is used. Similarly, if \vn{beta_b_strong} is zero (the default), the $b$-mode Twiss
+parameters as calculated from the lattice is used.  To calculate the sigmas of any given slice,
+\vn{sig_x} and \vn{sig_y} are extrapolated using the Twiss parameters at \vn{s_twiss_ref}.
 
 \index{x_offset}\index{y_offset}\index{z_offset}
 \index{x_pitch}\index{y_pitch}\index{tilt}
@@ -405,11 +407,12 @@ The \vn{species_strong} and \vn{E_tot_strong} give the particle species and part
 strong beam. This is only relevant if the velocity of the strong beam is not equal to the velocity
 of the weak beam.
 
-The \vn{z_crossing} parameter sets when in time the center of the strong beam is at the plane of the
-beambeam element. For example, if tracking is done with radiation damping on, the closed orbit will
-have a finite phase space $z$ value at the \vn{beambeam} element. To have the weak beam and strong beam
-centers cross the plane of the \vn{beambeam} element at the same time, the value of \vn{z_crossing} should
-be set to the value of the weak beam $z$.
+The \vn{z_crossing} parameter sets where the center of the strong beam is relative to the plane of the
+beambeam element (the IP) at the time when a weak particle with $z = 0$ is at the IP. For example,
+if tracking is done with radiation damping on, the (weak beam) closed orbit will have a finite phase
+space $z$ value at the \vn{beambeam} element. To have the weak beam and strong beam centers cross
+the plane of the \vn{beambeam} element at the same time, the value of \vn{z_crossing} should be set
+to the value of the weak beam closed orbit $z$ at the IP.
 
 When with absolute time tracking (\sref{s:rf.time}) is in use, the \vn{repetition_frequency}
 parameter (along with the \vn{z_crossing} parameter) is used to calculate the time that the strong
@@ -475,7 +478,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}   \\
   Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}  \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}   \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}    \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}    \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}     \\
   Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap} \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}  \\
@@ -917,7 +920,7 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
   Aperture limits            & \ref{s:limit}    & Offsets, Pitches \& Tilt   & \ref{s:offset}   \\
   Chamber wall               & \ref{s:wall}     & Overlapping Fields         & \ref{s:overlap}  \\
   Custom Attributes          & \ref{s:cust.att} & Reference energy           & \ref{s:energy}   \\
-  Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}    \\
+  Description strings        & \ref{s:alias}    & Superposition              & \ref{c:super}    \\
   Hkick \& Vkick             & \ref{s:kick}     & Symplectify                & \ref{s:symp}     \\
   Integration settings       & \ref{s:integ}    & Field Maps                 & \ref{s:fieldmap} \\
   Is_on                      & \ref{s:is.on}    & Tracking \& transfer map   & \ref{c:methods}  \\
@@ -986,7 +989,7 @@ General \vn{custom} attributes are:
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
   Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Integration settings       & \ref{s:integ}     & Superposition              & \ref{s:super}   \\
+  Integration settings       & \ref{s:integ}     & Superposition              & \ref{c:super}   \\
                              &                   & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
@@ -1161,7 +1164,7 @@ General \vn{crab_cavity} attributes are:
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}      \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}      \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
   Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
@@ -1179,7 +1182,7 @@ The attributes specific to an \vn{crab_cavity} are
   gradient        = <Real>    ! Accelerating gradient (V/m).
   phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                               !   respect to the RF. phi0 = 0 is on crest.
-  phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{s:multipass}).
+  phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{c:multipass}).
   rf_frequency    = <Real>    ! RF frequency (Hz).
   harmon          = <Real>    ! Harmonic number
   harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent var with ref energy changes?
@@ -1471,7 +1474,7 @@ General \vn{custom} attributes are:
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
   Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{s:super}   \\
+  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{c:super}   \\
   Fringe fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
@@ -1531,7 +1534,7 @@ General \vn{detector} element attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Chamber Wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
   Detector Geometry          & \ref{s:surf.grid} &                            &                 \\
   \bottomrule
@@ -1696,7 +1699,7 @@ Note: If a chamber wall (\sref{s:wall}) is needed for a field free
 space, use a \vn{pipe} element instead of a \vn{drift} [a wall for a
 drift is not allowed due to the way drifts are treated with
 superposition. That is, drifts ``disappear'' when superimposed
-upon. (\sref{s:super})].
+upon. (\sref{c:super})].
 
 \newpage
 
@@ -1823,7 +1826,7 @@ General \vn{elseparator} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}   \\
   Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}  \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}   \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}    \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}    \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}     \\
   Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap} \\  
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}  \\ 
@@ -1881,7 +1884,7 @@ attributes are:
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\ 
   Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\
-  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{s:super}   \\
+  Field Maps                 & \ref{s:fieldmap}  & Superposition              & \ref{c:super}   \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
@@ -1909,7 +1912,7 @@ energy. This is the same behavior for most other elements. If the \vn{constant_r
 is set to \vn{False}, the reference energy at the exit end is calculated like it is in a
 \vn{lcavity} or \vn{e_gun} element.
 
-Note: \vn{em_field} elements will be created when elements are superimposed (\sref{s:super}) and
+Note: \vn{em_field} elements will be created when elements are superimposed (\sref{c:super}) and
 there is no other suitable element class.
 
 \newpage
@@ -2000,7 +2003,7 @@ General \vn{fiducial} element attributes are:
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
@@ -2117,7 +2120,7 @@ General \vn{floor_shift} element attributes are:
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
   Length                     & \ref{s:l}         &                            &                 \\
   \bottomrule
@@ -2219,7 +2222,7 @@ General \vn{foil} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}      \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}      \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
   Is_on                      & \ref{s:is.on}     &                            &                    \\
   \bottomrule
@@ -2384,7 +2387,7 @@ General \vn{fork} and \vn{photon_fork} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
-  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
   Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
@@ -2637,8 +2640,8 @@ defined. Example:
   g2: girder = \{g1\}      ! g2 must come after g1!
 \end{example}
 
-A \vn{girder} may not directly support \vn{multipass_slave} (\sref{s:multipass}) or \vn{super_slave}
-(\sref{s:super}) elements. Rather, a \vn{girder} may support the corresponding lord elements.
+A \vn{girder} may not directly support \vn{multipass_slave} (\sref{c:multipass}) or \vn{super_slave}
+(\sref{c:super}) elements. Rather, a \vn{girder} may support the corresponding lord elements.
 
 The reference frame from which the girder's offset, pitch, and tilt attributes (\sref{s:offset}) are
 measured is constructed as follows: A reference frame, called the ``\vn{origin}'' reference frame
@@ -2983,7 +2986,7 @@ element.
 \index{pipe|hyperbf}
 
 Essentially \bmad treats \vn{instrument}, \vn{monitor}, and \vn{pipe} elements like a
-\vn{drift}. There is a difference, however, when superimposing elements (\sref{s:super}). For
+\vn{drift}. There is a difference, however, when superimposing elements (\sref{c:super}). For
 example, a \vn{quadrupole} superimposed on top of a \vn{drift} results in a free \vn{quadrupole}
 element in the tracking part of the lattice and no lord elements are created. On the other hand, a
 \vn{quadrupole} superimposed on top of a \vn{monitor} results in a \vn{quadrupole} element in the
@@ -3002,7 +3005,7 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
   Chamber wall               & \ref{s:wall}        & Length                     & \ref{s:l}       \\
   Custom Attributes          & \ref{s:cust.att}    & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
   Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}  \\
-  Hkick \& Vkick             & \ref{s:kick}        & Superposition              & \ref{s:super}   \\
+  Hkick \& Vkick             & \ref{s:kick}        & Superposition              & \ref{c:super}   \\
   Instrumental variables     & \ref{s:meas.attrib} & Symplectify                & \ref{s:symp}    \\
   Integration settings       & \ref{s:integ}       & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
@@ -3046,7 +3049,7 @@ General \vn{hkicker} \vn{vkicker} attributes are:
   Custom Attributes          & \ref{s:cust.att}  & Mag \& Elec multipoles     & \ref{s:multip}  \\
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Field Maps                 & \ref{s:fieldmap}  & Reference energy           & \ref{s:energy}  \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}   \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}   \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}    \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
@@ -3088,7 +3091,7 @@ General \vn{kicker} attributes are:
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}   \\
   Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}  \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}   \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}    \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}    \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}     \\
   Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap} \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}  \\ 
@@ -3124,7 +3127,7 @@ General \vn{lcavity} attributes are:
   Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}    \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
   Description strings        & \ref{s:alias}     & RF Couplers                & \ref{s:rf.coupler} \\
-  Field autoscaling          & \ref{s:autoscale} & Superposition              & \ref{s:super}      \\
+  Field autoscaling          & \ref{s:autoscale} & Superposition              & \ref{c:super}      \\
   Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
   Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap}   \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \\
@@ -3148,7 +3151,7 @@ The attributes specific to an \vn{lcavity} are
   phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                               !   respect to the RF. phi0 = 0 is on crest.
   phi0_autoscale              ! Set by Bmad when autoscaling is turned on \sref{s:autoscale}.
-  phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{s:multipass}).
+  phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{c:multipass}).
   phi0_err        = <Real>    ! Phase error (rad/2\(\pi\))
   e_loss          = <Real>    ! Loss parameter for short range wakefields (V/Coul).
   rf_frequency    = <Real>    ! RF frequency (Hz).
@@ -3192,7 +3195,7 @@ cavity. For example, if the reference particle and and the tracked particle are 
 unity independent of the type of particle tracked.
 
 \vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
-pass. See \sref{s:multipass}.
+pass. See \sref{c:multipass}.
 
 \vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale module. See
 Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
@@ -3296,7 +3299,7 @@ General \vn{marker} attributes are:
   Aperture limits            & \ref{s:limit}       & Is_on                        & \ref{s:is.on}   \\ 
   Chamber wall               & \ref{s:wall}        & Offsets \& tilt              & \ref{s:offset}  \\
   Custom Attributes          & \ref{s:cust.att}    & Reference energy             & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}       & Superposition                & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}       & Superposition                & \ref{c:super}   \\
   Instrumental variables     & \ref{s:meas.attrib} & Tracking \& transfer map     & \ref{c:methods} \\ 
   \bottomrule
 \end{tabular}
@@ -3340,7 +3343,7 @@ General \vn{mask} element attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
 \end{tabular}
@@ -3425,7 +3428,7 @@ General \vn{match} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}   \\ 
   Is_on                      & \ref{s:is.on}     &                            &                 \\
   \bottomrule
 \end{tabular}
@@ -3452,6 +3455,7 @@ Attributes specific to a \vn{match} element are:
   delta_time                = <Real>     ! Change in time.
   matrix                    = <Switch>   ! Matrix calculation. Default: standard.
   kick0                     = <Switch>   ! Zeroth order calc. Default: standard.
+  spin_tracking             = <Switch>   ! Spin tracking done?
   recalc                    = <Logical>  ! Calculate transfer map? Default is True.
 \end{example}
 
@@ -3489,7 +3493,9 @@ With \vn{matrix} set to \vn{standard} (the default), the matrix $\Bf M$ is calcu
 (and only if) the actual Twiss and coupling parameters at the entrance of the \vn{match} element
 are equal to the element entrance Twiss and coupling parameters, then the computed Twiss and
 coupling parameters at the exit end of the \vn{match} element will be the element end Twiss and coupling
-parameters. Additionally, the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}.
+parameters. Additionally, the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}. Exception:
+If \vn{beta_a0}, \vn{beta_b0}, \vn{beta_a1}, and \vn{beta_b1} are all zero, the matrix will be set to the
+identity.
 %
 \item[identity] \Newline
 With \vn{matrix} set to \vn{identity} the transfer matrix will be set to the unit matrix independent
@@ -3599,6 +3605,19 @@ transformation above is applied afterwards. Since using \vn{match_twiss} or \vn{
 a finite \vn{delta_time} can be confusing, such a situation is not allowed. Use two separate
 \vn{match} elements if needed.
 
+The settings of \vn{spin_tracking} are:
+\begin{example}
+  off         ! Spin is invariant through a match element.
+  on          ! Spin is tracked assuming not bends.
+\end{example}
+With a setting of \vn{on}, it is assumed that the orbital transfer matrix is due solely to transverse
+magnetic fields so that the integrated spin rotation (\Eqs{orpt}, \eq{pqlbp1}, and \eq{pqlbp2}) can
+be related to the orbital transport via
+\begin{equation}
+  \int {\pmb\Omega}_{BMT} = \frac{\beta}{1 + p_z} \, (1 + a \gamma) \, (-\Delta p_y, \Delta p_x, 0)
+\end{equation} 
+
+
 A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
 like a \vn{marker} element. That is, the orbit and Twiss parameters are unchanged when tracking
 through a \vn{match} element that is turned off.
@@ -3627,7 +3646,7 @@ General \vn{mirror} attributes are:
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Reflection tables          & \ref{s:reflect} \\
-  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}     & Surface Properties         & \ref{s:surface} \\
   Offsets, pitches \& tilt   & \ref{s:offset}    & Tracking \& transfer map   & \ref{c:methods} \\ 
   Reference energy           & \ref{s:energy}    &                            &                 \\
@@ -3689,7 +3708,7 @@ radiation computations and affects the longitudinal position of the
 next element but does not affect any tracking or transfer map
 calculations.
 
-When an \vn{multipole} is superimposed (\sref{s:super}) on a lattice, it is
+When an \vn{multipole} is superimposed (\sref{c:super}) on a lattice, it is
 treated as a zero length element and in this case it is an error for the length
 of the \vn{multipole} to be set to a nonzero value.
 
@@ -3719,7 +3738,7 @@ General \vn{crystal} attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Symplectify                & \ref{s:symp}    \\
   Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}   \\
   Reference energy           & \ref{s:energy}    & Tracking \& transfer map   & \ref{c:methods} \\
   Surface Properties         & \ref{s:surface}   &                            &                 \\
   \bottomrule
@@ -3782,7 +3801,7 @@ considered to be of type \vn{multipole}.
 A \vn{null_ele} is a special type of element. It is like a \vn{marker} but it has the property that
 when the lattice is expanded (\sref{s:lines.wo.arg}) all \vn{null_ele} elements are removed. The
 primary use of a \vn{null_ele} is in computer generated lattices where it can be used to serve as a
-reference point for element superpositions (\sref{s:super}). Another use is to split an element
+reference point for element superpositions (\sref{c:super}). Another use is to split an element
 using superposition while avoiding having to add a marker element to the lattice. Example:
 \begin{example}
   N: null_ele, superimpose, ref = quadrupole::*
@@ -3812,7 +3831,7 @@ General \vn{octupole} attributes are:
   Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
   Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{c:super}      \\
   Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
   Integration settings       & \ref{s:integ}       & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}       & Tracking \& transfer map   & \ref{c:methods}    \\ 
@@ -3983,7 +4002,7 @@ General \vn{patch} element attributes are:
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\ 
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
   Length                     & \ref{s:l}         &                            &                 \\
   \bottomrule
@@ -4043,7 +4062,7 @@ example.
 
 The coordinates of the lattice element downstream of a \vn{flexible} \vn{patch} can be computed
 if there is a \vn{fiducial} element (\sref{s:fiducial}) somewhere downstream or if there is a
-\vn{multipass_slave} (\sref{s:multipass}) element which is just downstream of the \vn{patch} or at
+\vn{multipass_slave} (\sref{c:multipass}) element which is just downstream of the \vn{patch} or at
 most separated by zero length elements from the \vn{patch}. In this latter case, the
 \vn{multipass_slave} must represent an $N$\Th pass slave with $N$ greater than 1. This works since
 the first pass slave will be upstream of the \vn{patch} and so the first pass slave will have its
@@ -4425,7 +4444,7 @@ General \vn{quadrupole} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Description strings        & \ref{s:alias}     & Overlapping Fields         & \ref{s:overlap}    \\
   Fringe Fields              & \ref{s:fringe}    & Reference energy           & \ref{s:energy}     \\ 
-  Hkick \& Vkick             & \ref{s:kick}      & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Superposition              & \ref{c:super}      \\
   Integration settings       & \ref{s:integ}     & Symplectify                & \ref{s:symp}       \\
   Is_on                      & \ref{s:is.on}     & Field Maps                 & \ref{s:fieldmap}   \\ 
   Length                     & \ref{s:l}         & Tracking \& transfer map   & \ref{c:methods}    \\ 
@@ -4591,7 +4610,7 @@ General \vn{rfcavity} attributes are:
   Aperture limits            & \ref{s:limit}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Chamber wall               & \ref{s:wall}       & Overlapping Fields         & \ref{s:overlap}    \\
   Custom Attributes          & \ref{s:cust.att}   & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}      & Superposition              & \ref{s:super}      \\
+  Description strings        & \ref{s:alias}      & Superposition              & \ref{c:super}      \\
   Symplectify                & \ref{s:symp}       & Field Maps                 & \ref{s:fieldmap}   \\
   Integration settings       & \ref{s:integ}      & Tracking \& transfer map   & \ref{c:methods}    \\
   Is_on                      & \ref{s:is.on}      & Wakes                      & \ref{s:wakes}      \\
@@ -4654,7 +4673,7 @@ General \vn{rfcavity} attributes are:
   Chamber wall               & \ref{s:wall}       & Overlapping Fields         & \ref{s:overlap}    \\
   Custom Attributes          & \ref{s:cust.att}   & Reference energy           & \ref{s:energy}     \\ 
   Description strings        & \ref{s:alias}      & RF Couplers                & \ref{s:rf.coupler} \\
-  Field autoscaling          & \ref{s:autoscale}  & Superposition              & \ref{s:super}      \\
+  Field autoscaling          & \ref{s:autoscale}  & Superposition              & \ref{c:super}      \\
   Fringe Fields              & \ref{s:fringe}     & Symplectify                & \ref{s:symp}       \\
   Hkick \& Vkick             & \ref{s:kick}       & Field Maps                 & \ref{s:fieldmap}   \\
   Integration settings       & \ref{s:integ}      & Tracking \& transfer map   & \ref{c:methods}    \\
@@ -4706,7 +4725,7 @@ The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attrib
 \end{example}
 
 \vn{phi0_multipass} is only to be used to shift the phase with respect to a \vn{multipass} lord. See
-\sref{s:multipass}. \vn{e_charge} is the magnitude of the charge on an electron
+\sref{c:multipass}. \vn{e_charge} is the magnitude of the charge on an electron
 (Table~\ref{t:constants}). Notice that the energy kick is independent of the sign of the charge of
 the particle
 
@@ -4779,7 +4798,7 @@ General \vn{sample} attributes are:
   a$n$, b$n$ multipoles      & \ref{s:multip}    & Length                     & \ref{s:l}       \\
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
-  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{s:super}   \\
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
   Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
   Fringe Fields              & \ref{s:fringe}    &                            &                 \\
   \bottomrule
@@ -4893,7 +4912,7 @@ General \vn{sample} attributes are:
   Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \\ \midrule
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \\ 
   Custom Attributes          & \ref{s:cust.att}  & Surface Properties         & \ref{s:surface} \\
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}   \\
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \\
   Length                     & \ref{s:l}         &                            &                 \\
   \bottomrule
@@ -4949,7 +4968,7 @@ General \vn{sextupole} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}    \\
   Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}   \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}    \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}     \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}     \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}      \\
   Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}  \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}   \\ 
@@ -5000,7 +5019,7 @@ General \vn{sol_quad} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}      \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
   Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
@@ -5046,7 +5065,7 @@ General \vn{solenoid} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}      \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
   Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
@@ -5116,7 +5135,7 @@ General \vn{taylor} attributes are:
   {\sl Attribute Class}      & Section          & {\sl Attribute Class}      & Section         \\ \midrule
   Aperture limits            & \ref{s:limit}    & Offsets \& tilt            & \ref{s:offset}  \\
   Custom Attributes          & \ref{s:cust.att} & Reference energy           & \ref{s:energy}  \\
-  Description strings        & \ref{s:alias}    & Superposition              & \ref{s:super}   \\
+  Description strings        & \ref{s:alias}    & Superposition              & \ref{c:super}   \\
   Is_on                      & \ref{s:is.on}    & Symplectify                & \ref{s:symp}    \\
   Length                     & \ref{s:l}        & Tracking \& transfer map   & \ref{c:methods} \\
   \bottomrule
@@ -5348,7 +5367,7 @@ General \vn{thick_multipole} attributes are:
   Chamber wall               & \ref{s:wall}        & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}    & Overlapping Fields         & \ref{s:overlap}    \\
   Description strings        & \ref{s:alias}       & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{s:super}      \\
+  Fringe Fields              & \ref{s:fringe}      & Superposition              & \ref{c:super}      \\
   Hkick \& Vkick             & \ref{s:kick}        & Symplectify                & \ref{s:symp}       \\
   Integration settings       & \ref{s:integ}       & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}       & Tracking \& transfer map   & \ref{c:methods}    \\ 
@@ -5387,7 +5406,7 @@ General \vn{wiggler} attributes are:
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
-  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{s:super}      \\
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}      \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
   Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 

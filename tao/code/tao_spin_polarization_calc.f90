@@ -101,8 +101,9 @@ if (.not. tao_branch%spin_map_valid) then
 endif
 
 if (branch%param%geometry == closed$) then  
-  tspin%tune = 2.0_rp * atan2(norm2(tspin%q_1turn%spin_q(1:3,0)), tspin%q_1turn%spin_q(0,0))
-  n0       = 0
+  tspin%tune = 2.0_rp * atan2(norm2(tspin%q_1turn%spin_q(1:3,0)), abs(tspin%q_1turn%spin_q(0,0)))
+  n0       = sign_of(tspin%q_1turn%spin_q(0,0), .false.) * tspin%q_1turn%spin_q(1:3,0)
+  n0       = n0 / norm2(n0)
   s_vec    = [0.0_rp, 0.0_rp, 1.0_rp]
   dn_dpz   = 0
   partial  = 0
@@ -131,8 +132,6 @@ do ie = 0, branch%n_ele_track
   old_s_vec    = s_vec
 
   ele => branch%ele(ie)
-
-  n0       = quat_rotate(tspin%q_ele(ie)%spin_q(:,0), n0)
 
   if (branch%param%geometry == closed$) then
     tspin%q_1turn = tspin%q_ele(ie) * tspin%q_1turn * map1_inverse(tspin%q_ele(ie))

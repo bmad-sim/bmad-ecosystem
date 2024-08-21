@@ -1,0 +1,236 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = '../../../tao/tao_plot.init'
+  startup_file = '../../../tao/tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  unique_name_suffix="*::_?"
+  n_universes = 4
+!design_lattice(1)%file = "ff.merge.lat.bmad"
+  design_lattice(1)%file = "fb.demerge1.lat"
+  design_lattice(2)%file = "fb.demerge2.lat"
+  design_lattice(3)%file = "fb.demerge3.lat"
+  design_lattice(4)%file = "fb.demerge4.lat"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = .true.
+ global%track_type = 'single'
+!global%track_type = 'beam'
+global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  !global%random_engine = 'quasi'
+ ! global%floor_plan_rotation = 0.5
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+  /
+
+
+!------------------------Data--------------------------------------------
+!------------------------------------------------------------------------
+
+
+
+&tao_d2_data
+        d2_data%name = 'o1' 
+        universe = 1
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     ''  '' 'Mar.END'   'target'  -8e-3   ! Somewhat arbitrary  
+        datum( 2) =  'orbit.px'     '' '' 'Mar.END'   'target' 0 1e1
+        datum( 3) =  'unstable.orbit'     '' '' ''  'target'   0.0    1e15
+        datum( 4) =  'orbit.x'     ''  'Mar.BEG' 'Mar.END'   'abs_max' 0.030 1e1
+        datum( 5) =  'orbit.x'     ''  '' 'Mar.END'   'max' 0  1e1  
+        datum( 6) =  'orbit.x'     ''  '' 'Mar.END'   'min' -19.5e-3   1e1
+/
+
+&tao_d2_data
+        d2_data%name = 'o2' 
+        universe = 2
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     ''  '' 'Mar.END'   'target' 0
+        datum( 2) =  'orbit.px'     '' '' 'Mar.END'   'min' 0
+        datum( 3) =  'orbit.px'     '' '' 'Mar.END'   'max' 13e-3
+        datum( 4) =  'orbit.x'     ''  'Mar.BEG' 'Mar.END'   'abs_max' 25e-3 1e1
+        datum( 5) =  'orbit.x'     ''  '' 'Mar.END'   'max' 0  1e1  
+        datum( 6) =  'orbit.x'     ''  '' 'Mar.END'   'min' -19.5e-3   1e1
+/
+
+&tao_d2_data
+        d2_data%name = 'o3' 
+        universe = 3
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     ''  '' 'Mar.END'   'target' 0
+        datum( 2) =  'orbit.px'     '' '' 'Mar.END'   'min' 0
+        datum( 3) =  'orbit.px'     '' '' 'Mar.END'   'max' 13e-3
+        datum( 4) =  'orbit.x'     ''  'Mar.BEG' 'Mar.END'   'abs_max' 25e-3 1e1
+/
+
+&tao_d2_data
+        d2_data%name = 'o4' 
+        universe = 4
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  'orbit.x'     ''  '' 'Mar.END'   'target' 0
+        datum( 2) =  'orbit.px'     '' '' 'Mar.END'   'min' -3e-3
+        datum( 3) =  'orbit.px'     '' '' 'Mar.END'   'max' 14e-3
+        datum( 4) =  'orbit.x'     ''  'Mar.BEG' 'Mar.END'   'abs_max' 24e-3 1e1
+        datum( 5) =  'orbit.x'     ''  '' 'Mar.END'   'max' 19.5e-3
+/
+
+
+
+
+
+
+&tao_d2_data
+        d2_data%name = "fa"
+        universe = 1
+        n_d1_data = 4
+/
+
+
+&tao_d1_data
+        ix_d1_data = 1
+        d1_data%name = "stability"
+        datum( 1) =  "unstable.orbit"     '' '' ''  "target"   0.0    1e15
+/
+&tao_d1_data
+    ix_d1_data = 2
+	d1_data%name = "betas"
+	default_weight = 1e6
+	datum( 1) = 'beta.a'  '' 'Mar.BEG'  'Mar.END'    'max'    200.0
+	datum( 2) = 'beta.b'  '' 'Mar.BEG'  'Mar.END'    'max'    200.0
+/
+&tao_d1_data
+    ix_d1_data = 3
+	d1_data%name = "etas"
+	default_weight = 1e1
+	datum( 1) = 'eta.x'  '' 'Mar.BEG'  'Mar.END'    'abs_max'    0.2
+	datum( 2) = 'eta.x'  '' ''  'Mar.END'    'target'    0.0
+	datum( 3) = 'etap.x'  '' ''  'Mar.END'    'target'    0.0
+/
+
+&tao_d1_data
+        ix_d1_data = 4
+        default_weight = 1
+        d1_data%name = 'floor'
+        datum( 1) =  'floor.theta'     '' '' 'Mar.END'   'target'   -0.3838186635897931
+/
+
+
+&tao_d2_data
+        d2_data%name = 'end'
+        universe = 1
+        n_d1_data = 1
+/
+&tao_d1_data
+  ix_d1_data = 1
+	d1_data%name = 'betas'
+	default_weight = 1e6
+	datum( 1) = 'beta.a'  '' 'Mar.BEG'  'Extend'    'max'  50
+	datum( 2) = 'beta.b'  '' 'Mar.BEG'  'Extend'    'max'  50
+/
+
+
+!-----------Variables--------------
+
+
+&tao_var 
+	v1_var%name = 'q'
+	default_universe = 'gang'
+	default_attribute = 'b1_gradient'
+	default_weight = 1e6
+	default_step = 1e-4 
+	default_low_lim  = -11.6
+	default_high_lim =  11.6
+!default_key_bound = T
+  default_key_delta = 1e-2	
+	search_for_lat_eles = "quad::*"
+/
+
+
+&tao_var 
+	v1_var%name = 'offsets'
+	default_universe = 'gang'
+	default_attribute = 'x_offset'
+	default_weight = 1e6
+	default_step = 1e-6
+	default_low_lim  =   -2.84E-02   
+	default_high_lim =  2.84E-02   
+	search_for_lat_eles = "q*, fb.q*"
+  ix_min_var = 1
+  default_key_delta = 1e-4
+/
+
+
+
+!&tao_var
+	v1_var%name = 'f'
+	default_step = 1e-4
+	default_universe = 'gang'
+	ix_min_var = 1
+	var(1:)%ele_name  = 'O_FB_geometry'
+  var(1:)%attribute = 'f'
+	default_low_lim  =   0
+	default_high_lim =   1 
+  default_key_delta = 1e-2
+  default_key_bound = T
+/
+
+
+&tao_var 
+	v1_var%name = 'L'
+	default_universe = 'gang'
+	default_attribute = 'L'
+	default_weight = 1e6
+	default_step = 1e-4 
+	default_low_lim  = -.1
+	default_high_lim = .1
+!default_key_bound = T
+  default_key_delta = 1e-2	
+!	search_for_lat_eles = "FB.BLK*"
+search_for_lat_eles = "block*"
+/
+
+&tao_var 
+	v1_var%name = 'angle'
+	default_universe = 'gang'
+	default_attribute = 'x_pitch'
+	default_weight = 1e6
+	default_step = 1e-4 
+	!default_low_lim  = 0
+	!default_high_lim = .1
+!default_key_bound = T
+  default_key_delta = 1e-2	
+!	search_for_lat_eles = "FB.BLK*"
+search_for_lat_eles = "pp*"
+/
+
+

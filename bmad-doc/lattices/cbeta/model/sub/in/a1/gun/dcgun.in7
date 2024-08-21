@@ -1,0 +1,5 @@
+parmela         ! Interpolate along a line, make plot file, plot component By  
+0 -150 26 0     ! End points of line x1,y1,x2,y2
+104 600          ! Number of intervals along line
+end
+

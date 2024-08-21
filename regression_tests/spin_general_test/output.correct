@@ -30,15 +30,15 @@
 "dRot"   ABS 1e-10     2.93E-01  4.13E-01  4.94E-01
 "Taylor-Taylor" ABS 1e-10   -0.50000000  0.40000000  0.30000000
 "PTC-Taylor" ABS 1e-10   -0.50000000  0.40000000  0.30000000
-"Polarization Limit ST" ABS 1e-8                     0.00000000
-"Polarization Limit DK" ABS 1e-8                     0.00000000
-"Polarization Limits DK (a,b,c-modes)" ABS 1e-8      0.00000000  0.00000000  0.00000000
-"Polarization Limits DK (bc,ac,ab-modes)" ABS 1e-8   0.00000000  0.00000000  0.00000000
+"Polarization Limit ST" ABS 1e-8                     0.92376043
+"Polarization Limit DK" ABS 1e-8                     0.02292325
+"Polarization Limits DK (a,b,c-modes)" ABS 1e-8      0.02549038  0.71982778  0.86183295
+"Polarization Limits DK (bc,ac,ab-modes)" ABS 1e-8   0.82079023  0.02569182  0.02263463
 "Polarization Rate BKS" REL 1e-8         1.44802509E-05
 "Depolarization Rate" REL 1e-8           5.69044334E-04
 "Depolarization Rate Partial" REL 1e-8   5.10277794E-04  4.10236457E-06  1.04048639E-06
 "Depolarization Rate Partial2" REL 1e-8  1.81658388E-06  5.06163317E-04  5.76485078E-04
-"Integral g^3 * b_hat * n_0" REL 1e-8           0.00000000E+00
+"Integral g^3 * b_hat * n_0" REL 1e-8           1.34575854E-02
 "Integral g^3 * b_hat * dn/ddelta" REL 1e-8     2.71191375E-18
 "Integral g^3 (1 - 2(n * s_hat)/9)" REL 1e-8    1.34575854E-02
 "Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1e-8  5.28855663E-01

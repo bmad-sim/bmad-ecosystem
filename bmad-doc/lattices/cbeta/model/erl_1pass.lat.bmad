@@ -1,0 +1,70 @@
+call, file = sub/erl.param.bmad
+
+parameter[lattice]  = "CBETA 1-pass"
+
+parameter[geometry] = open
+
+PARAMETER[particle] = Electron
+
+parameter[absolute_time_tracking] = T
+
+call, file = sub/beginning/beginning_in_merge.bmad
+
+!call, file = sub/beginning/beginning_gun.bmad
+
+ 
+! Main call
+call, file = sub/erl.bmad
+
+lines_234_fork: fork, to_line=lines_234
+
+cbeta_042: line=(
+ in.a3, mirror_merge_fork, in.merge.part1, in.merge.part2, mar.beg, la, setenergy042, la.tail,
+ du.part1, la.demer.match042.line, du.part2, s1_multi, ffa, r1_multi, r1_connect, in.merge.match042.multi, in.merge.part2,
+ lines_234_fork, return1.time_patch, return1.time_match, la, setenergy006, la.tail,
+ du.part1, la.demer.match006, du.part2, du, mar.end)
+
+
+call, file = sub/sx/s1.rec.bmad
+
+call, file = sub/rx/r1.rec.bmad
+
+call, file = sub/la/la.042.bmad
+
+call, file = sub/fx/fa.bpms.bmad
+call, file = sub/fx/fb.bpms.bmad
+call, file = sub/tx/ta.bpms.bmad
+call, file = sub/tx/tb.bpms.bmad
+call, file = sub/zx/za.bpms.bmad
+call, file = sub/zx/zb.bpms.bmad  
+
+! call, file = sub/fx/fx.multipoles.bmad  
+
+! Only for making pretty pictures
+lines_234: line=(
+ la, setenergy078, la.tail,
+ du.part1, la.demer.match078.line, du.part2, s2_multi, ffa, r2_multi, r1_connect, in.merge.match078.multi, in.merge.part2,
+ la, setenergy114, la.tail,
+ du.part1, la.demer.match114.line, du.part2, s3_multi, ffa, r3_multi, r1_connect, in.merge.match114.multi, in.merge.part2,
+ la, setenergy150, la.tail,
+ du.part1, la.demer.match150, du.part2, s4_multi, ffa, r4_multi, r1_connect, in.merge.match150, in.merge.part2)
+
+
+lines_234[geometry] = open
+lines_234[particle] = electron
+lines_234[live_branch] = f
+
+call, file = sub/sx/s2.rec.bmad
+call, file = sub/sx/s3.rec.bmad
+call, file = sub/sx/s4.rec.bmad
+
+call, file = sub/rx/r2.rec.bmad
+call, file = sub/rx/r3.rec.bmad
+call, file = sub/rx/r4.rec.bmad
+
+use, cbeta_042
+! TEMP for .layout_table
+!quad::F*[x_offset] = 0 
+!quad::T*[x_offset] = 0
+!quad::Z*[x_offset] = 0
+

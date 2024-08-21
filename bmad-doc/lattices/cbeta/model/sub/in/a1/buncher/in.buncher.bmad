@@ -1,0 +1,18 @@
+
+in.buncher: lcavity, 
+ tracking_method = fixed_step_runge_kutta, num_steps=100,
+ mat6_calc_method = tracking,
+ n_cell = 1,
+ rf_frequency = global_rf_frequency,
+ field_calc = fieldmap,
+ autoscale_phase=f,
+ autoscale_amplitude=f,
+ L = 0.2 !Center of the cavity is at s = 0.10
+in.buncher[grid_field] = call::in.buncher_grid_cyl.bmad
+
+in.buncher[voltage] = 2e6 !Maximum on-axis Ez in MV/m
+
+!Clipped wall (only the non-reentrant part)
+call, file = in.buncher_wall.bmad
+
+

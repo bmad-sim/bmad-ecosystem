@@ -1,0 +1,71 @@
+!
+!       
+!   | |\ | 
+!   | | \| 
+!       
+
+!call, file = /home/cem52/erl/CERL/lattice_devel/Phase1B/model/in.bmad
+call, file = orig_in.bmad
+
+!GA1GHV01[descrip] = "3DMODEL=MK2_Gun/MK2_Gun_bare.blend"
+GA1GHV01[descrip] =  "3DMODEL=../../../../Scratch/STL/MK-2_Gun_STL/MK2_Gun.blend"
+
+
+
+ma1sla01[descrip] = "3DMODEL=7107-032_L0_Solenoid_STL/7107-032_L0_Solenoid.blend"
+ma1sla02[descrip] = "3DMODEL=7107-032_L0_Solenoid_STL/7107-032_L0_Solenoid.blend"
+
+ra1cav01[descrip] = "3DMODEL=7104-009-L0_Buncher_STL/7104-009-L0_Buncher_bare.blend"
+
+ra2cav01[descrip] = "3DMODEL=7100_002-ICM-cavity_STL/7100_002-ICM-cavity_reverse.blend"
+ra2cav02[descrip] = "3DMODEL=7100_002-ICM-cavity_STL/7100_002-ICM-cavity.blend"
+ra2cav03[descrip] = "3DMODEL=7100_002-ICM-cavity_STL/7100_002-ICM-cavity_reverse.blend"
+ra2cav04[descrip] = "3DMODEL=7100_002-ICM-cavity_STL/7100_002-ICM-cavity.blend"
+ra2cav05[descrip] = "3DMODEL=7100_002-ICM-cavity_STL/7100_002-ICM-cavity_reverse.blend"
+
+in.crmod.hom02[descrip] = "3DMODEL=7102-017-78_mm_HOM_Load/7102-017-78_mm_HOM_Load_bare.blend"
+in.crmod.hom03[descrip] = "3DMODEL=7102-018-106_mm_HOM_Load/7102-018-106_mm_HOM_Load_bare.blend"
+in.crmod.hom04[descrip] = "3DMODEL=7102-017-78_mm_HOM_Load/7102-017-78_mm_HOM_Load_bare.blend"
+in.crmod.hom05[descrip] = "3DMODEL=7102-018-106_mm_HOM_Load/7102-018-106_mm_HOM_Load_bare.blend"
+in.crmod.hom06[descrip] = "3DMODEL=7102-017-78_mm_HOM_Load/7102-017-78_mm_HOM_Load_bare.blend"
+
+
+!in.crmod.Fla02[descrip] = "3DMODEL=../../../../Scratch/STL/7102-103-ICM_gutted_STL/7102-103-ICM_gutted.blend"
+
+! Sliced
+GA1GHV01[descrip] =  "3DMODEL=../../../../Scratch/STL/MK-2_Gun_STL/MK2_Gun_sliced.blend"
+
+ma1sla01[descrip] = "3DMODEL=7107-032_L0_Solenoid_STL/7107-032_L0_Solenoid_sliced.blend"
+ma1sla02[descrip] = "3DMODEL=7107-032_L0_Solenoid_STL/7107-032_L0_Solenoid_sliced.blend"
+
+ra1cav01[descrip] = "3DMODEL=7104-009-L0_Buncher_STL/7104-009-L0_Buncher_sliced.blend"
+
+
+!in.crmod.hom02[descrip] = ""
+!in.crmod.hom03[descrip] = ""
+!in.crmod.hom04[descrip] = ""
+!in.crmod.hom05[descrip] = ""
+!in.crmod.hom06[descrip] = ""
+
+!ra2cav01[descrip] = ""
+!ra2cav02[descrip] = ""
+!ra2cav03[descrip] = ""
+!ra2cav04[descrip] = ""
+!ra2cav05[descrip] = ""
+in.crmod.Fla02[descrip] = "3DMODEL=../../../../Scratch/STL/7102-103-ICM_STL/7102-103-ICM_sliced.blend"
+
+in.e_tot: patch, e_tot_set=e006
+
+!--- Line
+in.TELES: LINE = (IN.A3.Mar.BEG, &
+   	       IN.A3.Pip01,
+	       IN.A3.Mar.END)
+
+
+
+	
+IN_before_MERGE: LINE = (IN.Mar.BEG, 
+	    GA1GHV01,
+        IN.A1,
+        IN.CRMOD,
+	in.e_tot)

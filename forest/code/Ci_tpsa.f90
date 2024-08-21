@@ -8690,45 +8690,153 @@ end   SUBROUTINE  c_clean_yu_w
    enddo
   end SUBROUTINE  clean_vector 
 
-   SUBROUTINE  c_clean_taylor(S1,S2,prec,r)
+
+ SUBROUTINE  clean_c_universal_taylor(S1,S2,prec,relative)
+    implicit none
+    type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+    type (c_UNIVERSAL_TAYLOR), intent(INOUT):: s1
+    type (c_UNIVERSAL_TAYLOR) u,w
+    real(dp) prec,siz
+    complex(dp) c
+    integer i,count,j,cnv
+    logical,optional :: relative
+    logical rel
+     real(dp), allocatable :: norm(:)
+ 
+      rel=.false.
+     if(present(relative)) rel=relative
+     if(rel) then
+       allocate(norm(0:c_%no+1))
+       norm=0
+      do i=1,s1%n
+        siz=abs(s1%c(i))
+        cnv=0
+        do j=1,s1%nv
+         cnv=cnv+s1%J(i,j)
+        enddo
+        norm(cnv)=siz+norm(cnv)
+      enddo
+     endif
+     call alloc(u,S1%n,S1%NV,S1%nd2)
+           
+     U%J=s1%J
+
+
+
+    if(rel) then
+     count=0
+     do i=1,s1%n
+        siz=abs(s1%c(i))
+        cnv=0
+        do j=1,s1%nv
+         cnv=cnv+s1%J(i,j)
+        enddo
+      if(norm(cnv)==0) then
+             U%c(i)=c_clean(s1%c(i),prec)
+      else
+                       U%c(i)=c_clean(s1%c(i),prec=prec*norm(cnv))
+   !   if( siz/norm(cnv) <prec)    U%c(i)=0
+      endif
+      if(abs(U%c(i))>0) count=count+1
+     enddo
+
+
+    else
+     count=0
+     do i=1,s1%n
+      U%c(i)=c_clean(s1%c(i),prec)
+      if(abs(U%c(i))>0) count=count+1
+     enddo
+     endif
+
+     call alloc(w,count,u%NV,u%nd2)
+     count=0
+      do i=1,s1%n
+      if(abs(U%c(i))>0) then
+       count=count+1
+       w%c(count)=U%c(i)
+       w%j(count,1:u%nv)=U%J(i,1:u%nv)
+      endif
+     enddo   
+
+     call kill(s2)
+      call alloc(s2,u%N,u%NV,u%nd2)
+
+     s2=w
+
+     if(rel)  deallocate(norm )
+      
+     call kill(u)
+     call kill(w)
+
+  END SUBROUTINE clean_c_universal_taylor
+
+   SUBROUTINE  c_clean_taylor(S1,S2,prec,relative)
     implicit none
     type (c_taylor),INTENT(INOUT)::S2
     type (c_taylor), intent(INOUT):: s1
-    real(dp) prec
-    INTEGER ipresent,n,I,illa,k
+    real(dp) prec,siz
+    INTEGER ipresent,n,I,illa,k,cnv,j1
     complex(dp) value,v,y
 !    real(dp) x  ,xx
     INTEGER, allocatable :: j(:)
-    type(c_ray),optional :: r
+
     type (c_taylor) t
-    type(c_ray) s
-    
-    s%x=0
-    s%s1=0
-    s%s2=0
-    s%s3=0
-    s%x=1.0_dp
-    if(present(r)) s=r
+
+    logical, optional :: relative
+    logical rel
+     real(dp), allocatable :: norm(:)
+
+integer nv
+    nv=c_%nv
+    allocate(j(nv))
+      rel=.false.
+     if(present(relative)) rel=relative
+     if(rel) then
+       allocate(norm(0:c_%no))
+       norm=0
+    ipresent=1
+
+
+    call c_dacycle(S1%I,ipresent,value,n)
+
+ 
+    do i=1,N
+       call c_dacycle(S1%I,i,value,illa,j)
+       v=0.0_dp
+ 
+
+        siz=abs(value)
+        cnv=0
+        do j1=1,c_%nv
+         cnv=cnv+j(j1)
+        enddo
+        norm(cnv)=siz+norm(cnv)
+      enddo
+ endif
+
+ 
+
     call alloc(t)
     t=0.0_dp
     ipresent=1
     call c_dacycle(S1%I,ipresent,value,n)
 
-    allocate(j(nv))
-
+ 
     do i=1,N
        call c_dacycle(S1%I,i,value,illa,j)
        v=0.0_dp
-    if(present(r)) then
-       y=value
-      do k=1,nv
-       y=y*r%x(k)**j(k)
-      enddo
-     else
-      y=value
-    endif
-       v=c_clean(y,prec)
 
+      y=value
+       if(rel) then
+        cnv=0
+        do j1=1,c_%nv
+         cnv=cnv+j(j1)
+        enddo
+               v=c_clean(y,prec=prec*norm(cnv))
+       else
+       v=c_clean(y,prec)
+    endif
     !   xx=y
     !   x=value
     !   if(abs(xx)>prec) v=x
@@ -8737,16 +8845,62 @@ end   SUBROUTINE  c_clean_yu_w
     !   if(abs(xx)>prec) v=v+i_*x
            t=t+(v.cmono.j)
      ENDDO
+if(rel) deallocate(norm)
     s2=t
     deallocate(j)
     call kill(t)
 
   END SUBROUTINE c_clean_taylor
 
+!   SUBROUTINE  c_clean_taylor(S1,S2,prec,r)
+!    implicit none
+!    type (c_taylor),INTENT(INOUT)::S2
+!    type (c_taylor), intent(INOUT):: s1
+!    real(dp) prec
+!    INTEGER ipresent,n,I,illa,k
+!    complex(dp) value,v,y
+! 
+!    INTEGER, allocatable :: j(:)
+!    type(c_ray),optional :: r
+!    type (c_taylor) t
+!    type(c_ray) s
+    
+ !   s%x=0
+ !   s%s1=0
+ !   s%s2=0
+ !   s%s3=0
+ !   s%x=1.0_dp
+ !   if(present(r)) s=r
+ !   call alloc(t)
+ !   t=0.0_dp
+ !   ipresent=1
+ !   call c_dacycle(S1%I,ipresent,value,n)
+ !
+ !   allocate(j(nv))
+
+!    do i=1,N
+!       call c_dacycle(S1%I,i,value,illa,j)
+!       v=0.0_dp
+!    if(present(r)) then
+!       y=value
+!      do k=1,nv
+!       y=y*r%x(k)**j(k)
+!      enddo
+!     else
+!      y=value
+!    endif
+!       v=c_clean(y,prec)
 
  
-
-  SUBROUTINE  c_clean_linear_map(S1,S2,prec)
+ !          t=t+(v.cmono.j)
+ !    ENDDO
+ !   s2=t
+ !   deallocate(j)
+ !   call kill(t)
+ !
+ ! END SUBROUTINE c_clean_taylor
+  
+ SUBROUTINE  c_clean_linear_map(S1,S2,prec)
     implicit none
     type (c_linear_map),INTENT(INOUT)::S2
     type (c_linear_map), intent(INOUT):: s1
@@ -8770,67 +8924,69 @@ end   SUBROUTINE  c_clean_yu_w
  
   END SUBROUTINE c_clean_linear_map
 
-  SUBROUTINE  c_clean_spinmatrix(S1,S2,prec,r) ! spin routine
+  SUBROUTINE  c_clean_spinmatrix(S1,S2,prec,relative) ! spin routine
     implicit none
     type (c_spinmatrix),INTENT(INOUT)::S2
     type (c_spinmatrix), intent(INOUT):: s1
     real(dp) prec
     integer i,j
-    type(c_ray),optional :: r
+    logical, optional :: relative
+
     do i=1,3
     do j=1,3
-       call clean(s1%s(i,j),s2%s(i,j),prec,r)
+       call clean(s1%s(i,j),s2%s(i,j),prec,relative)
     enddo
     enddo
 
 
   END SUBROUTINE c_clean_spinmatrix
 
-  SUBROUTINE  c_clean_quaternion(S1,S2,prec,r) ! spin routine
+  SUBROUTINE  c_clean_quaternion(S1,S2,prec,relative) ! spin routine
     implicit none
     type (c_quaternion),INTENT(INOUT)::S2
     type (c_quaternion), intent(INOUT):: s1
     real(dp) prec
     integer i,j
-    type(c_ray),optional :: r
+    logical, optional :: relative
+
 
     do i=0,3
     
-       call clean(s1%x(i),s2%x(i),prec,r)
+       call clean(s1%x(i),s2%x(i),prec,relative)
     
     enddo
 
 
   END SUBROUTINE c_clean_quaternion
 
-  SUBROUTINE  c_clean_spinor(S1,S2,prec,r) ! spin routine
+  SUBROUTINE  c_clean_spinor(S1,S2,prec,relative) ! spin routine
     implicit none
     type (c_spinor),INTENT(INOUT)::S2
     type (c_spinor), intent(INOUT):: s1
     real(dp) prec
-    type(c_ray),optional :: r
+    logical, optional :: relative
     integer i
 
     do i=1,3
-       call c_clean_taylor(s1%v(i),s2%v(i),prec,r)
+       call c_clean_taylor(s1%v(i),s2%v(i),prec,relative)
     enddo
 
   END SUBROUTINE c_clean_spinor
 
-  SUBROUTINE  c_clean_damap(S1,S2,prec,r)
+  SUBROUTINE  c_clean_damap(S1,S2,prec,relative)
     implicit none
     type (c_damap),INTENT(INOUT)::S2
     type (c_damap), intent(INOUT):: s1
     real(dp) prec
     integer i
-    type(c_ray),optional :: r
+    logical, optional :: relative
 
     do i=1,nd2
-       call c_clean_taylor(s1%v(i),s2%v(i),prec,r)
+       call c_clean_taylor(s1%v(i),s2%v(i),prec,relative)
     enddo
     
-    call c_clean_spinmatrix(s1%s,s2%s,prec)    
-    call c_clean_quaternion(s1%q,s2%q,prec)
+    call c_clean_spinmatrix(s1%s,s2%s,prec,relative)    
+    call c_clean_quaternion(s1%q,s2%q,prec,relative)
 
   END SUBROUTINE c_clean_damap
 
@@ -8857,77 +9013,77 @@ end   SUBROUTINE  c_clean_yu_w
   END SUBROUTINE c_clean_cm
 
 
-  SUBROUTINE  c_clean_c_factored_lie(S1,S2,prec,r)
+  SUBROUTINE  c_clean_c_factored_lie(S1,S2,prec,relative)
     implicit none
     type (c_factored_lie),INTENT(INOUT)::S2    
     type (c_factored_lie), intent(INOUT):: s1
     real(dp) prec
     integer i
-    type(c_ray),optional :: r
+    logical, optional :: relative
     do i=1,s2%n
-     call c_clean_vector_field(S1%f(i),S1%f(i),prec,r)
+     call c_clean_vector_field(S1%f(i),S1%f(i),prec,relative)
     enddo
    end SUBROUTINE  c_clean_c_factored_lie
 
-  SUBROUTINE  c_clean_vector_field(S1,S2,prec,r)
+  SUBROUTINE  c_clean_vector_field(S1,S2,prec,relative)
     implicit none
     type (c_vector_field),INTENT(INOUT)::S2
     type (c_vector_field), intent(INOUT):: s1
     real(dp) prec
     integer i
-    type(c_ray),optional :: r
+    logical, optional :: relative
+
 
     do i=1,nd2
-       call c_clean_taylor(s1%v(i),s2%v(i),prec)
+       call c_clean_taylor(s1%v(i),s2%v(i),prec,relative)
     enddo
 
     do i=0,3
-       call c_clean_taylor(s1%q%x(i),s2%q%x(i),prec)
+       call c_clean_taylor(s1%q%x(i),s2%q%x(i),prec,relative)
     enddo
 
   END SUBROUTINE c_clean_vector_field
 
-  SUBROUTINE  clean_c_universal_taylor(S1,S2,prec,r)
-    implicit none
-    type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
-    type (c_UNIVERSAL_TAYLOR), intent(INOUT):: s1
-    type (c_UNIVERSAL_TAYLOR) u,w
-    real(dp) prec
-    complex(dp) c
-    integer i,count
-    type(c_ray),optional :: r
+ ! SUBROUTINE  clean_c_universal_taylor(S1,S2,prec)
+ !   implicit none
+ !   type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
+ !   type (c_UNIVERSAL_TAYLOR), intent(INOUT):: s1
+ !   type (c_UNIVERSAL_TAYLOR) u,w
+ !   real(dp) prec
+ !   complex(dp) c
+ !   integer i,count
 
 
-     call alloc(u,S1%n,S1%NV,S1%nd2)
-           
-     U%J=s1%J
+ !    call alloc(u,S1%n,S1%NV,S1%nd2)
+ !          
+ !    U%J=s1%J
+ !
+ !    count=0
+ !    do i=1,s1%n
+ !     U%c(i)=c_clean(s1%c(i),prec)
+ !     if(abs(U%c(i))>0) count=count+1
+ !    enddo
+ !    
+ !    call alloc(w,count,u%NV,u%nd2)
+ !    count=0
+ !     do i=1,s1%n
+ !     if(abs(U%c(i))>0) then
+ !      count=count+1
+ !      w%c(count)=U%c(i)
+ !      w%j(count,1:u%nv)=U%J(i,1:u%nv)
+ !     endif
+ !    enddo   
+ !
+ !    call kill(s2)
+ !     call alloc(s2,u%N,u%NV,u%nd2)
+ !
+ !    s2=w
 
-     count=0
-     do i=1,s1%n
-      U%c(i)=c_clean(s1%c(i),prec)
-      if(abs(U%c(i))>0) count=count+1
-     enddo
-     
-     call alloc(w,count,u%NV,u%nd2)
-     count=0
-      do i=1,s1%n
-      if(abs(U%c(i))>0) then
-       count=count+1
-       w%c(count)=U%c(i)
-       w%j(count,1:u%nv)=U%J(i,1:u%nv)
-      endif
-     enddo   
 
-     call kill(s2)
-      call alloc(s2,u%N,u%NV,u%nd2)
+ !    call kill(u)
+ !    call kill(w)
 
-     s2=w
-
-
-     call kill(u)
-     call kill(w)
-
-  END SUBROUTINE clean_c_universal_taylor
+ ! END SUBROUTINE clean_c_universal_taylor
 
 
 
@@ -12453,116 +12609,166 @@ subroutine c_identify_resonance(j,n,c)
 
 end subroutine c_identify_resonance
 
-subroutine c_full_factorise(at,as,a0,a1,a2,dir) 
+subroutine c_full_factorise(a,as,a0,a1,a2,dir) 
 !#general: manipulation
 !# a_t =  a_s o a_0 o a_1 o a_2    for dir=1
     implicit none
-    type(c_damap) , intent(inout) :: at 
+    type(c_damap) , intent(inout) :: a
     type(c_damap) , optional, intent(inout) :: as,a2,a1,a0
     integer,optional :: dir
 
-    type(c_damap) att,a0t,a1t,a2t,ast
+    type(c_damap) att,a0t,a1t,a2t,ast,at
     type(c_taylor) p
-    integer i,kspin,ii
+    type(c_universal_taylor) u
+    type(c_vector_field) fv
+    integer i,kspin,ii,j,n,idir
     real(dp) norm
+    complex(dp) value
+    integer, allocatable :: je(:)
 
-
+    call alloc(at)
     call alloc(att)
     call alloc(a0t)
     call alloc(a1t)
     call alloc(a2t)    
     call alloc(ast)
+    call alloc(fv)
+    call alloc(p)
  
+at=a
+idir=1
+if(present(dir)) idir=dir
+if(idir==-1) at=a**(-1)
  
-    ii=1
-    if(present(dir)) ii=dir
-  !  at= (a,s) =  (a,I) o  (I,s)
-
-if(.false.) then
- if(use_quaternion) then
-   call c_full_norm_quaternion(at%q,kspin,norm)
-      if(kspin==-1) then
-         att=at
-         att%s=1
-         att%q=1.0_dp
-         ast=1
-         ast%s=at%s 
-      else
-       att=at
-       ast=1
-      endif
- else
-    call c_full_norm_spin(at%s,kspin,norm)  
- ! storing the spin because the code is careless (sets it to zero)   
-      if(kspin==-1) then
-         att=at
-         att%s=1
-         att%q=1.0_dp
-         ast=1
-         ast%s=at%s 
-      else
-       att=at
-       ast=1
-      endif
-  endif
-!  at= (a,s) =  (att,I) o  (I,ats)
-
-     ! att%s=0    
-    !  att%q=0   ! new 2023,12,09
-
+as=1
+a2t=at
+a2t%q=1.0_dp
+if(use_quaternion) then
+as%q=at%q*a2t**(-1)
+else
+ as%s=at%s*a2t**(-1)
 endif
-att=at
- 
-    call extract_only_a0(att,a0t)
+
+
+att=as**(-1)*at
 
  
+   a1t=1
+   do i=1,c_%nd2t
+    a1t%v(i)=0.0_dp
+   enddo
+
+a0t=1
+   do i=1,c_%nd2t
+        a0t%v(i)=att%v(i)*a1t 
+    if(c_%ndpt/=0) fv%v(i)=a0t%v(i)
+        a0t%v(i)=a0t%v(i) + (1.0_dp.cmono.i)
+   enddo
+
+
+
+if(c_%ndpt/=0) then
+call get_field_c_universal_taylor(fv,U)
+ 
+fv=0
+ 
+do i=1,c_%nd2t/2
+ fv%v(2*i-1)=-(u.d.(2*i))
+ fv%v(2*i)  = (u.d.(2*i-1))
+enddo
+ fv%v(c_%ndptb)  =  (-1)**c_%ndptb*(u.d.(c_%ndpt)) 
+ a0=exp(fv)
+    call kill(u)
+
+allocate(je(c_%nd2))
+ je=0
+ !a0%v(c_%ndptb)=a0%v(c_%ndptb) (at%v(c_%ndptb).par.je)
+deallocate(je)
+
+ else
+ a0=a0t
+endif   !!!!!!!!!!!! end c_%ndpt/=0
+
+ 
+ 
+
+ att=a0**(-1)*att
+ 
+ 
+if(c_%ndpt/=0) then
+ allocate(je(c_%nd2t))
+  ast=1
+  je=0
+  p=(att%v(c_%ndptb).par.je)-(1.0_dp.cmono.c_%ndptb)
+
+  ast%v(c_%ndptb)=ast%v(c_%ndptb) + p
+ deallocate(je)
+
+!!! extra iteration for parameters to vanish from time-like variable
+ a0=ast*a0
+ att=a0**(-1)*as**(-1)*at   
+ endif
+
+ !!!!!!!!!!!!!   linear part 
+ 
+allocate(je(c_%nd2t))
+a1%q=1.0_dp
+do i=1,c_%nd2t 
+ do j=1,c_%nd2t 
+ je=0
+ je(j)=1
+ a1%v(i)=(att%v(i).par.je)*(1.0_dp.cmono.j) + a1%v(i)
+ enddo
+enddo
+
+deallocate(je)
+
+!!!!!!!!! removing the quadratic orbital part in the time-like variable
+if(c_%ndpt/=0) then
+
+a1%v(c_%ndpt)=1.0_dp.cmono.c_%ndpt
+ 
+allocate(je(c_%nv))
+
+    call c_taylor_cycle(att%v(c_%ndptb),size=n)
+
+    do i=1,n
+       call c_taylor_cycle(att%v(c_%ndptb),ii=i,value=value,j=je)
+       ii=0
+       do j=1,c_%nd2t 
+        ii=ii+je(j)
+       enddo
+       if(ii==2) a1%v(c_%ndptb)=a1%v(c_%ndptb)+(value.cmono.je)
+   enddo
     
-    call extract_only_a1(att,a1t)
+
+deallocate(je)
+
+  
+ a1%v(c_%ndptb)=a1%v(c_%ndptb)+(1.0_dp.cmono.c_%ndptb)
+endif
+ a2=a1**(-1)*att
+
  
 
-    a2t=att
+if(idir==-1) then
+ as=as**(-1)
+ a0=a0**(-1)
+ a1=a1**(-1)
+ a2=a2**(-1)
+endif
 
-
-
-    a0t%s=1
-    a1t%s=1
-    a2t%s=1
-    a0t%q=1.0_dp
-    a1t%q=1.0_dp
-    a2t%q=1.0_dp
-
-
-    if(ii==-1) then
-     att=a0t*a1t*a2t
-     ast=att*ast*att**(-1)
-     a1t=a0t*a1t*a0t**(-1)
-     a2t=a0t*a2t*a0t**(-1)
-     a2t=a1t*a2t*a1t**(-1)
-    else
-        att=a0t*a1t*a2t  
-        ast=at*att**(-1)
-    endif
-
-
-    if(present(a0)) a0=a0t
- 
-    if(present(a1)) a1=a1t
-
-    if(present(a2)) a2=a2t
-
-    if(present(as)) then 
-     as%q=ast%q
-     do i=1,as%n
-      as%v(i)=1.0_dp.cmono.i
-     enddo
-    endif
-
+    
+    call kill(p)
     call kill(att)
     call kill(a0t)
     call kill(a1t)
     call kill(a2t)
     call kill(ast)
- 
+    call kill(fv)
+    call kill(at)
+
+
  
 end subroutine c_full_factorise
 
@@ -13921,6 +14127,11 @@ mtemp=((1.d0/coe)*(h*mtemp))
      do j=1,mtemp%n
        r=full_abs(mtemp%v(j))+r
      enddo
+!!!! added in 2024.8.10
+     do j=0,3
+       r=full_abs(mtemp%q%x(j))+r
+     enddo
+!!!! added in 2024.8.10
 
        if(more) then
           if(r.gt.h%eps) then
@@ -14938,8 +15149,7 @@ function c_vector_field_quaternion(h,ds) ! spin routine
 
     call c_ass_quaternion(c_exp_vectorfield_on_quaternion)
 
-
-
+ 
 
     check=.true.
     eps=1.d-10
@@ -17720,30 +17930,31 @@ subroutine mulc_vector_field_fourier(s1,fac,r)
 
 end subroutine mulc_vector_field_fourier
 
-  SUBROUTINE  c_clean_vector_field_fourier(S1,S2,prec,r)
+  SUBROUTINE  c_clean_vector_field_fourier(S1,S2,prec,relative)
     implicit none
     type (c_vector_field_fourier),INTENT(INOUT)::S2
     type (c_vector_field_fourier), intent(INOUT):: s1
     real(dp) prec
-    type(c_ray), optional :: r
+    logical, optional :: relative
     integer i
 
     do i=-n_fourier,n_fourier
-       call c_clean_vector_field(s1%f(i),s2%f(i),prec,r)
+       call c_clean_vector_field(s1%f(i),s2%f(i),prec,relative)
     enddo
 
   END SUBROUTINE c_clean_vector_field_fourier
 
-  SUBROUTINE  c_clean_taylors(S1,S2,prec,r)
+  SUBROUTINE  c_clean_taylors(S1,S2,prec,relative)
     implicit none
     type (c_taylor),INTENT(INOUT)::S2(:)
     type (c_taylor), intent(INOUT):: s1(:)
     real(dp) prec
-    type(c_ray), optional :: r
+    logical, optional :: relative
+
     integer i
 
     do i=lbound(s1,1),ubound(s1,1)
-       call clean(s1(i),s2(i),prec,r)
+       call clean(s1(i),s2(i),prec,relative)
     enddo
 
   END SUBROUTINE c_clean_taylors

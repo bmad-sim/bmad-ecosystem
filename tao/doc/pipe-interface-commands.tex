@@ -1,0 +1,2166 @@
+% WARNING: this is automatically generated. DO NOT EDIT.
+
+%% pipe beam ------------------------------------
+\subsection{pipe beam}
+\index{pipe!beam}
+\label{p:beam}
+
+
+Output beam parameters that are not in the beam_init structure.
+
+\begin{example}
+   pipe beam \{ix_uni\}@\{ix_branch\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
+
+Note: To set beam_init parameters use the "set beam" command.
+\end{verbatim}
+
+%% pipe beam_init ------------------------------------
+\subsection{pipe beam_init}
+\index{pipe!beam_init}
+\label{p:beam.init}
+
+
+Output beam_init parameters.
+
+\begin{example}
+   pipe beam_init \{ix_uni\}@\{ix_branch\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
+
+Note: To set beam_init parameters use the "set beam_init" command
+\end{verbatim}
+
+%% pipe bmad_com ------------------------------------
+\subsection{pipe bmad_com}
+\index{pipe!bmad_com}
+\label{p:bmad.com}
+
+
+Output bmad_com structure components.
+
+\begin{example}
+   pipe bmad_com
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe branch1 ------------------------------------
+\subsection{pipe branch1}
+\index{pipe!branch1}
+\label{p:branch1}
+
+
+Output lattice branch information for a particular lattice branch.
+
+\begin{example}
+   pipe branch1 \{ix_uni\}@\{ix_branch\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
+\end{verbatim}
+
+%% pipe bunch_comb ------------------------------------
+\subsection{pipe bunch_comb}
+\index{pipe!bunch_comb}
+\label{p:bunch.comb}
+
+
+Outputs bunch parameters at a comb point. 
+Also see the "write bunch_comb" and "show bunch -comb" commands.
+
+\begin{example}
+   pipe bunch_comb \{flags\} \{who\} \{ix_uni\}@\{ix_branch\} \{ix_bunch\}
+\end{example}
+\begin{verbatim}
+Where:
+  {flags} are optional switches:
+      -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a branch index. Defaults to s%global%default_branch.
+  {ix_bunch} is the bunch index. Defaults to 1.
+  {who} is one of:
+      x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
+      x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
+                                                                sigma, sigma_p, emit, norm_emit
+    sigma.IJ where I, J in range [1,6]
+    rel_min.I, rel_max.I where I in range [1,6]
+    charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
+
+  Note: If ix_uni or ix_branch is present, "@" must be present.
+
+Example:
+  pipe bunch_comb py 2@1 1
+\end{verbatim}
+
+%% pipe bunch_params ------------------------------------
+\subsection{pipe bunch_params}
+\index{pipe!bunch_params}
+\label{p:bunch.params}
+
+
+Outputs bunch parameters at the exit end of a given lattice element.
+
+\begin{example}
+   pipe bunch_params \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe bunch_params end|model  ! parameters at model lattice element named "end".
+\end{verbatim}
+
+%% pipe bunch1 ------------------------------------
+\subsection{pipe bunch1}
+\index{pipe!bunch1}
+\label{p:bunch1}
+
+
+Outputs Bunch parameters at the exit end of a given lattice element.
+
+\begin{example}
+   pipe bunch1 \{ele_id\}|\{which\} \{ix_bunch\} \{coordinate\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {ix_bunch} is the bunch index.
+  {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state", "ix_ele"
+
+For example, if {coordinate} = "px", the phase space px coordinate of each particle
+of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
+alive and any other value means the particle has been lost.
+\end{verbatim}
+
+%% pipe building_wall_list ------------------------------------
+\subsection{pipe building_wall_list}
+\index{pipe!building_wall_list}
+\label{p:building.wall.list}
+
+
+Output List of building wall sections or section points
+
+\begin{example}
+   pipe building_wall_list \{ix_section\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_section} is a building wall section index.
+
+If {ix_section} is not present, a list of building wall sections is given.
+If {ix_section} is present, a list of section points is given.
+\end{verbatim}
+
+%% pipe building_wall_graph ------------------------------------
+\subsection{pipe building_wall_graph}
+\index{pipe!building_wall_graph}
+\label{p:building.wall.graph}
+
+
+Output (x, y) points for drawing the building wall for a particular graph.
+
+\begin{example}
+   pipe building_wall_graph \{graph\}
+\end{example}
+\begin{verbatim}
+Where:
+  {graph} is a plot region graph name.
+
+Note: The graph defines the coordinate system for the (x, y) points.
+\end{verbatim}
+
+%% pipe building_wall_point ------------------------------------
+\subsection{pipe building_wall_point}
+\index{pipe!building_wall_point}
+\label{p:building.wall.point}
+
+
+add or delete a building wall point
+
+\begin{example}
+   pipe building_wall_point \{ix_section\}^^\{ix_point\}^^\{z\}^^\{x\}^^\{radius\}^^\{z_center\}^^\{x_center\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_section}    -- Section index.
+  {ix_point}      -- Point index. Points of higher indexes will be moved up 
+                       if adding a point and down if deleting.
+  {z}, etc...     -- See tao_building_wall_point_struct components.
+                  -- If {z} is set to "delete" then delete the point.
+\end{verbatim}
+
+%% pipe building_wall_section ------------------------------------
+\subsection{pipe building_wall_section}
+\index{pipe!building_wall_section}
+\label{p:building.wall.section}
+
+
+Add or delete a building wall section
+
+\begin{example}
+   pipe building_wall_section \{ix_section\}^^\{sec_name\}^^\{sec_constraint\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_section}      -- Section index. Sections with higher indexes will be
+                         moved up if adding a section and down if deleting.
+  {sec_name}        -- Section name.
+  {sec_constraint}  -- A section constraint name or "delete". Must be one of:
+      delete          -- Delete section. Anything else will add the section.
+      none
+      left_side
+      right_side
+\end{verbatim}
+
+%% pipe constraints ------------------------------------
+\subsection{pipe constraints}
+\index{pipe!constraints}
+\label{p:constraints}
+
+
+Output optimization data and variable parameters that contribute to the merit function.
+
+\begin{example}
+   pipe constraints \{who\}
+\end{example}
+\begin{verbatim}
+Where:
+  {who} is one of: "data" or "var"
+
+Data constraints output is:
+  data name
+  constraint type
+  evaluation element name
+  start element name
+  end/reference element name
+  measured value
+  ref value (only relavent if global%opt_with_ref = T)
+  model value
+  base value (only relavent if global%opt_with_base = T)
+  weight
+  merit value
+  location where merit is evaluated (if there is a range)
+Var constraints output is:
+  var name
+  Associated varible attribute
+  meas value
+  ref value (only relavent if global%opt_with_ref = T)
+  model value
+  base value (only relavent if global%opt_with_base = T)
+  weight
+  merit value
+  dmerit/dvar
+\end{verbatim}
+
+%% pipe da_aperture ------------------------------------
+\subsection{pipe da_aperture}
+\index{pipe!da_aperture}
+\label{p:da.aperture}
+
+
+Output dynamic aperture data
+
+\begin{example}
+   pipe da_aperture \{ix_uni\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+\end{verbatim}
+
+%% pipe da_params ------------------------------------
+\subsection{pipe da_params}
+\index{pipe!da_params}
+\label{p:da.params}
+
+
+Output dynamic aperture input parameters
+
+\begin{example}
+   pipe da_params \{ix_uni\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+\end{verbatim}
+
+%% pipe data ------------------------------------
+\subsection{pipe data}
+\index{pipe!data}
+\label{p:data}
+
+
+Output Individual datum parameters.
+
+\begin{example}
+   pipe data \{ix_uni\}@\{d2_name\}.\{d1_name\}[\{dat_index\}]
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {d2_name} is the name of the d2_data structure the datum is in.
+  {d1_datum} is the name of the d1_data structure the datum is in.
+  {dat_index} is the index of the datum.
+
+Use the "pipe data-d1" command to get detailed info on a specific d1 array.
+
+Example:
+  pipe data 1@orbit.x[10]
+\end{verbatim}
+
+%% pipe data_d_array ------------------------------------
+\subsection{pipe data_d_array}
+\index{pipe!data_d_array}
+\label{p:data.d.array}
+
+
+Output list of datums for a given d1_data structure.
+
+\begin{example}
+   pipe data_d_array \{ix_uni\}@\{d2_name\}.\{d1_name\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {d2_name} is the name of the containing d2_data structure.
+  {d1_name} is the name of the d1_data structure containing the array of datums.
+
+Example:
+  pipe data_d_array 1@orbit.x
+\end{verbatim}
+
+%% pipe data_d1_array ------------------------------------
+\subsection{pipe data_d1_array}
+\index{pipe!data_d1_array}
+\label{p:data.d1.array}
+
+
+Output list of d1 arrays for a given data_d2.
+
+\begin{example}
+   pipe data_d1_array \{d2_datum\}
+\end{example}
+\begin{verbatim}
+{d2_datum} should be of the form
+  {ix_uni}@{d2_datum_name}
+\end{verbatim}
+
+%% pipe data_d2 ------------------------------------
+\subsection{pipe data_d2}
+\index{pipe!data_d2}
+\label{p:data.d2}
+
+
+Output information on a d2_datum.
+
+\begin{example}
+   pipe data_d2 \{ix_uni\}@\{d2_name\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {d2_name} is the name of the d2_data structure.
+\end{verbatim}
+
+%% pipe data_d2_array ------------------------------------
+\subsection{pipe data_d2_array}
+\index{pipe!data_d2_array}
+\label{p:data.d2.array}
+
+
+Output data d2 info for a given universe.
+
+\begin{example}
+   pipe data_d2_array \{ix_uni\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+
+Example:
+  pipe data_d2_array 1
+\end{verbatim}
+
+%% pipe data_d2_create ------------------------------------
+\subsection{pipe data_d2_create}
+\index{pipe!data_d2_create}
+\label{p:data.d2.create}
+
+
+Create a d2 data structure along with associated d1 and data arrays.
+
+\begin{example}
+   pipe data_d2_create \{ix_uni\}@\{d2_name\}^^\{n_d1_data\}^^\{d_data_arrays_name_min_max\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {d2_name} is the name of the d2_data structure to create.
+  {n_d1_data} is the number of associated d1 data structures.
+  {d_data_arrays_name_min_max} has the form
+    {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
+  where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds of the array.
+
+Example:
+  pipe data_d2_create 2@orbit^^2^^x^^0^^45^^y^^1^^47
+This example creates a d2 data structure called "orbit" with 
+two d1 structures called "x" and "y".
+
+The "x" d1 structure has an associated data array with indexes in the range [0, 45].
+The "y" d1 structure has an associated data arrray with indexes in the range [1, 47].
+
+Use the "set data" command to set created datum parameters.
+
+Note: When setting multiple data parameters, 
+      temporarily toggle s%global%lattice_calc_on to False
+  ("set global lattice_calc_on = F") to prevent Tao trying to 
+      evaluate the partially created datum and generating unwanted error messages.
+\end{verbatim}
+
+%% pipe data_d2_destroy ------------------------------------
+\subsection{pipe data_d2_destroy}
+\index{pipe!data_d2_destroy}
+\label{p:data.d2.destroy}
+
+
+Destroy a d2 data structure along with associated d1 and data arrays.
+
+\begin{example}
+   pipe data_d2_destroy \{ix_uni\}@\{d2_name\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {d2_name} is the name of the d2_data structure to destroy.
+
+Example:
+  pipe data_d2_destroy 2@orbit
+This destroys the orbit d2_data structure in universe 2.
+\end{verbatim}
+
+%% pipe data_parameter ------------------------------------
+\subsection{pipe data_parameter}
+\index{pipe!data_parameter}
+\label{p:data.parameter}
+
+
+Output an array of values for a particular datum parameter for a given array of datums, 
+
+\begin{example}
+   pipe data_parameter \{data_array\} \{parameter\}
+\end{example}
+\begin{verbatim}
+{parameter} may be any tao_data_struct parameter.
+Example:
+  pipe data_parameter orbit.x model_value
+\end{verbatim}
+
+%% pipe data_set_design_value ------------------------------------
+\subsection{pipe data_set_design_value}
+\index{pipe!data_set_design_value}
+\label{p:data.set.design.value}
+
+
+Set the design (and base \& model) values for all datums.
+
+\begin{example}
+   pipe data_set_design_value
+\end{example}
+\begin{verbatim}
+Example:
+  pipe data_set_design_value
+
+Note: Use the "data_d2_create" and "datum_create" first to create datums.
+\end{verbatim}
+
+%% pipe datum_create ------------------------------------
+\subsection{pipe datum_create}
+\index{pipe!datum_create}
+\label{p:datum.create}
+
+
+Create a datum.
+
+\begin{example}
+   pipe datum_create \{datum_name\}^^\{data_type\}^^\{ele_ref_name\}^^\{ele_start_name\}^^
+                       \{ele_name\}^^\{merit_type\}^^\{meas\}^^\{good_meas\}^^\{ref\}^^
+                       \{good_ref\}^^\{weight\}^^\{good_user\}^^\{data_source\}^^
+                       \{eval_point\}^^\{s_offset\}^^\{ix_bunch\}^^\{invalid_value\}^^
+                       \{spin_axis%n0(1)\}^^\{spin_axis%n0(2)\}^^\{spin_axis%n0(3)\}^^
+                       \{spin_axis%l(1)\}^^\{spin_axis%l(2)\}^^\{spin_axis%l(3)\}
+\end{example}
+\begin{verbatim}
+Note: The 3 values for spin_axis%n0, as a group, are optional. 
+      Also the 3 values for spin_axis%l are, as a group, optional.
+Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
+Note: After creating all your datums, use the "data_set_design_value" routine to 
+      set the design (and model) values.
+\end{verbatim}
+
+%% pipe datum_has_ele ------------------------------------
+\subsection{pipe datum_has_ele}
+\index{pipe!datum_has_ele}
+\label{p:datum.has.ele}
+
+
+Output whether a datum type has an associated lattice element
+
+\begin{example}
+   pipe datum_has_ele \{datum_type\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe derivative ------------------------------------
+\subsection{pipe derivative}
+\index{pipe!derivative}
+\label{p:derivative}
+
+
+Output optimization derivatives
+
+\begin{example}
+   pipe derivative
+\end{example}
+\begin{verbatim}
+Note: To save time, this command will not recalculate derivatives. 
+Use the "derivative" command beforehand to recalcuate if needed.
+\end{verbatim}
+
+%% pipe ele:ac_kicker ------------------------------------
+\subsection{pipe ele:ac_kicker}
+\index{pipe!ele:ac_kicker}
+\label{p:ele:ac.kicker}
+
+
+Output element ac_kicker parameters
+
+\begin{example}
+   pipe ele:ac_kicker \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:ac_kicker 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:cartesian_map ------------------------------------
+\subsection{pipe ele:cartesian_map}
+\index{pipe!ele:cartesian_map}
+\label{p:ele:cartesian.map}
+
+
+Output element cartesian_map parameters
+
+\begin{example}
+   pipe ele:cartesian_map \{ele_id\}|\{which\} \{index\} \{who\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%cartesian_map(:) array
+  {who} is one of: "base", or "terms"
+
+Example:
+  pipe ele:cartesian_map 3@1>>7|model 2 base
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:chamber_wall ------------------------------------
+\subsection{pipe ele:chamber_wall}
+\index{pipe!ele:chamber_wall}
+\label{p:ele:chamber.wall}
+
+
+Output element beam chamber wall parameters
+
+\begin{example}
+   pipe ele:chamber_wall \{ele_id\}|\{which\} \{index\} \{who\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is index of the wall.
+  {who} is one of:
+    "x"       ! Return min/max in horizontal plane
+    "y"       ! Return min/max in vertical plane
+\end{verbatim}
+
+%% pipe ele:control_var ------------------------------------
+\subsection{pipe ele:control_var}
+\index{pipe!ele:control_var}
+\label{p:ele:control.var}
+
+
+Output list of element control variables.
+Used for group, overlay and ramper type elements.
+
+\begin{example}
+   pipe ele:control_var \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:control_var 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:cylindrical_map ------------------------------------
+\subsection{pipe ele:cylindrical_map}
+\index{pipe!ele:cylindrical_map}
+\label{p:ele:cylindrical.map}
+
+
+Output element cylindrical_map
+
+\begin{example}
+   pipe ele:cylindrical_map \{ele_id\}|\{which\} \{index\} \{who\}
+\end{example}
+\begin{verbatim}
+Where 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%cylindrical_map(:) array
+  {who} is one of: "base", or "terms"
+
+Example:
+  pipe ele:cylindrical_map 3@1>>7|model 2 base
+This gives map #2 of element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:elec_multipoles ------------------------------------
+\subsection{pipe ele:elec_multipoles}
+\index{pipe!ele:elec_multipoles}
+\label{p:ele:elec.multipoles}
+
+
+Output element electric multipoles
+
+\begin{example}
+   pipe ele:elec_multipoles \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:elec_multipoles 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:floor ------------------------------------
+\subsection{pipe ele:floor}
+\index{pipe!ele:floor}
+\label{p:ele:floor}
+
+
+Output element floor coordinates. The output gives four lines. "Reference" is
+without element misalignments and "Actual" is with misalignments. The lines with "-W"
+give the W matrix. The exception is that if ele is a multipass_lord, there will be 4*N
+lines where N is the number of slaves.
+
+\begin{example}
+   pipe ele:floor \{ele_id\}|\{which\} \{where\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {where} is an optional argument which, if present, is one of
+    beginning  ! Upstream end
+    center     ! Middle of element
+    end        ! Downstream end (default)
+Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
+
+Example:
+  pipe ele:floor 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:gen_attribs ------------------------------------
+\subsection{pipe ele:gen_attribs}
+\index{pipe!ele:gen_attribs}
+\label{p:ele:gen.attribs}
+
+
+Output element general attributes
+
+\begin{example}
+   pipe ele:gen_attribs \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:gen_attribs 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:gen_grad_map ------------------------------------
+\subsection{pipe ele:gen_grad_map}
+\index{pipe!ele:gen_grad_map}
+\label{p:ele:gen.grad.map}
+
+
+Output element gen_grad_map 
+
+\begin{example}
+   pipe ele:gen_grad_map \{ele_id\}|\{which\} \{index\} \{who\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%gen_grad_map(:) array
+  {who} is one of: "base", or "derivs".
+
+Example:
+  pipe ele:gen_grad_map 3@1>>7|model 2 base
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:grid_field ------------------------------------
+\subsection{pipe ele:grid_field}
+\index{pipe!ele:grid_field}
+\label{p:ele:grid.field}
+
+
+Output element grid_field
+
+\begin{example}
+   pipe ele:grid_field \{ele_id\}|\{which\} \{index\} \{who\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%grid_field(:) array.
+  {who} is one of: "base", or "points"
+
+Example:
+  pipe ele:grid_field 3@1>>7|model 2 base
+This gives grid #2 of element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:head ------------------------------------
+\subsection{pipe ele:head}
+\index{pipe!ele:head}
+\label{p:ele:head}
+
+
+Output "head" Element attributes
+
+\begin{example}
+   pipe ele:head \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:head 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:lord_slave ------------------------------------
+\subsection{pipe ele:lord_slave}
+\index{pipe!ele:lord_slave}
+\label{p:ele:lord.slave}
+
+
+Output the lord/slave tree of an element.
+
+\begin{example}
+   pipe ele:lord_slave \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:lord_slave 3@1>>7|model
+This gives lord and slave info on element number 7 in branch 1 of universe 3.
+Note: The lord/slave info is independent of the setting of {which}.
+
+The output is a number of lines, each line giving information on an element (element index, etc.).
+Some lines begin with the word "Element". 
+After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
+These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
+\end{verbatim}
+
+%% pipe ele:mat6 ------------------------------------
+\subsection{pipe ele:mat6}
+\index{pipe!ele:mat6}
+\label{p:ele:mat6}
+
+
+Output element mat6
+
+\begin{example}
+   pipe ele:mat6 \{ele_id\}|\{which\} \{who\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {who} is one of: "mat6", "vec0", or "err"
+
+Example:
+  pipe ele:mat6 3@1>>7|model mat6
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:methods ------------------------------------
+\subsection{pipe ele:methods}
+\index{pipe!ele:methods}
+\label{p:ele:methods}
+
+
+Output element methods
+
+\begin{example}
+   pipe ele:methods \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:methods 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:multipoles ------------------------------------
+\subsection{pipe ele:multipoles}
+\index{pipe!ele:multipoles}
+\label{p:ele:multipoles}
+
+
+Output element multipoles
+
+\begin{example}
+   pipe ele:multipoles \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:multipoles 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:orbit ------------------------------------
+\subsection{pipe ele:orbit}
+\index{pipe!ele:orbit}
+\label{p:ele:orbit}
+
+
+Output element orbit
+
+\begin{example}
+   pipe ele:orbit \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:orbit 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:param ------------------------------------
+\subsection{pipe ele:param}
+\index{pipe!ele:param}
+\label{p:ele:param}
+
+
+Output lattice element parameter
+
+\begin{example}
+   pipe ele:param \{ele_id\}|\{which\} \{who\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {who} values are the same as {who} values for "pipe lat_list".
+        Note: Here {who} must be a single parameter and not a list.
+
+Example:
+  pipe ele:param 3@1>>7|model e_tot
+This gives E_tot of element number 7 in branch 1 of universe 3.
+
+Note: On output the {variable} component will always be "F" (since this 
+command cannot tell if a parameter is allowed to vary).
+
+Also see: "pipe lat_list".
+\end{verbatim}
+
+%% pipe ele:photon ------------------------------------
+\subsection{pipe ele:photon}
+\index{pipe!ele:photon}
+\label{p:ele:photon}
+
+
+Output element photon parameters
+
+\begin{example}
+   pipe ele:photon \{ele_id\}|\{which\} \{who\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {who} is one of: "base", "material", or "curvature"
+
+Example:
+  pipe ele:photon 3@1>>7|model base
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:spin_taylor ------------------------------------
+\subsection{pipe ele:spin_taylor}
+\index{pipe!ele:spin_taylor}
+\label{p:ele:spin.taylor}
+
+
+Output element spin_taylor parameters
+
+\begin{example}
+   pipe ele:spin_taylor \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:spin_taylor 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:taylor ------------------------------------
+\subsection{pipe ele:taylor}
+\index{pipe!ele:taylor}
+\label{p:ele:taylor}
+
+
+Output element taylor map 
+
+\begin{example}
+   pipe ele:taylor \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:taylor 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:twiss ------------------------------------
+\subsection{pipe ele:twiss}
+\index{pipe!ele:twiss}
+\label{p:ele:twiss}
+
+
+Output element Twiss parameters
+
+\begin{example}
+   pipe ele:twiss \{ele_id\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+
+Example:
+  pipe ele:twiss 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:wake ------------------------------------
+\subsection{pipe ele:wake}
+\index{pipe!ele:wake}
+\label{p:ele:wake}
+
+
+Output element wake.
+
+\begin{example}
+   pipe ele:wake \{ele_id\}|\{which\} \{who\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {Who} is one of:
+      "sr_long"        "sr_long_table"
+      "sr_trans"       "sr_trans_table"
+      "lr_mode_table"  "base"
+
+Example:
+  pipe ele:wake 3@1>>7|model
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe ele:wall3d ------------------------------------
+\subsection{pipe ele:wall3d}
+\index{pipe!ele:wall3d}
+\label{p:ele:wall3d}
+
+
+Output element wall3d parameters.
+
+\begin{example}
+   pipe ele:wall3d \{ele_id\}|\{which\} \{index\} \{who\}
+\end{example}
+\begin{verbatim}
+Where: 
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+  {who} is one of: "base", or "table".
+Example:
+  pipe ele:wall3d 3@1>>7|model 2 base
+This gives element number 7 in branch 1 of universe 3.
+\end{verbatim}
+
+%% pipe evaluate ------------------------------------
+\subsection{pipe evaluate}
+\index{pipe!evaluate}
+\label{p:evaluate}
+
+
+Output the value of an expression. The result may be a vector.
+
+\begin{example}
+   pipe evaluate \{flags\} \{expression\}
+\end{example}
+\begin{verbatim}
+Where:
+  Optional {flags} are:
+      -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+  {expression} is expression to be evaluated.
+
+Example:
+  pipe evaluate 3+data::cbar.11[1:10]|model
+\end{verbatim}
+
+%% pipe em_field ------------------------------------
+\subsection{pipe em_field}
+\index{pipe!em_field}
+\label{p:em.field}
+
+
+Output EM field at a given point generated by a given element.
+
+\begin{example}
+   pipe em_field \{ele_id\}|\{which\} \{x\} \{y\} \{z\} \{t_or_z\}
+\end{example}
+\begin{verbatim}
+Where:
+  {which} is one of: "model", "base" or "design"
+  {x}, {y}  -- Transverse coords.
+  {z}       -- Longitudinal coord with respect to entrance end of element.
+  {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
+\end{verbatim}
+
+%% pipe enum ------------------------------------
+\subsection{pipe enum}
+\index{pipe!enum}
+\label{p:enum}
+
+
+Output list of possible values for enumerated numbers.
+
+\begin{example}
+   pipe enum \{enum_name\}
+\end{example}
+\begin{verbatim}
+Example:
+  pipe enum tracking_method
+\end{verbatim}
+
+%% pipe floor_plan ------------------------------------
+\subsection{pipe floor_plan}
+\index{pipe!floor_plan}
+\label{p:floor.plan}
+
+
+Output (x,y) points and other information that can be used for drawing a floor_plan.
+
+\begin{example}
+   pipe floor_plan \{graph\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe floor_orbit ------------------------------------
+\subsection{pipe floor_orbit}
+\index{pipe!floor_orbit}
+\label{p:floor.orbit}
+
+
+Output (x, y) coordinates for drawing the particle orbit on a floor plan.
+
+\begin{example}
+   pipe floor_orbit \{graph\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe global ------------------------------------
+\subsection{pipe global}
+\index{pipe!global}
+\label{p:global}
+
+
+Output global parameters.
+
+\begin{example}
+   pipe global
+\end{example}
+\begin{verbatim}
+Output syntax is parameter list form. See documentation at the beginning of this file.
+
+Note: The follow is intentionally left out:
+  optimizer_allow_user_abort
+  quiet
+  single_step
+  prompt_color
+  prompt_string
+\end{verbatim}
+
+%% pipe global:optimization ------------------------------------
+\subsection{pipe global:optimization}
+\index{pipe!global:optimization}
+\label{p:global:optimization}
+
+
+Output optimization parameters.
+Also see global:opti_de.
+
+\begin{example}
+   pipe global:optimization
+\end{example}
+\begin{verbatim}
+Output syntax is parameter list form. See documentation at the beginning of this file.
+\end{verbatim}
+
+%% pipe global:opti_de ------------------------------------
+\subsection{pipe global:opti_de}
+\index{pipe!global:opti_de}
+\label{p:global:opti.de}
+
+
+Output DE optimization parameters.
+
+\begin{example}
+   pipe global:opti_de
+\end{example}
+\begin{verbatim}
+Output syntax is parameter list form. See documentation at the beginning of this file.
+\end{verbatim}
+
+%% pipe help ------------------------------------
+\subsection{pipe help}
+\index{pipe!help}
+\label{p:help}
+
+
+Output list of "help xxx" topics
+
+\begin{example}
+   pipe help
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe inum ------------------------------------
+\subsection{pipe inum}
+\index{pipe!inum}
+\label{p:inum}
+
+
+Output list of possible values for an INUM parameter.
+For example, possible index numbers for the branches of a lattice.
+
+\begin{example}
+   pipe inum \{who\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe lat_calc_done ------------------------------------
+\subsection{pipe lat_calc_done}
+\index{pipe!lat_calc_done}
+\label{p:lat.calc.done}
+
+
+Output if a lattice recalculation has been proformed since the last 
+  time "pipe lat_calc_done" was called.
+
+\begin{example}
+   pipe lat_calc_done
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe lat_ele_list ------------------------------------
+\subsection{pipe lat_ele_list}
+\index{pipe!lat_ele_list}
+\label{p:lat.ele.list}
+
+
+Output lattice element list.
+
+\begin{example}
+   pipe lat_ele_list \{branch_name\}
+\end{example}
+\begin{verbatim}
+{branch_name} should have the form:
+  {ix_uni}@{ix_branch}
+\end{verbatim}
+
+%% pipe lat_branch_list ------------------------------------
+\subsection{pipe lat_branch_list}
+\index{pipe!lat_branch_list}
+\label{p:lat.branch.list}
+
+
+Output lattice branch list
+
+\begin{example}
+   pipe lat_branch_list \{ix_uni\}
+\end{example}
+\begin{verbatim}
+Output syntax:
+  branch_index;branch_name;n_ele_track;n_ele_max
+\end{verbatim}
+
+%% pipe lat_list ------------------------------------
+\subsection{pipe lat_list}
+\index{pipe!lat_list}
+\label{p:lat.list}
+
+
+Output list of parameters at ends of lattice elements
+
+\begin{example}
+   pipe lat_list \{flags\} \{ix_uni\}@\{ix_branch\}>>\{elements\}|\{which\} \{who\}
+\end{example}
+\begin{verbatim}
+Where:
+ Optional {flags} are:
+  -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
+  -track_only : If present, lord elements will not be matched to.
+  -index_order : If present, order elements by element index instead of the standard s-position.
+  -array_out : If present, the output will be available in the tao_c_interface_com%c_real or
+    tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
+    Note: Only a single {who} item permitted when -array_out is present.
+
+  {which} is one of: "model", "base" or "design"
+
+  {who} is a comma deliminated list of:
+    orbit.floor.x, orbit.floor.y, orbit.floor.z    ! Floor coords at particle orbit.
+    orbit.spin.1, orbit.spin.2, orbit.spin.3,
+    orbit.vec.1, orbit.vec.2, orbit.vec.3, orbit.vec.4, orbit.vec.5, orbit.vec.6,
+    orbit.t, orbit.beta,
+    orbit.state,     ! Note: state is an integer. alive$ = 1, anything else is lost.
+    orbit.energy, orbit.pc,
+    ele.name, ele.key, ele.ix_ele, ele.ix_branch
+    ele.a.beta, ele.a.alpha, ele.a.eta, ele.a.etap, ele.a.gamma, ele.a.phi,
+    ele.b.beta, ele.b.alpha, ele.b.eta, ele.b.etap, ele.b.gamma, ele.b.phi,
+    ele.x.eta, ele.x.etap,
+    ele.y.eta, ele.y.etap,
+    ele.ref_time, ele.ref_time_start
+    ele.s, ele.l
+    ele.e_tot, ele.p0c
+    ele.mat6      ! Output: mat6(1,:), mat6(2,:), ... mat6(6,:)
+    ele.vec0      ! Output: vec0(1), ... vec0(6)
+    ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
+    ele.c_mat     ! Output: c_mat11, c_mat12, c_mat21, c_mat22.
+    ele.gamma_c   ! Parameter associated with coupling c-matrix.
+
+  {elements} is a string to match element names to.
+    Use "*" to match to all elements.
+
+Examples:
+  pipe lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
+  pipe lat_list 3@0>>Q*|base real:ele.s    
+
+Also see: "pipe ele:param"
+\end{verbatim}
+
+%% pipe lat_param_units ------------------------------------
+\subsection{pipe lat_param_units}
+\index{pipe!lat_param_units}
+\label{p:lat.param.units}
+
+
+Output units of a parameter associated with a lattice or lattice element.
+
+\begin{example}
+   pipe lat_param_units \{param_name\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe matrix ------------------------------------
+\subsection{pipe matrix}
+\index{pipe!matrix}
+\label{p:matrix}
+
+
+Output matrix value from the exit end of one element to the exit end of the other.
+
+\begin{example}
+   pipe matrix \{ele1_id\} \{ele2_id\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele1_id} is the start element.
+  {ele2_id} is the end element.
+If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
+Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+
+Example:
+  pipe matrix 2@1>>q01w|design q02w
+\end{verbatim}
+
+%% pipe merit ------------------------------------
+\subsection{pipe merit}
+\index{pipe!merit}
+\label{p:merit}
+
+
+Output merit value.
+
+\begin{example}
+   pipe merit
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe orbit_at_s ------------------------------------
+\subsection{pipe orbit_at_s}
+\index{pipe!orbit_at_s}
+\label{p:orbit.at.s}
+
+
+Output twiss at given s position.
+
+\begin{example}
+   pipe orbit_at_s \{ix_uni\}@\{ele\}->\{s_offset\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ele} is an element name or index. Default at the Beginning element at start of branch 0.
+  {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
+     If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
+  {which} is one of: "model", "base" or "design".
+
+Example:
+  pipe orbit_at_s Q10->0.4|model   ! Orbit at 0.4 meters from Q10 element exit end in model lattice.
+\end{verbatim}
+
+%% pipe place_buffer ------------------------------------
+\subsection{pipe place_buffer}
+\index{pipe!place_buffer}
+\label{p:place.buffer}
+
+
+Output the place command buffer and reset the buffer.
+The contents of the buffer are the place commands that the user has issued.
+See the Tao manual for more details.
+
+\begin{example}
+   pipe place_buffer
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe plot_curve ------------------------------------
+\subsection{pipe plot_curve}
+\index{pipe!plot_curve}
+\label{p:plot.curve}
+
+
+Output curve information for a plot.
+
+\begin{example}
+   pipe plot_curve \{curve_name\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe plot_graph ------------------------------------
+\subsection{pipe plot_graph}
+\index{pipe!plot_graph}
+\label{p:plot.graph}
+
+
+Output graph info.
+
+\begin{example}
+   pipe plot_graph \{graph_name\}
+\end{example}
+\begin{verbatim}
+{graph_name} is in the form:
+  {p_name}.{g_name}
+where
+  {p_name} is the plot region name if from a region or the plot name if a template plot.
+  This name is obtained from the pipe plot_list command.
+  {g_name} is the graph name obtained from the pipe plot1 command.
+\end{verbatim}
+
+%% pipe plot_histogram ------------------------------------
+\subsection{pipe plot_histogram}
+\index{pipe!plot_histogram}
+\label{p:plot.histogram}
+
+
+Output plot histogram info.
+
+\begin{example}
+   pipe plot_histogram \{curve_name\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe plot_lat_layout ------------------------------------
+\subsection{pipe plot_lat_layout}
+\index{pipe!plot_lat_layout}
+\label{p:plot.lat.layout}
+
+
+Output plot Lat_layout info
+
+\begin{example}
+   pipe plot_lat_layout \{ix_uni\}@\{ix_branch\}
+\end{example}
+\begin{verbatim}
+Note: The returned list of element positions is not ordered in increasing
+      longitudinal position.
+\end{verbatim}
+
+%% pipe plot_list ------------------------------------
+\subsection{pipe plot_list}
+\index{pipe!plot_list}
+\label{p:plot.list}
+
+
+Output list of plot templates or plot regions.
+
+\begin{example}
+   pipe plot_list \{r_or_g\}
+\end{example}
+\begin{verbatim}
+where "{r/g}" is:
+  "r"      ! list regions of the form ix;region_name;plot_name;visible;x1;x2;y1;y2
+  "t"      ! list template plots of the form ix;name
+\end{verbatim}
+
+%% pipe plot_template_manage ------------------------------------
+\subsection{pipe plot_template_manage}
+\index{pipe!plot_template_manage}
+\label{p:plot.template.manage}
+
+
+Template plot creation or destruction.
+
+\begin{example}
+   pipe plot_template_manage \{template_location\}^^\{template_name\}^^
+                          \{n_graph\}^^\{graph_names\}
+\end{example}
+\begin{verbatim}
+Where:
+  {template_location} is the location to place or delete a template plot. Use "@Tnnn" syntax for the location.
+  {template_name} is the name of the template plot. If deleting a plot this name is immaterial.
+  {n_graph} is the number of associated graphs. If set to -1 then any existing template plot is deleted.
+  {graph_names} are the names of the graphs.  graph_names should be in the form:
+     graph1_name^^graph2_name^^...^^graphN_name
+  for N=n_graph names
+\end{verbatim}
+
+%% pipe plot_curve_manage ------------------------------------
+\subsection{pipe plot_curve_manage}
+\index{pipe!plot_curve_manage}
+\label{p:plot.curve.manage}
+
+
+Template plot curve creation/destruction
+
+\begin{example}
+   pipe plot_curve_manage \{graph_name\}^^\{curve_index\}^^\{curve_name\}
+\end{example}
+\begin{verbatim}
+If {curve_index} corresponds to an existing curve then this curve is deleted.
+In this case the {curve_name} is ignored and does not have to be present.
+If {curve_index} does not not correspond to an existing curve, {curve_index}
+must be one greater than the number of curves.
+\end{verbatim}
+
+%% pipe plot_graph_manage ------------------------------------
+\subsection{pipe plot_graph_manage}
+\index{pipe!plot_graph_manage}
+\label{p:plot.graph.manage}
+
+
+Template plot graph creation/destruction
+
+\begin{example}
+   pipe plot_graph_manage \{plot_name\}^^\{graph_index\}^^\{graph_name\}
+\end{example}
+\begin{verbatim}
+If {graph_index} corresponds to an existing graph then this graph is deleted.
+In this case the {graph_name} is ignored and does not have to be present.
+If {graph_index} does not not correspond to an existing graph, {graph_index}
+must be one greater than the number of graphs.
+\end{verbatim}
+
+%% pipe plot_line ------------------------------------
+\subsection{pipe plot_line}
+\index{pipe!plot_line}
+\label{p:plot.line}
+
+
+Output points used to construct the "line" associated with a plot curve.
+
+\begin{example}
+   pipe plot_line \{region_name\}.\{graph_name\}.\{curve_name\} \{x_or_y\}
+\end{example}
+\begin{verbatim}
+Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
+component put into the real array buffer.
+Note: The plot must come from a region, and not a template, since no template plots 
+      have associated line data.
+Examples:
+  pipe plot_line r13.g.a   ! String array output.
+  pipe plot_line r13.g.a x ! x-component of line points loaded into the real array buffer.
+  pipe plot_line r13.g.a y ! y-component of line points loaded into the real array buffer.
+\end{verbatim}
+
+%% pipe plot_symbol ------------------------------------
+\subsection{pipe plot_symbol}
+\index{pipe!plot_symbol}
+\label{p:plot.symbol}
+
+
+Output locations to draw symbols for a plot curve.
+
+\begin{example}
+   pipe plot_symbol \{region_name\}.\{graph_name\}.\{curve_name\} \{x_or_y\}
+\end{example}
+\begin{verbatim}
+Optional {x_or_y} may be set to "x" or "y" to get the symbol x or y 
+positions put into the real array buffer.
+Note: The plot must come from a region, and not a template, 
+      since no template plots have associated symbol data.
+Examples:
+  pipe plot_symbol r13.g.a       ! String array output.
+  pipe plot_symbol r13.g.a x     ! x-component of the symbol positions 
+                                     loaded into the real array buffer.
+  pipe plot_symbol r13.g.a y     ! y-component of the symbol positions 
+                                     loaded into the real array buffer.
+\end{verbatim}
+
+%% pipe plot_transfer ------------------------------------
+\subsection{pipe plot_transfer}
+\index{pipe!plot_transfer}
+\label{p:plot.transfer}
+
+
+Output transfer plot parameters from the "from plot" to the "to plot" (or plots).
+
+\begin{example}
+   pipe plot_transfer \{from_plot\} \{to_plot\}
+\end{example}
+\begin{verbatim}
+To avoid confusion, use "@Tnnn" and "@Rnnn" syntax for {from_plot}.
+If {to_plot} is not present and {from_plot} is a template plot, the "to plots" 
+ are the equivalent region plots with the same name. And vice versa 
+ if {from_plot} is a region plot.
+\end{verbatim}
+
+%% pipe plot1 ------------------------------------
+\subsection{pipe plot1}
+\index{pipe!plot1}
+\label{p:plot1}
+
+
+Output info on a given plot.
+
+\begin{example}
+   pipe plot1 \{name\}
+\end{example}
+\begin{verbatim}
+{name} should be the region name if the plot is associated with a region.
+Output syntax is parameter list form. See documentation at the beginning of this file.
+\end{verbatim}
+
+%% pipe ptc_com ------------------------------------
+\subsection{pipe ptc_com}
+\index{pipe!ptc_com}
+\label{p:ptc.com}
+
+
+Output Ptc_com structure components.
+
+\begin{example}
+   pipe ptc_com
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe ring_general ------------------------------------
+\subsection{pipe ring_general}
+\index{pipe!ring_general}
+\label{p:ring.general}
+
+
+Output lattice branch with closed geometry info (emittances, etc.)
+
+\begin{example}
+   pipe ring_general \{ix_uni\}@\{ix_branch\}|\{which\}
+\end{example}
+\begin{verbatim}
+where {which} is one of:
+  model
+  base
+  design
+Example:
+  pipe ring_general 1@0|model
+\end{verbatim}
+
+%% pipe shape_list ------------------------------------
+\subsection{pipe shape_list}
+\index{pipe!shape_list}
+\label{p:shape.list}
+
+
+Output lat_layout or floor_plan shapes list
+
+\begin{example}
+   pipe shape_list \{who\}
+\end{example}
+\begin{verbatim}
+{who} is one of:
+  lat_layout
+  floor_plan
+\end{verbatim}
+
+%% pipe shape_manage ------------------------------------
+\subsection{pipe shape_manage}
+\index{pipe!shape_manage}
+\label{p:shape.manage}
+
+
+Element shape creation or destruction
+
+\begin{example}
+   pipe shape_manage \{who\} \{index\} \{add_or_delete\}
+\end{example}
+\begin{verbatim}
+{who} is one of:
+  lat_layout
+  floor_plan
+{add_or_delete} is one of:
+  add     -- Add a shape at {index}. 
+             Shapes with higher index get moved up one to make room.
+  delete  -- Delete shape at {index}. 
+             Shapes with higher index get moved down one to fill the gap.
+
+Example:
+  pipe shape_manage floor_plan 2 add
+Note: After adding a shape use "pipe shape_set" to set shape parameters.
+This is important since an added shape is in a ill-defined state.
+\end{verbatim}
+
+%% pipe shape_pattern_list ------------------------------------
+\subsection{pipe shape_pattern_list}
+\index{pipe!shape_pattern_list}
+\label{p:shape.pattern.list}
+
+
+Output list of shape patterns or shape pattern points
+
+\begin{example}
+   pipe shape_pattern_list \{ix_pattern\}
+\end{example}
+\begin{verbatim}
+If optional {ix_pattern} index is omitted then list all the patterns.
+If {ix_pattern} is present, list points of given pattern.
+\end{verbatim}
+
+%% pipe shape_pattern_manage ------------------------------------
+\subsection{pipe shape_pattern_manage}
+\index{pipe!shape_pattern_manage}
+\label{p:shape.pattern.manage}
+
+
+Add or remove shape pattern
+
+\begin{example}
+   pipe shape_pattern_manage \{ix_pattern\}^^\{pat_name\}^^\{pat_line_width\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up 
+                                      if adding a pattern and down if deleting.
+  {pat_name}        -- Pattern name.
+  {pat_line_width}  -- Line width. Integer. If set to "delete" then section 
+                                            will be deleted.
+\end{verbatim}
+
+%% pipe shape_pattern_point_manage ------------------------------------
+\subsection{pipe shape_pattern_point_manage}
+\index{pipe!shape_pattern_point_manage}
+\label{p:shape.pattern.point.manage}
+
+
+Add or remove shape pattern point
+
+\begin{example}
+   pipe shape_pattern_point_manage \{ix_pattern\}^^\{ix_point\}^^\{s\}^^\{x\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_pattern}      -- Pattern index.
+  {ix_point}        -- Point index. Points of higher indexes will be moved up
+                                    if adding a point and down if deleting.
+  {s}, {x}          -- Point location. If {s} is "delete" then delete the point.
+\end{verbatim}
+
+%% pipe shape_set ------------------------------------
+\subsection{pipe shape_set}
+\index{pipe!shape_set}
+\label{p:shape.set}
+
+
+Set lat_layout or floor_plan shape parameters.
+
+\begin{example}
+   pipe shape_set \{who\}^^\{shape_index\}^^\{ele_name\}^^\{shape\}^^\{color\}^^
+                    \{shape_size\}^^\{type_label\}^^\{shape_draw\}^^
+                    \{multi_shape\}^^\{line_width\}
+\end{example}
+\begin{verbatim}
+{who} is one of:
+  lat_layout
+  floor_plan
+\end{verbatim}
+
+%% pipe show ------------------------------------
+\subsection{pipe show}
+\index{pipe!show}
+\label{p:show}
+
+
+Output the output from a show command.
+
+\begin{example}
+   pipe show \{line\}
+\end{example}
+\begin{verbatim}
+{line} is the string to pass through to the show command.
+Example:
+  pipe show lattice -pipe
+\end{verbatim}
+
+%% pipe space_charge_com ------------------------------------
+\subsection{pipe space_charge_com}
+\index{pipe!space_charge_com}
+\label{p:space.charge.com}
+
+
+Output space_charge_com structure parameters.
+
+\begin{example}
+   pipe space_charge_com
+\end{example}
+\begin{verbatim}
+Output syntax is parameter list form. See documentation at the beginning of this file.
+\end{verbatim}
+
+%% pipe species_to_int ------------------------------------
+\subsection{pipe species_to_int}
+\index{pipe!species_to_int}
+\label{p:species.to.int}
+
+
+Convert species name to corresponding integer
+
+\begin{example}
+   pipe species_to_int \{species_str\}
+\end{example}
+\begin{verbatim}
+Example:
+  pipe species_to_int CO2++
+\end{verbatim}
+
+%% pipe species_to_str ------------------------------------
+\subsection{pipe species_to_str}
+\index{pipe!species_to_str}
+\label{p:species.to.str}
+
+
+Convert species integer id to corresponding
+
+\begin{example}
+   pipe species_to_str \{species_int\}
+\end{example}
+\begin{verbatim}
+Example:
+  pipe species_to_str -1     ! Returns 'Electron'
+\end{verbatim}
+
+%% pipe spin_invariant ------------------------------------
+\subsection{pipe spin_invariant}
+\index{pipe!spin_invariant}
+\label{p:spin.invariant}
+
+
+Output closed orbit spin axes n0, l0, or m0 at the ends of all lattice elements in a branch.
+n0, l0, and m0 are solutions of the T-BMT equation.
+n0 is periodic while l0 and m0 are not. At the beginning of the branch, the orientation of the 
+l0 or m0 axes in the plane perpendicular to the n0 axis is chosen a bit arbitrarily.
+See the Bmad manual for more details.
+
+\begin{example}
+   pipe spin_invariant \{flags\} \{who\} \{ix_uni\}@\{ix_branch\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {flags} are optional switches:
+      -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+  {who} is one of: l0, n0, or m0
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a branch index. Defaults to s%global%default_branch.
+  {which} is one of:
+    model
+    base
+    design
+
+Example:
+  pipe spin_invariant 1@0|model
+
+Note: This command is under development. If you want to use please contact David Sagan.
+\end{verbatim}
+
+%% pipe spin_polarization ------------------------------------
+\subsection{pipe spin_polarization}
+\index{pipe!spin_polarization}
+\label{p:spin.polarization}
+
+
+Output spin polarization information
+
+\begin{example}
+   pipe spin_polarization \{ix_uni\}@\{ix_branch\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a branch index. Defaults to s%global%default_branch.
+  {which} is one of:
+    model
+    base
+    design
+
+Example:
+  pipe spin_polarization 1@0|model
+
+Note: This command is under development. If you want to use please contact David Sagan.
+\end{verbatim}
+
+%% pipe spin_resonance ------------------------------------
+\subsection{pipe spin_resonance}
+\index{pipe!spin_resonance}
+\label{p:spin.resonance}
+
+
+Output spin resonance information
+
+\begin{example}
+   pipe spin_resonance \{ix_uni\}@\{ix_branch\}|\{which\} \{ref_ele\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. Defaults to s%global%default_branch.
+  {which} is one of: "model", "base" or "design"
+  {ref_ele} is an element name or index.
+This will return a string_list with the following fields:
+  spin_tune                   -- Spin tune
+  dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference Q_spin-Q_mode for modes X = a, b, and c.
+  xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance strengths for X = a, b, and c modes.
+\end{verbatim}
+
+%% pipe super_universe ------------------------------------
+\subsection{pipe super_universe}
+\index{pipe!super_universe}
+\label{p:super.universe}
+
+
+Output super_Universe parameters.
+
+\begin{example}
+   pipe super_universe
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe taylor_map ------------------------------------
+\subsection{pipe taylor_map}
+\index{pipe!taylor_map}
+\label{p:taylor.map}
+
+
+Output Taylor map between two points.
+
+\begin{example}
+   pipe taylor_map \{ele1_id\} \{ele2_id\} \{order\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele1_id} is the start element.
+  {ele2_id} is the end element.
+  {order} is the map order. Default is order set in the lattice file. {order} cannot be larger than 
+        what is set by the lattice file. 
+If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
+Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+Example:
+  pipe taylor_map 2@1>>q01w|design q02w  2
+\end{verbatim}
+
+%% pipe twiss_at_s ------------------------------------
+\subsection{pipe twiss_at_s}
+\index{pipe!twiss_at_s}
+\label{p:twiss.at.s}
+
+
+Output twiss parameters at given s position.
+
+\begin{example}
+   pipe twiss_at_s \{ix_uni\}@\{ele\}->\{s_offset\}|\{which\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ele} is an element name or index. Default at the Beginning element at start of branch 0.
+  {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
+     If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
+  {which} is one of: "model", "base" or "design".
+\end{verbatim}
+
+%% pipe universe ------------------------------------
+\subsection{pipe universe}
+\index{pipe!universe}
+\label{p:universe}
+
+
+Output universe info.
+
+\begin{example}
+   pipe universe \{ix_uni\}
+\end{example}
+\begin{verbatim}
+Use "pipe global" to get the number of universes.
+\end{verbatim}
+
+%% pipe var ------------------------------------
+\subsection{pipe var}
+\index{pipe!var}
+\label{p:var}
+
+
+Output parameters of a given variable.
+
+\begin{example}
+   pipe var \{var\} \{slaves\}
+\end{example}
+\begin{verbatim}
+Note: use "pipe var_general" to get a list of variables.
+\end{verbatim}
+
+%% pipe var_create ------------------------------------
+\subsection{pipe var_create}
+\index{pipe!var_create}
+\label{p:var.create}
+
+
+Create a single variable
+
+\begin{example}
+   pipe var_create \{var_name\}^^\{ele_name\}^^\{attribute\}^^\{universes\}^^
+                     \{weight\}^^\{step\}^^\{low_lim\}^^\{high_lim\}^^\{merit_type\}^^
+                     \{good_user\}^^\{key_bound\}^^\{key_delta\}
+\end{example}
+\begin{verbatim}
+{var_name} is something like "kick[5]".
+Before using var_create, setup the appropriate v1_var array using 
+the "pipe var_v1_create" command.
+\end{verbatim}
+
+%% pipe var_general ------------------------------------
+\subsection{pipe var_general}
+\index{pipe!var_general}
+\label{p:var.general}
+
+
+Output list of all variable v1 arrays
+
+\begin{example}
+   pipe var_general
+\end{example}
+\begin{verbatim}
+Output syntax:
+  {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
+\end{verbatim}
+
+%% pipe var_v_array ------------------------------------
+\subsection{pipe var_v_array}
+\index{pipe!var_v_array}
+\label{p:var.v.array}
+
+
+Output list of variables for a given data_v1.
+
+\begin{example}
+   pipe var_v_array \{v1_var\}
+\end{example}
+\begin{verbatim}
+Example:
+  pipe var_v_array quad_k1
+\end{verbatim}
+
+%% pipe var_v1_array ------------------------------------
+\subsection{pipe var_v1_array}
+\index{pipe!var_v1_array}
+\label{p:var.v1.array}
+
+
+Output list of variables in a given variable v1 array
+
+\begin{example}
+   pipe var_v1_array \{v1_var\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe var_v1_create ------------------------------------
+\subsection{pipe var_v1_create}
+\index{pipe!var_v1_create}
+\label{p:var.v1.create}
+
+
+Create a v1 variable structure along with associated var array.
+
+\begin{example}
+   pipe var_v1_create \{v1_name\} \{n_var_min\} \{n_var_max\}
+\end{example}
+\begin{verbatim}
+{n_var_min} and {n_var_max} are the lower and upper bounds of the var
+Example:
+  pipe var_v1_create quad_k1 0 45
+This example creates a v1 var structure called "quad_k1" with an associated
+variable array that has the range [0, 45].
+
+Use the "set variable" command to set a created variable parameters.
+In particular, to slave a lattice parameter to a variable use the command:
+  set {v1_name}|ele_name = {lat_param}
+where {lat_param} is of the form {ix_uni}@{ele_name_or_location}{param_name}]
+Examples:
+  set quad_k1[2]|ele_name = 2@q01w[k1]
+  set quad_k1[2]|ele_name = 2@0>>10[k1]
+Note: When setting multiple variable parameters, 
+      temporarily toggle s%global%lattice_calc_on to False
+  ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the 
+partially created variable and generating unwanted error messages.
+\end{verbatim}
+
+%% pipe var_v1_destroy ------------------------------------
+\subsection{pipe var_v1_destroy}
+\index{pipe!var_v1_destroy}
+\label{p:var.v1.destroy}
+
+
+Destroy a v1 var structure along with associated var sub-array.
+
+\begin{example}
+   pipe var_v1_destroy \{v1_datum\}
+\end{example}
+\begin{verbatim}
+
+\end{verbatim}
+
+%% pipe wave ------------------------------------
+\subsection{pipe wave}
+\index{pipe!wave}
+\label{p:wave}
+
+
+Output Wave analysis info.
+
+\begin{example}
+   pipe wave \{who\}
+\end{example}
+\begin{verbatim}
+Where {who} is one of:
+  params
+  loc_header
+  locations
+  plot1, plot2, plot3
+\end{verbatim}

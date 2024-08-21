@@ -1,0 +1,72 @@
+!&building_wall_section
+! {name = <string>}
+! {constraint = <type>}
+! point(1) = <z1>, <x1> 
+! point(2) = <z2>, <x2>, {<r2>} 
+! point(3) = <z3>, <x3>, {<r3>} 
+! point(N) = <zN>, <xN>, {<rN>}
+!/
+
+&building_wall_section
+ name = "overhead_view_floor_left"
+ constraint = "left_side"
+ point(1) = 0, 1.3716 
+ point(2) = 5, 1.3716 
+ point(3) = 10, 1.3716 
+ point(4) = 15, 1.3716
+ point(5) = 20, 1.3716
+ point(6) = 25, 1.3716
+ point(7) = 30, 1.3716 
+ point(8) = 35, 1.3716 
+ point(9) = 40, 1.3716 
+ point(10) = 45, 1.3716
+ point(11) = 50, 1.3716
+ point(12) = 55, 1.3716
+ point(13) = 60, 1.3716 
+ point(14) = 65, 1.3716
+ point(15) = 70, 1.3716
+ point(16) = 75, 1.3716
+ point(17) = 80, 1.3716 
+ point(18) = 85, 1.3716 
+ point(19) = 90, 1.3716 
+ point(20) = 95, 1.3716
+/
+
+&building_wall_section
+ name = "overhead_view_floor_right"
+ constraint = "right_side"
+ point(1) = 0, -1.5665 
+ point(2) = 5, -1.5665 
+ point(3) = 10, -1.5665 
+ point(4) = 15, -1.5665
+ point(5) = 20, -1.5665
+ point(6) = 25, -1.5665
+ point(7) = 30, -1.5665 
+ point(8) = 35, -1.5665 
+ point(9) = 40, -1.5665 
+ point(10) = 45, -1.5665
+ point(11) = 50, -1.5665
+ point(12) = 55, -1.5665
+ point(13) = 60, -1.5665 
+ point(14) = 65, -1.5665
+ point(15) = 70, -1.5665
+ point(16) = 75, -1.5665
+ point(17) = 80, -1.5665 
+ point(18) = 85, -1.5665 
+ point(19) = 90, -1.5665 
+ point(20) = 95, -1.5665
+ point(21) = 95, -2.6845
+ point(22) = 0, -2.6845
+/
+
+!&building_wall_section
+! name = "overhead_view_floor_right_wall"
+! constraint = "right_side"
+! point(1) = 0, -2.6845 
+! point(2) = 5, -2.6845 
+! point(3) = 10, -2.6845 
+! point(4) = 15, -2.6845
+! point(5) = 20, -2.6845
+! point(6) = 25, -2.6845
+! point(7) = 95, -2.6845
+!/

@@ -1,0 +1,10 @@
+
+
+! Perfect first pass orbit in full model  
+!FB.QUA31[BL_HKICK] =  -2.62391839575838E-06
+!FB.QUA29[BL_HKICK] =   8.53357626354656E-06
+
+
+
+
+call, file = fb_demerge/settings.bmad

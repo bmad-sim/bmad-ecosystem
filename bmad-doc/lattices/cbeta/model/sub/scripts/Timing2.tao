@@ -1,0 +1,9 @@
+plotoff
+vv
+vd
+use dat timing.return[2]
+use var timing[2]
+olmdif
+run
+sho var -bmad -good
+ploton

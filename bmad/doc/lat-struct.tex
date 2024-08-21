@@ -330,7 +330,7 @@ The value of the \vn{ele%lord_status} component can be one of:
   %
   \item[super_lord\$]\Newline 
 A \vn{super_lord} element is created when elements are superimposed on top of other elements
-(\sref{s:super}). \vn{super_lords} (along with \vn{multipass_lords}), are called \vn{major} lords
+(\sref{c:super}). \vn{super_lords} (along with \vn{multipass_lords}), are called \vn{major} lords
 since the attribute values of a \vn{super_slave} are entirely determined by the attribute values of
 the \vn{super_lord}(s) of the slave. 
   %
@@ -339,7 +339,7 @@ A \vn{girder_lord} element is a \vn{girder} element (\sref{s:girder}). That is, 
 have \vn{ele%key} = \vn{girder\$}.
   %
   \item[multipass_lord\$]\Newline
-\vn{multipass_lord} elements are created when multipass lines are present (\sref{s:multipass}).
+\vn{multipass_lord} elements are created when multipass lines are present (\sref{c:multipass}).
 \vn{multipass_lords} (along with \vn{super_lords}) are called \vn{major} lords since most of the
 attribute values of a \vn{multipass_slave} are entirely determined by the attribute values of the
 \vn{multipass_lord} of the slave. The few exceptions are parameters like \vn{phi0_multipass} which can
@@ -373,14 +373,14 @@ The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
   \item[multipass_slave\$]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
-(\sref{s:multipass}).
+(\sref{c:multipass}).
   \item[slice_slave\$]\Newline
 A \vn{slice_slave} element represents a longitudinal slice of another element.
 Slice elements are not part of the lattice but rather are created on-the-fly
 when, for example, a program needs to track part way through an element.
   \item[super_slave\$]\Newline 
 A \vn{super_slave} element is an element in the tracking part of the branch that 
-has one or more \vn{super_lord} lords (\sref{s:super}).
+has one or more \vn{super_lord} lords (\sref{c:super}).
   \item[minor_slave\$]\Newline
 A \vn{minor_slave} element is an element that is not a \vn{slice_slave} and does not have a
 \vn{major} lord. Major lords are \vn{super_lord}s and \vn{multipass_lord}s. A \vn{minor_slave}
@@ -467,7 +467,7 @@ The \vn{multipass_slave} elements are also \vn{super_lord} elements and they wil
 For lord/slave pairs, Table~\ref{f:lord.slave.b} lists the valid combinations of \vn{%lord_status}
 values in the lord element and \vn{%slave_status} values in the slave element. Thus, for example, a
 \vn{super_slave} may only be controlled by a \vn{super_lord}. In the example in
-Section~\sref{s:multipass}, element \vn{A} would be a \vn{multipass_lord} and \vn{A\B1} and
+Section~\sref{c:multipass}, element \vn{A} would be a \vn{multipass_lord} and \vn{A\B1} and
 \vn{A\B2} would be \vn{multipass_slave}s. When superposition is combined with multipass, the
 elements in the tracking part of the branch will be \vn{super_slave}s.  These elements will be
 controlled by \vn{super_lord}s which will also be \vn{multipass_slave}s and these
@@ -647,8 +647,8 @@ This refers to intra-element dependent attribute bookkeeping (\sref{s:depend}).
   \item[Control bookkeeping] \Newline
 This refers to Lord/Slave bookkeeping for \vn{overlay}
 (\sref{s:overlay}) and \vn{group} (\sref{s:group})elements, and for
-\vn{superposition} (\sref{s:super}) and \vn{multipass}
-(\sref{s:multipass}) lords.
+\vn{superposition} (\sref{c:super}) and \vn{multipass}
+(\sref{c:multipass}) lords.
   \item[Floor Position bookkeeping]
 This refers to bookkeeping to keep track of an elements global ``floor'' position
 stored in the \vn{ele%floor} structure.

@@ -4,7 +4,7 @@
 \index{branch}
 This chapter describes how to define the ordered list of elements that make up a lattice branch
 (\sref{s:branch.def}).  In a lattice, branches may be connected together using \vn{fork} or
-\vn{photon fork} elements (\vn{s:fork}), or by using \vn{multipass} (\sref{s:multipass}).
+\vn{photon fork} elements (\vn{s:fork}), or by using \vn{multipass} (\sref{c:multipass}).
 
 %-----------------------------------------------------------------------------
 \section{Branch Construction Overview}
@@ -137,7 +137,7 @@ Lines can be defined in any order in the lattice file so a subline does not have
 line that references it. Additionally, element definitions can come before or after any lines that
 reference them.
 
-A line can have the \vn{multipass} attribute. This is covered in \sref{s:multipass}.
+A line can have the \vn{multipass} attribute. This is covered in \sref{c:multipass}.
 
 %-----------------------------------------------------------------------------
 \section{Line Slices}
@@ -214,7 +214,7 @@ direction to the local $s$-axis (\sref{s:ref.construct}). This means that there 
 complicates matters, it is generally only useful to employ element reversal in cases where there are
 multiple intersecting lines with particle beams going in opposite directions through some elements
 (for example, colliding beam interaction regions). In this case, element reversal is typically used
-with \vn{multipass} (\sref{s:multipass}) and the lattice will contain a branch of unreversed
+with \vn{multipass} (\sref{c:multipass}) and the lattice will contain a branch of unreversed
 elements for simulating particles going in one direction along with a branch of reversed elements to
 simulate particle going in the other direction.
 
@@ -303,7 +303,7 @@ lattice is selected by the \vn{use} statement. The general syntax is
   use, line1, line2 ...
 \end{example}
 For example, \vn{line1} may correspond to one ring and \vn{line2} may correspond to the other ring
-of a dual ring colliding beam machine. In this case, \vn{multipass} (\sref{s:multipass}) will be
+of a dual ring colliding beam machine. In this case, \vn{multipass} (\sref{c:multipass}) will be
 needed to describe the common elements of the two rings. Example
 \begin{example}
   use, e_ring, p_ring

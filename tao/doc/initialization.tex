@@ -524,11 +524,15 @@ namelist. Example:
 \end{example}
 There may be multiple \vn{symbolic_number} namelists and each namelist defines one and only one
 symbolic number. In this example, there are two namelists defining two numbers \vn{aaa} and
-\vn{my_const}. Notice that the value of a symbolic number may be an expression. This is unlike any
-other namelist in \tao where expressions will generate an error. Expressions for symbolic numbers
-are immediately evaluated.
+\vn{my_const}. 
 
-Once defined, symbolic constants may be used in expressions. For example:
+The parsing of the \vn{symbolic_number} namelist is handled differently from other namelists and
+here the value of a symbolic number may be an expression. This is unlike any other namelist in \tao
+where expressions will generate an error. Expressions for symbolic numbers are immediately
+evaluated. Note: Division can be used in expressions except that a division slash ``\vn{/}'' may
+not be at the end of a line when an expression encompasses more than one line.
+
+Once defined, symbolic constants may be used in expressions embedded in strings. For example:
 \begin{example}
   &tao_d1_data
     ...
@@ -642,7 +646,7 @@ type tao_global_struct:
   optimizer_allow_user_abort = T   ! See below.
   optimizer_var_limit_warn = T     ! Warn when vars reach a limit when optimizing?
   plot_on = T                      ! Do plotting?
-  quiet = "off"                    ! Print to the terminal when using a command file?
+  quiet = "off"                    ! Suppress informational output to terminal.
   rf_on = F                        ! RF cavities on?
   svd_retreat_on_merit_increase = T    
   single_step = F                  ! Single step through a command file?
@@ -748,9 +752,10 @@ the optimizer will not do any checking.
   \item{\vn{global%quiet}} \Newline
 For use with command files. May be set to one of:
 \begin{example}
-  off     ! Normal verbose output
-  all     ! Suppress command echo and other output.
-  output  ! Suppress output except for command echo.
+  off       ! Normal verbose output
+  all       ! Suppress command echo and other output.
+  ALL       ! Suppress command echo and other output.
+  warnings  ! Suppress warnings.
 \end{example}
 If set to \vn{all}, output to the terminal during command file running will be suppressed (except
 for warning and error messages) until the command file (or files) returns to the command line level

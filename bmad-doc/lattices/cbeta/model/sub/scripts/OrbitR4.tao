@@ -1,0 +1,19 @@
+plotoff
+vv
+vd
+use dat rxorbit.1
+use dat rxorbit.2
+use dat rxorbit.3
+use dat rxorbit.4
+
+use dat pathlength.1
+use dat pathlength.2
+use dat pathlength.3
+
+!use var fb.correctors.x[1:18:2]
+!use var fb.correctors.x[1:-1:2]
+!use var fb.offsets.x[2:-2:2]
+use var fb.offsets.x[2:32:2]
+osvd
+ploton
+ 

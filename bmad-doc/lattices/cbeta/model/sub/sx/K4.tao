@@ -1,0 +1,2 @@
+set var *|key_bound = F
+set var parallel4|key_bound=T

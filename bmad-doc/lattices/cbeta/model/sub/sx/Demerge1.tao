@@ -1,0 +1,8 @@
+vv
+vd
+call Septa.tao
+use dat demerge.1
+use var p1
+olmdif
+run
+sho var -good -bmad

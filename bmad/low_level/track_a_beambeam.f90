@@ -39,9 +39,9 @@ type (strong_beam_struct) sbb
 
 real(rp), optional :: mat6(6,6)
 real(rp) sigma(2), dsigma_ds(2), ff, ds_slice
-real(rp) xmat(6,6), del_s, bbi_const, dx, dy, dcoef, z, d, coef, s0
+real(rp) xmat(6,6), del_s, bbi_const, dx, dy, dcoef, z, d, coef, ds
 real(rp) om(3), quat(0:3), beta_strong, s_body_save, p_rel, nk(2), dnk(2,2)
-real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz
+real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz, s0
 real(rp), allocatable :: z_slice(:)
 real(rp), target :: slice_center(3), s_body, s_lab
 real(rp), pointer :: center_ptr(:), s_body_ptr, s_lab_ptr ! To get around ifort bug.
@@ -78,8 +78,6 @@ if (ele%value(species_strong$) /= real_garbage$ .and. ele%value(e_tot_strong$) >
 else
   beta_strong = ele%value(p0c$) / ele%value(E_tot$)
 endif
-s0 = 0.1_rp * ele%value(sig_z$) + &
-        abs(particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$)) * c_light * beta_strong)
 
 call offset_particle (ele, set$, orbit, s_pos = s_lab, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
 
@@ -95,7 +93,9 @@ do i = 1, n_slice
   final_calc = .false.; make_mat = .false.
   s_body_save = s_body
   orb_save = orbit
-  s_lab = super_zbrent(at_slice_func, -abs(z)-s0, abs(z)+s0, 1e-12_rp, 1e-12_rp, status)
+  s0 = 0.5_rp * (orbit%vec(5) + ele%value(z_offset_tot$) - ele%value(z_crossing$) + slice_center(3))
+  ds = abs(s_body - 0.5_rp * slice_center(3)) + 0.5_rp * abs(orbit%vec(5) - ele%value(z_crossing$) - ele%value(z_offset$))
+  s_lab = super_zbrent(at_slice_func, s0-ds, s0+ds, 1e-12_rp, 1e-12_rp, status)
 
   final_calc = .true.; make_mat = logic_option(.false., make_matrix)
   s_body = s_body_save
@@ -181,6 +181,14 @@ if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, 
 !-------------------------------------------------------
 contains
 
+!+
+! Start in body frame
+! Convert to lab frame
+! Move to s_lab_target
+! Convert back to body frame
+! Return ds_slice which is the distance between the particle and the strong slice.
+!-
+
 function at_slice_func(s_lab_target, status) result (ds_slice)
 
 real(rp), intent(in) :: s_lab_target
@@ -188,7 +196,7 @@ real(rp) ds_slice
 real(rp) s_body_target, s_lab_slice, del_s, s_lab, s_beam_center_strong, s_weak
 integer status
 
-!
+! 
 
 call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = final_calc, mat6 = mat6, make_matrix = make_mat)
 del_s = s_lab_target - s_lab

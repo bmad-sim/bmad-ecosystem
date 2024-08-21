@@ -583,18 +583,21 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       match_std   = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == standard$)
       match_orbit = (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$)
 
-      if ((match_std .or. match_twiss) .and. (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0)) then
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                      'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
-        err_flag = .true.
-      endif
+      if (.not. (match_std .and. ele%value(beta_a1$) == 0 .and. ele%value(beta_b1$) == 0 .and. &
+                                 ele%value(beta_a0$) == 0 .and. ele%value(beta_b0$) == 0)) then
+        if ((match_std .or. match_twiss) .and. (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0)) then
+          call out_io (s_fatal$, r_name, &
+                        'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                        'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
+          err_flag = .true.
+        endif
 
-      if (match_std .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                      'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
-        err_flag = .true.
+        if (match_std .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
+          call out_io (s_fatal$, r_name, &
+                        'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                        'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
+          err_flag = .true.
+        endif
       endif
 
       if ((match_twiss .or. match_orbit) .and. ele%value(delta_time$) /= 0) then

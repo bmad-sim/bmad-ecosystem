@@ -1,0 +1,50 @@
+
+
+
+!     _                                  
+!    | |        o                        
+!    | | _  _      _   __ _|_  __   ,_   
+!  _ |/ / |/ |  | |/  /    |  /  \_/  |  
+!  \_/\/  |  |_/|/|__/\___/|_/\__/    |_/
+!              /|                        
+!              \|       
+
+
+
+
+!============ 
+!Gun
+!============
+
+call, file = a1/gun/in.gun.bmad
+
+!============ 
+!A1
+!============
+
+call, file = a1/a1.bmad
+
+!================
+!IN.CRMOD section
+!================
+
+CALL, FILE = a2/crmod/in.crmod.bmad
+
+!============ 
+! Injector
+!============
+IN.Mar.BEG: MARKER
+IN.Mar.END: MARKER
+
+dummy_drift: drift, L = 1
+
+IN: LINE = (IN.Mar.BEG, 
+	    GA1GHV01,
+        IN.A1,
+        IN.CRMOD,
+        IN.A3,
+        !dummy_drift, 
+	IN.Mar.END)
+
+
+
