@@ -322,6 +322,8 @@ type tao_plot_region_struct
   logical :: setup_done = .false.                    ! Used for plot bookkeeping.
 end type
 
+integer, parameter :: n_curve_pts_init$ = 4001
+
 ! The tao_plot_page_struct defines the whole plotting window. 
 ! Note that the qp_com structure of quick_plot also is used to hold 
 ! plot page info.
@@ -347,11 +349,11 @@ type tao_plot_page_struct
   real(rp) :: curve_legend_line_len  = 30   ! Points
   real(rp) :: curve_legend_text_offset = 6  ! Points
   real(rp) :: floor_plan_shape_scale = 1.0
-  real(rp) :: floor_plan_text_scale  = 1.0  ! Scale used = floor_plan_text_scale * legend_text_scale
+  real(rp) :: floor_plan_text_scale  = 1.0     ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0
-  real(rp) :: lat_layout_text_scale  = 1.0  ! Scale used = lat_layout_text_scale * legend_text_scale
-  integer :: n_curve_pts = 4001             ! Default number of points for plotting a smooth curve.
-  integer :: id_window = -1                 ! X window id number.
+  real(rp) :: lat_layout_text_scale  = 1.0     ! Scale used = lat_layout_text_scale * legend_text_scale
+  integer :: n_curve_pts = n_curve_pts_init$   ! Default number of points for plotting a smooth curve.
+  integer :: id_window = -1                    ! X window id number.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
   logical :: draw_graph_title_suffix = .true.  ! Draw the graph title suffix?
 end type
