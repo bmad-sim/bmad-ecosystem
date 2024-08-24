@@ -862,23 +862,23 @@ mat6_calc_method                 & tilt [rad]                       & x_pitch_to
  
  \begin{tabular}{llll} \toprule
 alias                            & c22_mat1                         & l [m]                            & spin_tracking_method             \\
-alpha_a0                         & create_jumbo_slave               & mat6_calc_method                 & superimpose                      \\
-alpha_a1                         & delta_ref_time [sec]             & matrix                           & tracking_method                  \\
-alpha_b0                         & delta_time [sec]                 & mode_flip0                       & type                             \\
-alpha_b1                         & descrip                          & mode_flip1                       & wrap_superimpose                 \\
-aperture [m]                     & dphi_a [rad]                     & offset [m]                       & x0 [m]                           \\
-aperture_at                      & dphi_b [rad]                     & offset_moves_aperture            & x1 [m]                           \\
-aperture_type                    & e_tot [eV]                       & p0c [eV]                         & x1_limit [m]                     \\
-beta_a0 [m]                      & ele_origin                       & ptc_integration_type             & x2_limit [m]                     \\
-beta_a1 [m]                      & eta_x0 [m]                       & px0                              & x_limit [m]                      \\
-beta_b0 [m]                      & eta_x1 [m]                       & px1                              & y0 [m]                           \\
-beta_b1 [m]                      & eta_y0 [m]                       & py0                              & y1 [m]                           \\
-c11_mat0                         & eta_y1 [m]                       & py1                              & y1_limit [m]                     \\
-c11_mat1                         & etap_x0                          & pz0                              & y2_limit [m]                     \\
-c12_mat0 [m]                     & etap_x1                          & pz1                              & y_limit [m]                      \\
-c12_mat1 [m]                     & etap_y0                          & recalc                           & z0 [m]                           \\
-c21_mat0 [1/m]                   & etap_y1                          & ref_origin                       & z1 [m]                           \\
-c21_mat1 [1/m]                   & is_on                            & ref_time_start [sec]             &                                  \\
+alpha_a0                         & create_jumbo_slave               & mat6_calc_method                 & spin_tracking_model              \\
+alpha_a1                         & delta_ref_time [sec]             & matrix                           & superimpose                      \\
+alpha_b0                         & delta_time [sec]                 & mode_flip0                       & tracking_method                  \\
+alpha_b1                         & descrip                          & mode_flip1                       & type                             \\
+aperture [m]                     & dphi_a [rad]                     & offset [m]                       & wrap_superimpose                 \\
+aperture_at                      & dphi_b [rad]                     & offset_moves_aperture            & x0 [m]                           \\
+aperture_type                    & e_tot [eV]                       & p0c [eV]                         & x1 [m]                           \\
+beta_a0 [m]                      & ele_origin                       & ptc_integration_type             & x1_limit [m]                     \\
+beta_a1 [m]                      & eta_x0 [m]                       & px0                              & x2_limit [m]                     \\
+beta_b0 [m]                      & eta_x1 [m]                       & px1                              & x_limit [m]                      \\
+beta_b1 [m]                      & eta_y0 [m]                       & py0                              & y0 [m]                           \\
+c11_mat0                         & eta_y1 [m]                       & py1                              & y1 [m]                           \\
+c11_mat1                         & etap_x0                          & pz0                              & y1_limit [m]                     \\
+c12_mat0 [m]                     & etap_x1                          & pz1                              & y2_limit [m]                     \\
+c12_mat1 [m]                     & etap_y0                          & recalc                           & y_limit [m]                      \\
+c21_mat0 [1/m]                   & etap_y1                          & ref_origin                       & z0 [m]                           \\
+c21_mat1 [1/m]                   & is_on                            & ref_time_start [sec]             & z1 [m]                           \\
 c22_mat0                         & kick0                            & reference                        &                                  \\
  \bottomrule
  \end{tabular}
