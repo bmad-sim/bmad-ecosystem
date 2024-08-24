@@ -2131,6 +2131,10 @@ case ('SPIN_TRACKING_METHOD')
   endif
   ele%spin_tracking_method = switch
 
+case ('SPIN_TRACKING_MODEL')
+  call get_switch (attrib_word, spin_tracking_model_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(spin_tracking_model$) = ix
+
 case ('TAYLOR_MAP_INCLUDES_OFFSETS')
   call parser_get_logical (attrib_word, ele%taylor_map_includes_offsets, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
