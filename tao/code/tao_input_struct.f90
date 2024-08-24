@@ -205,10 +205,10 @@ type tao_plot_page_input
   real(rp) :: floor_plan_text_scale  = 1.0  ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0
   real(rp) :: lat_layout_text_scale  = 1.0  ! Scale used = lat_layout_text_scale * legend_text_scale
-  real(rp) :: curve_legend_line_len  = 30   ! Points
-  real(rp) :: curve_legend_text_offset = 6 ! Points
-  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
-  type (qp_rect_struct) :: border           ! Border around plots edge of page.
+  real(rp) :: curve_legend_line_len  = 30      ! Points
+  real(rp) :: curve_legend_text_offset = 6     ! Points
+  integer :: n_curve_pts = n_curve_pts_init$   ! Number of points for plotting a smooth curve
+  type (qp_rect_struct) :: border              ! Border around plots edge of page.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
   logical :: draw_graph_title_suffix = .true.
 end type
@@ -226,10 +226,10 @@ type tao_plot_page_test_input
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: floor_plan_shape_scale = 1.0
   real(rp) :: lat_layout_shape_scale = 1.0
-  real(rp) :: curve_legend_line_len  = 30   ! Points
-  real(rp) :: curve_legend_text_offset = 6 ! Points
-  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
-  type (qp_rect_struct) :: border           ! Border around plots edge of page.
+  real(rp) :: curve_legend_line_len  = 30      ! Points
+  real(rp) :: curve_legend_text_offset = 6     ! Points
+  integer :: n_curve_pts = n_curve_pts_init$   ! Number of points for plotting a smooth curve
+  type (qp_rect_struct) :: border              ! Border around plots edge of page.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
   logical :: draw_graph_title_suffix = .true.
 end type
