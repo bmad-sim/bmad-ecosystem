@@ -1291,6 +1291,7 @@ call init_attribute_name1 (match$, c12_mat1$,                       'C12_MAT1')
 call init_attribute_name1 (match$, c21_mat1$,                       'C21_MAT1')
 call init_attribute_name1 (match$, c22_mat1$,                       'C22_MAT1')
 call init_attribute_name1 (match$, mode_flip1$,                     'MODE_FLIP1')
+call init_attribute_name1 (match$, spin_tracking_model$,            'SPIN_TRACKING_MODEL')
 
 call init_attribute_name1 (pickup$, num_steps$,                     'NUM_STEPS')
 call init_attribute_name1 (pickup$, ds_step$,                       'DS_STEP')
@@ -1945,7 +1946,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
       'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', &
-      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT')
+      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT', 'SPIN_TRACKING_MODEL')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -2494,6 +2495,12 @@ case ('SLAVE_STATUS')
   
 case ('SPACE_CHARGE_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, space_charge_method_name, lbound(space_charge_method_name, 1), name_list)
+  if (present(is_default)) then
+    is_default = (ix_attrib_val == off$)
+  endif
+
+case ('SPIN_TRACKING_MODEL')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, spin_tracking_model_name, lbound(spin_tracking_model_name, 1), name_list)
   if (present(is_default)) then
     is_default = (ix_attrib_val == off$)
   endif

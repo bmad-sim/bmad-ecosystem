@@ -695,7 +695,7 @@ has four possible settings:
   exit_end      ! The exit point is the fiducial point.
 \end{example}
 With \vn{fiducial_pt} set to \vn{none} (the default). The bend shape is not held constant. With the
-other three settings, the bend shape will be help constant as discussed in \sref{s:bend.fiducial}.
+other three settings, the bend shape will be held constant as discussed in \sref{s:bend.fiducial}.
 With \vn{fiducial_pt} set to \vn{entrance_end}, the reference trajectory at the entrance end is held
 fixed in both position and orientation with respect to the bend face and \vn{g}, \vn{l} and \vn{e2},
 along with the other depdendent parameters, are adjusted to both give the desired change in what was
@@ -752,7 +752,7 @@ The normalized and unnormalized (\sref{s:field.master}) sextupole strength. See 
 For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord length and not the arc length as
 it is for an \vn{sbend}.  After reading in a lattice, \bmad will internally convert all \vn{rbend}s
 into \vn{sbend}s, and the \vn{l_chord} attribute of the created \vn{sbend} will be set to the input
-\vn{l}. The \vn{l} of the the created \vn{sbend} will be set to the true path length (see
+\vn{l}. The \vn{l} of the created \vn{sbend} will be set to the true path length (see
 above). Alternatively for an \vn{rbend}, instead of setting \vn{l}, the \vn{l_arc} attribute can be
 used to set the true arc length. 
 
@@ -3455,7 +3455,7 @@ Attributes specific to a \vn{match} element are:
   delta_time                = <Real>     ! Change in time.
   matrix                    = <Switch>   ! Matrix calculation. Default: standard.
   kick0                     = <Switch>   ! Zeroth order calc. Default: standard.
-  spin_tracking             = <Switch>   ! Spin tracking done?
+  spin_tracking_model       = <Switch>   ! How to track the spin?
   recalc                    = <Logical>  ! Calculate transfer map? Default is True.
 \end{example}
 
@@ -3605,21 +3605,23 @@ transformation above is applied afterwards. Since using \vn{match_twiss} or \vn{
 a finite \vn{delta_time} can be confusing, such a situation is not allowed. Use two separate
 \vn{match} elements if needed.
 
-The settings of \vn{spin_tracking} are:
+The settings of \vn{spin_tracking_model} are:
 \begin{example}
-  off         ! Spin is invariant through a match element.
-  on          ! Spin is tracked assuming not bends.
+  off               ! Spin direction does not change (default).
+  transverse_field  ! Assumes a transverse magnetic field.
 \end{example}
-With a setting of \vn{on}, it is assumed that the orbital transfer matrix is due solely to transverse
+With a setting of \vn{off} (the default), the spin does not change when a particle is tracked through the element.
+With a setting of \vn{transverse_field}, it is assumed that the orbital transfer matrix is due solely to transverse
 magnetic fields so that the integrated spin rotation (\Eqs{orpt}, \eq{pqlbp1}, and \eq{pqlbp2}) can
 be related to the orbital transport via
 \begin{equation}
-  \int {\pmb\Omega}_{BMT} = \frac{\beta}{1 + p_z} \, (1 + a \gamma) \, (-\Delta p_y, \Delta p_x, 0)
-\end{equation} 
-
+  \int {\pmb\Omega}_{BMT} = \frac{1 + a \gamma}{1 + p_z} \, (-\Delta p_y, \Delta p_x, 0)
+\end{equation}
+where $\Delta p_x$ and $\Delta p_y$ are the change in $p_x$ and $p_y$ when tracking through the match element
+and the small angle approximation ($p_x, p_y \ll 1$) has been used.
 
 A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
-like a \vn{marker} element. That is, the orbit and Twiss parameters are unchanged when tracking
+like a \vn{marker} element. That is, the orbit, spin, and Twiss parameters are unchanged when tracking
 through a \vn{match} element that is turned off.
 
 \index{l}
@@ -3866,7 +3868,7 @@ Example:
 %-----------------------------------------------------------------------------
 \section{Overlay}
 \label{s:overlay}
-\index{ovlerlay|hyperbf}
+\index{overlay|hyperbf}
 
 \vn{Overlay} elements are a type of \vn{control} element (\sref{s:lord.slave}) used to make
 variations in the attributes of other elements (called ``slave'' attributes) while a program is
@@ -4490,7 +4492,7 @@ Example:
 %-----------------------------------------------------------------------------
 \section{Ramper}
 \label{s:ramper}
-\index{ovlerlay|hyperbf}
+\index{overlay|hyperbf}
 
 A \vn{ramper} element is a type of \vn{control} element (\sref{s:lord.slave}). That is, a
 \vn{ramper} element can be used to make variations in the attributes of other elements while a

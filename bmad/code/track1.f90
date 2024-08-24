@@ -226,7 +226,10 @@ case (bmad_standard$)
     call track1_bmad_photon (end_orb, ele, param, err)
   else
     call track1_bmad (end_orb, ele, param, err, track, mat6 = ele%mat6, make_matrix = make_map1)
-    if (ele%key == beambeam$) do_spin_tracking = .false.
+
+    select case (ele%key)
+    case (beambeam$);  do_spin_tracking = .false.
+    end select
   endif
   if (err) return
 
