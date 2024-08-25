@@ -682,7 +682,7 @@ the optimization.
 \subsection{Introduction}
 To connect an arc to the following straight section in a sextant, the dispersion 
 in the straight section must be suppressed to zero while minimally changing the betas. 
-For a 90$\degree$ lattice, this can be approximately achieved by using two equivalent arc FODO cells with the bends at half-strength.
+For a 90$\degree$ lattice, this can be approximately achieved by using two equivalent arc FODO cells with the bends at half-strength. For FODO cells with different phase advance, dispersion suppressors can also be constructed from the last two cells by changing their bend strengths. For 60-degree FODOs, for example, the first FODO has zero bend strength, and the last has the full bend strength.
 To get the dispersion and dispersion derivative at the end of the dispersion suppressor exactly
 zero, the last two quadrupoles can be minimally varied.
 
@@ -1580,6 +1580,9 @@ After defining the two IP lines, the exercises will focus on region matching and
 %
 \item {\bf Forward (upstream) interaction region matching:} Using the \vn{IPF} line defined above, vary \vn{QEF1}, \vn{QEF2}, \vn{QEF3}, and \vn{QEF4} so that at \vn{IP6} $\beta_a=0.6$, $\beta_b=0.06$, $\alpha_a=\alpha_b=0$. After optimizing, instead of \vn{write}-ing the lattice, make a copy of the \vn{var1.out} file and rename it to something like \vn{IPF.out}. This output file is a Bmad lattice file that sets the quadrupoles to their correct strengths.
 %
+\item \textbf{Alpha and Beta Functions:} How should you change the initial betas and alphas for a proper match using the reflected line?
+Hint: the betas and alphas are the same as calculated in earlier chapters.
+%
 \item {\bf Reverse (downstream) interaction region matching:} Match \textit{backwards} the downstream interaction region line \vn{IPR} defined above, starting from the end of the line and ending at the interaction point, varying \vn{QER1}, \vn{QER2}, \vn{QER3}, and \vn{QER4} that $\beta_a=0.6$, $\beta_b=0.06$, $\alpha_a=\alpha_b=0$ at \vn{IP6}. Once again, save a copy of the final \vn{var1.out} file containing the optimized quadrupole strengths and rename it to something like \vn{IPR.out}. Hint: the line can be reflected using a negative sign:
 \begin{code}
 IPR_reflected: line = (-IPR)
@@ -1602,9 +1605,6 @@ This should give a very good match, however to ensure a perfect solution, the fu
 SEXTANT5: line = (4*FODOSSF, SS_TO_ARCF, 20*FODOAF, ARC_TO_SSF, FODOSSF, IPF)
 SEXTANT7: line = (IPR, FODOSSR, SS_TO_ARCR, 20*FODOAR, ARC_TO_SSR, 4*FODOSSR)
 \end{code}
-%
-\item \textbf{Alpha and Beta Functions:} How should you change the initial betas and alphas for a proper match using the reflected line?
-Hint: the betas and alphas are the same as calculated in earlier chapters.
 %
 \item \textbf{Importance of variable step size:}
 In Exercise 1, you optimized the match the IP Twiss using a 
@@ -2251,7 +2251,7 @@ third order resonance slow extraction from a ring to an extraction line.
 
 Discussion of \vn{girder} and \vn{ramper} elements is outside the scope of this tutorial and here \vn{group} and
 \vn{overlay} elements will be studied.
-Note: \vn{Group}, \vn{overlay}, \vn{ramper}, and \vn{girder} elements are known as ``\vn{minor} \vn{lords}'' since they
+Note: Control elements are known as ``\vn{minor} \vn{lords}'' since they
 only control a subset of an element's attributes. The other type of \vn{lord} elements, \vn{multipass} lords
 and \vn{superposition} lords are called ``\vn{major lords}''. See the \bmad manual for details.
 
@@ -3229,7 +3229,7 @@ In a perfectly-flat ring (a ring in which the only magnetic fields encountered o
 \begin{enumerate}[leftmargin=*]
 \item Start with the \vn{spin_lat.bmad} file, located in \vn{lattices/15_SpinTracking}. It is a FODO ring based on the layout of the AGS.
 
-\item Let's define a \vn{ramper} element which ramps $G\gamma$ from $51.71$ to $51.82$ in $5000$ turns. To ramp the \vn{e_tot} attribute for all elements in such a time, we need to obtain the revolution time, which is done by calling \vn{show uni} and looking for the
+\item Let's define a \vn{ramper} element which ramps $G\gamma$ from $51.71$ to $51.91$ in $5000$ turns. To ramp the \vn{e_tot} attribute for all elements in such a time, we need to obtain the revolution time, which is done by calling \vn{show uni} and looking for the
 \vn{Lattice branch transit time}. For our ring, this is $2.67024$ microseconds. Thus, our \vn{ramper} element is
 
 \begin{code}
@@ -3398,19 +3398,19 @@ show ele 4
 \end{code}
 
 \subsubsection{Interface Commands}
-Output from the \vn{show} command is designed to be human-readable. To get data suitable for parsing in Python, Tao has a set of special commands under \vn{python}. See the \vn{python} section in the \tao manual for more details, or use \vn{help}:
+Output from the \vn{show} command is designed to be human-readable. To get data suitable for parsing in Python (or for general export to any external program), Tao has the \vn{pipe} command. See the documentation in the \tao manual for more details, or use \vn{help}:
 \begin{code}
 %%tao
-help python
+help pipe
 \end{code}
 
 Some commands have \vn{array_out} options. For example, this will return nothing:
 \begin{code}
-tao.cmd("python lat_list -array_out 1@0>>Q*|model orbit.floor.x")
+tao.cmd("pipe lat_list -array_out 1@0>>Q*|model orbit.floor.x")
 \end{code}
 But calling \vn{tao.cmd_real} on the same command will return the data as an array from an internal pointer:
 \begin{code}
-tao.cmd_real("python lat_list -array_out 1@0>>Q*|model orbit.floor.x")
+tao.cmd_real("pipe lat_list -array_out 1@0>>Q*|model orbit.floor.x")
 \end{code}
 
 For convenience, all of these commands are also available as methods of the Tao class, and the outputs are automatically parsed.
