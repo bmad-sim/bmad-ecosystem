@@ -3344,14 +3344,14 @@ subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, e
 end subroutine
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
-                       include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
+                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
   import
   implicit none
   type (lat_struct), target :: lat
   type (lat_struct), optional, target :: converted_lat
   type (coord_struct), allocatable, optional :: ref_orbit(:)
   real(rp), optional :: dr12_drift_max
-  integer, optional :: ix_start, ix_end, ix_branch
+  integer, optional :: ix_branch
   character(*) out_type, out_file_name
   logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
