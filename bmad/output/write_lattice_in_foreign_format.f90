@@ -1,6 +1,6 @@
 !+ 
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-!        use_matrix_model, include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
+!        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
 !
 ! Subroutine to write a Elegant, MAD-8, MAD-X, OPAL, SAD, JULIA, or XSIF lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
@@ -45,10 +45,6 @@
 !                           with an aperture so in this case this argument is ignored.
 !   dr12_drift_max    -- real(rp), optional: Max deviation for drifts allowed before a correction matrix element
 !                           is added. Default value is 1d-5. A negative number means use default.
-!   ix_start          -- integer, optional: Starting index of lat%ele(i)
-!                           used for output.
-!   ix_end            -- integer, optional: Ending index of lat%ele(i)
-!                           used for output.
 !   ix_branch         -- Integer, optional: Index of lattice branch to use. Default = 0.
 !
 ! Output:
@@ -58,7 +54,7 @@
 !-
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-      use_matrix_model, include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
+                    use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
 
 use mad_mod, dummy2 => write_lattice_in_foreign_format
 use bmad, dummy => write_lattice_in_foreign_format
@@ -88,10 +84,10 @@ real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) tilt, x_pitch, y_pitch, etilt, epitch, eyaw, offset(3), w_mat(3,3)
 
-integer, optional :: ix_start, ix_end, ix_branch
+integer, optional :: ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
-integer ie, ie1, ie2, ios, a_count, ix_lord, ix_match, iv, ifa, ix_pole_max
+integer ie, ios, a_count, ix_lord, ix_match, iv, ifa, ix_pole_max
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 
@@ -118,7 +114,7 @@ endif
 ! SAD translation
 
 if (out_type == 'SAD') then
-  call write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+  call write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
   return
 endif
 
@@ -175,9 +171,6 @@ call init_ele (bend_ele, sbend$)
 call multipole_init (ab_ele, magnetic$)
 null_ele%key = null_ele$
 
-ie1 = integer_option(1, ix_start)
-ie2 = integer_option(branch%n_ele_track, ix_end)
-
 allocate (names(branch%n_ele_max+10), an_indexx(branch%n_ele_max+10)) ! list of element names
 
 call out_io (s_info$, r_name, &
@@ -225,11 +218,11 @@ i_unique = 1000
 nullify(first_sol_edge)
 n_name_change_warn = 0
 n_elsep_warn = 0
-ix_ele = ie1 - 1
+ix_ele = 0
 
 do
   ix_ele = ix_ele + 1
-  if (ix_ele > ie2) exit
+  if (ix_ele > branch_out%n_ele_track) exit
   ele => branch_out%ele(ix_ele)
   if (ele%key == -1) cycle  ! Has been marked for delection
 
@@ -269,11 +262,9 @@ do
     aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
     if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
       call insert_element (lat_out, col_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-      ie2 = ie2 + 1
     endif
     if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
       call insert_element (lat_out, col_ele, ix_ele, branch_out%ix_branch, orbit_out)
-      ie2 = ie2 + 1
     endif
     ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
 
@@ -291,7 +282,6 @@ do
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
     call insert_element (lat_out, kicker_ele, ix_ele, branch_out%ix_branch, orbit_out)
     call insert_element (lat_out, kicker_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
-    ie2 = ie2 + 2
     cycle
   endif
 
@@ -320,7 +310,6 @@ do
       write (ab_ele%name, '(a1, a, i0)') key_name(ele%key), 'MULTIPOLE_', j_count
       call insert_element (lat_out, ab_ele, ix_ele, branch_out%ix_branch, orbit_out)
       call insert_element (lat_out, ab_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
-      ie2 = ie2 + 2
       cycle
     endif
   endif
@@ -358,7 +347,6 @@ do
         call insert_element (lat_out, kicker_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
         call insert_element (lat_out, taylor_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
         call insert_element (lat_out, kicker_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
-        ie2 = ie2 + 3
         cycle
       endif
     endif
@@ -384,7 +372,6 @@ do
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
       call insert_element (lat_out, taylor_ele, ie, branch_out%ix_branch, orbit_out)
       ie = ie + 1
-      ie2 = ie2 + 1
     endif
 
     if (ifa == exit_end$ .or. ifa == both_ends$) then
@@ -393,7 +380,6 @@ do
       call ele_to_taylor (quad_ele, branch_out%param, orbit_out(ie), orbital_taylor = taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
       call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
-      ie2 = ie2 + 1
     endif
 
     cycle
@@ -435,7 +421,6 @@ do
       call kill_taylor (taylor_a)
       call kill_taylor (taylor_b)
       ie = ie + 1
-      ie2 = ie2 + 1
     endif
 
     if (at_this_ele_end(exit_end$, nint(ele%value(fringe_at$))) .or. ele%value(dg$) /= 0) then
@@ -457,7 +442,6 @@ do
       call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
       call kill_taylor (taylor_a)
       call kill_taylor (taylor_b)
-      ie2 = ie2 + 1
     endif
 
     ele%value(fringe_type$) = basic_bend$
@@ -484,7 +468,6 @@ do
 
     taylor_ele%name = 'TAYLOR_' // ele%name
     call insert_element (lat_out, taylor_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-    ie2 = ie2 + 1
     ix_ele = ix_ele + 1
     cycle
   endif
@@ -510,7 +493,6 @@ do
       call insert_element (lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
       call insert_element (lat_out, taylor_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
       call insert_element (lat_out, drift_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
-      ie2 = ie2 + 2
       cycle
 
     ! Non matrix model...
@@ -554,7 +536,6 @@ do
         call insert_element (lat_out, lat_model%ele(j), ix_ele+j, branch_out%ix_branch, orbit_out)
       enddo
 
-      ie2 = ie2 + lat_model%n_ele_track - 1
       cycle
     endif
   endif
@@ -563,11 +544,11 @@ enddo
 
 ! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
 
-ix_ele = ie1 - 1
+ix_ele = 0
 
 do
   ix_ele = ix_ele + 1
-  if (ix_ele > ie2) exit
+  if (ix_ele > branch_out%n_ele_track) exit
   ele => branch_out%ele(ix_ele)
   if (ele%key == -1) cycle
 
@@ -623,7 +604,7 @@ write (iu, '(a)')
 
 select case (out_type)
 case ('MAD-8', 'MAD-X', 'XSIF')
-  ele => branch_out%ele(ie1-1)
+  ele => branch_out%ele(0)
 
   write (line_out, '(7a)') 'beam_def: Beam, Particle = ', trim(species_name(branch_out%param%particle)),  &
         ', Energy = ', re_str(1d-9*ele%value(E_TOT$)), ', Npart = ', re_str(branch_out%param%n_part), trim(eol_char)
@@ -634,11 +615,11 @@ end select
 ! write element parameters
 
 n_names = 0                          ! number of names stored in the list
-ix_ele = ie1 - 1
+ix_ele = 0
 
-do   ! ix_ele = 1e1, ie2
+do
   ix_ele = ix_ele + 1
-  if (ix_ele > ie2) exit
+  if (ix_ele > branch_out%n_ele_track) exit
   ele => branch_out%ele(ix_ele)
   if (ele%key == -1) cycle
 
@@ -857,7 +838,7 @@ do   ! ix_ele = 1e1, ie2
         ab_ele%name = trim(orig_name) // '__' // int_str(i)
         write (line_out, '(2a)') trim(ab_ele%name) // ': mult'
         call insert_element(lat_out, ab_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        ix_ele = ix_ele + 1
         call value_to_line (line_out, knl(i), 'knl', 'R')
         call value_to_line (line_out, tilts(i), 'tilt', 'R')
         line_out = trim(line_out) // ', order = ' // int_str(i)
@@ -1211,7 +1192,7 @@ do   ! ix_ele = 1e1, ie2
       if (val(x_offset$) /= 0 .or. val(y_offset$) /= 0 .or. val(z_offset$) /= 0) then
         drift_ele%name = trim(orig_name) // '__t'
         call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        ix_ele = ix_ele + 1
         line_out = trim(drift_ele%name) // ': translation'
         call value_to_line (line_out, val(x_offset$), 'dx', 'R')
         call value_to_line (line_out, val(y_offset$), 'dy', 'R')
@@ -1222,21 +1203,21 @@ do   ! ix_ele = 1e1, ie2
       if (val(x_pitch$) /= 0) then
         drift_ele%name = trim(orig_name) // '__y'
         call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        ix_ele = ix_ele + 1
         call write_line(trim(drift_ele%name) // ': yrotation, angle = ' // re_str(-val(x_pitch$)))
       endif
 
       if (val(y_pitch$) /= 0) then
         drift_ele%name = trim(orig_name) // '__x'
         call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        ix_ele = ix_ele + 1
         call write_line(trim(drift_ele%name) // ': xrotation, angle = ' // re_str(-val(y_pitch$)))
       endif
 
       if (val(tilt$) /= 0) then
         drift_ele%name = trim(orig_name) // '__s'
         call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        ix_ele = ix_ele + 1
         call write_line(trim(drift_ele%name) // ': srotation, angle = ' // re_str(val(tilt$)))
       endif
 
@@ -1426,7 +1407,7 @@ i_line = 0
 init_needed = .true.
 line = ' '
 
-do n = ie1, ie2
+do n = 1, branch_out%n_ele_track
   ele => branch_out%ele(n)
   if (ele%key == null_ele$) cycle  ! Will happen with patch elements translated to MAD-X
   if (ele%key == -1) cycle
@@ -1455,7 +1436,7 @@ do n = ie1, ie2
 
   ! Output line if long enough or at end
 
-  if (n == ie2 .or. iout > 48) then
+  if (n == branch_out%n_ele_track .or. iout > 48) then
     line_out = trim(line_out) // ')'
     write (iu, '(2a)') trim(line_out), trim(eol_char)
     line_out = ' '
@@ -1499,7 +1480,7 @@ if (out_type(1:3) == 'MAD') then
   allocate (n_repeat(n_names))
   n_repeat = 0
 
-  do ix_ele = ie1, ie2
+  do ix_ele = 1, branch_out%n_ele_track
 
     ele => branch_out%ele(ix_ele)
     val => ele%value
@@ -1540,7 +1521,7 @@ endif
 ! Write twiss parameters for a non-closed lattice.
 
 if (branch_out%param%geometry == open$ .and. (out_type == 'MAD-8' .or. out_type == 'MAD-X' .or. out_type == 'XSIF')) then
-  ele => branch_out%ele(ie1-1)
+  ele => branch_out%ele(0)
   orb_start = lat%particle_start
   beta = ele%value(p0c$) / ele%value(E_tot$)
   write (iu, '(a)')

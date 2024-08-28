@@ -474,13 +474,13 @@ end subroutine value_to_line
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+ 
-! Subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+! Subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
 !
 ! Private routine used by write_lat_in_sad_format and not for general use. 
 ! See write_lat_in_sad_format for details about the argument list.
 !-
 
-subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
 
 implicit none
 
@@ -504,9 +504,9 @@ integer, parameter :: sad_bz$          = 4
 integer, parameter :: sad_fshift$      = 5
 integer, parameter :: sad_mark_offset$ = 6
 
-integer, optional :: ix_start, ix_end, ix_branch
+integer, optional :: ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
-integer i, j, n, ib, iout, iu, ix, ix1, ix2, ios, ie1, ie2, ie2_orig, n_taylor_order_saved, ix_ele
+integer i, j, n, ib, iout, iu, ix, ix1, ix2, ios, ie2_orig, n_taylor_order_saved, ix_ele
 integer s_count, j_count, n_elsep_warn, n_name_change_warn
 integer ix_manch, n_names, aperture_at, ix_pole_max, ix_match
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
@@ -548,9 +548,7 @@ call init_ele (bend_ele, sbend$)
 call multipole_init (ab_ele, magnetic$)
 null_ele%key = null_ele$
 
-ie1 = integer_option(1, ix_start)
-ie2 = integer_option(branch%n_ele_track, ix_end)
-ie2_orig = ie2
+ie2_orig = branch%n_ele_track
 
 allocate (names(branch%n_ele_max), an_indexx(branch%n_ele_max)) ! list of element names
 
@@ -598,7 +596,6 @@ do ix_ele = 1, branch_out%n_ele_track
 
   if (ele%key == patch$ .and. ele%old_value(sad_fshift$) /= 0 .and. ix_ele <= ie2_orig) then
     ele%ix_ele = -1
-    ie2 = ie2 - 1
   endif
 enddo
 
@@ -611,11 +608,11 @@ nullify(first_sol_edge)
 old_bs_field = 0
 n_name_change_warn = 0
 n_elsep_warn = 0
-ix_ele = ie1 - 1
+ix_ele = 0
 
 do
   ix_ele = ix_ele + 1
-  if (ix_ele > ie2) exit
+  if (ix_ele > branch_out%n_ele_track) exit
   ele => branch_out%ele(ix_ele)
   val => ele%value
 
@@ -661,7 +658,6 @@ do
         write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
         call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch)
         sol_ele => branch_out%ele(ix_ele)
-        ie2 = ie2 + 1
         ix_ele = ix_ele + 1
         ele => branch_out%ele(ix_ele)
         val => ele%value
@@ -772,11 +768,9 @@ do
     aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
     if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
       call insert_element (lat_out, col_ele, ix_ele+1, branch_out%ix_branch)
-      ie2 = ie2 + 1
     endif
     if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
       call insert_element (lat_out, col_ele, ix_ele, branch_out%ix_branch)
-      ie2 = ie2 + 1
     endif
     ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
 
@@ -793,7 +787,6 @@ do
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
     call insert_element (lat_out, kicker_ele, ix_ele, branch_out%ix_branch)
     call insert_element (lat_out, kicker_ele, ix_ele+2, branch_out%ix_branch)
-    ie2 = ie2 + 2
     cycle
   endif
 
@@ -810,7 +803,6 @@ do
       write (ab_ele%name, '(a1, a, i0)') key_name(ele%key), 'MULTIPOLE_', j_count
       call insert_element (lat_out, ab_ele, ix_ele, branch_out%ix_branch)
       call insert_element (lat_out, ab_ele, ix_ele+2, branch_out%ix_branch)
-      ie2 = ie2 + 2
       cycle
     endif
   endif
@@ -839,7 +831,6 @@ do
       do i = ix1+1, ix2
         branch_out%ele(i)%ix_ele = -1  ! mark for deletion
       enddo
-      ie2 = ie2 - (ix2 - ix1 - 1)
     else
       call create_planar_wiggler_model (ele, lat_model)
     endif
@@ -849,7 +840,6 @@ do
     do j = 1, lat_model%n_ele_track
       call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch_out%ix_branch)
     enddo
-    ie2 = ie2 + lat_model%n_ele_track - 1
     cycle
   endif
 
@@ -858,7 +848,7 @@ enddo
 ! If there is a finite bs_field then create a final null_ele element
 
 if (bs_field /= 0) then
-  ele => branch_out%ele(ie2)
+  ele => branch_out%ele(branch_out%n_ele_track)
   if (ele%key == marker$) then
     ele%key = null_ele$
     ele%old_value(sad_bz$) = bs_field
@@ -866,9 +856,8 @@ if (bs_field /= 0) then
     s_count = s_count + 1
     write (null_ele%name, '(a, i0)') 'SOL_', s_count  
     null_ele%old_value(sad_bz$) = bs_field
-    ie2 = ie2 + 1
-    call insert_element (lat_out, null_ele, ie2, branch_out%ix_branch)
-    ele => branch_out%ele(ie2)
+    call insert_element (lat_out, null_ele, branch_out%n_ele_track, branch_out%ix_branch)
+    ele => branch_out%ele(branch_out%n_ele_track-1)
   endif
 
   ele%old_value(sad_bound$) = 1
@@ -877,11 +866,11 @@ endif
 
 ! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
 
-ix_ele = ie1 - 1
+ix_ele = 0
 
 do
   ix_ele = ix_ele + 1
-  if (ix_ele > ie2) exit
+  if (ix_ele > branch_out%n_ele_track) exit
   ele => branch_out%ele(ix_ele)
   val => ele%value
 
@@ -913,7 +902,7 @@ if (sad_fshift /= 0) write (iu, '(3a)') 'FSHIFT = ', re_str(sad_fshift), ';'
 n_names = 0                          ! number of names stored in the list
 old_bs_field = 0
 
-do ix_ele = ie1, ie2
+do ix_ele = 1, branch_out%n_ele_track
 
   ele => branch_out%ele(ix_ele)
   val => ele%value
@@ -1309,7 +1298,7 @@ write (iu, '(3a)') '!---------------------------------;'
 write (iu, '(a)')
 write (line_out, '(2a)') 'LINE ASC = ('
 
-do n = ie1, ie2
+do n = 1, branch_out%n_ele_track
 
   ele => branch_out%ele(n)
   if (ele%sub_key == not_set$) cycle
@@ -1325,7 +1314,7 @@ do n = ie1, ie2
 
   ! Output line if long enough or at end
 
-  if (n == ie2) then
+  if (n == branch_out%n_ele_track) then
     line_out = trim(line_out) // ')'
     write (iu, '(2a)') trim(line_out), ';'
     line_out = ' '
