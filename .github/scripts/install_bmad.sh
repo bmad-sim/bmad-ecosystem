@@ -9,6 +9,8 @@
 
 echo "**** Setup Preferences"
 
+echo "Number of processors: $(nproc)"
+
 cat <<EOF >> ./util/dist_prefs
 export DIST_F90_REQUEST="gfortran"
 export ACC_PLOT_PACKAGE="pgplot"
@@ -21,7 +23,7 @@ export ACC_ENABLE_SHARED="$SHARED"
 export ACC_ENABLE_SHARED_ONLY="$SHARED"
 export ACC_ENABLE_FPIC="Y"
 export ACC_ENABLE_PROFILING="N"
-export ACC_SET_GMAKE_JOBS="2"
+export ACC_SET_GMAKE_JOBS="$(nproc)"
 EOF
 
 echo "**** Invoking dist_source_me"
