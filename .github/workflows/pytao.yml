@@ -1,0 +1,54 @@
+name: PyTao tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os }} Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.12"]
+        shared: ["Y"]
+        openmp_mpi: ["N"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-dependencies
+        with:
+          external-packages-version: ${{ env.EXTERNAL_PACKAGES_VERSION }}
+
+      - name: Build Bmad
+        env:
+          USE_MPI: ${{ matrix.openmp_mpi }}
+          SHARED: ${{ matrix.shared }}
+        run: .github/scripts/install_bmad.sh
+
+      - uses: actions/checkout@v4
+        with:
+          repository: "bmad-sim/pytao"
+          ref: "master"
+          path: "pytao"
+
+      - uses: ./.github/actions/conda-setup
+        with:
+          python-version: ${{ matrix.python-version }}
+          environment-file: pytao/dev-environment.yml
+
+      - name: Run Tests
+        shell: bash -l {0}
+        working-directory: ./pytao
+        run: |
+          export ACC_ROOT_DIR=$GITHUB_WORKSPACE
+
+          echo -e '## Test results\n\n```' >> "$GITHUB_STEP_SUMMARY"
+          pytest -v --cov=pytao/ pytao/tests 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
