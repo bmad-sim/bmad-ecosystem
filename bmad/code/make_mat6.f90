@@ -43,6 +43,13 @@ logical rad_fluct_save, err, finished
 character(*), parameter :: r_name = 'make_mat6'
 
 !--------------------------------------------------------
+! The beginning element is handled specially.
+! Also see twiss_propagate1.
+
+if (ele%key == beginning_ele$) then
+  return
+endif
+
 ! Some init.
 ! If start_orb is in its not_set state (can happen if a particle is lost in 
 ! tracking and ele is downstream from the loss point), init the orbit to zero.

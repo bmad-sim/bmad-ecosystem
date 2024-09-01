@@ -281,7 +281,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
-real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor, ff, rel_p1
+real(rp) p0c_factor, ff, rel_p1
 real(rp), target :: unknown_attrib, dangle
 
 integer i
@@ -526,13 +526,7 @@ case (beginning_ele$)
 
   if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%y%eta) .or. coupling_change) then
     if (dep_set) then
-      call make_v_mats (ele, v_mat, v_inv_mat)
-      eta_xy_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
-      eta_vec = matmul (v_inv_mat, eta_xy_vec)
-      ele%a%eta  = eta_vec(1)
-      ele%a%etap = eta_vec(2)
-      ele%b%eta  = eta_vec(3)
-      ele%b%etap = eta_vec(4)
+      call normal_mode_dispersion(ele)
     endif
     return
   endif
@@ -540,13 +534,7 @@ case (beginning_ele$)
   if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
       associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
     if (dep_set) then
-      call make_v_mats (ele, v_mat, v_inv_mat)
-      eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
-      eta_xy_vec = matmul (v_mat, eta_vec)
-      ele%x%eta  = eta_xy_vec(1)
-      ele%x%etap = eta_xy_vec(2)
-      ele%y%eta  = eta_xy_vec(3)
-      ele%y%etap = eta_xy_vec(4)
+      call normal_mode_dispersion(ele, .true.)
     endif
     return
   endif

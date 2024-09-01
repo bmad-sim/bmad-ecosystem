@@ -10,28 +10,6 @@ beginning[beta_b] = 10
 beginning[alpha_a] = +0.1
 beginning[alpha_b] = -0.2
 
-
-!-------------------------
-
-beginning[eta_x] = 0.
-beginning[etap_x] = 0.
-beginning[eta_y] = 0.
-beginning[etap_y] = -0.
-beginning[eta_z] = 0.
-
-beginning[cmat_11] = 0.
-beginning[cmat_12] = 0.
-beginning[cmat_21] = 0.
-beginning[cmat_22] = 0.
-
-particle_start[x]  = 0.00
-particle_start[px] = 0.00
-particle_start[y]  = 0.00
-particle_start[py] = 0.00
-particle_start[z]  = 0.
-particle_start[pz] = 0.
-
-
 !-------------------------
 
 beginning[eta_x] = 0.1
@@ -54,27 +32,6 @@ particle_start[pz] = 0.5
 
 !-------------------------
 
-beginning[eta_x] = 0.
-beginning[etap_x] = 0.
-beginning[eta_y] = 0.
-beginning[etap_y] = -0.
-beginning[eta_z] = 0.
-
-beginning[cmat_11] = 0.
-beginning[cmat_12] = 0.
-beginning[cmat_21] = 0.
-beginning[cmat_22] = 0.
-
-particle_start[x]  = 0.001
-particle_start[px] = 0.00
-particle_start[y]  = 0.00
-particle_start[py] = 0.00
-particle_start[z]  = 0.
-particle_start[pz] = 0
-
-
-!-------------------------
-
 a: quadrupole, l = 1, k1 = 0.3, tilt = 1
 z: quadrupole, l = 1, k1 = -0.1, tilt = 2
 
@@ -94,11 +51,15 @@ lnrf[beta_a] = 10
 lnrf[beta_b] = 10
 lnrf[alpha_a] = +0.1
 lnrf[alpha_b] = -0.2
+lnrf[eta_x] = 0.1
+lnrf[eta_y] = 0.2
+lnrf[deta_x_ds] = 1
+lnrf[deta_y_ds] = 2
 
 
 !-------------------------
 
-use, lnrf
+use, ln0, lnrf
 
 
 no_digested
