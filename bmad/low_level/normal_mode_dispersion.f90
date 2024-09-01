@@ -15,7 +15,7 @@
 
 subroutine normal_mode_dispersion(ele, reverse) 
 
-use bmad_interface
+use bmad_interface, dummy => normal_mode_dispersion
 
 implicit none
 
