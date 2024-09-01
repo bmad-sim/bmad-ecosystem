@@ -7320,20 +7320,12 @@ case (taylor$)
   endif
 
 !------------------
+! Note: Dispersion will be handled by twiss_propagate1.
+
 case (beginning_ele$)
 
   if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
   if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
-
-  ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
-
-  call make_v_mats (ele, v_inv_mat = v_inv_mat)
-  eta_vec = matmul (v_inv_mat, [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap])
-
-  ele%a%eta  = eta_vec(1)
-  ele%a%etap = eta_vec(2)
-  ele%b%eta  = eta_vec(3)
-  ele%b%etap = eta_vec(4)
 
 !------------------
 ! Convert rbends to sbends and evaluate G if needed.

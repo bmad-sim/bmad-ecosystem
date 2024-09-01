@@ -16780,8 +16780,11 @@ subroutine extract_linear_from_normalised(m,a1,phi1,f1,f2,integer_part,dospin)
        call alloc(t)
         t(2)=b1%q%x(2)
         t(1)=b1%q%x(0)
+        t(1)=-atan2(t(2),t(1))/pi
+ 
         v=integer_part(nd2/2+1)
-        f1%q%x(2)=-spin_def_tune*v*pi
+ 
+        f1%q%x(2)=-spin_def_tune*(v+t(1))*pi
         call kill(t)
       endif
  
@@ -17743,6 +17746,45 @@ end SUBROUTINE  equal_c_vector_field_fourier
    
 end  subroutine transform_vector_field_fourier_by_map
 
+  subroutine transform_vector_field_fourier_to_qr(s1,s2)
+    implicit none
+    TYPE (c_vector_field_fourier), INTENT (INout) :: S1 ,s2
+  
+ 
+    integer i
+
+
+     IF(.NOT.C_STABLE_DA) then
+     RETURN
+     endif
+!!! The tunes are stored for the nonlinear normal form recursive algorithm
+
+
+     do i=-n_fourier,n_fourier
+      call c_q0_to_qr(s1%f(i)%q,s2%f(i)%q )  
+     enddo
+   
+end  subroutine transform_vector_field_fourier_to_qr
+
+  subroutine transform_vector_field_fourier_to_q0(s1,s2)
+    implicit none
+    TYPE (c_vector_field_fourier), INTENT (INout) :: S1 ,s2
+ 
+ 
+    integer i
+
+
+     IF(.NOT.C_STABLE_DA) then
+     RETURN
+     endif
+!!! The tunes are stored for the nonlinear normal form recursive algorithm
+
+
+     do i=-n_fourier,n_fourier
+      call c_qr_to_q0(s1%f(i)%q,s2%f(i)%q )  
+     enddo
+   
+end  subroutine transform_vector_field_fourier_to_q0
 ! etienne
 
 subroutine exp_vector_field_fourier(F,H,K,nlin)
@@ -17822,7 +17864,7 @@ subroutine print_vector_field_fourier(s1,mf,collated)
     do i=1,n_fourier
 
     if(usual) then
-     write(mf,*) i,"th mode"
+     write(mf,*) i,"th mode followed by,",-i, "th mode"
      call print(s1%f(i),mf)  !,dospin=.false.)
      call print(s1%f(-i),mf)  !,dospin=.false.)
    else
@@ -17843,6 +17885,8 @@ subroutine print_vector_field_fourier(s1,mf,collated)
      enddo
 
 end subroutine print_vector_field_fourier
+
+
 
 subroutine print_poisson_bracket_fourier(s1,mf)
     implicit none
@@ -18036,245 +18080,7 @@ f1=0
 end subroutine create_rotation_linear_field
 
 
-!  subroutine normalise_vector_field_fourier(H,Fc,K,F1,epsi)
-!    implicit none
-!    TYPE (c_vector_field_fourier), INTENT (INout) :: H,Fc,K
-!   TYPE (c_vector_field_fourier),optional, INTENT (INout) :: F1
-!   TYPE (c_taylor) temp
-!
-!    integer ki,n,m,j,l,o,nl,i1,kr,i
-!    complex(dp), allocatable :: eg(:)
-!    real(dp), allocatable :: nu(:)
-!    integer, allocatable :: je(:)
-!    complex(dp) v,lam
-!    logical(lp) removeit
-!    type(c_vector_field_fourier) ht,H1
-!    real(dp),optional :: epsi
-! 
-!
-!     IF(.NOT.C_STABLE_DA) then
-!     RETURN
-!     endif
-!     call alloc(temp)
-!     call alloc(ht)
-!     call alloc(h1)
-! 
-!     Fc=0
-!     H1=H
-!     ht=H
-!     n=H%f(0)%n
-!     i1=2
-!     if(present(F1)) i1=1
-!       allocate(eg(n),je(nv)); 
-!       allocate(nu(n/2)); 
-!       eg=0.0_dp
-!       je=0
-!      do ki=1,n
-!       if(coast(ki)) then
-!        eg(ki)=0
-!       else
-!        je=0
-!        je(ki)=1
-!        eg(ki)=H%f(0)%v(ki).sub.je   ! (1)
-!        if(mod(ki,2)==0) nu(ki/2)=aimag(eg(ki))
-!       endif  
-!      enddo
-!
-!    i1=2 ;if(present(F1)) i1=1 ;nl=0; nl=n_extra;
-!
-!    do o=i1,no
-!
-!        ht=H1
-!       IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
-!
-!    do m=-n_fourier,n_fourier
-    
-!      do ki=1,n
-!
-!       j=1
-!        do while(.true.) 
-!          temp=ht%f(m)%v(ki).sub.o
-!          call  c_cycle(temp,j,v ,je); if(j==0) exit;
-! 
-!
-!     if(m/=0) then
-!        removeit=.true.
-!        if(present(epsi)) then
-!          !     call check_resonance(ki,n,je,kr,mr,removeit)
-!               call check_resonance_ham_old(ki,n,je,nu,removeit,m,epsi)
-! 
-!        endif
-!     else
-!     !   if(present(epsi)) then
-!!               call check_resonance_ham(ki,n,je,nu,removeit,m,epsi)
-!! 
-!!        else
-!          call check_kernel(ki,n,je,removeit)
-! 
-!!        endif
-!     endif
-!           if(removeit) then
-!             lam=-i_*m                  ! (3a)
-!             je(ki)=je(ki)-1
-!               do l=1,n 
-!               if(coast(l)) cycle 
-!                 lam=lam-eg(l)*je(l)    ! (3b)
-!               enddo
-!             je(ki)=je(ki)+1
-!              Fc%f(m)%v(ki)=Fc%f(m)%v(ki)-(v.cmono.je)/lam  ! (4)
-!            endif
-!
-!        enddo  ! over monomials
-!       enddo  ! over vector index
-!      enddo ! over fourier mode
-!      IF(o==1) THEN   
-!        call exp_vector_field_fourier(Fc,Ht,H1,nlin=nl)  ! (5)
-!        F1=Fc; Fc=0;NL=0;
-!      ENDIF
-!    enddo  ! over order o
-!     ht=H1
-!       call exp_vector_field_fourier(Fc,Ht,Ht)   ! (6)
-!     K=ht
-!
-!   deallocate(eg,je,nu)
-!   call kill(temp)
-!   call kill(ht)
-!   call kill(h1)
-! 
-!end  subroutine normalise_vector_field_fourier
 
-!    subroutine check_resonance_ham_old(k,n,je,nu,removeit,ktheta,epsi)
-!!#internal: normal
-!!# This routine identifies terms in an orbital vector field that
-!!# are left per user's request.
-!!# This is used if a resonance family is to be left in the map.
-!!# See Sec.5.4 of Springer book.
-!
-!    implicit none
-!    logical(lp) removeit
-!    integer i,k,n,je(:),j ,jj,ktheta,mr(ndim)
-!    real(dp) nu(:),epsi,t1
-!  
-!    !           call check_resonance_ham(k,n,je,nu,removeit,lr,epsi)
-!   
-!    removeit=my_true
-!    t1=0;    
-!   ! je(k)=je(k)-1
-!    do i=1,n,2
-!       if(coast(i)) cycle 
-!     j=(i+1)/2
-!       jj=0
-!      if(k==i) jj=1
-!      if(k==i+1) jj=-1
-!       mr(j)=(je(i+1)-je(i)+jj)
-!      t1=t1+ nu(i)*(je(i+1)-je(i)+jj)
-!     enddo
-!       t1=t1-ktheta
-! 
-!    
-!      t1=abs(t1)
-! 
-!      if(t1<epsi) then 
-!       write(6,*) "not removed ",ktheta
-!       write(6,*) mr(1:c_%nd)
-!       removeit=my_false
-!      endif
-!  !  je(k)=je(k)+1
-!
-!    end subroutine check_resonance_ham_old
-!
-
-
- subroutine normalise_vector_field_fourier_factored(H)
-    implicit none
-    TYPE (c_vector_field_fourier), INTENT (INout) :: H
-    TYPE (c_taylor) temp
- 
-    integer k,n,m,j,l,o,nl
-    complex(dp), allocatable :: eg(:)
-    integer, allocatable :: je(:)
-    complex(dp) v,lam
-    logical(lp) removeit
-    type(c_vector_field_fourier) Ht,F
-     IF(.NOT.C_STABLE_DA) then
-     RETURN
-     endif
-
-     call alloc(temp)
-     call alloc(Ht)
-     call alloc(F)
-
-     f=0
-     Ht=H
-     n=H%f(0)%n
-
-       allocate(eg(n),je(nv)); 
-       eg=0.0_dp
-       je=0
-      do k=1,n
-       if(coast(k)) then
-        eg(k)=0
-       else
-        je=0
-        je(k)=1
-        eg(k)=H%f(0)%v(k).sub.je   ! (1)
-       endif  
-      enddo
-
-    do o=1,no
-    nl=0
-    if(o==1) nl=n_extra
-!     ht=s1
-!     call exp_vector_field_fourier(s2,ht,ht) ! (2)
-     F=0
-    do m=-n_fourier,n_fourier
-                                   ! (2)
-      do k=1,n
-       j=1
-        do while(.true.) 
-          temp=Ht%f(m)%v(k).sub.o
-          call  c_cycle(temp,j,v ,je); if(j==0) exit;
-
-             if(m/=0) then
-                removeit=.true.
-             else
-                  call check_kernel(k,n,je,removeit)
-             endif
-
-
-           if(removeit) then
-
-
-             lam=-i_*m                     ! (3a)
-             je(k)=je(k)-1
-               do l=1,n 
-               if(coast(l)) cycle 
-                 lam=lam-eg(l)*je(l)       ! (3b)
-               enddo
-             je(k)=je(k)+1
-              F%f(m)%v(k)=F%f(m)%v(k)-(v.cmono.je)/lam  ! (4)
-            endif
-
-        enddo  ! over the monomials
-       enddo  ! over the components of the vector
-      enddo ! over the fourier modes
-
-       call exp_vector_field_fourier(F,Ht,Ht,nlin=nl)   ! (4)
-
-    enddo  ! over order o
-
-   ! ht=s1
-   ! call exp_vector_field_fourier(s2,ht,ht)                 ! (5)
-   ! s3=ht
-
-   H=Ht                               
-
-   deallocate(eg,je)
-   call kill(temp)
-   call kill(Ht)
-   call kill(F)
- 
-end  subroutine normalise_vector_field_fourier_factored
 
 subroutine symplectify_for_sethna(m,ms,a1,a2,eps_and_norm)
 implicit none
@@ -22031,12 +21837,13 @@ end subroutine symplectify_general
 
 !$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine normalise_vector_field_fourier(H,Fc,K,F1,epsi,dospin,mres,f_comoving)
+ subroutine normalise_vector_field_fourier(H,Fc,K,F1,dospin,mres,h_comoving)
     implicit none
     TYPE (c_vector_field_fourier), INTENT (INout) :: H,Fc,K
     TYPE (c_vector_field_fourier),optional, INTENT (INout) :: F1
-    TYPE (c_vector_field),optional, INTENT (INout) :: f_comoving
+    TYPE (c_vector_field),optional, INTENT (INout) :: h_comoving
     TYPE (c_taylor) temp
     TYPE (c_quaternion) qtemp,qtempf
     integer,optional  :: mres(-1:ndim)    ! -1 has the spin
@@ -22048,11 +21855,11 @@ end subroutine symplectify_general
     complex(dp) v,lam
     logical(lp) removeit,dos
     type(c_vector_field_fourier) ht,H1
-    real(dp),optional :: epsi
     logical,optional :: dospin
-    real(dp) nus(-1:1),eps,xmr
+    real(dp) nus(-1:1),xmr2
     integer jq,mf,ires
-  
+ 
+ 
    nv=c_%nv
    no=c_%no
    dos=.false.
@@ -22127,11 +21934,29 @@ IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
  
           call  c_cycle(temp,j,v ,je); if(j==0) exit;
  
-      eps=0.0_dp
- if(present(epsi)) eps=epsi
-               call check_resonance_ham(ki,n,je,nu,da,removeit,m,eps,nus,0,Mres=mres)
+ 
+jq=0
+               call check_kernel_ham(ki,n,je,nu,da,removeit,m,nus,jq)
  
 
+ if(removeit.and.present(mres)) then
+   ires=0
+    do l=1,c_%nd
+     ires=iabs(mres(L)-(je(2*L)-je(2*L-1)))+ires
+    enddo
+   ires=iabs(mres(-1)-jq)+ires
+   ires=iabs(-mres(0)-m)+ires
+   if(ires==0) removeit=.false.
+  endif
+ if(removeit.and.present(mres)) then
+   ires=0
+    do l=1,c_%nd
+     ires=iabs(-mres(L)-(je(2*L)-je(2*L-1)))+ires
+    enddo
+    ires=iabs(-mres(-1)-jq)+ires
+    ires=iabs(mres(0)-m)+ires
+   if(ires==0) removeit=.false.
+  endif
 
             if(removeit) then
              lam=-i_*m                  ! (3a)
@@ -22166,11 +21991,29 @@ IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
 
           call  c_cycle(temp,j,v ,je); if(j==0) exit;
  
-      eps=0.0_dp
- if(present(epsi)) eps=epsi
-  call check_resonance_ham(0,n,je,nu,da,removeit,m,eps,nus,jq,Mres=mres)
+ 
+  call check_kernel_ham(0,n,je,nu,da,removeit,m,nus,jq)
 
+ if(removeit.and.present(mres)) then
+   ires=0
+    do l=1,c_%nd
+     ires=iabs(mres(L)-(je(2*L)-je(2*L-1)))+ires
+    enddo
+   ires=iabs(mres(-1)-jq)+ires
+   ires=iabs(-mres(0)-m)+ires
+   if(ires==0) removeit=.false.
+  endif
+ if(removeit.and.present(mres)) then
+   ires=0
+    do l=1,c_%nd
+     ires=iabs(-mres(L)-(je(2*L)-je(2*L-1)))+ires
+    enddo
+    ires=iabs(-mres(-1)-jq)+ires
+    ires=iabs(mres(0)-m)+ires
+   if(ires==0) removeit=.false.
+  endif
 
+ 
            if(removeit) then
              lam=-i_*m                  ! (3a)
  
@@ -22183,6 +22026,7 @@ IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
   
            Fc%f(m)%q%x(ki)=Fc%f(m)%q%x(ki)-(v.cmono.je)/lam  ! (4)
 
+ 
             endif
 
         enddo  ! over monomials
@@ -22215,42 +22059,43 @@ IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
        call exp_vector_field_fourier(Fc,Ht,Ht)   ! (6)
 
      K=ht
-if(present(f_comoving).and.present(mres).and.eps==0.0_dp) then
 
-   f_comoving=0
- do i=-n_fourier,n_fourier
-   f_comoving =f_comoving +K%f(i)
- enddo
 
-if(mres(0)==0) then
- xmr=0
- do i=0,c_%nd
-  xmr=xmr+mres(i)**2
- enddo
-xmr=1.0_dp/xmr
- xmr=xmr*mres(-1)
 
- do i=1,c_%nd
-  f_comoving%v(2*i-1)=f_comoving%v(2*i-1)+i_*(xmr*mres(i))*dz_c(2*i-1)
-  f_comoving%v(2*i)=f_comoving%v(2*i) - i_*(xmr*mres(i))*dz_c(2*i)
- enddo
- 
+if(present(h_comoving) ) then
 
- 
-else
- 
+  if(present(mres)) then
+  xmr2=0
+  do l=1,c_%nd
+  xmr2=mres(l)**2+xmr2
+  enddo
+  xmr2=xmr2+mres(-1)**2
+  lam=mres(0)
+  lam=-lam/xmr2
+  endif
+
+    h_comoving=0
   do i=1,c_%nd
-  f_comoving%v(2*i-1)=f_comoving%v(2*i-1)-(f_comoving%v(2*i-1).cut.2)
-  f_comoving%v(2*i)=f_comoving%v(2*i) -(f_comoving%v(2*i).cut.2)
+   h_comoving%v(2*i-1) = -i_*lam* mres(i)*(1.0_dp.cmono.(2*i-1))
+   h_comoving%v(2*i  ) =  i_*lam* mres(i)*(1.0_dp.cmono.(2*i  ))
+
+  enddo
+ if(mres(-1)/=0) then
+   h_comoving%q%x(2)=-lam *mres(-1)/2.0_dp
+ endif
+
+ 
+
+ do i=-n_fourier,n_fourier
+   h_comoving = K%f(i)+h_comoving
  enddo
 
-xmr=f_comoving%q%x(2)
- f_comoving%q%x(2)=f_comoving%q%x(2) -nint(xmr)
-
-          call c_q0_to_qr(f_comoving%q,f_comoving%q)
-endif
+ 
+ 
  
 endif
+ 
+ 
 
    deallocate(eg,je,nu)
    call kill(temp)
@@ -22261,7 +22106,7 @@ endif
  
 end  subroutine normalise_vector_field_fourier
 
-   subroutine check_resonance_ham(k,n,je,nu,da,removeit,ktheta,epsi,nus,jq,Mres)
+   subroutine check_kernel_ham(k,n,je,nu,da,removeit,ktheta,nus,jq)
 !#internal: normal
 !# This routine identifies terms in an orbital vector field that
 !# are left per user's request.
@@ -22271,12 +22116,10 @@ end  subroutine normalise_vector_field_fourier
     implicit none
     logical(lp) removeit
     integer i,k,n,je(:),j ,jj,ktheta,mr(ndim),jq,ires
-    real(dp) nu(:),epsi,nus(-1:1),da(:)
+    real(dp) nu(:),nus(-1:1),da(:)
      real(dp) tr1,t2
     complex(dp) t1
-    integer,optional  :: mres(-1:ndim)
 
-    !           call check_resonance_ham(k,n,je,nu,removeit,lr,epsi)
 
     removeit=my_true
     t1=0;  t2=0;  
@@ -22298,52 +22141,12 @@ end  subroutine normalise_vector_field_fourier
  
       tr1=abs(t1)
       ires=0
-if(present(mres)) then
  
-      if(mres(-1)==ktheta) then
-         ires=0
-        do i=1,c_%nd
-         ires=ires+iabs((mres(i)-mr(i)))
-        enddo
-         ires=ires+iabs((mres(0)-jq))
-        if(ires==0) removeit=my_false
-         if(.not.removeit ) then
-             write(6,*) tr1<=epsi
-             ires=10000
-           goto 100
-          endif
-      endif
-
-      if(mres(-1)==-ktheta) then
-         ires=0
-        do i=1,c_%nd
-         ires=ires+iabs((mres(i)+mr(i)))
-        enddo
-         ires=ires+iabs((mres(0)+jq))
-        if(ires==0) removeit=my_false
-         if(.not.removeit ) then
-            write(6,*) tr1<=epsi
-            ires=20000
-         endif
-      endif
- endif
-100 continue
-      if(tr1<=epsi.or.(.not.removeit)) then 
-         write(6,*)" from Mres ", removeit,ires
-       if(k==0) then
-        write(6,*) " spin "
-       else
-        write(6,*) " orbital "
-       endif
-       write(6,*) "not removed ",ktheta,tr1
-       write(6,*) " mr,jq "
-       write(6,*) mr(1:c_%nd2),jq
-       removeit=my_false
-   !    pause 9999
-      endif
+ if(tr1<=0) removeit=my_false
+ 
 ! if(k/=0)  je(k)=je(k)+1
-
-    end subroutine check_resonance_ham !_new
+   
+    end subroutine check_kernel_ham !_new
 
     subroutine check_kernel_spin1(k,n,je,da,removeit)
 !#internal: normal

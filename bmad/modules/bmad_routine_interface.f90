@@ -1580,6 +1580,12 @@ subroutine new_control (lat, ix_ele, ele_name)
   character(*), optional :: ele_name
 end subroutine
 
+subroutine normal_mode_dispersion(ele, reverse) 
+  import
+  type (ele_struct) ele
+  logical, optional :: reverse
+end subroutine
+
 function num_field_eles (ele) result (n_field_ele)
   import
   implicit none

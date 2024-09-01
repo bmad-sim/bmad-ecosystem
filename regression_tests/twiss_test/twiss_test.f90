@@ -7,7 +7,7 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct) t_ele, ds_ele
-type (ele_struct), pointer :: ele0, elen
+type (ele_struct), pointer :: ele0, elen, ele
 type (coord_struct), allocatable :: orb0(:), orb1(:)
 type (twiss_struct) dt, tt
 type (xy_disp_struct) dxy, xy
@@ -103,11 +103,23 @@ do ib = 0, ubound(lat%branch, 1)
 
   write (1, '(2a, 2l1, a)') quote(b_str // '-flip'), ' STR "', t_ele%mode_flip, t_ele%mode_flip .eqv. elen%mode_flip, '"'
   write (1, '(2a, es14.6)') quote(b_str // '-dMax-Rev'), ' ABS 1e-7', max_diff
-
 enddo
 
-close (1)
+!----------------------------------------------------------
 
+branch => lat%branch(0)
+ele => branch%ele(0)
+
+write (1, '(a, 3es16.8)') quote('dispersion0-x') // ' ABS 1E-10', ele%x%eta, ele%x%etap, ele%x%deta_ds
+write (1, '(a, 3es16.8)') quote('dispersion0-y') // ' ABS 1E-10', ele%y%eta, ele%y%etap, ele%y%deta_ds
+write (1, '(a, 3es16.8)') quote('dispersion0-a') // ' ABS 1E-10', ele%a%eta, ele%a%etap, ele%a%deta_ds
+write (1, '(a, 3es16.8)') quote('dispersion0-b') // ' ABS 1E-10', ele%b%eta, ele%b%etap, ele%b%deta_ds
+
+
+
+!
+
+close (1)
 
 !--------------------------------------------------------------------------------------------
 contains

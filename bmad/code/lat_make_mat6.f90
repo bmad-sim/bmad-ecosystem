@@ -119,7 +119,6 @@ if (i_ele < 0) then
   n_taylor = 0  ! number of taylor map found
 
   do i = 1, branch%n_ele_track
-
     ele => branch%ele(i)
 
     ! Check if transfer matrix needs to be recomputed
