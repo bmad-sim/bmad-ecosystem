@@ -509,7 +509,7 @@ integer, allocatable :: n_repeat(:), an_indexx(:)
 integer i, j, n, ib, iout, iu, ix, ix1, ix2, ios, ie2_orig, n_taylor_order_saved, ix_ele
 integer s_count, j_count, n_elsep_warn, n_name_change_warn
 integer ix_manch, n_names, aperture_at, ix_pole_max, ix_match
-integer :: ix_line_min, ix_line_max, n_warn_max = 10
+integer :: ix_line_min, ix_line_max, n_warn_max, n_wig_model_err, print_wig_model_err_max
 
 character(*), parameter :: r_name = "write_lat_in_sad_format"
 character(*) out_file_name
@@ -519,7 +519,8 @@ character(300) line, knl_str, ksl_str
 character(2000) line_out
 
 logical, optional :: include_apertures, err
-logical converted, init_needed, in_solenoid, ptc_exact_model
+logical converted, init_needed, in_solenoid, ptc_exact_model, err_flag
+logical print_err
 
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
@@ -527,6 +528,10 @@ ptc_exact_model = ptc_com%exact_model
 ptc_com%exact_model = .true.
 
 ! Init
+
+n_warn_max = 10
+n_wig_model_err = 0
+print_wig_model_err_max = 5
 
 ix = integer_option(0, ix_branch)
 if (ix < 0 .or. ix > ubound(lat%branch, 1)) then
@@ -817,7 +822,11 @@ do
     if (ele%slave_status == super_slave$) then
       ! Create the wiggler model using the super_lord
       lord => pointer_to_lord(ele, 1)
-      call create_planar_wiggler_model (lord, lat_model)
+      print_err = (n_wig_model_err <= print_wig_model_err_max)
+      call create_planar_wiggler_model (lord, lat_model, err_flag, print_err = print_err)
+      if (err_flag) n_wig_model_err = n_wig_model_err + 1
+      if (n_wig_model_err == print_wig_model_err_max + 1) call out_io (s_warn$, r_name, &
+                  'Max number of wiggler error messages generated. Will not generate any more!')
       ! Remove all the slave elements and markers in between.
       call out_io (s_warn$, r_name, 'Note: Not translating the markers within wiggler: ' // lord%name)
       lord%ix_ele = -1 ! mark for deletion
@@ -832,7 +841,11 @@ do
         branch_out%ele(i)%ix_ele = -1  ! mark for deletion
       enddo
     else
-      call create_planar_wiggler_model (ele, lat_model)
+      print_err = (n_wig_model_err <= print_wig_model_err_max)
+      call create_planar_wiggler_model (ele, lat_model, err_flag, print_err = print_err)
+      if (err_flag) n_wig_model_err = n_wig_model_err + 1
+      if (n_wig_model_err == print_wig_model_err_max + 1) call out_io (s_warn$, r_name, &
+                  'Max number of wiggler error messages generated. Will not generate any more!')
     endif
 
     ele%ix_ele = -1 ! Mark for deletion

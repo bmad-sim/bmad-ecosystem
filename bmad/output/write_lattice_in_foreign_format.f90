@@ -89,7 +89,7 @@ integer, allocatable :: n_repeat(:), an_indexx(:)
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
 integer ie, ios, a_count, ix_lord, ix_match, iv, ifa, ix_pole_max
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylor_order_saved
-integer :: ix_line_min, ix_line_max, n_warn_max = 10
+integer :: ix_line_min, ix_line_max, n_warn_max, n_wig_model_err, print_wig_model_err_max
 
 character(*), parameter :: r_name = "write_lattice_in_foreign_format"
 character(*) out_type, out_file_name
@@ -98,10 +98,12 @@ character(40) orig_name, str, bmad_params(20), elegant_params(20)
 character(40), allocatable :: names(:)
 character(4000) line_out   ! Can be this large for taylor maps.
 character(2) continue_char, eol_char, comment_char, separator_char
+character(1), parameter :: num(9) = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 logical, optional :: use_matrix_model, include_apertures, err
 logical init_needed, mad_out, err_flag, monopole
 logical parsing, warn_printed, converted, ptc_exact_model
+logical print_err
 
 ! Julia translation
 
@@ -126,6 +128,10 @@ dr12_max = real_option(1d-5, dr12_drift_max)
 if (dr12_max < 0) dr12_max = 1d-5
 
 ! Init
+
+n_warn_max = 10
+n_wig_model_err = 0
+print_wig_model_err_max = 5
 
 ix = integer_option(0, ix_branch)
 if (ix < 0 .or. ix > ubound(lat%branch, 1)) then
@@ -504,8 +510,12 @@ do
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
           lord => pointer_to_lord(ele, 1)
-          call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // lord%name)
-          call create_planar_wiggler_model (lord, lat_model)
+          print_err = (n_wig_model_err <= print_wig_model_err_max)
+          !!! if (print_err) call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // lord%name)
+          call create_planar_wiggler_model (lord, lat_model, err_flag, print_err = print_err)
+          if (err_flag) n_wig_model_err = n_wig_model_err + 1
+          if (n_wig_model_err == print_wig_model_err_max + 1) call out_io (s_warn$, r_name, &
+                  'Max number of wiggler error messages generated. Will not generate any more!')
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &
               'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
@@ -522,8 +532,12 @@ do
           enddo
           ix_ele = ix_ele + (ix2 - ix1 - 1)
         else
-          call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // ele%name)
-          call create_planar_wiggler_model (ele, lat_model)
+          print_err = (n_wig_model_err <= print_wig_model_err_max)
+          !!! if (print_err) call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // ele%name)
+          call create_planar_wiggler_model (ele, lat_model, err_flag, print_err = print_err)
+          if (err_flag) n_wig_model_err = n_wig_model_err + 1
+          if (n_wig_model_err == print_wig_model_err_max + 1) call out_io (s_warn$, r_name, &
+                  'Max number of wiggler error messages generated. Will not generate any more!')
           ele%key = -1 ! Mark to ignore
         endif
 
@@ -897,17 +911,14 @@ do
       elegant_params(:7) = [character(40):: 'l', 'voltage', 'frequency', 'tilt', 'dx', 'dy', 'dz']
 
     case (patch$)   ! Elegant
-      if (all([ele%value(x_pitch$), ele%value(y_pitch$), ele%value(x_offset$), ele%value(x_offset$), ele%value(x_offset$)] == 0)) then
-        write (line_out, '(2a)') trim(ele%name) // ': rotate'
+      if (ele%value(tilt$) /= 0) then
+        write (line_out, '(2a)') trim(ele%name) // '_rot: rotate'
         call value_to_line (line_out, ele%value(tilt$),  'tilt', 'R')
-      else
-        write (line_out, '(2a)') trim(ele%name) // ': malign'
-        bmad_params(:5) = [character(40):: 'x_offset', 'y_offset', 'z_offset', 't_offset', 'e_tot_offset']
-        elegant_params(:5) = [character(40):: 'dx', 'dy', 'dz', 'dt', 'de']
-        if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
-          call out_io (s_warn$, r_name, 'PITCH OR TILT PARAMETERS OF A PATCH CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
-        endif
       endif
+
+      write (line_out, '(2a)') trim(ele%name) // ': malign'
+      bmad_params(:7) = [character(40):: 'x_offset', 'y_offset', 'z_offset', 't_offset', 'e_tot_offset', 'x_pitch', 'y_pitch']
+      elegant_params(:7) = [character(40):: 'dx', 'dy', 'dz', 'dt', 'de', 'dxp', 'dyp']
 
     case (floor_shift$)   ! Elegant
       write (line_out, '(2a)') trim(ele%name) // ': floor'
@@ -918,8 +929,17 @@ do
       call value_to_line (line_out, ele%floor%phi,   'phi', 'R')
       call value_to_line (line_out, ele%floor%psi,   'psi', 'R')
 
-!    case (match$)   ! Elegant
-!      write (line_out, '(2a)') trim(ele%name) // ': ilmatrix'
+    case (match$)   ! Elegant
+      write (line_out, '(2a)') trim(ele%name) // ': ematrix'
+      call value_to_line (line_out, ele%vec0(1),  'C1', 'R')
+      call value_to_line (line_out, ele%vec0(2),  'C2', 'R')
+      call value_to_line (line_out, ele%vec0(3),  'C3', 'R')
+      call value_to_line (line_out, ele%vec0(4),  'C4', 'R')
+      call value_to_line (line_out, ele%vec0(5),  'C5', 'R')
+      call value_to_line (line_out, ele%vec0(6),  'C6', 'R')
+      do i = 1, 6; do j = 1, 6
+        call value_to_line (line_out, ele%mat6(i,j),  'R' // num(i) // num(j), 'R')
+      enddo; enddo
 
     case default
       call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO TRANSLATE ELEMENT: ' // ele%name, &
@@ -959,13 +979,14 @@ do
       call value_to_line (line_out, offset(2), 'dy', 'R')
       call value_to_line (line_out, offset(3), 'dz', 'R')
 
+    ! Elegant
+    
     case (instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$)  ! Has tilt but not pitches.
-      if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
+      if (has_orientation_attributes(ele) .and. (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)) then
         call out_io (s_warn$, r_name, 'X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
       endif
-
-    case default    ! Elegant
-      if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+    case default
+      if (has_orientation_attributes(ele) .and. (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0)) then
         call out_io (s_warn$, r_name, 'TILT, X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
       endif
     end select
@@ -1422,7 +1443,6 @@ do n = 1, branch_out%n_ele_track
     init_needed = .false.
 
   else
-
     ix = len_trim(line_out) + len_trim(ele%name)
 
     if (ix > 75) then
@@ -1432,6 +1452,10 @@ do n = 1, branch_out%n_ele_track
     else
       line_out = trim(line_out) // trim(separator_char) // ' ' // ele%name
     endif
+  endif
+
+  if (out_type == 'ELEGANT' .and. ele%key == patch$ .and. ele%value(tilt$) /= 0) then
+    line_out = trim(line_out) // ', ' //  trim(ele%name) // '_rot'
   endif
 
   ! Output line if long enough or at end
