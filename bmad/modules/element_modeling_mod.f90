@@ -79,7 +79,7 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine create_planar_wiggler_model (wiggler_in, lat)
+! Subroutine create_planar_wiggler_model (wiggler_in, lat, err_flag, print_err)
 !
 ! Routine to create series of bend and drift elements to serve as a replacement 
 ! model for a planar wiggler.
@@ -99,17 +99,19 @@ end subroutine
 ! the actual wiggler has.
 !
 ! Input:
-!   wiggler       -- Ele_struct: Planar model wiggler to match to.
-!   wig_model_com -- Wiggler_modeling_common_struct: Global variable that can be used
+!   wiggler       -- ele_struct: Planar model wiggler to match to.
+!   wig_model_com -- wiggler_modeling_common_struct: Global variable that can be used
 !                      to set weights and step sizes for the optimization.
+!   print_err     -- logical, optional: If True (default) print an error message if there is an error.
 !
 ! Output:
-!   lat -- Lat_struct: Lattice containing the wiggler model
+!   lat       -- lat_struct: Lattice containing the wiggler model
 !     %ele(:)      -- Array of bends and drifts.
 !     %n_ele_track -- Number of elements in the model.
+!   err_flag  -- logical, optional: Set True if there is an error.
 !-
 
-subroutine create_planar_wiggler_model (wiggler_in, lat)
+subroutine create_planar_wiggler_model (wiggler_in, lat, err_flag, print_err)
 
 use super_recipes_mod
 
@@ -132,6 +134,9 @@ real(rp), allocatable :: y(:), yfit(:), weight(:), a(:)
 integer i, k, n_pole, last_peak_polarity
 integer i_max, n_var, n_data, status
 
+logical, optional :: err_flag, print_err
+logical printit
+
 character(*), parameter :: r_name = 'create_planar_wiggler_model'
 
 ! Check
@@ -139,15 +144,21 @@ character(*), parameter :: r_name = 'create_planar_wiggler_model'
 wiggler = wiggler_in
 wig_com => wiggler  ! For yfit_calc
 lat_com => lat      ! For yfit_calc
+printit = logic_option(.true., print_err)
+if (present(err_flag)) err_flag = .false.
 
 if (wiggler%key /= wiggler$ .and. wiggler%key /= undulator$) then
-  call out_io (s_fatal$, r_name, 'Element is not a wiggler!: ' // wiggler%name)
+  if (printit) call out_io (s_fatal$, r_name, 'Element is not a wiggler!: ' // wiggler%name)
   if (global_com%exit_on_error) call err_exit
+  if (present(err_flag)) err_flag = .true.
+  return
 endif
 
 if (wiggler%field_calc == helical_model$) then
-  call out_io (s_warn$, r_name, 'Element is a helical wiggler/undulator: ' // wiggler%name, &
-                         'Using a planar model for this element will not be accurate.')
+  if (printit) call out_io (s_warn$, r_name, &
+                          'Element is a helical wiggler/undulator: ' // wiggler%name, &
+                          'Using a planar model for this element will not be accurate.')
+  if (present(err_flag)) err_flag = .true.
 endif
 
 ! Calculate integrals and maximum field
@@ -234,13 +245,17 @@ endif
 
 if (n_pole == 2) then
   n_pole = 3
-  call out_io (s_error$, r_name, 'WIGGLER: ' // wiggler%name, &
+  if (printit) call out_io (s_error$, r_name, 'WIGGLER: ' // wiggler%name, &
              'HAS ONLY 2 POLES (1 PERIOD). THE WIGGLER MODEL WILL NOT BE ACCURATE.')
+  if (present(err_flag)) err_flag = .true.
+
 
 elseif (n_pole < 2  .and. g_max /= 0) then
-  call out_io (s_error$, r_name, 'WIGGLER: ' // wiggler%name, &
+  if (printit) call out_io (s_error$, r_name, 'WIGGLER: ' // wiggler%name, &
              'HAS LESS THAN 2 POLES (1 PERIOD). CANNOT CREATE A WIGGLER MODEL.', &
              'WILL MODEL AS A DRIFT...')
+  if (present(err_flag)) err_flag = .true.
+
   call init_lat (lat, 1)
   ele => lat%ele(1)
   ele%key = drift$
@@ -436,11 +451,10 @@ do i = 1, 100
   if (a_lambda > 1d10) exit
 enddo
 
-call out_io (s_blank$, r_name, 'Wiggler fitting: ' // trim(wiggler%name) // '  Merit: \f10.3\ ', r_array = [chisq])
+if (printit) call out_io (s_blank$, r_name, 'Wiggler fitting: ' // trim(wiggler%name) // '  Merit: \f10.3\ ', r_array = [chisq])
 
 if (any(wig_model_com%len_drifts < 0)) then
-  call out_io (s_warn$, r_name, 'Wiggler fitting producing negative drift lengths! ' // wiggler%name)
-
+  if (printit) call out_io (s_warn$, r_name, 'Wiggler fitting producing negative drift lengths! ' // wiggler%name)
 endif
 
 deallocate (y, yfit, weight, a)
