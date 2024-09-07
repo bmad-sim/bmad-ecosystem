@@ -18,8 +18,10 @@
 !                 If a name and no branch is given, all branches are searched.
 !                 If an index and no branch is given, branch 0 is assumed.
 !   ##N       -- N = integer. N^th instance of ele_id in the branch.
-!   +/-offset -- Element offset. For example, "Q1+1" is the element after "Q1" and 
-!                 "Q1-2" is the second element before "Q1".
+!   +/-offset -- Element offset. For example, "Q1+1" is the element after "Q1" and "Q1-2" is the second element 
+!                 before "Q1". Modulo arithmatic is used so the offset wraps around the ends of the lattice. 
+!                 EG: "BEGINNING-1" gives the END element and "END+1" gives the BEGINNING element.
+!                     
 ! Note: An old syntax that is still supported is:
 !   {key::}{branch>>}ele_id{##N}
 !

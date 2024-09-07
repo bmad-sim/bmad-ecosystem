@@ -83,6 +83,7 @@ type ltt_params_struct
   logical :: only_live_particles_out = .true.
   logical :: ramping_on = .false.
   logical :: ramp_update_each_particle = .false.
+  logical :: ramp_particle_energy_without_rf = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: symplectic_map_tracking = .false.
@@ -906,6 +907,7 @@ call ltt_write_line('# ltt%output_only_last_turns              = ' // int_str(lt
 call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
 call ltt_write_line('# ltt%output_combined_bunches             = ' // logic_str(lttp%output_combined_bunches), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
+call ltt_write_line('# ltt%ramp_particle_energy_without_rf     = ' // logic_str(lttp%ramp_particle_energy_without_rf), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%set_beambeam_z_crossing             = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
 call ltt_write_line('# ltt%random_seed                         = ' // int_str(lttp%random_seed), lttp, iu, print_this)
@@ -2318,6 +2320,7 @@ write (iu,  '(a, i8)')   '# n_particle                          = ', n_particle
 write (iu,  '(a, i8)')   '# n_turns                             = ', lttp%n_turns
 write (iu,  '(a, l1)')   '# ramping_on                          = ', lttp%ramping_on
 write (iu,  '(a, l1)')   '# ramp_update_each_particle           = ', lttp%ramp_update_each_particle
+write (iu,  '(a, l1)')   '# ramp_particle_energy_without_rf     = ', lttp%ramp_particle_energy_without_rf
 write (iu,  '(2a)')      '# ramping_start_time                  = ', real_str(lttp%ramping_start_time, 6)
 write (iu,  '(a, i8)')   '# particle_output_every_n_turns       = ', lttp%particle_output_every_n_turns
 write (iu,  '(a, i8)')   '# averages_output_every_n_turns       = ', lttp%averages_output_every_n_turns
@@ -3438,7 +3441,10 @@ do ip = 1, size(bunch%particle)
   r = orb%p0c / ele%value(p0c_start$)
   orb%vec(2) = r * orb%vec(2)
   orb%vec(4) = r * orb%vec(4)
-  orb%vec(6) = r * orb%vec(6) + (orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+  ! Normally need to adjust pz (vec(6)) so that the particle energy (1 + orb%vec(6)) * orb%p0c is not changed.
+  if (.not. ltt_params_global%ramp_particle_energy_without_rf) then
+    orb%vec(6) = r * orb%vec(6) + (orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+  endif
   orb%p0c = ele%value(p0c_start$)
 enddo
 
@@ -3537,7 +3543,10 @@ if (start_orb%p0c == ele%value(p0c_start$)) return
 r = start_orb%p0c / ele%value(p0c_start$)
 start_orb%vec(2) = r * start_orb%vec(2)
 start_orb%vec(4) = r * start_orb%vec(4)
-start_orb%vec(6) = r * start_orb%vec(6) + (start_orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+! Normally need to adjust pz (vec(6)) so that the particle energy (1 + orb%vec(6)) * orb%p0c is not changed.
+if (.not. ltt_params_global%ramp_particle_energy_without_rf) then
+  start_orb%vec(6) = r * start_orb%vec(6) + (start_orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+endif
 start_orb%p0c = ele%value(p0c_start$)
 
 end subroutine ltt_track1_preprocess
