@@ -79,7 +79,7 @@ type (spin_results_struct), allocatable :: result(:)
 
 procedure(track1_custom_def) :: track1_custom
 
-real(rp) orbit_start(3), orbit_stop(3), delta(3), xfer_mat(3,3), closed_orb_invar_spin(3), dtune
+real(rp) orbit_start(6), orbit_stop(6), delta(6), xfer_mat(3,3), closed_orb_invar_spin(3), dtune
 real(rp) time, unit_mat(3,3), norm_max, norm, tune2, r, axis(3), ave_invar_spin(3), dphase_long, dphase_transverse
 real(rp) f(3), p_lim, angle, angle0, angle1, angle2, dangle, j_amp(3), old_relaxed_invar_spin(3), old_scatter_min_invar_spin(3)
 real(rp) old_angle, spin_tune, phase(3), d, relaxation_tolerance, g, old_spin_tune, dphase_amp_min, dphase_amp_this
@@ -90,10 +90,10 @@ real(rp) orbit_tune(3), mode3_tune(3), hoff_invar_spin(3), old_hoff_invar_spin(3
 real(rp) scatter_norm_cutoff, spin_tune_tolerance, methods_invar_spin0(3)
 real(rp), allocatable :: merit_vec(:)
 
-integer i, j, k, k2, ix, it, ir, j1, j2, jj, n, nn, ibx, iby, ibz, ix_x, ix_y, ix_z, ix_xyz(3), np
+integer i, j, k, k2, ix, it, ir, j1, j2, jj, n, nn, ibx, iby, ibz, ix1, ix2, ix3, ix4, ix5, ix6, ix_xyz(6), np
 integer i0, i1, i2, n_del, n_turns_min, n_turns_max, n0(3), n1(3), track_state, i_dependent, n_wind
 integer i_turn, i_cycle, ix_lat_branch, status, ia, relaxation_weight, scatter_weight, nt_max
-integer calc_every, n_points(3), methods_n_turn_invar_spin0
+integer calc_every, n_points(6), methods_n_turn_invar_spin0
 integer, allocatable :: indx(:)
 
 logical rf_on, first_time, linear_in_action, mode_is_oscillating(3), err, spin_tune_calc, full_average
@@ -101,7 +101,7 @@ logical scatter_minimization_calc, self_consistent_calc, is_indep(3), at_end, ou
 logical use_coordinate_for_phase_diff_calc(3)
 
 character(200) bmad_lat, param_file, methods_data_file
-character(6) num_str
+character(12) num_str
 
 namelist / strob_params / bmad_lat, rf_on, orbit_start, orbit_stop, n_points, n_turns_min, n_turns_max, calc_every, &
            relaxation_tolerance, scatter_norm_cutoff, methods_data_file, methods_invar_spin0, scatter_weight, &
@@ -138,10 +138,17 @@ relaxation_weight = 1
 scatter_weight = 1
 full_average = .true.
 use_coordinate_for_phase_diff_calc = .true.
+orbit_stop = real_garbage$
+n_points = int_garbage$
 
 open (1, file = param_file)
 read (1, nml = strob_params)
 close (1)
+
+if (any(orbit_stop == real_garbage$) .or. any(n_points == int_garbage$)) then
+  print *, 'orbit_start, orbit_stop, and n_points are now vectors of length 6 (not 3). Please correct your input file.'
+  stop
+endif
 
 bmad_com%auto_bookkeeper = .false.
 bmad_com%spin_tracking_on = .true.
@@ -209,38 +216,41 @@ ele0 => branch%ele(0)
 call reallocate_coord (orbit, lat, ix_lat_branch)
 call run_timer('START')
 
-open (2, file = 'spin_stroboscope.dat', recl = 300)
-write (2, '(a)') '# ix  iy  iy  n_turn         Initial position (x, y, pz)              Orbit Action (Jx, Jy, Jz)                   spin_tune      p_lim            Average Spin (x,y,z)             Invariant Spin at Start (x,y,z)'
+open (2, file = 'spin_stroboscope.dat', recl = 400)
+write (2, '(a)') '# ix ipx  iy ipy  iz ipz  n_turn         Initial position                                                             Orbit Action (Jx, Jy, Jz)                   spin_tune      p_lim            Average Spin (x,y,z)             Invariant Spin at Start (x,y,z)'
 
-do ix_x = 1, n_points(1)
-do ix_y = 1, n_points(2)
-do ix_z = 1, n_points(3)
-  ix_xyz = [ix_x, ix_y, ix_z]
+do ix1 = 1, n_points(1)
+do ix2 = 1, n_points(2)
+do ix3 = 1, n_points(3)
+do ix4 = 1, n_points(4)
+do ix5 = 1, n_points(5)
+do ix6 = 1, n_points(6)
+  ix_xyz = [ix1, ix2, ix3, ix4, ix5, ix6]
 
   call init_coord (start_orb, closed_orb(0), branch%ele(0), upstream_end$)
 
-  do i = 1, 3
+  do i = 1, 6
     if (linear_in_action .and. i /= 3) then
       delta(i) = sqrt(orbit_start(i)**2 + (ix_xyz(i) - 1) * (orbit_stop(i)**2 - orbit_start(i)**2) / max(1, n_points(i) - 1))
     else
       delta(i) = orbit_start(i) + (ix_xyz(i) - 1) * (orbit_stop(i) - orbit_start(i)) / max(1, n_points(i) - 1)
     endif
 
-    k = 2*i - 1
-    if (i == 3) k = 6
-    start_orb%vec(k) = start_orb%vec(k) + delta(i)
+    start_orb%vec(i) = start_orb%vec(i) + delta(i)
   enddo
 
   orbit(0) = start_orb
 
-  mode_is_oscillating(1:3) = (delta /= 0)
+  do i = 1, 3
+    mode_is_oscillating(i) = (delta(2*i-1) /= 0 .and. delta(2*i) /= 0)
+  enddo
   if (.not. rf_on) mode_is_oscillating(3) = .false.
 
   call run_timer('READ', time)
   if (verbose) then
     print *
     print '(a)', '!--------------------------------------------------------------'
-    print '(a, 3i5, 6f12.8)', 'Orbit: ', ix_xyz, orbit(0)%vec - closed_orb(0)%vec
+    print '(a, 6i5, 6f12.8)', 'Orbit: ', ix_xyz, orbit(0)%vec - closed_orb(0)%vec
     print '(a, 3l4)',         'Oscillating Modes: ', mode_is_oscillating
     print '(a, f10.1)',       'Time From Start (min):', time/60
   endif
@@ -686,7 +696,7 @@ do ix_z = 1, n_points(3)
   !----------------------------
   ! Write some results
 
-  write (num_str, '(3i2.2)') ix_xyz
+  write (num_str, '(6i2.2)') ix_xyz
 
   call write_spin_track('spin_track.dat' // trim(num_str))
 
@@ -715,7 +725,7 @@ do ix_z = 1, n_points(3)
     j_amp(i) = (ele0%value(e_tot$)/mass_of(branch%param%particle)) * delta(i)**2 / ele0%b%beta
   enddo
 
-  write (2, '(3i4, i8, 2x, 3f13.8, 4x, 3es14.6, 5x f11.6, f11.6, 2(5x, 3f11.7))') ix_xyz, i_turn, &
+  write (2, '(6i4, i8, 2x, 6f13.8, 4x, 3es14.6, 5x f11.6, f11.6, 2(5x, 3f11.7))') ix_xyz, i_turn, &
                             delta, j_amp, spin_tune,  p_lim, ave_invar_spin, s(0)%invar_spin
 
 
@@ -740,7 +750,9 @@ do ix_z = 1, n_points(3)
     enddo
   endif
 
-
+enddo
+enddo
+enddo
 enddo
 enddo
 enddo
