@@ -23,7 +23,7 @@ The \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) holds parameters whic
 initialize a beam. The parameters of this structure, shown with their default values, are:
 \begin{example}
   type beam_init_struct
-    character(200) :: position_file = ''       ! Initialization file name.
+    character(200) :: position_file = ""       ! Initialization file name.
     character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
