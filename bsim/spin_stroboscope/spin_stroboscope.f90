@@ -242,7 +242,7 @@ do ix6 = 1, n_points(6)
   orbit(0) = start_orb
 
   do i = 1, 3
-    mode_is_oscillating(i) = (delta(2*i-1) /= 0 .and. delta(2*i) /= 0)
+    mode_is_oscillating(i) = (delta(2*i-1) /= 0 .or. delta(2*i) /= 0)
   enddo
   if (.not. rf_on) mode_is_oscillating(3) = .false.
 
