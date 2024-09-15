@@ -506,14 +506,33 @@ Elements that are used to manipulate the reference orbit are
 \item\vn{Girder Elements} (\sref{s:girder.orient}) \Newline
 %
 \item\vn{Control Elements} \Newline
-Control elements are elements that control attributes of other
-elements. The control elements are:
+Control elements are elements that control attributes of other elements. Except for \vn{girder}
+control elements, these elements do not have orientational attributes. Control elements that fall
+into this list are:
 \begin{example}
   group
   overlay
+  ramper
 \end{example}
-These elements do not have orientational attributes.
   \end{enumerate}
+
+%-----------------------------------------------------------------
+\subsection{Global Random Misalignment of Elements}
+\label{s:global.mis}
+
+It is often convenient to randomly misalign sets of elements. This can be done using the \vn{ran}
+and \vn{ran_gauss} functions (\sref{s:functions}). For example:
+\begin{example}
+  quadrupole::bnd10:bnd20[y_offset] = 1.4e-6*ran_gauss(5)
+\end{example}
+The above line sets the \vn{y_offset} of all the quadrupoles in the range from element \vn{BND10} to
+element \vn{BND20}. 
+
+When \vn{ran} or \vn{ran_gauss} is used in a lattice file, each time the file is read in, a new set
+of random numbers are generated unless \vn{parameter[ran_seed]} is set to a non-zero value in the
+lattice file before \vn{ran} or \vn{ran_gauss} is used. To save a particular set of generated 
+random values, write out the lattice file (the \vn{write bmad} command can be used if running \tao)
+after it has been read in.
 
 %-----------------------------------------------------------------
 \subsection{Straight Line Element Orientation}
@@ -1154,7 +1173,7 @@ the entrance and exit reference orbit.}
 \section{X-Ray Reflectivity Tables}
 \label{s:reflect}
 
-Reflectivity tables are used to define reflectivity propabilities as functions of incidence angle and
+Reflectivity tables are used to define reflectivity probabilities as functions of incidence angle and
 photon energy for \vn{crystal} and \vn{mirror} elements.
 
 The general syntax is:
@@ -1181,7 +1200,7 @@ Possible \vn{polarization} names are:
 \begin{example}
   pi        ! Table is for pi mode
   sigma     ! Table is for sigma mode
-  both      ! Table is for both polarizations. Defalut.
+  both      ! Table is for both polarizations. Default.
 \end{example}
 An element needs a single table with \vn{polarization} marked as \vn{both} or two tables,
 one for \vn{sigma} and the other for \vn{pi}.

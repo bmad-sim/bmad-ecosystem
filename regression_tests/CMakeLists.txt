@@ -53,6 +53,7 @@ set (EXE_SPECS
   cmake_files/cmake.wake_test
   cmake_files/cmake.wall3d_test
   cmake_files/cmake.write_bmad_test
+  cmake_files/cmake.write_foreign_test
   cmake_files/cmake.xraylib_test
 )
 

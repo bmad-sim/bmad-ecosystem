@@ -1080,11 +1080,15 @@ case (solenoid$, sol_quad$, quadrupole$)
     T_end(4,1) =  ks / 2
     T_end(2,3) = -ks / 2
 
-    call init_ele (sol_quad)
+
+    call transfer_ele (slave, sol_quad)
     sol_quad%key = sol_quad$
     sol_quad%value(ks$) = ks
     sol_quad%value(k1$) = k1
     sol_quad%value(l$)  = l_slave
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(ks$))
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(k1$))
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(l$))
     call make_mat6 (sol_quad, branch%param)
     T_tot = sol_quad%mat6(1:4,1:4)
 

@@ -513,11 +513,11 @@ sodom2_write_n
 sodom2_write_particles
 sodom2_check_n
 
-File: spin_stroboscope/spin_stroboscope.f90
-spin_stroboscope
-
 File: spin_stroboscope/track1_custom.f90
 track1_custom
+
+File: spin_stroboscope/spin_stroboscope.f90
+spin_stroboscope
 
 File: synrad/synrad_plot_mod.f90
 synrad_plot_mod

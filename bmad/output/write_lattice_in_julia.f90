@@ -1,19 +1,20 @@
 !+
-! Subroutine write_lattice_in_julia(bmad_file, lat, julia_file)
+! Subroutine write_lattice_in_julia(julia_file, lat, err_flag)
 !
 ! Routine to create a Bmad-Julia lattice file.
 !
 ! Input:
 !   lat           -- lat_struct: Lattice
-!   bmad_file     -- character(*): Input Bmad lattice file name.
-!                     If the name does not have a .jl suffix then this suffix will be added.
+!
 ! Output:
 !   julia_file    -- character(*), optional: Bmad-Julia lattice file name.
+!   err_flag      -- logical, optional: Error flag
 !-
 
-subroutine write_lattice_in_julia(bmad_file, lat, julia_file)
+subroutine write_lattice_in_julia(julia_file, lat, err_flag)
 
-use write_lat_file_mod, dummy => write_lattice_in_julia
+use write_lattice_file_mod, dummy => write_lattice_in_julia
+use bmad,  dummy2 => write_lattice_in_julia
 
 implicit none
 
@@ -37,16 +38,15 @@ integer ix_lord, ix_super, ie1, ib1
 integer, allocatable :: an_indexx(:), index_list(:)
 
 logical has_been_added, in_multi_region, have_expand_lattice_line, err
+logical, optional :: err_flag
 
-character(*) bmad_file
-character(*), optional :: julia_file
+character(*) julia_file
 character(1) prefix
 character(40) name, look_for
 character(40), allocatable :: names(:)
 character(240) fname
 character(1000) line
 character(*), parameter :: r_name = 'write_lattice_in_julia'
-
 
 character(20), parameter :: julia_name(n_key$) = [character(20):: &
     'Drift             ', 'Bend              ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
@@ -67,15 +67,13 @@ character(20), parameter :: julia_name(n_key$) = [character(20):: &
 
 ! Open file
 
-call fullfilename(bmad_file, fname)
-call file_suffixer(fname, fname, '.jl', .true.)
+call fullfilename(julia_file, fname)
 iu = lunget()
 open (iu, file = fname, status = 'unknown')
-if (present(julia_file)) julia_file = fname
 
 ! Write element defs
 
-write (iu, '(a)') '# Lattice file translated from Fortran Bmad.'
+write (iu, '(a)') '# Lattice file translated from Bmad.'
 write (iu, '(a)')
 
 n_names = 0

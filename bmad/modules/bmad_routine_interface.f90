@@ -3362,12 +3362,48 @@ subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_or
   logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
 
-subroutine write_lattice_in_julia (bmad_name, lat, julia_name)
+subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
+                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
   import
   implicit none
   type (lat_struct), target :: lat
-  character(*) bmad_name
-  character(*), optional :: julia_name
+  type (lat_struct), optional, target :: converted_lat
+  type (coord_struct), allocatable, optional :: ref_orbit(:)
+  real(rp), optional :: dr12_drift_max
+  integer, optional :: ix_branch
+  character(*) out_type, out_file_name
+  logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_matrix_model, &
+                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (lat_struct), optional, target :: converted_lat
+  type (coord_struct), allocatable, optional :: ref_orbit(:)
+  real(rp), optional :: dr12_drift_max
+  integer, optional :: ix_branch
+  character(*) out_file_name
+  logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (lat_struct), optional, target :: converted_lat
+  integer, optional :: ix_branch
+  character(*) out_file_name
+  logical, optional :: include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_julia (julia_name, lat, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) :: julia_name
+  logical, optional :: err_flag
 end subroutine
 
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
