@@ -17849,18 +17849,19 @@ subroutine ddt_vector_field_fourier(s1,ds1)
 
 end subroutine ddt_vector_field_fourier
 
-subroutine print_vector_field_fourier(s1,mf,collated)
+subroutine print_vector_field_fourier(s1,mf,collated,non_zero_only)
     implicit none
     TYPE (c_vector_field_fourier), INTENT (INout) :: S1 
-    logical, optional  :: collated
-    logical usual
+    logical, optional  :: collated,non_zero_only
+    logical usual,nonz
     INTEGER I,mf,j
     usual=.false.
      if(present(collated)) usual=.not.collated
 
      write(mf,*) 0,"th mode"
      call print(s1%f(0),mf)  !,dospin=.false.)
-
+     nonz=.false.
+     if(present(non_zero_only)) nonz=non_zero_only
     do i=1,n_fourier
 
     if(usual) then
@@ -17869,16 +17870,30 @@ subroutine print_vector_field_fourier(s1,mf,collated)
      call print(s1%f(-i),mf)  !,dospin=.false.)
    else
      do j=1,s1%f(i)%n
+      if(nonz) then
+       write(mf,*) i,"th mode orbital",j   
+       if(full_abs(s1%f(i)%v(j))/=0)  call print(s1%f(i)%v(j),mf)  !,dospin=.false.)
+       write(mf,*) -i,"th orbital",j
+       if(full_abs(s1%f(-i)%v(j))/=0) call print(s1%f(-i)%v(j),mf)  !,dospin=.false.)
+      else
        write(mf,*) i,"th mode orbital",j
        call print(s1%f(i)%v(j),mf)  !,dospin=.false.)
        write(mf,*) -i,"th orbital",j
        call print(s1%f(-i)%v(j),mf)  !,dospin=.false.)
+      endif
      enddo
      do j=0,3
-       write(mf,*) i,"th quaternion",j
-       call print(s1%f(i)%q%x(j),mf)  !,dospin=.false.)
-       write(mf,*) -i,"th mode quaternion",j
-       call print(s1%f(-i)%q%x(j),mf)   !,dospin=.false.)
+       if(nonz) then
+        write(mf,*) i,"th quaternion",j
+        if(full_abs(s1%f(i)%q%x(j))/=0) call print(s1%f(i)%q%x(j),mf)  !,dospin=.false.)
+        write(mf,*) -i,"th mode quaternion",j
+        if(full_abs(s1%f(-i)%q%x(j))/=0) call print(s1%f(-i)%q%x(j),mf)  !,dospin=.false.)
+       else
+        write(mf,*) i,"th quaternion",j
+        call print(s1%f(i)%q%x(j),mf)  !,dospin=.false.)
+        write(mf,*) -i,"th mode quaternion",j
+        call print(s1%f(-i)%q%x(j),mf)   !,dospin=.false.)
+       endif
      enddo
  
       endif
@@ -21938,24 +21953,28 @@ IF(O>1) call exp_vector_field_fourier(Fc,Ht,Ht)   ! (2)
 jq=0
                call check_kernel_ham(ki,n,je,nu,da,removeit,m,nus,jq)
  
-
+!!! m.nu+k=0   =>  k=-p
  if(removeit.and.present(mres)) then
+ je(ki)=je(ki)-1
    ires=0
     do l=1,c_%nd
      ires=iabs(mres(L)-(je(2*L)-je(2*L-1)))+ires
     enddo
-   ires=iabs(mres(-1)-jq)+ires
-   ires=iabs(-mres(0)-m)+ires
+!   ires=iabs(mres(-1)-jq)+ires
+   ires=iabs(-mres(0)-m)+ires !k=-p
    if(ires==0) removeit=.false.
+je(ki)=je(ki)+1
   endif
  if(removeit.and.present(mres)) then
+je(ki)=je(ki)-1
    ires=0
     do l=1,c_%nd
      ires=iabs(-mres(L)-(je(2*L)-je(2*L-1)))+ires
     enddo
-    ires=iabs(-mres(-1)-jq)+ires
-    ires=iabs(mres(0)-m)+ires
+!    ires=iabs(-mres(-1)-jq)+ires
+    ires=iabs(mres(0)-m)+ires !k=-p
    if(ires==0) removeit=.false.
+je(ki)=je(ki)+1
   endif
 
             if(removeit) then
@@ -21993,14 +22012,14 @@ jq=0
  
  
   call check_kernel_ham(0,n,je,nu,da,removeit,m,nus,jq)
-
+!!! m.nu+k=0   =>  k=-p
  if(removeit.and.present(mres)) then
    ires=0
     do l=1,c_%nd
      ires=iabs(mres(L)-(je(2*L)-je(2*L-1)))+ires
     enddo
    ires=iabs(mres(-1)-jq)+ires
-   ires=iabs(-mres(0)-m)+ires
+   ires=iabs(-mres(0)-m)+ires  !k=-p
    if(ires==0) removeit=.false.
   endif
  if(removeit.and.present(mres)) then
@@ -22009,7 +22028,7 @@ jq=0
      ires=iabs(-mres(L)-(je(2*L)-je(2*L-1)))+ires
     enddo
     ires=iabs(-mres(-1)-jq)+ires
-    ires=iabs(mres(0)-m)+ires
+    ires=iabs(mres(0)-m)+ires !k=-p
    if(ires==0) removeit=.false.
   endif
 

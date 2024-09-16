@@ -11,10 +11,10 @@ exe = sys.argv[1] + 'write_foreign_test'
 results = subprocess.run([exe], stdout=subprocess.PIPE).stdout.decode('utf-8')
 d = difflib.Differ()
 
-files = ['write_foreign_test.mad8', 'write_foreign_test.madx', 'write_foreign_test.sad', 
-             'write_foreign_test.lte', 'write_foreign_test.julia', 'write_foreign_test.opal']
+##files = ['write_foreign_test.mad8', 'write_foreign_test.madx', 'write_foreign_test.sad', 
+##             'write_foreign_test.lte', 'write_foreign_test.julia', 'write_foreign_test.opal']
 
-files = ['write_foreign_test.mad8', 'write_foreign_test.madx', 
+files = ['write_foreign_test.mad8', 'write_foreign_test.madx', 'write_foreign_test.sad', 
              'write_foreign_test.lte', 'write_foreign_test.julia']
 
 for file in files:

@@ -34,8 +34,8 @@ call write_lattice_in_foreign_format ('MAD-8', out_file, lat)
 call file_suffixer(lat_file, out_file, 'madx.now', .true.)
 call write_lattice_in_foreign_format ('MAD-X', out_file, lat)
 
-!call file_suffixer(lat_file, out_file, 'sad.now', .true.)
-!call write_lattice_in_foreign_format ('SAD', out_file, lat)
+call file_suffixer(lat_file, out_file, 'sad.now', .true.)
+call write_lattice_in_foreign_format ('SAD', out_file, lat)
 
 call file_suffixer(lat_file, out_file, 'lte.now', .true.)
 call write_lattice_in_foreign_format ('ELEGANT', out_file, lat)
@@ -43,6 +43,7 @@ call write_lattice_in_foreign_format ('ELEGANT', out_file, lat)
 call file_suffixer(lat_file, out_file, 'julia.now', .true.)
 call write_lattice_in_foreign_format ('JULIA', out_file, lat)
 
+! This needs some work. Specifically there should be a separate lattice for testing.
 !call file_suffixer(lat_file, out_file, 'opal.now', .true.)
 !call write_lattice_in_foreign_format ('OPAL-T', out_file, lat)
 
