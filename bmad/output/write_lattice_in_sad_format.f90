@@ -8,7 +8,7 @@
 subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
 
 use element_modeling_mod, dummy => write_lattice_in_sad_format
-use write_lattice_file_mod, dummy2 => write_lattice_in_julia
+use write_lattice_file_mod, dummy2 => write_lattice_in_sad_format
 
 implicit none
 
