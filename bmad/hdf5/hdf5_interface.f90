@@ -11,9 +11,12 @@ module hdf5_interface
 
 use h5lt
 use hdf5
+
 use sim_utils
-use iso_fortran_env
 use fortran_cpp_utils
+
+use iso_fortran_env
+USE iso_c_binding
 
 implicit none
 
@@ -77,29 +80,6 @@ end interface
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_read_dataset_int (group_id, dset_name, int_buf, error, err_str)
-!
-! Routine to read a dataset of integers.
-! This overloads hdf5_read_dataset_int_rankN where N is 0, 1, 2, or 3.
-! Note: The int_buf array size and shape must be correct for the dataset read.
-!
-! Input:
-!   loc_id          -- integer(hid_t): Id of group containing the dataset.
-!   dset_name       -- character(*): Name of the dataset.
-!   err_str         -- character(*), optional: String to use with error message.
-!
-! Output:
-!   int_buf         -- integer: For datasets storing a single value.
-!   int_buf(:)      -- integer: For datasets storing a 1D array.
-!   int_buf(:,:)    -- integer: For datasets storing a 2D array.
-!   int_buf(:,:,:)  -- integer: For datasets storing a 3D array.
-!   error           -- logical: Set True if there is an error.
-!-
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
 ! Subroutine hdf5_read_dataset_real (group_id, dset_name, real_buf, error, err_str)
 !
 ! Routine to read a dataset of reals.
@@ -126,6 +106,8 @@ interface hdf5_read_dataset_real
   module procedure hdf5_read_dataset_real_rank3
 end interface
 
+!------------------------------------------------------------------------------------------
+
 interface hdf5_read_attribute_real
   module procedure hdf5_read_attribute_real_rank0
   module procedure hdf5_read_attribute_real_rank1
@@ -134,6 +116,15 @@ end interface
 interface hdf5_read_attribute_int
   module procedure hdf5_read_attribute_int_rank0
   module procedure hdf5_read_attribute_int_rank1
+end interface
+
+interface hdf5_read_attribute_string
+  module procedure hdf5_read_attribute_string_rank0
+  module procedure hdf5_read_attribute_string_rank1
+end interface
+
+interface hdf5_read_attribute_alloc_string
+  module procedure hdf5_read_attribute_alloc_string_rank0
 end interface
 
 interface hdf5_write_dataset_int
@@ -166,6 +157,217 @@ interface hdf5_write_attribute_string
 end interface
 
 contains
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_alloc_string_rank0(root_id, attrib_name, string, error, print_error, err_str)
+!
+! Routine to read a string attribute.
+! Also see: hdf5_read_attribute_string
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!   err_str       -- character(*), optional: String to use with error message.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   string        -- character(:), allocatable: Variable length string to hold the attribute value.
+!-
+
+subroutine hdf5_read_attribute_alloc_string_rank0(root_id, attrib_name, string, error, print_error, err_str)
+
+type (hdf5_info_struct) info
+
+integer(hid_t) root_id, a_id
+integer h5_err
+
+logical error, print_error
+
+character(*) attrib_name
+character(:), allocatable :: string
+character(*), optional :: err_str
+character(*), parameter :: r_name = 'hdf5_read_attribute_alloc_string_rank0'
+
+!
+
+info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+
+if (info%data_class_type /= H5T_STRING_F) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'ATTRIBUTE: ' // string_option(attrib_name, err_str), 'IS NOT A STRING!')
+  endif
+  allocate(character(0) :: string)
+  return
+endif
+
+allocate(character(info%data_size) :: string)
+call H5LTget_attribute_string_f(root_id, '.', attrib_name, string, h5_err)
+if (h5_err < 0) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // string_option(attrib_name, err_str))
+  endif
+  string = ''
+  return
+endif
+
+error = .false.
+
+end subroutine hdf5_read_attribute_alloc_string_rank0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_string_rank0(root_id, attrib_name, string, error, print_error, err_str)
+!
+! Routine to read a string attribute.
+! Also see: hdf5_read_attribute_alloc_string
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!   err_str       -- character(*), optional: String to use with error message.
+!
+! Output:
+!   error         -- logical: Set true if there is an error. False otherwise.
+!   string        -- character(*): String to hold the attribute value. Set to blank if there is an error.
+!-
+
+subroutine hdf5_read_attribute_string_rank0(root_id, attrib_name, string, error, print_error, err_str)
+
+type (hdf5_info_struct) info
+
+integer(hid_t) root_id, a_id
+integer h5_err, n
+
+logical error, print_error
+
+character(*) attrib_name
+character(*) :: string
+character(*), optional :: err_str
+character(*), parameter :: r_name = 'hdf5_read_attribute_string'
+
+!
+
+string = ''
+
+info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+
+if (info%data_class_type /= H5T_STRING_F) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'ATTRIBUTE: ' // string_option(attrib_name, err_str), 'IS NOT A STRING!')
+  endif
+  return
+endif
+
+call H5LTget_attribute_string_f(root_id, '.', attrib_name, string, h5_err)
+if (h5_err < 0) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // string_option(attrib_name, err_str))
+  endif
+  return
+endif
+
+! This is to get around an HDF5 (V1.10.4) bug where extra garbage characters can be present.
+
+n = min(len(string), info%data_size)
+string = string(1:n)
+
+error = .false.
+
+end subroutine hdf5_read_attribute_string_rank0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_attribute_string_rank1(root_id, attrib_name, string, error, print_error, err_str)
+!
+! Routine to create an HDF5 string array attribute.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group or dataset the attribute is to be put in.
+!   attrib_name   -- character(*): Name of the attribute.
+!   print_error   -- logical: If true, print an error message if there is a problem.
+!   err_str       -- character(*), optional: String to use with error message.
+!
+! Output
+!   strings(:)    -- character(*), allocatable: String array.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
+
+subroutine hdf5_read_attribute_string_rank1(root_id, attrib_name, strings, error, print_error, err_str)
+
+type (hdf5_info_struct) info
+type(c_ptr) :: f_ptr
+
+integer(hid_t) :: root_id, attrib_id, attrib_type, space, mem_type
+integer(size_t) size, string_len
+integer(hsize_t) dims(1), maxdims(1)
+integer h5_err
+
+character(*) :: attrib_name
+character(*), optional :: err_str
+character(*), allocatable, target :: strings(:)
+character(*), parameter :: r_name = 'hdf5_read_attribute_string_rank1'
+logical error, print_error
+
+!
+
+error = .true.
+
+info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+
+if (info%data_class_type /= H5T_STRING_F) then
+  if (print_error) then
+    call out_io (s_error$, r_name, 'ATTRIBUTE: ' // string_option(attrib_name, err_str), 'IS NOT A STRING ARRAY!')
+  endif
+  return
+endif
+
+call H5Aopen_f(root_id, attrib_name, attrib_id, h5_err); if (h5_err < 0) return
+ 
+call H5Aget_type_f(attrib_id, attrib_type, h5_err)
+call H5Tget_size_f(attrib_type, size, h5_err)
+
+! Get dataspace and allocate memory for read buffer.
+
+call H5Aget_space_f(attrib_id, space, h5_err)
+call H5Sget_simple_extent_dims_f(space, dims, maxdims, h5_err)
+
+if (allocated(strings)) deallocate(strings)
+allocate(strings(1:dims(1)))
+
+string_len = len(strings(1))
+if (size > string_len+1) then
+   call out_io (s_error$, r_name, 'STRINGS ARGUMENT LENGTH IS TO SMALL.')
+   return
+endif
+
+! Create the memory datatype.
+
+call H5Tcopy_f(H5T_FORTRAN_S1, mem_type, h5_err)
+call H5Tset_size_f(mem_type, string_len, h5_err)
+
+! Read the data.
+
+f_ptr = C_LOC(strings(1)(1:1))
+call H5Aread_f(attrib_id, mem_type, f_ptr, h5_err)
+
+! Close and release resources.
+
+call H5Aclose_f(attrib_id, h5_err)
+call H5Sclose_f(space, h5_err)
+call H5Tclose_f(mem_type, h5_err)
+
+error = .false.
+
+end subroutine hdf5_read_attribute_string_rank1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -1145,130 +1347,6 @@ end subroutine hdf5_read_attribute_real_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_read_attribute_alloc_string(root_id, attrib_name, string, error, print_error, err_str)
-!
-! Routine to read a string attribute.
-! Also see: hdf5_read_attribute_string
-!
-! Input:
-!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
-!   attrib_name   -- character(*): Name of the attribute.
-!   print_error   -- logical: If true, print an error message if there is a problem.
-!   err_str       -- character(*), optional: String to use with error message.
-!
-! Output:
-!   error         -- logical: Set true if there is an error. False otherwise.
-!   string        -- character(:), allocatable: Variable length string to hold the attribute value.
-!-
-
-subroutine hdf5_read_attribute_alloc_string(root_id, attrib_name, string, error, print_error, err_str)
-
-type (hdf5_info_struct) info
-
-integer(hid_t) root_id, a_id
-integer h5_err
-
-logical error, print_error
-
-character(*) attrib_name
-character(:), allocatable :: string
-character(*), optional :: err_str
-character(*), parameter :: r_name = 'hdf5_read_attribute_alloc_string'
-
-!
-
-info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
-
-if (info%data_class_type /= H5T_STRING_F) then
-  if (print_error) then
-    call out_io (s_error$, r_name, 'ATTRIBUTE: ' // string_option(attrib_name, err_str), 'IS NOT A STRING!')
-  endif
-  allocate(character(0) :: string)
-  return
-endif
-
-allocate(character(info%data_size) :: string)
-call H5LTget_attribute_string_f(root_id, '.', attrib_name, string, h5_err)
-if (h5_err < 0) then
-  if (print_error) then
-    call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // string_option(attrib_name, err_str))
-  endif
-  string = ''
-  return
-endif
-
-error = .false.
-
-end subroutine hdf5_read_attribute_alloc_string
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print_error, err_str)
-!
-! Routine to read a string attribute.
-! Also see: hdf5_read_attribute_alloc_string
-!
-! Input:
-!   root_id       -- integer(hid_t): ID of group or dataset containing the attribute.
-!   attrib_name   -- character(*): Name of the attribute.
-!   print_error   -- logical: If true, print an error message if there is a problem.
-!   err_str       -- character(*), optional: String to use with error message.
-!
-! Output:
-!   error         -- logical: Set true if there is an error. False otherwise.
-!   string        -- character(*): String to hold the attribute value. Set to blank if there is an error.
-!-
-
-subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print_error, err_str)
-
-type (hdf5_info_struct) info
-
-integer(hid_t) root_id, a_id
-integer h5_err, n
-
-logical error, print_error
-
-character(*) attrib_name
-character(*) :: string
-character(*), optional :: err_str
-character(*), parameter :: r_name = 'hdf5_read_attribute_string'
-
-!
-
-string = ''
-
-info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
-
-if (info%data_class_type /= H5T_STRING_F) then
-  if (print_error) then
-    call out_io (s_error$, r_name, 'ATTRIBUTE: ' // string_option(attrib_name, err_str), 'IS NOT A STRING!')
-  endif
-  return
-endif
-
-call H5LTget_attribute_string_f(root_id, '.', attrib_name, string, h5_err)
-if (h5_err < 0) then
-  if (print_error) then
-    call out_io (s_error$, r_name, 'CANNOT READ ATTRIBUTE: ' // string_option(attrib_name, err_str))
-  endif
-  return
-endif
-
-! This is to get around an HDF5 (V1.10.4) bug where extra garbage characters can be present.
-
-n = min(len(string), info%data_size)
-string = string(1:n)
-
-error = .false.
-
-end subroutine hdf5_read_attribute_string
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
 ! Subroutine hdf5_write_dataset_real_rank0(root_id, dataset_name, value, error)
 !
 ! Routine to create a dataset with one real value.
@@ -1351,7 +1429,7 @@ end subroutine hdf5_write_dataset_real_rank1
 
 subroutine hdf5_write_dataset_real_rank2 (root_id, dataset_name, value, error)
 
-integer(hid_t) root_id, v_size(2)
+integer(hid_t) root_id, v_size(2), ds_id
 integer h5_err
 real(rp) value(:,:)
 logical error
@@ -1362,7 +1440,6 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value, 2)]
 call H5LTmake_dataset_double_f(root_id, dataset_name, 2, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_real_rank2
@@ -1396,7 +1473,6 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value, 2), size(value, 3)]
 call H5LTmake_dataset_double_f(root_id, dataset_name, 3, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_real_rank3
@@ -1498,7 +1574,6 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value,2)]
 call H5LTmake_dataset_int_f(root_id, dataset_name, 2, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_int_rank2
@@ -1532,7 +1607,6 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value, 2), size(value, 3)]
 call H5LTmake_dataset_int_f(root_id, dataset_name, 3, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_int_rank3
@@ -1543,27 +1617,31 @@ end subroutine hdf5_write_dataset_int_rank3
 !+
 ! Subroutine hdf5_read_dataorder(root_id, object_name, d_ord)
 !
-! Routine to read the gridDataOrder attribute for arrays with dimension higher than 1.
+! Routine to read *old* gridDataOrder attribute for arrays with dimension higher than 1.
 !
 ! Input:
+!   d_ord         -- character(*): Default order if gridDataOrder is not found.
 !   root_id       -- integer(hid_t): ID of the group the object is to be put in.
 !   object_name   -- character(*): Name of the object containing the data.
-!   
+!
 ! Output:
-!   d_ord         -- character(*): gridDataOrder value. Set to '' if attribute does not exist.
+!   d_ord         -- character(*): gridDataOrder value. Only set if gridDataOrder not found.
+!                     'C'   C/C++ ordering.
+!                     'F'   Fortran ordering.
 !-
 
 subroutine hdf5_read_dataorder(root_id, object_name, d_ord)
 
 type (hdf5_info_struct) info
 integer(hid_t) root_id, z_id
+integer n
 character(*) object_name, d_ord
+character(16), allocatable :: physical_labels(:)
 logical error
 
-!
+! gridDataOrder 
 
 info = hdf5_object_info (root_id, object_name, error, .true.);  if (error) return
-d_ord = ''
 z_id = hdf5_open_object (root_id, object_name, info, error, .true.);  if (error) return
 call hdf5_read_attribute_string(z_id, 'gridDataOrder', d_ord, error, .false.)
 call hdf5_close_object(z_id, info)
@@ -1659,7 +1737,7 @@ END SUBROUTINE hdf5_read_dataset_real_rank1
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_double_kind_8_rank2
 
-SUBROUTINE hdf5_read_dataset_real_rank2(loc_id, dset_name, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_real_rank2(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
@@ -1669,12 +1747,12 @@ SUBROUTINE hdf5_read_dataset_real_rank2(loc_id, dset_name, buf, error, err_str)
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
   logical error
-  character(1) d_ord
+  character(*) data_order
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_real_rank2'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2)))
@@ -1686,7 +1764,7 @@ SUBROUTINE hdf5_read_dataset_real_rank2(loc_id, dset_name, buf, error, err_str)
   error = (h5_err < 0)
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1)
       buf(i,:) = temp_buf(:,i)
     enddo
@@ -1698,22 +1776,22 @@ END SUBROUTINE hdf5_read_dataset_real_rank2
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_double_kind_8_rank3
 
-SUBROUTINE hdf5_read_dataset_real_rank3(loc_id, dset_name, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_real_rank3(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
+  character(*) data_order
   REAL(KIND=8), INTENT(INout), TARGET :: buf(:, :, :)
   REAL(KIND=8), target, allocatable :: temp_buf(:, :, :)
   INTEGER :: h5_err, i, j
   TYPE(C_PTR) :: f_ptr
   INTEGER(size_t) :: namelen
   logical error
-  character(1) d_ord
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_real_rank3'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf, 3), size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2), size(buf, 3)))
@@ -1726,7 +1804,7 @@ SUBROUTINE hdf5_read_dataset_real_rank3(loc_id, dset_name, buf, error, err_str)
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
   buf = temp_buf
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1);  do j = 1, size(buf,2)
       buf(i,j,:) = temp_buf(:,j,i)
     enddo;  enddo
@@ -1790,10 +1868,11 @@ END SUBROUTINE hdf5_read_dataset_int_rank1
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_int_kind_4_rank2
 
-SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
+  character(*) data_order
   INTEGER(KIND=4), INTENT(INout), TARGET :: buf(:,:)
   INTEGER(KIND=4), target, allocatable :: temp_buf(:,:)
   INTEGER :: h5_err, i
@@ -1801,12 +1880,11 @@ SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, buf, error, err_str)
   INTEGER(size_t) :: namelen
   INTEGER(hid_t) :: type_id
   logical error
-  character(1) d_ord
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_int_rank2'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2)))
@@ -1820,7 +1898,7 @@ SUBROUTINE hdf5_read_dataset_int_rank2(loc_id, dset_name, buf, error, err_str)
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
   buf = temp_buf
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1)
       buf(i,:) = temp_buf(:,i)
     enddo
@@ -1832,10 +1910,11 @@ END SUBROUTINE hdf5_read_dataset_int_rank2
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_int_kind_4_rank3
 
-SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, buf, error, err_str)
+SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, data_order, buf, error, err_str)
   IMPLICIT NONE
   INTEGER(hid_t)  , INTENT(IN) :: loc_id
   CHARACTER(LEN=*), INTENT(IN) :: dset_name
+  character(*) data_order
   INTEGER(KIND=4), INTENT(INout), TARGET :: buf(:,:,:)
   INTEGER(KIND=4), target, allocatable :: temp_buf(:,:,:)
   INTEGER :: h5_err, i, j
@@ -1843,12 +1922,11 @@ SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, buf, error, err_str)
   INTEGER(size_t) :: namelen
   INTEGER(hid_t) :: type_id
   logical error
-  character(1) d_ord
   character(*), optional :: err_str
   character(*), parameter :: r_name = 'hdf5_read_dataset_int_rank3'
   !
-  call hdf5_read_dataorder(loc_id, dset_name, d_ord)
-  if (d_ord == 'C') then
+  call hdf5_read_dataorder(loc_id, dset_name, data_order)
+  if (data_order == 'C') then
     allocate (temp_buf(size(buf, 3), size(buf,2), size(buf,1)))
   else
     allocate (temp_buf(size(buf,1), size(buf,2), size(buf, 3)))
@@ -1862,7 +1940,7 @@ SUBROUTINE hdf5_read_dataset_int_rank3(loc_id, dset_name, buf, error, err_str)
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
   buf = temp_buf
 
-  if (d_ord == 'C') then
+  if (data_order == 'C') then
     do i = 1, size(buf,1);  do j = 1, size(buf,2)
       buf(i,j,:) = temp_buf(:,j,i)
     enddo;  enddo
