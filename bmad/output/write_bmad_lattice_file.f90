@@ -25,7 +25,7 @@
 
 subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
 
-use write_lat_file_mod, dummy => write_bmad_lattice_file
+use write_lattice_file_mod, dummy => write_bmad_lattice_file
 use expression_mod, only: end_stack$, variable$, split_expression_string, expression_stack_to_string
 
 implicit none

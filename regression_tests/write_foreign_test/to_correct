@@ -1,0 +1,6 @@
+cp write_foreign_test.mad8.now write_foreign_test.mad8.correct
+cp write_foreign_test.madx.now write_foreign_test.madx.correct
+cp write_foreign_test.sad.now write_foreign_test.sad.correct
+cp write_foreign_test.lte.now write_foreign_test.lte.correct
+cp write_foreign_test.julia.now write_foreign_test.julia.correct
+cp write_foreign_test.opal.now write_foreign_test.opal.correct
