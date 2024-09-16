@@ -27,6 +27,7 @@ for file in files:
   differ = False
   for line in d.compare(lines1, lines2):
     if line[0] == ' ': continue
+    if 'Bmad Lattice File' in line: continue
     if not differ:
       print('\n' + file)
     differ = True
