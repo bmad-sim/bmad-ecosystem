@@ -1,37 +1,44 @@
 !+
-! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
+! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib, do_unlink)
 !
 ! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 ! Note: This routine will not work on bmad_com components. Rather use pointers_to_attribute.
+!
+! Note: To save memory, ele%cartesian_map (and other field maps), can point to the same memory location as the 
+! Cartesian maps of other elements. This linkage is not desired if the attribute to be pointed to is varied. 
+! In this case, the do_unlink argumnet should be set to True.
+!
 ! Note: Alternatively consider the routines:
 !     pointers_to_attribute
 !     set_ele_attribute
 !     value_of_attribute
 !
 ! Input:
-!   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
+!   ele             -- ele_struct: After this routine finishes Ptr_attrib 
 !                        will point to a variable within this element.
-!   attrib_name     -- Character(40): Name of attribute. Must be uppercase.
+!   attrib_name     -- character(40): Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
-!   do_allocation   -- Logical: If True then do an allocation if needed.
+!   do_allocation   -- logical: If True then do an allocation if needed.
 !                       EG: The multipole An and Bn arrays need to be allocated
 !                       before their use.
-!   err_print_flag  -- Logical, optional: If present and False then suppress
+!   err_print_flag  -- logical, optional: If present and False then suppress
 !                       printing of an error message on error.
+!   do_unlink       -- logical, optional: Default False. If True and applicable, unlink the structure containing the attribute.
+!                       See above for details.
 !
 ! Output:
 !   a_ptr      -- all_pointer_struct: Pointer to the attribute. 
 !     %r           -- pointer to real attribute. Nullified if error or attribute is not real.               
 !     %i           -- pointer to integer attribute. Nullified if error or attribute is not integer.
 !     %l           -- pointer to logical attribute. Nullified if error or attribute is not logical.               
-!   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
-!   ix_attrib  -- Integer, optional: If applicable, this is the index to the 
+!   err_flag   -- logical: Set True if attribtute not found. False otherwise.
+!   ix_attrib  -- integer, optional: If applicable, this is the index to the 
 !                     attribute in the ele%value(:), ele%control%var(:), ele%a_pole(:) or ele%b_pole(:) arrays.
 !                     Set to 0 if not in any of these arrays.
 !-
 
-subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
+subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib, do_unlink)
 
 use bmad_interface, except_dummy => pointer_to_attribute
 
@@ -41,6 +48,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave
 type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (cartesian_map_struct), pointer :: ct_map
+type (cartesian_map_term_struct), pointer :: ct_ptr
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
@@ -64,7 +72,7 @@ character(40) str
 character(24) :: r_name = 'pointer_to_attribute'
 
 logical err_flag, do_allocation, do_print, err, out_of_bounds
-logical, optional :: err_print_flag
+logical, optional :: err_print_flag, do_unlink
 
 ! init check
 
@@ -263,6 +271,15 @@ if (a_name(1:14) == 'CARTESIAN_MAP(') then
   n_cc = get_this_index(a_name, 14, err, 1, size(ele%cartesian_map))
   if (err) goto 9140
   ct_map => ele%cartesian_map(n_cc)
+  if (.not. associated(ct_map%ptr)) return
+
+  ct_ptr => ct_map%ptr
+  if (logic_option(.false., do_unlink) .and. ct_map%ptr%n_link > 1) then
+    ct_map%ptr%n_link = ct_map%ptr%n_link - 1
+    allocate(ct_map%ptr)
+    ct_map%ptr = ct_ptr
+    ct_map%ptr%n_link = 1
+  endif
 
   if (a_name(1:3) == '%T(' .or. a_name(1:6) == '%TERM(') then
     nt = get_this_index(a_name, index(a_name, '('), err, 1, size(ct_map%ptr%term))
@@ -306,15 +323,15 @@ if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
   cl_map => ele%cylindrical_map(n_cc)
 
   select case (a_name)
-  case ('%PHI0_FIELDMAP');    a_ptr%r => cl_map%phi0_fieldmap
-  case ('%THETA0_AZIMUTH');   a_ptr%r => cl_map%theta0_azimuth
-  case ('%FIELD_SCALE');      a_ptr%r => cl_map%field_scale
-  case ('%DZ');               a_ptr%r => cl_map%dz
+  case ('%PHI0_FIELDMAP');    a_ptr%r  => cl_map%phi0_fieldmap
+  case ('%THETA0_AZIMUTH');   a_ptr%r  => cl_map%theta0_azimuth
+  case ('%FIELD_SCALE');      a_ptr%r  => cl_map%field_scale
+  case ('%DZ');               a_ptr%r  => cl_map%dz
   case ('%R0');               a_ptr%r1 => cl_map%r0
-  case ('%R0(1)');            a_ptr%r => cl_map%r0(1)
-  case ('%R0(2)');            a_ptr%r => cl_map%r0(2)
-  case ('%R0(3)');            a_ptr%r => cl_map%r0(3)
-  case ('%MASTER_PARAMETER'); a_ptr%i => cl_map%master_parameter
+  case ('%R0(1)');            a_ptr%r  => cl_map%r0(1)
+  case ('%R0(2)');            a_ptr%r  => cl_map%r0(2)
+  case ('%R0(3)');            a_ptr%r  => cl_map%r0(3)
+  case ('%MASTER_PARAMETER'); a_ptr%i  => cl_map%master_parameter
   case default;           goto 9000
   end select
 

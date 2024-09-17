@@ -14,7 +14,7 @@ d = difflib.Differ()
 ##files = ['write_foreign_test.mad8', 'write_foreign_test.madx', 'write_foreign_test.sad', 
 ##             'write_foreign_test.lte', 'write_foreign_test.julia', 'write_foreign_test.opal']
 
-files = ['write_foreign_test.mad8', 'write_foreign_test.madx', 
+files = ['write_foreign_test.mad8', 'write_foreign_test.madx', 'write_foreign_test.sad', 
              'write_foreign_test.lte', 'write_foreign_test.julia']
 
 for file in files:
@@ -27,7 +27,8 @@ for file in files:
   differ = False
   for line in d.compare(lines1, lines2):
     if line[0] == ' ': continue
-    if 'Bmad Lattice File' in line: continue
+    if 'Bmad lattice file' in line: continue
+    if 'Bmad lattice name' in line: continue
     if not differ:
       print('\n' + file)
     differ = True
@@ -38,4 +39,3 @@ for file in files:
     print(results)
   else:
     out_file.write ('"' + file + '" STR  "GOOD"\n')
-
