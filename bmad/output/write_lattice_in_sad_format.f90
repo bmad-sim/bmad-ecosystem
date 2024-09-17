@@ -331,7 +331,10 @@ do
     if (ix_pole_max > -1) then
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
-      if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
+      if (associated(ele%a_pole)) then
+        deallocate (ele%a_pole, ele%b_pole)
+        call attribute_bookkeeper(ele, .true.)
+      endif
       j_count = j_count + 1
       write (ab_ele%name, '(a1, a, i0)') key_name(ele%key), 'MULTIPOLE_', j_count
       call insert_element (lat_out, ab_ele, ix_ele, branch_out%ix_branch)

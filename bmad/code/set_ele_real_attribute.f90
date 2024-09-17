@@ -46,7 +46,7 @@ err_flag = .true.
 call str_upcase (a_name, attrib_name)
 if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
 
-call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag)
+call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag, do_unlink = .true.)
 if (associated(a_ptr%r)) then
   a_ptr%r = value
 elseif (associated(a_ptr%i)) then

@@ -3,9 +3,8 @@
 @ele begin1 = BeginningEle(pc_ref = 859581, species_ref = species("positron"), beta_a = 10, beta_b = 10,
    particle.orbit = [1E-3, 2E-3, 3E-3, 4E-3, 5E-3, 6E-3], particle.spin = [0.3, 0.4, 0.5])
 @ele ab_multipole1 = Multipole(Ks2L = 200, Kn2L = 200, tilt = 0.1)
-@ele ac_kicker1 = ACKicker(L = 0.3, Kn0 = -0.0333333)
+@ele ac_kicker0123456789 = ACKicker(L = 0.3, Kn0 = -0.0333333)
 @ele ac_kicker2 = ACKicker(L = 0.4, Ks0 = 0.025)
-@ele ac_kicker3 = ACKicker(L = 0.4, Ks0 = 0.025)
 @ele beambeam1 = BeamBeam(x_offset = 3E-3, y_offset = 3E-3, y_pitch = 0.05, ksol = 1)
 @ele crab_cavity1 = CrabCavity(L = 0.2, frequency = 1E8, voltage = 1000, phase = -0.2)
 @ele ecollimator1 = Collimator(L = 4.5, Ks0 = 2.20372E-4, Kn0 = -2.25549E-3x_limit = [-0.2,
@@ -85,12 +84,12 @@
 @ele end1 = Marker()
 
 
-l1 = beamline("l1", [begin1, ab_multipole1, ac_kicker1, ac_kicker2, ac_kicker3, beambeam1, crab_cavity1,
-   ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1, floor_shift1, gkicker1,
-   hkicker1, instrument1, kicker1, match1, monitor1, multipole1, octupole1, patch1, quadrupole1,
-   quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2, rfcavity3,
-   sad_mult1, sad_mult2, sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1, solenoid1,
-   solenoid2, sol_quad1, sol_quad2, thick_multipole1, taylor1, vkicker1, lcavity1, lcavity2, lcavity3,
-   end1], geometry = open)
+l1 = beamline("l1", [begin1, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2,
+   beambeam1, crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1,
+   floor_shift1, gkicker1, hkicker1, instrument1, kicker1, match1, monitor1, multipole1, octupole1, patch1,
+   quadrupole1, quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2,
+   rfcavity3, sad_mult1, sad_mult2, sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1,
+   solenoid1, solenoid2, sol_quad1, sol_quad2, thick_multipole1, taylor1, vkicker1, lcavity1, lcavity2,
+   lcavity3, end1], geometry = open)
 
 lat = expand("l1", [l1])

@@ -1675,9 +1675,22 @@ end subroutine
 
 subroutine converter_distribution_parser (ele, delim, delim_found, err_flag)
   import
+  implicit none
   type (ele_struct), target :: ele
   character(*) delim
   logical delim_found, err_flag
+end subroutine
+
+subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
+  use bmad_parser_struct, only: parser_ele_struct
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (parser_ele_struct), optional :: pele
+  integer how
+  character(1) delim
+  logical, target :: delim_found, err_flag
+  logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 end subroutine
 
 function particle_is_moving_backwards (orbit) result (is_moving_backwards)
@@ -1739,7 +1752,7 @@ function physical_ele_end (track_end, orbit, ele_orientation, return_stream_end)
   logical, optional :: return_stream_end
 end function
 
-subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
+subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib, do_unlink)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -1747,7 +1760,7 @@ subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_fla
   character(*) attrib_name
   logical err_flag
   logical do_allocation
-  logical, optional :: err_print_flag
+  logical, optional :: err_print_flag, do_unlink
   integer, optional :: ix_attrib
 end subroutine
 
@@ -1830,7 +1843,7 @@ function pointer_to_wake_ele (ele, delta_s) result (wake_ele)
 end function
 
 subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
-                  ptr_array, err_flag, err_print_flag, eles, ix_attrib)
+                  ptr_array, err_flag, err_print_flag, eles, ix_attrib, do_unlink)
   import
   implicit none
   type (lat_struct), target :: lat
@@ -1838,7 +1851,7 @@ subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
   character(*) ele_name, attrib_name
   logical err_flag
   logical do_allocation
-  logical, optional :: err_print_flag
+  logical, optional :: err_print_flag, do_unlink
   type (ele_pointer_struct), optional, allocatable :: eles(:)
   integer, optional :: ix_attrib
 end subroutine
