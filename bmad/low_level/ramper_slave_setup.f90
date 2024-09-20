@@ -105,7 +105,7 @@ endif
 
 ! Check attribute.
 
-call pointer_to_attribute (slave, r1%attribute, .true., a_ptr, err, .false.)
+call pointer_to_attribute (slave, r1%attribute, .true., a_ptr, err, .false., do_unlink = .true.)
 if (err .or. .not. associated(a_ptr%r)) then
   if (has_wild) return
   call out_io (s_error$, r_name, 'BAD SLAVE ATTRIBUTE FOR RAMPER LORD: ' // lord%name, &

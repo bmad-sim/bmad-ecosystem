@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ August 13, 2024}
+\date{David Sagan \\ September 6, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -465,6 +465,14 @@ proportion to the reference momentum. With \vn{q2}, since \vn{field_master} is T
 unnormalized strength \vn{B1_gradient} will remain fixed and normalized \vn{k1} will vary
 inversely with the reference momentum.
 
+\ltt program parameters that affect ramping in the simulation are:
+\begin{code}
+ltt%ramping_start_time              -- Default 0.
+ltt%ramping_on                      -- Default False.
+ltt%ramp_update_each_particle       -- Default False.
+ltt%ramp_particle_energy_without_rf -- Default False.
+\end{code}
+
 There are two modes that can be selected to determine how ramper elements are applied. If using
 \vn{"BEAM"} mode, and if\vn{ltt%ramp_update_each_particle} is set to True, rampers are applied to a
 given lattice element as each particle of the beam passes through the element using the time the
@@ -487,21 +495,30 @@ ramp_rf[is_on] = F     ! Ramper element turned off.
 If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
 "\vn{BEAM}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
 
-\ltt program parameters that affect ramping in the simulation are:
-\begin{code}
-ltt%ramping_on
-ltt%ramping_start_time
-\end{code}
-
 When ramping, the \vn{ltt%simulation_mode} (\sref{s:track.methods}) must be set to "\vn{BMAD}". The
 program will detect if there is a conflict and issue an error message and stop.
+
+Normally, when the reference energy \vn{E_tot} or the reference momentum \vn{p0c} is varied by a
+ramper element, the phase space $p_z$ of the particles are adjusted in tandem to keep the particle
+momentum $(1 + pz) * p0c$ invariant. This also keeps the particle energy invariant. This mirrors
+what is actually happening in a machine: It is the energy kick in the RF cavities that makes particles
+change energy, not the change in field strengths that result from changing the reference energy.
+The RF kick will result in synchrotron oscillations. For some simulations, it is useful to see what
+would happen if the synchrotron oscillations were magically ``turned off''.
+This unphysical simulation can be done by turning off the RF in the lattice and by setting
+\begin{code}
+ltt%ramp_particle_energy_without_rf = True
+\end{code}
+When this is set, the $p_z$ of the particles are {\em not} adjusted when the reference energy is
+adjusted. And since the RF is off, $p_z$ will be an invariant and there are no synchrotron
+oscillations.
 
 The \vn{ltt%ix_turn_start} parameter can be used to start tracking at any turn. This can be useful if a
 simulation is accidentally interrupted. In this case the beam positions can be saved by setting
 \begin{code}
-  ltt%beam_output_file
-  ltt%beam_output_every_n_turns
-  ltt%output_only_last_turns
+ltt%beam_output_file
+ltt%beam_output_every_n_turns
+ltt%output_only_last_turns
 \end{code}
 
 With ramping, the concept of the closed orbit (possibly needed to initialize particle positions) is
@@ -696,6 +713,7 @@ Example:
   ltt%lat_file   =  "lat.bmad"       ! Bmad lattice file
   ltt%ramping_on = F
   ltt%ramp_update_each_particle = F
+  ltt%ramp_particle_energy_without_rf = F
   ltt%ramping_start_time        = 0
   ltt%extraction_method         = ""
   ltt%simulation_mode           = "BEAM"
@@ -726,6 +744,7 @@ Example:
 
   ! Beam initialization
   ltt%add_closed_orbit_to_init_position = T
+  beam_init%position_file = ""    ! Set this to use a beam file.
   beam_init%use_particle_start = F
   beam_init%center = 0, 0, 0, 0, 0, 0
   beam_init%n_particle = 10
@@ -875,6 +894,10 @@ apertures. The default is 0.1~meter in both the horizontal and vertical. When us
 applied at the beginning/end of the lattice. PTC has an internal aperture of 1.0~meter. To be safe,
 the \ltt program will additionally impose a 0.9~meters aperture independent of the setting of
 \vn{ltt%ptc_aperture}.
+%
+\item[ltt\%ramp_particle_energy_without_rf] \Newline
+Simulate the unphysical situation where particle energy moves in tandem with the reference energy?
+See \sref{s:ramp} for more details.
 %
 \item[ltt\%ramp_update_each_particle] \Newline
 Default is False which means only apply rampers to a given lattice element once per beam passage

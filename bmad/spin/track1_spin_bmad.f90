@@ -42,7 +42,24 @@ character(*), parameter :: r_name = 'track1_spin_bmad'
 
 if (ele%key == patch$) return
 
+! match
+
+if (ele%key == match$) then
+  if (nint(ele%value(spin_tracking_model$)) == transverse_field$) then
+    fc = start_orb%p0c / charge_of(start_orb%species)
+    dxp = (end_orb%vec(2) - start_orb%vec(2)) * fc
+    dyp = (end_orb%vec(4) - start_orb%vec(4)) * fc
+    field%E = 0
+    field%B = [dyp, -dxp, 0.0_rp] / c_light
+    om = spin_omega (field, end_orb, +1)
+    quat = omega_to_quat(om)
+    end_orb%spin = quat_rotate(quat, start_orb%spin)
+  endif
+  return
+endif
+
 ! Beambeam
+! This is used when *not* using bmad_standard tracking_method. EG: Linear tracking_method.
 
 if (ele%key == beambeam$) then
   fc = start_orb%p0c / ((1.0_rp + start_orb%beta**2) * charge_of(start_orb%species))

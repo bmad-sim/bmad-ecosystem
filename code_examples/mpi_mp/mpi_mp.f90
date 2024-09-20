@@ -16,7 +16,7 @@ integer i
 logical master
 
 
-real(8) myx, myx_powers(npowers)
+real(8) myx(1), myx_powers(npowers)
 real(8), allocatable :: x(:), x_powers(:,:)
 
 call mpi_init(mpierr)                             ! Introduce yourself to the MPI daemon
@@ -80,6 +80,8 @@ if(master) then
     write(*,'(i14,20f14.5)') i, x(i), x_powers(i,:)
   enddo
 else
+  ! Note: myx must be a vector since call to mpi_recv above uses a vector and gfortran
+  ! can flag this as an error.
   call mpi_recv(myx, 1, MPI_DOUBLE_PRECISION, 0, 1, MPI_COMM_WORLD, mpistatus, mpierr)
 
   thread_check = -8088
@@ -88,7 +90,7 @@ else
   !$OMP SHARED(myx,myx_powers,thread_check)
   do i=1,npowers
     thread_check(omp_get_thread_num()+1) = omp_get_thread_num()
-    myx_powers(i) = myx**i
+    myx_powers(i) = myx(1)**i
   enddo
   !$OMP END PARALLEL DO
   write(*,'(a,i3,a,20i3)') "mpi slave: ", myrank, " has omp thread numbers: ", thread_check

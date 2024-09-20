@@ -117,7 +117,7 @@ character(*), parameter :: r_name = 'type_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_zero_attrib
 logical, optional, intent(in) :: type_floor_coords, type_wall, type_rad_kick
-logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, z1, z2
+logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, is_zero1, is_zero2
 
 ! init
 
@@ -234,9 +234,10 @@ do ia = 1, num_ele_attrib$
     endif
   end select
 
-  z1 = ((attrib%kind == is_real$ .or. attrib%kind == is_integer$) .and. attrib%value == 0)
-  z2 = ((attrib2%kind == is_real$ .or. attrib2%kind == is_integer$) .and. attrib2%value == 0)
-  if (z1 .and. z2 .and. .not. type_zero) cycle
+  is_zero1 = ((attrib%kind == is_real$ .or. attrib%kind == is_integer$) .and. attrib%value == 0)
+  is_zero2 = (((attrib2%kind == is_real$ .or. attrib2%kind == is_integer$) .and. attrib2%value == 0) .or. &
+                                                                                     attrib2%name == null_name$)
+  if (is_zero1 .and. is_zero2 .and. .not. type_zero) cycle
 
   line = ''
   call write_this_attribute (attrib, ia, n_att, line(3:))
@@ -1622,7 +1623,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(97) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(41), parameter :: att_name(100) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1636,9 +1637,10 @@ character(41), parameter :: att_name(97) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'HARMON', 'FINAL_CHARGE', &
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
-                'F_FACTOR', 'EXACT_MULTIPOLES', 'Z_CROSSING']
+                'F_FACTOR', 'EXACT_MULTIPOLES', 'Z_CROSSING', 'SPIN_TRACKING_MODEL', &
+                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK']
 
-character(41), parameter :: att2_name(97) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(41), parameter :: att2_name(100) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
@@ -1652,7 +1654,8 @@ character(41), parameter :: att2_name(97) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', 'HARMON_MASTER', 'SCATTER', &
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DTHICKNESS_DX', &
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
-                'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN']
+                'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN', 'RECALC', &
+                'SPIN_DN_DPZ_Y', 'MODE_FLIP']
 
 ! Exceptional cases
 

@@ -235,7 +235,7 @@ character(100) err_str
 
 !
 
-call pointer_to_attribute (ele, attrib_name, .false., a_ptr, err_flag)
+call pointer_to_attribute (ele, attrib_name, .false., a_ptr, err_flag, do_unlink = .true.)
 if (err_flag) then
   if (global_com%exit_on_error) call err_exit
   return
@@ -1080,11 +1080,14 @@ case (solenoid$, sol_quad$, quadrupole$)
     T_end(4,1) =  ks / 2
     T_end(2,3) = -ks / 2
 
-    call init_ele (sol_quad)
+    call transfer_ele (slave, sol_quad)
     sol_quad%key = sol_quad$
     sol_quad%value(ks$) = ks
     sol_quad%value(k1$) = k1
     sol_quad%value(l$)  = l_slave
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(ks$))
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(k1$))
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(l$))
     call make_mat6 (sol_quad, branch%param)
     T_tot = sol_quad%mat6(1:4,1:4)
 
@@ -1657,7 +1660,7 @@ do i = 1, slave%n_lord
       return
     endif
 
-    call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag)
+    call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag, do_unlink = .true.)
     if (err_flag) then
       if (global_com%exit_on_error) call err_exit
       return

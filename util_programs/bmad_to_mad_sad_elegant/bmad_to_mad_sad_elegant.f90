@@ -97,6 +97,7 @@ endif
 ! Get the lattice
 
 call file_suffixer (file_name, file_name, 'bmad', .false.)
+bmad_com%auto_bookkeeper = .false.
 call bmad_parser (file_name, lat)
 if (out_type /= '-sad') then
   call twiss_and_track (lat, orbit, status, use_particle_start = .true.)

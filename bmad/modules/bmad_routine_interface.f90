@@ -1580,6 +1580,12 @@ subroutine new_control (lat, ix_ele, ele_name)
   character(*), optional :: ele_name
 end subroutine
 
+subroutine normal_mode_dispersion(ele, reverse) 
+  import
+  type (ele_struct) ele
+  logical, optional :: reverse
+end subroutine
+
 function num_field_eles (ele) result (n_field_ele)
   import
   implicit none
@@ -1669,9 +1675,22 @@ end subroutine
 
 subroutine converter_distribution_parser (ele, delim, delim_found, err_flag)
   import
+  implicit none
   type (ele_struct), target :: ele
   character(*) delim
   logical delim_found, err_flag
+end subroutine
+
+subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
+  use bmad_parser_struct, only: parser_ele_struct
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (parser_ele_struct), optional :: pele
+  integer how
+  character(1) delim
+  logical, target :: delim_found, err_flag
+  logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 end subroutine
 
 function particle_is_moving_backwards (orbit) result (is_moving_backwards)
@@ -1733,7 +1752,7 @@ function physical_ele_end (track_end, orbit, ele_orientation, return_stream_end)
   logical, optional :: return_stream_end
 end function
 
-subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
+subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib, do_unlink)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -1741,7 +1760,7 @@ subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_fla
   character(*) attrib_name
   logical err_flag
   logical do_allocation
-  logical, optional :: err_print_flag
+  logical, optional :: err_print_flag, do_unlink
   integer, optional :: ix_attrib
 end subroutine
 
@@ -1824,7 +1843,7 @@ function pointer_to_wake_ele (ele, delta_s) result (wake_ele)
 end function
 
 subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
-                  ptr_array, err_flag, err_print_flag, eles, ix_attrib)
+                  ptr_array, err_flag, err_print_flag, eles, ix_attrib, do_unlink)
   import
   implicit none
   type (lat_struct), target :: lat
@@ -1832,7 +1851,7 @@ subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
   character(*) ele_name, attrib_name
   logical err_flag
   logical do_allocation
-  logical, optional :: err_print_flag
+  logical, optional :: err_print_flag, do_unlink
   type (ele_pointer_struct), optional, allocatable :: eles(:)
   integer, optional :: ix_attrib
 end subroutine
@@ -3344,24 +3363,60 @@ subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, e
 end subroutine
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
-                       include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
+                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
   import
   implicit none
   type (lat_struct), target :: lat
   type (lat_struct), optional, target :: converted_lat
   type (coord_struct), allocatable, optional :: ref_orbit(:)
   real(rp), optional :: dr12_drift_max
-  integer, optional :: ix_start, ix_end, ix_branch
+  integer, optional :: ix_branch
   character(*) out_type, out_file_name
   logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
 
-subroutine write_lattice_in_julia (bmad_name, lat, julia_name)
+subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
+                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
   import
   implicit none
   type (lat_struct), target :: lat
-  character(*) bmad_name
-  character(*), optional :: julia_name
+  type (lat_struct), optional, target :: converted_lat
+  type (coord_struct), allocatable, optional :: ref_orbit(:)
+  real(rp), optional :: dr12_drift_max
+  integer, optional :: ix_branch
+  character(*) out_type, out_file_name
+  logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_matrix_model, &
+                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (lat_struct), optional, target :: converted_lat
+  type (coord_struct), allocatable, optional :: ref_orbit(:)
+  real(rp), optional :: dr12_drift_max
+  integer, optional :: ix_branch
+  character(*) out_file_name
+  logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (lat_struct), optional, target :: converted_lat
+  integer, optional :: ix_branch
+  character(*) out_file_name
+  logical, optional :: include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_julia (julia_name, lat, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) :: julia_name
+  logical, optional :: err_flag
 end subroutine
 
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)

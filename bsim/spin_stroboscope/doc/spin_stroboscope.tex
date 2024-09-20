@@ -95,7 +95,7 @@
 
 \title{Spin Stroboscope Program}
 \author{}
-\date{David Sagan \\ June 29, 2023}
+\date{David Sagan \\ September 11, 2024}
 
 \begin{document}
 
@@ -294,19 +294,22 @@ accurate $\bfn_g$, is that the errors in $\bfn_g(\bfPhi_N)$ would add coherently
 
 
 
-\Notes:
-1) For simple case where spin invariant is independent of phase the superconvergent calculation will produce the
+\begin{itemize}
+%
+\item For simple case where spin invariant is independent of phase the superconvergent calculation will produce the
 correct solution after tracking one turn!
-
-2) For Fourier method suseptabal to problems with nonlinearities in the phase space transport since it is assumed
+%
+\item For Fourier method suseptabal to problems with nonlinearities in the phase space transport since it is assumed
 that the phase space advance is constant (check that this statement is true).
-
-3) Superconvergent algorithms: Self-Consistant Stroboscopic Averaging and Scatter Minimization.
-
-4) Merit min algorithim is the real space analogue of the Fourier algorithim.
-
-5) Scatter Minimization can give accurate results with just a few turns of tracking if there are two phase
+%
+\item Superconvergent algorithms: Self-Consistant Stroboscopic Averaging and Scatter Minimization.
+%
+\item Merit min algorithim is the real space analogue of the Fourier algorithim.
+%
+\item Scatter Minimization can give accurate results with just a few turns of tracking if there are two phase
 space points that are close together.
+%
+\end{itemize}
 
 %------------------------------------------------------------------
 \Section{Master Input File} 
@@ -360,9 +363,9 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     ix_lat_branch = 0
     dat_file     = "spin_stroboscope.dat"    ! Output data file.
 
-    orbit_start = 0, 0, 0                    ! Start x, y, pz
-    orbit_stop = 0, 0.004, 0                 ! Stop
-    n_points = 1, 10, 1
+    orbit_start = 0, 0, 0, 0, 0, 0           ! Start orbit x, px, y, py, z, pz
+    orbit_stop = 0, 0.004, 0                 ! Stop orbit
+    n_points = 1, 0, 10, 0, 0, 1
     linear_in_action = T
     ix_spin_branch
 

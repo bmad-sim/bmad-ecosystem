@@ -64,7 +64,7 @@ Note: the output files will be stored in the working directory at which python3 
        -------------------------------------------------------
        Command:  python $DIST_BASE_DIR/bsim/bbu/test_run.py  PHASE_X  PHASE_Y
        -------------------------------------------------------
-       Obtain (Ith v.s. tr/tb) for a lattice with two free phases (with coupled or decoupled optics)
+       Obtain (Ith versus tr/tb) for a lattice with two free phases (with coupled or decoupled optics)
        Phase advances are changed via a Taylor element in the lattice, named talylorW.
        The correct Twiss parameters must be extracted from the lattice and set in phase_scan.py.
        Output file: thresh_v_phase_PHASE.txt  (produced at where it's called)

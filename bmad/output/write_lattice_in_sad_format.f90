@@ -1,486 +1,14 @@
-module write_lat_file_mod
-
-use element_modeling_mod
-use binary_parser_mod
-use multipole_mod
-
-type multipass_region_ele_struct
-  integer ix_region
-  logical region_start_pt
-  logical region_stop_pt
-end type
-
-type multipass_region_branch_struct
-  type (multipass_region_ele_struct), allocatable :: ele(:)
-end type
-
-type multipass_region_lat_struct
-  type (multipass_region_branch_struct), allocatable :: branch(:)
-end type
-
-contains
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-! Create the information on multipass regions.
-
-subroutine multipass_region_info(lat, mult_lat, m_info)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele
-type (multipass_region_lat_struct), target :: mult_lat
-type (multipass_all_info_struct), target :: m_info
-
-type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
-type (multipass_ele_info_struct), pointer :: e_info
-type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
-
-integer ib, ix_r, ie, ix_pass, ix_lord, ix_super
-logical in_multi_region, need_new_region
-
-!
-
-allocate (mult_lat%branch(0:ubound(lat%branch, 1)))
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  allocate (mult_lat%branch(ib)%ele(0:branch%n_ele_max))
-  mult_lat%branch(ib)%ele(:)%ix_region = 0
-  mult_lat%branch(ib)%ele(:)%region_start_pt = .false.
-  mult_lat%branch(ib)%ele(:)%region_stop_pt   = .false.
-enddo
-
-call multipass_all_info (lat, m_info)
-
-if (size(m_info%lord) == 0) return
-
-! Go through and mark all 1st pass regions
-! In theory the original lattice file could have something like:
-!   lat: line = (..., m1, m2, ..., m1, -m2, ...)
-! where m1 and m2 are multipass lines. The first pass region (m1, m2) looks 
-! like this is one big region but the later (m1, -m2) signals that this 
-! is not so.
-! We thus go through all the first pass regions and compare them to the
-! corresponding higher pass regions. If we find two elements that are contiguous
-! in the first pass region but not contiguous in some higher pass region, 
-! we need to break the first pass region into two.
-
-ix_r = 0
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  mult_ele => mult_lat%branch(ib)%ele
-
-  in_multi_region = .false.
-
-  do ie = 1, branch%n_ele_track
-    ele => branch%ele(ie)
-    e_info => m_info%branch(ib)%ele(ie)
-    ix_pass = e_info%ix_pass
-
-    if (ix_pass /= 1) then  ! Not a first pass region
-      if (in_multi_region) mult_ele(ie-1)%region_stop_pt = .true.
-      in_multi_region = .false.
-      cycle
-    endif
-
-    ! If start of a new region...
-    if (.not. in_multi_region) then  
-      ix_r = ix_r + 1
-      mult_ele(ie)%ix_region = ix_r
-      mult_ele(ie)%region_start_pt = .true.
-      in_multi_region = .true.
-      ix_lord = e_info%ix_lord(1)
-      ix_super = e_info%ix_super(1)
-      ss1 => m_info%lord(ix_lord)%slave(:,ix_super)
-      cycle
-    endif
-    ix_lord = e_info%ix_lord(1)
-    ix_super = e_info%ix_super(1)
-    ss2 => m_info%lord(ix_lord)%slave(:, ix_super)
-
-    need_new_region = .false.
-    if (size(ss1) /= size(ss2)) then
-      need_new_region = .true.
-    else
-      do ix_pass = 2, size(ss1)
-        if (abs(ss1(ix_pass)%ele%ix_ele - ss2(ix_pass)%ele%ix_ele) == 1) cycle
-        ! not contiguous then need a new region
-        need_new_region = .true.
-        exit
-      enddo
-    endif
-
-    if (need_new_region) then
-      ix_r = ix_r + 1
-      mult_ele(ie-1)%region_stop_pt = .true.
-      mult_ele(ie)%region_start_pt = .true.
-    endif
-
-    ss1 => ss2
-    mult_ele(ie)%ix_region = ix_r
-  enddo
-
-enddo
-
-if (in_multi_region) mult_ele(branch%n_ele_track)%region_stop_pt = .true.
-
-end subroutine multipass_region_info
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-
-subroutine write_line_element (line, iu, ele, lat)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (ele_struct) :: ele
-type (ele_struct), pointer :: lord, m_lord, slave
-
-character(*) line
-character(40) lord_name
-
-integer iu, ix
-
-!
-
-if (ele%slave_status == super_slave$) then
-  if (ele%orientation == 1) then
-    write (line, '(a, 2(a, i0), a)') trim(line), ' slave_drift_', ele%ix_branch, '_', ele%ix_ele, ','
-  else
-    write (line, '(a, 2(a, i0), a)') trim(line), ' --slave_drift_', ele%ix_branch, '_', ele%ix_ele, ','
-  endif
-
-elseif (ele%slave_status == multipass_slave$) then
-  lord => pointer_to_lord(ele, 1)
-  write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
-
-else
-  if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
-  else
-    write (line, '(4a)') trim(line), ' --', trim(ele%name), ','
-  endif
-endif
-
-if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
-
-end subroutine write_line_element
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-
-function re_str(rel) result (str_out)
-
-implicit none
-
-real(rp) rel
-integer pl, n
-character(:), allocatable :: str_out
-character(24) str
-character(16) fmt
-
-!
-
-if (rel == 0) then
-  allocate(character(1):: str_out)
-  str_out = '0'
-  return
-endif
-
-pl = floor(log10(abs(rel)))
-
-if (pl > 5) then
-  fmt = '(2a, i0)'
-  write (str, fmt) trim(rchomp(rel/10.0_rp**pl, 0)), 'E', pl
-
-elseif (pl > -3) then
-  str = rchomp(rel, pl)
-
-else
-  fmt = '(2a, i0)'
-  write (str, fmt) trim(rchomp(rel*10.0_rp**(-pl), 0)), 'E', pl
-endif
-
-n = len_trim(str)
-allocate(character(n):: str_out)
-str_out = str(1:n)
-
-
-end function re_str
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-
-function array_re_str(arr, parens_in) result (str_out)
-
-real(rp) arr(:)
-integer i
-character(120) str_out
-character(*), optional :: parens_in
-character(2) parens
-
-!
-
-parens = '()'
-if (present(parens_in)) parens = parens_in
-
-str_out = parens(1:1) // re_str(arr(1))
-do i = 2, size(arr)
-  str_out = trim(str_out) // ', ' // re_str(arr(i))
-enddo
-str_out = trim(str_out) // parens(2:2)
-
-end function array_re_str
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-
-function cmplx_re_str(cmp) result (str_out)
-
-complex(rp) cmp
-character(40) str_out
-
-!
-
-if (imag(cmp) == 0) then
-  str_out = re_str(real(cmp))
-else
-  str_out = '(' // re_str(real(cmp)) // ', ' // re_str(imag(cmp)) // ')'
-endif
-
-end function cmplx_re_str
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-
-function rchomp (rel, plc) result (out)
-
-implicit none
-
-real(rp) rel
-character(25) out
-character(8) :: fmt = '(f24.xx)'
-integer it, plc, ix
-
-!
-
-write (fmt(6:7), '(i2.2)') 14-plc  ! 15 digits of accuracy
-write (out, fmt) rel
-do it = len(out), 1, -1
-  if (out(it:it) == ' ') cycle
-  if (out(it:it) == '0') then
-    out(it:it) = ' '
-    cycle
-  endif
-  if (out(it:it) == '.') out(it:it) = ' '
-  call string_trim(out, out, ix)
-  return
-enddo
-
-end function rchomp
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-!+
-! Subroutine write_lat_line (line, iu, end_is_neigh, do_split)
-!
-! Routine to write strings to a lattice file.
-! This routine will break the string up into multiple lines
-! if the string is too long and add a continuation character if needed.
-!
-! If the "line" arg does not represent a full "sentence" (end_is_neigh = False), 
-! then only part of the line may be written and the part not written will be returned.
-!
-! Input:
-!   line          -- character(*): String of text.
-!   iu            -- integer: Unit number to write to.
-!   end_is_neigh  -- logical: If true then write out everything.
-!                      Otherwise wait for a full line of max_char characters or so.
-!   do_split      -- logical, optional: Split line if overlength? Default is True.
-!                      False is used when line has already been split for expressions since
-!                      the expression splitting routine does a much better job of it.
-!   julia         -- logical, optional: Default False. If True then do not include "&" line continuation
-!
-! Output:
-!   line          -- character(*): part of the string not written. 
-!                       If end_is_neigh = T then line will be blank.
-!-
-
-subroutine write_lat_line (line, iu, end_is_neigh, do_split, julia)
-
-implicit none
-
-character(*) line
-integer i, iu, n
-integer, parameter :: max_char = 105
-logical end_is_neigh
-logical, save :: init = .true.
-logical, optional :: do_split, julia
-
-!
-
-if (.not. logic_option(.true., do_split)) then
-  n = len_trim(line)
-  if (end_is_neigh) then
-    call write_this (line)
-    init = .true.
-  elseif (index(',[{(=', line(n:n)) /= 0) then
-    call write_this (line)
-  else
-    if (logic_option(.false., julia)) then
-      call write_this (trim(line))
-    else
-      call write_this (trim(line) // ' &')
-    endif
-  endif
-
-  line = ''
-  return
-endif
-
-!
-
-outer_loop: do 
-
-  if (len_trim(line) <= max_char) then
-    if (end_is_neigh) then
-      call write_this (line)
-      line = ''
-      init = .true.
-    endif
-    return
-  endif
-
-  i = index(line(1:max_char), ',', back = .true.)
-  if (i /= 0) then
-    call write_this (line(:i))
-    line = line(i+1:)
-    cycle outer_loop
-  endif
-
-  i = index(line, ',', back = .true.)
-  if (i /= 0) then
-    call write_this (line(:i))
-    line = line(i+1:)
-    cycle outer_loop
-  endif
-
-  if (end_is_neigh) then
-    call write_this (line)
-    init = .true.
-    return
-  endif
-
-  if (logic_option(.false., julia)) then
-    call write_this (trim(line))
-  else
-    call write_this (trim(line) // ' &')
-  endif
-  line = ''
-  return
-
-enddo outer_loop
-
-!-----------------------------------
-
-contains
-
-subroutine write_this (line2)
-
-character(*) line2
-character(20) fmt
-
-!
-
-if (init) then
-  fmt = '(a, 1x, a)'
-  init = .false.
-else
-  fmt = '(2x, a, 1x, a)'
-endif
-
-write (iu, fmt) trim(line2)
-
-end subroutine write_this
-
-end subroutine write_lat_line
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-subroutine value_to_line (line, value, str, typ, ignore_if_zero, use_comma)
-
-use precision_def
-
-implicit none
-
-character(*) line, str
-character(40) fmt, val_str
-character(*) typ
-
-real(rp) value
-
-integer ix
-
-logical, optional :: ignore_if_zero, use_comma
-
-!
-
-if (value == 0 .and. logic_option(.true., ignore_if_zero)) return
-
-if (logic_option(.true., use_comma)) then
-  if (str == '') then
-    line = trim(line) // ','
-  else
-    line = trim(line) // ', ' // trim(str) // ' ='
-  endif
-else
-  if (str /= '') then
-    line = trim(line) // ' ' // trim(str) // ' ='
-  endif
-endif
-
-if (value == 0) then
-  line = trim(line) // ' 0'
-  return
-endif
-
-if (typ == 'R') then
-  val_str = re_str(value)
-elseif (typ == 'I') then
-  write (val_str, '(i0)') nint(value)
-else
-  print *, 'ERROR IN VALUE_TO_LINE. BAD "TYP": ', typ 
-  if (global_com%exit_on_error) call err_exit
-endif
-
-call string_trim(val_str, val_str, ix)
-line = trim(line) // ' ' // trim(val_str)
-
-end subroutine value_to_line
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 !+ 
-! Subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+! Subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
 !
-! Private routine used by write_lat_in_sad_format and not for general use. 
-! See write_lat_in_sad_format for details about the argument list.
+! Private routine used by write_lattice_in_foreign_format and not for general use. 
+! See write_lattice_in_foreign_format for details about the argument list.
 !-
 
-subroutine write_lat_in_sad_format (out_file_name, lat, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
+
+use element_modeling_mod, dummy => write_lattice_in_sad_format
+use write_lattice_file_mod, dummy2 => write_lattice_in_sad_format
 
 implicit none
 
@@ -504,12 +32,12 @@ integer, parameter :: sad_bz$          = 4
 integer, parameter :: sad_fshift$      = 5
 integer, parameter :: sad_mark_offset$ = 6
 
-integer, optional :: ix_start, ix_end, ix_branch
+integer, optional :: ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
-integer i, j, n, ib, iout, iu, ix, ix1, ix2, ios, ie1, ie2, ie2_orig, n_taylor_order_saved, ix_ele
+integer i, j, n, ib, iout, iu, ix, ix1, ix2, ios, ie2_orig, n_taylor_order_saved, ix_ele
 integer s_count, j_count, n_elsep_warn, n_name_change_warn
 integer ix_manch, n_names, aperture_at, ix_pole_max, ix_match
-integer :: ix_line_min, ix_line_max, n_warn_max = 10
+integer :: ix_line_min, ix_line_max, n_warn_max, n_wig_model_err, print_wig_model_err_max
 
 character(*), parameter :: r_name = "write_lat_in_sad_format"
 character(*) out_file_name
@@ -519,7 +47,8 @@ character(300) line, knl_str, ksl_str
 character(2000) line_out
 
 logical, optional :: include_apertures, err
-logical converted, init_needed, in_solenoid, ptc_exact_model
+logical converted, init_needed, in_solenoid, ptc_exact_model, err_flag
+logical print_err
 
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
@@ -527,6 +56,10 @@ ptc_exact_model = ptc_com%exact_model
 ptc_com%exact_model = .true.
 
 ! Init
+
+n_warn_max = 10
+n_wig_model_err = 0
+print_wig_model_err_max = 5
 
 ix = integer_option(0, ix_branch)
 if (ix < 0 .or. ix > ubound(lat%branch, 1)) then
@@ -548,9 +81,7 @@ call init_ele (bend_ele, sbend$)
 call multipole_init (ab_ele, magnetic$)
 null_ele%key = null_ele$
 
-ie1 = integer_option(1, ix_start)
-ie2 = integer_option(branch%n_ele_track, ix_end)
-ie2_orig = ie2
+ie2_orig = branch%n_ele_track
 
 allocate (names(branch%n_ele_max), an_indexx(branch%n_ele_max)) ! list of element names
 
@@ -598,7 +129,6 @@ do ix_ele = 1, branch_out%n_ele_track
 
   if (ele%key == patch$ .and. ele%old_value(sad_fshift$) /= 0 .and. ix_ele <= ie2_orig) then
     ele%ix_ele = -1
-    ie2 = ie2 - 1
   endif
 enddo
 
@@ -611,11 +141,11 @@ nullify(first_sol_edge)
 old_bs_field = 0
 n_name_change_warn = 0
 n_elsep_warn = 0
-ix_ele = ie1 - 1
+ix_ele = 0
 
 do
   ix_ele = ix_ele + 1
-  if (ix_ele > ie2) exit
+  if (ix_ele > branch_out%n_ele_track) exit
   ele => branch_out%ele(ix_ele)
   val => ele%value
 
@@ -661,7 +191,6 @@ do
         write (sol_ele%name, '(a, i0)') 'SOL_', s_count  
         call insert_element (lat_out, sol_ele, ix_ele, branch_out%ix_branch)
         sol_ele => branch_out%ele(ix_ele)
-        ie2 = ie2 + 1
         ix_ele = ix_ele + 1
         ele => branch_out%ele(ix_ele)
         val => ele%value
@@ -772,11 +301,9 @@ do
     aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
     if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
       call insert_element (lat_out, col_ele, ix_ele+1, branch_out%ix_branch)
-      ie2 = ie2 + 1
     endif
     if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
       call insert_element (lat_out, col_ele, ix_ele, branch_out%ix_branch)
-      ie2 = ie2 + 1
     endif
     ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
 
@@ -793,7 +320,6 @@ do
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
     call insert_element (lat_out, kicker_ele, ix_ele, branch_out%ix_branch)
     call insert_element (lat_out, kicker_ele, ix_ele+2, branch_out%ix_branch)
-    ie2 = ie2 + 2
     cycle
   endif
 
@@ -805,12 +331,14 @@ do
     if (ix_pole_max > -1) then
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
-      if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
+      if (associated(ele%a_pole)) then
+        deallocate (ele%a_pole, ele%b_pole)
+        call attribute_bookkeeper(ele, .true.)
+      endif
       j_count = j_count + 1
       write (ab_ele%name, '(a1, a, i0)') key_name(ele%key), 'MULTIPOLE_', j_count
       call insert_element (lat_out, ab_ele, ix_ele, branch_out%ix_branch)
       call insert_element (lat_out, ab_ele, ix_ele+2, branch_out%ix_branch)
-      ie2 = ie2 + 2
       cycle
     endif
   endif
@@ -825,7 +353,11 @@ do
     if (ele%slave_status == super_slave$) then
       ! Create the wiggler model using the super_lord
       lord => pointer_to_lord(ele, 1)
-      call create_planar_wiggler_model (lord, lat_model)
+      print_err = (n_wig_model_err <= print_wig_model_err_max)
+      call create_planar_wiggler_model (lord, lat_model, err_flag, print_err = print_err)
+      if (err_flag) n_wig_model_err = n_wig_model_err + 1
+      if (n_wig_model_err == print_wig_model_err_max + 1) call out_io (s_warn$, r_name, &
+                  'Max number of wiggler error messages generated. Will not generate any more!')
       ! Remove all the slave elements and markers in between.
       call out_io (s_warn$, r_name, 'Note: Not translating the markers within wiggler: ' // lord%name)
       lord%ix_ele = -1 ! mark for deletion
@@ -839,9 +371,12 @@ do
       do i = ix1+1, ix2
         branch_out%ele(i)%ix_ele = -1  ! mark for deletion
       enddo
-      ie2 = ie2 - (ix2 - ix1 - 1)
     else
-      call create_planar_wiggler_model (ele, lat_model)
+      print_err = (n_wig_model_err <= print_wig_model_err_max)
+      call create_planar_wiggler_model (ele, lat_model, err_flag, print_err = print_err)
+      if (err_flag) n_wig_model_err = n_wig_model_err + 1
+      if (n_wig_model_err == print_wig_model_err_max + 1) call out_io (s_warn$, r_name, &
+                  'Max number of wiggler error messages generated. Will not generate any more!')
     endif
 
     ele%ix_ele = -1 ! Mark for deletion
@@ -849,7 +384,6 @@ do
     do j = 1, lat_model%n_ele_track
       call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch_out%ix_branch)
     enddo
-    ie2 = ie2 + lat_model%n_ele_track - 1
     cycle
   endif
 
@@ -858,7 +392,7 @@ enddo
 ! If there is a finite bs_field then create a final null_ele element
 
 if (bs_field /= 0) then
-  ele => branch_out%ele(ie2)
+  ele => branch_out%ele(branch_out%n_ele_track)
   if (ele%key == marker$) then
     ele%key = null_ele$
     ele%old_value(sad_bz$) = bs_field
@@ -866,9 +400,8 @@ if (bs_field /= 0) then
     s_count = s_count + 1
     write (null_ele%name, '(a, i0)') 'SOL_', s_count  
     null_ele%old_value(sad_bz$) = bs_field
-    ie2 = ie2 + 1
-    call insert_element (lat_out, null_ele, ie2, branch_out%ix_branch)
-    ele => branch_out%ele(ie2)
+    call insert_element (lat_out, null_ele, branch_out%n_ele_track, branch_out%ix_branch)
+    ele => branch_out%ele(branch_out%n_ele_track-1)
   endif
 
   ele%old_value(sad_bound$) = 1
@@ -877,11 +410,11 @@ endif
 
 ! For a patch that is *not* associated with the edge of a solenoid: A z_offset must be split into a drift + patch
 
-ix_ele = ie1 - 1
+ix_ele = 0
 
 do
   ix_ele = ix_ele + 1
-  if (ix_ele > ie2) exit
+  if (ix_ele > branch_out%n_ele_track) exit
   ele => branch_out%ele(ix_ele)
   val => ele%value
 
@@ -900,9 +433,9 @@ enddo
 ! Now write info to the output file...
 ! lat lattice name
 
-write (iu, '(3a)') '! File generated by Bmad from Bmad lattice file:'
-write (iu, '(4x, 2a)') trim(lat%input_file_name), ';'
-if (lat%lattice /= '') write (iu, '(4a)') '! Bmad lattice name: ', trim(lat%lattice), ';'
+write (iu, '(3a)') '! File generated by: write_lattice_in_foreign_format'
+write (iu, '(4a)') '! Bmad lattice file: ', trim(lat%input_file_name)
+if (lat%lattice /= '') write (iu, '(4a)') '! Bmad lattice name: ', trim(lat%lattice)
 write (iu, '(a)')
 
 write (iu, '(3a)') 'MOMENTUM = ',  re_str(ele%value(p0c$)), ';'
@@ -913,7 +446,7 @@ if (sad_fshift /= 0) write (iu, '(3a)') 'FSHIFT = ', re_str(sad_fshift), ';'
 n_names = 0                          ! number of names stored in the list
 old_bs_field = 0
 
-do ix_ele = ie1, ie2
+do ix_ele = 1, branch_out%n_ele_track
 
   ele => branch_out%ele(ix_ele)
   val => ele%value
@@ -1309,7 +842,7 @@ write (iu, '(3a)') '!---------------------------------;'
 write (iu, '(a)')
 write (line_out, '(2a)') 'LINE ASC = ('
 
-do n = ie1, ie2
+do n = 1, branch_out%n_ele_track
 
   ele => branch_out%ele(n)
   if (ele%sub_key == not_set$) cycle
@@ -1325,7 +858,7 @@ do n = ie1, ie2
 
   ! Output line if long enough or at end
 
-  if (n == ie2) then
+  if (n == branch_out%n_ele_track) then
     line_out = trim(line_out) // ')'
     write (iu, '(2a)') trim(line_out), ';'
     line_out = ' '
@@ -1415,33 +948,5 @@ write (iu, '(2a)') trim(line_out), ';'
 
 end subroutine write_line
 
-end subroutine write_lat_in_sad_format
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-subroutine add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
-
-type (ele_struct), target :: ele
-type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
-
-integer, allocatable :: an_indexx(:)
-integer n_names, ix_match
-logical has_been_added
-character(40), allocatable :: names(:)
-
-!
-
-if (size(names) < n_names + 1) then
-  call re_allocate(names, 2*size(names))
-  call re_allocate(an_indexx, 2*size(names))
-  call re_allocate_eles(named_eles, 2*size(names), .true.)
-endif
-call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
-if (has_been_added) named_eles(n_names)%ele => ele
-
-end subroutine add_this_name_to_list
-
-end module
+end subroutine write_lattice_in_sad_format
 

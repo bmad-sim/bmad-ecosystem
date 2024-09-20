@@ -30,7 +30,7 @@ type (coord_struct), pointer :: orb_in, orb_out
 integer key2, geometry
 
 real(rp) :: mat6(6,6)
-real(rp) v_mat(4,4), v_inv_mat(4,4), det, mat2_a(2,2), mat2_b(2,2)
+real(rp) det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
 real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p21, rel_p2
@@ -50,10 +50,12 @@ if (ele1%key == beginning_ele$) then
   if (is_true(ele1%value(deta_ds_master$))) then
     ele1%x%etap = ele1%x%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(2) / rel_p1
     ele1%y%etap = ele1%y%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(4) / rel_p1
-  elseif (ele1%x%deta_ds == real_garbage$) then
+  else
     ele1%x%deta_ds = ele1%x%etap / rel_p1 - ele1%map_ref_orb_out%vec(2) / rel_p1**2
     ele1%y%deta_ds = ele1%y%etap / rel_p1 - ele1%map_ref_orb_out%vec(4) / rel_p1**2
   endif
+
+  call normal_mode_dispersion(ele1)
 endif
 
 !
@@ -244,17 +246,7 @@ endif
 ele2%z%etap    = 1
 ele2%z%deta_ds = 1
 
-call make_v_mats (ele2, v_mat, v_inv_mat)
-eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
-vec(1:4) = matmul(v_inv_mat, orb_out%vec(1:4))
-
-ele2%a%eta     = eta_vec(1)
-ele2%a%etap    = eta_vec(2)
-ele2%a%deta_ds = eta_vec(2) / rel_p2 - vec(2) / rel_p2**2
-
-ele2%b%eta     = eta_vec(3)
-ele2%b%etap    = eta_vec(4)
-ele2%b%deta_ds = eta_vec(4) / rel_p2 - vec(4) / rel_p2**2
+call normal_mode_dispersion(ele2)
 
 !
 

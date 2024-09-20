@@ -54,8 +54,8 @@ tao_close_command_file
 File: code/tao_cmd_end_calc.f90
 tao_cmd_end_calc
 
-File: code/tao_command.f90
-tao_command
+File: code/tao_help.f90
+tao_help
 
 File: code/tao_command_mod.f90
 tao_command_mod
@@ -211,9 +211,6 @@ tao_curve_datum_calc
 tao_set_curve_invalid
 tao_curve_check_universe
 tao_graph_s_min_max_calc
-
-File: code/tao_help.f90
-tao_help
 
 File: code/tao_init.f90
 tao_init
@@ -463,8 +460,8 @@ tao_ptc_cmd
 File: code/tao_ptc_normal_form.f90
 tao_ptc_normal_form
 
-File: code/tao_python_cmd.f90
-tao_python_cmd
+File: code/tao_command.f90
+tao_command
 
 File: code/tao_quiet_set.f90
 tao_quiet_set
@@ -499,9 +496,6 @@ tao_scale_ping_data
 File: code/tao_set_data_useit_opt.f90
 tao_set_data_useit_opt
 
-File: code/tao_set_flags_for_changed_attribute.f90
-tao_set_flags_for_changed_attribute
-
 File: code/tao_set_opt_vars.f90
 tao_set_opt_vars
 
@@ -522,9 +516,6 @@ tao_show_cmd
 
 File: code/tao_spin_matrix_calc.f90
 tao_spin_matrix_calc
-
-File: code/tao_spin_polarization_calc.f90
-tao_spin_polarization_calc
 
 File: code/tao_spin_tracking_turn_on.f90
 tao_spin_tracking_turn_on
@@ -562,9 +553,6 @@ tao_show_constraints
 tao_var_write
 tao_print_vars
 tao_write_lines
-
-File: code/tao_top_level.f90
-tao_top_level
 
 File: code/tao_turn_on_special_calcs_if_needed_for_plotting.f90
 tao_turn_on_special_calcs_if_needed_for_plotting
@@ -630,6 +618,61 @@ tao_single_mode
 File: code/tao_spin_matrices_calc_needed.f90
 tao_spin_matrices_calc_needed
 
+File: code/tao_pipe_cmd.f90
+tao_pipe_cmd
+
+File: code/tao_python_cmd.f90
+tao_python_cmd
+
+File: code/tao_set_flags_for_changed_attribute.f90
+tao_set_flags_for_changed_attribute
+
+File: code/tao_set_mod.f90
+tao_set_mod
+tao_set_tune_cmd
+tao_set_z_tune_cmd
+tao_set_calculate_cmd
+tao_set_key_cmd
+tao_set_ran_state_cmd
+tao_set_lattice_cmd
+tao_set_global_cmd
+tao_set_space_charge_com_cmd
+tao_set_bmad_com_cmd
+tao_set_ptc_com_cmd
+tao_set_geodesic_lm_cmd
+tao_set_opti_de_param_cmd
+tao_set_wave_cmd
+tao_set_beam_cmd
+tao_set_beam_init_cmd
+tao_set_particle_start_cmd
+tao_set_plot_page_cmd
+tao_set_curve_cmd
+tao_set_plot_cmd
+tao_set_region_cmd
+tao_set_graph_cmd
+tao_set_var_cmd
+tao_set_branch_cmd
+tao_set_data_cmd
+tao_set_default_cmd
+tao_set_dynamic_aperture_cmd
+tao_set_universe_cmd
+tao_set_elements_cmd
+tao_set_logical_value
+tao_set_integer_value
+tao_set_switch_value
+tao_set_real_value
+tao_set_drawing_cmd
+tao_set_symbolic_number_cmd
+tao_set_qp_rect_struct
+tao_set_qp_axis_struct
+tao_set_qp_point_struct
+
+File: code/tao_show_this.f90
+tao_show_this
+
+File: code/tao_spin_polarization_calc.f90
+tao_spin_polarization_calc
+
 File: code/tao_struct.f90
 tao_struct
 model$
@@ -677,6 +720,7 @@ tao_floor_plan_struct
 tao_graph_struct
 tao_plot_struct
 tao_plot_region_struct
+n_curve_pts_init$
 tao_plot_page_struct
 tao_region_array_struct
 tao_plot_array_struct
@@ -732,48 +776,8 @@ tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
-File: code/tao_set_mod.f90
-tao_set_mod
-tao_set_tune_cmd
-tao_set_z_tune_cmd
-tao_set_calculate_cmd
-tao_set_key_cmd
-tao_set_ran_state_cmd
-tao_set_lattice_cmd
-tao_set_global_cmd
-tao_set_space_charge_com_cmd
-tao_set_bmad_com_cmd
-tao_set_ptc_com_cmd
-tao_set_geodesic_lm_cmd
-tao_set_opti_de_param_cmd
-tao_set_wave_cmd
-tao_set_beam_cmd
-tao_set_beam_init_cmd
-tao_set_particle_start_cmd
-tao_set_plot_page_cmd
-tao_set_curve_cmd
-tao_set_plot_cmd
-tao_set_region_cmd
-tao_set_graph_cmd
-tao_set_var_cmd
-tao_set_branch_cmd
-tao_set_data_cmd
-tao_set_default_cmd
-tao_set_dynamic_aperture_cmd
-tao_set_universe_cmd
-tao_set_elements_cmd
-tao_set_logical_value
-tao_set_integer_value
-tao_set_switch_value
-tao_set_real_value
-tao_set_drawing_cmd
-tao_set_symbolic_number_cmd
-tao_set_qp_rect_struct
-tao_set_qp_axis_struct
-tao_set_qp_point_struct
-
-File: code/tao_show_this.f90
-tao_show_this
+File: code/tao_top_level.f90
+tao_top_level
 
 File: hook/tao_hook_branch_calc.f90
 tao_hook_branch_calc
