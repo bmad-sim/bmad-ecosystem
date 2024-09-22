@@ -473,7 +473,7 @@ end type tao_data_struct
 !   the u%data array. 
 
 type tao_d1_data_struct
-  character(40) name          ! Eg: 'x', etc.
+  character(40) :: name = ''                         ! Eg: 'x', etc.
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
   type (tao_data_struct), pointer :: d(:) => null()
                               ! Pointer to the appropriate section in u%data
@@ -503,15 +503,15 @@ end type
 ! This is used to construct arrays of tao_data_structs.
 
 type tao_data_array_struct
-  type (tao_data_struct), pointer :: d
+  type (tao_data_struct), pointer :: d => null()
 end type
 
 type tao_d1_data_array_struct
-  type (tao_d1_data_struct), pointer :: d1
+  type (tao_d1_data_struct), pointer :: d1 => null()
 end type
 
 type tao_d2_data_array_struct
-  type (tao_d2_data_struct), pointer :: d2
+  type (tao_d2_data_struct), pointer :: d2 => null()
 end type
 
 !-----------------------------------------------------------------------
@@ -588,7 +588,7 @@ end type tao_var_struct
 
 type tao_v1_var_struct
   character(40) :: name = ''       ! V1 variable name. Eg: 'quad_k1'.
-  integer ix_v1_var                ! Index to s%v1_var(:) array
+  integer :: ix_v1_var = -1        ! Index to s%v1_var(:) array
   type (tao_var_struct), pointer :: v(:) => null() 
                                    ! Pointer to the appropriate section in s%var.
 end type
@@ -597,11 +597,11 @@ end type
 ! This is used to construct arrays of tao_var_structs.
 
 type tao_var_array_struct
-  type (tao_var_struct), pointer :: v
+  type (tao_var_struct), pointer :: v => null()
 end type
 
 type tao_v1_var_array_struct
-  type (tao_v1_var_struct), pointer :: v1
+  type (tao_v1_var_struct), pointer :: v1 => null()
 end type
 
 
@@ -715,7 +715,7 @@ type tao_command_file_struct
   character(200) :: full_name = ''
   character(200) :: dir = './'
   integer :: ix_unit
-  character(40) cmd_arg(9)          ! Command file arguments.
+  character(40) :: cmd_arg(9) = ''  ! Command file arguments.
   logical :: paused = .false.       ! Is the command file paused?
   integer :: n_line = 0             ! Current line number
   logical :: reset_at_end = .true.  ! Reset lattice_calc_on and plot_on at end of file?
@@ -724,10 +724,10 @@ type tao_command_file_struct
 end type
 
 type do_loop_struct
-  character(20) :: name ! do loop index name
-  integer index, start, end, step ! for do loops
-  integer n_line_start, n_line_end ! lines in each nested loop
-  integer value
+  character(20) :: name = ''                           ! do loop index name
+  integer :: index = 0, start = 0, end = 0, step = 0   ! for do loops
+  integer :: n_line_start = 0, n_line_end = 0          ! lines in each nested loop
+  integer :: value = int_garbage$
 end type
 
 ! tao_common_struct is for the global parameters that the user should not have direct access to.
