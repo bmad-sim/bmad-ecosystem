@@ -2917,7 +2917,7 @@ case ('lattice')
 
   if (by_s) then
     ix2 = index(attrib0, ':')
-    if (aname == '') then
+    if (ix2 == 0) then
       nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
@@ -6385,7 +6385,7 @@ case ('wall')
 
   if (by_s) then
     ix2 = index(attrib0, ':')
-    if (aname == '') then
+    if (ix2 == 0) then
       nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
@@ -6402,7 +6402,7 @@ case ('wall')
 
   elseif (attrib0 /= '') then
     ix2 = index(attrib0, ':')
-    if (aname == '') then
+    if (ix2 == 0) then
       nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
