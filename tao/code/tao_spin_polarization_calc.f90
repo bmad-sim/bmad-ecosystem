@@ -21,7 +21,7 @@
 
 subroutine tao_spin_polarization_calc (branch, tao_branch, excite_zero, ignore_kinetic, err_flag)
 
-use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
+use tao_interface, dummy => tao_spin_polarization_calc
 use radiation_mod
 use ptc_interface_mod
 

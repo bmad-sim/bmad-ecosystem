@@ -229,6 +229,39 @@ subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
   integer ix_universe, ix_branch, ix_ele, ix_ele_track
 end subroutine
 
+recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
+  import
+  implicit none
+  type (tao_data_struct) datum
+  type (tao_universe_struct), target :: u
+  type (tao_lattice_struct), target :: tao_lat
+  real(rp) datum_value
+  logical valid_value
+  character(*), optional :: why_invalid
+end subroutine
+
+recursive &
+subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, err_flag, print_err, &
+                      info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
+                      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+  import
+  implicit none
+  character(*) :: expression
+  character(*), optional :: dflt_component, dflt_source
+  character(*), optional :: dflt_dat_or_var_index
+  type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+  type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
+  type (coord_struct), optional :: dflt_orbit
+  type (tao_expression_info_struct), allocatable, optional :: info(:)
+  type (tao_data_struct), optional :: datum
+  real(rp), allocatable :: value(:)
+  real(rp), optional :: dflt_s_offset
+  integer n_size
+  integer, optional :: dflt_uni, dflt_eval_point
+  logical use_good_user, err_flag
+  logical, optional :: print_err
+end subroutine
+
 function tao_evaluate_tune (q_str, q0, delta_input) result (q_val)
   import
   implicit none
@@ -718,6 +751,16 @@ subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr, w
   type (all_pointer_struct), optional :: val_ptr
   character(*) ele_name
   character(*), optional :: who
+end subroutine
+
+subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
+  import
+  implicit none
+  type (tao_data_struct) datum
+  logical, optional :: exterminate
+  integer, optional :: err_level
+  character(*) message
+  character(*), optional :: why_invalid
 end subroutine
 
 subroutine tao_set_var_model_value (var, value, print_limit_warning)

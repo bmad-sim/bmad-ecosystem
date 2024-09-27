@@ -839,6 +839,10 @@ describes in detail these data types.
                               \hspace{10pt} .b.sum, .b.diff, \\
                               \hspace{10pt} .c.sum, .c.diff
                             \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
+  \pref{spin.map.ptc}     & \begin{tabular}{@{}l}
+                              spin_map_ptc.$ijklmn$, \\
+                              \hspace{4em} $i,j,k,l,m,n$ are digits
+                            \end{tabular}                       & Spin Map Taylor terms                     & lat        & no  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\
                               \hspace{10pt} $N = 0, 1, \ldots$
@@ -1818,6 +1822,10 @@ a rotation angle equal to the spin tune.
 Spin resonance values. \vn{.a.sum}, \vn{.a.diff} are the sum and difference resonance values for the
 $a$-mode, etc. The \vn{show spin -ele ...} command will print the values. If not present, the
 evaluation element for the datum is the beginning element of the lattice branch.
+
+  %----------------------
+  \item[spin_map_ptc.$ijklmn$, where $i,j,k,l,m, n$ are 6 digits] \Newline \hlabel{spin.map.ptc}
+Terms in the taylor map of the spin tune.
 
   %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}

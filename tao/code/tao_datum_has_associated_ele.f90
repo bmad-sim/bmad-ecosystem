@@ -37,35 +37,46 @@ else
   short_type = data_type(:ix-1)
 endif
 
-if ((short_type == 'unstable' .and. data_type /= 'unstable.orbit') .or. short_type == 'normal' .or. &
-              data_type(1:18) == 'spin.polarization_' .or. data_type == 'spin.depolarization_rate' .or. &
-              data_type == 'chrom.a' .or. data_type == 'chrom.b' .or. short_type == 'chrom_ptc' .or. &
-              data_type(1:12) == 'chrom.dtune.' .or. short_type == 'slip_factor_ptc' .or. &
-              short_type == 'srdt' .or. short_type == 'damp' .or. short_type == 'tune' .or. &
-              short_type == 'momentum_compaction_ptc') then
+select case (short_type)
+case ('normal', 'chrom_ptc', 'slip_factor_ptc', 'srdt', 'damp', 'tune', 'momentum_compaction_ptc', &
+      'spin_tune_ptc', 'spin_map_ptc')
   has_associated_ele = no$
 
-elseif (data_type == 'emit.a' .or. data_type == 'norm_emit.a' .or. data_type == 'emit.b' .or. &
-        data_type == 'norm_emit.b') then
-  if (present(branch_geometry)) then
-    if (branch_geometry == closed$) then
-      has_associated_ele = no$
-    else
-      has_associated_ele = yes$
-    endif
+case ('unstable')
+  if (data_type == 'unstable.orbit') then
+    has_associated_ele = maybe$
+    if (integer_option(int_garbage$, branch_geometry) == closed$) has_associated_ele = no$
   else
-    has_associated_ele = provisional$
+    has_associated_ele = no$
   endif
 
-elseif (data_type == 'unstable.orbit' .or. short_type == 'dynamic_aperture') then
+case ('dynamic_aperture')
   has_associated_ele = maybe$
   if (integer_option(int_garbage$, branch_geometry) == closed$) has_associated_ele = no$
 
-elseif ((data_type(1:11) == 'expression:' .and. index(data_type, 'ele::#[') == 0) .or. data_type(1:8) == 'rad_int.') then
-  has_associated_ele = maybe$
+case default
+  if (data_type(1:18) == 'spin.polarization_' .or. data_type == 'spin.depolarization_rate' .or. &
+                data_type == 'chrom.a' .or. data_type == 'chrom.b' .or. data_type(1:12) == 'chrom.dtune.') then
+    has_associated_ele = no$
 
-else
-  has_associated_ele = yes$
-endif
+  elseif (data_type == 'emit.a' .or. data_type == 'norm_emit.a' .or. data_type == 'emit.b' .or. &
+          data_type == 'norm_emit.b') then
+    if (present(branch_geometry)) then
+      if (branch_geometry == closed$) then
+        has_associated_ele = no$
+      else
+        has_associated_ele = yes$
+      endif
+    else
+      has_associated_ele = provisional$
+    endif
+
+  elseif ((data_type(1:11) == 'expression:' .and. index(data_type, 'ele::#[') == 0) .or. data_type(1:8) == 'rad_int.') then
+    has_associated_ele = maybe$
+
+  else
+    has_associated_ele = yes$
+  endif
+end select
 
 end function tao_datum_has_associated_ele
