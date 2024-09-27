@@ -21,7 +21,6 @@ contains
 
 subroutine tao_init_data (data_file)
 
-use tao_data_and_eval_mod
 use tao_input_struct
 use random_mod
   
