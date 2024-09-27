@@ -2850,8 +2850,6 @@ case ('spin_map_ptc.')
     n = n / 10
   enddo
   
-  print '(6i3)', expo
-
   datum_value = real(ptc_nf%spin_tune .sub. expo)
   valid_value = .true.
 
