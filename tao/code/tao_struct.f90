@@ -140,6 +140,10 @@ type tao_shape_pattern_struct
   type (tao_shape_pattern_point_struct), allocatable :: pt(:)
 end type
 
+! Used for parsing expressions
+
+integer, parameter :: var_num$ = 101, lat_num$ = 102, data_num$ = 103, ele_num$ = 104
+
 !-----------------------------------------------------------------------
 ! Plot structures.
 

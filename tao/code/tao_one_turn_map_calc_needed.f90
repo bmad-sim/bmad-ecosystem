@@ -20,6 +20,7 @@ call setit (data_type, 'chrom_ptc.', do_one_turn_map)
 call setit (data_type, 'momentum_compaction_ptc.', do_one_turn_map) 
 call setit (data_type, 'slip_factor_ptc.', do_one_turn_map) 
 call setit (data_type, 'spin_tune_ptc.', do_one_turn_map) 
+call setit (data_type, 'spin_map_ptc.', do_one_turn_map) 
 call setit (data_type, 'normal.', do_one_turn_map) 
 
 !------------------------------------------------

@@ -839,6 +839,10 @@ describes in detail these data types.
                               \hspace{10pt} .b.sum, .b.diff, \\
                               \hspace{10pt} .c.sum, .c.diff
                             \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
+  \pref{spin.map.ptc}     & \begin{tabular}{@{}l}
+                              spin_map_ptc.$ijklmn$, \\
+                              \hspace{4em} $i,j,k,l,m,n$ are digits
+                            \end{tabular}                       & Spin Map Taylor terms                     & lat        & no  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\
                               \hspace{10pt} $N = 0, 1, \ldots$
@@ -1820,6 +1824,10 @@ $a$-mode, etc. The \vn{show spin -ele ...} command will print the values. If not
 evaluation element for the datum is the beginning element of the lattice branch.
 
   %----------------------
+  \item[spin_map_ptc.$ijklmn$, where $i,j,k,l,m, n$ are 6 digits] \Newline \hlabel{spin.map.ptc}
+Terms in the taylor map of the spin tune. See also \vn{spin_tune_ptc.$N$}.
+
+  %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
 Terms in the taylor series of the spin tune expanded as a function of $p_z$ as calculated from
 Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
@@ -1834,6 +1842,8 @@ Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the de
 
 To save time when the calculation of chromatic terms is not needed, the \vn{one_turn_map_calc} parameter
 (\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
+
+Note: \vn{spin_tune_ptc.$N$} is the same as \vn{spin_map_ptc.00000$N$}.
 
 Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 

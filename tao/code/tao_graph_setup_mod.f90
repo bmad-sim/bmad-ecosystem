@@ -2,7 +2,6 @@ module tao_graph_setup_mod
 
 use tao_interface
 use tao_command_mod
-use tao_data_and_eval_mod
 use expression_mod, only: expression_stack_value
 
 contains

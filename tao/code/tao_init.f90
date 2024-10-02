@@ -14,7 +14,6 @@ use tao_init_mod, dummy2 => tao_init
 use tao_init_data_mod, dummy3 => tao_init
 use tao_init_variables_mod, dummy4 => tao_init
 use tao_lattice_calc_mod, dummy5 => tao_init
-use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
 use tao_plot_mod, only: tao_draw_plots

@@ -57,7 +57,6 @@ use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
 use tao_c_interface_mod, only: tao_c_interface_com, re_allocate_c_double
 use tao_plot_mod, only: tao_set_floor_plan_axis_label
-use tao_data_and_eval_mod, only: tao_evaluate_expression
 use tao_dmerit_mod, only: tao_dmodel_dvar_calc
 use tao_input_struct, only: tao_ele_shape_input, tao_ele_shape_input_to_struct
 use opti_de_mod, only: opti_de_param

@@ -760,16 +760,15 @@ For \vn{sbend} elements, \vn{l_chord} will be set to the calculated chord length
 bends, the \vn{l_sagitta} parameter will be set to the sagitta length (The sagitta is the distance
 from the midpoint of the arc to the midpoint of the chord). \vn{l_sagitta} can be negative and will have
 the same sign as the \vn{g} parameter.
-
-The \vn{l_rectangle} parameter is the ``rectangular'' length. See the documentation on the \vn{fiducial_pt}
-parameter above.
   %
-  item[l_rectangle] \Newline
-The ``rectangular length'' is the distance between the entrance and exit points along the $s$ axis
-defined by the setting of \vn{fiducial_pt}. \fig{f:rbend} shows \vn{l_rectangle} for
-\vn{fiducial_pt} set to \vn{entrance_end}. If \vn{fiducial_pt} is set to \vn{none} or \vn{center},
-\vn{l_rectangle} is the same as the chord length. If \vn{fiducial_pt} is set to \vn{entrance_end}
-or \vn{exit_end} the rectangular length will be $\rho \sin\alpha$.
+  \item[l_rectangle] \Newline
+The \vn{l_rectangle} parameter is the ``rectangular'' length defined to be the distance between the
+entrance and exit points. The coordinate system used for the calculation is defined by the setting
+of \vn{fiducial_pt}. \fig{f:rbend} shows \vn{l_rectangle} for \vn{fiducial_pt} set to
+\vn{entrance_end} (the coordinate system corresponds to the entrance coordinate system of the bend).
+In this case, and in the case where \vn{fiducial_pt} is set to \vn{exit_end}, the rectangular
+length will be $\rho \sin\alpha$. If \vn{fiducial_pt} is set to \vn{none} or \vn{center},
+\vn{l_rectangle} is the same as the chord length.
   %
   \index{ref_tilt}
   \item[ref_tilt] \Newline

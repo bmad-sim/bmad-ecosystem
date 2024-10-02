@@ -16,7 +16,7 @@
 
 subroutine tao_spin_matrix_calc (datum, u, ele_ref, ele_eval, excite_zero)
 
-use tao_data_and_eval_mod, dummy => tao_spin_matrix_calc
+use tao_interface, dummy => tao_spin_matrix_calc
 
 implicit none
 

@@ -26,7 +26,7 @@
 #include <cstring>
 #include <cassert>
 #include <cmath>
-
+#include <iostream>
 #include "spea2.hpp"
 
 /* common parameters */
@@ -67,7 +67,12 @@ int* old_index;
 double** dist; /* distance between individuals in combined population */
 int** NN;
 
-
+void custom_assert(bool condition, const char* message) {
+    if (!condition) {
+        std::cerr << "Assertion failed: " << message << std::endl;
+        abort(); // Terminate the program
+    }
+}
 
 /*-----------------------| initialization |------------------------------*/
 
@@ -77,11 +82,16 @@ void initialize(char* paramfile, char* filenamebase)
   FILE *fp;
   int result;
   char str[CFG_ENTRY_LENGTH];
+  char buffer[100];
   
   /* reading parameter file with parameters for selection */
   fp = fopen(paramfile, "r");
-  assert(fp != NULL);
-  
+/*  assert(fp != NULL);
+*/
+
+  /*custom_assert(fp != NULL, "Check a_spea2_param.txt") ; */
+  sprintf(buffer, "Problem with paramfile: %s", paramfile);
+  custom_assert(fp != NULL, buffer) ; 
   fscanf(fp, "%s", str);
   assert(strcmp(str, "seed") == 0);
   fscanf(fp, "%d", &seed);
