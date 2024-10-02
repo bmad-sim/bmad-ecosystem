@@ -1825,7 +1825,7 @@ evaluation element for the datum is the beginning element of the lattice branch.
 
   %----------------------
   \item[spin_map_ptc.$ijklmn$, where $i,j,k,l,m, n$ are 6 digits] \Newline \hlabel{spin.map.ptc}
-Terms in the taylor map of the spin tune.
+Terms in the taylor map of the spin tune. See also \vn{spin_tune_ptc.$N$}.
 
   %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
@@ -1842,6 +1842,8 @@ Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the de
 
 To save time when the calculation of chromatic terms is not needed, the \vn{one_turn_map_calc} parameter
 (\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
+
+Note: \vn{spin_tune_ptc.$N$} is the same as \vn{spin_map_ptc.00000$N$}.
 
 Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 
