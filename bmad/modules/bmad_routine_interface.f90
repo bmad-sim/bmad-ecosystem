@@ -3490,14 +3490,6 @@ subroutine ele_geometry_hook_def (floor0, ele, floor, finished, len_scale)
   logical finished
 end subroutine
 
-subroutine wall_hit_handler_custom_def (orb, ele, s)
-  import
-  implicit none
-  type (coord_struct) :: orb
-  type (ele_struct) :: ele
-  real(rp) s
-end subroutine
-
 recursive subroutine em_field_custom_def (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, &
                                                   calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
   import
@@ -3521,6 +3513,15 @@ subroutine ele_to_fibre_hook_def (ele, ptc_fibre, param, use_offsets, err_flag)
   type (fibre) ptc_fibre
   type (lat_param_struct) param
   logical use_offsets, err_flag
+end subroutine
+
+recursive subroutine lat_make_mat6_hook_def (finished, lat, ix_ele, ref_orb, ix_branch, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (coord_struct), optional :: ref_orb(0:)
+  integer ix_ele, ix_branch
+  logical finished, err_flag
 end subroutine
 
 subroutine radiation_integrals_custom_def (lat, ir, orb, rad_int1, err_flag)
@@ -3631,6 +3632,14 @@ subroutine track1_wake_hook_def (bunch, ele, finished)
   logical finished
 end subroutine
 
+subroutine wall_hit_handler_custom_def (orb, ele, s)
+  import
+  implicit none
+  type (coord_struct) :: orb
+  type (ele_struct) :: ele
+  real(rp) s
+end subroutine
+
 end interface
 
 ! Function pointers
@@ -3639,11 +3648,12 @@ procedure(apply_element_edge_kick_hook_def), pointer :: apply_element_edge_kick_
 procedure(check_aperture_limit_custom_def), pointer :: check_aperture_limit_custom_ptr => null()
 procedure(distance_to_aperture_custom_def), pointer :: distance_to_aperture_custom_ptr => null()
 procedure(ele_geometry_hook_def), pointer :: ele_geometry_hook_ptr => null()
-procedure(wall_hit_handler_custom_def), pointer :: wall_hit_handler_custom_ptr => null()
 procedure(em_field_custom_def), pointer :: em_field_custom_ptr => null()
 procedure(ele_to_fibre_hook_def), pointer :: ele_to_fibre_hook_ptr => null()
 procedure(radiation_integrals_custom_def), pointer :: radiation_integrals_custom_ptr => null()
 procedure(init_custom_def), pointer :: init_custom_ptr => null()
+procedure(lat_make_mat6_hook_def), pointer :: lat_make_mat6_hook_ptr => null()
+
 procedure(make_mat6_custom_def), pointer :: make_mat6_custom_ptr => null()
 procedure(time_runge_kutta_periodic_kick_hook_def), pointer :: time_runge_kutta_periodic_kick_hook_ptr => null()
 procedure(track1_bunch_hook_def), pointer :: track1_bunch_hook_ptr => null()
@@ -3653,6 +3663,7 @@ procedure(track1_postprocess_def), pointer :: track1_postprocess_ptr => null()
 procedure(track1_preprocess_def), pointer :: track1_preprocess_ptr => null()
 procedure(track1_spin_custom_def), pointer :: track1_spin_custom_ptr => null()
 procedure(track1_wake_hook_def), pointer :: track1_wake_hook_ptr => null()
+procedure(wall_hit_handler_custom_def), pointer :: wall_hit_handler_custom_ptr => null()
 
 contains
 
