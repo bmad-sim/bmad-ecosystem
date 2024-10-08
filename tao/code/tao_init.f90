@@ -322,7 +322,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
       if (branch%param%geometry == closed$ .and. tao_branch%track_state == moving_forward$) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
-                   tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, ix_branch = ib)
+              tao_branch%orbit(0)%vec(6), tao_lat%low_E_lat, tao_lat%high_E_lat, tao_branch%low_E_orb, tao_branch%high_E_orb, ib)
         call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit)
         call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit)
         tao_branch%modes_6d%momentum_compaction = momentum_compaction(branch)

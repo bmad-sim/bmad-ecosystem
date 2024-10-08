@@ -61,7 +61,7 @@ type (twiss_struct), pointer :: z0, z1, z2
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) beta_gamma, one_pz, xi_sum, xi_diff, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len, n0(3)
-real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE, s_offset
+real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dpz, s_offset
 real(rp) zz_center, xx_center, xx_wall, phase, amp, dalpha, dbeta, aa, bb, g2
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi, amp_a, amp_b
 real(rp), allocatable :: value_vec(:)
@@ -719,8 +719,6 @@ case ('chrom.')
 
   !----
 
-  dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
-
   select case (data_type)
 
   case ('chrom.dtune.a', 'chrom.a')
@@ -736,7 +734,8 @@ case ('chrom.')
   case ('chrom.dbeta.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%beta) / (tao_lat%lat%ele(i)%a%beta * dE)
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%beta) / (tao_lat%lat%ele(i)%a%beta * dpz)
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -744,7 +743,8 @@ case ('chrom.')
   case ('chrom.dbeta.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%beta) / (tao_lat%lat%ele(i)%b%beta * dE)
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%beta) / (tao_lat%lat%ele(i)%b%beta * dpz)
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -752,7 +752,8 @@ case ('chrom.')
   case ('chrom.dphi.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%phi)/ dE
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%phi)/ dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -760,7 +761,8 @@ case ('chrom.')
   case ('chrom.dphi.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%phi)/ dE
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%phi)/ dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -768,7 +770,8 @@ case ('chrom.')
   case ('chrom.deta.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%eta)/ dE
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%eta)/ dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -776,7 +779,8 @@ case ('chrom.')
   case ('chrom.deta.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%eta)/ dE
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%eta)/ dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -784,7 +788,8 @@ case ('chrom.')
   case ('chrom.detap.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%etap)/ dE
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%etap)/ dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -792,7 +797,8 @@ case ('chrom.')
   case ('chrom.detap.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%etap)/ dE
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%etap)/ dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -809,8 +815,9 @@ case ('chrom.')
           z1 => tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b
           z0 => branch%ele(i)%b
         endif
-        dalpha = (z2%alpha - z1%alpha) / dE
-        dbeta  = (z2%beta - z1%beta) / dE
+        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
+        dalpha = (z2%alpha - z1%alpha) / dpz
+        dbeta  = (z2%beta - z1%beta) / dpz
         aa = dalpha - z0%alpha * dbeta / z0%beta
         bb = dbeta / z0%beta
         value_vec(i) = sqrt(aa**2 + bb**2)
