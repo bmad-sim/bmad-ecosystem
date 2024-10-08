@@ -5826,7 +5826,7 @@ case ('universe')
         'Note2: Instability with respect to radiation excitations does not affect such things as the closed orbit calculation.')
     endif
     call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
-                          pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
+                                              pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
 
     mode_d => design_tao_branch%modes_6d
     mode_m => tao_branch%modes_6d

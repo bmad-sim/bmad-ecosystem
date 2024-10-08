@@ -1,5 +1,5 @@
 !+
-! Subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
+! Subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag,
 !                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch, orb0)
 !
 ! Subroutine to calculate the chromaticities by computing the tune change when the energy is changed.
