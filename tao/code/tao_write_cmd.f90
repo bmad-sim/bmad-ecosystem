@@ -429,66 +429,8 @@ case ('covariance_matrix')
 
 case ('curve')
 
-  call tao_find_plots (err, word(1), 'BOTH', curve = curve, blank_means_all = .true.)
-  if (err .or. size(curve) == 0) then
-    call out_io (s_error$, r_name, 'CANNOT FIND CURVE')
-    return
-  endif
-
-  if (size(curve) > 1) then
-    call out_io (s_error$, r_name, 'MULTIPLE CURVES FIT NAME')
-    return
-  endif
-
-  file_name = 'curve.dat'
-  if (word(2) /= ' ') file_name = word(2)
-  call fullfilename (file_name, file_name)
-
-  c => curve(1)%c
-  ok = .false.
-
-  if (c%g%type == "phase_space") then
-    i_uni = c%ix_universe
-    if (i_uni == 0) i_uni = s%global%default_universe
-    beam => s%u(i_uni)%model_branch(c%ix_branch)%ele(c%ix_ele_ref_track)%beam
-    call file_suffixer (file_name, file_name, 'particle_dat', .true.)
-    open (iu, file = file_name)
-    write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
-    do i = 1, size(beam%bunch(1)%particle)
-      write (iu, '(i6, 6es15.7)') i, (beam%bunch(1)%particle(i)%vec(j), j = 1, 6)
-    enddo
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-    close(iu)
-    ok = .true.
-  endif
-
-  if (allocated(c%x_symb) .and. allocated(c%y_symb)) then
-    call file_suffixer (file_name, file_name, 'symbol_dat', .true.)
-    open (iu, file = file_name)
-    write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
-    do i = 1, size(c%x_symb)
-      write (iu, '(i6, 2es15.7)') i, c%x_symb(i), c%y_symb(i)
-    enddo
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-    close(iu)
-    ok = .true.
-  endif
-
-  if (allocated(c%x_line) .and. allocated(c%y_line)) then
-    call file_suffixer (file_name, file_name, 'line_dat', .true.)
-    open (iu, file = file_name)
-    write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
-    do i = 1, size(c%x_line)
-      write (iu, '(i6, 2es15.7)') i, c%x_line(i), c%y_line(i)
-    enddo
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-    close(iu)
-    ok = .true.
-  endif
-
-  if (.not. ok) then
-    call out_io (s_info$, r_name, 'No data found in curve to write')
-  endif
+  call out_io (s_info$, r_name, &
+      '"show curve" command superseded by the more versatile "show -write <file> curve ..." command.')
 
 !---------------------------------------------------
 ! derivative_matrix
