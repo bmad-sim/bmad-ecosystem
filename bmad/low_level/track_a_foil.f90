@@ -19,7 +19,7 @@
 !   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
 !-
 
-subroutine track_a_foil (orbit, ele, param, mat6, make_matrix)
+recursive subroutine track_a_foil (orbit, ele, param, mat6, make_matrix)
 
 use bmad_interface, except_dummy => track_a_foil
 use random_mod
@@ -84,7 +84,9 @@ do ns = 1, n_step
       end select
     enddo
 
-    if (is_true(ele%value(scatter_test$))) then
+    if (.not. bmad_private%random_on) then
+      rnd = 0
+    elseif (is_true(ele%value(scatter_test$))) then
       rnd = 1
     else
       call ran_gauss(rnd)

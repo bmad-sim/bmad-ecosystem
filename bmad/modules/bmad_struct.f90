@@ -2263,10 +2263,11 @@ end type
 type (bmad_common_struct), save, target :: bmad_com
 
 ! Bmad global private structure
-! For communication between Bmad and Bmad based programs.
+! For communication between Bmad routines and Bmad based programs.
 
 type bmad_private_struct
   real(rp) :: rf_clock_period = 0     ! The RF clock is used by the long_term_tracking program to avoid time round-off errors.
+  logical :: random_on = .true.       ! Temporarily turned off, for example, with the closed orbit calc.
 end type
 
 type (bmad_private_struct), save, target :: bmad_private

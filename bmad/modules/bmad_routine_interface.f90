@@ -2727,7 +2727,7 @@ subroutine track_a_sol_quad (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine track_a_foil (orbit, ele, param, mat6, make_matrix)
+recursive subroutine track_a_foil (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
