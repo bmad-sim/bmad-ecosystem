@@ -91,6 +91,8 @@ if (mat6_calc_method == auto$) then
     if (global_com%exit_on_error) call err_exit
     return
   end select
+
+  if (ele%key == foil$) mat6_calc_method = tracking$
 endif
 
 ele%map_ref_orb_in = a_start_orb

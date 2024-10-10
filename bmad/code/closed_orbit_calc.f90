@@ -156,6 +156,7 @@ bmad_com%radiation_fluctuations_on = .false.
 bmad_com%aperture_limit_on = .false.
 bmad_com%spin_tracking_on = .false.
 bmad_com%spin_sokolov_ternov_flipping_on = .false.
+bmad_private%random_on = .false.
 
 n_ele = branch%n_ele_track
 betas = 1
@@ -580,6 +581,7 @@ logical, optional :: reset_orb
 !
 
 bmad_com = bmad_com_saved  ! Restore
+bmad_private%random_on = .true.
 
 if (n_dim == 4 .or. n_dim == 5) then
   call set_on_off (rfcavity$, branch%lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
