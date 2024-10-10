@@ -162,7 +162,7 @@
 "ele32"    ABS 0      33   1   0   0   0   0
 "ele33"    ABS 0      34   3   0  37   1   0
 "ele34"    ABS 0      37   1   0   0   0   0
-"Hybrid" ABS 1e-12     2.058E-15
+"Hybrid" ABS 1e-12     3.887E-15
 "ON_OFF_SAVE"  ABS 0     0.100     0.300     0.400     0.200
 "Q1#1[L]"      ABS 0    1.5000
 "Q1\Q4[L]"      ABS 0    0.5000
@@ -172,7 +172,7 @@
 "S\LC[L]"      ABS 0   17.0000
 "END[L]"      ABS 0    0.0000
 "Q1[K1]"     ABS 0   -0.0020
-"Q1[TILT]"   ABS 0   18.0000
+"Q1[FQ1]"    ABS 0   18.0000
 "Q1[HKICK]"  ABS 0    2.0000
 "Q1[Y_OFF]"  ABS 0    0.0000
 "Q1[L]"      ABS 0    2.0000
