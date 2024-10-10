@@ -18,15 +18,16 @@ integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6, super_lor
 !   quasi_free$       -- May be free or not. For example, k1 is only free if field_master = F.
 !   dependent$        -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
 !   private$          -- Internal parameter used in calculations. Will not be displayed by type_ele.
-!   super_lord_align$ -- A super_lord alignment attribute may not be changed if any super_slave is not an 
-!                         em_field element and that super_slave has a second lord that is not a pipe.
+!   super_lord_align$ -- A super_lord alignment attribute, except for tilt, may not be changed if any super_slave 
+!                         is not an em_field element and that super_slave has a second lord that is not a pipe.
 
 type ele_attribute_struct
   character(40) :: name = null_name$
   integer :: state = does_not_exist$  ! See above.
   integer :: kind = unknown$          ! Is_switch$, is_real$, etc. See attribute_type routine.
   character(16) :: units = ''         ! EG: 'T*m'.
-  integer :: ix_attrib = -1           ! Attribute index. Frequently will be where in the ele%value(:) array the attribute is.
+  integer :: ix_attrib = -1           ! Attribute index. Frequently will be where in the 
+                                      !   ele%value(:) array the attribute is.
   real(rp) :: value = real_garbage$   ! Used by type_ele.
 end type
 
