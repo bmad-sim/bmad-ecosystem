@@ -20,6 +20,7 @@ integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6, super_lor
 !   private$          -- Internal parameter used in calculations. Will not be displayed by type_ele.
 !   super_lord_align$ -- A super_lord alignment attribute, except for tilt, may not be changed if any super_slave 
 !                         is not an em_field element and that super_slave has a second lord that is not a pipe.
+!                         Exception: Solenoid and Quadrupole overlapping.
 
 type ele_attribute_struct
   character(40) :: name = null_name$
@@ -3177,8 +3178,10 @@ if (ele%lord_status == super_lord$) then
       slave => pointer_to_slave(ele, is)
       do il = 1, slave%n_lord
         lord => pointer_to_lord(slave, il)
-        if (lord%ix_ele == ele%ix_ele) cycle
+        if (lord%lord_status /= super_lord$ .or. lord%ix_ele == ele%ix_ele) cycle
         if (lord%key == pipe$ .or. lord%key == em_field$) cycle
+        if ((lord%key == quadrupole$ .or. lord%key == solenoid$) .and. &
+             (ele%key == quadrupole$ .or. ele%key == solenoid$)) cycle
         call it_is_not_free(free, ele, ix_attrib, super_lord_align$, &
                      'BMAD CANNOT HANDLE OVERLAPPING SUPER_LORD ELEMENTS THAT HAVE MISALIGNMENTS OTHER THAN TILT.')
       enddo
