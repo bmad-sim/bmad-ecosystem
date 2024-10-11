@@ -8,22 +8,27 @@ implicit none
 ! Note: Slot 2 is reserved for super_slave$ and slot 9 is reserved for multipass_slave$
 
 integer, parameter :: does_not_exist$ = -1, is_free$ = 0, quasi_free$ = 1, dependent$ = 3, private$ = 4 
-integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6
+integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6, super_lord_align$ = 7
 
 ! attrib_array(key, ix_param)%state gives the state of the attribute.
 ! This may be one of:
-!   does_not_exist$ -- Does not exist.
-!   is_free$        -- Free to vary as long as attribute has not controlled by another element (overlay, super_lord, etc.)
-!   quasi_free$     -- May be free or not. For example, k1 is only free if field_master = F.
-!   dependent$      -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
-!   private$        -- Internal parameter used in calculations. Will not be displayed by type_ele.
+!   does_not_exist$   -- Does not exist.
+!   is_free$          -- Free to vary as long as attribute has not controlled by another 
+!                         element (overlay, super_lord, etc.)
+!   quasi_free$       -- May be free or not. For example, k1 is only free if field_master = F.
+!   dependent$        -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
+!   private$          -- Internal parameter used in calculations. Will not be displayed by type_ele.
+!   super_lord_align$ -- A super_lord alignment attribute, except for tilt, may not be changed if any super_slave 
+!                         is not an em_field element and that super_slave has a second lord that is not a pipe.
+!                         Exception: Solenoid and Quadrupole overlapping.
 
 type ele_attribute_struct
   character(40) :: name = null_name$
   integer :: state = does_not_exist$  ! See above.
   integer :: kind = unknown$          ! Is_switch$, is_real$, etc. See attribute_type routine.
   character(16) :: units = ''         ! EG: 'T*m'.
-  integer :: ix_attrib = -1           ! Attribute index. Frequently will be where in the ele%value(:) array the attribute is.
+  integer :: ix_attrib = -1           ! Attribute index. Frequently will be where in the 
+                                      !   ele%value(:) array the attribute is.
   real(rp) :: value = real_garbage$   ! Used by type_ele.
 end type
 
@@ -3019,14 +3024,14 @@ implicit none
 
 type (ele_struct), target :: ele
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele_p, lord
+type (ele_struct), pointer :: ele_p, lord, slave
 type (branch_struct), pointer :: branch
 type (ele_attribute_struct) attrib_info
 type (control_struct), pointer :: control
 type (all_pointer_struct) a_ptr
 
 integer, optional :: why_not_free
-integer ix_branch, i, ir, ix_attrib, ix, ic
+integer ix_branch, i, ir, ix_attrib, ix, ic, is, il
 
 character(*) attrib_name
 character(40) a_name
@@ -3163,7 +3168,29 @@ case ('E_TOT', 'P0C')
   return
 end select
 
-! check if it is a dependent variable.
+! A super_lord alignment attribute may not be changed if any super_slave is not an em_field element and
+! that super_slave has a second lord that is not a pipe.
+
+if (ele%lord_status == super_lord$) then
+  select case (a_name)
+  case ('ROLL', 'REF_TILT', 'X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'X_PITCH', 'Y_PITCH')
+    do is = 1, ele%n_slave
+      slave => pointer_to_slave(ele, is)
+      do il = 1, slave%n_lord
+        lord => pointer_to_lord(slave, il)
+        if (lord%lord_status /= super_lord$ .or. lord%ix_ele == ele%ix_ele) cycle
+        if (lord%key == pipe$ .or. lord%key == em_field$) cycle
+        if ((lord%key == quadrupole$ .or. lord%key == solenoid$) .and. &
+             (ele%key == quadrupole$ .or. ele%key == solenoid$)) cycle
+        call it_is_not_free(free, ele, ix_attrib, super_lord_align$, &
+                     'BMAD CANNOT HANDLE OVERLAPPING SUPER_LORD ELEMENTS THAT HAVE MISALIGNMENTS OTHER THAN TILT.')
+      enddo
+    enddo
+  end select
+endif
+
+
+! Check if it is a dependent variable.
 
 if (attrib_info%state == is_free$) return
 
