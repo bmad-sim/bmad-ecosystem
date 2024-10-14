@@ -357,7 +357,7 @@ if (use_cache .or. init_cache) then
         if (ubound(cache_ele%pt, 1) < 2*n_step) then
           call move_alloc(cache_ele%pt, pt_temp)
           allocate (cache_ele%pt(0:2*n_step))
-          cache_ele%pt(0:2*n_step:2) = pt_temp
+          cache_ele%pt(0:2*n_step:2) = pt_temp(0:n_step)
           deallocate(pt_temp)
         else
           cache_ele%pt(0:2*n_step:2) = cache_ele%pt(0:n_step)
