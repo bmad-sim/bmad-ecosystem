@@ -28,6 +28,7 @@ type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
 procedure(track_many_hook_def) :: track_many_hook
+procedure(lat_make_mat6_hook_def) :: lat_make_mat6_hook
 
 real(rp) dpz(20), pz(20), vec(6)
 real(rp) :: ramping_start_time = 0
@@ -43,10 +44,10 @@ namelist / params / bmad_com, ltt, da_param, set_rf_off, dpz, pz, dat_file, &
 
 !
 
-track1_preprocess_ptr => ltt_track1_preprocess
-track1_bunch_hook_ptr => ltt_track1_bunch_hook
-track_many_hook_ptr   => track_many_hook
-
+track1_preprocess_ptr   => ltt_track1_preprocess
+track1_bunch_hook_ptr   => ltt_track1_bunch_hook
+track_many_hook_ptr     => track_many_hook
+lat_make_mat6_hook_ptr  => lat_make_mat6_hook
 ! Set inits
 
 bmad_com%auto_bookkeeper = .false.   ! Makes tracking faster

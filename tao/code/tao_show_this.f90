@@ -16,7 +16,6 @@
 subroutine tao_show_this (what, result_id, lines, nl)
 
 use tao_top10_mod, dummy => tao_show_this
-use tao_data_and_eval_mod, only: tao_evaluate_expression, tao_evaluate_a_datum
 use tao_c_interface_mod, only: tao_c_interface_com
 use tao_command_mod, only: tao_next_switch, tao_next_word
 use tao_version_mod
@@ -5827,7 +5826,7 @@ case ('universe')
         'Note2: Instability with respect to radiation excitations does not affect such things as the closed orbit calculation.')
     endif
     call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
-                          pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
+                                              pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
 
     mode_d => design_tao_branch%modes_6d
     mode_m => tao_branch%modes_6d

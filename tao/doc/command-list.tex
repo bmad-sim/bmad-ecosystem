@@ -1993,7 +1993,7 @@ computed), the error messages are reproduced in the file. If this behavior is no
 The \vn{-append}, \vn{-write}, \vn{-noprint}, and \vn{-no_err_out} switches must be placed before
 \vn{<subcommand>}.
 
-Note: When running \tao as a subprocess, use the \vn{pipe} command (\sref{s:pipe})
+Note: When running \tao as a subprocess, use the \vn{pipe} command (\sref{s:pipe.cmd})
 instead of the \vn{show} command for communicating with the parent process.
 
 % Use the command:
@@ -3835,7 +3835,6 @@ Format:
   write bmad ...                  ! \sref{s:write.bmad}
   write bunch_comb ...            ! \sref{s:write.bunch.comb}
   write covariance_matrix ...     ! \sref{s:write.covar.matrix}
-  write curve ...                 ! \sref{s:write.curve}
   write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
   write digested ...              ! \sref{s:write.digested}
   write elegant ...               ! \sref{s:write.elegant}
@@ -4031,28 +4030,6 @@ Syntax:
 \end{example}
 
 The default file name is \vn{covar.matrix}.
-
-%% write curve  --------------------------------------------------------------
-
-\subsection{write curve}
-\label{s:write.curve}
-
-The \vn{write curve} command writes plot curve data to a file.
-Syntax:
-\begin{example}
-    write curve <curve_name> \{<file_name>\} ! Write the curve data
-\end{example}
-
-\vn{write curve} will produce two or three files:
-\begin{example}
-  <file_name>.symbol_dat    ! Symbol coordinates file
-  <file_name>.line_dat      ! Curve coords.
-  <file_name>.particle_dat  ! Particle data file
-\end{example}
-The particle data file is only produced if particle data is associated with the curve.  The curve
-coordinates are the the set of points that are used to draw the (possibly smooth) curve through the
-symbols.
-
 
 %% write derivative_matrix --------------------------------------------------------------
 

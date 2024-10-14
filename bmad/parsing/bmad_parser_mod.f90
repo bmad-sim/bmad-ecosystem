@@ -7812,8 +7812,8 @@ character(*), parameter :: r_name = 'parser_print_line'
 
 !
 
-call string_trim (bp_com%input_line2, print_line, ix) ! To strip off initial "print"
-print_line = print_line(ix+2:)
+print_line = bp_com%parse_line
+bp_com%parse_line = ''   ! Signal that line was parsed
 
 do
   ix = index(print_line, '`')

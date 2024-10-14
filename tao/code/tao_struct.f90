@@ -140,6 +140,10 @@ type tao_shape_pattern_struct
   type (tao_shape_pattern_point_struct), allocatable :: pt(:)
 end type
 
+! Used for parsing expressions
+
+integer, parameter :: var_num$ = 101, lat_num$ = 102, data_num$ = 103, ele_num$ = 104
+
 !-----------------------------------------------------------------------
 ! Plot structures.
 
@@ -932,6 +936,7 @@ type tao_lattice_branch_struct
   type (normal_modes_struct) modes_6d                     ! 6D radiation matrices.
   type (ptc_normal_form_struct) ptc_normal_form
   type (bmad_normal_form_struct) bmad_normal_form
+  type (coord_struct), allocatable :: high_E_orb(:), low_E_orb(:)
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   real(rp) :: comb_ds_save = -1                           ! Master parameter for %bunch_params_comb(:)%ds_save
   real(rp) :: comb_max_ds_save = -1                       ! Master parameter for %bunch_params_comb(:)%max_ds_save

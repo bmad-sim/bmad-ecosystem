@@ -178,7 +178,7 @@ do ib = 1, size(beam%bunch)
   if (any(bunch%particle%dt_ref /= 0))               dt_ref0 = .false.
 enddo
 
-if (spin0)      call remove_col('spin', colvec)
+!!! if (spin0)      call remove_col('spin', colvec)  ! Too confusing to not write out the spin even if the spin is zero.
 if (field0)     call remove_col('field', colvec)
 if (phase0)     call remove_col('phase', colvec)
 if (dir0)       call remove_col('direction', colvec)

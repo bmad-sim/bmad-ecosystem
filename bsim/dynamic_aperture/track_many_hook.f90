@@ -58,7 +58,7 @@ call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch)
 ! Normal Bmad tracking?
 
 finished = .false.
-if (ltt_params_global%tracking_method == 'OLD' .or. ltt_com%track_bypass) return
+if (lttp%tracking_method == 'OLD' .or. ltt_com%track_bypass) return
 finished = .true.
 
 !

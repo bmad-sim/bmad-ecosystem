@@ -461,7 +461,7 @@ type wall3d_struct
   logical :: superimpose = .false.                ! Can overlap another wall
   integer :: ele_anchor_pt = anchor_beginning$    ! anchor_beginning$, anchor_center$, or anchor_end$
   type (wall3d_section_struct), allocatable :: section(:) ! Indexed from 1.
-end type  
+end type
 
 !
 
@@ -1132,24 +1132,24 @@ type grid_beam_init_struct
 end type
 
 type beam_init_struct
-  character(200) :: position_file = ''       ! File with particle positions.
-  character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
+  character(200) :: position_file = ''                ! File with particle positions.
+  character(16) :: distribution_type(3) = 'RAN_GAUSS' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", "FILE", "RAN_GAUSS" or "" = "RAN_GAUSS" 
   real(rp) :: spin(3) = 0                    ! Spin (x, y, z)
   type (ellipse_beam_init_struct) :: ellipse(3) = ellipse_beam_init_struct() ! Ellipse beam distribution
   type (kv_beam_init_struct) :: KV = kv_beam_init_struct()                   ! KV beam distribution
   type (grid_beam_init_struct) :: grid(3) = grid_beam_init_struct()          ! Grid beam distribution
-  real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
-  real(rp) :: emit_jitter(2)   = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
-  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter
-  real(rp) :: sig_pz_jitter    = 0.0  ! RMS pz spread jitter 
-  integer :: n_particle = 0           ! Number of particles per bunch.
-  logical :: renorm_center = .true.   ! Renormalize centroid?
-  logical :: renorm_sigma = .true.    ! Renormalize sigma?
-  character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
+  real(rp) :: center_jitter(6) = 0.0         ! Bunch center rms jitter
+  real(rp) :: emit_jitter(2)   = 0.0         ! a and b bunch emittance rms jitter normalized to emittance
+  real(rp) :: sig_z_jitter     = 0.0         ! bunch length RMS jitter
+  real(rp) :: sig_pz_jitter    = 0.0         ! RMS pz spread jitter 
+  integer :: n_particle = 0                  ! Number of particles per bunch.
+  logical :: renorm_center = .true.          ! Renormalize centroid?
+  logical :: renorm_sigma = .true.           ! Renormalize sigma?
+  character(16) :: random_engine = 'pseudo'  ! Or 'quasi'. Random number engine to use. 
   character(16) :: random_gauss_converter = 'exact'  
-                                            ! Or 'quick'. Uniform to gauss conversion method.
-  real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
+                                             ! Or 'quick'. Uniform to gauss conversion method.
+  real(rp) :: random_sigma_cutoff = -1       ! Cut-off in sigmas.
   real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * beta * gamma)
   real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * beta * gamma)
   real(rp) :: a_emit = 0                     ! a-mode emittance
@@ -2263,10 +2263,11 @@ end type
 type (bmad_common_struct), save, target :: bmad_com
 
 ! Bmad global private structure
-! For communication between Bmad and Bmad based programs.
+! For communication between Bmad routines and Bmad based programs.
 
 type bmad_private_struct
   real(rp) :: rf_clock_period = 0     ! The RF clock is used by the long_term_tracking program to avoid time round-off errors.
+  logical :: random_on = .true.       ! Temporarily turned off, for example, with the closed orbit calc.
 end type
 
 type (bmad_private_struct), save, target :: bmad_private
