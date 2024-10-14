@@ -46,6 +46,8 @@ jobs:
       - name: Run Tests
         shell: bash -l {0}
         working-directory: ./pytao
+        env:
+          TAO_REUSE_SUBPROCESS: 1
         run: |
           export ACC_ROOT_DIR=$GITHUB_WORKSPACE
 
