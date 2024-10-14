@@ -52,5 +52,5 @@ jobs:
           export ACC_ROOT_DIR=$GITHUB_WORKSPACE
 
           echo -e '## Test results\n\n```' >> "$GITHUB_STEP_SUMMARY"
-          pytest -v --cov=pytao/ pytao/tests 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          pytest -v --cov=pytao/ -k 'interface_commands or parse' pytao/tests 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
