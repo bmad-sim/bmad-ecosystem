@@ -3564,14 +3564,14 @@ case ('ele:photon')
 
   case ('material')
     if (ele%key == multilayer_mirror$) then
-      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F;',          cmplx_str(ph%material%f0_m1)
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F;',          cmplx_str(ph%material%f0_m2)
+      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',          cmplx_str(ph%material%f0_m1)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',          cmplx_str(ph%material%f0_m2)
     else
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F;',          cmplx_str(ph%material%f0_m2)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',          cmplx_str(ph%material%f0_m2)
     endif
-    nl=incr(nl); write (li(nl), amt) 'F_H;COMPLEX;F;',              cmplx_str(ph%material%f_h)
-    nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F;',           cmplx_str(ph%material%f_hbar)
-    nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F;', cmplx_str(ph%material%f_hkl)
+    nl=incr(nl); write (li(nl), amt) 'F_H;COMPLEX;F',              cmplx_str(ph%material%f_h)
+    nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F',           cmplx_str(ph%material%f_hbar)
+    nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F', cmplx_str(ph%material%f_hkl)
 
   case ('curvature')
     nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T;',      ph%curvature%spherical

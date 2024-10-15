@@ -159,6 +159,7 @@ do ie = 0, branch%n_ele_track
     exit
   endif
 
+  n0 = quat_rotate(tspin%q_ele(ie)%spin_q(:,0), n0)
   del_p  = 1 + orbit(ie)%vec(6)
   s_vec(1:2) = [orbit(ie)%vec(2)/del_p, orbit(ie)%vec(4)/del_p]
   s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
