@@ -48,19 +48,15 @@ type (ele_pointer_struct), allocatable :: tree(:)
 
 integer n_found, i
 
-!
-
 ! Put element in list if not already there.
 
 do i = 1, n_found
-  if (associated(tree(i)%ele, ele)) exit
+  if (associated(tree(i)%ele, ele)) return
 enddo
 
-if (i == n_found+1) then
-  call re_allocate_eles(tree, n_found+10, .true.)
-  n_found = n_found + 1
-  tree(n_found)%ele => ele
-endif
+if (n_found + 1 > size(tree)) call re_allocate_eles(tree, n_found+10, .true.)
+n_found = n_found + 1
+tree(n_found)%ele => ele
 
 ! Loop over slaves
 
@@ -85,14 +81,12 @@ integer n_found, i
 ! Put element in list if not already there.
 
 do i = 1, n_found
-  if (associated(tree(i)%ele, ele)) exit
+  if (associated(tree(i)%ele, ele)) return
 enddo
 
-if (i == n_found+1) then
-  call re_allocate_eles(tree, n_found+10, .true.)
-  n_found = n_found + 1
-  tree(n_found)%ele => ele
-endif
+if (n_found + 1 > size(tree)) call re_allocate_eles(tree, n_found+10, .true.)
+n_found = n_found + 1
+tree(n_found)%ele => ele
 
 ! Now go through lords
 
