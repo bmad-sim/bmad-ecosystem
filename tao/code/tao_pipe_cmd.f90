@@ -2448,7 +2448,7 @@ case ('ele:chamber_wall')
 !
 ! Example:
 !   pipe ele:control_var 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
+! This gives control info on element number 7 in branch 1 of universe 3.
 ! 
 ! Parameters
 ! ----------
@@ -2475,6 +2475,11 @@ case ('ele:control_var')
 
   if (.not. associated(ele%control)) then
     call invalid ('ele%control not allocated')
+    return
+  endif
+
+  if (.not. allocated(ele%control%var)) then
+    call invalid ('ele%control%var not allocated')
     return
   endif
 
