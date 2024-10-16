@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ September 6, 2024}
+\date{David Sagan \\ October 15, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -288,6 +288,9 @@ amplitude is too large.
 Only the \vn{BMAD} method is able to handle a machine that is being ramped (\sref{s:ramp}). That is,
 when \vn{ltt%ramping_on} set to True. The program will detect if there is a conflict and issue an
 error message and stop.
+
+Note: It is recommended that \vn{bmad_com%absolute_time_tracking} be set to \vn{True} to avoid
+problems with frequencies incommensurate with the revolution frequency.
 
 %------------------------------------------------------------------
 \Section{Map Tracking}

@@ -532,8 +532,6 @@ if (lttp%split_bends_for_stochastic_rad .and. lttp%ramping_on) then
   stop
 endif
 
-
-
 ! Apply rampers and then turn off ramper use for twiss_and_track since rampers simulating 
 ! noise (using random numbers) will drive the closed orbit calc crazy.
 
@@ -581,6 +579,11 @@ if (lttp%use_rf_clock) then
   call out_io(s_info$, r_name, 'RF clock setup done. ')
   if (.not. bmad_com%absolute_time_tracking) call out_io (s_warn$, r_name, 'Absolute time tracking not in use!!', &
                                                                            'The RF clock will not be active!!')
+endif
+
+if (lttp%simulation_mode == 'BMAD' .and. .not. bmad_com%absolute_time_tracking) then
+  call out_io (s_warn$, r_name, 'NOTE: It is recommended that bmad_com%absolute_time_tracking be set to True to', &
+                                '      avoid problems with frequencies incommensurate with the revolution frequency.')
 endif
 
 !

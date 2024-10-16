@@ -18,6 +18,8 @@ subroutine update_fibre_from_ele (ele, survey_needed)
 use ptc_interface_mod, dum1 => update_fibre_from_ele
 use pointer_lattice, dum2 => twopi, dum3 => pi, dum4 => sqrt
 
+implicit none
+
 type (ele_struct), target :: ele, m_ele
 type (fibre), pointer :: fib
 type (branch_struct), pointer :: branch
