@@ -1691,7 +1691,7 @@ call init_attribute_name1 (wiggler$, cylindrical_map$,              'CYLINDRICAL
 call init_attribute_name1 (wiggler$, gen_grad_map$,                 'GEN_GRAD_MAP')
 call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE')
+call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE', dependent$)
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
