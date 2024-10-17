@@ -25,9 +25,11 @@ integer n_found, n_found2, i
 ! Walk downwards and upwards to get a list of slaves and lords
 
 n_found = 0
+allocate(tree(10))
 call walk_downwards (ele, tree, n_found)
 
 n_found2 = 0
+allocate(tree2(10))
 call walk_upwards (ele, tree2, n_found2)
 
 ! Combine lists. ele is common to both lists so do not double count.
