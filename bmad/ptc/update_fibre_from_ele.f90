@@ -18,6 +18,8 @@ subroutine update_fibre_from_ele (ele, survey_needed)
 use ptc_interface_mod, dum1 => update_fibre_from_ele
 use pointer_lattice, dum2 => twopi, dum3 => pi, dum4 => sqrt
 
+implicit none
+
 type (ele_struct), target :: ele, m_ele
 type (fibre), pointer :: fib
 type (branch_struct), pointer :: branch
@@ -79,13 +81,13 @@ if (ele%key == marker$) return
 
 ! Magnetic
 
+a_ptc = 0
+b_ptc = 0
+
 if (associated(fib%mag%an)) then
   n = size(fib%mag%an)
   a_ptc(0:n-1) = fib%mag%an
   b_ptc(0:n-1) = fib%mag%bn
-else
-  a_ptc = 0
-  b_ptc = 0
 endif
 
 call ele_to_ptc_magnetic_an_bn (ele, b_pole, a_pole) ! Yes arg order is b_pole, a_pole.
@@ -152,9 +154,9 @@ case (rfcavity$, lcavity$, crab_cavity$)
     call set_real_all (mp%lc, mpp%lc, val(l_active$))
     call set_real (mag%h1, magp%h1, (val(l$) - val(l_active$)) / 2)
     call set_real (mag%h2, magp%h2, (val(l$) - val(l_active$)) / 2)
-    volt = 2d-6 * e_accel_field(ele, voltage$) / ele%value(l_active$)
+    volt = 2d-6 * e_accel_field(ele, voltage$)
   case default
-    volt = 1d-6 * e_accel_field(ele, voltage$) / ele%value(l$)
+    volt = 1d-6 * e_accel_field(ele, voltage$) 
   end select
 
   mag%lag = phi_tot  ! There is no magp%lat

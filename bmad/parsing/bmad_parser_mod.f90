@@ -270,6 +270,7 @@ if (bp_com%input_from_file) then
       bp_com%parse_line(n+1:) = ''
     endif
 
+    if (bp_com%fatal_error_flag) return
     if (end_of_file) call parser_file_stack ('pop')
   enddo
 endif

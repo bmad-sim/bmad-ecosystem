@@ -156,6 +156,7 @@ bmad_com%radiation_fluctuations_on = .false.
 bmad_com%aperture_limit_on = .false.
 bmad_com%spin_tracking_on = .false.
 bmad_com%spin_sokolov_ternov_flipping_on = .false.
+bmad_private%random_on = .false.
 
 n_ele = branch%n_ele_track
 betas = 1
@@ -238,7 +239,23 @@ case (4, 5)
 ! Variable energy case: i_dim = 6
 
 case (6)
-  if (any(branch%param%t1_with_RF /= 0) .and. dir == 1) then
+  ! Assume that frequencies are comensurate otherwise a closed orbit does not exist.
+
+  rf_freq = 1d30
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key /= rfcavity$) cycle
+    if (.not. ele%is_on) cycle
+    rf_freq = min(rf_freq, abs(ele%value(rf_frequency$)))
+  enddo
+
+  z_original = start_orb%vec(5) 
+  coc%rf_wavelen = c_light * (branch%ele(ix_ele_start)%value(p0c$) / branch%ele(ix_ele_start)%value(e_tot$)) / rf_freq
+
+  !
+
+  if (any(branch%param%t1_with_RF /= 0) .and. dir == 1 .and. &
+            abs(branch%ele(1)%map_ref_orb_in%vec(5) - start_orb%vec(5)) < 0.1 * coc%rf_wavelen) then
     coc%t1 = branch%param%t1_with_RF
   else
     call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err)
@@ -256,19 +273,6 @@ case (6)
     call end_cleanup(branch, .false.)
     return
   endif
-
-  ! Assume that frequencies are comensurate otherwise a closed orbit does not exist.
-
-  rf_freq = 1d30
-  do ie = 1, branch%n_ele_track
-    ele => branch%ele(ie)
-    if (ele%key /= rfcavity$) cycle
-    if (.not. ele%is_on) cycle
-    rf_freq = min(rf_freq, abs(ele%value(rf_frequency$)))
-  enddo
-
-  z_original = start_orb%vec(5) 
-  coc%rf_wavelen = c_light * (branch%ele(ix_ele_start)%value(p0c$) / branch%ele(ix_ele_start)%value(e_tot$)) / rf_freq
 
 ! Error
 
@@ -577,6 +581,7 @@ logical, optional :: reset_orb
 !
 
 bmad_com = bmad_com_saved  ! Restore
+bmad_private%random_on = .true.
 
 if (n_dim == 4 .or. n_dim == 5) then
   call set_on_off (rfcavity$, branch%lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)

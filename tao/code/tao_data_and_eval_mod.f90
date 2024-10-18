@@ -1688,10 +1688,13 @@ do i = 1, size(stack)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
 
-  case (species_const$) 
+  case (species_const$) ! Something like "electron". Just push on stack.
     i2 = i2 + 1
     stk2(i2)%name = stack(i)%name
     call re_allocate(stk2(i2)%value, 1)
+
+  case (species$)
+    stk2(i2)%value = species_id(stk2(i2)%name)
 
   case (lat_num$, ele_num$)
     !!! This needs to be fixed to include default stuff

@@ -42,6 +42,7 @@ character(*), parameter :: r_name = 'make_mat6_tracking'
 err_flag = .true.
 del_orb = bmad_com%d_orb
 abs_p = max(abs(start_orb%vec(2)) + abs(del_orb(2)), abs(start_orb%vec(4)) + abs(del_orb(4)), abs(del_orb(6)))
+bmad_private%random_on = .false.
 
 ! The factor of 1.01 is used to avoid roundoff problems.
 ! Note: init_coord is avoided since init_coord will make z and t consistent with the element's t_ref.
@@ -53,6 +54,7 @@ start_orb0 = start_orb
 call track1 (start_orb0, ele, param, end_orb)
 if (end_orb%state /= alive$) then
   call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING CENTRAL PARTICLE. MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+  bmad_private%random_on = .true.
   return
 endif
 
@@ -66,6 +68,7 @@ do i = 1, 6
   call track1 (start, ele, param, end2)
   if (end2%state /= alive$) then
     call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (+). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+    bmad_private%random_on = .true.
     return
   endif
 
@@ -76,6 +79,7 @@ do i = 1, 6
   call track1 (start, ele, param, end1)
   if (end1%state /= alive$) then
     call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (-). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+    bmad_private%random_on = .true.
     return
   endif
 
@@ -86,6 +90,8 @@ enddo
 
 ele%vec0 = end_orb%vec - matmul(mat6, start_orb%vec)
 ele%mat6 = mat6
+
+bmad_private%random_on = .true.
 err_flag = .false.
 
 !------------------------------------------------------

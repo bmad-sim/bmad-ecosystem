@@ -21,6 +21,7 @@
 !   LOGIC       ! Logical: "T" or "F".
 !   INUM        ! Integer whose allowed values can be obtained using the "pipe inum" command.
 !   ENUM        ! String whose allowed values can be obtained using the "pipe enum" command.
+!   ENUM_ARR    ! Array of enums.
 !   FILE        ! Name of file.
 !   CRYSTAL     ! Crystal name string. EG: "Si(111)"
 !   DAT_TYPE    ! Data type string. EG: "orbit.x"
@@ -383,7 +384,7 @@ case ('beam_init')
   ix_branch = parse_branch(line, u, .false., err); if (err) return
   beam_init => u%model_branch(ix_branch)%beam%beam_init
 
-!!  nl=incr(nl); write (li(nl), amt) 'distribution_type;STR_ARR;T',           (';', trim(beam_init%distribution_type(k)), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'distribution_type;STR_ARR;T',              (';', trim(beam_init%distribution_type(k)), k = 1, 3)
   nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    trim(beam_init%position_file)
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
   nl=incr(nl); write (li(nl), rmt) 'sig_pz_jitter;REAL;T;',                    beam_init%sig_pz_jitter
@@ -403,7 +404,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
   nl=incr(nl); write (li(nl), rmt) 't_offset;REAL;T;',                         beam_init%t_offset
   nl=incr(nl); write (li(nl), amt) 'center;REAL_ARR;T',                        (';', re_str(beam_init%center(k), 8), k = 1, 6)
-  nl=incr(nl); write (li(nl), amt) 'spin;REAL_ARR;T',                           (';', re_str(beam_init%spin(k), 10), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'spin;REAL_ARR;T',                          (';', re_str(beam_init%spin(k), 10), k = 1, 3)
   nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
   nl=incr(nl); write (li(nl), rmt) 'sig_pz;REAL;T;',                           beam_init%sig_pz
   nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
@@ -2339,10 +2340,10 @@ case ('ele:cartesian_map')
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(ct_map%ptr%file)
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', ct_map%r0(i), i = 1, 3)
     name = attribute_name(ele, ct_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',         trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(ct_map%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(ct_map%field_type))
 
@@ -2447,7 +2448,7 @@ case ('ele:chamber_wall')
 !
 ! Example:
 !   pipe ele:control_var 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
+! This gives control info on element number 7 in branch 1 of universe 3.
 ! 
 ! Parameters
 ! ----------
@@ -2474,6 +2475,11 @@ case ('ele:control_var')
 
   if (.not. associated(ele%control)) then
     call invalid ('ele%control not allocated')
+    return
+  endif
+
+  if (.not. allocated(ele%control%var)) then
+    call invalid ('ele%control%var not allocated')
     return
   endif
 
@@ -2616,9 +2622,9 @@ case ('ele:elec_multipoles')
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
   endif
 
   can_vary = (which == 'model')
@@ -2853,7 +2859,7 @@ case ('ele:gen_grad_map')
   case ('base')
     nl=incr(nl); write (li(nl), amt)  'file;FILE;T;',                          trim(gg_map%file)
     nl=incr(nl); write (li(nl), rmt)  'field_scale;REAL;T;',                   gg_map%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', gg_map%r0(i), i = 1, 3)
     nl=incr(nl); write (li(nl), rmt)  'dz;REAL;T;',                            gg_map%dz
     name = attribute_name(ele, gg_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
@@ -2935,10 +2941,10 @@ case ('ele:grid_field')
   select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T',                        (';', g_field%dr(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', g_field%r0(i), i = 1, 3)
     name = attribute_name(ele, g_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',         trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(g_field%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    trim(em_field_type_name(g_field%field_type))
     nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           trim(grid_field_geometry_name(g_field%geometry))
@@ -3558,17 +3564,17 @@ case ('ele:photon')
 
   case ('material')
     if (ele%key == multilayer_mirror$) then
-      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',      cmplx_str(ph%material%f0_m1)
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',          cmplx_str(ph%material%f0_m1)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',          cmplx_str(ph%material%f0_m2)
     else
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',          cmplx_str(ph%material%f0_m2)
     endif
     nl=incr(nl); write (li(nl), amt) 'F_H;COMPLEX;F',              cmplx_str(ph%material%f_h)
     nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F',           cmplx_str(ph%material%f_hbar)
     nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F', cmplx_str(ph%material%f_hkl)
 
   case ('curvature')
-    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%curvature%spherical
+    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T;',      ph%curvature%spherical
     nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%curvature%elliptical(i), i = 1, 3)
     do i = 0, ubound(ph%curvature%xy, 2)
       nl=incr(nl); write (li(nl), ramt) 'xy(' // int_str(i) // ',:);REAL_ARR;T', (';', ph%curvature%xy(i,j), j = 0, ubound(ph%curvature%xy, 1))
@@ -3796,17 +3802,17 @@ case ('ele:wake')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), rmt) 'sr%z_max;REAL;T;',             wake%sr%z_max
-    nl=incr(nl); write (li(nl), rmt) 'sr%amp_scale;REAL;T;',         wake%sr%amp_scale
-    nl=incr(nl); write (li(nl), rmt) 'sr%z_scale;REAL;T;',           wake%sr%z_scale
-    nl=incr(nl); write (li(nl), lmt) 'sr%scale_with_length;REAL;T;', wake%sr%scale_with_length
-    nl=incr(nl); write (li(nl), rmt) 'lr%freq_spread;REAL;T;',       wake%lr%freq_spread
-    nl=incr(nl); write (li(nl), rmt) 'lr%amp_scale;REAL;T;',         wake%lr%amp_scale
-    nl=incr(nl); write (li(nl), rmt) 'lr%time_scale;REAL;T;',        wake%lr%time_scale
-    nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;REAL;T;',      wake%lr%self_wake_on
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',         allocated(wake%sr%long)
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',        allocated(wake%sr%trans)
-    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',         allocated(wake%lr%mode)
+    nl=incr(nl); write (li(nl), rmt) 'sr%z_max;REAL;T;',              wake%sr%z_max
+    nl=incr(nl); write (li(nl), rmt) 'sr%amp_scale;REAL;T;',          wake%sr%amp_scale
+    nl=incr(nl); write (li(nl), rmt) 'sr%z_scale;REAL;T;',            wake%sr%z_scale
+    nl=incr(nl); write (li(nl), lmt) 'sr%scale_with_length;LOGIC;T;', wake%sr%scale_with_length
+    nl=incr(nl); write (li(nl), rmt) 'lr%freq_spread;REAL;T;',        wake%lr%freq_spread
+    nl=incr(nl); write (li(nl), rmt) 'lr%amp_scale;REAL;T;',          wake%lr%amp_scale
+    nl=incr(nl); write (li(nl), rmt) 'lr%time_scale;REAL;T;',         wake%lr%time_scale
+    nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;LOGIC;T;',      wake%lr%self_wake_on
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',          allocated(wake%sr%long)
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',         allocated(wake%sr%trans)
+    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',          allocated(wake%lr%mode)
 
   case ('sr_long')
     nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr%z_ref_long
@@ -3898,16 +3904,16 @@ case ('ele:wall3d')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                   trim(wall3d%name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',         trim(anchor_pt_name(wall3d%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                    trim(wall3d%name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',          trim(anchor_pt_name(wall3d%ele_anchor_pt))
     select case (ele%key)
     case (capillary$)
     case (diffraction_plate$, mask$)
-      nl=incr(nl); write (li(nl), rmt) 'thickness;REAL;T',            wall3d%thickness
-      nl=incr(nl); write (li(nl), amt) 'clear_material;REAL;T',       trim(wall3d%clear_material)
-      nl=incr(nl); write (li(nl), amt) 'opaque_material;REAL;T',      trim(wall3d%opaque_material)
+      nl=incr(nl); write (li(nl), rmt) 'thickness;REAL;T;',            wall3d%thickness
+      nl=incr(nl); write (li(nl), amt) 'clear_material;SPECIES;T;',    trim(wall3d%clear_material)
+      nl=incr(nl); write (li(nl), amt) 'opaque_material;SPECIES;T;',   trim(wall3d%opaque_material)
     case default
-      nl=incr(nl); write (li(nl), lmt) 'superimpose;REAL;T',          wall3d%superimpose
+      nl=incr(nl); write (li(nl), lmt) 'superimpose;LOGIC;T;',         wall3d%superimpose
     end select
 
   case ('table')
@@ -3915,7 +3921,7 @@ case ('ele:wall3d')
       sec => wall3d%section(i)
       nl=incr(nl); write (li(nl), imt) 'section;INT;F;',    i
       nl=incr(nl); write (li(nl), rmt) 's;REAL;T;',         sec%s
-      nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T;',    (';', sec%r0(j), j = 1, size(sec%r0))
+      nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',    (';', sec%r0(j), j = 1, size(sec%r0))
       if (ele%key /= capillary$) then
         nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    trim(wall3d_section_type_name(sec%type))
       endif
@@ -4120,6 +4126,11 @@ case ('enum')
   case ('data_source')
     do i = 1, size(tao_data_source_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_source_name(i))
+    enddo
+
+  case ('distribution_type')
+    do i = 1, size(beam_distribution_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(beam_distribution_type_name(i))
     enddo
 
   case ('floor_plan_view_name')
@@ -5533,7 +5544,7 @@ case ('plot_histogram')
   nl=incr(nl); write (li(nl), rmt) 'maximum;REAL;T;',                      c%hist%maximum
   nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        c%hist%width
   nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       c%hist%center
-  nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       c%hist%number
+  nl=incr(nl); write (li(nl), imt) 'number;INT;T;',                        c%hist%number
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -6803,7 +6814,7 @@ case ('space_charge_com')
   nl=incr(nl); write(li(nl), rmt) 'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
 
   nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'space_charge_mesh_size;INT_ARR;T', (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
-  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',       (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',        (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
   nl=incr(nl); write(li(nl), imt) 'n_bin;INT;T;',                             space_charge_com%n_bin
   nl=incr(nl); write(li(nl), imt) 'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
   nl=incr(nl); write(li(nl), imt) 'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
@@ -7858,31 +7869,31 @@ case ('wave')
 
     select case (s%wave%data_type)
     case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_a
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_b
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F', s%wave%rms_rel_k
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F', s%wave%rms_phi
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_b
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F;', s%wave%rms_rel_k
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F;', s%wave%rms_phi
 
     case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_a
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_b
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F', s%wave%rms_rel_k
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F', s%wave%rms_phi
-      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_C [Figure of Merit];REAL;F', s%wave%chi_c
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_b
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F;', s%wave%rms_rel_k
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F;', s%wave%rms_phi
+      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_C [Figure of Merit];REAL;F;', s%wave%chi_c
 
     case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
           'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+;REAL;F', s%wave%rms_rel_as
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-;REAL;F', s%wave%rms_rel_ar
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+;REAL;F', s%wave%rms_rel_bs
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_-/Amp_-;REAL;F', s%wave%rms_rel_br
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+;REAL;F;', s%wave%rms_rel_as
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-;REAL;F;', s%wave%rms_rel_ar
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+;REAL;F;', s%wave%rms_rel_bs
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_-/Amp_-;REAL;F;', s%wave%rms_rel_br
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Kick |K+|', 2*s%wave%amp_ba_s
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_K+/K+', 2*s%wave%rms_rel_ks
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Kick |K-|', 2*s%wave%amp_ba_r
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_K-/K-', 2*s%wave%rms_rel_kr
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi+;REAL;F', s%wave%rms_phi_s
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi-;REAL;F', s%wave%rms_phi_r
-      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_a [Figure of Merit];REAL;F', s%wave%chi_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi+;REAL;F;', s%wave%rms_phi_s
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi-;REAL;F;', s%wave%rms_phi_r
+      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_a [Figure of Merit];REAL;F;', s%wave%chi_a
     end select
 
   !

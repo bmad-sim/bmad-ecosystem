@@ -25,9 +25,11 @@ integer n_found, n_found2, i
 ! Walk downwards and upwards to get a list of slaves and lords
 
 n_found = 0
+allocate(tree(10))
 call walk_downwards (ele, tree, n_found)
 
 n_found2 = 0
+allocate(tree2(10))
 call walk_upwards (ele, tree2, n_found2)
 
 ! Combine lists. ele is common to both lists so do not double count.
@@ -48,19 +50,15 @@ type (ele_pointer_struct), allocatable :: tree(:)
 
 integer n_found, i
 
-!
-
 ! Put element in list if not already there.
 
 do i = 1, n_found
-  if (associated(tree(i)%ele, ele)) exit
+  if (associated(tree(i)%ele, ele)) return
 enddo
 
-if (i == n_found+1) then
-  call re_allocate_eles(tree, n_found+10, .true.)
-  n_found = n_found + 1
-  tree(n_found)%ele => ele
-endif
+if (n_found + 1 > size(tree)) call re_allocate_eles(tree, n_found+10, .true.)
+n_found = n_found + 1
+tree(n_found)%ele => ele
 
 ! Loop over slaves
 
@@ -85,14 +83,12 @@ integer n_found, i
 ! Put element in list if not already there.
 
 do i = 1, n_found
-  if (associated(tree(i)%ele, ele)) exit
+  if (associated(tree(i)%ele, ele)) return
 enddo
 
-if (i == n_found+1) then
-  call re_allocate_eles(tree, n_found+10, .true.)
-  n_found = n_found + 1
-  tree(n_found)%ele => ele
-endif
+if (n_found + 1 > size(tree)) call re_allocate_eles(tree, n_found+10, .true.)
+n_found = n_found + 1
+tree(n_found)%ele => ele
 
 ! Now go through lords
 

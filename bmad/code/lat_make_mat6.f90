@@ -44,9 +44,17 @@ integer, optional :: ix_ele, ix_branch
 integer i, j, i0, i1, ie, ild, n_taylor, i_ele, i_branch, ix_slave, species
 
 logical, optional :: err_flag
-logical transferred, zero_orbit, err
+logical transferred, zero_orbit, err, finished
 
 character(*), parameter :: r_name = 'lat_make_mat6'
+
+! 
+
+if (associated(lat_make_mat6_hook_ptr)) then
+  finished = .false.
+  call lat_make_mat6_hook_ptr(finished, lat, ix_ele, ref_orb, ix_branch, err_flag)
+  if (finished) return
+endif
 
 !
 

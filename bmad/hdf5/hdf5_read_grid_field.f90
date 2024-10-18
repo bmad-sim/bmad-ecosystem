@@ -179,7 +179,9 @@ call match_word (name, anchor_pt_name(1:), gf%ele_anchor_pt, error, .false.);   
 call hdf5_read_attribute_int (root_id, 'harmonic', gf%harmonic, error, .false.)
 call hdf5_read_attribute_real (root_id, 'RFphase', gf%phi0_fieldmap, error, .false.)
 if (gf%harmonic /= 0) then
-  call hdf5_read_attribute_real (root_id, 'fundamentalFrequency', ele%value(rf_frequency$), error, .false.)
+  ! Only set the rf_frequency if not set in lattice file
+  if (ele%value(rf_frequency$) /= 0) call hdf5_read_attribute_real (root_id, 'fundamentalFrequency', &
+                                                                          ele%value(rf_frequency$), error, .false.)
   if (ele%key == lcavity$) then
     gf%phi0_fieldmap = gf%phi0_fieldmap / gf%harmonic
   else

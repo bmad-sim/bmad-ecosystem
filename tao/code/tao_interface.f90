@@ -706,6 +706,10 @@ subroutine tao_re_allocate_expression_info (info, n, exact)
   logical, optional :: exact
 end subroutine
 
+subroutine tao_regression_test ()
+  implicit none
+end subroutine
+
 subroutine tao_remove_blank_characters (str)
   implicit none
   character(*) str

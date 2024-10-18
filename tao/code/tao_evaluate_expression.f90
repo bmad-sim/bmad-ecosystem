@@ -83,8 +83,8 @@ character(80) default_source
 character(40) saved_prefix
 character(*), parameter :: r_name = "tao_evaluate_expression"
 
-logical delim_found, do_combine, use_good_user
-logical err_flag, err, wild, printit, found, species_here
+logical delim_found, do_combine, use_good_user, in_species_func
+logical err_flag, err, wild, printit, found
 logical, optional :: print_err
 
 ! Don't destroy the input expression
@@ -124,6 +124,7 @@ endif
 n_func = 0
 i_lev = 0
 i_op = 0
+in_species_func = .false.
 
 allocate (stk(20), op(20))
 
@@ -133,7 +134,11 @@ parsing_loop: do
 
   ! get a word
 
-  call word_read (phrase, '+-*/()^,}[ ', word, ix_word, delim, delim_found, phrase)
+  if (in_species_func) then
+    call word_read (phrase, ')', word, ix_word, delim, delim_found, phrase)
+  else
+    call word_read (phrase, '+-*/()^,}[ ', word, ix_word, delim, delim_found, phrase)
+  endif
 
   ! Args are counted counted at the beginning of the function and at each comma.
 
@@ -217,8 +222,6 @@ parsing_loop: do
 
   do
     if (delim /= '*') exit
-
-    
 
     ix0 = index(word, '::')
     ix4 = index(word, '|')
@@ -361,6 +364,12 @@ parsing_loop: do
 
       call push_op_stack (op, i_op, l_func_parens$)
 
+      ! Parse function argument for functions that take a species.
+      select case (word2)
+      case ('mass_of', 'charge_of', 'species', 'antiparticle', 'anomalous_moment_of')
+        in_species_func = .true.
+      end select
+
     else
       call push_op_stack (op, i_op, l_parens$)
     endif
@@ -390,14 +399,7 @@ parsing_loop: do
       endif
 
     else
-      species_here = .false.
-      if (i_op > 1) then
-        select case(op(i_op-1))   ! op(i_op) will be l_func_parens$
-        case (mass_of$, charge_of$, anomalous_moment_of$, antiparticle$, species$);  species_here = .true.
-        end select
-      endif
-
-      if (species_here) then
+      if (in_species_func) then
         call push_stack (stk, i_lev, species_const$)
         stk(i_lev)%name = word
       else

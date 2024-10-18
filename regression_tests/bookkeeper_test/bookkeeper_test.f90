@@ -167,7 +167,7 @@ do i = 1, lat%n_ele_max
 
   if (ele%name == 'Q1') then
     write (1, '(a, f10.4)') '"Q1[K1]"     ABS 0', ele%value(k1$) 
-    write (1, '(a, f10.4)') '"Q1[TILT]"   ABS 0', ele%value(tilt$) 
+    write (1, '(a, f10.4)') '"Q1[FQ1]"    ABS 0', ele%value(fq1$) 
     write (1, '(a, f10.4)') '"Q1[HKICK]"  ABS 0', ele%value(hkick$) 
     write (1, '(a, f10.4)') '"Q1[Y_OFF]"  ABS 0', ele%a_pole(11) 
   endif
