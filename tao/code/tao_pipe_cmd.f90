@@ -3919,16 +3919,16 @@ case ('ele:wall3d')
   case ('table')
     do i = 1, size(wall3d%section)
       sec => wall3d%section(i)
-      nl=incr(nl); write (li(nl), imt) 'section;INT;F;',    i
-      nl=incr(nl); write (li(nl), rmt) 's;REAL;T;',         sec%s
-      nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',    (';', sec%r0(j), j = 1, size(sec%r0))
+      nl=incr(nl); write (li(nl), imt)   'section;INT;F;',    i
+      nl=incr(nl); write (li(nl), rmt)   's;REAL;T;',         sec%s
+      nl=incr(nl); write (li(nl), ramt)  'r0;REAL_ARR;T',    (';', sec%r0(j), j = 1, size(sec%r0))
       if (ele%key /= capillary$) then
         nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    trim(wall3d_section_type_name(sec%type))
       endif
-      nl=incr(nl); write (li(nl), imt) 'vertex;INT;F;',    i
+      nl=incr(nl); write (li(nl), imt)   'vertex;INT;F;',    i
       do j = 1, size(sec%v)
-        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', sec%v(i)%x, ';', sec%v(i)%y, ';', &
-                                              sec%v(i)%radius_x, ';', sec%v(i)%radius_y, ';', sec%v(i)%tilt
+        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', sec%v(j)%x, ';', sec%v(j)%y, ';', &
+                                              sec%v(j)%radius_x, ';', sec%v(j)%radius_y, ';', sec%v(j)%tilt
       enddo
     enddo
 

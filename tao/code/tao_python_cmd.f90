@@ -1,7 +1,7 @@
 !+
 ! Subroutine tao_python_cmd (input_str)
 !
-! This routine has been replaced by tao_python_cmd.
+! This routine has been replaced by tao_pipe_cmd.
 ! This routine is keep around for backwards compatibility.
 !
 ! Input:
