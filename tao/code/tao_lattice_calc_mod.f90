@@ -422,7 +422,7 @@ type (bunch_track_struct), pointer :: bunch_params_comb(:)
 type (rad_map_ele_struct) rad_map_save
 
 real(rp) sig(6,6), significant_length, s_slice_start, s_slice_end, s_travel
-real(rp) :: value1, value2, f, time, old_time, s_start, s_end, s_target, ds_save
+real(rp) :: value1, value2, f, time0, time, old_time, s_start, s_end, s_target, ds_save
 
 integer i, n, i_uni, ip, ig, ic, ie
 integer what_lat, n_lost_old, ie_start, ie_end, i_uni_to, ix_track
@@ -496,8 +496,8 @@ call zero_lr_wakes_in_lat (lat)
 print_err = .true.
 
 if (s%global%beam_timer_on) then
-  call run_timer ('START')
-  old_time = 0
+  call run_timer ('ABS', time0)
+  old_time = time0
 endif
 
 if (ie_end < ie_start .and. branch%param%geometry == open$) then
@@ -636,7 +636,7 @@ do
   ! Timer
 
   if (s%global%beam_timer_on) then
-    call run_timer ('READ', time)
+    call run_timer ('DTIME', time, time0)
     if (time - old_time > 60) then
       call out_io (s_blank$, r_name, 'Beam at Element: \i0\. Time: \i0\ min', &
                           i_array = [ie, nint(time/60)])

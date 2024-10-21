@@ -32,7 +32,7 @@ this_merit = tao_merit()
 
 ! Update variable values to reflect lattice values
 
-call run_timer('START')
+call run_timer('ABS', tim)
 call tao_plot_setup()       ! transfer data to the plotting structures
 if (associated(tao_hook_plot_setup_ptr)) call tao_hook_plot_setup_ptr()
 
@@ -45,7 +45,7 @@ enddo
 
 call tao_draw_plots()              ! Update the plotting window
 
-call run_timer('READ', tim)
+call run_timer('DTIME', tim)
 if (s%global%max_plot_time > 0 .and. tim > s%global%max_plot_time) then
   call out_io(s_blank$, r_name, 'Time to plot is: ' // real_str(tim, n_decimal = 1) // ' seconds.', &
                                 'To reduce plotting time try "set plot_page n_curve_pts = N" where N is less than the current ' // int_str(s%plot_page%n_curve_pts), &
