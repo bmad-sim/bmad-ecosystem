@@ -790,10 +790,10 @@ function rot_2d (vec_in, angle) result (vec_out)
   real(rp) vec_in(2), angle, vec_out(2)
 end function
 
-subroutine run_timer(command, time)
+subroutine run_timer(command, time, time0)
   import
   implicit none
-  real(rp), optional :: time
+  real(rp), optional :: time, time0
   character(*) command
 end subroutine
 
