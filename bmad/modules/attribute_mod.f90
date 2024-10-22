@@ -457,10 +457,14 @@ elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
 
 else
-  if (attrib_array(key, ix_att)%state == private$ .and. .not. logic_option(.false., show_private)) then
-    attrib_name = null_name$
+  if (attrib_array(key, ix_att)%state == private$) then
+    if (logic_option(.false., show_private)) then
+      attrib_name = upcase(attrib_array(key, ix_att)%name)
+    else
+      attrib_name = null_name$
+    endif
   else
-    attrib_name = upcase(attrib_array(key, ix_att)%name)
+    attrib_name = attrib_array(key, ix_att)%name
   endif
 endif
 
