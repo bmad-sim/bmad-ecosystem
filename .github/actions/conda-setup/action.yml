@@ -12,12 +12,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup Mambaforge
+    - name: Setup miniconda
       uses: conda-incubator/setup-miniconda@v3
       with:
-        miniforge-variant: Mambaforge
-        activate-environment: pytao-dev
+        miniforge-version: latest
         use-mamba: true
+        activate-environment: pytao-dev
         channels: conda-forge
         environment-file: ${{ inputs.environment-file }}
         python-version: ${{ inputs.python-version }}
