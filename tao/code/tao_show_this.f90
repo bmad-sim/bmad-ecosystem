@@ -26,7 +26,7 @@ use wall3d_mod, only: calc_wall_radius
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use ptc_spin, only: c_linear_map, assignment(=)
 use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, kill, print, ci_phasor, assignment(=)
-use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=)
+use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=), taylor_inverse
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 use photon_target_mod, only: to_surface_coords
 use expression_mod, only: expression_stack_to_string, split_expression_string
@@ -192,7 +192,7 @@ logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip, show_energy
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc
-logical print_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms
+logical print_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms, do_inverse
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -4972,6 +4972,7 @@ case ('taylor_map', 'matrix')
   angle_units = .false.
   ele1_name = ''
   ele2_name = ''
+  do_inverse = .false.
 
   if (show_what == 'matrix') then
     n_order = 1
@@ -4981,7 +4982,7 @@ case ('taylor_map', 'matrix')
 
   do
     call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-elements', &
-              '-lattice_format', '-universe', '-angle_coordinates', '-number_format', &
+              '-lattice_format', '-universe', '-angle_coordinates', '-number_format', '-inverse', &
               '-radiation'], .true., switch, err)
     if (err) return
     if (switch == '') exit
@@ -4992,6 +4993,9 @@ case ('taylor_map', 'matrix')
 
     case ('-eigen_modes')
       print_eigen = .true.
+
+    case ('-inverse')
+      do_inverse = .true.
 
     case ('-lattice_format')
       disp_fmt = 'BMAD'
@@ -5085,13 +5089,19 @@ case ('taylor_map', 'matrix')
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
 
     if (n_order > 1 .or. print_ptc) then
-      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch = ix_branch, &
+      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, orb2, ix_branch = ix_branch, &
                                                         one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
       ref_vec = taylor%ref
     else
-      call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, orb, ix_branch, one_turn = .true.)
+      call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, orb2, ix_branch, one_turn = .true.)
       ref_vec = orb%vec
+    endif
+
+    if (do_inverse) then
+      if (n_order > 1 .or. print_ptc) call taylor_inverse (taylor, taylor)
+      call mat_inverse(mat6, mat6, vec0, vec0)
+      ref_vec = orb2%vec
     endif
 
   !
@@ -5212,6 +5222,12 @@ case ('taylor_map', 'matrix')
       endif
     endif
 
+    if (do_inverse) then
+      if (n_order > 1 .or. print_ptc) call taylor_inverse (taylor, taylor)
+      call mat_inverse(mat6, mat6, vec0, vec0)
+      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix2)%vec
+    endif
+
   endif
 
   ! Print results
@@ -5257,7 +5273,8 @@ case ('taylor_map', 'matrix')
 
       else  ! n_order /= 1
         i0 = ele%ix_ele-1
-        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch) 
+        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch)
+        if (do_inverse) call taylor_inverse(taylor, taylor)
         call truncate_taylor_to_order (taylor, n_order, taylor)
         call type_taylors (taylor, lines = alloc_lines, n_lines = n, clean = .true.)
         do j = 1, n

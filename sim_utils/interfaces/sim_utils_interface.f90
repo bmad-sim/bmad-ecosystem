@@ -101,8 +101,7 @@ end function
 subroutine cplx_mat_inverse(mat, mat_inv, ok, print_err)
   import
   implicit none
-  complex(rp) :: mat(:,:)
-  complex(rp) :: mat_inv(:,:)
+  complex(rp) :: mat(:,:), mat_inv(:,:)
   logical, optional :: ok, print_err
 end subroutine
 
@@ -480,10 +479,10 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
   logical, optional :: print_err
 end subroutine
 
-subroutine mat_inverse (mat, mat_inv, ok, print_err)
+subroutine mat_inverse (mat, mat_inv, vec0, vec0_inv, ok, print_err)
   import
-  real(rp) :: mat(:,:)
-  real(rp) :: mat_inv(:,:)
+  real(rp) :: mat(:,:), mat_inv(:,:)
+  real(rp), optional :: vec0(:), vec0_inv(:)
   logical, optional :: ok, print_err
 end subroutine
 
