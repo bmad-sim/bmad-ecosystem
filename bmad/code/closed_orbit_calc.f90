@@ -783,7 +783,7 @@ err = .true.
 ok1 = .true.
 call mat_make_unit (mat(1:n_dim,1:n_dim))
 mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - coc%t1(1:n_dim,1:n_dim)
-call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
+call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok = ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
   if (printit) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')

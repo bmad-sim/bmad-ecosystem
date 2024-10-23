@@ -3161,7 +3161,7 @@ Examples:
 Syntax:
 \begin{example}
   show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-elements <ele_list>\} 
-            \{-lattice_format\} \{-number_format <fmt>\} \{-order <n_order>\} 
+            \{-inverse\} \{-lattice_format\} \{-number_format <fmt>\} \{-order <n_order>\} 
             \{-ptc\} \{-radiation\} \{-s\} \{-universe\} \{loc1 \{loc2\}\}
 \end{example}
 
@@ -3192,6 +3192,8 @@ given by \vn{loc1}
 
 If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated as a
 1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
+
+If the \vn{-inverse} switch is present, the inverse of the map is displayed.
 
 The \vn{-number_format} switch, if present, overrides the default format for the displayed format.
 Examples:

@@ -853,7 +853,7 @@ vol1 = sqrt(u(1)*u(2)*u(3))
 vol = sqrt(4.0d0*pi)**3 * vol1
 
 bm = sqrt(min( u(1), u(2), u(3) ))  !minimum beam dimension
-call mat_inverse(sig_xx,sig_xx_inv,ok)
+call mat_inverse(sig_xx, sig_xx_inv, ok = ok)
 if( .not. ok ) then
   write(*,*) "BAD: Could not invert sig_xx"
   ibs_mat = 0.0d0
@@ -937,7 +937,7 @@ enddo
 
 
 ! boost updates to lab frame
-call mat_inverse(Tboost,Tboost_inv,ok)
+call mat_inverse(Tboost, Tboost_inv, ok = ok)
 if( .not. ok ) then
   write(*,*) "BAD: Could not invert Tboost"
   ibs_mat = 0.0d0
