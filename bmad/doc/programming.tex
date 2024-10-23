@@ -366,28 +366,28 @@ message will be generated at the program linking stage. The error message might 
 \begin{example}
   [100%] Linking Fortran executable /home/dcs16/linux_lib/production/bin/test
   CMakeFiles/test-exe.dir/test.f90.o: In function `MAIN__':
-  test.f90:(.text+0x22e): undefined reference to `write_bmad_lattice_file_'
+  test.f90:(.text+0x22e): undefined reference to `taylor_coef_'
   gmake[2]: *** [/home/dcs16/linux_lib/production/bin/test] Error 1
   gmake[1]: *** [CMakeFiles/test-exe.dir/all] Error 2
 \end{example}
-The ``\vn{undefined reference}'' line shows that the subroutine \vn{write_bmad_lattice_file} was
+The ``\vn{undefined reference}'' line shows that the subroutine \vn{taylor_coef} was
 called in the program (``\vn{MAIN}'') without the necessary \vn{use} statement. To find the correct \vn{use}
 statement, use the \vn{getf} or \vn{listf} command (\sref{s:getf}) to find the file that the
 subroutine is in. Example:
 \begin{example}
-  > listf write_bmad_lattice_file
+  > listf taylor_coef
 
-  File: ../bmad/modules/write_lat_file_mod.f90
-      subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
+  File: ../bmad/modules/taylor_mod.f90
+      subroutine taylor_coef (bmad_file, lat, err, output_form, orbit0)
 \end{example}
-This shows that the subroutine lives in the file \vn{write_lat_file_mod.f90}. The coding rule that
+This shows that the subroutine lives in the file \vn{taylor_mod.f90}. The coding rule that
 \bmad follows is that the module name is the file name minus the \vn{.f90} suffix.\footnote
   {
 Be aware. PTC code does not follow this logic.
   }
 Thus the needed \vn{use} statement in this case is:
 \begin{example}
-  use write_lat_file_mod
+  use taylor_mod
 \end{example}
 
 Note: if the linking error looks like:
@@ -395,14 +395,14 @@ Note: if the linking error looks like:
   [100%] Linking Fortran executable /home/dcs16/linux_lib/production/bin/test
   CMakeFiles/test-exe.dir/test.f90.o: In function `MAIN__':
   test.f90:(.text+0x230): undefined reference to 
-                                     `write_lat_file_mod_mp_write_bmad_lattice_file_'
+                                     `taylor_mod_mp_taylor_coef_'
 \end{example}
 here the error message references 
 \begin{example}
-  write_lat_file_mod_mp_write_bmad_lattice_file_
+  taylor_mod_mp_taylor_coef_
 \end{example}
-The ``\vn{write_lat_file_mod_mp}'' prefix shows that the linker knows to look in the module
-\vn{write_lat_file_mod} for the subroutine. Here the problem is not a missing use statement but
+The ``\vn{taylor_mod_mp}'' prefix shows that the linker knows to look in the module
+\vn{taylor_mod} for the subroutine. Here the problem is not a missing use statement but
 rather the problem is that the linker cannot find the module itself. This indicates something like a
 library is missing in the list of libraries to link to or the order of libraries to link to is
 wrong. This kind of problem generally happens with libraries other than the \bmad library

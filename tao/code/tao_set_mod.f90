@@ -1111,17 +1111,17 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_beam_branch_struct), pointer :: bb
 
-character(*) who, value_str, branch_str
-character(40) who2
-character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
-
 real(rp), allocatable :: set_val(:)
 real(rp) r_val
 integer i, ix, iu, ios, ib, n_loc
-logical err, eval_err
+logical err, eval_err, found
 logical, allocatable :: picked_uni(:)
 
-character(40) name, switch
+character(*) who, value_str, branch_str
+character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
+character(1) delim
+character(40) name, switch, who2
+character(100) str, vstr
 
 namelist / params / beam_init
 
@@ -1159,7 +1159,14 @@ if (is_real(value_str, real_num = r_val) .or. is_logical(value_str)) then
   endif
 
 elseif (who(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
-  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
+  vstr = value_str
+  str = ''
+  do i = 1, 3
+    call word_read(vstr, ', ', name, ix, delim, found, vstr)
+    if (name == '') exit
+    str = trim(str) // ' ' // quote(name)
+  enddo
+  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', str
 
 else
   select case (who2)
