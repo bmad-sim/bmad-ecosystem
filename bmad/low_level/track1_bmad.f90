@@ -137,7 +137,7 @@ case (match$)
 
 case (multipole$, ab_multipole$) 
 
-  call offset_particle (ele, set$, orbit, set_tilt = .false.)
+  if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_tilt = .false.)
 
   call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilt)
 
@@ -159,7 +159,7 @@ case (multipole$, ab_multipole$)
     endif
   endif
 
-  call offset_particle (ele, unset$, orbit, set_tilt = .false.)
+ if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_tilt = .false.)
 
 !-----------------------------------------------
 ! octupole

@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 323
+integer, parameter :: bmad_inc_version$ = 324
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -937,6 +937,7 @@ type bookkeeping_state_struct
   integer :: mat6 = stale$            ! Linear transfer map status: super_ok$, ok$ or stale$
   integer :: rad_int = stale$         ! Radiation integrals cache status
   integer :: ptc = stale$             ! Associated PTC fibre (or layout) status.
+  logical :: has_misalign = .false.   ! Used to avoid unnecessary calls to offset_particle.
 end type
 
 ! Cache multipole values in the element. 
