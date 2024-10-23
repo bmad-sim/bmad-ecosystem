@@ -342,6 +342,7 @@ endif
 
 if (associated(a_ptr, ele%value(delta_ref_time$))) then
   call set_ele_status_stale (ele, ref_energy_group$)  ! Energy & time
+  return
 endif
 
 ! A length change involves changes in the floor position.
@@ -464,6 +465,25 @@ if (dep2_set .and. has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) 
     return
   endif
 endif
+
+! Is element misaligned?
+
+select case (ele%key)
+case (sbend$)
+  ele%bookkeeping_state%has_misalign = (ele%value(ref_tilt$) /= 0 .or. &
+                    ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. ele%value(z_offset$) /= 0 .or. &
+                    ele%value(roll$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)
+
+case (sad_mult$)
+  ele%bookkeeping_state%has_misalign = (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0 .or. &
+                    ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. ele%value(z_offset$) /= 0 .or. &
+                    ele%value(tilt$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)
+
+case default
+  ele%bookkeeping_state%has_misalign = &
+                   (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. ele%value(z_offset$) /= 0 .or. &
+                    ele%value(tilt$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)
+end select
 
 !------------------------------------------------
 ! By element type

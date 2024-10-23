@@ -39,20 +39,20 @@ type (lat_param_struct) param
 
 orb%vec = 0
 orb%species = default_tracking_species(param)
-call offset_particle (ele, set$, orb, set_hvkicks = .false.)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orb, set_hvkicks = .false.)
 orb%vec = ele%vec0 + matmul (ele%mat6, orb%vec)
-call offset_particle (ele, unset$, orb, set_hvkicks = .false.)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orb, set_hvkicks = .false.)
 ele%vec0 = orb%vec
 
 ! transform the ref_orb
 
 map_orb = ele%map_ref_orb_in
-call offset_particle (ele, unset$, map_orb, set_hvkicks = .false., s_pos = 0.0_rp)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, map_orb, set_hvkicks = .false., s_pos = 0.0_rp)
 ele%map_ref_orb_in = map_orb
 
 
 map_orb = ele%map_ref_orb_out
-call offset_particle (ele, unset$, map_orb, set_hvkicks = .false.)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, map_orb, set_hvkicks = .false.)
 ele%map_ref_orb_out = map_orb
 
 ! calculate the new Jacobian.

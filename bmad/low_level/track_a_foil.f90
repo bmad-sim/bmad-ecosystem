@@ -45,7 +45,7 @@ character(*), parameter :: r_name = 'track_a_foil'
 
 ! On target? If not, there is nothing to be done.
 
-call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 if (orbit%vec(1) < ele%value(x1_edge$) .or. orbit%vec(1) > ele%value(x2_edge$)) goto 8000  ! Offset back and return
 if (orbit%vec(3) < ele%value(y1_edge$) .or. orbit%vec(3) > ele%value(y2_edge$)) goto 8000  ! Offset back and return
@@ -142,7 +142,7 @@ orbit%species = set_species_charge(orbit%species, z_particle)
 !
 
 8000 continue
-call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 !------------------------------------------------------------------------------------------------------
 contains
