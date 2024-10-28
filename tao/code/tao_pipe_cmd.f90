@@ -2662,9 +2662,8 @@ case ('ele:elec_multipoles')
 !   {which} is one of: "model", "base" or "design"
 !   {where} is an optional argument which, if present, is one of
 !     beginning  ! Upstream end
-!     center     ! Middle of element
+!     center     ! Middle of element. Surface of element for photonic reflecting elements (crystal, mirror).
 !     end        ! Downstream end (default)
-! Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
 !
 ! Example:
 !   pipe ele:floor 3@1>>7|model
@@ -2700,25 +2699,17 @@ case ('ele:floor')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
-
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (tail_str == '') tail_str = 'end'
+  call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
+  if (loc == 0) then
+    call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
+    return
+  endif
+
   can_vary = (ele%ix_ele == 0 .and. which == 'model')
-
-  select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$)
-    call write_this_floor(ele%floor, 'Reference', can_vary)
-    call write_this_floor(ele_geometry_with_misalignments (ele, 0.5_rp), 'Actual', .false.)
-
-  case default
-    if (tail_str == '') tail_str = 'end'
-    call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
-    if (loc == 0) then
-      call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
-      return
-    endif
-
-    call write_this_ele_floor(ele, loc, can_vary, '')
-  end select
+  call write_this_ele_floor(ele, loc, can_vary, '')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
