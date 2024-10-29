@@ -693,9 +693,8 @@ Where:
   {which} is one of: "model", "base" or "design"
   {where} is an optional argument which, if present, is one of
     beginning  ! Upstream end
-    center     ! Middle of element
+    center     ! Middle of element. Surface of element for photonic reflecting elements (crystal, mirror).
     end        ! Downstream end (default)
-Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
 
 Example:
   pipe ele:floor 3@1>>7|model
