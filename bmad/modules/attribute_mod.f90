@@ -792,10 +792,6 @@ do i = 1, n_key$
   case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
     call init_attribute_name1 (i, p89$, 'DISPLACEMENT')
     call init_attribute_name1 (i, p90$, 'SEGMENTED')
-    call init_attribute_name1 (i, spherical_curvature$, 'SPHERICAL_CURVATURE')
-    call init_attribute_name1 (i, elliptical_curvature_x$, 'ELLIPTICAL_CURVATURE_X')
-    call init_attribute_name1 (i, elliptical_curvature_y$, 'ELLIPTICAL_CURVATURE_Y')
-    call init_attribute_name1 (i, elliptical_curvature_z$, 'ELLIPTICAL_CURVATURE_Z')
     num = a0$ - 1
     do ix = 0, ubound(curv%xy, 1)
     do iy = 0, ubound(curv%xy, 2)
