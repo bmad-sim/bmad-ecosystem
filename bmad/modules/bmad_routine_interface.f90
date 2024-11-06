@@ -2162,10 +2162,11 @@ subroutine sbend_body_with_k1_map (ele, dg, k_1, param, n_step, orbit, mat6, mak
   logical, optional :: make_matrix
 end subroutine
 
-subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords, err_id)
   import
   implicit none
   type (ele_struct), target :: ele
+  integer, optional :: err_id
   logical, optional :: err_print_flag, set_lords
   logical err_flag
   character(*) set_string
