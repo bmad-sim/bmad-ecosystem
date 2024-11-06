@@ -98,6 +98,22 @@ if (ele%lord_status == super_lord$) then
   return
 endif
 
+! mirror, multilayer_mirror, and crystal are exceptional if floor coords needed
+
+if (ele%key == mirror$ .or. ele%key == multilayer_mirror$ .or. ele%key == crystal$) then
+  do_downstream = (track_downstream_end .or. (orbit_start%location == downstream_end$ .and. orbit_start%ix_ele == ele%ix_ele))
+  if (.not. do_downstream) then  ! Then must be center
+    if (present(orbit_end)) orbit_end = orbit_start   ! Note: Orbit does not make sense here.
+    if (present(ele_end)) then
+      ele_end = ele
+      if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele, ele_end%floor, 0.5_rp)
+    endif
+    return
+  endif
+endif
+
+
+
 ! zero length element:
 ! Must ignore track_upstream_end and track_downstream_end since they do not make sense in this case.
 

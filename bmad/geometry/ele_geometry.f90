@@ -286,7 +286,6 @@ endif   ! Fiducial, girder, floor_shift
 
 !---------------------------
 ! General case where layout is not in the horizontal plane
-! Note: 
 
 has_multipole_rot_tilt = .false.
 if (key == multipole$) then
@@ -294,9 +293,9 @@ if (key == multipole$) then
   if (knl(0) /= 0 .and. tilt(0) /= 0) has_multipole_rot_tilt = .true.
 endif
 
-if (((key == mirror$  .or. key == sbend$ .or. key == rf_bend$ .or. key == multilayer_mirror$) .and. &
-         ele%value(ref_tilt_tot$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
-         key == crystal$ .or. has_multipole_rot_tilt) then
+if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == crystal$ .or. has_multipole_rot_tilt .or. &
+     ((key == sbend$ .or. key == rf_bend$) .and. ele%value(ref_tilt_tot$) /= 0) .or. &
+     ((key == mirror$  .or.  key == multilayer_mirror$) .and. (ele%value(ref_tilt_tot$) /= 0 .or. abs(len_factor - 0.5) < 0.25))) then
 
   select case (key)
 
@@ -371,6 +370,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == rf_bend$ .or. key == multil
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor0%r + matmul(w_mat, r_vec)
 
+    ! The factor of pi/2 rotates to surface coordinates.
     if (len_factor == 0.5_rp) then
       if (ele%key == crystal$) then
         s_mat = w_mat_for_bend_angle(angle-pi/2, ele%value(ref_tilt_tot$) + ele%value(tilt_corr$), r_vec)
