@@ -647,9 +647,11 @@ do
     call multipole_ele_to_kt(ele, .true., ix_pole_max, knl, tilts, include_kicks$)
     orig_name = ele%name
     ab_ele = ele
+    ele%key = -1
+
     do i = 1, ix_pole_max
       if (knl(i) == 0) cycle
-      ab_ele%name = trim(orig_name) // '__' // int_str(i)
+      if (count(knl /= 0) > 1) ab_ele%name = trim(orig_name) // '__' // int_str(i)
       write (line_out, '(2a)') trim(ab_ele%name) // ': mult'
       call insert_element(lat_out, ab_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
       ix_ele = ix_ele + 1
