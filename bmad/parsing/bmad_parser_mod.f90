@@ -7846,7 +7846,6 @@ end subroutine parser_print_line
 !--------------------------------------------------------------------------------------
 !+
 ! Subroutine parser_init_custom_elements (lat)
-!
 !-
 
 subroutine parser_init_custom_elements (lat)
@@ -7860,6 +7859,8 @@ integer i, n
 logical err
 
 ! Init custom stuff.
+
+call init_custom(lat)
 
 if (.not. associated(init_custom_ptr)) return
 
