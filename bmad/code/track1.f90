@@ -128,6 +128,8 @@ endif
 ! "Preprocess" with custom code.
 ! Note: Energy ramping can be done here so track1_preprocess is called before the energy sanity checks below.
 
+radiation_included = .false.
+
 if (associated(track1_preprocess_ptr))then
   finished = .false.
   call track1_preprocess_ptr (start2_orb, ele, param, err, finished, radiation_included, track)
@@ -141,7 +143,7 @@ endif
 ! symp_lie_bmad tracking does include radiation effects
 
 do_extra = .not. logic_option(.false., ignore_radiation)
-radiation_included = (ele%tracking_method == symp_lie_bmad$) 
+radiation_included = (radiation_included .or. ele%tracking_method == symp_lie_bmad$) 
 
 ! Energy sanity checks.
 
