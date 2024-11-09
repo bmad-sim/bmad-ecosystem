@@ -660,7 +660,7 @@ if (associated(wake) .and. write_wake) then
     write (d_unit) wake%sr%trans(i)
   enddo
 
-  write (d_unit) wake%sr%z%plane, wake%sr%z%position_dependence, wake%sr%z%dz, wake%sr%z%z0, size(wake%sr%z%w)
+  write (d_unit) wake%sr%z%plane, wake%sr%z%position_dependence, wake%sr%z%dz, wake%sr%z%z0
   do i = 1, size(wake%sr%z%w)
     write (d_unit) wake%sr%z%w(i), wake%sr%z%fw(i)
   enddo

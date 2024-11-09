@@ -891,7 +891,8 @@ if (branch%ix_from_branch >= 0) then  ! Injecting from other branch
 
   if (.not. allocated (u%model_branch(ib0)%ele(ie0)%beam%bunch)) then
     call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH: ' // int_str(ix_branch) // &
-                                   ' FROM: ' // ele0%name // ' IN UNIVERSE: ' // int_str(u%ix_uni))
+                                   ' FROM: ' // ele_full_name(ele0) // ' IN UNIVERSE: ' // int_str(u%ix_uni), &
+                                   ' SINCE THE BEAM IS NOT DEFINED AT THIS FORK ELEMENT.')
     return
   endif
 

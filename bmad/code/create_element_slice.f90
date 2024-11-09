@@ -15,7 +15,8 @@
 !   param             -- lat_param_struct: lattice paramters.
 !   include_upstream_end   -- Logical: Sliced_ele contains the ele's entrance end?
 !   include_downstream_end -- Logical: Sliced_ele contains the ele's exit end?
-!   old_slice         -- ele_struct, optional: Previous slice. If present this saves computation
+!   old_slice         -- ele_struct, optional: Previous slice or, if offset = 0, the previous element. 
+!                          If present this saves computation
 !                          time of the reference energy and time at the start of the present slice.
 !                          Also makes the ref energy continuous (there can be some small differences when
 !                          using, say, runge_kutta tracking due to tracking tolerances).
@@ -63,7 +64,8 @@ if (present(old_slice)) then
   ele0%value(e_tot$)   = old_slice%value(e_tot$)
   ele0%ref_time        = old_slice%ref_time
   ele0%value(l$)       = old_slice%value(l$)
-  if (allocated(old_slice%multipole_cache)) then
+  ! Can only reuse multipole_cache if old_slice is an old slice and not the previous element in the branch.
+  if (allocated(old_slice%multipole_cache) .and. old_slice%name == ele_in%name) then
     ele0%multipole_cache = old_slice%multipole_cache
     has_mcache = .true.
   endif
