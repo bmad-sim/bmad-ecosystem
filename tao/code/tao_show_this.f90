@@ -239,11 +239,11 @@ endif
 
 call string_trim (what, what2, ix_word)
 if (ix_word > 4 .and. index('plot_page', what2(:ix_word)) == 1)        what2 = 'plot -page ' // what2(ix_word+1:)
-if (ix_word > 2 .and. index('floor_plan', what2(:ix_word)) == 1)       what2 = 'plot -floor_plan ' // what2(ix_word+1:)
 if (ix_word > 3 .and. index('bmad_com', what2(:ix_word)) == 1)         what2 = 'global -bmad_com ' // what2(ix_word+1:)
 if (ix_word > 3 .and. index('ptc_com', what2(:ix_word)) == 1)          what2 = 'global -ptc_com ' // what2(ix_word+1:)
 if (ix_word > 2 .and. index('csr_param', what2(:ix_word)) == 1)        what2 = 'global -csr_param ' // what2(ix_word+1:)
 if (ix_word > 3 .and. index('space_charge_com', what2(:ix_word)) == 1) what2 = 'global -space_charge_com ' // what2(ix_word+1:)
+if (ix_word > 2 .and. index('floor_plan', what2(:ix_word)) == 1)       what2 = 'plot -floor_plan ' // what2(ix_word+1:)
 
 call match_word (what2, [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
         'chromaticity', 'constraints', 'control', 'curve', 'data', 'debug', &
@@ -2526,7 +2526,8 @@ case ('history')
   n_count = n_print - s%com%ix_history
   if (n_count > 0 .and. show_all) then
     iu = lunget()
-    open (iu, file = s%global%history_file, status = 'old', iostat = ios)
+    call fullfilename(s%global%history_file, file_name)
+    open (iu, file = file_name, status = 'old', iostat = ios)
     ix1 = 0
     do
       if (ix1+1 >= size(lines)) call re_allocate (lines, 2*size(lines))
