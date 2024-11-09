@@ -913,10 +913,10 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_sr_z /= 0 .or. ix_lr_mode /= 0
       read (d_unit, err = 9800, end = 9800) wake%sr%trans(i)
     enddo
 
-    do i = 1, size(wake%sr%z)
-      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, n
-      allocate(wake%sr%z(i)%w(n), wake%sr%z(i)%w_sum1(n), wake%sr%z(i)%w_sum2(n))
-      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%w
+    read (d_unit, err = 9800, end = 9800) wake%sr%z%plane, wake%sr%z%position_dependence, wake%sr%z%dz, wake%sr%z%z0, n
+    allocate(wake%sr%z%w(n), wake%sr%z%fw(n), wake%sr%z%fbunch(n), wake%sr%z%w_out(n))
+    do i = 1, n
+      read (d_unit, err = 9800, end = 9800) wake%sr%z%w(i), wake%sr%z%fw(i)
     enddo
 
     read (d_unit, err = 9800, end = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale

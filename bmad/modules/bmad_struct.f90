@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 324
+integer, parameter :: bmad_inc_version$ = 325
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -595,6 +595,17 @@ character(12), parameter :: sr_longitudinal_position_dep_name(5) = &
                 [character(12):: 'none', 'x_leading', 'y_leading', 'x_trailing', 'y_trailing']
 character(8), parameter :: sr_z_plane_name(5) = [character(8):: 'X', 'XY', 'Y', null_name$, 'Z']
 
+type wake_sr_z_struct
+  real(rp), allocatable :: w(:)                        ! Input single particle Wake. Indexed from 1.
+  complex(rp), allocatable :: fw(:)                    ! Fourier transform of w.
+  complex(rp), allocatable :: fbunch(:), w_out(:)      ! Scratch space.
+  real(rp) :: dz = 0                                   ! Distance between points.
+  real(rp) :: z0 = 0                                   ! Z value at %w(1).
+  integer :: plane = not_set$                          ! x$, y$, xy$, z$.
+  integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
+                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
+end type
+
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
   real(rp) :: damp = 0      ! Dampling factor.
@@ -609,17 +620,9 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
                                              ! Longitudinal: x_leading$, ..., y_trailing$, none$
 end type
 
-type wake_sr_z_struct
-  type(spline_struct), allocatable :: w(:)                  ! Wake vs time.
-  type(spline_struct), allocatable :: w_sum1(:), w_sum2(:)  ! Running sums used when tracking.                 
-  integer :: plane = not_set$                          ! x$, y$, xy$, z$.
-  integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
-                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
-end type
-
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
   character(200) :: file = ''
-  type (wake_sr_z_struct), allocatable :: z(:)
+  type (wake_sr_z_struct) :: z
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
   real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.

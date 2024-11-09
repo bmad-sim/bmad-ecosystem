@@ -649,7 +649,9 @@ if (ix_a > 0 .and. ix_a <= num_ele_attrib$) then
   return
 endif
 
-! Custom attribute
+! Custom attribute.
+! If a super_slave has multiple super_lords, it is not clear what do do. 
+! In this case, return with err_flag = True.
 
 if (ix_a > custom_attribute0$ .and. ix_a <= custom_attribute0$+custom_attribute_num$) then
   if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) return

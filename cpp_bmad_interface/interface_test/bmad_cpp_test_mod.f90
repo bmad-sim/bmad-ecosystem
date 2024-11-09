@@ -1344,40 +1344,56 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[type, 1, ALLOC]
+!! f_side.test_pat[real, 1, ALLOC]
 
 if (ix_patt < 3) then
   if (allocated(F%w)) deallocate (F%w)
 else
   if (.not. allocated(F%w)) allocate (F%w(-1:1))
   do jd1 = 1, size(F%w,1); lb1 = lbound(F%w,1) - 1
-    call set_spline_test_pattern (F%w(jd1+lb1), ix_patt+jd1)
+    rhs = 100 + jd1 + 1 + offset
+    F%w(jd1+lb1) = rhs
   enddo
 endif
-!! f_side.test_pat[type, 1, ALLOC]
+!! f_side.test_pat[complex, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%w_sum1)) deallocate (F%w_sum1)
+  if (allocated(F%fw)) deallocate (F%fw)
 else
-  if (.not. allocated(F%w_sum1)) allocate (F%w_sum1(-1:1))
-  do jd1 = 1, size(F%w_sum1,1); lb1 = lbound(F%w_sum1,1) - 1
-    call set_spline_test_pattern (F%w_sum1(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%fw)) allocate (F%fw(-1:1))
+  do jd1 = 1, size(F%fw,1); lb1 = lbound(F%fw,1) - 1
+    rhs = 100 + jd1 + 3 + offset
+    F%fw(jd1+lb1) = cmplx(rhs, 100+rhs)
   enddo
 endif
-!! f_side.test_pat[type, 1, ALLOC]
+!! f_side.test_pat[complex, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%w_sum2)) deallocate (F%w_sum2)
+  if (allocated(F%fbunch)) deallocate (F%fbunch)
 else
-  if (.not. allocated(F%w_sum2)) allocate (F%w_sum2(-1:1))
-  do jd1 = 1, size(F%w_sum2,1); lb1 = lbound(F%w_sum2,1) - 1
-    call set_spline_test_pattern (F%w_sum2(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%fbunch)) allocate (F%fbunch(-1:1))
+  do jd1 = 1, size(F%fbunch,1); lb1 = lbound(F%fbunch,1) - 1
+    rhs = 100 + jd1 + 5 + offset
+    F%fbunch(jd1+lb1) = cmplx(rhs, 100+rhs)
   enddo
 endif
+!! f_side.test_pat[complex, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%w_out)) deallocate (F%w_out)
+else
+  if (.not. allocated(F%w_out)) allocate (F%w_out(-1:1))
+  do jd1 = 1, size(F%w_out,1); lb1 = lbound(F%w_out,1) - 1
+    rhs = 100 + jd1 + 7 + offset
+    F%w_out(jd1+lb1) = cmplx(rhs, 100+rhs)
+  enddo
+endif
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%dz = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%plane = rhs
+rhs = 10 + offset; F%plane = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%position_dependence = rhs
+rhs = 11 + offset; F%position_dependence = rhs
 
 end subroutine set_wake_sr_z_test_pattern
 
@@ -1570,16 +1586,8 @@ offset = 100 * ix_patt
 do jd1 = 1, len(F%file)
   F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
 enddo
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%z)) deallocate (F%z)
-else
-  if (.not. allocated(F%z)) allocate (F%z(-1:1))
-  do jd1 = 1, size(F%z,1); lb1 = lbound(F%z,1) - 1
-    call set_wake_sr_z_test_pattern (F%z(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
+!! f_side.test_pat[type, 0, NOT]
+call set_wake_sr_z_test_pattern (F%z, ix_patt)
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -1601,17 +1609,17 @@ else
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%z_ref_long = rhs
+rhs = 7 + offset; F%z_ref_long = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%z_ref_trans = rhs
+rhs = 8 + offset; F%z_ref_trans = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%z_max = rhs
+rhs = 9 + offset; F%z_max = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%amp_scale = rhs
+rhs = 10 + offset; F%amp_scale = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%z_scale = rhs
+rhs = 11 + offset; F%z_scale = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%scale_with_length = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%scale_with_length = (modulo(rhs, 2) == 0)
 
 end subroutine set_wake_sr_test_pattern
 
@@ -3904,6 +3912,8 @@ rhs = 6 + offset; F%mat6 = rhs
 rhs = 7 + offset; F%rad_int = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 8 + offset; F%ptc = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 9 + offset; F%has_misalign = (modulo(rhs, 2) == 0)
 
 end subroutine set_bookkeeping_state_test_pattern
 
@@ -7068,6 +7078,10 @@ rhs = 32 + offset; F%use_particle_start = (modulo(rhs, 2) == 0)
 rhs = 33 + offset; F%use_t_coords = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 34 + offset; F%use_z_as_t = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file_name)
+  F%file_name(jd1:jd1) = char(ichar("a") + modulo(100+35+offset+jd1, 26))
+enddo
 
 end subroutine set_beam_init_test_pattern
 

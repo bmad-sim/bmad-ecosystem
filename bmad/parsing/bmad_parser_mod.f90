@@ -1359,7 +1359,6 @@ type (ele_struct) ele
 type (lat_struct), pointer :: lat
 type (wake_sr_mode_struct), target :: trans(100), long(100)
 type (wake_sr_mode_struct), pointer :: srm
-type (wake_sr_z_struct), target :: z_wake(100)
 type (wake_sr_z_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
@@ -1376,14 +1375,13 @@ character(1) delim
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
-if (allocated(ele%wake%sr%z)) deallocate (ele%wake%sr%z)
 
 lat => ele%branch%lat
 wake_sr => ele%wake%sr
 trans = wake_sr_mode_struct()
 long = wake_sr_mode_struct()
-z_wake = wake_sr_z_struct(null(), null(), null(), not_set$, not_set$)
 err_flag = .true.
+srz => wake_sr%z
 
 ! get data
 
@@ -1396,6 +1394,10 @@ do
   if (.not. expect_this ('=', .true., .false., 'IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
 
   select case (attrib_name)
+  case ('DZ')
+    call parse_evaluate_value (err_str, srz%dz, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
+    if (delim == '}') exit
+    cycle
   case ('Z_MAX')
     call parse_evaluate_value (err_str, wake_sr%z_max, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
@@ -1420,8 +1422,7 @@ do
     itrans = itrans + 1
     srm => trans(itrans)
   case ('Z')
-    iz = iz + 1
-    srz => z_wake(iz)
+
   case default
     call parser_error ('UNKNOWN SR_WAKE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
     return
@@ -1438,15 +1439,17 @@ do
       select case (attrib_name)
       case ('W')
         if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z W DEFINITION', ele, delim, delim_found)) return
-        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z W LIST', table, 3, delim, delim_found)) return
+        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z W LIST', table, 2, delim, delim_found)) return
         ipt = size(table, 1)
-        call reallocate_spline(srz%w, ipt)
-        call reallocate_spline(srz%w_sum1, ipt)
-        call reallocate_spline(srz%w_sum2, ipt)
-        do i = 1, ipt-1
-          srz%w(i) = create_a_spline(table(i,1:2), table(i+1,1:2), table(i,3), table(i+1,3))
-        enddo
-
+        srz%dz = (table(ipt,1) - table(1,1)) / (ipt - 1)
+        srz%z0 = table(1,1)
+        call re_allocate(srz%w, ipt)
+        call re_allocate(srz%fw, ipt)
+        call re_allocate(srz%w_out, ipt)
+        call re_allocate(srz%fbunch, ipt)
+        srz%w = table(:,2)
+        srz%fw = srz%w
+        call fft_1d(srz%fw, -1)
       case ('PLANE')
         call get_switch ('SR_WAKE Z PLANE', sr_z_plane_name, srz%plane, err, ele, delim, delim_found); if (err) return
       case ('POSITION_DEPENDENCE')
@@ -1484,9 +1487,6 @@ enddo
 !
 
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
-
-allocate (ele%wake%sr%z(iz))
-ele%wake%sr%z = z_wake(1:iz)
 
 allocate (ele%wake%sr%long(ilong))
 ele%wake%sr%long = long(1:ilong)
@@ -1535,7 +1535,6 @@ character(1) delim
 ! Init
 
 if (.not. associated(ele%wake)) allocate (ele%wake)
-if (.not. allocated(ele%wake%sr%z))  allocate (ele%wake%sr%z(0))
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
@@ -1680,7 +1679,6 @@ namelist / long_range_modes / lr
 if (.not. associated(ele%wake))         allocate (ele%wake)
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
-if (.not. allocated(ele%wake%sr%z))     allocate (ele%wake%sr%z(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 ! get data
@@ -1791,12 +1789,11 @@ character(16), parameter :: old_sr_position_dependence_name(3) = [character(16):
 
 ! init
 
-if (.not. associated(ele%wake))   allocate (ele%wake)
+if (.not. associated(ele%wake))        allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
 if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
-if (allocated(ele%wake%sr%z))     deallocate (ele%wake%sr%z)
-allocate(ele%wake%sr%z(0))
+if (allocated(ele%wake%sr%z%w))   deallocate (ele%wake%sr%z%w, ele%wake%sr%z%fw, ele%wake%sr%z%fbunch, ele%wake%sr%z%w_out)
 
 ! Open file
 

@@ -24,7 +24,7 @@ integer n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, i
 if (associated (wake_in)) then
   n_sr_long   = size(wake_in%sr%long)
   n_sr_trans  = size(wake_in%sr%trans)
-  n_sr_z      = size(wake_in%sr%z)
+  n_sr_z      = size(wake_in%sr%z%w)
   n_lr_mode   = size(wake_in%lr%mode)
 
   call init_wake (wake_out, n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, .true.)

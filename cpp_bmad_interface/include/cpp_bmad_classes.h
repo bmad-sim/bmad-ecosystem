@@ -890,16 +890,20 @@ class Opaque_wake_sr_z_class {};  // Opaque class for pointers to corresponding 
 
 class CPP_wake_sr_z {
 public:
-  CPP_spline_ARRAY w;
-  CPP_spline_ARRAY w_sum1;
-  CPP_spline_ARRAY w_sum2;
+  Real_ARRAY w;
+  Complex_ARRAY fw;
+  Complex_ARRAY fbunch;
+  Complex_ARRAY w_out;
+  Real dz;
   Int plane;
   Int position_dependence;
 
   CPP_wake_sr_z() :
-    w(CPP_spline_ARRAY(CPP_spline(), 0)),
-    w_sum1(CPP_spline_ARRAY(CPP_spline(), 0)),
-    w_sum2(CPP_spline_ARRAY(CPP_spline(), 0)),
+    w(0.0, 0),
+    fw(0.0, 0),
+    fbunch(0.0, 0),
+    w_out(0.0, 0),
+    dz(0.0),
     plane(Bmad::NOT_SET),
     position_dependence(Bmad::NOT_SET)
     {}
@@ -965,7 +969,7 @@ class Opaque_wake_sr_class {};  // Opaque class for pointers to corresponding fo
 class CPP_wake_sr {
 public:
   string file;
-  CPP_wake_sr_z_ARRAY z;
+  CPP_wake_sr_z z;
   CPP_wake_sr_mode_ARRAY long_wake;
   CPP_wake_sr_mode_ARRAY trans_wake;
   Real z_ref_long;
@@ -977,7 +981,7 @@ public:
 
   CPP_wake_sr() :
     file(),
-    z(CPP_wake_sr_z_ARRAY(CPP_wake_sr_z(), 0)),
+    z(),
     long_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
     trans_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
     z_ref_long(0.0),
@@ -1733,6 +1737,7 @@ public:
   Int mat6;
   Int rad_int;
   Int ptc;
+  Bool has_misalign;
 
   CPP_bookkeeping_state() :
     attributes(Bmad::STALE),
@@ -1742,7 +1747,8 @@ public:
     ref_energy(Bmad::STALE),
     mat6(Bmad::STALE),
     rad_int(Bmad::STALE),
-    ptc(Bmad::STALE)
+    ptc(Bmad::STALE),
+    has_misalign(false)
     {}
 
   ~CPP_bookkeeping_state() {
@@ -2759,6 +2765,7 @@ public:
   Bool use_particle_start;
   Bool use_t_coords;
   Bool use_z_as_t;
+  string file_name;
 
   CPP_beam_init() :
     position_file(),
@@ -2794,7 +2801,8 @@ public:
     full_6d_coupling_calc(false),
     use_particle_start(false),
     use_t_coords(false),
-    use_z_as_t(false)
+    use_z_as_t(false),
+    file_name()
     {}
 
   ~CPP_beam_init() {

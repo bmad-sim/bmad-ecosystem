@@ -52,7 +52,7 @@ subroutine tao_pipe_cmd (input_str)
 use tao_interface, dummy => tao_pipe_cmd
 use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
-use wall3d_mod, only: calc_wall_radius
+use wall3d_mod, only: calc_wall_radius, wall3d_d_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
@@ -159,7 +159,7 @@ real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy,
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
-real(rp) mat6(6,6), vec0(6), array(7)
+real(rp) mat6(6,6), vec0(6), array(7), perp(3), origin(3), r_wall
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
 type (tao_spin_map_struct), pointer :: sm
@@ -175,7 +175,7 @@ integer, target :: nl
 integer, pointer :: nl_ptr
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one, calc_ok, no_slaves, index_order, ok
+logical first_time, found_one, calc_ok, no_slaves, index_order, ok, not
 logical, allocatable :: picked(:), logic_arr(:)
 
 character(*) input_str
@@ -258,7 +258,7 @@ call match_word (cmd, [character(40) :: &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'taylor_map', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
-          'wave'], ix, matched_name = command)
+          'wall3d_radius', 'wave'], ix, matched_name = command)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'pipe what? "What" not recognized: ' // command)
@@ -7817,6 +7817,74 @@ case ('var_v1_destroy')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% wall3d_radius
+!
+! Output vaccum chamber wall radius for given s-position and angle in (x,y) plane.
+! The radius is with respect to the local wall origin which may not be the (x,y) = (0,0) origin.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe wall3d_radius {ix_uni}@{ix_branch} {s_position} {angle}
+!
+! Where:
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. 
+!   {s_position} is the s-position to evaluate at.
+!   {angle} is the angle to evaluate at.
+!
+! Parameters
+! ----------
+! ix_uni : ""
+! ix_branch : ""
+! s_position
+! angle
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+
+case ('wall3d_radius')
+
+  u => s%u(s%global%default_universe)
+  if (index(line, '@') /= 0) then
+    u => point_to_uni(line, .true., err); if (err) return
+  endif
+
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
+  branch => u%model%lat%branch(ix_branch)
+  call split_this_line (line, name1, 2, err, space_sep = .true.); if (err) return
+  s_here = parse_real(name1(1), err); if (err) return
+  angle  = parse_real(name1(2), err); if (err) return
+
+  !
+
+  ele => pointer_to_element_at_s (branch, s_here, .true., err)
+  if (err) then
+    call invalid ('Bad s-position')
+    return
+  endif
+
+  vec0 = [cos(angle), 0.0_rp, sin(angle), 0.0_rp, s_here - ele%s_start, 1.0_rp]
+
+  value =  wall3d_d_radius(vec0, ele, 1, perp, ix, not, origin, r_wall, err)
+  if (not) then
+    call invalid ('No Wall3D here')
+    return
+  elseif (err) then
+    call invalid ('Error in radius calc. Please report this.')
+    return
+  endif
+
+  nl=incr(nl); write (li(nl), rmt)  'wall_radius;REAL;F;',            r_wall
+  nl=incr(nl); write (li(nl), ramt) 'origin;REAL;F',                  (';', origin(i), i = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'perpendicular;REAL;F',           (';', perp(i), i = 1, 3)
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% wave
 !
 ! Output Wave analysis info.
@@ -8188,6 +8256,8 @@ if (has_separator) then
 elseif (len_trim(line) /= 0) then
   read (line, *, iostat = ios) ix_branch
   if (ios /= 0) ix_branch = -999
+  call string_trim(line, line, ix)
+  call string_trim(line(ix+1:), line, ix)
 endif
 
 if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1)) then
