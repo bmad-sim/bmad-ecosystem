@@ -513,7 +513,7 @@ logical ok
 if (ele%wake%sr%amp_scale == 0) return
 
 srz => ele%wake%sr%z
-if (.not. allocated(srz%w)) return
+if (srz%dz == 0) return
 
 
 f0 = ele%wake%sr%amp_scale * bunch%charge_live
