@@ -666,7 +666,7 @@ end type
 !
 
 type wake_struct
-  type (wake_sr_struct) :: sr = wake_sr_struct('', null(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
+  type (wake_sr_struct) :: sr = wake_sr_struct('', wake_sr_z_struct(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
   type (wake_lr_struct) :: lr = wake_lr_struct('', null(), 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Long-range wake
 end type
 
@@ -2225,8 +2225,8 @@ type bmad_common_struct
   real(rp) :: d_orb(6)           = 1d-5                ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp              ! Default integration step for eles without an explicit step calc.
   real(rp) :: significant_length = 1d-10               ! meter 
-  real(rp) :: rel_tol_tracking = 1d-8                  ! Closed orbit relative tolerance.
-  real(rp) :: abs_tol_tracking = 1d-11                 ! Closed orbit absolute tolerance.
+  real(rp) :: rel_tol_tracking = 1d-9                  ! Closed orbit relative tolerance.
+  real(rp) :: abs_tol_tracking = 1d-12                 ! Closed orbit absolute tolerance.
   real(rp) :: rel_tol_adaptive_tracking = 1d-8         ! Runge-Kutta tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1d-10        ! Runge-Kutta tracking absolute tolerance.
   real(rp) :: init_ds_adaptive_tracking = 1d-3         ! Initial step size

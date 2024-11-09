@@ -1488,11 +1488,15 @@ enddo
 
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
-allocate (ele%wake%sr%long(ilong))
-ele%wake%sr%long = long(1:ilong)
+allocate (wake_sr%long(ilong))
+wake_sr%long = long(1:ilong)
 
-allocate (ele%wake%sr%trans(itrans))
-ele%wake%sr%trans = trans(1:itrans)
+allocate (wake_sr%trans(itrans))
+wake_sr%trans = trans(1:itrans)
+
+if (.not. allocated(srz%w)) then
+  allocate (srz%w(0), srz%fw(0), srz%w_out(0), srz%fbunch(0))
+endif
 
 err_flag = .false.
 
@@ -1537,6 +1541,7 @@ character(1) delim
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
+if (.not. allocated(ele%wake%sr%z%w)) allocate (ele%wake%sr%z%w(0), ele%wake%sr%z%fw(0), ele%wake%sr%z%w_out(0), ele%wake%sr%z%fbunch(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 lat => ele%branch%lat
@@ -1679,6 +1684,7 @@ namelist / long_range_modes / lr
 if (.not. associated(ele%wake))         allocate (ele%wake)
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
+if (.not. allocated(ele%wake%sr%z%w))   allocate (ele%wake%sr%z%w(0), ele%wake%sr%z%fw(0), ele%wake%sr%z%w_out(0), ele%wake%sr%z%fbunch(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 ! get data
@@ -1791,9 +1797,9 @@ character(16), parameter :: old_sr_position_dependence_name(3) = [character(16):
 
 if (.not. associated(ele%wake))        allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
+if (.not. allocated(ele%wake%sr%z%w)) allocate (ele%wake%sr%z%w(0), ele%wake%sr%z%fw(0), ele%wake%sr%z%w_out(0), ele%wake%sr%z%fbunch(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
 if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
-if (allocated(ele%wake%sr%z%w))   deallocate (ele%wake%sr%z%w, ele%wake%sr%z%fw, ele%wake%sr%z%fbunch, ele%wake%sr%z%w_out)
 
 ! Open file
 

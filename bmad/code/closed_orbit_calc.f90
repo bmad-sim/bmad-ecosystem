@@ -527,9 +527,9 @@ do i_loop = 1, i_max
     if (maxval(amp_del(1:n_dim)) < 1d-4) then
       if (printit) call out_io (s_error$, r_name, &
               'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
+              'Using branch: ' // branch_name(branch), &
               'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
               'bmad_com%abs_tol_tracking (\es10.2\)', &
-              'Using branch: ' // branch_name(branch), &
               r_array = [maxval(amp_del(1:n_dim)), bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
     else
       if (printit) call out_io (s_error$, r_name, &
