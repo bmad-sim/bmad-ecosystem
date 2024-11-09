@@ -2145,6 +2145,26 @@ Destroy a v1 var structure along with associated var sub-array.
 
 \end{verbatim}
 
+%% pipe wall3d_radius ------------------------------------
+\subsection{pipe wall3d_radius}
+\index{pipe!wall3d_radius}
+\label{p:wall3d.radius}
+
+
+Output vaccum chamber wall radius for given s-position and angle in (x,y) plane.
+The radius is with respect to the local wall origin which may not be the (x,y) = (0,0) origin.
+
+\begin{example}
+   pipe wall3d_radius \{ix_uni\}@\{ix_branch\} \{s_position\} \{angle\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. 
+  {s_position} is the s-position to evaluate at.
+  {angle} is the angle to evaluate at.
+\end{verbatim}
+
 %% pipe wave ------------------------------------
 \subsection{pipe wave}
 \index{pipe!wave}

@@ -2526,7 +2526,8 @@ case ('history')
   n_count = n_print - s%com%ix_history
   if (n_count > 0 .and. show_all) then
     iu = lunget()
-    open (iu, file = s%global%history_file, status = 'old', iostat = ios)
+    call fullfilename(s%global%history_file, file_name)
+    open (iu, file = file_name, status = 'old', iostat = ios)
     ix1 = 0
     do
       if (ix1+1 >= size(lines)) call re_allocate (lines, 2*size(lines))

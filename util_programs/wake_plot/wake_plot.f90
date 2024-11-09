@@ -17,18 +17,18 @@ type (coord_struct), pointer :: p1, p2
 
 real(rp) :: plot_min, plot_max, plot_limit, plot_size(2), text_scale, zero6(6) = 0, vec2(6)
 real(rp) xy_leading(2), xy_trailing(2), leading_charge, z
-real(rp), allocatable :: time(:), wx(:), wy(:), wz(:), z_knot(:), wx_knot(:), wy_knot(:), wz_knot(:)
+real(rp), allocatable :: time(:), z_z(:), w_z(:), wx(:), wy(:), wz(:)
 
 integer n, n_points, ix_wake, m_order, i, im, iz, ik, n_loc
 
-logical make_plot, err, err_flag, ok, draw_knot_points
+logical make_plot, err, err_flag, ok
 
 character(40) wake_ele_name, ans, x_axis_label, y_axis_label, who, plot_type
 character(200) init_file, lat_file, postscript_file
 
 namelist / params / plot_limit, make_plot, plot_size, who, plot_type, &
                     wake_ele_name, lat_file, n_points, postscript_file, &
-                    draw_knot_points, text_scale, x_axis_label, y_axis_label, &
+                    text_scale, x_axis_label, y_axis_label, &
                     xy_leading, xy_trailing, ix_wake, m_order, leading_charge
 
 ! Read input
@@ -41,7 +41,6 @@ leading_charge = 1
 n_points = 1001
 make_plot = .true.
 postscript_file = ''
-draw_knot_points = .true.
 text_scale = 1.0
 ix_wake = 0
 m_order = 0
@@ -150,19 +149,19 @@ case ('sr')
 
   select case (who)
   case ('sr-mode')
-    allocate(sr%z(0))
+    allocate(sr%z%w(0))
   case ('sr-long')
-    allocate(sr%z(0))
+    allocate(sr%z%w(0))
     allocate(sr%trans(0))
     if (ix_wake /= 0) sr%long = [sr%long(ix_wake)]
   case ('sr-trans')
-    allocate(sr%z(0))
+    allocate(sr%z%w(0))
     allocate(sr%long(0))
     if (ix_wake /= 0) sr%trans = [sr%trans(ix_wake)]
   case ('sr-z')
     allocate(sr%trans(0))
     allocate(sr%long(0))
-    if (ix_wake /= 0) sr%z = [sr%z(ix_wake)]
+    if (ix_wake /= 0) sr%z%w = [sr%z%w(ix_wake)]
   end select
 
   p2%vec(5) = -1
@@ -179,28 +178,7 @@ case ('sr')
     wz(i) = p2%vec(6)
   enddo
 
-  if (draw_knot_points) then
-    n = 0
-    allocate(z_knot(0), wx_knot(0), wy_knot(0), wz_knot(0))
-    do iz = 1, size(sr%z)
-      do ik = 1, size(sr%z(iz)%w)
-        z = sr%z(iz)%w(ik)%x0
-        if (any(z_knot == z)) cycle
-        p2%vec = vec2
-        p2%vec(5) = z
-        call track1_sr_wake(bunch, wake_ele)
-        n = n + 1
-        call re_allocate(z_knot, n)
-        call re_allocate(wx_knot, n)
-        call re_allocate(wy_knot, n)
-        call re_allocate(wz_knot, n)
-        z_knot(n) = z
-        wx_knot(n) = p2%vec(2)
-        wy_knot(n) = p2%vec(4)
-        wz_knot(n) = p2%vec(6)
-      enddo
-    enddo
-  endif
+  allocate(z_z(0), w_z(0))
 
 end select
 
@@ -260,9 +238,6 @@ call qp_calc_and_set_axis ('Y', minval(wx), maxval(wx), 4, 8, 'GENERAL')
 call qp_draw_axes (x_axis_str, what_str)
 
 call qp_draw_data (time, wx, .true., 0)
-if (draw_knot_points) then
-  call qp_draw_symbols (z_knot, wx_knot)
-endif
 
 !
 
@@ -270,21 +245,13 @@ call qp_set_box (1, 2, 1, 3)
 call qp_calc_and_set_axis ('Y', minval(wy), maxval(wy), 4, 8, 'GENERAL')
 call qp_draw_axes (x_axis_str, what_str)
 
-call qp_draw_data (time, wy, .true., 0)
-if (draw_knot_points) then
-  call qp_draw_symbols (z_knot, wy_knot)
-endif
-
 !
 
 call qp_set_box (1, 1, 1, 3)
 call qp_calc_and_set_axis ('Y', minval(wz), maxval(wz), 4, 8, 'GENERAL')
 call qp_draw_axes (x_axis_str, what_str)
 
-call qp_draw_data (time, wz, .true., 0)
-if (draw_knot_points) then
-  call qp_draw_symbols (z_knot, wz_knot)
-endif
+call qp_draw_data (z_z, w_z, .true., 0)
 
 !
 

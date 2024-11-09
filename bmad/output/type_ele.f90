@@ -1370,7 +1370,7 @@ endif
 if (associated(ele%wake)) then
 
   if (logic_option (.true., type_wake) .and. (size(ele%wake%sr%long) /= 0 .or. &
-                                              size(ele%wake%sr%trans) /= 0 .or.size(ele%wake%sr%z) /= 0 )) then
+                                              size(ele%wake%sr%trans) /= 0 .or.size(ele%wake%sr%z%w) /= 0 )) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Short-Range Wake:'
     if (ele%wake%sr%file /= '') then
@@ -1416,22 +1416,22 @@ if (associated(ele%wake)) then
     endif
   endif
 
-  if (size(ele%wake%sr%z) /= 0) then
+  if (size(ele%wake%sr%z%w) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_allocate (li, nl+size(ele%wake%sr%z)+100, .false.)
+      call re_allocate (li, nl+size(ele%wake%sr%z%w)+100, .false.)
       nl=nl+1; li(nl) = '  Short-Range Z-dependent wakes:'
-      do im = 1, size(ele%wake%sr%z)
-        srz => ele%wake%sr%z(im)
+      do im = 1, size(ele%wake%sr%z%w)
+        srz => ele%wake%sr%z
         if (srz%plane == z$) then
           nl=nl+1; li(nl) = '  #' // int_str(im) // ', plane = ' // trim(sr_z_plane_name(srz%plane))
         else
           nl=nl+1; li(nl) = '  #' // int_str(im) // ', plane = ' // trim(sr_z_plane_name(srz%plane)) // &
                             ', position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
         endif
-        nl=nl+1; li(nl) = '    ix           z             W            W'
+        nl=nl+1; li(nl) = '    ix           z             W'
         do iw = 1, size(srz%w)
-          nl=nl+1; write(li(nl), '(i6, f14.9, 2es14.6)') iw, srz%w(iw)%x0, srz%w(iw)%coef(0), srz%w(iw)%coef(1)
+          nl=nl+1; write(li(nl), '(i6, f14.9, 2es14.6)') iw, (iw - 1) * srz%dz + srz%z0, srz%w(iw)
         enddo
       enddo
     else

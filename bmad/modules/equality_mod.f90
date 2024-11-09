@@ -420,24 +420,32 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[type, 1, ALLOC]
+!! f_side.equality_test[real, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%w) .eqv. allocated(f2%w))
 if (.not. is_eq) return
 if (allocated(f1%w)) is_eq = all(shape(f1%w) == shape(f2%w))
 if (.not. is_eq) return
 if (allocated(f1%w)) is_eq = all(f1%w == f2%w)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w_sum1) .eqv. allocated(f2%w_sum1))
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fw) .eqv. allocated(f2%fw))
 if (.not. is_eq) return
-if (allocated(f1%w_sum1)) is_eq = all(shape(f1%w_sum1) == shape(f2%w_sum1))
+if (allocated(f1%fw)) is_eq = all(shape(f1%fw) == shape(f2%fw))
 if (.not. is_eq) return
-if (allocated(f1%w_sum1)) is_eq = all(f1%w_sum1 == f2%w_sum1)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w_sum2) .eqv. allocated(f2%w_sum2))
+if (allocated(f1%fw)) is_eq = all(f1%fw == f2%fw)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fbunch) .eqv. allocated(f2%fbunch))
 if (.not. is_eq) return
-if (allocated(f1%w_sum2)) is_eq = all(shape(f1%w_sum2) == shape(f2%w_sum2))
+if (allocated(f1%fbunch)) is_eq = all(shape(f1%fbunch) == shape(f2%fbunch))
 if (.not. is_eq) return
-if (allocated(f1%w_sum2)) is_eq = all(f1%w_sum2 == f2%w_sum2)
+if (allocated(f1%fbunch)) is_eq = all(f1%fbunch == f2%fbunch)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w_out) .eqv. allocated(f2%w_out))
+if (.not. is_eq) return
+if (allocated(f1%w_out)) is_eq = all(shape(f1%w_out) == shape(f2%w_out))
+if (.not. is_eq) return
+if (allocated(f1%w_out)) is_eq = all(f1%w_out == f2%w_out)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz == f2%dz)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%plane == f2%plane)
 !! f_side.equality_test[integer, 0, NOT]
@@ -496,12 +504,8 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%z) .eqv. allocated(f2%z))
-if (.not. is_eq) return
-if (allocated(f1%z)) is_eq = all(shape(f1%z) == shape(f2%z))
-if (.not. is_eq) return
-if (allocated(f1%z)) is_eq = all(f1%z == f2%z)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%z == f2%z)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%long) .eqv. allocated(f2%long))
 if (.not. is_eq) return
@@ -1175,6 +1179,8 @@ is_eq = is_eq .and. (f1%mat6 == f2%mat6)
 is_eq = is_eq .and. (f1%rad_int == f2%rad_int)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ptc == f2%ptc)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%has_misalign .eqv. f2%has_misalign)
 
 end function eq_bookkeeping_state
 
@@ -2129,6 +2135,8 @@ is_eq = is_eq .and. (f1%use_particle_start .eqv. f2%use_particle_start)
 is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_z_as_t .eqv. f2%use_z_as_t)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file_name == f2%file_name)
 
 end function eq_beam_init
 

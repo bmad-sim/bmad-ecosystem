@@ -264,8 +264,10 @@ template bool is_all_equal (const CPP_expression_atom_MATRIX&, const CPP_express
 bool operator== (const CPP_wake_sr_z& x, const CPP_wake_sr_z& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.w, y.w);
-  is_eq = is_eq && is_all_equal(x.w_sum1, y.w_sum1);
-  is_eq = is_eq && is_all_equal(x.w_sum2, y.w_sum2);
+  is_eq = is_eq && is_all_equal(x.fw, y.fw);
+  is_eq = is_eq && is_all_equal(x.fbunch, y.fbunch);
+  is_eq = is_eq && is_all_equal(x.w_out, y.w_out);
+  is_eq = is_eq && (x.dz == y.dz);
   is_eq = is_eq && (x.plane == y.plane);
   is_eq = is_eq && (x.position_dependence == y.position_dependence);
   return is_eq;
@@ -299,7 +301,7 @@ template bool is_all_equal (const CPP_wake_sr_mode_MATRIX&, const CPP_wake_sr_mo
 bool operator== (const CPP_wake_sr& x, const CPP_wake_sr& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.file == y.file);
-  is_eq = is_eq && is_all_equal(x.z, y.z);
+  is_eq = is_eq && (x.z == y.z);
   is_eq = is_eq && is_all_equal(x.long_wake, y.long_wake);
   is_eq = is_eq && is_all_equal(x.trans_wake, y.trans_wake);
   is_eq = is_eq && (x.z_ref_long == y.z_ref_long);
@@ -668,6 +670,7 @@ bool operator== (const CPP_bookkeeping_state& x, const CPP_bookkeeping_state& y)
   is_eq = is_eq && (x.mat6 == y.mat6);
   is_eq = is_eq && (x.rad_int == y.rad_int);
   is_eq = is_eq && (x.ptc == y.ptc);
+  is_eq = is_eq && (x.has_misalign == y.has_misalign);
   return is_eq;
 };
 
@@ -1168,6 +1171,7 @@ bool operator== (const CPP_beam_init& x, const CPP_beam_init& y) {
   is_eq = is_eq && (x.use_particle_start == y.use_particle_start);
   is_eq = is_eq && (x.use_t_coords == y.use_t_coords);
   is_eq = is_eq && (x.use_z_as_t == y.use_z_as_t);
+  is_eq = is_eq && (x.file_name == y.file_name);
   return is_eq;
 };
 
