@@ -1165,8 +1165,8 @@ endif
 call cpu_time(bp_com%time1)
 
 call drift_and_pipe_track_methods_adjustment(lat)
-
 call set_flags_for_changed_attribute(lat)
+call parser_init_custom_elements (lat)
 
 call s_calc(lat)
 call lattice_bookkeeper (lat, err)
@@ -1231,8 +1231,6 @@ do n = 0, ubound(lat%branch, 1)
     end select
   enddo
 enddo
-
-call parser_init_custom_elements (lat)
 
 ! Make the transfer matrices.
 ! Note: The bmad_parser err_flag argument does *not* include errors in 

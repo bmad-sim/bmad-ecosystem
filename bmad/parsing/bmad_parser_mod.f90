@@ -1363,7 +1363,7 @@ type (wake_sr_z_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
 real(rp), allocatable :: table(:,:)
-integer i, itrans, ilong, iz, ipt, ix_word
+integer i, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt
 
 logical delim_found, err_flag, err
 
@@ -1442,12 +1442,23 @@ do
         if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z W LIST', table, 2, delim, delim_found)) return
         ipt = size(table, 1)
         srz%dz = (table(ipt,1) - table(1,1)) / (ipt - 1)
-        srz%z0 = table(1,1)
-        call re_allocate(srz%w, ipt)
-        call re_allocate(srz%fw, ipt)
-        call re_allocate(srz%w_out, ipt)
-        call re_allocate(srz%fbunch, ipt)
-        srz%w = table(:,2)
+        n0 = nint(table(1,1) / srz%dz)
+        n1 = nint(table(ipt,1) / srz%dz)
+        if (abs(table(1,1)/srz%dz - n0) > 0.1_rp) then
+          call parser_error('Z-Wake ARRAY DOES NOT HAVE A Z = 0 POINT FOR ELEMENT: ' // ele%name)
+          return
+        endif
+
+        nn = max(abs(n0), abs(n1))
+        nt = 2 * nn + 1
+        srz%z0 = nn * srz%dz
+
+        call re_allocate(srz%w, nt)
+        call re_allocate(srz%fw, nt)
+        call re_allocate(srz%w_out, nt)
+        call re_allocate(srz%fbunch, nt)
+        srz%w = 0
+        srz%w(n0:n1) = table(:,2)
         srz%fw = srz%w
         call fft_1d(srz%fw, -1)
       case ('PLANE')
