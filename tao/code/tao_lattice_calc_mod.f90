@@ -173,6 +173,7 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
     if (branch%param%geometry == closed$) then
       call twiss_at_start (lat, status, branch%ix_branch, print_err)
       tao_branch%twiss_valid = (status == ok$)
+      call calc_z_tune(branch)
 
       if (.not. tao_branch%twiss_valid) then
         do n = 0, branch%n_ele_track
