@@ -595,7 +595,7 @@ character(12), parameter :: sr_longitudinal_position_dep_name(5) = &
                 [character(12):: 'none', 'x_leading', 'y_leading', 'x_trailing', 'y_trailing']
 character(8), parameter :: sr_z_plane_name(5) = [character(8):: 'X', 'XY', 'Y', null_name$, 'Z']
 
-type wake_sr_z_struct
+type wake_sr_z_long_struct
   real(rp), allocatable :: w(:)                        ! Input single particle Wake. Indexed from 1.
   complex(rp), allocatable :: fw(:)                    ! Fourier transform of w.
   complex(rp), allocatable :: fbunch(:), w_out(:)      ! Scratch space.
@@ -622,7 +622,7 @@ end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
   character(200) :: file = ''
-  type (wake_sr_z_struct) :: z
+  type (wake_sr_z_long_struct) :: z_long
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
   real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.
@@ -666,7 +666,7 @@ end type
 !
 
 type wake_struct
-  type (wake_sr_struct) :: sr = wake_sr_struct('', wake_sr_z_struct(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
+  type (wake_sr_struct) :: sr = wake_sr_struct('', wake_sr_z_long_struct(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
   type (wake_lr_struct) :: lr = wake_lr_struct('', null(), 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Long-range wake
 end type
 

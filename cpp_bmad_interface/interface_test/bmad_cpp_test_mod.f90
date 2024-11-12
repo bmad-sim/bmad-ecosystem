@@ -1267,18 +1267,18 @@ end subroutine set_expression_atom_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_wake_sr_z (ok)
+subroutine test1_f_wake_sr_z_long (ok)
 
 implicit none
 
-type(wake_sr_z_struct), target :: f_wake_sr_z, f2_wake_sr_z
+type(wake_sr_z_long_struct), target :: f_wake_sr_z_long, f2_wake_sr_z_long
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_wake_sr_z (c_wake_sr_z, c_ok) bind(c)
+  subroutine test_c_wake_sr_z_long (c_wake_sr_z_long, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_wake_sr_z
+    type(c_ptr), value :: c_wake_sr_z_long
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -1286,58 +1286,58 @@ end interface
 !
 
 ok = .true.
-call set_wake_sr_z_test_pattern (f2_wake_sr_z, 1)
+call set_wake_sr_z_long_test_pattern (f2_wake_sr_z_long, 1)
 
-call test_c_wake_sr_z(c_loc(f2_wake_sr_z), c_ok)
+call test_c_wake_sr_z_long(c_loc(f2_wake_sr_z_long), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_wake_sr_z_test_pattern (f_wake_sr_z, 4)
-if (f_wake_sr_z == f2_wake_sr_z) then
-  print *, 'wake_sr_z: C side convert C->F: Good'
+call set_wake_sr_z_long_test_pattern (f_wake_sr_z_long, 4)
+if (f_wake_sr_z_long == f2_wake_sr_z_long) then
+  print *, 'wake_sr_z_long: C side convert C->F: Good'
 else
-  print *, 'wake_sr_z: C SIDE CONVERT C->F: FAILED!'
+  print *, 'wake_sr_z_long: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_wake_sr_z
+end subroutine test1_f_wake_sr_z_long
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_wake_sr_z (c_wake_sr_z, c_ok) bind(c)
+subroutine test2_f_wake_sr_z_long (c_wake_sr_z_long, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_wake_sr_z
-type(wake_sr_z_struct), target :: f_wake_sr_z, f2_wake_sr_z
+type(c_ptr), value ::  c_wake_sr_z_long
+type(wake_sr_z_long_struct), target :: f_wake_sr_z_long, f2_wake_sr_z_long
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call wake_sr_z_to_f (c_wake_sr_z, c_loc(f_wake_sr_z))
+call wake_sr_z_long_to_f (c_wake_sr_z_long, c_loc(f_wake_sr_z_long))
 
-call set_wake_sr_z_test_pattern (f2_wake_sr_z, 2)
-if (f_wake_sr_z == f2_wake_sr_z) then
-  print *, 'wake_sr_z: F side convert C->F: Good'
+call set_wake_sr_z_long_test_pattern (f2_wake_sr_z_long, 2)
+if (f_wake_sr_z_long == f2_wake_sr_z_long) then
+  print *, 'wake_sr_z_long: F side convert C->F: Good'
 else
-  print *, 'wake_sr_z: F SIDE CONVERT C->F: FAILED!'
+  print *, 'wake_sr_z_long: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_wake_sr_z_test_pattern (f2_wake_sr_z, 3)
-call wake_sr_z_to_c (c_loc(f2_wake_sr_z), c_wake_sr_z)
+call set_wake_sr_z_long_test_pattern (f2_wake_sr_z_long, 3)
+call wake_sr_z_long_to_c (c_loc(f2_wake_sr_z_long), c_wake_sr_z_long)
 
-end subroutine test2_f_wake_sr_z
+end subroutine test2_f_wake_sr_z_long
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_wake_sr_z_test_pattern (F, ix_patt)
+subroutine set_wake_sr_z_long_test_pattern (F, ix_patt)
 
 implicit none
 
-type(wake_sr_z_struct) F
+type(wake_sr_z_long_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -1390,12 +1390,14 @@ else
 endif
 !! f_side.test_pat[real, 0, NOT]
 rhs = 9 + offset; F%dz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%z0 = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%plane = rhs
+rhs = 11 + offset; F%plane = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%position_dependence = rhs
+rhs = 12 + offset; F%position_dependence = rhs
 
-end subroutine set_wake_sr_z_test_pattern
+end subroutine set_wake_sr_z_long_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -1587,7 +1589,7 @@ do jd1 = 1, len(F%file)
   F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
 enddo
 !! f_side.test_pat[type, 0, NOT]
-call set_wake_sr_z_test_pattern (F%z, ix_patt)
+call set_wake_sr_z_long_test_pattern (F%z_long, ix_patt)
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then

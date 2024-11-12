@@ -149,19 +149,19 @@ case ('sr')
 
   select case (who)
   case ('sr-mode')
-    allocate(sr%z%w(0))
+    allocate(sr%z_long%w(0))
   case ('sr-long')
-    allocate(sr%z%w(0))
+    allocate(sr%z_long%w(0))
     allocate(sr%trans(0))
     if (ix_wake /= 0) sr%long = [sr%long(ix_wake)]
   case ('sr-trans')
-    allocate(sr%z%w(0))
+    allocate(sr%z_long%w(0))
     allocate(sr%long(0))
     if (ix_wake /= 0) sr%trans = [sr%trans(ix_wake)]
   case ('sr-z')
     allocate(sr%trans(0))
     allocate(sr%long(0))
-    if (ix_wake /= 0) sr%z%w = [sr%z%w(ix_wake)]
+    if (ix_wake /= 0) sr%z_long%w = [sr%z_long%w(ix_wake)]
   end select
 
   p2%vec(5) = -1

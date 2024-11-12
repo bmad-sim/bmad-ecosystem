@@ -856,9 +856,9 @@ extern "C" void test_c_expression_atom (Opaque_expression_atom_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_wake_sr_z (CPP_wake_sr_z&, bool&);
+extern "C" void test2_f_wake_sr_z_long (CPP_wake_sr_z_long&, bool&);
 
-void set_CPP_wake_sr_z_test_pattern (CPP_wake_sr_z& C, int ix_patt) {
+void set_CPP_wake_sr_z_long_test_pattern (CPP_wake_sr_z_long& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -897,48 +897,51 @@ void set_CPP_wake_sr_z_test_pattern (CPP_wake_sr_z& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 9 + offset; C.dz = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.plane = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.z0 = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.position_dependence = rhs;
+  rhs = 11 + offset; C.plane = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 12 + offset; C.position_dependence = rhs;
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wake_sr_z (Opaque_wake_sr_z_class* F, bool& c_ok) {
+extern "C" void test_c_wake_sr_z_long (Opaque_wake_sr_z_long_class* F, bool& c_ok) {
 
-  CPP_wake_sr_z C, C2;
+  CPP_wake_sr_z_long C, C2;
 
   c_ok = true;
 
-  wake_sr_z_to_c (F, C);
-  set_CPP_wake_sr_z_test_pattern (C2, 1);
+  wake_sr_z_long_to_c (F, C);
+  set_CPP_wake_sr_z_long_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " wake_sr_z: C side convert F->C: Good" << endl;
+    cout << " wake_sr_z_long: C side convert F->C: Good" << endl;
   } else {
-    cout << " wake_sr_z: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_sr_z_long: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_sr_z_test_pattern (C2, 2);
+  set_CPP_wake_sr_z_long_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_wake_sr_z (C2, c_ok2);
+  test2_f_wake_sr_z_long (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_wake_sr_z_test_pattern (C, 3);
+  set_CPP_wake_sr_z_long_test_pattern (C, 3);
   if (C == C2) {
-    cout << " wake_sr_z: F side convert F->C: Good" << endl;
+    cout << " wake_sr_z_long: F side convert F->C: Good" << endl;
   } else {
-    cout << " wake_sr_z: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_sr_z_long: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_sr_z_test_pattern (C2, 4);
-  wake_sr_z_to_f (C2, F);
+  set_CPP_wake_sr_z_long_test_pattern (C2, 4);
+  wake_sr_z_long_to_f (C2, F);
 
 }
 
@@ -1034,7 +1037,7 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
   for (unsigned int i = 0; i < C.file.size(); i++)
     {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_wake_sr_z_test_pattern(C.z, ix_patt);
+  set_CPP_wake_sr_z_long_test_pattern(C.z_long, ix_patt);
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
