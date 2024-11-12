@@ -563,6 +563,27 @@ call fft_1d(srz%w_out, 1)
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
+  ix = nint((p%vec(5) - z_ave) / srz%dz) + n2
+
+  select case (srz%plane)
+  case (none$, x_leading$, y_leading$)
+    p%vec(6) = p%vec(6) - srz%w_out(ix)
+  case (x_trailing$)
+    p%vec(6) = p%vec(6) - srz%w_out(ix) * p%vec(1)
+  case (y_trailing$)
+    p%vec(6) = p%vec(6) - srz%w_out(ix) * p%vec(3)
+  end select
+enddo
+
+call fft_1d(srz%w_out, -1)
+srz%w_out = srz%w_out * srz%fw * f0
+call fft_1d(srz%w_out, 1)
+
+! Apply wake
+
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  if (p%state /= alive$) cycle
   ix = nint(sr%z_scale * (p%vec(5) - z_ave) / srz%dz) + n2
 
   select case (srz%plane)

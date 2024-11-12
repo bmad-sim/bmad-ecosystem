@@ -1500,6 +1500,7 @@ do
   call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
   call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
   call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+
   if (attrib_name == 'LONGITUDINAL') then
     call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
   elseif (attrib_name == 'TRANSVERSE') then
