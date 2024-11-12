@@ -482,7 +482,7 @@ end subroutine sr_transverse_wake_particle
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr_z_wake_particle (ele, bunch, z_min, z_max)
+! Subroutine sr_z_long_wake (ele, bunch, z_min, z_max)
 !
 ! Subroutine to apply the short-range z-wake kick to a particle.
 !
@@ -497,13 +497,14 @@ end subroutine sr_transverse_wake_particle
 !   bunch       -- bunch_struct: Bunch before wake applied.
 !+
 
-subroutine sr_z_wake_particle (ele, bunch, z_min, z_max)
+subroutine sr_z_long_wake (ele, bunch, z_min, z_max)
 
 use spline_mod
 
 type (ele_struct), target :: ele
 type (bunch_struct), target :: bunch
-type (wake_sr_z_struct), pointer :: srz
+type (wake_sr_struct), pointer :: sr
+type (wake_sr_z_long_struct), pointer :: srz
 type (coord_struct), pointer :: p, orbit
 
 real(rp) x, f0, ff, f_add, kick, dz
@@ -512,24 +513,25 @@ real(rp) z_min, z_max, z_ave
 integer i, j, ix, n2
 logical ok
 
-character(*), parameter :: r_name = 'sr_z_wake_particle'
+character(*), parameter :: r_name = 'sr_z_long_wake'
 
 !
 
-if (ele%wake%sr%amp_scale == 0) return
+sr => ele%wake%sr
+if (sr%amp_scale == 0) return
 
-srz => ele%wake%sr%z
+srz => sr%z_long
 if (srz%dz == 0) return
 
-if (z_max - z_min > srz%z0) then
+if (sr%z_scale * (z_max - z_min) > srz%z0) then
   call out_io (s_error$, r_name, &
       'The bunch is longer than the sr-z wake can handle for element: ' // ele%name)
   p%state = lost$
   return
 endif
 
-f0 = ele%wake%sr%amp_scale * bunch%charge_live
-if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$) 
+f0 = sr%amp_scale * bunch%charge_live
+if (sr%scale_with_length) f0 = f0 * ele%value(l$) 
 
 ! Compute wake
 
@@ -539,7 +541,7 @@ srz%w_out = 0
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  ix = nint((p%vec(5) - z_ave) / srz%dz) + n2
+  ix = nint(sr%z_scale * (p%vec(5) - z_ave) / srz%dz) + n2
   if (p%state /= alive$) cycle
 
   select case (srz%plane)
@@ -573,7 +575,28 @@ do i = 1, size(bunch%particle)
   end select
 enddo
 
-end subroutine sr_z_wake_particle
+call fft_1d(srz%w_out, -1)
+srz%w_out = srz%w_out * srz%fw * f0
+call fft_1d(srz%w_out, 1)
+
+! Apply wake
+
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  if (p%state /= alive$) cycle
+  ix = nint(sr%z_scale * (p%vec(5) - z_ave) / srz%dz) + n2
+
+  select case (srz%plane)
+  case (none$, x_leading$, y_leading$)
+    p%vec(6) = p%vec(6) - srz%w_out(ix)
+  case (x_trailing$)
+    p%vec(6) = p%vec(6) - srz%w_out(ix) * p%vec(1)
+  case (y_trailing$)
+    p%vec(6) = p%vec(6) - srz%w_out(ix) * p%vec(3)
+  end select
+enddo
+
+end subroutine sr_z_long_wake
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -728,7 +751,7 @@ ele%wake%sr%z_ref_trans = p(i1)%vec(5)
 
 ! Z-wake
 
-call sr_z_wake_particle(ele, bunch, p(i1)%vec(5), p(i2)%vec(5))
+call sr_z_long_wake(ele, bunch, p(i1)%vec(5), p(i2)%vec(5))
 
 ! Loop over all particles in the bunch and apply the mode wakes
 

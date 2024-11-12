@@ -215,8 +215,9 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     end do
 
-    if (debug_mode .and. valid_spin_tracking_method(ele, sprint$)) then
+    if (valid_spin_tracking_method(ele, sprint$)) then
       ele%spin_tracking_method = sprint$
+      ele%tracking_method = bmad_standard$
       if (associated(ele%spin_taylor(0)%term)) deallocate (ele%spin_taylor(0)%term)
       call track1 (start_orb, ele, branch%param, end_orb)
       out_str = trim(ele%name) // ': Sprint dSpin'

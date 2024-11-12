@@ -125,7 +125,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine wake_sr_z_to_f (C, Fp) bind(c)
+  subroutine wake_sr_z_long_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -2181,29 +2181,29 @@ end subroutine expression_atom_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wake_sr_z_to_c (Fp, C) bind(c)
+! Subroutine wake_sr_z_long_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad wake_sr_z_struct to a C++ CPP_wake_sr_z structure
+! Routine to convert a Bmad wake_sr_z_long_struct to a C++ CPP_wake_sr_z_long structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad wake_sr_z_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad wake_sr_z_long_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_wake_sr_z struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_wake_sr_z_long struct.
 !-
 
-subroutine wake_sr_z_to_c (Fp, C) bind(c)
+subroutine wake_sr_z_long_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_sr_z_to_c2 (C, z_w, n1_w, z_fw, n1_fw, z_fbunch, n1_fbunch, z_w_out, &
-      n1_w_out, z_dz, z_plane, z_position_dependence) bind(c)
+  subroutine wake_sr_z_long_to_c2 (C, z_w, n1_w, z_fw, n1_fw, z_fbunch, n1_fbunch, z_w_out, &
+      n1_w_out, z_dz, z_z0, z_plane, z_position_dependence) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_w(*), z_dz
+    real(c_double) :: z_w(*), z_dz, z_z0
     integer(c_int), value :: n1_w, n1_fw, n1_fbunch, n1_w_out
     complex(c_double_complex) :: z_fw(*), z_fbunch(*), z_w_out(*)
     integer(c_int) :: z_plane, z_position_dependence
@@ -2212,7 +2212,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(wake_sr_z_struct), pointer :: F
+type(wake_sr_z_long_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 integer(c_int) :: n1_w
@@ -2246,43 +2246,43 @@ if (allocated(F%w_out)) then
 endif
 
 !! f_side.to_c2_call
-call wake_sr_z_to_c2 (C, fvec2vec(F%w, n1_w), n1_w, fvec2vec(F%fw, n1_fw), n1_fw, &
+call wake_sr_z_long_to_c2 (C, fvec2vec(F%w, n1_w), n1_w, fvec2vec(F%fw, n1_fw), n1_fw, &
     fvec2vec(F%fbunch, n1_fbunch), n1_fbunch, fvec2vec(F%w_out, n1_w_out), n1_w_out, F%dz, &
-    F%plane, F%position_dependence)
+    F%z0, F%plane, F%position_dependence)
 
-end subroutine wake_sr_z_to_c
+end subroutine wake_sr_z_long_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wake_sr_z_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine wake_sr_z_long_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_wake_sr_z structure to a Bmad wake_sr_z_struct structure.
-! This routine is called by wake_sr_z_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_wake_sr_z_long structure to a Bmad wake_sr_z_long_struct structure.
+! This routine is called by wake_sr_z_long_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the wake_sr_z_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the wake_sr_z_long_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad wake_sr_z_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad wake_sr_z_long_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_sr_z_to_f2 (Fp, z_w, n1_w, z_fw, n1_fw, z_fbunch, n1_fbunch, z_w_out, n1_w_out, &
-    z_dz, z_plane, z_position_dependence) bind(c)
+subroutine wake_sr_z_long_to_f2 (Fp, z_w, n1_w, z_fw, n1_fw, z_fbunch, n1_fbunch, z_w_out, &
+    n1_w_out, z_dz, z_z0, z_plane, z_position_dependence) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(wake_sr_z_struct), pointer :: F
+type(wake_sr_z_long_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(c_ptr), value :: z_w, z_fw, z_fbunch, z_w_out
 real(c_double), pointer :: f_w(:)
 integer(c_int), value :: n1_w, n1_fw, n1_fbunch, n1_w_out
 complex(c_double_complex), pointer :: f_fw(:), f_fbunch(:), f_w_out(:)
-real(c_double) :: z_dz
+real(c_double) :: z_dz, z_z0
 integer(c_int) :: z_plane, z_position_dependence
 
 call c_f_pointer (Fp, F)
@@ -2341,12 +2341,14 @@ endif
 
 !! f_side.to_f2_trans[real, 0, NOT]
 F%dz = z_dz
+!! f_side.to_f2_trans[real, 0, NOT]
+F%z0 = z_z0
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%plane = z_plane
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%position_dependence = z_position_dependence
 
-end subroutine wake_sr_z_to_f2
+end subroutine wake_sr_z_long_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2473,13 +2475,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wake_sr_to_c2 (C, z_file, z_z, z_long, n1_long, z_trans, n1_trans, z_z_ref_long, &
-      z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
+  subroutine wake_sr_to_c2 (C, z_file, z_z_long, z_long, n1_long, z_trans, n1_trans, &
+      z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_file(*)
-    type(c_ptr), value :: z_z
+    type(c_ptr), value :: z_z_long
     type(c_ptr) :: z_long(*), z_trans(*)
     integer(c_int), value :: n1_long, n1_trans
     real(c_double) :: z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale
@@ -2521,7 +2524,7 @@ if (allocated(F%trans)) then
 endif
 
 !! f_side.to_c2_call
-call wake_sr_to_c2 (C, trim(F%file) // c_null_char, c_loc(F%z), z_long, n1_long, z_trans, &
+call wake_sr_to_c2 (C, trim(F%file) // c_null_char, c_loc(F%z_long), z_long, n1_long, z_trans, &
     n1_trans, F%z_ref_long, F%z_ref_trans, F%z_max, F%amp_scale, F%z_scale, &
     c_logic(F%scale_with_length))
 
@@ -2543,8 +2546,8 @@ end subroutine wake_sr_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wake_sr_to_f2 (Fp, z_file, z_z, z_long, n1_long, z_trans, n1_trans, z_z_ref_long, &
-    z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
+subroutine wake_sr_to_f2 (Fp, z_file, z_z_long, z_long, n1_long, z_trans, n1_trans, &
+    z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale, z_scale_with_length) bind(c)
 
 
 implicit none
@@ -2554,7 +2557,7 @@ type(wake_sr_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 character(c_char) :: z_file(*)
-type(c_ptr), value :: z_z
+type(c_ptr), value :: z_z_long
 type(c_ptr) :: z_long(*), z_trans(*)
 integer(c_int), value :: n1_long, n1_trans
 real(c_double) :: z_z_ref_long, z_z_ref_trans, z_z_max, z_amp_scale, z_z_scale
@@ -2565,7 +2568,7 @@ call c_f_pointer (Fp, F)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_file, F%file)
 !! f_side.to_f2_trans[type, 0, NOT]
-call wake_sr_z_to_f(z_z, c_loc(F%z))
+call wake_sr_z_long_to_f(z_z_long, c_loc(F%z_long))
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_long == 0) then
   if (allocated(F%long)) deallocate(F%long)

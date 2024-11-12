@@ -16,7 +16,7 @@ use bmad_struct
 interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_ac_kicker_time, eq_ac_kicker_freq, eq_ac_kicker
   module procedure eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord, eq_coord_array
-  module procedure eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z, eq_wake_sr_mode, eq_wake_sr
+  module procedure eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z_long, eq_wake_sr_mode, eq_wake_sr
   module procedure eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
   module procedure eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
@@ -410,11 +410,11 @@ end function eq_expression_atom
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_wake_sr_z (f1, f2) result (is_eq)
+elemental function eq_wake_sr_z_long (f1, f2) result (is_eq)
 
 implicit none
 
-type(wake_sr_z_struct), intent(in) :: f1, f2
+type(wake_sr_z_long_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -446,12 +446,14 @@ if (.not. is_eq) return
 if (allocated(f1%w_out)) is_eq = all(f1%w_out == f2%w_out)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dz == f2%dz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z0 == f2%z0)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%plane == f2%plane)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%position_dependence == f2%position_dependence)
 
-end function eq_wake_sr_z
+end function eq_wake_sr_z_long
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -505,7 +507,7 @@ is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
 !! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%z == f2%z)
+is_eq = is_eq .and. (f1%z_long == f2%z_long)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%long) .eqv. allocated(f2%long))
 if (.not. is_eq) return
