@@ -1430,7 +1430,7 @@ if (associated(ele%wake)) then
       endif
       nl=nl+1; li(nl) = '  dz = ' // to_str(srz%dz)
       nl=nl+1; li(nl) = '  +/- Wake range: ' // to_str(srz%z0)
-      nl=nl+1; write (li(nl), '(a, i)') '  # wake points: ', size(srz%w)
+      nl=nl+1; write (li(nl), '(a, i0)') '  # wake points: ', size(srz%w)
 
     else
      nl=nl+1; li(nl) = '  No short-range z-dependent modes.'
