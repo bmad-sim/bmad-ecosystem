@@ -269,8 +269,9 @@ bool operator== (const CPP_wake_sr_z_long& x, const CPP_wake_sr_z_long& y) {
   is_eq = is_eq && is_all_equal(x.w_out, y.w_out);
   is_eq = is_eq && (x.dz == y.dz);
   is_eq = is_eq && (x.z0 == y.z0);
-  is_eq = is_eq && (x.plane == y.plane);
+  is_eq = is_eq && (x.smoothing_sigma == y.smoothing_sigma);
   is_eq = is_eq && (x.position_dependence == y.position_dependence);
+  is_eq = is_eq && (x.time_based == y.time_based);
   return is_eq;
 };
 

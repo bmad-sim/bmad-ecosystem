@@ -1,6 +1,6 @@
 &params
   lat_file = "wake.bmad"      ! Bmad lattice file.
-  wake_ele_name = "p1"        ! Lattice element with wakes.
+  wake_ele_name = "p1"        ! Name or index of lattice element with wakes.
   who = "sr"                  ! What wake type to use.
   m_order = 0                 ! Order of LR wake to use. 0 => all orders.
   ix_wake = 0                 ! Index of wake to use. 0 => Ignore this parameter.

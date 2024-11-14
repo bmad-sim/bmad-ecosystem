@@ -1371,10 +1371,11 @@ type (wake_sr_mode_struct), pointer :: srm
 type (wake_sr_z_long_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
+real(rp) f
 real(rp), allocatable :: table(:,:)
 integer i, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt
 
-logical delim_found, err_flag, err, time_based
+logical delim_found, err_flag, err
 
 character(40) err_str, word, attrib_name
 character(1) delim
@@ -1390,8 +1391,8 @@ wake_sr => ele%wake%sr
 trans = wake_sr_mode_struct()
 long = wake_sr_mode_struct()
 err_flag = .true.
-time_based = .false.
 srz => wake_sr%z_long
+srz%time_based = .false.
 
 ! get data
 
@@ -1458,13 +1459,13 @@ do
 
         if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
-      case ('PLANE')
-        call get_switch ('SR_WAKE Z PLANE', sr_z_plane_name, srz%plane, err, ele, delim, delim_found); if (err) return
+      case ('SMOOTHING_SIGMA')
+        call parse_evaluate_value (err_str, srz%smoothing_sigma, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
       case ('POSITION_DEPENDENCE')
         call get_switch ('SR_WAKE Z POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srz%position_dependence, err_flag, ele, delim, delim_found)
         if (err_flag) return
-      case ('T_BASED')
-        call parser_get_logical (attrib_name, time_based, ele%name, delim, delim_found, err_flag);  if (err_flag) return
+      case ('TIME_BASED')
+        call parser_get_logical (attrib_name, srz%time_based, ele%name, delim, delim_found, err_flag);  if (err_flag) return
       case default
         call parser_error ('UNKNOWN SR_WAKE Z COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
         return
@@ -1524,12 +1525,24 @@ wake_sr%long = long(1:ilong)
 allocate (wake_sr%trans(itrans))
 wake_sr%trans = trans(1:itrans)
 
-if (.not. allocated(srz%w)) then
-  allocate (srz%w(0), srz%fw(0), srz%w_out(0), srz%fbunch(0))
-else
-  if (time_based) srz%dz = srz%dz * c_light
+if (allocated(srz%w)) then
+  if (srz%time_based) then
+    srz%dz = c_light * srz%dz
+    srz%z0 = c_light * srz%z0
+    srz%w  = c_light * srz%w(nt:1:-1)
+    srz%smoothing_sigma = c_light * srz%smoothing_sigma
+  endif
   srz%fw = srz%w
   call fft_1d(srz%fw, -1)
+  if (srz%smoothing_sigma /= 0) then
+    do i = 1, nt
+      f = real(i - 1, rp) / (nt - 1) 
+      srz%fw(i) = srz%fw(i) * exp(-2*pi*(f*srz%smoothing_sigma)**2)
+    enddo
+  endif
+
+else
+  allocate (srz%w(0), srz%fw(0), srz%w_out(0), srz%fbunch(0))
 endif
 
 err_flag = .false.

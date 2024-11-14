@@ -1392,10 +1392,12 @@ endif
 rhs = 9 + offset; F%dz = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 10 + offset; F%z0 = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%plane = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 11 + offset; F%smoothing_sigma = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 12 + offset; F%position_dependence = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 13 + offset; F%time_based = (modulo(rhs, 2) == 0)
 
 end subroutine set_wake_sr_z_long_test_pattern
 

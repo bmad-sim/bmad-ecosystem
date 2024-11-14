@@ -228,6 +228,7 @@ type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
+type (wake_sr_z_long_struct), pointer :: srz
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
@@ -660,9 +661,10 @@ if (associated(wake) .and. write_wake) then
     write (d_unit) wake%sr%trans(i)
   enddo
 
-  write (d_unit) wake%sr%z_long%plane, wake%sr%z_long%position_dependence, wake%sr%z_long%dz, wake%sr%z_long%z0
-  do i = 1, size(wake%sr%z_long%w)
-    write (d_unit) wake%sr%z_long%w(i), wake%sr%z_long%fw(i)
+  srz => wake%sr%z_long
+  write (d_unit) srz%smoothing_sigma, srz%position_dependence, srz%dz, srz%z0, srz%time_based
+  do i = 1, size(srz%w)
+    write (d_unit) srz%w(i), srz%fw(i)
   enddo
 
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale

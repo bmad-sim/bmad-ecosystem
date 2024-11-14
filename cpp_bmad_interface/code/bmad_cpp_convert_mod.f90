@@ -2199,14 +2199,15 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_sr_z_long_to_c2 (C, z_w, n1_w, z_fw, n1_fw, z_fbunch, n1_fbunch, z_w_out, &
-      n1_w_out, z_dz, z_z0, z_plane, z_position_dependence) bind(c)
+      n1_w_out, z_dz, z_z0, z_smoothing_sigma, z_position_dependence, z_time_based) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_w(*), z_dz, z_z0
+    real(c_double) :: z_w(*), z_dz, z_z0, z_smoothing_sigma
     integer(c_int), value :: n1_w, n1_fw, n1_fbunch, n1_w_out
     complex(c_double_complex) :: z_fw(*), z_fbunch(*), z_w_out(*)
-    integer(c_int) :: z_plane, z_position_dependence
+    integer(c_int) :: z_position_dependence
+    logical(c_bool) :: z_time_based
   end subroutine
 end interface
 
@@ -2248,7 +2249,7 @@ endif
 !! f_side.to_c2_call
 call wake_sr_z_long_to_c2 (C, fvec2vec(F%w, n1_w), n1_w, fvec2vec(F%fw, n1_fw), n1_fw, &
     fvec2vec(F%fbunch, n1_fbunch), n1_fbunch, fvec2vec(F%w_out, n1_w_out), n1_w_out, F%dz, &
-    F%z0, F%plane, F%position_dependence)
+    F%z0, F%smoothing_sigma, F%position_dependence, c_logic(F%time_based))
 
 end subroutine wake_sr_z_long_to_c
 
@@ -2269,7 +2270,7 @@ end subroutine wake_sr_z_long_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine wake_sr_z_long_to_f2 (Fp, z_w, n1_w, z_fw, n1_fw, z_fbunch, n1_fbunch, z_w_out, &
-    n1_w_out, z_dz, z_z0, z_plane, z_position_dependence) bind(c)
+    n1_w_out, z_dz, z_z0, z_smoothing_sigma, z_position_dependence, z_time_based) bind(c)
 
 
 implicit none
@@ -2282,8 +2283,9 @@ type(c_ptr), value :: z_w, z_fw, z_fbunch, z_w_out
 real(c_double), pointer :: f_w(:)
 integer(c_int), value :: n1_w, n1_fw, n1_fbunch, n1_w_out
 complex(c_double_complex), pointer :: f_fw(:), f_fbunch(:), f_w_out(:)
-real(c_double) :: z_dz, z_z0
-integer(c_int) :: z_plane, z_position_dependence
+real(c_double) :: z_dz, z_z0, z_smoothing_sigma
+integer(c_int) :: z_position_dependence
+logical(c_bool) :: z_time_based
 
 call c_f_pointer (Fp, F)
 
@@ -2343,10 +2345,12 @@ endif
 F%dz = z_dz
 !! f_side.to_f2_trans[real, 0, NOT]
 F%z0 = z_z0
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%plane = z_plane
+!! f_side.to_f2_trans[real, 0, NOT]
+F%smoothing_sigma = z_smoothing_sigma
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%position_dependence = z_position_dependence
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%time_based = f_logic(z_time_based)
 
 end subroutine wake_sr_z_long_to_f2
 

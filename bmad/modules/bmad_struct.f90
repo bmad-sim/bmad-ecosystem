@@ -601,9 +601,10 @@ type wake_sr_z_long_struct
   complex(rp), allocatable :: fbunch(:), w_out(:)      ! Scratch space.
   real(rp) :: dz = 0                                   ! Distance between points.
   real(rp) :: z0 = 0                                   ! Wake extent is [-z0, z0].
-  integer :: plane = not_set$                          ! x$, y$, xy$, z$.
-  integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
+  real(rp) :: smoothing_sigma = 0                      ! 0 => No smoothing.
+  integer :: position_dependence = none$               ! Transverse: leading$, trailing$, none$
                                                        ! Longitudinal: x_leading$, ..., y_trailing$, none$
+  logical :: time_based = .false.                      ! Was input time based?
 end type
 
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
