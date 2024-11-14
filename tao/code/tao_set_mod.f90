@@ -2041,6 +2041,8 @@ case ('margin')
   call tao_set_qp_rect_struct (comp, sub_comp, this_graph%margin, value, error, u%ix_uni)
 case ('name')
   this_graph%name = value_str
+case ('curve_legend_row_gap_scale')
+  call tao_set_real_value(this_graph%curve_legend_row_gap_scale, component, value, error, dflt_uni = u%ix_uni)
 case ('scale_margin')
   call tao_set_qp_rect_struct (comp, sub_comp, this_graph%scale_margin, value, error, u%ix_uni)
 case ('symbol_size_scale')

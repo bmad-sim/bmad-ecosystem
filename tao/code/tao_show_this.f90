@@ -2400,6 +2400,7 @@ case ('graph')
 
   nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
   nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale
+  nl=nl+1; write(lines(nl), rmt)  'curve_legend_row_gap_scale       = ', g%curve_legend_row_gap_scale 
   nl=nl+1; write(lines(nl), amt)  'text_legend_origin%x,y,units     = ', real_str(g%text_legend_origin%x, 3), ', ', &
                                                        real_str(g%text_legend_origin%y, 3), ', ', quote(g%text_legend_origin%units)
   nl=nl+1; write(lines(nl), amt)  'curve_legend_origin%x,y,units     = ', real_str(g%curve_legend_origin%x, 3), ', ', &

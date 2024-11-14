@@ -505,6 +505,7 @@ do  ! Loop over plot files
       grph%type                             = graph%type
       grph%x_axis_scale_factor              = graph%x_axis_scale_factor 
       grph%symbol_size_scale                = graph%symbol_size_scale   
+      grph%curve_legend_row_gap_scale       = graph%curve_legend_row_gap_scale
       grph%text_legend_origin               = graph%text_legend_origin
       grph%curve_legend_origin              = graph%curve_legend_origin
       grph%box                              = graph%box

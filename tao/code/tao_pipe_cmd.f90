@@ -5413,6 +5413,7 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                        trim(g%why_invalid)
   nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',               g%x_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',                 g%symbol_size_scale
+  nl=incr(nl); write (li(nl), rmt) 'curve_legend_row_gap_scale;REAL;T;',        g%curve_legend_row_gap_scale
   nl=incr(nl); write (li(nl), jmt) g%ix_universe, '^ix_branch;INUM;T;',         g%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                       g%ix_universe
   nl=incr(nl); write (li(nl), lmt) 'clip;LOGIC;T;',                             g%clip

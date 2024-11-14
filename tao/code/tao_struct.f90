@@ -274,6 +274,7 @@ type tao_graph_struct
   type (qp_rect_struct) :: scale_margin = qp_rect_struct()   ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1               ! x-axis conversion from internal to plotting units.
   real(rp) :: symbol_size_scale = 0                 ! Symbol size scale factor for phase_space plots.
+  real(rp) :: curve_legend_row_gap_scale = 1        ! Row gap scale factor for each entry in the curve legend.
   integer :: box(4) = 0                             ! Defines which box the plot is put in.
   integer :: ix_branch = -1                         ! Branch in lattice. Used when there are no associated curves.
   integer :: ix_universe = -1                       ! Used for lat_layout plots.

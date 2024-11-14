@@ -2897,33 +2897,34 @@ end subroutine qp_draw_text_legend
 !-----------------------------------------------------------------------
 !+
 ! Subroutine qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, 
-!                  symbol, text, text_offset, draw_line, draw_symbol, draw_text)
+!                  symbol, text, text_offset, row_gap_scale, draw_line, draw_symbol, draw_text)
 !
 ! Subroutine to draw a legend with each line in the legend having
 !   a line, a symbol, some text.
 !
 ! Input:
-!   x_origin    -- Real(rp), optional: x-postion of start of the first line.
-!   y_origin    -- Real(rp), optional: y-postion of start of the first line.
-!   units       -- Character(*), optional: Units of x_origin, y_origin.
-!                    Default is: 'DATA/GRAPH/LB'
-!                    See quick_plot writeup for more details.
-!   line(:)     -- qp_line_struct, optional: Array of lines.
-!                    Set line(i)%width < 0 to suppress drawing of the i^th line
-!   line_length -- Real(rp), optional: Length of the line in points. Default is 72 pts (~ 1 inch).
-!   symbol(:)   -- qp_symbol_struct, optional: Array of symbols.
-!                    Set symbol(i)%type < 0 to suppress drawing of the i^th symbol.
-!   text(:)     -- Character(*), optional: Array of text lines.
-!   text_offset -- Real(rp), optional: Horizontal offset in points between the line and the text.
-!                   Default is 10 pt.
-!   draw_line   -- Logical, optional: Draw lines? Default is True if line arg is present.
-!                   Line style set by the LEGEND line style. See qp_set_line_attrib.
-!   draw_symbol -- Logical, optional: Draw symbols? Default is True if symbol arg is present.
-!   draw_text   -- Logical, optional: Draw text? Default is True if text arg is present.
+!   x_origin      -- Real(rp), optional: x-postion of start of the first line.
+!   y_origin      -- Real(rp), optional: y-postion of start of the first line.
+!   units         -- Character(*), optional: Units of x_origin, y_origin.
+!                      Default is: 'DATA/GRAPH/LB'
+!                      See quick_plot writeup for more details.
+!   line(:)       -- qp_line_struct, optional: Array of lines.
+!                      Set line(i)%width < 0 to suppress drawing of the i^th line
+!   line_length   -- Real(rp), optional: Length of the line in points. Default is 72 pts (~ 1 inch).
+!   symbol(:)     -- qp_symbol_struct, optional: Array of symbols.
+!                      Set symbol(i)%type < 0 to suppress drawing of the i^th symbol.
+!   text(:)       -- Character(*), optional: Array of text lines.
+!   text_offset   -- Real(rp), optional: Horizontal offset in points between the line and the text.
+!                      Default is 10 pt.
+!   row_gap_scale -- Real(rp), optional: Scale factor for gap size between entries in a legend. Default is 1.
+!   draw_line     -- Logical, optional: Draw lines? Default is True if line arg is present.
+!                      Line style set by the LEGEND line style. See qp_set_line_attrib.
+!   draw_symbol   -- Logical, optional: Draw symbols? Default is True if symbol arg is present.
+!   draw_text     -- Logical, optional: Draw text? Default is True if text arg is present.
 !-
 
 subroutine qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, &
-                      symbol, text, text_offset, draw_line, draw_symbol, draw_text)
+                      symbol, text, text_offset, row_gap_scale, draw_line, draw_symbol, draw_text)
 
 implicit none
 
@@ -2931,7 +2932,7 @@ type (qp_line_struct), optional :: line(:)
 type (qp_symbol_struct), optional :: symbol(:)
 
 real(rp) x_origin, y_origin
-real(rp), optional :: line_length, text_offset
+real(rp), optional :: line_length, text_offset, row_gap_scale
 real(rp) height, xc, yc, yc2, line_len, dummy, text_off
 
 integer i, n_rows
@@ -2948,7 +2949,7 @@ call qp_save_state (.true.)
 
 call qp_set_text_attrib ('LEGEND')
 call qp_set_line_attrib ('LEGEND')
-height = qp_text_height_to_inches(qp_com%this_text%height) 
+height = real_option(1.0_rp, row_gap_scale)*qp_text_height_to_inches(qp_com%this_text%height) 
 
 call qp_to_inch_abs (x_origin, y_origin, xc, yc, units)
 

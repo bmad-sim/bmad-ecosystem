@@ -1963,7 +1963,7 @@ enddo
 if (graph%draw_curve_legend .and. nc > 1) then
   call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
             graph%curve_legend_origin%units, line, s%plot_page%curve_legend_line_len, &
-            symbol, text, s%plot_page%curve_legend_text_offset)
+            symbol, text, s%plot_page%curve_legend_text_offset, graph%curve_legend_row_gap_scale)
 endif
 
 

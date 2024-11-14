@@ -2470,6 +2470,7 @@ The general format of the \vn{tao_template_graph} namelist is:
 \index{graph_index}\index{graph}\index{graph!name}\index{curve}
 \index{graph!type}\index{graph!box}\index{graph!title}\index{graph!margin}
 \index{graph!y2}\index{graph!n_curve}\index{graph!clip}\index{graph!component}
+\index{graph!curve_legend_row_gap_scale}
 \index{graph!symbol_size_scale}
 \index{curve!data_type}\index{curve!data_source}
 \index{curve!x_axis_units_factor}\index{curve!y_axis_units_factor}
@@ -2507,6 +2508,7 @@ The general format of the \vn{tao_template_graph} namelist is:
                                  = <logical>      !   Default = T.
     graph%x_axis_scale_factor    = <factor>       ! Scale the x-axis by this.
     graph%n_curve                = <integer>      ! Limit number of curves.
+    graph%curve_legend_row_gap_scale = <real>     ! Scales the row gap width between entries in the legend.
     curve(N)%name                = "<string>"     ! Default is "c<i>", <i> = curve num.
     curve(N)%data_type           = "<string>"     ! EG: "orbit.x"
     curve(N)%data_source         = "<string>"     ! Source for the data curve points
