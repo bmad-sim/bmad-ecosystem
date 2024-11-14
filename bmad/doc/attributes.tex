@@ -2930,19 +2930,23 @@ The short-range wakes for a lattice element are specified via a set of ``pseudo'
 for short-range wakefields are given in \Sref{s:sr.wake.eq}.  The \vn{sr_wake} attribute is used to set
 wakefield parameters. The general form of this attribute is:
 \begin{example}
-  sr_wake = \{z_max = <real>, z_scale = <real>, amp_scale = <real>, 
+  sr_wake = \{
+      z_max = <real>, z_scale = <real>, amp_scale = <real>, 
       scale_with_length = <logical>,
       longitudinal = \{<amp>, <damp>, <k>, <phi>, <position_dependence>\},
       ...
       longitudinal = \{...\}, 
       transverse = \{<amp>, <damp>, <k>, <phi>, <polarization>, <particle_dependence>\},
       ...
-      transverse = \{...\} \}
+      transverse = \{...\} 
+      z_long = \{...\}
+    \}
 \end{example}
 The \vn{sr_wake} structure has optional components \vn{z_max}, \vn{z_scale}, \vn{amp_scale}, and
-\vn{scale_with_length} along with zero or more \vn{longitudinal} sub-structures each one specifying
-a single longitudinal mode, and zero or more \vn{transverse} sub-structures each one specifying a
-single transverse mode. Example:
+\vn{scale_with_length}. To specify wakes, zero or more \vn{longitudinal} sub-structures each one specifying
+a single longitudinal mode, zero or more \vn{transverse} sub-structures each one specifying a
+single transverse mode and zero or one \vn{z_long} sub-structures that can be used to specify the longitudinal
+wake as a function of z-position (\sref{s:sr.wake.z.long}). Example:
 \begin{example}
   cav9: lcavity, ..., sr_wake = \{z_max = 1.3e-3, scale_with_length = F, 
        longitudinal = \{3.23e14, 1.23e3, 3.62e3, 0.123, none\}, 
@@ -2974,8 +2978,8 @@ $A_i$, $d_i$, $k_i$, and $\phi_i/2\pi$ of \Eq{wadzk}. The units for these compon
 Monopole modes are modes that are independent of transverse position and dipole modes are modes that
 are linear in the transverse position. 
 
-For the \vn{longitudinal} sub-structures, there is a 5\Th
-component which gives the transverse position dependence of the wake. Possible values are:
+For the \vn{longitudinal} sub-structures, there is a 5\Th component, called
+\vn{position_dependence}, gives the transverse position dependence of the wake. Possible values are:
 \begin{example}
   none          ! No position dependence
   x_leading     ! Linear in the leading particle x-position
@@ -3025,6 +3029,49 @@ The default value is 1.0.
 Note: In a beam chamber with circular symmetry, the linear terms in the \vn{longitudinal} wake are
 zero and the transverse wake has no terms independent of the transverse offsets nor terms that
 depend upon the trailing particle offset.
+
+%-----------------------------------------------------------------
+\subsection{Longitudinal Short-Range Wake With a Wake table}
+\label{s:sr.wake.z.long}
+
+The \vn{z_long} substructure of \vn{sr_wake} (\sref{s:sr.wake.syntax}) is an alternative to the
+\vn{longitudinal} substructure. With the \vn{z_long} substructure, the wake is specified using a
+table of equally spaced points in $z$-position or as a function of time. The syntax for \vn{z_long}
+is
+\begin{example}
+  z_long = \{
+    time_based = <T/F>,
+    smoothing_sigma = <sigma>,
+    position_dependence = <dep>,
+    w = \{
+      <z1>  <w1>,            ! Wake <w> table as a function of z-position (or time).
+      <z2>  <w2>,
+      ...
+    \}
+  \}
+\end{example}
+The \vn{w} component gives the single particle wake as a function of either z-position or time
+depending upon the setting of the optional \vn{time_based} logical. The default is \vn{False}. The z
+(or time) values in the \vn{w} table must be equally spaced and in increasing order. Unlike the
+\vn{longitudinal} and \vn{transverse} pseudo-mode description, the wake can be finite for both
+positive and negative z (or time). When the wake is parsed, if \vn{time_based} is \vn{True}, the
+table is converted to be z-based using the conversion $z = -c \, t$ where $c$ is the speed of
+light. If the table is not symmetric around $z = 0$ (if there are more points on one size of zero
+than the other), the table is extended to be symmetric (this is needed for tracking).  During
+tracking, the half-width of the wake (the magnitude of the maximum or minimum z of the symmeterized
+table) must be greater than the full width of the bunch (excluding 1\% outlier particles). If not,
+an error message is generated and tracking is stopped. 
+
+The optional \vn{position_dependence} component determines if the wake depends upon the transverse coordinates
+of the bunch particles. See \sref{s:sr.wake.syntax} for details. The default is \vn{none}. 
+
+The wake is applied to a bunch by convoluting the bunch distribution with the wake.  The optional
+\vn{smoothing_sigma} component, if set non-zero, applies a Gaussian smoothing filter to the
+convolution. The value of \vn{smoothing_sigma} is in meters if \vn{time_based} is False or seconds
+otherwise.
+
+The \vn{z_scale} and \vn{amp_scale} parameters of the \vn{sr_wake} structure (\sref{s:sr.wake.syntax})
+are used with \vn{z_long}.
 
 %-----------------------------------------------------------------
 \subsection{Short-Range Wakes --- Old Format}

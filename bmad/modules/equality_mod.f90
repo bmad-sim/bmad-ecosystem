@@ -448,10 +448,12 @@ if (allocated(f1%w_out)) is_eq = all(f1%w_out == f2%w_out)
 is_eq = is_eq .and. (f1%dz == f2%dz)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%z0 == f2%z0)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%plane == f2%plane)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%smoothing_sigma == f2%smoothing_sigma)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%position_dependence == f2%position_dependence)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%time_based .eqv. f2%time_based)
 
 end function eq_wake_sr_z_long
 

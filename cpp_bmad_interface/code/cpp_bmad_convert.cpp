@@ -553,7 +553,8 @@ extern "C" void wake_sr_z_long_to_c (const Opaque_wake_sr_z_long_class*, CPP_wak
 
 // c_side.to_f2_arg
 extern "C" void wake_sr_z_long_to_f2 (Opaque_wake_sr_z_long_class*, c_RealArr, Int,
-    c_ComplexArr, Int, c_ComplexArr, Int, c_ComplexArr, Int, c_Real&, c_Real&, c_Int&, c_Int&);
+    c_ComplexArr, Int, c_ComplexArr, Int, c_ComplexArr, Int, c_Real&, c_Real&, c_Real&, c_Int&,
+    c_Bool&);
 
 extern "C" void wake_sr_z_long_to_f (const CPP_wake_sr_z_long& C, Opaque_wake_sr_z_long_class* F) {
   // c_side.to_f_setup[real, 1, ALLOC]
@@ -583,14 +584,15 @@ extern "C" void wake_sr_z_long_to_f (const CPP_wake_sr_z_long& C, Opaque_wake_sr
 
   // c_side.to_f2_call
   wake_sr_z_long_to_f2 (F, z_w, n1_w, z_fw, n1_fw, z_fbunch, n1_fbunch, z_w_out, n1_w_out,
-      C.dz, C.z0, C.plane, C.position_dependence);
+      C.dz, C.z0, C.smoothing_sigma, C.position_dependence, C.time_based);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void wake_sr_z_long_to_c2 (CPP_wake_sr_z_long& C, c_RealArr z_w, Int n1_w,
     c_ComplexArr z_fw, Int n1_fw, c_ComplexArr z_fbunch, Int n1_fbunch, c_ComplexArr z_w_out,
-    Int n1_w_out, c_Real& z_dz, c_Real& z_z0, c_Int& z_plane, c_Int& z_position_dependence) {
+    Int n1_w_out, c_Real& z_dz, c_Real& z_z0, c_Real& z_smoothing_sigma, c_Int&
+    z_position_dependence, c_Bool& z_time_based) {
 
   // c_side.to_c2_set[real, 1, ALLOC]
 
@@ -616,10 +618,12 @@ extern "C" void wake_sr_z_long_to_c2 (CPP_wake_sr_z_long& C, c_RealArr z_w, Int 
   C.dz = z_dz;
   // c_side.to_c2_set[real, 0, NOT]
   C.z0 = z_z0;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.plane = z_plane;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.smoothing_sigma = z_smoothing_sigma;
   // c_side.to_c2_set[integer, 0, NOT]
   C.position_dependence = z_position_dependence;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.time_based = z_time_based;
 }
 
 //--------------------------------------------------------------------

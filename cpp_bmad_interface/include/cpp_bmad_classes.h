@@ -896,8 +896,9 @@ public:
   Complex_ARRAY w_out;
   Real dz;
   Real z0;
-  Int plane;
+  Real smoothing_sigma;
   Int position_dependence;
+  Bool time_based;
 
   CPP_wake_sr_z_long() :
     w(0.0, 0),
@@ -906,8 +907,9 @@ public:
     w_out(0.0, 0),
     dz(0.0),
     z0(0.0),
-    plane(Bmad::NOT_SET),
-    position_dependence(Bmad::NOT_SET)
+    smoothing_sigma(0.0),
+    position_dependence(Bmad::NONE),
+    time_based(false)
     {}
 
   ~CPP_wake_sr_z_long() {

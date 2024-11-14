@@ -1422,14 +1422,10 @@ if (associated(ele%wake)) then
       call re_allocate (li, nl+size(ele%wake%sr%z_long%w)+100, .false.)
       nl=nl+1; li(nl) = '  Short-Range Z-dependent Longitudinal wake:'
       srz => ele%wake%sr%z_long
-      if (srz%plane == z$) then
-        nl=nl+1; li(nl) = '  plane = ' // trim(sr_z_plane_name(srz%plane))
-      else
-        nl=nl+1; li(nl) = '  plane = ' // trim(sr_z_plane_name(srz%plane)) // &
-                          ', position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
-      endif
-      nl=nl+1; li(nl) = '  dz = ' // to_str(srz%dz)
-      nl=nl+1; li(nl) = '  +/- Wake range: ' // to_str(srz%z0)
+      nl=nl+1; li(nl) = '    smoothing_sigma     = ' // to_str(srz%smoothing_sigma)
+      nl=nl+1; li(nl) = '    position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
+      nl=nl+1; li(nl) = '    dz = ' // to_str(srz%dz)
+      nl=nl+1; li(nl) = '    +/- Wake range: ' // to_str(srz%z0)
       nl=nl+1; write (li(nl), '(a, i0)') '  # wake points: ', size(srz%w)
 
     else

@@ -495,6 +495,7 @@ type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
+type (wake_sr_z_long_struct), pointer :: srz
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_gen, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e, n_angle, n_energy
@@ -913,9 +914,10 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_sr_z /= 0 .or. ix_lr_mode /= 0
       read (d_unit, err = 9800, end = 9800) wake%sr%trans(i)
     enddo
 
-    read (d_unit, err = 9800, end = 9800) wake%sr%z_long%plane, wake%sr%z_long%position_dependence, wake%sr%z_long%dz, wake%sr%z_long%z0
-    do i = 1, size(wake%sr%z_long%w)
-      read (d_unit, err = 9800, end = 9800) wake%sr%z_long%w(i), wake%sr%z_long%fw(i)
+    srz => wake%sr%z_long
+    read (d_unit, err = 9800, end = 9800) srz%smoothing_sigma, srz%position_dependence, srz%dz, srz%z0, srz%time_based
+    do i = 1, size(srz%w)
+      read (d_unit, err = 9800, end = 9800) srz%w(i), srz%fw(i)
     enddo
 
     read (d_unit, err = 9800, end = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale

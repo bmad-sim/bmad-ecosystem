@@ -900,11 +900,14 @@ void set_CPP_wake_sr_z_long_test_pattern (CPP_wake_sr_z_long& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 10 + offset; C.z0 = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.plane = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 11 + offset; C.smoothing_sigma = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 12 + offset; C.position_dependence = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 13 + offset; C.time_based = (rhs % 2 == 0);
 
 
 }

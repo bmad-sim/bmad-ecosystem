@@ -533,26 +533,21 @@ case ('N_SLAVE');         a_ptr%i => ele%n_slave
 case ('N_LORD');          a_ptr%i => ele%n_lord
 case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SCALE', &
       'LR_WAKE%FREQ_SPREAD', 'LR_WAKE%SELF_WAKE_ON', &
-      'SR_WAKE%SCALE_WITH_LENGTH', 'SR_WAKE%AMP_SCALE', 'SR_WAKE%Z_SCALE')
+      'SR_WAKE%SCALE_WITH_LENGTH', 'SR_WAKE%AMP_SCALE', 'SR_WAKE%Z_SCALE', &
+      'SR_WAKE%Z_LONG%SMOOTHING_SIGMA')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
   select case (a_name)
-  case ('LR_SELF_WAKE_ON', 'LR_WAKE%SELF_WAKE_ON')
-    a_ptr%l => ele%wake%lr%self_wake_on
-  case ('LR_WAKE%AMP_SCALE')
-    a_ptr%r => ele%wake%lr%amp_scale
-  case ('LR_WAKE%TIME_SCALE')
-    a_ptr%r => ele%wake%lr%time_scale
-  case ('LR_FREQ_SPREAD', 'LR_WAKE%FREQ_SPREAD')
-    a_ptr%r => ele%wake%lr%freq_spread
-  case ('SR_WAKE%AMP_SCALE')
-    a_ptr%r => ele%wake%sr%amp_scale
-  case ('SR_WAKE%Z_SCALE')
-    a_ptr%r => ele%wake%sr%z_scale
-  case ('SR_WAKE%SCALE_WITH_LENGTH')
-    a_ptr%l => ele%wake%sr%scale_with_length
+  case ('SR_WAKE%Z_LONG%SMOOTHING_SIGMA');             a_ptr%r => ele%wake%sr%z_long%smoothing_sigma
+  case ('SR_WAKE%AMP_SCALE');                          a_ptr%r => ele%wake%sr%amp_scale
+  case ('SR_WAKE%Z_SCALE');                            a_ptr%r => ele%wake%sr%z_scale
+  case ('SR_WAKE%SCALE_WITH_LENGTH');                  a_ptr%l => ele%wake%sr%scale_with_length
+  case ('LR_SELF_WAKE_ON', 'LR_WAKE%SELF_WAKE_ON');    a_ptr%l => ele%wake%lr%self_wake_on
+  case ('LR_WAKE%AMP_SCALE');                          a_ptr%r => ele%wake%lr%amp_scale
+  case ('LR_WAKE%TIME_SCALE');                         a_ptr%r => ele%wake%lr%time_scale
+  case ('LR_FREQ_SPREAD', 'LR_WAKE%FREQ_SPREAD');      a_ptr%r => ele%wake%lr%freq_spread
   end select
 
 case ('H_MISALIGN%ACTIVE');     a_ptr%l => ele%photon%h_misalign%active
