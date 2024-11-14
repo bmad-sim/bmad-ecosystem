@@ -443,7 +443,7 @@ do  ! Loop over plot files
     plt%autoscale_x          = plot%autoscale_x 
     plt%autoscale_y          = plot%autoscale_y 
 
-    call transfer_this_axis(plot%x, default_graph%x) ! Remember: plot%x is deprecated.
+    call transfer_plot_axis(plot%x, default_graph%x) ! Remember: plot%x is deprecated.
 
     if (default_graph%x%major_div < 0 .and. default_graph%x%major_div_nominal < 0) default_graph%x%major_div_nominal = 7
 
@@ -511,10 +511,6 @@ do  ! Loop over plot files
       grph%title                            = graph%title
       grph%margin                           = graph%margin
       grph%scale_margin                     = graph%scale_margin
-      grph%x                                = graph%x
-      grph%y                                = graph%y
-      grph%x2                               = graph%x2
-      grph%y2                               = graph%y2
       grph%ix_universe                      = graph%ix_universe
       grph%ix_branch                        = graph%ix_branch
       grph%clip                             = graph%clip
@@ -528,6 +524,10 @@ do  ! Loop over plot files
       grph%title_suffix                     = ''
       grph%text_legend                      = ''
       grph%y2_mirrors_y                     = .true.
+      call transfer_this_axis (grph%x, graph%x)
+      call transfer_this_axis (grph%y, graph%y)
+      call transfer_this_axis (grph%x2, graph%x2)
+      call transfer_this_axis (grph%y2, graph%y2)
 
       if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 7
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
@@ -835,6 +835,19 @@ call tao_create_plot_window
 
 !----------------------------------------------------------------------------------------
 contains
+
+subroutine transfer_this_axis (axis_out, axis_in)
+
+type (qp_axis_struct) axis_out, axis_in
+
+axis_out = axis_in
+axis_out%eval_min = axis_out%min
+axis_out%eval_max = axis_out%max
+
+end subroutine transfer_this_axis
+
+!----------------------------------------------------------------------------------------
+! contains
 
 subroutine tao_transfer_shape (shape_input, shape_array, namelist_name)
 
@@ -3062,7 +3075,7 @@ end subroutine default_plot_init
 !----------------------------------------------------------------------------------------
 ! contains
 
-subroutine transfer_this_axis (ax_in, ax_out)
+subroutine transfer_plot_axis (ax_in, ax_out)
 
 type (qp_axis_struct) ax_in, ax_out
 
@@ -3094,7 +3107,7 @@ if (ax_in%number_side       /= int_garbage$) ax_out%number_side       = ax_in%nu
 if (.not. ax_in%draw_label)   ax_out%draw_label   = ax_in%draw_label
 if (.not. ax_in%draw_numbers) ax_out%draw_numbers = ax_in%draw_numbers
 
-end subroutine transfer_this_axis
+end subroutine transfer_plot_axis
 
 end subroutine tao_init_plotting
 
