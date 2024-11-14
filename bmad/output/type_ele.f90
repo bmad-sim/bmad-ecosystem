@@ -1424,8 +1424,8 @@ if (associated(ele%wake)) then
       srz => ele%wake%sr%z_long
       nl=nl+1; li(nl) = '    smoothing_sigma     = ' // to_str(srz%smoothing_sigma)
       nl=nl+1; li(nl) = '    position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
-      nl=nl+1; li(nl) = '    dz = ' // to_str(srz%dz)
-      nl=nl+1; li(nl) = '    +/- Wake range: ' // to_str(srz%z0)
+      nl=nl+1; li(nl) = '    dz [m] = ' // to_str(srz%dz)
+      nl=nl+1; li(nl) = '    Wake range [m]: +/-' // to_str(srz%z0)
       nl=nl+1; write (li(nl), '(a, i0)') '  # wake points: ', size(srz%w)
 
     else

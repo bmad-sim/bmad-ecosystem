@@ -3685,8 +3685,10 @@ case ('bounds')
 
 case ('min')
   call tao_set_real_value (qp_axis%min, qp_axis_name, value, error, dflt_uni = ix_uni)
+  qp_axis%eval_min = qp_axis%min
 case ('max')
   call tao_set_real_value (qp_axis%max, qp_axis_name, value, error, dflt_uni = ix_uni)
+  qp_axis%eval_max = qp_axis%max
 case ('number_offset')
   call tao_set_real_value (qp_axis%number_offset, qp_axis_name, value, error, dflt_uni = ix_uni)
 case ('label_offset')
