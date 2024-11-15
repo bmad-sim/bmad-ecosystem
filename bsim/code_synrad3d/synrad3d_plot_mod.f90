@@ -92,6 +92,7 @@ implicit none
 type (lat_struct), target :: lat
 type (sr3d_plot_param_struct) plot_param
 type (photon_reflect_surface_struct), pointer :: surface
+type (qp_legend_struct) legend
 
 type yplot
   real(rp), allocatable :: y_reflect(:)
@@ -206,7 +207,9 @@ do
     ny(i)%line%pattern = qp_line_pattern_name(i)
   enddo
 
-  call qp_draw_curve_legend (0.5_rp, 0.0_rp, '%GRAPH/LT', ny(:)%line, 40.0_rp, text = ny(:)%label, text_offset = 10.0_rp)
+  legend = qp_legend_struct()
+  legend%line_length = 40.0_rp  
+  call qp_draw_curve_legend (qp_point_struct(0.5_rp, 0.0_rp, '%GRAPH/LT'), legend, ny(:)%line, text = ny(:)%label)
   write (text, '(a, i0)') 'ix_surface = ', ix_surface
   call qp_draw_text (text, 0.98_rp, 0.95_rp, '%GRAPH', 'RT')
 

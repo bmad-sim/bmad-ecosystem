@@ -22,7 +22,8 @@ Simulation
 
 The wake is simulated with a leading particle that excites a wake and a trailing "witness" particle
 that gets a kick. The charge on the trailing particle is negligible compared with the charge on the
-leading particle so the longitudinal self-wake of the trailing particle is negligible.
+leading particle so the longitudinal self-wake of the trailing particle is negligible. The charge
+of the leading particle is set to one.
 
 The wake kicks are the change in phase space px, py, and pz due to the wake.
 The only difference between plotting the wakes versus the kicks is an overall scale factor.
@@ -86,8 +87,6 @@ non-zero, overrides any setting of m_order.
 xy_leading: (x, y) transverse position of the leading particle that produces the wake.
 
 xy_trailing: (x, y) transverse position of the trailing witness particle that samples the wake.
-
-leading_charge: Charge of the leading bunch. Only used when plotting kicks.
 
 =================================================================================================
 Plotting Input Parameters:

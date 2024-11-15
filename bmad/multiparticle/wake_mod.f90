@@ -522,7 +522,7 @@ if (sr%amp_scale == 0) return
 srz => sr%z_long
 if (srz%dz == 0) return
 
-f0 = sr%amp_scale * bunch%charge_live
+f0 = sr%amp_scale * bunch%charge_live / sum(bunch%particle%charge, bunch%particle%state == alive$)
 if (sr%scale_with_length) f0 = f0 * ele%value(l$) 
 
 ! Compute binned bunch distribution and wake
@@ -544,8 +544,8 @@ do i = 1, size(bunch%particle)
     cycle
   endif
 
-  r1 = ix2 - rz_rel
-  r2 = rz_rel - ix1
+  r1 = (ix2 - rz_rel) * p%charge
+  r2 = (rz_rel - ix1) * p%charge
 
   select case (srz%position_dependence)
   case (none$, x_trailing$, y_trailing$)
@@ -572,6 +572,7 @@ srz%w_out = srz%w_out * srz%fw * f0
 call fft_1d(srz%w_out, 1)
 
 ! Apply wake
+! Notice that p%charge does not appear here.
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
