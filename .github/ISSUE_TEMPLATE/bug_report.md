@@ -26,7 +26,13 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Compiler and Operating system**
- Describe compiler and operating system. 
+ Describe compiler with version number and operating system. 
 
 **Additional context**
 Add any other context about the problem here.
+
+**Attaching Files**
+
+GitHub restricts files that are attached to an issue to have a name with a "supported" suffix. In
+particular, files that have a `.bmad` suffix are not allowed. To get around this, zip together all
+the files that are to be attached (`.zip` is an allowed suffix).

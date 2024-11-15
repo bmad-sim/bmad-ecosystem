@@ -538,7 +538,7 @@ do i = 1, size(bunch%particle)
 
   rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srz%dz + n2 + 1 
   ix1 = floor(rz_rel)
-  ix2 = ceiling(rz_rel)
+  ix2 = ix1 + 1
   if (ix1 < 1 .or. ix2 > nn) then
     n_bad = n_bad + 1
     cycle
@@ -580,7 +580,7 @@ do i = 1, size(bunch%particle)
 
   rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srz%dz + n2 + 1 
   ix1 = floor(rz_rel)
-  ix2 = ceiling(rz_rel)
+  ix2 = ix1 + 1
 
   r1 = ix2 - rz_rel
   r2 = rz_rel - ix1
