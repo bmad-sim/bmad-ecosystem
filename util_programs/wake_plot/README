@@ -98,11 +98,11 @@ make_plot: If False, do not make a plot (used if only a postscript file is wante
 
 postscript_file: If non-blank, Make a postscript file.
 
-Plot_limit: 
-	* For LR plots, the wake is plotted over a time range [0, plot_limit]. 
-	* For "sr-z-long" plot the z range is [-plot_limit, +plot_limit] except if plot_limit is zero then the entire
-		  wake table is plotted.
-	* For SR plots, the wake is plotted over a z range [plot_limit, 0] where plot_limit should be negative in this case.
+x_min, x_max: Plot limits for the horizontal axis. Either will default to zero if not set.
+	* For LR plots, the wake is zero for negative time so best to plot over a time range [0, x_max]. 
+	* For "sr-z-long", if both x_min and x_max are not set the plot extent is taken to be the wake extent.
+	* For SR plots, the wake is zero for positive z so best is to plot over a z range [x_min, 0] where 
+x_min should be negative.
 
 n_points: Number of data points to use in drawing the wake. Not used with "sr-z-long" where the number
 of points is determined by the number points in the wake table that are visible in the plot
@@ -111,7 +111,7 @@ text_scale: Scale for drawing text. Default is 1.2
 
 plot_size: (width, height) of plot page in pixels (72 pixels = 1 inch).
 
-x_axis_label:
+x_axis_label: Label for the x-axis. Default is either "Z" or "Time".
 
-y_axis_label:
+y_axis_label: Label for the y-axis. Default is either "Wake" or "Kick".
 
