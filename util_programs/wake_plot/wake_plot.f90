@@ -17,7 +17,7 @@ type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: p1, p2
 
 real(rp) :: plot_min, plot_max, plot_limit, plot_size(2), text_scale, zero6(6) = 0, vec2(6)
-real(rp) xy_leading(2), xy_trailing(2), leading_charge, z
+real(rp) xy_leading(2), xy_trailing(2), z
 real(rp), allocatable :: x_axis(:), wx(:), wy(:), wz(:)
 
 integer n, n_points, ix_wake, m_order, i, im, iz, ik, n_loc, ix, nw, n0
@@ -30,7 +30,7 @@ character(200) init_file, lat_file, postscript_file
 namelist / params / plot_limit, make_plot, plot_size, who, plot_type, &
                     wake_ele_name, lat_file, n_points, postscript_file, &
                     text_scale, x_axis_label, y_axis_label, &
-                    xy_leading, xy_trailing, ix_wake, m_order, leading_charge
+                    xy_leading, xy_trailing, ix_wake, m_order
 
 ! Read input
 
@@ -38,7 +38,6 @@ init_file = 'wake_plot.init'
 if (command_argument_count() > 0) call get_command_argument(1, init_file)
 print '(2a)', 'Init file: ', trim(init_file)
 
-leading_charge = 1
 n_points = 1001
 make_plot = .true.
 postscript_file = ''
@@ -87,15 +86,13 @@ p1%vec(1:3:2) = xy_leading
 p2%vec(1:3:2) = xy_trailing
 vec2 = p2%vec
 
-if (plot_type == 'wake') then
-  p1%charge = 1
-else
-  p1%charge = leading_charge
-endif
+p1%charge = 1
+p2%charge = 1e-10
+bunch%charge_live = 1
 
 !
 
-if (who == 'sr-z-long') then
+if (who == 'sr-z-long' .and. plot_type == 'wake') then
   srz => wake_ele%wake%sr%z_long
   if (size(srz%w) == 0) then
     print *, 'No SR Z_long wake.'
@@ -259,7 +256,7 @@ call qp_set_margin (0.15_rp, 0.02_rp, 0.07_rp, 0.01_rp, '%PAGE')
 
 ! 
 
-if (who == 'sr-z-long') then
+if (who == 'sr-z-long' .and. plot_type == 'wake') then
   call qp_calc_and_set_axis ('X', plot_min, plot_max, 4, 8, 'GENERAL')
   call qp_set_box (1, 1, 1, 1)
   call qp_calc_and_set_axis ('Y', minval(wz), maxval(wz), 4, 8, 'GENERAL')

@@ -2896,12 +2896,13 @@ end subroutine qp_draw_text_legend
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_curve_legend (legend, line, symbol, text)
+! Subroutine qp_draw_curve_legend (origin, legend, line, symbol, text)
 !
 ! Subroutine to draw a legend with each line in the legend having
 !   a line, a symbol, some text.
 !
 ! Input:
+!   origin      -- qp_point_struct: Position of the legend.
 !   legend      -- qp_legend_struct: Legend parameters.
 !   line(:)     -- qp_line_struct, optional: Array of lines.
 !                    Set line(i)%width < 0 to suppress drawing of the i^th line
@@ -2910,11 +2911,12 @@ end subroutine qp_draw_text_legend
 !   text(:)     -- Character(*), optional: Array of text lines.
 !-
 
-subroutine qp_draw_curve_legend (legend, line, symbol, text)
+subroutine qp_draw_curve_legend (origin, legend, line, symbol, text)
 
 implicit none
 
 type (qp_legend_struct) legend
+type (qp_point_struct) origin
 type (qp_line_struct), optional :: line(:)
 type (qp_symbol_struct), optional :: symbol(:)
 
@@ -2935,7 +2937,7 @@ call qp_set_text_attrib ('LEGEND')
 call qp_set_line_attrib ('LEGEND')
 height = qp_text_height_to_inches(qp_com%this_text%height) 
 
-call qp_to_inch_abs (legend%origin%x, legend%origin%y, xc, yc, legend%origin%units)
+call qp_to_inch_abs (origin%x, origin%y, xc, yc, origin%units)
 
 ! Find out how many rows to draw
 

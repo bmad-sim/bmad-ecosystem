@@ -1876,7 +1876,6 @@ type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (qp_line_struct), allocatable :: line(:)
 type (qp_symbol_struct), allocatable :: symbol(:)
-type (qp_legend_struct) legend
 
 integer i, j, k, nc, iu
 real(rp) x, y, x1
@@ -1962,9 +1961,7 @@ do i = 1, nc
 enddo
 
 if (graph%draw_curve_legend .and. (nc > 1 .or. .not. graph%x%draw_label)) then
-  legend = s%plot_page%curve_legend
-  legend%origin = graph%curve_legend_origin
-  call qp_draw_curve_legend (legend, line, symbol, text)
+  call qp_draw_curve_legend (graph%curve_legend_origin, s%plot_page%curve_legend, line, symbol, text)
 endif
 
 

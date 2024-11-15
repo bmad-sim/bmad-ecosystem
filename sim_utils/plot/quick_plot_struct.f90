@@ -135,7 +135,6 @@ type qp_arrow_struct
 end type
 
 type qp_legend_struct
-  type (qp_point_struct) :: origin = qp_point_struct(0.2_rp, 0.0_rp, '%/GRAPH/LB')
   real(rp) :: row_spacing = 1.0              ! Spacing between rows.
   real(rp) :: line_length = 72               ! Length of the line in points.
   real(rp) :: text_offset = 10               ! Horizontal offset in points between the line and the text.
