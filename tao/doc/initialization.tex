@@ -2199,11 +2199,11 @@ and \vn{%border%x2}) are the right and left border widths and the offsets \vn{y1
 black (corresponding to \vn{%border%y1} and \vn{%border%y2}) are the bottom and top border widths
 respectively. The rectangle within this border is called the \vn{plot area}.
 %
-\item[plot_page\%curve_legend_line_len] \Newline
-Sets the length, in points, of lines drawn for the curve legend (\sref{s:plot.def}). Default is 30.
-%
-\item[plot_page\%curve_legend_text_offset] \Newline
-Sets the space, in points, between the line and text in the curve legend. Default is 6.
+\item[plot_page\%curve_legend] \Newline
+Sets parameters for the curve legend (\sref{s:plot.def}). \vn{%curve_legend} is an instance of
+a \vn{qp_legend_struct} (\sref{s:qp.legend.str}). Note: When drawing a curve legend for a particular
+graph, the \vn{origin} component of \vn{%curve_legend}
+is ignored and instead the \vn{graph%curve_legend_origin} is used to position the legend within the graph.
 %
 \item[plot_page\%delete_overlapping_plots] \Newline
 When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using
@@ -2707,7 +2707,7 @@ corner of the legend is. The default is:
   graph%curve_legend_origin%units = "POINTS/GRAPH/LT"
 \end{example}
 The \vn{%curve_legend_origin} is of type \vn{qp_point_struct}. See \sref{s:qp.point} for details on this
-structure. Also see \vn{graph%draw_curve_legend}
+structure. Also see \vn{graph%draw_curve_legend} and \vn{plot_page%curve_legend}.
 %
 \item[graph\%draw_axes] \Newline
 Draw the graph axes? Default is \vn{True}. 

@@ -339,6 +339,7 @@ type tao_plot_page_struct
   type (tao_drawing_struct) :: floor_plan = tao_drawing_struct(null())
   type (tao_drawing_struct) :: lat_layout = tao_drawing_struct(null())
   type (tao_shape_pattern_struct), allocatable :: pattern(:)
+  type (qp_legend_struct) :: curve_legend = qp_legend_struct()
   type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
   type (tao_plot_region_struct), allocatable :: region(:)
   character(8) :: plot_display_type = 'X'   ! 'X' or 'TK'
@@ -350,8 +351,6 @@ type tao_plot_page_struct
   real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
   real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height. For legends, plot_page, and lat_layout
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
-  real(rp) :: curve_legend_line_len  = 30   ! Points
-  real(rp) :: curve_legend_text_offset = 6  ! Points
   real(rp) :: floor_plan_shape_scale = 1.0
   real(rp) :: floor_plan_text_scale  = 1.0     ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0

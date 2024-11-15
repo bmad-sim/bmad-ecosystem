@@ -134,6 +134,16 @@ type qp_arrow_struct
   character(16) :: color       = 'black'
 end type
 
+type qp_legend_struct
+  type (qp_point_struct) :: origin = qp_point_struct(0.2_rp, 0.0_rp, '%/GRAPH/LB')
+  real(rp) :: row_spacing = 1.0              ! Spacing between rows.
+  real(rp) :: line_length = 72               ! Length of the line in points.
+  real(rp) :: text_offset = 10               ! Horizontal offset in points between the line and the text.
+  logical :: draw_line = .true.              ! Draw lines? 
+  logical :: draw_symbol = .true.            ! Draw symbols?
+  logical :: draw_text = .true.              ! Draw text? 
+end type
+
 type qp_state_struct
   type (qp_plot_struct) plot
   type (qp_rect_struct) :: page   = qp_rect_struct (0.0, 0.0, 0.0, 0.0, ' ')

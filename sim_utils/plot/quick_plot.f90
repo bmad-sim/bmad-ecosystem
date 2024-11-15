@@ -227,7 +227,7 @@ use output_mod
 #endif
 
 !---------------------------------------------------------------------------
-! common block
+! Common block
 ! General NOTE: qp_com is made private so that you cannot change it directly.
 ! This was done since the layout of qp_com can change.
 
@@ -1873,7 +1873,7 @@ end subroutine qp_to_inches_rel
 !
 ! Input:
 !   x, y   -- Real(rp): Position to convert.
-!   units  -- Character(*), optional: Units of x and y
+!   units  -- Character(*), optional: Units of x and y. Default is 'DATA/GRAPH/LB'.
 !
 ! Output:
 !   x_inch, y_inch -- Real(rp): Position in inches referenced to the page.
@@ -2896,50 +2896,35 @@ end subroutine qp_draw_text_legend
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, 
-!                  symbol, text, text_offset, draw_line, draw_symbol, draw_text)
+! Subroutine qp_draw_curve_legend (legend, line, symbol, text)
 !
 ! Subroutine to draw a legend with each line in the legend having
 !   a line, a symbol, some text.
 !
 ! Input:
-!   x_origin    -- Real(rp), optional: x-postion of start of the first line.
-!   y_origin    -- Real(rp), optional: y-postion of start of the first line.
-!   units       -- Character(*), optional: Units of x_origin, y_origin.
-!                    Default is: 'DATA/GRAPH/LB'
-!                    See quick_plot writeup for more details.
+!   legend      -- qp_legend_struct: Legend parameters.
 !   line(:)     -- qp_line_struct, optional: Array of lines.
 !                    Set line(i)%width < 0 to suppress drawing of the i^th line
-!   line_length -- Real(rp), optional: Length of the line in points. Default is 72 pts (~ 1 inch).
 !   symbol(:)   -- qp_symbol_struct, optional: Array of symbols.
 !                    Set symbol(i)%type < 0 to suppress drawing of the i^th symbol.
 !   text(:)     -- Character(*), optional: Array of text lines.
-!   text_offset -- Real(rp), optional: Horizontal offset in points between the line and the text.
-!                   Default is 10 pt.
-!   draw_line   -- Logical, optional: Draw lines? Default is True if line arg is present.
-!                   Line style set by the LEGEND line style. See qp_set_line_attrib.
-!   draw_symbol -- Logical, optional: Draw symbols? Default is True if symbol arg is present.
-!   draw_text   -- Logical, optional: Draw text? Default is True if text arg is present.
 !-
 
-subroutine qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, &
-                      symbol, text, text_offset, draw_line, draw_symbol, draw_text)
+subroutine qp_draw_curve_legend (legend, line, symbol, text)
 
 implicit none
 
+type (qp_legend_struct) legend
 type (qp_line_struct), optional :: line(:)
 type (qp_symbol_struct), optional :: symbol(:)
 
-real(rp) x_origin, y_origin
-real(rp), optional :: line_length, text_offset
 real(rp) height, xc, yc, yc2, line_len, dummy, text_off
 
 integer i, n_rows
 
-character(*), optional :: units, text(:)
-character(20) :: r_name = 'qp_draw_curve_legend'
+character(*), optional :: text(:)
+character(*), parameter :: r_name = 'qp_draw_curve_legend'
 
-logical, optional :: draw_line, draw_symbol, draw_text
 logical has_line, has_symbol, has_text
 
 !
@@ -2950,32 +2935,32 @@ call qp_set_text_attrib ('LEGEND')
 call qp_set_line_attrib ('LEGEND')
 height = qp_text_height_to_inches(qp_com%this_text%height) 
 
-call qp_to_inch_abs (x_origin, y_origin, xc, yc, units)
+call qp_to_inch_abs (legend%origin%x, legend%origin%y, xc, yc, legend%origin%units)
 
 ! Find out how many rows to draw
 
 n_rows = 0
 has_text = .false.
-if (present(text) .and. logic_option(.true., draw_text)) then
+if (present(text) .and. legend%draw_text) then
   has_text = .true.
   n_rows = size(text)
-  call qp_to_inch_rel (real_option(10.0_rp, text_offset), 0.0_rp, text_off, dummy, 'POINTS')
+  call qp_to_inch_rel (legend%text_offset, 0.0_rp, text_off, dummy, 'POINTS')
 endif
 
 has_line = .false.
 line_len = 0
-if (present(line) .and. logic_option(.true., draw_line)) then
+if (present(line) .and. legend%draw_line) then
   if (n_rows /= 0 .and. size(line) /= n_rows) then
     call out_io (s_error$, r_name, 'LINE ARRAY SIZE NOT THE SAME AS THE OTHERS.')
     return
   endif
   has_line = .true.
   n_rows = size(line)
-  call qp_to_inch_rel (real_option(72.0_rp, line_length), 0.0_rp, line_len, dummy, 'POINTS')
+  call qp_to_inch_rel (legend%line_length, 0.0_rp, line_len, dummy, 'POINTS')
 endif
 
 has_symbol = .false.
-if (present(symbol) .and. logic_option(.true., draw_symbol)) then
+if (present(symbol) .and. legend%draw_symbol) then
   if (n_rows /= 0 .and. size(symbol) /= n_rows) then
     call out_io (s_error$, r_name, 'SYMBOL ARRAY SIZE NOT THE SAME AS THE OTHERS.')
     return
@@ -2989,7 +2974,7 @@ endif
 yc = yc - 1.1 * height
 
 do i = 1, n_rows
-  yc2 = yc + 0.5 * height
+  yc2 = yc + 0.5 * height * legend%row_spacing
 
   if (has_line) then
     if (line(i)%width > -1) then
@@ -3010,7 +2995,7 @@ do i = 1, n_rows
     call qp_draw_text_no_set (text(i), xc + line_len + text_off, yc, 'INCH/PAGE/LB')
   endif
 
-  yc = yc - 1.5 * height
+  yc = yc - 1.5 * height * legend%row_spacing
 enddo
 
 call qp_restore_state

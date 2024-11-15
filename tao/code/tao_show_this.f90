@@ -4125,8 +4125,13 @@ case ('plot')
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_text_scale         = ', s%plot_page%lat_layout_text_scale 
     nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots      = ', s%plot_page%delete_overlapping_plots
     nl=nl+1; write(lines(nl), lmt)  '  %draw_graph_title_suffix       = ', s%plot_page%draw_graph_title_suffix
-    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend_line_len         = ', s%plot_page%curve_legend_line_len
-    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend_text_offset      = ', s%plot_page%curve_legend_text_offset
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend%line_length      = ', s%plot_page%curve_legend%line_length
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend%text_offset      = ', s%plot_page%curve_legend%text_offset
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend%row_spacing      = ', s%plot_page%curve_legend%row_spacing
+    nl=nl+1; write(lines(nl), lmt)  '  %curve_legend%draw_line        = ', s%plot_page%curve_legend%draw_line
+    nl=nl+1; write(lines(nl), lmt)  '  %curve_legend%draw_symbol      = ', s%plot_page%curve_legend%draw_symbol
+    nl=nl+1; write(lines(nl), lmt)  '  %curve_legend%draw_text        = ', s%plot_page%curve_legend%draw_text
+
 
     result_id = 'plot:global'
     return 

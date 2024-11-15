@@ -17,13 +17,6 @@ use quick_plot
 
 implicit none
 
-interface
-  function old_style_title_syntax(iu) result (is_old_style)
-  integer iu
-  logical is_old_style
-  end function
-end interface
-
 integer, parameter :: n_region_maxx   = 100     ! number of plotting regions.
 integer, parameter :: n_curve_maxx    = 40      ! number of curves per graph
 
@@ -37,7 +30,7 @@ type old_tao_ele_shape_struct    ! for the element layout plot
   integer key                ! Element key index to match to
 end type
 
-type (tao_plot_page_input) plot_page, plot_page_default
+type (tao_plot_page_input) plot_page
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
@@ -105,7 +98,7 @@ place%region = ''
 region%name  = ''       ! a region exists only if its name is not blank 
 include_default_plots = .true.
 
-plot_page = plot_page_default
+plot_page = tao_plot_page_input()
 plot_page%title%y = 0.99
 plot_page%subtitle%y = 0.97
 plot_page%size = [500, 600]
@@ -173,21 +166,13 @@ endif
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
 read (iu, nml = tao_plot_page, iostat = ios)
 if (ios > 0) then
-  ! First check to see if this is due to old style "title(i)" syntax.
-  if (old_style_title_syntax(iu)) then
-    call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file, &
-                                   '"PLOT_PAGE%TITLE(1) = ..." IS REPLACED BY "PLOT_PAGE%TITLE = ..." and', &
-                                   '"PLOT_PAGE%TITLE(2) = ..." IS REPLACED BY "PLOT_PAGE%SUBTITLE = ...".')
-  else
-    call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
-  endif
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
   rewind (iu)
   read (iu, nml = tao_plot_page)  ! To give error message
 endif
 if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist found')
 
 master_default_graph = default_graph
-
 call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 ! Plot window geometry specified on cmd line?
@@ -3110,34 +3095,6 @@ if (.not. ax_in%draw_numbers) ax_out%draw_numbers = ax_in%draw_numbers
 end subroutine transfer_plot_axis
 
 end subroutine tao_init_plotting
-
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-
-function old_style_title_syntax(iu) result (is_old_style)
-
-use tao_input_struct
-
-type (tao_plot_page_test_input) plot_page
-type (tao_plot_input) default_plot
-type (tao_graph_input) :: default_graph
-type (tao_region_input) region(100)
-type (tao_place_input) place(30)
-
-integer iu, ios
-logical is_old_style, include_default_plots
-
-namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, include_default_plots
-
-!
-
-rewind (iu)
-read (iu, nml = tao_plot_page, iostat = ios) 
-
-is_old_style = (ios == 0)
-
-end function old_style_title_syntax
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
