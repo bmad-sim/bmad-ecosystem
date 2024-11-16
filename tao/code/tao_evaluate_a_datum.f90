@@ -2644,10 +2644,7 @@ case ('slip_factor_ptc.')
 
 case ('spin.')
 
-  if (.not. bmad_com%spin_tracking_on) then
-    call tao_set_invalid (datum, 'NO SPIN TRACKING WHEN BMAD_COM%SPIN_TRACKING_ON = FALSE!', why_invalid)
-    return
-  endif
+  if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on()
 
   select case (data_type)
 
@@ -2713,10 +2710,7 @@ case ('spin_dn_dpz.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  if (.not. bmad_com%spin_tracking_on) then
-    call tao_set_invalid (datum, 'NO SPIN TRACKING WHEN BMAD_COM%SPIN_TRACKING_ON = FALSE!', why_invalid)
-    return
-  endif
+  if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on()
 
   call tao_spin_polarization_calc(branch, tao_branch)
 
