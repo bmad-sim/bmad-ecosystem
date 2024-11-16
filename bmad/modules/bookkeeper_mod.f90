@@ -608,9 +608,12 @@ ix_lord = 1  ! Index of major lord or first lord
 n_major_lords = 0
 do j = 1, slave%n_lord
   lord => pointer_to_lord (slave, j)
-  if (lord%key == pipe$) cycle
-  n_major_lords = n_major_lords + 1
-  ix_lord = j
+  select case (lord%key)
+  case (pipe$, instrument$, monitor$, ecollimator$, rcollimator$)
+  case default
+    n_major_lords = n_major_lords + 1
+    ix_lord = j
+  end select
 enddo
 
 if (n_major_lords < 2) then
@@ -780,7 +783,9 @@ do j = 1, slave%n_lord
     endif
   endif
 
-  if (lord%key /= pipe$) then
+  select case (lord%key)
+  case (pipe$, instrument$, monitor$, ecollimator$, rcollimator$)
+  case default
     if (n_major_lords > 0) then
  
      if (slave%mat6_calc_method /= lord%mat6_calc_method) then
@@ -825,7 +830,7 @@ do j = 1, slave%n_lord
     endif
 
     n_major_lords = n_major_lords + 1
-  endif
+  end select
 
   ! descriptive strings.
 
