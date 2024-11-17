@@ -1450,6 +1450,7 @@ implicit none
 type (tao_curve_array_struct), allocatable :: curve(:)
 type (tao_graph_array_struct), allocatable :: graph(:)
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele_track
 
 integer i, j, ios, i_uni
 integer, allocatable :: ix_ele(:)
@@ -1503,19 +1504,12 @@ ix = index(comp, '.')
 if (ix /= 0) comp(ix:ix) = '%'
 select case (comp)
 
-case ('ele_ref_name', 'ix_ele_ref')
-  is_int = is_integer(value_str, ix)
-  if (value_str == '' .or. (is_int .and. ix < 0)) then
-    this_curve%ele_ref_name = ''
-    this_curve%ix_ele_ref = -1
-
-  else
-    call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
-    if (size(eles) == 0) return
-    this_curve%ele_ref_name = upcase(value_str)
-    this_curve%ix_ele_ref = eles(1)%ele%ix_ele
+case ('ele_ref_name', 'ix_ele_ref')   ! ix_ele_ref is old style
+  call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
+  if (size(eles) == 0) return
+  this_curve%ele_ref_name = upcase(value_str)
+  if (size(eles) == 1) then
     this_curve%ix_branch  = eles(1)%ele%ix_branch
-    call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
   endif
 
 case ('name')
@@ -1526,10 +1520,9 @@ case ('ix_universe')
   if (err) return
   call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, err, ignore_blank = .true.)
   if (size(eles) == 0) return
-  this_curve%ix_ele_ref = eles(1)%ele%ix_ele
-  this_curve%ix_branch  = eles(1)%ele%ix_branch
-  call tao_ele_to_ele_track (tao_curve_ix_uni(this_curve), this_curve%ix_branch, &
-                                     this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
+  if (size(eles) == 1) then
+    this_curve%ix_branch  = eles(1)%ele%ix_branch
+  endif
 
 case ('ix_branch') 
   call tao_set_integer_value (this_curve%ix_branch, component, value_str, err, -1, ubound(s%u(i_uni)%model%lat%branch, 1))
@@ -1666,13 +1659,17 @@ case default
 
 end select
 
-! Enable
+! Set lattice recalc for a phase_space plot
 
 if (this_graph%type == 'phase_space') then
-  model_branch => s%u(i_uni)%model_branch(i_branch)
-  if (.not. model_branch%ele(this_curve%ix_ele_ref)%save_beam_internally) then
+  i_uni = tao_universe_index(tao_curve_ix_uni(this_curve))
+  ele_track => tao_curve_ele_ref(this_curve, .true.)
+
+  model_branch => s%u(i_uni)%model_branch(ele_track%ix_branch)
+  
+  if (.not. model_branch%ele(ele_track%ix_ele)%save_beam_internally) then
     s%u(i_uni)%calc%lattice = .true.
-    model_branch%ele(this_curve%ix_ele_ref)%save_beam_internally = .true.
+    model_branch%ele(ele_track%ix_ele)%save_beam_internally = .true.
   endif
 endif
 
