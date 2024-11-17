@@ -215,7 +215,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
             if (.not. curve%valid) cycle
             if (it > curve%n_turn) cycle
 
-            orbit => orb(curve%ix_ele_ref)
+            ele => tao_curve_ele_ref(curve, .false.)
+            orbit => orb(ele%ix_ele)
             if (orbit%state /= alive$) then
               call re_allocate(curve%x_symb, it-1)
               call re_allocate(curve%y_symb, it-1)
@@ -240,7 +241,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
               cycle
             endif
             if (curve%data_source == 'rel_multi_turn_orbit') then
-              ele => branch%ele(curve%ix_ele_ref)
               dvec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 0.0_rp] * pz0
             endif
             curve%x_symb(it) = (orbit%vec(ix) - dvec(ix)) * curve%g%x_axis_scale_factor

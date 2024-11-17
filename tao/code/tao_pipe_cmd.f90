@@ -5322,8 +5322,6 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     c%ix_universe
   nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     c%symbol_every
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              c%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       c%ix_ele_ref
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 c%ix_ele_ref_track
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               c%ix_bunch
   nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         c%use_y2
   nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      c%draw_line

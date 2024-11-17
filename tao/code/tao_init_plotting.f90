@@ -747,24 +747,17 @@ do  ! Loop over plot files
             call out_io (s_warn$, r_name, 'CANNOT LOCATE ELEMENT FOR PLOT CURVE: ' // tao_curve_name(crv))
             cycle  ! Check
           endif
-          crv%ix_ele_ref = eles(1)%ele%ix_ele
-          crv%ix_branch  = eles(1)%ele%ix_branch
         elseif (substr(crv%data_type,1,5) == 'phase' .or. substr(crv%data_type,1,2) == 'r.' .or. &
                 substr(crv%data_type,1,2) == 't.' .or. substr(crv%data_type,1,3) == 'tt.') then
-          crv%ix_ele_ref = 0
-          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
+          crv%ele_ref_name = 'BEGINNING'
         elseif (graph%type == 'phase_space') then
           plt%x_axis_type = 'phase_space'
-          crv%ix_ele_ref = 0
-          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
+          crv%ele_ref_name = 'BEGINNING'
         elseif (graph%type == 'key_table') then
           plt%x_axis_type = 'none'
         elseif (graph%type == 'floor_plan') then
           plt%x_axis_type = 'floor'
         endif
-
-        call tao_ele_to_ele_track (i_uni, crv%ix_branch, crv%ix_ele_ref, crv%ix_ele_ref_track)
-
       enddo  ! curve
 
       call qp_calc_axis_places (grph%y2)
@@ -1540,10 +1533,7 @@ do j = 1, 6
   crv%data_type    = coord_name(j)
   crv%draw_symbols = .true.
   crv%draw_line    = .false.
-  ie = s%u(1)%design%lat%n_ele_track
-  crv%ix_ele_ref = ie
-  crv%ix_ele_ref_track = ie
-  crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
+  crv%ele_ref_name = 'END'
   if (modulo(i,2) == 0) then
   else
   endif
@@ -1598,10 +1588,7 @@ do i = 1, 6
 
   crv%y_axis_scale_factor = 1e9   ! nC
 
-  ie = s%u(1)%design%lat%n_ele_track
-  crv%ix_ele_ref = ie
-  crv%ix_ele_ref_track = ie
-  crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
+  crv%ele_ref_name = 'END'
 
   if (modulo(i,2) == 0) then
     grph%x%label     = trim(coord_name_cap(i)) // ' [* 10^3]'

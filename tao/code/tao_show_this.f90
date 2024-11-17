@@ -1005,16 +1005,20 @@ case ('curve')
         enddo
       endif
 
+      ele => tao_curve_ele_ref(c1, .false.)
+
       nl=nl+1; write(lines(nl), amt)  'data_source          = ', quote(c1%data_source)
       nl=nl+1; write(lines(nl), amt)  'data_index           = ', quote(c1%data_index)
       nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', quote(c1%data_type_x)
       nl=nl+1; write(lines(nl), amt)  'data_type            = ', quote(c1%data_type)
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', quote(c1%legend_text)
-      nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name)
+      if (associated(ele)) then
+        nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name), ele_full_name(ele, '  (&#)')
+      else
+        nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name), '  (--)'
+      endif
       nl=nl+1; write(lines(nl), amt)  'component            = ', quote(c1%component)
       nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
-      nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
-      nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
       nl=nl+1; write(lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
       nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
       nl=nl+1; write(lines(nl), imt)  'n_turn               = ', c1%n_turn
@@ -2944,7 +2948,7 @@ case ('lattice')
 
   elseif (attrib0 /= '') then
     call tao_locate_elements (attrib0, u%ix_uni, eles, err, lat_type, &
-                  ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = ix_branch)
+                  ignore_blank = .true., above_ubound_is_err = .false., ix_branch = ix_branch)
     if (err .or. size(eles) == 0) return
 
     if (ix_branch /= eles(1)%ele%ix_branch) then
