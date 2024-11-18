@@ -626,7 +626,7 @@ Where:
 
 Example:
   pipe ele:control_var 3@1>>7|model
-This gives element number 7 in branch 1 of universe 3.
+This gives control info on element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
 %% pipe ele:cylindrical_map ------------------------------------
@@ -693,9 +693,8 @@ Where:
   {which} is one of: "model", "base" or "design"
   {where} is an optional argument which, if present, is one of
     beginning  ! Upstream end
-    center     ! Middle of element
+    center     ! Middle of element. Surface of element for photonic reflecting elements (crystal, mirror).
     end        ! Downstream end (default)
-Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
 
 Example:
   pipe ele:floor 3@1>>7|model
@@ -2144,6 +2143,26 @@ Destroy a v1 var structure along with associated var sub-array.
 \end{example}
 \begin{verbatim}
 
+\end{verbatim}
+
+%% pipe wall3d_radius ------------------------------------
+\subsection{pipe wall3d_radius}
+\index{pipe!wall3d_radius}
+\label{p:wall3d.radius}
+
+
+Output vaccum chamber wall radius for given s-position and angle in (x,y) plane.
+The radius is with respect to the local wall origin which may not be the (x,y) = (0,0) origin.
+
+\begin{example}
+   pipe wall3d_radius \{ix_uni\}@\{ix_branch\} \{s_position\} \{angle\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ix_uni} is a universe index. Defaults to s%global%default_universe.
+  {ix_branch} is a lattice branch index. 
+  {s_position} is the s-position to evaluate at.
+  {angle} is the angle to evaluate at.
 \end{verbatim}
 
 %% pipe wave ------------------------------------

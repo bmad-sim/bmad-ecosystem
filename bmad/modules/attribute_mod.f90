@@ -457,10 +457,14 @@ elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
 
 else
-  if (attrib_array(key, ix_att)%state == private$ .and. .not. logic_option(.false., show_private)) then
-    attrib_name = null_name$
+  if (attrib_array(key, ix_att)%state == private$) then
+    if (logic_option(.false., show_private)) then
+      attrib_name = upcase(attrib_array(key, ix_att)%name)
+    else
+      attrib_name = null_name$
+    endif
   else
-    attrib_name = upcase(attrib_array(key, ix_att)%name)
+    attrib_name = attrib_array(key, ix_att)%name
   endif
 endif
 
@@ -788,10 +792,6 @@ do i = 1, n_key$
   case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
     call init_attribute_name1 (i, p89$, 'DISPLACEMENT')
     call init_attribute_name1 (i, p90$, 'SEGMENTED')
-    call init_attribute_name1 (i, spherical_curvature$, 'SPHERICAL_CURVATURE')
-    call init_attribute_name1 (i, elliptical_curvature_x$, 'ELLIPTICAL_CURVATURE_X')
-    call init_attribute_name1 (i, elliptical_curvature_y$, 'ELLIPTICAL_CURVATURE_Y')
-    call init_attribute_name1 (i, elliptical_curvature_z$, 'ELLIPTICAL_CURVATURE_Z')
     num = a0$ - 1
     do ix = 0, ubound(curv%xy, 1)
     do iy = 0, ubound(curv%xy, 2)

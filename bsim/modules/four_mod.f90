@@ -43,7 +43,7 @@ subroutine xy_to_action(ring, ix, X, J, ok)
   !   write(*,'(6ES14.4)') Afour(i,:)
   ! enddo
 
-  !call mat_inverse(Afour,Afour_inv, ok)
+  !call mat_inverse(Afour,Afour_inv, ok = ok)
   Afour_inv = mat_symp_conj(Afour)
   ok = .true.
 

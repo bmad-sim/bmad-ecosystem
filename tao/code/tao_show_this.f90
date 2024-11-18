@@ -26,7 +26,7 @@ use wall3d_mod, only: calc_wall_radius
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use ptc_spin, only: c_linear_map, assignment(=)
 use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, kill, print, ci_phasor, assignment(=)
-use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=)
+use ptc_layout_mod, only: ptc_emit_calc, lat_to_ptc_layout, type_ptc_fibre, assignment(=), taylor_inverse
 use ptc_map_with_radiation_mod, only: ptc_rad_map_struct, ptc_setup_map_with_radiation, tree_element_zhe
 use photon_target_mod, only: to_surface_coords
 use expression_mod, only: expression_stack_to_string, split_expression_string
@@ -170,10 +170,11 @@ character(24) :: var_name, blank_str = '', phase_units_str, val_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, rmt3, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, b_name, param_name, uni_str
 character(40) replacement_for_blank, component, s_fmt
-character(60) aname, myname, attrib_list(20), attrib
+character(60) aname, myname, attrib
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name, excite_zero(3), veto
 character(200), allocatable :: alloc_lines(:)
+character(400) attrib_list(20)
 
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
 character(1), parameter :: abc_name(1:3) = ['A', 'B', 'C']
@@ -192,7 +193,7 @@ logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip, show_energy
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc
-logical print_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms
+logical print_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms, do_inverse
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -1004,16 +1005,20 @@ case ('curve')
         enddo
       endif
 
+      ele => tao_curve_ele_ref(c1, .false.)
+
       nl=nl+1; write(lines(nl), amt)  'data_source          = ', quote(c1%data_source)
       nl=nl+1; write(lines(nl), amt)  'data_index           = ', quote(c1%data_index)
       nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', quote(c1%data_type_x)
       nl=nl+1; write(lines(nl), amt)  'data_type            = ', quote(c1%data_type)
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', quote(c1%legend_text)
-      nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name)
+      if (associated(ele)) then
+        nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name), ele_full_name(ele, '  (&#)')
+      else
+        nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name), '  (--)'
+      endif
       nl=nl+1; write(lines(nl), amt)  'component            = ', quote(c1%component)
       nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
-      nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
-      nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
       nl=nl+1; write(lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
       nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
       nl=nl+1; write(lines(nl), imt)  'n_turn               = ', c1%n_turn
@@ -2526,7 +2531,8 @@ case ('history')
   n_count = n_print - s%com%ix_history
   if (n_count > 0 .and. show_all) then
     iu = lunget()
-    open (iu, file = s%global%history_file, status = 'old', iostat = ios)
+    call fullfilename(s%global%history_file, file_name)
+    open (iu, file = file_name, status = 'old', iostat = ios)
     ix1 = 0
     do
       if (ix1+1 >= size(lines)) call re_allocate (lines, 2*size(lines))
@@ -2942,7 +2948,7 @@ case ('lattice')
 
   elseif (attrib0 /= '') then
     call tao_locate_elements (attrib0, u%ix_uni, eles, err, lat_type, &
-                  ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = ix_branch)
+                  ignore_blank = .true., above_ubound_is_err = .false., ix_branch = ix_branch)
     if (err .or. size(eles) == 0) return
 
     if (ix_branch /= eles(1)%ele%ix_branch) then
@@ -4124,8 +4130,13 @@ case ('plot')
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_text_scale         = ', s%plot_page%lat_layout_text_scale 
     nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots      = ', s%plot_page%delete_overlapping_plots
     nl=nl+1; write(lines(nl), lmt)  '  %draw_graph_title_suffix       = ', s%plot_page%draw_graph_title_suffix
-    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend_line_len         = ', s%plot_page%curve_legend_line_len
-    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend_text_offset      = ', s%plot_page%curve_legend_text_offset
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend%line_length      = ', s%plot_page%curve_legend%line_length
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend%text_offset      = ', s%plot_page%curve_legend%text_offset
+    nl=nl+1; write(lines(nl), f3mt) '  %curve_legend%row_spacing      = ', s%plot_page%curve_legend%row_spacing
+    nl=nl+1; write(lines(nl), lmt)  '  %curve_legend%draw_line        = ', s%plot_page%curve_legend%draw_line
+    nl=nl+1; write(lines(nl), lmt)  '  %curve_legend%draw_symbol      = ', s%plot_page%curve_legend%draw_symbol
+    nl=nl+1; write(lines(nl), lmt)  '  %curve_legend%draw_text        = ', s%plot_page%curve_legend%draw_text
+
 
     result_id = 'plot:global'
     return 
@@ -4972,6 +4983,7 @@ case ('taylor_map', 'matrix')
   angle_units = .false.
   ele1_name = ''
   ele2_name = ''
+  do_inverse = .false.
 
   if (show_what == 'matrix') then
     n_order = 1
@@ -4981,7 +4993,7 @@ case ('taylor_map', 'matrix')
 
   do
     call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-elements', &
-              '-lattice_format', '-universe', '-angle_coordinates', '-number_format', &
+              '-lattice_format', '-universe', '-angle_coordinates', '-number_format', '-inverse', &
               '-radiation'], .true., switch, err)
     if (err) return
     if (switch == '') exit
@@ -4992,6 +5004,9 @@ case ('taylor_map', 'matrix')
 
     case ('-eigen_modes')
       print_eigen = .true.
+
+    case ('-inverse')
+      do_inverse = .true.
 
     case ('-lattice_format')
       disp_fmt = 'BMAD'
@@ -5085,13 +5100,19 @@ case ('taylor_map', 'matrix')
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
 
     if (n_order > 1 .or. print_ptc) then
-      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch = ix_branch, &
+      call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, orb2, ix_branch = ix_branch, &
                                                         one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
       ref_vec = taylor%ref
     else
-      call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, orb, ix_branch, one_turn = .true.)
+      call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, orb2, ix_branch, one_turn = .true.)
       ref_vec = orb%vec
+    endif
+
+    if (do_inverse) then
+      if (n_order > 1 .or. print_ptc) call taylor_inverse (taylor, taylor)
+      call mat_inverse(mat6, mat6, vec0, vec0)
+      ref_vec = orb2%vec
     endif
 
   !
@@ -5212,6 +5233,12 @@ case ('taylor_map', 'matrix')
       endif
     endif
 
+    if (do_inverse) then
+      if (n_order > 1 .or. print_ptc) call taylor_inverse (taylor, taylor)
+      call mat_inverse(mat6, mat6, vec0, vec0)
+      ref_vec = u%model%tao_branch(ix_branch)%orbit(ix2)%vec
+    endif
+
   endif
 
   ! Print results
@@ -5257,7 +5284,8 @@ case ('taylor_map', 'matrix')
 
       else  ! n_order /= 1
         i0 = ele%ix_ele-1
-        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch) 
+        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch)
+        if (do_inverse) call taylor_inverse(taylor, taylor)
         call truncate_taylor_to_order (taylor, n_order, taylor)
         call type_taylors (taylor, lines = alloc_lines, n_lines = n, clean = .true.)
         do j = 1, n

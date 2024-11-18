@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 323
+integer, parameter :: bmad_inc_version$ = 325
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -595,6 +595,18 @@ character(12), parameter :: sr_longitudinal_position_dep_name(5) = &
                 [character(12):: 'none', 'x_leading', 'y_leading', 'x_trailing', 'y_trailing']
 character(8), parameter :: sr_z_plane_name(5) = [character(8):: 'X', 'XY', 'Y', null_name$, 'Z']
 
+type wake_sr_z_long_struct
+  real(rp), allocatable :: w(:)                        ! Input single particle Wake. Indexed from 1.
+  complex(rp), allocatable :: fw(:)                    ! Fourier transform of w.
+  complex(rp), allocatable :: fbunch(:), w_out(:)      ! Scratch space.
+  real(rp) :: dz = 0                                   ! Distance between points.
+  real(rp) :: z0 = 0                                   ! Wake extent is [-z0, z0].
+  real(rp) :: smoothing_sigma = 0                      ! 0 => No smoothing.
+  integer :: position_dependence = none$               ! Transverse: leading$, trailing$, none$
+                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
+  logical :: time_based = .false.                      ! Was input time based?
+end type
+
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
   real(rp) :: damp = 0      ! Dampling factor.
@@ -609,17 +621,9 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
                                              ! Longitudinal: x_leading$, ..., y_trailing$, none$
 end type
 
-type wake_sr_z_struct
-  type(spline_struct), allocatable :: w(:)                  ! Wake vs time.
-  type(spline_struct), allocatable :: w_sum1(:), w_sum2(:)  ! Running sums used when tracking.                 
-  integer :: plane = not_set$                          ! x$, y$, xy$, z$.
-  integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
-                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
-end type
-
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
   character(200) :: file = ''
-  type (wake_sr_z_struct), allocatable :: z(:)
+  type (wake_sr_z_long_struct) :: z_long
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
   real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.
@@ -663,7 +667,7 @@ end type
 !
 
 type wake_struct
-  type (wake_sr_struct) :: sr = wake_sr_struct('', null(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
+  type (wake_sr_struct) :: sr = wake_sr_struct('', wake_sr_z_long_struct(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
   type (wake_lr_struct) :: lr = wake_lr_struct('', null(), 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Long-range wake
 end type
 
@@ -937,6 +941,7 @@ type bookkeeping_state_struct
   integer :: mat6 = stale$            ! Linear transfer map status: super_ok$, ok$ or stale$
   integer :: rad_int = stale$         ! Radiation integrals cache status
   integer :: ptc = stale$             ! Associated PTC fibre (or layout) status.
+  logical :: has_misalign = .false.   ! Used to avoid unnecessary calls to offset_particle.
 end type
 
 ! Cache multipole values in the element. 
@@ -1819,16 +1824,16 @@ integer, parameter :: check_sum$ = 75
 
 !!    = 1 + num_ele_attrib$
 
-integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
+integer, parameter :: distribution$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
 integer, parameter :: y_knot$ = 83, eta_y$ = 83, density$ = 83
-integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84, slave$ = 84, &
+integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, etap_x$ = 84, slave$ = 84, &
                       density_used$ = 84
-integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85, etap_y$ = 85, &
+integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, etap_y$ = 85, &
                       area_density$ = 85, input_ele$ = 85
-integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86, &
+integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, &
                       area_density_used$ = 86, output_ele$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88, radiation_length$ = 88
@@ -2221,8 +2226,8 @@ type bmad_common_struct
   real(rp) :: d_orb(6)           = 1d-5                ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp              ! Default integration step for eles without an explicit step calc.
   real(rp) :: significant_length = 1d-10               ! meter 
-  real(rp) :: rel_tol_tracking = 1d-8                  ! Closed orbit relative tolerance.
-  real(rp) :: abs_tol_tracking = 1d-11                 ! Closed orbit absolute tolerance.
+  real(rp) :: rel_tol_tracking = 1d-9                  ! Closed orbit relative tolerance.
+  real(rp) :: abs_tol_tracking = 1d-12                 ! Closed orbit absolute tolerance.
   real(rp) :: rel_tol_adaptive_tracking = 1d-8         ! Runge-Kutta tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1d-10        ! Runge-Kutta tracking absolute tolerance.
   real(rp) :: init_ds_adaptive_tracking = 1d-3         ! Initial step size

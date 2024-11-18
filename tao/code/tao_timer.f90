@@ -23,8 +23,6 @@ character(20), parameter :: r_name = 'tao_timer'
 
 select case (command)
 case ('start')
-  if (s%global%beam_timer_on) call out_io (s_info$, r_name, 'beam timer mode is now off')
-  s%global%beam_timer_on = .false.
   call run_timer ('START')
 
 case ('read')

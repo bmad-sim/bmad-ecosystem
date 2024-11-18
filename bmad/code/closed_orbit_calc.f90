@@ -254,24 +254,22 @@ case (6)
 
   !
 
-  if (any(branch%param%t1_with_RF /= 0) .and. dir == 1 .and. &
-            abs(branch%ele(1)%map_ref_orb_in%vec(5) - start_orb%vec(5)) < 0.1 * coc%rf_wavelen) then
-    coc%t1 = branch%param%t1_with_RF
-  else
-    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err)
-    if (err) then
-      call end_cleanup(branch, .false.)
-      return
-    endif
-    if (dir == 1)  branch%param%t1_with_RF = coc%t1
-  endif
-
-  if (coc%t1(6,5) == 0) then
+  if (.not. rf_is_on(branch)) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
                                    'CALCULATION WITH NO RF VOLTAGE!', &
                                    'USING BRANCH: ' // branch_name(branch))
     call end_cleanup(branch, .false.)
     return
+  endif
+
+  call transfer_matrix_calc (branch%lat, coc%t1, ix_branch = branch%ix_branch)
+
+  if (all(coc%t1 == 0)) then  ! Might be that matrices have not yet been made
+    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err)
+    if (err) then
+      call end_cleanup(branch, .false.)
+      return
+    endif
   endif
 
 ! Error
@@ -527,9 +525,9 @@ do i_loop = 1, i_max
     if (maxval(amp_del(1:n_dim)) < 1d-4) then
       if (printit) call out_io (s_error$, r_name, &
               'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
+              'Using branch: ' // branch_name(branch), &
               'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
               'bmad_com%abs_tol_tracking (\es10.2\)', &
-              'Using branch: ' // branch_name(branch), &
               r_array = [maxval(amp_del(1:n_dim)), bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
     else
       if (printit) call out_io (s_error$, r_name, &
@@ -783,7 +781,7 @@ err = .true.
 ok1 = .true.
 call mat_make_unit (mat(1:n_dim,1:n_dim))
 mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - coc%t1(1:n_dim,1:n_dim)
-call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
+call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok = ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
   if (printit) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')

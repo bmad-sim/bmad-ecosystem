@@ -30,24 +30,10 @@ type bbu_beam_struct
   real(rp) rf_wavelength_max
 end type
 
-! For now the current variation is a simple ramp
-
-type bbu_current_variation_struct
-  logical :: variation_on = .false.
-  !!logical :: variation_on = .true.
-  real(rp) :: t_ramp_start = 0 !! in unit of tb
-  real(rp) :: dt_ramp = 0        !! in unit of tb
-  real(rp) :: dt_plateau = 1     !! in unit of tb
-  real(rp) :: ramps_period = 12  !! in unit of tb
-  real(rp) :: charge_top = 1.0
-  real(rp) :: charge_bottom = 1.0
-end type
-
 type bbu_param_struct
   character(500) :: lat_filename = 'erl.lat'     ! Bmad lattice file name
   character(500) :: lat2_filename = ''     ! Bmad lattice2 file name for secondary parser
   character(100) :: bunch_by_bunch_info_file = '' ! For outputting bunch-by-bunch info.
-  type (bbu_current_variation_struct) :: current_vary
   logical :: hybridize = .true.                  ! Combine non-hom elements to speed up simulation?
   logical :: write_digested_hybrid_lat = .false. ! For debugging purposes.
   logical :: write_voltage_vs_time_dat = .false. ! For debugging purposes.
@@ -77,6 +63,14 @@ type bbu_param_struct
   integer :: ix_ele_track_end = -1               ! Default: set to last element with a wake
   logical :: regression = .false.                ! Do regression test?
   logical :: normalize_z_to_rf = .false.         ! make starting z = mod(z, rf_wavelength)?
+
+  ! Ramp parameters
+  logical :: ramp_on = .false.
+  real(rp) :: ramp_pattern(1000) = real_garbage$
+  integer :: ramp_n_start = 0                    ! Index of start of ramp
+
+  ! Internal parameters
+  integer :: n_ramp_pattern = -1                       ! Number of valid ramp_pattern
 end type
 
 contains
@@ -574,7 +568,7 @@ type (bbu_param_struct) bbu_param
 
 integer i, ixb, ix0, ix_bunch
 real(rp) r(2), t_rel, d_charge
-real(rp) t0, charge_diff, slope
+real(rp) charge_diff, slope
 
 character(20) :: r_name = 'bbu_add_a_bunch'
 
@@ -605,37 +599,14 @@ call init_bunch_distribution (lat%ele(0), lat%param, beam_init, ix_bunch, bunch)
 !! Bunch pattern is achieved by multiplying bunch%charge_tot with d_charge(time) 
 !! The "correct" current is not computed here 
 
-if (bbu_param%current_vary%variation_on) then
-  !! scale the bunch time in t_b, then zero it to where ramp begins
-  t0 = bunch%t_center/beam_init%dt_bunch - bbu_param%current_vary%t_ramp_start
-  if (t0<0) then 
-    d_charge = bbu_param%current_vary%charge_bottom
-  else
-    charge_diff = bbu_param%current_vary%charge_top - bbu_param%current_vary%charge_bottom
-    slope = charge_diff/bbu_param%current_vary%dt_ramp
-    t_rel = mod(t0, bbu_param%current_vary%ramps_period)  !! in unit of tb
-
-    if (t_rel < bbu_param%current_vary%dt_ramp) then  
-      d_charge = bbu_param%current_vary%charge_bottom + slope*t_rel
-      !!print *, t_rel, 'going UP'
-  
-    elseif (t_rel < bbu_param%current_vary%dt_ramp  +  bbu_param%current_vary%dt_plateau) then
-      d_charge = bbu_param%current_vary%charge_top 
-      !!print *, t_rel, 'TOP'
-
-    elseif (t_rel < bbu_param%current_vary%dt_ramp*2 + bbu_param%current_vary%dt_plateau) then
-      d_charge = bbu_param%current_vary%charge_bottom + &
-      (bbu_param%current_vary%dt_ramp*2 + bbu_param%current_vary%dt_plateau - t_rel) * slope 
-      !!print *, t_rel, 'going DOWN'
-
-    else
-      d_charge = bbu_param%current_vary%charge_bottom 
-      !!print *, t_rel, 'BOTTOM'
-    endif
+if (bbu_param%ramp_on) then
+  ixb = nint(bunch%t_center/beam_init%dt_bunch)
+  if (ixb >= bbu_param%ramp_n_start) then
+    i = mod(ixb - bbu_param%ramp_n_start, max(1, bbu_param%n_ramp_pattern - 1)) + 1
+    d_charge = bbu_param%ramp_pattern(i)
+    bunch%charge_tot = bunch%charge_tot * d_charge
+    bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
   endif
-  
-  bunch%charge_tot = bunch%charge_tot * d_charge
-  bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
 endif
 
 bbu_beam%ix_bunch_end = ixb

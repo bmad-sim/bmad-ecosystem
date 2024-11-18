@@ -1,5 +1,5 @@
 !+
-! Subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
+! Subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords, err_id)
 !
 ! Routine to set an element's attribute.
 ! This routine is useful for parsing user input.
@@ -28,9 +28,11 @@
 ! Output:
 !   ele      -- ele_struct: Element with attribute set.
 !   err_flag -- Logical: Set True if there is an error, False otherwise.
+!   err_id   -- integer, optional: Set to an integer which identifies the error type. 0 = no error.
+!                 The higher the error the further along the error was encountered.
 !-
 
-subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords, err_id)
 
 use bmad_interface, dummy => set_ele_attribute
 use bmad_parser_struct, only: bp_com, bp_com2, stack_file_struct, bp_common_struct, redef$
@@ -42,6 +44,7 @@ type (ele_struct), pointer :: lord
 type (stack_file_struct), target :: current_file
 type (bp_common_struct) bp_save
 
+integer, optional :: err_id
 integer i, ix
 
 logical, optional :: err_print_flag, set_lords
@@ -56,11 +59,13 @@ character(40) a_name
 ! Check if free. Except if we know how to handle the attribute.
 
 err_flag = .true.
+if (present(err_id)) err_id = 0
 
 call str_upcase (string, set_string)
 ix = index(string, '=')
 if (ix == 0) then
-  call out_io (s_error$, r_name, 'NO "=" SIGN FOUND')
+  if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, 'NO "=" SIGN FOUND')
+  if (present(err_id)) err_id = 1
   return
 endif
 
@@ -72,6 +77,7 @@ case ('SLAVE', 'VAR', 'REF_BEGINNING', 'REF_CENTER', 'REF_END', 'ELE_BEGINNING',
       'CREATE_JUMBO_SLAVE', 'ELE_ORIGIN', 'REF_ORIGIN', 'WRAP_SUPERIMPOSE', 'TO_ELEMENT')
   if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
                                 'ELEMENT PARAMETER NOT SETTABLE AFTER THE LATTICE HAS BEEN READ IN: ' // a_name)
+  if (present(err_id)) err_id = 2
   return
 end select
 
@@ -98,18 +104,39 @@ if (logic_option(.false., set_lords) .and. ele%slave_status == super_slave$) the
     lord => pointer_to_lord(ele, i)
     if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(ele, 1)
     if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
-    if (.not. attribute_free (lord, a_name, err_print_flag, dependent_attribs_free = .true.)) return
+    if (.not. attribute_free (lord, a_name, err_print_flag, dependent_attribs_free = .true.)) then
+      if (present(err_id)) err_id = 3
+      goto 8000
+      return
+    endif
     call parser_set_attribute (redef$, lord, delim, delim_found, err_flag, set_field_master = .false.)
-    if (err_flag) exit
+    if (err_flag) then
+      if (present(err_id)) err_id = 4
+      goto 8000
+    endif
     call attribute_set_bookkeeping (lord, a_name, err_flag)
+    if (err_flag) then
+      if (present(err_id)) err_id = 5
+      goto 8000
+    endif
   enddo
     
 else
-  if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) return
+  if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = .true.)) then
+    if (present(err_id)) err_id = 3
+    goto 8000
+  endif
+
   call parser_set_attribute (redef$, ele, delim, delim_found, err_flag, set_field_master = .false.)
-  if (.not. err_flag) call attribute_set_bookkeeping (ele, a_name, err_flag)
+  if (err_flag) then
+    if (present(err_id)) err_id = 4
+    goto 8000
+  endif
+
+  call attribute_set_bookkeeping (ele, a_name, err_flag)
 endif
 
+8000 continue
 bp_com = bp_save
 
 end subroutine set_ele_attribute

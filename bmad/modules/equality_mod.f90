@@ -16,7 +16,7 @@ use bmad_struct
 interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_ac_kicker_time, eq_ac_kicker_freq, eq_ac_kicker
   module procedure eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord, eq_coord_array
-  module procedure eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z, eq_wake_sr_mode, eq_wake_sr
+  module procedure eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z_long, eq_wake_sr_mode, eq_wake_sr
   module procedure eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
   module procedure eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
@@ -410,40 +410,52 @@ end function eq_expression_atom
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_wake_sr_z (f1, f2) result (is_eq)
+elemental function eq_wake_sr_z_long (f1, f2) result (is_eq)
 
 implicit none
 
-type(wake_sr_z_struct), intent(in) :: f1, f2
+type(wake_sr_z_long_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
-!! f_side.equality_test[type, 1, ALLOC]
+!! f_side.equality_test[real, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%w) .eqv. allocated(f2%w))
 if (.not. is_eq) return
 if (allocated(f1%w)) is_eq = all(shape(f1%w) == shape(f2%w))
 if (.not. is_eq) return
 if (allocated(f1%w)) is_eq = all(f1%w == f2%w)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w_sum1) .eqv. allocated(f2%w_sum1))
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fw) .eqv. allocated(f2%fw))
 if (.not. is_eq) return
-if (allocated(f1%w_sum1)) is_eq = all(shape(f1%w_sum1) == shape(f2%w_sum1))
+if (allocated(f1%fw)) is_eq = all(shape(f1%fw) == shape(f2%fw))
 if (.not. is_eq) return
-if (allocated(f1%w_sum1)) is_eq = all(f1%w_sum1 == f2%w_sum1)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w_sum2) .eqv. allocated(f2%w_sum2))
+if (allocated(f1%fw)) is_eq = all(f1%fw == f2%fw)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fbunch) .eqv. allocated(f2%fbunch))
 if (.not. is_eq) return
-if (allocated(f1%w_sum2)) is_eq = all(shape(f1%w_sum2) == shape(f2%w_sum2))
+if (allocated(f1%fbunch)) is_eq = all(shape(f1%fbunch) == shape(f2%fbunch))
 if (.not. is_eq) return
-if (allocated(f1%w_sum2)) is_eq = all(f1%w_sum2 == f2%w_sum2)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%plane == f2%plane)
+if (allocated(f1%fbunch)) is_eq = all(f1%fbunch == f2%fbunch)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w_out) .eqv. allocated(f2%w_out))
+if (.not. is_eq) return
+if (allocated(f1%w_out)) is_eq = all(shape(f1%w_out) == shape(f2%w_out))
+if (.not. is_eq) return
+if (allocated(f1%w_out)) is_eq = all(f1%w_out == f2%w_out)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz == f2%dz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z0 == f2%z0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%smoothing_sigma == f2%smoothing_sigma)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%position_dependence == f2%position_dependence)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%time_based .eqv. f2%time_based)
 
-end function eq_wake_sr_z
+end function eq_wake_sr_z_long
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -496,12 +508,8 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%z) .eqv. allocated(f2%z))
-if (.not. is_eq) return
-if (allocated(f1%z)) is_eq = all(shape(f1%z) == shape(f2%z))
-if (.not. is_eq) return
-if (allocated(f1%z)) is_eq = all(f1%z == f2%z)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%z_long == f2%z_long)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%long) .eqv. allocated(f2%long))
 if (.not. is_eq) return
@@ -1175,6 +1183,8 @@ is_eq = is_eq .and. (f1%mat6 == f2%mat6)
 is_eq = is_eq .and. (f1%rad_int == f2%rad_int)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ptc == f2%ptc)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%has_misalign .eqv. f2%has_misalign)
 
 end function eq_bookkeeping_state
 
@@ -2129,6 +2139,8 @@ is_eq = is_eq .and. (f1%use_particle_start .eqv. f2%use_particle_start)
 is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_z_as_t .eqv. f2%use_z_as_t)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file_name == f2%file_name)
 
 end function eq_beam_init
 

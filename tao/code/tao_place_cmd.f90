@@ -30,6 +30,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_plot_region_struct), pointer :: region, r2
 type (tao_curve_struct), pointer :: curve
 type (tao_plot_region_struct), allocatable :: temp_buf(:)
+type (ele_struct), pointer :: ele_track
 
 real(rp) x1, x2, y1, y2
 integer i, j, k, i_uni, ib, n
@@ -108,17 +109,17 @@ do i = 1, size(region%plot%graph)
   if (region%plot%graph(i)%type /= 'phase_space') cycle
   do j = 1, size(region%plot%graph(i)%curve)
     curve => region%plot%graph(i)%curve(j)
-    if (curve%ix_ele_ref_track < 0) then
+    ele_track => tao_curve_ele_ref(curve, .true.)
+    if (.not. associated(ele_track)) then
       call out_io (s_error$, r_name, &
                 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name, &
                 'CANNOT PLOT PHASE SPACE FOR: ' // tao_curve_name(curve))
-      return
+      cycle
     endif
     u => s%u(tao_universe_index(tao_curve_ix_uni(curve)))
-    ib = tao_branch_index(curve%ix_branch)
-    if (.not. allocated(u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam%bunch)) then
+    if (.not. allocated(u%model_branch(ele_track%ix_branch)%ele(ele_track%ix_ele)%beam%bunch)) then
       if (s%global%plot_on) u%calc%lattice = .true.
-      u%model_branch(ib)%ele(curve%ix_ele_ref_track)%save_beam_internally = .true.
+      u%model_branch(ele_track%ix_branch)%ele(ele_track%ix_ele)%save_beam_internally = .true.
     endif
   enddo
 enddo

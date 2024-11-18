@@ -21,8 +21,8 @@
   graph%box = 1, 1, 1, 1
   graph%title = 'Horizontal Orbit (mm)'
   graph%y%label = 'X'
-  graph%x%eval_min = 8.0e6
-  graph%x%eval_max = 20.0e6
+  graph%x%min = 8.0e6
+  graph%x%max = 20.0e6
 
   curve(1)%data_type_x = 'beginning[p0c]'
   curve(1)%data_type   = 'orbit.x[10]'

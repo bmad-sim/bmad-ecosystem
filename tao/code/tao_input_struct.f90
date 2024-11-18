@@ -190,10 +190,12 @@ type tao_key_input
 end type
 
 type tao_plot_page_input
-  type (tao_title_struct) :: title          ! Title  at top of page.
-  type (tao_title_struct) :: subtitle       ! Subtitle at top of page.
+  type (tao_title_struct) :: title = tao_title_struct()         ! Title  at top of page.
+  type (tao_title_struct) :: subtitle = tao_title_struct()      ! Subtitle at top of page.
+  type (qp_legend_struct) :: curve_legend = qp_legend_struct()
+  type (qp_rect_struct) :: border = qp_rect_struct()            ! Border around plots edge of page.
   character(8) :: plot_display_type = ''  
-  real(rp) size(2)                      ! width and height of window in pixels.
+  real(rp) :: size(2) = 0.0                 ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
   real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
@@ -205,31 +207,9 @@ type tao_plot_page_input
   real(rp) :: floor_plan_text_scale  = 1.0  ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0
   real(rp) :: lat_layout_text_scale  = 1.0  ! Scale used = lat_layout_text_scale * legend_text_scale
-  real(rp) :: curve_legend_line_len  = 30      ! Points
-  real(rp) :: curve_legend_text_offset = 6     ! Points
+  real(rp) :: curve_legend_line_len  = real_garbage$      ! OLD STYLE. Points.
+  real(rp) :: curve_legend_text_offset = real_garbage$    ! OLD STYLE. Points.
   integer :: n_curve_pts = n_curve_pts_init$   ! Number of points for plotting a smooth curve
-  type (qp_rect_struct) :: border              ! Border around plots edge of page.
-  logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
-  logical :: draw_graph_title_suffix = .true.
-end type
-
-type tao_plot_page_test_input
-  type (tao_title_struct) :: title(2)       ! Old style. Titles at top of page. 
-  character(8) :: plot_display_type = ''  
-  real(rp) size(2)                      ! width and height of window in pixels.
-  real(rp) :: text_height = 12              ! In points. Scales the height of all text
-  real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
-  real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
-  real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
-  real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
-  real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height
-  real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
-  real(rp) :: floor_plan_shape_scale = 1.0
-  real(rp) :: lat_layout_shape_scale = 1.0
-  real(rp) :: curve_legend_line_len  = 30      ! Points
-  real(rp) :: curve_legend_text_offset = 6     ! Points
-  integer :: n_curve_pts = n_curve_pts_init$   ! Number of points for plotting a smooth curve
-  type (qp_rect_struct) :: border              ! Border around plots edge of page.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
   logical :: draw_graph_title_suffix = .true.
 end type
@@ -252,12 +232,12 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine tao_set_plotting (plot_page, plot_input, use_cmd_line_geom, reverse)
+subroutine tao_set_plotting (plot_input, plot_page, use_cmd_line_geom, reverse)
 
 implicit none
 
-type (tao_plot_page_input) plot_page
-type (tao_plot_page_struct) plot_input
+type (tao_plot_page_input) plot_input
+type (tao_plot_page_struct) plot_page
 
 integer ix
 logical use_cmd_line_geom
@@ -268,52 +248,62 @@ character(16), parameter :: r_name = 'tao_set_plotting'
 ! 
 
 if (logic_option(.false., reverse)) then
-  if (plot_input%plot_display_type /= '') plot_page%plot_display_type = plot_input%plot_display_type
-  plot_page%size                         = plot_input%size
-  plot_page%text_height                  = plot_input%text_height
-  plot_page%main_title_text_scale        = plot_input%main_title_text_scale
-  plot_page%graph_title_text_scale       = plot_input%graph_title_text_scale
-  plot_page%axis_number_text_scale       = plot_input%axis_number_text_scale
-  plot_page%axis_label_text_scale        = plot_input%axis_label_text_scale
-  plot_page%floor_plan_shape_scale       = plot_input%floor_plan_shape_scale
-  plot_page%floor_plan_text_scale        = plot_input%floor_plan_text_scale
-  plot_page%lat_layout_shape_scale       = plot_input%lat_layout_shape_scale
-  plot_page%lat_layout_text_scale        = plot_input%lat_layout_text_scale
-  plot_page%legend_text_scale            = plot_input%legend_text_scale
-  plot_page%key_table_text_scale         = plot_input%key_table_text_scale
-  plot_page%curve_legend_line_len        = plot_input%curve_legend_line_len
-  plot_page%curve_legend_text_offset     = plot_input%curve_legend_text_offset
-  plot_page%n_curve_pts                  = plot_input%n_curve_pts
-  plot_page%title                        = plot_input%title 
-  plot_page%subtitle                     = plot_input%subtitle 
-  plot_page%border                       = plot_input%border
-  plot_page%delete_overlapping_plots     = plot_input%delete_overlapping_plots
-  plot_page%draw_graph_title_suffix      = plot_input%draw_graph_title_suffix
+  if (plot_page%plot_display_type /= '') plot_input%plot_display_type = plot_page%plot_display_type
+  plot_input%size                         = plot_page%size
+  plot_input%text_height                  = plot_page%text_height
+  plot_input%main_title_text_scale        = plot_page%main_title_text_scale
+  plot_input%graph_title_text_scale       = plot_page%graph_title_text_scale
+  plot_input%axis_number_text_scale       = plot_page%axis_number_text_scale
+  plot_input%axis_label_text_scale        = plot_page%axis_label_text_scale
+  plot_input%floor_plan_shape_scale       = plot_page%floor_plan_shape_scale
+  plot_input%floor_plan_text_scale        = plot_page%floor_plan_text_scale
+  plot_input%lat_layout_shape_scale       = plot_page%lat_layout_shape_scale
+  plot_input%lat_layout_text_scale        = plot_page%lat_layout_text_scale
+  plot_input%legend_text_scale            = plot_page%legend_text_scale
+  plot_input%key_table_text_scale         = plot_page%key_table_text_scale
+  plot_input%n_curve_pts                  = plot_page%n_curve_pts
+  plot_input%title                        = plot_page%title 
+  plot_input%subtitle                     = plot_page%subtitle 
+  plot_input%border                       = plot_page%border
+  plot_input%delete_overlapping_plots     = plot_page%delete_overlapping_plots
+  plot_input%draw_graph_title_suffix      = plot_page%draw_graph_title_suffix
+  plot_input%curve_legend_line_len        = plot_page%curve_legend%line_length
+  plot_input%curve_legend_text_offset     = plot_page%curve_legend%text_offset
 endif
 
 ! 
 
-if (plot_page%plot_display_type /= '') plot_input%plot_display_type = plot_page%plot_display_type
-plot_input%size                         = plot_page%size
-plot_input%text_height                  = plot_page%text_height
-plot_input%main_title_text_scale        = plot_page%main_title_text_scale
-plot_input%graph_title_text_scale       = plot_page%graph_title_text_scale
-plot_input%axis_number_text_scale       = plot_page%axis_number_text_scale
-plot_input%axis_label_text_scale        = plot_page%axis_label_text_scale
-plot_input%floor_plan_shape_scale       = plot_page%floor_plan_shape_scale
-plot_input%floor_plan_text_scale        = plot_page%floor_plan_text_scale
-plot_input%lat_layout_shape_scale       = plot_page%lat_layout_shape_scale
-plot_input%lat_layout_text_scale        = plot_page%lat_layout_text_scale
-plot_input%legend_text_scale            = plot_page%legend_text_scale
-plot_input%key_table_text_scale         = plot_page%key_table_text_scale
-plot_input%curve_legend_line_len        = plot_page%curve_legend_line_len
-plot_input%curve_legend_text_offset     = plot_page%curve_legend_text_offset
-plot_input%n_curve_pts                  = plot_page%n_curve_pts
-plot_input%title                        = plot_page%title 
-plot_input%subtitle                     = plot_page%subtitle 
-plot_input%border                       = plot_page%border
-plot_input%delete_overlapping_plots     = plot_page%delete_overlapping_plots
-plot_input%draw_graph_title_suffix      = plot_page%draw_graph_title_suffix
+if (plot_input%plot_display_type /= '') plot_page%plot_display_type = plot_input%plot_display_type
+plot_page%size                         = plot_input%size
+plot_page%text_height                  = plot_input%text_height
+plot_page%main_title_text_scale        = plot_input%main_title_text_scale
+plot_page%graph_title_text_scale       = plot_input%graph_title_text_scale
+plot_page%axis_number_text_scale       = plot_input%axis_number_text_scale
+plot_page%axis_label_text_scale        = plot_input%axis_label_text_scale
+plot_page%floor_plan_shape_scale       = plot_input%floor_plan_shape_scale
+plot_page%floor_plan_text_scale        = plot_input%floor_plan_text_scale
+plot_page%lat_layout_shape_scale       = plot_input%lat_layout_shape_scale
+plot_page%lat_layout_text_scale        = plot_input%lat_layout_text_scale
+plot_page%legend_text_scale            = plot_input%legend_text_scale
+plot_page%key_table_text_scale         = plot_input%key_table_text_scale
+plot_page%n_curve_pts                  = plot_input%n_curve_pts
+plot_page%title                        = plot_input%title 
+plot_page%subtitle                     = plot_input%subtitle 
+plot_page%border                       = plot_input%border
+plot_page%delete_overlapping_plots     = plot_input%delete_overlapping_plots
+plot_page%draw_graph_title_suffix      = plot_input%draw_graph_title_suffix
+
+if (plot_input%curve_legend_line_len == real_garbage$) then
+  plot_page%curve_legend%line_length = 30   ! Points
+else
+  plot_page%curve_legend%line_length = plot_input%curve_legend_line_len 
+endif
+
+if (plot_input%curve_legend_text_offset == real_garbage$) then
+  plot_page%curve_legend%text_offset = 6    ! Points
+else
+  plot_page%curve_legend%text_offset = plot_input%curve_legend_text_offset 
+endif
 
 ! Plot window geometry specified on cmd line?
 
@@ -326,8 +316,8 @@ if (use_cmd_line_geom .and. s%init%geometry_arg /= '') then
      if (.not. is_integer(str(1:ix-1)) .or. .not. is_integer(str(ix+1:))) then
        call out_io (s_error$, r_name, 'Malformed -geometry argument: ' // str)
      else
-       read (str(:ix-1), *) plot_input%size(1)
-       read (str(ix+1:), *) plot_input%size(2)
+       read (str(:ix-1), *) plot_page%size(1)
+       read (str(ix+1:), *) plot_page%size(2)
      endif
    endif
  endif

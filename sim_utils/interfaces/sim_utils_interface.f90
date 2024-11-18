@@ -101,8 +101,7 @@ end function
 subroutine cplx_mat_inverse(mat, mat_inv, ok, print_err)
   import
   implicit none
-  complex(rp) :: mat(:,:)
-  complex(rp) :: mat_inv(:,:)
+  complex(rp) :: mat(:,:), mat_inv(:,:)
   logical, optional :: ok, print_err
 end subroutine
 
@@ -480,10 +479,10 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
   logical, optional :: print_err
 end subroutine
 
-subroutine mat_inverse (mat, mat_inv, ok, print_err)
+subroutine mat_inverse (mat, mat_inv, vec0, vec0_inv, ok, print_err)
   import
-  real(rp) :: mat(:,:)
-  real(rp) :: mat_inv(:,:)
+  real(rp) :: mat(:,:), mat_inv(:,:)
+  real(rp), optional :: vec0(:), vec0_inv(:)
   logical, optional :: ok, print_err
 end subroutine
 
@@ -790,10 +789,10 @@ function rot_2d (vec_in, angle) result (vec_out)
   real(rp) vec_in(2), angle, vec_out(2)
 end function
 
-subroutine run_timer(command, time)
+subroutine run_timer(command, time, time0)
   import
   implicit none
-  real(rp), optional :: time
+  real(rp), optional :: time, time0
   character(*) command
 end subroutine
 

@@ -852,6 +852,7 @@ character(*), optional :: string_in
 character(:), allocatable, optional :: string_out
 character(1) delim
 character(:), allocatable :: str
+character(16) delim_list
 character(100) err_str2
 character(200) word, str_in
 
@@ -868,12 +869,20 @@ ix_str = 0
 n_parens = 0
 err_flag = .true.
 
+! Include "+-" as delims to avoid error with sub-expression exceeding 90 characters and with ending "&" continuation char.
+! Exception: If a blank is in end_delims, this cannot be an expression
+delim_list = '(),:}+-|'
+if (present(end_delims)) then
+  if (index(end_delims, ' ') /= 0) delim_list = '( ),:}|'
+endif
+  
+!
+
 do
-  ! Include "+-" as delims to avoid error with sub-expression exceeding 90 characters and with ending "&" continuation char.
   if (present(string_in)) then
-    call word_read (str_in, '(),:}+-|', word, ix_word, delim, delim_found, str_in)
+    call word_read (str_in, trim(delim_list), word, ix_word, delim, delim_found, str_in)
   else
-    call get_next_word (word, ix_word, '(),:}+-|', delim, delim_found, upper_case_word = .false., call_check = call_check)
+    call get_next_word (word, ix_word, trim(delim_list), delim, delim_found, upper_case_word = .false., call_check = call_check)
   endif
   call_check = .false.
   str = str(1:ix_str) // word
@@ -883,7 +892,7 @@ do
   select case (delim)
   case (',', ')')
     if (n_parens == 0) exit
-  case (':', '|', '}')
+  case (':', '|', '}', ' ')  ! Blank delim will only happen if end_delims includes a blank
     exit
   case default
     ! Nothing to do
@@ -1359,12 +1368,12 @@ type (ele_struct) ele
 type (lat_struct), pointer :: lat
 type (wake_sr_mode_struct), target :: trans(100), long(100)
 type (wake_sr_mode_struct), pointer :: srm
-type (wake_sr_z_struct), target :: z_wake(100)
-type (wake_sr_z_struct), pointer :: srz
+type (wake_sr_z_long_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
+real(rp) f
 real(rp), allocatable :: table(:,:)
-integer i, itrans, ilong, iz, ipt, ix_word
+integer i, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt
 
 logical delim_found, err_flag, err
 
@@ -1376,14 +1385,14 @@ character(1) delim
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
-if (allocated(ele%wake%sr%z)) deallocate (ele%wake%sr%z)
 
 lat => ele%branch%lat
 wake_sr => ele%wake%sr
 trans = wake_sr_mode_struct()
 long = wake_sr_mode_struct()
-z_wake = wake_sr_z_struct(null(), null(), null(), not_set$, not_set$)
 err_flag = .true.
+srz => wake_sr%z_long
+srz%time_based = .false.
 
 ! get data
 
@@ -1396,6 +1405,10 @@ do
   if (.not. expect_this ('=', .true., .false., 'IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
 
   select case (attrib_name)
+  case ('DZ')
+    call parse_evaluate_value (err_str, srz%dz, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
+    if (delim == '}') exit
+    cycle
   case ('Z_MAX')
     call parse_evaluate_value (err_str, wake_sr%z_max, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
@@ -1413,67 +1426,88 @@ do
     if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
     if (delim == '}') exit
     cycle
+  !
+  case ('Z_LONG')
+    if (.not. expect_this ('{', .false., .false., 'AFTER "Z_LONG =" IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
+    do
+      call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+
+      select case (attrib_name)
+      case ('W')
+        if (.not. expect_this ('=', .true., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z W DEFINITION', ele, delim, delim_found)) return
+        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z W LIST', table, 2, .false., delim, delim_found)) return
+
+        ipt = size(table, 1)
+        srz%dz = (table(ipt,1) - table(1,1)) / (ipt - 1)
+        n0 = nint(table(1,1) / srz%dz)
+        n1 = nint(table(ipt,1) / srz%dz)
+        if (abs(table(1,1)/srz%dz - n0) > 0.1_rp) then
+          call parser_error('Z-Wake ARRAY DOES NOT HAVE A Z = 0 POINT FOR ELEMENT: ' // ele%name)
+          return
+        endif
+
+        nn = max(abs(n0), abs(n1))
+        nt = 2 * nn + 1
+        srz%z0 = nn * srz%dz
+
+        call re_allocate(srz%w, nt)
+        call re_allocate(srz%fw, nt)
+        call re_allocate(srz%w_out, nt)
+        call re_allocate(srz%fbunch, nt)
+        srz%w = 0
+        srz%w(nn+1+n0:nn+1+n1) = table(:,2)  ! z(i) = (i - nn - 1) * dz
+
+        if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+
+      case ('SMOOTHING_SIGMA')
+        call parse_evaluate_value (err_str, srz%smoothing_sigma, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+      case ('POSITION_DEPENDENCE')
+        call get_switch ('SR_WAKE Z POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srz%position_dependence, err_flag, ele, delim, delim_found)
+        if (err_flag) return
+      case ('TIME_BASED')
+        call parser_get_logical (attrib_name, srz%time_based, ele%name, delim, delim_found, err_flag);  if (err_flag) return
+      case default
+        call parser_error ('UNKNOWN SR_WAKE Z COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+        return
+      end select
+
+      if (delim == '}') exit
+      if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
+    enddo
+
+    if (.not. expect_one_of (',} ', .false., ele%name, delim, delim_found)) return
+    if (delim == '}' .or. delim == ' ') exit
+    cycle
+
+  !
+
   case ('LONGITUDINAL')
     ilong = ilong + 1
     srm => long(ilong)
   case ('TRANSVERSE')
     itrans = itrans + 1
     srm => trans(itrans)
-  case ('Z')
-    iz = iz + 1
-    srz => z_wake(iz)
   case default
     call parser_error ('UNKNOWN SR_WAKE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
     return
   end select
 
+  ! Here only with attrib_name = 'LONGITUDINAL' or 'TRANSVERSE'
+
   if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
+
   err_str = trim(ele%name) // ' SR_WAKE ' // attrib_name
+  call parse_evaluate_value (err_str, srm%amp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
 
-  if (attrib_name == 'Z') then
-    do
-      call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
-      if (.not. expect_this ('=', .true., .false., 'IN SR_WAKE Z DEFINITION', ele, delim, delim_found)) return
-
-      select case (attrib_name)
-      case ('W')
-        if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z W DEFINITION', ele, delim, delim_found)) return
-        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z W LIST', table, 3, delim, delim_found)) return
-        ipt = size(table, 1)
-        call reallocate_spline(srz%w, ipt)
-        call reallocate_spline(srz%w_sum1, ipt)
-        call reallocate_spline(srz%w_sum2, ipt)
-        do i = 1, ipt-1
-          srz%w(i) = create_a_spline(table(i,1:2), table(i+1,1:2), table(i,3), table(i+1,3))
-        enddo
-
-      case ('PLANE')
-        call get_switch ('SR_WAKE Z PLANE', sr_z_plane_name, srz%plane, err, ele, delim, delim_found); if (err) return
-      case ('POSITION_DEPENDENCE')
-        call get_switch ('SR_WAKE Z POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srz%position_dependence, err_flag, ele, delim, delim_found)
-        if (err_flag) return
-      case default
-        call parser_error ('UNKNOWN SR_WAKE Z COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
-        return
-      end select
-    enddo
-
-    if (.not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
-    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
-    if (delim == '}') exit
-
-  else
-    call parse_evaluate_value (err_str, srm%amp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-    call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-    call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-    call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
-    if (attrib_name == 'LONGITUDINAL') then
-      call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
-    elseif (attrib_name == 'TRANSVERSE') then
-      call get_switch ('POLARIZATION', sr_transverse_polarization_name, srm%polarization, err_flag, ele, delim, delim_found)
-      if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
-      call get_switch ('POSITION_DEPENDENCE', sr_transverse_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
-    endif
+  if (attrib_name == 'LONGITUDINAL') then
+    call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
+  elseif (attrib_name == 'TRANSVERSE') then
+    call get_switch ('POLARIZATION', sr_transverse_polarization_name, srm%polarization, err_flag, ele, delim, delim_found)
+    if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
+    call get_switch ('POSITION_DEPENDENCE', sr_transverse_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
   endif
 
   if (.not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
@@ -1485,14 +1519,31 @@ enddo
 
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
-allocate (ele%wake%sr%z(iz))
-ele%wake%sr%z = z_wake(1:iz)
+allocate (wake_sr%long(ilong))
+wake_sr%long = long(1:ilong)
 
-allocate (ele%wake%sr%long(ilong))
-ele%wake%sr%long = long(1:ilong)
+allocate (wake_sr%trans(itrans))
+wake_sr%trans = trans(1:itrans)
 
-allocate (ele%wake%sr%trans(itrans))
-ele%wake%sr%trans = trans(1:itrans)
+if (allocated(srz%w)) then
+  if (srz%time_based) then
+    srz%dz = c_light * srz%dz
+    srz%z0 = c_light * srz%z0
+    srz%w  = c_light * srz%w(nt:1:-1)
+    srz%smoothing_sigma = c_light * srz%smoothing_sigma
+  endif
+  srz%fw = srz%w
+  call fft_1d(srz%fw, -1)
+  if (srz%smoothing_sigma /= 0) then
+    do i = 1, nt
+      f = real(i - 1, rp) / (nt - 1) 
+      srz%fw(i) = srz%fw(i) * exp(-2*pi*(f*srz%smoothing_sigma)**2)
+    enddo
+  endif
+
+else
+  allocate (srz%w(0), srz%fw(0), srz%w_out(0), srz%fbunch(0))
+endif
 
 err_flag = .false.
 
@@ -1535,9 +1586,9 @@ character(1) delim
 ! Init
 
 if (.not. associated(ele%wake)) allocate (ele%wake)
-if (.not. allocated(ele%wake%sr%z))  allocate (ele%wake%sr%z(0))
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
+if (.not. allocated(ele%wake%sr%z_long%w)) allocate (ele%wake%sr%z_long%w(0), ele%wake%sr%z_long%fw(0), ele%wake%sr%z_long%w_out(0), ele%wake%sr%z_long%fbunch(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 lat => ele%branch%lat
@@ -1680,7 +1731,7 @@ namelist / long_range_modes / lr
 if (.not. associated(ele%wake))         allocate (ele%wake)
 if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
 if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
-if (.not. allocated(ele%wake%sr%z))     allocate (ele%wake%sr%z(0))
+if (.not. allocated(ele%wake%sr%z_long%w))   allocate (ele%wake%sr%z_long%w(0), ele%wake%sr%z_long%fw(0), ele%wake%sr%z_long%w_out(0), ele%wake%sr%z_long%fbunch(0))
 if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 ! get data
@@ -1791,12 +1842,11 @@ character(16), parameter :: old_sr_position_dependence_name(3) = [character(16):
 
 ! init
 
-if (.not. associated(ele%wake))   allocate (ele%wake)
+if (.not. associated(ele%wake))        allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
+if (.not. allocated(ele%wake%sr%z_long%w)) allocate (ele%wake%sr%z_long%w(0), ele%wake%sr%z_long%fw(0), ele%wake%sr%z_long%w_out(0), ele%wake%sr%z_long%fbunch(0))
 if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
 if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
-if (allocated(ele%wake%sr%z))     deallocate (ele%wake%sr%z)
-allocate(ele%wake%sr%z(0))
 
 ! Open file
 
@@ -7295,10 +7345,11 @@ end function parse_real_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_real_matrix (lat, err_str, table, size2, delim, delim_found) result (is_ok)
+! Function parse_real_matrix (lat, err_str, table, size2, use_parens, delim, delim_found) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
-!    {(re_11, re_12, ..., re_1<size2>), (re_21, re_22, ...), ...} 
+!    {(re_11, re_12, ..., re_1<size2>), (re_21, re_22, ...), ...}      ! If use_parens = T
+!    {re_11 re_12 ..., re_1<size2>, re_21 re_22 ..., ...}              ! If use_parens = F
 ! And re_IJ is put in table(I,J).
 ! size2 is the size of the inner array.
 ! The size of the outer array can be anything.
@@ -7308,6 +7359,7 @@ end function parse_real_list
 !   ele           -- ele_struct:
 !   table(:,:)    -- real(rp), allocatable:
 !   size2         -- integer: If table not allocated, allocate 2nd dimension to size2
+!   use_parens    -- logical: Matrix syntax uses parentheses? See above.
 !
 ! Output:
 !   err_str       -- character(*): Used with error messages.
@@ -7316,7 +7368,7 @@ end function parse_real_list
 !   is_ok         -- logical: True if everything is OK.
 !-
 
-function parse_real_matrix (lat, ele, err_str, table, size2, delim, delim_found) result (is_ok)
+function parse_real_matrix (lat, ele, err_str, table, size2, use_parens, delim, delim_found) result (is_ok)
 
 implicit none
 
@@ -7327,22 +7379,32 @@ real(rp), allocatable :: vec(:)
 real(rp), allocatable :: table(:,:)
 
 integer size2
-integer nn, num_found
+integer nn, num_found, ix_word, ix
 
+character(100) word
+character(1) dlist(3)
 character(*) err_str
 character(*) delim
 
-logical is_ok, delim_found
+logical use_parens, is_ok, delim_found, call_found, err_flag
 
 !
+
+if (use_parens) then
+  dlist = ['(', ',', ')']
+else
+  dlist = [' ', ' ', ',']
+endif
 
 is_ok = .false.
 if (.not. allocated(table)) allocate (table(100,size2))
 
 if (.not. expect_one_of ('{', .false., ele%name, delim, delim_found)) return
+call parser_call_check(word, ix_word, delim, delim_found, call_found, err_flag)
+
 nn = 0
 do
-  if (.not. parse_real_list2 (lat, err_str, vec, num_found, delim, delim_found, size2, '(', ',', ')')) return
+  if (.not. parse_real_list2 (lat, err_str, vec, num_found, delim, delim_found, size2, dlist(1), dlist(2), dlist(3))) return
   if (num_found /= size2) then
     call parser_error (err_str)
     return
@@ -7350,8 +7412,21 @@ do
   nn = nn + 1
   if (nn > size(table, 1)) call re_allocate2d(table, 2*nn, size2)
   table(nn,:) = vec
-  if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
-  if (delim == '}') exit
+  if (use_parens) then
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+  endif
+
+  if (use_parens) then
+    if (delim == '}') exit
+  else
+    call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+    if (bp_com%parse_line(1:1) == '}') then
+      bp_com%parse_line = bp_com%parse_line(2:)
+      delim = '}'
+      delim_found = .true.
+      exit
+    endif
+  endif
 enddo
 
 call re_allocate2d(table, nn, size2)
@@ -7365,7 +7440,7 @@ end function parse_real_matrix
 !-------------------------------------------------------------------------
 !+
 ! Function parse_real_list2 (lat, err_str, real_array, num_found, delim, delim_found, num_expected, 
-!                            open_delim, separator, close_delim, default_value, brace_optional) result (is_ok)
+!                            open_delim, separator, close_delim, default_value, single_value) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
 !    open_brace real_1 separator real_2 . . . close_brace
@@ -7381,13 +7456,13 @@ end function parse_real_matrix
 !  real_array     -- real(rp), allocatable: the array to be read in 
 !
 ! Optional: 
-!   num_expected = 10    -- integer, optional: number of expected arguments
-!                             Used to initialize real_array
-!   open_brace   = '('   -- character(1), optional: opening delimeter.
-!   separator    = ','   -- character(1), optional: separating character
-!   close_brace  = ')'   -- character(1), optional: closing delimeter
-!   default_value = 0.0_rp -- real(rp), optional: inital assignment of real_array elements.
-!   brace_optional = False -- logical, optional: If true then an array with a single value and no braces is accepted.
+!   num_expected = 10       -- integer, optional: number of expected arguments
+!                                Used to initialize real_array
+!   open_brace   = '('      -- character(1), optional: opening delimeter.
+!   separator    = ','      -- character(1), optional: separating character
+!   close_brace  = ')'      -- character(1), optional: closing delimeter
+!   default_value = 0.0_rp  -- real(rp), optional: inital assignment of real_array elements.
+!   single_value = False    -- logical, optional: If true then an array with a single value and no braces is accepted.
 !
 ! Output:
 !   is_ok                   -- logical: Set True if everything is ok
@@ -7398,7 +7473,7 @@ end function parse_real_matrix
 !-
 
 function parse_real_list2 (lat, err_str, real_array, num_found, delim, delim_found, num_expected, &
-          open_brace, separator, close_brace, default_value, brace_optional) result (is_ok)
+          open_brace, separator, close_brace, default_value, single_value) result (is_ok)
 
 ! Arguments
 
@@ -7426,7 +7501,7 @@ character(1) delim, op_brace, cl_brace, sep
 character(40) :: word
 
 logical delim_found, err_flag
-logical, optional :: brace_optional
+logical, optional :: single_value
 
 ! Optional arguments
 
@@ -7442,7 +7517,7 @@ if (present(close_brace)) cl_brace = close_brace
 if (present(separator)) sep = separator
 
 ! Expect op_brace
-if (logic_option(.false., brace_optional)) then
+if (logic_option(.false., single_value)) then
   call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
   if (bp_com%parse_line(1:1) /= op_brace) then
     num_found = 1
@@ -7453,17 +7528,20 @@ if (logic_option(.false., brace_optional)) then
   endif
 endif
 
-call get_next_word (word, ix_word, op_brace, delim, delim_found)
 
-if (word /= '') then
-  call parser_error ('EXPECTED OPENING DELIMITER ' // quote(op_brace) // ' FOR VECTOR FOR: ' // err_str, &
-                     'BUT GOT: ' // word)
-  return
-elseif (delim /= op_brace) then
-  call parser_error ('BAD OPENING DELIMITER FOR VECTOR FOR: ' // err_str, &
-                     'EXPECTED: ' // quote(op_brace) // ' BUT GOT: ' // delim)
-  return
-end if
+if (op_brace /= '') then
+  call get_next_word (word, ix_word, op_brace, delim, delim_found)
+
+  if (word /= '') then
+    call parser_error ('EXPECTED OPENING DELIMITER ' // quote(op_brace) // ' FOR VECTOR FOR: ' // err_str, &
+                       'BUT GOT: ' // word)
+    return
+  elseif (delim /= op_brace) then
+    call parser_error ('BAD OPENING DELIMITER FOR VECTOR FOR: ' // err_str, &
+                       'EXPECTED: ' // quote(op_brace) // ' BUT GOT: ' // delim)
+    return
+  end if
+endif
 
 ! Initial allocation
 call re_allocate(real_array, num_expect, .false.)
@@ -7846,7 +7924,6 @@ end subroutine parser_print_line
 !--------------------------------------------------------------------------------------
 !+
 ! Subroutine parser_init_custom_elements (lat)
-!
 !-
 
 subroutine parser_init_custom_elements (lat)
@@ -7860,6 +7937,8 @@ integer i, n
 logical err
 
 ! Init custom stuff.
+
+call init_custom(lat)
 
 if (.not. associated(init_custom_ptr)) return
 

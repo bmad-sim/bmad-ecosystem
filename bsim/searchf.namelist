@@ -1,4 +1,22 @@
 
+File: bbu_track_mod.f90
+bbu_track_mod
+bbu_stage_struct
+bbu_beam_struct
+bbu_current_variation_struct
+bbu_param_struct
+bbu_setup
+bbu_track_all
+bbu_track_a_stage
+bbu_add_a_bunch
+bbu_remove_head_bunch
+bbu_hom_voltage_calc
+rf_cav_names
+check_rf_freq
+write_bunch_by_bunch_info
+hom_voltage
+logical_to_python
+
 File: aperture_by_tracking/aperture_by_tracking.f90
 aperture_by_tracking
 
@@ -62,7 +80,11 @@ read_pop
 File: apisa/spea2/spea2.cpp
 main
 
+File: apisa/spea2/spea2_io.cpp
+read_pop
+
 File: apisa/spea2/spea2_functions.cpp
+custom_assert
 initialize
 chk_malloc
 create_pop
@@ -78,32 +100,11 @@ environmentalSelection
 truncate_nondominated
 truncate_dominated
 
-File: apisa/spea2/spea2_io.cpp
-read_pop
-
 File: bbu/bbu_program.f90
 bbu_program
 
 File: code/adjust_optics.f90
 adjust_optics
-
-File: code/bbu_track_mod.f90
-bbu_track_mod
-bbu_stage_struct
-bbu_beam_struct
-bbu_current_variation_struct
-bbu_param_struct
-bbu_setup
-bbu_track_all
-bbu_track_a_stage
-bbu_add_a_bunch
-bbu_remove_head_bunch
-bbu_hom_voltage_calc
-rf_cav_names
-check_rf_freq
-write_bunch_by_bunch_info
-hom_voltage
-logical_to_python
 
 File: code/count_lines_in_file.f90
 count_lines_in_file_mod
@@ -124,6 +125,24 @@ insert_phase_trombone
 
 File: code/set_tune_3d.f90
 set_tune_3d
+
+File: code/bbu_track_mod.f90
+bbu_track_mod
+bbu_stage_struct
+bbu_beam_struct
+bbu_current_variation_struct
+bbu_param_struct
+bbu_setup
+bbu_track_all
+bbu_track_a_stage
+bbu_add_a_bunch
+bbu_remove_head_bunch
+bbu_hom_voltage_calc
+rf_cav_names
+check_rf_freq
+write_bunch_by_bunch_info
+hom_voltage
+logical_to_python
 
 File: code_synrad/break_wall_into_segments.f90
 break_wall_into_segments
@@ -307,11 +326,14 @@ dark_current_tracker_parse_command_args
 File: dynamic_aperture/da_program_mod.f90
 da_program_mod
 
-File: dynamic_aperture/track_many_hook.f90
-track_many_hook
-
 File: dynamic_aperture/dynamic_aperture.f90
 dynamic_aperture_program
+
+File: dynamic_aperture/lat_make_mat6_hook.f90
+lat_make_mat6_hook
+
+File: dynamic_aperture/track_many_hook.f90
+track_many_hook
 
 File: envelope_ibs/envelope_ibs.f90
 envelope_ibs
@@ -365,10 +387,6 @@ k2_to_omega
 omega_to_k2
 count_feasible_in_pop
 write_population
-
-File: modules/four_mod.f90
-four_mod
-xy_to_action
 
 File: modules/linear_aperture_mod.f90
 linear_aperture_mod
@@ -481,6 +499,10 @@ ltt_apply_rampers_to_slave
 ltt_track1_bunch_hook
 ltt_track1_preprocess
 ltt_init_coord
+
+File: modules/four_mod.f90
+four_mod
+xy_to_action
 
 File: moga/moga.f90
 moga

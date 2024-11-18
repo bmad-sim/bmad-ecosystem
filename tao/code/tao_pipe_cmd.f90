@@ -52,7 +52,7 @@ subroutine tao_pipe_cmd (input_str)
 use tao_interface, dummy => tao_pipe_cmd
 use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
-use wall3d_mod, only: calc_wall_radius
+use wall3d_mod, only: calc_wall_radius, wall3d_d_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
@@ -159,7 +159,7 @@ real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy,
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
-real(rp) mat6(6,6), vec0(6), array(7)
+real(rp) mat6(6,6), vec0(6), array(7), perp(3), origin(3), r_wall
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
 type (tao_spin_map_struct), pointer :: sm
@@ -175,7 +175,7 @@ integer, target :: nl
 integer, pointer :: nl_ptr
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one, calc_ok, no_slaves, index_order, ok
+logical first_time, found_one, calc_ok, no_slaves, index_order, ok, not
 logical, allocatable :: picked(:), logic_arr(:)
 
 character(*) input_str
@@ -258,7 +258,7 @@ call match_word (cmd, [character(40) :: &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'taylor_map', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
-          'wave'], ix, matched_name = command)
+          'wall3d_radius', 'wave'], ix, matched_name = command)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'pipe what? "What" not recognized: ' // command)
@@ -2662,9 +2662,8 @@ case ('ele:elec_multipoles')
 !   {which} is one of: "model", "base" or "design"
 !   {where} is an optional argument which, if present, is one of
 !     beginning  ! Upstream end
-!     center     ! Middle of element
+!     center     ! Middle of element. Surface of element for photonic reflecting elements (crystal, mirror).
 !     end        ! Downstream end (default)
-! Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
 !
 ! Example:
 !   pipe ele:floor 3@1>>7|model
@@ -2700,25 +2699,17 @@ case ('ele:floor')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
-
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (tail_str == '') tail_str = 'end'
+  call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
+  if (loc == 0) then
+    call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
+    return
+  endif
+
   can_vary = (ele%ix_ele == 0 .and. which == 'model')
-
-  select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$)
-    call write_this_floor(ele%floor, 'Reference', can_vary)
-    call write_this_floor(ele_geometry_with_misalignments (ele, 0.5_rp), 'Actual', .false.)
-
-  case default
-    if (tail_str == '') tail_str = 'end'
-    call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
-    if (loc == 0) then
-      call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
-      return
-    endif
-
-    call write_this_ele_floor(ele, loc, can_vary, '')
-  end select
+  call write_this_ele_floor(ele, loc, can_vary, '')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -3919,16 +3910,16 @@ case ('ele:wall3d')
   case ('table')
     do i = 1, size(wall3d%section)
       sec => wall3d%section(i)
-      nl=incr(nl); write (li(nl), imt) 'section;INT;F;',    i
-      nl=incr(nl); write (li(nl), rmt) 's;REAL;T;',         sec%s
-      nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',    (';', sec%r0(j), j = 1, size(sec%r0))
+      nl=incr(nl); write (li(nl), imt)   'section;INT;F;',    i
+      nl=incr(nl); write (li(nl), rmt)   's;REAL;T;',         sec%s
+      nl=incr(nl); write (li(nl), ramt)  'r0;REAL_ARR;T',    (';', sec%r0(j), j = 1, size(sec%r0))
       if (ele%key /= capillary$) then
         nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    trim(wall3d_section_type_name(sec%type))
       endif
-      nl=incr(nl); write (li(nl), imt) 'vertex;INT;F;',    i
+      nl=incr(nl); write (li(nl), imt)   'vertex;INT;F;',    i
       do j = 1, size(sec%v)
-        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', sec%v(i)%x, ';', sec%v(i)%y, ';', &
-                                              sec%v(i)%radius_x, ';', sec%v(i)%radius_y, ';', sec%v(i)%tilt
+        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', sec%v(j)%x, ';', sec%v(j)%y, ';', &
+                                              sec%v(j)%radius_x, ';', sec%v(j)%radius_y, ';', sec%v(j)%tilt
       enddo
     enddo
 
@@ -5331,8 +5322,6 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     c%ix_universe
   nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     c%symbol_every
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              c%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       c%ix_ele_ref
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 c%ix_ele_ref_track
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               c%ix_bunch
   nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         c%use_y2
   nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      c%draw_line
@@ -7826,6 +7815,74 @@ case ('var_v1_destroy')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% wall3d_radius
+!
+! Output vaccum chamber wall radius for given s-position and angle in (x,y) plane.
+! The radius is with respect to the local wall origin which may not be the (x,y) = (0,0) origin.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe wall3d_radius {ix_uni}@{ix_branch} {s_position} {angle}
+!
+! Where:
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. 
+!   {s_position} is the s-position to evaluate at.
+!   {angle} is the angle to evaluate at.
+!
+! Parameters
+! ----------
+! ix_uni : ""
+! ix_branch : ""
+! s_position
+! angle
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+
+case ('wall3d_radius')
+
+  u => s%u(s%global%default_universe)
+  if (index(line, '@') /= 0) then
+    u => point_to_uni(line, .true., err); if (err) return
+  endif
+
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
+  branch => u%model%lat%branch(ix_branch)
+  call split_this_line (line, name1, 2, err, space_sep = .true.); if (err) return
+  s_here = parse_real(name1(1), err); if (err) return
+  angle  = parse_real(name1(2), err); if (err) return
+
+  !
+
+  ele => pointer_to_element_at_s (branch, s_here, .true., err)
+  if (err) then
+    call invalid ('Bad s-position')
+    return
+  endif
+
+  vec0 = [cos(angle), 0.0_rp, sin(angle), 0.0_rp, s_here - ele%s_start, 1.0_rp]
+
+  value =  wall3d_d_radius(vec0, ele, 1, perp, ix, not, origin, r_wall, err)
+  if (not) then
+    call invalid ('No Wall3D here')
+    return
+  elseif (err) then
+    call invalid ('Error in radius calc. Please report this.')
+    return
+  endif
+
+  nl=incr(nl); write (li(nl), rmt)  'wall_radius;REAL;F;',            r_wall
+  nl=incr(nl); write (li(nl), ramt) 'origin;REAL;F',                  (';', origin(i), i = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'perpendicular;REAL;F',           (';', perp(i), i = 1, 3)
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% wave
 !
 ! Output Wave analysis info.
@@ -8197,6 +8254,8 @@ if (has_separator) then
 elseif (len_trim(line) /= 0) then
   read (line, *, iostat = ios) ix_branch
   if (ios /= 0) ix_branch = -999
+  call string_trim(line, line, ix)
+  call string_trim(line(ix+1:), line, ix)
 endif
 
 if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1)) then

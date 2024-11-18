@@ -20,14 +20,9 @@ bbu_par = {  \
 'lat2_filename': "''",               # For DR-scan and phase-scan, LEAVE IT EMPTY
 'ran_seed': 100,                     # Set specific seed if desired (0 uses system clock)
 'ran_gauss_sigma_cut': 3,             # If positive, limit ran_gauss values to within N sigma
-#'current_vary%variation_on': '.true.',      
-'current_vary%variation_on': '.false.',      
-'current_vary%t_ramp_start': 0.0,      
-'current_vary%charge_top': 0.0,      
-'current_vary%charge_bottom': 1.0,     
-'current_vary%dt_plateau': 1,       
-'current_vary%ramps_period': 12,       
-'current_vary%dt_ramp': 0.01,       
+'ramp_on': '.false.',      
+'ramp_n_start': 0
+'ramp_pattern': [1.0, 1.0],      
 }
 
 ###############################################################################

@@ -228,6 +228,7 @@ type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
+type (wake_sr_z_long_struct), pointer :: srz
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
@@ -280,7 +281,7 @@ if (associated(wake)) then
   if (write_wake) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
-    if (allocated(wake%sr%z))         ix_sr_z       = size(wake%sr%z)
+    if (allocated(wake%sr%z_long%w))  ix_sr_z       = size(wake%sr%z_long%w)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
@@ -660,9 +661,10 @@ if (associated(wake) .and. write_wake) then
     write (d_unit) wake%sr%trans(i)
   enddo
 
-  do i = 1, size(wake%sr%z)
-    write (d_unit) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, size(wake%sr%z(i)%w)
-    write (d_unit) wake%sr%z(i)%w
+  srz => wake%sr%z_long
+  write (d_unit) srz%smoothing_sigma, srz%position_dependence, srz%dz, srz%z0, srz%time_based
+  do i = 1, size(srz%w)
+    write (d_unit) srz%w(i), srz%fw(i)
   enddo
 
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale

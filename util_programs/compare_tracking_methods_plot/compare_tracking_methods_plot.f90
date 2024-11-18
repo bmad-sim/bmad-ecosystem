@@ -8,6 +8,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (all_pointer_struct), allocatable :: ptr_array(:)
+type (qp_legend_struct) :: legend = qp_legend_struct()
 
 character(40) :: input_file  = 'compare_tracking_methods_plot.bmad'
 character(40) :: output_file = 'compare_tracking_methods_plot'
@@ -265,16 +266,17 @@ subroutine create_plot
   END DO
 
   ! Draw legend
+  legend%draw_symbol = .false.
   if (nmethods > 6) then
      if (mod(nmethods+1,2) == 1) then
-        call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines(1:(nmethods+1)/2), text = dmethod(1:(nmethods+1)/2)%method_name, draw_symbol = .false.)
-        call qp_draw_curve_legend (0.28_rp, 0.99_rp, "%PAGE", line = lines((nmethods+3)/2:(nmethods-1)), text = dmethod((nmethods+3)/2:(nmethods-1))%method_name, draw_symbol = .false.)
+        call qp_draw_curve_legend (qp_point_struct(0.09_rp, 0.99_rp, "%PAGE"), legend, lines(1:(nmethods+1)/2), text = dmethod(1:(nmethods+1)/2)%method_name)
+        call qp_draw_curve_legend (qp_point_struct(0.28_rp, 0.99_rp, "%PAGE"), legend, lines((nmethods+3)/2:(nmethods-1)), text = dmethod((nmethods+3)/2:(nmethods-1))%method_name)
      else
-        call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines(1:nmethods/2), text = dmethod(1:nmethods/2)%method_name, draw_symbol = .false.)
-        call qp_draw_curve_legend (0.28_rp, 0.99_rp, "%PAGE", line = lines(nmethods/2+1:(nmethods-1)), text = dmethod(nmethods/2+1:(nmethods-1))%method_name, draw_symbol = .false.)
+        call qp_draw_curve_legend (qp_point_struct(0.09_rp, 0.99_rp, "%PAGE"), legend, lines(1:nmethods/2), text = dmethod(1:nmethods/2)%method_name)
+        call qp_draw_curve_legend (qp_point_struct(0.28_rp, 0.99_rp, "%PAGE"), legend, lines(nmethods/2+1:(nmethods-1)), text = dmethod(nmethods/2+1:(nmethods-1))%method_name)
      end if
   else
-     call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines, text = dmethod(:)%method_name, draw_symbol = .false.)   
+     call qp_draw_curve_legend (qp_point_struct(0.09_rp, 0.99_rp, "%PAGE"), legend, lines, text = dmethod(:)%method_name)
   end if
 
   ! Write description on plot

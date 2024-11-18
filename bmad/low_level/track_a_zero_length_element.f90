@@ -49,7 +49,7 @@ endif
 
 if (present(track)) call save_a_step (track, ele, param, .false., orbit, 0.0_rp)
 
-call offset_particle (ele, set$, orbit, set_hvkicks = .false.)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_hvkicks = .false.)
 
 call init_fringe_info (fringe_info, ele)
 if (fringe_info%has_fringe) then
@@ -72,7 +72,7 @@ if (fringe_info%has_fringe) then
   call apply_element_edge_kick(orbit, fringe_info, ele, param, .false.)
 endif
 
-call offset_particle (ele, unset$, orbit, set_hvkicks = .false.)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_hvkicks = .false.)
 
 if (present(track)) call save_a_step (track, ele, param, .false., orbit, 0.0_rp)
 

@@ -17,13 +17,6 @@ use quick_plot
 
 implicit none
 
-interface
-  function old_style_title_syntax(iu) result (is_old_style)
-  integer iu
-  logical is_old_style
-  end function
-end interface
-
 integer, parameter :: n_region_maxx   = 100     ! number of plotting regions.
 integer, parameter :: n_curve_maxx    = 40      ! number of curves per graph
 
@@ -37,7 +30,7 @@ type old_tao_ele_shape_struct    ! for the element layout plot
   integer key                ! Element key index to match to
 end type
 
-type (tao_plot_page_input) plot_page, plot_page_default
+type (tao_plot_page_input) plot_page
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
@@ -105,7 +98,7 @@ place%region = ''
 region%name  = ''       ! a region exists only if its name is not blank 
 include_default_plots = .true.
 
-plot_page = plot_page_default
+plot_page = tao_plot_page_input()
 plot_page%title%y = 0.99
 plot_page%subtitle%y = 0.97
 plot_page%size = [500, 600]
@@ -173,21 +166,13 @@ endif
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
 read (iu, nml = tao_plot_page, iostat = ios)
 if (ios > 0) then
-  ! First check to see if this is due to old style "title(i)" syntax.
-  if (old_style_title_syntax(iu)) then
-    call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file, &
-                                   '"PLOT_PAGE%TITLE(1) = ..." IS REPLACED BY "PLOT_PAGE%TITLE = ..." and', &
-                                   '"PLOT_PAGE%TITLE(2) = ..." IS REPLACED BY "PLOT_PAGE%SUBTITLE = ...".')
-  else
-    call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
-  endif
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
   rewind (iu)
   read (iu, nml = tao_plot_page)  ! To give error message
 endif
 if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist found')
 
 master_default_graph = default_graph
-
 call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 ! Plot window geometry specified on cmd line?
@@ -443,7 +428,7 @@ do  ! Loop over plot files
     plt%autoscale_x          = plot%autoscale_x 
     plt%autoscale_y          = plot%autoscale_y 
 
-    call transfer_this_axis(plot%x, default_graph%x) ! Remember: plot%x is deprecated.
+    call transfer_plot_axis(plot%x, default_graph%x) ! Remember: plot%x is deprecated.
 
     if (default_graph%x%major_div < 0 .and. default_graph%x%major_div_nominal < 0) default_graph%x%major_div_nominal = 7
 
@@ -511,10 +496,6 @@ do  ! Loop over plot files
       grph%title                            = graph%title
       grph%margin                           = graph%margin
       grph%scale_margin                     = graph%scale_margin
-      grph%x                                = graph%x
-      grph%y                                = graph%y
-      grph%x2                               = graph%x2
-      grph%y2                               = graph%y2
       grph%ix_universe                      = graph%ix_universe
       grph%ix_branch                        = graph%ix_branch
       grph%clip                             = graph%clip
@@ -528,6 +509,10 @@ do  ! Loop over plot files
       grph%title_suffix                     = ''
       grph%text_legend                      = ''
       grph%y2_mirrors_y                     = .true.
+      call transfer_this_axis (grph%x, graph%x)
+      call transfer_this_axis (grph%y, graph%y)
+      call transfer_this_axis (grph%x2, graph%x2)
+      call transfer_this_axis (grph%y2, graph%y2)
 
       if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 7
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
@@ -762,24 +747,17 @@ do  ! Loop over plot files
             call out_io (s_warn$, r_name, 'CANNOT LOCATE ELEMENT FOR PLOT CURVE: ' // tao_curve_name(crv))
             cycle  ! Check
           endif
-          crv%ix_ele_ref = eles(1)%ele%ix_ele
-          crv%ix_branch  = eles(1)%ele%ix_branch
         elseif (substr(crv%data_type,1,5) == 'phase' .or. substr(crv%data_type,1,2) == 'r.' .or. &
                 substr(crv%data_type,1,2) == 't.' .or. substr(crv%data_type,1,3) == 'tt.') then
-          crv%ix_ele_ref = 0
-          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
+          crv%ele_ref_name = 'BEGINNING'
         elseif (graph%type == 'phase_space') then
           plt%x_axis_type = 'phase_space'
-          crv%ix_ele_ref = 0
-          crv%ele_ref_name = s%u(i_uni)%design%lat%ele(0)%name
+          crv%ele_ref_name = 'BEGINNING'
         elseif (graph%type == 'key_table') then
           plt%x_axis_type = 'none'
         elseif (graph%type == 'floor_plan') then
           plt%x_axis_type = 'floor'
         endif
-
-        call tao_ele_to_ele_track (i_uni, crv%ix_branch, crv%ix_ele_ref, crv%ix_ele_ref_track)
-
       enddo  ! curve
 
       call qp_calc_axis_places (grph%y2)
@@ -835,6 +813,19 @@ call tao_create_plot_window
 
 !----------------------------------------------------------------------------------------
 contains
+
+subroutine transfer_this_axis (axis_out, axis_in)
+
+type (qp_axis_struct) axis_out, axis_in
+
+axis_out = axis_in
+axis_out%eval_min = axis_out%min
+axis_out%eval_max = axis_out%max
+
+end subroutine transfer_this_axis
+
+!----------------------------------------------------------------------------------------
+! contains
 
 subroutine tao_transfer_shape (shape_input, shape_array, namelist_name)
 
@@ -1542,10 +1533,7 @@ do j = 1, 6
   crv%data_type    = coord_name(j)
   crv%draw_symbols = .true.
   crv%draw_line    = .false.
-  ie = s%u(1)%design%lat%n_ele_track
-  crv%ix_ele_ref = ie
-  crv%ix_ele_ref_track = ie
-  crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
+  crv%ele_ref_name = 'END'
   if (modulo(i,2) == 0) then
   else
   endif
@@ -1600,10 +1588,7 @@ do i = 1, 6
 
   crv%y_axis_scale_factor = 1e9   ! nC
 
-  ie = s%u(1)%design%lat%n_ele_track
-  crv%ix_ele_ref = ie
-  crv%ix_ele_ref_track = ie
-  crv%ele_ref_name = s%u(1)%design%lat%ele(ie)%name
+  crv%ele_ref_name = 'END'
 
   if (modulo(i,2) == 0) then
     grph%x%label     = trim(coord_name_cap(i)) // ' [* 10^3]'
@@ -3062,7 +3047,7 @@ end subroutine default_plot_init
 !----------------------------------------------------------------------------------------
 ! contains
 
-subroutine transfer_this_axis (ax_in, ax_out)
+subroutine transfer_plot_axis (ax_in, ax_out)
 
 type (qp_axis_struct) ax_in, ax_out
 
@@ -3094,37 +3079,9 @@ if (ax_in%number_side       /= int_garbage$) ax_out%number_side       = ax_in%nu
 if (.not. ax_in%draw_label)   ax_out%draw_label   = ax_in%draw_label
 if (.not. ax_in%draw_numbers) ax_out%draw_numbers = ax_in%draw_numbers
 
-end subroutine transfer_this_axis
+end subroutine transfer_plot_axis
 
 end subroutine tao_init_plotting
-
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-
-function old_style_title_syntax(iu) result (is_old_style)
-
-use tao_input_struct
-
-type (tao_plot_page_test_input) plot_page
-type (tao_plot_input) default_plot
-type (tao_graph_input) :: default_graph
-type (tao_region_input) region(100)
-type (tao_place_input) place(30)
-
-integer iu, ios
-logical is_old_style, include_default_plots
-
-namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, include_default_plots
-
-!
-
-rewind (iu)
-read (iu, nml = tao_plot_page, iostat = ios) 
-
-is_old_style = (ios == 0)
-
-end function old_style_title_syntax
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

@@ -86,7 +86,7 @@ endif
 ! tracking.
 
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
-  call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+  if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 endif
 
 !
@@ -115,7 +115,7 @@ endif
 !
 
 if (.not. ele%taylor_map_includes_offsets) then  ! simple case
-  call offset_particle (ele, unset$, orbit, set_hvkicks = .false.)
+  if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_hvkicks = .false.)
 endif
 
 ! Time change of particle

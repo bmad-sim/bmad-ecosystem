@@ -781,7 +781,7 @@ endif
 
 if (attrib_word == 'AMP_VS_TIME') then
   ac => ele%ac_kick
-  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, delim, delim_found)) return
+  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%amp_vs_time(n))
@@ -799,7 +799,7 @@ endif
 
 if (attrib_word == 'FREQUENCIES') then
   ac => ele%ac_kick
-  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, delim, delim_found)) return
+  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%frequency(n))

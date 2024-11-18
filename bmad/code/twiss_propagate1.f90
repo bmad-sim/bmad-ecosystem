@@ -41,21 +41,22 @@ logical, optional :: err_flag
 
 character(*), parameter :: r_name = 'twiss_propagate1'
 
-! Beginning element bookkeeping
+! Beginning element bookkeeping. rel_p1 ~ 0 typically happens when there is an egun element downstream.
 
 if (ele1%key == beginning_ele$) then
   ele1%map_ref_orb_out = ele2%map_ref_orb_in
   rel_p1 = 1 + ele1%map_ref_orb_out%vec(6)
+  if (rel_p1 > 1e-3_rp) then
+    if (is_true(ele1%value(deta_ds_master$))) then
+      ele1%x%etap = ele1%x%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(2) / rel_p1
+      ele1%y%etap = ele1%y%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(4) / rel_p1
+    else
+      ele1%x%deta_ds = ele1%x%etap / rel_p1 - ele1%map_ref_orb_out%vec(2) / rel_p1**2
+      ele1%y%deta_ds = ele1%y%etap / rel_p1 - ele1%map_ref_orb_out%vec(4) / rel_p1**2
+    endif
 
-  if (is_true(ele1%value(deta_ds_master$))) then
-    ele1%x%etap = ele1%x%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(2) / rel_p1
-    ele1%y%etap = ele1%y%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(4) / rel_p1
-  else
-    ele1%x%deta_ds = ele1%x%etap / rel_p1 - ele1%map_ref_orb_out%vec(2) / rel_p1**2
-    ele1%y%deta_ds = ele1%y%etap / rel_p1 - ele1%map_ref_orb_out%vec(4) / rel_p1**2
+    call normal_mode_dispersion(ele1)
   endif
-
-  call normal_mode_dispersion(ele1)
 endif
 
 !

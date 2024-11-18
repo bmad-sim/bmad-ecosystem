@@ -473,13 +473,12 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
   if (.not. tao_curve_check_universe(curve, u)) cycle
-
-  if (curve%ix_ele_ref_track < 0) then
+  ele => tao_curve_ele_ref(curve, .true.)
+  if (.not. associated(ele)) then
     call tao_set_curve_invalid (curve, 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name)
     cycle
   endif
 
-  ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
   if (name == '') name = ele%name
 
@@ -489,10 +488,10 @@ do k = 1, size(graph%curve)
   endif
 
   if (same_uni) then
-    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), '[', curve%ix_ele_ref, ': ', trim(name), ']'
+    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), '[', ele%ix_ele, ': ', trim(name), ']'
   else
     write (graph%title_suffix, '(2a, i0, a, i0, 3a)') trim(graph%title_suffix), &
-                                                          '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
+                                                          '[', u%ix_uni, '@', ele%ix_ele, ': ', trim(name), ']'
   endif
 enddo
 
@@ -502,20 +501,19 @@ do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
-
-  if (curve%ix_ele_ref_track < 0) then
+  ele => tao_curve_ele_ref(curve, .true.)
+  if (.not. associated(ele)) then
     call out_io (s_error$, r_name, 'CURVE REFERENCE ELEMENT IS NOT AN ELEMENT THAT IS TRACKED THROUGH: ' // curve%ele_ref_name, &
                                    'FOR CURVE: ' // tao_curve_name(curve))
   endif
 
-  ib = tao_branch_index(curve%ix_branch)
   select case (curve%component)
   case('model', '')
-    ele => u%model%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+    ele => u%model%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
   case('design')
-    ele => u%design%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+    ele => u%design%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
   case('base')
-    ele => u%base%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+    ele => u%base%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
   case default
     call out_io (s_error$, r_name, 'IF THE CURVE COMPONENT IS SET, IT MUST BE SET TO ONE OF: "model", "design", OR "base".', &
                                    'FOR CURVE: ' // tao_curve_name(curve))
@@ -530,17 +528,16 @@ do k = 1, size(graph%curve)
   !----------------------------
 
   if (curve%data_source == 'beam') then
-    if (curve%ix_ele_ref_track < 0) then
+    if (.not. associated(ele)) then
       call out_io (s_warn$, r_name, 'REFERENCE ELEMENT DOES NOT EXIST: ' // trim(curve%ele_ref_name), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       curve%g%why_invalid = 'NO BEAM AT ELEMENT'
       return
     endif
 
-    ib = tao_branch_index(curve%ix_branch)
-    beam => u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam
+    beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
-      call out_io (s_warn$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
+      call out_io (s_warn$, r_name, 'NO BEAM AT ELEMENT: ' // ele_full_name(ele), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       curve%g%why_invalid = 'NO BEAM AT ELEMENT'
@@ -683,9 +680,10 @@ type (tao_curve_struct), pointer :: curve
 type (tao_curve_struct), allocatable :: temp_curve(:)
 type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
+type (ele_struct), pointer :: ref_ele
 type (aperture_scan_struct), pointer :: scan
 type (coord_struct), allocatable :: orbit(:)
-integer :: i, j, k, ib, n_da, n_da_curve, n, ix_ele_ref
+integer :: i, j, k, ib, n_da, n_da_curve, n
 
 logical err
 
@@ -866,7 +864,7 @@ type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ref_ele, track_ele
 type (beam_struct), pointer :: beam
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
@@ -917,20 +915,22 @@ do k = 1, size(graph%curve)
     cycle
   endif
 
-  if (curve%ix_ele_ref_track < 0) then
+  ref_ele => tao_curve_ele_ref(curve, .false.)
+  track_ele => tao_curve_ele_ref(curve, .true.)
+
+  if (.not. associated(track_ele)) then
     call tao_set_curve_invalid (curve, 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name)
     cycle
   endif
 
-  ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
-  if (name == '') name = ele%name
+  if (name == '') name = ref_ele%name
   if (same_uni) then
     write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), &
-                                '[', curve%ix_ele_ref, ': ', trim(name), ']'
+                                '[', ref_ele%ix_ele, ': ', trim(name), ']'
   else
     write (graph%title_suffix, '(2a, i0, a, i0, 3a)') trim(graph%title_suffix), &
-            '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
+            '[', u%ix_uni, '@', ref_ele%ix_ele, ': ', trim(name), ']'
   endif
 enddo
 
@@ -946,8 +946,8 @@ do k = 1, size(graph%curve)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam') then
-    ib = tao_branch_index(curve%ix_branch)
-    beam => u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam
+    track_ele => tao_curve_ele_ref(curve, .true.)
+    beam => u%model_branch(track_ele%ix_branch)%ele(track_ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_warn$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
@@ -970,7 +970,7 @@ do k = 1, size(graph%curve)
     do ib = 1, size(beam%bunch)
       p => beam%bunch(ib)%particle
       m = count(p%state == alive$)
-      call tao_particle_data_value (curve%data_type, p, scratch%axis1, err, ele, ib)
+      call tao_particle_data_value (curve%data_type, p, scratch%axis1, err, ref_ele, ib)
       data(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       if (curve%hist%weight_by_charge) weight(n+1:n+m) = pack(p%charge, mask = (p%state == alive$))
       n = n + m
@@ -1304,16 +1304,11 @@ if (curve%ele_ref_name == '') then
   zero_average_phase = .true.
 else
   zero_average_phase = .false.
-  call tao_locate_elements (curve%ele_ref_name, tao_curve_ix_uni(curve), scratch%eles, err, ignore_blank = .true.)
-  if (err) then
+  ele => tao_curve_ele_ref(curve, .true.)
+  if (.not. associated(ele)) then
     call tao_set_curve_invalid (curve, 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name))
     return
   endif
-  curve%ix_branch = scratch%eles(1)%ele%ix_branch
-  ib = curve%ix_branch
-  curve%ix_ele_ref = scratch%eles(1)%ele%ix_ele
-  call tao_ele_to_ele_track(tao_curve_ix_uni(curve), scratch%eles(1)%ele%ix_branch, &
-                                      scratch%eles(1)%ele%ix_ele, curve%ix_ele_ref_track)
 endif
 
 !----------------------------------------------------------------------------
@@ -2231,8 +2226,12 @@ branch => lat%branch(ix_branch)
 first_time = .true.
 n_ele_track = branch%n_ele_track
 
-ix_ref = curve%ix_ele_ref_track
-if (ix_ref < 0) ix_ref = 0
+ele_ref => tao_curve_ele_ref(curve, .true.)
+if (associated(ele_ref)) then
+  ix_ref = ele%ix_ele
+else
+  ix_ref = 0
+endif
 
 if (lat%param%geometry == closed$ .and. .not. lat%param%stable) then
   curve%g%why_invalid = 'Unstable Lattice'
@@ -2503,7 +2502,8 @@ if (curve%ele_ref_name /= '') then
       return
     endif
 
-    s_now = branch%ele(curve%ix_ele_ref)%s
+    ele_ref => tao_curve_ele_ref(curve, .false.)
+    s_now = ele%s
     call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
 
     if (err_flag) then
@@ -2884,7 +2884,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (ele_pointer_struct), allocatable, target :: eles(:)
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele_ref
 
 real(rp) y_val
 
@@ -2907,9 +2907,14 @@ call re_allocate (scratch%y_value, n_dat) ! allocate space for the data
 
 scratch%y_value = 0
 good = .true.
+ele_ref => tao_curve_ele_ref(curve, .true.)
 
 datum%exists         = .true.
-datum%ix_ele_ref     = curve%ix_ele_ref_track
+if (associated(ele_ref)) then
+  datum%ix_ele_ref     = ele_ref%ix_ele
+else
+  datum%ix_ele_ref     = -1
+endif
 datum%ix_ele_start   = -1
 datum%ele_start_name = ''
 datum%merit_type     = 'target'

@@ -466,7 +466,7 @@ if (b_init%full_6D_coupling_calc) then
   abz_tunes(2) = mod(ele%branch%ele(ele%branch%n_ele_track)%b%phi,twopi)
   abz_tunes(3) = ele%branch%z%tune
   call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true., abz_tunes)
-  call mat_inverse(G6mat, G6inv, ok)
+  call mat_inverse(G6mat, G6inv, ok = ok)
   do i = 1, size(bunch%particle)
     p => bunch%particle(i)
     p%vec = matmul(G6inv, p%vec)
