@@ -431,8 +431,8 @@ a datum. This, combined with the setting \vn{exists}, \vn{good_meas}, \vn{good_r
 \vn{good_opt} determine the setting of \vn{useit_opt} which is the component that determines if the
 datum is used in the computation of the merit function. The settings of everything but
 \vn{good_user} is determined by \tao. The value of \vn{good_user} for a datum can be set in an
-initialization file (\sref{s:init.data}) or on the command line using the \vn{use}, (\sref{s:use}) \vn{veto} (\sref{s:veto}), or
-\vn{restore} (\sref{s:restore}) commands.
+initialization file (\sref{s:init.data}) or on the command line using the \vn{use}, (\sref{s:use})
+\vn{veto} (\sref{s:veto}), or \vn{restore} (\sref{s:restore}) commands.
 
 The \vn{exists} component is set by \tao to True if the datum exists and False otherwise. A datum
 may not exist if the type of datum requires the designation of an associated element but the
@@ -826,10 +826,11 @@ describes in detail these data types.
                               slip_factor_ptc.$N$ \\
                               \hspace{3em} $N = 0, 1, 2, \ldots$
                             \end{tabular}                       & Slip factor Taylor terms                  & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate.                 & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate.                   & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit.                  & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate                  & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate                    & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit                   & lat        & No  \\ \hline
   \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin.dn.dpz}      & spin_dn_dpz.x, .y, .z               & Spin dn/dpz components                    & lat        & No  \\ \hline
   \pref{spin.g.matrix}    & \begin{tabular}{@{}l}
                               spin_g_matrix.$ij$ \\
                               \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
@@ -1782,6 +1783,11 @@ the spin from the beginning of the lattice. The beginning spin is set in the lat
 \vn{beginning[spin_x]}, \vn{beginning[spin_y]} and \vn{beginning[spin_z]} as explained in the \bmad
 manual. For a lattice with a closed geometry, the calculated spin is the closed orbit invariant spin
 with the amplitude of the spin set at unity.
+
+  %----------------------
+  \item[spin_dn_dpz.x, .y, .z] \Newline \hlabel{spin.dn.dpz}
+This datum gives the $x$, $y$, and $z$ components of the $d\bfn/dp_z$ vector where $\bfn$ if the invarient
+spin field and $p_z$ is the sixth component of the particle's phase space coordinates.
 
   %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline \hlabel{spin.g.matrix}

@@ -1977,10 +1977,11 @@ if (curve%draw_line) then
     ! beam data_source is not interpolated.
     smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
     if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
-    if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
-    if (substr(curve%data_type,1,15) == 'element_attrib.') smooth_curve = .false.
     if (substr(curve%data_type,1,4) == 'bpm_') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'bunch_') smooth_curve = .false.
+    if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
+    if (substr(curve%data_type,1,7) == 'spin_dn') smooth_curve = .false.
+    if (substr(curve%data_type,1,15) == 'element_attrib.') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
 
     if (index(curve%component, 'meas') /= 0 .or. index(curve%component, 'ref') /= 0 .or. &
@@ -2212,7 +2213,7 @@ character(40) name, sub_data_type, data_type_select, data_source
 character(100) why_invalid
 character(200) data_type
 character(*), parameter :: r_name = 'tao_calc_data_at_s_pts'
-logical err_flag, good(:), first_time, radiation_fluctuations_on, ok, gd
+logical err_flag, good(:), first_time, radiation_fluctuations_on, ok
 
 ! Some init
 
@@ -2482,7 +2483,7 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (data_type_select, sub_data_type, value, good(ii), ii, &
+  call this_value_at_s (data_type_select, sub_data_type, value, ii, &
                                s_last, s_now, tao_branch, orbit, lat, branch, ele, err_flag);  if (err_flag) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
@@ -2523,7 +2524,7 @@ if (curve%ele_ref_name /= '') then
       return
     endif
 
-    call this_value_at_s (data_type_select, sub_data_type, value, gd, ii, &
+    call this_value_at_s (data_type_select, sub_data_type, value, ii, &
                   s_last, s_now, tao_branch, orbit, lat, branch, ele, err_flag);  if (.not. ok) return
 
     curve%y_line = curve%y_line - comp_sign * value
@@ -2536,7 +2537,7 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ii, &
+subroutine this_value_at_s (data_type_select, sub_data_type, value, ii, &
                                        s_last, s_now, tao_branch, orbit, lat, branch, ele, err_flag)
 
 type (coord_struct) orbit, orb_end
@@ -2550,7 +2551,7 @@ type (twiss_struct), pointer :: z0, z1, z2
 
 real(rp) value, s_last, s_now, ds, m6(6,6), dalpha, dbeta, aa, bb, dE
 integer status, ii, i, j
-logical good1, is_ok, err_flag
+logical is_ok, err_flag
 character(*) data_type_select, sub_data_type
 character(40) name
 
@@ -2577,6 +2578,37 @@ case ('apparent_emit', 'norm_apparent_emit')
   case default
     goto 9000  ! Error message & Return
   end select
+
+case ('chrom')
+  dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
+  ds = s_now - ele_here%s_start
+  i = ix_ele_here
+
+  this_lat => tao_lat%high_E_lat
+  this_branch => this_lat%branch(ix_branch)
+  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
+              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), high_ele)
+  
+  this_lat => tao_lat%low_E_lat
+  this_branch => this_lat%branch(ix_branch)
+  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
+              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), low_ele)
+
+  if (data_type == 'chrom.w.a') then
+    z2 => high_ele%a
+    z1 => low_ele%a
+    Z0 => ele%a
+  else
+    z2 => high_ele%b
+    z1 => low_ele%b
+    z0 => ele%b
+  endif
+
+  dalpha = (z2%alpha - z1%alpha) / dE
+  dbeta  = (z2%beta - z1%beta) / dE
+  aa = dalpha - z0%alpha * dbeta / z0%beta
+  bb = dbeta / z0%beta
+  value = sqrt(aa**2 + bb**2)
 
 case ('element_attrib')
   name = upcase(curve%data_source(16:))
@@ -2701,37 +2733,6 @@ case ('t', 'tt')
                           unit_start = .false., err_flag = err_flag, concat_if_possible = s%global%concatenate_maps)
   if (err_flag) return
   value = taylor_coef (t_map(i), expnt)
-
-case ('chrom')
-  dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
-  ds = s_now - ele_here%s_start
-  i = ix_ele_here
-
-  this_lat => tao_lat%high_E_lat
-  this_branch => this_lat%branch(ix_branch)
-  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
-              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), high_ele)
-  
-  this_lat => tao_lat%low_E_lat
-  this_branch => this_lat%branch(ix_branch)
-  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
-              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), low_ele)
-
-  if (data_type == 'chrom.w.a') then
-    z2 => high_ele%a
-    z1 => low_ele%a
-    Z0 => ele%a
-  else
-    z2 => high_ele%b
-    z1 => low_ele%b
-    z0 => ele%b
-  endif
-
-  dalpha = (z2%alpha - z1%alpha) / dE
-  dbeta  = (z2%beta - z1%beta) / dE
-  aa = dalpha - z0%alpha * dbeta / z0%beta
-  bb = dbeta / z0%beta
-  value = sqrt(aa**2 + bb**2)
 
 case default
   value = tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid)
