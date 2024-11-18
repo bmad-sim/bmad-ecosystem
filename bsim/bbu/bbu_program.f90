@@ -50,6 +50,16 @@ open (1, file = init_file, status = 'old')
 read (1, nml = bbu_params)
 close (1)
 
+do n = 1, size(bbu_param%ramp_pattern)
+  if (bbu_param%ramp_pattern(n) == real_garbage$) exit
+enddo
+bbu_param%n_ramp_pattern = n - 1
+
+if (bbu_param%ramp_on .and. bbu_param%n_ramp_pattern < 1) then
+  print *, 'RAMP_ON = TRUE BUT THERE IS NO RAMP_PATTERN!'
+  stop
+endif
+
 ! Define distance between bunches
 beam_init%dt_bunch = 1 / bbu_param%bunch_freq
 
