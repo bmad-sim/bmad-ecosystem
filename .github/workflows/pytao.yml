@@ -54,6 +54,13 @@ jobs:
         run: |
           bash scripts/bump_minimum_version.sh
 
+      - name: Reformat the generated source code
+        shell: bash -l {0}
+        working-directory: ./pytao
+        run: |
+          python -m pip install pre-commit
+          pre-commit run --all-files || echo "Pre-commit failed with error code $?"
+
       - name: Check Python source diff
         shell: bash -l {0}
         working-directory: ./pytao
