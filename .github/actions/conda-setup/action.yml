@@ -21,6 +21,7 @@ runs:
         channels: conda-forge
         environment-file: ${{ inputs.environment-file }}
         python-version: ${{ inputs.python-version }}
+        conda-remove-defaults: true
 
     - name: Show the installed packages
       shell: bash -l {0}
