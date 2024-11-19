@@ -1401,7 +1401,8 @@ IF(master) THEN
   OPEN(77, FILE="energy_deposited_at_s.out")
   accumulator = 0.
   WRITE(77,'(A61)') "#      slice   location   nrg deposited at         cumulative"
-  WRITE(77,'(A61)') "#      index        (s)    slice per bunch                nrg"
+  WRITE(77,'(A61)') "#      index        (m)    slice per bunch                nrg"
+  WRITE(77,'(A61)') "#                                     (eV)               (eV)"
   DO i=slix_lost_start, slix_lost_end
     accumulator = accumulator + energy_deposited_at_slice(i)
     WRITE(77,'(I12,F11.3,2ES19.4)') i, slices(i), energy_deposited_at_slice(i), accumulator
@@ -1460,22 +1461,22 @@ IF(master) THEN
   !- Write generation profile files
   !-----------------------------------------------------------------------
   OPEN(18,FILE="generation_pipe.out")
-    WRITE(18,'(A52)') "      slice   location    N generated   cumulative N"
-    WRITE(18,'(A52)') "      index        (s)       at slice      generated"
+    WRITE(18,'(A52)') "#     slice   location    N generated   cumulative N"
+    WRITE(18,'(A52)') "#     index        (s)       at slice      generated"
     DO i=slix_prod_start, slix_prod_end
       WRITE(18,'(I11,F11.3,ES15.4,ES15.4)') i, slices(i), generation_at_slice(i)%pipe_this_slice, generation_at_slice(i)%pipe_cumulative
     ENDDO
   CLOSE(18)
   OPEN(19,FILE="generation_stop.out")
-    WRITE(19,'(A52)') "      slice   location    N generated   cumulative N"
-    WRITE(19,'(A52)') "      index        (s)       at slice      generated"
+    WRITE(19,'(A52)') "#     slice   location    N generated   cumulative N"
+    WRITE(19,'(A52)') "#     index        (s)       at slice      generated"
     DO i=slix_prod_start, slix_prod_end
       WRITE(19,'(I11,F11.3,ES15.4,ES15.4)') i, slices(i), generation_at_slice(i)%stop_this_slice, generation_at_slice(i)%stop_cumulative
     ENDDO
   CLOSE(19)
   OPEN(19,FILE="raw_rates.out")
-    WRITE(19,'(A65)') "    slice    location     positive aperture     negative aperture"
-    WRITE(19,'(A65)') "    index         (s)    rate (N/bunch/sec)    rate (N/bunch/sec)"
+    WRITE(19,'(A65)') "#   slice    location     positive aperture     negative aperture"
+    WRITE(19,'(A65)') "#   index         (s)    rate (N/bunch/sec)    rate (N/bunch/sec)"
     DO i=slix_prod_start, slix_prod_end
       WRITE(19,'(I9,F12.3,ES22.4E3,ES22.4E3)') i, slices(i), raw_scattering_rates(i,1), raw_scattering_rates(i,2)
     ENDDO
