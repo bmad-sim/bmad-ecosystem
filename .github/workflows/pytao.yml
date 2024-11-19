@@ -43,6 +43,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
           environment-file: pytao/dev-environment.yml
 
+      - name: Regenerate Tao interface commands
+        shell: bash -l {0}
+        working-directory: ./pytao
+        run: |
+          bash scripts/bump_minimum_version.sh
+
+      - name: Check Python source diff
+        shell: bash -l {0}
+        working-directory: ./pytao
+        run: |
+          echo -e '## Updated Python code\n\n```' >> "$GITHUB_STEP_SUMMARY"
+          git diff | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
       - name: Run Tests
         shell: bash -l {0}
         working-directory: ./pytao
