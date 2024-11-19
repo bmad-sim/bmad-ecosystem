@@ -43,14 +43,38 @@ jobs:
           python-version: ${{ matrix.python-version }}
           environment-file: pytao/dev-environment.yml
 
+      - name: Setup ACC_ROOT_DIR
+        shell: bash -l {0}
+        run: |
+          echo "ACC_ROOT_DIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+
+      - name: Regenerate Tao interface commands
+        shell: bash -l {0}
+        working-directory: ./pytao
+        run: |
+          bash scripts/bump_minimum_version.sh
+
+      - name: Reformat the generated source code
+        shell: bash -l {0}
+        working-directory: ./pytao
+        run: |
+          python -m pip install pre-commit
+          pre-commit run --all-files || echo "Pre-commit failed with error code $?"
+
+      - name: Check Python source diff
+        shell: bash -l {0}
+        working-directory: ./pytao
+        run: |
+          echo -e '## Updated Python code\n\n```' >> "$GITHUB_STEP_SUMMARY"
+          git diff | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
       - name: Run Tests
         shell: bash -l {0}
         working-directory: ./pytao
         env:
           TAO_REUSE_SUBPROCESS: 1
         run: |
-          export ACC_ROOT_DIR=$GITHUB_WORKSPACE
-
           echo -e '## Test results\n\n```' >> "$GITHUB_STEP_SUMMARY"
           pytest -v --cov=pytao/ -k 'interface_commands or parse' pytao/tests 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
