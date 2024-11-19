@@ -7878,8 +7878,8 @@ case ('wall3d_radius')
   endif
 
   nl=incr(nl); write (li(nl), rmt)  'wall_radius;REAL;F;',            r_wall
-  nl=incr(nl); write (li(nl), ramt) 'origin;REAL;F',                  (';', origin(i), i = 1, 3)
-  nl=incr(nl); write (li(nl), ramt) 'perpendicular;REAL;F',           (';', perp(i), i = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'origin;REAL_ARR;F',              (';', origin(i), i = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'perpendicular;REAL_ARR;F',       (';', perp(i), i = 1, 3)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
