@@ -522,7 +522,7 @@ if (sr%amp_scale == 0) return
 srz => sr%z_long
 if (srz%dz == 0) return
 
-f0 = sr%amp_scale * bunch%charge_live / sum(bunch%particle%charge, bunch%particle%state == alive$)
+f0 = sr%amp_scale * bunch%charge_live / sum(bunch%particle%charge, bunch%particle%state == alive$) / ele%value(p0c$)
 if (sr%scale_with_length) f0 = f0 * ele%value(l$) 
 
 ! Compute binned bunch distribution and wake
@@ -568,7 +568,7 @@ if (n_bad > 0.01 * size(bunch%particle)) then
 endif
 
 call fft_1d(srz%w_out, -1)
-srz%w_out = srz%w_out * srz%fw * f0
+srz%w_out = srz%w_out * srz%fw * f0 / nn
 call fft_1d(srz%w_out, 1)
 
 ! Apply wake
@@ -578,7 +578,7 @@ do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
 
-  rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srz%dz + n2 + 1 
+  rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srz%dz + 1 
   ix1 = floor(rz_rel)
   ix2 = ix1 + 1
 
