@@ -2746,7 +2746,7 @@ case ('lattice')
   do
     call tao_next_switch (what2, [character(32):: &
         '-branch', '-blank_replacement', '-lords', '-center', '-middle', &
-        '-tracking_elements', '-0undef', '-beginning', 'pipe', &
+        '-tracking_elements', '-0undef', '-beginning', '-pipe', &
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
         '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe', '-rms'], &
