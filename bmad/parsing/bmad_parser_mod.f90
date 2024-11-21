@@ -1529,7 +1529,7 @@ if (allocated(srz%w)) then
   if (srz%time_based) then
     srz%dz = c_light * srz%dz
     srz%z0 = c_light * srz%z0
-    srz%w  = c_light * srz%w(nt:1:-1)
+    srz%w  = srz%w(nt:1:-1)
     srz%smoothing_sigma = c_light * srz%smoothing_sigma
   endif
   srz%fw = srz%w
