@@ -217,3 +217,5 @@
 "Aperture-6"   STR "Lost_Pos_Y"
 "Aperture-7"   STR "Lost_Neg_X"
 "N_Quad_Loc" ABS 0   9
+"Pipe-superimpose-state" STR  "T"
+"Pipe-superimpose-val" REL 1E-14   1.2345679104328156E-02  1.2345679104328156E-02

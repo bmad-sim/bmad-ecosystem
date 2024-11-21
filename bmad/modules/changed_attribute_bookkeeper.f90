@@ -466,25 +466,6 @@ if (dep2_set .and. has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) 
   endif
 endif
 
-! Is element misaligned?
-
-select case (ele%key)
-case (sbend$)
-  ele%bookkeeping_state%has_misalign = (ele%value(ref_tilt$) /= 0 .or. &
-                    ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. ele%value(z_offset$) /= 0 .or. &
-                    ele%value(roll$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)
-
-case (sad_mult$)
-  ele%bookkeeping_state%has_misalign = (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0 .or. &
-                    ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. ele%value(z_offset$) /= 0 .or. &
-                    ele%value(tilt$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)
-
-case default
-  ele%bookkeeping_state%has_misalign = &
-                   (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. ele%value(z_offset$) /= 0 .or. &
-                    ele%value(tilt$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)
-end select
-
 !------------------------------------------------
 ! By element type
 

@@ -40,7 +40,7 @@ character(*), parameter :: r_name = 'control_bookkeeper'
 ! If ele is present we only do bookkeeping for this one element and its slaves
 
 if (present(ele)) then
-  call control_bookkeeper1 (lat, ele, .true., err)
+  call control_bookkeeper1 (lat, ele, .true., .true., err)
   if (present(err_flag)) err_flag = err
   return
 endif
@@ -51,12 +51,10 @@ endif
 
 if (present(err_flag)) err_flag = .false.
 
-if (bmad_com%auto_bookkeeper) then
-  lat%ele(:)%bookkeeping_state%control = stale$  ! Bookkeeping done on this element yet?
-endif
-
 ! Bookkkeeping is done from the top level down.
 ! The top level elements are those lord elements that have no lords on top of them.
+! Here only the lord elements are bookkeeped since if there is a super_slave with multiple lords,
+! the super_slave must be bookkeeped after all the lords are done.
 
 ie_loop: do ie = lat%n_ele_track+1, lat%n_ele_max
   ele2 => lat%ele(ie)
@@ -66,7 +64,7 @@ ie_loop: do ie = lat%n_ele_track+1, lat%n_ele_max
     cycle
   endif
   if (ele2%n_lord > 0) cycle
-  call control_bookkeeper1 (lat, ele2, .false., err)
+  call control_bookkeeper1 (lat, ele2, .false., .false., err)
   if (err .and. present(err_flag)) err_flag = .true.
 enddo ie_loop
 
@@ -74,13 +72,13 @@ enddo ie_loop
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%control /= stale$ .and. &
+  if (branch%param%bookkeeping_state%control /= stale$ .and. &
                                            branch%param%bookkeeping_state%attributes /= stale$) cycle
 
   do ie = 0, branch%n_ele_track
     ele2 => branch%ele(ie)
     if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
-    call attribute_bookkeeper (ele2)
+    call control_bookkeeper1 (lat, ele2, .false., .true., err)
     ele2%bookkeeping_state%control = ok$
   enddo
 
@@ -97,14 +95,14 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper1 (lat, ele, force_bookkeeping, err_flag)
+! Subroutine control_bookkeeper1 (lat, ele, force_bookkeeping, bookkeep_tracking_elements, err_flag)
 !
 ! This routine is for control bookkeeping for a single element.
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-recursive subroutine control_bookkeeper1 (lat, ele, force_bookkeeping, err_flag)
+recursive subroutine control_bookkeeper1 (lat, ele, force_bookkeeping, bookkeep_tracking_elements, err_flag)
 
 type (lat_struct), target :: lat
 type (ele_struct) ele
@@ -112,7 +110,7 @@ type (ele_struct), pointer :: slave
 
 integer i
 
-logical call_a_bookkeeper, force_bookkeeping
+logical call_a_bookkeeper, force_bookkeeping, bookkeep_tracking_elements
 logical err_flag
 
 ! Only do bookkeeping on this element if it is stale or bookkeeping is forced by the calling routine.
@@ -156,7 +154,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! attribute_bookkeeper must be called again.
   ! This is true even if the lattice is static since a slave element
   ! can have its lord's dependent attribute values.
-  ! Example: super_slave will, at this point, have its lord's num_steps value but 
+  ! Example: super_slave will, at this point, have its lord's num_steps value but
   ! num_steps in the slave is different from the lord due to differences in length.
 
   if (call_a_bookkeeper) call attribute_bookkeeper (ele, force_bookkeeping)
@@ -165,13 +163,14 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
 
 endif
 
-! Recursively call this routine on the slaves
+! Recursively call this routine on the slaves.
 
 do i = 1, ele%n_slave
   if (ele%lord_status == control_lord$) cycle
   if (err_flag) return
   slave => pointer_to_slave (ele, i)
-  call control_bookkeeper1 (lat, slave, force_bookkeeping, err_flag)
+  if (.not. bookkeep_tracking_elements .and. slave%lord_status == not_a_lord$) cycle
+  call control_bookkeeper1 (lat, slave, force_bookkeeping, bookkeep_tracking_elements, err_flag)
 enddo
 
 end subroutine control_bookkeeper1

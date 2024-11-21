@@ -143,11 +143,16 @@ if (.not. associated(pointer_to_girder(ele)) .and. has_orientation_attributes(el
   case (sbend$, rf_bend$)
     val(roll_tot$)     = val(roll$)
     val(ref_tilt_tot$) = val(ref_tilt$)
+    ele%bookkeeping_state%has_misalign = (val(ref_tilt_tot$) /= 0 .or. val(roll_tot$) /= 0)
+
   case (crystal$, mirror$, multilayer_mirror$)
     val(tilt_tot$)     = val(tilt$)
     val(ref_tilt_tot$) = val(ref_tilt$)
+    ele%bookkeeping_state%has_misalign = (val(ref_tilt_tot$) /= 0 .or. val(tilt_tot$) /= 0)
+
   case default
     val(tilt_tot$)     = val(tilt$)
+    ele%bookkeeping_state%has_misalign = (val(tilt_tot$) /= 0)
   end select
 
   val(x_offset_tot$) = val(x_offset$)
@@ -155,6 +160,12 @@ if (.not. associated(pointer_to_girder(ele)) .and. has_orientation_attributes(el
   val(z_offset_tot$) = val(z_offset$)
   val(x_pitch_tot$)  = val(x_pitch$)
   val(y_pitch_tot$)  = val(y_pitch$)
+
+  ele%bookkeeping_state%has_misalign = (ele%bookkeeping_state%has_misalign .or. val(x_offset_tot$) /= 0 .or. &
+                                        val(y_offset_tot$) /= 0 .or. val(z_offset_tot$) /= 0 .or. &
+                                        val(x_pitch_tot$) /= 0 .or. val(y_pitch_tot$) /= 0)
+  if (ele%key == sad_mult$) ele%bookkeeping_state%has_misalign = (ele%bookkeeping_state%has_misalign .or. &
+                                                         val(x_offset_mult$) /= 0 .or. val(y_offset_mult$) /= 0)
 endif
 
 ! Super_lord length change is put in last slave
