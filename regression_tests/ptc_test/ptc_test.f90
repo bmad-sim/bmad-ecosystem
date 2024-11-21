@@ -49,6 +49,8 @@ open (1, file = 'output.now')
 !----------------------------------------------------------
 ! Check information passing between bmad element and associated ptc fibre
 
+bmad_com%auto_bookkeeper = .false.
+
 call bmad_parser ('diff_test.bmad', lat)
 call lattice_bookkeeper (lat)
 call lat_to_ptc_layout(lat)

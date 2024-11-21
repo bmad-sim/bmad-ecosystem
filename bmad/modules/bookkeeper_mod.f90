@@ -659,7 +659,7 @@ if (n_major_lords < 2) then
     slave%value(bl_vkick$) = slave%value(bl_vkick$) + lord%value(bl_vkick$)
   enddo
 
-  if (any(slave%value /= old_value)) call set_ele_status_stale (slave, attribute_group$)
+  if (any(slave%value /= old_value)) call attribute_bookkeeper (slave, .true.)
 
   return
 endif
@@ -1631,6 +1631,7 @@ do i = 1, slave%n_lord
       vs(z_offset_tot$) = l_slave_off_tot(3)
     endif
 
+    slave%bookkeeping_state%has_misalign = .true.
     on_an_offset_girder = .true.
 
     cycle
