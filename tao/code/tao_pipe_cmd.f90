@@ -6811,7 +6811,7 @@ case ('space_charge_com')
 
   nl=incr(nl); write(li(nl), lmt) 'lsc_kick_transverse_dependence;LOGIC;T;',  space_charge_com%lsc_kick_transverse_dependence
 
-  nl=incr(nl); write(li(nl), amt) 'diagnostic_output_file;STR;T;',            quote(space_charge_com%diagnostic_output_file)
+  nl=incr(nl); write(li(nl), amt) 'diagnostic_output_file;STR;T;',            trim(space_charge_com%diagnostic_output_file)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
