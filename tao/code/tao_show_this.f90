@@ -168,13 +168,13 @@ character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_show
 character(24) :: var_name, blank_str = '', phase_units_str, val_str
 character(24) :: plane, imt, imt2, lmt, lmt2, amt, iamt, ramt, f3mt, rmt, rmt2, rmt3, irmt, iimt
-character(40) ele_name, sub_name, ele1_name, ele2_name, ele_ref_name, b_name, param_name, uni_str
+character(40) ele_name, ele1_name, ele2_name, ele_ref_name, b_name, param_name, uni_str
 character(40) replacement_for_blank, component, s_fmt
-character(60) aname, myname, attrib
+character(60) aname, myname
 character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name, excite_zero(3), veto
 character(200), allocatable :: alloc_lines(:)
-character(400) attrib_list(20)
+character(400) attrib_list(20), attrib, sub_name
 
 character(2), parameter :: q_name(0:3) = ['q0', 'qx', 'qy', 'qz']
 character(1), parameter :: abc_name(1:3) = ['A', 'B', 'C']
