@@ -137,8 +137,8 @@ tao_dmerit_calc
 File: code/tao_ele_shape_info.f90
 tao_ele_shape_info
 
-File: code/tao_ele_to_ele_track.f90
-tao_ele_to_ele_track
+File: code/tao_curve_ele_ref.f90
+tao_curve_ele_ref
 
 File: code/tao_evaluate_element_parameters.f90
 tao_evaluate_element_parameters
@@ -499,6 +499,9 @@ tao_shape_init
 File: code/tao_show_cmd.f90
 tao_show_cmd
 
+File: code/tao_pipe_cmd.f90
+tao_pipe_cmd
+
 File: code/tao_spin_tracking_turn_on.f90
 tao_spin_tracking_turn_on
 
@@ -596,24 +599,6 @@ tao_spin_matrix_calc
 
 File: code/tao_regression_test.f90
 tao_regression_test
-
-File: code/tao_single_mode.f90
-tao_single_mode
-
-File: code/tao_spin_matrices_calc_needed.f90
-tao_spin_matrices_calc_needed
-
-File: code/tao_set_flags_for_changed_attribute.f90
-tao_set_flags_for_changed_attribute
-
-File: code/tao_top_level.f90
-tao_top_level
-
-File: code/tao_pipe_cmd.f90
-tao_pipe_cmd
-
-File: code/tao_show_this.f90
-tao_show_this
 
 File: code/tao_struct.f90
 tao_struct
@@ -722,8 +707,23 @@ tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
+File: code/tao_single_mode.f90
+tao_single_mode
+
+File: code/tao_spin_matrices_calc_needed.f90
+tao_spin_matrices_calc_needed
+
+File: code/tao_set_flags_for_changed_attribute.f90
+tao_set_flags_for_changed_attribute
+
+File: code/tao_top_level.f90
+tao_top_level
+
 File: code/tao_evaluate_a_datum.f90
 tao_evaluate_a_datum
+
+File: code/tao_show_this.f90
+tao_show_this
 
 File: code/tao_spin_polarization_calc.f90
 tao_spin_polarization_calc

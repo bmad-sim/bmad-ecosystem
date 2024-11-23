@@ -170,10 +170,12 @@ type (ele_struct), target :: ele, runt
 type (coord_struct), optional :: ref_orbit_in
 type (coord_struct) orb1, orb2, ref_orb_in, ref_orb_out
 type (branch_struct), pointer :: branch
+type (bmad_common_struct) bmad_com_save
+
 real(rp) tol, m_inv(6,6)
 integer i, edge, info
 logical err_flag
-logical err, rad_damp_on
+logical err
 
 character(*), parameter :: r_name = 'radiation_map_setup'
 
@@ -215,8 +217,9 @@ if (all(ref_orb_in%vec(2:4:2) == ref_orb_out%vec(2:4:2)) .and. &
   return
 endif
 
-rad_damp_on = bmad_com%radiation_damping_on
+bmad_com_save = bmad_com
 bmad_com%radiation_damping_on = .false.
+bmad_com%spin_tracking_on = .false.
 
 ! Mats for first half of element
 
@@ -234,7 +237,7 @@ runt%map_ref_orb_out = ref_orb_out  ! Important if test above is done.
 call tracking_rad_map_setup (runt, 1e-4_rp, downstream_end$, ele%rad_map%rm1, err);  if (err) goto 8000
 
 8000 continue
-bmad_com%radiation_damping_on = rad_damp_on
+bmad_com = bmad_com_save
 
 end subroutine radiation_map_setup
 

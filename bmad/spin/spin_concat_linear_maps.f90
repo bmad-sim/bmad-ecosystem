@@ -107,7 +107,6 @@ type (coord_struct) :: map_ref_orb
 real(rp) vec0(6), ref_orb(6), mat6(6,6), vec(0)
 integer n1, n2
 integer ie, i, k, n, p
-logical st_on
 
 !
 
@@ -128,17 +127,7 @@ do ie = n1, n2
 
   ! Spin map
 
-  if (.not. associated(ele%spin_taylor(0)%term)) then
-    if (ele%spin_tracking_method == sprint$) then
-      call sprint_spin_taylor_map(ele, map_ref_orb%vec)
-    else
-      st_on = bmad_com%spin_tracking_on
-      bmad_com%spin_tracking_on = .true.
-      call ele_to_taylor(ele, branch%param, map_ref_orb, include_damping = bmad_com%radiation_damping_on)
-      bmad_com%spin_tracking_on = st_on
-    endif
-  endif
-
+  if (.not. associated(ele%spin_taylor(0)%term)) call ele_to_spin_taylor(ele, branch%param, map_ref_orb)
   q1%spin_q = spin_taylor_to_linear(ele%spin_taylor, .false., ref_orb - ele%spin_taylor_ref_orb_in, ele%is_on)
 
   ! Orbital map

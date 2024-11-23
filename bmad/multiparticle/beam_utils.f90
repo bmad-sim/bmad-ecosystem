@@ -55,7 +55,7 @@ character(*), parameter :: r_name = 'track1_bunch_hom'
 
 branch => pointer_to_branch(ele)
 bunch%particle%direction = integer_option(1, direction)
-if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, branch%param)
+if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele)
 thread_safe = (ele%tracking_method /= symp_lie_ptc$ .and. global_com%mp_threading_is_safe)
 
 call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
@@ -106,7 +106,7 @@ else
     return
   endif
 
-  if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele, branch%param)
+  if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele)
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(half_ele, err_flag)
   !$OMP parallel do if (thread_safe)
