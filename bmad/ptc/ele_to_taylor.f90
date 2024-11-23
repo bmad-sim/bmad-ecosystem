@@ -1,5 +1,5 @@
 !+
-! Subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
+! Subroutine ele_to_taylor (ele, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
 !
 ! Subroutine to make orbital and spin (if spin tracking is on) taylor maps for an element. 
 ! The order of the map is set by set_ptc
@@ -8,7 +8,6 @@
 !   ele               -- Element_struct: Element to construct map for.
 !   orb0              -- Coord_struct, optional: Starting coords around which the Taylor map is evaluated.
 !                         Default is the zero orbit.
-!   param             -- lat_param_struct: 
 !   taylor_map_includes_offsets 
 !                     -- Logical, optional: If present then value overrides ele%taylor_map_includes_offsets.
 !   include_damping   -- logical, optional: Sets if radiation damping is included. Default is what is set in ptc_private%base_state.
@@ -20,7 +19,7 @@
 !                         If not present then the map is put in ele%spin_taylor.
 !-
 
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
+subroutine ele_to_taylor (ele, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
 
 use ptc_interface_mod, dummy => ele_to_taylor, dummy2 => dp
 use s_tracking
@@ -32,7 +31,6 @@ use madx_ptc_module, only: bmadl
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) :: param
 type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) c0
 type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
@@ -94,7 +92,7 @@ call ptc_set_taylor_order_if_needed()
 
 use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
 
-call ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, ref_in = orb0)
+call ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, ref_in = orb0)
 if (err_flag) return
 
 call alloc(ptc_cdamap)

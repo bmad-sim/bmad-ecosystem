@@ -2157,7 +2157,7 @@ call ptc_set_taylor_order_if_needed()
 ! and create map corresponding to ele%taylor.
 
 param%particle = positron$  ! Actually this does not matter to the calculation
-call ele_to_fibre (ele, fib, param, .true., err_flag)
+call ele_to_fibre (ele, fib, .true., err_flag)
 if (err_flag) then
   call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
   return
@@ -2480,7 +2480,7 @@ ptc_tlr = bmad_taylor
 
 ! track the map
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., err_flag, ref_in = ref_in)
+call ele_to_fibre (ele, ptc_fibre, .true., err_flag, ref_in = ref_in)
 if (err_flag) then
   call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
   return

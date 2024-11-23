@@ -227,7 +227,7 @@ case (foil$)
 ! Taylor
 
 case (taylor$)
-  call track1_taylor (orbit, ele, param, mat6 = mat6, make_matrix = make_matrix)
+  call track1_taylor (orbit, ele, mat6 = mat6, make_matrix = make_matrix)
 
 !-----------------------------------------------
 ! wiggler:

@@ -268,7 +268,7 @@ do ib = 0, ubound(lat_out%branch, 1)
             c0%vec = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           endif
           if (.not. associated(ele_out%taylor(1)%term)) then ! construct taylor
-            call ele_to_taylor (ele_out, b_in%param, c0)
+            call ele_to_taylor (ele_out, c0)
           endif
         endif
 

@@ -908,11 +908,10 @@ subroutine ele_rad_int_cache_calc (ele)
   type (ele_struct) ele
 end subroutine
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
+subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (lat_param_struct) param
   type (coord_struct), optional :: ref_in
   type (fibre), pointer :: ptc_fibre
   integer, optional :: integ_order, steps
@@ -920,11 +919,18 @@ subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_ord
   logical, optional :: for_layout
 end subroutine
 
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
+subroutine ele_to_spin_taylor(ele, param, orb0)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  type (coord_struct) orb0
+end subroutine
+
+subroutine ele_to_taylor (ele, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (lat_param_struct) :: param
   type (coord_struct), optional, intent(in) :: orb0
   type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
   logical, optional :: taylor_map_includes_offsets, include_damping
@@ -1194,6 +1200,14 @@ subroutine init_multipole_cache(ele)
   type (ele_struct) ele
 end subroutine
 
+subroutine init_taylor_series (bmad_taylor, n_term, save_old)
+  import
+  implicit none
+  type (taylor_struct) bmad_taylor
+  integer n_term
+  logical, optional :: save_old
+end subroutine
+
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, always_allocate)
   import
   implicit none
@@ -1308,6 +1322,12 @@ subroutine lattice_bookkeeper (lat, err_flag)
   logical, optional :: err_flag
 end subroutine
 
+subroutine linear_to_spin_taylor(q_map, spin_taylor)
+  import
+  type (taylor_struct) spin_taylor(0:3)
+  real(rp) q_map(0:3, 0:6)
+end subroutine
+
 function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
   import
   implicit none
@@ -1371,12 +1391,11 @@ recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine make_mat6_taylor (ele, param, start_orb, end_orb, err_flag)
+subroutine make_mat6_taylor (ele, start_orb, end_orb, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) :: start_orb, end_orb
-  type (lat_param_struct) param
   logical, optional :: err_flag
 end subroutine
 
@@ -1406,21 +1425,21 @@ subroutine make_mat6_runge_kutta (ele, param, start_orb, end_orb)
   type (lat_param_struct) param
 end subroutine
 
-subroutine make_mat6_symp_lie_ptc (ele, param, start_orb, end_orb)
+subroutine make_mat6_symp_lie_ptc (ele, start_orb, end_orb)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) :: start_orb, end_orb
-  type (lat_param_struct) param
 end subroutine
 
-subroutine make_mat6_tracking (ele, param, start_orb, end_orb, err_flag)
+subroutine make_mat6_tracking (ele, param, start_orb, end_orb, err_flag, spin_only)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) :: start_orb, end_orb
   type (lat_param_struct) param
   logical err_flag
+  logical, optional :: spin_only
 end subroutine
 
 subroutine make_v_mats (ele, v_mat, v_inv_mat)
@@ -2911,7 +2930,7 @@ subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
   implicit none
   type (coord_struct) :: start_orb, end_orb
   type (ele_struct) ele
-  type (lat_param_struct) param
+  type (lat_param_struct) :: param
 end subroutine
 
 subroutine track1_symp_lie_ptc (orbit, ele, param, track)
@@ -2923,12 +2942,11 @@ subroutine track1_symp_lie_ptc (orbit, ele, param, track)
   type (track_struct), optional :: track
 end subroutine
 
-subroutine track1_taylor (orbit, ele, param, taylor, mat6, make_matrix)
+subroutine track1_taylor (orbit, ele, taylor, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: orbit
   type (ele_struct), target :: ele
-  type (lat_param_struct) :: param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
   type (taylor_struct), optional, target :: taylor(6)
@@ -3513,12 +3531,11 @@ recursive subroutine em_field_custom_def (ele, param, s_rel, orbit, local_ref_fr
   logical, optional :: calc_dfield, calc_potential, use_overlap
 end subroutine
 
-subroutine ele_to_fibre_hook_def (ele, ptc_fibre, param, use_offsets, err_flag)
+subroutine ele_to_fibre_hook_def (ele, ptc_fibre, use_offsets, err_flag)
   import
   implicit none
   type (ele_struct) ele
   type (fibre) ptc_fibre
-  type (lat_param_struct) param
   logical use_offsets, err_flag
 end subroutine
 

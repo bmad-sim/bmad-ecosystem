@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_taylor (orb, ele, param, taylor, mat6, make_matrix)
+! Subroutine track1_taylor (orb, ele, taylor, mat6, make_matrix)
 !
 ! Subroutine to track through an element using the element's taylor map.
 ! If the taylor map does not exist, one will be created using the old
@@ -8,7 +8,6 @@
 ! Input:
 !   orbit         -- Coord_struct: Starting coords.
 !   ele           -- Ele_struct: Element to track through.
-!   param         -- lat_param_struct: Beam parameters.
 !   make_matrix   -- logical, optional: Propagate the transfer matrix? Default is false.
 !   taylor        -- taylor_struct, optional: Alternative map to use instead of ele%taylor. 
 !
@@ -17,7 +16,7 @@
 !   mat6(6,6)  -- real(rp), optional: Transfer matrix through the element.
 !-
 
-subroutine track1_taylor (orbit, ele, param, taylor, mat6, make_matrix)
+subroutine track1_taylor (orbit, ele, taylor, mat6, make_matrix)
 
 use ptc_interface_mod, except_dummy => track1_taylor
 
@@ -25,7 +24,6 @@ implicit none
 
 type (coord_struct) :: orbit, start_orb
 type (coord_struct) :: orb0
-type (lat_param_struct) :: param
 type (ele_struct), target :: ele
 type (taylor_struct), target :: taylor2(6)
 type (taylor_struct), optional, target :: taylor(6)
@@ -64,7 +62,7 @@ if (.not. associated(taylor_ptr(1)%term)) then
     return
   endif
   ! Else create a Taylor map around the zero orbit.
-  call ele_to_taylor(ele, param)
+  call ele_to_taylor(ele)
 endif
 
 ! Note: ele%mat6 holds the matrix for forward tracking (start_orb%direction == 1) independent
