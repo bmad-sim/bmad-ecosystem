@@ -50,6 +50,12 @@ if (ele%key == beginning_ele$) then
   return
 endif
 
+! X-ray mat6 calc not implemented.
+! Since X-ray tracking is highly nonlinear (think cyrstal diffraction and apertures, etc.), a linear
+! transfer matrix is generally useful.
+
+if (ele%ref_species == photon$) return
+
 ! Some init.
 ! If start_orb is in its not_set state (can happen if a particle is lost in 
 ! tracking and ele is downstream from the loss point), init the orbit to zero.
