@@ -4,13 +4,27 @@ use bmad
 
 implicit none
 
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (lat_struct), target :: lat, lat2
+type (ele_struct), pointer :: ele, ele2
 
-! Init
-call bmad_parser ('multipass_and_superimpose.bmad', lat)
+integer ie
+
+!
 
 open (1, file = 'output.now')
+
+! Space_charge_method test
+
+call bmad_parser ('multipass_and_superimpose.bmad', lat)
+call write_bmad_lattice_file ('lat.bmad', lat)
+call bmad_parser ('lat.bmad', lat2)
+
+do ie = 1, lat%n_ele_max
+  ele => lat%ele(ie)
+  write (1, '(a, i0, 3a, 2x, a)') '"scm-', ie, trim(ele%name), '" STR  ', &
+      quote(space_charge_method_name(ele%space_charge_method)), &
+      quote(space_charge_method_name(lat2%ele(ie)%space_charge_method))
+enddo
 
 ! Forking with a branch element
 
@@ -54,7 +68,6 @@ write (1, '(a, 3f12.6)') '"P-6MI" ABS 0', ele%value(z_offset$), ele%value(x_pitc
 ele => lat%branch(1)%ele(7)
 write (1, '(a, 3f12.6)') '"P-7FR" ABS 0', ele%floor%r
 write (1, '(a, 3f12.6)') '"P-7FA" ABS 0', ele%floor%theta, ele%floor%phi, ele%floor%psi
-
 
 ! And close
 
