@@ -481,7 +481,7 @@ slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
 slave%symplectify                 = lord%symplectify
 slave%is_on = lord%is_on
 slave%csr_method                  = lord%csr_method
-slave%space_charge_method         = lord%space_charge_method
+!! slave%space_charge_method         = lord%space_charge_method
 
 ! Handled by set_flags_for_changed_attribute
 

@@ -37,7 +37,8 @@ type (lat_struct), target :: lat
 type (coord_struct), optional :: orbit0
 type (ele_attribute_struct) attrib
 type (branch_struct), pointer :: branch, branch2
-type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0, girder
+type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord
+type (ele_struct), pointer :: slave1, slave2, ele2, ele_dflt, ele0, girder
 type (ele_struct), target :: ele_default(n_key$), this_ele
 type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
 type (ele_attribute_struct) info
@@ -1308,11 +1309,20 @@ do ie = 1, lat%n_ele_max
   if (ele%slave_status == super_slave$) cycle
 
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
-    if (ele%value(phi0_multipass$) == 0) cycle
-    if (.not. have_expand_lattice_line) call write_expand_lat_header
-    write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
+    if (ele%value(phi0_multipass$) /= 0) then
+      if (.not. have_expand_lattice_line) call write_expand_lat_header
+      write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
+    endif
   endif
 
+  if (ele%slave_status == multipass_slave$) then
+    multi_lord => pointer_to_multipass_lord (ele, ix_pass) 
+    slave1 => pointer_to_slave(multi_lord, 1)
+    if (ele%space_charge_method /= slave1%space_charge_method) then
+      if (.not. have_expand_lattice_line) call write_expand_lat_header
+      write (iu, '(3a)') trim(ele%name), '[space_charge_method] = ', space_charge_method_name(ele%space_charge_method)
+    endif
+  endif
 enddo
 
 ! If there are lattice elements with duplicate names but differing parameters then

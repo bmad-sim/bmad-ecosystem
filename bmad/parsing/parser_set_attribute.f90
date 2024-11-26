@@ -2063,6 +2063,13 @@ case ('SCATTER_METHOD')
   call get_switch (attrib_word, scatter_method_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(scatter_method$) = ix
 
+case ('SPACE_CHARGE_METHOD')
+  call get_switch (attrib_word, space_charge_method_name(1:), switch, err_flag, ele, delim, delim_found)
+  if (err_flag) return
+  ele%space_charge_method = switch
+  !  With multipass, space_charge_method needs bookkeeping since this param can be set individually in the slaves.
+  if (bp_com%parser_name == 'bmad_parser2') call set_flags_for_changed_attribute(ele, ele%space_charge_method)
+
 case ('SPATIAL_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(spatial_distribution$) = ix
@@ -2125,11 +2132,6 @@ case ('TRACKING_METHOD')
     return
   endif
   ele%tracking_method = switch
-
-case ('SPACE_CHARGE_METHOD')
-  call get_switch (attrib_word, space_charge_method_name(1:), switch, err_flag, ele, delim, delim_found)
-  if (err_flag) return
-  ele%space_charge_method = switch
 
 case ('VELOCITY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
