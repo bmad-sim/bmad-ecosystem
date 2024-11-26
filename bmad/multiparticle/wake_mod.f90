@@ -568,7 +568,7 @@ if (n_bad > 0.01 * size(bunch%particle)) then
 endif
 
 call fft_1d(srz%w_out, -1)
-srz%w_out = srz%w_out * srz%fw * f0 / nn
+srz%w_out = srz%w_out * srz%fw * f0
 call fft_1d(srz%w_out, 1)
 
 ! Apply wake
@@ -578,12 +578,12 @@ do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state /= alive$) cycle
 
-  rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srz%dz + 1 
-  ix1 = floor(rz_rel)
-  ix2 = ix1 + 1
+  rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srz%dz + n2 + 1
+  ix1 = MOD(floor(rz_rel) + n2 - 1, nn) + 1
+  ix2 = MOD(ix1, nn) + 1
 
-  r1 = ix2 - rz_rel
-  r2 = rz_rel - ix1
+  r2 = MOD(rz_rel, 1.0_rp)
+  r1 = 1 - r2
 
   select case (srz%position_dependence)
   case (none$, x_leading$, y_leading$)
