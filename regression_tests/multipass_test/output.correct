@@ -1,14 +1,37 @@
+"scm-1DRI01\1#1" STR  "Slice"  "Slice"
+"scm-2DRI01\1\Q01\1" STR  "FFT_3D"  "FFT_3D"
+"scm-3DRI01\1#2" STR  "Slice"  "Slice"
+"scm-4CAVITY2\1#1" STR  "Slice"  "Slice"
+"scm-5MM\1" STR  "Off"  "Off"
+"scm-6CAVITY2\1#2" STR  "Slice"  "Slice"
+"scm-7DRI01\2#1" STR  "Slice"  "Slice"
+"scm-8DRI01\2\Q01\2" STR  "Slice"  "Slice"
+"scm-9DRI01\2#2" STR  "Slice"  "Slice"
+"scm-10CAVITY2\2#1" STR  "FFT_3D"  "FFT_3D"
+"scm-11MM\2" STR  "Off"  "Off"
+"scm-12CAVITY2\2#2" STR  "FFT_3D"  "FFT_3D"
+"scm-13END" STR  "Off"  "Off"
+"scm-14DRI01\1" STR  "Slice"  "Slice"
+"scm-15Q01\1" STR  "FFT_3D"  "FFT_3D"
+"scm-16DRI01\2" STR  "Slice"  "Slice"
+"scm-17Q01\2" STR  "Slice"  "Slice"
+"scm-18CAVITY2\1" STR  "Slice"  "Slice"
+"scm-19CAVITY2\2" STR  "FFT_3D"  "FFT_3D"
+"scm-20MM" STR  "Off"  "Off"
+"scm-21DRI01" STR  "Slice"  "Slice"
+"scm-22Q01" STR  "FFT_3D"  "FFT_3D"
+"scm-23CAVITY2" STR  "Slice"  "Slice"
 "BF-01"  STR  "FORK2"
 "BF-02"  ABS   0   0  4
 "BF-03"  REL  1e-12   100.0000
 "MS-01"  STR  "DRI01\1#1"
-"MS-02"  STR  "DRI01\Q01\1"
+"MS-02"  STR  "DRI01\1\Q01\1"
 "MS-03"  STR  "DRI01\1#2"
 "MS-04"  STR  "CAVITY2\1#1"
 "MS-05"  STR  "MM\1"
 "MS-06"  STR  "CAVITY2\1#2"
 "MS-07"  STR  "DRI01\2#1"
-"MS-08"  STR  "DRI01\Q01\2"
+"MS-08"  STR  "DRI01\2\Q01\2"
 "MS-09"  STR  "DRI01\2#2"
 "MS-10"  STR  "CAVITY2\2#1"
 "MS-11"  STR  "MM\2"
@@ -16,6 +39,6 @@
 "MS-13"  STR  "END"
 "P-0S" ABS 0    2.000000
 "P-0T" ABS 0  1.000000E-09
-"P-6MI" ABS 0    1.000000    0.000000    0.000000
-"P-7FR" ABS 0    1.020000    0.000000    2.999900
-"P-7FA" ABS 0    0.010000    0.000000    0.000000
+"P-6MI" ABS 0    1.000000   -0.000000   -0.000000
+"P-7FR" ABS 0    1.020000   -0.000000    2.999900
+"P-7FA" ABS 0    0.010000   -0.000000    0.000000

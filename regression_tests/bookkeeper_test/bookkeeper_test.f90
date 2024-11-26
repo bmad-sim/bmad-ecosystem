@@ -7,7 +7,7 @@ use random_mod
 implicit none
 
 type (lat_struct), target :: lat, lat2, lat3
-type (ele_struct), pointer :: ele, nele
+type (ele_struct), pointer :: ele, nele, slave
 type (ele_struct) a_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
@@ -263,6 +263,18 @@ write (1, '(3a)') '"Aperture-7"   STR "', trim(coord_state_name(orb%state)), '"'
 
 call lat_ele_locator ('quad::*', lat, eles, n_loc, err)
 write (1, '(a, i4)') '"N_Quad_Loc" ABS 0', n_loc
+
+!
+
+call bmad_parser('pipe_superimpose.bmad', lat)
+ele => lat%ele(6)
+ele%value(x_offset$) = 0.0123456789012345
+call set_flags_for_changed_attribute(ele, ele%value(x_offset$))
+call lattice_bookkeeper(lat, err)
+
+slave => lat%ele(2)
+write (1, '(a, l1, a)') '"Pipe-superimpose-state" STR  "', slave%bookkeeping_state%has_misalign, '"'
+write (1, '(a, 2es24.16)') '"Pipe-superimpose-val" REL 1E-14 ', slave%value(x_offset$), slave%value(x_offset_tot$)
 
 close(1)
 

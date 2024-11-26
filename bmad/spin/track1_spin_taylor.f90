@@ -6,7 +6,7 @@
 ! Input :
 !   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
-!   param      -- lat_param_struct: Beam parameters.
+!   param            -- lat_param_struct: Beam parameters.
 !
 ! Output:
 !   end_orb     -- Coord_struct:
@@ -34,11 +34,7 @@ if (.not. ele%is_on) then
 endif
 
 if (.not. associated(ele%spin_taylor(0)%term)) then
-  if (ele%spin_tracking_method == sprint$) then
-    call sprint_spin_taylor_map(ele)
-  else
-    call ele_to_taylor(ele, param)
-  endif
+  call ele_to_spin_taylor(ele, param, start_orb)
 endif
 
 !

@@ -49,6 +49,8 @@ open (1, file = 'output.now')
 !----------------------------------------------------------
 ! Check information passing between bmad element and associated ptc fibre
 
+bmad_com%auto_bookkeeper = .false.
+
 call bmad_parser ('diff_test.bmad', lat)
 call lattice_bookkeeper (lat)
 call lat_to_ptc_layout(lat)
@@ -169,7 +171,7 @@ bmad_com%radiation_damping_on = .false.
 call bmad_parser ('single_quad.bmad', lat)
 
 ele => lat%ele(1)
-call ele_to_fibre(ele, ele%ptc_fibre, lat%param, .true., err_flag)
+call ele_to_fibre(ele, ele%ptc_fibre, .true., err_flag)
 x(1) = lat%particle_start%vec(1)
 x(3) = lat%particle_start%vec(3)
 z = lat%particle_start%vec(5)

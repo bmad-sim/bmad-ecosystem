@@ -15,7 +15,7 @@ contains
 ! Routine to calculate and store the parmeters needed for photon targeting.
 ! This routine is called by Bmad parsing routines and is not meant for general use.
 !
-! Photon initialization with targeting is done by the routine init_a_photon_from_a_photon_init_ele
+! Photon initialization with targeting is done by the routine init_photon_from_a_photon_init_ele
 ! Which is called by init_coord. 
 !
 ! Input:

@@ -568,7 +568,7 @@ if (n_bad > 0.01 * size(bunch%particle)) then
 endif
 
 call fft_1d(srz%w_out, -1)
-srz%w_out = srz%w_out * srz%fw * f0
+srz%w_out = srz%w_out * srz%fw * f0 / nn
 call fft_1d(srz%w_out, 1)
 
 ! Apply wake

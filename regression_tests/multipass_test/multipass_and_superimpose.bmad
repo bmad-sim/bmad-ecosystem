@@ -19,6 +19,14 @@ mm: marker, superimpose, ref = cavity2
 mline: line[multipass] = (dri01, null_d, cavity2) 
 erlrecovery: line = (mline, mline)
 
+q01[space_charge_method] = fft_3d
+cavity2[space_charge_method] = fft_3d
+dri01[space_charge_method] = fft_3d
+
 use, erlrecovery
 
+expand_lattice
 
+dri01[space_charge_method] = slice
+q01\2[space_charge_method] = slice
+cavity2\1[space_charge_method] = slice

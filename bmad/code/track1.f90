@@ -243,7 +243,7 @@ case (linear$)
   call track1_linear (end_orb, ele, param)
 
 case (taylor$) 
-  call track1_taylor (end_orb, ele, param)
+  call track1_taylor (end_orb, ele)
 
 case (symp_lie_bmad$) 
   call symp_lie_bmad (ele, param, end_orb, track, mat6 = ele%mat6, make_matrix = make_map1)

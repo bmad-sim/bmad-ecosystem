@@ -1,0 +1,11 @@
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+beginning[e_tot] = 100e6
+parameter[geometry] = open
+
+p1: pipe, L = 1
+q1: quad, L = 0.1, superimpose, ref = p1, k1 = 1
+
+lat: line = (p1)
+
+use, lat

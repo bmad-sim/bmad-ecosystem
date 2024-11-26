@@ -104,6 +104,15 @@ lattice names using a "|" character.  Do not put any spaces in between. Example:
 \begin{example}
   tao -lat slac.bmad|cesr.bmad
 \end{example}
+
+The \vn{file_name} can encode what line to use (instead of the using the line specified in
+the last \vn{use} statement in the lattice file) and whether to read the digested (binary) lattice file
+or the normal ASCII lattice file. The syntax for \vn{<file_name>} is
+\begin{example}
+  \{<parser>::\}<lattice_file>\{@<use_line>\}
+\end{example}
+See section \sref{s:init.lat} for details.
+
 %
 \item[-log_startup]
 If there is a problem with starting \tao, \vn{-log_startup} can be used to create a log file of the
@@ -412,17 +421,18 @@ namelist are:
     design_lattice(N)%slice_lattice = "<element_list>"             
   /
 \end{example}
-
 \vn{n_universes} is the number of universes to be created. The default is 1.  \vn{design_lattice(N)}
-gives the lattice file name for universe \vn{i}. The syntax for \vn{<lattice_file>} is:
+gives the lattice file name for universe \vn{i}. 
+
+The syntax for \vn{<lattice_file>} is:
 \begin{example}
   \{<parser>::\}<lattice_file>\{@<use_line>\}
 \end{example}
 Possible choices for the <parser> are:
 \index{bmad}\index{digested}
 \begin{example}
-  bmad      ! For a standard bmad lattice file. This is the default.
-  digested  ! For a digested BMAD file.
+  bmad      ! For a standard ASCII Bmad lattice file. This is the default.
+  digested  ! For a digested Bmad file.
 \end{example}
 The \vn{@<use_line>} optional suffix is used to specify what \vn{line} in the lattice file to use as
 a basis for constructing the lattice. This overrides the \vn{use} statement in the lattice file.

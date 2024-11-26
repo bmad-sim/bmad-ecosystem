@@ -1,5 +1,5 @@
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
+! Subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -10,7 +10,6 @@
 !
 ! Input:
 !   ele             -- Ele_struct: Bmad element.
-!   param           -- lat_param_struct: 
 !   use_offsets     -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
 !   integ_order     -- Integer, optional: Order for the 
 !                        sympletic integrator. Possibilities are: 2, 4, or 6
@@ -28,7 +27,7 @@
 !   ptc_fibre       -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
+subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
 
 use ptc_interface_mod, dummy => ele_to_fibre
 use madx_ptc_module, pi_dum => pi, pi2_dum => twopi
@@ -37,7 +36,6 @@ use dabnew_pancake
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) param
 type (coord_struct), optional :: ref_in
 type (ele_struct), pointer :: field_ele, ele2
 type (cartesian_map_term1_struct), pointer :: wt
@@ -131,7 +129,8 @@ if (n_map > 1) then
 endif
 
 use_taylor = (n_map == 0 .and. (key == wiggler$ .or. key == undulator$) .and. ele%field_calc == helical_model$)
-use_taylor = use_taylor .or. (ele%tracking_method == taylor$ .and. associated(ele%spin_taylor(1)%term))
+use_taylor = use_taylor .or. (ele%tracking_method == taylor$ .and. &
+                        associated(ele%spin_taylor(1)%term) .and. associated(ele%taylor(1)%term))
 if (use_taylor) key = match$
 
 ! 
@@ -158,10 +157,11 @@ if (key == sbend$ .and. val(g$) + val(dg$) == 0 .and. ptc_key%model /= 'DRIFT_KI
   !          'BEND WITH ZERO NET BENDING FIELD WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
+
 if (present(ref_in)) then
-  rel_charge = charge_of(ref_in%species) / charge_of(param%particle)
+  rel_charge = charge_of(ref_in%species) / charge_of(ele%ref_species)
 else
-  rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
+  rel_charge = 1
 endif
 
 leng = val(l$)
@@ -822,7 +822,7 @@ if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
-  fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
+  fh = 1d-9 * sign_of(charge_of(ele%ref_species)) / VOLT_C
   if (key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
     call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$, include_kicks$)
     ! Notice that a_pole and b_pole are reversed for electric fields.
@@ -992,7 +992,7 @@ if (key == taylor$ .or. key == match$) then
   ! onemap = T means do not split.
   ! At this point in time there is no splitting allowed.
 
-  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele, param)
+  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele)
 
   onemap = .true.
 
@@ -1128,6 +1128,6 @@ endif
 
 err_flag = .false.
 
-if (associated(ele_to_fibre_hook_ptr)) call ele_to_fibre_hook_ptr (ele, ptc_fibre, param, use_offsets, err_flag)
+if (associated(ele_to_fibre_hook_ptr)) call ele_to_fibre_hook_ptr (ele, ptc_fibre, use_offsets, err_flag)
 
 end subroutine ele_to_fibre
