@@ -470,7 +470,7 @@ if (.not. associated(lux_com%physical_source_ele)) then
       orb%field(2) = y
     endif
   endif
-  call init_coord (orb, orb, photon_init_ele, upstream_end$)
+  call init_coord (orb, orb, photon_init_ele, upstream_end$, random_on = .true.)
   return
 endif
 

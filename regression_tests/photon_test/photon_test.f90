@@ -32,7 +32,7 @@ call ran_uniform(prob)
 
 call bmad_parser ('photon_test.bmad', lat)
 
-call init_a_photon_from_a_photon_init_ele (lat%ele(1), lat%param, orb_start)
+call init_photon_from_a_photon_init_ele (lat%ele(1), lat%param, orb_start)
 orb_start%field = [1.0_rp, 2.0_rp]
 
 write (1, '(a, 6es16.8)') '"photon_init-vec" ABS 1E-10', orb_start%vec 

@@ -71,7 +71,7 @@ enddo
 
 y_dat = 0
 do ip = 1, n_photons
-  call init_a_photon_from_a_photon_init_ele (lat%ele(1), lat%param, p_end)
+  call init_photon_from_a_photon_init_ele (lat%ele(1), lat%param, p_end)
   if (ix_var == 7) then
     x = p_end%p0c
   else
