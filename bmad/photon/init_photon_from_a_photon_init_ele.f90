@@ -1,20 +1,22 @@
 !+
-! Subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
+! Subroutine init_photon_from_a_photon_init_ele (ele, param, orbit, random_on)
 !
 ! Routine to initialize a photon from an photon_init element.
 ! This routine is called by init_coord and is not meant to be called directly.
 !
 ! Input:
 !   ele           -- ele_struct: patch element.
-!   param         -- lat_param_struct
+!   param         -- lat_param_struct.
+!   random_on     -- logical, optional :: Default is True. If False then use zero 
+!                     for all random numbers needed in the calc.
 !
 ! Output:
 !   orbit         -- coord_struct: Output photon coords.
 !-
 
-Subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
+Subroutine init_photon_from_a_photon_init_ele (ele, param, orbit, random_on)
 
-use track1_photon_mod, except_dummy => init_a_photon_from_a_photon_init_ele
+use track1_photon_mod, except_dummy => init_photon_from_a_photon_init_ele
 use super_recipes_mod, only: super_zbrent
 
 implicit none
@@ -27,12 +29,15 @@ type (spline_struct) spl
 
 real(rp) r(3), rv(2), rr, drr, p2, f, de
 integer n, ix, status
+logical, optional :: random_on
 
-character(*), parameter :: r_name = 'init_a_photon_from_a_photon_init_ele'
+character(*), parameter :: r_name = 'init_photon_from_a_photon_init_ele'
 
 ! Spatial position
 
-if (nint(ele%value(spatial_distribution$)) == uniform$) then
+if (.not. logic_option(.true., random_on)) then
+  r = 0
+elseif (nint(ele%value(spatial_distribution$)) == uniform$) then
   call ran_uniform(r)
   r = 2 * r - 1
 elseif (nint(ele%value(spatial_distribution$)) == gaussian$) then
@@ -134,5 +139,5 @@ dprob = spline1(spl, energy, -1) - drr
 
 end function e_curve_func
 
-end subroutine init_a_photon_from_a_photon_init_ele
+end subroutine init_photon_from_a_photon_init_ele
 

@@ -1143,12 +1143,13 @@ subroutine g_integrals_calc (lat)
   type (lat_struct), target :: lat
 end subroutine
 
-subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
+subroutine init_photon_from_a_photon_init_ele (ele, param, orbit, random_on)
   import
   implicit none
   type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct) orbit
+  logical, optional :: random_on
 end subroutine
 
 subroutine init_bmad()
