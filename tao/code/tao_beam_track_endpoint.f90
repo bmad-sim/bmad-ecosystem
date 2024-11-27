@@ -107,7 +107,7 @@ case (girder_lord$)
   return
 end select
 
-if (ele0%lord_status == super_lord$) ele0 => pointer_to_slave(ele0, ele0%n_lord)
+if (ele0%lord_status == super_lord$) ele0 => pointer_to_slave(ele0, ele0%n_slave)
 
 if (ele0%n_slave /= 0) then
   call out_io (s_error$, r_name, 'UNABLE TO ASSOCIATE BEAM ' // trim(where) // ' ELEMENT: ' // ele_id, &
