@@ -173,6 +173,48 @@ end subroutine track_bunch
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine track1_beam (beam, ele, err, centroid, direction)
+!
+! Subroutine to track a beam of particles through an element.
+!
+! Input:
+!   beam          -- beam_struct: Starting beam position.
+!   ele           -- Ele_struct: element to track through.
+!   centroid(0:)  -- coord_struct, optional: Approximate centroid orbit. Only needed if CSR is on.
+!                      Hint: Calculate this before beam tracking by tracking a single particle.
+!   direction     -- integer, optional: +1 (default) -> Track forward, -1 -> Track backwards.
+!
+! Output:
+!   beam        -- Beam_struct: Ending beam position.
+!   err         -- Logical: Set true if there is an error. 
+!                    EG: Too many particles lost for a CSR calc.
+!-
+
+subroutine track1_beam (beam, ele, err, centroid, direction)
+
+implicit none
+
+type (beam_struct) beam
+type (ele_struct) ele
+type (coord_struct), optional :: centroid(0:)
+
+integer, optional :: direction
+integer ib
+logical err
+
+!
+
+do ib = 1, size(beam%bunch)
+  call track1_bunch (beam%bunch(ib), ele, err, centroid, direction)
+  if (err) return
+enddo
+
+end subroutine track1_beam
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine track1_bunch (bunch, ele, err, centroid, direction, bunch_track)
 !
 ! Subroutine to track a bunch of particles through an element.
