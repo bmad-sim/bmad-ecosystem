@@ -132,10 +132,11 @@ do ie = 0, branch%n_ele_track
   old_s_vec    = s_vec
 
   ele => branch%ele(ie)
+  n0 = quat_rotate(tspin%q_ele(ie)%spin_q(:,0), n0)
 
   if (branch%param%geometry == closed$) then
     tspin%q_1turn = tspin%q_ele(ie) * tspin%q_1turn * map1_inverse(tspin%q_ele(ie))
-    dn_dpz = spin_dn_dpz_from_qmap(tspin%q_1turn%orb_mat, tspin%q_1turn%spin_q, partial, partial2, err)
+    dn_dpz = spin_dn_dpz_from_qmap(tspin%q_1turn%orb_mat, tspin%q_1turn%spin_q, partial, partial2, err, n0)
     if (err) exit
     tao_branch%spin_ele(ie)%valid = .true.
     tao_branch%spin_ele(ie)%dn_dpz%vec      = dn_dpz
@@ -145,7 +146,7 @@ do ie = 0, branch%n_ele_track
 
   else
     if (ie == 0) cycle
-    dn_dpz   = quat_sym(ele, tspin%q_ele(ie)%spin_q, n0) + quat_rotate(tspin%q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
+    dn_dpz   = dispersion_dn_dpz(ele, tspin%q_ele(ie)%spin_q, n0) + quat_rotate(tspin%q_ele(ie)%spin_q(:,0), tao_branch%spin_ele(ie-1)%dn_dpz%vec)
     partial  = 0
     partial2 = 0
     tao_branch%spin_ele(ie)%valid = .true.
@@ -159,7 +160,6 @@ do ie = 0, branch%n_ele_track
     exit
   endif
 
-  n0 = quat_rotate(tspin%q_ele(ie)%spin_q(:,0), n0)
   del_p  = 1 + orbit(ie)%vec(6)
   s_vec(1:2) = [orbit(ie)%vec(2)/del_p, orbit(ie)%vec(4)/del_p]
   s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
@@ -254,21 +254,27 @@ end subroutine mark_logic_false
 !--------------------------------------
 ! contains
 
-function quat_sym(ele, q, vec) result(vec_sym)
+!+
+! Function dispersion_dn_dpz(ele, q_map, n0) result(dn_dpz)
+!
+! Routine to calculate dn_dpz in an open geometry line due to dispersion.
+!-
+
+function dispersion_dn_dpz(ele, q_map, n0) result(dn_dpz)
 
 type (ele_struct) ele
-real(rp) q(0:3,0:6), q0(0:3), dq(0:3), vec(3), vec_sym(3), q_sym(0:3)
+real(rp) q_map(0:3,0:6), q0(0:3), dq(0:3), n0(3), dn_dpz(3), q_n0(0:3), dq_n0(0:3)
 
 !
 
-q_sym = [0.0_rp, vec]
-dq = q(:,6) + ele%x%eta * q(:,1) + ele%x%etap * q(:,2) + ele%y%eta * q(:,3) + ele%y%etap * q(:,4)
-q0 = q(:,0)
+q_n0 = [0.0_rp, n0]
+dq = q_map(:,6) + ele%x%eta * q_map(:,1) + ele%x%etap * q_map(:,2) + ele%y%eta * q_map(:,3) + ele%y%etap * q_map(:,4)
+q0 = q_map(:,0)
 
-q_sym = quat_mul(dq, q_sym, quat_conj(q0)) + quat_mul(q0, q_sym, quat_conj(dq))
-vec_sym = q_sym(1:3)
+dq_n0 = quat_mul(dq, q_n0, quat_conj(q0)) + quat_mul(q0, q_n0, quat_conj(dq))
+dn_dpz = dq_n0(1:3)
 
-end function quat_sym
+end function dispersion_dn_dpz
 
 end subroutine tao_spin_polarization_calc
 
