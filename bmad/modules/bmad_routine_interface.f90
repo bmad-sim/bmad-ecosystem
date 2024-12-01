@@ -2424,9 +2424,10 @@ function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial, error) result (dn_dpz
   logical error
 end function
 
-function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial, dn_dpz_partial2, error) result (dn_dpz)
+function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial, dn_dpz_partial2, error, n0) result (dn_dpz)
   import
   implicit none
+  real(rp), optional :: n0(3)
   real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3)
   real(rp) :: dn_dpz_partial(3,3), dn_dpz_partial2(3,3)
   logical error
