@@ -527,7 +527,7 @@ if (sr%amp_scale == 0) return
 srz => sr%z_long
 if (srz%dz == 0) return
 
-f0 = sr%amp_scale * bunch%charge_live / sum(bunch%particle%charge, bunch%particle%state == alive$) / ele%value(p0c$)
+f0 = sr%amp_scale / ele%value(p0c$)
 if (sr%scale_with_length) f0 = f0 * ele%value(l$) 
 
 ! Compute binned bunch distribution and wake
