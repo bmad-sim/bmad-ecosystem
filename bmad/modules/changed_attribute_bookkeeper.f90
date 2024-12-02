@@ -120,6 +120,14 @@ call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
 
 a_ptr => attrib
 
+if (ele%key /= taylor$ .or. ele%tracking_method /= taylor$) then
+  if (associated(a_ptr, ele%spin_tracking_method)) then
+    call kill_taylor (ele%spin_taylor)
+  endif
+endif
+
+!-------------------------------------------------------------------
+
 select case (ele%key)
 case (rfcavity$, lcavity$, e_gun$)
   if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
@@ -198,6 +206,16 @@ logical, optional :: set_dependent
 ! Call to set_flags_for_changed_real_attribute will set some generic flags
 
 a_ptr => attrib
+
+if (ele%key /= taylor$ .or. ele%tracking_method /= taylor$) then
+  if (associated(a_ptr, ptc_com%exact_model) .or. associated(a_ptr, ptc_com%exact_misalign)) then
+    call kill_taylor (ele%spin_taylor)
+    call kill_taylor (ele%taylor)
+  endif
+endif
+
+!-------------------------------------------------------------------
+
 if (associated(a_ptr, ele%field_master)) then
   f = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
   if (ele%key == multipole$) then
