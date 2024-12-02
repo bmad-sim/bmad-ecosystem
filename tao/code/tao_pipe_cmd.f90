@@ -7062,7 +7062,7 @@ case ('spin_polarization')
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
-  if (.not. tao_branch%spin%valid) call tao_spin_polarization_calc (branch, tao_branch)
+  call tao_spin_polarization_calc (branch, tao_branch)
 
   z = anomalous_moment_of(branch%param%particle) * branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
   nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',           z
