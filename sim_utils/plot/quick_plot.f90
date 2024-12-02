@@ -2973,11 +2973,9 @@ endif
 
 ! Draw the rows
 
-yc = yc - 1.1 * height
+yc2 = yc - 0.6 * height
 
 do i = 1, n_rows
-  yc2 = yc + 0.5 * height * legend%row_spacing
-
   if (has_line) then
     if (line(i)%width > -1) then
       call qp_set_line ('STD', line(i))
@@ -2994,10 +2992,10 @@ do i = 1, n_rows
 
   if (has_text) then
     call qp_set_text_attrib ('LEGEND')
-    call qp_draw_text_no_set (text(i), xc + line_len + text_off, yc, 'INCH/PAGE/LB')
+    call qp_draw_text_no_set (text(i), xc + line_len + text_off, yc2-0.5*height, 'INCH/PAGE/LB')
   endif
 
-  yc = yc - 1.5 * height * legend%row_spacing
+  yc2 = yc2 - 1.0 * height * legend%row_spacing
 enddo
 
 call qp_restore_state

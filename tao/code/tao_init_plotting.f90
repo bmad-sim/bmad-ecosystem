@@ -505,7 +505,8 @@ do  ! Loop over plot files
       grph%draw_grid                        = graph%draw_grid
       grph%draw_only_good_user_data_or_vars = graph%draw_only_good_user_data_or_vars
       grph%draw_curve_legend                = graph%draw_curve_legend
-      grph%floor_plan                       = graph%floor_plan      
+      grph%floor_plan                       = graph%floor_plan 
+      grph%curve_legend                     = graph%curve_legend     
       grph%title_suffix                     = ''
       grph%text_legend                      = ''
       grph%y2_mirrors_y                     = .true.

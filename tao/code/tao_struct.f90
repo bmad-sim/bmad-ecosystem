@@ -264,6 +264,7 @@ type tao_graph_struct
   type (tao_floor_plan_struct) :: floor_plan = tao_floor_plan_struct()
   type (qp_point_struct) :: text_legend_origin = qp_point_struct()
   type (qp_point_struct) :: curve_legend_origin = qp_point_struct()
+  type (qp_legend_struct) :: curve_legend = qp_legend_struct()
   type (qp_axis_struct) :: x = qp_axis_struct()              ! X-axis parameters.
   type (qp_axis_struct) :: y = qp_axis_struct()              ! Y-axis attributes.
   type (qp_axis_struct) :: x2 = qp_axis_struct()             ! X2-axis attributes (Not currently used).
@@ -337,7 +338,6 @@ type tao_plot_page_struct
   type (tao_drawing_struct) :: floor_plan = tao_drawing_struct(null())
   type (tao_drawing_struct) :: lat_layout = tao_drawing_struct(null())
   type (tao_shape_pattern_struct), allocatable :: pattern(:)
-  type (qp_legend_struct) :: curve_legend = qp_legend_struct()
   type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
   type (tao_plot_region_struct), allocatable :: region(:)
   character(8) :: plot_display_type = 'X'   ! 'X' or 'TK'

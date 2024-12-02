@@ -145,6 +145,7 @@ type tao_graph_input
   type (qp_axis_struct) :: y = qp_axis_struct()
   type (qp_axis_struct) :: x2 = qp_axis_struct()
   type (qp_axis_struct) :: y2 = qp_axis_struct()
+  type (qp_legend_struct) :: curve_legend = qp_legend_struct(1.0_rp, 30.0_rp, 6.0_rp, .true., .true., .true.)
 end type 
 
 type tao_plot_input
@@ -192,7 +193,6 @@ end type
 type tao_plot_page_input
   type (tao_title_struct) :: title = tao_title_struct()         ! Title  at top of page.
   type (tao_title_struct) :: subtitle = tao_title_struct()      ! Subtitle at top of page.
-  type (qp_legend_struct) :: curve_legend = qp_legend_struct()
   type (qp_rect_struct) :: border = qp_rect_struct()            ! Border around plots edge of page.
   character(8) :: plot_display_type = ''  
   real(rp) :: size(2) = 0.0                 ! width and height of window in pixels.
@@ -267,8 +267,6 @@ if (logic_option(.false., reverse)) then
   plot_input%border                       = plot_page%border
   plot_input%delete_overlapping_plots     = plot_page%delete_overlapping_plots
   plot_input%draw_graph_title_suffix      = plot_page%draw_graph_title_suffix
-  plot_input%curve_legend_line_len        = plot_page%curve_legend%line_length
-  plot_input%curve_legend_text_offset     = plot_page%curve_legend%text_offset
 endif
 
 ! 
@@ -293,16 +291,14 @@ plot_page%border                       = plot_input%border
 plot_page%delete_overlapping_plots     = plot_input%delete_overlapping_plots
 plot_page%draw_graph_title_suffix      = plot_input%draw_graph_title_suffix
 
-if (plot_input%curve_legend_line_len == real_garbage$) then
-  plot_page%curve_legend%line_length = 30   ! Points
-else
-  plot_page%curve_legend%line_length = plot_input%curve_legend_line_len 
+if (plot_input%curve_legend_line_len /= real_garbage$) then
+  call out_io(s_error$, r_name, '"plot_page%curve_legend_line_len" has been replaced by "default_graph%curve_legend%line_len".', &
+                                 'Please modify the input file. This setting will be ignored.')
 endif
 
-if (plot_input%curve_legend_text_offset == real_garbage$) then
-  plot_page%curve_legend%text_offset = 6    ! Points
-else
-  plot_page%curve_legend%text_offset = plot_input%curve_legend_text_offset 
+if (plot_input%curve_legend_text_offset /= real_garbage$) then
+  call out_io(s_error$, r_name, '"plot_page%curve_legend_text_offset" has been replaced by "default_graph%curve_legend%text_offset".', &
+                                 'Please modify the input file. This setting will be ignored.')
 endif
 
 ! Plot window geometry specified on cmd line?

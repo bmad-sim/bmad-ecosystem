@@ -1961,7 +1961,7 @@ do i = 1, nc
 enddo
 
 if (graph%draw_curve_legend .and. (nc > 1 .or. .not. graph%x%draw_label)) then
-  call qp_draw_curve_legend (graph%curve_legend_origin, s%plot_page%curve_legend, line, symbol, text)
+  call qp_draw_curve_legend (graph%curve_legend_origin, graph%curve_legend, line, symbol, text)
 endif
 
 

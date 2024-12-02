@@ -269,11 +269,11 @@ curve's line in the legend.  This default can be changed by setting a curve's \v
 Parameters that affect the curve legend are:
 \begin{example}
   plot_page%legend_text_scale        ! Also affects lat_layout and floor_plan text size.      
-  plot_page%curve_legend_line_len    ! tao_plot_page namelist (\sref{s:plot.page})
-  plot_page%curve_legend_text_offset ! tao_plot_page namelist (\sref{s:plot.page})
   curve(N)%legend_text               ! 
   graph%curve_legend_origin          
   graph%draw_curve_legend            
+  graph%curve_legend%line_len    ! curve_legend is a qp_legend_struct (\sref{s:qp.legend.str}).
+  graph%curve_legend%text_offset ! 
 \end{example}
 The curve legend is distinct from the \vn{text legend} (\sref{s:text.legend}).
 
