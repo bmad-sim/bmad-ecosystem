@@ -3,6 +3,7 @@ program wake_plot
 use bmad
 use wake_mod
 use quick_plot
+use beam_utils, only: init_bunch_distribution
 
 implicit none
 
@@ -14,7 +15,10 @@ type (wake_lr_struct), pointer :: lr
 type (wake_sr_z_long_struct), pointer :: srz
 type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (bunch_struct), target :: bunch
-type (coord_struct), pointer :: p1, p2
+type (coord_struct), pointer :: p1, test_p
+type (coord_struct), target :: this_p
+type (coord_struct), allocatable :: orb(:)
+type (beam_init_struct) beam_init
 
 real(rp) :: x_min, x_max, plot_size(2), text_scale, zero6(6) = 0
 real(rp) xy_leading(2), xy_trailing(2), vec2(6), z
@@ -22,13 +26,13 @@ real(rp), allocatable :: x_axis(:), wx(:), wy(:), wz(:)
 
 integer n, n_points, ix_wake, m_order, i, im, iz, ik, n_loc, ix, nw, n1, n2
 
-logical make_plot, err, err_flag, ok
+logical make_plot, err, err_flag, ok, use_beam_init
 
 character(40) wake_ele_name, ans, who, plot_type
 character(200) init_file, lat_file, postscript_file
 
-namelist / params / x_min, x_max, make_plot, plot_size, who, plot_type, &
-                    wake_ele_name, lat_file, n_points, postscript_file, &
+namelist / params / x_min, x_max, make_plot, plot_size, who, plot_type, wake_ele_name, &
+                    lat_file, n_points, postscript_file, beam_init, use_beam_init, &
                     text_scale, xy_leading, xy_trailing, ix_wake, m_order
 
 ! Read input
@@ -45,6 +49,7 @@ ix_wake = 0
 m_order = 0
 x_min = 0
 x_max = 0
+use_beam_init = .false.
 
 open (1, file = init_file, status = 'old')
 read (1, nml = params)
@@ -53,6 +58,7 @@ close (1)
 ! Init
 
 call bmad_parser(lat_file, lat, err_flag = err)
+call twiss_and_track(lat, orb)
 if (err) stop
 
 !
@@ -74,22 +80,6 @@ if (.not. associated(wake_ele%wake)) then
   print *, 'NO WAKES IN ELEMENT: ' // wake_ele%name
   stop
 endif
-
-!
-
-call reallocate_bunch(bunch, 2)
-p1 => bunch%particle(1)
-p2 => bunch%particle(2)
-call init_coord(p1, zero6, wake_ele, upstream_end$)
-call init_coord(p2, zero6, wake_ele, upstream_end$)
-
-p1%vec(1:3:2) = xy_leading
-p2%vec(1:3:2) = xy_trailing
-vec2 = p2%vec
-
-p1%charge = 1
-p2%charge = 1e-10
-bunch%charge_live = 1
 
 !
 
@@ -123,6 +113,37 @@ if (who == 'sr-z-long' .and. plot_type == 'wake') then
   stop
 endif
 
+!
+
+if (use_beam_init) then
+  call init_bunch_distribution(wake_ele, lat%param, beam_init, 0, bunch)
+  if (bunch%charge_tot == 0) then
+    print *, 'beam_init%bunch_charge is zero!'
+    stop
+  endif
+
+  if (who == 'sr-z-long') then
+    test_p => this_p
+  else
+    test_p => bunch%particle(1)
+  endif
+
+else
+  call reallocate_bunch(bunch, 2)
+  p1 => bunch%particle(1)
+  test_p => bunch%particle(2)
+  call init_coord(p1, zero6, wake_ele, upstream_end$)
+  p1%vec(1:3:2) = xy_leading
+
+  p1%charge = 1
+  bunch%charge_live = 1
+endif
+
+call init_coord(test_p, zero6, wake_ele, upstream_end$)
+test_p%vec(1:3:2) = xy_trailing
+vec2 = test_p%vec
+test_p%charge = 1e-20
+
 ! 
 
 allocate (x_axis(n_points), wx(n_points), wy(n_points), wz(n_points))
@@ -152,19 +173,19 @@ case ('lr')
     endif
   endif
 
-  p2%vec(5) = -1
+  test_p%vec(5) = -1
   call order_particles_in_z(bunch)
 
   do i = 1, n_points
     z = x_min + (x_max - x_min) * (i - 1.0_rp) / (n_points - 1.0_rp)
-    p2%vec = vec2
-    p2%vec(5) = z
+    test_p%vec = vec2
+    test_p%vec(5) = z
     x_axis(i) = z
     call zero_lr_wakes_in_lat(lat)
     call track1_lr_wake(bunch, wake_ele)
-    wx(i) = p2%vec(2)
-    wy(i) = p2%vec(4)
-    wz(i) = p2%vec(6)
+    wx(i) = test_p%vec(2)
+    wy(i) = test_p%vec(4)
+    wz(i) = test_p%vec(6)
   enddo
 
 !
@@ -202,14 +223,14 @@ case ('sr')
 
   do i = 1, n_points
     z = x_min + (x_max - x_min) * (i - 1.0_rp) / (n_points - 1.0_rp)
-    p2%vec = vec2
-    p2%vec(5) = z
+    test_p%vec = vec2
+    test_p%vec(5) = z
     x_axis(i) = z
     call order_particles_in_z(bunch)
-    call track1_sr_wake(bunch, wake_ele)
-    wx(i) = p2%vec(2)
-    wy(i) = p2%vec(4)
-    wz(i) = p2%vec(6)
+    call track1_sr_wake(bunch, wake_ele, test_p)
+    wx(i) = test_p%vec(2)
+    wy(i) = test_p%vec(4)
+    wz(i) = test_p%vec(6)
   enddo
 
 end select

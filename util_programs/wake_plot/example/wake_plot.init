@@ -16,4 +16,7 @@
   draw_knot_points = False    ! Draw symbols at SR z-dependent wake knot points?
   text_scale = 1.2            ! Scale for drawing text.
   plot_size = 500, 400        ! (width, height) plot size in pixels.
+
+  use_beam_init = F           ! Init beam using beam_init?
+  ! beam_init%...             ! See documentation in the Bmad manual on the beam_init_struct.
 /

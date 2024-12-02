@@ -151,6 +151,10 @@ enddo
 !$OMP end parallel do
 
 bunch%charge_live = sum (bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+if (bunch%charge_live == 0) then
+  call out_io (s_info$, r_name, 'Note: Wakes are on but bunch charge is zero!')
+endif
+
 call save_a_bunch_step (ele, bunch, bunch_track, ele%value(l$))
 
 end subroutine track1_bunch_hom

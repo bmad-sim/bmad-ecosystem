@@ -1535,9 +1535,11 @@ if (allocated(srz%w)) then
   srz%fw = srz%w
   call fft_1d(srz%fw, -1)
   if (srz%smoothing_sigma /= 0) then
-    do i = 1, nt
-      f = real(i - 1, rp) / (nt - 1) 
-      srz%fw(i) = srz%fw(i) * exp(-2*pi*(f*srz%smoothing_sigma)**2)
+    do i = 2, nn+1
+      f = (i - 1) * pi * srz%smoothing_sigma / (srz%dz * nt)
+      f = exp(-2 * f**2)
+      srz%fw(i)      = f * srz%fw(i)
+      srz%fw(nt-i+2) = f * srz%fw(nt-i+2)
     enddo
   endif
 
