@@ -84,9 +84,9 @@
 !   loc_str        -- character(*): Element names or indexes. May be lower case.
 !   lat            -- lat_struct: Lattice to search through.
 !   above_ubound_is_err
-!                  -- logical, optional: If the upper bound "e2" on an "e1:e2" range construct 
-!                       is above the maximum element index then treat this as an error? 
-!                       Default is True. If False, treat e2 as the maximum element index. 
+!                  -- logical, optional: Default is True. If the upper bound "e2" on an "e1:e2" range construct 
+!                       is an integer and above the maximum element index then treat this as an error? 
+!                       If False, treat e2 as the maximum element index. 
 !   ix_dflt_branch -- integer, optional: If present and not -1 then restrict search to specified branch.
 !                       If not present or -1: Search all branches. Exception: For elements specified using 
 !                       an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.

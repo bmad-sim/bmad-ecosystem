@@ -505,6 +505,7 @@ do k = 1, size(graph%curve)
   if (.not. associated(ele)) then
     call out_io (s_error$, r_name, 'CURVE REFERENCE ELEMENT IS NOT AN ELEMENT THAT IS TRACKED THROUGH: ' // curve%ele_ref_name, &
                                    'FOR CURVE: ' // tao_curve_name(curve))
+    cycle
   endif
 
   select case (curve%component)
