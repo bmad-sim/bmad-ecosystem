@@ -1450,9 +1450,8 @@ implicit none
 type (tao_curve_array_struct), allocatable :: curve(:)
 type (tao_graph_array_struct), allocatable :: graph(:)
 type (lat_struct), pointer :: lat
-type (ele_struct), pointer :: ele_track
 
-integer i, j, ios, i_uni
+integer i, j, ios
 integer, allocatable :: ix_ele(:)
 
 character(*) curve_name, component, value_str
@@ -1484,8 +1483,9 @@ type (tao_graph_struct), pointer :: this_graph
 type (tao_universe_struct), pointer :: u
 type (tao_model_branch_struct), pointer :: model_branch
 type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele_track
 
-integer ix, i_branch
+integer ix, i_branch, i_uni
 logical err, is_int
 character(40) name, comp
 
@@ -1660,6 +1660,9 @@ case default
 end select
 
 ! Set lattice recalc for a phase_space plot
+
+if (err) return
+if (.not. associated(this_graph%p%r)) return  ! A template plot is ignored.
 
 if (this_graph%type == 'phase_space') then
   i_uni = tao_universe_index(tao_curve_ix_uni(this_curve))

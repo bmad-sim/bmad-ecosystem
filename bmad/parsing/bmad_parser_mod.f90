@@ -1371,9 +1371,9 @@ type (wake_sr_mode_struct), pointer :: srm
 type (wake_sr_z_long_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
-real(rp) f
-real(rp), allocatable :: table(:,:)
-integer i, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt
+real(rp) f, esum, val
+real(rp), allocatable :: table(:,:), gauss(:)
+integer i, j, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt, ns
 
 logical delim_found, err_flag, err
 
@@ -1532,16 +1532,28 @@ if (allocated(srz%w)) then
     srz%w  = srz%w(nt:1:-1)
     srz%smoothing_sigma = c_light * srz%smoothing_sigma
   endif
-  srz%fw = srz%w
-  call fft_1d(srz%fw, -1)
+
   if (srz%smoothing_sigma /= 0) then
-    do i = 2, nn+1
-      f = (i - 1) * pi * srz%smoothing_sigma / (srz%dz * nt)
-      f = exp(-2 * f**2)
-      srz%fw(i)      = f * srz%fw(i)
-      srz%fw(nt-i+2) = f * srz%fw(nt-i+2)
+    ns = nint(3*srz%smoothing_sigma / srz%dz)
+    allocate (gauss(-ns:ns))
+    do i = -ns, ns
+      gauss(i) = exp(-0.5 * i * (srz%dz / srz%smoothing_sigma)**2)
     enddo
+
+    srz%fw = 0
+    do i = 1, nt
+      esum = 0
+      do j = max(1, i - ns), min(nt, i + ns)
+        srz%fw(i) = srz%fw(i) + gauss(j-i) * srz%w(j)
+        esum = esum + gauss(j-i)
+      enddo
+      srz%fw(i) = srz%fw(i) / esum
+    enddo
+  else
+    srz%fw = srz%w
   endif
+
+  call fft_1d(srz%fw, -1)
 
 else
   allocate (srz%w(0), srz%fw(0), srz%w_out(0), srz%fbunch(0))
