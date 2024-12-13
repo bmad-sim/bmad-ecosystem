@@ -27,8 +27,9 @@ type (keywords) ptc_key
 type (element), pointer :: mag
 type (elementp), pointer :: magp
 type (magnet_chart), pointer :: mp, mpp
+type (work) ptc_work
 
-real(rp) value, hk, vk, phi_tot, fh, volt
+real(rp) value, hk, vk, phi_tot, fh, volt, delta_p
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) a_ptc(0:n_pole_maxx), b_ptc(0:n_pole_maxx)
 real(rp), pointer :: val(:)
@@ -44,12 +45,17 @@ survey_needed = .false.
 branch => pointer_to_branch(ele)
 fib => ele%ptc_fibre
 val => ele%value
+FEED_P0C = .true.
 
 mag  => fib%mag
 magp => fib%magp
 
 mp => mag%p
 mpp => magp%p
+
+ptc_work = fib
+ptc_work = 1e-9_rp * val(p0c$) - mp%p0c 
+fib = ptc_work
 
 cavity_type = not_set$
 if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
@@ -66,8 +72,6 @@ elseif (cavity_type /= standing_wave$) then
   call set_real_all (mp%ld, mpp%ld, val(l$))
   call set_real_all (mp%lc, mpp%lc, val(l$))
 endif
-
-call set_real_all (mp%p0c, mpp%p0c, 1e-9_rp * val(p0c$))
 
 !
 
