@@ -755,6 +755,7 @@ type tao_common_struct
   integer :: lev_loop = 0                       ! in do loop nest level
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   integer :: n_universes = n_uni_init$   
+  integer :: omp_n_threads = 1                  ! Number of OpenMP threads.
   logical :: cmd_file_paused = .false.
   logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
