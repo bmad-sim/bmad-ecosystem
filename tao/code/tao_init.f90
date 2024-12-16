@@ -45,7 +45,7 @@ character(16) :: r_name = 'tao_init'
 character(16) init_name
 
 integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios, ie
-integer iu_log, omp_n
+integer iu_log
 
 logical err_flag
 logical err, calc_ok, valid_value, this_calc_ok, using_default
@@ -76,8 +76,8 @@ endif
 
 ! OpenMP info
 
-!$ omp_n = omp_get_max_threads()
-!$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(omp_n))
+!$ s%com%omp_n_threads = omp_get_max_threads()
+!$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%com%omp_n_threads))
 
 ! Open the init file.
 ! If the init file name is *not* the default (that is, it has been set by
