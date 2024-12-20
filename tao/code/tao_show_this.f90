@@ -2135,7 +2135,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
-    nl=nl+1; write(lines(nl), lmt) '  %rad_int_calc_on               = ', s%global%rad_int_calc_on
+    nl=nl+1; write(lines(nl), lmt) '  %rad_int_calc_on               = ', s%global%rad_int_user_calc_on
     nl=nl+1; write(lines(nl), amt) '  %history_file                  = ', s%global%history_file
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
     nl=nl+1; write(lines(nl), lmt) '  %external_plotting             = ', s%global%external_plotting
@@ -3237,11 +3237,11 @@ case ('lattice')
   do i = 1, size(column)
     if (index(col(i)%name, 'rad_int') /= 0) then
       ix = ix_branch
-      call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix, u%model%rad_int)
+      call radiation_integrals (u%model%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix, u%model%rad_int_by_ele_ri)
       call radiation_integrals (u%design%lat, design_tao_branch%orbit, design_tao_branch%modes_ri, &
-                                                            design_tao_branch%ix_rad_int_cache, ix, u%design%rad_int)
+                                                            design_tao_branch%ix_rad_int_cache, ix, u%design%rad_int_by_ele_ri)
       call radiation_integrals (u%base%lat, u%base%tao_branch(ix)%orbit, u%base%tao_branch(ix)%modes_ri, &
-                                                  u%base%tao_branch(ix)%ix_rad_int_cache, ix, u%base%rad_int)
+                                                  u%base%tao_branch(ix)%ix_rad_int_cache, ix, u%base%rad_int_by_ele_ri)
       exit
     endif
   enddo
@@ -5750,6 +5750,7 @@ case ('universe')
   branch => lat%branch(ix_branch)
   model_branch => u%model_branch(ix_branch)
   tao_branch => u%model%tao_branch(ix_branch)
+  tao_lat => tao_pointer_to_tao_lat (u, model$)
 
   design_lat => u%design%lat
   design_branch => design_lat%branch(ix_branch)
@@ -5843,8 +5844,8 @@ case ('universe')
   if (lat%param%geometry == closed$) then
     u%model%high_e_lat = u%model%lat
     ele2 => u%model%high_e_lat%branch(ix_branch)%ele(0)
-    call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat, tao_branch%orbit)
-    call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat, tao_branch%orbit)
+    call emit_6d (ele2, .false., tao_branch%modes_6d, sig_mat, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
+    call emit_6d (ele2, .true., tao_branch%modes_6d, sig_mat, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
     if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
                                            (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
       call out_io (s_info$, r_name, &
