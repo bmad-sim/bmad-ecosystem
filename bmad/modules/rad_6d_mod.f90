@@ -1,5 +1,5 @@
-! Note: A negative emittance is possible and just means that the beam is
-! unstable. That is, the corresponding damping partition number is negative.
+! Note: A negative emittance is possible and just means that the beam is unstable.
+! That is, the corresponding damping partition number is negative.
 
 !+
 ! Module rad_6d_mod
@@ -13,13 +13,21 @@ use bmad_routine_interface
 
 implicit none
 
+type private_stash_struct
+  real(rp) :: gamma0            ! Relativistic gamma factor.
+  real(rp) :: eta_x_coef(0:3)   ! Dispersion interpolation coefs.
+  real(rp) :: eta_y_coef(0:3)   ! Dispersion interpolation coefs.
+end type
+
+private :: private_stash_struct
+
 contains
 
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat, closed_orbit)
+! Subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat, closed_orbit, rad_int_by_ele) 
 !
 ! Routine to calculate the three normal mode emittances, damping partition numbers, etc. 
 ! Since the emattances, etc. are only an invariant in the limit of zero damping, the calculated
@@ -33,27 +41,30 @@ contains
 !
 ! Output:
 !   mode            -- normal_modes_struct: Emittance and other info.
-!   sigma_mat(6,6)  -- real(rp): Sigma matrix
+!   sigma_mat(6,6)  -- real(rp): Sigma matrix.
+!   rad_int_by_ele  -- rad_int_all_ele_struct, optional: Radiation integrals element-by-element.
 !-
 
-subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat, closed_orbit)
+subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat, closed_orbit, rad_int_by_ele)
 
 use f95_lapack, only: dgesv_f95
 
 type (ele_struct), target :: ele_ref
 type (ele_struct), pointer :: ele
 type (coord_struct) orbit
+type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (normal_modes_struct) mode
 type (rad_map_struct) rmap
 type (coord_struct), optional, target :: closed_orbit(0:)
+type (rad_int_all_ele_struct), target, optional :: rad_int_by_ele
+type (rad_int_branch_struct), pointer :: ri_branch
 
-real(rp) sigma_mat(6,6), rf65, sig_s(6,6), mat6(6,6), xfer_nodamp_mat(6,6)
-real(rp) mt(21,21), v_sig(21,1)
+real(rp) sigma_mat(6,6), rf65, sig_s(6,6), mat6(6,6), xfer_nodamp_mat(6,6), mt(21,21), v_sig(21,1)
 
 complex(rp) eval(6), evec(6,6), cmat(6,6)
 
-integer i, j, k, ipev(21), info
+integer i, j, k, ib, ipev(21), info
 
 integer, parameter :: w1(21) = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6]
 integer, parameter :: w2(21) = [1, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 3, 4, 5, 6, 4, 5, 6, 5, 6, 6]
@@ -63,12 +74,52 @@ integer, parameter :: v(6,6) = reshape( &
 
 logical include_opening_angle, err, rf_off
 
+! Allocate rad_int_by_ele
+
+branch => pointer_to_branch(ele_ref)
+lat => branch%lat
+
+if (present(rad_int_by_ele)) then
+  if (allocated(rad_int_by_ele%branch)) then
+    if (ubound(rad_int_by_ele%branch, 1) /= ubound(lat%branch, 1)) deallocate (rad_int_by_ele%branch)
+    if (allocated(rad_int_by_ele%branch)) then
+      do ib = 0, ubound(lat%branch, 1)
+        ri_branch => rad_int_by_ele%branch(ib)
+        if (allocated(ri_branch%ele)) then
+          if (ubound(ri_branch%ele, 1) == lat%branch(ib)%n_ele_max) cycle
+          deallocate (ri_branch%ele)
+        endif
+        if (.not. allocated(ri_branch%ele)) allocate (ri_branch%ele(0:lat%branch(ib)%n_ele_max))
+      enddo
+    endif
+  endif
+
+  if (.not. allocated(rad_int_by_ele%branch)) then
+    allocate(rad_int_by_ele%branch(0:ubound(lat%branch, 1)))
+    do ib = 0, ubound(lat%branch, 1)
+      allocate (rad_int_by_ele%branch(ib)%ele(0:lat%branch(ib)%n_ele_max))
+    enddo
+  endif
+endif
+
 ! Analysis is documented in the Bmad manual.
 
 mode = normal_modes_struct()
 sigma_mat = 0
 
-call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat, err, closed_orbit)
+if (present(rad_int_by_ele)) then
+  ri_branch => rad_int_by_ele%branch(branch%ix_branch)
+  call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat, &
+                                                            err, closed_orbit, ri_branch)
+  mode%synch_int(0) = sum(ri_branch%ele%i0)
+  mode%synch_int(1) = sum(ri_branch%ele%i1)
+  mode%synch_int(2) = sum(ri_branch%ele%i2)
+  mode%synch_int(3) = sum(ri_branch%ele%i3)
+else
+  call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat, &
+                                                            err, closed_orbit)
+endif
+
 if (err) return
 
 ! If there is no RF then add a small amount to enable the calculation to proceed.
@@ -173,7 +224,7 @@ end subroutine emit_6d
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, closed_orbit)
+! Subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, err_flag, closed_orbit, rad_int_branch)
 !
 ! Routine to calculate the damping and stochastic variance matrices from exit end of ele1
 ! to the exit end of ele2. Use ele1 = ele2 to get 1-turn matrices.
@@ -198,16 +249,18 @@ end subroutine emit_6d
 !     %dpz_damp                 -- Change in pz without RF.
 !     %pz_average               -- Average pz due to damping.
 !   xfer_nodamp_mat(6,6)  -- real(rp): Transfer matrix without damping.
+!   rad_int_branch        -- rad_int_branch_struct, optional: Array of element-by-element radiation integrals.
 !   err_flag              -- logical: Set true if there is a problem.
 !-
 
-subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, err_flag, closed_orbit)
+subroutine rad_damp_and_stoc_mats (ele1, ele2, include_opening_angle, rmap, mode, xfer_nodamp_mat, err_flag, closed_orbit, rad_int_branch)
 
 type (ele_struct), allocatable :: eles_save(:)
 type (ele_struct), target :: ele1, ele2
 type (ele_struct), pointer :: ele1_track, ele2_track, ele3
 type (rad_map_struct) rmap
 type (normal_modes_struct) mode
+type (rad_int_branch_struct), optional :: rad_int_branch
 type (branch_struct), pointer :: branch
 type (bmad_common_struct) bmad_com_save
 type (rad_map_struct), allocatable :: rm1(:)
@@ -273,8 +326,13 @@ do ie = 1, branch%n_ele_track
     goto 9000
   endif
 
-  call rad1_damp_and_stoc_mats(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), &
-                                          rm1(ie), tol * branch%param%g2_integral, tol * branch%param%g3_integral, err_flag)
+  if (present(rad_int_branch)) then
+    call rad1_damp_and_stoc_mats(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), rm1(ie), &
+                                 tol * branch%param%g2_integral, tol * branch%param%g3_integral, err_flag, branch%ele(ie-1), rad_int_branch%ele(ie))
+  else
+    call rad1_damp_and_stoc_mats(branch%ele(ie), include_opening_angle, closed_orb(ie-1), closed_orb(ie), rm1(ie), &
+                                 tol * branch%param%g2_integral, tol * branch%param%g3_integral, err_flag)
+  endif
   if (err_flag) goto 9000
 enddo
 
@@ -318,7 +376,7 @@ end subroutine rad_damp_and_stoc_mats
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !+
-! Subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol, err_flag)
+! Subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol, err_flag, ele0, rad_int1)
 !
 ! Routine to calculate the damping and stochastic matrices for a given lattice element.
 !
@@ -330,14 +388,17 @@ end subroutine rad_damp_and_stoc_mats
 !   orb_out               -- coord_struct: Exit orbit.
 !   g2_tol                -- real(rp): Tollerance on g^2 per unit length (damping tolerance).
 !   g3_tol                -- real(rp): Tollerance on g^3 per unit length (stocastic tolerance).
+!   ele0                  -- ele_struct, optional: Element before `ele`. Needed if and only if rad_int1 is present
 !
 ! Output:
-!   rad_map               -- rad_map_strct: Damping and stochastic matrices.
+!   rad_map               -- rad_map_struct: Damping and stochastic matrices.
 !     %stoc_mat             -- Variance matrix.
+!
 !   err_flag              -- logical: Set true if there is an error. False otherwise.
+!   rad_int1              -- rad_int1_struct, optional: Radiation integrals
 !-
 
-subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol, err_flag)
+subroutine rad1_damp_and_stoc_mats (ele, include_opening_angle, orb_in, orb_out, rad_map, g2_tol, g3_tol, err_flag, ele0, rad_int1)
 
 use super_recipes_mod, only: super_polint
 
@@ -347,20 +408,24 @@ type qromb_int_struct
   real(rp) :: h = 0
   real(rp) :: xfer_damp_vec(6) = 0
   real(rp) :: damp_dmat(6,6) = 0
-  real(rp) :: stoc_mat(6,6) = 0 
+  real(rp) :: stoc_mat(6,6) = 0
+  type (rad_int1_struct) :: ri = rad_int1_struct() 
 end type
 
 type (ele_struct) ele
+type (ele_struct), optional :: ele0
 type (coord_struct) orb_in, orb_out, orb0, orb1, orb_end
+type (rad_int1_struct), optional :: rad_int1
 type (rad_map_struct) :: rad_map
 type (fringe_field_info_struct) fringe_info
 type (qromb_int_struct) qi(0:4)
 type (bmad_common_struct) bmad_com_save
+type (private_stash_struct) stash
 
-real(rp) damp_dmat1(6,6), stoc_var_mat1(6,6), g2_tol, g3_tol, gamma
+real(rp) damp_dmat1(6,6), stoc_var_mat1(6,6), g2_tol, g3_tol
 real(rp) mat0(6,6), mat1(6,6), ddamp(6,6), dstoc(6,6), damp_dmat_sum(6,6), stoc_var_mat_sum(6,6), mat0_inv(6,6)
 real(rp) del_z, l_ref, rel_tol, eps_damp, eps_stoc, z_pos, d_max, mat_end(6,6), damp_vec1(6), damp_vec_sum(6), ddvec(6)
-real(rp) kd_coef, kf_coef, radi
+real(rp) kd_coef, kf_coef, radi, length, dum, a, b
 real(rp), parameter :: cd = 2.0_rp / 3.0_rp, cf = 55.0_rp * h_bar_planck * c_light / (24.0_rp * sqrt_3)
 
 integer j, j1, i1, i2, n, j_min_test, ll, n_pts
@@ -372,8 +437,8 @@ logical include_opening_angle, err_flag, err, save_orb_mat
 
 rad_map = rad_map_struct(-1, 0, 0, mat6_unit$, 0)
 rad_map%ref_orb = orb_out%vec
-
-if (ele%value(l$) == 0 .or. ele%key == taylor$) return
+length = ele%value(l$)
+if (length == 0 .or. ele%key == taylor$) return
 if (orb_out%vec(2) == orb_in%vec(2) .and. orb_out%vec(4) == orb_in%vec(4) .and. &
        ele%key /= sbend$ .and. ele%key /= rf_bend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$) return
 
@@ -402,13 +467,22 @@ endif
 qi(0) = qromb_int_struct()
 qi(0)%h = 4
 
-call convert_pc_to (ele%value(p0c$), ele%ref_species, gamma = gamma)
-radi = classical_radius(ele%ref_species)
-kd_coef = cd * radi * gamma**3
-kf_coef = cf * radi * gamma**5 / mass_of(ele%ref_species)
+call convert_pc_to (ele%value(p0c$), ele%ref_species, gamma = stash%gamma0)
 
-eps_damp = kd_coef * g2_tol / ele%value(l$)
-eps_stoc = kf_coef * g3_tol / ele%value(l$)
+if (present(rad_int1)) then
+  a = ele%x%eta - ele0%x%eta - length * ele0%x%deta_ds;  b = (ele%x%deta_ds - ele0%x%deta_ds) * length
+  stash%eta_x_coef(0:3) = [ele0%x%eta, ele0%x%deta_ds, (3.0_rp * a - b) / length**2, (b - 2.0_rp * a) / length**3]
+
+  a = ele%y%eta - ele0%y%eta - length * ele0%y%deta_ds;  b = (ele%y%deta_ds - ele0%y%deta_ds) * length
+  stash%eta_y_coef(0:3) = [ele0%y%eta, ele0%y%deta_ds, (3.0_rp * a - b) / length**2, (b - 2.0_rp * a) / length**3]
+endif
+
+radi = classical_radius(ele%ref_species)
+kd_coef = cd * radi * stash%gamma0**3
+kf_coef = cf * radi * stash%gamma0**5 / mass_of(ele%ref_species)
+
+eps_damp = kd_coef * g2_tol / length
+eps_stoc = kf_coef * g3_tol / length
 
 j_min_test = 3
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
@@ -418,7 +492,7 @@ endif
 do j = 1, j_max
   if (j == 1) then
     n_pts = 2
-    del_z = ele%value(l$)
+    del_z = length
     l_ref = 0
   else
     n_pts = 2**(j-2)
@@ -429,16 +503,17 @@ do j = 1, j_max
   damp_dmat_sum = 0
   damp_vec_sum = 0
   stoc_var_mat_sum = 0
+  if (present(rad_int1)) rad_int1 = rad_int1_struct()
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
     save_orb_mat = (j == 1 .and. n == 1)  ! Save if z-position at end of element
-    call calc_rad_at_pt(ele, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, stoc_var_mat1, &
-                                                                        save_orb_mat, orb_end, mat_end, err)
+    call calc_rad_at_pt(ele, stash, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, stoc_var_mat1, &
+                                                                        save_orb_mat, orb_end, mat_end, err, rad_int1)
     if (err) return
-    damp_vec_sum = damp_vec_sum + damp_vec1 
-    damp_dmat_sum = damp_dmat_sum + damp_dmat1 
-    stoc_var_mat_sum = stoc_var_mat_sum + stoc_var_mat1 
+    damp_vec_sum = damp_vec_sum + damp_vec1
+    damp_dmat_sum = damp_dmat_sum + damp_dmat1
+    stoc_var_mat_sum = stoc_var_mat_sum + stoc_var_mat1
   enddo
 
   j1 = min(j, 4)
@@ -447,6 +522,13 @@ do j = 1, j_max
   qi(j1)%damp_dmat = 0.5_rp * (qi(j1-1)%damp_dmat + del_z * damp_dmat_sum)
   qi(j1)%xfer_damp_vec = 0.5_rp * (qi(j1-1)%xfer_damp_vec + del_z * damp_vec_sum)
   qi(j1)%stoc_mat = 0.5_rp * (qi(j1-1)%stoc_mat + del_z * stoc_var_mat_sum)
+
+  if (present(rad_int1)) then
+    qi(j1)%ri%i0 = 0.5_rp * (qi(j1-1)%ri%i0 + del_z * rad_int1%i0)
+    qi(j1)%ri%i1 = 0.5_rp * (qi(j1-1)%ri%i1 + del_z * rad_int1%i1)
+    qi(j1)%ri%i2 = 0.5_rp * (qi(j1-1)%ri%i2 + del_z * rad_int1%i2)
+    qi(j1)%ri%i3 = 0.5_rp * (qi(j1-1)%ri%i3 + del_z * rad_int1%i3)
+  endif
 
   if (j < j_min_test) cycle
 
@@ -457,9 +539,17 @@ do j = 1, j_max
       call super_polint(qi(1:j1)%h, qi(1:j1)%stoc_mat(i1,i2), 0.0_rp, stoc_var_mat1(i1,i2), dstoc(i1,i2))
     enddo
   enddo
+
   d_max = max(eps_damp*maxval(abs(ddamp)), eps_damp*maxval(abs(ddvec)), eps_stoc*maxval(abs(dstoc)))
   if (d_max < 1) exit
 enddo
+
+if (present(rad_int1)) then
+  call super_polint(qi(1:j1)%h, qi(1:j1)%ri%i0, 0.0_rp, rad_int1%i0, dum)
+  call super_polint(qi(1:j1)%h, qi(1:j1)%ri%i1, 0.0_rp, rad_int1%i1, dum)
+  call super_polint(qi(1:j1)%h, qi(1:j1)%ri%i2, 0.0_rp, rad_int1%i2, dum)
+  call super_polint(qi(1:j1)%h, qi(1:j1)%ri%i3, 0.0_rp, rad_int1%i3, dum)
+endif
 
 ! Add bend edge if needed
 
@@ -490,14 +580,16 @@ err_flag = .false.
 !---------------------------------------------------------------------------------
 contains
 
-subroutine calc_rad_at_pt (ele, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, &
-                        stoc_var_mat1, save_orb_mat, orb_save, mat_save, err)
+subroutine calc_rad_at_pt (ele, stash, include_opening_angle, orb0, z_pos, damp_dmat1, damp_vec1, &
+                        stoc_var_mat1, save_orb_mat, orb_save, mat_save, err, rad_int1)
 
-type (ele_struct) ele, runt
+type (ele_struct) ele0, ele, runt
+type (rad_int1_struct), optional :: rad_int1
 type (coord_struct) orb0, orbz, orb_save  ! Orbit at start, orbit at z.
+type (private_stash_struct) stash
 
 real(rp) z_pos, damp_dmat1(6,6), damp_vec1(6), stoc_var_mat1(6,6), g(3), dg(3,3), g1, g2, g3, dg2_dx, dg2_dy
-real(rp) mb(6,6), mb_inv(6,6), kf, kv, rel_p, v(6), mat_save(6,6)
+real(rp) mb(6,6), mb_inv(6,6), kf, kv, rel_p, v(6), mat_save(6,6), eta_vec(2)
 
 integer i, j
 
@@ -543,6 +635,16 @@ if (ele%key == sbend$ .or. ele%key == rf_bend$) then
   dg2_dx = dg2_dx * (1 + ele%value(g$) * orb0%vec(1)) + g2*ele%value(g$)
 endif
 
+! 
+
+if (present(rad_int1)) then
+  eta_vec = [poly_eval(stash%eta_x_coef, z_pos), poly_eval(stash%eta_y_coef, z_pos)]
+  rad_int1%i0 = rad_int1%i0 + g1 * stash%gamma0
+  rad_int1%i1 = rad_int1%i1 + sum(g(1:2) * eta_vec) 
+  rad_int1%i2 = rad_int1%i2 + g2
+  rad_int1%i3 = rad_int1%i3 + g3
+endif
+
 ! Damping matrix
 
 damp_dmat1(:,1) = -kd_coef * (mb(:,2)*dg2_dx*v(2)*rel_p + mb(:,4)*dg2_dx*v(4)*rel_p + mb(:,6)*dg2_dx*rel_p**2)
@@ -567,7 +669,7 @@ forall (i = 1:6)
 end forall
 
 if (include_opening_angle) then
-  kv = kf_coef * 13.0_rp * g1 / (55.0_rp * gamma**2)
+  kv = kf_coef * 13.0_rp * g1 / (55.0_rp * stash%gamma0**2)
   forall (i = 1:6)
     stoc_var_mat1(i,:) = stoc_var_mat1(i,:) + kv * (g(2)**2 * mb(i,2)*mb(:,2) + g(1)**2 * mb(i,4)*mb(:,4) - &
                                   g(1) * g(2) * (mb(i,2) * mb(:,4) + mb(i,4) * mb(:,2)))

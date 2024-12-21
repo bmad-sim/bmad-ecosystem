@@ -407,7 +407,6 @@ real(rp) t6(1:6, 1:6)
 real(rp) N(1:6, 1:6)
 real(rp) Ninv(1:6, 1:6)
 real(rp) abz_tunes(3)
-real(rp) gamma(3)
 integer i
 
 character(*), parameter :: r_name = 'action_to_xyz'

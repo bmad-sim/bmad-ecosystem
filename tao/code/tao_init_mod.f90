@@ -97,7 +97,7 @@ s%com%valid_plot_who(1:5) = ['model ', 'base  ', 'ref   ', 'design', 'meas  ']
 call set_this_logical_command_arg (s%init%disable_smooth_line_calc_arg, .false., s%global%disable_smooth_line_calc)
 call set_this_logical_command_arg (s%init%no_stopping_arg, .true., s%global%stop_on_error)
 call set_this_logical_command_arg (s%init%noplot_arg, .true., s%global%plot_on)
-call set_this_logical_command_arg (s%init%no_rad_int_arg, .true., s%global%rad_int_calc_on)
+call set_this_logical_command_arg (s%init%no_rad_int_arg, .true., s%global%rad_int_user_calc_on)
 call set_this_logical_command_arg (s%init%rf_on_arg, .false., s%global%rf_on)
 call set_this_logical_command_arg (s%init%symbol_import_arg, .false., s%global%symbol_import)
 

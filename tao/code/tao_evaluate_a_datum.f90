@@ -54,7 +54,7 @@ type (ptc_normal_form_struct), pointer :: ptc_nf
 type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
-type (rad_int_branch_struct), pointer :: rad_int_branch
+type (rad_int_branch_struct), pointer :: branch_ri, branch_6d
 type (c_taylor), pointer :: phase_map
 type (twiss_struct), pointer :: z0, z1, z2
 
@@ -1180,12 +1180,13 @@ case ('emit.', 'norm_emit.')
   case ('emit.a', 'norm_emit.a')
     if (data_source == 'lat') then
       if (lat%param%geometry == open$ .and. ix_ele > -1) then
-        if (.not. allocated(tao_lat%rad_int%branch)) then
-          call out_io (s_error$, r_name, 'tao_lat%rad_int%branch not allocated')
+        s%com%rad_int_ri_calc_on = .true.
+        if (.not. allocated(tao_lat%rad_int_by_ele_ri%branch)) then
+          call out_io (s_error$, r_name, 'tao_lat%rad_int_by_ele_ri%branch not allocated')
           return
         endif
-        rad_int_branch => tao_lat%rad_int%branch(ix_branch)
-        call tao_load_this_datum (rad_int_branch%ele%lin_norm_emit_a, &
+        
+        call tao_load_this_datum (tao_lat%rad_int_by_ele_ri%branch(ix_branch)%ele%lin_norm_emit_a, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / beta_gamma
       else
@@ -1201,12 +1202,12 @@ case ('emit.', 'norm_emit.')
   case ('emit.b', 'norm_emit.b')
     if (data_source == 'lat') then
       if (lat%param%geometry == open$ .and. ix_ele > -1) then
-        if (.not. allocated(tao_lat%rad_int%branch)) then
-          call out_io (s_error$, r_name, 'tao_lat%rad_int%branch not allocated')
+        s%com%rad_int_ri_calc_on = .true.
+        if (.not. allocated(tao_lat%rad_int_by_ele_ri%branch)) then
+          call out_io (s_error$, r_name, 'tao_lat%rad_int_by_ele_ri%branch not allocated')
           return
         endif
-        rad_int_branch => tao_lat%rad_int%branch(ix_branch)
-        call tao_load_this_datum (rad_int_branch%ele%lin_norm_emit_b, &
+        call tao_load_this_datum (tao_lat%rad_int_by_ele_ri%branch(ix_branch)%ele%lin_norm_emit_b, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
         datum_value = datum_value / beta_gamma
       else
@@ -2246,107 +2247,118 @@ case ('rad_int.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  if (.not. allocated(tao_lat%rad_int%branch)) then
-    call out_io (s_error$, r_name, 'tao_lat%rad_int%branch not allocated')
-    return
-  endif
-  rad_int_branch => tao_lat%rad_int%branch(ix_branch)
+  branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+  branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
 
   select case (data_type)
   case ('rad_int.i0')
+    s%com%rad_int_6d_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i0)
+      datum_value = sum(branch_6d%ele(ix_ref:ix_ele)%i0)
     else
-      datum_value = tao_branch%modes_ri%synch_int(0)
+      datum_value = tao_branch%modes_6d%synch_int(0)
     endif
 
   case ('rad_int.i1')
+    s%com%rad_int_6d_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i1)
+      datum_value = sum(branch_6d%ele(ix_ref:ix_ele)%i1)
     else
-      datum_value = tao_branch%modes_ri%synch_int(1)
+      datum_value = tao_branch%modes_6d%synch_int(1)
     endif
 
   case ('rad_int.i2')
+    s%com%rad_int_6d_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i2)
+      datum_value = sum(branch_6d%ele(ix_ref:ix_ele)%i2)
     else
-      datum_value = tao_branch%modes_ri%synch_int(2)
+      datum_value = tao_branch%modes_6d%synch_int(2)
+    endif
+
+  case ('rad_int.i3')
+    s%com%rad_int_6d_calc_on = .true.
+    if (ix_ele > -1) then
+      datum_value = sum(branch_6d%ele(ix_ref:ix_ele)%i3)
+    else
+      datum_value = tao_branch%modes_6d%synch_int(3)
     endif
 
   case ('rad_int.i2_e4')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i2_e4)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%lin_i2_e4)
     else
       datum_value = tao_branch%modes_ri%lin%i2_e4
     endif
 
-  case ('rad_int.i3')
-    if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i3)
-    else
-      datum_value = tao_branch%modes_ri%synch_int(3)
-    endif
-
   case ('rad_int.i3_e7')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i3_e7)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%lin_i3_e7)
     else
       datum_value = tao_branch%modes_ri%lin%i3_e7
     endif
 
   case ('rad_int.i4a')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4a)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%i4a)
     else
       datum_value = tao_branch%modes_ri%a%synch_int(4)
     endif
 
   case ('rad_int.i4b')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4b)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%i4b)
     else
       datum_value = tao_branch%modes_ri%b%synch_int(4)
     endif
 
   case ('rad_int.i4z')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i4z)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%i4z)
     else
       datum_value = tao_branch%modes_ri%z%synch_int(4)
     endif
 
   case ('rad_int.i5a')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i5a)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%i5a)
     else
       datum_value = tao_branch%modes_ri%a%synch_int(5)
     endif
 
   case ('rad_int.i5a_e6')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i5a_e6)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%lin_i5a_e6)
     else
       datum_value = tao_branch%modes_ri%lin%i5a_e6
     endif
 
   case ('rad_int.i5b')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i5b)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%i5b)
     else
       datum_value = tao_branch%modes_ri%b%synch_int(5)
     endif
 
   case ('rad_int.i5b_e6')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%lin_i5b_e6)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%lin_i5b_e6)
     else
       datum_value = tao_branch%modes_ri%lin%i5b_e6
     endif
 
   case ('rad_int.i6b')
+    s%com%rad_int_ri_calc_on = .true.
     if (ix_ele > -1) then
-      datum_value = sum(rad_int_branch%ele(ix_ref:ix_ele)%i6b)
+      datum_value = sum(branch_ri%ele(ix_ref:ix_ele)%i6b)
     else
       datum_value = tao_branch%modes_ri%b%synch_int(6)
     endif
@@ -2360,66 +2372,79 @@ case ('rad_int.')
   valid_value = .true.
 
 !-----------
+! Basically, 'rad_int1_ri.' and 'rad_int1_6d.' are used for internal use.
 
-case ('rad_int1.')
+case ('rad_int1.', 'rad_int1_ri.', 'rad_int1_6d.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
   if (ix_ele < 0) return
-  rad_int_branch => tao_lat%rad_int%branch(ix_branch)
-  if (.not. allocated(rad_int_branch%ele)) return
+
+  select case (head_data_type)
+  case ('rad_int1.')
+    branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+    branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
+  case ('rad_int1_ri.')
+    branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+    branch_6d => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+    data_type = 'rad_int1.' // data_type(13:)
+  case ('rad_int1_6d.')
+    branch_ri => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
+    branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
+    data_type = 'rad_int1.' // data_type(13:)
+  end select
 
   select case (data_type)
   case ('rad_int1.i0')
-    datum_value = rad_int_branch%ele(ix_ele)%i0
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i0
+    datum_value = branch_6d%ele(ix_ele)%i0
+    if (ix_ref > -1) datum_value = datum_value - branch_6d%ele(ix_ref)%i0
 
   case ('rad_int1.i1')
-    datum_value = rad_int_branch%ele(ix_ele)%i1
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i1
+    datum_value = branch_6d%ele(ix_ele)%i1
+    if (ix_ref > -1) datum_value = datum_value - branch_6d%ele(ix_ref)%i1
 
   case ('rad_int1.i2')
-    datum_value = rad_int_branch%ele(ix_ele)%i2
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i2
-
-  case ('rad_int1.i2_e4')
-    datum_value = rad_int_branch%ele(ix_ele)%lin_i2_e4
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i2_e4
+    datum_value = branch_6d%ele(ix_ele)%i2
+    if (ix_ref > -1) datum_value = datum_value - branch_6d%ele(ix_ref)%i2
 
   case ('rad_int1.i3')
-    datum_value = rad_int_branch%ele(ix_ele)%i3
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i3
+    datum_value = branch_6d%ele(ix_ele)%i3
+    if (ix_ref > -1) datum_value = datum_value - branch_6d%ele(ix_ref)%i3
+
+  case ('rad_int1.i2_e4')
+    datum_value = branch_ri%ele(ix_ele)%lin_i2_e4
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%lin_i2_e4
 
   case ('rad_int1.i3_e7')
-    datum_value = rad_int_branch%ele(ix_ele)%lin_i3_e7
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i3_e7
+    datum_value = branch_ri%ele(ix_ele)%lin_i3_e7
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%lin_i3_e7
 
   case ('rad_int1.i4a')
-    datum_value = rad_int_branch%ele(ix_ele)%i4a
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i4a
+    datum_value = branch_ri%ele(ix_ele)%i4a
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%i4a
 
   case ('rad_int1.i5a')
-    datum_value = rad_int_branch%ele(ix_ele)%i5a
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i5a
+    datum_value = branch_ri%ele(ix_ele)%i5a
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%i5a
 
   case ('rad_int1.i5a_e6')
-    datum_value = rad_int_branch%ele(ix_ele)%lin_i5a_e6
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i5a_e6
+    datum_value = branch_ri%ele(ix_ele)%lin_i5a_e6
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%lin_i5a_e6
 
   case ('rad_int1.i4b')
-    datum_value = rad_int_branch%ele(ix_ele)%i4b
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i4b
+    datum_value = branch_ri%ele(ix_ele)%i4b
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%i4b
 
   case ('rad_int1.i5b')
-    datum_value = rad_int_branch%ele(ix_ele)%i5b
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i5b
+    datum_value = branch_ri%ele(ix_ele)%i5b
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%i5b
 
   case ('rad_int1.i5b_e6')
-    datum_value = rad_int_branch%ele(ix_ele)%lin_i5b_e6
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_i5b_e6
+    datum_value = branch_ri%ele(ix_ele)%lin_i5b_e6
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%lin_i5b_e6
 
   case ('rad_int1.i6b')
-    datum_value = rad_int_branch%ele(ix_ele)%i6b
-    if (ix_ref > -1) datum_value = datum_value - rad_int_branch%ele(ix_ref)%i6b
+    datum_value = branch_ri%ele(ix_ele)%i6b
+    if (ix_ref > -1) datum_value = datum_value - branch_ri%ele(ix_ref)%i6b
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
@@ -2581,9 +2606,9 @@ case ('sigma.')
         datum_value = sqrt(datum_value)
       else
         if (ix_ele == -1) ix_ele = branch%n_ele_track
-        rad_int_branch => tao_lat%rad_int%branch(ix_branch)
-        datum_value = rad_int_branch%ele(ix_ele)%lin_sig_E / ele%value(E_tot$)
-        if (ix_ref > 0) datum_value = datum_value - rad_int_branch%ele(ix_ref)%lin_sig_E / ele_ref%value(E_tot$)
+        branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+        datum_value = branch_ri%ele(ix_ele)%lin_sig_E / ele%value(E_tot$)
+        if (ix_ref > 0) datum_value = datum_value - branch_ri%ele(ix_ref)%lin_sig_E / ele_ref%value(E_tot$)
         valid_value = .true.
       endif
     else

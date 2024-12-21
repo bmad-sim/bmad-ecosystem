@@ -694,7 +694,7 @@ type tao_global_struct
   logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
   logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.
   logical :: plot_on = .true.                         ! Do plotting?
-  logical :: rad_int_calc_on = .true.                 ! Radiation integrals calculation on/off.
+  logical :: rad_int_user_calc_on = .true.            ! User set radiation integrals calculation on/off.
   logical :: rf_on = .true.                           ! RFcavities on or off? Does not affect lcavities.
   logical :: single_step = .false.                    ! For debugging and demonstrations: Single step through a command file?
   logical :: stop_on_error = .true.                   ! For debugging: False prevents tao from exiting on an error.
@@ -769,19 +769,21 @@ type tao_common_struct
   logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
-  logical :: print_to_terminal = .true.              ! Print command prompt to the terminal? For use with GUIs.
-  logical :: lattice_calc_done = .false.             ! Used by GUI for deciding when to refresh.
-  logical :: add_measurement_noise = .true.          ! Turn off to take data derivatives.
-  logical :: is_err_message_printed(2) = .false.     ! Used by tao_set_invalid
-  logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
+  logical :: print_to_terminal = .true.               ! Print command prompt to the terminal? For use with GUIs.
+  logical :: lattice_calc_done = .false.              ! Used by GUI for deciding when to refresh.
+  logical :: add_measurement_noise = .true.           ! Turn off to take data derivatives.
+  logical :: is_err_message_printed(2) = .false.      ! Used by tao_set_invalid
+  logical :: command_arg_has_been_executed = .false.  ! Has the -command command line argument been executed?
   logical :: all_merit_weights_positive = .true.  
-  logical :: multi_turn_orbit_is_plotted = .false.   ! Is a multi_turn_orbit being plotted?
-  logical :: force_chrom_calc = .false.              ! Used by a routine to force calculation
-  logical :: force_rad_int_calc = .false.            ! Used by a routine to force calculation
-  character(16) :: valid_plot_who(10) = ''           ! model, base, ref etc...
+  logical :: multi_turn_orbit_is_plotted = .false.    ! Is a multi_turn_orbit being plotted?
+  logical :: force_chrom_calc = .false.               ! Used by a routine to force calculation
+  logical :: force_rad_int_calc = .false.             ! Used by a routine to force calculation
+  logical :: rad_int_ri_calc_on = .true.              ! "Classical" radiation integrals calculation on/off.
+  logical :: rad_int_6d_calc_on = .true.              ! 6D Radiation integrals calculation on/off.
+  character(16) :: valid_plot_who(10) = ''            ! model, base, ref etc...
   character(200) :: single_mode_buffer = ''
-  character(200) :: cmd = ''                         ! Used for the cmd history
-  character(200) :: saved_cmd_line = ''              ! Saved part of command line when there are mulitple commands on a line
+  character(200) :: cmd = ''                          ! Used for the cmd history
+  character(200) :: saved_cmd_line = ''               ! Saved part of command line when there are mulitple commands on a line
 end type
 
 ! Initialization parameters
@@ -959,7 +961,8 @@ type tao_lattice_struct
   type (lat_struct) :: high_E_lat, low_E_lat   ! For chrom calc.
   logical :: chrom_calc_ok = .false.
   type (tao_universe_struct), pointer :: u => null()  ! Parent universe
-  type (rad_int_all_ele_struct) rad_int
+  type (rad_int_all_ele_struct) rad_int_by_ele_ri
+  type (rad_int_all_ele_struct) rad_int_by_ele_6d
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
 end type
 
@@ -1201,11 +1204,12 @@ integer i
 
 !
 
-lat1%lat            = lat2%lat
-lat1%high_E_lat     = lat2%high_E_lat
-lat1%low_E_lat      = lat2%low_E_lat
-lat1%rad_int        = lat2%rad_int
-lat1%tao_branch     = lat2%tao_branch
+lat1%lat                = lat2%lat
+lat1%high_E_lat         = lat2%high_E_lat
+lat1%low_E_lat          = lat2%low_E_lat
+lat1%rad_int_by_ele_ri  = lat2%rad_int_by_ele_ri
+lat1%rad_int_by_ele_6d  = lat2%rad_int_by_ele_6d
+lat1%tao_branch         = lat2%tao_branch
 
 end subroutine tao_lattice_equal_tao_lattice
 
