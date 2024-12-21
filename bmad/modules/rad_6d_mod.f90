@@ -470,11 +470,11 @@ qi(0)%h = 4
 call convert_pc_to (ele%value(p0c$), ele%ref_species, gamma = stash%gamma0)
 
 if (present(rad_int1)) then
-  a = ele%x%eta - ele0%x%eta - length * ele0%x%deta_ds;  b = (ele%x%deta_ds - ele0%x%deta_ds) / length
-  stash%eta_x_coef(0:3) = [ele0%x%eta, ele0%x%deta_ds, (b - 3.0_rp * a) / length**2, (b - 2.0_rp * a) / length**3]
+  a = ele%x%eta - ele0%x%eta - length * ele0%x%deta_ds;  b = (ele%x%deta_ds - ele0%x%deta_ds) * length
+  stash%eta_x_coef(0:3) = [ele0%x%eta, ele0%x%deta_ds, (3.0_rp * a - b) / length**2, (b - 2.0_rp * a) / length**3]
 
-  a = ele%y%eta - ele0%y%eta - length * ele0%y%deta_ds;  b = (ele%y%deta_ds - ele0%y%deta_ds) / length
-  stash%eta_y_coef(0:3) = [ele0%y%eta, ele0%y%deta_ds, (b - 3.0_rp * a) / length**2, (b - 2.0_rp * a) / length**3]
+  a = ele%y%eta - ele0%y%eta - length * ele0%y%deta_ds;  b = (ele%y%deta_ds - ele0%y%deta_ds) * length
+  stash%eta_y_coef(0:3) = [ele0%y%eta, ele0%y%deta_ds, (3.0_rp * a - b) / length**2, (b - 2.0_rp * a) / length**3]
 endif
 
 radi = classical_radius(ele%ref_species)

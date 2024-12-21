@@ -2372,14 +2372,26 @@ case ('rad_int.')
   valid_value = .true.
 
 !-----------
+! Basically, 'rad_int1_ri.' and 'rad_int1_6d.' are used for internal use.
 
-case ('rad_int1.')
+case ('rad_int1.', 'rad_int1_ri.', 'rad_int1_6d.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
   if (ix_ele < 0) return
 
-  branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
-  branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
+  select case (head_data_type)
+  case ('rad_int1.')
+    branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+    branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
+  case ('rad_int1_ri.')
+    branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+    branch_6d => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
+    data_type = 'rad_int1.' // data_type(13:)
+  case ('rad_int1_6d.')
+    branch_ri => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
+    branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
+    data_type = 'rad_int1.' // data_type(13:)
+  end select
 
   select case (data_type)
   case ('rad_int1.i0')
