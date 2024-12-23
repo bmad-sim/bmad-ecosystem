@@ -8,11 +8,9 @@ contains
 !+
 ! Subroutine FullFileName(filename, outfile, valid) 
 !
-! Description:  
-!   Returns the full filename with a leading environment variable expanded
-!   into the proper form (full path on Unix).  NOTE: It is
-!   the responsibility of the calling routine to provide a large enough
-!   string to hold a fully expanded file name on return.
+! Returns the full filename with environment variable expansion.
+! NOTE: It is the responsibility of the calling routine to provide a large enough
+! string to hold a fully expanded file name on return.
 !
 ! Also see: SplitFileName
 !
@@ -35,6 +33,7 @@ contains
 !      Filename                     outfile
 !      -----------------------      ---------------------------
 !      '$DUMMY/foo.bar'             '/home/cesr/dummy/foo.bar'
+!      '${DUMMY}/foo.bar'           '/home/cesr/dummy/foo.bar'
 !      '/home/cesr/dummy/foo.bar'   '/home/cesr/dummy/foo.bar'
 !-
 
@@ -49,7 +48,7 @@ character(*) outfile
 logical, optional :: valid
 
 character(*), parameter :: r_name = 'FullFileName'
-character(len(outfile)) expandname, name0        ! Expanded Name
+character(len(outfile)+100) expandname, name0, ename        ! Expanded Name
 
 integer InLen, iDollar, iColon, iSlash
 integer i, ix
@@ -73,19 +72,16 @@ if (outfile == '') return  ! Blank is invalid
 name0 = outfile
 expandname = outfile
 
-! Locate special characters (first dollar-sign, first colon, first slash)
-
-iDollar = Index(name0(:InLen), '$' )
-iColon  = Index(name0(:InLen), ':' )
-iSlash  = Index(name0(:InLen), '/' )
-
-
 !-----------------------------------------------------------------------
 ! Translation on WINDOWS (from unix to windows)
 
 #if defined(CESR_WINCVF)
 
 ! A UNIX-style environment variable will have a leading '$' 
+
+iDollar = Index(name0(:InLen), '$' )
+iColon  = Index(name0(:InLen), ':' )
+iSlash  = Index(name0(:InLen), '/' )
 
 if (iDollar == 1) then
       
@@ -130,40 +126,62 @@ if (present(valid)) valid = .true.
 
 ! Tilde
 
-if (name0(1:1) == '~') then
-  call GetEnv('HOME', expandname)
-  if (expandname == '') return
+if (expandname(1:1) == '~') then
+  call GetEnv('HOME', ename)
+  iSlash = index(expandname, '/')
 
-  if (name0(2:2) == '/') then
-    expandname = trim(expandname) // name0(2:)
+  if (expandname(2:2) == '/' .or. (iSlash == 0 .and. len_trim(expandname) == 1)) then
+    expandname = trim(ename) // expandname(2:)
   else
-    ix = index(expandname, '/', back = .true.)
-    if (ix == 0) then
-      expandname = trim(expandname) // '/' // name0
+    if (iSlash == 0) then
+      expandname = expandname(1:ix) // expandname
     else
-      expandname = expandname(1:ix) // name0
+      ix = index(expandname, '/', back = .true.)
+      expandname = trim(ename) // expandname(iSlash:)
     endif
-  endif
-
-! A UNIX-style environment variable will have a leading '$' 
-
-elseif (iDollar == 1) then
-  if (iSlash == 0) then
-        
-    call GetEnv(name0(2:InLen), expandname)
-    if (len_trim(expandname) == 0) return
-
-  ! Environment variable plus short name specifies the full name
-
-  elseif (iSlash > 2) then
-    call GetEnv(name0(2:iSlash-1), expandname)
-    ExpLen = Len_Trim(expandname)
-    if (ExpLen == 0) return
-    expandname(ExpLen+1:) = name0(iSlash:InLen)
   endif
 endif
 
-outfile = expandname
+! A UNIX-style environment variable will have a leading '$' 
+
+name0 = ''
+do
+  iDollar = index(expandname, '$')
+
+  if (iDollar == 0) then
+    name0 = trim(name0) // trim(expandname)
+    exit
+  endif
+
+  ix = max(iDollar-1, 1)
+  if (expandname(ix:ix) == '\') then ! '\'
+    name0 = trim(name0) // expandname(:iDollar)
+    expandname = expandname(iDollar+1:)
+    cycle
+  endif
+
+  name0 = trim(name0) // expandname(:iDollar-1)
+  expandname = expandname(iDollar+1:)
+
+  if (expandname(1:1) == '{') then
+    ix = index(expandname, '}')
+    if (ix == 0) return
+    call GetEnv(expandname(2:ix-1), ename)
+    if (len_trim(ename) == 0) return
+    name0 = trim(name0) // trim(ename) 
+    expandname = expandname(ix+1:)
+
+  else
+    ix = str_first_in_set(expandname, '/:')
+    if (ix == 0) ix = len_trim(expandname) + 1
+    call GetEnv(expandname(:ix-1), ename)
+    if (len_trim(ename) == 0) return
+    name0 = trim(name0) // trim(ename)
+    expandname = expandname(ix:)
+  endif
+enddo
+
+outfile = name0
 if (present(valid)) valid = .true.
 
 #endif

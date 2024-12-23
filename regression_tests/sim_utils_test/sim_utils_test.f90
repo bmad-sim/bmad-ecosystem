@@ -36,6 +36,7 @@ complex(rp) amp1, amp2, amp3
 logical match, ok, err
 
 character(40) str, sub1, sub2, sub3
+character(100) name
 character(2) code
 character(16) :: extrap(0:3) = [character(16):: 'ZERO', 'LINEAR', 'CONSTANT', 'SYMMETRIC']
 
@@ -323,6 +324,11 @@ write (1, '(a, 2es20.12)') '"apply_energy_kick:0" REL 1E-12  ', orbit%beta, orbi
 call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), positron$, beta = orbit%beta)
 call apply_energy_kick (1d6, orbit, [0.0_rp, 0.0_rp])
 write (1, '(a, 2es20.12)') '"apply_energy_kick:1" REL 1E-12  ', orbit%beta, orbit%vec(6)
+
+! Note: run.py script that runs this program defines "Test_EV" environment variable to be "ZZZ"
+
+call fullfilename("$Test_EV/aa${Test_EV}zz$Test_EV", name, ok)
+write (1, '(2a)') '"filename:1" STR ', quote(name)
 
 !
 
