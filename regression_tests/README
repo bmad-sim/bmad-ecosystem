@@ -110,8 +110,8 @@ than 0.01%
 
 5) CMake setup for compiling/linking the program:
   A) Add a "cmake.zzz" script in the regression_tests directory. 
-Use, say, the existing "cmake.twiss_track_test" file as a template.  In the cmake.zzz
-makefile substitute "zzz" for "twiss_track_test".
+Use, say, the existing "cmake.twiss_track_test" file as a template.
+In the cmake.zzz makefile substitute "zzz" for "twiss_track_test".
   B) Edit the "CMakeLists.txt" in the regression_tests directory 
 and add "cmake.zzz" to the EXE_SPECS list.
 
