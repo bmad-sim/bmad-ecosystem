@@ -401,10 +401,6 @@ integer ix_pole_max, ix_lord_max, n
 n = ix_lord_max
 if (n == -1) return
 
-if (.not. allocated(lord_a_pole)) then
-  stop
-end
-
 this_a(0:n) = lord_a_pole(0:n)
 this_b(0:n) = lord_b_pole(0:n)
 call tilt_this_multipole(lord, 1, this_a, this_b, n)
