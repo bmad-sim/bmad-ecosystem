@@ -23,7 +23,7 @@ type (tao_design_lat_input), pointer :: design_lat, dl0
 type (lat_struct), pointer :: lat
 type (lat_struct) parse_lat
 type (ele_struct), pointer :: ele1, ele2
-type (tao_universe_struct), pointer :: u, u_work
+type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orbit(:)
@@ -101,7 +101,6 @@ endif
 !
 
 allocate (s%u(s%com%n_universes))
-nullify (s%com%u_working)
 
 ! Read in the lattices
 

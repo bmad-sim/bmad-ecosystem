@@ -17,7 +17,7 @@ subroutine tao_de_optimizer (abort)
 use tao_interface, dummy => tao_de_optimizer
 use tao_top10_mod, only: tao_var_write
 use opti_de_mod
-use opti_de_openmp_mod
+!!! use opti_de_openmp_mod  # And there is commented out code below.
 
 implicit none
 
@@ -62,11 +62,11 @@ merit_start = tao_merit ()
 write (line, '(a, i0)') 'Differential evolution optimizer, population: ', population
 call out_io (s_blank$, r_name, line)
 
-if (s%com%omp_n_threads == 1) then
+!!! if (s%com%omp_n_threads == 1) then
   merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-else
-  merit = opti_de_openmp (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-endif
+!!! else
+!!!  merit = opti_de_openmp (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+!!! endif
 
 print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
 
@@ -121,7 +121,7 @@ integer iter_count
 integer, save :: t0(8), t1(8), t_del(8), t_delta
 
 character(80) line, line2, stars
-character(20) :: r_name = 'tao_de_optimizer'
+character(*), parameter :: r_name = 'tao_de_optimizer'
 character(1) char
 
 logical calc_ok
