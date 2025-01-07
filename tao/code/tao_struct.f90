@@ -391,7 +391,7 @@ type tao_spin_map_struct
 end type
 
 !-----------------------------------------------------------------------
-! The data_struct defines the fundamental data structure representing 
+! The tao_data_struct defines the fundamental data structure representing 
 ! one datum point.
 ! The universe_struct will hold an array of data_struct structures: u%data(:).
 !
@@ -739,7 +739,6 @@ integer, parameter :: n_uni_init$ = 1
 type tao_common_struct
   type (tao_alias_struct) :: alias(200) = tao_alias_struct()
   type (tao_alias_struct) :: key(100) = tao_alias_struct()
-  type (tao_universe_struct), pointer :: u_working => null()         ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   type (named_number_struct), allocatable :: symbolic_num(:)    ! Named numbers
   type (tao_plot_region_struct), allocatable :: plot_place_buffer(:)  ! Used when %external_plotting is on.

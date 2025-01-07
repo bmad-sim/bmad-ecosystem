@@ -3507,11 +3507,10 @@ character(*), parameter :: r_name = 'ltt_track1_preprocess'
 ! This routine may be called by bmad_parser (via ele_compute_ref_energy_and_time) which is 
 ! before LTT ramping has been setup. To avoid problems, return if setup has not been done.
 
+err_flag = .false.
 if (.not. associated(ltt_com_global%tracking_lat%ele)) return
 
 ! Recording a particle track?
-
-err_flag = .false.
 
 if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
   iu = lunget()
