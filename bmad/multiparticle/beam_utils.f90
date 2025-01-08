@@ -1412,6 +1412,9 @@ call convert_pc_to (average_pc, species, beta = bunch_params%centroid%beta)
 if (bunch_params%n_particle_live < 6) return
 
 call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, bunch_params, error, print_err, n_mat)
+if (error .and. logic_option(.true., print_err)) then
+  call out_io(s_blank$, r_name, 'This at element: ' // ele_full_name(ele))
+endif
 
 end subroutine calc_bunch_params
 
