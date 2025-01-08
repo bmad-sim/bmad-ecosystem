@@ -293,7 +293,7 @@ case ('beam')
   zb = -1
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe'], .true., switch, err)
+    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb', '-z'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -357,7 +357,7 @@ case ('beam')
     return
   endif
 
-  if (what_to_show == '-comb' .and. ele_name == '') then
+  if (what_to_show == '-comb' .and. ele_name == '') then   ! -comb used without comb index.
     if (.not. allocated(tao_branch%bunch_params_comb)) then
       nl=nl+1; lines(nl) = 'Beam parameter comb not calculated (check comb_ds_save)' 
       return
@@ -445,6 +445,9 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt)  'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt)  'dump_file         = ', quote(u%beam%dump_file)
     nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: -1 => Use (latice branch length)/plot_page%n_curve_pts'
+    if (allocated(tao_branch%bunch_params_comb)) then
+      nl=nl+1; write(lines(nl), amt)  'comb index range  = [0, ', int_str(tao_branch%bunch_params_comb(1)%n_pt), ']'
+    endif
 !!!!    nl=nl+1; write(lines(nl), rmt) 'comb_max_ds_save  = ', tao_branch%bunch_params_comb(1)%max_ds_save
     nl=nl+1; write(lines(nl), amt)  'track_start       = ', quote(bb%track_start), '  ! ', ele_full_name(branch%ele(bb%ix_track_start))
     nl=nl+1; write(lines(nl), amt)  'track_end         = ', quote(bb%track_end),   '  ! ', ele_full_name(branch%ele(bb%ix_track_end))
