@@ -145,6 +145,54 @@ end subroutine tao_set_z_tune_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine tao_set_openmp_cmd (branch_str, q_str, delta_input)
+!
+! Routine to set OpenMP-related parameters.
+!
+! Input:
+!   setting_str    -- character(*): Parameter setting
+!   value_str      -- character(*): Value
+!-
+
+subroutine tao_set_openmp_cmd (setting_str, value_str)
+
+!$ use omp_lib, only: omp_get_max_threads, omp_set_num_threads
+
+implicit none
+
+integer ivalue
+
+logical err, openmp_available
+
+character(*) setting_str, value_str
+character(*), parameter :: r_name = 'tao_set_openmp_cmd'
+
+openmp_available = .false.
+!$ openmp_available = .true.
+
+  if (.not. openmp_available) then
+    call out_io (s_error$, r_name, 'OpenMP support is not available.')
+    return
+  endif
+
+  select case (setting_str)
+  case ('num_threads')
+    !$ call out_io (s_blank$, r_name, 'omp_get_max_threads() was: ' // int_str(omp_get_max_threads()))
+    !$ call tao_set_integer_value (ivalue, setting_str, value_str, err, 1)
+    if (err) return
+    !$ call omp_set_num_threads(ivalue)
+    !$ call out_io (s_blank$, r_name, 'omp_get_max_threads() is now: ' // int_str(omp_get_max_threads()))
+  case default
+    call out_io (s_error$, r_name, 'BAD NAME: ' // setting_str)
+    return
+  end select
+
+end subroutine tao_set_openmp_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_calculate_cmd (switch)
 !
 ! Toggles off lattice calc and plotting.

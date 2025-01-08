@@ -692,7 +692,7 @@ case ('set')
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag) 
+      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune', 'openmp'], .true., switch, err_flag)
     if (err_flag) return
     set_word = switch
   enddo
@@ -711,6 +711,7 @@ case ('set')
   case ('calculate'); n_word = 1; n_eq = 0
   case ('tune'); n_word = 7; n_eq = 0
   case ('z_tune'); n_word = 6; n_eq = 0
+  case ('openmp'); n_word = 3; n_eq = 2
   case default
     call out_io (s_error$, r_name, 'SET WHAT? (MUST BE ON OF "branch", "data", "var", ...etc.')
     goto 9000
@@ -809,6 +810,8 @@ case ('set')
     call tao_set_drawing_cmd (s%plot_page%lat_layout, cmd_word(1), cmd_word(3))
   case ('lattice')
     call tao_set_lattice_cmd (cmd_word(1), cmd_word(3))
+  case ('openmp')
+    call tao_set_openmp_cmd (cmd_word(1), cmd_word(3))
   case ('opti_de_param')
     call tao_set_opti_de_param_cmd (cmd_word(1), cmd_word(3))
   case ('plot ')
