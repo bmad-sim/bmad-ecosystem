@@ -2133,6 +2133,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
     nl=nl+1; write(lines(nl), rmt) '  %max_plot_time                 = ', s%global%max_plot_time
+    nl=nl+1; write(lines(nl), imt) '  %n_threads                     = ', s%global%n_threads
     nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
     nl=nl+1; write(lines(nl), lmt) '  %opt_match_auto_recalc         = ', s%global%opt_match_auto_recalc
     nl=nl+1; write(lines(nl), lmt) '  %opti_write_var_file           = ', s%global%opti_write_var_file
