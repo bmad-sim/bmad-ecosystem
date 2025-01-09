@@ -76,8 +76,8 @@ endif
 
 ! OpenMP info
 
-!$ s%com%omp_n_threads = omp_get_max_threads()
-!$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%com%omp_n_threads))
+!$ s%global%n_threads = omp_get_max_threads()
+!$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%global%n_threads))
 
 ! Open the init file.
 ! If the init file name is *not* the default (that is, it has been set by

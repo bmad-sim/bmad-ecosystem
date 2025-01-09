@@ -23,6 +23,7 @@ subroutine tao_init_global (init_file)
 
 use opti_de_mod, only: opti_de_param
 use input_mod
+use tao_set_mod, only: tao_set_openmp_n_threads
 
 type (tao_global_struct) :: global
 
@@ -81,6 +82,8 @@ if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found'
 s%global = global
 
 close (iu)
+
+call tao_set_openmp_n_threads(s%global%n_threads)
 
 call end_bookkeeping()
 

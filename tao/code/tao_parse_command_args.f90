@@ -14,6 +14,7 @@ subroutine tao_parse_command_args (error, cmd_line)
 
 use tao_interface, dummy => tao_parse_command_args
 use tao_command_mod, only: tao_cmd_split
+use tao_set_mod, only: tao_set_openmp_n_threads
 
 implicit none
 
@@ -114,6 +115,7 @@ do
     s%init = tao_init_struct()
     s%com = tao_common0
     s%global = tao_global_struct()
+    call tao_set_openmp_n_threads(s%global%n_threads)
 
   case ('-command')
     call get_next_arg (arg0, s%init%command_arg, i_arg, n_arg, .true.)

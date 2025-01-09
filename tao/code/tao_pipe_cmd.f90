@@ -4479,6 +4479,7 @@ case ('global')
   nl=incr(nl); write (li(nl), amt) 'phase_units;ENUM;T;',                     trim(angle_units_name(s%global%phase_units))
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
+  nl=incr(nl); write (li(nl), imt) 'n_threads;INT;T;',                        s%global%n_threads
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
   nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
   nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles

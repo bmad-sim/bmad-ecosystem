@@ -654,6 +654,7 @@ type tao_global_struct
   integer :: default_branch = 0                  ! Default lattice branch to work with.
   integer :: n_opti_cycles = 20                  ! Number of optimization cycles
   integer :: n_opti_loops = 1                    ! Number of optimization loops
+  integer :: n_threads = 1                       ! Number of OpenMP threads for parallel calculations.
   integer :: phase_units = radians$              ! Phase units on output.
   integer :: bunch_to_plot = 1                   ! Which bunch to plot
   integer :: random_seed = -1                    ! Use system clock by default
@@ -754,7 +755,6 @@ type tao_common_struct
   integer :: lev_loop = 0                       ! in do loop nest level
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   integer :: n_universes = n_uni_init$   
-  integer :: omp_n_threads = 1                  ! Number of OpenMP threads.
   logical :: cmd_file_paused = .false.
   logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?

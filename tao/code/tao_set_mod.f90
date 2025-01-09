@@ -145,6 +145,49 @@ end subroutine tao_set_z_tune_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine tao_set_openmp_n_threads (n_threads)
+!
+! Routine to set OpenMP thread count.  Errors if OpenMP is not available.
+!
+! Input:
+!   n_threads      -- integer: Number of threads.
+!-
+
+subroutine tao_set_openmp_n_threads (n_threads)
+
+!$ use omp_lib, only: omp_get_max_threads, omp_set_num_threads
+
+implicit none
+
+integer old_n_threads, n_threads
+logical openmp_available
+
+character(*), parameter :: r_name = 'tao_set_openmp_n_threads'
+
+  openmp_available = .false.
+  !$ openmp_available = .true.
+
+  if (.not. openmp_available) then
+    if (n_threads > 1) then
+      call out_io (s_error$, r_name, 'Multithreading support with OpenMP is not available.')
+    endif
+    return
+  endif
+
+  !$ old_n_threads = omp_get_max_threads()
+  !$ call omp_set_num_threads(n_threads)
+  ! What OpenMP sets may differ from what we requested, so set it again here:
+  !$ s%global%n_threads = omp_get_max_threads()
+  !$ if (old_n_threads /= s%global%n_threads) then
+  !$   call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%global%n_threads))
+  !$ endif
+
+end subroutine tao_set_openmp_n_threads
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_calculate_cmd (switch)
 !
 ! Toggles off lattice calc and plotting.
@@ -508,7 +551,8 @@ case ('random_engine', 'random_gauss_converter', 'track_type', 'quiet', 'prompt_
   val = quote(value_str)
 
 case ('n_opti_cycles', 'n_opti_loops', 'phase_units', 'bunch_to_plot', &
-      'random_seed', 'n_top10_merit', 'srdt_gen_n_slices', 'srdt_sxt_n_slices')
+      'random_seed', 'n_top10_merit', 'srdt_gen_n_slices', 'srdt_sxt_n_slices', &
+      'n_threads')
   call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
   write (val, '(i0)', iostat = ios) nint(set_val(1))
 
@@ -547,6 +591,8 @@ if (err) return
 !
 
 select case (who)
+case ('n_threads')
+  call tao_set_openmp_n_threads(global%n_threads)
 case ('optimizer')
   if (all(global%optimizer /= tao_optimizer_name)) then
     call out_io (s_error$, r_name, 'BAD OPTIMIZER NAME: ' // global%optimizer)
