@@ -159,7 +159,7 @@ subroutine tao_set_openmp_n_threads (n_threads)
 
 implicit none
 
-integer n_threads
+integer old_n_threads, n_threads
 logical openmp_available
 
 character(*), parameter :: r_name = 'tao_set_openmp_n_threads'
@@ -174,10 +174,13 @@ character(*), parameter :: r_name = 'tao_set_openmp_n_threads'
     return
   endif
 
+  !$ old_n_threads = omp_get_max_threads()
   !$ call omp_set_num_threads(n_threads)
   ! What OpenMP sets may differ from what we requested, so set it again here:
   !$ s%global%n_threads = omp_get_max_threads()
-  !$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%global%n_threads))
+  !$ if (old_n_threads /= s%global%n_threads) then
+  !$   call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%global%n_threads))
+  !$ endif
 
 end subroutine tao_set_openmp_n_threads
 
