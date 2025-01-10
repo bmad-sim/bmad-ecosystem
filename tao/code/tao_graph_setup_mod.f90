@@ -2447,7 +2447,7 @@ do ii = 1, size(curve%x_line)
 
       else
         call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err_flag, compute_floor_coords = .true.)
-        mat6 = matmul(ele%mat6, mat6)
+        mat6 = matmul(ele%mat6, mat6)  ! Matrix from beginning of branch.
         vec0 = matmul(ele%mat6, vec0) + ele%vec0
         orbit = orbit_end
       endif
