@@ -2446,18 +2446,23 @@ do ii = 1, size(curve%x_line)
         first_time = .false.
 
       else
-        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err_flag, compute_floor_coords = .true.)
-        mat6 = matmul(ele%mat6, mat6)  ! Matrix from beginning of branch.
-        vec0 = matmul(ele%mat6, vec0) + ele%vec0
+        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err_flag, &
+                                                                    compute_floor_coords = .true., compute_twiss = .false.)
         orbit = orbit_end
+        vec0 = matmul(ele%mat6, vec0) + ele%vec0
+        mat6 = matmul(ele%mat6, mat6)  ! Matrix from beginning of branch.
+        ele%vec0 = vec0
+        ele%mat6 = mat6
+        ele%key = hybrid$                  ! So twiss_propagate1 does not get confused.
+        call twiss_propagate1(branch%ele(0), ele, err_flag)
       endif
 
 
       if (cache_status == loading_cache$) then
         tao_branch%plot_cache(ii)%ele      = ele
         tao_branch%plot_cache(ii)%orbit    = orbit
-        tao_branch%plot_cache(ii)%ele%mat6 = mat6
-        tao_branch%plot_cache(ii)%ele%vec0 = vec0
+        tao_branch%plot_cache(ii)%ele%mat6 = ele%mat6
+        tao_branch%plot_cache(ii)%ele%vec0 = ele%vec0
         tao_branch%plot_cache(ii)%err      = err_flag
       endif
 
