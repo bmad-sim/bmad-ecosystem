@@ -280,8 +280,8 @@ write (1, '(a, 2es24.16)') '"Pipe-superimpose-val" REL 1E-14 ', slave%value(x_of
 !----------------------------------------------------------------------
 
 call bmad_parser('bookkeeper_test3.bmad', lat)
-call write_bmad_lattice_file('lat2.bmad', lat)
-call bmad_parser('lat2.bmad', lat2)
+call write_bmad_lattice_file('lat3.bmad', lat)
+call bmad_parser('lat3.bmad', lat2)
 
 do i = 1, 3
   ele => lat%ele(i);    mater => ele%foil%material
