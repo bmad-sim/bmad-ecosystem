@@ -430,10 +430,11 @@ if (associated(ele%foil)) then
                           attribute_units('DENSITY'), attribute_units('AREA_DENSITY'), attribute_units('RADIATION_LENGTH')
       endif
 
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density      =', matter%density, &
-                  '  Area_Density      =', matter%area_density,      '  Radiation_Length      =', matter%radiation_length
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density_Used =', matter%density_used, &
-                  '  Area_Density_Used =', matter%area_density_used, '  Radiation_Length_Used =', matter%radiation_length_used
+      nl=nl+1; write(li(nl), '(3(a, a14))') '  Density      =', this_real(matter%density, 'es14.6', '  Not_Set'), &
+             '  Area_Density      =', this_real(matter%area_density, 'es14.6', '  Not_Set'), &
+             '  Radiation_Length      =', this_real(matter%radiation_length, 'es14.6', '  Not_Set')
+      nl=nl+1; write(li(nl), '((a, a14), 2(a, es14.6))') '  Density_Used =', this_real(matter%density_used, 'es14.6', '  Not_Used'), &
+             '  Area_Density_Used =', matter%area_density_used, '  Radiation_Length_Used =', matter%radiation_length_used
     enddo
 endif
 
@@ -1810,5 +1811,25 @@ do im = 1, size(stack)
 enddo
 
 end subroutine print_this_stack
+
+!--------------------------------------------------------------------------
+! contains
+
+function this_real(value, fmt, garbage_str) result (out_str)
+
+real(rp) value
+character(*) fmt, garbage_str
+character(30) out_str
+
+!
+
+if (value == real_garbage$) then
+  out_str = garbage_str
+  return
+endif
+
+write (out_str, '(' // fmt // ')') value
+
+end function this_real
 
 end subroutine type_ele

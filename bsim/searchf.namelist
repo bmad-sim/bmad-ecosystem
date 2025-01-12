@@ -105,9 +105,6 @@ bsim_interface
 File: code/insert_phase_trombone.f90
 insert_phase_trombone
 
-File: code/set_tune_3d.f90
-set_tune_3d
-
 File: code/bbu_track_mod.f90
 bbu_track_mod
 bbu_stage_struct
@@ -124,6 +121,9 @@ check_rf_freq
 write_bunch_by_bunch_info
 hom_voltage
 logical_to_python
+
+File: code/set_tune_3d.f90
+set_tune_3d
 
 File: code_synrad/break_wall_into_segments.f90
 break_wall_into_segments
@@ -422,6 +422,10 @@ ts_track_particle
 ts_write_results
 ts_print_mpi_info
 
+File: modules/four_mod.f90
+four_mod
+xy_to_action
+
 File: modules/lt_tracking_mod.f90
 lt_tracking_mod
 master_rank$
@@ -480,10 +484,6 @@ ltt_apply_rampers_to_slave
 ltt_track1_bunch_hook
 ltt_track1_preprocess
 ltt_init_coord
-
-File: modules/four_mod.f90
-four_mod
-xy_to_action
 
 File: moga/moga.f90
 moga
