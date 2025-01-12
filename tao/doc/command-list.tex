@@ -3846,6 +3846,7 @@ Format:
   write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
   write digested ...              ! \sref{s:write.digested}
   write elegant ...               ! \sref{s:write.elegant}
+  write field ...                 ! \sref{s:write.field
   write gif ...                   ! \sref{s:write.gif}
   write hard                      ! \sref{s:write.hard}
   write mad8 ...                  ! \sref{s:write.mad8}
@@ -4076,6 +4077,48 @@ Syntax:
 
 Write a lattice file in \vn{Elegant} format. The default file name is \vn{lat_\#.lte} where \vn{\#}
 is replaced by the universe number.
+
+%% write field --------------------------------------------------------------
+
+\subsection{write field}
+\label{s:write.field}
+
+The \vn{write field} command creates a file with a table of magnetic field values for a given lattice
+element. Syntax:
+\begin{example}
+    write field \{-nmax <nx_max>, <ny_max> <nz_max>\} \{-nmin <nx_min>, <ny_min> <nz_min>\}
+                \{-rmax <rx_max>, <ry_max> <rz_max>\} \{-rmin <rx_min>, <ry_min> <rz_min>\} 
+        \{-dr <dr_x> <dr_y <dr_z>\} -ele <eleID> \{<file_name>\}  
+\end{example}
+
+The default file name is \vn{field.dat}.
+
+The fiducial point for the grid is the coordinates at the entrance end of the the lattice element
+given by the \vn{-ele} switch. Laboratory (not body) coordinates are used.
+
+The field grid indexes runs from \vn{nx_min} to \vn{nx_max} for $x$,
+etc. The distance between points is set with the \vn{-dr} switch and the extent of the grid is set
+by \vn{-rmin} and \vn{rmax} switches. 
+
+If \vn{-nmin} is present, so must \vn{-nmax} be present. If \vn{-nmin} is not present but \vn{-nmax}
+is, the default values for \vn{-nmin} are [-nx_max, -ny_max, 0].
+
+If \vn{-rmin} is present, so must \vn{-rmax} be present. If \vn{-rmin} is not present but \vn{-rmax}
+is, the default values for \vn{-rmin} are [-rx_max, -ry_max, 0].
+
+\vn{-dr}, \vn{-nmax}, and \vn{-rmax} values are interdependent. For example:
+\begin{example}
+  rx_max = nx_max * dr_x
+\end{example}
+Given this, exactly two of the three needs to be present.
+
+Examples:
+\begin{example}
+  write field -ele Q1 -dr 0.01 0.02 0.05 -nmax 30 20, 200
+  write field -ele Q1 -dr 0.01 0.02 0.05 -rmax 0.3 0.4 10.0   ! Same as above
+\end{example}
+The above examples both specify the same grid which will have an index range in $x$ of $[-30, 30]$,
+ana range in $y$ of $[-20, 20]$, 
 
 %% write gif --------------------------------------------------------------
 

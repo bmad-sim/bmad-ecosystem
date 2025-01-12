@@ -1,5 +1,5 @@
 !+
-! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag,
 !               calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
 !
 ! Routine to calculate the E and B fields at a particular place in an element.
@@ -653,9 +653,9 @@ case (bmad_standard$)
       do i = 0, ix_pole_max
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         if (do_df_calc) then
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, 0, local_orb, kx, ky, dkm)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky, dkm)
         else
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, 0, local_orb, kx, ky)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky)
         endif
         field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
         field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
@@ -1378,7 +1378,7 @@ case(fieldmap$)
 
         if (logic_option(.false., calc_potential)) then
           if (r /= 0) then
-            abs_tol = abs(1e-10_rp * r * orbit%p0c * (1 + orbit%vec(6)) / (c_light * charge_of(orbit%species)))
+            abs_tol = abs(1e-10_rp * r * orbit%p0c * (1 + orbit%vec(6)) / (c_light * charge_of(ele%ref_species)))
             inte = super_qromb(rb_field, 0.0_rp, r, 1e-12_rp, abs_tol, 2, err) / r
             field%A(1:2) = field%A(1:2) + inte * [-y, x] / r
           endif

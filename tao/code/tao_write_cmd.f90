@@ -33,7 +33,9 @@ type (bunch_struct), pointer :: bunch
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
+type (lat_param_struct), pointer :: param
 type (coord_struct), pointer :: p
+type (coord_struct)  :: orbit
 type (tao_d2_data_struct), pointer :: d2
 type (tao_d1_data_struct), pointer :: d1
 type (tao_data_struct), pointer :: dat
@@ -43,6 +45,7 @@ type (tao_spin_map_struct), pointer :: sm
 type (bunch_track_struct), pointer :: bunch_params_comb(:)
 type (bunch_track_struct), pointer :: comb1
 type (bunch_params_struct), pointer :: bpt
+type (em_field_struct) field
 
 real(rp) scale, mat6(6,6)
 real(rp), allocatable :: values(:)
@@ -57,7 +60,7 @@ character(200) file_name0, file_name, what2
 character(200) :: word(40)
 character(*), parameter :: r_name = 'tao_write_cmd'
 
-real(rp) dr(3), r_max(3), r_min(3)
+real(rp) dr(3), r_max(3), r_min(3), rr(3)
 
 integer i, j, k, m, n, ie, ic, id, ix, iu, nd, ii, i_uni, ib, ip, ios, loc, iy, iz
 integer n_max(3), n_min(3), i_chan, ix_beam, ix_word, ix_w2, file_format
@@ -519,6 +522,7 @@ case ('field')
   n_min = int_garbage$
   n_max = int_garbage$
   file_name = ''
+  ix_word = 0
 
   do
     ix_word = ix_word + 1
@@ -557,7 +561,7 @@ case ('field')
   endif
 
   if (r_max(1) /= real_garbage$ .and. r_min(1) == real_garbage$) r_min = [-r_max(1), -r_max(2), 0.0_rp]
-  if (n_max(1) /= real_garbage$ .and. n_min(1) == real_garbage$) n_min = [-n_max(1), -n_max(2), 0]
+  if (n_max(1) /= int_garbage$ .and. n_min(1) == int_garbage$) n_min = [-n_max(1), -n_max(2), 0]
 
   if (r_max(1) == real_garbage$) then
     r_max = n_max * dr
@@ -569,19 +573,43 @@ case ('field')
     dr = (r_max - r_min) / (n_max - n_min)
   endif
 
-  call tao_locate_elements(ele_name, -2, eles, err)
+  call tao_locate_elements (ele_name, s%global%default_universe, eles, err)
   if (err) return
 
   if (size(eles) > 1) then
-    call out_io(s_error$, r_name, 'ELEMENT NAME MATCHES TO MULTIPLE ELEMENTS: ' // ele_name)
-    return
+    call out_io(s_warn$, r_name, 'Element name matches to multiple elements: ' // ele_name, 'Will use first one.')
   elseif (size(eles) == 0) then
     call out_io(s_error$, r_name, 'ELEMENT NAME DOES NOT MATCH TO ANY ELEMENTS: ' // ele_name)
     return
   endif
 
-  do 
+  ele => eles(1)%ele
 
+  !
+
+  open (iu, file = file_name)
+  write (iu, '(9a)') '# ele = ', quote(ele%name) 
+  write (iu, '(9a)') '# nx = [', int_str(n_min(1)), ', ', int_str(n_max(1)), ']' 
+  write (iu, '(9a)') '# ny = [', int_str(n_min(2)), ', ', int_str(n_max(2)), ']' 
+  write (iu, '(9a)') '# nz = [', int_str(n_min(3)), ', ', int_str(n_max(3)), ']' 
+  write (iu, '(9a)') '# rx = [', real_str(r_min(1)), ', ', real_str(r_max(1)), ']' 
+  write (iu, '(9a)') '# ry = [', real_str(r_min(2)), ', ', real_str(r_max(2)), ']' 
+  write (iu, '(9a)') '# rz = [', real_str(r_min(3)), ', ', real_str(r_max(3)), ']' 
+  write (iu, '(9a)') '# dr = [', real_str(dr(1)), ', ', real_str(dr(2)), ', ', real_str(dr(3)), ']'
+  write (iu, '(9a)') '##' 
+  write (iu, '(9a)') '##         x           y           z                  Bx                  By                  Bz' 
+
+  branch => pointer_to_branch(ele)
+
+  do ix = n_min(1), n_max(1)
+  do iy = n_min(2), n_max(2)
+  do iz = n_min(3), n_max(3)
+    rr = [ix, iy, iz] * dr
+    orbit%vec(1:3:2) = rr(1:2)
+    call em_field_calc(ele, branch%param, rr(3), orbit, .false., field)
+    write (iu, '(3f12.6, 3es20.11)') rr, field%b
+  enddo
+  enddo
   enddo
 
 !---------------------------------------------------
