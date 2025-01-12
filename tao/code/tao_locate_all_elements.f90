@@ -8,7 +8,7 @@
 ! Input:
 !   ele_list     -- Character(*): String with element names using element list format.
 !   ignore_blank -- Logical, optional: If present and true then do nothing if
-!     ele_list is blank. otherwise treated as an error.
+!     ele_list is blank. otherwise a blank is treated as an error.
 !
 ! Output:
 !   eles  -- ele_pointer_struct(:), allocatable: Array of elements in the model lat. 
