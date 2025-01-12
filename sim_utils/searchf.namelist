@@ -24,14 +24,6 @@ file_get_open
 File: file/file_suffixer.f90
 file_suffixer
 
-File: file/filename_mod.f90
-filename_mod
-fullfilename
-splitfilename
-file_name_is_relative
-simplify_path
-append_subdirectory
-
 File: file/get_file_number.f90
 get_file_number
 
@@ -67,6 +59,14 @@ skip_header
 
 File: file/type_this_file.f90
 type_this_file
+
+File: file/filename_mod.f90
+filename_mod
+fullfilename
+splitfilename
+file_name_is_relative
+simplify_path
+append_subdirectory
 
 File: geodesic_lm/accept.f90
 acceptance
@@ -206,61 +206,6 @@ i4_b
 global_common_struct
 named_number_struct
 
-File: interfaces/sim_utils_struct.f90
-sim_utils_struct
-var_length_string_struct
-str_index_struct
-nametable_struct
-all_pointer_struct
-i_imaginary
-i_imag
-int_garbage$
-real_garbage$
-null_name$
-str_garbage$
-lf$
-invalid$
-not_set$
-invalid_name
-molecular_component_struct
-x_axis$
-y_axis$
-z_axis$
-xy_axis$
-true$
-false$
-true_int$
-false_int$
-yes$
-no$
-maybe$
-provisional$
-rl_prompt_start_ignore
-rl_prompt_end_ignore
-black_color
-red_color
-green_color
-yellow_color
-blue_color
-magenta_color
-cyan_color
-gray_color
-dark_gray_color
-peach_color
-light_green_color
-light_yellow_color
-light_blue_color
-pink_color
-aqua_color
-white_color
-blink_color
-bold_color
-reset_color
-int_logic
-is_true
-is_false
-value_of_all_ptr
-
 File: interfaces/sim_utils_interface.f90
 sim_utils_interface
 set_parameter
@@ -361,6 +306,61 @@ find_location_real
 find_location_int
 find_location_logic
 find_location_str
+
+File: interfaces/sim_utils_struct.f90
+sim_utils_struct
+var_length_string_struct
+str_index_struct
+nametable_struct
+all_pointer_struct
+i_imaginary
+i_imag
+int_garbage$
+real_garbage$
+null_name$
+str_garbage$
+lf$
+invalid$
+not_set$
+invalid_name
+molecular_component_struct
+x_axis$
+y_axis$
+z_axis$
+xy_axis$
+true$
+false$
+true_int$
+false_int$
+yes$
+no$
+maybe$
+provisional$
+rl_prompt_start_ignore
+rl_prompt_end_ignore
+black_color
+red_color
+green_color
+yellow_color
+blue_color
+magenta_color
+cyan_color
+gray_color
+dark_gray_color
+peach_color
+light_green_color
+light_yellow_color
+light_blue_color
+pink_color
+aqua_color
+white_color
+blink_color
+bold_color
+reset_color
+int_logic
+is_true
+is_false
+value_of_all_ptr
 
 File: io/command_line_mod.f90
 command_line_mod
@@ -587,6 +587,9 @@ da2_evaluate
 File: math/fft_1d.f90
 fft_1d
 
+File: math/quadratic_roots.f90
+quadratic_roots
+
 File: math/random_mod.f90
 random_mod
 kr4b
@@ -618,6 +621,36 @@ ran_uniform_vector
 super_sobseq
 pointer_to_ran_state
 allocate_thread_states
+
+File: math/rotation_3d_mod.f90
+rotation_3d_mod
+quat_conj
+procedure
+procedure
+quat_mul
+procedure
+procedure
+quat_rotate
+procedure
+procedure
+w_mat_to_axis_angle
+w_mat_to_quat
+quat_to_w_mat
+axis_angle_to_w_mat
+quat_to_omega
+omega_to_quat
+quat_to_axis_angle
+axis_angle_to_quat
+quat_conj_real
+quat_conj_complex
+quat_inverse
+quat_mul_real
+quat_mul_complex
+quat_rotate_real
+quat_rotate_complex
+rotate_vec_given_axis_angle
+rotate_vec
+rotate_mat
 
 File: math/spline_mod.f90
 spline_mod
@@ -658,39 +691,6 @@ super_qromb_2d
 trapzd_2d
 super_poly
 covar_expand
-
-File: math/rotation_3d_mod.f90
-rotation_3d_mod
-quat_conj
-procedure
-procedure
-quat_mul
-procedure
-procedure
-quat_rotate
-procedure
-procedure
-w_mat_to_axis_angle
-w_mat_to_quat
-quat_to_w_mat
-axis_angle_to_w_mat
-quat_to_omega
-omega_to_quat
-quat_to_axis_angle
-axis_angle_to_quat
-quat_conj_real
-quat_conj_complex
-quat_inverse
-quat_mul_real
-quat_mul_complex
-quat_rotate_real
-quat_rotate_complex
-rotate_vec_given_axis_angle
-rotate_vec
-rotate_mat
-
-File: math/quadratic_roots.f90
-quadratic_roots
 
 File: matrix/cplx_mat_inverse.f90
 cplx_mat_inverse
@@ -737,14 +737,14 @@ svd_fit
 File: matrix/mat_eigen.f90
 mat_eigen
 
+File: matrix/mat_inverse.f90
+mat_inverse
+
 File: matrix/mat_symp_conj.f90
 mat_symp_conj
 
 File: matrix/mat_symp_conj_i.f90
 mat_symp_conj_i
-
-File: matrix/mat_inverse.f90
-mat_inverse
 
 File: misc/assert_equal.f90
 assert_equal
@@ -963,15 +963,15 @@ File: optimizers/opti.cpp
 RandInt
 UniRand
 
+File: optimizers/opti_de_openmp_mod.f90
+opti_de_openmp_mod
+opti_de_openmp
+solution_struct
+
 File: optimizers/opti_de_mod.f90
 opti_de_mod
 opti_de_param_struct
 opti_de
-solution_struct
-
-File: optimizers/opti_de_openmp_mod.f90
-opti_de_openmp_mod
-opti_de_openmp
 solution_struct
 
 File: plot/display_size_and_resolution.c
@@ -1066,6 +1066,76 @@ qp_select_page_basic
 qp_close_page_basic
 qp_end_basic
 
+File: plot/quick_plot_struct.f90
+quick_plot_struct
+white$
+black$
+red$
+green$
+blue$
+cyan$
+magenta$
+yellow$
+orange$
+yellow_green$
+light_green$
+navy_blue$
+purple$
+reddish_purple$
+dark_grey$
+light_grey$
+transparent$
+qp_color_name
+solid$
+dashed$
+dash_dot$
+dotted$
+dash_dot3$
+qp_line_pattern_name
+solid_fill$
+no_fill$
+hatched$
+cross_hatched$
+qp_symbol_fill_pattern_name
+square_sym$
+dot_sym$
+plus_sym$
+times_sym$
+circle_sym$
+x_symbol_sym$
+triangle_sym$
+circle_plus_sym$
+circle_dot_sym$
+square_concave_sym$
+diamond_sym$
+star5_sym$
+triangle_filled_sym$
+red_cross_sym$
+star_of_david_sym$
+square_filled_sym$
+circle_filled_sym$
+star5_filled_sym$
+qp_symbol_type_name
+dflt_draw$
+dflt_set$
+print_page_long_len
+print_page_short_len
+filled_arrow_head$
+outline_arrow_head$
+qp_arrow_head_type_name
+qp_axis_struct
+qp_plot_struct
+qp_point_struct
+qp_rect_struct
+qp_text_struct
+qp_line_struct
+qp_symbol_struct
+qp_arrow_struct
+qp_legend_struct
+qp_state_struct
+qp_string_to_enum
+qp_enum_to_string
+
 File: plot/quick_plot.f90
 quick_plot
 qp_base_library
@@ -1158,76 +1228,6 @@ qp_eliminate_xy_distortion
 qp_continuous_color
 qp_continuous_color_inverse
 qp_end
-
-File: plot/quick_plot_struct.f90
-quick_plot_struct
-white$
-black$
-red$
-green$
-blue$
-cyan$
-magenta$
-yellow$
-orange$
-yellow_green$
-light_green$
-navy_blue$
-purple$
-reddish_purple$
-dark_grey$
-light_grey$
-transparent$
-qp_color_name
-solid$
-dashed$
-dash_dot$
-dotted$
-dash_dot3$
-qp_line_pattern_name
-solid_fill$
-no_fill$
-hatched$
-cross_hatched$
-qp_symbol_fill_pattern_name
-square_sym$
-dot_sym$
-plus_sym$
-times_sym$
-circle_sym$
-x_symbol_sym$
-triangle_sym$
-circle_plus_sym$
-circle_dot_sym$
-square_concave_sym$
-diamond_sym$
-star5_sym$
-triangle_filled_sym$
-red_cross_sym$
-star_of_david_sym$
-square_filled_sym$
-circle_filled_sym$
-star5_filled_sym$
-qp_symbol_type_name
-dflt_draw$
-dflt_set$
-print_page_long_len
-print_page_short_len
-filled_arrow_head$
-outline_arrow_head$
-qp_arrow_head_type_name
-qp_axis_struct
-qp_plot_struct
-qp_point_struct
-qp_rect_struct
-qp_text_struct
-qp_line_struct
-qp_symbol_struct
-qp_arrow_struct
-qp_legend_struct
-qp_state_struct
-qp_string_to_enum
-qp_enum_to_string
 
 File: special_functions/asinc.f90
 asinc

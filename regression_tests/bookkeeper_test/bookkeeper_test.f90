@@ -7,7 +7,7 @@ use random_mod
 implicit none
 
 type (lat_struct), target :: lat, lat2, lat3
-type (ele_struct), pointer :: ele, nele, slave
+type (ele_struct), pointer :: ele, ele2, nele, slave
 type (ele_struct) a_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
@@ -16,6 +16,7 @@ type (control_ramp1_struct), pointer :: ramp(:)
 type (nametable_struct) ntab
 type (expression_atom_struct), allocatable :: stack(:)
 type (ele_pointer_struct), allocatable :: ramper(:)
+type (material_struct), pointer :: mater(:), mater2(:)
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(40) :: loc_str(19) = [character(40):: 'qu1-1', 'qu1-5', 'qu2+1', 'qu2+10', &
@@ -153,7 +154,7 @@ call taylor_to_mat6(lat2%ele(1)%taylor, r0, vec1, m1)
 call taylor_to_mat6(lat3%ele(1)%taylor, r0, vec2, m2)
 write (1, '(a, es12.3)') '"Hybrid" ABS 1e-12  ', maxval(abs(m2-m1))+sum(abs(vec2-vec1))
 
-!-------------
+!--------------------------------------------
 
 call bmad_parser (lat_file, lat, make_mats6 = .false., err_flag = err);  if (err) stop
 
@@ -264,7 +265,7 @@ write (1, '(3a)') '"Aperture-7"   STR "', trim(coord_state_name(orb%state)), '"'
 call lat_ele_locator ('quad::*', lat, eles, n_loc, err)
 write (1, '(a, i4)') '"N_Quad_Loc" ABS 0', n_loc
 
-!
+!----------------------------------------------------------------------
 
 call bmad_parser('pipe_superimpose.bmad', lat)
 ele => lat%ele(6)
@@ -275,6 +276,27 @@ call lattice_bookkeeper(lat, err)
 slave => lat%ele(2)
 write (1, '(a, l1, a)') '"Pipe-superimpose-state" STR  "', slave%bookkeeping_state%has_misalign, '"'
 write (1, '(a, 2es24.16)') '"Pipe-superimpose-val" REL 1E-14 ', slave%value(x_offset$), slave%value(x_offset_tot$)
+
+!----------------------------------------------------------------------
+
+call bmad_parser('bookkeeper_test3.bmad', lat)
+call write_bmad_lattice_file('lat3.bmad', lat)
+call bmad_parser('lat3.bmad', lat2)
+
+do i = 1, 3
+  ele => lat%ele(i);    mater => ele%foil%material
+  ele2 => lat2%ele(i);  mater2 => ele2%foil%material
+  write(1, '(a, i0, a, 4es20.12)') '"density-', i, '" REL 1E-12', mater%density, mater2%density
+  write(1, '(a, i0, a, 4es20.12)') '"density_used-', i, '" REL 1E-12', mater%density_used, mater2%density_used
+  write(1, '(a, i0, a, 4es20.12)') '"area_density-', i, '" REL 1E-12', mater%area_density, mater2%area_density
+  write(1, '(a, i0, a, 4es20.12)') '"area_density_used-', i, '" REL 1E-12', mater%area_density_used, mater2%area_density_used
+  write(1, '(a, i0, a, 4es20.12)') '"radiation_length-', i, '" REL 1E-12', mater%radiation_length, mater2%radiation_length
+  write(1, '(a, i0, a, 4es20.12)') '"radiation_length_used-', i, '" REL 1E-12', mater%radiation_length_used, mater2%radiation_length_used
+  write(1, '(a, i0, a, 4i16)') '"species-', i, '" REL 1E-12', mater%species, mater2%species
+  write(1, '(a, i0, a, 4i4)')  '"number-', i, '" REL 1E-12', mater%number, mater2%number
+enddo
+
+!
 
 close(1)
 

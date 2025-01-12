@@ -58,6 +58,7 @@ type (ac_kicker_struct), pointer :: ac
 type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), allocatable :: rt_save(:)
 type (photon_reflect_table_struct), pointer :: rt
+type (material_struct) :: material
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2), vec(1000)
 real(rp), allocatable :: table(:,:), arr(:)
@@ -1783,18 +1784,26 @@ case ('DENSITY', 'AREA_DENSITY', 'RADIATION_LENGTH')
   if (.not. ok) return
 
   if (allocated(ele%foil%material)) then
-    if (size(ele%foil%material) /= n) then
+    if (size(ele%foil%material) == 1 .and. n > 1) then
+      material = ele%foil%material(1)
+      deallocate (ele%foil%material)
+      allocate(ele%foil%material(n))
+      ele%foil%material(1) = material
+    endif
+
+    if (size(ele%foil%material) /= n .and. (attrib_word == 'RADIATION_LENGTH' .or. (n > 1 .and. size(ele%foil%material) > 1))) then
       call parser_error('MATERIAL_TYPE, DENSITY, AREA_DENSITY, AND RADIATION_LENGTH MUST ALL BE THE SAME SIZE VECTORS FOR ELE: ' // ele%name)
       return
     endif
+      
   else
     allocate(ele%foil%material(n))
   endif
 
   select case (attrib_word)
-  case ('DENSITY');           ele%foil%material(:)%density = arr
-  case ('AREA_DENSITY');      ele%foil%material(:)%area_density = arr
-  case ('RADIATION_LENGTH');  ele%foil%material(:)%radiation_length = arr
+  case ('DENSITY');           ele%foil%material(1:n)%density = arr(1:n)
+  case ('AREA_DENSITY');      ele%foil%material(1:n)%area_density = arr(1:n)
+  case ('RADIATION_LENGTH');  ele%foil%material(1:n)%radiation_length = arr(1:n)
   end select
 
   if (delim == ')') then

@@ -1,0 +1,33 @@
+no_digested
+parameter[ran_seed] = 1234
+parameter[n_part] = 1e10
+parameter[ptc_exact_model] = true
+parameter[geometry] = open
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  = 0.001
+particle_start[px] = 0.002
+particle_start[y]  = 0.003
+particle_start[py] = 0.004
+particle_start[z]  = 0.005
+particle_start[pz] = 0.006
+particle_start[spin_x] = 0.3
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
+
+
+foil1:             foil, material_type = "B4C", thickness = 1e-4, density = 15e3, radiation_length = (5.26868, 4.26983), dthickness_dx = 0.01
+foil2:             foil, material_type = "B4C", thickness = 1e-4, density = (12e3, 3e3), radiation_length = (5.26868, 4.26983), dthickness_dx = 0.01
+foil3:             foil, material_type = "B4C", thickness = 0, area_density = 2.37e-1, scatter_method = lynch_dahl
+
+!---------------
+
+l4: line = (foil1, foil2, foil3)
+l4[geometry] = open
+l4[e_tot] = 210e10
+l4[particle] = #209Bi+43
+l4[beta_a] = 10
+l4[beta_b] = 10
+
+use, l4

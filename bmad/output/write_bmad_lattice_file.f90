@@ -526,7 +526,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (associated(ele%foil)) then
       if (size(ele%foil%material) > 1) then
-        if (any(ele%foil%material%density /= 0)) then
+        if (any(ele%foil%material%density /= real_garbage$)) then
           line = trim(line) // ', density = ('
           do n = 1, size(ele%foil%material)
             if (n == 1) then; line = trim(line) // re_str(ele%foil%material(n)%density)
@@ -536,7 +536,7 @@ do ib = 0, ubound(lat%branch, 1)
           line = trim(line) // ')'
         endif
 
-        if (any(ele%foil%material%area_density /= 0)) then
+        if (any(ele%foil%material%area_density /= real_garbage$)) then
           line = trim(line) // ', area_density = ('
           do n = 1, size(ele%foil%material)
             if (n == 1) then; line = trim(line) // re_str(ele%foil%material(n)%area_density)
@@ -546,7 +546,7 @@ do ib = 0, ubound(lat%branch, 1)
           line = trim(line) // ')'
         endif
 
-        if (any(ele%foil%material%radiation_length /= 0)) then
+        if (any(ele%foil%material%radiation_length /= real_garbage$)) then
           line = trim(line) // ', radiation_length = ('
           do n = 1, size(ele%foil%material)
             if (n == 1) then; line = trim(line) // re_str(ele%foil%material(n)%radiation_length)
@@ -558,9 +558,9 @@ do ib = 0, ubound(lat%branch, 1)
 
       else
         material => ele%foil%material(1)
-        if (material%density /= 0)          line = trim(line) // ', density = ' // re_str(material%density)
-        if (material%area_density /= 0)     line = trim(line) // ', area_density = ' // re_str(material%area_density)
-        if (material%radiation_length /= 0) line = trim(line) // ', radiation_length = ' // re_str(material%radiation_length)
+        if (material%density /= real_garbage$)          line = trim(line) // ', density = ' // re_str(material%density)
+        if (material%area_density /= real_garbage$)     line = trim(line) // ', area_density = ' // re_str(material%area_density)
+        if (material%radiation_length /= real_garbage$) line = trim(line) // ', radiation_length = ' // re_str(material%radiation_length)
       endif
     endif
 

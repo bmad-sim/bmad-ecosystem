@@ -45,9 +45,10 @@ type (wake_lr_mode_struct), pointer :: lr
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (molecular_component_struct), allocatable :: component(:)
 type (material_struct), pointer :: material
+type (material_struct) :: materi
 
 real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time, beta
-real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin, ky, kz
+real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin, ky, kz, tot_mass
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
@@ -472,33 +473,64 @@ case (foil$)
   call molecular_components(ele%component_name, component)
   n = size(component)
   if (.not. allocated(ele%foil%material)) allocate(ele%foil%material(n))
+  materi = ele%foil%material(1)
+
+  if (n > 1 .and. size(ele%foil%material) == 1) then
+    deallocate (ele%foil%material)
+    allocate(ele%foil%material(n))
+    ele%foil%material(1) = materi
+  endif
+
   if (n /= size(ele%foil%material)) then
     call out_io(s_error$, r_name, 'NUMBER OF COMPONENTS IN: ' // quote(ele%component_name) // ' (' // int_str(n) // &
-                    ') IS NOT THE SAME AS OTHER PARAMETERS.')
+                    ') IS NOT THE SAME AS OTHER PARAMETERS IN ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif
 
+  tot_mass = 0
   do ix = 1, n
     material => ele%foil%material(ix)
     material%species = species_id(component(ix)%atom)
+    material%number = component(ix)%number
+    tot_mass = tot_mass + mass_of(material%species) * material%number
+  enddo
+
+  if (n > 1) then
+    if (materi%density /= real_garbage$ .and. ele%foil%material(2)%density == real_garbage$) then
+      do ix = 1, n
+        material => ele%foil%material(ix)
+        material%density = materi%density * mass_of(material%species) * material%number / tot_mass
+      enddo  
+    endif
+
+    if (materi%area_density /= real_garbage$ .and. ele%foil%material(2)%area_density == real_garbage$) then
+      do ix = 1, n
+        material => ele%foil%material(ix)
+        material%area_density = materi%area_density * mass_of(material%species) * material%number / tot_mass
+      enddo  
+    endif
+  endif
+
+  do ix = 1, n
+    material => ele%foil%material(ix)
     z_material = atomic_number(material%species)
 
-    if (material%radiation_length == 0) then
+    if (material%radiation_length == real_garbage$) then
       material%radiation_length_used = x0_radiation_length(material%species)
     else
       material%radiation_length_used = material%radiation_length
     endif
 
-    if (material%density /= 0 .and. material%area_density /= 0) then
+    if (material%density /= real_garbage$ .and. material%area_density /= real_garbage$) then
       call out_io(s_error$, r_name, 'SETTING BOTH DENSITY AND AREA_DENSITY IS NOT PERMITTED FOR: ' // ele%name)
       return
     endif
 
-    if (material%density == 0) then
-      if (material%area_density /= 0) then
+    if (material%density == real_garbage$) then
+      if (material%area_density /= real_garbage$) then
         if (ele%value(thickness$) == 0) then
-          material%density_used = 0
+          material%density_used = real_garbage$
         else
           material%density_used = material%area_density / ele%value(thickness$)
         endif
@@ -509,13 +541,13 @@ case (foil$)
       material%density_used = material%density
     endif
 
-    if (material%area_density == 0) then
+    if (material%area_density == real_garbage$) then
       material%area_density_used = material%density_used * ele%value(thickness$)
     else
       material%area_density_used = material%area_density
     endif
 
-    if (material%density == 0 .and. material%area_density == 0 .and. n > 1) then
+    if (material%density == real_garbage$ .and. material%area_density == real_garbage$ .and. n > 1) then
       call out_io(s_warn$, r_name, 'Neither foil DENSITY(s) nor AREA_DENSITY(s) set for compound material for: ' // ele%name, &
                                    'This will produce HIGHLY inaccurate results!')
     endif

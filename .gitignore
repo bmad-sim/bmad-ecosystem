@@ -70,6 +70,7 @@ regression_tests/*/rt
 regression_tests/*/m
 regression_tests/bbu_test/bunch_vec.txt
 regression_tests/bookkeeper_test/lat2.bmad
+regression_tests/bookkeeper_test/lat3.bmad
 regression_tests/envelope_ibs_test/emit_from_integrals.out
 regression_tests/envelope_ibs_test/emit_vs_turn.out
 regression_tests/envelope_ibs_test/one_turn_mat_from_slices.diag

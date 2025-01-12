@@ -2290,10 +2290,16 @@ Example:
 \begin{example}
   f1: foil, thickness = 1e-2, material_type = "B4C", 
           density = (2e3, 1e3), radiation_length = (5.49, 4.26)
+  f1: foil, thickness = 1e-2, material_type = "B4C", 
+          density = 9e3, radiation_length = (5.49, 4.26)  ! Same as above
 \end{example}
 Here, since \vn{material_type} is set to \vn{B4C}, there are two components: Boron and Carbon. If
-\vn{density}, \vn{area_density}, or \vn{radiation_length} are present, they must have the same
-number of values as material components. Values are set in order so, in the above example, the
+\vn{radiation_length} is used, it must have the same number of values as the number of material
+components. If \vn{density}, or \vn{area_density} is used they either must have the same number of
+values as the number of material components or they can have a single value.  If there is a single
+value, this value represents the sum of the individual component values.
+
+Values are set in order so, in the above example, the
 Carbon component has a density of 1e3 and a radiation length of 4.26.\footnote
   {
 From a computational standpoint it does not matter which parameter is associated with which component.

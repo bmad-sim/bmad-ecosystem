@@ -1280,9 +1280,10 @@ end type
 
 type material_struct
   integer :: species = not_set$
-  real(rp) :: density = 0, density_used = 0
-  real(rp) :: area_density = 0, area_density_used = 0
-  real(rp) :: radiation_length = 0, radiation_length_used = 0
+  integer :: number = int_garbage$                      ! Relative number
+  real(rp) :: density = real_garbage$, density_used = real_garbage$
+  real(rp) :: area_density = real_garbage$, area_density_used = real_garbage$
+  real(rp) :: radiation_length = real_garbage$, radiation_length_used = real_garbage$
 end type
 
 type foil_struct
