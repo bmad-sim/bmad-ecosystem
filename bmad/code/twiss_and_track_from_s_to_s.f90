@@ -148,10 +148,9 @@ do
 
   if (present(ele_end)) then
     if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_end%floor, ele_track, ele_end%floor)
-
     if (orbit_start%species == photon$) cycle
-
     ele_end%map_ref_orb_out = ele_track%map_ref_orb_out  ! Needed for dispersion calc.
+
     if (logic_option(.true., compute_twiss)) then
       call transfer_twiss (ele_end, ele_here)
       ele_here%mat6 = ele_end%mat6
@@ -163,9 +162,12 @@ do
       call twiss_propagate1 (ele_here, ele_end, err_flag)
       if (present(err)) err = err_flag
       if (err_flag) return
+      ele_end%vec0 = matmul(ele_track%mat6, ele_here%vec0) + ele_track%vec0
+      ele_end%mat6 = matmul(ele_track%mat6, ele_here%mat6)
+    else
+      ele_end%vec0 = matmul(ele_track%mat6, ele_end%vec0) + ele_track%vec0
+      ele_end%mat6 = matmul(ele_track%mat6, ele_end%mat6)
     endif
-    ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_track%vec0
-    ele_end%mat6 = matmul(ele_end%mat6, ele_here%mat6)
   endif
 
 enddo

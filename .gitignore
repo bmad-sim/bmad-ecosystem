@@ -109,6 +109,7 @@ regression_tests/wake_test/lat2.bmad
 regression_tests/write_bmad_test/em_field1.gen_grad_map
 regression_tests/write_bmad_test/wiggler_map1.cartesian_map
 regression_tests/write_bmad_test/z.bmad
+regression_tests/wake_test/ZL1.sr_z_long
 
 *.digested*
 *.mod
