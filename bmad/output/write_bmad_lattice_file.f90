@@ -51,6 +51,7 @@ type (wake_lr_struct), pointer :: lr
 type (wake_sr_struct), pointer :: sr
 type (wake_lr_mode_struct), pointer :: lrm
 type (wake_sr_mode_struct), pointer :: srm
+type (wake_sr_z_long_struct), pointer :: srz
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
@@ -68,7 +69,7 @@ type (str_index_struct) str_index
 type (lat_ele_order_struct) order
 type (material_struct), pointer :: material
 
-real(rp) s0, x_lim, y_lim, val, x, y, fid
+real(rp) s0, x_lim, y_lim, val, x, y, z, fid
 
 character(*) bmad_file
 character(4000) line
@@ -702,12 +703,12 @@ do ib = 0, ubound(lat%branch, 1)
         do i = 1, size(lr%mode)
           lrm => lr%mode(i)
           line = trim(line) // ', mode = {' // re_str(lrm%freq_in) // ', ' // re_str(lrm%R_over_Q) // &
-                          ', ' // re_str(lrm%damp) // ', ' // re_str(lrm%phi) // ', ' // int_str(lrm%m)
+                     ', ' // re_str(lrm%damp) // ', ' // re_str(lrm%phi) // ', ' // int_str(lrm%m) 
 
           if (lrm%polarized) then
             line = trim(line) // ', unpolarized'
           else
-            line = trim(line) // re_str(lrm%angle)
+            line = trim(line) // ', ' // re_str(lrm%angle)
           endif
 
           if (lrm%b_sin == 0 .and. lrm%b_cos == 0 .and. lrm%a_sin == 0 .and. lrm%a_cos == 0) then
@@ -728,37 +729,55 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       sr => ele%wake%sr
-      if (size(sr%long) /= 0 .or. size(sr%trans) /= 0) then
+      if (size(sr%long) /= 0 .or. size(sr%trans) /= 0 .or. sr%z_long%dz /= 0) then
         line = trim(line) // ', sr_wake = @'
         if (sr%z_max /= 0) line = trim(line) // ', z_max = ' // re_str(sr%z_max)
         if (sr%amp_scale /= 1) line = trim(line) // ', amp_scale = ' // re_str(sr%amp_scale)
         if (sr%z_scale /= 1) line = trim(line) // ', z_scale = ' // re_str(sr%z_scale)
 
         do i = 1, size(sr%long)
+          ix = index(line, '@,')
+          if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
+
           srm => sr%long(i)
           line = trim(line) // ', longitudinal = {' // re_str(srm%amp) // ', ' // re_str(srm%damp) // ', ' // re_str(srm%k) // &
                                ', ' // re_str(srm%phi) // ', ' // trim(sr_longitudinal_position_dep_name(srm%position_dependence)) // '}'
-          if (i == 1) then
-            ix = index(line, '@,')
-            if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
-          endif
           if (len_trim(line) > 1000) call write_lat_line(line, iu, .false.)
         enddo 
 
         do i = 1, size(sr%trans)
+          ix = index(line, '@,')
+          if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
           srm => sr%trans(i)
           line = trim(line) // ', transverse = {' // re_str(srm%amp) // ', ' // re_str(srm%damp) // ', ' // re_str(srm%k) // &
                                ', ' // re_str(srm%phi) // ', ' // trim(sr_transverse_polarization_name(srm%polarization)) // &
                                ', ' // trim(sr_transverse_position_dep_name(srm%position_dependence)) // '}'
           if (len_trim(line) > 1000) call write_lat_line(line, iu, .false.)
-          if (i == 1) then
-            ix = index(line, '@,')
-            if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
-          endif
         enddo
+
+        srz => sr%z_long
+        if (srz%dz /= 0) then
+          ix = index(line, '@,')
+          if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
+          name = trim(ele%name) // '.sr_z_long'
+          line = trim(line) // ', z_long = {time_based = ' // logic_str(srz%time_based) // ', position_dependence = ' // &
+                  trim(sr_transverse_position_dep_name(srz%position_dependence)) // ', smoothing_sigma = ' // re_str(srz%smoothing_sigma) // &
+                  ', w = {call::' // trim(name) // '}'
+
+          iu2 = lunget()
+          open (iu2, file = trim(path) // '/' // trim(name))
+          do i = 1, size(srz%w)
+            z = -srz%z0 + (i-1) * srz%dz
+            write (iu2, '(es16.8, es20.12, a)') z, srz%w(i), ','
+          enddo
+          close(iu2)
+          line = trim(line) // '}'
+        endif
+
         line = trim(line) // '}'
-        ix = index(line, '{,')
-        if (ix /= 0) line = line(1:ix) // line(ix+2:)
+
+        ix = index(line, '@,')
+        if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
       endif
 
       call write_lat_line (line, iu, .false.)

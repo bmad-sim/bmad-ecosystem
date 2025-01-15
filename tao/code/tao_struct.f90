@@ -801,7 +801,7 @@ type tao_init_struct
   character(200) :: hook_var_file = ''               ! To be set by tao_hook_parse_command_args
   character(200) :: hook_building_wall_file = ''     ! To be set by tao_hook_parse_command_args
   character(200) :: init_file_arg_path = ''          ! Path part of init_tao_file
-  character(200) :: lattice_file_arg = ''            ! -lattice_file        command line argument.
+  character(400) :: lattice_file_arg = ''            ! -lattice_file        command line argument.
   character(200) :: hook_init_file_arg = ''          ! -hook_init_file      command line argument
   character(200) :: init_file_arg = ''               ! -init_file           command line argument.
   character(200) :: beam_file_arg = ''               ! -beam_file           command line argument.

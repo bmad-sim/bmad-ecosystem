@@ -104,6 +104,11 @@ lattice names using a "|" character.  Do not put any spaces in between. Example:
 \begin{example}
   tao -lat slac.bmad|cesr.bmad
 \end{example}
+If a secondary lattice file (\sref{s:init.lat}) is used separate the primary lattice file from
+the secondary using a comma (and no spaces). Example:
+\begin{example}
+  tao -lat prim.bmad,second.bmad
+\end{example}
 
 The \vn{file_name} can encode what line to use (instead of the using the line specified in
 the last \vn{use} statement in the lattice file) and whether to read the digested (binary) lattice file
@@ -439,6 +444,13 @@ a basis for constructing the lattice. This overrides the \vn{use} statement in t
 Note: If the \vn{lattice_file} parameter is not set for the N\Th universe, the parameters for the 
 previous universe are used.
 
+The optional \vn{<lattice2_file>} specifies a ``secondary'' lattice file that is parsed after
+the ``primary'' lattice file specified by \vn{lattice_file}. The secondary lattice
+file must only have statements that are valid post lattice expansion.  See the \bmad manual manual
+for a discussion of lattice expansion. Note: If a \vn{%slice_lattice} parameter is used with a
+secondary lattice file then the paring specified by \vn{%slice_lattice} is applied before the
+secondary lattice file is parsed.
+
 If the \vn{%reverse_lattice} logical is present, the lattice will be reversed. That is, the elements
 will be in reversed order. The sign of the charge of the tracked particle will be reversed for
 proper tracking. This is useful for simulating beams that go in the backward direction. Note: If
@@ -473,10 +485,7 @@ Example:
 In this example, the lattice of universe 1 is given by the file \vn{this.lat} and the lattice of
 universe 2 is given by the file \vn{that.lat}. \vn{design_lattice(2)} in the example also specifies
 a ``secondary lattice file'' called \vn{floor_coords.bmad} which will be parsed after the
-``primary'' \vn{that.lat} file is read. This secondary lattice file must only have statements that
-are valid post lattice expansion.  See the \bmad manual manual for a discussion of lattice
-expansion. Note: If a \vn{%slice_lattice} parameter is used with a secondary lattice file then the
-paring specified by \vn{%slice_lattice} is applied before the secondary lattice file is parsed.
+``primary'' \vn{that.lat} file is read.
 
 If there is no \vn{design_lattice} specified for a given universe then the last \vn{design_lattice}
 is used. Thus, in the above example, universes 4 use the same lattice as universe 3.

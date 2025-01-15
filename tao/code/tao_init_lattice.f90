@@ -31,6 +31,7 @@ type (coord_struct), allocatable :: orbit(:)
 character(*) init_lat_file
 character(200) full_input_name
 character(100) unique_name_suffix, suffix
+character(400) lattice_file_arg
 character(40) name
 character(*), parameter :: r_name = 'tao_init_lattice'
 
@@ -101,6 +102,7 @@ endif
 !
 
 allocate (s%u(s%com%n_universes))
+lattice_file_arg = s%init%lattice_file_arg
 
 ! Read in the lattices
 
@@ -130,10 +132,17 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   !
 
-  if (s%init%lattice_file_arg /= '') then
-    design_lat%file = s%init%lattice_file_arg
+  if (lattice_file_arg /= '') then
+    ix = index (design_lat%file, '|') ! Indicates multiple lattices
+    if (ix == 0) then
+      design_lat%file = lattice_file_arg
+    else
+      design_lat%file = lattice_file_arg(1:ix-1)
+      lattice_file_arg = trim(lattice_file_arg(ix+2:))
+    endif
     design_lat%language = ''
     design_lat%file2 = ''
+
   elseif (s%init%hook_lat_file /= '' .and. design_lat%file == '') then
     design_lat%file = s%init%hook_lat_file
     design_lat%language = ''
@@ -142,7 +151,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   if (design_lat%file == '' .and. i_uni > 1) design_lat = design_lattice(i_uni-1)
 
-  ix = index (design_lat%file, '|') ! Indicates multiple lattices
+  ix = index (design_lat%file, ',') ! Indicates multiple lattices
   if (ix /= 0) then
     design_lat%file2 = design_lat%file(ix+1:)
     design_lat%file  = design_lat%file(1:ix-1)

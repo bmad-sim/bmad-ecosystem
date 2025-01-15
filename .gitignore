@@ -105,6 +105,7 @@ regression_tests/cesr_test/rad_int_wig_no_cache.dat
 regression_tests/cesr_test/twiss.out
 regression_tests/long_term_tracking_test/sim1.dat
 regression_tests/long_term_tracking_test/beam-10.h5
+regression_tests/wake_test/lat2.bmad
 regression_tests/write_bmad_test/em_field1.gen_grad_map
 regression_tests/write_bmad_test/wiggler_map1.cartesian_map
 regression_tests/write_bmad_test/z.bmad
