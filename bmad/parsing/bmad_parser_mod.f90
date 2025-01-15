@@ -1384,7 +1384,9 @@ character(1) delim
 
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
-if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
+if (allocated(ele%wake%sr%long)) deallocate (ele%wake%sr%long)
+if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
+if (allocated(ele%wake%sr%z_long%w)) deallocate (ele%wake%sr%z_long%w, ele%wake%sr%z_long%fw, ele%wake%sr%z_long%w_out, ele%wake%sr%z_long%fbunch)
 
 lat => ele%branch%lat
 wake_sr => ele%wake%sr
@@ -1658,8 +1660,8 @@ do
   call parse_evaluate_value (err_str, lrm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
 
   call parser_get_integer (lrm%m, word, ix_word, delim, delim_found, err_flag, 'BAD LR_WAKE M MODE VALUE')
-
   if (.not. expect_this (',', .true., .false., 'AFTER M MODE VALUE', ele, delim, delim_found)) return
+
   call get_next_word (attrib_name, ix_word, ',{}=', delim, delim_found)
   if (index('UNPOLARIZED', trim(upcase(attrib_name))) == 1 .and. attrib_name /= '') then
     lrm%polarized = .false.

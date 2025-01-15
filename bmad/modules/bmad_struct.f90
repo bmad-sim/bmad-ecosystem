@@ -599,7 +599,7 @@ type wake_sr_z_long_struct
   real(rp), allocatable :: w(:)                        ! Input single particle Wake. Indexed from 1.
   complex(rp), allocatable :: fw(:)                    ! Fourier transform of w.
   complex(rp), allocatable :: fbunch(:), w_out(:)      ! Scratch space.
-  real(rp) :: dz = 0                                   ! Distance between points.
+  real(rp) :: dz = 0                                   ! Distance between points. If zero there is no wake.
   real(rp) :: z0 = 0                                   ! Wake extent is [-z0, z0].
   real(rp) :: smoothing_sigma = 0                      ! 0 => No smoothing.
   integer :: position_dependence = none$               ! Transverse: leading$, trailing$, none$
