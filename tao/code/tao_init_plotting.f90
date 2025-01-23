@@ -1642,9 +1642,9 @@ endif
 !---------------
 ! dbeta (chrom.dbeta) plot
 
-if (all(s%plot_page%template%name /= 'dbeta')) then
+if (all(s%plot_page%template%name /= 'dbeta_dpz')) then
   call default_plot_init (np, plt, default_plot_g1c2)
-  plt%name                 = 'dbeta'
+  plt%name                 = 'dbeta_dpz'
   plt%description          = 'Chromatic normalized beta beat'
 
   grph => plt%graph(1)
@@ -1671,15 +1671,15 @@ endif
 !---------------
 ! deta (chrom.deta) plot
 
-if (all(s%plot_page%template%name /= 'deta')) then
+if (all(s%plot_page%template%name /= 'deta_dpz')) then
   call default_plot_init (np, plt, default_plot_g1c2)
-  plt%name                 = 'deta'
+  plt%name                 = 'deta_dpz'
   plt%description          = 'Second order dispersion'
 
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Second order dispersion'
-  grph%y%label             = '\(2265)\gy\fn/\(2265)\gd\fn (m)'
+  grph%y%label             = 'd\gy\fn/dp\dz\u (m)'
   grph%y%label_offset= .15
 
   crv => grph%curve(1)
@@ -1700,10 +1700,10 @@ endif
 !---------------
 ! detap (chrom.detap) plot
 
-if (all(s%plot_page%template%name /= 'detap')) then
+if (all(s%plot_page%template%name /= 'detap_dpz')) then
   call default_plot_init (np, plt, default_plot_g1c2)
-  plt%name                 = 'detap'
-  plt%description          = 'Second order dispersion slope'
+  plt%name                 = 'detap_dpz'
+  plt%description          = 'Second order momentum dispersion'
 
   grph => plt%graph(1)
   grph%p => plt
@@ -1753,29 +1753,55 @@ if (all(s%plot_page%template%name /= 'dispersion')) then
 endif
 
 !---------------
-! Dispersion derivative plot
+! deta/ds dispersion derivative plot
 
-if (all(s%plot_page%template%name /= 'ddispersion')) then
+if (all(s%plot_page%template%name /= 'deta_ds_dispersion')) then
   call default_plot_init (np, plt, default_plot_g1c2)
-  plt%name           = 'ddispersion'
-  plt%description    = 'X & Y Dispersion Derivative'
+  plt%name           = 'deta_ds'
+  plt%description    = 'deta/ds dispersion derivatives'
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title         = 'Dispersion Derivative'
-  grph%y%label       = 'd\gy\fn\dX\u, d\gy\fn\dY\u'
+  grph%title         = 'Dispersion Derivatives d\gy\fn/ds'
+  grph%y%label       = 'd\gy\fn\dX\u/ds, d\gy\fn\dY\u/ds'
+
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'deta_ds.x'
+  crv%legend_text  = 'deta_x/ds'
+
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type = 'deta_ds.y'
+  crv%legend_text  = 'deta_y/ds'
+endif
+
+!---------------
+! etap dispersion derivative plot
+
+if (all(s%plot_page%template%name /= 'etap_dispersion')) then
+  call default_plot_init (np, plt, default_plot_g1c2)
+  plt%name           = 'etap_dispersion'
+  plt%description    = 'Momentum dispersion (et)'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Momentum Dispersion'
+  grph%y%label       = 'dp\dx\u/dp\dz\u, dp\dy\u/dp\dz\u'
 
   crv => grph%curve(1)
   crv%name         = 'x'
   crv%g => grph
   crv%data_type    = 'etap.x'
-  crv%legend_text  = 'd\gy\fn\dX\u'
+  crv%legend_text  = 'etap_x'
 
   crv => grph%curve(2)
   crv%name         = 'y'
   crv%g => grph
   crv%data_type = 'etap.y'
-  crv%legend_text  = 'd\gy\fn\dY\u'
+  crv%legend_text  = 'etap_y'
 endif
 
 !---------------
