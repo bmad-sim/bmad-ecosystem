@@ -2196,7 +2196,7 @@ type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele_here, ele_ref, this_ele
+type (ele_struct), pointer :: ele_last, ele_here, ele_ref, this_ele
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
@@ -2306,6 +2306,8 @@ end select
 
 !
 
+ele_last => branch%ele(0)
+
 do ii = 1, size(curve%x_line)
 
   ! Good(ii) may be false if this is not first time tao_calc_data_at_s_pts is called from tao_curve_data_setup.
@@ -2328,7 +2330,8 @@ do ii = 1, size(curve%x_line)
   ix_ele_here = element_at_s (lat, s_now, .true., ix_branch, err_flag)
   ele_here => branch%ele(ix_ele_here)
 
-  if (ele_here%key == hybrid$ .or. ele_here%key == taylor$ .or. err_flag) then
+  if (ele_here%key == hybrid$ .or. ele_here%key == taylor$ .or. err_flag .or. &
+      ele_last%key == hybrid$ .or. ele_last%key == taylor$) then
     if (err_flag .or. s_last == ele_here%s) then
       good(ii) = .false.
       first_time = .true.
@@ -2347,6 +2350,7 @@ do ii = 1, size(curve%x_line)
   endif
 
   curve%x_line(ii) = s_now
+  ele_last => ele_here
 
   if (ii > 1 .and. s_now <= s_last) then
     good(ii) = .false.

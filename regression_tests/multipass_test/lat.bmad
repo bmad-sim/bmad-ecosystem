@@ -26,7 +26,7 @@ CAVITY2: Lcavity, grid_field = call::cavity2.grid_field.h5, L = 0.568, RF_FREQUE
 
 superimpose, element = DRI01, ref = slave_drift_0_1, offset = 2.25
 superimpose, element = Q01, ref = slave_drift_0_2, offset = 0
-superimpose, element = CAVITY2, ref = slave_drift_0_4, offset = 0.141999999999999
+superimpose, element = CAVITY2, ref = slave_drift_0_4, offset = 0.142
 
 !-------------------------------------------------------
 ! Lattice lines
