@@ -103,7 +103,11 @@ if (plot_name(1:3) == 'T::') then
   plot_name = plot_name(4:)
 endif
 
-!
+! Old name translation
+
+if (len_trim(plot_name) > 1 .and. index('ddispersion', trim(plot_name)) == 1) plot_name = 'etap_dispersion'
+
+! And find plots
 
 if (plot_name(1:1) == '@') then
   select case (plot_name(1:2))
