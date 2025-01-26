@@ -79,6 +79,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele2 => branch%ele(ie)
     if (ele2%bookkeeping_state%control /= stale$ .and. ele2%bookkeeping_state%attributes /= stale$) cycle
     call control_bookkeeper1 (lat, ele2, .false., .true., err)
+    if (err) err_flag = .true.
     ele2%bookkeeping_state%control = ok$
   enddo
 

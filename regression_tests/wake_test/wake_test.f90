@@ -3,7 +3,7 @@ program wake_test
 use beam_mod
 use bmad
 
-type (lat_struct), target :: lat
+type (lat_struct), target :: lat, lat0
 type (ele_struct), pointer :: ele, ele_z1, ele_p1, ele_p2
 type (wake_sr_mode_struct), pointer :: w
 type (coord_struct) :: orb0
@@ -35,9 +35,9 @@ elseif (nargs > 1) then
   call err_exit
 endif
 
-call bmad_parser (lat_file, lat)
-!call write_bmad_lattice_file('lat2.bmad', lat)
-!call bmad_parser('lat2.bmad', lat)
+call bmad_parser (lat_file, lat0)
+call write_bmad_lattice_file('lat2.bmad', lat0)
+call bmad_parser('lat2.bmad', lat)
 
 call ran_seed_put(123456)
 

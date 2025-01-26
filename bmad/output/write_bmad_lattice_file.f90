@@ -69,7 +69,7 @@ type (str_index_struct) str_index
 type (lat_ele_order_struct) order
 type (material_struct), pointer :: material
 
-real(rp) s0, x_lim, y_lim, val, x, y, z, fid
+real(rp) s0, x_lim, y_lim, val, x, y, z, fid, f
 
 character(*) bmad_file
 character(4000) line
@@ -706,9 +706,9 @@ do ib = 0, ubound(lat%branch, 1)
                      ', ' // re_str(lrm%damp) // ', ' // re_str(lrm%phi) // ', ' // int_str(lrm%m) 
 
           if (lrm%polarized) then
-            line = trim(line) // ', unpolarized'
-          else
             line = trim(line) // ', ' // re_str(lrm%angle)
+          else
+            line = trim(line) // ', unpolarized'
           endif
 
           if (lrm%b_sin == 0 .and. lrm%b_cos == 0 .and. lrm%a_sin == 0 .and. lrm%a_cos == 0) then
@@ -760,15 +760,22 @@ do ib = 0, ubound(lat%branch, 1)
           ix = index(line, '@,')
           if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
           name = trim(ele%name) // '.sr_z_long'
+          f = 1
+          if (srz%time_based) f = 1.0_rp / c_light
           line = trim(line) // ', z_long = {time_based = ' // logic_str(srz%time_based) // ', position_dependence = ' // &
-                  trim(sr_transverse_position_dep_name(srz%position_dependence)) // ', smoothing_sigma = ' // re_str(srz%smoothing_sigma) // &
+                  trim(sr_transverse_position_dep_name(srz%position_dependence)) // ', smoothing_sigma = ' // re_str(f*srz%smoothing_sigma) // &
                   ', w = {call::' // trim(name) // '}'
 
           iu2 = lunget()
           open (iu2, file = trim(path) // '/' // trim(name))
-          do i = 1, size(srz%w)
+          n = size(srz%w)
+          do i = 1, n
             z = -srz%z0 + (i-1) * srz%dz
-            write (iu2, '(es16.8, es20.12, a)') z, srz%w(i), ','
+            if (srz%time_based) then
+              write (iu2, '(es16.8, es20.12, a)') f*z, srz%w(n+1-i), ','
+            else
+              write (iu2, '(es16.8, es20.12, a)') z, srz%w(i), ','
+            endif
           enddo
           close(iu2)
           line = trim(line) // '}'
