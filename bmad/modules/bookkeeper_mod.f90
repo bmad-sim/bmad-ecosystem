@@ -286,11 +286,13 @@ if (ele%lord_status == super_lord$ .and. a_ptr%r < 0) then
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
     err_flag = .true.
+    return
   elseif (attrib_name == 'LORD_PAD2') then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
     err_flag = .true.
+    return
   endif
 endif
 
@@ -726,7 +728,8 @@ do j = 1, slave%n_lord
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
-    if (global_com%exit_on_error) call err_exit
+    err_flag = .true.
+    return
   endif
 
   ! Physically, the lord length cannot be less than the slave length.
@@ -1585,7 +1588,8 @@ do i = 1, slave%n_lord
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%key == group$) cycle
 
-  if (lord%key == girder$ .and. has_orientation_attributes(slave)) then
+  if (lord%key == girder$) then
+    if (.not. has_orientation_attributes(slave)) cycle   ! Example: Match element does not have orientation.
     v => lord%value
     vs => slave%value
 
@@ -1638,11 +1642,10 @@ do i = 1, slave%n_lord
   endif
 
   if (lord%key /= overlay$) then
-    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY \i\ ', ix_slave)
-    call type_ele (slave, .true., 0, .false., 0)
-    if (global_com%exit_on_error) call err_exit
-  endif     
-
+    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY: ', lord%name)
+    err_flag = .true.
+    return
+  endif
 
   ! overlay lord
 

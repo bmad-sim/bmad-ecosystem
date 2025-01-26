@@ -4541,7 +4541,8 @@ main_loop: do n_in = 1, n_ele_max
 
 enddo main_loop
 
-call control_bookkeeper (lat)
+call control_bookkeeper (lat, err_flag = err_flag)
+if (err_flag) call parser_error('CONTROL BOOKKEEPING FAILED.')
 
 !-------------------------------------------------------------------------
 contains

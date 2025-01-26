@@ -132,7 +132,23 @@ if (associated(ele%wake)) then
   do i = 1, size(ele%wake%lr%mode)
     lr => ele%wake%lr%mode(i)
     if (lr%freq_in < 0) lr%freq = ele%value(rf_frequency$)
-    if (lr%q /= real_garbage$) lr%damp = pi * lr%freq / lr%q
+
+    ! Old style lattice files set Q and not damp.
+    if (lr%q /= real_garbage$) then  
+      if (lr%q == 0) then
+        call out_io (s_error$, r_name, 'Q factor for LR wake mode is zero which does not make sense!', &
+                                       'For element: ' // ele%name)
+      else
+        lr%damp = pi * lr%freq / lr%q
+      endif
+    endif
+
+    if (lr%damp == 0) then
+      lr%q = 1d100
+    else
+      lr%q = pi * lr%freq / lr%damp
+    endif
+
   enddo
 endif
 
