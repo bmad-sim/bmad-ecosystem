@@ -568,6 +568,7 @@ implicit none
 type (lat_struct), intent(inout), target :: lat_out
 type (lat_struct), intent(in), target :: lat_in
 type (branch_struct), pointer :: branch_out
+type (ele_struct), pointer :: ele
 type (control_struct), pointer :: c_in, c_out
 integer i, n, nb, ne, ie, n_out, n_in
 logical do_alloc
@@ -602,9 +603,11 @@ do i = 0, nb
   branch_out = lat_in%branch(i)
   branch_out%lat => lat_out
   do ie = 0, ubound(branch_out%ele, 1)
-    branch_out%ele(ie)%ix_ele = ie
-    branch_out%ele(ie)%ix_branch = i
-    branch_out%ele(ie)%branch => branch_out
+    ele => branch_out%ele(ie)
+    ele%ix_ele = ie
+    ele%ix_branch = i
+    ele%branch => branch_out
+    if (associated(ele%ptc_fibre)) nullify(ele%ptc_fibre)
   enddo
 enddo
 
