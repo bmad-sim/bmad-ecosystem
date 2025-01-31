@@ -42,18 +42,19 @@ python -m pip install -r regression_tests/requirements.txt
 
 With the environment from the previous step activated (`conda activate` or `source venv/bin/activate`):
 
-- Run all of the tests
+- Run all of the tests. By default, the default binary directory is either
+  `../production/bin` or `../debug/bin` if they exist.
 
   ```
   cd regression_tests
   pytest -v
   ```
 
-- Run all of the tests with a specific binary directory:
+- Run all of the tests with a specific bmad binary directory:
 
   ```
   cd regression_tests
-  pytest -v --bmad-bin=
+  pytest -v --bmad-bin=/path/to/bmad/bin
   ```
 
 - Run a test with `xyz` in the name:

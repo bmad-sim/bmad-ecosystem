@@ -60,4 +60,4 @@ jobs:
         run: .github/scripts/install_bmad.sh
 
       - name: Run Tests
-        run: .github/scripts/run_tests.sh
+        run: .github/scripts/run_tests.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"

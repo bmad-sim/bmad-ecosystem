@@ -7,11 +7,13 @@
 # export ACLOCAL_PATH=/usr/share/aclocal
 # echo "******* DEBUG ********"
 
-echo "**** Setup Preferences"
+echo "# Installing bmad"
+
+echo "## Setup Preferences"
 
 echo "Number of processors: $(nproc)"
 
-cat <<EOF >> ./util/dist_prefs
+cat <<EOF >>./util/dist_prefs
 export DIST_F90_REQUEST="gfortran"
 export ACC_PLOT_PACKAGE="pgplot"
 export ACC_PLOT_DISPLAY_TYPE="X"
@@ -26,8 +28,18 @@ export ACC_ENABLE_PROFILING="N"
 export ACC_SET_GMAKE_JOBS="$(nproc)"
 EOF
 
-echo "**** Invoking dist_source_me"
+echo "## Invoking dist_source_me"
+
 source ./util/dist_source_me
 
-echo "**** Invoking dist_build_production"
+echo -e "\n## Invoking dist_build_production\n"
+
+echo '<details>'
+echo '<summary>Build output</summary>'
+echo ''
+echo '```'
+
 ./util/dist_build_production
+
+echo '```'
+echo '</details>'
