@@ -1,10 +1,11 @@
 from __future__ import annotations
-import numpy as np
-import pathlib
-import pytest
-from pytao import Tao, SubprocessTao
 
+import pathlib
 from typing import NamedTuple
+
+import numpy as np
+import pytest
+from pytao import SubprocessTao, Tao
 
 import conftest
 
