@@ -4,10 +4,8 @@ on:
   # Run on demand
   workflow_dispatch:
 
-  # Run on push to main
+  # Run on push to any branch
   push:
-    branches:
-      - "main"
 
   # Run on pull requests
   pull_request:
