@@ -1,3 +1,5 @@
 pytest
 numpy
 pytao[all]
+# TODO: remove this once pytao requirements are fixed for pypi:
+pydantic >=2
