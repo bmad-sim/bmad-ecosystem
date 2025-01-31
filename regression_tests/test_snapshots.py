@@ -49,7 +49,8 @@ lat_list_to_tolerance = {
 
 def load_example(example_name: str) -> Tao:
     return SubprocessTao(
-        init_file=conftest.TAO_EXAMPLES_ROOT / example_name / "tao.init"
+        init_file=conftest.TAO_EXAMPLES_ROOT / example_name / "tao.init",
+        noplot=True,
     )
 
 
