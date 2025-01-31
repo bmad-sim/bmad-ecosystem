@@ -2,7 +2,7 @@ from __future__ import annotations
 import numpy as np
 import pathlib
 import pytest
-from pytao import Tao
+from pytao import Tao, SubprocessTao
 
 from typing import NamedTuple
 
@@ -48,7 +48,9 @@ lat_list_to_tolerance = {
 
 
 def load_example(example_name: str) -> Tao:
-    return Tao(init_file=conftest.TAO_EXAMPLES_ROOT / example_name / "tao.init")
+    return SubprocessTao(
+        init_file=conftest.TAO_EXAMPLES_ROOT / example_name / "tao.init"
+    )
 
 
 def get_snapshot_paths(example_name: str) -> SnapshotPaths:
