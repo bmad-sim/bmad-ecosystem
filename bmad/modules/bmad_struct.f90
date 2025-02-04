@@ -1395,7 +1395,8 @@ type ele_struct
   type (photon_element_struct), pointer :: photon => null()
   type (multipole_cache_struct), allocatable :: multipole_cache
   type (rad_map_ele_struct), pointer :: rad_map => null()                ! Radiation kick parameters
-  ! Note: The reference orbits for spin and orbit Taylor maps are not necessarily the same
+  ! Note: The reference orbits for spin and orbit Taylor maps are not necessarily the same.
+  ! For example, Sprint spin Taylor maps can be with respect to the zero orbit independent of the orbital map.
   type (taylor_struct) :: taylor(6) = taylor_struct()                    ! Phase space Taylor map.
   real(rp) :: spin_taylor_ref_orb_in(6) = real_garbage$
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()             ! Quaternion Spin Taylor map.
