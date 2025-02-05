@@ -1,11 +1,27 @@
 #!/bin/bash
-echo "**** Invoking dist_source_me"
+
+echo -e "## Running tests\n"
+
+echo -e "## Invoking dist_source_me\n"
+
+echo '```'
 source ./util/dist_source_me
+echo '```'
 
 set -e
 
 cd regression_tests
-echo "**** Starting Regression Tests"
-./scripts/run_tests.py -test all
 
-echo "**** Tests finished"
+echo -e "\n## Installing regression test requirements\n"
+
+echo '```'
+python -m pip install -r requirements.txt
+echo '```'
+
+echo -e "\n## Starting regression tests\n"
+
+echo '```'
+python -m pytest -v
+echo '```'
+
+echo -e "\n## Tests finished!\n"

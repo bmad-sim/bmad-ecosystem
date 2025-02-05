@@ -4,10 +4,8 @@ on:
   # Run on demand
   workflow_dispatch:
 
-  # Run on push to main
+  # Run on push to any branch
   push:
-    branches:
-      - "main"
 
   # Run on pull requests
   pull_request:
@@ -60,4 +58,5 @@ jobs:
         run: .github/scripts/install_bmad.sh
 
       - name: Run Tests
-        run: .github/scripts/run_tests.sh
+        shell: bash -eo pipefail -l {0}
+        run: .github/scripts/run_tests.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
