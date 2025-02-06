@@ -2778,6 +2778,10 @@ case ('ele:gen_attribs')
     end select
   enddo
 
+  nl=incr(nl); write (li(nl), amt) 'lord_status;ENUM;F;', trim(control_name(ele%lord_status))
+  nl=incr(nl); write (li(nl), amt) 'slave_status;ENUM;F;', trim(control_name(ele%slave_status))
+  
+
   if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
     nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', trim(aperture_at_name(ele%aperture_at))
     nl=incr(nl); write (li(nl), lmt) 'offset_moves_aperture;LOGIC;T;',          ele%offset_moves_aperture
@@ -4139,6 +4143,16 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
     enddo
 
+  case ('lord_status')
+    nl=incr(nl); li(nl) = '4;Group_Lord'
+    nl=incr(nl); li(nl) = '5;Super_Lord' 
+    nl=incr(nl); li(nl) = '6;Overlay_Lord' 
+    nl=incr(nl); li(nl) = '7;Girder_Lord' 
+    nl=incr(nl); li(nl) = '8;Multipass_Lord'
+    nl=incr(nl); li(nl) = '10;Not_a_Lord' 
+    nl=incr(nl); li(nl) = '12;Control_Lord' 
+    nl=incr(nl); li(nl) = '13;Ramper_Lord'
+
   case ('optimizer')
     do i = 1, size(tao_optimizer_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_optimizer_name(i))
@@ -4170,6 +4184,13 @@ case ('enum')
     do i = 1, size(tao_shape_shape_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_shape_name(i))
     enddo
+
+  case ('slave_status')
+    nl=incr(nl); li(nl) = '1;Minor_Slave'
+    nl=incr(nl); li(nl) = '2;Super_Slave' 
+    nl=incr(nl); li(nl) = '3;Free' 
+    nl=incr(nl); li(nl) = '9;Multipass_Slave' 
+    nl=incr(nl); li(nl) = '11;Slice_Slave' 
 
   case ('fill_pattern')
     do i = 1, size(qp_symbol_fill_pattern_name)
