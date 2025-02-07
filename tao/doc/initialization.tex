@@ -148,6 +148,9 @@ Overrides the \vn{plot_file} (\sref{s:init.begin}) specified in the \tao initial
 Sets the prompt string color to Blue. For different colors, use the \vn{set global prompt_color}
 command (\sref{s:set}).
 %
+\item[-quiet <level>]
+
+%
 \item[-reverse]
 Reverses the order of the lattice elements. Equivalent to setting
 \vn{design_lattice(N)%reverse_lattice} to True (\sref{s:init.lat}. If both \vn{-reverse} and 
@@ -772,14 +775,12 @@ the optimizer will not do any checking.
 For use with command files. May be set to one of:
 \begin{example}
   off       ! Normal verbose output
-  all       ! Suppress command echo and other output.
-  ALL       ! Suppress command echo and other output.
-  warnings  ! Suppress warnings.
+  all       ! Suppress output except errors.
+  warnings  ! Suppress warnings only.
 \end{example}
-If set to \vn{all}, output to the terminal during command file running will be suppressed (except
-for warning and error messages) until the command file (or files) returns to the command line level
-at which point \vn{global%quiet} is automatically reset to \vn{off}. That is, \vn{global%quiet}
-must be set each time it is desired to run a command file(s) silently.
+If set to \vn{all}, output to the terminal will be suppressed except
+for error messages. If set in a command file, the setting will revert to what it was
+at the end of the command file.
 %
   \item{\vn{global%random_engine}} \Newline
 \vn{global%random_engine} selects the algorithm used for generating the random

@@ -143,7 +143,8 @@ contains
 !   file_unit         -- integer, optional: Unit number for writing to a file. 
 !                         -1 => No writing (initial default setting).
 !   print_and_capture -- logical, optional: If present then this sets whether output is printed to the terminal and/or 
-!                          captured for program use. See the out_io_print_and_caputure_setup routine documentation for more details.
+!                          captured for program use. Note: How output capture works is also set by the out_io_print_and_caputure_setup routine.
+!                          See the out_io_print_and_caputure_setup routine documentation for more details.
 !   min_level         -- integer, optional: Minimum message status level to apply to.
 !                          Default is s_blank$
 !   max_level         -- integer, optional: Maximum message status level to apply to.
@@ -151,7 +152,6 @@ contains
 !   set               -- out_io_output_direct_struct, optional: If present, use this structure to set where output goes.
 !                          This structure can be used in place of specifying file_unit, etc. One way to use "set" is to first
 !                          call this routine with the "get" argument to get the output direction state.
-!                          
 !
 ! Output:
 !   get               -- out_io_output_direct_struct, optional: If present, capture the output direction state before any setting
@@ -170,7 +170,6 @@ integer i
 !
 
 if (present(get)) get = out_io_direct
-
 if (present(set)) out_io_direct = set
 
 do i = integer_option(s_blank$, min_level), integer_option(s_important$, max_level)
@@ -731,7 +730,7 @@ end subroutine header_io
 ! The procedure for how a message is handled is as follows: 
 !   First: When out_io is called, the message level is used to determine if anything is to be printed or captured at all.
 !     When a program is started, everything will pass this test for printing and/or capturing. 
-!     This behavior can be modified by by calls to the output_direct routine.
+!     This behavior can be modified by calls to the output_direct routine.
 !   Second: If a message is to be printed and/or captured (passes the first step), then the internal print_on flag is used
 !     to determine if printing to the terminal and the internal capture_state flag is used to determine if capture is
 !     to be done. The initial setting of these flags is print_on = True and capture_state = 'OFF'.

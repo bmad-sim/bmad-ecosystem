@@ -183,7 +183,15 @@ do
     endif
 
   case ('-quiet', '-silent_run')       ! "-silent_run" is old syntax
-    s%init%quiet_arg = 'all'
+    if (i_arg < n_arg) then
+      call get_next_arg (arg0, s%init%quiet_arg, i_arg, n_arg)
+      if (s%init%quiet_arg(1:1) == '-') then
+        s%init%quiet_arg = 'all'
+        i_arg = i_arg - 1
+      endif
+    else
+      s%init%quiet_arg = 'all'
+    endif
 
   case ('-reverse')
     s%init%reverse_arg = present_str

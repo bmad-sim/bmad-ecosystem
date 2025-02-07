@@ -98,6 +98,7 @@ endif
 
 s%com%cmd_file(nl)%ix_unit = iu
 s%com%cmd_file(nl)%full_name = full_name
+s%com%cmd_file(nl)%quiet = s%com%cmd_file(nl0)%quiet
 
 ! Save command arguments.
 
