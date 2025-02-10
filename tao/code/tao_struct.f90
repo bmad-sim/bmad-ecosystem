@@ -61,7 +61,6 @@ end interface
 type tao_cmd_history_struct          ! Record the command history
   character(:), allocatable :: cmd   ! The command
   integer :: ix = 0                  ! Command index (1st command has ix = 1, etc.)
-  !! logical :: cmd_file = ''           ! Did command come from a command file
 end type
 
 !-----------------------------------------------------------------------
@@ -663,7 +662,7 @@ type tao_global_struct
   integer :: datum_err_messages_max = 10         ! Maximum number of error messages per call to lattice_calc.
   integer :: srdt_sxt_n_slices = 20              ! Number times to slice sextupoles for summation RDT calculation
   logical :: srdt_use_cache = .true.             ! Create cache for SRDT calculations.  Can use lots of memory if srdt_*_n_slices large.
-  character(12) :: quiet = 'off'                 ! "all", or "output". Print I/O when running a command file?
+  character(12) :: quiet = 'off'                 ! Print I/O when running a command file?
   character(16) :: random_engine = ''            ! Non-beam random number engine
   character(16) :: random_gauss_converter = ''   ! Non-beam
   character(16) :: track_type    = 'single'      ! or 'beam'  
@@ -718,6 +717,7 @@ type tao_command_file_struct
   character(200) :: dir = './'
   integer :: ix_unit
   character(40) :: cmd_arg(9) = ''  ! Command file arguments.
+  character(12) :: quiet = 'off'
   logical :: paused = .false.       ! Is the command file paused?
   integer :: n_line = 0             ! Current line number
   logical :: reset_at_end = .true.  ! Reset lattice_calc_on and plot_on at end of file?

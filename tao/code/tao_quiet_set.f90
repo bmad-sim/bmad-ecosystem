@@ -1,7 +1,8 @@
 !+
 ! Subroutine tao_quiet_set (set)
 !
-! Routine to set on/off silent command file running.
+! Routine to set silent running.
+! Note: s_important$, s_error$ and s_fatal$ levels are never supressed. 
 !
 ! Input:
 !   set   -- logical: True is silent running is wanted.
@@ -12,26 +13,20 @@ subroutine tao_quiet_set (set)
 use tao_struct
 implicit none
 
-type (out_io_output_direct_struct), save :: out_dir_save
-integer ix
+integer ix, n_level
 character(*) set
 character(12) name
 character(*), parameter :: r_name = 'tao_quiet_set'
 
 !
 
+n_level = s%com%cmd_file_level
+
 if (set == '') then
   name = 'all'
 
 elseif (set == 'cmd-file-end') then
-  if (s%global%quiet == 'All') then
-    name = 'off'
-  else
-    name = s%global%quiet
-  endif
-
-elseif (set == 'ALL') then
-  name = set
+  name = s%com%cmd_file(n_level)%quiet
 
 else
   call match_word (set, [character(12):: 'off', 'all', 'warnings'], ix, .false., .true., name)
@@ -43,15 +38,16 @@ endif
 
 !
 
-if (s%global%quiet == 'off') call output_direct(get = out_dir_save)
+s%com%cmd_file(n_level)%quiet = name
 s%global%quiet = name
 
 select case (name)
 case ('off')
-  call output_direct (set = out_dir_save)
+  call output_direct (-1, .true., s_blank$, s_dwarn$)
 case ('warnings')
+  call output_direct (-1, .true., s_blank$, s_dwarn$)
   call output_direct (-1, .false., s_warn$, s_dwarn$) ! Do not print 
-case ('all', 'ALL')
+case ('all')
   call output_direct (-1, .false., s_blank$, s_dwarn$) ! Do not print 
 end select
 

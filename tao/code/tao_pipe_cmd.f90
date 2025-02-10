@@ -261,12 +261,12 @@ call match_word (cmd, [character(40) :: &
           'wall3d_radius', 'wave'], ix, matched_name = command)
 
 if (ix == 0) then
-  call out_io (s_error$, r_name, 'pipe what? "What" not recognized: ' // command)
+  call out_io (s_error$, r_name, 'pipe what? ' // quote(cmd) // ' is not recognized.')
   return
 endif
 
 if (ix < 0) then
-  call out_io (s_error$, r_name, 'pipe what? Ambiguous command: ' // command)
+  call out_io (s_error$, r_name, 'pipe what? ' // quote(cmd) // ' is an ambiguous command.')
   return
 endif
 
@@ -4884,9 +4884,9 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     ele.e_tot, ele.p0c
 !     ele.mat6      ! Output: mat6(1,:), mat6(2,:), ... mat6(6,:)
 !     ele.vec0      ! Output: vec0(1), ... vec0(6)
-!     ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
 !     ele.c_mat     ! Output: c_mat11, c_mat12, c_mat21, c_mat22.
 !     ele.gamma_c   ! Parameter associated with coupling c-matrix.
+!     ele.XXX       ! Where XXX is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
 ! 
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
@@ -8063,11 +8063,14 @@ contains
 
 subroutine end_stuff(li, nl)
 
-
+type (out_io_output_direct_struct) out_dir_state
 character(n_char_show), allocatable :: li(:)
 integer nl, i
 
 !
+
+call output_direct (get = out_dir_state)
+call output_direct(print_and_capture = .true.)
 
 if (doprint) then
   call out_io (s_blank$, r_name, li(1:nl))
@@ -8079,6 +8082,8 @@ if (opened) then
   enddo
   close (iu_write)
 endif
+
+call output_direct (get = out_dir_state)
 
 end subroutine
 

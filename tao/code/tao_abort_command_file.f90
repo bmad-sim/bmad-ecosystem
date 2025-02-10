@@ -24,5 +24,6 @@ do i = s%com%cmd_file_level, 1, -1
 enddo
 
 s%com%saved_cmd_line = ''
+call tao_quiet_set('cmd-file-end')
 
 end subroutine
