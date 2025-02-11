@@ -44,6 +44,11 @@ private tao_pointer_to_universe_int, tao_pointer_to_universe_str
 
 interface
 
+subroutine tao_abort_command_file(force_abort)
+  implicit none
+  logical, optional :: force_abort
+end subroutine
+
 subroutine tao_alias_cmd (alias, string)
   implicit none
   character(*) :: alias

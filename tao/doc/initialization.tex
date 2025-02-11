@@ -622,9 +622,9 @@ The \vn{tao_global_struct} structure contains \tao global parameters. The compon
 \begin{example}
 type tao_global_struct:
   beam_dead_cutoff = 0.99          ! Dead particle cutoff for stopping beam tracking.
-  lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
   de_var_to_population_factor = 5 
+  lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   lmdif_eps = 1e-12                ! Tolerance for lmdif optimizer.
   lmdif_negligible_merit = 1d-30   ! lmdif stops if merit is smaller.
   svd_cutoff = 1e-5                ! SVD singular value cutoff limit.
@@ -651,6 +651,7 @@ type tao_global_struct:
   var_out_file  = "var#.out"
   history_file = "\(\sim\)/.history_tao"  ! Command history file.
   beam_timer_on = F                ! For timing the beam tracking calculation.
+  cmd_file_abort_on_error = T      ! Close all open command files when there is an error?
   concatenate_maps = F             ! False => tracking using DA.
   derivative_recalc = T            ! Recalc derivatives before each optimizer loop?
   derivative_uses_design = F       ! Derivative matrix uses the design lattice?
@@ -684,6 +685,12 @@ value using the \vn{set} command (\sref{s:set}).
   \begin{description}
   \item{\vn{global%beam_dead_cutoff}} \Newline
 Percentage of dead particles at which beam tracking is stopped.
+%
+  \item{\vn{global%cmd_file_abort_on_error}} \Newline
+The default is \vn{True}. With this setting, if there is an error, any open command files (and there
+can be multiple ones since command files can call other files), are closed if a command in a command
+file generates an error. If this parameter is set \vn{False}, most errors will not result in any
+open command files being closed. The exception is if infinite command file recursion is detected.
 %
   \item{\vn{global%concatenate_maps}} \Newline
 When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps} =

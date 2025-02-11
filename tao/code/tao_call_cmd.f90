@@ -60,7 +60,7 @@ nl0 = s%com%cmd_file_level
 nl = nl0 + 1
 if (nl > 30) then
   call out_io (s_error$, r_name, 'COMMAND FILE LEVEL > 30 INDICATES INFINITE LOOP. CLOSING ALL COMMAND FILES.')
-  call tao_abort_command_file()
+  call tao_abort_command_file(force_abort = .true.)
   return
 endif
 
