@@ -693,14 +693,13 @@ file generates an error. If this parameter is set \vn{False}, most errors will n
 open command files being closed. The exception is if infinite command file recursion is detected.
 %
   \item{\vn{global%concatenate_maps}} \Newline
-When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps} =
-False, is to use Differential Algebra (DA) to integrate the map from the starting point to the
-ending point.  Alternatively, with \vn{global%concatenate_maps} = True, if an element within the
+When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps}
+set to False, is to use Differential Algebra (DA) to integrate the map from the starting point to
+the ending point.  Alternatively, with \vn{global%concatenate_maps} = True, if an element within the
 integration region has an associated map, that map is concatenated with the map under construction.
-This saves time but the potential drawback is a loss of accuracy. Note that a lattice element
-will only have an associate map if the \vn{tracking_method} or \vn{make_mat6_method} components
-of the lattice element are such that a map is needed for tracking (see the \bmad manual for more
-details).
+This saves time but the potential drawback is a loss of accuracy. Note that a lattice element will
+only have an associate map if the \vn{tracking_method} or \vn{make_mat6_method} components of the
+lattice element are such that a map is needed for tracking (see the \bmad manual for more details).
 %
   \item{\vn{global%datum_err_messages_max}} \Newline
 Sets the maximum number of error messages per cycle generated when evaluating all datums. A
