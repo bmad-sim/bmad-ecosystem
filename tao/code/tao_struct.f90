@@ -674,7 +674,7 @@ type tao_global_struct
   character(100) :: history_file = '~/.history_tao'
   logical :: beam_timer_on = .false.                  ! For timing the beam tracking calculation.
   logical :: box_plots = .false.                      ! For debugging plot layout issues.
-  logical :: command_file_print_on = .true.           ! Depracated. No longer used. 
+  logical :: cmd_file_abort_on_error = .true.         ! Abort open command files if there is an error?
   logical :: concatenate_maps = .false.               ! False => tracking using DA. 
   logical :: debug_on = .false.                       ! For debugging.
   logical :: derivative_recalc = .true.               ! Recalc before each optimizer run?

@@ -2123,6 +2123,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
     nl=nl+1; write(lines(nl), imt) '  %datum_err_messages_max        = ', s%global%datum_err_messages_max
+    nl=nl+1; write(lines(nl), lmt) '  %cmd_file_abort_on_error       = ', s%global%cmd_file_abort_on_error
     nl=nl+1; write(lines(nl), lmt) '  %concatenate_maps              = ', s%global%concatenate_maps
     nl=nl+1; write(lines(nl), rmt) '  %beam_dead_cutoff              = ', s%global%beam_dead_cutoff
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
