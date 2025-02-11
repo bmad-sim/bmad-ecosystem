@@ -38,14 +38,23 @@ character(1) delim
 character(*) call_file
 
 integer ix_word, ix, n
-logical delim_found, finished, err
+logical delim_found, finished, err, abort_on_open_error
 
 !
 
 err = .true.
+abort_on_open_error = .true.
 
 if (delim /= ',')  call parser_error ('"CALL" NOT FOLLOWED BY COMMA', stop_here = .true.)
 call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
+
+if (call_file == 'NO_ABORT_ON_OPEN_ERROR') then
+  abort_on_open_error = .false.
+  if (delim /= ',')  call parser_error ('"CALL, NO_ABORT_ON_OPEN_ERROR" NOT FOLLOWED BY COMMA', stop_here = .true.)
+  call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
+endif
+
+!
 
 if (ix_word == 0) then
   call parser_error ('NOTHING AFTER "CALL"', stop_here = .true.)
@@ -84,7 +93,7 @@ if (call_file(1:1) == "'") then
   call_file(ix:ix) = ' '
 endif
 
-call parser_file_stack ('push', call_file, finished, err) ! err gets set here
+call parser_file_stack ('push', call_file, finished, err, abort_on_open_error = abort_on_open_error) ! Err gets set here
 
 end subroutine get_called_file
 
@@ -307,25 +316,26 @@ end subroutine get_next_word
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_file_stack (how, file_name_in, finished, err, open_file)
+! Subroutine parser_file_stack (how, file_name_in, finished, err, open_file, abort_on_open_error)
 !
 ! Subroutine to keep track of the files that are opened for reading.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_file_stack (how, file_name_in, finished, err, open_file)
+subroutine parser_file_stack (how, file_name_in, finished, err, open_file, abort_on_open_error)
 
 implicit none
 
-integer i, ix, ios, n, n_file
+integer i, ix, ios, n, n_file, err_lev
 integer, pointer :: i_level
+
 character(*) how
 character(*), optional :: file_name_in
 character(200) file_name, basename, file_name2
 
-logical, optional :: finished, err, open_file
-logical found_it, is_relative, valid, err_flag
+logical, optional :: finished, err, open_file, abort_on_open_error
+logical found_it, is_relative, valid, err_flag, stop_here
 
 ! "Init" means init
 
@@ -421,16 +431,36 @@ case ('push', 'push_inline')
     open (bp_com%file(i_level)%f_unit, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
     if (ios /= 0 .or. .not. found_it) then
       bp_com%current_file => bp_com%file(i_level-1)  ! For warning
+      if (logic_option(.true., abort_on_open_error)) then
+        err_lev = s_error$
+        stop_here = .true.
+      else
+        err_lev = s_warn$
+        stop_here = .false.
+      endif
+
       if (i_level == 1)  then !
         call parser_error ('UNABLE TO OPEN FILE: ' // file_name_in, &
-                           '(FULL NAME: ' // trim(file_name) // ')', stop_here = .true.)
+                           '(FULL NAME: ' // trim(file_name) // ')', stop_here = stop_here, level = err_lev)
       else
         call parser_error ('UNABLE TO OPEN FILE: ' // file_name, &
-                           'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in, stop_here = .true.)
+                           'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in, stop_here = stop_here, level = err_lev)
       endif
-      do i = 1, i_level-1
-        close (bp_com%file(i_level)%f_unit)
-      enddo
+
+      if (logic_option(.true., abort_on_open_error)) then
+        do i = 1, i_level-1
+          close (bp_com%file(i_level)%f_unit)
+        enddo
+      else
+        i_level = i_level - 1    ! number of files currently open
+        err = .false.
+        bp_com%input_line1    = bp_com%file(i_level+1)%input_line1_saved
+        bp_com%input_line2    = bp_com%file(i_level+1)%input_line2_saved
+        bp_com%rest_of_line   = bp_com%file(i_level+1)%rest_of_line_saved
+        bp_com%next_chunk     = bp_com%file(i_level+1)%next_chunk_saved
+        bp_com%ios_this_chunk = bp_com%file(i_level+1)%ios_this_chunk_saved
+      endif
+
       return
     endif
   endif
