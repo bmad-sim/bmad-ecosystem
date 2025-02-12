@@ -667,7 +667,7 @@ describes in detail these data types.
   \pref{alpha}            & alpha.a, .b                         & Normal-Mode alpha function                & lat         & Yes \\ \hline 
   \pref{apparent.emit}    & apparent_emit.x, .y                 & Apparent emittance                        & lat, beam   & No  \\ \hline
   \pref{beta.a}           & beta.a, .b, .c                      & Normal-mode beta function                 & lat, beam   & Yes \\ \hline 
-  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & lat, beam   & No  \\ \hline 
+  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & beam        & No  \\ \hline 
   \pref{bpm.cbar}         & \begin{tabular}{@{}l}   
                               bpm_cbar.22a, .12a, \\
                               \hspace{4em} .11b, .12b
@@ -829,7 +829,7 @@ describes in detail these data types.
   \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate                  & lat        & No  \\ \hline
   \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate                    & lat        & No  \\ \hline
   \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit                   & lat        & No  \\ \hline
-  \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin}             & spin.x, .y, .z .amp                 & Particle spin                             & lat, beam  & No  \\ \hline 
   \pref{spin.dn.dpz}      & spin_dn_dpz.x, .y, .z               & Spin dn/dpz components                    & lat        & No  \\ \hline
   \pref{spin.g.matrix}    & \begin{tabular}{@{}l}
                               spin_g_matrix.$ij$ \\
@@ -844,6 +844,7 @@ describes in detail these data types.
                               spin_map_ptc.$ijklmn$, \\
                               \hspace{4em} $i,j,k,l,m,n$ are digits
                             \end{tabular}                       & Spin Map Taylor terms                     & lat        & no  \\ \hline
+  \pref{spin.tune}        & spin_tune                           & Spin tune                                 & lat        & no  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\
                               \hspace{10pt} $N = 0, 1, \ldots$
@@ -1829,6 +1830,10 @@ a rotation angle equal to the spin tune.
 Spin resonance values. \vn{.a.sum}, \vn{.a.diff} are the sum and difference resonance values for the
 $a$-mode, etc. The \vn{show spin -ele ...} command will print the values. If not present, the
 evaluation element for the datum is the beginning element of the lattice branch.
+
+  %----------------------
+  \item[spin_tune] \Newline \hlabel{spin.tune}
+Spin tune as calculated by Bmad and not using PTC code. Also see \vn{spin_tune_ptc}.
 
   %----------------------
   \item[spin_map_ptc.$ijklmn$, where $i,j,k,l,m, n$ are 6 digits] \Newline \hlabel{spin.map.ptc}

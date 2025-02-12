@@ -2881,6 +2881,23 @@ case ('spin_map_ptc.')
 
 !-----------
 
+case ('spin_tune')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+  if (.not. bmad_com%spin_tracking_on) call tao_spin_tracking_turn_on()
+
+  select case (data_type)
+  case ('spin_tune')
+    datum_value = branch%param%spin_tune
+    valid_value = .true.
+
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true.)
+    return
+  end select
+
+!-----------
+
 case ('spin_tune_ptc.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
