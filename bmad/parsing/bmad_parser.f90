@@ -74,7 +74,7 @@ character(16), parameter :: r_name = 'bmad_parser'
 character(40) word_1, word_2, name, this_name, this_branch_name
 character(40), allocatable :: seq_name(:)
 character(80) debug_line
-character(200) full_lat_file_name, digested_file, call_file
+character(400) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
@@ -1293,7 +1293,7 @@ type (ele_struct), pointer :: ele
 
 logical, optional :: set_error_flag
 integer i, j, stat_b(24), stat, ierr
-character(200) name
+character(400) name
 
 !
 

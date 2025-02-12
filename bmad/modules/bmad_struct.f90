@@ -622,7 +622,7 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
 end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
-  character(200) :: file = ''
+  character(400) :: file = ''
   type (wake_sr_z_long_struct) :: z_long
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
@@ -654,7 +654,7 @@ type wake_lr_mode_struct    ! Long-Range Wake struct.
 end type
 
 type wake_lr_struct
-  character(200) :: file = ''
+  character(400) :: file = ''
   type (wake_lr_mode_struct), allocatable :: mode(:)
   real(rp) :: t_ref = 0             ! time reference value for computing the wake amplitude.
                                     !  This is used to prevent value overflow with long trains.
@@ -709,7 +709,7 @@ type cartesian_map_term1_struct
 end type
 
 type cartesian_map_term_struct
-  character(200) :: file = ''      ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''      ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1            ! For memory management of %term
   type (cartesian_map_term1_struct), allocatable :: term(:)  
 end type
@@ -731,7 +731,7 @@ type cylindrical_map_term1_struct
 end type
 
 type cylindrical_map_term_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
   type (cylindrical_map_term1_struct), allocatable :: term(:)
 end type
@@ -760,7 +760,7 @@ type gen_grad1_struct
 end type  
 
 type gen_grad_map_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''   ! Input file name. Used also as ID for instances. 
   type (gen_grad1_struct), allocatable :: gg(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
@@ -781,7 +781,7 @@ type grid_field_pt1_struct
 end type
 
 type grid_field_pt_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
   type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
 end type
@@ -1137,7 +1137,7 @@ type grid_beam_init_struct
 end type
 
 type beam_init_struct
-  character(200) :: position_file = ''                ! File with particle positions.
+  character(400) :: position_file = ''                ! File with particle positions.
   character(16) :: distribution_type(3) = 'RAN_GAUSS' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", "FILE", "RAN_GAUSS" or "" = "RAN_GAUSS" 
   real(rp) :: spin(3) = 0                    ! Spin (x, y, z)
@@ -1582,7 +1582,7 @@ type pre_tracker_struct
   integer :: who = 0   ! Can be opal$, or impactt$
   integer :: ix_ele_start = 0
   integer :: ix_ele_end = 0
-  character(200) :: input_file = ''
+  character(400) :: input_file = ''
 end type
 
 ! lat_struct
@@ -1598,7 +1598,7 @@ type lat_struct
   character(200) :: use_name = ''                     ! Name of lat given by USE statement
   character(40) :: lattice = ''                       ! Lattice
   character(40) :: machine = ''                       ! Name of the machine the lattice is for ("LHC", etc).
-  character(200) :: input_file_name = ''              ! Name of the lattice input file
+  character(400) :: input_file_name = ''              ! Name of the lattice input file
   character(80) :: title = ''                         ! General title
   character(100), allocatable :: print_str(:)         ! Saved print statements.
   type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
@@ -2114,7 +2114,7 @@ type space_charge_common_struct                   ! Common block for space charg
   integer :: sc_min_in_bin = 10                   ! Minimum number of particles in a bin for sigmas to be valid.
   logical :: lsc_kick_transverse_dependence = .false.
   logical :: debug = .false.
-  character(200) :: diagnostic_output_file = ''   ! If non-blank write a diagnostic (EG wake) file
+  character(400) :: diagnostic_output_file = ''   ! If non-blank write a diagnostic (EG wake) file
 end type
 
 type (space_charge_common_struct), save, target :: space_charge_com
