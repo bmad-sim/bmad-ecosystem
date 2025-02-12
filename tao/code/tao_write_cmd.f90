@@ -566,7 +566,7 @@ case ('field')
   if (r_max(1) == real_garbage$) then
     r_max = n_max * dr
     r_min = n_min * dr
-  elseif (n_max(1) == real_garbage$) then
+  elseif (n_max(1) == int_garbage$) then
     n_max = nint(r_max/dr)
     n_min = nint(r_min/dr)
   else
