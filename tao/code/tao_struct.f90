@@ -486,8 +486,8 @@ end type
 
 type tao_d2_data_struct
   character(40) :: name = ''             ! Name to be used with commands.
-  character(200) :: data_file_name = ''  ! Data file name .
-  character(200) :: ref_file_name = ''   ! Reference file name.
+  character(400) :: data_file_name = ''  ! Data file name .
+  character(400) :: ref_file_name = ''   ! Reference file name.
   character(24) :: data_date = ''        ! Data measurement date.
   character(24) :: ref_date = ''         ! Reference data measurement date.
   character(80) :: descrip(10) = ''      ! Array for descriptive information.
@@ -713,8 +713,8 @@ type tao_alias_struct
 end type
 
 type tao_command_file_struct
-  character(200) :: full_name = ''
-  character(200) :: dir = './'
+  character(400) :: full_name = ''
+  character(400) :: dir = './'
   integer :: ix_unit
   character(40) :: cmd_arg(9) = ''  ! Command file arguments.
   character(12) :: quiet = 'off'
@@ -792,26 +792,26 @@ type tao_init_struct
   logical :: debug_switch = .false.                  ! Is the "-debug" switch present?
   logical :: external_plotting_switch = .false.      ! Is "-external_plotting" switch present?
   character(16) :: init_name = 'Tao'                 ! label for initialization
-  character(200) :: hook_init_file = ''              ! 
-  character(200) :: hook_lat_file = ''               ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_beam_file = ''              ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_data_file = ''              ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_plot_file = ''              ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_startup_file = ''           ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_var_file = ''               ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_building_wall_file = ''     ! To be set by tao_hook_parse_command_args
-  character(200) :: init_file_arg_path = ''          ! Path part of init_tao_file
+  character(400) :: hook_init_file = ''              ! 
+  character(400) :: hook_lat_file = ''               ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_beam_file = ''              ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_data_file = ''              ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_plot_file = ''              ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_startup_file = ''           ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_var_file = ''               ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_building_wall_file = ''     ! To be set by tao_hook_parse_command_args
+  character(400) :: init_file_arg_path = ''          ! Path part of init_tao_file
   character(400) :: lattice_file_arg = ''            ! -lattice_file        command line argument.
-  character(200) :: hook_init_file_arg = ''          ! -hook_init_file      command line argument
-  character(200) :: init_file_arg = ''               ! -init_file           command line argument.
-  character(200) :: beam_file_arg = ''               ! -beam_file           command line argument.
-  character(200) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
+  character(400) :: hook_init_file_arg = ''          ! -hook_init_file      command line argument
+  character(400) :: init_file_arg = ''               ! -init_file           command line argument.
+  character(400) :: beam_file_arg = ''               ! -beam_file           command line argument.
+  character(400) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
   character(500) :: command_arg = ''                 ! -command             command line argument.
-  character(200) :: data_file_arg = ''               ! -data_file           command line argument.
-  character(200) :: plot_file_arg = ''               ! -plot_file           command line argument.
-  character(200) :: startup_file_arg = ''            ! -startup_file        command line argument.
-  character(200) :: var_file_arg = ''                ! -var_file            command line argument.
-  character(200) :: building_wall_file_arg = ''      ! -building_wall_file  command line argument.
+  character(400) :: data_file_arg = ''               ! -data_file           command line argument.
+  character(400) :: plot_file_arg = ''               ! -plot_file           command line argument.
+  character(400) :: startup_file_arg = ''            ! -startup_file        command line argument.
+  character(400) :: var_file_arg = ''                ! -var_file            command line argument.
+  character(400) :: building_wall_file_arg = ''      ! -building_wall_file  command line argument.
   character(16) :: geometry_arg = ''                 ! -geometry            command line argument.
   character(80) :: slice_lattice_arg = ''            ! -slice_lattice       command line argument.
   character(40) :: start_branch_at_arg = ''          ! -start_branch_at     command line argument.
@@ -1006,7 +1006,7 @@ end type
 
 type tao_beam_uni_struct
   character(200) :: saved_at = ''
-  character(200) :: dump_file = ''
+  character(400) :: dump_file = ''
   character(200) :: dump_at = ''
   logical :: track_beam_in_universe = .false.    ! Beam tracking enabled in this universe?
   logical :: always_reinit = .false.

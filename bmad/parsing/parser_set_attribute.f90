@@ -72,7 +72,7 @@ character(40) :: word, str_ix, attrib_word, word2, name, who
 character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
 character(80) str, err_str 
-character(200) line
+character(400) line
 
 logical, target :: delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, hetero_list
 logical is_attrib, err_flag2, old_style_input, ok, err, call_found

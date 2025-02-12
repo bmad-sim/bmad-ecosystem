@@ -22,7 +22,7 @@
 !                       moved digested file is considered an error if this routine is called from a parser but
 !                       not otherwise. The reason for this dichotomy is that a parser is able to reread the
 !                       original lattice file.
-!   lat_files(:)    -- character(200), optional, allocatable: List of Bmad lattice files that defined this lattice.
+!   lat_files(:)    -- character(400), optional, allocatable: List of Bmad lattice files that defined this lattice.
 !-
 
 subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling, lat_files)
@@ -50,8 +50,8 @@ integer, allocatable :: index_list(:)
 
 character(*) digested_file
 character(*), optional, allocatable :: lat_files(:)
-character(200) fname_read, fname_versionless, fname_full
-character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
+character(400) fname_read, fname_versionless, fname_full
+character(400) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
 character(100), allocatable :: name_list(:)
 character(*), parameter :: r_name = 'read_digested_bmad_file'
 

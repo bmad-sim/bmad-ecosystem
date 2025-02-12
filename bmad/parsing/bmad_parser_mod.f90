@@ -332,7 +332,7 @@ integer, pointer :: i_level
 
 character(*) how
 character(*), optional :: file_name_in
-character(200) file_name, basename, file_name2
+character(400) file_name, basename, file_name2
 
 logical, optional :: finished, err, open_file, abort_on_open_error
 logical found_it, is_relative, valid, err_flag, stop_here
@@ -884,7 +884,7 @@ character(1) delim
 character(:), allocatable :: str
 character(16) delim_list
 character(100) err_str2
-character(200) word, str_in
+character(400) word, str_in
 
 logical delim_found, ran_function_pending
 logical err_flag, err, call_check
@@ -1309,7 +1309,7 @@ character(*) attrib_name
 character(*), optional :: str_out
 character(40)  word
 character(1)   delim, str_end
-character(200) type_name
+character(400) type_name
 
 logical delim_found, err
 
@@ -1767,7 +1767,7 @@ type (ele_struct) ele
 type (lr_wake_input_struct) lr(500)
 integer n_row, iu, i, j, ios
 character(*) lr_file_name
-character(200) full_file_name
+character(400) full_file_name
 logical set_done, finished, err
 
 namelist / long_range_modes / lr
@@ -1880,7 +1880,7 @@ integer n, j, iu, ios, ix, i, ixx
 
 character(*) sr_file_name
 character(140) line, line_in
-character(200) full_file_name
+character(400) full_file_name
 
 logical in_namelist, finished, err
 
@@ -2277,7 +2277,7 @@ character(*), allocatable, optional :: names_out(:)  ! Only used for feedback el
 character(1) delim
 character(40) word_in, word
 character(40), allocatable :: name(:), attrib_name(:)
-character(200) err_str
+character(400) err_str
 
 logical :: is_control_var_list, err_flag
 logical delim_found, err, end_of_file, ele_names_only
@@ -5317,7 +5317,7 @@ subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file,
 
 character(*) lat_file, digested_file
 character(*), optional :: full_lat_file, use_line
-character(200) name, full_name
+character(400) name, full_name
 
 integer ix
 
@@ -6559,7 +6559,7 @@ type (grid_pt_struct), allocatable :: array(:), array2(:)
 
 character(1) delim, delim2
 character(40) :: word, word2, name
-character(200) line
+character(400) line
 
 integer ix_word, ix_word2, ix
 integer pt_counter, n, i, ib, ie, im, ix0, ix1, iy0, iy1, iz0, iz1

@@ -42,7 +42,7 @@ integer, allocatable :: index_list(:)
 
 character(*) digested_name
 character(*), optional :: file_names(:)
-character(200) fname, full_digested_name
+character(400) fname, full_digested_name
 character(100), allocatable :: name_list(:)
 character(*), parameter :: r_name = 'write_digested_bmad_file'
 character(30) time_stamp

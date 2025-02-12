@@ -44,7 +44,7 @@ type seq_struct
   integer ix_list                   ! Current index for lists
   integer :: list_upcount = 0
   integer index                     ! Alphabetical order sorted index
-  character(200) :: file_name = ''  ! File where sequence is defined
+  character(400) :: file_name = ''  ! File where sequence is defined
   integer ix_file_line              ! Line number in file where sequence is defined
   logical multipass
   logical ptc_layout                ! Put in separate PTC layout
@@ -58,8 +58,8 @@ end type
 integer, parameter :: f_maxx = 20
 
 type stack_file_struct
-  character(200) :: full_name = ''
-  character(200) :: dir = './'
+  character(400) :: full_name = ''
+  character(400) :: dir = './'
   character(n_parse_line+20) :: input_line1_saved = ''
   character(n_parse_line+20) :: input_line2_saved = ''
   character(n_parse_line) :: rest_of_line_saved = ''
@@ -91,7 +91,7 @@ type parser_ele_struct
   character(40) :: ele_name = ''               ! For fork element or superimpose statement.
   character(40), allocatable :: names1(:)      ! Currently just used by feedback element.
   character(40), allocatable :: names2(:)      ! Currently just used by feedback element.
-  character(200) :: lat_file = ''              ! File where element was defined.
+  character(400) :: lat_file = ''              ! File where element was defined.
   real(rp) :: offset = 0
   integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
@@ -134,10 +134,10 @@ type bp_common_struct
   integer :: i_const_tot = 0, i_const_init = 0
   integer :: ios_next_chunk = 0
   integer :: ios_this_chunk = 0
-  character(200), allocatable :: lat_file_names(:)     ! List of all files used to create lat
+  character(400), allocatable :: lat_file_names(:)     ! List of all files used to create lat
   ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
-  character(200) :: line1_file_name = ''               ! Name of file from which %input_line1 was read
-  character(200) :: line2_file_name = ''               ! Name of file from which %input_line2 was read
+  character(400) :: line1_file_name = ''               ! Name of file from which %input_line1 was read
+  character(400) :: line2_file_name = ''               ! Name of file from which %input_line2 was read
   character(n_parse_line_extended) :: parse_line = ''  ! Current string to be parsed.
   character(n_parse_line_extended) :: input_line1 = '' ! Line before current line. For debug messages.
   character(n_parse_line_extended) :: input_line2 = '' ! Current line. For debug messages.
