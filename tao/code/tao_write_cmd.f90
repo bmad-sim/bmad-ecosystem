@@ -542,7 +542,7 @@ case ('field')
       ix_word = ix_word + 1
       ele_name = word(ix_word)
     case default
-      if (file_name0 /= '') then
+      if (file_name /= '') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
         return
       endif
@@ -587,7 +587,7 @@ case ('field')
 
   !
 
-  open (iu, file = file_name)
+  open (iu, file = file_name, recl = 200)
   write (iu, '(9a)') '# ele = ', quote(ele%name) 
   write (iu, '(9a)') '# nx = [', int_str(n_min(1)), ', ', int_str(n_max(1)), ']' 
   write (iu, '(9a)') '# ny = [', int_str(n_min(2)), ', ', int_str(n_max(2)), ']' 
@@ -597,7 +597,7 @@ case ('field')
   write (iu, '(9a)') '# rz = [', real_str(r_min(3)), ', ', real_str(r_max(3)), ']' 
   write (iu, '(9a)') '# dr = [', real_str(dr(1)), ', ', real_str(dr(2)), ', ', real_str(dr(3)), ']'
   write (iu, '(9a)') '##' 
-  write (iu, '(9a)') '##         x           y           z                  Bx                  By                  Bz' 
+  write (iu, '(9a)') '##         x           y           z                    Bx                    By                    Bz                    Ex                     Ey                    Ez' 
 
   branch => pointer_to_branch(ele)
 
@@ -607,7 +607,7 @@ case ('field')
     rr = [ix, iy, iz] * dr
     orbit%vec(1:3:2) = rr(1:2)
     call em_field_calc(ele, branch%param, rr(3), orbit, .false., field)
-    write (iu, '(3f12.6, 3es20.11)') rr, field%b
+    write (iu, '(3f12.6, 6es22.13)') rr, field%b, field%e
   enddo
   enddo
   enddo
