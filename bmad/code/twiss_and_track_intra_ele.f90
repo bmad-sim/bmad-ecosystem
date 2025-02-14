@@ -70,7 +70,7 @@ character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
 
 !
 
-if (compute_twiss .and. .not. present(ele_start)) then
+if (logic_option(.true., compute_twiss) .and. .not. present(ele_start)) then
   call out_io(s_fatal$, r_name, 'CODING ERROR: COMPUTE_TWISS IS TRUE BUT ELE_START ARGMENT IS NOT PRESENT!')
   if (global_com%exit_on_error) call err_exit
   return
