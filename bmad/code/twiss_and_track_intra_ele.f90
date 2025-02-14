@@ -26,8 +26,8 @@
 !                             instead of recomputing ele_end from scratch. This can save time.
 !   compute_floor_coords -- logical, optional: If present and True then the global "floor" coordinates 
 !                             (without misalignments) will be calculated and put in ele_end%floor.
-!   compute_twiss        -- logical, optional: Default True. If False, to save a little time, do not 
-!                             compute Twiss parameters.
+!   compute_twiss        -- logical, optional: Default True. If False, to save a little time, do not compute
+!                             Twiss parameters. Also if ele_start is not present, no Twiss parameters are computed.
 !   reuse_ele_end        -- logical, optional: If present and True, and if ele_end has the correct 
 !                             lonigitudianal length and key type, reuse ele_end from trancking instead of 
 !                             recomputing ele_end from scratch. This can save time.
@@ -70,12 +70,6 @@ character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
 
 !
 
-if (logic_option(.true., compute_twiss) .and. .not. present(ele_start)) then
-  call out_io(s_fatal$, r_name, 'CODING ERROR: COMPUTE_TWISS IS TRUE BUT ELE_START ARGMENT IS NOT PRESENT!')
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
-
 if (present(err)) err = .true.
 dir = 1
 
@@ -100,7 +94,7 @@ if (ele%lord_status == super_lord$) then
     track_up = (track_upstream_end .or. s_start < slave%s_start)
     track_down = (track_downstream_end .or. s_end > slave%s)
     call twiss_and_track_intra_ele (slave, param, l0, l1, track_up, track_down, orbit_end, &
-                       orbit_end, ele_end, ele_end, err, compute_floor_coords, compute_twiss = compute_twiss)
+                      orbit_end, ele_end, ele_end, err, compute_floor_coords, compute_twiss = compute_twiss)
     if (s_end <= slave%s + bmad_com%significant_length) exit
   enddo
   return
@@ -198,7 +192,7 @@ if (present(ele_end) .and. species /= photon$) then
     call make_mat6 (ele_p, param, err_flag = err_flag)
   endif
   if (err_flag) return
-  if (logic_option(.true., compute_twiss)) call twiss_propagate1 (ele_start, ele_p, err_flag)
+  if (logic_option(.true., compute_twiss) .and. present(ele_start)) call twiss_propagate1 (ele_start, ele_p, err_flag)
   if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele_p, ele_p%floor)
   if (.not. associated(ele_p, ele_end)) call transfer_ele(ele_p, ele_end, .true.)
   if (err_flag) return
