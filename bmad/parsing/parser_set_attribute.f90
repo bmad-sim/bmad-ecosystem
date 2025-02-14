@@ -1489,7 +1489,8 @@ if (attrib_word == 'GRID_FIELD') then
 
   ! Note: get_next_word will change "call::" to "hdf5" or "binary" if appropriate.
   if (.not. expect_this ('=', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
-  call get_next_word (word, ix_word, ':[],(){}', delim, delim_found, call_check = .true.)
+  call get_next_word (word, ix_word, ':[],(){}', delim, delim_found, call_check = .true., err_flag = err_flag)
+  if (err_flag) return
 
   ! "ele1[grid_field] = ele2[grid_field]" construct
 

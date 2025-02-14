@@ -272,7 +272,10 @@ if (bp_com%input_from_file) then
         call string_trim (bp_com%parse_line(n+1:), line, ix)
         call str_upcase (line(1:10), line(1:10))
         if (line /= 'END_FILE') THEN
-          call parser_error ('EXTRA STUFF IN FILE')
+          call parser_error ('EXTRA STUFF IN INLINE CALLED FILE.', &
+                             'TYPICALLY THIS IS DUE TO A MISSING DELIMITER LIKE A MISSING COMMA.')
+          call parser_file_stack ('pop')
+          bp_com%parse_line = ''
           if (present(err_flag)) err_flag = .true.
         endif
       endif
