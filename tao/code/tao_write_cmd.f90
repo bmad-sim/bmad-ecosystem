@@ -597,7 +597,7 @@ case ('field')
   write (iu, '(9a)') '# rz = [', real_str(r_min(3)), ', ', real_str(r_max(3)), ']' 
   write (iu, '(9a)') '# dr = [', real_str(dr(1)), ', ', real_str(dr(2)), ', ', real_str(dr(3)), ']'
   write (iu, '(9a)') '##' 
-  write (iu, '(9a)') '##         x           y           z                    Bx                    By                    Bz                    Ex                     Ey                    Ez' 
+  write (iu, '(9a)') '##        x           y           z                    Bx                    By                    Bz                    Ex                    Ey                    Ez' 
 
   branch => pointer_to_branch(ele)
 
@@ -611,6 +611,10 @@ case ('field')
   enddo
   enddo
   enddo
+
+  close(iu)
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
+
 
 !---------------------------------------------------
 ! hard
