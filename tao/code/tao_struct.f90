@@ -938,7 +938,6 @@ type tao_lattice_branch_struct
   type (coord_struct), allocatable :: high_E_orb(:), low_E_orb(:)
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   real(rp) :: comb_ds_save = -1                           ! Master parameter for %bunch_params_comb(:)%ds_save
-  real(rp) :: comb_max_ds_save = -1                       ! Master parameter for %bunch_params_comb(:)%max_ds_save
   integer track_state
   integer :: cache_n_pts = 0
   integer ix_rad_int_cache                                ! Radiation integrals cache index.
