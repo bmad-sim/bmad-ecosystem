@@ -29,13 +29,13 @@ type (elementp), pointer :: magp
 type (magnet_chart), pointer :: mp, mpp
 type (work) ptc_work
 
-real(rp) value, hk, vk, phi_tot, fh, volt, delta_p
+real(rp) value, hk, vk, phi_tot, fh, volt, delta_p, e1, e2
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) a_ptc(0:n_pole_maxx), b_ptc(0:n_pole_maxx)
 real(rp), pointer :: val(:)
 
 integer i, n, ns, ix, ix_pole_max, cavity_type
-logical survey_needed
+logical survey_needed, kill_spin_fringe
 
 character(*), parameter :: r_name = 'update_fibre_from_ele'
 
@@ -182,8 +182,32 @@ case (sbend$)
   call set_real (mag%fint(1), magp%fint(1), val(fint$))
   call set_real (mag%hgap(2), magp%hgap(2), val(hgapx$))
   call set_real (mag%fint(2), magp%fint(2), val(fintx$))
-  call set_real_all (mag%p%edge(1), magp%p%edge(1), val(e1$))
-  call set_real_all (mag%p%edge(2), magp%p%edge(2), val(e2$))
+
+  ix = both_ends$
+  if (attribute_index(ele, 'FRINGE_AT') > 0) ix = nint(ele%value(fringe_at$))
+  kill_spin_fringe = is_false(ele%value(spin_fringe_on$))
+
+  call set_logic(mag%p%kill_ent_fringe, magp%p%kill_ent_fringe, (ix == exit_end$ .or. ix == no_end$))
+  call set_logic(mag%p%kill_exi_fringe, magp%p%kill_exi_fringe, (ix == entrance_end$ .or. ix == no_end$))
+
+  call set_logic(mag%p%kill_ent_spin, magp%p%kill_ent_spin, (ix == exit_end$ .or. ix == no_end$ .or. kill_spin_fringe))
+  call set_logic(mag%p%kill_exi_spin, magp%p%kill_exi_spin, (ix == entrance_end$ .or. ix == no_end$ .or. kill_spin_fringe))
+
+  ix = nint(ele%value(fringe_type$))
+
+  e1 = ele%value(e1$)
+  if (ptc_key%list%kill_ent_fringe .or. ix == none$) e1 = 0
+
+  e2 = ele%value(e2$)
+  if (ptc_key%list%kill_exi_fringe .or. ix == none$) e2 = 0
+
+  call set_real_all (mag%p%edge(1), magp%p%edge(1), e1)
+  call set_real_all (mag%p%edge(2), magp%p%edge(2), e2)
+
+  !!  if (nint(ele%value(ptc_field_geometry$)) == straight$) then
+  !!    ptc_key%list%t1   = e1 - ele%value(angle$)/2
+  !!    ptc_key%list%t2   = e2 - ele%value(angle$)/2
+  !!  endif
 
 end select
 
