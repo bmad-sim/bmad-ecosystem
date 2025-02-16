@@ -1212,12 +1212,11 @@ type bunch_params_struct
                                          !   this case the z-twiss will not be valid.
 end type
 
-! Bunch_track_struct is the bunch alalogue of a particle track_struct
+! Bunch_track_struct is the bunch analogue of a particle track_struct
 
 type bunch_track_struct
   type (bunch_params_struct), allocatable :: pt(:)     ! Array indexed from 0
   real(rp) :: ds_save = -1                             ! Min distance between points.
-  real(rp) :: max_ds_save = -1                         ! Max distance between points. Not currently implemented!
   integer :: n_pt = -1                                 ! Track upper bound
 end type
 

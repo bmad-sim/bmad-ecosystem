@@ -1010,7 +1010,7 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', 'comb_max_ds_save', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
                     'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
@@ -1043,10 +1043,6 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('comb_ds_save')
     call tao_set_real_value (value, switch, value_str, err)
     u%model%tao_branch(:)%comb_ds_save = value
-
-  case ('comb_max_ds_save')
-    call tao_set_real_value (value, switch, value_str, err)
-    u%model%tao_branch(:)%comb_max_ds_save = value
 
   case ('always_reinit')
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)

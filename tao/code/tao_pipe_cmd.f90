@@ -335,13 +335,10 @@ case ('beam')
   nl=incr(nl); write (li(nl), amt) 'track_start;STR;T;',               trim(u%model_branch(ix_branch)%beam%track_start)
   nl=incr(nl); write (li(nl), amt) 'track_end;STR;T;',                 trim(u%model_branch(ix_branch)%beam%track_end)
   nl=incr(nl); write (li(nl), rmt) 'comb_ds_save;REAL;T;',             u%model%tao_branch(ix_branch)%comb_ds_save
-  nl=incr(nl); write (li(nl), rmt) 'comb_max_ds_save;REAL;T;',         u%model%tao_branch(ix_branch)%comb_max_ds_save
   if (allocated(u%model%tao_branch(ix_branch)%bunch_params_comb)) then
     nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  u%model%tao_branch(ix_branch)%bunch_params_comb(1)%ds_save
-    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              u%model%tao_branch(ix_branch)%bunch_params_comb(1)%max_ds_save
   else
     nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  -1.0_rp
-    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              -1.0_rp
   endif
 
 !------------------------------------------------------------------------------------------------
