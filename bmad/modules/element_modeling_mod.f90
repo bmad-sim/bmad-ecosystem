@@ -354,6 +354,7 @@ do i = 1, n_pole
 
   ele%key = sbend$
   ele%sub_key = sbend$
+  call set_ele_defaults(ele)
   ele%value(e1$) = -sum_angle
   ele%value(g$) = first_peak_polarity * (-1)**(i-1) * g_max
   sum_angle = sum_angle + ele%value(g$) * ele%value(l$)

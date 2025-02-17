@@ -1,6 +1,6 @@
 !+ 
 ! Subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, &
-!        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+!        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 !
 ! Subroutine to write an Elegant lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
@@ -29,13 +29,11 @@
 !   ix_branch         -- Integer, optional: Index of lattice branch to use. Default = 0.
 !
 ! Output:
-!   converted_lat     -- lat_struct, optional: Equivalent Bmad lattice with wiggler and 
-!                           sol_quad elements replaced by their respective models.
 !   err               -- logical, optional: Set True if, say a file could not be opened.
 !-
 
 subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, &
-                    use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                    use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 
 use bmad, dummy => write_lattice_in_elegant_format
 use write_lattice_file_mod, dummy3 => write_lattice_in_elegant_format
@@ -44,7 +42,6 @@ use ptc_interface_mod, only: taylor_inverse, concat_taylor
 implicit none
 
 type (lat_struct), target :: lat, lat_model, lat_out
-type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
 type (ele_struct) :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, bend_ele, quad_ele
 type (coord_struct) orb_start, orb_end, orb_center
@@ -877,21 +874,6 @@ call out_io (s_info$, r_name, 'Written ELEGANT lattice file: ' // trim(out_file_
 
 deallocate (names)
 if (present(err)) err = .false.
-
-if (present(converted_lat)) then
-  converted_lat = lat
-  converted_lat%branch(branch%ix_branch) = branch_out
-  converted_lat%n_ele_max = converted_lat%n_ele_track
-  do ib = 0, ubound(converted_lat%branch, 1)
-    branch => converted_lat%branch(ib)
-    do i = 1, branch%n_ele_track
-      branch%ele(i)%slave_status = free$
-      branch%ele(i)%n_lord = 0
-    enddo
-  enddo
-  converted_lat%n_control_max = 0
-  converted_lat%n_ic_max = 0
-endif
 
 call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)
