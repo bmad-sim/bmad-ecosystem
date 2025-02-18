@@ -33,13 +33,13 @@ type (lat_struct), optional :: lat
 real(rp) f
 real(rp), allocatable :: rvec(:), p0c(:)
 
-integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id, b2_id
+integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id, b1_id, b2_id
 integer i, n, ib, ix, h5_err, h_err, ib2
 integer, allocatable :: ivec(:)
 
 character(*) file_name
-character(20) date_time, root_path, bunch_path, particle_path, fmt
-character(100) this_path
+character(26) date_time, root_path, bunch_path, particle_path, fmt
+character(100) this_bunch_path
 character(*), parameter :: r_name = 'hdf5_write_beam'
 
 logical, optional :: alive_only
@@ -108,12 +108,13 @@ do ib = 1, size(bunches)
   do
     ix = index(bunch_path, '%T')
     ib2 = ib2 + 1
-    write (this_path, '(a, i5.5, 2a)') bunch_path(1:ix-1), ib2, trim(bunch_path(ix+2:))
-    if (.not. hdf5_exists(r_id, this_path, err, .true.)) exit
+    write (this_bunch_path, '(a, i5.5, 2a)') bunch_path(1:ix-1), ib2, trim(bunch_path(ix+2:))
+    if (.not. hdf5_exists(r_id, this_bunch_path, err, .true.)) exit
   enddo
 
-  call H5Gcreate_f(r_id, trim(this_path), b_id, h5_err)
-  call H5Gcreate_f(b_id, particle_path, b2_id, h5_err)
+  call H5Gcreate_f(r_id, trim(this_bunch_path), b_id, h5_err)
+  call H5Gcreate_f(b_id, particle_path, b1_id, h5_err)
+  call H5Gcreate_f(b1_id, trim(openpmd_species_name(p(1)%species)), b2_id, h5_err)
 
   call hdf5_write_attribute_string(b2_id, 'speciesType', openpmd_species_name(p(1)%species), err)
   call hdf5_write_attribute_real(b2_id, 'totalCharge', bunch%charge_tot, err)
@@ -231,6 +232,7 @@ do ib = 1, size(bunches)
   call pmd_write_int_to_dataset(b2_id, 'locationInElement', 'location', unit_1, ivec, err)
 
   call H5Gclose_f(b2_id, h5_err)
+  call H5Gclose_f(b1_id, h5_err)
   call H5Gclose_f(b_id, h5_err)
 enddo
 
