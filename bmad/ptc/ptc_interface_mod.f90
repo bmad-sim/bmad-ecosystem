@@ -3084,12 +3084,8 @@ case (crab_cavity$)
     bn(1) = 1d-9 * e_accel_field(ele, voltage$) / leng
   endif
 
-case (drift$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
+case (rfcavity$, lcavity$, drift$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
   ! Nothing to be done
-
-case (rfcavity$, lcavity$)
-  ! Nothing to be done
-  call out_io (s_warn$, r_name, 'Note: PTC ignores RFcavity and Lcavity multipoles.')
 
 case (octupole$)
   bn(4) = val(k3$) / 6
@@ -3186,6 +3182,11 @@ if (add_multipoles) then
       an0 = an0 / leng
       bn0 = bn0 / leng
     endif
+
+    select case (ele%key)
+    case (rfcavity$, lcavity$)
+      call out_io (s_warn$, r_name, 'Note: PTC ignores RFcavity and Lcavity multipoles.')
+    end select
   end select
 
   n = n_pole_maxx+1
