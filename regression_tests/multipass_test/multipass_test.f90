@@ -16,8 +16,8 @@ open (1, file = 'output.now')
 ! Space_charge_method test
 
 call bmad_parser ('multipass_and_superimpose.bmad', lat)
-call write_bmad_lattice_file ('lat.bmad', lat)
-call bmad_parser ('lat.bmad', lat2)
+call write_bmad_lattice_file ('out.bmad', lat)
+call bmad_parser ('out.bmad', lat2)
 
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
