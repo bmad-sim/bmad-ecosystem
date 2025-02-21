@@ -3183,10 +3183,9 @@ if (add_multipoles) then
       bn0 = bn0 / leng
     endif
 
-    select case (ele%key)
-    case (rfcavity$, lcavity$)
+    if (ix_pole_max > -1 .and. (ele%key == rfcavity$ .or. ele%key == lcavity$)) then
       call out_io (s_warn$, r_name, 'Note: PTC ignores RFcavity and Lcavity multipoles.')
-    end select
+    endif
   end select
 
   n = n_pole_maxx+1
