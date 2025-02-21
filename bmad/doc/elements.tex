@@ -3128,16 +3128,16 @@ General \vn{lcavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}    \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}     & RF Couplers                & \ref{s:rf.coupler} \\
-  Field autoscaling          & \ref{s:autoscale} & Superposition              & \ref{c:super}      \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
-  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap}   \\
-  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \\
-  Is_on                      & \ref{s:is.on}     & Wakes                      & \ref{s:wakes}      \\
-  Length                     & \ref{s:l}         &                            &                    \\
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\ 
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
+  Field autoscaling          & \ref{s:autoscale} & RF Couplers                & \ref{s:rf.coupler} \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}      \\ 
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\ 
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\ 
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}         & Wakes                      & \ref{s:wakes}      \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3270,6 +3270,8 @@ Example:
   lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6,
          tracking_method = runge_kutta, n_cell = 3, longitudinal_mode = 1
 \end{example}
+
+Note: Multipoles \ref{s:multip} do not vary in time.
 
 {\em Note: The default \vn{bmad_standard} tracking for \vn{lcavity} elements when the velocity
 $\beta$ is significantly different from 1 can only be considered as a rough approximation. Indeed,
@@ -4676,16 +4678,16 @@ General \vn{rfcavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section            & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Chamber wall               & \ref{s:wall}       & Overlapping Fields         & \ref{s:overlap}    \\
-  Custom Attributes          & \ref{s:cust.att}   & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}      & RF Couplers                & \ref{s:rf.coupler} \\
-  Field autoscaling          & \ref{s:autoscale}  & Superposition              & \ref{c:super}      \\
-  Fringe Fields              & \ref{s:fringe}     & Symplectify                & \ref{s:symp}       \\
-  Hkick \& Vkick             & \ref{s:kick}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Integration settings       & \ref{s:integ}      & Tracking \& transfer map   & \ref{c:methods}    \\
-  Is_on                      & \ref{s:is.on}      & Wakes                      & \ref{s:wakes}      \\
-  Length                     & \ref{s:l}          &                            &                    \\
+  Aperture limits            & \ref{s:limit}      & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}       & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}   & Overlapping Fields         & \ref{s:overlap}    \\ 
+  Description strings        & \ref{s:alias}      & Reference energy           & \ref{s:energy}     \\
+  Field autoscaling          & \ref{s:autoscale}  & RF Couplers                & \ref{s:rf.coupler} \\
+  Fringe Fields              & \ref{s:fringe}     & Superposition              & \ref{c:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}       & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}      & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}      & Tracking \& transfer map   & \ref{c:methods}    \\
+  Length                     & \ref{s:l}          & Wakes                      & \ref{s:wakes}      \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -4785,6 +4787,8 @@ Example:
 \begin{example}
   rf1: rfcav, l = 4.5, harmon = 1281, voltage = 5e6
 \end{example}
+
+Note: Multipoles \ref{s:multip} do not vary in time.
 
 \newpage
 

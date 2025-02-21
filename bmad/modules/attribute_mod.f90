@@ -811,7 +811,7 @@ do i = 1, n_key$
   select case (i)
   case (ac_kicker$, elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, &
-         hkicker$, vkicker$, sad_mult$, thick_multipole$)
+         hkicker$, vkicker$, sad_mult$, thick_multipole$, rfcavity$, lcavity$)
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
