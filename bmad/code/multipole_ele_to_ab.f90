@@ -551,7 +551,7 @@ case (octupole$)
   const = this_ele%value(k3$) * this_ele%value(l$)
   ref_exp = 3
   
-case (ab_multipole$, sad_mult$, thick_multipole$) ! multipoles do not scale
+case (ab_multipole$, sad_mult$, thick_multipole$, rfcavity$, lcavity$) ! multipoles do not scale
   return
 
 case default
