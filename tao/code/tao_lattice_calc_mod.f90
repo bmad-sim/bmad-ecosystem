@@ -167,48 +167,48 @@ endif
 ! Twiss
 
 if (u%calc%twiss .and. branch%param%particle /= photon$) then
-  if (tao_branch%track_state == moving_forward$) then
-    call lat_make_mat6 (lat, -1, orbit, ix_branch)
+  call lat_make_mat6 (lat, -1, orbit, ix_branch) ! Will only make mats where orbit is stable.
 
-    if (branch%param%geometry == closed$) then
-      call twiss_at_start (lat, status, branch%ix_branch, print_err)
-      tao_branch%twiss_valid = (status == ok$)
-      call calc_z_tune(branch)
+  if (branch%param%geometry == closed$ .and. tao_branch%track_state == moving_forward$) then
+    call twiss_at_start (lat, status, branch%ix_branch, print_err)
+    tao_branch%twiss_valid = (status == ok$)
+    call calc_z_tune(branch)
 
-      if (.not. tao_branch%twiss_valid) then
-        do n = 0, branch%n_ele_track
-          branch%ele(n)%a = twiss_struct()
-          branch%ele(n)%b = twiss_struct()
-          branch%ele(n)%x = xy_disp_struct()
-          branch%ele(n)%y = xy_disp_struct()
-        enddo
-        calc_ok = .false.
-        return
-      endif
-
-      call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
-      if (tao_branch%has_open_match_element) then
-        do n = 1, branch%n_ele_track
-          ele => branch%ele(n)
-          if (ele%key == match$) ele%value(recalc$) = false$
-        enddo
-      endif
-
-    else
-      call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+    if (.not. tao_branch%twiss_valid) then
+      do n = 0, branch%n_ele_track
+        branch%ele(n)%a = twiss_struct()
+        branch%ele(n)%b = twiss_struct()
+        branch%ele(n)%x = xy_disp_struct()
+        branch%ele(n)%y = xy_disp_struct()
+      enddo
+      calc_ok = .false.
+      return
     endif
 
+    call twiss_propagate_all (lat, ix_branch, err, 0)
+    if (tao_branch%has_open_match_element) then
+      do n = 1, branch%n_ele_track
+        ele => branch%ele(n)
+        if (ele%key == match$) ele%value(recalc$) = false$
+      enddo
+    endif
+
+  elseif (branch%param%geometry == open$) then
+    call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost-1)
+  endif
+
+  if (tao_branch%track_state == moving_forward$) then
     mode_flip = any(branch%ele(1:branch%n_ele_track)%mode_flip)
     if (mode_flip .and. .not. tao_branch%mode_flip_here .and. .not. s%com%optimizer_running) then
       call out_io(s_warn$, r_name, '*Mode flip* detected! Care must be used in interpreting Twiss parameter!', &
                                    'See the Bmad manual on linear optics for more information.')
     endif
     tao_branch%mode_flip_here = mode_flip
-
   else
     branch%param%stable = .false.
     branch%param%unstable_factor = 0  ! Unknown
   endif
+
 endif
 
 ! Calc radiation integrals when track_type == "beam" since init_beam_distribution may need this.
