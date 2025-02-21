@@ -4793,9 +4793,8 @@ Example:
 \label{s:sad.mult}
 \index{sad_mult|hyperbf}
 
-A \vn{sad_mult} element is equivalent to a SAD\cite{b:sad} \vn{mult}
-element. This element is a combination solenoid, multipole, bend, and
-RF cavity.
+A \vn{sad_mult} element is used to emulate a SAD\cite{b:sad} \vn{MULT} element with the restriction
+that \vn{sad_mult} elements cannot be used to simulate RF cavities or bends.
 
 General \vn{sample} attributes are:
 \begin{center}
@@ -4888,13 +4887,10 @@ as opposed to \bmad's convention of referencing to the element center.
 \item
   The \bmad \vn{sad_mult} element does not have any attributes corresponding to the following
 SAD \vn{mult} element attributes:
-\vspace{1.0ex}
+\vspace{0.5ex}
 \begin{example}
   angle, harmon, freq, phi, dphi, volt, dvolt
 \end{example}
-\vspace{1.0ex}
-That is, \vn{sad_mult} elements cannot be used to simulate RF cavities or bends (but a \vn{sad_mult}
-can be used to simulate a kicker type element).
 \end{itemize}
 
 Example:

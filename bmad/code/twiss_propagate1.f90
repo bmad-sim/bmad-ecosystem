@@ -41,7 +41,7 @@ logical, optional :: err_flag
 
 character(*), parameter :: r_name = 'twiss_propagate1'
 
-! Beginning element bookkeeping. rel_p1 ~ 0 typically happens when there is an egun element downstream.
+! Beginning element bookkeeping. rel_p1 ~ 0 typically happens when there is an e_gun element downstream.
 
 if (ele1%key == beginning_ele$) then
   ele1%map_ref_orb_out = ele2%map_ref_orb_in
