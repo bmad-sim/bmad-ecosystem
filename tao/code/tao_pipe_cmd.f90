@@ -6945,11 +6945,12 @@ case ('species_to_str')
 ! Notes
 ! -----
 ! Command syntax:
-!   pipe spin_invariant {-array_out} {who} {ix_uni}@{ix_branch}|{which}
+!   pipe spin_invariant {flags} {who} {ix_uni}@{ix_branch}|{which}
 !
 ! Where:
-!   -array_out    - Optional flag. If present, the output will be available in 
-!                     the tao_c_interface_com%c_real.
+!   {flags}       - Optional flags (currently there is only one):
+!                     -array_out  If present, the output will be available in 
+!                                                 the tao_c_interface_com%c_real.
 !   {who}         - One of: l0, n0, or m0
 !   {ix_uni}      - A universe index. Defaults to s%global%default_universe.
 !   {ix_branch}   - A branch index. Defaults to s%global%default_branch.
