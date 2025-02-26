@@ -3544,6 +3544,9 @@ parameters.
 Note: With \vn{match_twiss} and \vn{phase_trombone} settings the element's Twiss and coupling parameters
 are modified. With \vn{identity} and \vn{standard} the element parameters are not varied.
 
+%----------------------
+\newpage
+
 Note: There is an old notation with logical parameters \vn{match_end} and \vn{phase_trombone}
 instead of \vn{matrix} and \vn{recalc}.  The correspondence is
 \begin{example}
@@ -3600,6 +3603,9 @@ The \vn{zero} setting for \vn{kick0} sets $\Bf V$ to zero independent of teh ele
 %
 \end{description}
 
+%----------------------
+\newpage
+
 Note: With the \vn{match_orbit} setting the element's entrance orbit values will be modified. With
 \vn{zero} and \vn{standard} settings the elements parameters will not be varied by \bmad.
 
@@ -3611,21 +3617,6 @@ The order of operations, is the effect of \vn{delta_time} is applied first and t
 transformation above is applied afterwards. Since using \vn{match_twiss} or \vn{match_orbit} with
 a finite \vn{delta_time} can be confusing, such a situation is not allowed. Use two separate
 \vn{match} elements if needed.
-
-The settings of \vn{spin_tracking_model} are:
-\begin{example}
-  off               ! Spin direction does not change (default).
-  transverse_field  ! Assumes a transverse magnetic field.
-\end{example}
-With a setting of \vn{off} (the default), the spin does not change when a particle is tracked through the element.
-With a setting of \vn{transverse_field}, it is assumed that the orbital transfer matrix is due solely to transverse
-magnetic fields so that the integrated spin rotation (\Eqs{orpt}, \eq{pqlbp1}, and \eq{pqlbp2}) can
-be related to the orbital transport via
-\begin{equation}
-  \int {\pmb\Omega}_{BMT} = \frac{1 + a \gamma}{1 + p_z} \, (-\Delta p_y, \Delta p_x, 0)
-\end{equation}
-where $\Delta p_x$ and $\Delta p_y$ are the change in $p_x$ and $p_y$ when tracking through the match element
-and the small angle approximation ($p_x, p_y \ll 1$) has been used.
 
 A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
 like a \vn{marker} element. That is, the orbit, spin, and Twiss parameters are unchanged when tracking

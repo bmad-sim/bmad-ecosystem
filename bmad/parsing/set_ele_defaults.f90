@@ -224,7 +224,7 @@ case (match$)
   ele%value(kick0$) = standard$
   ele%value(recalc$) = true$
   ele%value(deta_ds_master$) = false$
-  ele%value(spin_tracking_model$) = off$
+  ele%spin_tracking_method = off$
 
 case (mirror$)
   ele%aperture_at = surface$

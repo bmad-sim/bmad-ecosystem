@@ -22,6 +22,7 @@ character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 character(100) line
 
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 integer :: i, j, k, ib, nargs, ns, tracking_method
 logical custom_test, err, abs_time
 
@@ -69,7 +70,7 @@ call lattice_bookkeeper (lat)
 
 open (1, file = 'output.now', recl = 200)
 
-allocate (eles(n_methods$)) 
+allocate (eles(n_methods)) 
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -82,7 +83,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (index(ele%name, 'ABS_TIME') /= 0) bmad_com%absolute_time_tracking = .true.
 
-    do j = 1, n_methods$
+    do j = 1, n_methods
       if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$ .or. j == mad$) cycle
       if (j == auto$) cycle
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
@@ -107,7 +108,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (index(ele%name, 'ABS_TIME') /= 0) bmad_com%absolute_time_tracking = abs_time
 
     do k = 1, 8  ! Output line index
-      do j = 1, n_methods$
+      do j = 1, n_methods
         ! if (j == mad$ .and. custom_test) cycle
         if (j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$) cycle
         if (j == auto$) cycle

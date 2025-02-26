@@ -539,14 +539,15 @@ case ('branch1')
 !
 ! Where:
 !   {flags} are optional switches:
-!       -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+!       -array_out : If present, the output will be available in the 
+!              tao_c_interface_com%c_real array.
 !   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {ix_branch} is a branch index. Defaults to s%global%default_branch.
 !   {ix_bunch} is the bunch index. Defaults to 1.
 !   {who} is one of:
 !       x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
-!       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
-!                                                                 sigma, sigma_p, emit, norm_emit
+!       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, 
+!                                       eta, etap, sigma, sigma_p, emit, norm_emit
 !     sigma.IJ where I, J in range [1,6]
 !     rel_min.I, rel_max.I where I in range [1,6]
 !     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
@@ -767,11 +768,12 @@ case ('bunch_params')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {ix_bunch} is the bunch index.
-!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state", "ix_ele"
+!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", 
+!                                                                 "state", "ix_ele"
 !
 ! For example, if {coordinate} = "px", the phase space px coordinate of each particle
-! of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
-! alive and any other value means the particle has been lost.
+! of the bunch is displayed. The "state" of a particle is an integer. 
+! A value of 1 means alive and any other value means the particle has been lost.
 !
 ! Parameters
 ! ----------
@@ -942,7 +944,8 @@ case ('building_wall_graph')
 ! Notes
 ! -----
 ! Command syntax:
-!   pipe building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
+!   pipe building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^
+!                                                               {z_center}^^{x_center}
 !
 ! Where:
 !   {ix_section}    -- Section index.
@@ -1592,8 +1595,10 @@ case ('data_d2_array')
 !   {d2_name} is the name of the d2_data structure to create.
 !   {n_d1_data} is the number of associated d1 data structures.
 !   {d_data_arrays_name_min_max} has the form
-!     {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
-!   where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds of the array.
+!     {name1}^^{lower_bound1}^^{upper_bound1}^^....
+!                                            ^^{nameN}^^{lower_boundN}^^{upper_boundN}
+!   where {name} is the data array name and 
+!   {lower_bound} and {upper_bound} are the bounds of the array.
 ! 
 ! Example:
 !   pipe data_d2_create 2@orbit^^2^^x^^0^^45^^y^^1^^47
@@ -2000,9 +2005,10 @@ case ('data_set_design_value')
 ! 
 ! Note: The 3 values for spin_axis%n0, as a group, are optional. 
 !       Also the 3 values for spin_axis%l are, as a group, optional.
-! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
-! Note: After creating all your datums, use the "data_set_design_value" routine to 
-!       set the design (and model) values.
+! Note: Use the "pipe data_d2_create" command first to create a d2 structure 
+!       with associated d1 arrays.
+! Note: After creating all your datums, use the "pipe data_set_design_value" routine
+!       to set the design (and model) values.
 ! 
 ! Parameters
 ! ----------
@@ -2658,9 +2664,10 @@ case ('ele:elec_multipoles')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {where} is an optional argument which, if present, is one of
-!     beginning  ! Upstream end
-!     center     ! Middle of element. Surface of element for photonic reflecting elements (crystal, mirror).
-!     end        ! Downstream end (default)
+!     beginning  ! Upstream end.
+!     center     ! Middle of the element. This is the surface of element when used 
+!                !  with photonic reflecting elements such as crystal and mirror elements.
+!     end        ! Downstream end (default).
 !
 ! Example:
 !   pipe ele:floor 3@1>>7|model
@@ -3085,9 +3092,11 @@ case ('ele:head')
 ! This gives lord and slave info on element number 7 in branch 1 of universe 3.
 ! Note: The lord/slave info is independent of the setting of {which}.
 ! 
-! The output is a number of lines, each line giving information on an element (element index, etc.).
+! The output is a number of lines.
+! Each line gives information on an element (element index, etc.).
 ! Some lines begin with the word "Element". 
-! After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
+! After each "Element" line, there are a number of lines (possibly zero) 
+! that begin with the word "Slave or "Lord".
 ! These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
 ! 
 ! Parameters
@@ -3854,7 +3863,8 @@ case ('ele:wake')
 ! Where: 
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
-!   {index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+!   {index} is the index number in the ele%wall3d(:) array 
+!             The size of this array is obtained from "pipe ele:head".
 !   {who} is one of: "base", or "table".
 ! Example:
 !   pipe ele:wall3d 3@1>>7|model 2 base
@@ -3942,7 +3952,8 @@ case ('ele:wall3d')
 !
 ! Where:
 !   Optional {flags} are:
-!       -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+!       -array_out : If present, the output will be available in the 
+!                     tao_c_interface_com%c_real array.
 !   {expression} is expression to be evaluated.
 !
 ! Example:
@@ -4008,7 +4019,8 @@ case ('evaluate')
 !   {which} is one of: "model", "base" or "design"
 !   {x}, {y}  -- Transverse coords.
 !   {z}       -- Longitudinal coord with respect to entrance end of element.
-!   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
+!   {t_or_z}  -- time or phase space z depending if lattice is setup for 
+!             --   absolute time tracking.
 ! 
 ! Parameters
 ! ----------
@@ -4855,11 +4867,14 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !
 ! Where:
 !  Optional {flags} are:
-!   -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
-!   -track_only : If present, lord elements will not be matched to.
-!   -index_order : If present, order elements by element index instead of the standard s-position.
-!   -array_out : If present, the output will be available in the tao_c_interface_com%c_real or
-!     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
+!   -no_slaves   - If present, multipass_slave and super_slave elements will not 
+!                -   be matched to.
+!   -track_only  - If present, lord elements will not be matched to.
+!   -index_order - If present, order elements by element index instead of the 
+!                -   standard s-position.
+!   -array_out   - If present, the output will be available in the 
+!     tao_c_interface_com%c_real or tao_c_interface_com%c_integer arrays. 
+!     See the code below for when %c_real vs %c_integer is used.
 !     Note: Only a single {who} item permitted when -array_out is present.
 !
 !   {which} is one of: "model", "base" or "design"
@@ -4883,7 +4898,8 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     ele.vec0      ! Output: vec0(1), ... vec0(6)
 !     ele.c_mat     ! Output: c_mat11, c_mat12, c_mat21, c_mat22.
 !     ele.gamma_c   ! Parameter associated with coupling c-matrix.
-!     ele.XXX       ! Where XXX is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
+!     ele.XXX       ! Where XXX is a Bmad syntax element attribute. 
+!                   !   EG: ele.beta_a, ele.k1, etc.
 ! 
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
@@ -4931,8 +4947,6 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !    elements: Q* 
 !    which: design
 !    who: ele.ix_ele
-!
-!
 
 case ('lat_list')
 
@@ -5135,7 +5149,8 @@ case ('lat_param_units')
 !   {ele1_id} is the start element.
 !   {ele2_id} is the end element.
 ! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
-! Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+! Note: {ele2_id} should just be an element name or index without universe, 
+!       branch, or model/base/design specification.
 !
 ! Example:
 !   pipe matrix 2@1>>q01w|design q02w
@@ -5217,11 +5232,13 @@ case ('merit')
 !   pipe orbit_at_s {ix_uni}@{ele}->{s_offset}|{which}
 !
 ! Where:
-!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
-!   {ele} is an element name or index. Default at the Beginning element at start of branch 0.
-!   {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
-!      If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
-!   {which} is one of: "model", "base" or "design".
+!   {ix_uni}   - Universe index. Defaults to s%global%default_universe.
+!   {ele}      - Element name or index. 
+!                  Default at the Beginning element at start of branch 0.
+!   {s_offset} - Offset of the evaluation point from the downstream end of ele. 
+!                  Default is 0. If {s_offset} is present, the preceeding "->" sign
+!                  must be present. EG: Something like "23|model" will {which} is 
+!                  one of: "model", "base" or "design".
 !
 ! Example:
 !   pipe orbit_at_s Q10->0.4|model   ! Orbit at 0.4 meters from Q10 element exit end in model lattice.
@@ -5694,12 +5711,15 @@ case ('plot_list')
 !                          {n_graph}^^{graph_names}
 !
 ! Where:
-!   {template_location} is the location to place or delete a template plot. Use "@Tnnn" syntax for the location.
-!   {template_name} is the name of the template plot. If deleting a plot this name is immaterial.
-!   {n_graph} is the number of associated graphs. If set to -1 then any existing template plot is deleted.
-!   {graph_names} are the names of the graphs.  graph_names should be in the form:
-!      graph1_name^^graph2_name^^...^^graphN_name
-!   for N=n_graph names
+!   {template_location} - Location to place or delete a template plot. 
+!                           Use "@Tnnn" syntax for the location.
+!   {template_name}     - The name of the template plot. 
+!                           If deleting a plot this name is immaterial.
+!   {n_graph}           - The number of associated graphs. 
+!                           If set to -1 then any existing template plot is deleted.
+!   {graph_names}       - Names of the graphs. graph_names should be in the form:
+!                             graph1_name^^graph2_name^^...^^graphN_name
+!                           where N=n_graph names
 !
 ! Parameters
 ! ----------
@@ -5929,13 +5949,13 @@ case ('plot_graph_manage')
 !   pipe plot_line {region_name}.{graph_name}.{curve_name} {x_or_y}
 !
 ! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
-! component put into the real array buffer.
+! component put into the tao_c_interface_com%c_real array buffer.
 ! Note: The plot must come from a region, and not a template, since no template plots 
 !       have associated line data.
 ! Examples:
 !   pipe plot_line r13.g.a   ! String array output.
-!   pipe plot_line r13.g.a x ! x-component of line points loaded into the real array buffer.
-!   pipe plot_line r13.g.a y ! y-component of line points loaded into the real array buffer.
+!   pipe plot_line r13.g.a x ! x-component of line points put in array buffer.
+!   pipe plot_line r13.g.a y ! y-component of line points put in array buffer.
 ! 
 ! Parameters
 ! ----------
@@ -6928,15 +6948,16 @@ case ('species_to_str')
 !   pipe spin_invariant {flags} {who} {ix_uni}@{ix_branch}|{which}
 !
 ! Where:
-!   {flags} are optional switches:
-!       -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
-!   {who} is one of: l0, n0, or m0
-!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
-!   {ix_branch} is a branch index. Defaults to s%global%default_branch.
-!   {which} is one of:
-!     model
-!     base
-!     design
+!   {flags}       - Optional flags (currently there is only one):
+!                     -array_out  If present, the output will be available in 
+!                                                 the tao_c_interface_com%c_real.
+!   {who}         - One of: l0, n0, or m0
+!   {ix_uni}      - A universe index. Defaults to s%global%default_universe.
+!   {ix_branch}   - A branch index. Defaults to s%global%default_branch.
+!   {which}       - Switch which is one of:
+!                      model
+!                      base
+!                      design
 !
 ! Example:
 !   pipe spin_invariant 1@0|model
@@ -7121,8 +7142,10 @@ case ('spin_polarization')
 !   {ref_ele} is an element name or index.
 ! This will return a string_list with the following fields:
 !   spin_tune                   -- Spin tune
-!   dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference Q_spin-Q_mode for modes X = a, b, and c.
-!   xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance strengths for X = a, b, and c modes.  
+!   dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference 
+!                                    Q_spin-Q_mode for modes X = a, b, and c.
+!   xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance 
+!                                    strengths for X = a, b, and c modes.  
 !
 ! Parameters
 ! ----------
@@ -7223,12 +7246,14 @@ case ('super_universe')
 !   pipe taylor_map {ele1_id} {ele2_id} {order}
 !
 ! Where:
-!   {ele1_id} is the start element.
-!   {ele2_id} is the end element.
-!   {order} is the map order. Default is order set in the lattice file. {order} cannot be larger than 
-!         what is set by the lattice file. 
+!   {ele1_id}   - The start element.
+!   {ele2_id}   - The end element.
+!   {order}     - The map order. Default is order set in the lattice file. 
+!                   {order} cannot be larger than what is set by the lattice file. 
+!
 ! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
-! Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+! Note: {ele2_id} should just be an element name or index without universe, 
+!       branch, or model/base/design specification.
 ! Example:
 !   pipe taylor_map 2@1>>q01w|design q02w  2
 ! 
@@ -7304,11 +7329,11 @@ case ('taylor_map')
 !   pipe twiss_at_s {ix_uni}@{ele}->{s_offset}|{which}
 !
 ! Where:
-!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
-!   {ele} is an element name or index. Default at the Beginning element at start of branch 0.
-!   {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
-!      If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
-!   {which} is one of: "model", "base" or "design".
+!   {ix_uni}    - A universe index. Defaults to s%global%default_universe.
+!   {ele}       - An element name or index. Default is the Beginning element of branch 0.
+!   {s_offset}  - Evaluation point offset from the downstream end of ele. Default is 0.
+!                   If {s_offset} is present, "->" must also be present. 
+!   {which}     - One of: "model", "base" or "design".
 ! 
 ! Parameters
 ! ----------

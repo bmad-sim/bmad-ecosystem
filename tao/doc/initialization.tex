@@ -1040,12 +1040,12 @@ The syntax of the \vn{tao_beam_init} namelist is:
 \index{tao_beam_init}\index{ix_universe}
 \index{beam_init}\index{beam_init!a_norm_emit}
 \index{beam_init!b_norm_emit}
-\index{beam_init!dPz_dZ}\index{beam_init!center}\index{beam_init!sig_e}
+\index{beam_init!dPz_dZ}\index{beam_init!center}\index{beam_init!sig_pz}
 \index{beam_init!sig_z}\index{beam_init!n_bunch}\index{beam_init!dt_bunch}
 \index{beam_init!n_particle}\index{beam_init!bunch_charge}
 \index{beam_init!renorm_center}\index{beam_init!renorm_sigma}
 \index{beam_init!center_jitter}\index{beam_init!emit_jitter}
-\index{beam_init!sig_z_jitter}\index{beam_init!sig_e_jitter}
+\index{beam_init!sig_z_jitter}\index{beam_init!sig_pz_jitter}
 \index{beam_init!polarization}\index{beam_track_start}\index{beam_track_end}
 \begin{example}
   &tao_beam_init
@@ -1070,7 +1070,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%dPz_dZ          = <real>        ! Energy-Z correlation
     beam_init%center          = <real>*6      ! Bunch center offset relative to
                                               !   reference particle (BMAD coords)
-    beam_init%sig_e           = <real>        ! e_sigma in dE/E0
+    beam_init%sig_pz          = <real>        ! e_sigma in dE/E0
     beam_init%sig_z           = <real>        ! Z sigma in m
     beam_init%n_bunch         = <integer>     ! Number of bunches
     beam_init%dt_bunch        = <real>        ! Time between bunches (meters)
@@ -1081,7 +1081,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%center_jitter   = <real>*6      ! Bunch center rms jitter (meters)
     beam_init%emit_jitter     = <real>*2      ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
     beam_init%sig_z_jitter    = <real>        ! bunch length rms jitter (dz/z)
-    beam_init%sig_e_jitter    = <real>        ! bunch energy spread rms jitter (dE/E)
+    beam_init%sig_pz_jitter   = <real>        ! bunch energy spread rms jitter (dE/E)
     beam_init%spin(3)         = <real>*3      ! (x, y, z) spin components.
     beam_init%init_spin       = <logical>     ! Initialize the spin (default: False)
     beam_init%random_engine   = ""            ! random number engine to use

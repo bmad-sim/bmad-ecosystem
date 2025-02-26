@@ -45,8 +45,7 @@ lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_st
                             tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, cavity_type = traveling_wave
 match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3,
                             c11_mat0 = 0.1, c12_mat0 = 0.2, c21_mat0 = 0.3, c22_mat0 = 0.4, 
-                            c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1,
-                            spin_tracking_model = transverse_field
+                            c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1
 
 monitor1:          monitor, l = 4.5, num_steps = 10
 multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05

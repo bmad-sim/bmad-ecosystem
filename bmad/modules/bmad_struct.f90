@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 326
+integer, parameter :: bmad_inc_version$ = 327
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,21 +65,21 @@ integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3
 integer, parameter :: linear$ = 4, tracking$ = 5, time_runge_kutta$ = 6
 integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10
 integer, parameter :: Auto$ = 12, sprint$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
-integer, parameter :: n_methods$ = 14
+integer, parameter :: transverse_kick$ = 3, spin_integration$ = 99
 
-character(28), parameter :: tracking_method_name(0:n_methods$) = [character(28) :: &
+character(28), parameter :: tracking_method_name(0:14) = [character(28) :: &
       'GARBAGE!', 'Bmad_Standard',               'Symp_Lie_PTC',     'Runge_Kutta', &
       'Linear',   'GARBAGE!',                    'Time_Runge_Kutta', 'Custom', &
       'Taylor',   'Fixed_Step_Runge_Kutta',      'Symp_Lie_Bmad',    'GARBAGE!', &
       'GARBAGE!', 'Fixed_Step_Time_Runge_kutta', 'MAD']
 
-character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'GARBAGE!        ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
+character(16), parameter :: spin_tracking_method_name(0:12) = [ &
+      'GARBAGE!        ', 'Off             ', 'Symp_Lie_PTC    ', 'Transverse_Kick ', &
       'GARBAGE!        ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
       'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', &
-      'Sprint          ', 'GARBAGE!        ', 'GARBAGE!        ']
+      'Sprint          ']
 
-character(24), parameter :: mat6_calc_method_name(0:n_methods$) = [character(24):: 'GARBAGE!', &
+character(24), parameter :: mat6_calc_method_name(0:14) = [character(24):: 'GARBAGE!', &
       'Bmad_Standard', 'Symp_Lie_PTC', 'GARBAGE!',  'Linear', 'Tracking', &
       'GARBAGE!', 'Custom', 'Taylor', 'GARBAGE!', 'Symp_Lie_Bmad', &
       'GARBAGE!', 'Auto', 'GARBAGE!', 'MAD']
@@ -236,11 +236,7 @@ integer, parameter :: old_ascii$ = 44    ! For testing purposes.
 ! num_ele_attrib$ is size of ele%value(:) array.
 
 integer, parameter :: num_ele_attrib$ = 75
-
 integer, parameter :: off$ = 1, on$ = 2
-integer, parameter :: transverse_field$ = 2
-
-character(20), parameter :: spin_tracking_model_name(2) = [character(20):: 'Off', 'Transverse_Field']
 
 integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 
@@ -1705,7 +1701,7 @@ integer, parameter :: c11_mat1$ = 25, c12_mat1$ = 26, c21_mat1$ = 27, c22_mat1$ 
 
 integer, parameter :: x0$ = 30, px0$ = 31, y0$ = 32, py0$ = 33, z0$ = 34, pz0$ = 35
 integer, parameter :: x1$ = 36, px1$ = 37, y1$ = 38, py1$ = 39, z1$ = 40, pz1$ = 41
-integer, parameter :: matrix$ = 42, kick0$ = 43, recalc$ = 44, spin_tracking_model$ = 45
+integer, parameter :: matrix$ = 42, kick0$ = 43, recalc$ = 44
 integer, parameter :: delta_time$ = 48
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
