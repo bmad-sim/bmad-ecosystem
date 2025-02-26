@@ -281,6 +281,18 @@ endif
 
 ! Other old-style conversions
 
+if (word == 'SPIN_TRACKING_MODEL') then
+  call parser_error ('"SPIN_TRACKING_MODEL = TRANSVERSE_FIELD" HAS BEEN REPLACED BY "SPIN_TRACKING_METHOD = TRANSVERSE_KICK"', &
+                     'AND "SPIN_TRACKING_MODEL = OFF" HAS BEEN REPLACED BY SPIN_TRACKING_METHOD = OFF".', &
+                     'THE PROGRAM WILL RUN BUT PLEASE REPLACE THIS IN THE LATTICE FILE.', level = s_warn$)
+  call get_switch (attrib_word, [character(20):: 'Off', 'Transverse_Field'], ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  if (ix == off$) then
+    ele%spin_tracking_method = off$
+  else
+    ele%spin_tracking_method = transverse_kick$
+  endif
+endif
+
 if (ele%key == beambeam$) then
   select case (word)
   case ('BETA_A');    word = 'BETA_A_STRONG'
@@ -2121,10 +2133,6 @@ case ('SPIN_TRACKING_METHOD')
     return
   endif
   ele%spin_tracking_method = switch
-
-case ('SPIN_TRACKING_MODEL')
-  call get_switch (attrib_word, spin_tracking_model_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(spin_tracking_model$) = ix
 
 case ('TAYLOR_MAP_INCLUDES_OFFSETS')
   call parser_get_logical (attrib_word, ele%taylor_map_includes_offsets, ele%name, delim, delim_found, err_flag); if (err_flag) return

@@ -12,6 +12,7 @@ type (branch_struct), pointer :: branch
 character(40) :: lat_file  = 'spin_map_test.bmad'
 character(100) line
 
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 integer :: i, j, k, ib, nargs, ns, iq
 logical custom_test, err
 
@@ -55,7 +56,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (i == branch%n_ele_track .and. ele%name == 'END') cycle
 
-    do j = 1, n_methods$
+    do j = 1, n_methods
       ele%spin_q(0,0) = real_garbage$
       if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$) cycle
       if (ele%key /= taylor$) then

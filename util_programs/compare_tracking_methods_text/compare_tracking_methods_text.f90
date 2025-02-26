@@ -7,6 +7,7 @@ implicit none
 type (lat_struct), target :: lat
 
 character(38) :: final_str
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 integer :: i, j
  
 type (coord_struct) end_orb
@@ -18,7 +19,7 @@ bmad_com%auto_bookkeeper = .false.
 open (1, file = 'compare_tracking_methods_text.out')
 
 DO i = 1, lat%n_ele_max - 1
-   DO j = 1, n_methods$
+   DO j = 1, n_methods
       if(.not. valid_tracking_method(lat%ele(i), lat%param%particle, j) .or. j == custom$) cycle
       if(lat%ele(i)%key == elseparator$ .and. (j == runge_kutta$ .or. j == time_runge_kutta$)) cycle
       lat%ele(i)%tracking_method = j

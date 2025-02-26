@@ -16,6 +16,7 @@ character(60) str
 
 real(rp) mat6(6,6), vec0(6), m_unit(6,6), beta, merit, global_merit, ele_merit, s1, s2
 integer j, ib, ie, nargs
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 
 logical debug_mode, loc_equal, global_loc_equal, ele_loc_equal
  
@@ -112,7 +113,7 @@ do ib = 0, ubound(lat%branch,1)
     ele_merit = 0
 
 
-    do j = 1, n_methods$
+    do j = 1, n_methods
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
       select case (j)
       case (bmad_standard$, runge_kutta$, time_runge_kutta$, linear$, taylor$, symp_lie_bmad$)

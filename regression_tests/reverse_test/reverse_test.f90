@@ -30,6 +30,7 @@ type (ele_struct) ele_default
 type (branch_struct), pointer :: branch
 
 real(rp) max_diff_vec_r, max_diff_vec_b, max_diff_mat, max_diff_spin
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 integer nargs, ie, ib, im
 logical :: verbosity = .false., backwards = .false.
 
@@ -84,7 +85,7 @@ do ib = 0, ubound(lat%branch, 1)
     max_diff_mat = 0
     max_diff_spin = 0
 
-    do im = 1, n_methods$
+    do im = 1, n_methods
       if (im == fixed_step_runge_kutta$ .or. im == fixed_step_time_runge_kutta$) cycle
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
       if (im == mad$) cycle

@@ -11,7 +11,7 @@
 !   ele              -- Ele_struct: Element to track through.
 !   param            -- lat_param_struct: Beam parameters.
 !   end_orb          -- Coord_struct: Ending coords.
-!     %vec                -- Ending particle position needed for bmad_standard spin tracking.
+!     %vec                -- Ending particle position needed for spin_integration spin tracking.
 !   make_quaternion  -- logical, optional: If present and true then calculate the 1st
 !                          order spin map which is represented as a quaternion.
 !
@@ -30,14 +30,16 @@ implicit none
 
 type (coord_struct) :: start_orb, end_orb, temp_orb
 type (ele_struct) :: ele
+type (em_field_struct) field
 type (lat_param_struct) :: param
 
+real(rp) fc, dxp, dyp, om(3), quat(0:3)
 integer method
 character(*), parameter :: r_name = 'track1_spin'
 logical, optional :: make_quaternion
 logical err
 
-! Use bmad_standard if spin_tracking_method = tracking$ and particle tracking is not using an integration method.
+! Use spin_integration if spin_tracking_method = tracking$ and particle tracking is not using a RK integration method.
 
 if (start_orb%species == photon$) return
 
@@ -55,7 +57,7 @@ if (method == tracking$) then
   case (taylor$)
     method = taylor$
   case default
-    method = bmad_standard$
+    method = spin_integration$
     if (ele%key == taylor$) method = taylor$
   end select
 endif
@@ -63,8 +65,22 @@ endif
 !
 
 select case (method)
-case (bmad_standard$)
-  call track1_spin_bmad (start_orb, ele, param, end_orb)
+case (off$)
+  end_orb%spin = start_orb%spin
+
+case (transverse_kick$)
+  fc = start_orb%p0c / charge_of(start_orb%species)
+  dxp = (end_orb%vec(2) - start_orb%vec(2)) * fc
+  dyp = (end_orb%vec(4) - start_orb%vec(4)) * fc
+  field%E = 0
+  field%B = [dyp, -dxp, 0.0_rp] / c_light
+  om = spin_omega (field, end_orb, +1)
+  quat = omega_to_quat(om)
+  end_orb%spin = quat_rotate(quat, start_orb%spin)
+
+
+case (spin_integration$)
+  call track1_spin_integration (start_orb, ele, param, end_orb)
 
 case (custom$)
   if (.not. associated(track1_spin_custom_ptr)) then

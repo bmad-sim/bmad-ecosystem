@@ -2918,7 +2918,7 @@ subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
   logical, optional :: make_quaternion
 end subroutine
 
-subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
+subroutine track1_spin_integration (start_orb, ele, param, end_orb)
   import
   implicit none
   type (coord_struct) :: start_orb

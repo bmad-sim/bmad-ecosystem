@@ -15,10 +15,11 @@ character(40) :: output_file = 'compare_tracking_methods_plot'
 character(20) :: base_method, element_to_vary, attrib_to_vary
 character(20) :: veto_methods(10)
 
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 real(rp) :: scan_start, scan_end, step_size
 real(rp), dimension(:), allocatable   :: scan_var
 integer :: nsteps, nmethods, i, j, k, l, ix_base, id, xbox, ybox
-logical :: is_valid(n_methods$+1)
+logical :: is_valid(n_methods+1)
 logical :: err_flag
 
 type mystep           ! stores the phase space coordinates for a particular iteration of the scan
@@ -70,7 +71,7 @@ start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%parti
 ! Make a list of methods to use
 
 do i = 1, size(is_valid)
-  if (i /= n_methods$+1) then 
+  if (i /= n_methods+1) then 
      is_valid(i) = valid_tracking_method(ele, electron$, i)
   else
      is_valid(i) = valid_tracking_method(ele, electron$, symp_lie_ptc$)
@@ -80,7 +81,7 @@ enddo
 DO i = 1, size(veto_methods)
    call match_word (veto_methods(i), tracking_method_name(1:), j)
    if(j > 0) is_valid(j) = .false.
-   if(j == symp_lie_ptc$) is_valid(n_methods$+1) = .false.
+   if(j == symp_lie_ptc$) is_valid(n_methods+1) = .false.
 END DO
 
 is_valid(custom$) = .false.
@@ -113,7 +114,7 @@ k = 0
 DO i = 1, size(is_valid)
    if (.not. is_valid(i)) cycle
    k = k+1
-   if (i /= n_methods$+1) then
+   if (i /= n_methods+1) then
       method(k)%method_name = tracking_method_name(i)
       method(k)%short_method_name = short_method_name(i)
    else   
@@ -133,7 +134,7 @@ k = 0
 DO i = 1, size(is_valid)
    if (.not. is_valid(i)) cycle
    k = k+1
-   if (i /= n_methods$+1) then
+   if (i /= n_methods+1) then
       ele%tracking_method = i  
       write (1,*) "Tracking Method = ", tracking_method_name(i)
    else 

@@ -10,7 +10,9 @@ real(rp) r
 
 character(200) :: line(10), line_debug(10)
 character(100) :: lat_file  = 'tracking_method_test.bmad'
-character(46) :: out_str, fmt, track_method
+character(46) :: fmt, track_method
+
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 integer :: nargs
 
 logical debug_mode
@@ -83,6 +85,7 @@ type (track_struct) track
 real(rp) del
 integer ele_o_sign, orb_dir_sign
 integer ib, i, j, isn
+character(46) :: out_str
 
 !
 
@@ -96,10 +99,10 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele_o_sign == -1 .and. ele%key == e_gun$) cycle
     if ((ele_o_sign == -1 .or. orb_dir_sign == -1) .and. ele%key == beambeam$) cycle
     if (ele%key == marker$ .and. ele%name == 'END') cycle
-    ele%spin_tracking_method = tracking$
 
     isn = 0
-    do j = 1, n_methods$
+    do j = 1, n_methods
+      ele%spin_tracking_method = tracking$
       if ((j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$)) cycle
       if (track_method /= '' .and. upcase(tracking_method_name(j)) /= upcase(track_method)) cycle
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
@@ -117,10 +120,10 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
 
-      if (ele%tracking_method == symp_lie_ptc$) then
-        ele%spin_tracking_method = symp_lie_ptc$
-      else
-        ele%spin_tracking_method = tracking$
+      if (ele%tracking_method == symp_lie_ptc$) ele%spin_tracking_method = symp_lie_ptc$
+
+      if (ele%key == match$ .and. ele%tracking_method == bmad_standard$) then
+        ele%spin_tracking_method = transverse_kick$
       endif
 
       call this_bookkeeper(lat, ele)
