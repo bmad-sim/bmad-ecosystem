@@ -521,6 +521,9 @@ n_slice = max(1, int(1.01_rp*ele%value(l$) / ds_save))
 
 do
   n_loop = n_loop + 1
+
+  s%com%ix_beam_track_active_element = ie
+
   ! track to the element and save for phase space plot
 
   if (s%com%use_saved_beam_in_tracking) then
