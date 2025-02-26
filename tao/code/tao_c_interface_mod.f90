@@ -290,4 +290,20 @@ tao_c_interface_com%n_int = 0
 
 end subroutine tao_c_out_io_buffer_reset
 
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine tao_c_get_beam_track_active_element() bind(c) result (ix_ele)
+!
+! Get the active element index being tracked through `tao_beam_track`.
+!-
+
+function tao_c_get_beam_track_element() bind(c) result (ix_ele)
+
+integer(c_int) :: ix_ele
+ix_ele = s%com%ix_beam_track_active_element
+
+end function tao_c_get_beam_track_element
+
 end module tao_c_interface_mod
