@@ -146,7 +146,7 @@ if (do_spin) then
     m(:,i) = ending%spin
   enddo
   q = w_mat_to_quat(m)
-
+  ele%spin_taylor_ref_orb_in = start_orb%vec
 else
   call track1(starting, ele, param, ending)
 endif
