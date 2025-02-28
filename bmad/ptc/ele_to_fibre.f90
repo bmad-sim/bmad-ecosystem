@@ -66,7 +66,7 @@ real(rp), parameter :: dz_pan7(0:6) = [0.0_rp, 1.0_rp/9.0_rp, 1.0_rp/6.0_rp, 1.0
 complex(rp) k_0
 
 integer, optional :: integ_order, steps
-integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
+integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map, n_mult
 integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(8)
 integer, allocatable :: pancake_field(:,:)
 
@@ -503,8 +503,15 @@ if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator
 endif
 
 ! Magnetic multipole components
+! Set for lcavity and rfcavity is after fibre is instantiated.
 
-call ele_to_ptc_magnetic_an_bn (ele, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+call ele_to_ptc_magnetic_bn_an (b_pole, a_pole, n_mult)
+
+if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) then
+  ptc_key%list%k  = bn
+  ptc_key%list%ks = an
+  ptc_key%list%nmul = n_mult
+endif
 
 ! Cylindrical_map
 
@@ -681,6 +688,15 @@ else
     call misalign_ptc_fibre (ele, use_offsets, ptc_fibre, .false.)
   endif
 
+endif
+
+!----------------------------------------------
+
+if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
+  do i = n_mult, 0, -1
+    call ADD_to_cavity(ptc_fibre, i+1, b_pole(i))
+    call ADD_to_cavity(ptc_fibre, -i-1, a_pole(i))
+  endif
 endif
 
 !----------------------------------------------

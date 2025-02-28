@@ -182,37 +182,11 @@ function re_str(rel) result (str_out)
 implicit none
 
 real(rp) rel
-integer pl, n
-character(:), allocatable :: str_out
-character(24) str
-character(16) fmt
+character(25) :: str_out
 
 !
 
-if (rel == 0) then
-  allocate(character(1):: str_out)
-  str_out = '0'
-  return
-endif
-
-pl = floor(log10(abs(rel)))
-
-if (pl > 5) then
-  fmt = '(2a, i0)'
-  write (str, fmt) trim(rchomp(rel/10.0_rp**pl, 0)), 'E', pl
-
-elseif (pl > -3) then
-  str = rchomp(rel, pl)
-
-else
-  fmt = '(2a, i0)'
-  write (str, fmt) trim(rchomp(rel*10.0_rp**(-pl), 0)), 'E', pl
-endif
-
-n = len_trim(str)
-allocate(character(n):: str_out)
-str_out = str(1:n)
-
+write(str_out, '(es25.17e3)') rel
 
 end function re_str
 

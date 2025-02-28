@@ -3017,7 +3017,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
+! Subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
 !
 ! Routine to compute the a(n) and b(n) magnetic multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
@@ -3034,7 +3034,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !   n_max               -- integer, optional: Maximum non-zero multipole component.
 !-
 
-subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
+subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
 
 implicit none
 
