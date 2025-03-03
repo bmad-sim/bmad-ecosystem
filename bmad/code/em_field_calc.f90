@@ -70,7 +70,7 @@ type (branch_struct), pointer :: branch
 real(rp), optional :: rf_time
 real(rp) :: x, y, j1, dj1, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, ch_x, ch_y, sh_x, sh_y, coef, fd(3), Ex, Ey, amp
-real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, dkm(2,2), cos_ks, sin_ks
+real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, dkm(2,2), cos_ks, sin_ks, length
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_active_offset, beta_start, f, f1, f2, f3, kx, ky, kz
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
@@ -650,6 +650,14 @@ case (bmad_standard$)
         return
       endif
 
+      ! Note: The spin_integration routine assumes that the field is zero outside of the active region.
+      select case (ele%key)
+      case (lcavity$, rfcavity$, crab_cavity$)
+        length = ele%value(l_active$)
+      case default
+        length = ele%value(l$)
+      end select
+
       do i = 0, ix_pole_max
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         if (do_df_calc) then
@@ -657,13 +665,13 @@ case (bmad_standard$)
         else
           call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky)
         endif
-        field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
-        field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
+        field%B(1) = field%B(1) + f_p0c * ky / length
+        field%B(2) = field%B(2) - f_p0c * kx / length
         if (do_df_calc) then
-          field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
-          field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
-          field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
-          field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
+          field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / length
+          field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / length
+          field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / length
+          field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / length
         endif
       enddo
     endif

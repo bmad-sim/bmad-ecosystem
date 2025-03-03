@@ -60,6 +60,7 @@ real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset, ff, z0, z, dz_step, vec(
 real(rp), pointer :: val(:)
 real(rp), target :: value0(num_ele_attrib$)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) an_ptc(n_pole_maxx+1), bn_ptc(n_pole_maxx+1)
 real(rp) ld, hd, lc, hc, angc, xc, dc
 real(rp), parameter :: dz_pan7(0:6) = [0.0_rp, 1.0_rp/9.0_rp, 1.0_rp/6.0_rp, 1.0_rp/3.0_rp, 1.0_rp/2.0_rp, 2.0_rp/3.0_rp, 5.0_rp/6.0_rp]
 
@@ -505,11 +506,11 @@ endif
 ! Magnetic multipole components
 ! Set for lcavity and rfcavity is after fibre is instantiated.
 
-call ele_to_ptc_magnetic_bn_an (b_pole, a_pole, n_mult)
+call ele_to_ptc_magnetic_bn_an (ele, bn_ptc, an_ptc, n_mult)
 
 if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) then
-  ptc_key%list%k  = bn
-  ptc_key%list%ks = an
+  ptc_key%list%k  = bn_ptc
+  ptc_key%list%ks = an_ptc
   ptc_key%list%nmul = n_mult
 endif
 
@@ -693,10 +694,10 @@ endif
 !----------------------------------------------
 
 if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
-  do i = n_mult, 0, -1
-    call ADD_to_cavity(ptc_fibre, i+1, b_pole(i))
-    call ADD_to_cavity(ptc_fibre, -i-1, a_pole(i))
-  endif
+  do i = n_mult, 1, -1
+    call add_to_cavity(ptc_fibre, i, 0, bn_ptc(i))
+    call add_to_cavity(ptc_fibre, -i, 0, an_ptc(i))
+  enddo
 endif
 
 !----------------------------------------------

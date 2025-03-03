@@ -186,7 +186,11 @@ character(25) :: str_out
 
 !
 
-write(str_out, '(es25.17e3)') rel
+if (write_lat_debug_flag) then
+  write(str_out, '(es13.5)') rel
+else
+  write(str_out, '(es25.17e3)') rel
+endif
 
 end function re_str
 

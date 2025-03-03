@@ -1115,8 +1115,8 @@ CONTAINS
        ALLOCATE(EL%C4%xprime);EL%C4%xprime=my_false;
        ALLOCATE(EL%C4%PH(N_CAV4_F));EL%C4%PH=0.0_dp;
        ALLOCATE(EL%C4%t);EL%C4%t=0.0_dp;
-       ALLOCATE(EL%C4%bn0(N_CAV4_nmul));EL%C4%bn=0.0_dp;
-       ALLOCATE(EL%C4%an0(N_CAV4_nmul));EL%C4%an=0.0_dp;
+       ALLOCATE(EL%C4%bn0(N_CAV4_nmul));EL%C4%bn0=0.0_dp;
+       ALLOCATE(EL%C4%an0(N_CAV4_nmul));EL%C4%an0=0.0_dp;
     CASE(KIND21)
        if(.not.ASSOCIATED(EL%CAV21)) THEN
           ALLOCATE(EL%CAV21)

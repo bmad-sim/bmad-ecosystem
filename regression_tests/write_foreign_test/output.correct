@@ -3,4 +3,3 @@
 "write_foreign_test.sad" STR  "GOOD"
 "write_foreign_test.lte" STR  "GOOD"
 "write_foreign_test.julia" STR  "GOOD"
-!"write_foreign_test.opal" STR  "GOOD"

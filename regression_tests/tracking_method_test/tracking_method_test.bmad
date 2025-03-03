@@ -23,7 +23,7 @@ ac_kicker2:        ac_kicker, l = 0.4, vkick = 0.01, frequencies = {(1e8, 1.7, 0
 ac_kicker3:        ac_kicker, l = 0.4, vkick = 0.01, frequencies = {(1e8, 1.7, 0.1)}, t_offset = 2e-9
 beambeam1:         beambeam, sig_x = 3e-3, sig_y = 3e-4, sig_z = 0.1, n_slice = 4, ks = 1,
                             x_offset = 2e-3+particle_start[x], y_offset = particle_start[y], y_pitch = 0.05
-crab_cavity1:      crab_cavity, l = 0.2, voltage = 1e3, phi0 = -0.2, rf_frequency = 1e8
+crab_cavity1:      crab_cavity, l = 0.2, voltage = 1e3, phi0 = -0.2, rf_frequency = 1e8, b1_elec = 1
 drift1:            drift, l = 4.5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 e_gun1:            e_gun, l = 2, voltage = 0.5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 ecollimator1:      ecollimator, l = 4.5, x_limit = 0.2, y_limit = 0.1, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1, hkick = 0.01, vkick = 0.002
@@ -42,8 +42,9 @@ instrument1:       instrument, l = 4.5, num_steps = 10
 kicker1:           kicker, l = 4.5, b0 = 0.002 , vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
-lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
-                            tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, cavity_type = traveling_wave
+lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, b2 = 0.02,
+                            tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, 
+                            cavity_type = traveling_wave
 match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3,
                             c11_mat0 = 0.1, c12_mat0 = 0.2, c21_mat0 = 0.3, c22_mat0 = 0.4, 
                             c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1, 
@@ -67,7 +68,7 @@ rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, phi0 
 rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
                              y_pitch = 0.001, tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1, cavity_type = traveling_wave
 rfcavity3:         rfcavity,          rf_frequency = 500e6, voltage = 1e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
-                             y_pitch = 0.001, tilt = 0.1
+                             y_pitch = 0.001, tilt = 0.1, a2 = 0.02
 sad_mult1:         sad_mult, l = 0.1, fringe_type = full, a1 = 2e-2, b2 = 4e1, a10 = 1e20, fq1 = 1, fq2 = 2, ks = 0.5
 sad_mult2:         sad_mult,          fringe_type = full, a1 = 2e-2, b2 = 4e1, a10 = 1e20, fq1 = 1, fq2 = 2, ks = 0.5
 
