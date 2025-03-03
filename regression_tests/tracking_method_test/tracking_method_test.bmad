@@ -42,7 +42,7 @@ instrument1:       instrument, l = 4.5, num_steps = 10
 kicker1:           kicker, l = 4.5, b0 = 0.002 , vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
-lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, b2 = 0.02,
+lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, b2 = 0.02*0,
                             tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, 
                             cavity_type = traveling_wave
 match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3,
