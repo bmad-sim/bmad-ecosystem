@@ -21,15 +21,15 @@ MODULE S_DEF_ELEMENT
   private ZERO_EL,ZERO_ELP
   !  PRIVATE MAGPSTATE,MAGSTATE
   PRIVATE SETFAMILYR,SETFAMILYP
-  PRIVATE ADD_ANBNR,ADD_ANBNP,bL_0,EL_BL,ELp_BL,COPY_BL,UNARYP_BL
-  PRIVATE ELp_POL,bLPOL_0
+  PRIVATE ADD_ANBNR,ADD_ANBNP
+  PRIVATE ELp_POL,bLPOL_0,bL_0,EL_BL,ELp_BL,COPY_BL,UNARYP_BL
   PRIVATE work_0,work_r,ELp_WORK,EL_WORK,WORK_EL,WORK_ELP,BL_EL,BL_ELP,unaryw_w
   PRIVATE ZERO_ANBN,ZERO_ANBN_R,ZERO_ANBN_P
   private null_EL,null_ELp
   logical(lp), PRIVATE :: VERBOSE = .FALSE.
   logical(lp), PRIVATE :: GEN = .TRUE.
   logical(lp),TARGET :: ALWAYS_EXACTMIS=.TRUE.
-  logical(lp),TARGET :: FEED_P0C=.FALSE.
+  logical(lp),TARGET :: FEED_P0C=.true.   ! changed 2024.12.13
   integer, TARGET :: np_pol=0
   !  logical(lp) :: isomorphism_MIS=.TRUE.  !Not needed anymore always should be true
   private put_aperture_el,put_aperture_elp
@@ -62,6 +62,7 @@ MODULE S_DEF_ELEMENT
      MODULE PROCEDURE ADD_ANBNR
      MODULE PROCEDURE ADD_ANBNP
   end  INTERFACE
+
 
   INTERFACE ZERO_ANBN
      MODULE PROCEDURE ZERO_ANBN_R
@@ -1114,7 +1115,8 @@ CONTAINS
        ALLOCATE(EL%C4%xprime);EL%C4%xprime=my_false;
        ALLOCATE(EL%C4%PH(N_CAV4_F));EL%C4%PH=0.0_dp;
        ALLOCATE(EL%C4%t);EL%C4%t=0.0_dp;
-
+       ALLOCATE(EL%C4%bn0(N_CAV4_nmul));EL%C4%bn0=0.0_dp;
+       ALLOCATE(EL%C4%an0(N_CAV4_nmul));EL%C4%an0=0.0_dp;
     CASE(KIND21)
        if(.not.ASSOCIATED(EL%CAV21)) THEN
           ALLOCATE(EL%CAV21)
@@ -1608,6 +1610,9 @@ CONTAINS
        ALLOCATE(EL%C4%xprime);EL%C4%xprime=my_false;
        ALLOCATE(EL%C4%PH(N_CAV4_F));CALL ALLOC(EL%C4%PH,N_CAV4_F);
        ALLOCATE(EL%C4%t);EL%C4%t=0.0_dp;
+       ALLOCATE(EL%C4%bn0(N_CAV4_nmul));CALL ALLOC(EL%C4%bn0,N_CAV4_nmul); 
+       ALLOCATE(EL%C4%an0(N_CAV4_nmul));CALL ALLOC(EL%C4%an0,N_CAV4_nmul);
+
     CASE(KIND21)
        if(.not.ASSOCIATED(EL%CAV21)) THEN
           ALLOCATE(EL%CAV21)
@@ -2350,6 +2355,145 @@ fringe,permfringe,bend_like,fint,hgap)
 !   integer, pointer :: permFRINGE => null(),highest_fringe => null()     ! highest_fringe = 2 by default            !
    !                       ! NUMBER OF MULTIPOLE   ! nmul maximum multipole
  
+  SUBROUTINE ADD_to_cavityr(EL,NM,F,V)
+    IMPLICIT NONE
+    TYPE(ELEMENT), INTENT(INOUT) ::EL
+    real(dp), INTENT(IN) ::V
+    INTEGER, INTENT(IN) ::NM,F
+    INTEGER I,N,n_old
+    real(dp), ALLOCATABLE,dimension(:)::AN,BN
+ 
+ 
+ 
+if(.not.associated(EL%c4%an0)) stop 1959
+n_old=size(EL%c4%an0)
+
+ 
+
+ 
+    N=NM
+    IF(NM<0) N=-N
+    ! ALREADY THERE
+    IF(n_old>=N) THEN
+       IF(NM>0) THEN
+          EL%c4%BN0(N)= F*EL%c4%BN0(N)+V
+       ELSE
+          EL%c4%AN0(N)= F*EL%c4%AN0(N)+V
+       ENDIF
+       RETURN
+    else
+
+    allocate(AN(N),BN(N))
+    DO I=1,n_old
+       AN(I)=EL%c4%AN0(I)
+       BN(I)=EL%c4%BN0(I)
+    ENDDO
+    DO I=n_old+1,N
+       AN(I)=0.0_dp
+       BN(I)=0.0_dp
+    ENDDO
+    IF(NM<0) THEN
+       AN(N)=V
+    ELSE
+       BN(N)=V
+    ENDIF
+
+
+    IF(ASSOCIATED(EL%c4%AN0)) DEALLOCATE(EL%c4%AN0)
+    IF(ASSOCIATED(EL%c4%bN0)) DEALLOCATE(EL%c4%bN0)
+ 
+    ALLOCATE(EL%c4%AN0(N),EL%c4%bn0(N))
+
+    DO I=1,size(EL%c4%AN0)
+       EL%c4%AN0(I)=AN(I)
+       EL%c4%BN0(I)=BN(I)
+    ENDDO
+
+    DEALLOCATE(AN);DEALLOCATE(BN);
+endif
+
+
+ 
+   !    EL%C4%AN=>EL%AN
+   !    EL%C4%BN=>EL%BN
+ 
+
+  END SUBROUTINE ADD_to_cavityr
+
+  SUBROUTINE ADD_to_cavityp(EL,NM,F,V)
+    IMPLICIT NONE
+    TYPE(ELEMENTP), INTENT(INOUT) ::EL
+    real(dp), INTENT(IN) ::V
+    INTEGER, INTENT(IN) ::NM,F
+    INTEGER I,N,n_old
+    type(REAL_8), ALLOCATABLE,dimension(:)::AN,BN
+ 
+ 
+ 
+if(.not.associated(EL%c4%an0)) stop 1959
+n_old=size(EL%c4%an0)
+
+ 
+
+ 
+    N=NM
+    IF(NM<0) N=-N
+    ! ALREADY THERE
+    IF(n_old>=N) THEN
+       IF(NM>0) THEN
+          EL%c4%BN0(N)= F*EL%c4%BN0(N)+V
+       ELSE
+          EL%c4%AN0(N)= F*EL%c4%AN0(N)+V
+       ENDIF
+       RETURN
+    else
+
+    allocate(AN(N),BN(N))
+    CALL ALLOC(AN,N)
+    CALL ALLOC(BN,N)
+
+    DO I=1,n_old
+       AN(I)=EL%c4%AN0(I)
+       BN(I)=EL%c4%BN0(I)
+    ENDDO
+    DO I=n_old+1,N
+       AN(I)=0.0_dp
+       BN(I)=0.0_dp
+    ENDDO
+    IF(NM<0) THEN
+       AN(N)=V
+    ELSE
+       BN(N)=V
+    ENDIF
+
+
+    IF(ASSOCIATED(EL%c4%AN0)) DEALLOCATE(EL%c4%AN0)
+    IF(ASSOCIATED(EL%c4%bN0)) DEALLOCATE(EL%c4%bN0)
+ 
+    ALLOCATE(EL%c4%AN0(N),EL%c4%bn0(N))
+    CALL ALLOC(EL%c4%AN0,N)
+    CALL ALLOC(EL%c4%BN0,N)
+
+    DO I=1,size(EL%c4%AN0)
+       EL%c4%AN0(I)=AN(I)
+       EL%c4%BN0(I)=BN(I)
+    ENDDO
+
+    CALL KILL(AN,N)
+    CALL KILL(BN,N)
+
+    DEALLOCATE(AN);DEALLOCATE(BN);
+endif
+
+
+ 
+   !    EL%C4%AN=>EL%AN
+   !    EL%C4%BN=>EL%BN
+ 
+
+  END SUBROUTINE ADD_to_cavityp
+
+
   SUBROUTINE ADD_ANBNR(EL,NM,F,V,electric)
     IMPLICIT NONE
     TYPE(ELEMENT), INTENT(INOUT) ::EL
@@ -3615,6 +3759,10 @@ nullify(EL%filef,el%fileb);
           ELP%C4%F(I)=EL%C4%F(I)
           ELP%C4%PH(I)=EL%C4%PH(I)
        ENDDO
+       DO I=1,SIZE(EL%C4%AN0)
+          ELP%C4%AN0(I)=EL%C4%AN0(I)  
+          ELP%C4%BN0(I)=EL%C4%BN0(I)  
+       ENDDO
        ELP%C4%t=EL%C4%t
        ELP%C4%R=EL%C4%R
        ELP%C4%A=EL%C4%A
@@ -4012,6 +4160,10 @@ nullify(EL%filef,el%fileb);
        DO I=1,EL%C4%NF
           ELP%C4%F(I)=EL%C4%F(I)
           ELP%C4%PH(I)=EL%C4%PH(I)
+       ENDDO
+       DO I=1,SIZE(EL%C4%AN0)
+          ELP%C4%AN0(I)=EL%C4%AN0(I)  
+          ELP%C4%BN0(I)=EL%C4%BN0(I)  
        ENDDO
        ELP%C4%t=EL%C4%t
        ELP%C4%R=EL%C4%R
@@ -4425,6 +4577,10 @@ nullify(EL%filef,el%fileb);
           ELP%C4%F(I)=EL%C4%F(I)
           ELP%C4%PH(I)=EL%C4%PH(I)
        ENDDO
+       DO I=1,SIZE(EL%C4%AN0)
+          ELP%C4%AN0(I)=EL%C4%AN0(I)  
+          ELP%C4%BN0(I)=EL%C4%BN0(I)  
+       ENDDO
        ELP%C4%t=EL%C4%t
        ELP%C4%R=EL%C4%R
        ELP%C4%A=EL%C4%A
@@ -4721,6 +4877,10 @@ nullify(EL%filef,el%fileb);
        DO I=1,ELP%C4%NF
           CALL resetpoly_R31(ELP%C4%F(I))
           CALL resetpoly_R31(ELP%C4%PH(I))
+       ENDDO
+       DO I=1,SIZE(ELP%C4%AN0)
+          CALL resetpoly_R31(ELP%C4%AN0(I)) 
+          CALL resetpoly_R31(ELP%C4%BN0(I)) 
        ENDDO
        CALL resetpoly_R31(ELP%C4%A )
        CALL resetpoly_R31(ELP%C4%R )

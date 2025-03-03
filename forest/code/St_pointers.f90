@@ -10,7 +10,8 @@ module pointer_lattice
   type(internal_state),pointer :: my_estate => null()
   type(c_universal_taylor), pointer :: my_euni_1(:) => null(),my_euni_2(:) => null()
 real(dp), pointer ::  my_evr(:,:)=> null(),my_evo(:,:)=> null(),my_evi1(:)=> null(),my_evi2(:) => null(), my_emr=> null()
-
+real(dp), pointer ::  my_inv=> null(),my_invr=> null()
+logical :: plot_res_activate =.true.
   type(probe), pointer :: my_eprobe => null()
   type(c_ray) my_eray
 !  type(internal_state),pointer :: my_old_state
@@ -67,6 +68,9 @@ integer ,target:: gino_START = 1,gino_np=0,gino_FIN=1,gino_ORDER=1
 real(dp) n_ang(3),lm(2)
 character(vp)snake
 integer isnake,nlm,no_pol
+  real(dp) egino,mugino
+  integer omgino
+logical :: use_k11=.false.
 
   INTERFACE SCRIPT
      MODULE PROCEDURE read_ptc_command
@@ -4604,7 +4608,7 @@ n%atot=xs
  f%tm%lf%symplectic=.not.my_estate%radiation
  
   call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
- 
+
   call compute_lattice_functions(n%atot,f%tm%lf)
  f%tm%lf%phase=phase
  f%tm%lf%damping=damping
@@ -4618,6 +4622,8 @@ n%atot=xs
  f%next%t1%lf%symplectic=.not.my_estate%radiation
   call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
   call compute_lattice_functions(n%atot,f%next%t1%lf)
+ 
+
  f%next%t1%lf%phase=phase
  f%next%t1%lf%damping=damping
  f%next%t1%lf%spin=spin_tune
@@ -4751,7 +4757,7 @@ n%atot=xs
 
  f%tm%lf%symplectic=.not.my_estate%radiation
  
-  call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
+call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
  
 xs=xs0+n%atot
 t=>t%next
@@ -4924,6 +4930,64 @@ type(fibre),target :: p
 end subroutine kill_modulation
 
 
+function k11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,k11 
+integer om
+ 
+
+ 
+     k11=  (4*e**4*mu**2*sin(om*x)**4+16*e**3*mu**2*sin(om*x)**3+(24*e**2*mu**2 &
+-2*e**2*om**2)*sin(om*x)**2+(16*e*mu**2-2*e*om**2)*sin(om*x)- &
+         3*e**2*om**2*cos(om*x)**2+4*mu**2)/(4*e**2*sin(om*x)**2+8*e*sin(om*x)+4)
+        
+end function k11
+
+
+function bet11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,bet11 
+integer om
+ 
+
+ 
+     bet11= 1.0_dp/(mu*(e*sin(om*x)+1))
+        
+end function bet11
+
+function alp11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,alp11 
+integer om
+ 
+
+ 
+     alp11=       ((e*om*cos(om*x))/(mu*(e*sin(om*x)+1.0_dp)**2))/2.0_dp
+        
+end function alp11
+
+function gam11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,gam11 
+integer om
+ 
+
+ 
+gam11=mu*(e*sin(om*x)+1)*(((e**2*om**2*cos(om*x)**2)/(mu**2*(e*sin(om*x)+1)**4)) &
+/4.0_dp+1.0_dp)
+        
+end function gam11
+
+function pha11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,pha11 
+integer om
+ 
+
+ 
+pha11=mu*(x-(e*cos(om*x))/om)+(e*mu)/om
+        
+end function pha11
 
 end module pointer_lattice
 
