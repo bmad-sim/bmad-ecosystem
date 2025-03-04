@@ -99,22 +99,29 @@ Overrides the \vn{design_lattice} lattice file specified in the \tao initializat
 \begin{example}
   tao -init my.init -lat slac.bmad
 \end{example}
-If there is more than one universe and the universes have different lattices, separate the different
-lattice names using a "|" character.  Do not put any spaces in between. Example:
+If there is more than one universe with different lattices, separate the different
+lattice file names using a "|" character. The general form is
+\begin{example}
+  tao -lat <file_name_uni1><file_name_uni2>...<file_name_uniN>
+\end{example}
+ Do not put any spaces in between. Example:
 \begin{example}
   tao -lat slac.bmad|cesr.bmad
 \end{example}
-If a secondary lattice file (\sref{s:init.lat}) is used separate the primary lattice file from
-the secondary using a comma (and no spaces). Example:
+In this example, \vn{slac.bmad} would be used as the lattice file for universe 1 and \vn{cesr.bmad}
+would be used as the lattice file for universe 2
+
+If secondary lattice files (\sref{s:init.lat}) are to be specified, separate the primary lattice file from
+the secondary ones using commas (and no spaces). Example:
 \begin{example}
-  tao -lat prim.bmad,second.bmad
+  tao -lat primary.bmad,secondary.bmad,another_secondary.bmad
 \end{example}
 
 The \vn{file_name} can encode what line to use (instead of the using the line specified in
 the last \vn{use} statement in the lattice file) and whether to read the digested (binary) lattice file
 or the normal ASCII lattice file. The syntax for \vn{<file_name>} is
 \begin{example}
-  \{<parser>::\}<lattice_file>\{@<use_line>\}
+  \{<parser>::\}<lattice_file>\{@<use_line1>@<use_line2>...@<use_lineN>\}
 \end{example}
 See section \sref{s:init.lat} for details.
 
@@ -422,7 +429,7 @@ namelist are:
     n_universes        = <integer>      ! Number of universes. Default = 1.
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
-    design_lattice(N) = "<lattice_file>", \{"<lattice2_file>"\}
+    design_lattice(N) = "<lattice_file>", \{"<lattice2_files>"\}
     design_lattice(N)%one_turn_map_calc = <logical>     ! Default = False
     design_lattice(N)%dynamic_aperture_calc = <logical> ! Default = False
     design_lattice(N)%reverse_lattice = <logical>      ! Default = False
@@ -434,7 +441,7 @@ gives the lattice file name for universe \vn{i}.
 
 The syntax for \vn{<lattice_file>} is:
 \begin{example}
-  \{<parser>::\}<lattice_file>\{@<use_line>\}
+  \{<parser>::\}<lattice_file>\{@<use_line1>@<use_line2>...@<use_lineN>\}
 \end{example}
 Possible choices for the <parser> are:
 \index{bmad}\index{digested}
@@ -442,15 +449,22 @@ Possible choices for the <parser> are:
   bmad      ! For a standard ASCII Bmad lattice file. This is the default.
   digested  ! For a digested Bmad file.
 \end{example}
-The \vn{@<use_line>} optional suffix is used to specify what \vn{line} in the lattice file to use as
-a basis for constructing the lattice. This overrides the \vn{use} statement in the lattice file.
-Note: If the \vn{lattice_file} parameter is not set for the N\Th universe, the parameters for the 
-previous universe are used.
+The \vn{@<use_line1>@<use_line2>...@<use_lineN>\} optional suffix is used to specify what \vn{line}
+or lines in the lattice file to use as a basis for constructing the lattice. This overrides the
+\vn{use} statement in the lattice file. Example:
+\begin{example}
+  design_lattice(1) = "cesr.bmad@ln1@ln2"
+\end{example}
+is equivalent to putting \vn{use ln1,ln2} as the use statement in the \vn{cesr.bmad} lattice file.
 
-The optional \vn{<lattice2_file>} specifies a ``secondary'' lattice file that is parsed after
+Note: If the \vn{lattice_file} parameter is not set for the N\Th
+universe, the parameters for the previous universe are used.
+
+The optional \vn{<lattice2_file>} specifies ``secondary'' lattice files that are parsed after
 the ``primary'' lattice file specified by \vn{lattice_file}. The secondary lattice
-file must only have statements that are valid post lattice expansion.  See the \bmad manual manual
-for a discussion of lattice expansion. Note: If a \vn{%slice_lattice} parameter is used with a
+files must only have statements that are valid post lattice expansion.  See the \bmad manual manual
+for a discussion of lattice expansion. If there is more than one secondary file, separate them
+using commas. Note: If a \vn{%slice_lattice} parameter is used with a
 secondary lattice file then the paring specified by \vn{%slice_lattice} is applied before the
 secondary lattice file is parsed.
 
