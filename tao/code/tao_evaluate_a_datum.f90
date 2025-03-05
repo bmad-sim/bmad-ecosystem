@@ -467,7 +467,7 @@ case ('bpm_orbit.')
     return
   end select
 
-  if (data_source == 'beam') goto 9000  ! Set error message and return
+  if (data_source == 'beam') orbit => bunch_params%centroid
 
   valid_value = .true.
   particle_lost = .false.
