@@ -1293,7 +1293,7 @@ type (coord_struct), pointer :: p
 type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) zp, r1, r0, dz, dpz, nk(2), dnk(2,2), f0, f, beta0, dpx, dpy, x, y, f_tot
-real(rp) Evec(3), factor, pz0
+real(rp) Evec(3), factor, pz0, dct_ave, new_beta, ef
 integer i, n, i0, i_del, ip
 
 ! CSR kick and Slice space charge kick
@@ -1397,12 +1397,17 @@ if (ele%space_charge_method == fft_3d$) then
     allocate(csr%position(size(particle)))
   endif
 
+  ! Do the calculation with respect to the average of (time - time_ref) so that adding a constant time offset
+  ! will not affect the calculation.
+
+  dct_ave = sum(particle%vec(5)/particle%beta, particle%state == alive$) / count(particle%state == alive$)
+
   n = 0
   do i = 1, size(particle)
     p => particle(i)
     if (p%state /= alive$) cycle
     n = n + 1
-    csr%position(n)%r = p%vec(1:5:2)
+    csr%position(n)%r = [p%vec(1), p%vec(3), p%vec(5) - dct_ave * p%beta]
     csr%position(n)%charge = p%charge
   enddo
 
@@ -1413,15 +1418,19 @@ if (ele%space_charge_method == fft_3d$) then
   do i = 1, size(particle)
     p => particle(i)
     if (p%state /= alive$) cycle
-    call interpolate_field(p%vec(1), p%vec(3), p%vec(5),  csr%mesh3d, E=Evec)
+    call interpolate_field(p%vec(1), p%vec(3), p%vec(5)-dct_ave*p%beta,  csr%mesh3d, E=Evec)
     factor = csr%actual_track_step / (p%p0c  * p%beta) 
     pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
     ! Considering magnetic field also, effectively reduces this force by 1/gamma^2
     p%vec(2) = p%vec(2) + Evec(1)*factor / csr%mesh3d%gamma**2
     p%vec(4) = p%vec(4) + Evec(2)*factor / csr%mesh3d%gamma**2
-    p%vec(6) = sqrt(p%vec(2)**2 + p%vec(4)**2 + (Evec(3)*factor + pz0)**2) -1.0_rp
+    ef = Evec(3) * factor
+    dpz = sqrt_alpha(1 + p%vec(6), ef*ef + 2 * ef * pz0)  ! = sqrt((ef + pz0)^2 + p%vec(2)**2 + p%vec(4)**2) - (1 + p%vec(6))
+    p%vec(6) = p%vec(6) + dpz
     ! Set beta
-    call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = p%beta)
+    call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = new_beta)
+    p%vec(5) = p%vec(5) * new_beta / p%beta
+    p%beta = new_beta
   enddo
 endif
 

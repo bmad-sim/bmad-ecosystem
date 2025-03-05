@@ -24,7 +24,7 @@ real(rp) phi1, phi2, phi3, y1, dy1, y2, dy2, dx, dy, dz
 real(rp) vec3(3), vec3a(3), vec3b(3), vec3c(3), axis(3), angle, w_mat(3,3), unit_mat(3,3)
 real(rp) field2(10:12, 20:22), field3(10:12, 20:22, 30:32), ff, df_dx, df_dy, df_dz, ff0, ff1
 real(rp) del, dff_dx, dff_dy, dff_dz, x, y, z, value
-real(rp) xx(4), yy(4), zz(4), coef(3), coef_in(3)
+real(rp) xx(4), yy(4), zz(4), coef(3), coef_in(3), a
 
 integer i, j, k, ie, n, which, where, n_freq, mult, power, width, digits, species, s_mat(6,6)
 integer, allocatable :: arr(:)
@@ -329,6 +329,13 @@ write (1, '(a, 2es20.12)') '"apply_energy_kick:1" REL 1E-12  ', orbit%beta, orbi
 
 call fullfilename("$Test_EV/aa${Test_EV}zz$Test_EV", name, ok)
 write (1, '(2a)') '"filename:1" STR ', quote(name)
+
+!
+
+a = 0.01_rp
+z = 2.0_rp
+write (1, '(a, 2es12.4)') '"Sqrt_one/alpha" ABS 1E-15', sqrt_one(a)-(sqrt(1.0_rp+a)-1.0_rp), &
+                                                        sqrt_alpha(z, a) - (sqrt(z*z+a)-z)
 
 !
 

@@ -834,9 +834,17 @@ end subroutine
 
 elemental function sqrt_one(x, nd) result (ds1)
   import
+  implicit none
   real(rp), intent(in) :: x
   real(rp) ds1
   integer, optional, intent(in) :: nd
+end function
+
+elemental function sqrt_alpha(alpha, x) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: alpha, x
+  real(rp) y
 end function
 
 function str_first_in_set(line, set, ignore_clauses) result (ix_match)
