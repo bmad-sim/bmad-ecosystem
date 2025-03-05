@@ -126,7 +126,7 @@ or the normal ASCII lattice file. The syntax for \vn{<file_name>} is
 See section \sref{s:init.lat} for details.
 
 %
-\item[-log_startup]
+\item[-log_startup] \Newline
 If there is a problem with starting \tao, \vn{-log_startup} can be used to create a log file of the
 initialization process.
 %
@@ -155,37 +155,37 @@ Overrides the \vn{plot_file} (\sref{s:init.begin}) specified in the \tao initial
 Sets the prompt string color to Blue. For different colors, use the \vn{set global prompt_color}
 command (\sref{s:set}).
 %
-\item[-quiet <level>]
-
+\item[-quiet <level>] \Newline
+Supress warning messages. For details, see the documentation for the \vn{call} command (\sref{s:call}).
 %
-\item[-reverse]
+\item[-reverse] \Newline
 Reverses the order of the lattice elements. Equivalent to setting
 \vn{design_lattice(N)%reverse_lattice} to True (\sref{s:init.lat}. If both \vn{-reverse} and 
 \vn{design_lattice(N)%reverse_lattice} are set, they negate each other and the lattice will not
 be reversed.
 %
-\item[-rf_on]
+\item[-rf_on] \Newline
 Leaves \vn{rfcavity} elements on. RF on is currently the default so using \vn{-rf_on} will not do
 anything.  To turn the cavities off, use the negation (see below) \vn{-{}-rf_on}. Note: If you want
 to see orbit changes with RF frequency changes then you will need to set
 \vn{parameter[absolute_time_tracking]} to True. See the ``Relative Versus Absolute Time Tracking''
 section in the\bmad manual for more details.
 %
-\item[-slice_lattice <element_list>]
+\item[-slice_lattice <element_list>] \Newline
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
 Overrides the setting of \vn{design_lattice(N)%slice_lattice}. Note: A \vn{slice_lattice} command
 may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
-\item[-start_branch_at <element>]
+\item[-start_branch_at <element>] \Newline
 If present, shift the starting point of a lattice branch while keeping the relative order of the
 elements the same. This is useful, for example, in storage rings. Note A \vn{start_branch_at}
 command may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
-\item[-startup_file <file_name>]
+\item[-startup_file <file_name>] \Newline
 Overrides the \vn{startup_file} (\sref{s:init.begin}) specified in the
 \tao initialization file.
 %
-\item[-symbol_import]
+\item[-symbol_import] \Newline
 Import symbolic constants defined in any lattice files? (the default is not to). Symbols are
 imported lower cased. Also see \vn{global%symbol_import} (\sref{s:tao.global.struct}) for more
 details.
@@ -449,7 +449,7 @@ Possible choices for the <parser> are:
   bmad      ! For a standard ASCII Bmad lattice file. This is the default.
   digested  ! For a digested Bmad file.
 \end{example}
-The \vn{@<use_line1>@<use_line2>...@<use_lineN>\} optional suffix is used to specify what \vn{line}
+The \vn{@<use_line1>@<use_line2>...@<use_lineN>} optional suffix is used to specify what \vn{line}
 or lines in the lattice file to use as a basis for constructing the lattice. This overrides the
 \vn{use} statement in the lattice file. Example:
 \begin{example}
