@@ -1,0 +1,23 @@
+
+no_digested
+beginning[beta_a] = 10.  
+beginning[beta_b] = 10.  
+beginning[e_tot] = 10e6  
+
+parameter[geometry] = open        
+parameter[particle] = electron    
+parameter[absolute_time_tracking] = T
+
+bmad_com[csr_and_space_charge_on] = T
+particle_start[x]  = 0.001
+particle_start[px] = 0.002
+particle_start[y]  = 0.003
+particle_start[py] = 0.004
+particle_start[z]  = 0.005
+particle_start[pz] = 0.006
+
+
+d: drift, L = 4, space_charge_method = fft_3d
+
+lat: line = (d)
+use, lat
