@@ -7,8 +7,8 @@ parameter[geometry] = open
 parameter[particle] = electron
 
 bmad_com[csr_and_space_charge_on] = T
-bmad_com[rel_tol_adaptive_tracking] = 10e-7
-bmad_com[abs_tol_adaptive_tracking] = 10e-9
+bmad_com[rel_tol_adaptive_tracking] = 10e-8
+bmad_com[abs_tol_adaptive_tracking] = 10e-10
 
 space_charge_com[rel_tol_tracking] = 0.1
 space_charge_com[dt_track_step] = 1e-12
