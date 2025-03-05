@@ -82,7 +82,7 @@ character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(100) data_type, str
 character(:), allocatable :: e_str
 
-logical found, valid_value, err, taylor_is_complex, use_real_part, term_found, ok
+logical found, valid_value, err, err1, err2, taylor_is_complex, use_real_part, term_found, ok
 logical particle_lost, exterminate, printit, twiss_at_ele
 logical, allocatable :: good(:)
 
@@ -518,6 +518,14 @@ case ('bpm_eta.')
   call to_eta_reading (vec2, ele, which, s%com%add_measurement_noise, datum_value, err)
   valid_value = .not. err
 
+  if (ix_ref > -1) then
+    vec2 = [ele_ref%x%eta, ele_ref%y%eta]
+    call to_eta_reading (vec2, ele_ref, which, s%com%add_measurement_noise, value, err)
+    datum_value = datum_value - value
+    valid_value = valid_value .and. .not. err
+  endif
+
+
 !-----------
 
 case ('bpm_phase.')
@@ -535,6 +543,16 @@ case ('bpm_phase.')
     valid_value = .false.
     return
   end select
+
+  if (ix_ref > -1 .and. valid_value) then
+    call tao_to_phase_and_coupling_reading (ele_ref, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
+    select case (data_type)
+    case ('bpm_phase.a')
+      datum_value = datum_value - bpm_data%phi_a
+    case ('bpm_phase.b')
+      datum_value = datum_value - bpm_data%phi_b
+    end select
+  endif
 
 !-----------
 
@@ -558,6 +576,20 @@ case ('bpm_k.')
     return
   end select
 
+  if (ix_ref > -1 .and. valid_value) then
+    call tao_to_phase_and_coupling_reading (ele_ref, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
+    select case (data_type)
+    case ('bpm_k.22a')
+      datum_value = datum_value - bpm_data%k_22a
+    case ('bpm_k.12a')
+      datum_value = datum_value - bpm_data%k_12a
+    case ('bpm_k.11b')
+      datum_value = datum_value - bpm_data%k_11b
+    case ('bpm_k.12b')
+      datum_value = datum_value - bpm_data%k_12b
+    end select
+  endif
+
 !-----------
 
 case ('bpm_cbar.')
@@ -579,6 +611,20 @@ case ('bpm_cbar.')
     valid_value = .false.
     return
   end select
+
+  if (ix_ref > -1 .and. valid_value) then
+    call tao_to_phase_and_coupling_reading (ele_ref, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
+    select case (data_type)
+    case ('bpm_cbar.22a')
+      datum_value = datum_value - bpm_data%cbar22_a
+    case ('bpm_cbar.12a')
+      datum_value = datum_value - bpm_data%cbar12_a
+    case ('bpm_cbar.11b')
+      datum_value = datum_value - bpm_data%cbar11_b
+    case ('bpm_cbar.12b')
+      datum_value = datum_value - bpm_data%cbar12_b
+    end select
+  endif
 
 !-----------
 
