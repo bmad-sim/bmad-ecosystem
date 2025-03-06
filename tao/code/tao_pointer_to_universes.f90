@@ -2,7 +2,7 @@
 ! Subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni, dflt_uni)
 !
 ! Routine to pick what universes to use.
-
+!
 ! Examples:
 !   "*@..."           -- Choose all universes.
 !   "3@..."           -- Choose universe 3. 

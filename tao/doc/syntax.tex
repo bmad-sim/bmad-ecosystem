@@ -14,14 +14,17 @@ to the end of the line is ignored.  Example:
   set default uni = 2; show global  ! Two commands and a comment
 \end{example}
 
-The length of a command on a single line is currently limited to 300 characters. Multiple lines may
+The length of a command on a single line is currently limited to 1000 characters. Multiple lines may
 be used for a single command by putting a ``\&'' character at the end of a line to be
 continued. Example:
 \begin{example}
   set default &    ! Continue command to next line
   uni = 2
 \end{example}
-     
+
+Note that, for historical reasons, Bmad itself is case insensitive. Thus things like lattice element 
+names within \tao commands will similarly be case insensitive.
+
 %------------------------------------------------------------------------
 \section{Specifying a Single Lattice Element}
 \label{s:ele.name}

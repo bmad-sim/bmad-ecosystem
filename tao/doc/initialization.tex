@@ -1702,7 +1702,14 @@ exception (\sref{s:data.types}) The \vn{n0} axis must be specified. If \vn{l} is
 \vn{m} will be appropriately calculated such that the axes form a right handed coordinate system. If
 \vn{m} is also specified, \vn{l} will be appropriately calculated. If neither \vn{l} nor \vn{m} is
 specified, \vn{l} and \vn{m} will be calculated somewhat arbitrarily to form a right handed
-coordinate system.
+coordinate system. Note: the axis vectors will be normalized to unity. Example:
+\begin{example}
+  &tao_d1_data
+    ...
+    datum(2)%n0 = 0, 1, 0
+    datum(2)%l = 1, 0, 0
+    ...
+\end{example}
 %
 \index{datum%weight}
 \item[datum(N)\%weight] \Newline
