@@ -927,12 +927,6 @@ E - E_0$ is the deviation of the particle's energy from the reference energy. Fo
 element (\sref{s:lcav}) the reference momentum is {\it not} constant so the tracking for an
 \vn{Lcavity} is not canonical.
 
-\index{phase space coordinates!MAD convention}
-\index{MAD!phase space convention}
-\mad uses a different coordinate system where $(z, p_z)$ is replaced by $(-c\Delta t, p_t)$ where
-$p_t \equiv \Delta E / P_0 c$. For highly relativistic particles the two coordinate systems are
-identical.
-
 \index{paraxial approximation}
 \index{bmad_standard!tracking method}
 The relationship, between the phase space momenta and the slopes $x' \equiv dx/ds$ and $y' \equiv dy/ds$
@@ -1018,3 +1012,15 @@ The normalization between field and intensity is dependent upon the
 particular parameters of any given simulation and so must be
 determined by the program using \bmad.
 
+%-----------------------------------------------------------------------------
+\subsection{Phase Space Coordinates Difference Between MAD and Bmad}
+
+\index{phase space coordinates!MAD convention}
+\index{MAD!phase space convention}
+\mad uses a different coordinate system where $(z, p_z)$ is replaced by $(-c\Delta t, p_t)$ where
+\begin{equation}
+  p_t \equiv \frac{\Delta E}{P_0 c}
+\end{equation}
+For highly relativistic particles the two coordinate systems are identical.
+This difference must be keept in mind when comparing results between \bmad and \mad. For example,
+the calculated dispersion will not be the same except in the ultra relativistic limit.
