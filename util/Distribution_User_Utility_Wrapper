@@ -17,6 +17,12 @@ case "${ACC_CONDA_BUILD}" in
     ;;
 esac
 
+case "${ACC_CONDA_BUILD_TESTS}" in
+    "Y" | "y" | "1" )
+    CONDA_BUILD_TESTS=1
+    ;;
+esac
+
 if ( [[ "${CONDA_BUILD}" ]] ) ; then
     # For conda build most of the dependencies are pulled from conda-forge
     # We also remove code_examples and regression tests from the build list
@@ -24,6 +30,7 @@ if ( [[ "${CONDA_BUILD}" ]] ) ; then
     # List of Project Directories - Order here matters!
     DIRLIST=( forest sim_utils bmad tao cpp_bmad_interface bsim util_programs lux )
     [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
+    [ "${CONDA_BUILD_TESTS}" ] && DIRLIST=( ${DIRLIST[*]} regression_tests )
 else
     # List of Project Directories - Order here matters!
     DIRLIST=()

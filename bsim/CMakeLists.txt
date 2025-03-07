@@ -2,8 +2,15 @@ set (LIBNAME bsim)
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 project(ACC)
 
-set(INC_DIRS 
-)
+IF ($ENV{ACC_CONDA_BUILD})
+  SET (INC_DIRS
+    $ENV{ACC_CONDA_PATH}/include
+    $ENV{ACC_CONDA_PATH}/include/xraylib/
+  )
+ELSE ()
+  SET (INC_DIRS
+  )
+ENDIF ()
 
 set (SRC_DIRS
   code

@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 project(ACC)
 
+IF ($ENV{ACC_CONDA_BUILD})
+  SET (INC_DIRS
+    $ENV{ACC_CONDA_PATH}/include
+    $ENV{ACC_CONDA_PATH}/include/xraylib/
+  )
+ENDIF ()
+
 set (EXE_SPECS 
   cmake_files/cmake.abs_time_test
   cmake_files/cmake.analysis_test

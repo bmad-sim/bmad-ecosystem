@@ -12,6 +12,7 @@ SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
 IF ($ENV{ACC_CONDA_BUILD})
   SET (INC_DIRS
+    $ENV{ACC_CONDA_PATH}/include
     $ENV{ACC_CONDA_PATH}/include/xraylib/
     $ENV{ACC_CONDA_PATH}/include/fgsl/
   )
