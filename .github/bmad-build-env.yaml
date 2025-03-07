@@ -1,0 +1,35 @@
+# conda env create -f environment.yml
+name: bmad-build
+channels:
+  - conda-forge
+dependencies:
+  - compilers
+  - cmake
+  - autoconf
+  - automake
+  - cairo
+  - fftw
+  - fgsl
+  - gnuconfig # [unix]
+  - gsl
+  - hdf5
+  - lapack95
+  - libblas * *openblas
+  - libcblas
+  - liblapack
+  - libtool
+  - m4
+  - make
+  - ncurses
+  - openblas
+  - openmpi
+  - pango
+  - pgplot
+  - pip
+  - pkg-config
+  - python
+  - readline
+  - xorg-libx11
+  - xorg-libxt
+  - xorg-xproto
+  - xraylib
