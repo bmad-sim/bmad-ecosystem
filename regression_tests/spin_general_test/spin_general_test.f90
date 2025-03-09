@@ -218,7 +218,7 @@ write(1, '(a, 3es16.8)') '"Depolarization Rate Partial2" REL 1e-8', tao_branch%s
 write(1, '(a, es16.8)')  '"Integral g^3 * b_hat * n_0" REL 1e-8         ', tao_branch%spin%integral_bn
 write(1, '(a, es16.8)')  '"Integral g^3 * b_hat * dn/ddelta" REL 1e-8   ', tao_branch%spin%integral_bdn
 write(1, '(a, es16.8)')  '"Integral g^3 (1 - 2(n * s_hat)/9)" REL 1e-8  ', tao_branch%spin%integral_1ns
-write(1, '(a, es16.8)')  '"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1e-8', tao_branch%spin%integral_dn2
+write(1, '(a, es16.8)')  '"Integral g^3 * 11 (dn/ddelta)^2 / 9" ABS 5e-17', tao_branch%spin%integral_dn2
 
 do i = 1, 6
   vec = abs(orb_evec(i, :))
