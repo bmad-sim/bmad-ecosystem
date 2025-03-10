@@ -3,7 +3,7 @@ bmad_com[radiation_damping_on] = f
 bmad_com[radiation_fluctuations_on] = f
 bmad_com[spin_tracking_on] = T
 
-q1: quad, l = 0.5, k1 = 0.6, tilt = 0.1
+q1: quad, l = 0.5, k1 = 0.6, tilt = 0.05
 q2: quad, l = 0.5, k1 = -0.5
 
 d: drift, l = 0.3
