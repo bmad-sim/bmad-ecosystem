@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 327
+integer, parameter :: bmad_inc_version$ = 328
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1791,7 +1791,7 @@ integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, 
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: geometry$ = 47, coupler_at$ = 47, E_tot_offset$ = 47, ptc_canonical_coords$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, e_tot_set$ = 48
-integer, parameter :: Bs_field$ = 49, p0c_set$ = 49, ptc_field_geometry$ = 49
+integer, parameter :: Bs_field$ = 49, p0c_set$ = 49, ptc_field_geometry$ = 49, delta_ref_time_user_set$ = 49
 integer, parameter :: delta_ref_time$ = 50
 integer, parameter :: p0c_start$ = 51
 integer, parameter :: e_tot_start$ = 52
