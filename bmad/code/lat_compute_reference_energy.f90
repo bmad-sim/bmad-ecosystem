@@ -726,7 +726,10 @@ case default
     if (err) goto 9000
   endif
 
-  if (ele_has_constant_ds_dt_ref(ele)) then
+  if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. is_true(ele%value(delta_ref_time_user_set$))) then
+    ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+    ele%time_ref_orb_out%t = ele%ref_time
+  elseif (ele_has_constant_ds_dt_ref(ele)) then
     if (ele%value(l$) == 0) then     ! Must avoid problem with zero length markers and p0c = 0.
       ele%value(delta_ref_time$) = 0
     else

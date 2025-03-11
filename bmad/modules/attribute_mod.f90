@@ -1691,6 +1691,8 @@ call init_attribute_name1 (wiggler$, gen_grad_map$,                 'GEN_GRAD_MA
 call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE', dependent$)
+call init_attribute_name1 (wiggler$, delta_ref_time_user_set$,      'DELTA_REF_TIME_USER_SET')
+call init_attribute_name1 (wiggler$, delta_ref_time$,               'DELTA_REF_TIME', override = .true.)
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
@@ -1929,7 +1931,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', &
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', 'DELTA_REF_TIME_USER_SET', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'RECALC', 'DETA_DS_MASTER', &

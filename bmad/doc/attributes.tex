@@ -379,7 +379,7 @@ is equivalent, in the present syntax, to:
 \end{example}
 
 %-----------------------------------------------------------------
-\section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and \\ Ref_Wavelength}
+\section{Reference Energy, Time, and Wavelength}
 \label{s:energy}
 
 \index{parameter statement}\index{e_tot}
@@ -450,7 +450,24 @@ line name of the branch (\sref{s:beginning}). For example:
 \end{example}
 
 For \vn{multipass} elements, the reference energy may be set by specifying one of \vn{e_tot},
-\vn{p0c}, as described in \sref{c:multipass}.
+\vn{p0c}, as described in \sref{s:ref.e.multi}.
+
+The value of the reference time (cf \Eq{zbctt}) at the downstream end of an element is given by the
+element parameter \vn{ref_time}. At the upstream end of the element, the reference time is given by
+\vn{ref_time_start}. The change in reference time is given by {delta_ref_time}. The value of
+\vn{ref_time} for a given element in a given branch is computed starting from the \vn{ref_time} set
+for the \vn{beginning} element of the branch and summing all the \vn{delta_ref_time} values of the
+elements up to the element in question. Notice that when multi-turn tracking is involved, the \vn{ref_time}
+of an element is appropriate for the first turn but to calculate the reference time for subsequent turns
+involves knowing how many turns a particle has traveled along with the reference time for each turn (which
+may not be the same turn-for-turn if there is ramping and energy changes).
+
+The value of \vn{delta_ref_time} for an element is generally computed using the time-of-flight of
+the \vn{reference particle} assuming that the reference particle is following the reference
+orbit. Exceptions are \vn{wiggler} elements which uses the time-of-flight of the actual trajectory
+starting from a particle on the zero orbit (phase space parameters all zero). Note that if
+\vn{delta_ref_time_user_set} for a \vn{wiggler} is set \vn{True}, \vn{delta_ref_time} may be set
+in the lattice file (as opposed to being computed by \bmad).
 
 For photons, the reference wavelength, \vn{ref_wavelength} is also a dependent attribute calculated
 from the reference energy.
