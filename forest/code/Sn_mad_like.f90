@@ -2585,6 +2585,8 @@ CONTAINS
     TWCAVITYL%LD=L1
     TWCAVITYL%LC=L1
     TWCAVITYL%KIND=KIND21
+    TWCAVITYL%nmul=1
+
     IF(LEN(NAME)>nlp) THEN
        !w_p=0
        !w_p%nc=2

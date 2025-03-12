@@ -87,7 +87,7 @@ MODULE S_DEF_KIND
   PRIVATE SEPR,SEPP,SYMPSEPR,SYMPSEPP !,SEPTTRACK
   !  PRIVATE IN,IN1,IN2
  ! INTEGER IN(4,4),IN1(10),IN2(10)
-  PRIVATE ZEROR_CAV_TRAV,ZEROP_CAV_TRAV
+  PRIVATE ZEROR_CAV_TRAV,ZEROP_CAV_TRAV,b0_cav_travr,b0_cav_travp
   private fringe_TEAPOTr,fringe_TEAPOTp,INTER_TEAPOT,INTEP_TEAPOT
   PRIVATE fringe_STREXR,fringe_STREXP
 
@@ -218,6 +218,12 @@ real(dp) scalee,scaleb,hhh
   INTERFACE b0_cav
      MODULE PROCEDURE b0_cavr
      MODULE PROCEDURE b0_cavp
+  END INTERFACE
+
+ 
+  INTERFACE b0_cav_trav
+     MODULE PROCEDURE b0_cav_travr
+     MODULE PROCEDURE b0_cav_travp
   END INTERFACE
 
   INTERFACE radiate_2_force
@@ -4242,6 +4248,62 @@ call b0_cav(EL,x,BBXTW,BBYTW)
     call PRTP("KICKCAV:1", X)
 
   END SUBROUTINE KICKCAVP
+
+   SUBROUTINE b0_cav_travr(EL,x,BBXTW,BBYTW)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6),BBXTW,BBYTW
+    TYPE(CAV_trav),INTENT(INOUT):: EL
+    real(dp)   BBYTWT
+
+    INTEGER J 
+ 
+
+           IF(size(el%an)>=1) THEN
+             BBYTW=EL%BN(size(el%an))
+             BBXTW=EL%AN(size(el%an))
+
+             DO  J=size(el%an)-1,1,-1
+                BBYTWT=X(1)*BBYTW-X(3)*BBXTW+EL%BN(J)
+                BBXTW=X(3)*BBYTW+X(1)*BBXTW+EL%AN(J)
+                BBYTW=BBYTWT
+             ENDDO
+          ELSE
+             BBYTW=0.0_dp
+             BBXTW=0.0_dp
+          ENDIF
+
+end SUBROUTINE b0_cav_travr
+
+   SUBROUTINE b0_cav_travp(EL,x,BBXTW,BBYTW)
+    IMPLICIT NONE
+    TYPE(CAV_travp),INTENT(INOUT):: EL
+    TYPE(REAL_8),INTENT(INOUT):: X(6),BBXTW,BBYTW
+    type(real_8) X1,X3,BBYTWT
+     INTEGER J 
+ 
+    call alloc(X1,X3,BBYTWT)
+
+
+
+           IF(size(el%an)>=1) THEN
+             BBYTW=EL%BN(size(el%an))
+             BBXTW=EL%AN(size(el%an))
+
+             DO  J=size(el%an)-1,1,-1
+                BBYTWT=X(1)*BBYTW-X(3)*BBXTW+EL%BN(J)
+                BBXTW=X(3)*BBYTW+X(1)*BBXTW+EL%AN(J)
+                BBYTW=BBYTWT
+             ENDDO
+          ELSE
+             BBYTW=0.0_dp
+             BBXTW=0.0_dp
+          ENDIF
+    call kill(X1,X3,BBYTWT)
+
+end SUBROUTINE b0_cav_travp
+
+
+
 
    SUBROUTINE b0_cavr(EL,x,BBXTW,BBYTW)
     IMPLICIT NONE
@@ -19277,10 +19339,11 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     REAL(DP) A(3),AD(3),PZ
     TYPE(CAV_TRAV),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    real(dp) BBXTW,BBYTW
     A=0.0_dp;AD=0.0_dp;
     CALL A_TRANS(D,Z0,X,k,A,AD)
-
+    call b0_cav_trav(D,x,BBXTW,BBYTW)
+ 
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
 
@@ -19289,8 +19352,8 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
 
@@ -19298,8 +19361,8 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
@@ -19308,16 +19371,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -19335,14 +19398,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     TYPE(REAL_8)  A(3),AD(3),PZ
     TYPE(CAV_TRAVp),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    TYPE(REAL_8) BBXTW,BBYTW
 
     CALL ALLOC(A)
     CALL ALLOC(AD)
-    CALL ALLOC(PZ)
+    CALL ALLOC(PZ,BBXTW,BBYTW)
 
 
 
     CALL A_TRANS(D,Z0,X,k,A,AD)
+    call b0_cav_trav(D,x,BBXTW,BBYTW)
 
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
@@ -19352,16 +19417,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
        else
           PZ=sqrt((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
@@ -19370,16 +19435,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -19390,7 +19455,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
 
     CALL KILL(A)
     CALL KILL(AD)
-    CALL KILL(PZ)
+    CALL KILL(PZ,BBXTW,BBYTW)
 
 
   END subroutine feval_CAVP
@@ -19452,7 +19517,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     real(dp),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV_TRAV),INTENT(INOUT):: EL
 
-    real(dp) C1,S1,C2,S2,V,O
+    real(dp) C1,S1,C2,S2,V,O,BBXTW,BBYTW
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
 
@@ -19487,7 +19552,12 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
      b(1)=-ad(3)*x(3)/EL%P%CHARGE
      b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
+     call b0_cav_trav(EL,x,BBXTW,BBYTW)
+     b(1)=b(1)+BBXTW
+     b(2)=b(2)+BBYTW
     endif
+
+
 
     if(present(e)) then
      E(1)=-ad(2)*x(1)/EL%P%CHARGE
@@ -19509,13 +19579,13 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     TYPE(REAL_8),INTENT(INOUT):: Z0,A(3),ad(3)
     TYPE(REAL_8),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV_TRAVP),INTENT(INOUT):: EL
-    TYPE(REAL_8) C1,S1,C2,S2,V,O
+    TYPE(REAL_8) C1,S1,C2,S2,V,O,BBXTW,BBYTW
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
 
 
-    CALL ALLOC(C1,S1,C2,S2,V,O)
+    CALL ALLOC(C1,S1,C2,S2,V,O,BBXTW,BBYTW)
        if(freq_redefine) then
         O=EL%freq
          else
@@ -19543,6 +19613,9 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
      b(1)=-ad(3)*x(3)/EL%P%CHARGE
      b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
+     call b0_cav_trav(EL,x,BBXTW,BBYTW)
+     b(1)=b(1)+BBXTW
+     b(2)=b(2)+BBYTW
     endif
 
     if(present(e)) then
@@ -19552,7 +19625,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     endif
 
 
-    CALL KILL(C1,S1,C2,S2,V,O)
+    CALL KILL(C1,S1,C2,S2,V,O,BBXTW,BBYTW)
 
   END SUBROUTINE A_TRANSP
 
@@ -21384,6 +21457,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     CASE(KIND4)      ! Pill box cavity ! etienne an0
       if(EL%C4%n_bessel/=-1) then
         CALL GET_BE_CAV(EL%C4,B,E,X,k)
+ 
       else
 !       IF(EL%c4%P%DIR==1) THEN
  !         Z= pos*el%l/el%p%nst
@@ -21408,6 +21482,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
       endif
 
        call  Abmad_TRANS(EL%C4,Z,X,k,A,AD,B,E)
+ 
        endif
 
     CASE(KIND21)     ! travelling wave cavity
@@ -24708,7 +24783,7 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     CALL Abmad_TRANS(D,Z0,X,k,A,AD,b,e)
     call b0_cav(D,x,BBXTW,BBYTW)
 !write(n_wedge,"(11(1x,g16.9,1x))") z0+hhh, b,scaleb*b,qi%x(0:3)
-
+!eeeeeeeeeeeeeeeeeeeeeeeee
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
 
