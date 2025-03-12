@@ -156,6 +156,7 @@ TYPE CAV_TRAV
    real(dp), POINTER :: PSI => null(),DPHAS => null(),DVDS => null()
    logical, pointer :: always_on => null(), implicit => null()
    integer, POINTER :: CAVITY_TOTALPATH => null()     ! Cavity information
+   real(dp),  DIMENSION(:), POINTER :: AN => null(),BN => null()                 !Multipole component
 END  TYPE CAV_TRAV
 
 
@@ -168,6 +169,7 @@ TYPE CAV_TRAVP
    real(dp), POINTER :: DELTA_E  => null(),phase0 => null()
    logical, pointer :: always_on => null(), implicit => null()
    integer, POINTER :: CAVITY_TOTALPATH  => null()    ! Cavity information
+   type(real_8),  DIMENSION(:), POINTER :: AN => null(),BN => null()                 !Multipole component
 END  TYPE CAV_TRAVP
 
 

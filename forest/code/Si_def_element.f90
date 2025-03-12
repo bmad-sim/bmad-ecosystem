@@ -1133,6 +1133,9 @@ CONTAINS
        !       EL%C4%P0C=>EL%P0C
        EL%CAV21%DELTA_E=>EL%DELTA_E
        EL%CAV21%THIN=>EL%THIN
+       EL%CAV21%AN=>EL%AN
+       EL%CAV21%BN=>EL%BN
+
        ALLOCATE(EL%CAV21%PSI);EL%CAV21%PSI=0.0_dp
        ALLOCATE(EL%CAV21%DVDS);EL%CAV21%DVDS=0.0_dp
        ALLOCATE(EL%CAV21%DPHAS);EL%CAV21%DPHAS=0.0_dp
@@ -1629,6 +1632,9 @@ CONTAINS
        !       EL%C4%P0C=>EL%P0C
        EL%CAV21%DELTA_E=>EL%DELTA_E
        EL%CAV21%THIN=>EL%THIN
+       EL%CAV21%AN=>EL%AN
+       EL%CAV21%BN=>EL%BN
+
        ALLOCATE(EL%CAV21%PSI);CALL ALLOC(EL%CAV21%PSI);EL%CAV21%PSI=0.0_dp
        ALLOCATE(EL%CAV21%DVDS);CALL ALLOC(EL%CAV21%DVDS);EL%CAV21%DVDS=0.0_dp
        ALLOCATE(EL%CAV21%DPHAS);CALL ALLOC(EL%CAV21%DPHAS);EL%CAV21%DPHAS=0.0_dp
@@ -2637,6 +2643,9 @@ endif
     case(kind4)
        EL%C4%AN=>EL%AN
        EL%C4%BN=>EL%BN
+    case(kind21)
+       EL%Cav21%AN=>EL%AN
+       EL%Cav21%BN=>EL%BN
     case(kind5)
        EL%S5%AN=>EL%AN
        EL%S5%BN=>EL%BN
@@ -2838,6 +2847,9 @@ endif
     case(kind4)
        EL%C4%AN=>EL%AN
        EL%C4%BN=>EL%BN
+    case(kind21)
+       EL%Cav21%AN=>EL%AN
+       EL%Cav21%BN=>EL%BN
     case(kind5)
        EL%S5%AN=>EL%AN
        EL%S5%BN=>EL%BN
