@@ -16,7 +16,7 @@
 
 subroutine g_integrals_calc (lat)
 
-use coord_mod, dummy => g_integrals_calc
+use bmad_routine_interface, dummy => g_integrals_calc
 
 implicit none
 

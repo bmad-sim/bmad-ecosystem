@@ -102,7 +102,150 @@ interface pointer_to_ele
   module procedure pointer_to_ele4
 end interface
 
-! 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord (...)
+!
+! Routine to allocate or reallocate at allocatable coord_struct array.
+! reallocate_coord is an overloaded name for:
+!   reallocate_coord_n (coord, n_coord)
+!   reallocate_coord_lat (coord, lat, ix_branch)
+!
+! Subroutine to allocate an allocatable coord_struct array to at least:
+!     coord(0:n_coord)                            if n_coord arg is used.
+!     coord(0:lat%branch(ix_branch)%n_ele_max)    if lat arg is used.
+!
+! The old coordinates are saved
+! If, at input, coord(:) is not allocated, coord(0)%vec is set to zero.
+! In any case, coord(n)%vec for n > 0 is set to zero.
+!
+! Input:
+!   coord(:)  -- Coord_struct, allocatable: Allocatable array.
+!   n_coord   -- Integer: Minimum array upper bound wanted.
+!   lat       -- lat_struct: Lattice 
+!   ix_branch -- Integer, optional: Branch to use. Default is 0 (main branch).
+!
+! Output:
+!   coord(:) -- coord_struct: Allocated array.
+!-
+
+interface reallocate_coord
+  subroutine reallocate_coord_n (coord, n_coord)
+    import
+    implicit none
+    type (coord_struct), allocatable :: coord(:)
+    integer, intent(in) :: n_coord
+  end subroutine
+
+  subroutine reallocate_coord_lat (coord, lat, ix_branch)
+    import
+    implicit none
+    type (coord_struct), allocatable :: coord(:)
+    type (lat_struct), target :: lat
+    integer, optional :: ix_branch
+  end subroutine
+
+  subroutine reallocate_coord_array (coord_array, lat)
+    import
+    implicit none
+    type (coord_array_struct), allocatable :: coord_array(:)
+    type (lat_struct) lat
+  end subroutine
+end interface
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine init_coord (...)
+!
+! Routine to initialize a coord_struct. 
+!
+! This routine is an overloaded name for:
+!   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+!   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+!   Subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+!
+! Note: Unless shift_vec6 is set to False, if ele is a beginning_ele (IE, the element at the beginning of the lattice), 
+! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
+! corresponding to the beginning_ele's value of ele%value(p0c_start$).
+!
+! Note: For non-photons, if orb_in%vec(5) is set to real_garbage$, orb_in%t will be used to set orb%vec(5) instead 
+! of the standard which is to set orb%t from orb%vec(5).
+!
+! For photons:
+!   orb%vec(5) is set depending upon where the photon is relative to the element.
+!   If orb is a photon, and orb_in is not a photon, photon is launched in same direciton as particle 
+!       except if direction is set.
+!
+! Input:
+!   orb_in       -- coord_struct: Input orbit.
+!   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
+!   ele          -- ele_struct, optional: Particle is initialized to start at element_end of this ele.
+!   element_end  -- integer, optional: upstream_end$, downstream_end$, inside$, or start_end$.
+!                     Must be present if ele argument is present.
+!                     start_end$ -> upstream_end$ if dir = 1 and start_end$ -> downstream_end$ if dir = -1.
+!                     Default is upstream_end$. Note: If ele is the beginning element (index zero), the
+!                     setting of element_end will not matter.
+!   particle     -- integer, optional: Particle type (electron$, etc.). 
+!                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
+!   dirction     -- integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
+!                     0 -> Ignore. Default is to not change orb%direction except for photons which get set
+!                     according to orb%vec(6).
+!   E_photon     -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
+!   t_offset     -- real(rp), optional: Offset of the reference time. This is non-zero when
+!                     there are multiple bunches and the reference time for a particular particle
+!                     is pegged to the time of the center of the bunch.
+!   shift_vec6   -- logical, optional: If present and False, prevent the shift of orb%vec(6).
+!   spin(3)      -- real(rp), optional: Particle spin. Taken to be zero if not present.
+!   s_pos        -- real(rp), optional: Particle s-position. Only relavent if element_end = inside$.
+!   random_on    -- logical, optional: Default is True. Used only for photons being initalized with a photon_init
+!                     element. If True, vary the photon coords using a random number generator. If False, the 
+!                     photon coords will be centered within the distribution specified in the photon_init ele.
+!
+! Output:
+!   orb -- Coord_struct: Initialized coordinate.
+!                 Note: For photons, orb%vec(6) is computed as sqrt(1 - vec(2)^2 - vec(4)^2) if needed.
+!-
+
+interface init_coord
+  subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+    import
+    implicit none
+    type (coord_struct) orb
+    type (ele_struct), optional :: ele
+    real(rp) :: vec(6)
+    real(rp), optional :: t_offset, E_photon, spin(3), s_pos
+    integer, optional :: element_end, particle, direction
+    logical, optional :: shift_vec6, random_on
+  end subroutine
+
+  subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+    import
+    implicit none
+    type (coord_struct) orb_out, orb_in
+    type (ele_struct), optional, target :: ele
+    real(rp), optional :: E_photon, t_offset, spin(3), s_pos
+    integer, optional :: element_end, particle, direction
+    logical, optional :: shift_vec6, random_on
+  end subroutine
+
+  subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+    import
+    implicit none
+    type (coord_struct) orb
+    type (ele_struct), optional :: ele
+    real(rp), optional :: t_offset, E_photon, spin(3)
+    integer, optional :: element_end, particle, direction
+    logical, optional :: shift_vec6
+  end subroutine
+end interface
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 
 interface
 

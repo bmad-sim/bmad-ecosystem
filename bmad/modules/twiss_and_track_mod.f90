@@ -1,7 +1,6 @@
 module twiss_and_track_mod
 
 use element_at_s_mod
-use coord_mod
 
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
@@ -133,7 +132,7 @@ logical, optional :: print_err
 
 !
 
-call reallocate_coord_array (orb_array, lat)
+call reallocate_coord (orb_array, lat)
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
