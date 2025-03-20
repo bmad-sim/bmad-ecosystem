@@ -545,6 +545,7 @@ parsing_loop: do
     endif
 
     call push_stack (stk, i_lev, op(i))
+    in_species_func = .false.
   enddo
 
   ! put the pending operation on the OP stack

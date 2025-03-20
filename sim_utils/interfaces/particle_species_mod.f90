@@ -30,7 +30,7 @@
 !   MMMM (4 Hex digits):
 !          For subatomic particles (where CC = PP = 0): Particle integer ID. 
 !          For atoms: Number of nucleons. If zero then number of nucleons is unknown (EG: "C+")
-!          For anti atoms: Split MMMM = Xb13b4YY where Xb13 is number of protons (7 bits) and b4YY = number of nucleons (9bits).
+!          For anti-atoms: Split MMMM = Xb13b4YY where Xb13 is number of protons (7 bits) and b4YY = number of nucleons (9bits).
 !          For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 = Use default (only valid for "Named" molecules).
 !
 ! Example external input names:
@@ -870,7 +870,7 @@ end subroutine molecular_components
 ! Function antiparticle (species) result (anti_species)
 !
 ! Routine to return the antiparticle ID given the particle ID.
-! For atoms, the "antiparticle" is just the atom with the charge negated.
+! For a molecule the anti-species is just the molecude with the charge reversed.
 !
 ! Input:
 !   species       -- integer: Particle ID.
@@ -881,7 +881,7 @@ end subroutine molecular_components
 
 function antiparticle (species) result (anti_species)
 
-integer species, anti_species
+integer species, anti_species, atomic_num, n_nuc
 
 !
 
@@ -890,7 +890,21 @@ if (lb_subatomic <= species .and. species <= ub_subatomic) then
   return
 
 else
-  anti_species = -species
+  atomic_num = mod(abs(species), int(z'1000000')) / int(z'10000')
+
+  if (atomic_num > 199) then  ! Is a molecule
+    anti_species = -species
+    return
+  endif
+
+  if (atomic_num == anti_atom$) then
+    atomic_num = mod(abs(species), int(z'10000')) / 512
+    n_nuc = mod(abs(species), int(z'10000')) - atomic_num * 512
+    anti_species = atomic_species_id(-charge_of(species), .false., atomic_num, n_nuc)
+  else
+    n_nuc = mod(abs(species), int(z'10000'))
+    anti_species = atomic_species_id(-charge_of(species), .true., atomic_num, n_nuc)
+  endif
 endif
 
 end function antiparticle
@@ -953,7 +967,7 @@ function species_id (name, default, print_err) result(species)
 
 real(rp) :: mol_mass
 integer, optional :: default
-integer ::  species, charge, i, ix, ix1, ix2, iso, ios, n_nuc
+integer ::  species, charge, i, ix, ix1, ix2, iso, ios, n_nuc, atomic_num
 character(*) :: name
 character(20) :: nam
 character(*), parameter :: r_name = 'species_id'
@@ -1071,13 +1085,13 @@ if (nam(1:4) == 'anti') then
 endif
 
 select case (nam)
-case ('Uut');  ix = 113
-case ('Uup');  ix = 115
-case ('Uus');  ix = 117
-case ('Uuo');  ix = 118
+case ('Uut');  atomic_num = 113
+case ('Uup');  atomic_num = 115
+case ('Uus');  atomic_num = 117
+case ('Uuo');  atomic_num = 118
 case default
-  call match_word(nam, atomic_name, ix, .true., .false.)
-  if (ix <= 0) then
+  call match_word(nam, atomic_name, atomic_num, .true., .false.)
+  if (atomic_num <= 0) then
     if (do_print) then
       call out_io (s_error$, r_name, 'CANNOT DECODE ATOM NAME: ' // name)
       if (global_com%exit_on_error) call err_exit
@@ -1086,13 +1100,7 @@ case default
   endif
 end select
 
-if (anti) then
-  species = (abs(charge * int(z'1000000')) + anti_atom$ * int(z'10000') + ix * 2 * int(z'100') + n_nuc)
-else
-  species = (abs(charge * int(z'1000000')) + ix * int(z'10000') + n_nuc)
-endif
-
-if (charge < 0) species = -species
+species = atomic_species_id(charge, anti, atomic_num, n_nuc)
 
 !----------------------------------------------------------------------------------------
 contains
@@ -1183,6 +1191,41 @@ is_ok = .true.
 end function get_this_mass
 
 end function species_id
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function atomic_species_id(charge, is_anti, atomic_num, n_nuc) result (species_id)
+!
+! Routine to return the species ID for an atom
+!
+! Input:
+!   charge      -- integer: Charge of the atom.
+!   is_anti     -- logical: Is an anti-atom.
+!   atomic_num  -- integer: Atomic number.
+!   n_nuc       -- integer: Number of nucleons.
+!
+! Output:
+!   species_id  -- integer: Species ID number.
+!-
+
+function atomic_species_id(charge, is_anti, atomic_num, n_nuc) result (species_id)
+
+integer charge, atomic_num, n_nuc, species_id
+logical is_anti
+
+!
+
+if (is_anti) then
+  species_id = (abs(charge * int(z'1000000')) + anti_atom$ * int(z'10000') + atomic_num * 2 * int(z'100') + n_nuc)
+else
+  species_id = (abs(charge * int(z'1000000')) + atomic_num * int(z'10000') + n_nuc)
+endif
+
+if (charge < 0) species_id = -species_id
+
+end function atomic_species_id
 
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
@@ -1716,8 +1759,9 @@ end function x0_radiation_length
 !+
 ! Function atomic_number(species) result (atomic_num)
 !
-! Routine to return the atomic number Z if species argument corresponds to an atomic particle or is a proton
-! or the particle charge if a fundamental particle. Set to zero otherwise (for molecules).
+! Routine to return the atomic number Z if species argument corresponds to an atomic particle  or is a proton.
+! Set to the charge for atomic particles.
+! Set to zero for molecules.
 !
 ! Input:
 !   species       -- integer: Spicies ID.

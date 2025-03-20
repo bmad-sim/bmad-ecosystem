@@ -160,7 +160,7 @@ Supress warning messages. For details, see the documentation for the \vn{call} c
 %
 \item[-reverse] \Newline
 Reverses the order of the lattice elements. Equivalent to setting
-\vn{design_lattice(N)%reverse_lattice} to True (\sref{s:init.lat}. If both \vn{-reverse} and 
+\vn{design_lattice(N)%reverse_lattice} to True (\sref{s:init.lat}). If both \vn{-reverse} and 
 \vn{design_lattice(N)%reverse_lattice} are set, they negate each other and the lattice will not
 be reversed.
 %
@@ -469,7 +469,7 @@ secondary lattice file then the paring specified by \vn{%slice_lattice} is appli
 secondary lattice file is parsed.
 
 If the \vn{%reverse_lattice} logical is present, the lattice will be reversed. That is, the elements
-will be in reversed order. The sign of the charge of the tracked particle will be reversed for
+will be in reversed order. The sign of the tracked particle will be set to the anti-particle for
 proper tracking. This is useful for simulating beams that go in the backward direction. Note: If
 there are any electric fields, the orbit in the reversed lattice will not be the reverse of the
 trajectory in the unreversed lattice. Currently, lattice reversal only works if the lattice has a
@@ -1586,9 +1586,9 @@ individual datums in a single line. For example
     !           data_      ele_ref  ele_start ele     merit    meas   weight good
     !           type       name     name      name    type     value         user ..
     datum( 1) = "beta.a"   "S:2.3"  ""       "Q16_1"  "max"     30    0.1     T  ...
-    datum( 2) = "phase.b"  "Q09_1"  "B22"    "Q16##2" "max"     30    0.1     T  ...
-    datum( 3) = "floor.x"  ""        ""      "end"    "target"   3    0.01    T  ...     
-    datum( 4) = "floor.x"  "B1"      ""      "1>>32"  "target"   3    0.01    T  ...     
+    datum( 2) = "eta.x"    ""       "B22"    "Q16##2" "max"     30    0.1     T  ...
+    datum( 3) = "floor.x"  ""       ""       "end"    "target"   3    0.01    T  ...     
+    datum( 4) = "floor.x"  "B1"     ""       "1>>32"  "target"   3    0.01    T  ...     
     ... etc. ...
   /
 \end{example}
@@ -1660,8 +1660,8 @@ using branch/element index notation and on input the datum's \vn{ele_start_name}
 \vn{ix_ele_ref} set to the appropriate element indexes.
 
 A range of elements can be specified by giving an \vn{ele_start_name} that is not a blank string.
-Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal beta in the range
-between the end of element \vn{B22} to the end of element \vn{Q16_1}. Elements can be specified by
+Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal dispersion in the range
+between the end of element \vn{B22} to the end of element \vn{Q16\#\#2}. Elements can be specified by
 name (Eg: \vn{Q16_1}) or by longitudinal position using the notation \vn{"S:<s_distance>"}. This
 will match to the element whose longitudinal position at the exit end is closest to
 \vn{<s_distance>}.
