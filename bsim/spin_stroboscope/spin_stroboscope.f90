@@ -592,7 +592,7 @@ do ix6 = 1, n_points(6)
       do i = 0, i_turn
         if (s(i)%track_angle_corrected) cycle
         do j = 0, i_turn
-          print '(i6, 3f12.6, 3i6, l6, 6i6)', j, s(j)%orbit_phase, s(j)%ix_nearest, &
+          print '(i6, 3f12.6, 6i6, l6, 3i6)', j, s(j)%orbit_phase, s(j)%ix_nearest, &
                                                s(j)%track_angle_corrected, s(j)%indexx
         enddo
         print *, 'ERROR IN ADJUSTING AXES. PLEASE GET HELP!', i
