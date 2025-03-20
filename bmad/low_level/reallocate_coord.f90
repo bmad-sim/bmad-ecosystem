@@ -110,7 +110,7 @@ end subroutine reallocate_coord_lat
 
 subroutine reallocate_coord_array (coord_array, lat)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => reallocate_coord_array
 implicit none
 
 type (coord_array_struct), allocatable :: coord_array(:)
