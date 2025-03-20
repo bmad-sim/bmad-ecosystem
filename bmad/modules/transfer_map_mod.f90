@@ -2,7 +2,6 @@ module transfer_map_mod
 
 use element_at_s_mod
 use taylor_mod
-use coord_mod
 
 private transfer_this_map, transfer_this_mat
 

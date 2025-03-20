@@ -9,7 +9,6 @@ module ptc_interface_mod
 
 use taylor_mod
 use attribute_mod
-use coord_mod
 use multipole_mod
 
 interface assignment (=)

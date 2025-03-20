@@ -1,6 +1,5 @@
 module dynamic_aperture_mod
 
-use coord_mod
 use equal_mod
 
 implicit none
