@@ -10,7 +10,7 @@
 
 subroutine reallocate_coord_n (coord, n_coord)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => reallocate_coord_n
 implicit none
 
 type (coord_struct), allocatable :: coord(:)
@@ -66,7 +66,7 @@ end subroutine reallocate_coord_n
 
 subroutine reallocate_coord_lat (coord, lat, ix_branch)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => reallocate_coord_lat
 implicit none
 
 type (coord_struct), allocatable :: coord(:)

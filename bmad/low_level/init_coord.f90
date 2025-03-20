@@ -10,7 +10,7 @@
 
 subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => init_coord1
 implicit none
 
 type (coord_struct) orb, orb_temp
@@ -41,7 +41,7 @@ end subroutine init_coord1
 
 subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => init_coord2
 implicit none
 
 type (coord_struct) orb_out, orb_in, orb
@@ -241,7 +241,7 @@ end subroutine init_coord2
 
 subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
 
-use bmad_routine_interface
+use bmad_routine_interface, dummy => init_coord3
 implicit none
 
 type (coord_struct) orb
