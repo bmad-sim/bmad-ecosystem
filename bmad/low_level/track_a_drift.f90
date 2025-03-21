@@ -34,58 +34,58 @@ type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6), time
 real(rp) matd(6,6), e_tot_ref, e_particle, rel_len, dt
-real(rp) length, rel_pc, dz, px, py, ps, delta, pxy2, mc2, beta_ref
+real(rp) length, rel_pc, dz, px_rel, py_rel, ps_rel, delta, pxy2, mc2, beta_ref
 
 integer, optional :: ele_orientation
 integer rel_z_vel
 logical, optional :: make_matrix, include_ref_motion
 
-! If the element orientation is opposite the particle direction, px and py are reversed.
+! If the element orientation is opposite the particle direction, px_rel and py_rel are reversed.
 
 if (length == 0) return
 delta = orb%vec(6)
 rel_pc = 1 + delta
 rel_z_vel = integer_option(orb%direction, ele_orientation) * orb%direction
 
-px = rel_z_vel * orb%vec(2) / rel_pc
-py = rel_z_vel * orb%vec(4) / rel_pc
-pxy2 = px**2 + py**2
+px_rel = rel_z_vel * orb%vec(2) / rel_pc  ! Relative to the actual momentum, not the reference momentum.
+py_rel = rel_z_vel * orb%vec(4) / rel_pc
+pxy2 = px_rel**2 + py_rel**2
 if (pxy2 >= 1) then
   orb%state = lost_pz$
   return
 endif
-ps = sqrt(1 - pxy2)
+ps_rel = sqrt(1 - pxy2)
 
-orb%vec(1) = orb%vec(1) + length * px / ps
-orb%vec(3) = orb%vec(3) + length * py / ps
+orb%vec(1) = orb%vec(1) + length * px_rel / ps_rel
+orb%vec(3) = orb%vec(3) + length * py_rel / ps_rel
 
 ! Length is the length in body coordinates
 
 if (orb%beta > 0) then
   if (logic_option(.true., include_ref_motion)) then
     mc2 = mass_of(orb%species)
-    ! dz = length * ([beta/beta_ref - 1] - [1/ps - 1])
+    ! dz = length * ([beta/beta_ref - 1] - [1/ps_rel - 1])
     if (orb%direction == 1) then
-      dz = length * (sqrt_one((mc2**2 * (2*delta+delta**2))/((orb%p0c*rel_pc)**2 + mc2**2)) + sqrt_one(-pxy2)/ps)
+      dz = length * (sqrt_one((mc2**2 * (2*delta+delta**2))/((orb%p0c*rel_pc)**2 + mc2**2)) + sqrt_one(-pxy2)/ps_rel)
     else
       beta_ref = orb%p0c / sqrt(orb%p0c**2 + mc2**2)
-      dz = length * ((-orb%beta/beta_ref - 1.0_rp) - (1.0_rp / ps - 1.0_rp))
+      dz = length * ((-orb%beta/beta_ref - 1.0_rp) - (1.0_rp / ps_rel - 1.0_rp))
     endif
     orb%s = orb%s + orb%direction * length
   else
-    dz = -length /ps
+    dz = -length /ps_rel
   endif
 
-  dt = rel_z_vel * length / (orb%beta * ps * c_light)
+  dt = rel_z_vel * length / (orb%beta * ps_rel * c_light)
   orb%t = orb%t + dt
   if (present(time)) time = time + dt
 
 else
   if (logic_option(.true., include_ref_motion)) then
-    dz = length * (1 - 1/ps)
+    dz = length * (1 - 1/ps_rel)
     orb%s = orb%s + orb%direction * length
   else
-    dz = -length /ps
+    dz = -length /ps_rel
   endif
 endif
 
@@ -93,21 +93,21 @@ orb%vec(5) = orb%vec(5) + rel_z_vel * dz
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit(matd)
-  rel_len = length / (rel_pc * ps)
-  matd(1,2) =  rel_len * (px**2 / ps**2 + 1)
-  matd(3,4) =  rel_len * (py**2 / ps**2 + 1)
-  matd(1,4) =  rel_len * px*py / ps**2
-  matd(3,2) =  rel_len * px*py / ps**2
-  matd(1,6) = -rel_len * px / ps**2
-  matd(3,6) = -rel_len * py / ps**2
-  matd(5,2) = -rel_len * px / ps**2 
-  matd(5,4) = -rel_len * py / ps**2
+  rel_len = length / (rel_pc * ps_rel)
+  matd(1,2) =  rel_len * (px_rel**2 / ps_rel**2 + 1)
+  matd(3,4) =  rel_len * (py_rel**2 / ps_rel**2 + 1)
+  matd(1,4) =  rel_len * px_rel*py_rel / ps_rel**2
+  matd(3,2) =  rel_len * px_rel*py_rel / ps_rel**2
+  matd(1,6) = -rel_len * px_rel / ps_rel**2
+  matd(3,6) = -rel_len * py_rel / ps_rel**2
+  matd(5,2) = -rel_len * px_rel / ps_rel**2 
+  matd(5,4) = -rel_len * py_rel / ps_rel**2
   if (logic_option(.true., include_ref_motion)) then
     e_tot_ref = sqrt(orb%p0c**2 + mass_of(orb%species)**2)
     e_particle = orb%p0c * (1 + orb%vec(6)) / orb%beta
-    matd(5,6) =  rel_len * (px**2 + py**2) / ps**2 + length * mass_of(orb%species)**2 * e_tot_ref / e_particle**3
+    matd(5,6) =  rel_len * (px_rel**2 + py_rel**2) / ps_rel**2 + length * mass_of(orb%species)**2 * e_tot_ref / e_particle**3
   else
-    matd(5,6) =  rel_len * (px**2 + py**2) / ps**2
+    matd(5,6) =  rel_len * (px_rel**2 + py_rel**2) / ps_rel**2
   endif
 
   mat6 = matmul(matd, mat6)

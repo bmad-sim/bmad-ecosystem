@@ -52,7 +52,7 @@ re = orbit%vec
 
 start_orb = orbit   ! Save initial state
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., err_flag, ref_in = orbit)
+call ele_to_fibre (ele, ptc_fibre, .true., err_flag, ref_in = orbit)
 if (err_flag) then
   orbit%state = lost$
   return

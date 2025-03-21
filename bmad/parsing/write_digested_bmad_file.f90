@@ -42,7 +42,7 @@ integer, allocatable :: index_list(:)
 
 character(*) digested_name
 character(*), optional :: file_names(:)
-character(200) fname, full_digested_name
+character(400) fname, full_digested_name
 character(100), allocatable :: name_list(:)
 character(*), parameter :: r_name = 'write_digested_bmad_file'
 character(30) time_stamp
@@ -92,7 +92,7 @@ enddo
 
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
-! Note: Set lat%ramper_slave_bookkeeping_done = False since ramper pointer not in digested file.
+! Note: Set lat%ramper_slave_bookkeeping = stale$ since ramper pointers are not in thedigested file.
 n_custom = -1
 if (allocated(lat%custom)) n_custom = size(lat%custom)
 n_print = -1
@@ -100,7 +100,7 @@ if (allocated(lat%print_str)) n_print = size(lat%print_str)
 write (d_unit) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 write (d_unit) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
-write (d_unit) lat%input_taylor_order, lat%photon_type, .false.
+write (d_unit) lat%input_taylor_order, lat%photon_type, stale$
 write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom, n_print
 
 ! Global custom
@@ -218,7 +218,6 @@ type (ele_struct), pointer :: ele2
 type (wake_struct), pointer :: wake
 type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), pointer :: prt
-type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
 type (gen_grad_map_struct), pointer :: gg_map
@@ -229,6 +228,7 @@ type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
+type (wake_sr_z_long_struct), pointer :: srz
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
@@ -281,7 +281,7 @@ if (associated(wake)) then
   if (write_wake) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
-    if (allocated(wake%sr%z))         ix_sr_z       = size(wake%sr%z)
+    if (allocated(wake%sr%z_long%w))  ix_sr_z       = size(wake%sr%z_long%w)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
@@ -558,15 +558,36 @@ endif
 
 if (associated (ele%photon)) then
   ph => ele%photon
-  write (d_unit) ph%target, ph%material, ph%curvature, ph%grid%active, ph%grid%type, &
-    ph%grid%dr, ph%grid%r0, allocated(ph%grid%pt), ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt), &
-    allocated(ph%reflectivity_table_sigma%angle), allocated(ph%reflectivity_table_pi%angle), allocated(ph%init_energy_prob)
+  write (d_unit) ph%target, ph%material, ph%curvature, &
+    ph%displacement%active, ph%displacement%dr, ph%displacement%r0, allocated(ph%displacement%pt), &
+    ph%h_misalign%active, ph%h_misalign%dr, ph%h_misalign%r0, allocated(ph%h_misalign%pt), &
+    ph%segmented%active, ph%segmented%dr, ph%segmented%r0, allocated(ph%segmented%pt), &
+    ph%pixel%dr, ph%pixel%r0, allocated(ph%pixel%pt), &
+    allocated(ph%init_energy_prob), allocated(ph%reflectivity_table_sigma%angle), allocated(ph%reflectivity_table_pi%angle)
 
-  if (allocated(ph%grid%pt)) then
-    write (d_unit) lbound(ph%grid%pt), ubound(ph%grid%pt)
-    do i = lbound(ph%grid%pt, 1), ubound(ph%grid%pt, 1)
-    do j = lbound(ph%grid%pt, 2), ubound(ph%grid%pt, 2)
-      write (d_unit) ph%grid%pt(i,j)
+  if (allocated(ph%displacement%pt)) then
+    write (d_unit) lbound(ph%displacement%pt), ubound(ph%displacement%pt)
+    do i = lbound(ph%displacement%pt, 1), ubound(ph%displacement%pt, 1)
+    do j = lbound(ph%displacement%pt, 2), ubound(ph%displacement%pt, 2)
+      write (d_unit) ph%displacement%pt(i,j)
+    enddo
+    enddo
+  endif
+
+  if (allocated(ph%segmented%pt)) then
+    write (d_unit) lbound(ph%segmented%pt), ubound(ph%segmented%pt)
+    do i = lbound(ph%segmented%pt, 1), ubound(ph%segmented%pt, 1)
+    do j = lbound(ph%segmented%pt, 2), ubound(ph%segmented%pt, 2)
+      write (d_unit) ph%segmented%pt(i,j)
+    enddo
+    enddo
+  endif
+
+  if (allocated(ph%h_misalign%pt)) then
+    write (d_unit) lbound(ph%h_misalign%pt), ubound(ph%h_misalign%pt)
+    do i = lbound(ph%h_misalign%pt, 1), ubound(ph%h_misalign%pt, 1)
+    do j = lbound(ph%h_misalign%pt, 2), ubound(ph%h_misalign%pt, 2)
+      write (d_unit) ph%h_misalign%pt(i,j)
     enddo
     enddo
   endif
@@ -640,9 +661,10 @@ if (associated(wake) .and. write_wake) then
     write (d_unit) wake%sr%trans(i)
   enddo
 
-  do i = 1, size(wake%sr%z)
-    write (d_unit) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, size(wake%sr%z(i)%w)
-    write (d_unit) wake%sr%z(i)%w
+  srz => wake%sr%z_long
+  write (d_unit) srz%smoothing_sigma, srz%position_dependence, srz%dz, srz%z0, srz%time_based
+  do i = 1, size(srz%w)
+    write (d_unit) srz%w(i), srz%fw(i)
   enddo
 
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale

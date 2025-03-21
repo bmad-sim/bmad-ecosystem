@@ -21,7 +21,7 @@
 
 function tao_evaluate_tune (q_str, q0, delta_input) result (q_val)
 
-use tao_data_and_eval_mod, dummy => tao_evaluate_tune
+use tao_interface, dummy => tao_evaluate_tune
 implicit none
 
 real(rp) q0, q_val

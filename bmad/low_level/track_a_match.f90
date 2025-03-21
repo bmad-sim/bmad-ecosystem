@@ -20,11 +20,12 @@ use equal_mod, except_dummy => track_a_match
 
 implicit none
 
-type (coord_struct) :: orbit
+type (coord_struct) :: orbit, start_orb
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
+type (em_field_struct) field
 
-real(rp) xmat(6,6), vec0(6), z0, beta0, dt
+real(rp) xmat(6,6), vec0(6), z0, beta0, dt, fc, dxp, dyp, om(3), quat(0:3)
 real(rp), optional :: mat6(6,6)
 
 logical, optional :: make_matrix
@@ -33,6 +34,7 @@ logical err, match_orbit
 
 !
 
+start_orb = orbit
 call match_ele_to_mat6 (ele, orbit, xmat, vec0, err, include_delta_time = .false.)
 if (err) then
   ! Since there are cases where this error may be raised many times, do not print an error message.

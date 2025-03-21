@@ -38,14 +38,28 @@ q: quad, lr_wake = {amp_scale = 1, time_scale = 1, freq_spread = 0, self_wake_on
   mode = {3e5, 0.2, 2e-5, 0.4, 3, unpol, 1, 2, 3, 4}, 
   mode = {4e5, 0.3, 3e-5, 0.5, 4, unpol}}, l = 1
 
-l1: line = (p1, p2, p3, rf1, rf2, q)
-l2: line = (z1)
-l2[geometry] = open
-l2[beta_a] = 10
-l2[beta_b] = 10
-l2[e_tot] = 1e9
+l0: line = (p1, p2, p3, rf1, rf2, q)
+l1: line = (z1)
+l1[geometry] = open
+l1[beta_a] = 10
+l1[beta_b] = 10
+l1[e_tot] = 1e9
 
 m: marker, superimpose, ref = p3, offset = 0.1
 
-use, l1, l2
+!--------
+
+zl1: quadrupole, l = 0.3, sr_wake = {
+    z_scale = 2, amp_scale = 1e-8, scale_with_length = T,
+    z_long = {time_based = T, smoothing_sigma = 1e-2/c_light, w = { call::z_long.wake }}}
+
+l2: line = (zl1)
+l2[geometry] = open
+l1[beta_a] = 10
+l1[beta_b] = 10
+l1[e_tot] = 1e9
+
+
+
+use, l0, l1, l2
 

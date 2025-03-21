@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os, sys, shutil, glob, tempfile, time
 from bbu import bbu_main, find_threshold, drscan, phase_scan  #imports bbu package in user python path
 
@@ -8,26 +8,21 @@ from bbu import bbu_main, find_threshold, drscan, phase_scan  #imports bbu packa
 bbu_par = {  \
 # Make sure the correct lattice is called 
 'lat_filename':"'$DIST_BASE_DIR/bsim/bbu/examples/oneturn_lat.bmad'",
-#'bunch_freq': 1.3e9,                # Freq in Hz.
-'bunch_freq': 299792458/0.5/50.0,                # Freq in Hz.
+#'bunch_freq': 1.3e9,               # Freq in Hz.
+'bunch_freq': 299792458/0.5/50.0,   # Freq in Hz.
 'limit_factor': 3,                  # Init_hom_amp * limit_factor = simulation unstable limit  !! Must be >2
 'simulation_turns_max': 30,         # Must be > 10. More turns => more accurate but slower
-'hybridize': '.true.',               # Combine non-HOM elements to speed up simulation?
-'keep_all_lcavities': '.false.',        # Keep cavities without HOM when hybridizing (default = false)?
-'current': 'temp_curr',              # Test current for the Fortran bbu code. DO NOT MODIFY
-#'rel_tol': 1e-2,                     # Final threshold current accuracy. Small => slow
+'hybridize': 'True',                # Combine non-HOM elements to speed up simulation?
+'keep_all_lcavities': 'False',      # Keep cavities without HOM when hybridizing (default = false)?
+'current': 'temp_curr',             # Test current for the Fortran bbu code. DO NOT MODIFY
+#'rel_tol': 1e-2,                   # Final threshold current accuracy. Small => slow
 
-'lat2_filename': "''",               # For DR-scan and phase-scan, LEAVE IT EMPTY
-'ran_seed': 100,                     # Set specific seed if desired (0 uses system clock)
-'ran_gauss_sigma_cut': 3,             # If positive, limit ran_gauss values to within N sigma
-#'current_vary%variation_on': '.true.',      
-'current_vary%variation_on': '.false.',      
-'current_vary%t_ramp_start': 0.0,      
-'current_vary%charge_top': 0.0,      
-'current_vary%charge_bottom': 1.0,     
-'current_vary%dt_plateau': 1,       
-'current_vary%ramps_period': 12,       
-'current_vary%dt_ramp': 0.01,       
+'lat2_filename': "''",              # For DR-scan and phase-scan, LEAVE IT EMPTY
+'ran_seed': 100,                    # Set specific seed if desired (0 uses system clock)
+'ran_gauss_sigma_cut': 3,           # If positive, limit ran_gauss values to within N sigma
+'ramp_on': 'False',
+'ramp_n_start': 0,
+'ramp_pattern': '1.0, 1.0',
 }
 
 ###############################################################################
@@ -35,8 +30,8 @@ bbu_par = {  \
 py_par = {  \
 'exec_path':'$DIST_BASE_DIR/production/bin/bbu',   # Production version
 'temp_dir': '',                # Will be created, LEAVE IT EMPTY
-'threshold_start_curr': 0.1,  # Initial test current for all modes
-'final_rel_tol': 1e-2,                     # Final threshold current accuracy. Small => slow
+'threshold_start_curr': 0.1,   # Initial test current for all modes
+'final_rel_tol': 1e-2,         # Final threshold current accuracy. Small => slow
 
 ############## Parameters for DR_SCAN  mode:   #################################
 

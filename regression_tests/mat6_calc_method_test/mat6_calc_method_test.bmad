@@ -19,7 +19,7 @@ bmad_com[abs_tol_adaptive_tracking] = 1e-11
 ab_multipole1:     ab_multipole, a2 = 1e3, b2 = 1e3, x_offset = 0.02, tilt = 0.1
 ac_kicker1:        ac_kicker, l = 0.4, b1 = 0.01, frequencies = {(1e8, 2.0, 0.5)}, t_offset = 2e-9, scale_multipoles = F
 beambeam1:         beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05, y_offset = 0.05
-crab_cavity1:      crab_cavity, l = 0.2, voltage = 1e3, phi0 = -0.2, rf_frequency = 1e8
+crab_cavity1:      crab_cavity, l = 0.2, voltage = 1e3, phi0 = -0.2, rf_frequency = 1e8, b1_elec = 0.1
 drift1:            drift, l = 4.5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 e_gun1:            e_gun, l = 2, voltage = 0.5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 ecollimator1:      ecollimator, l = 4.5, x_limit = 0.2, y_limit = 0.1, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1, hkick = 0.01, vkick = 0.002
@@ -36,7 +36,8 @@ kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10
 lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 1e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, 
-                            coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, cavity_type = traveling_wave
+                            coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, b2 = 0.002,
+                            cavity_type = traveling_wave
 lcavity1_abs_time: lcavity1  ! Will use absolute time tracking  
 lcavity2_abs_time: lcavity2  ! Will use absolute time tracking  
 lcavity3_abs_time: lcavity3  ! Will use absolute time tracking  
@@ -61,7 +62,7 @@ quadrupole5:       q0, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, 
 
 rcollimator1:      rcollimator, l = 4.5, x_limit = 0.2, y_limit = 0.1, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
 rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, 
-                             x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
+                             x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, b2 = 0.002
 rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
                              tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1, cavity_type = traveling_wave
 sad_mult1:         sad_mult, l = 0.1, fringe_type = full, ks = 0.1, a1 = 2e-3, b2 = 4e1, a10 = 1e20, fq1 = 0.1, fq2 = 0.2
@@ -163,6 +164,6 @@ crystal2: crystal, crystal_type = 'Si(444)', b_param = 1.1, tilt = 0.1, psi_angl
 
 !---------------
 
-use, l1, l2, l3, l4
+use, l1, l2, l3
 
 

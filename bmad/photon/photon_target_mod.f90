@@ -15,7 +15,7 @@ contains
 ! Routine to calculate and store the parmeters needed for photon targeting.
 ! This routine is called by Bmad parsing routines and is not meant for general use.
 !
-! Photon initialization with targeting is done by the routine init_a_photon_from_a_photon_init_ele
+! Photon initialization with targeting is done by the routine init_photon_from_a_photon_init_ele
 ! Which is called by init_coord. 
 !
 ! Input:
@@ -31,12 +31,12 @@ subroutine photon_target_setup (ele)
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ap_ele
 type (photon_target_struct), pointer :: target
-type (surface_grid_struct), pointer :: gr
+type (photon_element_struct), pointer :: ph
 type (branch_struct), pointer :: branch
 
 real(rp), pointer :: val(:)
 real(rp) z, x_lim(2), y_lim(2)
-logical :: is_bending_element, follow_fork, grid_defined, err_flag
+logical :: is_bending_element, follow_fork, err_flag
 character(*), parameter :: r_name = 'photon_target_setup'
 
 ! Init
@@ -81,23 +81,41 @@ enddo
 ! Get aperture corners...
 ! Target info is stored in ele%photon%target so allocate ele%photon if needed.
 
-grid_defined = .false.
-if (associated(ap_ele%photon)) then
-  gr => ap_ele%photon%grid
-  grid_defined = (gr%dr(1) /= 0 .or. gr%dr(2) /= 0)
-endif
-
-! If a grid has been defined use that as the target
-
 val => ap_ele%value
+x_lim = [-val(x1_limit$), val(x2_limit$)]
+y_lim = [-val(y1_limit$), val(y2_limit$)]
 
-if (grid_defined) then
-  x_lim = gr%r0(1) + gr%dr(1) * [lbound(gr%pt,1)-0.5_rp, ubound(gr%pt,1)+0.5_rp]
-  y_lim = gr%r0(2) + gr%dr(2) * [lbound(gr%pt,2)-0.5_rp, ubound(gr%pt,2)+0.5_rp]
-else
-  x_lim = [-val(x1_limit$), val(x2_limit$)]
-  y_lim = [-val(y1_limit$), val(y2_limit$)]
+if (associated(ap_ele%photon)) then
+  ph => ap_ele%photon
+  if (allocated(ph%displacement%pt)) then
+    x_lim(1) = min(x_lim(1), ph%displacement%r0(1) + ph%displacement%dr(1) * lbound(ph%displacement%pt,1)-0.5_rp)
+    x_lim(2) = max(x_lim(2), ph%displacement%r0(1) + ph%displacement%dr(1) * ubound(ph%displacement%pt,1)+0.5_rp)
+    y_lim(1) = min(y_lim(1), ph%displacement%r0(2) + ph%displacement%dr(2) * lbound(ph%displacement%pt,2)-0.5_rp)
+    y_lim(2) = max(y_lim(2), ph%displacement%r0(2) + ph%displacement%dr(2) * ubound(ph%displacement%pt,2)+0.5_rp)
+  endif
 endif
+
+if (associated(ap_ele%photon)) then
+  ph => ap_ele%photon
+  if (allocated(ph%h_misalign%pt)) then
+    x_lim(1) = min(x_lim(1), ph%h_misalign%r0(1) + ph%h_misalign%dr(1) * lbound(ph%h_misalign%pt,1)-0.5_rp)
+    x_lim(2) = max(x_lim(2), ph%h_misalign%r0(1) + ph%h_misalign%dr(1) * ubound(ph%h_misalign%pt,1)+0.5_rp)
+    y_lim(1) = min(y_lim(1), ph%h_misalign%r0(2) + ph%h_misalign%dr(2) * lbound(ph%h_misalign%pt,2)-0.5_rp)
+    y_lim(2) = max(y_lim(2), ph%h_misalign%r0(2) + ph%h_misalign%dr(2) * ubound(ph%h_misalign%pt,2)+0.5_rp)
+  endif
+endif
+
+if (associated(ap_ele%photon)) then
+  ph => ap_ele%photon
+  if (allocated(ph%segmented%pt)) then
+    x_lim(1) = min(x_lim(1), ph%segmented%r0(1) + ph%segmented%dr(1) * lbound(ph%segmented%pt,1)-0.5_rp)
+    x_lim(2) = max(x_lim(2), ph%segmented%r0(1) + ph%segmented%dr(1) * ubound(ph%segmented%pt,1)+0.5_rp)
+    y_lim(1) = min(y_lim(1), ph%segmented%r0(2) + ph%segmented%dr(2) * lbound(ph%segmented%pt,2)-0.5_rp)
+    y_lim(2) = max(y_lim(2), ph%segmented%r0(2) + ph%segmented%dr(2) * ubound(ph%segmented%pt,2)+0.5_rp)
+  endif
+endif
+
+! 
 
 target%type = rectangular$
 target%ele_loc = lat_ele_loc_struct(ap_ele%ix_ele, ap_ele%ix_branch)
@@ -348,83 +366,5 @@ orb_out%vec(4) = atan2(orb_out%vec(4), orb_out%vec(6))
 orb_out%vec(6) = orb_out%p0c - ele%value(E_tot$)
 
 end function to_photon_angle_coords
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!+
-! Subroutine to_surface_coords (lab_orbit, ele, surface_orbit)
-!
-! Routine to convert lab_orbit laboratory coordinates to surface body coordinates.
-!
-! Input:
-!   lab_orbit     -- coord_struct: Photon position in laboratory coords.
-!   ele           -- ele_struct: Detector element.
-!
-! Output:
-!   surface_orbit -- coord_struct: Photon position in element body coordinates.
-!     %state      -- Set to lost$ if orbit outside of surface (can happen with sperical surface).
-!-
-
-subroutine to_surface_coords (lab_orbit, ele, surface_orbit)
-
-use super_recipes_mod, only: super_qromb
-
-type (coord_struct) lab_orbit, surface_orbit
-type (ele_struct) ele
-
-real(rp) w_surf(3,3), z
-integer idim
-logical err_flag
-
-!
-
-surface_orbit = lab_orbit
-call offset_photon (ele, surface_orbit, set$)  ! Go to coordinates of the detector
-call track_to_surface (ele, surface_orbit, ele%branch%param, w_surf)
-
-if (.not. has_curvature(ele%photon)) return
-
-z = z_at_surface(ele, surface_orbit%vec(1), surface_orbit%vec(3), err_flag)
-if (err_flag) then
-  surface_orbit%state = lost$
-  return
-endif
-
-!
-
-idim = 1
-surface_orbit%vec(1) = super_qromb(qfunc, 0.0_rp, surface_orbit%vec(1), 1e-6_rp, 1e-8_rp, 4, err_flag)
-
-idim = 2
-surface_orbit%vec(3) = super_qromb(qfunc, 0.0_rp, surface_orbit%vec(3), 1e-6_rp, 1e-8_rp, 4, err_flag)
-
-surface_orbit%vec(5) = z_at_surface(ele, surface_orbit%vec(1), surface_orbit%vec(3), err_flag, .true.)
-
-!------------------------------------------------------
-contains
-
-function qfunc (x) result (value)
-
-real(rp), intent(in) :: x(:)
-real(rp) :: value(size(x))
-real(rp) z, xy(2), dz_dxy(2)
-logical err_flag
-
-integer i
-
-!
-
-xy = 0
-
-do i = 1, size(x)
-  xy(idim) = x(i)
-  z = z_at_surface(ele, xy(1), xy(2), err_flag, .true., dz_dxy)
-  value(i) = sqrt(1.0_rp + dz_dxy(idim)**2)
-enddo
-
-end function qfunc
-
-end subroutine to_surface_coords
 
 end module

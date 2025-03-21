@@ -248,7 +248,7 @@ module precision_constants
   !  lielib_print(17)=1  print magnets with excessive cutting
   integer , target :: old_integrator =1  ! before making spin high order
   character*255 :: preffile="pref.txt"
-   logical :: newtpsa=.false., assume_da_map = .true.,previous_newtpsa=.false.,use_np=.true.,newspin=.true.
+   logical :: newtpsa=.false., assume_da_map = .true.,previous_newtpsa=.false.,use_np=.true. 
    integer :: with_para=2
    integer :: nphere=0
   integer(4), pointer :: inds(:,:),ind1(:),ind2(:) => null()

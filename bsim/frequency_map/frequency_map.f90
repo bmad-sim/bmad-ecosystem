@@ -61,6 +61,7 @@ character(2) grid_type ! 'xy' or 'rt' for rectangular or polar
 
 logical :: keep_trying = .true., write_orbit = .false., z_cut = .true.
 logical ok, aperture_limits, err, error, use_phase_trombone
+logical fopened
 
 namelist / parameters /lat_file, out_file_prefix, grid_type, &
      x0, y0, e0, x1, y1, e1, dx, dy, de, qx, qy, qz, qtune_mask, use_phase_trombone, &
@@ -258,7 +259,11 @@ do i = 1, Npts
   else
      WRITE(out_file,'(2A,I6.6,A)') trim(out_file_prefix),".e",int(start_coord%vec(6)*1000),".fm"
   endif
-  open(unit=13, file=out_file)
+  inquire(file=out_file, opened=fopened)
+  if(.not. fopened) then
+    open(unit=13, file=out_file)
+    write(13,'(12a14)') '# x', 'y', 'pz', 'Qx0', 'Qy0', 'Qz0', 'Qx1', 'Qy1', 'Qz1', 'dQx', 'dQy', 'dQz'
+  endif
   write(*,'(a,6es10.3)') "Offset from closed orbit: ", start_coord%vec(:)
   orb(0)%vec = co(0)%vec + start_coord%vec
 

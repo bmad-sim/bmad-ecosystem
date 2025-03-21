@@ -9,6 +9,9 @@ module pointer_lattice
   type(layout),pointer :: my_ering => null(), my_fring => null()
   type(internal_state),pointer :: my_estate => null()
   type(c_universal_taylor), pointer :: my_euni_1(:) => null(),my_euni_2(:) => null()
+real(dp), pointer ::  my_evr(:,:)=> null(),my_evo(:,:)=> null(),my_evi1(:)=> null(),my_evi2(:) => null(), my_emr=> null()
+real(dp), pointer ::  my_inv=> null(),my_invr=> null()
+logical :: plot_res_activate =.true.
   type(probe), pointer :: my_eprobe => null()
   type(c_ray) my_eray
 !  type(internal_state),pointer :: my_old_state
@@ -65,6 +68,9 @@ integer ,target:: gino_START = 1,gino_np=0,gino_FIN=1,gino_ORDER=1
 real(dp) n_ang(3),lm(2)
 character(vp)snake
 integer isnake,nlm,no_pol
+  real(dp) egino,mugino
+  integer omgino
+logical :: use_k11=.false.
 
   INTERFACE SCRIPT
      MODULE PROCEDURE read_ptc_command
@@ -4514,7 +4520,7 @@ call kill(ft)
 end subroutine symplectify_for_oleksii
 
 
-subroutine phase_advance
+subroutine phase_advance(mf)
 implicit none
 type(fibre),pointer:: f
 type(probe) xs0,xs1
@@ -4523,8 +4529,12 @@ type(c_damap) id
 type(c_normal_form) n
 type(integration_node), pointer :: t
 real(dp) phase(3), spin_tune(2),damping(3)
-integer i
+integer i,mff
+integer,optional :: mf
+
 use_quaternion=.true.
+mff=0
+if(present(mf)) mff=mf
 
 f=>my_ering%start
 do i=1,my_start-1
@@ -4557,9 +4567,30 @@ xs=xs0+id
 id=xs
 
 call c_normal(id,n,dospin=my_estate%spin)
- 
+
+if(mff/=0) then
+ write(mff,*) " Linear A from c_normal "
+ call print(n%atot,mff)
+endif
+
+
+
+
 call c_fast_canonise(n%atot,n%atot, dospin=my_estate%spin)
- 
+
+if(mff/=0) then
+ write(mff,*) " Linear A canonised "
+ call print(n%atot,mff)
+ write(mff,*) " end of Info from phase_advance "
+endif
+
+if(mff/=0) then
+ write(mff,*) " Info from map :tunes, damping, spin "
+ write(mff,*) n%tune(1:c_%nd)
+ write(mff,*) n%damping(1:c_%nd)
+ write(mff,*) n%spin_tune
+ write(mff,*) " end of Info from map "
+endif
 phase=0
 spin_tune=0
 damping=0
@@ -4577,7 +4608,7 @@ n%atot=xs
  f%tm%lf%symplectic=.not.my_estate%radiation
  
   call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
- 
+
   call compute_lattice_functions(n%atot,f%tm%lf)
  f%tm%lf%phase=phase
  f%tm%lf%damping=damping
@@ -4591,6 +4622,8 @@ n%atot=xs
  f%next%t1%lf%symplectic=.not.my_estate%radiation
   call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
   call compute_lattice_functions(n%atot,f%next%t1%lf)
+ 
+
  f%next%t1%lf%phase=phase
  f%next%t1%lf%damping=damping
  f%next%t1%lf%spin=spin_tune
@@ -4620,8 +4653,9 @@ write(6,*)  " Phase advance and fractional"
 write(6,format3) phase(1:c_%nd)
 write(6,format3) n%tune(1:c_%nd)
  
-write(6,*)  " damping advance "
+write(6,*)  " damping advance and one-turn map damping "
 write(6,format3) damping
+write(6,format3) n%damping(1:c_%nd)
 write(6,*)  " spin advance and chromaticity "
 write(6,format2) spin_tune
 write(6,format1) n%spin_tune
@@ -4636,6 +4670,133 @@ call kill(n)
 
 end subroutine phase_advance
 
+subroutine phase_advance_node(mf)
+implicit none
+type(fibre),pointer:: f
+type(probe) xs0,xs1
+type(probe_8) xs
+type(c_damap) id
+type(c_normal_form) n
+type(integration_node), pointer :: t
+real(dp) phase(3), spin_tune(2),damping(3)
+integer i,mff
+integer,optional :: mf
+
+use_quaternion=.true.
+mff=0
+if(present(mf)) mff=mf
+
+f=>my_ering%start
+do i=1,my_start-1
+f=>f%next
+enddo
+ 
+write(6,*) f%mag%name
+my_fix=0
+
+my_fix(ndpt_bmad+5)=my_delta
+
+call find_orbit_x(my_fix,my_estate,1.e-8_dp,fibre1=f) 
+
+if(.not.check_stable) then
+  write(6,*) "Could not find closed orbit "
+  write(6,*) " No calculation done "
+ return
+endif
+
+call init(my_estate,1,0)
+
+call alloc(id)
+call alloc(xs)
+call alloc(n)
+
+xs0=my_fix
+id=1
+xs=xs0+id
+ call propagate(xs,my_estate,fibre1=f)
+id=xs
+
+call c_normal(id,n,dospin=my_estate%spin)
+
+if(mff/=0) then
+ write(mff,*) " Linear A from c_normal "
+ call print(n%atot,mff)
+endif
+
+
+
+
+call c_fast_canonise(n%atot,n%atot, dospin=my_estate%spin)
+
+if(mff/=0) then
+ write(mff,*) " Linear A canonised "
+ call print(n%atot,mff)
+ write(mff,*) " end of Info from phase_advance "
+endif
+
+if(mff/=0) then
+ write(mff,*) " Info from map :tunes, damping, spin,quaternion_angle/pi"
+ write(mff,*) n%tune(1:c_%nd)
+ write(mff,*) n%damping(1:c_%nd)
+ write(mff,*) n%spin_tune,n%quaternion_angle/pi
+ write(mff,*) " end of Info from map "
+endif
+phase=0
+spin_tune=0
+damping=0
+t=>f%t1
+
+xs=xs0+n%atot
+
+do i=1,my_ering%t%n
+
+ 
+ call propagate(xs,my_estate,node1=t,node2=t%next)
+xs0=xs
+n%atot=xs
+
+ f%tm%lf%symplectic=.not.my_estate%radiation
+ 
+call c_fast_canonise(n%atot,n%atot,phase=phase,damping=damping,spin_tune=spin_tune,dospin=my_estate%spin)
+ 
+xs=xs0+n%atot
+t=>t%next
+
+  call compute_lattice_functions(n%atot,t%lf)
+ t%lf%phase=phase
+ t%lf%damping=damping
+ t%lf%spin=spin_tune
+ t%lf%fix=xs0%x
+ 
+if(i==my_ering%t%n) then
+ t%lf%phase=0
+ t%lf%damping=0
+ t%lf%spin=0
+endif
+
+
+enddo
+
+write(6,*)  "   "
+write(6,*)  " Phase advance and fractional"
+write(6,format3) phase(1:c_%nd)
+write(6,format3) n%tune(1:c_%nd)
+ 
+write(6,*)  " damping advance "
+write(6,format3) damping
+write(6,*)  " spin advance and chromaticity "
+write(6,format2) spin_tune
+write(6,format1) n%spin_tune
+ write(6,*)  " Closed orbit before and after "
+ write(6,format6)  my_fix
+ write(6,format6)  xs0%x
+write(6,*)  "   "
+
+call kill(id)
+call kill(xs)
+call kill(n)
+
+end subroutine phase_advance_node
 
 subroutine alloc_modulation(p,an,bn,DC_ac,A_ac,theta_ac, D_ac)
 implicit none
@@ -4769,6 +4930,64 @@ type(fibre),target :: p
 end subroutine kill_modulation
 
 
+function k11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,k11 
+integer om
+ 
+
+ 
+     k11=  (4*e**4*mu**2*sin(om*x)**4+16*e**3*mu**2*sin(om*x)**3+(24*e**2*mu**2 &
+-2*e**2*om**2)*sin(om*x)**2+(16*e*mu**2-2*e*om**2)*sin(om*x)- &
+         3*e**2*om**2*cos(om*x)**2+4*mu**2)/(4*e**2*sin(om*x)**2+8*e*sin(om*x)+4)
+        
+end function k11
+
+
+function bet11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,bet11 
+integer om
+ 
+
+ 
+     bet11= 1.0_dp/(mu*(e*sin(om*x)+1))
+        
+end function bet11
+
+function alp11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,alp11 
+integer om
+ 
+
+ 
+     alp11=       ((e*om*cos(om*x))/(mu*(e*sin(om*x)+1.0_dp)**2))/2.0_dp
+        
+end function alp11
+
+function gam11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,gam11 
+integer om
+ 
+
+ 
+gam11=mu*(e*sin(om*x)+1)*(((e**2*om**2*cos(om*x)**2)/(mu**2*(e*sin(om*x)+1)**4)) &
+/4.0_dp+1.0_dp)
+        
+end function gam11
+
+function pha11(mu,om,e,x)
+implicit none
+real(dp) mu,e,x,pha11 
+integer om
+ 
+
+ 
+pha11=mu*(x-(e*cos(om*x))/om)+(e*mu)/om
+        
+end function pha11
 
 end module pointer_lattice
 

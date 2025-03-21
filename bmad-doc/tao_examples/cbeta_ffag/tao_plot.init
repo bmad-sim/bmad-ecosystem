@@ -2895,34 +2895,34 @@ curve(2)%legend_text = 'Y'
   graph%y%major_div = 4
 
   curve(1)%data_source = 'var_array'
-  curve(1)%data_type = 'fa.correctors.x'
+  curve(1)%data_type = 'fa_correctors_x'
   curve(1)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(1)%draw_symbols = T
 
   curve(2)%data_source = 'var_array'
-  curve(2)%data_type = 'fa.correctors.y'
+  curve(2)%data_type = 'fa_correctors_y'
   curve(2)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(2)%draw_symbols = T
   curve(2)%line%color = "red"
   
   curve(3)%data_source = 'var_array'
-  curve(3)%data_type = 'za.correctors.x'
+  curve(3)%data_type = 'za_correctors_x'
   curve(3)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(3)%draw_symbols = T
 
   curve(4)%data_source = 'var_array'
-  curve(4)%data_type = 'za.correctors.y'
+  curve(4)%data_type = 'za_correctors_y'
   curve(4)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(4)%draw_symbols = T
   curve(4)%line%color = "red"
   
   curve(5)%data_source = 'var_array'
-  curve(5)%data_type = 'quad.correctors.x'
+  curve(5)%data_type = 'quad_correctors_x'
   curve(5)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(5)%draw_symbols = T
 
   curve(6)%data_source = 'var_array'
-  curve(6)%data_type = 'quad.correctors.y'
+  curve(6)%data_type = 'quad_correctors_y'
   curve(6)%y_axis_scale_factor = 1e6  ! Gauss*cm
   curve(6)%draw_symbols = T
   curve(6)%line%color = "red"

@@ -26,7 +26,7 @@ use bmad_interface, dummy4 => track1_bmad_photon
 
 implicit none
 
-type (coord_struct) :: orbit, start_orb
+type (coord_struct) :: orbit, start_orb, orb2
 type (ele_struct) :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
@@ -125,6 +125,18 @@ case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
 
   orbit%vec(5) = 0
 
+  if (bmad_com%debug) then
+    print '(a, 6es20.12)', 'At element: ' // ele_full_name(ele)
+    if (ele%key == detector$) then
+      call to_surface_coords (orbit, ele, orb2)
+      print '(a, 6es20.12)', 'Surface orbit:'
+      print '(a, 6es20.12)', '  Photon energy:     ', orb2%p0c
+      print '(a, 6es20.12)', '  orbit (x, y, z):   ', orb2%vec(1:5:2)
+      print '(a, 6es20.12)', '  orbit (Vx, Vy, Vz):', orb2%vec(2:6:2)
+      print '(a, 6es20.12)', '  field:             ', orb2%field
+    endif
+  endif
+
 !-----------------------------------------------
 ! Mask                                                                                                                         
 
@@ -193,7 +205,7 @@ case (sample$)
 
 case (taylor$)
 
-  call track1_taylor (orbit, ele, param)
+  call track1_taylor (orbit, ele)
   orbit%t = start_orb%t + (ele%value(l$) + start_orb%vec(5) - orbit%vec(5)) / (c_light)
   orbit%s = ele%s
 

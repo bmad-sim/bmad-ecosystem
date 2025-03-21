@@ -1,0 +1,10 @@
+
+
+
+S1.CoV_50mm: vkicker, L = 0.05 
+
+S1.CoV01: S1.CoV_50mm, superimpose, ref = mS1dip02, ele_origin =end, ref_origin = beginning, offset = -0.035
+S1.CoV02: S1.CoV_50mm, superimpose, ref = mS1dip03, ele_origin =end, ref_origin = beginning, offset = -0.035
+
+S1.CoV03: S1.CoV_50mm, superimpose, ref = mS1dip06, ele_origin =beginning, ref_origin = end, offset =  0.035
+S1.CoV04: S1.CoV_50mm, superimpose, ref = mS1dip07, ele_origin =beginning, ref_origin = end, offset =  0.035

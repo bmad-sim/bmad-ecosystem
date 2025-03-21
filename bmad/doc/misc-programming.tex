@@ -14,7 +14,7 @@ routines are available in the \vn{/bmad/custom} directory and are discussed in d
 
 To enable \bmad to be able to call customized code, \vn{function pointers} are defined, one for each
 custom or hook routine. At certain places in the \bmad code, the appropriate function pointer will
-be checked. If the funtion pointer is associated with a routine, that routine will be called. By
+be checked. If the function pointer is associated with a routine, that routine will be called. By
 default, the function pointers are not associated with any functions and the only way there will be
 an association by user code modification.
 
@@ -70,7 +70,7 @@ Note: Custom and hook entry points are added to \bmad on an as-needed basis. If 
 is not met by the existing set of entry points, please contact a \bmad maintainer.
 
 Note: The custom and hook routines in \vn{/bmad/custom/} are not compiled with the \bmad library. Their
-only purpose is to surve as prototypes for code development.
+only purpose is to serve as prototypes for code development.
 
 %-----------------------------------------------------------------------------
 \section{Custom Calculations}
@@ -263,6 +263,16 @@ The routine \vn{track1_preprocess} has an additional feature in that it has an a
 called and \vn{track1_custom} will be handling radiation damping and excitation effects.
 
 The \vn{track1_wake_hook} can be used to apply custom wakes.
+
+%-----------------------------------------------------------------------------
+\section{Nonstandard Init_Custom Use}
+
+For back compatibility reasons, a nonstandard method for using \vn{init_custom} is supported.
+This method involves not bothering to set the \vn{init_custom_ptr} (\sref{s:custom.hook})
+and simply including a custom \vn{init_custom} routine that is included in the list
+of routines to link to. The problem with this method is that it is not guaranteed to work
+on all platforms. In particular, this method is known to fail with MacOS and the \vn{gcc}
+compiler. Due to this, this method is discouraged. 
 
 %-----------------------------------------------------------------------------
 \section{Physical and Mathematical Constants}

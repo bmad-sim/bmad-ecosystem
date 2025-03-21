@@ -37,7 +37,7 @@ type (ele_struct), pointer :: ele
 type (ele_struct), target :: drift_ele
 type (branch_struct), pointer :: branch
 
-real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), map0(4), m56
+real(rp) eta_vec(5), t0_5(5,5), mat6(6,6), map0(5), m56
 
 integer, optional, intent(in) :: ix_branch
 integer, optional, intent(out) ::status
@@ -49,9 +49,9 @@ logical saved_state
 
 character(200), allocatable :: lines(:)
 
-! init one turn. T0 is the transverse part of the matrix
+! Init one turn. T0 is the transverse part of the matrix
 
-call mat_make_unit (t0_4)       ! form unit matrix
+call mat_make_unit (t0_5)       ! form unit matrix
 eta_vec = 0
 map0 = 0
 m56 = 0
@@ -61,7 +61,7 @@ branch => lat%branch(integer_option(0, ix_branch))
 
 ! Propagate the transfer map around branch. 
 ! Since the RF is taken to be off we use a trick so we only have to multiply
-! 4x4 matrices.
+! 5x5 matrices.
 
 if (debug) then
   iu = lunget()
@@ -80,23 +80,22 @@ do n = 1, branch%n_ele_track
     ele => drift_ele
   endif
 
-  m56 = m56 + ele%mat6(5,6) + dot_product(ele%mat6(5,1:4), eta_vec)
-  eta_vec = matmul (ele%mat6(1:4,1:4), eta_vec) + ele%mat6(1:4,6)
-  map0 = matmul (ele%mat6(1:4,1:4), map0) + ele%vec0(1:4)
-  t0_4 = matmul (ele%mat6(1:4,1:4), t0_4)
+  eta_vec = matmul (ele%mat6(1:5,1:5), eta_vec) + ele%mat6(1:5,6)
+  map0 = matmul (ele%mat6(1:5,1:5), map0) + ele%vec0(1:5)
+  t0_5 = matmul (ele%mat6(1:5,1:5), t0_5)
   if (debug) then
     write (iu, *) '!------------------------------------', n
     call type_ele (ele, .false., 0, .false., 0, lines = lines, n_lines = n_lines)
     do i = 1, n_lines
       write (iu, '(a)') trim(lines(i))
     enddo
-    write (iu, *) 'Symplectic Check:', mat_symp_error(t0_4)
-    do i = 1, 4
-      write (iu, '(5x, 4f14.8, 6x, 4f14.8)') t0_4(i,:), ele%mat6(i,1:4)
+    write (iu, *) 'Symplectic Check:', mat_symp_error(t0_5(1:4,1:4))
+    do i = 1, 5
+      write (iu, '(5x, 5f14.8, 6x, 5f14.8)') t0_5(i,:), ele%mat6(i,1:5)
     enddo
     write (iu, '(a, 6es18.10)') 'Map_ref_orb:', ele%map_ref_orb_in%vec
-    write (iu, '(a, 4es20.12)') 'Eta: ', eta_vec
-    write (iu, '(a, 4es20.12)') 'Map0:', map0
+    write (iu, '(a, 5es20.12)') 'Eta: ', eta_vec
+    write (iu, '(a, 5es20.12)') 'Map0:', map0
   endif
 enddo
 
@@ -105,10 +104,8 @@ if (debug) close (iu)
 ! Put 1-turn matrix into branch%param%t1_no_RF
 
 call mat_make_unit (mat6)
-mat6(1:4,1:4) = t0_4
-
-call mat6_dispersion (eta_vec, mat6) ! dispersion to %mat6
-mat6(5,6) = m56
+mat6(1:5,1:5) = t0_5
+mat6(1:5, 6) = eta_vec
 branch%param%t1_no_RF = mat6
 
 ! Compute twiss parameters
@@ -124,46 +121,5 @@ lat%b%stable = (stat == ok$)
 
 branch%ele(0)%a%phi = 0
 branch%ele(0)%b%phi = 0
-
-contains
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine mat6_dispersion (m_i6, mat6)
-!
-! Subroutine to set the mat6(5, 1:4) terms given the vector mat6(1:4, 6)
-! which is a measure of the dispersion.
-!
-! Input:
-!   m_i6(4)   -- Real(rp): mat6(1:4, 6) components.
-!   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
-!
-! Output:
-!   mat6(6,6) -- Real(rp): mat6(5, 1:4) components set. 
-!-
-
-subroutine mat6_dispersion (m_i6, mat6)
-
-implicit none
-
-real(rp), intent(inout) :: mat6(:,:)
-real(rp), intent(in) :: m_i6(:)
-
-real(rp) vec4(4)
-
-!
-
-mat6(1:4, 6) = m_i6(1:4)
-
-vec4(1) = -m_i6(2)
-vec4(2) =  m_i6(1)
-vec4(3) = -m_i6(4)
-vec4(4) =  m_i6(3)
-
-mat6(5,1:4) = matmul (vec4, mat6(1:4,1:4))
-
-end subroutine mat6_dispersion
 
 end subroutine

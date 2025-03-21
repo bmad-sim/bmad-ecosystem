@@ -115,48 +115,48 @@ encompassed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
 
 Each datum has a number of components associated with it:
 \begin{example}
-  data_type        ! Character: Type of data: "orbit.x", etc.
-  ele_name         ! Character: Name of lattice element where datum is evaluated at.
-  ele_start_name   ! Character: Name of starting lattice element in a range.
-  ele_ref_name     ! Character: Name of reference lattice element.
-  merit_type       ! Character: Type of constraint: "target", "max", etc.
-  data_source      ! Character: How the datum is calculated. "lat", "beam", etc.
-  ix_ele\Ss          ! Integer: Index of "ele" in the lattice element list.
-  ix_branch\Ss        ! Integer: Lattice branch index.
-  ix_ele_start\Ss     ! Integer: Index of "ele_start" in the lattice element list.
-  ix_ele_ref\Ss       ! Integer: Index of "ele_ref" in the lattice element list.
-  ix_ele_merit\Ss     ! Integer: Lattice index where merit is evaluated.
-  ix_d1\Ss            ! Integer: Index number in d1_data structure
-  ix_data\Ss          ! Integer: Index in the global data array
-  ix_dModel\Ss        ! Integer: Row number in the dModel_dVar derivative matrix.
-  ix_bunch         ! Integer: Bunch number to get the data from.
-  eval_point       ! Character/integer: Evaluation point relative to the lattice element.
-  meas             ! Real: Measured datum value. Set by the User.
-  ref              ! Real: Measured datum value from the reference data set. Set by the User.
-  model\Ss            ! Real: Datum value as calculated from the model.
-  design\Ss           ! Real: What the datum value is in the design lattice.
-  old\Ss              ! Real: Used by \tao to save the model at some previous time.
-  base\Ss             ! Real: The value as calculated from the base model.
-  fit\Dd              ! Real: This value is not used by \tao.
-  invalid          ! Real: The value used for delta_merit if good_model = False.
-  error_rms        ! Real: Measurement error. Used for plotting.
-  delta_merit\Ss      ! Real: Diff used to calculate the merit function term.
-  weight           ! Real: Weight for the merit function term
-  merit\Ss            ! Real: Merit function term value: weight * delta^2
-  s\Ss                ! Real: longitudinal position of ele.
-  s_offset         ! Real: Offset of the evaluation point.
-  spin_axis        ! Structure: Used for Spin G-matrix calculations.
-  exists\Ss           ! Logical: Does the datum exist?
-  good_model\Ss       ! Logical: Does the model  component contain a valid value?
-  good_design\Ss      ! Logical: Does the design component contain a valid value?
-  good_base\Ss        ! Logical: Does the base   component contain a valid value?
-  good_meas        ! Logical: Does the meas   component contain a valid value?
-  good_ref         ! Logical: Does the ref    component contain a valid value?
-  good_user        ! Logical: Does the user want this datum used in optimization?
-  good_opt\Dd         ! Logical: Similar to good_user. Can be used in Tao extensions.
-  good_plot\Dd        ! Logical: Is datum within the horizontal extent of the plot?
-  useit_plot\Ss       ! Logical: Is this datum to be used in plotting?
-  useit_opt\Ss        ! Logical: Is this datum to be used for optimization?
+  data_type       ! Character: Type of data: "orbit.x", etc.
+  ele_name        ! Character: Name of lattice element where datum is evaluated at.
+  ele_start_name  ! Character: Name of starting lattice element in a range.
+  ele_ref_name    ! Character: Name of reference lattice element.
+  merit_type      ! Character: Type of constraint: "target", "max", etc.
+  data_source     ! Character: How the datum is calculated. "lat", "beam", etc.
+  ix_ele\Ss         ! Integer: Index of "ele" in the lattice element list.
+  ix_branch\Ss      ! Integer: Lattice branch index.
+  ix_ele_start\Ss   ! Integer: Index of "ele_start" in the lattice element list.
+  ix_ele_ref\Ss     ! Integer: Index of "ele_ref" in the lattice element list.
+  ix_ele_merit\Ss   ! Integer: Lattice index where merit is evaluated.
+  ix_d1\Ss          ! Integer: Index number in d1_data structure
+  ix_data\Ss        ! Integer: Index in the global data array
+  ix_dModel\Ss      ! Integer: Row number in the dModel_dVar derivative matrix.
+  ix_bunch        ! Integer: Bunch number to get the data from.
+  eval_point      ! Character/integer: Evaluation point relative to the lattice element.
+  meas            ! Real: User set measured datum value.
+  ref             ! Real: User set measured datum value from the reference data set.
+  model\Ss          ! Real: Datum value as calculated from the model.
+  design\Ss         ! Real: What the datum value is in the design lattice.
+  old\Ss            ! Real: Used by \tao to save the model at some previous time.
+  base\Ss           ! Real: The value as calculated from the base model.
+  fit\Dd            ! Real: This value is not used by \tao.
+  invalid         ! Real: The value used for delta_merit if good_model = False.
+  error_rms       ! Real: Measurement error. Used for plotting.
+  delta_merit\Ss    ! Real: Diff used to calculate the merit function term.
+  weight          ! Real: Weight for the merit function term
+  merit\Ss          ! Real: Merit function term value: weight * delta^2
+  s\Ss              ! Real: longitudinal position of ele.
+  s_offset        ! Real: Offset of the evaluation point.
+  spin_axis       ! Structure: Used for Spin G-matrix calculations.
+  exists\Ss         ! Logical: Does the datum exist?
+  good_model\Ss     ! Logical: Does the model  component contain a valid value?
+  good_design\Ss    ! Logical: Does the design component contain a valid value?
+  good_base\Ss      ! Logical: Does the base   component contain a valid value?
+  good_meas       ! Logical: Does the meas   component contain a valid value?
+  good_ref        ! Logical: Does the ref    component contain a valid value?
+  good_user       ! Logical: Does the user want this datum used in optimization?
+  good_opt\Dd       ! Logical: Similar to good_user. Can be used in Tao extensions.
+  good_plot\Dd      ! Logical: Is datum within the horizontal extent of the plot?
+  useit_plot\Ss     ! Logical: Is this datum to be used in plotting?
+  useit_opt\Ss      ! Logical: Is this datum to be used for optimization?
 \end{example}
 \Ss Set by \tao. \Dd Used by \tao extensions. Not user settable.
 
@@ -431,8 +431,8 @@ a datum. This, combined with the setting \vn{exists}, \vn{good_meas}, \vn{good_r
 \vn{good_opt} determine the setting of \vn{useit_opt} which is the component that determines if the
 datum is used in the computation of the merit function. The settings of everything but
 \vn{good_user} is determined by \tao. The value of \vn{good_user} for a datum can be set in an
-initialization file (\sref{s:init.data}) or on the command line using the \vn{use}, (\sref{s:use}) \vn{veto} (\sref{s:veto}), or
-\vn{restore} (\sref{s:restore}) commands.
+initialization file (\sref{s:init.data}) or on the command line using the \vn{use}, (\sref{s:use})
+\vn{veto} (\sref{s:veto}), or \vn{restore} (\sref{s:restore}) commands.
 
 The \vn{exists} component is set by \tao to True if the datum exists and False otherwise. A datum
 may not exist if the type of datum requires the designation of an associated element but the
@@ -667,13 +667,13 @@ describes in detail these data types.
   \pref{alpha}            & alpha.a, .b                         & Normal-Mode alpha function                & lat         & Yes \\ \hline 
   \pref{apparent.emit}    & apparent_emit.x, .y                 & Apparent emittance                        & lat, beam   & No  \\ \hline
   \pref{beta.a}           & beta.a, .b, .c                      & Normal-mode beta function                 & lat, beam   & Yes \\ \hline 
-  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & lat, beam   & No  \\ \hline 
+  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & beam        & No  \\ \hline 
   \pref{bpm.cbar}         & \begin{tabular}{@{}l}   
                               bpm_cbar.22a, .12a, \\
                               \hspace{4em} .11b, .12b
                             \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
   \pref{bpm.eta}          & bpm_eta.x, .y                       & Measured dispersion                       & lat         & Yes \\ \hline
-  \pref{bpm.orbit}        & bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
+  \pref{bpm.orbit}        & bpm_orbit.x, .y                     & Measured orbit                            & lat, beam   & Yes \\ \hline
   \pref{bpm.phase}        & bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
   \pref{bpm.k}            & \begin{tabular}{@{}l}   
                               bpm_k.22a, .12a, \\
@@ -826,10 +826,11 @@ describes in detail these data types.
                               slip_factor_ptc.$N$ \\
                               \hspace{3em} $N = 0, 1, 2, \ldots$
                             \end{tabular}                       & Slip factor Taylor terms                  & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate.                 & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate.                   & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit.                  & lat        & No  \\ \hline
-  \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate                  & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate                    & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit                   & lat        & No  \\ \hline
+  \pref{spin}             & spin.x, .y, .z .amp                 & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin.dn.dpz}      & spin_dn_dpz.x, .y, .z               & Spin dn/dpz components                    & lat        & No  \\ \hline
   \pref{spin.g.matrix}    & \begin{tabular}{@{}l}
                               spin_g_matrix.$ij$ \\
                               \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
@@ -839,6 +840,11 @@ describes in detail these data types.
                               \hspace{10pt} .b.sum, .b.diff, \\
                               \hspace{10pt} .c.sum, .c.diff
                             \end{tabular}                       & Spin resonance strengths                  & lat        & No  \\ \hline
+  \pref{spin.map.ptc}     & \begin{tabular}{@{}l}
+                              spin_map_ptc.$ijklmn$, \\
+                              \hspace{4em} $i,j,k,l,m,n$ are digits
+                            \end{tabular}                       & Spin Map Taylor terms                     & lat        & no  \\ \hline
+  \pref{spin.tune}        & spin_tune                           & Spin tune                                 & lat        & no  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\
                               \hspace{10pt} $N = 0, 1, \ldots$
@@ -997,38 +1003,43 @@ The normalized matrix is normalized by factors of $\beta$. See the \bmad manual 
 
   %----------------------
   \item[chrom.a, .b] \Newline \hlabel{chrom.a}
-Chromaticities. Also see \vn{chrom_ptc}.
+Chromaticities. Also see \vn{chrom_ptc}. The calculation uses finite differences with the variation of $pz$ being set by 
+\vn{global%delta_e_chrom}.
 
   %----------------------
   \item[chrom.dbeta.a, .dbeta.b] \Newline \hlabel{chrom.dbeta}
 The normalized change of the beta function with energy
-$(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$. Unlike the standard chromaticities,\vn{chrom.a} and \vn{chrom.b},
-the these chromaticities are evaluated at individual elements. 
+$(1/\beta_{a,b})\partial\beta_{a,b}/\partial p_z$. Unlike the standard chromaticities,\vn{chrom.a}
+and \vn{chrom.b}, the these chromaticities are evaluated at individual elements. The calculation uses
+finite differences with the variation of $pz$ being set by \vn{global%delta_e_chrom}.
 
 Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
 In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
 
   %----------------------
   \item[chrom.deta.x, .deta.y] \Newline \hlabel{chrom.deta}
-The chromatic dispersion $\partial\eta_{x,y}/\partial\delta$. Unlike the standard
-chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
-individual elements.
+The chromatic dispersion $\partial\eta_{x,y}/\partial p_z$. Unlike the standard
+chromaticities,\vn{chrom.a} and \vn{chrom.b}, these chromaticities are evaluated at individual
+elements. The calculation uses finite differences with the variation of $pz$ being set by
+\vn{global%delta_e_chrom}.
 
 Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
 
   %----------------------
   \item[chrom.detap.x, .detap.y] \Newline \hlabel{chrom.detap}
-The chromatic momentum dispersion derivatives $\partial\eta'_{x,y}/\partial\delta$. Unlike the standard
-chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
-individual elements.
+The chromatic momentum dispersion derivatives $\partial\eta'_{x,y}/\partial p_z$. Unlike the
+standard chromaticities,\vn{chrom.a} and \vn{chrom.b}, these chromaticities are evaluated at
+individual elements. The calculation uses finite differences with the variation of $pz$ being set by
+\vn{global%delta_e_chrom}.
 
 Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
 
   %----------------------
   \item[chrom.dphi.a, .dphi.b] \Newline \hlabel{chrom.dphi}
-The chromatic betatron phase $\partial\phi_{a,b}/\partial\delta$. Unlike the standard
-chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
-individual elements.
+The chromatic betatron phase $\partial\phi_{a,b}/\partial p_z$. Unlike the standard
+chromaticities,\vn{chrom.a} and \vn{chrom.b}, these chromaticities are evaluated at individual
+elements. The calculation uses finite differences with the variation of $pz$ being set by
+\vn{global%delta_e_chrom}.
 
 Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
 In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
@@ -1051,6 +1062,7 @@ where
 
 Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
 In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
+And $p_z$ is the local $p_z$ at the evaluation point (as opposed to the $p_z$ at the start of the lattice).
 
   %----------------------
   \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{chrom.ptc}
@@ -1774,6 +1786,11 @@ manual. For a lattice with a closed geometry, the calculated spin is the closed 
 with the amplitude of the spin set at unity.
 
   %----------------------
+  \item[spin_dn_dpz.x, .y, .z] \Newline \hlabel{spin.dn.dpz}
+This datum gives the $x$, $y$, and $z$ components of the $d\bfn/dp_z$ vector where $\bfn$ if the invarient
+spin field and $p_z$ is the sixth component of the particle's phase space coordinates.
+
+  %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline \hlabel{spin.g.matrix}
 The $\bfG$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix $\wt\bfM$
 that describes the coupling between orbital motion and spin precession as discussed in the section
@@ -1815,6 +1832,14 @@ $a$-mode, etc. The \vn{show spin -ele ...} command will print the values. If not
 evaluation element for the datum is the beginning element of the lattice branch.
 
   %----------------------
+  \item[spin_tune] \Newline \hlabel{spin.tune}
+Spin tune as calculated by Bmad and not using PTC code. Also see \vn{spin_tune_ptc}.
+
+  %----------------------
+  \item[spin_map_ptc.$ijklmn$, where $i,j,k,l,m, n$ are 6 digits] \Newline \hlabel{spin.map.ptc}
+Terms in the taylor map of the spin tune. See also \vn{spin_tune_ptc.$N$}.
+
+  %----------------------
   \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
 Terms in the taylor series of the spin tune expanded as a function of $p_z$ as calculated from
 Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
@@ -1829,6 +1854,8 @@ Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the de
 
 To save time when the calculation of chromatic terms is not needed, the \vn{one_turn_map_calc} parameter
 (\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
+
+Note: \vn{spin_tune_ptc.$N$} is the same as \vn{spin_map_ptc.00000$N$}.
 
 Note: The \vn{show chromaticity} (\sref{s:show.chrom}) command can be used to see the series coefficients.
 

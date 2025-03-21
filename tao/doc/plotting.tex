@@ -269,11 +269,11 @@ curve's line in the legend.  This default can be changed by setting a curve's \v
 Parameters that affect the curve legend are:
 \begin{example}
   plot_page%legend_text_scale        ! Also affects lat_layout and floor_plan text size.      
-  plot_page%curve_legend_line_len    ! tao_plot_page namelist (\sref{s:plot.page})
-  plot_page%curve_legend_text_offset ! tao_plot_page namelist (\sref{s:plot.page})
   curve(N)%legend_text               ! 
   graph%curve_legend_origin          
   graph%draw_curve_legend            
+  graph%curve_legend%line_len    ! curve_legend is a qp_legend_struct (\sref{s:qp.legend.str}).
+  graph%curve_legend%text_offset ! 
 \end{example}
 The curve legend is distinct from the \vn{text legend} (\sref{s:text.legend}).
 
@@ -286,8 +286,8 @@ The \vn{text legend} is a legend that can be setup by either the user or by \tao
 The \vn{text legend} is distinct from the \vn{curve legend}. Parameters that affect the text
 legend are:
 \begin{example}
-  graph%text_legend(N)
-  graph%text_legend_origin
+  graph%text_legend(:)      ! Array of strings to print
+  graph%text_legend_origin  ! Position of legend.
 \end{example}
 
 %-----------------------------------------------------------------
@@ -815,6 +815,23 @@ calculate this number and it is not user settable.
 The \vn{label} parameter may include Greek letters, subscripts, superscripts, and special characters.
 Encoding for these are given in Table~\ref{t:plot.escape}. 
 
+%-----------------------------------------------------------------
+\subsection{qp_legend_struct}
+\label{s:qp.legend.str}
+
+The parameters associated with drawing a curve legend (\sref{s:plot.def}) are contained in the parameter
+\vn{plot_page%curve_legend} (\sref{s:plot.page}). This parameter is an instance of a \vn{qp_legend_struct}
+which has the structure:
+\begin{example}
+  type qp_legend_struct
+    row_spacing = <real>           ! Spacing between rows. Default = 1.0.
+    line_length = <real>           ! Length of the line in points.
+    text_offset = <real>           ! Horizontal offset in points between the line and the text.
+    logical draw_line = <logic>    ! Draw lines?
+    logical draw_symbol = <logic>  ! Draw symbols?
+    logical draw_text = <logic>    ! Draw text?
+  end type
+\end{example}
 
 %-----------------------------------------------------------------
 \subsection{String Escape Sequences}

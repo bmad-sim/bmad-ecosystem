@@ -128,6 +128,8 @@ endif
 ! "Preprocess" with custom code.
 ! Note: Energy ramping can be done here so track1_preprocess is called before the energy sanity checks below.
 
+radiation_included = .false.
+
 if (associated(track1_preprocess_ptr))then
   finished = .false.
   call track1_preprocess_ptr (start2_orb, ele, param, err, finished, radiation_included, track)
@@ -141,7 +143,7 @@ endif
 ! symp_lie_bmad tracking does include radiation effects
 
 do_extra = .not. logic_option(.false., ignore_radiation)
-radiation_included = (ele%tracking_method == symp_lie_bmad$) 
+radiation_included = (radiation_included .or. ele%tracking_method == symp_lie_bmad$) 
 
 ! Energy sanity checks.
 
@@ -226,7 +228,10 @@ case (bmad_standard$)
     call track1_bmad_photon (end_orb, ele, param, err)
   else
     call track1_bmad (end_orb, ele, param, err, track, mat6 = ele%mat6, make_matrix = make_map1)
-    if (ele%key == beambeam$) do_spin_tracking = .false.
+
+    select case (ele%key)
+    case (beambeam$);  do_spin_tracking = .false.
+    end select
   endif
   if (err) return
 
@@ -238,7 +243,7 @@ case (linear$)
   call track1_linear (end_orb, ele, param)
 
 case (taylor$) 
-  call track1_taylor (end_orb, ele, param)
+  call track1_taylor (end_orb, ele)
 
 case (symp_lie_bmad$) 
   call symp_lie_bmad (ele, param, end_orb, track, mat6 = ele%mat6, make_matrix = make_map1)

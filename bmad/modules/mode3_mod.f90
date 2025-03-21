@@ -407,7 +407,6 @@ real(rp) t6(1:6, 1:6)
 real(rp) N(1:6, 1:6)
 real(rp) Ninv(1:6, 1:6)
 real(rp) abz_tunes(3)
-real(rp) gamma(3)
 integer i
 
 character(*), parameter :: r_name = 'action_to_xyz'
@@ -477,7 +476,7 @@ A = mat  !LA_GEEV destroys the contents of its first argument.
 CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
 eval = cmplx(eval_r, eval_i, rp)
 if ( i_error /= 0 ) THEN
-  call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
+  call out_io (s_error$, r_name, "la_geev returned error: \i0\ ", i_error)
   if (global_com%exit_on_error) call err_exit
   eval = 0.0d0
   evec = 0.0d0
@@ -716,8 +715,8 @@ logical err_flag
 
 real(rp) abz_tunes(3)
 real(rp) abz(3), dtune(3,3)
-real(rp) val(6)
-integer j, pairindexes(6), tz1, tz2
+real(rp) val(6), val0, val1
+integer j, pairindexes(6), tz1, tz2, im0, im1
 
 character(*), parameter :: r_name = 'order_evecs_by_tune'
 
@@ -731,7 +730,7 @@ err_flag = .true.
 tz1 = count(abs(mat_tunes(1:3)) < 0.0001)
 tz2 = count(abs(abz(1:3)) < 0.0001)
 if (tz1 > 1 .or. tz1 /= tz2) then
-  call out_io (s_fatal$, r_name, "tunes is not fully populated.")
+  call out_io (s_error$, r_name, "tunes is not fully populated.")
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -752,14 +751,20 @@ val(4) = max(dtune(1,2), dtune(2,3), dtune(3,1))
 val(5) = max(dtune(1,3), dtune(2,1), dtune(3,2))
 val(6) = max(dtune(1,3), dtune(2,2), dtune(3,1))
 
-if (minval(val, 1) > 0.1) then
-  call out_io (s_fatal$, r_name, "Unable to match input tunes with calculated tunes.", &
+im0 = minloc(val, 1)
+val0 = val(im0)
+val(im0) = 999
+im1 = minloc(val, 1)
+val1 = val(im1)
+
+if (val0 > 0.3 .or. val1 - val0 < 0.01) then
+  call out_io (s_error$, r_name, "Unable to match input tunes with calculated tunes.", &
            'Input tunes:      \3f14.5\ ', &
            'Calculated tunes: \3f14.5\ ', r_array = [abz(1:3)/twopi, mat_tunes(1:3)/twopi])
   return
 endif
 
-select case(minloc(val, 1))
+select case(im0)
   case(1)
     pairindexes = [1, 2, 3, 4, 5, 6]
     mat_tunes = mat_tunes([1, 2, 3])

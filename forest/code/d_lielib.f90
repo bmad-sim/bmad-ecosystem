@@ -25,7 +25,7 @@ module lielib_yang_berz
   private dapokzer,davar0,taked,daread,daprid,daflo,daflod,fexpo,etcom,etpoi
   private exp1d,expnd2,liefact,mapnorm,orderflo,nuanaflo,h2pluflo,rotflo,rotiflo
   private ctord,rtocd,resvec,reelflo,midbflo,mulnd2,movearou,movemul,cpart
-  private ctoi,itoc,etrtc,etctr,etcjg,etdiv,sympl3,ety,etyt,ety2  !,flip
+  private ctoi,itoc,etrtc,etctr,etcjg,etdiv,ety,etyt,ety2  !,flip
   integer,public,parameter::ndim=4,nreso=100
   integer,public::no,nv,nd,nd2,ndpt
   integer, private :: ndc,ndc2,ndt,iref,itu,iflow,jtune,nres !,idpr
@@ -3487,6 +3487,86 @@ endif
 
   ! Neri's Routine below
 
+  subroutine eign(fm,reval,aieval,revec,aievec)
+    implicit none
+!!!! for any 2n matrix
+    !**************************************************************************
+
+    !  Diagonalization routines of NERI
+
+    !ccccccccccccccccc
+    !
+    !  this routine finds the eigenvalues and eigenvectors
+    !  of the full matrix fm.
+    !  the eigenvectors are normalized so that the real and
+    !  imaginary part of vectors 1, 3, and 5 have +1 antisymmetric
+    !  product:
+    !      revec1 J aivec1 = 1 ; revec3 J aivec3 = 1 ;
+    !      revec5 J aivec5 = one
+    !  the eigenvectors 2 ,4, and 6 have the opposite normalization.
+    !  written by F. Neri, Feb 26 1986.
+    !
+ !   integer, parameter :: ndim2=2
+    integer jet,nn,i,i1,ilo,ihi,mdim,info
+!    real(dp),dimension(ndim2)::reval,aieval,ort
+  !  real(dp),dimension(ndim2,ndim2)::revec,aievec,fm,aa,vv
+     real(dp),allocatable::ort(:),aa(:,:),vv(:,:)
+     real(dp)::reval(:),aieval(:)
+     real(dp)::revec(:,:),aievec(:,:),fm(:,:)
+    INTEGER IPAUSE,MYPAUSES,nd2,nd,ndc2,ndc
+    if(.not.c_%stable_da) return
+nd2=size(fm,1)
+nd=nd2/2
+ndc2=0
+ndc=0
+    ilo = 1
+    ihi = nd2-ndc2
+    mdim = nd2   !ndim2
+    nn = nd2-ndc2
+
+    allocate(ort(ihi),aa(ihi,ihi),vv(ihi,ihi))
+ort=0
+aa=0
+vv=0
+    !  copy matrix to temporary storage (the matrix aa is destroyed)
+    do i=1,nd2-ndc2
+       do i1=1,nd2-ndc2
+          aa(i1,i) = fm(i1,i)
+       enddo
+    enddo
+
+    !  compute eigenvalues and eigenvectors using double
+    !  precision Eispack routines:
+    call ety(mdim,nn,ilo,ihi,aa,ort)
+    call etyt(mdim,nn,ilo,ihi,aa,ort,vv)
+    call ety2(mdim,nn,ilo,ihi,aa,reval,aieval,vv,info)
+    if ( info .ne. 0 ) then
+       LINE= '  ERROR IN EIG6'
+       IPAUSE=MYPAUSES(0,LINE)
+    endif
+    !      call neigv(vv,pbkt)
+    do i=1,nd-ndc
+       do jet=1,nd2-ndc2
+          revec(jet,2*i-1)=vv(jet,2*i-1)
+          revec(jet,2*i)=vv(jet,2*i-1)
+          aievec(jet,2*i-1)=vv(jet,2*i)
+          aievec(jet,2*i)=-vv(jet,2*i)
+       enddo
+    enddo
+    do i=1,nd2-ndc2
+       if(abs(reval(i)**2+aieval(i)**2 -1.0_dp).gt.1e-10_dp) then
+ 
+          if(lielib_print(4)==1) then
+ 
+             write(6,*) "in eig6 k_tpsalie_analysis",sqrt(reval(i)**2+aieval(i)**2)
+          endif
+       endif
+    enddo
+    deallocate(ort,aa,vv)
+
+    return
+  end subroutine eign
+
   subroutine eig6(fm,reval,aieval,revec,aievec)
     implicit none
     !**************************************************************************
@@ -4242,259 +4322,8 @@ endif
     endif
     return
   end subroutine etdiv
-  subroutine sympl3(m)
-    implicit none
-    !**********************************************************
-    !
-    !    SYMPL3
-    !
-    !
-    !   On return ,the matrix m(*,*), supposed to be almost
-    !   symplectic on entry is made exactly symplectic by
-    !   using a non iterative, constructive method.
-    !
-    !**********************************************************
-    !
-    !  Written by F. Neri  Feb 7 1986
-    !
-    integer,parameter::n=3
-    integer kp,kq,lp,lq,jp,jq,i
-    real(dp) qq,pq,qp,pp
-    real(dp),dimension(2*n,2*n)::m
-    if(.not.c_%stable_da) return
-
-    !
-    do kp=2,2*n,2
-       kq = kp-1
-       do lp=2,kp-2,2
-          lq = lp-1
-          qq = 0.0_dp
-          pq = 0.0_dp
-          qp = 0.0_dp
-          pp = 0.0_dp
-          do jp=2,2*n,2
-             jq = jp-1
-             qq = qq + m(lq,jq)*m(kq,jp) - m(lq,jp)*m(kq,jq)
-             pq = pq + m(lp,jq)*m(kq,jp) - m(lp,jp)*m(kq,jq)
-             qp = qp + m(lq,jq)*m(kp,jp) - m(lq,jp)*m(kp,jq)
-             pp = pp + m(lp,jq)*m(kp,jp) - m(lp,jp)*m(kp,jq)
-          enddo
-
-          do i=1,2*n
-             m(kq,i) = m(kq,i) - qq*m(lp,i) + pq*m(lq,i)
-             m(kp,i) = m(kp,i) - qp*m(lp,i) + pp*m(lq,i)
-          enddo
-       enddo
-       qp = 0.0_dp
-       do jp=2,2*n,2
-          jq = jp-1
-          qp = qp + m(kq,jq)*m(kp,jp) - m(kq,jp)*m(kp,jq)
-       enddo
-       do i=1,2*n
-          m(kp,i) = m(kp,i)/qp
-       enddo
-    enddo
-    return
-  end subroutine sympl3
-
-  subroutine diagonalise_envelope_a(b,br,a,ai,kick)
-    implicit none
 
 
-    integer i
-    real(dp) a(6,6),ai(6,6),b(6,6)
-
-    real(dp) xj(6,6),xn,jb(6,6),kick(3),br(6,6)
-
-
-
-    xj=0.0_dp
-
-    do i=1,3
-       xj(2*i,2*i-1)=-1.0_dp
-       xj(2*i-1,2*i)=1.0_dp
-    enddo
-
-
-    jb=matmul(xj,b)
-    xn=30.0_dp*mat_norm(jb)
-    jb=jb/xn
-
-    !    mj=0.0_dp
-    !    xj=0.0_dp
-    !    do i=1,6
-    !     xj(i,i)=one
-    !    enddo
-
-    !    mj=xj+matmul(xj,jb)
-
-    call mapflol6s(a,ai,br,jb)
-
-
-    do i=1,3
-       kick(i)=sqrt(abs(br(2*i-1,2*i)*xn))
-    enddo
-
-
-
-  end subroutine diagonalise_envelope_a
-
-  subroutine mapflol6s(sa,sai,cr,cm)
-    implicit none
-    !---- FROM TRACKING CODE
-    ! ---------------------
-    integer, parameter :: ndimt=3,ndimt2=6
-    integer i,ier,iunst,j,n1,n(ndimt)
-    real(dp),dimension(ndimt2,ndimt2)::cr,xj,sa,sai,cm,w,vr,vi,s1
-    real(dp),dimension(ndimt)::x,xx,st
-    real(dp),dimension(ndimt2)::rr,ri
-
-    if(.not.c_%stable_da) return
-
-    n1=0
-    !     frank/etienne
-    do i=1,ndimt2
-       do j=1,ndimt2
-          cr(j,i)=cm(i,j)
-       enddo
-    enddo
-    xj=0.0_dp
-    s1=0.0_dp
-
-    !     frank/etienne
-    do i=1,ndimt
-       n(i)=0
-       xj(2*i-1,2*i)=1.0_dp
-       xj(2*i,2*i-1)=-1.0_dp
-    enddo
-    !     frank/etienne
-
-
-    sai=0.0_dp
-    w=cm
-
-    w=matmul(xj,w)
-    w=matmul(cr,w)
-
-    !    call mulnd2(xj,w)
-    !    call mulnd2(cr,w)
-
-    call eig6s(cr,rr,ri,vr,vi)
-
-    do i=1,6
-       write(6,*) rr(i),ri(i)
-    enddo
-
-
-    do i=1,ndimt
-       n(i)=2*i-1
-       st(i)=1.0_dp
-    enddo
-    !    elseif(idpr.eq.-101.or.idpr.eq.-102) then
-
-    iunst=0
-    do i=1,ndimt                 ! Frank NDC  kept
-       x(i)=0.0_dp
-       xx(i)=1.0_dp
-       do j=1,ndimt
-          x(i)=vr(2*j-1,n(i))*vi(2*j,n(i))-vr(2*j,n(i))*vi(2*j-1,n(i))+x(i)
-       enddo
-    enddo
-
-    do i=1,ndimt
-       if(x(i).lt.0.0_dp) xx(i)=-1.0_dp
-       x(i)=SQRT(abs(x(i)))
-    enddo
-    do i=1,ndimt2
-       do j=1,ndimt
-          sai(2*j-1,i)=vr(i,n(j))*xx(j)/x(j)
-          sai(2*j,i)=vi(i,n(j))/x(j)
-       enddo
-    enddo
-    !    if(idpr.eq.-101.or.idpr.eq.-102) then
-    call movearous(sai)
-    !    endif
-    ! adjust sa such that sa(1,2)=0 and sa(3,4)=zero (courant-snyder-edwards-teng
-    ! phase advances)
-    ! sa=sai
-
-
-    call matinv(sai,sa,ndimt2,ndimt2,ier)
-
-    !    call mulnd2(sai,cm)
-    cm=matmul(sai,cm)
-    cr=sa
-
-
-    cr=matmul(cm,cr)
-
-    !  call mulnd2(cm,cr)
-
-    return
-  end subroutine mapflol6s
-
-  subroutine eig6s(fm,reval,aieval,revec,aievec)
-    implicit none
-    !**************************************************************************
-
-    !  Diagonalization routines of NERI
-
-    !ccccccccccccccccc
-    !
-    !  this routine finds the eigenvalues and eigenvectors
-    !  of the full matrix fm.
-    !  the eigenvectors are normalized so that the real and
-    !  imaginary part of vectors 1, 3, and 5 have +1 antisymmetric
-    !  product:
-    !      revec1 J aivec1 = 1 ; revec3 J aivec3 = 1 ;
-    !      revec5 J aivec5 = one
-    !  the eigenvectors 2 ,4, and 6 have the opposite normalization.
-    !  written by F. Neri, Feb 26 1986.
-    !
-    integer, parameter :: ndimt=3,ndimt2=6
-    integer jet,nn,i,i1,ilo,ihi,mdim,info
-    real(dp),dimension(ndimt2)::reval,aieval,ort
-    real(dp),dimension(ndimt2,ndimt2)::revec,aievec,fm,aa,vv
-
-    if(.not.c_%stable_da) return
-
-    !  copy matrix to temporary storage (the matrix aa is destroyed)
-    do i=1,ndimt2
-       do i1=1,ndimt2
-          aa(i1,i) = fm(i1,i)
-       enddo
-    enddo
-    ilo = 1
-    ihi = ndimt2
-    mdim = ndimt2
-    nn = ndimt2
-    !  compute eigenvalues and eigenvectors using double
-    !  precision Eispack routines:
-    call ety(mdim,nn,ilo,ihi,aa,ort)
-    call etyt(mdim,nn,ilo,ihi,aa,ort,vv)
-    call ety2(mdim,nn,ilo,ihi,aa,reval,aieval,vv,info)
-
-
-    !      call neigv(vv,pbkt)
-    do i=1,ndimt
-       do jet=1,ndimt2
-          revec(jet,2*i-1)=vv(jet,2*i-1)
-          revec(jet,2*i)=vv(jet,2*i-1)
-          aievec(jet,2*i-1)=vv(jet,2*i)
-          aievec(jet,2*i)=-vv(jet,2*i)
-       enddo
-    enddo
-    do i=1,ndimt2
-       if(abs(reval(i)**2+aieval(i)**2 -1.0_dp).gt.1e-10_dp) then
- 
-          if(lielib_print(4)==1) then
- 
-             write(6,*) sqrt(reval(i)**2+aieval(i)**2)
-          endif
-       endif
-    enddo
-    return
-  end subroutine eig6s
 
   subroutine movearous(rt)
     implicit none

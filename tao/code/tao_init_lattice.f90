@@ -4,7 +4,7 @@
 ! Subroutine to initialize the design lattices.
 !
 ! Input:
-!   namelist_file  -- character(*): Name of file containing lattice file info.
+!   namelist_file -- character(*): Name of file containing lattice file info.
 !
 ! Output:
 !    %u(:)%design -- Initialized design lattices.
@@ -19,11 +19,11 @@ use ptc_interface_mod
 implicit none
 
 type (tao_design_lat_input), target :: design_lattice(0:200)
-type (tao_design_lat_input), pointer :: design_lat, dl0
+type (tao_design_lat_input), pointer :: design_lat1, dl0
 type (lat_struct), pointer :: lat
 type (lat_struct) parse_lat
 type (ele_struct), pointer :: ele1, ele2
-type (tao_universe_struct), pointer :: u, u_work
+type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orbit(:)
@@ -31,6 +31,7 @@ type (coord_struct), allocatable :: orbit(:)
 character(*) namelist_file
 character(200) full_input_name
 character(100) unique_name_suffix, suffix
+character(400) lattice_file_arg
 character(40) name
 character(*), parameter :: r_name = 'tao_init_lattice'
 
@@ -51,21 +52,20 @@ design_lattice = tao_design_lat_input()
 design_lattice(0)%file = 'Garbage!!!'
 
 alternative_lat_file_exists = (s%init%hook_lat_file /= '' .or. s%init%lattice_file_arg /= '')
-
-! Read lattice info
-
 if (associated(tao_hook_init_read_lattice_info_ptr)) call tao_hook_init_read_lattice_info_ptr (namelist_file)
 
-if (s%com%init_read_lat_info) then
-  ! namelist_file == '' means there is no lattice file so just use the defaults.
+lattice_file_arg = s%init%lattice_file_arg
+if (lattice_file_arg == '') lattice_file_arg = s%init%hook_lat_file
 
-  if (namelist_file /= '') then
-    call tao_open_file (namelist_file, iu, full_input_name, s_fatal$)
-    call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // namelist_file)
-    if (iu == 0) then
-      call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INFO FILE. WILL EXIT HERE...')
-      return
-    endif
+! s%com%init_read_lat_info can be set False by custom programs to avoid the following.
+
+if (s%com%init_read_lat_info .and. namelist_file /= '') then  ! If there is a custom lattice file
+  call tao_open_file (namelist_file, iu, full_input_name, s_fatal$)
+  call out_io (s_blank$, r_name, '*Init: Opening Lattice Info File: ' // namelist_file)
+  if (iu == 0) then
+    call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INITIALIZATION FILE: ' // namelist_file, &
+                                   'WILL EXIT HERE...')
+    return
   endif
 
   ! Defaults
@@ -74,27 +74,35 @@ if (s%com%init_read_lat_info) then
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''
 
-  if (namelist_file /= '') then
-    read (iu, nml = tao_design_lattice, iostat = ios)
-    if (ios > 0 .or. (ios < 0 .and. .not. alternative_lat_file_exists)) then
-      call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
+  read (iu, nml = tao_design_lattice, iostat = ios)
+  if (ios > 0 .or. (ios < 0 .and. .not. alternative_lat_file_exists)) then
+    if (ios < 0) then
+      call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST NOT FOUND IN FILE: ' // namelist_file, &
+                                     'I NEED TO READ THIS NAMELIST TO KNOW THE LATTICE FILE NAME!')
+      return
+    else
+      call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR IN FILE: ' // namelist_file)
       rewind (iu)
       do
         read (iu, nml = tao_design_lattice)  ! force printing of error message
       enddo
     endif
-    close (iu)
   endif
+  close (iu)
 
   s%com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
   s%com%n_universes = n_universes
   s%init%unique_name_suffix = trim(unique_name_suffix)
+
+else
+  s%com%combine_consecutive_elements_of_like_name = .false.
+  s%init%unique_name_suffix = ''
+  s%com%n_universes = str_count(lattice_file_arg, '|') + 1
 endif
 
 !
 
 allocate (s%u(s%com%n_universes))
-nullify (s%com%u_working)
 
 ! Read in the lattices
 
@@ -105,18 +113,36 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   u%ix_uni = i_uni
   u%calc = tao_universe_calc_struct()
 
+  design_lat1 => design_lattice(i_uni)
+
+  if (lattice_file_arg /= '') then
+    ix = index(lattice_file_arg, '|') ! Indicates multiple universes
+    if (ix == 0) then
+      design_lat1%file = lattice_file_arg
+    else
+      design_lat1%file = lattice_file_arg(1:ix-1)
+      lattice_file_arg = lattice_file_arg(ix+1:)
+    endif
+    design_lat1%language = ''
+    design_lat1%file2 = ''
+  endif
+
+  ix = index (design_lat1%file, ',') ! Indicates secondary lattices
+  if (ix /= 0) then
+    design_lat1%file2 = design_lat1%file(ix+1:)
+    design_lat1%file  = design_lat1%file(1:ix-1)
+  endif
+
   ! Get the name of the lattice file
   ! The presedence is: 
   !   From the command line (preferred).
   !   From the tao_design_lattice namelist.
   !   Specified by hook code.
 
-  design_lat => design_lattice(i_uni)
-
   ! Element range?
 
-  if (design_lat%use_element_range(1) /= '') then
-    design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
+  if (design_lat1%use_element_range(1) /= '') then
+    design_lat1%slice_lattice = trim(design_lat1%use_element_range(1)) // ':' // trim(design_lat1%use_element_range(2))
     call out_io (s_warn$, r_name, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
                 '"design_lattice(i_uni)%use_element_range" is now "design_lattice(i_uni)%slice_lattice".', &
                 'Please modify your file.')
@@ -124,74 +150,59 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   !
 
-  if (s%init%lattice_file_arg /= '') then
-    design_lat%file = s%init%lattice_file_arg
-    design_lat%language = ''
-    design_lat%file2 = ''
-  elseif (s%init%hook_lat_file /= '' .and. design_lat%file == '') then
-    design_lat%file = s%init%hook_lat_file
-    design_lat%language = ''
-    design_lat%file2 = ''
-  endif
-
-  if (design_lat%file == '' .and. i_uni > 1) design_lat = design_lattice(i_uni-1)
-
-  ix = index (design_lat%file, '|') ! Indicates multiple lattices
-  if (ix /= 0) then
-    design_lat%file2 = design_lat%file(ix+1:)
-    design_lat%file  = design_lat%file(1:ix-1)
-  endif
+  if (design_lat1%file == '' .and. i_uni > 1) design_lat1 = design_lattice(i_uni-1)
 
   ! Split off language name and/or use_line if needed
 
-  ix = index(design_lat%file(1:10), '::')
-
+  ix = index(design_lat1%file(1:10), '::')
   if (ix == 0) then
-    design_lat%language = 'bmad'
+    design_lat1%language = 'bmad'
   else
-    design_lat%language = design_lat%file(1:ix-1)
-    design_lat%file = design_lat%file(ix+2:)
+    design_lat1%language = design_lat1%file(1:ix-1)
+    design_lat1%file = design_lat1%file(ix+2:)
   endif
 
   !
 
-  ix = index(design_lat%file, '@')
+  ix = index(design_lat1%file, '@')
   if (ix /= 0) then
-    design_lat%use_line = design_lat%file(ix+1:)
-    design_lat%file = design_lat%file(:ix-1)
+    design_lat1%use_line = design_lat1%file(ix+1:)
+    call str_substitute(design_lat1%use_line, '@', ',')
+    design_lat1%file = design_lat1%file(:ix-1)
+    
   else
-    design_lat%use_line = ''
+    design_lat1%use_line = ''
   endif
 
   ! If the lattice file was obtained from the tao init file and if the lattice name 
   ! is relative, then it is relative to the directory where the tao init file is.
 
-  if (.not. alternative_lat_file_exists .and. file_name_is_relative(design_lat%file)) &
-                design_lat%file = trim(s%init%init_file_arg_path) // design_lat%file 
+  if (.not. alternative_lat_file_exists .and. file_name_is_relative(design_lat1%file)) &
+                design_lat1%file = trim(s%init%init_file_arg_path) // design_lat1%file 
 
   ! Read in the design lattice. 
   ! A blank means use the lattice form universe 1.
 
   allocate (u%design, u%base, u%model)
   dl0 => design_lattice(i_uni-1)
-  if (design_lat%file == dl0%file .and. design_lat%slice_lattice == dl0%slice_lattice .and. &
-            design_lat%file2 == dl0%file2 .and. design_lat%use_line == dl0%use_line .and. &
-           (design_lat%reverse_lattice .eqv. dl0%reverse_lattice) .and. &
-            design_lat%start_branch_at == dl0%start_branch_at) then
+  if (design_lat1%file == dl0%file .and. design_lat1%slice_lattice == dl0%slice_lattice .and. &
+            design_lat1%file2 == dl0%file2 .and. design_lat1%use_line == dl0%use_line .and. &
+           (design_lat1%reverse_lattice .eqv. dl0%reverse_lattice) .and. &
+            design_lat1%start_branch_at == dl0%start_branch_at) then
     u%design_same_as_previous = .true.
     u%design%lat = s%u(i_uni-1)%design%lat
   else
     u%design_same_as_previous = .false.
-    select case (design_lat%language)
+    select case (design_lat1%language)
     case ('bmad')
-      call out_io (s_blank$, r_name, 'Reading Bmad file: ' // design_lat%file)
-      if (design_lat%use_line /= '') call out_io (s_blank$, r_name, '  Line used is: ' // design_lat%use_line)
-      call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err, parse_lat = parse_lat)
+      call out_io (s_blank$, r_name, 'Reading Bmad file: ' // design_lat1%file)
+      if (design_lat1%use_line /= '') call out_io (s_blank$, r_name, '  Line used is: ' // design_lat1%use_line)
+      call bmad_parser (design_lat1%file, u%design%lat, use_line = design_lat1%use_line, err_flag = err, parse_lat = parse_lat)
     case ('digested')
-      call out_io (s_blank$, r_name, "Reading digested Bmad file: " // trim(design_lat%file))
-      call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
+      call out_io (s_blank$, r_name, "Reading digested Bmad file: " // trim(design_lat1%file))
+      call read_digested_bmad_file (design_lat1%file, u%design%lat, version, err)
     case default
-      call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
+      call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat1%language)
       return
     end select
 
@@ -204,11 +215,11 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
     ! Call bmad_parser2 if wanted
 
-    if (design_lat%file2 /= '') then
-      call bmad_parser2 (design_lat%file2, u%design%lat, parse_lat = parse_lat)
+    if (design_lat1%file2 /= '') then
+      call bmad_parser2 (design_lat1%file2, u%design%lat, parse_lat = parse_lat)
     endif
 
-    if (design_lat%language == 'bmad') call deallocate_lat_pointers(parse_lat)
+    if (design_lat1%language == 'bmad') call deallocate_lat_pointers(parse_lat)
 
     !
 
@@ -236,19 +247,19 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       endif
     enddo
 
-    if (s%init%start_branch_at_arg /= '') design_lat%start_branch_at = s%init%start_branch_at_arg
-    if (s%init%slice_lattice_arg /= '') design_lat%slice_lattice = s%init%slice_lattice_arg
+    if (s%init%start_branch_at_arg /= '') design_lat1%start_branch_at = s%init%start_branch_at_arg
+    if (s%init%slice_lattice_arg /= '') design_lat1%slice_lattice = s%init%slice_lattice_arg
 
-    if (design_lat%start_branch_at /= '') then
-      call start_branch_at (u%design%lat, design_lat%start_branch_at, .false., err)
+    if (design_lat1%start_branch_at /= '') then
+      call start_branch_at (u%design%lat, design_lat1%start_branch_at, .false., err)
     endif
 
-    if (design_lat%slice_lattice /= '') then
-      call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
+    if (design_lat1%slice_lattice /= '') then
+      call slice_lattice (u%design%lat, design_lat1%slice_lattice, err)
       if (err) call out_io (s_error$, r_name, 'ERROR SLICING LATTICE FOR UNIVERSE: ' // int_str(i_uni))
     endif
 
-    if (design_lat%reverse_lattice .neqv. (s%init%reverse_arg == present_str)) then
+    if (design_lat1%reverse_lattice .neqv. (s%init%reverse_arg == present_str)) then
       lat => u%design%lat
       call reallocate_coord (orbit, lat)
       call init_coord (orbit(0), lat%particle_start, lat%ele(0), downstream_end$)
@@ -271,8 +282,8 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   !
 
-  u%calc%one_turn_map     = design_lat%one_turn_map_calc
-  u%calc%dynamic_aperture = design_lat%dynamic_aperture_calc
+  u%calc%one_turn_map     = design_lat1%one_turn_map_calc
+  u%calc%dynamic_aperture = design_lat1%dynamic_aperture_calc
 
   ! Custom stuff
 

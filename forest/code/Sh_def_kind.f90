@@ -17,7 +17,7 @@ MODULE S_DEF_KIND
   PRIVATE FRINGECAVR,FRINGECAVP   !,FRINGECAV
   PRIVATE KICKTR,KICKTP
   PRIVATE MULTIPOLE_FRINGER,MULTIPOLE_FRINGEP !,MULTIPOLE_FRINGE
-  PRIVATE FRINGE_dipoleR,FRINGE_dipolep
+  PRIVATE FRINGE_dipoleR,FRINGE_dipolep,b0_cavr,b0_cavp
   !  PRIVATE FRINGE_
   PRIVATE EDGER,EDGEP !,EDGE
   PRIVATE KICKR,KICKP !,KICK
@@ -87,7 +87,7 @@ MODULE S_DEF_KIND
   PRIVATE SEPR,SEPP,SYMPSEPR,SYMPSEPP !,SEPTTRACK
   !  PRIVATE IN,IN1,IN2
  ! INTEGER IN(4,4),IN1(10),IN2(10)
-  PRIVATE ZEROR_CAV_TRAV,ZEROP_CAV_TRAV
+  PRIVATE ZEROR_CAV_TRAV,ZEROP_CAV_TRAV,b0_cav_travr,b0_cav_travp
   private fringe_TEAPOTr,fringe_TEAPOTp,INTER_TEAPOT,INTEP_TEAPOT
   PRIVATE fringe_STREXR,fringe_STREXP
 
@@ -137,7 +137,7 @@ MODULE S_DEF_KIND
   logical(lp) :: bug_intentional=.false.,herecav21=.false.
   real(dp) :: e1_cas=0
   !  logical(lp) :: old_solenoid=.true.
-  INTEGER :: N_CAV4_F=1
+  INTEGER :: N_CAV4_F=1,N_CAV4_nmul=1
   INTEGER :: m_abell=1,n_abell=2
  ! logical ::  ABELL_NEW=.TRUE.
   INTEGER :: metcav=0, nstcav=0
@@ -213,6 +213,19 @@ private rk2_sagan_prober,rk2_sagan_probep,rk4_sagan_prober,rk4_sagan_probep, rk6
 
 real(dp) scalee,scaleb,hhh
 !type(real_8) radcoe
+
+ 
+  INTERFACE b0_cav
+     MODULE PROCEDURE b0_cavr
+     MODULE PROCEDURE b0_cavp
+  END INTERFACE
+
+ 
+  INTERFACE b0_cav_trav
+     MODULE PROCEDURE b0_cav_travr
+     MODULE PROCEDURE b0_cav_travp
+  END INTERFACE
+
   INTERFACE radiate_2_force
      MODULE PROCEDURE radiate_2_forcer
      MODULE PROCEDURE radiate_2_forcep
@@ -258,6 +271,12 @@ real(dp) scalee,scaleb,hhh
      MODULE PROCEDURE INTE_CAV4_PROBEP
   END INTERFACE 
 
+
+  INTERFACE TRACK_SLICE_CAV21
+     MODULE PROCEDURE INTE_CAV_trav_PROBER
+     MODULE PROCEDURE INTE_CAV_trav_PROBEP
+  END INTERFACE 
+
   INTERFACE TRACK_SLICE_PANCAKE
      MODULE PROCEDURE INTE_PANCAKE_prober
      MODULE PROCEDURE INTE_PANCAKE_probep
@@ -266,6 +285,12 @@ real(dp) scalee,scaleb,hhh
   INTERFACE feval_CAV_bmad_probe
      MODULE PROCEDURE feval_CAV_bmad_prober
      MODULE PROCEDURE feval_CAV_bmad_probep
+  END INTERFACE
+
+
+  INTERFACE feval_CAV_TRAV_bmad_probe
+     MODULE PROCEDURE feval_CAV_TRAV_bmad_prober
+     MODULE PROCEDURE feval_CAV_TRAV_bmad_probep
   END INTERFACE 
 
   INTERFACE feval_sagan_probe
@@ -303,6 +328,21 @@ real(dp) scalee,scaleb,hhh
   INTERFACE rk6bmad_cav_probe
      MODULE PROCEDURE rk6bmad_cav_prober
      MODULE PROCEDURE rk6bmad_cav_probep
+  END INTERFACE 
+
+  INTERFACE rk2bmad_cav_trav_probe
+     MODULE PROCEDURE rk2bmad_cav_trav_prober
+     MODULE PROCEDURE rk2bmad_cav_trav_probep
+  END INTERFACE 
+
+  INTERFACE rk4bmad_cav_trav_probe
+     MODULE PROCEDURE rk4bmad_cav_trav_prober
+     MODULE PROCEDURE rk4bmad_cav_trav_probep
+  END INTERFACE 
+
+  INTERFACE rk6bmad_cav_trav_probe
+     MODULE PROCEDURE rk6bmad_cav_trav_prober
+     MODULE PROCEDURE rk6bmad_cav_trav_probep
   END INTERFACE 
 
 
@@ -2277,6 +2317,7 @@ CALL FRINGECAV(EL,X,k,2)
 
 
   END SUBROUTINE CAVEP
+
   SUBROUTINE CAVITYR(EL,X,k)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
@@ -2352,14 +2393,17 @@ CALL FRINGECAV(EL,X,k,2)
           X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
        enddo
-     
+        
 
- 
+
+
     !          IF(.NOT.PRESENT(MID)) x(5)=x(5)-HALF*EL%P%DIR*EL%P%CHARGE*EL%volt*c_1d_3*SIN(twopi*EL%freq*x(6)/CLIGHT+EL%PHAS+EL%phase0)/EL%P%P0C
     !    EL%DELTA_E=(X(5)-EL%DELTA_E)*EL%P%P0C
  
 
   END SUBROUTINE CAVITYR
+
+
 
   SUBROUTINE CAVITYP(EL,X,k)
     IMPLICIT NONE
@@ -2453,7 +2497,7 @@ CALL FRINGECAV(EL,X,k,2)
     real(dp),INTENT(INOUT):: Z,A(3),AD(3)
     real(dp),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV4),INTENT(INOUT):: EL
-    real(dp) C1,S1,V,O,dad1dz
+    real(dp) C1,S1,V,O,dad1dz,BBXTW,BBYTW
      INTEGER KO,it
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     it=tot_t*k%totalpath+(1-tot_t)
@@ -2495,6 +2539,9 @@ CALL FRINGECAV(EL,X,k,2)
      b(1)=-ad(3)*x(3)/EL%P%CHARGE
      b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
+     call b0_cav(EL,x,BBXTW,BBYTW)
+      b(1)=b(1)+BBXTW
+      b(2)=b(2)+BBYTW
     endif
 
     if(present(e)) then
@@ -2506,6 +2553,7 @@ CALL FRINGECAV(EL,X,k,2)
 !write(n_wedge,"(7(1x,g12.5,1x))") z+hhh, b,scaleb*b 
     endif
 
+
   END SUBROUTINE Abmad_TRANSR
 
  SUBROUTINE Abmad_TRANSP(EL,Z,X,k,A,AD,B,E)    ! EXP(-I:(X^2+Y^2)/2*A_TRANS:)
@@ -2514,7 +2562,7 @@ CALL FRINGECAV(EL,X,k,2)
     TYPE(REAL_8),INTENT(INOUT):: Z,A(3),AD(3)
     TYPE(CAV4P),INTENT(INOUT):: EL
     TYPE(REAL_8),optional,INTENT(INOUT):: B(3),E(3)
-    TYPE(REAL_8) C1,S1,V,O,dad1dz
+    TYPE(REAL_8) C1,S1,V,O,dad1dz,BBXTW,BBYTW
      INTEGER KO,it
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     it=tot_t*k%totalpath+(1-tot_t)
@@ -2565,6 +2613,12 @@ CALL FRINGECAV(EL,X,k,2)
      b(1)=-ad(3)*x(3)/EL%P%CHARGE
      b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
+     call alloc(BBXTW,BBYTW)
+     call b0_cav(EL,x,BBXTW,BBYTW)
+      b(1)=b(1)+BBXTW
+      b(2)=b(2)+BBYTW
+     call kill(BBXTW,BBYTW)
+
     endif
 
     if(present(e)) then
@@ -2583,7 +2637,7 @@ CALL FRINGECAV(EL,X,k,2)
     real(dp), INTENT(INout) :: X(6)
     real(dp),INTENT(INOUT):: Z0
     real(dp), INTENT(INOUT) :: F(6)
-    REAL(DP) A(3),AD(3),PZ,hcurv,ve,B(3),E(3)
+    REAL(DP) A(3),AD(3),PZ,hcurv,ve,B(3),E(3),BBXTW,BBYTW
     TYPE(CAV4),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -2592,6 +2646,8 @@ CALL FRINGECAV(EL,X,k,2)
     if(.not.D%xprime) then
 !write(6,*) " canonical "
     CALL Abmad_TRANS(D,Z0,X,k,A,AD)
+    call b0_cav(D,x,BBXTW,BBYTW)
+
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
 
@@ -2600,16 +2656,16 @@ CALL FRINGECAV(EL,X,k,2)
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
        else
           PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
@@ -2618,16 +2674,16 @@ CALL FRINGECAV(EL,X,k,2)
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -2652,15 +2708,17 @@ stop
     TYPE(REAL_8), INTENT(INout) :: X(6)
     TYPE(REAL_8),INTENT(INOUT):: Z0
     TYPE(REAL_8), INTENT(INOUT) :: F(6)
-    TYPE(REAL_8)  A(3),AD(3),PZ
+    TYPE(REAL_8)  A(3),AD(3),PZ,BBXTW,BBYTW
     TYPE(CAV4P),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
     call alloc(A)
     call alloc(AD)
-    call alloc(PZ)
+    call alloc(PZ,BBXTW,BBYTW)
 
     CALL Abmad_TRANS(D,Z0,X,k,A,AD)
+    call b0_cav(D,x,BBXTW,BBYTW)
+
     if(.not.D%xprime) then
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
@@ -2670,16 +2728,16 @@ stop
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
        else
           PZ=sqrt((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
@@ -2688,16 +2746,16 @@ stop
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -2708,7 +2766,7 @@ stop
     endif
     call KILL(A)
     call KILL(AD)
-    call KILL(PZ)
+    call KILL(PZ,BBXTW,BBYTW)
   END subroutine feval_CAV_bmadp
 
 
@@ -4085,6 +4143,14 @@ stop
        X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
     enddo    ! over modes
 
+
+call b0_cav(EL,x,BBXTW,BBYTW)
+
+      X(2)=X(2)-YL*DIR*BBYTW
+      X(4)=X(4)+YL*DIR*BBXTW
+        
+
+
 END SUBROUTINE KICKCAVR
 
 SUBROUTINE KICKCAVP(EL,YL,X,k)
@@ -4197,12 +4263,128 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
     enddo    ! over modes
+
+call b0_cav(EL,x,BBXTW,BBYTW)
+
+      X(2)=X(2)-YL*DIR*BBYTW
+      X(4)=X(4)+YL*DIR*BBXTW
+
     CALL kill(DF,R2,F,DR2,O,VL,C1)
     call kill(BBYTWT,BBXTW,BBYTW,x1,x3)
 
     call PRTP("KICKCAV:1", X)
 
   END SUBROUTINE KICKCAVP
+
+   SUBROUTINE b0_cav_travr(EL,x,BBXTW,BBYTW)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6),BBXTW,BBYTW
+    TYPE(CAV_trav),INTENT(INOUT):: EL
+    real(dp)   BBYTWT
+
+    INTEGER J 
+ 
+
+           IF(size(el%an)>=1) THEN
+             BBYTW=EL%BN(size(el%an))
+             BBXTW=EL%AN(size(el%an))
+
+             DO  J=size(el%an)-1,1,-1
+                BBYTWT=X(1)*BBYTW-X(3)*BBXTW+EL%BN(J)
+                BBXTW=X(3)*BBYTW+X(1)*BBXTW+EL%AN(J)
+                BBYTW=BBYTWT
+             ENDDO
+          ELSE
+             BBYTW=0.0_dp
+             BBXTW=0.0_dp
+          ENDIF
+
+end SUBROUTINE b0_cav_travr
+
+   SUBROUTINE b0_cav_travp(EL,x,BBXTW,BBYTW)
+    IMPLICIT NONE
+    TYPE(CAV_travp),INTENT(INOUT):: EL
+    TYPE(REAL_8),INTENT(INOUT):: X(6),BBXTW,BBYTW
+    type(real_8) X1,X3,BBYTWT
+     INTEGER J 
+ 
+    call alloc(X1,X3,BBYTWT)
+
+
+
+           IF(size(el%an)>=1) THEN
+             BBYTW=EL%BN(size(el%an))
+             BBXTW=EL%AN(size(el%an))
+
+             DO  J=size(el%an)-1,1,-1
+                BBYTWT=X(1)*BBYTW-X(3)*BBXTW+EL%BN(J)
+                BBXTW=X(3)*BBYTW+X(1)*BBXTW+EL%AN(J)
+                BBYTW=BBYTWT
+             ENDDO
+          ELSE
+             BBYTW=0.0_dp
+             BBXTW=0.0_dp
+          ENDIF
+    call kill(X1,X3,BBYTWT)
+
+end SUBROUTINE b0_cav_travp
+
+
+
+
+   SUBROUTINE b0_cavr(EL,x,BBXTW,BBYTW)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6),BBXTW,BBYTW
+    TYPE(CAV4),INTENT(INOUT):: EL
+    real(dp)   BBYTWT
+
+    INTEGER J 
+ 
+
+           IF(size(el%an0)>=1) THEN
+             BBYTW=EL%BN0(size(el%an0))
+             BBXTW=EL%AN0(size(el%an0))
+
+             DO  J=size(el%an0)-1,1,-1
+                BBYTWT=X(1)*BBYTW-X(3)*BBXTW+EL%BN0(J)
+                BBXTW=X(3)*BBYTW+X(1)*BBXTW+EL%AN0(J)
+                BBYTW=BBYTWT
+             ENDDO
+          ELSE
+             BBYTW=0.0_dp
+             BBXTW=0.0_dp
+          ENDIF
+
+end SUBROUTINE b0_cavr
+
+   SUBROUTINE b0_cavp(EL,x,BBXTW,BBYTW)
+    IMPLICIT NONE
+    TYPE(REAL_8),INTENT(INOUT):: X(6),BBXTW,BBYTW
+    TYPE(CAV4P),INTENT(INOUT):: EL
+    type(real_8) X1,X3,BBYTWT
+
+    INTEGER J 
+ 
+   call alloc(X1,X3,BBYTWT)
+
+           IF(size(el%an0)>=1) THEN
+             BBYTW=EL%BN0(size(el%an0))
+             BBXTW=EL%AN0(size(el%an0))
+
+             DO  J=size(el%an0)-1,1,-1
+                BBYTWT=X(1)*BBYTW-X(3)*BBXTW+EL%BN0(J)
+                BBXTW=X(3)*BBYTW+X(1)*BBXTW+EL%AN0(J)
+                BBYTW=BBYTWT
+             ENDDO
+          ELSE
+             BBYTW=0.0_dp
+             BBXTW=0.0_dp
+          ENDIF
+
+   call kill(X1,X3,BBYTWT)
+
+end SUBROUTINE b0_cavp
+
 
   ! STUFF NEEDED FOR INTEGRATION
   SUBROUTINE DRIFTR(L,LD,b,T,EXACT,CTIME,X)
@@ -6176,24 +6358,24 @@ integer :: kkk=0
 
   END SUBROUTINE KICK_SOLP
 
-  SUBROUTINE GETNEWBR(an,bn,b_sol,nmul,B,X)
+  SUBROUTINE GETNEWBR(el,b_sol,B,X)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6),B(3)
-    real(dp),INTENT(IN):: an(:),bn(:),b_sol
-    integer,INTENT(IN):: nmul
+    type(element), intent(in) :: el
+    real(dp),INTENT(IN):: b_sol
     real(dp) X1,X3,BBYTW,BBXTW,BBYTWT
     INTEGER J
 
     X1=X(1)
     X3=X(3)
 
-    IF(NMUL>=1) THEN
-       BBYTW=BN(NMUL)
-       BBXTW=AN(NMUL)
+    IF(el%p%nmul>=1) THEN
+       BBYTW=el%BN(el%p%nmul)
+       BBXTW=el%AN(el%p%nmul)
 
-       DO  J=NMUL-1,1,-1
-          BBYTWT=X1*BBYTW-X3*BBXTW+BN(J)
-          BBXTW=X3*BBYTW+X1*BBXTW+AN(J)
+       DO  J=el%p%nmul-1,1,-1
+          BBYTWT=X1*BBYTW-X3*BBXTW+el%BN(J)
+          BBXTW=X3*BBYTW+X1*BBXTW+el%AN(J)
           BBYTW=BBYTWT
        ENDDO
     ELSE
@@ -6204,11 +6386,11 @@ integer :: kkk=0
 
   END SUBROUTINE GETNEWBR
 
-  SUBROUTINE GETNEWBP(an,bn,b_sol,nmul,B,X)
+  SUBROUTINE GETNEWBP(el,b_sol,B,X)
     IMPLICIT NONE
+    type(elementp), intent(in) :: el
     type(REAL_8),INTENT(INOUT):: X(6),B(3)
-    type(REAL_8),INTENT(IN):: an(:),bn(:),b_sol
-    integer,INTENT(IN):: nmul
+    type(REAL_8),INTENT(IN):: b_sol
     type(REAL_8) X1,X3,BBYTW,BBXTW,BBYTWT
     INTEGER J
 
@@ -6218,13 +6400,13 @@ integer :: kkk=0
     X1=X(1)
     X3=X(3)
 
-    IF(NMUL>=1) THEN
-       BBYTW=BN(NMUL)
-       BBXTW=AN(NMUL)
+    IF(el%p%nmul>=1) THEN
+       BBYTW=el%BN(el%p%nmul)
+       BBXTW=el%AN(el%p%nmul)
 
-       DO  J=NMUL-1,1,-1
-          BBYTWT=X1*BBYTW-X3*BBXTW+BN(J)
-          BBXTW=X3*BBYTW+X1*BBXTW+AN(J)
+       DO  J=el%p%nmul-1,1,-1
+          BBYTWT=X1*BBYTW-X3*BBXTW+el%BN(J)
+          BBXTW=X3*BBYTW+X1*BBXTW+el%AN(J)
           BBYTW=BBYTWT
        ENDDO
     ELSE
@@ -6242,13 +6424,29 @@ integer :: kkk=0
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6),B(3)
     TYPE(SOL5),INTENT(IN):: EL
-    real(dp) X1,X3,BBYTW,BBXTW,BBYTWT
+    real(dp) BBYTW,BBXTW,BBYTWT
     INTEGER J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+     
     x(1)=x(1)-el%dx
     x(3)=x(3)-el%dy
-    call GETNEWB(el%an,el%bn,el%b_sol,EL%P%NMUL,B,X)
+   ! call GETNEWB(el,el%b_sol,B,X)
+
+    IF(el%p%nmul>=1) THEN
+       BBYTW=el%BN(el%p%nmul)
+       BBXTW=el%AN(el%p%nmul)
+
+       DO  J=el%p%nmul-1,1,-1
+          BBYTWT=X(1)*BBYTW-X(3)*BBXTW+el%BN(J)
+          BBXTW=X(3)*BBYTW+X(1)*BBXTW+el%AN(J)
+          BBYTW=BBYTWT
+       ENDDO
+    ELSE
+       BBYTW=0.0_dp
+       BBXTW=0.0_dp
+    ENDIF
+    B(1)=BBXTW;B(2)=BBYTW;B(3)=el%b_sol;
+
     x(1)=x(1)+el%dx
     x(3)=x(3)+el%dy
 
@@ -6264,17 +6462,32 @@ integer :: kkk=0
     IMPLICIT NONE
     TYPE(REAL_8),INTENT(INOUT):: X(6),B(3)
     TYPE(SOL5P),INTENT(IN):: EL
-
     INTEGER J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    TYPE(REAL_8)  BBYTW,BBXTW,BBYTWT
+    call alloc( BBYTW,BBXTW,BBYTWT)
     call PRTP("GETMULB_SOL:0", X)
 
     x(1)=x(1)-el%dx
     x(3)=x(3)-el%dy
-    call GETNEWB(el%an,el%bn,el%b_sol,EL%P%NMUL,B,X)
+!    call GETNEWB(el,el%b_sol,B,X)
+    IF(el%p%nmul>=1) THEN
+       BBYTW=el%BN(el%p%nmul)
+       BBXTW=el%AN(el%p%nmul)
+
+       DO  J=el%p%nmul-1,1,-1
+          BBYTWT=X(1)*BBYTW-X(3)*BBXTW+el%BN(J)
+          BBXTW=X(3)*BBYTW+X(1)*BBXTW+el%AN(J)
+          BBYTW=BBYTWT
+       ENDDO
+    ELSE
+       BBYTW=0.0_dp
+       BBXTW=0.0_dp
+    ENDIF
+    B(1)=BBXTW;B(2)=BBYTW;B(3)=el%b_sol;
     x(1)=x(1)+el%dx
     x(3)=x(3)+el%dy
+    call kill(BBYTW,BBXTW,BBYTWT)
 
     call PRTP("GETMULB_SOL:1", X)
 
@@ -16110,6 +16323,10 @@ SUBROUTINE ZEROr_teapot(EL,I)
        if(ASSOCIATED(EL%NF)) then
           deallocate(EL%NF)
        endif
+       if(ASSOCIATED(EL%AN0)) then
+          deallocate(EL%AN0)
+          deallocate(EL%BN0)
+       endif
        if(ASSOCIATED(EL%F)) then
           deallocate(EL%F)
        endif
@@ -16148,6 +16365,9 @@ SUBROUTINE ZEROr_teapot(EL,I)
        NULLIFY(EL%H1)
        NULLIFY(EL%H2)
        NULLIFY(EL%NF)
+       NULLIFY(EL%F)
+       NULLIFY(EL%AN0)
+       NULLIFY(EL%BN0)
        NULLIFY(EL%F)
        NULLIFY(EL%A)
        NULLIFY(EL%R)
@@ -16186,6 +16406,10 @@ SUBROUTINE ZEROr_teapot(EL,I)
           CALL KILL(EL%F,EL%NF)
           deallocate(EL%F)
        endif
+       if(ASSOCIATED(EL%AN0)) then
+          deallocate(EL%AN0)
+          deallocate(EL%BN0)
+       endif
        if(ASSOCIATED(EL%PH)) then
           CALL KILL(EL%PH,EL%NF)
           deallocate(EL%PH)
@@ -16223,6 +16447,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
        NULLIFY(EL%H2)
        NULLIFY(EL%NF)
        NULLIFY(EL%F)
+       NULLIFY(EL%AN0)
+       NULLIFY(EL%BN0)
        NULLIFY(EL%A)
        NULLIFY(EL%R)
        NULLIFY(EL%always_on,el%xprime)
@@ -17324,7 +17550,7 @@ call  kill(del,pz,h)
     call kill(d)
 
   end subroutine fxp_canonical
-
+!  Ma Ande
   subroutine fxr(f,x,k,b,p,hcurv)   ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
     implicit none
 
@@ -17340,9 +17566,9 @@ call  kill(del,pz,h)
     else
        beta0=1.0_dp;GAMMA0I=0.0_dp;
     endif
-
+!!! B(1:3) is real b-field/ brho
     d(1)=root(x(2)**2+x(4)**2+(1.0_dp+hcurv*x(1))**2)
-    d(2)=(d(1)**3)/root(1.0_dp+2*x(5)/beta0+x(5)**2)
+    d(2)=(d(1)**3)/root(1.0_dp+2*x(5)/beta0+x(5)**2)  ! Ma =sqrt( (1+delta_p/p0))**2)  x(5)=D_E/p0c
     d(3)=1.0_dp+hcurv*x(1)
 
     c(1)=d(1)**2-x(2)**2
@@ -18049,6 +18275,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
 
   end  subroutine rks_pancakep
   ! 4 order Runge
+! Ma Ande
   subroutine rk4_pancaker(ti,h,GR,y,k)
     IMPLICIT none
 
@@ -18572,7 +18799,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     endif
   END SUBROUTINE ADJUST_ABELLP
 
-
+! MA Ande
   SUBROUTINE ADJUST_PANCAKER(EL,X,k,J)
     IMPLICIT NONE
     real(dp), INTENT(INOUT) :: X(6)
@@ -18588,7 +18815,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
       IF(EL%P%DIR==1) THEN
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-         if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
+         if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)   ! conversion from px to x'
       ELSE
          if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
@@ -18597,7 +18824,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     else
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
+        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k) ! conversion from x' to p
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
@@ -18698,6 +18925,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
 
   END SUBROUTINE ADJUST_PANCAKEP
 
+! Ma Ande (not important)
   SUBROUTINE INTER_PANCAKE(EL,X,k,POS)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
@@ -19138,10 +19366,11 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     REAL(DP) A(3),AD(3),PZ
     TYPE(CAV_TRAV),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    real(dp) BBXTW,BBYTW
     A=0.0_dp;AD=0.0_dp;
     CALL A_TRANS(D,Z0,X,k,A,AD)
-
+    call b0_cav_trav(D,x,BBXTW,BBYTW)
+ 
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
 
@@ -19150,8 +19379,8 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
 
@@ -19159,8 +19388,8 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
@@ -19169,16 +19398,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -19196,14 +19425,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     TYPE(REAL_8)  A(3),AD(3),PZ
     TYPE(CAV_TRAVp),  INTENT(INOUT) :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    TYPE(REAL_8) BBXTW,BBYTW
 
     CALL ALLOC(A)
     CALL ALLOC(AD)
-    CALL ALLOC(PZ)
+    CALL ALLOC(PZ,BBXTW,BBYTW)
 
 
 
     CALL A_TRANS(D,Z0,X,k,A,AD)
+    call b0_cav_trav(D,x,BBXTW,BBYTW)
 
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
@@ -19213,16 +19444,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
        else
           PZ=sqrt((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
@@ -19231,16 +19462,16 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -19251,7 +19482,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
 
     CALL KILL(A)
     CALL KILL(AD)
-    CALL KILL(PZ)
+    CALL KILL(PZ,BBXTW,BBYTW)
 
 
   END subroutine feval_CAVP
@@ -19313,7 +19544,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     real(dp),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV_TRAV),INTENT(INOUT):: EL
 
-    real(dp) C1,S1,C2,S2,V,O
+    real(dp) C1,S1,C2,S2,V,O,BBXTW,BBYTW
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
 
@@ -19348,7 +19579,12 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
      b(1)=-ad(3)*x(3)/EL%P%CHARGE
      b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
+     call b0_cav_trav(EL,x,BBXTW,BBYTW)
+     b(1)=b(1)+BBXTW
+     b(2)=b(2)+BBYTW
     endif
+
+
 
     if(present(e)) then
      E(1)=-ad(2)*x(1)/EL%P%CHARGE
@@ -19370,13 +19606,13 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     TYPE(REAL_8),INTENT(INOUT):: Z0,A(3),ad(3)
     TYPE(REAL_8),optional,INTENT(INOUT)::B(3),E(3)
     TYPE(CAV_TRAVP),INTENT(INOUT):: EL
-    TYPE(REAL_8) C1,S1,C2,S2,V,O
+    TYPE(REAL_8) C1,S1,C2,S2,V,O,BBXTW,BBYTW
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
 
 
-    CALL ALLOC(C1,S1,C2,S2,V,O)
+    CALL ALLOC(C1,S1,C2,S2,V,O,BBXTW,BBYTW)
        if(freq_redefine) then
         O=EL%freq
          else
@@ -19404,6 +19640,9 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
      b(1)=-ad(3)*x(3)/EL%P%CHARGE
      b(2)= ad(3)*x(1)/EL%P%CHARGE
      b(3)=0.0_dp
+     call b0_cav_trav(EL,x,BBXTW,BBYTW)
+     b(1)=b(1)+BBXTW
+     b(2)=b(2)+BBYTW
     endif
 
     if(present(e)) then
@@ -19413,7 +19652,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     endif
 
 
-    CALL KILL(C1,S1,C2,S2,V,O)
+    CALL KILL(C1,S1,C2,S2,V,O,BBXTW,BBYTW)
 
   END SUBROUTINE A_TRANSP
 
@@ -21242,9 +21481,10 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
         endif
        CALL B_FIELD(EL%wi,Z,X,B)
 
-    CASE(KIND4)      ! Pill box cavity
+    CASE(KIND4)      ! Pill box cavity ! etienne an0
       if(EL%C4%n_bessel/=-1) then
         CALL GET_BE_CAV(EL%C4,B,E,X,k)
+ 
       else
 !       IF(EL%c4%P%DIR==1) THEN
  !         Z= pos*el%l/el%p%nst
@@ -21269,6 +21509,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
       endif
 
        call  Abmad_TRANS(EL%C4,Z,X,k,A,AD,B,E)
+ 
        endif
 
     CASE(KIND21)     ! travelling wave cavity
@@ -21775,11 +22016,11 @@ call kill(vm,phi,z)
    if(associated(el%s5)) then
     x(1)=x(1)-el%s5%dx
     x(3)=x(3)-el%s5%dy
-    call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
+    call GETNEWB(el,bsol,B,X)
     x(1)=x(1)+el%s5%dx
     x(3)=x(3)+el%s5%dy
    else
-    call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
+    call GETNEWB(el,bsol,B,X)
    endif
   END SUBROUTINE get_BfieldR
 
@@ -21803,11 +22044,11 @@ call kill(vm,phi,z)
    if(associated(el%s5)) then
     x(1)=x(1)-el%s5%dx
     x(3)=x(3)-el%s5%dy
-    call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
+    call GETNEWB(el,bsol,B,X)
     x(1)=x(1)+el%s5%dx
     x(3)=x(3)+el%s5%dy
    else
-    call GETNEWB(el%an,el%bn,bsol,EL%P%NMUL,B,X)
+    call GETNEWB(el,bsol,B,X)
    endif
        call kill(bsol)
 
@@ -21946,6 +22187,11 @@ call kill(vm,phi,z)
        E(3)=E(3)+EL%F(KO)*ko*O*BBYTW/EL%P%P0C*sin(ko*O*x(6)+EL%PHAS+EL%phase0)
     enddo
 
+    call b0_cav(EL,x,BBXTW,BBYTW)
+    b(1)=b(1)+BBXTW
+    b(2)=b(2)+BBYTW
+    
+
   END SUBROUTINE GET_BE_CAVR
 
   SUBROUTINE GET_BE_CAVP(EL,B,E,X,k)
@@ -22042,7 +22288,9 @@ call kill(vm,phi,z)
        E(3)=E(3)+EL%F(KO)*ko*O*BBYTW/EL%P%P0C*sin(ko*O*x(6)+EL%PHAS+EL%phase0)
     enddo
 
-
+    call b0_cav(EL,x,BBXTW,BBYTW)
+    b(1)=b(1)+BBXTW
+    b(2)=b(2)+BBYTW
 
 
     CALL KILL(BBYTWT,BBXTW,BBYTW,x1,x3)
@@ -24449,7 +24697,7 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
  if(compute_stoch_kick) then 
   ct%delta_rad_in=denf+ct%delta_rad_in 
   ct%delta_rad_out=denf+ct%delta_rad_out 
-  endif
+ endif
 
     do   j=1,ne
        g(j)=h*f(j)
@@ -24550,7 +24798,7 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     real(dp),INTENT(INOUT):: Z0
     TYPE(CAV4) ,pointer  :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    REAL(DP) A(3),AD(3),PZ,hcurv,ve,B(3),E(3)
+    REAL(DP) A(3),AD(3),PZ,hcurv,ve,B(3),E(3),BBXTW,BBYTW
     integer pos
     d=>c%parent_fibre%mag%c4
 
@@ -24560,8 +24808,9 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
 !write(6,*) " canonical probe"
 
     CALL Abmad_TRANS(D,Z0,X,k,A,AD,b,e)
+    call b0_cav(D,x,BBXTW,BBYTW)
 !write(n_wedge,"(11(1x,g16.9,1x))") z0+hhh, b,scaleb*b,qi%x(0:3)
-
+!eeeeeeeeeeeeeeeeeeeeeeeee
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
 
@@ -24570,24 +24819,24 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
        else
           PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
     ELSE
        if(k%TIME) then
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
-          F(1)=X(2)/PZ
-          F(3)=X(4)/PZ
+          F(1)=X(2)/PZ-BBYTW 
+          F(3)=X(4)/PZ+BBXTW
           F(2)=F(1)*AD(1)
           F(4)=F(3)*AD(1)
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
@@ -24596,8 +24845,8 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -24626,6 +24875,1104 @@ endif
 
   END subroutine feval_CAV_bmad_prober
 
+ ! new trav_cav     
+
+  SUBROUTINE INTE_CAV_trav_PROber(p,kt,c)
+    IMPLICIT NONE
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(CAV_TRAV),POINTER :: EL
+     real(dp)  D 
+     real(dp)   z0
+  !  real(dp) D,DH,DD
+  !  real(dp) D1,D2,DK1,DK2,DK1h,DK2h
+  !  real(dp) DD1,DD2,z0
+  !  real(dp) DF(4),DK(4),DDF(4),DKH(4)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15),NDKH(15)
+
+    INTEGER I,J,POS
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    TYPE(INTERNAL_STATE) kt !,OPTIONAL :: K
+
+    POS=C%POS_IN_FIBRE-2
+    f=>c%parent_fibre
+    el=> f%mag%Cav21
+
+ 
+
+    k=kt
+    !TOTALPATH_FLAG=k%TOTALPATH
+    k%TOTALPATH=el%CAVITY_TOTALPATH
+
+
+
+    D=el%p%dir*EL%L/EL%P%NST
+    IF(EL%P%DIR==1) THEN
+       Z0=(pos-1)*d
+    ELSE
+       Z0=EL%L+(pos-1)*d
+    ENDIF
+       D=EL%L/EL%P%NST
+    SELECT CASE(EL%P%METHOD)
+
+    CASE(2)
+
+
+
+        call rk2bmad_cav_trav_probe(z0,p,k,c,d)
+
+    CASE(4)
+ 
+
+        call rk4bmad_cav_trav_probe(z0,p,k,c,d)
+
+ 
+
+    CASE(6)
+
+ 
+        call rk6bmad_cav_trav_probe(z0,p,k,c,d)
+
+ !!! newyoshida
+    CASE(8)
+ 
+        call rk6bmad_cav_trav_probe(z0,p,k,c,d)
+
+
+ 
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+    
+    !k%TOTALPATH=TOTALPATH_FLAG
+
+
+  END SUBROUTINE INTE_CAV_trav_PROber
+!ssssssssssssssssssssssssssss
+  SUBROUTINE INTE_CAV_trav_PRObep(p,kt,c)
+    IMPLICIT NONE
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(fibre), pointer :: f
+    TYPE(CAV_TRAVP),POINTER :: EL
+    type(real_8)  D 
+     type(real_8)   z0
+ 
+    INTEGER I,J,POS
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    TYPE(INTERNAL_STATE) kt !,OPTIONAL :: K
+
+    POS=C%POS_IN_FIBRE-2
+    f=>c%parent_fibre
+    el=> f%magp%Cav21
+
+call alloc(d,z0)
+ 
+
+    k=kt
+    !TOTALPATH_FLAG=k%TOTALPATH
+    k%TOTALPATH=el%CAVITY_TOTALPATH
+
+
+
+    D=el%p%dir*EL%L/EL%P%NST
+    IF(EL%P%DIR==1) THEN
+       Z0=(pos-1)*d
+    ELSE
+       Z0=EL%L+(pos-1)*d
+    ENDIF
+       D=EL%L/EL%P%NST
+    SELECT CASE(EL%P%METHOD)
+
+    CASE(2)
+
+
+
+        call rk2bmad_cav_trav_probe(z0,p,k,c,d)
+
+    CASE(4)
+ 
+
+        call rk4bmad_cav_trav_probe(z0,p,k,c,d)
+
+ 
+
+    CASE(6)
+
+ 
+        call rk6bmad_cav_trav_probe(z0,p,k,c,d)
+
+ !!! newyoshida
+    CASE(8)
+ 
+        call rk6bmad_cav_trav_probe(z0,p,k,c,d)
+
+
+ 
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+    END SELECT
+
+    call kill(d,z0)
+
+    !k%TOTALPATH=TOTALPATH_FLAG
+
+
+  END SUBROUTINE INTE_CAV_trav_PRObep
+
+
+ subroutine rk2bmad_cav_TRAV_prober(ti,p,k,c,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp)   y(ne)
+    real(dp)  yt(ne),f(ne),a(ne),b(ne),tt
+    type(quaternion) qa,qb,qyt,qy
+    integer j
+    real(dp), intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(quaternion) q
+
+
+    qy=p%q
+    y=p%x
+               
+    call feval_CAV_trav_bmad_probe(tI,y,qy,k,f,q,c)   
+ 
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+   if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%spin) then
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+ 
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,c)
+ 
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+    endif
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+b(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j) 
+     enddo
+    endif
+
+    tI=ti+h
+
+    return
+  end  subroutine rk2bmad_cav_TRAV_prober
+
+ subroutine rk4bmad_cav_TRAV_prober(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    real(dp)   y(ne)
+    real(dp)  yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),tt
+    type(quaternion)qa,qb,qyt,qy,qc,qd,q
+    integer j
+    real(dp), intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+ 
+
+    qy=p%q
+    y=p%x
+               
+    call feval_CAV_trav_bmad_probe(tI,y,qy,k,f,q,ct)   
+ 
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+   if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+ 
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+ 
+
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qb%x(j)/2.0_dp
+     enddo
+    endif
+    do   j=1,ne
+       yt(j)=y(j) + b(j)/2.0_dp
+    enddo
+
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+ 
+
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+      do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+
+
+    tt=tI+h
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+ 
+
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+
+ 
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+ 
+
+ 
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+ 
+
+
+    return
+  end  subroutine rk4bmad_cav_TRAV_prober
+
+
+subroutine rk6bmad_cav_trav_prober(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    real(dp)     y(ne)
+    real(dp)    yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),pt(ne),tt
+    type(quaternion) qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp,q
+    integer j
+    real(dp)  , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+ 
+
+    qy=p%q
+    y=p%x
+    
+    call feval_CAV_trav_bmad_probe(tI,y,qy,k,f,q,ct)   
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+  if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/9.0_dp
+    enddo
+ 
+ 
+
+    tt=tI+h/9.0_dp
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+  do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j) + 3.0_dp*qb%x(j))/24.0_dp
+     enddo
+    endif
+ 
+    do   j=1,ne
+       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
+    enddo
+
+
+
+     
+    tt=tI+h/6.0_dp
+
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j)-3.0_dp*qb%x(j)+4.0_dp*qc%x(j))/6.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+ 
+
+    do  j=1,ne
+       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
+    enddo
+ 
+
+   tt=tI+h/3.0_dp
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-5.0_dp*qa%x(j) + 27.0_dp*qb%x(j) - 24.0_dp*qc%x(j) + 6.0_dp*qd%x(j))/8.0_dp
+     enddo
+    endif
+ 
+ 
+    do  j=1,ne
+       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
+    enddo
+
+   tt=tI+0.5_dp*h
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qe%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(221.0_dp*qa%x(j)-981.0_dp*qb%x(j) + 867.0_dp*qc%x(j)- 102.0_dp*qd%x(j) + qe%x(j))/9.0_dp
+     enddo
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
+    enddo
+ 
+
+     tt = tI+2.0_dp*h/3.0_dp
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qg%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-183.0_dp*qa%x(j)+678.0_dp*qb%x(j)-472.0_dp*qc%x(j) &
+              -66.0_dp*qd%x(j)+80.0_dp*qe%x(j)+3.0_dp*qg%x(j))/48.0_dp
+     enddo
+    endif
+ 
+
+    tt = tI + 5.0_dp*h/6.0_dp
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qo%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(716.0_dp*qa%x(j)-2079.0_dp*qb%x(j)+1002.0_dp*qc%x(j)+834.0_dp*qd%x(j) &
+        -454.0_dp*qe%x(j)-9.0_dp*qg%x(j)+72.0_dp*qo%x(j))/82.0_dp
+     enddo
+     endif
+ 
+
+    tt = tI + h
+    call feval_CAV_trav_bmad_probe(tt,yt,qyt,k,f,q,ct)
+
+    do  j=1,ne
+       pt(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qp%x(j)=h*q%x(j)
+     enddo
+    endif
+ 
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*pt(j))/840.0_dp
+    enddo
+
+ 
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j) = p%q%x(j)+(41.0_dp*qa%x(j)+216.0_dp*qc%x(j)+27.0_dp*qd%x(j) &
+                   +272.0_dp*qe%x(j)+27.0_dp*qg%x(j)+216.0_dp*qo%x(j)+41.0_dp*qp%x(j))/840.0_dp
+    enddo
+    endif
+
+
+ 
+
+
+    return
+  end  subroutine rk6bmad_cav_trav_prober
+
+                                 !(z0,x,qi,k,f,q,c) (tI,y,qy,k,f,q,c)  
+  subroutine feval_CAV_TRAV_bmad_prober(Z0,X,qi,k,f,q,c)
+    IMPLICIT NONE
+     real(dp), INTENT(INout) ::  X(6)
+ !    type(probe), INTENT(INout) :: P
+    real(dp),INTENT(INOUT):: Z0
+    real(dp), INTENT(INOUT) :: F(6)
+    REAL(DP) A(3),AD(3),PZ
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(quaternion) , INTENT(INOUT) :: q,qi
+
+    TYPE(CAV_TRAV),  pointer :: D
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) BBXTW,BBYTW
+        integer pos
+    d=>c%parent_fibre%mag%CAV21
+
+!    x=p%x
+    A=0.0_dp;AD=0.0_dp;
+    CALL A_TRANS(D,Z0,X,k,A,AD)
+    call b0_cav_trav(D,x,BBXTW,BBYTW)
+ 
+    X(2)=X(2)-A(1)
+    X(4)=X(4)-A(2)
+
+    IF(D%P%EXACT) THEN
+       if(k%TIME) then
+          PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
+
+       else
+          PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
+       endif
+    ELSE
+       if(k%TIME) then
+          PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
+          F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          F(1)=X(2)/(1.0_dp+X(5))
+          F(3)=X(4)/(1.0_dp+X(5))
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
+       endif
+    ENDIF
+
+    X(2)=X(2)+A(1)
+    X(4)=X(4)+A(2)
+
+    pos=0
+if(k%radiation.or.k%spin) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,pos,z0)
+ 
+if(k%spin) then
+ q%x(0)=0.0_dp
+ q=q*qi
+endif
+
+
+  END subroutine feval_CAV_TRAV_bmad_prober
+
+
+ subroutine rk2bmad_cav_trav_probep(ti,p,k,c,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(real_8)   y(ne)
+    type(real_8)   yt(ne),f(ne),a(ne),b(ne),tt
+    type(quaternion_8) qa,qb,qyt,qy,q
+    integer j
+        type(real_8) , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) e_ija(6,6),e_ijb(6,6)
+    real(dp) de_ij(6,6),hr,denf,cr
+
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j))
+    enddo
+     call alloc(tt)
+     call alloc(qa,qb,qyt,qy,q)
+
+    qy=p%q
+    y=p%x
+    hr=h
+   cr=0.5_dp
+               
+    call feval_CAV_TRAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,c,cr,hr)   
+
+  if(compute_stoch_kick) then 
+  c%delta_rad_in=denf+c%delta_rad_in 
+  c%delta_rad_out=denf+c%delta_rad_out 
+  endif
+
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+   if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,c,cr,hr)
+  if(compute_stoch_kick) then 
+  c%delta_rad_in=denf+c%delta_rad_in 
+  c%delta_rad_out=denf+c%delta_rad_out 
+  endif
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+      p%e_ij=p%e_ij+e_ijb
+    endif
+    do  j=1,ne
+       p%x(j) = p%x(j)+b(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+qb%x(j) 
+     enddo
+    endif
+     
+
+
+    tI=ti+h
+
+
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j))
+    enddo
+     call kill(tt)
+     call kill(qa,qb,qyt,qy,q)
+
+    return
+  end  subroutine rk2bmad_cav_trav_probep
+
+subroutine rk4bmad_cav_trav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    type(real_8)    y(ne)
+    type(real_8)   yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),tt
+    type(quaternion_8) qa,qb,qyt,qy,qc,qd,q
+    integer j
+    type(real_8) , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6)
+    real(dp) de_ij(6,6),hr,denf,cr
+
+
+          
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j))
+    enddo
+     call alloc(tt)
+     call alloc(qa,qb,qyt,qy,qc,qd,q)
+
+    qy=p%q
+    y=p%x
+    hr=h
+   cr=0.25_dp
+
+    call feval_CAV_TRAV_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct,cr,hr)   
+if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+
+   do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+  if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/2.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/2.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+ 
+
+    tt=tI+h/2.0_dp
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+
+  do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qb%x(j)/2.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j)+b(j)/2.0_dp
+    enddo
+
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+   if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+     enddo
+      do  j=0,3
+       qyt%x(j)=qy%x(j)+qc%x(j) 
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+    if(k%envelope)  then
+      e_ijc =hr*de_ij  
+    endif
+
+    tt=tI+h
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijd =hr*de_ij  
+    endif
+ 
+    do  j=1,ne
+       p%x(j) = p%x(j)+(a(j)+2.0_dp*b(j)+2.0_dp*c(j)+d(j))/6.0_dp
+    enddo
+ 
+ 
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j)=p%q%x(j)+(qa%x(j)+2.0_dp*qb%x(j)+2.0_dp*qc%x(j)+qd%x(j))/6.0_dp
+     enddo
+    endif
+ 
+
+    if(k%envelope)  then
+      p%e_ij=p%e_ij+(e_ija+2.0_dp*e_ijb+2.0_dp*e_ijc+e_ijd)/6.0_dp
+    endif
+
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j),c(j),d(j))
+    enddo
+     call kill(tt)
+     call kill(qa,qb,qyt,qy,qc,qd,q)
+
+
+    return
+  end  subroutine rk4bmad_cav_trav_probep
+
+ 
+subroutine rk6bmad_cav_trav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
+    IMPLICIT none
+
+    integer ne
+    parameter (ne=6)
+    type(probe_8), INTENT(INOUT) ::  p
+    TYPE(integration_node),pointer, INTENT(IN):: ct
+    type(real_8)    y(ne)
+    type(real_8)   yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),pt(ne),tt
+    type(quaternion_8) qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp,q
+    integer j
+    type(real_8) , intent(inout) :: ti,h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp) e_ija(6,6),e_ijb(6,6),e_ijc(6,6),e_ijd(6,6),e_ije(6,6),e_ijg(6,6),e_ijo(6,6),e_ijp(6,6)
+    real(dp) de_ij(6,6),hr,denf,cr
+
+
+          
+    do j=1,ne
+     call alloc(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call alloc(pt(j))
+    enddo
+     call alloc(tt)
+     call alloc(qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp)
+     call alloc(q)
+
+    qy=p%q
+    y=p%x
+    hr=h
+   cr=0.125_dp
+    call feval_CAV_trav_bmad_probe(tI,y,qy,k,f,q,de_ij,denf,ct,cr,hr)   
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+  if(k%spin) then
+     do  j=0,3
+       qa%x(j)=h*q%x(j)
+     enddo
+     do  j=0,3
+       qyt%x(j)=qy%x(j)+qa%x(j)/9.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/9.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ija =hr*de_ij  
+    endif
+ 
+
+    tt=tI+h/9.0_dp
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+  if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+  do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qb%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j) + 3.0_dp*qb%x(j))/24.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijb =hr*de_ij  
+      p%e_ij=p%e_ij+e_ijb
+    endif
+    do   j=1,ne
+       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
+    enddo
+
+
+
+     
+    tt=tI+h/6.0_dp
+
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qc%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(qa%x(j)-3.0_dp*qb%x(j)+4.0_dp*qc%x(j))/6.0_dp
+     enddo
+    endif
+    do  j=1,ne
+       yt(j)=y(j)+c(j)
+    enddo
+    if(k%envelope)  then
+      e_ijc =hr*de_ij  
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
+    enddo
+ 
+
+   tt=tI+h/3.0_dp
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qd%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-5.0_dp*qa%x(j) + 27.0_dp*qb%x(j) - 24.0_dp*qc%x(j) + 6.0_dp*qd%x(j))/8.0_dp
+     enddo
+    endif
+    if(k%envelope)  then
+      e_ijd =hr*de_ij  
+    endif
+ 
+    do  j=1,ne
+       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
+    enddo
+
+   tt=tI+0.5_dp*h
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qe%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(221.0_dp*qa%x(j)-981.0_dp*qb%x(j) + 867.0_dp*qc%x(j)- 102.0_dp*qd%x(j) + qe%x(j))/9.0_dp
+     enddo
+    endif
+
+    do  j=1,ne
+       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
+    enddo
+     if(k%envelope)  then
+      e_ije =hr*de_ij  
+    endif
+
+     tt = tI+2.0_dp*h/3.0_dp
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       qg%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(-183.0_dp*qa%x(j)+678.0_dp*qb%x(j)-472.0_dp*qc%x(j) &
+              -66.0_dp*qd%x(j)+80.0_dp*qe%x(j)+3.0_dp*qg%x(j))/48.0_dp
+     enddo
+    endif
+     if(k%envelope)  then
+      e_ijg =hr*de_ij  
+    endif
+
+    tt = tI + 5.0_dp*h/6.0_dp
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qo%x(j)=h*q%x(j)
+       qyt%x(j)=qy%x(j)+(716.0_dp*qa%x(j)-2079.0_dp*qb%x(j)+1002.0_dp*qc%x(j)+834.0_dp*qd%x(j) &
+        -454.0_dp*qe%x(j)-9.0_dp*qg%x(j)+72.0_dp*qo%x(j))/82.0_dp
+     enddo
+     endif
+     if(k%envelope)  then
+      e_ijo =hr*de_ij  
+    endif
+
+    tt = tI + h
+    call feval_CAV_TRAV_bmad_probe(tt,yt,qyt,k,f,q,de_ij,denf,ct,cr,hr)
+ if(compute_stoch_kick) then 
+  ct%delta_rad_in=denf+ct%delta_rad_in 
+  ct%delta_rad_out=denf+ct%delta_rad_out 
+  endif
+
+    do  j=1,ne
+       pt(j)=h*f(j)
+    enddo
+    if(k%spin) then
+     do  j=0,3
+       qp%x(j)=h*q%x(j)
+     enddo
+    endif
+     if(k%envelope)  then
+      e_ijp =hr*de_ij  
+    endif
+
+    do  j=1,ne
+       p%x(j) = p%x(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*pt(j))/840.0_dp
+    enddo
+
+    if(k%spin) then
+     do  j=0,3
+       p%q%x(j) = p%q%x(j)+(41.0_dp*qa%x(j)+216.0_dp*qc%x(j)+27.0_dp*qd%x(j) &
+                   +272.0_dp*qe%x(j)+27.0_dp*qg%x(j)+216.0_dp*qo%x(j)+41.0_dp*qp%x(j))/840.0_dp
+    enddo
+    endif
+    if(k%envelope)  then
+      p%e_ij=p%e_ij+(41.0_dp*e_ija+216.0_dp*e_ijc+27.0_dp*e_ijd+272.0_dp*e_ije & 
+             +27.0_dp*e_ijg+216.0_dp*e_ijo+41.0_dp*e_ijp)/840.0_dp
+    endif
+
+    do j=1,ne
+     call kill(y(j),yt(j),f(j),a(j),b(j),c(j),d(j),e(j),g(j),o(j))
+     call kill(pt(j))
+    enddo
+     call kill(tt)
+     call kill(qa,qb,qyt,qy,qc,qd,qe,qg,qo,qp)
+     call kill(q)
+
+
+    return
+  end  subroutine rk6bmad_cav_trav_probep
+
   subroutine feval_CAV_bmad_probep(z0,x,qi,k,f,q,e_ij,denf,c,fac,ds)    !(Z0,X,k,f,D)   ! MODELLED BASED ON DRIFT
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
@@ -24635,7 +25982,7 @@ endif
     type(real_8),INTENT(INOUT):: Z0
     TYPE(CAV4P) ,pointer  :: D
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    type(real_8) A(3),AD(3),PZ
+    type(real_8) A(3),AD(3),PZ,BBXTW,BBYTW
     REAL(DP),intent(inout):: e_ij(6,6),denf
     real(dp),intent(in) ::fac,ds 
     real(dp) zw
@@ -24644,11 +25991,11 @@ endif
     
     call alloc(a) 
     call alloc(ad) 
-    call alloc(pz) 
+    call alloc(pz,BBXTW,BBYTW) 
 !    a=0
 !    ad=0
     CALL Abmad_TRANS(D,Z0,X,k,A,AD)
-
+    call b0_cav(D,x,BBXTW,BBYTW)
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
 
@@ -24657,16 +26004,16 @@ endif
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
        else
           PZ=sqrt((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
        endif
@@ -24675,16 +26022,16 @@ endif
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
           F(1)=X(2)/PZ
           F(3)=X(4)/PZ
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
        else
           F(1)=X(2)/(1.0_dp+X(5))
           F(3)=X(4)/(1.0_dp+X(5))
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
@@ -24707,9 +26054,99 @@ endif
 
     call kill(a) 
     call kill(ad) 
-    call kill(pz) 
+    call kill(pz,BBXTW,BBYTW) 
   END subroutine feval_CAV_bmad_probep
 
+
+  subroutine feval_CAV_TRAV_bmad_probep(Z0,X,qi,k,f,q,e_ij,denf,c,fac,ds)
+    IMPLICIT NONE
+     type(real_8), INTENT(INout) ::  X(6)
+ !    type(probe), INTENT(INout) :: P
+   type(real_8),INTENT(INOUT):: Z0
+    type(real_8), INTENT(INOUT) :: F(6)
+    type(real_8) A(3),AD(3),PZ
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(quaternion_8) , INTENT(INOUT) :: q,qi
+
+    TYPE(CAV_TRAVp),  pointer :: D
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    type(real_8) BBXTW,BBYTW
+        integer pos
+    REAL(DP),intent(inout):: e_ij(6,6),denf
+    real(dp),intent(in) ::fac,ds 
+    real(dp) zw
+
+    call alloc(a) 
+    call alloc(ad) 
+    call alloc(pz,BBXTW,BBYTW) 
+
+    d=>c%parent_fibre%magp%CAV21
+
+!    x=p%x
+    A=0.0_dp;AD=0.0_dp;
+    CALL A_TRANS(D,Z0,X,k,A,AD)
+    call b0_cav_trav(D,x,BBXTW,BBYTW)
+ 
+    X(2)=X(2)-A(1)
+    X(4)=X(4)-A(2)
+
+    IF(D%P%EXACT) THEN
+       if(k%TIME) then
+          PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/D%P%BETA0+X(5))/PZ-(1-k%TOTALPATH)/D%P%BETA0
+
+       else
+          PZ=sqrt((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp+X(5))/PZ-(1-k%TOTALPATH)
+       endif
+    ELSE
+       if(k%TIME) then
+          PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
+          F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
+       else
+          F(1)=X(2)/(1.0_dp+X(5))
+          F(3)=X(4)/(1.0_dp+X(5))
+          F(2)=F(1)*AD(1)-BBYTW
+          F(4)=F(3)*AD(1)+BBXTW
+          F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
+          F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
+       endif
+    ENDIF
+
+    X(2)=X(2)+A(1)
+    X(4)=X(4)+A(2)
+!call RAD_SPIN_force_PROBE    
+
+zw=z0                     
+    pos=0
+if(k%radiation.or.k%spin) call RAD_SPIN_force_PROBE(c,x,q%x(1:3),k,f,pos,zw,e_ij,denf,fac,ds)
+ 
+if(k%spin) then
+ q%x(0)=0.0_dp
+ q=q*qi
+endif
+
+    call kill(a) 
+    call kill(ad) 
+    call kill(pz,BBXTW,BBYTW) 
+
+  END subroutine feval_CAV_TRAV_bmad_probep
 
 
 
@@ -27730,7 +29167,7 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
     !k%TOTALPATH=TOTALPATH_FLAG
 
 
-  END SUBROUTINE INTE_CAV4_PROBER
+  END SUBROUTINE INTE_CAV4_PROber
 
 
   SUBROUTINE INTE_CAV4_PROBEP(p,kt,c)

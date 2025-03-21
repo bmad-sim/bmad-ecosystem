@@ -1,6 +1,6 @@
 !+
 ! Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation,
-!                     ptr_array, err_flag, err_print_flag, eles, ix_attrib)
+!                     ptr_array, err_flag, err_print_flag, eles, ix_attrib, do_unlink)
 !
 ! Returns an array of pointers to an attribute with name attrib_name within elements with name ele_name.
 !
@@ -43,7 +43,7 @@
 !-
 
 Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
-                        ptr_array, err_flag, err_print_flag, eles, ix_attrib)
+                        ptr_array, err_flag, err_print_flag, eles, ix_attrib, do_unlink)
 
 use bmad_interface, except_dummy => pointers_to_attribute
 
@@ -65,7 +65,7 @@ character(20) str
 character(*), parameter :: r_name = 'pointers_to_attribute'
 
 logical err_flag, do_allocation, do_print
-logical, optional :: err_print_flag
+logical, optional :: err_print_flag, do_unlink
 
 ! init
 
@@ -285,7 +285,7 @@ endif
 call re_allocate (ptrs, n_loc)
 n = 0
 do i = 1, n_loc
-  call pointer_to_attribute (eles2(i)%ele, attrib_name, do_allocation, a_ptr, err_flag, .false., ix_a)
+  call pointer_to_attribute (eles2(i)%ele, attrib_name, do_allocation, a_ptr, err_flag, .false., ix_a, do_unlink)
   if (err_flag) cycle
   n = n + 1
   ptrs(n) = a_ptr

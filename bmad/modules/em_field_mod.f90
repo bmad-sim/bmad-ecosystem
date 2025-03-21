@@ -6,7 +6,6 @@
 
 module em_field_mod
 
-use coord_mod
 use spline_mod
 use multipole_mod
 use taylor_mod

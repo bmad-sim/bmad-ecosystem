@@ -1,0 +1,28 @@
+&params
+  ltt%lat_file = 'spin_lat.bmad'    ! Lattice file
+  ltt%ele_start = '0'                   ! Where to start in the lattice
+  ltt%ele_stop = ''                     ! Where to start in the lattice
+  ltt%phase_space_output_file = 'tracking.dat'
+  ltt%averages_output_file = 'ramp.dat'
+  ltt%averages_output_every_n_turns = 1
+  ltt%particle_output_every_n_turns = 1
+
+  ltt%ramping_on = T
+  ltt%ramp_update_each_particle           = T
+  ltt%simulation_mode = 'SINGLE'
+  ltt%tracking_method = 'BMAD'   !
+  ltt%n_turns = 5000                       ! Number of turns to track
+  ltt%rfcavity_on = T
+  ltt%split_bends_for_stochastic_rad = F
+  ltt%random_seed = 0                       ! Random number seed. 0 => use system clock.
+  ltt%add_closed_orbit_to_init_position = T
+
+  bmad_com%spin_tracking_on = T         ! See Bmad manual for bmad_com parameters.
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F 
+
+  beam_init%n_particle = 1
+  beam_init%spin = 0, 1, 0              ! See Bmad manual for beam_init_struct parameters.
+  beam_init%center = 0, 0, 1e-5, 0, 2.66, 1.15e-5 
+/
+/

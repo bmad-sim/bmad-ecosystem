@@ -1,5 +1,5 @@
 !+
-! Subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
+! Subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag,
 !                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch, orb0)
 !
 ! Subroutine to calculate the chromaticities by computing the tune change when the energy is changed.
@@ -57,8 +57,6 @@ logical err, used_this_lat
 character(*), parameter :: r_name = 'chrom_calc'
 
 ! Init setup
-
-call cpu_time(time0)
 
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
@@ -183,7 +181,5 @@ chrom_y = (high_tune_y - low_tune_y) / (2 * delta_e)
 
 if (present(err_flag)) err_flag = .false.
 
-call cpu_time(time1)
-if (bmad_com%debug) print '(a, f12.2)', 'chrom_calc execution time:', time1 - time0
 
 end subroutine

@@ -1,6 +1,6 @@
 !+
 ! Subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, 
-!                                                           print_err, ix_dflt_branch, multiple_eles_is_err) 
+!                                                           err_stat_level, ix_branch, multiple_eles_is_err) 
 !
 ! Subroutine to find the lattice elements in the lattice
 ! corresponding to the ele_list argument. 
@@ -15,11 +15,11 @@
 !   lat_type       -- integer, optional: model$ (default), design$, or base$.
 !   ignore_blank   -- logical, optional: If present and true then do nothing if
 !                     ele_list is blank. otherwise treated as an error.
-!   print_err      -- integer, optional: Status level for error messages. If not present,
+!   err_stat_level -- integer, optional: Status level for error messages. If not present,
 !                       print with level s_error$. Use s_nooutput$ to prevent printing.
-!   ix_dflt_branch -- integer, optional: If present and positive then use this as the branch index 
+!   ix_branch      -- integer, optional: If present and non-negative then use this as the branch index 
 !                       for elements specified using an integer index (EG: "43").
-!                       If not present or -1 the default branch is branch 0.
+!                       If -1 use the default branch, search all branches.
 !   multiple_eles_is_err
 !                  -- logical, optional: If present and True then matching to more than one element is an error.
 !
@@ -29,7 +29,7 @@
 !-
 
 subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
-                                           print_err, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
+                                           err_stat_level, above_ubound_is_err, ix_branch, multiple_eles_is_err)
 
 use tao_interface, dummy => tao_locate_elements
 
@@ -39,8 +39,8 @@ type (tao_universe_struct), pointer :: u
 type (tao_lattice_struct), pointer :: tao_lat
 type (ele_pointer_struct), allocatable :: eles(:)
 
-integer, optional :: lat_type, ix_dflt_branch, print_err
-integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc, print_lev
+integer, optional :: lat_type, ix_branch, err_stat_level
+integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc, print_lev, ixb
 
 character(*) ele_list
 character(len(ele_list)) ele_name
@@ -52,11 +52,12 @@ logical, optional :: ignore_blank, above_ubound_is_err, multiple_eles_is_err
 ! 
 
 err = .true.
-print_lev = integer_option(s_error$, print_err)
+print_lev = integer_option(s_error$, err_stat_level)
 
 call re_allocate_eles (eles, 0, exact = .true.)
 
 call str_upcase (ele_name, ele_list)
+ele_name = unquote(ele_name)
 call string_trim (ele_name, ele_name, ix)
 
 if (ix == 0 .and. logic_option(.false., ignore_blank)) then
@@ -74,7 +75,11 @@ if (.not. associated(u)) return
 
 tao_lat => tao_pointer_to_tao_lat (u, lat_type)
 
-call lat_ele_locator (ele_name, tao_lat%lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
+if (present(ix_branch)) then
+  call lat_ele_locator (ele_name, tao_lat%lat, eles, n_loc, err, above_ubound_is_err, tao_branch_index(ix_branch))
+else
+  call lat_ele_locator (ele_name, tao_lat%lat, eles, n_loc, err, above_ubound_is_err)
+endif
 if (err) return
 
 if (n_loc == 0) then

@@ -1,0 +1,11 @@
+vv
+vd
+use dat rxorbit.1
+use dat rxorbit.2
+
+use dat pathlength.1
+
+!use var fb.correctors.x[1:10:2]
+!use var fb.correctors.x[2:10:2]
+use var fb.offsets.x[2:10:2]
+osvd

@@ -1,0 +1,1603 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!  Northeast Splitter - 2023-08-23 - Ryan Bodenstein  !!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!  Contents:                                     !!!!!!!!!
+!!!!  1. Define Parameters                          !!!!!!!!!
+!!!!  2. Elements - Dipoles                         !!!!!!!!!
+!!!!  3. Quadrupoles & Stay-Clear Markers           !!!!!!!!!
+!!!!  4. Drifts                                     !!!!!!!!!
+!!!!  5. Extraction Dipoles & Stay Clear Markers    !!!!!!!!!
+!!!!  6. Patches                                    !!!!!!!!!
+!!!!  7. Overlays                                   !!!!!!!!!
+!!!!  8. Lines and Dummy Values                     !!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! To run, you must include the following 5 files:      !!!!!
+!!  1. NESplitter_test.bmad (this file)                 !!!!!
+!!  2. tao_splitters.init                               !!!!!
+!!  3. Plot_Splitters.plot                              !!!!!
+!!  4. Wall_Splitters.in                                !!!!!
+!!  5. tao_NESplit.startup                              !!!!!
+!!                                                      !!!!!
+!! Run command: tao -init tao_splitters.init            !!!!!
+!!                                                      !!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!! Define parameters !!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+InjE = 650e6
+LinacE = 1100e6
+e1 = InjE + LinacE
+e3 = e1+2*(LinacE)
+e5 = e3+2*(LinacE)
+e7 = e5+2*(LinacE)
+e9 = e7+2*(LinacE)
+e11 = e9+2*(LinacE)
+e13 = e11+2*(LinacE)
+e15 = e13+2*(LinacE)
+e17 = e15+2*(LinacE)
+e19 = e17+2*(LinacE)
+e21 = e19+2*(LinacE)
+e23 = e21+2*(LinacE)
+e25 = e23+2*(LinacE)
+p1 = sqrt(e1*e1-mass_of(electron)^2)
+p3 = sqrt(e3*e3-mass_of(electron)^2)
+p5 = sqrt(e5*e5-mass_of(electron)^2)
+p7 = sqrt(e7*e7-mass_of(electron)^2)
+p9 = sqrt(e9*e9-mass_of(electron)^2)
+p11 = sqrt(e11*e11-mass_of(electron)^2)
+p13 = sqrt(e13*e13-mass_of(electron)^2)
+p15 = sqrt(e15*e15-mass_of(electron)^2)
+p17 = sqrt(e17*e17-mass_of(electron)^2)
+p19 = sqrt(e19*e19-mass_of(electron)^2)
+p21 = sqrt(e21*e21-mass_of(electron)^2)
+p23 = sqrt(e23*e23-mass_of(electron)^2)
+p25 = sqrt(e25*e25-mass_of(electron)^2)
+
+parameter[geometry] = open
+parameter[particle] = electron
+
+! Magnet Steel Lengths
+ls_B3M = 3
+ls_B3p8M = 3.8
+ls_B1p5M = 1.5
+ls_B1M = 1
+ls_Q30 = 0.3
+ls_Q35 = 0.3556
+ls_Q53 = 0.53
+ls_Q1  = 1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!  Elements  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!  Dipoles  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Pass 9
+mCB1: sbend, l=ls_B3M, db_field=-1.5
+m9B2: sbend, l=mCB1[L], db_field=-mCB1[db_field]	
+m9B3: sbend, l=ls_B1p5M, db_field=4.95288804523830728E-001          ! 4.96578718024739962E-001  !1.1
+m9B4: sbend, l=m9B3[L], db_field=-m9B3[db_field]
+m9B5: sbend, l=m9B3[L], db_field=-m9B3[db_field]
+m9B6: sbend, l=m9B3[L], db_field=m9B3[db_field]
+m9B7: sbend, l=ls_B3M, db_field=1.19013021656125728E+000            ! 1.20021665231341546          !1.2
+m9B8: sbend, l=m9B7[L], db_field=-m9B7[db_field]
+m9B9: sbend, l=m9B7[L], db_field=-1.43900033753680767E+000          ! -1.45133005533527348        !-1.43
+m9B10: sbend, l=m9B7[L], db_field=-m9B9[db_field]
+m9B11: sbend, l=ls_B3M, db_field=1.50000000000005684E+000           ! 1.50059089408050816         !1.586
+m9B12: sbend, l=m9B11[L], db_field=-m9B11[db_field]
+
+! Pass 11
+m11B2: sbend, l=mcB1[L], db_field=-mCB1[db_field]	
+m11B3: sbend, l=mcB1[L], db_field=1.3
+m11B4: sbend, l=m11B3[L], db_field=-m11B3[db_field]
+m11B5: sbend, l=m11B3[L], db_field=-1.49225134978342178E+000                    !-1.49600250171000915
+m11B6: sbend, l=m11B3[L], db_field=-m11B5[db_field]
+m11B7: sbend, l=ls_B3M, db_field=1.66527343231040725E+000                       !1.67052098203499488
+m11B8: sbend, l=m11B7[L], db_field=-m11B7[db_field]
+
+! Pass 13
+mCB2: sbend, l=mcB1[L], db_field=1.5	
+mCB3A: sbend, l=mcB1[L], db_field=-1.7
+mCB4A: sbend, l=mcB1[L], db_field=-mCB3A[db_field]
+m13B5: sbend, l=mcB1[L], db_field=1.678
+m13B6: sbend, l=mcB1[L], db_field=-m13B5[db_field]
+m13B7: sbend, l=m13B6[L], db_field=-1.69048292729795269E+000                    !-1.69773405793018695
+m13B8: sbend, l=m13B7[L], db_field=-m13B7[db_field]
+m13B9: sbend, l=ls_B3M, db_field=1.67034745006835528E+000                       !1.67740321194790654
+m13B10: sbend, l=m13B9[L], db_field=-m13B9[db_field]
+
+! Pass 15
+m15B5: sbend, l=mcB1[L], db_field=1.69999999999999996E+000                         !1.7
+m15B6: sbend, l=m15B5[L], db_field=-m15B5[db_field]
+m15B7: sbend, l=m15B6[L], db_field=-1.69982036090268140E+000                       !m15B6[db_field]
+m15B8: sbend, l=m15B7[L], db_field=-m15B7[db_field]
+m15B9: sbend, l=m15B8[L], db_field=1.55588954722759398E+000                        !1.556
+m15B10: sbend, l=m15B9[L], db_field=-m15B9[db_field]
+
+! Pass 17
+mCB3B: sbend, l=mCB1[L], db_field=1.5  
+mCB4B: sbend, l=mCB1[L], db_field=1.5
+mCB5B: sbend, l=mCB1[L], db_field=-1.5
+mCB6B: sbend, l=mCB1[L], db_field=-1.5
+m17B7: sbend, l=mCB1[L], db_field=-1.61959744785732673E+000                 !-1.62
+m17B8: sbend, l=m17B7[L], db_field=-m17B7[db_field]
+m17B9: sbend, l=m17B8[L], db_field=1.61978183232714890E+000                 !m17B8[db_field]
+m17B10: sbend, l=m17B9[L], db_field=-m17B9[db_field]
+m17B11: sbend, l=m17B10[L], db_field=-1.69945738444653305E+000              !-1.7
+m17B12: sbend, l=m17B11[L], db_field=-m17B11[db_field]
+
+! Pass 19
+m19B7: sbend, l=mCB1[L], db_field=1.22
+m19B8: sbend, l=mCB1[L], db_field=-m19B7[db_field]
+m19B9: sbend, l=mCB1[L], db_field=-1.69953049730012862E+000                 !-1.7
+m19B10: sbend, l=mCB1[L], db_field=-m19B9[db_field]
+m19B11: sbend, l=mCB1[L], db_field=1.69999999999999996E+000                 !m19B10[db_field]
+m19B12: sbend, l=mCB1[L], db_field=-m19B11[db_field]
+m19B13: sbend, l=mCB1[L], db_field=-1.69860263125796185E+000                !-1.7
+m19B14: sbend, l=m19B13[L], db_field=-m19B13[db_field]
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!  Quadrupoles & Stay Clear Markers !!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! Note: for 35.53 cm quad, the highest value for k1 is +/- k1=0.709, !!!
+!!!!!!!!!!!! giving b1_gradient=5.3566558E+01 T/m !!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Pass 9
+m9Q1: quadrupole, l=ls_Q35, k1=-4.8E-01, superimpose, ref=D902, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq91u: marker, superimpose, ref=m9Q1, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq91d: marker, superimpose, ref=m9Q1, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q2: quadrupole, l=ls_Q35, k1=4.5E-01, superimpose, ref=D903, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq92u: marker, superimpose, ref=m9Q2, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq92d: marker, superimpose, ref=m9Q2, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q3: quadrupole, l=ls_Q35, k1=-3.5E-01, superimpose, ref=D904, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq93u: marker, superimpose, ref=m9Q3, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq93d: marker, superimpose, ref=m9Q3, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q4: quadrupole, l=ls_Q35, k1=-4.5E-01, superimpose, ref=D905, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq94u: marker, superimpose, ref=m9Q4, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq94d: marker, superimpose, ref=m9Q4, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q5: quadrupole, l=ls_Q35, k1=-4.0E-01, superimpose, ref=D905, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq95u: marker, superimpose, ref=m9Q5, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq95d: marker, superimpose, ref=m9Q5, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q6: quadrupole, l=ls_Q35, k1=-3.0E-0, superimpose, ref=D906, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq96u: marker, superimpose, ref=m9Q6, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq96d: marker, superimpose, ref=m9Q6, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q7: quadrupole, l=ls_Q35, k1=3.5E-01, superimpose, ref=D906, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq97u: marker, superimpose, ref=m9Q7, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq97d: marker, superimpose, ref=m9Q7, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q8: quadrupole, l=ls_Q35, k1=5.0E-01, superimpose, ref=D907, ref_origin=beginning, offset=1.0, ele_origin=beginning
+fq98u: marker, superimpose, ref=m9Q8, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq98d: marker, superimpose, ref=m9Q8, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q9: quadrupole, l=ls_Q35, k1=-5.5E-01, superimpose, ref=D908, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq99u: marker, superimpose, ref=m9Q9, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq99d: marker, superimpose, ref=m9Q9, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q10: quadrupole, l=ls_Q35, k1=-2.5573406238963881E-01, superimpose, ref=D908, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq910u: marker, superimpose, ref=m9Q10, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq910d: marker, superimpose, ref=m9Q10, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q11: quadrupole, l=ls_Q35, k1=5.9386030088118746E-01, superimpose, ref=D909, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq911u: marker, superimpose, ref=m9Q11, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq911d: marker, superimpose, ref=m9Q11, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q12: quadrupole, l=ls_Q35, k1=5.8240466498429067E-01, superimpose, ref=D909, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq912u: marker, superimpose, ref=m9Q12, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq912d: marker, superimpose, ref=m9Q12, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q13: quadrupole, l=ls_Q35, k1=-6.0272171192418275E-02, superimpose, ref=D909, ref_origin=beginning, offset=8, ele_origin=beginning
+fq913u: marker, superimpose, ref=m9Q13, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq913d: marker, superimpose, ref=m9Q13, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q14: quadrupole, l=ls_Q35, k1=-5.5027238397588629E-01, superimpose, ref=D909, ref_origin=beginning, offset=9, ele_origin=beginning
+fq914u: marker, superimpose, ref=m9Q14, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq914d: marker, superimpose, ref=m9Q14, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q15: quadrupole, l=ls_Q35, k1=-1.0655397534878852E-01, superimpose, ref=D909, ref_origin=beginning, offset=13, ele_origin=beginning
+fq915u: marker, superimpose, ref=m9Q15, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq915d: marker, superimpose, ref=m9Q15, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q16: quadrupole, l=ls_Q35, k1=5.9526321944775540E-01, superimpose, ref=D909, ref_origin=beginning, offset=14, ele_origin=beginning
+fq916u: marker, superimpose, ref=m9Q16, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq916d: marker, superimpose, ref=m9Q16, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q17: quadrupole, l=ls_Q35, k1=-5.9999999999999998E-01, superimpose, ref=D910, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq917u: marker, superimpose, ref=m9Q17, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq917d: marker, superimpose, ref=m9Q17, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q18: quadrupole, l=ls_Q35, k1=1.8270779953548774E-01, superimpose, ref=D910, ref_origin=beginning, offset=1.4, ele_origin=beginning
+fq918u: marker, superimpose, ref=m9Q18, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq918d: marker, superimpose, ref=m9Q18, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q19: quadrupole, l=ls_Q35, k1=5.9999999999999998E-01, superimpose, ref=D910, ref_origin=beginning, offset=2.3, ele_origin=beginning
+fq919u: marker, superimpose, ref=m9Q19, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq919d: marker, superimpose, ref=m9Q19, ref_origin=end, offset=0.074, ele_origin=end
+
+m9Q20: quadrupole, l=ls_Q35, k1=-2.5616003784896946E-01, superimpose, ref=D910, ref_origin=beginning, offset=3.2, ele_origin=beginning
+fq920u: marker, superimpose, ref=m9Q20, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq920d: marker, superimpose, ref=m9Q20, ref_origin=end, offset=0.074, ele_origin=end
+
+! Pass 11
+m11Q1: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1101, ref_origin=beginning, offset=19.75, ele_origin=beginning
+fq111u: marker, superimpose, ref=m11Q1, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq111d: marker, superimpose, ref=m11Q1, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q2: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1102, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq112u: marker, superimpose, ref=m11Q2, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq112d: marker, superimpose, ref=m11Q2, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q3: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1102, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq113u: marker, superimpose, ref=m11Q3, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq113d: marker, superimpose, ref=m11Q3, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q4: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1103, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq114u: marker, superimpose, ref=m11Q4, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq114d: marker, superimpose, ref=m11Q4, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q5: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1103, ref_origin=end, offset=-2.5, ele_origin=end
+fq115u: marker, superimpose, ref=m11Q5, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq115d: marker, superimpose, ref=m11Q5, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q6: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1104, ref_origin=beginning, offset=3.5, ele_origin=beginning
+fq116u: marker, superimpose, ref=m11Q6, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq116d: marker, superimpose, ref=m11Q6, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q7: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1104, ref_origin=beginning, offset=4.5, ele_origin=beginning
+fq117u: marker, superimpose, ref=m11Q7, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq117d: marker, superimpose, ref=m11Q7, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q8: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1105, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq118u: marker, superimpose, ref=m11Q8, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq118d: marker, superimpose, ref=m11Q8, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q9: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1105, ref_origin=center, offset=0, ele_origin=center
+fq119u: marker, superimpose, ref=m11Q9, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq119d: marker, superimpose, ref=m11Q9, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q10: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1105, ref_origin=end, offset=-0.5, ele_origin=end
+fq1110u: marker, superimpose, ref=m11Q10, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1110d: marker, superimpose, ref=m11Q10, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q11: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1106, ref_origin=beginning, offset=1.55, ele_origin=beginning
+fq1111u: marker, superimpose, ref=m11Q11, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1111d: marker, superimpose, ref=m11Q11, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q12: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1106, ref_origin=beginning, offset=2.55, ele_origin=beginning
+fq1112u: marker, superimpose, ref=m11Q12, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1112d: marker, superimpose, ref=m11Q12, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q13: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1106, ref_origin=beginning, offset=5.55, ele_origin=beginning
+fq1113u: marker, superimpose, ref=m11Q13, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1113d: marker, superimpose, ref=m11Q13, ref_origin=end, offset=0.074, ele_origin=end
+
+m11Q14: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1106, ref_origin=beginning, offset=6.55, ele_origin=beginning
+fq1114u: marker, superimpose, ref=m11Q14, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1114d: marker, superimpose, ref=m11Q14, ref_origin=end, offset=0.074, ele_origin=end
+
+! Pass 13
+m13Q1: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1304, ref_origin=beginning, offset=2.5, ele_origin=beginning
+fq131u: marker, superimpose, ref=m13Q1, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq131d: marker, superimpose, ref=m13Q1, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q2: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1304, ref_origin=beginning, offset=3.5, ele_origin=beginning
+fq132u: marker, superimpose, ref=m13Q2, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq132d: marker, superimpose, ref=m13Q2, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q3: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1305, ref_origin=beginning, offset=4.5, ele_origin=beginning
+fq133u: marker, superimpose, ref=m13Q3, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq133d: marker, superimpose, ref=m13Q3, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q4: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1305, ref_origin=end, offset=-5.25, ele_origin=end
+fq134u: marker, superimpose, ref=m13Q4, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq134d: marker, superimpose, ref=m13Q4, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q5: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1305, ref_origin=end, offset=-0.5, ele_origin=end
+fq135u: marker, superimpose, ref=m13Q5, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq135d: marker, superimpose, ref=m13Q5, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q6: quadrupole, l=ls_Q35, k1=0, k1=0, superimpose, ref=D1306, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq136u: marker, superimpose, ref=m13Q6, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq136d: marker, superimpose, ref=m13Q6, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q7: quadrupole, l=ls_Q35, k1=0, k1=0, superimpose, ref=D1306, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq137u: marker, superimpose, ref=m13Q7, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq137d: marker, superimpose, ref=m13Q7, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q8: quadrupole, l=ls_Q35, k1=0, k1=0, superimpose, ref=D1306, ref_origin=beginning, offset=2.5, ele_origin=beginning
+fq138u: marker, superimpose, ref=m13Q8, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq138d: marker, superimpose, ref=m13Q8, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q9: quadrupole, l=ls_Q35, k1=0, k1=0, superimpose, ref=D1307, ref_origin=center, offset=0, ele_origin=center
+fq139u: marker, superimpose, ref=m13Q9, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq139d: marker, superimpose, ref=m13Q9, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q10: quadrupole, l=ls_Q35, k1=0, k1=0, superimpose, ref=D1308, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq1310u: marker, superimpose, ref=m13Q10, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1310d: marker, superimpose, ref=m13Q10, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q11: quadrupole, l=ls_Q35, k1=0, k1=0, superimpose, ref=D1308, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq1311u: marker, superimpose, ref=m13Q11, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1311d: marker, superimpose, ref=m13Q11, ref_origin=end, offset=0.074, ele_origin=end
+
+m13Q12: quadrupole, l=ls_Q35, k1=0, k1=0, superimpose, ref=D1308, ref_origin=beginning, offset=2.5, ele_origin=beginning
+fq1312u: marker, superimpose, ref=m13Q12, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1312d: marker, superimpose, ref=m13Q12, ref_origin=end, offset=0.074, ele_origin=end
+
+! Pass 15
+m15Q1: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1504, ref_origin=beginning, offset=6, ele_origin=beginning
+fq151u: marker, superimpose, ref=m15Q1, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq151d: marker, superimpose, ref=m15Q1, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q2: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1504, ref_origin=beginning, offset=6.8, ele_origin=beginning
+fq152u: marker, superimpose, ref=m15Q2, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq152d: marker, superimpose, ref=m15Q2, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q3: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1505, ref_origin=beginning, offset=6.8, ele_origin=beginning
+fq153u: marker, superimpose, ref=m15Q3, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq153d: marker, superimpose, ref=m15Q3, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q4: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1505, ref_origin=center, offset=1.5, ele_origin=center
+fq154u: marker, superimpose, ref=m15Q4, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq154d: marker, superimpose, ref=m15Q4, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q5: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1505, ref_origin=beginning, offset=18.5, ele_origin=beginning
+fq155u: marker, superimpose, ref=m15Q5, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq155d: marker, superimpose, ref=m15Q5, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q6: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1506, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq156u: marker, superimpose, ref=m15Q6, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq156d: marker, superimpose, ref=m15Q6, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q7: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1506, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq157u: marker, superimpose, ref=m15Q7, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq157d: marker, superimpose, ref=m15Q7, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q8: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1507, ref_origin=center, offset=0., ele_origin=center
+fq158u: marker, superimpose, ref=m15Q8, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq158d: marker, superimpose, ref=m15Q8, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q9: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1508, ref_origin=center, offset=0., ele_origin=center
+fq159u: marker, superimpose, ref=m15Q9, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq159d: marker, superimpose, ref=m15Q9, ref_origin=end, offset=0.074, ele_origin=end
+
+m15Q10: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1509, ref_origin=beginning, offset=0.15, ele_origin=beginning
+fq1510u: marker, superimpose, ref=m15Q10, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1510d: marker, superimpose, ref=m15Q10, ref_origin=end, offset=0.074, ele_origin=end
+
+
+! Pass 17
+m17Q1: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1706, ref_origin=beginning, offset=2, ele_origin=beginning
+fq171u: marker, superimpose, ref=m17Q1, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq171d: marker, superimpose, ref=m17Q1, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q2: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1706, ref_origin=beginning, offset=2.8, ele_origin=beginning
+fq172u: marker, superimpose, ref=m17Q2, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq172d: marker, superimpose, ref=m17Q2, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q3: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1706, ref_origin=beginning, offset=3.6, ele_origin=beginning
+fq173u: marker, superimpose, ref=m17Q3, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq173d: marker, superimpose, ref=m17Q3, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q4: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1707, ref_origin=end, offset=-1.3, ele_origin=beginning
+fq174u: marker, superimpose, ref=m17Q4, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq174d: marker, superimpose, ref=m17Q4, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q5: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1707, ref_origin=end, offset=-0.3, ele_origin=end
+fq175u: marker, superimpose, ref=m17Q5, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq175d: marker, superimpose, ref=m17Q5, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q6: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1708, ref_origin=center, offset=0, ele_origin=center
+fq176u: marker, superimpose, ref=m17Q6, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq176d: marker, superimpose, ref=m17Q6, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q7: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1709, ref_origin=beginning, offset=4.5, ele_origin=beginning
+fq177u: marker, superimpose, ref=m17Q7, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq177d: marker, superimpose, ref=m17Q7, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q8: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1709, ref_origin=beginning, offset=6.5, ele_origin=beginning
+fq178u: marker, superimpose, ref=m17Q8, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq178d: marker, superimpose, ref=m17Q8, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q9: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1709, ref_origin=end, offset=-2.35, ele_origin=beginning
+fq179u: marker, superimpose, ref=m17Q9, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq179d: marker, superimpose, ref=m17Q9, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q10: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1709, ref_origin=end, offset=-1.35, ele_origin=beginning
+fq1710u: marker, superimpose, ref=m17Q10, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1710d: marker, superimpose, ref=m17Q10, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q11: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1710, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq1711u: marker, superimpose, ref=m17Q11, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1711d: marker, superimpose, ref=m17Q11, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q12: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1710, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq1712u: marker, superimpose, ref=m17Q12, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1712d: marker, superimpose, ref=m17Q12, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q13: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1710, ref_origin=beginning, offset=3.5, ele_origin=beginning
+fq1713u: marker, superimpose, ref=m17Q13, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1713d: marker, superimpose, ref=m17Q13, ref_origin=end, offset=0.074, ele_origin=end
+
+m17Q14: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1710, ref_origin=beginning, offset=4.5, ele_origin=beginning
+fq1714u: marker, superimpose, ref=m17Q14, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1714d: marker, superimpose, ref=m17Q14, ref_origin=end, offset=0.074, ele_origin=end
+
+! Pass 19
+m19Q1: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1906, ref_origin=beginning, offset=4.5, ele_origin=beginning
+fq191u: marker, superimpose, ref=m19Q1, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq191d: marker, superimpose, ref=m19Q1, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q2: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1906, ref_origin=beginning, offset=5.1, ele_origin=beginning
+fq192u: marker, superimpose, ref=m19Q2, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq192d: marker, superimpose, ref=m19Q2, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q3: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1908, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq193u: marker, superimpose, ref=m19Q3, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq193d: marker, superimpose, ref=m19Q3, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q4: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1908, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq194u: marker, superimpose, ref=m19Q4, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq194d: marker, superimpose, ref=m19Q4, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q5: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1908, ref_origin=beginning, offset=2.5, ele_origin=beginning
+fq195u: marker, superimpose, ref=m19Q5, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq195d: marker, superimpose, ref=m19Q5, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q6: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1910, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq196u: marker, superimpose, ref=m19Q6, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq196d: marker, superimpose, ref=m19Q6, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q7: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1910, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq197u: marker, superimpose, ref=m19Q7, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq197d: marker, superimpose, ref=m19Q7, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q8: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1910, ref_origin=beginning, offset=2.5, ele_origin=beginning
+fq198u: marker, superimpose, ref=m19Q8, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq198d: marker, superimpose, ref=m19Q8, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q9: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1912, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fq199u: marker, superimpose, ref=m19Q9, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq199d: marker, superimpose, ref=m19Q9, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q10: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1912, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fq1910u: marker, superimpose, ref=m19Q10, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1910d: marker, superimpose, ref=m19Q10, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q11: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1912, ref_origin=beginning, offset=5.5, ele_origin=beginning
+fq1911u: marker, superimpose, ref=m19Q11, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1911d: marker, superimpose, ref=m19Q11, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q12: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1912, ref_origin=beginning, offset=6.5, ele_origin=beginning
+fq1912u: marker, superimpose, ref=m19Q12, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1912d: marker, superimpose, ref=m19Q12, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q13: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1912, ref_origin=beginning, offset=7.5, ele_origin=beginning
+fq1913u: marker, superimpose, ref=m19Q13, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1913d: marker, superimpose, ref=m19Q13, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q14: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1912, ref_origin=beginning, offset=11.5, ele_origin=beginning
+fq1914u: marker, superimpose, ref=m19Q14, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1914d: marker, superimpose, ref=m19Q14, ref_origin=end, offset=0.074, ele_origin=end
+
+m19Q15: quadrupole, l=ls_Q35, k1=0, superimpose, ref=D1912, ref_origin=beginning, offset=12.5, ele_origin=beginning
+fq1915u: marker, superimpose, ref=m19Q15, ref_origin=beginning, offset=-0.074, ele_origin=beginning
+fq1915d: marker, superimpose, ref=m19Q15, ref_origin=end, offset=0.074, ele_origin=end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!  Drifts  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Pass 9
+D900: drift, l=7.3
+D901: drift, l=5              ! If extracting here with a 1.5 T, 3 m dipole, need ~4 m (3 m dipole + 1 m drift) to clear downstream magnet.
+D902: drift, l=2
+D903: drift, l=2
+D904: drift, l=2
+D905: drift, l=6.2
+D906: drift, l=2.80000000000000204E+000                     ! 2.86061257176762185 !3
+D907: drift, l=2.5
+D908: drift, l=2.62222424347977867E+000                     ! 2.85905388176935427 !3
+D909: drift, l=1.96000000000000014E+001                     !19.7649503874208534 !19.6
+D910: drift, l=7.86231675485836057E+000                     !7.35994936526081212 !7.419
+D911: drift, l=5.14094610309435485E+000                     !5.37898981198739357 !5.358
+
+! Pass 11
+D1100: drift, l=6
+D1101: drift, l=20.5           ! If extracting here with a 1.5 T, 3 m dipole, need ~4.5 m (3 m dipole + 1.5 m drift) to clear downstream magnet.
+D1102: drift, l=3.5
+D1103: drift, l=9.00000000000000000E+000                        !9.00772038498282690
+D1104: drift, l=5.42167697621872779E+000                        !5.49900371209085748
+D1105: drift, l=9.88052311117433035E+000                        !9.94659129952205134
+D1106: drift, l=7.44650469947863591E+000                        !7.23044100244267618
+D1107: drift, l=9.29067757864110177E+000                        !9.35673574560892263
+
+! Pass 13
+D1300: drift, l=1.5
+D1301: drift, l=5.0
+D1302: drift, l=2
+D1303: drift, l=7.8
+D1304: drift, l=4.5
+D1305: drift, l=17.           ! If extracting here with a 1.5 T, 3 m dipole, need ~5 m (3 m dipole + 2 m drift) to clear downstream magnet.
+D1306: drift, l=3.80000000145164485E+000                        !3.80780016449833303
+D1307: drift, l=3.00576755026743347E+000                        !3.08762187176147762
+D1308: drift, l=5.24520289089316893E+000                        !5.07353478873989694
+D1309: drift, l=1.51672116853525623E+001                        !15.2489924438956947
+
+! Pass 15
+D1500: drift, l=1.5 ! Adjust WRT Pass 13 later
+D1501: drift, l=5.0
+D1502: drift, l=2
+D1503: drift, l=1
+D1504: drift, l=7.69035294286701898E+000                    !7.7           ! If extracting here with a 1.5 T, 3 m dipole, need ~5 m (3 m dipole + 2 m drift) to clear downstream magnet.
+D1505: drift, l=2.29919855779508850E+001                    !23.0
+D1506: drift, l=2.75361822360569253E+000                    !2.76
+D1507: drift, l=1.99198557795088615E+000                    !2
+D1508: drift, l=1.19049123625113840E+000                    !1.2
+D1509: drift, l=1.88879855779508858E+001                    !18.896
+
+! Pass 17
+D1700: drift, l=1.5 ! Adjust WRT Pass 13 later
+D1701: drift, l=0.5
+D1702: drift, l=1
+D1703: drift, l=1.0 !1.5
+D1704: drift, l=3
+D1705: drift, l=6.2 ! 5.5+1.0381200790483547E-02
+D1706: drift, l=4.48709358697265515E+000                    !4.5
+D1707: drift, l=8.48232965204884160E+000                    !8.5           ! If extracting here with a 1.5 T, 3 m dipole, need ~6 m (3 m dipole + 3 m drift) to clear downstream magnet.
+D1708: drift, l=1.47756580828097683E+000                    !1.5
+D1709: drift, l=1.29823296520488345E+001                    !13
+D1710: drift, l=6.32732884538715279E+000                    !6.34
+D1711: drift, l=1.20293335672458959E+001                    !12.047
+
+! Pass 19
+D1900: drift, l=1.5 ! Adjust WRT Pass 13 later
+D1901: drift, l=0.5
+D1902: drift, l=1
+D1903: drift, l=1.0 !1.5
+D1904: drift, l=3
+D1905: drift, l=0.5
+D1906: drift, l=6.5
+D1907: drift, l=2.0
+D1908: drift, l=3.98256549078704447E+000                    !4
+D1909: drift, l=7.97361175957130630E+000                    !8               ! If extracting here with a 1.5 T, 3 m dipole, need ~6 m (3 m dipole + 3 m drift) to clear downstream magnet.
+D1910: drift, l=3.96465814826306584E+000                    !4
+D1911: drift, l=1.97361175957133406E+000                    !2
+D1912: drift, l=1.58325654907870934E+001                    !15.85
+D1913: drift, l=3.23061740933153718E+000                    !3.257
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!  Extraction Dipoles & Stay Clear Markers !!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+m9E: sbend, l=ls_B3M, superimpose, ref=D901, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fe9: marker,  superimpose, ref=m9E, ref_origin=end, offset=1.0, ele_origin=beginning
+
+m11E: sbend, l=ls_B3M, superimpose, ref=D1101, ref_origin=beginning, offset=1.5, ele_origin=beginning
+fe11: marker,  superimpose, ref=m11E, ref_origin=end, offset=1.5, ele_origin=beginning
+
+m13E: sbend, l=ls_B3M, superimpose, ref=D1305, ref_origin=center, offset=-1.5, ele_origin=center
+fe13: marker,  superimpose, ref=m13E, ref_origin=end, offset=2.0, ele_origin=beginning
+
+m15E: sbend, l=ls_B3M, superimpose, ref=D1504, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fe15: marker,  superimpose, ref=m15E, ref_origin=end, offset=2.0, ele_origin=beginning
+
+m17E: sbend, l=ls_B3M, superimpose, ref=D1707, ref_origin=beginning, offset=1, ele_origin=beginning
+fe17: marker,  superimpose, ref=m17E, ref_origin=end, offset=3.0, ele_origin=beginning
+
+m19E: sbend, l=ls_B3M, superimpose, ref=D1909, ref_origin=beginning, offset=0.5, ele_origin=beginning
+fe19: marker,  superimpose, ref=m19E, ref_origin=end, offset=3.0, ele_origin=beginning
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!  Patches  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 9 !!!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+pi_9CB1_xpitch: patch, x_pitch = 0
+pi_9CB1_xoff: patch, x_offset = 0
+
+po_9CB1_xpitch: patch, x_pitch = asin(((mCB1[db_field])*(c_light)*(mCB1[L]))/(p9)) 
+po_9CB1_xoff: patch, x_offset = (mCB1[L])*tan(0.5*po_9CB1_xpitch[x_pitch]) 
+
+pi_9B2_xpitch: patch, x_pitch = -po_9CB1_xpitch[x_pitch]
+pi_9B2_xoff: patch, x_offset = po_9CB1_xoff[x_offset]
+
+po_9B2_xpitch: patch, x_pitch = 0.0
+po_9B2_xoff: patch, x_offset = 0
+
+pi_9B3_xpitch: patch, x_pitch = -po_9B2_xpitch[x_pitch]
+pi_9B3_xoff: patch, x_offset = po_9B2_xoff[x_offset]
+
+po_9B3_xpitch: patch, x_pitch = asin((((m9B3[db_field])*(c_light)*(m9B3[L]))/(p9))-sin(pi_9B3_xpitch[x_pitch]))
+po_9B3_xoff: patch, x_offset = -(pi_9B3_xoff[x_offset]+m9B3[L]*tan(0.5*(pi_9B3_xpitch[x_pitch]-po_9B3_xpitch[x_pitch])))
+
+pi_9B4_xpitch: patch, x_pitch = -po_9B3_xpitch[x_pitch]
+pi_9B4_xoff: patch, x_offset = -(po_9B3_xoff[x_offset]+(D902[L]*sin(po_9B3_xpitch[x_pitch])))-0.
+
+po_9B4_xpitch: patch, x_pitch = asin((((m9B4[db_field])*(c_light)*(m9B4[L]))/(p9))-sin(pi_9B4_xpitch[x_pitch]))
+po_9B4_xoff: patch, x_offset = -(pi_9B4_xoff[x_offset]+m9B4[L]*tan(0.5*(pi_9B4_xpitch[x_pitch]-po_9B4_xpitch[x_pitch])))
+
+pi_9B5_xpitch: patch, x_pitch = -po_9B4_xpitch[x_pitch]
+pi_9B5_xoff: patch, x_offset = -(po_9B4_xoff[x_offset]+(D903[L]*sin(po_9B4_xpitch[x_pitch])))-0.
+
+po_9B5_xpitch: patch, x_pitch = asin((((m9B5[db_field])*(c_light)*(m9B5[L]))/(p9))-sin(pi_9B5_xpitch[x_pitch]))
+po_9B5_xoff: patch, x_offset = -(pi_9B5_xoff[x_offset]+m9B5[L]*tan(0.5*(pi_9B5_xpitch[x_pitch]-po_9B5_xpitch[x_pitch])))
+
+pi_9B6_xpitch: patch, x_pitch = -po_9B5_xpitch[x_pitch]
+pi_9B6_xoff: patch, x_offset = -(po_9B5_xoff[x_offset]+(D904[L]*sin(po_9B5_xpitch[x_pitch])))-0.
+
+po_9B6_xpitch: patch, x_pitch = asin((((m9B6[db_field])*(c_light)*(m9B6[L]))/(p9))-sin(pi_9B6_xpitch[x_pitch]))
+po_9B6_xoff: patch, x_offset = -(pi_9B6_xoff[x_offset]+m9B6[L]*tan(0.5*(pi_9B6_xpitch[x_pitch]-po_9B6_xpitch[x_pitch])))
+
+pi_9B7_xpitch: patch, x_pitch = - po_9B6_xpitch[x_pitch]
+pi_9B7_xoff: patch, x_offset = -(po_9B6_xoff[x_offset]+(D905[L]*sin(po_9B6_xpitch[x_pitch])))
+
+po_9B7_xpitch: patch, x_pitch = asin((((m9B7[db_field])*(c_light)*(m9B7[L]))/(p9))-sin(pi_9B7_xpitch[x_pitch]))
+po_9B7_xoff: patch, x_offset = -(pi_9B7_xoff[x_offset]+m9B7[L]*tan(0.5*(pi_9B7_xpitch[x_pitch]-po_9B7_xpitch[x_pitch])))
+
+pi_9B8_xpitch: patch, x_pitch = -po_9B7_xpitch[x_pitch]
+pi_9B8_xoff: patch, x_offset = -(po_9B7_xoff[x_offset]+(D906[L]*sin(po_9B7_xpitch[x_pitch])))+0.450
+
+po_9B8_xpitch: patch, x_pitch = asin((((m9B8[db_field])*(c_light)*(m9B8[L]))/(p9))-sin(pi_9B8_xpitch[x_pitch]))
+po_9B8_xoff: patch, x_offset = -(pi_9B8_xoff[x_offset]+m9B8[L]*tan(0.5*(pi_9B8_xpitch[x_pitch]-po_9B8_xpitch[x_pitch])))
+
+pi_9B9_xpitch: patch, x_pitch = -po_9B8_xpitch[x_pitch]
+pi_9B9_xoff: patch, x_offset = -(po_9B8_xoff[x_offset]+(D907[L]*sin(po_9B8_xpitch[x_pitch])))+0.
+
+po_9B9_xpitch: patch, x_pitch = asin((((m9B9[db_field])*(c_light)*(m9B9[L]))/(p9))-sin(pi_9B9_xpitch[x_pitch]))
+po_9B9_xoff: patch, x_offset = -(pi_9B9_xoff[x_offset]+m9B9[L]*tan(0.5*(pi_9B9_xpitch[x_pitch]-po_9B9_xpitch[x_pitch])))
+
+pi_9B10_xpitch: patch, x_pitch = -po_9B9_xpitch[x_pitch]
+pi_9B10_xoff: patch, x_offset = -(po_9B9_xoff[x_offset]+(D908[L]*sin(po_9B9_xpitch[x_pitch])))-0.45
+
+po_9B10_xpitch: patch, x_pitch = asin((((m9B10[db_field])*(c_light)*(m9B10[L]))/(p9))-sin(pi_9B10_xpitch[x_pitch]))
+po_9B10_xoff: patch, x_offset = -(pi_9B10_xoff[x_offset]+m9B10[L]*tan(0.5*(pi_9B10_xpitch[x_pitch]-po_9B10_xpitch[x_pitch])))
+
+!pi_9B11_xpitch: patch, x_pitch = -po_9B10_xpitch[x_pitch]
+!pi_9B11_xoff: patch, x_offset = po_9B10_xoff[x_offset]
+
+!po_9B11_xpitch: patch, x_pitch = asin((((m9B11[db_field])*(c_light)*(m9B11[L]))/(p9))-sin(pi_9B11_xpitch[x_pitch]))
+!po_9B11_xoff: patch, x_offset = -(pi_9B11_xoff[x_offset]+m9B11[L]*tan(0.5*(pi_9B11_xpitch[x_pitch]-po_9B11_xpitch[x_pitch])))
+
+!pi_9B12_xpitch: patch, x_pitch = -po_9B11_xpitch[x_pitch]
+!pi_9B12_xoff: patch, x_offset = -(po_9B11_xoff[x_offset]+(D910[L]*sin(po_9B11_xpitch[x_pitch])))-0.
+
+!po_9B12_xpitch: patch, x_pitch = asin((((m9B12[db_field])*(c_light)*(m9B12[L]))/(p9))-sin(pi_9B12_xpitch[x_pitch]))
+!po_9B12_xoff: patch, x_offset = -(pi_9B12_xoff[x_offset]+m9B12[L]*tan(0.5*(pi_9B12_xpitch[x_pitch]-po_9B12_xpitch[x_pitch])))
+
+!pi_9B13_xpitch: patch, x_pitch = -po_9B12_xpitch[x_pitch]
+!pi_9B13_xoff: patch, x_offset = -(po_9B12_xoff[x_offset]+(D911[L]*sin(po_9B12_xpitch[x_pitch])))-0.
+
+!po_9B13_xpitch: patch, x_pitch = asin((((m9B13[db_field])*(c_light)*(m9B13[L]))/(p9))-sin(pi_9B13_xpitch[x_pitch]))
+!po_9B13_xoff: patch, x_offset = -(pi_9B13_xoff[x_offset]+m9B13[L]*tan(0.5*(pi_9B13_xpitch[x_pitch]-po_9B13_xpitch[x_pitch])))
+
+!pi_9B10_xpitch: patch, x_pitch = -po_9B9_xpitch[x_pitch]
+!pi_9B10_xoff: patch, x_offset = -(po_9B9_xoff[x_offset]+(D911[L]*sin(po_9B9_xpitch[x_pitch])))-0.
+
+!po_9B10_xpitch: patch, x_pitch = asin((((m9B10[db_field])*(c_light)*(m9B10[L]))/(p9))-sin(pi_9B10_xpitch[x_pitch]))
+!po_9B10_xoff: patch, x_offset = -(pi_9B10_xoff[x_offset]+m9B10[L]*tan(0.5*(pi_9B10_xpitch[x_pitch]-po_9B10_xpitch[x_pitch])))
+
+pi_9B11_xpitch: patch, x_pitch = -po_9B10_xpitch[x_pitch]
+pi_9B11_xoff: patch, x_offset = -(po_9B10_xoff[x_offset]+(D909[L]*sin(po_9B10_xpitch[x_pitch])))+0.0
+
+po_9B11_xpitch: patch, x_pitch = asin((((m9B11[db_field])*(c_light)*(m9B11[L]))/(p9))-sin(pi_9B11_xpitch[x_pitch]))
+po_9B11_xoff: patch, x_offset = -(pi_9B11_xoff[x_offset]+m9B11[L]*tan(0.5*(pi_9B11_xpitch[x_pitch]-po_9B11_xpitch[x_pitch])))
+
+! For "square" alignment:
+!pi_9B16_xpitch: patch, x_pitch = -po_9B15_xpitch[x_pitch]
+!pi_9B16_xoff: patch, x_offset = 0 !-(po_9B15_xoff[x_offset]+(D914[L]*sin(po_9B15_xpitch[x_pitch])))+0.5
+
+!po_9B16_xpitch: patch, x_pitch = asin((((m9B16[db_field])*(c_light)*(m9B16[L]))/(p9))-sin(pi_9B16_xpitch[x_pitch]))
+!po_9B16_xoff: patch, x_offset = -(pi_9B16_xoff[x_offset]+m9B16[L]*tan(0.5*(pi_9B16_xpitch[x_pitch]-po_9B16_xpitch[x_pitch])))
+
+! For "angled" alignment:
+pi_9B12_xpitch: patch, x_pitch =  -0.5*po_9B11_xpitch[x_pitch]+(-1.0*(0.0174532925199))
+pi_9B12_xoff: patch, x_offset = -0.15 
+
+po_9B12_xpitch: patch, x_pitch = asin((((m9B12[db_field])*(c_light)*(m9B12[L]))/(p9))-sin(pi_9B12_xpitch[x_pitch]))
+po_9B12_xoff: patch, x_offset = -(pi_9B12_xoff[x_offset]+m9B12[L]*tan(0.5*(pi_9B12_xpitch[x_pitch]-po_9B12_xpitch[x_pitch])))
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 11 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+pi_11CB1_xpitch: patch, x_pitch = 0
+pi_11CB1_xoff: patch, x_offset = 0
+
+po_11CB1_xpitch: patch, x_pitch =  asin(((mCB1[db_field])*(c_light)*(mCB1[L]))/(p11))
+po_11CB1_xoff: patch, x_offset =  (mCB1[L])*tan(0.5*po_11CB1_xpitch[x_pitch])
+
+pi_11B2_xpitch: patch, x_pitch = -0.5*po_11CB1_xpitch[x_pitch]+(0.55*(0.0174532925199)) 
+pi_11B2_xoff: patch, x_offset = 0.12 ! po_11CB1_xoff[x_offset] 				! 0.5*po_11CB1_xoff[x_offset]	
+
+po_11B2_xpitch: patch, x_pitch = asin((((m11B2[db_field])*(c_light)*(m11B2[L]))/(p11))-sin(pi_11B2_xpitch[x_pitch]))
+po_11B2_xoff: patch, x_offset = -(pi_11B2_xoff[x_offset]+m11B2[L]*tan(0.5*(pi_11B2_xpitch[x_pitch]-po_11B2_xpitch[x_pitch])))
+
+pi_11B3_xpitch: patch, x_pitch = 0 !-po_11B2_xpitch[x_pitch]
+pi_11B3_xoff: patch, x_offset = -(po_11B2_xoff[x_offset]+(D1101[L]*sin(po_11B2_xpitch[x_pitch])))+0.75
+
+po_11B3_xpitch: patch, x_pitch = asin((((m11B3[db_field])*(c_light)*(m11B3[L]))/(p11))-sin(pi_11B3_xpitch[x_pitch]))
+po_11B3_xoff: patch, x_offset = -(pi_11B3_xoff[x_offset]+m11B3[L]*tan(0.5*(pi_11B3_xpitch[x_pitch]-po_11B3_xpitch[x_pitch])))
+
+pi_11B4_xpitch: patch, x_pitch = -po_11B3_xpitch[x_pitch]
+pi_11B4_xoff: patch, x_offset = -(po_11B3_xoff[x_offset]+(D1102[L]*sin(po_11B3_xpitch[x_pitch])))+0.4
+
+po_11B4_xpitch: patch, x_pitch = asin((((m11B4[db_field])*(c_light)*(m11B4[L]))/(p11))-sin(pi_11B4_xpitch[x_pitch]))
+po_11B4_xoff: patch, x_offset = -(pi_11B4_xoff[x_offset]+m11B4[L]*tan(0.5*(pi_11B4_xpitch[x_pitch]-po_11B4_xpitch[x_pitch])))-0.
+
+pi_11B5_xpitch: patch, x_pitch = -po_11B4_xpitch[x_pitch]
+pi_11B5_xoff: patch, x_offset = -(po_11B4_xoff[x_offset]+(D1103[L]*sin(po_11B4_xpitch[x_pitch])))+0.0
+
+po_11B5_xpitch: patch, x_pitch = asin((((m11B5[db_field])*(c_light)*(m11B5[L]))/(p11))-sin(pi_11B5_xpitch[x_pitch]))
+po_11B5_xoff: patch, x_offset = -(pi_11B5_xoff[x_offset]+m11B5[L]*tan(0.5*(pi_11B5_xpitch[x_pitch]-po_11B5_xpitch[x_pitch])))-0.
+
+pi_11B6_xpitch: patch, x_pitch = -po_11B5_xpitch[x_pitch]
+pi_11B6_xoff: patch, x_offset = -(po_11B5_xoff[x_offset]+(D1104[L]*sin(po_11B5_xpitch[x_pitch])))-0.58
+
+po_11B6_xpitch: patch, x_pitch = asin((((m11B6[db_field])*(c_light)*(m11B6[L]))/(p11))-sin(pi_11B6_xpitch[x_pitch]))
+po_11B6_xoff: patch, x_offset = -(pi_11B6_xoff[x_offset]+m11B6[L]*tan(0.5*(pi_11B6_xpitch[x_pitch]-po_11B6_xpitch[x_pitch])))-0.
+
+pi_11B7_xpitch: patch, x_pitch = -po_11B6_xpitch[x_pitch]
+pi_11B7_xoff: patch, x_offset = -(po_11B6_xoff[x_offset]+(D1105[L]*sin(po_11B6_xpitch[x_pitch])))-0.0
+
+po_11B7_xpitch: patch, x_pitch = asin((((m11B7[db_field])*(c_light)*(m11B7[L]))/(p11))-sin(pi_11B7_xpitch[x_pitch]))
+po_11B7_xoff: patch, x_offset = -(pi_11B7_xoff[x_offset]+m11B7[L]*tan(0.5*(pi_11B7_xpitch[x_pitch]-po_11B7_xpitch[x_pitch])))-0.
+
+! For "square" alignment:
+!pi_11B8_xpitch: patch, x_pitch = -po_11B7_xpitch[x_pitch]
+!pi_11B8_xoff: patch, x_offset = -(po_11B7_xoff[x_offset]+(D1106[L]*sin(po_11B7_xpitch[x_pitch])))+0.7
+
+!po_11B8_xpitch: patch, x_pitch = asin((((m11B8[db_field])*(c_light)*(m11B8[L]))/(p11))-sin(pi_11B8_xpitch[x_pitch]))
+!po_11B8_xoff: patch, x_offset = -(pi_11B8_xoff[x_offset]+m11B8[L]*tan(0.5*(pi_11B8_xpitch[x_pitch]-po_11B8_xpitch[x_pitch])))-0.
+
+! For "angled" alignment:
+pi_11B8_xpitch: patch, x_pitch = -0.5*po_11B7_xpitch[x_pitch]+(1.75*(0.0174532925199))
+pi_11B8_xoff: patch, x_offset = -0.155
+
+po_11B8_xpitch: patch, x_pitch = asin((((m11B8[db_field])*(c_light)*(m11B8[L]))/(p11))-sin(pi_11B8_xpitch[x_pitch]))
+po_11B8_xoff: patch, x_offset = -(pi_11B8_xoff[x_offset]+m11B8[L]*tan(0.5*(pi_11B8_xpitch[x_pitch]-po_11B8_xpitch[x_pitch])))-0.
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 13 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+pi_13CB1_xpitch: patch, x_pitch = 0
+pi_13CB1_xoff: patch, x_offset = 0
+
+po_13CB1_xpitch: patch, x_pitch =  asin(((mCB1[db_field])*(c_light)*(mCB1[L]))/(p13))
+po_13CB1_xoff: patch, x_offset =  (mCB1[L])*tan(0.5*po_13CB1_xpitch[x_pitch])
+
+pi_13CB2_xpitch: patch, x_pitch = -((0.5*po_13CB1_xpitch[x_pitch])+((0.5*po_13CB1_xpitch[x_pitch])-(0.5*po_13CB1_xpitch[x_pitch])))-(3*(0.0174532925199)) ! Subtracted angle to avoid collision  	
+pi_13CB2_xoff: patch, x_offset =  -(po_13CB1_xoff[x_offset]+(D1300[L]*sin(po_13CB1_xpitch[x_pitch]))) - 0.04 ! Added manual offset to avoid collisions	
+
+po_13CB2_xpitch: patch, x_pitch = asin((((mCB2[db_field])*(c_light)*(mCB2[L]))/(p13))-sin(pi_13CB2_xpitch[x_pitch]))
+po_13CB2_xoff: patch, x_offset = -(pi_13CB2_xoff[x_offset]+mCB2[L]*tan(0.5*(pi_13CB2_xpitch[x_pitch]-po_13CB2_xpitch[x_pitch])))
+
+pi_13CB3A_xpitch: patch, x_pitch = 0
+pi_13CB3A_xoff: patch, x_offset =  -(po_13CB2_xoff[x_offset]+(D1301[L]*sin(po_13CB2_xpitch[x_pitch])))+0.29
+
+po_13CB3A_xpitch: patch, x_pitch = asin((((mCB3A[db_field])*(c_light)*(mCB3A[L]))/(p13))-sin(pi_13CB3A_xpitch[x_pitch]))
+po_13CB3A_xoff: patch, x_offset = -(pi_13CB3A_xoff[x_offset]+mCB3A[L]*tan(0.5*(pi_13CB3A_xpitch[x_pitch]-po_13CB3A_xpitch[x_pitch])))
+
+pi_13CB4A_xpitch: patch, x_pitch = -po_13CB3A_xpitch[x_pitch]
+pi_13CB4A_xoff: patch, x_offset =  -(po_13CB3A_xoff[x_offset]+(D1302[L]*sin(po_13CB3A_xpitch[x_pitch])))-0.15
+
+po_13CB4A_xpitch: patch, x_pitch = asin((((mCB4A[db_field])*(c_light)*(mCB4A[L]))/(p13))-sin(pi_13CB4A_xpitch[x_pitch]))
+po_13CB4A_xoff: patch, x_offset = -(pi_13CB4A_xoff[x_offset]+mCB4A[L]*tan(0.5*(pi_13CB4A_xpitch[x_pitch]-po_13CB4A_xpitch[x_pitch])))
+
+pi_13B5_xpitch: patch, x_pitch = -po_13CB4A_xpitch[x_pitch]
+pi_13B5_xoff: patch, x_offset =  -(po_13CB4A_xoff[x_offset]+(D1303[L]*sin(po_13CB4A_xpitch[x_pitch])))-0.0
+
+po_13B5_xpitch: patch, x_pitch = asin((((m13B5[db_field])*(c_light)*(m13B5[L]))/(p13))-sin(pi_13B5_xpitch[x_pitch]))
+po_13B5_xoff: patch, x_offset = -(pi_13B5_xoff[x_offset]+m13B5[L]*tan(0.5*(pi_13B5_xpitch[x_pitch]-po_13B5_xpitch[x_pitch])))
+
+pi_13B6_xpitch: patch, x_pitch = -po_13B5_xpitch[x_pitch]
+pi_13B6_xoff: patch, x_offset =  -(po_13B5_xoff[x_offset]+(D1304[L]*sin(po_13B5_xpitch[x_pitch])))+0.45
+
+po_13B6_xpitch: patch, x_pitch = asin((((m13B6[db_field])*(c_light)*(m13B6[L]))/(p13))-sin(pi_13B6_xpitch[x_pitch]))
+po_13B6_xoff: patch, x_offset = -(pi_13B6_xoff[x_offset]+m13B6[L]*tan(0.5*(pi_13B6_xpitch[x_pitch]-po_13B6_xpitch[x_pitch])))
+
+pi_13B7_xpitch: patch, x_pitch = -po_13B6_xpitch[x_pitch]
+pi_13B7_xoff: patch, x_offset =  -(po_13B6_xoff[x_offset]+(D1305[L]*sin(po_13B6_xpitch[x_pitch])))-0.12
+
+po_13B7_xpitch: patch, x_pitch = asin((((m13B7[db_field])*(c_light)*(m13B7[L]))/(p13))-sin(pi_13B7_xpitch[x_pitch]))
+po_13B7_xoff: patch, x_offset = -(pi_13B7_xoff[x_offset]+m13B7[L]*tan(0.5*(pi_13B7_xpitch[x_pitch]-po_13B7_xpitch[x_pitch])))
+
+pi_13B8_xpitch: patch, x_pitch = -po_13B7_xpitch[x_pitch]
+pi_13B8_xoff: patch, x_offset =  -(po_13B7_xoff[x_offset]+(D1306[L]*sin(po_13B7_xpitch[x_pitch])))-0.45
+
+po_13B8_xpitch: patch, x_pitch = asin((((m13B8[db_field])*(c_light)*(m13B8[L]))/(p13))-sin(pi_13B8_xpitch[x_pitch]))
+po_13B8_xoff: patch, x_offset = -(pi_13B8_xoff[x_offset]+m13B8[L]*tan(0.5*(pi_13B8_xpitch[x_pitch]-po_13B8_xpitch[x_pitch])))
+
+pi_13B9_xpitch: patch, x_pitch = -po_13B8_xpitch[x_pitch]
+pi_13B9_xoff: patch, x_offset =  -(po_13B8_xoff[x_offset]+(D1307[L]*sin(po_13B8_xpitch[x_pitch])))-0.0
+
+po_13B9_xpitch: patch, x_pitch = asin((((m13B9[db_field])*(c_light)*(m13B9[L]))/(p13))-sin(pi_13B9_xpitch[x_pitch]))
+po_13B9_xoff: patch, x_offset = -(pi_13B9_xoff[x_offset]+m13B9[L]*tan(0.5*(pi_13B9_xpitch[x_pitch]-po_13B9_xpitch[x_pitch])))
+
+! For "square" alignment:
+!pi_13B10_xpitch: patch, x_pitch = -po_13B9_xpitch[x_pitch]
+!pi_13B10_xoff: patch, x_offset =  -(po_13B9_xoff[x_offset]+(D1308[L]*sin(po_13B9_xpitch[x_pitch])))+0.5
+
+!po_13B10_xpitch: patch, x_pitch = asin((((m13B10[db_field])*(c_light)*(m13B10[L]))/(p13))-sin(pi_13B10_xpitch[x_pitch]))
+!po_13B10_xoff: patch, x_offset = -(pi_13B10_xoff[x_offset]+m13B10[L]*tan(0.5*(pi_13B10_xpitch[x_pitch]-po_13B10_xpitch[x_pitch])))
+
+! For "angled" alignment:
+pi_13B10_xpitch: patch, x_pitch = -0.5*po_13B9_xpitch[x_pitch] + (0.75*(0.0174532925199))
+pi_13B10_xoff: patch, x_offset =  -0.21
+
+po_13B10_xpitch: patch, x_pitch = asin((((m13B10[db_field])*(c_light)*(m13B10[L]))/(p13))-sin(pi_13B10_xpitch[x_pitch]))
+po_13B10_xoff: patch, x_offset = -(pi_13B10_xoff[x_offset]+m13B10[L]*tan(0.5*(pi_13B10_xpitch[x_pitch]-po_13B10_xpitch[x_pitch])))
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 15 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+pi_15CB1_xpitch: patch, x_pitch = 0
+pi_15CB1_xoff: patch, x_offset = 0
+
+po_15CB1_xpitch: patch, x_pitch =  asin(((mCB1[db_field])*(c_light)*(mCB1[L]))/(p15))
+po_15CB1_xoff: patch, x_offset =  (mCB1[L])*tan(0.5*po_15CB1_xpitch[x_pitch])
+
+pi_15CB2_xpitch: patch, x_pitch = -((0.5*po_15CB1_xpitch[x_pitch])+((0.5*po_15CB1_xpitch[x_pitch])-(0.5*po_13CB1_xpitch[x_pitch])))-(3*0.0174532925199)	
+pi_15CB2_xoff: patch, x_offset = -(po_15CB1_xoff[x_offset]+(D1500[L]*sin(po_15CB1_xpitch[x_pitch]))) - 0.04  ! po_15CB1_xoff[x_offset] 		 ! 0.5*po_15CB1_xoff[x_offset]	
+
+po_15CB2_xpitch: patch, x_pitch = asin((((mCB2[db_field])*(c_light)*(mCB2[L]))/(p15))-sin(pi_15CB2_xpitch[x_pitch]))	 !x_pitch = pi_15CB2_xpitch[x_pitch]
+po_15CB2_xoff: patch, x_offset = -(pi_15CB2_xoff[x_offset]+mCB2[L]*tan(0.5*(pi_15CB2_xpitch[x_pitch]-po_15CB2_xpitch[x_pitch])))   
+
+pi_15CB3A_xpitch: patch, x_pitch = 0
+pi_15CB3A_xoff: patch, x_offset = -(po_15CB2_xoff[x_offset]+(D1501[L]*sin(po_15CB2_xpitch[x_pitch])))+0.29
+
+po_15CB3A_xpitch: patch, x_pitch = asin((((mCB3A[db_field])*(c_light)*(mCB3A[L]))/(p15))-sin(pi_15CB3A_xpitch[x_pitch]))
+po_15CB3A_xoff: patch, x_offset = -(pi_15CB3A_xoff[x_offset]+mCB3A[L]*tan(0.5*(pi_15CB3A_xpitch[x_pitch]-po_15CB3A_xpitch[x_pitch]))) 
+
+pi_15CB4A_xpitch: patch, x_pitch = -po_15CB3A_xpitch[x_pitch]
+pi_15CB4A_xoff: patch, x_offset = -(po_15CB3A_xoff[x_offset]+(D1502[L]*sin(po_15CB3A_xpitch[x_pitch])))-0.15
+
+po_15CB4A_xpitch: patch, x_pitch = asin((((mCB4A[db_field])*(c_light)*(mCB4A[L]))/(p15))-sin(pi_15CB4A_xpitch[x_pitch]))
+po_15CB4A_xoff: patch, x_offset = -(pi_15CB4A_xoff[x_offset]+mCB4A[L]*tan(0.5*(pi_15CB4A_xpitch[x_pitch]-po_15CB4A_xpitch[x_pitch]))) 
+
+pi_15B5_xpitch: patch, x_pitch = -po_15CB4A_xpitch[x_pitch]+(0*0.0174532925199)	
+pi_15B5_xoff: patch, x_offset = -(po_15CB4A_xoff[x_offset]+(D1503[L]*sin(po_15CB4A_xpitch[x_pitch])))+0.07
+
+po_15B5_xpitch: patch, x_pitch = asin((((m15B5[db_field])*(c_light)*(m15B5[L]))/(p15))-sin(pi_15B5_xpitch[x_pitch]))
+po_15B5_xoff: patch, x_offset = -(pi_15B5_xoff[x_offset]+m15B5[L]*tan(0.5*(pi_15B5_xpitch[x_pitch]-po_15B5_xpitch[x_pitch]))) 
+
+pi_15B6_xpitch: patch, x_pitch = -po_15B5_xpitch[x_pitch]+(0*0.0174532925199)
+pi_15B6_xoff: patch, x_offset = -(po_15B5_xoff[x_offset]+(D1504[L]*sin(po_15B5_xpitch[x_pitch])))+0.8
+
+po_15B6_xpitch: patch, x_pitch = asin((((m15B6[db_field])*(c_light)*(m15B6[L]))/(p15))-sin(pi_15B6_xpitch[x_pitch]))
+po_15B6_xoff: patch, x_offset = -(pi_15B6_xoff[x_offset]+m15B6[L]*tan(0.5*(pi_15B6_xpitch[x_pitch]-po_15B6_xpitch[x_pitch])))
+
+pi_15B7_xpitch: patch, x_pitch = -po_15B6_xpitch[x_pitch]+(0*0.0174532925199)
+pi_15B7_xoff: patch, x_offset = -(po_15B6_xoff[x_offset]+(D1505[L]*sin(po_15B6_xpitch[x_pitch])))+0.0
+
+po_15B7_xpitch: patch, x_pitch = asin((((m15B7[db_field])*(c_light)*(m15B7[L]))/(p15))-sin(pi_15B7_xpitch[x_pitch]))
+po_15B7_xoff: patch, x_offset = -(pi_15B7_xoff[x_offset]+m15B7[L]*tan(0.5*(pi_15B7_xpitch[x_pitch]-po_15B7_xpitch[x_pitch])))
+
+pi_15B8_xpitch: patch, x_pitch = -po_15B7_xpitch[x_pitch]+(0*0.0174532925199)
+pi_15B8_xoff: patch, x_offset = -(po_15B7_xoff[x_offset]+(D1506[L]*sin(po_15B7_xpitch[x_pitch])))-0.4
+
+po_15B8_xpitch: patch, x_pitch = asin((((m15B8[db_field])*(c_light)*(m15B8[L]))/(p15))-sin(pi_15B8_xpitch[x_pitch]))
+po_15B8_xoff: patch, x_offset = -(pi_15B8_xoff[x_offset]+m15B8[L]*tan(0.5*(pi_15B8_xpitch[x_pitch]-po_15B8_xpitch[x_pitch])))
+
+pi_15B9_xpitch: patch, x_pitch = -po_15B8_xpitch[x_pitch]+(0*0.0174532925199)
+pi_15B9_xoff: patch, x_offset = -(po_15B8_xoff[x_offset]+(D1507[L]*sin(po_15B8_xpitch[x_pitch])))-0.0
+
+po_15B9_xpitch: patch, x_pitch = asin((((m15B9[db_field])*(c_light)*(m15B9[L]))/(p15))-sin(pi_15B9_xpitch[x_pitch]))
+po_15B9_xoff: patch, x_offset = -(pi_15B9_xoff[x_offset]+m15B9[L]*tan(0.5*(pi_15B9_xpitch[x_pitch]-po_15B9_xpitch[x_pitch])))
+
+pi_15B10_xpitch: patch, x_pitch = -po_15B9_xpitch[x_pitch]+(0*0.0174532925199)
+pi_15B10_xoff: patch, x_offset = -(po_15B9_xoff[x_offset]+(D1508[L]*sin(po_15B9_xpitch[x_pitch])))+0.25
+
+po_15B10_xpitch: patch, x_pitch = asin((((m15B10[db_field])*(c_light)*(m15B10[L]))/(p15))-sin(pi_15B10_xpitch[x_pitch]))
+po_15B10_xoff: patch, x_offset = -(pi_15B10_xoff[x_offset]+m15B10[L]*tan(0.5*(pi_15B10_xpitch[x_pitch]-po_15B10_xpitch[x_pitch])))
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 17 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+pi_17CB1_xpitch: patch, x_pitch = 0
+pi_17CB1_xoff: patch, x_offset = 0
+
+po_17CB1_xpitch: patch, x_pitch =  asin(((mCB1[db_field])*(c_light)*(mCB1[L]))/(p17))
+po_17CB1_xoff: patch, x_offset =  (mCB1[L])*tan(0.5*po_17CB1_xpitch[x_pitch])
+
+pi_17CB2_xpitch: patch, x_pitch = -((0.5*po_17CB1_xpitch[x_pitch])+((0.5*po_17CB1_xpitch[x_pitch])-(0.5*po_13CB1_xpitch[x_pitch])))-(3*0.0174532925199)   		
+pi_17CB2_xoff: patch, x_offset = -(po_17CB1_xoff[x_offset]+(D1700[L]*sin(po_17CB1_xpitch[x_pitch]))) - 0.04 
+
+po_17CB2_xpitch: patch, x_pitch = asin((((mCB2[db_field])*(c_light)*(mCB2[L]))/(p17))-sin(pi_17CB2_xpitch[x_pitch]))				 !pi_17CB2_xpitch[x_pitch]
+po_17CB2_xoff: patch, x_offset = -(pi_17CB2_xoff[x_offset]+mCB2[L]*tan(0.5*(pi_17CB2_xpitch[x_pitch]-po_17CB2_xpitch[x_pitch])))
+
+pi_17CB3B_xpitch: patch, x_pitch = 0        ! -po_17B2_xpitch[x_pitch]
+pi_17CB3B_xoff: patch, x_offset = -(po_17CB2_xoff[x_offset]+(D1701[L]*sin(po_17CB2_xpitch[x_pitch])))+0.3             ! -ls_B2M*tan(0.5*(asin((((m11B3[db_field])*(c_light)*(ls_B2M))/(p17)))))
+
+po_17CB3B_xpitch: patch, x_pitch = asin((((mCB3B[db_field])*(c_light)*(mCB3B[L]))/(p17))-sin(pi_17CB3B_xpitch[x_pitch])) 
+po_17CB3B_xoff: patch, x_offset = -(pi_17CB3B_xoff[x_offset]+mCB3B[L]*tan(0.5*(pi_17CB3B_xpitch[x_pitch]-po_17CB3B_xpitch[x_pitch])))
+
+pi_17CB4B_xpitch: patch, x_pitch = -((0.5*po_17CB3B_xpitch[x_pitch])+((0.5*po_17CB3B_xpitch[x_pitch])-(0.5*po_17CB3B_xpitch[x_pitch])))-(-0.5*0.0174532925199)
+pi_17CB4B_xoff: patch, x_offset = -(po_17CB3B_xoff[x_offset]+(D1702[L]*sin(po_17CB3B_xpitch[x_pitch])))+0.1 
+
+po_17CB4B_xpitch: patch, x_pitch = asin((((mCB4B[db_field])*(c_light)*(mCB4B[L]))/(p17))-sin(pi_17CB4B_xpitch[x_pitch]))
+po_17CB4B_xoff: patch, x_offset = -(pi_17CB4B_xoff[x_offset]+mCB4B[L]*tan(0.5*(pi_17CB4B_xpitch[x_pitch]-po_17CB4B_xpitch[x_pitch])))
+
+pi_17CB5B_xpitch: patch, x_pitch = -((0.5*po_17CB4B_xpitch[x_pitch])+((0.5*po_17CB4B_xpitch[x_pitch])-(0.5*po_17CB4B_xpitch[x_pitch])))-(-1.5*0.0174532925199)
+pi_17CB5B_xoff: patch, x_offset = -(po_17CB4B_xoff[x_offset]+(D1703[L]*sin(po_17CB4B_xpitch[x_pitch])))+0.15 
+
+po_17CB5B_xpitch: patch, x_pitch = asin((((mCB5B[db_field])*(c_light)*(mCB5B[L]))/(p17))-sin(pi_17CB5B_xpitch[x_pitch]))
+po_17CB5B_xoff: patch, x_offset = -(pi_17CB5B_xoff[x_offset]+mCB5B[L]*tan(0.5*(pi_17CB5B_xpitch[x_pitch]-po_17CB5B_xpitch[x_pitch])))
+
+pi_17CB6B_xpitch: patch, x_pitch = -((0.5*po_17CB5B_xpitch[x_pitch])+((0.5*po_17CB5B_xpitch[x_pitch])-(0.5*po_17CB5B_xpitch[x_pitch])))-(2.5*0.0174532925199)
+pi_17CB6B_xoff: patch, x_offset = -(po_17CB5B_xoff[x_offset]+(D1704[L]*sin(po_17CB5B_xpitch[x_pitch])))-0.2
+
+po_17CB6B_xpitch: patch, x_pitch = asin((((mCB6B[db_field])*(c_light)*(mCB6B[L]))/(p17))-sin(pi_17CB6B_xpitch[x_pitch]))
+po_17CB6B_xoff: patch, x_offset = -(pi_17CB6B_xoff[x_offset]+mCB6B[L]*tan(0.5*(pi_17CB6B_xpitch[x_pitch]-po_17CB6B_xpitch[x_pitch])))
+
+pi_17B7_xpitch: patch, x_pitch = 0 ! po_17CB6B_xpitch[x_pitch]
+pi_17B7_xoff: patch, x_offset = -(po_17CB6B_xoff[x_offset]+(D1705[L]*sin(po_17CB6B_xpitch[x_pitch])))-0.59
+
+po_17B7_xpitch: patch, x_pitch = asin((((m17B7[db_field])*(c_light)*(m17B7[L]))/(p17))-sin(pi_17B7_xpitch[x_pitch]))
+po_17B7_xoff: patch, x_offset = -(pi_17B7_xoff[x_offset]+m17B7[L]*tan(0.5*(pi_17B7_xpitch[x_pitch]-po_17B7_xpitch[x_pitch])))
+
+pi_17B8_xpitch: patch, x_pitch = -po_17B7_xpitch[x_pitch]
+pi_17B8_xoff: patch, x_offset = -((D1706[L]*sin(po_17B7_xpitch[x_pitch])))-0.35
+
+po_17B8_xpitch: patch, x_pitch = asin((((m17B8[db_field])*(c_light)*(m17B8[L]))/(p17))-sin(pi_17B8_xpitch[x_pitch]))
+po_17B8_xoff: patch, x_offset = -(pi_17B8_xoff[x_offset]+m17B8[L]*tan(0.5*(pi_17B8_xpitch[x_pitch]-po_17B8_xpitch[x_pitch])))
+
+pi_17B9_xpitch: patch, x_pitch = -po_17B8_xpitch[x_pitch]
+pi_17B9_xoff: patch, x_offset = -((D1707[L]*sin(po_17B8_xpitch[x_pitch])))+0.039
+
+po_17B9_xpitch: patch, x_pitch = asin((((m17B9[db_field])*(c_light)*(m17B9[L]))/(p17))-sin(pi_17B9_xpitch[x_pitch]))
+po_17B9_xoff: patch, x_offset = -(pi_17B9_xoff[x_offset]+m17B9[L]*tan(0.5*(pi_17B9_xpitch[x_pitch]-po_17B9_xpitch[x_pitch])))
+
+pi_17B10_xpitch: patch, x_pitch = -po_17B9_xpitch[x_pitch]
+pi_17B10_xoff: patch, x_offset = -((D1708[L]*sin(po_17B9_xpitch[x_pitch])))+0.05
+
+po_17B10_xpitch: patch, x_pitch = asin((((m17B10[db_field])*(c_light)*(m17B10[L]))/(p17))-sin(pi_17B10_xpitch[x_pitch]))
+po_17B10_xoff: patch, x_offset = -(pi_17B10_xoff[x_offset]+m17B10[L]*tan(0.5*(pi_17B10_xpitch[x_pitch]-po_17B10_xpitch[x_pitch])))
+
+pi_17B11_xpitch: patch, x_pitch = -po_17B10_xpitch[x_pitch]
+pi_17B11_xoff: patch, x_offset = -((D1709[L]*sin(po_17B10_xpitch[x_pitch])))-0.14
+
+po_17B11_xpitch: patch, x_pitch = asin((((m17B11[db_field])*(c_light)*(m17B11[L]))/(p17))-sin(pi_17B11_xpitch[x_pitch]))
+po_17B11_xoff: patch, x_offset = -(pi_17B11_xoff[x_offset]+m17B11[L]*tan(0.5*(pi_17B11_xpitch[x_pitch]-po_17B11_xpitch[x_pitch])))
+
+! For "square" alignment:
+!pi_17B12_xpitch: patch, x_pitch = -po_17B11_xpitch[x_pitch]
+!pi_17B12_xoff: patch, x_offset = -((D1710[L]*sin(po_17B11_xpitch[x_pitch])))-0.5
+
+!po_17B12_xpitch: patch, x_pitch = asin((((m17B12[db_field])*(c_light)*(m17B12[L]))/(p17))-sin(pi_17B12_xpitch[x_pitch]))
+!po_17B12_xoff: patch, x_offset = -(pi_17B12_xoff[x_offset]+m17B12[L]*tan(0.5*(pi_17B12_xpitch[x_pitch]-po_17B12_xpitch[x_pitch])))
+
+! For "angled" alignment:
+pi_17B12_xpitch: patch, x_pitch = -0.5*po_17B11_xpitch[x_pitch] + (0.5*(0.0174532925199))
+pi_17B12_xoff: patch, x_offset = 0.16
+
+po_17B12_xpitch: patch, x_pitch = asin((((m17B12[db_field])*(c_light)*(m17B12[L]))/(p17))-sin(pi_17B12_xpitch[x_pitch]))
+po_17B12_xoff: patch, x_offset = -(pi_17B12_xoff[x_offset]+m17B12[L]*tan(0.5*(pi_17B12_xpitch[x_pitch]-po_17B12_xpitch[x_pitch])))
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 19 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+pi_19CB1_xpitch: patch, x_pitch = 0
+pi_19CB1_xoff: patch, x_offset = 0
+
+po_19CB1_xpitch: patch, x_pitch =  asin(((mCB1[db_field])*(c_light)*((mCB1[L])))/(p19))
+po_19CB1_xoff: patch, x_offset =  (mCB1[L])*tan(0.5*po_19CB1_xpitch[x_pitch])
+
+pi_19CB2_xpitch: patch, x_pitch = -((0.5*po_19CB1_xpitch[x_pitch])+((0.5*po_19CB1_xpitch[x_pitch])-(0.5*po_13CB1_xpitch[x_pitch])))-(3*0.0174532925199)  	
+pi_19CB2_xoff: patch, x_offset = -(po_19CB1_xoff[x_offset]+(D1900[L]*sin(po_19CB1_xpitch[x_pitch]))) - 0.04  ! po_19CB1_xoff[x_offset] 	 ! 0.5*po_19CB1_xoff[x_offset]	
+
+po_19CB2_xpitch: patch, x_pitch = asin((((mCB2[db_field])*(c_light)*(mCB2[L]))/(p19))-sin(pi_19CB2_xpitch[x_pitch]))			 !x_pitch = pi_19CB2_xpitch[x_pitch]
+po_19CB2_xoff: patch, x_offset = -(pi_19CB2_xoff[x_offset]+mCB2[L]*tan(0.5*(pi_19CB2_xpitch[x_pitch]-po_19CB2_xpitch[x_pitch])))
+
+pi_19CB3B_xpitch: patch, x_pitch = 0     ! -po_19B2_xpitch[x_pitch]
+pi_19CB3B_xoff: patch, x_offset = -(po_19CB2_xoff[x_offset]+(D1901[L]*sin(po_19CB2_xpitch[x_pitch])))+0.3
+
+po_19CB3B_xpitch: patch, x_pitch = asin((((mCB3B[db_field])*(c_light)*(mCB3B[L]))/(p19))-sin(pi_19CB3B_xpitch[x_pitch])) 
+po_19CB3B_xoff: patch, x_offset = -(pi_19CB3B_xoff[x_offset]+mCB3B[L]*tan(0.5*(pi_19CB3B_xpitch[x_pitch]-po_19CB3B_xpitch[x_pitch])))
+
+pi_19CB4B_xpitch: patch, x_pitch= -((0.5*po_19CB3B_xpitch[x_pitch])+((0.5*po_19CB3B_xpitch[x_pitch])-(0.5*po_17CB3B_xpitch[x_pitch])))-(-0.5*0.0174532925199)
+pi_19CB4B_xoff: patch, x_offset = -(po_19CB3B_xoff[x_offset]+(D1902[L]*sin(po_19CB3B_xpitch[x_pitch])))+0.1 
+
+po_19CB4B_xpitch: patch, x_pitch = asin((((mCB4B[db_field])*(c_light)*(mCB4B[L]))/(p19))-sin(pi_19CB4B_xpitch[x_pitch]))
+po_19CB4B_xoff: patch, x_offset = -(pi_19CB4B_xoff[x_offset]+mCB4B[L]*tan(0.5*(pi_19CB4B_xpitch[x_pitch]-po_19CB4B_xpitch[x_pitch])))
+
+pi_19CB5B_xpitch: patch, x_pitch= -((0.5*po_19CB4B_xpitch[x_pitch])+((0.5*po_19CB4B_xpitch[x_pitch])-(0.5*po_17CB4B_xpitch[x_pitch])))-(-1.5*0.0174532925199)
+pi_19CB5B_xoff: patch, x_offset = -(po_19CB4B_xoff[x_offset]+(D1903[L]*sin(po_19CB4B_xpitch[x_pitch])))+0.15 
+
+po_19CB5B_xpitch: patch, x_pitch = asin((((mCB5B[db_field])*(c_light)*(mCB5B[L]))/(p19))-sin(pi_19CB5B_xpitch[x_pitch]))
+po_19CB5B_xoff: patch, x_offset = -(pi_19CB5B_xoff[x_offset]+mCB5B[L]*tan(0.5*(pi_19CB5B_xpitch[x_pitch]-po_19CB5B_xpitch[x_pitch])))
+
+pi_19CB6B_xpitch: patch, x_pitch= -((0.5*po_19CB5B_xpitch[x_pitch])+((0.5*po_19CB5B_xpitch[x_pitch])-(0.5*po_17CB5B_xpitch[x_pitch])))-(2.5*0.0174532925199)
+pi_19CB6B_xoff: patch, x_offset = -(po_19CB5B_xoff[x_offset]+(D1904[L]*sin(po_19CB5B_xpitch[x_pitch])))-0.2
+
+po_19CB6B_xpitch: patch, x_pitch = asin((((mCB6B[db_field])*(c_light)*(mCB6B[L]))/(p19))-sin(pi_19CB6B_xpitch[x_pitch]))
+po_19CB6B_xoff: patch, x_offset = -(pi_19CB6B_xoff[x_offset]+mCB6B[L]*tan(0.5*(pi_19CB6B_xpitch[x_pitch]-po_19CB6B_xpitch[x_pitch])))
+
+pi_19B7_xpitch: patch, x_pitch = 0 ! po_19CB6B_xpitch[x_pitch]
+pi_19B7_xoff: patch, x_offset = -(po_19CB6B_xoff[x_offset]+(D1905[L]*sin(po_19CB6B_xpitch[x_pitch])))-0.35
+
+po_19B7_xpitch: patch, x_pitch = asin((((m19B7[db_field])*(c_light)*(m19B7[L]))/(p19))-sin(pi_19B7_xpitch[x_pitch]))
+po_19B7_xoff: patch, x_offset = -(pi_19B7_xoff[x_offset]+m19B7[L]*tan(0.5*(pi_19B7_xpitch[x_pitch]-po_19B7_xpitch[x_pitch])))
+
+pi_19B8_xpitch: patch, x_pitch = -po_19B7_xpitch[x_pitch]
+pi_19B8_xoff: patch, x_offset = -(po_19B7_xoff[x_offset] + (D1906[L]*sin(po_19B7_xpitch[x_pitch])))+0.43
+
+po_19B8_xpitch: patch, x_pitch = asin((((m19B8[db_field])*(c_light)*(m19B8[L]))/(p19))-sin(pi_19B8_xpitch[x_pitch]))
+po_19B8_xoff: patch, x_offset = -(pi_19B8_xoff[x_offset]+m19B8[L]*tan(0.5*(pi_19B8_xpitch[x_pitch]-po_19B8_xpitch[x_pitch])))
+
+pi_19B9_xpitch: patch, x_pitch = -po_19B8_xpitch[x_pitch]
+pi_19B9_xoff: patch, x_offset = -(po_19B8_xoff[x_offset] + (D1907[L]*sin(po_19B8_xpitch[x_pitch])))-0.0
+
+po_19B9_xpitch: patch, x_pitch = asin((((m19B9[db_field])*(c_light)*(m19B9[L]))/(p19))-sin(pi_19B9_xpitch[x_pitch]))
+po_19B9_xoff: patch, x_offset = -(pi_19B9_xoff[x_offset]+m19B9[L]*tan(0.5*(pi_19B9_xpitch[x_pitch]-po_19B9_xpitch[x_pitch])))
+
+pi_19B10_xpitch: patch, x_pitch = -po_19B9_xpitch[x_pitch]
+pi_19B10_xoff: patch, x_offset = (po_19B9_xoff[x_offset] + (D1908[L]*sin(po_19B9_xpitch[x_pitch])))+0.24
+
+po_19B10_xpitch: patch, x_pitch = asin((((m19B10[db_field])*(c_light)*(m19B10[L]))/(p19))-sin(pi_19B10_xpitch[x_pitch]))
+po_19B10_xoff: patch, x_offset = -(pi_19B10_xoff[x_offset]+m19B10[L]*tan(0.5*(pi_19B10_xpitch[x_pitch]-po_19B10_xpitch[x_pitch])))
+
+pi_19B11_xpitch: patch, x_pitch = -po_19B10_xpitch[x_pitch]
+pi_19B11_xoff: patch, x_offset = (po_19B10_xoff[x_offset] + (D1909[L]*sin(po_19B10_xpitch[x_pitch])))+0.35
+
+po_19B11_xpitch: patch, x_pitch = asin((((m19B11[db_field])*(c_light)*(m19B11[L]))/(p19))-sin(pi_19B11_xpitch[x_pitch]))
+po_19B11_xoff: patch, x_offset = -(pi_19B11_xoff[x_offset]+m19B11[L]*tan(0.5*(pi_19B11_xpitch[x_pitch]-po_19B11_xpitch[x_pitch])))
+
+pi_19B12_xpitch: patch, x_pitch = -po_19B11_xpitch[x_pitch]
+pi_19B12_xoff: patch, x_offset = -(po_19B11_xoff[x_offset]+(D1910[L]*sin(po_19B11_xpitch[x_pitch])))+0.105
+
+po_19B12_xpitch: patch, x_pitch = asin((((m19B12[db_field])*(c_light)*(m19B12[L]))/(p19))-sin(pi_19B12_xpitch[x_pitch]))
+po_19B12_xoff: patch, x_offset = -(pi_19B12_xoff[x_offset]+m19B12[L]*tan(0.5*(pi_19B12_xpitch[x_pitch]-po_19B12_xpitch[x_pitch])))
+
+pi_19B13_xpitch: patch, x_pitch = -po_19B12_xpitch[x_pitch]
+pi_19B13_xoff: patch, x_offset = -(po_19B12_xoff[x_offset]+(D1911[L]*sin(po_19B12_xpitch[x_pitch])))-0.0
+
+po_19B13_xpitch: patch, x_pitch = asin((((m19B13[db_field])*(c_light)*(m19B13[L]))/(p19))-sin(pi_19B13_xpitch[x_pitch]))
+po_19B13_xoff: patch, x_offset = -(pi_19B13_xoff[x_offset]+m19B13[L]*tan(0.5*(pi_19B13_xpitch[x_pitch]-po_19B13_xpitch[x_pitch])))
+
+! For "square" alignment:
+!pi_19B14_xpitch: patch, x_pitch = -po_19B13_xpitch[x_pitch]
+!pi_19B14_xoff: patch, x_offset = 0.1 !-(po_19B13_xoff[x_offset]+(D1912[L]*sin(po_19B13_xpitch[x_pitch])))-0.
+
+!po_19B14_xpitch: patch, x_pitch = asin((((m19B14[db_field])*(c_light)*(m19B14[L]))/(p19))-sin(pi_19B14_xpitch[x_pitch]))
+!po_19B14_xoff: patch, x_offset = -(pi_19B14_xoff[x_offset]+m19B14[L]*tan(0.5*(pi_19B14_xpitch[x_pitch]-po_19B14_xpitch[x_pitch])))
+
+! For "angled" alignment:
+pi_19B14_xpitch: patch, x_pitch =  -0.5*po_19B13_xpitch[x_pitch]+(0.0*(0.0174532925199))
+pi_19B14_xoff: patch, x_offset = 0.2 
+
+po_19B14_xpitch: patch, x_pitch = asin((((m19B14[db_field])*(c_light)*(m19B14[L]))/(p19))-sin(pi_19B14_xpitch[x_pitch]))
+po_19B14_xoff: patch, x_offset = -(pi_19B14_xoff[x_offset]+m19B14[L]*tan(0.5*(pi_19B14_xpitch[x_pitch]-po_19B14_xpitch[x_pitch])))
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!  Overlays  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 9 !!!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+!!!!! ToF Bend Overlays !!!!!
+
+!o_p9_ToF_B1: overlay={
+!    m9B3[db_field]:strength9_1,
+!    m9B4[db_field]:-strength9_1,
+!    m9B5[db_field]:-strength9_1,
+!    m9B6[db_field]:strength9_1},
+!    var={strength9_1},
+!    strength9_1=4.95288804523830728E-001                    !4.96578718024739962E-001
+
+!o_p9_ToF_B2: overlay={
+!    m9B7[db_field]:strength9_2,
+!    m9B8[db_field]:-strength9_2},
+!    var={strength9_2},
+!    strength9_2=1.19013021656125728E+000                    !1.20021665231341546E+000
+
+!o_p9_ToF_B3: overlay={
+!    m9B9[db_field]:strength9_3,
+!    m9B10[db_field]:-strength9_3},
+!    var={strength9_3},
+!    strength9_3=-1.43900033753680767E+000                   !-1.45133005533527348E+000
+
+!o_p9_ToF_B4: overlay={
+!    m9B11[db_field]:strength9_4,
+!    m9B12[db_field]:-strength9_4},
+!    var={strength9_4},
+!    strength9_4=1.50000000000005684E+000                    !1.50059089408050816E+000
+
+!!!!! ToF Drift Overlays !!!!!
+
+!o_p9_ToF_D1: overlay={
+!    D906[L]:length9_1},
+!    var={length9_1},
+!    length9_1=2.80000000000000204E+000                  !2.86061257176762185E+000
+
+!o_p9_ToF_D2: overlay={
+!    D908[L]:length9_2},
+!    var={length9_2},
+!    length9_2=2.62222424347977867E+000                  !2.86061257176762185E+000
+
+!o_p9_ToF_D3: overlay={
+!    D909[L]:length9_3},
+!    var={length9_3},
+!    length9_3=1.96000000000000014E+001                  !1.97649503874208534E+001
+
+!o_p9_ToF_D4: overlay={
+!    D910[L]:length9_4},
+!    var={length9_4},
+!    length9_4=7.86231675485836057E+000                  !8.1
+
+!o_p9_ToF_D5: overlay={
+!    D911[L]:length9_5},
+!    var={length9_5},
+!    length9_5=5.14094610309435485E+000                  !5.37898981198739357E+000
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 11 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+!!!!! ToF Bend Overlays !!!!!
+
+!o_p11_ToF_B1: overlay={
+!    m11B5[db_field]:strength11_1,
+!    m11B6[db_field]:-strength11_1},
+!    var={strength11_1},
+!    strength11_1=-1.49225134978342178E+000                  !-1.49600250171000915E+000
+
+!o_p11_ToF_B2: overlay={
+!    m11B7[db_field]:strength11_2,
+!    m11B8[db_field]:-strength11_2},
+!    var={strength11_2},
+!    strength11_2=1.66527343231040725E+000                   !1.67052098203499488E+000
+
+!!!!! ToF Drift Overlays !!!!!
+
+!o_p11_ToF_D1: overlay={
+!    D1103[L]:length11_1},
+!    var={length11_1},
+!    length11_1=9.00000000000000000E+000                 !9.00772038498282690E+000
+
+!o_p11_ToF_D2: overlay={
+!    D1104[L]:length11_2},
+!    var={length11_2},
+!    length11_2=5.42167697621872779E+000                 !5.49900371209085748E+000
+
+!o_p11_ToF_D3: overlay={
+!    D1105[L]:length11_3},
+!    var={length11_3},
+!    length11_3=9.88052311117433035E+000                 !9.94659129952205134E+000
+
+!o_p11_ToF_D4: overlay={
+!    D1106[L]:length11_4},
+!    var={length11_4},
+!    length11_4=7.44650469947863591E+000                 !7.5
+
+!o_p11_ToF_D5: overlay={
+!    D1107[L]:length11_5},
+!    var={length11_5},
+!    length11_5=9.29067757864110177E+000                 !9.35673574560892263E+000
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 13 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+!!!!! ToF Bend Overlays !!!!!
+
+!o_p13_ToF_B1: overlay={
+!    m13B7[db_field]:strength13_1,
+!    m13B8[db_field]:-strength13_1},
+!    var={strength13_1},
+!    strength13_1=-1.69048292729795269E+000                  !-1.69773405793018695E+000
+
+!o_p13_ToF_B2: overlay={
+!    m13B9[db_field]:strength13_2,
+!    m13B10[db_field]:-strength13_2},
+!    var={strength13_2},
+!    strength13_2=1.67034745006835528E+000                   !1.67740321194790654E+000
+
+!!!!! ToF Drift Overlays !!!!!
+
+!o_p13_ToF_D1: overlay={
+!    D1306[L]:length13_1},
+!    var={length13_1},
+!    length13_1=3.80000000145164485E+000                     !3.80780016449833303E+000
+
+!o_p13_ToF_D2: overlay={
+!    D1307[L]:length13_2},
+!    var={length13_2},
+!    length13_2=3.00576755026743347E+000                     !3.08762187176147762E+000
+
+!o_p13_ToF_D3: overlay={
+!    D1308[L]:length13_3},
+!    var={length13_3},
+!    length13_3=5.24520289089316893E+000                     !5.25
+
+!o_p13_ToF_D4: overlay={
+!    D1309[L]:length13_4},
+!    var={length13_4},
+!    length13_4=1.51672116853525623E+001                     !1.52489924438956947E+001
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 15 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+!!!!! ToF Bend Overlays !!!!!
+
+!o_p15_ToF_B1: overlay={
+!    m15B5[db_field]:strength15_1,
+!    m15B6[db_field]:-strength15_1},
+!    var={strength15_1},
+!    strength15_1=1.69999999999999996E+000                   !1.7
+
+!o_p15_ToF_B2: overlay={
+!    m15B7[db_field]:strength15_2,
+!    m15B8[db_field]:-strength15_2},
+!    var={strength15_2},
+!    strength15_2=-1.69982036090268140E+000                  !-1.7
+
+!o_p15_ToF_B3: overlay={
+!    m15B9[db_field]:strength15_3,
+!    m15B10[db_field]:-strength15_3},
+!    var={strength15_3},
+!    strength15_3=1.55588954722759398E+000                   !1.556
+
+
+!!!!! ToF Drift Overlays !!!!!
+
+!o_p15_ToF_D1: overlay={
+!    D1504[L]:length15_1},
+!    var={length15_1},
+!    length15_1=7.69035294286701898E+000                     !7.7
+
+!o_p15_ToF_D2: overlay={
+!    D1505[L]:length15_2},
+!    var={length15_2},
+!    length15_2=2.29919855779508850E+001                     !23.0
+
+!o_p15_ToF_D3: overlay={
+!    D1506[L]:length15_3},
+!    var={length15_3},
+!    length15_3=2.75361822360569253E+000                     !2.76
+
+!o_p15_ToF_D4: overlay={
+!    D1507[L]:length15_4},
+!    var={length15_4},
+!    length15_4=1.99198557795088615E+000                     !2
+
+!o_p15_ToF_D5: overlay={
+!    D1508[L]:length15_5},
+!    var={length15_5},
+!    length15_5=1.19049123625113840E+000                     !1.2
+
+!o_p15_ToF_D6: overlay={
+!    D1509[L]:length15_6},
+!    var={length15_6},
+!    length15_6=1.88879855779508858E+001                     !18.896
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 17 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+!!!!! ToF Bend Overlays !!!!!
+
+!o_p17_ToF_B1: overlay={
+!    m17B7[db_field]:strength17_1,
+!    m17B8[db_field]:-strength17_1},
+!    var={strength17_1},
+!    strength17_1=-1.61959744785732673E+000                  !-1.62
+
+!o_p17_ToF_B2: overlay={
+!    m17B9[db_field]:strength17_2,
+!    m17B10[db_field]:-strength17_2},
+!    var={strength17_2},
+!    strength17_2=1.61978183232714890E+000                   !1.62
+
+!o_p17_ToF_B3: overlay={
+!    m17B11[db_field]:strength17_3,
+!    m17B12[db_field]:-strength17_3},
+!    var={strength17_3},
+!    strength17_3=-1.69945738444653305E+000                  !-1.7
+
+!!!!! ToF Drift Overlays !!!!!
+
+!o_p17_ToF_D1: overlay={
+!    D1706[L]:length17_1},
+!    var={length17_1},
+!    length17_1=4.48709358697265515E+000                     !4.5
+
+!o_p17_ToF_D2: overlay={
+!    D1707[L]:length17_2},
+!    var={length17_2},
+!    length17_2=8.48232965204884160E+000                     !8.5
+
+!o_p17_ToF_D3: overlay={
+!    D1708[L]:length17_3},
+!    var={length17_3},
+!    length17_3=1.47756580828097683E+000                     !1.5
+
+!o_p17_ToF_D4: overlay={
+!    D1709[L]:length17_4},
+!    var={length17_4},
+!    length17_4=1.29823296520488345E+001                     !13
+
+!o_p17_ToF_D5: overlay={
+!    D1710[L]:length17_5},
+!    var={length17_5},
+!    length17_5=6.32732884538715279E+000                     !6.34
+
+!o_p17_ToF_D6: overlay={
+!    D1711[L]:length17_6},
+!    var={length17_6},
+!    length17_6=1.20293335672458959E+001                     !12.047
+
+!!!!!!!!!!!!!!!!!!!!
+!!!!!! Pass 19 !!!!!
+!!!!!!!!!!!!!!!!!!!!
+
+!!!!! ToF Bend Overlays !!!!!
+
+!o_p19_ToF_B1: overlay={
+!    m19B9[db_field]:strength19_1,
+!    m19B10[db_field]:-strength19_1},
+!    var={strength19_1},
+!    strength19_1=-1.69953049730012862E+000                  !-1.7
+
+!o_p19_ToF_B2: overlay={
+!    m19B11[db_field]:strength19_2,
+!    m19B12[db_field]:-strength19_2},
+!    var={strength19_2},
+!    strength19_2=1.69999999999999996E+000                   !1.7
+
+!o_p19_ToF_B3: overlay={
+!    m19B13[db_field]:strength19_3,
+!    m19B14[db_field]:-strength19_3},
+!    var={strength19_3},
+!    strength19_3=-1.69860263125796185E+000                  !-1.7
+
+!!!!! ToF Drift Overlays !!!!!
+
+!o_p19_ToF_D1: overlay={
+!    D1908[L]:length19_1},
+!    var={length19_1},
+!    length19_1=3.98256549078704447E+000                     !4.0
+
+!o_p19_ToF_D2: overlay={
+!    D1909[L]:length19_2},
+!    var={length19_2},
+!    length19_2=7.97361175957130630E+000                     !8.0
+
+!o_p19_ToF_D3: overlay={
+!    D1910[L]:length19_3},
+!    var={length19_3},
+!    length19_3=3.96465814826306584E+000                     !4.0
+
+!o_p19_ToF_D4: overlay={
+!    D1911[L]:length19_4},
+!    var={length19_4},
+!    length19_4=1.97361175957133406E+000                     !2.0
+
+!o_p19_ToF_D5: overlay={
+!    D1912[L]:length19_5},
+!    var={length19_5},
+!    length19_5=1.58325654907870934E+001                     !15.85
+
+!o_p19_ToF_D6: overlay={
+!    D1913[L]:length19_6},
+!    var={length19_6},
+!    length19_6=3.23061740933153718E+000                     !3.257
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!  Lines  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Pass9: line=(pi_9CB1_xpitch, pi_9CB1_xoff, mCB1, po_9CB1_xoff, po_9CB1_xpitch, D900,
+pi_9B2_xpitch, pi_9B2_xoff, m9B2, po_9B2_xoff, po_9B2_xpitch, D901,
+pi_9B3_xpitch, pi_9B3_xoff, m9B3, po_9B3_xoff, po_9B3_xpitch, D902,
+pi_9B4_xpitch, pi_9B4_xoff, m9B4, po_9B4_xoff, po_9B4_xpitch, D903,
+pi_9B5_xpitch, pi_9B5_xoff, m9B5, po_9B5_xoff, po_9B5_xpitch, D904,
+pi_9B6_xpitch, pi_9B6_xoff, m9B6, po_9B6_xoff, po_9B6_xpitch, D905,
+pi_9B7_xpitch, pi_9B7_xoff, m9B7, po_9B7_xoff, po_9B7_xpitch, D906,
+pi_9B8_xpitch, pi_9B8_xoff, m9B8, po_9B8_xoff, po_9B8_xpitch, D907,
+pi_9B9_xpitch, pi_9B9_xoff, m9B9, po_9B9_xoff, po_9B9_xpitch, D908,
+pi_9B10_xpitch, pi_9B10_xoff, m9B10, po_9B10_xoff, po_9B10_xpitch, D909,
+pi_9B11_xpitch, pi_9B11_xoff, m9B11, po_9B11_xoff, po_9B11_xpitch, D910,
+pi_9B12_xpitch, pi_9B12_xoff, m9B12, po_9B12_xoff, po_9B12_xpitch, D911) 
+
+Pass9[e_tot] = e9
+
+Pass11: line=(pi_11CB1_xpitch, pi_11CB1_xoff, mCB1, po_11CB1_xoff, po_11CB1_xpitch, D1100,
+pi_11B2_xpitch, pi_11B2_xoff, m11B2, po_11B2_xoff, po_11B2_xpitch, D1101,
+pi_11B3_xpitch, pi_11B3_xoff, m11B3, po_11B3_xoff, po_11B3_xpitch, D1102,
+pi_11B4_xpitch, pi_11B4_xoff, m11B4, po_11B4_xoff, po_11B4_xpitch, D1103,
+pi_11B5_xpitch, pi_11B5_xoff, m11B5, po_11B5_xoff, po_11B5_xpitch, D1104,
+pi_11B6_xpitch, pi_11B6_xoff, m11B6, po_11B6_xoff, po_11B6_xpitch, D1105,
+pi_11B7_xpitch, pi_11B7_xoff, m11B7, po_11B7_xoff, po_11B7_xpitch, D1106,
+pi_11B8_xpitch, pi_11B8_xoff, m11B8, po_11B8_xoff, po_11B8_xpitch, D1107)
+
+Pass11[e_tot] = e11
+
+Pass13: line=(pi_13CB1_xpitch, pi_13CB1_xoff, mCB1, po_13CB1_xoff, po_13CB1_xpitch, D1300,
+pi_13CB2_xpitch, pi_13CB2_xoff, mCB2, po_13CB2_xoff, po_13CB2_xpitch, D1301,
+pi_13CB3A_xpitch, pi_13CB3A_xoff, mCB3A, po_13CB3A_xoff, po_13CB3A_xpitch, D1302,
+pi_13CB4A_xpitch, pi_13CB4A_xoff, mCB4A, po_13CB4A_xoff, po_13CB4A_xpitch, D1303,
+pi_13B5_xpitch, pi_13B5_xoff, m13B5, po_13B5_xoff, po_13B5_xpitch, D1304,
+pi_13B6_xpitch, pi_13B6_xoff, m13B6, po_13B6_xoff, po_13B6_xpitch, D1305,
+pi_13B7_xpitch, pi_13B7_xoff, m13B7, po_13B7_xoff, po_13B7_xpitch, D1306,
+pi_13B8_xpitch, pi_13B8_xoff, m13B8, po_13B8_xoff, po_13B8_xpitch, D1307,
+pi_13B9_xpitch, pi_13B9_xoff, m13B9, po_13B9_xoff, po_13B9_xpitch, D1308,
+pi_13B10_xpitch, pi_13B10_xoff, m13B10, po_13B10_xoff, po_13B10_xpitch, D1309) 
+
+Pass13[e_tot] = e13
+
+Pass15: line=(pi_15CB1_xpitch, pi_15CB1_xoff, mCB1, po_15CB1_xoff, po_15CB1_xpitch, D1500,
+pi_15CB2_xpitch, pi_15CB2_xoff, mCB2, po_15CB2_xoff, po_15CB2_xpitch, D1501,
+pi_15CB3A_xpitch, pi_15CB3A_xoff, mCB3A, po_15CB3A_xoff, po_15CB3A_xpitch, D1502,
+pi_15CB4A_xpitch, pi_15CB4A_xoff, mCB4A, po_15CB4A_xoff, po_15CB4A_xpitch, D1503,
+pi_15B5_xpitch, pi_15B5_xoff, m15B5, po_15B5_xoff, po_15B5_xpitch, D1504,
+pi_15B6_xpitch, pi_15B6_xoff, m15B6, po_15B6_xoff, po_15B6_xpitch, D1505,
+pi_15B7_xpitch, pi_15B7_xoff, m15B7, po_15B7_xoff, po_15B7_xpitch, D1506,
+pi_15B8_xpitch, pi_15B8_xoff, m15B8, po_15B8_xoff, po_15B8_xpitch, D1507,
+pi_15B9_xpitch, pi_15B9_xoff, m15B9, po_15B9_xoff, po_15B9_xpitch, D1508,
+pi_15B10_xpitch, pi_15B10_xoff, m15B10, po_15B10_xoff, po_15B10_xpitch, D1509) 
+
+Pass15[e_tot] = e15
+
+Pass17: line=(pi_17CB1_xpitch, pi_17CB1_xoff, mCB1, po_17CB1_xoff, po_17CB1_xpitch, D1700,
+pi_17CB2_xpitch, pi_17CB2_xoff, mCB2, po_17CB2_xoff, po_17CB2_xpitch, D1701,
+pi_17CB3B_xpitch, pi_17CB3B_xoff, mCB3B, po_17CB3B_xoff, po_17CB3B_xpitch, D1702,
+pi_17CB4B_xpitch, pi_17CB4B_xoff, mCB4B, po_17CB4B_xoff, po_17CB4B_xpitch, D1703,
+pi_17CB5B_xpitch, pi_17CB5B_xoff, mCB5B, po_17CB5B_xoff, po_17CB5B_xpitch, D1704,
+pi_17CB6B_xpitch, pi_17CB6B_xoff, mCB6B, po_17CB6B_xoff, po_17CB6B_xpitch, D1705,
+pi_17B7_xpitch, pi_17B7_xoff, m17B7, po_17B7_xoff, po_17B7_xpitch, D1706,
+pi_17B8_xpitch, pi_17B8_xoff, m17B8, po_17B8_xoff, po_17B8_xpitch, D1707,
+pi_17B9_xpitch, pi_17B9_xoff, m17B9, po_17B9_xoff, po_17B9_xpitch, D1708,
+pi_17B10_xpitch, pi_17B10_xoff, m17B10, po_17B10_xoff, po_17B10_xpitch, D1709,
+pi_17B11_xpitch, pi_17B11_xoff, m17B11, po_17B11_xoff, po_17B11_xpitch, D1710,
+pi_17B12_xpitch, pi_17B12_xoff, m17B12, po_17B12_xoff, po_17B12_xpitch, D1711) 
+
+Pass17[e_tot] = e17
+
+Pass19: line=(pi_19CB1_xpitch, pi_19CB1_xoff, mCB1, po_19CB1_xoff, po_19CB1_xpitch, D1900,
+pi_19CB2_xpitch, pi_19CB2_xoff, mCB2, po_19CB2_xoff, po_19CB2_xpitch, D1901,
+pi_19CB3B_xpitch, pi_19CB3B_xoff, mCB3B, po_19CB3B_xoff, po_19CB3B_xpitch, D1902,
+pi_19CB4B_xpitch, pi_19CB4B_xoff, mCB4B, po_19CB4B_xoff, po_19CB4B_xpitch, D1903,
+pi_19CB5B_xpitch, pi_19CB5B_xoff, mCB5B, po_19CB5B_xoff, po_19CB5B_xpitch, D1904,
+pi_19CB6B_xpitch, pi_19CB6B_xoff, mCB6B, po_19CB6B_xoff, po_19CB6B_xpitch, D1905,
+pi_19B7_xpitch, pi_19B7_xoff, m19B7, po_19B7_xoff, po_19B7_xpitch, D1906,
+pi_19B8_xpitch, pi_19B8_xoff, m19B8, po_19B8_xoff, po_19B8_xpitch, D1907,
+pi_19B9_xpitch, pi_19B9_xoff, m19B9, po_19B9_xoff, po_19B9_xpitch, D1908,
+pi_19B10_xpitch, pi_19B10_xoff, m19B10, po_19B10_xoff, po_19B10_xpitch, D1909,
+pi_19B11_xpitch, pi_19B11_xoff, m19B11, po_19B11_xoff, po_19B11_xpitch, D1910,
+pi_19B12_xpitch, pi_19B12_xoff, m19B12, po_19B12_xoff, po_19B12_xpitch, D1911,
+pi_19B13_xpitch, pi_19B13_xoff, m19B13, po_19B13_xoff, po_19B13_xpitch, D1912,
+pi_19B14_xpitch, pi_19B14_xoff, m19B14, po_19B14_xoff, po_19B14_xpitch, D1913) 
+
+Pass19[e_tot] = e19
+
+use, Pass9, Pass11, Pass13, Pass15, Pass17, Pass19
+pass9[geometry] = open
+pass11[geometry] = open
+pass13[geometry] = open
+pass15[geometry] = open
+pass17[geometry] = open
+pass19[geometry] = open
+
+pass9[beta_a]  = 25.50
+pass9[beta_b]  = 29.50
+pass9[alpha_a]  = 0.120
+pass9[alpha_b]  = -0.160
+pass9[eta_x]  = 0 !-9.2735848555127933E-19
+pass9[eta_y]  = 0 !8.3266726846886741E-17
+pass9[etap_x]  = 0 !-1.0381788464151318E-19
+pass9[etap_y]  = 0 !4.1633363423443370E-17
+pass9[y_position]  = 100
+
+pass11[beta_a]  = 57.54
+pass11[beta_b]  = 59.67
+pass11[alpha_a]  = 0.093
+pass11[alpha_b]  = 0.513
+pass11[eta_x]  = 0 !-6.1327611967964910E-19
+pass11[eta_y]  = 0 !9.7144514654701197E-17
+pass11[etap_x]  = 0 !-6.9279307401156254E-20
+pass11[etap_y]  = 0 !2.7755575615628914E-17
+pass11[y_position]  = 100
+
+pass13[beta_a]  = 58.21
+pass13[beta_b]  = 111.12
+pass13[alpha_a]  = 0.490
+pass13[alpha_b]  = 1.155
+pass13[eta_x]  = 0 !-4.4424834582677470E-19
+pass13[eta_y]  = 0 !7.0776675468206367E-16
+pass13[etap_x]  = 0 !-5.0450393596336464E-20
+pass13[etap_y]  = 0 !3.4694469519536142E-17
+pass13[y_position]  = 100
+
+pass15[beta_a]  = 29.64
+pass15[beta_b]  = 82.75
+pass15[alpha_a]  = 0.251
+pass15[alpha_b]  = 1.500
+pass15[eta_x]  = 0 !-3.4285178682159112E-19
+pass15[eta_y]  = 0 !1.1449170706282191E-15
+pass15[etap_x]  = 0 !-3.9065878265360829E-20
+pass15[etap_y]  = 0 !2.7755575615628914E-17
+pass15[y_position]  = 100
+
+pass17[beta_a]  = 33.10
+pass17[beta_b]  = 41.60
+pass17[alpha_a]  = -0.456
+pass17[alpha_b]  = 0.995
+pass17[eta_x]  = 0 !-2.7692839214818075E-19
+pass17[eta_y]  = 0 !-2.9143354396410359E-16
+pass17[etap_x]  = 0 !-3.1625317518498471E-20
+pass17[etap_y]  = 0 !-2.7755575615628914E-17
+pass17[y_position]  = 100
+
+pass19[beta_a]  = 53.45
+pass19[beta_b]  = 22.77
+pass19[alpha_a]  = -0.820
+pass19[alpha_b]  = 0.094
+pass19[eta_x]  = 0 !-2.3134330817755320E-19
+pass19[eta_y]  = 0 !3.9204792908723203E-16
+pass19[etap_x]  = 0 !-2.6461236327812418E-20
+pass19[etap_y]  = 0 !5.8980598183211441E-17
+pass19[y_position]  = 100
+
+
+call, file=interesting/var_P9_Optics_SFL_NESplitter1.out
+!call, file=interesting/var_P9_NoR56_PerfectOptics_SFL_NESplitter1.out
+call, file=interesting/var_P11_Optics_SFL_NESplitter2.out
+call, file=interesting/var_P13_Optics_SFL_NESplitter3.out
+call, file=interesting/var_P15_Optics_SFL_NESplitter4.out
+call, file=interesting/var_P17_Optics_SFL_NESplitter5.out
+call, file=interesting/var_P19_Optics_SFL_NESplitter6.out
+
+!call, file=interesting/var_P9-19_FloorX_NoZ_ToF_NESplitter1.out
+!call, file=interesting/var_P9-19_FloorX_NoZ_ToF_NESplitter2.out
+!call, file=interesting/var_P9-19_FloorX_NoZ_ToF_NESplitter3.out
+!call, file=interesting/var_P9-19_FloorX_NoZ_ToF_NESplitter4.out
+!call, file=interesting/var_P9-19_FloorX_NoZ_ToF_NESplitter5.out
+!call, file=interesting/var_P9-19_FloorX_NoZ_ToF_NESplitter6.out
+
+beginning[beta_a] = 0.5
+beginning[beta_b] = 0.5
+beginning[alpha_a] = 0.1
+beginning[alpha_b] = 0.2
+beginning[eta_x] = 0 !-9.2735848555127933E-19
+beginning[eta_y] = 0 !8.3266726846886741E-17
+beginning[etap_x] = 0 !-1.0381788464151318E-19
+beginning[etap_y] = 0 !4.1633363423443370E-17
+beginning[y_position] = 100
+!!beginning[z_position] = 90.553720
+!!beginning[s] = 242.768240
+
+!end_file
+!m9Q1[superimpose]=F
+m*Q*[superimpose]=T
+m*E*[superimpose]=T
+!o_p9_ToF_D1[is_on]=F
+!overlay::*[is_on]=F
+!quadrupole::*[is_on]=F

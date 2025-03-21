@@ -306,7 +306,6 @@ type (ele_struct), pointer :: det_ele
 type (lat_param_struct) :: param
 type (photon_target_struct), pointer :: target
 type (target_point_struct) corner(8)
-type (surface_grid_struct), pointer :: gr
 
 real(rp), optional :: w_to_surface(3,3)
 real(rp) zran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3)
@@ -713,7 +712,7 @@ do im = 1, n_layer
   orbit%vec = vec_init
   call rotate_vec(orbit%vec(2:6:2), y_axis$, ml%theta_in)
   call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
-  if (ele%photon%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
+  if (ele%photon%h_misalign%active) call crystal_h_misalign (ele, orbit, h_bar0) 
 
   cp%old_vvec = orbit%vec(2:6:2)
   cp%new_vvec = orbit%vec(2:6:2) + h_bar0
@@ -872,11 +871,21 @@ endif
 !
 
 cp%wavelength = c_light * h_planck / orbit%p0c
-cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$)) 
+cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$))   ! B&C above Eq (7).
 
 ! (px, py, pz) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
+
+if (bmad_com%debug) then
+  print '(a, 6es20.12)', 'Convert to nominal (no curvature) crystal surface coordinates.'
+  print '(a, 6es20.12)', '  Wavelength:    ', cp%wavelength
+  print '(a, 6es20.12)', '  Gamma:         ', cp%cap_gamma
+  print '(a, 6es20.12)', '  Photon energy: ', orbit%p0c
+  print '(a, 6es20.12)', '  orbit (x, y, z):   ', orbit%vec(1:5:2)
+  print '(a, 6es20.12)', '  orbit (Vx, Vy, Vz):', orbit%vec(2:6:2)
+  print '(a, 6es20.12)', '  field:', orbit%field
+endif
 
 call track_to_surface (ele, orbit, param, w_surface)
 if (orbit%state /= alive$) return
@@ -884,17 +893,17 @@ if (orbit%state /= alive$) return
 ! Construct h_bar = H * wavelength.
 
 h_norm = ele%photon%material%h_norm
-h_bar = h_norm
-if (ele%photon%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
-h_bar = h_bar * cp%wavelength / ele%value(d_spacing$)
+if (ele%photon%h_misalign%active) call crystal_h_misalign (ele, orbit, h_norm) 
+h_bar = h_norm * cp%wavelength / ele%value(d_spacing$)  ! H-vector B&C Eq (1) normalized by the wavelength.
 
 ! cp%new_vvec is the normalized outgoing wavevector outside the crystal
+! See B&C Eq (27) and paragraph after equation as well as Fig 10.
 
-cp%old_vvec = orbit%vec(2:6:2)
-cp%new_vvec = orbit%vec(2:6:2) + h_bar
+cp%old_vvec = orbit%vec(2:6:2)             ! Incomming K-vector (real part) normalized by the wavelength                
+cp%new_vvec = orbit%vec(2:6:2) + h_bar     ! Outgoing K-vector (real part) normalized by the wavelength
 
 if (ele%value(b_param$) < 0) then ! Bragg
-  cp%new_vvec(3) = -sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
+  cp%new_vvec(3) = -sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2) 
 else
   cp%new_vvec(3) = sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
 endif
@@ -906,6 +915,19 @@ gamma_h = cp%new_vvec(3)
 
 cp%b_eff = gamma_0 / gamma_h
 cp%dtheta_sin_2theta = -dot_product(h_bar + 2 * cp%old_vvec, h_bar) / 2
+
+if (bmad_com%debug) then
+  print '(a, 6es20.12)', 'Track to crystal surface and convert to local surface coordinates.'
+  print '(a, 6es20.12)', '  orbit (x, y, z):          ', orbit%vec(1:5:2)
+  print '(a, 6es20.12)', '  orbit (Vx/c, Vy/c, Vz/c): ', orbit%vec(2:6:2)
+  print '(a, 6es20.12)', '  field:                    ', orbit%field
+  print '(a, 6es20.12)', '  h_bar (before h_misalign):', ele%photon%material%h_norm * cp%wavelength / ele%value(d_spacing$)
+  print '(a, 6es20.12)', '  h_bar (after h_misalign): ', h_bar
+  print '(a, 6es20.12)', '  Old V-vec:                ', cp%old_vvec
+  print '(a, 6es20.12)', '  New V-vec:                ', cp%new_vvec
+  print '(a, 6es20.12)', '  b_eff:                    ', cp%b_eff
+  print '(a, 6es20.12)', '  dtheta_sin_2theta:        ', cp%dtheta_sin_2theta
+endif
 
 ! E field calc
 
@@ -929,6 +951,8 @@ if (is_true(ele%value(use_reflectivity_table$))) then
 
   orbit%field(1) = orbit%field(1) * sqrt(p_pi)
   orbit%field(2) = orbit%field(2) * sqrt(p_sigma)
+
+  p_factor = real_garbage$
 
 else
   p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
@@ -955,7 +979,23 @@ else
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) orbit%vec(2:6:2) = cp%new_vvec
 endif
 
+if (bmad_com%debug) then
+  print '(a, 6es20.12)', 'After diffracton.'
+  print '(a, 6es20.12)', '  orbit (x, y, z):          ', orbit%vec(1:5:2)
+  print '(a, 6es20.12)', '  orbit (Vx/c, Vy/c, Vz/c): ', orbit%vec(2:6:2)
+  print '(a, 6es20.12)', '  field:                    ', orbit%field
+  if (p_factor /= real_garbage$) print '(a, 6es20.12)', '  p_factor:                 ', p_factor
+endif
+
 if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+
+if (bmad_com%debug) then
+  print '(a, 6es20.12)', 'Reorient to nominal surface.'
+  print '(a, 6es20.12)', '  orbit (x, y, z):          ', orbit%vec(1:5:2)
+  print '(a, 6es20.12)', '  orbit (Vx/c, Vy/c, Vz/c): ', orbit%vec(2:6:2)
+  print '(a, 6es20.12)', '  field:                    ', orbit%field
+endif
+
 
 !----------------------------------------------------------------------------------------
 contains
@@ -1009,37 +1049,69 @@ subroutine crystal_h_misalign (ele, orbit, h_vec)
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (photon_element_struct), pointer :: ph
-type (surface_orientation_struct), pointer :: orient
+type (surface_h_misalign_struct), pointer :: hm
+type (surface_h_misalign_pt_struct), pointer :: hpt0, hpt1, hpt2, hpt3
 
-real(rp) h_vec(3), r(2)
-integer ij(2)
+real(rp) h_vec(3), rnd(2), rot(3), dr(2), rt(2), rt_rms(2), fn
+integer ij(2), dij(2)
 character(*), parameter :: r_name = 'crystal_h_misalign'
 
 !
 
-ph => ele%photon
-if (.not. ph%grid%active) return
+hm => ele%photon%h_misalign
 
-ij = nint((orbit%vec(1:3:2) - ph%grid%r0) / ph%grid%dr)
+ij = nint((orbit%vec(1:3:2) - hm%r0) / hm%dr)
+dr = (orbit%vec(1:3:2) - hm%r0) / hm%dr - ij
 
-if (any(ij < lbound(ph%grid%pt)) .or. any(ij > ubound(ph%grid%pt))) then
+if (any(ij < lbound(hm%pt)) .or. any(ij > ubound(hm%pt))) then
   call out_io (s_error$, r_name, &
               'Photon position on crystal surface outside of grid bounds for element: ' // ele%name)
   return
 endif
 
-! Make small angle approximation
+dij = 0
 
-orient => ph%grid%pt(ij(1), ij(2))%orientation
-
-h_vec(1:2) = h_vec(1:2) + [orient%dz_dx, orient%dz_dy]
-if (orient%dz_dx_rms /= 0 .or. orient%dz_dy /= 0) then
-  call ran_gauss (r)
-  h_vec(1:2) = h_vec(1:2) + [orient%dz_dx_rms, orient%dz_dy_rms] * r
+if (dr(1) > 0 .and. ij(1) /= ubound(hm%pt, 1))  dij(1) = 1
+if (dr(1) < 0 .and. ij(1) /= lbound(hm%pt, 1)) then
+  ij(1) = ij(1) - 1
+  dij(1) = 1
+  dr(1) = dr(1) + 1
 endif
 
-h_vec(3) = sqrt(1 - h_vec(1)**2 - h_vec(2)**2)
+if (dr(2) > 0 .and. ij(2) /= ubound(hm%pt, 2))  dij(2) = 1
+if (dr(2) < 0 .and. ij(2) /= lbound(hm%pt, 2)) then
+  ij(2) = ij(2) - 1
+  dij(2) = 1
+  dr(2) = dr(2) + 1
+endif
+
+hpt0 => hm%pt(ij(1), ij(2))
+hpt1 => hm%pt(ij(1)+1, ij(2))
+hpt2 => hm%pt(ij(1), ij(2)+1)
+hpt3 => hm%pt(ij(1)+1, ij(2)+1)
+
+rt     = (1-dr(1))*(1-dr(2))*[hpt0%rot_y, hpt0%rot_t] + dr(1)*(1-dr(2))*[hpt1%rot_y, hpt1%rot_t] + &
+         (1-dr(1))*dr(2)*[hpt2%rot_y, hpt2%rot_t] +     dr(1)*dr(2)*[hpt3%rot_y, hpt3%rot_t]
+
+rt_rms = (1-dr(1))*(1-dr(2))*[hpt0%rot_y_rms, hpt0%rot_t_rms] + dr(1)*(1-dr(2))*[hpt1%rot_y_rms, hpt1%rot_t_rms] + &
+             (1-dr(1))*dr(2)*[hpt2%rot_y_rms, hpt2%rot_t_rms] +     dr(1)*dr(2)*[hpt3%rot_y_rms, hpt3%rot_t_rms]
+
+if (rt_rms(1) /= 0 .or. rt_rms(2) /= 0) then
+  call ran_gauss (rnd)
+  rt = rt + rt_rms * rnd
+endif
+
+!
+
+if (ele%value(b_param$) < 0) then   ! Bragg: rot_t = x-rotation
+  rot = [rt(2), rt(1), 0.0_rp]
+else  ! Laue: rot_t = z-rotation
+  rot = [0.0_rp, rt(1), rt(2)]
+endif
+
+if (all(rot == 0)) return
+fn = norm2(rot)
+h_vec = rotate_vec_given_axis_angle(h_vec, rot/fn, fn)
 
 end subroutine crystal_h_misalign
 

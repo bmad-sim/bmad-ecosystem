@@ -9,7 +9,6 @@ module ptc_interface_mod
 
 use taylor_mod
 use attribute_mod
-use coord_mod
 use multipole_mod
 
 interface assignment (=)
@@ -2095,7 +2094,7 @@ end subroutine concat_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine concat_ele_taylor (taylor1, ele, taylor3)
+! Subroutine concat_ele_taylor (taylor1, ele, taylor3, err_flag)
 !
 ! Routine to concatinate two taylor maps:
 !   taylor3[x] = ele_taylor(taylor1[x])
@@ -2105,14 +2104,15 @@ end subroutine concat_taylor
 ! Also see: concat_taylor
 !
 ! Input:
-!   taylor1(6) -- Taylor_struct: Taylor map.
-!   ele        -- ele_struct: Element containing a Taylor map.
+!   taylor1(6)  -- Taylor_struct: Taylor map.
+!   ele         -- ele_struct: Element containing a Taylor map.
 !
 ! Output
-!   taylor3(6) -- Taylor_struct: Concatinated map
+!   taylor3(6)  -- Taylor_struct: Concatinated map
+!   err_flag    -- logical: Set True if there is an error. False otherwise.
 !-
 
-Subroutine concat_ele_taylor (taylor1, ele, taylor3)
+Subroutine concat_ele_taylor (taylor1, ele, taylor3, err_flag)
 
 use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=), real_8, fibre
 
@@ -2127,8 +2127,11 @@ type (fibre), pointer :: fib
 real(rp) beta0, beta1, tilt
 real(8) x_dp(6)
 logical err_flag
+character(*), parameter :: r_name = 'concat_ele_taylor'
 
 ! Match elements are not implemented in PTC so just use the matrix.
+
+err_flag = .false.
 
 if (ele%key == match$) then
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
@@ -2153,7 +2156,11 @@ call ptc_set_taylor_order_if_needed()
 ! and create map corresponding to ele%taylor.
 
 param%particle = positron$  ! Actually this does not matter to the calculation
-call ele_to_fibre (ele, fib, param, .true., err_flag)
+call ele_to_fibre (ele, fib, .true., err_flag)
+if (err_flag) then
+  call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
+  return
+endif
 
 ! Init
 
@@ -2410,7 +2417,7 @@ end subroutine real_8_to_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_propagate1 (bmad_taylor, ele, param, ref_in)
+! Subroutine taylor_propagate1 (bmad_taylor, ele, param, err_flag, ref_in)
 !
 ! Subroutine to track (symplectic integration) a taylor map through an element.
 ! The alternative routine, if ele has a taylor map, is concat_taylor.
@@ -2427,10 +2434,11 @@ end subroutine real_8_to_taylor
 !                         if the direction of propagation is backwards.
 !
 ! Output:
-!   bmad_taylor(6)  -- Taylor_struct: Map through element
+!   bmad_taylor(6)  -- Taylor_struct: Map through element.
+!   err_flag        -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine taylor_propagate1 (bmad_taylor, ele, param, ref_in)
+subroutine taylor_propagate1 (bmad_taylor, ele, param, err_flag, ref_in)
 
 use s_tracking
 use mad_like, only: real_8, fibre, ptc_track => track
@@ -2448,11 +2456,12 @@ type (coord_struct), optional :: ref_in
 
 real(rp) beta0, beta1, m2_rel
 logical err_flag
+character(*), parameter :: r_name = 'taylor_propagate1'
 
 ! If the element is a taylor then just concat since this is faster.
 
 if (ele%key == taylor$) then
-  call concat_ele_taylor (bmad_taylor, ele, bmad_taylor)
+  call concat_ele_taylor (bmad_taylor, ele, bmad_taylor, err_flag)
   return
 endif
 
@@ -2470,7 +2479,12 @@ ptc_tlr = bmad_taylor
 
 ! track the map
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., err_flag, ref_in = ref_in)
+call ele_to_fibre (ele, ptc_fibre, .true., err_flag, ref_in = ref_in)
+if (err_flag) then
+  call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
+  return
+endif
+
 call track_probe_x (ptc_tlr, ptc_private%base_state, fibre1 = bmadl%start)
 
 ! transfer ptc map back to bmad map
@@ -3002,13 +3016,15 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
+! Subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
 !
 ! Routine to compute the a(n) and b(n) magnetic multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
 !
-! Note: On ptc side bn(1) is error field when creating a fibre but 
-! is total field when fibre is being modified. This routine returns the error field.
+! Note: The multipole index uses the PTC convention of starting from 1 instead of zero.
+!
+! Note: On the PTC side bn(1) is error field when creating a fibre but 
+! is the total field when the fibre is being modified. This routine returns the error field.
 !
 ! Input:
 !   ele                 -- ele_struct: Bmad Element.
@@ -3017,9 +3033,10 @@ end subroutine bmad_patch_parameters_to_ptc
 !   bn(1:n_pole_maxx+1) -- real(rp): Normal multipole component.
 !   an(1:n_pole_maxx+1) -- real(rp): Skew multipole component.
 !   n_max               -- integer, optional: Maximum non-zero multipole component.
+!                           Set to zero if there are no multipoles.
 !-
 
-subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
+subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
 
 implicit none
 
@@ -3035,9 +3052,13 @@ integer, optional :: n_max
 integer n, key, ix_pole_max
 logical kick_here, add_kick, add_multipoles
 
-character(*), parameter :: r_name = 'ele_to_ptc_magnetic_an_bn'
+character(*), parameter :: r_name = 'ele_to_ptc_magnetic_bn_an'
 
 !
+
+if (present(n_max)) n_max = 0
+bn = 0
+an = 0
 
 if (ele%key == taylor$) return
 if (ele%key == match$) return
@@ -3069,7 +3090,7 @@ case (crab_cavity$)
     bn(1) = 1d-9 * e_accel_field(ele, voltage$) / leng
   endif
 
-case (drift$, rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
+case (rfcavity$, lcavity$, drift$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
   ! Nothing to be done
 
 case (octupole$)
@@ -3162,6 +3183,9 @@ if (add_multipoles) then
 
   select case (ele%key)
   case (hkicker$, vkicker$, kicker$)
+  case (lcavity$, rfcavity$)
+    an0 = an0 / ele%value(l_active$)
+    bn0 = bn0 / ele%value(l_active$)
   case default
     if (leng /= 0) then
       an0 = an0 / leng
@@ -3186,7 +3210,7 @@ if (present(n_max)) then
   n_max  = n
 endif
 
-end subroutine ele_to_ptc_magnetic_an_bn
+end subroutine ele_to_ptc_magnetic_bn_an
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

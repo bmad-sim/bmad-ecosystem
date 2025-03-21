@@ -57,8 +57,8 @@ real(rp), parameter :: N_avogadro = 6.02214076d23    ! Number / mole  (exact)
 
 ! For Helion:
 !   g_eff = 2 * R_mass * (mu_h/mu_p) / Q
-!         = 2 * (2808.39160743(85) MeV / 938.27208816(29) MeV) * (−2.127625307(25)) / (2)
-!         = −6.368307373
+!         = 2 * (2808.39160743(85) MeV / 938.27208816(29) MeV) * (-2.127625307(25)) / (2)
+!         = -6.368307373
 !   anom_mag_moment = (g_eff - 2) / 2 = -4.184153686d0
 
 real(rp), parameter :: fine_structure_constant =  7.2973525693d-3

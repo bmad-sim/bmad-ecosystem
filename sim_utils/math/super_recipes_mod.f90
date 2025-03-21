@@ -854,7 +854,7 @@ else
 endif
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
-  call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!, \es12.4\ at \es12.4\ and \es12.4\ at \es12.4\ ', &
+  call out_io (s_error$, r_name, 'ROOT NOT BRACKETED!, \es12.4\ at \es12.4\ and \es12.4\ at \es12.4\ ', &
                   r_array = [fa, a, fb, b])
   x_zero = 1d100
   status = -1
@@ -925,7 +925,7 @@ do iter = 1,ITMAX
   fb = func(b, status); if (status /= 0) return
 end do
 
-call out_io (s_fatal$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
+call out_io (s_error$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
 status = -2
 x_zero = b
 
@@ -935,7 +935,7 @@ end function super_zbrent
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska)
+! subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska, print_err)
 !
 ! Routine to do non-linear optimizations. 
 ! This routine is essentially mrqmin from Numerical Recipes with some added features and
@@ -962,6 +962,7 @@ end function super_zbrent
 !   alamda      -- Real(rp): See mrqmin in NR for more details.
 !   maska(:)    -- Logical, optional: Variable mask. See mrqmin in NR for more details.
 !                    Default is True for all elements of the array.
+!   print_err   -- logical, optional: If True (default), print error messages.
 !
 ! Output:
 !   a(:)        -- Real(rp): Variables to vary. See mrqmin in NR for more details.
@@ -977,7 +978,7 @@ end function super_zbrent
 !                       Other => Set by funcs. 
 !-
 
-recursive subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska)
+recursive subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska, print_err)
 
 implicit none
 
@@ -990,7 +991,7 @@ real(rp) :: alamda
 integer :: ma, ndata
 integer status, mfit, j
 
-logical, intent(in), optional :: maska(:)
+logical, intent(in), optional :: maska(:), print_err
 
 character(*), parameter :: r_name = 'super_mrqmin'
 
@@ -1050,10 +1051,11 @@ end if
 storage%covar(1:mfit, 1:mfit) = storage%alpha(1:mfit, 1:mfit)
 forall (j = 1:mfit) storage%covar(j,j) =  storage%covar(j,j) * (1.0_rp+alamda)
 storage%da(1:mfit, 1) = storage%beta(1:mfit)
-call super_gaussj(storage%covar(1:mfit, 1:mfit), storage%da(1:mfit, 1:1), status)
+call super_gaussj(storage%covar(1:mfit, 1:mfit), storage%da(1:mfit, 1:1), status, print_err)
 if (status /= 0) then
-  call out_io (s_error$, r_name, 'Note: Generally a singular matrix means that one or more datum values are', &
-                                 'not affected by any variation of any variable.')
+  if (logic_option(.true., print_err)) call out_io (s_error$, r_name, &
+                            'Note: Generally a singular matrix means that one or more datum values are', &
+                            'not affected by any variation of any variable.')
   return
 endif
 
@@ -1153,7 +1155,7 @@ end subroutine super_mrqcof
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine super_gaussj (a, b, status)
+! Subroutine super_gaussj (a, b, status, print_err)
 ! 
 ! Routine to solve a set of linear equations:
 !   a * x = b
@@ -1163,17 +1165,18 @@ end subroutine super_mrqcof
 ! This is the gaussj routine from Num Rec with an added status argument.
 !
 ! Input:
-!   a(:,:) -- Real(rp): matrix.
-!   b(:,:) -- Real(rp): matrix.
+!   a(:,:)      -- Real(rp): matrix.
+!   b(:,:)      -- Real(rp): matrix.
+!   print_err   -- logical, optional: If True (default), print error messages.
 !
 ! Output:
-!   a(:,:) -- Real(rp): Inverse to input a(:,:) matrix.
-!   b(:,:) -- Real(rp): Solutions to a * x = b euqations.
-!   status -- Integer: Status. Set to -1 or -2 if there is an error.
-!               Set to 0 otherwise.
+!   a(:,:)      -- Real(rp): Inverse to input a(:,:) matrix.
+!   b(:,:)      -- Real(rp): Solutions to a * x = b euqations.
+!   status      -- Integer: Status. Set to -1 or -2 if there is an error.
+!                   Set to 0 otherwise.
 !-
 
-subroutine super_gaussj (a, b, status)
+subroutine super_gaussj (a, b, status, print_err)
 
 implicit none
 
@@ -1188,6 +1191,7 @@ integer status
 integer, target :: irc(2)
 integer :: i, l, n
 integer, pointer :: irow, icol
+logical, optional :: print_err
 
 character(*), parameter :: r_name = 'super_gaussj'
 
@@ -1204,7 +1208,7 @@ do i = 1, n
    ipiv(icol) = ipiv(icol)+1
    if (ipiv(icol) > 1) then
       status = -1
-      call out_io (s_error$, r_name, 'SINGULAR MATRIX! (1)')
+      if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'SINGULAR MATRIX! (1)')
       return
    end if
    if (irow /= icol) then
@@ -1215,7 +1219,7 @@ do i = 1, n
    indxc(i) = icol
    if (a(icol, icol) == 0.0) then
       status = -2
-      call out_io (s_error$, r_name, 'SINGULAR MATRIX! (2)')
+      if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'SINGULAR MATRIX! (2)')
       return
    end if
    pivinv = 1.0_rp/a(icol, icol)

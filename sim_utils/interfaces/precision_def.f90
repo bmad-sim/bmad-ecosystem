@@ -6,7 +6,7 @@ integer, parameter :: dp = selected_real_kind(2*precision(1e0_sp))
 integer, parameter :: i4_b = selected_int_kind(9)  ! Equiv to NR I4B
 
 type global_common_struct
-  logical :: mp_threading_is_safe = .true.   ! Can threading be used with MP?
+  logical :: mp_threading_is_safe = .true.   ! Can threading be used with MP? EG ramping is not thread safe.
   logical :: exit_on_error  = .true.         ! Exit program on error?
   integer :: debug = 0                       ! Used for debugging purpeses
 end type

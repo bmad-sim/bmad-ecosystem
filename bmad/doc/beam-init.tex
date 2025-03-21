@@ -23,7 +23,7 @@ The \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) holds parameters whic
 initialize a beam. The parameters of this structure, shown with their default values, are:
 \begin{example}
   type beam_init_struct
-    character(200) :: position_file = ''       ! Initialization file name.
+    character(200) :: position_file = ""       ! Initialization file name.
     character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
@@ -101,9 +101,9 @@ the particle distribution for a bunch. Note: If \vn{%position_file} is not blank
 beam distribution will be read from the appropriate file and \vn{%distribution_type}
 will be ignored.
 
-\vn{%distributeion_type(1)} sets the distribution 
+\vn{%distribution_type(1)} sets the distribution 
 type for the $(x, p_x)$ 2D phase space, etc. 
-Possibilities for \vn{%distributeion_type(:)} are:
+Possibilities for \vn{%distribution_type(:)} are:
 \begin{example}
   "", or "RAN_GAUSS"  ! Random distribution (default).
   "ELLIPSE"           ! Ellipse distribution (\sref{s:ellipse.init})
@@ -111,7 +111,7 @@ Possibilities for \vn{%distributeion_type(:)} are:
   "GRID"              ! Uniform distribution.
 \end{example}
 Since the Kapchinsky-Vladimirsky distribution is for a 4D phase space, if the Kapchinsky-Vladimirsky
-distribution is used, \vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)} array.
+distribution is used, \vn{"KV"} must appear exactly twice in the \vn{%distribution_type(:)} array.
 
 Unlike all other distribution types, the \vn{GRID} distribution is independent of the Twiss
 parameters at the point of generation.  For the non-\vn{GRID} distributions, the distributions are

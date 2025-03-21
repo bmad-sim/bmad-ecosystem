@@ -20,9 +20,13 @@ SR --> Short range wake
 Simulation
 ----------
 
-The wake is simulated with a leading particle that excites a wake and a trailing "witness" particle
-that gets a kick. The charge on the trailing particle is negligible compared with the charge on the
-leading particle so the longitudinal self-wake of the trailing particle is negligible.
+The wake is simulated in wake_plot with a leading particle that excites a wake and a trailing
+"witness" particle that gets a kick.  The charge on the trailing particle is negligible compared
+with the charge on the leading particle so the longitudinal self-wake of the trailing particle is
+negligible. The charge of the leading particle is set to one.
+
+Exception: For the z-based SR wake, the wake can be defined so that the witness particle can get
+a kick even if the witness particle is ahead of the "leading" particle.
 
 The wake kicks are the change in phase space px, py, and pz due to the wake.
 The only difference between plotting the wakes versus the kicks is an overall scale factor.
@@ -51,7 +55,7 @@ An input file uses Fortan namelist syntax. Parameters are read from a namelist n
 which looks like:
 
   &params
-		lat_file = "lat.bmad"
+    lat_file = "lat.bmad"
     ... etc...
   /
 
@@ -67,18 +71,18 @@ lat_file: Bmad lattice file containing the element with the wakes.
 wake_ele_name: Wake element identifier. Can be name or element index. Must match to a unique element.
 
 who: What wake type to use. Possibilities are:
-        "lr"				-- Long range wakes.
-        "sr"				-- Short range wakes.
+        "lr"        -- Long range wakes.
+        "sr"        -- Short range wakes.
         "sr-mode"   -- Short range pseudo-mode wakes. Z-position wakes are ignored.
         "sr-long"   -- Short range longitudinal pseudo-mode wake. Only used with ix_wake non-zero.
         "sr-trans"  -- Short range transverse pseudo-mode wake. Only used with ix_wake non-zero.
-        "sr-z"			-- Short range Z-position wakes. Pseudo-mode wakes are ignored.
+        "sr-z-long" -- Short range Z-position wakes. Pseudo-mode wakes are ignored.
 When multiple modes are present, the sum of the wakes is plotted.
 
 m_order: Mode order to plot. Only used with LR wakes. m_order = 1 => dipole wakes, etc. 
 Ignored if ix_wake is nonzero. Must be set if there is more than one wake and ix_wake = 0.
 
-ix_wake: Wake index to plot. Only used with who set to "lr", "sr-long", "sr-trans", or "sr-z" where
+ix_wake: Wake index to plot. Only used with "who" set to "lr", "sr-long", or "sr-trans" where
 there is a single list of wakes.  plot only the wake with the index corresponding to ix_wake
 (ix_wake = 1 --> Only use first wake in list, etc).  Default is zero which means ignore ix_order. If
 non-zero, overrides any setting of m_order.
@@ -86,8 +90,6 @@ non-zero, overrides any setting of m_order.
 xy_leading: (x, y) transverse position of the leading particle that produces the wake.
 
 xy_trailing: (x, y) transverse position of the trailing witness particle that samples the wake.
-
-leading_charge: Charge of the leading bunch. Only used when plotting kicks.
 
 =================================================================================================
 Plotting Input Parameters:
@@ -99,19 +101,20 @@ make_plot: If False, do not make a plot (used if only a postscript file is wante
 
 postscript_file: If non-blank, Make a postscript file.
 
-Plot_limit: For LR plots, the wake is plotted over a time range [0, plot_limit]. For SR plots,
-the wake is plotted over a z range [plot_limit, 0] where plot_limit should be negative in this case.
+x_min, x_max: Plot limits for the horizontal axis. Either will default to zero if not set.
+	* For LR plots, the wake is zero for negative time so best to plot over a time range [0, x_max]. 
+	* For "sr-z-long", if both x_min and x_max are not set the plot extent is taken to be the wake extent.
+	* For SR plots, the wake is zero for positive z so best is to plot over a z range [x_min, 0] where 
+x_min should be negative.
 
-n_points: Number of data points to use in drawing the wake.
-
-draw_knot_points: Only used with SR wakes. If True, draw symbols on the wake curves at the z-positions
-corresponding to the spline knot points of the Z-position wakes.
+n_points: Number of data points to use in drawing the wake. Not used with "sr-z-long" where the number
+of points is determined by the number points in the wake table that are visible in the plot
 
 text_scale: Scale for drawing text. Default is 1.2
 
 plot_size: (width, height) of plot page in pixels (72 pixels = 1 inch).
 
-x_axis_label:
+x_axis_label: Label for the x-axis. Default is either "Z" or "Time".
 
-y_axis_label:
+y_axis_label: Label for the y-axis. Default is either "Wake" or "Kick".
 

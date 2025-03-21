@@ -1,18 +1,12 @@
 
-File: code/tao_abort_command_file.f90
-tao_abort_command_file
+File: code/tao_beam_track_endpoint.f90
+tao_beam_track_endpoint
 
 File: code/tao_alias_cmd.f90
 tao_alias_cmd
 
 File: code/tao_beam_emit_calc.f90
 tao_beam_emit_calc
-
-File: code/tao_beam_track_endpoint.f90
-tao_beam_track_endpoint
-
-File: code/tao_branch_index.f90
-tao_branch_index
 
 File: code/tao_c_interface_mod.f90
 tao_c_interface_mod
@@ -27,9 +21,10 @@ tao_c_out_io_buffer_get_line
 tao_c_get_real_array
 tao_c_get_integer_array
 tao_c_out_io_buffer_reset
+tao_c_get_beam_track_element
 
-File: code/tao_call_cmd.f90
-tao_call_cmd
+File: code/tao_branch_index.f90
+tao_branch_index
 
 File: code/tao_change_mod.f90
 tao_change_mod
@@ -38,6 +33,12 @@ tao_change_z_tune
 tao_change_var
 tao_change_ele
 tao_to_change_number
+
+File: code/tao_call_cmd.f90
+tao_call_cmd
+
+File: code/tao_cmd_end_calc.f90
+tao_cmd_end_calc
 
 File: code/tao_chrom_calc_needed.f90
 tao_chrom_calc_needed
@@ -51,11 +52,11 @@ tao_clip_cmd
 File: code/tao_close_command_file.f90
 tao_close_command_file
 
-File: code/tao_cmd_end_calc.f90
-tao_cmd_end_calc
-
 File: code/tao_command.f90
 tao_command
+
+File: code/tao_help.f90
+tao_help
 
 File: code/tao_command_mod.f90
 tao_command_mod
@@ -88,15 +89,10 @@ tao_d2_d1_name
 
 File: code/tao_data_and_eval_mod.f90
 tao_data_and_eval_mod
-var_num$
-lat_num$
-data_num$
-ele_num$
 tao_evaluate_lat_or_beam_data
 tao_to_phase_and_coupling_reading
 tao_get_data
 tao_data_coupling_init
-tao_evaluate_a_datum
 tao_load_this_datum
 tao_datum_s_position
 tao_datum_integrate
@@ -107,12 +103,10 @@ tao_scratch_values_calc
 tao_do_wire_scan
 tao_pointer_to_datum_ele
 tao_to_real
-tao_evaluate_expression
 tao_param_value_routine
 tao_evaluate_datum_at_s
 tao_evaluate_stack
 tao_to_int
-tao_set_invalid
 tao_ele_geometry_with_misalignments
 tao_eval_floor_orbit
 
@@ -135,17 +129,14 @@ File: code/tao_de_optimizer.f90
 tao_de_optimizer
 merit_wrapper
 
-File: code/tao_dmerit_mod.f90
-tao_dmerit_mod
-tao_dmodel_dvar_calc
-tao_veto_vars_with_zero_dmodel
-tao_dmerit_calc
+File: code/tao_init_lattice.f90
+tao_init_lattice
 
 File: code/tao_ele_shape_info.f90
 tao_ele_shape_info
 
-File: code/tao_ele_to_ele_track.f90
-tao_ele_to_ele_track
+File: code/tao_abort_command_file.f90
+tao_abort_command_file
 
 File: code/tao_evaluate_element_parameters.f90
 tao_evaluate_element_parameters
@@ -212,9 +203,6 @@ tao_set_curve_invalid
 tao_curve_check_universe
 tao_graph_s_min_max_calc
 
-File: code/tao_help.f90
-tao_help
-
 File: code/tao_init.f90
 tao_init
 
@@ -233,9 +221,6 @@ tao_point_d1_to_data
 File: code/tao_init_find_elements.f90
 tao_init_find_elements
 
-File: code/tao_init_lattice.f90
-tao_init_lattice
-
 File: code/tao_init_mod.f90
 tao_init_mod
 tao_init_global
@@ -245,25 +230,7 @@ tao_init_dynamic_aperture
 
 File: code/tao_init_plotting.f90
 tao_init_plotting
-old_tao_ele_shape_struct
-tao_transfer_shape
-number_template_plots
-tao_setup_default_plotting
-default_plot_init
-transfer_this_axis
-old_style_title_syntax
 tao_read_in_patterns
-
-File: code/tao_init_variables_mod.f90
-tao_init_variables_mod
-tao_init_variables
-tao_var_stuffit1
-tao_allocate_v1_var
-tao_var_stuffit2
-tao_pointer_to_var_in_lattice
-tao_pointer_to_var_in_lattice2
-tao_allocate_var_array
-tao_point_v1_to_var
 
 File: code/tao_input_struct.f90
 tao_input_struct
@@ -280,11 +247,21 @@ tao_plot_input
 tao_design_lat_input
 tao_key_input
 tao_plot_page_input
-tao_plot_page_test_input
 tao_ele_shape_input
 tao_set_plotting
 tao_ele_shape_struct_to_input
 tao_ele_shape_input_to_struct
+
+File: code/tao_init_variables_mod.f90
+tao_init_variables_mod
+tao_init_variables
+tao_var_stuffit1
+tao_allocate_v1_var
+tao_var_stuffit2
+tao_pointer_to_var_in_lattice
+tao_pointer_to_var_in_lattice2
+tao_allocate_var_array
+tao_point_v1_to_var
 
 File: code/tao_interface.f90
 tao_interface
@@ -320,6 +297,9 @@ tao_pointer_to_universe_int
 tao_pointer_to_universe_str
 tao_uni_ampersand_index
 
+File: code/tao_lattice_calc.f90
+tao_lattice_calc
+
 File: code/tao_is_valid_name.f90
 tao_is_valid_name
 
@@ -338,9 +318,6 @@ tao_lat_emit_calc
 File: code/tao_lat_sigma_calc_needed.f90
 tao_lat_sigma_calc_needed
 
-File: code/tao_lattice_calc.f90
-tao_lattice_calc
-
 File: code/tao_lattice_calc_mod.f90
 tao_lattice_calc_mod
 tao_single_track
@@ -349,6 +326,9 @@ tao_beam_track
 tao_too_many_particles_lost
 tao_inject_particle
 tao_inject_beam
+
+File: code/tao_place_cmd.f90
+tao_place_cmd
 
 File: code/tao_limit_calc.f90
 tao_limit_calc
@@ -403,12 +383,6 @@ tao_pause_cmd
 File: code/tao_pick_universe.f90
 tao_pick_universe
 
-File: code/tao_place_cmd.f90
-tao_place_cmd
-
-File: code/tao_plot_cmd.f90
-tao_plot_cmd
-
 File: code/tao_plot_mod.f90
 tao_plot_mod
 tao_draw_plots
@@ -424,6 +398,12 @@ tao_plot_data
 tao_draw_curve_data
 tao_draw_histogram_data
 tao_draw_graph_axes
+
+File: code/tao_plot_cmd.f90
+tao_plot_cmd
+
+File: code/tao_python_cmd.f90
+tao_python_cmd
 
 File: code/tao_plot_setup.f90
 tao_plot_setup
@@ -463,8 +443,11 @@ tao_ptc_cmd
 File: code/tao_ptc_normal_form.f90
 tao_ptc_normal_form
 
-File: code/tao_python_cmd.f90
-tao_python_cmd
+File: code/tao_dmerit_mod.f90
+tao_dmerit_mod
+tao_dmodel_dvar_calc
+tao_veto_vars_with_zero_dmodel
+tao_dmerit_calc
 
 File: code/tao_quiet_set.f90
 tao_quiet_set
@@ -499,9 +482,6 @@ tao_scale_ping_data
 File: code/tao_set_data_useit_opt.f90
 tao_set_data_useit_opt
 
-File: code/tao_set_flags_for_changed_attribute.f90
-tao_set_flags_for_changed_attribute
-
 File: code/tao_set_opt_vars.f90
 tao_set_opt_vars
 
@@ -517,14 +497,11 @@ tao_setup_key_table
 File: code/tao_shape_init.f90
 tao_shape_init
 
-File: code/tao_show_cmd.f90
-tao_show_cmd
+File: code/tao_evaluate_expression.f90
+tao_evaluate_expression
 
-File: code/tao_spin_matrix_calc.f90
-tao_spin_matrix_calc
-
-File: code/tao_spin_polarization_calc.f90
-tao_spin_polarization_calc
+File: code/tao_write_cmd.f90
+tao_write_cmd
 
 File: code/tao_spin_tracking_turn_on.f90
 tao_spin_tracking_turn_on
@@ -549,9 +526,6 @@ tao_symbol_import_from_lat
 File: code/tao_taper_cmd.f90
 tao_taper_cmd
 
-File: code/tao_timer.f90
-tao_timer
-
 File: code/tao_top10_mod.f90
 tao_top10_mod
 tao_top10_struct
@@ -562,9 +536,6 @@ tao_show_constraints
 tao_var_write
 tao_print_vars
 tao_write_lines
-
-File: code/tao_top_level.f90
-tao_top_level
 
 File: code/tao_turn_on_special_calcs_if_needed_for_plotting.f90
 tao_turn_on_special_calcs_if_needed_for_plotting
@@ -612,9 +583,6 @@ tao_cbar_wave_anal
 tao_wave_fit
 ele_at_curve_point
 
-File: code/tao_write_cmd.f90
-tao_write_cmd
-
 File: code/tao_x_axis_cmd.f90
 tao_x_axis_cmd
 
@@ -624,10 +592,23 @@ tao_x_scale_cmd
 tao_x_scale_plot
 tao_x_scale_graph
 
+File: code/tao_spin_matrix_calc.f90
+tao_spin_matrix_calc
+
+File: code/tao_spin_polarization_calc.f90
+tao_spin_polarization_calc
+
+File: code/tao_timer.f90
+tao_timer
+
+File: code/tao_pipe_cmd.f90
+tao_pipe_cmd
+
 File: code/tao_set_mod.f90
 tao_set_mod
 tao_set_tune_cmd
 tao_set_z_tune_cmd
+tao_set_openmp_n_threads
 tao_set_calculate_cmd
 tao_set_key_cmd
 tao_set_ran_state_cmd
@@ -664,14 +645,23 @@ tao_set_qp_rect_struct
 tao_set_qp_axis_struct
 tao_set_qp_point_struct
 
-File: code/tao_show_this.f90
-tao_show_this
-
 File: code/tao_single_mode.f90
 tao_single_mode
 
 File: code/tao_spin_matrices_calc_needed.f90
 tao_spin_matrices_calc_needed
+
+File: code/tao_evaluate_a_datum.f90
+tao_evaluate_a_datum
+
+File: code/tao_show_this.f90
+tao_show_this
+
+File: code/tao_top_level.f90
+tao_top_level
+
+File: code/tao_show_cmd.f90
+tao_show_cmd
 
 File: code/tao_struct.f90
 tao_struct
@@ -710,6 +700,10 @@ tao_ele_shape_struct
 tao_drawing_struct
 tao_shape_pattern_point_struct
 tao_shape_pattern_struct
+var_num$
+lat_num$
+data_num$
+ele_num$
 tao_title_struct
 tao_data_var_component_struct
 tao_histogram_struct
@@ -720,6 +714,7 @@ tao_floor_plan_struct
 tao_graph_struct
 tao_plot_struct
 tao_plot_region_struct
+n_curve_pts_init$
 tao_plot_page_struct
 tao_region_array_struct
 tao_plot_array_struct
@@ -775,6 +770,18 @@ tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
+File: code/tao_regression_test.f90
+tao_regression_test
+
+File: code/tao_set_flags_for_changed_attribute.f90
+tao_set_flags_for_changed_attribute
+
+File: code/tao_curve_ele_ref.f90
+tao_curve_ele_ref
+
+File: code/tao_set_invalid.f90
+tao_set_invalid
+
 File: hook/tao_hook_branch_calc.f90
 tao_hook_branch_calc
 
@@ -789,9 +796,6 @@ tao_hook_draw_floor_plan
 
 File: hook/tao_hook_draw_graph.f90
 tao_hook_draw_graph
-
-File: hook/tao_hook_evaluate_a_datum.f90
-tao_hook_evaluate_a_datum
 
 File: hook/tao_hook_graph_postsetup.f90
 tao_hook_graph_postsetup
@@ -849,6 +853,9 @@ tao_hook_post_process_data
 
 File: hook/tao_hook_show_cmd.f90
 tao_hook_show_cmd
+
+File: hook/tao_hook_evaluate_a_datum.f90
+tao_hook_evaluate_a_datum
 
 File: mpi/tao_mpi_mod.f90
 tao_mpi_mod

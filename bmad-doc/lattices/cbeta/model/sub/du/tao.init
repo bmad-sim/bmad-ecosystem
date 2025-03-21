@@ -1,0 +1,94 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = '../../tao/tao_plot.init' 
+  startup_file = '../../tao/tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes =1
+  design_lattice(1)%file = "du.lat.bmad"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = .true.
+ global%track_type = 'single'
+global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  !global%random_engine = 'quasi'
+ ! global%floor_plan_rotation = 0.5
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+  /
+
+
+
+
+
+!------------------------------------------------------------------------
+
+&tao_d2_data
+        d2_data%name = "du" 
+        universe = 1
+        n_d1_data =3
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = 'demerge'
+        datum( 1) =  'orbit.x'     '' '' 'DU.patch'   'target'   0
+        datum( 2) =  'orbit.px'    '' '' 'DU.patch'   'target'   0 
+/
+&tao_d1_data
+        ix_d1_data = 2
+        default_weight = 1
+        d1_data%name = 'betas'
+        datum( 1) =  "beta.a"      '' '' 'DU.Mar.FACE'   'max'  300
+        datum( 2) =  "beta.b"      '' '' 'DU.Mar.FACE'   'max'  300 
+
+/
+&tao_d1_data
+        ix_d1_data = 3
+        default_weight = 1
+        d1_data%name = 'twiss'
+        datum( 1) =  'beta.a'     '' '' 'DU.Mar.MID'   'target'  0.3290782276    1e1
+        datum( 2) =  'alpha.a'    '' '' 'DU.Mar.MID'   'target'    -2.3948441799  1e2
+        datum( 3) =  'beta.b'     '' '' 'DU.Mar.MID'   'target'    0.2966191403 1e1
+        datum( 4) =  'alpha.b'    '' '' 'DU.Mar.MID'   'target'    0 1e2
+        datum( 5) =  'eta.x'      '' '' 'DU.Mar.MID'   'target'    0 1e3
+        datum( 6) =  'etap.x'     '' '' 'DU.Mar.MID'   'target'    0 1e3
+
+/
+
+!------------------------------------------------------------------------
+!&tao_var
+	v1_var%name = du.patch
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 2
+	var(1:2)%ele_name  = 'DU.patch', 'DU.patch'
+    var(1:2)%attribute = 'x_offset', 'x_pitch'
+/
+
+
+
+
+&tao_var
+	v1_var%name = 'q'
+	default_step = 1e-4
+	default_universe = '1'
+	default_attribute = 'b1_gradient'
+	!default_low_lim = -2
+	!default_high_lim = 2
+  default_key_delta = 1e-2
+	ix_min_var = 1
+	search_for_lat_eles = '-no_slaves quad::DU*'
+  default_key_bound = T	
+/

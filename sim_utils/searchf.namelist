@@ -24,14 +24,6 @@ file_get_open
 File: file/file_suffixer.f90
 file_suffixer
 
-File: file/filename_mod.f90
-filename_mod
-fullfilename
-splitfilename
-file_name_is_relative
-simplify_path
-append_subdirectory
-
 File: file/get_file_number.f90
 get_file_number
 
@@ -67,6 +59,14 @@ skip_header
 
 File: file/type_this_file.f90
 type_this_file
+
+File: file/filename_mod.f90
+filename_mod
+fullfilename
+splitfilename
+file_name_is_relative
+simplify_path
+append_subdirectory
 
 File: geodesic_lm/accept.f90
 acceptance
@@ -106,51 +106,6 @@ user_signal
 
 File: interfaces/parallel_mod.f90
 parallel_mod
-
-File: interfaces/physical_constants.f90
-physical_constants
-pi
-twopi
-fourpi
-sqrt_2
-sqrt_3
-m_electron
-m_proton
-m_neutron
-m_muon
-m_helion
-e_mass
-p_mass
-m_pion_0
-m_pion_charged
-m_deuteron
-atomic_mass_unit
-c_light
-r_e
-r_p
-e_charge
-h_planck
-h_bar_planck
-mu_0_vac
-eps_0_vac
-classical_radius_factor
-n_avogadro
-fine_structure_constant
-anomalous_mag_moment_electron
-anomalous_mag_moment_proton
-anomalous_mag_moment_muon
-anomalous_mag_moment_deuteron
-anomalous_mag_moment_neutron
-anomalous_mag_moment_he3
-
-File: interfaces/precision_def.f90
-precision_def
-rp
-sp
-dp
-i4_b
-global_common_struct
-named_number_struct
 
 File: interfaces/sim_utils.f90
 sim_utils
@@ -206,105 +161,50 @@ x0_radiation_length
 atomic_number
 is_subatomic_species
 
-File: interfaces/sim_utils_interface.f90
-sim_utils_interface
-set_parameter
-set_parameter_real
-set_parameter_int
-set_parameter_logic
-inverse_prob
-is_alphabetic
-is_decreasing_sequence
-is_increasing_sequence
-is_integer
-is_logical
-is_real
-isatty
-j_bessel
-linear_fit
-linear_fit_2d
-location_decode
-logic_str
-lunget
-match_reg
-milli_sleep
-make_legal_comment
-match_wild
-mat_pseudoinverse
-mat_eigen
-mat_inverse
-mat_rotation
-mat_scale_p0
-mat_symp_conj
-mat_symp_conj_i
-mat_symp_error
-mat_symplectify
-mat_type
-mat_make_unit
-match_word
-max_nonzero
-n_choose_k
-n_spline_create
-nametable_add
-nametable_bracket_indexx
-nametable_change1
-nametable_init
-nametable_remove
-node_put
-ordinal_str
-outer_product
-parse_fortran_format
-pointer_to_locations
-poly_eval
-probability_funct
-query_string
-quote
-quoten
-real_to_string
-reals_to_string
-reals_to_table_row
-all_pointer_to_string
-unquote
-real_num_fortran_format
-str_set
-svd_fit
-real_path
-real_str
-rms_value
-rot_2d
-run_timer
-sinc
-sincc
-sinhx_x
-skip_header
-sqrt_one
-str_first_in_set
-str_first_not_in_set
-str_last_in_set
-str_last_not_in_set
-string_to_int
-string_to_real
-string_trim2
-substr
-test_tune_tracker_lock
-to_str
-type_this_file
-upcase
-upcase_string
-word_len
-word_read
-str_substitute
-str_match_wild
-str_upcase
-str_downcase
-system_command
-string_trim
-virtual_memory_usage
-find_location
-find_location_real
-find_location_int
-find_location_logic
-find_location_str
+File: interfaces/physical_constants.f90
+physical_constants
+pi
+twopi
+fourpi
+sqrt_2
+sqrt_3
+m_electron
+m_proton
+m_neutron
+m_muon
+m_helion
+e_mass
+p_mass
+m_pion_0
+m_pion_charged
+m_deuteron
+atomic_mass_unit
+c_light
+r_e
+r_p
+e_charge
+h_planck
+h_bar_planck
+mu_0_vac
+eps_0_vac
+classical_radius_factor
+n_avogadro
+fine_structure_constant
+anomalous_mag_moment_electron
+anomalous_mag_moment_proton
+anomalous_mag_moment_muon
+anomalous_mag_moment_deuteron
+anomalous_mag_moment_neutron
+anomalous_mag_moment_he3
+
+File: interfaces/precision_def.f90
+precision_def
+rp
+sp
+dp
+i4_b
+global_common_struct
+named_number_struct
 
 File: interfaces/sim_utils_struct.f90
 sim_utils_struct
@@ -360,6 +260,107 @@ int_logic
 is_true
 is_false
 value_of_all_ptr
+
+File: interfaces/sim_utils_interface.f90
+sim_utils_interface
+set_parameter
+set_parameter_real
+set_parameter_int
+set_parameter_logic
+inverse_prob
+is_alphabetic
+is_decreasing_sequence
+is_increasing_sequence
+is_integer
+is_logical
+is_real
+isatty
+j_bessel
+linear_fit
+linear_fit_2d
+location_decode
+logic_str
+lunget
+match_reg
+milli_sleep
+make_legal_comment
+match_wild
+mat_pseudoinverse
+mat_eigen
+mat_inverse
+mat_rotation
+mat_scale_p0
+mat_symp_conj
+mat_symp_conj_i
+mat_symp_error
+mat_symplectify
+mat_type
+mat_make_unit
+match_word
+max_nonzero
+n_choose_k
+n_spline_create
+nametable_add
+nametable_bracket_indexx
+nametable_change1
+nametable_init
+nametable_remove
+node_put
+ordinal_str
+outer_product
+parse_fortran_format
+pointer_to_locations
+poly_eval
+probability_funct
+quadratic_roots
+query_string
+quote
+quoten
+real_to_string
+reals_to_string
+reals_to_table_row
+all_pointer_to_string
+unquote
+real_num_fortran_format
+str_set
+svd_fit
+real_path
+real_str
+rms_value
+rot_2d
+run_timer
+sinc
+sincc
+sinhx_x
+skip_header
+sqrt_one
+str_first_in_set
+str_first_not_in_set
+str_last_in_set
+str_last_not_in_set
+string_to_int
+string_to_real
+string_trim2
+substr
+test_tune_tracker_lock
+to_str
+type_this_file
+upcase
+upcase_string
+word_len
+word_read
+str_substitute
+str_match_wild
+str_upcase
+str_downcase
+system_command
+string_trim
+virtual_memory_usage
+find_location
+find_location_real
+find_location_int
+find_location_logic
+find_location_str
 
 File: io/command_line_mod.f90
 command_line_mod
@@ -510,16 +511,6 @@ tricubic_compute_cmplx_field_at_3d_box
 tricubic_interpolation_cmplx_coefs
 tricubic_cmplx_eval
 
-File: math/da2_mod.f90
-da2_mod
-da2_mult
-da2_div
-da2_inverse
-da2_evaluate
-
-File: math/fft_1d.f90
-fft_1d
-
 File: math/fourier_mod.f90
 fourier_mod
 coarse_frequency_estimate
@@ -565,6 +556,40 @@ poly_eval
 File: math/probability_funct.f90
 probability_funct
 
+File: math/rms_value.f90
+rms_value
+
+File: math/rot_2d.f90
+rot_2d
+
+File: math/windowLS.f90
+windowls_mod
+max_wls
+wls_struct
+initfixedwindowls
+destfixedwindowls
+fixedwindowls
+shortfactorial
+
+File: math/find_location.f90
+find_location_real
+find_location_int
+find_location_str
+find_location_logic
+
+File: math/da2_mod.f90
+da2_mod
+da2_mult
+da2_div
+da2_inverse
+da2_evaluate
+
+File: math/fft_1d.f90
+fft_1d
+
+File: math/quadratic_roots.f90
+quadratic_roots
+
 File: math/random_mod.f90
 random_mod
 kr4b
@@ -597,12 +622,6 @@ super_sobseq
 pointer_to_ran_state
 allocate_thread_states
 
-File: math/rms_value.f90
-rms_value
-
-File: math/rot_2d.f90
-rot_2d
-
 File: math/rotation_3d_mod.f90
 rotation_3d_mod
 quat_conj
@@ -633,13 +652,19 @@ rotate_vec_given_axis_angle
 rotate_vec
 rotate_mat
 
-File: math/sign_of_mod.f90
-sign_of_mod
-sign_of
-procedure
-procedure
-sign_of_real
-sign_of_int
+File: math/spline_mod.f90
+spline_mod
+spline_struct
+reallocate_spline
+create_a_spline
+spline_akima_interpolate
+spline_evaluate
+bracket_index_for_spline
+spline1
+spline_akima
+end_akima_spline_calc
+akima_spline_slope_calc
+akima_spline_coef23_calc
 
 File: math/super_recipes_mod.f90
 super_recipes_mod
@@ -667,35 +692,6 @@ trapzd_2d
 super_poly
 covar_expand
 
-File: math/windowLS.f90
-windowls_mod
-max_wls
-wls_struct
-initfixedwindowls
-destfixedwindowls
-fixedwindowls
-shortfactorial
-
-File: math/find_location.f90
-find_location_real
-find_location_int
-find_location_str
-find_location_logic
-
-File: math/spline_mod.f90
-spline_mod
-spline_struct
-reallocate_spline
-create_a_spline
-spline_akima_interpolate
-spline_evaluate
-bracket_index_for_spline
-spline1
-spline_akima
-end_akima_spline_calc
-akima_spline_slope_calc
-akima_spline_coef23_calc
-
 File: matrix/cplx_mat_inverse.f90
 cplx_mat_inverse
 
@@ -704,9 +700,6 @@ cplx_mat_make_unit
 
 File: matrix/determinant.f90
 determinant
-
-File: matrix/mat_inverse.f90
-mat_inverse
 
 File: matrix/mat_make_unit.f90
 mat_make_unit
@@ -719,12 +712,6 @@ mat_rotation
 
 File: matrix/mat_scale_p0.f90
 mat_scale_p0
-
-File: matrix/mat_symp_conj.f90
-mat_symp_conj
-
-File: matrix/mat_symp_conj_i.f90
-mat_symp_conj_i
 
 File: matrix/mat_symp_error.f90
 mat_symp_error
@@ -749,6 +736,15 @@ svd_fit
 
 File: matrix/mat_eigen.f90
 mat_eigen
+
+File: matrix/mat_symp_conj.f90
+mat_symp_conj
+
+File: matrix/mat_symp_conj_i.f90
+mat_symp_conj_i
+
+File: matrix/mat_inverse.f90
+mat_inverse
 
 File: misc/assert_equal.f90
 assert_equal
@@ -901,9 +897,6 @@ re_associate_integer
 re_associate_real
 re_associate_logical
 
-File: misc/run_timer.f90
-run_timer
-
 File: misc/set_logical_to_garbage.f90
 set_logical_to_garbage
 
@@ -946,6 +939,9 @@ on_off_logic
 File: misc/virtual_memory_usage.f90
 virtual_memory_usage
 
+File: misc/run_timer.f90
+run_timer
+
 File: mpi/opti_de_mpi_mod.f90
 opti_de_mpi_mod
 solution_struct
@@ -967,15 +963,15 @@ File: optimizers/opti.cpp
 RandInt
 UniRand
 
+File: optimizers/opti_de_openmp_mod.f90
+opti_de_openmp_mod
+opti_de_openmp
+solution_struct
+
 File: optimizers/opti_de_mod.f90
 opti_de_mod
 opti_de_param_struct
 opti_de
-solution_struct
-
-File: optimizers/opti_de_openmp_mod.f90
-opti_de_openmp_mod
-opti_de_openmp
 solution_struct
 
 File: plot/display_size_and_resolution.c
@@ -1228,6 +1224,7 @@ qp_text_struct
 qp_line_struct
 qp_symbol_struct
 qp_arrow_struct
+qp_legend_struct
 qp_state_struct
 qp_string_to_enum
 qp_enum_to_string
@@ -1306,6 +1303,14 @@ sqrt_one
 
 File: special_functions/faddeeva_function.f90
 faddeeva_function
+
+File: special_functions/sign_of_mod.f90
+sign_of_mod
+sign_of
+procedure
+procedure
+sign_of_real
+sign_of_int
 
 File: string/all_pointer_to_string.f90
 all_pointer_to_string
@@ -1427,9 +1432,6 @@ quoten
 File: string/real_num_fortran_format.f90
 real_num_fortran_format
 
-File: string/real_str.f90
-real_str
-
 File: string/real_to_string.f90
 real_to_string
 
@@ -1508,3 +1510,9 @@ upcase
 
 File: string/word_read.f90
 word_read
+
+File: string/detab.f90
+detab
+
+File: string/real_str.f90
+real_str

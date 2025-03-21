@@ -11,7 +11,7 @@ character(100) :: lat_name, lat_path, base_name, in_file
 character(30), parameter :: r_name = 'particle_species_test'
 
 
-character(20) :: example_names(1:17)  = ''
+character(20) :: example_names(1:18)  = ''
 
 logical :: verbose
 
@@ -21,7 +21,7 @@ namelist / particle_species_test_params / &
 !------------------------------------------
 ! Defaults for namelist
 example_names =  [character(20) :: 'Ag', 'Ag+76', 'NH3', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+3', &
-                        '#293Lv-2', '#291Og', '#295Ts', '#400Mc', 'antiAu', 'antiAu-79', '#12Fe+++', 'antiI']
+                        '#293Lv-2', '#291Og', '#295Ts', '#400Mc', 'antiAu', 'antiAu-79', '#12Fe+++', 'antiI', '#3antiHe--']
 verbose = .false.
 
 ! Read namelist
@@ -136,7 +136,9 @@ else
   write (1, '(a, a, es20.10)') quote(trim(name) // ':mass'), ' ABS  1E-10 ', mass_of(species)
 endif
 
-write (1, '(a, a, i6)') quote(trim(name) // ':charge')   , ' ABS  0 ', charge_of(species)
+write (1, '(a, a, i6)') quote(trim(name) // ':charge'), ' ABS  0 ', charge_of(species)
+
+write (1, '(3a)') quote(trim(name) // ':anti'), '  STR ', quote(species_name(antiparticle(species)))
 
 end subroutine
 

@@ -41,8 +41,10 @@ type e_cooling_wd_struct
   real(rp) :: off_E_reduction = 0     ! How much to reduce the wake for off-energy protons
   real(rp) :: phi_avg = 0             ! Average phase advance of electrons through a single amplifier straight
   real(rp) :: turns_per_step = 1      ! Number of real turns to model with one simulation step
-  real(rp) :: L_mk = 0                ! Common length of modulator and kicker.
   real(rp) :: p_per_bunch             ! Number of protons in the bunch.
+  real(rp) :: num_sigmas = 5          ! Number of h+ standard deviations to use when binning them longitudinally.
+  real(rp) :: frac_sigmas = 10        ! Number of bins to use for each standard deviation.
+
   type (e_cooling_wake_struct) :: xm, ym
   type (e_cooling_diffusion_struct) :: xk, yk
 end type

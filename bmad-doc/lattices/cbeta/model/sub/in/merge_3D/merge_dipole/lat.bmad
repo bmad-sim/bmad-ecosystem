@@ -1,0 +1,20 @@
+!no_digested
+
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[LATTICE_TYPE] = LINEAR_LATTICE
+
+parameter[p0c] = 6e6
+
+d0: drift, L = 0.1
+
+call, file = L0_dipole.bmad
+
+lat: LINE = (d0, L0_dipole, d0)
+
+use, lat
+

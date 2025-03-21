@@ -43,6 +43,19 @@ logical rad_fluct_save, err, finished
 character(*), parameter :: r_name = 'make_mat6'
 
 !--------------------------------------------------------
+! The beginning element is handled specially.
+! Also see twiss_propagate1.
+
+if (ele%key == beginning_ele$) then
+  return
+endif
+
+! X-ray mat6 calc not implemented.
+! Since X-ray tracking is highly nonlinear (think cyrstal diffraction and apertures, etc.), a linear
+! transfer matrix is generally useful.
+
+if (ele%ref_species == photon$) return
+
 ! Some init.
 ! If start_orb is in its not_set state (can happen if a particle is lost in 
 ! tracking and ele is downstream from the loss point), init the orbit to zero.
@@ -84,6 +97,8 @@ if (mat6_calc_method == auto$) then
     if (global_com%exit_on_error) call err_exit
     return
   end select
+
+  if (ele%key == foil$) mat6_calc_method = tracking$
 endif
 
 ele%map_ref_orb_in = a_start_orb
@@ -123,7 +138,7 @@ case (custom$)
   call make_mat6_custom_ptr (ele, param, a_start_orb, a_end_orb, err)
 
 case (taylor$)
-  call make_mat6_taylor (ele, param, a_start_orb, a_end_orb, err)
+  call make_mat6_taylor (ele, a_start_orb, a_end_orb, err)
 
 case (bmad_standard$)
   if (a_start_orb%species == photon$) then
@@ -133,7 +148,7 @@ case (bmad_standard$)
   endif
 
 case (symp_lie_ptc$)
-  call make_mat6_symp_lie_ptc (ele, param, a_start_orb, a_end_orb)
+  call make_mat6_symp_lie_ptc (ele, a_start_orb, a_end_orb)
 
 case (symp_lie_bmad$)
   a_end_orb = a_start_orb
@@ -185,25 +200,29 @@ if (present(end_orb)) then
   endif
 endif
 
-! Spin
 
-if (bmad_com%spin_tracking_on) then
-  if (ele%spin_tracking_method == sprint$ .and. .not. associated(ele%spin_taylor(0)%term)) then
-    call sprint_spin_taylor_map(ele, ele%taylor%ref)
-  endif
-
-  if (associated(ele%spin_taylor(0)%term)) then
-    ele%spin_q = spin_taylor_to_linear (ele%spin_taylor, .true., a_start_orb%vec-ele%spin_taylor_ref_orb_in, ele%is_on)
-  endif
-endif
-
-! Finish up
+! Finish up mat6 calc
 
 ele%map_ref_orb_out = a_end_orb
+if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
+
+! Spin
+
+!if (bmad_com%spin_tracking_on .and. a_start_orb%species /= photon$) then
+!  if (.not. associated(ele%spin_taylor(0)%term)) then
+!    call ele_to_spin_taylor(ele, param, a_start_orb)
+!  endif
+!
+!  if (associated(ele%spin_taylor(0)%term)) then
+!    ele%spin_q = spin_taylor_to_linear (ele%spin_taylor, .true., a_start_orb%vec-ele%spin_taylor_ref_orb_in, ele%is_on)
+!  else
+!    call out_io (s_error$, r_name, 'CANNOT CONSTRUCT SPIN TAYLOR MAP FOR ELEMENT: ' // ele_full_name(ele))
+!  endif
+!endif
+
+! And end
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save
-
-if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
 if (present(err_flag)) err_flag = .false.
 
 end subroutine

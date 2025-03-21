@@ -1,7 +1,7 @@
 module tao_change_mod
 
 use tao_interface
-use tao_data_and_eval_mod
+!use tao_data_and_eval_mod
 use tao_dmerit_mod
 
 contains
@@ -346,7 +346,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     delta = m_ptr(i)%r - old_value(i)
 
-    call tao_set_flags_for_changed_attribute(u, e_name, eles(i)%ele, m_ptr(i)%r)
+    call tao_set_flags_for_changed_attribute(u, e_name, eles(i)%ele, m_ptr(i), who = a_name)
 
     max_val = max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) 
     str = real_num_fortran_format(max_val, 14, 2)

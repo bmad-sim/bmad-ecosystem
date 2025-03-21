@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 project(ACC)
 
+IF ($ENV{ACC_CONDA_BUILD})
+  SET (INC_DIRS
+    $ENV{ACC_CONDA_PATH}/include
+    $ENV{ACC_CONDA_PATH}/include/xraylib/
+  )
+ENDIF ()
+
 set (EXE_SPECS 
   cmake_files/cmake.abs_time_test
   cmake_files/cmake.analysis_test
@@ -8,6 +15,7 @@ set (EXE_SPECS
   cmake_files/cmake.autoscale_test
   cmake_files/cmake.backwards_time_track_test
   cmake_files/cmake.beam_test
+  cmake_files/cmake.bend_test
   cmake_files/cmake.bbu_test
   cmake_files/cmake.cesr_test
   cmake_files/cmake.closed_orbit_test
@@ -52,6 +60,7 @@ set (EXE_SPECS
   cmake_files/cmake.wake_test
   cmake_files/cmake.wall3d_test
   cmake_files/cmake.write_bmad_test
+  cmake_files/cmake.write_foreign_test
   cmake_files/cmake.xraylib_test
 )
 

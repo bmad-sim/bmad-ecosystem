@@ -134,14 +134,11 @@ endif
 ! If a command file is open then read a line from the file.
 
 n_level = s%com%cmd_file_level
-if (n_level == 0) call tao_quiet_set ('off')  ! verbose if not running from a command file
 
 if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
-
   if (s%global%single_step) then
     call read_a_line ('Single_step: Press <return> to continue...', name, &
                                       prompt_color = s%global%prompt_color, prompt_bold = boldit)
-
   endif
 
   call output_direct (print_and_capture = (s%global%quiet /= 'all'), min_level = s_blank$, max_level = s_dwarn$)
@@ -285,7 +282,6 @@ if (s%com%cmd_file_level /= 0) then
   endif
 endif
 
-call tao_quiet_set('off')
 return
 
 !-------------------------------------------------------------------------

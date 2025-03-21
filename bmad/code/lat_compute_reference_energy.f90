@@ -69,8 +69,10 @@ do ib = 0, ubound(lat%branch, 1)
     if (begin_ele%value(inherit_from_fork$) == real_garbage$) then  ! Happens first time this routine is called from bmad_parser. 
       begin_ele%value(inherit_from_fork$) = false$
       if (associated(fork_ele)) then
-        if (begin_ele%ref_species == fork_ele%ref_species .or. begin_ele%ref_species == not_set$) &
-                                                                           begin_ele%value(inherit_from_fork$) = true$
+        if (begin_ele%ref_species == fork_ele%ref_species .or. begin_ele%ref_species == not_set$) then
+          begin_ele%value(inherit_from_fork$) = true$
+          begin_ele%old_value(inherit_from_fork$) = true$
+        endif
       endif
     endif
 
@@ -138,6 +140,10 @@ do ib = 0, ubound(lat%branch, 1)
       begin_ele%value(ref_time_start$) = begin_ele%ref_time
     endif
 
+    begin_ele%old_value(e_tot$) = begin_ele%value(e_tot$)
+    begin_ele%old_value(e_tot_start$) = begin_ele%value(e_tot_start$)
+    begin_ele%old_value(p0c$) = begin_ele%value(p0c$)
+    begin_ele%old_value(p0c_start$) = begin_ele%value(p0c_start$)
     begin_ele%bookkeeping_state%ref_energy = ok$
 
     !
@@ -720,7 +726,10 @@ case default
     if (err) goto 9000
   endif
 
-  if (ele_has_constant_ds_dt_ref(ele)) then
+  if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. is_true(ele%value(delta_ref_time_user_set$))) then
+    ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+    ele%time_ref_orb_out%t = ele%ref_time
+  elseif (ele_has_constant_ds_dt_ref(ele)) then
     if (ele%value(l$) == 0) then     ! Must avoid problem with zero length markers and p0c = 0.
       ele%value(delta_ref_time$) = 0
     else

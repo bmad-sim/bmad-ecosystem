@@ -28,30 +28,32 @@ type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
 procedure(track_many_hook_def) :: track_many_hook
+procedure(lat_make_mat6_hook_def) :: lat_make_mat6_hook
 
-real(rp) dpz(20), vec(6)
+real(rp) dpz(20), pz(20), vec(6)
 real(rp) :: ramping_start_time = 0
-integer nargs, ios, i, j, n_dpz, nt
+integer nargs, ios, i, j, n_pz, nt
 
 logical :: ramping_on = .false., set_rf_off = .false.
 logical err
 
 character(200) :: in_file, lat_file = '', dat_file, gnu_command, line
 
-namelist / params / bmad_com, ltt, da_param, set_rf_off, dpz, dat_file, &
+namelist / params / bmad_com, ltt, da_param, set_rf_off, dpz, pz, dat_file, &
             ramping_start_time, lat_file, ramping_on
 
 !
 
-track1_preprocess_ptr => ltt_track1_preprocess
-track1_bunch_hook_ptr => ltt_track1_bunch_hook
-track_many_hook_ptr   => track_many_hook
-
+track1_preprocess_ptr   => ltt_track1_preprocess
+track1_bunch_hook_ptr   => ltt_track1_bunch_hook
+track_many_hook_ptr     => track_many_hook
+lat_make_mat6_hook_ptr  => lat_make_mat6_hook
 ! Set inits
 
 bmad_com%auto_bookkeeper = .false.   ! Makes tracking faster
 bmad_com%absolute_time_tracking = .true.
 dpz = real_garbage$
+pz = real_garbage$
 
 ! Read parameters
 ! Read the master input file again after bmad_parser is called so that bmad_com parameters
@@ -130,8 +132,17 @@ branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 ! Read in lattice
 
-n_dpz = count(dpz /= real_garbage$)
-print *, 'Note: Number of dpz points: ', n_dpz
+n_pz = count(dpz /= real_garbage$)
+if (n_pz /= 0) then
+  print *
+  print *, 'Note: "dpz" has been renamed to "pz" to be compatable with Tao.'
+  print *, '      The program will run normally...'
+  print *
+  pz = dpz
+endif
+
+n_pz = count(pz /= real_garbage$)
+print *, 'Number of pz points: ', n_pz
 
 if (.not. bmad_com%absolute_time_tracking) then
   print *, 'Note: absolute time tracking is OFF!'
@@ -139,7 +150,7 @@ endif
 
 print *, 'Data file: ', trim(dat_file)
 
-write (gnu_command, '(a, i0, 3a)') 'plot for [IDX=1:', n_dpz, '] "', &
+write (gnu_command, '(a, i0, 3a)') 'plot for [IDX=1:', n_pz, '] "', &
                   trim(dat_file), '" index (IDX-1) u 1:2 w lines title columnheader(1)'
 
 ! Scan
@@ -179,9 +190,9 @@ write (1, '(2a)')        '# bmad_com%radiation_fluctuations_on = ' // logic_str(
 write (1, '(2a)')        '## gnuplot plotting command:'
 write (1, '(2a)')        '##   ', trim(gnu_command)
 
-call dynamic_aperture_scan (aperture_scan, da_param, dpz(1:n_dpz), ltt_com%tracking_lat)
+call dynamic_aperture_scan (aperture_scan, da_param, pz(1:n_pz), ltt_com%tracking_lat)
 
-do i = 1, n_dpz
+do i = 1, n_pz
   da => aperture_scan(i)
 
   nt = 10
@@ -191,18 +202,19 @@ do i = 1, n_dpz
 
   write (1, *)
   write (1, *)
-  write (1, '(a, f10.6, a)') '"dpz =', dpz(i), '"'
-  write (1, '(a, f10.6, a)') '"x_ref_orb =', da%ref_orb%vec(1), '"   # (x, y) below is with respect to the reference orbit.'
-  write (1, '(a, f10.6, a)') '"y_ref_orb =', da%ref_orb%vec(3), '"'
-  line = '#      x         y     turn_lost   where_lost   lost_at'
-  line(48+nt:) = '|  Init_orbit (includes ref orb)'
+  write (1, '(a, f14.9, a)') '"pz =', pz(i), '"'
+  write (1, '(a, f14.9, a)') '"x_ref_orb =', da%ref_orb%vec(1), '"   # (x, y) below is with respect to the reference orbit.'
+  write (1, '(a, f14.9, a)') '"y_ref_orb =', da%ref_orb%vec(3), '"'
+  write (1, '(a, 6(f14.9, a))') '# ref_orb = (', (da%ref_orb%vec(j), ',', j = 1, 5), da%ref_orb%vec(6), ')'
+  line = '#         x            y     turn_lost   where_lost   lost_at'
+  line(54+nt:) = '|  Init_orbit (includes ref orb)'
   write (1, '(a)') trim(line)
   do j = 1, da_param%n_angle
     da_point => da%point(j)
-    write (line, '(2f11.6, i7, 6x, a13, a)') da_point%x, da_point%y, da_point%i_turn, &
+    write (line, '(2f14.9, i7, 6x, a13, a)') da_point%x, da_point%y, da_point%i_turn, &
                               coord_state_name(da_point%plane), trim(branch%ele(da_point%ix_ele)%name)
     vec = da%ref_orb%vec + [da_point%x, 0.0_rp, da_point%y, 0.0_rp, 0.0_rp, 0.0_rp]
-    write (line(48+nt:), '(6es14.6)') vec
+    write (line(54+nt:), '(6f14.9)') vec
     write (1, '(a)') trim(line)
   enddo
 enddo

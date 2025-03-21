@@ -1,0 +1,300 @@
+
+
+
+parameter[geometry] = closed            
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+!-------------------------------------------------------
+QF: Quadrupole, L = 0.5, K1 = 0.312808574467162, DS_STEP = 0.05
+D1: Drift, L = 0.609
+BH: SBend, L = 6.86004047683621, G = 1.73467958576489E-3, E1 = 5.94998608634431E-3,
+   E2 = 5.94998608634431E-3
+D2: Drift, L = 1.241
+QD: Quadrupole, L = 0.5, K1 = -0.312643401293818, DS_STEP = 0.05
+B: SBend, L = 6.86016190935103, G = 3.46929776000413E-3, E1 = 0.0118999721726886, E2 = 0.0118999721726886
+
+QFSS: Quadrupole, L = 0.5, K1 = 0.351957452649287, DS_STEP = 0.05
+DB: Drift, L = 5.855
+QDSS: Quadrupole, L = 0.5, K1 = -0.351957452649287, DS_STEP = 0.05
+
+QFF1: Quadrupole, L = 0.5, K1 = 0.312788849040316, DS_STEP = 0.05
+QDF1: Quadrupole, L = 0.5, K1 = -0.312435213005613, DS_STEP = 0.05
+QFF2: Quadrupole, L = 0.5, K1 = 0.356878102586152, DS_STEP = 0.05
+QDF2: Quadrupole, L = 0.5, K1 = -0.352748341241363, DS_STEP = 0.05
+QFF3: Quadrupole, L = 0.5, K1 = 0.378866292084376, DS_STEP = 0.05
+QDF3: Quadrupole, L = 0.5, K1 = -0.361253854611549, DS_STEP = 0.05
+
+QFR1: Quadrupole, L = 0.5, K1 = 0.31279043710515, DS_STEP = 0.05
+QDR1: Quadrupole, L = 0.5, K1 = -0.312476088830373, DS_STEP = 0.05
+QFR2: Quadrupole, L = 0.5, K1 = 0.356875472837547, DS_STEP = 0.05
+QDR2: Quadrupole, L = 0.5, K1 = -0.352734374012209, DS_STEP = 0.05
+QFR3: Quadrupole, L = 0.5, K1 = 0.378868523273032, DS_STEP = 0.05
+QDR3: Quadrupole, L = 0.5, K1 = -0.361193022269439, DS_STEP = 0.05
+
+QEF1: Quadrupole, L = 0.5, K1 = 0.472771266311092
+QEF2: Quadrupole, L = 0.5, K1 = -0.112382775182896
+DEF1: Drift, L = 20.46
+QEF3: Quadrupole, L = 1.6, K1 = 0.109225406228901
+DEF2: Drift, L = 3.76
+QEF4: Quadrupole, L = 1.2, K1 = -0.22417037885855
+DEF3: Drift, L = 5.8
+IP6: Marker
+DER3: Drift, L = 5.3
+QER4: Quadrupole, L = 1.8, K1 = -0.237106026895982
+DER2: Drift, L = 0.5
+QER3: Quadrupole, L = 1.4, K1 = 0.235216011329213
+DER1: Drift, L = 23.82
+QER2: Quadrupole, L = 0.5, K1 = -9.91959187109746E-3
+QER1: Quadrupole, L = 0.5, K1 = -0.380938440181242
+
+QFSS_2: Quadrupole, L = 0.5, K1 = 0.351957452649287, DS_STEP = 0.05
+QDSS_2: Quadrupole, L = 0.5, K1 = -0.351957452649287, DS_STEP = 0.05
+QFF1_2: Quadrupole, L = 0.5, K1 = 0.312788849040316, DS_STEP = 0.05
+QDF1_2: Quadrupole, L = 0.5, K1 = -0.312435213005613, DS_STEP = 0.05
+QFF2_2: Quadrupole, L = 0.5, K1 = 0.356878102586152, DS_STEP = 0.05
+QDF2_2: Quadrupole, L = 0.5, K1 = -0.352748341241363, DS_STEP = 0.05
+QFF3_2: Quadrupole, L = 0.5, K1 = 0.378866292084376, DS_STEP = 0.05
+QDF3_2: Quadrupole, L = 0.5, K1 = -0.361253854611549, DS_STEP = 0.05
+
+QFF2_6: Quadrupole, L = 0.5, K1 = 0.356878102586152, DS_STEP = 0.05
+QDF2_6: Quadrupole, L = 0.5, K1 = -0.352748341241363, DS_STEP = 0.05
+QFF3_6: Quadrupole, L = 0.5, K1 = 0.378866292084376, DS_STEP = 0.05
+QDF3_6: Quadrupole, L = 0.5, K1 = -0.361253854611549, DS_STEP = 0.05
+
+QFR2_6: Quadrupole, L = 0.5, K1 = 0.356875472837547, DS_STEP = 0.05
+QDR2_6: Quadrupole, L = 0.5, K1 = -0.352734374012209, DS_STEP = 0.05
+QFR3_6: Quadrupole, L = 0.5, K1 = 0.378868523273032, DS_STEP = 0.05
+QDR3_6: Quadrupole, L = 0.5, K1 = -0.361193022269439, DS_STEP = 0.05
+
+
+RF0: RFCavity, L = 4.017, harmon = 7560, voltage=68.0/18.0 * 1e6
+DRF: Drift, L = ((1.241+5.855+0.609)-2*4.017)/3
+
+! 1 o'clock arc:
+SF1_1: Sextupole, L = 0.584, k2 = 2
+SD1_1: Sextupole, L = 0.584, k2 = -2
+SF2_1: Sextupole, L = 0.584, k2 = 2
+SD2_1: Sextupole, L = 0.584, k2 = -2
+
+! 3 o'clock arc:
+SF1_3: Sextupole, L = 0.584, k2 = 2
+SD1_3: Sextupole, L = 0.584, k2 = -2
+SF2_3: Sextupole, L = 0.584, k2 = 2
+SD2_3: Sextupole, L = 0.584, k2 = -2
+
+! 5 o'clock arc:
+SF1_5: Sextupole, L = 0.584, k2 = 2
+SD1_5: Sextupole, L = 0.584, k2 = -2
+SF2_5: Sextupole, L = 0.584, k2 = 2
+SD2_5: Sextupole, L = 0.584, k2 = -2
+
+! 7 o'clock arc:
+SF1_7: Sextupole, L = 0.584, k2 = 2
+SD1_7: Sextupole, L = 0.584, k2 = -2
+SF2_7: Sextupole, L = 0.584, k2 = 2
+SD2_7: Sextupole, L = 0.584, k2 = -2
+
+! 9 o'clock arc:
+SF1_9: Sextupole, L = 0.584, k2 = 2
+SD1_9: Sextupole, L = 0.584, k2 = -2
+SF2_9: Sextupole, L = 0.584, k2 = 2
+SD2_9: Sextupole, L = 0.584, k2 = -2
+
+! 11 o'clock arc:
+SF1_11: Sextupole, L = 0.584, k2 = 2
+SD1_11: Sextupole, L = 0.584, k2 = -2
+SF2_11: Sextupole, L = 0.584, k2 = 2
+SD2_11: Sextupole, L = 0.584, k2 = -2
+
+SFSS: Sextupole, L = 0.584, k2 = 0.
+SDSS: Sextupole, L = 0.584, k2 = -0.
+
+D2S1: Drift, L = 0.501
+D2S2: Drift, L = 0.156
+
+! (1): Remove old overlays, define new overlays centered around sextupole settings for chromaticity correction
+OF_1: overlay = {SF1_1[k2]:  1.17391350481685941E+000 + x, SF2_1[k2]:  1.17391350481685941E+000 - x}, var = {x}
+OD_1: overlay = {SD1_1[k2]: -2.38981076830464190E+000 + x, SD2_1[k2]: -2.38981076830464190E+000 - x}, var = {x}
+
+OF_3: overlay = {SF1_3[k2]:  1.17391350481685941E+000 + x, SF2_3[k2]:  1.17391350481685941E+000 - x}, var = {x}
+OD_3: overlay = {SD1_3[k2]: -2.38981076830464190E+000 + x, SD2_3[k2]: -2.38981076830464190E+000 - x}, var = {x}
+
+OF_5: overlay = {SF1_5[k2]:  1.17391350481685941E+000 + x, SF2_5[k2]:  1.17391350481685941E+000 - x}, var = {x}
+OD_5: overlay = {SD1_5[k2]: -2.38981076830464190E+000 + x, SD2_5[k2]: -2.38981076830464190E+000 - x}, var = {x}
+
+OF_7: overlay = {SF1_7[k2]:  1.17391350481685941E+000 + x, SF2_7[k2]:  1.17391350481685941E+000 - x}, var = {x}
+OD_7: overlay = {SD1_7[k2]: -2.38981076830464190E+000 + x, SD2_7[k2]: -2.38981076830464190E+000 - x}, var = {x}
+
+OF_9: overlay = {SF1_9[k2]:  1.17391350481685941E+000 + x, SF2_9[k2]:  1.17391350481685941E+000 - x}, var = {x}
+OD_9: overlay = {SD1_9[k2]: -2.38981076830464190E+000 + x, SD2_9[k2]: -2.38981076830464190E+000 - x}, var = {x}
+
+OF_11: overlay = {SF1_11[k2]:  1.17391350481685941E+000 + x, SF2_11[k2]:  1.17391350481685941E+000 - x}, var = {x}
+OD_11: overlay = {SD1_11[k2]: -2.38981076830464190E+000 + x, SD2_11[k2]: -2.38981076830464190E+000 - x}, var = {x}
+
+!-------------------------------------------------------
+
+END_7: marker
+
+END_5: marker
+
+!-------------------------------------------------------
+
+
+! Straight section forward FoDo:
+FODOSSF: line = ( QFSS, D1, DB, D2S1, SDSS, D2S2, QDSS, D1, DB, D2S1, SFSS, D2S2)
+
+! Straight section reverse FoDo:
+FODOSSR: line = ( QFSS, D2S2, SFSS, D2S1, DB, D1, QDSS, D2S2, SDSS, D2S1, DB, D1)
+
+! 1 o'clock arc forward 2*FoDo:
+FODOAF_1: line = (QF, D1, B, D2S1, SD1_1, D2S2, QD, D1, B, D2S1, SF1_1, D2S2,    QF, D1, B, D2S1, SD2_1, D2S2, QD, D1, B, D2S1, SF2_1, D2S2)
+
+! 5 o'clock arc forward 2*FoDo:
+FODOAF_5: line = (QF, D1, B, D2S1, SD1_5, D2S2, QD, D1, B, D2S1, SF1_5, D2S2,    QF, D1, B, D2S1, SD2_5, D2S2, QD, D1, B, D2S1, SF2_5, D2S2)
+
+! 9 o'clock arc forward 2*FoDo:
+FODOAF_9: line = (QF, D1, B, D2S1, SD1_9, D2S2, QD, D1, B, D2S1, SF1_9, D2S2,    QF, D1, B, D2S1, SD2_9, D2S2, QD, D1, B, D2S1, SF2_9, D2S2)
+
+
+! 3 o'clock arc reverse 2*FoDo:
+FODOAR_3: line = (QF, D2S2, SF1_3, D2S1, B, D1, QD, D2S2, SD1_3, D2S1, B, D1,    QF, D2S2, SF2_3, D2S1, B, D1, QD, D2S2, SD2_3, D2S1, B, D1)
+
+! 7 o'clock arc reverse 2*FoDo:
+FODOAR_7: line = (QF, D2S2, SF1_7, D2S1, B, D1, QD, D2S2, SD1_7, D2S1, B, D1,    QF, D2S2, SF2_7, D2S1, B, D1, QD, D2S2, SD2_7, D2S1, B, D1)
+
+! 11 o'clock arc reverse 2*FoDo:
+FODOAR_11: line = (QF, D2S2, SF1_11, D2S1, B, D1, QD, D2S2, SD1_11, D2S1, B, D1,    QF, D2S2, SF2_11, D2S1, B, D1, QD, D2S2, SD2_11, D2S1, B, D1)
+
+!-------------------------------------------------------
+
+! Forward dispersion suppressor:
+DISPSUPF: line = (QF, D1, BH, D2, QD, D1, BH, D2, QFF1, D1, BH, D2, QDF1, D1, BH, D2)
+
+! Match forward dispersion suppressor to SS:
+MSSF: line = ( QFF2, D1, DB, D2, QDF2, D1, DB, D2,  QFF3, D1, DB, D2, QDF3, D1, DB, D2)
+
+ARC_TO_SSF: line = (DISPSUPF, MSSF)
+
+! Reverse dispersion suppressor:
+DISPSUPR: line = ( QF, D2, BH, D1, QD, D2, BH, D1, QFR1, D2, BH, D1, QDR1, D2, BH, D1)
+
+! Match reverse dispersion suppressor to SS:
+MSSR: line = ( QFR2, D2, DB, D1, QDR2, D2, DB, D1,  QFR3, D2, DB, D1, QDR3, D2, DB, D1)
+
+ARC_TO_SSR: line = (DISPSUPR, MSSR)
+
+
+!-------------------------------------------------------
+
+! Match forward straight section to dispersion "creator" (use QFR)
+MDCF: line = (QFSS, D1, DB, D2, QDR3, D1, DB, D2, QFR3, D1, DB, D2, QDR2, D1, DB, D2) 
+
+! Forward dispersion "creator" (use QFR)
+DISPCREF: line = (QFR2, D1, BH, D2, QDR1, D1, BH, D2, QFR1, D1, BH, D2, QD, D1, BH, D2)
+
+SS_TO_ARCF: line = (MDCF, DISPCREF)
+
+! Match reverse straight section to dispersion "creator" (use QFF)
+MDCR: line = ( QFSS, D2, DB, D1, QDF3, D2, DB, D1,  QFF3, D2, DB, D1, QDF2, D2, DB, D1)
+
+! Reverse dispersion "creator" (use QFF)
+DISPCRER: line = ( QFF2, D2, BH, D1, QDF1, D2, BH, D1, QFF1, D2, BH, D1, QD, D2, BH, D1)
+
+SS_TO_ARCR: line = (MDCR, DISPCRER)
+
+!-------------------------------------------------------
+
+IPF: line = ( QEF1, D1, DB, D2, QEF2, D1, DB, D2, DEF1, QEF3, DEF2, QEF4, DEF3, IP6)
+IPR: line = (IP6, DER3, QER4, DER2, QER3, DER1, QER2, D2, DB, D1, QER1, D2, DB, D1)
+
+!-------------------------------------------------------
+
+! Straight section forward FoDo:
+FODOSSF_2: line = ( QFSS_2, D1, DB, D2, QDSS_2, D1, DB, D2)
+
+! Straight section reverse FoDo:
+FODOSSR_2: line = ( QFSS_2, D2, DB, D1, QDSS_2, D2, DB, D1)
+
+! Match forward dispersion suppressor to SS:
+MSSF_2: line = ( QFF2_2, D1, DB, D2, QDF2_2, D1, DB, D2,  QFF3_2, D1, DB, D2, QDF3_2, D1, DB, D2)
+
+! Match forward dispersion suppressor to SS:
+MSSF_6: line = ( QFF2_6, D1, DB, D2, QDF2_6, D1, DB, D2,  QFF3_6, D1, DB, D2, QDF3_6, D1, DB, D2)
+
+! Match reverse straight section to dispersion "creator" (use QFF)
+MDCR_2: line = ( QFSS_2, D2, DB, D1, QDF3_2, D2, DB, D1,  QFF3_2, D2, DB, D1, QDF2_2, D2, DB, D1)
+
+! Match reverse straight section to dispersion "creator" (use QFF)
+MDCR_6: line = ( QFSS, D2, DB, D1, QDR3_6, D2, DB, D1,  QFR3_6, D2, DB, D1, QDR2_6, D2, DB, D1)
+
+
+! Reverse dispersion "creator" to steal 1 quad from (use QFF)
+DISPCRER_2: line = ( QFF2_2, D2, BH, D1, QDF1_2, D2, BH, D1, QFF1_2, D2, BH, D1, QD, D2, BH, D1)
+
+
+ARC_TO_SSF_2: line = (DISPSUPF, MSSF_2)
+SS_TO_ARCR_2: line = (MDCR_2, DISPCRER_2)
+
+
+ARC_TO_SSF_6: line = (DISPSUPF, MSSF_6)
+SS_TO_ARCR_6: line = (MDCR_6, DISPCRER)
+
+!-------------------------------------------------------
+
+FODORF: line = ( QFSS, DRF, RF0, DRF, RF0, DRF, QDSS, DRF, RF0, DRF, RF0, DRF)
+
+!-------------------------------------------------------
+
+
+SEXTANT1:  line = (4*FODOSSF, SS_TO_ARCF, 10*FODOAF_1, ARC_TO_SSF_2, 4*FODOSSF_2)
+SEXTANT3:  line = (4*FODOSSR_2, SS_TO_ARCR_2, 10*FODOAR_3, ARC_TO_SSR, 4*FODOSSR)
+SEXTANT5:  line = (4*FODOSSF, SS_TO_ARCF, 10*FODOAF_5, END_5, ARC_TO_SSF_6, 1*FODOSSF, IPF)
+SEXTANT7:  line = (IPR, 1*FODOSSR, SS_TO_ARCR_6, 10*FODOAR_7, END_7 ,ARC_TO_SSR, 4*FODOSSR)
+SEXTANT9:  line = (4*FODOSSF, SS_TO_ARCF, 10*FODOAF_9, ARC_TO_SSF, 2*FODOSSF, 2*FODORF)
+SEXTANT11: line = (2*FODORF, 2*FODOSSR, SS_TO_ARCR, 10*FODOAR_11, ARC_TO_SSR, 4*FODOSSR)
+
+RING: line = (SEXTANT1, SEXTANT3, SEXTANT5, SEXTANT7, SEXTANT9, SEXTANT11)
+
+
+
+use, RING
+
+
+
+RF0[voltage] = 3557943.69553301670
+
+ OF_5[X] =  4.92685243294774144E-001
+ OD_5[X] =  1.23888046566648224E+000
+ OF_7[X] =  2.44998904226471664E-001
+ OD_7[X] = -1.42682804485842785E+000
+
+
+
+
+ QFSS_2[K1] =  3.37974220242816981E-001
+ QDSS_2[K1] = -3.86068025281473437E-001
+ QFF2_2[K1] =  3.58163349981193480E-001
+ QDF2_2[K1] = -3.59534202666213554E-001
+ QFF3_2[K1] =  3.73186818651336460E-001
+ QDF3_2[K1] = -3.85507583316477442E-001
+ QDF2_6[K1] = -3.43367011901662356E-001
+ QFF3_6[K1] =  3.82685494718714492E-001
+ QDF3_6[K1] = -4.70125485018425049E-001
+ QEF1[K1] =  4.98569440085783133E-001
+ QEF2[K1] = -7.49160193280077602E-002
+ QEF3[K1] =  1.08628573978235388E-001
+ QEF4[K1] = -2.22875512209623011E-001
+ QDR2_6[K1] = -3.75207659158594498E-001
+ QFR3_6[K1] =  3.60552988686989928E-001
+ QDR3_6[K1] = -3.75816347627969616E-001
+ QER1[K1] = -3.78378195523198291E-001
+ QER2[K1] = -1.45851666549070350E-002
+ QER3[K1] =  2.34797351415774680E-001
+ QER4[K1] = -2.37167456221783396E-001
+
+
+
+
+

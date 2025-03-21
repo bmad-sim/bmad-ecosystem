@@ -74,7 +74,7 @@ character(16), parameter :: r_name = 'bmad_parser'
 character(40) word_1, word_2, name, this_name, this_branch_name
 character(40), allocatable :: seq_name(:)
 character(80) debug_line
-character(200) full_lat_file_name, digested_file, call_file
+character(400) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
@@ -1165,8 +1165,8 @@ endif
 call cpu_time(bp_com%time1)
 
 call drift_and_pipe_track_methods_adjustment(lat)
-
 call set_flags_for_changed_attribute(lat)
+call parser_init_custom_elements (lat)
 
 call s_calc(lat)
 call lattice_bookkeeper (lat, err)
@@ -1232,8 +1232,6 @@ do n = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
-call parser_init_custom_elements (lat)
-
 ! Make the transfer matrices.
 ! Note: The bmad_parser err_flag argument does *not* include errors in 
 ! lat_make_mat6 since if there is a match element, there is an error raised 
@@ -1295,11 +1293,14 @@ type (ele_struct), pointer :: ele
 
 logical, optional :: set_error_flag
 integer i, j, stat_b(24), stat, ierr
-character(200) name
+character(400) name
 
 !
 
-if (present(parse_lat) .and. .not. bp_com%error_flag) parse_lat = lat0
+if (present(parse_lat) .and. .not. bp_com%error_flag) then
+  lat0%ramper_slave_bookkeeping = super_ok$    ! Prevents generation of warnings when ramper_slave_setup is called in next line. 
+  parse_lat = lat0
+endif
 
 ! Calculate the creation hash which can be used by programs to verify that the lattice has not been changed since
 ! the last time the lattice was read in.

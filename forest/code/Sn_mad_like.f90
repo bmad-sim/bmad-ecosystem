@@ -2585,6 +2585,8 @@ CONTAINS
     TWCAVITYL%LD=L1
     TWCAVITYL%LC=L1
     TWCAVITYL%KIND=KIND21
+    TWCAVITYL%nmul=1
+
     IF(LEN(NAME)>nlp) THEN
        !w_p=0
        !w_p%nc=2
@@ -3895,6 +3897,155 @@ endif
        ENDIF
     ENDIF
   END FUNCTION pancake_tilt
+  ! linked
+
+
+ FUNCTION  pancake_tiltn(NAME,file,T,br)
+    implicit none
+    type (EL_LIST) pancake_tiltn
+    CHARACTER(*),optional, INTENT(IN):: NAME,file
+    type (TILTING),optional, INTENT(IN):: T
+    type (taylor),optional, INTENT(INOUT):: br(:,:)
+    real(dp) L,ANGLE,ds,a
+    integer mf,nst,I,ORDER,ii
+!    LOGICAL(LP) REPEAT
+    TYPE(TAYLOR) B(nbe),ba(nbe),bf(nbe),bn(nbe),it  !,ax(2),ay(2)
+TYPE(c_TAYLOR) da,da1
+
+    a=0.0_dp
+   ! file_fitted=file
+
+    pancake_tiltn=0
+!    if(present(file)) then
+
+if(present(file)) then
+    if(len(file)<=vp) then
+     filec=file
+    else
+     filec=file(1:vp)
+  !  write(6,*) "warning: pancake name too long for length storage ", vp
+    endif
+
+
+    call kanalnummer(mf)
+    open(unit=mf,file=file)
+    read(mf,*) LD,hD  !,REPEAT   ! L and Hc are geometric
+    read(mf,*) nstc, metc, ORDER 
+    read(mf,*) LC,hc
+    read(mf,*) dc,vc,xc
+    read(mf,*) angc
+endif
+    ds=LC/nstc
+    ii=0
+!    if(present(no)) order=no
+ 
+
+
+if(.not.present(br)) then
+    order=order+1   
+! CALL INIT(ORDER,1,0,0)
+ CALL c_INIT_all(ORDER,1,0,0)
+endif
+
+    CALL ALLOC(B)
+    CALL ALLOC(Bf)
+    CALL ALLOC(Ba)
+    CALL ALLOC(Bn)
+    call alloc(it) 
+    call alloc(da,da1) 
+bf(1)=0.0_dp;bf(2)=0.0_dp;bf(3)=0.0_dp;
+ba(1)=0.0_dp;ba(2)=0.0_dp;ba(3)=0.0_dp;
+
+
+!    IF(REPEAT.AND.NST==0) NST=NSTD
+
+    ALLOCATE(t_em(NSTc))  
+
+    DO I=1,NSTc 
+
+if(present(br)) then
+ii=ii+1
+bf(1)=br(1,ii)
+bf(2)=br(2,ii)
+bf(3)=br(3,ii)
+else
+    read(mf,*) ii 
+          CALL READ(Bf(1),mf);CALL READ(Bf(2),mf);CALL READ(Bf(3),mf);
+endif
+          Bf(1)=Bf(1)/BRHO
+          Bf(2)=Bf(2)/BRHO
+          Bf(3)=Bf(3)/BRHO
+call print(bf)
+ba(1)=bf(3).i.1   ! a_y
+ba(2)=-(bf(2).i.1) !  a_z x
+ba(3)=bf(2)-bf(1)   ! a_z from y
+ba(3)=(ba(3).i.2)-(bf(2).i.1)
+ba(4)=ba(3)-ba(2)
+!call print(ba(4))
+da1=ba(3)
+da=ba(2)
+da=da+i_*da1
+call print(da)
+write(6,*) ii
+pause 
+enddo
+
+    call KILL(B)
+    call KILL(Bf)
+    call KILL(Ba)
+    call KILL(Bn)
+    call KILL(it) 
+
+stop
+
+ if(present(file))    close(MF)
+ !  else
+ !    NST=size(t_em)
+ !  endif
+    ANGLE=LD*HD
+
+
+    !    IF(ANG/=zero.AND.R/=zero) THEN
+    if(hc/=0.0_dp) then
+       pancake_tiltn%LC=2.0_dp*SIN(ANGLE/2.0_dp)/hD
+    else
+       pancake_tiltn%LC=LD
+    endif
+    pancake_tiltn%B0=hD                     !COS(ANG/two)/R
+    pancake_tiltn%LD=LD
+    pancake_tiltn%L=lc
+
+    IF(LEN(NAME)>nlp) THEN
+       !w_p=0
+       !w_p%nc=2
+       !w_p%fc='((1X,a72,/),(1x,a72))'
+       !w_p%c(1)=name
+       write(6,'(a17,1x,a16)') ' IS TRUNCATED TO ', NAME(1:16)
+       ! call ! WRITE_I
+       pancake_tiltn%NAME=NAME(1:nlp)
+    ELSE
+       pancake_tiltn%NAME=NAME
+    ENDIF
+    
+
+if(metc==4.or.metc==2) then
+    pancake_tiltn%nst=(NSTc-1)/2
+    IF(NSTc<3.OR.MOD(NSTc,2)/=1) THEN
+       WRITE(6,*) "NUMBER OF SLICES IN 'pancake'  MUST BE ODD AND >= 3 ",NSTc
+       STOP 101
+    ENDIF
+else
+    pancake_tiltn%nst=(NSTc-1)/7
+endif
+    pancake_tiltn%KIND=KINDPA
+    IF(PRESENT(t)) then
+       IF(T%NATURAL) THEN
+          pancake_tiltn%tilt=t%tilt(1)
+       ELSE
+          pancake_tiltn%tilt=t%tilt(0)
+       ENDIF
+    ENDIF
+  END FUNCTION pancake_tiltn
   ! linked
 
 

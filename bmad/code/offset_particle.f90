@@ -154,10 +154,10 @@ if (present(spin_qrot)) spin_qrot = [1, 0, 0, 0]
 
 rel_p = (1 + orbit%vec(6))
 
-rel_tracking_charge = rel_tracking_charge_to_mass (orbit, ele%ref_species)
-charge_dir = rel_tracking_charge * sign_z_vel * orbit%time_dir 
-
 if (set_hv) then
+  rel_tracking_charge = rel_tracking_charge_to_mass (orbit, ele%ref_species)
+  charge_dir = rel_tracking_charge * sign_z_vel * orbit%time_dir 
+
   select case (ele%key)
   case (elseparator$, kicker$, hkicker$, vkicker$)
     set_hv1 = .false.

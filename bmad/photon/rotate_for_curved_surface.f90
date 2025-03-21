@@ -29,7 +29,7 @@ implicit none
 type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (photon_element_struct), pointer :: ph
-type (surface_grid_pt_struct), pointer :: pt
+type (surface_segmented_pt_struct), pointer :: pt
 
 real(rp) rot_mat(3,3)
 real(rp) rot(3,3), angle
@@ -53,9 +53,10 @@ endif
 ph => ele%photon
 x = orbit%vec(1)
 y = orbit%vec(3)
+dz_dxy = 0
 
-if (ph%grid%type == segmented$ .and. ph%grid%active) then
-  pt => pointer_to_surface_grid_pt(ele, .true., x, y)
+if (ph%segmented%active) then
+  pt => pointer_to_surface_segmented_pt(ele, .true., x, y)
   if (.not. associated(pt)) then
     orbit%state = lost$
     call out_io (s_info$, r_name, 'Photon is outside of grid bounds for: ' // ele%name)
@@ -65,15 +66,13 @@ if (ph%grid%type == segmented$ .and. ph%grid%active) then
   dz_dxy = [pt%dz_dx, pt%dz_dy]
 
 else
-  if (ph%grid%type == displacement$) then
+  if (ph%displacement%active) then
     call surface_grid_displacement (ele, x, y, err_flag, z, dz_dxy)
     if (err_flag) then
       orbit%state = lost$
       call out_io (s_info$, r_name, 'Photon is outside of grid bounds for: ' // ele%name)
       return
     endif
-  else
-    dz_dxy = 0
   endif
 
   do ix = 0, ubound(ph%curvature%xy, 1)
@@ -96,6 +95,8 @@ else
     dz_dxy = dz_dxy - [x, y] * (gs**2 / (gs * zt))
   endif
 endif
+
+!
 
 if (dz_dxy(1) == 0 .and. dz_dxy(2) == 0) then
   call mat_make_unit(rot_mat)

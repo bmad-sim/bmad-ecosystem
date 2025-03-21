@@ -323,7 +323,7 @@ do j = 0, max(ix_mag_max, ix_elec_max)+1
 enddo
 
 if (ix_mag_max >= 0) then
-  f = orbit%p0c / (c_light * charge_of(param%particle) * ele%value(l$))
+  f = ele%value(p0c$) / (c_light * charge_of(param%particle) * ele%value(l$))
   field%B = field%B * f
   if (do_dfield_calc) field%dB = field%dB * f
   if (logic_option(.false., calc_potential)) then

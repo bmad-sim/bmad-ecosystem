@@ -12,6 +12,7 @@ type (ele_struct), pointer :: controller, slave
 type (control_struct), pointer :: ctl
 type (control_ramp1_struct), pointer :: rmp
 type (coord_struct) orbit
+type (qp_legend_struct) :: legend = qp_legend_struct()
 
 real(rp) :: control_var, input_var_min, input_var_max, plot_size(2), text_scale, height, vzero(6) = 0
 real(rp) curve_min, curve_max, z, dz, volt_old, pot, value
@@ -297,7 +298,7 @@ do j = 1, n_curve
 enddo
 
 n = min(n_curve, 20)
-call qp_draw_curve_legend (0.1_rp, -0.1_rp, '%/GRAPH/LT', line(1:n), text = attrib_name(1:n))
+call qp_draw_curve_legend (qp_point_struct(0.1_rp, -0.1_rp, '%/GRAPH/LT'), legend, line(1:n), text = attrib_name(1:n))
 
 if (who == 'X') then
   write (*, '(a)', advance = 'NO') 'Hit any key to continue.'

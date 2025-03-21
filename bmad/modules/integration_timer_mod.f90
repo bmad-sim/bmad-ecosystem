@@ -57,7 +57,7 @@ logical err_flag
 
 !
 
-call ele_to_fibre (ele, a_fibre, param, .true., err_flag)
+call ele_to_fibre (ele, a_fibre, .true., err_flag)
 
 orbit = start%vec
 orbit_max = orb_max%vec

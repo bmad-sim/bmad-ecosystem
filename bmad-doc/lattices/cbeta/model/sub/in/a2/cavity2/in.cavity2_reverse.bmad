@@ -1,0 +1,17 @@
+
+in.cavity2_reverse: lcavity, 
+ tracking_method = fixed_step_runge_kutta, num_steps=256,
+ mat6_calc_method = tracking,
+ n_cell = 2, 
+ rf_frequency = global_rf_frequency,
+ autoscale_amplitude = F,
+ autoscale_phase = F,
+ field_calc = fieldmap,
+ L = 0.484 !Grid extends to 0.484
+in.cavity2_reverse[grid_field] = call::in.cavity2_grid_rev_cyl.bmad
+
+in.cavity2[voltage] = 5e6 ! Maximum on-axis Ez in V/m
+
+
+CALL, FILE = in.cavity2_reverse_wall.bmad
+

@@ -18,8 +18,10 @@
 !                 If a name and no branch is given, all branches are searched.
 !                 If an index and no branch is given, branch 0 is assumed.
 !   ##N       -- N = integer. N^th instance of ele_id in the branch.
-!   +/-offset -- Element offset. For example, "Q1+1" is the element after "Q1" and 
-!                 "Q1-2" is the second element before "Q1".
+!   +/-offset -- Element offset. For example, "Q1+1" is the element after "Q1" and "Q1-2" is the second element 
+!                 before "Q1". Modulo arithmatic is used so the offset wraps around the ends of the lattice. 
+!                 EG: "BEGINNING-1" gives the END element and "END+1" gives the BEGINNING element.
+!                     
 ! Note: An old syntax that is still supported is:
 !   {key::}{branch>>}ele_id{##N}
 !
@@ -82,9 +84,9 @@
 !   loc_str        -- character(*): Element names or indexes. May be lower case.
 !   lat            -- lat_struct: Lattice to search through.
 !   above_ubound_is_err
-!                  -- logical, optional: If the upper bound "e2" on an "e1:e2" range construct 
-!                       is above the maximum element index then treat this as an error? 
-!                       Default is True. If False, treat e2 as the maximum element index. 
+!                  -- logical, optional: Default is True. If the upper bound "e2" on an "e1:e2" range construct 
+!                       is an integer and above the maximum element index then treat this as an error? 
+!                       If False, treat e2 as the maximum element index. 
 !   ix_dflt_branch -- integer, optional: If present and not -1 then restrict search to specified branch.
 !                       If not present or -1: Search all branches. Exception: For elements specified using 
 !                       an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.

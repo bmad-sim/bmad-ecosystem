@@ -14,24 +14,25 @@ module equality_mod
 use bmad_struct
 
 interface operator (==)
-  module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_ac_kicker_time, eq_ac_kicker_freq
-  module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord
-  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z, eq_wake_sr_mode
-  module procedure eq_wake_sr, eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake
-  module procedure eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1
-  module procedure eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map
-  module procedure eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_floor_position, eq_high_energy_space_charge
-  module procedure eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_map
-  module procedure eq_rad_map_ele, eq_gen_grad1, eq_gen_grad_map, eq_surface_grid_pt, eq_surface_grid
-  module procedure eq_target_point, eq_surface_curvature, eq_photon_target, eq_photon_material, eq_pixel_pt
-  module procedure eq_pixel_detec, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
-  module procedure eq_ramper_lord, eq_control, eq_control_var1, eq_control_ramp1, eq_controller
-  module procedure eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init, eq_lat_param
-  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
-  module procedure eq_em_field, eq_strong_beam, eq_track_point, eq_track, eq_space_charge_common
-  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele
-  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat, eq_bunch
-  module procedure eq_bunch_params, eq_beam, eq_aperture_point, eq_aperture_param, eq_aperture_scan
+  module procedure eq_spline, eq_spin_polar, eq_ac_kicker_time, eq_ac_kicker_freq, eq_ac_kicker
+  module procedure eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord, eq_coord_array
+  module procedure eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z_long, eq_wake_sr_mode, eq_wake_sr
+  module procedure eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
+  module procedure eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
+  module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
+  module procedure eq_grid_field_pt, eq_grid_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
+  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_map, eq_rad_map_ele
+  module procedure eq_gen_grad1, eq_gen_grad_map, eq_surface_segmented_pt, eq_surface_segmented, eq_surface_h_misalign_pt
+  module procedure eq_surface_h_misalign, eq_surface_displacement_pt, eq_surface_displacement, eq_target_point, eq_surface_curvature
+  module procedure eq_photon_target, eq_photon_material, eq_pixel_pt, eq_pixel_detec, eq_photon_element
+  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_ramper_lord, eq_control
+  module procedure eq_control_var1, eq_control_ramp1, eq_controller, eq_ellipse_beam_init, eq_kv_beam_init
+  module procedure eq_grid_beam_init, eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker
+  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_strong_beam
+  module procedure eq_track_point, eq_track, eq_space_charge_common, eq_bmad_common, eq_rad_int1
+  module procedure eq_rad_int_branch, eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor
+  module procedure eq_branch, eq_lat, eq_bunch, eq_bunch_params, eq_beam
+  module procedure eq_aperture_point, eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -83,32 +84,6 @@ is_eq = is_eq .and. (f1%phi == f2%phi)
 is_eq = is_eq .and. (f1%xi == f2%xi)
 
 end function eq_spin_polar
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_surface_orientation (f1, f2) result (is_eq)
-
-implicit none
-
-type(surface_orientation_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%dz_dx == f2%dz_dx)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%dz_dy == f2%dz_dy)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%dz_dx_rms == f2%dz_dx_rms)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%dz_dy_rms == f2%dz_dy_rms)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%dz2_dxdy == f2%dz2_dxdy)
-
-end function eq_surface_orientation
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -435,40 +410,52 @@ end function eq_expression_atom
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_wake_sr_z (f1, f2) result (is_eq)
+elemental function eq_wake_sr_z_long (f1, f2) result (is_eq)
 
 implicit none
 
-type(wake_sr_z_struct), intent(in) :: f1, f2
+type(wake_sr_z_long_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
-!! f_side.equality_test[type, 1, ALLOC]
+!! f_side.equality_test[real, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%w) .eqv. allocated(f2%w))
 if (.not. is_eq) return
 if (allocated(f1%w)) is_eq = all(shape(f1%w) == shape(f2%w))
 if (.not. is_eq) return
 if (allocated(f1%w)) is_eq = all(f1%w == f2%w)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w_sum1) .eqv. allocated(f2%w_sum1))
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fw) .eqv. allocated(f2%fw))
 if (.not. is_eq) return
-if (allocated(f1%w_sum1)) is_eq = all(shape(f1%w_sum1) == shape(f2%w_sum1))
+if (allocated(f1%fw)) is_eq = all(shape(f1%fw) == shape(f2%fw))
 if (.not. is_eq) return
-if (allocated(f1%w_sum1)) is_eq = all(f1%w_sum1 == f2%w_sum1)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%w_sum2) .eqv. allocated(f2%w_sum2))
+if (allocated(f1%fw)) is_eq = all(f1%fw == f2%fw)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fbunch) .eqv. allocated(f2%fbunch))
 if (.not. is_eq) return
-if (allocated(f1%w_sum2)) is_eq = all(shape(f1%w_sum2) == shape(f2%w_sum2))
+if (allocated(f1%fbunch)) is_eq = all(shape(f1%fbunch) == shape(f2%fbunch))
 if (.not. is_eq) return
-if (allocated(f1%w_sum2)) is_eq = all(f1%w_sum2 == f2%w_sum2)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%plane == f2%plane)
+if (allocated(f1%fbunch)) is_eq = all(f1%fbunch == f2%fbunch)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w_out) .eqv. allocated(f2%w_out))
+if (.not. is_eq) return
+if (allocated(f1%w_out)) is_eq = all(shape(f1%w_out) == shape(f2%w_out))
+if (.not. is_eq) return
+if (allocated(f1%w_out)) is_eq = all(f1%w_out == f2%w_out)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz == f2%dz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z0 == f2%z0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%smoothing_sigma == f2%smoothing_sigma)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%position_dependence == f2%position_dependence)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%time_based .eqv. f2%time_based)
 
-end function eq_wake_sr_z
+end function eq_wake_sr_z_long
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -521,12 +508,8 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%z) .eqv. allocated(f2%z))
-if (.not. is_eq) return
-if (allocated(f1%z)) is_eq = all(shape(f1%z) == shape(f2%z))
-if (.not. is_eq) return
-if (allocated(f1%z)) is_eq = all(f1%z == f2%z)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%z_long == f2%z_long)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%long) .eqv. allocated(f2%long))
 if (.not. is_eq) return
@@ -1200,6 +1183,8 @@ is_eq = is_eq .and. (f1%mat6 == f2%mat6)
 is_eq = is_eq .and. (f1%rad_int == f2%rad_int)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ptc == f2%ptc)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%has_misalign .eqv. f2%has_misalign)
 
 end function eq_bookkeeping_state
 
@@ -1324,41 +1309,37 @@ end function eq_gen_grad_map
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_surface_grid_pt (f1, f2) result (is_eq)
+elemental function eq_surface_segmented_pt (f1, f2) result (is_eq)
 
 implicit none
 
-type(surface_grid_pt_struct), intent(in) :: f1, f2
+type(surface_segmented_pt_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%orientation == f2%orientation)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%z0 == f2%z0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%x0 == f2%x0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%y0 == f2%y0)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z0 == f2%z0)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dz_dx == f2%dz_dx)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dz_dy == f2%dz_dy)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%d2z_dxdy == f2%d2z_dxdy)
 
-end function eq_surface_grid_pt
+end function eq_surface_segmented_pt
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_surface_grid (f1, f2) result (is_eq)
+elemental function eq_surface_segmented (f1, f2) result (is_eq)
 
 implicit none
 
-type(surface_grid_struct), intent(in) :: f1, f2
+type(surface_segmented_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1366,8 +1347,6 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%active .eqv. f2%active)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%dr == f2%dr)
 !! f_side.equality_test[real, 1, NOT]
@@ -1379,7 +1358,119 @@ if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
 if (.not. is_eq) return
 if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
 
-end function eq_surface_grid
+end function eq_surface_segmented
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_surface_h_misalign_pt (f1, f2) result (is_eq)
+
+implicit none
+
+type(surface_h_misalign_pt_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x0 == f2%x0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%rot_y == f2%rot_y)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%rot_t == f2%rot_t)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%rot_y_rms == f2%rot_y_rms)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%rot_t_rms == f2%rot_t_rms)
+
+end function eq_surface_h_misalign_pt
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_surface_h_misalign (f1, f2) result (is_eq)
+
+implicit none
+
+type(surface_h_misalign_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%active .eqv. f2%active)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%dr == f2%dr)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[type, 2, ALLOC]
+is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
+
+end function eq_surface_h_misalign
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_surface_displacement_pt (f1, f2) result (is_eq)
+
+implicit none
+
+type(surface_displacement_pt_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x0 == f2%x0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z0 == f2%z0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz_dx == f2%dz_dx)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dz_dy == f2%dz_dy)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%d2z_dxdy == f2%d2z_dxdy)
+
+end function eq_surface_displacement_pt
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_surface_displacement (f1, f2) result (is_eq)
+
+implicit none
+
+type(surface_displacement_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%active .eqv. f2%active)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%dr == f2%dr)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%r0 == f2%r0)
+!! f_side.equality_test[type, 2, ALLOC]
+is_eq = is_eq .and. (allocated(f1%pt) .eqv. allocated(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(shape(f1%pt) == shape(f2%pt))
+if (.not. is_eq) return
+if (allocated(f1%pt)) is_eq = all(f1%pt == f2%pt)
+
+end function eq_surface_displacement
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1569,7 +1660,11 @@ is_eq = is_eq .and. (f1%target == f2%target)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%material == f2%material)
 !! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%grid == f2%grid)
+is_eq = is_eq .and. (f1%segmented == f2%segmented)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%h_misalign == f2%h_misalign)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%displacement == f2%displacement)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%pixel == f2%pixel)
 !! f_side.equality_test[integer, 0, NOT]
@@ -2044,6 +2139,8 @@ is_eq = is_eq .and. (f1%use_particle_start .eqv. f2%use_particle_start)
 is_eq = is_eq .and. (f1%use_t_coords .eqv. f2%use_t_coords)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_z_as_t .eqv. f2%use_z_as_t)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file_name == f2%file_name)
 
 end function eq_beam_init
 
@@ -3078,8 +3175,8 @@ if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
 is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%creation_hash == f2%creation_hash)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%ramper_slave_bookkeeping_done .eqv. f2%ramper_slave_bookkeeping_done)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ramper_slave_bookkeeping == f2%ramper_slave_bookkeeping)
 
 end function eq_lat
 

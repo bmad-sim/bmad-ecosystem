@@ -8,8 +8,8 @@ q3: quadrupole, l = 2, k1 = 3e-3, a11 = 0.3
 
 q4: quadrupole, l = 4, superimpose, ref = q2, offset = 0.5, ref_origin = center, a11 = 0.4
 
-ov1: overlay = {q1[k1]:-1e-3, q1[tilt]:2}, hkick = 1
-ov2: overlay = {q1[k1]:3e-3, q1[tilt], q1}, hkick = 2
+ov1: overlay = {q1[k1]:-1e-3, q1[fq1]:2}, hkick = 1
+ov2: overlay = {q1[k1]:3e-3, q1[fq1], q1}, hkick = 2
 ov3: overlay = {q2}, l = 6
 
 gr1: group = {ov1[hkick]}, k3 = 5

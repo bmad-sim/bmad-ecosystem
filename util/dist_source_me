@@ -42,7 +42,7 @@ func_set_os_env () {
 
     export ACC_COMPILER_TOOLSET=default
 
-    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+    if [[ "${CONDA_BUILD}" ]]; then
         # No need to set os env for Conda Build.
         return;
     fi
@@ -339,7 +339,7 @@ func_add_bmad_path () {
 
     export PATH=${USER_PATH}
 
-    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+    if [[ "${CONDA_BUILD}" ]]; then
         export LD_LIBRARY_PATH=${ACC_CONDA_PATH}/lib:${LD_LIBRARY_PATH}
     fi
 
@@ -414,7 +414,7 @@ func_macos_gcc () {
 	    fi
 	elif [ "$brew" ]
 	then
-	    p=/opt/homebrew/bin/gcc-
+	    p=$(brew --prefix)/bin/gcc-
 	    v=0
 	    for g in $p[0-9]*
 	    do
@@ -445,6 +445,13 @@ case "${ACC_CONDA_BUILD}" in
 esac
 
 
+case "${ACC_CONDA_BUILD_TESTS}" in
+    "Y" | "y" | "1" )
+        CONDA_BUILD_TESTS=1
+        ;;
+esac
+
+
 #-----------------------------------------------------------------
 # Main Script
 #
@@ -471,7 +478,7 @@ CWD_DIR_CHECK=$(func_is_dir_toplevel ${CWD})
 DIST_BASE_DIR_CHECK=$(func_is_dir_toplevel ${DIST_BASE_DIR})
 
 
-if ( [[ "${CONDA_BUILD}" ]] ) ; then
+if [[ "${CONDA_BUILD}" ]]; then
     DIST_SETUP_LOG=/dev/stdout
     DIST_SETUP_QUIET="Y"
 fi
@@ -490,7 +497,7 @@ if ( [ "${CWD_DIR_CHECK}" == "Y" ] && [[ ! ${CWD} -ef ${DIST_BASE_DIR} ]]) ; the
     func_set_os_env
     func_set_bmad_env
     func_add_bmad_path
-    if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+    if [[ ! "${CONDA_BUILD}" ]] ; then
     func_check_fortran_version
     func_macos_gcc
     fi
@@ -502,7 +509,7 @@ elif ( [ "${DIST_BASE_DIR_CHECK}" == "Y" ] ) ; then
     func_set_os_env
     func_set_bmad_env
     func_add_bmad_path
-    if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+    if [[ ! "${CONDA_BUILD}" ]]; then
         func_check_fortran_version
         func_macos_gcc
     fi
@@ -534,6 +541,6 @@ echo -e "     https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc\n" \
 #-----------------------------------------------------------------
 # Display Logfile, unless requested not to.
 #-----------------------------------------------------------------
-if ( [[ ! "${CONDA_BUILD}" ]] ) ; then
+if [[ ! "${CONDA_BUILD}" ]]; then
     [ "${DIST_SETUP_QUIET}" != "Y" ] && cat ${DIST_SETUP_LOG}
 fi

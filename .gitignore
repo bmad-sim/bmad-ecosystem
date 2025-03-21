@@ -1,7 +1,6 @@
 *~
 PGPLOT
 fftw
-fftw
 fgsl
 gsl
 hdf5 
@@ -15,6 +14,7 @@ gnu_utilities_src
 packages
 __pycache__
 .directoryhash
+.DS_store
 
 # Jupyter notebooks
 .ipynb_checkpoints
@@ -35,21 +35,6 @@ lux/examples/bent_crystal/spherical.det_pix.x
 lux/examples/bent_crystal/spherical.det_pix.y
 lux/examples/bent_crystal/track.dat
 
-bmad-doc/tutorial_bmad_tao/doc/2www.pl
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.aux
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.bbl
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.blg
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.log
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.out
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
-bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.toc
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.aux
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.bbl
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.blg
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.log
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.out
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.pdf
-bmad-doc/cookbook_bmad_tao/doc/cookbook_bmad_tao.toc
 bmad-doc/tao_examples/csr_beam_tracking/*.dat
 
 tao/doc/tao.pdf
@@ -57,6 +42,12 @@ bmad/doc/bmad.pdf
 util/searchf.pyc
 bsim/**/doc/*.pdf
 
+bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
+bmad-doc/tutorial_ring_design/doc/tutorial_ring_design.pdf
+
+**/doc/*.aux
+**/doc/*.bbl
+**/doc/*.blg
 **/doc/*.idx
 **/doc/*.ilg
 **/doc/*.ind
@@ -67,16 +58,20 @@ bsim/**/doc/*.pdf
 **/doc/*.rdx
 **/doc/*.rnd
 **/doc/*.toc
-**/doc/*.aux
 **/2www.pl
 
+**/doit
+
 regression_tests/*/output.now
+regression_tests/write_foreign_test/write_foreign_test.*.now
 regression_tests/*/lat.bmad
 regression_tests/*/r
+regression_tests/*/rr
 regression_tests/*/rt
 regression_tests/*/m
 regression_tests/bbu_test/bunch_vec.txt
 regression_tests/bookkeeper_test/lat2.bmad
+regression_tests/bookkeeper_test/lat3.bmad
 regression_tests/envelope_ibs_test/emit_from_integrals.out
 regression_tests/envelope_ibs_test/emit_vs_turn.out
 regression_tests/envelope_ibs_test/one_turn_mat_from_slices.diag
@@ -86,8 +81,10 @@ regression_tests/hdf5_test/bunch.h5
 regression_tests/hdf5_test/grid_field.h5
 regression_tests/hdf5_test/bunch.ascii
 regression_tests/hdf5_test/general.h5
+regression_tests/multipass_test/out.bmad
 regression_tests/multipass_test/lat1.bmad
 regression_tests/multipass_test/lat2.bmad
+regression_tests/multipass_test/cavity2.grid_field.h5
 regression_tests/parse_test/c2.bmad
 regression_tests/parse_test/com2.bmad
 regression_tests/parse_test/g1.grid_field.h5
@@ -111,12 +108,15 @@ regression_tests/cesr_test/rad_int_wig_no_cache.dat
 regression_tests/cesr_test/twiss.out
 regression_tests/long_term_tracking_test/sim1.dat
 regression_tests/long_term_tracking_test/beam-10.h5
+regression_tests/wake_test/lat2.bmad
 regression_tests/write_bmad_test/em_field1.gen_grad_map
 regression_tests/write_bmad_test/wiggler_map1.cartesian_map
 regression_tests/write_bmad_test/z.bmad
+regression_tests/wake_test/ZL1.sr_z_long
 
 *.digested*
 *.mod
 production
 debug
 linux_lib
+

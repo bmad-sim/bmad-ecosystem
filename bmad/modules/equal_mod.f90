@@ -161,7 +161,7 @@ type (ele_struct) ele_save
 type (nametable_struct), pointer :: nt
 type (converter_sub_distribution_struct), pointer :: sd_in, sd_out
 
-integer i, j, n, n1, n2, ub(2), ub1
+integer i, j, n, n1, n2, lb(2), ub(2), ub1
 logical update_nametable, comensurate
 
 ! 1) Save ele_out pointers in ele_save
@@ -259,22 +259,46 @@ if (associated(ele_in%photon)) then
   ele_out%photon => ele_save%photon  ! reinstate
   if (.not. associated(ele_out%photon)) allocate(ele_out%photon)
 
-  if (allocated (ele_in%photon%grid%pt)) then
-    ub = ubound(ele_in%photon%grid%pt)
-    if (allocated (ele_out%photon%grid%pt)) then
-      if (any(ub /= ubound(ele_out%photon%grid%pt))) deallocate (ele_out%photon%grid%pt)
+  if (allocated (ele_in%photon%segmented%pt)) then
+    lb = lbound(ele_in%photon%segmented%pt)
+    ub = ubound(ele_in%photon%segmented%pt)
+    if (allocated (ele_out%photon%segmented%pt)) then
+      if (any(ub /= ubound(ele_out%photon%segmented%pt))) deallocate (ele_out%photon%segmented%pt)
     endif
-    if (.not. allocated (ele_out%photon%grid%pt)) allocate (ele_out%photon%grid%pt(0:ub(1), 0:ub(2)))
+    if (.not. allocated (ele_out%photon%segmented%pt)) allocate (ele_out%photon%segmented%pt(lb(1):ub(1), lb(2):ub(2)))
   else
-    if (allocated(ele_out%photon%grid%pt)) deallocate (ele_out%photon%grid%pt)
+    if (allocated(ele_out%photon%segmented%pt)) deallocate (ele_out%photon%segmented%pt)
+  endif
+
+  if (allocated (ele_in%photon%displacement%pt)) then
+    lb = lbound(ele_in%photon%displacement%pt)
+    ub = ubound(ele_in%photon%displacement%pt)
+    if (allocated (ele_out%photon%displacement%pt)) then
+      if (any(ub /= ubound(ele_out%photon%displacement%pt))) deallocate (ele_out%photon%displacement%pt)
+    endif
+    if (.not. allocated (ele_out%photon%displacement%pt)) allocate (ele_out%photon%displacement%pt(lb(1):ub(1), lb(2):ub(2)))
+  else
+    if (allocated(ele_out%photon%displacement%pt)) deallocate (ele_out%photon%displacement%pt)
+  endif
+
+  if (allocated (ele_in%photon%h_misalign%pt)) then
+    lb = lbound(ele_in%photon%h_misalign%pt)
+    ub = ubound(ele_in%photon%h_misalign%pt)
+    if (allocated (ele_out%photon%h_misalign%pt)) then
+      if (any(ub /= ubound(ele_out%photon%h_misalign%pt))) deallocate (ele_out%photon%h_misalign%pt)
+    endif
+    if (.not. allocated (ele_out%photon%h_misalign%pt)) allocate (ele_out%photon%h_misalign%pt(lb(1):ub(1), lb(2):ub(2)))
+  else
+    if (allocated(ele_out%photon%h_misalign%pt)) deallocate (ele_out%photon%h_misalign%pt)
   endif
 
   if (allocated (ele_in%photon%pixel%pt)) then
+    lb = lbound(ele_in%photon%pixel%pt)
     ub = ubound(ele_in%photon%pixel%pt)
     if (allocated (ele_out%photon%pixel%pt)) then
       if (any(ub /= ubound(ele_out%photon%pixel%pt))) deallocate (ele_out%photon%pixel%pt)
     endif
-    if (.not. allocated (ele_out%photon%pixel%pt)) allocate (ele_out%photon%pixel%pt(0:ub(1), 0:ub(2)))
+    if (.not. allocated (ele_out%photon%pixel%pt)) allocate (ele_out%photon%pixel%pt(lb(1):ub(1), lb(2):ub(2)))
   else
     if (allocated(ele_out%photon%pixel%pt)) deallocate (ele_out%photon%pixel%pt)
   endif
@@ -544,6 +568,7 @@ implicit none
 type (lat_struct), intent(inout), target :: lat_out
 type (lat_struct), intent(in), target :: lat_in
 type (branch_struct), pointer :: branch_out
+type (ele_struct), pointer :: ele
 type (control_struct), pointer :: c_in, c_out
 integer i, n, nb, ne, ie, n_out, n_in
 logical do_alloc
@@ -578,9 +603,11 @@ do i = 0, nb
   branch_out = lat_in%branch(i)
   branch_out%lat => lat_out
   do ie = 0, ubound(branch_out%ele, 1)
-    branch_out%ele(ie)%ix_ele = ie
-    branch_out%ele(ie)%ix_branch = i
-    branch_out%ele(ie)%branch => branch_out
+    ele => branch_out%ele(ie)
+    ele%ix_ele = ie
+    ele%ix_branch = i
+    ele%branch => branch_out
+    if (associated(ele%ptc_fibre)) nullify(ele%ptc_fibre)
   enddo
 enddo
 
@@ -590,7 +617,9 @@ nullify(lat_out%ele_init%branch)
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)
-call ramper_slave_setup(lat_out, .true.)
+
+! super_ok$ is used to signal this routine to not do any ramper bookkeeping.
+if (lat_in%ramper_slave_bookkeeping /= super_ok$) call ramper_slave_setup(lat_out, .true.)
 
 
 end subroutine lat_equal_lat
@@ -791,68 +820,6 @@ do i = 1, size(taylor1)
 enddo
 
 end subroutine taylors_equal_taylors
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine init_taylor_series (bmad_taylor, n_term, save_old)
-!
-! Subroutine to initialize or extend a Bmad Taylor series (6 of these series make
-! a Taylor map). Note: This routine does not zero the terms.
-!
-! Input:
-!   bmad_taylor -- taylor_struct: Old structure.
-!   n_term      -- integer: Number of terms to allocate. 
-!                    n_term < 0 => bmad_taylor%term pointer will be disassociated.
-!   save_old    -- logical, optional: If True then save any old terms and ref orbit when
-!                    bmad_taylor is resized. If False zero the ref orbit. Default is False.
-!
-! Output:
-!   bmad_taylor -- Taylor_struct: Initalized structure.
-!-
-
-subroutine init_taylor_series (bmad_taylor, n_term, save_old)
-
-implicit none
-
-type (taylor_struct) bmad_taylor
-type (taylor_term_struct), pointer :: term(:)
-integer n_term
-integer n
-logical, optional :: save_old
-
-!
-
-if (.not. logic_option (.false., save_old)) bmad_taylor%ref = 0
-
-if (n_term < 0) then
-  if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)
-  return
-endif
-
-if (.not. associated (bmad_taylor%term)) then
-  allocate (bmad_taylor%term(n_term))
-  return
-endif
-
-if (size(bmad_taylor%term) == n_term) return
-
-!
-
-if (logic_option (.false., save_old) .and. n_term > 0 .and. size(bmad_taylor%term) > 0) then
-  n = min (n_term, size(bmad_taylor%term))
-  term => bmad_taylor%term
-  allocate (bmad_taylor%term(n_term))
-  bmad_taylor%term(1:n) = term(1:n)
-  deallocate (term)
-
-else
-  deallocate (bmad_taylor%term)
-  allocate (bmad_taylor%term(n_term))
-endif
-
-end subroutine init_taylor_series
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

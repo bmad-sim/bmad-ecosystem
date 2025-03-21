@@ -45,7 +45,9 @@ and the exclamation mark and everything after the exclamation mark on a line are
 
 \bmad is generally case insensitive. Most names are converted to uppercase. Exceptions are 
 file names and atomic formulas for materials used in crystal diffraction. Also \vn{type}, \vn{alias},
-and \vn{descrip} string labels which can be set for any element are not converted (\sref{s:alias}).
+and \vn{descrip} string labels, which can be set for any element, are not converted (\sref{s:alias}).
+Notice that commands for the \vn{Tao} program are case sensitive. The reason for this difference is
+due to one of history. \bmad was developed back in the days where case sensitivity was not important.
 
 \index{\& continuation symbol}
 \index{continuation symbol (\&)}
@@ -81,7 +83,7 @@ Names of constants, elements, lines, etc. are limited to 40 characters. The firs
 a letter (\vn{A} --- \vn{Z}).  The other characters may be a letter, a digit (\vn{0} --- \vn{9}) or
 an underscore (\vn{_}). Other characters may appear but should be avoided since they are used by
 Bmad for various purposes. For example, the backslash (\vn{\B}) character is used to by Bmad when
-forming the names of superposition slaves (\sref{s:super}) and dots (\vn{.}) are used by Bmad when
+forming the names of superposition slaves (\sref{c:super}) and dots (\vn{.}) are used by Bmad when
 creating names of \vn{tagged} elements (\sref{s:tag}). Also use of special characters may make the
 lattice files less portable to non-Bmad programs.
 
@@ -163,7 +165,7 @@ details.
 \index{superimpose}
 The \vn{superimpose} construct allows elements to be placed in a lattice at a definite longitudinal
 position. What happens is that after a lattice is expanded, there is a reshuffling of the elements
-to accommodate any new superimpose elements. See \sref{s:super} for more details.
+to accommodate any new superimpose elements. See \sref{c:super} for more details.
 
 %---------------------------------------------------------------------------
 \section{Lattice Elements}
@@ -225,7 +227,7 @@ letter [A-Z]. After that, the rest of the name can contain only letters, digits 
 permitted since this interfers with the notation for finding the $N$\Th element with a given name
 (\sref{s:ele.match}). It is best to avoid these last three symbols since \bmad uses them to denote
 ``relationships''. Periods are used for tagging (\sref{s:tag}), and backslash and hash marks are
-used for to compose names for superposition (\sref{s:super}) and multipass (\sref{s:multipass})
+used for to compose names for superposition (\sref{c:super}) and multipass (\sref{c:multipass})
 slave elements.
 
 \index{reserved names}
@@ -754,7 +756,7 @@ For example:
 Negative indices are accepted and if only one or two indices are present, the others
 are assumed to be zero. Thus \vn{r_custom(-3)} is equivalent to \vn{r_custom(-3,0,0)}.
 
-Note: When there is a superposition (\sref{s:super}), the \vn{super_slave} elements that are formed
+Note: When there is a superposition (\sref{c:super}), the \vn{super_slave} elements that are formed
 do {\em not} have any custom attributes assigned to them even when their \vn{super_lord} elements
 have custom attributes. This is done since the \bmad bookkeeping routines are not able to handle the
 situation where a \vn{super_slave} element has multiple \vn{super_lord} elements and thus the custom
@@ -1307,9 +1309,11 @@ might be a file (or files) that define the layout of the lattice (something that
 often) and a file (or files) that define magnet strengths (something that changes more often).  The
 \vn{call} is used to read in separated lattice files. The syntax is
 \begin{example}
-  call, filename = <file-name>
+  call, filename = <file-name>   ! or
+  call, no_abort_on_open_error, file = <file-name>
 \end{example}
-Example:
+If the \vn{no_abort_on_open_error} option is present, a missing file will not abort the parsing.
+Examples:
 \begin{example}
   call, filename = "../layout/my_layout.bmad"      ! Relative pathname
   call, filename = "/nfs/cesr/lat/my_layout.bmad"  ! Absolute pathname
@@ -1394,7 +1398,7 @@ program is run.
 \label{s:no.sup}
 \index{no_superimpose statement}
 
-In certain cases it is useful to turn off superposition (\sref{s:super}). The \vn{no_superposition}
+In certain cases it is useful to turn off superposition (\sref{c:super}). The \vn{no_superposition}
 statement will do this. To turn off all superpositioning, this statement can appear anywhere as long
 as it is before any \vn{expand_lattice} (\sref{s:expand.lat}) statement. If the lattice has an
 \vn{expand_lattice} statement, and the \vn{no_superposition} statement appears after, the
@@ -1445,7 +1449,7 @@ parameters but only if done before lattice expansion. See \sref{s:depend}.
 \item 
 Setting the \vn{phi0_multipass} attribute for an 
 \vn{Lcavity} or \vn{RFcavity} multipass
-slave may only be done after lattice expansion (\sref{s:multipass}).
+slave may only be done after lattice expansion (\sref{c:multipass}).
 \item
 \index{tags for Lines and Lists}
 Setting individual element attributes for tagged elements can only be done
@@ -1470,10 +1474,10 @@ line involves:
 \item
 Line expansion (\sref{c:sequence}) where the element sequence is constructed from the line and sub-lines.
 \item
-Adding any superpositions (\sref{s:super}).
+Adding any superpositions (\sref{c:super}).
 \end{enumerate}
 \item
-Form multipass lords and mark the appropriate multipass slaves (\sref{s:multipass}).
+Form multipass lords and mark the appropriate multipass slaves (\sref{c:multipass}).
 \item
 Add girder control elements (\sref{s:girder}).
 \item

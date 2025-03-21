@@ -156,6 +156,7 @@ bmad_com%radiation_fluctuations_on = .false.
 bmad_com%aperture_limit_on = .false.
 bmad_com%spin_tracking_on = .false.
 bmad_com%spin_sokolov_ternov_flipping_on = .false.
+bmad_private%random_on = .false.
 
 n_ele = branch%n_ele_track
 betas = 1
@@ -238,25 +239,6 @@ case (4, 5)
 ! Variable energy case: i_dim = 6
 
 case (6)
-  if (any(branch%param%t1_with_RF /= 0) .and. dir == 1) then
-    coc%t1 = branch%param%t1_with_RF
-  else
-    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err)
-    if (err) then
-      call end_cleanup(branch, .false.)
-      return
-    endif
-    if (dir == 1)  branch%param%t1_with_RF = coc%t1
-  endif
-
-  if (coc%t1(6,5) == 0) then
-    call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
-                                   'CALCULATION WITH NO RF VOLTAGE!', &
-                                   'USING BRANCH: ' // branch_name(branch))
-    call end_cleanup(branch, .false.)
-    return
-  endif
-
   ! Assume that frequencies are comensurate otherwise a closed orbit does not exist.
 
   rf_freq = 1d30
@@ -269,6 +251,26 @@ case (6)
 
   z_original = start_orb%vec(5) 
   coc%rf_wavelen = c_light * (branch%ele(ix_ele_start)%value(p0c$) / branch%ele(ix_ele_start)%value(e_tot$)) / rf_freq
+
+  !
+
+  if (.not. rf_is_on(branch)) then
+    call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
+                                   'CALCULATION WITH NO RF VOLTAGE!', &
+                                   'USING BRANCH: ' // branch_name(branch))
+    call end_cleanup(branch, .false.)
+    return
+  endif
+
+  call transfer_matrix_calc (branch%lat, coc%t1, ix_branch = branch%ix_branch)
+
+  if (all(coc%t1 == 0)) then  ! Might be that matrices have not yet been made
+    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err)
+    if (err) then
+      call end_cleanup(branch, .false.)
+      return
+    endif
+  endif
 
 ! Error
 
@@ -308,7 +310,7 @@ do i_loop = 1, i_max
   weight(1:n_dim) = 1 / (abs(coc%a_vec) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
   weight(1:4) = weight(1:4) * [1/sqrt(betas(1)), sqrt(betas(1)), 1/sqrt(betas(2)), sqrt(betas(2))]
 
-  call super_mrqmin (vec0, weight, coc%a_vec, chisq, co_func, storage, a_lambda, status)
+  call super_mrqmin (vec0, weight, coc%a_vec, chisq, co_func, storage, a_lambda, status, print_err = .false.)
   ! If super_mrqmin rejects a trial step then will need to reset closed_orb.
   if (chisq < old_chisq .and. status /= 1 .and. end_orb%state /= not_set$) then
     co_best = closed_orb
@@ -382,7 +384,8 @@ do i_loop = 1, i_max
   if (a_lambda < 1d-10) a_lambda = 1d-10
 
   if (status < 0) then  
-    if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'TRACKING BRANCH: ' // branch_name(branch))
+    if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'ABORTING CLOSED ORBIT SEARCH.', &
+                                                'TRACKING BRANCH: ' // branch_name(branch))
     call end_cleanup(branch, .true.)
     return
   endif
@@ -522,9 +525,9 @@ do i_loop = 1, i_max
     if (maxval(amp_del(1:n_dim)) < 1d-4) then
       if (printit) call out_io (s_error$, r_name, &
               'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
+              'Using branch: ' // branch_name(branch), &
               'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
               'bmad_com%abs_tol_tracking (\es10.2\)', &
-              'Using branch: ' // branch_name(branch), &
               r_array = [maxval(amp_del(1:n_dim)), bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
     else
       if (printit) call out_io (s_error$, r_name, &
@@ -576,6 +579,7 @@ logical, optional :: reset_orb
 !
 
 bmad_com = bmad_com_saved  ! Restore
+bmad_private%random_on = .true.
 
 if (n_dim == 4 .or. n_dim == 5) then
   call set_on_off (rfcavity$, branch%lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
@@ -777,7 +781,7 @@ err = .true.
 ok1 = .true.
 call mat_make_unit (mat(1:n_dim,1:n_dim))
 mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - coc%t1(1:n_dim,1:n_dim)
-call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
+call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok = ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
   if (printit) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')

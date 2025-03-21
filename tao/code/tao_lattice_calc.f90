@@ -151,8 +151,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       tao_lat%chrom_calc_ok = .false.
       if (s%com%force_chrom_calc .or. u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
-                tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, &
-                ix_branch = ib, orb0 = tao_branch%orbit(0))
+                tao_branch%orbit(0)%vec(6), tao_lat%low_E_lat, tao_lat%high_E_lat, &
+                tao_branch%low_E_orb, tao_branch%high_E_orb, ib, orb0 = tao_branch%orbit(0))
         tao_lat%chrom_calc_ok = (.not. err)
       endif
 
@@ -215,7 +215,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
             if (.not. curve%valid) cycle
             if (it > curve%n_turn) cycle
 
-            orbit => orb(curve%ix_ele_ref)
+            ele => tao_curve_ele_ref(curve, .false.)
+            orbit => orb(ele%ix_ele)
             if (orbit%state /= alive$) then
               call re_allocate(curve%x_symb, it-1)
               call re_allocate(curve%y_symb, it-1)
@@ -240,7 +241,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
               cycle
             endif
             if (curve%data_source == 'rel_multi_turn_orbit') then
-              ele => branch%ele(curve%ix_ele_ref)
               dvec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 0.0_rp] * pz0
             endif
             curve%x_symb(it) = (orbit%vec(ix) - dvec(ix)) * curve%g%x_axis_scale_factor

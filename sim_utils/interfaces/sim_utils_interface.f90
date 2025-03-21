@@ -101,8 +101,7 @@ end function
 subroutine cplx_mat_inverse(mat, mat_inv, ok, print_err)
   import
   implicit none
-  complex(rp) :: mat(:,:)
-  complex(rp) :: mat_inv(:,:)
+  complex(rp) :: mat(:,:), mat_inv(:,:)
   logical, optional :: ok, print_err
 end subroutine
 
@@ -132,6 +131,11 @@ subroutine date_and_time_stamp (string, numeric_month, include_zone)
   implicit none
   character(*) string
   logical, optional :: numeric_month, include_zone
+end subroutine
+
+subroutine detab(str)
+  implicit none
+  character(*) str
 end subroutine
 
 function determinant (mat) result (det)
@@ -475,10 +479,10 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
   logical, optional :: print_err
 end subroutine
 
-subroutine mat_inverse (mat, mat_inv, ok, print_err)
+subroutine mat_inverse (mat, mat_inv, vec0, vec0_inv, ok, print_err)
   import
-  real(rp) :: mat(:,:)
-  real(rp) :: mat_inv(:,:)
+  real(rp) :: mat(:,:), mat_inv(:,:)
+  real(rp), optional :: vec0(:), vec0_inv(:)
   logical, optional :: ok, print_err
 end subroutine
 
@@ -665,6 +669,15 @@ function probability_funct(x) result (prob)
   real(rp) x
 end function
 
+function quadratic_roots(coefs) result (root)
+
+use precision_def, only: rp
+  import
+  implicit none
+  real(rp) coefs(3)
+  complex(rp) root(2)
+end function
+
 subroutine query_string (query_str, upcase, return_str, ix, ios)
   implicit none
   character(*) return_str
@@ -735,6 +748,12 @@ function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
   character(9) fmt_str
 end function
 
+function str_count(str, match) result (num)
+  implicit none
+  character(*) str, match
+  integer num
+end function
+
 subroutine str_set(str_out, str_in)
   implicit none
   character(:), allocatable :: str_out
@@ -758,8 +777,7 @@ function real_str(r_num, n_signif, n_decimal) result (str)
   import
   implicit none
   real(rp) r_num
-  integer n_signif
-  integer, optional :: n_decimal
+  integer, optional :: n_signif, n_decimal
   character(:), allocatable :: str
 end function
 
@@ -777,10 +795,10 @@ function rot_2d (vec_in, angle) result (vec_out)
   real(rp) vec_in(2), angle, vec_out(2)
 end function
 
-subroutine run_timer(command, time)
+subroutine run_timer(command, time, time0)
   import
   implicit none
-  real(rp), optional :: time
+  real(rp), optional :: time, time0
   character(*) command
 end subroutine
 
@@ -816,9 +834,17 @@ end subroutine
 
 elemental function sqrt_one(x, nd) result (ds1)
   import
+  implicit none
   real(rp), intent(in) :: x
   real(rp) ds1
   integer, optional, intent(in) :: nd
+end function
+
+elemental function sqrt_alpha(alpha, x) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: alpha, x
+  real(rp) y
 end function
 
 function str_first_in_set(line, set, ignore_clauses) result (ix_match)

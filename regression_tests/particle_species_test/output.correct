@@ -2,464 +2,621 @@
 "Ag:name"  STR  "Ag"
 "Ag:mass" ABS  1E-10    107.868200000
 "Ag:charge" ABS  0      0
+"Ag:anti"  STR "antiAg"
 "Ag+76:name"  STR  "Ag+76"
 "Ag+76:mass" ABS  1E-10    107.826507927
 "Ag+76:charge" ABS  0     76
+"Ag+76:anti"  STR "antiAg-76"
 "NH3:name"  STR  "NH3"
 "NH3:mass" ABS  1E-10     17.030518791
 "NH3:charge" ABS  0      0
+"NH3:anti"  STR "NH3"
 "NH3--:name"  STR  "NH3--"
 "NH3--:mass" ABS  1E-10     17.031615951
 "NH3--:charge" ABS  0     -2
+"NH3--:anti"  STR "NH3++"
 "CH3++:name"  STR  "CH3++"
 "CH3++:mass" ABS  1E-10     15.033401773
 "CH3++:charge" ABS  0      2
+"CH3++:anti"  STR "CH3--"
 "CH3+2:name"  STR  "CH3++"
 "CH3+2:mass" ABS  1E-10     15.033401773
 "CH3+2:charge" ABS  0      2
+"CH3+2:anti"  STR "CH3--"
 "NH3@M37.5-:name"  STR  "NH3@M37.5-"
 "NH3@M37.5-:mass" ABS  1E-10     17.031067371
 "NH3@M37.5-:charge" ABS  0     -1
+"NH3@M37.5-:anti"  STR "NH3@M37.5+"
 "C+:name"  STR  "C+"
 "C+:mass" ABS  1E-10     12.010051420
 "C+:charge" ABS  0      1
+"C+:anti"  STR "antiC-"
 "#12C+3:name"  STR  "#12C+3"
 "#12C+3:mass" ABS  1E-10     11.998354260
 "#12C+3:charge" ABS  0      3
+"#12C+3:anti"  STR "#12antiC-3"
 "#293Lv-2:name"  STR  "#293Lv--"
 "#293Lv-2:mass" ABS  1E-10    293.205587160
 "#293Lv-2:charge" ABS  0     -2
+"#293Lv-2:anti"  STR "#293antiLv++"
 "#291Og:name"  STR  "#291Og"
 "#291Og:mass" ABS  1E-10    291.212840000
 "#291Og:charge" ABS  0      0
+"#291Og:anti"  STR "#291antiOg"
 "#295Ts:name"  STR  "#295Ts"
 "#295Ts:mass" ABS  1E-10    295.212680000
 "#295Ts:charge" ABS  0      0
+"#295Ts:anti"  STR "#295antiTs"
 "#400Mc:name"  STR  "#400Mc"
 "#400Mc:mass" ABS  1E-10    400.315880000
 "#400Mc:charge" ABS  0      0
+"#400Mc:anti"  STR "#400antiMc"
 "antiAu:name"  STR  "antiAu"
 "antiAu:mass" ABS  1E-10    196.966569000
 "antiAu:charge" ABS  0      0
+"antiAu:anti"  STR "Au"
 "antiAu-79:name"  STR  "antiAu-79"
 "antiAu-79:mass" ABS  1E-10    196.923231187
 "antiAu-79:charge" ABS  0    -79
+"antiAu-79:anti"  STR "Au+79"
 "#12Fe+++:name"  STR  "#12Fe+3"
 "#12Fe+++:mass" ABS  1E-10     12.467844260
 "#12Fe+++:charge" ABS  0      3
+"#12Fe+++:anti"  STR "#12antiFe-3"
 "antiI:name"  STR  "antiI"
 "antiI:mass" ABS  1E-10    126.904470000
 "antiI:charge" ABS  0      0
+"antiI:anti"  STR "I"
+"#3antiHe--:name"  STR  "#3antiHe--"
+"#3antiHe--:mass" ABS  1E-10      3.014932160
+"#3antiHe--:charge" ABS  0     -2
+"#3antiHe--:anti"  STR "#3He++"
  
 "H:name"  STR  "H"
 "H:mass" ABS  1E-10      1.007975000
 "H:charge" ABS  0      0
+"H:anti"  STR "antiH"
 "He:name"  STR  "He"
 "He:mass" ABS  1E-10      4.002602000
 "He:charge" ABS  0      0
+"He:anti"  STR "antiHe"
 "Li:name"  STR  "Li"
 "Li:mass" ABS  1E-10      6.967500000
 "Li:charge" ABS  0      0
+"Li:anti"  STR "antiLi"
 "Be:name"  STR  "Be"
 "Be:mass" ABS  1E-10      9.012183100
 "Be:charge" ABS  0      0
+"Be:anti"  STR "antiBe"
 "B:name"  STR  "B"
 "B:mass" ABS  1E-10     10.813500000
 "B:charge" ABS  0      0
+"B:anti"  STR "antiB"
 "C:name"  STR  "C"
 "C:mass" ABS  1E-10     12.010600000
 "C:charge" ABS  0      0
+"C:anti"  STR "antiC"
 "N:name"  STR  "N"
 "N:mass" ABS  1E-10     14.006855000
 "N:charge" ABS  0      0
+"N:anti"  STR "antiN"
 "O:name"  STR  "O"
 "O:mass" ABS  1E-10     15.999400000
 "O:charge" ABS  0      0
+"O:anti"  STR "antiO"
 "F:name"  STR  "F"
 "F:mass" ABS  1E-10     18.998403163
 "F:charge" ABS  0      0
+"F:anti"  STR "antiF"
 "Ne:name"  STR  "Ne"
 "Ne:mass" ABS  1E-10     20.179700000
 "Ne:charge" ABS  0      0
+"Ne:anti"  STR "antiNe"
 "Na:name"  STR  "Na"
 "Na:mass" ABS  1E-10     22.989769280
 "Na:charge" ABS  0      0
+"Na:anti"  STR "antiNa"
 "Mg:name"  STR  "Mg"
 "Mg:mass" ABS  1E-10     24.305500000
 "Mg:charge" ABS  0      0
+"Mg:anti"  STR "antiMg"
 "Al:name"  STR  "Al"
 "Al:mass" ABS  1E-10     26.981538500
 "Al:charge" ABS  0      0
+"Al:anti"  STR "antiAl"
 "Si:name"  STR  "Si"
 "Si:mass" ABS  1E-10     28.085000000
 "Si:charge" ABS  0      0
+"Si:anti"  STR "antiSi"
 "P:name"  STR  "P"
 "P:mass" ABS  1E-10     30.973761998
 "P:charge" ABS  0      0
+"P:anti"  STR "antiP"
 "S:name"  STR  "S"
 "S:mass" ABS  1E-10     32.067500000
 "S:charge" ABS  0      0
+"S:anti"  STR "antiS"
 "Cl:name"  STR  "Cl"
 "Cl:mass" ABS  1E-10     35.451500000
 "Cl:charge" ABS  0      0
+"Cl:anti"  STR "antiCl"
 "Ar:name"  STR  "Ar"
 "Ar:mass" ABS  1E-10     39.948000000
 "Ar:charge" ABS  0      0
+"Ar:anti"  STR "antiAr"
 "K:name"  STR  "K"
 "K:mass" ABS  1E-10     39.098300000
 "K:charge" ABS  0      0
+"K:anti"  STR "antiK"
 "Ca:name"  STR  "Ca"
 "Ca:mass" ABS  1E-10     40.078000000
 "Ca:charge" ABS  0      0
+"Ca:anti"  STR "antiCa"
 "Sc:name"  STR  "Sc"
 "Sc:mass" ABS  1E-10     44.955908000
 "Sc:charge" ABS  0      0
+"Sc:anti"  STR "antiSc"
 "Ti:name"  STR  "Ti"
 "Ti:mass" ABS  1E-10     47.867000000
 "Ti:charge" ABS  0      0
+"Ti:anti"  STR "antiTi"
 "V:name"  STR  "V"
 "V:mass" ABS  1E-10     50.941500000
 "V:charge" ABS  0      0
+"V:anti"  STR "antiV"
 "Cr:name"  STR  "Cr"
 "Cr:mass" ABS  1E-10     51.996100000
 "Cr:charge" ABS  0      0
+"Cr:anti"  STR "antiCr"
 "Mn:name"  STR  "Mn"
 "Mn:mass" ABS  1E-10     54.938044000
 "Mn:charge" ABS  0      0
+"Mn:anti"  STR "antiMn"
 "Fe:name"  STR  "Fe"
 "Fe:mass" ABS  1E-10     55.845000000
 "Fe:charge" ABS  0      0
+"Fe:anti"  STR "antiFe"
 "Co:name"  STR  "Co"
 "Co:mass" ABS  1E-10     58.933194000
 "Co:charge" ABS  0      0
+"Co:anti"  STR "antiCo"
 "Ni:name"  STR  "Ni"
 "Ni:mass" ABS  1E-10     58.693400000
 "Ni:charge" ABS  0      0
+"Ni:anti"  STR "antiNi"
 "Cu:name"  STR  "Cu"
 "Cu:mass" ABS  1E-10     63.546000000
 "Cu:charge" ABS  0      0
+"Cu:anti"  STR "antiCu"
 "Zn:name"  STR  "Zn"
 "Zn:mass" ABS  1E-10     65.380000000
 "Zn:charge" ABS  0      0
+"Zn:anti"  STR "antiZn"
 "Ga:name"  STR  "Ga"
 "Ga:mass" ABS  1E-10     69.723000000
 "Ga:charge" ABS  0      0
+"Ga:anti"  STR "antiGa"
 "Ge:name"  STR  "Ge"
 "Ge:mass" ABS  1E-10     72.630000000
 "Ge:charge" ABS  0      0
+"Ge:anti"  STR "antiGe"
 "As:name"  STR  "As"
 "As:mass" ABS  1E-10     74.921595000
 "As:charge" ABS  0      0
+"As:anti"  STR "antiAs"
 "Se:name"  STR  "Se"
 "Se:mass" ABS  1E-10     78.971000000
 "Se:charge" ABS  0      0
+"Se:anti"  STR "antiSe"
 "Br:name"  STR  "Br"
 "Br:mass" ABS  1E-10     79.904000000
 "Br:charge" ABS  0      0
+"Br:anti"  STR "antiBr"
 "Kr:name"  STR  "Kr"
 "Kr:mass" ABS  1E-10     83.798000000
 "Kr:charge" ABS  0      0
+"Kr:anti"  STR "antiKr"
 "Rb:name"  STR  "Rb"
 "Rb:mass" ABS  1E-10     85.467800000
 "Rb:charge" ABS  0      0
+"Rb:anti"  STR "antiRb"
 "Sr:name"  STR  "Sr"
 "Sr:mass" ABS  1E-10     87.620000000
 "Sr:charge" ABS  0      0
+"Sr:anti"  STR "antiSr"
 "Y:name"  STR  "Y"
 "Y:mass" ABS  1E-10     88.905840000
 "Y:charge" ABS  0      0
+"Y:anti"  STR "antiY"
 "Zr:name"  STR  "Zr"
 "Zr:mass" ABS  1E-10     91.224000000
 "Zr:charge" ABS  0      0
+"Zr:anti"  STR "antiZr"
 "Nb:name"  STR  "Nb"
 "Nb:mass" ABS  1E-10     92.906370000
 "Nb:charge" ABS  0      0
+"Nb:anti"  STR "antiNb"
 "Mo:name"  STR  "Mo"
 "Mo:mass" ABS  1E-10     95.950000000
 "Mo:charge" ABS  0      0
+"Mo:anti"  STR "antiMo"
 "Tc:name"  STR  "Tc"
 "Tc:mass" ABS  1E-10     98.000000000
 "Tc:charge" ABS  0      0
+"Tc:anti"  STR "antiTc"
 "Ru:name"  STR  "Ru"
 "Ru:mass" ABS  1E-10    101.070000000
 "Ru:charge" ABS  0      0
+"Ru:anti"  STR "antiRu"
 "Rh:name"  STR  "Rh"
 "Rh:mass" ABS  1E-10    102.905500000
 "Rh:charge" ABS  0      0
+"Rh:anti"  STR "antiRh"
 "Pd:name"  STR  "Pd"
 "Pd:mass" ABS  1E-10    106.420000000
 "Pd:charge" ABS  0      0
+"Pd:anti"  STR "antiPd"
 "Ag:name"  STR  "Ag"
 "Ag:mass" ABS  1E-10    107.868200000
 "Ag:charge" ABS  0      0
+"Ag:anti"  STR "antiAg"
 "Cd:name"  STR  "Cd"
 "Cd:mass" ABS  1E-10    112.414000000
 "Cd:charge" ABS  0      0
+"Cd:anti"  STR "antiCd"
 "In:name"  STR  "In"
 "In:mass" ABS  1E-10    114.818000000
 "In:charge" ABS  0      0
+"In:anti"  STR "antiIn"
 "Sn:name"  STR  "Sn"
 "Sn:mass" ABS  1E-10    118.710000000
 "Sn:charge" ABS  0      0
+"Sn:anti"  STR "antiSn"
 "Sb:name"  STR  "Sb"
 "Sb:mass" ABS  1E-10    121.760000000
 "Sb:charge" ABS  0      0
+"Sb:anti"  STR "antiSb"
 "Te:name"  STR  "Te"
 "Te:mass" ABS  1E-10    127.600000000
 "Te:charge" ABS  0      0
+"Te:anti"  STR "antiTe"
 "I:name"  STR  "I"
 "I:mass" ABS  1E-10    126.904470000
 "I:charge" ABS  0      0
+"I:anti"  STR "antiI"
 "Xe:name"  STR  "Xe"
 "Xe:mass" ABS  1E-10    131.293000000
 "Xe:charge" ABS  0      0
+"Xe:anti"  STR "antiXe"
 "Cs:name"  STR  "Cs"
 "Cs:mass" ABS  1E-10    132.905451960
 "Cs:charge" ABS  0      0
+"Cs:anti"  STR "antiCs"
 "Ba:name"  STR  "Ba"
 "Ba:mass" ABS  1E-10    137.327000000
 "Ba:charge" ABS  0      0
+"Ba:anti"  STR "antiBa"
 "La:name"  STR  "La"
 "La:mass" ABS  1E-10    138.905470000
 "La:charge" ABS  0      0
+"La:anti"  STR "antiLa"
 "Ce:name"  STR  "Ce"
 "Ce:mass" ABS  1E-10    140.116000000
 "Ce:charge" ABS  0      0
+"Ce:anti"  STR "antiCe"
 "Pr:name"  STR  "Pr"
 "Pr:mass" ABS  1E-10    140.907660000
 "Pr:charge" ABS  0      0
+"Pr:anti"  STR "antiPr"
 "Nd:name"  STR  "Nd"
 "Nd:mass" ABS  1E-10    144.242000000
 "Nd:charge" ABS  0      0
+"Nd:anti"  STR "antiNd"
 "Pm:name"  STR  "Pm"
 "Pm:mass" ABS  1E-10    145.000000000
 "Pm:charge" ABS  0      0
+"Pm:anti"  STR "antiPm"
 "Sm:name"  STR  "Sm"
 "Sm:mass" ABS  1E-10    150.360000000
 "Sm:charge" ABS  0      0
+"Sm:anti"  STR "antiSm"
 "Eu:name"  STR  "Eu"
 "Eu:mass" ABS  1E-10    151.964000000
 "Eu:charge" ABS  0      0
+"Eu:anti"  STR "antiEu"
 "Gd:name"  STR  "Gd"
 "Gd:mass" ABS  1E-10    157.250000000
 "Gd:charge" ABS  0      0
+"Gd:anti"  STR "antiGd"
 "Tb:name"  STR  "Tb"
 "Tb:mass" ABS  1E-10    158.925350000
 "Tb:charge" ABS  0      0
+"Tb:anti"  STR "antiTb"
 "Dy:name"  STR  "Dy"
 "Dy:mass" ABS  1E-10    162.500000000
 "Dy:charge" ABS  0      0
+"Dy:anti"  STR "antiDy"
 "Ho:name"  STR  "Ho"
 "Ho:mass" ABS  1E-10    164.930330000
 "Ho:charge" ABS  0      0
+"Ho:anti"  STR "antiHo"
 "Er:name"  STR  "Er"
 "Er:mass" ABS  1E-10    167.259000000
 "Er:charge" ABS  0      0
+"Er:anti"  STR "antiEr"
 "Tm:name"  STR  "Tm"
 "Tm:mass" ABS  1E-10    168.934220000
 "Tm:charge" ABS  0      0
+"Tm:anti"  STR "antiTm"
 "Yb:name"  STR  "Yb"
 "Yb:mass" ABS  1E-10    173.054000000
 "Yb:charge" ABS  0      0
+"Yb:anti"  STR "antiYb"
 "Lu:name"  STR  "Lu"
 "Lu:mass" ABS  1E-10    174.966800000
 "Lu:charge" ABS  0      0
+"Lu:anti"  STR "antiLu"
 "Hf:name"  STR  "Hf"
 "Hf:mass" ABS  1E-10    178.490000000
 "Hf:charge" ABS  0      0
+"Hf:anti"  STR "antiHf"
 "Ta:name"  STR  "Ta"
 "Ta:mass" ABS  1E-10    180.947880000
 "Ta:charge" ABS  0      0
+"Ta:anti"  STR "antiTa"
 "W:name"  STR  "W"
 "W:mass" ABS  1E-10    183.840000000
 "W:charge" ABS  0      0
+"W:anti"  STR "antiW"
 "Re:name"  STR  "Re"
 "Re:mass" ABS  1E-10    186.207000000
 "Re:charge" ABS  0      0
+"Re:anti"  STR "antiRe"
 "Os:name"  STR  "Os"
 "Os:mass" ABS  1E-10    190.230000000
 "Os:charge" ABS  0      0
+"Os:anti"  STR "antiOs"
 "Ir:name"  STR  "Ir"
 "Ir:mass" ABS  1E-10    192.217000000
 "Ir:charge" ABS  0      0
+"Ir:anti"  STR "antiIr"
 "Pt:name"  STR  "Pt"
 "Pt:mass" ABS  1E-10    195.084000000
 "Pt:charge" ABS  0      0
+"Pt:anti"  STR "antiPt"
 "Au:name"  STR  "Au"
 "Au:mass" ABS  1E-10    196.966569000
 "Au:charge" ABS  0      0
+"Au:anti"  STR "antiAu"
 "Hg:name"  STR  "Hg"
 "Hg:mass" ABS  1E-10    200.592000000
 "Hg:charge" ABS  0      0
+"Hg:anti"  STR "antiHg"
 "Tl:name"  STR  "Tl"
 "Tl:mass" ABS  1E-10    204.383500000
 "Tl:charge" ABS  0      0
+"Tl:anti"  STR "antiTl"
 "Pb:name"  STR  "Pb"
 "Pb:mass" ABS  1E-10    207.200000000
 "Pb:charge" ABS  0      0
+"Pb:anti"  STR "antiPb"
 "Bi:name"  STR  "Bi"
 "Bi:mass" ABS  1E-10    208.980400000
 "Bi:charge" ABS  0      0
+"Bi:anti"  STR "antiBi"
 "Po:name"  STR  "Po"
 "Po:mass" ABS  1E-10    209.000000000
 "Po:charge" ABS  0      0
+"Po:anti"  STR "antiPo"
 "At:name"  STR  "At"
 "At:mass" ABS  1E-10    210.000000000
 "At:charge" ABS  0      0
+"At:anti"  STR "antiAt"
 "Rn:name"  STR  "Rn"
 "Rn:mass" ABS  1E-10    222.000000000
 "Rn:charge" ABS  0      0
+"Rn:anti"  STR "antiRn"
 "Fr:name"  STR  "Fr"
 "Fr:mass" ABS  1E-10    223.000000000
 "Fr:charge" ABS  0      0
+"Fr:anti"  STR "antiFr"
 "Ra:name"  STR  "Ra"
 "Ra:mass" ABS  1E-10    226.000000000
 "Ra:charge" ABS  0      0
+"Ra:anti"  STR "antiRa"
 "Ac:name"  STR  "Ac"
 "Ac:mass" ABS  1E-10    227.000000000
 "Ac:charge" ABS  0      0
+"Ac:anti"  STR "antiAc"
 "Th:name"  STR  "Th"
 "Th:mass" ABS  1E-10    232.037700000
 "Th:charge" ABS  0      0
+"Th:anti"  STR "antiTh"
 "Pa:name"  STR  "Pa"
 "Pa:mass" ABS  1E-10    231.035880000
 "Pa:charge" ABS  0      0
+"Pa:anti"  STR "antiPa"
 "U:name"  STR  "U"
 "U:mass" ABS  1E-10    238.028910000
 "U:charge" ABS  0      0
+"U:anti"  STR "antiU"
 "Np:name"  STR  "Np"
 "Np:mass" ABS  1E-10    237.000000000
 "Np:charge" ABS  0      0
+"Np:anti"  STR "antiNp"
 "Pu:name"  STR  "Pu"
 "Pu:mass" ABS  1E-10    244.000000000
 "Pu:charge" ABS  0      0
+"Pu:anti"  STR "antiPu"
 "Am:name"  STR  "Am"
 "Am:mass" ABS  1E-10    243.000000000
 "Am:charge" ABS  0      0
+"Am:anti"  STR "antiAm"
 "Cm:name"  STR  "Cm"
 "Cm:mass" ABS  1E-10    247.000000000
 "Cm:charge" ABS  0      0
+"Cm:anti"  STR "antiCm"
 "Bk:name"  STR  "Bk"
 "Bk:mass" ABS  1E-10    247.000000000
 "Bk:charge" ABS  0      0
+"Bk:anti"  STR "antiBk"
 "Cf:name"  STR  "Cf"
 "Cf:mass" ABS  1E-10    251.000000000
 "Cf:charge" ABS  0      0
+"Cf:anti"  STR "antiCf"
 "Es:name"  STR  "Es"
 "Es:mass" ABS  1E-10    252.000000000
 "Es:charge" ABS  0      0
+"Es:anti"  STR "antiEs"
 "Fm:name"  STR  "Fm"
 "Fm:mass" ABS  1E-10    257.000000000
 "Fm:charge" ABS  0      0
+"Fm:anti"  STR "antiFm"
 "Md:name"  STR  "Md"
 "Md:mass" ABS  1E-10    258.000000000
 "Md:charge" ABS  0      0
+"Md:anti"  STR "antiMd"
 "No:name"  STR  "No"
 "No:mass" ABS  1E-10    259.000000000
 "No:charge" ABS  0      0
+"No:anti"  STR "antiNo"
 "Lr:name"  STR  "Lr"
 "Lr:mass" ABS  1E-10    262.000000000
 "Lr:charge" ABS  0      0
+"Lr:anti"  STR "antiLr"
 "Rf:name"  STR  "Rf"
 "Rf:mass" ABS  1E-10    261.000000000
 "Rf:charge" ABS  0      0
+"Rf:anti"  STR "antiRf"
 "Db:name"  STR  "Db"
 "Db:mass" ABS  1E-10    262.000000000
 "Db:charge" ABS  0      0
+"Db:anti"  STR "antiDb"
 "Sg:name"  STR  "Sg"
 "Sg:mass" ABS  1E-10    266.000000000
 "Sg:charge" ABS  0      0
+"Sg:anti"  STR "antiSg"
 "Bh:name"  STR  "Bh"
 "Bh:mass" ABS  1E-10    264.000000000
 "Bh:charge" ABS  0      0
+"Bh:anti"  STR "antiBh"
 "Hs:name"  STR  "Hs"
 "Hs:mass" ABS  1E-10    277.000000000
 "Hs:charge" ABS  0      0
+"Hs:anti"  STR "antiHs"
 "Mt:name"  STR  "Mt"
 "Mt:mass" ABS  1E-10    268.000000000
 "Mt:charge" ABS  0      0
+"Mt:anti"  STR "antiMt"
 "Ds:name"  STR  "Ds"
 "Ds:mass" ABS  1E-10    274.000000000
 "Ds:charge" ABS  0      0
+"Ds:anti"  STR "antiDs"
 "Rg:name"  STR  "Rg"
 "Rg:mass" ABS  1E-10    278.000000000
 "Rg:charge" ABS  0      0
+"Rg:anti"  STR "antiRg"
 "Cn:name"  STR  "Cn"
 "Cn:mass" ABS  1E-10    281.000000000
 "Cn:charge" ABS  0      0
+"Cn:anti"  STR "antiCn"
 "Nh:name"  STR  "Nh"
 "Nh:mass" ABS  1E-10    283.000000000
 "Nh:charge" ABS  0      0
+"Nh:anti"  STR "antiNh"
 "Fl:name"  STR  "Fl"
 "Fl:mass" ABS  1E-10    287.000000000
 "Fl:charge" ABS  0      0
+"Fl:anti"  STR "antiFl"
 "Mc:name"  STR  "Mc"
 "Mc:mass" ABS  1E-10    289.000000000
 "Mc:charge" ABS  0      0
+"Mc:anti"  STR "antiMc"
 "Lv:name"  STR  "Lv"
 "Lv:mass" ABS  1E-10    291.000000000
 "Lv:charge" ABS  0      0
+"Lv:anti"  STR "antiLv"
 "Ts:name"  STR  "Ts"
 "Ts:mass" ABS  1E-10    293.000000000
 "Ts:charge" ABS  0      0
+"Ts:anti"  STR "antiTs"
 "Og:name"  STR  "Og"
 "Og:mass" ABS  1E-10    294.000000000
 "Og:charge" ABS  0      0
+"Og:anti"  STR "antiOg"
  
 "CH2:name"  STR  "CH2"
 "CH2:mass" ABS  1E-10     14.026579005
 "CH2:charge" ABS  0      0
+"CH2:anti"  STR "CH2"
 "CH3:name"  STR  "CH3"
 "CH3:mass" ABS  1E-10     15.034498933
 "CH3:charge" ABS  0      0
+"CH3:anti"  STR "CH3"
 "CH4:name"  STR  "CH4"
 "CH4:mass" ABS  1E-10     16.042498862
 "CH4:charge" ABS  0      0
+"CH4:anti"  STR "CH4"
 "CO:name"  STR  "CO"
 "CO:mass" ABS  1E-10     28.010098012
 "CO:charge" ABS  0      0
+"CO:anti"  STR "CO"
 "CO2:name"  STR  "CO2"
 "CO2:mass" ABS  1E-10     44.009496877
 "CO2:charge" ABS  0      0
+"CO2:anti"  STR "CO2"
 "D2:name"  STR  "D2"
 "D2:mass" ABS  1E-10      4.028203270
 "D2:charge" ABS  0      0
+"D2:anti"  STR "D2"
 "D2O:name"  STR  "D2O"
 "D2O:mass" ABS  1E-10     20.027598579
 "D2O:charge" ABS  0      0
+"D2O:anti"  STR "D2O"
 "H2:name"  STR  "H2"
 "H2:mass" ABS  1E-10      2.015879857
 "H2:charge" ABS  0      0
+"H2:anti"  STR "H2"
 "H2O:name"  STR  "H2O"
 "H2O:mass" ABS  1E-10     18.015278722
 "H2O:charge" ABS  0      0
+"H2O:anti"  STR "H2O"
 "N2:name"  STR  "N2"
 "N2:mass" ABS  1E-10     28.013398012
 "N2:charge" ABS  0      0
+"N2:anti"  STR "N2"
 "HF:name"  STR  "HF"
 "HF:mass" ABS  1E-10     20.006341580
 "HF:charge" ABS  0      0
+"HF:anti"  STR "HF"
 "OH:name"  STR  "OH"
 "OH:mass" ABS  1E-10     17.007338793
 "OH:charge" ABS  0      0
+"OH:anti"  STR "OH"
 "O2:name"  STR  "O2"
 "O2:mass" ABS  1E-10     31.998797729
 "O2:charge" ABS  0      0
+"O2:anti"  STR "O2"
 "NH2:name"  STR  "NH2"
 "NH2:mass" ABS  1E-10     16.022800000
 "NH2:charge" ABS  0      0
+"NH2:anti"  STR "NH2"
 "NH3:name"  STR  "NH3"
 "NH3:mass" ABS  1E-10     17.030518791
 "NH3:charge" ABS  0      0
+"NH3:anti"  STR "NH3"
 "C2H3:name"  STR  "C2H3"
 "C2H3:mass" ABS  1E-10     27.045700000
 "C2H3:charge" ABS  0      0
+"C2H3:anti"  STR "C2H3"
 "C2H4:name"  STR  "C2H4"
 "C2H4:mass" ABS  1E-10     28.053600000
 "C2H4:charge" ABS  0      0
+"C2H4:anti"  STR "C2H4"
 "C2H5:name"  STR  "C2H5"
 "C2H5:mass" ABS  1E-10     29.061500000
 "C2H5:charge" ABS  0      0
+"C2H5:anti"  STR "C2H5"
 "ref_particle"               STR   "TTTTT"
 "anti_ref_particle"          STR   "TTTTT"
 "deuteron"                   STR   "TTTTT"

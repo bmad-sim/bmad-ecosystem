@@ -31,6 +31,7 @@ use super_recipes_mod, only: super_brent
 use ptc_layout_mod, only: update_ele_from_fibre
 use particle_species_mod
 use bmad_parser_struct, only: bp_com
+use bmad_parser_mod, only: settable_dep_var_bookkeeping
 
 implicit none
 
@@ -44,9 +45,10 @@ type (wake_lr_mode_struct), pointer :: lr
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (molecular_component_struct), allocatable :: component(:)
 type (material_struct), pointer :: material
+type (material_struct) :: materi
 
 real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time, beta
-real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin, ky, kz
+real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin, ky, kz, tot_mass
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
@@ -57,7 +59,7 @@ integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, sta
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 logical, optional :: force_bookkeeping
-logical err_flag, set_l
+logical err_flag, set_l, field_bookkeeping_doable
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical :: v_mask(num_ele_attrib$), vv_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 logical :: dval_change(num_ele_attrib$)
@@ -92,9 +94,9 @@ if (bmad_com%auto_bookkeeper .and. .not. logic_option(.false., force_bookkeeping
   if (ele%bookkeeping_state%attributes /= stale$) return
 
   if (.false. .and. bp_com%parser_name == '') then   ! If not parsing should not be here
-    call out_io (s_error$, r_name, &
+    call out_io (s_warn$, r_name, &
       '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-      '!!!!! Setting bmad_com%auto_bookkeeper = .false. will, in the near future, be mandated for all !!!!!', &
+      '!!!!! Using intelligent bookkeeping will, in the near future, be mandated for all              !!!!!', &
       '!!!!! Bmad programs that modify lattice parameters.                                            !!!!!', &
       '!!!!! See the "Intelligent Bookkeeping" section in the Bmad manual.                            !!!!!', &
       '!!!!! Contact the maintainer of this program with this information.                            !!!!!', &
@@ -130,7 +132,23 @@ if (associated(ele%wake)) then
   do i = 1, size(ele%wake%lr%mode)
     lr => ele%wake%lr%mode(i)
     if (lr%freq_in < 0) lr%freq = ele%value(rf_frequency$)
-    if (lr%q /= real_garbage$) lr%damp = pi * lr%freq / lr%q
+
+    ! Old style lattice files set Q and not damp.
+    if (lr%q /= real_garbage$) then  
+      if (lr%q == 0) then
+        call out_io (s_error$, r_name, 'Q factor for LR wake mode is zero which does not make sense!', &
+                                       'For element: ' // ele%name)
+      else
+        lr%damp = pi * lr%freq / lr%q
+      endif
+    endif
+
+    if (lr%damp == 0) then
+      lr%q = 1d100
+    else
+      lr%q = pi * lr%freq / lr%damp
+    endif
+
   enddo
 endif
 
@@ -142,11 +160,16 @@ if (.not. associated(pointer_to_girder(ele)) .and. has_orientation_attributes(el
   case (sbend$, rf_bend$)
     val(roll_tot$)     = val(roll$)
     val(ref_tilt_tot$) = val(ref_tilt$)
+    ele%bookkeeping_state%has_misalign = (val(ref_tilt_tot$) /= 0 .or. val(roll_tot$) /= 0)
+
   case (crystal$, mirror$, multilayer_mirror$)
     val(tilt_tot$)     = val(tilt$)
     val(ref_tilt_tot$) = val(ref_tilt$)
+    ele%bookkeeping_state%has_misalign = (val(ref_tilt_tot$) /= 0 .or. val(tilt_tot$) /= 0)
+
   case default
     val(tilt_tot$)     = val(tilt$)
+    ele%bookkeeping_state%has_misalign = (val(tilt_tot$) /= 0)
   end select
 
   val(x_offset_tot$) = val(x_offset$)
@@ -154,6 +177,12 @@ if (.not. associated(pointer_to_girder(ele)) .and. has_orientation_attributes(el
   val(z_offset_tot$) = val(z_offset$)
   val(x_pitch_tot$)  = val(x_pitch$)
   val(y_pitch_tot$)  = val(y_pitch$)
+
+  ele%bookkeeping_state%has_misalign = (ele%bookkeeping_state%has_misalign .or. val(x_offset_tot$) /= 0 .or. &
+                                        val(y_offset_tot$) /= 0 .or. val(z_offset_tot$) /= 0 .or. &
+                                        val(x_pitch_tot$) /= 0 .or. val(y_pitch_tot$) /= 0)
+  if (ele%key == sad_mult$) ele%bookkeeping_state%has_misalign = (ele%bookkeeping_state%has_misalign .or. &
+                                                         val(x_offset_mult$) /= 0 .or. val(y_offset_mult$) /= 0)
 endif
 
 ! Super_lord length change is put in last slave
@@ -183,7 +212,9 @@ endif
 
 ! Field_master...
 
-if (val(p0c$) /= 0 .and. particle /= not_set$) then
+field_bookkeeping_doable = (val(p0c$) /= 0 .and. particle /= not_set$)
+
+if (field_bookkeeping_doable) then
   if (ele%field_master) then
 
     factor = charge_of(particle) * c_light / val(p0c$)
@@ -205,17 +236,12 @@ if (val(p0c$) /= 0 .and. particle /= not_set$) then
       val(ks$) = factor * val(Bs_field$)
       val(k1$) = factor * val(B1_gradient$)
     case (rf_bend$)
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(g$)     = factor * val(B_field$)
     case (sbend$)
-      ! Case where angle/g/rho is set along with b1_gradient (or similar).
-      ! In this case settable_dep_var_bookkeeping has set B_field$ to real_garbage$
-      if (val(B_field$) == real_garbage$) then
-        val(B_field$)     = factor * val(g$)
-        val(dB_field$)    = factor * val(dg$)
-      else
-        val(g$)     = factor * val(B_field$)
-        val(dg$)    = factor * val(dB_field$)
-      endif
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
+      val(g$)     = factor * val(B_field$)
+      val(dg$)    = factor * val(dB_field$)
       val(k1$)    = factor * val(B1_gradient$)
       val(k2$)    = factor * val(B2_gradient$)
     case (hkicker$, vkicker$)
@@ -252,8 +278,10 @@ if (val(p0c$) /= 0 .and. particle /= not_set$) then
       val(Bs_field$)    = factor * val(ks$)
       val(B1_gradient$) = factor * val(k1$)
     case (rf_bend$)
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(B_field$)     = factor * val(g$)
     case (sbend$)
+      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(B_field$)     = factor * val(g$)
       val(dB_field$)    = factor * val(dg$)
       val(B1_gradient$) = factor * val(k1$)
@@ -461,33 +489,64 @@ case (foil$)
   call molecular_components(ele%component_name, component)
   n = size(component)
   if (.not. allocated(ele%foil%material)) allocate(ele%foil%material(n))
+  materi = ele%foil%material(1)
+
+  if (n > 1 .and. size(ele%foil%material) == 1) then
+    deallocate (ele%foil%material)
+    allocate(ele%foil%material(n))
+    ele%foil%material(1) = materi
+  endif
+
   if (n /= size(ele%foil%material)) then
     call out_io(s_error$, r_name, 'NUMBER OF COMPONENTS IN: ' // quote(ele%component_name) // ' (' // int_str(n) // &
-                    ') IS NOT THE SAME AS OTHER PARAMETERS.')
+                    ') IS NOT THE SAME AS OTHER PARAMETERS IN ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif
 
+  tot_mass = 0
   do ix = 1, n
     material => ele%foil%material(ix)
     material%species = species_id(component(ix)%atom)
+    material%number = component(ix)%number
+    tot_mass = tot_mass + mass_of(material%species) * material%number
+  enddo
+
+  if (n > 1) then
+    if (materi%density /= real_garbage$ .and. ele%foil%material(2)%density == real_garbage$) then
+      do ix = 1, n
+        material => ele%foil%material(ix)
+        material%density = materi%density * mass_of(material%species) * material%number / tot_mass
+      enddo  
+    endif
+
+    if (materi%area_density /= real_garbage$ .and. ele%foil%material(2)%area_density == real_garbage$) then
+      do ix = 1, n
+        material => ele%foil%material(ix)
+        material%area_density = materi%area_density * mass_of(material%species) * material%number / tot_mass
+      enddo  
+    endif
+  endif
+
+  do ix = 1, n
+    material => ele%foil%material(ix)
     z_material = atomic_number(material%species)
 
-    if (material%radiation_length == 0) then
+    if (material%radiation_length == real_garbage$) then
       material%radiation_length_used = x0_radiation_length(material%species)
     else
       material%radiation_length_used = material%radiation_length
     endif
 
-    if (material%density /= 0 .and. material%area_density /= 0) then
+    if (material%density /= real_garbage$ .and. material%area_density /= real_garbage$) then
       call out_io(s_error$, r_name, 'SETTING BOTH DENSITY AND AREA_DENSITY IS NOT PERMITTED FOR: ' // ele%name)
       return
     endif
 
-    if (material%density == 0) then
-      if (material%area_density /= 0) then
+    if (material%density == real_garbage$) then
+      if (material%area_density /= real_garbage$) then
         if (ele%value(thickness$) == 0) then
-          material%density_used = 0
+          material%density_used = real_garbage$
         else
           material%density_used = material%area_density / ele%value(thickness$)
         endif
@@ -498,13 +557,13 @@ case (foil$)
       material%density_used = material%density
     endif
 
-    if (material%area_density == 0) then
+    if (material%area_density == real_garbage$) then
       material%area_density_used = material%density_used * ele%value(thickness$)
     else
       material%area_density_used = material%area_density
     endif
 
-    if (material%density == 0 .and. material%area_density == 0 .and. n > 1) then
+    if (material%density == real_garbage$ .and. material%area_density == real_garbage$ .and. n > 1) then
       call out_io(s_warn$, r_name, 'Neither foil DENSITY(s) nor AREA_DENSITY(s) set for compound material for: ' // ele%name, &
                                    'This will produce HIGHLY inaccurate results!')
     endif
@@ -691,20 +750,29 @@ case (rf_bend$)
     endif
   endif
 
-  val(angle$) = val(l$) * val(g$)
+  if (field_bookkeeping_doable) then
+    val(angle$) = val(l$) * val(g$)
 
-  if (val(g$) == 0) then
-    val(rho$) = 0
-    val(l_chord$) = val(l$)
-    val(l_sagitta$) = 0
-  else
-    val(rho$) = 1 / val(g$)
-    val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
-    val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
-  endif
+    if (val(g$) == 0) then
+      val(rho$) = 0
+      val(l_chord$) = val(l$)
+      val(l_sagitta$) = 0
+    else
+      val(rho$) = 1 / val(g$)
+      val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
+      val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
+    endif
 
-  if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
-    call set_ele_status_stale (ele, floor_position_group$)
+    select case (nint(val(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      val(l_rectangle$) = val(l_chord$)
+    case default
+      val(l_rectangle$) = sinc(val(angle$)) * val(l$)
+    end select
+
+    if (ele_value_has_changed(ele, [g$, rho$], [1e-10_rp, 1e-10_rp], .false.)) then
+      call set_ele_status_stale (ele, floor_position_group$)
+    endif
   endif
 
 ! sad_mult
@@ -730,24 +798,33 @@ case (sad_mult$)
 
 case (sbend$)
 
-  val(angle$) = val(l$) * val(g$)
+  if (field_bookkeeping_doable) then
+    val(angle$) = val(l$) * val(g$)
 
-  if (val(g$) == 0) then
-    val(rho$) = 0
-    val(l_chord$) = val(l$)
-    val(l_sagitta$) = 0
-  else
-    val(rho$) = 1 / val(g$)
-    val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
-    val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
+    if (val(g$) == 0) then
+      val(rho$) = 0
+      val(l_chord$) = val(l$)
+      val(l_sagitta$) = 0
+    else
+      val(rho$) = 1 / val(g$)
+      val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
+      val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
+    endif
+
+    select case (nint(val(fiducial_pt$)))
+    case (none_pt$, center_pt$)
+      val(l_rectangle$) = val(l_chord$)
+    case default
+      val(l_rectangle$) = sinc(val(angle$)) * val(l$)
+    end select
+
+    if (ele_value_has_changed(ele, [g$, rho$], [1e-10_rp, 1e-10_rp], .false.)) then
+      call set_ele_status_stale (ele, floor_position_group$)
+    endif
+
+    val(g_tot$)       = val(g$)       + val(dg$)
+    val(b_field_tot$) = val(b_field$) + val(db_field$)
   endif
-
-  if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then
-    call set_ele_status_stale (ele, floor_position_group$)
-  endif
-
-  val(g_tot$)       = val(g$)       + val(dg$)
-  val(b_field_tot$) = val(b_field$) + val(db_field$)
 
 ! Sol_quad
 

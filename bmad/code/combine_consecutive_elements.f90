@@ -53,11 +53,15 @@ do ib = 0, ubound(lat%branch, 1)
         cycle
       endif
       call combine_eles (ele1, ele2, branch, error)
+      if (error) return
     endif
 
     if (ele2%key == marker$ .and. ie < branch%n_ele_track - 1) then
       ele2 => branch%ele(ie+2)
-      if (ele1%name == ele2%name .and. ele1%key == ele2%key) call combine_eles (ele1, ele2, branch, error)
+      if (ele1%name == ele2%name .and. ele1%key == ele2%key) then
+        call combine_eles (ele1, ele2, branch, error)
+        if (error) return
+      endif
     endif
 
   enddo
@@ -171,7 +175,7 @@ case (rfcavity$, lcavity$)
   ele1%value(voltage$) = 2 * ele1%value(voltage$)
 
 case (taylor$)
-  call concat_ele_taylor (ele1%taylor, ele2, ele1%taylor)
+  call concat_ele_taylor (ele1%taylor, ele2, ele1%taylor, error)
 
 end select
 

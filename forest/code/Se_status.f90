@@ -9951,6 +9951,7 @@ endif
 
        kick_x= -(f.d.1)  ! magnetic field
        kick_y= -(f.d.2)
+
        call clean_taylor(kick_x,kick_x,1.0e-6_dp)
        call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
@@ -10951,7 +10952,8 @@ endif
      endif
     enddo
     if(i>nrmax-10) then
-     write(6,*) i, a, "did not converge in orthonormalisep"
+     write(6,*) i, a, "did not converge in orthonormalisep 2"
+     read(5,*) i
      ! stop
     endif 
     do i=1,3

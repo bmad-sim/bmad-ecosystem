@@ -23,13 +23,16 @@ implicit none
 type (ele_struct) ele
 type (ele_struct), pointer :: ele0
 
-real(rp) s_pos, bbi_const, x_center, y_center, sigma(2), dsigma_ds(2)
+real(rp) s_pos, bbi_const, x_center, y_center, sigma(2), dsigma_ds(2), ds
 real(rp) beta, sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, gamma0
 
 !
 
 sig_x0 = ele%value(sig_x$)
 sig_y0 = ele%value(sig_y$)
+ds = s_pos - ele%value(s_twiss_ref$)
+
+!
 
 if (ele%value(beta_a_strong$) == 0) then
   ele0 => pointer_to_next_ele(ele, -1)
@@ -40,6 +43,18 @@ else
   alpha_a0 = ele%value(alpha_a_strong$)
 endif
 
+if (beta_a0 == 0) then   ! Can happen when testing.
+  sigma(1) = sig_x0
+  dsigma_ds(1) = 0
+else
+  gamma0 = (1 + alpha_a0**2) / beta_a0
+  beta = beta_a0 - 2 * alpha_a0 * ds + gamma0 * ds**2
+  sigma(1) = sig_x0 * sqrt(beta / beta_a0)
+  dsigma_ds(1) = -(alpha_a0 - ds * gamma0) * sigma(1) / beta
+endif
+
+!
+
 if (ele%value(beta_b_strong$) == 0) then
   ele0 => pointer_to_next_ele(ele, -1)
   beta_b0 = ele%b%beta
@@ -49,20 +64,17 @@ else
   alpha_b0 = ele%value(alpha_b_strong$)
 endif
 
-if (beta_a0 == 0) then
-  sigma = [sig_x0, sig_y0]
-  dsigma_ds = 0
+if (beta_b0 == 0) then   ! Can happen when testing.
+  sigma(2) = sig_y0
+  dsigma_ds(2) = 0
 else
-  gamma0 = (1 + alpha_a0**2) / beta_a0
-  beta = beta_a0 - 2 * alpha_a0 * s_pos + gamma0 * s_pos**2
-  sigma(1) = sig_x0 * sqrt(beta / beta_a0)
-  dsigma_ds(1) = -(alpha_a0 - s_pos * gamma0) * sigma(1) / beta
-
   gamma0 = (1 + alpha_b0**2) / beta_b0
-  beta = beta_b0 - 2 * alpha_b0 * s_pos + gamma0 * s_pos**2
+  beta = beta_b0 - 2 * alpha_b0 * ds + gamma0 * ds**2
   sigma(2) = sig_y0 * sqrt(beta / beta_b0)
-  dsigma_ds(2) = -(alpha_b0 - s_pos * gamma0) * sigma(2) / beta
+  dsigma_ds(2) = -(alpha_b0 - ds * gamma0) * sigma(2) / beta
 endif
+
+!
 
 bbi_const = -strong_beam_strength(ele) * classical_radius_factor /  &
                                       (2 * pi * ele%value(p0c$) * (sigma(1) + sigma(2)))

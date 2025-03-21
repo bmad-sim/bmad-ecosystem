@@ -27,57 +27,30 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine w_mat_to_axis_angle (w_mat, axis, angle, ref_axis)
+! Subroutine w_mat_to_axis_angle (w_mat, axis, angle)
 !
 ! Routine to find the rotation axis and rotation angle corresponding to a given
 ! 3D rotation matrix.
 !
-! The rotation axis is chosen to have a non-negative dot product with the
-! reference axis ref_axis.
-!
-! The rotation angle is chosen in the range [-pi, pi].
+! The rotation angle is chosen in the range [0, pi].
 !
 ! Input:
 !   w_mat(3,3)    -- real(rp): Rotation matrix.
-!   ref_axis(3)   -- real(rp), optional: Reference axis. Default is [1, 1, 1].
 !
 ! Output:
 !   axis(3)       -- real(rp): Rotation axis. Normalized to 1.
-!   angle         -- real(rp): Rotation angle in the range [-pi, pi].
+!   angle         -- real(rp): Rotation angle in the range [0, pi].
 !-
 
-subroutine w_mat_to_axis_angle (w_mat, axis, angle, ref_axis)
+subroutine w_mat_to_axis_angle (w_mat, axis, angle)
 
 real(rp) w_mat(3,3), axis(3), angle
-real(rp), optional :: ref_axis(3)
 real(rp) sin2_ang, quat(0:3)
 
 !
 
 quat = w_mat_to_quat(w_mat)
-if (all(quat(1:3) == 0)) then
-  axis = [1, 0, 0]
-  angle = 0
-  return
-endif
-
-!
-
-sin2_ang = norm2(quat(1:3))
-axis = quat(1:3) / sin2_ang
-angle = modulo2(2 * atan2(sin2_ang, quat(0)), pi)
-
-! Align to axis to point in the general direction of (1,1,1)
-
-if (present(ref_axis)) then
-  if (dot_product(ref_axis, axis) < 0) then
-    axis = -axis 
-    angle = -angle
-  endif
-elseif (sum(axis) < 0) then
-  axis = -axis 
-  angle = -angle
-endif
+call quat_to_axis_angle(quat, axis, angle)
 
 end subroutine w_mat_to_axis_angle
 
@@ -219,7 +192,7 @@ endif
 norm = norm2(axis)
 if (norm == 0) then
   w_mat = 0
-  call out_io (s_fatal$, r_name, 'ZERO AXIS LENGTH WITH NON-ZERO ROTATION!')
+  call out_io (s_error$, r_name, 'ZERO AXIS LENGTH WITH NON-ZERO ROTATION!')
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -303,14 +276,15 @@ end function omega_to_quat
 !+
 ! Subroutine quat_to_axis_angle (quat, axis, angle)
 ! 
-! Routine to convert from axis + angle representation to a quaternion.
+! Routine to convert from quaternion to axis + angle representation.
+! The angle will be in the range 0 <= angle <= pi.
 !
 ! Input:
 !   quat(0:3)   -- real(rp): Rotation quaternion. Assumed normalized.
 !
 ! Output:
 !   axis(3)     -- real(rp): Axis of rotation.
-!   angle       -- real(rp): angle of rotation.
+!   angle       -- real(rp): angle of rotation in range [0, pi].
 !-
 
 subroutine quat_to_axis_angle (quat, axis, angle)
@@ -325,9 +299,12 @@ anorm = norm2(quat(1:3))
 if (anorm == 0) then
   angle = 0
   axis = [0, 0, 1]  ! Arbitrary.
-else
+elseif (quat(0) > 0) then
   angle = 2 * atan2(anorm, quat(0))
   axis = quat(1:3) / anorm
+else
+  angle = 2 * atan2(anorm, -quat(0))
+  axis = -quat(1:3) / anorm
 endif
 
 end subroutine quat_to_axis_angle 

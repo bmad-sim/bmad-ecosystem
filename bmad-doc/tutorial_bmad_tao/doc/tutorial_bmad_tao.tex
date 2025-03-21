@@ -35,6 +35,7 @@
 \usepackage[strings]{underscore}    % to use "_" in text
 \usepackage[nottoc,numbib]{tocbibind}   % Makes "References" section show in table of contents
 \usepackage[pdftex,colorlinks=true,bookmarksnumbered=true]{hyperref}   % Must be last package!
+\usepackage{marginnote}
 
 %----------------------------------------------------------------
 
@@ -78,7 +79,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ April 19, 2024}
+\date{David Sagan and Chris Mayes \\ August 3, 2024}
 
 \begin{document}
 
@@ -112,14 +113,17 @@ you are familiar with the basics of Unix and how to use a command line interface
 \label{s:overview}
 
 \begin{description}
+%
+\marginnote{\footnotesize\hspace*{-0.4in}\parbox{0.95in}{
+Only the first letter of \bmad is capitalized. the rest is lower case.
+}}[0.1in]
+%
 \item[Bmad] \Newline
-\bmad is an open-source software library (aka toolkit) for simulating charged particles and
-X-rays. \bmad is not a program itself but is used by programs for doing calculations. The advantage
-of \bmad over a stand-alone simulation program is that when new types of simulations need to be
-developed, \bmad can be used to cut down on the time needed to develop such programs with the added
-benefit that the number of programming errors will be reduced.
-
-Note: Only the first letter of \bmad is capitalized. the rest is lower case.
+\bmad is an ecosystem of toolkits (software libraries) and programs for the simulation of charged
+particles and X-rays. At the heart of this ecosystem is the open source \bmad toolkit which can be
+used to construct simulation programs in less time and with fewer bugs than can be done from
+scratch. There is some ambiguity here since the name \bmad can refer to the entire ecosystem in
+general or the \bmad toolkit in particular. Generally the context will make things clear.
 
 Over the years, \bmad has been used for a wide range of charged-particle and X-ray simulations. This
 includes:
@@ -132,12 +136,10 @@ Coherent Synchrotron Radiation (CSR)            Frequency map analysis
 \end{code}
 %
 \item[Tao] \Newline
-The disadvantage of \bmad is that, as a toolkit, one cannot perform any calculations without first
-developing a program. To get around this, the \tao program was developed.  \tao is a general purpose
-simulation program, based upon \bmad. \tao can be used to view lattices, do Twiss and orbit
-calculations, nonlinear optimization on lattices, etc., etc.  Additionally, \tao's object oriented
-design makes it relatively easy to extend it. For example, it can be used for orbit flattening in an
-online machine control system.
+\tao is a general purpose simulation program, based upon the \bmad toolkit. \tao can be used to view
+lattices, do Twiss and orbit calculations, nonlinear optimization on lattices, etc., etc.
+Additionally, \tao's object oriented design makes it relatively easy to extend it. For example, it
+can be used for orbit flattening in an online machine control system.
   \end{description}
 
 %------------------------------------------------------------------------------
@@ -157,17 +159,21 @@ further reading of the manuals).
 \Section{Orientation}
 \label{s:orientation}
 
+%------------------------------------------------------------------------------
+\subsection{Web Site}
+
 The \bmad web site is at:
 \begin{display}
   \url{\detokenize{www.classe.cornell.edu/bmad/}}
 \end{display}
+Here you will find documentation on the \bmad toolkit and associated programs as well as
+installation instructions.
 
 %------------------------------------------------------------------------------
 \subsection{Prerequisites}
 
-\bmad and \tao are generally used with Linux or Mac OS-X. Historically, while \bmad could be built
-under Windows, running \tao was problematical due to graphics issues. As present, these graphics issues have
-been resolved.
+\bmad and \tao can be run under Linux, Mac OS-X, or Windows running Windows Subsystem for Linux 2 (WSL2)
+which allows running in a Linux environment on Windows.
 
 Except when using a Python interface, \tao is accessed through the command line.  Therefore you will
 need to run a terminal program to be able to run \tao.
@@ -234,12 +240,8 @@ is a quick way to tell if there is a problem.
 \subsection{Releases}
 \label{s:dist}
 
-A (GitHub) \vn{Release} is a set of files, including \bmad and \tao source files, which are used to
-build the \bmad, the \tao program, and various other simulation programs. A \vn{CLASSE Release} is like a
-GitHub \vn{Release} except that it is created on the Linux computer system at CLASSE (Cornell's
-Laboratory for Accelerator-based Sciences and Education). More information can be obtained from the
-\bmad web site. For the purpose of this tutorial, it is assumed that you are dealing with a
-GitHub \vn{Release}.
+A \vn{Release}, hosted on GitHub, is a set of files, including \bmad and \tao source files, which
+are used to build the \bmad, the \tao program, and various other simulation programs.
 
 The directories in a Release are:
 \begin{lstlisting}[mathescape]
@@ -497,6 +499,12 @@ After initialization, there should be a ``\vn{Tao>}'' prompt where you can type 
 \subsection{Tao: Online Help}
 
 When \tao is running, to get a list of Tao commands, use the \vn{help} command:
+%
+\marginnote[\footnotesize\hspace*{-0.6in}\parbox{0.95in}{
+For brevity's sake, ``\vn{... etc...}'' is used when the output has been truncated. Also the output shown
+is sometimes modified to fit the printed page.
+}]{}[1.0in]
+%
 \begin{code}
 Tao> help
 
@@ -510,12 +518,8 @@ Available commands:
   derivative                        set
   end_file                          show
   exit                              single_mode
-  flatten                           spawn
 ... etc...
 \end{code}
-
-Note: For brevity's sake, ``\vn{... etc...}'' is used when the output has been truncated. Also the output shown
-is sometimes modified to fit the printed page.
 
 \tao commands are documented in the ``\vn{Tao Commands}'' (\extref{T-c:command}) chapter of the \tao
 manual.  When running \tao, this same documentation can be displayed using the ``\vn{help
@@ -667,6 +671,11 @@ you start \tao?
 \Section{Introduction to Bmad Lattices}
 \label{s:bmad.intro}
 
+\marginnote[\footnotesize\hspace*{-0.6in}\parbox{0.95in}{
+Part I of the \bmad manual covers lattice syntax. Refer to that for information 
+not covered here.
+}]{}[0.3in]
+%
 The basis of any \bmad based simulation is a lattice file. The following is a
 simple example:
 \begin{code}
@@ -685,8 +694,6 @@ q: quadrupole, L = 0.6, k1 = 0.23
 lat: line = (d, b, q)       ! List of lattice elements
 use, lat                    ! Line used to construct the lattice
 \end{code}
-Note: Part I of the \bmad manual covers lattice syntax so please refer to that for information that
-is not covered here.
 
 Some comments on the above lattice:
   \begin{description}
@@ -916,7 +923,10 @@ Orbit:  Electron   State: Alive
   Y:       0.00000000     0.00000000               | t_part-t_ref [sec]: ...
   Z:       0.02055389     0.00000000               | (t_ref-t_part)*Vel  ...
 \end{code}
-Note: By default, only non-zero attributes are shown. Use the -all option to see all the attributes.
+%
+\marginnote{\footnotesize\hspace*{-0.6in}\parbox{0.95in}{
+By default, only non-zero attributes are shown. Use the -all option to see all the attributes.
+}}[-3.7in]
 
 \newpage
 
@@ -1179,7 +1189,7 @@ Tao> place r22 none    ! Clear a region
 Tao> place * none      ! Clear all regions
 \end{code}
 
-Note: Plots of the same type can be placed in multiple regions. For example, there could be multiple
+Plots of the same type can be placed in multiple regions. For example, there could be multiple
 orbit plots displayed with each plot, say, having differing x-axis scaling.
 
 %----------------------------------------------------------
@@ -2048,7 +2058,7 @@ call, file = lat.bmad
 call, file = var1.out
 \end{code}
 
-Note: At any time to print in Bmad format the variable values used in the optimization use the command:
+To print in Bmad format the variable values used in the optimization use the command:
 \begin{code}
 show var -bmad -good
 \end{code}
@@ -2778,13 +2788,16 @@ changing the default universe.
 %----------------------------------------------------------
 \subsection{Overview}
 
-Control elements are elements that control the parameters of other elements. There are three types
-of control elements: \vn{groups}, \vn{overlays}, and \vn{girders}. \vn{Groups} and
+Control elements are elements that control the parameters of other elements. There are four types
+of control elements: \vn{groups}, \vn{overlays}, \vn{girders}, and \vn{rampers}. \vn{Groups} and
 \vn{overlays} are convenient to do such things as simulate control room "knobs". For example a power
 supply that powers a chain of magnets. \vn{Girder} elements (\sref{s:girder})
-are used for simulating lattice element support structures.
+are used for simulating lattice element support structures. And \vn{ramper} elements are used to
+vary lattice parameters over many turns which is useful for long term (that is multi-turn) tracking.
+\vn{Ramper} elements are not covered in this tutorial and the interested reader is referred to the \bmad
+manual for more details. 
 
-Note: \vn{Group}, \vn{overlay}, and \vn{girder} elements are known as ``\vn{minor} \vn{lords}'' since they
+Note: Control elements are known as ``\vn{minor} \vn{lords}'' since they
 only control a subset of an element's attributes. The other type of \vn{lord} elements, \vn{multipass} lords
 (\sref{s:multipass}) and \vn{superposition} lords (\sref{s:super}) are called ``\vn{major lords}''.
 
@@ -2834,7 +2847,7 @@ shorthand notation and the actual formula used is \vn{0.7*hh}.  Note: When this 
 is used, only one control variable (in this case \vn{hh}) may be used by the overlay.
 \item
 The initial values for control variables may be set when defining the control element. For example,
-\vn{hh} of \vn{ov2} is set to 0.2. Control variables default to a value of zero.
+\vn{hh} of \vn{ov2} is set to 0.01. Control variables default to a value of zero.
 \end{itemize}
 
 %----------------------------------------------------------
@@ -3629,7 +3642,7 @@ the reference momentum as discussed in the ``\vn{Magnetostatic Multipole Fields}
 
 For lattices with an \vn{open} geometry (\sref{s:lat.geom}), the reference energy/momentum at the
 beginning of the lattice is what is set in the lattice file. The reference energy/momentum for a
-downsteam element inherits the reference energy/momentum of the element just upstream. The exception
+downstream element inherits the reference energy/momentum of the element just upstream. The exception
 is for \vn{Lcavity} elements, which represent an RF cavity, where the reference energy/momentum at
 the exit end of the \vn{lcavity} is set so that a particle entering the cavity with zero phase space
 coordinates leaves with zero phase space coordinates and in particular phase space \vn{pz} will be
@@ -3718,8 +3731,8 @@ starting one. Here, the \vn{pz} coordinate at the end of the element is nonzero.
 \item 
 Modify the \vn{lcavity} in the \vn{cavity.bmad} to have a small length (so the transit time is
 small), and set the beginning momentum small enough so the relativistic beta is significantly than
-one. Starting the particle with a finite $z$, calculate the ending $z$ after the cavity and verity
-that the cange in $z$ is consistent with the equation for $z$ given in \sref{s:phase.space.sub}.
+one. Starting the particle with a finite $z$, calculate the ending $z$ after the cavity and verify
+that the range in $z$ is consistent with the equation for $z$ given in \sref{s:phase.space.sub}.
 %
 \item
 \vn{Lcavity} elements have an attribute \vn{phi0_err} which varies the RF phase that a particle sees
@@ -3727,7 +3740,7 @@ but does not change the reference energy. Add a finite \vn{phi0_err} to the \vn{
 verify that the reference energy does not change but that the phase space \vn{pz} of the particle
 (which is the normalized momentum deviation from the reference \sref{s:phase.space.sub}) does
 change. With the \vn{cavity.bmad} lattice, there is a range of values for \vn{phi0_err} where the
-cavity will decellerate the particle enough so that the particle will turn around and not make
+cavity will decelerate the particle enough so that the particle will turn around and not make
 it through the cavity. Approximately what is this range?
 \end{enumerate}
 
@@ -3741,7 +3754,7 @@ it through the cavity. Approximately what is this range?
 \vn{Superposition} is used when elements overlap spatially. In such a case, \bmad creates
 ``\vn{slave}'' elements that will be tracked through and ``\vn{lord}'' elements that represent the
 individual elements.  Some examples will make this clear. Note: Superposition is discussed in the
-``Superposition and Multipass'' chapter in the Bmad manual.
+``Superposition'' chapter in the Bmad manual.
 
 \begin{figure}[b]
   \centering
@@ -3971,7 +3984,7 @@ method. (\sref{s:methods}). See the \bmad manual for more details.
 
 \begin{enumerate}[label=\thesection.\arabic{enumi}]
 \item
-Create a lattice with a sextupole superimpsed in the middle of a quadrupole. Make the length of the 
+Create a lattice with a sextupole superimposed in the middle of a quadrupole. Make the length of the 
 sextupole shorter than the length of the quadrupole. Make a second lattice similar to the first but
 this time use \vn{jumbo} superposition. Compare both lattices.
 \end{enumerate}
@@ -3987,7 +4000,7 @@ Some lattices have the beam recirculating through the same element multiple time
 Energy Recovery Linac (ERL) will circulate the beam back through the LINAC part to retrieve the
 energy in the beam. In \bmad, this situation can be simulated using the concept of \vn{multipass}.
 Another situation where multipass is useful is for modeling the interaction region in a colliding
-beam machine. In the Bmad manual multipass is discussed in the ``Superposition and Multipass''
+beam machine. In the Bmad manual multipass is discussed in the ``Multipass''
 chapter.
 
 %----------------------------------------------------------
@@ -4646,20 +4659,19 @@ Tao> set global track_type = single
 \label{s:python}
 
 When there is a need to extract data from \tao for external processing, \tao has a command called
-\vn{python} (not to be confused with the \vn{Python} program) which can be used to output data in a
+\vn{pipe} which can be used to output data in a
 form suitable for easy parsing. Additionally, there is a package called \vn{PyTao} which can be used
-to interface \tao to \vn{Python}. The former is discussed in \Sref{s:python.cmd} and the latter is
+to interface \tao to \vn{Python}. The former is discussed in \Sref{s:pipe.cmd} and the latter is
 discussed in \Sref{s:pytao}.
 
 %------------------------------------------------------------------------------
-\subsection{Tao's Python Command}
-\label{s:python.cmd}
+\subsection{Tao's Pipe Command}
+\label{s:pipe.cmd}
 
-\tao's \vn{python} command is used to output data in a form that is suitable for easy parsing by an
-external program. Despite its name, the output of the \vn{python} command is not \vn{Python} specific.
-Example:
+\tao's \vn{pipe} command is used to output data in a form that is suitable for easy parsing by an
+external program.  Example:
 \begin{code}
-Tao> python ring_general
+Tao> pipe ring_general
 \end{code}
 This command is used with lattices with a closed geometry to output information on the lattice.
 The output of this command looks like:
@@ -4676,16 +4688,16 @@ J_damp_a;REAL;F;  1.01125472391567E+00
 \end{code}
 The output here has some of the same information as the output of the \vn{show universe} command
 except that it is easier to parse being comma delimited list. The other advantage of using the
-\vn{python} command is that the output is generally stable over time as the \tao program is
-developed to ensure that external code that interfaces to the \vn{python} command does not break.
+\vn{pipe} command is that the output is generally stable over time as the \tao program is
+developed to ensure that external code that interfaces to the \vn{pipe} command does not break.
 This is in contrast to the \vn{show} command whose output is formatted to be human readable and whose
 output format may change on a whim.
 
-The general form of the \vn{python} command is:
+The general form of the \vn{pipe} command is:
 \begin{code}
-  python <subcommand> <arguments>
+  pipe <subcommand> <arguments>
 \end{code}
-The \vn{python} command has a number of \vn{subcommands} (over 100) that are listed in the \tao
+The \vn{pipe} command has a number of \vn{subcommands} (over 100) that are listed in the \tao
 manual. The sub-commands can be divided into two categories. One category are the ``\vn{action}''
 subcommands which allow for control of \tao such as creating variables and data for use in an
 optimization. The other category are the ``\vn{output}'' subcommands which output information from
@@ -4728,7 +4740,7 @@ The \vn{Python} \vn{PyTao} package interfaces \tao with \vn{Python}.  With \vn{P
 to
 \begin{itemize}
 \item
-Parse \vn{python} command output into a \vn{Python} structure for easy access.
+Parse \vn{pipe} command output into a \vn{Python} structure for easy access.
 \item
 Run \tao as a subprocess of \vn{Python}
 \end{itemize}
@@ -4749,9 +4761,9 @@ be found on the Web. There are several ways to install PyTao. To install via \vn
   pip install PyTao
 \end{code}
 
-As an example of how \vn{PyTao} can parse the \vn{python} command output, run \tao with the commands
+As an example of how \vn{PyTao} can parse the \vn{pipe} command output, run \tao with the commands
 \begin{code}
-Tao> python -write bmad_com.out bmad_com
+Tao> pipe -write bmad_com.out bmad_com
 
 max_aperture_limit;REAL;T;  1.00000000000000E+03
 d_orb;REAL_ARR;T;1E-05;1E-05;1E-05;1E-05;1E-05;1E-05
@@ -5275,8 +5287,8 @@ set curve r23.g.y data_type = orbit.x
 set curve r23.g.y legend_text = "X"
 set curve r23.g.y component = design
 \end{code}
-Note: By default, orbit plots have a non-blank legend_text which is why the legend_text needs to be changed.
-What happens if, instead of setting to ``X'', the legend_text is set to a blank string?
+Note: By default, orbit plots have a non-blank \vn{legend_text} which is why the \vn{legend_text} needs to be changed.
+What happens if, instead of setting to ``X'', the \vn{legend_text} is set to a blank string?
 %
 \item
 \begin{code}
@@ -5316,7 +5328,7 @@ end_orbit = beginning_measured_orbit + orbit_change
           = actual_measured + (design_orbit - model_orbit)
           = actual_measured + (design_orbit - 
                      (actual_measured - (golden_orbit - design_orbit)))
-          = gloden_orbit
+          = golden_orbit
 \end{code}
 %
 \item

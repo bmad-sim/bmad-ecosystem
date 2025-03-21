@@ -1,5 +1,5 @@
 !+
-! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
+! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag,
 !               calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
 !
 ! Routine to calculate the E and B fields at a particular place in an element.
@@ -70,7 +70,7 @@ type (branch_struct), pointer :: branch
 real(rp), optional :: rf_time
 real(rp) :: x, y, j1, dj1, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, ch_x, ch_y, sh_x, sh_y, coef, fd(3), Ex, Ey, amp
-real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, dkm(2,2), cos_ks, sin_ks
+real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, dkm(2,2), cos_ks, sin_ks, length
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_active_offset, beta_start, f, f1, f2, f3, kx, ky, kz
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
@@ -650,20 +650,28 @@ case (bmad_standard$)
         return
       endif
 
+      ! Note: The spin_integration routine assumes that the field is zero outside of the active region.
+      select case (ele%key)
+      case (lcavity$, rfcavity$, crab_cavity$)
+        length = ele%value(l_active$)
+      case default
+        length = ele%value(l$)
+      end select
+
       do i = 0, ix_pole_max
         if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
         if (do_df_calc) then
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, 0, local_orb, kx, ky, dkm)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky, dkm)
         else
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb%species, 0, local_orb, kx, ky)
+          call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky)
         endif
-        field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
-        field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
+        field%B(1) = field%B(1) + f_p0c * ky / length
+        field%B(2) = field%B(2) - f_p0c * kx / length
         if (do_df_calc) then
-          field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
-          field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
-          field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
-          field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
+          field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / length
+          field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / length
+          field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / length
+          field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / length
         endif
       enddo
     endif
@@ -1378,7 +1386,7 @@ case(fieldmap$)
 
         if (logic_option(.false., calc_potential)) then
           if (r /= 0) then
-            abs_tol = abs(1e-10_rp * r * orbit%p0c * (1 + orbit%vec(6)) / (c_light * charge_of(orbit%species)))
+            abs_tol = abs(1e-10_rp * r * orbit%p0c * (1 + orbit%vec(6)) / (c_light * charge_of(ele%ref_species)))
             inte = super_qromb(rb_field, 0.0_rp, r, 1e-12_rp, abs_tol, 2, err) / r
             field%A(1:2) = field%A(1:2) + inte * [-y, x] / r
           endif

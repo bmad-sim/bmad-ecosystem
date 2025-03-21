@@ -59,7 +59,7 @@ character(*), parameter :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
 logical good_control(12,12), girder_here, finished, foundit, problem_found
-logical match_twiss, match_phase, match_orbit
+logical match_ident, match_twiss, match_phase, match_orbit, match_std
 
 ! Check the nametable.
 ! Instead of quiting, lat_sanity_check will repair a broken nametable.
@@ -409,6 +409,19 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    ! bend
+
+    if (ele%key == sbend$) then
+      select case (nint(ele%value(fiducial_pt$)))
+      case (none_pt$, entrance_end$, center_pt$, exit_end$)
+      case default
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                      'HAS A BAD FIDUCIAL_PT VALUE: ' // int_str(nint(ele%value(fiducial_pt$))))
+        err_flag = .true.
+      end select
+    end if
+
     ! ac_kicker needs to have the time variation defined.
 
     if (ele%key == ac_kicker$) then
@@ -566,20 +579,25 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (ele%key == match$) then
       match_twiss = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == match_twiss$)
       match_phase = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == phase_trombone$)
+      match_ident = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == identity$)
+      match_std   = (is_true(ele%value(recalc$)) .and. nint(ele%value(matrix$)) == standard$)
       match_orbit = (is_true(ele%value(recalc$)) .and. nint(ele%value(kick0$)) == match_orbit$)
 
-      if (.not. match_phase .and. (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0)) then
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                      'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
-        err_flag = .true.
-      endif
+      if (.not. (match_std .and. ele%value(beta_a1$) == 0 .and. ele%value(beta_b1$) == 0 .and. &
+                                 ele%value(beta_a0$) == 0 .and. ele%value(beta_b0$) == 0)) then
+        if ((match_std .or. match_twiss) .and. (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0)) then
+          call out_io (s_fatal$, r_name, &
+                        'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                        'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
+          err_flag = .true.
+        endif
 
-      if (.not. match_twiss .and. .not. match_phase .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                      'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
-        err_flag = .true.
+        if (match_std .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
+          call out_io (s_fatal$, r_name, &
+                        'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                        'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
+          err_flag = .true.
+        endif
       endif
 
       if ((match_twiss .or. match_orbit) .and. ele%value(delta_time$) /= 0) then
@@ -849,34 +867,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                     'HAS DEFINES A POLARIZATION REFLECTIVITY TABLE WITH ENERGY ARRAY NOT STRICTLY INCREASING.')
           err_flag = .true.
         endif
-      endif
-
-      if (all (ph%grid%type /= [not_set$, segmented$, h_misalign$, displacement$])) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS AN INVALID GRID%TYPE SETTING: \i0\ ', i_array = [ph%grid%type])
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type /= not_set$ .and. any (ph%grid%dr == 0)) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS A ZERO DR VALUE BUT THE GRID TYPE IS NOT OFF. \2f10.2\ ', r_array = ph%grid%dr)
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type /= not_set$ .and. .not. allocated(ph%grid%pt)) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS NO GRID IS DEFINED!')
-        err_flag = .true.
-      endif
-
-      if (ph%grid%type == h_misalign$ .and. ele%value(b_param$) > 0) then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                  'HAS GRID TYPE H_MISALIGN BUT THIS IS NOT IMPLEMENTED FOR LAUE DIFFRACTION!')
-        err_flag = .true.
       endif
 
       g = ph%curvature%spherical + ph%curvature%elliptical

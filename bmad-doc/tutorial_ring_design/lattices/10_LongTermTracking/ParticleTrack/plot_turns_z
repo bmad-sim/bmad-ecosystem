@@ -1,0 +1,9 @@
+list=system('ls -1B turn*')
+set key off
+plot for [file in list] file using 7:($1==1?$8:NaN) pt 7 ps 2 lc rgb "red"
+replot for [file in list] file using 7:($1==2?$8:NaN) pt 7 ps 2 lc rgb "web-green"
+replot for [file in list] file using 7:($1==3?$8:NaN) pt 7 ps 2 lc rgb "web-blue"
+replot for [file in list] file using 7:($1==4?$8:NaN) pt 7 ps 2 lc rgb "dark-magenta"
+replot for [file in list] file using 7:($1==5?$8:NaN) pt 7 ps 2 lc rgb "dark-cyan"
+replot for [file in list] file using 7:($1==6?$8:NaN) pt 7 ps 2 lc rgb "orange"
+replot for [file in list] file using 7:($1==7?$8:NaN) pt 7 ps 2 lc rgb "purple"

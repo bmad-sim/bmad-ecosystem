@@ -1,0 +1,35 @@
+name: setup-dependencies
+description: "Setup system and external dependencies to build bmad"
+inputs:
+  external-packages-version:
+    description: External packages version
+    required: false
+    default: "main"
+
+runs:
+  using: "composite"
+  steps:
+    # Install system dependencies
+    - name: Install System Dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc libopenmpi-dev openmpi-bin openmpi-common
+
+    - name: Checkout external packages
+      uses: actions/checkout@v4
+      with:
+        repository: "bmad-sim/bmad-external-packages"
+        ref: ${{ inputs.external-packages-version }}
+        path: "external_packages"
+        fetch-depth: 1
+
+    - name: Move External Packages
+      shell: bash
+      run: |
+        mv external_packages ~/
+        for dep in ~/external_packages/*; do 
+          if [ $dep != "README.md" ]; then
+            cp -r $dep $GITHUB_WORKSPACE/;
+          fi;
+        done

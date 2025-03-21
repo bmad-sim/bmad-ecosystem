@@ -14,14 +14,17 @@ to the end of the line is ignored.  Example:
   set default uni = 2; show global  ! Two commands and a comment
 \end{example}
 
-The length of a command on a single line is currently limited to 300 characters. Multiple lines may
+The length of a command on a single line is currently limited to 1000 characters. Multiple lines may
 be used for a single command by putting a ``\&'' character at the end of a line to be
 continued. Example:
 \begin{example}
   set default &    ! Continue command to next line
   uni = 2
 \end{example}
-     
+
+Note that, for historical reasons, Bmad itself is case insensitive. Thus things like lattice element 
+names within \tao commands will similarly be case insensitive.
+
 %------------------------------------------------------------------------
 \section{Specifying a Single Lattice Element}
 \label{s:ele.name}
@@ -153,15 +156,19 @@ The following intrinsic functions are also recognized (this is the same list as 
   \vn{ran_gauss}()            & Gaussian distributed random number with unit RMS \\
   \vn{ran_gauss}(sig_cut)     & Gaussian distributed random number truncated at sig_cut. \\
   \vn{int(x)}                 & Nearest integer with magnitude less then x \\
-  \vn{nint(x)}                & Nearest integer to x           \\
-  \vn{floor(x)}               & Nearest integer less than x    \\
-  \vn{ceiling(x)}             & Nearest integer greater than x \\
+  \vn{nint(x)}                & Nearest integer to x             \\
+  \vn{floor(x)}               & Nearest integer less than x      \\
+  \vn{ceiling(x)}             & Nearest integer greater than x   \\
   \vn{modulo(a, p)}           & a - floor(a/p) * p. Will be in range [0, p]. \\
-  \vn{average(arr)}           & Average value of an array      \\
-  \vn{rms(arr)}               & RMS value of an array          \\
-  \vn{sum(arr)}               & Sum of array values.           \\
-  \vn{min(arr)}               & Minimum of array values.       \\
-  \vn{max(arr)}               & Maximum of array values.
+  \vn{average(arr)}           & Average value of an array        \\
+  \vn{rms(arr)}               & RMS value of an array            \\
+  \vn{sum(arr)}               & Sum of array values.             \\
+  \vn{min(arr)}               & Minimum of array values.         \\
+  \vn{max(arr)}               & Maximum of array values.         \\
+  \vn{mass_of}(A)               & Mass of particle A             \\
+  \vn{charge_of}(A)             & Charge, in units of the elementary charge, of particle A \\
+  \vn{anomalous_moment_of}(A)   & Anomalous magnetic moment of particle A        \\
+  \vn{species}(A)               & Integer ID associated with species A
 \end{tabular} \newline
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator.  Setting the seed is
 described in Section~\sref{s:globals}.

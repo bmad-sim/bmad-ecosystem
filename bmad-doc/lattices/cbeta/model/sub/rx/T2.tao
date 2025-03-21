@@ -1,0 +1,13 @@
+place floor r56_compaction
+sr56 R1.demer.mar.beg\2
+vv
+vd
+x-s all 35 50
+sc
+use dat betas.2
+use dat endtwiss.2[1:6]
+
+use var q2
+
+alias Write show -append r2.X.bmad var -good -bmad
+

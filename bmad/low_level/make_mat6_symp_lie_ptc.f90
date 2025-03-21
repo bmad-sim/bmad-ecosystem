@@ -1,11 +1,10 @@
 !+
-! Subroutine make_mat6_symp_lie_ptc (ele, param, start_orb, end_orb)
+! Subroutine make_mat6_symp_lie_ptc (ele, start_orb, end_orb)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
 ! Input:
 !   ele        -- Ele_struct: Element with transfer matrix
-!   param      -- lat_param_struct: Parameters are needed for some elements.
 !   start_orb  -- Coord_struct: Coordinates at the beginning of element. 
 !
 ! Output:
@@ -15,7 +14,7 @@
 !   end_orb    -- Coord_struct: Coordinates at end of element.
 !-
 
-subroutine make_mat6_symp_lie_ptc (ele, param, start_orb, end_orb)
+subroutine make_mat6_symp_lie_ptc (ele, start_orb, end_orb)
 
 use ptc_interface_mod, except_dummy => make_mat6_symp_lie_ptc
 
@@ -23,7 +22,6 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) :: start_orb, end_orb, s_orb
-type (lat_param_struct)  param
 type (taylor_struct) bmad_taylor(6), spin_taylor(0:3)
 
 real(rp) dtime_ref, quat(0:3)
@@ -32,7 +30,7 @@ real(rp) dtime_ref, quat(0:3)
 
 s_orb = start_orb
 
-call ele_to_taylor(ele, param, start_orb, .true., orbital_taylor = bmad_taylor, spin_taylor = spin_taylor)
+call ele_to_taylor(ele, start_orb, .true., orbital_taylor = bmad_taylor, spin_taylor = spin_taylor)
 call taylor_to_mat6 (bmad_taylor, start_orb%vec, ele%vec0, ele%mat6)
 
 end_orb = start_orb

@@ -1,0 +1,40 @@
+vv
+vd
+place top floor
+place middle orbit
+x-s all 44 54
+sc  
+x-s floor 8 18
+sc floor
+x-s top 13 16
+sc top 
+
+! Connect
+use dat connect.2[1,2,4,5]  
+use var connect.2
+
+! Center midpoint
+use dat floor.z[2]
+set dat floor.z[2]|meas = floor.z[1]|model
+
+! Parallel to R1
+set dat floor.thetas[2]|meas = floor.thetas[1]|model
+use dat floor.thetas[2]
+
+! Space for bend
+use dat floor.r2
+
+! or Pathlength
+
+!use var pathlength.2
+
+
+! Exact time
+set dat time.total[2]|meas = time.total[1]|model  - (-0.0849777)/2/3e8 !FFAG compensation
+set dat time.total[2]|meas = time.total[1]|model  - (-0.0849777)/2/3e8  -0.002097/2/3e8 ! Exact
+
+use dat time.total[2]
+
+vk
+set var connect.2|key_bound=T
+set var pathlength.2|key_bound=T

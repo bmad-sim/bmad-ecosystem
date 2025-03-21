@@ -158,13 +158,13 @@ func_set_openmp_flags () {
           # Fix setting OpenMP configure flag 12-Sep-2022
           export BUILD_OPENMP=1
 
-          if ( [[ "${CONDA_BUILD}" ]] ) ; then
-                export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
-                export FCFLAGS="${FFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
-                export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
+          if [[ "${CONDA_BUILD}" ]]; then
+            export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+            export FCFLAGS="${FFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+            export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
           fi
           export CFLAGS="-fopenmp ${CFLAGS}"
-          if ( [ "${FC}" == "gfortran" ] ) ; then
+          if [ "${FC}" == "gfortran" ] ; then
             export FCFLAGS="-fopenmp ${FCFLAGS}"
             export LDFLAGS="-lgomp ${LDFLAGS}"
           elif [ "${IFORT_MAJOR_VERSION}" ] ; then
@@ -379,7 +379,7 @@ func_check_fortran_version () {
     
 func_install_utilities () {
     # We don't need to install utilities for CONDA builds
-    if ( [[ "${CONDA_BUILD}" ]] ) ; then
+    if [[ "${CONDA_BUILD}" ]]; then
            return
     fi
 
@@ -618,7 +618,7 @@ func_set_fortran_flags () {
     fi
 
     # For ifort, move STACK memory to the HEAP, see RT#45710
-    if [ "${FC}" != "gfortran" ] ; then
+    if [ "${FC}" != "gfortran" ]; then
       export BASE_OPTS="${BASE_OPTS} -heap-arrays 32"
     fi
 

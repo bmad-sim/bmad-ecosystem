@@ -18,6 +18,8 @@ subroutine update_fibre_from_ele (ele, survey_needed)
 use ptc_interface_mod, dum1 => update_fibre_from_ele
 use pointer_lattice, dum2 => twopi, dum3 => pi, dum4 => sqrt
 
+implicit none
+
 type (ele_struct), target :: ele, m_ele
 type (fibre), pointer :: fib
 type (branch_struct), pointer :: branch
@@ -25,14 +27,15 @@ type (keywords) ptc_key
 type (element), pointer :: mag
 type (elementp), pointer :: magp
 type (magnet_chart), pointer :: mp, mpp
+type (work) ptc_work
 
-real(rp) value, hk, vk, phi_tot, fh, volt
+real(rp) value, hk, vk, phi_tot, fh, volt, delta_p, e1, e2
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) a_ptc(0:n_pole_maxx), b_ptc(0:n_pole_maxx)
 real(rp), pointer :: val(:)
 
 integer i, n, ns, ix, ix_pole_max, cavity_type
-logical survey_needed
+logical survey_needed, kill_spin_fringe
 
 character(*), parameter :: r_name = 'update_fibre_from_ele'
 
@@ -42,12 +45,17 @@ survey_needed = .false.
 branch => pointer_to_branch(ele)
 fib => ele%ptc_fibre
 val => ele%value
+FEED_P0C = .true.
 
 mag  => fib%mag
 magp => fib%magp
 
 mp => mag%p
 mpp => magp%p
+
+ptc_work = fib
+ptc_work = 1e-9_rp * val(p0c$) - mp%p0c 
+fib = ptc_work
 
 cavity_type = not_set$
 if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
@@ -65,8 +73,6 @@ elseif (cavity_type /= standing_wave$) then
   call set_real_all (mp%lc, mpp%lc, val(l$))
 endif
 
-call set_real_all (mp%p0c, mpp%p0c, 1e-9_rp * val(p0c$))
-
 !
 
 if (ele%key == marker$) return
@@ -79,16 +85,16 @@ if (ele%key == marker$) return
 
 ! Magnetic
 
+a_ptc = 0
+b_ptc = 0
+
 if (associated(fib%mag%an)) then
   n = size(fib%mag%an)
   a_ptc(0:n-1) = fib%mag%an
   b_ptc(0:n-1) = fib%mag%bn
-else
-  a_ptc = 0
-  b_ptc = 0
 endif
 
-call ele_to_ptc_magnetic_an_bn (ele, b_pole, a_pole) ! Yes arg order is b_pole, a_pole.
+call ele_to_ptc_magnetic_bn_an (ele, b_pole, a_pole)
 if (ele%key == sbend$) b_pole(0) = b_pole(0) + ele%value(g$)	 
 
 do i = n_pole_maxx, 0, -1
@@ -152,9 +158,9 @@ case (rfcavity$, lcavity$, crab_cavity$)
     call set_real_all (mp%lc, mpp%lc, val(l_active$))
     call set_real (mag%h1, magp%h1, (val(l$) - val(l_active$)) / 2)
     call set_real (mag%h2, magp%h2, (val(l$) - val(l_active$)) / 2)
-    volt = 2d-6 * e_accel_field(ele, voltage$) / ele%value(l_active$)
+    volt = 2d-6 * e_accel_field(ele, voltage$)
   case default
-    volt = 1d-6 * e_accel_field(ele, voltage$) / ele%value(l$)
+    volt = 1d-6 * e_accel_field(ele, voltage$) 
   end select
 
   mag%lag = phi_tot  ! There is no magp%lat
@@ -176,8 +182,32 @@ case (sbend$)
   call set_real (mag%fint(1), magp%fint(1), val(fint$))
   call set_real (mag%hgap(2), magp%hgap(2), val(hgapx$))
   call set_real (mag%fint(2), magp%fint(2), val(fintx$))
-  call set_real_all (mag%p%edge(1), magp%p%edge(1), val(e1$))
-  call set_real_all (mag%p%edge(2), magp%p%edge(2), val(e2$))
+
+  ix = both_ends$
+  if (attribute_index(ele, 'FRINGE_AT') > 0) ix = nint(ele%value(fringe_at$))
+  kill_spin_fringe = is_false(ele%value(spin_fringe_on$))
+
+  call set_logic(mag%p%kill_ent_fringe, magp%p%kill_ent_fringe, (ix == exit_end$ .or. ix == no_end$))
+  call set_logic(mag%p%kill_exi_fringe, magp%p%kill_exi_fringe, (ix == entrance_end$ .or. ix == no_end$))
+
+  call set_logic(mag%p%kill_ent_spin, magp%p%kill_ent_spin, (ix == exit_end$ .or. ix == no_end$ .or. kill_spin_fringe))
+  call set_logic(mag%p%kill_exi_spin, magp%p%kill_exi_spin, (ix == entrance_end$ .or. ix == no_end$ .or. kill_spin_fringe))
+
+  ix = nint(ele%value(fringe_type$))
+
+  e1 = ele%value(e1$)
+  if (ptc_key%list%kill_ent_fringe .or. ix == none$) e1 = 0
+
+  e2 = ele%value(e2$)
+  if (ptc_key%list%kill_exi_fringe .or. ix == none$) e2 = 0
+
+  call set_real_all (mag%p%edge(1), magp%p%edge(1), e1)
+  call set_real_all (mag%p%edge(2), magp%p%edge(2), e2)
+
+  !!  if (nint(ele%value(ptc_field_geometry$)) == straight$) then
+  !!    ptc_key%list%t1   = e1 - ele%value(angle$)/2
+  !!    ptc_key%list%t2   = e2 - ele%value(angle$)/2
+  !!  endif
 
 end select
 

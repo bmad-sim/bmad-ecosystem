@@ -1,0 +1,37 @@
+FB.Qua31[grid_field] = call::../../../fields/CBETA_Halbach/CBETA_cell_QF_grid.bmad
+FB.Qua32[grid_field] = call::../../../fields/CBETA_Halbach/CBETA_cell_BD_grid.bmad
+FB.Qua33[grid_field] = call::../../../fields/CBETA_Halbach/CBETA_cell_HQF_grid.bmad
+FB.Qua31[field_calc] = fieldmap
+FB.Qua32[field_calc] = fieldmap
+FB.Qua33[field_calc] = fieldmap
+
+ 
+
+
+quad::*[tracking_method] = runge_kutta
+pipe::*[tracking_method] = runge_kutta
+patch::*[tracking_method] = runge_kutta
+!quad::*[mat6_calc_method] = tracking
+!pipe::*[mat6_calc_method] = tracking
+!patch::*[mat6_calc_method] = tracking
+
+
+
+FB.Qua31[B1_GRADIENT] =   -11.501350985031435   *  0.9921
+FB.Qua32[B1_GRADIENT] =     10.940569945094357  *  1.0052
+FB.Qua33[B1_GRADIENT] =   -11.501350985031435   *  0.9921
+FB.Qua31[x_offset] = 0
+FB.Qua32[x_offset] = -0.922e-3
+FB.Qua33[x_offset] = 0
+ 
+! Close solution
+!FB.QUA31[X_OFFSET] =   1.84171022609292E-03
+!FB.QUA32[X_OFFSET] =  -4.43801205358338E-03 
+
+
+FB.QUA31[X_OFFSET] =   2.70051851955853E-03
+FB.QUA32[X_OFFSET] =  -0.922e-3 +  (2.32417456941952E-02 - 2.80493354329256E-02)
+
+FB.Qua31[field_overlaps] = {FB.Pip31, FB.Blk16, FB.Pip32, FB.Patch31, FB.Patch32}
+FB.Qua32[field_overlaps] = {FB.Pip31, FB.Blk16, FB.Pip32, FB.Patch31, FB.Patch32, FB.Pip33, FB.Blk17,FB.Patch33, FB.Patch34}
+FB.Qua33[field_overlaps] = {FB.Pip33, FB.Blk17, Extend, FB.Patch33, FB.Patch34}

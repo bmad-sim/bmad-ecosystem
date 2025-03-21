@@ -1,0 +1,66 @@
+BEGINNING[BETA_A]  =  1.88127102
+BEGINNING[ALPHA_A] = -2.13051077
+BEGINNING[BETA_B]  =  1.43168114
+BEGINNING[ALPHA_B] = -0.65700189
+beginning[eta_x]   =  0
+beginning[etap_x]   =  0
+
+PARAMETER[particle] = electron
+parameter[geometry] = open
+
+parameter[e_tot] = 6e6
+
+parameter[absolute_time_tracking] = F
+
+
+
+!la.fakecavity: lcavity, rf_frequency = global_rf_frequency, l = 1, voltage = -61e6
+!la.mar.beg: marker
+!la.mar.end: marker
+
+!md1dip01.angle =1*pi/180
+!md1dip01: sbend, L = 0.3, fringe_type = full, angle = md1dip01.angle, e1=0,e2=md1dip01.angle
+!la.demer.patch1: patch
+!la: line[multipass] = (la.mar.beg, la.fakecavity, md1dip01, la.mar.end)
+
+call, file = ../la/la.bmad
+call, file = ../la/la.X.bmad
+
+
+call, file = du.bmad
+call, file = du.X.bmad
+dummy0: pipe, L = 1
+dummy: pipe, L = 1.247 + 41.5097
+
+m1: match, beta_a0=1, beta_a1=1, beta_b0=1,beta_b1=1, match_end_orbit = T, z1= -50e-3
+
+LA.match0: match, match_end=T, match_end_orbit = T, beta_a1= 8.50505824   , beta_b1=9.37872024  , alpha_a1=0.54086941, alpha_b1=0.54933592
+LA.match0[x1] = 0
+LA.match0[px1] = 0
+LA.match0[y1] = 0
+LA.match0[py1] = 0
+LA.match0[z1] = 0
+LA.match0[pz1] = 0
+LA.match0a: LA.match0, match_end_orbit = T
+
+
+la.demer.patch1: patch
+
+!MD1DIP01[b_field] = -1.4748206E-02
+
+Mar.beg: marker
+recirculate: floor_shift, origin_ele = Mar.BEG
+
+!lat: line = (dummy0, la, dummy, m1, recirculate, la, la.demer.patch1, du)
+lat: line = (Mar.beg, LA, DU.part1, LA.match0,
+recirculate, LA, DU.part1, du)
+use, lat
+
+
+
+*[ds_step] = .01
+expand_lattice
+call, file = ../la/la.recovery2.bmad
+
+
+

@@ -44,9 +44,17 @@ integer, optional :: ix_ele, ix_branch
 integer i, j, i0, i1, ie, ild, n_taylor, i_ele, i_branch, ix_slave, species
 
 logical, optional :: err_flag
-logical transferred, zero_orbit, err
+logical transferred, zero_orbit, err, finished
 
 character(*), parameter :: r_name = 'lat_make_mat6'
+
+! 
+
+if (associated(lat_make_mat6_hook_ptr)) then
+  finished = .false.
+  call lat_make_mat6_hook_ptr(finished, lat, ix_ele, ref_orb, ix_branch, err_flag)
+  if (finished) return
+endif
 
 !
 
@@ -119,7 +127,6 @@ if (i_ele < 0) then
   n_taylor = 0  ! number of taylor map found
 
   do i = 1, branch%n_ele_track
-
     ele => branch%ele(i)
 
     ! Check if transfer matrix needs to be recomputed
@@ -175,7 +182,7 @@ if (i_ele < 0) then
     if (zero_orbit) then 
       call make_mat6(ele, branch%param, orb_start, err_flag = err)
     else  ! else ref_orb must be present
-      if (ref_orb(i)%state /= alive$) then
+      if (ref_orb(i)%state /= alive$ .or. ref_orb(i-1)%state /= alive$) then
         ele%mat6 = 0
         ele%vec0 = 0
         ele%map_ref_orb_in%vec = real_garbage$

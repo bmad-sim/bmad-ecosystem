@@ -227,7 +227,7 @@ use output_mod
 #endif
 
 !---------------------------------------------------------------------------
-! common block
+! Common block
 ! General NOTE: qp_com is made private so that you cannot change it directly.
 ! This was done since the layout of qp_com can change.
 
@@ -334,7 +334,7 @@ real(rp) x1, x2, y1, y2
 
 character(*) who
 character(*), optional :: units
-character(40) :: r_name = "qp_get_layout_attrib"
+character(*), parameter :: r_name = "qp_get_layout_attrib"
 !
 
 if (who == 'PAGE') then
@@ -348,7 +348,7 @@ elseif (who == 'MARGIN') then
 elseif (who == 'BORDER') then
   rect = qp_com%border
 else
-  call out_io (s_fatal$, r_name, 'BAD "WHO": ' // who)
+  call out_io (s_error$, r_name, 'BAD "WHO": ' // who)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -451,7 +451,7 @@ character(*), parameter :: r_name = 'qp_save_state'
 if (buffer_basic) call qp_save_state_basic
 
 if (ix_qp_com == size(qp_save_com)) then
-  call out_io (s_fatal$, r_name, 'TRYING TO SAVE TOO MANY STATES!')
+  call out_io (s_error$, r_name, 'TRYING TO SAVE TOO MANY STATES!')
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -497,7 +497,7 @@ character(*), parameter :: r_name = 'qp_restore_state'
 if (qp_com%buffer) call qp_restore_state_basic()
 
 if (ix_qp_com == 0) then
-  call out_io (s_fatal$, r_name, 'NO STATE TO RESTORE!')
+  call out_io (s_error$, r_name, 'NO STATE TO RESTORE!')
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -534,7 +534,7 @@ implicit none
 type (qp_axis_struct), pointer :: axis_ptr
 
 character(*) axis_str
-character(20) :: r_name = 'qp_pointer_to_axis'
+character(*), parameter :: r_name = 'qp_pointer_to_axis'
 
 !
 
@@ -551,7 +551,7 @@ elseif (axis_str == 'Y2') then
 elseif (axis_str == 'YY') then
   axis_ptr => qp_com%plot%yy
 else
-  call out_io (s_fatal$, r_name, 'INVALID AXIS: ' // axis_str)
+  call out_io (s_error$, r_name, 'INVALID AXIS: ' // axis_str)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -575,7 +575,7 @@ subroutine qp_use_axis (x, y)
 implicit none
 
 character(*), optional :: x, y
-character(10) :: r_name = 'qp_use_axis'
+character(*), parameter :: r_name = 'qp_use_axis'
 
 !
 
@@ -1119,7 +1119,7 @@ case ('ZERO_SYMMETRIC')
 case ('GENERAL', 'EXACT')
   ! Nothing to do
 case default
-  call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND "AXIS%BOUNDS": ' // axis%bounds)
+  call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND "AXIS%BOUNDS": ' // axis%bounds)
   if (global_com%exit_on_error) call err_exit
 end select
 
@@ -1873,7 +1873,7 @@ end subroutine qp_to_inches_rel
 !
 ! Input:
 !   x, y   -- Real(rp): Position to convert.
-!   units  -- Character(*), optional: Units of x and y
+!   units  -- Character(*), optional: Units of x and y. Default is 'DATA/GRAPH/LB'.
 !
 ! Output:
 !   x_inch, y_inch -- Real(rp): Position in inches referenced to the page.
@@ -2144,7 +2144,7 @@ character(*) u_type, region, corner
 character(*), optional :: units
 character(20) u
 character(8) dflt_units(3)
-character(28) :: r_name = 'qp_split_units_string'
+character(*), parameter :: r_name = 'qp_split_units_string'
 
 ! Default
 
@@ -2179,7 +2179,7 @@ if (u(1:1) == '%') ix = 1
 u_type = u(:ix)
 
 if (all(u_type /= ['DATA  ', 'MM    ', 'INCH  ', 'POINTS', '%     '])) then
-  call out_io (s_fatal$, r_name, 'BAD UNITS TYPE: "' // trim(units) // '"')
+  call out_io (s_error$, r_name, 'BAD UNITS TYPE: "' // trim(units) // '"')
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -2190,7 +2190,7 @@ if (ix == 0) return
 region = u(:ix)
 
 if (all(region /= ['PAGE ', 'BOX  ', 'GRAPH'])) then
-  call out_io (s_fatal$, r_name, 'BAD REGION: "' // trim(units) // '"')
+  call out_io (s_error$, r_name, 'BAD REGION: "' // trim(units) // '"')
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -2201,13 +2201,13 @@ if (ix == 0) return
 corner = u(:ix)
 
 if (all(corner /= ['LB', 'LT', 'RB', 'RT'])) then
-  call out_io (s_fatal$, r_name, 'BAD CORNER: "' // trim(units) // '"')
+  call out_io (s_error$, r_name, 'BAD CORNER: "' // trim(units) // '"')
   if (global_com%exit_on_error) call err_exit
 endif
 
 call string_trim (u(ix+1:), u, ix)
 if (ix /= 0) then
-  call out_io (s_fatal$, r_name, 'EXTRA CHARACTERS IN UNITS: "' // trim(units) // '"')
+  call out_io (s_error$, r_name, 'EXTRA CHARACTERS IN UNITS: "' // trim(units) // '"')
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -2485,7 +2485,7 @@ logical, optional :: clip
 !
 
 if (size(x) /= size(y)) then
-  call out_io (s_fatal$, r_name, 'X, Y COORD VECTORS HAVE UNEQUAL LENGTH!')
+  call out_io (s_error$, r_name, 'X, Y COORD VECTORS HAVE UNEQUAL LENGTH!')
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -2568,12 +2568,12 @@ character(*), parameter :: r_name = 'qp_draw_graph'
 ! Error check
 
 if (qp_com%plot%xx%max == qp_com%plot%xx%min) then
-  call out_io (s_fatal$, r_name, 'X_MAX = X_MIN')
+  call out_io (s_error$, r_name, 'X_MAX = X_MIN')
   if (global_com%exit_on_error) call err_exit
 endif
 
 if (qp_com%plot%yy%max == qp_com%plot%yy%min) then
-  call out_io (s_fatal$, r_name, 'Y_MAX = Y_MIN')
+  call out_io (s_error$, r_name, 'Y_MAX = Y_MIN')
   if (global_com%exit_on_error) call err_exit
 endif
            
@@ -2764,12 +2764,12 @@ character(*), parameter :: r_name = 'qp_draw_histogram'
 ! error check
 
 if (qp_com%plot%xx%max == qp_com%plot%xx%min) then
-  call out_io (s_fatal$, r_name, 'X_MAX = X_MIN')
+  call out_io (s_error$, r_name, 'X_MAX = X_MIN')
   if (global_com%exit_on_error) call err_exit
 endif
 
 if (qp_com%plot%yy%max == qp_com%plot%yy%min) then
-  call out_io (s_fatal$, r_name, 'Y_MAX = Y_MIN')
+  call out_io (s_error$, r_name, 'Y_MAX = Y_MIN')
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -2896,50 +2896,37 @@ end subroutine qp_draw_text_legend
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, 
-!                  symbol, text, text_offset, draw_line, draw_symbol, draw_text)
+! Subroutine qp_draw_curve_legend (origin, legend, line, symbol, text)
 !
 ! Subroutine to draw a legend with each line in the legend having
 !   a line, a symbol, some text.
 !
 ! Input:
-!   x_origin    -- Real(rp), optional: x-postion of start of the first line.
-!   y_origin    -- Real(rp), optional: y-postion of start of the first line.
-!   units       -- Character(*), optional: Units of x_origin, y_origin.
-!                    Default is: 'DATA/GRAPH/LB'
-!                    See quick_plot writeup for more details.
+!   origin      -- qp_point_struct: Position of the legend.
+!   legend      -- qp_legend_struct: Legend parameters.
 !   line(:)     -- qp_line_struct, optional: Array of lines.
 !                    Set line(i)%width < 0 to suppress drawing of the i^th line
-!   line_length -- Real(rp), optional: Length of the line in points. Default is 72 pts (~ 1 inch).
 !   symbol(:)   -- qp_symbol_struct, optional: Array of symbols.
 !                    Set symbol(i)%type < 0 to suppress drawing of the i^th symbol.
 !   text(:)     -- Character(*), optional: Array of text lines.
-!   text_offset -- Real(rp), optional: Horizontal offset in points between the line and the text.
-!                   Default is 10 pt.
-!   draw_line   -- Logical, optional: Draw lines? Default is True if line arg is present.
-!                   Line style set by the LEGEND line style. See qp_set_line_attrib.
-!   draw_symbol -- Logical, optional: Draw symbols? Default is True if symbol arg is present.
-!   draw_text   -- Logical, optional: Draw text? Default is True if text arg is present.
 !-
 
-subroutine qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, &
-                      symbol, text, text_offset, draw_line, draw_symbol, draw_text)
+subroutine qp_draw_curve_legend (origin, legend, line, symbol, text)
 
 implicit none
 
+type (qp_legend_struct) legend
+type (qp_point_struct) origin
 type (qp_line_struct), optional :: line(:)
 type (qp_symbol_struct), optional :: symbol(:)
 
-real(rp) x_origin, y_origin
-real(rp), optional :: line_length, text_offset
 real(rp) height, xc, yc, yc2, line_len, dummy, text_off
 
 integer i, n_rows
 
-character(*), optional :: units, text(:)
-character(20) :: r_name = 'qp_draw_curve_legend'
+character(*), optional :: text(:)
+character(*), parameter :: r_name = 'qp_draw_curve_legend'
 
-logical, optional :: draw_line, draw_symbol, draw_text
 logical has_line, has_symbol, has_text
 
 !
@@ -2950,32 +2937,32 @@ call qp_set_text_attrib ('LEGEND')
 call qp_set_line_attrib ('LEGEND')
 height = qp_text_height_to_inches(qp_com%this_text%height) 
 
-call qp_to_inch_abs (x_origin, y_origin, xc, yc, units)
+call qp_to_inch_abs (origin%x, origin%y, xc, yc, origin%units)
 
 ! Find out how many rows to draw
 
 n_rows = 0
 has_text = .false.
-if (present(text) .and. logic_option(.true., draw_text)) then
+if (present(text) .and. legend%draw_text) then
   has_text = .true.
   n_rows = size(text)
-  call qp_to_inch_rel (real_option(10.0_rp, text_offset), 0.0_rp, text_off, dummy, 'POINTS')
+  call qp_to_inch_rel (legend%text_offset, 0.0_rp, text_off, dummy, 'POINTS')
 endif
 
 has_line = .false.
 line_len = 0
-if (present(line) .and. logic_option(.true., draw_line)) then
+if (present(line) .and. legend%draw_line) then
   if (n_rows /= 0 .and. size(line) /= n_rows) then
     call out_io (s_error$, r_name, 'LINE ARRAY SIZE NOT THE SAME AS THE OTHERS.')
     return
   endif
   has_line = .true.
   n_rows = size(line)
-  call qp_to_inch_rel (real_option(72.0_rp, line_length), 0.0_rp, line_len, dummy, 'POINTS')
+  call qp_to_inch_rel (legend%line_length, 0.0_rp, line_len, dummy, 'POINTS')
 endif
 
 has_symbol = .false.
-if (present(symbol) .and. logic_option(.true., draw_symbol)) then
+if (present(symbol) .and. legend%draw_symbol) then
   if (n_rows /= 0 .and. size(symbol) /= n_rows) then
     call out_io (s_error$, r_name, 'SYMBOL ARRAY SIZE NOT THE SAME AS THE OTHERS.')
     return
@@ -2986,11 +2973,9 @@ endif
 
 ! Draw the rows
 
-yc = yc - 1.1 * height
+yc2 = yc - 0.6 * height
 
 do i = 1, n_rows
-  yc2 = yc + 0.5 * height
-
   if (has_line) then
     if (line(i)%width > -1) then
       call qp_set_line ('STD', line(i))
@@ -3007,10 +2992,10 @@ do i = 1, n_rows
 
   if (has_text) then
     call qp_set_text_attrib ('LEGEND')
-    call qp_draw_text_no_set (text(i), xc + line_len + text_off, yc, 'INCH/PAGE/LB')
+    call qp_draw_text_no_set (text(i), xc + line_len + text_off, yc2-0.5*height, 'INCH/PAGE/LB')
   endif
 
-  yc = yc - 1.5 * height
+  yc2 = yc2 - 1.0 * height * legend%row_spacing
 enddo
 
 call qp_restore_state
@@ -3584,7 +3569,7 @@ if (present(justify)) then
     x1 = x1 - dx 
     y1 = y1 - dy 
   elseif (justify(2:2) /= 'B') then
-    call out_io (s_fatal$, r_name, 'UNKNOWN "JUSTIFY": ' // justify)
+    call out_io (s_error$, r_name, 'UNKNOWN "JUSTIFY": ' // justify)
     if (global_com%exit_on_error) call err_exit
   endif
 endif
@@ -3644,7 +3629,7 @@ if (present(justify)) then
   elseif (justify(1:1) == 'R') then
     horiz_justy = 1.0
   elseif (justify(1:1) /= 'L') then
-    call out_io (s_fatal$, r_name, 'BAD "JUSTIFY": ' // justify)
+    call out_io (s_error$, r_name, 'BAD "JUSTIFY": ' // justify)
     if (global_com%exit_on_error) call err_exit
   endif
 endif
@@ -3940,7 +3925,7 @@ elseif (who == 'AXIS') then
 elseif (who == 'LEGEND') then
   qp_com%legend_line = line
 else
-  call out_io (s_fatal$, r_name, 'UNKNOWN LINE "WHO": ' // who)
+  call out_io (s_error$, r_name, 'UNKNOWN LINE "WHO": ' // who)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -3993,7 +3978,7 @@ elseif (style == 'AXIS') then
 elseif (style == 'LEGEND') then
   line = qp_com%legend_line
 else
-  call out_io (s_fatal$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
+  call out_io (s_error$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -4051,7 +4036,7 @@ elseif (style == 'AXIS') then
 elseif (style == 'LEGEND') then
   this => qp_com%legend_line
 else
-  call out_io (s_fatal$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
+  call out_io (s_error$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -4194,7 +4179,7 @@ elseif (who == "AXIS_NUMBERS") then
 elseif (who == "AXIS_LABEL") then
   call qp_get_this_text_attrib (qp_com%axis_label)
 else
-  call out_io (s_fatal$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
+  call out_io (s_error$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -4288,7 +4273,7 @@ elseif (who == "AXIS_NUMBERS") then
 elseif (who == "AXIS_LABEL") then
   call qp_set_this_text_attrib (qp_com%axis_label)
 else
-  call out_io (s_fatal$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
+  call out_io (s_error$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
   if (global_com%exit_on_error) call err_exit
 endif
 

@@ -60,6 +60,8 @@ case (beginning_ele$)
   ele%value(p0c$) = -1
   ele%value(inherit_from_fork$) = real_garbage$
   ele%value(deta_ds_master$) = false$
+  ele%z%etap = 1
+  ele%z%deta_ds = 1
   call mat_make_unit (ele%mat6)
 
 case (capillary$)
@@ -222,6 +224,7 @@ case (match$)
   ele%value(kick0$) = standard$
   ele%value(recalc$) = true$
   ele%value(deta_ds_master$) = false$
+  ele%spin_tracking_method = off$
 
 case (mirror$)
   ele%aperture_at = surface$
@@ -278,6 +281,8 @@ case (rf_bend$)
   ele%tracking_method = runge_kutta$
   ele%field_calc = fieldmap$
   ele%value(num_steps$) = 10
+  ele%value(fiducial_pt$) = none_pt$
+  ele%value(init_needed$) = true$
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
@@ -286,6 +291,8 @@ case (rbend$, sbend$)
   ele%value(ptc_fringe_geometry$) = x_invariant$
   ele%value(exact_multipoles$) = off$
   ele%value(ptc_field_geometry$) = sector$
+  ele%value(fiducial_pt$) = none_pt$
+  ele%value(init_needed$) = true$
 
 case (rcollimator$)
   ele%offset_moves_aperture = .true.
@@ -333,6 +340,7 @@ case (taylor$)   ! start with unit matrix
 case (wiggler$, undulator$) 
   ele%field_calc = int_garbage$
   ele%value(polarity$) = 1.0
+  ele%value(delta_ref_time_user_set$) = false$
 
 end select
 

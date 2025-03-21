@@ -215,8 +215,12 @@ integer, optional :: n_emit
 
 ! Calculate space charge field
 if (space_charge_com%particle_sigma_cutoff > 0) then
-  call calc_bunch_params(bunch, bunch_params, error, is_time_coords=.true., ele=ele)
-  call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field, bunch_params)
+  call calc_bunch_params(bunch, bunch_params, error, .false., is_time_coords=.true., ele=ele)
+  if (error) then
+    call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field)
+  else
+    call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field, bunch_params)
+  endif
 else
   call sc_field_calc(bunch, ele%branch, include_image, t_end, sc_field)
 endif

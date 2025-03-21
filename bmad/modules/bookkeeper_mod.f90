@@ -235,7 +235,7 @@ character(100) err_str
 
 !
 
-call pointer_to_attribute (ele, attrib_name, .false., a_ptr, err_flag)
+call pointer_to_attribute (ele, attrib_name, .false., a_ptr, err_flag, do_unlink = .true.)
 if (err_flag) then
   if (global_com%exit_on_error) call err_exit
   return
@@ -286,11 +286,13 @@ if (ele%lord_status == super_lord$ .and. a_ptr%r < 0) then
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
     err_flag = .true.
+    return
   elseif (attrib_name == 'LORD_PAD2') then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
     err_flag = .true.
+    return
   endif
 endif
 
@@ -481,7 +483,7 @@ slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
 slave%symplectify                 = lord%symplectify
 slave%is_on = lord%is_on
 slave%csr_method                  = lord%csr_method
-slave%space_charge_method         = lord%space_charge_method
+!! slave%space_charge_method         = lord%space_charge_method
 
 ! Handled by set_flags_for_changed_attribute
 
@@ -538,7 +540,10 @@ if (slave%slave_status /= super_slave$) then
   return
 endif
 
-slave%field_calc = refer_to_lords$
+slave%field_calc    = refer_to_lords$
+slave%aperture_at   = lord_defined$
+slave%aperture_type = lord_defined$
+
 if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
 if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
 
@@ -605,13 +610,15 @@ ix_lord = 1  ! Index of major lord or first lord
 n_major_lords = 0
 do j = 1, slave%n_lord
   lord => pointer_to_lord (slave, j)
-  if (lord%key == pipe$) cycle
-  n_major_lords = n_major_lords + 1
-  ix_lord = j
+  select case (lord%key)
+  case (pipe$, instrument$, monitor$, ecollimator$, rcollimator$)
+  case default
+    n_major_lords = n_major_lords + 1
+    ix_lord = j
+  end select
 enddo
 
 if (n_major_lords < 2) then
-
   lord => pointer_to_lord (slave, ix_lord, ix_slave_back = ix_order)
   old_value = slave%value
 
@@ -654,9 +661,9 @@ if (n_major_lords < 2) then
     slave%value(bl_vkick$) = slave%value(bl_vkick$) + lord%value(bl_vkick$)
   enddo
 
-  if (any(slave%value /= old_value)) call set_ele_status_stale (slave, attribute_group$)
-  return
+  if (any(slave%value /= old_value)) call attribute_bookkeeper (slave, .true.)
 
+  return
 endif
 
 !-----------------------------------------------------------------------
@@ -694,10 +701,10 @@ value(ref_time_start$)   = slave%value(ref_time_start$)
 value(fringe_at$)        = no_end$
 value(fringe_type$)      = none$
 value(integrator_order$) = 0
-slave%value(x1_limit$:y2_limit$) = 0  ! check_aperture_limits knows to look at the lords for apertures.
 
-slave%aperture_at = no_end$
-slave%is_on = .false.
+slave%value(x1_limit$:y2_limit$) = 0  ! check_aperture_limits knows to look at the lords for apertures.
+slave%is_on                      = .false.
+
 s_slave = slave%s - value(l$)/2  ! center of slave
 
 ! A "major" element is something other than a pipe, monitor, etc.
@@ -721,7 +728,8 @@ do j = 1, slave%n_lord
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
-    if (global_com%exit_on_error) call err_exit
+    err_flag = .true.
+    return
   endif
 
   ! Physically, the lord length cannot be less than the slave length.
@@ -778,16 +786,16 @@ do j = 1, slave%n_lord
     endif
   endif
 
-  if (lord%key /= pipe$) then
+  select case (lord%key)
+  case (pipe$, instrument$, monitor$, ecollimator$, rcollimator$)
+  case default
     if (n_major_lords > 0) then
  
      if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-        call out_io(s_abort$, r_name, &
+        call out_io(s_error$, r_name, &
               'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
               'Conflicting methods are: ' // trim(mat6_calc_method_name(lord%mat6_calc_method)) // ',  ' // & 
               mat6_calc_method_name(slave%mat6_calc_method))
-        if (global_com%exit_on_error) call err_exit
-        err_flag = .true.
       endif
 
       if (slave%tracking_method /= lord%tracking_method) then
@@ -800,12 +808,10 @@ do j = 1, slave%n_lord
         elseif (slave%tracking_method == time_runge_kutta$ .and. lord%tracking_method == fixed_step_time_runge_kutta$) then
           slave%tracking_method = fixed_step_time_runge_kutta$
         else
-          call out_io(s_abort$, r_name, &
+          call out_io(s_error$, r_name, &
              'TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
              'Conflicting methods are: ' // trim(tracking_method_name(lord%tracking_method)) // ',  ' // & 
              tracking_method_name(slave%tracking_method))
-          if (global_com%exit_on_error) call err_exit
-          err_flag = .true.
         endif
       endif
 
@@ -813,25 +819,21 @@ do j = 1, slave%n_lord
       if (slave%space_charge_method == off$) slave%space_charge_method = lord%space_charge_method
 
       if (slave%taylor_map_includes_offsets .neqv. lord%taylor_map_includes_offsets) then
-        call out_io(s_abort$, r_name, &
+        call out_io(s_error$, r_name, &
             'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
-        if (global_com%exit_on_error) call err_exit
-        err_flag = .true.
       endif
 
       if ((is_first .or. is_last) .and. has_attribute (lord, 'FRINGE_TYPE')) then
        if (value(fringe_type$) /= lord%value(fringe_type$)) then
-         call out_io(s_abort$, r_name, &
+         call out_io(s_error$, r_name, &
             'FRINGE_TYPE DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
-         if (global_com%exit_on_error) call err_exit
-         err_flag = .true.
        endif
 
      endif
     endif
 
     n_major_lords = n_major_lords + 1
-  endif
+  end select
 
   ! descriptive strings.
 
@@ -1086,11 +1088,14 @@ case (solenoid$, sol_quad$, quadrupole$)
     T_end(4,1) =  ks / 2
     T_end(2,3) = -ks / 2
 
-    call init_ele (sol_quad)
+    call transfer_ele (slave, sol_quad)
     sol_quad%key = sol_quad$
     sol_quad%value(ks$) = ks
     sol_quad%value(k1$) = k1
     sol_quad%value(l$)  = l_slave
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(ks$))
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(k1$))
+    call set_flags_for_changed_attribute(sol_quad, sol_quad%value(l$))
     call make_mat6 (sol_quad, branch%param)
     T_tot = sol_quad%mat6(1:4,1:4)
 
@@ -1148,16 +1153,16 @@ end subroutine makeup_super_slave
 ! Note: Reference energy and times are not computed in this routine.
 !
 ! Input:
-!   slave  -- Ele_struct: Slave element.
-!   lord   -- Ele_struct: Lord element.
-!   offset -- Real(rp): offset of entrance end of slave from entrance end of the lord.
-!   param  -- Lat_param_struct: lattice paramters.
-!   include_upstream_end -- Logical: Slave contains the lord's entrance end?
-!   include_downstream_end     -- Logical: Slave contains the lord's exit end?
+!   slave                   -- Ele_struct: Slave element.
+!   lord                    -- Ele_struct: Lord element.
+!   offset                  -- Real(rp): offset of entrance end of slave from entrance end of the lord.
+!   param                   -- Lat_param_struct: lattice paramters.
+!   include_upstream_end    -- Logical: Slave contains the lord's entrance end?
+!   include_downstream_end  -- Logical: Slave contains the lord's exit end?
 !
 ! Output:
-!   slave    -- Ele_struct: Slave element with appropriate values set.
-!   err_flag -- Logical: Set true if there is an error. False otherwise.
+!   slave                   -- Ele_struct: Slave element with appropriate values set.
+!   err_flag                -- Logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end, include_downstream_end, err_flag)
@@ -1421,10 +1426,28 @@ slave%scale_multipoles            = lord%scale_multipoles
 slave%is_on                       = lord%is_on
 slave%csr_method                  = lord%csr_method
 slave%space_charge_method         = lord%space_charge_method
-slave%aperture_type               = lord%aperture_type
 
 if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
 if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
+
+! The slave can have more than one lord here if the other lords are pipes.
+
+if (slave%n_lord == 1) then
+  slave%aperture_type               = lord%aperture_type
+  slave%aperture_at                 = no_aperture$
+
+  select case (lord%aperture_at)
+  case (continuous$, wall_transition$, surface$)
+    slave%aperture_at = lord%aperture_at
+  case (entrance_end$)
+    if (include_entrance) slave%aperture_at = entrance_end$
+  case (exit_end$)
+    if (include_exit) slave%aperture_at = exit_end$
+  case (both_ends$)
+    if (include_entrance) slave%aperture_at = entrance_end$
+    if (include_exit) slave%aperture_at = exit_end$
+  end select
+endif
 
 ! wiggler fields and electro-magnetic fields
 
@@ -1565,7 +1588,8 @@ do i = 1, slave%n_lord
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%key == group$) cycle
 
-  if (lord%key == girder$ .and. has_orientation_attributes(slave)) then
+  if (lord%key == girder$) then
+    if (.not. has_orientation_attributes(slave)) cycle   ! Example: Match element does not have orientation.
     v => lord%value
     vs => slave%value
 
@@ -1611,17 +1635,17 @@ do i = 1, slave%n_lord
       vs(z_offset_tot$) = l_slave_off_tot(3)
     endif
 
+    slave%bookkeeping_state%has_misalign = .true.
     on_an_offset_girder = .true.
 
     cycle
   endif
 
   if (lord%key /= overlay$) then
-    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY \i\ ', ix_slave)
-    call type_ele (slave, .true., 0, .false., 0)
-    if (global_com%exit_on_error) call err_exit
-  endif     
-
+    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY: ', lord%name)
+    err_flag = .true.
+    return
+  endif
 
   ! overlay lord
 
@@ -1645,7 +1669,7 @@ do i = 1, slave%n_lord
       return
     endif
 
-    call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag)
+    call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag, do_unlink = .true.)
     if (err_flag) then
       if (global_com%exit_on_error) call err_exit
       return
@@ -1808,13 +1832,16 @@ end subroutine makeup_control_slave
 subroutine aperture_bookkeeper (ele)
 
 type (ele_struct), target :: ele
-type (surface_grid_struct), pointer :: grid
+type (surface_displacement_struct), pointer :: displacement
+type (surface_h_misalign_struct), pointer :: h_misalign
+type (surface_segmented_struct), pointer :: segmented
 type (pixel_detec_struct), pointer :: pixel
 type (wall3d_section_struct), pointer :: sec
 
 real(rp) angle, r_wall, dr_dtheta, x, y
 
 integer i, j
+logical is_set
 
 character(*), parameter :: r_name = 'aperture_bookkeeper'
 
@@ -1853,21 +1880,49 @@ case default
     return
   endif
 
+  is_set = .false.
+  ele%value(x1_limit$) = -1e30
+  ele%value(y1_limit$) = -1e30
+  ele%value(x2_limit$) = -1d30
+  ele%value(y2_limit$) = -1d30
+
   if (allocated(ele%photon%pixel%pt)) then
     pixel => ele%photon%pixel
-    ele%value(x1_limit$) = -(pixel%r0(1) + (lbound(pixel%pt, 1) - 0.5) * pixel%dr(1))
-    ele%value(y1_limit$) = -(pixel%r0(2) + (lbound(pixel%pt, 2) - 0.5) * pixel%dr(2))
-    ele%value(x2_limit$) =  (pixel%r0(1) + (ubound(pixel%pt, 1) + 0.5) * pixel%dr(1))
-    ele%value(y2_limit$) =  (pixel%r0(2) + (ubound(pixel%pt, 2) + 0.5) * pixel%dr(2))
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(pixel%r0(1) + (lbound(pixel%pt, 1) - 0.5) * pixel%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(pixel%r0(2) + (lbound(pixel%pt, 2) - 0.5) * pixel%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (pixel%r0(1) + (ubound(pixel%pt, 1) + 0.5) * pixel%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (pixel%r0(2) + (ubound(pixel%pt, 2) + 0.5) * pixel%dr(2)))
+    is_set = .true.
+  endif
 
-  elseif (allocated(ele%photon%grid%pt)) then
-    grid => ele%photon%grid
-    ele%value(x1_limit$) = -(grid%r0(1) + (lbound(grid%pt, 1) - 0.5) * grid%dr(1))
-    ele%value(y1_limit$) = -(grid%r0(2) + (lbound(grid%pt, 2) - 0.5) * grid%dr(2))
-    ele%value(x2_limit$) =  (grid%r0(1) + (ubound(grid%pt, 1) + 0.5) * grid%dr(1))
-    ele%value(y2_limit$) =  (grid%r0(2) + (ubound(grid%pt, 2) + 0.5) * grid%dr(2))
+  if (allocated(ele%photon%segmented%pt)) then
+    segmented => ele%photon%segmented
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(segmented%r0(1) + (lbound(segmented%pt, 1) - 0.5) * segmented%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(segmented%r0(2) + (lbound(segmented%pt, 2) - 0.5) * segmented%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (segmented%r0(1) + (ubound(segmented%pt, 1) + 0.5) * segmented%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (segmented%r0(2) + (ubound(segmented%pt, 2) + 0.5) * segmented%dr(2)))
+    is_set = .true.
+  endif
 
-  else
+  if (allocated(ele%photon%h_misalign%pt)) then
+    h_misalign => ele%photon%h_misalign
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(h_misalign%r0(1) + (lbound(h_misalign%pt, 1) - 0.5) * h_misalign%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(h_misalign%r0(2) + (lbound(h_misalign%pt, 2) - 0.5) * h_misalign%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (h_misalign%r0(1) + (ubound(h_misalign%pt, 1) + 0.5) * h_misalign%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (h_misalign%r0(2) + (ubound(h_misalign%pt, 2) + 0.5) * h_misalign%dr(2)))
+    is_set = .true.
+  endif
+
+  if (allocated(ele%photon%displacement%pt)) then
+    displacement => ele%photon%displacement
+    ele%value(x1_limit$) = max(ele%value(x1_limit$), -(displacement%r0(1) + (lbound(displacement%pt, 1) - 0.5) * displacement%dr(1)))
+    ele%value(y1_limit$) = max(ele%value(y1_limit$), -(displacement%r0(2) + (lbound(displacement%pt, 2) - 0.5) * displacement%dr(2)))
+    ele%value(x2_limit$) = max(ele%value(x2_limit$),  (displacement%r0(1) + (ubound(displacement%pt, 1) + 0.5) * displacement%dr(1)))
+    ele%value(y2_limit$) = max(ele%value(y2_limit$),  (displacement%r0(2) + (ubound(displacement%pt, 2) + 0.5) * displacement%dr(2)))
+    is_set = .true.
+  endif
+
+  if (.not. is_set) then
     call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "SURFACE" BUT', &
                                    'NO GRID IS DEFINED: ' // ele%name)
     return
@@ -1908,6 +1963,7 @@ integer i
 select case (ele%key)
 case (overlay$, group$, hybrid$)
   ele%bookkeeping_state%attributes = ok$
+  if (present(dval)) dval = 0
   return
 end select
 
@@ -1918,14 +1974,15 @@ ele0 => ele
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) ele0 => pointer_to_lord(ele0, 1)
 ele%value(check_sum$) = 0
 
-if (associated(ele%a_pole)) then
+if (associated(ele0%a_pole)) then
   do i = 0, ubound(ele%a_pole, 1)
     ele%value(check_sum$) = ele%value(check_sum$) + fraction(ele0%a_pole(i)) + fraction(ele0%b_pole(i))
     ele%value(check_sum$) = ele%value(check_sum$) + (exponent(ele0%a_pole(i)) + exponent(fraction(ele0%b_pole(i)))) / 10
   enddo
 endif
 
-if (associated(ele%a_pole_elec)) then
+
+if (associated(ele0%a_pole_elec)) then
   do i = 0, ubound(ele%a_pole_elec, 1)
     ele%value(check_sum$) = ele%value(check_sum$) + fraction(ele0%a_pole_elec(i)) + fraction(ele0%b_pole_elec(i))
     ele%value(check_sum$) = ele%value(check_sum$) + (exponent(ele0%a_pole_elec(i)) + exponent(fraction(ele0%b_pole_elec(i)))) / 10

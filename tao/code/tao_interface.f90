@@ -44,6 +44,11 @@ private tao_pointer_to_universe_int, tao_pointer_to_universe_str
 
 interface
 
+subroutine tao_abort_command_file(force_abort)
+  implicit none
+  logical, optional :: force_abort
+end subroutine
+
 subroutine tao_alias_cmd (alias, string)
   implicit none
   character(*) :: alias
@@ -59,12 +64,13 @@ function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
   real(rp) emit
 end function
 
-function tao_beam_track_endpoint (ele_id, lat, branch_str, where) result (ele)
+function tao_beam_track_endpoint (ele_id, lat, branch_str, where, u) result (ele)
   import
   implicit none
   type (ele_struct), pointer :: ele
   type (lat_struct), target :: lat
   character(*) ele_id, where, branch_str
+  type (tao_universe_struct), target :: u
 end function
 
 function tao_branch_index (ix_branch) result (ix_this)
@@ -136,6 +142,14 @@ subroutine tao_count_strings (string, pattern, num)
   character(*) string, pattern
   integer num
 end subroutine
+
+function tao_curve_ele_ref (curve, point_to_ele_ref) result (ele_track)
+  import
+  implicit none
+  type (tao_curve_struct) curve
+  type (ele_struct), pointer :: ele_track
+  logical point_to_ele_ref
+end function
 
 function tao_curve_ix_uni (curve) result (ix_uni)
   import
@@ -222,10 +236,37 @@ subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1,
   character(*) label_name
 end subroutine
 
-subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
+recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
   import
   implicit none
-  integer ix_universe, ix_branch, ix_ele, ix_ele_track
+  type (tao_data_struct) datum
+  type (tao_universe_struct), target :: u
+  type (tao_lattice_struct), target :: tao_lat
+  real(rp) datum_value
+  logical valid_value
+  character(*), optional :: why_invalid
+end subroutine
+
+recursive &
+subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, err_flag, print_err, &
+                      info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
+                      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+  import
+  implicit none
+  character(*) :: expression
+  character(*), optional :: dflt_component, dflt_source
+  character(*), optional :: dflt_dat_or_var_index
+  type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+  type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
+  type (coord_struct), optional :: dflt_orbit
+  type (tao_expression_info_struct), allocatable, optional :: info(:)
+  type (tao_data_struct), optional :: datum
+  real(rp), allocatable :: value(:)
+  real(rp), optional :: dflt_s_offset
+  integer n_size
+  integer, optional :: dflt_uni, dflt_eval_point
+  logical use_good_user, err_flag
+  logical, optional :: print_err
 end subroutine
 
 function tao_evaluate_tune (q_str, q0, delta_input) result (q_val)
@@ -452,14 +493,14 @@ subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
 end subroutine
 
 subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
-                                       print_err, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
+                                       err_stat_level, above_ubound_is_err, ix_branch, multiple_eles_is_err)
   import
   implicit none
   character(*) ele_list
   integer ix_universe
   type (ele_pointer_struct), allocatable :: eles(:)
   logical err
-  integer, optional :: lat_type, print_err, ix_dflt_branch
+  integer, optional :: lat_type, err_stat_level, ix_branch
   logical, optional :: ignore_blank, above_ubound_is_err, multiple_eles_is_err
 end subroutine
 
@@ -582,6 +623,12 @@ subroutine tao_pick_universe (name_in, name_out, picked, err, ix_uni, explicit_u
   logical, optional :: explicit_uni, pure_uni
 end subroutine
  
+subroutine tao_pipe_cmd (input_str)
+  import
+  implicit none
+  character(*) input_str
+end subroutine
+
 subroutine tao_place_cmd (where, who, no_buffer)
   implicit none
   character(*) who
@@ -666,6 +713,10 @@ subroutine tao_re_allocate_expression_info (info, n, exact)
   logical, optional :: exact
 end subroutine
 
+subroutine tao_regression_test ()
+  implicit none
+end subroutine
+
 subroutine tao_remove_blank_characters (str)
   implicit none
   character(*) str
@@ -703,13 +754,24 @@ subroutine tao_set_data_useit_opt (data)
   type (tao_data_struct), optional :: data(:)
 end subroutine
 
-subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr)
+subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr, who)
   import
   implicit none
   type (tao_universe_struct), target :: u
   type (ele_struct), pointer, optional :: ele_ptr
-  real(rp), pointer, optional :: val_ptr
+  type (all_pointer_struct), optional :: val_ptr
   character(*) ele_name
+  character(*), optional :: who
+end subroutine
+
+subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
+  import
+  implicit none
+  type (tao_data_struct) datum
+  logical, optional :: exterminate
+  integer, optional :: err_level
+  character(*) message
+  character(*), optional :: why_invalid
 end subroutine
 
 subroutine tao_set_var_model_value (var, value, print_limit_warning)

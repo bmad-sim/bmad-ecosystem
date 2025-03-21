@@ -45,7 +45,7 @@ lat_temp = lat_in
 call kill_ptc_layouts(lat_rev)    ! Cleanup lat_rev
 call allocate_branch_array(lat_rev, ubound(lat_temp%branch, 1))
 call transfer_lat_parameters (lat_temp, lat_rev)
-lat_rev%ramper_slave_bookkeeping_done = .false.
+lat_rev%ramper_slave_bookkeeping = stale$
 issued_wall_warning = .false.
 
 !
@@ -71,11 +71,7 @@ do ib = 0, ubound(lat_temp%branch, 1)
   ele_rev%s = 0
   ele_rev%floor = branch_in%ele(nt)%floor
 
-  call transfer_twiss (branch_in%ele(nt), ele_rev)
-  ele_rev%a%alpha = -ele_rev%a%alpha
-  ele_rev%b%alpha = -ele_rev%b%alpha
-  ele_rev%c_mat(1,2) = -ele_rev%c_mat(1,2)
-  ele_rev%c_mat(2,1) = -ele_rev%c_mat(2,1)
+  call transfer_twiss (branch_in%ele(nt), ele_rev, .true.)
 
   ! All other elements
 

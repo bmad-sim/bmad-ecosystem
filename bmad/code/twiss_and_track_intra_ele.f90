@@ -1,6 +1,6 @@
 !+
 ! Subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, 
-!                            orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, reuse_ele_end)
+!               orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, compute_twiss, reuse_ele_end)
 !
 ! Routine to track a particle within an element.
 !
@@ -26,6 +26,8 @@
 !                             instead of recomputing ele_end from scratch. This can save time.
 !   compute_floor_coords -- logical, optional: If present and True then the global "floor" coordinates 
 !                             (without misalignments) will be calculated and put in ele_end%floor.
+!   compute_twiss        -- logical, optional: Default True. If False, to save a little time, do not compute
+!                             Twiss parameters. Also if ele_start is not present, no Twiss parameters are computed.
 !   reuse_ele_end        -- logical, optional: If present and True, and if ele_end has the correct 
 !                             lonigitudianal length and key type, reuse ele_end from trancking instead of 
 !                             recomputing ele_end from scratch. This can save time.
@@ -42,8 +44,8 @@
 !                  the particle gets lost in tracking
 !-   
 
-recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
-           track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, reuse_ele_end)
+recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, &
+           orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, compute_twiss, reuse_ele_end)
 
 use bmad_interface, dummy => twiss_and_track_intra_ele
 
@@ -62,7 +64,7 @@ integer ie, species, dir
 
 logical track_upstream_end, track_downstream_end, do_upstream, do_downstream, err_flag
 logical track_up, track_down, length_ok
-logical, optional :: err, compute_floor_coords, reuse_ele_end
+logical, optional :: err, compute_floor_coords, reuse_ele_end, compute_twiss
 
 character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
 
@@ -91,12 +93,28 @@ if (ele%lord_status == super_lord$) then
     l1 = min(slave%value(l$), s_end - slave%s_start)
     track_up = (track_upstream_end .or. s_start < slave%s_start)
     track_down = (track_downstream_end .or. s_end > slave%s)
-    call twiss_and_track_intra_ele (slave, param, l0, l1, track_up, &
-                       track_down, orbit_end, orbit_end, ele_end, ele_end, err, compute_floor_coords)
+    call twiss_and_track_intra_ele (slave, param, l0, l1, track_up, track_down, orbit_end, &
+                      orbit_end, ele_end, ele_end, err, compute_floor_coords, compute_twiss = compute_twiss)
     if (s_end <= slave%s + bmad_com%significant_length) exit
   enddo
   return
 endif
+
+! mirror, multilayer_mirror, and crystal are exceptional if floor coords needed
+
+if (ele%key == mirror$ .or. ele%key == multilayer_mirror$ .or. ele%key == crystal$) then
+  do_downstream = (track_downstream_end .or. (orbit_start%location == downstream_end$ .and. orbit_start%ix_ele == ele%ix_ele))
+  if (.not. do_downstream) then  ! Then must be center
+    if (present(orbit_end)) orbit_end = orbit_start   ! Note: Orbit does not make sense here.
+    if (present(ele_end)) then
+      ele_end = ele
+      if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele, ele_end%floor, 0.5_rp)
+    endif
+    return
+  endif
+endif
+
+
 
 ! zero length element:
 ! Must ignore track_upstream_end and track_downstream_end since they do not make sense in this case.
@@ -174,7 +192,7 @@ if (present(ele_end) .and. species /= photon$) then
     call make_mat6 (ele_p, param, err_flag = err_flag)
   endif
   if (err_flag) return
-  call twiss_propagate1 (ele_start, ele_p, err_flag)
+  if (logic_option(.true., compute_twiss) .and. present(ele_start)) call twiss_propagate1 (ele_start, ele_p, err_flag)
   if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele_p, ele_p%floor)
   if (.not. associated(ele_p, ele_end)) call transfer_ele(ele_p, ele_end, .true.)
   if (err_flag) return

@@ -39,14 +39,13 @@ use bmad_interface, dummy => ele_geometry
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2, this_ele, lord
+type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2, this_ele, slave
 type (floor_position_struct), optional, target :: floor_end
 type (floor_position_struct) :: floor_start, this_floor, old_floor, floor0
 type (floor_position_struct), pointer :: floor
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_pointer_struct), allocatable, target :: chain_ele(:)
 type (lat_param_struct) param
-type (lat_struct), pointer :: lat
 
 real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
@@ -55,7 +54,7 @@ real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3), eps, signif(6)
 real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, k, ie, key, n_loc, ix_pass, n_links, ix_pole_max, ib_to, ix, iv(6)
+integer i, j, k, n, ie, key, n_loc, ix_pass, n_links, ix_pole_max, ib_to, ix, iv(6)
 
 logical err, doit, finished, has_multipole_rot_tilt, ele_floor_geometry_calc
 logical, optional :: ignore_patch_err
@@ -144,14 +143,58 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
   else  ! Must have a reference element
     if (ele%component_name == '') then  ! Must be a floor_shift element
       ele0 => pointer_to_next_ele(ele, -1)
+
     else
       call lat_ele_locator (ele%component_name, ele%branch%lat, eles, n_loc, err)
-      if (n_loc /= 1) then
-        call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
+
+      ! If multiple matches but one match is a slave of ele (which must be a girder), this is OK.
+      if (n_loc == 0) then
+        call out_io (s_fatal$, r_name, 'ORIGIN_ELE NAME: ' // ele%component_name,  &
                                        'FOR ELEMENT: ' // ele%name, &
-                                       'IS NOT UNIQUE!')
+                                       'DOES NOT MATCH ANY ELEMENT!')
         if (global_com%exit_on_error) call err_exit
         return
+      endif
+
+      if (n_loc > 0) then
+        n = 0
+        do i = 1, n_loc
+          do j = 1, ele%n_slave
+            slave => pointer_to_slave(ele, j)
+            if (.not. (ele_loc(eles(i)%ele) == ele_loc(slave))) cycle
+            select case (n)
+            case (0);     n = j
+            case default; n = -1  ! Mark that there are multiple slave element matches
+            end select
+          enddo
+        enddo
+        if (n > 0) then
+          n_loc = 1
+          eles(1)%ele => pointer_to_slave(ele, n)
+        endif
+        if (n_loc > 1) then
+          call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
+                                         'FOR ELEMENT: ' // ele%name, &
+                                         'IS NOT UNIQUE!')
+          if (global_com%exit_on_error) call err_exit
+          return
+        endif
+      endif
+
+      if (ele%lord_status == multipass_lord$ .or. ele%key == ramper$) then
+        call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
+                                       'FOR ELEMENT: ' // ele%name, &
+                                       'IS A MULTIPASS_LORD OR RAMPER WHICH DOES NOT HAVE A UNIQUE POSITION')
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
+
+      if (ele%n_slave > 1 .and. (ele%key == overlay$ .or. ele%key == group$)) then
+        call out_io (s_fatal$, r_name, 'ORIGIN_ELE: ' // ele%component_name,  &
+                                       'FOR ELEMENT: ' // ele%name, &
+                                       'IS AN OVERLAY OR GROUP ELEMENT WHICH HAS MORE THAN ONE SLAVE SO THERE IS NO UNIQUE POSITION')
+        if (global_com%exit_on_error) call err_exit
+        return        
       endif
 
       ele0 => eles(1)%ele
@@ -237,12 +280,12 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
     call update_floor_angles(floor, floor0)
   endif
 
+  call end_bookkeeping(ele, old_floor, floor)
   return
 endif   ! Fiducial, girder, floor_shift
 
 !---------------------------
 ! General case where layout is not in the horizontal plane
-! Note: 
 
 has_multipole_rot_tilt = .false.
 if (key == multipole$) then
@@ -250,9 +293,9 @@ if (key == multipole$) then
   if (knl(0) /= 0 .and. tilt(0) /= 0) has_multipole_rot_tilt = .true.
 endif
 
-if (((key == mirror$  .or. key == sbend$ .or. key == rf_bend$ .or. key == multilayer_mirror$) .and. &
-         ele%value(ref_tilt_tot$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
-         key == crystal$ .or. has_multipole_rot_tilt) then
+if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == crystal$ .or. has_multipole_rot_tilt .or. &
+     ((key == sbend$ .or. key == rf_bend$) .and. ele%value(ref_tilt_tot$) /= 0) .or. &
+     ((key == mirror$  .or.  key == multilayer_mirror$) .and. (ele%value(ref_tilt_tot$) /= 0 .or. abs(len_factor - 0.5) < 0.25))) then
 
   select case (key)
 
@@ -327,6 +370,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == rf_bend$ .or. key == multil
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor0%r + matmul(w_mat, r_vec)
 
+    ! The factor of pi/2 rotates to surface coordinates.
     if (len_factor == 0.5_rp) then
       if (ele%key == crystal$) then
         s_mat = w_mat_for_bend_angle(angle-pi/2, ele%value(ref_tilt_tot$) + ele%value(tilt_corr$), r_vec)
@@ -474,67 +518,87 @@ endif
 
 floor%w = w_mat 
 call update_floor_angles(floor, floor0)
+call end_bookkeeping(ele, old_floor, floor)
 
-! End bookkeeping
+!-------------------------------------------------------------------------------------------
+contains
+
+subroutine end_bookkeeping(ele, old_floor, floor)
+
+type (ele_struct), target :: ele
+type (floor_position_struct) old_floor, floor
+type (ele_struct), pointer :: lord, slave, ele2
+type (lat_struct), pointer :: lat
+type (ele_pointer_struct), allocatable, target :: chain_ele(:)
+
+integer k, ib_to, ix, ix_pass, n_links, ie
+
+! End bookkeeping. Only set ele%bookkeeping_state if computing 
+! ele%floor (ele_floor_geometry_calc = T) and element is associated with a lattice...
 
 eps = bmad_com%significant_length
-if (ele_floor_geometry_calc .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
+if (ele_floor_geometry_calc .and. associated(ele%branch) .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
               abs(floor%theta - old_floor%theta) > eps .or. abs(floor%phi - old_floor%phi) > eps .or. &
               abs(floor%psi - old_floor%psi) > eps)) then
 
-  ! If element is associated with a lattice...
+  lat => ele%branch%lat
 
-  if (associated(ele%branch)) then
-    lat => ele%branch%lat
+  ! If there is a girder element then *_tot attributes need to be recomputed.
+  do k = 1, ele%n_lord
+    lord => pointer_to_lord(ele, k)
+    if (lord%lord_status == girder_lord$) ele%bookkeeping_state%control = stale$
+  enddo
 
-    ! If there is a girder element then *_tot attributes need to be recomputed.
+  if (ele%key == girder$) then
+    do k = 1, ele%n_slave
+      slave => pointer_to_slave(ele, k)
+      slave%bookkeeping_state%control = stale$
+      lat%branch(slave%ix_branch)%param%bookkeeping_state%control = stale$
+    enddo
+  endif
+
+  ! Fork target branch only needs to be recomputed if target branch index is greater than present branch.
+  if (ele%key == fork$ .or. ele%key == photon_fork$) then
+    ib_to = nint(ele%value(ix_to_branch$))
+    if (ib_to > ele%ix_branch) then
+      ix = nint(ele%value(ix_to_element$))
+      lat%branch(ib_to)%ele(ix)%bookkeeping_state%floor_position = stale$
+      lat%branch(ib_to)%param%bookkeeping_state%floor_position = stale$
+    endif
+  endif
+
+  call multipass_chain(ele, ix_pass, n_links, chain_ele, use_super_lord = .true.)
+  if (ix_pass > 0) then
+    do k = ix_pass+1, n_links
+      this_ele => chain_ele(k)%ele
+      this_ele%bookkeeping_state%floor_position = stale$
+      lat%branch(this_ele%ix_branch)%param%bookkeeping_state%floor_position = stale$
+      if (this_ele%lord_status == super_lord$) then
+        do ie = 1, this_ele%n_slave
+          ele2 => pointer_to_slave(this_ele, ie)
+          ele2%bookkeeping_state%floor_position = stale$
+        enddo
+      endif
+    enddo
+  endif
+
+  if (ele%slave_status == super_slave$) then
     do k = 1, ele%n_lord
       lord => pointer_to_lord(ele, k)
-      if (lord%lord_status == girder_lord$) ele%bookkeeping_state%control = stale$
+      if (lord%lord_status /= super_lord$) exit
+      lord%bookkeeping_state%floor_position = stale$
+      if (lord%slave_status == multipass_slave$) then
+        lord => pointer_to_lord(lord, 1)  ! multipass lord
+        lord%bookkeeping_state%floor_position = stale$
+      endif
     enddo
 
-    ! Fork target branch only needs to be recomputed if target branch index is greater than present branch.
-    if (ele%key == fork$ .or. ele%key == photon_fork$) then
-      ib_to = nint(ele%value(ix_to_branch$))
-      if (ib_to > ele%ix_branch) then
-        ix = nint(ele%value(ix_to_element$))
-        lat%branch(ib_to)%ele(ix)%bookkeeping_state%floor_position = stale$
-        lat%branch(ib_to)%param%bookkeeping_state%floor_position = stale$
-      endif
-    endif
-
-    call multipass_chain(ele, ix_pass, n_links, chain_ele, use_super_lord = .true.)
-    if (ix_pass > 0) then
-      do k = ix_pass+1, n_links
-        this_ele => chain_ele(k)%ele
-        this_ele%bookkeeping_state%floor_position = stale$
-        lat%branch(this_ele%ix_branch)%param%bookkeeping_state%floor_position = stale$
-        if (this_ele%lord_status == super_lord$) then
-          do ie = 1, this_ele%n_slave
-            ele2 => pointer_to_slave(this_ele, ie)
-            ele2%bookkeeping_state%floor_position = stale$
-          enddo
-        endif
-      enddo
-    endif
-
-    if (ele%slave_status == super_slave$) then
-      do k = 1, ele%n_lord
-        lord => pointer_to_lord(ele, k)
-        if (lord%lord_status /= super_lord$) exit
-        lord%bookkeeping_state%floor_position = stale$
-        if (lord%slave_status == multipass_slave$) then
-          lord => pointer_to_lord(lord, 1)  ! multipass lord
-          lord%bookkeeping_state%floor_position = stale$
-        endif
-      enddo
-
-    elseif (ele%slave_status == multipass_slave$) then
-      lord => pointer_to_lord(ele, 1)
-      lord%bookkeeping_state%floor_position = stale$
-    endif
-
+  elseif (ele%slave_status == multipass_slave$) then
+    lord => pointer_to_lord(ele, 1)
+    lord%bookkeeping_state%floor_position = stale$
   endif
 endif
+
+end subroutine end_bookkeeping
 
 end subroutine ele_geometry

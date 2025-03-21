@@ -62,7 +62,7 @@ type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor, f0, floor2
 type (wake_lr_mode_struct), pointer :: lr
 type (wake_sr_mode_struct), pointer :: mode
-type (wake_sr_z_struct), pointer :: srz
+type (wake_sr_z_long_struct), pointer :: srz
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
@@ -85,6 +85,11 @@ type (str_index_struct) str_index
 type (rad_map_struct), pointer :: rm0, rm1
 type (photon_reflect_table_struct), pointer :: rt
 type (material_struct), pointer :: matter
+type (surface_segmented_struct), pointer :: seg
+type (surface_displacement_struct), pointer :: disp
+type (surface_h_misalign_struct), pointer :: hmis
+type (pixel_detec_struct), pointer :: pixel
+
 
 integer, optional, intent(in) :: type_control, type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
@@ -112,7 +117,7 @@ character(*), parameter :: r_name = 'type_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_zero_attrib
 logical, optional, intent(in) :: type_floor_coords, type_wall, type_rad_kick
-logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, z1, z2
+logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, is_zero1, is_zero2
 
 ! init
 
@@ -229,9 +234,10 @@ do ia = 1, num_ele_attrib$
     endif
   end select
 
-  z1 = ((attrib%kind == is_real$ .or. attrib%kind == is_integer$) .and. attrib%value == 0)
-  z2 = ((attrib2%kind == is_real$ .or. attrib2%kind == is_integer$) .and. attrib2%value == 0)
-  if (z1 .and. z2 .and. .not. type_zero) cycle
+  is_zero1 = ((attrib%kind == is_real$ .or. attrib%kind == is_integer$) .and. attrib%value == 0)
+  is_zero2 = (((attrib2%kind == is_real$ .or. attrib2%kind == is_integer$) .and. attrib2%value == 0) .or. &
+                                                                                     attrib2%name == null_name$)
+  if (is_zero1 .and. is_zero2 .and. .not. type_zero) cycle
 
   line = ''
   call write_this_attribute (attrib, ia, n_att, line(3:))
@@ -424,10 +430,11 @@ if (associated(ele%foil)) then
                           attribute_units('DENSITY'), attribute_units('AREA_DENSITY'), attribute_units('RADIATION_LENGTH')
       endif
 
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density      =', matter%density, &
-                  '  Area_Density      =', matter%area_density,      '  Radiation_Length      =', matter%radiation_length
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density_Used =', matter%density_used, &
-                  '  Area_Density_Used =', matter%area_density_used, '  Radiation_Length_Used =', matter%radiation_length_used
+      nl=nl+1; write(li(nl), '(3(a, a14))') '  Density      =', this_real(matter%density, 'es14.6', '  Not_Set'), &
+             '  Area_Density      =', this_real(matter%area_density, 'es14.6', '  Not_Set'), &
+             '  Radiation_Length      =', this_real(matter%radiation_length, 'es14.6', '  Not_Set')
+      nl=nl+1; write(li(nl), '((a, a14), 2(a, es14.6))') '  Density_Used =', this_real(matter%density_used, 'es14.6', '  Not_Used'), &
+             '  Area_Density_Used =', matter%area_density_used, '  Radiation_Length_Used =', matter%radiation_length_used
     enddo
 endif
 
@@ -793,33 +800,64 @@ if (associated(ph)) then
     nl=nl+1; li(nl) = 'No Curvature'
   endif
 
-  if (allocated(ph%grid%pt)) then
+  seg => ph%segmented
+  if (allocated(seg%pt)) then
+    lb = lbound(seg%pt)
+    ub = ubound(seg%pt)
     nl=nl+1; li(nl) = ''
-    nl=nl+1; write (li(nl), '(2a)') trim(surface_grid_type_name(ph%grid%type)), ' Grid:'
-    nl=nl+1; write (li(nl), '(4x, a, l1)')       'Grid active  ', ph%grid%active
-    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', ph%grid%dr
-    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid r0:     ', ph%grid%r0
-    if (allocated(ph%grid%pt)) then
-      nl=nl+1; write (li(nl), '(4x, a, 2i10)')   'Num grid pts:', ubound(ph%grid%pt) + 1
-      nl=nl+1; write (li(nl), '(4x, a, 2(a, f10.6, a, f10.6, a, 4x))') &
-                                                  'Grid bounds:', &
-                        '(', -ph%grid%r0(1), ',', -ph%grid%r0(1) + ubound(ph%grid%pt, 1) * ph%grid%dr(1), ')', & 
-                        '(', -ph%grid%r0(2), ',', -ph%grid%r0(2) + ubound(ph%grid%pt, 2) * ph%grid%dr(2), ')' 
-    endif
+    nl=nl+1; li(nl) = 'Surface Segmented'
+    nl=nl+1; write (li(nl), '(4x, a, l1)')          'active:       ', seg%active
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'dr:           ', seg%dr
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'r0:           ', seg%r0
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, f10.6))') 'Bounds:       ', &
+                        '(', seg%r0(1) + lb(1)*seg%dr(1), ',', seg%r0(1) + ub(1)*seg%dr(1), ')   (', & 
+                             seg%r0(2) + lb(2)*seg%dr(2), ',', seg%r0(2) + ub(2)*seg%dr(2), ')'
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, i4))')    'Index Bounds: ', '(', lb(1), ',', ub(1), ')   (', lb(2), ',', ub(2), ')'
   endif
 
-  if (allocated(ph%pixel%pt)) then
+  disp => ph%displacement
+  if (allocated(disp%pt)) then
+    lb = lbound(disp%pt)
+    ub = ubound(disp%pt)
     nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Pixel Grid:'
-    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Pixel dr:     ', ph%pixel%dr
-    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Pixel r0:     ', ph%pixel%r0
-    if (allocated(ph%pixel%pt)) then
-      nl=nl+1; write (li(nl), '(4x, a, 2i10)')   'Num pixel pts:', ubound(ph%pixel%pt) + 1
-      nl=nl+1; write (li(nl), '(4x, a, 2(a, f10.6, a, f10.6, a, 4x))') &
-                                                  'Pixel bounds:', &
-                        '(', -ph%pixel%r0(1), ',', -ph%pixel%r0(1) + ubound(ph%pixel%pt, 1) * ph%pixel%dr(1), ')', & 
-                        '(', -ph%pixel%r0(2), ',', -ph%pixel%r0(2) + ubound(ph%pixel%pt, 2) * ph%pixel%dr(2), ')' 
-    endif
+    nl=nl+1; li(nl) = 'Surface Displacement'
+    nl=nl+1; write (li(nl), '(4x, a, l1)')          'active:       ', disp%active
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'dr:           ', disp%dr
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'r0:           ', disp%r0
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, f10.6))') 'Bounds:       ', &
+                        '(', disp%r0(1) + lb(1)*disp%dr(1), ',', disp%r0(1) + ub(1)*disp%dr(1), ')   (', & 
+                             disp%r0(2) + lb(2)*disp%dr(2), ',', disp%r0(2) + ub(2)*disp%dr(2), ')'
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, i4))')    'Index Bounds: ', '(', lb(1), ',', ub(1), ')   (', lb(2), ',', ub(2), ')'
+  endif
+
+
+  hmis => ph%h_misalign
+  if (allocated(hmis%pt)) then
+    lb = lbound(hmis%pt)
+    ub = ubound(hmis%pt)
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Surface H_misalign'
+    nl=nl+1; write (li(nl), '(4x, a, l1)')          'active:       ', hmis%active
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'dr:           ', hmis%dr
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'r0:           ', hmis%r0
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, f10.6))') 'Bounds:       ', &
+                        '(', hmis%r0(1) + lb(1)*hmis%dr(1), ',', hmis%r0(1) + ub(1)*hmis%dr(1), ')   (', & 
+                             hmis%r0(2) + lb(2)*hmis%dr(2), ',', hmis%r0(2) + ub(2)*hmis%dr(2), ')'
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, i4))')    'Index Bounds: ', '(', lb(1), ',', ub(1), ')   (', lb(2), ',', ub(2), ')'
+  endif
+
+  pixel => ph%pixel
+  if (allocated(pixel%pt)) then
+    lb = lbound(pixel%pt)
+    ub = ubound(pixel%pt)
+    nl=nl+1; li(nl) = ''
+    nl=nl+1; li(nl) = 'Surface Pixel'
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'dr:           ', pixel%dr
+    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')      'r0:           ', pixel%r0
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, f10.6))') 'Bounds:       ', &
+                        '(', pixel%r0(1) + lb(1)*pixel%dr(1), ',', pixel%r0(1) + ub(1)*pixel%dr(1), ')   (', & 
+                             pixel%r0(2) + lb(2)*pixel%dr(2), ',', pixel%r0(2) + ub(2)*pixel%dr(2), ')'
+    nl=nl+1; write (li(nl), '(4x, a, 5(a, i4))')    'Index Bounds: ', '(', lb(1), ',', ub(1), ')   (', lb(2), ',', ub(2), ')'
   endif
 
   if (ph%material%f_h /= 0) then
@@ -1094,7 +1132,8 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
                       a_name(1:n_att), '  =', ele%control%var(im)%value, &
                       'OLD_', a_name(1:n_att), '  =', ele%control%var(im)%old_value
       enddo
-    else  ! overlay_lord or ramper_lord
+
+    elseif (allocated(ele%control%var)) then  ! overlay_lord or ramper_lord. A ramper slave does not have this allocated.
       do im = 1, size(ele%control%var)
         nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  im, ele%control%var(im)%name, '  =', ele%control%var(im)%value
       enddo
@@ -1332,7 +1371,7 @@ endif
 if (associated(ele%wake)) then
 
   if (logic_option (.true., type_wake) .and. (size(ele%wake%sr%long) /= 0 .or. &
-                                              size(ele%wake%sr%trans) /= 0 .or.size(ele%wake%sr%z) /= 0 )) then
+                                              size(ele%wake%sr%trans) /= 0 .or.size(ele%wake%sr%z_long%w) /= 0 )) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Short-Range Wake:'
     if (ele%wake%sr%file /= '') then
@@ -1378,24 +1417,18 @@ if (associated(ele%wake)) then
     endif
   endif
 
-  if (size(ele%wake%sr%z) /= 0) then
+  if (size(ele%wake%sr%z_long%w) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_allocate (li, nl+size(ele%wake%sr%z)+100, .false.)
-      nl=nl+1; li(nl) = '  Short-Range Z-dependent wakes:'
-      do im = 1, size(ele%wake%sr%z)
-        srz => ele%wake%sr%z(im)
-        if (srz%plane == z$) then
-          nl=nl+1; li(nl) = '  #' // int_str(im) // ', plane = ' // trim(sr_z_plane_name(srz%plane))
-        else
-          nl=nl+1; li(nl) = '  #' // int_str(im) // ', plane = ' // trim(sr_z_plane_name(srz%plane)) // &
-                            ', position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
-        endif
-        nl=nl+1; li(nl) = '    ix           z             W            W'
-        do iw = 1, size(srz%w)
-          nl=nl+1; write(li(nl), '(i6, f14.9, 2es14.6)') iw, srz%w(iw)%x0, srz%w(iw)%coef(0), srz%w(iw)%coef(1)
-        enddo
-      enddo
+      call re_allocate (li, nl+size(ele%wake%sr%z_long%w)+100, .false.)
+      nl=nl+1; li(nl) = '  Short-Range Z-dependent Longitudinal wake:'
+      srz => ele%wake%sr%z_long
+      nl=nl+1; li(nl) = '    smoothing_sigma     = ' // to_str(srz%smoothing_sigma)
+      nl=nl+1; li(nl) = '    position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
+      nl=nl+1; li(nl) = '    dz (scaled) [m]  = ' // to_str(srz%dz / ele%wake%sr%z_scale)
+      nl=nl+1; li(nl) = '    Wake range (scaled) [m]: +/-' // to_str(srz%z0 / ele%wake%sr%z_scale)
+      nl=nl+1; write (li(nl), '(a, i0)') '  # wake points: ', size(srz%w)
+
     else
      nl=nl+1; li(nl) = '  No short-range z-dependent modes.'
     endif
@@ -1469,24 +1502,36 @@ if (logic_option(.false., type_floor_coords) .and. associated(ele%branch)) then
       nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
       nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', floor2%r, floor2%theta, floor2%phi, floor2%psi, '! Position without misalignments'
       nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+
+    case (girder$)
+      floor = ele_geometry_with_misalignments (ele)
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; li(nl) = 'Global Floor Coords at Reference Point:'
+      nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
     end select
 
     !
 
-    floor = ele_geometry_with_misalignments (ele)
+    select case (ele%key)
+    case (girder$)
+    case default
+      floor = ele_geometry_with_misalignments (ele)
 
-    nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
-    nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
-    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
-    nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; li(nl) = 'Global Floor Coords at End of Element:'
+      nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi, '! Position without misalignments'
+      nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi, '! Position with offset/pitch/tilt misalignments'
+    end select
 
     !
 
     if (associated(ele0) .and. (ele%ix_ele /= 0 .or. branch%param%geometry == closed$)) then
       f0 = ele0%floor
       nl=nl+1; write (li(nl), '(a, 6f12.5, 3x, a)') 'delta Ref', floor%r-f0%r, floor%theta-f0%theta, floor%phi-f0%phi, floor%psi-f0%psi, &
-                                                                                                         '! Delta with respect to last element'  
+                                                                                                         '! Delta of reference with respect to last element'  
     endif
   endif
 endif
@@ -1573,7 +1618,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(95) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(41), parameter :: att_name(102) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1587,13 +1632,14 @@ character(41), parameter :: att_name(95) = [character(40):: 'X_PITCH', 'Y_PITCH'
                 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'HARMON', 'FINAL_CHARGE', &
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
-                'F_FACTOR']
+                'F_FACTOR', 'EXACT_MULTIPOLES', 'Z_CROSSING', 'SPIN_TRACKING_MODEL', &
+                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX']
 
-character(41), parameter :: att2_name(95) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(41), parameter :: att2_name(102) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
-                'L_SAGITTA', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
+                'L_RECTANGLE', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
                 'GRADIENT', 'GRADIENT_TOT', 'PHI0_MULTIPASS', 'CAVITY_TYPE', 'Y_GAIN_ERR', 'Y_GAIN_CALIB', 'Y_OFFSET_CALIB', &
                 'BETA_B', 'ALPHA_B', 'CRAB_X3', 'CRAB_X4', 'CRAB_X5', 'PX_APERTURE_CENTER', 'PY_APERTURE_CENTER', &
                 'PZ_APERTURE_CENTER', 'Z_APERTURE_CENTER', 'CMAT_12', 'CMAT_22', 'Y_DISPERSION_ERR', &
@@ -1603,7 +1649,8 @@ character(41), parameter :: att2_name(95) = [character(40):: 'X_PITCH_TOT', 'Y_P
                 'C11_MAT1', 'C12_MAT1', 'C21_MAT1', 'C22_MAT1', 'HARMON_MASTER', 'SCATTER', &
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DTHICKNESS_DX', &
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
-                'SCATTER_METHOD']
+                'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN', 'RECALC', &
+                'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX']
 
 ! Exceptional cases
 
@@ -1632,16 +1679,20 @@ end select
 select case (attrib_name)
 case ('L')
   is_2nd_col_attrib = .false.
+
   if (ele%key == patch$) then
     ix2_attrib = user_sets_length$
+  elseif (ele%key == sbend$) then
+    ix2_attrib = l_sagitta$
   elseif (has_attribute(ele, 'L_ACTIVE')) then
     ix2_attrib = l_active$
   elseif (has_attribute(ele, 'L_SOFT_EDGE')) then
     ix2_attrib = l_soft_edge$
   endif
+
   return
 
-case ('L_SOFT_EDGE', 'L_ACTIVE', 'USER_SETS_LENGTH')
+case ('L_SOFT_EDGE', 'L_ACTIVE', 'L_SAGITTA', 'USER_SETS_LENGTH')
   is_2nd_col_attrib = .true.
   return
 end select
@@ -1664,6 +1715,10 @@ if (ix > 0) then
   if (.not. has_attribute(ele, att2_name(ix))) return
   ix2_attrib = attribute_index(ele, att2_name(ix))
 endif
+
+! Temp until bend fiducial_pt code finished
+
+!! if (ix2_attrib == fiducial_pt$ .or. ix2_attrib == l_rectangle$) ix2_attrib = -1
 
 end function is_2nd_column_attribute
 
@@ -1756,5 +1811,25 @@ do im = 1, size(stack)
 enddo
 
 end subroutine print_this_stack
+
+!--------------------------------------------------------------------------
+! contains
+
+function this_real(value, fmt, garbage_str) result (out_str)
+
+real(rp) value
+character(*) fmt, garbage_str
+character(30) out_str
+
+!
+
+if (value == real_garbage$) then
+  out_str = garbage_str
+  return
+endif
+
+write (out_str, '(' // fmt // ')') value
+
+end function this_real
 
 end subroutine type_ele

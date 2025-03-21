@@ -33,7 +33,9 @@ type (bunch_struct), pointer :: bunch
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
+type (lat_param_struct), pointer :: param
 type (coord_struct), pointer :: p
+type (coord_struct)  :: orbit
 type (tao_d2_data_struct), pointer :: d2
 type (tao_d1_data_struct), pointer :: d1
 type (tao_data_struct), pointer :: dat
@@ -43,6 +45,7 @@ type (tao_spin_map_struct), pointer :: sm
 type (bunch_track_struct), pointer :: bunch_params_comb(:)
 type (bunch_track_struct), pointer :: comb1
 type (bunch_params_struct), pointer :: bpt
+type (em_field_struct) field
 
 real(rp) scale, mat6(6,6)
 real(rp), allocatable :: values(:)
@@ -51,16 +54,18 @@ character(*) what
 character(1) delim
 character(20) action, name, lat_type, which, last_col, b_name
 character(40), allocatable :: z(:)
-character(100) str
+character(100) str, ele_name
 character(200) line, switch, header1, header2, aname
 character(200) file_name0, file_name, what2
-character(200) :: word(12)
+character(200) :: word(40)
 character(*), parameter :: r_name = 'tao_write_cmd'
 
-integer i, j, k, m, n, ie, ic, id, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
-integer i_chan, ix_beam, ix_word, ix_w2, file_format
+real(rp) dr(3), r_max(3), r_min(3), rr(3)
+
+integer i, j, k, m, n, ie, ic, id, ix, iu, nd, ii, i_uni, ib, ip, ios, loc, iy, iz
+integer n_max(3), n_min(3), i_chan, ix_beam, ix_word, ix_w2, file_format
 integer n_type, n_ref, n_start, n_ele, n_merit, n_meas, n_weight, n_good, n_bunch, n_eval, n_s
-integer i_min, i_max, n_len, len_d_type, ix_branch, ix_bunch
+integer i_min, i_max, n_len, len_d_type, ix_branch, ix_bunch, n_loc
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append, write_floor
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
@@ -72,14 +77,15 @@ call string_trim (what, what2, ix)
 action = what2(1:ix)
 call string_trim(what2(ix+1:), what2, ix_w2)
 
-call tao_cmd_split (what2, 10, word, .true., err)
+call tao_cmd_split (what2, size(word), word, .true., err, ',')
 if (err) return
 
 call match_word (action, [character(20):: &
-              'hard', 'gif', 'ps', 'variable', 'bmad', 'derivative_matrix', 'digested', &
-              'curve', 'mad', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', 'elegant', &
-              'mad8', 'madx', 'pdf', 'pdf-l', 'opal', '3d_model', 'gif-l', 'bunch_comb', &
-              'ptc', 'sad', 'spin_mat8', 'blender', 'namelist', 'xsif', 'matrix', 'tao'], &
+              '3d_model', 'beam', 'bmad', 'blender', 'bunch_comb', 'covariance_matrix', 'curve', &
+              'derivative_matrix', 'digested', 'elegant', 'field', &
+              'gif', 'gif-l', 'hard', 'hard-l', 'mad', 'mad8', 'madx', 'matrix', &
+              'namelist', 'opal', 'pdf', 'pdf-l', 'ps', 'ps-l', 'ptc', &
+              'sad', 'spin_mat8', 'tao', 'variable', 'xsif'], &
               ix, .true., matched_name = action)
 
 if (ix == 0) then
@@ -106,7 +112,7 @@ case ('beam')
   file_name0 = ''
   write_floor = .false.
 
-  do 
+  do
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
@@ -187,26 +193,6 @@ case ('beam')
 
 
 !---------------------------------------------------
-! 3D model script for Blender
-! Note: Old cubit interface code was in tao_write_3d_floor_plan.f90 which was deleted 9/2015.
-
-case ('blender', '3d_model')
-
-  file_name0 = 'blender_lat_#.py'
-  if (word(1) /= '') file_name0 = word(1) 
-
-  if (word(2) /= '') then
-    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-    return
-  endif
-
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call write_blender_lat_layout (file_name, s%u(i)%model%lat)
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-  enddo
-
-!---------------------------------------------------
 ! bmad
 
 case ('bmad')
@@ -252,6 +238,26 @@ case ('bmad')
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call write_bmad_lattice_file (file_name, u%model%lat, err, file_format, u%model%tao_branch(0)%orbit(0))
     if (err) return
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
+  enddo
+
+!---------------------------------------------------
+! 3D model script for Blender
+! Note: Old cubit interface code was in tao_write_3d_floor_plan.f90 which was deleted 9/2015.
+
+case ('blender', '3d_model')
+
+  file_name0 = 'blender_lat_#.py'
+  if (word(1) /= '') file_name0 = word(1) 
+
+  if (word(2) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
+    call write_blender_lat_layout (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
 
@@ -429,66 +435,8 @@ case ('covariance_matrix')
 
 case ('curve')
 
-  call tao_find_plots (err, word(1), 'BOTH', curve = curve, blank_means_all = .true.)
-  if (err .or. size(curve) == 0) then
-    call out_io (s_error$, r_name, 'CANNOT FIND CURVE')
-    return
-  endif
-
-  if (size(curve) > 1) then
-    call out_io (s_error$, r_name, 'MULTIPLE CURVES FIT NAME')
-    return
-  endif
-
-  file_name = 'curve.dat'
-  if (word(2) /= ' ') file_name = word(2)
-  call fullfilename (file_name, file_name)
-
-  c => curve(1)%c
-  ok = .false.
-
-  if (c%g%type == "phase_space") then
-    i_uni = c%ix_universe
-    if (i_uni == 0) i_uni = s%global%default_universe
-    beam => s%u(i_uni)%model_branch(c%ix_branch)%ele(c%ix_ele_ref_track)%beam
-    call file_suffixer (file_name, file_name, 'particle_dat', .true.)
-    open (iu, file = file_name)
-    write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
-    do i = 1, size(beam%bunch(1)%particle)
-      write (iu, '(i6, 6es15.7)') i, (beam%bunch(1)%particle(i)%vec(j), j = 1, 6)
-    enddo
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-    close(iu)
-    ok = .true.
-  endif
-
-  if (allocated(c%x_symb) .and. allocated(c%y_symb)) then
-    call file_suffixer (file_name, file_name, 'symbol_dat', .true.)
-    open (iu, file = file_name)
-    write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
-    do i = 1, size(c%x_symb)
-      write (iu, '(i6, 2es15.7)') i, c%x_symb(i), c%y_symb(i)
-    enddo
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-    close(iu)
-    ok = .true.
-  endif
-
-  if (allocated(c%x_line) .and. allocated(c%y_line)) then
-    call file_suffixer (file_name, file_name, 'line_dat', .true.)
-    open (iu, file = file_name)
-    write (iu, '(a, 6(12x, a))') '  Ix', '  x', '  y'
-    do i = 1, size(c%x_line)
-      write (iu, '(i6, 2es15.7)') i, c%x_line(i), c%y_line(i)
-    enddo
-    call out_io (s_info$, r_name, 'Written: ' // file_name)
-    close(iu)
-    ok = .true.
-  endif
-
-  if (.not. ok) then
-    call out_io (s_info$, r_name, 'No data found in curve to write')
-  endif
+  call out_io (s_info$, r_name, &
+      '"show curve" command superseded by the more versatile "show -write <file> curve ..." command.')
 
 !---------------------------------------------------
 ! derivative_matrix
@@ -562,6 +510,111 @@ case ('digested')
     call write_digested_bmad_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
+
+!---------------------------------------------------
+! field
+
+case ('field')
+
+  dr = real_garbage$
+  r_min = real_garbage$
+  r_max = real_garbage$
+  n_min = int_garbage$
+  n_max = int_garbage$
+  file_name = ''
+  ix_word = 0
+
+  do
+    ix_word = ix_word + 1
+    if (ix_word == size(word)-1) exit    
+    call tao_next_switch (word(ix_word), [character(16):: '-dr', '-nmax', '-nmin', &
+                                                  '-rmax', '-rmin', '-ele'], .true., switch, err)
+    if (err) return
+
+    select case (switch)
+    case ('');       exit
+    case ('-dr');    if (.not. read_real3(word, ix_word, dr, '-DR')) return
+    case ('-rmin');  if (.not. read_real3(word, ix_word, r_min, '-rmin')) return
+    case ('-rmax');  if (.not. read_real3(word, ix_word, r_max, '-rmax')) return
+    case ('-nmin');  if (.not. read_int3(word, ix_word, n_min, '-nmin')) return
+    case ('-nmax');  if (.not. read_int3(word, ix_word, n_max, '-nmax')) return
+    case ('-ele')
+      ix_word = ix_word + 1
+      ele_name = word(ix_word)
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
+    end select
+  enddo
+
+  !
+
+  if (file_name == '') file_name = 'field.dat'
+
+  n = count([dr(1), r_max(1)] /= real_garbage$) + count([n_max(1) /= int_garbage$])
+  if (n /= 2) then
+    call out_io(s_error$, r_name, 'EXACTLY TWO OF -dr, -rmax, -nmax MUST BE SPECIFIED. NO MORE AND NO LESS.')
+    return
+  endif
+
+  if (r_max(1) /= real_garbage$ .and. r_min(1) == real_garbage$) r_min = [-r_max(1), -r_max(2), 0.0_rp]
+  if (n_max(1) /= int_garbage$ .and. n_min(1) == int_garbage$) n_min = [-n_max(1), -n_max(2), 0]
+
+  if (r_max(1) == real_garbage$) then
+    r_max = n_max * dr
+    r_min = n_min * dr
+  elseif (n_max(1) == int_garbage$) then
+    n_max = nint(r_max/dr)
+    n_min = nint(r_min/dr)
+  else
+    dr = (r_max - r_min) / (n_max - n_min)
+  endif
+
+  call tao_locate_elements (ele_name, s%global%default_universe, eles, err)
+  if (err) return
+
+  if (size(eles) > 1) then
+    call out_io(s_warn$, r_name, 'Element name matches to multiple elements: ' // ele_name, 'Will use first one.')
+  elseif (size(eles) == 0) then
+    call out_io(s_error$, r_name, 'ELEMENT NAME DOES NOT MATCH TO ANY ELEMENTS: ' // ele_name)
+    return
+  endif
+
+  ele => eles(1)%ele
+
+  !
+
+  open (iu, file = file_name, recl = 200)
+  write (iu, '(9a)') '# ele = ', quote(ele%name) 
+  write (iu, '(9a)') '# nx = [', int_str(n_min(1)), ', ', int_str(n_max(1)), ']' 
+  write (iu, '(9a)') '# ny = [', int_str(n_min(2)), ', ', int_str(n_max(2)), ']' 
+  write (iu, '(9a)') '# nz = [', int_str(n_min(3)), ', ', int_str(n_max(3)), ']' 
+  write (iu, '(9a)') '# rx = [', real_str(r_min(1)), ', ', real_str(r_max(1)), ']' 
+  write (iu, '(9a)') '# ry = [', real_str(r_min(2)), ', ', real_str(r_max(2)), ']' 
+  write (iu, '(9a)') '# rz = [', real_str(r_min(3)), ', ', real_str(r_max(3)), ']' 
+  write (iu, '(9a)') '# dr = [', real_str(dr(1)), ', ', real_str(dr(2)), ', ', real_str(dr(3)), ']'
+  write (iu, '(9a)') '##' 
+  write (iu, '(9a)') '##        x           y           z                    Bx                    By                    Bz                    Ex                    Ey                    Ez' 
+
+  branch => pointer_to_branch(ele)
+
+  do ix = n_min(1), n_max(1)
+  do iy = n_min(2), n_max(2)
+  do iz = n_min(3), n_max(3)
+    rr = [ix, iy, iz] * dr
+    orbit%vec(1:3:2) = rr(1:2)
+    call em_field_calc(ele, branch%param, rr(3), orbit, .false., field)
+    write (iu, '(3f12.6, 6es22.13)') rr, field%b, field%e
+  enddo
+  enddo
+  enddo
+
+  close(iu)
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
+
 
 !---------------------------------------------------
 ! hard
@@ -1381,5 +1434,61 @@ do i = i_min, i_max
 enddo
 
 end subroutine namelist_param_out
+
+!-----------------------------------------------------------------------------
+! contains
+
+function read_real3(word, ix_word, rvec, err_str) result (ok)
+
+character(*) word(:), err_str
+real(rp) rvec(:)
+integer ix_word
+logical ok
+
+!
+
+ok = .false.
+
+do i = 1, 3
+  ix_word = ix_word + 1
+  if (word(ix_word) == ',') ix_word = ix_word + 1
+  read (word(ix_word), *, iostat = ios) rvec(i)
+  if (ios /= 0) then
+    call out_io(s_error$, r_name, 'ERROR READING ' // err_str // ' VALUE: ' // word(ix_word))
+    return
+  endif
+enddo
+
+ok = .true.
+
+end function read_real3
+
+!-----------------------------------------------------------------------------
+! contains
+
+function read_int3(word, ix_word, ivec, err_str) result (ok)
+
+character(*) word(:), err_str
+integer ivec(:)
+integer ix_word
+logical ok
+
+!
+
+ok = .false.
+
+do i = 1, 3
+  ix_word = ix_word + 1
+  if (word(ix_word) == ',') ix_word = ix_word + 1
+  read (word(ix_word), *, iostat = ios) ivec(i)
+  if (ios /= 0) then
+    call out_io(s_error$, r_name, 'ERROR READING ' // err_str // ' VALUE: ' // word(ix_word))
+    return
+  endif
+enddo
+
+ok = .true.
+
+end function read_int3
 
 end subroutine tao_write_cmd

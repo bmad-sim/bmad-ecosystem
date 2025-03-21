@@ -7,13 +7,16 @@ bmad_com[spin_tracking_on] = T
 
 beginning[beta_a] = 10
 beginning[beta_b] = 10
-beginning[alpha_a] = 0 
-beginning[alpha_b] = 0
+beginning[alpha_a] = +0.1
+beginning[alpha_b] = -0.2
+
+!-------------------------
 
 beginning[eta_x] = 0.1
 beginning[etap_x] = 0.2
-beginning[eta_y] = 0.1
-beginning[etap_y] = 0.2
+beginning[eta_y] = 0.3
+beginning[etap_y] = -0.2
+beginning[eta_z] = 0.2
 
 beginning[cmat_11] = 0.1
 beginning[cmat_12] = 0.2
@@ -26,16 +29,42 @@ particle_start[y]  = 0.003
 particle_start[py] = 0.004
 particle_start[z]  = 0.1
 particle_start[pz] = 0.5
-particle_start[spin_x] = 1
-particle_start[spin_y] = 2
-particle_start[spin_z] = 3
+
+!-------------------------
 
 a: quadrupole, l = 1, k1 = 0.3, tilt = 1
-z: quadrupole, l = 1, k1 = 0.1, tilt = 2
+z: quadrupole, l = 1, k1 = -0.1, tilt = 2
 
-ln: line = (a, z)
-use, ln
+ln0: line = (a, z)
+
+!-------------------------
+
+rf1: rfcavity, l = 1, rf_frequency = 1e9, tracking_method = runge_kutta, voltage = 4e10, phi0 = 0.3
+eg: e_gun, l = 1, tracking_method = runge_kutta, voltage = 0e5
+z2: quadrupole, l = 1, k1 = 0.1, tilt = 2
+
+lnrf: line = (rf1, z2)
+lnrf[geometry] = open
+lnrf[particle] = electron
+lnrf[p0c] = 1e11
+lnrf[beta_a] = 10
+lnrf[beta_b] = 10
+lnrf[alpha_a] = +0.1
+lnrf[alpha_b] = -0.2
+lnrf[eta_x] = 0.1
+lnrf[eta_y] = 0.2
+lnrf[deta_x_ds] = 1
+lnrf[deta_y_ds] = 2
+
+
+!-------------------------
+
+use, ln0, lnrf
 
 
 no_digested
 
+! To Do:
+!   e_gun
+!   electric multipole
+!   lcavity

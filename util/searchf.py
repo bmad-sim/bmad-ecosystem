@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #+
 # searchf.py is the file that holds the code for the scripts:
@@ -122,11 +122,11 @@ def print_help_message ():
 #------------------------------------------------------------------------------------
 # routine_here function
 
-re_routine = re.compile('(program|subroutine|recursive subroutine|elemental subroutine|' + \
-      'function|recursive function|elemental function|real\(rp\) *function|' +  \
-      'integer *function|logical *function|interface) ')
+re_routine = re.compile(r'(program|subroutine|recursive subroutine|elemental subroutine|' + \
+      r'function|recursive function|elemental function|real\(rp\) *function|' +  \
+      r'integer *function|logical *function|interface) ')
 
-re_routine_name = re.compile('\w+')
+re_routine_name = re.compile(r'\w+')
 
 def routine_here (line2, routine_name):
   match = re_routine.match(line2)
@@ -141,23 +141,23 @@ def routine_here (line2, routine_name):
 #------------------------------------------------------------------------------------
 # search_f90 function
 
-re_blank_interface_begin = re.compile('interface\s*$')
-re_interface_end         = re.compile('end +interface')
+re_blank_interface_begin = re.compile(r'interface\s*$')
+re_interface_end         = re.compile(r'end +interface')
 re_type_var              = re.compile(r'type *\(')
 re_type_def              = re.compile(r'type +\w')
-re_type_def_end          = re.compile('end +type')
-re_module_begin          = re.compile('module')
-re_module_header_end     = re.compile('contains')
-re_parameter             = re.compile(' parameter\s*::')
+re_type_def_end          = re.compile(r'end +type')
+re_module_begin          = re.compile(r'module')
+re_module_header_end     = re.compile(r'contains')
+re_parameter             = re.compile(r' parameter\s*::')
 re_parameter1            = re.compile(r'\s*([\$\w]+)\s*(\(.+\)|)?\s*=')  # match to: "charge_of(-3:n_charge$) = "
-re_type_interface_end    = re.compile('end +(type|interface)')
-re_end                   = re.compile('end')
-re_routine_name_here     = re.compile('program|subroutine|function|interface')
+re_type_interface_end    = re.compile(r'end +(type|interface)')
+re_end                   = re.compile(r'end')
+re_routine_name_here     = re.compile(r'program|subroutine|function|interface')
 
 def search_f90 (file_name, search_com):
 
   re_match_str  = re.compile(search_com.match_str.lower() + '$')
-  re_type_interface_match = re.compile('^(type|interface) +' + search_com.match_str.lower() + '\s') 
+  re_type_interface_match = re.compile(r'^(type|interface) +' + search_com.match_str.lower() + r'\s') 
 
   found_one_in_this_file = False
   have_printed_file_name = False
@@ -214,7 +214,7 @@ def search_f90 (file_name, search_com):
     match = re_module_begin.match(line2)
     if match:
       in_module_header = True
-      name_match = re.match('\w+', line2[match.end(0):].lstrip())
+      name_match = re.match(r'\w+', line2[match.end(0):].lstrip())
       if name_match and 'module'.startswith(search_com.search_only_for):
         module_name = name_match.group(0)
         if re_match_str.match(module_name):
@@ -357,7 +357,7 @@ def search_f90 (file_name, search_com):
 #------------------------------------------------------------------------------------
 # search_c function
 
-re_quote            = re.compile('"|\'')
+re_quote = re.compile(r'"|\'')
 
 def search_c (file_name, search_com):
 
@@ -444,9 +444,9 @@ def search_c (file_name, search_com):
         n_curly += 1
         if n_curly == 1:
           if search_com.case_sensitive:
-            is_match = re.search(' ' + search_com.match_str + '_?\s*(\(.*\))\s*{', function_line)
+            is_match = re.search(' ' + search_com.match_str + r'_?\s*(\(.*\))\s*{', function_line)
           else:
-            is_match = re.search(' ' + search_com.match_str + '_?\s*(\(.*\))\s*{', function_line, re.I)
+            is_match = re.search(' ' + search_com.match_str + r'_?\s*(\(.*\))\s*{', function_line, re.I)
           if is_match and 'routine'.startswith(search_com.search_only_for):
             search_com.found_one = True
             if search_com.doc_type == 'LIST':
@@ -620,23 +620,23 @@ def search_all (doc_type):
   # Setup dir_list list, etc
 
   if len(dir_list) == 0:    # If no -d command line arg
-    choose_path (dir_list, root_dir, 'util_programs', '/mad_to_bmad/madx_to_bmad.py', '')
-    choose_path (dir_list, root_dir, 'forest', '/code/i_tpsa.f90', '')
-    choose_path (dir_list, root_dir, 'bsim', '/code/bsim_interface.f90', '')
-    choose_path (dir_list, root_dir, 'code_examples', '/simple_bmad_program/simple_bmad_program.f90', '')
-    choose_path (dir_list, root_dir, 'sim_utils', '/interfaces/sim_utils.f90', '')
-    choose_path (dir_list, root_dir, 'tao', '/code/tao_struct.f90', '')
-    choose_path (dir_list, root_dir, 'bmad', '/modules/bmad_struct.f90', '')
+    choose_path (dir_list, root_dir, r'util_programs', '/mad_to_bmad/madx_to_bmad.py', '')
+    choose_path (dir_list, root_dir, r'forest', '/code/i_tpsa.f90', '')
+    choose_path (dir_list, root_dir, r'bsim', '/code/bsim_interface.f90', '')
+    choose_path (dir_list, root_dir, r'code_examples', '/simple_bmad_program/simple_bmad_program.f90', '')
+    choose_path (dir_list, root_dir, r'sim_utils', '/interfaces/sim_utils.f90', '')
+    choose_path (dir_list, root_dir, r'tao', '/code/tao_struct.f90', '')
+    choose_path (dir_list, root_dir, r'bmad', '/modules/bmad_struct.f90', '')
 
   if search_com.doc_type == 'LIST':
-    search_com.match_str = '(\w+)'
+    search_com.match_str = r'(\w+)'
     if i > 0 and i < len(sys.argv): dir_list = [sys.argv[i]]
   else:
     if i == 0 or i >= len(sys.argv): 
       print ('NO SEARCH STRING FOUND!')
       print_help_message()  # Nothing to match to
     match_str_in = sys.argv[i]
-    search_com.match_str = match_str_in.replace('*', '\w*') 
+    search_com.match_str = match_str_in.replace(r'*', r'\w*') 
 
   # Search for a match.
 

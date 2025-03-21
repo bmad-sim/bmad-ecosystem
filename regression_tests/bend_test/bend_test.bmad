@@ -1,0 +1,33 @@
+f = 1
+beginning[e_tot] = 1e6*f
+parameter[no_end_marker] = T
+
+parameter[particle] = electron
+parameter[geometry] = open
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+beginning[alpha_a] = 0 
+beginning[alpha_b] = 0
+beginning[etap_x] = 0.001
+
+b1: rbend, l_rectangle = 2.0, angle = -0.1, e1 = -0.01, e2 = 0.02, fiducial_pt = none
+b2: rbend, l_rectangle = 2.0, angle = -0.1, e1 = -0.01, e2 = 0.02, fiducial_pt = entrance_end
+b3: rbend, l_rectangle = 2.0, angle = -0.1, e1 = -0.01, e2 = 0.02, fiducial_pt = center
+b4: rbend, l_rectangle = 2.0, angle = -0.1, e1 = -0.01, e2 = 0.02, fiducial_pt = exit_end
+
+ln: line = (b1, b2, b3, b4)
+use, ln
+
+no_digested
+
+
+end_file
+
+!------------------------
+
+
+&params
+  dg = 0.01
+  dangle = 0.1
+/

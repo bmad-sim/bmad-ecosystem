@@ -1,0 +1,4 @@
+!Constants to be invoked before lattice files
+standard_rfc_gradient = 2.06612e6
+standard_rfc_phi0 = 0.0 
+standard_rfc_rf_frequency = global_rf_frequency

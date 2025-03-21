@@ -3943,23 +3943,29 @@ endif
   end SUBROUTINE PUTbend_fringe
 
 
-  SUBROUTINE MESS_UP_ALIGNMENT(R,SIG,cut,add)
+  SUBROUTINE MESS_UP_ALIGNMENT(R,SIG,cut,add,skipdriftmarker)
     use gauss_dis
     IMPLICIT NONE
     TYPE(LAYOUT),TARGET :: R
     integer J,I
     type(fibre), pointer :: P
     REAL(DP) SIG(:),X,MIS(6),cut
-    logical, optional :: add
+    logical, optional :: add,skipdriftmarker
+    logical skip
+
+
+    skip=.true.
+    if(present(skipdriftmarker)) skip=skipdriftmarker
     p=>r%start
     do i=1,r%n
 
-     !  IF(P%MAG%KIND/=KIND0.AND.P%MAG%KIND/=KIND1) THEN
+       IF(P%MAG%KIND/=KIND0.AND.P%MAG%KIND/=KIND1.or.(.not.skip)) THEN
           DO J=1,6
              call GRNF(X,cut)
              MIS(J)=X*SIG(J)
           ENDDO
             call MISALIGN_FIBRE(p,mis,add=add)
+       endif
        P=>P%NEXT
     ENDDO
   end SUBROUTINE MESS_UP_ALIGNMENT

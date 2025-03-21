@@ -17,17 +17,17 @@ use bmad_routine_interface, except_dummy => transfer_wake
 implicit none
 
 type (wake_struct), pointer :: wake_in, wake_out
-integer n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, i
+integer n_sr_long, n_sr_trans, n_sr_z_long, n_lr_mode, i
 
 !
 
 if (associated (wake_in)) then
   n_sr_long   = size(wake_in%sr%long)
   n_sr_trans  = size(wake_in%sr%trans)
-  n_sr_z      = size(wake_in%sr%z)
+  n_sr_z_long = size(wake_in%sr%z_long%w)
   n_lr_mode   = size(wake_in%lr%mode)
 
-  call init_wake (wake_out, n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, .true.)
+  call init_wake (wake_out, n_sr_long, n_sr_trans, n_sr_z_long, n_lr_mode, .true.)
   wake_out = wake_in
 
 else

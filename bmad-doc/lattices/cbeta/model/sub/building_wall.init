@@ -1,0 +1,82 @@
+
+
+
+! SW wall
+&building_wall_section
+constraint = 'none'
+point(1) = -2844.8e-3, -2286e-3
+point(2) = -2844.8e-3, -2895.6e-3 ! 24 in thick outer wall?
+point(3) = 406.4e-3, -2895.6e-3
+point(4) = 406.4e-3, -2286e-3
+point(5) = -2844.8e-3, -2286e-3           
+/
+
+! Inside wall S, E, N
+&building_wall_section
+constraint = 'none'
+point(1) = 5283.2e-3, -2286e-3
+point(2) = 36703e-3, -2286e-3
+point(3) = 36703e-3, 19050e-3
+point(4) = -2844.8e-3, 19050e-3         
+/
+
+
+! interior E wall
+&building_wall_section
+constraint = 'none'
+point(1) = 33794.7e-3, -2286e-3
+point(2) = 34404.3e-3, -2286e-3
+point(3) = 34404.3e-3, 19050e-3
+point(4) =  33794.7e-3, 19050e-3   
+point(5) = 33794.7e-3, -2286e-3      
+/
+
+
+
+! F cave extension
+&building_wall_section
+constraint = 'none'
+point(1) = -2.84089, 4.11988
+point(2) = -0.415112, 4.11988
+point(3) = -0.415112, 13.1181
+point(4) = -2.84089, 13.1181        
+/
+
+
+! F cave 
+&building_wall_section
+constraint = 'none'
+point(1) = -2.84089, 14.0375
+point(2) = 0, 14.0375
+point(3) = 0, 17.7841
+point(4) = 1.27, 19050e-3  
+/
+
+! West wall (holes ignored)
+&building_wall_section
+constraint = 'none'
+point(1) =  -3.4952, 3.5383
+point(2) =  -2.8496, 3.5383
+point(3) =  -2.8496, 19050e-3  
+point(4) =  -3.4952, 19050e-3  
+point(5) =  -3.4952, 3.5383
+/
+
+! West wall south section
+&building_wall_section
+constraint = 'none'
+point(1) =  -3.4952, -1.36243
+point(2) =  -2.8496, -1.36243
+point(3) =  -2.8496, -0.134569
+point(4) =  -3.4952, -0.134569
+point(5) =  -3.4952, -1.36243
+/
+
+! South wall west section
+&building_wall_section
+constraint = 'none'
+point(1) =  -4, -1.36243
+point(2) =  -0.572211,  -1.36243
+point(3) =  0, -1.60698
+point(4) =  0.29972, -2.25158
+/

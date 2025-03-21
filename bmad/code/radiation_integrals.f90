@@ -108,7 +108,6 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky, beta_min
 real(rp) v(4,4), v_inv(4,4), z_here, z_start, mc2, gamma, gamma4, gamma6
 real(rp) kz, fac, c, s, factor, g2, g_x0, dz_small, z1, const_q, vec0(6), mat6(6,6)
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
-real time0, time1
 
 integer, optional :: ix_cache, ix_branch
 integer i, j, k, n, ix, ixe, ib, ip, ir, key2, n_step, ix_pole_max
@@ -120,8 +119,6 @@ logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
 ! Allocate rad_int_by_ele
-
-call cpu_time(time0)
 
 if (present(rad_int_by_ele)) then
   if (allocated(rad_int_by_ele%branch)) then
@@ -167,7 +164,7 @@ if (any(branch%ele(0:branch%n_ele_track)%a%beta == 0)) then
   n = minloc(branch%ele(0:branch%n_ele_track)%a%beta, 1) - 1
   call out_io (s_error$, r_name, 'TWISS PARAMETERS HAVE NOT BEEN INITIALIZED AT ELEMENT \i0\ OF BRANCH \i0\.', &
                                  '[DUE TO UNSTABLE RING? OR MISSING CALL TO TWISS_PROPAGATE_ALL?]', &
-                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.', i_array = [n, ib])
+                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.', i_array = [n, branch%ix_branch])
   return
 endif
 
@@ -360,7 +357,7 @@ if (use_cache .or. init_cache) then
         if (ubound(cache_ele%pt, 1) < 2*n_step) then
           call move_alloc(cache_ele%pt, pt_temp)
           allocate (cache_ele%pt(0:2*n_step))
-          cache_ele%pt(0:2*n_step:2) = pt_temp
+          cache_ele%pt(0:2*n_step:2) = pt_temp(0:n_step)
           deallocate(pt_temp)
         else
           cache_ele%pt(0:2*n_step:2) = cache_ele%pt(0:n_step)
@@ -681,9 +678,6 @@ if (present(rad_int_by_ele)) then
     enddo
   enddo
 endif
-
-call cpu_time(time1)
-if (bmad_com%debug) print '(a, f12.2)', 'radiation_integrals execution time:', time1 - time0
 
 !------------------------------------------------------------------------
 contains

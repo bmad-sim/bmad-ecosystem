@@ -47,7 +47,7 @@ type ltt_params_struct
   character(40) :: ele_extract = ''
   character(100) :: ele_write_at = ''
   character(200) :: lat_file = ''
-  character(200) :: beam_output_file = 'beam.h5'
+  character(200) :: beam_output_file = ''
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: map_ascii_output_file = ''
@@ -83,6 +83,7 @@ type ltt_params_struct
   logical :: only_live_particles_out = .true.
   logical :: ramping_on = .false.
   logical :: ramp_update_each_particle = .false.
+  logical :: ramp_particle_energy_without_rf = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: symplectic_map_tracking = .false.
@@ -92,7 +93,6 @@ type ltt_params_struct
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
   logical :: set_beambeam_z_crossing = .false.
   logical :: print_info_messages = .true.          ! Informational messages printed?
-
   !
   character(200) :: sigma_matrix_output_file = ''  ! No longer used
   character(200) :: master_output_file = ''        ! No longer used
@@ -149,7 +149,7 @@ type ltt_com_struct
   logical :: ltt_tracking_happening_now = .false. ! Toggled True by program after all pre-tracking 
                                                   !   done (like the closed orbit calc). 
   character(200) :: master_input_file = ''
-  character(200) :: last_beam_output_file = ''
+!!  character(200) :: last_beam_output_file = ''
   character(40) :: ps_fmt = '(2i7, 9es16.8, 3x, 3f13.9, 4x, a)'
 end type
 
@@ -525,6 +525,13 @@ logical err, map_file_exists, ramping_on
 character(40) start_name, stop_name
 character(*), parameter :: r_name = 'ltt_init_tracking'
 
+!
+
+if (lttp%split_bends_for_stochastic_rad .and. lttp%ramping_on) then
+  call out_io (s_fatal$, r_name, 'LTT%SPLIT_BENDS_FOR_STOCHASTIC_RAD NOT COMPATIBLE WITH RAMPING.')
+  stop
+endif
+
 ! Apply rampers and then turn off ramper use for twiss_and_track since rampers simulating 
 ! noise (using random numbers) will drive the closed orbit calc crazy.
 
@@ -574,6 +581,11 @@ if (lttp%use_rf_clock) then
                                                                            'The RF clock will not be active!!')
 endif
 
+if (lttp%simulation_mode == 'BMAD' .and. .not. bmad_com%absolute_time_tracking) then
+  call out_io (s_warn$, r_name, 'NOTE: It is recommended that bmad_com%absolute_time_tracking be set to True to', &
+                                '      avoid problems with frequencies incommensurate with the revolution frequency.')
+endif
+
 !
 
 if (lttp%split_bends_for_stochastic_rad) then
@@ -582,8 +594,8 @@ if (lttp%split_bends_for_stochastic_rad) then
     if (ele%name /= 'RADIATION_POINT') cycle
     if (.not. associated(ele%rad_map)) allocate (ele%rad_map)
     ri => ele%rad_map
-    call tracking_rad_map_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0)
-    call tracking_rad_map_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1)
+    call tracking_rad_map_setup(branch%ele(ie-1), 1e-4_rp, downstream_end$, ri%rm0, err)
+    call tracking_rad_map_setup(branch%ele(ie+1), 1e-4_rp, upstream_end$,   ri%rm1, err)
 
     ! Combine matrices for quicker evaluation
     ri%rm1%stoc_mat = matmul(ri%rm0%stoc_mat, transpose(ri%rm0%stoc_mat)) + matmul(ri%rm1%stoc_mat, transpose(ri%rm1%stoc_mat))
@@ -891,12 +903,14 @@ call ltt_write_line('# ltt%random_sigma_cut                    = ' // real_str(l
 call ltt_write_line('# ltt%n_turns                             = ' // int_str(lttp%n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lttp%ix_turn_start), lttp, iu, print_this)
 call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
+call ltt_write_line('# ltt%beam_output_every_n_turns           = ' // int_str(lttp%beam_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%output_only_last_turns              = ' // int_str(lttp%output_only_last_turns), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
 call ltt_write_line('# ltt%output_combined_bunches             = ' // logic_str(lttp%output_combined_bunches), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
+call ltt_write_line('# ltt%ramp_particle_energy_without_rf     = ' // logic_str(lttp%ramp_particle_energy_without_rf), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
 call ltt_write_line('# ltt%set_beambeam_z_crossing             = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
 call ltt_write_line('# ltt%random_seed                         = ' // int_str(lttp%random_seed), lttp, iu, print_this)
@@ -1098,8 +1112,8 @@ enddo
 
 !
 
-if (lttp%phase_space_output_file /= '') call write_beam_file (lttp%phase_space_output_file, beam, .true., ascii$)
-if (lttp%beam_output_file /= '') call write_beam_file (lttp%beam_output_file, beam, .true.)
+call ltt_write_particle_data (lttp, ltt_com, lttp%n_turns, beam)
+if (lttp%beam_output_file /= '') call write_beam_file (lttp%beam_output_file, beam, .true.) ! Not ltt_write_beam_file
 
 end subroutine ltt_run_individual_mode
 
@@ -1133,7 +1147,7 @@ branch => lat%branch(ltt_com%ix_branch)
 
 if (lttp%beam_output_file /= '') then
   file = 'extraction-start-' // trim(lttp%beam_output_file)
-  call write_beam_file (file, beam, .true.)
+  call write_beam_file (file, beam, .true.)  ! Note: Not ltt_write_beam_file
 endif
 
 ! With INDIVIDUAL mode, only particles that have hit the septum aperture are to be
@@ -1226,7 +1240,7 @@ do ii = 1, branch%n_ele_track
   call ltt_extraction_write(lttp, ltt_com, beam, ele, eles(1:n_loc), ele%s - fork%s)
   ele => pointer_to_next_ele(ele, skip_beginning = .true.)
   if (ele%key == fork$) exit
-  call track1_bunch(bunch, ele, err)
+  call track1_beam(beam, ele, err)
 enddo
 
 if (ii > branch%n_ele_track) then
@@ -1250,7 +1264,7 @@ fork_loop: do   ! Loop in case extraction branch forks at the end to yet another
     ele => pointer_to_next_ele(ele)
     if (ele%key == fork$ .and. (ele%ix_ele == nt .or. &
                 (ele%ix_ele == nt-1 .and. branch%ele(nt)%key == marker$))) cycle fork_loop  ! Fork to new branch
-    call track1_bunch(bunch, ele, err)
+    call track1_beam(beam, ele, err)
     s_pos = s_pos + ele%value(l$)
   enddo
 enddo fork_loop
@@ -1354,7 +1368,7 @@ else
   iu_part = lunget()
   if (lttp%phase_space_output_file == '') lttp%phase_space_output_file = 'single.dat'
   open(iu_part, file = lttp%phase_space_output_file, recl = 300)
-  call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
+  call ltt_write_params_header(lttp, ltt_com, iu_part)
   write (iu_part, '(2a)') '## Turn ix_ele |            x              px               y              py               z              pz', &
                                        '              pc             p0c            time   |       spin_x       spin_y       spin_z  | Element'
   write (iu_part, ltt_com%ps_fmt) lttp%ix_turn_start, ele_start%ix_ele, orbit%vec, (1.0_rp+orbit%vec(6))*orbit%p0c, &
@@ -1653,7 +1667,7 @@ do i_turn = ix_start_turn, ix_end_turn-1
 
   n_live = sum(beam%bunch%n_live)
   if (n_live_old - n_live >= n_print_dead_loss) then
-    print '(2a, i0, a, i0)', trim(prefix_str), ' Cumulative number dead at end of turn ', i_turn, ': ', n_part_tot - n_live
+    print '(2a, i0, a, i0)', trim(prefix_str), ' Cumulative number dead at turn ', i_turn+1, ': ', n_part_tot - n_live
     n_live_old = n_live
   endif
 
@@ -1670,7 +1684,7 @@ do i_turn = ix_start_turn, ix_end_turn-1
   call run_timer('ABS', time_now)
   if (time_now-time1 > lttp%timer_print_dtime .and. .not. ltt_com%using_mpi) then
     call out_io (s_blank$, r_name, trim(prefix_str) // ' Ellapsed time (min): ' // &
-                                real_str((time_now-time0)/60, 10, 2) // ', At end of turn: ' // int_str(i_turn))
+                                real_str((time_now-time0)/60, 10, 2) // ', At turn: ' // int_str(i_turn+1))
     time1 = time_now
   endif
 
@@ -1965,9 +1979,9 @@ if (wrote_header .and. str == '') then
   open(iu, file = file_name, recl = 300, access = 'append')
 else
   open(iu, file = file_name, recl = 300)
-  call ltt_write_params_header(lttp, ltt_com, iu, ltt_com%n_particle, size(beam%bunch))
+  call ltt_write_params_header(lttp, ltt_com, iu, ltt_com%n_particle, count(bunch%particle%state == alive$), bunch%ix_bunch)
   if (who == 'phase_space') then
-    write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz              pc             p0c           time   |        spin_x       spin_y       spin_z    State'
+    write (iu, '(a)')  '##     Ix     Turn |           x              px               y              py               z              pz              pc             p0c            time   |        spin_x       spin_y       spin_z    State'
   else
     write (iu, '(a)')  '##     Ix     Turn |          Ja         Angle_a              Jb         Angle_b              Jc         Angle_c   |     spin_x    spin_y    spin_z    State'
   endif
@@ -2009,12 +2023,12 @@ do ip = 1, size(bunch%particle)
   ix = ip + ltt_com%mpi_ix0_particle
   if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
   if (who == 'phase_space') then
-    write (iu, '(i9, i9, 8es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, (1.0_rp+p%vec(6))*p%p0c, p%p0c, p%spin, trim(coord_state_name(p%state))
+    write (iu, '(i9, i9, 9es16.8, 3x, 3f13.9, 4x, a)')  ix, i_turn, p%vec, (1.0_rp+p%vec(6))*p%p0c, p%p0c, p%t, p%spin, trim(coord_state_name(p%state))
   else
     jvec = matmul(n_inv_mat, p%vec-b_params%centroid%vec)
     jamp = 0.5_rp * [jvec(1)**2 + jvec(2)**2, jvec(3)**2 + jvec(4)**2, jvec(5)**2 + jvec(6)**2]
     jphase = [atan2(jvec(2), jvec(1)), atan2(jvec(4), jvec(3)), atan2(jvec(6), jvec(5))]
-    write (iu, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, jamp(1), jphase(1), jamp(2), jphase(2), jamp(3), jphase(3), p%spin, trim(coord_state_name(p%state))
+    write (iu, '(i9, i9, 6es16.8, 3x, 3f13.9, 4x, a)')  ix, i_turn, jamp(1), jphase(1), jamp(2), jphase(2), jamp(3), jphase(3), p%spin, trim(coord_state_name(p%state))
   endif
 enddo
 
@@ -2115,7 +2129,7 @@ endif
 
 if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   open(iu, file = lttp%custom_output_file, recl = 2000)
-  call ltt_write_params_header(lttp, ltt_com, iu, n_particle, n_bunch)
+  call ltt_write_params_header(lttp, ltt_com, iu)
   line = '#'
   do i = 1, size(lttp%column)
     col => lttp%column(i)
@@ -2253,7 +2267,7 @@ type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
 
-integer i_turn, iu, ios, nt, ix
+integer i_turn, iu, ios, nt, ix, n
 character(200) file
 
 !
@@ -2267,23 +2281,24 @@ if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
 
 file = lttp%beam_output_file
 ix = str_last_in_set(file, '.')
+n = int(log10(lttp%n_turns + 0.1_rp)) + 1
 if (ix == 0) then
-  file = trim(file) // '-' // int_str(i_turn)
+  file = trim(file) // '-' // int_str(i_turn, n)
 else
-  file = file(:ix-1) // '-' // int_str(i_turn) // file(ix:)
+  file = file(:ix-1) // '-' // int_str(i_turn, n) // file(ix:)
 endif
 
 call fullfilename(file, file)
 
 call write_beam_file (file, beam)
 
-if (ltt_com%last_beam_output_file /= '') then
-  iu = lunget()
-  open(iu, file = ltt_com%last_beam_output_file, status = 'old')
-  close(iu, status = 'delete')
-endif
+!if (ltt_com%last_beam_output_file /= '') then
+!  iu = lunget()
+!  open(iu, file = ltt_com%last_beam_output_file, status = 'old')
+!  close(iu, status = 'delete')
+!endif
 
-ltt_com%last_beam_output_file = file
+!ltt_com%last_beam_output_file = file
 
 end subroutine ltt_write_beam_file
 
@@ -2291,23 +2306,27 @@ end subroutine ltt_write_beam_file
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_params_header(lttp, ltt_com, iu, n_particle, n_bunch)
+subroutine ltt_write_params_header(lttp, ltt_com, iu, n_particle, n_alive, ix_bunch)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 
-integer, optional :: n_bunch
-integer iu, n_particle
+integer, optional :: n_particle, n_alive, ix_bunch
+integer iu
 
 !
 
 write (iu,  '(3a)')      '# lattice                             = ', quote(lttp%lat_file)
 write (iu,  '(3a)')      '# simulation_mode                     = ', quote(lttp%simulation_mode)
-write (iu,  '(a, i8)')   '# n_bunch                             = ', integer_option(1, n_bunch)
-write (iu,  '(a, i8)')   '# n_particle                          = ', n_particle
-write (iu,  '(a, i8)')   '# n_turns                             = ', lttp%n_turns
+if (present(n_particle)) then
+  write (iu,  '(a, i8)')   '# ix_bunch                            = ', ix_bunch
+  write (iu,  '(a, i8)')   '# n_turns                             = ', lttp%n_turns
+  write (iu,  '(a, i8)')   '# n_particle                          = ', n_particle
+  write (iu,  '(a, i8)')   '# n_alive                             = ', n_alive
+endif
 write (iu,  '(a, l1)')   '# ramping_on                          = ', lttp%ramping_on
 write (iu,  '(a, l1)')   '# ramp_update_each_particle           = ', lttp%ramp_update_each_particle
+write (iu,  '(a, l1)')   '# ramp_particle_energy_without_rf     = ', lttp%ramp_particle_energy_without_rf
 write (iu,  '(2a)')      '# ramping_start_time                  = ', real_str(lttp%ramping_start_time, 6)
 write (iu,  '(a, i8)')   '# particle_output_every_n_turns       = ', lttp%particle_output_every_n_turns
 write (iu,  '(a, i8)')   '# averages_output_every_n_turns       = ', lttp%averages_output_every_n_turns
@@ -2603,7 +2622,7 @@ character(2000) :: line
 
 if (lttp%averages_output_file == '') return
 
-if (lttp%particle_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
+if (lttp%averages_output_every_n_turns > 0 .and. lttp%output_only_last_turns > 0 .and. &
                                         lttp%n_turns - ix_turn >= lttp%output_only_last_turns) return
 
 select case (lttp%averages_output_every_n_turns)
@@ -2691,9 +2710,9 @@ integer i, n_sum
 
 !
 
-if (lttp%sigma_matrix_output_file == '') return
+if (lttp%averages_output_file == '') return
 
-open(1, file = lttp%sigma_matrix_output_file)
+open(1, file = lttp%averages_output_file)
 
 if (n_sum == 0) then
   write (1, '(a)') '# NO DATA TO AVERAGE OVER!'
@@ -2715,7 +2734,7 @@ enddo
 
 close(1)
 
-print '(2a)', 'Sigma matrix data file: ', trim(lttp%sigma_matrix_output_file)
+print '(2a)', 'Sigma matrix data file: ', trim(lttp%averages_output_file)
 
 end subroutine ltt_write_single_mode_sigma_file
 
@@ -3428,7 +3447,10 @@ do ip = 1, size(bunch%particle)
   r = orb%p0c / ele%value(p0c_start$)
   orb%vec(2) = r * orb%vec(2)
   orb%vec(4) = r * orb%vec(4)
-  orb%vec(6) = r * orb%vec(6) + (orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+  ! Normally need to adjust pz (vec(6)) so that the particle energy (1 + orb%vec(6)) * orb%p0c is not changed.
+  if (.not. ltt_params_global%ramp_particle_energy_without_rf) then
+    orb%vec(6) = r * orb%vec(6) + (orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+  endif
   orb%p0c = ele%value(p0c_start$)
 enddo
 
@@ -3482,9 +3504,13 @@ logical err_flag, finished, radiation_included, is_there
 
 character(*), parameter :: r_name = 'ltt_track1_preprocess'
 
-! Recording a particle track?
+! This routine may be called by bmad_parser (via ele_compute_ref_energy_and_time) which is 
+! before LTT ramping has been setup. To avoid problems, return if setup has not been done.
 
 err_flag = .false.
+if (.not. associated(ltt_com_global%tracking_lat%ele)) return
+
+! Recording a particle track?
 
 if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
   iu = lunget()
@@ -3498,7 +3524,7 @@ if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
 endif
 
 if (.not. ltt_params_global%ramping_on) return
-if (.not. ltt_params_global%ramp_update_each_particle) return 
+if (.not. ltt_params_global%ramp_update_each_particle .and. ltt_params_global%simulation_mode == 'BEAM') return 
 
 ! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 
@@ -3522,7 +3548,10 @@ if (start_orb%p0c == ele%value(p0c_start$)) return
 r = start_orb%p0c / ele%value(p0c_start$)
 start_orb%vec(2) = r * start_orb%vec(2)
 start_orb%vec(4) = r * start_orb%vec(4)
-start_orb%vec(6) = r * start_orb%vec(6) + (start_orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+! Normally need to adjust pz (vec(6)) so that the particle energy (1 + orb%vec(6)) * orb%p0c is not changed.
+if (.not. ltt_params_global%ramp_particle_energy_without_rf) then
+  start_orb%vec(6) = r * start_orb%vec(6) + (start_orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
+endif
 start_orb%p0c = ele%value(p0c_start$)
 
 end subroutine ltt_track1_preprocess

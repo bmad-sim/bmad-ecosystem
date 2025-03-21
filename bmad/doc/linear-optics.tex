@@ -391,8 +391,8 @@ The dispersion $\eta$ is defined in the standard way
 
 The associated momentum dispersion is:
 \begin{equation}
-  \text{etap_x} = \equiv \left. \frac{dp_x}{dp_z} \right|_s \comma \qquad 
-  \text{etap_y} = \equiv \left. \frac{dp_y}{dp_z} \right|_s \comma \qquad 
+  \text{etap_x} = \eta_{px} \equiv \left. \frac{dp_x}{dp_z} \right|_s \comma \qquad 
+  \text{etap_y} = \eta_{py} \equiv \left. \frac{dp_y}{dp_z} \right|_s \comma \qquad 
 \end{equation}
 The momentum dispersion is useful when constructing particle bunch distributions and for
 various calculations like for calculating radiation integrals.
@@ -408,20 +408,32 @@ $d\eta/ds$ to zero. The dispersion derivative is related to the momentum dispers
   \text{deta_x_ds} &\equiv \frac{d\eta_x}{ds}
     = \frac{d}{dp_z} \left( \frac{dx}{ds} \right)
     = \frac{d}{dp_z} \left( \frac{p_x}{1 + p_z} \right)
-    = \frac{1}{1 + p_z} \, \frac{dp_x}{dp_z} - \frac{p_x}{(1 + p_z)^2}  \CRNO
+    = \frac{1}{1 + p_z} \, \eta_{px} - \frac{p_x}{(1 + p_z)^2}  \CRNO
   \text{deta_y_ds} &\equiv \frac{d\eta_y}{ds}
     = \frac{d}{dp_z} \left( \frac{dy}{ds} \right)
     = \frac{d}{dp_z} \left( \frac{p_y}{1 + p_z} \right)
-    = \frac{1}{1 + p_z} \, \frac{dp_y}{dp_z} - \frac{p_y}{(1 + p_z)^2}
+    = \frac{1}{1 + p_z} \, \eta_{py} - \frac{p_y}{(1 + p_z)^2}
   \label{dexds}
 \end{align}
 
-For a non-circular machine, there are two ways one can imagine defining the dispersion: Either with
-respect to changes in energy at the beginning of the machine or with respect to the local change in
-energy at the point of measurement. The former definition will be called ``non-local dispersion''
-and the latter definition will be called ``local dispersion'' which what 
-\bmad calculates. The non-local dispersion $\wt\bfeta(s_1)$ at some point
-$s_1$ is related to the local dispersion $\bfeta(s_1)$ via
+For a lattice branch with an open (non-circular) geometry, the dispersion of the $z$ phase space
+coordinate, $\eta_z$ can be defined similar to the dispersion of the other coordinates. In this
+case, the dispersion vector $\bfeta$ is defined by
+\begin{equation}
+  \bfeta = (\eta_x, \eta_{px}, \eta_{y}, \eta_{py}, \eta_z, 1)
+\end{equation}
+and this vector is propagated via
+\begin{equation}
+  \bfeta(s_2) = \bfM_{21} \, \bfeta(s_1)
+\end{equation}
+where $\bfM_{21}$ is the transfer matrix between points $s_1$ and $s_2$.
+
+For an open geometry lattice branch, there are two ways one can imagine
+defining the dispersion: Either with respect to changes in energy at the beginning of the machine or
+with respect to the local change in energy at the point of measurement. The former definition will
+be called ``non-local dispersion'' and the latter definition will be called ``local dispersion''
+which what \bmad calculates. The non-local dispersion $\wt\bfeta(s_1)$ at some point $s_1$ is
+related to the local dispersion $\bfeta(s_1)$ via
 \begin{equation}
   \wt\bfeta(s_1) = \frac{dp_{z1}}{dp_{z0}} \, \bfeta(s_1)
 \end{equation}
@@ -430,3 +442,18 @@ merit of reflecting what one would measure if the starting energy of the beam is
 dispersion, on the other hand, reflects the correlations between the particle energy and particle
 position within a beam.
 
+For a closed geometry lattice branch, defining the dependence of $z$ on $p_z$ is problematical.
+With the RF off, $z$ is not periodic so a closed orbit $z$ cannot be defined.  With the RF on, the
+dispersion of any of the phase space components is not well defined.  This being the case, $\eta_z$
+is just treated as zero for a closed branch.  
+
+Note: For a closed geometry branch with RF on, it is possible to define dispersions. If $\bfv$ is
+the eigenvector of the eigenmode associated with longitudinal oscillations, the dispersion $\eta_x$
+can be defined by $\bfv(1) / \bfv(6)$ with similar definitions for the other dispersion components.
+With this definition, the dispersion become complex. In the low RF limit, the dispersions $\eta_x$,
+$\eta_{px}$, $\eta_y$, $\eta_{py}$ converge to the standard (real) values and $\eta_z$ diverges
+to infinity.\footnote
+  {
+This is assuming a linear system. In practice, the motion will become unstable due to
+the finite size of the RF bucket.
+  }

@@ -2,7 +2,6 @@ module transfer_map_mod
 
 use element_at_s_mod
 use taylor_mod
-use coord_mod
 
 private transfer_this_map, transfer_this_mat
 
@@ -188,6 +187,8 @@ logical, save :: old_track_end = .false.
 ! Init
 ! Want to get the whole lattice if [s_1, s_2] spans the entire lattice
 
+error_flag = .false.
+
 if (s_1 == branch%ele(0)%s) then
   ix_ele = 1
 else
@@ -249,10 +250,10 @@ do
   ! Now for the integration step
 
   if (track_entire_ele .and. logic_option(.false., concat_if_possible)  .and. associated(ele%taylor(1)%term)) then
-    call concat_ele_taylor (map, ele, map)
+    call concat_ele_taylor (map, ele, map, error_flag); if (error_flag) return
     call init_coord(orb, map%ref, ele, downstream_end$)
   else
-    call taylor_propagate1 (map, runt, branch%param, orb)
+    call taylor_propagate1 (map, runt, branch%param, error_flag, orb); if (error_flag) return
     call init_coord(orb, map%ref, runt, downstream_end$)
   endif
 

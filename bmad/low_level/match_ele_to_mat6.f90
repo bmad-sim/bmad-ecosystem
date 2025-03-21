@@ -66,7 +66,8 @@ if (do_orbit) then
   v(pz0$) = start_orb%vec(6)
 endif
 
-if (m_val == identity$ .or. ((t_ele%a%beta == 0 .or. t_ele%b%beta == 0) .and. (do_twiss .or. do_trombone))) then
+if (m_val == identity$ .or. ((t_ele%a%beta == 0 .or. t_ele%b%beta == 0) .and. (do_twiss .or. do_trombone)) .or. &
+    (m_val == standard$ .and. v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. v(beta_a1$) == 0 .and. v(beta_b1$) == 0)) then
   v(mode_flip0$) = int_logic(t_ele%mode_flip)
   v(mode_flip1$) = int_logic(t_ele%mode_flip)
   call mat_make_unit(mat6)

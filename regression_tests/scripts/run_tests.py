@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #+
 # Script to run regression tests for the Bmad libraries.
@@ -9,7 +9,6 @@ import os
 import sys
 import time
 import math
-from shutil import which
 
 num_tests = 0
 num_failures = 0
@@ -146,12 +145,8 @@ for test_dir in test_dir_list:
 
   # run.py
   if os.path.exists('run.py'):
-    if which('python3'):
-      print_all ('     Found run.py. Running this script with python3.')        
-      os.system('python3 run.py ' + bin_dir)
-    else:
-      print_all ('     Found run.py. Running this script with python(2.#).')
-      os.system('python run.py ' + bin_dir)
+    print_all ('     Found run.py. Running this script with python3.')        
+    os.system('python3 run.py ' + bin_dir)
 
   else:
     program = bin_dir + program

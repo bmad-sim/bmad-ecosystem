@@ -1,0 +1,39 @@
+ M19Q1[K1] =  7.02698317734126721E-002
+ M19Q2[K1] = -3.48423242241561321E-002
+ M19Q3[K1] = -3.35471872779964167E-002
+ M19Q4[K1] =  2.43430596704639684E-003
+ M19Q5[K1] =  5.41872272729757506E-002
+ M19Q6[K1] =  7.29525051485538784E-002
+ M19Q7[K1] =  4.65209765712373390E-003
+ M19Q8[K1] = -3.21634974051174943E-002
+ M19Q9[K1] = -5.68815954748618166E-002
+ M19Q10[K1] =  5.82869824109405535E-002
+ M19Q11[K1] =  1.57801553658456994E-001
+ M19Q12[K1] = -2.48764041190857654E-001
+ M19Q13[K1] = -3.35016272328637288E-001
+ M19Q14[K1] =  4.62095137553262147E-001
+ M19Q14[K1] =  4.62095137553262147E-001
+ 
+ end_file
+ 
+ 
+ ! Top 10
+ 
+ Constraints                           Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ 6@Optics[64]            6@lat::alpha.b[END] <target>                  -7.5245E+00  -5.8547E+00  2.788E+08
+ 6@Optics[63]            6@lat::alpha.a[END] <target>                   1.2471E+00   5.9516E-01  4.250E+07
+ 6@Optics[65]            6@lat::eta.a[END] <target>                     9.3226E-02   5.5529E-01  2.135E+07
+ 6@Optics[66]            6@lat::etap.a[END] <target>                   -3.5015E-02  -6.9587E-02  1.195E+05
+ 6@Optics[62]            6@lat::beta.b[END] <target>                    1.6840E+01   1.6840E+01  4.642E+02
+ 6@Optics[68]            6@lat::r.56[END] <target>                      2.8081E-01   2.8081E-01  2.303E+01
+ 6@Optics[61]            6@lat::beta.a[END] <target>                    2.4552E+00   2.4552E+00  1.943E+01
+ 6@Optics[69]            beta.a <max>            BEGINNING   END        7.0000E+02   1.4796E+02  0.000E+00  M19Q5
+ 6@Optics[70]            beta.b <max>            BEGINNING   END        7.0000E+02   5.9460E+02  0.000E+00  M19Q12
+ Twiss_P19_FirstFive[1]  6@M19Q1[K1]                         33.36      6.0000E-01   7.0270E-02  0.000E+00
+ Constraints                           Ref_Ele    Start_Ele   Ele/S    Meas-or-Lim    Model       Merit      Max_Loc
+ 
+  figure of merit: 3.427741E+08
+ 
+ List of non-zero contributors to the Merit Function:
+ Name                                          Merit           Sigma [= sqrt(Chi^2/N)]
+ Optics.Twiss                                  3.4277E+08      6.9977E-01

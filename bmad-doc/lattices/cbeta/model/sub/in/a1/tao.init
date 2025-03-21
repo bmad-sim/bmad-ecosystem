@@ -1,0 +1,92 @@
+!------------------------------------------------------------------------
+
+&tao_start
+  plot_file = '/home/cem52/erl/CERL/lattice_devel/Phase1C/tao/tao_plot.init' 
+  startup_file = '/home/cem52/erl/CERL/lattice_devel/Phase1C/tao/tao.startup'
+/
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes =1
+  design_lattice(1)%file = "a1.lat.bmad"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  !global%plot_on = .true.
+ global%track_type = 'single'
+global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  !global%random_engine = 'quasi'
+ ! global%floor_plan_rotation = 0.5
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = T
+  /
+  
+  
+&tao_beam_init
+   beam_init%use_lattice_center = T
+     beam_init%n_particle = 50
+       beam_init%random_engine = 'quasi'
+       !beam_init%random_engine = 'pseudo'
+   ix_universe = 1
+       !beam0_file = 'beam.in'
+       !ix_track_start = 123 !corresponts to la.mar.beg\1
+   beam_saved_at =  "MARKER::*"
+   !track_start = 'LA.MAR.BEG\1'
+       beam_init%a_norm_emit = 1.0e-11
+       beam_init%b_norm_emit = 1.0e-11
+       beam_init%dPz_dz = 0.0
+       beam_init%n_bunch = 1
+       beam_init%bunch_charge = 77.0e-12
+       beam_init%sig_pz = 1e-9
+       !beam_init%sig_z = 0.00059958  ! 2 ps * cLight
+       !beam_init%sig_z = 0.000899377 ! 3 ps * cLight
+       beam_init%sig_z =  1e-9 ! for testing
+!---Ellipse
+ beam_init%distribution_type = 'ellipse', '', ''
+ beam_init%ellipse(1)%part_per_ellipse = 100
+ ! beam_init%ellipse(2)%part_per_ellipse = 20
+ beam_init%ellipse(1)%n_ellipse = 3
+ ! beam_init%ellipse(2)%n_ellipse = 3
+ beam_init%ellipse(1)%sigma_cutoff = 3
+ ! beam_init%ellipse(2)%sigma_cutoff = 3
+/
+
+
+  
+!------------------------------------------------------------------------
+
+
+
+
+&tao_d2_data
+        d2_data%name = "betas"  
+        universe = 1
+        n_d1_data = 1
+/
+&tao_d1_data
+        ix_d1_data = 1
+        default_weight = 1
+        d1_data%name = '1'
+        datum( 1) =  "beta.a"      '' 'IN.Mar.BEG' 'IN.MAR.END  '   'max'  100  
+/
+
+
+
+!------------------------------------------------------------------------
+&tao_var
+	v1_var%name = 'begtwiss'
+	default_step = 1e-4
+	default_universe = '1'
+	ix_min_var = 1
+	ix_max_var = 6
+	var(1:6)%ele_name  = 'beginning', 'beginning', 'beginning', 'beginning', 'beginning', 'beginning'
+    var(1:6)%attribute = 'beta_a', 'alpha_a', 'beta_b', 'alpha_b', 'eta_x', 'etap_x'
+    var(1)%low_lim = 0.01
+    var(3)%low_lim = 0.01
+/

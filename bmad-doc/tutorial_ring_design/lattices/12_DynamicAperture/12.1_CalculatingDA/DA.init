@@ -1,0 +1,15 @@
+
+&params
+ dat_file = "ring_DA.dat"
+ ltt%lat_file = "ring.bmad"
+ ltt%rfcavity_on = T
+ dpz = 0.000, 0.002, 0.004, 0.006, 0.008, 0.010
+ da_param%n_angle = 5
+ da_param%n_turn = 1000
+ da_param%abs_accuracy = 1e-5
+ da_param%min_angle = 0
+ da_param%max_angle = 3.14159
+/
+
+
+

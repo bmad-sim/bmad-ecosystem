@@ -1,0 +1,129 @@
+!!! These are for the strongly-focusing triplet LINAC optics !!!
+
+set calc off
+
+set ele 1@beginning beta_a  = 25.50
+set ele 1@beginning beta_b  = 29.50
+set ele 1@beginning alpha_a  = 0.120
+set ele 1@beginning alpha_b  = -0.160
+set ele 1@beginning eta_x  = 0 !-9.2735848555127933E-19
+set ele 1@beginning eta_y  = 0 !8.3266726846886741E-17
+set ele 1@beginning etap_x  = 0 !-1.0381788464151318E-19
+set ele 1@beginning etap_y  = 0 !4.1633363423443370E-17
+set ele 1@beginning y_position  = 100
+
+set ele 2@beginning beta_a  = 57.54
+set ele 2@beginning beta_b  = 59.67
+set ele 2@beginning alpha_a  = 0.093
+set ele 2@beginning alpha_b  = 0.513
+set ele 2@beginning eta_x  = 0 !-6.1327611967964910E-19
+set ele 2@beginning eta_y  = 0 !9.7144514654701197E-17
+set ele 2@beginning etap_x  = 0 !-6.9279307401156254E-20
+set ele 2@beginning etap_y  = 0 !2.7755575615628914E-17
+set ele 2@beginning y_position  = 100
+
+set ele 3@beginning beta_a  = 58.21
+set ele 3@beginning beta_b  = 111.12
+set ele 3@beginning alpha_a  = 0.490
+set ele 3@beginning alpha_b  = 1.155
+set ele 3@beginning eta_x  = 0 !-4.4424834582677470E-19
+set ele 3@beginning eta_y  = 0 !7.0776675468206367E-16
+set ele 3@beginning etap_x  = 0 !-5.0450393596336464E-20
+set ele 3@beginning etap_y  = 0 !3.4694469519536142E-17
+set ele 3@beginning y_position  = 100
+
+set ele 4@beginning beta_a  = 29.64
+set ele 4@beginning beta_b  = 82.75
+set ele 4@beginning alpha_a  = 0.251
+set ele 4@beginning alpha_b  = 1.500
+set ele 4@beginning eta_x  = 0 !-3.4285178682159112E-19
+set ele 4@beginning eta_y  = 0 !1.1449170706282191E-15
+set ele 4@beginning etap_x  = 0 !-3.9065878265360829E-20
+set ele 4@beginning etap_y  = 0 !2.7755575615628914E-17
+set ele 4@beginning y_position  = 100
+
+set ele 5@beginning beta_a  = 33.10
+set ele 5@beginning beta_b  = 41.60
+set ele 5@beginning alpha_a  = -0.456
+set ele 5@beginning alpha_b  = 0.995
+set ele 5@beginning eta_x  = 0 !-2.7692839214818075E-19
+set ele 5@beginning eta_y  = 0 !-2.9143354396410359E-16
+set ele 5@beginning etap_x  = 0 !-3.1625317518498471E-20
+set ele 5@beginning etap_y  = 0 !-2.7755575615628914E-17
+set ele 5@beginning y_position  = 100
+
+set ele 6@beginning beta_a  = 53.45
+set ele 6@beginning beta_b  = 22.77
+set ele 6@beginning alpha_a  = -0.820
+set ele 6@beginning alpha_b  = 0.094
+set ele 6@beginning eta_x  = 0 !-2.3134330817755320E-19
+set ele 6@beginning eta_y  = 0 !3.9204792908723203E-16
+set ele 6@beginning etap_x  = 0 !-2.6461236327812418E-20
+set ele 6@beginning etap_y  = 0 !5.8980598183211441E-17
+set ele 6@beginning y_position  = 100
+
+
+!!! These are for the weakly-focusing triplet LINAC optics !!!
+!
+!set ele 1@beginning beta_a  = 1.4856258348056772E+02
+!set ele 1@beginning beta_b  = 1.7815352477494730E+02
+!set ele 1@beginning alpha_a  = 1.4925428559696705E+00
+!set ele 1@beginning alpha_b  = 1.8128038485225095E-01
+!set ele 1@beginning eta_x  = 0 !-9.2735848555127933E-19
+!set ele 1@beginning eta_y  = 0 !8.3266726846886741E-17
+!set ele 1@beginning etap_x  = 0 !-1.0381788464151318E-19
+!set ele 1@beginning etap_y  = 0 !4.1633363423443370E-17
+!set ele 1@beginning y_position  = 100
+!
+!set ele 2@beginning beta_a  = 1.8362443718424794E+02
+!set ele 2@beginning beta_b  = 2.0963864929756008E+02
+!set ele 2@beginning alpha_a  = 9.6740231152721912E-01
+!set ele 2@beginning alpha_b  = -2.2081655511013193E-01
+!set ele 2@beginning eta_x  = 0 !-6.1327611967964910E-19
+!set ele 2@beginning eta_y  = 0 !9.7144514654701197E-17
+!set ele 2@beginning etap_x  = 0 !-6.9279307401156254E-20
+!set ele 2@beginning etap_y  = 0 !2.7755575615628914E-17
+!set ele 2@beginning y_position  = 100
+
+!set ele 3@beginning beta_a  = 2.0658765703284439E+02
+!set ele 3@beginning beta_b  = 2.2928365447223902E+02
+!set ele 3@beginning alpha_a  = 5.5533178964116203E-01
+!set ele 3@beginning alpha_b  = -4.9330775464964516E-01
+!set ele 3@beginning eta_x  = 0 !-4.4424834582677470E-19
+!set ele 3@beginning eta_y  = 0 !7.0776675468206367E-16
+!set ele 3@beginning etap_x  = 0 !-5.0450393596336464E-20
+!set ele 3@beginning etap_y  = 0 !3.4694469519536142E-17
+!set ele 3@beginning y_position  = 100
+!
+!set ele 4@beginning beta_a  = 2.2225024339884470E+02
+!set ele 4@beginning beta_b  = 2.4226369850023096E+02
+!set ele 4@beginning alpha_a  = 2.4841822923300114E-01
+!set ele 4@beginning alpha_b  = -6.8099336345430750E-01
+!set ele 4@beginning eta_x  = 0 !-3.4285178682159112E-19
+!set ele 4@beginning eta_y  = 0 !1.1449170706282191E-15
+!set ele 4@beginning etap_x  = 0 !-3.9065878265360829E-20
+!set ele 4@beginning etap_y  = 0 !2.7755575615628914E-17
+!set ele 4@beginning y_position  = 100
+!
+!set ele 5@beginning beta_a  = 2.3334095293440555E+02
+!set ele 5@beginning beta_b  = 2.5123985977692817E+02
+!set ele 5@beginning alpha_a  = 1.9762147500637060E-02
+!set ele 5@beginning alpha_b  = -8.1398674185261022E-01
+!set ele 5@beginning eta_x  = 0 !-2.7692839214818075E-19
+!set ele 5@beginning eta_y  = 0 !-2.9143354396410359E-16
+!set ele 5@beginning etap_x  = 0 !-3.1625317518498471E-20
+!set ele 5@beginning etap_y  = 0 !-2.7755575615628914E-17
+!set ele 5@beginning y_position  = 100
+!
+!set ele 6@beginning beta_a  = 2.4145479850333740E+02
+!set ele 6@beginning beta_b  = 2.5768409520496454E+02
+!set ele 6@beginning alpha_a  = -1.5300002384943756E-01
+!set ele 6@beginning alpha_b  = -9.1094639397881716E-01
+!set ele 6@beginning eta_x  = 0 !-2.3134330817755320E-19
+!set ele 6@beginning eta_y  = 0 !3.9204792908723203E-16
+!set ele 6@beginning etap_x  = 0 !-2.6461236327812418E-20
+!set ele 6@beginning etap_y  = 0 !5.8980598183211441E-17
+!set ele 6@beginning y_position  = 100
+!
+
+set calc on

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #+
 # Script to convert from Elegant lattice format to Bmad lattice format.
@@ -603,7 +603,7 @@ def parse_element(dlist):
 
     # Malign -> Gkicker
 
-    if ele.bmad_type == 'malign':
+    if elegant_type == 'malign':
       if eparam == 'dx': 
         bparam = 'x_kick'
       elif eparam == 'dy':

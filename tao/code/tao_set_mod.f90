@@ -1,7 +1,6 @@
 module tao_set_mod
 
 use tao_interface
-use tao_data_and_eval_mod
 
 implicit none
 
@@ -141,6 +140,49 @@ do i = 1, size(branches)
 enddo
 
 end subroutine tao_set_z_tune_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine tao_set_openmp_n_threads (n_threads)
+!
+! Routine to set OpenMP thread count.  Errors if OpenMP is not available.
+!
+! Input:
+!   n_threads      -- integer: Number of threads.
+!-
+
+subroutine tao_set_openmp_n_threads (n_threads)
+
+!$ use omp_lib, only: omp_get_max_threads, omp_set_num_threads
+
+implicit none
+
+integer old_n_threads, n_threads
+logical openmp_available
+
+character(*), parameter :: r_name = 'tao_set_openmp_n_threads'
+
+  openmp_available = .false.
+  !$ openmp_available = .true.
+
+  if (.not. openmp_available) then
+    if (n_threads > 1) then
+      call out_io (s_error$, r_name, 'Multithreading support with OpenMP is not available.')
+    endif
+    return
+  endif
+
+  !$ old_n_threads = omp_get_max_threads()
+  !$ call omp_set_num_threads(n_threads)
+  ! What OpenMP sets may differ from what we requested, so set it again here:
+  !$ s%global%n_threads = omp_get_max_threads()
+  !$ if (old_n_threads /= s%global%n_threads) then
+  !$   call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%global%n_threads))
+  !$ endif
+
+end subroutine tao_set_openmp_n_threads
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -482,30 +524,11 @@ if (who == 'phase_units') then
 endif
 
 if (who == 'silent_run') then  ! Old style syntax
-  call out_io (s_error$, r_name, 'The "set global silent_run" command has been replaced by "set global quiet =  <logic>"')
-
-  if (s%com%cmd_file_level == 0) then
-    call out_io (s_error$, r_name, 'The "set global silent_run" command can only be used in command files.')
-    return
-  endif
-
-  call match_word (value_str, [character(8):: 'true', 'false'], ix)
-  if (ix == 1) then
-    call tao_quiet_set('all')
-  elseif (ix == 2) then
-    call tao_quiet_set('off')
-  else
-    call out_io (s_error$, r_name, 'BAD "silent_run" VALUE: ' // value_str)
-  endif
+  call out_io (s_error$, r_name, 'The "set global silent_run" command has been replaced by "set global quiet = <switch>". Nothing done!')
   return
 endif
 
 if (who == 'quiet') then
-  if (s%com%cmd_file_level == 0) then
-    call out_io (s_error$, r_name, 'The "set global quiet" command can only be used in command files.')
-    return
-  endif
-
   call tao_quiet_set (value_str)
   return
 endif
@@ -528,7 +551,8 @@ case ('random_engine', 'random_gauss_converter', 'track_type', 'quiet', 'prompt_
   val = quote(value_str)
 
 case ('n_opti_cycles', 'n_opti_loops', 'phase_units', 'bunch_to_plot', &
-      'random_seed', 'n_top10_merit', 'srdt_gen_n_slices', 'srdt_sxt_n_slices')
+      'random_seed', 'n_top10_merit', 'srdt_gen_n_slices', 'srdt_sxt_n_slices', &
+      'n_threads')
   call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
   write (val, '(i0)', iostat = ios) nint(set_val(1))
 
@@ -567,6 +591,8 @@ if (err) return
 !
 
 select case (who)
+case ('n_threads')
+  call tao_set_openmp_n_threads(global%n_threads)
 case ('optimizer')
   if (all(global%optimizer /= tao_optimizer_name)) then
     call out_io (s_error$, r_name, 'BAD OPTIMIZER NAME: ' // global%optimizer)
@@ -984,7 +1010,7 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', 'comb_max_ds_save', &
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
                     'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
                     'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
@@ -1003,7 +1029,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   select case (switch)
   case ('beginning')
-    ele => tao_beam_track_endpoint (value_str, u%model%lat, '', 'BEGGINING')
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, '', 'BEGGINING', u)
     if (.not. associated(ele)) return
     beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
@@ -1018,15 +1044,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     call tao_set_real_value (value, switch, value_str, err)
     u%model%tao_branch(:)%comb_ds_save = value
 
-  case ('comb_max_ds_save')
-    call tao_set_real_value (value, switch, value_str, err)
-    u%model%tao_branch(:)%comb_max_ds_save = value
-
   case ('always_reinit')
     call tao_set_logical_value (u%beam%always_reinit, switch, value_str, err)
 
   case ('track_start', 'beam_track_start', 'track_end', 'beam_track_end')
-    ele => tao_beam_track_endpoint (value_str, u%model%lat, branch_str, switch)
+    ele => tao_beam_track_endpoint (value_str, u%model%lat, branch_str, upcase(switch), u)
     if (.not. associated(ele)) return
 
     bb => u%model_branch(ele%ix_branch)%beam
@@ -1047,7 +1069,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     u%beam%dump_file = value_str
 
   case ('dump_at', 'beam_dump_at')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .true.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD DUMP_AT STRING: ' // value_str)
       return
@@ -1065,7 +1087,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     enddo
 
   case ('saved_at', 'beam_saved_at')
-    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    call tao_locate_elements (value_str, u%ix_uni, eles, err, ignore_blank = .true.)
     if (err) then
       call out_io (s_error$, r_name, 'BAD SAVED_AT STRING: ' // value_str)
       return
@@ -1131,17 +1153,17 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_beam_branch_struct), pointer :: bb
 
-character(*) who, value_str, branch_str
-character(40) who2
-character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
-
 real(rp), allocatable :: set_val(:)
 real(rp) r_val
 integer i, ix, iu, ios, ib, n_loc
-logical err, eval_err
+logical err, eval_err, found
 logical, allocatable :: picked_uni(:)
 
-character(40) name, switch
+character(*) who, value_str, branch_str
+character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
+character(1) delim
+character(40) name, switch, who2
+character(100) str, vstr
 
 namelist / params / beam_init
 
@@ -1179,7 +1201,14 @@ if (is_real(value_str, real_num = r_val) .or. is_logical(value_str)) then
   endif
 
 elseif (who(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
-  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
+  vstr = value_str
+  str = ''
+  do i = 1, 3
+    call word_read(vstr, ', ', name, ix, delim, found, vstr)
+    if (name == '') exit
+    str = trim(str) // ' ' // quote(name)
+  enddo
+  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', str
 
 else
   select case (who2)
@@ -1348,7 +1377,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     a_ptr(1)%r = set_val(1)
   endif
 
-  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START')
+  call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START', who = who2)
 enddo
 
 end subroutine tao_set_particle_start_cmd
@@ -1464,7 +1493,7 @@ type (tao_curve_array_struct), allocatable :: curve(:)
 type (tao_graph_array_struct), allocatable :: graph(:)
 type (lat_struct), pointer :: lat
 
-integer i, j, ios, i_uni
+integer i, j, ios
 integer, allocatable :: ix_ele(:)
 
 character(*) curve_name, component, value_str
@@ -1496,8 +1525,9 @@ type (tao_graph_struct), pointer :: this_graph
 type (tao_universe_struct), pointer :: u
 type (tao_model_branch_struct), pointer :: model_branch
 type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele_track
 
-integer ix, i_branch
+integer ix, i_branch, i_uni
 logical err, is_int
 character(40) name, comp
 
@@ -1516,19 +1546,12 @@ ix = index(comp, '.')
 if (ix /= 0) comp(ix:ix) = '%'
 select case (comp)
 
-case ('ele_ref_name', 'ix_ele_ref')
-  is_int = is_integer(value_str, ix)
-  if (value_str == '' .or. (is_int .and. ix < 0)) then
-    this_curve%ele_ref_name = ''
-    this_curve%ix_ele_ref = -1
-
-  else
-    call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
-    if (size(eles) == 0) return
-    this_curve%ele_ref_name = upcase(value_str)
-    this_curve%ix_ele_ref = eles(1)%ele%ix_ele
+case ('ele_ref_name', 'ix_ele_ref')   ! ix_ele_ref is old style
+  call tao_locate_elements (value_str, i_uni, eles, err, ignore_blank = .true.)
+  if (size(eles) == 0) return
+  this_curve%ele_ref_name = upcase(value_str)
+  if (size(eles) == 1) then
     this_curve%ix_branch  = eles(1)%ele%ix_branch
-    call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
   endif
 
 case ('name')
@@ -1539,10 +1562,9 @@ case ('ix_universe')
   if (err) return
   call tao_locate_elements (this_curve%ele_ref_name, tao_curve_ix_uni(this_curve), eles, err, ignore_blank = .true.)
   if (size(eles) == 0) return
-  this_curve%ix_ele_ref = eles(1)%ele%ix_ele
-  this_curve%ix_branch  = eles(1)%ele%ix_branch
-  call tao_ele_to_ele_track (tao_curve_ix_uni(this_curve), this_curve%ix_branch, &
-                                     this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
+  if (size(eles) == 1) then
+    this_curve%ix_branch  = eles(1)%ele%ix_branch
+  endif
 
 case ('ix_branch') 
   call tao_set_integer_value (this_curve%ix_branch, component, value_str, err, -1, ubound(s%u(i_uni)%model%lat%branch, 1))
@@ -1679,13 +1701,20 @@ case default
 
 end select
 
-! Enable
+! Set lattice recalc for a phase_space plot
+
+if (err) return
+if (.not. associated(this_graph%p%r)) return  ! A template plot is ignored.
 
 if (this_graph%type == 'phase_space') then
-  model_branch => s%u(i_uni)%model_branch(i_branch)
-  if (.not. model_branch%ele(this_curve%ix_ele_ref)%save_beam_internally) then
+  i_uni = tao_universe_index(tao_curve_ix_uni(this_curve))
+  ele_track => tao_curve_ele_ref(this_curve, .true.)
+
+  model_branch => s%u(i_uni)%model_branch(ele_track%ix_branch)
+  
+  if (.not. model_branch%ele(ele_track%ix_ele)%save_beam_internally) then
     s%u(i_uni)%calc%lattice = .true.
-    model_branch%ele(this_curve%ix_ele_ref)%save_beam_internally = .true.
+    model_branch%ele(ele_track%ix_ele)%save_beam_internally = .true.
   endif
 endif
 
@@ -2369,7 +2398,8 @@ character(20) component
 character(*), parameter :: r_name = 'tao_set_data_cmd'
 character(100) :: why_invalid, tmpstr
 character, allocatable :: s_save(:)
-
+character(16), parameter :: datum_char_params(6) = [character(16):: 'ele_name', 'ele_start_name', &
+                                    'ele_ref_name', 'data_type', 'merit_type', 'data_source']  
 logical, optional :: silent
 logical err, l1
 
@@ -2509,9 +2539,10 @@ elseif (size(s_dat) /= 0) then
 
   allocate (s_save(size(s_dat)))  ! Used to save old values in case of error
 
-  ! If value_string has "|" then it must be a datum array
+  ! If value_string has "|XXX" at the end and XXX is a datum string parameter then it must be a datum array.
 
-  if (index(value_str, '|') /= 0) then
+  ix = index(value_str, '|') 
+  if (ix /= 0 .and. any(value_str(ix+1:) == datum_char_params)) then
     call tao_find_data (err, value_str, str_array=s_value)
     if (size(s_value) /= size(s_dat) .and. size(s_value) /= 1) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
@@ -2956,7 +2987,7 @@ end subroutine tao_set_universe_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_elements_cmd (ele_list, attribute, value, update, lord_set)
+! Subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
 !
 ! Sets element parameters.
 !
@@ -2966,19 +2997,20 @@ end subroutine tao_set_universe_cmd
 !   value      -- Character(*): Value to set.
 !-
 
-subroutine tao_set_elements_cmd (ele_list, attribute, value, update, lord_set)
+subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
 
 use attribute_mod, only: attribute_type
 
 implicit none
 
 type (ele_pointer_struct), allocatable :: eles(:), v_eles(:)
+type (ele_struct), pointer :: ele, lord
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct) a_ptr
 type (tao_lattice_struct), pointer :: tao_lat
 
 real(rp), allocatable :: set_val(:)
-integer i, ix, ix2, j, n_uni, n_set, n_eles, lat_type
+integer i, ix, ix2, j, n_uni, n_set, n_eles, lat_type, err_id, id_max, ix_max
 
 character(*) ele_list, attribute, value
 character(*), parameter :: r_name = "tao_set_elements_cmd"
@@ -2988,6 +3020,8 @@ logical update, lord_set
 logical is_on, err, mat6_toggle
 
 ! Find elements
+
+lord_set = .true. ! Note: With the present code, lord_set will never be False.
 
 call tao_locate_all_elements (ele_list, eles, err)
 if (err) return
@@ -3003,12 +3037,17 @@ endif
 ! And set_ele_attribute cannot handle the situation where there is an array of set values.
 ! How to handle this depends upon what type of attribute it is.
 
+! Another complication is that something like:
+!     set ele A:B k1 = 0.1
+! Here if there are super slave elements in the range A:B we want to set the lord.
+! Exception: phi0_multipass.
+
 ! If a real attribute then use tao_evaluate_expression to evaluate.
 ! If attribute_type returns invalid_name$ then assume attribute is a controller variable which are always real.
 
 if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(attribute)) == invalid_name$) then
   ! Important to use "size(eles)" as 2nd arg instead of "0" since if value is something like "ran()" then
-  ! want a an array of set_val values with each value different.
+  ! want an array of set_val values with each value different.
   call tao_evaluate_expression (value, size(eles), .false., set_val, err)
   if (err) return
 
@@ -3020,21 +3059,32 @@ if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(att
 
   n_set = 0
   do i = 1, size(eles)
-    call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, err_print_flag = .false.)
+    ele => eles(i)%ele
+
+    call pointer_to_attribute(ele, attribute, .true., a_ptr, err, err_print_flag = .false.)
     if (err) cycle
     if (.not. associated(a_ptr%r)) then
       call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
       return
     endif
 
-    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .false.)
-    if (.not. err) n_set = n_set + 1
-    call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), eles(i)%ele%name, eles(i)%ele, a_ptr%r)
+    if (ele%slave_status == super_slave$) then
+      do j = 1, ele%n_lord
+        lord => pointer_to_lord(ele, j)
+        call set_ele_real_attribute (lord, attribute, set_val(i), err, .false.)
+        if (.not. err) n_set = n_set + 1
+        call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), lord%name, lord, a_ptr)
+      enddo
+    else
+      call set_ele_real_attribute (ele, attribute, set_val(i), err, .false.)
+      if (.not. err) n_set = n_set + 1
+      call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), ele%name, ele, a_ptr)
+    endif
   enddo
 
   if (n_set == 0) then
     i = size(eles)
-    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err, .true.)
+    call set_ele_real_attribute (ele, attribute, set_val(i), err, .true.)
     call out_io (s_error$, r_name, 'NOTHING SET.')
   endif
 
@@ -3047,10 +3097,11 @@ if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(att
   call tao_var_check(eles, attribute, update)
 
   return
+endif
 
 ! If there is a "ele::" construct in the value string...
 
-elseif (index(value, 'ele::') /= 0) then
+if (index(value, 'ele::') /= 0) then
 
   val_str = value
   u => tao_pointer_to_universe(val_str)
@@ -3104,22 +3155,33 @@ endif
 ! generated by some, but not all elements is not considered a true error.
 ! For example: "set ele * csr_calc_on = t" is not valid for markers.
 
+! Keeping track of the max err_id will enable the generation of the best error message if there is an error.
+
 n_set = 0
+id_max = 0
 do i = 1, size(eles)
   u => s%u(eles(i)%id)
-  call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false., lord_set)
-  call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele)
+  call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(val_str), err, .false., lord_set, err_id)
+  if (err) then
+    if (err_id > id_max) then
+      id_max = err_id
+      ix_max = i
+    endif
+    cycle
+  endif
+  call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, .false.)
+  call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele, a_ptr)
   if (.not. err) n_set = n_set + 1
 enddo
 
 if (n_set == 0) then
-  if (lord_set) then
+  if (.not. lord_set) then
     call out_io (s_error$, r_name, &
           'NOTHING SET. REMEMBER: "-lord_no_set" USAGE WILL PREVENT LORD ELEMENT ATTRIBUTES FROM BEING SET.')
   else
-    call out_io (s_error$, r_name, 'NOTHING SET. EG:')
+    call set_ele_attribute (eles(ix_max)%ele, trim(attribute) // '=' // trim(val_str),  err, .true., lord_set)
+    call out_io (s_error$, r_name, 'NOTHING SET')
     u => s%u(eles(1)%id)
-    call set_ele_attribute (eles(1)%ele, trim(attribute) // '=' // trim(val_str),  err, .true., lord_set)
   endif
   return
 endif
@@ -3428,7 +3490,7 @@ if (ix /= 0) then
   case ('ele_name', 'name')
     needs_quotes = .true.
     component = 'ele_id%' // component(ix+1:)
-  case ('shape', 'color', 'label')
+  case ('shape', 'color', 'label', 'ele_id')
     needs_quotes = .true.
   end select
 
@@ -3665,8 +3727,10 @@ case ('bounds')
 
 case ('min')
   call tao_set_real_value (qp_axis%min, qp_axis_name, value, error, dflt_uni = ix_uni)
+  qp_axis%eval_min = qp_axis%min
 case ('max')
   call tao_set_real_value (qp_axis%max, qp_axis_name, value, error, dflt_uni = ix_uni)
+  qp_axis%eval_max = qp_axis%max
 case ('number_offset')
   call tao_set_real_value (qp_axis%number_offset, qp_axis_name, value, error, dflt_uni = ix_uni)
 case ('label_offset')

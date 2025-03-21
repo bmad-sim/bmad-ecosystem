@@ -1,37 +1,44 @@
 !+
-! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
+! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib, do_unlink)
 !
 ! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 ! Note: This routine will not work on bmad_com components. Rather use pointers_to_attribute.
+!
+! Note: To save memory, ele%cartesian_map (and other field maps), can point to the same memory location as the 
+! Cartesian maps of other elements. This linkage is not desired if the attribute to be pointed to is varied. 
+! In this case, the do_unlink argumnet should be set to True.
+!
 ! Note: Alternatively consider the routines:
 !     pointers_to_attribute
 !     set_ele_attribute
 !     value_of_attribute
 !
 ! Input:
-!   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
+!   ele             -- ele_struct: After this routine finishes Ptr_attrib 
 !                        will point to a variable within this element.
-!   attrib_name     -- Character(40): Name of attribute. Must be uppercase.
+!   attrib_name     -- character(40): Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
-!   do_allocation   -- Logical: If True then do an allocation if needed.
+!   do_allocation   -- logical: If True then do an allocation if needed.
 !                       EG: The multipole An and Bn arrays need to be allocated
 !                       before their use.
-!   err_print_flag  -- Logical, optional: If present and False then suppress
+!   err_print_flag  -- logical, optional: If present and False then suppress
 !                       printing of an error message on error.
+!   do_unlink       -- logical, optional: Default False. If True and applicable, unlink the structure containing the attribute.
+!                       See above for details.
 !
 ! Output:
 !   a_ptr      -- all_pointer_struct: Pointer to the attribute. 
 !     %r           -- pointer to real attribute. Nullified if error or attribute is not real.               
 !     %i           -- pointer to integer attribute. Nullified if error or attribute is not integer.
 !     %l           -- pointer to logical attribute. Nullified if error or attribute is not logical.               
-!   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
-!   ix_attrib  -- Integer, optional: If applicable, this is the index to the 
+!   err_flag   -- logical: Set True if attribtute not found. False otherwise.
+!   ix_attrib  -- integer, optional: If applicable, this is the index to the 
 !                     attribute in the ele%value(:), ele%control%var(:), ele%a_pole(:) or ele%b_pole(:) arrays.
 !                     Set to 0 if not in any of these arrays.
 !-
 
-subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib)
+subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_flag, err_print_flag, ix_attrib, do_unlink)
 
 use bmad_interface, except_dummy => pointer_to_attribute
 
@@ -41,6 +48,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave
 type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (cartesian_map_struct), pointer :: ct_map
+type (cartesian_map_term_struct), pointer :: ct_ptr
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
@@ -64,7 +72,7 @@ character(40) str
 character(24) :: r_name = 'pointer_to_attribute'
 
 logical err_flag, do_allocation, do_print, err, out_of_bounds
-logical, optional :: err_print_flag
+logical, optional :: err_print_flag, do_unlink
 
 ! init check
 
@@ -72,7 +80,7 @@ err_flag = .true.
 out_of_bounds = .false.
 branch => pointer_to_branch(ele)
 
-nullify (a_ptr%r, a_ptr%i, a_ptr%l)
+nullify (a_ptr%r, a_ptr%i, a_ptr%l, a_ptr%r1, a_ptr%i1)
 
 do_print = logic_option (.true., err_print_flag)
 call str_upcase (a_name, attrib_name)
@@ -263,6 +271,15 @@ if (a_name(1:14) == 'CARTESIAN_MAP(') then
   n_cc = get_this_index(a_name, 14, err, 1, size(ele%cartesian_map))
   if (err) goto 9140
   ct_map => ele%cartesian_map(n_cc)
+  if (.not. associated(ct_map%ptr)) return
+
+  ct_ptr => ct_map%ptr
+  if (logic_option(.false., do_unlink) .and. ct_map%ptr%n_link > 1) then
+    ct_map%ptr%n_link = ct_map%ptr%n_link - 1
+    allocate(ct_map%ptr)
+    ct_map%ptr = ct_ptr
+    ct_map%ptr%n_link = 1
+  endif
 
   if (a_name(1:3) == '%T(' .or. a_name(1:6) == '%TERM(') then
     nt = get_this_index(a_name, index(a_name, '('), err, 1, size(ct_map%ptr%term))
@@ -282,6 +299,7 @@ if (a_name(1:14) == 'CARTESIAN_MAP(') then
   else
     select case (a_name)
     case ('%FIELD_SCALE');      a_ptr%r => ct_map%field_scale
+    case ('%R0');               a_ptr%r1 => ct_map%r0
     case ('%R0(1)');            a_ptr%r => ct_map%r0(1)
     case ('%R0(2)');            a_ptr%r => ct_map%r0(2)
     case ('%R0(3)');            a_ptr%r => ct_map%r0(3)
@@ -305,14 +323,15 @@ if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
   cl_map => ele%cylindrical_map(n_cc)
 
   select case (a_name)
-  case ('%PHI0_FIELDMAP');    a_ptr%r => cl_map%phi0_fieldmap
-  case ('%THETA0_AZIMUTH');   a_ptr%r => cl_map%theta0_azimuth
-  case ('%FIELD_SCALE');      a_ptr%r => cl_map%field_scale
-  case ('%DZ');               a_ptr%r => cl_map%dz
-  case ('%R0(1)');            a_ptr%r => cl_map%r0(1)
-  case ('%R0(2)');            a_ptr%r => cl_map%r0(2)
-  case ('%R0(3)');            a_ptr%r => cl_map%r0(3)
-  case ('%MASTER_PARAMETER'); a_ptr%i => cl_map%master_parameter
+  case ('%PHI0_FIELDMAP');    a_ptr%r  => cl_map%phi0_fieldmap
+  case ('%THETA0_AZIMUTH');   a_ptr%r  => cl_map%theta0_azimuth
+  case ('%FIELD_SCALE');      a_ptr%r  => cl_map%field_scale
+  case ('%DZ');               a_ptr%r  => cl_map%dz
+  case ('%R0');               a_ptr%r1 => cl_map%r0
+  case ('%R0(1)');            a_ptr%r  => cl_map%r0(1)
+  case ('%R0(2)');            a_ptr%r  => cl_map%r0(2)
+  case ('%R0(3)');            a_ptr%r  => cl_map%r0(3)
+  case ('%MASTER_PARAMETER'); a_ptr%i  => cl_map%master_parameter
   case default;           goto 9000
   end select
 
@@ -514,38 +533,36 @@ case ('N_SLAVE');         a_ptr%i => ele%n_slave
 case ('N_LORD');          a_ptr%i => ele%n_lord
 case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SCALE', &
       'LR_WAKE%FREQ_SPREAD', 'LR_WAKE%SELF_WAKE_ON', &
-      'SR_WAKE%SCALE_WITH_LENGTH', 'SR_WAKE%AMP_SCALE', 'SR_WAKE%Z_SCALE')
+      'SR_WAKE%SCALE_WITH_LENGTH', 'SR_WAKE%AMP_SCALE', 'SR_WAKE%Z_SCALE', &
+      'SR_WAKE%Z_LONG%SMOOTHING_SIGMA')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, 0, 0, .true.)
   endif
   select case (a_name)
-  case ('LR_SELF_WAKE_ON', 'LR_WAKE%SELF_WAKE_ON')
-    a_ptr%l => ele%wake%lr%self_wake_on
-  case ('LR_WAKE%AMP_SCALE')
-    a_ptr%r => ele%wake%lr%amp_scale
-  case ('LR_WAKE%TIME_SCALE')
-    a_ptr%r => ele%wake%lr%time_scale
-  case ('LR_FREQ_SPREAD', 'LR_WAKE%FREQ_SPREAD')
-    a_ptr%r => ele%wake%lr%freq_spread
-  case ('SR_WAKE%AMP_SCALE')
-    a_ptr%r => ele%wake%sr%amp_scale
-  case ('SR_WAKE%Z_SCALE')
-    a_ptr%r => ele%wake%sr%z_scale
-  case ('SR_WAKE%SCALE_WITH_LENGTH')
-    a_ptr%l => ele%wake%sr%scale_with_length
+  case ('SR_WAKE%Z_LONG%SMOOTHING_SIGMA');             a_ptr%r => ele%wake%sr%z_long%smoothing_sigma
+  case ('SR_WAKE%AMP_SCALE');                          a_ptr%r => ele%wake%sr%amp_scale
+  case ('SR_WAKE%Z_SCALE');                            a_ptr%r => ele%wake%sr%z_scale
+  case ('SR_WAKE%SCALE_WITH_LENGTH');                  a_ptr%l => ele%wake%sr%scale_with_length
+  case ('LR_SELF_WAKE_ON', 'LR_WAKE%SELF_WAKE_ON');    a_ptr%l => ele%wake%lr%self_wake_on
+  case ('LR_WAKE%AMP_SCALE');                          a_ptr%r => ele%wake%lr%amp_scale
+  case ('LR_WAKE%TIME_SCALE');                         a_ptr%r => ele%wake%lr%time_scale
+  case ('LR_FREQ_SPREAD', 'LR_WAKE%FREQ_SPREAD');      a_ptr%r => ele%wake%lr%freq_spread
   end select
 
-case ('H_MISALIGN%ACTIVE', 'DISPLACEMENT%ACTIVE', 'SEGMENTED%ACTIVE')
-  a_ptr%l => ele%photon%grid%active
-case ('SPHERICAL_CURVATURE')     ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%spherical
-case ('ELLIPTICAL_CURVATURE_X')  ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%elliptical(1)
-case ('ELLIPTICAL_CURVATURE_Y')  ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%elliptical(2)
-case ('ELLIPTICAL_CURVATURE_Z')  ! Deprecated syntax
-  a_ptr%r => ele%photon%curvature%elliptical(3)
+case ('H_MISALIGN%ACTIVE');     a_ptr%l => ele%photon%h_misalign%active
+case ('DISPLACEMENT%ACTIVE');   a_ptr%l => ele%photon%displacement%active
+case ('SEGMENTED%ACTIVE');      a_ptr%l => ele%photon%segmented%active
+
+case ('H_MISALIGN%DR');         a_ptr%r1 => ele%photon%h_misalign%dr
+case ('DISPLACEMENT%DR');       a_ptr%r1 => ele%photon%displacement%dr
+case ('SEGMENTED%DR');          a_ptr%r1 => ele%photon%segmented%dr
+case ('PIXEL%DR');              a_ptr%r1 => ele%photon%pixel%dr
+
+case ('H_MISALIGN%R0');         a_ptr%r1 => ele%photon%h_misalign%r0
+case ('DISPLACEMENT%R0');       a_ptr%r1 => ele%photon%displacement%r0
+case ('SEGMENTED%R0');          a_ptr%r1 => ele%photon%segmented%r0
+case ('PIXEL%R0');              a_ptr%r1 => ele%photon%pixel%r0
 end select
 
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then  ! Deprecated syntax
@@ -607,7 +624,8 @@ if (a_name(1:5) == 'VEC0_') then
   goto 9000 ! Error message and return
 endif
 
-if (associated(a_ptr%r) .or. associated(a_ptr%l) .or. associated(a_ptr%i)) then
+if (associated(a_ptr%r) .or. associated(a_ptr%l) .or. associated(a_ptr%i) .or. &
+    associated(a_ptr%r1) .or. associated(a_ptr%i1)) then
   err_flag = .false.
   return
 endif
@@ -626,7 +644,9 @@ if (ix_a > 0 .and. ix_a <= num_ele_attrib$) then
   return
 endif
 
-! Custom attribute
+! Custom attribute.
+! If a super_slave has multiple super_lords, it is not clear what do do. 
+! In this case, return with err_flag = True.
 
 if (ix_a > custom_attribute0$ .and. ix_a <= custom_attribute0$+custom_attribute_num$) then
   if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) return
@@ -812,7 +832,8 @@ case ('UPSTREAM_ELE_DIR')
 case ('DOWNSTREAM_ELE_DIR')
 end select
 
-if (associated(a_ptr%r) .or. associated(a_ptr%i) .or. associated(a_ptr%l)) then
+if (associated(a_ptr%r) .or. associated(a_ptr%i) .or. associated(a_ptr%l) .or. &
+    associated(a_ptr%r1) .or. associated(a_ptr%i1)) then
   err_flag = .false.
 else
   goto 9000

@@ -24,6 +24,7 @@
 \usepackage{eso-pic}    % For cover graphics
 \usepackage{enumitem}
 %%\usepackage{fancyvrb}
+\usepackage{marginnote}
 
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
 \usepackage[strings]{underscore}    % to use "_" in text
@@ -45,7 +46,7 @@
 
 \setlength{\textwidth}{6.25in}
 \setlength{\hoffset}{0.0in}
-\setlength{\oddsidemargin}{0.25in}
+\setlength{\oddsidemargin}{0.0in}
 \setlength{\evensidemargin}{0.0in}
 \setlength{\textheight}{8.5in}
 \setlength{\topmargin}{0in}
@@ -129,7 +130,8 @@
 \include{attributes}
 \include{methods}
 \include{lines-and-lists}
-\include{superimpose-and-multipass}
+\include{superposition}
+\include{multipass}
 \include{param-statements}
 \include{param-structs}
 \include{beam-init}
@@ -141,6 +143,7 @@
 \part{Conventions and Physics}
 %----------------------------------------------------------------
 \include{coordinates}
+\include{phase-space}
 \include{electromagnetic-fields}
 \include{fringe-fields}
 \include{wakefields}

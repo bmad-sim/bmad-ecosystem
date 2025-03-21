@@ -1,0 +1,61 @@
+parameter[geometry] = Closed          
+
+parameter[e_tot]                      = 51.82 / anomalous_moment_of(proton) * mass_of(proton)
+parameter[particle]                 = Proton
+bmad_com[spin_tracking_on] = T
+
+beginning[beta_a]    = 10.4690053690602
+beginning[alpha_a]   = 8.47834323010459E-17
+beginning[eta_x]     = 1.59632886512312
+beginning[etap_x]    = -4.15786647847316E-16
+beginning[beta_b]    = 24.1898493928511
+beginning[alpha_b]   = 9.8485584267628E-16
+particle_start[spin_x] = -8.05383665788996E-9
+particle_start[spin_y] = 0.999999999999998
+particle_start[spin_z] = 6.54209117387931E-8
+
+
+!-------------------------------------------------------
+
+rampe: ramper = {*[e_tot] : 51.71 / anomalous_moment_of(proton) * mass_of(proton) + (.2/5000 / anomalous_moment_of(proton) * mass_of(proton)) / (2.67024e-6)*time}, var = {time} 
+
+Q1H: Quadrupole, L = 1.33333333333333, K1 = -0.0541431006647352
+DR: Drift, L = 0.666666666666667
+B: SBend, L = 2.66697130844605, G = 0.0196327112309049, E1 = 0.0261799387799149, E2 = 0.0261799387799149
+Q2: Quadrupole, L = 2.66666666666667, K1 = 0.054724356256391
+RF: Rfcavity, L = 0.0, VOLTAGE = 1e6, harmon = 1
+CSNK: Taylor, {S1: cos(18.30*pi/360)|}, {Sx: 0|}, {Sy: 0|}, {Sz: sin(18.30*pi/360)|}
+WSNK: Taylor, {S1: cos(10.57*pi/360)|}, {Sx: 0|}, {Sy: 0|}, {Sz: sin(10.57*pi/360)|}
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+
+RING: line = ( Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR,
+   Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B,
+   DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR,
+   B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H,
+   DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H,
+   Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR,
+   Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B,
+   DR, Q1H, CSNK, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR,
+   Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B,
+   DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR,
+   B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H,
+   DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H,
+   Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR,
+   Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B,
+   DR, Q1H, WSNK, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR,
+   Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B,
+   DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR,
+   B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H,
+   DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H,
+   Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR,
+   Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B, DR, Q1H, Q1H, DR, B, DR, Q2, DR, B,
+   DR, Q1H, RF)
+
+use, RING

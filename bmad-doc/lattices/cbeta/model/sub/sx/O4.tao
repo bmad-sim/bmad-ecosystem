@@ -1,0 +1,32 @@
+place top orbit
+x-s all 75 85
+x-s floor 13 20
+sc
+vv
+vd
+use dat o4
+use var floor4
+vk
+set var floor4|key_bound=T
+
+
+! For time
+!set dat floor.thetas[4]|meas = floor.thetas[1]|model
+!set dat floor.z[4]|meas = floor.z[1]|model 
+!set dat time.total[4]|meas = time.total[1]|model + (1.0+1)/2 /1.3e9
+
+
+set dat time.total[4]|meas = time.total[1]|model + (1.5)/2 /1.3e9  - (0.0410875)/2/3e8  ! FFAG compensation
+! Exact
+set dat time.total[4]|meas = time.total[1]|model + (1.5)/2 /1.3e9  - (0.0410875)/2/3e8  -3.08999306512173E-03/2/3e8
+use dat time.total[4]
+
+
+
+!use dat floor.thetas[4]
+!use dat floor.z[4]
+!use var parallel4[2,3,4]
+
+olmdif
+run
+show var -bmad -good

@@ -1,0 +1,11 @@
+vv
+vd
+plotoff
+!use dat timing.return
+use dat etot[2:8]
+use var timing
+olmdif
+!run
+!ploton
+!sho var -bmad -good
+alias sbg sho var -bmad -good

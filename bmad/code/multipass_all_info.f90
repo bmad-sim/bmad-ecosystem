@@ -43,10 +43,10 @@ enddo
 allocate (info%lord(n_multi_lord), info%branch(0:ubound(lat%branch, 1)))
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  allocate (info%branch(ib)%ele(branch%n_ele_max))
+  allocate (info%branch(ib)%ele(0:branch%n_ele_max))
   info%branch(ib)%ele(:)%multipass = .false.
   info%branch(ib)%ele(:)%ix_pass = -1
-  do i = 1, branch%n_ele_max
+  do i = 0, branch%n_ele_max
     s_info => info%branch(ib)%ele(i)
     allocate (s_info%ix_lord(0))
     allocate (s_info%ix_super(0))

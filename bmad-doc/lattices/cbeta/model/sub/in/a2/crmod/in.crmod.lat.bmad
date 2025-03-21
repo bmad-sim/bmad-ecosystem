@@ -1,0 +1,23 @@
+no_digested
+
+BEGINNING[BETA_A]  = 50
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 50
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[LATTICE_TYPE] = LINEAR_LATTICE
+PARAMETER[E_TOT] = 1.0E6
+
+
+standard_cavity2_delta_e = 2e6
+
+CALL, FILE = ../cavity2/lab.X.constants.bmad
+!CALL, FILE = ../cavity2/cavity2.bmad
+!CALL, FILE = ../cavity2/cavity2_reverse.bmad
+
+CALL, FILE = in.crmod.bmad
+
+*[ds_step] = 1e-3
+
+USE, IN.CRMOD

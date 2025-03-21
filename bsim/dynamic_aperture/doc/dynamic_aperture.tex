@@ -76,7 +76,7 @@
 
 \title{Dynamic_Aperture Program}
 \author{}
-\date{David Sagan \\ September 24, 2022}
+\date{David Sagan \\ June 28, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -285,7 +285,7 @@ file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Exam
   bmad_com%radiation_damping_on = F
   bmad_com%radiation_fluctuations_on = F 
 
-  dpz = 0.000, 0.005, 0.010
+  pz = 0.000, 0.005, 0.010
   da_param%min_angle = 0
   da_param%max_angle = 3.1415926
   da_param%n_angle = 0
@@ -311,7 +311,8 @@ well. \vn{Bmad_com} parameter set in the master input file will take precedence 
 in the lattice file.
 %
 \item[da_param\%n_turn] \Newline
-Number of turns to track. 
+Number of turns to track. The number of turns should be set as small as possible to minimize computation
+time but large enough so that the results are fairly independent if the number of turns is increased.
 %
 \item[da_param\%n_angle] \Newline
 The number of boundary points calculated for a scan is set by the \vn{da_param%n_angle} parameter. 
@@ -347,10 +348,10 @@ affect the computation time. If not set, these parameters will default to 0.001 
 \item[dat_file] \Newline
 Name of the data output file. This name is required.
 %
-\item[dpz] \Newline
-The \vn{dpz} parameter array is a list of $p_z$ values to use. The number of scans (dynamic aperture curves)
-that are produced is equal to the number of \vn{pz} values.
-
+\item[pz] \Newline
+The \vn{pz} parameter array is a list of $p_z$ values to use. The number of scans (dynamic aperture
+curves) that are produced is equal to the number of \vn{pz} values. Note: \vn{pz} used to be named
+\vn{dpz}. The program is backwards compatible and will accept the old name.
 
 %
 \item[ele_start] \Newline
@@ -603,7 +604,7 @@ The data output file whose name is set by \vn{dat_file} will look like:
 # gnuplot plotting command: 
 #   plot for [IDX=1:3] "da.dat" index (IDX-1) u 1:2 w lines ...
 
-"dpz =  0.000000"
+"pz =  0.000000"
 "x_ref_orb =  0.000124"
 "y_ref_orb =  0.000037"
    0.068125   0.000000    544      Hit +X Side        Q11E
@@ -614,7 +615,7 @@ The data output file whose name is set by \vn{dat_file} will look like:
    0.034006   0.014403    855      Hit +Y Side        SEX_21W
 ... etc. ...
 
-dpz =  0.005000"
+pz =  0.005000"
 "x_ref_orb =  0.006591"
 "y_ref_orb =  0.006591"
    0.073979   0.000000    904      Hit -Y Side        SEX_16W
@@ -626,7 +627,7 @@ dpz =  0.005000"
 \end{code}
 
 The top part of the data file will be a record of input parameter values. This is followed by a number of
-data blocks, one for each setting of \vn{dpz}. The five columns of these data blocks are:
+data blocks, one for each setting of \vn{pz}. The five columns of these data blocks are:
 \begin{code}
 1 & 2: x_aperture, y_aperture
 3:     Number of turns a particle initially at the aperture limit survived. 

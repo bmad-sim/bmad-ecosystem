@@ -1,0 +1,35 @@
+
+
+
+DU.aperture_small = 0.035
+
+!--- Pipes
+
+DU.Pip01[wall] = { 
+	section = { s = 0,
+	  v(1) = {0, 0, DU.aperture_small}},
+	section = { s = DU.Pip01[L],
+	  v(1) = {0, 0, DU.Pip01[aperture]}}}
+
+DU.Ben01[wall] = { 
+	section = { s = 0,
+	  v(1) = {0, 0, DU.Ben01[aperture]}},
+	section = { s = DU.Ben01[L],
+	  v(1) = {0, 0, DU.Ben01[aperture]}}}
+
+DU.Pip02[wall] = { 
+	section = { s = 0,
+	  v(1) = {0, 0, DU.Pip02[aperture]}},
+	section = { s = DU.Pip02[L],
+	  v(1) = {0, 0, DU.Pip02[aperture]}}}
+
+DU.Dum01[wall] = { 
+	section = { s = 0,
+	  v(1) = {0, 0, DU.aperture}},
+	section = { s = 0.5,
+	  v(1) = {0, 0, 0.23}},
+	section = { s = 2,
+	  v(1) = {0, 0, 0.23}},
+	section = { s = DU.Dum01[L],
+	  v(1) = {0, 0, 0.001}}}
+

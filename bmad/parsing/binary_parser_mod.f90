@@ -32,7 +32,7 @@ integer i, j, iu, ios
 logical err_flag
 
 character(*) file_name
-character(200) f_name
+character(400) f_name
 character(*), parameter :: r_name = 'write_binary_cartesian_map'
 
 !
@@ -157,7 +157,7 @@ integer i, j, iu, ios
 logical err_flag
 
 character(*) file_name
-character(200) f_name
+character(400) f_name
 character(*), parameter :: r_name = 'write_binary_cylindrical_map'
 
 !
@@ -284,7 +284,7 @@ logical err_flag
 
 character(*) file_name
 character(*), parameter :: r_name = 'write_binary_grid_field'
-character(200) f_name
+character(400) f_name
 
 !
 

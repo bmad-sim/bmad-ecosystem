@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ March 21, 2024}
+\date{David Sagan \\ October 15, 2024}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -215,7 +215,7 @@ different tracking method each time. The three tracking methods are 1) using a s
 then printed to the terminal. This mode can be used to get a sense of how the three different
 methods compare to each other. 
 
-The starting coordinates are set by \vn{beam_init%center} and \vn{beam_init%spin} unless
+The starting coordinates are set by \vn{beam_init%center} and \vn{beam_init%spin} unless the parameter
 \vn{beam_init%use_particle_start} is set to True (the default is False). In this case, the
 \vn{particle_start} commands in the lattice file are used to set the starting position. In both
 cases, if \vn{ltt%add_closed_orbit_to_init_position} is set to True, the closed orbit will be added
@@ -228,11 +228,10 @@ used in the computation can be specified by setting in the master input file the
 \vn{bmad_com%d_orb}. This vector has 6 components, one for each phase space component. That is,
 \vn{bmad_com%d_orb(1)} sets the variation of the $x$ phase space component, etc.
 
-No data files are produced in this mode.
-
 Radiation fluctuations are turned off in this mode but radiation damping will still be applied if
 turned on.
 
+No data files are produced in this mode.
 %
 \item["SINGLE"] \Newline
 In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The starting coordinates are
@@ -289,6 +288,9 @@ amplitude is too large.
 Only the \vn{BMAD} method is able to handle a machine that is being ramped (\sref{s:ramp}). That is,
 when \vn{ltt%ramping_on} set to True. The program will detect if there is a conflict and issue an
 error message and stop.
+
+Note: It is recommended that \vn{bmad_com%absolute_time_tracking} be set to \vn{True} to avoid
+problems with frequencies incommensurate with the revolution frequency.
 
 %------------------------------------------------------------------
 \Section{Map Tracking}
@@ -391,11 +393,12 @@ in tracking halo particles, you probably should not be using a single map.
 In terms of speed, using maps will be the fastest, using standard Bmad tracking will be much
 slower, and using PTC element-by-element tracking will be slowest.
 
-In terms of symplecticity, both the PTC tracking and map tracking will be symplectic.
-Bmad is not symplectic but the deviation from symplecticity is generally fairly small. If the
-radiation effects are large enough, the radiative stochastic noise will negate any non-symplectic
-effects and standard Bmad tracking can be used. A very rough rule of thumb is that if the damping times
-or the number of turns tracked are under 100,000 turns then Bmad standard tracking can be used.
+In terms of symplecticity, PTC tracking is symplectic, and map tracking is symplectic if 
+\vn{ltt%symplectic_map_tracking} is set to True. Bmad tracking is not symplectic but the deviation from 
+symplecticity is generally fairly small. If the radiation effects are large enough, the radiative 
+stochastic noise will negate any non-symplectic effects and standard Bmad tracking can be used. 
+A very rough rule of thumb is that if the damping times or the number of turns tracked are under 
+100,000 turns then Bmad standard tracking can be used.
 
 PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
 
@@ -465,16 +468,25 @@ proportion to the reference momentum. With \vn{q2}, since \vn{field_master} is T
 unnormalized strength \vn{B1_gradient} will remain fixed and normalized \vn{k1} will vary
 inversely with the reference momentum.
 
-There are two modes that can be selected to determine how ramper elements are applied. If
-\vn{ltt%ramp_update_each_particle} is set to True, rampers are applied to a given lattice element as
-each particle of the beam passes through the element using the time the particle would pass through
-the center of the element. This is appropriate if ramping is fast on the time scale of a bunch
-passage or if in \vn{"INDIVIDUAL"} or \vn{"SINGLE"} mode. If set to False, rampers are applied to a
-given element only once per beam passage using the time of the center of the bunch passing the
-center of the element. This is appropriate for parameters that vary slowly on the time scale of a
-bunch passage. For example if ramping magnet strengths with energy ramping which occurs over many
-turns, calculating once per beam passage should be a good approximation. The default setting of
-\vn{ltt%ramp_update_each_particle} is False for \vn{"BEAM"} mode and True for all other modes.
+\ltt program parameters that affect ramping in the simulation are:
+\begin{code}
+ltt%ramping_start_time              -- Default 0.
+ltt%ramping_on                      -- Default False.
+ltt%ramp_update_each_particle       -- Default False.
+ltt%ramp_particle_energy_without_rf -- Default False.
+\end{code}
+
+There are two modes that can be selected to determine how ramper elements are applied. If using
+\vn{"BEAM"} mode, and if\vn{ltt%ramp_update_each_particle} is set to True, rampers are applied to a
+given lattice element as each particle of the beam passes through the element using the time the
+particle would pass through the center of the element. This is appropriate if ramping is fast on the
+time scale of a bunch passage or if in \vn{"INDIVIDUAL"} or \vn{"SINGLE"} mode. If set to False,
+rampers are applied to a given element only once per beam passage using the time of the center of
+the bunch passing the center of the element. This is appropriate for parameters that vary slowly on
+the time scale of a bunch passage. For example if ramping magnet strengths with energy ramping which
+occurs over many turns, calculating once per beam passage should be a good approximation. The
+default setting of \vn{ltt%ramp_update_each_particle} is False for \vn{"BEAM"} mode and True for all
+other modes.
 
 Before a simulation, individual ramper elements may be toggled on or off by setting the element's
 \vn{is_on} attribute in the lattice file: 
@@ -486,21 +498,30 @@ ramp_rf[is_on] = F     ! Ramper element turned off.
 If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
 "\vn{BEAM}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
 
-\ltt program parameters that affect ramping in the simulation are:
-\begin{code}
-ltt%ramping_on
-ltt%ramping_start_time
-\end{code}
-
 When ramping, the \vn{ltt%simulation_mode} (\sref{s:track.methods}) must be set to "\vn{BMAD}". The
 program will detect if there is a conflict and issue an error message and stop.
+
+Normally, when the reference energy \vn{E_tot} or the reference momentum \vn{p0c} is varied by a
+ramper element, the phase space $p_z$ of the particles are adjusted in tandem to keep the particle
+momentum $(1 + pz) * p0c$ invariant. This also keeps the particle energy invariant. This mirrors
+what is actually happening in a machine: It is the energy kick in the RF cavities that makes particles
+change energy, not the change in field strengths that result from changing the reference energy.
+The RF kick will result in synchrotron oscillations. For some simulations, it is useful to see what
+would happen if the synchrotron oscillations were magically ``turned off''.
+This unphysical simulation can be done by turning off the RF in the lattice and by setting
+\begin{code}
+ltt%ramp_particle_energy_without_rf = True
+\end{code}
+When this is set, the $p_z$ of the particles are {\em not} adjusted when the reference energy is
+adjusted. And since the RF is off, $p_z$ will be an invariant and there are no synchrotron
+oscillations.
 
 The \vn{ltt%ix_turn_start} parameter can be used to start tracking at any turn. This can be useful if a
 simulation is accidentally interrupted. In this case the beam positions can be saved by setting
 \begin{code}
-  ltt%beam_output_file
-  ltt%beam_output_every_n_turns
-  ltt%output_only_last_turns
+ltt%beam_output_file
+ltt%beam_output_every_n_turns
+ltt%output_only_last_turns
 \end{code}
 
 With ramping, the concept of the closed orbit (possibly needed to initialize particle positions) is
@@ -590,7 +611,7 @@ manual. Like the other modes, if the \vn{ltt%add_closed_orbit_to_init_position} 
 \vn{True}, the closed orbit position is added to the initial particle positions. To read in a file
 with beam particle positions, set the \vn{beam_init} structure appropriately. Example:
 \begin{code}
-beam_init%file_name = 'beam_particle_file.init'
+beam_init%position_file = 'beam_particle_file.init'
 \end{code}
 
 In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start}.
@@ -695,6 +716,7 @@ Example:
   ltt%lat_file   =  "lat.bmad"       ! Bmad lattice file
   ltt%ramping_on = F
   ltt%ramp_update_each_particle = F
+  ltt%ramp_particle_energy_without_rf = F
   ltt%ramping_start_time        = 0
   ltt%extraction_method         = ""
   ltt%simulation_mode           = "BEAM"
@@ -725,6 +747,7 @@ Example:
 
   ! Beam initialization
   ltt%add_closed_orbit_to_init_position = T
+  beam_init%position_file = ""    ! Set this to use a beam file.
   beam_init%use_particle_start = F
   beam_init%center = 0, 0, 0, 0, 0, 0
   beam_init%n_particle = 10
@@ -875,9 +898,13 @@ applied at the beginning/end of the lattice. PTC has an internal aperture of 1.0
 the \ltt program will additionally impose a 0.9~meters aperture independent of the setting of
 \vn{ltt%ptc_aperture}.
 %
+\item[ltt\%ramp_particle_energy_without_rf] \Newline
+Simulate the unphysical situation where particle energy moves in tandem with the reference energy?
+See \sref{s:ramp} for more details.
+%
 \item[ltt\%ramp_update_each_particle] \Newline
 Default is False which means only apply rampers to a given lattice element once per beam passage
-(\sref{s:ramp}).
+(\sref{s:ramp}). This parameter is only used for \vn{"BEAM"} mode.
 %
 \item[ltt\%ramping_on] \Newline
 If set to True, \vn{ramper} control elements will be use to modify the lattice during tracking
@@ -999,8 +1026,7 @@ positive. Additionally, a beam file will be produced at the end of tracking.
 
 When tracking through a ring, the created beam file name will have the string \vn{-NNNN}, where
 \vn{NNNN} is the turn number, added to \vn{ltt%beam_output_file} just before any file name suffix
-present. To save disk space, every time a new beam file is created, if there is an old beam file it
-will be deleted. When doing extraction tracking, the created_beam file name will have the form
+present. When doing extraction tracking, the created_beam file name will have the form
 \begin{code}
   name = <ix_branch>.<ix_ele>_<ele_name>-lttp%beam_output_file
 \end{code}
@@ -1014,7 +1040,7 @@ Bmad Distribution in the file:
   util_programs/beam_file_translate_format/DOC
 \end{code}
 
-To use a beam file that has been generated on a previous run with a new run set \vn{beam_init%file_name}
+To use a beam file that has been generated on a previous run with a new run set \vn{beam_init%position_file}
 to the name of the beam file.
 %
 \item[ltt\%column(:)] \Newline
@@ -1373,6 +1399,14 @@ spin_x, spin_y, spin_z  -- Spin vector
 state                   -- Particle state (alive, etc.)
 \end{code}
 
+If \vn{ltt%action_angle_calc_uses_1turn_matrix} is 
+set \vn{False} (the default), the conversion matrix ($\bfN^{-1}$ matrix) from $(x, p_x, y, p_y,
+z, p_z)$ phase space coordinates to action-angle coordinates is calculated from the beam sigma
+matrix as described by Wolski\cite{b:wolski}. That is, the conversion to action-angle coordinates is
+affected by lattice nonlinearities and $\bfN^{-1}$ will vary from turn-to-turn. If set to \vn{True},
+the conversion matrix is calculated from the 1-turn matrix calculated from the lattice independent of
+the beam distribution.
+
 %------------------------------------------------------------------
 \subsection{Beam Averages Data Output}
 \label{s:beam.ave.dat}
@@ -1559,7 +1593,7 @@ Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
 Phys pp 17–21, (2006).
 
 \bibitem{b:wolski}
-A. Wolski, "Alternate approach to general coupled linear optics",
+A. Wolski, "Alternative approach to general coupled linear optics",
 Phys.\ Rev.\ Special Topics, Accel \& Beams, {\bf 9}, 024001 (2006).
 
 \bibitem{b:gulliford}

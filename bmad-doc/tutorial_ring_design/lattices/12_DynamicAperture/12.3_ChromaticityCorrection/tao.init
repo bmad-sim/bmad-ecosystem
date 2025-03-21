@@ -1,0 +1,29 @@
+&tao_plot_page
+	plot_page%size = 400, 400
+	plot_page%text_height = 8
+	plot_page%n_curve_pts = 5000
+/
+
+&tao_params
+	global%n_opti_cycles = 1000
+/
+
+&tao_d2_data
+  	d2_data%name = 'chrom'
+  	n_d1_data = 1
+/
+&tao_d1_data
+	ix_d1_data = 1
+	datum(1) = 'chrom.a' '' '' '' 'target' 1 100
+	datum(2) = 'chrom.b' '' '' '' 'target' 1 100
+/
+/
+! Two families per plane in each arc
+! Two knobs per plane in each arc
+
+&tao_var
+	v1_var%name = 'OS'
+	var(1:2)%ele_name = "OSF", "OSD"
+	default_step = 1e-4
+	default_attribute = 'x'
+/

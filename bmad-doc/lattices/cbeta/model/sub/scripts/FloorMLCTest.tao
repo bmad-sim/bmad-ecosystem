@@ -1,0 +1,4 @@
+place * none
+place r00 floor
+x-s all 10 20
+sc all 8 16

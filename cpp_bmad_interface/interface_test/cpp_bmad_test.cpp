@@ -137,69 +137,6 @@ extern "C" void test_c_spin_polar (Opaque_spin_polar_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_surface_orientation (CPP_surface_orientation&, bool&);
-
-void set_CPP_surface_orientation_test_pattern (CPP_surface_orientation& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.dz_dx = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.dz_dy = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.dz_dx_rms = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.dz_dy_rms = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.dz2_dxdy = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_surface_orientation (Opaque_surface_orientation_class* F, bool& c_ok) {
-
-  CPP_surface_orientation C, C2;
-
-  c_ok = true;
-
-  surface_orientation_to_c (F, C);
-  set_CPP_surface_orientation_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " surface_orientation: C side convert F->C: Good" << endl;
-  } else {
-    cout << " surface_orientation: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_surface_orientation_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_surface_orientation (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_surface_orientation_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " surface_orientation: F side convert F->C: Good" << endl;
-  } else {
-    cout << " surface_orientation: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_surface_orientation_test_pattern (C2, 4);
-  surface_orientation_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_ac_kicker_time (CPP_ac_kicker_time&, bool&);
 
 void set_CPP_ac_kicker_time_test_pattern (CPP_ac_kicker_time& C, int ix_patt) {
@@ -919,78 +856,95 @@ extern "C" void test_c_expression_atom (Opaque_expression_atom_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_wake_sr_z (CPP_wake_sr_z&, bool&);
+extern "C" void test2_f_wake_sr_z_long (CPP_wake_sr_z_long&, bool&);
 
-void set_CPP_wake_sr_z_test_pattern (CPP_wake_sr_z& C, int ix_patt) {
+void set_CPP_wake_sr_z_long_test_pattern (CPP_wake_sr_z_long& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[type, 1, ALLOC]
+  // c_side.test_pat[real, 1, ALLOC]
   if (ix_patt < 3) 
     C.w.resize(0);
   else {
     C.w.resize(3);
-    for (unsigned int i = 0; i < C.w.size(); i++)  {set_CPP_spline_test_pattern(C.w[i], ix_patt+i+1);}
-  }
+    for (unsigned int i = 0; i < C.w.size(); i++)
+      {int rhs = 101 + i + 1 + offset; C.w[i] = rhs;}  }
 
-  // c_side.test_pat[type, 1, ALLOC]
+  // c_side.test_pat[complex, 1, ALLOC]
   if (ix_patt < 3) 
-    C.w_sum1.resize(0);
+    C.fw.resize(0);
   else {
-    C.w_sum1.resize(3);
-    for (unsigned int i = 0; i < C.w_sum1.size(); i++)  {set_CPP_spline_test_pattern(C.w_sum1[i], ix_patt+i+1);}
-  }
+    C.fw.resize(3);
+    for (unsigned int i = 0; i < C.fw.size(); i++)
+      {int rhs = 101 + i + 3 + offset; C.fw[i] = Complex(rhs, 100+rhs);}  }
 
-  // c_side.test_pat[type, 1, ALLOC]
+  // c_side.test_pat[complex, 1, ALLOC]
   if (ix_patt < 3) 
-    C.w_sum2.resize(0);
+    C.fbunch.resize(0);
   else {
-    C.w_sum2.resize(3);
-    for (unsigned int i = 0; i < C.w_sum2.size(); i++)  {set_CPP_spline_test_pattern(C.w_sum2[i], ix_patt+i+1);}
-  }
+    C.fbunch.resize(3);
+    for (unsigned int i = 0; i < C.fbunch.size(); i++)
+      {int rhs = 101 + i + 5 + offset; C.fbunch[i] = Complex(rhs, 100+rhs);}  }
+
+  // c_side.test_pat[complex, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.w_out.resize(0);
+  else {
+    C.w_out.resize(3);
+    for (unsigned int i = 0; i < C.w_out.size(); i++)
+      {int rhs = 101 + i + 7 + offset; C.w_out[i] = Complex(rhs, 100+rhs);}  }
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.dz = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.z0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 11 + offset; C.smoothing_sigma = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.plane = rhs;
+  rhs = 12 + offset; C.position_dependence = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.position_dependence = rhs;
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 13 + offset; C.time_based = (rhs % 2 == 0);
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_wake_sr_z (Opaque_wake_sr_z_class* F, bool& c_ok) {
+extern "C" void test_c_wake_sr_z_long (Opaque_wake_sr_z_long_class* F, bool& c_ok) {
 
-  CPP_wake_sr_z C, C2;
+  CPP_wake_sr_z_long C, C2;
 
   c_ok = true;
 
-  wake_sr_z_to_c (F, C);
-  set_CPP_wake_sr_z_test_pattern (C2, 1);
+  wake_sr_z_long_to_c (F, C);
+  set_CPP_wake_sr_z_long_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " wake_sr_z: C side convert F->C: Good" << endl;
+    cout << " wake_sr_z_long: C side convert F->C: Good" << endl;
   } else {
-    cout << " wake_sr_z: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_sr_z_long: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_sr_z_test_pattern (C2, 2);
+  set_CPP_wake_sr_z_long_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_wake_sr_z (C2, c_ok2);
+  test2_f_wake_sr_z_long (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_wake_sr_z_test_pattern (C, 3);
+  set_CPP_wake_sr_z_long_test_pattern (C, 3);
   if (C == C2) {
-    cout << " wake_sr_z: F side convert F->C: Good" << endl;
+    cout << " wake_sr_z_long: F side convert F->C: Good" << endl;
   } else {
-    cout << " wake_sr_z: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " wake_sr_z_long: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_wake_sr_z_test_pattern (C2, 4);
-  wake_sr_z_to_f (C2, F);
+  set_CPP_wake_sr_z_long_test_pattern (C2, 4);
+  wake_sr_z_long_to_f (C2, F);
 
 }
 
@@ -1085,13 +1039,8 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
   C.file.resize(200);
   for (unsigned int i = 0; i < C.file.size(); i++)
     {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.z.resize(0);
-  else {
-    C.z.resize(3);
-    for (unsigned int i = 0; i < C.z.size(); i++)  {set_CPP_wake_sr_z_test_pattern(C.z[i], ix_patt+i+1);}
-  }
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_wake_sr_z_long_test_pattern(C.z_long, ix_patt);
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
@@ -1110,22 +1059,22 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.z_ref_long = rhs;
+  rhs = 7 + offset; C.z_ref_long = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.z_ref_trans = rhs;
+  rhs = 8 + offset; C.z_ref_trans = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.z_max = rhs;
+  rhs = 9 + offset; C.z_max = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.amp_scale = rhs;
+  rhs = 10 + offset; C.amp_scale = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.z_scale = rhs;
+  rhs = 11 + offset; C.z_scale = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.scale_with_length = (rhs % 2 == 0);
+  rhs = 12 + offset; C.scale_with_length = (rhs % 2 == 0);
 
 
 }
@@ -2658,6 +2607,9 @@ void set_CPP_bookkeeping_state_test_pattern (CPP_bookkeeping_state& C, int ix_pa
   // c_side.test_pat[integer, 0, NOT]
   rhs = 8 + offset; C.ptc = rhs;
 
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 9 + offset; C.has_misalign = (rhs % 2 == 0);
+
 
 }
 
@@ -2974,93 +2926,84 @@ extern "C" void test_c_gen_grad_map (Opaque_gen_grad_map_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_surface_grid_pt (CPP_surface_grid_pt&, bool&);
+extern "C" void test2_f_surface_segmented_pt (CPP_surface_segmented_pt&, bool&);
 
-void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) {
+void set_CPP_surface_segmented_pt_test_pattern (CPP_surface_segmented_pt& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_surface_orientation_test_pattern(C.orientation, ix_patt);
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.x0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.z0 = rhs;
+  rhs = 2 + offset; C.y0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.x0 = rhs;
+  rhs = 3 + offset; C.z0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.y0 = rhs;
+  rhs = 4 + offset; C.dz_dx = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.dz_dx = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.dz_dy = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.d2z_dxdy = rhs;
+  rhs = 5 + offset; C.dz_dy = rhs;
 
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_surface_grid_pt (Opaque_surface_grid_pt_class* F, bool& c_ok) {
+extern "C" void test_c_surface_segmented_pt (Opaque_surface_segmented_pt_class* F, bool& c_ok) {
 
-  CPP_surface_grid_pt C, C2;
+  CPP_surface_segmented_pt C, C2;
 
   c_ok = true;
 
-  surface_grid_pt_to_c (F, C);
-  set_CPP_surface_grid_pt_test_pattern (C2, 1);
+  surface_segmented_pt_to_c (F, C);
+  set_CPP_surface_segmented_pt_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " surface_grid_pt: C side convert F->C: Good" << endl;
+    cout << " surface_segmented_pt: C side convert F->C: Good" << endl;
   } else {
-    cout << " surface_grid_pt: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " surface_segmented_pt: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_surface_grid_pt_test_pattern (C2, 2);
+  set_CPP_surface_segmented_pt_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_surface_grid_pt (C2, c_ok2);
+  test2_f_surface_segmented_pt (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_surface_grid_pt_test_pattern (C, 3);
+  set_CPP_surface_segmented_pt_test_pattern (C, 3);
   if (C == C2) {
-    cout << " surface_grid_pt: F side convert F->C: Good" << endl;
+    cout << " surface_segmented_pt: F side convert F->C: Good" << endl;
   } else {
-    cout << " surface_grid_pt: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " surface_segmented_pt: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_surface_grid_pt_test_pattern (C2, 4);
-  surface_grid_pt_to_f (C2, F);
+  set_CPP_surface_segmented_pt_test_pattern (C2, 4);
+  surface_segmented_pt_to_f (C2, F);
 
 }
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_surface_grid (CPP_surface_grid&, bool&);
+extern "C" void test2_f_surface_segmented (CPP_surface_segmented&, bool&);
 
-void set_CPP_surface_grid_test_pattern (CPP_surface_grid& C, int ix_patt) {
+void set_CPP_surface_segmented_test_pattern (CPP_surface_segmented& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 1 + offset; C.active = (rhs % 2 == 0);
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.type = rhs;
-
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.dr.size(); i++)
-    {int rhs = 101 + i + 3 + offset; C.dr[i] = rhs;}
+    {int rhs = 101 + i + 2 + offset; C.dr[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.r0[i] = rhs;}
+    {int rhs = 101 + i + 3 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[type, 2, ALLOC]
   if (ix_patt < 3) 
     C.pt.resize(0);
@@ -3070,7 +3013,7 @@ void set_CPP_surface_grid_test_pattern (CPP_surface_grid& C, int ix_patt) {
       C.pt[i].resize(2);
 
       for (unsigned int j = 0; j < C.pt[0].size(); j++) {
-        set_CPP_surface_grid_pt_test_pattern(C.pt[i][j], ix_patt+i+2*j+3);
+        set_CPP_surface_segmented_pt_test_pattern(C.pt[i][j], ix_patt+i+2*j+3);
       }
     }
   }
@@ -3080,37 +3023,311 @@ void set_CPP_surface_grid_test_pattern (CPP_surface_grid& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_surface_grid (Opaque_surface_grid_class* F, bool& c_ok) {
+extern "C" void test_c_surface_segmented (Opaque_surface_segmented_class* F, bool& c_ok) {
 
-  CPP_surface_grid C, C2;
+  CPP_surface_segmented C, C2;
 
   c_ok = true;
 
-  surface_grid_to_c (F, C);
-  set_CPP_surface_grid_test_pattern (C2, 1);
+  surface_segmented_to_c (F, C);
+  set_CPP_surface_segmented_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " surface_grid: C side convert F->C: Good" << endl;
+    cout << " surface_segmented: C side convert F->C: Good" << endl;
   } else {
-    cout << " surface_grid: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " surface_segmented: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_surface_grid_test_pattern (C2, 2);
+  set_CPP_surface_segmented_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_surface_grid (C2, c_ok2);
+  test2_f_surface_segmented (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_surface_grid_test_pattern (C, 3);
+  set_CPP_surface_segmented_test_pattern (C, 3);
   if (C == C2) {
-    cout << " surface_grid: F side convert F->C: Good" << endl;
+    cout << " surface_segmented: F side convert F->C: Good" << endl;
   } else {
-    cout << " surface_grid: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " surface_segmented: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_surface_grid_test_pattern (C2, 4);
-  surface_grid_to_f (C2, F);
+  set_CPP_surface_segmented_test_pattern (C2, 4);
+  surface_segmented_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_surface_h_misalign_pt (CPP_surface_h_misalign_pt&, bool&);
+
+void set_CPP_surface_h_misalign_pt_test_pattern (CPP_surface_h_misalign_pt& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.rot_y = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.rot_t = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.rot_y_rms = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.rot_t_rms = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_surface_h_misalign_pt (Opaque_surface_h_misalign_pt_class* F, bool& c_ok) {
+
+  CPP_surface_h_misalign_pt C, C2;
+
+  c_ok = true;
+
+  surface_h_misalign_pt_to_c (F, C);
+  set_CPP_surface_h_misalign_pt_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " surface_h_misalign_pt: C side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_h_misalign_pt: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_h_misalign_pt_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_surface_h_misalign_pt (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_surface_h_misalign_pt_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " surface_h_misalign_pt: F side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_h_misalign_pt: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_h_misalign_pt_test_pattern (C2, 4);
+  surface_h_misalign_pt_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_surface_h_misalign (CPP_surface_h_misalign&, bool&);
+
+void set_CPP_surface_h_misalign_test_pattern (CPP_surface_h_misalign& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 1 + offset; C.active = (rhs % 2 == 0);
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.dr.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.dr[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.r0.size(); i++)
+    {int rhs = 101 + i + 3 + offset; C.r0[i] = rhs;}
+  // c_side.test_pat[type, 2, ALLOC]
+  if (ix_patt < 3) 
+    C.pt.resize(0);
+  else {
+    C.pt.resize(3);
+    for (unsigned int i = 0; i < C.pt.size(); i++) {
+      C.pt[i].resize(2);
+
+      for (unsigned int j = 0; j < C.pt[0].size(); j++) {
+        set_CPP_surface_h_misalign_pt_test_pattern(C.pt[i][j], ix_patt+i+2*j+3);
+      }
+    }
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_surface_h_misalign (Opaque_surface_h_misalign_class* F, bool& c_ok) {
+
+  CPP_surface_h_misalign C, C2;
+
+  c_ok = true;
+
+  surface_h_misalign_to_c (F, C);
+  set_CPP_surface_h_misalign_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " surface_h_misalign: C side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_h_misalign: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_h_misalign_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_surface_h_misalign (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_surface_h_misalign_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " surface_h_misalign: F side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_h_misalign: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_h_misalign_test_pattern (C2, 4);
+  surface_h_misalign_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_surface_displacement_pt (CPP_surface_displacement_pt&, bool&);
+
+void set_CPP_surface_displacement_pt_test_pattern (CPP_surface_displacement_pt& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.z0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.dz_dx = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.dz_dy = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.d2z_dxdy = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_surface_displacement_pt (Opaque_surface_displacement_pt_class* F, bool& c_ok) {
+
+  CPP_surface_displacement_pt C, C2;
+
+  c_ok = true;
+
+  surface_displacement_pt_to_c (F, C);
+  set_CPP_surface_displacement_pt_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " surface_displacement_pt: C side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_displacement_pt: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_displacement_pt_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_surface_displacement_pt (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_surface_displacement_pt_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " surface_displacement_pt: F side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_displacement_pt: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_displacement_pt_test_pattern (C2, 4);
+  surface_displacement_pt_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_surface_displacement (CPP_surface_displacement&, bool&);
+
+void set_CPP_surface_displacement_test_pattern (CPP_surface_displacement& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 1 + offset; C.active = (rhs % 2 == 0);
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.dr.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.dr[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.r0.size(); i++)
+    {int rhs = 101 + i + 3 + offset; C.r0[i] = rhs;}
+  // c_side.test_pat[type, 2, ALLOC]
+  if (ix_patt < 3) 
+    C.pt.resize(0);
+  else {
+    C.pt.resize(3);
+    for (unsigned int i = 0; i < C.pt.size(); i++) {
+      C.pt[i].resize(2);
+
+      for (unsigned int j = 0; j < C.pt[0].size(); j++) {
+        set_CPP_surface_displacement_pt_test_pattern(C.pt[i][j], ix_patt+i+2*j+3);
+      }
+    }
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_surface_displacement (Opaque_surface_displacement_class* F, bool& c_ok) {
+
+  CPP_surface_displacement C, C2;
+
+  c_ok = true;
+
+  surface_displacement_to_c (F, C);
+  set_CPP_surface_displacement_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " surface_displacement: C side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_displacement: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_displacement_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_surface_displacement (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_surface_displacement_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " surface_displacement: F side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_displacement: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_displacement_test_pattern (C2, 4);
+  surface_displacement_to_f (C2, F);
 
 }
 
@@ -3534,13 +3751,19 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
   set_CPP_photon_material_test_pattern(C.material, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_surface_grid_test_pattern(C.grid, ix_patt);
+  set_CPP_surface_segmented_test_pattern(C.segmented, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_surface_h_misalign_test_pattern(C.h_misalign, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_surface_displacement_test_pattern(C.displacement, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_pixel_detec_test_pattern(C.pixel, ix_patt);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.reflectivity_table_type = rhs;
+  rhs = 8 + offset; C.reflectivity_table_type = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_photon_reflect_table_test_pattern(C.reflectivity_table_sigma, ix_patt);
@@ -3562,7 +3785,7 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
   else {
     C.integrated_init_energy_prob.resize(3);
     for (unsigned int i = 0; i < C.integrated_init_energy_prob.size(); i++)
-      {int rhs = 101 + i + 11 + offset; C.integrated_init_energy_prob[i] = rhs;}  }
+      {int rhs = 101 + i + 13 + offset; C.integrated_init_energy_prob[i] = rhs;}  }
 
 
 }
@@ -4542,6 +4765,10 @@ void set_CPP_beam_init_test_pattern (CPP_beam_init& C, int ix_patt) {
   // c_side.test_pat[logical, 0, NOT]
   rhs = 34 + offset; C.use_z_as_t = (rhs % 2 == 0);
 
+  // c_side.test_pat[character, 0, NOT]
+  C.file_name.resize(200);
+  for (unsigned int i = 0; i < C.file_name.size(); i++)
+    {int rhs = 101 + i + 35 + offset; C.file_name[i] = 'a' + rhs % 26;}
 
 }
 
@@ -6585,8 +6812,8 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 42 + offset; C.creation_hash = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 43 + offset; C.ramper_slave_bookkeeping_done = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 43 + offset; C.ramper_slave_bookkeeping = rhs;
 
 
 }

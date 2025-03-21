@@ -1,0 +1,29 @@
+!L0_dipole: EM_FIELD, L = 0.6, field_calc = grid, tracking_method = runge_kutta, mat6_calc_method=tracking,
+L0_dipole: SBEND, L = 0.5, field_calc = grid, tracking_method = runge_kutta, mat6_calc_method=tracking,
+	field = {
+		mode = { 
+	  master_scale = field_factor, 
+!	  master_scale = b_field,
+		grid = call::L0_dipole_grid.bmad }}
+
+L0_dipole[field_factor]=    .011
+L0_dipole[x_offset] = -0.015
+
+!L0_dipole[b_field]= 0.001
+L0_dipole[angle] = 15*pi/180
+
+
+
+! Wall
+!L0_dipole[wall] = {
+!section = {
+!  s=0, v(1) ={ .02, 01},
+!  s=0, v(2) ={ -.02, .01},
+!  s=0, v(3) ={ -.02, -.01},
+!  s=0, v(4) ={ .02,-.01}},
+!section = {
+!  s=L0_dipole[L], v(1) ={.02,.01},
+!  s=L0_dipole[L], v(2) ={-.02,.01},
+!  s=L0_dipole[L], v(3) ={-.02,-.01},
+!  s=L0_dipole[L], v(4) ={ .02,-.01}} }
+

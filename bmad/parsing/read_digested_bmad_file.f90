@@ -22,7 +22,7 @@
 !                       moved digested file is considered an error if this routine is called from a parser but
 !                       not otherwise. The reason for this dichotomy is that a parser is able to reread the
 !                       original lattice file.
-!   lat_files(:)    -- character(200), optional, allocatable: List of Bmad lattice files that defined this lattice.
+!   lat_files(:)    -- character(400), optional, allocatable: List of Bmad lattice files that defined this lattice.
 !-
 
 subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling, lat_files)
@@ -50,8 +50,8 @@ integer, allocatable :: index_list(:)
 
 character(*) digested_file
 character(*), optional, allocatable :: lat_files(:)
-character(200) fname_read, fname_versionless, fname_full
-character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
+character(400) fname_read, fname_versionless, fname_full
+character(400) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
 character(100), allocatable :: name_list(:)
 character(*), parameter :: r_name = 'read_digested_bmad_file'
 
@@ -180,7 +180,7 @@ enddo
 read (d_unit, err = 9030, end = 9030) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 read (d_unit, err = 9030, end = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 read (d_unit, err = 9030, end = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
-read (d_unit, err = 9030, end = 9030) lat%input_taylor_order, lat%photon_type, lat%ramper_slave_bookkeeping_done
+read (d_unit, err = 9030, end = 9030) lat%input_taylor_order, lat%photon_type, lat%ramper_slave_bookkeeping
 read (d_unit, err = 9070, end = 9070) n_branch, lat%pre_tracker, n_custom, n_print
 
 ! Different compilers (EG ifort and gfortran) will produce different binary formats. 
@@ -484,7 +484,6 @@ subroutine read_this_ele (ele, ix_ele_in, error)
 type (ele_struct), target :: ele
 type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), pointer :: prt
-type (surface_grid_pt_struct), pointer :: s_pt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
 type (gen_grad_map_struct), pointer :: gg_map
@@ -496,6 +495,7 @@ type (converter_distribution_struct), pointer :: c_dist
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
+type (wake_sr_z_long_struct), pointer :: srz
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_gen, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e, n_angle, n_energy
@@ -503,7 +503,7 @@ integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c, nix
 integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc, n_foil
 
-logical error, is_alloc_grid, is_alloc_pix, is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
+logical error, is_alloc_disp, is_alloc_seg, is_alloc_h_mis, is_alloc_pix, is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
 logical ac_kicker_alloc, rad_map_alloc
 
 !
@@ -777,16 +777,40 @@ endif
 if (ix_s /= 0) then
   allocate (ele%photon)
   ph => ele%photon
-  read (d_unit, err = 9360, end = 9360) ph%target, ph%material, ph%curvature, ph%grid%active, ph%grid%type, &
-         ph%grid%dr, ph%grid%r0, is_alloc_grid, ph%pixel%dr, ph%pixel%r0, is_alloc_pix, &
-         is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
+  read (d_unit, err = 9360, end = 9360) ph%target, ph%material, ph%curvature, &
+    ph%displacement%active, ph%displacement%dr, ph%displacement%r0, is_alloc_disp, &
+    ph%h_misalign%active, ph%h_misalign%dr, ph%h_misalign%r0, is_alloc_h_mis, &
+    ph%segmented%active, ph%segmented%dr, ph%segmented%r0, is_alloc_seg, &
+    ph%pixel%dr, ph%pixel%r0, is_alloc_pix, &
+    is_alloc_eprob, is_alloc_ref_sigma, is_alloc_ref_pi
+         
 
-  if (is_alloc_grid) then
+  if (is_alloc_disp) then
     read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
-    allocate(ph%grid%pt(i0:i1, j0:j1))
-    do i = lbound(ph%grid%pt, 1), ubound(ph%grid%pt, 1)
-    do j = lbound(ph%grid%pt, 2), ubound(ph%grid%pt, 2)
-      read (d_unit, err = 9362, end = 9362) ph%grid%pt(i,j)
+    allocate(ph%displacement%pt(i0:i1, j0:j1))
+    do i = lbound(ph%displacement%pt, 1), ubound(ph%displacement%pt, 1)
+    do j = lbound(ph%displacement%pt, 2), ubound(ph%displacement%pt, 2)
+      read (d_unit, err = 9362, end = 9362) ph%displacement%pt(i,j)
+    enddo
+    enddo
+  endif
+
+  if (is_alloc_seg) then
+    read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
+    allocate(ph%segmented%pt(i0:i1, j0:j1))
+    do i = lbound(ph%segmented%pt, 1), ubound(ph%segmented%pt, 1)
+    do j = lbound(ph%segmented%pt, 2), ubound(ph%segmented%pt, 2)
+      read (d_unit, err = 9362, end = 9362) ph%segmented%pt(i,j)
+    enddo
+    enddo
+  endif
+
+  if (is_alloc_h_mis) then
+    read (d_unit, err = 9361, end = 9361) i0, j0, i1, j1
+    allocate(ph%h_misalign%pt(i0:i1, j0:j1))
+    do i = lbound(ph%h_misalign%pt, 1), ubound(ph%h_misalign%pt, 1)
+    do j = lbound(ph%h_misalign%pt, 2), ubound(ph%h_misalign%pt, 2)
+      read (d_unit, err = 9362, end = 9362) ph%h_misalign%pt(i,j)
     enddo
     enddo
   endif
@@ -890,10 +914,10 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_sr_z /= 0 .or. ix_lr_mode /= 0
       read (d_unit, err = 9800, end = 9800) wake%sr%trans(i)
     enddo
 
-    do i = 1, size(wake%sr%z)
-      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%plane, wake%sr%z(i)%position_dependence, n
-      allocate(wake%sr%z(i)%w(n), wake%sr%z(i)%w_sum1(n), wake%sr%z(i)%w_sum2(n))
-      read (d_unit, err = 9800, end = 9800) wake%sr%z(i)%w
+    srz => wake%sr%z_long
+    read (d_unit, err = 9800, end = 9800) srz%smoothing_sigma, srz%position_dependence, srz%dz, srz%z0, srz%time_based
+    do i = 1, size(srz%w)
+      read (d_unit, err = 9800, end = 9800) srz%w(i), srz%fw(i)
     enddo
 
     read (d_unit, err = 9800, end = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale

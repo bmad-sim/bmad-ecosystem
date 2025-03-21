@@ -136,7 +136,7 @@ do ib = 0, ubound(lat%branch, 1)
       call set_value_of(a_ptr, false$)
 
     case default
-      call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
+      call out_io (s_abort$, r_name, 'BAD SWITCH: \i0\ ', switch)
       if (global_com%exit_on_error) call err_exit
     end select
 

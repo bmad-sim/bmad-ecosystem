@@ -1,0 +1,53 @@
+                          
+vv
+vd
+call SetMultiOrbit.tao
+call PhaseSet.tao
+sc floor -40 40
+sc top 0 3
+sc middle 0 0.5
+
+
+
+
+!scalF = +1.0000
+!scalD = +1.0137
+!Bmad straight
+!               e_tot(MeV)                     Qx                       Qy   
+!4.200000000000000E+07  3.723105148436838E-01    2.872730817961353E-01   
+!7.800000000000000E+07  1.798043322258760E-01    1.223479646118550E-01   
+!1.140000000000000E+08  1.273240531357055E-01    7.076055589976826E-02   
+!1.500000000000000E+08  1.010663833004839E-01    4.314354673777981E-02 
+
+ 
+set dat 1@tune[1]|meas= 3.723105148436838E-01 
+set dat 1@tune[2]|meas=  2.872730817961353E-01   
+
+set dat 2@tune[1]|meas=     1.798043322258760E-01 
+set dat 2@tune[2]|meas=   1.223479646118550E-01   
+
+set dat 3@tune[1]|meas=  1.273240531357055E-01
+set dat 3@tune[2]|meas=  7.076055589976826E-02  
+
+set dat 4@tune[1]|meas=  1.010663833004839E-01 
+set dat 4@tune[2]|meas=   4.314354673777981E-02 
+
+
+set dat *@tune|weight   = 10
+
+use dat 1@tune[1,2]
+use dat 4@tune[1,2]
+
+
+set uni 2 off
+set uni 3 off
+
+use var q[1,2]
+vk
+set var q[1,2]|key_bound = T
+
+!use var edge[1,2]
+!use var lengths
+ 
+!use var multipoles
+

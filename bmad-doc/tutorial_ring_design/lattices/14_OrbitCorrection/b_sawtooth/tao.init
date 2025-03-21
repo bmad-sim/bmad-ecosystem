@@ -1,0 +1,89 @@
+&tao_plot_page
+	plot_page%size = 400, 400
+	plot_page%text_height = 8
+	plot_page%n_curve_pts = 5000
+/
+
+&tao_params
+	global%n_opti_cycles = 100
+	global%n_opti_loops = 100
+/
+
+&tao_d2_data
+  	d2_data%name = 'orbit'
+  	n_d1_data = 2
+  	default_merit_type = 'target'
+  	default_meas = 0
+  	default_weight = 1
+/
+
+&tao_d1_data
+	ix_d1_data = 1
+	d1_data%name = 'x'
+	search_for_lat_eles = 'BPM*'
+/
+
+&tao_d1_data
+	ix_d1_data = 2
+	d1_data%name = 'y'
+	search_for_lat_eles = 'BPM*'
+/
+
+&tao_var
+	v1_var%name = 'hkicker'
+	search_for_lat_eles = 'hkicker::*'
+	default_step = 1e-6
+	default_attribute = 'kick'
+/
+
+&tao_var
+	v1_var%name = 'vkicker'
+	search_for_lat_eles = 'vkicker::*'
+	default_step = 1e-6
+	default_attribute = 'kick'
+/
+
+&tao_design_lattice
+	unique_name_suffix = "hkicker::_? vkicker::_? marker::_?"
+/
+
+&tao_template_plot
+  plot%name = 'bpm_orbit_x'
+  default_graph%x%major_div_nominal = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 'index'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'x'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Horizontal Orbit (mm)'
+  graph%y%label = 'X'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'orbit.x'
+  curve(1)%y_axis_scale_factor = 1000
+  curve(1)%symbol%color = "red"
+/
+
+&tao_template_plot
+  plot%name = 'bpm_orbit_y'
+  default_graph%x%major_div_nominal = 10
+  default_graph%x%label = ' '
+  plot%x_axis_type = 'index'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'y'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Vertical Orbit (mm)'
+  graph%y%label = 'Y'
+  graph%y%major_div = 4
+  curve(1)%data_source = 'data'
+  curve(1)%data_type   = 'orbit.y'
+  curve(1)%y_axis_scale_factor = 1000
+/

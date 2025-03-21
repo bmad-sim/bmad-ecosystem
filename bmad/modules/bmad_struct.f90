@@ -9,7 +9,7 @@ use spline_mod
 use sim_utils
 use cubic_interpolation_mod
 
-use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
+use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state, c_quaternion
 
 private next_in_branch
 
@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 318
+integer, parameter :: bmad_inc_version$ = 328
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,21 +65,21 @@ integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3
 integer, parameter :: linear$ = 4, tracking$ = 5, time_runge_kutta$ = 6
 integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10
 integer, parameter :: Auto$ = 12, sprint$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
-integer, parameter :: n_methods$ = 14
+integer, parameter :: transverse_kick$ = 3, spin_integration$ = 99
 
-character(28), parameter :: tracking_method_name(0:n_methods$) = [character(28) :: &
+character(28), parameter :: tracking_method_name(0:14) = [character(28) :: &
       'GARBAGE!', 'Bmad_Standard',               'Symp_Lie_PTC',     'Runge_Kutta', &
       'Linear',   'GARBAGE!',                    'Time_Runge_Kutta', 'Custom', &
       'Taylor',   'Fixed_Step_Runge_Kutta',      'Symp_Lie_Bmad',    'GARBAGE!', &
       'GARBAGE!', 'Fixed_Step_Time_Runge_kutta', 'MAD']
 
-character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'GARBAGE!        ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
+character(16), parameter :: spin_tracking_method_name(0:12) = [ &
+      'GARBAGE!        ', 'Off             ', 'Symp_Lie_PTC    ', 'Transverse_Kick ', &
       'GARBAGE!        ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
       'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', &
-      'Sprint          ', 'GARBAGE!        ', 'GARBAGE!        ']
+      'Sprint          ']
 
-character(24), parameter :: mat6_calc_method_name(0:n_methods$) = [character(24):: 'GARBAGE!', &
+character(24), parameter :: mat6_calc_method_name(0:14) = [character(24):: 'GARBAGE!', &
       'Bmad_Standard', 'Symp_Lie_PTC', 'GARBAGE!',  'Linear', 'Tracking', &
       'GARBAGE!', 'Custom', 'Taylor', 'GARBAGE!', 'Symp_Lie_Bmad', &
       'GARBAGE!', 'Auto', 'GARBAGE!', 'MAD']
@@ -142,9 +142,11 @@ logical, parameter :: set$ = .true., unset$ = .false.
 ! when the lattice file is parsed. Auto is only available for Mask, Detector and Diffraction_plate elements.
 
 integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, wall3d$ = 5, custom_aperture$ = 7
-character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
-                                     'Surface    ', 'Wall3D     ', 'garbage!   ', 'Custom     ']
+integer, parameter :: lord_defined$ = 8
+
+character(16), parameter :: aperture_type_name(0:8) = [character(16):: &
+                               'garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
+                               'Surface    ', 'Wall3D     ', 'garbage!   ', 'Custom     ', 'Lord_Defined']
 
 ! fringe_type
 ! non-bend fringe type names are in the range fringe_type(1:n_non_bend_fringe_type$)
@@ -234,7 +236,6 @@ integer, parameter :: old_ascii$ = 44    ! For testing purposes.
 ! num_ele_attrib$ is size of ele%value(:) array.
 
 integer, parameter :: num_ele_attrib$ = 75
-
 integer, parameter :: off$ = 1, on$ = 2
 
 integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
@@ -350,6 +351,7 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
 
+integer, parameter :: none_pt$ = 4
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4, no_aperture$ = 4, nowhere$ = 4
 integer, parameter :: continuous$ = 5, surface$ = 6, wall_transition$ = 7
 
@@ -358,9 +360,12 @@ integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_between$ = 13 ! Must be different from upstream_end$, downstream_end$
 
-character(16), parameter :: aperture_at_name(0:7) = [ &
+character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
+      'Entrance_end', 'Exit_End', 'Center', 'None']
+
+character(16), parameter :: aperture_at_name(0:8) = [character(16):: &
       'GARBAGE!       ', 'Entrance_End   ', 'Exit_End       ', 'Both_Ends      ', &
-      'No_Aperture    ', 'Continuous     ', 'Surface        ', 'Wall_Transition']
+      'No_Aperture    ', 'Continuous     ', 'Surface        ', 'Wall_Transition', 'Lord_Defined']
 
 character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
@@ -452,7 +457,7 @@ type wall3d_struct
   logical :: superimpose = .false.                ! Can overlap another wall
   integer :: ele_anchor_pt = anchor_beginning$    ! anchor_beginning$, anchor_center$, or anchor_end$
   type (wall3d_section_struct), allocatable :: section(:) ! Indexed from 1.
-end type  
+end type
 
 !
 
@@ -586,6 +591,18 @@ character(12), parameter :: sr_longitudinal_position_dep_name(5) = &
                 [character(12):: 'none', 'x_leading', 'y_leading', 'x_trailing', 'y_trailing']
 character(8), parameter :: sr_z_plane_name(5) = [character(8):: 'X', 'XY', 'Y', null_name$, 'Z']
 
+type wake_sr_z_long_struct
+  real(rp), allocatable :: w(:)                        ! Input single particle Wake. Indexed from 1.
+  complex(rp), allocatable :: fw(:)                    ! Fourier transform of w.
+  complex(rp), allocatable :: fbunch(:), w_out(:)      ! Scratch space.
+  real(rp) :: dz = 0                                   ! Distance between points. If zero there is no wake.
+  real(rp) :: z0 = 0                                   ! Wake extent is [-z0, z0].
+  real(rp) :: smoothing_sigma = 0                      ! 0 => No smoothing.
+  integer :: position_dependence = none$               ! Transverse: leading$, trailing$, none$
+                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
+  logical :: time_based = .false.                      ! Was input time based?
+end type
+
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
   real(rp) :: damp = 0      ! Dampling factor.
@@ -600,17 +617,9 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
                                              ! Longitudinal: x_leading$, ..., y_trailing$, none$
 end type
 
-type wake_sr_z_struct
-  type(spline_struct), allocatable :: w(:)                  ! Wake vs time.
-  type(spline_struct), allocatable :: w_sum1(:), w_sum2(:)  ! Running sums used when tracking.                 
-  integer :: plane = not_set$                          ! x$, y$, xy$, z$.
-  integer :: position_dependence = not_set$            ! Transverse: leading$, trailing$, none$
-                                                       ! Longitudinal: x_leading$, ..., y_trailing$, none$
-end type
-
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
-  character(200) :: file = ''
-  type (wake_sr_z_struct), allocatable :: z(:)
+  character(400) :: file = ''
+  type (wake_sr_z_long_struct) :: z_long
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
   real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.
@@ -641,7 +650,7 @@ type wake_lr_mode_struct    ! Long-Range Wake struct.
 end type
 
 type wake_lr_struct
-  character(200) :: file = ''
+  character(400) :: file = ''
   type (wake_lr_mode_struct), allocatable :: mode(:)
   real(rp) :: t_ref = 0             ! time reference value for computing the wake amplitude.
                                     !  This is used to prevent value overflow with long trains.
@@ -654,7 +663,7 @@ end type
 !
 
 type wake_struct
-  type (wake_sr_struct) :: sr = wake_sr_struct('', null(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
+  type (wake_sr_struct) :: sr = wake_sr_struct('', wake_sr_z_long_struct(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
   type (wake_lr_struct) :: lr = wake_lr_struct('', null(), 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Long-range wake
 end type
 
@@ -696,7 +705,7 @@ type cartesian_map_term1_struct
 end type
 
 type cartesian_map_term_struct
-  character(200) :: file = ''      ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''      ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1            ! For memory management of %term
   type (cartesian_map_term1_struct), allocatable :: term(:)  
 end type
@@ -718,7 +727,7 @@ type cylindrical_map_term1_struct
 end type
 
 type cylindrical_map_term_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
   type (cylindrical_map_term1_struct), allocatable :: term(:)
 end type
@@ -747,7 +756,7 @@ type gen_grad1_struct
 end type  
 
 type gen_grad_map_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''   ! Input file name. Used also as ID for instances. 
   type (gen_grad1_struct), allocatable :: gg(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
@@ -768,7 +777,7 @@ type grid_field_pt1_struct
 end type
 
 type grid_field_pt_struct
-  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  character(400) :: file = ''   ! Input file name. Used also as ID for instances. 
   integer :: n_link = 1         ! For memory management of this structure
   type (grid_field_pt1_struct), allocatable :: pt(:,:,:)
 end type
@@ -928,6 +937,7 @@ type bookkeeping_state_struct
   integer :: mat6 = stale$            ! Linear transfer map status: super_ok$, ok$ or stale$
   integer :: rad_int = stale$         ! Radiation integrals cache status
   integer :: ptc = stale$             ! Associated PTC fibre (or layout) status.
+  logical :: has_misalign = .false.   ! Used to avoid unnecessary calls to offset_particle.
 end type
 
 ! Cache multipole values in the element. 
@@ -962,31 +972,44 @@ type rad_map_ele_struct
   logical :: stale = .true.
 end type
 
-! Structure for surfaces of detectors, mirrors, crystals, etc.
-! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
+! Segmented grid
 
-type surface_orientation_struct
-  real(rp) :: dz_dx = 0, dz_dy = 0, dz_dx_rms = 0, dz_dy_rms = 0, dz2_dxdy = 0
-end type
-
-type surface_grid_pt_struct
-  type (surface_orientation_struct) :: orientation = surface_orientation_struct()
-  real(rp) :: z0 = 0                         ! Height at center
-  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+type surface_segmented_pt_struct
+  real(rp) :: x0 = 0, y0 = 0, z0 = 0         ! Position at center
   real(rp) :: dz_dx = 0, dz_dy = 0           ! Slope at center
-  real(rp) :: d2z_dxdy = 0                   ! d2z/dxdy at center
 end type
 
-type surface_grid_struct
-  logical :: active = .true.
-  integer :: type = not_set$   ! or displacement$, segmented$, h_misalign$
+type surface_segmented_struct
+  logical :: active = .false.
   real(rp) :: dr(2) = 0, r0(2) = 0
-  type (surface_grid_pt_struct), allocatable :: pt(:,:) 
+  type (surface_segmented_pt_struct), allocatable :: pt(:,:) 
 end type
 
-integer, parameter :: segmented$ = 1, h_misalign$ = 2, displacement$ = 3
-character(16), parameter :: surface_grid_type_name(0:3) = [character(16):: 'GARBAGE!', &
-                                                  'Segmented', 'H_Misalign', 'Displacement']
+! H_misalign grid
+
+type surface_h_misalign_pt_struct
+  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+  real(rp) :: rot_y = 0, rot_t = 0, rot_y_rms = 0, rot_t_rms = 0  ! rot_t = x-rotation for Bragg and z-rotation for Laue.
+end type
+
+type surface_h_misalign_struct
+  logical :: active = .false.
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_h_misalign_pt_struct), allocatable :: pt(:,:) 
+end type
+
+! displacement grid
+
+type surface_displacement_pt_struct
+  real(rp) :: x0 = 0, y0 = 0                 ! Position at center
+  real(rp) :: z0 = 0, dz_dx = 0, dz_dy = 0, d2z_dxdy = 0
+end type
+
+type surface_displacement_struct
+  logical :: active = .false.
+  real(rp) :: dr(2) = 0, r0(2) = 0
+  type (surface_displacement_pt_struct), allocatable :: pt(:,:) 
+end type
 
 ! Photon statistics at a detector
 
@@ -1050,7 +1073,9 @@ type photon_element_struct
   type (surface_curvature_struct) :: curvature = surface_curvature_struct()
   type (photon_target_struct) :: target = photon_target_struct()
   type (photon_material_struct) :: material = photon_material_struct()
-  type (surface_grid_struct) :: grid = surface_grid_struct(.true., not_set$, 0, 0, null())
+  type (surface_segmented_struct) :: segmented = surface_segmented_struct(.false., 0, 0, null())
+  type (surface_h_misalign_struct) :: h_misalign = surface_h_misalign_struct(.false., 0, 0, null())
+  type (surface_displacement_struct) :: displacement = surface_displacement_struct(.false., 0, 0, null())
   type (pixel_detec_struct) :: pixel = pixel_detec_struct([0.0_rp, 0.0_rp], [0.0_rp, 0.0_rp], 0, 0, 0, null())
   integer :: reflectivity_table_type = not_set$
   type (photon_reflect_table_struct) reflectivity_table_sigma  ! If polarization is ignored use sigma table.
@@ -1108,24 +1133,24 @@ type grid_beam_init_struct
 end type
 
 type beam_init_struct
-  character(200) :: position_file = ''       ! File with particle positions.
-  character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
+  character(400) :: position_file = ''                ! File with particle positions.
+  character(16) :: distribution_type(3) = 'RAN_GAUSS' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", "FILE", "RAN_GAUSS" or "" = "RAN_GAUSS" 
   real(rp) :: spin(3) = 0                    ! Spin (x, y, z)
   type (ellipse_beam_init_struct) :: ellipse(3) = ellipse_beam_init_struct() ! Ellipse beam distribution
   type (kv_beam_init_struct) :: KV = kv_beam_init_struct()                   ! KV beam distribution
   type (grid_beam_init_struct) :: grid(3) = grid_beam_init_struct()          ! Grid beam distribution
-  real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
-  real(rp) :: emit_jitter(2)   = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
-  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter
-  real(rp) :: sig_pz_jitter    = 0.0  ! RMS pz spread jitter 
-  integer :: n_particle = 0           ! Number of particles per bunch.
-  logical :: renorm_center = .true.   ! Renormalize centroid?
-  logical :: renorm_sigma = .true.    ! Renormalize sigma?
-  character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
+  real(rp) :: center_jitter(6) = 0.0         ! Bunch center rms jitter
+  real(rp) :: emit_jitter(2)   = 0.0         ! a and b bunch emittance rms jitter normalized to emittance
+  real(rp) :: sig_z_jitter     = 0.0         ! bunch length RMS jitter
+  real(rp) :: sig_pz_jitter    = 0.0         ! RMS pz spread jitter 
+  integer :: n_particle = 0                  ! Number of particles per bunch.
+  logical :: renorm_center = .true.          ! Renormalize centroid?
+  logical :: renorm_sigma = .true.           ! Renormalize sigma?
+  character(16) :: random_engine = 'pseudo'  ! Or 'quasi'. Random number engine to use. 
   character(16) :: random_gauss_converter = 'exact'  
-                                            ! Or 'quick'. Uniform to gauss conversion method.
-  real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
+                                             ! Or 'quick'. Uniform to gauss conversion method.
+  real(rp) :: random_sigma_cutoff = -1       ! Cut-off in sigmas.
   real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * beta * gamma)
   real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * beta * gamma)
   real(rp) :: a_emit = 0                     ! a-mode emittance
@@ -1147,6 +1172,7 @@ type beam_init_struct
   logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
                                              !   If true,  z describes the t distribution 
                                              !   If false, z describes the s distribution
+  character(200) :: file_name = ''           ! OLD!! DO NOT USE!!
 end type
 
 
@@ -1182,12 +1208,11 @@ type bunch_params_struct
                                          !   this case the z-twiss will not be valid.
 end type
 
-! Bunch_track_struct is the bunch alalogue of a particle track_struct
+! Bunch_track_struct is the bunch analogue of a particle track_struct
 
 type bunch_track_struct
   type (bunch_params_struct), allocatable :: pt(:)     ! Array indexed from 0
   real(rp) :: ds_save = -1                             ! Min distance between points.
-  real(rp) :: max_ds_save = -1                         ! Max distance between points. Not currently implemented!
   integer :: n_pt = -1                                 ! Track upper bound
 end type
 
@@ -1250,9 +1275,10 @@ end type
 
 type material_struct
   integer :: species = not_set$
-  real(rp) :: density = 0, density_used = 0
-  real(rp) :: area_density = 0, area_density_used = 0
-  real(rp) :: radiation_length = 0, radiation_length_used = 0
+  integer :: number = int_garbage$                      ! Relative number
+  real(rp) :: density = real_garbage$, density_used = real_garbage$
+  real(rp) :: area_density = real_garbage$, area_density_used = real_garbage$
+  real(rp) :: radiation_length = real_garbage$, radiation_length_used = real_garbage$
 end type
 
 type foil_struct
@@ -1364,7 +1390,8 @@ type ele_struct
   type (photon_element_struct), pointer :: photon => null()
   type (multipole_cache_struct), allocatable :: multipole_cache
   type (rad_map_ele_struct), pointer :: rad_map => null()                ! Radiation kick parameters
-  ! Note: The reference orbits for spin and orbit Taylor maps are not necessarily the same
+  ! Note: The reference orbits for spin and orbit Taylor maps are not necessarily the same.
+  ! For example, Sprint spin Taylor maps can be with respect to the zero orbit independent of the orbital map.
   type (taylor_struct) :: taylor(6) = taylor_struct()                    ! Phase space Taylor map.
   real(rp) :: spin_taylor_ref_orb_in(6) = real_garbage$
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()             ! Quaternion Spin Taylor map.
@@ -1519,7 +1546,8 @@ type ptc_normal_form_struct
   type (c_normal_form) normal_form           ! Complex normal form
   type (c_taylor) phase(3)                   ! Phase/chromaticity maps
   type (c_taylor) path_length                ! Path length map. Gives momentum compaction.
-  type (c_taylor) spin_tune                  ! Spin map
+  type (c_taylor) spin_tune                  ! Amplitude dependent spin tune 
+  type (c_quaternion) isf                    ! Invariant spin field in (x, px, ...) space.
   type (internal_state) state                ! PTC state
   logical :: valid_map = .false.
 end type
@@ -1549,7 +1577,7 @@ type pre_tracker_struct
   integer :: who = 0   ! Can be opal$, or impactt$
   integer :: ix_ele_start = 0
   integer :: ix_ele_end = 0
-  character(200) :: input_file = ''
+  character(400) :: input_file = ''
 end type
 
 ! lat_struct
@@ -1565,7 +1593,7 @@ type lat_struct
   character(200) :: use_name = ''                     ! Name of lat given by USE statement
   character(40) :: lattice = ''                       ! Lattice
   character(40) :: machine = ''                       ! Name of the machine the lattice is for ("LHC", etc).
-  character(200) :: input_file_name = ''              ! Name of the lattice input file
+  character(400) :: input_file_name = ''              ! Name of the lattice input file
   character(80) :: title = ''                         ! General title
   character(100), allocatable :: print_str(:)         ! Saved print statements.
   type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
@@ -1591,7 +1619,7 @@ type lat_struct
   integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
   integer :: creation_hash = 0                        ! Set by bmad_parser. creation_hash will vary if 
                                                       !   any of the lattice files are modified.
-  logical :: ramper_slave_bookkeeping_done = .false.
+  integer :: ramper_slave_bookkeeping = stale$
 end type
 
 character(2), parameter :: coord_name(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
@@ -1690,7 +1718,7 @@ integer, parameter :: l$ = 1                          ! Assumed unique. Do not a
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3, deta_ds_master$ = 3, &
                       kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3, final_charge$ = 3
-integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, &
+integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, s_twiss_ref$ = 4, &
                       critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5, &
                       ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
@@ -1733,7 +1761,7 @@ integer, parameter :: eta_y_out$ = 26, mode$ = 26, velocity_distribution$ = 26, 
                       eps_step_scale$ = 26, E_tot_strong$ = 26, dthickness_dx$ = 26, bend_tilt$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, energy_distribution$ = 27, &
                       x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, &
-                      py_aperture_center$ = 27, x_dispersion_err$ = 27
+                      py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
                       rf_clock_harmonic$ = 28, b_field_tot$ = 28, atomic_weight$ = 28
@@ -1745,8 +1773,8 @@ integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord
                       scale_field_to_one$ = 30, voltage_tot$ = 30, scatter_method$ = 30
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id$ = 31, ref_cap_gamma$ = 31, &
                       l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31, &
-                      mean_excitation_energy$ = 31
-integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32
+                      mean_excitation_energy$ = 31, fiducial_pt$ = 31
+integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32, init_needed$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33, x_kick$ = 33
 integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
 integer, parameter :: y_pitch$ = 35, y_kick$ = 35
@@ -1763,7 +1791,7 @@ integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, 
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: geometry$ = 47, coupler_at$ = 47, E_tot_offset$ = 47, ptc_canonical_coords$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, e_tot_set$ = 48
-integer, parameter :: Bs_field$ = 49, p0c_set$ = 49, ptc_field_geometry$ = 49
+integer, parameter :: Bs_field$ = 49, p0c_set$ = 49, ptc_field_geometry$ = 49, delta_ref_time_user_set$ = 49
 integer, parameter :: delta_ref_time$ = 50
 integer, parameter :: p0c_start$ = 51
 integer, parameter :: e_tot_start$ = 52
@@ -1793,16 +1821,16 @@ integer, parameter :: check_sum$ = 75
 
 !!    = 1 + num_ele_attrib$
 
-integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
+integer, parameter :: distribution$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
 integer, parameter :: y_knot$ = 83, eta_y$ = 83, density$ = 83
-integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84, slave$ = 84, &
+integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, etap_x$ = 84, slave$ = 84, &
                       density_used$ = 84
-integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85, etap_y$ = 85, &
+integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, etap_y$ = 85, &
                       area_density$ = 85, input_ele$ = 85
-integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86, &
+integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, &
                       area_density_used$ = 86, output_ele$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88, radiation_length$ = 88
@@ -2081,7 +2109,7 @@ type space_charge_common_struct                   ! Common block for space charg
   integer :: sc_min_in_bin = 10                   ! Minimum number of particles in a bin for sigmas to be valid.
   logical :: lsc_kick_transverse_dependence = .false.
   logical :: debug = .false.
-  character(200) :: diagnostic_output_file = ''   ! If non-blank write a diagnostic (EG wake) file
+  character(400) :: diagnostic_output_file = ''   ! If non-blank write a diagnostic (EG wake) file
 end type
 
 type (space_charge_common_struct), save, target :: space_charge_com
@@ -2195,8 +2223,8 @@ type bmad_common_struct
   real(rp) :: d_orb(6)           = 1d-5                ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp              ! Default integration step for eles without an explicit step calc.
   real(rp) :: significant_length = 1d-10               ! meter 
-  real(rp) :: rel_tol_tracking = 1d-8                  ! Closed orbit relative tolerance.
-  real(rp) :: abs_tol_tracking = 1d-11                 ! Closed orbit absolute tolerance.
+  real(rp) :: rel_tol_tracking = 1d-9                  ! Closed orbit relative tolerance.
+  real(rp) :: abs_tol_tracking = 1d-12                 ! Closed orbit absolute tolerance.
   real(rp) :: rel_tol_adaptive_tracking = 1d-8         ! Runge-Kutta tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1d-10        ! Runge-Kutta tracking absolute tolerance.
   real(rp) :: init_ds_adaptive_tracking = 1d-3         ! Initial step size
@@ -2237,11 +2265,11 @@ end type
 type (bmad_common_struct), save, target :: bmad_com
 
 ! Bmad global private structure
-! For communication between Bmad and Bmad based programs.
+! For communication between Bmad routines and Bmad based programs.
 
 type bmad_private_struct
   real(rp) :: rf_clock_period = 0     ! The RF clock is used by the long_term_tracking program to avoid time round-off errors.
-  logical :: normalize_twiss = .false.  ! Experimental: Normalize Twiss calc by the ref pz about which the 1-turn matrix is calculated?
+  logical :: random_on = .true.       ! Temporarily turned off, for example, with the closed orbit calc.
 end type
 
 type (bmad_private_struct), save, target :: bmad_private
@@ -2522,7 +2550,7 @@ case (lost_neg_y$);  state_str = 'Lost_Neg_Y'
 case (lost_pos_y$);  state_str = 'Lost_Pos_Y'
 case (lost_pz$);     state_str = 'Lost_Pz'
 case (lost_z$);      state_str = 'Lost_Z'
-case default;        state_str = 'UNKNOWN!'
+case default;        state_str = null_name$
 end select
 
 end function coord_state_name

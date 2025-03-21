@@ -2,7 +2,6 @@ module tao_graph_setup_mod
 
 use tao_interface
 use tao_command_mod
-use tao_data_and_eval_mod
 use expression_mod, only: expression_stack_value
 
 contains
@@ -474,13 +473,12 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
   if (.not. tao_curve_check_universe(curve, u)) cycle
-
-  if (curve%ix_ele_ref_track < 0) then
+  ele => tao_curve_ele_ref(curve, .true.)
+  if (.not. associated(ele)) then
     call tao_set_curve_invalid (curve, 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name)
     cycle
   endif
 
-  ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
   if (name == '') name = ele%name
 
@@ -490,10 +488,10 @@ do k = 1, size(graph%curve)
   endif
 
   if (same_uni) then
-    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), '[', curve%ix_ele_ref, ': ', trim(name), ']'
+    write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), '[', ele%ix_ele, ': ', trim(name), ']'
   else
     write (graph%title_suffix, '(2a, i0, a, i0, 3a)') trim(graph%title_suffix), &
-                                                          '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
+                                                          '[', u%ix_uni, '@', ele%ix_ele, ': ', trim(name), ']'
   endif
 enddo
 
@@ -503,20 +501,20 @@ do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
-
-  if (curve%ix_ele_ref_track < 0) then
+  ele => tao_curve_ele_ref(curve, .true.)
+  if (.not. associated(ele)) then
     call out_io (s_error$, r_name, 'CURVE REFERENCE ELEMENT IS NOT AN ELEMENT THAT IS TRACKED THROUGH: ' // curve%ele_ref_name, &
                                    'FOR CURVE: ' // tao_curve_name(curve))
+    cycle
   endif
 
-  ib = tao_branch_index(curve%ix_branch)
   select case (curve%component)
   case('model', '')
-    ele => u%model%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+    ele => u%model%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
   case('design')
-    ele => u%design%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+    ele => u%design%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
   case('base')
-    ele => u%base%lat%branch(ib)%ele(curve%ix_ele_ref_track)
+    ele => u%base%lat%branch(ele%ix_branch)%ele(ele%ix_ele)
   case default
     call out_io (s_error$, r_name, 'IF THE CURVE COMPONENT IS SET, IT MUST BE SET TO ONE OF: "model", "design", OR "base".', &
                                    'FOR CURVE: ' // tao_curve_name(curve))
@@ -531,17 +529,16 @@ do k = 1, size(graph%curve)
   !----------------------------
 
   if (curve%data_source == 'beam') then
-    if (curve%ix_ele_ref_track < 0) then
+    if (.not. associated(ele)) then
       call out_io (s_warn$, r_name, 'REFERENCE ELEMENT DOES NOT EXIST: ' // trim(curve%ele_ref_name), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       curve%g%why_invalid = 'NO BEAM AT ELEMENT'
       return
     endif
 
-    ib = tao_branch_index(curve%ix_branch)
-    beam => u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam
+    beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
-      call out_io (s_warn$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
+      call out_io (s_warn$, r_name, 'NO BEAM AT ELEMENT: ' // ele_full_name(ele), &
                     'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
       curve%g%why_invalid = 'NO BEAM AT ELEMENT'
@@ -684,9 +681,10 @@ type (tao_curve_struct), pointer :: curve
 type (tao_curve_struct), allocatable :: temp_curve(:)
 type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
+type (ele_struct), pointer :: ref_ele
 type (aperture_scan_struct), pointer :: scan
 type (coord_struct), allocatable :: orbit(:)
-integer :: i, j, k, ib, n_da, n_da_curve, n, ix_ele_ref
+integer :: i, j, k, ib, n_da, n_da_curve, n
 
 logical err
 
@@ -867,7 +865,7 @@ type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ref_ele, track_ele
 type (beam_struct), pointer :: beam
 type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
@@ -918,20 +916,22 @@ do k = 1, size(graph%curve)
     cycle
   endif
 
-  if (curve%ix_ele_ref_track < 0) then
+  ref_ele => tao_curve_ele_ref(curve, .false.)
+  track_ele => tao_curve_ele_ref(curve, .true.)
+
+  if (.not. associated(track_ele)) then
     call tao_set_curve_invalid (curve, 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name)
     cycle
   endif
 
-  ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
-  if (name == '') name = ele%name
+  if (name == '') name = ref_ele%name
   if (same_uni) then
     write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), &
-                                '[', curve%ix_ele_ref, ': ', trim(name), ']'
+                                '[', ref_ele%ix_ele, ': ', trim(name), ']'
   else
     write (graph%title_suffix, '(2a, i0, a, i0, 3a)') trim(graph%title_suffix), &
-            '[', u%ix_uni, '@', curve%ix_ele_ref, ': ', trim(name), ']'
+            '[', u%ix_uni, '@', ref_ele%ix_ele, ': ', trim(name), ']'
   endif
 enddo
 
@@ -947,8 +947,8 @@ do k = 1, size(graph%curve)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam') then
-    ib = tao_branch_index(curve%ix_branch)
-    beam => u%model_branch(ib)%ele(curve%ix_ele_ref_track)%beam
+    track_ele => tao_curve_ele_ref(curve, .true.)
+    beam => u%model_branch(track_ele%ix_branch)%ele(track_ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_warn$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
@@ -971,7 +971,7 @@ do k = 1, size(graph%curve)
     do ib = 1, size(beam%bunch)
       p => beam%bunch(ib)%particle
       m = count(p%state == alive$)
-      call tao_particle_data_value (curve%data_type, p, scratch%axis1, err, ele, ib)
+      call tao_particle_data_value (curve%data_type, p, scratch%axis1, err, ref_ele, ib)
       data(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       if (curve%hist%weight_by_charge) weight(n+1:n+m) = pack(p%charge, mask = (p%state == alive$))
       n = n + m
@@ -1257,10 +1257,11 @@ type (tao_var_struct), pointer :: v_ptr
 type (ele_struct), pointer :: ele, ele1, ele2, slave
 type (branch_struct), pointer :: branch
 type (tao_curve_array_struct), allocatable :: curves(:)
+type (all_pointer_struct) var_ptr
 
 real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx, limit, len_branch
 real(rp), allocatable :: value_arr(:), x_arr(:), y_arr(:)
-real(rp), pointer :: var_ptr
+
 
 integer ii, k, m, n, n_dat, n2_dat, ib, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2, n_curve_pts, ix_slave
@@ -1304,16 +1305,11 @@ if (curve%ele_ref_name == '') then
   zero_average_phase = .true.
 else
   zero_average_phase = .false.
-  call tao_locate_elements (curve%ele_ref_name, tao_curve_ix_uni(curve), scratch%eles, err, ignore_blank = .true.)
-  if (err) then
+  ele => tao_curve_ele_ref(curve, .true.)
+  if (.not. associated(ele)) then
     call tao_set_curve_invalid (curve, 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name))
     return
   endif
-  curve%ix_branch = scratch%eles(1)%ele%ix_branch
-  ib = curve%ix_branch
-  curve%ix_ele_ref = scratch%eles(1)%ele%ix_ele
-  call tao_ele_to_ele_track(tao_curve_ix_uni(curve), scratch%eles(1)%ele%ix_branch, &
-                                      scratch%eles(1)%ele%ix_ele, curve%ix_ele_ref_track)
 endif
 
 !----------------------------------------------------------------------------
@@ -1405,6 +1401,7 @@ case ('plot_x_axis_var')
   call re_allocate (curve%y_symb, n_curve_pts)
   call re_allocate (curve%x_line, n_curve_pts)
   call re_allocate (curve%y_line, n_curve_pts)
+  var_ptr = all_pointer_struct()
 
   if (plot%x_axis_type == 'lat') then
 
@@ -1429,7 +1426,7 @@ case ('plot_x_axis_var')
       call tao_set_curve_invalid (curve, 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // curve%data_type_x)
       return
     endif
-    var_ptr => scratch%attribs(1)%r
+    var_ptr%r => scratch%attribs(1)%r
 
   else  ! x_axis_type == 'var'
     call tao_find_var (err, curve%data_type_x, v_array = scratch%var_array)
@@ -1437,18 +1434,18 @@ case ('plot_x_axis_var')
       call tao_set_curve_invalid (curve, 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // curve%data_type_x)
       return
     endif
-    var_ptr => scratch%var_array(1)%v%model_value
+    var_ptr%r => scratch%var_array(1)%v%model_value
   endif
 
   ! Get datum values as a function of the variable
 
-  val0 = var_ptr
+  val0 = var_ptr%r
 
   j = 0
   do i = 1, n_curve_pts 
     val = graph%x%eval_min + (graph%x%eval_max - graph%x%eval_min) * (i - 1.0_rp) / (n_curve_pts - 1)
     if (plot%x_axis_type == 'lat')then
-      var_ptr = val
+      var_ptr%r = val
       call tao_set_flags_for_changed_attribute (u, name(1:ix1-1), scratch%eles(1)%ele, var_ptr)
       s%u(ix_uni)%calc%lattice = .true.
     else
@@ -1483,7 +1480,7 @@ case ('plot_x_axis_var')
   ! Reset
 
   if (plot%x_axis_type == 'lat')then
-    var_ptr = val0
+    var_ptr%r = val0
     call tao_set_flags_for_changed_attribute (u, name(1:ix1-1), scratch%eles(1)%ele, var_ptr)
     s%u(ix_uni)%calc%lattice = .true.
   else
@@ -1981,10 +1978,11 @@ if (curve%draw_line) then
     ! beam data_source is not interpolated.
     smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
     if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
-    if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
-    if (substr(curve%data_type,1,15) == 'element_attrib.') smooth_curve = .false.
     if (substr(curve%data_type,1,4) == 'bpm_') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'bunch_') smooth_curve = .false.
+    if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
+    if (substr(curve%data_type,1,7) == 'spin_dn') smooth_curve = .false.
+    if (substr(curve%data_type,1,15) == 'element_attrib.') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
 
     if (index(curve%component, 'meas') /= 0 .or. index(curve%component, 'ref') /= 0 .or. &
@@ -2198,7 +2196,7 @@ type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele_here, ele_ref, this_ele
+type (ele_struct), pointer :: ele_last, ele_here, ele_ref, this_ele
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
@@ -2216,7 +2214,7 @@ character(40) name, sub_data_type, data_type_select, data_source
 character(100) why_invalid
 character(200) data_type
 character(*), parameter :: r_name = 'tao_calc_data_at_s_pts'
-logical err, good(:), first_time, radiation_fluctuations_on, ok, gd
+logical err_flag, good(:), first_time, radiation_fluctuations_on, ok
 
 ! Some init
 
@@ -2230,8 +2228,12 @@ branch => lat%branch(ix_branch)
 first_time = .true.
 n_ele_track = branch%n_ele_track
 
-ix_ref = curve%ix_ele_ref_track
-if (ix_ref < 0) ix_ref = 0
+ele_ref => tao_curve_ele_ref(curve, .true.)
+if (associated(ele_ref)) then
+  ix_ref = ele%ix_ele
+else
+  ix_ref = 0
+endif
 
 if (lat%param%geometry == closed$ .and. .not. lat%param%stable) then
   curve%g%why_invalid = 'Unstable Lattice'
@@ -2304,6 +2306,8 @@ end select
 
 !
 
+ele_last => branch%ele(0)
+
 do ii = 1, size(curve%x_line)
 
   ! Good(ii) may be false if this is not first time tao_calc_data_at_s_pts is called from tao_curve_data_setup.
@@ -2323,11 +2327,12 @@ do ii = 1, size(curve%x_line)
 
   ! Check if in a hybrid or taylor element within which interpolation cannot be done.
 
-  ix_ele_here = element_at_s (lat, s_now, .true., ix_branch, err)
+  ix_ele_here = element_at_s (lat, s_now, .true., ix_branch, err_flag)
   ele_here => branch%ele(ix_ele_here)
 
-  if (ele_here%key == hybrid$ .or. ele_here%key == taylor$ .or. err) then
-    if (err .or. s_last == ele_here%s) then
+  if (ele_here%key == hybrid$ .or. ele_here%key == taylor$ .or. err_flag .or. &
+      ele_last%key == hybrid$ .or. ele_last%key == taylor$) then
+    if (err_flag .or. s_last == ele_here%s) then
       good(ii) = .false.
       first_time = .true.
       cycle
@@ -2345,6 +2350,7 @@ do ii = 1, size(curve%x_line)
   endif
 
   curve%x_line(ii) = s_now
+  ele_last => ele_here
 
   if (ii > 1 .and. s_now <= s_last) then
     good(ii) = .false.
@@ -2361,8 +2367,8 @@ do ii = 1, size(curve%x_line)
     orbit%vec(1:5:2) = [curve%orbit%x, curve%orbit%y, 0.0_rp]
     orbit%t = curve%orbit%t
     orbit%s = s_now
-    value = tao_param_value_at_s (data_type, ele_here, orbit, err, why_invalid)
-    if (err) then
+    value = tao_param_value_at_s (data_type, ele_here, orbit, err_flag, why_invalid)
+    if (err_flag) then
       call tao_set_curve_invalid(curve, why_invalid, .true.)
       good = .false.
       bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
@@ -2430,36 +2436,42 @@ do ii = 1, size(curve%x_line)
 
   case ('lat')
     if (cache_status == using_cache$) then
-      ele   = tao_branch%plot_cache(ii)%ele
-      orbit = tao_branch%plot_cache(ii)%orbit
-      mat6  = tao_branch%plot_cache(ii)%ele%mat6
-      vec0  = tao_branch%plot_cache(ii)%ele%vec0
-      err   = tao_branch%plot_cache(ii)%err
+      ele       = tao_branch%plot_cache(ii)%ele
+      orbit     = tao_branch%plot_cache(ii)%orbit
+      mat6      = tao_branch%plot_cache(ii)%ele%mat6
+      vec0      = tao_branch%plot_cache(ii)%ele%vec0
+      err_flag  = tao_branch%plot_cache(ii)%err
 
     else
+      ! Note: first_time may be set True when a Taylor or Hybrid element is encountered.
       if (first_time) then
-        call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
-        call mat6_from_s_to_s (lat, mat6, vec0, branch%ele(0)%s, x1, orb(0), ix_branch = ix_branch)
+        call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
+        call mat6_from_s_to_s (lat, mat6, vec0, branch%ele(0)%s, s_now, orb(0), ix_branch = ix_branch)
+        ele%vec0 = vec0
+        ele%mat6 = mat6
         orbit_end = orbit
         first_time = .false.
 
       else
-        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err, compute_floor_coords = .true.)
-        mat6 = matmul(ele%mat6, mat6)
-        vec0 = matmul(ele%mat6, vec0) + ele%vec0
+        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err_flag, &
+                                                                    compute_floor_coords = .true., compute_twiss = .false.)
         orbit = orbit_end
+        vec0 = matmul(ele%mat6, vec0) + ele%vec0
+        mat6 = matmul(ele%mat6, mat6)  ! Matrix from beginning of branch.
+        ele%vec0 = vec0
+        ele%mat6 = mat6
+        ele%key = hybrid$                  ! So twiss_propagate1 does not get confused.
+        call twiss_propagate1(branch%ele(0), ele, err_flag)
       endif
 
 
       if (cache_status == loading_cache$) then
         tao_branch%plot_cache(ii)%ele      = ele
         tao_branch%plot_cache(ii)%orbit    = orbit
-        tao_branch%plot_cache(ii)%ele%mat6 = mat6
-        tao_branch%plot_cache(ii)%ele%vec0 = vec0
-        tao_branch%plot_cache(ii)%err      = err
+        tao_branch%plot_cache(ii)%err      = err_flag
       endif
 
-      if (err) then
+      if (err_flag) then
         tao_branch%plot_cache(ii:)%err = .true.
         good(ii:) = .false.
         bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
@@ -2482,8 +2494,8 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (data_type_select, sub_data_type, value, good(ii), ok, ii, &
-                               s_last, s_now, tao_branch, orbit, lat, branch, ele);  if (.not. ok) return
+  call this_value_at_s (data_type_select, sub_data_type, value, ii, &
+                            s_last, s_now, tao_branch, orbit, lat, branch, ele, mat6, err_flag);  if (err_flag) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
@@ -2502,10 +2514,11 @@ if (curve%ele_ref_name /= '') then
       return
     endif
 
-    s_now = branch%ele(curve%ix_ele_ref)%s
-    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
+    ele_ref => tao_curve_ele_ref(curve, .false.)
+    s_now = ele%s
+    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
 
-    if (err) then
+    if (err_flag) then
       tao_branch%plot_cache(ii:)%err = .true.
       good(ii:) = .false.
       bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
@@ -2522,8 +2535,8 @@ if (curve%ele_ref_name /= '') then
       return
     endif
 
-    call this_value_at_s (data_type_select, sub_data_type, value, gd, ok, ii, &
-                  s_last, s_now, tao_branch, orbit, lat, branch, ele);  if (.not. ok) return
+    call this_value_at_s (data_type_select, sub_data_type, value, ii, &
+                  s_last, s_now, tao_branch, orbit, lat, branch, ele, mat6, err_flag);  if (.not. ok) return
 
     curve%y_line = curve%y_line - comp_sign * value
   end select
@@ -2535,8 +2548,8 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (data_type_select, sub_data_type, value, good1, ok, ii, &
-                                       s_last, s_now, tao_branch, orbit, lat, branch, ele)
+subroutine this_value_at_s (data_type_select, sub_data_type, value, ii, &
+                                       s_last, s_now, tao_branch, orbit, lat, branch, ele, mat6, err_flag)
 
 type (coord_struct) orbit, orb_end
 type (tao_lattice_branch_struct) :: tao_branch
@@ -2547,15 +2560,13 @@ type (branch_struct) branch
 type (branch_struct), pointer :: this_branch
 type (twiss_struct), pointer :: z0, z1, z2
 
-real(rp) value, s_last, s_now, ds, m6(6,6), dalpha, dbeta, aa, bb, dE
+real(rp) value, s_last, s_now, ds, m6(6,6), dalpha, dbeta, aa, bb, dE, mat6(6,6)
 integer status, ii, i, j
-logical good1, ok
+logical is_ok, err_flag
 character(*) data_type_select, sub_data_type
 character(40) name
 
 !
-
-ok = .true.
 
 select case (data_type_select)
 
@@ -2579,12 +2590,43 @@ case ('apparent_emit', 'norm_apparent_emit')
     goto 9000  ! Error message & Return
   end select
 
+case ('chrom')
+  dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
+  ds = s_now - ele_here%s_start
+  i = ix_ele_here
+
+  this_lat => tao_lat%high_E_lat
+  this_branch => this_lat%branch(ix_branch)
+  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
+              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), high_ele)
+  
+  this_lat => tao_lat%low_E_lat
+  this_branch => this_lat%branch(ix_branch)
+  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
+              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), low_ele)
+
+  if (data_type == 'chrom.w.a') then
+    z2 => high_ele%a
+    z1 => low_ele%a
+    Z0 => ele%a
+  else
+    z2 => high_ele%b
+    z1 => low_ele%b
+    z0 => ele%b
+  endif
+
+  dalpha = (z2%alpha - z1%alpha) / dE
+  dbeta  = (z2%beta - z1%beta) / dE
+  aa = dalpha - z0%alpha * dbeta / z0%beta
+  bb = dbeta / z0%beta
+  value = sqrt(aa**2 + bb**2)
+
 case ('element_attrib')
   name = upcase(curve%data_source(16:))
   ele_dum%key = overlay$  ! so entire attribute name table will be searched
   i = attribute_index(ele_dum, name)
   if (i < 1) goto 9000
-  call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
+  call pointer_to_attribute (ele_ref, name, .false., a_ptr, err_flag, .false.)
   if (associated (a_ptr%r)) value = a_ptr%r
 
 case ('emit')
@@ -2613,9 +2655,9 @@ case ('emit')
 
 case ('expression')
   this_ele => ele  ! Need a pointer to an ele
-  call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, err, .true., &
+  call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, err_flag, .true., &
             dflt_source = 'at_ele', dflt_ele = this_ele, dflt_uni = tao_lat%u%ix_uni, &
-            dflt_orbit = orbit);  if (err) goto 9000  ! Error message & Return
+            dflt_orbit = orbit);  if (err_flag) goto 9000  ! Error message & Return
   value = val_arr(1)
 
 case ('momentum_compaction')
@@ -2699,43 +2741,13 @@ case ('t', 'tt')
     expnt(k) = expnt(k) + 1
   enddo
   call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
-                                          unit_start = .false., concat_if_possible = s%global%concatenate_maps)
+                          unit_start = .false., err_flag = err_flag, concat_if_possible = s%global%concatenate_maps)
+  if (err_flag) return
   value = taylor_coef (t_map(i), expnt)
 
-case ('chrom')
-  dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
-  ds = s_now - ele_here%s_start
-  i = ix_ele_here
-
-  this_lat => tao_lat%high_E_lat
-  this_branch => this_lat%branch(ix_branch)
-  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
-              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), high_ele)
-  
-  this_lat => tao_lat%low_E_lat
-  this_branch => this_lat%branch(ix_branch)
-  call twiss_and_track_intra_ele (this_branch%ele(i), this_branch%param, 0.0_rp, ds, .true., .true., &
-              this_branch%ele(i)%map_ref_orb_in, orb_end, this_branch%ele(i-1), low_ele)
-
-  if (data_type == 'chrom.w.a') then
-    z2 => high_ele%a
-    z1 => low_ele%a
-    Z0 => ele%a
-  else
-    z2 => high_ele%b
-    z1 => low_ele%b
-    z0 => ele%b
-  endif
-
-  dalpha = (z2%alpha - z1%alpha) / dE
-  dbeta  = (z2%beta - z1%beta) / dE
-  aa = dalpha - z0%alpha * dbeta / z0%beta
-  bb = dbeta / z0%beta
-  value = sqrt(aa**2 + bb**2)
-
 case default
-  value = tao_param_value_at_s (data_type, ele, orbit, err, why_invalid)
-  if (err) then
+  value = tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid)
+  if (err_flag) then
     call tao_set_curve_invalid(curve, why_invalid, .true.)
     goto 9100  ! Cleanup & Return
   endif
@@ -2751,7 +2763,6 @@ call tao_set_curve_invalid(curve, 'CANNOT EVALUATE FOR SMOOTH LINE CALC: ' // da
 good = .false.
 bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
-ok = .false.
 
 end subroutine this_value_at_s
 
@@ -2885,13 +2896,13 @@ type (tao_universe_struct), pointer :: u
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 type (ele_pointer_struct), allocatable, target :: eles(:)
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele_ref
 
 real(rp) y_val
 
 integer i, j, m, ie, n_dat
 
-logical err, valid
+logical err_flag, valid
 logical, allocatable :: good(:)
 
 character(*) who
@@ -2908,9 +2919,14 @@ call re_allocate (scratch%y_value, n_dat) ! allocate space for the data
 
 scratch%y_value = 0
 good = .true.
+ele_ref => tao_curve_ele_ref(curve, .true.)
 
 datum%exists         = .true.
-datum%ix_ele_ref     = curve%ix_ele_ref_track
+if (associated(ele_ref)) then
+  datum%ix_ele_ref     = ele_ref%ix_ele
+else
+  datum%ix_ele_ref     = -1
+endif
 datum%ix_ele_start   = -1
 datum%ele_start_name = ''
 datum%merit_type     = 'target'
@@ -2919,8 +2935,8 @@ datum%ele_ref_name   = curve%ele_ref_name
 datum%data_source    = curve%data_source
 datum%ix_branch      = tao_branch_index(curve%ix_branch)
 
-call tao_split_component (curve%component, scratch%comp, err)
-if (err) then
+call tao_split_component (curve%component, scratch%comp, err_flag)
+if (err_flag) then
   call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT EXPRESSION: ' // curve%component)
   return
 endif

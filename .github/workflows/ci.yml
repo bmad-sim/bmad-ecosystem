@@ -4,10 +4,8 @@ on:
   # Run on demand
   workflow_dispatch:
 
-  # Run on push to main
+  # Run on push to any branch
   push:
-    branches:
-      - "main"
 
   # Run on pull requests
   pull_request:
@@ -21,12 +19,12 @@ on:
   ##   types:
   ##     - "published"
 
-# Configuration for the version of external dependencies
+# Configuration for the version of external packages
 # We do this so we can cache them and avoid checking out that big
 # repository at all times.
 
 env:
-  EXTERNAL_DEPS_VERSION: main
+  EXTERNAL_PACKAGES_VERSION: main
 
 #
 jobs:
@@ -34,8 +32,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     #
     defaults:
-        run:
-          shell: bash
+      run:
+        shell: bash
 
     strategy:
       matrix:
@@ -49,36 +47,16 @@ jobs:
       # Check out the code from GitHub
       - uses: actions/checkout@v4
 
-      # Install system dependencies
-      - name: Install System Dependencies
-        run: |
-          sudo apt update
-          sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc libopenmpi-dev openmpi-bin openmpi-common
+      - uses: ./.github/actions/setup-dependencies
+        with:
+          external-packages-version: ${{ env.EXTERNAL_PACKAGES_VERSION }}
 
-      # sudo apt install build-essential curl wget cmake gfortran automake \
-      # autoconf libtool m4 libgomp1 libreadline-dev libncurses-dev pkg-config \
-      # libcairo2-dev libpango1.0-dev libxt-dev libx11-dev -y
-
-      # In case we don't have it available, check it out
-      - name: Checkout External Dependencies
-        run: |
-          git clone --depth 1 --branch ${{ env.EXTERNAL_DEPS_VERSION }} https://github.com/bmad-sim/bmad-external-deps.git ~/external_deps
-
-      #
-      - name: Extract dependencies
-        run: |
-          for dep in ~/external_deps/*.tar.gz; \
-          do \
-            tar xzvf $dep -C $GITHUB_WORKSPACE/; \
-          done
-
-      #
-      - name: Build
+      - name: Build Bmad
         env:
           USE_MPI: ${{ matrix.openmp_mpi }}
           SHARED: ${{ matrix.shared }}
         run: .github/scripts/install_bmad.sh
 
-      #
       - name: Run Tests
-        run: .github/scripts/run_tests.sh
+        shell: bash -eo pipefail -l {0}
+        run: .github/scripts/run_tests.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"

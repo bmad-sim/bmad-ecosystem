@@ -14,7 +14,6 @@ use tao_init_mod, dummy2 => tao_init
 use tao_init_data_mod, dummy3 => tao_init
 use tao_init_variables_mod, dummy4 => tao_init
 use tao_lattice_calc_mod, dummy5 => tao_init
-use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
 use tao_plot_mod, only: tao_draw_plots
@@ -46,7 +45,7 @@ character(16) :: r_name = 'tao_init'
 character(16) init_name
 
 integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios, ie
-integer iu_log, omp_n
+integer iu_log
 
 logical err_flag
 logical err, calc_ok, valid_value, this_calc_ok, using_default
@@ -77,8 +76,8 @@ endif
 
 ! OpenMP info
 
-!$ omp_n = omp_get_max_threads()
-!$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(omp_n))
+!$ s%global%n_threads = omp_get_max_threads()
+!$ call out_io (s_important$, r_name, 'OpenMP active with number of threads: ' // int_str(s%global%n_threads))
 
 ! Open the init file.
 ! If the init file name is *not* the default (that is, it has been set by
@@ -319,13 +318,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
     if (branch%param%particle /= photon$ .and. this_calc_ok) then
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                                  tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
+                                  tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int_by_ele_ri)
 
       if (branch%param%geometry == closed$ .and. tao_branch%track_state == moving_forward$) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
-                   tao_branch%orbit(0)%vec(6), low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat, ix_branch = ib)
-        call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit)
-        call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit)
+              tao_branch%orbit(0)%vec(6), tao_lat%low_E_lat, tao_lat%high_E_lat, tao_branch%low_E_orb, tao_branch%high_E_orb, ib)
+        call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
+        call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
         tao_branch%modes_6d%momentum_compaction = momentum_compaction(branch)
         if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
                                                    (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
@@ -367,7 +366,6 @@ call tao_lattice_calc (calc_ok)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
-  if (u%design_same_as_previous) u%model = s%u(i-1)%model
 
   u%design = u%model
   u%base = u%design
@@ -376,8 +374,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%model%name  = 'model'
   u%base%name   = 'base'
 
-  u%design%tao_branch = u%model%tao_branch
-  u%base%tao_branch   = u%design%tao_branch
   u%data%design_value = u%data%model_value
   u%data%base_value   = u%data%model_value
   u%data%good_design  = u%data%good_model

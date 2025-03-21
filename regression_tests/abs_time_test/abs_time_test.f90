@@ -13,6 +13,7 @@ logical err_flag, ok
 
 !
 
+bmad_com%auto_bookkeeper = .false.
 call bmad_parser ('abs_time_test.bmad', lat)
 
 call reallocate_coord (orb1, lat%n_ele_max)

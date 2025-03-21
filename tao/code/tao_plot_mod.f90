@@ -436,11 +436,11 @@ endif
 
 if (graph%ix_universe == -2) then
   do isu = 1, size(s%u)
-    call draw_this_floor_plan(isu)
+    call draw_this_floor_plan(isu, plot, graph)
   enddo
 else
   isu = tao_universe_index(graph%ix_universe)
-  call draw_this_floor_plan(isu)
+  call draw_this_floor_plan(isu, plot, graph)
 endif
 
 ! Hook routine for more plotting if desired...
@@ -452,8 +452,10 @@ call qp_restore_state
 !-------------------------------------------------------------
 contains
 
-subroutine draw_this_floor_plan(isu)
+subroutine draw_this_floor_plan(isu, plot, graph)
 
+type (tao_plot_struct) :: plot
+type (tao_graph_struct) :: graph
 type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_lattice_struct), pointer :: tao_lat
 type (tao_building_wall_point_struct) pt0, pt1
@@ -488,6 +490,7 @@ end select
 lat => tao_lat%lat
 
 ! loop over all elements in the lattice. 
+! If the logic of this loop is changed, a corresponding change must be made for the "pipe floor_plan" code.
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
@@ -692,6 +695,8 @@ logical is_bend, can_test
 
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
+
+!
 
 orbit => tao_lat%tao_branch(ele1%ix_branch)%orbit
 
@@ -1955,10 +1960,8 @@ do i = 1, nc
   if (.not. curve%draw_symbols) symbol(i)%type = ''  ! Do not draw
 enddo
 
-if (graph%draw_curve_legend .and. nc > 1) then
-  call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
-            graph%curve_legend_origin%units, line, s%plot_page%curve_legend_line_len, &
-            symbol, text, s%plot_page%curve_legend_text_offset)
+if (graph%draw_curve_legend .and. (nc > 1 .or. .not. graph%x%draw_label)) then
+  call qp_draw_curve_legend (graph%curve_legend_origin, graph%curve_legend, line, symbol, text)
 endif
 
 
