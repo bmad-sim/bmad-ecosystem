@@ -2,6 +2,8 @@ module hdf5_openpmd_mod
 
 use hdf5_interface
 
+implicit none
+
 ! Common units
 
 type pmd_unit_struct
@@ -43,6 +45,9 @@ type(pmd_unit_struct), parameter :: unit_eV         = pmd_unit_struct('eV', e_ch
 type(pmd_unit_struct), parameter :: unit_eV_per_c   = pmd_unit_struct('eV/c', e_charge/c_light, dim_momentum)
 type(pmd_unit_struct), parameter :: unit_Tesla      = pmd_unit_struct('Tesla', 1.0_rp, dim_tesla)
 type(pmd_unit_struct), parameter :: unit_hbar       = pmd_unit_struct('hbar', e_charge * h_bar_planck, dim_hbar)
+
+character(6), parameter :: xyz_axislabels(3) = [character(8):: 'x', 'y', 'z']        
+character(6), parameter :: rthetaz_axislabels(3) = [character(8):: 'r', 'theta', 'z']
 
 ! 
 
@@ -624,7 +629,6 @@ logical error, err
 dims = shape(array)
 call H5Screate_simple_f(2, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
@@ -676,7 +680,6 @@ logical err, error
 dims = shape(array)
 call H5Screate_simple_f(3, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
@@ -802,7 +805,7 @@ subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, e
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id
-integer h5_err
+integer h5_err, n
 logical error
 character(*) dataset_name, bmad_name
 
@@ -886,7 +889,7 @@ end subroutine pmd_read_int_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, data_order, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 2.
 !
@@ -894,6 +897,7 @@ end subroutine pmd_read_int_dataset_rank1
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   data_order          -- character(*): Data ordering. 'F', 'C', or '' (not yet determined).
 !   array(:,:)          -- integer: Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -901,7 +905,7 @@ end subroutine pmd_read_int_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
 type (pmd_unit_struct) unit
@@ -914,6 +918,7 @@ integer h5_err, array(:,:), c_val
 logical error, err
 
 character(*) name
+character(*) data_order
 character(*), parameter :: r_name = 'pmd_read_int_dataset_rank2'
 
 !
@@ -936,7 +941,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_int(root_id, name, array, err)
+  call hdf5_read_dataset_int(root_id, name, data_order, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
@@ -955,7 +960,7 @@ end subroutine pmd_read_int_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, data_order, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 3.
 !
@@ -963,6 +968,7 @@ end subroutine pmd_read_int_dataset_rank2
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   data_order          -- character(*): Data ordering. 'F', 'C', or '' (not yet determined).
 !   array(:,:,:)        -- integer: Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -970,7 +976,7 @@ end subroutine pmd_read_int_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
 type (pmd_unit_struct) unit
@@ -983,6 +989,7 @@ integer h5_err, array(:,:,:), c_val
 logical error, err
 
 character(*) name
+character(*) data_order
 character(*), parameter :: r_name = 'pmd_read_int_dataset_rank3'
 
 !
@@ -1005,7 +1012,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_int(root_id, name, array, err)
+  call hdf5_read_dataset_int(root_id, name, data_order, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
@@ -1094,7 +1101,7 @@ end subroutine pmd_read_real_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, data_order, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 2.
 !
@@ -1102,6 +1109,7 @@ end subroutine pmd_read_real_dataset_rank1
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   data_order          -- character(*): Data ordering. 'F', 'C', or '' (not yet determined).
 !   array(:,:)          -- real(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1109,7 +1117,7 @@ end subroutine pmd_read_real_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1122,6 +1130,7 @@ integer h5_err
 logical error, err
 
 character(*) name
+character(*) data_order
 character(*), parameter :: r_name = 'pmd_read_real_dataset_rank2'
 
 !
@@ -1144,7 +1153,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_real(root_id, name, array, err)
+  call hdf5_read_dataset_real(root_id, name, data_order, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
@@ -1163,7 +1172,7 @@ end subroutine pmd_read_real_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, data_order, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 3.
 !
@@ -1171,6 +1180,7 @@ end subroutine pmd_read_real_dataset_rank2
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   data_order          -- character(*): Data ordering. 'F', 'C', or '' (not yet determined).
 !   array(:,:,:)        -- real(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1178,7 +1188,7 @@ end subroutine pmd_read_real_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1191,6 +1201,7 @@ integer h5_err
 logical error, err
 
 character(*) name
+character(*) :: data_order
 character(*), parameter :: r_name = 'pmd_read_real_dataset_rank3'
 
 !
@@ -1213,7 +1224,7 @@ if (info%element_type == H5O_TYPE_DATASET_F) then
     return
   endif
 
-  call hdf5_read_dataset_real(root_id, name, array, err)
+  call hdf5_read_dataset_real(root_id, name, data_order, array, err)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
@@ -1306,7 +1317,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, array, error)
+! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, data_order, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 2.
 !
@@ -1314,6 +1325,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   data_order          -- character(*): Data ordering. 'F', 'C', or '' (not yet determined).
 !   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1321,7 +1333,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, array, error)
+subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1337,7 +1349,7 @@ type(c_ptr) :: f_ptr
 logical error, err
 
 character(*) name
-character(1) d_ord
+character(*) data_order
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank2'
 
 ! Non-compound data means old format
@@ -1349,9 +1361,9 @@ info = hdf5_object_info(root_id, name, error, .true.)
 if (info%data_class_type /= H5T_COMPOUND_F) then
   allocate (re(size(array,1), size(array,2)), im(size(array,1), size(array,2)))
 
-  call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call h5gopen_f(root_id, name, z_id, h5_err); if (h5_err == -1) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, data_order, re, err); if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, data_order, im, err); if (err) return
   call h5gclose_f(z_id, h5_err)
 
   array = cmplx(re, im, rp)
@@ -1361,8 +1373,8 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-call hdf5_read_dataorder(root_id, name, d_ord)
-if (d_ord == 'C') then
+call hdf5_read_dataorder(root_id, name, data_order)
+if (data_order == 'C') then
   allocate (cc(size(array,2), size(array,1)))
 else
   allocate (cc(size(array,1), size(array,2)))
@@ -1379,7 +1391,7 @@ call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
 call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
 call hdf5_close_object(z_id, info)
 
-if (d_ord == 'C') then
+if (data_order == 'C') then
   do i = 1, size(array,1)
     array(i,:) = cc(:,i)
   enddo
@@ -1395,7 +1407,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, array, error)
+! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, data_order, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 3.
 !
@@ -1403,6 +1415,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   name                -- character(*): Name of the dataset.
 !   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   data_order          -- character(*): Data ordering. 'F', 'C', or '' (not yet determined).
 !   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
@@ -1410,7 +1423,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, array, error)
+subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
 
@@ -1426,7 +1439,7 @@ type(c_ptr) :: f_ptr
 logical error, err
 
 character(*) name
-character(1) d_ord
+character(*) data_order
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
 ! Non-compound data means old format
@@ -1439,8 +1452,8 @@ if (info%data_class_type /= H5T_COMPOUND_F) then
   allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
 
   call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, data_order, re, err);      if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, data_order, im, err);      if (err) return
   call h5gclose_f(z_id, h5_err)
 
   array = cmplx(re, im, rp)
@@ -1450,8 +1463,8 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-call hdf5_read_dataorder(root_id, name, d_ord)
-if (d_ord == 'C') then
+call hdf5_read_dataorder(root_id, name, data_order)
+if (data_order == 'C') then
   allocate (cc(size(array,3), size(array,2), size(array,1)))
 else
   allocate (cc(size(array,1), size(array,2), size(array,3)))
@@ -1468,7 +1481,7 @@ call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
 call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
 call hdf5_close_object(z_id, info)
 
-if (d_ord == 'C') then
+if (data_order == 'C') then
   do i = 1, size(array,1);  do j = 1, size(array,2)
     array(i,j,:) = cc(:,j,i)
   enddo;  enddo

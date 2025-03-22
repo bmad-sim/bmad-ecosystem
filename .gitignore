@@ -80,6 +80,7 @@ regression_tests/envelope_ibs_test/sigma_start.out
 regression_tests/hdf5_test/bunch.h5
 regression_tests/hdf5_test/grid_field.h5
 regression_tests/hdf5_test/bunch.ascii
+regression_tests/hdf5_test/general.h5
 regression_tests/multipass_test/out.bmad
 regression_tests/multipass_test/lat1.bmad
 regression_tests/multipass_test/lat2.bmad
