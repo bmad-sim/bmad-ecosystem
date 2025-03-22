@@ -1541,9 +1541,11 @@ this_graph%p%default_plot = .true.   ! Plot has been modified
 
 ! if the universe is changed then need to check ele_ref
 
+err = .false.
 comp = component
 ix = index(comp, '.')
 if (ix /= 0) comp(ix:ix) = '%'
+
 select case (comp)
 
 case ('ele_ref_name', 'ix_ele_ref')   ! ix_ele_ref is old style

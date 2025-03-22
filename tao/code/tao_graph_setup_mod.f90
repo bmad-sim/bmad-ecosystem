@@ -2196,7 +2196,7 @@ type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele_last, ele_here, ele_ref, this_ele
+type (ele_struct), pointer :: ele_last, ele_here, ele_ref, this_ele, ele0
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
@@ -2230,9 +2230,9 @@ n_ele_track = branch%n_ele_track
 
 ele_ref => tao_curve_ele_ref(curve, .true.)
 if (associated(ele_ref)) then
-  ix_ref = ele%ix_ele
+  ix_ref = ele_ref%ix_ele
 else
-  ix_ref = 0
+  ix_ref = 0   ! If beginning element is needed as ref.
 endif
 
 if (lat%param%geometry == closed$ .and. .not. lat%param%stable) then
@@ -2462,6 +2462,10 @@ do ii = 1, size(curve%x_line)
         ele%mat6 = mat6
         ele%key = hybrid$                  ! So twiss_propagate1 does not get confused.
         call twiss_propagate1(branch%ele(0), ele, err_flag)
+        ! Correct phase that can be off by factors of twopi
+        ele0 => branch%ele(ele_here%ix_ele-1)
+        ele%a%phi = ele%a%phi + twopi * nint((0.5_rp *(ele0%a%phi + ele_here%a%phi) - ele%a%phi) / twopi)
+        ele%b%phi = ele%b%phi + twopi * nint((0.5_rp *(ele0%b%phi + ele_here%b%phi) - ele%b%phi) / twopi)
       endif
 
 
@@ -2494,8 +2498,9 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (data_type_select, sub_data_type, value, ii, &
-                            s_last, s_now, tao_branch, orbit, lat, branch, ele, mat6, err_flag);  if (err_flag) return
+  call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
+                            tao_branch, orbit, lat, branch, ele, ele_ref, mat6, err_flag);  if (err_flag) return
+
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
@@ -2515,7 +2520,7 @@ if (curve%ele_ref_name /= '') then
     endif
 
     ele_ref => tao_curve_ele_ref(curve, .false.)
-    s_now = ele%s
+    s_now = ele_ref%s
     call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
 
     if (err_flag) then
@@ -2535,8 +2540,8 @@ if (curve%ele_ref_name /= '') then
       return
     endif
 
-    call this_value_at_s (data_type_select, sub_data_type, value, ii, &
-                  s_last, s_now, tao_branch, orbit, lat, branch, ele, mat6, err_flag);  if (.not. ok) return
+    call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
+                  tao_branch, orbit, lat, branch, ele, ele_ref, mat6, err_flag);  if (err_flag) return
 
     curve%y_line = curve%y_line - comp_sign * value
   end select
@@ -2548,12 +2553,12 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (data_type_select, sub_data_type, value, ii, &
-                                       s_last, s_now, tao_branch, orbit, lat, branch, ele, mat6, err_flag)
+subroutine this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
+                                   tao_branch, orbit, lat, branch, ele, ele_ref, mat6, err_flag)
 
 type (coord_struct) orbit, orb_end
 type (tao_lattice_branch_struct) :: tao_branch
-type (ele_struct), target :: ele, ele_dum, high_ele, low_ele
+type (ele_struct), target :: ele, ele_ref, ele_dum, high_ele, low_ele
 type (lat_struct) lat
 type (lat_struct), pointer :: this_lat
 type (branch_struct) branch

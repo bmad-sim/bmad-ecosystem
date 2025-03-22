@@ -147,6 +147,7 @@ do
   ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
 
   if (present(ele_end)) then
+    ele_end%ix_ele = ix_end
     if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_end%floor, ele_track, ele_end%floor)
     if (orbit_start%species == photon$) cycle
     ele_end%map_ref_orb_out = ele_track%map_ref_orb_out  ! Needed for dispersion calc.
