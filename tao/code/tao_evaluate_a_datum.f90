@@ -752,8 +752,15 @@ case ('chrom.')
   endif
 
   if (.not. tao_lat%chrom_calc_ok) then
-    call tao_set_invalid (datum, 'Chrom calc failed.', why_invalid)
-    return
+    ! Can happen with a command like "show lat -attribute chrom.a" that the chromaticity has not been computed.
+    ! So try to compute it.
+    s%com%force_chrom_calc = .true.
+    s%u%calc%lattice = .true.
+    call tao_lattice_calc(ok)
+    if (.not. ok .or. .not. tao_lat%chrom_calc_ok) then
+      call tao_set_invalid (datum, 'Chrom calc failed.', why_invalid)
+      return
+    endif
   elseif (.not. allocated(tao_lat%low_E_lat%branch)) then
     if (branch%param%unstable_factor == 0) then
       call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.', why_invalid)

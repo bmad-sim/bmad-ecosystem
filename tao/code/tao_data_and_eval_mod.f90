@@ -1319,7 +1319,7 @@ elseif (source == 'ele') then
   stack%type = ele_num$
 
   if (err_flag) then
-    call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, dflt_source, dflt_ele_ref, &
+    call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, "lat", dflt_ele_ref, &
                               dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
     stack%type = lat_num$
   endif
