@@ -2,7 +2,6 @@ module write_lattice_file_mod
 
 use element_modeling_mod
 use binary_parser_mod
-use multipole_mod
 
 type multipass_region_ele_struct
   integer ix_region

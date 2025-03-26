@@ -2144,16 +2144,10 @@ Example:
 This example creates a v1 var structure called "quad_k1" with an associated
 variable array that has the range [0, 45].
 
-Use the "set variable" command to set a created variable parameters.
-In particular, to slave a lattice parameter to a variable use the command:
-  set {v1_name}|ele_name = {lat_param}
-where {lat_param} is of the form {ix_uni}@{ele_name_or_location}{param_name}]
-Examples:
-  set quad_k1[2]|ele_name = 2@q01w[k1]
-  set quad_k1[2]|ele_name = 2@0>>10[k1]
-Note: When setting multiple variable parameters, 
-      temporarily toggle s%global%lattice_calc_on to False
-  ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the 
+Use the "pipe var_create" and "set variable" commands to set variable parameters.
+Note: When setting multiple variable parameters, first set
+  set global lattice_calc_on = F")
+to prevent Tao trying to evaluate the 
 partially created variable and generating unwanted error messages.
 \end{verbatim}
 

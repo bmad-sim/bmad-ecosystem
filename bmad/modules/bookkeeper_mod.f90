@@ -1,7 +1,6 @@
 module bookkeeper_mod
 
 use wall3d_mod
-use multipole_mod
 use equality_mod
 use expression_mod
 use changed_attribute_bookkeeper

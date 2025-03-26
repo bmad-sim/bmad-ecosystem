@@ -1316,15 +1316,21 @@ if (source == 'lat' .or. source == 'beam') then
 elseif (source == 'ele') then
   call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_ele, &
                                                   dflt_source, dflt_component, dflt_uni, dflt_eval_point, stack%info)
+  stack%type = ele_num$
+
+  if (err_flag) then
+    call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, "lat", dflt_ele_ref, &
+                              dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
+    stack%type = lat_num$
+  endif
+
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = (.not. err_flag)
-  stack%type = ele_num$
   return
 
 ! Look for variable or data values
 
 else
-
   err_flag = .true.
   print_error = print_err
   if (source == '') print_error = .false. ! Don't generate unnecessary messages

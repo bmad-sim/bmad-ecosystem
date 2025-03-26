@@ -19,7 +19,7 @@
 !
 ! Output:
 !   err       -- logical: True if there is an error in syntax. False otherwise
-!   values(:) -- real(rp), allocatable: Array of datum valuse.
+!   values(:) -- real(rp), allocatable: Array of datum values.
 !   info(:)   -- tao_expression_info_struct), allocatable, optional:  
 !-
 

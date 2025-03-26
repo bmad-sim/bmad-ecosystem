@@ -46,6 +46,7 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
 
 use super_recipes_mod
 use em_field_mod, dummy => em_field_calc
+use multipole_mod, dummy2 => em_field_calc
 
 implicit none
 
