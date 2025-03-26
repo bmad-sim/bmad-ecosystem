@@ -2178,7 +2178,13 @@ case ('base')
 case ('ele_name', 'attrib_name', 'design', 'old', 'base_value', &
       'design_value', 'old_value', 'merit', 'delta_merit', 'exists', 'good_var', 'useit_opt', &
       'useit_plot')
-  call out_io (s_error$, r_name, 'VARIABLE ATTRIBUTE NOT SETTABLE: ' // component)
+  select case (component)
+  case ('ele_name', 'attrib_name')
+    call out_io (s_error$, r_name, 'VARIABLE ATTRIBUTE NOT SETTABLE: ' // component, &
+                                   'USE THE "pipe var_create" COMMAND.')
+  case default
+    call out_io (s_error$, r_name, 'VARIABLE ATTRIBUTE NOT SETTABLE: ' // component)
+  end select
   return
 end select
 

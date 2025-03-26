@@ -7,7 +7,6 @@
 module em_field_mod
 
 use spline_mod
-use multipole_mod
 use taylor_mod
 
 implicit none

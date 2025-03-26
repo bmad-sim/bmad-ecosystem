@@ -14,7 +14,7 @@
 
 subroutine multipole_spin_tracking (ele, param, orbit)
 
-use multipole_mod, dummy => multipole_spin_tracking
+use bmad_routine_interface, dummy => multipole_spin_tracking
 
 implicit none
 

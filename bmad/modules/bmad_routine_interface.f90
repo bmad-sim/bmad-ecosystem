@@ -1096,6 +1096,17 @@ function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed
   logical set_old, has_changed
 end function
 
+subroutine elec_multipole_field (a, b, n, coord, Ex, Ey, dE, compute_dE)
+  import
+  implicit none
+  type (coord_struct)  coord
+  real(rp) a, b
+  real(rp), optional :: dE(2,2)
+  real(rp) Ex, Ey
+  integer n
+  logical, optional :: compute_dE
+end subroutine
+
 subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
   import
   implicit none
@@ -1703,6 +1714,29 @@ subroutine multipass_chain (ele, ix_pass, n_links, chain_ele, use_super_lord)
   logical, optional :: use_super_lord
 end subroutine
 
+subroutine multipole1_ab_to_kt (an, bn, n, knl, tn)
+  import
+  implicit none
+  real(rp) an, bn
+  real(rp) knl, knsl, tn
+  integer n
+end subroutine
+
+subroutine multipole1_kt_to_ab (knl, knsl, tn, n, an, bn)
+  import
+  implicit none
+  real(rp) an, bn
+  real(rp) knl, knsl, tn
+  integer n
+end subroutine
+
+subroutine multipole_ab_to_kt (an, bn, knl, tn)
+  import
+  implicit none
+  real(rp) an(0:), bn(0:)
+  real(rp) knl(0:), tn(0:)
+end subroutine
+
 recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
   import
   implicit none
@@ -1713,6 +1747,23 @@ recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, 
   integer, optional :: pole_type, include_kicks
   integer include_kck
   logical use_ele_tilt
+end subroutine
+
+subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type, include_kicks)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  real(rp) knl(0:), tilt(0:)
+  integer ix_pole_max
+  integer, optional :: pole_type, include_kicks
+  logical use_ele_tilt
+end subroutine
+
+subroutine multipole_kt_to_ab (knl, knsl, tn, an, bn)
+  import
+  implicit none
+  real(rp) an(0:), bn(0:)
+  real(rp) knl(0:), knsl(0:), tn(0:)
 end subroutine
 
 subroutine multipole_init (ele, who, zero)
