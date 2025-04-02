@@ -18,7 +18,7 @@ use ptc_interface_mod
 
 implicit none
 
-type (tao_design_lat_input), target :: design_lattice(0:200)
+type (tao_design_lat_input), target :: design_lattice(200)
 type (tao_design_lat_input), pointer :: design_lat1, dl0
 type (lat_struct), pointer :: lat
 type (lat_struct) parse_lat
@@ -49,7 +49,6 @@ namelist / tao_design_lattice / design_lattice, &
 
 err_flag = .true.
 design_lattice = tao_design_lat_input()
-design_lattice(0)%file = 'Garbage!!!'
 
 alternative_lat_file_exists = (s%init%hook_lat_file /= '' .or. s%init%lattice_file_arg /= '')
 if (associated(tao_hook_init_read_lattice_info_ptr)) call tao_hook_init_read_lattice_info_ptr (namelist_file)
@@ -184,15 +183,20 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   ! A blank means use the lattice form universe 1.
 
   allocate (u%design, u%base, u%model)
-  dl0 => design_lattice(i_uni-1)
-  if (design_lat1%file == dl0%file .and. design_lat1%slice_lattice == dl0%slice_lattice .and. &
-            design_lat1%file2 == dl0%file2 .and. design_lat1%use_line == dl0%use_line .and. &
-           (design_lat1%reverse_lattice .eqv. dl0%reverse_lattice) .and. &
-            design_lat1%start_branch_at == dl0%start_branch_at) then
-    u%design_same_as_previous = .true.
-    u%design%lat = s%u(i_uni-1)%design%lat
-  else
-    u%design_same_as_previous = .false.
+  u%design_same_as_previous = .false.
+
+  if (i_uni > 1) then
+    dl0 => design_lattice(i_uni-1)
+    if (design_lat1%file == dl0%file .and. design_lat1%slice_lattice == dl0%slice_lattice .and. &
+              design_lat1%file2 == dl0%file2 .and. design_lat1%use_line == dl0%use_line .and. &
+             (design_lat1%reverse_lattice .eqv. dl0%reverse_lattice) .and. &
+              design_lat1%start_branch_at == dl0%start_branch_at) then
+      u%design_same_as_previous = .true.
+      u%design%lat = s%u(i_uni-1)%design%lat
+    endif
+  endif
+
+  if (.not. u%design_same_as_previous) then
     select case (design_lat1%language)
     case ('bmad')
       call out_io (s_blank$, r_name, 'Reading Bmad file: ' // design_lat1%file)
