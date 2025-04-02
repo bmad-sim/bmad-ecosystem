@@ -29,9 +29,11 @@ contains
 !+
 ! Subroutine emit_6d (ele_ref, include_opening_angle, mode, sigma_mat, closed_orbit, rad_int_by_ele) 
 !
-! Routine to calculate the three normal mode emittances, damping partition numbers, etc. 
+! Routine to calculate the three normal mode emittances, damping partition numbers, radiation integrals, etc. 
 ! Since the emattances, etc. are only an invariant in the limit of zero damping, the calculated
 ! values will vary depending upon the reference element.
+!
+! If the lattice geometry is open, only the radiation integrals is computed.
 !
 ! Input:
 !   ele_ref               -- ele_struct: Origin of the 1-turn maps used to evaluate the emittances.
@@ -121,6 +123,7 @@ else
 endif
 
 if (err) return
+if (branch%param%geometry == open$) return
 
 ! If there is no RF then add a small amount to enable the calculation to proceed.
 ! The RF is modeled as a unit matrix with M(6,5) = 1d-4.

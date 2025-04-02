@@ -776,8 +776,8 @@ type tao_common_struct
   logical :: command_arg_has_been_executed = .false.  ! Has the -command command line argument been executed?
   logical :: all_merit_weights_positive = .true.  
   logical :: multi_turn_orbit_is_plotted = .false.    ! Is a multi_turn_orbit being plotted?
-  logical :: force_chrom_calc = .false.               ! Used by a routine to force calculation
-  logical :: force_rad_int_calc = .false.             ! Used by a routine to force calculation
+  logical :: force_chrom_calc = .false.               ! Used by a routine to force a single chromaticity calculation.
+  logical :: force_rad_int_calc = .false.             ! Used by a routine to force a single radiation integrals calculation
   logical :: rad_int_ri_calc_on = .true.              ! "Classical" radiation integrals calculation on/off.
   logical :: rad_int_6d_calc_on = .true.              ! 6D Radiation integrals calculation on/off.
   character(16) :: valid_plot_who(10) = ''            ! model, base, ref etc...
@@ -958,11 +958,13 @@ type tao_lattice_struct
   character(8) :: name                         ! "model", "base", or "design".
   type (lat_struct) lat                        ! lattice structures
   type (lat_struct) :: high_E_lat, low_E_lat   ! For chrom calc.
-  logical :: chrom_calc_ok = .false.
   type (tao_universe_struct), pointer :: u => null()  ! Parent universe
   type (rad_int_all_ele_struct) rad_int_by_ele_ri
   type (rad_int_all_ele_struct) rad_int_by_ele_6d
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
+  logical :: chrom_calc_ok = .false.
+  logical :: rad_int_calc_ok = .false.
+  logical :: emit_6d_calc_ok = .false.
 end type
 
 ! Universe wide structure for information that does not fit anywhere else.

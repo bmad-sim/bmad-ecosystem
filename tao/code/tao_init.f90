@@ -320,11 +320,14 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                                   tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int_by_ele_ri)
 
+      if (tao_branch%track_state == moving_forward$) then
+        call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
+        call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
+      endif
+
       if (branch%param%geometry == closed$ .and. tao_branch%track_state == moving_forward$) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
               tao_branch%orbit(0)%vec(6), tao_lat%low_E_lat, tao_lat%high_E_lat, tao_branch%low_E_orb, tao_branch%high_E_orb, ib)
-        call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
-        call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
         tao_branch%modes_6d%momentum_compaction = momentum_compaction(branch)
         if (tao_branch%modes_6d%a%j_damp < 0 .or. tao_branch%modes_6d%b%j_damp < 0 .or. &
                                                    (tao_branch%modes_6d%z%j_damp < 0 .and. rf_is_on(branch))) then
