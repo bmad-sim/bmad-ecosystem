@@ -2300,6 +2300,12 @@ case ('rad_int.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
+  if (.not. tao_lat%rad_int_calc_ok .or. .not. tao_lat%emit_6d_calc_ok) then
+    s%com%force_rad_int_calc = .true.
+    u%calc%lattice = .true.
+    call tao_lattice_calc(ok)
+  endif
+
   branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
   branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
 

@@ -208,21 +208,25 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
     branch%param%stable = .false.
     branch%param%unstable_factor = 0  ! Unknown
   endif
-
 endif
 
 ! Calc radiation integrals when track_type == "beam" since init_beam_distribution may need this.
 
-if (branch%param%particle /= photon$ .and. tao_branch%track_state == moving_forward$ .and. &
-            (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
-
+if (s%com%force_rad_int_calc .or. (branch%param%particle /= photon$ .and. tao_branch%track_state == moving_forward$ .and. &
+                          (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam'))) then
   if ((s%com%rad_int_6d_calc_on .and. s%global%rad_int_user_calc_on) .or. s%com%force_rad_int_calc) then
+    tao_lat%emit_6d_calc_ok = .true.
     call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
   endif
 
   if ((s%com%rad_int_ri_calc_on .and. s%global%rad_int_user_calc_on) .or. s%com%force_rad_int_calc) then
     call radiation_integrals(lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int_by_ele_ri)
+    tao_lat%rad_int_calc_ok = .true.
   endif
+
+else
+  tao_lat%emit_6d_calc_ok = .false.
+  tao_lat%rad_int_calc_ok = .false.
 endif
 
 end subroutine tao_single_track
