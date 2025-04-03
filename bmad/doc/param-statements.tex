@@ -296,9 +296,13 @@ beam energy at the beginning of the first lattice branch.
   beginning[phi_b]         = <Real>  ! "b" mode phase.
   beginning[ref_time]      = <Real>  ! Starting reference time.
   beginning[s]             = <Real>  ! Longitudinal starting position.
-  beginning[spin_dn_dpz_x] = <Real>   ! Spin dn/dpz x-coordinate
-  beginning[spin_dn_dpz_y] = <Real>   ! Spin dn/dpz y-coordinate
-  beginning[spin_dn_dpz_z] = <Real>   ! Spin dn/dpz z-coordinate
+  beginning[spin_dn_dpz_x] = <Real>  ! Spin dn/dpz x-coordinate
+  beginning[spin_dn_dpz_y] = <Real>  ! Spin dn/dpz y-coordinate
+  beginning[spin_dn_dpz_z] = <Real>  ! Spin dn/dpz z-coordinate
+  beginning[dalpha_dpz_a]  = <Real>  ! dalpha_a/dpz derivative 
+  beginning[dalpha_dpz_b]  = <Real>  ! dalpha_b/dpz derivative 
+  beginning[dbeta_dpz_a]  = <Real>   ! dbeta_a/dpz derivative 
+  beginning[dbeta_dpz_b]  = <Real>   ! dbeta_b/dpz derivative 
 \end{example}
 \index{e_tot}
 The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma factor) will be kept consistent
@@ -357,9 +361,11 @@ Example:
   x_ray: line = (...)
   x_ray[E_tot] = 100
 \end{example}
-The \vn{inherit_from_fork} logical is used to determine if the reference energy and Twiss parameters as calculated
-from the \vn{fork} element defining the branch is used to set the beginning element of the branch. This parameter
-is ignored if the fork element does not fork to the beginning element of the branch. The default is True. If any reference energy or momentum or any Twiss parameter is set, \vn{inherit_from_fork} is implicitly set to False.
+The \vn{inherit_from_fork} logical is used to determine if the reference energy and Twiss parameters
+as calculated from the \vn{fork} element defining the branch is used to set the beginning element of
+the branch. This parameter is ignored if the fork element does not fork to the beginning element of
+the branch. The default is True. If any reference energy or momentum or any Twiss parameter is set,
+\vn{inherit_from_fork} is implicitly set to False.
 
 Rules:
   \begin{enumerate}

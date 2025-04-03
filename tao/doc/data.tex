@@ -1060,9 +1060,11 @@ where
   B = \frac{1}{\beta} \, \frac{\partial\beta}{\partial p_z}
 \end{equation}
 
-Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
-In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
-And $p_z$ is the local $p_z$ at the evaluation point (as opposed to the $p_z$ at the start of the lattice).
+Chromaticities and the W-function will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch can be set in the lattice file by setting
+\vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_dpz_b]}, \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]}.
+
+Note: $p_z$ is the local $p_z$ at the evaluation point (as opposed to the $p_z$ at the start of the lattice).
 
   %----------------------
   \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{chrom.ptc}

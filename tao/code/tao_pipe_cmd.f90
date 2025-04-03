@@ -6350,7 +6350,7 @@ case ('ring_general')
   endif
 
   call chrom_calc (branch%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
-                                                  pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
+                                  pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch, orb0 = tao_branch%orbit(0))
   call calc_z_tune(branch)
   call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
   call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, mat6, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)

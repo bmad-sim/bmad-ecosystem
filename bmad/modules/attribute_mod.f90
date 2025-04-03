@@ -907,6 +907,10 @@ call init_attribute_name1 (beginning_ele$, beta_a$,                      'BETA_A
 call init_attribute_name1 (beginning_ele$, beta_b$,                      'BETA_B')
 call init_attribute_name1 (beginning_ele$, alpha_a$,                     'ALPHA_A')
 call init_attribute_name1 (beginning_ele$, alpha_b$,                     'ALPHA_B')
+call init_attribute_name1 (beginning_ele$, dbeta_dpz_a$,                 'DBETA_DPZ_A')
+call init_attribute_name1 (beginning_ele$, dbeta_dpz_b$,                 'DBETA_DPZ_B')
+call init_attribute_name1 (beginning_ele$, dalpha_dpz_a$,                'DALPHA_DPZ_A')
+call init_attribute_name1 (beginning_ele$, dalpha_dpz_b$,                'DALPHA_DPZ_B')
 call init_attribute_name1 (beginning_ele$, eta_x$,                       'ETA_X')
 call init_attribute_name1 (beginning_ele$, eta_y$,                       'ETA_Y')
 call init_attribute_name1 (beginning_ele$, eta_z$,                       'ETA_Z')
@@ -2018,7 +2022,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'N_PARTICLE', &
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
-      'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', 'Y_KNOT', 'SLAVE', &
+      'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', 'Y_KNOT', 'SLAVE', 'DALPHA_DPZ_A', 'DALPHA_DPZ_B', &
       'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
@@ -2037,7 +2041,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'BETA_A', 'BETA_A0', 'BETA_A1', 'BETA_B', 'BETA_B0', 'BETA_B1', 'BETA_A_STRONG', 'BETA_B_STRONG', &
       'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', 'OSC_AMPLITUDE', 'R_SOLENOID', &
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
-      'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', 'X_KICK', 'Y_KICK', 'Z_KICK', &
+      'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', 'X_KICK', 'Y_KICK', 'Z_KICK', 'DBETA_DPZ_A', 'DBETA_DPZ_B', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
       'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_ACTIVE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &

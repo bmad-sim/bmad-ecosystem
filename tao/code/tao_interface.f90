@@ -189,9 +189,10 @@ subroutine tao_data_check (err)
   logical err
 end subroutine
 
-function tao_data_sanity_check (datum, print_err, default_data_type) result (is_valid)
+function tao_data_sanity_check (datum, print_err, default_data_type, uni) result (is_valid)
   import
   type (tao_data_struct) datum
+  type (tao_universe_struct), optional, target :: uni
   logical print_err, is_valid
   character(*) default_data_type
 end function

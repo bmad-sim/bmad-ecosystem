@@ -10,7 +10,7 @@
 !  X:    29.8929    -2.953     0.325   11.9116     1.4442     0.1347     0.1347
 !  Y:     1.3982     0.015     0.715   11.6300    -0.0006     0.0033     0.0033
 !
-! The default verbose form looks like:
+! The default verbose form looks something like:
 !                          A              B            Cbar                        C_mat
 !  Beta (m)         0.95312906     0.01777742  |   0.00010435  -0.00377511      0.00103683  -0.00049140
 !  Alpha            0.01355730    -0.00986789  |  -0.01199208   0.00067403     -0.09219227   0.00009904
@@ -49,10 +49,10 @@ integer, optional :: frequency_units
 integer, optional :: n_lines
 integer i, nl
 
-real(rp) coef, cbar(2,2)
+real(rp) coef, cbar(2,2), a1, a2, b1, b2
 
 character(*), optional :: lines(:)
-character(200) li(9)
+character(200) li(11)
 character(80) fmt, str, freq_str
 
 logical, optional :: compact_format
@@ -99,14 +99,27 @@ if (logic_option (.false., compact_format)) then
 else
   call c_to_cbar (ele, cbar)
   write (li(1), '(12x, 2(14x, a), 12x, a, 24x, a)') 'A', 'B', 'Cbar', 'C_mat'
-  write (li(2), '(2x, a12, 2a, 3a, 3x, 2a)')  'Beta (m)    ', v(ele%a%beta), v(ele%b%beta), '  |', v2(cbar(1,1)), v2(cbar(1,2)), v2(ele%c_mat(1,1)), v2(ele%c_mat(1,2))
-  write (li(3), '(2x, a12, 2a, 3a, 3x, 2a)')   'Alpha       ', v(ele%a%alpha), v(ele%b%alpha), '  |', v2(cbar(2,1)), v2(cbar(2,2)), v2(ele%c_mat(2,1)), v2(ele%c_mat(2,2))
-  write (li(4), '(2x, a12, 2a, a, 3x, 2a, 7x, a, l1)') 'Gamma (1/m) ', v(ele%a%gamma), v(ele%b%gamma), '  |', 'Gamma_c =', v2(ele%gamma_c), 'Mode_Flip = ', ele%mode_flip
+  write (li(2), '(2x, a12, 2a, 3a, 3x, 2a)') 'Beta (m)    ', v(ele%a%beta), v(ele%b%beta), '  |', v2(cbar(1,1)), v2(cbar(1,2)), v2(ele%c_mat(1,1)), v2(ele%c_mat(1,2))
+  write (li(3), '(2x, a12, 2a, 3a, 3x, 2a)') 'Alpha       ', v(ele%a%alpha), v(ele%b%alpha), '  |', v2(cbar(2,1)), v2(cbar(2,2)), v2(ele%c_mat(2,1)), v2(ele%c_mat(2,2))
+  write (li(4), '(2x, a12, 2a, a, 3x, 2a, 7x, a, l1)') &
+                                              'Gamma (1/m) ', v(ele%a%gamma), v(ele%b%gamma), '  |', 'Gamma_c =', v2(ele%gamma_c), 'Mode_Flip = ', ele%mode_flip
   write (li(5), '(2x, a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
-  write (li(6), '(2x, a12, 5a)')               'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
-  write (li(7), '(2x, a12, 5a)')               'Etap        ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
-  write (li(8), '(2x, a12, 5a)')               'dEta/ds     ', v(ele%a%deta_ds), v(ele%b%deta_ds), v(ele%x%deta_ds), v(ele%y%deta_ds), v(ele%z%deta_ds)
-  nl = 8
+  write (li(6), '(2x, a12, 5a)')              'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
+  write (li(7), '(2x, a12, 5a)')              'Etap        ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
+  write (li(8), '(2x, a12, 5a)')              'dEta/ds     ', v(ele%a%deta_ds), v(ele%b%deta_ds), v(ele%x%deta_ds), v(ele%y%deta_ds), v(ele%z%deta_ds)
+  if (ele%a%beta == 0 .or. ele%b%beta == 0) then
+    write (li(9), '(2x, a12, 5a)')            'dBeta/dpz   ', v(ele%a%dbeta_dpz), v(ele%b%dbeta_dpz)
+    write (li(10), '(2x, a12, 5a)')           'dAlpha/dpz  ', v(ele%a%dalpha_dpz), v(ele%b%dalpha_dpz)
+  else
+    b1 = ele%a%dbeta_dpz / ele%a%beta
+    a1 = ele%a%dalpha_dpz - ele%a%alpha * b1
+    b2 = ele%b%dbeta_dpz / ele%b%beta
+    a2 = ele%b%dalpha_dpz - ele%b%alpha * b2
+    write (li(9), '(2x, a12, 2a, 5x, 2a)')     'dBeta/dpz   ', v(ele%a%dbeta_dpz), v(ele%b%dbeta_dpz),   'W_a =', v(sqrt(a1*a1 + b1*b1))
+    write (li(10), '(2x, a12, 2a, 5x, 2a)')    'dAlpha/dpz  ', v(ele%a%dalpha_dpz), v(ele%b%dalpha_dpz), 'W_b =', v(sqrt(a2*a2 + b2*b2))
+  endif
+  nl = 10
+
   if (ele%a%sigma /= 0 .or. ele%b%sigma /= 0) then
     nl=nl+1; write (li(nl), '(2x, a12, 5a)')   'Sigma       ', v(ele%a%sigma), v(ele%b%sigma), v(ele%x%sigma), v(ele%y%sigma)
   endif
